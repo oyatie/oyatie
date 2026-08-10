@@ -32,7 +32,7 @@ One new crate `oya-cloud-k8s-cluster-bootstrap-usecase`. Catalog row.
 | `.../src/etcd_backup.rs` | create — orchestrate snapshot create + signature + upload |
 | `.../src/etcd_restore.rs` | create — orchestrate snapshot download + verify + restore |
 | `.../src/evidence_emission.rs` | create — emit BootstrapEvidence via ports |
-| `microservices/cloud-k8s/catalog/oya-cloud-k8s-cluster-bootstrap-usecase.yaml` | create |
+| `k8s/catalog/oya-cloud-k8s-cluster-bootstrap-usecase.yaml` | create |
 
 ## Crate Naming
 
@@ -115,4 +115,4 @@ Per usecase class: 1 per use case (happy + 2 sad paths) + ≥ 3 against mocked p
 ## References
 
 - ADR-0106 (usecase rename); ADR-0105.
-- `microservices/cloud-k8s/PRD.md` §"Bounded Contexts".
+- `k8s/PRD.md` §"Bounded Contexts".

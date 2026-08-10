@@ -120,5 +120,5 @@ Key e2e:
 ## References
 
 - ADR-0105 (13-layer); ADR-0131.
-- `microservices/cloud-k8s/PRD.md` AC table.
-- `microservices/cloud-k8s/sdk-plan.md`.
+- `k8s/PRD.md` AC table.
+- `k8s/sdk-plan.md`.

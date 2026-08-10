@@ -21,8 +21,8 @@ maturity: stable
 created_at: 2026-05-17
 related_adrs: [ADR-0121, ADR-0131]
 related_artifacts:
-  - microservices/cloud-k8s/contracts/openapi/cloud-k8s.yaml
-  - microservices/cloud-k8s/runbooks/node-cordon-and-drain.md
+  - k8s/contracts/openapi/cloud-k8s.yaml
+  - k8s/runbooks/node-cordon-and-drain.md
 
 autonomy_tier: T2
 # T2 = state-mutating, scoped impact (single node); single-person approval +
@@ -94,7 +94,7 @@ cost_profile:
     - For drain: O(pods) eviction calls
 
 cedar_policy_fragments:
-  - microservices/cloud-k8s/policy/cluster-isolation.md (CI-07 mediation)
+  - k8s/policy/cluster-isolation.md (CI-07 mediation)
 
 eval_set:
   reference_inputs_path: microservices/cloud-k8s/capabilities/eval/node-lifecycle-reference.jsonl

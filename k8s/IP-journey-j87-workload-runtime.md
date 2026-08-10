@@ -25,7 +25,7 @@ Implement the `workload-runtime` slice for `cloud-k8s` so j87 can satisfy `FedRA
 
 ## PRD row alignment
 
-- PRD anchor: microservices/cloud-k8s/PRD.md when present, otherwise the service manifest and architecture surface for that microservice.
+- PRD anchor: k8s/PRD.md when present, otherwise the service manifest and architecture surface for that microservice.
 - Journey anchor: docs/user-journeys/j87-fedramp-high-il5-air-gap-deployment/.
 - Regulator article focus: FedRAMP High Rev5 baseline.
 - Rigor row: documentation-rigor.md section 2 IP row; one service, one single-PR-sized implementation plan.

@@ -16,15 +16,15 @@ source_anchors:
   - /Users/jasonlee/oyatie/docs/decisions/ADR-0709-general-live-apex.md
   - /Users/jasonlee/oyatie/docs/decisions/ADR-0700-ci-admission-live-apex.md
 related_local_docs:
-  - microservices/cloud-k8s/PRD.md
-  - microservices/cloud-k8s/ARCHITECTURE.md
-  - microservices/cloud-k8s/manifest.json
-  - microservices/cloud-k8s/competitor-parity-matrix.md
+  - k8s/PRD.md
+  - k8s/ARCHITECTURE.md
+  - k8s/manifest.json
+  - k8s/competitor-parity-matrix.md
   - microservices/cloud-k8s/capability-tiers/tier-matrix.md
-  - microservices/cloud-k8s/multi-region.md
-  - microservices/cloud-k8s/failure-modes.md
-  - microservices/cloud-k8s/capacity-model.md
-  - microservices/cloud-k8s/compliance.md
+  - k8s/multi-region.md
+  - k8s/failure-modes.md
+  - k8s/capacity-model.md
+  - k8s/compliance.md
 ---
 
 # cloud-k8s — Wave-4 Rolling Ownership-Coherence Audit (2026-05-21)
@@ -40,7 +40,7 @@ CSI integrations that every other oyatie microservice runs on top of.
 Per ADR-0121, the stack is upstream Kubernetes 1.35 LTS + containerd
 2.3.0 LTS + Istio 1.29.2 + Envoy + Cilium 1.18 + CSI drivers per
 storage backend. Per ADR-0131, cloud-k8s sits flat under
-microservices/cloud-k8s/ with src/ as the canonical code root.
+k8s/ with src/ as the canonical code root.
 
 Per master-plan-sequencing.json D-1.16, the Phase 0 canonical name is
 cloud-compute-k8s. The live directory is cloud-k8s. ADR-0328 D-1.107
@@ -50,7 +50,7 @@ the alias rather than rename inside an audit-only wave.
 ### 0.2 Owner
 
 Owner team: axis-cloud-k8s. Single-owner discipline holds: every audit
-artifact under microservices/cloud-k8s/ traces back to axis-cloud-k8s
+artifact under k8s/ traces back to axis-cloud-k8s
 as the responsible council subteam. The CODEOWNERS expectation is that
 PRs touching cloud-k8s require axis-cloud-k8s sign-off plus, when the
 PR also touches contracts/* or policy/*, a multispectrum reviewer pass.
@@ -878,7 +878,7 @@ orchestrator.
   models, D-2 same-architecture invariant, D-3 cell topology table,
   D-4 deployment-control-plane substrate, D-5 .oab bundle format,
   D-6 air-gap CDS delivery).
-- Listed every file under microservices/cloud-k8s/ recursively
+- Listed every file under k8s/ recursively
   (~120 files visible at the listing depth).
 
 Five-anchor cross-checks performed:
@@ -966,9 +966,9 @@ audit_completion_report:
     canonical_direction: PASS-WITH-FINDINGS
     industry_parity: PASS-WITH-FINDINGS
   deliverables_authored:
-    - microservices/cloud-k8s/coherence-audit-2026-05-20.md
-    - microservices/cloud-k8s/feature-parity-matrix-2026-05-20.md
-    - microservices/cloud-k8s/performance-benchmark-numbers-2026-05-20.md
+    - k8s/coherence-audit-2026-05-20.md
+    - k8s/feature-parity-matrix-2026-05-20.md
+    - k8s/performance-benchmark-numbers-2026-05-20.md
   tier_deltas_doc_omitted: true
   tier_deltas_doc_omitted_reason: per-brief-no-tier-scaffolding-amendment-2026-05-20
   adr_0254_alignment_evidence: yes

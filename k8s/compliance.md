@@ -9,11 +9,11 @@ owner_team: council-privacy + ops-compliance + ops-security
 deciders: council-privacy, ops-security, axis-cloud, council-architecture, ops-compliance
 related_adrs: [ADR-0028, ADR-0117, ADR-0121, ADR-0123, ADR-0139, ADR-0131, ADR-0140 (retired per ADR-0145)]
 related_artifacts:
-  - microservices/cloud-k8s/threat-model.md
-  - microservices/cloud-k8s/dpia.md
-  - microservices/cloud-k8s/policy/cluster-isolation.md
-  - microservices/cloud-k8s/policy/data-residency.md
-  - microservices/cloud-k8s/incident-response.md
+  - k8s/threat-model.md
+  - k8s/dpia.md
+  - k8s/policy/cluster-isolation.md
+  - k8s/policy/data-residency.md
+  - k8s/incident-response.md
 review_cadence: annually + on every enforced-framework version update
 doc_status: published
 ---
@@ -282,10 +282,10 @@ Refuses merges if any evidence artifact older than 90 days is referenced as "cur
 
 ## References
 
-- `microservices/cloud-k8s/threat-model.md`.
-- `microservices/cloud-k8s/dpia.md`.
-- `microservices/cloud-k8s/policy/{cluster-isolation, data-residency, tenant-scope, ci-scope, auditor-scope, public-read}.{md,cedar}`.
-- `microservices/cloud-k8s/incident-response.md`.
+- `k8s/threat-model.md`.
+- `k8s/dpia.md`.
+- `k8s/policy/{cluster-isolation, data-residency, tenant-scope, ci-scope, auditor-scope, public-read}.{md,cedar}`.
+- `k8s/incident-response.md`.
 - ADR-0028 (audit-chain); ADR-0117; ADR-0121; ADR-0123 (hyperscaler-maturity); ADR-0139; ADR-0131; ADR-0140 (Cedar).
 - SOC 2 Type 2 TSC — `aicpa.org`.
 - ISO 27001:2022 — `iso.org/standard/27001`.
@@ -306,7 +306,7 @@ This anchor is closed for `cloud-k8s` against ADR-0250 §D-1: certification-read
 ### Service-specific answer
 - Certification scope for `cloud-k8s` covers packs `kr`, `eu`, `us`, `us-healthcare`, `jp`, `sg`; +5 more.
 - Evidence collector classes: policy decision log, audit event seal, SLO burn-rate report, contract-schema validation, dependency/SBOM attestation, and runbook drill record.
-- Primary evidence files: `microservices/cloud-k8s/slos/cis-benchmark-conformance.openslo.yaml`, `microservices/cloud-k8s/slos/cluster-api-availability.openslo.yaml`, `microservices/cloud-k8s/slos/cluster-cni-availability.openslo.yaml`, `microservices/cloud-k8s/slos/node-readiness-correctness.openslo.yaml`, `microservices/cloud-k8s/slos/pod-scheduling-latency.openslo.yaml`, `microservices/cloud-k8s/slos/service-mesh-availability.openslo.yaml`; +12 more.
+- Primary evidence files: `k8s/slos/cis-benchmark-conformance.openslo.yaml`, `k8s/slos/cluster-api-availability.openslo.yaml`, `k8s/slos/cluster-cni-availability.openslo.yaml`, `k8s/slos/node-readiness-correctness.openslo.yaml`, `k8s/slos/pod-scheduling-latency.openslo.yaml`, `k8s/slos/service-mesh-availability.openslo.yaml`; +12 more.
 - Example: `cluster-bootstrap` readiness requires a signed audit event, an OpenAPI/AsyncAPI schema, an SLO target, and a pack-specific retention statement before launch.
 - Retrofit is forbidden: controls land before certification audit, and audit artifacts are generated continuously rather than assembled after an incident.
 - SOC 2 maps to access, change, logging, and incident controls; ISO 27001 maps to Annex A domains; regional packs add local regulator timing.
@@ -316,20 +316,20 @@ This anchor is closed for `cloud-k8s` against ADR-0250 §D-1: certification-read
 ### Concrete inventory used
 - Service: `cloud-k8s`; owner `axis-cloud-k8s`; tier `product`; audience `B2C_CONSUMER + B2B_TENANT`.
 - Bounded contexts used for this answer: `cloud-k8s`.
-- Capability records cited: `microservices/cloud-k8s/capabilities/cluster-bootstrap.yaml`, `microservices/cloud-k8s/capabilities/network-policy-apply.yaml`, `microservices/cloud-k8s/capabilities/node-lifecycle.yaml`.
-- API surfaces cited: `microservices/cloud-k8s/contracts/asyncapi/cloud-k8s-events.yaml`, `microservices/cloud-k8s/contracts/openapi/cloud-k8s.yaml`, `microservices/cloud-k8s/contracts/proto/cloud-k8s.proto`.
-- Cedar/policy artifacts cited: `microservices/cloud-k8s/policy/auditor-scope.cedar`, `microservices/cloud-k8s/policy/ci-scope.cedar`, `microservices/cloud-k8s/policy/cluster-isolation.md`, `microservices/cloud-k8s/policy/data-residency.md`, `microservices/cloud-k8s/policy/public-read.cedar`, `microservices/cloud-k8s/policy/tenant-scope.cedar`.
-- SLO and dashboard evidence: `microservices/cloud-k8s/slos/cis-benchmark-conformance.openslo.yaml`, `microservices/cloud-k8s/slos/cluster-api-availability.openslo.yaml`, `microservices/cloud-k8s/slos/cluster-cni-availability.openslo.yaml`, `microservices/cloud-k8s/slos/node-readiness-correctness.openslo.yaml`, `microservices/cloud-k8s/slos/pod-scheduling-latency.openslo.yaml`, `microservices/cloud-k8s/slos/service-mesh-availability.openslo.yaml`; +3 more.
-- Runbook/IaC evidence: `microservices/cloud-k8s/runbooks/control-plane-restore.md`, `microservices/cloud-k8s/runbooks/csi-rebuild.md`, `microservices/cloud-k8s/runbooks/envoy-sni-debug.md`, `microservices/cloud-k8s/runbooks/etcd-quorum-recovery.md`, `microservices/cloud-k8s/runbooks/ingress-ddos-throttle.md`, `microservices/cloud-k8s/runbooks/istio-mtls-rotation.md`; +15 more.
+- Capability records cited: `k8s/capabilities/cluster-bootstrap.yaml`, `k8s/capabilities/network-policy-apply.yaml`, `k8s/capabilities/node-lifecycle.yaml`.
+- API surfaces cited: `k8s/contracts/asyncapi/cloud-k8s-events.yaml`, `k8s/contracts/openapi/cloud-k8s.yaml`, `k8s/contracts/proto/cloud-k8s.proto`.
+- Cedar/policy artifacts cited: `k8s/policy/auditor-scope.cedar`, `k8s/policy/ci-scope.cedar`, `k8s/policy/cluster-isolation.md`, `k8s/policy/data-residency.md`, `k8s/policy/public-read.cedar`, `k8s/policy/tenant-scope.cedar`.
+- SLO and dashboard evidence: `k8s/slos/cis-benchmark-conformance.openslo.yaml`, `k8s/slos/cluster-api-availability.openslo.yaml`, `k8s/slos/cluster-cni-availability.openslo.yaml`, `k8s/slos/node-readiness-correctness.openslo.yaml`, `k8s/slos/pod-scheduling-latency.openslo.yaml`, `k8s/slos/service-mesh-availability.openslo.yaml`; +3 more.
+- Runbook/IaC evidence: `k8s/runbooks/control-plane-restore.md`, `k8s/runbooks/csi-rebuild.md`, `k8s/runbooks/envoy-sni-debug.md`, `k8s/runbooks/etcd-quorum-recovery.md`, `k8s/runbooks/ingress-ddos-throttle.md`, `k8s/runbooks/istio-mtls-rotation.md`; +15 more.
 - Data classes declared for this control: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 
 ### Primitive and API binding
-- API surface binding: `microservices/cloud-k8s/contracts/asyncapi/cloud-k8s-events.yaml`, `microservices/cloud-k8s/contracts/openapi/cloud-k8s.yaml`, `microservices/cloud-k8s/contracts/proto/cloud-k8s.proto`.
-- Cedar binding: `microservices/cloud-k8s/policy/auditor-scope.cedar`, `microservices/cloud-k8s/policy/ci-scope.cedar`, `microservices/cloud-k8s/policy/cluster-isolation.md`, `microservices/cloud-k8s/policy/data-residency.md`, `microservices/cloud-k8s/policy/public-read.cedar`, `microservices/cloud-k8s/policy/tenant-scope.cedar`.
+- API surface binding: `k8s/contracts/asyncapi/cloud-k8s-events.yaml`, `k8s/contracts/openapi/cloud-k8s.yaml`, `k8s/contracts/proto/cloud-k8s.proto`.
+- Cedar binding: `k8s/policy/auditor-scope.cedar`, `k8s/policy/ci-scope.cedar`, `k8s/policy/cluster-isolation.md`, `k8s/policy/data-residency.md`, `k8s/policy/public-read.cedar`, `k8s/policy/tenant-scope.cedar`.
 - State/event binding: `cloud_k8s.cloud_k8s`.
 - Capability binding: `cluster-bootstrap`, `network-policy-apply`, `node-lifecycle`.
-- SLO binding: `microservices/cloud-k8s/slos/cis-benchmark-conformance.openslo.yaml`, `microservices/cloud-k8s/slos/cluster-api-availability.openslo.yaml`, `microservices/cloud-k8s/slos/cluster-cni-availability.openslo.yaml`, `microservices/cloud-k8s/slos/node-readiness-correctness.openslo.yaml`, `microservices/cloud-k8s/slos/pod-scheduling-latency.openslo.yaml`, `microservices/cloud-k8s/slos/service-mesh-availability.openslo.yaml`.
-- Runbook binding: `microservices/cloud-k8s/runbooks/control-plane-restore.md`, `microservices/cloud-k8s/runbooks/csi-rebuild.md`, `microservices/cloud-k8s/runbooks/envoy-sni-debug.md`, `microservices/cloud-k8s/runbooks/etcd-quorum-recovery.md`, `microservices/cloud-k8s/runbooks/ingress-ddos-throttle.md`, `microservices/cloud-k8s/runbooks/istio-mtls-rotation.md`; +3 more.
+- SLO binding: `k8s/slos/cis-benchmark-conformance.openslo.yaml`, `k8s/slos/cluster-api-availability.openslo.yaml`, `k8s/slos/cluster-cni-availability.openslo.yaml`, `k8s/slos/node-readiness-correctness.openslo.yaml`, `k8s/slos/pod-scheduling-latency.openslo.yaml`, `k8s/slos/service-mesh-availability.openslo.yaml`.
+- Runbook binding: `k8s/runbooks/control-plane-restore.md`, `k8s/runbooks/csi-rebuild.md`, `k8s/runbooks/envoy-sni-debug.md`, `k8s/runbooks/etcd-quorum-recovery.md`, `k8s/runbooks/ingress-ddos-throttle.md`, `k8s/runbooks/istio-mtls-rotation.md`; +3 more.
 
 ### Cross-service links
 - `tenancy` provides tenant lifecycle, `tenant_id`, `audience_type`, pack activation, and provider-BYOK mode consumed by `cloud-k8s`.
@@ -367,7 +367,7 @@ This anchor is closed for `cloud-k8s` against ADR-0251 §D-2: pack activation, o
 
 ### Service-specific answer
 - Active/expected pack roster: `kr`, `eu`, `us`, `us-healthcare`, `jp`, `sg`; +5 more.
-- Pack overlays modify Cedar fragments `microservices/cloud-k8s/policy/auditor-scope.cedar`, `microservices/cloud-k8s/policy/ci-scope.cedar`, `microservices/cloud-k8s/policy/cluster-isolation.md`, `microservices/cloud-k8s/policy/data-residency.md`, `microservices/cloud-k8s/policy/public-read.cedar`, `microservices/cloud-k8s/policy/tenant-scope.cedar` without changing domain code.
+- Pack overlays modify Cedar fragments `k8s/policy/auditor-scope.cedar`, `k8s/policy/ci-scope.cedar`, `k8s/policy/cluster-isolation.md`, `k8s/policy/data-residency.md`, `k8s/policy/public-read.cedar`, `k8s/policy/tenant-scope.cedar` without changing domain code.
 - Data classes under pack control: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 - Higher-restriction-wins: if GDPR conflicts with another pack, the stricter storage, transfer, notice, or access rule applies until legal workflow resolves it.
 - CN-PIPL-2021 is activated on CN `jurisdiction_code`; KR packs pin data to KR cells; EU sovereign packs prevent non-EU failover unless explicitly allowed.
@@ -378,20 +378,20 @@ This anchor is closed for `cloud-k8s` against ADR-0251 §D-2: pack activation, o
 ### Concrete inventory used
 - Service: `cloud-k8s`; owner `axis-cloud-k8s`; tier `product`; audience `B2C_CONSUMER + B2B_TENANT`.
 - Bounded contexts used for this answer: `cloud-k8s`.
-- Capability records cited: `microservices/cloud-k8s/capabilities/cluster-bootstrap.yaml`, `microservices/cloud-k8s/capabilities/network-policy-apply.yaml`, `microservices/cloud-k8s/capabilities/node-lifecycle.yaml`.
-- API surfaces cited: `microservices/cloud-k8s/contracts/asyncapi/cloud-k8s-events.yaml`, `microservices/cloud-k8s/contracts/openapi/cloud-k8s.yaml`, `microservices/cloud-k8s/contracts/proto/cloud-k8s.proto`.
-- Cedar/policy artifacts cited: `microservices/cloud-k8s/policy/auditor-scope.cedar`, `microservices/cloud-k8s/policy/ci-scope.cedar`, `microservices/cloud-k8s/policy/cluster-isolation.md`, `microservices/cloud-k8s/policy/data-residency.md`, `microservices/cloud-k8s/policy/public-read.cedar`, `microservices/cloud-k8s/policy/tenant-scope.cedar`.
-- SLO and dashboard evidence: `microservices/cloud-k8s/slos/cis-benchmark-conformance.openslo.yaml`, `microservices/cloud-k8s/slos/cluster-api-availability.openslo.yaml`, `microservices/cloud-k8s/slos/cluster-cni-availability.openslo.yaml`, `microservices/cloud-k8s/slos/node-readiness-correctness.openslo.yaml`, `microservices/cloud-k8s/slos/pod-scheduling-latency.openslo.yaml`, `microservices/cloud-k8s/slos/service-mesh-availability.openslo.yaml`; +3 more.
-- Runbook/IaC evidence: `microservices/cloud-k8s/runbooks/control-plane-restore.md`, `microservices/cloud-k8s/runbooks/csi-rebuild.md`, `microservices/cloud-k8s/runbooks/envoy-sni-debug.md`, `microservices/cloud-k8s/runbooks/etcd-quorum-recovery.md`, `microservices/cloud-k8s/runbooks/ingress-ddos-throttle.md`, `microservices/cloud-k8s/runbooks/istio-mtls-rotation.md`; +15 more.
+- Capability records cited: `k8s/capabilities/cluster-bootstrap.yaml`, `k8s/capabilities/network-policy-apply.yaml`, `k8s/capabilities/node-lifecycle.yaml`.
+- API surfaces cited: `k8s/contracts/asyncapi/cloud-k8s-events.yaml`, `k8s/contracts/openapi/cloud-k8s.yaml`, `k8s/contracts/proto/cloud-k8s.proto`.
+- Cedar/policy artifacts cited: `k8s/policy/auditor-scope.cedar`, `k8s/policy/ci-scope.cedar`, `k8s/policy/cluster-isolation.md`, `k8s/policy/data-residency.md`, `k8s/policy/public-read.cedar`, `k8s/policy/tenant-scope.cedar`.
+- SLO and dashboard evidence: `k8s/slos/cis-benchmark-conformance.openslo.yaml`, `k8s/slos/cluster-api-availability.openslo.yaml`, `k8s/slos/cluster-cni-availability.openslo.yaml`, `k8s/slos/node-readiness-correctness.openslo.yaml`, `k8s/slos/pod-scheduling-latency.openslo.yaml`, `k8s/slos/service-mesh-availability.openslo.yaml`; +3 more.
+- Runbook/IaC evidence: `k8s/runbooks/control-plane-restore.md`, `k8s/runbooks/csi-rebuild.md`, `k8s/runbooks/envoy-sni-debug.md`, `k8s/runbooks/etcd-quorum-recovery.md`, `k8s/runbooks/ingress-ddos-throttle.md`, `k8s/runbooks/istio-mtls-rotation.md`; +15 more.
 - Data classes declared for this control: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 
 ### Primitive and API binding
-- API surface binding: `microservices/cloud-k8s/contracts/asyncapi/cloud-k8s-events.yaml`, `microservices/cloud-k8s/contracts/openapi/cloud-k8s.yaml`, `microservices/cloud-k8s/contracts/proto/cloud-k8s.proto`.
-- Cedar binding: `microservices/cloud-k8s/policy/auditor-scope.cedar`, `microservices/cloud-k8s/policy/ci-scope.cedar`, `microservices/cloud-k8s/policy/cluster-isolation.md`, `microservices/cloud-k8s/policy/data-residency.md`, `microservices/cloud-k8s/policy/public-read.cedar`, `microservices/cloud-k8s/policy/tenant-scope.cedar`.
+- API surface binding: `k8s/contracts/asyncapi/cloud-k8s-events.yaml`, `k8s/contracts/openapi/cloud-k8s.yaml`, `k8s/contracts/proto/cloud-k8s.proto`.
+- Cedar binding: `k8s/policy/auditor-scope.cedar`, `k8s/policy/ci-scope.cedar`, `k8s/policy/cluster-isolation.md`, `k8s/policy/data-residency.md`, `k8s/policy/public-read.cedar`, `k8s/policy/tenant-scope.cedar`.
 - State/event binding: `cloud_k8s.cloud_k8s`.
 - Capability binding: `cluster-bootstrap`, `network-policy-apply`, `node-lifecycle`.
-- SLO binding: `microservices/cloud-k8s/slos/cis-benchmark-conformance.openslo.yaml`, `microservices/cloud-k8s/slos/cluster-api-availability.openslo.yaml`, `microservices/cloud-k8s/slos/cluster-cni-availability.openslo.yaml`, `microservices/cloud-k8s/slos/node-readiness-correctness.openslo.yaml`, `microservices/cloud-k8s/slos/pod-scheduling-latency.openslo.yaml`, `microservices/cloud-k8s/slos/service-mesh-availability.openslo.yaml`.
-- Runbook binding: `microservices/cloud-k8s/runbooks/control-plane-restore.md`, `microservices/cloud-k8s/runbooks/csi-rebuild.md`, `microservices/cloud-k8s/runbooks/envoy-sni-debug.md`, `microservices/cloud-k8s/runbooks/etcd-quorum-recovery.md`, `microservices/cloud-k8s/runbooks/ingress-ddos-throttle.md`, `microservices/cloud-k8s/runbooks/istio-mtls-rotation.md`; +3 more.
+- SLO binding: `k8s/slos/cis-benchmark-conformance.openslo.yaml`, `k8s/slos/cluster-api-availability.openslo.yaml`, `k8s/slos/cluster-cni-availability.openslo.yaml`, `k8s/slos/node-readiness-correctness.openslo.yaml`, `k8s/slos/pod-scheduling-latency.openslo.yaml`, `k8s/slos/service-mesh-availability.openslo.yaml`.
+- Runbook binding: `k8s/runbooks/control-plane-restore.md`, `k8s/runbooks/csi-rebuild.md`, `k8s/runbooks/envoy-sni-debug.md`, `k8s/runbooks/etcd-quorum-recovery.md`, `k8s/runbooks/ingress-ddos-throttle.md`, `k8s/runbooks/istio-mtls-rotation.md`; +3 more.
 
 ### Cross-service links
 - `tenancy` provides tenant lifecycle, `tenant_id`, `audience_type`, pack activation, and provider-BYOK mode consumed by `cloud-k8s`.
@@ -430,7 +430,7 @@ This anchor is closed for `cloud-k8s` against ADR-0284 §D-1: platform_owner ind
 ### Service-specific answer
 - Runtime platform-owner string is configured as `platform_owner.display_name`; `cloud-k8s` does not hard-code user-visible owner names in API or UI output.
 - Internal principal names may retain `oyatie.*` because ADR-0242 treats `oyatie` as the platform tenant, not as user-visible branding.
-- Surfaces audited for display strings: `microservices/cloud-k8s/contracts/asyncapi/cloud-k8s-events.yaml`, `microservices/cloud-k8s/contracts/openapi/cloud-k8s.yaml`, `microservices/cloud-k8s/contracts/proto/cloud-k8s.proto`, `microservices/cloud-k8s/runbooks/control-plane-restore.md`, `microservices/cloud-k8s/runbooks/csi-rebuild.md`, `microservices/cloud-k8s/runbooks/envoy-sni-debug.md`; +18 more.
+- Surfaces audited for display strings: `k8s/contracts/asyncapi/cloud-k8s-events.yaml`, `k8s/contracts/openapi/cloud-k8s.yaml`, `k8s/contracts/proto/cloud-k8s.proto`, `k8s/runbooks/control-plane-restore.md`, `k8s/runbooks/csi-rebuild.md`, `k8s/runbooks/envoy-sni-debug.md`; +18 more.
 - API responses expose owner references as opaque ids or config-resolved display names; logs keep stable tenant/platform ids for auditability.
 - Example: `cluster-bootstrap` error text says `platform owner` or config-resolved name, while audit event principal remains `oyatie.cloud-k8s.runtime`.
 - Grep-audit evidence records exceptions: principal slugs, ADR citations, internal package names, and provenance fields are allowed when not user-visible.
@@ -440,20 +440,20 @@ This anchor is closed for `cloud-k8s` against ADR-0284 §D-1: platform_owner ind
 ### Concrete inventory used
 - Service: `cloud-k8s`; owner `axis-cloud-k8s`; tier `product`; audience `B2C_CONSUMER + B2B_TENANT`.
 - Bounded contexts used for this answer: `cloud-k8s`.
-- Capability records cited: `microservices/cloud-k8s/capabilities/cluster-bootstrap.yaml`, `microservices/cloud-k8s/capabilities/network-policy-apply.yaml`, `microservices/cloud-k8s/capabilities/node-lifecycle.yaml`.
-- API surfaces cited: `microservices/cloud-k8s/contracts/asyncapi/cloud-k8s-events.yaml`, `microservices/cloud-k8s/contracts/openapi/cloud-k8s.yaml`, `microservices/cloud-k8s/contracts/proto/cloud-k8s.proto`.
-- Cedar/policy artifacts cited: `microservices/cloud-k8s/policy/auditor-scope.cedar`, `microservices/cloud-k8s/policy/ci-scope.cedar`, `microservices/cloud-k8s/policy/cluster-isolation.md`, `microservices/cloud-k8s/policy/data-residency.md`, `microservices/cloud-k8s/policy/public-read.cedar`, `microservices/cloud-k8s/policy/tenant-scope.cedar`.
-- SLO and dashboard evidence: `microservices/cloud-k8s/slos/cis-benchmark-conformance.openslo.yaml`, `microservices/cloud-k8s/slos/cluster-api-availability.openslo.yaml`, `microservices/cloud-k8s/slos/cluster-cni-availability.openslo.yaml`, `microservices/cloud-k8s/slos/node-readiness-correctness.openslo.yaml`, `microservices/cloud-k8s/slos/pod-scheduling-latency.openslo.yaml`, `microservices/cloud-k8s/slos/service-mesh-availability.openslo.yaml`; +3 more.
-- Runbook/IaC evidence: `microservices/cloud-k8s/runbooks/control-plane-restore.md`, `microservices/cloud-k8s/runbooks/csi-rebuild.md`, `microservices/cloud-k8s/runbooks/envoy-sni-debug.md`, `microservices/cloud-k8s/runbooks/etcd-quorum-recovery.md`, `microservices/cloud-k8s/runbooks/ingress-ddos-throttle.md`, `microservices/cloud-k8s/runbooks/istio-mtls-rotation.md`; +15 more.
+- Capability records cited: `k8s/capabilities/cluster-bootstrap.yaml`, `k8s/capabilities/network-policy-apply.yaml`, `k8s/capabilities/node-lifecycle.yaml`.
+- API surfaces cited: `k8s/contracts/asyncapi/cloud-k8s-events.yaml`, `k8s/contracts/openapi/cloud-k8s.yaml`, `k8s/contracts/proto/cloud-k8s.proto`.
+- Cedar/policy artifacts cited: `k8s/policy/auditor-scope.cedar`, `k8s/policy/ci-scope.cedar`, `k8s/policy/cluster-isolation.md`, `k8s/policy/data-residency.md`, `k8s/policy/public-read.cedar`, `k8s/policy/tenant-scope.cedar`.
+- SLO and dashboard evidence: `k8s/slos/cis-benchmark-conformance.openslo.yaml`, `k8s/slos/cluster-api-availability.openslo.yaml`, `k8s/slos/cluster-cni-availability.openslo.yaml`, `k8s/slos/node-readiness-correctness.openslo.yaml`, `k8s/slos/pod-scheduling-latency.openslo.yaml`, `k8s/slos/service-mesh-availability.openslo.yaml`; +3 more.
+- Runbook/IaC evidence: `k8s/runbooks/control-plane-restore.md`, `k8s/runbooks/csi-rebuild.md`, `k8s/runbooks/envoy-sni-debug.md`, `k8s/runbooks/etcd-quorum-recovery.md`, `k8s/runbooks/ingress-ddos-throttle.md`, `k8s/runbooks/istio-mtls-rotation.md`; +15 more.
 - Data classes declared for this control: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 
 ### Primitive and API binding
-- API surface binding: `microservices/cloud-k8s/contracts/asyncapi/cloud-k8s-events.yaml`, `microservices/cloud-k8s/contracts/openapi/cloud-k8s.yaml`, `microservices/cloud-k8s/contracts/proto/cloud-k8s.proto`.
-- Cedar binding: `microservices/cloud-k8s/policy/auditor-scope.cedar`, `microservices/cloud-k8s/policy/ci-scope.cedar`, `microservices/cloud-k8s/policy/cluster-isolation.md`, `microservices/cloud-k8s/policy/data-residency.md`, `microservices/cloud-k8s/policy/public-read.cedar`, `microservices/cloud-k8s/policy/tenant-scope.cedar`.
+- API surface binding: `k8s/contracts/asyncapi/cloud-k8s-events.yaml`, `k8s/contracts/openapi/cloud-k8s.yaml`, `k8s/contracts/proto/cloud-k8s.proto`.
+- Cedar binding: `k8s/policy/auditor-scope.cedar`, `k8s/policy/ci-scope.cedar`, `k8s/policy/cluster-isolation.md`, `k8s/policy/data-residency.md`, `k8s/policy/public-read.cedar`, `k8s/policy/tenant-scope.cedar`.
 - State/event binding: `cloud_k8s.cloud_k8s`.
 - Capability binding: `cluster-bootstrap`, `network-policy-apply`, `node-lifecycle`.
-- SLO binding: `microservices/cloud-k8s/slos/cis-benchmark-conformance.openslo.yaml`, `microservices/cloud-k8s/slos/cluster-api-availability.openslo.yaml`, `microservices/cloud-k8s/slos/cluster-cni-availability.openslo.yaml`, `microservices/cloud-k8s/slos/node-readiness-correctness.openslo.yaml`, `microservices/cloud-k8s/slos/pod-scheduling-latency.openslo.yaml`, `microservices/cloud-k8s/slos/service-mesh-availability.openslo.yaml`.
-- Runbook binding: `microservices/cloud-k8s/runbooks/control-plane-restore.md`, `microservices/cloud-k8s/runbooks/csi-rebuild.md`, `microservices/cloud-k8s/runbooks/envoy-sni-debug.md`, `microservices/cloud-k8s/runbooks/etcd-quorum-recovery.md`, `microservices/cloud-k8s/runbooks/ingress-ddos-throttle.md`, `microservices/cloud-k8s/runbooks/istio-mtls-rotation.md`; +3 more.
+- SLO binding: `k8s/slos/cis-benchmark-conformance.openslo.yaml`, `k8s/slos/cluster-api-availability.openslo.yaml`, `k8s/slos/cluster-cni-availability.openslo.yaml`, `k8s/slos/node-readiness-correctness.openslo.yaml`, `k8s/slos/pod-scheduling-latency.openslo.yaml`, `k8s/slos/service-mesh-availability.openslo.yaml`.
+- Runbook binding: `k8s/runbooks/control-plane-restore.md`, `k8s/runbooks/csi-rebuild.md`, `k8s/runbooks/envoy-sni-debug.md`, `k8s/runbooks/etcd-quorum-recovery.md`, `k8s/runbooks/ingress-ddos-throttle.md`, `k8s/runbooks/istio-mtls-rotation.md`; +3 more.
 
 ### Cross-service links
 - `tenancy` provides tenant lifecycle, `tenant_id`, `audience_type`, pack activation, and provider-BYOK mode consumed by `cloud-k8s`.
@@ -492,7 +492,7 @@ This anchor is closed for `cloud-k8s` against documentation-rigor.md §3.2.6.A: 
 ### Service-specific answer
 - `cloud-k8s` emits detection signals through ADR-0263 audit pipeline, not an ungoverned side channel.
 - Detection families applicable here: policy violation, insider risk, account-takeover, content/transaction abuse where `cluster-bootstrap` touches those data classes.
-- Signal sources: `microservices/cloud-k8s/policy/auditor-scope.cedar`, `microservices/cloud-k8s/policy/ci-scope.cedar`, `microservices/cloud-k8s/policy/cluster-isolation.md`, `microservices/cloud-k8s/policy/data-residency.md`, `microservices/cloud-k8s/policy/public-read.cedar`, `microservices/cloud-k8s/policy/tenant-scope.cedar`; +9 more.
+- Signal sources: `k8s/policy/auditor-scope.cedar`, `k8s/policy/ci-scope.cedar`, `k8s/policy/cluster-isolation.md`, `k8s/policy/data-residency.md`, `k8s/policy/public-read.cedar`, `k8s/policy/tenant-scope.cedar`; +9 more.
 - Example event class: `oya.cloud.k8s.cluster.bootstrap.risk_signal_emitted` with risk score, reason code, and tenant-safe dimensions.
 - Routing topology: µservice audit event -> observability collector -> detection substrate -> investigation workflow when threshold and policy allow.
 - False positives feed back through investigation labels; thresholds are versioned and auditable.
@@ -502,20 +502,20 @@ This anchor is closed for `cloud-k8s` against documentation-rigor.md §3.2.6.A: 
 ### Concrete inventory used
 - Service: `cloud-k8s`; owner `axis-cloud-k8s`; tier `product`; audience `B2C_CONSUMER + B2B_TENANT`.
 - Bounded contexts used for this answer: `cloud-k8s`.
-- Capability records cited: `microservices/cloud-k8s/capabilities/cluster-bootstrap.yaml`, `microservices/cloud-k8s/capabilities/network-policy-apply.yaml`, `microservices/cloud-k8s/capabilities/node-lifecycle.yaml`.
-- API surfaces cited: `microservices/cloud-k8s/contracts/asyncapi/cloud-k8s-events.yaml`, `microservices/cloud-k8s/contracts/openapi/cloud-k8s.yaml`, `microservices/cloud-k8s/contracts/proto/cloud-k8s.proto`.
-- Cedar/policy artifacts cited: `microservices/cloud-k8s/policy/auditor-scope.cedar`, `microservices/cloud-k8s/policy/ci-scope.cedar`, `microservices/cloud-k8s/policy/cluster-isolation.md`, `microservices/cloud-k8s/policy/data-residency.md`, `microservices/cloud-k8s/policy/public-read.cedar`, `microservices/cloud-k8s/policy/tenant-scope.cedar`.
-- SLO and dashboard evidence: `microservices/cloud-k8s/slos/cis-benchmark-conformance.openslo.yaml`, `microservices/cloud-k8s/slos/cluster-api-availability.openslo.yaml`, `microservices/cloud-k8s/slos/cluster-cni-availability.openslo.yaml`, `microservices/cloud-k8s/slos/node-readiness-correctness.openslo.yaml`, `microservices/cloud-k8s/slos/pod-scheduling-latency.openslo.yaml`, `microservices/cloud-k8s/slos/service-mesh-availability.openslo.yaml`; +3 more.
-- Runbook/IaC evidence: `microservices/cloud-k8s/runbooks/control-plane-restore.md`, `microservices/cloud-k8s/runbooks/csi-rebuild.md`, `microservices/cloud-k8s/runbooks/envoy-sni-debug.md`, `microservices/cloud-k8s/runbooks/etcd-quorum-recovery.md`, `microservices/cloud-k8s/runbooks/ingress-ddos-throttle.md`, `microservices/cloud-k8s/runbooks/istio-mtls-rotation.md`; +15 more.
+- Capability records cited: `k8s/capabilities/cluster-bootstrap.yaml`, `k8s/capabilities/network-policy-apply.yaml`, `k8s/capabilities/node-lifecycle.yaml`.
+- API surfaces cited: `k8s/contracts/asyncapi/cloud-k8s-events.yaml`, `k8s/contracts/openapi/cloud-k8s.yaml`, `k8s/contracts/proto/cloud-k8s.proto`.
+- Cedar/policy artifacts cited: `k8s/policy/auditor-scope.cedar`, `k8s/policy/ci-scope.cedar`, `k8s/policy/cluster-isolation.md`, `k8s/policy/data-residency.md`, `k8s/policy/public-read.cedar`, `k8s/policy/tenant-scope.cedar`.
+- SLO and dashboard evidence: `k8s/slos/cis-benchmark-conformance.openslo.yaml`, `k8s/slos/cluster-api-availability.openslo.yaml`, `k8s/slos/cluster-cni-availability.openslo.yaml`, `k8s/slos/node-readiness-correctness.openslo.yaml`, `k8s/slos/pod-scheduling-latency.openslo.yaml`, `k8s/slos/service-mesh-availability.openslo.yaml`; +3 more.
+- Runbook/IaC evidence: `k8s/runbooks/control-plane-restore.md`, `k8s/runbooks/csi-rebuild.md`, `k8s/runbooks/envoy-sni-debug.md`, `k8s/runbooks/etcd-quorum-recovery.md`, `k8s/runbooks/ingress-ddos-throttle.md`, `k8s/runbooks/istio-mtls-rotation.md`; +15 more.
 - Data classes declared for this control: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 
 ### Primitive and API binding
-- API surface binding: `microservices/cloud-k8s/contracts/asyncapi/cloud-k8s-events.yaml`, `microservices/cloud-k8s/contracts/openapi/cloud-k8s.yaml`, `microservices/cloud-k8s/contracts/proto/cloud-k8s.proto`.
-- Cedar binding: `microservices/cloud-k8s/policy/auditor-scope.cedar`, `microservices/cloud-k8s/policy/ci-scope.cedar`, `microservices/cloud-k8s/policy/cluster-isolation.md`, `microservices/cloud-k8s/policy/data-residency.md`, `microservices/cloud-k8s/policy/public-read.cedar`, `microservices/cloud-k8s/policy/tenant-scope.cedar`.
+- API surface binding: `k8s/contracts/asyncapi/cloud-k8s-events.yaml`, `k8s/contracts/openapi/cloud-k8s.yaml`, `k8s/contracts/proto/cloud-k8s.proto`.
+- Cedar binding: `k8s/policy/auditor-scope.cedar`, `k8s/policy/ci-scope.cedar`, `k8s/policy/cluster-isolation.md`, `k8s/policy/data-residency.md`, `k8s/policy/public-read.cedar`, `k8s/policy/tenant-scope.cedar`.
 - State/event binding: `cloud_k8s.cloud_k8s`.
 - Capability binding: `cluster-bootstrap`, `network-policy-apply`, `node-lifecycle`.
-- SLO binding: `microservices/cloud-k8s/slos/cis-benchmark-conformance.openslo.yaml`, `microservices/cloud-k8s/slos/cluster-api-availability.openslo.yaml`, `microservices/cloud-k8s/slos/cluster-cni-availability.openslo.yaml`, `microservices/cloud-k8s/slos/node-readiness-correctness.openslo.yaml`, `microservices/cloud-k8s/slos/pod-scheduling-latency.openslo.yaml`, `microservices/cloud-k8s/slos/service-mesh-availability.openslo.yaml`.
-- Runbook binding: `microservices/cloud-k8s/runbooks/control-plane-restore.md`, `microservices/cloud-k8s/runbooks/csi-rebuild.md`, `microservices/cloud-k8s/runbooks/envoy-sni-debug.md`, `microservices/cloud-k8s/runbooks/etcd-quorum-recovery.md`, `microservices/cloud-k8s/runbooks/ingress-ddos-throttle.md`, `microservices/cloud-k8s/runbooks/istio-mtls-rotation.md`; +3 more.
+- SLO binding: `k8s/slos/cis-benchmark-conformance.openslo.yaml`, `k8s/slos/cluster-api-availability.openslo.yaml`, `k8s/slos/cluster-cni-availability.openslo.yaml`, `k8s/slos/node-readiness-correctness.openslo.yaml`, `k8s/slos/pod-scheduling-latency.openslo.yaml`, `k8s/slos/service-mesh-availability.openslo.yaml`.
+- Runbook binding: `k8s/runbooks/control-plane-restore.md`, `k8s/runbooks/csi-rebuild.md`, `k8s/runbooks/envoy-sni-debug.md`, `k8s/runbooks/etcd-quorum-recovery.md`, `k8s/runbooks/ingress-ddos-throttle.md`, `k8s/runbooks/istio-mtls-rotation.md`; +3 more.
 
 ### Cross-service links
 - `tenancy` provides tenant lifecycle, `tenant_id`, `audience_type`, pack activation, and provider-BYOK mode consumed by `cloud-k8s`.
@@ -564,20 +564,20 @@ This anchor is closed for `cloud-k8s` against ADR-0310 §D-1: detection-to-inves
 ### Concrete inventory used
 - Service: `cloud-k8s`; owner `axis-cloud-k8s`; tier `product`; audience `B2C_CONSUMER + B2B_TENANT`.
 - Bounded contexts used for this answer: `cloud-k8s`.
-- Capability records cited: `microservices/cloud-k8s/capabilities/cluster-bootstrap.yaml`, `microservices/cloud-k8s/capabilities/network-policy-apply.yaml`, `microservices/cloud-k8s/capabilities/node-lifecycle.yaml`.
-- API surfaces cited: `microservices/cloud-k8s/contracts/asyncapi/cloud-k8s-events.yaml`, `microservices/cloud-k8s/contracts/openapi/cloud-k8s.yaml`, `microservices/cloud-k8s/contracts/proto/cloud-k8s.proto`.
-- Cedar/policy artifacts cited: `microservices/cloud-k8s/policy/auditor-scope.cedar`, `microservices/cloud-k8s/policy/ci-scope.cedar`, `microservices/cloud-k8s/policy/cluster-isolation.md`, `microservices/cloud-k8s/policy/data-residency.md`, `microservices/cloud-k8s/policy/public-read.cedar`, `microservices/cloud-k8s/policy/tenant-scope.cedar`.
-- SLO and dashboard evidence: `microservices/cloud-k8s/slos/cis-benchmark-conformance.openslo.yaml`, `microservices/cloud-k8s/slos/cluster-api-availability.openslo.yaml`, `microservices/cloud-k8s/slos/cluster-cni-availability.openslo.yaml`, `microservices/cloud-k8s/slos/node-readiness-correctness.openslo.yaml`, `microservices/cloud-k8s/slos/pod-scheduling-latency.openslo.yaml`, `microservices/cloud-k8s/slos/service-mesh-availability.openslo.yaml`; +3 more.
-- Runbook/IaC evidence: `microservices/cloud-k8s/runbooks/control-plane-restore.md`, `microservices/cloud-k8s/runbooks/csi-rebuild.md`, `microservices/cloud-k8s/runbooks/envoy-sni-debug.md`, `microservices/cloud-k8s/runbooks/etcd-quorum-recovery.md`, `microservices/cloud-k8s/runbooks/ingress-ddos-throttle.md`, `microservices/cloud-k8s/runbooks/istio-mtls-rotation.md`; +15 more.
+- Capability records cited: `k8s/capabilities/cluster-bootstrap.yaml`, `k8s/capabilities/network-policy-apply.yaml`, `k8s/capabilities/node-lifecycle.yaml`.
+- API surfaces cited: `k8s/contracts/asyncapi/cloud-k8s-events.yaml`, `k8s/contracts/openapi/cloud-k8s.yaml`, `k8s/contracts/proto/cloud-k8s.proto`.
+- Cedar/policy artifacts cited: `k8s/policy/auditor-scope.cedar`, `k8s/policy/ci-scope.cedar`, `k8s/policy/cluster-isolation.md`, `k8s/policy/data-residency.md`, `k8s/policy/public-read.cedar`, `k8s/policy/tenant-scope.cedar`.
+- SLO and dashboard evidence: `k8s/slos/cis-benchmark-conformance.openslo.yaml`, `k8s/slos/cluster-api-availability.openslo.yaml`, `k8s/slos/cluster-cni-availability.openslo.yaml`, `k8s/slos/node-readiness-correctness.openslo.yaml`, `k8s/slos/pod-scheduling-latency.openslo.yaml`, `k8s/slos/service-mesh-availability.openslo.yaml`; +3 more.
+- Runbook/IaC evidence: `k8s/runbooks/control-plane-restore.md`, `k8s/runbooks/csi-rebuild.md`, `k8s/runbooks/envoy-sni-debug.md`, `k8s/runbooks/etcd-quorum-recovery.md`, `k8s/runbooks/ingress-ddos-throttle.md`, `k8s/runbooks/istio-mtls-rotation.md`; +15 more.
 - Data classes declared for this control: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 
 ### Primitive and API binding
-- API surface binding: `microservices/cloud-k8s/contracts/asyncapi/cloud-k8s-events.yaml`, `microservices/cloud-k8s/contracts/openapi/cloud-k8s.yaml`, `microservices/cloud-k8s/contracts/proto/cloud-k8s.proto`.
-- Cedar binding: `microservices/cloud-k8s/policy/auditor-scope.cedar`, `microservices/cloud-k8s/policy/ci-scope.cedar`, `microservices/cloud-k8s/policy/cluster-isolation.md`, `microservices/cloud-k8s/policy/data-residency.md`, `microservices/cloud-k8s/policy/public-read.cedar`, `microservices/cloud-k8s/policy/tenant-scope.cedar`.
+- API surface binding: `k8s/contracts/asyncapi/cloud-k8s-events.yaml`, `k8s/contracts/openapi/cloud-k8s.yaml`, `k8s/contracts/proto/cloud-k8s.proto`.
+- Cedar binding: `k8s/policy/auditor-scope.cedar`, `k8s/policy/ci-scope.cedar`, `k8s/policy/cluster-isolation.md`, `k8s/policy/data-residency.md`, `k8s/policy/public-read.cedar`, `k8s/policy/tenant-scope.cedar`.
 - State/event binding: `cloud_k8s.cloud_k8s`.
 - Capability binding: `cluster-bootstrap`, `network-policy-apply`, `node-lifecycle`.
-- SLO binding: `microservices/cloud-k8s/slos/cis-benchmark-conformance.openslo.yaml`, `microservices/cloud-k8s/slos/cluster-api-availability.openslo.yaml`, `microservices/cloud-k8s/slos/cluster-cni-availability.openslo.yaml`, `microservices/cloud-k8s/slos/node-readiness-correctness.openslo.yaml`, `microservices/cloud-k8s/slos/pod-scheduling-latency.openslo.yaml`, `microservices/cloud-k8s/slos/service-mesh-availability.openslo.yaml`.
-- Runbook binding: `microservices/cloud-k8s/runbooks/control-plane-restore.md`, `microservices/cloud-k8s/runbooks/csi-rebuild.md`, `microservices/cloud-k8s/runbooks/envoy-sni-debug.md`, `microservices/cloud-k8s/runbooks/etcd-quorum-recovery.md`, `microservices/cloud-k8s/runbooks/ingress-ddos-throttle.md`, `microservices/cloud-k8s/runbooks/istio-mtls-rotation.md`; +3 more.
+- SLO binding: `k8s/slos/cis-benchmark-conformance.openslo.yaml`, `k8s/slos/cluster-api-availability.openslo.yaml`, `k8s/slos/cluster-cni-availability.openslo.yaml`, `k8s/slos/node-readiness-correctness.openslo.yaml`, `k8s/slos/pod-scheduling-latency.openslo.yaml`, `k8s/slos/service-mesh-availability.openslo.yaml`.
+- Runbook binding: `k8s/runbooks/control-plane-restore.md`, `k8s/runbooks/csi-rebuild.md`, `k8s/runbooks/envoy-sni-debug.md`, `k8s/runbooks/etcd-quorum-recovery.md`, `k8s/runbooks/ingress-ddos-throttle.md`, `k8s/runbooks/istio-mtls-rotation.md`; +3 more.
 
 ### Cross-service links
 - `tenancy` provides tenant lifecycle, `tenant_id`, `audience_type`, pack activation, and provider-BYOK mode consumed by `cloud-k8s`.
@@ -616,7 +616,7 @@ This anchor is closed for `cloud-k8s` against documentation-rigor.md §3.2.4 Dom
 ### Service-specific answer
 - Operators of `cloud-k8s` have no standing unredacted tenant-data access; JIT elevation uses identity step-up and Cedar approval.
 - Break-glass access requires reason, scope, expiry, reviewer where required, and post-hoc audit review.
-- Sensitive surfaces: `microservices/cloud-k8s/contracts/asyncapi/cloud-k8s-events.yaml`, `microservices/cloud-k8s/contracts/openapi/cloud-k8s.yaml`, `microservices/cloud-k8s/contracts/proto/cloud-k8s.proto`, `cloud_k8s.cloud_k8s`.
+- Sensitive surfaces: `k8s/contracts/asyncapi/cloud-k8s-events.yaml`, `k8s/contracts/openapi/cloud-k8s.yaml`, `k8s/contracts/proto/cloud-k8s.proto`, `cloud_k8s.cloud_k8s`.
 - UEBA signals include unusual export volume, after-hours privileged reads, cross-cell access, pack-boundary reads, and repeated denied Cedar decisions.
 - Example: reading `cloud_k8s.cloud_k8s` outside declared incident purpose creates a high-risk insider signal and routes to investigation.
 - Privileged-access review cadence is monthly for Tier 0/1, quarterly otherwise, and after every SEV/security incident.
@@ -626,20 +626,20 @@ This anchor is closed for `cloud-k8s` against documentation-rigor.md §3.2.4 Dom
 ### Concrete inventory used
 - Service: `cloud-k8s`; owner `axis-cloud-k8s`; tier `product`; audience `B2C_CONSUMER + B2B_TENANT`.
 - Bounded contexts used for this answer: `cloud-k8s`.
-- Capability records cited: `microservices/cloud-k8s/capabilities/cluster-bootstrap.yaml`, `microservices/cloud-k8s/capabilities/network-policy-apply.yaml`, `microservices/cloud-k8s/capabilities/node-lifecycle.yaml`.
-- API surfaces cited: `microservices/cloud-k8s/contracts/asyncapi/cloud-k8s-events.yaml`, `microservices/cloud-k8s/contracts/openapi/cloud-k8s.yaml`, `microservices/cloud-k8s/contracts/proto/cloud-k8s.proto`.
-- Cedar/policy artifacts cited: `microservices/cloud-k8s/policy/auditor-scope.cedar`, `microservices/cloud-k8s/policy/ci-scope.cedar`, `microservices/cloud-k8s/policy/cluster-isolation.md`, `microservices/cloud-k8s/policy/data-residency.md`, `microservices/cloud-k8s/policy/public-read.cedar`, `microservices/cloud-k8s/policy/tenant-scope.cedar`.
-- SLO and dashboard evidence: `microservices/cloud-k8s/slos/cis-benchmark-conformance.openslo.yaml`, `microservices/cloud-k8s/slos/cluster-api-availability.openslo.yaml`, `microservices/cloud-k8s/slos/cluster-cni-availability.openslo.yaml`, `microservices/cloud-k8s/slos/node-readiness-correctness.openslo.yaml`, `microservices/cloud-k8s/slos/pod-scheduling-latency.openslo.yaml`, `microservices/cloud-k8s/slos/service-mesh-availability.openslo.yaml`; +3 more.
-- Runbook/IaC evidence: `microservices/cloud-k8s/runbooks/control-plane-restore.md`, `microservices/cloud-k8s/runbooks/csi-rebuild.md`, `microservices/cloud-k8s/runbooks/envoy-sni-debug.md`, `microservices/cloud-k8s/runbooks/etcd-quorum-recovery.md`, `microservices/cloud-k8s/runbooks/ingress-ddos-throttle.md`, `microservices/cloud-k8s/runbooks/istio-mtls-rotation.md`; +15 more.
+- Capability records cited: `k8s/capabilities/cluster-bootstrap.yaml`, `k8s/capabilities/network-policy-apply.yaml`, `k8s/capabilities/node-lifecycle.yaml`.
+- API surfaces cited: `k8s/contracts/asyncapi/cloud-k8s-events.yaml`, `k8s/contracts/openapi/cloud-k8s.yaml`, `k8s/contracts/proto/cloud-k8s.proto`.
+- Cedar/policy artifacts cited: `k8s/policy/auditor-scope.cedar`, `k8s/policy/ci-scope.cedar`, `k8s/policy/cluster-isolation.md`, `k8s/policy/data-residency.md`, `k8s/policy/public-read.cedar`, `k8s/policy/tenant-scope.cedar`.
+- SLO and dashboard evidence: `k8s/slos/cis-benchmark-conformance.openslo.yaml`, `k8s/slos/cluster-api-availability.openslo.yaml`, `k8s/slos/cluster-cni-availability.openslo.yaml`, `k8s/slos/node-readiness-correctness.openslo.yaml`, `k8s/slos/pod-scheduling-latency.openslo.yaml`, `k8s/slos/service-mesh-availability.openslo.yaml`; +3 more.
+- Runbook/IaC evidence: `k8s/runbooks/control-plane-restore.md`, `k8s/runbooks/csi-rebuild.md`, `k8s/runbooks/envoy-sni-debug.md`, `k8s/runbooks/etcd-quorum-recovery.md`, `k8s/runbooks/ingress-ddos-throttle.md`, `k8s/runbooks/istio-mtls-rotation.md`; +15 more.
 - Data classes declared for this control: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 
 ### Primitive and API binding
-- API surface binding: `microservices/cloud-k8s/contracts/asyncapi/cloud-k8s-events.yaml`, `microservices/cloud-k8s/contracts/openapi/cloud-k8s.yaml`, `microservices/cloud-k8s/contracts/proto/cloud-k8s.proto`.
-- Cedar binding: `microservices/cloud-k8s/policy/auditor-scope.cedar`, `microservices/cloud-k8s/policy/ci-scope.cedar`, `microservices/cloud-k8s/policy/cluster-isolation.md`, `microservices/cloud-k8s/policy/data-residency.md`, `microservices/cloud-k8s/policy/public-read.cedar`, `microservices/cloud-k8s/policy/tenant-scope.cedar`.
+- API surface binding: `k8s/contracts/asyncapi/cloud-k8s-events.yaml`, `k8s/contracts/openapi/cloud-k8s.yaml`, `k8s/contracts/proto/cloud-k8s.proto`.
+- Cedar binding: `k8s/policy/auditor-scope.cedar`, `k8s/policy/ci-scope.cedar`, `k8s/policy/cluster-isolation.md`, `k8s/policy/data-residency.md`, `k8s/policy/public-read.cedar`, `k8s/policy/tenant-scope.cedar`.
 - State/event binding: `cloud_k8s.cloud_k8s`.
 - Capability binding: `cluster-bootstrap`, `network-policy-apply`, `node-lifecycle`.
-- SLO binding: `microservices/cloud-k8s/slos/cis-benchmark-conformance.openslo.yaml`, `microservices/cloud-k8s/slos/cluster-api-availability.openslo.yaml`, `microservices/cloud-k8s/slos/cluster-cni-availability.openslo.yaml`, `microservices/cloud-k8s/slos/node-readiness-correctness.openslo.yaml`, `microservices/cloud-k8s/slos/pod-scheduling-latency.openslo.yaml`, `microservices/cloud-k8s/slos/service-mesh-availability.openslo.yaml`.
-- Runbook binding: `microservices/cloud-k8s/runbooks/control-plane-restore.md`, `microservices/cloud-k8s/runbooks/csi-rebuild.md`, `microservices/cloud-k8s/runbooks/envoy-sni-debug.md`, `microservices/cloud-k8s/runbooks/etcd-quorum-recovery.md`, `microservices/cloud-k8s/runbooks/ingress-ddos-throttle.md`, `microservices/cloud-k8s/runbooks/istio-mtls-rotation.md`; +3 more.
+- SLO binding: `k8s/slos/cis-benchmark-conformance.openslo.yaml`, `k8s/slos/cluster-api-availability.openslo.yaml`, `k8s/slos/cluster-cni-availability.openslo.yaml`, `k8s/slos/node-readiness-correctness.openslo.yaml`, `k8s/slos/pod-scheduling-latency.openslo.yaml`, `k8s/slos/service-mesh-availability.openslo.yaml`.
+- Runbook binding: `k8s/runbooks/control-plane-restore.md`, `k8s/runbooks/csi-rebuild.md`, `k8s/runbooks/envoy-sni-debug.md`, `k8s/runbooks/etcd-quorum-recovery.md`, `k8s/runbooks/ingress-ddos-throttle.md`, `k8s/runbooks/istio-mtls-rotation.md`; +3 more.
 
 ### Cross-service links
 - `tenancy` provides tenant lifecycle, `tenant_id`, `audience_type`, pack activation, and provider-BYOK mode consumed by `cloud-k8s`.
@@ -678,7 +678,7 @@ This anchor is closed for `cloud-k8s` against documentation-rigor.md §3.2.4 Dom
 ### Service-specific answer
 - `cloud-k8s` consumes central threat intelligence for IP/domain reputation, credential stuffing, bot fingerprints, sanctions/abuse lists where applicable, and malicious package indicators.
 - Feed freshness SLOs: ≤1h for IP/domain/bot reputation, ≤24h for credential corpus, immediate for emergency blocklists and compromised provider credentials.
-- Enforcement points: `microservices/cloud-k8s/policy/auditor-scope.cedar`, `microservices/cloud-k8s/policy/ci-scope.cedar`, `microservices/cloud-k8s/policy/cluster-isolation.md`, `microservices/cloud-k8s/policy/data-residency.md`, `microservices/cloud-k8s/policy/public-read.cedar`, `microservices/cloud-k8s/policy/tenant-scope.cedar`; +12 more.
+- Enforcement points: `k8s/policy/auditor-scope.cedar`, `k8s/policy/ci-scope.cedar`, `k8s/policy/cluster-isolation.md`, `k8s/policy/data-residency.md`, `k8s/policy/public-read.cedar`, `k8s/policy/tenant-scope.cedar`; +12 more.
 - Example: `cluster-bootstrap` with malicious IP reputation receives stricter quota/challenge; high-risk legal/financial flows can halt pending investigation.
 - Feed outage degraded mode raises sensitivity only on suspicious paths and never adds default friction to clean traffic.
 - Feed source, version, checksum, and last refresh timestamp are emitted in audit evidence.
@@ -688,20 +688,20 @@ This anchor is closed for `cloud-k8s` against documentation-rigor.md §3.2.4 Dom
 ### Concrete inventory used
 - Service: `cloud-k8s`; owner `axis-cloud-k8s`; tier `product`; audience `B2C_CONSUMER + B2B_TENANT`.
 - Bounded contexts used for this answer: `cloud-k8s`.
-- Capability records cited: `microservices/cloud-k8s/capabilities/cluster-bootstrap.yaml`, `microservices/cloud-k8s/capabilities/network-policy-apply.yaml`, `microservices/cloud-k8s/capabilities/node-lifecycle.yaml`.
-- API surfaces cited: `microservices/cloud-k8s/contracts/asyncapi/cloud-k8s-events.yaml`, `microservices/cloud-k8s/contracts/openapi/cloud-k8s.yaml`, `microservices/cloud-k8s/contracts/proto/cloud-k8s.proto`.
-- Cedar/policy artifacts cited: `microservices/cloud-k8s/policy/auditor-scope.cedar`, `microservices/cloud-k8s/policy/ci-scope.cedar`, `microservices/cloud-k8s/policy/cluster-isolation.md`, `microservices/cloud-k8s/policy/data-residency.md`, `microservices/cloud-k8s/policy/public-read.cedar`, `microservices/cloud-k8s/policy/tenant-scope.cedar`.
-- SLO and dashboard evidence: `microservices/cloud-k8s/slos/cis-benchmark-conformance.openslo.yaml`, `microservices/cloud-k8s/slos/cluster-api-availability.openslo.yaml`, `microservices/cloud-k8s/slos/cluster-cni-availability.openslo.yaml`, `microservices/cloud-k8s/slos/node-readiness-correctness.openslo.yaml`, `microservices/cloud-k8s/slos/pod-scheduling-latency.openslo.yaml`, `microservices/cloud-k8s/slos/service-mesh-availability.openslo.yaml`; +3 more.
-- Runbook/IaC evidence: `microservices/cloud-k8s/runbooks/control-plane-restore.md`, `microservices/cloud-k8s/runbooks/csi-rebuild.md`, `microservices/cloud-k8s/runbooks/envoy-sni-debug.md`, `microservices/cloud-k8s/runbooks/etcd-quorum-recovery.md`, `microservices/cloud-k8s/runbooks/ingress-ddos-throttle.md`, `microservices/cloud-k8s/runbooks/istio-mtls-rotation.md`; +15 more.
+- Capability records cited: `k8s/capabilities/cluster-bootstrap.yaml`, `k8s/capabilities/network-policy-apply.yaml`, `k8s/capabilities/node-lifecycle.yaml`.
+- API surfaces cited: `k8s/contracts/asyncapi/cloud-k8s-events.yaml`, `k8s/contracts/openapi/cloud-k8s.yaml`, `k8s/contracts/proto/cloud-k8s.proto`.
+- Cedar/policy artifacts cited: `k8s/policy/auditor-scope.cedar`, `k8s/policy/ci-scope.cedar`, `k8s/policy/cluster-isolation.md`, `k8s/policy/data-residency.md`, `k8s/policy/public-read.cedar`, `k8s/policy/tenant-scope.cedar`.
+- SLO and dashboard evidence: `k8s/slos/cis-benchmark-conformance.openslo.yaml`, `k8s/slos/cluster-api-availability.openslo.yaml`, `k8s/slos/cluster-cni-availability.openslo.yaml`, `k8s/slos/node-readiness-correctness.openslo.yaml`, `k8s/slos/pod-scheduling-latency.openslo.yaml`, `k8s/slos/service-mesh-availability.openslo.yaml`; +3 more.
+- Runbook/IaC evidence: `k8s/runbooks/control-plane-restore.md`, `k8s/runbooks/csi-rebuild.md`, `k8s/runbooks/envoy-sni-debug.md`, `k8s/runbooks/etcd-quorum-recovery.md`, `k8s/runbooks/ingress-ddos-throttle.md`, `k8s/runbooks/istio-mtls-rotation.md`; +15 more.
 - Data classes declared for this control: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 
 ### Primitive and API binding
-- API surface binding: `microservices/cloud-k8s/contracts/asyncapi/cloud-k8s-events.yaml`, `microservices/cloud-k8s/contracts/openapi/cloud-k8s.yaml`, `microservices/cloud-k8s/contracts/proto/cloud-k8s.proto`.
-- Cedar binding: `microservices/cloud-k8s/policy/auditor-scope.cedar`, `microservices/cloud-k8s/policy/ci-scope.cedar`, `microservices/cloud-k8s/policy/cluster-isolation.md`, `microservices/cloud-k8s/policy/data-residency.md`, `microservices/cloud-k8s/policy/public-read.cedar`, `microservices/cloud-k8s/policy/tenant-scope.cedar`.
+- API surface binding: `k8s/contracts/asyncapi/cloud-k8s-events.yaml`, `k8s/contracts/openapi/cloud-k8s.yaml`, `k8s/contracts/proto/cloud-k8s.proto`.
+- Cedar binding: `k8s/policy/auditor-scope.cedar`, `k8s/policy/ci-scope.cedar`, `k8s/policy/cluster-isolation.md`, `k8s/policy/data-residency.md`, `k8s/policy/public-read.cedar`, `k8s/policy/tenant-scope.cedar`.
 - State/event binding: `cloud_k8s.cloud_k8s`.
 - Capability binding: `cluster-bootstrap`, `network-policy-apply`, `node-lifecycle`.
-- SLO binding: `microservices/cloud-k8s/slos/cis-benchmark-conformance.openslo.yaml`, `microservices/cloud-k8s/slos/cluster-api-availability.openslo.yaml`, `microservices/cloud-k8s/slos/cluster-cni-availability.openslo.yaml`, `microservices/cloud-k8s/slos/node-readiness-correctness.openslo.yaml`, `microservices/cloud-k8s/slos/pod-scheduling-latency.openslo.yaml`, `microservices/cloud-k8s/slos/service-mesh-availability.openslo.yaml`.
-- Runbook binding: `microservices/cloud-k8s/runbooks/control-plane-restore.md`, `microservices/cloud-k8s/runbooks/csi-rebuild.md`, `microservices/cloud-k8s/runbooks/envoy-sni-debug.md`, `microservices/cloud-k8s/runbooks/etcd-quorum-recovery.md`, `microservices/cloud-k8s/runbooks/ingress-ddos-throttle.md`, `microservices/cloud-k8s/runbooks/istio-mtls-rotation.md`; +3 more.
+- SLO binding: `k8s/slos/cis-benchmark-conformance.openslo.yaml`, `k8s/slos/cluster-api-availability.openslo.yaml`, `k8s/slos/cluster-cni-availability.openslo.yaml`, `k8s/slos/node-readiness-correctness.openslo.yaml`, `k8s/slos/pod-scheduling-latency.openslo.yaml`, `k8s/slos/service-mesh-availability.openslo.yaml`.
+- Runbook binding: `k8s/runbooks/control-plane-restore.md`, `k8s/runbooks/csi-rebuild.md`, `k8s/runbooks/envoy-sni-debug.md`, `k8s/runbooks/etcd-quorum-recovery.md`, `k8s/runbooks/ingress-ddos-throttle.md`, `k8s/runbooks/istio-mtls-rotation.md`; +3 more.
 
 ### Cross-service links
 - `tenancy` provides tenant lifecycle, `tenant_id`, `audience_type`, pack activation, and provider-BYOK mode consumed by `cloud-k8s`.
@@ -742,7 +742,7 @@ This anchor is closed for `cloud-k8s` against documentation-rigor.md §3.2.4 Dom
 - OpenBao dynamic credentials rotate at TTL ≤60s for provider/API secrets unless sidecar keeps the raw secret isolated.
 - Encryption/data keys rotate at ≤1 year or pack-specific shorter cadence; ECH keys rotate at ≤90 days; PQC cert chains follow signing-key cadence.
 - Secret paths use `${openbao:secret/<tenant_id>/cloud-k8s/<key-class>}` and never embed raw tenant ids in metrics labels.
-- Runbook evidence: `microservices/cloud-k8s/runbooks/control-plane-restore.md`, `microservices/cloud-k8s/runbooks/csi-rebuild.md`, `microservices/cloud-k8s/runbooks/envoy-sni-debug.md`, `microservices/cloud-k8s/runbooks/etcd-quorum-recovery.md`, `microservices/cloud-k8s/runbooks/ingress-ddos-throttle.md`, `microservices/cloud-k8s/runbooks/istio-mtls-rotation.md`; +3 more.
+- Runbook evidence: `k8s/runbooks/control-plane-restore.md`, `k8s/runbooks/csi-rebuild.md`, `k8s/runbooks/envoy-sni-debug.md`, `k8s/runbooks/etcd-quorum-recovery.md`, `k8s/runbooks/ingress-ddos-throttle.md`, `k8s/runbooks/istio-mtls-rotation.md`; +3 more.
 - Example: `cluster-bootstrap` credential rotation drains in-flight requests with old key id, validates new key id, then retires old leases after audit-chain seal.
 - Rotation failure alerts within 5 minutes for Tier 0/1 and within 15 minutes otherwise.
 - Rollback uses previous active key version only inside the documented grace window and emits an exception event.
@@ -750,20 +750,20 @@ This anchor is closed for `cloud-k8s` against documentation-rigor.md §3.2.4 Dom
 ### Concrete inventory used
 - Service: `cloud-k8s`; owner `axis-cloud-k8s`; tier `product`; audience `B2C_CONSUMER + B2B_TENANT`.
 - Bounded contexts used for this answer: `cloud-k8s`.
-- Capability records cited: `microservices/cloud-k8s/capabilities/cluster-bootstrap.yaml`, `microservices/cloud-k8s/capabilities/network-policy-apply.yaml`, `microservices/cloud-k8s/capabilities/node-lifecycle.yaml`.
-- API surfaces cited: `microservices/cloud-k8s/contracts/asyncapi/cloud-k8s-events.yaml`, `microservices/cloud-k8s/contracts/openapi/cloud-k8s.yaml`, `microservices/cloud-k8s/contracts/proto/cloud-k8s.proto`.
-- Cedar/policy artifacts cited: `microservices/cloud-k8s/policy/auditor-scope.cedar`, `microservices/cloud-k8s/policy/ci-scope.cedar`, `microservices/cloud-k8s/policy/cluster-isolation.md`, `microservices/cloud-k8s/policy/data-residency.md`, `microservices/cloud-k8s/policy/public-read.cedar`, `microservices/cloud-k8s/policy/tenant-scope.cedar`.
-- SLO and dashboard evidence: `microservices/cloud-k8s/slos/cis-benchmark-conformance.openslo.yaml`, `microservices/cloud-k8s/slos/cluster-api-availability.openslo.yaml`, `microservices/cloud-k8s/slos/cluster-cni-availability.openslo.yaml`, `microservices/cloud-k8s/slos/node-readiness-correctness.openslo.yaml`, `microservices/cloud-k8s/slos/pod-scheduling-latency.openslo.yaml`, `microservices/cloud-k8s/slos/service-mesh-availability.openslo.yaml`; +3 more.
-- Runbook/IaC evidence: `microservices/cloud-k8s/runbooks/control-plane-restore.md`, `microservices/cloud-k8s/runbooks/csi-rebuild.md`, `microservices/cloud-k8s/runbooks/envoy-sni-debug.md`, `microservices/cloud-k8s/runbooks/etcd-quorum-recovery.md`, `microservices/cloud-k8s/runbooks/ingress-ddos-throttle.md`, `microservices/cloud-k8s/runbooks/istio-mtls-rotation.md`; +15 more.
+- Capability records cited: `k8s/capabilities/cluster-bootstrap.yaml`, `k8s/capabilities/network-policy-apply.yaml`, `k8s/capabilities/node-lifecycle.yaml`.
+- API surfaces cited: `k8s/contracts/asyncapi/cloud-k8s-events.yaml`, `k8s/contracts/openapi/cloud-k8s.yaml`, `k8s/contracts/proto/cloud-k8s.proto`.
+- Cedar/policy artifacts cited: `k8s/policy/auditor-scope.cedar`, `k8s/policy/ci-scope.cedar`, `k8s/policy/cluster-isolation.md`, `k8s/policy/data-residency.md`, `k8s/policy/public-read.cedar`, `k8s/policy/tenant-scope.cedar`.
+- SLO and dashboard evidence: `k8s/slos/cis-benchmark-conformance.openslo.yaml`, `k8s/slos/cluster-api-availability.openslo.yaml`, `k8s/slos/cluster-cni-availability.openslo.yaml`, `k8s/slos/node-readiness-correctness.openslo.yaml`, `k8s/slos/pod-scheduling-latency.openslo.yaml`, `k8s/slos/service-mesh-availability.openslo.yaml`; +3 more.
+- Runbook/IaC evidence: `k8s/runbooks/control-plane-restore.md`, `k8s/runbooks/csi-rebuild.md`, `k8s/runbooks/envoy-sni-debug.md`, `k8s/runbooks/etcd-quorum-recovery.md`, `k8s/runbooks/ingress-ddos-throttle.md`, `k8s/runbooks/istio-mtls-rotation.md`; +15 more.
 - Data classes declared for this control: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 
 ### Primitive and API binding
-- API surface binding: `microservices/cloud-k8s/contracts/asyncapi/cloud-k8s-events.yaml`, `microservices/cloud-k8s/contracts/openapi/cloud-k8s.yaml`, `microservices/cloud-k8s/contracts/proto/cloud-k8s.proto`.
-- Cedar binding: `microservices/cloud-k8s/policy/auditor-scope.cedar`, `microservices/cloud-k8s/policy/ci-scope.cedar`, `microservices/cloud-k8s/policy/cluster-isolation.md`, `microservices/cloud-k8s/policy/data-residency.md`, `microservices/cloud-k8s/policy/public-read.cedar`, `microservices/cloud-k8s/policy/tenant-scope.cedar`.
+- API surface binding: `k8s/contracts/asyncapi/cloud-k8s-events.yaml`, `k8s/contracts/openapi/cloud-k8s.yaml`, `k8s/contracts/proto/cloud-k8s.proto`.
+- Cedar binding: `k8s/policy/auditor-scope.cedar`, `k8s/policy/ci-scope.cedar`, `k8s/policy/cluster-isolation.md`, `k8s/policy/data-residency.md`, `k8s/policy/public-read.cedar`, `k8s/policy/tenant-scope.cedar`.
 - State/event binding: `cloud_k8s.cloud_k8s`.
 - Capability binding: `cluster-bootstrap`, `network-policy-apply`, `node-lifecycle`.
-- SLO binding: `microservices/cloud-k8s/slos/cis-benchmark-conformance.openslo.yaml`, `microservices/cloud-k8s/slos/cluster-api-availability.openslo.yaml`, `microservices/cloud-k8s/slos/cluster-cni-availability.openslo.yaml`, `microservices/cloud-k8s/slos/node-readiness-correctness.openslo.yaml`, `microservices/cloud-k8s/slos/pod-scheduling-latency.openslo.yaml`, `microservices/cloud-k8s/slos/service-mesh-availability.openslo.yaml`.
-- Runbook binding: `microservices/cloud-k8s/runbooks/control-plane-restore.md`, `microservices/cloud-k8s/runbooks/csi-rebuild.md`, `microservices/cloud-k8s/runbooks/envoy-sni-debug.md`, `microservices/cloud-k8s/runbooks/etcd-quorum-recovery.md`, `microservices/cloud-k8s/runbooks/ingress-ddos-throttle.md`, `microservices/cloud-k8s/runbooks/istio-mtls-rotation.md`; +3 more.
+- SLO binding: `k8s/slos/cis-benchmark-conformance.openslo.yaml`, `k8s/slos/cluster-api-availability.openslo.yaml`, `k8s/slos/cluster-cni-availability.openslo.yaml`, `k8s/slos/node-readiness-correctness.openslo.yaml`, `k8s/slos/pod-scheduling-latency.openslo.yaml`, `k8s/slos/service-mesh-availability.openslo.yaml`.
+- Runbook binding: `k8s/runbooks/control-plane-restore.md`, `k8s/runbooks/csi-rebuild.md`, `k8s/runbooks/envoy-sni-debug.md`, `k8s/runbooks/etcd-quorum-recovery.md`, `k8s/runbooks/ingress-ddos-throttle.md`, `k8s/runbooks/istio-mtls-rotation.md`; +3 more.
 
 ### Cross-service links
 - `tenancy` provides tenant lifecycle, `tenant_id`, `audience_type`, pack activation, and provider-BYOK mode consumed by `cloud-k8s`.
@@ -803,7 +803,7 @@ This anchor is closed for `cloud-k8s` against documentation-rigor.md §3.2.4 Dom
 - `cloud-k8s` uses algorithm policy from sidecar/config; domain code never hard-codes cipher or signature choices.
 - Current floor: TLS 1.3, AEAD-only suites, X25519, hybrid X25519MLKEM768 where supported, Ed25519 plus ML-DSA-65 for new platform-rooted chains.
 - Forbidden: SHA-1, MD5, RSA-1024/2048 for new signatures, static DH, CBC-only TLS, self-signed production certs, and bespoke crypto.
-- Affected surfaces: `microservices/cloud-k8s/contracts/asyncapi/cloud-k8s-events.yaml`, `microservices/cloud-k8s/contracts/openapi/cloud-k8s.yaml`, `microservices/cloud-k8s/contracts/proto/cloud-k8s.proto`, `microservices/cloud-k8s/iac/helm/cni-cilium/Chart.yaml`, `microservices/cloud-k8s/iac/helm/cni-cilium/values.yaml`, `microservices/cloud-k8s/iac/helm/envoy-gateway/Chart.yaml`; +9 more.
+- Affected surfaces: `k8s/contracts/asyncapi/cloud-k8s-events.yaml`, `k8s/contracts/openapi/cloud-k8s.yaml`, `k8s/contracts/proto/cloud-k8s.proto`, `k8s/iac/helm/cni-cilium/Chart.yaml`, `k8s/iac/helm/cni-cilium/values.yaml`, `k8s/iac/helm/envoy-gateway/Chart.yaml`; +9 more.
 - Migration trigger: NIST/IETF/browser deprecation notice, active exploit, pack regulator requirement, or platform crypto policy update.
 - Migration window: 90 days for normal deprecation, 24h emergency block for actively exploited algorithms, with compatibility fallback only when safe.
 - Example: `cluster-bootstrap` accepts classical TLS during PQC migration but prefers hybrid when both peers support it and records negotiated group in telemetry.
@@ -812,20 +812,20 @@ This anchor is closed for `cloud-k8s` against documentation-rigor.md §3.2.4 Dom
 ### Concrete inventory used
 - Service: `cloud-k8s`; owner `axis-cloud-k8s`; tier `product`; audience `B2C_CONSUMER + B2B_TENANT`.
 - Bounded contexts used for this answer: `cloud-k8s`.
-- Capability records cited: `microservices/cloud-k8s/capabilities/cluster-bootstrap.yaml`, `microservices/cloud-k8s/capabilities/network-policy-apply.yaml`, `microservices/cloud-k8s/capabilities/node-lifecycle.yaml`.
-- API surfaces cited: `microservices/cloud-k8s/contracts/asyncapi/cloud-k8s-events.yaml`, `microservices/cloud-k8s/contracts/openapi/cloud-k8s.yaml`, `microservices/cloud-k8s/contracts/proto/cloud-k8s.proto`.
-- Cedar/policy artifacts cited: `microservices/cloud-k8s/policy/auditor-scope.cedar`, `microservices/cloud-k8s/policy/ci-scope.cedar`, `microservices/cloud-k8s/policy/cluster-isolation.md`, `microservices/cloud-k8s/policy/data-residency.md`, `microservices/cloud-k8s/policy/public-read.cedar`, `microservices/cloud-k8s/policy/tenant-scope.cedar`.
-- SLO and dashboard evidence: `microservices/cloud-k8s/slos/cis-benchmark-conformance.openslo.yaml`, `microservices/cloud-k8s/slos/cluster-api-availability.openslo.yaml`, `microservices/cloud-k8s/slos/cluster-cni-availability.openslo.yaml`, `microservices/cloud-k8s/slos/node-readiness-correctness.openslo.yaml`, `microservices/cloud-k8s/slos/pod-scheduling-latency.openslo.yaml`, `microservices/cloud-k8s/slos/service-mesh-availability.openslo.yaml`; +3 more.
-- Runbook/IaC evidence: `microservices/cloud-k8s/runbooks/control-plane-restore.md`, `microservices/cloud-k8s/runbooks/csi-rebuild.md`, `microservices/cloud-k8s/runbooks/envoy-sni-debug.md`, `microservices/cloud-k8s/runbooks/etcd-quorum-recovery.md`, `microservices/cloud-k8s/runbooks/ingress-ddos-throttle.md`, `microservices/cloud-k8s/runbooks/istio-mtls-rotation.md`; +15 more.
+- Capability records cited: `k8s/capabilities/cluster-bootstrap.yaml`, `k8s/capabilities/network-policy-apply.yaml`, `k8s/capabilities/node-lifecycle.yaml`.
+- API surfaces cited: `k8s/contracts/asyncapi/cloud-k8s-events.yaml`, `k8s/contracts/openapi/cloud-k8s.yaml`, `k8s/contracts/proto/cloud-k8s.proto`.
+- Cedar/policy artifacts cited: `k8s/policy/auditor-scope.cedar`, `k8s/policy/ci-scope.cedar`, `k8s/policy/cluster-isolation.md`, `k8s/policy/data-residency.md`, `k8s/policy/public-read.cedar`, `k8s/policy/tenant-scope.cedar`.
+- SLO and dashboard evidence: `k8s/slos/cis-benchmark-conformance.openslo.yaml`, `k8s/slos/cluster-api-availability.openslo.yaml`, `k8s/slos/cluster-cni-availability.openslo.yaml`, `k8s/slos/node-readiness-correctness.openslo.yaml`, `k8s/slos/pod-scheduling-latency.openslo.yaml`, `k8s/slos/service-mesh-availability.openslo.yaml`; +3 more.
+- Runbook/IaC evidence: `k8s/runbooks/control-plane-restore.md`, `k8s/runbooks/csi-rebuild.md`, `k8s/runbooks/envoy-sni-debug.md`, `k8s/runbooks/etcd-quorum-recovery.md`, `k8s/runbooks/ingress-ddos-throttle.md`, `k8s/runbooks/istio-mtls-rotation.md`; +15 more.
 - Data classes declared for this control: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 
 ### Primitive and API binding
-- API surface binding: `microservices/cloud-k8s/contracts/asyncapi/cloud-k8s-events.yaml`, `microservices/cloud-k8s/contracts/openapi/cloud-k8s.yaml`, `microservices/cloud-k8s/contracts/proto/cloud-k8s.proto`.
-- Cedar binding: `microservices/cloud-k8s/policy/auditor-scope.cedar`, `microservices/cloud-k8s/policy/ci-scope.cedar`, `microservices/cloud-k8s/policy/cluster-isolation.md`, `microservices/cloud-k8s/policy/data-residency.md`, `microservices/cloud-k8s/policy/public-read.cedar`, `microservices/cloud-k8s/policy/tenant-scope.cedar`.
+- API surface binding: `k8s/contracts/asyncapi/cloud-k8s-events.yaml`, `k8s/contracts/openapi/cloud-k8s.yaml`, `k8s/contracts/proto/cloud-k8s.proto`.
+- Cedar binding: `k8s/policy/auditor-scope.cedar`, `k8s/policy/ci-scope.cedar`, `k8s/policy/cluster-isolation.md`, `k8s/policy/data-residency.md`, `k8s/policy/public-read.cedar`, `k8s/policy/tenant-scope.cedar`.
 - State/event binding: `cloud_k8s.cloud_k8s`.
 - Capability binding: `cluster-bootstrap`, `network-policy-apply`, `node-lifecycle`.
-- SLO binding: `microservices/cloud-k8s/slos/cis-benchmark-conformance.openslo.yaml`, `microservices/cloud-k8s/slos/cluster-api-availability.openslo.yaml`, `microservices/cloud-k8s/slos/cluster-cni-availability.openslo.yaml`, `microservices/cloud-k8s/slos/node-readiness-correctness.openslo.yaml`, `microservices/cloud-k8s/slos/pod-scheduling-latency.openslo.yaml`, `microservices/cloud-k8s/slos/service-mesh-availability.openslo.yaml`.
-- Runbook binding: `microservices/cloud-k8s/runbooks/control-plane-restore.md`, `microservices/cloud-k8s/runbooks/csi-rebuild.md`, `microservices/cloud-k8s/runbooks/envoy-sni-debug.md`, `microservices/cloud-k8s/runbooks/etcd-quorum-recovery.md`, `microservices/cloud-k8s/runbooks/ingress-ddos-throttle.md`, `microservices/cloud-k8s/runbooks/istio-mtls-rotation.md`; +3 more.
+- SLO binding: `k8s/slos/cis-benchmark-conformance.openslo.yaml`, `k8s/slos/cluster-api-availability.openslo.yaml`, `k8s/slos/cluster-cni-availability.openslo.yaml`, `k8s/slos/node-readiness-correctness.openslo.yaml`, `k8s/slos/pod-scheduling-latency.openslo.yaml`, `k8s/slos/service-mesh-availability.openslo.yaml`.
+- Runbook binding: `k8s/runbooks/control-plane-restore.md`, `k8s/runbooks/csi-rebuild.md`, `k8s/runbooks/envoy-sni-debug.md`, `k8s/runbooks/etcd-quorum-recovery.md`, `k8s/runbooks/ingress-ddos-throttle.md`, `k8s/runbooks/istio-mtls-rotation.md`; +3 more.
 
 ### Cross-service links
 - `tenancy` provides tenant lifecycle, `tenant_id`, `audience_type`, pack activation, and provider-BYOK mode consumed by `cloud-k8s`.
@@ -863,7 +863,7 @@ This anchor is closed for `cloud-k8s` against documentation-rigor.md §3.2.4 Dom
 
 ### Service-specific answer
 - `cloud-k8s` is in annual full-scope pentest and every major `cluster-bootstrap` launch adds targeted test scope before production promotion.
-- In-scope assets: `microservices/cloud-k8s/contracts/asyncapi/cloud-k8s-events.yaml`, `microservices/cloud-k8s/contracts/openapi/cloud-k8s.yaml`, `microservices/cloud-k8s/contracts/proto/cloud-k8s.proto`, `microservices/cloud-k8s/iac/helm/cni-cilium/Chart.yaml`, `microservices/cloud-k8s/iac/helm/cni-cilium/values.yaml`, `microservices/cloud-k8s/iac/helm/envoy-gateway/Chart.yaml`; +15 more.
+- In-scope assets: `k8s/contracts/asyncapi/cloud-k8s-events.yaml`, `k8s/contracts/openapi/cloud-k8s.yaml`, `k8s/contracts/proto/cloud-k8s.proto`, `k8s/iac/helm/cni-cilium/Chart.yaml`, `k8s/iac/helm/cni-cilium/values.yaml`, `k8s/iac/helm/envoy-gateway/Chart.yaml`; +15 more.
 - Bug bounty intake accepts auth, tenant-isolation, policy bypass, data exposure, abuse-defence false positive/negative, supply-chain, and crypto findings.
 - Critical findings block promotion; remediation SLO is 24h containment, 7d fix for critical/high, 30d medium unless regulator pack is stricter.
 - Example: a researcher bypassing `cloud-k8s` tenant scoping gets safe-harbor handling and an investigation case, not abuse-defence friction by default.
@@ -874,20 +874,20 @@ This anchor is closed for `cloud-k8s` against documentation-rigor.md §3.2.4 Dom
 ### Concrete inventory used
 - Service: `cloud-k8s`; owner `axis-cloud-k8s`; tier `product`; audience `B2C_CONSUMER + B2B_TENANT`.
 - Bounded contexts used for this answer: `cloud-k8s`.
-- Capability records cited: `microservices/cloud-k8s/capabilities/cluster-bootstrap.yaml`, `microservices/cloud-k8s/capabilities/network-policy-apply.yaml`, `microservices/cloud-k8s/capabilities/node-lifecycle.yaml`.
-- API surfaces cited: `microservices/cloud-k8s/contracts/asyncapi/cloud-k8s-events.yaml`, `microservices/cloud-k8s/contracts/openapi/cloud-k8s.yaml`, `microservices/cloud-k8s/contracts/proto/cloud-k8s.proto`.
-- Cedar/policy artifacts cited: `microservices/cloud-k8s/policy/auditor-scope.cedar`, `microservices/cloud-k8s/policy/ci-scope.cedar`, `microservices/cloud-k8s/policy/cluster-isolation.md`, `microservices/cloud-k8s/policy/data-residency.md`, `microservices/cloud-k8s/policy/public-read.cedar`, `microservices/cloud-k8s/policy/tenant-scope.cedar`.
-- SLO and dashboard evidence: `microservices/cloud-k8s/slos/cis-benchmark-conformance.openslo.yaml`, `microservices/cloud-k8s/slos/cluster-api-availability.openslo.yaml`, `microservices/cloud-k8s/slos/cluster-cni-availability.openslo.yaml`, `microservices/cloud-k8s/slos/node-readiness-correctness.openslo.yaml`, `microservices/cloud-k8s/slos/pod-scheduling-latency.openslo.yaml`, `microservices/cloud-k8s/slos/service-mesh-availability.openslo.yaml`; +3 more.
-- Runbook/IaC evidence: `microservices/cloud-k8s/runbooks/control-plane-restore.md`, `microservices/cloud-k8s/runbooks/csi-rebuild.md`, `microservices/cloud-k8s/runbooks/envoy-sni-debug.md`, `microservices/cloud-k8s/runbooks/etcd-quorum-recovery.md`, `microservices/cloud-k8s/runbooks/ingress-ddos-throttle.md`, `microservices/cloud-k8s/runbooks/istio-mtls-rotation.md`; +15 more.
+- Capability records cited: `k8s/capabilities/cluster-bootstrap.yaml`, `k8s/capabilities/network-policy-apply.yaml`, `k8s/capabilities/node-lifecycle.yaml`.
+- API surfaces cited: `k8s/contracts/asyncapi/cloud-k8s-events.yaml`, `k8s/contracts/openapi/cloud-k8s.yaml`, `k8s/contracts/proto/cloud-k8s.proto`.
+- Cedar/policy artifacts cited: `k8s/policy/auditor-scope.cedar`, `k8s/policy/ci-scope.cedar`, `k8s/policy/cluster-isolation.md`, `k8s/policy/data-residency.md`, `k8s/policy/public-read.cedar`, `k8s/policy/tenant-scope.cedar`.
+- SLO and dashboard evidence: `k8s/slos/cis-benchmark-conformance.openslo.yaml`, `k8s/slos/cluster-api-availability.openslo.yaml`, `k8s/slos/cluster-cni-availability.openslo.yaml`, `k8s/slos/node-readiness-correctness.openslo.yaml`, `k8s/slos/pod-scheduling-latency.openslo.yaml`, `k8s/slos/service-mesh-availability.openslo.yaml`; +3 more.
+- Runbook/IaC evidence: `k8s/runbooks/control-plane-restore.md`, `k8s/runbooks/csi-rebuild.md`, `k8s/runbooks/envoy-sni-debug.md`, `k8s/runbooks/etcd-quorum-recovery.md`, `k8s/runbooks/ingress-ddos-throttle.md`, `k8s/runbooks/istio-mtls-rotation.md`; +15 more.
 - Data classes declared for this control: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 
 ### Primitive and API binding
-- API surface binding: `microservices/cloud-k8s/contracts/asyncapi/cloud-k8s-events.yaml`, `microservices/cloud-k8s/contracts/openapi/cloud-k8s.yaml`, `microservices/cloud-k8s/contracts/proto/cloud-k8s.proto`.
-- Cedar binding: `microservices/cloud-k8s/policy/auditor-scope.cedar`, `microservices/cloud-k8s/policy/ci-scope.cedar`, `microservices/cloud-k8s/policy/cluster-isolation.md`, `microservices/cloud-k8s/policy/data-residency.md`, `microservices/cloud-k8s/policy/public-read.cedar`, `microservices/cloud-k8s/policy/tenant-scope.cedar`.
+- API surface binding: `k8s/contracts/asyncapi/cloud-k8s-events.yaml`, `k8s/contracts/openapi/cloud-k8s.yaml`, `k8s/contracts/proto/cloud-k8s.proto`.
+- Cedar binding: `k8s/policy/auditor-scope.cedar`, `k8s/policy/ci-scope.cedar`, `k8s/policy/cluster-isolation.md`, `k8s/policy/data-residency.md`, `k8s/policy/public-read.cedar`, `k8s/policy/tenant-scope.cedar`.
 - State/event binding: `cloud_k8s.cloud_k8s`.
 - Capability binding: `cluster-bootstrap`, `network-policy-apply`, `node-lifecycle`.
-- SLO binding: `microservices/cloud-k8s/slos/cis-benchmark-conformance.openslo.yaml`, `microservices/cloud-k8s/slos/cluster-api-availability.openslo.yaml`, `microservices/cloud-k8s/slos/cluster-cni-availability.openslo.yaml`, `microservices/cloud-k8s/slos/node-readiness-correctness.openslo.yaml`, `microservices/cloud-k8s/slos/pod-scheduling-latency.openslo.yaml`, `microservices/cloud-k8s/slos/service-mesh-availability.openslo.yaml`.
-- Runbook binding: `microservices/cloud-k8s/runbooks/control-plane-restore.md`, `microservices/cloud-k8s/runbooks/csi-rebuild.md`, `microservices/cloud-k8s/runbooks/envoy-sni-debug.md`, `microservices/cloud-k8s/runbooks/etcd-quorum-recovery.md`, `microservices/cloud-k8s/runbooks/ingress-ddos-throttle.md`, `microservices/cloud-k8s/runbooks/istio-mtls-rotation.md`; +3 more.
+- SLO binding: `k8s/slos/cis-benchmark-conformance.openslo.yaml`, `k8s/slos/cluster-api-availability.openslo.yaml`, `k8s/slos/cluster-cni-availability.openslo.yaml`, `k8s/slos/node-readiness-correctness.openslo.yaml`, `k8s/slos/pod-scheduling-latency.openslo.yaml`, `k8s/slos/service-mesh-availability.openslo.yaml`.
+- Runbook binding: `k8s/runbooks/control-plane-restore.md`, `k8s/runbooks/csi-rebuild.md`, `k8s/runbooks/envoy-sni-debug.md`, `k8s/runbooks/etcd-quorum-recovery.md`, `k8s/runbooks/ingress-ddos-throttle.md`, `k8s/runbooks/istio-mtls-rotation.md`; +3 more.
 
 ### Cross-service links
 - `tenancy` provides tenant lifecycle, `tenant_id`, `audience_type`, pack activation, and provider-BYOK mode consumed by `cloud-k8s`.
@@ -936,20 +936,20 @@ This anchor is closed for `cloud-k8s` against documentation-rigor.md §3.2.4 Dom
 ### Concrete inventory used
 - Service: `cloud-k8s`; owner `axis-cloud-k8s`; tier `product`; audience `B2C_CONSUMER + B2B_TENANT`.
 - Bounded contexts used for this answer: `cloud-k8s`.
-- Capability records cited: `microservices/cloud-k8s/capabilities/cluster-bootstrap.yaml`, `microservices/cloud-k8s/capabilities/network-policy-apply.yaml`, `microservices/cloud-k8s/capabilities/node-lifecycle.yaml`.
-- API surfaces cited: `microservices/cloud-k8s/contracts/asyncapi/cloud-k8s-events.yaml`, `microservices/cloud-k8s/contracts/openapi/cloud-k8s.yaml`, `microservices/cloud-k8s/contracts/proto/cloud-k8s.proto`.
-- Cedar/policy artifacts cited: `microservices/cloud-k8s/policy/auditor-scope.cedar`, `microservices/cloud-k8s/policy/ci-scope.cedar`, `microservices/cloud-k8s/policy/cluster-isolation.md`, `microservices/cloud-k8s/policy/data-residency.md`, `microservices/cloud-k8s/policy/public-read.cedar`, `microservices/cloud-k8s/policy/tenant-scope.cedar`.
-- SLO and dashboard evidence: `microservices/cloud-k8s/slos/cis-benchmark-conformance.openslo.yaml`, `microservices/cloud-k8s/slos/cluster-api-availability.openslo.yaml`, `microservices/cloud-k8s/slos/cluster-cni-availability.openslo.yaml`, `microservices/cloud-k8s/slos/node-readiness-correctness.openslo.yaml`, `microservices/cloud-k8s/slos/pod-scheduling-latency.openslo.yaml`, `microservices/cloud-k8s/slos/service-mesh-availability.openslo.yaml`; +3 more.
-- Runbook/IaC evidence: `microservices/cloud-k8s/runbooks/control-plane-restore.md`, `microservices/cloud-k8s/runbooks/csi-rebuild.md`, `microservices/cloud-k8s/runbooks/envoy-sni-debug.md`, `microservices/cloud-k8s/runbooks/etcd-quorum-recovery.md`, `microservices/cloud-k8s/runbooks/ingress-ddos-throttle.md`, `microservices/cloud-k8s/runbooks/istio-mtls-rotation.md`; +15 more.
+- Capability records cited: `k8s/capabilities/cluster-bootstrap.yaml`, `k8s/capabilities/network-policy-apply.yaml`, `k8s/capabilities/node-lifecycle.yaml`.
+- API surfaces cited: `k8s/contracts/asyncapi/cloud-k8s-events.yaml`, `k8s/contracts/openapi/cloud-k8s.yaml`, `k8s/contracts/proto/cloud-k8s.proto`.
+- Cedar/policy artifacts cited: `k8s/policy/auditor-scope.cedar`, `k8s/policy/ci-scope.cedar`, `k8s/policy/cluster-isolation.md`, `k8s/policy/data-residency.md`, `k8s/policy/public-read.cedar`, `k8s/policy/tenant-scope.cedar`.
+- SLO and dashboard evidence: `k8s/slos/cis-benchmark-conformance.openslo.yaml`, `k8s/slos/cluster-api-availability.openslo.yaml`, `k8s/slos/cluster-cni-availability.openslo.yaml`, `k8s/slos/node-readiness-correctness.openslo.yaml`, `k8s/slos/pod-scheduling-latency.openslo.yaml`, `k8s/slos/service-mesh-availability.openslo.yaml`; +3 more.
+- Runbook/IaC evidence: `k8s/runbooks/control-plane-restore.md`, `k8s/runbooks/csi-rebuild.md`, `k8s/runbooks/envoy-sni-debug.md`, `k8s/runbooks/etcd-quorum-recovery.md`, `k8s/runbooks/ingress-ddos-throttle.md`, `k8s/runbooks/istio-mtls-rotation.md`; +15 more.
 - Data classes declared for this control: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 
 ### Primitive and API binding
-- API surface binding: `microservices/cloud-k8s/contracts/asyncapi/cloud-k8s-events.yaml`, `microservices/cloud-k8s/contracts/openapi/cloud-k8s.yaml`, `microservices/cloud-k8s/contracts/proto/cloud-k8s.proto`.
-- Cedar binding: `microservices/cloud-k8s/policy/auditor-scope.cedar`, `microservices/cloud-k8s/policy/ci-scope.cedar`, `microservices/cloud-k8s/policy/cluster-isolation.md`, `microservices/cloud-k8s/policy/data-residency.md`, `microservices/cloud-k8s/policy/public-read.cedar`, `microservices/cloud-k8s/policy/tenant-scope.cedar`.
+- API surface binding: `k8s/contracts/asyncapi/cloud-k8s-events.yaml`, `k8s/contracts/openapi/cloud-k8s.yaml`, `k8s/contracts/proto/cloud-k8s.proto`.
+- Cedar binding: `k8s/policy/auditor-scope.cedar`, `k8s/policy/ci-scope.cedar`, `k8s/policy/cluster-isolation.md`, `k8s/policy/data-residency.md`, `k8s/policy/public-read.cedar`, `k8s/policy/tenant-scope.cedar`.
 - State/event binding: `cloud_k8s.cloud_k8s`.
 - Capability binding: `cluster-bootstrap`, `network-policy-apply`, `node-lifecycle`.
-- SLO binding: `microservices/cloud-k8s/slos/cis-benchmark-conformance.openslo.yaml`, `microservices/cloud-k8s/slos/cluster-api-availability.openslo.yaml`, `microservices/cloud-k8s/slos/cluster-cni-availability.openslo.yaml`, `microservices/cloud-k8s/slos/node-readiness-correctness.openslo.yaml`, `microservices/cloud-k8s/slos/pod-scheduling-latency.openslo.yaml`, `microservices/cloud-k8s/slos/service-mesh-availability.openslo.yaml`.
-- Runbook binding: `microservices/cloud-k8s/runbooks/control-plane-restore.md`, `microservices/cloud-k8s/runbooks/csi-rebuild.md`, `microservices/cloud-k8s/runbooks/envoy-sni-debug.md`, `microservices/cloud-k8s/runbooks/etcd-quorum-recovery.md`, `microservices/cloud-k8s/runbooks/ingress-ddos-throttle.md`, `microservices/cloud-k8s/runbooks/istio-mtls-rotation.md`; +3 more.
+- SLO binding: `k8s/slos/cis-benchmark-conformance.openslo.yaml`, `k8s/slos/cluster-api-availability.openslo.yaml`, `k8s/slos/cluster-cni-availability.openslo.yaml`, `k8s/slos/node-readiness-correctness.openslo.yaml`, `k8s/slos/pod-scheduling-latency.openslo.yaml`, `k8s/slos/service-mesh-availability.openslo.yaml`.
+- Runbook binding: `k8s/runbooks/control-plane-restore.md`, `k8s/runbooks/csi-rebuild.md`, `k8s/runbooks/envoy-sni-debug.md`, `k8s/runbooks/etcd-quorum-recovery.md`, `k8s/runbooks/ingress-ddos-throttle.md`, `k8s/runbooks/istio-mtls-rotation.md`; +3 more.
 
 ### Cross-service links
 - `tenancy` provides tenant lifecycle, `tenant_id`, `audience_type`, pack activation, and provider-BYOK mode consumed by `cloud-k8s`.
@@ -987,7 +987,7 @@ This anchor is closed for `cloud-k8s` against documentation-rigor.md §3.2.4 Dom
 
 ### Service-specific answer
 - `cloud-k8s` dependency inventory spans crates/catalog, containers, Helm/Kustomize/OpenTofu, Cedar fragments, contracts, and generated SDKs.
-- Inventory artifacts: `microservices/cloud-k8s/catalog/oya-cloud-k8s-cluster-bootstrap-adapter-containerd.yaml`, `microservices/cloud-k8s/catalog/oya-cloud-k8s-cluster-bootstrap-adapter-kubeadm.yaml`, `microservices/cloud-k8s/catalog/oya-cloud-k8s-cluster-bootstrap-adapter.yaml`, `microservices/cloud-k8s/catalog/oya-cloud-k8s-cluster-bootstrap-api.yaml`, `microservices/cloud-k8s/catalog/oya-cloud-k8s-cluster-bootstrap-app.yaml`, `microservices/cloud-k8s/catalog/oya-cloud-k8s-cluster-bootstrap-domain.yaml`; +21 more.
+- Inventory artifacts: `k8s/catalog/oya-cloud-k8s-cluster-bootstrap-adapter-containerd.yaml`, `k8s/catalog/oya-cloud-k8s-cluster-bootstrap-adapter-kubeadm.yaml`, `k8s/catalog/oya-cloud-k8s-cluster-bootstrap-adapter.yaml`, `k8s/catalog/oya-cloud-k8s-cluster-bootstrap-api.yaml`, `k8s/catalog/oya-cloud-k8s-cluster-bootstrap-app.yaml`, `k8s/catalog/oya-cloud-k8s-cluster-bootstrap-domain.yaml`; +21 more.
 - Every build emits SBOM, provenance, source commit, builder identity, dependency digests, and signature/transparency-log pointers.
 - Dependencies are pinned to exact versions/digests; unpinned charts/images/crates block promotion.
 - Example: `cluster-bootstrap` image promotion requires cosign signature, SLSA provenance, vulnerability scan, license check, and matching manifest/catalog record.
@@ -998,20 +998,20 @@ This anchor is closed for `cloud-k8s` against documentation-rigor.md §3.2.4 Dom
 ### Concrete inventory used
 - Service: `cloud-k8s`; owner `axis-cloud-k8s`; tier `product`; audience `B2C_CONSUMER + B2B_TENANT`.
 - Bounded contexts used for this answer: `cloud-k8s`.
-- Capability records cited: `microservices/cloud-k8s/capabilities/cluster-bootstrap.yaml`, `microservices/cloud-k8s/capabilities/network-policy-apply.yaml`, `microservices/cloud-k8s/capabilities/node-lifecycle.yaml`.
-- API surfaces cited: `microservices/cloud-k8s/contracts/asyncapi/cloud-k8s-events.yaml`, `microservices/cloud-k8s/contracts/openapi/cloud-k8s.yaml`, `microservices/cloud-k8s/contracts/proto/cloud-k8s.proto`.
-- Cedar/policy artifacts cited: `microservices/cloud-k8s/policy/auditor-scope.cedar`, `microservices/cloud-k8s/policy/ci-scope.cedar`, `microservices/cloud-k8s/policy/cluster-isolation.md`, `microservices/cloud-k8s/policy/data-residency.md`, `microservices/cloud-k8s/policy/public-read.cedar`, `microservices/cloud-k8s/policy/tenant-scope.cedar`.
-- SLO and dashboard evidence: `microservices/cloud-k8s/slos/cis-benchmark-conformance.openslo.yaml`, `microservices/cloud-k8s/slos/cluster-api-availability.openslo.yaml`, `microservices/cloud-k8s/slos/cluster-cni-availability.openslo.yaml`, `microservices/cloud-k8s/slos/node-readiness-correctness.openslo.yaml`, `microservices/cloud-k8s/slos/pod-scheduling-latency.openslo.yaml`, `microservices/cloud-k8s/slos/service-mesh-availability.openslo.yaml`; +3 more.
-- Runbook/IaC evidence: `microservices/cloud-k8s/runbooks/control-plane-restore.md`, `microservices/cloud-k8s/runbooks/csi-rebuild.md`, `microservices/cloud-k8s/runbooks/envoy-sni-debug.md`, `microservices/cloud-k8s/runbooks/etcd-quorum-recovery.md`, `microservices/cloud-k8s/runbooks/ingress-ddos-throttle.md`, `microservices/cloud-k8s/runbooks/istio-mtls-rotation.md`; +15 more.
+- Capability records cited: `k8s/capabilities/cluster-bootstrap.yaml`, `k8s/capabilities/network-policy-apply.yaml`, `k8s/capabilities/node-lifecycle.yaml`.
+- API surfaces cited: `k8s/contracts/asyncapi/cloud-k8s-events.yaml`, `k8s/contracts/openapi/cloud-k8s.yaml`, `k8s/contracts/proto/cloud-k8s.proto`.
+- Cedar/policy artifacts cited: `k8s/policy/auditor-scope.cedar`, `k8s/policy/ci-scope.cedar`, `k8s/policy/cluster-isolation.md`, `k8s/policy/data-residency.md`, `k8s/policy/public-read.cedar`, `k8s/policy/tenant-scope.cedar`.
+- SLO and dashboard evidence: `k8s/slos/cis-benchmark-conformance.openslo.yaml`, `k8s/slos/cluster-api-availability.openslo.yaml`, `k8s/slos/cluster-cni-availability.openslo.yaml`, `k8s/slos/node-readiness-correctness.openslo.yaml`, `k8s/slos/pod-scheduling-latency.openslo.yaml`, `k8s/slos/service-mesh-availability.openslo.yaml`; +3 more.
+- Runbook/IaC evidence: `k8s/runbooks/control-plane-restore.md`, `k8s/runbooks/csi-rebuild.md`, `k8s/runbooks/envoy-sni-debug.md`, `k8s/runbooks/etcd-quorum-recovery.md`, `k8s/runbooks/ingress-ddos-throttle.md`, `k8s/runbooks/istio-mtls-rotation.md`; +15 more.
 - Data classes declared for this control: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 
 ### Primitive and API binding
-- API surface binding: `microservices/cloud-k8s/contracts/asyncapi/cloud-k8s-events.yaml`, `microservices/cloud-k8s/contracts/openapi/cloud-k8s.yaml`, `microservices/cloud-k8s/contracts/proto/cloud-k8s.proto`.
-- Cedar binding: `microservices/cloud-k8s/policy/auditor-scope.cedar`, `microservices/cloud-k8s/policy/ci-scope.cedar`, `microservices/cloud-k8s/policy/cluster-isolation.md`, `microservices/cloud-k8s/policy/data-residency.md`, `microservices/cloud-k8s/policy/public-read.cedar`, `microservices/cloud-k8s/policy/tenant-scope.cedar`.
+- API surface binding: `k8s/contracts/asyncapi/cloud-k8s-events.yaml`, `k8s/contracts/openapi/cloud-k8s.yaml`, `k8s/contracts/proto/cloud-k8s.proto`.
+- Cedar binding: `k8s/policy/auditor-scope.cedar`, `k8s/policy/ci-scope.cedar`, `k8s/policy/cluster-isolation.md`, `k8s/policy/data-residency.md`, `k8s/policy/public-read.cedar`, `k8s/policy/tenant-scope.cedar`.
 - State/event binding: `cloud_k8s.cloud_k8s`.
 - Capability binding: `cluster-bootstrap`, `network-policy-apply`, `node-lifecycle`.
-- SLO binding: `microservices/cloud-k8s/slos/cis-benchmark-conformance.openslo.yaml`, `microservices/cloud-k8s/slos/cluster-api-availability.openslo.yaml`, `microservices/cloud-k8s/slos/cluster-cni-availability.openslo.yaml`, `microservices/cloud-k8s/slos/node-readiness-correctness.openslo.yaml`, `microservices/cloud-k8s/slos/pod-scheduling-latency.openslo.yaml`, `microservices/cloud-k8s/slos/service-mesh-availability.openslo.yaml`.
-- Runbook binding: `microservices/cloud-k8s/runbooks/control-plane-restore.md`, `microservices/cloud-k8s/runbooks/csi-rebuild.md`, `microservices/cloud-k8s/runbooks/envoy-sni-debug.md`, `microservices/cloud-k8s/runbooks/etcd-quorum-recovery.md`, `microservices/cloud-k8s/runbooks/ingress-ddos-throttle.md`, `microservices/cloud-k8s/runbooks/istio-mtls-rotation.md`; +3 more.
+- SLO binding: `k8s/slos/cis-benchmark-conformance.openslo.yaml`, `k8s/slos/cluster-api-availability.openslo.yaml`, `k8s/slos/cluster-cni-availability.openslo.yaml`, `k8s/slos/node-readiness-correctness.openslo.yaml`, `k8s/slos/pod-scheduling-latency.openslo.yaml`, `k8s/slos/service-mesh-availability.openslo.yaml`.
+- Runbook binding: `k8s/runbooks/control-plane-restore.md`, `k8s/runbooks/csi-rebuild.md`, `k8s/runbooks/envoy-sni-debug.md`, `k8s/runbooks/etcd-quorum-recovery.md`, `k8s/runbooks/ingress-ddos-throttle.md`, `k8s/runbooks/istio-mtls-rotation.md`; +3 more.
 
 ### Cross-service links
 - `tenancy` provides tenant lifecycle, `tenant_id`, `audience_type`, pack activation, and provider-BYOK mode consumed by `cloud-k8s`.
@@ -1060,20 +1060,20 @@ This anchor is closed for `cloud-k8s` against documentation-rigor.md §3.2.5: ap
 ### Concrete inventory used
 - Service: `cloud-k8s`; owner `axis-cloud-k8s`; tier `product`; audience `B2C_CONSUMER + B2B_TENANT`.
 - Bounded contexts used for this answer: `cloud-k8s`.
-- Capability records cited: `microservices/cloud-k8s/capabilities/cluster-bootstrap.yaml`, `microservices/cloud-k8s/capabilities/network-policy-apply.yaml`, `microservices/cloud-k8s/capabilities/node-lifecycle.yaml`.
-- API surfaces cited: `microservices/cloud-k8s/contracts/asyncapi/cloud-k8s-events.yaml`, `microservices/cloud-k8s/contracts/openapi/cloud-k8s.yaml`, `microservices/cloud-k8s/contracts/proto/cloud-k8s.proto`.
-- Cedar/policy artifacts cited: `microservices/cloud-k8s/policy/auditor-scope.cedar`, `microservices/cloud-k8s/policy/ci-scope.cedar`, `microservices/cloud-k8s/policy/cluster-isolation.md`, `microservices/cloud-k8s/policy/data-residency.md`, `microservices/cloud-k8s/policy/public-read.cedar`, `microservices/cloud-k8s/policy/tenant-scope.cedar`.
-- SLO and dashboard evidence: `microservices/cloud-k8s/slos/cis-benchmark-conformance.openslo.yaml`, `microservices/cloud-k8s/slos/cluster-api-availability.openslo.yaml`, `microservices/cloud-k8s/slos/cluster-cni-availability.openslo.yaml`, `microservices/cloud-k8s/slos/node-readiness-correctness.openslo.yaml`, `microservices/cloud-k8s/slos/pod-scheduling-latency.openslo.yaml`, `microservices/cloud-k8s/slos/service-mesh-availability.openslo.yaml`; +3 more.
-- Runbook/IaC evidence: `microservices/cloud-k8s/runbooks/control-plane-restore.md`, `microservices/cloud-k8s/runbooks/csi-rebuild.md`, `microservices/cloud-k8s/runbooks/envoy-sni-debug.md`, `microservices/cloud-k8s/runbooks/etcd-quorum-recovery.md`, `microservices/cloud-k8s/runbooks/ingress-ddos-throttle.md`, `microservices/cloud-k8s/runbooks/istio-mtls-rotation.md`; +15 more.
+- Capability records cited: `k8s/capabilities/cluster-bootstrap.yaml`, `k8s/capabilities/network-policy-apply.yaml`, `k8s/capabilities/node-lifecycle.yaml`.
+- API surfaces cited: `k8s/contracts/asyncapi/cloud-k8s-events.yaml`, `k8s/contracts/openapi/cloud-k8s.yaml`, `k8s/contracts/proto/cloud-k8s.proto`.
+- Cedar/policy artifacts cited: `k8s/policy/auditor-scope.cedar`, `k8s/policy/ci-scope.cedar`, `k8s/policy/cluster-isolation.md`, `k8s/policy/data-residency.md`, `k8s/policy/public-read.cedar`, `k8s/policy/tenant-scope.cedar`.
+- SLO and dashboard evidence: `k8s/slos/cis-benchmark-conformance.openslo.yaml`, `k8s/slos/cluster-api-availability.openslo.yaml`, `k8s/slos/cluster-cni-availability.openslo.yaml`, `k8s/slos/node-readiness-correctness.openslo.yaml`, `k8s/slos/pod-scheduling-latency.openslo.yaml`, `k8s/slos/service-mesh-availability.openslo.yaml`; +3 more.
+- Runbook/IaC evidence: `k8s/runbooks/control-plane-restore.md`, `k8s/runbooks/csi-rebuild.md`, `k8s/runbooks/envoy-sni-debug.md`, `k8s/runbooks/etcd-quorum-recovery.md`, `k8s/runbooks/ingress-ddos-throttle.md`, `k8s/runbooks/istio-mtls-rotation.md`; +15 more.
 - Data classes declared for this control: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 
 ### Primitive and API binding
-- API surface binding: `microservices/cloud-k8s/contracts/asyncapi/cloud-k8s-events.yaml`, `microservices/cloud-k8s/contracts/openapi/cloud-k8s.yaml`, `microservices/cloud-k8s/contracts/proto/cloud-k8s.proto`.
-- Cedar binding: `microservices/cloud-k8s/policy/auditor-scope.cedar`, `microservices/cloud-k8s/policy/ci-scope.cedar`, `microservices/cloud-k8s/policy/cluster-isolation.md`, `microservices/cloud-k8s/policy/data-residency.md`, `microservices/cloud-k8s/policy/public-read.cedar`, `microservices/cloud-k8s/policy/tenant-scope.cedar`.
+- API surface binding: `k8s/contracts/asyncapi/cloud-k8s-events.yaml`, `k8s/contracts/openapi/cloud-k8s.yaml`, `k8s/contracts/proto/cloud-k8s.proto`.
+- Cedar binding: `k8s/policy/auditor-scope.cedar`, `k8s/policy/ci-scope.cedar`, `k8s/policy/cluster-isolation.md`, `k8s/policy/data-residency.md`, `k8s/policy/public-read.cedar`, `k8s/policy/tenant-scope.cedar`.
 - State/event binding: `cloud_k8s.cloud_k8s`.
 - Capability binding: `cluster-bootstrap`, `network-policy-apply`, `node-lifecycle`.
-- SLO binding: `microservices/cloud-k8s/slos/cis-benchmark-conformance.openslo.yaml`, `microservices/cloud-k8s/slos/cluster-api-availability.openslo.yaml`, `microservices/cloud-k8s/slos/cluster-cni-availability.openslo.yaml`, `microservices/cloud-k8s/slos/node-readiness-correctness.openslo.yaml`, `microservices/cloud-k8s/slos/pod-scheduling-latency.openslo.yaml`, `microservices/cloud-k8s/slos/service-mesh-availability.openslo.yaml`.
-- Runbook binding: `microservices/cloud-k8s/runbooks/control-plane-restore.md`, `microservices/cloud-k8s/runbooks/csi-rebuild.md`, `microservices/cloud-k8s/runbooks/envoy-sni-debug.md`, `microservices/cloud-k8s/runbooks/etcd-quorum-recovery.md`, `microservices/cloud-k8s/runbooks/ingress-ddos-throttle.md`, `microservices/cloud-k8s/runbooks/istio-mtls-rotation.md`; +3 more.
+- SLO binding: `k8s/slos/cis-benchmark-conformance.openslo.yaml`, `k8s/slos/cluster-api-availability.openslo.yaml`, `k8s/slos/cluster-cni-availability.openslo.yaml`, `k8s/slos/node-readiness-correctness.openslo.yaml`, `k8s/slos/pod-scheduling-latency.openslo.yaml`, `k8s/slos/service-mesh-availability.openslo.yaml`.
+- Runbook binding: `k8s/runbooks/control-plane-restore.md`, `k8s/runbooks/csi-rebuild.md`, `k8s/runbooks/envoy-sni-debug.md`, `k8s/runbooks/etcd-quorum-recovery.md`, `k8s/runbooks/ingress-ddos-throttle.md`, `k8s/runbooks/istio-mtls-rotation.md`; +3 more.
 
 ### Cross-service links
 - `tenancy` provides tenant lifecycle, `tenant_id`, `audience_type`, pack activation, and provider-BYOK mode consumed by `cloud-k8s`.
@@ -1122,20 +1122,20 @@ This anchor is closed for `cloud-k8s` against documentation-rigor.md §3.2.4 Dom
 ### Concrete inventory used
 - Service: `cloud-k8s`; owner `axis-cloud-k8s`; tier `product`; audience `B2C_CONSUMER + B2B_TENANT`.
 - Bounded contexts used for this answer: `cloud-k8s`.
-- Capability records cited: `microservices/cloud-k8s/capabilities/cluster-bootstrap.yaml`, `microservices/cloud-k8s/capabilities/network-policy-apply.yaml`, `microservices/cloud-k8s/capabilities/node-lifecycle.yaml`.
-- API surfaces cited: `microservices/cloud-k8s/contracts/asyncapi/cloud-k8s-events.yaml`, `microservices/cloud-k8s/contracts/openapi/cloud-k8s.yaml`, `microservices/cloud-k8s/contracts/proto/cloud-k8s.proto`.
-- Cedar/policy artifacts cited: `microservices/cloud-k8s/policy/auditor-scope.cedar`, `microservices/cloud-k8s/policy/ci-scope.cedar`, `microservices/cloud-k8s/policy/cluster-isolation.md`, `microservices/cloud-k8s/policy/data-residency.md`, `microservices/cloud-k8s/policy/public-read.cedar`, `microservices/cloud-k8s/policy/tenant-scope.cedar`.
-- SLO and dashboard evidence: `microservices/cloud-k8s/slos/cis-benchmark-conformance.openslo.yaml`, `microservices/cloud-k8s/slos/cluster-api-availability.openslo.yaml`, `microservices/cloud-k8s/slos/cluster-cni-availability.openslo.yaml`, `microservices/cloud-k8s/slos/node-readiness-correctness.openslo.yaml`, `microservices/cloud-k8s/slos/pod-scheduling-latency.openslo.yaml`, `microservices/cloud-k8s/slos/service-mesh-availability.openslo.yaml`; +3 more.
-- Runbook/IaC evidence: `microservices/cloud-k8s/runbooks/control-plane-restore.md`, `microservices/cloud-k8s/runbooks/csi-rebuild.md`, `microservices/cloud-k8s/runbooks/envoy-sni-debug.md`, `microservices/cloud-k8s/runbooks/etcd-quorum-recovery.md`, `microservices/cloud-k8s/runbooks/ingress-ddos-throttle.md`, `microservices/cloud-k8s/runbooks/istio-mtls-rotation.md`; +15 more.
+- Capability records cited: `k8s/capabilities/cluster-bootstrap.yaml`, `k8s/capabilities/network-policy-apply.yaml`, `k8s/capabilities/node-lifecycle.yaml`.
+- API surfaces cited: `k8s/contracts/asyncapi/cloud-k8s-events.yaml`, `k8s/contracts/openapi/cloud-k8s.yaml`, `k8s/contracts/proto/cloud-k8s.proto`.
+- Cedar/policy artifacts cited: `k8s/policy/auditor-scope.cedar`, `k8s/policy/ci-scope.cedar`, `k8s/policy/cluster-isolation.md`, `k8s/policy/data-residency.md`, `k8s/policy/public-read.cedar`, `k8s/policy/tenant-scope.cedar`.
+- SLO and dashboard evidence: `k8s/slos/cis-benchmark-conformance.openslo.yaml`, `k8s/slos/cluster-api-availability.openslo.yaml`, `k8s/slos/cluster-cni-availability.openslo.yaml`, `k8s/slos/node-readiness-correctness.openslo.yaml`, `k8s/slos/pod-scheduling-latency.openslo.yaml`, `k8s/slos/service-mesh-availability.openslo.yaml`; +3 more.
+- Runbook/IaC evidence: `k8s/runbooks/control-plane-restore.md`, `k8s/runbooks/csi-rebuild.md`, `k8s/runbooks/envoy-sni-debug.md`, `k8s/runbooks/etcd-quorum-recovery.md`, `k8s/runbooks/ingress-ddos-throttle.md`, `k8s/runbooks/istio-mtls-rotation.md`; +15 more.
 - Data classes declared for this control: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 
 ### Primitive and API binding
-- API surface binding: `microservices/cloud-k8s/contracts/asyncapi/cloud-k8s-events.yaml`, `microservices/cloud-k8s/contracts/openapi/cloud-k8s.yaml`, `microservices/cloud-k8s/contracts/proto/cloud-k8s.proto`.
-- Cedar binding: `microservices/cloud-k8s/policy/auditor-scope.cedar`, `microservices/cloud-k8s/policy/ci-scope.cedar`, `microservices/cloud-k8s/policy/cluster-isolation.md`, `microservices/cloud-k8s/policy/data-residency.md`, `microservices/cloud-k8s/policy/public-read.cedar`, `microservices/cloud-k8s/policy/tenant-scope.cedar`.
+- API surface binding: `k8s/contracts/asyncapi/cloud-k8s-events.yaml`, `k8s/contracts/openapi/cloud-k8s.yaml`, `k8s/contracts/proto/cloud-k8s.proto`.
+- Cedar binding: `k8s/policy/auditor-scope.cedar`, `k8s/policy/ci-scope.cedar`, `k8s/policy/cluster-isolation.md`, `k8s/policy/data-residency.md`, `k8s/policy/public-read.cedar`, `k8s/policy/tenant-scope.cedar`.
 - State/event binding: `cloud_k8s.cloud_k8s`.
 - Capability binding: `cluster-bootstrap`, `network-policy-apply`, `node-lifecycle`.
-- SLO binding: `microservices/cloud-k8s/slos/cis-benchmark-conformance.openslo.yaml`, `microservices/cloud-k8s/slos/cluster-api-availability.openslo.yaml`, `microservices/cloud-k8s/slos/cluster-cni-availability.openslo.yaml`, `microservices/cloud-k8s/slos/node-readiness-correctness.openslo.yaml`, `microservices/cloud-k8s/slos/pod-scheduling-latency.openslo.yaml`, `microservices/cloud-k8s/slos/service-mesh-availability.openslo.yaml`.
-- Runbook binding: `microservices/cloud-k8s/runbooks/control-plane-restore.md`, `microservices/cloud-k8s/runbooks/csi-rebuild.md`, `microservices/cloud-k8s/runbooks/envoy-sni-debug.md`, `microservices/cloud-k8s/runbooks/etcd-quorum-recovery.md`, `microservices/cloud-k8s/runbooks/ingress-ddos-throttle.md`, `microservices/cloud-k8s/runbooks/istio-mtls-rotation.md`; +3 more.
+- SLO binding: `k8s/slos/cis-benchmark-conformance.openslo.yaml`, `k8s/slos/cluster-api-availability.openslo.yaml`, `k8s/slos/cluster-cni-availability.openslo.yaml`, `k8s/slos/node-readiness-correctness.openslo.yaml`, `k8s/slos/pod-scheduling-latency.openslo.yaml`, `k8s/slos/service-mesh-availability.openslo.yaml`.
+- Runbook binding: `k8s/runbooks/control-plane-restore.md`, `k8s/runbooks/csi-rebuild.md`, `k8s/runbooks/envoy-sni-debug.md`, `k8s/runbooks/etcd-quorum-recovery.md`, `k8s/runbooks/ingress-ddos-throttle.md`, `k8s/runbooks/istio-mtls-rotation.md`; +3 more.
 
 ### Cross-service links
 - `tenancy` provides tenant lifecycle, `tenant_id`, `audience_type`, pack activation, and provider-BYOK mode consumed by `cloud-k8s`.

@@ -15,7 +15,7 @@ acceptance_lanes: [openslo-schema, oya-governance-authority-cohesion, oya-govern
 
 ## Intent
 
-Author OpenSLO manifests at `microservices/cloud-k8s/slos/*.openslo.yaml` so cloud-k8s's release pointer can advance past `dev` per ADR-0139. Then register HG-CLOUD-K8S in the authority-cohesion gate so cross-microservice claims (e.g., "Cluster bootstrap p99 ≤ 30min") have a verifier.
+Author OpenSLO manifests at `k8s/slos/*.openslo.yaml` so cloud-k8s's release pointer can advance past `dev` per ADR-0139. Then register HG-CLOUD-K8S in the authority-cohesion gate so cross-microservice claims (e.g., "Cluster bootstrap p99 ≤ 30min") have a verifier.
 
 ## ChangeSet boundary
 
@@ -107,14 +107,14 @@ spec:
     {
       "id": "HG-CLOUD-K8S",
       "owner_team": "axis-cloud",
-      "registered_at": "microservices/cloud-k8s/",
+      "registered_at": "k8s/",
       "slo_manifests": [
         "microservices/cloud-k8s/slos/cluster-bootstrap-availability.openslo.yaml",
         "microservices/cloud-k8s/slos/node-join-latency.openslo.yaml",
         "microservices/cloud-k8s/slos/network-policy-propagation-latency.openslo.yaml",
         "microservices/cloud-k8s/slos/api-proxy-decision-latency.openslo.yaml"
       ],
-      "claim_doc": "microservices/cloud-k8s/competitor-parity-matrix.md"
+      "claim_doc": "k8s/competitor-parity-matrix.md"
     }
   ]
 }
@@ -123,7 +123,7 @@ spec:
 ## Acceptance Gates
 
 ```bash
-for slo in microservices/cloud-k8s/slos/*.openslo.yaml; do
+for slo in k8s/slos/*.openslo.yaml; do
   cargo run -p oya-observability-slo-engine-rest -- validate "$slo"
 done
 cargo run -p oya-dev-cli -- gate validate authority-cohesion
@@ -151,5 +151,5 @@ End of phase. Begin `exit_gate` validation per PHASE-01.
 - ADR-0139 (agentic SLO-gated promotion); ADR-0123 (HG gate); ADR-0121 (substrate).
 - `docs/standards/observability-slo.md`.
 - `microservices/observability/PRD.md` FR-01 (OpenSLO authoring).
-- `microservices/cloud-k8s/PRD.md` AC table.
+- `k8s/PRD.md` AC table.
 - OpenSLO v1.0 spec — `openslo.com`.

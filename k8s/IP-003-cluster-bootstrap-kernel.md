@@ -21,7 +21,7 @@ Scaffold the `kernel` layer crate per ADR-0105: port traits (sealed) + entity ty
 
 ## ChangeSet boundary
 
-One new Rust crate at `microservices/cloud-k8s/src/crates/oya-cloud-k8s-cluster-bootstrap-kernel/`. Workspace member added to root `Cargo.toml`. Catalog row at `microservices/cloud-k8s/catalog/oya-cloud-k8s-cluster-bootstrap-kernel.yaml`.
+One new Rust crate at `microservices/cloud-k8s/src/crates/oya-cloud-k8s-cluster-bootstrap-kernel/`. Workspace member added to root `Cargo.toml`. Catalog row at `k8s/catalog/oya-cloud-k8s-cluster-bootstrap-kernel.yaml`.
 
 ## Concrete File Targets
 
@@ -33,7 +33,7 @@ One new Rust crate at `microservices/cloud-k8s/src/crates/oya-cloud-k8s-cluster-
 | `.../src/ports.rs` | create | sealed port traits (KubeadmCommander, EtcdSnapshotter, ControlPlaneInspector) |
 | `.../src/errors.rs` | create | error variants per port + entity |
 | `Cargo.toml` (workspace) | update | add workspace member |
-| `microservices/cloud-k8s/catalog/oya-cloud-k8s-cluster-bootstrap-kernel.yaml` | create | catalog row |
+| `k8s/catalog/oya-cloud-k8s-cluster-bootstrap-kernel.yaml` | create | catalog row |
 
 ## Crate Naming
 
@@ -163,5 +163,5 @@ Per PHASE-01 §"Per-IP Test Coverage Threshold" kernel class: 1 test per public 
 ## References
 
 - ADR-0056, ADR-0105, ADR-0106, ADR-0121.
-- `microservices/cloud-k8s/PRD.md` §"Bounded Contexts" port-trait table.
+- `k8s/PRD.md` §"Bounded Contexts" port-trait table.
 - Bominal ADR-0028 (data-class taxonomy).

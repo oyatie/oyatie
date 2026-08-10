@@ -265,7 +265,7 @@ Each threat carries: ID; category; asset; description; likelihood (L/M/H); impac
 - Asset: Kyverno ClusterPolicy CRs
 - Likelihood: L / Impact: H / Risk: **M**
 - Mitigations:
-  - Kyverno CRs git-versioned at `microservices/cloud-k8s/iac/kustomize/base/`; PR-reviewed.
+  - Kyverno CRs git-versioned at `k8s/iac/kustomize/base/`; PR-reviewed.
   - kubernetes-api-proxy refuses direct Kyverno-CR mutations from non-operator principals.
   - LEAN check `oya-check-kyverno-policy-conformance` validates CRs match git source.
 - Owner: axis-cloud + ops-security
@@ -519,7 +519,7 @@ Each threat carries: ID; category; asset; description; likelihood (L/M/H); impac
 - Asset: Kubernetes RBAC
 - Likelihood: L / Impact: H / Risk: **M**
 - Mitigations:
-  - All RBAC managed via OpenTofu / Kustomize at `microservices/cloud-k8s/iac/`; PR-reviewed.
+  - All RBAC managed via OpenTofu / Kustomize at `k8s/iac/`; PR-reviewed.
   - kubernetes-api-proxy adds Cedar layer ON TOP of RBAC; no operator gets cluster-admin without JIT.
   - LEAN check `oya-check-rbac-conformance` greps for `cluster-admin` binding + flags.
   - Annual RBAC audit.
@@ -685,7 +685,7 @@ Per-pack overlays at `regional-packs/<pack>/cloud-k8s-overlay.md` follow the sam
 
 | Framework | Coverage | Mapping doc |
 |---|---|---|
-| SOC 2 Type 2 | CC6.x (access) ← kubernetes-api-proxy + Cedar + RBAC; CC7.x (operations) ← runbooks; CC8.x (change mgmt) ← PR + LEAN | `microservices/cloud-k8s/compliance.md` |
+| SOC 2 Type 2 | CC6.x (access) ← kubernetes-api-proxy + Cedar + RBAC; CC7.x (operations) ← runbooks; CC8.x (change mgmt) ← PR + LEAN | `k8s/compliance.md` |
 | ISO 27001:2022 | A.5–A.8 cited inline | same |
 | GDPR | Arts. 25/28/30/32/33 cited inline | same |
 | CIS Kubernetes Benchmark v1.9 | every control mapped to a mitigation | same |
@@ -706,8 +706,8 @@ Per-pack overlays at `regional-packs/<pack>/cloud-k8s-overlay.md` follow the sam
 - ADR-0056, ADR-0105, ADR-0106 (architecture).
 - ADR-0117 (cloud-native progression), ADR-0120 (Rust-first), ADR-0121 (this µservice's substrate).
 - ADR-0139 (SLO gate), ADR-0131 (per-microservice flat), ADR-0140 (Cedar).
-- `microservices/cloud-k8s/PRD.md`.
-- `microservices/cloud-k8s/dpia.md` (paired privacy artifact).
+- `k8s/PRD.md`.
+- `k8s/dpia.md` (paired privacy artifact).
 - CIS Kubernetes Benchmark v1.9 — `cisecurity.org/benchmark/kubernetes`.
 - NSA/CISA Kubernetes Hardening Guide v1.2 — `nsa.gov/Cybersecurity/Cybersecurity-Advisories-Guidance/`.
 - OWASP Kubernetes Security Top Ten — `owasp.org/www-project-kubernetes-top-ten`.

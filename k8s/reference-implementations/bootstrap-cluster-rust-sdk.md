@@ -7,11 +7,11 @@ date: 2026-05-20
 owner_team: axis-cloud
 related_adrs: [ADR-0121, ADR-0131, ADR-0244, ADR-0254]
 related_artifacts:
-  - microservices/cloud-k8s/contracts/openapi/cloud-k8s.yaml
-  - microservices/cloud-k8s/contracts/proto/cloud-k8s.proto
-  - microservices/cloud-k8s/sdk-plan.md
-  - microservices/cloud-k8s/IP-003-cluster-bootstrap-kernel.md
-  - microservices/cloud-k8s/IP-CLUSTERAPI-001-clusterclass-templates.md
+  - k8s/contracts/openapi/cloud-k8s.yaml
+  - k8s/contracts/proto/cloud-k8s.proto
+  - k8s/sdk-plan.md
+  - k8s/IP-003-cluster-bootstrap-kernel.md
+  - k8s/IP-CLUSTERAPI-001-clusterclass-templates.md
 doc_status: published
 ---
 
@@ -268,7 +268,7 @@ INFO  bootstrap complete — ready for tenant workloads
 
 End-to-end median observed on staging:  10 m 42 s (control-plane ready), 11 m 17 s (first node Ready), 11 m 49 s (PDB
 healthy). Beats the EKS-via-eksctl public reference of ~14 m and AKS-via-az-cli of ~16 m for an equivalent 3-AZ regulated
-profile. Source: `microservices/cloud-k8s/competitor-parity-matrix.md` §3 bootstrap-latency rows.
+profile. Source: `k8s/competitor-parity-matrix.md` §3 bootstrap-latency rows.
 
 ## SDK correctness guarantees
 
@@ -334,4 +334,4 @@ When `PackId::UsHipaa`, `PackId::EuGdpr`, or `PackId::EuAiActAnnexIii` is set:
 - **From OpenShift OCP**: `oc adm policy` flows translate to `cedar_decision_id` enforcement evidence; SCC profiles are
   superseded by the pack overlay (no per-cluster SCC editor surface — refused by design).
 
-See the migration playbooks under `microservices/cloud-k8s/migration-playbooks/` for vendor-by-vendor field-level mapping.
+See the migration playbooks under `k8s/migration-playbooks/` for vendor-by-vendor field-level mapping.

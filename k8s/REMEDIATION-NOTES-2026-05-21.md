@@ -1,20 +1,20 @@
 ## Wave 15-Valkey migration (2026-05-21)
 
 Per ADR-0336, Redis vocabulary replaced with Valkey in:
-- `microservices/cloud-k8s/AUDIT-FINDINGS-2026-05-18.json`
-- `microservices/cloud-k8s/coherence-audit-2026-05-20.md`
-- `microservices/cloud-k8s/feature-parity-matrix-2026-05-20.md`
-- `microservices/cloud-k8s/PRD.md`
-- `microservices/cloud-k8s/performance-benchmark-numbers-2026-05-20.md`
-- `microservices/cloud-k8s/multi-region.md`
-- `microservices/cloud-k8s/iac/kustomize/components/storage-classes/kustomization.yaml`
-- `microservices/cloud-k8s/iac/kustomize/components/storage-classes/storage-class-oya-valkey-hot.yaml`
+- `k8s/AUDIT-FINDINGS-2026-05-18.json`
+- `k8s/coherence-audit-2026-05-20.md`
+- `k8s/feature-parity-matrix-2026-05-20.md`
+- `k8s/PRD.md`
+- `k8s/performance-benchmark-numbers-2026-05-20.md`
+- `k8s/multi-region.md`
+- `k8s/iac/kustomize/components/storage-classes/kustomization.yaml`
+- `k8s/iac/kustomize/components/storage-classes/storage-class-oya-valkey-hot.yaml`
 
 Counterpart-fact preservations:
 - None.
 
 Files renamed (git mv):
-- `microservices/cloud-k8s/iac/kustomize/components/storage-classes/storage-class-oya-redis-hot.yaml` -> `microservices/cloud-k8s/iac/kustomize/components/storage-classes/storage-class-oya-valkey-hot.yaml`
+- `microservices/cloud-k8s/iac/kustomize/components/storage-classes/storage-class-oya-redis-hot.yaml` -> `k8s/iac/kustomize/components/storage-classes/storage-class-oya-valkey-hot.yaml`
 
 ## Wave 15-doctrine-propagation-PRD (2026-05-21)
 
@@ -53,7 +53,7 @@ Values: cluster lifecycle, node lifecycle, network-policy, CSI, ingress, and kub
 - Cost: Warm regional capacity, backup-drill evidence, and audit-chain continuity are mandatory operating expenses.
 
 ### Block 3: pod_runtime_tier
-- Values: pod_runtime_tier=1; evidence=microservices/cloud-k8s/PRD.md, microservices/cloud-k8s/ARCHITECTURE.md, microservices/cloud-k8s/IP-001-layer-a-iac-kubeadm-containerd-istio-envoy.md.
+- Values: pod_runtime_tier=1; evidence=k8s/PRD.md, k8s/ARCHITECTURE.md, k8s/IP-001-layer-a-iac-kubeadm-containerd-istio-envoy.md.
 - ADR: ADR-0338, cross-checked against ADR-0340 cell placement Tier-1.
 - Why: Shared workload-runtime substrate: cloud-k8s owns cluster bootstrap, kube API proxying, CNI, service mesh, and node lifecycle for tenant workloads, so it is tenant-impacting substrate even though it does not execute tenant-customer code directly.
 - Rejected: defaulting blindly to Tier 2 was rejected because runtime isolation must follow tenant-code, substrate, app, or edge semantics rather than service-name convention.

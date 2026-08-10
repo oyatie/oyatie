@@ -17,10 +17,10 @@ related_adrs:
   - ADR-0348
   - ADR-0349
 companion_docs:
-  - microservices/cloud-k8s/manifest.json
-  - microservices/cloud-k8s/PRD.md
-  - microservices/cloud-k8s/README.md
-  - microservices/cloud-k8s/ARCHITECTURE.md
+  - k8s/manifest.json
+  - k8s/PRD.md
+  - k8s/README.md
+  - k8s/ARCHITECTURE.md
 ---
 
 # Architecture: Cloud K8S

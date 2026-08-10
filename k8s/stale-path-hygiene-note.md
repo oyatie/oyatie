@@ -83,3 +83,12 @@ Interior docs outside wave-1/2 priority still cite paths with **no** in-tree cou
 - No `specs/k8s-port/**` edits; no fight with k8s-port programme.
 - No mass rewrite of `IP-*.md` / full compliance corpus.
 - No hubs, `Cargo.lock`, `specs/reachability*`, restack onto `dev`.
+
+## Wave-4 Seat A follow-through (2026-08-10)
+
+Retargeted verified `microservices/cloud-k8s/**` cites → `k8s/**` for iac/helm/terraform/kustomize, contracts, policy, slos, runbooks, capabilities, PRD/ARCHITECTURE/manifest where destinations exist.
+
+### Deferred (still missing / brace-globs / legal)
+
+- `legal/**`, `sdk-generation/**`, `evidence/**`, brace-expanded catalog/crate globs, and any `src/crates/**` cites without in-tree homes.
+- No hubs, no `Cargo.lock`, no merge.

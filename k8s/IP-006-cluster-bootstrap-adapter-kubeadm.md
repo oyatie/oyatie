@@ -32,8 +32,8 @@ One new Rust crate `oya-cloud-k8s-cluster-bootstrap-adapter-kubeadm`. Catalog ro
 | `.../src/etcd_cli.rs` | create — etcdctl wrapper for snapshot save/restore |
 | `.../src/kube_api_client.rs` | create — kube-apiserver client (read-only; via kubernetes-api-proxy) |
 | `.../src/auth.rs` | create — SPIFFE SVID + Ed25519 sign helpers |
-| `microservices/cloud-k8s/catalog/oya-cloud-k8s-cluster-bootstrap-adapter.yaml` | create |
-| `microservices/cloud-k8s/catalog/oya-cloud-k8s-cluster-bootstrap-adapter-kubeadm.yaml` | create |
+| `k8s/catalog/oya-cloud-k8s-cluster-bootstrap-adapter.yaml` | create |
+| `k8s/catalog/oya-cloud-k8s-cluster-bootstrap-adapter-kubeadm.yaml` | create |
 
 ## Crate Naming
 
