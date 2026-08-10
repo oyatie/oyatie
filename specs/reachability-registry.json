@@ -6,10 +6,6 @@
       "prefix": ".claude/BUCK"
     },
     {
-      "anchor": "ADR-0515 + ADR-0701 governance pipeline: reviewed agent-lane deliver/restack/preflight harness under .claude/workflows/ (local bridge feedback only; merge authority remains oya-ci-required).",
-      "prefix": ".claude/workflows/"
-    },
-    {
       "anchor": "ADR-0600: Buck package marker for the reviewed .codex/hooks.json enforcement-liveness corpus target.",
       "prefix": ".codex/BUCK"
     },
@@ -284,6 +280,10 @@
     {
       "anchor": "ADR-0625: OpenTofu provider dependency lock for this root. A lock is only meaningful beside its own root, so it is registered as an exact path rather than a tree; it relocates with its root under the reorg.",
       "prefix": "iam/identity/iac/oyatie-public-cloud/.terraform.lock.hcl"
+    },
+    {
+      "anchor": "Founder ruling oyatie-0s8 / ADR-0562: capability-root service manifest for iam/. Exact path registration (not a tree): iam/ holds unrelated crate and service subtrees that carry their own reachability. Absorbed via integ/iam.",
+      "prefix": "iam/manifest.json"
     },
     {
       "anchor": "ADR-0562 §10.22 + ADR-0139 SLO-home: the iam workload-svid-kernel promotion-gating SLO subtree, co-moved OUT of its crate (oya/identity/crates/oya-identity-workload-svid-kernel/slos/) to the capability observability home during move-18 so zero crate-resident SLOs remain (the absolute convention — all homed caps keep SLOs at <cap>/observability/slos/). Unlike the other eighteen iam SLOs (which were already non-crate-resident RED-accepted-debt at merge-base, relabeled old→new by the ADR-0563 rename-aware engine), this one was justified+reachable as a cargo-member crate file at merge-base and lost both on the move OUT of the crate, so it needs an explicit reachability seed; its justification is ADR-0561 (the workload-x509-SVID commissioning ADR, which names the new observability path verbatim). breadth: just this svid SLO subdir",

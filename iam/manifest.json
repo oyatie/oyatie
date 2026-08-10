@@ -1,0 +1,261 @@
+{
+  "schema_version": "1.0",
+  "microservice": "iam",
+  "_comment": "Capability-root manifest for iam/ (founder ruling oyatie-0s8). This is the ADR-0562 capability's OWN service manifest, the `<root>/manifest.json` shape that ci/facade/service-tier-metadata treats as top-level. It exists because the capability-first rehome left 68 of the 68 crates directly under iam/ belonging to NO manifest: the sub-service manifests under iam/*/manifest.json cover their own services only. Every crate, service, count and SLO path below was read off the tree, not transcribed.",
+  "tier": "substrate",
+  "tier_subtype": "substrate-identity",
+  "dr_tier": "T1",
+  "dr_tier_derivation": "Strictest dr_tier declared by any absorbed service of this capability (cloud-iam=T1, consent-graph=T1, identity=T1). The shared crates sit in the failure path of the strictest consumer, so the capability root may not claim a weaker DR class than the service that depends on it.",
+  "substrate_dag_position": {
+    "stratum": "forward-declared",
+    "depends_on": [],
+    "consumed_by_substrates": [],
+    "_note": "DELIBERATELY NOT S1 OR S3. The ADR-0562 capability-registry lists iam among the nine capabilities whose tier facets are undeclared pending a founder/architecture ruling, on the stated ground that iam SPANS S1+S3: iam/cloud-iam and iam/identity declare S1 while iam/consent-graph declares S3. Picking either value here would settle that ruling by omission from a manifest, so this root forward-declares per ADR-0280 Appendix C (the same class storage/ uses) and the split is recorded in absorbed_service_facet_divergence below."
+  },
+  "version": "0.1.0",
+  "owner": "axis-cloud-platform",
+  "purpose": "Identity and access substrate capability root, and the largest of the five by crate count. The crates directly under iam/ are the capability-level identity, workload-identity/SVID, Cedar policy/PDP and tenant-RBAC model, its port boundaries, its Cedar/OIDC/Postgres-RLS/K8s adapters and its evidence facades. The deployed IAM services (cloud-iam, consent-graph, identity) carry their own manifests and SLOs.",
+  "bounded_contexts": [
+    {
+      "name": "iam-adapters",
+      "description": "Capability-level driven adapters (storage, transport, provider) under iam/adapters/.",
+      "crates": [
+        "iam-cloud-oci",
+        "iam-cloud-pdp-bundle-file",
+        "iam-cloud-selfhosted",
+        "iam-identity-workload-authz-cedar",
+        "iam-identity-workload-oidc",
+        "iam-identity-workload-svid-operator-k8s",
+        "iam-identity-workload-svid-trustd",
+        "iam-pdp-cedar",
+        "iam-tenant-rbac-postgres-rls-storage",
+        "iam-tenant-rbac-postgres-rls-transaction-contract",
+        "iam-tenant-rbac-postgres-rls-write-contract",
+        "iam-tenant-rbac-storage-inmemory",
+        "iam-tenant-rbac-workflow-inmemory",
+        "identity-scim-store-postgres"
+      ]
+    },
+    {
+      "name": "iam-core",
+      "description": "Capability-level domain / usecase / kernel crates (pure, no I/O) under iam/core/.",
+      "crates": [
+        "iam-authn-device-firmware",
+        "iam-cloud-app",
+        "iam-cloud-domain",
+        "iam-cloud-pdp-kernel",
+        "iam-identity-domain",
+        "iam-identity-oidc-issuer-kernel",
+        "iam-identity-usecase",
+        "iam-identity-workload-domain",
+        "iam-identity-workload-svid-kernel",
+        "iam-identity-workload-svid-operator-kernel",
+        "iam-policy-cedar-domain",
+        "iam-tenant-rbac-audit-chain-emission",
+        "iam-tenant-rbac-auth-app",
+        "iam-tenant-rbac-cloud-deployment-manifest",
+        "iam-tenant-rbac-domain",
+        "iam-tenant-rbac-tenant-admission-policy",
+        "iam-tenant-rbac-tenant-workload-manifest",
+        "iam-tenant-rbac-usecase"
+      ]
+    },
+    {
+      "name": "iam-facade",
+      "description": "Capability-level composition, app and evidence crates under iam/facade/.",
+      "crates": [
+        "iam-cloud-pdp-app",
+        "iam-identity-service",
+        "iam-identity-workload-app",
+        "iam-identity-workload-rest",
+        "iam-identity-workload-svid-operator-app",
+        "iam-tenant-rbac-app",
+        "iam-tenant-rbac-audit-chain-runtime-evidence",
+        "iam-tenant-rbac-cloud-deployment-evidence",
+        "iam-tenant-rbac-cloud-readiness-gate",
+        "iam-tenant-rbac-disbursement-evidence",
+        "iam-tenant-rbac-erp-parity-map",
+        "iam-tenant-rbac-identity-provider-runtime-evidence",
+        "iam-tenant-rbac-identity-provider-verification",
+        "iam-tenant-rbac-listener-gateway",
+        "iam-tenant-rbac-listener-runtime-evidence",
+        "iam-tenant-rbac-local-inmemory-harness",
+        "iam-tenant-rbac-local-runtime-composition",
+        "iam-tenant-rbac-postgres-rls-runtime-evidence",
+        "iam-tenant-rbac-slo-evidence",
+        "iam-tenant-rbac-statutory-filing-evidence",
+        "iam-tenant-rbac-tenant-workload-runtime-evidence",
+        "iam-tenant-rbac-workflow-runtime-evidence"
+      ]
+    },
+    {
+      "name": "iam-ports",
+      "description": "Capability-level port + API boundary crates under iam/ports/.",
+      "crates": [
+        "iam-cloud-api",
+        "iam-identity-api",
+        "iam-identity-workload-api",
+        "iam-policy-cedar-api",
+        "iam-tenant-rbac-api",
+        "iam-tenant-rbac-tenant-autoscaling-contract",
+        "iam-tenant-rbac-tenant-availability-contract",
+        "iam-tenant-rbac-tenant-cost-allocation-contract",
+        "iam-tenant-rbac-tenant-egress-policy-contract",
+        "iam-tenant-rbac-tenant-image-provenance-contract",
+        "iam-tenant-rbac-tenant-residency-contract",
+        "iam-tenant-rbac-tenant-resource-quota-contract",
+        "iam-tenant-rbac-tenant-secret-boundary-contract",
+        "iam-tenant-rbac-tenant-workload-identity-contract"
+      ]
+    }
+  ],
+  "layers": [
+    "adapters",
+    "core",
+    "facade",
+    "ports"
+  ],
+  "capability_root_accounting": {
+    "crates_under_capability_root": 68,
+    "crates_by_layer": {
+      "adapters": 14,
+      "core": 18,
+      "facade": 22,
+      "ports": 14
+    },
+    "crates_covered_by_no_other_manifest": 68,
+    "crates_also_declared_by_an_absorbed_service": [],
+    "_overlap_note": "COMPUTED, not asserted. No crate under this capability root is declared by any absorbed service manifest, so the whole crate set below was unowned before this file.",
+    "absorbed_services": [
+      {
+        "service": "cloud-iam",
+        "manifest": "iam/cloud-iam/manifest.json"
+      },
+      {
+        "service": "consent-graph",
+        "manifest": "iam/consent-graph/manifest.json"
+      },
+      {
+        "service": "identity",
+        "manifest": "iam/identity/manifest.json"
+      }
+    ],
+    "absorbed_service_facet_divergence": true,
+    "absorbed_service_facets": [
+      {
+        "service": "cloud-iam",
+        "tier_subtype": "substrate-identity",
+        "dr_tier": "T1",
+        "stratum": "S1"
+      },
+      {
+        "service": "consent-graph",
+        "tier_subtype": "substrate-consent",
+        "dr_tier": "T1",
+        "stratum": "S3"
+      },
+      {
+        "service": "identity",
+        "tier_subtype": "substrate-identity",
+        "dr_tier": "T1",
+        "stratum": "S1"
+      }
+    ]
+  },
+  "contracts": {
+    "openapi": [],
+    "asyncapi": [],
+    "internal_grpc": {
+      "transport": "http2",
+      "language_profile": "proto3",
+      "contracts": []
+    }
+  },
+  "contracts_non_claim": "This capability root serves no endpoint of its own, so all three carrier arrays are EMPTY rather than populated: every OpenAPI, AsyncAPI and proto contract under iam/ belongs to one of the absorbed services listed above and is declared by that service's manifest. The internal_grpc block is present-and-empty, not omitted, because the H2/proto3 posture binds any internal gRPC this capability may later expose (ADR-0056/0105 zero-GraphQL, internal-only Protobuf); an omitted block would read as an unruled surface.",
+  "adrs": [
+    {
+      "id": "ADR-0562",
+      "title": "Closed Capability Registry And Deterministic Placement",
+      "scope": "repo"
+    },
+    {
+      "id": "ADR-0245",
+      "title": "Tier As Manifest Facet",
+      "scope": "repo"
+    },
+    {
+      "id": "ADR-0280",
+      "title": "Substrate Dependency DAG",
+      "scope": "repo"
+    },
+    {
+      "id": "ADR-0348",
+      "title": "Autosharding Auto Rebalance Dynamic Sharding",
+      "scope": "repo"
+    }
+  ],
+  "sharding_automation": {
+    "autosharding": {
+      "enabled": false,
+      "mode": "not_claimed_runtime",
+      "intended_control_plane": "control_plane_driven"
+    },
+    "auto_rebalance": {
+      "enabled": false,
+      "trigger_load_skew_threshold_percent": 30,
+      "honors_residency": true,
+      "honors_compliance_packs": true,
+      "audit_chain_emit": false
+    },
+    "dynamic_sharding": {
+      "enabled": false,
+      "hot_split_threshold_p99_ms": 50,
+      "hot_split_utilization_threshold_percent": 80,
+      "cold_merge_utilization_threshold_percent": 20,
+      "cold_merge_minimum_quiet_hours": 24,
+      "audit_chain_emit": false
+    },
+    "non_claim": "A capability root of library crates has no tenant shards to split, merge or rebalance. Sharding automation is claimed by the absorbed services that actually run, in their own manifests; ADR-0348 automation is declared disabled here rather than omitted so the absence is a measured statement instead of a gap."
+  },
+  "dr": {
+    "rto_p99_seconds": null,
+    "rpo_p99_seconds": null,
+    "multi_region_active_active": false,
+    "backup_substrate": [],
+    "failover_runbook": null,
+    "replication_shape": "not_claimed_runtime",
+    "non_claim": "No runtime store, failover drill or DR evidence belongs to this capability root; DR is exercised by the absorbed services. `dr_tier` above is the inherited obligation, not a measured result."
+  },
+  "doc_class": "Machine-Readable-Spec",
+  "foundation_non_claims": [
+    "this manifest describes the 68 crates directly under iam/ and does NOT restate, aggregate or supersede the 3 absorbed service manifests listed above",
+    "no deployed process, served endpoint, measured benchmark, capacity telemetry or audit-chain writer is claimed for the capability root itself"
+  ],
+  "slos": [
+    {
+      "name": "tenant-rbac-availability",
+      "file": "iam/observability/slos/tenant-rbac/tenant-rbac-availability.openslo.yaml"
+    },
+    {
+      "name": "tenant-rbac-latency-p99",
+      "file": "iam/observability/slos/tenant-rbac/tenant-rbac-latency-p99.openslo.yaml"
+    },
+    {
+      "name": "tenant-rbac-audit-emission-lag-p99",
+      "file": "iam/observability/slos/tenant-rbac/tenant-rbac-audit-emission-lag-p99.openslo.yaml"
+    },
+    {
+      "name": "tenant-rbac-cloud-readiness-gate-correctness",
+      "file": "iam/observability/slos/tenant-rbac/tenant-rbac-cloud-readiness-gate-correctness.openslo.yaml"
+    },
+    {
+      "name": "workload-svid-issuance-availability",
+      "file": "iam/observability/slos/identity-workload-svid-kernel/workload-svid-issuance-availability.openslo.yaml"
+    },
+    {
+      "name": "svid-delivery-availability",
+      "file": "iam/observability/slos/identity-workload-svid-operator-kernel/svid-delivery-availability.openslo.yaml"
+    }
+  ],
+  "slos_note": "These OpenSLO files measure crates that live directly under this capability root and belong to no absorbed service manifest, so this root is their only manifest home."
+}
