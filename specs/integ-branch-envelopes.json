@@ -6,7 +6,7 @@
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
     "spec_id": "EXE-INTEG-BRANCH-ENVELOPES",
-    "version": "1.10.0",
+    "version": "1.11.0",
     "status": "Proposed",
     "owner_team": "council-architecture",
     "created_at": "2026-08-10T00:00:00Z",
@@ -292,10 +292,19 @@
       "branch": "integ/ci",
       "envelope_globs": [
         ".github/**",
-        ".claude/**"
+        ".claude/**",
+        ".cursor/**",
+        "AGENTS.md",
+        "CLAUDE.md",
+        "README.md"
       ],
-      "note": "PROCESS_META — interim GHA runner + Claude workflow kit (ADR-0700). Sole-owner via integ/ci for durable process; bootstrap wave may adjunct-claim from integ/specs. Closes northstar-envelope-holes for .github/.",
-      "forward_declared_owner": "integ/ci"
+      "note": "PROCESS_META — PROCESS_KIT + root operating-contract entry hubs (ADR-0700; markdown-retirement survival set). Forever owner integ/ci (not integ/docs): docs plane stays docs/** (apex docs/AGENTS.md); root AGENTS/CLAUDE/README and .cursor/** are session entry / editor kit peers of .github/.claude — adjuncts expire, so do not park forever ownership on integ/docs. Bootstrap wave may still adjunct-claim from integ/specs. Closes root-ops-contract-route / northstar-envelope-holes for these paths.",
+      "forward_declared_owner": "integ/ci",
+      "owner_decision": {
+        "forever_owner": "integ/ci",
+        "rejected_alternative": "integ/docs adjunct or docs-plane glob expansion",
+        "why": "Chesterton: process_meta already owns PROCESS_KIT peers; forever adjunct is oxymoron; expanding docs beyond docs/** conflates PLANE hub with root entry hubs. Content land of root file doctrine is a follow-on lane after this route exists."
+      }
     },
     "root_manifests": {
       "branch": "integ/build",
