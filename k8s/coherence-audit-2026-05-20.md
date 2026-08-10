@@ -982,5 +982,5 @@ audit_completion_report:
   tier_scaffolding_used: false
   external_writes: false
   external_commits: false
-  bounded_to_microservice_path: microservices/cloud-k8s
+  bounded_to_microservice_path: k8s
 -->

@@ -1,6 +1,6 @@
 ---
 adr_id: ADR-CK-001
-scope: microservices/cloud-k8s
+scope: k8s
 status: Accepted
 date: 2026-05-20
 related_adrs: [ADR-0121, ADR-0131, ADR-0254]

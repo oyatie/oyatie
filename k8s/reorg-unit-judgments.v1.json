@@ -10,7 +10,7 @@
       "action": "keep_forever",
       "destination": "k8s/",
       "shape": "capability-colocated k8s substrate docs/contracts/runbooks/IPs (ADR-0562/0615 capability root)",
-      "rationale": "1) Owns day-2 k8s ops + contract scaffolds for CS-CLOUD-COMPUTE / cloud-k8s substrate. 2) Capability root with core product docs colocated. 3) Binding for on-call runbooks + manifest contract paths. 4) Must exist as keep_forever capability root. 5) Fit: in-root forever home (not docs/k8s dump). 6) keep-as-is directory; interior stale microservices/cloud-k8s citations are hygiene, not topology move. 7) k8s/ forever.",
+      "rationale": "1) Owns day-2 k8s ops + contract scaffolds for CS-CLOUD-COMPUTE / cloud-k8s substrate. 2) Capability root with core product docs colocated. 3) Binding for on-call runbooks + manifest contract paths. 4) Must exist as keep_forever capability root. 5) Fit: in-root forever home (not docs/k8s dump). 6) keep-as-is directory; interior stale k8s citations are hygiene, not topology move. 7) k8s/ forever.",
       "redesign": "none — path hygiene only; do not invent missing contracts/legal/evidence trees",
       "judgment_status": "done",
       "disposition": "keep-as-is",
@@ -20,8 +20,8 @@
       "grammar_compliant": true,
       "lenses_applied": "all-16",
       "challenges": [
-        "chestertons_fence: microservices/cloud-k8s citations existed as strangler compatibility while the tree moved — fence purpose was dual-home continuity",
-        "cartesian_doubt: tip has NO microservices/cloud-k8s directory; dead citations are worse than the fence they preserved",
+        "chestertons_fence: k8s citations existed as strangler compatibility while the tree moved — fence purpose was dual-home continuity",
+        "cartesian_doubt: tip has NO k8s directory; dead citations are worse than the fence they preserved",
         "essentialism_yagni: retarget only where k8s/<counterpart> exists; do not invent legal/, evidence/, sdk-generation/, missing cedar companions",
         "operability_day2: runbooks + manifest are load-bearing for 3am restore; IP-*.md prose can wait",
         "opportunity_cost: rewriting every IP/compliance cite in one PR dilutes envelope-clean prep without ops upside",
@@ -31,7 +31,7 @@
         "blast_radius_cell: edits scoped to k8s/** only; no hubs, Cargo.lock, reachability, restack"
       ],
       "evidence": [
-        "test ! -d microservices/cloud-k8s",
+        "test ! -d k8s",
         "k8s/contracts/{openapi,asyncapi,proto} present",
         "k8s/runbooks/* + k8s/{failure-modes,threat-model,multi-region,capacity-model,incident-response}.md present"
       ],
@@ -53,7 +53,7 @@
       "grammar_compliant": true,
       "lenses_applied": "inherit-root",
       "challenges": [
-        "chestertons_fence: microservices/cloud-k8s contract paths were compatibility scaffolds after directory move",
+        "chestertons_fence: k8s contract paths were compatibility scaffolds after directory move",
         "cartesian_doubt: openapi+asyncapi scaffolds already exist under k8s/contracts/ — stale paths were false"
       ],
       "evidence": [
@@ -79,11 +79,11 @@
       "grammar_compliant": true,
       "lenses_applied": "inherit-root",
       "challenges": [
-        "chestertons_fence: related_artifacts pointed at microservices/cloud-k8s during strangler",
+        "chestertons_fence: related_artifacts pointed at k8s during strangler",
         "operability_day2: dead FM/threat-model/control-plane-restore links fail the 3am test"
       ],
       "evidence": [
-        "all runbook microservices/cloud-k8s cites mapped to existing k8s/ counterparts",
+        "all runbook k8s cites mapped to existing k8s/ counterparts",
         "8 runbooks retargeted; 4 already clean"
       ],
       "destination_integ": "integ/k8s",

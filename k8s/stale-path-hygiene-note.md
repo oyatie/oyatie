@@ -92,3 +92,16 @@ Retargeted verified `microservices/cloud-k8s/**` cites → `k8s/**` for iac/helm
 
 - `legal/**`, `sdk-generation/**`, `evidence/**`, brace-expanded catalog/crate globs, and any `src/crates/**` cites without in-tree homes.
 - No hubs, no `Cargo.lock`, no merge.
+
+
+## Wave-5 Seat A follow-through (2026-08-10)
+
+Retargeted verified remaps:
+
+- Bare microservices/cloud-k8s -> k8s (manifest/reorg-unit/coherence/ADR-CK-001)
+
+### Deferred
+
+- Still missing legal/sdk-generation/evidence/CODEOWNERS/eval fixtures/brace catalog globs and create-only SLO/lane paths from IP-014/IP-015
+- k8s/slos/** retained where files live (not dual-homed under observability/)
+- No hubs, no Cargo.lock, no merge.
