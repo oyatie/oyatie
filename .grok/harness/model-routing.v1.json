@@ -1,6 +1,6 @@
 {
-  "version": "1.3.3",
-  "description": "CursorBench 3.2 informs Cursor Task model slugs only. Side-panel omx/omc/gjc are separate advisory channels (CursorBench does not transfer). Interactive fallback: omx --madmax / omc --madmax / gjc --tmux spawn in tmux. gjc especially useful with /usage. Worker lanes must not treat bare gjc/omc/omx/hermes as merge authority. No *-fast.",
+  "version": "1.4.0",
+  "description": "CursorBench 3.2 informs Cursor Task model slugs only. Optional advisory channels omx/omc/gjc/grok (side panel or tmux) are separate — CursorBench does not transfer. madmax (omx/omc) = permission bypass + tmux (compound). Tmux-only: omx/omx --tmux, omc launch, gjc --tmux, grok inside tmux. gjc especially with /usage; gjc stats opens usage dashboard. Advisory only; never merge authority. No *-fast.",
   "source": {
     "cursorbench": {
       "url": "https://cursor.com/cursorbench",
@@ -11,6 +11,7 @@
         "omx",
         "omc",
         "gjc",
+        "grok",
         "side_panel",
         "tmux_spawn"
       ],
@@ -18,7 +19,7 @@
         "Grok 4.5 rows are asterisked: earlier Cursor codebase snapshot unintentionally in training; impact unclear",
         "Small score gaps may not be statistically meaningful",
         "Do not treat Terra/Luna as stronger than Sol/Grok/Opus/Fable",
-        "Do not map CursorBench ranks onto side-panel omx/omc/gjc sessions"
+        "Do not map CursorBench ranks onto side-panel or tmux omx/omc/gjc/grok sessions"
       ]
     }
   },
@@ -26,7 +27,7 @@
     "hermes"
   ],
   "forbidden_clis_scope": "worker_lanes_merge_authority_standins",
-  "forbidden_clis_reason": "Bare unsupervised brand CLIs as merge-authority stand-ins stay banned in worker lanes; orchestrator may run omx --madmax / omc --madmax / gjc --tmux for interactive advisory tmux sessions",
+  "forbidden_clis_reason": "Bare unsupervised brand CLIs as merge-authority stand-ins stay banned in worker lanes; orchestrator may open advisory side-panel or tmux sessions (omx/omc/gjc --tmux/grok in tmux; madmax only when founder intentionally wants bypass+tmux)",
   "side_panel_channels": {
     "allowed": true,
     "authority": "advisory_only_never_merge",
@@ -34,33 +35,155 @@
     "channels": {
       "omx": {
         "backend": "codex",
+        "product": "oh-my-codex",
         "use_when": "independent_codex_side_review_or_alternate_executor_path",
-        "tmux_spawn": "omx --madmax"
+        "side_panel": "cursor_side_panel",
+        "tmux_only": [
+          "omx",
+          "omx --tmux"
+        ],
+        "madmax": {
+          "command": "omx --madmax",
+          "semantics": "permission_bypass_plus_tmux",
+          "compound": true,
+          "worker_lane_normal": false,
+          "note": "Optional founder dangerous tool; not bypass-only; not tmux-only"
+        }
       },
       "omc": {
         "backend": "claude",
+        "product": "oh-my-claudecode",
         "use_when": "independent_claude_side_critique_security_or_design_pass",
-        "tmux_spawn": "omc --madmax"
+        "side_panel": "cursor_side_panel",
+        "tmux_only": [
+          "omc launch"
+        ],
+        "related": [
+          "omc interop"
+        ],
+        "madmax": {
+          "command": "omc --madmax",
+          "semantics": "permission_bypass_plus_tmux",
+          "compound": true,
+          "worker_lane_normal": false,
+          "note": "Optional founder dangerous tool; macOS requires tmux to launch madmax"
+        }
       },
       "gjc": {
         "backend": "multi_model",
+        "product": "@gajae-code/coding-agent",
         "use_when": "parallel_multi_provider_deliberation",
-        "especially_with": "/usage",
-        "especially_with_reason": "shows multi-provider usage breakdown; omx/omc alone lack that cross-provider view",
-        "tmux_spawn": "gjc --tmux"
+        "especially_with": [
+          "/usage",
+          "gjc stats"
+        ],
+        "especially_with_reason": "multi-provider spend visibility; gjc stats syncs sessions then serves dashboard http://localhost:3847 until Ctrl+C (interactive, not one-shot print); in-session /usage needs live confirm",
+        "side_panel": "cursor_side_panel",
+        "tmux_only": [
+          "gjc --tmux"
+        ],
+        "madmax_equivalent": false
+      },
+      "grok": {
+        "backend": "grok_build_tui",
+        "binary": "~/.grok/bin/grok",
+        "use_when": "interactive_grok_tui_advisory_session",
+        "side_panel": "cursor_or_host_tui",
+        "tmux_only": [
+          "run grok inside tmux"
+        ],
+        "no_builtin_tmux_flag": true,
+        "always_approve": {
+          "flag": "--always-approve",
+          "semantics": "auto_approve_tools",
+          "not_equivalent_to_madmax": true
+        }
       }
     },
     "prefer_task_slugs_for_cursor_dispatches": true,
-    "note": "Pick omx/omc/gjc by provider need and independence \u2014 not by CursorBench score/cost rows. Use --madmax/--tmux when side panel is not directly usable.",
+    "flag_semantics": {
+      "madmax": "permission_bypass_plus_tmux",
+      "gjc_tmux": "tmux_only",
+      "grok_in_tmux": "tmux_host_spawn_no_builtin_flag"
+    },
+    "note": "Pick omx/omc/gjc/grok by provider need and independence — not by CursorBench score/cost rows. Prefer side panel when it works; use tmux-only commands for attachable sessions; use madmax only when founder intentionally wants bypass+tmux.",
     "interactive_fallback": {
       "when": "side_panel_not_directly_usable",
-      "spawns_in_tmux": [
-        "omx --madmax",
-        "omc --madmax",
-        "gjc --tmux"
+      "tmux_only_spawns": [
+        "omx",
+        "omx --tmux",
+        "omc launch",
+        "gjc --tmux",
+        "grok inside tmux"
       ],
-      "note": "Attach to the tmux session to interact; prefer side panel when available"
+      "madmax_spawns_bypass_plus_tmux": [
+        "omx --madmax",
+        "omc --madmax"
+      ],
+      "note": "Attach to the tmux session to interact; prefer side panel when available; do not leave long-lived madmax writing the main checkout from agent probes"
     }
+  },
+  "capability_matrix": {
+    "smoke_date": "2026-08-10",
+    "authority": "advisory_only_never_merge",
+    "cursorbench_transfers": false,
+    "checks": [
+      {
+        "check": "omx doctor",
+        "result": "works_partial",
+        "evidence": "exit 0; 1 fail: process identity unavailable; ownership warnings on stale .omx/tmp"
+      },
+      {
+        "check": "omc info",
+        "result": "works",
+        "evidence": "exit 0; prints system/agent info"
+      },
+      {
+        "check": "gjc stats",
+        "result": "works_interactive",
+        "evidence": "syncs sessions then serves dashboard http://localhost:3847 until Ctrl+C — not a one-shot print"
+      },
+      {
+        "check": "live_omx_tmux",
+        "result": "works",
+        "evidence": "omx-oyatie-agent-fanout-07-… attached; panes node in repo"
+      },
+      {
+        "check": "live_omc_tmux",
+        "result": "works",
+        "evidence": "omc-oyatie-agent-fanout-07-… attached"
+      },
+      {
+        "check": "live_gjc_tmux",
+        "result": "works",
+        "evidence": "gajae_code_agent-… attached"
+      },
+      {
+        "check": "live_grok_tmux",
+        "result": "works",
+        "evidence": "session 88 running grok-1.0.0-macos-aarch64 cwd=/Users/jasonlee/Developer/oyatie (founder-opened); reconfirmed 2026-08-10 via tmux list-sessions"
+      },
+      {
+        "check": "omx_omc_madmax_from_agent_sandbox",
+        "result": "doesnt_env",
+        "evidence": "sandbox EPERM on ~/.omx-runs; do not leave long-lived madmax writing main checkout from agent probes"
+      },
+      {
+        "check": "side_panel_drive_from_agent",
+        "result": "unverified",
+        "evidence": "human UI; no full open Cursor side panel API for omx/omc/gjc"
+      },
+      {
+        "check": "gjc_in_session_usage",
+        "result": "unverified",
+        "evidence": "CLI confirms gjc stats; /usage needs live interactive confirm"
+      },
+      {
+        "check": "cursorbench_to_optional_channels",
+        "result": "doesnt_transfer",
+        "evidence": "law"
+      }
+    ]
   },
   "forbidden_model_slug_substrings": [
     "-fast"
