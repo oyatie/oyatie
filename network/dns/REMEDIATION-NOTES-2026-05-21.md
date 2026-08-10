@@ -33,7 +33,7 @@ Files renamed (git mv):
 - Cost: Warm regional capacity, backup-drill evidence, and audit-chain continuity are mandatory operating expenses.
 
 ### Block 3: pod_runtime_tier
-- Values: pod_runtime_tier=3; evidence=microservices/cloud-network-dns/README.md, microservices/cloud-network-dns/performance-benchmark-numbers-2026-05-20.md, contracts/openapi/cloud/cloud-network-dns-v1.yaml.
+- Values: pod_runtime_tier=3; evidence=network/dns/README.md, network/dns/performance-benchmark-numbers-2026-05-20.md, network/dns/contracts/openapi/cloud/cloud-network-dns-v1.yaml.
 - ADR: ADR-0338, cross-checked against ADR-0340 cell placement Tier-4.
 - Why: DNS is edge/performance-critical: authoritative/recursive serving, health checks, and anycast routing demand dedicated edge runc placement per ADR-0338 Tier 3 rather than Kata substrate placement.
 - Rejected: defaulting blindly to Tier 2 was rejected because runtime isolation must follow tenant-code, substrate, app, or edge semantics rather than service-name convention.

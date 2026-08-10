@@ -31,7 +31,7 @@
   ],
   "contracts": {
     "openapi": [
-      "contracts/openapi/cloud/cloud-network-dns-v1.yaml"
+      "network/dns/contracts/openapi/cloud/cloud-network-dns-v1.yaml"
     ],
     "asyncapi": [],
     "internal_grpc": {
@@ -46,25 +46,25 @@
     {
       "tier": "T1",
       "name": "dns-zone-domain-invariants",
-      "file": "crates/oya-cloud-network-domain/src/lib.rs",
+      "file": "network/core/domain/src/lib.rs",
       "risk_class": "high"
     },
     {
       "tier": "T1",
       "name": "coredns-pod-mode-and-dns-egress-guardrail-metadata",
-      "file": "crates/oya-cloud-network-domain/src/lib.rs",
+      "file": "network/core/domain/src/lib.rs",
       "risk_class": "high"
     },
     {
       "tier": "T1",
       "name": "cloud-network-dns-zone-create-api-boundary",
-      "file": "crates/oya-cloud-network-dns-api/src/lib.rs",
+      "file": "network/ports/dns/src/lib.rs",
       "risk_class": "high"
     },
     {
       "tier": "T1",
       "name": "oci-and-selfhosted-dns-command-shaping-adapters",
-      "file": "crates/oya-cloud-network-adapter-oci/src/lib.rs",
+      "file": "network/adapters/oci/src/lib.rs",
       "risk_class": "high"
     }
   ],
@@ -72,16 +72,16 @@
   "slo_exemption": {
     "status": "live_exempted_no_runtime_sli",
     "owner": "axis-cloud-network",
-    "rationale": "No current measured runtime SLI exists for this foundation, retired, or local-scaffold service; the manifest must not claim production or hyperscaler-ready SLO coverage until an OpenSLO file lands.",
+    "rationale": "No measured DNS create-API or query-plane runtime SLI is implemented by this absorbed face; OpenSLO autosharding scaffolds live under network/observability/slos/cloud-network-dns/ and are owned by the capability-root manifest, not restated here.",
     "cutover_on": "2026-12-31",
-    "evidence": "specs/master-plan-sequencing.json#realignment_wave_sequence"
+    "evidence": "verified: network/dns has no observability/slos tree; capability-root cites network/observability/slos/cloud-network-dns/autosharding-events.openslo.yaml"
   },
   "ips": [
     {
       "id": "CS-CLOUD-NETWORK-DNS-001",
       "title": "Cilium/Envoy/CoreDNS cell guardrail foundation and Cloud Network DNS manifest truth-down",
       "acceptance_status": "implemented-local-foundation",
-      "file": "crates/oya-cloud-network-domain/tests/cloud_network_dns_guardrails.rs"
+      "file": "network/core/domain/tests/cloud_network_dns_guardrails.rs"
     }
   ],
   "regulatory_packs": [
@@ -245,9 +245,9 @@
   "pod_runtime_tier": 3,
   "pod_runtime_tier_justification": "DNS is Tier-3 intended future edge/runtime substrate. CS-CLOUD-NETWORK-DNS-001 has no runtime pod deployment; tier is retained as intended future isolation class only.",
   "pod_runtime_tier_surface_evidence": [
-    "crates/oya-cloud-network-domain/src/lib.rs",
-    "crates/oya-cloud-network-domain/tests/cloud_network_dns_guardrails.rs",
-    "crates/oya-cloud-network-dns-api/src/lib.rs"
+    "network/core/domain/src/lib.rs",
+    "network/core/domain/tests/cloud_network_dns_guardrails.rs",
+    "network/ports/dns/src/lib.rs"
   ],
   "tenant_version_pinning": {
     "declared_versions": [],
@@ -258,7 +258,7 @@
     "deprecation_calendar": [],
     "public_surface_files": {
       "openapi": [
-        "contracts/openapi/cloud/cloud-network-dns-v1.yaml"
+        "network/dns/contracts/openapi/cloud/cloud-network-dns-v1.yaml"
       ]
     }
   },

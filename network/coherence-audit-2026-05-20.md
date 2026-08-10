@@ -4,8 +4,8 @@
 
 1. Canonical sequence anchor: `docs/decisions/ADR-0700-ci-admission-live-apex.md:1730-4146`, especially §D-15 multi-context, §D-16 OpenTofu, §D-17 OS matrix, §D-18 Rust-strict, §D-19 OCI Always Free, and §D-20 audit decision tree.
 2. Machine control anchor: `specs/master-plan-sequencing.json:704-868` for `deployment_contexts`, `iac_substrate`, `supported_oses`, `language_policy`, and `oci_always_free`.
-3. µservice PRD anchor: `microservices/cloud-network/PRD.md` is absent from the complete path inventory; equivalent product-purpose evidence was read from `microservices/cloud-network/retired tenant_class adoption artifact:7-10` and `docs/products/cloud/PRD.md:138-176`.
-4. µservice architecture anchor: `microservices/cloud-network/ARCHITECTURE.md` is absent from the complete path inventory; equivalent implementation-shape evidence was read from `crates/oya-cloud-network-domain/src/lib.rs:1-7`, `crates/oya-cloud-network-vpc-api/src/lib.rs:1-17`, `crates/oya-cloud-network-lb-api/src/lib.rs:1-16`, and `crates/oya-cloud-network-dns-api/src/lib.rs:1-16`.
+3. µservice PRD anchor: `network/PRD.md` is absent from the complete path inventory; equivalent product-purpose evidence was read from `microservices/cloud-network/retired tenant_class adoption artifact:7-10` and `docs/products/cloud/PRD.md:138-176`.
+4. µservice architecture anchor: `microservices/cloud-network/ARCHITECTURE.md` is absent from the complete path inventory; equivalent implementation-shape evidence was read from `network/core/domain/src/lib.rs:1-7`, `network/ports/vpc/src/lib.rs:1-17`, `network/ports/lb/src/lib.rs:1-16`, and `network/ports/dns/src/lib.rs:1-16`.
 5. Documentation rigor anchor: `docs/standards/documentation-rigor.md:40-83`, `docs/standards/documentation-rigor.md:175-190`, and `docs/standards/documentation-rigor.md:222-260`.
 
 ## Evidence basis
@@ -37,11 +37,11 @@
 - The local tenant_class matrix states that it owns per-tenant network isolation, VPC-equivalent semantics, NAT/proxy topology, per-cell subnets, mTLS enforcement, Cilium/eBPF/Envoy policy points, and the packet-classification path for every legitimate Oyatie flow (`microservices/cloud-network/retired tenant_class adoption artifact:7-10`).
 - The cloud product PRD binds the broader cloud product to `oya-cloud-network-kernel`, `oya-cloud-network-adapter`, `oya-cloud-network-vpc-api`, `oya-cloud-network-lb-api`, `oya-cloud-network-dns-api`, and a network REST API (`docs/products/cloud/PRD.md:138-143`).
 - The product PRD also names the VPC, load balancer, and DNS OpenAPI contracts as the VPC / Network API with a p99 control-mutation target (`docs/products/cloud/PRD.md:176-176`).
-- The Rust domain crate matches that broad purpose: it says the crate owns VPC, subnet, load balancer, DNS zone, CDN, interconnect, DDoS, and mesh invariants for `cloud.network.*` surfaces (`crates/oya-cloud-network-domain/src/lib.rs:1-7`).
-- The VPC API crate owns tenant/header/path/body normalization, idempotency, and authenticated API projection before handing typed requests to the kernel (`crates/oya-cloud-network-vpc-api/src/lib.rs:1-17`).
-- The LB API crate provides the same control-boundary shape for load balancer creation (`crates/oya-cloud-network-lb-api/src/lib.rs:1-16`).
-- The DNS API crate provides the same control-boundary shape for DNS zone creation (`crates/oya-cloud-network-dns-api/src/lib.rs:1-16`).
-- The OpenAPI VPC contract exposes a tenant-scoped VPC creation surface at `/v1/cloud/network/vpcs/{vpc_id}` (`contracts/openapi/cloud/cloud-network-vpc-v1.yaml:1-12`).
+- The Rust domain crate matches that broad purpose: it says the crate owns VPC, subnet, load balancer, DNS zone, CDN, interconnect, DDoS, and mesh invariants for `cloud.network.*` surfaces (`network/core/domain/src/lib.rs:1-7`).
+- The VPC API crate owns tenant/header/path/body normalization, idempotency, and authenticated API projection before handing typed requests to the kernel (`network/ports/vpc/src/lib.rs:1-17`).
+- The LB API crate provides the same control-boundary shape for load balancer creation (`network/ports/lb/src/lib.rs:1-16`).
+- The DNS API crate provides the same control-boundary shape for DNS zone creation (`network/ports/dns/src/lib.rs:1-16`).
+- The OpenAPI VPC contract exposes a tenant-scoped VPC creation surface at `/v1/cloud/network/vpcs/{vpc_id}` (`network/contracts/openapi/cloud/cloud-network-vpc-v1.yaml:1-12`).
 - The current µservice folder itself does not contain the PRD, architecture, OpenAPI contracts, SLOs, source tree, test tree, manifest, OS manifest, or IaC tree that would let a cold reader traverse from the ownership folder to those implementation artifacts.
 - Product purpose is therefore coherent in the broader repo, but only partially coherent inside the µservice ownership path.
 - The audit treats the ownership folder as the deliverable boundary because the user assigned `/Users/jasonlee/oyatie/microservices/cloud-network/` and required every file under that path to be inventoried.
@@ -62,16 +62,16 @@
 
 | File | Lines | Bytes | Role | coherent_with_purpose? |
 |---|---:|---:|---|---|
-| `microservices/cloud-network/benchmarks/cloud-network-vs-aws-vpc-vs-gcp-vpc-vs-azure-vnet-vs-cilium-mesh.md` | 101 | 5,813 | Claimed measured benchmark comparison and reproducibility note. | partial |
+| `network/benchmarks/cloud-network-vs-aws-vpc-vs-gcp-vpc-vs-azure-vnet-vs-cilium-mesh.md` | 101 | 5,813 | Claimed measured benchmark comparison and reproducibility note. | partial |
 | `microservices/cloud-network/retired tenant_class adoption artifact` | 95 | 6,672 | Tier definitions and product-purpose capsule. | partial |
-| `microservices/cloud-network/faqs/network-engineer-faq.md` | 175 | 7,759 | Network engineer FAQ covering architecture, mTLS, BGP, logs, DDoS, private endpoints, IPv6, and FIPS. | partial |
-| `microservices/cloud-network/migration-playbooks/from-aws-vpc-and-istio.md` | 166 | 6,478 | AWS VPC + Istio migration playbook. | partial |
-| `microservices/cloud-network/onboarding/network-engineer-first-week.md` | 181 | 6,736 | First-week onboarding path with local lab exercises. | partial |
-| `microservices/cloud-network/reference-implementations/provision-vpc-and-mtls-ingress-rust-sdk.md` | 199 | 6,573 | Rust SDK reference implementation for VPC, service deployment, mTLS ingress, Cedar, and flow logs. | yes |
-| `microservices/cloud-network/runbooks/cross-cell-routing-stall.md` | 270 | 16,981 | Incident runbook for cross-cell routing stalls. | yes |
-| `microservices/cloud-network/runbooks/ddos-mitigation-engagement.md` | 268 | 16,512 | Incident runbook for DDoS mitigation. | yes |
-| `microservices/cloud-network/runbooks/mtls-handshake-failure-cascade.md` | 271 | 16,718 | Incident runbook for mTLS cascade failures. | yes |
-| `microservices/cloud-network/tutorials/provision-vpc-mtls-and-cedar-policy.md` | 216 | 6,843 | Tutorial for provisioning VPC, mTLS ingress, Cedar policy, and BGP demonstration. | partial |
+| `network/faqs/network-engineer-faq.md` | 175 | 7,759 | Network engineer FAQ covering architecture, mTLS, BGP, logs, DDoS, private endpoints, IPv6, and FIPS. | partial |
+| `network/migration-playbooks/from-aws-vpc-and-istio.md` | 166 | 6,478 | AWS VPC + Istio migration playbook. | partial |
+| `network/onboarding/network-engineer-first-week.md` | 181 | 6,736 | First-week onboarding path with local lab exercises. | partial |
+| `network/reference-implementations/provision-vpc-and-mtls-ingress-rust-sdk.md` | 199 | 6,573 | Rust SDK reference implementation for VPC, service deployment, mTLS ingress, Cedar, and flow logs. | yes |
+| `network/runbooks/cross-cell-routing-stall.md` | 270 | 16,981 | Incident runbook for cross-cell routing stalls. | yes |
+| `network/runbooks/ddos-mitigation-engagement.md` | 268 | 16,512 | Incident runbook for DDoS mitigation. | yes |
+| `network/runbooks/mtls-handshake-failure-cascade.md` | 271 | 16,718 | Incident runbook for mTLS cascade failures. | yes |
+| `network/tutorials/provision-vpc-mtls-and-cedar-policy.md` | 216 | 6,843 | Tutorial for provisioning VPC, mTLS ingress, Cedar policy, and BGP demonstration. | partial |
 
 - Total files seen before audit deliverables: 10.
 - Total lines audited before audit deliverables: 1,942.
@@ -122,7 +122,7 @@
 - D1-08 The migration playbook resolves to the tenant_class matrix for provider-neutral target concepts only partially, because it maps AWS VPC/Istio concepts into cloud-network but still uses AWS/Crossplane vocabulary (`migration-playbooks/from-aws-vpc-and-istio.md:44-60`).
 - D1-09 The benchmark doc resolves to the tenant_class matrix only partially: both discuss paid/paid throughput, but the benchmark claims measured values without local evidence (`benchmarks/cloud-network-vs-aws-vpc-vs-gcp-vpc-vs-azure-vnet-vs-cilium-mesh.md:3-17`).
 - D1-10 The onboarding doc resolves to the tutorial partially: both start a dev cell and create a tenant, but both rely on `make` rather than the D-18 Cargo/OpenTofu canonical build path (`onboarding/network-engineer-first-week.md:21-26`; `tutorials/provision-vpc-mtls-and-cedar-policy.md:6-9`).
-- D1-11 Broken internal reference: DDoS runbook cites `microservices/cloud-network/faqs/network-engineer-faq.md`, and the file exists (`runbooks/ddos-mitigation-engagement.md:32-32`).
+- D1-11 Broken internal reference: DDoS runbook cites `network/faqs/network-engineer-faq.md`, and the file exists (`runbooks/ddos-mitigation-engagement.md:32-32`).
 - D1-12 Broken internal reference not found: no target-path doc links to `PRD.md`; the absence is a missing anchor rather than a broken link.
 - D1-13 Broken internal reference not found: no target-path doc links to `ARCHITECTURE.md`; the absence is a missing anchor rather than a broken link.
 - D1-14 Wrong-direction reference: docs explain APIs and runbooks before the ownership folder has a product PRD, forcing readers to infer product boundaries from downstream artifacts.
@@ -234,8 +234,8 @@
 - D3-14 A cold intern cannot find a local cost budget despite benchmark TCO claims (`benchmarks/cloud-network-vs-aws-vpc-vs-gcp-vpc-vs-azure-vnet-vs-cilium-mesh.md:60-71`).
 - D3-15 A cold intern cannot verify benchmark measurements because the named evidence path is absent (`benchmarks/cloud-network-vs-aws-vpc-vs-gcp-vpc-vs-azure-vnet-vs-cilium-mesh.md:92-101`).
 - D3-16 A cold intern cannot derive the complete data model from local docs.
-- D3-17 Data model gap: the VPC contract has `resource_id`, `tenant_id`, `region`, CIDRs, flow logs, route table, security groups, residency, and data class (`contracts/openapi/cloud/cloud-network-vpc-v1.yaml:102-170`), but local docs do not point to it.
-- D3-18 Data model gap: Rust domain has VPC, route, route table, security group, BGP, interconnect, mesh, WAF, and certificate reference types (`crates/oya-cloud-network-domain/src/lib.rs:21-240`), but local docs do not index them.
+- D3-17 Data model gap: the VPC contract has `resource_id`, `tenant_id`, `region`, CIDRs, flow logs, route table, security groups, residency, and data class (`network/contracts/openapi/cloud/cloud-network-vpc-v1.yaml:102-170`), but local docs do not point to it.
+- D3-18 Data model gap: Rust domain has VPC, route, route table, security group, BGP, interconnect, mesh, WAF, and certificate reference types (`network/core/domain/src/lib.rs:21-240`), but local docs do not index them.
 - D3-19 API gap: local docs show CLI/API examples but do not list OpenAPI paths, status codes, or error bodies.
 - D3-20 Failure semantics gap: runbooks cover incidents but no design doc defines failure modes, retry policy, idempotency, or consistency guarantees.
 - D3-21 CI lane gap: local docs mention tests in runbook resolution (`runbooks/ddos-mitigation-engagement.md:167-169`; `runbooks/mtls-handshake-failure-cascade.md:169-171`; `runbooks/cross-cell-routing-stall.md:168-171`) but no local CI lane spec exists.
@@ -301,8 +301,8 @@
 - D4-28 D-20 status: current ownership folder can supply tenant onboarding evidence but not language build, OpenTofu, or OS manifest evidence.
 - D4-29 Documentation-rigor source: every µservice must answer ADR-adherence checklist questions in `ARCHITECTURE.md` or `compliance.md` (`docs/standards/documentation-rigor.md:222-260`).
 - D4-30 Documentation-rigor status: incoherent inside ownership path because neither file exists.
-- D4-31 Canonical positive: actual Rust domain crate is adapter-free and typed (`crates/oya-cloud-network-domain/src/lib.rs:1-7`).
-- D4-32 Canonical positive: actual API crates include tenant, idempotency, principal, authorization, and data-class fields (`crates/oya-cloud-network-vpc-api/src/lib.rs:102-174`; `crates/oya-cloud-network-lb-api/src/lib.rs:95-163`; `crates/oya-cloud-network-dns-api/src/lib.rs:93-134`).
+- D4-31 Canonical positive: actual Rust domain crate is adapter-free and typed (`network/core/domain/src/lib.rs:1-7`).
+- D4-32 Canonical positive: actual API crates include tenant, idempotency, principal, authorization, and data-class fields (`network/ports/vpc/src/lib.rs:102-174`; `network/ports/lb/src/lib.rs:95-163`; `network/ports/dns/src/lib.rs:93-134`).
 - D4-33 Canonical negative: target ownership folder does not surface those facts.
 - D4-34 Canonical negative: target ownership folder still uses older provider wrappers and Crossplane in user-facing docs.
 - D4-35 Classification for multi-context: drifted-fixable.
@@ -338,10 +338,10 @@
 - D5-12 Azure Network Watcher provides monitoring, diagnostics, metrics, and flow logs for VMs, VNets, application gateways, and load balancers (https://learn.microsoft.com/en-us/azure/network-watcher/network-watcher-overview).
 - D5-13 Oyatie present: VPC-equivalent isolation.
 - D5-14 Oyatie present: per-cell subnets.
-- D5-15 Oyatie present: route tables and route next-hop kinds in Rust domain (`crates/oya-cloud-network-domain/src/lib.rs:161-200`).
-- D5-16 Oyatie present: security groups and security rules in Rust domain (`crates/oya-cloud-network-domain/src/lib.rs:202-235`).
-- D5-17 Oyatie present: load balancer API and mTLS config (`crates/oya-cloud-network-lb-api/src/lib.rs:116-153`).
-- D5-18 Oyatie present: DNS zone API (`crates/oya-cloud-network-dns-api/src/lib.rs:114-125`).
+- D5-15 Oyatie present: route tables and route next-hop kinds in Rust domain (`network/core/domain/src/lib.rs:161-200`).
+- D5-16 Oyatie present: security groups and security rules in Rust domain (`network/core/domain/src/lib.rs:202-235`).
+- D5-17 Oyatie present: load balancer API and mTLS config (`network/ports/lb/src/lib.rs:116-153`).
+- D5-18 Oyatie present: DNS zone API (`network/ports/dns/src/lib.rs:114-125`).
 - D5-19 Oyatie present: DDoS runbook and mitigation path (`runbooks/ddos-mitigation-engagement.md:80-186`).
 - D5-20 Oyatie present: mTLS incident path (`runbooks/mtls-handshake-failure-cascade.md:82-188`).
 - D5-21 Oyatie present: BGP and route correction path (`runbooks/cross-cell-routing-stall.md:81-186`).
@@ -560,8 +560,8 @@
 - D9-22 Reference implementation invocation is `cargo run --release` (`reference-implementations/provision-vpc-and-mtls-ingress-rust-sdk.md:156-160`).
 - D9-23 Reference implementation test command is `cargo test --features hermetic` (`reference-implementations/provision-vpc-and-mtls-ingress-rust-sdk.md:184-191`).
 - D9-24 Runbooks use Cargo commands for resolution gates (`runbooks/ddos-mitigation-engagement.md:167-169`; `runbooks/mtls-handshake-failure-cascade.md:169-171`; `runbooks/cross-cell-routing-stall.md:168-171`).
-- D9-25 Rust domain crate exists outside target path and is in Rust (`crates/oya-cloud-network-domain/src/lib.rs:1-7`).
-- D9-26 Rust API crates exist outside target path for VPC, LB, and DNS (`crates/oya-cloud-network-vpc-api/src/lib.rs:1-17`; `crates/oya-cloud-network-lb-api/src/lib.rs:1-16`; `crates/oya-cloud-network-dns-api/src/lib.rs:1-16`).
+- D9-25 Rust domain crate exists outside target path and is in Rust (`network/core/domain/src/lib.rs:1-7`).
+- D9-26 Rust API crates exist outside target path for VPC, LB, and DNS (`network/ports/vpc/src/lib.rs:1-17`; `network/ports/lb/src/lib.rs:1-16`; `network/ports/dns/src/lib.rs:1-16`).
 - D9-27 Concern: benchmark reproducibility uses Make (`benchmarks/cloud-network-vs-aws-vpc-vs-gcp-vpc-vs-azure-vnet-vs-cilium-mesh.md:92-99`).
 - D9-28 Concern: onboarding setup uses Make (`onboarding/network-engineer-first-week.md:21-26`).
 - D9-29 Concern: tutorial setup uses Make (`tutorials/provision-vpc-mtls-and-cedar-policy.md:6-9`).
@@ -597,7 +597,7 @@
 | P1 | D7 | Crossplane language conflicts with OpenTofu-only doctrine. | `faqs/network-engineer-faq.md:7-11`; `migration-playbooks/from-aws-vpc-and-istio.md:44-60`; `docs/decisions/ADR-0700-ci-admission-live-apex.md:2243-2249` | Rewrite provider-wrapper sections as portable cloud-network semantics plus OpenTofu context adapters. |
 | P1 | D8 | No supported OS manifest exists. | `docs/decisions/ADR-0700-ci-admission-live-apex.md:2646-3044`; §2 inventory | Add `supported-oses.json` with Tier-1/Tier-2 rows, package formats, arch, CI lanes, and exclusions. |
 | P1 | D4/D6 | OCI demo_trial tenant_class does not reconcile to Always Free and no `iac/guest-on-oci/always-free/` exists. | `retired tenant_class adoption artifact:12-27`; `docs/decisions/ADR-0700-ci-admission-live-apex.md:3418-3438`; §2 inventory | Define OCI demo_trial tenant_class as Always Free and split paid OCI capacity into paid tenant_class. |
-| P1 | D5 | Counterpart union coverage is partial; IPAM, private endpoint, transit hub, diagnostics, traffic mirroring, firewall hierarchy, and quota models are missing locally. | AWS/GCP/Azure official sources listed in header; `crates/oya-cloud-network-domain/src/lib.rs:1-7`; §3.5 | Create a parity backlog and map each missing capability to Rust API, OpenTofu, SLO, and runbook owners. |
+| P1 | D5 | Counterpart union coverage is partial; IPAM, private endpoint, transit hub, diagnostics, traffic mirroring, firewall hierarchy, and quota models are missing locally. | AWS/GCP/Azure official sources listed in header; `network/core/domain/src/lib.rs:1-7`; §3.5 | Create a parity backlog and map each missing capability to Rust API, OpenTofu, SLO, and runbook owners. |
 | P1 | D2 | External contracts and runtime crates exist, but the ownership folder does not link them through README/PRD/ARCH. | `docs/machine-readable/contracts.json:659-692`; `registry/openapi/runtime-bindings.tsv:15-17`; §2 inventory | Add a local artifact map with canonical inbound/outbound edges. |
 | P2 | D1/D3 | Benchmark claims measured results but named evidence path was not present during audit. | `benchmarks/cloud-network-vs-aws-vpc-vs-gcp-vpc-vs-azure-vnet-vs-cilium-mesh.md:3-17`; `benchmarks/cloud-network-vs-aws-vpc-vs-gcp-vpc-vs-azure-vnet-vs-cilium-mesh.md:92-101` | Reclassify as target/projection or add signed benchmark evidence with OS/arch/context/tenant disclosure. |
 | P2 | D9 | Make-first setup and benchmark commands drift from Rust-strict canonical invocation. | `benchmarks/cloud-network-vs-aws-vpc-vs-gcp-vpc-vs-azure-vnet-vs-cilium-mesh.md:92-99`; `onboarding/network-engineer-first-week.md:21-26`; `tutorials/provision-vpc-mtls-and-cedar-policy.md:6-9`; `docs/decisions/ADR-0700-ci-admission-live-apex.md:3215-3247` | Replace or subordinate Make commands behind Cargo/OpenTofu/Oya command surfaces. |
@@ -653,7 +653,7 @@
 
 <!-- ORCHESTRATOR REPORT
   µservice: cloud-network
-  deliverables_landed: microservices/cloud-network/coherence-audit-2026-05-20.md (668 lines); microservices/cloud-network/feature-parity-matrix-2026-05-20.md (411 lines); microservices/cloud-network/performance-benchmark-numbers-2026-05-20.md (422 lines); microservices/cloud-network/capability-tenant_class-deltas-vs-counterparts-2026-05-20.md (355 lines)
+  deliverables_landed: network/coherence-audit-2026-05-20.md (668 lines); network/feature-parity-matrix-2026-05-20.md (411 lines); network/performance-benchmark-numbers-2026-05-20.md (422 lines); microservices/cloud-network/capability-tenant_class-deltas-vs-counterparts-2026-05-20.md (355 lines)
   inventory_files_seen: 10
   inventory_lines_read: 1942
   chat_history_matches_processed: 52

@@ -10,14 +10,14 @@ SCOPE: `/Users/jasonlee/oyatie/microservices/cloud-network-dns/`
 
 1. ADR-0328 §D-15..§D-20 supplies the required deployment-context, OpenTofu, OS, Rust, OCI, and benchmark disclosure constraints; read anchors include `docs/decisions/ADR-0700-ci-admission-live-apex.md:1730-1815`, `:2241-2365`, `:3140-3235`, and `:3756-4151`.
 2. `specs/master-plan-sequencing.json:704-867` supplies the six contexts, state backend map, Tier-1 OS list, Rust build invocation, and OCI Always Free resource envelope.
-3. Service-local performance claims read: `microservices/cloud-network-dns/retired tenant_class adoption artifact:24-25`, `:42-43`, `:60-61`, `:78-79`, and `microservices/cloud-network-dns/benchmarks/cloud-network-dns-vs-route53-vs-cloud-dns-vs-cloudflare-vs-ns1.md:3-19`.
-4. Service-local architecture-equivalent evidence read: `microservices/cloud-network-dns/reference-implementations/provision-zone-dnssec-and-geo-routing-rust-sdk.md:148-217` for example query latency logging and failover confirmation.
+3. Service-local performance claims read: `microservices/cloud-network-dns/retired tenant_class adoption artifact:24-25`, `:42-43`, `:60-61`, `:78-79`, and `network/dns/benchmarks/cloud-network-dns-vs-route53-vs-cloud-dns-vs-cloudflare-vs-ns1.md:3-19`.
+4. Service-local architecture-equivalent evidence read: `network/dns/reference-implementations/provision-zone-dnssec-and-geo-routing-rust-sdk.md:148-217` for example query latency logging and failover confirmation.
 5. Documentation-rigor performance/capacity bar: `docs/standards/documentation-rigor.md:143-156` requires capacity math, failure modes, observability hooks, rollback, multi-region, sovereign, and versioning rigor.
 
 ## Methodology disclosure
 
 These are target numbers plus provenance, not measured Oyatie production benchmarks.
-The existing benchmark artifact claims measurements across 2026-04-26 to 2026-05-12, but its cited evidence path is absent (`microservices/cloud-network-dns/benchmarks/cloud-network-dns-vs-route53-vs-cloud-dns-vs-cloudflare-vs-ns1.md:3-5`, `:119`).
+The existing benchmark artifact claims measurements across 2026-04-26 to 2026-05-12, but its cited evidence path is absent (`network/dns/benchmarks/cloud-network-dns-vs-route53-vs-cloud-dns-vs-cloudflare-vs-ns1.md:3-5`, `:119`).
 Measured benchmarks must be added in a build phase with signed evidence, raw probe logs, OS/arch/context disclosure, and reproducibility commands that use Rust/Cargo/OpenTofu rather than `make`.
 Counterpart figures below are drawn from public documentation when public providers publish limits, intervals, regions, protocols, or topology numbers; latency numbers that are not officially published are labeled as target estimates or service-local unverified claims.
 DNSPerf is used only as methodology provenance for external DNS performance comparability because its public page states providers are tested every minute from 200+ global locations with a one-second timeout and hourly public updates (`https://www.dnsperf.com/`).

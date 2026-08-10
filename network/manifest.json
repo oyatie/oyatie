@@ -78,7 +78,7 @@
     "openapi": [
       "network/contracts/openapi/cloud/cloud-network-vpc-v1.yaml",
       "network/contracts/openapi/cloud/cloud-network-lb-v1.yaml",
-      "network/dns/network/dns/contracts/openapi/cloud/cloud-network-dns-v1.yaml"
+      "network/dns/contracts/openapi/cloud/cloud-network-dns-v1.yaml"
     ],
     "asyncapi": [
       "network/contracts/asyncapi/cloud-network-design-events.yaml",

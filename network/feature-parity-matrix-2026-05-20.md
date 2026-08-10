@@ -5,7 +5,7 @@
 1. Canonical sequence anchor: `docs/decisions/ADR-0700-ci-admission-live-apex.md:1730-4146`.
 2. Machine control anchor: `specs/master-plan-sequencing.json:704-868`.
 3. µservice PRD anchor: local `PRD.md` absent; purpose inferred from `microservices/cloud-network/retired tenant_class adoption artifact:7-10` and `docs/products/cloud/PRD.md:138-176`.
-4. µservice architecture anchor: local `ARCHITECTURE.md` absent; implementation shape inferred from `crates/oya-cloud-network-domain/src/lib.rs:1-7` and the VPC/LB/DNS API crates.
+4. µservice architecture anchor: local `ARCHITECTURE.md` absent; implementation shape inferred from `network/core/domain/src/lib.rs:1-7` and the VPC/LB/DNS API crates.
 5. Documentation-rigor anchor: `docs/standards/documentation-rigor.md:40-83`, `docs/standards/documentation-rigor.md:175-190`, and `docs/standards/documentation-rigor.md:222-260`.
 
 ## Source legend
@@ -22,9 +22,9 @@
 - Azure service limits: https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/azure-subscription-service-limits.
 - Azure Network Watcher: https://learn.microsoft.com/en-us/azure/network-watcher/network-watcher-overview.
 - Oyatie local tenant_class source: `microservices/cloud-network/retired tenant_class adoption artifact:7-95`.
-- Oyatie local FAQ source: `microservices/cloud-network/faqs/network-engineer-faq.md:7-175`.
+- Oyatie local FAQ source: `network/faqs/network-engineer-faq.md:7-175`.
 - Oyatie local runbook source: `microservices/cloud-network/runbooks/*.md`.
-- Oyatie Rust source: `crates/oya-cloud-network-domain/src/lib.rs:1-240`.
+- Oyatie Rust source: `network/core/domain/src/lib.rs:1-240`.
 
 ## §1 Counterpart 1 — AWS VPC capability surface
 
@@ -362,7 +362,7 @@
 
 | Gap | Proposed Oyatie hook | First artifact to create | Evidence source |
 |---|---|---|---|
-| IPAM | Add `cloud.network.ipam.pool.create` and CIDR allocation structs beside VPC domain types. | `ARCHITECTURE.md §ipam` plus OpenAPI contract. | AWS IPAM docs; `crates/oya-cloud-network-domain/src/lib.rs:40-240` |
+| IPAM | Add `cloud.network.ipam.pool.create` and CIDR allocation structs beside VPC domain types. | `ARCHITECTURE.md §ipam` plus OpenAPI contract. | AWS IPAM docs; `network/core/domain/src/lib.rs:40-240` |
 | BYOIP | Add public-prefix admission with ownership proof and route-advertisement limits. | `contracts/openapi/cloud/cloud-network-prefix-v1.yaml`. | AWS/GCP/Azure public prefix surfaces |
 | CIDR overlap prevention | Promote CIDR validation from API implementation to documented invariant. | `ARCHITECTURE.md §address-planning`. | Google custom-mode VPC production guidance |
 | Private endpoint consumer | Add endpoint create API with tenant, service, VPC, DNS zone, and policy decision fields. | `contracts/openapi/cloud/cloud-network-private-endpoint-v1.yaml`. | AWS PrivateLink / Google PSC / Azure Private Link |
@@ -381,7 +381,7 @@
 | NAT capacity | Define NAT throughput, port exhaustion handling, failover, and per-context primitives. | `failure-modes.md §nat-egress`. | AWS NAT / Google Cloud NAT / Azure NAT Gateway |
 | IPv6 egress | Define egress-only IPv6 or policy-equivalent egress construct. | `ARCHITECTURE.md §ipv6-egress`. | AWS egress-only IGW / GCP/Azure IPv6 guidance |
 | DNS handoff | Split private DNS inside cloud-network from authoritative DNS in cloud-network-dns. | `cross-microservice-handoffs.md §dns`. | `cloud.network.dns.zone.create` registry bindings |
-| Load balancer ownership | Keep LB API in cloud-network or split to dedicated LB sub-surface with clear owner. | `ARCHITECTURE.md §lb-boundary`. | `crates/oya-cloud-network-lb-api/src/lib.rs:1-16` |
+| Load balancer ownership | Keep LB API in cloud-network or split to dedicated LB sub-surface with clear owner. | `ARCHITECTURE.md §lb-boundary`. | `network/ports/lb/src/lib.rs:1-16` |
 | WAF policy | Bind WAF policy references to Cedar, edge WAF, and context IaC. | `policy/network-waf.cedar` plus IaC module outputs. | LB API WAF field |
 | DDoS tenant_classes | Convert DDoS runbook into product capability by tenant_class and context. | `PRD.md §ddos-protection`. | `runbooks/ddos-mitigation-engagement.md:15-186` |
 | Direct interconnect | Define port speeds, BGP sessions, RPKI, MACsec, SLAs, and billing. | `capacity-model.md §interconnect`. | AWS Direct / Google Interconnect / Azure ExpressRoute |
@@ -402,7 +402,7 @@
 | Data classification | Document public/internal-only field boundaries. | `compliance.md §data-classes`. | API crate data_class comments |
 | Residency | Document residency controls for VPC create and private endpoint placement. | `ARCHITECTURE.md §residency`. | VPC OpenAPI residency field |
 | Cell routing | Define cell graph, route health, failover, and cross-cell stall semantics. | `failure-modes.md §cross-cell-routing`. | Cross-cell runbook |
-| mTLS ingress | Promote tutorial/runbook behavior to formal LB mTLS capability. | `contracts/openapi/cloud/cloud-network-lb-v1.yaml` extension or local pointer. | LB API mTLS fields |
+| mTLS ingress | Promote tutorial/runbook behavior to formal LB mTLS capability. | `network/contracts/openapi/cloud/cloud-network-lb-v1.yaml` extension or local pointer. | LB API mTLS fields |
 | CNI integration | Decide Cilium implementation boundary and abstraction contract. | `ARCHITECTURE.md §cni-enforcement`. | FAQ Cilium answer |
 | Service mesh migration | Keep Istio migration as one playbook and add general service-mesh abstraction. | `migration-playbooks/from-service-mesh-generic.md`. | AWS/Istio migration playbook |
 | GCP migration | Add import and dual-run plan for Google VPC, firewall rules, Cloud NAT, PSC, and Cloud Router. | `migration-playbooks/from-google-vpc.md`. | Google VPC docs |

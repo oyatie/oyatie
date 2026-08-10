@@ -29,8 +29,8 @@ doc_status: published
 - Primary dashboard: `https://grafana.dev.oyatie.internal/d/cloud-network-substrate/cross-cell-routing?orgId=1&var-cell=prod-us-east-1`.
 - Flow dashboard: `https://grafana.dev.oyatie.internal/d/cloud-network-substrate/flow-logs?orgId=1&var-surface=cross-cell`.
 - Loki query: `{namespace="cloud-network",runbook="cross-cell-routing-stall"}`.
-- Canonical FAQ: `microservices/cloud-network/faqs/network-engineer-faq.md`.
-- Related tutorial: `microservices/cloud-network/tutorials/provision-vpc-mtls-and-cedar-policy.md`.
+- Canonical FAQ: `network/faqs/network-engineer-faq.md`.
+- Related tutorial: `network/tutorials/provision-vpc-mtls-and-cedar-policy.md`.
 - Related action: `cloud_network::Action::EnablePrivateServiceEndpoint`.
 - Related action: `cloud_network::Action::RollbackPolicy`.
 

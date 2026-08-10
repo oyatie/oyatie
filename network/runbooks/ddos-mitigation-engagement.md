@@ -29,7 +29,7 @@ doc_status: published
 - Primary dashboard: `https://grafana.dev.oyatie.internal/d/cloud-network-substrate/ddos?orgId=1&var-cell=prod-us-east-1`.
 - Edge dashboard: `https://grafana.dev.oyatie.internal/d/cloud-network-substrate/edge-l7?orgId=1&var-surface=ingress`.
 - Loki query: `{namespace="cloud-network",runbook="ddos-mitigation-engagement"}`.
-- Canonical FAQ: `microservices/cloud-network/faqs/network-engineer-faq.md`.
+- Canonical FAQ: `network/faqs/network-engineer-faq.md`.
 - Related action: `cloud_network::Action::ActivateL7RateLimit`.
 - Related action: `cloud_network::Action::EmergencyBlackhole`.
 

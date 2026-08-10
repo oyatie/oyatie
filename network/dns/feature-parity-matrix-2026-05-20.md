@@ -11,7 +11,7 @@ SCOPE: `/Users/jasonlee/oyatie/microservices/cloud-network-dns/`
 1. ADR-0328 §D-15..§D-20 is the local authority for multi-context deployment, OpenTofu, OS support, Rust-only implementation, OCI Always Free, and audit dimensions; read anchors include `docs/decisions/ADR-0700-ci-admission-live-apex.md:1730-1815`, `:2241-2365`, and `:3140-3235`.
 2. `specs/master-plan-sequencing.json:704-867` is the machine-readable deployment/IaC/OS/language/OCI profile source.
 3. Service-local purpose evidence is `microservices/cloud-network-dns/retired tenant_class adoption artifact:7-10`; service-local PRD is absent.
-4. Service-local architecture-equivalent evidence is `microservices/cloud-network-dns/reference-implementations/provision-zone-dnssec-and-geo-routing-rust-sdk.md:1-5`; service-local ARCHITECTURE is absent.
+4. Service-local architecture-equivalent evidence is `network/dns/reference-implementations/provision-zone-dnssec-and-geo-routing-rust-sdk.md:1-5`; service-local ARCHITECTURE is absent.
 5. Documentation-rigor requires intern-buildability and hyperscaler-grade mechanics at `docs/standards/documentation-rigor.md:133-156`.
 
 ## External source set
@@ -365,7 +365,7 @@ The next buildable path is to define authoritative DNS core first: zone, record,
 
 | Gap | First implementation hook | Required local artifact | Provenance anchor |
 |---|---|---|---|
-| Record-set CRUD | Add create, update, delete, list, import, diff, and rollback endpoints | Service-local OpenAPI contract | Current external contract only proves zone create at `contracts/openapi/cloud/cloud-network-dns-v1.yaml:1-12` |
+| Record-set CRUD | Add create, update, delete, list, import, diff, and rollback endpoints | Service-local OpenAPI contract | Current external contract only proves zone create at `network/dns/contracts/openapi/cloud/cloud-network-dns-v1.yaml:1-12` |
 | DNSSEC lifecycle | Add key state machine, DS boundary, algorithm policy, and rollover scheduler | `ARCHITECTURE.md` plus DNSSEC runbook | demo_trial and paid tenant_class promise DNSSEC in `retired tenant_class adoption artifact:20-72` |
 | Private zones | Add private-zone binding and resolver visibility model | Private-zone contract and context IaC | paid declares private DNS in `retired tenant_class adoption artifact:34` |
 | Routing policies | Add policy algebra for weighted, failover, latency, geo, and jurisdiction routing | Routing-policy schema | Routing tenant_classes appear in `retired tenant_class adoption artifact:21-73` |
