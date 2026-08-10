@@ -1,0 +1,35 @@
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: oya-workplace-integration-roster-binding-accuracy
+  displayName: Workplace Integration Roster Binding Accuracy
+  labels:
+    service: workplace-integration
+    adr: ADR-0320
+spec:
+  description: Workplace Integration SLO for roster-binding-accuracy using ledger=roster-binding
+  service: workplace-integration
+  indicator:
+    metadata:
+      name: oya-workplace-integration-roster-binding-accuracy-sli
+    spec:
+      ratioMetric:
+        good:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: sum(rate(oya_workplace_integration_clock_attest_success_total[5m]))
+        total:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: sum(rate(oya_workplace_integration_clock_attest_total[5m]))
+  objectives:
+    - displayName: Roster Binding Accuracy
+      target: 0.9999
+  timeWindow:
+    - duration: 30d
+      isRolling: true
+naming_justifications:
+  bnf_v4: "workplace-integration.slo.roster-binding-accuracy"
+  layer_enum: "12-layer-enum: kernel, domain, usecase, app, adapter, infrastructure, rest, grpc, worker, cli, sdk, api"

@@ -1,0 +1,26 @@
+id: oya-workplace-integration-WorkplaceAgreement-kernel
+name: oya-workplace-integration-WorkplaceAgreement-kernel
+microservice: workplace-integration
+bounded_context: WorkplaceAgreement
+layer: kernel
+owner: axis-workplace-integration
+purpose: Workplace Integration kernel catalog record for WorkplaceAgreement
+related_adrs:
+  - ADR-0105
+  - ADR-0131
+  - ADR-0243
+  - ADR-0244
+  - ADR-0263
+  - ADR-0319
+  - ADR-0320
+naming_justifications:
+  bnf_v4: "oya-workplace-integration-WorkplaceAgreement-kernel"
+  layer_enum: "12-layer-enum: kernel, domain, usecase, app, adapter, infrastructure, rest, grpc, worker, cli, sdk, api"
+interfaces:
+  - contracts/openapi-v1.yaml
+  - contracts/asyncapi-v1.yaml
+  - contracts/workplace-integration-v1.proto
+quality:
+  tests: [unit, property, integration, replay, contract]
+  coverage_floor_line: 85
+  coverage_floor_branch: 75

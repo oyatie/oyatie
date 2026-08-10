@@ -1,0 +1,13 @@
+apiVersion: oyatie.dev/v1
+kind: OpenbaoPolicy
+metadata:
+  name: workplace-integration-openbao-policy
+  labels:
+    service: workplace-integration
+    adr: ADR-0320
+spec:
+  tenantScope: required
+  openBaoPath: secret/workplace-integration/openbao-policy
+  naming_justifications:
+    bnf_v4: "workplace-integration.iac.openbao-policy"
+    layer_enum: "12-layer-enum: kernel, domain, usecase, app, adapter, infrastructure, rest, grpc, worker, cli, sdk, api"

@@ -1,0 +1,36 @@
+{
+  "title": "Workplace Integration Audit Evidence",
+  "schemaVersion": 39,
+  "tags": [
+    "workplace-integration",
+    "pr-143-doc-set",
+    "ADR-0320"
+  ],
+  "timezone": "utc",
+  "naming_justifications": {
+    "bnf_v4": "workplace-integration.dashboard.audit-evidence",
+    "layer_enum": "12-layer-enum: kernel, domain, usecase, app, adapter, infrastructure, rest, grpc, worker, cli, sdk, api"
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Audit Evidence burn",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "sum(rate(oya_workplace_integration_roster_bind_total[5m])) by (tenant_id,region,status)"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "WorkplaceAgreementBound events",
+      "type": "table",
+      "targets": [
+        {
+          "expr": "sum(rate(oya_audit_chain_events_total{service=\"workplace-integration\",event=\"WorkplaceAgreementBound\"}[5m])) by (tenant_id,cell_id)"
+        }
+      ]
+    }
+  ]
+}
