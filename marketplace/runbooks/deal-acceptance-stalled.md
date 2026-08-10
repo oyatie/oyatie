@@ -30,12 +30,12 @@ doc_status: published
 ## Trigger Conditions
 - Page on alert `DealAcceptanceStalledCritical` when `oya_marketplace_deal_acceptance_stalled_error_ratio > 0.02` for 10 minutes in any production cell.
 - Page on alert `DealAcceptanceStalledSloBurn` when `oya_marketplace_deal_acceptance_stalled_lag_seconds > 300` for 2 consecutive evaluator windows.
-- Open sev1 if `oya_marketplace_deal_acceptance_stalled_total` exceeds the threshold documented in `microservices/marketplace/slos/deal-accept-latency.openslo.yaml`.
+- Open sev1 if `oya_marketplace_deal_acceptance_stalled_total` exceeds the threshold documented in `marketplace/observability/slos/deal-accept-latency.openslo.yaml`.
 - Open sev1 if `oya_marketplace_deal_acceptance_stalled_queue_depth > 5000` for 15 minutes or retry backlog grows by more than 20 percent in one 5 minute window.
 - Trigger from customer report when Support tags the case `marketplace.deal-acceptance-stalled.customer_visible` in Zendesk.
 - Trigger from CI when `cargo run -p oya-dev-cli -- gate validate marketplace-deal-acceptance-stalled --production-snapshot` exits non-zero against the latest production evidence bundle.
-- Primary dashboard: `https://grafana.dev.oyatie.internal/d/marketplace-ops/deal-acceptance-stalled?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=101` backed by `microservices/marketplace/dashboards/audit-evidence.json`.
-- Secondary dashboard: `https://grafana.dev.oyatie.internal/d/marketplace-ops/deal-acceptance-stalled?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=202` backed by `microservices/marketplace/dashboards/policy-deny-rate.json`.
+- Primary dashboard: `https://grafana.dev.oyatie.internal/d/marketplace-ops/deal-acceptance-stalled?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=101` backed by `marketplace/dashboards/audit-evidence.json`.
+- Secondary dashboard: `https://grafana.dev.oyatie.internal/d/marketplace-ops/deal-acceptance-stalled?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=202` backed by `marketplace/dashboards/policy-deny-rate.json`.
 - Loki explorer: `https://grafana.dev.oyatie.internal/explore?query={namespace="marketplace",runbook="deal-acceptance-stalled"}`.
 - Alertmanager route: `oyatie-marketplace-deal-acceptance-stalled-critical`; silence only with incident commander approval and `EVT_MARKETPLACE_DEAL_ACCEPTANCE_STALLED_INCIDENT` evidence.
 - Synthetic probe: `oya ops probe marketplace deal-acceptance-stalled --cell prod-us-east-1 --tenant synthetic-canary` returns `healthy=true`.
@@ -92,9 +92,9 @@ doc_status: published
 19. Inspect feature flags: `oya flags get oya.marketplace.deal_acceptance_stalled.incident_hold --cell $CELL --tenant $TENANT --output yaml`.
 20. Inspect circuit breaker: `oya ops breaker status marketplace-deal-acceptance-stalled-circuit-breaker --cell $CELL --tenant $TENANT`.
 21. Check recent deploy: `kubectl -n marketplace rollout history deploy/marketplace-deal-acceptance-stalled-worker | tail -20`.
-22. Check policy file: `test -f microservices/marketplace/policies/deal-accept.cedar || find microservices/marketplace/policy -maxdepth 2 -type f | sort`.
-23. Check SLO files: `ls microservices/marketplace/slos/*.openslo.yaml | sort | rg "deal|deal"`.
-24. Check contract binding: `test -f microservices/marketplace/contracts/openapi-v1.yaml && sed -n '1,120p' microservices/marketplace/contracts/openapi-v1.yaml`.
+22. Check policy file: `test -f marketplace/policies/deal-accept.cedar || find microservices/marketplace/policy -maxdepth 2 -type f | sort`.
+23. Check SLO files: `ls marketplace/observability/slos/*.openslo.yaml | sort | rg "deal|deal"`.
+24. Check contract binding: `test -f marketplace/contracts/openapi-v1.yaml && sed -n '1,120p' marketplace/contracts/openapi-v1.yaml`.
 25. Run targeted SQL state query: `psql $OYA_PROD_DSN -c "select incident_id, tenant_id, cell_id, state, updated_at from marketplace_deal_acceptance_stalled_incidents where updated_at > now() - interval '30 minutes' order by updated_at desc limit 20;"`.
 26. Confirm no cross-cell spread: `oya ops cells query --metric oya_marketplace_deal_acceptance_stalled_error_ratio --window 30m --threshold 0.02`.
 27. Snapshot evidence: `oya evidence snapshot --incident $INCIDENT_ID --microservice marketplace --runbook deal-acceptance-stalled --output evidence/incidents/$INCIDENT_ID.json`.
@@ -135,7 +135,7 @@ Deal Acceptance Stalled incident decision tree
 12. Raise HPA cap if saturation is proven: `kubectl -n marketplace patch hpa marketplace-deal-acceptance-stalled-worker --type merge -p '{"spec":{"maxReplicas":12}}'`.
 13. Throttle hot tenant: `oya ops rate-limit set --tenant $TENANT --surface marketplace.deal-acceptance-stalled --rps 25 --ttl 30m`.
 14. Block abusive principal when relevant: `oya identity principal suspend --principal suspected-abuse --tenant $TENANT --reason $INCIDENT_ID`.
-15. Protect evidence: `oya evidence freeze --incident $INCIDENT_ID --paths microservices/marketplace/runbooks/deal-acceptance-stalled.md,evidence/incidents/$INCIDENT_ID.json`.
+15. Protect evidence: `oya evidence freeze --incident $INCIDENT_ID --paths marketplace/runbooks/deal-acceptance-stalled.md,evidence/incidents/$INCIDENT_ID.json`.
 16. Notify service owners: `oya notify service-owner --microservice marketplace --incident $INCIDENT_ID --channel #inc-marketplace`.
 17. Open external vendor ticket: `oya vendor ticket open --vendor "Stripe support" --incident $INCIDENT_ID --summary marketplace-deal-acceptance-stalled`.
 18. Confirm breaker effect: `oya ops breaker status marketplace-deal-acceptance-stalled-circuit-breaker --cell $CELL --tenant $TENANT --expect open`.
@@ -161,15 +161,15 @@ Deal Acceptance Stalled incident decision tree
   - Required audit: emit `EVT_MARKETPLACE_DEAL_ACCEPTANCE_STALLED_INCIDENT` with `branch=D`, `operator_id`, and `evidence_hash`.
 
 ## Resolution Steps
-1. Identify code owner path: `rg "deal_acceptance_stalled|DealAcceptanceStalledCritical|marketplace.deal_acceptance_stalled.incident_state" crates microservices/marketplace -g "!microservices/marketplace/runbooks/**"`.
+1. Identify code owner path: `rg "deal_acceptance_stalled|DealAcceptanceStalledCritical|marketplace.deal_acceptance_stalled.incident_state" crates microservices/marketplace -g "!marketplace/runbooks/**"`.
 2. Patch domain invariant: `edit oya-cloud-marketplace-domain where deal_acceptance_stalled state transition is validated`.
-3. Patch API guard: `edit microservices/marketplace/contracts/openapi-v1.yaml if the failing path is north-south or async handoff`.
-4. Patch policy: `edit microservices/marketplace/policies/deal-accept.cedar with explicit deny/permit branch and tenant/cell scope`.
+3. Patch API guard: `edit marketplace/contracts/openapi-v1.yaml if the failing path is north-south or async handoff`.
+4. Patch policy: `edit marketplace/policies/deal-accept.cedar with explicit deny/permit branch and tenant/cell scope`.
 5. Patch runtime config: `edit microservices/marketplace/iac/kustomize/base/kustomization.yaml if deploy/config drift caused the incident`.
 6. Add regression test: `cargo test -p oya-cloud-marketplace-domain deal_acceptance_stalled_incident_regression -- --nocapture`.
 7. Add gate evidence: `cargo run -p oya-dev-cli -- gate validate marketplace-deal-acceptance-stalled --fixture incident-deal-acceptance-stalled.json`.
-8. Add SLO assertion: `update microservices/marketplace/slos/deal-accept-latency.openslo.yaml with alert DealAcceptanceStalledCritical when this was a missing alert`.
-9. Add dashboard panel: `update microservices/marketplace/dashboards/audit-evidence.json with oya_marketplace_deal_acceptance_stalled_error_ratio, oya_marketplace_deal_acceptance_stalled_lag_seconds, and oya_marketplace_deal_acceptance_stalled_total`.
+8. Add SLO assertion: `update marketplace/observability/slos/deal-accept-latency.openslo.yaml with alert DealAcceptanceStalledCritical when this was a missing alert`.
+9. Add dashboard panel: `update marketplace/dashboards/audit-evidence.json with oya_marketplace_deal_acceptance_stalled_error_ratio, oya_marketplace_deal_acceptance_stalled_lag_seconds, and oya_marketplace_deal_acceptance_stalled_total`.
 10. Rebuild affected crate: `cargo check -p oya-cloud-marketplace-domain --all-targets`.
 11. Run targeted tests: `cargo test -p oya-cloud-marketplace-domain --all-features`.
 12. Run policy validation: `cargo run -p oya-dev-cli -- gate validate marketplace-policy --microservice marketplace`.
@@ -187,19 +187,19 @@ Deal Acceptance Stalled incident decision tree
 - `oya-saas-plugin-marketplace-kernel`: inspect for `deal_acceptance_stalled` invariants, alert emission, ADR-0263 evidence fields, and tenant/cell scoping before touching adjacent code.
 - `marketplace DealSet usecase`: inspect for `deal_acceptance_stalled` invariants, alert emission, ADR-0263 evidence fields, and tenant/cell scoping before touching adjacent code.
 - `SettlementLedger worker`: inspect for `deal_acceptance_stalled` invariants, alert emission, ADR-0263 evidence fields, and tenant/cell scoping before touching adjacent code.
-- `microservices/marketplace/contracts/openapi-v1.yaml`: verify request/response or event contract only when incident evidence points there.
-- `microservices/marketplace/contracts/asyncapi-v1.yaml`: verify request/response or event contract only when incident evidence points there.
-- `microservices/marketplace/contracts/marketplace-v1.proto`: verify request/response or event contract only when incident evidence points there.
-- `microservices/marketplace/dashboards/audit-evidence.json`: verify panel coverage for `oya_marketplace_deal_acceptance_stalled_error_ratio`, `oya_marketplace_deal_acceptance_stalled_lag_seconds`, and `oya_marketplace_deal_acceptance_stalled_total`.
-- `microservices/marketplace/slos/`: verify alert vocabulary and threshold alignment before changing runtime thresholds.
-- `microservices/marketplace/policies/`: verify policy branch ownership before relaxing deny rules or emergency bypasses.
+- `marketplace/contracts/openapi-v1.yaml`: verify request/response or event contract only when incident evidence points there.
+- `marketplace/contracts/asyncapi-v1.yaml`: verify request/response or event contract only when incident evidence points there.
+- `marketplace/contracts/marketplace-v1.proto`: verify request/response or event contract only when incident evidence points there.
+- `marketplace/dashboards/audit-evidence.json`: verify panel coverage for `oya_marketplace_deal_acceptance_stalled_error_ratio`, `oya_marketplace_deal_acceptance_stalled_lag_seconds`, and `oya_marketplace_deal_acceptance_stalled_total`.
+- `marketplace/observability/slos/`: verify alert vocabulary and threshold alignment before changing runtime thresholds.
+- `marketplace/policies/`: verify policy branch ownership before relaxing deny rules or emergency bypasses.
 
 ## Verification Checklist
 - `DealAcceptanceStalledCritical` and `DealAcceptanceStalledSloBurn` are both resolved in Alertmanager for 30 minutes.
 - `oya_marketplace_deal_acceptance_stalled_error_ratio < 0.005` for 3 consecutive 10 minute windows.
 - `oya_marketplace_deal_acceptance_stalled_lag_seconds < 120` for all production cells.
 - `oya_marketplace_deal_acceptance_stalled_queue_depth` is draining and not growing for the affected tenant.
-- Service-specific signal `oya_marketplace_deal_acceptance_stalled_total` is below the threshold documented in `microservices/marketplace/slos/deal-accept-latency.openslo.yaml`.
+- Service-specific signal `oya_marketplace_deal_acceptance_stalled_total` is below the threshold documented in `marketplace/observability/slos/deal-accept-latency.openslo.yaml`.
 - Dashboard `https://grafana.dev.oyatie.internal/d/marketplace-ops/deal-acceptance-stalled?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=101` shows green panels for the affected cell.
 - Audit-chain query for `EVT_MARKETPLACE_DEAL_ACCEPTANCE_STALLED_INCIDENT` returns mitigation and resolution events.
 - Circuit breaker `marketplace-deal-acceptance-stalled-circuit-breaker` is closed after rollback window.
@@ -301,11 +301,11 @@ evidence_hash: <sha256>
 - Close only after `EVT_MARKETPLACE_DEAL_ACCEPTANCE_STALLED_INCIDENT` has a sealed resolution row and every coordination endpoint above has either accepted or explicitly declined scope.
 
 ## Sources Checked During This Substance Pass
-- `microservices/marketplace/dashboards/` for dashboard names and operational panels: audit-evidence.json, policy-deny-rate.json, replay-health.json, service-overview.json, tenant-slo-burn.json.
-- `microservices/marketplace/slos/` for OpenSLO alert vocabulary and threshold alignment: deal-accept-latency.openslo.yaml, deal-offer-availability.openslo.yaml, escrow-reserve-availability.openslo.yaml, mediation-case-availability.openslo.yaml, revenue-share-accuracy.openslo.yaml, settlement-replay-fidelity.openslo.yaml.
-- `microservices/marketplace/policies/` for named policy and authorization surfaces: deal-accept.cedar, deal-offer-create.cedar, escrow-release.cedar, escrow-reserve.cedar, mediation-open.cedar, revenue-share-accrue.cedar.
-- `microservices/marketplace/contracts/` for API, AsyncAPI, proto, and adapter surfaces: contracts/openapi-v1.yaml, contracts/asyncapi-v1.yaml, contracts/marketplace-v1.proto.
-- `microservices/marketplace/manifest.json` for owner, dependency, capability, and bounded-context vocabulary; topic `deal-acceptance-stalled` is the scenario anchor.
+- `marketplace/dashboards/` for dashboard names and operational panels: audit-evidence.json, policy-deny-rate.json, replay-health.json, service-overview.json, tenant-slo-burn.json.
+- `marketplace/observability/slos/` for OpenSLO alert vocabulary and threshold alignment: deal-accept-latency.openslo.yaml, deal-offer-availability.openslo.yaml, escrow-reserve-availability.openslo.yaml, mediation-case-availability.openslo.yaml, revenue-share-accuracy.openslo.yaml, settlement-replay-fidelity.openslo.yaml.
+- `marketplace/policies/` for named policy and authorization surfaces: deal-accept.cedar, deal-offer-create.cedar, escrow-release.cedar, escrow-reserve.cedar, mediation-open.cedar, revenue-share-accrue.cedar.
+- `marketplace/contracts/` for API, AsyncAPI, proto, and adapter surfaces: contracts/openapi-v1.yaml, contracts/asyncapi-v1.yaml, contracts/marketplace-v1.proto.
+- `marketplace/manifest.json` for owner, dependency, capability, and bounded-context vocabulary; topic `deal-acceptance-stalled` is the scenario anchor.
 
 ## Checkpoint Closure Criteria
 - The runbook remains current when `DealAcceptanceStalledCritical`, `DealAcceptanceStalledSloBurn`, `oya_marketplace_deal_acceptance_stalled_total`, `oya.marketplace.deal_acceptance_stalled.incident_hold`, and `marketplace-deal-acceptance-stalled-circuit-breaker` all resolve to live telemetry, flag, or breaker records.

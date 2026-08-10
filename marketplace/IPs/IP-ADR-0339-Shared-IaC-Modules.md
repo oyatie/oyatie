@@ -15,7 +15,7 @@ lifecycle_rule: PROPOSED until the microservice wrappers invoke signed shared Op
 
 ## 1. Lifecycle, Boundary, And Stop Condition
 SCOPE-001: This IP binds `marketplace` to ADR-0339 shared IaC module doctrine without authoring Rust, changing crates, or applying infrastructure.
-SCOPE-002: Lifecycle state is PROPOSED for `marketplace` until the service-owned wrapper files under `microservices/marketplace/iac/<context>/main.tf` invoke signed cloud-iac modules and implementation evidence is reviewed.
+SCOPE-002: Lifecycle state is PROPOSED for `marketplace` until the service-owned wrapper files under `marketplace/iac/<context>/main.tf` invoke signed cloud-iac modules and implementation evidence is reviewed.
 SCOPE-003: ACCEPTED status requires a later service implementation change, not this document-stage propagation.
 SCOPE-004: The only implementation authority created here is documentation intent plus manifest `iac_module_invocations` alignment for `marketplace`.
 SCOPE-005: The stop condition for this IP is a reviewable doctrine packet: IP present, manifest field populated, PRD adoption section appended, ARCH integration section appended, and ADR citations validated.
@@ -41,19 +41,19 @@ DOSSIER-010: DR replication shape is `active-passive-cross-region-continuous` wi
 DOSSIER-011: Regulatory packs declared: none.
 DOSSIER-012: Data classes processed: manifest-not-populated.
 DOSSIER-BC-001: Bounded context `DealSet` states: None; crate count=0.
-DOSSIER-CONTRACT-001: OpenAPI 3.2.0: microservices/marketplace/contracts/openapi-v1.yaml, microservices/marketplace/contracts/listing-plugins-v1.yaml, microservices/marketplace/contracts/listing-apps-v1.yaml plus 4 more.
-DOSSIER-CONTRACT-002: AsyncAPI 3.1.0: microservices/marketplace/contracts/asyncapi-v1.yaml.
-DOSSIER-CONTRACT-003: proto3: microservices/marketplace/contracts/marketplace-v1.proto.
-DOSSIER-CAPABILITY-001: manifest capability entry `microservices/marketplace/capabilities/deal-offer-create.yaml` remains unchanged by ADR-0339.
-DOSSIER-CAPABILITY-002: manifest capability entry `microservices/marketplace/capabilities/deal-accept.yaml` remains unchanged by ADR-0339.
-DOSSIER-CAPABILITY-003: manifest capability entry `microservices/marketplace/capabilities/escrow-reserve.yaml` remains unchanged by ADR-0339.
-DOSSIER-CAPABILITY-004: manifest capability entry `microservices/marketplace/capabilities/escrow-release.yaml` remains unchanged by ADR-0339.
-DOSSIER-CAPABILITY-005: manifest capability entry `microservices/marketplace/capabilities/revenue-share-accrue.yaml` remains unchanged by ADR-0339.
-DOSSIER-CAPABILITY-006: manifest capability entry `microservices/marketplace/capabilities/revenue-share-clawback.yaml` remains unchanged by ADR-0339.
-DOSSIER-CAPABILITY-007: manifest capability entry `microservices/marketplace/capabilities/mediation-open.yaml` remains unchanged by ADR-0339.
-DOSSIER-CAPABILITY-008: manifest capability entry `microservices/marketplace/capabilities/category-plugins.yaml` remains unchanged by ADR-0339.
-DOSSIER-CAPABILITY-009: manifest capability entry `microservices/marketplace/capabilities/category-apps.yaml` remains unchanged by ADR-0339.
-DOSSIER-CAPABILITY-010: manifest capability entry `microservices/marketplace/capabilities/category-workflows.yaml` remains unchanged by ADR-0339.
+DOSSIER-CONTRACT-001: OpenAPI 3.2.0: marketplace/contracts/openapi-v1.yaml, marketplace/contracts/listing-plugins-v1.yaml, marketplace/contracts/listing-apps-v1.yaml plus 4 more.
+DOSSIER-CONTRACT-002: AsyncAPI 3.1.0: marketplace/contracts/asyncapi-v1.yaml.
+DOSSIER-CONTRACT-003: proto3: marketplace/contracts/marketplace-v1.proto.
+DOSSIER-CAPABILITY-001: manifest capability entry `marketplace/capabilities/deal-offer-create.yaml` remains unchanged by ADR-0339.
+DOSSIER-CAPABILITY-002: manifest capability entry `marketplace/capabilities/deal-accept.yaml` remains unchanged by ADR-0339.
+DOSSIER-CAPABILITY-003: manifest capability entry `marketplace/capabilities/escrow-reserve.yaml` remains unchanged by ADR-0339.
+DOSSIER-CAPABILITY-004: manifest capability entry `marketplace/capabilities/escrow-release.yaml` remains unchanged by ADR-0339.
+DOSSIER-CAPABILITY-005: manifest capability entry `marketplace/capabilities/revenue-share-accrue.yaml` remains unchanged by ADR-0339.
+DOSSIER-CAPABILITY-006: manifest capability entry `marketplace/capabilities/revenue-share-clawback.yaml` remains unchanged by ADR-0339.
+DOSSIER-CAPABILITY-007: manifest capability entry `marketplace/capabilities/mediation-open.yaml` remains unchanged by ADR-0339.
+DOSSIER-CAPABILITY-008: manifest capability entry `marketplace/capabilities/category-plugins.yaml` remains unchanged by ADR-0339.
+DOSSIER-CAPABILITY-009: manifest capability entry `marketplace/capabilities/category-apps.yaml` remains unchanged by ADR-0339.
+DOSSIER-CAPABILITY-010: manifest capability entry `marketplace/capabilities/category-workflows.yaml` remains unchanged by ADR-0339.
 
 ## 3. ADR-0339 Doctrine Binding
 ADR0339-001: Purpose binding: collapse 385 per-service from-scratch module directories into roughly 50 shared OpenTofu primitives plus thin wrappers.
@@ -275,9 +275,9 @@ LEADER-018: `marketplace` leader-scale posture keeps primitive selection explici
 
 ## 12. API And Contract Documentation Impact
 API-001: `marketplace` does not change REST, event, or proto payloads in this document-stage wave.
-API-002: OpenAPI 3.2.0 references for `marketplace` remain: OpenAPI 3.2.0: microservices/marketplace/contracts/openapi-v1.yaml, microservices/marketplace/contracts/listing-plugins-v1.yaml, microservices/marketplace/contracts/listing-apps-v1.yaml plus 4 more
-API-003: AsyncAPI 3.1.0 references for `marketplace` remain: AsyncAPI 3.1.0: microservices/marketplace/contracts/asyncapi-v1.yaml
-API-004: proto3 references for `marketplace` remain: proto3: microservices/marketplace/contracts/marketplace-v1.proto
+API-002: OpenAPI 3.2.0 references for `marketplace` remain: OpenAPI 3.2.0: marketplace/contracts/openapi-v1.yaml, marketplace/contracts/listing-plugins-v1.yaml, marketplace/contracts/listing-apps-v1.yaml plus 4 more
+API-003: AsyncAPI 3.1.0 references for `marketplace` remain: AsyncAPI 3.1.0: marketplace/contracts/asyncapi-v1.yaml
+API-004: proto3 references for `marketplace` remain: proto3: marketplace/contracts/marketplace-v1.proto
 API-005: If a future wrapper migration exposes deployment preview APIs, the public boundary must carry ADR-0342 date-version carriers separately from module semantic versions.
 API-006: If a future wrapper migration changes async deployment events, the AsyncAPI channel must identify module context, primitive, version_pin, tenant_class_scope, and cell_id.
 API-007: If a future wrapper migration changes proto deployment receipts, proto3 reserved tags must prevent silent field reuse.
@@ -301,7 +301,7 @@ ALT-004: Delay `marketplace` manifest declaration until implementation; rejected
 ALT-005: Allow unpinned local module paths during migration; rejected because the exact path would work locally while hiding supply-chain and reproducibility risk.
 
 ## 15. Acceptance And Verification
-VERIFY-001: Static read confirms this file exists at `microservices/marketplace/IPs/IP-ADR-0339-Shared-IaC-Modules.md`.
+VERIFY-001: Static read confirms this file exists at `marketplace/IPs/IP-ADR-0339-Shared-IaC-Modules.md`.
 VERIFY-002: Static read confirms ADR-0339 is cited by exact ID.
 VERIFY-003: Static read confirms ADR-0322 is cited by exact ID.
 VERIFY-004: Static read confirms ADR-0181 is cited by exact ID.
