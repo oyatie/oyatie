@@ -1,0 +1,42 @@
+// Warehouse yard-appointment authorization
+// Cedar v4.2 LTS fragment
+// References: ADR-0243, ADR-0244, ADR-0294, ADR-0297, ADR-0314, ADR-0315
+// SAP code: EWM
+// Benchmarks: SAP EWM Extended Warehouse Management | Oracle Fusion Warehouse Management | Workday inventory-operations counterpart | NetSuite WMS | Microsoft Dynamics 365 Warehouse Management
+
+forbid (principal, action, resource);
+
+permit (
+  principal,
+  action in [
+    Action::"yard-appointment.read",
+    Action::"yard-appointment.create",
+    Action::"yard-appointment.amend",
+    Action::"yard-appointment.approve",
+    Action::"yard-appointment.reverse",
+    Action::"yard-appointment.export"
+  ],
+  resource
+)
+when {
+  principal has tenant_id &&
+  resource has tenant_id &&
+  principal.tenant_id == resource.tenant_id &&
+  context has purpose_code &&
+  context has compliance_packs &&
+  context has marketplace_settlement_ref &&
+  context.marketplace_settlement_ref != "" &&
+  context has policy_bundle_version &&
+  context.policy_bundle_version >= "2026-05-21"
+};
+
+forbid (
+  principal,
+  action in [Action::"yard-appointment.approve", Action::"yard-appointment.reverse"],
+  resource
+)
+when {
+  principal has duties &&
+  resource has creator_principal_id &&
+  principal.id == resource.creator_principal_id
+};

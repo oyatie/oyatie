@@ -1,0 +1,71 @@
+{
+  "schema_version": "1.0",
+  "date": "2026-05-21",
+  "service": "warehouse",
+  "verdict": "second-pass-authored",
+  "sap_code": "EWM",
+  "artifact_target": 100,
+  "findings": [
+    {
+      "id": "warehouse-inbound-delivery-doc-set",
+      "status": "closed-by-second-pass",
+      "evidence": [
+        "policy/inbound-delivery-authorization.cedar",
+        "catalog/oya-warehouse-inbound-delivery-domain.yaml",
+        "runbooks/source-import-stalled.md"
+      ]
+    },
+    {
+      "id": "warehouse-outbound-delivery-doc-set",
+      "status": "closed-by-second-pass",
+      "evidence": [
+        "policy/outbound-delivery-authorization.cedar",
+        "catalog/oya-warehouse-outbound-delivery-domain.yaml",
+        "runbooks/source-import-stalled.md"
+      ]
+    },
+    {
+      "id": "warehouse-putaway-task-doc-set",
+      "status": "closed-by-second-pass",
+      "evidence": [
+        "policy/putaway-task-authorization.cedar",
+        "catalog/oya-warehouse-putaway-task-domain.yaml",
+        "runbooks/source-import-stalled.md"
+      ]
+    },
+    {
+      "id": "warehouse-picking-wave-doc-set",
+      "status": "closed-by-second-pass",
+      "evidence": [
+        "policy/picking-wave-authorization.cedar",
+        "catalog/oya-warehouse-picking-wave-domain.yaml",
+        "runbooks/source-import-stalled.md"
+      ]
+    },
+    {
+      "id": "warehouse-yard-appointment-doc-set",
+      "status": "closed-by-second-pass",
+      "evidence": [
+        "policy/yard-appointment-authorization.cedar",
+        "catalog/oya-warehouse-yard-appointment-domain.yaml",
+        "runbooks/source-import-stalled.md"
+      ]
+    },
+    {
+      "id": "warehouse-labor-assignment-doc-set",
+      "status": "closed-by-second-pass",
+      "evidence": [
+        "policy/labor-assignment-authorization.cedar",
+        "catalog/oya-warehouse-labor-assignment-domain.yaml",
+        "runbooks/source-import-stalled.md"
+      ]
+    }
+  ],
+  "benchmarks": [
+    "SAP EWM Extended Warehouse Management",
+    "Oracle Fusion Warehouse Management",
+    "Workday inventory-operations counterpart",
+    "NetSuite WMS",
+    "Microsoft Dynamics 365 Warehouse Management"
+  ]
+}
