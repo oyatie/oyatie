@@ -28,7 +28,7 @@
       "transport": "http2",
       "language_profile": "proto3",
       "contracts": [
-        "oya/notes/contracts/proto/notes.proto"
+        "app/notes/contracts/proto/notes.proto"
       ]
     }
   },
@@ -57,55 +57,55 @@
       "name": "notes-e2e-privacy-correctness",
       "target": "1.0",
       "sli": "sum(rate(oya_notes_ai_assist_call_total{result=\"success\",context_kind=\"Professional\"}[5m]))",
-      "file": "oya/notes/slos/e2e-privacy-correctness.openslo.yaml"
+      "file": "app/notes/slos/e2e-privacy-correctness.openslo.yaml"
     },
     {
       "name": "notes-full-text-search-latency",
       "target": "0.95",
       "sli": "sum(rate(oya_notes_full_text_search_duration_seconds_bucket{le=\"0.2\"}[5m]))",
-      "file": "oya/notes/slos/full-text-search-latency.openslo.yaml"
+      "file": "app/notes/slos/full-text-search-latency.openslo.yaml"
     },
     {
       "name": "notes-graph-render-latency",
       "target": "0.95",
       "sli": "sum(rate(oya_notes_graph_render_duration_seconds_bucket{vault_size_class=\"5k\",le=\"1.0\"}[5m]))",
-      "file": "oya/notes/slos/graph-render-latency.openslo.yaml"
+      "file": "app/notes/slos/graph-render-latency.openslo.yaml"
     },
     {
       "name": "notes-note-create-latency",
       "target": "0.95",
       "sli": "sum(rate(oya_notes_note_create_duration_seconds_bucket{le=\"0.03\"}[5m]))",
-      "file": "oya/notes/slos/note-create-latency.openslo.yaml"
+      "file": "app/notes/slos/note-create-latency.openslo.yaml"
     },
     {
       "name": "notes-note-open-latency",
       "target": "0.95",
       "sli": "sum(rate(oya_notes_note_open_duration_seconds_bucket{le=\"0.05\"}[5m]))",
-      "file": "oya/notes/slos/note-open-latency.openslo.yaml"
+      "file": "app/notes/slos/note-open-latency.openslo.yaml"
     },
     {
       "name": "notes-sync-data-residency-correctness",
       "target": "1.0",
       "sli": "sum(rate(oya_notes_pack_residency_check_total{result=\"ok\"}[5m]))",
-      "file": "oya/notes/slos/sync-data-residency-correctness.openslo.yaml"
+      "file": "app/notes/slos/sync-data-residency-correctness.openslo.yaml"
     },
     {
       "name": "notes-sync-latency",
       "target": "0.99",
       "sli": "sum(rate(oya_notes_sync_after_edit_duration_seconds_bucket{le=\"0.5\"}[5m]))",
-      "file": "oya/notes/slos/sync-latency.openslo.yaml"
+      "file": "app/notes/slos/sync-latency.openslo.yaml"
     },
     {
       "name": "notes-tag-search-latency",
       "target": "0.95",
       "sli": "sum(rate(oya_notes_tag_search_duration_seconds_bucket{le=\"0.1\"}[5m]))",
-      "file": "oya/notes/slos/tag-search-latency.openslo.yaml"
+      "file": "app/notes/slos/tag-search-latency.openslo.yaml"
     },
     {
       "name": "notes-web-clipper-capture-latency",
       "target": "0.95",
       "sli": "sum(rate(oya_notes_web_clipper_capture_duration_seconds_bucket{le=\"0.5\"}[5m]))",
-      "file": "oya/notes/slos/web-clipper-capture-latency.openslo.yaml"
+      "file": "app/notes/slos/web-clipper-capture-latency.openslo.yaml"
     }
   ],
   "ips": [

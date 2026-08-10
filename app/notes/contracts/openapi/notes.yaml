@@ -1,0 +1,552 @@
+openapi: 3.2.0
+info:
+  title: oya-notes
+  version: 1.0.0
+  summary: REST API for the notes µservice — note CRUD, tags, backlinks, daily-notes, templates, share-links, embeds, checklist, search, AI assist, import/export
+  description: |
+    Tenant-facing REST surface for the notes µservice. All endpoints require
+    OIDC + Cedar authorisation (per `microservices/notes/policy/tenant-scope.cedar`)
+    and are tenant-scoped via `X-Scope-OrgID` header + dual-context-tagged via
+    `X-Context-Kind` header per parallel ADR-0238.
+
+    Real-time path is via WebSocket at `wss://notes-{pack}.oyatie.com/ws/v1`
+    documented in `contracts/asyncapi/notes-events.yaml`.
+
+    Loro CRDT collab is via `wss://notes-{pack}.oyatie.com/ws/loro/v1`
+    using the binary protocol in `contracts/proto/notes.proto`.
+
+    Web-clipper REST is `/clip/v1` (subset surface; per-installation token).
+
+    Personal-tier note bodies are ciphertext-only at this REST surface;
+    client SDK decrypts locally. Professional-tier note bodies are
+    plaintext post-tenant-DEK-decrypt under Cedar scope.
+
+    Cross-cutting authentication: OIDC bearer in `Authorization: Bearer <jwt>`.
+    The JWT carries the principal's tenant_id + user_id + active_context claims.
+    The X-Scope-OrgID + X-Context-Kind headers MUST match the JWT claims;
+    mismatch returns 401.
+
+  contact:
+    name: axis-notes
+    url: https://oyatie.com/teams/axis-notes
+  license:
+    name: Internal
+
+servers:
+  - url: https://notes-{pack}.oyatie.com/api/v1
+    description: Per-pack endpoint
+    variables:
+      pack:
+        enum: [kr, eu, us, us-hc, jp, sg, au, in, br, ae, ksa]
+        default: kr
+
+components:
+  x-oyatie-sharding-automation-event-surface:
+    microservice: notes
+    wave: 15-ZF-13
+    artifact_type: contracts
+    scope: OpenAPI components metadata for the sharding_automation event surface.
+    wire_shape: Extension-only annotation; no paths, operations, schemas, requestBodies, responses, headers, securitySchemes, or examples are added.
+    doctrine_refs:
+      ADR-0346:
+        purpose: >-
+          Establish that ./bin/oya verify --ci-required is the canonical local pre-push verifier and MUST locally mirror the full CI matrix and MUST block on exit-0 of EACH step before returning success to the caller.
+        enforced_by:
+          - oya-governance-oya-verify-ci-mirror-coverage
+          - oya-governance-oya-verify-ci-step-exit-semantics
+          - oya-governance-oya-verify-skip-flag-allowlist
+          - oya-governance-oya-submit-calls-verify
+          - oya-governance-oya-verify-exit-code-contract
+      ADR-0347:
+        purpose: >-
+          Declare that every oya-governance-* CI lane prefix in the Oyatie corpus RENAMES to oya-governance-* in a single bulk-rename pull request.
+        enforced_by:
+          - oya-governance-no-foundry-fitness-residue
+          - oya-governance-lane-prefix-vocabulary
+          - oya-governance-rename-inventory-presence
+      ADR-0348:
+        purpose: >-
+          Declare that cellular topology MUST support three control-plane-driven automation modes: AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING.
+        enforced_by:
+          - oya-governance-sharding-automation-coverage
+          - oya-governance-autosharding-manual-mode-refusal
+          - oya-governance-auto-rebalance-residency-honored
+          - oya-governance-dynamic-sharding-threshold-coverage
+          - oya-governance-audit-chain-emit-on-automation-events
+          - oya-governance-tenant-migration-reversibility
+        event_surface:
+          autosharding: tenant_to_cell_shard_placement is computed by the control plane automatically.
+          auto_rebalance: tenant migration honors residency and compliance pack constraints and is observable, reversible, and audit-chain-emit per ADR-0263.
+          dynamic_sharding: HOT-SPLIT and COLD-MERGE shard-count operations are atomic and audit-emit.
+          manifest_block: sharding_automation declares autosharding, auto_rebalance, and dynamic_sharding sub-blocks.
+      ADR-0349:
+        purpose: >-
+          Declare Jenkins (LTS) and ArgoCD as the two canonical self-hostable CI/CD substrates for the Oyatie corpus.
+        enforced_by:
+          - oya-governance-jenkins-github-actions-parity
+          - oya-governance-argocd-application-cosign-verified
+          - oya-governance-argocd-tenant-namespace-isolation
+          - oya-governance-jenkins-jcasc-only
+          - oya-governance-deploy-audit-chain-emit
+    consumer_guidance:
+      generators: Ignore this x-extension for SDK and server wire generation.
+      governance: Use this x-extension as doctrine metadata for sharding_automation event-surface review only.
+  securitySchemes:
+    OIDC:
+      type: openIdConnect
+      openIdConnectUrl: https://auth.oyatie.com/.well-known/openid-configuration
+    ClipperInstallationToken:
+      type: apiKey
+      in: header
+      name: X-Clipper-Installation-Token
+      description: Per-installation token bound at extension install; rotation 90d
+    ShareLinkPassphrase:
+      type: apiKey
+      in: header
+      name: X-Share-Passphrase
+      description: PBKDF2-SHA256 600k-iter hash of passphrase
+
+  parameters:
+    XScopeOrgID:
+      in: header
+      name: X-Scope-OrgID
+      required: true
+      schema: {type: string, pattern: '^tenant:[a-f0-9]{16}$'}
+    XContextKind:
+      in: header
+      name: X-Context-Kind
+      required: true
+      schema:
+        type: string
+        enum: [Personal, Professional]
+      description: Dual-context invariant per parallel ADR-0238
+    NoteId:
+      in: path
+      name: note_id
+      required: true
+      schema: {type: string, format: ulid}
+    TagId:
+      in: path
+      name: tag_id
+      required: true
+      schema: {type: string, format: ulid}
+    NotebookId:
+      in: path
+      name: notebook_id
+      required: true
+      schema: {type: string, format: ulid}
+    ShareLinkToken:
+      in: path
+      name: share_token
+      required: true
+      schema: {type: string, format: byte}
+    Cursor:
+      in: query
+      name: cursor
+      schema: {type: string}
+    Limit:
+      in: query
+      name: limit
+      schema: {type: integer, minimum: 1, maximum: 200, default: 50}
+
+  schemas:
+    ContextKind:
+      type: string
+      enum: [Personal, Professional]
+    Note:
+      type: object
+      required: [note_id, tenant_id, context_kind, title, created_at]
+      properties:
+        note_id: {type: string, format: ulid}
+        tenant_id: {type: string}
+        user_id: {type: string, description: owner / author}
+        context_kind: {$ref: '#/components/schemas/ContextKind'}
+        title: {type: string, maxLength: 200, description: For Personal returns ciphertext blob (Base64); for Professional returns plaintext post-Cedar}
+        body: {type: string, description: Markdown body — Personal returns ciphertext; Professional returns plaintext post-Cedar}
+        body_ciphertext: {type: string, format: byte, nullable: true}
+        frontmatter:
+          type: object
+          additionalProperties: true
+          description: YAML-frontmatter (parsed)
+        tag_refs:
+          type: array
+          items: {type: string, format: ulid}
+        notebook_ref: {type: string, format: ulid, nullable: true}
+        attachment_refs:
+          type: array
+          items: {type: string, description: drive blob_ref}
+        backlinks_to:
+          type: array
+          items: {type: string, format: ulid}
+        version: {type: integer, minimum: 1}
+        content_hash: {type: string, description: sha256 of JSON-Canonical encoding}
+        created_at: {type: string, format: date-time}
+        edited_at: {type: string, format: date-time}
+        retention_policy_id: {type: string, nullable: true}
+        is_e2e: {type: boolean, description: true for Personal-tier; tenant-admin-overridable for Professional}
+        data_class: {type: string, enum: [BEHAVIORAL_TENANT_PRODUCT, PII_IDENTIFYING, PHI, PERSONAL]}
+
+    NoteCreate:
+      type: object
+      required: [title, context_kind]
+      properties:
+        title: {type: string, maxLength: 200}
+        body: {type: string}
+        body_ciphertext: {type: string, format: byte, description: REQUIRED for Personal-tier; body MUST be omitted}
+        context_kind: {$ref: '#/components/schemas/ContextKind'}
+        notebook_ref: {type: string, format: ulid, nullable: true}
+        tag_refs:
+          type: array
+          items: {type: string, format: ulid}
+
+    NotePatch:
+      type: object
+      properties:
+        title: {type: string, maxLength: 200}
+        body: {type: string}
+        body_ciphertext: {type: string, format: byte}
+        tag_refs:
+          type: array
+          items: {type: string, format: ulid}
+        version: {type: integer, description: required for optimistic concurrency}
+
+    Tag:
+      type: object
+      required: [tag_id, tenant_id, name]
+      properties:
+        tag_id: {type: string, format: ulid}
+        tenant_id: {type: string}
+        name: {type: string, maxLength: 80}
+        color: {type: string, nullable: true}
+        parent_tag_id: {type: string, format: ulid, nullable: true}
+        usage_count: {type: integer}
+
+    Notebook:
+      type: object
+      required: [notebook_id, tenant_id, name]
+      properties:
+        notebook_id: {type: string, format: ulid}
+        tenant_id: {type: string}
+        name: {type: string, maxLength: 80}
+        context_kind: {$ref: '#/components/schemas/ContextKind'}
+        member_count: {type: integer}
+        retention_policy_id: {type: string, nullable: true}
+
+    Backlink:
+      type: object
+      required: [from_note_id, to_note_id, kind]
+      properties:
+        from_note_id: {type: string, format: ulid}
+        to_note_id: {type: string, format: ulid}
+        kind: {type: string, enum: [explicit, tag, embed]}
+        resolved_at: {type: string, format: date-time}
+
+    GraphSnapshot:
+      type: object
+      required: [snapshot_id, nodes, edges]
+      properties:
+        snapshot_id: {type: string, format: ulid}
+        nodes:
+          type: array
+          items:
+            type: object
+            properties:
+              id: {type: string, format: ulid}
+              title: {type: string}
+              tag_count: {type: integer}
+              size_class: {type: integer, minimum: 1, maximum: 5}
+        edges:
+          type: array
+          items:
+            type: object
+            properties:
+              from: {type: string, format: ulid}
+              to: {type: string, format: ulid}
+              kind: {type: string, enum: [explicit, tag, embed]}
+        stats:
+          type: object
+          properties:
+            node_count: {type: integer}
+            edge_count: {type: integer}
+
+    DailyNote:
+      type: object
+      required: [date, note_id]
+      properties:
+        date: {type: string, format: date}
+        note_id: {type: string, format: ulid}
+        auto_created: {type: boolean}
+
+    Template:
+      type: object
+      required: [template_id, name, body_template]
+      properties:
+        template_id: {type: string, format: ulid}
+        name: {type: string, maxLength: 80}
+        body_template: {type: string, description: 'Markdown with {{placeholders}}'}
+        frontmatter_defaults: {type: object, additionalProperties: true}
+
+    ShareLink:
+      type: object
+      required: [share_token, note_id, scope, ttl_remaining]
+      properties:
+        share_token: {type: string, format: byte}
+        note_id: {type: string, format: ulid}
+        scope: {type: string, enum: [ReadOnly]}
+        passphrase_required: {type: boolean}
+        ttl_remaining: {type: integer, description: seconds}
+        created_at: {type: string, format: date-time}
+        expires_at: {type: string, format: date-time}
+
+    ClipSubmit:
+      type: object
+      required: [url, title, snippet]
+      properties:
+        url: {type: string, format: uri}
+        title: {type: string, maxLength: 500}
+        snippet: {type: string, maxLength: 5000}
+        full_html: {type: string, format: byte, nullable: true}
+        captured_at: {type: string, format: date-time}
+
+    AssistRequest:
+      type: object
+      required: [note_id, capability]
+      properties:
+        note_id: {type: string, format: ulid}
+        capability: {type: string, enum: [summarize, tag_suggest, link_suggest]}
+
+    AssistResult:
+      type: object
+      required: [capability, result]
+      properties:
+        capability: {type: string, enum: [summarize, tag_suggest, link_suggest]}
+        result:
+          oneOf:
+            - {type: object, description: summary result (see capabilities/T1-assist.yaml)}
+            - {type: array, items: {type: string}, description: tag suggestions}
+            - {type: array, items: {type: object}, description: link suggestions}
+        model_version: {type: string}
+        evidence_topic_event_id: {type: string, format: ulid}
+
+    ImportJob:
+      type: object
+      required: [job_id, source_format, status]
+      properties:
+        job_id: {type: string, format: ulid}
+        source_format: {type: string, enum: [obsidian, enex, apple_notes, onenote, notion, bear]}
+        status: {type: string, enum: [pending, running, paused, resumed, completed, failed]}
+        notes_imported: {type: integer}
+        notes_failed: {type: integer}
+        checkpoint: {type: string, nullable: true}
+
+    ExportJob:
+      type: object
+      required: [job_id, status]
+      properties:
+        job_id: {type: string, format: ulid}
+        format: {type: string, enum: [markdown_canonical_bundle, pdf, json_canonical]}
+        status: {type: string, enum: [pending, running, completed, failed]}
+        download_url: {type: string, format: uri, nullable: true}
+
+    Error:
+      type: object
+      required: [code, message]
+      properties:
+        code: {type: string}
+        message: {type: string}
+        details: {type: object, additionalProperties: true}
+
+security:
+  - OIDC: []
+
+paths:
+  # =========================================================================
+  # Notes CRUD
+  # =========================================================================
+  /notes:
+    parameters: [{$ref: '#/components/parameters/XScopeOrgID'}, {$ref: '#/components/parameters/XContextKind'}]
+    get:
+      operationId: listNotes
+      summary: List notes
+      parameters: [{$ref: '#/components/parameters/Cursor'}, {$ref: '#/components/parameters/Limit'}]
+      responses:
+        '200':
+          description: page of notes
+          content: {application/json: {schema: {type: object, properties: {items: {type: array, items: {$ref: '#/components/schemas/Note'}}, next_cursor: {type: string, nullable: true}}}}}
+        '401': {description: unauthorized, content: {application/json: {schema: {$ref: '#/components/schemas/Error'}}}}
+        '403': {description: forbidden, content: {application/json: {schema: {$ref: '#/components/schemas/Error'}}}}
+    post:
+      operationId: createNote
+      summary: Create a note
+      requestBody:
+        required: true
+        content: {application/json: {schema: {$ref: '#/components/schemas/NoteCreate'}}}
+      responses:
+        '201': {description: created, content: {application/json: {schema: {$ref: '#/components/schemas/Note'}}}}
+        '422': {description: validation error, content: {application/json: {schema: {$ref: '#/components/schemas/Error'}}}}
+
+  /notes/{note_id}:
+    parameters: [{$ref: '#/components/parameters/XScopeOrgID'}, {$ref: '#/components/parameters/XContextKind'}, {$ref: '#/components/parameters/NoteId'}]
+    get:
+      operationId: getNote
+      summary: Read a note
+      responses:
+        '200': {description: ok, content: {application/json: {schema: {$ref: '#/components/schemas/Note'}}}}
+        '404': {description: not found, content: {application/json: {schema: {$ref: '#/components/schemas/Error'}}}}
+    patch:
+      operationId: editNote
+      summary: Edit a note (optimistic concurrency via `version`)
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/NotePatch'}}}}
+      responses:
+        '200': {description: ok, content: {application/json: {schema: {$ref: '#/components/schemas/Note'}}}}
+        '409': {description: concurrent edit, content: {application/json: {schema: {$ref: '#/components/schemas/Error'}}}}
+    delete:
+      operationId: deleteNote
+      summary: Delete a note
+      responses:
+        '204': {description: deleted}
+
+  /notes/{note_id}/versions:
+    parameters: [{$ref: '#/components/parameters/XScopeOrgID'}, {$ref: '#/components/parameters/XContextKind'}, {$ref: '#/components/parameters/NoteId'}]
+    get:
+      operationId: listNoteVersions
+      summary: List version history
+      responses:
+        '200': {description: ok, content: {application/json: {schema: {type: array, items: {type: object}}}}}
+  /notes/{note_id}/versions/{version_id}/restore:
+    parameters: [{$ref: '#/components/parameters/XScopeOrgID'}, {$ref: '#/components/parameters/XContextKind'}, {$ref: '#/components/parameters/NoteId'}, {in: path, name: version_id, required: true, schema: {type: string, format: ulid}}]
+    post:
+      operationId: restoreNoteVersion
+      summary: Restore note to a prior version
+      responses:
+        '200': {description: ok, content: {application/json: {schema: {$ref: '#/components/schemas/Note'}}}}
+
+  # =========================================================================
+  # Tags
+  # =========================================================================
+  /tags:
+    parameters: [{$ref: '#/components/parameters/XScopeOrgID'}, {$ref: '#/components/parameters/XContextKind'}]
+    get:
+      operationId: listTags
+      responses: {'200': {description: ok, content: {application/json: {schema: {type: array, items: {$ref: '#/components/schemas/Tag'}}}}}}
+    post:
+      operationId: createTag
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/Tag'}}}}
+      responses: {'201': {description: created, content: {application/json: {schema: {$ref: '#/components/schemas/Tag'}}}}}
+  /tags/{tag_id}:
+    parameters: [{$ref: '#/components/parameters/XScopeOrgID'}, {$ref: '#/components/parameters/XContextKind'}, {$ref: '#/components/parameters/TagId'}]
+    patch:
+      operationId: renameTag
+      requestBody: {required: true, content: {application/json: {schema: {type: object, properties: {name: {type: string}}}}}}
+      responses: {'200': {description: ok}}
+    delete:
+      operationId: deleteTag
+      responses: {'204': {description: deleted}}
+  /tag-graph:
+    parameters: [{$ref: '#/components/parameters/XScopeOrgID'}, {$ref: '#/components/parameters/XContextKind'}]
+    get:
+      operationId: getTagGraph
+      responses: {'200': {description: tag adjacency, content: {application/json: {schema: {type: object}}}}}
+
+  # =========================================================================
+  # Backlinks + graph view
+  # =========================================================================
+  /notes/{note_id}/backlinks:
+    parameters: [{$ref: '#/components/parameters/XScopeOrgID'}, {$ref: '#/components/parameters/XContextKind'}, {$ref: '#/components/parameters/NoteId'}]
+    get:
+      operationId: getBacklinks
+      responses: {'200': {description: ok, content: {application/json: {schema: {type: array, items: {$ref: '#/components/schemas/Backlink'}}}}}}
+  /graph:
+    parameters: [{$ref: '#/components/parameters/XScopeOrgID'}, {$ref: '#/components/parameters/XContextKind'}]
+    get:
+      operationId: getGraphSnapshot
+      summary: Get force-directed graph data (Personal-tier client-side assembled instead)
+      responses: {'200': {description: ok, content: {application/json: {schema: {$ref: '#/components/schemas/GraphSnapshot'}}}}}
+
+  # =========================================================================
+  # Daily notes + templates
+  # =========================================================================
+  /daily/{date}:
+    parameters: [{$ref: '#/components/parameters/XScopeOrgID'}, {$ref: '#/components/parameters/XContextKind'}, {in: path, name: date, required: true, schema: {type: string, format: date}}]
+    get:
+      operationId: getDailyNote
+      summary: Get or auto-create daily-note (idempotent)
+      responses: {'200': {description: ok, content: {application/json: {schema: {$ref: '#/components/schemas/DailyNote'}}}}}
+
+  /templates:
+    parameters: [{$ref: '#/components/parameters/XScopeOrgID'}, {$ref: '#/components/parameters/XContextKind'}]
+    get: {operationId: listTemplates, responses: {'200': {description: ok, content: {application/json: {schema: {type: array, items: {$ref: '#/components/schemas/Template'}}}}}}}
+
+  # =========================================================================
+  # Search (Professional-tier server-side; Personal-tier refused with 403 — use client-side SDK)
+  # =========================================================================
+  /search:
+    parameters: [{$ref: '#/components/parameters/XScopeOrgID'}, {$ref: '#/components/parameters/XContextKind'}]
+    get:
+      operationId: searchNotes
+      parameters:
+        - {in: query, name: q, required: true, schema: {type: string}}
+        - {in: query, name: tag_facet, schema: {type: array, items: {type: string}}}
+      responses:
+        '200': {description: ok, content: {application/json: {schema: {type: object, properties: {results: {type: array, items: {$ref: '#/components/schemas/Note'}}}}}}}
+        '403': {description: Personal-tier server-side search refused; use client-side SDK, content: {application/json: {schema: {$ref: '#/components/schemas/Error'}}}}
+
+  # =========================================================================
+  # Share links + embed
+  # =========================================================================
+  /notes/{note_id}/share:
+    parameters: [{$ref: '#/components/parameters/XScopeOrgID'}, {$ref: '#/components/parameters/XContextKind'}, {$ref: '#/components/parameters/NoteId'}]
+    post:
+      operationId: createShareLink
+      requestBody: {required: true, content: {application/json: {schema: {type: object, properties: {passphrase: {type: string, nullable: true}, ttl_seconds: {type: integer, maximum: 31536000}}}}}}
+      responses: {'201': {description: ok, content: {application/json: {schema: {$ref: '#/components/schemas/ShareLink'}}}}}
+  /shared/{share_token}:
+    parameters: [{$ref: '#/components/parameters/ShareLinkToken'}]
+    get:
+      security: [{ShareLinkPassphrase: []}]
+      operationId: getSharedNote
+      responses: {'200': {description: ok, content: {application/json: {schema: {$ref: '#/components/schemas/Note'}}}}}
+
+  # =========================================================================
+  # AI assist (Professional-tier only; refused on Personal per ADR-NOTES-0005)
+  # =========================================================================
+  /assist:
+    parameters: [{$ref: '#/components/parameters/XScopeOrgID'}, {$ref: '#/components/parameters/XContextKind'}]
+    post:
+      operationId: invokeAssist
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/AssistRequest'}}}}
+      responses:
+        '200': {description: ok, content: {application/json: {schema: {$ref: '#/components/schemas/AssistResult'}}}}
+        '403': {description: refused (Personal-tier or tenant-disabled), content: {application/json: {schema: {$ref: '#/components/schemas/Error'}}}}
+
+  # =========================================================================
+  # Import / Export
+  # =========================================================================
+  /import:
+    parameters: [{$ref: '#/components/parameters/XScopeOrgID'}, {$ref: '#/components/parameters/XContextKind'}]
+    post:
+      operationId: startImport
+      requestBody: {required: true, content: {multipart/form-data: {schema: {type: object, properties: {source_format: {type: string, enum: [obsidian, enex, apple_notes, onenote, notion, bear]}, file: {type: string, format: binary}}}}}}
+      responses: {'202': {description: started, content: {application/json: {schema: {$ref: '#/components/schemas/ImportJob'}}}}}
+  /import/{job_id}:
+    parameters: [{$ref: '#/components/parameters/XScopeOrgID'}, {in: path, name: job_id, required: true, schema: {type: string, format: ulid}}]
+    get: {operationId: getImportJob, responses: {'200': {description: ok, content: {application/json: {schema: {$ref: '#/components/schemas/ImportJob'}}}}}}
+
+  /export:
+    parameters: [{$ref: '#/components/parameters/XScopeOrgID'}, {$ref: '#/components/parameters/XContextKind'}]
+    post:
+      operationId: startExport
+      requestBody: {required: true, content: {application/json: {schema: {type: object, properties: {format: {type: string, enum: [markdown_canonical_bundle, pdf, json_canonical]}}}}}}
+      responses: {'202': {description: started, content: {application/json: {schema: {$ref: '#/components/schemas/ExportJob'}}}}}
+
+# =========================================================================
+# Web-clipper subpath (sub-API)
+# =========================================================================
+  /clip/v1/submit:
+    post:
+      security: [{ClipperInstallationToken: []}]
+      operationId: submitClip
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/ClipSubmit'}}}}
+      responses:
+        '201': {description: ok, content: {application/json: {schema: {$ref: '#/components/schemas/Note'}}}}
+        '401': {description: invalid clipper token, content: {application/json: {schema: {$ref: '#/components/schemas/Error'}}}}

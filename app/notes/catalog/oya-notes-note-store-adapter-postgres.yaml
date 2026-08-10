@@ -1,0 +1,25 @@
+# Canonical-base: specs/catalog/canonical-crate-record-schema.json (SWEEP-I Slice 6 per ADR-0064)
+name: oya-notes-note-store-adapter-postgres
+role: adapter
+context: notes
+plane: data
+slo: hero-product
+contracts_consumed: []
+contracts_exposed: []
+regulatory_packs_consumed: [oya-pack-kr, oya-pack-eu, oya-pack-us, oya-pack-us-healthcare, oya-pack-jp, oya-pack-sg, oya-pack-au, oya-pack-in, oya-pack-br, oya-pack-ae, oya-pack-ksa]
+lifecycle: {state: incubating, preview_since: 2026-05-17}
+traceability:
+  github_issue: "oya-governance-pipeline://scaffold-pr-microservice-flat-layout-buildout-2026-05-17"
+  source_adrs: [ADR-0056, ADR-0105, ADR-0135, ADR-0131, ADR-NOTES-0001, ADR-NOTES-0002]
+allowed_dependency_edges: [kernel, domain, usecase]
+data_classes_owned: [INTERNAL_ONLY, BEHAVIORAL_TENANT_PRODUCT, PII_IDENTIFYING, PHI, AUDIT, SECRET]
+operational_classes_owned: [AUDIT, SECRET]
+autonomy_tier_required: T2
+backend: postgres  # per ADR-0105 Amendment 3 *-adapter-<backend>
+implements:
+  - NoteRepository (from -kernel)
+storage_invariants:
+  - per-tenant RLS via Postgres row-security
+  - context_kind NOT NULL with CHECK constraint
+  - partition key (tenant_id, user_id, year-month) for Personal; (tenant_id, notebook_id, year-month) for Professional
+  - Personal-tier body column stores ciphertext only; server-side decrypt path absent

@@ -1,0 +1,153 @@
+# Canonical-base: specs/capabilities/canonical-tier-schema.json + eu-ai-act-risk-class-registry.json (SWEEP-I Slice 5 per ADR-0064)
+id: cap:notes:t2-auto:v1
+name: auto-organize-vault
+namespace: notes
+display_name: Auto-organize vault (T2)
+description: |
+  T2 capability — autonomous reorganisation suggestions for the user's vault.
+  Surfaces tag-rename / tag-merge / notebook-restructure / dead-link-cleanup
+  candidates. ALL changes require explicit user "review & apply" — no
+  autonomous mutation.
+  Refused STRUCTURALLY on Personal-tier (E2E) per ADR-NOTES-0005 + DCI-08.
+  DISABLED at minimum-shippable-tier; tenant-admin opt-in to enable in future.
+
+owner_team: axis-notes + axis-foundry-runtime + council-privacy
+maturity: experimental
+created_at: 2026-05-17
+related_adrs: [ADR-0022, ADR-0135, ADR-0131, ADR-0133, ADR-NOTES-0001, ADR-NOTES-0005]
+related_artifacts:
+  - microservices/notes/PRD.md (FR-18; FR-21)
+  - microservices/notes/policy/e2e-personal-tier-default.md
+  - microservices/notes/runbooks/ai-classifier-rollback-e2e-respect.md
+
+autonomy_tier: T2
+# T2 = autonomous suggestion (no autonomous mutation); falls under GDPR Art. 22
+# significant-effects caveat → human-in-loop "review and apply" required.
+
+enabled_at_mvp: false
+# DISABLED at minimum-shippable-tier. To enable post-minimum-shippable-tier requires:
+#   - tenant-admin explicit opt-in;
+#   - per-user explicit opt-in;
+#   - conformity assessment per regional AI-risk if pack-eu;
+#   - human-in-loop "review and apply" UX in production.
+
+inputs:
+  - name: tenant_id
+    type: string
+    required: true
+  - name: invoking_user_ref
+    type: string
+    required: true
+  - name: scope
+    type: enum
+    values: [my_vault, notebook]
+    required: true
+  - name: notebook_ref
+    type: string
+    format: ulid
+    required: false
+  - name: context_kind
+    type: enum
+    values: [Personal, Professional]
+    required: true
+
+outputs:
+  - name: suggestion_bundle
+    type: object
+    properties:
+      tag_renames:
+        type: array
+        items:
+          type: object
+          properties:
+            source_tag_id: {type: string, format: ulid}
+            target_name: {type: string}
+            confidence: {type: number}
+            reason: {type: string}
+      tag_merges:
+        type: array
+        items:
+          type: object
+          properties:
+            source_tag_ids: {type: array, items: {type: string, format: ulid}}
+            target_name: {type: string}
+            confidence: {type: number}
+      notebook_restructures:
+        type: array
+        items:
+          type: object
+          properties:
+            note_ids: {type: array, items: {type: string, format: ulid}}
+            target_notebook_id: {type: string, format: ulid}
+            confidence: {type: number}
+            reason: {type: string}
+      dead_link_cleanups:
+        type: array
+        items:
+          type: object
+          properties:
+            from_note_id: {type: string, format: ulid}
+            to_dangling_title: {type: string}
+            suggested_action: {type: string, enum: [unlink, create_target, ignore]}
+
+data_classes_touched:
+  - BEHAVIORAL_TENANT_PRODUCT
+  - PII_IDENTIFYING
+
+context_kind_constraint:
+  Personal: REFUSED server-side per ADR-NOTES-0005 + DCI-08; client SDK MAY run on-device if feature-built.
+  Professional: server-side via tenant-DEK; tenant-admin explicit opt-in + per-user explicit opt-in; regional AI-risk conformity assessment for pack-eu.
+
+regulatory_packs_consumed: [pack-kr, pack-eu, pack-us, pack-us-healthcare, pack-jp, pack-sg, pack-au, pack-in, pack-br, pack-ae, pack-ksa]
+
+pack_overrides:
+  pack-eu:
+    risk_classification: limited_risk_with_significant_effects
+    auto_decision_review_caveat: human-in-loop "review and apply" UX MANDATORY; no autonomous mutation
+    transparency_obligation: per active pack transparency + Art. 13 + Art. 27 conformity assessment if proposed as high-risk
+  pack-us-healthcare:
+    DISABLED  # T2 on PHI requires separate BAA + explicit opt-in beyond minimum-shippable-tier
+  pack-kr:
+    kr_pipa_art28_consent: tenant-admin + per-user opt-in required + KR PIPA Art. 22-2 PIPO sign-off
+
+evidence_topic: oya.notes.capability.t2_auto.evidence
+
+cost_profile:
+  type: scheduled-cohort
+  estimated_cost_usd_per_invocation: 0.15
+  cost_drivers:
+    - LLM inference (medium-large model)
+    - Vector embedding over full vault
+    - Per-tenant cardinality
+
+cedar_policy_fragments:
+  - microservices/notes/policy/tenant-scope.cedar
+
+eval_set:
+  reference_inputs_path: microservices/notes/capabilities/eval/t2-auto-reference.jsonl
+  pass_threshold: 0.88
+  eval_metric: human-acceptance-rate on suggestion-bundle (target ≥ 80 % of suggestions accepted by user)
+  cadence: per-release
+  reference: bespoke per-tenant eval set with reference human-curated outcomes
+
+e2e_refusal:
+  enforced_at:
+    - type_system: AssistInvoker::invoke(ProfessionalNoteRef)
+    - cedar: forbid Action::"invoke_ai_assist" when context_kind == "Personal"
+    - ci_lane: oya-check-e2e-ai-refusal
+    - runtime_metric: oya_notes_ai_call_blocked_e2e_total
+
+human_in_loop:
+  ux_requirement: "Review and apply" pane MUST be presented before any vault mutation; per-suggestion accept/reject; full undo for 30 days post-apply
+  gdpr_art22: significant-effects → human-in-loop satisfies Art. 22 caveat
+
+opt_in:
+  tenant_admin: required (POST-minimum-shippable-tier; not exposed at minimum-shippable-tier)
+  per_user: required at first-use
+  reversal: per-user opt-out immediate; per-tenant opt-out 24h propagation
+
+sunset:
+  status: experimental — promotion to preview requires:
+    - axis-notes + council-privacy + axis-foundry-runtime joint sign-off
+    - successful EU-pack-specific conformity assessment (or scope to limited_risk)
+    - eval pass-threshold for 3 consecutive releases
