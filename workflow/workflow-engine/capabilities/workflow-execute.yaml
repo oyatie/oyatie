@@ -14,10 +14,10 @@ created_at: 2026-05-17
 related_adrs: [ADR-0035, ADR-0103, ADR-0131]
 related_specs: [/specs/microservices/workflow.json]
 related_artifacts:
-  - microservices/workflow-engine/PRD.md
-  - microservices/workflow-engine/contracts/openapi/workflow-engine.yaml
-  - microservices/workflow-engine/contracts/proto/workflow-engine.proto
-  - microservices/workflow-engine/policy/tenant-scope.cedar
+  - workflow/workflow-engine/PRD.md
+  - workflow/workflow-engine/contracts/openapi/workflow-engine.yaml
+  - workflow/workflow-engine/contracts/proto/workflow-engine.proto
+  - workflow/workflow-engine/policy/tenant-scope.cedar
 
 autonomy_tier: T3
 # T3 = side-effecting operation (run starts can dispatch external HTTP, write to Ontology, etc.)
@@ -88,8 +88,8 @@ cost_profile:
     - Audit-chain Ed25519 seal emission
 
 cedar_policy_fragments:
-  - microservices/workflow-engine/policy/tenant-scope.cedar
-  - microservices/workflow-engine/policy/ci-scope.cedar
+  - workflow/workflow-engine/policy/tenant-scope.cedar
+  - workflow/workflow-engine/policy/ci-scope.cedar
 
 eval_set:
   golden_inputs_path: microservices/workflow-engine/capabilities/eval/workflow-execute-golden.jsonl

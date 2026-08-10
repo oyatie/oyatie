@@ -25,7 +25,7 @@ pub use workflow_execution_engine_usecase::{
 pub const EXECUTION_ENGINE_API_SURFACE: &str = "workflow-engine.execution-engine.command";
 pub const EXECUTION_ENGINE_API_DECLARED_VERSION: &str = "2026-05-21";
 pub const EXECUTION_ENGINE_API_CONTRACT_REF: &str =
-    "microservices/workflow-engine/contracts/openapi/workflow-engine.yaml";
+    "workflow/workflow-engine/contracts/openapi/workflow-engine.yaml";
 pub const EXECUTION_ENGINE_START_RUN_ROUTE: &str = "/runs";
 pub const EXECUTION_ENGINE_DISPATCH_STEP_ROUTE: &str = "/runs/{run_id}/steps/{step_index}/dispatch";
 pub const EXECUTION_ENGINE_SCHEDULE_RETRY_ROUTE: &str = "/runs/{run_id}/steps/{step_index}/retry";

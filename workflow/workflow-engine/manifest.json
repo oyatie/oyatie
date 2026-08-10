@@ -77,10 +77,10 @@
   ],
   "contracts": {
     "openapi": [
-      "microservices/workflow-engine/contracts/openapi/workflow-engine.yaml"
+      "workflow/workflow-engine/contracts/openapi/workflow-engine.yaml"
     ],
     "asyncapi": [
-      "microservices/workflow-engine/contracts/asyncapi/workflow-events.yaml"
+      "workflow/workflow-engine/contracts/asyncapi/workflow-events.yaml"
     ],
     "internal_grpc": {
       "transport": "http2",
@@ -94,19 +94,19 @@
     {
       "autonomy_level": "T3",
       "name": "workflow-execute",
-      "file": "microservices/workflow-engine/capabilities/workflow-execute.yaml",
+      "file": "workflow/workflow-engine/capabilities/workflow-execute.yaml",
       "risk_class": "high"
     },
     {
       "autonomy_level": "T2",
       "name": "workflow-pause",
-      "file": "microservices/workflow-engine/capabilities/workflow-pause.yaml",
+      "file": "workflow/workflow-engine/capabilities/workflow-pause.yaml",
       "risk_class": "limited"
     },
     {
       "autonomy_level": "T2",
       "name": "workflow-replay",
-      "file": "microservices/workflow-engine/capabilities/workflow-replay.yaml",
+      "file": "workflow/workflow-engine/capabilities/workflow-replay.yaml",
       "risk_class": "limited"
     }
   ],
@@ -502,7 +502,7 @@
   "pod_runtime_tier": 0,
   "pod_runtime_tier_justification": "Workflow Engine is the tenant workflow execution substrate and includes tenant-authored workflow/custom-node execution surfaces, so ADR-0338 requires Tier 0 isolation rather than the first-party app default.",
   "pod_runtime_tier_surface_evidence": [
-    "microservices/workflow-engine/PRD.md",
+    "workflow/workflow-engine/PRD.md",
     "microservices/workflow-engine/ARCHITECTURE.md",
     "microservices/workflow-engine/IP-003-state-machine-kernel-domain.md",
     "microservices/workflow-engine/IP-004-execution-engine-kernel-domain.md"
@@ -520,10 +520,10 @@
     "deprecation_calendar": [],
     "public_surface_files": {
       "openapi": {
-        "2026-05-21": "microservices/workflow-engine/contracts/openapi/workflow-engine.yaml"
+        "2026-05-21": "workflow/workflow-engine/contracts/openapi/workflow-engine.yaml"
       },
       "asyncapi": {
-        "2026-05-21": "microservices/workflow-engine/contracts/asyncapi/workflow-events.yaml"
+        "2026-05-21": "workflow/workflow-engine/contracts/asyncapi/workflow-events.yaml"
       }
     }
   },
