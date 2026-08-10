@@ -1,0 +1,46 @@
+# Canonical-base: specs/openslo/canonical-envelope-schema.json (per ADR-0064)
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: oya-payments-refund-api-availability
+  displayName: "payments: refund-API availability 99.9%"
+  labels:
+    microservice: payments
+    bounded_context: refund
+    sli_class: availability
+    tier: substrate-hero
+    plane: data
+    owner_team: axis-payments
+    pack_scope: all
+spec:
+  service: payments
+  description: |
+    Refund-API availability. A request is "good" when the REST surface returns
+    2xx OR 4xx-from-business-rule within deadline.
+  indicator:
+    metadata:
+      name: payments-refund-api-success-ratio
+    spec:
+      ratioMetric:
+        counter: true
+        good:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: |
+                sum(rate(payments_refund_api_requests_total{status_code=~"2..|4.."}[5m]))
+        total:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: |
+                sum(rate(payments_refund_api_requests_total[5m]))
+  objectives:
+    - target: 0.999
+      displayName: "30d rolling refund-API availability ≥ 99.9%"
+  timeWindow:
+    - duration: 30d
+      isRolling: true
+  budgetingMethod: Occurrences
+  alertPolicies:
+    - alertPolicyRef: oya-canonical-burn-rate-multi-window
