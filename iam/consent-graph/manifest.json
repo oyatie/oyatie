@@ -572,7 +572,7 @@
     "microservices/consent-graph/ARCHITECTURE.md",
     "microservices/consent-graph/IP-007-revocation-kernel-worker.md",
     "microservices/consent-graph/IP-012-audit-bridge-bilateral-emitter.md",
-    "microservices/consent-graph/runbooks/audit-chain-divergence-recovery.md"
+    "iam/consent-graph/runbooks/audit-chain-divergence-recovery.md"
   ],
   "tenant_version_pinning": {
     "declared_versions": [
