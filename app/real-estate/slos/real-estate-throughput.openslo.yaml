@@ -1,0 +1,29 @@
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: real-estate-throughput
+  labels:
+    service: real-estate
+    sap_code: "RE-FX"
+spec:
+  description: "Real Estate real-estate-throughput objective; benchmarks SAP RE-FX Flexible Real Estate Management | Oracle Fusion Lease Accounting | Workday Lease Accounting | NetSuite Fixed Assets and lease-accounting counterpart | Microsoft Dynamics 365 Finance Lease Accounting"
+  service: real-estate
+  indicator:
+    metadata:
+      name: real-estate-throughput-sli
+    spec:
+      ratioMetric:
+        counter: true
+        good:
+          metricSource:
+            type: prometheus
+            spec:
+              query: "sum(rate(oya_real_estate_accepted_total[5m]))"
+        total:
+          metricSource:
+            type: prometheus
+            spec:
+              query: "sum(rate(oya_real_estate_received_total[5m]))"
+  objectives:
+    - displayName: real-estate-throughput
+      target: 0.995

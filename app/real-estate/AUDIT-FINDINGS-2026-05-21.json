@@ -1,0 +1,71 @@
+{
+  "schema_version": "1.0",
+  "date": "2026-05-21",
+  "service": "real-estate",
+  "verdict": "second-pass-authored",
+  "sap_code": "RE-FX",
+  "artifact_target": 100,
+  "findings": [
+    {
+      "id": "real-estate-lease-contract-doc-set",
+      "status": "closed-by-second-pass",
+      "evidence": [
+        "policy/lease-contract-authorization.cedar",
+        "catalog/oya-real-estate-lease-contract-domain.yaml",
+        "runbooks/source-import-stalled.md"
+      ]
+    },
+    {
+      "id": "real-estate-facility-master-doc-set",
+      "status": "closed-by-second-pass",
+      "evidence": [
+        "policy/facility-master-authorization.cedar",
+        "catalog/oya-real-estate-facility-master-domain.yaml",
+        "runbooks/source-import-stalled.md"
+      ]
+    },
+    {
+      "id": "real-estate-occupancy-allocation-doc-set",
+      "status": "closed-by-second-pass",
+      "evidence": [
+        "policy/occupancy-allocation-authorization.cedar",
+        "catalog/oya-real-estate-occupancy-allocation-domain.yaml",
+        "runbooks/source-import-stalled.md"
+      ]
+    },
+    {
+      "id": "real-estate-rent-schedule-doc-set",
+      "status": "closed-by-second-pass",
+      "evidence": [
+        "policy/rent-schedule-authorization.cedar",
+        "catalog/oya-real-estate-rent-schedule-domain.yaml",
+        "runbooks/source-import-stalled.md"
+      ]
+    },
+    {
+      "id": "real-estate-lease-accounting-event-doc-set",
+      "status": "closed-by-second-pass",
+      "evidence": [
+        "policy/lease-accounting-event-authorization.cedar",
+        "catalog/oya-real-estate-lease-accounting-event-domain.yaml",
+        "runbooks/source-import-stalled.md"
+      ]
+    },
+    {
+      "id": "real-estate-facility-service-request-doc-set",
+      "status": "closed-by-second-pass",
+      "evidence": [
+        "policy/facility-service-request-authorization.cedar",
+        "catalog/oya-real-estate-facility-service-request-domain.yaml",
+        "runbooks/source-import-stalled.md"
+      ]
+    }
+  ],
+  "benchmarks": [
+    "SAP RE-FX Flexible Real Estate Management",
+    "Oracle Fusion Lease Accounting",
+    "Workday Lease Accounting",
+    "NetSuite Fixed Assets and lease-accounting counterpart",
+    "Microsoft Dynamics 365 Finance Lease Accounting"
+  ]
+}

@@ -1,0 +1,50 @@
+microservice:
+  id: real-estate
+  cargoPackage: oya-real-estate-lease-app
+  tenantClass: contributor
+
+replicaCount: 2
+
+podRuntime:
+  runtimeClassName: runc
+
+serviceAccount:
+  name: oya-real-estate
+
+image:
+  registry: registry.oyatie.dev
+  repository: oya-real-estate
+  tag: "0.1.0"
+  # Release automation must inject a real signed image digest. Keep the
+  # pre-release default empty so local checks do not carry fake digests.
+  digest: ""
+  pullPolicy: IfNotPresent
+  cosign:
+    required: true
+    policy: ADR-0181
+
+service:
+  type: ClusterIP
+  port: 8080
+  targetPort: 8080
+
+config:
+  environment: production
+  auditChainEnabled: true
+  imagePromotionPolicy: cosign-required
+
+cedar:
+  enabled: true
+  policyConfigMapName: oya-real-estate-cedar
+
+otel:
+  enabled: true
+  endpoint: http://otel-collector.observability.svc.cluster.local:4317
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 1000m
+    memory: 512Mi

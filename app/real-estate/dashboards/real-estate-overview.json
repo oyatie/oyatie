@@ -1,0 +1,47 @@
+{
+  "title": "Real Estate overview",
+  "tags": [
+    "erp",
+    "real-estate",
+    "lease-contract",
+    "RE-FX"
+  ],
+  "timezone": "utc",
+  "schemaVersion": 39,
+  "benchmarks": [
+    "SAP RE-FX Flexible Real Estate Management",
+    "Oracle Fusion Lease Accounting",
+    "Workday Lease Accounting",
+    "NetSuite Fixed Assets and lease-accounting counterpart",
+    "Microsoft Dynamics 365 Finance Lease Accounting"
+  ],
+  "panels": [
+    {
+      "title": "lease-contract command rate",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "sum(rate(oya_real_estate_lease_contract_commands_total[5m])) by (tenant_id)"
+        }
+      ]
+    },
+    {
+      "title": "lease-contract p99 latency",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.99, sum(rate(oya_real_estate_lease_contract_latency_seconds_bucket[5m])) by (le, tenant_id))"
+        }
+      ]
+    },
+    {
+      "title": "lease-contract audit events",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "sum(rate(audit_events_total{service=\"real-estate\",bounded_context=\"lease-contract\"}[5m]))"
+        }
+      ]
+    }
+  ]
+}
