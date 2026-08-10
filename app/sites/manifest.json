@@ -50,10 +50,10 @@
   ],
   "contracts": {
     "openapi": [
-      "microservices/sites/contracts/openapi/sites.yaml"
+      "app/sites/contracts/openapi/sites.yaml"
     ],
     "asyncapi": [
-      "microservices/sites/contracts/asyncapi/sites-events.yaml"
+      "app/sites/contracts/asyncapi/sites-events.yaml"
     ],
     "internal_grpc": {
       "transport": "http2",
@@ -67,19 +67,19 @@
     {
       "tier": "T1",
       "name": "T0-suggest",
-      "file": "microservices/sites/capabilities/T0-suggest.yaml",
+      "file": "app/sites/capabilities/T0-suggest.yaml",
       "risk_class": "minimal"
     },
     {
       "tier": "T1",
       "name": "T1-assist",
-      "file": "microservices/sites/capabilities/T1-assist.yaml",
+      "file": "app/sites/capabilities/T1-assist.yaml",
       "risk_class": "minimal"
     },
     {
       "tier": "T1",
       "name": "T2-auto",
-      "file": "microservices/sites/capabilities/T2-auto.yaml",
+      "file": "app/sites/capabilities/T2-auto.yaml",
       "risk_class": "minimal"
     }
   ],
@@ -144,91 +144,91 @@
       "id": "IP-001-iac-bootstrap",
       "title": "IP-001: IaC bootstrap — Helm + Kustomize for Postgres + Valkey + Meilisearch + cert-manager + libvips-worker",
       "acceptance_status": "ga",
-      "file": "microservices/sites/IP-001-iac-bootstrap.md"
+      "file": "app/sites/IP-001-iac-bootstrap.md"
     },
     {
       "id": "IP-002-site-bc-kernel",
       "title": "IP-002: site BC — kernel + domain + usecase + api",
       "acceptance_status": "ga",
-      "file": "microservices/sites/IP-002-site-bc-kernel.md"
+      "file": "app/sites/IP-002-site-bc-kernel.md"
     },
     {
       "id": "IP-003-page-bc-kernel",
       "title": "IP-003: page BC — kernel + domain + usecase + api + adapter-postgres + rest + worker + sdk + app",
       "acceptance_status": "ga",
-      "file": "microservices/sites/IP-003-page-bc-kernel.md"
+      "file": "app/sites/IP-003-page-bc-kernel.md"
     },
     {
       "id": "IP-004-block-bc-and-loro",
       "title": "IP-004: block BC + Loro CRDT adapter",
       "acceptance_status": "ga",
-      "file": "microservices/sites/IP-004-block-bc-and-loro.md"
+      "file": "app/sites/IP-004-block-bc-and-loro.md"
     },
     {
       "id": "IP-005-theme-and-navigation",
       "title": "IP-005: theme + navigation BCs",
       "acceptance_status": "ga",
-      "file": "microservices/sites/IP-005-theme-and-navigation.md"
+      "file": "app/sites/IP-005-theme-and-navigation.md"
     },
     {
       "id": "IP-006-url-routing",
       "title": "IP-006: url-routing BC",
       "acceptance_status": "ga",
-      "file": "microservices/sites/IP-006-url-routing.md"
+      "file": "app/sites/IP-006-url-routing.md"
     },
     {
       "id": "IP-007-domain-binding-acme",
       "title": "IP-007: domain-binding BC + ACME + cert-manager adapters",
       "acceptance_status": "ga",
-      "file": "microservices/sites/IP-007-domain-binding-acme.md"
+      "file": "app/sites/IP-007-domain-binding-acme.md"
     },
     {
       "id": "IP-008-seo-and-sitemap",
       "title": "IP-008: seo BC + sitemap.xml + JSON-LD + Open Graph + Twitter Cards",
       "acceptance_status": "ga",
-      "file": "microservices/sites/IP-008-seo-and-sitemap.md"
+      "file": "app/sites/IP-008-seo-and-sitemap.md"
     },
     {
       "id": "IP-009-cms-collection",
       "title": "IP-009: cms-collection BC",
       "acceptance_status": "ga",
-      "file": "microservices/sites/IP-009-cms-collection.md"
+      "file": "app/sites/IP-009-cms-collection.md"
     },
     {
       "id": "IP-010-search-meilisearch",
       "title": "IP-010: search BC + Meilisearch adapter",
       "acceptance_status": "ga",
-      "file": "microservices/sites/IP-010-search-meilisearch.md"
+      "file": "app/sites/IP-010-search-meilisearch.md"
     },
     {
       "id": "IP-011-cdn-delivery-and-pipeline",
       "title": "IP-011: cdn-delivery BC + S3 + Cloudflare-stub + libvips + Pandoc adapters",
       "acceptance_status": "ga",
-      "file": "microservices/sites/IP-011-cdn-delivery-and-pipeline.md"
+      "file": "app/sites/IP-011-cdn-delivery-and-pipeline.md"
     },
     {
       "id": "IP-012-policy-dpia-threat-model",
       "title": "IP-012: Cedar policy + DPIA + threat-model sign-off",
       "acceptance_status": "ga",
-      "file": "microservices/sites/IP-012-policy-dpia-threat-model.md"
+      "file": "app/sites/IP-012-policy-dpia-threat-model.md"
     },
     {
       "id": "IP-013-contracts-and-capabilities",
       "title": "IP-013: OpenAPI + AsyncAPI + Proto contracts + capabilities (T0/T1/T2)",
       "acceptance_status": "ga",
-      "file": "microservices/sites/IP-013-contracts-and-capabilities.md"
+      "file": "app/sites/IP-013-contracts-and-capabilities.md"
     },
     {
       "id": "IP-014-dashboards-runbooks-slos",
       "title": "IP-014: dashboards + runbooks + OpenSLO manifests",
       "acceptance_status": "ga",
-      "file": "microservices/sites/IP-014-dashboards-runbooks-slos.md"
+      "file": "app/sites/IP-014-dashboards-runbooks-slos.md"
     },
     {
       "id": "IP-015-hg-sites-maturity-claim",
       "title": "IP-015: HG-SITES hyperscaler-maturity claim entry",
       "acceptance_status": "ga",
-      "file": "microservices/sites/IP-015-hg-sites-maturity-claim.md"
+      "file": "app/sites/IP-015-hg-sites-maturity-claim.md"
     }
   ],
   "regulatory_packs": [
@@ -465,10 +465,10 @@
   "pod_runtime_tier": 2,
   "pod_runtime_tier_justification": "Sites is a first-party site authoring, CMS, domain-binding, and publish service. Although it integrates with CDN delivery, it is not the edge data plane itself, so Tier 2 runtime with Tier-3 application cell placement is the valid ADR-0340 pair.",
   "pod_runtime_tier_surface_evidence": [
-    "microservices/sites/PRD.md",
-    "microservices/sites/capacity-model.md",
-    "microservices/sites/IP-007-domain-binding-acme.md",
-    "microservices/sites/IP-011-cdn-delivery-and-pipeline.md"
+    "app/sites/PRD.md",
+    "app/sites/capacity-model.md",
+    "app/sites/IP-007-domain-binding-acme.md",
+    "app/sites/IP-011-cdn-delivery-and-pipeline.md"
   ],
   "tenant_version_pinning": {
     "declared_versions": [
@@ -483,10 +483,10 @@
     "deprecation_calendar": [],
     "public_surface_files": {
       "openapi": {
-        "2026-05-21": "microservices/sites/contracts/openapi/sites.yaml"
+        "2026-05-21": "app/sites/contracts/openapi/sites.yaml"
       },
       "asyncapi": {
-        "2026-05-21": "microservices/sites/contracts/asyncapi/sites-events.yaml"
+        "2026-05-21": "app/sites/contracts/asyncapi/sites-events.yaml"
       }
     }
   },

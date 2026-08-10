@@ -7,7 +7,9 @@
 - **Writes:** only under `app/sites/**` on this tip.
 - **OVERRULE 3d:** migrated off shared `integ/app`. Replay tip `integ/app@232ef342c` (full dump).
 
-## Completed (this rail)
+## Completed
+
+- Hygiene deepen: retargeted `oya/sites/` + `microservices/sites/` path cites → `app/sites/` in README/manifest (forever-home authority). (this rail)
 
 - Wave-1 absorb: product tree in forever home (replayed from `integ/app`).
 
