@@ -1,7 +1,7 @@
 ---
 doc_class: Operating-Contract
 shape: null
-length_cap: 420
+length_cap: 500
 authority_tier: 2
 excludes:
 - path: /specs/root-hub-pointers.json
@@ -89,6 +89,50 @@ system / developer / user instructions
 The chain is aligned with `/specs/root-hub-pointers.json` discoverability and the markdown-retirement policy while keeping CLAUDE.md + docs/AGENTS.md authoritative until explicit PHASE-5 promotion evidence lands. A missed PHASE-5 deadline does not automatically promote the projection; the `oya-governance-authority-cohesion` lane validates pointer cohesion during reconciliation.
 
 The installed agent-runtime skill and role catalog provides universal intent→skill mapping, anti-rationalization, persona/skill/command orchestration, and role prompts. Oyatie governance (this file) OVERLAYS and WINS on conflict per Bominal-inheritance precedence (`feedback_bominal_inheritance_precedence`). The retired `tools/agent-skills/` vendor tree is intentionally absent; agents should use their installed runtime surfaces instead of repo-local duplicated copies.
+
+## Doctrine survival (binding)
+
+INV-DOC-9: doctrine that exists only in a plan file or chat is **not** survived. It MUST live here plus the owning ADR / envelopes / PORTABLE surfaces agents actually load. Cite the Amendment C operating-patterns catalog and the reflection corpus for provenance — never external brand or corpus names.
+
+### Rules carry why
+
+- **achieves:** stop blind obedience and silent drift of load-bearing MUST rules.
+- **origin:** why-less rules became cargo-cult; failures could not be challenged.
+- **rule:** every load-bearing MUST records five fields — achieves, origin, rule, ensure, overturn_when. Rules are hypotheses amended via challenge → OVERRULE → version bump; never silent drift.
+- **ensure:** reviewer audit of five-field presence on new MUST; `#anti_drift` version bump on OVERRULE.
+- **overturn_when:** a recorded challenge shows the five fields false or incomplete AND a replacement rule with five fields lands same-wave.
+
+### Anti-drift core pointers
+
+- **achieves:** single enumeration SSOT; prose never re-lists envelope contents.
+- **origin:** duplicated root/hub/freeze lists drifted from policy-as-data.
+- **rule:** every material change declares `docs_touched[]` + `docs_action`; enumerations live ONLY in [`specs/integ-branch-envelopes.json`](../specs/integ-branch-envelopes.json) — cite JSON pointers under `#anti_drift`, `#roots`, `#planes`, `#hubs.paths`, and the other keys listed at `#anti_drift.prose_must_cite_not_enumerate` (do **not** re-list contents); load-bearing doc updates land same-wave with code; unverified tips marked stale.
+- **ensure:** Claim packet fields at `#anti_drift.doc_packet_required_fields`; drift-grep via `#anti_drift.drift_grep`; Done-Definition D2 same-PR doc update.
+- **overturn_when:** `#anti_drift.anti_drift_doctrine_version` bumps with a recorded OVERRULE replacing the packet/pointer rules.
+
+### Hindsight + beads awareness (binding)
+
+- **achieves:** no freelanced work; no silent repeat of known-failed patterns.
+- **origin:** agents acted without work-item ownership or memory of prior failure.
+- **rule:** at Design, cite the owning bead work-item id (`.beads/`, `oyatie-*`) — no bead → create/elevate, don't freelance; consult hindsight (memory recall where available, else the SSOT pre-mortem/discoveries) before acting and never repeat a known-failed pattern without a recorded challenge; at Operate, retain the lesson and update bead state after any friction/fix/OVERRULE. Recalled facts are tips, not truth — re-verify stale SHAs (new HEAD → new evidence).
+- **ensure:** commit/PR cites bead id; Operate retain + bead state update on friction.
+- **overturn_when:** a first-principles challenge shows the ritual blocks delivery AND a replacement ownership+memory ritual lands with five fields.
+
+### Observation ≠ APPROVE; role separation
+
+- **achieves:** preserve merge integrity and blast-radius discipline.
+- **origin:** logs/CI green / chat observation treated as APPROVE; roles collapsed.
+- **rule:** observation (logs/CI/reviews) ≠ merge APPROVE authority; orchestrate ≠ implement ≠ babysit.
+- **ensure:** reviewer APPROVE + green `oya-ci-required` remain distinct; coordinator/worker split in this contract.
+- **overturn_when:** a recorded OVERRULE replaces the admission model with an equally fail-closed alternative.
+
+### Survival rule itself (INV-DOC-9)
+
+- **achieves:** doctrine survives across agent sessions.
+- **origin:** plan-only / chat-only law vanished when sessions reset.
+- **rule:** doctrine MUST live in this contract + owning ADR/envelopes/PORTABLE; plan/chat alone is not survived.
+- **ensure:** this section present; pointers to ADR-0711 Amendment D, `specs/integ-branch-envelopes.json#anti_drift`, and PORTABLE Amendment D.
+- **overturn_when:** PHASE-5 promotion moves the operating contract AND this survival section migrates atomically with evidence.
 
 ## RFC-2119 normative-language statement
 
@@ -401,4 +445,5 @@ The full machine-readable list is in this file's front-matter `excludes:` block.
 
 ## Sources scanned
 
-- 2026-05-10 — initial draft authored from agentic-workflow best practice (Anthropic CLAUDE.md memory + cross-tool AGENTS.md convention) + RFC-2119 + RFC-8174 + Diátaxis + openai/symphony benchmark.
+- 2026-08-10 — INV-DOC-9 doctrine survival (binding) + DOC-UPDATE same-wave co-change amendment; bead `oyatie-dxz.5` under docs-governance epic `oyatie-dxz`; Amendment C operating-patterns catalog / reflection corpus (brand-free).
+- 2026-05-10 — initial draft authored from agentic-workflow best practice + RFC-2119 + RFC-8174 + Diátaxis (historical; do not treat external product names as authority).
