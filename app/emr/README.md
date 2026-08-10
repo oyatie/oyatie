@@ -256,12 +256,12 @@ Per ADR-0131, the deprecated tree-wide `staging` + `production` refs do not appl
 
 EMR work is gated by:
 
-- ADR-0131 per-microservice flat layout (artifacts under `microservices/emr/*`).
+- ADR-0131 per-microservice flat layout (artifacts under `app/emr/*`).
 - ADR-0132 single-concern (no bundling into a "Healthcare Suite").
 - Multispectrum review v2.4.0 (architectural, security, regulatory, supply-chain facets mandatory).
 - A reviewer-agent APPROVE plus CI green is required before merge per `feedback_self_merge_via_contract_path`.
 
-The owning team (`axis-emr`) RACI-owns every artifact under `microservices/emr/`. Peer µservice changes that affect EMR's REST or gRPC surface land via cross-µservice IPs.
+The owning team (`axis-emr`) RACI-owns every artifact under `app/emr/`. Peer µservice changes that affect EMR's REST or gRPC surface land via cross-µservice IPs.
 
 ## License
 
@@ -285,7 +285,7 @@ Three angles. (1) Mobile-first portal (ADR-MS-003) — Epic's MyChart is a refin
 
 ### Q: What happens to a tenant if oyatie EMR has a critical bug that affects clinical safety?
 
-(a) Per ADR-0263 + observability, SLO burn-rate alerts catch latency / availability regressions within minutes; (b) per `microservices/emr/incident-response.md` (referenced runbook to be authored Wave-2), tenant-DPO + tenant-CISO are alerted by automated workflow; (c) per ADR-0251 §D-8 breach-notification machinery, regulator-deadline-aware notification workflow fires if patient-safety material. The Q-3 risk register entries above capture mitigations.
+(a) Per ADR-0263 + observability, SLO burn-rate alerts catch latency / availability regressions within minutes; (b) per `app/emr/incident-response.md` (referenced runbook to be authored Wave-2), tenant-DPO + tenant-CISO are alerted by automated workflow; (c) per ADR-0251 §D-8 breach-notification machinery, regulator-deadline-aware notification workflow fires if patient-safety material. The Q-3 risk register entries above capture mitigations.
 
 ### Q: Does oyatie EMR have a CE Mark / FDA 510(k) / KFDA classification?
 

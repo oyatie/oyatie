@@ -10,7 +10,7 @@ info:
     audit-chain microservice. Default-deny.
   contact:
     name: axis-emr
-    url: https://docs.oyatie.com/microservices/emr/
+    url: https://docs.oyatie.com/app/emr/
   license:
     name: Proprietary
 servers:
