@@ -6,7 +6,7 @@
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
     "spec_id": "EXE-INTEG-BRANCH-ENVELOPES",
-    "version": "1.16.2",
+    "version": "1.16.3",
     "status": "Proposed",
     "owner_team": "council-architecture",
     "created_at": "2026-08-10T00:00:00Z",
@@ -2498,6 +2498,230 @@
         "shrink_source_integ": "integ/oya"
       },
       {
+        "path": "oya/notes/",
+        "action": "reorg_now",
+        "greenfield_destination": "app/notes/",
+        "destination": "app/notes/",
+        "shape": "stub-crate dump → product rail app/notes/ (integ/notes)",
+        "redesign": "rewrite",
+        "disposition": "rewrite-into-durable-shape",
+        "rationale": "1) 106 files; stub oya-notes-domain only. 2) oya/ dump vs office notes sibling. 3) Notes product. 4) Dest app/notes/ per product rail. 5) Fit roots.notes forward_declared. 6) rewrite. 7) Forever: app/notes/.",
+        "evidence": [
+          "origin/dev oya/notes: 106 paths, rust=1 stub",
+          "roots.notes → integ/notes app/notes/**"
+        ],
+        "destination_integ": "integ/notes",
+        "land_status": "ready_for_integ_notes",
+        "land_when": "integ/notes absorb; integ/oya delete oya/notes/**",
+        "kind": "product-dump",
+        "grammar_compliant": false,
+        "judgment_status": "done",
+        "name_now": "oya/notes/",
+        "name_forever": "app/notes/",
+        "lenses_applied": "scoped",
+        "challenges": [
+          "chestertons_fence: oya/* strangler held product dumps before capability-first ADR-0562/0615 layout",
+          "essentialism_yagni: greenfield places products under app/<product>/ — not oya/",
+          "pragmatism: judgment-first batch; path drain only after judgment_status=done on integ/notes + shrink integ/oya",
+          "systems_thinking: ban opening integ/oya mass forest until batch done — leaf deletes/moves only",
+          "opportunity_cost: leaving dumps blocks oya/ vacate and invites dual-home registration"
+        ],
+        "shrink_source_integ": "integ/oya"
+      },
+      {
+        "path": "oya/slides/",
+        "action": "reorg_now",
+        "greenfield_destination": "app/slides/",
+        "destination": "app/slides/",
+        "shape": "stub-crate dump → product rail app/slides/ (integ/slides)",
+        "redesign": "rewrite",
+        "disposition": "rewrite-into-durable-shape",
+        "rationale": "1) 92 files; stub oya-slides-domain only. 2) oya/ dump vs real oya/office slide crates. 3) Slides product. 4) Dest app/slides/ per product rail. 5) Fit roots.slides forward_declared. 6) rewrite. 7) Forever: app/slides/.",
+        "evidence": [
+          "origin/dev oya/slides: 92 paths, rust=1 stub",
+          "roots.slides → integ/slides app/slides/**"
+        ],
+        "destination_integ": "integ/slides",
+        "land_status": "ready_for_integ_slides",
+        "land_when": "integ/slides absorb; integ/oya delete oya/slides/**",
+        "kind": "product-dump",
+        "grammar_compliant": false,
+        "judgment_status": "done",
+        "name_now": "oya/slides/",
+        "name_forever": "app/slides/",
+        "lenses_applied": "scoped",
+        "challenges": [
+          "chestertons_fence: oya/* strangler held product dumps before capability-first ADR-0562/0615 layout",
+          "essentialism_yagni: greenfield places products under app/<product>/ — not oya/",
+          "pragmatism: judgment-first batch; path drain only after judgment_status=done on integ/slides + shrink integ/oya",
+          "systems_thinking: ban opening integ/oya mass forest until batch done — leaf deletes/moves only",
+          "opportunity_cost: leaving dumps blocks oya/ vacate; office slide-domain crates judged separately under oya/office"
+        ],
+        "shrink_source_integ": "integ/oya"
+      },
+      {
+        "path": "oya/workplace-integration/",
+        "action": "reorg_now",
+        "greenfield_destination": "app/workplace-integration/",
+        "destination": "app/workplace-integration/",
+        "shape": "stub-crate dump → app/workplace-integration/ via integ/app",
+        "redesign": "rewrite",
+        "disposition": "rewrite-into-durable-shape",
+        "rationale": "1) 89 files; stub oya-workplace-integration-domain only. 2) oya/ catch-all surface per registry app_products_note. 3) Workplace integration product (DLP/clock/roster). 4) Dest app/workplace-integration/. 5) Fit app/<product>/. 6) rewrite. 7) Forever: app/workplace-integration/.",
+        "evidence": [
+          "origin/dev oya/workplace-integration: 89 paths, rust=1 stub",
+          "capability-registry app_products.current_dirs includes oya/workplace-integration"
+        ],
+        "destination_integ": "integ/app",
+        "land_status": "ready_for_integ_app",
+        "land_when": "integ/app absorb; Phase 2 shrink-only: integ/oya delete oya/workplace-integration/**",
+        "kind": "product-dump",
+        "grammar_compliant": false,
+        "judgment_status": "done",
+        "name_now": "oya/workplace-integration/",
+        "name_forever": "app/workplace-integration/",
+        "lenses_applied": "scoped",
+        "challenges": [
+          "chestertons_fence: oya/* strangler held product dumps before capability-first ADR-0562/0615 layout",
+          "essentialism_yagni: greenfield places products under app/<product>/ — not oya/",
+          "pragmatism: judgment-first batch; path drain only after judgment_status=done on integ/app + dest integ",
+          "systems_thinking: ban opening integ/oya mass forest until batch done — leaf deletes/moves only",
+          "opportunity_cost: leaving dumps blocks oya/ vacate and invites dual-home registration",
+          "elevate: open integ/workplace-integration product rail if multi-month; else integ/app glue absorb only (programme rule 3d composition glue)"
+        ],
+        "shrink_source_integ": "integ/oya"
+      },
+      {
+        "path": "oya/hr/",
+        "action": "reorg_now",
+        "greenfield_destination": "app/hr/",
+        "destination": "app/hr/",
+        "shape": "thin 5-crate employment stack rewrite into app/hr/",
+        "redesign": "rewrite",
+        "disposition": "rewrite-into-durable-shape",
+        "rationale": "1) 38 files; 5-crate employment stack (api/app/domain/infrastructure/inmemory-adapter). 2) Brand-prefixed oya/ nest vs ADR-0562 app product forever home. 3) Provide HR employment product. 4) Must exist at app/hr/. 5) Fit app_products registry. 6) rewrite-into-durable-shape. 7) Forever: app/hr/.",
+        "evidence": [
+          "origin/dev oya/hr: 38 paths, Cargo.toml=5, rust=21",
+          "crates: oya-hr-employment-{api,app,domain,infrastructure,storage-adapter-inmemory}",
+          "capability-registry app_products.current_dirs includes oya/hr → forever app/hr/"
+        ],
+        "destination_integ": "integ/app",
+        "land_status": "ready_for_integ_app",
+        "land_when": "integ/app rewrites oya/hr/** → app/hr/**; Phase 2 shrink-only: integ/oya delete",
+        "kind": "app-product",
+        "grammar_compliant": true,
+        "judgment_status": "done",
+        "name_now": "oya/hr/",
+        "name_forever": "app/hr/",
+        "lenses_applied": "scoped",
+        "challenges": [
+          "chestertons_fence: thin but real 5-crate stack — not a zero-crate dump; employment domain is product not iam/tenancy substrate",
+          "essentialism_yagni: one forever product home app/hr/; oya/hr brand nest must not survive",
+          "pragmatism: rewrite into app/hr/{core,ports,adapters,facade,apps}/; elevate integ/hr product rail if multi-month",
+          "systems_thinking: integ/app composition glue absorb; no integ/oya mega-drain",
+          "opportunity_cost: delaying judgment leaves frozen_unmapped membership + brand crates as permanent debt"
+        ],
+        "shrink_source_integ": "integ/oya"
+      },
+      {
+        "path": "oya/payroll/",
+        "action": "reorg_now",
+        "greenfield_destination": "app/payroll/",
+        "destination": "app/payroll/",
+        "shape": "thin 5-crate payroll-run stack rewrite into app/payroll/",
+        "redesign": "rewrite",
+        "disposition": "rewrite-into-durable-shape",
+        "rationale": "1) 39 files; 5-crate payroll-run stack (api/app/domain/infrastructure/inmemory-adapter). 2) Brand-prefixed oya/ nest vs ADR-0562 app product forever home. 3) Provide payroll-run product. 4) Must exist at app/payroll/; must not fold into billing/ (metering/tax). 5) Fit app_products registry. 6) rewrite-into-durable-shape. 7) Forever: app/payroll/.",
+        "evidence": [
+          "origin/dev oya/payroll: 39 paths, Cargo.toml=5, rust=22",
+          "crates: oya-payroll-run-{api,app,domain,infrastructure,storage-adapter-inmemory}",
+          "capability-registry app_products.current_dirs includes oya/payroll → forever app/payroll/"
+        ],
+        "destination_integ": "integ/app",
+        "land_status": "ready_for_integ_app",
+        "land_when": "integ/app rewrites oya/payroll/** → app/payroll/**; Phase 2 shrink-only: integ/oya delete",
+        "kind": "app-product",
+        "grammar_compliant": true,
+        "judgment_status": "done",
+        "name_now": "oya/payroll/",
+        "name_forever": "app/payroll/",
+        "lenses_applied": "scoped",
+        "challenges": [
+          "chestertons_fence: billing/ is metering/tax/FinOps capability — payroll product must not land there despite money adjacency",
+          "essentialism_yagni: one forever product home app/payroll/; oya/payroll brand nest must not survive",
+          "pragmatism: rewrite into app/payroll/{core,ports,adapters,facade,apps}/; elevate integ/payroll product rail if multi-month",
+          "systems_thinking: integ/app composition glue absorb; billing remains separate shared-nothing capability",
+          "opportunity_cost: parking under oya/ prolongs brand-prefix grammar debt"
+        ],
+        "shrink_source_integ": "integ/oya"
+      },
+      {
+        "path": "oya/ci-webhook-gateway/",
+        "action": "reorg_now",
+        "greenfield_destination": "ci/",
+        "destination": "ci/",
+        "shape": "thin real webhook gateway → ci/ capability faces",
+        "redesign": "rewrite",
+        "disposition": "rewrite-into-durable-shape",
+        "rationale": "1) 57 files; 5 crates (app/kernel/github/ed25519/authz adapters) + contracts/runbooks. 2) oya/ strangler vs registered ci capability. 3) CI webhook admission gateway for delivery fabric. 4) Dest ci/ per capability-registry absorbs_current_dirs. 5) Fit registered ci/. 6) rewrite into ci faces. 7) Forever: ci/.",
+        "evidence": [
+          "origin/dev oya/ci-webhook-gateway: 57 paths, Cargo.toml=5, rust=23",
+          "capability-registry ci.absorbs_current_dirs includes oya/ci-webhook-gateway",
+          "sibling judgment oya/ci-controller/ → ci/ (1.16.0)"
+        ],
+        "destination_integ": "integ/ci",
+        "land_status": "ready_for_integ_ci",
+        "land_when": "integ/ci absorb; integ/oya delete oya/ci-webhook-gateway/**",
+        "kind": "product-service",
+        "grammar_compliant": true,
+        "judgment_status": "done",
+        "name_now": "oya/ci-webhook-gateway/",
+        "name_forever": "ci/",
+        "lenses_applied": "scoped",
+        "challenges": [
+          "chestertons_fence: ci capability absorbs cloud-ci + ci-controller + ci-webhook-gateway per ADR-0615 coarse collapse",
+          "essentialism_yagni: delivery-fabric webhook gateway belongs under ci/ not oya/ brand nest",
+          "pragmatism: judgment-first batch; path drain only after judgment_status=done on integ/ci + shrink integ/oya",
+          "systems_thinking: coordinate land with oya/ci-controller/ on same integ/ci rail — disjoint crate paths",
+          "opportunity_cost: leaving under oya/ blocks ci capability strangler completion"
+        ],
+        "shrink_source_integ": "integ/oya"
+      },
+      {
+        "path": "oya/incident-management/",
+        "action": "reorg_now",
+        "greenfield_destination": "app/incident-management/",
+        "destination": "app/incident-management/",
+        "shape": "SRE incident-command product rewrite into app/incident-management/; challenge ITSM overlap",
+        "redesign": "rewrite",
+        "disposition": "rewrite-into-durable-shape",
+        "rationale": "1) 134 files; oya-incident-management-sre-incident-command-app + catalog/dpia dump. 2) Brand-prefixed oya/ nest vs ADR-0562 app product. 3) Provide PagerDuty-class SRE incident command product. 4) Must exist at app/incident-management/; crate split vs oya/itsm incident crates deferred. 5) Fit app_products registry. 6) rewrite-into-durable-shape. 7) Forever: app/incident-management/.",
+        "evidence": [
+          "origin/dev oya/incident-management: 134 paths, Cargo.toml=1, rust=11",
+          "crate: oya-incident-management-sre-incident-command-app",
+          "oya/itsm judgment (1.14.0) challenges PagerDuty-class overlap — paired product-level dest still app/incident-management/",
+          "capability-registry app_products.current_dirs includes oya/incident-management"
+        ],
+        "destination_integ": "integ/app",
+        "land_status": "ready_for_integ_app",
+        "land_when": "integ/app rewrites oya/incident-management/** → app/incident-management/**; defer crate split vs oya/itsm until both products landed; Phase 2 shrink-only: integ/oya delete",
+        "kind": "app-product",
+        "grammar_compliant": true,
+        "judgment_status": "done",
+        "name_now": "oya/incident-management/",
+        "name_forever": "app/incident-management/",
+        "lenses_applied": "scoped",
+        "challenges": [
+          "chestertons_fence: oya/itsm already judged app/itsm/ with incident-room/on-call crates — product-level split not crate-level merge",
+          "essentialism_yagni: incident-management is sibling app product per registry; must not fold silently into app/itsm/",
+          "pragmatism: rewrite product dump + sre-incident-command-app; crate decomposition blocked until paired land",
+          "systems_thinking: integ/app composition glue absorb; coordinate with integ/itsm for PagerDuty-class overlap",
+          "opportunity_cost: leaving unjudged blocks paired itsm/incident-management path drain",
+          "socratic: is incident-management ITSM? No — separate app product; overlap is crate seam not product identity"
+        ],
+        "shrink_source_integ": "integ/oya"
+      },
+      {
         "path": "oya/",
         "action": "reorg_now",
         "greenfield_destination": "<capability>/ + app/<product>/",
@@ -3854,6 +4078,159 @@
         "two_phase_note": "Per-leaf rows in first_wave + reorg_debt_freeze.rows carry shrink_source_integ; see land_status_two_phase"
       },
       {
+        "id": "W-oya-leaf-notes",
+        "path": "oya/notes/",
+        "judgment_status": "done",
+        "action": "reorg_now",
+        "redesign": "rewrite",
+        "destination_integ": "integ/notes",
+        "land_status": "ready_for_integ_notes",
+        "shrink_source_integ": "integ/oya",
+        "status": "judgment_closed_on_integ_specs_oya_batch1c",
+        "two_phase_note": "Phase 1: integ/notes absorb oya/notes/** → app/notes/**; Phase 2: integ/oya shrink-only delete"
+      },
+      {
+        "id": "W-oya-leaf-slides",
+        "path": "oya/slides/",
+        "judgment_status": "done",
+        "action": "reorg_now",
+        "redesign": "rewrite",
+        "destination_integ": "integ/slides",
+        "land_status": "ready_for_integ_slides",
+        "shrink_source_integ": "integ/oya",
+        "status": "judgment_closed_on_integ_specs_oya_batch1c",
+        "two_phase_note": "Phase 1: integ/slides absorb oya/slides/** → app/slides/**; Phase 2: integ/oya shrink-only delete"
+      },
+      {
+        "id": "W-oya-leaf-workplace-integration",
+        "path": "oya/workplace-integration/",
+        "judgment_status": "done",
+        "action": "reorg_now",
+        "redesign": "rewrite",
+        "destination_integ": "integ/app",
+        "land_status": "ready_for_integ_app",
+        "shrink_source_integ": "integ/oya",
+        "status": "judgment_closed_on_integ_specs_oya_batch1c",
+        "note": "composition glue absorb via integ/app; elevate integ/workplace-integration product rail if multi-month",
+        "two_phase_note": "Phase 1: integ/app absorb oya/workplace-integration/** → app/workplace-integration/**; Phase 2: integ/oya shrink-only delete"
+      },
+      {
+        "id": "W-oya-leaf-hr",
+        "path": "oya/hr/",
+        "judgment_status": "done",
+        "action": "reorg_now",
+        "redesign": "rewrite",
+        "destination_integ": "integ/app",
+        "land_status": "ready_for_integ_app",
+        "shrink_source_integ": "integ/oya",
+        "status": "judgment_closed_on_integ_specs_oya_batch1c",
+        "note": "thin 5-crate employment stack; composition glue via integ/app",
+        "two_phase_note": "Phase 1: integ/app absorb oya/hr/** → app/hr/**; Phase 2: integ/oya shrink-only delete"
+      },
+      {
+        "id": "W-oya-leaf-payroll",
+        "path": "oya/payroll/",
+        "judgment_status": "done",
+        "action": "reorg_now",
+        "redesign": "rewrite",
+        "destination_integ": "integ/app",
+        "land_status": "ready_for_integ_app",
+        "shrink_source_integ": "integ/oya",
+        "status": "judgment_closed_on_integ_specs_oya_batch1c",
+        "note": "thin 5-crate payroll-run stack; NOT billing/; composition glue via integ/app",
+        "two_phase_note": "Phase 1: integ/app absorb oya/payroll/** → app/payroll/**; Phase 2: integ/oya shrink-only delete"
+      },
+      {
+        "id": "W-oya-leaf-ci-webhook-gateway",
+        "path": "oya/ci-webhook-gateway/",
+        "judgment_status": "done",
+        "action": "reorg_now",
+        "redesign": "rewrite",
+        "destination_integ": "integ/ci",
+        "land_status": "ready_for_integ_ci",
+        "shrink_source_integ": "integ/oya",
+        "status": "judgment_closed_on_integ_specs_oya_batch1c",
+        "note": "ci capability absorb sibling to oya/ci-controller/",
+        "two_phase_note": "Phase 1: integ/ci absorb oya/ci-webhook-gateway/** → ci/**; Phase 2: integ/oya shrink-only delete"
+      },
+      {
+        "id": "W-oya-leaf-incident-management",
+        "path": "oya/incident-management/",
+        "judgment_status": "done",
+        "action": "reorg_now",
+        "redesign": "rewrite",
+        "destination_integ": "integ/app",
+        "land_status": "ready_for_integ_app",
+        "shrink_source_integ": "integ/oya",
+        "status": "judgment_closed_on_integ_specs_oya_batch1c",
+        "note": "SRE incident-command product; challenges ITSM overlap; crate split deferred",
+        "two_phase_note": "Phase 1: integ/app absorb oya/incident-management/** → app/incident-management/**; Phase 2: integ/oya shrink-only delete"
+      },
+      {
+        "id": "W-oya-batch1c-product-leaves",
+        "path": "oya/{notes,slides,workplace-integration,hr,payroll,ci-webhook-gateway,incident-management}/",
+        "judgment_status": "done",
+        "action": "batch",
+        "redesign": "rewrite",
+        "destination_integ": "integ/oya+dest",
+        "land_status": "ready_for_batch_path_drain",
+        "status": "judgment_closed_on_integ_specs_oya_batch1c",
+        "products": [
+          "oya/notes/",
+          "oya/slides/",
+          "oya/workplace-integration/",
+          "oya/hr/",
+          "oya/payroll/",
+          "oya/ci-webhook-gateway/",
+          "oya/incident-management/"
+        ],
+        "product_destinations": {
+          "oya/notes/": {
+            "action": "reorg_now",
+            "destination_integ": "integ/notes",
+            "shrink_source_integ": "integ/oya",
+            "land_status": "ready_for_integ_notes"
+          },
+          "oya/slides/": {
+            "action": "reorg_now",
+            "destination_integ": "integ/slides",
+            "shrink_source_integ": "integ/oya",
+            "land_status": "ready_for_integ_slides"
+          },
+          "oya/workplace-integration/": {
+            "action": "reorg_now",
+            "destination_integ": "integ/app",
+            "shrink_source_integ": "integ/oya",
+            "land_status": "ready_for_integ_app"
+          },
+          "oya/hr/": {
+            "action": "reorg_now",
+            "destination_integ": "integ/app",
+            "shrink_source_integ": "integ/oya",
+            "land_status": "ready_for_integ_app"
+          },
+          "oya/payroll/": {
+            "action": "reorg_now",
+            "destination_integ": "integ/app",
+            "shrink_source_integ": "integ/oya",
+            "land_status": "ready_for_integ_app"
+          },
+          "oya/ci-webhook-gateway/": {
+            "action": "reorg_now",
+            "destination_integ": "integ/ci",
+            "shrink_source_integ": "integ/oya",
+            "land_status": "ready_for_integ_ci"
+          },
+          "oya/incident-management/": {
+            "action": "reorg_now",
+            "destination_integ": "integ/app",
+            "shrink_source_integ": "integ/oya",
+            "land_status": "ready_for_integ_app"
+          }
+        },
+        "two_phase_note": "Per-leaf rows in first_wave + reorg_debt_freeze.rows carry shrink_source_integ; see land_status_two_phase"
+      },
+      {
         "id": "W-drain-gov-gate-apps",
         "path": "tools/oya-governance-{adapter-with-no-importer,adr-shape,banned-primitives}-app/",
         "judgment_status": "done",
@@ -3930,6 +4307,45 @@
           "forever": "app/docs/**",
           "shrink_source_integ": "integ/oya",
           "note": "product dump oya/docs/ NOT docs/ plane"
+        },
+        "oya/notes/": {
+          "destination_integ": "integ/notes",
+          "forever": "app/notes/**",
+          "shrink_source_integ": "integ/oya"
+        },
+        "oya/slides/": {
+          "destination_integ": "integ/slides",
+          "forever": "app/slides/**",
+          "shrink_source_integ": "integ/oya"
+        },
+        "oya/workplace-integration/": {
+          "destination_integ": "integ/app",
+          "forever": "app/workplace-integration/**",
+          "shrink_source_integ": "integ/oya",
+          "note": "composition glue; elevate integ/workplace-integration if multi-month"
+        },
+        "oya/hr/": {
+          "destination_integ": "integ/app",
+          "forever": "app/hr/**",
+          "shrink_source_integ": "integ/oya",
+          "note": "thin 5-crate employment stack"
+        },
+        "oya/payroll/": {
+          "destination_integ": "integ/app",
+          "forever": "app/payroll/**",
+          "shrink_source_integ": "integ/oya",
+          "note": "thin 5-crate payroll-run; NOT billing/"
+        },
+        "oya/ci-webhook-gateway/": {
+          "destination_integ": "integ/ci",
+          "forever": "ci/**",
+          "shrink_source_integ": "integ/oya"
+        },
+        "oya/incident-management/": {
+          "destination_integ": "integ/app",
+          "forever": "app/incident-management/**",
+          "shrink_source_integ": "integ/oya",
+          "note": "SRE incident-command; ITSM overlap crate split deferred"
         }
       },
       "process_kit": {
@@ -3961,7 +4377,7 @@
       "deliver.js Claim",
       "human/reviewer refuse of births under freeze prefixes without reorg-move-out bead"
     ],
-    "version": "2.1.1",
+    "version": "2.1.2",
     "evaluation_gate": {
       "required_before_path_change": true,
       "forbidden": [
@@ -4068,6 +4484,13 @@
       "oya/docs/",
       "oya/sheets/",
       "oya/ci-controller/",
+      "oya/notes/",
+      "oya/slides/",
+      "oya/workplace-integration/",
+      "oya/hr/",
+      "oya/payroll/",
+      "oya/ci-webhook-gateway/",
+      "oya/incident-management/",
       "tools/oya-governance-adapter-with-no-importer-app/",
       "tools/oya-governance-adr-shape-app/",
       "tools/oya-governance-banned-primitives-app/",
