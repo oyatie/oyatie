@@ -74,9 +74,9 @@ doc_status: published
 18. Inspect feature flags: `oya flags get oya.compliance.cross_tenant_dsar_leak_suspected.incident_hold --cell $CELL --tenant $TENANT --output yaml`.
 19. Inspect circuit breaker: `oya ops breaker status compliance-cross-tenant-dsar-leak-suspected-circuit-breaker --cell $CELL --tenant $TENANT`.
 20. Check recent deploy: `kubectl -n compliance rollout history deploy/compliance-cross-tenant-dsar-leak-suspected-worker | tail -20`.
-21. Check policy file: `test -f microservices/compliance/policy/pack-overlay-authorization.cedar || test -f microservices/compliance/policy/pack-overlay-authorization.md`.
-22. Check SLO files: `ls microservices/compliance/slos/*.openslo.yaml | sort`.
-23. Check catalog components: `find microservices/compliance/catalog -maxdepth 1 -type f | sort | rg "compliance|cross"`.
+21. Check policy file: `test -f compliance/policy/pack-overlay-authorization.cedar`.
+22. Check SLO files: `ls compliance/observability/slos/*.openslo.yaml | sort`.
+23. Check catalog components: `find compliance/catalog -maxdepth 1 -type f | sort | rg "compliance|cross"`.
 24. Confirm no cross-cell spread: `oya ops cells query --metric oya_compliance_cross_tenant_dsar_leak_suspected_error_ratio --window 30m --threshold 0.02`.
 25. Snapshot evidence: `oya evidence snapshot --incident $INCIDENT_ID --microservice compliance --runbook cross-tenant-dsar-leak-suspected --output evidence/incidents/$INCIDENT_ID.json`.
 
@@ -116,7 +116,7 @@ Cross Tenant DSAR Leak Suspected incident decision tree
 12. Raise HPA cap if saturation: `kubectl -n compliance patch hpa compliance-cross-tenant-dsar-leak-suspected-worker --type merge -p '{"spec":{"maxReplicas":12}}'`.
 13. Throttle hot tenant: `oya ops rate-limit set --tenant $TENANT --surface compliance.cross-tenant-dsar-leak-suspected --rps 25 --ttl 30m`.
 14. Block abusive principal: `oya identity principal suspend --principal suspected-abuse --tenant $TENANT --reason $INCIDENT_ID`.
-15. Protect evidence: `oya evidence freeze --incident $INCIDENT_ID --paths microservices/compliance/runbooks/cross-tenant-dsar-leak-suspected.md,evidence/incidents/$INCIDENT_ID.json`.
+15. Protect evidence: `oya evidence freeze --incident $INCIDENT_ID --paths compliance/runbooks/cross-tenant-dsar-leak-suspected.md,evidence/incidents/$INCIDENT_ID.json`.
 16. Notify service owners: `oya notify service-owner --microservice compliance --incident $INCIDENT_ID --channel #inc-compliance-regulatory`.
 17. Open external vendor ticket: `oya vendor ticket open --vendor primary-compliance --incident $INCIDENT_ID --summary cross-tenant-dsar-leak-suspected`.
 18. Confirm breaker effect: `oya ops breaker status compliance-cross-tenant-dsar-leak-suspected-circuit-breaker --cell $CELL --tenant $TENANT --expect open`.
@@ -142,15 +142,15 @@ Cross Tenant DSAR Leak Suspected incident decision tree
   - Required audit: emit `EVT-COMPLIANCE-CROSS_TENANT_DSAR_LEAK_SUSPECTED-INCIDENT` with `branch=D`, `operator_id`, and `evidence_hash`.
 
 ## Resolution Steps
-1. Identify code owner path: `rg "cross_tenant_dsar_leak_suspected|ComplianceCrossTenantDsarLeakSuspectedCritical|compliance.cross_tenant_dsar_leak_suspected.incident_state" crates microservices/compliance -g "!microservices/compliance/runbooks/**"`.
+1. Identify code owner path: `rg "cross_tenant_dsar_leak_suspected|ComplianceCrossTenantDsarLeakSuspectedCritical|compliance.cross_tenant_dsar_leak_suspected.incident_state" crates compliance -g "!compliance/runbooks/**"`.
 2. Patch domain invariant: `edit oya-compliance-domain where cross_tenant_dsar_leak_suspected state transition is validated`.
-3. Patch API guard: `edit microservices/compliance/contracts/openapi.yaml or catalog REST binding if the failing path is north-south`.
-4. Patch policy: `edit microservices/compliance/policy/pack-overlay-authorization.cedar or .md with explicit deny/permit branch`.
-5. Patch runtime config: `edit microservices/compliance/iac/k8s-deployment.yaml or secret-bindings.yaml if deploy/config drift caused the incident`.
+3. Patch API guard: `edit compliance/contracts/openapi.yaml or catalog REST binding if the failing path is north-south`.
+4. Patch policy: `edit compliance/policy/pack-overlay-authorization.cedar or .md with explicit deny/permit branch`.
+5. Patch runtime config: `edit compliance/iac/k8s-deployment.yaml or secret-bindings.yaml if deploy/config drift caused the incident`.
 6. Add regression test: `cargo test -p oya-compliance-domain cross_tenant_dsar_leak_suspected_incident_regression -- --nocapture`.
 7. Add gate evidence: `cargo run -p oya-dev-cli -- gate validate compliance-cross-tenant-dsar-leak-suspected --fixture incident-cross-tenant-dsar-leak-suspected.json`.
-8. Add SLO assertion: `update microservices/compliance/slos/* with alert ComplianceCrossTenantDsarLeakSuspectedCritical when this was a missing alert`.
-9. Add dashboard panel: `update microservices/compliance/dashboards/dsar-pipeline.json with oya_compliance_cross_tenant_dsar_leak_suspected_error_ratio, oya_compliance_cross_tenant_dsar_leak_suspected_lag_seconds, and oya_compliance_cross_tenant_dsar_leak_suspected_queue_depth`.
+8. Add SLO assertion: `update compliance/observability/slos/* with alert ComplianceCrossTenantDsarLeakSuspectedCritical when this was a missing alert`.
+9. Add dashboard panel: `update compliance/dashboards/dsar-pipeline.json with oya_compliance_cross_tenant_dsar_leak_suspected_error_ratio, oya_compliance_cross_tenant_dsar_leak_suspected_lag_seconds, and oya_compliance_cross_tenant_dsar_leak_suspected_queue_depth`.
 10. Rebuild affected crate: `cargo check -p oya-compliance-domain --all-targets`.
 11. Run targeted tests: `cargo test -p oya-compliance-domain --all-features`.
 12. Run policy validation: `cargo run -p oya-dev-cli -- gate validate compliance-policy --microservice compliance`.
@@ -167,10 +167,10 @@ Cross Tenant DSAR Leak Suspected incident decision tree
 - `oya-compliance-domain`: inspect for cross_tenant_dsar_leak_suspected invariants, alert emission, and ADR-0263 evidence fields before touching adjacent code path 1.
 - `oya-regional-pack-domain`: inspect for cross_tenant_dsar_leak_suspected invariants, alert emission, and ADR-0263 evidence fields before touching adjacent code path 2.
 - `oya-regional-pack-api`: inspect for cross_tenant_dsar_leak_suspected invariants, alert emission, and ADR-0263 evidence fields before touching adjacent code path 3.
-- `microservices/compliance/contracts/`: verify this surface only when the incident evidence points there.
-- `microservices/compliance/dashboards/dsar-pipeline.json`: verify this surface only when the incident evidence points there.
-- `microservices/compliance/slos/`: verify this surface only when the incident evidence points there.
-- `microservices/compliance/policy/pack-overlay-authorization.*`: verify this surface only when the incident evidence points there.
+- `compliance/contracts/`: verify this surface only when the incident evidence points there.
+- `compliance/dashboards/dsar-pipeline.json`: verify this surface only when the incident evidence points there.
+- `compliance/observability/slos/`: verify this surface only when the incident evidence points there.
+- `compliance/policy/pack-overlay-authorization.*`: verify this surface only when the incident evidence points there.
 
 ## Verification Checklist
 - ComplianceCrossTenantDsarLeakSuspectedCritical and ComplianceCrossTenantDsarLeakSuspectedSloBurn are both resolved in Alertmanager for 30 minutes.
@@ -264,8 +264,8 @@ evidence_hash: <sha256>
 - Close only after EVT-COMPLIANCE-CROSS_TENANT_DSAR_LEAK_SUSPECTED-INCIDENT has a sealed resolution row and every coordination endpoint above has either accepted or explicitly declined scope.
 
 ## Sources Checked During This Substance Pass
-- `microservices/compliance/dashboards/` for dashboard names and operational panels.
-- `microservices/compliance/slos/` for OpenSLO alert vocabulary and threshold alignment.
-- `microservices/compliance/policy/` for named policy and authorization surfaces.
-- `microservices/compliance/catalog/` for component and owner vocabulary.
+- `compliance/dashboards/` for dashboard names and operational panels.
+- `compliance/observability/slos/` for OpenSLO alert vocabulary and threshold alignment.
+- `compliance/policy/` for named policy and authorization surfaces.
+- `compliance/catalog/` for component and owner vocabulary.
 - Existing thin runbook topic `cross-tenant-dsar-leak-suspected` was preserved as the scenario anchor while replacing generic steps with concrete commands.

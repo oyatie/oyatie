@@ -1,32 +1,151 @@
 {
-  "$schema": "../specs/microservices/manifest-schema.json",
-  "microservice": "compliance",
+  "schema_version": "1.0",
+  "capability": "compliance",
+  "_comment": "Capability-root manifest for compliance/ (ADR-0562). Every crate, contract, OpenSLO path and accounting count below was read off the tree at authoring time, not transcribed from legacy microservices/compliance paths.",
   "tier": "substrate",
   "tier_subtype": "substrate-compliance",
   "dr_tier": "T1",
+  "dr_tier_derivation": "Retained from the pre-rehome compliance service manifest (dr_tier=T1). No absorbed sub-service manifests exist under compliance/; the capability root is the sole service-tier declaration.",
   "substrate_dag_position": {
     "stratum": "S4",
     "depends_on": [],
     "consumed_by_substrates": [],
-    "_note": "forward-declared per ADR-0280 Appendix C; edges land in DAG v1.1.0"
+    "_note": "specs/capability-registry.json name=compliance dag_node=compliance stratum=S4"
   },
+  "_tier_source": "specs/capability-registry.json name=compliance dag_node=compliance stratum=S4",
+  "version": "0.1.0",
   "owner": "axis-compliance",
   "co_owners": [
     "axis-security",
     "council-architecture"
   ],
-  "purpose": "Compliance evidence automation per ADR-0209. In-house pipeline covering SOC 2 Type II, GDPR (incl. DSAR automation), HIPAA, PCI-DSS — replacing Drata / Vanta / Tugboat Logic / AuditBoard / ServiceNow GRC. Substrate kernel: oya-shared-compliance-evidence-kernel.",
-  "layout": "flat",
-  "adr_authority_chain": [
-    "ADR-0131",
-    "ADR-0209",
-    "ADR-0145",
-    "ADR-0394",
-    "ADR-0181",
-    "ADR-0183"
+  "purpose": "Compliance + regulatory-evidence substrate (ADR-0562 charter / ADR-0209): regulatory packs, DPIA/threat-model evidence, DSAR/DSR automation, retention, DLP, e-discovery, and trust-portal surfaces. Seven workspace crates under compliance/{core,ports} are the in-tree foundation; OpenSLO files under compliance/observability/slos/ are declared from the tree. Governance-ENGINE surfaces are NOT absorbed here (ADR-0615 \u00a72 Q13 boundary_note).",
+  "bounded_contexts": [
+    {
+      "name": "compliance-core",
+      "description": "Domain/kernel crates under compliance/core/.",
+      "crates": [
+        "compliance-dlp",
+        "compliance-dsr",
+        "compliance-ediscovery",
+        "compliance-retention",
+        "compliance-retention-dsr",
+        "compliance-trust-portal"
+      ]
+    },
+    {
+      "name": "compliance-ports",
+      "description": "Port/usecase boundary crates under compliance/ports/.",
+      "crates": [
+        "compliance-dsr-usecase"
+      ]
+    }
   ],
-  "phase": "PHASE-01-EVIDENCE-PIPELINE-BOOTSTRAP",
-  "status": "Drafting",
+  "layers": [
+    "core",
+    "ports"
+  ],
+  "capability_root_accounting": {
+    "crates_under_capability_root": 7,
+    "crates_by_layer": {
+      "core": 6,
+      "ports": 1
+    },
+    "crates_covered_by_no_other_manifest": 7,
+    "catalog_rows": [
+      "registry/catalog/compliance-dlp.yaml",
+      "registry/catalog/compliance-dsr-usecase.yaml",
+      "registry/catalog/compliance-dsr.yaml",
+      "registry/catalog/compliance-ediscovery.yaml",
+      "registry/catalog/compliance-retention-dsr.yaml",
+      "registry/catalog/compliance-retention.yaml",
+      "registry/catalog/compliance-trust-portal.yaml"
+    ],
+    "_overlap_note": "All seven workspace members under compliance/ are owned exclusively by this capability root; no absorbed sub-service manifests exist yet."
+  },
+  "contracts": {
+    "openapi": [
+      "compliance/contracts/openapi.yaml"
+    ],
+    "asyncapi": [
+      "compliance/contracts/asyncapi.yaml"
+    ],
+    "internal_grpc": {
+      "transport": "http2",
+      "language_profile": "proto3",
+      "contracts": [
+        "compliance/contracts/compliance.proto"
+      ]
+    },
+    "additional_contract_files": [
+      "compliance/contracts/dsar-export-format.json"
+    ],
+    "contract_status": "Tree-local contract files under compliance/contracts/ are declared from verified paths; runtime-readiness is not claimed by this capability-root interior-prep slice."
+  },
+  "slos": [
+    {
+      "name": "audit-chain-seal-verify-success",
+      "file": "compliance/observability/slos/audit-chain-seal-verify-success.openslo.yaml"
+    },
+    {
+      "name": "auditor-portal-availability",
+      "file": "compliance/observability/slos/auditor-portal-availability.openslo.yaml"
+    },
+    {
+      "name": "auditor-portal-latency",
+      "file": "compliance/observability/slos/auditor-portal-latency.openslo.yaml"
+    },
+    {
+      "name": "autosharding-events",
+      "file": "compliance/observability/slos/autosharding-events.openslo.yaml"
+    },
+    {
+      "name": "breach-notify-authority-72h",
+      "file": "compliance/observability/slos/breach-notify-authority-72h.openslo.yaml"
+    },
+    {
+      "name": "cross-tenant-isolation-violations",
+      "file": "compliance/observability/slos/cross-tenant-isolation-violations.openslo.yaml"
+    },
+    {
+      "name": "dsar-backlog-depth",
+      "file": "compliance/observability/slos/dsar-backlog-depth.openslo.yaml"
+    },
+    {
+      "name": "dsar-completion-time",
+      "file": "compliance/observability/slos/dsar-completion-time.openslo.yaml"
+    },
+    {
+      "name": "evidence-coverage-rollup",
+      "file": "compliance/observability/slos/evidence-coverage-rollup.openslo.yaml"
+    },
+    {
+      "name": "evidence-emission-lag",
+      "file": "compliance/observability/slos/evidence-emission-lag.openslo.yaml"
+    },
+    {
+      "name": "manual-upload-success",
+      "file": "compliance/observability/slos/manual-upload-success.openslo.yaml"
+    },
+    {
+      "name": "pack-publish-soak-respected",
+      "file": "compliance/observability/slos/pack-publish-soak-respected.openslo.yaml"
+    },
+    {
+      "name": "phi-anomaly-detection-fidelity",
+      "file": "compliance/observability/slos/phi-anomaly-detection-fidelity.openslo.yaml"
+    }
+  ],
+  "doc_class": "Machine-Readable-Spec",
+  "foundation_non_claims": [
+    "this manifest describes the seven crates directly under compliance/ and does NOT restate future absorbed governance-engine surfaces (ADR-0615 \u00a72 Q13)",
+    "legacy microservices/compliance dump paths are retired; manifests and day-2 docs must cite compliance/** counterparts",
+    "missing PRD.md / ARCHITECTURE.md / MIGRATION-* under compliance/ are deliberately not invented"
+  ],
+  "explicit_non_claims": [
+    "no adapters/ or facade/ crates exist under compliance/ today and are not claimed",
+    "cross-capability microservices/* PRD cites outside compliance/** remain deferred (see compliance/stale-path-hygiene-note.md)"
+  ],
   "scope": {
     "frameworks_covered": [
       "soc2-type-2",
@@ -34,144 +153,10 @@
       "hipaa",
       "pci-dss"
     ],
-    "evidence_collectors": [
-      "ci-artifact-hash",
-      "deploy-receipt",
-      "access-review-snapshot",
-      "backup-restore-drill-receipt",
-      "vuln-scan-report",
-      "pen-test-report",
-      "dsar-completion-record",
-      "baa-inventory-entry",
-      "minimum-necessary-access-log"
-    ],
     "dsar_sla_days": 30,
     "dsar_target_days": 5,
     "cross_tenant_isolation_enforced": true
   },
-  "i18n": {
-    "default_locale": "en-US",
-    "required_locales": [
-      "en-US",
-      "ko-KR",
-      "ja-JP",
-      "de-DE",
-      "fr-FR",
-      "es-MX",
-      "ar-SA",
-      "he-IL"
-    ],
-    "rtl_support": true,
-    "min_coverage_bps": 9500
-  },
-  "a11y": {
-    "wcag_target": "aa",
-    "test_runners": [
-      "axe-core-playwright",
-      "pa11y"
-    ]
-  },
-  "realtime": {
-    "transport": {
-      "tier": "sse"
-    },
-    "payload_budget_bytes": 1048576
-  },
-  "observability": {
-    "trace_sampling_recipe": {
-      "head_bps": 200,
-      "tail_policies": [
-        "status_code=ERROR",
-        "latency_p99",
-        "new_endpoint_warmup",
-        "audit_event",
-        "random_baseline=0.02"
-      ],
-      "p99_latency_threshold_ms": 800,
-      "new_endpoints": []
-    },
-    "metric_cardinality_envelope": {
-      "max_unique_attribute_combinations": 50000
-    }
-  },
-  "compliance": {
-    "evidence_collectors": [
-      "ci-artifact-hash",
-      "deploy-receipt",
-      "access-review-snapshot",
-      "backup-restore-drill-receipt",
-      "vuln-scan-report",
-      "pen-test-report",
-      "dsar-completion-record",
-      "baa-inventory-entry",
-      "minimum-necessary-access-log"
-    ],
-    "audit_chain_seal_required": true,
-    "tamper_evidence_algorithm": "sha256-cosign-keyless-oidc"
-  },
-  "data_classes": {
-    "ingested": [
-      "AUDIT",
-      "SECRET",
-      "PII_IDENTIFYING",
-      "PHI",
-      "INTERNAL_ONLY"
-    ],
-    "emitted": [
-      "AUDIT",
-      "INTERNAL_ONLY"
-    ]
-  },
-  "storage": {
-    "evidence_backing": "seaweedfs-filer",
-    "audit_chain_backing": "append-only-jsonl-with-cosign-seal"
-  },
-  "team_topology": {
-    "team_type": "platform",
-    "rotation": "ops-sre-reliability+axis-security"
-  },
-  "ip_register": [
-    "IP-001-evidence-collector-bootstrap",
-    "IP-002-soc2-control-mapping",
-    "IP-003-gdpr-dsar-automation-pipeline",
-    "IP-004-hipaa-min-necessary-log-substrate",
-    "IP-005-audit-chain-seal-coverage",
-    "IP-006-evidence-storage-seaweedfs",
-    "IP-007-auditor-readonly-portal",
-    "IP-008-pii-scrubber",
-    "IP-009-retention-tier-policy",
-    "IP-010-attestation-aggregator",
-    "IP-011-cross-microservice-evidence-fan-in",
-    "IP-012-evidence-replay",
-    "IP-013-audit-anomaly-detection",
-    "IP-014-manual-evidence-upload-flow",
-    "IP-015-regulatory-pack-evidence-overlay"
-  ],
-  "mesh_layering": {
-    "cilium_l4": true,
-    "ambient_ztunnel": true,
-    "ambient_waypoint": false
-  },
-  "naming_justifications": "compliance is a BNF v4.1 kebab-case microservice slug; generated names follow oya-compliance-<bounded-context>-<layer>, with layer rest from ADR-0105's 13-layer enum.",
-  "tenant_class_model": {
-    "tenant_class": [
-      "demo_trial",
-      "paid"
-    ],
-    "billing_components": [
-      "revenue_share",
-      "per_seat",
-      "per_usage"
-    ],
-    "availability": "demo_trial is cap-bounded; paid unlocks pack activation through compliance_pack and billing_components."
-  },
-  "bounded_contexts": [
-    "auditor-engagement-read",
-    "breach-declare",
-    "compliance-admin-upload",
-    "dsar-subject-self-service",
-    "pack-overlay-subscribe"
-  ],
   "packs": [
     "soc2-type2",
     "gdpr",
@@ -188,168 +173,5 @@
     "cn-pipl-2021",
     "fedramp"
   ],
-  "hyperscaler_benchmark": "1: AWS IAM service-linked roles anchors the external control pattern for principals; 2: Google Cloud service agents provides a second independent hyperscaler pattern for principals; 1: AWS Verified Permissions Cedar anchors the external control pattern for cedar-gates; 2: Google Zanzibar provides a second independent hyperscaler pattern for cedar-gates; 1: Stripe account isolation anchors the external control pattern for tenant-scoping; 2: AWS Organizations account boundary provides a second independent hyperscaler pattern for tenant-scoping",
-  "owner_team": "axis-compliance",
-  "tier_classification": "Drafting",
-  "data_classification": "AUDIT, SECRET, PII_IDENTIFYING, PHI, INTERNAL_ONLY, PII_QUASI",
-  "compliance_packs_applicable": [
-    "soc2-type2",
-    "gdpr",
-    "hipaa",
-    "PCI-DSS",
-    "soc2",
-    "iso27001-2022",
-    "kr-pipa",
-    "iso27001",
-    "il5",
-    "il6",
-    "fedramp-high",
-    "eu-ai-act",
-    "cn-pipl-2021",
-    "fedramp"
-  ],
-  "depends_on_microservices": [
-    "audit-chain",
-    "tenancy",
-    "identity",
-    "observability",
-    "cell",
-    "intelligence",
-    "detection",
-    "network",
-    "cloud-iac"
-  ],
-  "failure_domain": "tenant-cell and regional-failover execution domain",
-  "criticality_tier": "T2",
-  "layer": "rest",
-  "doc_class": "Machine-Readable-Spec",
-  "capacity_model": {
-    "baseline_cpu_per_tenant": 0.16,
-    "baseline_ram_per_tenant": 256,
-    "storage_per_tenant": 12,
-    "connections_per_tenant": {
-      "valkey": 2,
-      "postgres": 3,
-      "outbound_http": 8
-    },
-    "scaling_dimension": "per_workflow_run",
-    "cell_placement_class": "Tier-2",
-    "notes": "Evidence exports and compliance collectors scale with workflow executions and retention footprint."
-  },
-  "sharding_automation": {
-    "autosharding": "control_plane_driven",
-    "auto_rebalance": {
-      "enabled": false,
-      "trigger_load_skew_threshold_percent": 30,
-      "honors_residency": true,
-      "honors_compliance_packs": true,
-      "audit_chain_emit": true
-    },
-    "dynamic_sharding": {
-      "enabled": false,
-      "hot_split_threshold_p99_ms": 50,
-      "hot_split_utilization_threshold_percent": 80,
-      "cold_merge_utilization_threshold_percent": 20,
-      "cold_merge_minimum_quiet_hours": 24,
-      "audit_chain_emit": true
-    }
-  },
-  "dr": {
-    "rto_p99_seconds": 1800,
-    "rpo_p99_seconds": 300,
-    "multi_region_active_active": true,
-    "backup_substrate": [
-      "object_storage_versioned",
-      "seaweedfs_replicated",
-      "postgres_wal_g",
-      "audit_chain_merkle_seal"
-    ],
-    "failover_runbook": "runbooks/seaweedfs-evidence-bucket-loss.md",
-    "dr_tier": "T1",
-    "replication_shape": "active-active-multi-az-cross-region-warm"
-  },
-  "pod_runtime_tier": 1,
-  "pod_runtime_tier_justification": "Compliance handles regulated tenant evidence, DSAR exports, auditor access, and breach declarations. It is first-party code, but it touches sensitive tenant evidence and compliance data planes, so Tier 1 isolation applies.",
-  "pod_runtime_tier_surface_evidence": [
-    "microservices/compliance/PRD.md",
-    "microservices/compliance/ARCHITECTURE.md",
-    "microservices/compliance/IP-004-hipaa-min-necessary-log-substrate.md",
-    "microservices/compliance/IP-011-cross-microservice-evidence-fan-in.md",
-    "microservices/compliance/runbooks/seaweedfs-evidence-bucket-loss.md"
-  ],
-  "tenant_version_pinning": {
-    "declared_versions": [
-      "2026-05-21",
-      "2026-02-21",
-      "2025-11-21"
-    ],
-    "default_version": "2026-05-21",
-    "supported_window_size": 3,
-    "supported_window_minimum_days": 180,
-    "supports_per_tenant_pinning": true,
-    "deprecation_calendar": [
-      {
-        "version": "2025-11-21",
-        "deprecated_at": "2026-05-21",
-        "sunset_at": "2026-11-21",
-        "breaking_change_adr": "docs/decisions/ADR-0709-general-live-apex.md",
-        "migration_doc": "microservices/compliance/MIGRATION-2026-05-21.md"
-      }
-    ],
-    "public_surface_files": {
-      "openapi": {
-        "2026-05-21": "microservices/compliance/contracts/openapi.yaml",
-        "2026-02-21": "microservices/compliance/contracts/openapi.yaml",
-        "2025-11-21": "microservices/compliance/contracts/openapi.yaml"
-      },
-      "asyncapi": {
-        "2026-05-21": "microservices/compliance/contracts/asyncapi.yaml",
-        "2026-02-21": "microservices/compliance/contracts/asyncapi.yaml",
-        "2025-11-21": "microservices/compliance/contracts/asyncapi.yaml"
-      }
-    }
-  },
-  "consumes_upstream_oss": [
-    "postgresql",
-    "cedar",
-    "openbao",
-    "opentelemetry",
-    "cilium",
-    "istio",
-    "kyverno"
-  ],
-  "oss_stewardship_class_overrides": [],
-  "iac_module_invocations": [
-    {
-      "context": "oci-guest",
-      "primitive": "object-storage-versioned",
-      "version_pin": "v1",
-      "tenant_class_scope": "paid"
-    },
-    {
-      "context": "on-prem",
-      "primitive": "evidence-store",
-      "version_pin": "v1",
-      "tenant_class_scope": "paid"
-    },
-    {
-      "context": "colo",
-      "primitive": "openbao-secret-binding",
-      "version_pin": "v1",
-      "tenant_class_scope": "paid"
-    },
-    {
-      "context": "oyatie-as-cloud-provider",
-      "primitive": "audit-chain-merkle-seal",
-      "version_pin": "v1",
-      "tenant_class_scope": "paid"
-    }
-  ],
-  "slo_exemption": {
-    "status": "live_exempted_no_runtime_sli",
-    "owner": "axis-compliance",
-    "rationale": "No current measured runtime SLI is declared for this foundation or planning-only service; the manifest must not claim production or hyperscaler-ready SLO coverage until an OpenSLO file lands.",
-    "cutover_on": "2026-12-31",
-    "evidence": "specs/master-plan-sequencing.json#realignment_wave_sequence"
-  }
+  "failover_runbook": "compliance/runbooks/seaweedfs-evidence-bucket-loss.md"
 }
