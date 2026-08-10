@@ -6,7 +6,9 @@
 - **Source (read-only):** `oya/crm/**` on `origin/dev` / this tip until shrink-only delete lands on `integ/oya`.
 - **Writes:** only under `app/crm/**` on this tip.
 
-## Completed (this rail)
+## Completed
+
+- Hygiene deepen: retargeted `oya/crm/` + `microservices/crm/` path cites → `app/crm/` in README/manifest (forever-home authority). (this rail)
 
 - Slice 1: product metadata absorb — `manifest.json`, `README.md`, `IPs/**`, `slos/**`.
 - Slice 2: top-level IP docs + audit — `IP-024-*.md`, `IP-025-*.md`, `AUDIT-FINDINGS-*.json`.
