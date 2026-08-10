@@ -7,7 +7,7 @@ related_adrs: [ADR-0245, ADR-0273]
 companion_docs:
   - microservices/mail/PRD.md
   - microservices/mail/ARCHITECTURE.md
-  - microservices/mail/manifest.json
+  - comms/mail/manifest.json
 inbound_citations:
   - docs/README.md
   - docs/DOC-CATALOG.md

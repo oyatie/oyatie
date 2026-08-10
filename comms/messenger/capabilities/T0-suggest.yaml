@@ -16,7 +16,7 @@ related_adrs: [ADR-0022, ADR-0135, ADR-0131, ADR-0133]
 related_specs: [/specs/microservices/messenger.json]
 related_artifacts:
   - microservices/messenger/PRD.md (FR-13 Workflow event integration)
-  - microservices/messenger/contracts/openapi/messenger.yaml
+  - comms/messenger/contracts/openapi/messenger.yaml
   - microservices/messenger/policy/dual-context-isolation.md
 
 autonomy_tier: T0
@@ -107,8 +107,8 @@ cost_profile:
     - Ontology lookup for mention-hint candidates
 
 cedar_policy_fragments:
-  - microservices/messenger/policy/channel-scope.cedar
-  - microservices/messenger/policy/tenant-scope.cedar
+  - comms/messenger/policy/channel-scope.cedar
+  - comms/messenger/policy/tenant-scope.cedar
 
 eval_set:
   reference_inputs_path: microservices/messenger/capabilities/eval/t0-suggest-reference.jsonl

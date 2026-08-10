@@ -9,8 +9,8 @@ date: 2026-05-17
 related_artifacts:
   - microservices/messenger/PRD.md (FR-11 eDiscovery)
   - microservices/messenger/compliance.md (SEC 17a-4 + FINRA 4511; HIPAA)
-  - microservices/messenger/policy/auditor-scope.cedar
-  - microservices/messenger/policy/channel-scope.cedar
+  - comms/messenger/policy/auditor-scope.cedar
+  - comms/messenger/policy/channel-scope.cedar
 doc_status: published
 ---
 
@@ -103,4 +103,4 @@ hold-<id>.tar.gz
 - KR 전자문서법.
 - `microservices/messenger/PRD.md` FR-11.
 - `microservices/messenger/compliance.md`.
-- `microservices/messenger/policy/auditor-scope.cedar`.
+- `comms/messenger/policy/auditor-scope.cedar`.

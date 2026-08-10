@@ -3,7 +3,7 @@ doc_class: Runbook
 status: Accepted
 date: 2026-05-20
 related_adrs: [ADR-0297]
-companion_docs: [microservices/mail/policy/abuse-defence.cedar]
+companion_docs: [comms/mail/policy/abuse-defence.cedar]
 inbound_citations: [microservices/mail/ARCHITECTURE.md]
 ---
 

@@ -13,7 +13,7 @@
 ## Prereqs
 
 - Postal Helm chart deployed per
-  `microservices/comms-email/iac/helm/postal/`.
+  `comms/comms-email/iac/helm/postal/`.
 - OpenBao reachable for DKIM keys.
 
 ## Procedure

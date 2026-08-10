@@ -208,7 +208,7 @@
           "hits_total": 2
         },
         {
-          "file": "microservices/messenger/runbooks/presence-rebuild.md",
+          "file": "comms/messenger/runbooks/presence-rebuild.md",
           "hits": [
             {
               "line": 21,
@@ -246,7 +246,7 @@
           "hits_total": 1
         },
         {
-          "file": "microservices/messenger/catalog/oya-messenger-presence-adapter-valkey.yaml",
+          "file": "comms/messenger/catalog/oya-messenger-presence-adapter-valkey.yaml",
           "hits": [
             {
               "line": 18,
@@ -286,7 +286,7 @@
           "hits_total": 1
         },
         {
-          "file": "microservices/messenger/iac/helm/messenger/templates/networkpolicy.yaml",
+          "file": "comms/messenger/iac/helm/messenger/templates/networkpolicy.yaml",
           "hits": [
             {
               "line": 49,
@@ -296,7 +296,7 @@
           "hits_total": 1
         },
         {
-          "file": "microservices/messenger/contracts/openapi/messenger.yaml",
+          "file": "comms/messenger/contracts/openapi/messenger.yaml",
           "hits": [
             {
               "line": 683,
@@ -306,7 +306,7 @@
           "hits_total": 1
         },
         {
-          "file": "microservices/messenger/manifest.json",
+          "file": "comms/messenger/manifest.json",
           "hits": [
             {
               "line": 164,
@@ -398,7 +398,7 @@
           "hits_total": 1
         },
         {
-          "file": "microservices/messenger/runbooks/search-index-rebuild.md",
+          "file": "comms/messenger/runbooks/search-index-rebuild.md",
           "hits": [
             {
               "line": 20,

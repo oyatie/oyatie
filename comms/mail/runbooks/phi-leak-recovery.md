@@ -3,7 +3,7 @@ doc_class: Runbook
 status: Accepted
 date: 2026-05-20
 related_adrs: [ADR-0251]
-companion_docs: [microservices/mail/policy/phi-dlp.cedar]
+companion_docs: [comms/mail/policy/phi-dlp.cedar]
 inbound_citations: [microservices/mail/ARCHITECTURE.md]
 ---
 

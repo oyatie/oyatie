@@ -197,7 +197,7 @@
   "pod_runtime_tier_surface_evidence": [
     "microservices/contact-center/PRD.md",
     "microservices/contact-center/ARCHITECTURE.md",
-    "microservices/contact-center/IP-026-omnichannel-routing-policy-engine.md"
+    "comms/contact-center/IP-026-omnichannel-routing-policy-engine.md"
   ],
   "tenant_version_pinning": {
     "declared_versions": [
@@ -210,10 +210,10 @@
     "deprecation_calendar": [],
     "public_surface_files": {
       "openapi": {
-        "2026-05-21": "microservices/contact-center/contracts/openapi-v1.yaml"
+        "2026-05-21": "comms/contact-center/contracts/openapi-v1.yaml"
       },
       "asyncapi": {
-        "2026-05-21": "microservices/contact-center/contracts/asyncapi-v1.yaml"
+        "2026-05-21": "comms/contact-center/contracts/asyncapi-v1.yaml"
       }
     }
   },

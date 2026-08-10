@@ -191,5 +191,5 @@ references:
   - microservices/mail/policy/dual-context-isolation.md Invariant DCI-06
   - microservices/mail/dpia.md R-04 (DLP), R-08 (AI assistance)
   - microservices/mail/threat-model.md T-D-03, T-I-03
-  - microservices/mail/runbooks/spam-rule-rollback.md
-  - microservices/mail/runbooks/dlp-quarantine-release.md
+  - comms/mail/runbooks/spam-rule-rollback.md
+  - comms/mail/runbooks/dlp-quarantine-release.md

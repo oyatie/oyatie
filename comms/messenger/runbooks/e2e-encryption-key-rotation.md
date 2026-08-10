@@ -7,7 +7,7 @@ status: Accepted
 owner_team: council-privacy + ops-security + axis-messenger
 date: 2026-05-17
 related_artifacts:
-  - microservices/messenger/policy/personal-dm-scope.cedar
+  - comms/messenger/policy/personal-dm-scope.cedar
   - microservices/messenger/policy/dual-context-isolation.md
   - microservices/messenger/threat-model.md (T-I-04 + T-S-03)
   - microservices/messenger/sdk-plan.md

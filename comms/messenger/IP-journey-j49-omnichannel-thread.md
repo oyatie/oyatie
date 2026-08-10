@@ -422,16 +422,16 @@ IP check 150: messenger/omnichannel-thread satisfies code quality for j49-sidebu
 ## DR posture (per ADR-0343)
 
 - Authority: ADR-0343.
-- Trigger evidence: `microservices/messenger/IP-journey-j49-omnichannel-thread.md` matched `financial, payment`.
+- Trigger evidence: `comms/messenger/IP-journey-j49-omnichannel-thread.md` matched `financial, payment`.
 - Numeric target: `rto_p99_seconds=3600`, `rpo_p99_seconds=300` from manifest-declared pack floor via specs/compliance-pack-floors.json.
-- Applicable compliance pack floor: HIPAA-2024(3600s/300s MR), KR-PIPA-2023-amendment(14400s/900s), SOC2-T2(14400s/900s), ISO27001-2022(14400s/3600s), KR-CSAP-v3.1(3600s/900s MR) from `specs/compliance-pack-floors.json`; manifest evidence `microservices/messenger/manifest.json`.
+- Applicable compliance pack floor: HIPAA-2024(3600s/300s MR), KR-PIPA-2023-amendment(14400s/900s), SOC2-T2(14400s/900s), ISO27001-2022(14400s/3600s), KR-CSAP-v3.1(3600s/900s MR) from `specs/compliance-pack-floors.json`; manifest evidence `comms/messenger/manifest.json`.
 - Multi-region posture: `multi_region_active_active=true` for this HA-critical IP path.
 - Backup substrate: `postgres_wal_g`, `valkey_cluster`, `object_storage_versioned`, `audit_chain_merkle_seal`.
-- Runtime evidence: `microservices/messenger/slos/attachment-scan-freshness.openslo.yaml`, `microservices/messenger/slos/mention-fanout.openslo.yaml`, `microservices/messenger/slos/message-send-availability.openslo.yaml`, `microservices/messenger/slos/message-send-latency.openslo.yaml`, `microservices/messenger/policy/auditor-scope.cedar`.
+- Runtime evidence: `microservices/messenger/slos/attachment-scan-freshness.openslo.yaml`, `microservices/messenger/slos/mention-fanout.openslo.yaml`, `microservices/messenger/slos/message-send-availability.openslo.yaml`, `microservices/messenger/slos/message-send-latency.openslo.yaml`, `comms/messenger/policy/auditor-scope.cedar`.
 
 ## Pod runtime tier (per ADR-0338)
 
 - Authority: ADR-0338.
 - `pod_runtime_tier`: `0`.
 - Justification: tenant-customer code exists in this IP execution path; Kata Containers + Cloud Hypervisor are required.
-- Surface evidence: `microservices/messenger/IP-journey-j49-omnichannel-thread.md`, `microservices/messenger/manifest.json`; trigger terms `plugin`.
+- Surface evidence: `comms/messenger/IP-journey-j49-omnichannel-thread.md`, `comms/messenger/manifest.json`; trigger terms `plugin`.

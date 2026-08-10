@@ -9,9 +9,9 @@ date: 2026-05-17
 last_drill_date: 2026-05-17
 related_artifacts:
   - microservices/meet/failure-modes.md (FM-07, FM-13)
-  - microservices/meet/dashboards/recording-pipeline.json
+  - comms/meet/dashboards/recording-pipeline.json
   - microservices/meet/slos/webinar-fanout-latency.openslo.yaml
-  - microservices/meet/policy/meeting-scope.cedar
+  - comms/meet/policy/meeting-scope.cedar
 doc_status: published
 ---
 
@@ -95,4 +95,4 @@ doc_status: published
 - WHIP IETF draft.
 - SRS docs.
 - `microservices/meet/threat-model.md` T-I-08, T-E-04.
-- `microservices/meet/policy/meeting-scope.cedar`.
+- `comms/meet/policy/meeting-scope.cedar`.

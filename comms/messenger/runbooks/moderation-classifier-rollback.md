@@ -7,8 +7,8 @@ status: Accepted
 owner_team: axis-messenger + ops-security + council-privacy + axis-foundry-runtime
 date: 2026-05-17
 related_artifacts:
-  - microservices/messenger/dashboards/moderation-and-safety.json
-  - microservices/messenger/capabilities/T2-auto.yaml
+  - comms/messenger/dashboards/moderation-and-safety.json
+  - comms/messenger/capabilities/T2-auto.yaml
   - microservices/messenger/threat-model.md (T-T-06)
   - microservices/messenger/compliance.md (EU AI Act)
 doc_status: published
@@ -92,4 +92,4 @@ Per `capabilities/T2-auto.yaml`:
 - HIPAA 45 CFR §164.502(b) (minimum necessary).
 - NIST AI RMF (Risk Management Framework).
 - `microservices/messenger/threat-model.md` T-T-06.
-- `microservices/messenger/capabilities/T2-auto.yaml`.
+- `comms/messenger/capabilities/T2-auto.yaml`.

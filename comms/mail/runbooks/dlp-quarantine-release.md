@@ -11,7 +11,7 @@ related_artifacts:
   - microservices/mail/dpia.md (R-04 DLP outbound-scanning)
   - microservices/mail/policy/data-residency.md
   - microservices/mail/contracts/openapi.yaml §"/v1/dlp/quarantine"
-  - microservices/mail/capabilities/T2-auto.yaml (DLP enforcement as T2)
+  - comms/mail/capabilities/T2-auto.yaml (DLP enforcement as T2)
   - ADR-0140 (retired per ADR-0145) Cedar policy enforcement
 doc_status: published
 ---
@@ -132,5 +132,5 @@ After release decisions:
 - ADR-0140 Cedar policy enforcement
 - `microservices/mail/threat-model.md` T-I-03, T-E-02
 - `microservices/mail/dpia.md` R-04
-- `microservices/mail/capabilities/T2-auto.yaml`
+- `comms/mail/capabilities/T2-auto.yaml`
 - M3AAWG Outbound Best Common Practices — `https://www.m3aawg.org`

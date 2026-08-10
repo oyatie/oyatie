@@ -9,7 +9,7 @@ date: 2026-05-17
 last_drill_date: 2026-05-17
 related_artifacts:
   - microservices/meet/failure-modes.md (FM-02)
-  - microservices/meet/dashboards/meeting-quality-mos.json
+  - comms/meet/dashboards/meeting-quality-mos.json
   - microservices/meet/iac/helm/meet/templates/coturn-deployment.yaml
 doc_status: published
 ---
@@ -93,4 +93,4 @@ For sustained saturation (not key-related):
 - coturn `github.com/coturn/coturn/wiki`.
 - OpenBao secret-rotation docs.
 - `microservices/meet/threat-model.md` T-S-03.
-- `microservices/messenger/runbooks/e2e-encryption-key-rotation.md` (related key-rotation pattern).
+- `comms/messenger/runbooks/e2e-encryption-key-rotation.md` (related key-rotation pattern).

@@ -26,7 +26,7 @@ related_adrs: [ADR-0022, ADR-0135, ADR-0131, ADR-0133, ADR-MEET-0002, ADR-MEET-0
 related_artifacts:
   - microservices/meet/PRD.md (FR-07, FR-16)
   - microservices/meet/IP-009-transcription-pipeline.md
-  - microservices/meet/policy/meeting-scope.cedar
+  - comms/meet/policy/meeting-scope.cedar
   - microservices/meet/policy/recording-consent.md
 
 autonomy_tier: T1
@@ -125,8 +125,8 @@ cost_profile:
     - faster-whisper / CTranslate2 acceleration
 
 cedar_policy_fragments:
-  - microservices/meet/policy/meeting-scope.cedar
-  - microservices/meet/policy/tenant-scope.cedar
+  - comms/meet/policy/meeting-scope.cedar
+  - comms/meet/policy/tenant-scope.cedar
 
 eval_set:
   baseline_inputs_path: microservices/meet/capabilities/eval/t1-assist-baseline.jsonl

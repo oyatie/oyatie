@@ -28,10 +28,10 @@
   ],
   "contracts": {
     "openapi": [
-      "microservices/meet/contracts/openapi/meet.yaml"
+      "comms/meet/contracts/openapi/meet.yaml"
     ],
     "asyncapi": [
-      "microservices/meet/contracts/asyncapi/meet-events.yaml"
+      "comms/meet/contracts/asyncapi/meet-events.yaml"
     ],
     "internal_grpc": {
       "transport": "http2",
@@ -45,19 +45,19 @@
     {
       "tier": "T0",
       "name": "meeting-topic-and-participant-hint",
-      "file": "microservices/meet/capabilities/T0-suggest.yaml",
+      "file": "comms/meet/capabilities/T0-suggest.yaml",
       "risk_class": "none"
     },
     {
       "tier": "T1",
       "name": "live-captions-transcription-summary",
-      "file": "microservices/meet/capabilities/T1-assist.yaml",
+      "file": "comms/meet/capabilities/T1-assist.yaml",
       "risk_class": "minimal"
     },
     {
       "tier": "T2",
       "name": "auto-mute-noise-detect-and-auto-translate",
-      "file": "microservices/meet/capabilities/T2-auto.yaml",
+      "file": "comms/meet/capabilities/T2-auto.yaml",
       "risk_class": "limited"
     }
   ],
@@ -477,7 +477,7 @@
     "microservices/meet/PRD.md",
     "microservices/meet/IP-005-meeting-instance-and-livekit.md",
     "microservices/meet/IP-007-screen-share-and-tracks.md",
-    "microservices/meet/runbooks/sfu-degraded.md"
+    "comms/meet/runbooks/sfu-degraded.md"
   ],
   "tenant_version_pinning": {
     "declared_versions": [
@@ -490,10 +490,10 @@
     "deprecation_calendar": [],
     "public_surface_files": {
       "openapi": {
-        "2026-05-21": "microservices/meet/contracts/openapi/meet.yaml"
+        "2026-05-21": "comms/meet/contracts/openapi/meet.yaml"
       },
       "asyncapi": {
-        "2026-05-21": "microservices/meet/contracts/asyncapi/meet-events.yaml"
+        "2026-05-21": "comms/meet/contracts/asyncapi/meet-events.yaml"
       }
     }
   },

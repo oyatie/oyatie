@@ -8,7 +8,7 @@ owner_team: ops-sre-reliability + axis-messenger
 date: 2026-05-17
 related_artifacts:
   - microservices/messenger/failure-modes.md
-  - microservices/messenger/dashboards/voice-video-quality.json
+  - comms/messenger/dashboards/voice-video-quality.json
   - microservices/messenger/slos/voice-video-call-quality.openslo.yaml
   - microservices/messenger/slos/voice-video-call-setup.openslo.yaml
 doc_status: published
@@ -69,4 +69,4 @@ recording lost).
 - LiveKit ops docs `docs.livekit.io/realtime/server/`.
 - coturn ops `github.com/coturn/coturn/wiki`.
 - ITU-T G.107 (E-model for MOS computation).
-- `microservices/messenger/dashboards/voice-video-quality.json`.
+- `comms/messenger/dashboards/voice-video-quality.json`.

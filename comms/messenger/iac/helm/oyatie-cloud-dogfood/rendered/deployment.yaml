@@ -1,6 +1,6 @@
 # Static rendered manifest snapshot for ADR-0199 tenant-cost-label coverage.
-# Source chart: microservices/messenger/iac/k8s/helm/templates/deployment.yaml
-# Source values: microservices/messenger/iac/k8s/helm/values.yaml
+# Source chart: comms/messenger/iac/k8s/helm/templates/deployment.yaml
+# Source values: comms/messenger/iac/k8s/helm/values.yaml
 # Non-claim: not applied to any Kubernetes cluster; no ArgoCD sync, admission, or OpenCost report is claimed.
 apiVersion: apps/v1
 kind: Deployment

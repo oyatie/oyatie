@@ -2,7 +2,7 @@
 
 Tenant class model: `tenant_class` is `demo_trial` or `paid`; paid packaging composes `billing_components` such as `per_seat` and `per_usage` without tier labels.
 
-`microservices/emergency/` — the µservice that owns every Emergency-Department workflow inside the oyatie platform.
+`comms/emergency/` — the µservice that owns every Emergency-Department workflow inside the oyatie platform.
 
 Authority: ADR-0332 (in flight) | ADR-0131 | ADR-0132 | ADR-0251 | ADR-0328
 Owner: emergency-medicine-platform-engineer (single-owner end-to-end)
@@ -77,7 +77,7 @@ See `PRD.md` for the full bounded-context narrative.
 ## Repository Layout
 
 ```
-microservices/emergency/
+comms/emergency/
   PRD.md                    # 800+ line product spec
   ARCHITECTURE.md           # 600+ line architecture deep-dive
   README.md                 # this file
@@ -282,7 +282,7 @@ ED-IS calls peer µservices via direct gRPC + AsyncAPI per ADR-0145. Notable int
 
 ## How to Get Started (Operator)
 
-1. Clone the repo and `cd microservices/emergency/`.
+1. Clone the repo and `cd comms/emergency/`.
 2. Pick a deployment context under `iac/`.
 3. `tofu init && tofu apply` against the target deployment.
 4. The OpenTofu module provisions the cell, deploys the Kubernetes workloads, configures NATS streams, runs DB migrations, and registers the tenant.

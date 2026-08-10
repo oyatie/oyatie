@@ -11,7 +11,7 @@ info:
 
     Authentication: OIDC bearer + `X-Tenant-Id` header. Personal-context principals MUST set
     `X-Mail-Context: Personal`; Professional-context principals MUST set `X-Mail-Context:
-    Professional` and `X-Tenant-Id`. Cedar policies in `microservices/mail/policy/*.cedar`
+    Professional` and `X-Tenant-Id`. Cedar policies in `comms/mail/policy/*.cedar`
     are evaluated server-side; the API is a thin transport.
 
     Standards interop: SMTP (RFC 5321), SMTP-Submission (RFC 6409), IMAP4rev2 (RFC 9051), JMAP-Core

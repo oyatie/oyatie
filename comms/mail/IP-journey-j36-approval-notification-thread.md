@@ -420,14 +420,14 @@ IP check 150: mail/approval-notification-thread satisfies code quality for j36-b
 IP check 151: mail/approval-notification-thread satisfies maintainability for j36-b2b-workflow-engine-approval-cascade, binds pack-us-healthcare-hipaa, cites ADR-0244/ADR-0263/ADR-0297, and remains a flat ADR-0131 microservice slice.
 
 ## DR posture (per ADR-0343)
-- Manifest target source: `microservices/mail/manifest.json#dr` is missing; `rto_p99_seconds` and `rpo_p99_seconds` are not invented in this IP.
+- Manifest target source: `comms/mail/manifest.json#dr` is missing; `rto_p99_seconds` and `rpo_p99_seconds` are not invented in this IP.
 - Applicable compliance-pack floor source: HIPAA-2024(rto=3600,rpo=300,multi_region=true), SOC2-T2(rto=14400,rpo=900,multi_region=false), EU-AI-ACT-2024-HIGH-RISK(rto=1800,rpo=300,multi_region=true), ISO27001-2022(rto=14400,rpo=3600,multi_region=false), KR-PIPA-2023-amendment(rto=14400,rpo=900,multi_region=false) from `specs/compliance-pack-floors.json`.
 - Multi-region posture: `multi_region_active_active` is not declared in the manifest; any floor with `multi_region=true` must force active-active before this IP can serve that pack.
 - `backup_substrate` enumeration: valkey, valkey_cluster, postgres_wal_g, iceberg_snapshot, object_storage_versioned, seaweedfs_replicated, milvus_snapshot, clickhouse_iceberg_layered, openbao_seal_unseal, audit_chain_merkle_seal.
-- Surface evidence: `microservices/mail/IP-journey-j36-approval-notification-thread.md` matched `financial, payment`; anchors `microservices/mail/runbooks/mailbox-restore-from-backup.md, crates/oya-shared-email-comms-kernel/src/lib.rs`; type anchor `crates/oya-shared-email-comms-kernel/src/lib.rs::OutboundMessage`.
+- Surface evidence: `comms/mail/IP-journey-j36-approval-notification-thread.md` matched `financial, payment`; anchors `comms/mail/runbooks/mailbox-restore-from-backup.md, crates/oya-shared-email-comms-kernel/src/lib.rs`; type anchor `crates/oya-shared-email-comms-kernel/src/lib.rs::OutboundMessage`.
 
 ## Pod runtime tier (per ADR-0338)
 - `pod_runtime_tier: 0`
 - Runtime: Kata Containers plus Cloud Hypervisor are REQUIRED for this tenant-customer execution path.
 - Justification: this IP matched `workflow-studio`, so tenant-customer or third-party code can enter the execution path.
-- Surface evidence: `microservices/mail/IP-journey-j36-approval-notification-thread.md` plus `crates/oya-shared-email-comms-kernel/src/lib.rs`; type anchor `crates/oya-shared-email-comms-kernel/src/lib.rs::OutboundMessage`.
+- Surface evidence: `comms/mail/IP-journey-j36-approval-notification-thread.md` plus `crates/oya-shared-email-comms-kernel/src/lib.rs`; type anchor `crates/oya-shared-email-comms-kernel/src/lib.rs::OutboundMessage`.

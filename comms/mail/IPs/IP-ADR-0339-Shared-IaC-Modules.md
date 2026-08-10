@@ -15,7 +15,7 @@ lifecycle_rule: PROPOSED until the microservice wrappers invoke signed shared Op
 
 ## 1. Lifecycle, Boundary, And Stop Condition
 SCOPE-001: This IP binds `mail` to ADR-0339 shared IaC module doctrine without authoring Rust, changing crates, or applying infrastructure.
-SCOPE-002: Lifecycle state is PROPOSED for `mail` until the service-owned wrapper files under `microservices/mail/iac/<context>/main.tf` invoke signed cloud-iac modules and implementation evidence is reviewed.
+SCOPE-002: Lifecycle state is PROPOSED for `mail` until the service-owned wrapper files under `comms/mail/iac/<context>/main.tf` invoke signed cloud-iac modules and implementation evidence is reviewed.
 SCOPE-003: ACCEPTED status requires a later service implementation change, not this document-stage propagation.
 SCOPE-004: The only implementation authority created here is documentation intent plus manifest `iac_module_invocations` alignment for `mail`.
 SCOPE-005: The stop condition for this IP is a reviewable doctrine packet: IP present, manifest field populated, PRD adoption section appended, ARCH integration section appended, and ADR citations validated.
@@ -60,12 +60,12 @@ DOSSIER-CRATE-011: Existing crate `oya-mail-mailbox-store-usecase` remains untou
 DOSSIER-CRATE-012: Existing crate `oya-mail-outbound-smtp-adapter-smtp` remains untouched by this document-stage IP.
 DOSSIER-CRATE-013: Existing crate `oya-mail-retention-policy-worker` remains untouched by this document-stage IP.
 DOSSIER-CRATE-014: Existing crate `oya-mail-search-index-adapter-tantivy` remains untouched by this document-stage IP.
-DOSSIER-CONTRACT-001: OpenAPI 3.2.0: microservices/mail/contracts/openapi/mail.yaml.
-DOSSIER-CONTRACT-002: AsyncAPI 3.1.0: microservices/mail/contracts/asyncapi/mail-events.yaml.
-DOSSIER-CONTRACT-003: proto3: microservices/mail/contracts/proto/mail.proto.
-DOSSIER-CAPABILITY-001: T1 T0-suggest risk=minimal file=microservices/mail/capabilities/T0-suggest.yaml.
-DOSSIER-CAPABILITY-002: T1 T1-assist risk=minimal file=microservices/mail/capabilities/T1-assist.yaml.
-DOSSIER-CAPABILITY-003: T1 T2-auto risk=minimal file=microservices/mail/capabilities/T2-auto.yaml.
+DOSSIER-CONTRACT-001: OpenAPI 3.2.0: comms/mail/contracts/openapi/mail.yaml.
+DOSSIER-CONTRACT-002: AsyncAPI 3.1.0: comms/mail/contracts/asyncapi/mail-events.yaml.
+DOSSIER-CONTRACT-003: proto3: comms/mail/contracts/proto/mail.proto.
+DOSSIER-CAPABILITY-001: T1 T0-suggest risk=minimal file=comms/mail/capabilities/T0-suggest.yaml.
+DOSSIER-CAPABILITY-002: T1 T1-assist risk=minimal file=comms/mail/capabilities/T1-assist.yaml.
+DOSSIER-CAPABILITY-003: T1 T2-auto risk=minimal file=comms/mail/capabilities/T2-auto.yaml.
 
 ## 3. ADR-0339 Doctrine Binding
 ADR0339-001: Purpose binding: collapse 385 per-service from-scratch module directories into roughly 50 shared OpenTofu primitives plus thin wrappers.
@@ -287,9 +287,9 @@ LEADER-018: `mail` leader-scale posture keeps primitive selection explicit, revi
 
 ## 12. API And Contract Documentation Impact
 API-001: `mail` does not change REST, event, or proto payloads in this document-stage wave.
-API-002: OpenAPI 3.2.0 references for `mail` remain: OpenAPI 3.2.0: microservices/mail/contracts/openapi/mail.yaml
-API-003: AsyncAPI 3.1.0 references for `mail` remain: AsyncAPI 3.1.0: microservices/mail/contracts/asyncapi/mail-events.yaml
-API-004: proto3 references for `mail` remain: proto3: microservices/mail/contracts/proto/mail.proto
+API-002: OpenAPI 3.2.0 references for `mail` remain: OpenAPI 3.2.0: comms/mail/contracts/openapi/mail.yaml
+API-003: AsyncAPI 3.1.0 references for `mail` remain: AsyncAPI 3.1.0: comms/mail/contracts/asyncapi/mail-events.yaml
+API-004: proto3 references for `mail` remain: proto3: comms/mail/contracts/proto/mail.proto
 API-005: If a future wrapper migration exposes deployment preview APIs, the public boundary must carry ADR-0342 date-version carriers separately from module semantic versions.
 API-006: If a future wrapper migration changes async deployment events, the AsyncAPI channel must identify module context, primitive, version_pin, tenant_class_scope, and cell_id.
 API-007: If a future wrapper migration changes proto deployment receipts, proto3 reserved tags must prevent silent field reuse.
@@ -313,7 +313,7 @@ ALT-004: Delay `mail` manifest declaration until implementation; rejected becaus
 ALT-005: Allow unpinned local module paths during migration; rejected because the exact path would work locally while hiding supply-chain and reproducibility risk.
 
 ## 15. Acceptance And Verification
-VERIFY-001: Static read confirms this file exists at `microservices/mail/IPs/IP-ADR-0339-Shared-IaC-Modules.md`.
+VERIFY-001: Static read confirms this file exists at `comms/mail/IPs/IP-ADR-0339-Shared-IaC-Modules.md`.
 VERIFY-002: Static read confirms ADR-0339 is cited by exact ID.
 VERIFY-003: Static read confirms ADR-0322 is cited by exact ID.
 VERIFY-004: Static read confirms ADR-0181 is cited by exact ID.

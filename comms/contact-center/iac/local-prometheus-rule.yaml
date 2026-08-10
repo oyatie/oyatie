@@ -18,4 +18,4 @@ spec:
             service: contact-center
           annotations:
             summary: Contact Center call-drop-rate burn
-            runbook: microservices/contact-center/runbooks/local-call-drop-burn.md
+            runbook: comms/contact-center/runbooks/local-call-drop-burn.md

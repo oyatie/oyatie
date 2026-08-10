@@ -10,7 +10,7 @@ related_artifacts:
   - microservices/mail/failure-modes.md (FM-SP-01 false-positive surge, FM-SP-02 ML model drift)
   - microservices/mail/threat-model.md (T-D-03 spam-rule poisoning)
   - microservices/mail/contracts/asyncapi.yaml §"AbuseVerdict"
-  - microservices/mail/capabilities/T1-assist.yaml (smart classifier as T1)
+  - comms/mail/capabilities/T1-assist.yaml (smart classifier as T1)
   - ADR-0133 cross-tenant mail-server pattern
   - EU AI Act Annex III §3 (employment/HR communication classification — high-risk where applicable)
 doc_status: published
@@ -131,4 +131,4 @@ After completion:
 - CAN-SPAM Act 15 USC §7701 et seq (labeling does not bind classifiers)
 - `microservices/mail/failure-modes.md` FM-SP-01, FM-SP-02
 - `microservices/mail/threat-model.md` T-D-03, T-I-04
-- `microservices/mail/capabilities/T1-assist.yaml` (autonomy tier; classifier rationale)
+- `comms/mail/capabilities/T1-assist.yaml` (autonomy tier; classifier rationale)

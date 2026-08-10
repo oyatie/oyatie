@@ -51,34 +51,34 @@ journey_number: j44
 
 ## Intent
 
-Meet owns the `telemedicine-room` slice for `j44` as telemedicine room with PHI-aware captions, recording consent, and clinical handoff. This IP is limited to `microservices/meet/` implementation surfaces: meeting room lifecycle, participant admission, optional caption/recording behavior, and meet-side audit evidence. It does not move identity, workflow orchestration, durable recording custody, email, note, compliance, or audit-chain ownership into meet.
+Meet owns the `telemedicine-room` slice for `j44` as telemedicine room with PHI-aware captions, recording consent, and clinical handoff. This IP is limited to `comms/meet/` implementation surfaces: meeting room lifecycle, participant admission, optional caption/recording behavior, and meet-side audit evidence. It does not move identity, workflow orchestration, durable recording custody, email, note, compliance, or audit-chain ownership into meet.
 
 ## Meet service anchors
 
 | Existing path | Contract use |
 |---|---|
-| `microservices/meet/contracts/openapi/meet.yaml` | REST surface to extend for this journey role |
-| `microservices/meet/contracts/asyncapi/meet-events.yaml` | meet event and signaling surface |
-| `microservices/meet/contracts/proto/meet.proto` | internal client/RPC schema peer |
-| `microservices/meet/policy/meeting-scope.cedar` | Cedar role, lobby, recording, and E2E denial gates |
-| `microservices/meet/policy/tenant-scope.cedar` | tenant isolation deny/permit envelope |
+| `comms/meet/contracts/openapi/meet.yaml` | REST surface to extend for this journey role |
+| `comms/meet/contracts/asyncapi/meet-events.yaml` | meet event and signaling surface |
+| `comms/meet/contracts/proto/meet.proto` | internal client/RPC schema peer |
+| `comms/meet/policy/meeting-scope.cedar` | Cedar role, lobby, recording, and E2E denial gates |
+| `comms/meet/policy/tenant-scope.cedar` | tenant isolation deny/permit envelope |
 | `microservices/meet/policy/recording-consent.md` | recording consent policy source |
 | `microservices/meet/policy/data-residency.md` | pack residency source |
 | `microservices/meet/slos/participant-join-latency.openslo.yaml` | join latency validation target |
-| `microservices/meet/catalog/oya-meet-meeting-room-kernel.yaml` | crate/layer ownership record |
-| `microservices/meet/catalog/oya-meet-meeting-room-domain.yaml` | crate/layer ownership record |
-| `microservices/meet/catalog/oya-meet-meeting-room-rest.yaml` | crate/layer ownership record |
-| `microservices/meet/catalog/oya-meet-meeting-room-usecase.yaml` | crate/layer ownership record |
-| `microservices/meet/catalog/oya-meet-participant-kernel.yaml` | crate/layer ownership record |
-| `microservices/meet/catalog/oya-meet-participant-domain.yaml` | crate/layer ownership record |
-| `microservices/meet/catalog/oya-meet-participant-rest.yaml` | crate/layer ownership record |
-| `microservices/meet/catalog/oya-meet-participant-usecase.yaml` | crate/layer ownership record |
-| `microservices/meet/catalog/oya-meet-participant-adapter-valkey.yaml` | crate/layer ownership record |
-| `microservices/meet/catalog/oya-meet-recording-bridge-kernel.yaml` | crate/layer ownership record |
-| `microservices/meet/catalog/oya-meet-recording-bridge-adapter-ffmpeg.yaml` | crate/layer ownership record |
-| `microservices/meet/catalog/oya-meet-recording-bridge-adapter-s3.yaml` | crate/layer ownership record |
-| `microservices/meet/catalog/oya-meet-transcription-kernel.yaml` | crate/layer ownership record |
-| `microservices/meet/catalog/oya-meet-transcription-adapter-whisper.yaml` | crate/layer ownership record |
+| `comms/meet/catalog/oya-meet-meeting-room-kernel.yaml` | crate/layer ownership record |
+| `comms/meet/catalog/oya-meet-meeting-room-domain.yaml` | crate/layer ownership record |
+| `comms/meet/catalog/oya-meet-meeting-room-rest.yaml` | crate/layer ownership record |
+| `comms/meet/catalog/oya-meet-meeting-room-usecase.yaml` | crate/layer ownership record |
+| `comms/meet/catalog/oya-meet-participant-kernel.yaml` | crate/layer ownership record |
+| `comms/meet/catalog/oya-meet-participant-domain.yaml` | crate/layer ownership record |
+| `comms/meet/catalog/oya-meet-participant-rest.yaml` | crate/layer ownership record |
+| `comms/meet/catalog/oya-meet-participant-usecase.yaml` | crate/layer ownership record |
+| `comms/meet/catalog/oya-meet-participant-adapter-valkey.yaml` | crate/layer ownership record |
+| `comms/meet/catalog/oya-meet-recording-bridge-kernel.yaml` | crate/layer ownership record |
+| `comms/meet/catalog/oya-meet-recording-bridge-adapter-ffmpeg.yaml` | crate/layer ownership record |
+| `comms/meet/catalog/oya-meet-recording-bridge-adapter-s3.yaml` | crate/layer ownership record |
+| `comms/meet/catalog/oya-meet-transcription-kernel.yaml` | crate/layer ownership record |
+| `comms/meet/catalog/oya-meet-transcription-adapter-whisper.yaml` | crate/layer ownership record |
 
 ## Counterpart refs
 
@@ -96,8 +96,8 @@ Meet owns the `telemedicine-room` slice for `j44` as telemedicine room with PHI-
 | `microservices/notes/contracts/asyncapi/notes-events.yaml` | `notes` remains owner for its contract, policy, or PRD responsibility; meet only consumes or emits typed references. |
 | `microservices/notes/contracts/openapi/notes.yaml` | `notes` remains owner for its contract, policy, or PRD responsibility; meet only consumes or emits typed references. |
 | `microservices/notes/policy/dual-context-isolation.md` | `notes` remains owner for its contract, policy, or PRD responsibility; meet only consumes or emits typed references. |
-| `microservices/mail/contracts/asyncapi/mail-events.yaml` | `mail` remains owner for its contract, policy, or PRD responsibility; meet only consumes or emits typed references. |
-| `microservices/mail/contracts/openapi/mail.yaml` | `mail` remains owner for its contract, policy, or PRD responsibility; meet only consumes or emits typed references. |
+| `comms/mail/contracts/asyncapi/mail-events.yaml` | `mail` remains owner for its contract, policy, or PRD responsibility; meet only consumes or emits typed references. |
+| `comms/mail/contracts/openapi/mail.yaml` | `mail` remains owner for its contract, policy, or PRD responsibility; meet only consumes or emits typed references. |
 | `microservices/mail/policy/dual-context-isolation.md` | `mail` remains owner for its contract, policy, or PRD responsibility; meet only consumes or emits typed references. |
 | `microservices/drive/contracts/asyncapi/drive-events.yaml` | `drive` remains owner for its contract, policy, or PRD responsibility; meet only consumes or emits typed references. |
 | `microservices/drive/contracts/openapi/drive.yaml` | `drive` remains owner for its contract, policy, or PRD responsibility; meet only consumes or emits typed references. |
@@ -111,10 +111,10 @@ Meet owns the `telemedicine-room` slice for `j44` as telemedicine room with PHI-
 
 ## Contract delta
 
-- Extend `microservices/meet/contracts/openapi/meet.yaml` with a journey-scoped operation or schema field only if the base room, participant, recording, or transcript shape cannot already represent `telemedicine-room`.
-- Extend `microservices/meet/contracts/asyncapi/meet-events.yaml` with a signed meet event carrying `journey_id=j44`, `tenant_id`, `principal_id`, `room_id`, `instance_id`, `cedar_decision_id`, `idempotency_key`, and `audit_event_class`.
-- Keep `microservices/meet/contracts/proto/meet.proto` aligned with the OpenAPI and AsyncAPI fields; do not invent a per-journey proto file unless the shared contract cannot express the slice.
-- Use `microservices/meet/policy/meeting-scope.cedar` and `microservices/meet/policy/tenant-scope.cedar` for action-time authorization. Recording paths must also satisfy `microservices/meet/policy/recording-consent.md`; residency-sensitive rooms must satisfy `microservices/meet/policy/data-residency.md`.
+- Extend `comms/meet/contracts/openapi/meet.yaml` with a journey-scoped operation or schema field only if the base room, participant, recording, or transcript shape cannot already represent `telemedicine-room`.
+- Extend `comms/meet/contracts/asyncapi/meet-events.yaml` with a signed meet event carrying `journey_id=j44`, `tenant_id`, `principal_id`, `room_id`, `instance_id`, `cedar_decision_id`, `idempotency_key`, and `audit_event_class`.
+- Keep `comms/meet/contracts/proto/meet.proto` aligned with the OpenAPI and AsyncAPI fields; do not invent a per-journey proto file unless the shared contract cannot express the slice.
+- Use `comms/meet/policy/meeting-scope.cedar` and `comms/meet/policy/tenant-scope.cedar` for action-time authorization. Recording paths must also satisfy `microservices/meet/policy/recording-consent.md`; residency-sensitive rooms must satisfy `microservices/meet/policy/data-residency.md`.
 
 ## Implementation substance
 
@@ -128,14 +128,14 @@ Meet owns the `telemedicine-room` slice for `j44` as telemedicine room with PHI-
 
 - Positive path proves a Cedar-allowed principal can create or join the `telemedicine-room` room with `tenant_id`, `principal_id`, `journey_id`, `room_id`, `instance_id`, and `idempotency_key` present.
 - Negative path proves cross-tenant, missing-consent, wrong-audience, and replayed-idempotency requests fail closed before media token issuance.
-- Contract validation covers `microservices/meet/contracts/openapi/meet.yaml`, `microservices/meet/contracts/asyncapi/meet-events.yaml`, and `microservices/meet/contracts/proto/meet.proto` when changed.
-- Policy validation covers `microservices/meet/policy/meeting-scope.cedar` plus the relevant tenant, recording-consent, and residency policy documents.
+- Contract validation covers `comms/meet/contracts/openapi/meet.yaml`, `comms/meet/contracts/asyncapi/meet-events.yaml`, and `comms/meet/contracts/proto/meet.proto` when changed.
+- Policy validation covers `comms/meet/policy/meeting-scope.cedar` plus the relevant tenant, recording-consent, and residency policy documents.
 - Counterpart checks verify referenced services remain external refs only and every cited path in this IP exists.
 
 ## Verification commands
 
 ```bash
-rg -n "j44|telemedicine-room" microservices/meet/contracts microservices/meet/policy microservices/meet/catalog
+rg -n "j44|telemedicine-room" comms/meet/contracts comms/meet/policy comms/meet/catalog
 rg -n "microservices/(workflow-engine|calendar|identity|audit-chain|recordings|mail|notes|forms|drive|translate|compliance)/" microservices/meet/IP-journey-j44*.md
 wc -l microservices/meet/IP-journey-j44*.md
 ```

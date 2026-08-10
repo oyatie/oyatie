@@ -10,7 +10,7 @@ doc_status: published
 
 This directory holds ADRs that govern the `messenger` µservice exclusively, per the per-microservice flat layout in ADR-0131. Cross-cutting ADRs that govern multiple µservices remain at `docs/decisions/` at the repo root.
 
-Each ADR closes one Open Question (or derived gap) surfaced in `microservices/messenger/PRD.md`, in `microservices/messenger/PHASE-01-TEAM-CHANNELS-DM-THREADS.md`, or in a policy / runbook / threat-model artifact under `microservices/messenger/`.
+Each ADR closes one Open Question (or derived gap) surfaced in `microservices/messenger/PRD.md`, in `microservices/messenger/PHASE-01-TEAM-CHANNELS-DM-THREADS.md`, or in a policy / runbook / threat-model artifact under `comms/messenger/`.
 
 ## Index
 

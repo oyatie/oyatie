@@ -12,7 +12,7 @@ Binding authorities: docs/standards/documentation-rigor.md sections 1.1, 1.2, 2,
 Contact Center adopts the ADR-0330 tenant_class model. The service is available to `demo_trial` and `paid` tenants with a uniform capability surface; demo_trial tenants are constrained by time and usage caps, while paid tenants emit `billing_components` for `per_seat` active-agent billing and `per_usage` call-minute plus recording-storage billing.
 
 ## Scope and non-goals
-The contact-center entrypoint surface is owned inside microservices/contact-center/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
+The contact-center entrypoint surface is owned inside comms/contact-center/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
 The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, and Cedar v4.2 LTS default-deny fragments.
 - scope-and-non-goals 001: Contact Center binds voice-route to tenant_id, principal_id, audience_type=CONTACT_CENTER_AGENT, data_class=call_session, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Genesys Cloud plus Twilio Flex.
 - scope-and-non-goals 002: Contact Center binds recording-consent to tenant_id, principal_id, audience_type=CONTACT_CENTER_AGENT, data_class=agent_state, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Twilio Flex plus Zendesk Talk.
@@ -24,7 +24,7 @@ The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, Asyn
 - scope-and-non-goals 008: Contact Center binds recording-consent to tenant_id, principal_id, audience_type=CONTACT_CENTER_AGENT, data_class=queue_metric, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Five9 plus Genesys Cloud.
 
 ## Principals and tenant scope
-The contact-center entrypoint surface is owned inside microservices/contact-center/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
+The contact-center entrypoint surface is owned inside comms/contact-center/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
 The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, and Cedar v4.2 LTS default-deny fragments.
 - principals-and-tenant-scope 001: Contact Center binds voice-route to tenant_id, principal_id, audience_type=CONTACT_CENTER_AGENT, data_class=call_session, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Genesys Cloud plus Twilio Flex.
 - principals-and-tenant-scope 002: Contact Center binds recording-consent to tenant_id, principal_id, audience_type=CONTACT_CENTER_AGENT, data_class=agent_state, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Twilio Flex plus Zendesk Talk.
@@ -36,7 +36,7 @@ The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, Asyn
 - principals-and-tenant-scope 008: Contact Center binds recording-consent to tenant_id, principal_id, audience_type=CONTACT_CENTER_AGENT, data_class=queue_metric, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Five9 plus Genesys Cloud.
 
 ## Cedar gates and default deny
-The contact-center entrypoint surface is owned inside microservices/contact-center/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
+The contact-center entrypoint surface is owned inside comms/contact-center/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
 The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, and Cedar v4.2 LTS default-deny fragments.
 - cedar-gates-and-default-deny 001: Contact Center binds voice-route to tenant_id, principal_id, audience_type=CONTACT_CENTER_AGENT, data_class=call_session, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Genesys Cloud plus Twilio Flex.
 - cedar-gates-and-default-deny 002: Contact Center binds recording-consent to tenant_id, principal_id, audience_type=CONTACT_CENTER_AGENT, data_class=agent_state, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Twilio Flex plus Zendesk Talk.
@@ -48,7 +48,7 @@ The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, Asyn
 - cedar-gates-and-default-deny 008: Contact Center binds recording-consent to tenant_id, principal_id, audience_type=CONTACT_CENTER_AGENT, data_class=queue_metric, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Five9 plus Genesys Cloud.
 
 ## Data model and ontology projection
-The contact-center entrypoint surface is owned inside microservices/contact-center/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
+The contact-center entrypoint surface is owned inside comms/contact-center/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
 The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, and Cedar v4.2 LTS default-deny fragments.
 - data-model-and-ontology-projection 001: Contact Center binds voice-route to tenant_id, principal_id, audience_type=CONTACT_CENTER_AGENT, data_class=call_session, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Genesys Cloud plus Twilio Flex.
 - data-model-and-ontology-projection 002: Contact Center binds recording-consent to tenant_id, principal_id, audience_type=CONTACT_CENTER_AGENT, data_class=agent_state, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Twilio Flex plus Zendesk Talk.
@@ -60,7 +60,7 @@ The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, Asyn
 - data-model-and-ontology-projection 008: Contact Center binds recording-consent to tenant_id, principal_id, audience_type=CONTACT_CENTER_AGENT, data_class=queue_metric, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Five9 plus Genesys Cloud.
 
 ## Workflow and replay semantics
-The contact-center entrypoint surface is owned inside microservices/contact-center/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
+The contact-center entrypoint surface is owned inside comms/contact-center/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
 The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, and Cedar v4.2 LTS default-deny fragments.
 - workflow-and-replay-semantics 001: Contact Center binds voice-route to tenant_id, principal_id, audience_type=CONTACT_CENTER_AGENT, data_class=call_session, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Genesys Cloud plus Twilio Flex.
 - workflow-and-replay-semantics 002: Contact Center binds recording-consent to tenant_id, principal_id, audience_type=CONTACT_CENTER_AGENT, data_class=agent_state, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Twilio Flex plus Zendesk Talk.
@@ -72,7 +72,7 @@ The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, Asyn
 - workflow-and-replay-semantics 008: Contact Center binds recording-consent to tenant_id, principal_id, audience_type=CONTACT_CENTER_AGENT, data_class=queue_metric, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Five9 plus Genesys Cloud.
 
 ## Contracts and versioning
-The contact-center entrypoint surface is owned inside microservices/contact-center/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
+The contact-center entrypoint surface is owned inside comms/contact-center/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
 The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, and Cedar v4.2 LTS default-deny fragments.
 - contracts-and-versioning 001: Contact Center binds voice-route to tenant_id, principal_id, audience_type=CONTACT_CENTER_AGENT, data_class=call_session, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Genesys Cloud plus Twilio Flex.
 - contracts-and-versioning 002: Contact Center binds recording-consent to tenant_id, principal_id, audience_type=CONTACT_CENTER_AGENT, data_class=agent_state, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Twilio Flex plus Zendesk Talk.
@@ -84,7 +84,7 @@ The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, Asyn
 - contracts-and-versioning 008: Contact Center binds recording-consent to tenant_id, principal_id, audience_type=CONTACT_CENTER_AGENT, data_class=queue_metric, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Five9 plus Genesys Cloud.
 
 ## Transport and cryptography
-The contact-center entrypoint surface is owned inside microservices/contact-center/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
+The contact-center entrypoint surface is owned inside comms/contact-center/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
 The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, and Cedar v4.2 LTS default-deny fragments.
 - transport-and-cryptography 001: Contact Center binds voice-route to tenant_id, principal_id, audience_type=CONTACT_CENTER_AGENT, data_class=call_session, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Genesys Cloud plus Twilio Flex.
 - transport-and-cryptography 002: Contact Center binds recording-consent to tenant_id, principal_id, audience_type=CONTACT_CENTER_AGENT, data_class=agent_state, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Twilio Flex plus Zendesk Talk.
@@ -96,7 +96,7 @@ The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, Asyn
 - transport-and-cryptography 008: Contact Center binds recording-consent to tenant_id, principal_id, audience_type=CONTACT_CENTER_AGENT, data_class=queue_metric, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Five9 plus Genesys Cloud.
 
 ## Abuse defence and emergency bypass
-The contact-center entrypoint surface is owned inside microservices/contact-center/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
+The contact-center entrypoint surface is owned inside comms/contact-center/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
 The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, and Cedar v4.2 LTS default-deny fragments.
 - abuse-defence-and-emergency-bypass 001: Contact Center binds voice-route to tenant_id, principal_id, audience_type=CONTACT_CENTER_AGENT, data_class=call_session, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Genesys Cloud plus Twilio Flex.
 - abuse-defence-and-emergency-bypass 002: Contact Center binds recording-consent to tenant_id, principal_id, audience_type=CONTACT_CENTER_AGENT, data_class=agent_state, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Twilio Flex plus Zendesk Talk.
@@ -108,7 +108,7 @@ The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, Asyn
 - abuse-defence-and-emergency-bypass 008: Contact Center binds recording-consent to tenant_id, principal_id, audience_type=CONTACT_CENTER_AGENT, data_class=queue_metric, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Five9 plus Genesys Cloud.
 
 ## Marketplace settlement binding
-The contact-center entrypoint surface is owned inside microservices/contact-center/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
+The contact-center entrypoint surface is owned inside comms/contact-center/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
 The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, and Cedar v4.2 LTS default-deny fragments.
 - marketplace-settlement-binding 001: Contact Center binds voice-route to tenant_id, principal_id, audience_type=CONTACT_CENTER_AGENT, data_class=call_session, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Genesys Cloud plus Twilio Flex.
 - marketplace-settlement-binding 002: Contact Center binds recording-consent to tenant_id, principal_id, audience_type=CONTACT_CENTER_AGENT, data_class=agent_state, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Twilio Flex plus Zendesk Talk.
@@ -120,7 +120,7 @@ The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, Asyn
 - marketplace-settlement-binding 008: Contact Center binds recording-consent to tenant_id, principal_id, audience_type=CONTACT_CENTER_AGENT, data_class=queue_metric, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Five9 plus Genesys Cloud.
 
 ## Observability and audit events
-The contact-center entrypoint surface is owned inside microservices/contact-center/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
+The contact-center entrypoint surface is owned inside comms/contact-center/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
 The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, and Cedar v4.2 LTS default-deny fragments.
 - observability-and-audit-events 001: Contact Center binds voice-route to tenant_id, principal_id, audience_type=CONTACT_CENTER_AGENT, data_class=call_session, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Genesys Cloud plus Twilio Flex.
 - observability-and-audit-events 002: Contact Center binds recording-consent to tenant_id, principal_id, audience_type=CONTACT_CENTER_AGENT, data_class=agent_state, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Twilio Flex plus Zendesk Talk.
@@ -132,7 +132,7 @@ The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, Asyn
 - observability-and-audit-events 008: Contact Center binds recording-consent to tenant_id, principal_id, audience_type=CONTACT_CENTER_AGENT, data_class=queue_metric, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Five9 plus Genesys Cloud.
 
 ## Capacity and cost controls
-The contact-center entrypoint surface is owned inside microservices/contact-center/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
+The contact-center entrypoint surface is owned inside comms/contact-center/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
 The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, and Cedar v4.2 LTS default-deny fragments.
 - capacity-and-cost-controls 001: Contact Center binds voice-route to tenant_id, principal_id, audience_type=CONTACT_CENTER_AGENT, data_class=call_session, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Genesys Cloud plus Twilio Flex.
 - capacity-and-cost-controls 002: Contact Center binds recording-consent to tenant_id, principal_id, audience_type=CONTACT_CENTER_AGENT, data_class=agent_state, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Twilio Flex plus Zendesk Talk.
@@ -144,7 +144,7 @@ The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, Asyn
 - capacity-and-cost-controls 008: Contact Center binds recording-consent to tenant_id, principal_id, audience_type=CONTACT_CENTER_AGENT, data_class=queue_metric, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Five9 plus Genesys Cloud.
 
 ## Failure modes and rollback
-The contact-center entrypoint surface is owned inside microservices/contact-center/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
+The contact-center entrypoint surface is owned inside comms/contact-center/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
 The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, and Cedar v4.2 LTS default-deny fragments.
 - failure-modes-and-rollback 001: Contact Center binds voice-route to tenant_id, principal_id, audience_type=CONTACT_CENTER_AGENT, data_class=call_session, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Genesys Cloud plus Twilio Flex.
 - failure-modes-and-rollback 002: Contact Center binds recording-consent to tenant_id, principal_id, audience_type=CONTACT_CENTER_AGENT, data_class=agent_state, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Twilio Flex plus Zendesk Talk.
@@ -156,7 +156,7 @@ The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, Asyn
 - failure-modes-and-rollback 008: Contact Center binds recording-consent to tenant_id, principal_id, audience_type=CONTACT_CENTER_AGENT, data_class=queue_metric, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Five9 plus Genesys Cloud.
 
 ## Regional packs and residency
-The contact-center entrypoint surface is owned inside microservices/contact-center/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
+The contact-center entrypoint surface is owned inside comms/contact-center/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
 The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, and Cedar v4.2 LTS default-deny fragments.
 - regional-packs-and-residency 001: Contact Center binds voice-route to tenant_id, principal_id, audience_type=CONTACT_CENTER_AGENT, data_class=call_session, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Genesys Cloud plus Twilio Flex.
 - regional-packs-and-residency 002: Contact Center binds recording-consent to tenant_id, principal_id, audience_type=CONTACT_CENTER_AGENT, data_class=agent_state, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Twilio Flex plus Zendesk Talk.
@@ -168,7 +168,7 @@ The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, Asyn
 - regional-packs-and-residency 008: Contact Center binds recording-consent to tenant_id, principal_id, audience_type=CONTACT_CENTER_AGENT, data_class=queue_metric, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Five9 plus Genesys Cloud.
 
 ## Acceptance evidence
-The contact-center entrypoint surface is owned inside microservices/contact-center/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
+The contact-center entrypoint surface is owned inside comms/contact-center/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
 The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, and Cedar v4.2 LTS default-deny fragments.
 - acceptance-evidence 001: Contact Center binds voice-route to tenant_id, principal_id, audience_type=CONTACT_CENTER_AGENT, data_class=call_session, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Genesys Cloud plus Twilio Flex.
 - acceptance-evidence 002: Contact Center binds recording-consent to tenant_id, principal_id, audience_type=CONTACT_CENTER_AGENT, data_class=agent_state, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Twilio Flex plus Zendesk Talk.

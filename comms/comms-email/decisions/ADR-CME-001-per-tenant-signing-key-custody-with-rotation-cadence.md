@@ -258,5 +258,5 @@ decision_owner: axis-comms-email
 - ADR-0243 Cedar-as-universal-gate.
 - ADR-0263 observability-emission-contract.
 - microservices/comms-email/PRD.md.
-- microservices/comms-email/runbooks/dkim-key-rotation.md.
-- microservices/comms-email/runbooks/reputation-drop-circuit-breaker-engaged.md.
+- comms/comms-email/runbooks/dkim-key-rotation.md.
+- comms/comms-email/runbooks/reputation-drop-circuit-breaker-engaged.md.

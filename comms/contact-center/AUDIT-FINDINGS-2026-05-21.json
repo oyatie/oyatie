@@ -7,7 +7,7 @@
     {
       "id": "contact-center-doc-set-001",
       "status": "closed-by-additive-artifacts",
-      "evidence": "microservices/contact-center/",
+      "evidence": "comms/contact-center/",
       "target_artifacts": 100
     },
     {

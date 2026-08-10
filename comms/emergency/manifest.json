@@ -303,8 +303,8 @@
   "pod_runtime_tier_surface_evidence": [
     "microservices/emergency/PRD.md",
     "microservices/emergency/ARCHITECTURE.md",
-    "microservices/emergency/manifest.json",
-    "microservices/emergency/contracts/openapi.yaml"
+    "comms/emergency/manifest.json",
+    "comms/emergency/contracts/openapi.yaml"
   ],
   "tenant_version_pinning": {
     "declared_versions": [

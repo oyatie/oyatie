@@ -138,7 +138,7 @@
           "hits_total": 1
         },
         {
-          "file": "microservices/meet/contracts/openapi/meet.yaml",
+          "file": "comms/meet/contracts/openapi/meet.yaml",
           "hits": [
             {
               "line": 645,

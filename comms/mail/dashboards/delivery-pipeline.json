@@ -5,12 +5,12 @@
     "microservice": "mail",
     "owner_team": "axis-mail + ops-deliverability",
     "related_artifacts": [
-      "microservices/mail/contracts/openapi/mail.yaml",
-      "microservices/mail/contracts/asyncapi/mail-events.yaml",
+      "comms/mail/contracts/openapi/mail.yaml",
+      "comms/mail/contracts/asyncapi/mail-events.yaml",
       "microservices/mail/slos/outbound-delivery-latency.openslo.yaml",
       "microservices/mail/slos/inbound-receive-availability.openslo.yaml",
-      "microservices/mail/runbooks/smtp-queue-backup.md",
-      "microservices/mail/runbooks/dkim-key-rotation.md"
+      "comms/mail/runbooks/smtp-queue-backup.md",
+      "comms/mail/runbooks/dkim-key-rotation.md"
     ],
     "audience": "tenant operators + ops-deliverability",
     "tenant_scoped": true,

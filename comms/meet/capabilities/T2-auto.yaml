@@ -23,7 +23,7 @@ created_at: 2026-05-17
 related_adrs: [ADR-0022, ADR-0135, ADR-0131, ADR-0133, ADR-MEET-0002, ADR-MEET-0006]
 related_artifacts:
   - microservices/meet/PRD.md
-  - microservices/meet/policy/meeting-scope.cedar
+  - comms/meet/policy/meeting-scope.cedar
 
 autonomy_tier: T2
 # T2 = autonomous classification + side-effects bounded to user-reversible
@@ -92,8 +92,8 @@ cost_profile:
     - Translation inference (when invoked)
 
 cedar_policy_fragments:
-  - microservices/meet/policy/meeting-scope.cedar
-  - microservices/meet/policy/tenant-scope.cedar
+  - comms/meet/policy/meeting-scope.cedar
+  - comms/meet/policy/tenant-scope.cedar
 
 eval_set:
   baseline_inputs_path: microservices/meet/capabilities/eval/t2-auto-baseline.jsonl

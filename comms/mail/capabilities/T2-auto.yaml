@@ -209,7 +209,7 @@ references:
   - PCI DSS v4.0 Req. 3 + 4
   - microservices/mail/policy/dual-context-isolation.md Invariants DCI-04, DCI-06
   - microservices/mail/dpia.md R-04, R-06, R-08
-  - microservices/mail/runbooks/dlp-quarantine-release.md
-  - microservices/mail/runbooks/spam-rule-rollback.md
-  - microservices/mail/runbooks/mailbox-restore-from-backup.md
-  - microservices/mail/runbooks/smtp-queue-backup.md
+  - comms/mail/runbooks/dlp-quarantine-release.md
+  - comms/mail/runbooks/spam-rule-rollback.md
+  - comms/mail/runbooks/mailbox-restore-from-backup.md
+  - comms/mail/runbooks/smtp-queue-backup.md

@@ -329,8 +329,8 @@
   "pod_runtime_tier_surface_evidence": [
     "microservices/comms-email/PRD.md",
     "microservices/comms-email/IP-005-dkim-key-rotation-pipeline.md",
-    "microservices/comms-email/runbooks/dkim-key-rotation.md",
-    "microservices/comms-email/iac/openbao-policy.hcl"
+    "comms/comms-email/runbooks/dkim-key-rotation.md",
+    "comms/comms-email/iac/openbao-policy.hcl"
   ],
   "tenant_version_pinning": {
     "declared_versions": [
@@ -343,10 +343,10 @@
     "deprecation_calendar": [],
     "public_surface_files": {
       "openapi": {
-        "2026-05-21": "microservices/comms-email/contracts/openapi.yaml"
+        "2026-05-21": "comms/comms-email/contracts/openapi.yaml"
       },
       "asyncapi": {
-        "2026-05-21": "microservices/comms-email/contracts/asyncapi.yaml"
+        "2026-05-21": "comms/comms-email/contracts/asyncapi.yaml"
       }
     }
   },

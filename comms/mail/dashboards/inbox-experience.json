@@ -8,7 +8,7 @@
       "microservices/mail/slos/inbox-open-latency.openslo.yaml",
       "microservices/mail/slos/thread-render-latency.openslo.yaml",
       "microservices/mail/slos/search-latency.openslo.yaml",
-      "microservices/mail/contracts/openapi/mail.yaml"
+      "comms/mail/contracts/openapi/mail.yaml"
     ],
     "audience": "tenant operators + axis-mail oncall",
     "tenant_scoped": true,

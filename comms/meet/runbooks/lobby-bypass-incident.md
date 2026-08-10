@@ -10,8 +10,8 @@ last_drill_date: 2026-05-17
 related_artifacts:
   - microservices/meet/failure-modes.md (FM-05)
   - microservices/meet/threat-model.md (T-I-04)
-  - microservices/meet/policy/meeting-scope.cedar
-  - microservices/meet/dashboards/recording-pipeline.json
+  - comms/meet/policy/meeting-scope.cedar
+  - comms/meet/dashboards/recording-pipeline.json
 doc_status: published
 ---
 
@@ -106,7 +106,7 @@ CommsLead drafts notification text from `legal/breach-notification-templates.md`
 ## References
 
 - ADR-MEET-0003 (E2E meetings have different lobby semantics).
-- `microservices/meet/policy/meeting-scope.cedar`.
+- `comms/meet/policy/meeting-scope.cedar`.
 - `microservices/meet/threat-model.md` T-I-04, T-E-05.
 - GDPR Art. 33/34; KR PIPA Art. 34; HIPAA §164.412; SEC Rule 17a-4; FINRA 4530.
 - NIST SP 800-61 Incident Handling Guide.

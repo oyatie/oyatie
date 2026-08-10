@@ -3,7 +3,7 @@ doc_class: Runbook
 status: Accepted
 date: 2026-05-20
 related_adrs: [ADR-0243, ADR-0297]
-companion_docs: [microservices/mail/policy/anti-phishing.cedar]
+companion_docs: [comms/mail/policy/anti-phishing.cedar]
 inbound_citations: [microservices/mail/ARCHITECTURE.md]
 ---
 
