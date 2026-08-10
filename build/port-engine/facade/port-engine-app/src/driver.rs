@@ -1,13 +1,13 @@
 //! Facade driver wiring: composes kernel entry points with W0-B adapters.
 //!
-//! Slice 12 hardens receipts (golden + deterministic re-run) and exposes render/verify/delta.
-//! No bulk `k8s/` emission. Cell remap remains PARKED.
+//! Slice 13 wires single-fixture canary emit (no bulk `k8s/`). Cell remap remains PARKED.
 
 use std::collections::BTreeMap;
 
 use port_engine_api::{
     Digest, Receipt, RegionId, RulePack, SourceModel, TargetIr, UnitId, w0_ready as api_ready,
 };
+use port_engine_emit::{emit_canary_checked, CanaryArtifact, EmitError, w0_ready as emit_ready};
 use port_engine_frontend_go::w0_ready as frontend_ready;
 use port_engine_hash::{digest_str, w0_ready as hash_ready};
 use port_engine_identity::{engine_digest, w0_ready as identity_ready};
@@ -22,7 +22,7 @@ use port_engine_transform::{apply, TransformError, w0_ready as transform_ready};
 
 use crate::receipt_codec::{emit_tree_digest, format_receipt, matches_golden};
 
-/// Slice 12 readiness: prior adapters + receipt hardening surface.
+/// Slice 13 readiness: prior adapters + canary emit seam.
 pub const fn w0_ready() -> bool {
     api_ready()
         && port_engine_source_pin::w0_ready()
@@ -34,6 +34,7 @@ pub const fn w0_ready() -> bool {
         && identity_ready()
         && toolchain_ready()
         && transform_ready()
+        && emit_ready()
 }
 
 /// Load the fleet upstream pin (adapter boundary).
@@ -149,6 +150,8 @@ pub enum PipelineError {
     Transform(TransformError),
     /// Syn/quote emit refused.
     Emit(port_engine_api::PortError),
+    /// Canary single-fixture emit refused.
+    Canary(EmitError),
 }
 
 impl std::fmt::Display for PipelineError {
@@ -160,6 +163,7 @@ impl std::fmt::Display for PipelineError {
             Self::Plan(err) => write!(f, "pipeline plan: {err}"),
             Self::Transform(err) => write!(f, "pipeline transform: {err}"),
             Self::Emit(err) => write!(f, "pipeline emit: {err}"),
+            Self::Canary(err) => write!(f, "pipeline canary: {err}"),
         }
     }
 }
@@ -281,6 +285,15 @@ pub fn smoke_receipt_golden() -> Result<String, PipelineError> {
     Ok(text)
 }
 
+/// Select the single canary region from a pipeline emit tree and check its golden.
+///
+/// # Errors
+/// [`PipelineError`] on pipeline or canary emit refusal.
+pub fn smoke_emit_canary() -> Result<CanaryArtifact, PipelineError> {
+    let report = smoke_pipeline()?;
+    emit_canary_checked(&report.emitted).map_err(PipelineError::Canary)
+}
+
 /// Typed refusal from the Slice 7 plan smoke.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum PlanSmokeError {
@@ -325,9 +338,9 @@ pub use port_engine_kernel::{emit, plan, verify, Verdict};
 
 /// Adapter readiness snapshot for diagnostics.
 ///
-/// Order: `(pin, rust_ir, frontend, hash, rulepack, snapshot, identity, toolchain, transform)`.
+/// Order: `(pin, rust_ir, frontend, hash, rulepack, snapshot, identity, toolchain, transform, emit)`.
 #[must_use]
-pub fn adapter_readiness() -> (bool, bool, bool, bool, bool, bool, bool, bool, bool) {
+pub fn adapter_readiness() -> (bool, bool, bool, bool, bool, bool, bool, bool, bool, bool) {
     (
         port_engine_source_pin::w0_ready(),
         port_engine_rust_ir::w0_ready(),
@@ -338,6 +351,7 @@ pub fn adapter_readiness() -> (bool, bool, bool, bool, bool, bool, bool, bool, b
         identity_ready(),
         toolchain_ready(),
         transform_ready(),
+        emit_ready(),
     )
 }
 
@@ -346,7 +360,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn slice12_driver_wiring_is_ready() {
+    fn slice13_driver_wiring_is_ready() {
         assert!(w0_ready());
         fleet_pin().expect("fleet pin must load");
         smoke_render_stub().expect("empty renderer stub must emit");
@@ -383,10 +397,30 @@ mod tests {
         assert_eq!(render_digest, report.emit_digest);
         let verification = smoke_delta().expect("delta re-run");
         assert_eq!(verification.verdict, port_engine_kernel::Verdict::Green);
-        let (_pin, rust_ir, frontend, hash, rulepack, snapshot, identity, toolchain, transform) =
-            adapter_readiness();
+        let canary = smoke_emit_canary().expect("canary emit");
+        assert!(canary.region.0.ends_with("__canary_empty_unit"));
+        let (
+            _pin,
+            rust_ir,
+            frontend,
+            hash,
+            rulepack,
+            snapshot,
+            identity,
+            toolchain,
+            transform,
+            emit,
+        ) = adapter_readiness();
         assert!(
-            rust_ir && frontend && hash && rulepack && snapshot && identity && toolchain && transform
+            rust_ir
+                && frontend
+                && hash
+                && rulepack
+                && snapshot
+                && identity
+                && toolchain
+                && transform
+                && emit
         );
     }
 }

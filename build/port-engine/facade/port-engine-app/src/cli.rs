@@ -1,4 +1,4 @@
-//! Hand-rolled CLI for `port-engine-app` (W0-B Slice 12).
+//! Hand-rolled CLI for `port-engine-app` (W0-B Slice 13).
 //!
 //! Bridge feedback only — never merge authority (CLI surfaces are retirement-marked). No clap /
 //! argv crate: keep the facade free of new lock-forcing deps.
@@ -10,7 +10,7 @@ use crate::receipt_codec;
 use crate::receipt_e2e;
 
 const USAGE: &str = "\
-port-engine-app — owned deterministic port-engine driver (W0-B Slice 12)
+port-engine-app — owned deterministic port-engine driver (W0-B Slice 13)
 
 Usage:
   port-engine-app <command> [args]
@@ -21,6 +21,7 @@ Commands:
   pin               Print fleet upstream pin (peeled commit)
   emit-stub         Smoke empty-renderer emit via kernel
   emit-syn          Smoke syn/quote typed emit
+  emit-canary       Select single canary region; fail closed vs golden
   digest <text>     SHA-256 digest of UTF-8 text (Slice 7 hash adapter)
   rulepack          Load fixture-gated rulepack v0; print digest + fixture count
   plan              Plan embedded rulepack against example units
@@ -51,6 +52,7 @@ pub fn run(args: &[String]) -> ExitCode {
         "pin" => cmd_pin(),
         "emit-stub" => cmd_emit_stub(),
         "emit-syn" => cmd_emit_syn(),
+        "emit-canary" => cmd_emit_canary(),
         "digest" => cmd_digest(args.get(1).map(String::as_str)),
         "rulepack" => cmd_rulepack(),
         "plan" => cmd_plan(),
@@ -76,10 +78,20 @@ fn cmd_ready() -> ExitCode {
         eprintln!("port-engine-app: driver not ready");
         return ExitCode::from(1);
     }
-    let (pin, rust_ir, frontend, hash, rulepack, snapshot, identity, toolchain, transform) =
-        driver::adapter_readiness();
+    let (
+        pin,
+        rust_ir,
+        frontend,
+        hash,
+        rulepack,
+        snapshot,
+        identity,
+        toolchain,
+        transform,
+        emit,
+    ) = driver::adapter_readiness();
     println!(
-        "ready=true pin={pin} rust_ir={rust_ir} frontend_go={frontend} hash={hash} rulepack={rulepack} snapshot={snapshot} identity={identity} toolchain={toolchain} transform={transform}"
+        "ready=true pin={pin} rust_ir={rust_ir} frontend_go={frontend} hash={hash} rulepack={rulepack} snapshot={snapshot} identity={identity} toolchain={toolchain} transform={transform} emit={emit}"
     );
     ExitCode::SUCCESS
 }
@@ -118,6 +130,24 @@ fn cmd_emit_syn() -> ExitCode {
         }
         Err(err) => {
             eprintln!("port-engine-app: emit-syn failed: {err}");
+            ExitCode::from(1)
+        }
+    }
+}
+
+fn cmd_emit_canary() -> ExitCode {
+    match driver::smoke_emit_canary() {
+        Ok(art) => {
+            println!(
+                "emit-canary=ok region={} digest={} bytes={}",
+                art.region.0,
+                art.digest.0,
+                art.bytes.len()
+            );
+            ExitCode::SUCCESS
+        }
+        Err(err) => {
+            eprintln!("port-engine-app: emit-canary failed: {err}");
             ExitCode::from(1)
         }
     }
@@ -300,7 +330,7 @@ mod tests {
     }
 
     #[test]
-    fn slice12_commands_succeed() {
+    fn slice13_commands_succeed() {
         assert_eq!(run(&args(&["digest", "port-engine"])), ExitCode::SUCCESS);
         assert_eq!(run(&args(&["rulepack"])), ExitCode::SUCCESS);
         assert_eq!(run(&args(&["plan"])), ExitCode::SUCCESS);
@@ -314,6 +344,7 @@ mod tests {
         assert_eq!(run(&args(&["delta"])), ExitCode::SUCCESS);
         assert_eq!(run(&args(&["verify"])), ExitCode::SUCCESS);
         assert_eq!(run(&args(&["verify-e2e"])), ExitCode::SUCCESS);
+        assert_eq!(run(&args(&["emit-canary"])), ExitCode::SUCCESS);
     }
 
     #[test]

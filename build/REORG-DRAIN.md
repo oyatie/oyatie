@@ -25,6 +25,9 @@
   facade `transform` + pipeline pin→admit→plan→transform→emit→receipt.
 - W0-B Slice 12: receipt hardening — golden receipt, byte-identical re-run (`delta`/`verify`),
   `render` entrypoint; **no** bulk `k8s/` corpus emission (W0-B / out-of-envelope).
+- W0-B Slice 13: `port-engine-emit` single-fixture canary seam — select one
+  `__canary_empty_unit` region, golden compare, optional materialize under basename
+  `port-engine-canary-out` only; facade `emit-canary`. Refuses `k8s/` / bulk emit.
 - Toolchains dual-home: `build/toolchains/**` byte-copies `toolchains/BUCK` +
   `toolchains/cache/{BUCK,OWNERS,defs.bzl}` (4 files). Live buck cell remains
   `toolchains = toolchains` in `.buckconfig` until remap+shrink. Slice 9 mirrors those bytes
