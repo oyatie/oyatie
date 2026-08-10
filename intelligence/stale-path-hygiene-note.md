@@ -37,3 +37,17 @@ Retargeted verified:
 - Detection IP scope stems without file homes; missing historical assets; cross-cap cites.
 - No hubs, no `Cargo.lock`, no merge.
 
+
+## Seat A events tranche (2026-08-10)
+
+Nearest envelope for noun **events** (no `integ/events` rail) = `integ/intelligence` (eventsink adapters + detection). Messaging remains the S0 event-bus substrate (`integ/messaging`).
+
+### Retargeted (verified)
+
+- `microservices/detection` (bare AUDIT evidence) → `intelligence/detection`
+- EventSink adapter comment prose `cloud-intelligence OAuth` → `intelligence OAuth` (stream key `cloud-intelligence-receipts:*` retained — runtime identifier)
+
+### Deferred
+
+- IP frontmatter `scope: microservices/detection/<bc>` logical BC names without `intelligence/detection/<bc>` homes
+- Cross-cap cloud-iac Argo app paths
