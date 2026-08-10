@@ -61,6 +61,7 @@
         "durable": true
       }
     },
+    "_ci_lane_is_an_unimplemented_claim": "NO CI lane, workflow or gate named `feature-flag-lifecycle` exists anywhere in the tree — measured by whole-tree `git grep feature-flag-lifecycle` at merge-base 8857944612 and at this head, which return the same six hits and no implementation. The value below is doubly misleading: it names a lane that does not exist, AND it names an `oya gate validate` CLI invocation, which under the repo cli_surface_policy is local bridge feedback and NEVER merge authority, so even a working CLI would not be the enforcement this reads as. See the matching note in flags/release/runtime-safety-policy.json for why the sibling key there cannot simply be deleted (it is enum-pinned by contract-slice-conformance in two places).",
     "ci_lane": "feature-flag-lifecycle (oya gate validate feature-flag-lifecycle)",
     "violations": [
       "release_toggle past sunset_at by > 0 days",

@@ -1,0 +1,399 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.com/specs/integ-branch-envelopes.json",
+  "title": "IntegBranchEnvelopes",
+  "description": "Machine-readable Swarm Delivery Law path envelopes: durable integ/<root> and integ/{docs,specs} branches, hub sole-owner list, adjunct claim rules, and concurrent-safe exemption pointers. Owned by integ/specs (ADR-0711 D-8).",
+  "_meta": {
+    "doc_class": "Machine-Readable-Spec",
+    "spec_id": "EXE-INTEG-BRANCH-ENVELOPES",
+    "version": "1.4.0",
+    "status": "Proposed",
+    "owner_team": "council-architecture",
+    "created_at": "2026-08-10T00:00:00Z",
+    "authority_adr": "docs/decisions/ADR-0711-swarm-delivery-law-integ-branch-topology.md",
+    "self_owner_branch": "integ/specs",
+    "primary_consumer": "governance/check/integ-envelope + .claude/workflows/deliver.js Claim",
+    "purpose": "Policy-as-data for envelope containment, hub exclusivity, concurrent-safe exemptions, tools/swarm adjunct ownership, and hyperscaler monorepo pattern notes under the Swarm Delivery Law."
+  },
+  "admission": {
+    "trunk": "dev",
+    "allowed_head_branch_prefixes": [
+      "integ/",
+      "hotfix/"
+    ],
+    "unit_branch_prefixes_forbidden_for_trunk_pr": [
+      "impl/",
+      "agent/",
+      "lane/"
+    ],
+    "max_open_prs_per_integ": 1,
+    "post_land_reset": {
+      "mode": "server-side-refspec",
+      "refspec_template": "origin/dev:refs/heads/integ/{root}",
+      "command_example": "git push --force-with-lease origin origin/dev:refs/heads/integ/{root}",
+      "forbidden": [
+        "local git reset",
+        "worker force-push"
+      ]
+    }
+  },
+  "roots": {
+    "os": {
+      "branch": "integ/os",
+      "envelope_globs": [
+        "os/**"
+      ]
+    },
+    "ci": {
+      "branch": "integ/ci",
+      "envelope_globs": [
+        "ci/**"
+      ]
+    },
+    "governance": {
+      "branch": "integ/governance",
+      "envelope_globs": [
+        "governance/**"
+      ]
+    },
+    "workflow": {
+      "branch": "integ/workflow",
+      "envelope_globs": [
+        "workflow/**"
+      ]
+    },
+    "cell": {
+      "branch": "integ/cell",
+      "envelope_globs": [
+        "cell/**"
+      ],
+      "note": "Top-level capability root (ADR-0701). Governed under Swarm Delivery Law \u2014 ownership = path = integ scope (ADR-0711 D-9)."
+    },
+    "comms": {
+      "branch": "integ/comms",
+      "envelope_globs": [
+        "comms/**"
+      ],
+      "note": "Top-level capability root (ADR-0701). Governed under Swarm Delivery Law \u2014 ownership = path = integ scope (ADR-0711 D-9)."
+    },
+    "data": {
+      "branch": "integ/data",
+      "envelope_globs": [
+        "data/**"
+      ],
+      "note": "Top-level capability root (ADR-0701). Governed under Swarm Delivery Law \u2014 ownership = path = integ scope (ADR-0711 D-9)."
+    },
+    "iam": {
+      "branch": "integ/iam",
+      "envelope_globs": [
+        "iam/**"
+      ],
+      "note": "Top-level capability root (ADR-0701). Governed under Swarm Delivery Law \u2014 ownership = path = integ scope (ADR-0711 D-9)."
+    },
+    "build": {
+      "branch": "integ/build",
+      "envelope_globs": [
+        "build/**"
+      ]
+    },
+    "cloud": {
+      "branch": "integ/cloud",
+      "envelope_globs": [
+        "cloud/**"
+      ]
+    },
+    "flags": {
+      "branch": "integ/flags",
+      "envelope_globs": [
+        "flags/**"
+      ]
+    },
+    "libs": {
+      "branch": "integ/libs",
+      "envelope_globs": [
+        "libs/**"
+      ]
+    },
+    "console": {
+      "branch": "integ/console",
+      "envelope_globs": [
+        "console/**"
+      ]
+    },
+    "oya": {
+      "branch": "integ/oya",
+      "envelope_globs": [
+        "oya/**"
+      ]
+    },
+    "marketplace": {
+      "branch": "integ/marketplace",
+      "envelope_globs": [
+        "marketplace/**"
+      ]
+    },
+    "registry": {
+      "branch": "integ/registry",
+      "envelope_globs": [
+        "registry/**"
+      ]
+    },
+    "tools": {
+      "branch": "integ/tools",
+      "envelope_globs": [
+        "tools/**"
+      ],
+      "note": "Transitional root under Amendment B reorg-target debt freeze. tools/swarm/** one-shot process-kit land via integ/specs (#1644) is the sole authorized birth wave; after that merge, tools/ is shrink-only \u2014 further births require an explicit reorg-move-out bead to a durable home."
+    }
+  },
+  "planes": {
+    "docs": {
+      "branch": "integ/docs",
+      "envelope_globs": [
+        "docs/**"
+      ]
+    },
+    "specs": {
+      "branch": "integ/specs",
+      "envelope_globs": [
+        "specs/**"
+      ]
+    }
+  },
+  "hubs": {
+    "sole_owner_per_wave": true,
+    "paths": [
+      "specs/masterplan.json",
+      "specs/capability-registry.json",
+      "specs/root-hub-pointers.json",
+      "docs/ADR-INDEX.md",
+      "docs/DOC-CATALOG.md",
+      "docs/CHANGELOG.md",
+      "governance/check/adr-citation-closure/adr-citation-closure-policy.json",
+      "Cargo.lock"
+    ],
+    "waiver_dir": "governance/check/integ-envelope/waivers/",
+    "waiver_row_fields": [
+      "branch",
+      "hub",
+      "reason"
+    ],
+    "active_waivers": [
+      {
+        "branch": "integ/specs",
+        "hub": "docs/ADR-INDEX.md",
+        "reason": "Index ADR-0711 in the same bootstrap PR that introduces the ADR and envelopes (sole-owner hub waiver).",
+        "waiver_file": "governance/check/integ-envelope/waivers/integ-specs-adr-0711-bootstrap.yaml"
+      },
+      {
+        "branch": "integ/specs",
+        "hub": "governance/check/adr-citation-closure/adr-citation-closure-policy.json",
+        "reason": "Absorb #1628+#1629 leaf residuals: files_scanned freeze coupled to lifecycle-config deletions on integ/specs (ADR-0711 dual-trunk closeout).",
+        "waiver_file": "governance/check/integ-envelope/waivers/integ-specs-adr-citation-closure-1628-1629.yaml"
+      }
+    ]
+  },
+  "adjunct_claims": {
+    "description": "A unit may touch paths outside envelope(R) only when an explicit adjunct claim is recorded for this wave. Claims are fail-closed: absent claim = refuse.",
+    "required_fields": [
+      "path_glob",
+      "claiming_branch",
+      "reason",
+      "expires_at_or_wave"
+    ],
+    "rules": [
+      "Adjunct leaves must be disjoint from every other open integ PR's claimed set.",
+      "Hub paths are never adjuncts \u2014 they use hub waivers only.",
+      "Concurrent-safe exemption paths do not require adjunct claims when the edit is append-only under the registered exemption.",
+      "Cargo.lock may travel only with the integ that changed workspace membership (hub rule), never as a silent adjunct."
+    ],
+    "active": [
+      {
+        "path_glob": "tools/swarm/**",
+        "claiming_branch": "integ/specs",
+        "reason": "Bootstrap Swarm Delivery Law Phase A: land tools/swarm shims with the envelopes owner before a dedicated integ/tools wave; tools root registered in this same diff.",
+        "expires_at_or_wave": "wave-after-integ-tools-first-land"
+      },
+      {
+        "path_glob": ".claude/workflows/**",
+        "claiming_branch": "integ/specs",
+        "reason": "deliver.js Claim/Land harness is the primary consumer of envelopes; co-land with policy-as-data on integ/specs.",
+        "expires_at_or_wave": "wave-after-integ-tools-first-land"
+      },
+      {
+        "path_glob": ".grok/programs/delivery-fabric/evidence/PORTABLE-SWARM-CONTRACT.md",
+        "claiming_branch": "integ/specs",
+        "reason": "Portable Swarm Contract is concurrent-safe evidence for the delivery-fabric program and travels with the law bootstrap.",
+        "expires_at_or_wave": "wave-after-integ-tools-first-land"
+      },
+      {
+        "path_glob": "docs/decisions/ADR-0711-swarm-delivery-law-integ-branch-topology.md",
+        "claiming_branch": "integ/specs",
+        "reason": "Single PR preference: ADR-0711 co-lands with envelopes self-owner rather than splitting integ/docs for this bootstrap wave.",
+        "expires_at_or_wave": "wave-after-integ-tools-first-land"
+      },
+      {
+        "path_glob": "registry/vcs/concurrent-safe-paths.yaml",
+        "claiming_branch": "integ/specs",
+        "reason": "Register .beads/** and evidence/** concurrent-safe exemptions required by ADR-0711 D-2 in the same wave as envelopes.",
+        "expires_at_or_wave": "wave-after-integ-tools-first-land"
+      },
+      {
+        "path_glob": "governance/check/integ-envelope/waivers/**",
+        "claiming_branch": "integ/specs",
+        "reason": "Bootstrap hub-waiver directory for Phase A; gate check lands later under integ/governance.",
+        "expires_at_or_wave": "wave-after-integ-envelope-gate"
+      },
+      {
+        "path_glob": ".gitignore",
+        "claiming_branch": "integ/specs",
+        "reason": "Ignore .check/ daemon machine output colocated with tools/swarm check-daemon.",
+        "expires_at_or_wave": "wave-after-integ-tools-first-land"
+      }
+    ]
+  },
+  "claim_phase": {
+    "required_steps": [
+      "git fetch",
+      "verify unit diff is subset of envelope(R) + claimed adjuncts + waivered hubs",
+      "git merge-tree (read-only) against integ tip",
+      "verify hub exclusivity against open PRs",
+      "admit by cherry-pick",
+      "re-verify at push time"
+    ],
+    "encoded_in": [
+      ".claude/workflows/deliver.js#Claim"
+    ]
+  },
+  "concurrent_safe_exemptions": {
+    "registry": "registry/vcs/concurrent-safe-paths.yaml",
+    "paths": [
+      ".beads/**",
+      "evidence/**",
+      ".grok/programs/*/evidence/**"
+    ],
+    "note": "Exemptions reduce path-overlap refusal for append-only / per-lane evidence. They do not authorize envelope escape for product code."
+  },
+  "worker_git_discipline": {
+    "allow": [
+      "status",
+      "diff",
+      "log",
+      "show",
+      "fetch",
+      "merge-base",
+      "merge-tree",
+      "rev-parse",
+      "add <explicit paths>",
+      "commit",
+      "push (blessed script only)"
+    ],
+    "deny": [
+      "stash",
+      "reset",
+      "clean",
+      "restore",
+      "checkout",
+      "rebase",
+      "merge",
+      "branch -D/-f",
+      "update-ref",
+      "reflog expire",
+      "gc",
+      "push --force (bare)"
+    ],
+    "enforcement": "tools/swarm/git-shim (Phase A companion)"
+  },
+  "worktree_topology": {
+    "main_checkout": "orchestrator + check daemon only",
+    "integ_stations": ".worktrees/integ-<root>",
+    "worker_lanes": ".worktrees/lane-<bead>",
+    "worker_base_ref": "origin/dev"
+  },
+  "hyperscaler_monorepo_patterns": {
+    "authority": "docs/decisions/ADR-0711-swarm-delivery-law-integ-branch-topology.md#D-9",
+    "portable_contract": ".grok/programs/delivery-fabric/evidence/PORTABLE-SWARM-CONTRACT.md#Hyperscaler-monorepo-patterns-first-class",
+    "note": "First-class hyperscaler / clean-architecture monorepo rules \u2014 not agent-swarm folklore alone. Envelopes, hubs, and worker discipline must stay consistent with these patterns.",
+    "cites": [
+      "ADR-0119 (flat cross-cutting specs/ hub; product colocation via ADR-0131 amendment)",
+      "ADR-0131 (service colocation + product-owned specs; superseded as live apex by ADR-0701)",
+      "ADR-0515 (single oya-ci-required; live restatement ADR-0700)",
+      "ADR-0541 (g3doc-style owner-colocated docs / corpus liveness)",
+      "ADR-0554 (binding affected-set / selective testing)",
+      "ADR-0562 (capability-first faces; live apex ADR-0701)",
+      "ADR-0700 (CI admission live apex)",
+      "ADR-0701 (monorepo capability live apex)"
+    ],
+    "required": [
+      "capability_first_layout_equals_ownership_equals_integ_scope",
+      "clean_architecture_per_capability_core_ports_adapters_facade",
+      "central_docs_specs_are_cross_cutting_hubs_only_prefer_owner_colocation",
+      "trunk_based_scoped_parallel_lanes_serialize_only_at_trunk_and_hub_contention",
+      "hermetic_policy_as_data_gates_under_single_oya_ci_required",
+      "selective_affected_testing_no_full_monorepo_rebuild_in_worker_lanes",
+      "owner_colocated_docs_g3doc_hubs_sole_owned_by_integ_docs_or_integ_specs",
+      "concurrent_safe_paths_registry_for_true_concurrent_writers",
+      "small_frequent_lands_squash_to_trunk_server_side_integ_reset",
+      "codeowners_path_envelope_one_writer_queue_per_integ_tip"
+    ],
+    "forbidden": [
+      "type_based_central_dumping_of_product_artifacts_into_root_specs_docs",
+      "n_unit_prs_racing_trunk_under_slow_ci",
+      "shared_working_directory_for_parallel_agents",
+      "long_lived_divergent_topic_branches_with_date_suffix_durable_names",
+      "editing_hub_files_from_every_code_pr_without_sole_owner_or_waiver",
+      "agents_running_cargo_buck2_slow_commands_in_worker_lanes",
+      "inventing_work_or_lanes_for_empty_verified_space",
+      "birthing_new_paths_under_reorg_strangler_targets_libs_cloud_oya_infra_toolchains_tools"
+    ],
+    "docs_specs_planes": {
+      "rule": "planes integ/docs and integ/specs own only cross-cutting hubs and indexes; capability product docs/specs colocate under the owning root and travel with that integ/<root>",
+      "anti_pattern": "do not create docs/<root> or specs/<root> mirror dumps for product artifacts \u2014 that is dual-home debt"
+    }
+  },
+  "reorg_target_debt_freeze": {
+    "authority": "docs/decisions/ADR-0711-swarm-delivery-law-integ-branch-topology.md#Amendment-B",
+    "portable_contract": ".grok/programs/delivery-fabric/evidence/PORTABLE-SWARM-CONTRACT.md#Amendment-B",
+    "status": "binding",
+    "frozen_prefixes": [
+      "libs/",
+      "cloud/",
+      "oya/",
+      "infra/",
+      "toolchains/",
+      "tools/"
+    ],
+    "allowed_operations": [
+      "shrink",
+      "move-out",
+      "delete",
+      "mechanical_catalog_fix_for_in_flight_move"
+    ],
+    "forbidden": [
+      "new_crate_birth",
+      "new_domain_birth",
+      "new_feature_birth",
+      "any_new_path_birth_under_frozen_prefixes"
+    ],
+    "one_shot_exceptions": [
+      {
+        "path_glob": "tools/swarm/**",
+        "wave": "integ/specs#1644",
+        "reason": "Phase A Swarm Delivery Law process-kit land; after merge tools/ is shrink-only.",
+        "expires_when": "integ/specs#1644 squash-merged to origin/dev"
+      }
+    ],
+    "historical_never_repeat": [
+      {
+        "ref": "#1642",
+        "note": "allow-new for cloud-os/libs was a one-shot disjoint drain \u2014 NEVER REPEAT"
+      }
+    ],
+    "claim_exemption_marker": "reorg-move-out",
+    "claim_exemption_rule": "New path births under frozen_prefixes are refused by deliver.js Claim unless the claimed bead title or body contains the marker reorg-move-out naming the durable destination.",
+    "enforcement": [
+      "deliver.js Claim",
+      "human/reviewer refuse of births under frozen prefixes without reorg-move-out bead"
+    ]
+  }
+}
