@@ -4,9 +4,9 @@ status: Accepted
 date: 2026-05-20
 related_adrs: [ADR-0245]
 companion_docs:
-  - microservices/notes/PRD.md
-  - microservices/notes/ARCHITECTURE.md
-  - microservices/notes/manifest.json
+  - app/notes/PRD.md
+  - app/notes/ARCHITECTURE.md
+  - app/notes/manifest.json
 inbound_citations:
   - docs/README.md
 ---

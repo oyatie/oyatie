@@ -19,10 +19,10 @@
   ],
   "contracts": {
     "openapi": [
-      "microservices/notes/contracts/openapi/notes.yaml"
+      "app/notes/contracts/openapi/notes.yaml"
     ],
     "asyncapi": [
-      "microservices/notes/contracts/asyncapi/notes-events.yaml"
+      "app/notes/contracts/asyncapi/notes-events.yaml"
     ],
     "internal_grpc": {
       "transport": "http2",
@@ -36,19 +36,19 @@
     {
       "tier": "T0",
       "name": "next-word-and-title-suggest",
-      "file": "microservices/notes/capabilities/T0-suggest.yaml",
+      "file": "app/notes/capabilities/T0-suggest.yaml",
       "risk_class": "none"
     },
     {
       "tier": "T1",
       "name": "summarize-and-tag-suggest-and-link-suggest",
-      "file": "microservices/notes/capabilities/T1-assist.yaml",
+      "file": "app/notes/capabilities/T1-assist.yaml",
       "risk_class": "minimal"
     },
     {
       "tier": "T2",
       "name": "auto-organize-vault",
-      "file": "microservices/notes/capabilities/T2-auto.yaml",
+      "file": "app/notes/capabilities/T2-auto.yaml",
       "risk_class": "limited"
     }
   ],
@@ -113,91 +113,91 @@
       "id": "IP-001-iac",
       "title": "IP-001: IaC bootstrap (Helm + Kustomize + OpenTofu)",
       "acceptance_status": "ga",
-      "file": "microservices/notes/IP-001-iac.md"
+      "file": "app/notes/IP-001-iac.md"
     },
     {
       "id": "IP-002-cargo-workspace-bootstrap",
       "title": "IP-002: Cargo workspace bootstrap",
       "acceptance_status": "ga",
-      "file": "microservices/notes/IP-002-cargo-workspace-bootstrap.md"
+      "file": "app/notes/IP-002-cargo-workspace-bootstrap.md"
     },
     {
       "id": "IP-003-note-store-kernel-domain",
       "title": "IP-003: note-store kernel + domain (port traits + entities + DCI invariants)",
       "acceptance_status": "ga",
-      "file": "microservices/notes/IP-003-note-store-kernel-domain.md"
+      "file": "app/notes/IP-003-note-store-kernel-domain.md"
     },
     {
       "id": "IP-004-tag-graph-kernel-domain",
       "title": "IP-004: tag-graph kernel + domain",
       "acceptance_status": "ga",
-      "file": "microservices/notes/IP-004-tag-graph-kernel-domain.md"
+      "file": "app/notes/IP-004-tag-graph-kernel-domain.md"
     },
     {
       "id": "IP-005-backlink-graph-kernel-domain",
       "title": "IP-005: backlink-graph kernel + domain (wikilink + adjacency)",
       "acceptance_status": "ga",
-      "file": "microservices/notes/IP-005-backlink-graph-kernel-domain.md"
+      "file": "app/notes/IP-005-backlink-graph-kernel-domain.md"
     },
     {
       "id": "IP-006-daily-note-template-gallery",
       "title": "IP-006: daily-note + template-gallery",
       "acceptance_status": "ga",
-      "file": "microservices/notes/IP-006-daily-note-template-gallery.md"
+      "file": "app/notes/IP-006-daily-note-template-gallery.md"
     },
     {
       "id": "IP-007-web-clipper-bridge",
       "title": "IP-007: web-clipper-bridge + browser extensions (Chrome MV3 + Firefox MV3 + Safari Web Extensions + Edge Add-ons)",
       "acceptance_status": "ga",
-      "file": "microservices/notes/IP-007-web-clipper-bridge.md"
+      "file": "app/notes/IP-007-web-clipper-bridge.md"
     },
     {
       "id": "IP-008-share-link-and-embed",
       "title": "IP-008: share-link + embed",
       "acceptance_status": "ga",
-      "file": "microservices/notes/IP-008-share-link-and-embed.md"
+      "file": "app/notes/IP-008-share-link-and-embed.md"
     },
     {
       "id": "IP-009-checklist-and-version-history",
       "title": "IP-009: checklist + version-history",
       "acceptance_status": "ga",
-      "file": "microservices/notes/IP-009-checklist-and-version-history.md"
+      "file": "app/notes/IP-009-checklist-and-version-history.md"
     },
     {
       "id": "IP-010-search-and-graph-view",
       "title": "IP-010: search-index + graph-view-data",
       "acceptance_status": "ga",
-      "file": "microservices/notes/IP-010-search-and-graph-view.md"
+      "file": "app/notes/IP-010-search-and-graph-view.md"
     },
     {
       "id": "IP-011-collab-edit-loro",
       "title": "IP-011: collab-edit via Loro 1.x LTS (Professional-tier only)",
       "acceptance_status": "ga",
-      "file": "microservices/notes/IP-011-collab-edit-loro.md"
+      "file": "app/notes/IP-011-collab-edit-loro.md"
     },
     {
       "id": "IP-012-import-export-pipelines",
       "title": "IP-012: import + export pipelines",
       "acceptance_status": "ga",
-      "file": "microservices/notes/IP-012-import-export-pipelines.md"
+      "file": "app/notes/IP-012-import-export-pipelines.md"
     },
     {
       "id": "IP-013-ai-assist-and-e2e-refusal",
       "title": "IP-013: ai-assist + E2E refusal CI lane",
       "acceptance_status": "ga",
-      "file": "microservices/notes/IP-013-ai-assist-and-e2e-refusal.md"
+      "file": "app/notes/IP-013-ai-assist-and-e2e-refusal.md"
     },
     {
       "id": "IP-014-e2e-key-management",
       "title": "IP-014: e2e-key-management (openmls 0.6) + recovery seed UX",
       "acceptance_status": "ga",
-      "file": "microservices/notes/IP-014-e2e-key-management.md"
+      "file": "app/notes/IP-014-e2e-key-management.md"
     },
     {
       "id": "IP-015-hg-notes-conformance",
       "title": "IP-015: HG-NOTES hyperscaler-grade conformance gate (per ADR-0133)",
       "acceptance_status": "ga",
-      "file": "microservices/notes/IP-015-hg-notes-conformance.md"
+      "file": "app/notes/IP-015-hg-notes-conformance.md"
     }
   ],
   "regulatory_packs": [
@@ -434,10 +434,10 @@
   "pod_runtime_tier": 2,
   "pod_runtime_tier_justification": "Tier 2 because notes is a first-party application for note store, tag/backlink graph, share links, search, optional Loro collaboration, and E2E client-derived ciphertext handling. E2E keys are client-derived and the service does not execute tenant-authored code.",
   "pod_runtime_tier_surface_evidence": [
-    "microservices/notes/PRD.md",
-    "microservices/notes/IP-011-collab-edit-loro.md",
-    "microservices/notes/IP-014-e2e-key-management.md",
-    "microservices/notes/runbooks/e2e-key-rotation-and-recovery.md"
+    "app/notes/PRD.md",
+    "app/notes/IP-011-collab-edit-loro.md",
+    "app/notes/IP-014-e2e-key-management.md",
+    "app/notes/runbooks/e2e-key-rotation-and-recovery.md"
   ],
   "tenant_version_pinning": {
     "declared_versions": [
@@ -450,10 +450,10 @@
     "deprecation_calendar": [],
     "public_surface_files": {
       "openapi": {
-        "2026-05-21": "microservices/notes/contracts/openapi/notes.yaml"
+        "2026-05-21": "app/notes/contracts/openapi/notes.yaml"
       },
       "asyncapi": {
-        "2026-05-21": "microservices/notes/contracts/asyncapi/notes-events.yaml"
+        "2026-05-21": "app/notes/contracts/asyncapi/notes-events.yaml"
       }
     }
   },
