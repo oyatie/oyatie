@@ -125,10 +125,10 @@
   ],
   "contracts": {
     "openapi": [
-      "microservices/pharmacy/contracts/openapi/pharmacy.yaml"
+      "app/pharmacy/contracts/openapi/pharmacy.yaml"
     ],
     "asyncapi": [
-      "microservices/pharmacy/contracts/asyncapi/pharmacy-events.yaml"
+      "app/pharmacy/contracts/asyncapi/pharmacy-events.yaml"
     ],
     "internal_grpc": {
       "transport": "http2",
@@ -277,61 +277,61 @@
       "id": "IP-001-medication-catalog-fdb-ingest",
       "title": "IP-001: MedicationCatalog kernel + FDB ingest adapter + A/B knowledge package switching",
       "acceptance_status": "draft",
-      "file": "microservices/pharmacy/implementation-plans/IP-001-medication-catalog-fdb-ingest.md"
+      "file": "app/pharmacy/implementation-plans/IP-001-medication-catalog-fdb-ingest.md"
     },
     {
       "id": "IP-002-formulary-pt-workflow",
       "title": "IP-002: Formulary kernel + P&T workflow + therapeutic interchange",
       "acceptance_status": "draft",
-      "file": "microservices/pharmacy/implementation-plans/IP-002-formulary-pt-workflow.md"
+      "file": "app/pharmacy/implementation-plans/IP-002-formulary-pt-workflow.md"
     },
     {
       "id": "IP-003-eprescribe-surescripts-epcs",
       "title": "IP-003: ePrescribe usecase + Surescripts adapter + EPCS sign envelope",
       "acceptance_status": "draft",
-      "file": "microservices/pharmacy/implementation-plans/IP-003-eprescribe-surescripts-epcs.md"
+      "file": "app/pharmacy/implementation-plans/IP-003-eprescribe-surescripts-epcs.md"
     },
     {
       "id": "IP-004-drug-interaction-eight-engine",
       "title": "IP-004: DrugInteraction eight-engine fan-out + severity bands + tenant suppression",
       "acceptance_status": "draft",
-      "file": "microservices/pharmacy/implementation-plans/IP-004-drug-interaction-eight-engine.md"
+      "file": "app/pharmacy/implementation-plans/IP-004-drug-interaction-eight-engine.md"
     },
     {
       "id": "IP-005-allergy-check-cross-class",
       "title": "IP-005: AllergyCheck mirror + cross-class derivation + override capture",
       "acceptance_status": "draft",
-      "file": "microservices/pharmacy/implementation-plans/IP-005-allergy-check-cross-class.md"
+      "file": "app/pharmacy/implementation-plans/IP-005-allergy-check-cross-class.md"
     },
     {
       "id": "IP-006-dose-check-renal-hepatic",
       "title": "IP-006: DoseCheck weight/BSA/renal/hepatic/age-band/cumulative",
       "acceptance_status": "draft",
-      "file": "microservices/pharmacy/implementation-plans/IP-006-dose-check-renal-hepatic.md"
+      "file": "app/pharmacy/implementation-plans/IP-006-dose-check-renal-hepatic.md"
     },
     {
       "id": "IP-007-verification-tall-man-dual-verify",
       "title": "IP-007: Verification + tall-man-lettering + dual-verify CII",
       "acceptance_status": "draft",
-      "file": "microservices/pharmacy/implementation-plans/IP-007-verification-tall-man-dual-verify.md"
+      "file": "app/pharmacy/implementation-plans/IP-007-verification-tall-man-dual-verify.md"
     },
     {
       "id": "IP-008-compounding-usp-795-797-800",
       "title": "IP-008: Compounding USP 795/797/800 + BUD + environmental evidence binding",
       "acceptance_status": "draft",
-      "file": "microservices/pharmacy/implementation-plans/IP-008-compounding-usp-795-797-800.md"
+      "file": "app/pharmacy/implementation-plans/IP-008-compounding-usp-795-797-800.md"
     },
     {
       "id": "IP-009-inventory-recall-cabinet-adapter",
       "title": "IP-009: Inventory + recall sequestration + expiry stratification + cabinet vendor-neutral adapter contract",
       "acceptance_status": "draft",
-      "file": "microservices/pharmacy/implementation-plans/IP-009-inventory-recall-cabinet-adapter.md"
+      "file": "app/pharmacy/implementation-plans/IP-009-inventory-recall-cabinet-adapter.md"
     },
     {
       "id": "IP-010-reimbursement-340b-pbm",
       "title": "IP-010: Reimbursement 340B + NCPDP D.0 PBM + handoff to cloud-billing",
       "acceptance_status": "draft",
-      "file": "microservices/pharmacy/implementation-plans/IP-010-reimbursement-340b-pbm.md"
+      "file": "app/pharmacy/implementation-plans/IP-010-reimbursement-340b-pbm.md"
     }
   ],
   "regulatory_packs": [
@@ -433,13 +433,13 @@
       "id": "ADR-MS-PHARM-001",
       "title": "ePrescribe substrate — Surescripts + NCPDP SCRIPT + EPCS",
       "scope": "service",
-      "file": "microservices/pharmacy/decisions/ADR-MS-001-ePrescribe-substrate.md"
+      "file": "app/pharmacy/decisions/ADR-MS-001-ePrescribe-substrate.md"
     },
     {
       "id": "ADR-MS-PHARM-002",
       "title": "Controlled-substance DEA compliance",
       "scope": "service",
-      "file": "microservices/pharmacy/decisions/ADR-MS-002-controlled-substance-DEA-compliance.md"
+      "file": "app/pharmacy/decisions/ADR-MS-002-controlled-substance-DEA-compliance.md"
     }
   ],
   "hyperscaler_inv_coverage": {
@@ -833,7 +833,7 @@
     "mixed_use_classification_required": true,
     "split_billing_handoff_target": "cloud-billing"
   },
-  "supported_os_manifest": "microservices/pharmacy/supported-oses.json",
+  "supported_os_manifest": "app/pharmacy/supported-oses.json",
   "capacity_model": {
     "baseline_cpu_per_tenant": 0.55,
     "baseline_ram_per_tenant": 1280,
@@ -883,10 +883,10 @@
   "pod_runtime_tier": 1,
   "pod_runtime_tier_justification": "Pharmacy handles controlled-substance, EPCS, BCMA, inventory, and reimbursement records where tenant PHI and medication-safety state drive clinical action. It does not execute tenant code, but it is a regulated tenant data-plane service with key and audit dependencies, so Tier 1 plus Tier-2 cell placement is the valid doctrine pairing.",
   "pod_runtime_tier_surface_evidence": [
-    "microservices/pharmacy/PRD.md",
-    "microservices/pharmacy/ARCHITECTURE.md",
-    "microservices/pharmacy/manifest.json",
-    "microservices/pharmacy/contracts/openapi.yaml"
+    "app/pharmacy/PRD.md",
+    "app/pharmacy/ARCHITECTURE.md",
+    "app/pharmacy/manifest.json",
+    "app/pharmacy/contracts/openapi.yaml"
   ],
   "tenant_version_pinning": {
     "declared_versions": [

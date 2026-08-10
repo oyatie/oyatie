@@ -15,7 +15,7 @@ sharding_role: regulated-workload-owner
 # IP-WAVE-15-ZD-sharding-automation: Pharmacy Sharding Automation Stance
 
 ## 1. Scope
-SCOPE-001: This IP is scoped only to `microservices/pharmacy/IPs/IP-WAVE-15-ZD-sharding-automation.md` for the ZF-9 artifact lane.
+SCOPE-001: This IP is scoped only to `app/pharmacy/IPs/IP-WAVE-15-ZD-sharding-automation.md` for the ZF-9 artifact lane.
 SCOPE-002: This is doctrine propagation, not Rust implementation, manifest editing, runbook authoring, Cedar policy authoring, SLO authoring, or contract editing.
 SCOPE-003: pharmacy must interpret ADR-0348 through its own bounded context: medication-catalog.
 SCOPE-004: pharmacy uses ADR-0346 as the local verifier contract for any downstream implementation PR that turns this plan into code.
