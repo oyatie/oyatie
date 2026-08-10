@@ -1,9 +1,10 @@
-//! # port-engine-rulepack — neutral RulePack v0 loader (W0-B Slice 7).
+//! # port-engine-rulepack — fixture-gated neutral RulePack loader (W0-B Slice 10).
 //!
-//! ADR-0637 D1: rule SEMANTICS live in data under forever home `specs/port-rules/**` (integ/specs).
-//! This adapter embeds a package-local v0 mirror (same hermetic pattern as `port-engine-source-pin`)
-//! and implements [`RulePack`]. Digest is SHA-256 of the embedded JSON bytes via `port-engine-hash`.
-//! Neutral only — no corpus vocabulary.
+//! ADR-0637 D1 / W0-B plan §Slice 5: rule SEMANTICS live in data under forever home
+//! `specs/port-rules/**` (integ/specs). This adapter embeds a package-local v0 mirror and
+//! implements [`RulePack`]. **Every loaded rule MUST carry ≥1 selecting fixture** — a rule with
+//! an empty or missing fixture set cannot load (fail closed). Digest is SHA-256 of the embedded
+//! JSON bytes via `port-engine-hash`. Neutral only — no corpus vocabulary.
 #![forbid(unsafe_code)]
 
 use std::collections::BTreeMap;
@@ -16,9 +17,31 @@ use serde::Deserialize;
 /// Embedded v0 mirror of forever `specs/port-rules/**` (integ/specs owns the live tree).
 const RULEPACK_V0_JSON: &str = include_str!("rulepack-v0.json");
 
-/// Fail-closed readiness gate. `true` once Slice 7 rulepack loader is present.
+/// Fail-closed readiness gate. `true` once Slice 10 fixture-gated load is present.
 pub const fn w0_ready() -> bool {
     true
+}
+
+/// One selecting fixture bound to a rule (W0-B plan §5.3 minimum shape).
+#[derive(Clone, Debug, Eq, PartialEq, Deserialize)]
+pub struct SelectingFixture {
+    /// Stable fixture identity.
+    pub id: String,
+    /// Unit the fixture exercises (deterministic ordering key with `id`).
+    pub unit: String,
+    /// Whether the rule is expected to select for `unit`.
+    pub selects: bool,
+}
+
+/// One loaded rule record (identity + fixture gate; semantics remain data).
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct LoadedRule {
+    /// Rule id.
+    pub id: RuleId,
+    /// Rule version string.
+    pub version: String,
+    /// Selecting fixtures (≥1 after load validation).
+    pub selecting_fixtures: Vec<SelectingFixture>,
 }
 
 /// Typed refusal from rulepack decode / validation.
@@ -33,6 +56,11 @@ pub enum RulepackError {
     Schema {
         /// Which field failed.
         field: &'static str,
+    },
+    /// A declared rule has zero selecting fixtures (W0-B hard stop).
+    MissingSelectingFixture {
+        /// Rule id that failed the fixture gate.
+        rule: String,
     },
     /// `applies` referenced a rule absent from `rules`.
     UndeclaredApply {
@@ -50,6 +78,10 @@ impl fmt::Display for RulepackError {
         match self {
             Self::Parse { detail } => write!(f, "rulepack JSON parse failed: {detail}"),
             Self::Schema { field } => write!(f, "rulepack schema missing or invalid: {field}"),
+            Self::MissingSelectingFixture { rule } => write!(
+                f,
+                "rulepack rule `{rule}` cannot load without ≥1 selecting fixture"
+            ),
             Self::UndeclaredApply { unit, rule } => write!(
                 f,
                 "rulepack applies rule `{rule}` to unit `{unit}` but rules[] does not declare it"
@@ -64,7 +96,7 @@ impl std::error::Error for RulepackError {}
 #[derive(Deserialize)]
 struct RulepackDocument {
     pair: PairFields,
-    rules: Vec<String>,
+    rules: Vec<RuleDocument>,
     applies: BTreeMap<String, Vec<String>>,
 }
 
@@ -74,20 +106,46 @@ struct PairFields {
     target: String,
 }
 
+/// Wire shape for one rule. Optional W0-B §5.3 fields are accepted for forward schema
+/// compatibility; selection gating only requires `id` / `version` / `selecting_fixtures`.
+#[derive(Deserialize)]
+#[allow(dead_code)]
+struct RuleDocument {
+    id: String,
+    version: String,
+    #[serde(default)]
+    precondition: String,
+    #[serde(default)]
+    captures: Vec<String>,
+    #[serde(default)]
+    construction: String,
+    #[serde(default)]
+    precedence: i64,
+    #[serde(default)]
+    conflict: String,
+    #[serde(default)]
+    required_diagnostics: Vec<String>,
+    #[serde(default)]
+    proof_obligations: Vec<String>,
+    #[serde(default)]
+    selecting_fixtures: Vec<SelectingFixture>,
+}
+
 /// Loaded neutral rule pack implementing [`RulePack`].
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct LoadedRulePack {
     pair: LanguagePair,
     digest: Digest,
     rules: Vec<RuleId>,
+    loaded_rules: Vec<LoadedRule>,
     applies: BTreeMap<UnitId, Vec<RuleId>>,
 }
 
 impl LoadedRulePack {
-    /// Load and validate the embedded v0 rulepack mirror.
+    /// Load and validate the embedded v0 rulepack mirror (fixture-gated).
     ///
     /// # Errors
-    /// [`RulepackError`] on parse/schema/undeclared-apply/pair refusal.
+    /// [`RulepackError`] on parse/schema/missing-fixture/undeclared-apply/pair refusal.
     pub fn load_embedded() -> Result<Self, RulepackError> {
         Self::load_from_str(RULEPACK_V0_JSON)
     }
@@ -95,7 +153,7 @@ impl LoadedRulePack {
     /// Load from an in-memory JSON string (test hook / future specs materializer input).
     ///
     /// # Errors
-    /// [`RulepackError`] on parse/schema/undeclared-apply/pair refusal.
+    /// [`RulepackError`] on parse/schema/missing-fixture/undeclared-apply/pair refusal.
     pub fn load_from_str(json: &str) -> Result<Self, RulepackError> {
         let doc: RulepackDocument =
             serde_json::from_str(json).map_err(|err| RulepackError::Parse {
@@ -118,18 +176,47 @@ impl LoadedRulePack {
         }
         let mut seen = std::collections::BTreeSet::new();
         let mut rules = Vec::with_capacity(doc.rules.len());
+        let mut loaded_rules = Vec::with_capacity(doc.rules.len());
         for rule in doc.rules {
-            if rule.is_empty() {
+            if rule.id.is_empty() {
                 return Err(RulepackError::Schema {
-                    field: "rules[]",
+                    field: "rules[].id",
                 });
             }
-            if !seen.insert(rule.clone()) {
+            if rule.version.is_empty() {
+                return Err(RulepackError::Schema {
+                    field: "rules[].version",
+                });
+            }
+            if rule.selecting_fixtures.is_empty() {
+                return Err(RulepackError::MissingSelectingFixture {
+                    rule: rule.id,
+                });
+            }
+            for fixture in &rule.selecting_fixtures {
+                if fixture.id.is_empty() {
+                    return Err(RulepackError::Schema {
+                        field: "rules[].selecting_fixtures[].id",
+                    });
+                }
+                if fixture.unit.is_empty() {
+                    return Err(RulepackError::Schema {
+                        field: "rules[].selecting_fixtures[].unit",
+                    });
+                }
+            }
+            if !seen.insert(rule.id.clone()) {
                 return Err(RulepackError::Schema {
                     field: "rules(duplicate)",
                 });
             }
-            rules.push(RuleId(rule));
+            let id = RuleId(rule.id);
+            loaded_rules.push(LoadedRule {
+                id: id.clone(),
+                version: rule.version,
+                selecting_fixtures: rule.selecting_fixtures,
+            });
+            rules.push(id);
         }
         let declared: std::collections::BTreeSet<&str> =
             rules.iter().map(|r| r.0.as_str()).collect();
@@ -161,6 +248,7 @@ impl LoadedRulePack {
             pair,
             digest,
             rules,
+            loaded_rules,
             applies,
         })
     }
@@ -169,6 +257,21 @@ impl LoadedRulePack {
     #[must_use]
     pub fn language_pair(&self) -> &LanguagePair {
         &self.pair
+    }
+
+    /// Loaded rule records in pack order (each has ≥1 selecting fixture).
+    #[must_use]
+    pub fn loaded_rules(&self) -> &[LoadedRule] {
+        &self.loaded_rules
+    }
+
+    /// Total selecting fixtures across every loaded rule.
+    #[must_use]
+    pub fn selecting_fixture_count(&self) -> usize {
+        self.loaded_rules
+            .iter()
+            .map(|r| r.selecting_fixtures.len())
+            .sum()
     }
 }
 
@@ -213,12 +316,12 @@ mod tests {
     }
 
     #[test]
-    fn slice7_claims_rulepack_readiness() {
+    fn slice10_claims_fixture_gated_readiness() {
         assert!(w0_ready());
     }
 
     #[test]
-    fn embedded_v0_loads_and_digests_bytes() {
+    fn embedded_v0_loads_with_fixtures_and_digests_bytes() {
         let pack = LoadedRulePack::load_embedded().expect("embedded v0 must load");
         assert_eq!(pack.pair().source, "go");
         assert_eq!(pack.pair().target, "rust");
@@ -234,6 +337,13 @@ mod tests {
                 RuleId("canary_empty_unit".into())
             ]
         );
+        assert_eq!(pack.selecting_fixture_count(), 2);
+        for rule in pack.loaded_rules() {
+            assert!(
+                !rule.selecting_fixtures.is_empty(),
+                "every loaded rule must retain selecting fixtures"
+            );
+        }
         assert_eq!(
             pack.rules_for(&UnitId("example.com/b".into())),
             vec![
@@ -259,9 +369,49 @@ mod tests {
 
     #[test]
     fn refuses_undeclared_apply() {
-        let json = r#"{"pair":{"source":"go","target":"rust"},"rules":["identity"],"applies":{"u":["missing"]}}"#;
+        let json = r#"{
+  "pair": {"source": "go", "target": "rust"},
+  "rules": [{
+    "id": "identity",
+    "version": "0",
+    "selecting_fixtures": [{"id": "f", "unit": "u", "selects": true}]
+  }],
+  "applies": {"u": ["missing"]}
+}"#;
         let err = LoadedRulePack::load_from_str(json).expect_err("undeclared apply");
         assert!(matches!(err, RulepackError::UndeclaredApply { .. }));
+    }
+
+    #[test]
+    fn refuses_rule_without_selecting_fixture() {
+        let json = r#"{
+  "pair": {"source": "go", "target": "rust"},
+  "rules": [{
+    "id": "orphan",
+    "version": "0",
+    "selecting_fixtures": []
+  }],
+  "applies": {}
+}"#;
+        let err = LoadedRulePack::load_from_str(json).expect_err("missing fixture must refuse");
+        assert!(matches!(
+            err,
+            RulepackError::MissingSelectingFixture { rule } if rule == "orphan"
+        ));
+    }
+
+    #[test]
+    fn refuses_rule_with_omitted_selecting_fixtures_field() {
+        let json = r#"{
+  "pair": {"source": "go", "target": "rust"},
+  "rules": [{"id": "bare", "version": "0"}],
+  "applies": {}
+}"#;
+        let err = LoadedRulePack::load_from_str(json).expect_err("omitted fixtures must refuse");
+        assert!(matches!(
+            err,
+            RulepackError::MissingSelectingFixture { rule } if rule == "bare"
+        ));
     }
 
     /// Neutrality fence: production sources must not carry corpus needles.

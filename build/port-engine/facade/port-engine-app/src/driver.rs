@@ -1,7 +1,7 @@
 //! Facade driver wiring: composes kernel entry points with W0-B adapters.
 //!
-//! Slice 9 wires engine identity + dual-home toolchain digests and a pin→admit→plan→emit→receipt
-//! pipeline. Cell remap (`.buckconfig`) remains PARKED; toolchain axis digests dual-home bytes.
+//! Slice 10 consumes the fixture-gated rulepack (every rule ≥1 selecting fixture). Slice 9 wired
+//! engine/toolchain digests + pin→admit→plan→emit→receipt. Cell remap remains PARKED.
 
 use port_engine_api::{Digest, Receipt, RulePack, SourceModel, UnitId, w0_ready as api_ready};
 use port_engine_frontend_go::w0_ready as frontend_ready;
@@ -15,7 +15,7 @@ use port_engine_snapshot::{
 use port_engine_source_pin::{load_embedded, receipt_pin};
 use port_engine_toolchain::{toolchain_digest, w0_ready as toolchain_ready};
 
-/// Slice 9 readiness: prior adapters + engine identity + toolchain axis digests.
+/// Slice 10 readiness: prior adapters + fixture-gated rulepack load path.
 pub const fn w0_ready() -> bool {
     api_ready()
         && port_engine_source_pin::w0_ready()
@@ -71,13 +71,13 @@ pub fn smoke_digest(text: &str) -> Digest {
     digest_str(text)
 }
 
-/// Load embedded neutral rulepack v0 and return its content digest.
+/// Load embedded fixture-gated rulepack v0; return digest + selecting-fixture count.
 ///
 /// # Errors
 /// Propagates [`RulepackError`] from the rulepack loader.
-pub fn smoke_rulepack() -> Result<Digest, RulepackError> {
+pub fn smoke_rulepack() -> Result<(Digest, usize), RulepackError> {
     let pack = LoadedRulePack::load_embedded()?;
-    Ok(pack.digest())
+    Ok((pack.digest(), pack.selecting_fixture_count()))
 }
 
 /// Plan the embedded v0 rulepack against its declared example units.
@@ -258,15 +258,16 @@ mod tests {
     use super::*;
 
     #[test]
-    fn slice9_driver_wiring_is_ready() {
+    fn slice10_driver_wiring_is_ready() {
         assert!(w0_ready());
         fleet_pin().expect("fleet pin must load");
         smoke_render_stub().expect("empty renderer stub must emit");
         smoke_syn_quote_render().expect("syn/quote path must emit");
         let d = smoke_digest("port-engine");
         assert!(d.0.starts_with("sha256:"));
-        let pack_digest = smoke_rulepack().expect("rulepack must load");
+        let (pack_digest, fixtures) = smoke_rulepack().expect("rulepack must load");
         assert!(pack_digest.0.starts_with("sha256:"));
+        assert!(fixtures >= 2);
         let steps = smoke_plan().expect("plan smoke must succeed");
         assert_eq!(steps, 3);
         let admitted = smoke_admit_snapshot().expect("snapshot fixture must admit");
