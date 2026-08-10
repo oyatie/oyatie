@@ -1,0 +1,29 @@
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: supply-chain-planning-throughput
+  labels:
+    service: supply-chain-planning
+    sap_code: "SCM/APO"
+spec:
+  description: "Supply Chain Planning supply-chain-planning-throughput objective; benchmarks SAP SCM/APO and SAP IBP | Oracle Supply Chain Planning | Workday Adaptive Planning supply-chain scenario counterpart | NetSuite Demand Planning | Microsoft Dynamics 365 Master Planning"
+  service: supply-chain-planning
+  indicator:
+    metadata:
+      name: supply-chain-planning-throughput-sli
+    spec:
+      ratioMetric:
+        counter: true
+        good:
+          metricSource:
+            type: prometheus
+            spec:
+              query: "sum(rate(oya_supply_chain_planning_accepted_total[5m]))"
+        total:
+          metricSource:
+            type: prometheus
+            spec:
+              query: "sum(rate(oya_supply_chain_planning_received_total[5m]))"
+  objectives:
+    - displayName: supply-chain-planning-throughput
+      target: 0.995
