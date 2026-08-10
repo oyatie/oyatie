@@ -1,0 +1,18 @@
+apiVersion: oyatie.dev/v1
+kind: EdgeWafPolicy
+metadata:
+  name: oya-treasury-abuse-defence
+spec:
+  defaultPathLatencyBudgetMs: 2
+  emergencyServicesBypass: true
+  antiBot:
+    tokenBucket: true
+    ja4Fingerprint: true
+    passiveMlScore: true
+  antiSpoof:
+    strictTls13: true
+    hstsPreload: true
+    signedPayloads: true
+  antiScrape:
+    adaptiveChallenge: suspicion-only
+    friendlyCrawlerPartnerBypass: true
