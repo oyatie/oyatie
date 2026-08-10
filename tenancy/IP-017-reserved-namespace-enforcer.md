@@ -11,13 +11,13 @@ related_adrs: [ADR-0242, ADR-0244, ADR-0284, ADR-0263]
 
 ## A. Problem
 
-Tenant creation currently has lifecycle, jurisdiction, and cell assignment plans, but no bespoke plan for refusing tenant slugs that impersonate Oyatie substrate owners, internal services, or privileged principals. `microservices/tenancy/ARCHITECTURE.md` names principals such as `oyatie.tenancy.lifecycle-controller` and `tenant.<id>.admin`; without a reserved-namespace gate, a tenant could request a human-visible slug or sub-scope alias that creates audit, support, or phishing ambiguity.
+Tenant creation currently has lifecycle, jurisdiction, and cell assignment plans, but no bespoke plan for refusing tenant slugs that impersonate Oyatie substrate owners, internal services, or privileged principals. `tenancy/ARCHITECTURE.md` names principals such as `oyatie.tenancy.lifecycle-controller` and `tenant.<id>.admin`; without a reserved-namespace gate, a tenant could request a human-visible slug or sub-scope alias that creates audit, support, or phishing ambiguity.
 
 This is not a cosmetic naming check. It protects the tenancy authority boundary from homograph attacks, platform-owner-name drift, and reserved principal confusion.
 
 ## B. Approach
 
-Implement a usecase-layer guard crate, `oya-tenancy-reserved-namespace-usecase`, that resolves the platform-owner binding from `/specs/platform-owner-binding.json`, normalizes candidate names with Unicode confusable handling, and evaluates the action through `microservices/tenancy/policy/action-authorization.cedar` before returning allow/deny. The guard is called by tenant creation, tenant rename, sub-scope creation, and future operator portal flows.
+Implement a usecase-layer guard crate, `oya-tenancy-reserved-namespace-usecase`, that resolves the platform-owner binding from `/specs/platform-owner-binding.json`, normalizes candidate names with Unicode confusable handling, and evaluates the action through `tenancy/policy/action-authorization.cedar` before returning allow/deny. The guard is called by tenant creation, tenant rename, sub-scope creation, and future operator portal flows.
 
 ## C. Deliverables
 
@@ -28,8 +28,8 @@ Implement a usecase-layer guard crate, `oya-tenancy-reserved-namespace-usecase`,
 | `src/normalization.rs` | create | Unicode normalization and confusable skeleton generation. |
 | `src/reserved_set.rs` | create | Builds reserved tokens from platform-owner binding plus tenancy principal roster. |
 | `src/enforce.rs` | create | `enforce(candidate, actor, tenant_context)` command handler. |
-| `microservices/tenancy/catalog/oya-tenancy-reserved-namespace-usecase.yaml` | update/create | Catalog evidence already referenced by service inventory. |
-| `microservices/tenancy/policy/action-authorization.cedar` | update | Add action names for reserved namespace decisions if absent. |
+| `tenancy/catalog/oya-tenancy-reserved-namespace-usecase.yaml` | update/create | Catalog evidence already referenced by service inventory. |
+| `tenancy/policy/action-authorization.cedar` | update | Add action names for reserved namespace decisions if absent. |
 
 ## D. Implementation
 
@@ -51,9 +51,9 @@ Implement a usecase-layer guard crate, `oya-tenancy-reserved-namespace-usecase`,
 
 ## F. Evidence
 
-- `microservices/tenancy/ARCHITECTURE.md` principal roster: `oyatie.tenancy.lifecycle-controller`, `oyatie.tenancy.isolation-policy-emitter`, and tenant principals.
-- `microservices/tenancy/contracts/openapi/tenancy.yaml` defines `Tenant` and `CreateTenantRequest`; the REST layer will call this guard before creation.
-- `microservices/tenancy/policy/action-authorization.cedar` is the existing action policy surface.
+- `tenancy/ARCHITECTURE.md` principal roster: `oyatie.tenancy.lifecycle-controller`, `oyatie.tenancy.isolation-policy-emitter`, and tenant principals.
+- `tenancy/contracts/openapi/tenancy.yaml` defines `Tenant` and `CreateTenantRequest`; the REST layer will call this guard before creation.
+- `tenancy/policy/action-authorization.cedar` is the existing action policy surface.
 - ADR-0284 requires platform-owner-name indirection, so the implementation cannot hard-code `oyatie`.
 
 ## G. Counterparts
@@ -68,4 +68,4 @@ Implement a usecase-layer guard crate, `oya-tenancy-reserved-namespace-usecase`,
 - Carrier: public boundary uses `Oyatie-Version: 2026-05-21`, URL prefix `/v/2026-05-21/`, and proto3 field tag `8001` for `oyatie_version`.
 - `declared_version`: `2026-05-21`; support window is `N=3` public date versions for at least `180` days after deprecation.
 - Internal-mesh exemption: internal gRPC remains on mesh proto3 compatibility and does not require the public URL/header carrier.
-- Surface evidence: `microservices/tenancy/IP-017-reserved-namespace-enforcer.md` matched `openapi`; contract files `microservices/tenancy/contracts/openapi/tenancy.yaml, microservices/tenancy/contracts/asyncapi/tenant-events.yaml, microservices/tenancy/contracts/proto/tenancy.proto`; type anchor `crates/oya-tenancy-api/src/lib.rs::TenantCreateApiRequest`.
+- Surface evidence: `tenancy/IP-017-reserved-namespace-enforcer.md` matched `openapi`; contract files `tenancy/contracts/openapi/tenancy.yaml, tenancy/contracts/asyncapi/tenant-events.yaml, tenancy/contracts/proto/tenancy.proto`; type anchor `crates/oya-tenancy-api/src/lib.rs::TenantCreateApiRequest`.

@@ -306,4 +306,4 @@ curl -X GET https://tenancy.prod-us-east-1.oyatie.local/v1/tenancy/tenants/acme-
 
 ## Where this file lives
 
-`microservices/tenancy/reference-implementations/lifecycle-and-permit-rust-sdk.md` (this file). The runnable Cargo project lands at `microservices/tenancy/reference-implementations/lifecycle-example/` once `oya-tenancy-client` ships.
+`tenancy/reference-implementations/lifecycle-and-permit-rust-sdk.md` (this file). The runnable Cargo project lands at `microservices/tenancy/reference-implementations/lifecycle-example/` once `oya-tenancy-client` ships.

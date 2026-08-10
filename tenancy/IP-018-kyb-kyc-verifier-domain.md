@@ -27,8 +27,8 @@ Create `oya-tenancy-kyb-kyc-verifier-domain` as a pure domain crate that models 
 | `src/screening.rs` | create | Sanctions, PEP, adverse-media, minor-protection screening results. |
 | `src/rules.rs` | create | Country, tenant_class, and audience-specific requirement resolver. |
 | `src/events.rs` | create | Domain events for completed, declined, escalated, expired. |
-| `microservices/tenancy/catalog/oya-tenancy-kyb-kyc-verifier-domain.yaml` | update/create | Catalog row already present in the service inventory. |
-| `microservices/tenancy/capabilities/kyb-kyc-complete.yaml` | align | Capability declares this domain as decision owner. |
+| `tenancy/catalog/oya-tenancy-kyb-kyc-verifier-domain.yaml` | update/create | Catalog row already present in the service inventory. |
+| `tenancy/capabilities/kyb-kyc-complete.yaml` | align | Capability declares this domain as decision owner. |
 
 ## D. Implementation
 
@@ -46,13 +46,13 @@ Create `oya-tenancy-kyb-kyc-verifier-domain` as a pure domain crate that models 
 - No network, database, HTTP, or provider SDK dependencies appear in the crate.
 - Tests show `TenantStatus::Activated` eligibility only after `Decision::Approve`.
 - Domain events map to `oya.tenancy.kyb-kyc-completed`, `oya.tenancy.kyb-kyc-declined`, and `oya.tenancy.kyb-kyc-escalated` for `IP-024`.
-- `microservices/tenancy/capabilities/kyb-kyc-complete.yaml` names this crate as the domain decision source.
+- `tenancy/capabilities/kyb-kyc-complete.yaml` names this crate as the domain decision source.
 
 ## F. Evidence
 
-- `microservices/tenancy/PRD.md` requires sub-5-minute self-serve activation and identifies tenant lifecycle as the authority every µservice trusts.
-- `microservices/tenancy/manifest.json` lists `kyb-kyc-complete.yaml` and the `oya-tenancy-kyb-kyc-verifier-domain` catalog row.
-- `microservices/tenancy/runbooks/kyb-kyc-pipeline-stalled.md` already exists as the operational path for stuck cases.
+- `tenancy/PRD.md` requires sub-5-minute self-serve activation and identifies tenant lifecycle as the authority every µservice trusts.
+- `tenancy/manifest.json` lists `kyb-kyc-complete.yaml` and the `oya-tenancy-kyb-kyc-verifier-domain` catalog row.
+- `tenancy/runbooks/kyb-kyc-pipeline-stalled.md` already exists as the operational path for stuck cases.
 - `microservices/payments/competitor-parity-matrix.md` shows Stripe Identity/pressure on verified account onboarding; tenancy must supply the tenant-side proof before payments handles sub-merchants.
 
 ## G. Counterparts
@@ -64,8 +64,8 @@ Create `oya-tenancy-kyb-kyc-verifier-domain` as a pure domain crate that models 
 | Auth0 Organizations | Organization lifecycle metadata | Adds compliance-grade KYB/KYC state beyond identity-provider org metadata. |
 
 ## DR posture (per ADR-0343)
-- Manifest target source: `microservices/tenancy/manifest.json#dr` is missing; `rto_p99_seconds` and `rpo_p99_seconds` are not invented in this IP.
+- Manifest target source: `tenancy/manifest.json#dr` is missing; `rto_p99_seconds` and `rpo_p99_seconds` are not invented in this IP.
 - Applicable compliance-pack floor source: HIPAA-2024(rto=3600,rpo=300,multi_region=true), PCI-DSS-L1-v4(rto=86400,rpo=3600,multi_region=false), SOC2-T2(rto=14400,rpo=900,multi_region=false), EU-AI-ACT-2024-HIGH-RISK(rto=1800,rpo=300,multi_region=true), ISO27001-2022(rto=14400,rpo=3600,multi_region=false) from `specs/compliance-pack-floors.json`.
 - Multi-region posture: `multi_region_active_active` is not declared in the manifest; any floor with `multi_region=true` must force active-active before this IP can serve that pack.
 - `backup_substrate` enumeration: valkey, valkey_cluster, postgres_wal_g, iceberg_snapshot, object_storage_versioned, seaweedfs_replicated, milvus_snapshot, clickhouse_iceberg_layered, openbao_seal_unseal, audit_chain_merkle_seal.
-- Surface evidence: `microservices/tenancy/IP-018-kyb-kyc-verifier-domain.md` matched `payment`; anchors `microservices/tenancy/runbooks/dr-pair-promotion-drill.md, crates/oya-tenancy-api/src/lib.rs`; type anchor `crates/oya-tenancy-api/src/lib.rs::TenantCreateApiRequest`.
+- Surface evidence: `tenancy/IP-018-kyb-kyc-verifier-domain.md` matched `payment`; anchors `tenancy/runbooks/dr-pair-promotion-drill.md, crates/oya-tenancy-api/src/lib.rs`; type anchor `crates/oya-tenancy-api/src/lib.rs::TenantCreateApiRequest`.

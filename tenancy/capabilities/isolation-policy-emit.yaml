@@ -20,9 +20,9 @@ maturity: stable
 created_at: 2026-05-17
 related_adrs: [ADR-0018, ADR-0028, ADR-0105, ADR-0131, ADR-0140 (retired per ADR-0145)]
 related_artifacts:
-  - microservices/tenancy/PRD.md (FR-12)
-  - microservices/tenancy/policy/rls-isolation.md (Invariants RLS-01..RLS-08)
-  - microservices/tenancy/contracts/asyncapi/tenant-events.yaml (RlsPolicyInstalled)
+  - tenancy/PRD.md (FR-12)
+  - tenancy/policy/rls-isolation.md (Invariants RLS-01..RLS-08)
+  - tenancy/contracts/asyncapi/tenant-events.yaml (RlsPolicyInstalled)
 
 autonomy_tier: T3
 # T3 = mutation against authoritative-state (Postgres) requiring elevated authorization +
@@ -78,8 +78,8 @@ cost_profile:
     - Post-migration validator probe (pg_policies + pg_class.relforcerowsecurity)
 
 cedar_policy_fragments:
-  - microservices/tenancy/policy/tenant-scope.cedar (forbid non-platform-operator)
-  - microservices/tenancy/policy/auditor-scope.cedar (audit reads only)
+  - tenancy/policy/tenant-scope.cedar (forbid non-platform-operator)
+  - tenancy/policy/auditor-scope.cedar (audit reads only)
 
 eval_set:
   golden_inputs_path: microservices/tenancy/capabilities/eval/isolation-policy-emit-golden.jsonl

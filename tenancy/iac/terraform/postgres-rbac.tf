@@ -1,4 +1,4 @@
-# Postgres RBAC managed via Terraform per microservices/tenancy/policy/rls-isolation.md
+# Postgres RBAC managed via Terraform per tenancy/policy/rls-isolation.md
 # Invariant RLS-04: app role MUST NOT have bypassrls; only the JIT-elevated tenancy-admin-jit role can.
 # UI/CLI mutation outside Terraform is forbidden by Postgres `pg_hba.conf` + per-role lockdown.
 # This Terraform is the source-of-truth for Postgres roles + RLS-bypass policy.

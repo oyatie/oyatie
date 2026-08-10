@@ -9,12 +9,12 @@ owner_team: ops-security + axis-tenancy
 deciders: council-architecture, ops-security, axis-tenancy, council-privacy
 related_adrs: [ADR-0018, ADR-0028, ADR-0117, ADR-0139, ADR-0131, ADR-0140 (retired per ADR-0145)]
 related_artifacts:
-  - microservices/tenancy/threat-model.md (Trust Boundary 3, T-T-01, T-I-01, T-I-02, T-E-01)
-  - microservices/tenancy/dpia.md (R-01)
-  - microservices/tenancy/policy/tenant-scope.cedar
-  - microservices/tenancy/policy/ci-scope.cedar
-  - microservices/tenancy/policy/auditor-scope.cedar
-  - microservices/tenancy/policy/public-read.cedar
+  - tenancy/threat-model.md (Trust Boundary 3, T-T-01, T-I-01, T-I-02, T-E-01)
+  - tenancy/dpia.md (R-01)
+  - tenancy/policy/tenant-scope.cedar
+  - tenancy/policy/ci-scope.cedar
+  - tenancy/policy/auditor-scope.cedar
+  - tenancy/policy/public-read.cedar
 review_cadence: quarterly + on every Postgres / Citus major-version upgrade
 doc_status: published
 ---
@@ -353,10 +353,10 @@ Each pack's overlay at `regional-packs/<pack>/tenancy-rls-overlay.md` maps the l
 - ADR-0139: agentic SLO-gated promotion.
 - ADR-0131: per-microservice flat layout.
 - ADR-0140: Cedar policy enforcement.
-- `microservices/tenancy/threat-model.md` §"Trust Boundaries" + T-T-01 + T-I-01 + T-I-02 + T-E-01.
-- `microservices/tenancy/dpia.md` R-01.
+- `tenancy/threat-model.md` §"Trust Boundaries" + T-T-01 + T-I-01 + T-I-02 + T-E-01.
+- `tenancy/dpia.md` R-01.
 - `microservices/tenancy/policy/{tenant-scope, ci-scope, auditor-scope, public-read}.cedar`.
-- `microservices/tenancy/policy/data-residency.md`.
+- `tenancy/policy/data-residency.md`.
 - Postgres RLS docs — `postgresql.org/docs/16/ddl-rowsecurity.html`.
 - Citus multi-tenant docs — `docs.citusdata.com/en/stable/use_cases/multi_tenant.html`.
 - OWASP Top 10 (2021) #1 Broken Access Control; #3 Injection.

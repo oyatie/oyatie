@@ -9,10 +9,10 @@ owner_team: council-privacy + axis-tenancy
 deciders: council-privacy, ops-security, axis-tenancy, gtm-customer-success
 related_adrs: [ADR-0018, ADR-0117, ADR-0139, ADR-0131]
 related_artifacts:
-  - microservices/tenancy/threat-model.md (T-I-04 / T-T-04 / T-L-10; cross-pack misroute threats)
-  - microservices/tenancy/dpia.md (R-04 cross-border misroute)
-  - microservices/tenancy/policy/rls-isolation.md
-  - microservices/tenancy/multi-region.md
+  - tenancy/threat-model.md (T-I-04 / T-T-04 / T-L-10; cross-pack misroute threats)
+  - tenancy/dpia.md (R-04 cross-border misroute)
+  - tenancy/policy/rls-isolation.md
+  - tenancy/multi-region.md
 review_cadence: annually + on every regional-pack activation
 doc_status: published
 ---
@@ -226,10 +226,10 @@ Each pack's overlay at `regional-packs/<pack>/tenancy-residency-overlay.md` carr
 - ADR-0117: Cloud-native infrastructure (residency).
 - ADR-0139: Agentic SLO-gated promotion.
 - ADR-0131: Per-microservice flat layout.
-- `microservices/tenancy/threat-model.md` T-I-04 + T-T-04 + T-L-10.
-- `microservices/tenancy/dpia.md` R-04 + R-11 + R-15 + §2.2.
-- `microservices/tenancy/policy/rls-isolation.md`.
-- `microservices/tenancy/multi-region.md`.
+- `tenancy/threat-model.md` T-I-04 + T-T-04 + T-L-10.
+- `tenancy/dpia.md` R-04 + R-11 + R-15 + §2.2.
+- `tenancy/policy/rls-isolation.md`.
+- `tenancy/multi-region.md`.
 - `microservices/tenancy/legal/{transfer-register, schrems-supplementary-measures, baa-template, dpa-template, sub-processors, ropa}.md`.
 - `regional-packs/<pack>/tenancy-residency-overlay.md` (per-pack).
 - Oracle Cloud Infrastructure region documentation.

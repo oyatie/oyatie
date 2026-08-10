@@ -11,7 +11,7 @@ related_adrs: [ADR-0244, ADR-0083, ADR-0105, ADR-0131]
 
 ## A. Problem
 
-`tenancy` currently owns the tenant lifecycle and the tenant-to-cell assignment, but it does not have a typed kernel for scopes below the tenant. That gap forces downstream products to improvise workspace, project, department, engagement, and helper-scope identifiers outside the canonical `TenantContext` model described in `microservices/tenancy/PRD.md`. The missing kernel becomes dangerous once `IP-journey-j116-tenant-install-boundary.md`, `IP-journey-j118-projection-scope-registry.md`, and `IP-journey-j123-shared-workspace-scope.md` need stable parent-child scope semantics.
+`tenancy` currently owns the tenant lifecycle and the tenant-to-cell assignment, but it does not have a typed kernel for scopes below the tenant. That gap forces downstream products to improvise workspace, project, department, engagement, and helper-scope identifiers outside the canonical `TenantContext` model described in `tenancy/PRD.md`. The missing kernel becomes dangerous once `IP-journey-j116-tenant-install-boundary.md`, `IP-journey-j118-projection-scope-registry.md`, and `IP-journey-j123-shared-workspace-scope.md` need stable parent-child scope semantics.
 
 This IP creates the zero-I/O substrate for sub-scopes. It is not a UI, not an adapter, and not a new tenant lifecycle service. It supplies the pure types and invariants that later REST, Postgres, Cedar, and projection slices can reuse without re-creating hierarchy rules.
 
@@ -31,7 +31,7 @@ The hierarchy model is an adjacency edge plus materialized path projection: the 
 | `microservices/tenancy/src/crates/oya-tenancy-sub-scope-registry-kernel/src/hierarchy.rs` | create | Cycle, depth, parent-kind, and tenant-boundary validators. |
 | `microservices/tenancy/src/crates/oya-tenancy-sub-scope-registry-kernel/src/ports.rs` | create | `SubScopeRegistryPort` and `SubScopeHierarchyReadPort`. |
 | `microservices/tenancy/src/crates/oya-tenancy-sub-scope-registry-kernel/src/errors.rs` | create | `SubScopeKernelError` with no `anyhow`. |
-| `microservices/tenancy/catalog/oya-tenancy-sub-scope-registry-kernel.yaml` | update/create | Catalog row already listed in `manifest.json` and must match crate path. |
+| `tenancy/catalog/oya-tenancy-sub-scope-registry-kernel.yaml` | update/create | Catalog row already listed in `manifest.json` and must match crate path. |
 
 ## D. Implementation
 
@@ -53,10 +53,10 @@ The hierarchy model is an adjacency edge plus materialized path projection: the 
 
 ## F. Evidence
 
-- `microservices/tenancy/PRD.md` requires `TenantContext` as the only valid tenant representation and calls tenancy the single authority for every tenant decision.
-- `microservices/tenancy/manifest.json` already lists `microservices/tenancy/catalog/oya-tenancy-sub-scope-registry-kernel.yaml`.
-- `microservices/tenancy/IP-023-sub-scope-registry-adapter-postgres.md` depends on this kernel for `sub_scopes` and closure-table persistence.
-- `microservices/tenancy/policy/tenant-scope.cedar` and `microservices/tenancy/policy/action-authorization.cedar` are the future policy consumers for sub-scope permissions.
+- `tenancy/PRD.md` requires `TenantContext` as the only valid tenant representation and calls tenancy the single authority for every tenant decision.
+- `tenancy/manifest.json` already lists `tenancy/catalog/oya-tenancy-sub-scope-registry-kernel.yaml`.
+- `tenancy/IP-023-sub-scope-registry-adapter-postgres.md` depends on this kernel for `sub_scopes` and closure-table persistence.
+- `tenancy/policy/tenant-scope.cedar` and `tenancy/policy/action-authorization.cedar` are the future policy consumers for sub-scope permissions.
 
 ## G. Counterparts
 
@@ -67,8 +67,8 @@ The hierarchy model is an adjacency edge plus materialized path projection: the 
 | AWS Organizations | OU tree with parent-child constraints | Brings cycle/depth validation into the kernel before the Postgres adapter persists closure rows. |
 
 ## DR posture (per ADR-0343)
-- Manifest target source: `microservices/tenancy/manifest.json#dr` is missing; `rto_p99_seconds` and `rpo_p99_seconds` are not invented in this IP.
+- Manifest target source: `tenancy/manifest.json#dr` is missing; `rto_p99_seconds` and `rpo_p99_seconds` are not invented in this IP.
 - Applicable compliance-pack floor source: HIPAA-2024(rto=3600,rpo=300,multi_region=true), PCI-DSS-L1-v4(rto=86400,rpo=3600,multi_region=false), SOC2-T2(rto=14400,rpo=900,multi_region=false), EU-AI-ACT-2024-HIGH-RISK(rto=1800,rpo=300,multi_region=true), ISO27001-2022(rto=14400,rpo=3600,multi_region=false) from `specs/compliance-pack-floors.json`.
 - Multi-region posture: `multi_region_active_active` is not declared in the manifest; any floor with `multi_region=true` must force active-active before this IP can serve that pack.
 - `backup_substrate` enumeration: valkey, valkey_cluster, postgres_wal_g, iceberg_snapshot, object_storage_versioned, seaweedfs_replicated, milvus_snapshot, clickhouse_iceberg_layered, openbao_seal_unseal, audit_chain_merkle_seal.
-- Surface evidence: `microservices/tenancy/IP-016-sub-scope-registry-kernel.md` matched `payment`; anchors `microservices/tenancy/runbooks/dr-pair-promotion-drill.md, crates/oya-tenancy-api/src/lib.rs`; type anchor `crates/oya-tenancy-api/src/lib.rs::TenantCreateApiRequest`.
+- Surface evidence: `tenancy/IP-016-sub-scope-registry-kernel.md` matched `payment`; anchors `tenancy/runbooks/dr-pair-promotion-drill.md, crates/oya-tenancy-api/src/lib.rs`; type anchor `crates/oya-tenancy-api/src/lib.rs::TenantCreateApiRequest`.

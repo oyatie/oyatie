@@ -9,8 +9,8 @@ owner_team: ops-finops + axis-tenancy + ops-sre-reliability
 deciders: ops-finops, axis-tenancy, ops-sre-reliability, council-architecture
 related_adrs: [ADR-0117, ADR-0139, ADR-0131]
 related_artifacts:
-  - microservices/tenancy/capacity-model.md
-  - microservices/tenancy/multi-region.md
+  - tenancy/capacity-model.md
+  - tenancy/multi-region.md
 review_cadence: monthly + on every capacity-model revision
 doc_status: published
 ---
@@ -123,9 +123,9 @@ Verify-at-deploy: OCI pricing changes; reconfirm against `oracle.com/cloud/prici
 
 ## References
 
-- `microservices/tenancy/capacity-model.md`.
-- `microservices/tenancy/multi-region.md`.
-- `microservices/tenancy/policy/data-residency.md` (per-pack retention multipliers).
+- `tenancy/capacity-model.md`.
+- `tenancy/multi-region.md`.
+- `tenancy/policy/data-residency.md` (per-pack retention multipliers).
 - OCI pricing — `oracle.com/cloud/pricing/`.
 - Postgres + Citus + Patroni reference architectures — vendor docs.
 - FinOps Foundation framework — `finops.org`.

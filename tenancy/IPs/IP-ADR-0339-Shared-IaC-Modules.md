@@ -52,12 +52,12 @@ DOSSIER-CRATE-008: Existing crate `oya-tenancy-tenant-lifecycle-rest` remains un
 DOSSIER-CRATE-009: Existing crate `oya-tenancy-tenant-lifecycle-sdk` remains untouched by this document-stage IP.
 DOSSIER-CRATE-010: Existing crate `oya-tenancy-tenant-lifecycle-usecase` remains untouched by this document-stage IP.
 DOSSIER-CRATE-011: Existing crate `oya-tenancy-tenant-lifecycle-worker` remains untouched by this document-stage IP.
-DOSSIER-CONTRACT-001: OpenAPI 3.2.0: microservices/tenancy/contracts/openapi/tenancy.yaml.
-DOSSIER-CONTRACT-002: AsyncAPI 3.1.0: microservices/tenancy/contracts/asyncapi/tenant-events.yaml.
-DOSSIER-CONTRACT-003: proto3: microservices/tenancy/contracts/proto/tenancy.proto.
-DOSSIER-CAPABILITY-001: T3 dsr-cascade-execute risk=high file=microservices/tenancy/capabilities/dsr-cascade-execute.yaml.
-DOSSIER-CAPABILITY-002: T3 isolation-policy-emit risk=high file=microservices/tenancy/capabilities/isolation-policy-emit.yaml.
-DOSSIER-CAPABILITY-003: T1 tenant-resolve risk=minimal file=microservices/tenancy/capabilities/tenant-resolve.yaml.
+DOSSIER-CONTRACT-001: OpenAPI 3.2.0: tenancy/contracts/openapi/tenancy.yaml.
+DOSSIER-CONTRACT-002: AsyncAPI 3.1.0: tenancy/contracts/asyncapi/tenant-events.yaml.
+DOSSIER-CONTRACT-003: proto3: tenancy/contracts/proto/tenancy.proto.
+DOSSIER-CAPABILITY-001: T3 dsr-cascade-execute risk=high file=tenancy/capabilities/dsr-cascade-execute.yaml.
+DOSSIER-CAPABILITY-002: T3 isolation-policy-emit risk=high file=tenancy/capabilities/isolation-policy-emit.yaml.
+DOSSIER-CAPABILITY-003: T1 tenant-resolve risk=minimal file=tenancy/capabilities/tenant-resolve.yaml.
 
 ## 3. ADR-0339 Doctrine Binding
 ADR0339-001: Purpose binding: collapse 385 per-service from-scratch module directories into roughly 50 shared OpenTofu primitives plus thin wrappers.
@@ -279,9 +279,9 @@ LEADER-018: `tenancy` leader-scale posture keeps primitive selection explicit, r
 
 ## 12. API And Contract Documentation Impact
 API-001: `tenancy` does not change REST, event, or proto payloads in this document-stage wave.
-API-002: OpenAPI 3.2.0 references for `tenancy` remain: OpenAPI 3.2.0: microservices/tenancy/contracts/openapi/tenancy.yaml
-API-003: AsyncAPI 3.1.0 references for `tenancy` remain: AsyncAPI 3.1.0: microservices/tenancy/contracts/asyncapi/tenant-events.yaml
-API-004: proto3 references for `tenancy` remain: proto3: microservices/tenancy/contracts/proto/tenancy.proto
+API-002: OpenAPI 3.2.0 references for `tenancy` remain: OpenAPI 3.2.0: tenancy/contracts/openapi/tenancy.yaml
+API-003: AsyncAPI 3.1.0 references for `tenancy` remain: AsyncAPI 3.1.0: tenancy/contracts/asyncapi/tenant-events.yaml
+API-004: proto3 references for `tenancy` remain: proto3: tenancy/contracts/proto/tenancy.proto
 API-005: If a future wrapper migration exposes deployment preview APIs, the public boundary must carry ADR-0342 date-version carriers separately from module semantic versions.
 API-006: If a future wrapper migration changes async deployment events, the AsyncAPI channel must identify module context, primitive, version_pin, tenant_class_scope, and cell_id.
 API-007: If a future wrapper migration changes proto deployment receipts, proto3 reserved tags must prevent silent field reuse.
@@ -305,7 +305,7 @@ ALT-004: Delay `tenancy` manifest declaration until implementation; rejected bec
 ALT-005: Allow unpinned local module paths during migration; rejected because the exact path would work locally while hiding supply-chain and reproducibility risk.
 
 ## 15. Acceptance And Verification
-VERIFY-001: Static read confirms this file exists at `microservices/tenancy/IPs/IP-ADR-0339-Shared-IaC-Modules.md`.
+VERIFY-001: Static read confirms this file exists at `tenancy/IPs/IP-ADR-0339-Shared-IaC-Modules.md`.
 VERIFY-002: Static read confirms ADR-0339 is cited by exact ID.
 VERIFY-003: Static read confirms ADR-0322 is cited by exact ID.
 VERIFY-004: Static read confirms ADR-0181 is cited by exact ID.

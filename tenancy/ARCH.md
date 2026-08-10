@@ -17,10 +17,10 @@ related_adrs:
   - ADR-0348
   - ADR-0349
 companion_docs:
-  - microservices/tenancy/manifest.json
-  - microservices/tenancy/PRD.md
-  - microservices/tenancy/README.md
-  - microservices/tenancy/ARCHITECTURE.md
+  - tenancy/manifest.json
+  - tenancy/PRD.md
+  - tenancy/README.md
+  - tenancy/ARCHITECTURE.md
 ---
 
 # Architecture: Tenancy

@@ -11,10 +11,10 @@ methodology: ICO DPIA template (UK) + CNIL DPIA methodology (FR) + GDPR Art. 35 
 related_adrs: [ADR-0018, ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0139, ADR-0131, ADR-0132, ADR-0140 (retired per ADR-0145)]
 related_specs: [/specs/per-microservice-flat-layout.json]
 related_artifacts:
-  - microservices/tenancy/threat-model.md
-  - microservices/tenancy/policy/rls-isolation.md
-  - microservices/tenancy/policy/data-residency.md
-  - microservices/tenancy/compliance.md
+  - tenancy/threat-model.md
+  - tenancy/policy/rls-isolation.md
+  - tenancy/policy/data-residency.md
+  - tenancy/compliance.md
 review_cadence: annually + on every change to processing purpose, data classes, or sub-processor list
 high_risk_triggers_engaged:
   - "Art. 35(3)(a): systematic + extensive evaluation including profiling — YES (per-tenant lifecycle is systematic monitoring of tenant identity)"
@@ -72,7 +72,7 @@ Therefore: a DPIA is mandatory pre-deployment. **The tenancy DPIA is the most co
 
 **When:** Continuous; lifecycle mutations occur as platform-operator + tenant-operator actions; validate hot path runs on every µservice request (10⁴–10⁷ QPS); JWT signing-key rotation every 30d; DSR cascades on tenant request (regulator-bound SLA).
 
-**Who:** Per the actor table in `microservices/tenancy/threat-model.md` §"Actors". External tenant operators; customer applications; platform operators; DPO (council-privacy chair); internal µservices; Workflow event consumers; external auditors; regulators.
+**Who:** Per the actor table in `tenancy/threat-model.md` §"Actors". External tenant operators; customer applications; platform operators; DPO (council-privacy chair); internal µservices; Workflow event consumers; external auditors; regulators.
 
 ### 2.2 Scope of the processing
 
@@ -144,7 +144,7 @@ DPO independent advice + sign-off recorded at §7.
 | Lawful basis (Art. 6) | Identified per purpose in §2.4. |
 | Special-category basis (Art. 9, if applicable) | pack-us-healthcare PHI: Art. 9(2)(h) (provision of health care under contract with health professional) + HIPAA BAA covering §164.504(e). pack-kr sensitive data: PIPA Art. 23(2) (explicit consent) at tenant onboarding. |
 | Transfer basis (Arts. 44–46) | Per §2.2 cross-border: SCCs only; default residency by pack. |
-| Retention | Per asset class in `microservices/tenancy/threat-model.md` §"Assets & Data Classification". Defaults: tenant metadata 7y after deletion completes (covers DSR audit horizon + statutory minimum); audit records ≥ 1y default, ≥ 6y for HIPAA, ≥ 5y for KR-FSS, indefinite for proof-of-erasure (regulator-disclosable). |
+| Retention | Per asset class in `tenancy/threat-model.md` §"Assets & Data Classification". Defaults: tenant metadata 7y after deletion completes (covers DSR audit horizon + statutory minimum); audit records ≥ 1y default, ≥ 6y for HIPAA, ≥ 5y for KR-FSS, indefinite for proof-of-erasure (regulator-disclosable). |
 | Rights of data subjects | Honoured per §6 mitigations: access (Art. 15), rectification (Art. 16), erasure (Art. 17), restriction (Art. 18), portability (Art. 20), objection (Art. 21), automated-decision-protections (Art. 22). |
 
 ## Step 5 — Identify and assess risks to data subjects
@@ -169,7 +169,7 @@ Risks below are scored on Likelihood (L/M/H) × Severity (L/M/H); Severity is fr
 | R-14 | Patroni HA failure causes ≥ 1min validate-path outage → cascading lockouts | L | M | **L-M** |
 | R-15 | DSR submission rate-limited; legitimate tenant DSR delayed beyond 30d SLA | L | M | **L-M** |
 
-Cross-reference: every risk has at least one mitigation in §6 + at least one corresponding STRIDE / LINDDUN threat in `microservices/tenancy/threat-model.md`.
+Cross-reference: every risk has at least one mitigation in §6 + at least one corresponding STRIDE / LINDDUN threat in `tenancy/threat-model.md`.
 
 ## Step 6 — Identify measures to reduce risk
 
@@ -210,7 +210,7 @@ The DPO advises proceeding with first-tenant onboarding subject to:
 - Re-trigger DPIA on any new sub-processor (Citus vendor, Patroni operational support, OpenBao vendor, etc.).
 
 **Outcomes documented:**
-- Mitigations adopted: every measure in §6 is in-scope for the IP-001 through IP-015 authoring (see `microservices/tenancy/PHASE-01-TENANCY-SUBSTRATE-STABLE.md`).
+- Mitigations adopted: every measure in §6 is in-scope for the IP-001 through IP-015 authoring (see `tenancy/PHASE-01-TENANCY-SUBSTRATE-STABLE.md`).
 - Records-of-processing register entry (per GDPR Art. 30): `microservices/tenancy/legal/ropa.md`.
 - Joint-controllership template: `microservices/tenancy/legal/dpa-template.md`.
 
@@ -297,11 +297,11 @@ This DPIA re-reviews on:
 - ADR-0139: Agentic SLO-gated promotion.
 - ADR-0131: Per-microservice flat layout.
 - ADR-0140: Cedar policy enforcement.
-- `microservices/tenancy/threat-model.md`.
-- `microservices/tenancy/policy/rls-isolation.md`.
-- `microservices/tenancy/policy/data-residency.md`.
-- `microservices/tenancy/compliance.md`.
-- `microservices/tenancy/incident-response.md`.
+- `tenancy/threat-model.md`.
+- `tenancy/policy/rls-isolation.md`.
+- `tenancy/policy/data-residency.md`.
+- `tenancy/compliance.md`.
+- `tenancy/incident-response.md`.
 - `microservices/tenancy/legal/{dpa-template, baa-template, sub-processors, transfer-register, ropa}.md`.
 - ICO DPIA template — `ico.org.uk`.
 - CNIL DPIA methodology — `cnil.fr/en/PIA`.

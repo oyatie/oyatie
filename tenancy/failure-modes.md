@@ -9,10 +9,10 @@ owner_team: ops-sre-reliability + axis-tenancy
 deciders: ops-sre-reliability, axis-tenancy, ops-security, council-architecture
 related_adrs: [ADR-0018, ADR-0028, ADR-0117, ADR-0139, ADR-0131]
 related_artifacts:
-  - microservices/tenancy/threat-model.md
-  - microservices/tenancy/dpia.md
-  - microservices/tenancy/policy/rls-isolation.md
-  - microservices/tenancy/incident-response.md
+  - tenancy/threat-model.md
+  - tenancy/dpia.md
+  - tenancy/policy/rls-isolation.md
+  - tenancy/incident-response.md
   - microservices/tenancy/runbooks/
 review_cadence: quarterly + after every Sev-1 / Sev-2 incident affecting tenancy
 doc_status: published
@@ -252,11 +252,11 @@ Enumerate the failure scenarios on-call must handle, the detection signal for ea
 
 ## References
 
-- `microservices/tenancy/threat-model.md` (each FM has at least one corresponding STRIDE / LINDDUN threat).
-- `microservices/tenancy/dpia.md` (FM-02, FM-04, FM-06, FM-09 map to R-01, R-02, R-05, R-04 respectively).
-- `microservices/tenancy/incident-response.md` §"Severity Definitions".
+- `tenancy/threat-model.md` (each FM has at least one corresponding STRIDE / LINDDUN threat).
+- `tenancy/dpia.md` (FM-02, FM-04, FM-06, FM-09 map to R-01, R-02, R-05, R-04 respectively).
+- `tenancy/incident-response.md` §"Severity Definitions".
 - `microservices/tenancy/runbooks/*` (recovery procedures).
-- `microservices/tenancy/capacity-model.md` (FM-15 + per-tenant limits).
+- `tenancy/capacity-model.md` (FM-15 + per-tenant limits).
 - Patroni operations docs — `patroni.readthedocs.io`.
 - Citus operations docs — `docs.citusdata.com`.
 - Google SRE Workbook ch. 12 (Postmortem culture).
