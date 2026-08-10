@@ -58,7 +58,7 @@ A fresh agent MUST first read, in order:
 4. The approved plan and durable Ultragoal files named above.
 5. ADR-0637, ADR-0638, and this journal.
 
-The planning lane already read the complete reorganization context and every ADR above ADR-0600 present at baseline (ADR-0603 through ADR-0636), plus Bun's Rust rewrite account, the gaebal-gajae archive, and `jclab-joseph/it-legal` procedures. A fresh executor MUST preserve those decisions and MUST re-open any ADR it relies on rather than relying on this summary alone.
+The planning lane already read the complete reorganization context and every ADR above ADR-0600 present at baseline (ADR-0603 through ADR-0636), plus ADR-0711 Amendment C (operating-patterns catalog / reflection corpus). A fresh executor MUST preserve those decisions and MUST re-open any ADR it relies on rather than relying on this summary alone.
 
 The architectural contract is:
 
@@ -68,7 +68,7 @@ The architectural contract is:
 - Maintain upstream mechanically: pin → SourceModel snapshot → semantic delta → rule/policy change → regenerate → six-axis verify. Never hand-edit regenerable Rust.
 - Fix the algorithm, model, rule, fixture, or gate when a mechanical port fails. CI is the detector, not an excuse for output patching.
 - Keep full A-prime program scope, including kubelet and kube-proxy. W0 produces contracts and measured evidence, not bulk corpus output.
-- Apply Bun's loop to rules: one implementer, two split-context adversarial reviewers, one fixer. Preserve lane-first records and systematic procedures.
+- Apply the Amendment C / swarm operating-patterns loop to rules: one implementer, two split-context adversarial reviewers, one fixer. Preserve lane-first records and systematic procedures.
 
 ## Judgment
 

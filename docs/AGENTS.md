@@ -208,11 +208,10 @@ Evidence-grounded policy, regulatory, and compliance claims identify the exact s
 it is primary, its immutable version or retrieval date, effective date, jurisdiction and
 applicability, missing or conflicting authority, and the resulting claim ceiling. Revalidate when
 the source, date, applicability, or product behavior changes. This method paraphrases operational
-lessons reviewed from [Bun's Rust rewrite account](https://bun.com/blog/bun-in-rust) (retrieved
-2026-08-04), [gaebal-gajae's archive](https://blog.gaebal-gajae.dev/archive.html) (retrieved
-2026-08-04), and
-[`it-legal` at `5624ff1`](https://github.com/jclab-joseph/it-legal/tree/5624ff14e673863ec3b5645155742691a74ef152);
-none is Oyatie, legal, or product authority.
+lessons from ADR-0711 Amendment C (operating-patterns catalog) and the reflection corpus —
+cite [`specs/agentic-operating-patterns.json`](../specs/agentic-operating-patterns.json) and the
+PORTABLE/ADR Amendment C surfaces; never external brand or archive URLs. None of those
+distillations is Oyatie, legal, or product authority.
 
 ## Pre-flight checklist
 
@@ -391,7 +390,7 @@ Each appendix is ≤40 lines. Per-agent harness deltas only — no rule duplicat
 
 ### Claude Code <a id="claude-claude-code"></a>
 
-The Claude Code harness loads `CLAUDE.md` at session start (memory-bootstrap convention per [Anthropic docs](https://docs.anthropic.com/en/docs/claude-code/memory)). Repo-root `CLAUDE.md` is a Redirect-class file pointing to this contract.
+The Claude Code harness loads `CLAUDE.md` at session start (memory-bootstrap convention). Repo-root `CLAUDE.md` is a Redirect-class file pointing to this contract.
 
 Always-loaded skills (project-level): `coding-standards`, `tdd-workflow`, `superpowers:test-driven-development`, `superpowers:verification-before-completion`, `superpowers:systematic-debugging`, `search-first`. Language and domain skills load from file context (`rust-*`, `frontend-*`, `postgres-patterns`, `healthcare-phi-compliance`).
 
@@ -407,7 +406,7 @@ Self-test: `npm --prefix /Users/home/.codex test` before relying on hook / harne
 
 ### Codex (OpenAI Codex CLI)
 
-The Codex CLI loads `AGENTS.md` at workspace creation, per the cross-tool [AGENTS.md convention](https://agents.md). Repo-root `AGENTS.md` is a Redirect-class file pointing to this contract.
+The Codex CLI loads `AGENTS.md` at workspace creation, per the cross-tool AGENTS.md convention. Repo-root `AGENTS.md` is a Redirect-class file pointing to this contract.
 
 Build / test commands: targeted `buck2 build <target(s)>` and `buck2 test <target(s)>`; UI-only surfaces may also use `pnpm build`, `pnpm test`, and `pnpm lint` (Node 20) as local evidence when relevant.
 
@@ -454,5 +453,6 @@ The full machine-readable list is in this file's front-matter `excludes:` block.
 
 ## Sources scanned
 
+- 2026-08-10 — anti-branding: remove external brand/archive URL citations from § Bounded delivery and per-agent appendices; cite Amendment C operating-patterns catalog / reflection corpus (`specs/agentic-operating-patterns.json`); bead `oyatie-dxz.5`.
 - 2026-08-10 — INV-DOC-9 doctrine survival (binding) + DOC-UPDATE same-wave co-change amendment; bead `oyatie-dxz.5` under docs-governance epic `oyatie-dxz`; Amendment C operating-patterns catalog / reflection corpus (brand-free).
 - 2026-05-10 — initial draft authored from agentic-workflow best practice + RFC-2119 + RFC-8174 + Diátaxis (historical; do not treat external product names as authority).
