@@ -249,3 +249,7 @@ _ralplan_workflow.js
 # in product PRs — process-kit hygiene only.
 .grok/mm-runs/
 .grok/memory/
+
+# Swarm check-daemon outputs (orchestrator main-checkout only; workers read these).
+/err.txt
+/.check/
