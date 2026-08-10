@@ -95,7 +95,7 @@ Dimension verdict: partial, with P1/P2 drift.
 The local docs agree on the broad mission: cloud-kms provides tenant key custody, HSM partitions, BYOK/HYOK, envelope encryption, rotation, cryptoshredding, and audit evidence.
 The local docs do not agree on the execution surface: some files describe SDK calls, some prescribe make targets, some use provider CLIs, and none points to a local contract, source tree, SLO file, or deployment manifest.
 Internal reference 1: `retired tenant_class adoption artifact:7-11` defines CMK, KEK, DEK, envelope encryption, rotation, cryptoshredding, HSM signing, and no-roll-your-own-crypto enforcement. Target resolves conceptually to FAQ, tutorial, and SDK docs.
-Internal reference 2: `retired tenant_class adoption artifact:24-25` declares demo_trial latency and availability SLOs. Target SLO file does not exist under `microservices/cloud-kms/slos/`.
+Internal reference 2: `retired tenant_class adoption artifact:24-25` declares demo_trial latency and availability SLOs. Target SLO file does not exist under `secrets/observability/slos/cloud-kms/`.
 Internal reference 3: `retired tenant_class adoption artifact:42-43` declares paid p95 and availability. Target OpenSLO file does not exist locally.
 Internal reference 4: `retired tenant_class adoption artifact:60-61` declares paid p95 and availability. Target OpenSLO file does not exist locally.
 Internal reference 5: `retired tenant_class adoption artifact:78-79` declares paid p95 and availability. Target OpenSLO file does not exist locally.

@@ -24,3 +24,16 @@ Do not invent missing homes. No hubs, no `Cargo.lock`, no merge.
 ## Deferred
 
 - Journey-local contract/policy/test paths without in-tree counterparts; `legal/**`; `retired tenant_class` artifacts; missing `byok-ceremony.md`.
+
+
+## Wave-5 Seat A follow-through (2026-08-10)
+
+Retargeted verified remaps:
+
+- microservices/cloud-kms/slos/ -> secrets/observability/slos/cloud-kms/
+- Bare microservices/cloud-secrets -> secrets (reorg-unit judgments)
+
+### Deferred
+
+- Journey-local policy/eval/asyncapi fixtures without in-tree counterparts; missing KMS ARCHITECTURE/src/retired; control-plane.openslo.yaml filename not present under observability alias
+- No hubs, no Cargo.lock, no merge.
