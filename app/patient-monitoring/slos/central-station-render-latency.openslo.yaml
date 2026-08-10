@@ -1,0 +1,46 @@
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: oya-patient-monitoring-central-station-render-latency
+  displayName: "patient-monitoring: central-station 8-bed render p99 ≤ 400 ms"
+  labels:
+    microservice: patient-monitoring
+    bounded_context: central-station
+    sli_class: latency
+    tier: product
+    plane: data
+    owner_team: axis-clinical-realtime
+    pack_scope: all
+spec:
+  service: patient-monitoring
+  description: |
+    Central station 8-bed grid render p99 SLO ≤ 400 ms. A "good" render is
+    a unit-view update applied to the kiosk display within 400 ms of the
+    backend t_update_hlc.
+  indicator:
+    metadata:
+      name: central-station-render-p99
+    spec:
+      ratioMetric:
+        counter: true
+        good:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: |
+                sum(rate(oya_patient_monitoring_central_station_render_seconds_bucket{le="0.4",beds="8"}[5m]))
+        total:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: |
+                sum(rate(oya_patient_monitoring_central_station_render_seconds_count{beds="8"}[5m]))
+  objectives:
+    - target: 0.99
+      displayName: "p99 ≤ 400 ms for 99% of 5min windows over 30d"
+  timeWindow:
+    - duration: 30d
+      isRolling: true
+  budgetingMethod: Occurrences
+  alertPolicies:
+    - alertPolicyRef: oya-canonical-burn-rate-multi-window
