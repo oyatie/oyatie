@@ -6,7 +6,7 @@
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
     "spec_id": "EXE-INTEG-BRANCH-ENVELOPES",
-    "version": "1.16.1",
+    "version": "1.16.2",
     "status": "Proposed",
     "owner_team": "council-architecture",
     "created_at": "2026-08-10T00:00:00Z",
@@ -3635,7 +3635,9 @@
         "redesign": "rewrite",
         "destination_integ": "integ/payments",
         "land_status": "ready_for_integ_payments",
-        "status": "judgment_closed_on_integ_specs_wave1"
+        "shrink_source_integ": "integ/oya",
+        "status": "judgment_closed_on_integ_specs_wave1",
+        "two_phase_note": "Phase 1: integ/payments absorb oya/payments/** → app/payments/**; Phase 2: integ/oya shrink-only delete"
       },
       {
         "id": "W-oya-leaf-office",
@@ -3645,7 +3647,9 @@
         "redesign": "rewrite",
         "destination_integ": "integ/office",
         "land_status": "ready_for_integ_office",
-        "status": "judgment_closed_on_integ_specs_wave1"
+        "shrink_source_integ": "integ/oya",
+        "status": "judgment_closed_on_integ_specs_wave1",
+        "two_phase_note": "Phase 1: integ/office absorb oya/office/** → app/office/**; Phase 2: integ/oya shrink-only delete"
       },
       {
         "id": "W-oya-leaf-crm",
@@ -3655,7 +3659,9 @@
         "redesign": "rewrite",
         "destination_integ": "integ/crm",
         "land_status": "ready_for_integ_crm",
-        "status": "judgment_closed_on_integ_specs_wave1"
+        "shrink_source_integ": "integ/oya",
+        "status": "judgment_closed_on_integ_specs_wave1",
+        "two_phase_note": "Phase 1: integ/crm absorb oya/crm/** → app/crm/**; Phase 2: integ/oya shrink-only delete"
       },
       {
         "id": "W-oya-leaf-itsm",
@@ -3665,8 +3671,61 @@
         "redesign": "rewrite",
         "destination_integ": "integ/itsm",
         "land_status": "ready_for_integ_itsm",
+        "shrink_source_integ": "integ/oya",
         "status": "judgment_closed_on_integ_specs_wave1",
-        "note": "land rail integ/itsm NOT integ/oya; challenges incident-management overlap + phantom service-management (scout 160229d2)"
+        "note": "land rail integ/itsm NOT integ/oya; challenges incident-management overlap + phantom service-management (scout 160229d2)",
+        "two_phase_note": "Phase 1: integ/itsm absorb oya/itsm/** → app/itsm/**; Phase 2: integ/oya shrink-only delete"
+      },
+      {
+        "id": "W-oya-leaf-sheets",
+        "path": "oya/sheets/",
+        "judgment_status": "done",
+        "action": "reorg_now",
+        "redesign": "rewrite",
+        "destination_integ": "integ/sheets",
+        "land_status": "ready_for_integ_sheets",
+        "shrink_source_integ": "integ/oya",
+        "status": "judgment_closed_on_integ_specs_wave1",
+        "two_phase_note": "Phase 1: integ/sheets absorb oya/sheets/** → app/sheets/**; Phase 2: integ/oya shrink-only delete"
+      },
+      {
+        "id": "W-oya-leaf-translate",
+        "path": "oya/translate/",
+        "judgment_status": "done",
+        "action": "reorg_now",
+        "redesign": "rewrite",
+        "destination_integ": "integ/app",
+        "land_status": "ready_for_integ_app",
+        "shrink_source_integ": "integ/oya",
+        "status": "judgment_closed_on_integ_specs_oya_batch1b",
+        "note": "composition glue absorb via integ/app; elevate integ/translate product rail if multi-month",
+        "two_phase_note": "Phase 1: integ/app absorb oya/translate/** → app/translate/**; Phase 2: integ/oya shrink-only delete"
+      },
+      {
+        "id": "W-oya-leaf-sites",
+        "path": "oya/sites/",
+        "judgment_status": "done",
+        "action": "reorg_now",
+        "redesign": "rewrite",
+        "destination_integ": "integ/app",
+        "land_status": "ready_for_integ_app",
+        "shrink_source_integ": "integ/oya",
+        "status": "judgment_closed_on_integ_specs_oya_batch1b",
+        "note": "composition glue absorb via integ/app; elevate integ/sites product rail if multi-month",
+        "two_phase_note": "Phase 1: integ/app absorb oya/sites/** → app/sites/**; Phase 2: integ/oya shrink-only delete"
+      },
+      {
+        "id": "W-oya-leaf-docs-product",
+        "path": "oya/docs/",
+        "judgment_status": "done",
+        "action": "reorg_now",
+        "redesign": "rewrite",
+        "destination_integ": "integ/app",
+        "land_status": "ready_for_integ_app",
+        "shrink_source_integ": "integ/oya",
+        "status": "judgment_closed_on_integ_specs_oya_batch1b",
+        "note": "product dump oya/docs/ NOT docs/ plane; composition glue via integ/app; forbid merge into docs/",
+        "two_phase_note": "Phase 1: integ/app absorb oya/docs/** → app/docs/**; Phase 2: integ/oya shrink-only delete"
       },
       {
         "id": "W-templates-audit-rewrite",
@@ -3715,9 +3774,12 @@
         "judgment_status": "done",
         "action": "reorg_now",
         "redesign": "rewrite",
-        "destination_integ": "integ/specs",
-        "land_status": "ready_for_port_to_grok",
-        "status": "judgment_closed_tools_swarm_to_grok"
+        "destination_integ": "integ/ci",
+        "land_status": "absorb_on_integ_ci_then_shrink_integ_tools",
+        "shrink_source_integ": "integ/tools",
+        "status": "judgment_closed_tools_swarm_to_grok",
+        "note": "absorb owner integ/ci via roots.grok (.grok/**); integ/specs is envelopes hub only — not forever-path absorb owner",
+        "two_phase_note": "Phase 1: integ/ci absorbs tools/swarm → .grok/**; Phase 2: integ/tools shrink-only deletes tools/swarm/**"
       },
       {
         "id": "W-toolchains-reorg",
@@ -3746,7 +3808,50 @@
           "oya/docs/",
           "oya/sheets/",
           "oya/ci-controller/"
-        ]
+        ],
+        "product_destinations": {
+          "oya/calendar/": {
+            "action": "delete_permanently",
+            "destination_integ": "integ/oya",
+            "land_status": "ready_for_integ_oya"
+          },
+          "oya/governance/": {
+            "action": "delete_permanently",
+            "destination_integ": "integ/oya",
+            "land_status": "ready_for_integ_oya"
+          },
+          "oya/translate/": {
+            "action": "reorg_now",
+            "destination_integ": "integ/app",
+            "shrink_source_integ": "integ/oya",
+            "land_status": "ready_for_integ_app"
+          },
+          "oya/sites/": {
+            "action": "reorg_now",
+            "destination_integ": "integ/app",
+            "shrink_source_integ": "integ/oya",
+            "land_status": "ready_for_integ_app"
+          },
+          "oya/docs/": {
+            "action": "reorg_now",
+            "destination_integ": "integ/app",
+            "shrink_source_integ": "integ/oya",
+            "land_status": "ready_for_integ_app"
+          },
+          "oya/sheets/": {
+            "action": "reorg_now",
+            "destination_integ": "integ/sheets",
+            "shrink_source_integ": "integ/oya",
+            "land_status": "ready_for_integ_sheets"
+          },
+          "oya/ci-controller/": {
+            "action": "reorg_now",
+            "destination_integ": "integ/ci",
+            "shrink_source_integ": "integ/oya",
+            "land_status": "ready_for_integ_ci"
+          }
+        },
+        "two_phase_note": "Per-leaf rows in first_wave + reorg_debt_freeze.rows carry shrink_source_integ; see land_status_two_phase"
       },
       {
         "id": "W-drain-gov-gate-apps",
@@ -3779,6 +3884,63 @@
         "status": "judgment_closed_pointer_row"
       }
     ],
+    "northstar_baseline": {
+      "two_phase_guidance_ref": "reorg_debt_freeze.land_status_two_phase",
+      "rule": "destination_owns_reorg_now: Phase 1 absorb/rewrite on destination_integ forever path; Phase 2 shrink-only delete on shrink_source_integ after content verified alive on destination tip.",
+      "product_rails": {
+        "oya/payments/": {
+          "destination_integ": "integ/payments",
+          "forever": "app/payments/**",
+          "shrink_source_integ": "integ/oya"
+        },
+        "oya/office/": {
+          "destination_integ": "integ/office",
+          "forever": "app/office/**",
+          "shrink_source_integ": "integ/oya"
+        },
+        "oya/crm/": {
+          "destination_integ": "integ/crm",
+          "forever": "app/crm/**",
+          "shrink_source_integ": "integ/oya"
+        },
+        "oya/itsm/": {
+          "destination_integ": "integ/itsm",
+          "forever": "app/itsm/**",
+          "shrink_source_integ": "integ/oya"
+        },
+        "oya/sheets/": {
+          "destination_integ": "integ/sheets",
+          "forever": "app/sheets/**",
+          "shrink_source_integ": "integ/oya"
+        },
+        "oya/translate/": {
+          "destination_integ": "integ/app",
+          "forever": "app/translate/**",
+          "shrink_source_integ": "integ/oya",
+          "note": "composition glue; elevate integ/translate if multi-month"
+        },
+        "oya/sites/": {
+          "destination_integ": "integ/app",
+          "forever": "app/sites/**",
+          "shrink_source_integ": "integ/oya",
+          "note": "composition glue; elevate integ/sites if multi-month"
+        },
+        "oya/docs/": {
+          "destination_integ": "integ/app",
+          "forever": "app/docs/**",
+          "shrink_source_integ": "integ/oya",
+          "note": "product dump oya/docs/ NOT docs/ plane"
+        }
+      },
+      "process_kit": {
+        "tools/swarm/": {
+          "destination_integ": "integ/ci",
+          "forever": ".grok/**",
+          "shrink_source_integ": "integ/tools",
+          "envelope_root": "roots.grok"
+        }
+      }
+    },
     "claim_exemption_marker": "reorg-move-out",
     "claim_exemption_rule": "New path births under no_new_births_while_reorg_prefixes are refused by deliver.js Claim unless the claimed bead title or body contains reorg-move-out naming the greenfield_destination. Prefer landing moves on the destination integ/<root>.",
     "one_shot_exceptions": [
