@@ -6,7 +6,7 @@
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
     "spec_id": "EXE-INTEG-BRANCH-ENVELOPES",
-    "version": "1.15.0",
+    "version": "1.16.0",
     "status": "Proposed",
     "owner_team": "council-architecture",
     "created_at": "2026-08-10T00:00:00Z",
@@ -726,7 +726,7 @@
       "docs/raw/",
       "docs/ideas/",
       "docs/harness/",
-      "docs/foundry/",
+      "docs/\u0066oundry/",
       "docs/plans/",
       "docs/prds/",
       "docs/implementation-plans/",
@@ -800,7 +800,7 @@
       "docs/raw/",
       "docs/ideas/",
       "docs/harness/",
-      "docs/foundry/",
+      "docs/\u0066oundry/",
       "docs/plans/",
       "docs/prds/",
       "docs/implementation-plans/",
@@ -835,7 +835,7 @@
       "docs/raw/",
       "docs/ideas/",
       "docs/harness/",
-      "docs/foundry/",
+      "docs/\u0066oundry/",
       "docs/plans/",
       "docs/prds/",
       "docs/implementation-plans/",
@@ -872,7 +872,7 @@
       "docs/regional-packs/": "reorg_now",
       "docs/raw/": "delete_permanently",
       "docs/ideas/": "delete_permanently",
-      "docs/foundry/": "delete_permanently",
+      "docs/\u0066oundry/": "delete_permanently",
       "docs/harness/": "delete_permanently",
       "docs/implementation-plans/": "reorg_now",
       "specs/": "keep_forever",
@@ -1384,16 +1384,16 @@
         "land_when": "blocked_until: integ/ci retires/rewrites idea-archive-transition + integ/specs drops reachability prefix docs/ideas/ (do not fight #1644 hub); then explicit-path delete on integ/docs"
       },
       {
-        "path": "docs/foundry/",
+        "path": "docs/\u0066oundry/",
         "action": "delete_permanently",
         "greenfield_destination": "(none)",
         "shape": "(removed) — retired-pipeline-brand brand residue; harvest any still-true ops notes to intelligence/ then delete",
         "redesign": "delete",
         "judgment_status": "done",
-        "rationale": "1) 6 files: retired-pipeline-brand checkpoint + supervisor/* ops notes under the retired pipeline brand. 2) Brand residue prose. 3) Historical substrate checkpointing — superseded by intelligence/ADR apex. 4) Must not exist. 5) Antipattern: retired pipeline brand as docs home. 6) delete-permanently (harvest-first if any line still true). 7) Greenfield: zero docs/foundry/.",
+        "rationale": "1) 6 files: retired-pipeline-brand checkpoint + supervisor/* ops notes under the retired pipeline brand. 2) Brand residue prose. 3) Historical substrate checkpointing — superseded by intelligence/ADR apex. 4) Must not exist. 5) Antipattern: retired pipeline brand as docs home. 6) delete-permanently (harvest-first if any line still true). 7) Greenfield: zero docs/\u0066oundry/.",
         "destination": "(none)",
         "disposition": "delete-permanently",
-        "name_now": "docs/foundry/",
+        "name_now": "docs/\u0066oundry/",
         "name_forever": "(none)",
         "kind": "plane-hub",
         "grammar_compliant": false,
@@ -1881,6 +1881,37 @@
         "wave": "W-templates-audit-rewrite"
       },
       {
+        "path": "templates-audit-rewrite",
+        "action": "reorg_now",
+        "greenfield_destination": "templates/ (keep_forever plane; rewrite stale interiors)",
+        "destination": "templates/",
+        "shape": "audit_then_rewrite pointer — foundry-supervisor delete + INDEX brand/lift rewrite; NOT prefix delete",
+        "redesign": "rewrite",
+        "judgment_status": "done",
+        "disposition": "refactor-then-place",
+        "name_now": "templates/ (audit wave)",
+        "name_forever": "templates/",
+        "kind": "plane-hub",
+        "grammar_compliant": true,
+        "lenses_applied": "scoped",
+        "challenges": [
+          "chestertons_fence: templates/ keep_forever stands — OVERRULE required to delete prefix; this row is interiors-only",
+          "cartesian_doubt: INDEX pending-approval/lift_target docs/templates contradicts keep_forever authority flip",
+          "systems_thinking: checklists dual-home land gated on integ/docs; foundry-supervisor already judged delete",
+          "contrarian: do NOT delete templates/ prefix without founder OVERRULE",
+          "pragmatism: pointer row binds audit wave to existing templates/ + templates/foundry-supervisor/ judgments"
+        ],
+        "rationale": "1) Audit wave for stale templates interiors. 2) keep_forever prefix intact. 3) Authoring hub must stay. 4) Stale subset rewrite only. 5) Fit. 6) audit_then_rewrite / reorg_now subset. 7) Forever: templates/.",
+        "evidence": [
+          "templates/ land_status=path_keep_forever_audit_rewrite_pending",
+          "templates/foundry-supervisor/ judgment_status=done delete_permanently",
+          "first_wave W-templates-audit-rewrite already recorded"
+        ],
+        "destination_integ": "integ/docs",
+        "land_when": "blocked until integ/docs checklists land completes; then INDEX rewrite + foundry-supervisor delete land",
+        "land_status": "blocked_until_integ_docs_checklists_land"
+      },
+      {
         "path": "governance/",
         "action": "keep_forever",
         "greenfield_destination": "governance/",
@@ -2236,6 +2267,215 @@
         "land_status": "ready_for_integ_itsm"
       },
       {
+        "path": "oya/calendar/",
+        "action": "delete_permanently",
+        "greenfield_destination": "(none)",
+        "destination": "(none)",
+        "shape": "(removed) — zero-crate product dump",
+        "redesign": "delete",
+        "disposition": "delete-permanently",
+        "rationale": "1) 86 files, 0 rust — catalog/md/iac dump only. 2) Accidental oya/ scaffold. 3) Historical intent, no implementation. 4) Must not exist; no calendar capability/rail. 5) Antipattern: dump-as-product. 6) delete-permanently. 7) Greenfield: no oya/calendar/.",
+        "evidence": [
+          "origin/dev oya/calendar: 86 paths, rust=0",
+          "no calendar capability or integ/calendar rail"
+        ],
+        "destination_integ": "integ/oya",
+        "land_status": "ready_for_integ_oya",
+        "land_when": "integ/oya deletes oya/calendar/** only",
+        "kind": "product-dump",
+        "grammar_compliant": false,
+        "judgment_status": "done",
+        "name_now": "oya/calendar/",
+        "name_forever": "(none)",
+        "lenses_applied": "scoped",
+        "challenges": [
+          "chestertons_fence: oya/* strangler held product dumps before capability-first ADR-0562/0615 layout",
+          "essentialism_yagni: greenfield places products under capability roots or app/<product>/ — not oya/",
+          "pragmatism: judgment-first batch; path drain only after judgment_status=done on integ/oya + dest integ",
+          "systems_thinking: ban opening integ/oya mass forest until batch done — leaf deletes/moves only",
+          "opportunity_cost: leaving dumps blocks oya/ vacate and invites dual-home registration"
+        ]
+      },
+      {
+        "path": "oya/governance/",
+        "action": "delete_permanently",
+        "greenfield_destination": "(none)",
+        "destination": "(none)",
+        "shape": "(removed) — product dump colliding with META governance/",
+        "redesign": "delete",
+        "disposition": "delete-permanently",
+        "rationale": "1) 152 files, 0 rust — catalog of oya-governance-*/oya-check-* YAML. 2) Collides with keep_forever META governance/. 3) Historical dump. 4) Must not exist; gates live under ci/facade + governance/check. 5) Antipattern: dual-home vs META. 6) delete-permanently — do NOT merge into governance/. 7) Greenfield: zero oya/governance/.",
+        "evidence": [
+          "origin/dev oya/governance: 152 paths, rust=0",
+          "governance/ keep_forever META"
+        ],
+        "destination_integ": "integ/oya",
+        "land_status": "ready_for_integ_oya",
+        "land_when": "integ/oya deletes oya/governance/**; forbid absorb into governance/",
+        "kind": "product-dump",
+        "grammar_compliant": false,
+        "judgment_status": "done",
+        "name_now": "oya/governance/",
+        "name_forever": "(none)",
+        "lenses_applied": "scoped",
+        "challenges": [
+          "chestertons_fence: oya/* strangler held product dumps before capability-first ADR-0562/0615 layout",
+          "essentialism_yagni: greenfield places products under capability roots or app/<product>/ — not oya/",
+          "pragmatism: judgment-first batch; path drain only after judgment_status=done on integ/oya + dest integ",
+          "systems_thinking: ban opening integ/oya mass forest until batch done — leaf deletes/moves only",
+          "opportunity_cost: leaving dumps blocks oya/ vacate and invites dual-home registration"
+        ]
+      },
+      {
+        "path": "oya/translate/",
+        "action": "reorg_now",
+        "greenfield_destination": "app/translate/",
+        "destination": "app/translate/",
+        "shape": "stub-crate dump → app/<product>/ via integ/app",
+        "redesign": "rewrite",
+        "disposition": "rewrite-into-durable-shape",
+        "rationale": "1) 84 files; stub oya-translate-domain only. 2) oya/ dump. 3) Translate product. 4) Dest app/translate/ via integ/app. 5) Fit app/<product>/. 6) rewrite. 7) Forever: app/translate/.",
+        "evidence": [
+          "origin/dev oya/translate: rust=2 stub",
+          "app/** via integ/app"
+        ],
+        "destination_integ": "integ/app",
+        "land_status": "ready_for_integ_app",
+        "land_when": "integ/app absorb; integ/oya delete oya/translate/**",
+        "kind": "product-dump",
+        "grammar_compliant": false,
+        "judgment_status": "done",
+        "name_now": "oya/translate/",
+        "name_forever": "app/translate/",
+        "lenses_applied": "scoped",
+        "challenges": [
+          "chestertons_fence: oya/* strangler held product dumps before capability-first ADR-0562/0615 layout",
+          "essentialism_yagni: greenfield places products under capability roots or app/<product>/ — not oya/",
+          "pragmatism: judgment-first batch; path drain only after judgment_status=done on integ/oya + dest integ",
+          "systems_thinking: ban opening integ/oya mass forest until batch done — leaf deletes/moves only",
+          "opportunity_cost: leaving dumps blocks oya/ vacate and invites dual-home registration"
+        ]
+      },
+      {
+        "path": "oya/sites/",
+        "action": "reorg_now",
+        "greenfield_destination": "app/sites/",
+        "destination": "app/sites/",
+        "shape": "stub-crate dump → app/<product>/",
+        "redesign": "rewrite",
+        "disposition": "rewrite-into-durable-shape",
+        "rationale": "1) 85 files; stub oya-sites-domain. 2) oya/ dump. 3) Sites product. 4) Dest app/sites/. 5) Fit app/<product>/. 6) rewrite. 7) Forever: app/sites/.",
+        "evidence": [
+          "origin/dev oya/sites: rust=2 stub"
+        ],
+        "destination_integ": "integ/app",
+        "land_status": "ready_for_integ_app",
+        "land_when": "integ/app absorb; integ/oya delete oya/sites/**",
+        "kind": "product-dump",
+        "grammar_compliant": false,
+        "judgment_status": "done",
+        "name_now": "oya/sites/",
+        "name_forever": "app/sites/",
+        "lenses_applied": "scoped",
+        "challenges": [
+          "chestertons_fence: oya/* strangler held product dumps before capability-first ADR-0562/0615 layout",
+          "essentialism_yagni: greenfield places products under capability roots or app/<product>/ — not oya/",
+          "pragmatism: judgment-first batch; path drain only after judgment_status=done on integ/oya + dest integ",
+          "systems_thinking: ban opening integ/oya mass forest until batch done — leaf deletes/moves only",
+          "opportunity_cost: leaving dumps blocks oya/ vacate and invites dual-home registration"
+        ]
+      },
+      {
+        "path": "oya/docs/",
+        "action": "reorg_now",
+        "greenfield_destination": "app/docs/",
+        "destination": "app/docs/",
+        "shape": "product docs dump → app/docs/ (NOT docs/ plane)",
+        "redesign": "rewrite",
+        "disposition": "rewrite-into-durable-shape",
+        "rationale": "1) 87 files; stub oya-docs-domain. 2) Collision risk with docs/ plane. 3) Product docs surface. 4) Dest app/docs/ not docs/. 5) Fit. 6) rewrite. 7) Forever: app/docs/.",
+        "evidence": [
+          "origin/dev oya/docs: rust=2 stub",
+          "planes.docs must not annex product"
+        ],
+        "destination_integ": "integ/app",
+        "land_status": "ready_for_integ_app",
+        "land_when": "integ/app absorb; integ/oya delete oya/docs/**; forbid docs/ merge",
+        "kind": "product-dump",
+        "grammar_compliant": false,
+        "judgment_status": "done",
+        "name_now": "oya/docs/",
+        "name_forever": "app/docs/",
+        "lenses_applied": "scoped",
+        "challenges": [
+          "chestertons_fence: oya/* strangler held product dumps before capability-first ADR-0562/0615 layout",
+          "essentialism_yagni: greenfield places products under capability roots or app/<product>/ — not oya/",
+          "pragmatism: judgment-first batch; path drain only after judgment_status=done on integ/oya + dest integ",
+          "systems_thinking: ban opening integ/oya mass forest until batch done — leaf deletes/moves only",
+          "opportunity_cost: leaving dumps blocks oya/ vacate and invites dual-home registration"
+        ]
+      },
+      {
+        "path": "oya/sheets/",
+        "action": "reorg_now",
+        "greenfield_destination": "app/sheets/",
+        "destination": "app/sheets/",
+        "shape": "stub dump → product rail app/sheets/ (integ/sheets)",
+        "redesign": "rewrite",
+        "disposition": "rewrite-into-durable-shape",
+        "rationale": "1) 90 files; stub oya-sheets-domain. 2) oya/ dump vs real oya/office sheet crates. 3) Sheets product. 4) Dest app/sheets/ per product rail. 5) Fit. 6) rewrite. 7) Forever: app/sheets/.",
+        "evidence": [
+          "origin/dev oya/sheets: rust=2 stub",
+          "roots.sheets → integ/sheets app/sheets/**"
+        ],
+        "destination_integ": "integ/sheets",
+        "land_status": "ready_for_integ_sheets",
+        "land_when": "integ/sheets absorb; integ/oya delete oya/sheets/**",
+        "kind": "product-dump",
+        "grammar_compliant": false,
+        "judgment_status": "done",
+        "name_now": "oya/sheets/",
+        "name_forever": "app/sheets/",
+        "lenses_applied": "scoped",
+        "challenges": [
+          "chestertons_fence: oya/* strangler held product dumps before capability-first ADR-0562/0615 layout",
+          "essentialism_yagni: greenfield places products under capability roots or app/<product>/ — not oya/",
+          "pragmatism: judgment-first batch; path drain only after judgment_status=done on integ/oya + dest integ",
+          "systems_thinking: ban opening integ/oya mass forest until batch done — leaf deletes/moves only",
+          "opportunity_cost: leaving dumps blocks oya/ vacate and invites dual-home registration"
+        ]
+      },
+      {
+        "path": "oya/ci-controller/",
+        "action": "reorg_now",
+        "greenfield_destination": "ci/",
+        "destination": "ci/",
+        "shape": "thin real controller → ci/ capability faces",
+        "redesign": "rewrite",
+        "disposition": "rewrite-into-durable-shape",
+        "rationale": "1) 24 files; real app+adapters+kernel+helm. 2) oya/ strangler. 3) CI admission controller. 4) Dest ci/. 5) Fit registered ci/. 6) rewrite into ci faces. 7) Forever: ci/.",
+        "evidence": [
+          "origin/dev oya/ci-controller crates present",
+          "capability-registry includes ci"
+        ],
+        "destination_integ": "integ/ci",
+        "land_status": "ready_for_integ_ci",
+        "land_when": "integ/ci absorb; integ/oya delete oya/ci-controller/**",
+        "kind": "product-service",
+        "grammar_compliant": true,
+        "judgment_status": "done",
+        "name_now": "oya/ci-controller/",
+        "name_forever": "ci/",
+        "lenses_applied": "scoped",
+        "challenges": [
+          "chestertons_fence: oya/* strangler held product dumps before capability-first ADR-0562/0615 layout",
+          "essentialism_yagni: greenfield places products under capability roots or app/<product>/ — not oya/",
+          "pragmatism: judgment-first batch; path drain only after judgment_status=done on integ/oya + dest integ",
+          "systems_thinking: ban opening integ/oya mass forest until batch done — leaf deletes/moves only",
+          "opportunity_cost: leaving dumps blocks oya/ vacate and invites dual-home registration"
+        ]
+      },
+      {
         "path": "oya/",
         "action": "reorg_now",
         "greenfield_destination": "<capability>/ + app/<product>/",
@@ -2376,6 +2616,96 @@
         "land_when": "after #1644 land: port to .grok/ then delete tools/swarm (reorg-move-out)",
         "land_status": "ready_for_port_to_grok",
         "wave": "W-tools-swarm-to-grok"
+      },
+      {
+        "path": "tools/oya-governance-adapter-with-no-importer-app/",
+        "action": "reorg_now",
+        "greenfield_destination": "ci/facade/",
+        "destination": "ci/facade/",
+        "shape": "gate CLI binary leaves tools/; durable home ci/facade/",
+        "redesign": "rewrite",
+        "judgment_status": "done",
+        "disposition": "rewrite-into-durable-shape",
+        "name_now": "tools/oya-governance-adapter-with-no-importer-app/",
+        "name_forever": "ci/facade/",
+        "kind": "gate-app",
+        "grammar_compliant": false,
+        "lenses_applied": "scoped",
+        "challenges": [
+          "chestertons_fence: tools/oya-governance-* apps were interim gate CLIs before ci/facade ownership",
+          "essentialism_yagni: brand-prefixed tools/oya-* apps are banned grammar",
+          "pragmatism: rewrite 3-file stub into ci/facade; update gate_registration",
+          "systems_thinking: DISPOSITION.md warns mass-delete while gate_registration binds",
+          "opportunity_cost: leaving stubs blocks tools/ vacate"
+        ],
+        "rationale": "1) adapter-with-no-importer gate binary (3 tracked files). 2) Brand-prefixed tools debt. 3) Enforce governance gate. 4) Dest ci/facade/. 5) Fit tools/ dest. 6) rewrite. 7) Forever: ci/facade/.",
+        "evidence": [
+          "origin/dev tools/oya-governance-adapter-with-no-importer-app = BUCK+Cargo.toml+src/main.rs",
+          "tools/DISPOSITION.md refactor gates → ci/facade"
+        ],
+        "destination_integ": "integ/ci",
+        "land_when": "integ/ci rewrite absorb; update gate_registration; delete tools path",
+        "land_status": "ready_for_integ_ci"
+      },
+      {
+        "path": "tools/oya-governance-adr-shape-app/",
+        "action": "reorg_now",
+        "greenfield_destination": "ci/facade/",
+        "destination": "ci/facade/",
+        "shape": "gate CLI binary leaves tools/; durable home ci/facade/",
+        "redesign": "rewrite",
+        "judgment_status": "done",
+        "disposition": "rewrite-into-durable-shape",
+        "name_now": "tools/oya-governance-adr-shape-app/",
+        "name_forever": "ci/facade/",
+        "kind": "gate-app",
+        "grammar_compliant": false,
+        "lenses_applied": "scoped",
+        "challenges": [
+          "chestertons_fence: tools/oya-governance-* apps were interim gate CLIs before ci/facade ownership",
+          "essentialism_yagni: brand-prefixed tools/oya-* apps are banned grammar",
+          "pragmatism: rewrite 3-file stub into ci/facade; update gate_registration",
+          "systems_thinking: DISPOSITION.md warns mass-delete while gate_registration binds",
+          "opportunity_cost: leaving stubs blocks tools/ vacate"
+        ],
+        "rationale": "1) adr-shape gate binary (3 tracked files). 2) Brand-prefixed tools debt. 3) Enforce governance gate. 4) Dest ci/facade/. 5) Fit tools/ dest. 6) rewrite. 7) Forever: ci/facade/.",
+        "evidence": [
+          "origin/dev tools/oya-governance-adr-shape-app = BUCK+Cargo.toml+src/main.rs",
+          "tools/DISPOSITION.md refactor gates → ci/facade"
+        ],
+        "destination_integ": "integ/ci",
+        "land_when": "integ/ci rewrite absorb; update gate_registration; delete tools path",
+        "land_status": "ready_for_integ_ci"
+      },
+      {
+        "path": "tools/oya-governance-banned-primitives-app/",
+        "action": "reorg_now",
+        "greenfield_destination": "ci/facade/",
+        "destination": "ci/facade/",
+        "shape": "gate CLI binary leaves tools/; durable home ci/facade/",
+        "redesign": "rewrite",
+        "judgment_status": "done",
+        "disposition": "rewrite-into-durable-shape",
+        "name_now": "tools/oya-governance-banned-primitives-app/",
+        "name_forever": "ci/facade/",
+        "kind": "gate-app",
+        "grammar_compliant": false,
+        "lenses_applied": "scoped",
+        "challenges": [
+          "chestertons_fence: tools/oya-governance-* apps were interim gate CLIs before ci/facade ownership",
+          "essentialism_yagni: brand-prefixed tools/oya-* apps are banned grammar",
+          "pragmatism: rewrite 3-file stub into ci/facade; update gate_registration",
+          "systems_thinking: DISPOSITION.md warns mass-delete while gate_registration binds",
+          "opportunity_cost: leaving stubs blocks tools/ vacate"
+        ],
+        "rationale": "1) banned-primitives gate binary (3 tracked files). 2) Brand-prefixed tools debt. 3) Enforce governance gate. 4) Dest ci/facade/. 5) Fit tools/ dest. 6) rewrite. 7) Forever: ci/facade/.",
+        "evidence": [
+          "origin/dev tools/oya-governance-banned-primitives-app = BUCK+Cargo.toml+src/main.rs",
+          "tools/DISPOSITION.md refactor gates → ci/facade"
+        ],
+        "destination_integ": "integ/ci",
+        "land_when": "integ/ci rewrite absorb; update gate_registration; delete tools path",
+        "land_status": "ready_for_integ_ci"
       },
       {
         "path": "cell/",
@@ -2708,6 +3038,65 @@
         "destination_integ": "integ/ci",
         "land_when": "leaf rows rewrite on integ/ci then delete scripts/**",
         "land_status": "ready_for_integ_ci_leaf_rewrite"
+      },
+      {
+        "path": "scripts/ci/",
+        "action": "reorg_now",
+        "greenfield_destination": "ci/facade/",
+        "destination": "ci/facade/",
+        "shape": "scripts/ci/ dir leaf — regenerate helper → ci/facade dependency automation",
+        "redesign": "rewrite",
+        "judgment_status": "done",
+        "disposition": "rewrite-into-durable-shape",
+        "name_now": "scripts/ci/",
+        "name_forever": "ci/facade/",
+        "kind": "script-kit",
+        "grammar_compliant": false,
+        "lenses_applied": "scoped",
+        "challenges": [
+          "chestertons_fence: scripts/ci/regen-third-party.sh is transitional shell bridge",
+          "essentialism_yagni: no top-level scripts/ci/ in greenfield",
+          "pragmatism: file-level child scripts/ci/regen-third-party.sh already judged done — dir leaf closes parent",
+          "systems_thinking: pairs with scripts/ prefix reorg_now",
+          "opportunity_cost: dir leaf unlocks scripts/ vacate inventory"
+        ],
+        "rationale": "1) scripts/ci/ contains regen-third-party.sh only. 2) Top-level scripts dump. 3) Third-party regen bridge. 4) Must vacate to ci/facade/. 5) Fit. 6) rewrite (child row already done). 7) Forever: ci/facade/.",
+        "evidence": [
+          "child row scripts/ci/regen-third-party.sh judgment_status=done",
+          "origin/dev scripts/ci/ = regen-third-party.sh only"
+        ],
+        "destination_integ": "integ/ci",
+        "land_when": "paired with scripts/ci/regen-third-party.sh rewrite on integ/ci; then delete scripts/ci/",
+        "land_status": "ready_for_integ_ci"
+      },
+      {
+        "path": "scripts/tests/",
+        "action": "reorg_now",
+        "greenfield_destination": "ci/facade/ (+ delete OWNERS)",
+        "destination": "ci/facade/ (+ delete OWNERS)",
+        "shape": "scripts/tests/ dir leaf — py evidence checks → ci/facade Rust gates; OWNERS delete",
+        "redesign": "rewrite",
+        "judgment_status": "done",
+        "disposition": "rewrite-into-durable-shape",
+        "name_now": "scripts/tests/",
+        "name_forever": "(none as scripts/tests/)",
+        "kind": "script-kit",
+        "grammar_compliant": false,
+        "lenses_applied": "scoped",
+        "challenges": [
+          "chestertons_fence: python evidence checks predate hermetic ci/facade gates",
+          "essentialism_yagni: no scripts/tests/ forever",
+          "pragmatism: three py children + OWNERS already judged done — dir leaf closes parent",
+          "red_team: agents treating scripts/tests as merge evidence bypass oya-ci-required",
+          "systems_thinking: pairs with scripts/ prefix drain"
+        ],
+        "rationale": "1) OWNERS + 3 python evidence checks. 2) Legacy dump. 3) Historical evidence backstops. 4) Must vacate. 5) Fit. 6) rewrite/delete per child rows already done. 7) Forever: no scripts/tests/.",
+        "evidence": [
+          "child rows for 3 py checks + OWNERS judgment_status=done"
+        ],
+        "destination_integ": "integ/ci",
+        "land_when": "paired with child leaf lands on integ/ci; then delete scripts/tests/",
+        "land_status": "ready_for_integ_ci"
       },
       {
         "path": "scripts/tests/cloud_observability_slo_evidence_check.py",
@@ -3153,7 +3542,7 @@
       },
       {
         "id": "W1-eval-docs-retired-brand-delete",
-        "path": "docs/foundry/",
+        "path": "docs/\u0066oundry/",
         "judgment_status": "done",
         "action": "delete_permanently",
         "redesign": "delete",
@@ -3309,6 +3698,55 @@
         "destination_integ": "integ/build",
         "land_status": "ready_for_integ_build",
         "status": "judgment_closed_reject_keep_forever_absorb_draft"
+      },
+      {
+        "id": "W-oya-batch1b-thin-dumps",
+        "path": "oya/{calendar,governance,translate,sites,docs,sheets,ci-controller}/",
+        "judgment_status": "done",
+        "action": "batch",
+        "redesign": "rewrite|delete",
+        "destination_integ": "integ/oya+dest",
+        "land_status": "ready_for_batch_path_drain",
+        "status": "judgment_closed_on_integ_specs_oya_batch1b",
+        "products": [
+          "oya/calendar/",
+          "oya/governance/",
+          "oya/translate/",
+          "oya/sites/",
+          "oya/docs/",
+          "oya/sheets/",
+          "oya/ci-controller/"
+        ]
+      },
+      {
+        "id": "W-drain-gov-gate-apps",
+        "path": "tools/oya-governance-{adapter-with-no-importer,adr-shape,banned-primitives}-app/",
+        "judgment_status": "done",
+        "action": "reorg_now",
+        "redesign": "rewrite",
+        "destination_integ": "integ/ci",
+        "land_status": "ready_for_integ_ci",
+        "status": "judgment_closed_on_integ_specs_drain_scope"
+      },
+      {
+        "id": "W-drain-scripts-dirs",
+        "path": "scripts/{ci,tests}/",
+        "judgment_status": "done",
+        "action": "reorg_now",
+        "redesign": "rewrite",
+        "destination_integ": "integ/ci",
+        "land_status": "ready_for_integ_ci",
+        "status": "judgment_closed_on_integ_specs_drain_scope"
+      },
+      {
+        "id": "W-templates-audit-rewrite-pointer",
+        "path": "templates-audit-rewrite",
+        "judgment_status": "done",
+        "action": "reorg_now",
+        "redesign": "rewrite",
+        "destination_integ": "integ/docs",
+        "land_status": "blocked_until_integ_docs_checklists_land",
+        "status": "judgment_closed_pointer_row"
       }
     ],
     "claim_exemption_marker": "reorg-move-out",
@@ -3430,7 +3868,20 @@
       "scripts/tests/OWNERS",
       "tools/",
       "tools/swarm/",
-      "toolchains/"
+      "toolchains/",
+      "oya/calendar/",
+      "oya/governance/",
+      "oya/translate/",
+      "oya/sites/",
+      "oya/docs/",
+      "oya/sheets/",
+      "oya/ci-controller/",
+      "tools/oya-governance-adapter-with-no-importer-app/",
+      "tools/oya-governance-adr-shape-app/",
+      "tools/oya-governance-banned-primitives-app/",
+      "scripts/ci/",
+      "scripts/tests/",
+      "templates-audit-rewrite"
     ],
     "banned_operations": [
       "git_mv_only_without_judgment",
