@@ -1,13 +1,18 @@
 {
-  "version": "1.3.1",
-  "description": "CursorBench 3.2 informs Cursor Task model slugs only. Side-panel omx/omc/gjc are separate advisory channels — CursorBench does not transfer. Shell gjc/omc/omx CLIs forbidden in lanes. No *-fast.",
+  "version": "1.3.2",
+  "description": "CursorBench 3.2 informs Cursor Task model slugs only. Side-panel omx/omc/gjc are separate advisory channels (CursorBench does not transfer). gjc especially useful with /usage for multi-provider spend. Shell gjc/omc/omx CLIs forbidden in lanes. No *-fast.",
   "source": {
     "cursorbench": {
       "url": "https://cursor.com/cursorbench",
       "version": "3.2",
       "retrieved": "2026-08-10",
       "applies_to": "cursor_task_model_slugs_only",
-      "does_not_apply_to": ["omx", "omc", "gjc", "side_panel"],
+      "does_not_apply_to": [
+        "omx",
+        "omc",
+        "gjc",
+        "side_panel"
+      ],
       "notes": [
         "Grok 4.5 rows are asterisked: earlier Cursor codebase snapshot unintentionally in training; impact unclear",
         "Small score gaps may not be statistically meaningful",
@@ -16,7 +21,12 @@
       ]
     }
   },
-  "forbidden_clis": ["gjc", "omc", "omx", "hermes"],
+  "forbidden_clis": [
+    "gjc",
+    "omc",
+    "omx",
+    "hermes"
+  ],
   "forbidden_clis_scope": "shell_worker_lanes_only",
   "forbidden_clis_reason": "Legacy brand wrappers confused merge authority; not the Cursor side panel",
   "side_panel_channels": {
@@ -24,57 +34,106 @@
     "authority": "advisory_only_never_merge",
     "cursorbench_transfers": false,
     "channels": {
-      "omx": { "backend": "codex", "use_when": "independent_codex_side_review_or_alternate_executor_path" },
-      "omc": { "backend": "claude", "use_when": "independent_claude_side_critique_security_or_design_pass" },
-      "gjc": { "backend": "multi_model", "use_when": "parallel_multi_provider_deliberation" }
+      "omx": {
+        "backend": "codex",
+        "use_when": "independent_codex_side_review_or_alternate_executor_path"
+      },
+      "omc": {
+        "backend": "claude",
+        "use_when": "independent_claude_side_critique_security_or_design_pass"
+      },
+      "gjc": {
+        "backend": "multi_model",
+        "use_when": "parallel_multi_provider_deliberation",
+        "especially_with": "/usage",
+        "especially_with_reason": "shows multi-provider usage breakdown; omx/omc alone lack that cross-provider view"
+      }
     },
     "prefer_task_slugs_for_cursor_dispatches": true,
-    "note": "Pick omx/omc/gjc by provider need and independence — not by CursorBench score/cost rows"
+    "note": "Pick omx/omc/gjc by provider need and independence \u2014 not by CursorBench score/cost rows"
   },
-  "forbidden_model_slug_substrings": ["-fast"],
+  "forbidden_model_slug_substrings": [
+    "-fast"
+  ],
   "presets": {
     "cursor-grok-4.5-high": {
       "label": "Cursor Grok 4.5 High",
       "role": "default_implementation",
       "cursor_model": "cursor-grok-4.5-high",
-      "cursorbench": { "score_pct": 66.7, "cost_usd": 1.51, "tokens": 19521, "steps": 33, "caveat": "contamination_asterisk" }
+      "cursorbench": {
+        "score_pct": 66.7,
+        "cost_usd": 1.51,
+        "tokens": 19521,
+        "steps": 33,
+        "caveat": "contamination_asterisk"
+      }
     },
     "composer-2.5": {
       "label": "Composer 2.5",
       "role": "light_scout_recon",
       "cursor_model": "composer-2.5",
-      "cursorbench": { "score_pct": 56.1, "cost_usd": 0.44, "tokens": 14286, "steps": 33 }
+      "cursorbench": {
+        "score_pct": 56.1,
+        "cost_usd": 0.44,
+        "tokens": 14286,
+        "steps": 33
+      }
     },
     "claude-opus-5-thinking-high": {
       "label": "Opus 5 High",
       "role": "critic_security",
       "cursor_model": "claude-opus-5-thinking-high",
-      "cursorbench": { "score_pct": 66.7, "cost_usd": 3.91, "tokens": 27932, "steps": 48 }
+      "cursorbench": {
+        "score_pct": 66.7,
+        "cost_usd": 3.91,
+        "tokens": 27932,
+        "steps": 48
+      }
     },
     "gpt-5.6-sol-high": {
       "label": "GPT-5.6 Sol High",
       "role": "executor_verifier_peer",
       "cursor_model": "gpt-5.6-sol-high",
-      "cursorbench": { "score_pct": 63.5, "cost_usd": 2.79, "tokens": 13867, "steps": 32 }
+      "cursorbench": {
+        "score_pct": 63.5,
+        "cost_usd": 2.79,
+        "tokens": 13867,
+        "steps": 32
+      }
     },
     "claude-fable-5-thinking-max": {
       "label": "Fable 5 Max",
       "role": "architect_planning_max_stakes_quality",
       "cursor_model": "claude-fable-5-thinking-max",
-      "cursorbench": { "score_pct": 70.5, "cost_usd": 17.32, "tokens": 103525, "steps": 72 }
+      "cursorbench": {
+        "score_pct": 70.5,
+        "cost_usd": 17.32,
+        "tokens": 103525,
+        "steps": 72
+      }
     },
     "gpt-5.6-terra-xhigh": {
       "label": "GPT-5.6 Terra Extra High",
       "role": "cost_aware_mechanical",
       "cursor_model": "gpt-5.6-terra-xhigh",
-      "cursorbench": { "score_pct": 59.2, "cost_usd": 1.15, "tokens": 16089, "steps": 29 },
+      "cursorbench": {
+        "score_pct": 59.2,
+        "cost_usd": 1.15,
+        "tokens": 16089,
+        "steps": 29
+      },
       "not": "quality_escalation_above_sol_or_grok"
     },
     "gpt-5.6-luna-max": {
       "label": "GPT-5.6 Luna Max",
       "role": "cost_max_high_volume",
       "cursor_model": "gpt-5.6-luna-max",
-      "cursorbench": { "score_pct": 61.1, "cost_usd": 0.39, "tokens": 87973, "steps": 61 },
+      "cursorbench": {
+        "score_pct": 61.1,
+        "cost_usd": 0.39,
+        "tokens": 87973,
+        "steps": 61
+      },
       "not": "max_stakes_quality_despite_name"
     }
   },
@@ -88,44 +147,142 @@
     "claude-fable-5-thinking-max"
   ],
   "cost_efficiency_notes": {
-    "best_score_per_usd_approx": ["composer-2.5", "gpt-5.6-luna-max", "cursor-grok-4.5-high"],
-    "do_not_escalate_quality_via": ["gpt-5.6-terra-xhigh", "gpt-5.6-luna-max"]
+    "best_score_per_usd_approx": [
+      "composer-2.5",
+      "gpt-5.6-luna-max",
+      "cursor-grok-4.5-high"
+    ],
+    "do_not_escalate_quality_via": [
+      "gpt-5.6-terra-xhigh",
+      "gpt-5.6-luna-max"
+    ]
   },
   "priors": {
-    "ORCHESTRATOR": { "preset": "cursor-grok-4.5-high", "provider": "xai", "model": "grok-4.5", "effort": "high" },
-    "EXECUTOR": { "preset": "cursor-grok-4.5-high", "provider": "xai", "model": "grok-4.5", "effort": "high" },
-    "SCOUT": { "preset": "composer-2.5", "provider": "cursor", "model": "composer-2.5", "effort": "default" },
-    "ARCHITECT": { "preset": "claude-fable-5-thinking-max", "provider": "anthropic", "model": "claude-fable-5", "effort": "max" },
-    "PLANNER": { "preset": "claude-fable-5-thinking-max", "provider": "anthropic", "model": "claude-fable-5", "effort": "max" },
-    "CRITIC": { "preset": "claude-opus-5-thinking-high", "provider": "anthropic", "model": "claude-opus-5", "effort": "high", "min_instances": 2 },
-    "SECURITY": { "preset": "claude-opus-5-thinking-high", "provider": "anthropic", "model": "claude-opus-5", "effort": "high" },
-    "VERIFIER": { "preset": "gpt-5.6-sol-high", "provider": "openai-codex", "model": "gpt-5.6-sol", "effort": "high" },
-    "EXECUTOR_PEER": { "preset": "gpt-5.6-sol-high", "provider": "openai-codex", "model": "gpt-5.6-sol", "effort": "high" },
-    "MECHANICAL_CHEAP": { "preset": "gpt-5.6-terra-xhigh", "provider": "openai-codex", "model": "gpt-5.6-terra", "effort": "xhigh" },
-    "HIGH_VOLUME_CHEAP": { "preset": "gpt-5.6-luna-max", "provider": "openai-codex", "model": "gpt-5.6-luna", "effort": "max" },
-    "MAX_STAKES_QUALITY": { "preset": "claude-fable-5-thinking-max", "provider": "anthropic", "model": "claude-fable-5", "effort": "max" }
+    "ORCHESTRATOR": {
+      "preset": "cursor-grok-4.5-high",
+      "provider": "xai",
+      "model": "grok-4.5",
+      "effort": "high"
+    },
+    "EXECUTOR": {
+      "preset": "cursor-grok-4.5-high",
+      "provider": "xai",
+      "model": "grok-4.5",
+      "effort": "high"
+    },
+    "SCOUT": {
+      "preset": "composer-2.5",
+      "provider": "cursor",
+      "model": "composer-2.5",
+      "effort": "default"
+    },
+    "ARCHITECT": {
+      "preset": "claude-fable-5-thinking-max",
+      "provider": "anthropic",
+      "model": "claude-fable-5",
+      "effort": "max"
+    },
+    "PLANNER": {
+      "preset": "claude-fable-5-thinking-max",
+      "provider": "anthropic",
+      "model": "claude-fable-5",
+      "effort": "max"
+    },
+    "CRITIC": {
+      "preset": "claude-opus-5-thinking-high",
+      "provider": "anthropic",
+      "model": "claude-opus-5",
+      "effort": "high",
+      "min_instances": 2
+    },
+    "SECURITY": {
+      "preset": "claude-opus-5-thinking-high",
+      "provider": "anthropic",
+      "model": "claude-opus-5",
+      "effort": "high"
+    },
+    "VERIFIER": {
+      "preset": "gpt-5.6-sol-high",
+      "provider": "openai-codex",
+      "model": "gpt-5.6-sol",
+      "effort": "high"
+    },
+    "EXECUTOR_PEER": {
+      "preset": "gpt-5.6-sol-high",
+      "provider": "openai-codex",
+      "model": "gpt-5.6-sol",
+      "effort": "high"
+    },
+    "MECHANICAL_CHEAP": {
+      "preset": "gpt-5.6-terra-xhigh",
+      "provider": "openai-codex",
+      "model": "gpt-5.6-terra",
+      "effort": "xhigh"
+    },
+    "HIGH_VOLUME_CHEAP": {
+      "preset": "gpt-5.6-luna-max",
+      "provider": "openai-codex",
+      "model": "gpt-5.6-luna",
+      "effort": "max"
+    },
+    "MAX_STAKES_QUALITY": {
+      "preset": "claude-fable-5-thinking-max",
+      "provider": "anthropic",
+      "model": "claude-fable-5",
+      "effort": "max"
+    }
   },
-  "complexity_axes": ["reasoning", "ambiguity", "blast_radius", "adversarial", "tool_loop"],
+  "complexity_axes": [
+    "reasoning",
+    "ambiguity",
+    "blast_radius",
+    "adversarial",
+    "tool_loop"
+  ],
   "rules": [
     {
-      "when": { "task_class": "scout_recon" },
-      "then": { "require_preset": "composer-2.5", "forbid_edits": true }
+      "when": {
+        "task_class": "scout_recon"
+      },
+      "then": {
+        "require_preset": "composer-2.5",
+        "forbid_edits": true
+      }
     },
     {
-      "when": { "task_class": ["architect", "planning", "ralplan"] },
-      "then": { "require_preset": "claude-fable-5-thinking-max" }
+      "when": {
+        "task_class": [
+          "architect",
+          "planning",
+          "ralplan"
+        ]
+      },
+      "then": {
+        "require_preset": "claude-fable-5-thinking-max"
+      }
     },
     {
-      "when": { "judgment_weight_gte": 4 },
+      "when": {
+        "judgment_weight_gte": 4
+      },
       "then": {
         "forbid_effort_below": "high",
         "require_dual_critic": true,
         "prefer_quality_preset": "claude-fable-5-thinking-max",
-        "forbid_presets_as_escalation": ["gpt-5.6-terra-xhigh", "gpt-5.6-luna-max"]
+        "forbid_presets_as_escalation": [
+          "gpt-5.6-terra-xhigh",
+          "gpt-5.6-luna-max"
+        ]
       }
     },
     {
-      "when": { "blast_surface": ["merge-admission-required", "oya-ci-required", "human_admit"] },
+      "when": {
+        "blast_surface": [
+          "merge-admission-required",
+          "oya-ci-required",
+          "human_admit"
+        ]
+      },
       "then": {
         "require_dual_critic": true,
         "require_security": true,
@@ -135,16 +292,34 @@
       }
     },
     {
-      "when": { "task_class": "mechanical", "judgment_weight_lte": 2 },
-      "then": { "allow_presets": ["cursor-grok-4.5-high", "gpt-5.6-terra-xhigh", "gpt-5.6-luna-max"] }
+      "when": {
+        "task_class": "mechanical",
+        "judgment_weight_lte": 2
+      },
+      "then": {
+        "allow_presets": [
+          "cursor-grok-4.5-high",
+          "gpt-5.6-terra-xhigh",
+          "gpt-5.6-luna-max"
+        ]
+      }
     },
     {
-      "when": { "independence_required": true },
-      "then": { "critic_provider_ne_executor_provider": true }
+      "when": {
+        "independence_required": true
+      },
+      "then": {
+        "critic_provider_ne_executor_provider": true
+      }
     },
     {
-      "when": { "model_slug_contains": "-fast" },
-      "then": { "forbid": true, "reason": "no premium for slightly faster inference" }
+      "when": {
+        "model_slug_contains": "-fast"
+      },
+      "then": {
+        "forbid": true,
+        "reason": "no premium for slightly faster inference"
+      }
     }
   ],
   "fitness": {
