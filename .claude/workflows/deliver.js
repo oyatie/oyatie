@@ -419,7 +419,55 @@ const SCOUT_SCHEMA = {
 // Mechanical Claim packet parse (claim-mechanical + anti-drift-claim-fields).
 // `/^CLAIM/` substring matches are NOT sufficient — "CLAIMED" / "not CLAIM" must REFUSE.
 // Keep in sync with tools/swarm/claim_packet.py (self-check exercises both).
-function parseClaimPacket(summary) {
+// Claim↔diff bind (fix-1644-critic-rc): docs_touched/paths must appear in git diff --name-only.
+function parsePathList(raw) {
+  if (raw == null) return []
+  let s = String(raw).trim()
+  if (!s) return []
+  if (/^n\/a$/i.test(s)) return null
+  if (s.startsWith('[') && s.endsWith(']')) {
+    s = s.slice(1, -1).trim()
+    if (!s) return []
+    if (/^n\/a$/i.test(s)) return null
+  }
+  return s.split(/[,;]/).map(p => p.trim().replace(/^['"`]|['"`]$/g, '')).filter(p => p && !/^n\/a$/i.test(p))
+}
+
+function pathInDiff(declared, changedSet) {
+  if (changedSet.has(declared)) return true
+  for (const c of changedSet) {
+    if (c === declared || c.endsWith('/' + declared) || c.endsWith(declared)) return true
+    if (declared.endsWith('/' + c) || declared.endsWith(c)) return true
+  }
+  return false
+}
+
+function bindPathsToDiff(declared, changedPaths, fieldName) {
+  if (declared == null) return []
+  const errors = []
+  const changed = new Set(changedPaths)
+  for (const p of declared) {
+    if (!pathInDiff(p, changed)) {
+      errors.push(`${fieldName} path ${JSON.stringify(p)} not in git diff --name-only (Claim↔diff bind)`)
+    }
+  }
+  return errors
+}
+
+function gitDiffNameOnly(range) {
+  try {
+    const out = require('child_process').execFileSync(
+      'git',
+      ['-C', REPO, 'diff', '--name-only', range],
+      { encoding: 'utf8' },
+    )
+    return out.split(/\r?\n/).map(l => l.trim()).filter(Boolean)
+  } catch (err) {
+    return { error: String(err && err.message ? err.message : err) }
+  }
+}
+
+function parseClaimPacket(summary, opts = {}) {
   const errors = []
   const text = String(summary || '')
   const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean)
@@ -438,7 +486,10 @@ function parseClaimPacket(summary) {
   const docsTouched = field('docs_touched')
   const docsAction = field('docs_action')
   const docsActionWhy = field('docs_action_why')
+  const pathsRaw = field('paths')
   const allowedActions = new Set(['update', 'add', 'delete', 'n/a'])
+  const bindDiff = !!opts.bindDiff
+  let changedPaths = opts.changedPaths
 
   if (verdict === 'CLAIM') {
     if (!docsTouched) errors.push('missing docs_touched: [...] (INV-DOC-1)')
@@ -448,6 +499,29 @@ function parseClaimPacket(summary) {
     } else if (docsAction.toLowerCase() === 'n/a' && !docsActionWhy) {
       errors.push('docs_action=n/a requires docs_action_why (INV-DOC-1)')
     }
+
+    if (bindDiff) {
+      if (!Array.isArray(changedPaths)) {
+        const diff = gitDiffNameOnly(`${BASE}...HEAD`)
+        if (diff && diff.error) {
+          errors.push(`Claim↔diff bind: git diff --name-only failed: ${diff.error}`)
+          changedPaths = []
+        } else {
+          changedPaths = diff
+        }
+      }
+      const action = (docsAction || '').toLowerCase()
+      const touchedList = parsePathList(docsTouched)
+      if (action !== 'n/a' && touchedList != null) {
+        errors.push(...bindPathsToDiff(touchedList, changedPaths, 'docs_touched'))
+      }
+      if (pathsRaw) {
+        const pathList = parsePathList(pathsRaw)
+        if (pathList != null) {
+          errors.push(...bindPathsToDiff(pathList, changedPaths, 'paths'))
+        }
+      }
+    }
   }
 
   return {
@@ -456,7 +530,10 @@ function parseClaimPacket(summary) {
     docs_touched: docsTouched,
     docs_action: docsAction,
     docs_action_why: docsActionWhy,
+    paths: pathsRaw,
     errors,
+    bind_diff: bindDiff,
+    changed_paths: changedPaths || null,
   }
 }
 
@@ -1029,6 +1106,9 @@ n/a). Missing packet = REFUSE. Prose MUST cite JSON pointers — never re-list #
       docs_touched: [<paths or n/a>]
       docs_action: update|add|delete|n/a
       docs_action_why: <required if n/a>
+   Mechanical Claim↔diff bind: every docs_touched path (when action ≠ n/a) and every optional
+   \`paths:\` inventory entry MUST appear in \`git diff --name-only ${BASE}...HEAD\`. Theater
+   lists of untouched paths = REFUSE.
 
 
 Return CLAIM with the envelope id, path inventory, merge-tree result, hub owners, doc packet, and
@@ -1038,16 +1118,17 @@ FORMAT (mechanical — fail-closed; substring "/CLAIM/" is NOT enough):
   Line 1: CLAIM   OR   REFUSE
   docs_touched: [path, ...] | n/a
   docs_action: update|add|delete|n/a
-  docs_action_why: <required when docs_action is n/a>`,
+  docs_action_why: <required when docs_action is n/a>
+  paths: [path, ...]   # optional path inventory; bound to git diff --name-only when present`,
   { label: 'claim:envelope-merge-tree-hub', phase: 'Claim', schema: SCOUT_SCHEMA })
 
-const claimPacket = parseClaimPacket(claimed && claimed.summary)
+const claimPacket = parseClaimPacket(claimed && claimed.summary, { bindDiff: true })
 const claimOk = !!(claimed && claimPacket.ok)
 if (claimPacket.errors.length) {
   log(`CLAIM packet errors: ${claimPacket.errors.join('; ')}`)
 }
 log(claimOk
-  ? 'CLAIM passed — mechanical packet + agent gate clear'
+  ? 'CLAIM passed — mechanical packet + Claim↔diff bind + agent gate clear'
   : 'REFUSED — Claim gate failed (mechanical packet and/or agent); do not Land')
 if (!claimOk) {
   return {
@@ -1056,7 +1137,7 @@ if (!claimOk) {
     refused: 'claim gate failed',
     claim: claimed,
     claim_packet: claimPacket,
-    remedy: 'Fix envelope containment, resolve merge-tree conflicts, acquire hub waiver, or complete docs_touched/docs_action packet — then re-run Claim.',
+    remedy: 'Fix envelope containment, resolve merge-tree conflicts, acquire hub waiver, complete docs_touched/docs_action packet, or bind docs_touched/paths to git diff --name-only — then re-run Claim.',
     prs_opened: 0,
   }
 }

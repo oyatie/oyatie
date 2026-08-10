@@ -203,10 +203,13 @@ Mirror of ADR-0711 Amendment B.
    Also record `name_now` → `name_forever` (role-/topic-shaped). **Forbidden:** git-mv-only,
    rename-only, move-now-fix-later, dual-home, keep misleading names for brand/history.
 3. **Ternary only after judgment:** `reorg_now` (redesign+land) | `keep_forever` |
-   `delete_permanently`. `libs/cloud/oya/infra/toolchains/tools` are not `keep_forever`.
-4. **Freeze prefixes** = no NEW births while redesign executes — not a durable home.
+   `delete_permanently`. Legacy strangler prefixes are **not** `keep_forever` — enumerate only
+   via `specs/integ-branch-envelopes.json#reorg_debt_freeze` (INV-DOC-2; do not re-list paths here).
+4. **Freeze prefixes** = no NEW births while redesign executes — not a durable home
+   (`#reorg_debt_freeze.prefixes`).
 5. **Claim/PR:** paste judgment; refuse path changes without `judgment_status=done`.
-   Prefer destination `integ/<root>`. Policy: `specs/integ-branch-envelopes.json#reorg_debt_freeze`.
+   Prefer destination `integ/<root>`. Classification rows SSOT:
+   `specs/integ-branch-envelopes.json#reorg_debt_freeze.rows` (cite; do not paste path tables).
 6. **Pattern-First Law (binding):** establish / follow `specs/naming-taxonomy.json` BEFORE mass
    renames. Kinds + role-first grammar + mechanical classification rules are the pattern;
    renames are instances. **Forbidden leading brand prefixes** on durable names: `oya-` /
@@ -259,18 +262,24 @@ pin is dual-emit cutover only.
 Mirror of ADR-0711 Amendment D. Policy-as-data:
 `specs/integ-branch-envelopes.json#anti_drift` (`anti_drift_doctrine_version`).
 
-**INV-DOC-1…8** — packet (`docs_touched`/`docs_action`); enumerate ONLY via JSON pointers
-(`#roots`, `#planes`, `#hubs.paths`, `#reorg_debt_freeze.prefixes`, …); same-wave colocation;
-derived regen; cross-plane order+adjunct; stale tip honesty; Limitations section; doctrine amend
-only via OVERRULE + version bump.
+**INV-DOC-1…9** — packet (`docs_touched`/`docs_action`); enumerate ONLY via JSON pointers
+(`#roots`, `#planes`, `#hubs.paths`, `#reorg_debt_freeze.prefixes`,
+`#reorg_debt_freeze.rows`, …); same-wave colocation; derived regen; cross-plane order+adjunct;
+stale tip honesty; Limitations section; doctrine amend only via OVERRULE + version bump;
+**INV-DOC-9 survival surfaces** (root `AGENTS.md`/`CLAUDE.md` + `README.md` pointer + owning
+canonical docs — plan-only doctrine ≠ survived). Machine list:
+`specs/integ-branch-envelopes.json#anti_drift.invariants`.
 
 **merge_windows** — hot-set ≤4 + restack-once/window live in
 `specs/integ-branch-envelopes.json#merge_windows` (cite; do not invent plan-only dual-truth).
 
-**Ensure:** Claim prompt requires doc packet; `tools/swarm/self-check.sh` drift-greps prose root
-enumerations. Mechanical fail-closed parse lands with `claim-mechanical`.
+**Ensure:** Claim prompt requires doc packet; `tools/swarm/claim_packet.py` + `deliver.js`
+bind `docs_touched`/`paths` to `git diff --name-only`; `claim-push.sh` refuses dirty porcelain;
+`tools/swarm/self-check.sh` drift-greps prose root/path enumerations.
 
-**Limitations:** Prompt-enforced until mechanical Claim; no DOC-CATALOG rewrite; no mass ADR rename.
+**Limitations:** Mechanical Claim + Claim↔diff bind live; hub-exclusivity CI remain follow-on
+on integ/ci; no DOC-CATALOG rewrite; no mass ADR rename; INV-DOC-9 root content land =
+`integ/ci` (`planes.process_meta`) after route.
 
 
 ## Auth preflight (carry-forward)

@@ -40,6 +40,15 @@ if [[ ! -f "$ENVELOPES" ]]; then
   exit 1
 fi
 
+# Dirty refuse (fix-1644-critic-rc): porcelain non-empty ⇒ REFUSE before fetch/push.
+# One writer; ambient uncommitted edits must not ride a blessed lease push.
+PORCELAIN="$("$GIT_REAL" -C "$REPO_ROOT" status --porcelain)"
+if [[ -n "$PORCELAIN" ]]; then
+  echo "claim-push: REFUSE — working tree dirty (git status --porcelain non-empty)" >&2
+  printf '%s\n' "$PORCELAIN" | head -n 40 >&2
+  exit 1
+fi
+
 # Pin the lease to the tip we last observed BEFORE fetch. An ambient fetch that
 # moves origin/integ/<root> must not silently raise the lease baseline and
 # authorize overwriting a tip we never reviewed (`--force-with-lease=<ref>:<expect>`).

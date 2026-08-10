@@ -31,10 +31,17 @@ missing = [k for k in need if k not in e]
 if missing:
     raise SystemExit(f"missing keys: {missing}")
 ad = e["anti_drift"]
-if ad.get("anti_drift_doctrine_version") != "1.0.0":
+if ad.get("anti_drift_doctrine_version") != "1.1.0":
     raise SystemExit(f"anti_drift_doctrine_version={ad.get('anti_drift_doctrine_version')!r}")
 if "docs_touched" not in ad.get("doc_packet_required_fields", []):
     raise SystemExit("anti_drift missing docs_touched")
+inv = ad.get("invariants") or []
+need_inv = [f"INV-DOC-{i}" for i in range(1, 10)]
+missing_inv = [x for x in need_inv if x not in inv]
+if missing_inv:
+    raise SystemExit(f"anti_drift.invariants missing {missing_inv}")
+if e.get("_meta", {}).get("version") != "1.12.0":
+    raise SystemExit(f"_meta.version={e.get('_meta', {}).get('version')!r} want 1.12.0")
 mw = e["merge_windows"]
 if mw.get("hot_set_max", 0) != 4:
     raise SystemExit(f"merge_windows.hot_set_max={mw.get('hot_set_max')}")
@@ -61,7 +68,7 @@ if e["planes"]["process_meta"].get("branch") != "integ/ci":
     raise SystemExit("planes.process_meta.branch must remain integ/ci (forever owner)")
 print("ok")
 PY
-if [[ $fail -eq 0 ]]; then pass "envelopes schema keys + anti_drift + merge_windows + holes + root-ops process_meta"; fi
+if [[ $fail -eq 0 ]]; then pass "envelopes schema keys + anti_drift INV-DOC-1…9 + merge_windows + holes + root-ops process_meta"; fi
 
 # 2) Registry ↔ envelopes concurrent-safe parity (narrowed evidence)
 python3 - "$ENVELOPES" "$REGISTRY" <<'PY' || fail_msg "concurrent-safe parity"
@@ -85,8 +92,7 @@ print("ok")
 PY
 if [[ $fail -eq 0 ]]; then pass "concurrent-safe envelopes↔registry parity"; fi
 
-# 3) Drift-grep: prose MUST NOT re-list governed roots (INV-DOC-2)
-# Banned: comma-separated backtick root lists of the pre-Amendment-D shape.
+# 3) Drift-grep: prose MUST NOT re-list governed roots / freeze layout tables (INV-DOC-2)
 for f in "$ADR" "$PORTABLE"; do
   if [[ ! -f "$f" ]]; then
     fail_msg "missing $f"
@@ -102,7 +108,25 @@ for f in "$ADR" "$PORTABLE"; do
   else
     pass "$f cites #roots"
   fi
+  # Amendment B path tables must not reappear (cite #reorg_debt_freeze.rows only)
+  if grep -E -n '\| current path \| action \|' "$f" >/dev/null 2>&1; then
+    fail_msg "prose freeze/layout path table in $f (cite #reorg_debt_freeze.rows)"
+  else
+    pass "no Amendment B path table in $f"
+  fi
+  if ! grep -E -q 'reorg_debt_freeze\.rows' "$f"; then
+    fail_msg "$f must cite reorg_debt_freeze.rows"
+  else
+    pass "$f cites #reorg_debt_freeze.rows"
+  fi
 done
+
+# ADR must document INV-DOC-9
+if grep -E -q 'INV-DOC-9' "$ADR"; then
+  pass "ADR-0711 documents INV-DOC-9"
+else
+  fail_msg "ADR-0711 missing INV-DOC-9"
+fi
 
 # 4) git-shim denies --no-verify
 if grep -E -q 'deny.*--no-verify' "$GIT_SHIM"; then
@@ -151,7 +175,7 @@ else
   pass "deliver.js merge-tree template has no bare \${INTEG#integ/}"
 fi
 
-# 7) claim-push contains merge-tree + --check
+# 7) claim-push contains merge-tree + --check + dirty refuse
 if grep -E -q 'merge-tree' tools/swarm/claim-push.sh; then
   pass "claim-push.sh runs merge-tree"
 else
@@ -161,6 +185,12 @@ if grep -E -q 'CHECK_ONLY|--check' tools/swarm/claim-push.sh; then
   pass "claim-push.sh supports --check"
 else
   fail_msg "claim-push.sh missing --check"
+fi
+if grep -E -q 'status --porcelain' tools/swarm/claim-push.sh \
+  && grep -E -q 'working tree dirty|porcelain non-empty' tools/swarm/claim-push.sh; then
+  pass "claim-push.sh refuses dirty porcelain"
+else
+  fail_msg "claim-push.sh missing dirty porcelain refuse"
 fi
 
 # 8) claim-mechanical: deliver.js must parseClaimPacket (not bare /^CLAIM/ theater)
@@ -179,12 +209,39 @@ if grep -E -q 'parseClaimPacket\(claimed' .claude/workflows/deliver.js; then
 else
   fail_msg "deliver.js does not call parseClaimPacket on claim summary"
 fi
+if grep -E -q 'bindDiff:\s*true' .claude/workflows/deliver.js \
+  && grep -E -q 'Claim↔diff bind|Claim↔diff bind' .claude/workflows/deliver.js; then
+  pass "deliver.js Claim↔diff bind enabled"
+else
+  fail_msg "deliver.js missing Claim↔diff bind (bindDiff:true)"
+fi
+if grep -E -q 'bind_diff|bind-diff|Claim↔diff' tools/swarm/claim_packet.py; then
+  pass "claim_packet.py implements Claim↔diff bind"
+else
+  fail_msg "claim_packet.py missing Claim↔diff bind"
+fi
 
-# 9) claim_packet.py self-test (anti-drift-claim-fields)
+# 9) claim_packet.py self-test (anti-drift-claim-fields + Claim↔diff bind)
 if python3 tools/swarm/claim_packet.py --self-test; then
   pass "claim_packet.py self-test"
 else
   fail_msg "claim_packet.py self-test failed"
+fi
+
+# 10) Behavioral probe: claim-push dirty refuse (temp dirty file in worktree)
+DIRTY_PROBE=".claim-push-dirty-probe-$$"
+if printf 'probe\n' > "$DIRTY_PROBE"; then
+  if out="$(bash tools/swarm/claim-push.sh --check specs 2>&1)" && true; then
+    :
+  fi
+  rm -f "$DIRTY_PROBE"
+  if printf '%s' "${out:-}" | grep -qi 'dirty\|porcelain'; then
+    pass "claim-push --check refuses dirty tree (behavioral)"
+  else
+    fail_msg "claim-push dirty behavioral probe did not REFUSE (out=${out:-empty})"
+  fi
+else
+  fail_msg "could not create dirty probe file"
 fi
 
 if [[ $fail -ne 0 ]]; then

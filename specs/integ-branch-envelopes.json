@@ -6,14 +6,14 @@
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
     "spec_id": "EXE-INTEG-BRANCH-ENVELOPES",
-    "version": "1.11.0",
+    "version": "1.12.0",
     "status": "Proposed",
     "owner_team": "council-architecture",
     "created_at": "2026-08-10T00:00:00Z",
     "authority_adr": "docs/decisions/ADR-0711-swarm-delivery-law-integ-branch-topology.md",
     "self_owner_branch": "integ/specs",
     "primary_consumer": "governance/check/integ-envelope + .claude/workflows/deliver.js Claim",
-    "purpose": "Policy-as-data for envelope containment, hub sole-owner, adjunct claims, concurrent-safe exemptions, tools/swarm adjunct ownership, hyperscaler monorepo patterns, Amendment B ternary layout + Pattern-First taxonomy + 16-lens judgment (volatile judgments live under governance/check/integ-envelope/judgments/), Amendment C operating-patterns catalog, Amendment D anti-drift INV-DOC, merge_windows, mechanical Claim packet, and process-meta / forward-declared roots under Swarm Delivery Law."
+    "purpose": "Policy-as-data for envelope containment, hub sole-owner, adjunct claims, concurrent-safe exemptions, tools/swarm adjunct ownership, hyperscaler monorepo patterns, Amendment B ternary layout + Pattern-First taxonomy + 16-lens judgment (volatile judgments live under governance/check/integ-envelope/judgments/), Amendment C operating-patterns catalog, Amendment D anti-drift INV-DOC-1…9 + Claim↔diff bind, merge_windows, mechanical Claim packet, and process-meta / forward-declared roots under Swarm Delivery Law."
   },
   "admission": {
     "trunk": "dev",
@@ -2629,7 +2629,7 @@
     }
   },
   "anti_drift": {
-    "anti_drift_doctrine_version": "1.0.0",
+    "anti_drift_doctrine_version": "1.1.0",
     "authority": "docs/decisions/ADR-0711-swarm-delivery-law-integ-branch-topology.md#Amendment-D",
     "portable_contract": ".grok/programs/delivery-fabric/evidence/PORTABLE-SWARM-CONTRACT.md#Amendment-D",
     "enumeration_ssot": "specs/integ-branch-envelopes.json#roots",
@@ -2650,7 +2650,8 @@
       "#hubs.paths",
       "#reorg_debt_freeze.prefixes",
       "#reorg_debt_freeze.no_new_births_while_reorg_prefixes",
-      "#concurrent_safe_exemptions.paths"
+      "#concurrent_safe_exemptions.paths",
+      "#reorg_debt_freeze.rows"
     ],
     "invariants": [
       "INV-DOC-1",
@@ -2660,13 +2661,15 @@
       "INV-DOC-5",
       "INV-DOC-6",
       "INV-DOC-7",
-      "INV-DOC-8"
+      "INV-DOC-8",
+      "INV-DOC-9"
     ],
     "drift_grep": "tools/swarm/self-check.sh",
     "limitations": [
-      "Mechanical Claim packet parse is live in deliver.js + claim_packet.py; hub-exclusivity CI gate remains a follow-on on integ/ci",
+      "Mechanical Claim packet parse + Claim↔diff bind (docs_touched/paths ↔ git diff --name-only) live in deliver.js + claim_packet.py; claim-push refuses dirty porcelain",
       "Does not rewrite DOC-CATALOG corpus",
-      "Does not authorize mass ADR renames"
+      "Does not authorize mass ADR renames",
+      "INV-DOC-9 root-file content land owned by integ/ci via planes.process_meta (route ≠ content)"
     ],
     "claim_fields": {
       "required_on_CLAIM": [
@@ -2681,7 +2684,12 @@
       ],
       "docs_action_why_required_when": "n/a",
       "parser": "tools/swarm/claim_packet.py",
-      "deliver_gate": ".claude/workflows/deliver.js#parseClaimPacket"
+      "deliver_gate": ".claude/workflows/deliver.js#parseClaimPacket",
+      "diff_bind": {
+        "rule": "docs_touched paths (when docs_action != n/a) and optional paths inventory MUST appear in git diff --name-only BASE...HEAD",
+        "parser": "tools/swarm/claim_packet.py --bind-diff",
+        "deliver_gate": ".claude/workflows/deliver.js#parseClaimPacket(bindDiff:true)"
+      }
     }
   },
   "merge_windows": {

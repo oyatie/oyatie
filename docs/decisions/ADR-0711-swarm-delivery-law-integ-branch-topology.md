@@ -45,7 +45,7 @@ deliverables:
     exit_criteria: "ADR-0711 Amendment C + PORTABLE-SWARM-CONTRACT Amendment C present; specs/agentic-operating-patterns.json carries KEEP/BAN clusters + oyatie_apply tags; explicit OVERRULE of oya-ci-required-as-forever-name."
     verified_by: "oya-ci-required"
   - id: ADR-0711-D8
-    description: "Amendment D — Anti-drift documentation doctrine (INV-DOC-1…8); enumerate ONLY in envelopes JSON; docs_touched/docs_action packet; same-wave colocation; versioned anti_drift_doctrine_version; merge_windows policy-as-data."
+    description: "Amendment D — Anti-drift documentation doctrine (INV-DOC-1…9); enumerate ONLY in envelopes JSON; docs_touched/docs_action packet; same-wave colocation; versioned anti_drift_doctrine_version; merge_windows policy-as-data."
     exit_criteria: "ADR-0711 Amendment D + PORTABLE Amendment D present; envelopes #anti_drift + #merge_windows; deliver.js Claim requires docs_touched/docs_action; tools/swarm/self-check.sh drift-greps prose root enumerations."
     verified_by: "oya-ci-required"
 ---
@@ -348,8 +348,10 @@ That answer **IS** placement law. Apply recursively (e.g. `docs/programs` vs `do
 **No fourth state.** Banned language: strangler_freeze-as-destination, gradual, eventually,
 6 months, deprecate-in-place, dual-home forever.
 
-`libs/`, `cloud/`, `oya/`, `infra/`, `toolchains/`, `tools/` are **NOT** `keep_forever` —
-they are `reorg_now` (or `delete_permanently` for empty residue).
+Legacy strangler prefixes are enumerated **only** in
+`specs/integ-branch-envelopes.json#reorg_debt_freeze` — they are **NOT** `keep_forever`
+(`reorg_now`, or `delete_permanently` for empty residue). Do not re-list those paths here
+(INV-DOC-2).
 
 
 #### B-1a — Evaluation gate (mandatory before any path change)
@@ -474,122 +476,12 @@ land; schedule `reorg_now` → `.grok/` immediately after merge.
 
 #### B-3 — Classification table (compact)
 
-Full machine-readable rows: `specs/integ-branch-envelopes.json#reorg_debt_freeze.rows`.
+Full machine-readable rows: `specs/integ-branch-envelopes.json#reorg_debt_freeze.rows`
+(and freeze birth prefixes at `#reorg_debt_freeze.prefixes` /
+`#reorg_debt_freeze.no_new_births_while_reorg_prefixes`).
 
-| current path | action | greenfield destination | shape |
-|---|---|---|---|
-| `docs/` | keep_forever | docs/ | PLANE hub: operating contract, indexes, live ADRs, standards, archive only |
-| `docs/ADR-INDEX.md` | keep_forever | docs/ADR-INDEX.md | hub index |
-| `docs/AGENTS.md` | keep_forever | docs/AGENTS.md | operating-contract apex |
-| `docs/CHANGELOG.md` | keep_forever | docs/CHANGELOG.md | hub changelog |
-| `docs/DOC-CATALOG.md` | keep_forever | docs/DOC-CATALOG.md | hub catalog (until machine index replaces) |
-| `docs/adr-archive/` | keep_forever | docs/adr-archive/ | historical ADR archive (read-only growth via supersession) |
-| `docs/architecture/` | reorg_now | docs/decisions/ + capability ARCH.md | keep only cross-cutting; rest colocate |
-| `docs/audit/` | reorg_now | evidence/audits/initial-sweep-2026-06-06/ | point-in-time sweep corpus → evidence/; NOT audit/ capability |
-| `docs/audits/` | delete_permanently | (none) | plural dual-name; May-2026 convention audit snapshot |
-| `docs/checklists/` | reorg_now | templates/checklists/ | merge unique; delete dual-home under docs sprawl |
-| `docs/ci/` | reorg_now | ci/ | capability-owned CI docs |
-| `docs/decisions/` | keep_forever | docs/decisions/ | live ADR apex files only |
-| `docs/foundry/` | delete_permanently | (none) | foundry brand residue (self-RETIRED); do not rehome brand prose |
-| `docs/harness/` | delete_permanently | (none) | retired harness docs (ADR-0709 lineage) |
-| `docs/ideas/` | delete_permanently | (none) | harvest keepers→beads; retire idea-archive gate + reachability first |
-| `docs/implementation-plans/` | reorg_now | <capability>/IPs/ + beads | IPs colocate; tracking in beads |
-| `docs/localization-packs/` | reorg_now | compliance/packs/ or packs→compliance | jurisdiction packs with compliance capability |
-| `docs/plans/` | reorg_now | specs/masterplan.json + beads (+ evidence/ for sealed mappings) | retire prose dumps; drop reachability prefixes with #1644 |
-| `docs/prds/` | reorg_now | <capability>/PRD.md or app/<product>/ | product PRDs colocate |
-| `docs/products/` | reorg_now | <capability>/ or app/<product>/ | owner-colocated product docs (g3doc) |
-| `docs/programs/` | reorg_now | governance/corpus/programs/ or owning capability | program dossiers leave central docs |
-| `docs/raw/` | delete_permanently | (none) | throwaway drafts; never authoritative |
-| `docs/regional-packs/` | reorg_now | compliance/packs/ | same as localization |
-| `docs/runbooks/` | reorg_now | <capability>/runbooks/ | owner-colocated runbooks; keep RUNBOOKS-INDEX hub |
-| `docs/standards/` | keep_forever | docs/standards/ | cross-cutting engineering standards hub |
-| `docs/templates/` | reorg_now | templates/ | merge unique templates into root templates/; delete dual-home |
-| `specs/` | keep_forever | specs/ | PLANE hub: cross-cutting machine-readable authority only |
-| `specs/audit-event-class-registry.json` | reorg_now | audit/audit-event-class-registry.json | dual-home with audit/; single SSOT at audit/ |
-| `specs/capabilities/` | reorg_now | <capability>/ or keep only cross-cutting schemas in specs/ | split: cross-cutting schemas KEEP; per-capability MOVE |
-| `specs/capability-registry.json` | keep_forever | specs/capability-registry.json | closed registry (eventual governance/ copy is same hub move later if desired; ke |
-| `specs/catalog/` | reorg_now | registry/catalog/ | crate/catalog authority is registry/ |
-| `specs/design-system/` | reorg_now | console/ or app/shell/ | UI design system with console/app |
-| `specs/fixtures/` | keep_forever | specs/fixtures/ | cross-cutting gate fixtures only |
-| `specs/integ-branch-envelopes.json` | keep_forever | specs/integ-branch-envelopes.json | Swarm Delivery Law policy-as-data |
-| `specs/ip/` | reorg_now | <capability>/IPs/ | implementation plans colocate |
-| `specs/k8s-port/` | reorg_now | k8s/ or build/port-engine/ | port programme artifacts with owners |
-| `specs/lifecycle-configs/` | delete_permanently | (none) | absorbed residuals; do not rebirth |
-| `specs/markdown-retirement-policy.json` | keep_forever | specs/markdown-retirement-policy.json | docs lifecycle policy |
-| `specs/masterplan.json` | keep_forever | specs/masterplan.json | live plan authority |
-| `specs/microservices/` | reorg_now | <capability>/manifest + contracts | type-dump of product specs; colocate or delete superseded JSON |
-| `specs/openslo/` | reorg_now | <capability>/slos/*.openslo.yaml | SLO authoring colocated per service doctrine |
-| `specs/policy/` | reorg_now | policy/ (new capability root) + iam leftovers | policy capability home |
-| `specs/products/` | reorg_now | app/<product>/ or capability facade | product composition specs |
-| `specs/proto/` | reorg_now | contracts/proto/ or capability contracts/ | API contracts hub |
-| `specs/regions/` | reorg_now | compliance/packs/ | regional regime data with compliance |
-| `specs/regulatory-regimes/` | reorg_now | compliance/ | compliance-owned |
-| `specs/reorg/` | keep_forever | specs/reorg/ | executable move-plan hub (singleton live plan) |
-| `specs/root-hub-pointers.json` | keep_forever | specs/root-hub-pointers.json | entry hub |
-| `plan/` | reorg_now | governance/corpus/plan/ + beads | no top-level plan dump in greenfield |
-| `plan/fabric-loop/` | reorg_now | governance/corpus/fabric-loop/ | governance graph substrate |
-| `templates/` | keep_forever | templates/ | PLANE: single template hub (authority chain) |
-| `templates/checklists/` | keep_forever | templates/checklists/ | cross-cutting checklists |
-| `governance/` | keep_forever | governance/ | META: checks + corpus off runtime ladder |
-| `governance/check/` | keep_forever | governance/check/ | hermetic gate engines + policy-as-data |
-| `governance/corpus/` | keep_forever | governance/corpus/ | living monorepo governance graph |
-| `flags/` | keep_forever | flags/{core,ports,adapters,facade}/ | registered capability; finish clean-arch faces |
-| `flags/policy/` | keep_forever | flags/policy/ or policy/ if PDP-shared | keep unless pure PDP extract |
-| `audit/` | keep_forever | audit/{core,ports,adapters,facade}/ | registered capability; already faced |
-| `audit/audit-event-class-registry.json` | keep_forever | audit/audit-event-class-registry.json | SSOT after specs dual deleted |
-| `libs/` | reorg_now | base/ (≥3 caps) + owning capability core/ | ADR-0701 base/ + faces; rule-of-two ends |
-| `cloud/` | reorg_now | os/, kernel/, <capability>/, build/ | strangler source → durable meta/capability homes |
-| `oya/` | reorg_now | <capability>/ + app/<product>/ | product dump → capability/app homes |
-| `infra/` | reorg_now | build/, ci/, .grok/, iac/ | split by concern; no infra junk-drawer |
-| `toolchains/` | reorg_now | build/toolchains/ | build meta owns toolchains |
-| `tools/` | reorg_now | .grok/ + ci/facade/ + delete remainder | process kit leaves tools/; tools/swarm one-shot then vacate |
-| `packs/` | reorg_now | compliance/packs/ | jurisdiction localization+sovereignty under compliance |
-| `scripts/` | reorg_now | ci/ + build/ + delete obsolete py checks | no top-level scripts in greenfield |
-| `tasks/` | reorg_now | beads (implementable) + <capability>/IPs/ | harvest then vacate top-level tasks/ |
-| `.agents/` | delete_permanently | (none) | untracked; use runtime agents not repo vendor |
-| `.beads/` | keep_forever | .beads/ | PROCESS_KIT: issue DB (usually local) |
-| `.cargo/` | keep_forever | .cargo/ | PROCESS_KIT: cargo config |
-| `.claude/` | keep_forever | .claude/ | PROCESS_KIT: deliver.js + settings |
-| `.codex/` | keep_forever | .codex/ | PROCESS_KIT: project skills overlay |
-| `.config/` | keep_forever | .config/ | PROCESS_KIT: tool config |
-| `.cursor/` | keep_forever | .cursor/ | PROCESS_KIT: editor agents/rules (thin) |
-| `.github/` | keep_forever | .github/ | PROCESS_KIT: interim GHA runner surface (ADR-0700) until owned-runner cutover |
-| `.gjc/` | delete_permanently | (none) | retired; untracked local only |
-| `.grok/` | keep_forever | .grok/ | PROCESS_KIT: mm-delivery / swarm process (thin; not product) |
-| `.omc/` | delete_permanently | (none) | retired OMC harness residue (ADR-0709); remove tracked files |
-| `.omx/` | delete_permanently | (none) | retired; untracked local only |
-| `benchmarks/` | reorg_now | governance/check/benchmark/ + capability perf evidence | no orphan benchmarks root |
-| `billing/` | keep_forever | billing/{core,ports,adapters,facade}/ | registered capability |
-| `buck-out/` | delete_permanently | (none) | build output; gitignored |
-| `build/` | keep_forever | build/ | META: buck prelude, toolchains, generators |
-| `cell/` | keep_forever | cell/{core,ports,adapters,facade}/ | registered capability |
-| `ci/` | keep_forever | ci/{core,ports,adapters,facade}/ | registered capability |
-| `comms/` | keep_forever | comms/{core,ports,adapters,facade}/ | registered capability |
-| `compliance/` | keep_forever | compliance/{core,ports,adapters,facade}/ | registered capability; absorb packs/ |
-| `compute/` | keep_forever | compute/{core,ports,adapters,facade}/ | registered capability |
-| `console/` | keep_forever | console/{core,ports,adapters,facade}/ | registered capability |
-| `contracts/` | keep_forever | contracts/ | PLANE: cross-µservice OpenAPI/Protobuf/AsyncAPI SSOT |
-| `data/` | keep_forever | data/{core,ports,adapters,facade}/ | registered capability |
-| `evidence/` | keep_forever | evidence/ | PLANE: append-only evidence (concurrent-safe) |
-| `gateway/` | keep_forever | gateway/{core,ports,adapters,facade}/ | registered capability |
-| `iac/` | keep_forever | iac/{core,ports,adapters,facade}/ | registered capability |
-| `iam/` | keep_forever | iam/{core,ports,adapters,facade}/ | registered capability |
-| `intelligence/` | keep_forever | intelligence/{core,ports,adapters,facade}/ | registered capability; absorb oya/intelligence |
-| `k8s/` | keep_forever | k8s/{core,ports,adapters,facade}/ | registered capability |
-| `kernel/` | keep_forever | kernel/{core,harness}/ | META rung-0 |
-| `marketplace/` | keep_forever | marketplace/{core,ports,adapters,facade}/ | registered capability |
-| `messaging/` | keep_forever | messaging/{core,ports,adapters,facade}/ | registered capability |
-| `network/` | keep_forever | network/{core,ports,adapters,facade}/ | registered capability |
-| `observability/` | keep_forever | observability/{core,ports,adapters,facade}/ | registered capability |
-| `os/` | keep_forever | os/{core,harness}/ | META rung-1 |
-| `registry/` | keep_forever | registry/ | PLANE: catalogs, concurrent-safe, fixuptasks |
-| `secrets/` | keep_forever | secrets/{core,ports,adapters,facade}/ | registered capability |
-| `storage/` | keep_forever | storage/{core,ports,adapters,facade}/ | registered capability |
-| `target/` | delete_permanently | (none) | cargo output; gitignored |
-| `tenancy/` | keep_forever | tenancy/{core,ports,adapters,facade}/ | registered capability |
-| `third-party/` | keep_forever | third-party/ | META: reindeer vendored cell; never hand-edit product logic |
-| `workflow/` | keep_forever | workflow/{core,ports,adapters,facade}/ | registered capability |
-| `wt-1616/` | delete_permanently | (none) | accidental nested worktree in main checkout; remove |
+**INV-DOC-2:** This ADR MUST NOT re-list freeze/layout path rows. Cite the JSON pointers
+above only — dual-truth prose tables are a defect.
 
 #### B-4 — Claim enforcement + destination integ preference
 
@@ -657,7 +549,7 @@ Binding amendment. Machine law + packet + same-wave colocation so docs cannot dr
 Portable mirror: `.grok/programs/delivery-fabric/evidence/PORTABLE-SWARM-CONTRACT.md` § Amendment D.
 Policy-as-data: `specs/integ-branch-envelopes.json#anti_drift` (`anti_drift_doctrine_version`).
 
-#### INV-DOC-1…8 (RFC 2119)
+#### INV-DOC-1…9 (RFC 2119)
 
 1. **INV-DOC-1 (packet):** Every material change MUST declare `docs_touched[]` + `docs_action`
    (`update|add|delete|n/a`) in Claim/Land/Fix-observation/commit trail; `n/a` REQUIRES
@@ -678,6 +570,13 @@ Policy-as-data: `specs/integ-branch-envelopes.json#anti_drift` (`anti_drift_doct
 8. **INV-DOC-8 (evolve doctrine):** Amend only via challenge → OVERRULE receipt → edit
    ADR/PORTABLE/envelopes → bump `anti_drift_doctrine_version`. MUST NOT silently diverge plan
    from in-repo law.
+9. **INV-DOC-9 (survival surfaces):** Canonical doctrine that must survive MUST live in the
+   surfaces agents actually load every session — repo-root operating contracts (`AGENTS.md`,
+   `CLAUDE.md`; `README.md` pointer), owning canonical docs (ADR / envelopes / PORTABLE), and
+   the programme SSOT. Root files carry the **short binding form + why + JSON pointers**
+   (INV-DOC-2 still bans duplicated enumerations). Doctrine that exists only in a plan file is
+   **not survived**; doctrine only in chat is dead. Machine list:
+   `specs/integ-branch-envelopes.json#anti_drift.invariants`.
 
 #### Merge windows (policy-as-data)
 
@@ -686,8 +585,11 @@ Hot-set ≤4 and restack-once/window are encoded in
 
 #### Limitations
 
-Packet is prompt-enforced until mechanical Claim parses fail-closed. Does not rewrite DOC-CATALOG
-corpus; does not authorize mass ADR renames. Drift-grep: `tools/swarm/self-check.sh`.
+Mechanical Claim packet parse + Claim↔diff bind (`docs_touched`/`paths` ↔
+`git diff --name-only`) are live in `deliver.js` + `claim_packet.py`;
+`claim-push.sh` refuses dirty porcelain. Does not rewrite DOC-CATALOG corpus; does not
+authorize mass ADR renames. Drift-grep: `tools/swarm/self-check.sh`. Root-file content land of
+INV-DOC-9 short form is owned by `integ/ci` (`planes.process_meta`) — route ≠ content.
 
 ## Consequences
 
