@@ -7,7 +7,7 @@ publish = false
 license = "Apache-2.0"
 
 # Driver facade for the owned deterministic port engine: plan, render, verify, delta, receipt.
-# W0-B Slice 13 — canary single-fixture emit. No Cargo.lock absorb.
+# W0-B Slice 14 — canary materialize + planted-defect. No Cargo.lock absorb.
 
 [[bin]]
 name = "port-engine-app"

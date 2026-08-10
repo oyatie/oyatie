@@ -28,6 +28,8 @@
 - W0-B Slice 13: `port-engine-emit` single-fixture canary seam — select one
   `__canary_empty_unit` region, golden compare, optional materialize under basename
   `port-engine-canary-out` only; facade `emit-canary`. Refuses `k8s/` / bulk emit.
+- W0-B Slice 14: canary materialize round-trip (`materialize-canary`) + planted-defect
+  detect (`canary-defect` → Red/Unexplained on canary region); still no bulk `k8s/`.
 - Toolchains dual-home: `build/toolchains/**` byte-copies `toolchains/BUCK` +
   `toolchains/cache/{BUCK,OWNERS,defs.bzl}` (4 files). Live buck cell remains
   `toolchains = toolchains` in `.buckconfig` until remap+shrink. Slice 9 mirrors those bytes
