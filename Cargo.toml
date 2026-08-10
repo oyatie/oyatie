@@ -74,6 +74,10 @@ members = [
   "ci/tide/app",
   "ci/tide/github-adapter",
   "ci/tide/kernel",
+  "ci/controller/app",
+  "ci/controller/github-adapter",
+  "ci/controller/k8s-adapter",
+  "ci/controller/kernel",
 ]
 exclude = [
   # Workspace carve-outs and non-crate directories the layer globs over-match.
