@@ -6,9 +6,9 @@ module "incident_management_local_ops" {
   domain_object = "IncidentCommand"
   event_topic = "incident-management.local-ops.v1"
   primary_slo = "page-to-acknowledge"
-  policy_directory = "microservices/incident-management/policies"
+  policy_directory = "app/incident-management/policies"
   dashboards = [
-    "microservices/incident-management/dashboards/local-slo-burn.json",
-    "microservices/incident-management/dashboards/local-domain-throughput.json"
+    "app/incident-management/dashboards/local-slo-burn.json",
+    "app/incident-management/dashboards/local-domain-throughput.json"
   ]
 }

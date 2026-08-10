@@ -184,9 +184,9 @@
   "pod_runtime_tier": 2,
   "pod_runtime_tier_justification": "Incident management is a first-party operational product, not a tenant-code executor or shared substrate. Its paging and incident-command role makes it cell Tier-2, while runtime remains Tier 2 under ADR-0338.",
   "pod_runtime_tier_surface_evidence": [
-    "microservices/incident-management/PRD.md",
-    "microservices/incident-management/ARCHITECTURE.md",
-    "microservices/incident-management/IP-029-firehydrant-rootly-incident-command-postmortem-displacement.md"
+    "app/incident-management/PRD.md",
+    "app/incident-management/ARCHITECTURE.md",
+    "app/incident-management/IP-029-firehydrant-rootly-incident-command-postmortem-displacement.md"
   ],
   "tenant_version_pinning": {
     "declared_versions": [
@@ -199,10 +199,10 @@
     "deprecation_calendar": [],
     "public_surface_files": {
       "openapi": {
-        "2026-05-21": "microservices/incident-management/contracts/openapi-v1.yaml"
+        "2026-05-21": "app/incident-management/contracts/openapi-v1.yaml"
       },
       "asyncapi": {
-        "2026-05-21": "microservices/incident-management/contracts/asyncapi-v1.yaml"
+        "2026-05-21": "app/incident-management/contracts/asyncapi-v1.yaml"
       }
     }
   },

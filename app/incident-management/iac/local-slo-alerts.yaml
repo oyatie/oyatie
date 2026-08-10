@@ -16,5 +16,5 @@ spec:
       long: 6h
       pageAt: 2
   runbooks:
-    - microservices/incident-management/runbooks/local-page-to-ack-burn.md
-    - microservices/incident-management/runbooks/local-escalation-delivery-gap.md
+    - app/incident-management/runbooks/local-page-to-ack-burn.md
+    - app/incident-management/runbooks/local-escalation-delivery-gap.md

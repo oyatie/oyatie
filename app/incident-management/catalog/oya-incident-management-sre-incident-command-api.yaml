@@ -6,13 +6,13 @@ bounded_context: sre-incident-command
 layer: api
 layer_enum_authority: ADR-0105
 owners: [axis-incident-management]
-source_root: microservices/incident-management/src
+source_root: app/incident-management/src
 contracts:
-  openapi: microservices/incident-management/contracts/openapi-v1.yaml
-  asyncapi: microservices/incident-management/contracts/asyncapi-v1.yaml
-  proto: microservices/incident-management/contracts/incident-management-v1.proto
+  openapi: app/incident-management/contracts/openapi-v1.yaml
+  asyncapi: app/incident-management/contracts/asyncapi-v1.yaml
+  proto: app/incident-management/contracts/incident-management-v1.proto
 policy:
-  default_deny: microservices/incident-management/policy/sre-incident-command-authorization.cedar
+  default_deny: app/incident-management/policy/sre-incident-command-authorization.cedar
 compliance:
   marketplace_settlement: ADR-0314 DealSet
   transport: ADR-0253-amendment h3-h2-h1 strict tls13 ech pqc

@@ -18,4 +18,4 @@ spec:
             service: incident-management
           annotations:
             summary: Incident Management page-to-acknowledge burn
-            runbook: microservices/incident-management/runbooks/local-page-to-ack-burn.md
+            runbook: app/incident-management/runbooks/local-page-to-ack-burn.md
