@@ -33,5 +33,5 @@ We will use a canonical `SettingsTemplate` value type in `oya-intelligence-setti
 
 ## Consequences
 - Introduces `oya-intelligence-settings-template-kernel` and `oya-intelligence-settings-template-adapter`.
-- 3 template payloads in `templates/foundry-supervisor/`.
-- `lean-settings-drift` CI lane to enforce parity.
+- 3 template payloads historically lived in `templates/foundry-supervisor/` (deleted — hooks pointed at missing `tools/foundry-supervisor-*` binaries).
+- `lean-settings-drift` CI lane to enforce parity (hub/registry cites of the deleted tree are out of this envelope — elevate separately).
