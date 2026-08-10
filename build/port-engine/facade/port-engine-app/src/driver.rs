@@ -1,15 +1,18 @@
 //! Facade driver wiring: composes kernel entry points with W0-B adapters.
 //!
-//! Slice 7 wires hashing + embedded rulepack v0; CLI exposes `digest` / `rulepack` / `plan`.
+//! Slice 8 wires bootstrap SourceModel snapshot admission (OOB consume only; never spawns Go).
 
 use port_engine_api::{Digest, RulePack, SourceModel, UnitId, w0_ready as api_ready};
 use port_engine_frontend_go::w0_ready as frontend_ready;
 use port_engine_hash::{digest_str, w0_ready as hash_ready};
 use port_engine_rulepack::{LoadedRulePack, RulepackError, w0_ready as rulepack_ready};
 use port_engine_rust_ir::{EmptyRenderer, RustIr, SynQuoteRenderer};
+use port_engine_snapshot::{
+    admit_embedded_fixture, AdmittedSnapshot, AdmitError, w0_ready as snapshot_ready,
+};
 use port_engine_source_pin::{load_embedded, receipt_pin};
 
-/// Slice 7 readiness: prior adapters + hash + rulepack wired.
+/// Slice 8 readiness: prior adapters + snapshot admission wired.
 pub const fn w0_ready() -> bool {
     api_ready()
         && port_engine_source_pin::w0_ready()
@@ -17,6 +20,7 @@ pub const fn w0_ready() -> bool {
         && frontend_ready()
         && hash_ready()
         && rulepack_ready()
+        && snapshot_ready()
 }
 
 /// Load the fleet upstream pin (adapter boundary).
@@ -82,6 +86,14 @@ pub fn smoke_plan() -> Result<usize, PlanSmokeError> {
     Ok(plan.steps.len())
 }
 
+/// Admit the hermetic OOB bootstrap snapshot fixture (Slice 8).
+///
+/// # Errors
+/// Propagates [`AdmitError`] from snapshot admission.
+pub fn smoke_admit_snapshot() -> Result<AdmittedSnapshot, AdmitError> {
+    admit_embedded_fixture()
+}
+
 /// Typed refusal from the Slice 7 plan smoke.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum PlanSmokeError {
@@ -126,15 +138,16 @@ pub use port_engine_kernel::{emit, plan, verify, Verdict};
 
 /// Adapter readiness snapshot for diagnostics.
 ///
-/// Order: `(pin, rust_ir, frontend, hash, rulepack)`.
+/// Order: `(pin, rust_ir, frontend, hash, rulepack, snapshot)`.
 #[must_use]
-pub fn adapter_readiness() -> (bool, bool, bool, bool, bool) {
+pub fn adapter_readiness() -> (bool, bool, bool, bool, bool, bool) {
     (
         port_engine_source_pin::w0_ready(),
         port_engine_rust_ir::w0_ready(),
         frontend_ready(),
         hash_ready(),
         rulepack_ready(),
+        snapshot_ready(),
     )
 }
 
@@ -143,7 +156,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn slice7_driver_wiring_is_ready() {
+    fn slice8_driver_wiring_is_ready() {
         assert!(w0_ready());
         fleet_pin().expect("fleet pin must load");
         smoke_render_stub().expect("empty renderer stub must emit");
@@ -154,10 +167,14 @@ mod tests {
         assert!(pack_digest.0.starts_with("sha256:"));
         let steps = smoke_plan().expect("plan smoke must succeed");
         assert_eq!(steps, 3);
-        let (_pin, rust_ir, frontend, hash, rulepack) = adapter_readiness();
+        let admitted = smoke_admit_snapshot().expect("snapshot fixture must admit");
+        assert!(admitted.snapshot_digest.0.starts_with("sha256:"));
+        assert_eq!(admitted.units().len(), 2);
+        let (_pin, rust_ir, frontend, hash, rulepack, snapshot) = adapter_readiness();
         assert!(rust_ir);
         assert!(frontend);
         assert!(hash);
         assert!(rulepack);
+        assert!(snapshot);
     }
 }

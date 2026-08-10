@@ -1,4 +1,4 @@
-//! Hand-rolled CLI for `port-engine-app` (W0-B Slice 7).
+//! Hand-rolled CLI for `port-engine-app` (W0-B Slice 8).
 //!
 //! Bridge feedback only — never merge authority (CLI surfaces are retirement-marked). No clap /
 //! argv crate: keep the facade free of new lock-forcing deps.
@@ -9,7 +9,7 @@ use crate::driver;
 use crate::receipt_e2e;
 
 const USAGE: &str = "\
-port-engine-app — owned deterministic port-engine driver (W0-B Slice 7)
+port-engine-app — owned deterministic port-engine driver (W0-B Slice 8)
 
 Usage:
   port-engine-app <command> [args]
@@ -23,6 +23,7 @@ Commands:
   digest <text>     SHA-256 digest of UTF-8 text (Slice 7 hash adapter)
   rulepack          Load embedded rulepack v0; print content digest
   plan              Plan embedded rulepack against example units
+  admit-snapshot    Admit hermetic OOB bootstrap snapshot fixture (Slice 8)
   verify-e2e        Run six-axis receipt end-to-end scenarios
 
 Exit codes: 0 ok · 1 error · 2 usage
@@ -44,6 +45,7 @@ pub fn run(args: &[String]) -> ExitCode {
         "digest" => cmd_digest(args.get(1).map(String::as_str)),
         "rulepack" => cmd_rulepack(),
         "plan" => cmd_plan(),
+        "admit-snapshot" => cmd_admit_snapshot(),
         "verify-e2e" => cmd_verify_e2e(),
         other => {
             eprintln!("port-engine-app: unknown command `{other}`");
@@ -58,9 +60,9 @@ fn cmd_ready() -> ExitCode {
         eprintln!("port-engine-app: driver not ready");
         return ExitCode::from(1);
     }
-    let (pin, rust_ir, frontend, hash, rulepack) = driver::adapter_readiness();
+    let (pin, rust_ir, frontend, hash, rulepack, snapshot) = driver::adapter_readiness();
     println!(
-        "ready=true pin={pin} rust_ir={rust_ir} frontend_go={frontend} hash={hash} rulepack={rulepack}"
+        "ready=true pin={pin} rust_ir={rust_ir} frontend_go={frontend} hash={hash} rulepack={rulepack} snapshot={snapshot}"
     );
     ExitCode::SUCCESS
 }
@@ -141,6 +143,24 @@ fn cmd_plan() -> ExitCode {
     }
 }
 
+fn cmd_admit_snapshot() -> ExitCode {
+    match driver::smoke_admit_snapshot() {
+        Ok(admitted) => {
+            println!(
+                "admit-snapshot=ok pin={} digest={} units={}",
+                admitted.pin,
+                admitted.snapshot_digest.0,
+                admitted.units().len()
+            );
+            ExitCode::SUCCESS
+        }
+        Err(err) => {
+            eprintln!("port-engine-app: admit-snapshot failed: {err}");
+            ExitCode::from(1)
+        }
+    }
+}
+
 fn cmd_verify_e2e() -> ExitCode {
     match receipt_e2e::run_six_axis_e2e() {
         Ok(report) => {
@@ -175,10 +195,11 @@ mod tests {
     }
 
     #[test]
-    fn digest_rulepack_plan_and_verify_succeed() {
+    fn digest_rulepack_plan_admit_and_verify_succeed() {
         assert_eq!(run(&args(&["digest", "port-engine"])), ExitCode::SUCCESS);
         assert_eq!(run(&args(&["rulepack"])), ExitCode::SUCCESS);
         assert_eq!(run(&args(&["plan"])), ExitCode::SUCCESS);
+        assert_eq!(run(&args(&["admit-snapshot"])), ExitCode::SUCCESS);
         assert_eq!(run(&args(&["verify-e2e"])), ExitCode::SUCCESS);
     }
 

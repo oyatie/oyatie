@@ -15,6 +15,8 @@
 - W0-B Slice 7: `port-engine-hash` (sha2 → `sha256:<hex>`) + `port-engine-rulepack` (embedded
   neutral v0 mirror of forever `specs/port-rules/**`) + facade CLI (`digest|rulepack|plan`) and
   hashed receipt e2e. Forever specs tree remains integ/specs.
+- W0-B Slice 8: `port-engine-snapshot` admits OOB bootstrap SourceModel fixture (pin + content
+  digest verify; never spawns Go) + facade CLI `admit-snapshot` + e2e binds admitted digest.
 - Toolchains dual-home: `build/toolchains/**` byte-copies `toolchains/BUCK` +
   `toolchains/cache/{BUCK,OWNERS,defs.bzl}` (4 files). Live buck cell remains
   `toolchains = toolchains` in `.buckconfig` until remap+shrink.
@@ -30,7 +32,7 @@
    **PARKED:** `.buckconfig` is outside `roots.build` envelope globs (`build/**` only).
 3. **Forever port-rules materializer** — land live `specs/port-rules/**` on integ/specs; replace
    package-local mirror with ADR-0597 materializer relationship (build tip keeps hermetic copy
-   until then). Bootstrap Go extractor remains out-of-band only.
+   until then). Bootstrap Go extractor remains out-of-band only (Slice 8 admits artifacts only).
 
 ## Out of envelope (do not touch from `integ/build`)
 
