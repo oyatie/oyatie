@@ -133,13 +133,23 @@ pub struct Policy {
     /// Repo-dir prefix -> buck2 cell root, longest-prefix wins; `""` is the repo root cell
     /// (e.g. `{"": "//"}`). A package file under no mapped cell is derivation uncertainty.
     pub cell_roots: BTreeMap<String, String>,
-    /// Micro-glob path pattern -> synthetic seed targets, for changed files that have NO buck2
-    /// `owner()` but ARE accounted for: either they seed specific targets (non-empty list) or
-    /// they are EXPLICITLY declared inert (empty list `[]` = "this class affects no buck target";
-    /// e.g. docs). A changed owner-query path with NO owner that matches NO synthetic pattern AND
-    /// is not owner-required is DERIVATION UNCERTAINTY -> FULL (never silently ignored). This is
-    /// the [`resolve`] "owner OR explicit synthetic dependency, otherwise FULL" rule. Optional in
-    /// the pack (absent = empty map = every unowned non-owner-required path escalates to FULL).
+    /// Micro-glob path pattern -> synthetic seed targets: the declared graph edges from a changed
+    /// file to targets that read it from the LIVE TREE rather than through a buck2 `srcs` edge.
+    /// Either it seeds specific targets (non-empty list) or it is EXPLICITLY declared inert
+    /// (empty list `[]` = "this class affects no buck target"; e.g. docs assets).
+    ///
+    /// ADDITIVE, NOT A FALLBACK: a declaration UNIONS with `owner()` rather than applying only
+    /// when `owner()` is empty. A buck2 owner proves a path is a graph input; it does NOT prove
+    /// the owner's rdeps cone covers every target that reads the path. The adr-citation-closure
+    /// gate is the standing counter-example — it equality-pins a whole-tree census while its own
+    /// package is untouched by an ADR edit, and 458 of the tree's ADR records ARE owned. An empty
+    /// list still contributes no seed, so declaring a class inert never shadows a real owner.
+    ///
+    /// A changed owner-query path with NO owner that matches NO synthetic pattern AND is not
+    /// owner-required is DERIVATION UNCERTAINTY -> FULL (never silently ignored) — that rule is
+    /// unchanged. This is the [`resolve`] "owner OR explicit synthetic dependency, otherwise
+    /// FULL" rule. Optional in the pack (absent = empty map = every unowned non-owner-required
+    /// path escalates to FULL).
     pub synthetic_dependencies: BTreeMap<String, Vec<String>>,
     /// Micro-glob path classes ALLOWED to constitute the ENTIRE selection — the exemption list
     /// for [`unjustified_empty_selection`] (predicate (1) of the selection-totality assertion).
@@ -692,6 +702,22 @@ pub fn resolve(
         let owners = owner_results.get(path).map(Vec::as_slice).unwrap_or(&[]);
         if !owners.is_empty() {
             seeds.extend(owners.iter().cloned());
+            // A buck2 owner does not EXHAUST a path's blast radius. A gate may read a file from
+            // the LIVE TREE with no graph edge to it: adr-citation-closure walks the whole tree
+            // and equality-pins a census over it, while its own package
+            // (`srcs = glob(["tests/**/*.rs", "**/*.json"])`) is untouched by an ADR edit, so the
+            // rdeps cone of the ADR's own owners never reaches it. Measured on this tree: 463
+            // tracked `.md` files ARE buck2-owned (448 docs/adr-archive + 10 docs/decisions), and
+            // those 458 ADR records are exactly the files whose edits move the pinned census.
+            // Synthetic declarations are therefore ADDITIVE, never a no-owner FALLBACK.
+            //
+            // FAIL-SAFE DIRECTION: this can only ADD seeds, so the worst case is over-selection
+            // (slower), never the under-selection that produces a false green. An inert `[]`
+            // declaration unions to exactly the owners, so "declaring docs inert never shadows a
+            // real owner" — the property the fallback was protecting — still holds.
+            if let Some(synth) = synthetic_seeds(path, policy) {
+                seeds.extend(synth);
+            }
             continue;
         }
         // Unowned Present file. A graph-invisibility refusal dominates: even a full-workspace run

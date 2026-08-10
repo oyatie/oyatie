@@ -117,13 +117,16 @@ fn github_path_with_no_owner_resolves_to_affected_through_the_shipped_policy() {
     }
 }
 
-/// `.github/**` overlaps the `**/*.md` INERT declaration (issue/PR templates live there).
-/// `synthetic_seeds` UNIONS every matching pattern, so the inert `[]` must not shadow the real
-/// seeds — a `.github/ISSUE_TEMPLATE/*.md` edit still has to reach the consumers. Pinned because
-/// the opposite semantics (first-match-wins, or inert-dominates) would silently reintroduce the
+/// `.github/**` overlaps the `**/*.md` declaration (issue/PR templates live there).
+/// `synthetic_seeds` UNIONS every matching pattern, so neither class may shadow the other — a
+/// `.github/ISSUE_TEMPLATE/*.md` edit still has to reach every `.github/**` consumer, AND it must
+/// additionally carry the citation-closure gate that `**/*.md` now seeds. Pinned because the
+/// opposite semantics (first-match-wins, or one class dominating) would silently reintroduce the
 /// PR #1389 hole for exactly the file class the templates live in.
 #[test]
-fn a_markdown_file_under_github_is_not_shadowed_by_the_inert_md_declaration() {
+fn a_markdown_file_under_github_unions_both_classes_and_is_shadowed_by_neither() {
+    const CITATION_GATE: &str =
+        "root//governance/check/adr-citation-closure:check-adr-citation-closure-gate";
     let root = repo_root();
     let policy = shipped_policy(&root);
     let plan = plan_changes(
@@ -136,9 +139,14 @@ fn a_markdown_file_under_github_is_not_shadowed_by_the_inert_md_declaration() {
     let Decision::Affected { seeds: yml_seeds } = resolve_github_probe(&root) else {
         panic!("`{PROBE_PATH}` must resolve to Affected");
     };
+    let mut expected = yml_seeds;
+    expected.push(CITATION_GATE.to_owned());
+    expected.sort();
+    expected.dedup();
     assert_eq!(
-        seeds, yml_seeds,
-        "the `**/*.md` inert declaration must UNION with (not shadow) the `.github/**` seeds"
+        seeds, expected,
+        "a `.github` markdown change must union the `.github/**` seeds with the `**/*.md` \
+         citation-closure seed; neither class may shadow the other"
     );
 }
 
