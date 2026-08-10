@@ -142,7 +142,7 @@ Evaluator Down incident decision tree
   - Required audit: emit `EVT-OBSERVABILITY-EVALUATOR_DOWN-INCIDENT` with `branch=D`, `operator_id`, and `evidence_hash`.
 
 ## Resolution Steps
-1. Identify code owner path: `rg "evaluator_down|ObservabilityEvaluatorDownCritical|observability.evaluator_down.incident_state" crates microservices/observability -g "!observability/runbooks/**"`.
+1. Identify code owner path: `rg "evaluator_down|ObservabilityEvaluatorDownCritical|observability.evaluator_down.incident_state" crates observability -g "!observability/runbooks/**"`.
 2. Patch domain invariant: `edit oya-observability-domain where evaluator_down state transition is validated`.
 3. Patch API guard: `edit observability/diagnostics/contracts/openapi.yaml or catalog REST binding if the failing path is north-south`.
 4. Patch policy: `edit microservices/observability/policy/tenant-isolation.cedar or .md with explicit deny/permit branch`.

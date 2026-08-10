@@ -142,7 +142,7 @@ Tail Sampling Buffer Saturated incident decision tree
   - Required audit: emit `EVT-OBSERVABILITY-TAIL_SAMPLING_BUFFER_SATURATED-INCIDENT` with `branch=D`, `operator_id`, and `evidence_hash`.
 
 ## Resolution Steps
-1. Identify code owner path: `rg "tail_sampling_buffer_saturated|ObservabilityTailSamplingBufferSaturatedCritical|observability.tail_sampling_buffer_saturated.incident_state" crates microservices/observability -g "!observability/runbooks/**"`.
+1. Identify code owner path: `rg "tail_sampling_buffer_saturated|ObservabilityTailSamplingBufferSaturatedCritical|observability.tail_sampling_buffer_saturated.incident_state" crates observability -g "!observability/runbooks/**"`.
 2. Patch domain invariant: `edit oya-observability-domain where tail_sampling_buffer_saturated state transition is validated`.
 3. Patch API guard: `edit observability/diagnostics/contracts/openapi.yaml or catalog REST binding if the failing path is north-south`.
 4. Patch policy: `edit microservices/observability/policy/tenant-isolation.cedar or .md with explicit deny/permit branch`.

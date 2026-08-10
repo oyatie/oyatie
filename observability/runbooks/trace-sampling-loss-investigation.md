@@ -142,7 +142,7 @@ Trace Sampling Loss Investigation incident decision tree
   - Required audit: emit `EVT-OBSERVABILITY-TRACE_SAMPLING_LOSS_INVESTIGATION-INCIDENT` with `branch=D`, `operator_id`, and `evidence_hash`.
 
 ## Resolution Steps
-1. Identify code owner path: `rg "trace_sampling_loss_investigation|ObservabilityTraceSamplingLossInvestigationCritical|observability.trace_sampling_loss_investigation.incident_state" crates microservices/observability -g "!observability/runbooks/**"`.
+1. Identify code owner path: `rg "trace_sampling_loss_investigation|ObservabilityTraceSamplingLossInvestigationCritical|observability.trace_sampling_loss_investigation.incident_state" crates observability -g "!observability/runbooks/**"`.
 2. Patch domain invariant: `edit oya-observability-domain where trace_sampling_loss_investigation state transition is validated`.
 3. Patch API guard: `edit observability/diagnostics/contracts/openapi.yaml or catalog REST binding if the failing path is north-south`.
 4. Patch policy: `edit microservices/observability/policy/tenant-isolation.cedar or .md with explicit deny/permit branch`.

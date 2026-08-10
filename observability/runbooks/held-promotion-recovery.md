@@ -142,7 +142,7 @@ Held Promotion Recovery incident decision tree
   - Required audit: emit `EVT-OBSERVABILITY-HELD_PROMOTION_RECOVERY-INCIDENT` with `branch=D`, `operator_id`, and `evidence_hash`.
 
 ## Resolution Steps
-1. Identify code owner path: `rg "held_promotion_recovery|ObservabilityHeldPromotionRecoveryCritical|observability.held_promotion_recovery.incident_state" crates microservices/observability -g "!observability/runbooks/**"`.
+1. Identify code owner path: `rg "held_promotion_recovery|ObservabilityHeldPromotionRecoveryCritical|observability.held_promotion_recovery.incident_state" crates observability -g "!observability/runbooks/**"`.
 2. Patch domain invariant: `edit oya-observability-domain where held_promotion_recovery state transition is validated`.
 3. Patch API guard: `edit observability/diagnostics/contracts/openapi.yaml or catalog REST binding if the failing path is north-south`.
 4. Patch policy: `edit microservices/observability/policy/tenant-isolation.cedar or .md with explicit deny/permit branch`.

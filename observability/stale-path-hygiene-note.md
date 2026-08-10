@@ -38,3 +38,22 @@ Retargeted verified:
 - Missing IP-001..015 / PRD / ARCHITECTURE / MIGRATION homes; tenant-isolation policy docs; dashboard path cites without in-tree counterparts.
 - No hubs, no `Cargo.lock`, no merge.
 
+## Wave-6 Seat A keep_forever interior (2026-08-10)
+
+Retargeted verified:
+
+- Runbook Identify-code-owner lines (13 files): `crates microservices/observability -g` → `crates observability -g`.
+
+### Probe notes
+
+- No remaining live `microservices/observability/slos/<NAME>` cites; OpenSLO files already live under nested `observability/observability/slos/` (`observability/slos/` absent — do not invent).
+- Exact-dest remaps for other `microservices/observability/<rest>` → `observability/<rest>`: **0** after `test -f` / `test -d`.
+
+### Deferred (still missing on disk)
+
+- PRD / IP-001..015 / ARCHITECTURE / MIGRATION / threat-model / metric-naming-convention cites.
+- `capabilities/eval/*.jsonl`, `policy/schema.cedarschema`, `policy/tenant-isolation.{cedar,md}`.
+- Runbook `iac/k8s-deployment.yaml` / `secret-bindings.yaml` and named dashboard JSON cites without exact counterparts under `observability/`.
+- `manifest.json` historical deferred legacy cites left intact.
+- No hubs, no `Cargo.lock`, no merge.
+
