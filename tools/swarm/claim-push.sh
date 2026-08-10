@@ -57,13 +57,21 @@ INTEG_TIP="${EXPECTED:-$DEV_TIP}"
 
 BASE_SHA="$("$GIT_REAL" merge-base "$DEV_TIP" "$HEAD_SHA")"
 echo "claim-push: merge-tree preflight BASE=${BASE_SHA:0:12} INTEG_TIP=${INTEG_TIP:0:12} HEAD=${HEAD_SHA:0:12}"
-MERGE_OUT="$("$GIT_REAL" merge-tree "$BASE_SHA" "$INTEG_TIP" "$HEAD_SHA" 2>&1 || true)"
-if printf '%s\n' "$MERGE_OUT" | grep -E -q '^(<<<<<<<|=======|>>>>>>>)|changed in both|CONFLICT'; then
-  echo "claim-push: REFUSE — merge-tree reports content conflict against ${BRANCH}" >&2
-  printf '%s\n' "$MERGE_OUT" | head -n 80 >&2
-  exit 1
+# Fast-forward onto the pinned integ tip needs no three-way: lease push already
+# refuses if the tip moved. merge-tree against origin/dev's merge-base false-fires
+# "added in both" on files born on the integ branch then edited in HEAD.
+if [[ "$INTEG_TIP" == "$HEAD_SHA" ]] \
+  || "$GIT_REAL" merge-base --is-ancestor "$INTEG_TIP" "$HEAD_SHA"; then
+  echo "claim-push: merge-tree clean (HEAD fast-forward of integ tip)"
+else
+  MERGE_OUT="$("$GIT_REAL" merge-tree "$BASE_SHA" "$INTEG_TIP" "$HEAD_SHA" 2>&1 || true)"
+  if printf '%s\n' "$MERGE_OUT" | grep -E -q '^(<<<<<<<|=======|>>>>>>>)|\+(<<<<<<<|=======|>>>>>>>)|changed in both|added in both|CONFLICT'; then
+    echo "claim-push: REFUSE — merge-tree reports content conflict against ${BRANCH}" >&2
+    printf '%s\n' "$MERGE_OUT" | head -n 80 >&2
+    exit 1
+  fi
+  echo "claim-push: merge-tree clean"
 fi
-echo "claim-push: merge-tree clean"
 
 # Soft registered-root check: ROOT must appear in envelopes#roots or #planes.
 if ! python3 - "$ENVELOPES" "$ROOT" "$BRANCH" <<'PY'
