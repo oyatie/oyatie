@@ -80,45 +80,34 @@ def repo_root() -> Path:
 
 def is_allowed_checkout(root: Path) -> bool:
     """Main checkout, explicit candidate root, or a Swarm `.worktrees/` station."""
-    git_path = root / ".git"
-    if git_path.is_dir():
+    if (root / ".git").is_dir():
         return True
     if os.environ.get("SWARM_ALLOW_WORKTREE") == "1":
         return True
     if os.environ.get("SWARM_CANDIDATE_ROOT", "").strip():
         return True
     # Linked integ/worker stations live under .worktrees/ per envelopes topology.
-    if ".worktrees" in root.parts:
-        return True
-    return False
+    return ".worktrees" in root.parts
 
 
 def resolve_buck2() -> str:
     """Find real buck2, scrubbing tools/swarm/shim-bin so toolguard is not re-entered."""
-    env = os.environ.copy()
-    path_parts = [p for p in env.get("PATH", "").split(":") if p]
-    cleaned: list[str] = []
-    for p in path_parts:
-        if p.rstrip("/").endswith("tools/swarm/shim-bin"):
-            continue
-        cleaned.append(p)
-    env["PATH"] = ":".join(cleaned)
-    env["SWARM_ORCHESTRATOR"] = "1"
+    path_parts = [p for p in os.environ.get("PATH", "").split(":") if p]
+    cleaned = [
+        p for p in path_parts if not p.rstrip("/").endswith("tools/swarm/shim-bin")
+    ]
     for d in cleaned:
         cand = Path(d) / "buck2"
         if cand.is_file() and os.access(cand, os.X_OK):
             return str(cand)
     die("check-daemon: cannot find real buck2 on PATH (shim-bin scrubbed)")
-    return ""  # pragma: no cover — die() always exits
 
 
 def crate_from_target(label: str | None) -> str:
     if not label:
         return "unknown"
     m = _TARGET_NAME.search(label)
-    if m:
-        return m.group("name")
-    return label
+    return m.group("name") if m else label
 
 
 def run_buck2_check(root: Path, targets: list[str]) -> tuple[str, int]:
@@ -139,14 +128,10 @@ def run_buck2_check(root: Path, targets: list[str]) -> tuple[str, int]:
         text=True,
         env=env,
     )
-    combined = ""
-    if proc.stdout:
-        combined += proc.stdout
-    if proc.stderr:
-        if combined and not combined.endswith("\n"):
-            combined += "\n"
-        combined += proc.stderr
-    return combined, proc.returncode
+    out, err = proc.stdout or "", proc.stderr or ""
+    if out and err and not out.endswith("\n"):
+        out += "\n"
+    return out + err, proc.returncode
 
 
 def parse_rustc_diagnostics(text: str) -> list[dict[str, Any]]:
@@ -211,7 +196,6 @@ def parse_rustc_diagnostics(text: str) -> list[dict[str, Any]]:
                         pending["crate"] = parts[idx + 1]
                 elif len(parts) >= 2:
                     pending["crate"] = parts[-2]
-            continue
 
     flush()
     return diags
@@ -226,8 +210,8 @@ def group_by_crate_file(
     for d in diags:
         grouped[d["crate"]][d["file"]].append(d)
     return {
-        crate: {f: grouped[crate][f] for f in sorted(grouped[crate])}
-        for crate in sorted(grouped)
+        crate: dict(sorted(files.items()))
+        for crate, files in sorted(grouped.items())
     }
 
 
@@ -273,15 +257,7 @@ def render_err_txt(
     return "\n".join(lines)
 
 
-def beads_escalation_stub(
-    root: Path, grouped: dict[str, dict[str, list[dict[str, Any]]]]
-) -> None:
-    """Document + optionally record fingerprints for a future `bd create` hook."""
-    check_dir = root / ".check"
-    check_dir.mkdir(parents=True, exist_ok=True)
-    stub_path = check_dir / "beads-escalation.stub.md"
-    stub_path.write_text(
-        """# Beads escalation hook (stub)
+_BEADS_STUB = """# Beads escalation hook (stub)
 
 When the same diagnostic fingerprint persists across **two consecutive**
 check-daemon runs and no lane owns the crate/file, create a bead:
@@ -296,9 +272,16 @@ bd create \\
 Enable ratchet state writes with `SWARM_BEADS_ESCALATE=1`. This stub does not
 call `bd` automatically — beads remain the durable cross-agent memory; GitHub
 Issues stay out of the error loop.
-""",
-        encoding="utf-8",
-    )
+"""
+
+
+def beads_escalation_stub(
+    root: Path, grouped: dict[str, dict[str, list[dict[str, Any]]]]
+) -> None:
+    """Document + optionally record fingerprints for a future `bd create` hook."""
+    check_dir = root / ".check"
+    check_dir.mkdir(parents=True, exist_ok=True)
+    (check_dir / "beads-escalation.stub.md").write_text(_BEADS_STUB, encoding="utf-8")
     if os.environ.get("SWARM_BEADS_ESCALATE") != "1":
         return
     fps = sorted(
@@ -338,19 +321,22 @@ Issues stay out of the error loop.
     )
 
 
+def csv_targets(raw: str) -> list[str]:
+    return [t.strip() for t in raw.split(",") if t.strip()]
+
+
 def parse_targets(mode: str) -> list[str]:
+    raw = os.environ.get("SWARM_CHECK_TARGETS", "").strip()
     if mode == "per-target":
-        raw = os.environ.get("SWARM_CHECK_TARGETS", "").strip()
         if not raw:
             die(
                 "check-daemon: SWARM_CHECK_MODE=per-target requires "
                 "SWARM_CHECK_TARGETS=<buck labels, comma-separated>"
             )
-        return [t.strip() for t in raw.split(",") if t.strip()]
+        return csv_targets(raw)
     # workspace (default) — whole-graph [check] subtargets
-    override = os.environ.get("SWARM_CHECK_TARGETS", "").strip()
-    if override:
-        return [t.strip() for t in override.split(",") if t.strip()]
+    if raw:
+        return csv_targets(raw)
     return ["//...[check]"]
 
 
@@ -432,7 +418,11 @@ def main() -> None:
     err_txt = root / "err.txt"
     err_txt.write_text(
         render_err_txt(
-            grouped, root=root, mode=mode, started=started, targets=targets or ["(dry-run)"]
+            grouped,
+            root=root,
+            mode=mode,
+            started=started,
+            targets=targets or ["(dry-run)"],
         ),
         encoding="utf-8",
     )
