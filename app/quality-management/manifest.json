@@ -346,10 +346,10 @@
   "pod_runtime_tier": 2,
   "pod_runtime_tier_justification": "Tier 2 first-party application runtime: it handles tenant workflows and tenant records but does not execute tenant-customer code or own shared substrate primitives.",
   "pod_runtime_tier_surface_evidence": [
-    "microservices/quality-management/ARCHITECTURE.md",
-    "microservices/quality-management/IP-006-domain-layer-for-audit-evidence.md",
-    "microservices/quality-management/IP-020-21-cfr-part-11-esignature-integration-on-quality-records.md",
-    "microservices/quality-management/IP-021-haccp-critical-control-point-monitoring.md"
+    "app/quality-management/ARCHITECTURE.md",
+    "app/quality-management/IP-006-domain-layer-for-audit-evidence.md",
+    "app/quality-management/IP-020-21-cfr-part-11-esignature-integration-on-quality-records.md",
+    "app/quality-management/IP-021-haccp-critical-control-point-monitoring.md"
   ],
   "tenant_version_pinning": {
     "declared_versions": [
@@ -362,10 +362,10 @@
     "deprecation_calendar": [],
     "public_surface_files": {
       "openapi": {
-        "2026-05-21": "microservices/quality-management/contracts/openapi-v1.yaml"
+        "2026-05-21": "app/quality-management/contracts/openapi-v1.yaml"
       },
       "asyncapi": {
-        "2026-05-21": "microservices/quality-management/contracts/asyncapi-v1.yaml"
+        "2026-05-21": "app/quality-management/contracts/asyncapi-v1.yaml"
       }
     }
   },
