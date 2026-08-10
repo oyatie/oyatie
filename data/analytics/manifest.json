@@ -58,24 +58,24 @@
     "quota_authority": "ADR-0155-per-tenant-resource-quotas"
   },
   "residency": {
-    "kr_pack": "microservices/analytics/iac/kustomize/overlays/pack-kr",
-    "eu_pack": "microservices/analytics/iac/kustomize/overlays/pack-eu",
+    "kr_pack": "data/analytics/iac/kustomize/overlays/pack-kr",
+    "eu_pack": "data/analytics/iac/kustomize/overlays/pack-eu",
     "data_class_taxonomy": "ADR-0008-DUBO"
   },
   "observability": {
     "openslo_manifests": [
-      "microservices/analytics/slos/clickhouse-query-latency.openslo.yaml"
+      "data/observability/slos/analytics/clickhouse-query-latency.openslo.yaml"
     ],
     "dashboards": [
-      "microservices/analytics/dashboards/clickhouse-overview.json"
+      "data/analytics/dashboards/clickhouse-overview.json"
     ],
     "prometheus_rules": "rendered via sloth from openslo source per ADR-0186 Stage 5"
   },
   "framework_scorecards": {
-    "aws_well_architected": "microservices/analytics/scorecards/aws-well-architected.json",
-    "google_sre_prr": "microservices/analytics/scorecards/google-sre-prr.json",
-    "cis_k8s_1_10": "microservices/analytics/scorecards/cis-k8s-1-10.json",
-    "slsa_l3": "microservices/analytics/scorecards/slsa-l3.json"
+    "aws_well_architected": "data/analytics/scorecards/aws-well-architected.json",
+    "google_sre_prr": "data/analytics/scorecards/google-sre-prr.json",
+    "cis_k8s_1_10": "data/analytics/scorecards/cis-k8s-1-10.json",
+    "slsa_l3": "data/analytics/scorecards/slsa-l3.json"
   },
   "ip_pack": [
     {
@@ -169,7 +169,7 @@
     "fedramp",
     "il5"
   ],
-  "hyperscaler_benchmark": "aws_well_architected: microservices/analytics/scorecards/aws-well-architected.json; google_sre_prr: microservices/analytics/scorecards/google-sre-prr.json; cis_k8s_1_10: microservices/analytics/scorecards/cis-k8s-1-10.json; slsa_l3: microservices/analytics/scorecards/slsa-l3.json; 1: AWS IAM service-linked roles is the reference pattern for the control shape described here; 2: Google Cloud service agents is the second reference pattern used to avoid a single-vendor cargo-cult design",
+  "hyperscaler_benchmark": "aws_well_architected: data/analytics/scorecards/aws-well-architected.json; google_sre_prr: data/analytics/scorecards/google-sre-prr.json; cis_k8s_1_10: data/analytics/scorecards/cis-k8s-1-10.json; slsa_l3: data/analytics/scorecards/slsa-l3.json; 1: AWS IAM service-linked roles is the reference pattern for the control shape described here; 2: Google Cloud service agents is the second reference pattern used to avoid a single-vendor cargo-cult design",
   "owner_team": "council-analytics",
   "data_classification": "AUDIT_INTERNAL, TENANT_AUDIT, TENANT_PUBLIC, TENANT_PRIVATE, FINANCIAL, PII_IDENTIFYING, AUDIT",
   "compliance_packs_applicable": [
@@ -249,7 +249,7 @@
   "pod_runtime_tier_surface_evidence": [
     "microservices/analytics/PRD.md",
     "microservices/analytics/ARCHITECTURE.md",
-    "microservices/analytics/contracts/openapi-v1.yaml",
+    "data/analytics/contracts/openapi-v1.yaml",
     "microservices/analytics/specs/IP-007-tenant-dashboard-api.md"
   ],
   "tenant_version_pinning": {
@@ -265,10 +265,10 @@
     "deprecation_calendar": [],
     "public_surface_files": {
       "openapi": {
-        "2026-05-21": "microservices/analytics/contracts/openapi-v1.yaml"
+        "2026-05-21": "data/analytics/contracts/openapi-v1.yaml"
       },
       "asyncapi": {
-        "2026-05-21": "microservices/analytics/contracts/asyncapi-v1.yaml"
+        "2026-05-21": "data/analytics/contracts/asyncapi-v1.yaml"
       }
     }
   },

@@ -102,7 +102,8 @@
         "red_team: caller tenant ≠ query tenant must fail closed"
       ],
       "evidence": [
-        "get_dashboard_refuses_cross_tenant_query unit test added"
+        "get_dashboard_refuses_cross_tenant_query unit test added",
+        "wave-2: search_audit_log_refuses_cross_tenant_query + billing_rollup_refuses_cross_tenant_query"
       ],
       "destination_integ": "integ/data",
       "land_when": "this PR"
@@ -127,7 +128,34 @@
       ],
       "evidence": [
         "ANALYTICS_{OPENAPI,ASYNCAPI,PROTO}_CONTRACT constants added",
-        "tests/analytics_api_contract.rs + buck2 data-analytics-api-contract target"
+        "tests/analytics_api_contract.rs + buck2 data-analytics-api-contract target",
+        "wave-2: contract file existence under data/ root + CrossTenant→Forbidden mapping"
+      ],
+      "destination_integ": "integ/data",
+      "land_when": "this PR"
+    },
+    {
+      "path": "data/analytics/catalog/{capabilities,runbooks,dashboards,scorecards,cedar-policies,pack-overlays,clickhouse-analytics-helm}.json",
+      "action": "keep_forever",
+      "destination": "data/analytics/catalog/",
+      "shape": "analytics catalog path records (wave-2 interior path hygiene)",
+      "rationale": "1) Catalog rows must resolve for day-2 ops. 2) JSON. 3) Path SSOT after microservices/ removal. 4) Must exist. 5) Fit under data/analytics/catalog. 6) keep-as-is + retarget verified. 7) forever.",
+      "redesign": "none — pointer hygiene only; defer decisions.json + oya-analytics-app helm_chart (missing homes)",
+      "judgment_status": "done",
+      "disposition": "keep-as-is",
+      "name_now": "data/analytics/catalog/",
+      "name_forever": "data/analytics/catalog/",
+      "kind": "catalog-record",
+      "grammar_compliant": true,
+      "lenses_applied": "inherit-root",
+      "challenges": [
+        "chestertons_fence: microservices cites were strangler continuity",
+        "cartesian_doubt: destinations already under data/analytics/ for retargeted rows",
+        "essentialism_yagni: do not invent decisions/ or analytics-app helm",
+        "operability_day2: dead catalog paths fail runbook/scorecard greps"
+      ],
+      "evidence": [
+        "wave-2 retarget of verified catalog paths; see stale-path-hygiene-note.md"
       ],
       "destination_integ": "integ/data",
       "land_when": "this PR"
