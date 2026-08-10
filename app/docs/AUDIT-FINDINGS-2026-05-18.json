@@ -98,7 +98,7 @@
             },
             {
               "line": 36,
-              "excerpt": "| `microservices/docs/iac/helm/templates/networkpolicy.yaml` | created | mesh-only ingress; egress to OpenBao + Postgres + Valkey + S3 + ClamAV + cross-\u00b5service mTLS for embed-resolver |"
+              "excerpt": "| `app/docs/iac/helm/templates/networkpolicy.yaml` | created | mesh-only ingress; egress to OpenBao + Postgres + Valkey + S3 + ClamAV + cross-\u00b5service mTLS for embed-resolver |"
             }
           ],
           "hits_total": 5
@@ -188,7 +188,7 @@
           "hits_total": 1
         },
         {
-          "file": "microservices/docs/runbooks/collab-conflict-resolution.md",
+          "file": "app/docs/runbooks/collab-conflict-resolution.md",
           "hits": [
             {
               "line": 44,
@@ -262,7 +262,7 @@
           "hits_total": 12
         },
         {
-          "file": "microservices/docs/catalog/oya-docs-collab-crdt-adapter-valkey.yaml",
+          "file": "app/docs/catalog/oya-docs-collab-crdt-adapter-valkey.yaml",
           "hits": [
             {
               "line": 22,
@@ -272,7 +272,7 @@
           "hits_total": 1
         },
         {
-          "file": "microservices/docs/catalog/oya-docs-collab-crdt-adapter.yaml",
+          "file": "app/docs/catalog/oya-docs-collab-crdt-adapter.yaml",
           "hits": [
             {
               "line": 24,
@@ -282,7 +282,7 @@
           "hits_total": 1
         },
         {
-          "file": "microservices/docs/slos/doc-open-latency.openslo.yaml",
+          "file": "app/docs/slos/doc-open-latency.openslo.yaml",
           "hits": [
             {
               "line": 19,
@@ -292,7 +292,7 @@
           "hits_total": 1
         },
         {
-          "file": "microservices/docs/slos/collab-cursor-sync-latency.openslo.yaml",
+          "file": "app/docs/slos/collab-cursor-sync-latency.openslo.yaml",
           "hits": [
             {
               "line": 18,
@@ -302,7 +302,7 @@
           "hits_total": 1
         },
         {
-          "file": "microservices/docs/iac/helm/Chart.yaml",
+          "file": "app/docs/iac/helm/Chart.yaml",
           "hits": [
             {
               "line": 7,
@@ -312,7 +312,7 @@
           "hits_total": 1
         },
         {
-          "file": "microservices/docs/iac/helm/templates/networkpolicy.yaml",
+          "file": "app/docs/iac/helm/templates/networkpolicy.yaml",
           "hits": [
             {
               "line": 2,
@@ -326,7 +326,7 @@
           "hits_total": 2
         },
         {
-          "file": "microservices/docs/manifest.json",
+          "file": "app/docs/manifest.json",
           "hits": [
             {
               "line": 170,

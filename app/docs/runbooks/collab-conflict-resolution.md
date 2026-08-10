@@ -10,7 +10,7 @@ related_failure_modes: [FM-01, FM-02]
 related_artifacts:
   - microservices/docs/threat-model.md §T-T-01
   - microservices/docs/PRD.md AC-06
-  - microservices/docs/slos/crdt-merge-no-silent-loss.openslo.yaml
+  - app/docs/slos/crdt-merge-no-silent-loss.openslo.yaml
 doc_status: published
 ---
 

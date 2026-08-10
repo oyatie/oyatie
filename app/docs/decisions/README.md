@@ -10,7 +10,7 @@ doc_status: published
 
 This directory holds ADRs that govern the `docs` µservice exclusively, per the per-microservice flat layout in ADR-0131. Cross-cutting ADRs that govern multiple µservices remain at `docs/decisions/` at the repo root.
 
-Each ADR closes one Open Question (or derived gap) surfaced in `microservices/docs/PRD.md`, in `microservices/docs/PHASE-01-DOCS-FOUNDATION.md`, or in a capability / runbook / threat-model / DPIA artifact under `microservices/docs/`.
+Each ADR closes one Open Question (or derived gap) surfaced in `microservices/docs/PRD.md`, in `microservices/docs/PHASE-01-DOCS-FOUNDATION.md`, or in a capability / runbook / threat-model / DPIA artifact under `app/docs/`.
 
 ## Index
 
