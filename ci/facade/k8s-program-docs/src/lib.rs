@@ -2026,6 +2026,37 @@ mod tests {
     }
 
     #[test]
+    fn a_count_preserving_emit_identity_swap_is_red() {
+        // #1643 P1: equality pin on `relpath\tapiVersion` multisets — size alone is not enough.
+        let mut corpus = live_fixture();
+        assert_eq!(
+            corpus.upstream_emit_identities.len(),
+            UPSTREAM_EMIT_SITE_CEILING
+        );
+        corpus.upstream_emit_identities[0] =
+            "os/core/k8s-control-domain/src/admission.rs\tbatch/v1".to_owned();
+        assert!(has_code(
+            &evaluate(&corpus),
+            FindingCode::UpstreamKubernetesSurfaceGrowth
+        ));
+    }
+
+    #[test]
+    fn a_count_preserving_divergence_row_id_swap_is_red() {
+        // Same shape as the emit-identity pin: cumulative size hides a delete+add swap.
+        let mut corpus = live_fixture();
+        assert_eq!(
+            corpus.divergence_ledger.row_ids.len(),
+            FROZEN_DIVERGENCE_ROW_IDS.len()
+        );
+        corpus.divergence_ledger.row_ids[0] = "DVG-SWAPPED-FOR-THE-PIN".to_owned();
+        assert!(has_code(
+            &evaluate(&corpus),
+            FindingCode::DivergenceLedgerGrowthBudgetExceeded
+        ));
+    }
+
+    #[test]
     fn the_api_group_is_the_discriminator_not_the_token_api_version() {
         // Every group in the section-3.2 table, one per line, plus the two bare-`v1` spellings the
         // reproducer admits: end of line and the `\n` escape inside a Rust string literal.
@@ -2233,10 +2264,10 @@ mod tests {
             .expect("the fixture declaration is writable");
         let result = load_declared_leaves(&root);
         fs::remove_dir_all(&root).ok();
-        // An absent census must NOT degrade to zero: a clean partition reported over a corpus the
-        // gate never opened is the false green this loader exists to refuse.
+        // Missing `regions` (and/or census) must NOT degrade to an empty Ok census: a clean
+        // partition over a corpus the gate never opened is the false green this loader refuses.
         assert_eq!(
-            result.expect_err("a missing census is malformed").code,
+            result.expect_err("a malformed regenerable-regions declaration fails closed").code,
             "R-DOC-K8S-PORT-REGIONS-MALFORMED"
         );
     }
@@ -2373,6 +2404,49 @@ mod tests {
         assert_eq!(
             result.expect_err("generated without a region is malformed").code,
             "R-DOC-K8S-PORT-REGIONS-MALFORMED"
+        );
+    }
+
+    #[test]
+    fn a_leaf_origin_outside_the_closed_vocabulary_fails_closed() {
+        // #1643: origin is a closed enum; an unknown token must not classify as either pole.
+        let root = std::env::temp_dir().join(format!(
+            "r-doc-closed-origin-{}",
+            std::process::id()
+        ));
+        let path = root.join(REGENERABLE_REGIONS);
+        fs::create_dir_all(path.parent().expect("parent")).expect("dirs");
+        fs::write(
+            &path,
+            r#"{
+              "regions": [],
+              "origin_classification": {
+                "leaves": [{"path": "k8s/ports/tenant-quota-api", "origin": "hand-written"}],
+                "census": {"k8s_leaves": 1, "os_leaves": 0, "total_leaves": 1}
+              }
+            }"#,
+        )
+        .expect("write");
+        let result = load_declared_leaves(&root);
+        fs::remove_dir_all(&root).ok();
+        let err = result.expect_err("open origin vocabulary is malformed");
+        assert_eq!(err.code, "R-DOC-K8S-PORT-REGIONS-MALFORMED");
+        assert!(
+            err.message.contains("closed set") || err.message.contains("hand-written"),
+            "expected closed-origin refusal, got: {}",
+            err.message
+        );
+    }
+
+    #[test]
+    fn named_dependency_table_package_rename_is_a_cross_seam_hit() {
+        // Inline `local = { package = "k8s-foo" }` is covered elsewhere; the named-table spelling
+        // `[dependencies.local]\npackage = "k8s-foo"` is the rename evasion that lands in
+        // DepSection::NamedPackage.
+        let named_rename = "[dependencies.local]\npackage = \"k8s-foo\"\npath = \"../../k8s/ports/foo\"\n";
+        assert_eq!(
+            forbidden_package_deps(named_rename, "k8s-"),
+            vec!["k8s-foo".to_owned()]
         );
     }
 
