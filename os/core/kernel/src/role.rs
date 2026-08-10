@@ -273,7 +273,11 @@ impl RoleSet {
         let mut roles = BTreeSet::new();
         for ou in ous {
             if let Ok(role) = Role::parse(ou) {
-                roles.insert(role);
+                // `Os` is operating-system-internal: it has no upstream string, so it
+                // never counts as a canonical/known parse (see `is_canonical`).
+                if role != Role::Os {
+                    roles.insert(role);
+                }
             }
         }
         RoleSet {
@@ -444,6 +448,11 @@ mod tests {
         assert!(set.can_read());
         assert!(!set.can_write());
         assert!(set.contains(Role::Reader));
+    }
+
+    #[test]
+    fn parse_ous_rejects_internal_os_role() {
+        assert!(RoleSet::parse_ous(["os", "os:os"]).is_empty());
     }
 
     #[test]
