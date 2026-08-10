@@ -1,235 +1,76 @@
 {
   "schema_version": "1.0",
-  "version": "0.1.0",
-  "status": "implemented-local-foundation-truth-down",
-  "change_set": "CS-CLOUD-OPS-FOUNDATION-001",
-  "regulatory_packs": [
-    "kr",
-    "eu",
-    "us",
-    "us-healthcare",
-    "jp",
-    "sg",
-    "au",
-    "in",
-    "br",
-    "ae",
-    "ksa"
-  ],
-  "lts_pins": {
-    "rust": "1.97.1"
-  },
-  "adrs": [
-    {
-      "id": "ADR-0028",
-      "title": "Cloud Microservice Architecture",
-      "scope": "repo",
-      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
-    },
-    {
-      "id": "ADR-0056",
-      "title": "Rust Clean Architecture BNF",
-      "scope": "repo",
-      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
-    },
-    {
-      "id": "ADR-0340",
-      "title": "Capacity Model Per Microservice Manifest",
-      "scope": "repo",
-      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
-    },
-    {
-      "id": "ADR-0343",
-      "title": "DR RTO/RPO Matrix Per Microservice Per Compliance Pack",
-      "scope": "repo",
-      "file": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
-    },
-    {
-      "id": "ADR-0344",
-      "title": "Sustainability FinOps Dimensional Model",
-      "scope": "repo",
-      "file": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
-    },
-    {
-      "id": "ADR-0348",
-      "title": "Autosharding Auto Rebalance Dynamic Sharding",
-      "scope": "repo",
-      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
-    },
-    {
-      "id": "ADR-0352",
-      "title": "Oyatie From-Scratch Architecture Handoff",
-      "scope": "repo",
-      "file": "docs/decisions/ADR-0709-general-live-apex.md"
-    }
-  ],
-  "slos": [],
-  "slo_exemption": {
-    "status": "live_exempted_no_runtime_sli",
-    "owner": "axis-marketplace",
-    "rationale": "No current measured runtime SLI exists for this foundation, retired, or local-scaffold service; the manifest must not claim production or hyperscaler-ready SLO coverage until an OpenSLO file lands.",
-    "cutover_on": "2026-12-31",
-    "evidence": "specs/master-plan-sequencing.json#realignment_wave_sequence"
-  },
-  "hyperscaler_inv_coverage": {
-    "circuit_breaker": "not_claimed_cs_cloud_ops_foundation_001_no_runtime_request_path",
-    "tenant_rate_limit": "not_claimed_cs_cloud_ops_foundation_001_no_live_api_or_quota_runtime",
-    "golden_signals": "not_claimed_cs_cloud_ops_foundation_001_no_measured_metrics_runtime",
-    "error_budget_burn": "not_claimed_cs_cloud_ops_foundation_001_slos_empty_until_runtime_sli_exists"
-  },
-  "audit_chain": {
-    "enabled": false,
-    "runtime_audit_emitter": false,
-    "seal_events": [],
-    "evidence_refs": [
-      "evidence/multispectrum/cs-cloud-ops-foundation-20260523.json"
-    ],
-    "non_claim": "Metadata guardrail records audit/evidence reference shapes only; no audit-chain writer or seal persistence is implemented by CS-CLOUD-OPS-FOUNDATION-001."
-  },
-  "secrets_substrate": {
-    "provider": "openbao-future-reference-only",
-    "raw_secret_material": false,
-    "non_claim": "No raw credential, provider token, kubeconfig, marketplace secret, or OpenBao runtime call is introduced or consumed."
-  },
-  "runtime_dependencies": {
-    "implemented": false,
-    "oss_packages": [],
-    "non_claim": "No service runtime dependency graph is claimed for this local foundation."
-  },
-  "sharding_automation": {
-    "autosharding": {
-      "enabled": false,
-      "mode": "not_claimed_runtime",
-      "intended_control_plane": "control_plane_driven"
-    },
-    "auto_rebalance": {
-      "enabled": false,
-      "audit_chain_emit": false,
-      "trigger_load_skew_threshold_percent": 30,
-      "honors_residency": true,
-      "honors_compliance_packs": true
-    },
-    "dynamic_sharding": {
-      "enabled": false,
-      "audit_chain_emit": false,
-      "hot_split_threshold_p99_ms": 50,
-      "hot_split_utilization_threshold_percent": 80,
-      "cold_merge_utilization_threshold_percent": 20,
-      "cold_merge_minimum_quiet_hours": 24
-    }
-  },
-  "dr": {
-    "multi_region_active_active": false,
-    "rto_p99_seconds": null,
-    "rpo_p99_seconds": null,
-    "non_claim": "No DR runtime or drill evidence is implemented."
-  },
-  "mesh_layering": {
-    "runtime_mesh_enabled": false,
-    "non_claim": "No Istio/Cilium/Envoy runtime configuration is implemented by this slice."
-  },
-  "iac": {
-    "opentofu_plan_apply": false,
-    "provider_live_smoke": false,
-    "non_claim": "No infrastructure provisioning is executed or claimed."
-  },
-  "runtime_data_processing": false,
-  "cloud_ops_foundation": {
-    "schema_version": 1,
-    "evidence_guardrail": "CloudOpsFoundationGuardrail",
-    "guardrail_file": "crates/oya-cloud-capacity-domain/src/lib.rs",
-    "guardrail_tests": "crates/oya-cloud-capacity-domain/tests/cloud_ops_foundation.rs",
-    "evidence_prefixes": {
-      "capacity": "evidence/cloud-ops/capacity/",
-      "cell": "evidence/cloud-ops/cell/",
-      "dcops": "evidence/cloud-ops/dcops/",
-      "finops": "evidence/cloud-ops/finops/",
-      "marketplace": "evidence/cloud-ops/marketplace/",
-      "fsh": "evidence/cloud-ops/fsh/",
-      "audit_chain": "audit-chain/cloud-ops/"
-    },
-    "runtime_claims": [],
-    "non_claim": "The guardrail proves tenant/region/cell-scoped metadata and capacity/rebalance bounds only; it does not run cloud operations workflows."
-  },
-  "source_guidance": [
-    {
-      "topic": "capacity_overload",
-      "source": "Google SRE Handling Overload",
-      "url": "https://sre.google/sre-book/handling-overload/",
-      "implication": "capacity is resource based, per-customer quota aware, and overload/retry claims require measured runtime evidence"
-    },
-    {
-      "topic": "node_autoscaling",
-      "source": "Kubernetes Node Autoscaling",
-      "url": "https://v1-32.docs.kubernetes.io/docs/concepts/cluster-administration/node-autoscaling/",
-      "implication": "node autoscaling is runtime infrastructure behavior and is not claimed by this local foundation"
-    },
-    {
-      "topic": "finops_focus",
-      "source": "FOCUS Specification",
-      "url": "https://focus.finops.org/focus-specification/",
-      "implication": "FOCUS exports need schema-backed data generation evidence and are not claimed as live exports here"
-    },
-    {
-      "topic": "opencost",
-      "source": "OpenCost Specification",
-      "url": "https://opencost.io/docs/specification/",
-      "implication": "Kubernetes cost allocation needs asset/resource allocation data; this slice keeps only domain/API metadata"
-    },
-    {
-      "topic": "dcops",
-      "source": "Uptime Institute Tier Classification",
-      "url": "https://uptimeinstitute.com/tiers",
-      "implication": "facility tier claims require site infrastructure evidence; this slice only validates pure DCOps domain records"
-    },
-    {
-      "topic": "marketplace",
-      "source": "AWS Marketplace SaaS products",
-      "url": "https://docs.aws.amazon.com/marketplace/latest/userguide/saas-products.html",
-      "implication": "SaaS marketplace sellers manage access/provisioning and integrate subscriptions/contracts; no live marketplace integration is claimed"
-    }
-  ],
-  "non_claims": [
-    "no live REST gRPC SDK worker database broker scheduler or dashboard runtime",
-    "no measured SLO SLI burn-rate Prometheus OpenSLO runtime evidence",
-    "no active-active DR failover drill backup restore or cross-region replication evidence",
-    "no OpenTofu plan/apply provider SDK Kubernetes controller or provider-live operation",
-    "no audit-chain writer Merkle seal persistence or external evidence-store runtime",
-    "no runtime autoscaling autosharding migration workflow or tenant move execution",
-    "no settlement ledger escrow payout tax clearance or revenue-share runtime",
-    "no external marketplace adapter crate or provider API integration"
-  ],
-  "microservice": "marketplace",
+  "capability": "marketplace",
+  "_comment": "Capability-root manifest for marketplace/ (ADR-0562). Every crate, contract, capability YAML, OpenSLO file, catalog row, and accounting count below was read off the tree at authoring time. Replaces the legacy microservice-shaped CS-CLOUD-OPS-FOUNDATION-001 stub that cited retired crates/oya-cloud-marketplace-* and empty-slos-despite-OpenSLO paths.",
   "tier": "substrate",
-  "tier_subtype": "substrate-marketplace-data",
-  "dr_tier": "T1",
   "substrate_dag_position": {
     "stratum": "forward-declared",
     "depends_on": [],
     "consumed_by_substrates": [],
-    "_note": "capability has no ADR-0280 §D-1 DAG node yet; forward-declared (Appendix C class)"
+    "_note": "specs/capability-registry.json name=marketplace dag_node=marketplace \u2014 capability entry carries no grounded stratum yet (deliberately undeclared among pending founder/architecture ruling). forward-declared retained per R4 (TDA-S-RANK-INVERSION); do not invent an S-rank."
   },
+  "_tier_source": "specs/capability-registry.json name=marketplace dag_node=marketplace \u2014 capability entry carries no tier/substrate_dag_position (deliberately undeclared among the nine pending founder/architecture ruling). Historical microservice stub authored tier=substrate with forward-declared stratum; retained rather than inventing an S-rank.",
+  "_tier_subtype_note": "UNGROUNDED \u2014 capability-registry declares no tier_subtype. Legacy stub invented substrate-marketplace-data; deliberately ABSENT rather than re-invented; it lands when a grounded subtype exists.",
+  "_stratum_note": "forward-declared retained: ADR-0562 capability-registry still leaves marketplace undeclared for stratum. R4 (TDA-S-RANK-INVERSION) treats forward-declared as rank-exempt and cannot manufacture a false GREEN.",
+  "_openslo_note": "34 marketplace/observability/slos/*.openslo.yaml files exist in-tree and are listed under slos[] with verified paths. Authored OpenSLO files are not a measured runtime SLI; foundation_non_claims below refuse deployed-runtime / burn-rate claims until a live SLI is grounded.",
+  "version": "0.1.0",
   "owner": "axis-marketplace",
+  "purpose": "Marketplace + plugin/app store + SKU catalog data (ADR-0562 charter): first-class sold-ness capability. The five workspace crates under marketplace/ are the cloud marketplace domain/kernel, plugin marketplace kernel, doc-set scaffold, and retired-surface facade CLI. Absorbed dirs marketplace/plugin-app-store and marketplace/developer-sdk retain their own service manifests (crate lists empty today). Marketplace owns the marketplace ENGINE, not the generated sell-catalog VIEW (build/ output).",
   "bounded_contexts": [
     {
-      "name": "cloud-marketplace-local-foundation",
-      "description": "Code-backed local foundation for seller onboarding, listing publication, private offers, entitlements, marketplace fee calculation, and kernel command shaping. No SaaS marketplace integration, seller portal runtime, settlement ledger, escrow, payout, revenue-share statement, external AWS/OCI marketplace adapter, measured SLO, active-active DR, or audit-chain persistence is claimed.",
+      "name": "marketplace-core",
+      "description": "Pure domain / kernel / scaffold crates under marketplace/core/.",
       "crates": [
-        "oya-cloud-marketplace-domain",
-        "oya-cloud-marketplace-kernel"
+        "marketplace-cloud-domain",
+        "marketplace-cloud-kernel",
+        "marketplace-doc-set-scaffold",
+        "marketplace-plugin-kernel"
+      ]
+    },
+    {
+      "name": "marketplace-facade",
+      "description": "Facade CLI under marketplace/facade/ (local/dev surface; CLI retirement-marked for product ops).",
+      "crates": [
+        "marketplace-dev-cli"
       ]
     }
   ],
   "layers": [
-    "domain",
-    "kernel"
+    "core",
+    "facade"
   ],
+  "capability_root_accounting": {
+    "crates_under_capability_root": 5,
+    "crates_by_layer": {
+      "core": 4,
+      "facade": 1
+    },
+    "crates_covered_by_no_other_manifest": 5,
+    "catalog_rows": [
+      "registry/catalog/marketplace-cloud-domain.yaml",
+      "registry/catalog/marketplace-cloud-kernel.yaml",
+      "registry/catalog/marketplace-dev-cli.yaml",
+      "registry/catalog/marketplace-doc-set-scaffold.yaml",
+      "registry/catalog/marketplace-plugin-kernel.yaml"
+    ],
+    "absorbed_service_manifests": [
+      "marketplace/plugin-app-store/manifest.json",
+      "marketplace/developer-sdk/manifest.json"
+    ],
+    "_overlap_note": "All five workspace members under marketplace/ are owned exclusively by this capability root. Absorbed plugin-app-store and developer-sdk manifests currently declare empty crate lists (legacy microservices/* capability YAML cites only)."
+  },
   "contracts": {
     "openapi": [
-      "contracts/openapi-v1.yaml"
+      "marketplace/contracts/openapi-v1.yaml",
+      "marketplace/contracts/listing-agents-v1.yaml",
+      "marketplace/contracts/listing-apps-v1.yaml",
+      "marketplace/contracts/listing-datasets-v1.yaml",
+      "marketplace/contracts/listing-models-v1.yaml",
+      "marketplace/contracts/listing-plugins-v1.yaml",
+      "marketplace/contracts/listing-workflows-v1.yaml"
     ],
     "asyncapi": [
-      "contracts/asyncapi-v1.yaml"
+      "marketplace/contracts/asyncapi-v1.yaml"
     ],
     "internal_grpc": {
       "transport": "http2",
@@ -238,56 +79,311 @@
         "marketplace/contracts/marketplace-v1.proto"
       ]
     },
-    "contract_status": "service-local marketplace settlement/revenue-share contract files exist in this package; they remain planning/validation contracts and do not claim live REST/event/proto runtime, entitlement, metering, payout, escrow, or external marketplace integration"
+    "contract_status": "service-local OpenAPI/AsyncAPI/proto + category listing fragments exist under marketplace/contracts/; they remain planning/validation contracts and do not claim live REST/event/proto runtime, entitlement, metering, payout, escrow, or external marketplace integration"
   },
   "capabilities": [
     {
       "tier": "T2",
-      "name": "seller-listing-private-offer-entitlement-domain-invariants",
-      "file": "crates/oya-cloud-marketplace-domain/src/lib.rs",
+      "name": "cloud-marketplace-domain-invariants",
+      "file": "marketplace/core/cloud-domain/src/lib.rs",
       "risk_class": "high"
     },
     {
       "tier": "T2",
-      "name": "marketplace-kernel-command-shaping",
-      "file": "crates/oya-cloud-marketplace-kernel/src/lib.rs",
+      "name": "cloud-marketplace-kernel-command-shaping",
+      "file": "marketplace/core/cloud-kernel/src/lib.rs",
       "risk_class": "medium"
     },
     {
       "tier": "T2",
-      "name": "cloud-ops-marketplace-evidence-scope-guardrail",
-      "file": "crates/oya-cloud-capacity-domain/tests/cloud_ops_foundation.rs",
+      "name": "plugin-marketplace-manifest-trust-tier-auction",
+      "file": "marketplace/core/plugin-kernel/src/lib.rs",
       "risk_class": "high"
+    },
+    {
+      "tier": "T3",
+      "name": "marketplace-doc-set-scaffold",
+      "file": "marketplace/core/doc-set-scaffold/src/lib.rs",
+      "risk_class": "none"
+    },
+    {
+      "tier": "T3",
+      "name": "marketplace-dev-cli-facade",
+      "file": "marketplace/facade/dev-cli/src/lib.rs",
+      "risk_class": "low"
+    },
+    {
+      "tier": "T2",
+      "name": "deal-offer-create",
+      "file": "marketplace/capabilities/deal-offer-create.yaml",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T2",
+      "name": "deal-accept",
+      "file": "marketplace/capabilities/deal-accept.yaml",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T2",
+      "name": "escrow-reserve",
+      "file": "marketplace/capabilities/escrow-reserve.yaml",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T2",
+      "name": "escrow-release",
+      "file": "marketplace/capabilities/escrow-release.yaml",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T2",
+      "name": "mediation-open",
+      "file": "marketplace/capabilities/mediation-open.yaml",
+      "risk_class": "medium"
+    },
+    {
+      "tier": "T2",
+      "name": "revenue-share-accrue",
+      "file": "marketplace/capabilities/revenue-share-accrue.yaml",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T2",
+      "name": "revenue-share-clawback",
+      "file": "marketplace/capabilities/revenue-share-clawback.yaml",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T2",
+      "name": "category-plugins",
+      "file": "marketplace/capabilities/category-plugins.yaml",
+      "risk_class": "medium"
+    },
+    {
+      "tier": "T2",
+      "name": "category-apps",
+      "file": "marketplace/capabilities/category-apps.yaml",
+      "risk_class": "medium"
+    },
+    {
+      "tier": "T2",
+      "name": "category-agents",
+      "file": "marketplace/capabilities/category-agents.yaml",
+      "risk_class": "medium"
+    },
+    {
+      "tier": "T2",
+      "name": "category-models",
+      "file": "marketplace/capabilities/category-models.yaml",
+      "risk_class": "medium"
+    },
+    {
+      "tier": "T2",
+      "name": "category-datasets",
+      "file": "marketplace/capabilities/category-datasets.yaml",
+      "risk_class": "medium"
+    },
+    {
+      "tier": "T2",
+      "name": "category-workflows",
+      "file": "marketplace/capabilities/category-workflows.yaml",
+      "risk_class": "medium"
     }
   ],
+  "slos": [
+    {
+      "name": "catalog-browse-availability",
+      "file": "marketplace/observability/slos/catalog-browse-availability.openslo.yaml"
+    },
+    {
+      "name": "catalog-browse-latency",
+      "file": "marketplace/observability/slos/catalog-browse-latency.openslo.yaml"
+    },
+    {
+      "name": "codegen-availability",
+      "file": "marketplace/observability/slos/codegen-availability.openslo.yaml"
+    },
+    {
+      "name": "deal-accept-latency",
+      "file": "marketplace/observability/slos/deal-accept-latency.openslo.yaml"
+    },
+    {
+      "name": "deal-offer-availability",
+      "file": "marketplace/observability/slos/deal-offer-availability.openslo.yaml"
+    },
+    {
+      "name": "developer-sdk-autosharding-events",
+      "file": "marketplace/observability/slos/developer-sdk-autosharding-events.openslo.yaml"
+    },
+    {
+      "name": "escrow-reserve-availability",
+      "file": "marketplace/observability/slos/escrow-reserve-availability.openslo.yaml"
+    },
+    {
+      "name": "listing-agents-availability",
+      "file": "marketplace/observability/slos/listing-agents-availability.openslo.yaml"
+    },
+    {
+      "name": "listing-apps-availability",
+      "file": "marketplace/observability/slos/listing-apps-availability.openslo.yaml"
+    },
+    {
+      "name": "listing-datasets-availability",
+      "file": "marketplace/observability/slos/listing-datasets-availability.openslo.yaml"
+    },
+    {
+      "name": "listing-models-availability",
+      "file": "marketplace/observability/slos/listing-models-availability.openslo.yaml"
+    },
+    {
+      "name": "listing-plugins-availability",
+      "file": "marketplace/observability/slos/listing-plugins-availability.openslo.yaml"
+    },
+    {
+      "name": "listing-workflows-availability",
+      "file": "marketplace/observability/slos/listing-workflows-availability.openslo.yaml"
+    },
+    {
+      "name": "marketplace-autosharding-events",
+      "file": "marketplace/observability/slos/marketplace-autosharding-events.openslo.yaml"
+    },
+    {
+      "name": "mediation-case-availability",
+      "file": "marketplace/observability/slos/mediation-case-availability.openslo.yaml"
+    },
+    {
+      "name": "onboarding-completion-availability",
+      "file": "marketplace/observability/slos/onboarding-completion-availability.openslo.yaml"
+    },
+    {
+      "name": "payout-settlement-availability",
+      "file": "marketplace/observability/slos/payout-settlement-availability.openslo.yaml"
+    },
+    {
+      "name": "payout-settlement-correctness",
+      "file": "marketplace/observability/slos/payout-settlement-correctness.openslo.yaml"
+    },
+    {
+      "name": "per-plugin-rate-limit-correctness",
+      "file": "marketplace/observability/slos/per-plugin-rate-limit-correctness.openslo.yaml"
+    },
+    {
+      "name": "plugin-app-store-autosharding-events",
+      "file": "marketplace/observability/slos/plugin-app-store-autosharding-events.openslo.yaml"
+    },
+    {
+      "name": "plugin-install-availability",
+      "file": "marketplace/observability/slos/plugin-install-availability.openslo.yaml"
+    },
+    {
+      "name": "plugin-install-latency",
+      "file": "marketplace/observability/slos/plugin-install-latency.openslo.yaml"
+    },
+    {
+      "name": "plugin-revoke-latency",
+      "file": "marketplace/observability/slos/plugin-revoke-latency.openslo.yaml"
+    },
+    {
+      "name": "portal-availability",
+      "file": "marketplace/observability/slos/portal-availability.openslo.yaml"
+    },
+    {
+      "name": "revenue-share-accuracy",
+      "file": "marketplace/observability/slos/revenue-share-accuracy.openslo.yaml"
+    },
+    {
+      "name": "revenue-share-clawback-accuracy",
+      "file": "marketplace/observability/slos/revenue-share-clawback-accuracy.openslo.yaml"
+    },
+    {
+      "name": "sandbox-provision-latency",
+      "file": "marketplace/observability/slos/sandbox-provision-latency.openslo.yaml"
+    },
+    {
+      "name": "sandbox-reset-latency",
+      "file": "marketplace/observability/slos/sandbox-reset-latency.openslo.yaml"
+    },
+    {
+      "name": "settlement-replay-fidelity",
+      "file": "marketplace/observability/slos/settlement-replay-fidelity.openslo.yaml"
+    },
+    {
+      "name": "signing-key-issuance-latency",
+      "file": "marketplace/observability/slos/signing-key-issuance-latency.openslo.yaml"
+    },
+    {
+      "name": "subscription-billing-correctness",
+      "file": "marketplace/observability/slos/subscription-billing-correctness.openslo.yaml"
+    },
+    {
+      "name": "tax-form-emission-correctness",
+      "file": "marketplace/observability/slos/tax-form-emission-correctness.openslo.yaml"
+    },
+    {
+      "name": "vetting-pipeline-correctness",
+      "file": "marketplace/observability/slos/vetting-pipeline-correctness.openslo.yaml"
+    },
+    {
+      "name": "vetting-pipeline-throughput",
+      "file": "marketplace/observability/slos/vetting-pipeline-throughput.openslo.yaml"
+    }
+  ],
+  "slos_note": "Paths verified present under marketplace/observability/slos/ at authoring time. Listing an OpenSLO file is not a claim of a measured production SLI, burn-rate controller, or deployed request path.",
   "ips": [
     {
-      "id": "CS-CLOUD-OPS-FOUNDATION-001",
-      "title": "Capacity/cell/DCOps/FinOps/Marketplace/FSH evidence guardrail and manifest truth-down",
-      "acceptance_status": "implemented-local-foundation",
-      "file": "crates/oya-cloud-capacity-domain/tests/cloud_ops_foundation.rs"
+      "id": "IP-ADR-0339",
+      "title": "Shared IaC Modules",
+      "acceptance_status": "documented-in-tree",
+      "file": "marketplace/IPs/IP-ADR-0339-Shared-IaC-Modules.md"
+    },
+    {
+      "id": "IP-WAVE-15-ZD",
+      "title": "Sharding automation",
+      "acceptance_status": "documented-in-tree",
+      "file": "marketplace/IPs/IP-WAVE-15-ZD-sharding-automation.md"
     }
   ],
-  "marketplace_integrations": {
-    "aws_marketplace_runtime": false,
-    "oci_marketplace_runtime": false,
-    "entitlement_service_runtime": false,
-    "metering_service_runtime": false,
-    "non_claim": "AWS Marketplace guidance informs entitlement/access boundaries, but no AWS/OCI Marketplace API integration is implemented."
+  "lts_pins": {
+    "rust": "1.97.1"
   },
-  "c2a_billing_metering_settlement_handoff": {
-    "schema_version": 1,
-    "seam_kind": "contract_traceability_nonclaim",
-    "local_marketplace_contract_refs": [
-      "contracts/openapi-v1.yaml#/paths/~1marketplace~1revenue-shares",
-      "contracts/asyncapi-v1.yaml",
-      "marketplace/contracts/marketplace-v1.proto"
-    ],
-    "upstream_billing_contract_refs": [
-      "../../billing/contracts/openapi.yaml#/paths/~1settlement",
-      "../../billing/contracts/asyncapi.yaml#/channels/cloud_billing.settlement.computed",
-      "../../billing/contracts/asyncapi.yaml#/channels/cloud_billing.billing_components.mutated"
-    ],
-    "non_claim": "Traceability only: this records the marketplace revenue-share/subscription settlement seam to cloud-billing contracts. It does not implement entitlement metering, AWS/OCI marketplace APIs, payout rails, escrow release, tax clearance, revenue-share statement generation, broker delivery, persistence, or production marketplace billing readiness."
-  }
+  "adrs": [
+    {
+      "id": "ADR-0132",
+      "title": "No Grouping Microservices",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
+    },
+    {
+      "id": "ADR-0562",
+      "title": "Capability First Repo Organization",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
+    },
+    {
+      "id": "ADR-0615",
+      "title": "Capability Layout Amendment",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
+    }
+  ],
+  "implemented_source_files": [
+    "marketplace/core/cloud-domain/src/lib.rs",
+    "marketplace/core/cloud-kernel/src/lib.rs",
+    "marketplace/core/doc-set-scaffold/src/lib.rs",
+    "marketplace/core/plugin-kernel/src/lib.rs",
+    "marketplace/facade/dev-cli/src/lib.rs",
+    "marketplace/facade/dev-cli/src/main.rs"
+  ],
+  "doc_class": "Machine-Readable-Spec",
+  "foundation_non_claims": [
+    "this manifest describes the five crates directly under marketplace/ and does NOT restate absorbed plugin-app-store / developer-sdk service manifests",
+    "no deployed marketplace portal, settlement ledger, escrow payout rail, AWS/OCI marketplace API integration, measured burn-rate controller, or audit-chain writer is claimed for the capability root itself",
+    "legacy crates/oya-cloud-marketplace-* and microservices/plugin-app-store|developer-sdk dump paths are retired; do not re-cite them from this root"
+  ],
+  "explicit_non_claims": [
+    "tier_subtype is absent (ungrounded) rather than invented",
+    "stratum remains forward-declared; no S-rank is manufactured",
+    "OpenSLO file presence is inventory only \u2014 not production SLO readiness"
+  ]
 }
