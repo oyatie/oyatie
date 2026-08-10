@@ -1,6 +1,6 @@
 {
-  "version": "1.3.2",
-  "description": "CursorBench 3.2 informs Cursor Task model slugs only. Side-panel omx/omc/gjc are separate advisory channels (CursorBench does not transfer). gjc especially useful with /usage for multi-provider spend. Shell gjc/omc/omx CLIs forbidden in lanes. No *-fast.",
+  "version": "1.3.3",
+  "description": "CursorBench 3.2 informs Cursor Task model slugs only. Side-panel omx/omc/gjc are separate advisory channels (CursorBench does not transfer). Interactive fallback: omx --madmax / omc --madmax / gjc --tmux spawn in tmux. gjc especially useful with /usage. Worker lanes must not treat bare gjc/omc/omx/hermes as merge authority. No *-fast.",
   "source": {
     "cursorbench": {
       "url": "https://cursor.com/cursorbench",
@@ -11,7 +11,8 @@
         "omx",
         "omc",
         "gjc",
-        "side_panel"
+        "side_panel",
+        "tmux_spawn"
       ],
       "notes": [
         "Grok 4.5 rows are asterisked: earlier Cursor codebase snapshot unintentionally in training; impact unclear",
@@ -22,13 +23,10 @@
     }
   },
   "forbidden_clis": [
-    "gjc",
-    "omc",
-    "omx",
     "hermes"
   ],
-  "forbidden_clis_scope": "shell_worker_lanes_only",
-  "forbidden_clis_reason": "Legacy brand wrappers confused merge authority; not the Cursor side panel",
+  "forbidden_clis_scope": "worker_lanes_merge_authority_standins",
+  "forbidden_clis_reason": "Bare unsupervised brand CLIs as merge-authority stand-ins stay banned in worker lanes; orchestrator may run omx --madmax / omc --madmax / gjc --tmux for interactive advisory tmux sessions",
   "side_panel_channels": {
     "allowed": true,
     "authority": "advisory_only_never_merge",
@@ -36,21 +34,33 @@
     "channels": {
       "omx": {
         "backend": "codex",
-        "use_when": "independent_codex_side_review_or_alternate_executor_path"
+        "use_when": "independent_codex_side_review_or_alternate_executor_path",
+        "tmux_spawn": "omx --madmax"
       },
       "omc": {
         "backend": "claude",
-        "use_when": "independent_claude_side_critique_security_or_design_pass"
+        "use_when": "independent_claude_side_critique_security_or_design_pass",
+        "tmux_spawn": "omc --madmax"
       },
       "gjc": {
         "backend": "multi_model",
         "use_when": "parallel_multi_provider_deliberation",
         "especially_with": "/usage",
-        "especially_with_reason": "shows multi-provider usage breakdown; omx/omc alone lack that cross-provider view"
+        "especially_with_reason": "shows multi-provider usage breakdown; omx/omc alone lack that cross-provider view",
+        "tmux_spawn": "gjc --tmux"
       }
     },
     "prefer_task_slugs_for_cursor_dispatches": true,
-    "note": "Pick omx/omc/gjc by provider need and independence \u2014 not by CursorBench score/cost rows"
+    "note": "Pick omx/omc/gjc by provider need and independence \u2014 not by CursorBench score/cost rows. Use --madmax/--tmux when side panel is not directly usable.",
+    "interactive_fallback": {
+      "when": "side_panel_not_directly_usable",
+      "spawns_in_tmux": [
+        "omx --madmax",
+        "omc --madmax",
+        "gjc --tmux"
+      ],
+      "note": "Attach to the tmux session to interact; prefer side panel when available"
+    }
   },
   "forbidden_model_slug_substrings": [
     "-fast"
