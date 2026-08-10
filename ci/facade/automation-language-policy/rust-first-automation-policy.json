@@ -407,7 +407,7 @@
         },
         {
           "key": ".github/workflows/oya-ci-required.yml::gate-affected-target-set::Binding affected-set build + test (cone-binding; FULL tier = build-health ratchet)",
-          "shell_lines": 19
+          "shell_lines": 17
         },
         {
           "key": ".github/workflows/oya-ci-required.yml::gate-affected-target-set::Fetch base ref for the merge-base anchor",
