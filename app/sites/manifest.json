@@ -1,0 +1,527 @@
+{
+  "schema_version": "1.0",
+  "microservice": "sites",
+  "tier": "product",
+  "tier_subtype": "product-consumer-sites",
+  "dr_tier": "T2",
+  "version": "0.1.0",
+  "owner": "axis-sites",
+  "bounded_contexts": [
+    {
+      "name": "block",
+      "description": "Bounded context 'block' within sites (data plane)",
+      "crates": []
+    },
+    {
+      "name": "cdn-delivery",
+      "description": "Bounded context 'cdn-delivery' within sites (control plane)",
+      "crates": []
+    },
+    {
+      "name": "cms-collection",
+      "description": "Bounded context 'cms-collection' within sites (data plane)",
+      "crates": []
+    },
+    {
+      "name": "domain-binding",
+      "description": "Bounded context 'domain-binding' within sites (control plane)",
+      "crates": []
+    },
+    {
+      "name": "page",
+      "description": "Bounded context 'page' within sites (data plane)",
+      "crates": []
+    },
+    {
+      "name": "search",
+      "description": "Bounded context 'search' within sites (data plane)",
+      "crates": []
+    },
+    {
+      "name": "site",
+      "description": "Bounded context 'site' within sites (data plane)",
+      "crates": []
+    }
+  ],
+  "layers": [
+    "adapter",
+    "app",
+    "kernel"
+  ],
+  "contracts": {
+    "openapi": [
+      "microservices/sites/contracts/openapi/sites.yaml"
+    ],
+    "asyncapi": [
+      "microservices/sites/contracts/asyncapi/sites-events.yaml"
+    ],
+    "internal_grpc": {
+      "transport": "http2",
+      "language_profile": "proto3",
+      "contracts": [
+        "oya/sites/contracts/proto/sites.proto"
+      ]
+    }
+  },
+  "capabilities": [
+    {
+      "tier": "T1",
+      "name": "T0-suggest",
+      "file": "microservices/sites/capabilities/T0-suggest.yaml",
+      "risk_class": "minimal"
+    },
+    {
+      "tier": "T1",
+      "name": "T1-assist",
+      "file": "microservices/sites/capabilities/T1-assist.yaml",
+      "risk_class": "minimal"
+    },
+    {
+      "tier": "T1",
+      "name": "T2-auto",
+      "file": "microservices/sites/capabilities/T2-auto.yaml",
+      "risk_class": "minimal"
+    }
+  ],
+  "slos": [
+    {
+      "name": "sites-accessibility-wcag-correctness",
+      "target": "1.0",
+      "sli": "sum(rate(oya_sites_wcag_aa_validation_total{result=\"passed\"}[5m]))",
+      "file": "oya/sites/slos/accessibility-wcag-correctness.openslo.yaml"
+    },
+    {
+      "name": "sites-acme-renew-latency",
+      "target": "0.95",
+      "sli": "histogram_quantile(0.95, sum(rate(oya_sites_acme_renewal_duration_seconds_bucket[5m])) by (le))",
+      "file": "oya/sites/slos/acme-renew-latency.openslo.yaml"
+    },
+    {
+      "name": "sites-cms-query-latency",
+      "target": "0.99",
+      "sli": "histogram_quantile(0.95, sum(rate(oya_sites_cms_query_seconds_bucket[5m])) by (le))",
+      "file": "oya/sites/slos/cms-query-latency.openslo.yaml"
+    },
+    {
+      "name": "sites-image-optimize-latency",
+      "target": "0.95",
+      "sli": "histogram_quantile(0.95, sum(rate(oya_sites_image_optimize_duration_seconds_bucket[5m])) by (le))",
+      "file": "oya/sites/slos/image-optimize-latency.openslo.yaml"
+    },
+    {
+      "name": "sites-page-render-latency",
+      "target": "0.99",
+      "sli": "histogram_quantile(0.95, sum(rate(oya_sites_page_render_seconds_bucket[5m])) by (le))",
+      "file": "oya/sites/slos/page-render-latency.openslo.yaml"
+    },
+    {
+      "name": "sites-publish-latency",
+      "target": "0.95",
+      "sli": "histogram_quantile(0.95, sum(rate(oya_sites_publish_duration_seconds_bucket{site_size_class=\"medium\"}[5m])) by (le))",
+      "file": "oya/sites/slos/publish-latency.openslo.yaml"
+    },
+    {
+      "name": "sites-seo-meta-correctness",
+      "target": "1.0",
+      "sli": "sum(rate(oya_sites_seo_meta_validation_total{result=\"passed\"}[5m]))",
+      "file": "oya/sites/slos/seo-meta-correctness.openslo.yaml"
+    },
+    {
+      "name": "sites-site-search-latency",
+      "target": "0.99",
+      "sli": "histogram_quantile(0.95, sum(rate(oya_sites_search_query_seconds_bucket[5m])) by (le))",
+      "file": "oya/sites/slos/site-search-latency.openslo.yaml"
+    },
+    {
+      "name": "sites-static-asset-latency",
+      "target": "0.999",
+      "sli": "histogram_quantile(0.95, sum(rate(oya_sites_static_asset_seconds_bucket{cache_state=\"hit\"}[5m])) by (le))",
+      "file": "oya/sites/slos/static-asset-latency.openslo.yaml"
+    }
+  ],
+  "ips": [
+    {
+      "id": "IP-001-iac-bootstrap",
+      "title": "IP-001: IaC bootstrap — Helm + Kustomize for Postgres + Valkey + Meilisearch + cert-manager + libvips-worker",
+      "acceptance_status": "ga",
+      "file": "microservices/sites/IP-001-iac-bootstrap.md"
+    },
+    {
+      "id": "IP-002-site-bc-kernel",
+      "title": "IP-002: site BC — kernel + domain + usecase + api",
+      "acceptance_status": "ga",
+      "file": "microservices/sites/IP-002-site-bc-kernel.md"
+    },
+    {
+      "id": "IP-003-page-bc-kernel",
+      "title": "IP-003: page BC — kernel + domain + usecase + api + adapter-postgres + rest + worker + sdk + app",
+      "acceptance_status": "ga",
+      "file": "microservices/sites/IP-003-page-bc-kernel.md"
+    },
+    {
+      "id": "IP-004-block-bc-and-loro",
+      "title": "IP-004: block BC + Loro CRDT adapter",
+      "acceptance_status": "ga",
+      "file": "microservices/sites/IP-004-block-bc-and-loro.md"
+    },
+    {
+      "id": "IP-005-theme-and-navigation",
+      "title": "IP-005: theme + navigation BCs",
+      "acceptance_status": "ga",
+      "file": "microservices/sites/IP-005-theme-and-navigation.md"
+    },
+    {
+      "id": "IP-006-url-routing",
+      "title": "IP-006: url-routing BC",
+      "acceptance_status": "ga",
+      "file": "microservices/sites/IP-006-url-routing.md"
+    },
+    {
+      "id": "IP-007-domain-binding-acme",
+      "title": "IP-007: domain-binding BC + ACME + cert-manager adapters",
+      "acceptance_status": "ga",
+      "file": "microservices/sites/IP-007-domain-binding-acme.md"
+    },
+    {
+      "id": "IP-008-seo-and-sitemap",
+      "title": "IP-008: seo BC + sitemap.xml + JSON-LD + Open Graph + Twitter Cards",
+      "acceptance_status": "ga",
+      "file": "microservices/sites/IP-008-seo-and-sitemap.md"
+    },
+    {
+      "id": "IP-009-cms-collection",
+      "title": "IP-009: cms-collection BC",
+      "acceptance_status": "ga",
+      "file": "microservices/sites/IP-009-cms-collection.md"
+    },
+    {
+      "id": "IP-010-search-meilisearch",
+      "title": "IP-010: search BC + Meilisearch adapter",
+      "acceptance_status": "ga",
+      "file": "microservices/sites/IP-010-search-meilisearch.md"
+    },
+    {
+      "id": "IP-011-cdn-delivery-and-pipeline",
+      "title": "IP-011: cdn-delivery BC + S3 + Cloudflare-stub + libvips + Pandoc adapters",
+      "acceptance_status": "ga",
+      "file": "microservices/sites/IP-011-cdn-delivery-and-pipeline.md"
+    },
+    {
+      "id": "IP-012-policy-dpia-threat-model",
+      "title": "IP-012: Cedar policy + DPIA + threat-model sign-off",
+      "acceptance_status": "ga",
+      "file": "microservices/sites/IP-012-policy-dpia-threat-model.md"
+    },
+    {
+      "id": "IP-013-contracts-and-capabilities",
+      "title": "IP-013: OpenAPI + AsyncAPI + Proto contracts + capabilities (T0/T1/T2)",
+      "acceptance_status": "ga",
+      "file": "microservices/sites/IP-013-contracts-and-capabilities.md"
+    },
+    {
+      "id": "IP-014-dashboards-runbooks-slos",
+      "title": "IP-014: dashboards + runbooks + OpenSLO manifests",
+      "acceptance_status": "ga",
+      "file": "microservices/sites/IP-014-dashboards-runbooks-slos.md"
+    },
+    {
+      "id": "IP-015-hg-sites-maturity-claim",
+      "title": "IP-015: HG-SITES hyperscaler-maturity claim entry",
+      "acceptance_status": "ga",
+      "file": "microservices/sites/IP-015-hg-sites-maturity-claim.md"
+    }
+  ],
+  "regulatory_packs": [
+    "kr",
+    "eu",
+    "us",
+    "us-healthcare",
+    "jp",
+    "sg",
+    "au",
+    "in",
+    "br",
+    "ae",
+    "ksa"
+  ],
+  "lts_pins": {
+    "prometheus": "2.55",
+    "rust": "1.97.1"
+  },
+  "adrs": [
+    {
+      "id": "ADR-0056",
+      "title": "Rust Clean Architecture Bnf",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
+    },
+    {
+      "id": "ADR-0105",
+      "title": "13 Layer Enum And Check Family Patterns",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
+    },
+    {
+      "id": "ADR-0106",
+      "title": "Rename Application To Usecase",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0703-cas-cache-live-apex.md"
+    },
+    {
+      "id": "ADR-0117",
+      "title": "Repo Hygiene Gitignore Audit Config And Kyverno Consolidation",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
+    },
+    {
+      "id": "ADR-0234",
+      "title": "Social Expansion Planning Contract",
+      "scope": "repo",
+      "file": "docs/adr-archive/ADR-0234-connect-social-expansion-planning-contract.md"
+    },
+    {
+      "id": "ADR-0132",
+      "title": "Product Platform And Bundle Dissolution",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0705-product-protocol-live-apex.md"
+    },
+    {
+      "id": "ADR-0236",
+      "title": "Op11 Corpus Remediation Planning Contract",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
+    },
+    {
+      "id": "ADR-0237",
+      "title": "Dissolution Strangler Migration",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
+    },
+    {
+      "id": "ADR-0238",
+      "title": "Super App Expansion",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
+    },
+    {
+      "id": "ADR-0139",
+      "title": "Agentic Slo Gated Promotion",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
+    }
+  ],
+  "hyperscaler_inv_coverage": {
+    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
+    "tenant_rate_limit": "INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
+    "reference_signals": "INV-FOUR-REFERENCE-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
+    "error_budget_burn": "INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
+  },
+  "audit_chain": {
+    "enabled": true,
+    "seal_events": [
+      "oya.sites.T0-suggest",
+      "oya.sites.T1-assist",
+      "oya.sites.T2-auto"
+    ]
+  },
+  "secrets_substrate": {
+    "provider": "openbao",
+    "format": "${openbao:secret/<path>}"
+  },
+  "ontology_projections": [],
+  "mesh_layering": {
+    "cilium_l4": true,
+    "ambient_ztunnel": true,
+    "ambient_waypoint": false,
+    "north_south_only": false
+  },
+  "naming_justifications": "sites is a BNF v4.1 kebab-case microservice slug; generated names follow oya-sites-<bounded-context>-<layer>, with layer rest from ADR-0105's 13-layer enum.",
+  "tenant_class_eligibility": [
+    "demo_trial",
+    "paid"
+  ],
+  "paid_billing_components_emitted": [
+    "per_usage"
+  ],
+  "packs": [
+    "kr",
+    "eu",
+    "us",
+    "us-healthcare",
+    "jp",
+    "sg",
+    "au",
+    "in",
+    "br",
+    "ae",
+    "ksa",
+    "gdpr",
+    "SOC 2 Type 2",
+    "soc2",
+    "iso27001",
+    "hipaa",
+    "NIS2",
+    "lgpd",
+    "cn-pipl-2021",
+    "fedramp",
+    "il5"
+  ],
+  "hyperscaler_benchmark": "circuit_breaker: INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaCapabilityCircuitOpen; tenant_rate_limit: INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaTenantRateLimit429Surge; reference_signals: INV-FOUR-REFERENCE-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaSaturationCpuOver70pct; error_budget_burn: INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaErrorBudgetFastBurn1h14x; 1: AWS IAM service-linked roles is the reference pattern for the control shape described here; 2: Google Cloud service agents is the second reference pattern used to avoid a single-vendor cargo-cult design",
+  "owner_team": "axis-sites",
+  "tier_classification": "tenant-facing",
+  "data_classification": "INTERNAL_ONLY, AUDIT, PII_QUASI",
+  "compliance_packs_applicable": [
+    "kr",
+    "eu",
+    "us",
+    "us-healthcare",
+    "jp",
+    "sg",
+    "au",
+    "in",
+    "br",
+    "ae",
+    "ksa",
+    "gdpr",
+    "SOC 2 Type 2",
+    "soc2",
+    "iso27001",
+    "hipaa",
+    "NIS2",
+    "lgpd",
+    "cn-pipl-2021",
+    "fedramp",
+    "il5"
+  ],
+  "depends_on_microservices": [
+    "forms",
+    "docs",
+    "sheets",
+    "slides",
+    "workflow-studio",
+    "audit-chain",
+    "analytics",
+    "tenancy",
+    "identity",
+    "drive",
+    "community",
+    "observability",
+    "network",
+    "intelligence",
+    "ontology",
+    "detection",
+    "cell",
+    "cloud-iac",
+    "connect"
+  ],
+  "failure_domain": "north-south edge admission and routing plane",
+  "criticality_tier": "T0",
+  "layer": "rest",
+  "doc_class": "Machine-Readable-Spec",
+  "capacity_model": {
+    "baseline_cpu_per_tenant": 0.1,
+    "baseline_ram_per_tenant": 256,
+    "storage_per_tenant": 10,
+    "connections_per_tenant": {
+      "valkey": 2,
+      "postgres": 2,
+      "outbound_http": 6
+    },
+    "scaling_dimension": "per_request",
+    "cell_placement_class": "Tier-3",
+    "notes": "Public site render, CMS query, publish, image optimization, search, and domain-binding paths scale with request volume and publish jobs."
+  },
+  "sharding_automation": {
+    "autosharding": "control_plane_driven",
+    "auto_rebalance": {
+      "enabled": false,
+      "trigger_load_skew_threshold_percent": 30,
+      "honors_residency": true,
+      "honors_compliance_packs": true,
+      "audit_chain_emit": true
+    },
+    "dynamic_sharding": {
+      "enabled": false,
+      "hot_split_threshold_p99_ms": 50,
+      "hot_split_utilization_threshold_percent": 80,
+      "cold_merge_utilization_threshold_percent": 20,
+      "cold_merge_minimum_quiet_hours": 24,
+      "audit_chain_emit": true
+    }
+  },
+  "dr": {
+    "rto_p99_seconds": 1800,
+    "rpo_p99_seconds": 300,
+    "multi_region_active_active": true,
+    "backup_substrate": [
+      "postgres_wal_g",
+      "object_storage_versioned",
+      "valkey"
+    ],
+    "failover_runbook": "runbooks/dr-failover.md",
+    "dr_tier": "T2",
+    "replication_shape": "active-active-multi-az-cross-region-warm"
+  },
+  "pod_runtime_tier": 2,
+  "pod_runtime_tier_justification": "Sites is a first-party site authoring, CMS, domain-binding, and publish service. Although it integrates with CDN delivery, it is not the edge data plane itself, so Tier 2 runtime with Tier-3 application cell placement is the valid ADR-0340 pair.",
+  "pod_runtime_tier_surface_evidence": [
+    "microservices/sites/PRD.md",
+    "microservices/sites/capacity-model.md",
+    "microservices/sites/IP-007-domain-binding-acme.md",
+    "microservices/sites/IP-011-cdn-delivery-and-pipeline.md"
+  ],
+  "tenant_version_pinning": {
+    "declared_versions": [
+      "2026-05-21",
+      "2026-02-20",
+      "2025-11-20"
+    ],
+    "default_version": "2026-05-21",
+    "supported_window_size": 3,
+    "supported_window_minimum_days": 180,
+    "supports_per_tenant_pinning": true,
+    "deprecation_calendar": [],
+    "public_surface_files": {
+      "openapi": {
+        "2026-05-21": "microservices/sites/contracts/openapi/sites.yaml"
+      },
+      "asyncapi": {
+        "2026-05-21": "microservices/sites/contracts/asyncapi/sites-events.yaml"
+      }
+    }
+  },
+  "consumes_upstream_oss": [
+    "cedar",
+    "postgresql",
+    "valkey",
+    "opentelemetry",
+    "opentofu"
+  ],
+  "oss_stewardship_class_overrides": [],
+  "iac_module_invocations": [
+    {
+      "context": "oyatie-as-cloud-provider",
+      "primitive": "k8s-namespace-bootstrap",
+      "version_pin": "v1",
+      "tenant_class_scope": "both"
+    },
+    {
+      "context": "oyatie-as-cloud-provider",
+      "primitive": "secrets-bootstrap",
+      "version_pin": "v1",
+      "tenant_class_scope": "both"
+    },
+    {
+      "context": "oyatie-as-cloud-provider",
+      "primitive": "dns",
+      "version_pin": "v1",
+      "tenant_class_scope": "both"
+    },
+    {
+      "context": "oyatie-as-cloud-provider",
+      "primitive": "vpc",
+      "version_pin": "v1",
+      "tenant_class_scope": "both"
+    }
+  ]
+}
