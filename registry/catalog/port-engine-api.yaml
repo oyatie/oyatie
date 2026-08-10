@@ -1,5 +1,5 @@
 context: build
-role: ports
+role: api
 capability: port-engine
 plane: control
 slo: cataloged-no-runtime-claim
