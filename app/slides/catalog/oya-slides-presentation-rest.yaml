@@ -1,0 +1,14 @@
+# Canonical-base: specs/catalog/canonical-crate-record-schema.json (SWEEP-I Slice 6 per ADR-0064)
+name: oya-slides-presentation-rest
+microservice: slides
+bounded_context: presentation
+layer: rest
+purpose: |
+  HTTP surface for deck + ACL CRUD per contracts/openapi/slides.yaml.
+  OIDC-bound at every entry; Cedar default-deny.
+depends_on:
+  - oya-slides-presentation-usecase
+ci_lanes:
+  - statelessness
+  - cedar-preview-required
+  - cargo-nextest

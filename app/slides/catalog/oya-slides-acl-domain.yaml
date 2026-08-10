@@ -1,0 +1,15 @@
+# Canonical-base: specs/catalog/canonical-crate-record-schema.json (SWEEP-I Slice 6 per ADR-0064)
+name: oya-slides-acl-domain
+microservice: slides
+bounded_context: acl
+layer: domain
+purpose: |
+  Pure Cedar evaluation algebra for deck + per-slide + named-block refinements.
+  Per ADR-SLIDES-0007 + ADR-0140 (retired per ADR-0145). Zero I/O.
+depends_on:
+  - oya-slides-acl-kernel
+ci_lanes:
+  - layer-correctness
+  - per-slide-acl-no-deck-bypass
+  - named-block-no-bypass
+  - cargo-nextest

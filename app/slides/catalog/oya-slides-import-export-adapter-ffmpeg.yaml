@@ -1,0 +1,16 @@
+# Canonical-base: specs/catalog/canonical-crate-record-schema.json (SWEEP-I Slice 6 per ADR-0064)
+name: oya-slides-import-export-adapter-ffmpeg
+microservice: slides
+bounded_context: import-export
+layer: adapter-ffmpeg
+purpose: |
+  ffmpeg 7.x LTS for MP4 export + embedded media transcode. Deterministic mode.
+  gVisor-sandboxed. Per ADR-SLIDES-0003 + ADR-0105 Amd.3.
+depends_on:
+  - oya-slides-import-export-kernel
+  - ffmpeg@^7.0
+backend: ffmpeg
+ci_lanes:
+  - gvisor-isolation
+  - mp4-determinism
+  - cargo-nextest

@@ -31,7 +31,7 @@
       "transport": "http2",
       "language_profile": "proto3",
       "contracts": [
-        "oya/slides/contracts/proto/slides.proto"
+        "app/slides/contracts/proto/slides.proto"
       ]
     }
   },
@@ -60,61 +60,61 @@
       "name": "oya-slides-broadcast-mode-availability",
       "target": "0.999 (0.995,)",
       "sli": "total:",
-      "file": "oya/slides/slos/broadcast-mode-availability.openslo.yaml"
+      "file": "app/slides/slos/broadcast-mode-availability.openslo.yaml"
     },
     {
       "name": "oya-slides-collab-cursor-sync-latency",
       "target": "0.99 (0.95,)",
       "sli": "total:",
-      "file": "oya/slides/slos/collab-cursor-sync-latency.openslo.yaml"
+      "file": "app/slides/slos/collab-cursor-sync-latency.openslo.yaml"
     },
     {
       "name": "oya-slides-crdt-merge-no-silent-loss",
       "target": "1.0 (1,)",
       "sli": "total:",
-      "file": "oya/slides/slos/crdt-merge-no-silent-loss.openslo.yaml"
+      "file": "app/slides/slos/crdt-merge-no-silent-loss.openslo.yaml"
     },
     {
       "name": "oya-slides-deck-open-latency",
       "target": "0.95 (0.85,)",
       "sli": "total:",
-      "file": "oya/slides/slos/deck-open-latency.openslo.yaml"
+      "file": "app/slides/slos/deck-open-latency.openslo.yaml"
     },
     {
       "name": "oya-slides-export-mp4-latency",
       "target": "0.95 (0.85,)",
       "sli": "total:",
-      "file": "oya/slides/slos/export-mp4-latency.openslo.yaml"
+      "file": "app/slides/slos/export-mp4-latency.openslo.yaml"
     },
     {
       "name": "oya-slides-export-pdf-latency",
       "target": "0.95 (0.85,)",
       "sli": "total:",
-      "file": "oya/slides/slos/export-pdf-latency.openslo.yaml"
+      "file": "app/slides/slos/export-pdf-latency.openslo.yaml"
     },
     {
       "name": "oya-slides-export-pptx-latency",
       "target": "0.95 (0.85,)",
       "sli": "total:",
-      "file": "oya/slides/slos/export-pptx-latency.openslo.yaml"
+      "file": "app/slides/slos/export-pptx-latency.openslo.yaml"
     },
     {
       "name": "oya-slides-present-mode-transition-latency",
       "target": "0.95 (0.90,)",
       "sli": "total:",
-      "file": "oya/slides/slos/present-mode-transition-latency.openslo.yaml"
+      "file": "app/slides/slos/present-mode-transition-latency.openslo.yaml"
     },
     {
       "name": "oya-slides-save-latency",
       "target": "0.95 (0.85,)",
       "sli": "total:",
-      "file": "oya/slides/slos/save-latency.openslo.yaml"
+      "file": "app/slides/slos/save-latency.openslo.yaml"
     },
     {
       "name": "oya-slides-slide-render-latency",
       "target": "0.99 (0.95,)",
       "sli": "total:",
-      "file": "oya/slides/slos/slide-render-latency.openslo.yaml"
+      "file": "app/slides/slos/slide-render-latency.openslo.yaml"
     }
   ],
   "ips": [

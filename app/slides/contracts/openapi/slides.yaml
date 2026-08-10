@@ -1,0 +1,786 @@
+openapi: 3.2.0
+info:
+  title: oya-slides REST surface
+  version: 1.0.0
+  description: |
+    Slides µservice REST surface — collaborative presentation product (Google-Slides /
+    PowerPoint Web / Keynote / Pitch / Beautiful.ai / Canva-presentations-class).
+    Per ADR-0135 dissolution + ADR-0131 per-microservice flat layout.
+    All endpoints OIDC tenant-bound. Cedar v4.2 LTS default-deny enforced per
+    `policy/tenant-scope.cedar`. Per-slide ACL granularity per ADR-SLIDES-0007.
+  contact:
+    name: axis-workspace + council-design-system
+    email: axis-workspace@oyatie.com
+  license:
+    name: Apache-2.0
+servers:
+  - url: https://api.oyatie.com/slides/v1
+    description: production
+  - url: https://api-staging.oyatie.com/slides/v1
+    description: staging
+  - url: https://api-dev.oyatie.com/slides/v1
+    description: dev
+security:
+  - oidcBearer: []
+paths:
+  /decks:
+    get:
+      summary: List decks accessible to caller
+      operationId: list_decks
+      parameters:
+        - { name: cursor, in: query, schema: { type: string }, description: opaque pagination cursor }
+        - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 200, default: 50 } }
+        - { name: pack, in: query, schema: { type: string }, description: explicit pack filter (defaults to caller's pack) }
+      responses:
+        '200':
+          description: paginated deck list
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/DeckList' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+    post:
+      summary: Create a new deck
+      operationId: create_deck
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/DeckCreateRequest' }
+      responses:
+        '201':
+          description: created
+          content: { application/json: { schema: { $ref: '#/components/schemas/Deck' } } }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '402': { $ref: '#/components/responses/PaymentRequired' }
+  /decks/{deck_id}:
+    parameters:
+      - { name: deck_id, in: path, required: true, schema: { type: string } }
+    get:
+      summary: Get a deck
+      operationId: get_deck
+      responses:
+        '200': { description: ok, content: { application/json: { schema: { $ref: '#/components/schemas/Deck' } } } }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+    patch:
+      summary: Update deck metadata (delta save)
+      operationId: update_deck
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/DeckUpdateRequest' }
+      responses:
+        '200': { description: ok, content: { application/json: { schema: { $ref: '#/components/schemas/Deck' } } } }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
+    delete:
+      summary: Delete deck (soft delete with retention)
+      operationId: delete_deck
+      responses:
+        '204': { description: deleted }
+        '403': { $ref: '#/components/responses/Forbidden' }
+  /decks/{deck_id}/slides:
+    parameters:
+      - { name: deck_id, in: path, required: true, schema: { type: string } }
+    get:
+      summary: List slides in a deck
+      operationId: list_slides
+      responses:
+        '200': { description: ok, content: { application/json: { schema: { $ref: '#/components/schemas/SlideList' } } } }
+    post:
+      summary: Insert a new slide
+      operationId: insert_slide
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SlideCreateRequest' }
+      responses:
+        '201': { description: created, content: { application/json: { schema: { $ref: '#/components/schemas/Slide' } } } }
+  /decks/{deck_id}/slides/{slide_id}:
+    parameters:
+      - { name: deck_id, in: path, required: true, schema: { type: string } }
+      - { name: slide_id, in: path, required: true, schema: { type: string } }
+    get:
+      summary: Get a slide
+      operationId: get_slide
+      responses:
+        '200': { description: ok, content: { application/json: { schema: { $ref: '#/components/schemas/Slide' } } } }
+    patch:
+      summary: Update slide
+      operationId: update_slide
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SlideUpdateRequest' }
+      responses:
+        '200': { description: ok, content: { application/json: { schema: { $ref: '#/components/schemas/Slide' } } } }
+    delete:
+      summary: Delete slide
+      operationId: delete_slide
+      responses:
+        '204': { description: deleted }
+  /decks/{deck_id}/slides/{slide_id}/acl:
+    parameters:
+      - { name: deck_id, in: path, required: true, schema: { type: string } }
+      - { name: slide_id, in: path, required: true, schema: { type: string } }
+    get:
+      summary: Get per-slide ACL (per ADR-SLIDES-0007)
+      operationId: get_per_slide_acl
+      responses:
+        '200': { description: ok, content: { application/json: { schema: { $ref: '#/components/schemas/PerSlideAcl' } } } }
+    put:
+      summary: Set per-slide ACL (Cedar preview-required per AC-15)
+      operationId: set_per_slide_acl
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PerSlideAclUpdateRequest' }
+      responses:
+        '200': { description: ok, content: { application/json: { schema: { $ref: '#/components/schemas/PerSlideAcl' } } } }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+  /decks/{deck_id}/acl:
+    parameters:
+      - { name: deck_id, in: path, required: true, schema: { type: string } }
+    get:
+      summary: Get deck-level ACL
+      operationId: get_deck_acl
+      responses:
+        '200': { description: ok, content: { application/json: { schema: { $ref: '#/components/schemas/DeckAcl' } } } }
+    put:
+      summary: Set deck-level ACL
+      operationId: set_deck_acl
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/DeckAclUpdateRequest' }
+      responses:
+        '200': { description: ok, content: { application/json: { schema: { $ref: '#/components/schemas/DeckAcl' } } } }
+  /decks/{deck_id}/sessions:
+    parameters:
+      - { name: deck_id, in: path, required: true, schema: { type: string } }
+    post:
+      summary: Open an editor session (per-seat license check)
+      operationId: open_editor_session
+      responses:
+        '201': { description: created, content: { application/json: { schema: { $ref: '#/components/schemas/EditorSession' } } } }
+        '402': { $ref: '#/components/responses/PaymentRequired' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+  /decks/{deck_id}/sessions/{session_id}:
+    parameters:
+      - { name: deck_id, in: path, required: true, schema: { type: string } }
+      - { name: session_id, in: path, required: true, schema: { type: string } }
+    delete:
+      summary: Close an editor session
+      operationId: close_editor_session
+      responses:
+        '204': { description: closed }
+  /decks/{deck_id}/cedar-preview:
+    parameters:
+      - { name: deck_id, in: path, required: true, schema: { type: string } }
+    post:
+      summary: Preview Cedar policy impact for a proposed change (AC-15)
+      operationId: cedar_preview
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CedarPreviewRequest' }
+      responses:
+        '200': { description: ok, content: { application/json: { schema: { $ref: '#/components/schemas/CedarPreviewResponse' } } } }
+  /decks/{deck_id}/version-history:
+    parameters:
+      - { name: deck_id, in: path, required: true, schema: { type: string } }
+    get:
+      summary: List versions
+      operationId: list_versions
+      responses:
+        '200': { description: ok, content: { application/json: { schema: { $ref: '#/components/schemas/VersionList' } } } }
+  /decks/{deck_id}/version-history/{version_sha}/restore:
+    parameters:
+      - { name: deck_id, in: path, required: true, schema: { type: string } }
+      - { name: version_sha, in: path, required: true, schema: { type: string } }
+    post:
+      summary: Restore a version
+      operationId: restore_version
+      responses:
+        '201': { description: restored, content: { application/json: { schema: { $ref: '#/components/schemas/Deck' } } } }
+  /decks/{deck_id}/comments:
+    parameters:
+      - { name: deck_id, in: path, required: true, schema: { type: string } }
+    get:
+      summary: List comments
+      operationId: list_comments
+      responses:
+        '200': { description: ok, content: { application/json: { schema: { $ref: '#/components/schemas/CommentList' } } } }
+    post:
+      summary: Post a comment
+      operationId: post_comment
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/CommentCreateRequest' } } }
+      responses:
+        '201': { description: created }
+  /decks/{deck_id}/charts/bind:
+    parameters:
+      - { name: deck_id, in: path, required: true, schema: { type: string } }
+    post:
+      summary: Bind a chart to a sheets cell range (live-link; ADR-SLIDES-0008)
+      operationId: bind_chart
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/ChartBindRequest' } } }
+      responses:
+        '201': { description: bound, content: { application/json: { schema: { $ref: '#/components/schemas/ChartBinding' } } } }
+        '403': { $ref: '#/components/responses/Forbidden' }
+  /decks/{deck_id}/themes:
+    parameters:
+      - { name: deck_id, in: path, required: true, schema: { type: string } }
+    get:
+      summary: List themes available to this deck
+      operationId: list_themes
+      responses:
+        '200': { description: ok, content: { application/json: { schema: { $ref: '#/components/schemas/ThemeList' } } } }
+    put:
+      summary: Apply theme to deck
+      operationId: apply_theme
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/ThemeApplyRequest' } } }
+      responses:
+        '200': { description: ok, content: { application/json: { schema: { $ref: '#/components/schemas/Deck' } } } }
+  /decks/{deck_id}/templates:
+    parameters:
+      - { name: deck_id, in: path, required: true, schema: { type: string } }
+    get:
+      summary: List templates
+      operationId: list_templates
+      responses:
+        '200': { description: ok, content: { application/json: { schema: { $ref: '#/components/schemas/TemplateList' } } } }
+  /decks/{deck_id}/export:
+    parameters:
+      - { name: deck_id, in: path, required: true, schema: { type: string } }
+    post:
+      summary: Submit export job (PPTX / ODP / PDF / MP4 / PNG-per-slide)
+      operationId: submit_export
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/ExportRequest' } } }
+      responses:
+        '202': { description: queued, content: { application/json: { schema: { $ref: '#/components/schemas/ExportJob' } } } }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+  /decks/{deck_id}/export/{job_id}:
+    parameters:
+      - { name: deck_id, in: path, required: true, schema: { type: string } }
+      - { name: job_id, in: path, required: true, schema: { type: string } }
+    get:
+      summary: Get export job status
+      operationId: get_export_job
+      responses:
+        '200': { description: ok, content: { application/json: { schema: { $ref: '#/components/schemas/ExportJob' } } } }
+  /decks/{deck_id}/import:
+    parameters:
+      - { name: deck_id, in: path, required: true, schema: { type: string } }
+    post:
+      summary: Submit import job (PPTX / ODP / Keynote / PDF)
+      operationId: submit_import
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema: { $ref: '#/components/schemas/ImportRequest' }
+      responses:
+        '202': { description: queued, content: { application/json: { schema: { $ref: '#/components/schemas/ImportJob' } } } }
+  /decks/{deck_id}/broadcast:
+    parameters:
+      - { name: deck_id, in: path, required: true, schema: { type: string } }
+    post:
+      summary: Start broadcast (LiveKit-bridged via messenger; ADR-SLIDES-0005)
+      operationId: start_broadcast
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/BroadcastStartRequest' } } }
+      responses:
+        '201': { description: started, content: { application/json: { schema: { $ref: '#/components/schemas/BroadcastSession' } } } }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+  /decks/{deck_id}/broadcast/{session_id}:
+    parameters:
+      - { name: deck_id, in: path, required: true, schema: { type: string } }
+      - { name: session_id, in: path, required: true, schema: { type: string } }
+    delete:
+      summary: End broadcast
+      operationId: end_broadcast
+      responses:
+        '204': { description: ended }
+  /decks/{deck_id}/ai/design-suggest:
+    parameters:
+      - { name: deck_id, in: path, required: true, schema: { type: string } }
+    post:
+      summary: T1 AI design-assist (layout/color/font suggestions)
+      operationId: ai_design_suggest
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/AiDesignSuggestRequest' } } }
+      responses:
+        '200': { description: ok, content: { application/json: { schema: { $ref: '#/components/schemas/AiDesignSuggestResponse' } } } }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+  /decks/{deck_id}/ai/content-generate:
+    parameters:
+      - { name: deck_id, in: path, required: true, schema: { type: string } }
+    post:
+      summary: T2 AI full-deck-from-prompt (regional AI-risk class evaluated per ADR-SLIDES-0006)
+      operationId: ai_content_generate
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/AiContentGenerateRequest' } } }
+      responses:
+        '200': { description: ok, content: { application/json: { schema: { $ref: '#/components/schemas/AiContentGenerateResponse' } } } }
+        '403':
+          description: Refused (high-risk; pack-override required)
+          content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+  /decks/{deck_id}/accessibility/alt-text:
+    parameters:
+      - { name: deck_id, in: path, required: true, schema: { type: string } }
+    post:
+      summary: T1 alt-text suggestion for image assets
+      operationId: alt_text_suggest
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/AltTextSuggestRequest' } } }
+      responses:
+        '200': { description: ok, content: { application/json: { schema: { $ref: '#/components/schemas/AltTextSuggestResponse' } } } }
+  /decks/{deck_id}/accessibility/contrast:
+    parameters:
+      - { name: deck_id, in: path, required: true, schema: { type: string } }
+    get:
+      summary: WCAG 2.2 AA color-contrast + color-blind-safe check
+      operationId: contrast_check
+      responses:
+        '200': { description: ok, content: { application/json: { schema: { $ref: '#/components/schemas/ContrastReport' } } } }
+  /health:
+    get:
+      summary: Liveness
+      operationId: health
+      security: []
+      responses:
+        '200': { description: ok }
+  /ready:
+    get:
+      summary: Readiness
+      operationId: ready
+      security: []
+      responses:
+        '200': { description: ready }
+        '503': { description: not-ready }
+components:
+  x-oyatie-sharding-automation-event-surface:
+    microservice: slides
+    wave: 15-ZF-13
+    artifact_type: contracts
+    scope: OpenAPI components metadata for the sharding_automation event surface.
+    wire_shape: Extension-only annotation; no paths, operations, schemas, requestBodies, responses, headers, securitySchemes, or examples are added.
+    doctrine_refs:
+      ADR-0346:
+        purpose: >-
+          Establish that ./bin/oya verify --ci-required is the canonical local pre-push verifier and MUST locally mirror the full CI matrix and MUST block on exit-0 of EACH step before returning success to the caller.
+        enforced_by:
+          - oya-governance-oya-verify-ci-mirror-coverage
+          - oya-governance-oya-verify-ci-step-exit-semantics
+          - oya-governance-oya-verify-skip-flag-allowlist
+          - oya-governance-oya-submit-calls-verify
+          - oya-governance-oya-verify-exit-code-contract
+      ADR-0347:
+        purpose: >-
+          Declare that every oya-governance-* CI lane prefix in the Oyatie corpus RENAMES to oya-governance-* in a single bulk-rename pull request.
+        enforced_by:
+          - oya-governance-no-foundry-fitness-residue
+          - oya-governance-lane-prefix-vocabulary
+          - oya-governance-rename-inventory-presence
+      ADR-0348:
+        purpose: >-
+          Declare that cellular topology MUST support three control-plane-driven automation modes: AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING.
+        enforced_by:
+          - oya-governance-sharding-automation-coverage
+          - oya-governance-autosharding-manual-mode-refusal
+          - oya-governance-auto-rebalance-residency-honored
+          - oya-governance-dynamic-sharding-threshold-coverage
+          - oya-governance-audit-chain-emit-on-automation-events
+          - oya-governance-tenant-migration-reversibility
+        event_surface:
+          autosharding: tenant_to_cell_shard_placement is computed by the control plane automatically.
+          auto_rebalance: tenant migration honors residency and compliance pack constraints and is observable, reversible, and audit-chain-emit per ADR-0263.
+          dynamic_sharding: HOT-SPLIT and COLD-MERGE shard-count operations are atomic and audit-emit.
+          manifest_block: sharding_automation declares autosharding, auto_rebalance, and dynamic_sharding sub-blocks.
+      ADR-0349:
+        purpose: >-
+          Declare Jenkins (LTS) and ArgoCD as the two canonical self-hostable CI/CD substrates for the Oyatie corpus.
+        enforced_by:
+          - oya-governance-jenkins-github-actions-parity
+          - oya-governance-argocd-application-cosign-verified
+          - oya-governance-argocd-tenant-namespace-isolation
+          - oya-governance-jenkins-jcasc-only
+          - oya-governance-deploy-audit-chain-emit
+    consumer_guidance:
+      generators: Ignore this x-extension for SDK and server wire generation.
+      governance: Use this x-extension as doctrine metadata for sharding_automation event-surface review only.
+  securitySchemes:
+    oidcBearer:
+      type: openIdConnect
+      openIdConnectUrl: https://auth.oyatie.com/.well-known/openid-configuration
+  responses:
+    Unauthorized:
+      description: missing/invalid OIDC token
+      content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+    Forbidden:
+      description: Cedar default-deny / per-slide ACL refusal
+      content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+    NotFound:
+      description: not found
+      content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+    BadRequest:
+      description: schema validation failed
+      content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+    Conflict:
+      description: concurrent edit conflict
+      content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+    UnprocessableEntity:
+      description: Cedar preview rejected proposed ACL change
+      content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+    PaymentRequired:
+      description: per-seat licensing exceeded
+      content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+    TooManyRequests:
+      description: rate-limited
+      content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+    ServiceUnavailable:
+      description: dependent service unavailable (e.g., LiveKit, foundry-runtime)
+      content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+  schemas:
+    ErrorResponse:
+      type: object
+      required: [code, message]
+      properties:
+        code: { type: string }
+        message: { type: string }
+        trace_id: { type: string }
+        details: { type: object, additionalProperties: true }
+    Deck:
+      type: object
+      required: [deck_id, tenant_id, pack, title, owner_oidc_sub, created_at, updated_at, version_sha]
+      properties:
+        deck_id: { type: string }
+        tenant_id: { type: string }
+        pack: { type: string, enum: [kr, eu, us, us-healthcare, jp, sg, au, in, br, ae, ksa] }
+        title: { type: string }
+        owner_oidc_sub: { type: string }
+        author_oidc_subs: { type: array, items: { type: string } }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+        version_sha: { type: string }
+        parent_version_sha: { type: string, nullable: true }
+        theme_id: { type: string, nullable: true }
+        slide_count: { type: integer }
+        share_link_enabled: { type: boolean }
+        share_link_scope: { type: string, enum: [restricted, anyone_with_link], nullable: true }
+        contains_special_category: { type: boolean }
+        broadcast_link_public: { type: boolean }
+        ai_risk_class: { type: string, enum: [low, medium, high_risk_auto_decision], nullable: true }
+    DeckCreateRequest:
+      type: object
+      required: [title]
+      properties:
+        title: { type: string }
+        from_template_id: { type: string, nullable: true }
+        theme_id: { type: string, nullable: true }
+    DeckUpdateRequest:
+      type: object
+      properties:
+        title: { type: string }
+        theme_id: { type: string, nullable: true }
+        share_link_enabled: { type: boolean }
+        share_link_scope: { type: string, enum: [restricted, anyone_with_link] }
+        contains_special_category: { type: boolean }
+        broadcast_link_public: { type: boolean }
+    DeckList:
+      type: object
+      required: [items]
+      properties:
+        items: { type: array, items: { $ref: '#/components/schemas/Deck' } }
+        next_cursor: { type: string, nullable: true }
+    Slide:
+      type: object
+      required: [slide_id, deck_id, ordinal, layout_id, version_sha]
+      properties:
+        slide_id: { type: string }
+        deck_id: { type: string }
+        ordinal: { type: integer }
+        layout_id: { type: string }
+        version_sha: { type: string }
+        content: { type: object, description: opaque slide content (CRDT-projected canonical JSON) }
+        speaker_notes: { type: string, nullable: true }
+    SlideList:
+      type: object
+      required: [items]
+      properties:
+        items: { type: array, items: { $ref: '#/components/schemas/Slide' } }
+    SlideCreateRequest:
+      type: object
+      required: [ordinal, layout_id]
+      properties:
+        ordinal: { type: integer }
+        layout_id: { type: string }
+        content: { type: object }
+        speaker_notes: { type: string, nullable: true }
+    SlideUpdateRequest:
+      type: object
+      properties:
+        ordinal: { type: integer }
+        layout_id: { type: string }
+        content: { type: object }
+        speaker_notes: { type: string, nullable: true }
+    PerSlideAcl:
+      type: object
+      required: [slide_id, entries]
+      properties:
+        slide_id: { type: string }
+        entries: { type: array, items: { $ref: '#/components/schemas/AclEntry' } }
+    PerSlideAclUpdateRequest:
+      type: object
+      required: [entries]
+      properties:
+        entries: { type: array, items: { $ref: '#/components/schemas/AclEntry' } }
+    DeckAcl:
+      type: object
+      required: [deck_id, entries]
+      properties:
+        deck_id: { type: string }
+        entries: { type: array, items: { $ref: '#/components/schemas/AclEntry' } }
+    DeckAclUpdateRequest:
+      type: object
+      required: [entries]
+      properties:
+        entries: { type: array, items: { $ref: '#/components/schemas/AclEntry' } }
+    AclEntry:
+      type: object
+      required: [principal_kind, principal_id, role]
+      properties:
+        principal_kind: { type: string, enum: [user, group, anyone_with_link] }
+        principal_id: { type: string }
+        role: { type: string, enum: [owner, editor, commenter, viewer, denied] }
+    EditorSession:
+      type: object
+      required: [session_id, deck_id, tenant_id, opened_at]
+      properties:
+        session_id: { type: string }
+        deck_id: { type: string }
+        tenant_id: { type: string }
+        opened_at: { type: string, format: date-time }
+        ws_upgrade_url: { type: string, format: uri }
+    CedarPreviewRequest:
+      type: object
+      required: [proposed_acl]
+      properties:
+        proposed_acl: { $ref: '#/components/schemas/DeckAcl' }
+        per_slide_acls: { type: array, items: { $ref: '#/components/schemas/PerSlideAcl' } }
+    CedarPreviewResponse:
+      type: object
+      required: [allowed_principals_count, denied_principals_count, impact_summary]
+      properties:
+        allowed_principals_count: { type: integer }
+        denied_principals_count: { type: integer }
+        impact_summary: { type: string }
+        warnings: { type: array, items: { type: string } }
+    VersionList:
+      type: object
+      required: [items]
+      properties:
+        items: { type: array, items: { $ref: '#/components/schemas/Version' } }
+    Version:
+      type: object
+      required: [version_sha, created_at, author_oidc_sub]
+      properties:
+        version_sha: { type: string }
+        created_at: { type: string, format: date-time }
+        author_oidc_sub: { type: string }
+        parent_version_sha: { type: string, nullable: true }
+        comment: { type: string, nullable: true }
+    Comment:
+      type: object
+      required: [comment_id, deck_id, author_oidc_sub, content, created_at]
+      properties:
+        comment_id: { type: string }
+        deck_id: { type: string }
+        slide_id: { type: string, nullable: true }
+        author_oidc_sub: { type: string }
+        content: { type: string }
+        created_at: { type: string, format: date-time }
+        resolved_at: { type: string, format: date-time, nullable: true }
+        kind: { type: string, enum: [comment, suggestion] }
+    CommentList:
+      type: object
+      required: [items]
+      properties:
+        items: { type: array, items: { $ref: '#/components/schemas/Comment' } }
+    CommentCreateRequest:
+      type: object
+      required: [content, kind]
+      properties:
+        slide_id: { type: string, nullable: true }
+        content: { type: string }
+        kind: { type: string, enum: [comment, suggestion] }
+    ChartBindRequest:
+      type: object
+      required: [slide_id, sheets_deck_id, cell_range]
+      properties:
+        slide_id: { type: string }
+        sheets_deck_id: { type: string }
+        cell_range: { type: string, description: 'e.g. Sheet1!A1:D10' }
+        refresh_policy: { type: string, enum: [eventual, on_open, manual], default: eventual }
+    ChartBinding:
+      type: object
+      required: [binding_id, deck_id, slide_id, sheets_deck_id, cell_range, refresh_policy]
+      properties:
+        binding_id: { type: string }
+        deck_id: { type: string }
+        slide_id: { type: string }
+        sheets_deck_id: { type: string }
+        cell_range: { type: string }
+        refresh_policy: { type: string }
+        last_refresh_at: { type: string, format: date-time, nullable: true }
+    Theme:
+      type: object
+      required: [theme_id, name, palette, typography, signature_status]
+      properties:
+        theme_id: { type: string }
+        name: { type: string }
+        palette: { type: array, items: { type: string } }
+        typography: { type: object }
+        signature_status: { type: string, enum: [verified, unsigned, revoked] }
+    ThemeList:
+      type: object
+      required: [items]
+      properties:
+        items: { type: array, items: { $ref: '#/components/schemas/Theme' } }
+    ThemeApplyRequest:
+      type: object
+      required: [theme_id]
+      properties:
+        theme_id: { type: string }
+    Template:
+      type: object
+      required: [template_id, name, slide_count]
+      properties:
+        template_id: { type: string }
+        name: { type: string }
+        slide_count: { type: integer }
+        thumbnail_url: { type: string }
+    TemplateList:
+      type: object
+      required: [items]
+      properties:
+        items: { type: array, items: { $ref: '#/components/schemas/Template' } }
+    ExportRequest:
+      type: object
+      required: [format]
+      properties:
+        format: { type: string, enum: [pptx, odp, pdf, pdf_a_1b, pdf_a_2u, mp4, png_per_slide] }
+        options: { type: object, additionalProperties: true }
+    ExportJob:
+      type: object
+      required: [job_id, deck_id, format, status]
+      properties:
+        job_id: { type: string }
+        deck_id: { type: string }
+        format: { type: string }
+        status: { type: string, enum: [queued, running, completed, failed] }
+        output_url: { type: string, format: uri, nullable: true }
+        completed_at: { type: string, format: date-time, nullable: true }
+        error_code: { type: string, nullable: true }
+    ImportRequest:
+      type: object
+      required: [format, file]
+      properties:
+        format: { type: string, enum: [pptx, odp, keynote, pdf] }
+        file: { type: string, format: binary }
+    ImportJob:
+      type: object
+      required: [job_id, deck_id, format, status]
+      properties:
+        job_id: { type: string }
+        deck_id: { type: string }
+        format: { type: string }
+        status: { type: string, enum: [queued, scanning, parsing, building, completed, failed] }
+        completed_at: { type: string, format: date-time, nullable: true }
+        scan_verdict: { type: string, enum: [clean, suspicious, malware], nullable: true }
+        error_code: { type: string, nullable: true }
+    BroadcastStartRequest:
+      type: object
+      required: [presenter_oidc_sub]
+      properties:
+        presenter_oidc_sub: { type: string }
+        viewer_cap: { type: integer, minimum: 1, maximum: 5000, default: 500 }
+        public_link_enabled: { type: boolean, default: false }
+    BroadcastSession:
+      type: object
+      required: [session_id, deck_id, started_at, livekit_room_url]
+      properties:
+        session_id: { type: string }
+        deck_id: { type: string }
+        started_at: { type: string, format: date-time }
+        ended_at: { type: string, format: date-time, nullable: true }
+        livekit_room_url: { type: string, format: uri }
+        viewer_count: { type: integer }
+        viewer_cap: { type: integer }
+    AiDesignSuggestRequest:
+      type: object
+      required: [slide_ids, hint]
+      properties:
+        slide_ids: { type: array, items: { type: string } }
+        hint: { type: string, enum: [layout, color, font, copy] }
+    AiDesignSuggestResponse:
+      type: object
+      required: [suggestions, risk_class]
+      properties:
+        suggestions: { type: array, items: { type: object } }
+        risk_class: { type: string, enum: [low, medium, high_risk_auto_decision] }
+        provenance: { type: string, description: foundry-runtime correlation id }
+    AiContentGenerateRequest:
+      type: object
+      required: [prompt]
+      properties:
+        prompt: { type: string }
+        slide_count_target: { type: integer, minimum: 1, maximum: 100, default: 10 }
+        usage_context: { type: string, enum: [general, employment, credit, legal, medical, educational, marketing], default: general }
+    AiContentGenerateResponse:
+      type: object
+      required: [generated_deck, risk_class, provenance_watermark]
+      properties:
+        generated_deck: { $ref: '#/components/schemas/Deck' }
+        risk_class: { type: string, enum: [low, medium, high_risk_auto_decision] }
+        provenance_watermark: { type: string, description: 'indelible provenance marker per ADR-SLIDES-0006' }
+        human_review_required: { type: boolean }
+    AltTextSuggestRequest:
+      type: object
+      required: [asset_ids]
+      properties:
+        asset_ids: { type: array, items: { type: string } }
+    AltTextSuggestResponse:
+      type: object
+      required: [suggestions]
+      properties:
+        suggestions: { type: array, items: { type: object, required: [asset_id, alt_text], properties: { asset_id: { type: string }, alt_text: { type: string } } } }
+    ContrastReport:
+      type: object
+      required: [overall_passes, findings]
+      properties:
+        overall_passes: { type: boolean }
+        findings: { type: array, items: { type: object, properties: { slide_id: { type: string }, element_id: { type: string }, contrast_ratio: { type: number }, wcag_target: { type: string }, color_blind_safe: { type: boolean } } } }

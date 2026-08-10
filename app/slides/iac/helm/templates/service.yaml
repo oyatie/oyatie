@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-slides
+  namespace: slides
+  labels:
+    app.kubernetes.io/name: oya-slides
+    oyatie/microservice: slides
+spec:
+  type: {{ .Values.service.type }}
+  selector:
+    app.kubernetes.io/name: oya-slides
+  ports:
+    - { port: {{ .Values.service.port }}, name: http,    targetPort: http }
+    - { port: {{ .Values.service.metricsPort }}, name: metrics, targetPort: metrics }
