@@ -17,9 +17,9 @@ related_adrs:
   - ADR-0348
   - ADR-0349
 companion_docs:
-  - microservices/cloud-billing-tax/manifest.json
-  - microservices/cloud-billing-tax/PRD.md
-  - microservices/cloud-billing-tax/README.md
+  - billing/tax/manifest.json
+  - billing/tax/PRD.md
+  - billing/tax/README.md
 ---
 
 # Architecture: Cloud Billing Tax

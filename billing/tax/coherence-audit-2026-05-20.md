@@ -115,7 +115,7 @@ No finding on phase placement.
 
 The audit brief named Stripe Tax, Avalara, and TaxJar as the top-3
 counterparts. The existing benchmark doc at
-`microservices/cloud-billing-tax/benchmarks/cloud-billing-tax-vs-avalara-vs-vertex-vs-stripe-tax-vs-taxjar.md`
+`billing/tax/benchmarks/cloud-billing-tax-vs-avalara-vs-vertex-vs-stripe-tax-vs-taxjar.md`
 benchmarks against five vendors (adds Vertex O Series Cloud and Sovos
 Global Tax Determination beyond the prompt's top-3). The existing
 benchmark is therefore wider than the prompt's top-3 by two vendors.
@@ -131,16 +131,16 @@ remediation sub-wave because either reading is internally coherent.
 
 ### §0.5 Audit reading list
 
-The audit agent read every file under `microservices/cloud-billing-tax/`
+The audit agent read every file under `billing/tax/`
 that existed at audit time. The complete file list at audit time:
 
-1. `microservices/cloud-billing-tax/benchmarks/cloud-billing-tax-vs-avalara-vs-vertex-vs-stripe-tax-vs-taxjar.md` (105 lines)
+1. `billing/tax/benchmarks/cloud-billing-tax-vs-avalara-vs-vertex-vs-stripe-tax-vs-taxjar.md` (105 lines)
 2. `microservices/cloud-billing-tax/tenant_class adoption record` (96 lines — retirement candidate)
-3. `microservices/cloud-billing-tax/faqs/tax-engineer-faq.md` (207 lines)
-4. `microservices/cloud-billing-tax/migration-playbooks/from-avalara-and-vertex.md` (189 lines)
-5. `microservices/cloud-billing-tax/onboarding/tax-engineer-first-week.md` (176 lines)
-6. `microservices/cloud-billing-tax/reference-implementations/calculate-tax-batch-rust-sdk.md` (215 lines)
-7. `microservices/cloud-billing-tax/tutorials/calculate-multijurisdiction-tax-and-file-return.md` (242 lines)
+3. `billing/tax/faqs/tax-engineer-faq.md` (207 lines)
+4. `billing/tax/migration-playbooks/from-avalara-and-vertex.md` (189 lines)
+5. `billing/tax/onboarding/tax-engineer-first-week.md` (176 lines)
+6. `billing/tax/reference-implementations/calculate-tax-batch-rust-sdk.md` (215 lines)
+7. `billing/tax/tutorials/calculate-multijurisdiction-tax-and-file-return.md` (242 lines)
 
 The agent also confirmed crate presence (`crates/oya-cloud-billing-tax-app`)
 and absence of PRD, ARCHITECTURE, contracts, SLOs, runbooks, IPs, decisions,
@@ -449,7 +449,7 @@ What is MISSING at the substance bar:
   filing-submission-timeout runbook. Absent.
 - **No implementation plans.** Per ADR-0328 §D-7 + the master plan
   hierarchy, Phase 0 µservices need a milestone-phase-implementation
-  plan tree. `microservices/cloud-billing-tax/` has no `plans/`,
+  plan tree. `billing/tax/` has no `plans/`,
   `phases/`, or `implementation-plans/` directory. Absent.
 - **No Cedar policies.** The Cedar permit names (`cloud_billing_tax::
   Action::Calculate`, `::ListTaxCodes`, `::UploadExemptionCertificate`,
@@ -500,7 +500,7 @@ What is MISSING at the substance bar:
 
 ### §3.3 Findings (Dim 3)
 
-F-DIM3-01 (severity P1): Author `microservices/cloud-billing-tax/PRD.md`
+F-DIM3-01 (severity P1): Author `billing/tax/PRD.md`
 covering: purpose, user-facing surfaces (HTTP/3 + gRPC + CLI + Rust SDK),
 SLOs per tenant_class, non-functional requirements, scope boundaries
 versus `cloud-billing`, compliance pack overlay surface, tax-code
@@ -521,7 +521,7 @@ tree (rate-missing / divergence / clearance-stall / nexus-misfire /
 cert-OCR-fail / kms-unseal-delay / VIES-down / GSTIN-down / NTS-down /
 audit-chain-unavailable / cloud-billing-unreachable).
 
-F-DIM3-03 (severity P1): Author `microservices/cloud-billing-tax/contracts/`
+F-DIM3-03 (severity P1): Author `billing/tax/contracts/`
 with OpenAPI 3.2.0 (HTTP/3 surface), AsyncAPI 3.1.0 (event family),
 and proto3 (direct-gRPC surface). Generate the SDK referenced by
 `reference-implementations/calculate-tax-batch-rust-sdk.md` from
@@ -533,7 +533,7 @@ tax.oss_aggregate, tax.exemption_cert.upload, tax.exemption_cert.validate,
 tax.filing_artefact.generate, tax.filing.submit, tax.filing.acknowledge,
 tax.rate_card.publish, tax.nexus.refresh, tax.e_invoice.clearance.
 
-F-DIM3-05 (severity P1): Author `microservices/cloud-billing-tax/runbooks/`
+F-DIM3-05 (severity P1): Author `billing/tax/runbooks/`
 for: rate-card-publish-divergence > 0.5%, rate-card-publish-stall,
 filing-submission-timeout, e-invoice-clearance-stall, exemption-cert-OCR-backlog,
 nexus-grace-timer-misfire, jurisdiction-DB-cross-check-stall,
@@ -556,7 +556,7 @@ supersession rules, e-invoice country-format catalog rules, and the
 F-DIM3-08 (severity P2): Author `microservices/cloud-billing-tax/supported-oses.json`
 per ADR-0328 §D-17 (Tier-1 13 OSes, Tier-2 test-only, exclusions).
 
-F-DIM3-09 (severity P2): Author `microservices/cloud-billing-tax/iac/`
+F-DIM3-09 (severity P2): Author `billing/tax/iac/`
 with OpenTofu modules per the six deployment contexts. The
 `iac/oci-guest/always-free/` sub-profile is mandatory for demo_trial
 tenants per ADR-0328 §D-19 + tenant_class doctrine.
@@ -959,7 +959,7 @@ top-3 are Stripe Tax, Avalara, and TaxJar.
 ### §5.2 What was found
 
 The detailed parity analysis lives in
-`microservices/cloud-billing-tax/feature-parity-matrix-2026-05-20.md`
+`billing/tax/feature-parity-matrix-2026-05-20.md`
 (co-landed deliverable).
 
 In this audit, the high-level Dim 5 finding is recorded.
@@ -1050,7 +1050,7 @@ Good. The µservice doesn't carry forbidden language.
 
 ### §6.2 Dim 7 — OpenTofu IaC
 
-Required: `microservices/cloud-billing-tax/iac/<context>/` per
+Required: `billing/tax/iac/<context>/` per
 context, each with `main.tf`, `variables.tf`, `outputs.tf`,
 `versions.tf`, `README.md`. Module signing via sigstore + cosign
 per ADR-0039.
@@ -1094,7 +1094,7 @@ OpenTofu HCL is the only non-Rust IaC engine. Cedar, YAML, JSON,
 OpenAPI, AsyncAPI, proto3, OpenSLO, SQL, Markdown are the
 authorized non-Rust extensions for non-runtime artifacts.
 
-Pre-flight scans against `microservices/cloud-billing-tax/`:
+Pre-flight scans against `billing/tax/`:
 - `*.py` — NOT FOUND.
 - `*.js` — NOT FOUND.
 - `*.ts` — NOT FOUND.
@@ -1169,7 +1169,7 @@ Summary (one-line each):
 ### §8.1 Files read (per ADR-0328 §D-10 verification SLA)
 
 The audit agent read all seven files under
-`microservices/cloud-billing-tax/`. The agent did not produce more
+`billing/tax/`. The agent did not produce more
 than three artifacts in this deliverable so the verification SLA's
 random-sampling rule does not apply. The agent's findings can be
 re-derived by reading the same seven files.
@@ -1193,7 +1193,7 @@ ADR-0211, ADR-0316, ADR-0328 — searched. None broken; all are
 recommended for explicit citation as named in §2.3.
 
 Inbound: this audit is one of the seven µservice files under
-`microservices/cloud-billing-tax/`. It will be cross-referenced
+`billing/tax/`. It will be cross-referenced
 by Wave 14 aggregation (per ADR-0328 §D-8).
 
 ### §8.4 Sampled outputs
@@ -1354,9 +1354,9 @@ microservice: cloud-billing-tax
 phase: Phase 0 (Shared Infrastructure) — service 13 of 19 per ADR-0328 D-1.19
 agent_class: µservice-ownership-coherence-audit-agent
 deliverables:
-  - /Users/jasonlee/oyatie/microservices/cloud-billing-tax/coherence-audit-2026-05-20.md
-  - /Users/jasonlee/oyatie/microservices/cloud-billing-tax/feature-parity-matrix-2026-05-20.md
-  - /Users/jasonlee/oyatie/microservices/cloud-billing-tax/performance-benchmark-numbers-2026-05-20.md
+  - /Users/jasonlee/oyatie/billing/tax/coherence-audit-2026-05-20.md
+  - /Users/jasonlee/oyatie/billing/tax/feature-parity-matrix-2026-05-20.md
+  - /Users/jasonlee/oyatie/billing/tax/performance-benchmark-numbers-2026-05-20.md
 findings:
   total: 71
   P1: 27

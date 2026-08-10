@@ -63,15 +63,15 @@ Microservice directory inspected: `billing/`.
 
 Command evidence used:
 
-- `rg --files microservices/cloud-billing`
-- `find microservices/cloud-billing -maxdepth 3 -type d`
-- `wc -l $(rg --files microservices/cloud-billing | sort)`
+- `rg --files billing`
+- `find billing -maxdepth 3 -type d`
+- `wc -l $(rg --files billing | sort)`
 - `rg -n "CB-F-00[1-9]|CB-F-010|CB-F-011|CB-F-012|P0" billing/coherence-audit-2026-05-20.md`
 - `ls -la microservices/cloud-billing/decisions billing/implementation-plans billing/iac billing/iac/* microservices/cloud-billing/iac/oci-guest/always-free`
-- `rg -n "foundry|Bronze|Silver|Gold|Platinum|--tier|TIER=" microservices/cloud-billing`
+- `rg -n "foundry|Bronze|Silver|Gold|Platinum|--tier|TIER=" billing`
 - `sed -n` reads of PRD, ARCHITECTURE, README, contracts, SLOs, policies, supported-oses, and IaC files.
 
-Pre-finalizer line count for files returned by `rg --files microservices/cloud-billing`: 9,515 lines.
+Pre-finalizer line count for files returned by `rg --files billing`: 9,515 lines.
 
 That pre-finalizer total excludes empty directories.
 
@@ -624,7 +624,7 @@ IPs scanned: 0.
 
 Filesystem evidence:
 
-- `find microservices/cloud-billing -name "IP-*.md" -type f` returns no rows.
+- `find billing -name "IP-*.md" -type f` returns no rows.
 - `billing/implementation-plans/` is an empty directory (consistent with section 3 directory-only artifact observation above).
 - `microservices/cloud-billing/decisions/` is an empty directory (no per-µservice ADR files).
 

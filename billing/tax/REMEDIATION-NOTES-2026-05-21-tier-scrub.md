@@ -2,7 +2,7 @@
 
 ## Scope
 
-Wave 15J-batch-4 BUCKET-07 retired customer-facing Bronze/Silver/Gold/Platinum vocabulary from `microservices/cloud-billing-tax` and replaced it with ADR-0330 `tenant_class` plus `billing_components` language.
+Wave 15J-batch-4 BUCKET-07 retired customer-facing Bronze/Silver/Gold/Platinum vocabulary from `billing/tax` and replaced it with ADR-0330 `tenant_class` plus `billing_components` language.
 
 ## Files modified
 
@@ -35,8 +35,8 @@ Rough vocabulary replacements in this service: about 135. Corpus-wide assigned b
 
 ## Verification
 
-- `rg -i 'bronze|silver|gold|platinum' microservices/cloud-billing-tax/ | grep -v REMEDIATION-NOTES | grep -v capability-tiers` returns zero matches.
-- `rg -i 'capability_tier|max_tier|tier_threshold' microservices/cloud-billing-tax/ | grep -v REMEDIATION-NOTES` returns zero matches.
+- `rg -i 'bronze|silver|gold|platinum' billing/tax/ | grep -v REMEDIATION-NOTES | grep -v capability-tiers` returns zero matches.
+- `rg -i 'capability_tier|max_tier|tier_threshold' billing/tax/ | grep -v REMEDIATION-NOTES` returns zero matches.
 - `ls microservices/cloud-billing-tax/capability-tiers/` reports no such file or directory.
 
 ## Outstanding follow-ups

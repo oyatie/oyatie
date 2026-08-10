@@ -316,6 +316,6 @@
   ],
   "explicit_non_claims": [
     "No live tax calculation engine, statutory rate catalog, tax authority integration, e-invoice clearance, exemption certificate validation, filing artifact generation, database, REST server, SDK, worker, OpenTofu plan/apply, provider-live smoke, measured SLO, capacity telemetry, DR, or audit-chain runtime persistence is implemented.",
-    "Legacy Markdown benchmark/parity/runbook files under microservices/cloud-billing-tax remain planning/prose and are not readiness evidence for CS-CLOUD-BILLING-TAX-001."
+    "Legacy Markdown benchmark/parity/runbook files under billing/tax remain planning/prose and are not readiness evidence for CS-CLOUD-BILLING-TAX-001."
   ]
 }

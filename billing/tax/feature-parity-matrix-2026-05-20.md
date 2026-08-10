@@ -13,7 +13,7 @@ states_used: covered | partial | missing | out-of-scope-intentional
 canonical_anchors:
   - /Users/jasonlee/oyatie/docs/decisions/ADR-0700-ci-admission-live-apex.md §D-5
   - /Users/jasonlee/oyatie/docs/standards/brief-template.md §3.1
-  - /Users/jasonlee/oyatie/microservices/cloud-billing-tax/coherence-audit-2026-05-20.md (sibling audit)
+  - /Users/jasonlee/oyatie/billing/tax/coherence-audit-2026-05-20.md (sibling audit)
   - /Users/jasonlee/.claude/projects/-Users-jasonlee-oyatie/memory/feedback_tenant_class_demo_trial_vs_paid_per_seat_usage_2026_05_20.md
   - Vendor docs: Stripe Tax (https://stripe.com/docs/tax), Avalara Developer (https://developer.avalara.com), TaxJar Developer (https://developer.taxjar.com)
 ---
@@ -56,7 +56,7 @@ Vendor-API-version pins used here:
 | TaxJar | yes — `POST /v2/taxes` |
 
 Oyatie status: **covered**. Owning artifact:
-`microservices/cloud-billing-tax/reference-implementations/calculate-tax-batch-rust-sdk.md`
+`billing/tax/reference-implementations/calculate-tax-batch-rust-sdk.md`
 + planned `crates/oya-cloud-billing-tax-sdk` SDK + planned
 `contracts/openapi/cloud-billing-tax.openapi.yaml`. Cedar action
 `cloud_billing_tax::Action::Calculate`.
@@ -1288,7 +1288,7 @@ Oyatie status: **missing**. The OpenAPI 3.2.0 contract under
 ### §14.1 Single-line calculation latency
 
 Detailed numbers live in
-`microservices/cloud-billing-tax/performance-benchmark-numbers-2026-05-20.md`
+`billing/tax/performance-benchmark-numbers-2026-05-20.md`
 (sibling deliverable). Summary:
 - Stripe Tax: p95 ~102 ms (HTTP/1.1+2 over public internet)
 - Avalara: p95 ~68 ms
@@ -1490,7 +1490,7 @@ coherence audit. Pricing model is in `cloud-billing` not
 | TaxJar | yes — TaxJar-to-Avalara guide |
 
 Oyatie status: **covered**. Per
-`microservices/cloud-billing-tax/migration-playbooks/from-avalara-and-vertex.md`.
+`billing/tax/migration-playbooks/from-avalara-and-vertex.md`.
 Phase 0 (inventory) through Phase 7 (decommission) with dual-calculation
 shadow phase, filing-parity period, and rollback strategy. Substantive
 playbook of 189 lines.

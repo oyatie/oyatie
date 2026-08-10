@@ -148,7 +148,7 @@ Cost Allocation Policy Rollback incident decision tree
   - Required audit: emit `EVT_FINOPS_PORTAL_COST_ALLOCATION_POLICY_ROLLBACK_INCIDENT` with `branch=D`, `operator_id`, and `evidence_hash`.
 
 ## Resolution Steps
-1. Identify code owner path: `rg "cost_allocation_policy_rollback|FinopsPortalCostAllocationPolicyRollbackCritical|finops_portal.cost_allocation_policy_rollback.incident_state" crates microservices/finops-portal -g "!billing/finops-portal/runbooks/**"`.
+1. Identify code owner path: `rg "cost_allocation_policy_rollback|FinopsPortalCostAllocationPolicyRollbackCritical|finops_portal.cost_allocation_policy_rollback.incident_state" crates billing/finops-portal -g "!billing/finops-portal/runbooks/**"`.
 2. Patch domain invariant: `edit oya-cloud-finops-domain where cost_allocation_policy_rollback state transition is validated`.
 3. Patch API guard: `edit billing/finops-portal/contracts/tenant-invoice-public.openapi.yaml if the failing path is north-south or async handoff`.
 4. Patch policy: `edit billing/finops-portal/policy/cedar/ops-finops-dashboard-access.cedar with explicit deny/permit branch and tenant/cell scope`.

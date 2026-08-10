@@ -2,7 +2,7 @@
 
 ## Scope
 
-Wave 15J-batch-4 BUCKET-07 retired customer-facing Bronze/Silver/Gold/Platinum vocabulary from `microservices/cloud-billing` and replaced it with ADR-0330 `tenant_class` plus `billing_components` language.
+Wave 15J-batch-4 BUCKET-07 retired customer-facing Bronze/Silver/Gold/Platinum vocabulary from `billing` and replaced it with ADR-0330 `tenant_class` plus `billing_components` language.
 
 ## Files modified
 

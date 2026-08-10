@@ -148,7 +148,7 @@ Quarterly Regulator Emit Miss incident decision tree
   - Required audit: emit `EVT_FINOPS_PORTAL_QUARTERLY_REGULATOR_EMIT_MISS_INCIDENT` with `branch=D`, `operator_id`, and `evidence_hash`.
 
 ## Resolution Steps
-1. Identify code owner path: `rg "quarterly_regulator_emit_miss|FinopsPortalQuarterlyRegulatorEmitMissCritical|finops_portal.quarterly_regulator_emit_miss.incident_state" crates microservices/finops-portal -g "!billing/finops-portal/runbooks/**"`.
+1. Identify code owner path: `rg "quarterly_regulator_emit_miss|FinopsPortalQuarterlyRegulatorEmitMissCritical|finops_portal.quarterly_regulator_emit_miss.incident_state" crates billing/finops-portal -g "!billing/finops-portal/runbooks/**"`.
 2. Patch domain invariant: `edit oya-cloud-finops-domain where quarterly_regulator_emit_miss state transition is validated`.
 3. Patch API guard: `edit billing/finops-portal/contracts/tenant-invoice-public.openapi.yaml if the failing path is north-south or async handoff`.
 4. Patch policy: `edit billing/finops-portal/policy/cedar/ops-finops-dashboard-access.cedar with explicit deny/permit branch and tenant/cell scope`.

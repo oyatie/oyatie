@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "capability": "billing",
-  "_comment": "Capability-root manifest for billing/ (ADR-0562). Every crate, capability file path, contract path, catalog row, and accounting count below was read off the tree at authoring time. Legacy microservices/cloud-billing and crates/oya-cloud-billing-* dump paths are retired cites and must not reappear.",
+  "_comment": "Capability-root manifest for billing/ (ADR-0562). Every crate, capability file path, contract path, catalog row, and accounting count below was read off the tree at authoring time. Legacy billing and crates/oya-cloud-billing-* dump paths are retired cites and must not reappear.",
   "tier": "substrate",
   "tier_subtype": "substrate-marketplace-data",
   "dr_tier": "T2",
@@ -443,7 +443,7 @@
   ],
   "foundation_non_claims": [
     "no live billing REST/gRPC server, SDK, worker, message broker, metering outbox, database ledger, payment processor, settlement rail, tax authority adapter, FOCUS export runtime, OpenTofu plan/apply, provider-live smoke, measured SLO, capacity telemetry, DR, or audit-chain runtime persistence is implemented by this capability-root slice",
-    "legacy microservices/cloud-billing and crates/oya-cloud-billing-* dump paths are retired; workspace crates are homed under billing/{core,adapters,ports,facade} and must not be re-cited from dump paths in this manifest"
+    "legacy billing and crates/oya-cloud-billing-* dump paths are retired; workspace crates are homed under billing/{core,adapters,ports,facade} and must not be re-cited from dump paths in this manifest"
   ],
   "explicit_non_claims": [
     "IAC-001 adds only a thin aws-guest wrapper for the shared sg-baseline module; it does not deploy cloud-billing infrastructure or call AWS/OpenTofu runtimes.",

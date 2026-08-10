@@ -38,3 +38,18 @@ Continued verified remaps:
 
 - Missing `src/`, `capability-tiers/`, `policies/_tests/`, `runbooks/cell-migration.md`, partial ADR/IP filename stems.
 - No hubs, no `Cargo.lock`, no merge.
+
+
+## Wave-5 Seat A follow-through (2026-08-10)
+
+Retargeted verified remaps:
+
+- microservices/cloud-billing-tax/** -> billing/tax/** (PRD/README/manifest/contracts/IPs/runbooks/benchmarks/faqs/onboarding/tutorials/iac templates)
+- Bare microservices/cloud-billing -> billing; microservices/finops-portal -> billing/finops-portal
+- FinOps prometheusrule / Chart home URLs -> billing/finops-portal/** where runbook stems exist
+
+### Deferred
+
+- Missing tax ARCHITECTURE/capability-tiers/catalogs/policies/slos/src/tenant-class-behavior and finops-portal-deploy-rollback URL stem
+- Historical MISSING findings that record absent homes (no invent)
+- No hubs, no Cargo.lock, no merge.

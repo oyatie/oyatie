@@ -14,7 +14,7 @@ canonical_anchors:
   - /Users/jasonlee/oyatie/docs/decisions/ADR-0700-ci-admission-live-apex.md §D-15..§D-20
   - /Users/jasonlee/oyatie/specs/master-plan-sequencing.json §deployment_contexts §oci_always_free
   - /Users/jasonlee/.claude/projects/-Users-jasonlee-oyatie/memory/feedback_tenant_class_demo_trial_vs_paid_per_seat_usage_2026_05_20.md
-  - /Users/jasonlee/oyatie/microservices/cloud-billing-tax/benchmarks/cloud-billing-tax-vs-avalara-vs-vertex-vs-stripe-tax-vs-taxjar.md (sibling artifact, pre-tenant_class-retirement)
+  - /Users/jasonlee/oyatie/billing/tax/benchmarks/cloud-billing-tax-vs-avalara-vs-vertex-vs-stripe-tax-vs-taxjar.md (sibling artifact, pre-tenant_class-retirement)
   - Vendor public docs (Stripe Tax, Avalara, TaxJar) used for counterpart numbers
 related_adrs:
   - ADR-0130 SLO-gated promotion
@@ -47,7 +47,7 @@ from target budgets and counterpart-public claims. The categories used here:
 - **Measured (Oyatie):** numbers from the existing benchmark sweep
   `2026-04-30 to 2026-05-14 across 3 trial windows × 5 workloads` recorded
   in the µservice's existing benchmark artifact
-  (`microservices/cloud-billing-tax/benchmarks/cloud-billing-tax-vs-avalara-vs-vertex-vs-stripe-tax-vs-taxjar.md`).
+  (`billing/tax/benchmarks/cloud-billing-tax-vs-avalara-vs-vertex-vs-stripe-tax-vs-taxjar.md`).
   Carried forward intact; these are NOT re-measured for this deliverable.
 - **Target (Oyatie):** numbers that the post-tenant_class-retirement
   industry-leader bar requires. Targets are forward-facing budgets

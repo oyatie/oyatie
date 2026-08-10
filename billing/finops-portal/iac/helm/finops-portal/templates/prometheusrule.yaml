@@ -36,7 +36,7 @@ spec:
             slo: focus-export-availability
           annotations:
             summary: FOCUS export availability below target
-            runbook_url: https://oyatie.com/microservices/finops-portal/runbooks/focus-export-failure
+            runbook_url: https://oyatie.com/billing/finops-portal/runbooks/focus-export-failure
         - alert: FinopsPortalQuarterlyEmitPageOnMiss
           expr: |
             (time() - max(finops_portal_quarterly_report_emit_timestamp_seconds{outcome="signed-sealed"})) > 95 * 24 * 3600
@@ -46,7 +46,7 @@ spec:
             slo: regulator-emit-availability
           annotations:
             summary: quarterly regulator emit missed cure window
-            runbook_url: https://oyatie.com/microservices/finops-portal/runbooks/quarterly-regulator-emit-miss
+            runbook_url: https://oyatie.com/billing/finops-portal/runbooks/quarterly-regulator-emit-miss
         - alert: FinopsPortalCreditSealMissPage
           expr: |
             sum(rate(finops_portal_credit_apply_total{audit_seal!="success"}[10m])) > 0
@@ -56,4 +56,4 @@ spec:
             slo: credit-application-correctness
           annotations:
             summary: credit ledger append succeeded but audit seal missing
-            runbook_url: https://oyatie.com/microservices/finops-portal/runbooks/credit-application-reconciliation
+            runbook_url: https://oyatie.com/billing/finops-portal/runbooks/credit-application-reconciliation

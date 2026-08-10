@@ -1,7 +1,7 @@
 ## Wave 15-Valkey migration (2026-05-21)
 
 Per ADR-0336, Redis vocabulary replaced with Valkey in:
-- None; inventory found no Redis references in `microservices/cloud-billing-tax/`.
+- None; inventory found no Redis references in `billing/tax/`.
 
 Counterpart-fact preservations:
 - None.
@@ -11,7 +11,7 @@ Files renamed (git mv):
 
 ## Wave 15-doctrine-propagation-PRD (2026-05-21)
 
-D3-BUCKET-1 did not modify `PRD.md` because `microservices/cloud-billing-tax/PRD.md` and `microservices/cloud-billing-tax/manifest.json` are absent. The D-3 instruction requires reading both artifacts and matching manifest-declared DR/capacity/runtime values; inventing those values would violate the manifest-PRD consistency rule.
+D3-BUCKET-1 did not modify `PRD.md` because `billing/tax/PRD.md` and `billing/tax/manifest.json` are absent. The D-3 instruction requires reading both artifacts and matching manifest-declared DR/capacity/runtime values; inventing those values would violate the manifest-PRD consistency rule.
 
 Values: no authoritative RTO/RPO, capacity_model, pod_runtime_tier, tenant_version_pinning, or OSS stewardship declarations were available. ADRs implicated once the missing artifacts exist: ADR-0338, ADR-0340, ADR-0342, ADR-0343, ADR-0344, and ADR-0345; ADR-0339 only if `iac/<context>/` wrappers are added; ADR-0337 only if tax writes OLAP through the warehouse path. Alternatives considered: create a generic PRD, infer from cloud-billing, or append only this blocker note. The generic/inferred paths were rejected because cloud-billing-tax has jurisdiction-specific tax semantics and cannot safely inherit billing SLOs or capacity. Cost: D-2/D-3 must first author the manifest and PRD before doctrine propagation can be truthfully completed.
 
@@ -32,7 +32,7 @@ Values: no authoritative RTO/RPO, capacity_model, pod_runtime_tier, tenant_versi
 - Cost: Warm regional capacity, backup-drill evidence, and audit-chain continuity are mandatory operating expenses.
 
 ### Block 3: pod_runtime_tier
-- Values: pod_runtime_tier=2; evidence=microservices/cloud-billing-tax/README.md, microservices/cloud-billing-tax/performance-benchmark-numbers-2026-05-20.md, microservices/cloud-billing-tax/feature-parity-matrix-2026-05-20.md.
+- Values: pod_runtime_tier=2; evidence=billing/tax/README.md, billing/tax/performance-benchmark-numbers-2026-05-20.md, billing/tax/feature-parity-matrix-2026-05-20.md.
 - ADR: ADR-0338, cross-checked against ADR-0340 cell placement Tier-3.
 - Why: First-party tax application service: it evaluates Oyatie-owned tax rules and rate catalogs for billing flows, with no tenant-customer code execution and no direct foundation substrate ownership.
 - Rejected: defaulting blindly to Tier 2 was rejected because runtime isolation must follow tenant-code, substrate, app, or edge semantics rather than service-name convention.
