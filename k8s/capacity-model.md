@@ -9,10 +9,10 @@ owner_team: ops-sre-reliability + axis-cloud
 deciders: ops-sre-reliability, axis-cloud, council-architecture
 related_adrs: [ADR-0117, ADR-0121, ADR-0139, ADR-0131]
 related_artifacts:
-  - microservices/cloud-k8s/cost-budget.md
-  - microservices/cloud-k8s/multi-region.md
-  - microservices/cloud-k8s/policy/cluster-isolation.md (per-tenant limits)
-  - microservices/cloud-k8s/PRD.md §"Horizontal Scalability"
+  - k8s/cost-budget.md
+  - k8s/multi-region.md
+  - k8s/policy/cluster-isolation.md (per-tenant limits)
+  - k8s/PRD.md §"Horizontal Scalability"
 review_cadence: quarterly + on every cluster-component-replica-set change
 doc_status: published
 ---
@@ -236,5 +236,5 @@ TOTAL XS tier per pack region: ~$6500/month
 - kubelet sizing — `kubernetes.io/docs/concepts/configuration/manage-resources-containers/`.
 - CNCF conformance — `cncf.io/certification/software-conformance/`.
 - OCI pricing — `oracle.com/cloud/pricing/`.
-- `microservices/cloud-k8s/cost-budget.md`.
-- `microservices/cloud-k8s/multi-region.md`.
+- `k8s/cost-budget.md`.
+- `k8s/multi-region.md`.

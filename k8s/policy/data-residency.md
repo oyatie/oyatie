@@ -9,10 +9,10 @@ owner_team: council-privacy + axis-cloud
 deciders: council-privacy, ops-security, axis-cloud, gtm-customer-success
 related_adrs: [ADR-0117, ADR-0121, ADR-0139, ADR-0131]
 related_artifacts:
-  - microservices/cloud-k8s/threat-model.md (T-I-01, T-T-01; cross-pack misroute)
-  - microservices/cloud-k8s/dpia.md (R-11 cross-border-misroute)
-  - microservices/cloud-k8s/policy/cluster-isolation.md
-  - microservices/cloud-k8s/multi-region.md
+  - k8s/threat-model.md (T-I-01, T-T-01; cross-pack misroute)
+  - k8s/dpia.md (R-11 cross-border-misroute)
+  - k8s/policy/cluster-isolation.md
+  - k8s/multi-region.md
 review_cadence: annually + on every regional-pack activation
 doc_status: published
 ---
@@ -233,10 +233,10 @@ Per-pack overlays at `regional-packs/<pack>/cloud-k8s-residency-overlay.md`.
 
 ## References
 
-- `microservices/cloud-k8s/threat-model.md`.
-- `microservices/cloud-k8s/dpia.md`.
-- `microservices/cloud-k8s/policy/cluster-isolation.md`.
-- `microservices/cloud-k8s/multi-region.md`.
+- `k8s/threat-model.md`.
+- `k8s/dpia.md`.
+- `k8s/policy/cluster-isolation.md`.
+- `k8s/multi-region.md`.
 - ADR-0117, ADR-0121, ADR-0139, ADR-0131.
 - GDPR Arts. 44–50; EDPB Recommendations 01/2020.
 - KR PIPA Arts. 23, 23-2, 28; PIPC Notice 2020-7.

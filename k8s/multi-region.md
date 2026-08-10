@@ -9,10 +9,10 @@ owner_team: ops-sre-reliability + axis-cloud + cloud-iac
 deciders: ops-sre-reliability, axis-cloud, council-architecture, council-privacy
 related_adrs: [ADR-0117, ADR-0121, ADR-0139, ADR-0131]
 related_artifacts:
-  - microservices/cloud-k8s/policy/data-residency.md
-  - microservices/cloud-k8s/capacity-model.md
-  - microservices/cloud-k8s/cost-budget.md
-  - microservices/cloud-k8s/failure-modes.md
+  - k8s/policy/data-residency.md
+  - k8s/capacity-model.md
+  - k8s/cost-budget.md
+  - k8s/failure-modes.md
 review_cadence: annually + on every regional-pack activation
 doc_status: published
 ---
@@ -169,11 +169,11 @@ Per-pack BCDR specifics at `regional-packs/<pack>/cloud-k8s-multi-region-overlay
 
 ## References
 
-- `microservices/cloud-k8s/policy/data-residency.md`.
-- `microservices/cloud-k8s/capacity-model.md`.
-- `microservices/cloud-k8s/cost-budget.md`.
-- `microservices/cloud-k8s/failure-modes.md`.
-- `microservices/cloud-k8s/incident-response.md`.
+- `k8s/policy/data-residency.md`.
+- `k8s/capacity-model.md`.
+- `k8s/cost-budget.md`.
+- `k8s/failure-modes.md`.
+- `k8s/incident-response.md`.
 - `regional-packs/<pack>/cloud-k8s-multi-region-overlay.md` (per-pack).
 - OCI region documentation — `oracle.com/cloud/data-regions/`.
 - Kubernetes DR — `kubernetes.io/docs/tasks/administer-cluster/`.

@@ -1,6 +1,6 @@
 ---
 doc_class: JudgmentNote
-title: Stale microservices/cloud-k8s path hygiene (wave-1 prep)
+title: Stale microservices/cloud-k8s path hygiene (wave-1+2)
 status: Accepted
 owner_team: axis-cloud
 date: 2026-08-10
@@ -38,9 +38,36 @@ Verified destinations for every retargeted runbook cite:
 - `k8s/contracts/asyncapi/cloud-k8s-events.yaml`
 - `k8s/contracts/proto/cloud-k8s.proto`
 
+## Wave-2 scope (retargeted)
+
+Core day-2 cross-ref ring: `related_artifacts` + `References` retargeted to `k8s/` where counterparts exist (86 cite lines closed on this batch).
+
+| Surface | Change |
+|---|---|
+| `k8s/failure-modes.md` | Full outbound retarget (11 cites) |
+| `k8s/multi-region.md` | Full outbound retarget (9 cites) |
+| `k8s/cost-budget.md` | Full outbound retarget (5 cites) |
+| `k8s/capacity-model.md` | Full outbound retarget (6 cites) |
+| `k8s/competitor-parity-matrix.md` | Full outbound retarget (2 cites) |
+| `k8s/backfill-replay.md` | Full outbound retarget (9 cites) |
+| `k8s/policy/cluster-isolation.md` | Full outbound retarget (9 cites) |
+| `k8s/contracts/openapi/cloud-k8s.yaml` | Policy cedar glob retarget (1 cite) |
+| `k8s/incident-response.md` | Partial — 12 cites; `legal/notification-templates/gdpr-art-33.md` deferred |
+| `k8s/dpia.md` | Partial — 8 cites; `legal/*` bundle deferred |
+| `k8s/policy/data-residency.md` | Partial — 8 cites; `pack-routing.cedar` + `legal/*` deferred |
+| `k8s/sdk-plan.md` | Partial — 6 cites; `sdk-generation/` deferred |
+
+### Citation inventory (tip after wave-2)
+
+| Metric | Count |
+|---|---|
+| `microservices/cloud-k8s` cite lines closed (wave-2 only) | 86 |
+| Remaining cite lines in `k8s/**` (intentional legacy + not yet swept) | 508 |
+| Files still containing at least one stale cite | 59 |
+
 ## Left as intentional legacy (destination missing — do not invent)
 
-Interior docs outside wave-1 priority still cite paths with **no** in-tree counterpart. Leave until a later judged land creates the artifact or deletes the cite:
+Interior docs outside wave-1/2 priority still cite paths with **no** in-tree counterpart. Leave until a later judged land creates the artifact or deletes the cite:
 
 | Missing under `k8s/` | Example cite homes (not rewritten this wave) |
 |---|---|

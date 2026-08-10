@@ -9,8 +9,8 @@ owner_team: ops-finops + axis-cloud + ops-sre-reliability
 deciders: ops-finops, axis-cloud, ops-sre-reliability, council-architecture
 related_adrs: [ADR-0117, ADR-0121, ADR-0139, ADR-0131]
 related_artifacts:
-  - microservices/cloud-k8s/capacity-model.md
-  - microservices/cloud-k8s/multi-region.md
+  - k8s/capacity-model.md
+  - k8s/multi-region.md
 review_cadence: monthly + on every capacity-model revision
 doc_status: published
 ---
@@ -124,9 +124,9 @@ Verify-at-deploy: OCI pricing changes; reconfirm against `oracle.com/cloud/prici
 
 ## References
 
-- `microservices/cloud-k8s/capacity-model.md`.
-- `microservices/cloud-k8s/multi-region.md`.
-- `microservices/cloud-k8s/policy/data-residency.md` (per-pack retention multipliers).
+- `k8s/capacity-model.md`.
+- `k8s/multi-region.md`.
+- `k8s/policy/data-residency.md` (per-pack retention multipliers).
 - OCI pricing — `oracle.com/cloud/pricing/`.
 - Kubernetes node sizing — `kubernetes.io/docs/concepts/configuration/manage-resources-containers/`.
 - FinOps Foundation framework — `finops.org`.

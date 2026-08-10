@@ -6,7 +6,7 @@ info:
   description: |
     Operator + Foundry-agent + CI surface for on-prem Kubernetes cluster lifecycle.
     Per ADR-0121 + ADR-0131. All endpoints require OIDC + Cedar policy authorization
-    (per `microservices/cloud-k8s/policy/*.cedar`); every call audit-chain-emits per
+    (per `k8s/policy/*.cedar`); every call audit-chain-emits per
     Bominal ADR-0028.
 
     Cross-cutting authentication: OIDC bearer `Authorization: Bearer <jwt>`. The JWT

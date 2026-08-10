@@ -9,10 +9,10 @@ owner_team: axis-cloud
 deciders: axis-cloud, council-architecture, ops-sre-reliability
 related_adrs: [ADR-0121, ADR-0131]
 related_artifacts:
-  - microservices/cloud-k8s/PRD.md
-  - microservices/cloud-k8s/capacity-model.md
-  - microservices/cloud-k8s/runbooks/etcd-quorum-recovery.md
-  - microservices/cloud-k8s/contracts/asyncapi/cloud-k8s-events.yaml
+  - k8s/PRD.md
+  - k8s/capacity-model.md
+  - k8s/runbooks/etcd-quorum-recovery.md
+  - k8s/contracts/asyncapi/cloud-k8s-events.yaml
 review_cadence: annually
 doc_status: published
 ---
@@ -102,10 +102,10 @@ Cost surfaced in `cost-budget.md` §"Cost-Optimisation Levers" — backfill/repl
 
 ## References
 
-- `microservices/cloud-k8s/PRD.md`.
-- `microservices/cloud-k8s/capacity-model.md`.
-- `microservices/cloud-k8s/cost-budget.md`.
-- `microservices/cloud-k8s/contracts/asyncapi/cloud-k8s-events.yaml`.
-- `microservices/cloud-k8s/runbooks/etcd-quorum-recovery.md`.
+- `k8s/PRD.md`.
+- `k8s/capacity-model.md`.
+- `k8s/cost-budget.md`.
+- `k8s/contracts/asyncapi/cloud-k8s-events.yaml`.
+- `k8s/runbooks/etcd-quorum-recovery.md`.
 - ADR-0028 (Bominal audit-chain); ADR-0121.
 - Google SRE Workbook ch. 5 (managing operational load).

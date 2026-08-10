@@ -9,7 +9,7 @@ owner_team: axis-cloud + council-architecture
 deciders: axis-cloud, council-architecture, gtm-customer-success
 related_adrs: [ADR-0117, ADR-0121, ADR-0123]
 related_artifacts:
-  - microservices/cloud-k8s/PRD.md (§"Competitive Benchmark")
+  - k8s/PRD.md (§"Competitive Benchmark")
   - /specs/hyperscaler-gates.json (HG-CLOUD-K8S gate)
 review_cadence: bi-annually + on every new competitor entrant
 doc_status: published
@@ -157,7 +157,7 @@ Sales claims FORBIDDEN (per ADR-0123):
 
 ## References
 
-- `microservices/cloud-k8s/PRD.md` §"Competitive Benchmark".
+- `k8s/PRD.md` §"Competitive Benchmark".
 - `/specs/hyperscaler-gates.json` HG-CLOUD-K8S gate.
 - ADR-0123 (hyperscaler-maturity-claim-gate).
 - ADR-0121 (on-prem k8s stack).

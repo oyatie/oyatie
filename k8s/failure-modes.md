@@ -9,11 +9,11 @@ owner_team: ops-sre-reliability + axis-cloud
 deciders: ops-sre-reliability, axis-cloud, ops-security, council-architecture
 related_adrs: [ADR-0117, ADR-0121, ADR-0139, ADR-0131]
 related_artifacts:
-  - microservices/cloud-k8s/threat-model.md
-  - microservices/cloud-k8s/dpia.md
-  - microservices/cloud-k8s/policy/cluster-isolation.md
-  - microservices/cloud-k8s/incident-response.md
-  - microservices/cloud-k8s/runbooks/
+  - k8s/threat-model.md
+  - k8s/dpia.md
+  - k8s/policy/cluster-isolation.md
+  - k8s/incident-response.md
+  - k8s/runbooks/
 review_cadence: quarterly + after every Sev-1/Sev-2 incident affecting cloud-k8s
 doc_status: published
 ---
@@ -257,12 +257,12 @@ Meta-SLO: no failure remains undetected longer than its detection window.
 
 ## References
 
-- `microservices/cloud-k8s/threat-model.md` (each FM maps to one or more STRIDE / LINDDUN threat IDs).
-- `microservices/cloud-k8s/dpia.md` (FM-12, FM-13 map to R-01, R-02).
-- `microservices/cloud-k8s/incident-response.md` §"Severity Definitions".
-- `microservices/cloud-k8s/runbooks/*` (recovery procedures).
-- `microservices/cloud-k8s/capacity-model.md`.
-- `microservices/cloud-k8s/multi-region.md`.
+- `k8s/threat-model.md` (each FM maps to one or more STRIDE / LINDDUN threat IDs).
+- `k8s/dpia.md` (FM-12, FM-13 map to R-01, R-02).
+- `k8s/incident-response.md` §"Severity Definitions".
+- `k8s/runbooks/*` (recovery procedures).
+- `k8s/capacity-model.md`.
+- `k8s/multi-region.md`.
 - Kubernetes failure modes — `kubernetes.io/docs/tasks/administer-cluster/`.
 - Istio operations — `istio.io/latest/docs/ops/`.
 - Cilium ops — `docs.cilium.io/en/stable/operations/`.
