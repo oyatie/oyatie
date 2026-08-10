@@ -29,7 +29,7 @@ capabilities:
     data_class: [TENANT_PRIVATE, AI_PROMPT, AI_COMPLETION]
     policy_action: InvokeChatCompletion
     realm: ingress
-    slo_anchor: microservices/cloud-intelligence/slos/ttft.openslo.yaml
+    slo_anchor: intelligence/observability/slos/ttft.openslo.yaml
 
   - capability_id: cloud-intelligence.embeddings
     capability_name: OpenAI-Compatible Embeddings
@@ -42,7 +42,7 @@ capabilities:
     data_class: [TENANT_PRIVATE, AI_PROMPT]
     policy_action: InvokeEmbeddings
     realm: ingress
-    slo_anchor: microservices/cloud-intelligence/slos/end-to-end-latency.openslo.yaml
+    slo_anchor: intelligence/observability/slos/end-to-end-latency.openslo.yaml
 
   - capability_id: cloud-intelligence.models.list
     capability_name: Model Discovery
@@ -67,7 +67,7 @@ capabilities:
     data_class: [INTERNAL_ONLY]
     policy_action: n/a
     realm: internal
-    slo_anchor: microservices/cloud-intelligence/slos/availability.openslo.yaml
+    slo_anchor: intelligence/observability/slos/availability.openslo.yaml
     surface_evidence:
       - crates/oya-cloud-intelligence-kernel/src/lib.rs
 
@@ -83,7 +83,7 @@ capabilities:
     data_class: [INTERNAL_ONLY]
     policy_action: n/a
     realm: internal
-    slo_anchor: microservices/cloud-intelligence/slos/error-rate.openslo.yaml
+    slo_anchor: intelligence/observability/slos/error-rate.openslo.yaml
 
   - capability_id: cloud-intelligence.tenant.budgets
     capability_name: Per-Tenant Key Pools + Concurrent Token Budgets
@@ -142,7 +142,7 @@ capabilities:
     data_class: [AUDIT_INTERNAL, BILLING]
     policy_action: ReadAudit
     realm: admin
-    slo_anchor: microservices/cloud-intelligence/slos/completeness.openslo.yaml
+    slo_anchor: intelligence/observability/slos/completeness.openslo.yaml
 
   - capability_id: cloud-intelligence.admin.pool-status
     capability_name: Admin Pool Status + Key Refresh
@@ -169,7 +169,7 @@ capabilities:
     data_class: [INTERNAL_ONLY]
     policy_action: n/a
     realm: internal
-    slo_anchor: microservices/cloud-intelligence/slos/availability.openslo.yaml
+    slo_anchor: intelligence/observability/slos/availability.openslo.yaml
     surface_evidence:
       - crates/oya-cloud-intelligence-rest/src/metrics.rs
       - crates/oya-cloud-intelligence-rest/src/logging.rs

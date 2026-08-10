@@ -24,3 +24,16 @@ Do not invent missing homes. No hubs, no `Cargo.lock`, no merge.
 
 - Missing historical homes without in-tree counterparts.
 - Cross-cap dump cites outside `intelligence/**`.
+
+## Wave-5 Seat A follow-through (2026-08-10)
+
+Retargeted verified:
+
+- Additional `microservices/cloud-intelligence/**` → `intelligence/**` (k8s/iac/helm + `slos/**` → `observability/slos/**`)
+- `microservices/detection/**` → `intelligence/detection/**` for contracts/PRD/ARCHITECTURE/IPs/runbooks/manifest where present
+
+### Deferred
+
+- Detection IP scope stems without file homes; missing historical assets; cross-cap cites.
+- No hubs, no `Cargo.lock`, no merge.
+

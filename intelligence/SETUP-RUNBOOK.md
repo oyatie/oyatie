@@ -75,7 +75,7 @@ gateway binary) on the founder's Talos cluster via ArgoCD GitOps.
 
 ### Helm chart
 
-The chart lives at `microservices/cloud-intelligence/iac/k8s/helm/`. It packages:
+The chart lives at `intelligence/iac/k8s/helm/`. It packages:
 
 - `Chart.yaml` — chart named `cloud-intelligence`, version `0.1.0`.
 - `values.yaml` — image pinned by digest, `kata-cloud-hypervisor` runtime class (Tier-2
@@ -94,9 +94,9 @@ The chart lives at `microservices/cloud-intelligence/iac/k8s/helm/`. It packages
 To lint and render locally:
 
 ```sh
-helm lint microservices/cloud-intelligence/iac/k8s/helm
+helm lint intelligence/iac/k8s/helm
 
-helm template microservices/cloud-intelligence/iac/k8s/helm \
+helm template intelligence/iac/k8s/helm \
   --set image.digest= \
   > /tmp/helm-rendered.yaml
 ```

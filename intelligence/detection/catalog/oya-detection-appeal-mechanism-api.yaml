@@ -4,9 +4,9 @@ context: detection
 plane: control
 slo: preview-detection-substrate
 contracts_consumed:
-  - microservices/detection/contracts/openapi-v1.yaml
+  - intelligence/detection/contracts/openapi-v1.yaml
 contracts_exposed:
-  - microservices/detection/contracts/asyncapi-v1.yaml
+  - intelligence/detection/contracts/asyncapi-v1.yaml
 regulatory_packs_consumed:
   - pack-us
   - pack-eu-ai-act
