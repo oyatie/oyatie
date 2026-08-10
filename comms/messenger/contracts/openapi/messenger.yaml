@@ -5,7 +5,7 @@ info:
   summary: REST API for the messenger µservice — channel CRUD, message CRUD, threads, presence, search, attachments
   description: |
     Tenant-facing REST surface for the messenger µservice. All endpoints require
-    OIDC + Cedar authorisation (per `microservices/messenger/policy/*.cedar`)
+    OIDC + Cedar authorisation (per `comms/messenger/policy/*.cedar`)
     and are tenant-scoped via `X-Scope-OrgID` header.
 
     Real-time path is via WebSocket at `wss://messenger-{pack}.oyatie.com/ws/v1`

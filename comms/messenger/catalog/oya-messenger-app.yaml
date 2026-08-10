@@ -4,7 +4,7 @@ role: app
 context: messenger
 plane: data
 slo: hero-product
-contracts_consumed: [microservices/messenger/contracts/openapi/messenger.yaml, microservices/messenger/contracts/asyncapi/messenger-events.yaml]
+contracts_consumed: [comms/messenger/contracts/openapi/messenger.yaml, comms/messenger/contracts/asyncapi/messenger-events.yaml]
 contracts_exposed: []
 regulatory_packs_consumed: [oya-pack-kr, oya-pack-eu, oya-pack-us, oya-pack-us-healthcare, oya-pack-jp, oya-pack-sg, oya-pack-au, oya-pack-in, oya-pack-br, oya-pack-ae, oya-pack-ksa]
 lifecycle: {state: incubating, preview_since: 2026-05-17}
