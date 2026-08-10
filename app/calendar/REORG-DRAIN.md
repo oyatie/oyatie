@@ -6,7 +6,9 @@
 - **Source (read-only):** `oya/calendar/**` on `origin/dev` until shrink-only delete lands on `integ/oya`.
 - **Writes:** only under `app/calendar/**` on this tip.
 
-## Completed (this rail)
+## Completed
+
+- Hygiene deepen: retargeted `oya/calendar/` + `microservices/calendar/` path cites → `app/calendar/` in README/manifest (forever-home authority). (this rail)
 
 - Wave-1 absorb: product scaffold reclaim `oya/calendar/**` → `app/calendar/**` (86 files + REORG-DRAIN).
 - Path cites rewritten `oya/calendar` → `app/calendar` inside forever home.
