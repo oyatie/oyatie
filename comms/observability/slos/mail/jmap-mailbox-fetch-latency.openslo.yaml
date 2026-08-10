@@ -29,6 +29,6 @@ spec:
     burnRate:
       - threshold: 14
         lookback: 1h
-        runbook: microservices/mail/runbooks/smtp-queue-backup.md
+        runbook: comms/mail/runbooks/smtp-queue-backup.md
       - threshold: 6
         lookback: 6h
