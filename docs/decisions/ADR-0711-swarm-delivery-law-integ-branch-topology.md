@@ -33,8 +33,8 @@ deliverables:
     exit_criteria: "ADR-0711 Amendment A + PORTABLE-SWARM-CONTRACT Amendment A present; check-daemon invokes buck2 build //...[check] only under SWARM_ORCHESTRATOR=1 with zero cargo build/check/test/clippy invocations; docs-governance beads epic exists gated on integ/docs+integ/specs live."
     verified_by: "oya-ci-required"
   - id: ADR-0711-D5
-    description: "Amendment B — reorg-target debt freeze: no new path births under libs/, cloud/, oya/, infra/, toolchains/, tools/ except explicit reorg-move-out beads; tools/swarm/** one-shot bootstrap on integ/specs then shrink-only."
-    exit_criteria: "ADR-0711 Amendment B + PORTABLE-SWARM-CONTRACT Amendment B present; specs/integ-branch-envelopes.json lists frozen_prefixes; deliver.js Claim rejects new births under frozen prefixes unless bead title/body marks reorg-move-out."
+    description: "Amendment B — REORG NOW ternary layout map: every root/meaningful subdir is reorg_now|keep_forever|delete_permanently; freeze prefixes block NEW births only while moves execute; libs/cloud/oya/infra/toolchains/tools are NOT keep_forever."
+    exit_criteria: "ADR-0711 Amendment B + PORTABLE-SWARM-CONTRACT Amendment B present; specs/integ-branch-envelopes.json#reorg_debt_freeze carries prefixes + classification + rows with ternary actions; deliver.js Claim rejects births under freeze/vacated prefixes unless bead marks reorg-move-out to greenfield_destination."
     verified_by: "oya-ci-required"
 ---
 # ADR-0711: Swarm Delivery Law — integration branch topology and command discipline
@@ -314,43 +314,167 @@ JSON/YAML hubs) as a bead under the docs-governance epic; future generation must
 admission.
 
 
-### Amendment B (2026-08-10) — reorg-target debt freeze
+### Amendment B (2026-08-10) — REORG NOW (ternary layout map)
 
-Binding amendment. Full portable mirror:
-`.grok/programs/delivery-fabric/evidence/PORTABLE-SWARM-CONTRACT.md` § Amendment B.
-Policy-as-data: `specs/integ-branch-envelopes.json` → `reorg_target_debt_freeze`.
+Binding amendment. **Reorg happens NOW** — classification is a move map, not a parking lot.
+Portable mirror: `.grok/programs/delivery-fabric/evidence/PORTABLE-SWARM-CONTRACT.md` § Amendment B.
+Policy-as-data: `specs/integ-branch-envelopes.json` → `reorg_debt_freeze`.
 
-#### B-1 — Frozen prefixes (no new path births)
+#### B-0 — Greenfield question (placement law)
 
-Do **not** add new debt to ADR-0562 / ADR-0701 strangler / transitional homes.
-Frozen prefixes (new `A` path births forbidden unless exempted below):
+For every root and meaningful subdir ask:
 
-- `libs/`
-- `cloud/`
-- `oya/`
-- `infra/`
-- `toolchains/`
-- `tools/`
+> If we were greenfield and wanted an ideal hyperscaler monorepo clean-architecture shape,
+> where would this belong and in what shape?
 
-**Allowed** under frozen prefixes: shrink, move-out, delete, and mechanical catalog fixes
-for an in-flight move to a durable capability root.
+That answer **IS** placement law. Apply recursively (e.g. `docs/programs` vs `docs/decisions`).
 
-**Forbidden:** birthing new crates, domains, features, or other new paths under those trees.
-The `#1642` allow-new for `cloud-os` / `libs` was a **one-shot drain — never repeat**.
+#### B-1 — Ternary actions only
 
-#### B-2 — `tools/swarm/**` one-shot exception
+| Action | Meaning |
+|---|---|
+| `reorg_now` | Move to greenfield destination in this programme; delete vacated path; update registries in same land |
+| `keep_forever` | Already the ideal hyperscaler clean-arch home |
+| `delete_permanently` | No durable value; remove |
 
-`tools/swarm/**` on `integ/specs` (`#1644`) is a **one-shot process-kit land** (Phase A
-harness). After `#1644` merges, `tools/` is **shrink-only** — no further births under
-`tools/` without an explicit `reorg-move-out` bead naming the durable home.
+**No fourth state.** Banned language: strangler_freeze-as-destination, gradual, eventually,
+6 months, deprecate-in-place, dual-home forever.
 
-#### B-3 — Claim enforcement
+`libs/`, `cloud/`, `oya/`, `infra/`, `toolchains/`, `tools/` are **NOT** `keep_forever` —
+they are `reorg_now` (or `delete_permanently` for empty residue).
 
-`deliver.js` Claim MUST refuse any unit tip that adds new paths under frozen prefixes
-unless the claimed bead title or body contains `reorg-move-out` (explicit move to a
-durable capability root). Envelope membership alone does **not** authorize births under
-frozen prefixes (including `integ/libs`, `integ/cloud`, `integ/oya`, `integ/tools`).
+#### B-2 — Freeze prefixes = no NEW births while moves execute
 
+Prefixes in `reorg_debt_freeze.prefixes` block **new path births** only while `reorg_now` /
+`delete_permanently` executes. They are not a durable home. `#1642` allow-new for cloud-os/libs
+was a one-shot drain — **never repeat**. `tools/swarm/**` on `#1644` is a one-shot process-kit
+land; schedule `reorg_now` → `.grok/` immediately after merge.
+
+#### B-3 — Classification table (compact)
+
+Full machine-readable rows: `specs/integ-branch-envelopes.json#reorg_debt_freeze.rows`.
+
+| current path | action | greenfield destination | shape |
+|---|---|---|---|
+| `docs/` | keep_forever | docs/ | PLANE hub: operating contract, indexes, live ADRs, standards, archive only |
+| `docs/ADR-INDEX.md` | keep_forever | docs/ADR-INDEX.md | hub index |
+| `docs/AGENTS.md` | keep_forever | docs/AGENTS.md | operating-contract apex |
+| `docs/CHANGELOG.md` | keep_forever | docs/CHANGELOG.md | hub changelog |
+| `docs/DOC-CATALOG.md` | keep_forever | docs/DOC-CATALOG.md | hub catalog (until machine index replaces) |
+| `docs/adr-archive/` | keep_forever | docs/adr-archive/ | historical ADR archive (read-only growth via supersession) |
+| `docs/architecture/` | reorg_now | docs/decisions/ + capability ARCH.md | keep only cross-cutting; rest colocate |
+| `docs/audit/` | reorg_now | audit/ | capability-owned audit docs (~233 files) |
+| `docs/ci/` | reorg_now | ci/ | capability-owned CI docs |
+| `docs/decisions/` | keep_forever | docs/decisions/ | live ADR apex files only |
+| `docs/foundry/` | reorg_now | intelligence/ or retire | foundry brand residue |
+| `docs/harness/` | delete_permanently | (none) | retired harness docs (ADR-0709 lineage) |
+| `docs/ideas/` | delete_permanently | (none) | harvest any keeper into bead then delete |
+| `docs/implementation-plans/` | reorg_now | <capability>/IPs/ + beads | IPs colocate; tracking in beads |
+| `docs/localization-packs/` | reorg_now | compliance/packs/ or packs→compliance | jurisdiction packs with compliance capability |
+| `docs/plans/` | reorg_now | specs/masterplan.json + beads | plan authority is masterplan v2; retire prose dumps |
+| `docs/prds/` | reorg_now | <capability>/PRD.md or app/<product>/ | product PRDs colocate |
+| `docs/products/` | reorg_now | <capability>/ or app/<product>/ | owner-colocated product docs (g3doc) |
+| `docs/programs/` | reorg_now | governance/corpus/programs/ or owning capability | program dossiers leave central docs |
+| `docs/raw/` | delete_permanently | (none) | throwaway drafts; never authoritative |
+| `docs/regional-packs/` | reorg_now | compliance/packs/ | same as localization |
+| `docs/runbooks/` | reorg_now | <capability>/runbooks/ | owner-colocated runbooks; keep RUNBOOKS-INDEX hub |
+| `docs/standards/` | keep_forever | docs/standards/ | cross-cutting engineering standards hub |
+| `docs/templates/` | reorg_now | templates/ | merge unique templates into root templates/; delete dual-home |
+| `specs/` | keep_forever | specs/ | PLANE hub: cross-cutting machine-readable authority only |
+| `specs/audit-event-class-registry.json` | reorg_now | audit/audit-event-class-registry.json | dual-home with audit/; single SSOT at audit/ |
+| `specs/capabilities/` | reorg_now | <capability>/ or keep only cross-cutting schemas in specs/ | split: cross-cutting schemas KEEP; per-capability MOVE |
+| `specs/capability-registry.json` | keep_forever | specs/capability-registry.json | closed registry (eventual governance/ copy is same hub move later if desired; ke |
+| `specs/catalog/` | reorg_now | registry/catalog/ | crate/catalog authority is registry/ |
+| `specs/design-system/` | reorg_now | console/ or app/shell/ | UI design system with console/app |
+| `specs/fixtures/` | keep_forever | specs/fixtures/ | cross-cutting gate fixtures only |
+| `specs/integ-branch-envelopes.json` | keep_forever | specs/integ-branch-envelopes.json | Swarm Delivery Law policy-as-data |
+| `specs/ip/` | reorg_now | <capability>/IPs/ | implementation plans colocate |
+| `specs/k8s-port/` | reorg_now | k8s/ or build/port-engine/ | port programme artifacts with owners |
+| `specs/lifecycle-configs/` | delete_permanently | (none) | absorbed residuals; do not rebirth |
+| `specs/markdown-retirement-policy.json` | keep_forever | specs/markdown-retirement-policy.json | docs lifecycle policy |
+| `specs/masterplan.json` | keep_forever | specs/masterplan.json | live plan authority |
+| `specs/microservices/` | reorg_now | <capability>/manifest + contracts | type-dump of product specs; colocate or delete superseded JSON |
+| `specs/openslo/` | reorg_now | <capability>/slos/*.openslo.yaml | SLO authoring colocated per service doctrine |
+| `specs/policy/` | reorg_now | policy/ (new capability root) + iam leftovers | policy capability home |
+| `specs/products/` | reorg_now | app/<product>/ or capability facade | product composition specs |
+| `specs/proto/` | reorg_now | contracts/proto/ or capability contracts/ | API contracts hub |
+| `specs/regions/` | reorg_now | compliance/packs/ | regional regime data with compliance |
+| `specs/regulatory-regimes/` | reorg_now | compliance/ | compliance-owned |
+| `specs/reorg/` | keep_forever | specs/reorg/ | executable move-plan hub (singleton live plan) |
+| `specs/root-hub-pointers.json` | keep_forever | specs/root-hub-pointers.json | entry hub |
+| `plan/` | reorg_now | governance/corpus/plan/ + beads | no top-level plan dump in greenfield |
+| `plan/fabric-loop/` | reorg_now | governance/corpus/fabric-loop/ | governance graph substrate |
+| `templates/` | keep_forever | templates/ | PLANE: single template hub (authority chain) |
+| `templates/checklists/` | keep_forever | templates/checklists/ | cross-cutting checklists |
+| `governance/` | keep_forever | governance/ | META: checks + corpus off runtime ladder |
+| `governance/check/` | keep_forever | governance/check/ | hermetic gate engines + policy-as-data |
+| `governance/corpus/` | keep_forever | governance/corpus/ | living monorepo governance graph |
+| `flags/` | keep_forever | flags/{core,ports,adapters,facade}/ | registered capability; finish clean-arch faces |
+| `flags/policy/` | keep_forever | flags/policy/ or policy/ if PDP-shared | keep unless pure PDP extract |
+| `audit/` | keep_forever | audit/{core,ports,adapters,facade}/ | registered capability; already faced |
+| `audit/audit-event-class-registry.json` | keep_forever | audit/audit-event-class-registry.json | SSOT after specs dual deleted |
+| `libs/` | reorg_now | base/ (≥3 caps) + owning capability core/ | ADR-0701 base/ + faces; rule-of-two ends |
+| `cloud/` | reorg_now | os/, kernel/, <capability>/, build/ | strangler source → durable meta/capability homes |
+| `oya/` | reorg_now | <capability>/ + app/<product>/ | product dump → capability/app homes |
+| `infra/` | reorg_now | build/, ci/, .grok/, iac/ | split by concern; no infra junk-drawer |
+| `toolchains/` | reorg_now | build/toolchains/ | build meta owns toolchains |
+| `tools/` | reorg_now | .grok/ + ci/facade/ + delete remainder | process kit leaves tools/; tools/swarm one-shot then vacate |
+| `packs/` | reorg_now | compliance/packs/ | jurisdiction localization+sovereignty under compliance |
+| `scripts/` | reorg_now | ci/ + build/ + delete obsolete py checks | no top-level scripts in greenfield |
+| `tasks/` | reorg_now | beads (implementable) + <capability>/IPs/ | harvest then vacate top-level tasks/ |
+| `.agents/` | delete_permanently | (none) | untracked; use runtime agents not repo vendor |
+| `.beads/` | keep_forever | .beads/ | PROCESS_KIT: issue DB (usually local) |
+| `.cargo/` | keep_forever | .cargo/ | PROCESS_KIT: cargo config |
+| `.claude/` | keep_forever | .claude/ | PROCESS_KIT: deliver.js + settings |
+| `.codex/` | keep_forever | .codex/ | PROCESS_KIT: project skills overlay |
+| `.config/` | keep_forever | .config/ | PROCESS_KIT: tool config |
+| `.cursor/` | keep_forever | .cursor/ | PROCESS_KIT: editor agents/rules (thin) |
+| `.github/` | keep_forever | .github/ | PROCESS_KIT: interim GHA runner surface (ADR-0700) until owned-runner cutover |
+| `.gjc/` | delete_permanently | (none) | retired; untracked local only |
+| `.grok/` | keep_forever | .grok/ | PROCESS_KIT: mm-delivery / swarm process (thin; not product) |
+| `.omc/` | delete_permanently | (none) | retired OMC harness residue (ADR-0709); remove tracked files |
+| `.omx/` | delete_permanently | (none) | retired; untracked local only |
+| `benchmarks/` | reorg_now | governance/check/benchmark/ + capability perf evidence | no orphan benchmarks root |
+| `billing/` | keep_forever | billing/{core,ports,adapters,facade}/ | registered capability |
+| `buck-out/` | delete_permanently | (none) | build output; gitignored |
+| `build/` | keep_forever | build/ | META: buck prelude, toolchains, generators |
+| `cell/` | keep_forever | cell/{core,ports,adapters,facade}/ | registered capability |
+| `ci/` | keep_forever | ci/{core,ports,adapters,facade}/ | registered capability |
+| `comms/` | keep_forever | comms/{core,ports,adapters,facade}/ | registered capability |
+| `compliance/` | keep_forever | compliance/{core,ports,adapters,facade}/ | registered capability; absorb packs/ |
+| `compute/` | keep_forever | compute/{core,ports,adapters,facade}/ | registered capability |
+| `console/` | keep_forever | console/{core,ports,adapters,facade}/ | registered capability |
+| `contracts/` | keep_forever | contracts/ | PLANE: cross-µservice OpenAPI/Protobuf/AsyncAPI SSOT |
+| `data/` | keep_forever | data/{core,ports,adapters,facade}/ | registered capability |
+| `evidence/` | keep_forever | evidence/ | PLANE: append-only evidence (concurrent-safe) |
+| `gateway/` | keep_forever | gateway/{core,ports,adapters,facade}/ | registered capability |
+| `iac/` | keep_forever | iac/{core,ports,adapters,facade}/ | registered capability |
+| `iam/` | keep_forever | iam/{core,ports,adapters,facade}/ | registered capability |
+| `intelligence/` | keep_forever | intelligence/{core,ports,adapters,facade}/ | registered capability; absorb oya/intelligence |
+| `k8s/` | keep_forever | k8s/{core,ports,adapters,facade}/ | registered capability |
+| `kernel/` | keep_forever | kernel/{core,harness}/ | META rung-0 |
+| `marketplace/` | keep_forever | marketplace/{core,ports,adapters,facade}/ | registered capability |
+| `messaging/` | keep_forever | messaging/{core,ports,adapters,facade}/ | registered capability |
+| `network/` | keep_forever | network/{core,ports,adapters,facade}/ | registered capability |
+| `observability/` | keep_forever | observability/{core,ports,adapters,facade}/ | registered capability |
+| `os/` | keep_forever | os/{core,harness}/ | META rung-1 |
+| `registry/` | keep_forever | registry/ | PLANE: catalogs, concurrent-safe, fixuptasks |
+| `secrets/` | keep_forever | secrets/{core,ports,adapters,facade}/ | registered capability |
+| `storage/` | keep_forever | storage/{core,ports,adapters,facade}/ | registered capability |
+| `target/` | delete_permanently | (none) | cargo output; gitignored |
+| `tenancy/` | keep_forever | tenancy/{core,ports,adapters,facade}/ | registered capability |
+| `third-party/` | keep_forever | third-party/ | META: reindeer vendored cell; never hand-edit product logic |
+| `workflow/` | keep_forever | workflow/{core,ports,adapters,facade}/ | registered capability |
+| `wt-1616/` | delete_permanently | (none) | accidental nested worktree in main checkout; remove |
+
+#### B-4 — Claim enforcement + destination integ preference
+
+`deliver.js` Claim MUST refuse new path births under freeze/vacated prefixes unless the bead
+marks `reorg-move-out` naming `greenfield_destination`. Prefer landing moves on the
+**destination** `integ/<root>` (Swarm Delivery Law). Envelope membership of a freeze source
+(`integ/libs`, `integ/cloud`, …) does **not** authorize births there.
+
+First-wave ordered backlog: `reorg_debt_freeze.first_wave` + beads under the reorg-now epic.
 ## Consequences
 
 ### Positive
@@ -393,7 +517,7 @@ frozen prefixes (including `integ/libs`, `integ/cloud`, `integ/oya`, `integ/tool
 - **Unverified buck2 dir-cache keys in `.buckconfig`** — adopt only after upstream source
   validation (mirror existing `[buck2]` key-verification practice); tracked as bead, not now.
 
-- **Revive unrestricted births under frozen reorg targets** — fights ADR-0701 strangler; Amendment B freezes libs/cloud/oya/infra/toolchains/tools to shrink/move-out only.
+- **Treat libs/cloud/oya/infra/toolchains/tools as keep_forever or gradual freeze** — banned; Amendment B ternary requires reorg_now/delete_permanently NOW; freeze prefixes only block new births during the move.
 
 ## References
 
