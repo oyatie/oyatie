@@ -1,0 +1,26 @@
+# Canonical-base: specs/catalog/canonical-crate-record-schema.json (SWEEP-I Slice 6 per ADR-0064)
+name: oya-docs-export-import-adapter-chromium
+role: adapter
+backend: chromium
+context: docs
+bc: export-import
+plane: data
+slo: preview-data-plane
+contracts_consumed: []
+contracts_exposed: []
+regulatory_packs_consumed: [oya-pack-kr, oya-pack-eu, oya-pack-us, oya-pack-us-healthcare, oya-pack-jp, oya-pack-sg, oya-pack-au, oya-pack-in, oya-pack-br, oya-pack-ae, oya-pack-ksa]
+lifecycle: {state: incubating, preview_since: 2026-05-17, stable_since: null, deprecated_since: null}
+traceability:
+  github_issue: "oya-governance-pipeline://scaffold-pr-microservice-flat-layout-buildout-2026-05-17"
+  source_adrs: [ADR-0105, ADR-0131, ADR-DOCS-0003]
+  amendment_3_backend_qualified_adapter: true
+allowed_dependency_edges: [oya-docs-export-import-kernel]
+data_classes_owned: [PERSONAL_DOC_CONTENT, PROFESSIONAL_DOC_CONTENT]
+operational_classes_owned: [AUDIT]
+autonomy_tier_required: T1
+implementation_notes: |
+  Chromium-headless LTS pinned per ADR-DOCS-0003 as opt-in high-fidelity
+  PDF backend. Used when WeasyPrint cannot render specific font / CSS feature.
+  Larger attack surface than WeasyPrint; tenant must opt-in per tenant policy.
+  Runs inside gVisor sandbox with tmpfs only + no network egress; per-job
+  pod restart for memory hygiene.

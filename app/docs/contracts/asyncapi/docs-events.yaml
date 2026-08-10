@@ -1,0 +1,465 @@
+asyncapi: 3.1.0
+info:
+  title: oyatie Docs µservice — AsyncAPI Event Catalog
+  version: 1.0.0
+  description: |
+    AsyncAPI definitions for docs µservice events on the oyatie Workflow event bus
+    AND the WebSocket gateway for real-time collaboration.
+
+    Per ADR-0131 + ADR-0132, docs emits events that may be consumed by:
+    - audit-chain (seal emission)
+    - mail (share notification handoff)
+    - messenger (mention notification)
+    - workflow-engine (event-bound automation triggers)
+    - workflow-studio + sheets + slides (embed-resolver source events)
+    - ontology (entity reads/writes)
+    - observability (telemetry)
+
+    Per Bominal ADR-0028: every event carries a content hash + audit-chain seal pointer.
+    Per ADR-DOCS-0001: CRDT op envelope is cross-µservice consistent with workflow-studio.
+
+defaultContentType: application/cloudevents+json
+
+servers:
+  workflow-event-bus:
+    host: workflow.{pack}.oyatie.com
+    protocol: nats
+    description: per-pack Workflow event bus
+    variables:
+      pack:
+        enum: [kr, eu, us, us-healthcare, jp, sg, au, in, br, ae, ksa]
+  websocket-gateway:
+    host: docs.{pack}.oyatie.com
+    protocol: wss
+    description: per-pack docs WebSocket gateway for CRDT op streaming
+    variables:
+      pack:
+        enum: [kr, eu, us, us-healthcare, jp, sg, au, in, br, ae, ksa]
+
+channels:
+  docs.document.lifecycle.v1:
+    address: docs.document.lifecycle.v1
+    description: Document lifecycle (create / edit / archive)
+    messages:
+      DocumentCreated:
+        $ref: '#/components/messages/DocumentCreated'
+      DocumentEdited:
+        $ref: '#/components/messages/DocumentEdited'
+      DocumentArchived:
+        $ref: '#/components/messages/DocumentArchived'
+
+  docs.sharing.v1:
+    address: docs.sharing.v1
+    description: Sharing grants + share-link issuance
+    messages:
+      DocumentShared:
+        $ref: '#/components/messages/DocumentShared'
+      DocumentShareRevoked:
+        $ref: '#/components/messages/DocumentShareRevoked'
+      ShareLinkIssued:
+        $ref: '#/components/messages/ShareLinkIssued'
+
+  docs.comments.v1:
+    address: docs.comments.v1
+    description: Comment lifecycle
+    messages:
+      CommentPosted:
+        $ref: '#/components/messages/CommentPosted'
+      CommentResolved:
+        $ref: '#/components/messages/CommentResolved'
+
+  docs.suggestions.v1:
+    address: docs.suggestions.v1
+    description: Suggestion state transitions
+    messages:
+      SuggestionAccepted:
+        $ref: '#/components/messages/SuggestionAccepted'
+      SuggestionRejected:
+        $ref: '#/components/messages/SuggestionRejected'
+
+  docs.version.v1:
+    address: docs.version.v1
+    description: Version events
+    messages:
+      VersionRestored:
+        $ref: '#/components/messages/VersionRestored'
+      CrdtOpLogCompacted:
+        $ref: '#/components/messages/CrdtOpLogCompacted'
+
+  docs.export.v1:
+    address: docs.export.v1
+    description: Export pipeline events
+    messages:
+      DocumentExported:
+        $ref: '#/components/messages/DocumentExported'
+
+  docs.import.v1:
+    address: docs.import.v1
+    description: Import pipeline events
+    messages:
+      DocumentImported:
+        $ref: '#/components/messages/DocumentImported'
+
+  docs.embed.v1:
+    address: docs.embed.v1
+    description: Embed-resolver events
+    messages:
+      EmbedRefreshed:
+        $ref: '#/components/messages/EmbedRefreshed'
+      EmbedAccessRevoked:
+        $ref: '#/components/messages/EmbedAccessRevoked'
+      EmbedLoopDetected:
+        $ref: '#/components/messages/EmbedLoopDetected'
+
+  audit.docs.legal_hold.v1:
+    address: audit.docs.legal_hold.v1
+    description: Legal hold transitions (consumed by audit-chain + governance)
+    messages:
+      LegalHoldApplied:
+        $ref: '#/components/messages/LegalHoldApplied'
+      LegalHoldReleased:
+        $ref: '#/components/messages/LegalHoldReleased'
+
+  docs.collab.crdt.v1:
+    address: docs.collab.crdt.v1
+    description: WebSocket CRDT op stream (per ADR-DOCS-0001; cross-µservice consistent with workflow-studio)
+    messages:
+      CrdtOp:
+        $ref: '#/components/messages/CrdtOp'
+      PresenceSnapshot:
+        $ref: '#/components/messages/PresenceSnapshot'
+      CrdtConflictSurfaced:
+        $ref: '#/components/messages/CrdtConflictSurfaced'
+
+operations:
+  publishDocumentCreated:
+    action: send
+    channel: {$ref: '#/channels/docs.document.lifecycle.v1'}
+  publishDocumentEdited:
+    action: send
+    channel: {$ref: '#/channels/docs.document.lifecycle.v1'}
+  publishDocumentArchived:
+    action: send
+    channel: {$ref: '#/channels/docs.document.lifecycle.v1'}
+  publishDocumentShared:
+    action: send
+    channel: {$ref: '#/channels/docs.sharing.v1'}
+  publishDocumentShareRevoked:
+    action: send
+    channel: {$ref: '#/channels/docs.sharing.v1'}
+  publishShareLinkIssued:
+    action: send
+    channel: {$ref: '#/channels/docs.sharing.v1'}
+  publishCommentPosted:
+    action: send
+    channel: {$ref: '#/channels/docs.comments.v1'}
+  publishCommentResolved:
+    action: send
+    channel: {$ref: '#/channels/docs.comments.v1'}
+  publishSuggestionAccepted:
+    action: send
+    channel: {$ref: '#/channels/docs.suggestions.v1'}
+  publishSuggestionRejected:
+    action: send
+    channel: {$ref: '#/channels/docs.suggestions.v1'}
+  publishVersionRestored:
+    action: send
+    channel: {$ref: '#/channels/docs.version.v1'}
+  publishCrdtOpLogCompacted:
+    action: send
+    channel: {$ref: '#/channels/docs.version.v1'}
+  publishDocumentExported:
+    action: send
+    channel: {$ref: '#/channels/docs.export.v1'}
+  publishDocumentImported:
+    action: send
+    channel: {$ref: '#/channels/docs.import.v1'}
+  publishEmbedRefreshed:
+    action: send
+    channel: {$ref: '#/channels/docs.embed.v1'}
+  publishEmbedAccessRevoked:
+    action: send
+    channel: {$ref: '#/channels/docs.embed.v1'}
+  publishEmbedLoopDetected:
+    action: send
+    channel: {$ref: '#/channels/docs.embed.v1'}
+  publishLegalHoldApplied:
+    action: send
+    channel: {$ref: '#/channels/audit.docs.legal_hold.v1'}
+  publishLegalHoldReleased:
+    action: send
+    channel: {$ref: '#/channels/audit.docs.legal_hold.v1'}
+
+  publishCrdtOp:
+    action: send
+    channel: {$ref: '#/channels/docs.collab.crdt.v1'}
+  subscribeCrdtOp:
+    action: receive
+    channel: {$ref: '#/channels/docs.collab.crdt.v1'}
+
+components:
+  messages:
+    DocumentCreated:
+      name: DocumentCreated
+      payload: {$ref: '#/components/schemas/DocumentLifecycleEvent'}
+    DocumentEdited:
+      name: DocumentEdited
+      payload: {$ref: '#/components/schemas/DocumentLifecycleEvent'}
+    DocumentArchived:
+      name: DocumentArchived
+      payload: {$ref: '#/components/schemas/DocumentLifecycleEvent'}
+    DocumentShared:
+      name: DocumentShared
+      payload: {$ref: '#/components/schemas/ShareEvent'}
+    DocumentShareRevoked:
+      name: DocumentShareRevoked
+      payload: {$ref: '#/components/schemas/ShareEvent'}
+    ShareLinkIssued:
+      name: ShareLinkIssued
+      payload: {$ref: '#/components/schemas/ShareLinkEvent'}
+    CommentPosted:
+      name: CommentPosted
+      payload: {$ref: '#/components/schemas/CommentEvent'}
+    CommentResolved:
+      name: CommentResolved
+      payload: {$ref: '#/components/schemas/CommentEvent'}
+    SuggestionAccepted:
+      name: SuggestionAccepted
+      payload: {$ref: '#/components/schemas/SuggestionEvent'}
+    SuggestionRejected:
+      name: SuggestionRejected
+      payload: {$ref: '#/components/schemas/SuggestionEvent'}
+    VersionRestored:
+      name: VersionRestored
+      payload: {$ref: '#/components/schemas/VersionEvent'}
+    CrdtOpLogCompacted:
+      name: CrdtOpLogCompacted
+      payload: {$ref: '#/components/schemas/CrdtCompactionEvent'}
+    DocumentExported:
+      name: DocumentExported
+      payload: {$ref: '#/components/schemas/ExportEvent'}
+    DocumentImported:
+      name: DocumentImported
+      payload: {$ref: '#/components/schemas/ImportEvent'}
+    EmbedRefreshed:
+      name: EmbedRefreshed
+      payload: {$ref: '#/components/schemas/EmbedEvent'}
+    EmbedAccessRevoked:
+      name: EmbedAccessRevoked
+      payload: {$ref: '#/components/schemas/EmbedEvent'}
+    EmbedLoopDetected:
+      name: EmbedLoopDetected
+      payload: {$ref: '#/components/schemas/EmbedEvent'}
+    LegalHoldApplied:
+      name: LegalHoldApplied
+      payload: {$ref: '#/components/schemas/LegalHoldEvent'}
+    LegalHoldReleased:
+      name: LegalHoldReleased
+      payload: {$ref: '#/components/schemas/LegalHoldEvent'}
+    CrdtOp:
+      name: CrdtOp
+      payload: {$ref: '#/components/schemas/CrdtOpEnvelope'}
+    PresenceSnapshot:
+      name: PresenceSnapshot
+      payload: {$ref: '#/components/schemas/PresenceSnapshot'}
+    CrdtConflictSurfaced:
+      name: CrdtConflictSurfaced
+      payload: {$ref: '#/components/schemas/CrdtConflict'}
+
+  schemas:
+    DocumentLifecycleEvent:
+      type: object
+      required: [event_id, tenant_id_hashed, document_id, context, pack_tag, occurred_at, audit_seal_pointer]
+      properties:
+        event_id: {type: string, format: uuid}
+        tenant_id_hashed: {type: string}
+        document_id: {type: string, format: uuid}
+        context: {type: string, enum: [personal, professional]}
+        pack_tag: {type: string}
+        version_sha: {type: string}
+        occurred_at: {type: string, format: date-time}
+        author_user_id: {type: string, format: uuid}
+        audit_seal_pointer: {type: string}
+
+    ShareEvent:
+      type: object
+      required: [event_id, tenant_id_hashed, document_id, grant_id, role, occurred_at, audit_seal_pointer]
+      properties:
+        event_id: {type: string, format: uuid}
+        tenant_id_hashed: {type: string}
+        document_id: {type: string, format: uuid}
+        grant_id: {type: string, format: uuid}
+        grantee_ref_hashed: {type: string}
+        role: {type: string, enum: [viewer, commenter, editor]}
+        pack_tag: {type: string}
+        occurred_at: {type: string, format: date-time}
+        audit_seal_pointer: {type: string}
+
+    ShareLinkEvent:
+      type: object
+      required: [event_id, tenant_id_hashed, document_id, share_link_id, occurred_at, audit_seal_pointer]
+      properties:
+        event_id: {type: string, format: uuid}
+        tenant_id_hashed: {type: string}
+        document_id: {type: string, format: uuid}
+        share_link_id: {type: string}
+        role: {type: string, enum: [viewer, commenter]}
+        expires_at: {type: string, format: date-time}
+        occurred_at: {type: string, format: date-time}
+        audit_seal_pointer: {type: string}
+
+    CommentEvent:
+      type: object
+      required: [event_id, tenant_id_hashed, document_id, comment_id, occurred_at, audit_seal_pointer]
+      properties:
+        event_id: {type: string, format: uuid}
+        tenant_id_hashed: {type: string}
+        document_id: {type: string, format: uuid}
+        comment_id: {type: string, format: uuid}
+        author_user_id: {type: string, format: uuid}
+        pack_tag: {type: string}
+        occurred_at: {type: string, format: date-time}
+        audit_seal_pointer: {type: string}
+
+    SuggestionEvent:
+      type: object
+      required: [event_id, tenant_id_hashed, document_id, suggestion_id, state, occurred_at, audit_seal_pointer]
+      properties:
+        event_id: {type: string, format: uuid}
+        tenant_id_hashed: {type: string}
+        document_id: {type: string, format: uuid}
+        suggestion_id: {type: string, format: uuid}
+        state: {type: string, enum: [accepted, rejected]}
+        author_user_id: {type: string, format: uuid}
+        responder_user_id: {type: string, format: uuid}
+        pack_tag: {type: string}
+        occurred_at: {type: string, format: date-time}
+        audit_seal_pointer: {type: string}
+
+    VersionEvent:
+      type: object
+      required: [event_id, tenant_id_hashed, document_id, version_id_to, version_id_from, occurred_at, audit_seal_pointer]
+      properties:
+        event_id: {type: string, format: uuid}
+        tenant_id_hashed: {type: string}
+        document_id: {type: string, format: uuid}
+        version_id_to: {type: string, format: uuid}
+        version_id_from: {type: string, format: uuid}
+        pack_tag: {type: string}
+        occurred_at: {type: string, format: date-time}
+        audit_seal_pointer: {type: string}
+
+    CrdtCompactionEvent:
+      type: object
+      required: [event_id, tenant_id_hashed, document_id, from_version_sha, to_version_sha, op_count_collapsed, occurred_at, audit_seal_pointer]
+      properties:
+        event_id: {type: string, format: uuid}
+        tenant_id_hashed: {type: string}
+        document_id: {type: string, format: uuid}
+        from_version_sha: {type: string}
+        to_version_sha: {type: string}
+        op_count_collapsed: {type: integer, format: int64}
+        pack_tag: {type: string}
+        occurred_at: {type: string, format: date-time}
+        audit_seal_pointer: {type: string}
+
+    ExportEvent:
+      type: object
+      required: [event_id, tenant_id_hashed, document_id, format, export_job_id, sha256, occurred_at, audit_seal_pointer]
+      properties:
+        event_id: {type: string, format: uuid}
+        tenant_id_hashed: {type: string}
+        document_id: {type: string, format: uuid}
+        format: {type: string}
+        export_job_id: {type: string, format: uuid}
+        sha256: {type: string}
+        pack_tag: {type: string}
+        occurred_at: {type: string, format: date-time}
+        audit_seal_pointer: {type: string}
+
+    ImportEvent:
+      type: object
+      required: [event_id, tenant_id_hashed, document_id, source_format, import_job_id, fidelity_ratio, occurred_at, audit_seal_pointer]
+      properties:
+        event_id: {type: string, format: uuid}
+        tenant_id_hashed: {type: string}
+        document_id: {type: string, format: uuid}
+        source_format: {type: string}
+        import_job_id: {type: string, format: uuid}
+        fidelity_ratio: {type: number, format: float}
+        unsupported_features: {type: array, items: {type: string}}
+        pack_tag: {type: string}
+        occurred_at: {type: string, format: date-time}
+        audit_seal_pointer: {type: string}
+
+    EmbedEvent:
+      type: object
+      required: [event_id, tenant_id_hashed, document_id, embed_ref, occurred_at, audit_seal_pointer]
+      properties:
+        event_id: {type: string, format: uuid}
+        tenant_id_hashed: {type: string}
+        document_id: {type: string, format: uuid}
+        embed_ref: {type: string}
+        source_microservice: {type: string, enum: [workflow-studio, sheets, slides]}
+        status: {type: string, enum: [refreshed, revoked, loop_detected, source_unavailable]}
+        pack_tag: {type: string}
+        occurred_at: {type: string, format: date-time}
+        audit_seal_pointer: {type: string}
+
+    LegalHoldEvent:
+      type: object
+      required: [event_id, tenant_id_hashed, document_id, hold_id, occurred_at, audit_seal_pointer]
+      properties:
+        event_id: {type: string, format: uuid}
+        tenant_id_hashed: {type: string}
+        document_id: {type: string, format: uuid}
+        hold_id: {type: string, format: uuid}
+        opened_by: {type: string, format: uuid}
+        pack_tag: {type: string}
+        occurred_at: {type: string, format: date-time}
+        audit_seal_pointer: {type: string}
+
+    CrdtOpEnvelope:
+      type: object
+      description: "Per ADR-DOCS-0001 + ADR-WS-0001 — cross-µservice consistent envelope shape."
+      required: [op_id, tenant_id_hashed, document_id, author_spiffe_identity, op_payload, signature]
+      properties:
+        op_id: {type: string, format: uuid}
+        tenant_id_hashed: {type: string}
+        document_id: {type: string, format: uuid}
+        author_spiffe_identity: {type: string}
+        op_kind: {type: string, enum: [insert, delete, update, move, format]}
+        op_payload: {type: object, additionalProperties: true}
+        loro_lamport: {type: integer, format: int64}
+        loro_peer_id: {type: string}
+        signature: {type: string, description: "Ed25519 signature at WS gateway"}
+        occurred_at: {type: string, format: date-time}
+
+    PresenceSnapshot:
+      type: object
+      required: [tenant_id_hashed, document_id, principal_user_id, cursor_block_id, last_seen_at]
+      properties:
+        tenant_id_hashed: {type: string}
+        document_id: {type: string, format: uuid}
+        principal_user_id: {type: string, format: uuid}
+        cursor_block_id: {type: string, format: uuid}
+        cursor_offset: {type: integer}
+        viewport: {type: object, additionalProperties: true}
+        last_seen_at: {type: string, format: date-time}
+
+    CrdtConflict:
+      type: object
+      required: [conflict_id, tenant_id_hashed, document_id, conflict_kind, branches]
+      properties:
+        conflict_id: {type: string, format: uuid}
+        tenant_id_hashed: {type: string}
+        document_id: {type: string, format: uuid}
+        conflict_kind: {type: string, enum: [concurrent_block_edit, concurrent_acl_change, concurrent_move]}
+        branches:
+          type: array
+          items:
+            type: object
+            properties:
+              branch_id: {type: string, format: uuid}
+              author_user_id: {type: string, format: uuid}
+              loro_lamport: {type: integer, format: int64}

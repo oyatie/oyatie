@@ -1,0 +1,421 @@
+{
+  "pack": "docs",
+  "scope_tier": "mature",
+  "scanned_files": 99,
+  "excluded_files": 3,
+  "violations": {
+    "valkey_engine": {
+      "severity": "hard",
+      "file_hits": [
+        {
+          "file": "microservices/docs/failure-modes.md",
+          "hits": [
+            {
+              "line": 23,
+              "excerpt": "- **Cause:** Loro adapter regression, op-serialisation bug, or Valkey spool eviction before persistence ack."
+            },
+            {
+              "line": 28,
+              "excerpt": "- **Mitigation hardening:** AC-06 property test in CI; pinned Loro version; Valkey AOF every-sec."
+            }
+          ],
+          "hits_total": 2
+        },
+        {
+          "file": "microservices/docs/backfill-replay.md",
+          "hits": [
+            {
+              "line": 28,
+              "excerpt": "1. **Per-doc cache rebuild** \u2014 Valkey doc-cache rebuild from canonical Postgres + S3 source (after corruption, after Cedar policy change, after upgrades)."
+            },
+            {
+              "line": 44,
+              "excerpt": "1. Acquire backfill lease in Valkey (per tenant per doc; lease TTL = 1h)."
+            },
+            {
+              "line": 47,
+              "excerpt": "4. Bulk-write to Valkey with idempotency key `(tenant_id, doc_id, version_sha)`."
+            }
+          ],
+          "hits_total": 4
+        },
+        {
+          "file": "microservices/docs/PRD.md",
+          "hits": [
+            {
+              "line": 68,
+              "excerpt": "| Document open (warm) | \u226430ms | \u2264100ms | \u2264250ms | Valkey cache hit |"
+            },
+            {
+              "line": 307,
+              "excerpt": "State strategy (per Bominal ADR-0019): `mixed`. Postgres (document metadata + per-tenant RLS); S3 (block content blobs + attachments; per-tenant prefix); Valkey (collab presence + CRDT op fan-out + per"
+            },
+            {
+              "line": 324,
+              "excerpt": "- Valkey: cluster mode; per-tenant key prefix; eviction policy `volatile-lru` for collab presence; persistent for CRDT op spool."
+            }
+          ],
+          "hits_total": 3
+        },
+        {
+          "file": "microservices/docs/dpia.md",
+          "hits": [
+            {
+              "line": 46,
+              "excerpt": "**How:** REST + WebSocket ingress \u2192 Postgres metadata store (per-tenant RLS + tenant-DEK envelope) \u2192 S3 content blobs (per-tenant prefix; Object Lock for legal-hold) \u2192 Valkey collab-presence + CRDT op "
+            },
+            {
+              "line": 48,
+              "excerpt": "**Where:** Per-pack region-pinned Postgres + S3 + Valkey (pack-kr \u2192 KR; pack-eu \u2192 EU; pack-us \u2192 US; pack-us-healthcare \u2192 BAA-eligible US; pack-jp \u2192 JP; etc.). Residency enforced via ADR-0117 + ADR-0140"
+            }
+          ],
+          "hits_total": 2
+        },
+        {
+          "file": "microservices/docs/capacity-model.md",
+          "hits": [
+            {
+              "line": 67,
+              "excerpt": "| Valkey CRDT spool memory | < 60% | 80% | shard split |"
+            },
+            {
+              "line": 94,
+              "excerpt": "### Valkey (collab presence + CRDT op spool + cache)"
+            }
+          ],
+          "hits_total": 2
+        },
+        {
+          "file": "microservices/docs/IP-001-iac-bootstrap.md",
+          "hits": [
+            {
+              "line": 16,
+              "excerpt": "# IP-001: IaC bootstrap \u2014 Helm + Kustomize for Postgres + S3 + Valkey + ClamAV + OPSWAT + gVisor"
+            },
+            {
+              "line": 20,
+              "excerpt": "Author Helm + Kustomize manifests for the docs \u00b5service substrate. Postgres 16 LTS for document metadata (per-tenant + per-block RLS per ADR-DOCS-0004); S3-compatible object storage for content blobs "
+            },
+            {
+              "line": 36,
+              "excerpt": "| `microservices/docs/iac/helm/templates/networkpolicy.yaml` | created | mesh-only ingress; egress to OpenBao + Postgres + Valkey + S3 + ClamAV + cross-\u00b5service mTLS for embed-resolver |"
+            }
+          ],
+          "hits_total": 5
+        },
+        {
+          "file": "microservices/docs/threat-model.md",
+          "hits": [
+            {
+              "line": 42,
+              "excerpt": "| Valkey 8.1 (RESP3 wire-compatible) (collab-presence + CRDT op fan-out + cache) | `oya-docs-block-types-*` (7 crates) |"
+            },
+            {
+              "line": 93,
+              "excerpt": "\u2502  Trust boundary 4: REST \u2192 Valkey (collab presence; CRDT op spool;            \u2502"
+            },
+            {
+              "line": 129,
+              "excerpt": "| CRDT op spool (transient) | `PROFESSIONAL_DOC_CONTENT` / `PERSONAL_DOC_CONTENT` (until merged + sealed) | Critical | TTL \u2264 60s | Valkey |"
+            }
+          ],
+          "hits_total": 6
+        },
+        {
+          "file": "microservices/docs/PHASE-01-DOCS-FOUNDATION.md",
+          "hits": [
+            {
+              "line": 26,
+              "excerpt": "- Valkey collab-presence + CRDT op fan-out + per-doc cache; cluster mode."
+            }
+          ],
+          "hits_total": 1
+        },
+        {
+          "file": "microservices/docs/multi-region.md",
+          "hits": [
+            {
+              "line": 22,
+              "excerpt": "| Pack | Primary region | DR region (same jurisdiction) | Postgres cluster | S3 bucket | Valkey cluster |"
+            },
+            {
+              "line": 40,
+              "excerpt": "- Postgres + S3 + Valkey clusters pack-resident; no cross-pack replication by default."
+            },
+            {
+              "line": 49,
+              "excerpt": "- Valkey: cluster mode with 1 replica per shard; DR-region replica async."
+            }
+          ],
+          "hits_total": 5
+        },
+        {
+          "file": "microservices/docs/incident-response.md",
+          "hits": [
+            {
+              "line": 146,
+              "excerpt": "4. Reconstruct CRDT op stream from Postgres seal-deltas + Valkey ephemeral state."
+            }
+          ],
+          "hits_total": 1
+        },
+        {
+          "file": "microservices/docs/cost-budget.md",
+          "hits": [
+            {
+              "line": 23,
+              "excerpt": "| Edit-op (1 CRDT op) | $0.000005 / op | Loro op + Valkey spool + audit emit |"
+            },
+            {
+              "line": 32,
+              "excerpt": "| Embed-refresh | $0.00005 / refresh | cross-\u00b5service mTLS + Valkey cache |"
+            },
+            {
+              "line": 43,
+              "excerpt": "| Valkey (collab presence + CRDT spool + cache; cluster mode 5-shard) | $1,400 | OCI Caching Service |"
+            }
+          ],
+          "hits_total": 3
+        },
+        {
+          "file": "microservices/docs/IP-007-collab-crdt-adapter-valkey-worker.md",
+          "hits": [
+            {
+              "line": 19,
+              "excerpt": "Implement PresenceBroadcast + CrdtOpSpool against Valkey 8.1 (RESP3 wire-compatible) cluster mode + a long-running WebSocket gateway worker that fans out CRDT ops via consistent-hash on `document_id`."
+            }
+          ],
+          "hits_total": 1
+        },
+        {
+          "file": "microservices/docs/runbooks/collab-conflict-resolution.md",
+          "hits": [
+            {
+              "line": 44,
+              "excerpt": "3. Verify Valkey lease integrity: `kubectl -n docs exec <valkey-pod> -- valkey-cli HGETALL \"lease:tenant:<tenant_hash>:doc:<doc_id>\"`."
+            },
+            {
+              "line": 75,
+              "excerpt": "| 2 | Reconstruct CRDT op stream from Postgres seal-deltas + Valkey ephemeral state (if still present): `cargo run -p oya-docs-collab-crdt-domain --bin reconstruct -- --tenant <h> --document <d>`. | \u2264 "
+            },
+            {
+              "line": 83,
+              "excerpt": "## Recovery Path D \u2014 Valkey lease split-brain"
+            }
+          ],
+          "hits_total": 5
+        },
+        {
+          "file": "microservices/docs/decisions/ADR-DOCS-0001-crdt-library-selection.md",
+          "hits": [
+            {
+              "line": 62,
+              "excerpt": "- Ephemeral CRDT state in Valkey (PRD \u00a7\"Horizontal Scalability\" mixed-state strategy); reconstructable from Postgres on cold-start."
+            },
+            {
+              "line": 78,
+              "excerpt": "6. **Loro snapshot encoding is used for Valkey persistence; JSON projection is used only for the canonical spec emission**."
+            }
+          ],
+          "hits_total": 2
+        },
+        {
+          "file": "microservices/docs/decisions/ADR-DOCS-0004-acl-granularity-per-block.md",
+          "hits": [
+            {
+              "line": 80,
+              "excerpt": "- Per-(doc_id, principal_id) ACL projection cache in Valkey with TTL 5min + jitter."
+            }
+          ],
+          "hits_total": 1
+        },
+        {
+          "file": "microservices/docs/policy/editor-isolation.md",
+          "hits": [
+            {
+              "line": 31,
+              "excerpt": "1. **Editor session state** (active drafts, cursor, viewport, undo history, presence) \u2014 Postgres + Valkey row-tagged by tenant_id."
+            },
+            {
+              "line": 50,
+              "excerpt": "| WebSocket gateway lease | Per (tenant_id, document_id) lease via Valkey; consistent-hash routing | WS upgrade rejected; audit `docs_ws_lease_cross_tenant` |"
+            }
+          ],
+          "hits_total": 2
+        },
+        {
+          "file": "microservices/docs/policy/data-residency.md",
+          "hits": [
+            {
+              "line": 24,
+              "excerpt": "> Every tenant's document-metadata Postgres rows + content blobs in S3 + Valkey CRDT spool live in exactly one `pack-<jurisdiction>` cluster. The pack is determined at tenant onboarding and pinned in t"
+            },
+            {
+              "line": 28,
+              "excerpt": "| pack-kr | OCI ap-seoul-1 | Postgres + S3 + Valkey cluster KR-resident |"
+            },
+            {
+              "line": 29,
+              "excerpt": "| pack-eu | OCI eu-frankfurt-1 | Postgres + S3 + Valkey cluster EU-resident |"
+            }
+          ],
+          "hits_total": 12
+        },
+        {
+          "file": "microservices/docs/catalog/oya-docs-collab-crdt-adapter-valkey.yaml",
+          "hits": [
+            {
+              "line": 22,
+              "excerpt": "Implements PresenceBroadcast + CrdtOpSpool against Valkey 8.1 (RESP3 wire-compatible) cluster mode."
+            }
+          ],
+          "hits_total": 1
+        },
+        {
+          "file": "microservices/docs/catalog/oya-docs-collab-crdt-adapter.yaml",
+          "hits": [
+            {
+              "line": 24,
+              "excerpt": "Valkey spool + Postgres persistence. Deterministic projection to canonical"
+            }
+          ],
+          "hits_total": 1
+        },
+        {
+          "file": "microservices/docs/slos/doc-open-latency.openslo.yaml",
+          "hits": [
+            {
+              "line": 19,
+              "excerpt": "Cold = no Valkey cache hit (S3 + Postgres read); warm = Valkey cache hit."
+            }
+          ],
+          "hits_total": 1
+        },
+        {
+          "file": "microservices/docs/slos/collab-cursor-sync-latency.openslo.yaml",
+          "hits": [
+            {
+              "line": 18,
+              "excerpt": "via Valkey to all subscribers in the same (tenant, doc) lease) completes"
+            }
+          ],
+          "hits_total": 1
+        },
+        {
+          "file": "microservices/docs/iac/helm/Chart.yaml",
+          "hits": [
+            {
+              "line": 7,
+              "excerpt": "Valkey (collab presence + CRDT op spool), ClamAV (attachment scanner;"
+            }
+          ],
+          "hits_total": 1
+        },
+        {
+          "file": "microservices/docs/iac/helm/templates/networkpolicy.yaml",
+          "hits": [
+            {
+              "line": 2,
+              "excerpt": "Mesh-only ingress for REST/WS; egress to OpenBao + Postgres + Valkey + S3 +"
+            },
+            {
+              "line": 67,
+              "excerpt": "# Valkey for collab-crdt + cache"
+            }
+          ],
+          "hits_total": 2
+        },
+        {
+          "file": "microservices/docs/manifest.json",
+          "hits": [
+            {
+              "line": 170,
+              "excerpt": "\"title\": \"IP-001: IaC bootstrap \u2014 Helm + Kustomize for Postgres + S3 + Valkey + ClamAV + OPSWAT + gVisor\","
+            }
+          ],
+          "hits_total": 1
+        }
+      ],
+      "match_count": 65
+    },
+    "wasmer_engine": {
+      "severity": "soft",
+      "file_hits": [
+        {
+          "file": "microservices/docs/sdk-plan.md",
+          "hits": [
+            {
+              "line": 52,
+              "excerpt": "- Python + Swift SDKs ship Loro bindings at M03-onward1 (WASM-binding via wasmer-python / WebKit-binding)."
+            }
+          ],
+          "hits_total": 1
+        }
+      ],
+      "match_count": 1
+    }
+  },
+  "ip_files_thin": [
+    {
+      "file": "microservices/docs/IP-001-iac-bootstrap.md",
+      "lines": 77
+    },
+    {
+      "file": "microservices/docs/IP-002-document-store-kernel.md",
+      "lines": 90
+    },
+    {
+      "file": "microservices/docs/IP-015-hg-docs-registration-and-branch-protection.md",
+      "lines": 77
+    },
+    {
+      "file": "microservices/docs/IP-010-sharing-and-permissions.md",
+      "lines": 44
+    },
+    {
+      "file": "microservices/docs/IP-008-comments-and-suggestions.md",
+      "lines": 42
+    },
+    {
+      "file": "microservices/docs/IP-004-document-store-adapter-postgres-and-s3.md",
+      "lines": 50
+    },
+    {
+      "file": "microservices/docs/IP-014-ai-assist-wire.md",
+      "lines": 47
+    },
+    {
+      "file": "microservices/docs/IP-003-document-store-domain-and-usecase.md",
+      "lines": 46
+    },
+    {
+      "file": "microservices/docs/IP-005-block-types-kernel-domain.md",
+      "lines": 50
+    },
+    {
+      "file": "microservices/docs/IP-011-export-import.md",
+      "lines": 55
+    },
+    {
+      "file": "microservices/docs/IP-013-rest-websocket-protocol.md",
+      "lines": 46
+    },
+    {
+      "file": "microservices/docs/IP-009-version-history.md",
+      "lines": 44
+    },
+    {
+      "file": "microservices/docs/IP-006-collab-crdt-kernel-domain.md",
+      "lines": 47
+    },
+    {
+      "file": "microservices/docs/IP-012-embed-resolver.md",
+      "lines": 46
+    },
+    {
+      "file": "microservices/docs/IP-007-collab-crdt-adapter-valkey-worker.md",
+      "lines": 45
+    }
+  ],
+  "verdict": "HARD_VIOLATIONS"
+}
