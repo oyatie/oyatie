@@ -1,0 +1,47 @@
+{
+  "title": "Quality Management health",
+  "tags": [
+    "erp",
+    "quality-management",
+    "inspection-plan",
+    "QM"
+  ],
+  "timezone": "utc",
+  "schemaVersion": 39,
+  "benchmarks": [
+    "SAP QM Quality Management",
+    "Oracle Fusion Quality Management",
+    "Workday Extend quality-workflow counterpart",
+    "NetSuite Quality Management",
+    "Microsoft Dynamics 365 Supply Chain Quality Management"
+  ],
+  "panels": [
+    {
+      "title": "inspection-plan command rate",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "sum(rate(oya_quality_management_inspection_plan_commands_total[5m])) by (tenant_id)"
+        }
+      ]
+    },
+    {
+      "title": "inspection-plan p99 latency",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.99, sum(rate(oya_quality_management_inspection_plan_latency_seconds_bucket[5m])) by (le, tenant_id))"
+        }
+      ]
+    },
+    {
+      "title": "inspection-plan audit events",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "sum(rate(audit_events_total{service=\"quality-management\",bounded_context=\"inspection-plan\"}[5m]))"
+        }
+      ]
+    }
+  ]
+}

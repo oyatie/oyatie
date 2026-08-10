@@ -1,0 +1,153 @@
+asyncapi: 3.1.0
+info:
+  title: Quality Management Events
+  version: 1.0.0
+  description: AsyncAPI 3.1.0 channels for SAP QM parity events.
+defaultContentType: application/json
+channels:
+  quality-management.inspection-plan.events.v1:
+    address: quality-management.inspection-plan.events.v1
+    messages:
+      InspectionPlanChanged:
+        $ref: "#/components/messages/InspectionPlanChanged"
+  quality-management.inspection-lot.events.v1:
+    address: quality-management.inspection-lot.events.v1
+    messages:
+      InspectionLotChanged:
+        $ref: "#/components/messages/InspectionLotChanged"
+  quality-management.certificate-of-analysis.events.v1:
+    address: quality-management.certificate-of-analysis.events.v1
+    messages:
+      CertificateOfAnalysisChanged:
+        $ref: "#/components/messages/CertificateOfAnalysisChanged"
+  quality-management.quality-notification.events.v1:
+    address: quality-management.quality-notification.events.v1
+    messages:
+      QualityNotificationChanged:
+        $ref: "#/components/messages/QualityNotificationChanged"
+  quality-management.quality-hold.events.v1:
+    address: quality-management.quality-hold.events.v1
+    messages:
+      QualityHoldChanged:
+        $ref: "#/components/messages/QualityHoldChanged"
+  quality-management.audit-evidence.events.v1:
+    address: quality-management.audit-evidence.events.v1
+    messages:
+      AuditEvidenceChanged:
+        $ref: "#/components/messages/AuditEvidenceChanged"
+components:
+  messages:
+    InspectionPlanChanged:
+      name: InspectionPlanChanged
+      payload:
+        type: object
+        required: [tenant_id, audit_event_class, bounded_context, occurred_at]
+        properties:
+          tenant_id:
+            type: string
+          audit_event_class:
+            type: string
+            const: EVT-QUALITY_MANAGEMENT-INSPECTION_PLAN-CHANGED
+          bounded_context:
+            type: string
+            const: inspection-plan
+          marketplace_settlement_ref:
+            type: string
+          occurred_at:
+            type: string
+            format: date-time
+    InspectionLotChanged:
+      name: InspectionLotChanged
+      payload:
+        type: object
+        required: [tenant_id, audit_event_class, bounded_context, occurred_at]
+        properties:
+          tenant_id:
+            type: string
+          audit_event_class:
+            type: string
+            const: EVT-QUALITY_MANAGEMENT-INSPECTION_LOT-CHANGED
+          bounded_context:
+            type: string
+            const: inspection-lot
+          marketplace_settlement_ref:
+            type: string
+          occurred_at:
+            type: string
+            format: date-time
+    CertificateOfAnalysisChanged:
+      name: CertificateOfAnalysisChanged
+      payload:
+        type: object
+        required: [tenant_id, audit_event_class, bounded_context, occurred_at]
+        properties:
+          tenant_id:
+            type: string
+          audit_event_class:
+            type: string
+            const: EVT-QUALITY_MANAGEMENT-CERTIFICATE_OF_ANALYSIS-CHANGED
+          bounded_context:
+            type: string
+            const: certificate-of-analysis
+          marketplace_settlement_ref:
+            type: string
+          occurred_at:
+            type: string
+            format: date-time
+    QualityNotificationChanged:
+      name: QualityNotificationChanged
+      payload:
+        type: object
+        required: [tenant_id, audit_event_class, bounded_context, occurred_at]
+        properties:
+          tenant_id:
+            type: string
+          audit_event_class:
+            type: string
+            const: EVT-QUALITY_MANAGEMENT-QUALITY_NOTIFICATION-CHANGED
+          bounded_context:
+            type: string
+            const: quality-notification
+          marketplace_settlement_ref:
+            type: string
+          occurred_at:
+            type: string
+            format: date-time
+    QualityHoldChanged:
+      name: QualityHoldChanged
+      payload:
+        type: object
+        required: [tenant_id, audit_event_class, bounded_context, occurred_at]
+        properties:
+          tenant_id:
+            type: string
+          audit_event_class:
+            type: string
+            const: EVT-QUALITY_MANAGEMENT-QUALITY_HOLD-CHANGED
+          bounded_context:
+            type: string
+            const: quality-hold
+          marketplace_settlement_ref:
+            type: string
+          occurred_at:
+            type: string
+            format: date-time
+    AuditEvidenceChanged:
+      name: AuditEvidenceChanged
+      payload:
+        type: object
+        required: [tenant_id, audit_event_class, bounded_context, occurred_at]
+        properties:
+          tenant_id:
+            type: string
+          audit_event_class:
+            type: string
+            const: EVT-QUALITY_MANAGEMENT-AUDIT_EVIDENCE-CHANGED
+          bounded_context:
+            type: string
+            const: audit-evidence
+          marketplace_settlement_ref:
+            type: string
+          occurred_at:
+            type: string
+            format: date-time

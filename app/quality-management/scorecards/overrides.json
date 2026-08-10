@@ -1,0 +1,33 @@
+{
+  "schema_version": "1.0",
+  "service": "quality-management",
+  "date": "2026-05-21",
+  "operating_bar_artifact_target": 100,
+  "required_contracts": [
+    "OpenAPI 3.2.0",
+    "AsyncAPI 3.1.0",
+    "proto3",
+    "BNF v4.1",
+    "ADR-0105"
+  ],
+  "required_transport": [
+    "HTTP/3",
+    "HTTP/2 fallback",
+    "HTTP/1.1 fallback",
+    "ECH",
+    "PQC hybrid where supported"
+  ],
+  "benchmarks": [
+    "SAP QM Quality Management",
+    "Oracle Fusion Quality Management",
+    "Workday Extend quality-workflow counterpart",
+    "NetSuite Quality Management",
+    "Microsoft Dynamics 365 Supply Chain Quality Management"
+  ],
+  "scorecards": {
+    "doc_set": "blocker-after-2026-07-15",
+    "adr_adherence": "blocker-after-2026-07-15",
+    "abuse_defence_ux_floor": "required",
+    "emergency_services_bypass": "required"
+  }
+}
