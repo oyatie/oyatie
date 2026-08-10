@@ -6,7 +6,7 @@
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
     "spec_id": "EXE-INTEG-BRANCH-ENVELOPES",
-    "version": "1.5.0",
+    "version": "1.6.0",
     "status": "Proposed",
     "owner_team": "council-architecture",
     "created_at": "2026-08-10T00:00:00Z",
@@ -249,24 +249,6 @@
         "claiming_branch": "integ/specs",
         "reason": "Ignore .check/ daemon machine output colocated with tools/swarm check-daemon.",
         "expires_at_or_wave": "wave-after-integ-tools-first-land"
-      },
-      {
-        "path_glob": "plan/**",
-        "claiming_branch": "integ/governance",
-        "reason": "W1 reorg_now: move plan/ into governance/corpus/ (Amendment B first_wave W1-plan-to-governance).",
-        "expires_at_or_wave": "wave-after-plan-vacated"
-      },
-      {
-        "path_glob": "scripts/**",
-        "claiming_branch": "integ/ci",
-        "reason": "W1 reorg_now: absorb/delete scripts/ into ci/build (Amendment B first_wave W1-scripts-absorb).",
-        "expires_at_or_wave": "wave-after-scripts-vacated"
-      },
-      {
-        "path_glob": ".omc/**",
-        "claiming_branch": "integ/specs",
-        "reason": "W1 delete_permanently: remove tracked OMC residue (Amendment B).",
-        "expires_at_or_wave": "wave-after-omc-deleted"
       }
     ]
   },
@@ -425,7 +407,8 @@
         "reason": "Phase A process-kit land; immediately schedule reorg_now of tools/swarm → .grok/ after merge",
         "expires_when": "integ/specs#1644 squash-merged to origin/dev"
       }
-    ]
+    ],
+    "judgment_gate": "See reorg_debt_freeze.evaluation_gate — path changes require judgment_status=done"
   },
   "reorg_debt_freeze": {
     "authority": "docs/decisions/ADR-0711-swarm-delivery-law-integ-branch-topology.md#Amendment-B",
@@ -631,764 +614,1150 @@
         "action": "keep_forever",
         "greenfield_destination": "docs/",
         "shape": "PLANE hub: operating contract, indexes, live ADRs, standards, archive only",
-        "note": "Growth only for cross-cutting hubs; product dumps must leave"
+        "note": "Growth only for cross-cutting hubs; product dumps must leave",
+        "redesign": "none",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `docs/` → `docs/` (PLANE hub: operating contract, indexes, live ADRs, standards, archive only). Full 7-point judgment still pending before structural change.",
+        "destination": "docs/"
       },
       {
         "path": "docs/AGENTS.md",
         "action": "keep_forever",
         "greenfield_destination": "docs/AGENTS.md",
-        "shape": "operating-contract apex"
+        "shape": "operating-contract apex",
+        "redesign": "none",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `docs/AGENTS.md` → `docs/AGENTS.md` (operating-contract apex). Full 7-point judgment still pending before structural change.",
+        "destination": "docs/AGENTS.md"
       },
       {
         "path": "docs/decisions/",
         "action": "keep_forever",
         "greenfield_destination": "docs/decisions/",
-        "shape": "live ADR apex files only"
+        "shape": "live ADR apex files only",
+        "redesign": "none",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `docs/decisions/` → `docs/decisions/` (live ADR apex files only). Full 7-point judgment still pending before structural change.",
+        "destination": "docs/decisions/"
       },
       {
         "path": "docs/adr-archive/",
         "action": "keep_forever",
         "greenfield_destination": "docs/adr-archive/",
-        "shape": "historical ADR archive (read-only growth via supersession)"
+        "shape": "historical ADR archive (read-only growth via supersession)",
+        "redesign": "none",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `docs/adr-archive/` → `docs/adr-archive/` (historical ADR archive (read-only growth via supersession)). Full 7-point judgment still pending before structural change.",
+        "destination": "docs/adr-archive/"
       },
       {
         "path": "docs/standards/",
         "action": "keep_forever",
         "greenfield_destination": "docs/standards/",
-        "shape": "cross-cutting engineering standards hub"
+        "shape": "cross-cutting engineering standards hub",
+        "redesign": "none",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `docs/standards/` → `docs/standards/` (cross-cutting engineering standards hub). Full 7-point judgment still pending before structural change.",
+        "destination": "docs/standards/"
       },
       {
         "path": "docs/ADR-INDEX.md",
         "action": "keep_forever",
         "greenfield_destination": "docs/ADR-INDEX.md",
-        "shape": "hub index"
+        "shape": "hub index",
+        "redesign": "none",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `docs/ADR-INDEX.md` → `docs/ADR-INDEX.md` (hub index). Full 7-point judgment still pending before structural change.",
+        "destination": "docs/ADR-INDEX.md"
       },
       {
         "path": "docs/DOC-CATALOG.md",
         "action": "keep_forever",
         "greenfield_destination": "docs/DOC-CATALOG.md",
-        "shape": "hub catalog (until machine index replaces)"
+        "shape": "hub catalog (until machine index replaces)",
+        "redesign": "none",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `docs/DOC-CATALOG.md` → `docs/DOC-CATALOG.md` (hub catalog (until machine index replaces)). Full 7-point judgment still pending before structural change.",
+        "destination": "docs/DOC-CATALOG.md"
       },
       {
         "path": "docs/CHANGELOG.md",
         "action": "keep_forever",
         "greenfield_destination": "docs/CHANGELOG.md",
-        "shape": "hub changelog"
+        "shape": "hub changelog",
+        "redesign": "none",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `docs/CHANGELOG.md` → `docs/CHANGELOG.md` (hub changelog). Full 7-point judgment still pending before structural change.",
+        "destination": "docs/CHANGELOG.md"
       },
       {
         "path": "docs/templates/",
         "action": "reorg_now",
         "greenfield_destination": "templates/",
         "shape": "merge unique templates into root templates/; delete dual-home",
-        "note": "overlap with templates/ is dual-home debt"
+        "note": "overlap with templates/ is dual-home debt",
+        "redesign": "rewrite",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL reorg_now → `templates/` shape `merge unique templates into root templates/; delete dual-home`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
+        "destination": "templates/"
       },
       {
         "path": "docs/products/",
         "action": "reorg_now",
         "greenfield_destination": "<capability>/ or app/<product>/",
-        "shape": "owner-colocated product docs (g3doc)"
+        "shape": "owner-colocated product docs (g3doc)",
+        "redesign": "rewrite",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL reorg_now → `<capability>/ or app/<product>/` shape `owner-colocated product docs (g3doc)`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
+        "destination": "<capability>/ or app/<product>/"
       },
       {
         "path": "docs/programs/",
         "action": "reorg_now",
         "greenfield_destination": "governance/corpus/programs/ or owning capability",
-        "shape": "program dossiers leave central docs"
+        "shape": "program dossiers leave central docs",
+        "redesign": "rewrite",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL reorg_now → `governance/corpus/programs/ or owning capability` shape `program dossiers leave central docs`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
+        "destination": "governance/corpus/programs/ or owning capability"
       },
       {
         "path": "docs/audit/",
         "action": "reorg_now",
         "greenfield_destination": "audit/",
-        "shape": "capability-owned audit docs (~233 files)"
+        "shape": "capability-owned audit docs (~233 files)",
+        "redesign": "rewrite",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL reorg_now → `audit/` shape `capability-owned audit docs (~233 files)`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
+        "destination": "audit/"
       },
       {
         "path": "docs/ci/",
         "action": "reorg_now",
         "greenfield_destination": "ci/",
-        "shape": "capability-owned CI docs"
+        "shape": "capability-owned CI docs",
+        "redesign": "rewrite",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL reorg_now → `ci/` shape `capability-owned CI docs`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
+        "destination": "ci/"
       },
       {
         "path": "docs/architecture/",
         "action": "reorg_now",
         "greenfield_destination": "docs/decisions/ + capability ARCH.md",
-        "shape": "keep only cross-cutting; rest colocate"
+        "shape": "keep only cross-cutting; rest colocate",
+        "redesign": "rewrite",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL reorg_now → `docs/decisions/ + capability ARCH.md` shape `keep only cross-cutting; rest colocate`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
+        "destination": "docs/decisions/ + capability ARCH.md"
       },
       {
         "path": "docs/plans/",
         "action": "reorg_now",
         "greenfield_destination": "specs/masterplan.json + beads",
-        "shape": "plan authority is masterplan v2; retire prose dumps"
+        "shape": "plan authority is masterplan v2; retire prose dumps",
+        "redesign": "rewrite",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL reorg_now → `specs/masterplan.json + beads` shape `plan authority is masterplan v2; retire prose dumps`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
+        "destination": "specs/masterplan.json + beads"
       },
       {
         "path": "docs/prds/",
         "action": "reorg_now",
         "greenfield_destination": "<capability>/PRD.md or app/<product>/",
-        "shape": "product PRDs colocate"
+        "shape": "product PRDs colocate",
+        "redesign": "rewrite",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL reorg_now → `<capability>/PRD.md or app/<product>/` shape `product PRDs colocate`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
+        "destination": "<capability>/PRD.md or app/<product>/"
       },
       {
         "path": "docs/runbooks/",
         "action": "reorg_now",
         "greenfield_destination": "<capability>/runbooks/",
-        "shape": "owner-colocated runbooks; keep RUNBOOKS-INDEX hub"
+        "shape": "owner-colocated runbooks; keep RUNBOOKS-INDEX hub",
+        "redesign": "rewrite",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL reorg_now → `<capability>/runbooks/` shape `owner-colocated runbooks; keep RUNBOOKS-INDEX hub`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
+        "destination": "<capability>/runbooks/"
       },
       {
         "path": "docs/localization-packs/",
         "action": "reorg_now",
         "greenfield_destination": "compliance/packs/ or packs→compliance",
-        "shape": "jurisdiction packs with compliance capability"
+        "shape": "jurisdiction packs with compliance capability",
+        "redesign": "rewrite",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL reorg_now → `compliance/packs/ or packs→compliance` shape `jurisdiction packs with compliance capability`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
+        "destination": "compliance/packs/ or packs→compliance"
       },
       {
         "path": "docs/regional-packs/",
         "action": "reorg_now",
         "greenfield_destination": "compliance/packs/",
-        "shape": "same as localization"
+        "shape": "same as localization",
+        "redesign": "rewrite",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL reorg_now → `compliance/packs/` shape `same as localization`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
+        "destination": "compliance/packs/"
       },
       {
         "path": "docs/raw/",
         "action": "delete_permanently",
         "greenfield_destination": "(none)",
-        "shape": "throwaway drafts; never authoritative"
+        "shape": "(removed)",
+        "redesign": "delete",
+        "judgment_status": "done",
+        "disposition": "delete-permanently",
+        "rationale": "1) Five May-2026 planning/adversarial draft markdowns (fabric PRD, foundry challenge, VCS report, big-tech cycle, claude-code backup). No runtime callers; not imported by gates. 2) Prose drafts with doc_status published incorrectly; throwaway by contract. 3) Early planning — superseded by specs/masterplan.json + ADR-0700..0711. 4) Must not exist as citeable corpus. 5) Antipattern: drafts presented as published; dual-authority risk. 6) delete-permanently. 7) Greenfield: no docs/raw/; drafts stay local or beads, never in tree.",
+        "evidence": [
+          "docs/AGENTS.md: docs/raw/ throwaway; never cite",
+          "file headers: Status Actionable planning / Ralplan report; no implementation"
+        ],
+        "destination_integ": "integ/docs",
+        "land_when": "judgment done — open delete on integ/docs with this rationale in PR body",
+        "destination": "(none)"
       },
       {
         "path": "docs/ideas/",
         "action": "delete_permanently",
         "greenfield_destination": "(none)",
-        "shape": "harvest any keeper into bead then delete"
+        "shape": "harvest any keeper into bead then delete",
+        "redesign": "delete",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL delete_permanently candidate `docs/ideas/`. Judgment pending — do not path-change yet.",
+        "destination": "(none)"
       },
       {
         "path": "docs/foundry/",
         "action": "reorg_now",
         "greenfield_destination": "intelligence/ or retire",
-        "shape": "foundry brand residue"
+        "shape": "foundry brand residue",
+        "redesign": "rewrite",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL reorg_now → `intelligence/ or retire` shape `foundry brand residue`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
+        "destination": "intelligence/ or retire"
       },
       {
         "path": "docs/harness/",
         "action": "delete_permanently",
         "greenfield_destination": "(none)",
-        "shape": "retired harness docs (ADR-0709 lineage)"
+        "shape": "(removed)",
+        "redesign": "delete",
+        "judgment_status": "done",
+        "disposition": "delete-permanently",
+        "rationale": "1) Single report docs/harness/feature-currency-2026-05.md — backlog #71 changelog-currency for Claude/Codex features; scopes .claude/.codex/tools/hooks. No gate consumer. 2) Point-in-time inventory prose; harness standard already retirement tombstone. 3) Currency tracking for retired coordination brands — not north-star product. 4) Should not exist; live harness guidance is docs/AGENTS.md appendices + runtime skills. 5) Antipattern: documenting/expanding retired harness surface. 6) delete-permanently. 7) Greenfield: no docs/harness/; process notes in .grok evidence if needed.",
+        "evidence": [
+          "docs/AGENTS.md Claude appendix: harness standard is retirement tombstone ADR-0619/0709",
+          "file self-describes backlog #71 scope limited to harness dirs"
+        ],
+        "destination_integ": "integ/docs",
+        "land_when": "judgment done — open delete on integ/docs with this rationale in PR body",
+        "destination": "(none)"
       },
       {
         "path": "docs/implementation-plans/",
         "action": "reorg_now",
         "greenfield_destination": "<capability>/IPs/ + beads",
-        "shape": "IPs colocate; tracking in beads"
+        "shape": "IPs colocate; tracking in beads",
+        "redesign": "rewrite",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL reorg_now → `<capability>/IPs/ + beads` shape `IPs colocate; tracking in beads`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
+        "destination": "<capability>/IPs/ + beads"
       },
       {
         "path": "specs/",
         "action": "keep_forever",
         "greenfield_destination": "specs/",
-        "shape": "PLANE hub: cross-cutting machine-readable authority only"
+        "shape": "PLANE hub: cross-cutting machine-readable authority only",
+        "redesign": "none",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `specs/` → `specs/` (PLANE hub: cross-cutting machine-readable authority only). Full 7-point judgment still pending before structural change.",
+        "destination": "specs/"
       },
       {
         "path": "specs/capability-registry.json",
         "action": "keep_forever",
         "greenfield_destination": "specs/capability-registry.json",
-        "shape": "closed registry (eventual governance/ copy is same hub move later if desired; keep SSOT)"
+        "shape": "closed registry (eventual governance/ copy is same hub move later if desired; keep SSOT)",
+        "redesign": "none",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `specs/capability-registry.json` → `specs/capability-registry.json` (closed registry (eventual governance/ copy is same hub move later if desired; keep SSOT)). Full 7-point judgment still pending before structural change.",
+        "destination": "specs/capability-registry.json"
       },
       {
         "path": "specs/root-hub-pointers.json",
         "action": "keep_forever",
         "greenfield_destination": "specs/root-hub-pointers.json",
-        "shape": "entry hub"
+        "shape": "entry hub",
+        "redesign": "none",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `specs/root-hub-pointers.json` → `specs/root-hub-pointers.json` (entry hub). Full 7-point judgment still pending before structural change.",
+        "destination": "specs/root-hub-pointers.json"
       },
       {
         "path": "specs/masterplan.json",
         "action": "keep_forever",
         "greenfield_destination": "specs/masterplan.json",
-        "shape": "live plan authority"
+        "shape": "live plan authority",
+        "redesign": "none",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `specs/masterplan.json` → `specs/masterplan.json` (live plan authority). Full 7-point judgment still pending before structural change.",
+        "destination": "specs/masterplan.json"
       },
       {
         "path": "specs/integ-branch-envelopes.json",
         "action": "keep_forever",
         "greenfield_destination": "specs/integ-branch-envelopes.json",
-        "shape": "Swarm Delivery Law policy-as-data"
+        "shape": "Swarm Delivery Law policy-as-data",
+        "redesign": "none",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `specs/integ-branch-envelopes.json` → `specs/integ-branch-envelopes.json` (Swarm Delivery Law policy-as-data). Full 7-point judgment still pending before structural change.",
+        "destination": "specs/integ-branch-envelopes.json"
       },
       {
         "path": "specs/markdown-retirement-policy.json",
         "action": "keep_forever",
         "greenfield_destination": "specs/markdown-retirement-policy.json",
-        "shape": "docs lifecycle policy"
+        "shape": "docs lifecycle policy",
+        "redesign": "none",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `specs/markdown-retirement-policy.json` → `specs/markdown-retirement-policy.json` (docs lifecycle policy). Full 7-point judgment still pending before structural change.",
+        "destination": "specs/markdown-retirement-policy.json"
       },
       {
         "path": "specs/reorg/",
         "action": "keep_forever",
         "greenfield_destination": "specs/reorg/",
-        "shape": "executable move-plan hub (singleton live plan)"
+        "shape": "executable move-plan hub (singleton live plan)",
+        "redesign": "none",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `specs/reorg/` → `specs/reorg/` (executable move-plan hub (singleton live plan)). Full 7-point judgment still pending before structural change.",
+        "destination": "specs/reorg/"
       },
       {
         "path": "specs/microservices/",
         "action": "reorg_now",
         "greenfield_destination": "<capability>/manifest + contracts",
-        "shape": "type-dump of product specs; colocate or delete superseded JSON"
+        "shape": "type-dump of product specs; colocate or delete superseded JSON",
+        "redesign": "rewrite",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL reorg_now → `<capability>/manifest + contracts` shape `type-dump of product specs; colocate or delete superseded JSON`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
+        "destination": "<capability>/manifest + contracts"
       },
       {
         "path": "specs/products/",
         "action": "reorg_now",
         "greenfield_destination": "app/<product>/ or capability facade",
-        "shape": "product composition specs"
+        "shape": "product composition specs",
+        "redesign": "rewrite",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL reorg_now → `app/<product>/ or capability facade` shape `product composition specs`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
+        "destination": "app/<product>/ or capability facade"
       },
       {
         "path": "specs/capabilities/",
         "action": "reorg_now",
         "greenfield_destination": "<capability>/ or keep only cross-cutting schemas in specs/",
-        "shape": "split: cross-cutting schemas KEEP; per-capability MOVE"
+        "shape": "split: cross-cutting schemas KEEP; per-capability MOVE",
+        "redesign": "rewrite",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL reorg_now → `<capability>/ or keep only cross-cutting schemas in specs/` shape `split: cross-cutting schemas KEEP; per-capability MOVE`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
+        "destination": "<capability>/ or keep only cross-cutting schemas in specs/"
       },
       {
         "path": "specs/catalog/",
         "action": "reorg_now",
         "greenfield_destination": "registry/catalog/",
-        "shape": "crate/catalog authority is registry/"
+        "shape": "crate/catalog authority is registry/",
+        "redesign": "rewrite",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL reorg_now → `registry/catalog/` shape `crate/catalog authority is registry/`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
+        "destination": "registry/catalog/"
       },
       {
         "path": "specs/ip/",
         "action": "reorg_now",
         "greenfield_destination": "<capability>/IPs/",
-        "shape": "implementation plans colocate"
+        "shape": "implementation plans colocate",
+        "redesign": "rewrite",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL reorg_now → `<capability>/IPs/` shape `implementation plans colocate`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
+        "destination": "<capability>/IPs/"
       },
       {
         "path": "specs/lifecycle-configs/",
         "action": "delete_permanently",
         "greenfield_destination": "(none)",
-        "shape": "absorbed residuals; do not rebirth"
+        "shape": "absorbed residuals; do not rebirth",
+        "redesign": "delete",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL delete_permanently candidate `specs/lifecycle-configs/`. Judgment pending — do not path-change yet.",
+        "destination": "(none)"
       },
       {
         "path": "specs/fixtures/",
         "action": "keep_forever",
         "greenfield_destination": "specs/fixtures/",
-        "shape": "cross-cutting gate fixtures only"
+        "shape": "cross-cutting gate fixtures only",
+        "redesign": "none",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `specs/fixtures/` → `specs/fixtures/` (cross-cutting gate fixtures only). Full 7-point judgment still pending before structural change.",
+        "destination": "specs/fixtures/"
       },
       {
         "path": "specs/openslo/",
         "action": "reorg_now",
         "greenfield_destination": "<capability>/slos/*.openslo.yaml",
-        "shape": "SLO authoring colocated per service doctrine"
+        "shape": "SLO authoring colocated per service doctrine",
+        "redesign": "rewrite",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL reorg_now → `<capability>/slos/*.openslo.yaml` shape `SLO authoring colocated per service doctrine`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
+        "destination": "<capability>/slos/*.openslo.yaml"
       },
       {
         "path": "specs/policy/",
         "action": "reorg_now",
         "greenfield_destination": "policy/ (new capability root) + iam leftovers",
-        "shape": "policy capability home"
+        "shape": "policy capability home",
+        "redesign": "rewrite",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL reorg_now → `policy/ (new capability root) + iam leftovers` shape `policy capability home`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
+        "destination": "policy/ (new capability root) + iam leftovers"
       },
       {
         "path": "specs/proto/",
         "action": "reorg_now",
         "greenfield_destination": "contracts/proto/ or capability contracts/",
-        "shape": "API contracts hub"
+        "shape": "API contracts hub",
+        "redesign": "rewrite",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL reorg_now → `contracts/proto/ or capability contracts/` shape `API contracts hub`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
+        "destination": "contracts/proto/ or capability contracts/"
       },
       {
         "path": "specs/regions/",
         "action": "reorg_now",
         "greenfield_destination": "compliance/packs/",
-        "shape": "regional regime data with compliance"
+        "shape": "regional regime data with compliance",
+        "redesign": "rewrite",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL reorg_now → `compliance/packs/` shape `regional regime data with compliance`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
+        "destination": "compliance/packs/"
       },
       {
         "path": "specs/regulatory-regimes/",
         "action": "reorg_now",
         "greenfield_destination": "compliance/",
-        "shape": "compliance-owned"
+        "shape": "compliance-owned",
+        "redesign": "rewrite",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL reorg_now → `compliance/` shape `compliance-owned`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
+        "destination": "compliance/"
       },
       {
         "path": "specs/design-system/",
         "action": "reorg_now",
         "greenfield_destination": "console/ or app/shell/",
-        "shape": "UI design system with console/app"
+        "shape": "UI design system with console/app",
+        "redesign": "rewrite",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL reorg_now → `console/ or app/shell/` shape `UI design system with console/app`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
+        "destination": "console/ or app/shell/"
       },
       {
         "path": "specs/k8s-port/",
         "action": "reorg_now",
         "greenfield_destination": "k8s/ or build/port-engine/",
-        "shape": "port programme artifacts with owners"
+        "shape": "port programme artifacts with owners",
+        "redesign": "rewrite",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL reorg_now → `k8s/ or build/port-engine/` shape `port programme artifacts with owners`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
+        "destination": "k8s/ or build/port-engine/"
       },
       {
         "path": "specs/audit-event-class-registry.json",
         "action": "reorg_now",
         "greenfield_destination": "audit/audit-event-class-registry.json",
-        "shape": "dual-home with audit/; single SSOT at audit/"
+        "shape": "dual-home with audit/; single SSOT at audit/",
+        "redesign": "rewrite",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL reorg_now → `audit/audit-event-class-registry.json` shape `dual-home with audit/; single SSOT at audit/`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
+        "destination": "audit/audit-event-class-registry.json"
       },
       {
         "path": "plan/",
         "action": "reorg_now",
         "greenfield_destination": "governance/corpus/plan/ + beads",
-        "shape": "no top-level plan dump in greenfield"
+        "shape": "no top-level plan dump in greenfield",
+        "redesign": "rewrite",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL reorg_now → `governance/corpus/plan/ + beads` shape `no top-level plan dump in greenfield`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
+        "destination": "governance/corpus/plan/ + beads"
       },
       {
         "path": "plan/fabric-loop/",
         "action": "reorg_now",
         "greenfield_destination": "governance/corpus/fabric-loop/",
-        "shape": "governance graph substrate"
+        "shape": "governance graph substrate",
+        "redesign": "rewrite",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL reorg_now → `governance/corpus/fabric-loop/` shape `governance graph substrate`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
+        "destination": "governance/corpus/fabric-loop/"
       },
       {
         "path": "templates/",
         "action": "keep_forever",
         "greenfield_destination": "templates/",
-        "shape": "PLANE: single template hub (authority chain)"
+        "shape": "PLANE: single template hub (authority chain)",
+        "redesign": "none",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `templates/` → `templates/` (PLANE: single template hub (authority chain)). Full 7-point judgment still pending before structural change.",
+        "destination": "templates/"
       },
       {
         "path": "templates/checklists/",
         "action": "keep_forever",
         "greenfield_destination": "templates/checklists/",
-        "shape": "cross-cutting checklists"
+        "shape": "cross-cutting checklists",
+        "redesign": "none",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `templates/checklists/` → `templates/checklists/` (cross-cutting checklists). Full 7-point judgment still pending before structural change.",
+        "destination": "templates/checklists/"
       },
       {
         "path": "governance/",
         "action": "keep_forever",
         "greenfield_destination": "governance/",
-        "shape": "META: checks + corpus off runtime ladder"
+        "shape": "META: checks + corpus off runtime ladder",
+        "redesign": "none",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `governance/` → `governance/` (META: checks + corpus off runtime ladder). Full 7-point judgment still pending before structural change.",
+        "destination": "governance/"
       },
       {
         "path": "governance/check/",
         "action": "keep_forever",
         "greenfield_destination": "governance/check/",
-        "shape": "hermetic gate engines + policy-as-data"
+        "shape": "hermetic gate engines + policy-as-data",
+        "redesign": "none",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `governance/check/` → `governance/check/` (hermetic gate engines + policy-as-data). Full 7-point judgment still pending before structural change.",
+        "destination": "governance/check/"
       },
       {
         "path": "governance/corpus/",
         "action": "keep_forever",
         "greenfield_destination": "governance/corpus/",
-        "shape": "living monorepo governance graph"
+        "shape": "living monorepo governance graph",
+        "redesign": "none",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `governance/corpus/` → `governance/corpus/` (living monorepo governance graph). Full 7-point judgment still pending before structural change.",
+        "destination": "governance/corpus/"
       },
       {
         "path": "flags/",
         "action": "keep_forever",
         "greenfield_destination": "flags/{core,ports,adapters,facade}/",
-        "shape": "registered capability; finish clean-arch faces"
+        "shape": "registered capability; finish clean-arch faces",
+        "redesign": "none",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `flags/` → `flags/{core,ports,adapters,facade}/` (registered capability; finish clean-arch faces). Full 7-point judgment still pending before structural change.",
+        "destination": "flags/{core,ports,adapters,facade}/"
       },
       {
         "path": "flags/policy/",
         "action": "keep_forever",
         "greenfield_destination": "flags/policy/ or policy/ if PDP-shared",
-        "shape": "keep unless pure PDP extract"
+        "shape": "keep unless pure PDP extract",
+        "redesign": "none",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `flags/policy/` → `flags/policy/ or policy/ if PDP-shared` (keep unless pure PDP extract). Full 7-point judgment still pending before structural change.",
+        "destination": "flags/policy/ or policy/ if PDP-shared"
       },
       {
         "path": "audit/",
         "action": "keep_forever",
         "greenfield_destination": "audit/{core,ports,adapters,facade}/",
-        "shape": "registered capability; already faced"
+        "shape": "registered capability; already faced",
+        "redesign": "none",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `audit/` → `audit/{core,ports,adapters,facade}/` (registered capability; already faced). Full 7-point judgment still pending before structural change.",
+        "destination": "audit/{core,ports,adapters,facade}/"
       },
       {
         "path": "audit/audit-event-class-registry.json",
         "action": "keep_forever",
         "greenfield_destination": "audit/audit-event-class-registry.json",
-        "shape": "SSOT after specs dual deleted"
+        "shape": "SSOT after specs dual deleted",
+        "redesign": "none",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `audit/audit-event-class-registry.json` → `audit/audit-event-class-registry.json` (SSOT after specs dual deleted). Full 7-point judgment still pending before structural change.",
+        "destination": "audit/audit-event-class-registry.json"
       },
       {
         "path": "libs/",
         "action": "reorg_now",
         "greenfield_destination": "base/ (≥3 caps) + owning capability core/",
-        "shape": "ADR-0701 base/ + faces; rule-of-two ends"
+        "shape": "ADR-0701 base/ + faces; rule-of-two ends",
+        "redesign": "rewrite",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL reorg_now → `base/ (≥3 caps) + owning capability core/` shape `ADR-0701 base/ + faces; rule-of-two ends`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
+        "destination": "base/ (≥3 caps) + owning capability core/"
       },
       {
         "path": "cloud/",
         "action": "reorg_now",
         "greenfield_destination": "os/, kernel/, <capability>/, build/",
-        "shape": "strangler source → durable meta/capability homes"
+        "shape": "strangler source → durable meta/capability homes",
+        "redesign": "rewrite",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL reorg_now → `os/, kernel/, <capability>/, build/` shape `strangler source → durable meta/capability homes`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
+        "destination": "os/, kernel/, <capability>/, build/"
       },
       {
         "path": "oya/",
         "action": "reorg_now",
         "greenfield_destination": "<capability>/ + app/<product>/",
-        "shape": "product dump → capability/app homes"
+        "shape": "product dump → capability/app homes",
+        "redesign": "rewrite",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL reorg_now → `<capability>/ + app/<product>/` shape `product dump → capability/app homes`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
+        "destination": "<capability>/ + app/<product>/"
       },
       {
         "path": "infra/",
         "action": "reorg_now",
         "greenfield_destination": "build/, ci/, .grok/, iac/",
-        "shape": "split by concern; no infra junk-drawer"
+        "shape": "split by concern; no infra junk-drawer",
+        "redesign": "rewrite",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL reorg_now → `build/, ci/, .grok/, iac/` shape `split by concern; no infra junk-drawer`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
+        "destination": "build/, ci/, .grok/, iac/"
       },
       {
         "path": "toolchains/",
         "action": "reorg_now",
         "greenfield_destination": "build/toolchains/",
-        "shape": "build meta owns toolchains"
+        "shape": "build meta owns toolchains",
+        "redesign": "rewrite",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL reorg_now → `build/toolchains/` shape `build meta owns toolchains`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
+        "destination": "build/toolchains/"
       },
       {
         "path": "tools/",
         "action": "reorg_now",
         "greenfield_destination": ".grok/ + ci/facade/ + delete remainder",
-        "shape": "process kit leaves tools/; tools/swarm one-shot then vacate"
+        "shape": "process kit leaves tools/; tools/swarm one-shot then vacate",
+        "redesign": "rewrite",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL reorg_now → `.grok/ + ci/facade/ + delete remainder` shape `process kit leaves tools/; tools/swarm one-shot then vacate`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
+        "destination": ".grok/ + ci/facade/ + delete remainder"
       },
       {
         "path": "cell/",
         "action": "keep_forever",
         "greenfield_destination": "cell/{core,ports,adapters,facade}/",
-        "shape": "registered capability"
+        "shape": "registered capability",
+        "redesign": "none",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `cell/` → `cell/{core,ports,adapters,facade}/` (registered capability). Full 7-point judgment still pending before structural change.",
+        "destination": "cell/{core,ports,adapters,facade}/"
       },
       {
         "path": "iam/",
         "action": "keep_forever",
         "greenfield_destination": "iam/{core,ports,adapters,facade}/",
-        "shape": "registered capability"
+        "shape": "registered capability",
+        "redesign": "none",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `iam/` → `iam/{core,ports,adapters,facade}/` (registered capability). Full 7-point judgment still pending before structural change.",
+        "destination": "iam/{core,ports,adapters,facade}/"
       },
       {
         "path": "tenancy/",
         "action": "keep_forever",
         "greenfield_destination": "tenancy/{core,ports,adapters,facade}/",
-        "shape": "registered capability"
+        "shape": "registered capability",
+        "redesign": "none",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `tenancy/` → `tenancy/{core,ports,adapters,facade}/` (registered capability). Full 7-point judgment still pending before structural change.",
+        "destination": "tenancy/{core,ports,adapters,facade}/"
       },
       {
         "path": "secrets/",
         "action": "keep_forever",
         "greenfield_destination": "secrets/{core,ports,adapters,facade}/",
-        "shape": "registered capability"
+        "shape": "registered capability",
+        "redesign": "none",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `secrets/` → `secrets/{core,ports,adapters,facade}/` (registered capability). Full 7-point judgment still pending before structural change.",
+        "destination": "secrets/{core,ports,adapters,facade}/"
       },
       {
         "path": "observability/",
         "action": "keep_forever",
         "greenfield_destination": "observability/{core,ports,adapters,facade}/",
-        "shape": "registered capability"
+        "shape": "registered capability",
+        "redesign": "none",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `observability/` → `observability/{core,ports,adapters,facade}/` (registered capability). Full 7-point judgment still pending before structural change.",
+        "destination": "observability/{core,ports,adapters,facade}/"
       },
       {
         "path": "data/",
         "action": "keep_forever",
         "greenfield_destination": "data/{core,ports,adapters,facade}/",
-        "shape": "registered capability"
+        "shape": "registered capability",
+        "redesign": "none",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `data/` → `data/{core,ports,adapters,facade}/` (registered capability). Full 7-point judgment still pending before structural change.",
+        "destination": "data/{core,ports,adapters,facade}/"
       },
       {
         "path": "storage/",
         "action": "keep_forever",
         "greenfield_destination": "storage/{core,ports,adapters,facade}/",
-        "shape": "registered capability"
+        "shape": "registered capability",
+        "redesign": "none",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `storage/` → `storage/{core,ports,adapters,facade}/` (registered capability). Full 7-point judgment still pending before structural change.",
+        "destination": "storage/{core,ports,adapters,facade}/"
       },
       {
         "path": "compute/",
         "action": "keep_forever",
         "greenfield_destination": "compute/{core,ports,adapters,facade}/",
-        "shape": "registered capability"
+        "shape": "registered capability",
+        "redesign": "none",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `compute/` → `compute/{core,ports,adapters,facade}/` (registered capability). Full 7-point judgment still pending before structural change.",
+        "destination": "compute/{core,ports,adapters,facade}/"
       },
       {
         "path": "k8s/",
         "action": "keep_forever",
         "greenfield_destination": "k8s/{core,ports,adapters,facade}/",
-        "shape": "registered capability"
+        "shape": "registered capability",
+        "redesign": "none",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `k8s/` → `k8s/{core,ports,adapters,facade}/` (registered capability). Full 7-point judgment still pending before structural change.",
+        "destination": "k8s/{core,ports,adapters,facade}/"
       },
       {
         "path": "network/",
         "action": "keep_forever",
         "greenfield_destination": "network/{core,ports,adapters,facade}/",
-        "shape": "registered capability"
+        "shape": "registered capability",
+        "redesign": "none",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `network/` → `network/{core,ports,adapters,facade}/` (registered capability). Full 7-point judgment still pending before structural change.",
+        "destination": "network/{core,ports,adapters,facade}/"
       },
       {
         "path": "gateway/",
         "action": "keep_forever",
         "greenfield_destination": "gateway/{core,ports,adapters,facade}/",
-        "shape": "registered capability"
+        "shape": "registered capability",
+        "redesign": "none",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `gateway/` → `gateway/{core,ports,adapters,facade}/` (registered capability). Full 7-point judgment still pending before structural change.",
+        "destination": "gateway/{core,ports,adapters,facade}/"
       },
       {
         "path": "messaging/",
         "action": "keep_forever",
         "greenfield_destination": "messaging/{core,ports,adapters,facade}/",
-        "shape": "registered capability"
+        "shape": "registered capability",
+        "redesign": "none",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `messaging/` → `messaging/{core,ports,adapters,facade}/` (registered capability). Full 7-point judgment still pending before structural change.",
+        "destination": "messaging/{core,ports,adapters,facade}/"
       },
       {
         "path": "intelligence/",
         "action": "keep_forever",
         "greenfield_destination": "intelligence/{core,ports,adapters,facade}/",
-        "shape": "registered capability; absorb oya/intelligence"
+        "shape": "registered capability; absorb oya/intelligence",
+        "redesign": "none",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `intelligence/` → `intelligence/{core,ports,adapters,facade}/` (registered capability; absorb oya/intelligence). Full 7-point judgment still pending before structural change.",
+        "destination": "intelligence/{core,ports,adapters,facade}/"
       },
       {
         "path": "workflow/",
         "action": "keep_forever",
         "greenfield_destination": "workflow/{core,ports,adapters,facade}/",
-        "shape": "registered capability"
+        "shape": "registered capability",
+        "redesign": "none",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `workflow/` → `workflow/{core,ports,adapters,facade}/` (registered capability). Full 7-point judgment still pending before structural change.",
+        "destination": "workflow/{core,ports,adapters,facade}/"
       },
       {
         "path": "ci/",
         "action": "keep_forever",
         "greenfield_destination": "ci/{core,ports,adapters,facade}/",
-        "shape": "registered capability"
+        "shape": "registered capability",
+        "redesign": "none",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `ci/` → `ci/{core,ports,adapters,facade}/` (registered capability). Full 7-point judgment still pending before structural change.",
+        "destination": "ci/{core,ports,adapters,facade}/"
       },
       {
         "path": "iac/",
         "action": "keep_forever",
         "greenfield_destination": "iac/{core,ports,adapters,facade}/",
-        "shape": "registered capability"
+        "shape": "registered capability",
+        "redesign": "none",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `iac/` → `iac/{core,ports,adapters,facade}/` (registered capability). Full 7-point judgment still pending before structural change.",
+        "destination": "iac/{core,ports,adapters,facade}/"
       },
       {
         "path": "billing/",
         "action": "keep_forever",
         "greenfield_destination": "billing/{core,ports,adapters,facade}/",
-        "shape": "registered capability"
+        "shape": "registered capability",
+        "redesign": "none",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `billing/` → `billing/{core,ports,adapters,facade}/` (registered capability). Full 7-point judgment still pending before structural change.",
+        "destination": "billing/{core,ports,adapters,facade}/"
       },
       {
         "path": "marketplace/",
         "action": "keep_forever",
         "greenfield_destination": "marketplace/{core,ports,adapters,facade}/",
-        "shape": "registered capability"
+        "shape": "registered capability",
+        "redesign": "none",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `marketplace/` → `marketplace/{core,ports,adapters,facade}/` (registered capability). Full 7-point judgment still pending before structural change.",
+        "destination": "marketplace/{core,ports,adapters,facade}/"
       },
       {
         "path": "console/",
         "action": "keep_forever",
         "greenfield_destination": "console/{core,ports,adapters,facade}/",
-        "shape": "registered capability"
+        "shape": "registered capability",
+        "redesign": "none",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `console/` → `console/{core,ports,adapters,facade}/` (registered capability). Full 7-point judgment still pending before structural change.",
+        "destination": "console/{core,ports,adapters,facade}/"
       },
       {
         "path": "compliance/",
         "action": "keep_forever",
         "greenfield_destination": "compliance/{core,ports,adapters,facade}/",
-        "shape": "registered capability; absorb packs/"
+        "shape": "registered capability; absorb packs/",
+        "redesign": "none",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `compliance/` → `compliance/{core,ports,adapters,facade}/` (registered capability; absorb packs/). Full 7-point judgment still pending before structural change.",
+        "destination": "compliance/{core,ports,adapters,facade}/"
       },
       {
         "path": "comms/",
         "action": "keep_forever",
         "greenfield_destination": "comms/{core,ports,adapters,facade}/",
-        "shape": "registered capability"
+        "shape": "registered capability",
+        "redesign": "none",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `comms/` → `comms/{core,ports,adapters,facade}/` (registered capability). Full 7-point judgment still pending before structural change.",
+        "destination": "comms/{core,ports,adapters,facade}/"
       },
       {
         "path": "kernel/",
         "action": "keep_forever",
         "greenfield_destination": "kernel/{core,harness}/",
-        "shape": "META rung-0"
+        "shape": "META rung-0",
+        "redesign": "none",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `kernel/` → `kernel/{core,harness}/` (META rung-0). Full 7-point judgment still pending before structural change.",
+        "destination": "kernel/{core,harness}/"
       },
       {
         "path": "os/",
         "action": "keep_forever",
         "greenfield_destination": "os/{core,harness}/",
-        "shape": "META rung-1"
+        "shape": "META rung-1",
+        "redesign": "none",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `os/` → `os/{core,harness}/` (META rung-1). Full 7-point judgment still pending before structural change.",
+        "destination": "os/{core,harness}/"
       },
       {
         "path": "build/",
         "action": "keep_forever",
         "greenfield_destination": "build/",
-        "shape": "META: buck prelude, toolchains, generators"
+        "shape": "META: buck prelude, toolchains, generators",
+        "redesign": "none",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `build/` → `build/` (META: buck prelude, toolchains, generators). Full 7-point judgment still pending before structural change.",
+        "destination": "build/"
       },
       {
         "path": "third-party/",
         "action": "keep_forever",
         "greenfield_destination": "third-party/",
-        "shape": "META: reindeer vendored cell; never hand-edit product logic"
+        "shape": "META: reindeer vendored cell; never hand-edit product logic",
+        "redesign": "none",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `third-party/` → `third-party/` (META: reindeer vendored cell; never hand-edit product logic). Full 7-point judgment still pending before structural change.",
+        "destination": "third-party/"
       },
       {
         "path": "registry/",
         "action": "keep_forever",
         "greenfield_destination": "registry/",
-        "shape": "PLANE: catalogs, concurrent-safe, fixuptasks"
+        "shape": "PLANE: catalogs, concurrent-safe, fixuptasks",
+        "redesign": "none",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `registry/` → `registry/` (PLANE: catalogs, concurrent-safe, fixuptasks). Full 7-point judgment still pending before structural change.",
+        "destination": "registry/"
       },
       {
         "path": "evidence/",
         "action": "keep_forever",
         "greenfield_destination": "evidence/",
-        "shape": "PLANE: append-only evidence (concurrent-safe)"
+        "shape": "PLANE: append-only evidence (concurrent-safe)",
+        "redesign": "none",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `evidence/` → `evidence/` (PLANE: append-only evidence (concurrent-safe)). Full 7-point judgment still pending before structural change.",
+        "destination": "evidence/"
       },
       {
         "path": "contracts/",
         "action": "keep_forever",
         "greenfield_destination": "contracts/",
-        "shape": "PLANE: cross-µservice OpenAPI/Protobuf/AsyncAPI SSOT"
+        "shape": "PLANE: cross-µservice OpenAPI/Protobuf/AsyncAPI SSOT",
+        "redesign": "none",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `contracts/` → `contracts/` (PLANE: cross-µservice OpenAPI/Protobuf/AsyncAPI SSOT). Full 7-point judgment still pending before structural change.",
+        "destination": "contracts/"
       },
       {
         "path": "packs/",
         "action": "reorg_now",
         "greenfield_destination": "compliance/packs/",
-        "shape": "jurisdiction localization+sovereignty under compliance"
+        "shape": "jurisdiction localization+sovereignty under compliance",
+        "redesign": "rewrite",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL reorg_now → `compliance/packs/` shape `jurisdiction localization+sovereignty under compliance`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
+        "destination": "compliance/packs/"
       },
       {
         "path": "scripts/",
         "action": "reorg_now",
         "greenfield_destination": "ci/ + build/ + delete obsolete py checks",
-        "shape": "no top-level scripts in greenfield"
+        "shape": "no top-level scripts in greenfield",
+        "redesign": "rewrite",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL reorg_now → `ci/ + build/ + delete obsolete py checks` shape `no top-level scripts in greenfield`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
+        "destination": "ci/ + build/ + delete obsolete py checks"
       },
       {
         "path": "tasks/",
         "action": "reorg_now",
         "greenfield_destination": "beads (implementable) + <capability>/IPs/",
-        "shape": "harvest then vacate top-level tasks/"
+        "shape": "harvest then vacate top-level tasks/",
+        "redesign": "rewrite",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL reorg_now → `beads (implementable) + <capability>/IPs/` shape `harvest then vacate top-level tasks/`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
+        "destination": "beads (implementable) + <capability>/IPs/"
       },
       {
         "path": "benchmarks/",
         "action": "reorg_now",
         "greenfield_destination": "governance/check/benchmark/ + capability perf evidence",
-        "shape": "no orphan benchmarks root"
+        "shape": "no orphan benchmarks root",
+        "redesign": "rewrite",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL reorg_now → `governance/check/benchmark/ + capability perf evidence` shape `no orphan benchmarks root`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
+        "destination": "governance/check/benchmark/ + capability perf evidence"
       },
       {
         "path": ".grok/",
         "action": "keep_forever",
         "greenfield_destination": ".grok/",
-        "shape": "PROCESS_KIT: mm-delivery / swarm process (thin; not product)"
+        "shape": "PROCESS_KIT: mm-delivery / swarm process (thin; not product)",
+        "redesign": "none",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `.grok/` → `.grok/` (PROCESS_KIT: mm-delivery / swarm process (thin; not product)). Full 7-point judgment still pending before structural change.",
+        "destination": ".grok/"
       },
       {
         "path": ".claude/",
         "action": "keep_forever",
         "greenfield_destination": ".claude/",
-        "shape": "PROCESS_KIT: deliver.js + settings"
+        "shape": "PROCESS_KIT: deliver.js + settings",
+        "redesign": "none",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `.claude/` → `.claude/` (PROCESS_KIT: deliver.js + settings). Full 7-point judgment still pending before structural change.",
+        "destination": ".claude/"
       },
       {
         "path": ".codex/",
         "action": "keep_forever",
         "greenfield_destination": ".codex/",
-        "shape": "PROCESS_KIT: project skills overlay"
+        "shape": "PROCESS_KIT: project skills overlay",
+        "redesign": "none",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `.codex/` → `.codex/` (PROCESS_KIT: project skills overlay). Full 7-point judgment still pending before structural change.",
+        "destination": ".codex/"
       },
       {
         "path": ".github/",
         "action": "keep_forever",
         "greenfield_destination": ".github/",
-        "shape": "PROCESS_KIT: interim GHA runner surface (ADR-0700) until owned-runner cutover"
+        "shape": "PROCESS_KIT: interim GHA runner surface (ADR-0700) until owned-runner cutover",
+        "redesign": "none",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `.github/` → `.github/` (PROCESS_KIT: interim GHA runner surface (ADR-0700) until owned-runner cutover). Full 7-point judgment still pending before structural change.",
+        "destination": ".github/"
       },
       {
         "path": ".cargo/",
         "action": "keep_forever",
         "greenfield_destination": ".cargo/",
-        "shape": "PROCESS_KIT: cargo config"
+        "shape": "PROCESS_KIT: cargo config",
+        "redesign": "none",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `.cargo/` → `.cargo/` (PROCESS_KIT: cargo config). Full 7-point judgment still pending before structural change.",
+        "destination": ".cargo/"
       },
       {
         "path": ".config/",
         "action": "keep_forever",
         "greenfield_destination": ".config/",
-        "shape": "PROCESS_KIT: tool config"
+        "shape": "PROCESS_KIT: tool config",
+        "redesign": "none",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `.config/` → `.config/` (PROCESS_KIT: tool config). Full 7-point judgment still pending before structural change.",
+        "destination": ".config/"
       },
       {
         "path": ".beads/",
         "action": "keep_forever",
         "greenfield_destination": ".beads/",
-        "shape": "PROCESS_KIT: issue DB (usually local)"
+        "shape": "PROCESS_KIT: issue DB (usually local)",
+        "redesign": "none",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `.beads/` → `.beads/` (PROCESS_KIT: issue DB (usually local)). Full 7-point judgment still pending before structural change.",
+        "destination": ".beads/"
       },
       {
         "path": ".omc/",
         "action": "delete_permanently",
         "greenfield_destination": "(none)",
-        "shape": "retired OMC harness residue (ADR-0709); remove tracked files"
+        "shape": "(removed)",
+        "redesign": "delete",
+        "judgment_status": "done",
+        "disposition": "delete-permanently",
+        "rationale": "1) Tracked ultragoal residue (OWNERS/preamble/friction/premise) claiming SUNSET under ADR-0709; not a control plane. Callers: historical IP prose + entry-surface denylist only. 2) Brand-residue docs, not clean-arch product code; dual with live .grok process kit. 3) Was keeping path-stable OMC slots — north star forbids OMC/OMX as coordination. 4) Must not exist as tracked authority. 5) Antipattern: retired harness brand as instruction surface. 6) delete-permanently (already landed on #1644 tip). 7) Greenfield: zero .omc/ tracked surface; process kit = .grok/ + bd.",
+        "evidence": [
+          "git show pre-delete .omc/ultragoal/premise.txt SUNSET text",
+          "specs/root-hub-pointers.json agent_entry_surface_allowlist superseded .omc/**",
+          "ADR-0709 brand/harness residue"
+        ],
+        "destination": "(none)"
       },
       {
         "path": ".omx/",
         "action": "delete_permanently",
         "greenfield_destination": "(none)",
-        "shape": "retired; untracked local only"
+        "shape": "retired; untracked local only",
+        "redesign": "delete",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL delete_permanently candidate `.omx/`. Judgment pending — do not path-change yet.",
+        "destination": "(none)"
       },
       {
         "path": ".gjc/",
         "action": "delete_permanently",
         "greenfield_destination": "(none)",
-        "shape": "retired; untracked local only"
+        "shape": "retired; untracked local only",
+        "redesign": "delete",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL delete_permanently candidate `.gjc/`. Judgment pending — do not path-change yet.",
+        "destination": "(none)"
       },
       {
         "path": ".agents/",
         "action": "delete_permanently",
         "greenfield_destination": "(none)",
-        "shape": "untracked; use runtime agents not repo vendor"
+        "shape": "untracked; use runtime agents not repo vendor",
+        "redesign": "delete",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL delete_permanently candidate `.agents/`. Judgment pending — do not path-change yet.",
+        "destination": "(none)"
       },
       {
         "path": ".cursor/",
         "action": "keep_forever",
         "greenfield_destination": ".cursor/",
-        "shape": "PROCESS_KIT: editor agents/rules (thin)"
+        "shape": "PROCESS_KIT: editor agents/rules (thin)",
+        "redesign": "none",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `.cursor/` → `.cursor/` (PROCESS_KIT: editor agents/rules (thin)). Full 7-point judgment still pending before structural change.",
+        "destination": ".cursor/"
       },
       {
         "path": "buck-out/",
         "action": "delete_permanently",
         "greenfield_destination": "(none)",
-        "shape": "build output; gitignored"
+        "shape": "build output; gitignored",
+        "redesign": "delete",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL delete_permanently candidate `buck-out/`. Judgment pending — do not path-change yet.",
+        "destination": "(none)"
       },
       {
         "path": "target/",
         "action": "delete_permanently",
         "greenfield_destination": "(none)",
-        "shape": "cargo output; gitignored"
+        "shape": "cargo output; gitignored",
+        "redesign": "delete",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL delete_permanently candidate `target/`. Judgment pending — do not path-change yet.",
+        "destination": "(none)"
       },
       {
         "path": "wt-1616/",
         "action": "delete_permanently",
         "greenfield_destination": "(none)",
-        "shape": "accidental nested worktree in main checkout; remove"
+        "shape": "accidental nested worktree in main checkout; remove",
+        "redesign": "delete",
+        "judgment_status": "pending",
+        "rationale": "PROVISIONAL delete_permanently candidate `wt-1616/`. Judgment pending — do not path-change yet.",
+        "destination": "(none)"
       }
     ],
     "first_wave": [
       {
-        "id": "W1-templates-dedupe",
-        "action": "reorg_now",
-        "paths": [
-          "docs/templates/"
-        ],
-        "destination": "templates/",
+        "id": "W1-eval-omc-delete",
+        "path": ".omc/",
+        "judgment_status": "done",
+        "action": "delete_permanently",
+        "redesign": "delete",
+        "status": "landed_on_integ_specs_#1644"
+      },
+      {
+        "id": "W1-eval-docs-raw-delete",
+        "path": "docs/raw/",
+        "judgment_status": "done",
+        "action": "delete_permanently",
+        "redesign": "delete",
         "destination_integ": "integ/docs",
-        "concrete_steps": [
-          "Diff docs/templates vs templates/; copy unique keepers into templates/",
-          "Point docs/AGENTS.md + DOC-CATALOG links at templates/",
-          "git rm -r docs/templates/",
-          "Land via integ/docs (#1645) after #1644 doctrine tip"
-        ]
+        "status": "ready_to_land_with_judgment_in_PR_body"
       },
       {
-        "id": "W1-plan-to-governance",
-        "action": "reorg_now",
-        "paths": [
-          "plan/"
-        ],
-        "destination": "governance/corpus/plan/",
-        "destination_integ": "integ/governance",
-        "concrete_steps": [
-          "git mv plan/compliance-selective-cell-placement-architecture.md governance/corpus/plan/",
-          "git mv plan/hyperscaler-grade-cloud-platform-quality-review.md governance/corpus/plan/",
-          "git mv plan/fabric-loop governance/corpus/fabric-loop",
-          "Remove plan/ OWNERS; update any pointers",
-          "Land via integ/governance"
-        ]
-      },
-      {
-        "id": "W1-omc-delete",
+        "id": "W1-eval-docs-harness-delete",
+        "path": "docs/harness/",
+        "judgment_status": "done",
         "action": "delete_permanently",
-        "paths": [
-          ".omc/"
-        ],
-        "destination": "(none)",
-        "destination_integ": "integ/specs",
-        "concrete_steps": [
-          "git ls-files .omc | xargs git rm -f",
-          "Ensure .gitignore covers .omc/",
-          "Land on integ/specs adjunct if needed"
-        ]
-      },
-      {
-        "id": "W1-wt1616-delete",
-        "action": "delete_permanently",
-        "paths": [
-          "wt-1616/"
-        ],
-        "destination": "(none)",
-        "destination_integ": "main-checkout hygiene",
-        "concrete_steps": [
-          "Remove untracked wt-1616/ from main checkout (not a git path)",
-          "Add hygiene note to .gitignore if needed"
-        ]
-      },
-      {
-        "id": "W1-specs-audit-registry-dedupe",
-        "action": "reorg_now",
-        "paths": [
-          "specs/audit-event-class-registry.json"
-        ],
-        "destination": "audit/audit-event-class-registry.json",
-        "destination_integ": "integ/specs + integ/audit (or adjunct)",
-        "concrete_steps": [
-          "Confirm audit/ copy is SSOT or equal",
-          "Retarget pointers in root-hub / reachability",
-          "Delete specs/audit-event-class-registry.json"
-        ]
-      },
-      {
-        "id": "W1-scripts-absorb",
-        "action": "reorg_now",
-        "paths": [
-          "scripts/"
-        ],
-        "destination": "ci/ + build/",
-        "destination_integ": "integ/ci",
-        "concrete_steps": [
-          "Move scripts/ci/regen-third-party.sh → build/ or ci/facade helper",
-          "Move or delete scripts/tests/* py checks (prefer Rust gates)",
-          "Vacate scripts/"
-        ]
-      },
-      {
-        "id": "W1-packs-to-compliance",
-        "action": "reorg_now",
-        "paths": [
-          "packs/"
-        ],
-        "destination": "compliance/packs/",
-        "destination_integ": "integ/compliance (create envelope if missing)",
-        "concrete_steps": [
-          "Register integ/compliance envelope",
-          "git mv packs/* compliance/packs/",
-          "Update pack manifests + pointers"
-        ]
+        "redesign": "delete",
+        "destination_integ": "integ/docs",
+        "status": "ready_to_land_with_judgment_in_PR_body"
       }
     ],
     "claim_exemption_marker": "reorg-move-out",
@@ -1410,6 +1779,54 @@
     "enforcement": [
       "deliver.js Claim",
       "human/reviewer refuse of births under freeze prefixes without reorg-move-out bead"
+    ],
+    "version": "2.0.0",
+    "evaluation_gate": {
+      "required_before_path_change": true,
+      "forbidden": [
+        "git_mv_only",
+        "rename_only",
+        "move_now_fix_later",
+        "dual_home",
+        "preserve_accidental_structure"
+      ],
+      "checklist": [
+        "what_does_it_do",
+        "how_is_it_written",
+        "what_is_it_trying_to_achieve",
+        "should_it_exist",
+        "system_design_fit",
+        "improve_how",
+        "where_why_belong"
+      ],
+      "disposition_enum": [
+        "keep-as-is",
+        "refactor-then-place",
+        "rewrite-into-durable-shape",
+        "delete-permanently"
+      ],
+      "redesign_enum": [
+        "none",
+        "refactor",
+        "rewrite",
+        "delete"
+      ],
+      "judgment_status_enum": [
+        "pending",
+        "done"
+      ],
+      "rule": "Path changes (reorg_now land or delete_permanently) require judgment_status=done on the unit row with checklist answers in rationale + redesign. Claim/PR must paste the judgment. Prefer rewrite/refactor into clean-architecture capability shape over preserving accidental structure."
+    },
+    "judgments_done": [
+      ".omc/",
+      "docs/harness/",
+      "docs/raw/"
+    ],
+    "banned_operations": [
+      "git_mv_only_without_judgment",
+      "rename_only_wave",
+      "mechanical_move_preserving_accidental_structure",
+      "dual_home_during_reorg"
     ]
   }
 }
