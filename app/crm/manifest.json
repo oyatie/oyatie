@@ -367,8 +367,8 @@
   "pod_runtime_tier_justification": "Inventory/provenance classification only: CRM is modeled as a future first-party tenant application that would handle tenant business data without executing tenant-customer code or operating shared cryptographic, identity, or data substrate. This does not claim current durable persistence, service runtime, cloud deployment, runtime audit emission, or measured isolation controls.",
   "pod_runtime_tier_surface_evidence": [
     "specs/microservices/crm.json",
-    "oya/crm/README.md",
-    "oya/crm/IP-024-per-tenant-territory-routing-skill-capacity-engine.md"
+    "app/crm/README.md",
+    "app/crm/IP-024-per-tenant-territory-routing-skill-capacity-engine.md"
   ],
   "tenant_version_pinning": {
     "declared_versions": [
@@ -381,10 +381,10 @@
     "deprecation_calendar": [],
     "public_surface_files": {
       "openapi": {
-        "2026-05-21": "oya/crm/contracts/openapi-v1.yaml"
+        "2026-05-21": "app/crm/contracts/openapi-v1.yaml"
       },
       "asyncapi": {
-        "2026-05-21": "oya/crm/contracts/asyncapi-v1.yaml"
+        "2026-05-21": "app/crm/contracts/asyncapi-v1.yaml"
       }
     }
   },
@@ -438,7 +438,7 @@
   },
   "crate_inventory": {
     "forever_root": "app/crm/crates",
-    "source_root": "oya/crm/crates",
+    "source_root": "app/crm/crates",
     "crate_count": 2,
     "rust_files_absorbed": 14,
     "crate_dirs": [

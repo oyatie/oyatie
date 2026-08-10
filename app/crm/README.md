@@ -24,28 +24,28 @@ related_adrs:
   - ADR-0330
   - ADR-0331
 supersedes:
-  - microservices/crm/README.md@2026-05-20 (historical/provenance only; old microservices/crm paths are not current source authority)
+  - app/crm/README.md@2026-05-20 (historical/provenance only; old microservices/crm paths are not current source authority)
 source_authority:
   - specs/microservices/crm.json (current CRM PRD authority; preview metadata-only with explicit non-goals)
 claim_boundary:
   - Runtime-looking sections below are inventory/planning/provenance only unless later source-authorized implementation evidence exists.
   - This README does not claim GA, production readiness, cloud deployment, runtime audit-chain emission, CDP/CPQ/loyalty-wallet runtime, or hyperscaler maturity.
 companion_inventory:
-  - oya/crm/manifest.json
-  - oya/crm/contracts/openapi-v1.yaml
-  - oya/crm/contracts/asyncapi-v1.yaml
-  - oya/crm/contracts/crm-v1.proto
-  - oya/crm/policy/*.cedar
-  - oya/crm/slos/*.openslo.yaml
-  - oya/crm/catalog/*.yaml
-  - oya/crm/runbooks/*.md
+  - app/crm/manifest.json
+  - app/crm/contracts/openapi-v1.yaml
+  - app/crm/contracts/asyncapi-v1.yaml
+  - app/crm/contracts/crm-v1.proto
+  - app/crm/policy/*.cedar
+  - app/crm/slos/*.openslo.yaml
+  - app/crm/catalog/*.yaml
+  - app/crm/runbooks/*.md
 absent_legacy_docs:
-  - oya/crm/PRD.md
-  - oya/crm/ARCHITECTURE.md
-  - oya/crm/competitor-parity-matrix.md
-  - oya/crm/feature-parity-matrix-2026-05-20.md
-  - oya/crm/coherence-audit-2026-05-20.md
-  - oya/crm/REMEDIATION-NOTES-2026-05-21.md
+  - app/crm/PRD.md
+  - app/crm/ARCHITECTURE.md
+  - app/crm/competitor-parity-matrix.md
+  - app/crm/feature-parity-matrix-2026-05-20.md
+  - app/crm/coherence-audit-2026-05-20.md
+  - app/crm/REMEDIATION-NOTES-2026-05-21.md
 ---
 
 # Customer Relationship Management
@@ -112,7 +112,7 @@ Aggregates 1, 2, 5, 6, 7, 9, 13, 14 are new in Wave 15A; the remaining six are i
 
 ## 4. Industry-counterpart parity stance
 
-This section is retained as planning/provenance for counterpart research. No `oya/crm/competitor-parity-matrix.md` file is present in this checkout, so the paragraphs below are not source authority and do not override the preview non-goals in `specs/microservices/crm.json`.
+This section is retained as planning/provenance for counterpart research. No `app/crm/competitor-parity-matrix.md` file is present in this checkout, so the paragraphs below are not source authority and do not override the preview non-goals in `specs/microservices/crm.json`.
 
 ### 4.1 Salesforce Sales Cloud (primary anchor)
 
@@ -167,7 +167,7 @@ Reference docs: <https://learn.microsoft.com/en-us/dynamics365/sales/overview>, 
 
 ### 4.4 Counterparts NOT in primary scope
 
-SAP CRM / SAP Cloud for Customer / SAP Service Cloud (the prior Wave 3-G anchors) are reclassified as "operating-model reference" only in Wave 15A. The Big-8 CRM family per ADR-0328 §D-2 names Salesforce / HubSpot / Dynamics as the anchor set; SAP CRM is treated as historical context. No `oya/crm/PRD.md` is present in this checkout, so old PRD-rewrite references are provenance only and do not supersede `specs/microservices/crm.json`.
+SAP CRM / SAP Cloud for Customer / SAP Service Cloud (the prior Wave 3-G anchors) are reclassified as "operating-model reference" only in Wave 15A. The Big-8 CRM family per ADR-0328 §D-2 names Salesforce / HubSpot / Dynamics as the anchor set; SAP CRM is treated as historical context. No `app/crm/PRD.md` is present in this checkout, so old PRD-rewrite references are provenance only and do not supersede `specs/microservices/crm.json`.
 
 Oracle CX Sales, Oracle Fusion Service, Zoho CRM, SugarCRM, Pipedrive, Zendesk Sell, Freshsales, Insightly, Copper, ClickUp CRM, Monday Sales CRM, and Close CRM are recognized as adjacent products with niche-segment strength. Wave 15A defers comparator coverage of these to Wave 16+; any older matrix references are informational provenance only because the matrix file is absent in this checkout.
 
@@ -212,7 +212,7 @@ The crm inventory records ten target architectural primitives that are uniform a
 - `data-sync` — owns bidirectional integrations to external systems. Contract: `microservices/data-sync/contracts/data-sync-v1.proto`.
 - `search` — owns full-text + semantic search across crm aggregates. Contract: `microservices/search/contracts/search-v1.proto`.
 
-No `oya/crm/ARCHITECTURE.md` is present in this checkout; dependency graph references are therefore inventory/provenance only.
+No `app/crm/ARCHITECTURE.md` is present in this checkout; dependency graph references are therefore inventory/provenance only.
 
 ## 7. Contract surface
 
@@ -333,7 +333,7 @@ To work on `crm` locally:
 
 ```
 # Parse the current CRM manifest.
-python3 -m json.tool oya/crm/manifest.json >/dev/null
+python3 -m json.tool app/crm/manifest.json >/dev/null
 
 # Focused CRM domain tests that currently exist in this checkout.
 cargo test -p oya-crm-customer-engagement-domain
@@ -342,7 +342,7 @@ cargo test -p oya-crm-customer-engagement-domain
 cargo test -p oya-crm-revenue-app
 ```
 
-The old `microservices/crm` quickstart paths are historical/provenance only in this checkout. Current CRM inventory files live under `oya/crm/`; the current source authority is `specs/microservices/crm.json`.
+The old `microservices/crm` quickstart paths are historical/provenance only in this checkout. Current CRM inventory files live under `app/crm/`; the current source authority is `specs/microservices/crm.json`.
 
 ### 13.1 Editor setup
 
@@ -475,19 +475,19 @@ The following are target invariants for future implementation evidence. The curr
 5. Idempotency-key replay must be tested before any command runtime claim.
 6. HTTP/3 + ECH + PQC negotiation remains target inventory only until transport tests exist.
 7. Tenant-class gating must be tested before any runtime tenant-class claim.
-8. Contract compatibility checks should use present paths such as `oya/crm/contracts/openapi-v1.yaml`.
+8. Contract compatibility checks should use present paths such as `app/crm/contracts/openapi-v1.yaml`.
 9. Compliance-pack overlays remain target inventory only until Cedar/policy tests exist.
 10. Replay-fixture coverage remains target inventory only until fixtures and coverage checks exist.
 
 ## 16. Wave 15A scope summary
 
-Historical Wave 15A prose previously referenced a `microservices/crm/` tree and companion PRD/architecture/matrix documents. In this checkout, those paths are not current authority. Current CRM authority/inventory boundaries are:
+Historical Wave 15A prose previously referenced a `app/crm/` tree and companion PRD/architecture/matrix documents. In this checkout, those paths are not current authority. Current CRM authority/inventory boundaries are:
 
 - Source authority: `specs/microservices/crm.json` (preview, metadata-only, explicit non-goals).
-- Present inventory root: `oya/crm/`.
-- Present machine-readable manifest: `oya/crm/manifest.json`.
-- Present contracts: `oya/crm/contracts/openapi-v1.yaml`, `oya/crm/contracts/asyncapi-v1.yaml`, and `oya/crm/contracts/crm-v1.proto`.
-- Present policy/SLO/catalog/runbook inventory: `oya/crm/policy/`, `oya/crm/slos/`, `oya/crm/catalog/`, and `oya/crm/runbooks/`.
+- Present inventory root: `app/crm/`.
+- Present machine-readable manifest: `app/crm/manifest.json`.
+- Present contracts: `app/crm/contracts/openapi-v1.yaml`, `app/crm/contracts/asyncapi-v1.yaml`, and `app/crm/contracts/crm-v1.proto`.
+- Present policy/SLO/catalog/runbook inventory: `app/crm/policy/`, `app/crm/slos/`, `app/crm/catalog/`, and `app/crm/runbooks/`.
 
 Absent legacy PRD/architecture/matrix/remediation documents remain provenance-only references and must not be treated as live claim authority.
 
@@ -527,17 +527,17 @@ Counterpart documentation:
 Companion inventory in this checkout:
 
 - `specs/microservices/crm.json` — source authority, preview metadata-only PRD.
-- `oya/crm/manifest.json` — CRM inventory manifest with explicit claim boundary.
-- `oya/crm/contracts/openapi-v1.yaml` — target OpenAPI inventory.
-- `oya/crm/contracts/asyncapi-v1.yaml` — target AsyncAPI inventory.
-- `oya/crm/contracts/crm-v1.proto` — target proto inventory.
-- `oya/crm/policy/*.cedar` — target policy inventory.
-- `oya/crm/slos/*.openslo.yaml` — target SLO inventory.
-- `oya/crm/catalog/*.yaml` — target layer catalog inventory.
-- `oya/crm/runbooks/*.md` — target operational runbook inventory/provenance.
-- `oya/crm/dpia/dpia.md` — DPIA inventory/provenance.
-- `oya/crm/decisions/ADR-MS-001-customer-record-mutation-and-revenue-lineage-contract.md` — CRM-specific decision record.
-- `oya/crm/IP-024-per-tenant-territory-routing-skill-capacity-engine.md`, `oya/crm/IP-025-predictive-churn-risk-intelligence-handoff.md`, and `oya/crm/IPs/*.md` — implementation-plan inventory/provenance.
+- `app/crm/manifest.json` — CRM inventory manifest with explicit claim boundary.
+- `app/crm/contracts/openapi-v1.yaml` — target OpenAPI inventory.
+- `app/crm/contracts/asyncapi-v1.yaml` — target AsyncAPI inventory.
+- `app/crm/contracts/crm-v1.proto` — target proto inventory.
+- `app/crm/policy/*.cedar` — target policy inventory.
+- `app/crm/slos/*.openslo.yaml` — target SLO inventory.
+- `app/crm/catalog/*.yaml` — target layer catalog inventory.
+- `app/crm/runbooks/*.md` — target operational runbook inventory/provenance.
+- `app/crm/dpia/dpia.md` — DPIA inventory/provenance.
+- `app/crm/decisions/ADR-MS-001-customer-record-mutation-and-revenue-lineage-contract.md` — CRM-specific decision record.
+- `app/crm/IP-024-per-tenant-territory-routing-skill-capacity-engine.md`, `app/crm/IP-025-predictive-churn-risk-intelligence-handoff.md`, and `app/crm/IPs/*.md` — implementation-plan inventory/provenance.
 
 ## Doctrine references
 
