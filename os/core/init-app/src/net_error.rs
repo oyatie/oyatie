@@ -70,7 +70,13 @@ pub fn net_errno(msg: &str) -> i32 {
                 .chars()
                 .take_while(|c| c.is_ascii_digit() || *c == '-')
                 .collect();
-            digits.parse::<i32>().map(i32::abs).unwrap_or(-1)
+            // i32::MIN has no positive abs in two's complement — treat as
+            // unparseable (-1) rather than overflow/wrap.
+            digits
+                .parse::<i32>()
+                .ok()
+                .and_then(i32::checked_abs)
+                .unwrap_or(-1)
         }
         None => -1,
     }
@@ -165,4 +171,12 @@ mod tests {
             "netlink request failed: errno 13".to_string()
         )));
     }
+
+    #[test]
+    fn i32_min_errno_does_not_overflow_the_classifier() {
+        // Hostile/attacker-shaped errno 0x80000000 as text "errno -2147483648".
+        // i32::abs would overflow; fail closed to -1 (unexpected) instead.
+        assert_eq!(net_errno("netlink request failed: errno -2147483648"), -1);
+    }
+
 }
