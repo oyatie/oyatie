@@ -5,6 +5,11 @@ doc_status: published
 
 # Changelog
 
+## 2026-08-10 — Doctrine survival (INV-DOC-9) + DOC-UPDATE same-wave co-change
+
+- `doc.agents_operating_contract` 2026-08-10 lane-implementer — add § Doctrine survival (binding) (rules-carry-why, anti-drift pointers, hindsight+beads, observation≠APPROVE, INV-DOC-9 survival).
+- `doc.doc_update_protocol` 2026-08-10 lane-implementer — amend one-doc-per-PR: load-bearing docs MUST same-wave co-change (`doc-update-protocol-overrule`).
+
 ## 2026-08-09 — ADR-0710 admission substrate proposed; sovereign-confidential idea page
 
 - Proposed **ADR-0710** as the Kubernetes admission-substrate decision: ValidatingAdmissionPolicy
