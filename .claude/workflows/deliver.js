@@ -416,6 +416,50 @@ const SCOUT_SCHEMA = {
   },
 }
 
+// Mechanical Claim packet parse (claim-mechanical + anti-drift-claim-fields).
+// `/^CLAIM/` substring matches are NOT sufficient — "CLAIMED" / "not CLAIM" must REFUSE.
+// Keep in sync with tools/swarm/claim_packet.py (self-check exercises both).
+function parseClaimPacket(summary) {
+  const errors = []
+  const text = String(summary || '')
+  const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean)
+  const first = lines[0] || ''
+  const token = first.split(/\s+/)[0] || ''
+  let verdict = null
+  if (/^CLAIM$/i.test(token)) verdict = 'CLAIM'
+  else if (/^REFUSE$/i.test(token)) verdict = 'REFUSE'
+  else errors.push(`first non-empty line must start with exactly CLAIM or REFUSE, got ${JSON.stringify(first || '(empty)')}`)
+
+  const field = (name) => {
+    const re = new RegExp(`^${name}\\s*:\\s*(.+)$`, 'im')
+    const m = text.match(re)
+    return m ? m[1].trim() : null
+  }
+  const docsTouched = field('docs_touched')
+  const docsAction = field('docs_action')
+  const docsActionWhy = field('docs_action_why')
+  const allowedActions = new Set(['update', 'add', 'delete', 'n/a'])
+
+  if (verdict === 'CLAIM') {
+    if (!docsTouched) errors.push('missing docs_touched: [...] (INV-DOC-1)')
+    if (!docsAction) errors.push('missing docs_action: update|add|delete|n/a (INV-DOC-1)')
+    else if (!allowedActions.has(docsAction.toLowerCase())) {
+      errors.push(`docs_action must be update|add|delete|n/a, got ${JSON.stringify(docsAction)}`)
+    } else if (docsAction.toLowerCase() === 'n/a' && !docsActionWhy) {
+      errors.push('docs_action=n/a requires docs_action_why (INV-DOC-1)')
+    }
+  }
+
+  return {
+    ok: verdict === 'CLAIM' && errors.length === 0,
+    verdict,
+    docs_touched: docsTouched,
+    docs_action: docsAction,
+    docs_action_why: docsActionWhy,
+    errors,
+  }
+}
+
 const UNIT_SCHEMA = {
   type: 'object', additionalProperties: false,
   required: ['done', 'commit_sha', 'files', 'gate_output', 'tests_added', 'refused'],
@@ -988,18 +1032,31 @@ n/a). Missing packet = REFUSE. Prose MUST cite JSON pointers — never re-list #
 
 
 Return CLAIM with the envelope id, path inventory, merge-tree result, hub owners, doc packet, and
-cherry-pick SHAs — or REFUSE with the concrete blocker.`,
+cherry-pick SHAs — or REFUSE with the concrete blocker.
+
+FORMAT (mechanical — fail-closed; substring "/CLAIM/" is NOT enough):
+  Line 1: CLAIM   OR   REFUSE
+  docs_touched: [path, ...] | n/a
+  docs_action: update|add|delete|n/a
+  docs_action_why: <required when docs_action is n/a>`,
   { label: 'claim:envelope-merge-tree-hub', phase: 'Claim', schema: SCOUT_SCHEMA })
 
-const claimOk = claimed && /^\s*CLAIM/i.test(claimed.summary || '')
-log(claimOk ? 'CLAIM passed — envelope + merge-tree + hubs clear' : 'REFUSED — Claim gate failed; do not Land')
+const claimPacket = parseClaimPacket(claimed && claimed.summary)
+const claimOk = !!(claimed && claimPacket.ok)
+if (claimPacket.errors.length) {
+  log(`CLAIM packet errors: ${claimPacket.errors.join('; ')}`)
+}
+log(claimOk
+  ? 'CLAIM passed — mechanical packet + agent gate clear'
+  : 'REFUSED — Claim gate failed (mechanical packet and/or agent); do not Land')
 if (!claimOk) {
   return {
     goal: GOAL,
     integration_branch: INTEG,
     refused: 'claim gate failed',
     claim: claimed,
-    remedy: 'Fix envelope containment, resolve merge-tree conflicts, or acquire hub waiver — then re-run Claim.',
+    claim_packet: claimPacket,
+    remedy: 'Fix envelope containment, resolve merge-tree conflicts, acquire hub waiver, or complete docs_touched/docs_action packet — then re-run Claim.',
     prs_opened: 0,
   }
 }

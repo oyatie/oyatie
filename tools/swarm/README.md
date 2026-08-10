@@ -14,8 +14,9 @@ Doctrine: ADR-0711 D-9 and
 | `git-shim` | Allowlisted `git` for workers |
 | `toolguard` | Denies `cargo` / `buck2` in lanes |
 | `check-daemon` | Orchestrator `buck2 build //...[check]` → `err.txt` + `.check/errors.json` |
-| `self-check.sh` | Hermetic local drift-grep + kit invariants (opt-in) |
-| `claim-push.sh` | Blessed push of `HEAD` → `integ/<root>` with lease + merge-tree |
+| `self-check.sh` | Hermetic local drift-grep + claim-mechanical pins (opt-in) |
+| `claim-push.sh` | Blessed push of `HEAD` → `integ/<root>` with lease + merge-tree; `--check` = preflight only |
+| `claim_packet.py` | Mechanical Claim packet parse (`docs_touched`/`docs_action`); `--self-test` |
 | `integ-reset-remote.sh` | Server-side reset: `origin/dev` → `integ/<root>` |
 | `lane-shell.sh` | Worker shell with `shim-bin/` first on `PATH` |
 | `shim-bin/` | Generated wrappers named `git`, `cargo`, `buck2` |
@@ -86,8 +87,17 @@ Always call real git (`GIT_REAL`, default `/usr/bin/git`). They set
 `SWARM_BLESSED_PUSH=1`.
 
 ```bash
+# Claim preflight only (envelope + merge-tree; no push)
+./tools/swarm/claim-push.sh --check specs
+
 # Claim: push current HEAD onto the durable integ branch (lease-protected)
 ./tools/swarm/claim-push.sh os
+
+# Mechanical Claim packet self-test (INV-DOC-1)
+python3 ./tools/swarm/claim_packet.py --self-test
+
+# Kit self-check (anti-drift drift-grep + claim-mechanical)
+./tools/swarm/self-check.sh
 
 # After land: server-side reset integ tip to origin/dev (no local reset)
 ./tools/swarm/integ-reset-remote.sh os

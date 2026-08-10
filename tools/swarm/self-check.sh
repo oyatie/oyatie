@@ -143,11 +143,40 @@ else
   pass "deliver.js merge-tree template has no bare \${INTEG#integ/}"
 fi
 
-# 7) claim-push contains merge-tree
+# 7) claim-push contains merge-tree + --check
 if grep -E -q 'merge-tree' tools/swarm/claim-push.sh; then
   pass "claim-push.sh runs merge-tree"
 else
   fail_msg "claim-push.sh missing merge-tree"
+fi
+if grep -E -q 'CHECK_ONLY|--check' tools/swarm/claim-push.sh; then
+  pass "claim-push.sh supports --check"
+else
+  fail_msg "claim-push.sh missing --check"
+fi
+
+# 8) claim-mechanical: deliver.js must parseClaimPacket (not bare /^CLAIM/ theater)
+if grep -E -q 'function parseClaimPacket' .claude/workflows/deliver.js; then
+  pass "deliver.js defines parseClaimPacket"
+else
+  fail_msg "deliver.js missing parseClaimPacket (claim-mechanical)"
+fi
+if grep -E -q 'claimOk = claimed && /\^\\s\*CLAIM/i\.test' .claude/workflows/deliver.js; then
+  fail_msg "deliver.js still uses bare /^CLAIM/ theater for claimOk"
+else
+  pass "deliver.js claimOk is not bare /^CLAIM/ theater"
+fi
+if grep -E -q 'parseClaimPacket\(claimed' .claude/workflows/deliver.js; then
+  pass "deliver.js gates Land on parseClaimPacket"
+else
+  fail_msg "deliver.js does not call parseClaimPacket on claim summary"
+fi
+
+# 9) claim_packet.py self-test (anti-drift-claim-fields)
+if python3 tools/swarm/claim_packet.py --self-test; then
+  pass "claim_packet.py self-test"
+else
+  fail_msg "claim_packet.py self-test failed"
 fi
 
 if [[ $fail -ne 0 ]]; then
