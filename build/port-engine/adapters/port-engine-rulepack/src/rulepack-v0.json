@@ -1,0 +1,14 @@
+{
+  "pair": {
+    "source": "go",
+    "target": "rust"
+  },
+  "rules": [
+    "identity",
+    "canary_empty_unit"
+  ],
+  "applies": {
+    "example.com/a": ["identity"],
+    "example.com/b": ["identity", "canary_empty_unit"]
+  }
+}

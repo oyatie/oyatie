@@ -1,0 +1,28 @@
+[package]
+name = "port-engine-rulepack"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+# Neutral RulePack loader for the owned deterministic port engine (ADR-0637 D1).
+# W0-B Slice 7 — package-local v0 mirror of forever home `specs/port-rules/**` (integ/specs).
+# No Cargo.lock absorb this tip.
+
+[dependencies]
+port-engine-api = { path = "../../ports/port-engine-api" }
+port-engine-hash = { path = "../port-engine-hash" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+[dev-dependencies]
+port-engine-kernel = { path = "../../core/port-engine-kernel" }
+
+[lib]
+name = "port_engine_rulepack"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true
