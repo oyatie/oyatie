@@ -94,6 +94,29 @@
       "root//libs/oya-governance-gate-catalog-domain:",
       "root//marketplace/facade/dev-cli:"
     ],
+    ".cursor/rules/**": [
+      "root//ci/facade/affected-target-set:",
+      "root//ci/facade/artifact-accountability:",
+      "root//ci/facade/artifact-inventory-registry:",
+      "root//ci/facade/baseline-ratchet:",
+      "root//ci/facade/inventory-registry-drift:",
+      "root//ci/facade/repo-root-hygiene:",
+      "root//ci/facade/scm-facts-snapshot:"
+    ],
+    "Cargo.lock": [
+      "root//ci/facade/affected-target-set:",
+      "root//ci/facade/generated-artifact-freshness:",
+      "root//ci/facade/scm-facts-snapshot:",
+      "root//ci/facade/supply-chain-audit:"
+    ],
+    "specs/reachability-registry.json": [
+      "root//ci/facade/artifact-accountability:",
+      "root//ci/facade/artifact-inventory-registry:",
+      "root//ci/facade/crate-registration:",
+      "root//ci/facade/cross-artifact-agreement:",
+      "root//ci/facade/scm-facts-snapshot:",
+      "root//libs/oya-ci-config:"
+    ],
     "registry/artifact-capabilities-registry.json": [
       "root//ci/facade/artifact-inventory-registry:ci-artifact-inventory-registry-unittest",
       "root//ci/facade/baseline-ratchet:ci-baseline-ratchet-gate",
@@ -212,6 +235,26 @@
     ],
     "k8s/**/Cargo.toml": [
       "root//ci/facade/k8s-program-docs:ci-k8s-program-docs-gate"
+    ],
+    "kernel/manifest.json": [
+      "root//ci/facade/artifact-accountability:ci-artifact-accountability-gate",
+      "root//ci/facade/artifact-inventory-registry:ci-artifact-inventory-registry-unittest",
+      "root//ci/facade/baseline-ratchet:ci-baseline-ratchet-gate",
+      "root//ci/facade/crate-registration:ci-crate-registration-unittest",
+      "root//ci/facade/generated-artifact-freshness:ci-generated-artifact-freshness-unittest",
+      "root//ci/facade/inventory-registry-drift:ci-inventory-registry-drift-gate",
+      "root//ci/facade/scm-facts-snapshot:ci-scm-facts-snapshot-gate",
+      "root//ci/facade/slo-coverage:ci-slo-coverage-gate"
+    ],
+    "os/manifest.json": [
+      "root//ci/facade/artifact-accountability:ci-artifact-accountability-gate",
+      "root//ci/facade/artifact-inventory-registry:ci-artifact-inventory-registry-unittest",
+      "root//ci/facade/baseline-ratchet:ci-baseline-ratchet-gate",
+      "root//ci/facade/crate-registration:ci-crate-registration-unittest",
+      "root//ci/facade/generated-artifact-freshness:ci-generated-artifact-freshness-unittest",
+      "root//ci/facade/inventory-registry-drift:ci-inventory-registry-drift-gate",
+      "root//ci/facade/scm-facts-snapshot:ci-scm-facts-snapshot-gate",
+      "root//ci/facade/slo-coverage:ci-slo-coverage-gate"
     ],
     "docs/decisions/ADR-0704-k8s-port-live-apex.md": [
       "root//ci/facade/k8s-program-docs:ci-k8s-program-docs-gate"
