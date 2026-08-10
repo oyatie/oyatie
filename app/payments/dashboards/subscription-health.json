@@ -23,7 +23,7 @@
   "id": null,
   "links": [
     { "title": "Payments Overview", "url": "/d/payments-overview", "type": "dashboards" },
-    { "title": "Runbook: PSP Outage", "url": "https://github.com/oyatie/oyatie/blob/dev/microservices/payments/runbooks/psp-outage.md", "type": "link" }
+    { "title": "Runbook: PSP Outage", "url": "https://github.com/oyatie/oyatie/blob/dev/app/payments/runbooks/psp-outage.md", "type": "link" }
   ],
   "panels": [
     {

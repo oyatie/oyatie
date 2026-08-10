@@ -24,7 +24,8 @@
         "oya-payments-charge-rest",
         "oya-payments-charge-grpc",
         "oya-payments-charge-app"
-      ]
+      ],
+      "crate_status": "historical_inventory_only_deleted_1451"
     },
     {
       "name": "refund",
@@ -32,7 +33,8 @@
       "crates": [
         "oya-payments-refund-domain",
         "oya-payments-refund-usecase"
-      ]
+      ],
+      "crate_status": "historical_inventory_only_deleted_1451"
     },
     {
       "name": "payout",
@@ -40,7 +42,8 @@
       "crates": [
         "oya-payments-payout-domain",
         "oya-payments-payout-usecase"
-      ]
+      ],
+      "crate_status": "historical_inventory_only_deleted_1451"
     },
     {
       "name": "dispute",
@@ -48,7 +51,8 @@
       "crates": [
         "oya-payments-dispute-domain",
         "oya-payments-dispute-usecase"
-      ]
+      ],
+      "crate_status": "historical_inventory_only_deleted_1451"
     },
     {
       "name": "subscription-lifecycle",
@@ -56,7 +60,8 @@
       "crates": [
         "oya-payments-subscription-domain",
         "oya-payments-subscription-usecase"
-      ]
+      ],
+      "crate_status": "historical_inventory_only_deleted_1451"
     },
     {
       "name": "kyc-kyb",
@@ -64,7 +69,8 @@
       "crates": [
         "oya-payments-kyc-kyb-domain",
         "oya-payments-kyc-kyb-usecase"
-      ]
+      ],
+      "crate_status": "historical_inventory_only_deleted_1451"
     },
     {
       "name": "settlement",
@@ -72,7 +78,8 @@
       "crates": [
         "oya-payments-settlement-domain",
         "oya-payments-settlement-worker"
-      ]
+      ],
+      "crate_status": "historical_inventory_only_deleted_1451"
     }
   ],
   "layers": [
@@ -98,10 +105,10 @@
   ],
   "contracts": {
     "openapi": [
-      "microservices/payments/contracts/openapi-v1.yaml"
+      "app/payments/contracts/openapi-v1.yaml"
     ],
     "asyncapi": [
-      "microservices/payments/contracts/asyncapi-v1.yaml"
+      "app/payments/contracts/asyncapi-v1.yaml"
     ],
     "internal_grpc": {
       "transport": "http2",
@@ -115,31 +122,31 @@
     {
       "tier": "T0",
       "name": "charge",
-      "file": "microservices/payments/capabilities/charge.yaml",
+      "file": "app/payments/capabilities/charge.yaml",
       "risk_class": "financial"
     },
     {
       "tier": "T0",
       "name": "payout",
-      "file": "microservices/payments/capabilities/payout.yaml",
+      "file": "app/payments/capabilities/payout.yaml",
       "risk_class": "financial"
     },
     {
       "tier": "T1",
       "name": "refund",
-      "file": "microservices/payments/capabilities/refund.yaml",
+      "file": "app/payments/capabilities/refund.yaml",
       "risk_class": "financial"
     },
     {
       "tier": "T1",
       "name": "dispute",
-      "file": "microservices/payments/capabilities/dispute.yaml",
+      "file": "app/payments/capabilities/dispute.yaml",
       "risk_class": "financial"
     },
     {
       "tier": "T1",
       "name": "subscription-lifecycle",
-      "file": "microservices/payments/capabilities/subscription-lifecycle.yaml",
+      "file": "app/payments/capabilities/subscription-lifecycle.yaml",
       "risk_class": "financial"
     }
   ],
@@ -185,91 +192,91 @@
     {
       "id": "IP-001",
       "title": "oya-payments-charge-kernel",
-      "file": "microservices/payments/IP-001-payments-kernel-charge.md",
+      "file": "app/payments/IP-001-payments-kernel-charge.md",
       "acceptance_status": "accepted"
     },
     {
       "id": "IP-002",
       "title": "oya-payments-charge-domain",
-      "file": "microservices/payments/IP-002-payments-domain-charge.md",
+      "file": "app/payments/IP-002-payments-domain-charge.md",
       "acceptance_status": "accepted"
     },
     {
       "id": "IP-003",
       "title": "oya-payments-charge-usecase",
-      "file": "microservices/payments/IP-003-payments-usecase-charge.md",
+      "file": "app/payments/IP-003-payments-usecase-charge.md",
       "acceptance_status": "accepted"
     },
     {
       "id": "IP-004",
       "title": "oya-payments-adapter-stripe",
-      "file": "microservices/payments/IP-004-payments-adapter-stripe.md",
+      "file": "app/payments/IP-004-payments-adapter-stripe.md",
       "acceptance_status": "accepted"
     },
     {
       "id": "IP-005",
       "title": "oya-payments-refund-domain",
-      "file": "microservices/payments/IP-005-payments-domain-refund.md",
+      "file": "app/payments/IP-005-payments-domain-refund.md",
       "acceptance_status": "accepted"
     },
     {
       "id": "IP-006",
       "title": "oya-payments-refund-usecase",
-      "file": "microservices/payments/IP-006-payments-usecase-refund.md",
+      "file": "app/payments/IP-006-payments-usecase-refund.md",
       "acceptance_status": "accepted"
     },
     {
       "id": "IP-007",
       "title": "oya-payments-payout-domain",
-      "file": "microservices/payments/IP-007-payments-domain-payout.md",
+      "file": "app/payments/IP-007-payments-domain-payout.md",
       "acceptance_status": "accepted"
     },
     {
       "id": "IP-008",
       "title": "oya-payments-payout-usecase",
-      "file": "microservices/payments/IP-008-payments-usecase-payout.md",
+      "file": "app/payments/IP-008-payments-usecase-payout.md",
       "acceptance_status": "accepted"
     },
     {
       "id": "IP-009",
       "title": "oya-payments-dispute-domain",
-      "file": "microservices/payments/IP-009-payments-domain-dispute.md",
+      "file": "app/payments/IP-009-payments-domain-dispute.md",
       "acceptance_status": "accepted"
     },
     {
       "id": "IP-010",
       "title": "oya-payments-dispute-usecase",
-      "file": "microservices/payments/IP-010-payments-usecase-dispute.md",
+      "file": "app/payments/IP-010-payments-usecase-dispute.md",
       "acceptance_status": "accepted"
     },
     {
       "id": "IP-011",
       "title": "oya-payments-subscription-domain",
-      "file": "microservices/payments/IP-011-payments-domain-subscription.md",
+      "file": "app/payments/IP-011-payments-domain-subscription.md",
       "acceptance_status": "accepted"
     },
     {
       "id": "IP-012",
       "title": "oya-payments-subscription-usecase",
-      "file": "microservices/payments/IP-012-payments-usecase-subscription.md",
+      "file": "app/payments/IP-012-payments-usecase-subscription.md",
       "acceptance_status": "accepted"
     },
     {
       "id": "IP-013",
       "title": "oya-payments-kyc-kyb-domain",
-      "file": "microservices/payments/IP-013-payments-domain-sub-merchant.md",
+      "file": "app/payments/IP-013-payments-domain-sub-merchant.md",
       "acceptance_status": "accepted"
     },
     {
       "id": "IP-014",
       "title": "oya-payments-kyc-kyb-usecase",
-      "file": "microservices/payments/IP-014-payments-usecase-sub-merchant.md",
+      "file": "app/payments/IP-014-payments-usecase-sub-merchant.md",
       "acceptance_status": "accepted"
     },
     {
       "id": "IP-015",
       "title": "oya-payments-charge-rest+grpc+app",
-      "file": "microservices/payments/IP-015-payments-rest-grpc-app.md",
+      "file": "app/payments/IP-015-payments-rest-grpc-app.md",
       "acceptance_status": "accepted"
     }
   ],
@@ -287,16 +294,16 @@
     "sox-itgc"
   ],
   "cedar_policies": [
-    "microservices/payments/policy/charge-authorization.cedar",
-    "microservices/payments/policy/payout-authorization.cedar",
-    "microservices/payments/policy/refund-authorization.cedar",
-    "microservices/payments/policy/sub-merchant-onboarding.cedar",
-    "microservices/payments/policy/dispute-authorization.cedar",
-    "microservices/payments/policy/abuse-defence.cedar",
-    "microservices/payments/policy/emergency-services-bypass.cedar",
-    "microservices/payments/policy/auditor-scope.cedar",
-    "microservices/payments/policy/ci-scope.cedar",
-    "microservices/payments/policy/data-residency.md"
+    "app/payments/policy/charge-authorization.cedar",
+    "app/payments/policy/payout-authorization.cedar",
+    "app/payments/policy/refund-authorization.cedar",
+    "app/payments/policy/sub-merchant-onboarding.cedar",
+    "app/payments/policy/dispute-authorization.cedar",
+    "app/payments/policy/abuse-defence.cedar",
+    "app/payments/policy/emergency-services-bypass.cedar",
+    "app/payments/policy/auditor-scope.cedar",
+    "app/payments/policy/ci-scope.cedar",
+    "app/payments/policy/data-residency.md"
   ],
   "adrs": [
     {
@@ -313,7 +320,7 @@
     },
     {
       "id": "ADR-0131",
-      "title": "Per-µservice flat layout"
+      "title": "Per-\u00b5service flat layout"
     },
     {
       "id": "ADR-0145",
@@ -406,7 +413,7 @@
   },
   "provider_credential_mode": {
     "default": "byok",
-    "note": "Every tenant brings their own PSP account per ADR-0255 §D-4; platform_default only for oyatie-internal tenant"
+    "note": "Every tenant brings their own PSP account per ADR-0255 \u00a7D-4; platform_default only for oyatie-internal tenant"
   },
   "mesh_layering": {
     "cilium_l4": true,
@@ -556,11 +563,11 @@
   "pod_runtime_tier": 1,
   "pod_runtime_tier_justification": "Tier 1 substrate-touching runtime: payments does not execute tenant-customer code, but it owns regulated tenant money-movement, PSP secrets, KYC/KYB, payout, settlement, and webhook state.",
   "pod_runtime_tier_surface_evidence": [
-    "microservices/payments/manifest.json",
-    "microservices/payments/ARCHITECTURE.md",
-    "microservices/payments/IP-016-payments-settlement-domain.md",
-    "microservices/payments/IP-journey-j77-regulated-money-movement.md",
-    "microservices/payments/slos/webhook-delivery-success.openslo.yaml"
+    "app/payments/manifest.json",
+    "app/payments/ARCHITECTURE.md",
+    "app/payments/IP-016-payments-settlement-domain.md",
+    "app/payments/IP-journey-j77-regulated-money-movement.md",
+    "app/payments/slos/webhook-delivery-success.openslo.yaml"
   ],
   "tenant_version_pinning": {
     "declared_versions": [
@@ -573,10 +580,10 @@
     "deprecation_calendar": [],
     "public_surface_files": {
       "openapi": {
-        "2026-05-21": "microservices/payments/contracts/openapi-v1.yaml"
+        "2026-05-21": "app/payments/contracts/openapi-v1.yaml"
       },
       "asyncapi": {
-        "2026-05-21": "microservices/payments/contracts/asyncapi-v1.yaml"
+        "2026-05-21": "app/payments/contracts/asyncapi-v1.yaml"
       }
     }
   },
@@ -626,5 +633,11 @@
       "version_pin": "v1",
       "tenant_class_scope": "paid"
     }
-  ]
+  ],
+  "compile_surface": {
+    "status": "zero_crate",
+    "deleted_crate_cluster_pr": 1451,
+    "note": "oya-payments-* Cargo.toml cluster deleted; catalog/*.yaml retained as deprecated historical inventory only \u2014 not a live compile surface. Forever home is app/payments/ (PSP product dump rewrite; NOT billing/).",
+    "judgment": "envelopes reorg_debt_freeze path=oya/payments/ redesign=rewrite land_status=ready_for_integ_payments"
+  }
 }

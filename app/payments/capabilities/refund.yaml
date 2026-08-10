@@ -14,9 +14,9 @@ maturity: incubating
 created_at: 2026-05-20
 related_adrs: [ADR-0244, ADR-0246, ADR-0263]
 related_artifacts:
-  - microservices/payments/PRD.md
-  - microservices/payments/contracts/openapi-v1.yaml
-  - microservices/payments/policy/refund-authorization.cedar
+  - app/payments/PRD.md
+  - app/payments/contracts/openapi-v1.yaml
+  - app/payments/policy/refund-authorization.cedar
 
 autonomy_tier: T2
 
@@ -69,7 +69,7 @@ cost_profile:
     - DB write + audit-chain row
 
 cedar_policy_fragments:
-  - microservices/payments/policy/refund-authorization.cedar
+  - app/payments/policy/refund-authorization.cedar
 
 sunset:
   status: none

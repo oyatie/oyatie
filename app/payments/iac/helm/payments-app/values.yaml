@@ -1,5 +1,5 @@
 # oya-payments-app Helm values
-# Canonical-base: microservices/payments/iac/helm/payments-app/
+# Canonical-base: app/payments/iac/helm/payments-app/
 # ADR-0131 flat layout; ADR-0254 K8s + Cloud Hypervisor + Kata; ADR-0253 HTTP/3
 
 global:

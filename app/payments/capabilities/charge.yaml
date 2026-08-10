@@ -17,10 +17,10 @@ related_specs:
   - /specs/microservices/payments.json
   - /specs/tenant-model.json
 related_artifacts:
-  - microservices/payments/PRD.md
-  - microservices/payments/contracts/openapi-v1.yaml
-  - microservices/payments/contracts/payments-v1.proto
-  - microservices/payments/policy/charge-authorization.cedar
+  - app/payments/PRD.md
+  - app/payments/contracts/openapi-v1.yaml
+  - app/payments/contracts/payments-v1.proto
+  - app/payments/policy/charge-authorization.cedar
 
 autonomy_tier: T2
 # T2 = write to tenant ledger + emit money via PSP; gated by Cedar default-deny;
@@ -87,11 +87,11 @@ cost_profile:
     - DB write (charges row + audit-chain row)
 
 cedar_policy_fragments:
-  - microservices/payments/policy/charge-authorization.cedar
-  - microservices/payments/policy/abuse-defence.cedar
+  - app/payments/policy/charge-authorization.cedar
+  - app/payments/policy/abuse-defence.cedar
 
 eval_set:
-  paiden_inputs_path: microservices/payments/capabilities/eval/charge-paiden.jsonl
+  paiden_inputs_path: app/payments/capabilities/eval/charge-paiden.jsonl
   pass_threshold: 0.99
   eval_metric: charge-success-rate-vs-stripe-sandbox-reference
   cadence: per-release

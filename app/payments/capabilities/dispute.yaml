@@ -12,8 +12,8 @@ maturity: incubating
 created_at: 2026-05-20
 related_adrs: [ADR-0244, ADR-0263]
 related_artifacts:
-  - microservices/payments/PRD.md
-  - microservices/payments/runbooks/dispute-escalation.md
+  - app/payments/PRD.md
+  - app/payments/runbooks/dispute-escalation.md
 
 autonomy_tier: T2
 
@@ -58,7 +58,7 @@ cost_profile:
     - PSP dispute-handling fee (Stripe: $15; varies per PSP)
 
 cedar_policy_fragments:
-  - microservices/payments/policy/abuse-defence.cedar
+  - app/payments/policy/abuse-defence.cedar
 
 sunset:
   status: none

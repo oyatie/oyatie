@@ -10,7 +10,7 @@ contracts_consumed:
 contracts_exposed:
   - trait:PspAdapter (impl)
 regulatory_packs_consumed: [oya-pack-pci-dss-l1-v4, oya-pack-eu-psd2-sca, oya-pack-us-state-mtl]
-lifecycle: {state: incubating, preview_since: 2026-05-20}
+lifecycle: {state: deprecated, deprecated_since: 2026-08-10}
 traceability:
   github_issue: "oya-governance-pipeline://payments-doc-set-buildout-2026-05-20"
   source_adrs: [ADR-0056, ADR-0105, ADR-0145, ADR-0253, ADR-0255, ADR-0296]

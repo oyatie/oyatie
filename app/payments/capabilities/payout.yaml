@@ -14,9 +14,9 @@ maturity: incubating
 created_at: 2026-05-20
 related_adrs: [ADR-0244, ADR-0246, ADR-0248, ADR-0263]
 related_artifacts:
-  - microservices/payments/PRD.md
-  - microservices/payments/policy/payout-authorization.cedar
-  - microservices/payments/runbooks/payout-failed.md
+  - app/payments/PRD.md
+  - app/payments/policy/payout-authorization.cedar
+  - app/payments/runbooks/payout-failed.md
 
 autonomy_tier: T3
 # T3 = irreversible cross-tenant money-movement; requires dual-signoff for >$10k;
@@ -80,11 +80,11 @@ cost_profile:
     - ACH / SEPA / KR-FSS settlement fee
 
 cedar_policy_fragments:
-  - microservices/payments/policy/payout-authorization.cedar
-  - microservices/payments/policy/abuse-defence.cedar
+  - app/payments/policy/payout-authorization.cedar
+  - app/payments/policy/abuse-defence.cedar
 
 eval_set:
-  paiden_inputs_path: microservices/payments/capabilities/eval/payout-paiden.jsonl
+  paiden_inputs_path: app/payments/capabilities/eval/payout-paiden.jsonl
   pass_threshold: 0.999  # higher bar — payout errors are catastrophic
   eval_metric: payout-success-rate-vs-stripe-sandbox-reference
   cadence: per-release

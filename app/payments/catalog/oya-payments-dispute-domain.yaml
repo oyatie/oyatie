@@ -8,7 +8,7 @@ contracts_consumed:
   - intelligence:dispute-representment-network (opt-in per ADR-0255)
 contracts_exposed: []
 regulatory_packs_consumed: [oya-pack-pci-dss-l1-v4, oya-pack-kr-fss, oya-pack-eu-psd2-sca]
-lifecycle: {state: incubating, preview_since: 2026-05-20}
+lifecycle: {state: deprecated, deprecated_since: 2026-08-10}
 traceability:
   github_issue: "oya-governance-pipeline://payments-doc-set-buildout-2026-05-20"
   source_adrs: [ADR-0056, ADR-0105, ADR-0243, ADR-0244, ADR-0255]
