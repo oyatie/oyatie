@@ -10,10 +10,10 @@ deciders: council-privacy, ops-security, axis-cloud, council-architecture
 methodology: ICO DPIA template (UK) + CNIL DPIA methodology (FR) + GDPR Art. 35 + KR PIPA Art. 33
 related_adrs: [ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0121, ADR-0139, ADR-0131, ADR-0140 (retired per ADR-0145)]
 related_artifacts:
-  - microservices/cloud-k8s/threat-model.md
-  - microservices/cloud-k8s/policy/cluster-isolation.md
-  - microservices/cloud-k8s/policy/data-residency.md
-  - microservices/cloud-k8s/compliance.md
+  - k8s/threat-model.md
+  - k8s/policy/cluster-isolation.md
+  - k8s/policy/data-residency.md
+  - k8s/compliance.md
 review_cadence: annually + on every cluster-version change, pack activation, or processing-purpose change
 high_risk_triggers_engaged:
   - "Art. 35(3)(a): systematic + extensive evaluation — YES (cluster hosts every tenant workload; control-plane mutations are systematic)"
@@ -258,10 +258,10 @@ Per-pack DPIA overlays at `regional-packs/<pack>/cloud-k8s-dpia-overlay.md`. Eac
 
 - ADR-0028 (Bominal audit chain).
 - ADR-0117, ADR-0120, ADR-0121, ADR-0139, ADR-0131, ADR-0140.
-- `microservices/cloud-k8s/threat-model.md`.
-- `microservices/cloud-k8s/policy/{cluster-isolation, data-residency}.md`.
-- `microservices/cloud-k8s/compliance.md`.
-- `microservices/cloud-k8s/incident-response.md`.
+- `k8s/threat-model.md`.
+- `k8s/policy/{cluster-isolation, data-residency}.md`.
+- `k8s/compliance.md`.
+- `k8s/incident-response.md`.
 - `microservices/cloud-k8s/legal/{dpa-template, baa-template, sub-processors, transfer-register, ropa}.md`.
 - ICO + CNIL DPIA templates.
 - EDPB Guidelines 4/2019 + 9/2022.

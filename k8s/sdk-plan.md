@@ -9,9 +9,9 @@ owner_team: axis-cloud + gtm-customer-success
 deciders: axis-cloud, council-architecture
 related_adrs: [ADR-0121, ADR-0131]
 related_artifacts:
-  - microservices/cloud-k8s/contracts/openapi/cloud-k8s.yaml
-  - microservices/cloud-k8s/contracts/proto/cloud-k8s.proto
-  - microservices/cloud-k8s/PRD.md
+  - k8s/contracts/openapi/cloud-k8s.yaml
+  - k8s/contracts/proto/cloud-k8s.proto
+  - k8s/PRD.md
 review_cadence: per-SDK-language-launch
 doc_status: published
 ---
@@ -130,9 +130,9 @@ Defer per-SDK open-source decision until SDK API stable in production ≥ 6mo. D
 
 ## References
 
-- `microservices/cloud-k8s/contracts/openapi/cloud-k8s.yaml`.
-- `microservices/cloud-k8s/contracts/proto/cloud-k8s.proto`.
-- `microservices/cloud-k8s/PRD.md` BC layer mapping (`-sdk` crate per ADR-0105).
+- `k8s/contracts/openapi/cloud-k8s.yaml`.
+- `k8s/contracts/proto/cloud-k8s.proto`.
+- `k8s/PRD.md` BC layer mapping (`-sdk` crate per ADR-0105).
 - ADR-0105 (13-layer enum; `sdk` is one canonical layer).
 - OpenAPI Generator — `openapi-generator.tech`.
 - gRPC tooling — `grpc.io`.

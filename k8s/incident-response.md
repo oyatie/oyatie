@@ -9,12 +9,12 @@ owner_team: ops-sre-reliability + ops-security + council-privacy
 deciders: ops-sre-reliability, ops-security, council-privacy, axis-cloud, council-architecture
 related_adrs: [ADR-0028, ADR-0117, ADR-0121, ADR-0139, ADR-0131]
 related_artifacts:
-  - microservices/cloud-k8s/threat-model.md
-  - microservices/cloud-k8s/dpia.md
-  - microservices/cloud-k8s/compliance.md
-  - microservices/cloud-k8s/failure-modes.md
-  - microservices/cloud-k8s/multi-region.md
-  - microservices/cloud-k8s/runbooks/
+  - k8s/threat-model.md
+  - k8s/dpia.md
+  - k8s/compliance.md
+  - k8s/failure-modes.md
+  - k8s/multi-region.md
+  - k8s/runbooks/
 review_cadence: quarterly + after every Sev-1/Sev-2 incident
 doc_status: published
 ---
@@ -248,12 +248,12 @@ On-call compensation + handoff per `runbooks/oncall-rotation.md`.
 
 ## References
 
-- `microservices/cloud-k8s/failure-modes.md` (FM-IDs + severity).
-- `microservices/cloud-k8s/compliance.md` §"Regulatory Notifications" (per-pack timelines).
-- `microservices/cloud-k8s/multi-region.md` (DR failover).
-- `microservices/cloud-k8s/runbooks/*` (per-scenario procedures).
-- `microservices/cloud-k8s/dpia.md` (data-subject impact assessment).
-- `microservices/cloud-k8s/threat-model.md` (security-incident threat IDs).
+- `k8s/failure-modes.md` (FM-IDs + severity).
+- `k8s/compliance.md` §"Regulatory Notifications" (per-pack timelines).
+- `k8s/multi-region.md` (DR failover).
+- `k8s/runbooks/*` (per-scenario procedures).
+- `k8s/dpia.md` (data-subject impact assessment).
+- `k8s/threat-model.md` (security-incident threat IDs).
 - `docs/standards/incident-severity.md` (cross-cutting severity).
 - `docs/templates/incident-postmortem-template.md`.
 - ADR-0028 (audit-chain); ADR-0121 (substrate).

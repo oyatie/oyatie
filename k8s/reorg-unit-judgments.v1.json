@@ -131,7 +131,8 @@
         "opportunity_cost: file itself is the destination; rewriting its outbound cites is follow-on, not wave-1 DoD"
       ],
       "evidence": [
-        "file exists; runbooks now point here"
+        "file exists; runbooks now point here",
+        "wave-2: outbound related_artifacts + References retargeted to k8s/* counterparts (11 cites)"
       ],
       "destination_integ": "integ/k8s",
       "land_when": "kept; outbound cite sweep optional follow-on"
