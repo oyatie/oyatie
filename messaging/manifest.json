@@ -1,0 +1,12 @@
+{
+  "schema_version": "1.0",
+  "capability": "messaging",
+  "tier": "substrate",
+  "substrate_dag_position": {
+    "stratum": "S0"
+  },
+  "_tier_source": "specs/capability-registry.json name=messaging dag_node=messaging stratum=S0",
+  "_tier_subtype_note": "UNGROUNDED — capability-registry declares no tier_subtype and no absorbed legacy service manifest provides one. Deliberately ABSENT rather than invented; it lands when a grounded subtype exists.",
+  "_stratum_note": "S0 from ADR-0562 capability-registry (dag_node messaging). Restores messaging/manifest.json authored on fix/tier-classify-capability-roots (blob 1d5a748f) but never landed on dev; stratum updated from forward-declared to the now-grounded registry value rather than inventing a new facet set.",
+  "_openslo_note": "No messaging/observability/slos/*.openslo.yaml exists in-tree. OpenSLO refs are omitted rather than invented; SLO authoring lands with a runtime SLI, not this root-manifest slice. messaging is not in governed_service_roots today, so tier-field OpenSLO coverage does not yet apply."
+}
