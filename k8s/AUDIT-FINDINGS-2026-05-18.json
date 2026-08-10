@@ -8,17 +8,17 @@
       "severity": "hard",
       "file_hits": [
         {
-          "file": "microservices/cloud-k8s/IP-001-layer-a-iac-kubeadm-containerd-istio-envoy.md",
+          "file": "k8s/IP-001-layer-a-iac-kubeadm-containerd-istio-envoy.md",
           "hits": [
             {
               "line": 41,
-              "excerpt": "| `microservices/cloud-k8s/iac/helm/csi-object/{Chart.yaml,values.yaml}` | create | OCI Object / SeaweedFS CSI driver |"
+              "excerpt": "| `k8s/iac/helm/csi-object/{Chart.yaml,values.yaml}` | create | OCI Object / SeaweedFS CSI driver |"
             }
           ],
           "hits_total": 1
         },
         {
-          "file": "microservices/cloud-k8s/PRD.md",
+          "file": "k8s/PRD.md",
           "hits": [
             {
               "line": 157,
@@ -28,7 +28,7 @@
           "hits_total": 1
         },
         {
-          "file": "microservices/cloud-k8s/threat-model.md",
+          "file": "k8s/threat-model.md",
           "hits": [
             {
               "line": 47,
@@ -38,7 +38,7 @@
           "hits_total": 1
         },
         {
-          "file": "microservices/cloud-k8s/IP-011-csi-storage-driver-per-backend.md",
+          "file": "k8s/IP-011-csi-storage-driver-per-backend.md",
           "hits": [
             {
               "line": 18,
@@ -52,7 +52,7 @@
           "hits_total": 2
         },
         {
-          "file": "microservices/cloud-k8s/policy/data-residency.md",
+          "file": "k8s/policy/data-residency.md",
           "hits": [
             {
               "line": 99,
@@ -68,7 +68,7 @@
       "severity": "hard",
       "file_hits": [
         {
-          "file": "microservices/cloud-k8s/implementation-plans/IP-karpenter-bootstrap.md",
+          "file": "k8s/implementation-plans/IP-karpenter-bootstrap.md",
           "hits": [
             {
               "line": 14,
@@ -92,7 +92,7 @@
       "severity": "hard",
       "file_hits": [
         {
-          "file": "microservices/cloud-k8s/iac/kustomize/components/storage-classes/kustomization.yaml",
+          "file": "k8s/iac/kustomize/components/storage-classes/kustomization.yaml",
           "hits": [
             {
               "line": 13,
@@ -102,7 +102,7 @@
           "hits_total": 1
         },
         {
-          "file": "microservices/cloud-k8s/iac/kustomize/components/storage-classes/storage-class-oya-pg-hot.yaml",
+          "file": "k8s/iac/kustomize/components/storage-classes/storage-class-oya-pg-hot.yaml",
           "hits": [
             {
               "line": 2,
@@ -112,7 +112,7 @@
           "hits_total": 1
         },
         {
-          "file": "microservices/cloud-k8s/iac/kustomize/components/storage-classes/storage-class-oya-valkey-hot.yaml",
+          "file": "k8s/iac/kustomize/components/storage-classes/storage-class-oya-valkey-hot.yaml",
           "hits": [
             {
               "line": 2,
@@ -127,15 +127,15 @@
   },
   "ip_files_thin": [
     {
-      "file": "microservices/cloud-k8s/IP-004-cluster-bootstrap-domain.md",
+      "file": "k8s/IP-004-cluster-bootstrap-domain.md",
       "lines": 95
     },
     {
-      "file": "microservices/cloud-k8s/IP-010-ingress-controller-envoy.md",
+      "file": "k8s/IP-010-ingress-controller-envoy.md",
       "lines": 91
     },
     {
-      "file": "microservices/cloud-k8s/implementation-plans/IP-karpenter-bootstrap.md",
+      "file": "k8s/implementation-plans/IP-karpenter-bootstrap.md",
       "lines": 62
     }
   ],

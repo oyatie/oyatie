@@ -17,7 +17,7 @@ regulatory) per ADR-0198 D-2.
 
 ## Acceptance criteria
 
-1. Helm chart at `microservices/cloud-k8s/iac/helm/karpenter/` deploys
+1. Helm chart at `k8s/iac/helm/karpenter/` deploys
    to `dev`:
    - Controller HA (2 replicas).
    - Webhook live + serving.

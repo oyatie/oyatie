@@ -15,10 +15,10 @@ substance_floor: 300-lines
 tier_segmentation_used: false
 source_anchors:
   - /Users/jasonlee/oyatie/docs/decisions/ADR-0700-ci-admission-live-apex.md
-  - /Users/jasonlee/oyatie/microservices/cloud-k8s/PRD.md
-  - /Users/jasonlee/oyatie/microservices/cloud-k8s/benchmarks/kubeadm-vs-managed-vs-rancher.md
-  - /Users/jasonlee/oyatie/microservices/cloud-k8s/capacity-model.md
-  - /Users/jasonlee/oyatie/microservices/cloud-k8s/competitor-parity-matrix.md
+  - /Users/jasonlee/oyatie/k8s/PRD.md
+  - /Users/jasonlee/oyatie/k8s/benchmarks/kubeadm-vs-managed-vs-rancher.md
+  - /Users/jasonlee/oyatie/k8s/capacity-model.md
+  - /Users/jasonlee/oyatie/k8s/competitor-parity-matrix.md
   - /Users/jasonlee/oyatie/docs/decisions/ADR-0709-general-live-apex.md
 ---
 

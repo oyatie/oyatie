@@ -17,7 +17,7 @@ acceptance_lanes: [helm-lint, kubectl-apply-dry-run, terraform-validate, oya-gov
 
 ## Intent
 
-Author Helm charts (`istio-base`, `istiod`, `envoy-gateway`, `cni-cilium`) + OpenTofu modules (`kubeadm-cluster`, `containerd-config`) + Kustomize base + pack-kr overlay + CSI driver Helm deployments per backend (block-volume, object, file) under `microservices/cloud-k8s/iac/`. Deploys to the on-prem KR primary cell per ADR-0121 and to OCI OKE peers subsequent-to-M03-completion.
+Author Helm charts (`istio-base`, `istiod`, `envoy-gateway`, `cni-cilium`) + OpenTofu modules (`kubeadm-cluster`, `containerd-config`) + Kustomize base + pack-kr overlay + CSI driver Helm deployments per backend (block-volume, object, file) under `k8s/iac/`. Deploys to the on-prem KR primary cell per ADR-0121 and to OCI OKE peers subsequent-to-M03-completion.
 
 Per ADR-0121, kubeadm + containerd are Terraform-applied (lifecycle-managed by the cloud-iac µservice's OpenTofu runner; cloud-k8s declares the module); Istio + Envoy + Cilium are Helm-applied. CSI drivers are Helm-applied with per-backend values.
 
@@ -29,17 +29,17 @@ One cohesive ChangeSet: 4 Helm charts (istio-base, istiod, envoy-gateway, cni-ci
 
 | Path | Action | Description |
 |---|---|---|
-| `microservices/cloud-k8s/iac/helm/istio-base/{Chart.yaml,values.yaml,templates/*}` | create | Istio base CRDs + namespaces; LTS pin 1.29.2 |
-| `microservices/cloud-k8s/iac/helm/istiod/{Chart.yaml,values.yaml,templates/*}` | create | istiod control plane; PeerAuthentication STRICT mesh-wide |
-| `microservices/cloud-k8s/iac/helm/envoy-gateway/{Chart.yaml,values.yaml,templates/*}` | create | Envoy ingress gateway; TLS 1.3 only; WAF + rate-limit filter |
-| `microservices/cloud-k8s/iac/helm/cni-cilium/{Chart.yaml,values.yaml,templates/*}` | create | Cilium 1.16 LTS; eBPF dataplane; NetworkPolicy + Hubble enabled |
-| `microservices/cloud-k8s/iac/terraform/kubeadm-cluster/main.tf` | create | kubeadm init + node-join orchestration; per-pack region binding |
-| `microservices/cloud-k8s/iac/terraform/containerd-config/main.tf` | create | containerd 2.3.0 + runc 1.4.0 install; seccomp / AppArmor base |
-| `microservices/cloud-k8s/iac/kustomize/base/kustomization.yaml` | create | Shared base referencing all Helm releases |
-| `microservices/cloud-k8s/iac/kustomize/overlays/pack-kr/kustomization.yaml` | create | pack-kr overlay (initial active pack) |
-| `microservices/cloud-k8s/iac/helm/csi-block-volume/{Chart.yaml,values.yaml}` | create | OCI Block Volume CSI driver |
-| `microservices/cloud-k8s/iac/helm/csi-object/{Chart.yaml,values.yaml}` | create | OCI Object / SeaweedFS CSI driver |
-| `microservices/cloud-k8s/iac/helm/csi-file/{Chart.yaml,values.yaml}` | create | OCI File / CephFS CSI driver |
+| `k8s/iac/helm/istio-base/{Chart.yaml,values.yaml,templates/*}` | create | Istio base CRDs + namespaces; LTS pin 1.29.2 |
+| `k8s/iac/helm/istiod/{Chart.yaml,values.yaml,templates/*}` | create | istiod control plane; PeerAuthentication STRICT mesh-wide |
+| `k8s/iac/helm/envoy-gateway/{Chart.yaml,values.yaml,templates/*}` | create | Envoy ingress gateway; TLS 1.3 only; WAF + rate-limit filter |
+| `k8s/iac/helm/cni-cilium/{Chart.yaml,values.yaml,templates/*}` | create | Cilium 1.16 LTS; eBPF dataplane; NetworkPolicy + Hubble enabled |
+| `k8s/iac/terraform/kubeadm-cluster/main.tf` | create | kubeadm init + node-join orchestration; per-pack region binding |
+| `k8s/iac/terraform/containerd-config/main.tf` | create | containerd 2.3.0 + runc 1.4.0 install; seccomp / AppArmor base |
+| `k8s/iac/kustomize/base/kustomization.yaml` | create | Shared base referencing all Helm releases |
+| `k8s/iac/kustomize/overlays/pack-kr/kustomization.yaml` | create | pack-kr overlay (initial active pack) |
+| `k8s/iac/helm/csi-block-volume/{Chart.yaml,values.yaml}` | create | OCI Block Volume CSI driver |
+| `k8s/iac/helm/csi-object/{Chart.yaml,values.yaml}` | create | OCI Object / SeaweedFS CSI driver |
+| `k8s/iac/helm/csi-file/{Chart.yaml,values.yaml}` | create | OCI File / CephFS CSI driver |
 
 ## Crate Naming
 
@@ -122,16 +122,16 @@ resource "null_resource" "kubeadm_init" {
 ## Acceptance Gates
 
 ```bash
-helm lint microservices/cloud-k8s/iac/helm/istio-base
-helm lint microservices/cloud-k8s/iac/helm/istiod
-helm lint microservices/cloud-k8s/iac/helm/envoy-gateway
-helm lint microservices/cloud-k8s/iac/helm/cni-cilium
-helm lint microservices/cloud-k8s/iac/helm/csi-block-volume
-helm lint microservices/cloud-k8s/iac/helm/csi-object
-helm lint microservices/cloud-k8s/iac/helm/csi-file
-terraform -chdir=microservices/cloud-k8s/iac/terraform/kubeadm-cluster validate
-terraform -chdir=microservices/cloud-k8s/iac/terraform/containerd-config validate
-kubectl --dry-run=client apply -k microservices/cloud-k8s/iac/kustomize/overlays/pack-kr
+helm lint k8s/iac/helm/istio-base
+helm lint k8s/iac/helm/istiod
+helm lint k8s/iac/helm/envoy-gateway
+helm lint k8s/iac/helm/cni-cilium
+helm lint k8s/iac/helm/csi-block-volume
+helm lint k8s/iac/helm/csi-object
+helm lint k8s/iac/helm/csi-file
+terraform -chdir=k8s/iac/terraform/kubeadm-cluster validate
+terraform -chdir=k8s/iac/terraform/containerd-config validate
+kubectl --dry-run=client apply -k k8s/iac/kustomize/overlays/pack-kr
 cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice cloud-k8s
 cargo run -p oya-dev-cli -- gate validate version-pinning-conformance
 cargo run -p oya-dev-cli -- gate validate cis-k8s-benchmark --microservice cloud-k8s
@@ -159,6 +159,6 @@ Per PHASE-01 §"Per-IP Test Coverage Threshold" IaC class:
 
 - ADR-0121 §"Layer | Component"
 - ADR-0117 §"Cloud-native infrastructure progression"
-- `microservices/cloud-k8s/policy/cluster-isolation.md` §"Invariant CI-05"
-- `microservices/cloud-k8s/multi-region.md`
-- `microservices/cloud-k8s/capacity-model.md`
+- `k8s/policy/cluster-isolation.md` §"Invariant CI-05"
+- `k8s/multi-region.md`
+- `k8s/capacity-model.md`

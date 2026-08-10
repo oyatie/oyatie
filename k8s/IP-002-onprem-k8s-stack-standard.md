@@ -28,8 +28,8 @@ One new doc + cross-references in PRD / threat-model / compliance. No Rust code.
 | Path | Action | Description |
 |---|---|---|
 | `docs/standards/cloud-k8s-stack.md` | create | LTS pins, admission config, etcd encryption, kubeadm config |
-| `microservices/cloud-k8s/PRD.md` | update | Add reference link |
-| `microservices/cloud-k8s/threat-model.md` | update | Reference admission section |
+| `k8s/PRD.md` | update | Add reference link |
+| `k8s/threat-model.md` | update | Reference admission section |
 
 ## Code Shape (excerpt)
 
@@ -98,4 +98,4 @@ cargo run -p oya-dev-cli -- gate validate cis-k8s-benchmark --microservice cloud
 
 - ADR-0121 §"Version pins".
 - ADR-0117 §"Supply chain".
-- `microservices/cloud-k8s/PRD.md`.
+- `k8s/PRD.md`.

@@ -38,7 +38,7 @@ This phase advances master-plan principles:
 
 | µservice | Bounded Contexts | Files / crates affected | BNF v4.1 crate names |
 |---|---|---|---|
-| `cloud-k8s` | `cluster-bootstrap`, `node-lifecycle`, `network-policy`, `service-mesh-control-plane`, `ingress-controller`, `csi-storage-driver`, `kubernetes-api-proxy` | All under `microservices/cloud-k8s/` per ADR-0131 | 62 crates per PRD §"Bounded Contexts" layer mapping |
+| `cloud-k8s` | `cluster-bootstrap`, `node-lifecycle`, `network-policy`, `service-mesh-control-plane`, `ingress-controller`, `csi-storage-driver`, `kubernetes-api-proxy` | All under `k8s/` per ADR-0131 | 62 crates per PRD §"Bounded Contexts" layer mapping |
 
 Plus these repo-wide artifacts (cross-cutting per ADR-0131):
 - `.github/branch-protection.yaml` — add `oya-cloud-k8s-iac-smoke`, `oya-check-cis-k8s-benchmark` to required_status_checks on `dev` and `staging`.
@@ -47,7 +47,7 @@ Plus these repo-wide artifacts (cross-cutting per ADR-0131):
 - `/specs/hyperscaler-gates.json` — register HG-CLOUD-K8S gate per ADR-0123.
 - `/specs/cloud-k8s-cluster-state.json` (NEW) — cluster state machine; bootstrap → joined → upgrading → reset transitions.
 
-Naming justifications for the new crate families are in `microservices/cloud-k8s/PRD.md` §"Bounded Contexts".
+Naming justifications for the new crate families are in `k8s/PRD.md` §"Bounded Contexts".
 
 ### Out-of-scope
 
@@ -77,7 +77,7 @@ Ordered list. Each IP is an executable ChangeSet under this phase folder. Depend
 | [`IP-012-kubernetes-api-proxy.md`](IP-012-kubernetes-api-proxy.md) | `oya-cloud-k8s-kubernetes-api-proxy-{kernel,usecase,adapter,rest,worker,sdk,app}`: HTTP reverse-proxy mediating kube-apiserver; Cedar policy decision; audit-chain emit per call | pending | axis-cloud + ops-security | IP-003 |
 | [`IP-013-cluster-bootstrap-rest-worker-sdk-app.md`](IP-013-cluster-bootstrap-rest-worker-sdk-app.md) | `oya-cloud-k8s-cluster-bootstrap-{rest,worker,sdk,app}`: REST surface, bootstrap-watcher worker, Rust SDK, composition root | pending | axis-cloud | IP-005, IP-006 |
 | [`IP-014-branch-protection-and-hyperscaler-gate.md`](IP-014-branch-protection-and-hyperscaler-gate.md) | Add `oya-cloud-k8s-iac-smoke`, `oya-check-cis-k8s-benchmark` to `.github/branch-protection.yaml`; register HG-CLOUD-K8S in `/specs/hyperscaler-gates.json` | pending | axis-foundry + axis-cloud | IP-001 .. IP-013 |
-| [`IP-015-observability-slo-and-authority-cohesion.md`](IP-015-observability-slo-and-authority-cohesion.md) | Author `microservices/cloud-k8s/slos/*.openslo.yaml` (cluster-bootstrap availability, node-join latency, NetworkPolicy propagation, api-proxy decision latency); register HG-CLOUD-K8S in authority-cohesion | pending | axis-cloud + axis-observability | IP-014 |
+| [`IP-015-observability-slo-and-authority-cohesion.md`](IP-015-observability-slo-and-authority-cohesion.md) | Author `k8s/slos/*.openslo.yaml` (cluster-bootstrap availability, node-join latency, NetworkPolicy propagation, api-proxy decision latency); register HG-CLOUD-K8S in authority-cohesion | pending | axis-cloud + axis-observability | IP-014 |
 
 Coverage check vs. ADR-0121 §"Required successor-IP" + ADR-0117 §"Compute" + ADR-0131 §"Per-microservice flat layout":
 - Layer-A IaC (kubeadm + containerd + Istio + Envoy + Cilium CNI + CSI drivers) — IP-001 + IP-002.
@@ -183,7 +183,7 @@ Every IP in this phase emits a ChangeSet per ADR-0110. The minimum ChangeSet pay
   "phase": "P01-onprem-k8s-substrate",
   "claim_paths": ["microservices/cloud-k8s/src/crates/<crate>/**", "..."],
   "intent": "<one-line>",
-  "spec_refs": ["microservices/cloud-k8s/PRD.md§<section>", "ADR-0121§<section>"],
+  "spec_refs": ["k8s/PRD.md§<section>", "ADR-0121§<section>"],
   "acceptance_lanes_green": ["cargo-check", "cargo-build", "cargo-clippy", "cargo-nextest", "cargo-deny", "lean-a1", "lean-a2", "lean-a3", "lean-a4", "per-microservice-layout", "cis-k8s-benchmark"],
   "test_count": {"unit": <int>, "integration": <int>, "e2e": <int>},
   "coverage_pct": <float>,
@@ -235,5 +235,5 @@ Multispectrum evidence per docs/AGENTS.md §changeset: each IP emits `microservi
 - ADR-0106: usecase rename.
 - ADR-0123: Hyperscaler maturity claim gate (HG-CLOUD-K8S).
 - ADR-0139: Agentic SLO-gated promotion (cluster substrate is precondition).
-- `microservices/cloud-k8s/PRD.md`.
+- `k8s/PRD.md`.
 - Memory: `feedback_milestone_phase_hierarchy.md`, `feedback_naming_justification.md`, `feedback_clean_architecture_requirements.md`, `feedback_quality_performance_scalability_bar.md`.

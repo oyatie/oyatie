@@ -4,7 +4,7 @@ role: sdk
 context: cloud-k8s
 plane: control
 slo: preview-control-plane
-contracts_consumed: [microservices/cloud-k8s/contracts/openapi/cloud-k8s.yaml, microservices/cloud-k8s/contracts/proto/cloud-k8s.proto]
+contracts_consumed: [k8s/contracts/openapi/cloud-k8s.yaml, k8s/contracts/proto/cloud-k8s.proto]
 contracts_exposed: []
 regulatory_packs_consumed: [oya-pack-kr, oya-pack-eu, oya-pack-us, oya-pack-us-healthcare, oya-pack-jp, oya-pack-sg, oya-pack-au, oya-pack-in, oya-pack-br, oya-pack-ae, oya-pack-ksa]
 lifecycle: {state: incubating, preview_since: 2026-05-17, stable_since: null, deprecated_since: null}

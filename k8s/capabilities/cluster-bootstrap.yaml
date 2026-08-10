@@ -21,9 +21,9 @@ created_at: 2026-05-17
 related_adrs: [ADR-0121, ADR-0131]
 related_specs: [/specs/per-microservice-flat-layout.json]
 related_artifacts:
-  - microservices/cloud-k8s/contracts/openapi/cloud-k8s.yaml
-  - microservices/cloud-k8s/contracts/proto/cloud-k8s.proto
-  - microservices/cloud-k8s/policy/cluster-isolation.md
+  - k8s/contracts/openapi/cloud-k8s.yaml
+  - k8s/contracts/proto/cloud-k8s.proto
+  - k8s/policy/cluster-isolation.md
 
 autonomy_tier: T3
 # T3 = state-mutating, high-risk; 2-person rule + Cedar policy + audit-chain emit
@@ -102,8 +102,8 @@ cost_profile:
     - Per cost-budget.md XS tier
 
 cedar_policy_fragments:
-  - microservices/cloud-k8s/policy/cluster-isolation.md (CI-07 api-proxy mediation)
-  - microservices/cloud-k8s/policy/auditor-scope.cedar (auditor read scope)
+  - k8s/policy/cluster-isolation.md (CI-07 api-proxy mediation)
+  - k8s/policy/auditor-scope.cedar (auditor read scope)
 
 eval_set:
   reference_inputs_path: microservices/cloud-k8s/capabilities/eval/cluster-bootstrap-reference.jsonl

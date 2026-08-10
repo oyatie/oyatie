@@ -31,7 +31,7 @@ One new Rust crate `microservices/cloud-k8s/src/crates/oya-cloud-k8s-cluster-boo
 | `.../src/snapshot_integrity.rs` | create — Ed25519 verification logic (pure) |
 | `.../src/upgrade_window.rs` | create — N-2 support window math |
 | `.../src/evidence_sha.rs` | create — SHA-256 of (kubeadm output ⊕ component versions) |
-| `microservices/cloud-k8s/catalog/oya-cloud-k8s-cluster-bootstrap-domain.yaml` | create |
+| `k8s/catalog/oya-cloud-k8s-cluster-bootstrap-domain.yaml` | create |
 
 ## Crate Naming
 

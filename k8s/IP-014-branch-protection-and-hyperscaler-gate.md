@@ -66,8 +66,8 @@ branches:
     {
       "id": "HG-CLOUD-K8S",
       "owner_team": "axis-cloud",
-      "registered_artifact": "microservices/cloud-k8s/PRD.md",
-      "claim_boundary_doc": "microservices/cloud-k8s/competitor-parity-matrix.md",
+      "registered_artifact": "k8s/PRD.md",
+      "claim_boundary_doc": "k8s/competitor-parity-matrix.md",
       "criteria": [
         {"id": "HG-CLOUD-K8S-01", "name": "vanilla-upstream-kubernetes", "verifier": "cargo run -p oya-dev-cli -- gate validate version-pinning-conformance"},
         {"id": "HG-CLOUD-K8S-02", "name": "cis-k8s-benchmark-v1.9", "verifier": "oya-check-cis-k8s-benchmark"},

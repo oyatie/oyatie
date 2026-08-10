@@ -25,7 +25,7 @@ Implement the `workload-runtime` slice for `cloud-k8s` so j81 can satisfy `KR-CS
 
 ## PRD row alignment
 
-- PRD anchor: microservices/cloud-k8s/PRD.md when present, otherwise the service manifest and architecture surface for that microservice.
+- PRD anchor: k8s/PRD.md when present, otherwise the service manifest and architecture surface for that microservice.
 - Journey anchor: docs/user-journeys/j81-kr-csap-sovereign-cell-audit-pull/.
 - Regulator article focus: KR CSAP v3.1 control evidence.
 - Rigor row: documentation-rigor.md section 2 IP row; one service, one single-PR-sized implementation plan.

@@ -9,8 +9,8 @@ parity_bar: UNION-coverage
 substance_floor: 400-lines
 source_anchors:
   - /Users/jasonlee/oyatie/docs/decisions/ADR-0700-ci-admission-live-apex.md
-  - /Users/jasonlee/oyatie/microservices/cloud-k8s/PRD.md
-  - /Users/jasonlee/oyatie/microservices/cloud-k8s/competitor-parity-matrix.md
+  - /Users/jasonlee/oyatie/k8s/PRD.md
+  - /Users/jasonlee/oyatie/k8s/competitor-parity-matrix.md
   - /Users/jasonlee/oyatie/docs/decisions/ADR-0709-general-live-apex.md
   - /Users/jasonlee/oyatie/docs/decisions/ADR-0700-ci-admission-live-apex.md
 ---
