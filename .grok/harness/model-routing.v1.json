@@ -1,15 +1,18 @@
 {
-  "version": "1.3.0",
-  "description": "Multi-model role→preset priors informed by CursorBench 3.2. Task slugs primary; Cursor side-panel omx/omc/gjc allowed as advisory peers. Shell gjc/omc/omx CLIs still forbidden in lanes. No *-fast. Terra/Luna are cost tiers.",
+  "version": "1.3.1",
+  "description": "CursorBench 3.2 informs Cursor Task model slugs only. Side-panel omx/omc/gjc are separate advisory channels — CursorBench does not transfer. Shell gjc/omc/omx CLIs forbidden in lanes. No *-fast.",
   "source": {
     "cursorbench": {
       "url": "https://cursor.com/cursorbench",
       "version": "3.2",
       "retrieved": "2026-08-10",
+      "applies_to": "cursor_task_model_slugs_only",
+      "does_not_apply_to": ["omx", "omc", "gjc", "side_panel"],
       "notes": [
         "Grok 4.5 rows are asterisked: earlier Cursor codebase snapshot unintentionally in training; impact unclear",
         "Small score gaps may not be statistically meaningful",
-        "Do not treat Terra/Luna as stronger than Sol/Grok/Opus/Fable"
+        "Do not treat Terra/Luna as stronger than Sol/Grok/Opus/Fable",
+        "Do not map CursorBench ranks onto side-panel omx/omc/gjc sessions"
       ]
     }
   },
@@ -19,12 +22,14 @@
   "side_panel_channels": {
     "allowed": true,
     "authority": "advisory_only_never_merge",
+    "cursorbench_transfers": false,
     "channels": {
-      "omx": { "backend": "codex", "maps_to_roles": ["EXECUTOR_PEER", "VERIFIER"], "use_when": "codex_peer_review_or_sol_shaped_diversity" },
-      "omc": { "backend": "claude", "maps_to_roles": ["CRITIC", "SECURITY", "ARCHITECT", "PLANNER", "MAX_STAKES_QUALITY"], "use_when": "opus_fable_critic_or_architect_second_pass" },
-      "gjc": { "backend": "multi_model", "maps_to_roles": ["CRITIC", "VERIFIER"], "use_when": "parallel_multi_provider_deliberation_dual_critic_ralplan" }
+      "omx": { "backend": "codex", "use_when": "independent_codex_side_review_or_alternate_executor_path" },
+      "omc": { "backend": "claude", "use_when": "independent_claude_side_critique_security_or_design_pass" },
+      "gjc": { "backend": "multi_model", "use_when": "parallel_multi_provider_deliberation" }
     },
-    "prefer_task_slugs_first": true
+    "prefer_task_slugs_for_cursor_dispatches": true,
+    "note": "Pick omx/omc/gjc by provider need and independence — not by CursorBench score/cost rows"
   },
   "forbidden_model_slug_substrings": ["-fast"],
   "presets": {
