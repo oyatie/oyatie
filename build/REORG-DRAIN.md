@@ -17,9 +17,14 @@
   hashed receipt e2e. Forever specs tree remains integ/specs.
 - W0-B Slice 8: `port-engine-snapshot` admits OOB bootstrap SourceModel fixture (pin + content
   digest verify; never spawns Go) + facade CLI `admit-snapshot` + e2e binds admitted digest.
+- W0-B Slice 9: `port-engine-identity` (`engine_digest`) + `port-engine-toolchain` (dual-home
+  corpus → `toolchain_digest`; cell remap still PARKED) + facade `pipeline|receipt|engine|toolchain`.
 - Toolchains dual-home: `build/toolchains/**` byte-copies `toolchains/BUCK` +
   `toolchains/cache/{BUCK,OWNERS,defs.bzl}` (4 files). Live buck cell remains
-  `toolchains = toolchains` in `.buckconfig` until remap+shrink.
+  `toolchains = toolchains` in `.buckconfig` until remap+shrink. Slice 9 mirrors those bytes
+  under `port-engine-toolchain/src/corpus/*.txt` for hermetic receipt binding (`.txt` so buck2
+  srcs globs include them; logical dual-home paths stay in the digest preimage) — keep mirrors
+  in sync when dual-home bytes change.
 
 ## Next gaps (ordered)
 
@@ -30,9 +35,12 @@
    update reachability/`toolchains/` prefixes (may need integ/specs attach), then delete
    root `toolchains/**`. Do not delete while the cell still points at the root path.
    **PARKED:** `.buckconfig` is outside `roots.build` envelope globs (`build/**` only).
+   After remap, prefer digesting the live cell path and drop the package-local corpus mirror.
 3. **Forever port-rules materializer** — land live `specs/port-rules/**` on integ/specs; replace
    package-local mirror with ADR-0597 materializer relationship (build tip keeps hermetic copy
    until then). Bootstrap Go extractor remains out-of-band only (Slice 8 admits artifacts only).
+4. **Fixture-gated rule schema** — rule without selecting fixture cannot load (W0-B plan §Slice 5
+   residual; forever tree still integ/specs).
 
 ## Out of envelope (do not touch from `integ/build`)
 

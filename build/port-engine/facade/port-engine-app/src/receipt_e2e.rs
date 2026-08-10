@@ -1,9 +1,8 @@
-//! Six-axis receipt end-to-end demos for W0-B Slice 8 (ADR-0637 D2 / receipt axes).
+//! Six-axis receipt end-to-end demos for W0-B Slice 9 (ADR-0637 D2 / receipt axes).
 //!
-//! Builds complete [`Receipt`] values from the fleet pin + Slice 7 hashing / rulepack digests,
-//! binds the Slice 8 admitted snapshot digest on the syn path, emits previous/current trees via
-//! empty and syn/quote paths, and classifies with [`port_engine_kernel::verify`]. Toolchain axis
-//! remains a stub until cell remap lands.
+//! Builds complete [`Receipt`] values from the fleet pin + Slice 7–9 digests (hash, rulepack,
+//! admitted snapshot, engine identity, dual-home toolchain), emits previous/current trees via
+//! empty and syn/quote paths, and classifies with [`port_engine_kernel::verify`].
 
 use std::collections::BTreeMap;
 use std::fmt;
@@ -16,9 +15,6 @@ use port_engine_rust_ir::{EmptyRenderer, RustIr, SynQuoteRenderer};
 use port_engine_snapshot::AdmitError;
 
 use crate::driver;
-
-/// Stable toolchain digest stub (cell remap PARKED — not hashed against a live cell yet).
-pub const TOOLCHAIN_DIGEST_STUB: &str = "toolchain-stub-v0";
 
 /// One named verify scenario and its outcome.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -73,8 +69,8 @@ fn scenario_matches(s: &ScenarioResult) -> bool {
     }
 }
 
-/// Build a complete six-axis receipt using Slice 7 digests for engine / rulepack / snapshot /
-/// formatter axes. `snapshot_label` and `formatter` are hashed so axis movement is content-true.
+/// Build a complete six-axis receipt. `snapshot_label` / `formatter` are hashed; engine /
+/// rulepack / toolchain digests are caller-supplied content identities.
 #[must_use]
 pub fn complete_receipt(
     pin: &str,
@@ -82,13 +78,14 @@ pub fn complete_receipt(
     formatter: &str,
     engine: &Digest,
     rulepack: &Digest,
+    toolchain: &Digest,
 ) -> Receipt {
     Receipt {
         pin: pin.to_owned(),
         snapshot_digest: digest_str(snapshot_label),
         engine_digest: engine.clone(),
         rulepack_digest: rulepack.clone(),
-        toolchain_digest: Digest(TOOLCHAIN_DIGEST_STUB.to_owned()),
+        toolchain_digest: toolchain.clone(),
         formatter_digest: digest_str(formatter),
     }
 }
@@ -120,7 +117,7 @@ pub fn emit_syn_tree(formatter: &str, src: &str) -> Result<BTreeMap<RegionId, Ve
     renderer.render_rust_ir(&ir)
 }
 
-/// Typed refusal from the Slice 8 e2e harness.
+/// Typed refusal from the Slice 9 e2e harness.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum E2eError {
     /// Fleet pin could not load.
@@ -171,21 +168,28 @@ pub fn run_six_axis_e2e() -> Result<SixAxisReport, E2eError> {
     let pin = driver::fleet_pin().map_err(|err| E2eError::Pin(err.to_string()))?;
     let pack = LoadedRulePack::load_embedded().map_err(E2eError::Rulepack)?;
     let admitted = driver::smoke_admit_snapshot().map_err(E2eError::Admit)?;
-    let engine = digest_str("port-engine-app-slice8-v0");
+    let engine = driver::smoke_engine_digest();
+    let toolchain = driver::smoke_toolchain_digest();
     let rulepack = pack.digest();
 
     let empty_a = emit_empty_tree("fmt-empty-a").map_err(E2eError::Port)?;
     let empty_b = emit_empty_tree("fmt-empty-a").map_err(E2eError::Port)?;
     let syn = emit_syn_tree("fmt-syn-b", "pub fn stub() {}").map_err(E2eError::Port)?;
 
-    let receipt_empty =
-        complete_receipt(&pin, "snapshot-empty-stub-v0", "fmt-empty-a", &engine, &rulepack);
+    let receipt_empty = complete_receipt(
+        &pin,
+        "snapshot-empty-stub-v0",
+        "fmt-empty-a",
+        &engine,
+        &rulepack,
+        &toolchain,
+    );
     let receipt_syn = Receipt {
         pin: pin.clone(),
         snapshot_digest: admitted.snapshot_digest.clone(),
         engine_digest: engine.clone(),
         rulepack_digest: rulepack.clone(),
-        toolchain_digest: Digest(TOOLCHAIN_DIGEST_STUB.to_owned()),
+        toolchain_digest: toolchain.clone(),
         formatter_digest: digest_str("fmt-syn-b"),
     };
     let receipt_incomplete = Receipt {
@@ -193,7 +197,7 @@ pub fn run_six_axis_e2e() -> Result<SixAxisReport, E2eError> {
         snapshot_digest: admitted.snapshot_digest.clone(),
         engine_digest: engine.clone(),
         rulepack_digest: rulepack.clone(),
-        toolchain_digest: Digest(TOOLCHAIN_DIGEST_STUB.to_owned()),
+        toolchain_digest: toolchain.clone(),
         formatter_digest: digest_str("fmt-syn-b"),
     };
 
@@ -234,7 +238,7 @@ mod tests {
 
     #[test]
     fn six_axis_e2e_matches_expected_verdicts() {
-        let report = run_six_axis_e2e().expect("slice8 e2e must hold");
+        let report = run_six_axis_e2e().expect("slice9 e2e must hold");
         assert!(report.all_expected());
         assert_eq!(report.scenarios.len(), 4);
         assert!(!report.pin.is_empty());
@@ -245,9 +249,11 @@ mod tests {
     fn complete_receipt_has_no_incomplete_axes() {
         let engine = digest_str("engine");
         let rulepack = digest_str("rulepack");
-        let r = complete_receipt("pin", "snap", "fmt", &engine, &rulepack);
+        let toolchain = digest_str("toolchain");
+        let r = complete_receipt("pin", "snap", "fmt", &engine, &rulepack, &toolchain);
         assert!(r.incomplete_axes().is_empty());
         assert!(r.engine_digest.0.starts_with("sha256:"));
         assert!(r.rulepack_digest.0.starts_with("sha256:"));
+        assert!(r.toolchain_digest.0.starts_with("sha256:"));
     }
 }

@@ -1,4 +1,4 @@
-//! Hand-rolled CLI for `port-engine-app` (W0-B Slice 8).
+//! Hand-rolled CLI for `port-engine-app` (W0-B Slice 9).
 //!
 //! Bridge feedback only — never merge authority (CLI surfaces are retirement-marked). No clap /
 //! argv crate: keep the facade free of new lock-forcing deps.
@@ -9,7 +9,7 @@ use crate::driver;
 use crate::receipt_e2e;
 
 const USAGE: &str = "\
-port-engine-app — owned deterministic port-engine driver (W0-B Slice 8)
+port-engine-app — owned deterministic port-engine driver (W0-B Slice 9)
 
 Usage:
   port-engine-app <command> [args]
@@ -23,7 +23,11 @@ Commands:
   digest <text>     SHA-256 digest of UTF-8 text (Slice 7 hash adapter)
   rulepack          Load embedded rulepack v0; print content digest
   plan              Plan embedded rulepack against example units
-  admit-snapshot    Admit hermetic OOB bootstrap snapshot fixture (Slice 8)
+  admit-snapshot    Admit hermetic OOB bootstrap snapshot fixture
+  engine            Print Slice 9 engine identity digest
+  toolchain         Print Slice 9 dual-home toolchain corpus digest
+  pipeline          pin→admit→plan→emit→six-axis receipt
+  receipt           Alias for pipeline (print receipt axes)
   verify-e2e        Run six-axis receipt end-to-end scenarios
 
 Exit codes: 0 ok · 1 error · 2 usage
@@ -46,6 +50,9 @@ pub fn run(args: &[String]) -> ExitCode {
         "rulepack" => cmd_rulepack(),
         "plan" => cmd_plan(),
         "admit-snapshot" => cmd_admit_snapshot(),
+        "engine" => cmd_engine(),
+        "toolchain" => cmd_toolchain(),
+        "pipeline" | "receipt" => cmd_pipeline(),
         "verify-e2e" => cmd_verify_e2e(),
         other => {
             eprintln!("port-engine-app: unknown command `{other}`");
@@ -60,9 +67,10 @@ fn cmd_ready() -> ExitCode {
         eprintln!("port-engine-app: driver not ready");
         return ExitCode::from(1);
     }
-    let (pin, rust_ir, frontend, hash, rulepack, snapshot) = driver::adapter_readiness();
+    let (pin, rust_ir, frontend, hash, rulepack, snapshot, identity, toolchain) =
+        driver::adapter_readiness();
     println!(
-        "ready=true pin={pin} rust_ir={rust_ir} frontend_go={frontend} hash={hash} rulepack={rulepack} snapshot={snapshot}"
+        "ready=true pin={pin} rust_ir={rust_ir} frontend_go={frontend} hash={hash} rulepack={rulepack} snapshot={snapshot} identity={identity} toolchain={toolchain}"
     );
     ExitCode::SUCCESS
 }
@@ -161,6 +169,41 @@ fn cmd_admit_snapshot() -> ExitCode {
     }
 }
 
+fn cmd_engine() -> ExitCode {
+    let digest = driver::smoke_engine_digest();
+    println!("engine=ok digest={}", digest.0);
+    ExitCode::SUCCESS
+}
+
+fn cmd_toolchain() -> ExitCode {
+    let digest = driver::smoke_toolchain_digest();
+    println!("toolchain=ok digest={}", digest.0);
+    ExitCode::SUCCESS
+}
+
+fn cmd_pipeline() -> ExitCode {
+    match driver::smoke_pipeline() {
+        Ok(report) => {
+            let r = &report.receipt;
+            println!(
+                "pipeline=ok plan_steps={} emit_regions={}",
+                report.plan_steps, report.emit_regions
+            );
+            println!("pin={}", r.pin);
+            println!("snapshot_digest={}", r.snapshot_digest.0);
+            println!("engine_digest={}", r.engine_digest.0);
+            println!("rulepack_digest={}", r.rulepack_digest.0);
+            println!("toolchain_digest={}", r.toolchain_digest.0);
+            println!("formatter_digest={}", r.formatter_digest.0);
+            ExitCode::SUCCESS
+        }
+        Err(err) => {
+            eprintln!("port-engine-app: pipeline failed: {err}");
+            ExitCode::from(1)
+        }
+    }
+}
+
 fn cmd_verify_e2e() -> ExitCode {
     match receipt_e2e::run_six_axis_e2e() {
         Ok(report) => {
@@ -195,11 +238,15 @@ mod tests {
     }
 
     #[test]
-    fn digest_rulepack_plan_admit_and_verify_succeed() {
+    fn slice9_commands_succeed() {
         assert_eq!(run(&args(&["digest", "port-engine"])), ExitCode::SUCCESS);
         assert_eq!(run(&args(&["rulepack"])), ExitCode::SUCCESS);
         assert_eq!(run(&args(&["plan"])), ExitCode::SUCCESS);
         assert_eq!(run(&args(&["admit-snapshot"])), ExitCode::SUCCESS);
+        assert_eq!(run(&args(&["engine"])), ExitCode::SUCCESS);
+        assert_eq!(run(&args(&["toolchain"])), ExitCode::SUCCESS);
+        assert_eq!(run(&args(&["pipeline"])), ExitCode::SUCCESS);
+        assert_eq!(run(&args(&["receipt"])), ExitCode::SUCCESS);
         assert_eq!(run(&args(&["verify-e2e"])), ExitCode::SUCCESS);
     }
 
