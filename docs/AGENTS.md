@@ -134,6 +134,14 @@ INV-DOC-9: doctrine that exists only in a plan file or chat is **not** survived.
 - **ensure:** this section present; pointers to ADR-0711 Amendment D, `specs/integ-branch-envelopes.json#anti_drift`, and PORTABLE Amendment D.
 - **overturn_when:** PHASE-5 promotion moves the operating contract AND this survival section migrates atomically with evidence.
 
+### Per-dispatch ritual (Tier 2)
+
+- **achieves:** every agent runs the same start/end checklist without pasting the whole north-star plan.
+- **origin:** strategy and procedure were conflated; babysit-only regressions followed.
+- **rule:** every implement/audit/review/plan/scout/recon dispatch MUST run [`checklists/swarm-agent-ritual.md`](checklists/swarm-agent-ritual.md). Use a **position diagram** for orientation and a **claim digraph** (directed E/I/U graph) for reasoning when ≥2 load-bearing claims depend on each other. Dispatch cards cite the checklist + role + lane mission — not the whole programme SSOT.
+- **ensure:** ritual file present; orchestrator refuses babysit-only fleet (hard rule); receipts include role-scaled evidence.
+- **overturn_when:** a recorded challenge shows the ritual blocks delivery AND a replacement ritual with five fields lands same-wave.
+
 ## RFC-2119 normative-language statement
 
 The key words **MUST**, **MUST NOT**, **REQUIRED**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **RECOMMENDED**, **NOT RECOMMENDED**, **MAY**, and **OPTIONAL** in this document are to be interpreted as described in BCP 14 [[RFC2119](https://www.rfc-editor.org/rfc/rfc2119)] [[RFC8174](https://www.rfc-editor.org/rfc/rfc8174)] when, and only when, they appear in all capitals, as shown here.
@@ -168,6 +176,7 @@ For any question, route to its authority. Click the link; do not duplicate inlin
 | Release / incident / on-call | [`RELEASE-MANAGEMENT.md`](RELEASE-MANAGEMENT.md) <!-- forward-reference: wave-1 -->, [`INCIDENT-MANAGEMENT.md`](INCIDENT-MANAGEMENT.md) <!-- forward-reference: wave-1 -->, [`standards/on-call.md`](standards/on-call.md) <!-- forward-reference: wave-1 --> |
 | Glossary (canonical vocabulary) | [`GLOSSARY.md`](GLOSSARY.md) <!-- forward-reference: wave-1 --> |
 | Machine-readable mirrors of the catalog | [`machine-readable/`](machine-readable/) <!-- forward-reference: wave-1 --> |
+| Per-dispatch agent ritual (Tier 2 — diagram + digraph + doctrine) | [`checklists/swarm-agent-ritual.md`](checklists/swarm-agent-ritual.md) |
 
 ## Bounded delivery and preservation
 

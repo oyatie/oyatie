@@ -9,6 +9,7 @@ doc_status: published
 
 - `doc.agents_operating_contract` 2026-08-10 lane-implementer — add § Doctrine survival (binding) (rules-carry-why, anti-drift pointers, hindsight+beads, observation≠APPROVE, INV-DOC-9 survival).
 - `doc.doc_update_protocol` 2026-08-10 lane-implementer — amend one-doc-per-PR: load-bearing docs MUST same-wave co-change (`doc-update-protocol-overrule`).
+- `doc.swarm_agent_ritual` 2026-08-10 — add `docs/checklists/swarm-agent-ritual.md` (position diagram + claim digraph + role-scaled Tier-2 ritual); point from `docs/AGENTS.md`.
 
 ## 2026-08-09 — ADR-0710 admission substrate proposed; sovereign-confidential idea page
 
