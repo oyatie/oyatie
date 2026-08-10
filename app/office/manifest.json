@@ -1,0 +1,121 @@
+{
+  "schema_version": "1.0",
+  "microservice": "office",
+  "tier": "product",
+  "tier_subtype": "product-consumer",
+  "status": "forward_declared",
+  "phase": "inventory_only",
+  "title": "Oya Office (suite composition)",
+  "date": "2026-08-10",
+  "inventory_root": "app/office",
+  "source_authority": {
+    "path": "oya/office",
+    "tip": "origin/dev",
+    "top_level_manifest": null,
+    "top_level_cargo_toml": null,
+    "note": "19-crate forest with no top-level product manifest or workspace Cargo.toml under oya/office on origin/dev. This file is inventory-only; crate code remains at source until a later absorb slice."
+  },
+  "claim_boundary": {
+    "non_claims": [
+      "no crate code moved into app/office on this tip",
+      "no GA or production-readiness claim",
+      "no deployed Office runtime or measured SLO claimed by this inventory slice",
+      "no substrate-port burn completed (storage/search/tenant/authz rewrite is planned in REORG-DRAIN only)",
+      "no specs/capability-registry or hub retarget on this rail"
+    ]
+  },
+  "substrate_dag_position": {
+    "stratum": "forward-declared",
+    "depends_on": [],
+    "consumed_by_substrates": [],
+    "_note": "Office is an app/<product>/ composition (capability-registry app_products_note), not a capability root. forward_declared marks this inventory stub until absorb + substrate-port rewrite land."
+  },
+  "crate_inventory": {
+    "source_root": "oya/office",
+    "crate_count": 19,
+    "tracked_files_under_source_root": 63,
+    "crate_dirs": [
+      "oya-office-api-app",
+      "oya-office-authz-domain",
+      "oya-office-collab-domain",
+      "oya-office-collab-gateway-app",
+      "oya-office-doc-domain",
+      "oya-office-drive-api",
+      "oya-office-drive-api-app",
+      "oya-office-drive-domain",
+      "oya-office-drive-worker",
+      "oya-office-format-domain",
+      "oya-office-format-worker",
+      "oya-office-kernel",
+      "oya-office-search-kernel",
+      "oya-office-sheet-domain",
+      "oya-office-sheets-api",
+      "oya-office-slide-domain",
+      "oya-office-storage-kernel",
+      "oya-office-tenant-domain",
+      "oya-office-web-app"
+    ],
+    "faces_heuristic": {
+      "app": [
+        "oya-office-api-app",
+        "oya-office-collab-gateway-app",
+        "oya-office-drive-api-app",
+        "oya-office-web-app"
+      ],
+      "worker": [
+        "oya-office-drive-worker",
+        "oya-office-format-worker"
+      ],
+      "api_lib": [
+        "oya-office-drive-api",
+        "oya-office-sheets-api"
+      ],
+      "domain": [
+        "oya-office-collab-domain",
+        "oya-office-doc-domain",
+        "oya-office-drive-domain",
+        "oya-office-format-domain",
+        "oya-office-sheet-domain",
+        "oya-office-slide-domain"
+      ],
+      "product_kernel": [
+        "oya-office-kernel"
+      ],
+      "substrate_port_candidates": [
+        "oya-office-authz-domain",
+        "oya-office-search-kernel",
+        "oya-office-storage-kernel",
+        "oya-office-tenant-domain"
+      ]
+    }
+  },
+  "substrate_ports_rewrite": {
+    "status": "planned",
+    "authority": "app/office/REORG-DRAIN.md",
+    "mode": "rewrite_not_git_mv",
+    "candidates": [
+      {
+        "crate_dir": "oya-office-storage-kernel",
+        "proposed_home": "storage/"
+      },
+      {
+        "crate_dir": "oya-office-search-kernel",
+        "proposed_home": "search-or-indexing-capability (pending registry)"
+      },
+      {
+        "crate_dir": "oya-office-tenant-domain",
+        "proposed_home": "tenancy/"
+      },
+      {
+        "crate_dir": "oya-office-authz-domain",
+        "proposed_home": "iam/"
+      },
+      {
+        "crate_dir": "oya-office-kernel",
+        "proposed_home": "split: shared IDs → tenancy/iam; Office-only → app/office product kernel"
+      }
+    ]
+  },
+  "doc_class": "Machine-Readable-Spec",
+  "reorg_drain": "app/office/REORG-DRAIN.md"
+}
