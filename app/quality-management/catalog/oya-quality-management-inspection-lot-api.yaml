@@ -14,8 +14,8 @@ benchmarks:
   - "NetSuite Quality Management"
   - "Microsoft Dynamics 365 Supply Chain Quality Management"
 contracts:
-  openapi: microservices/quality-management/contracts/openapi-v1.yaml
-  asyncapi: microservices/quality-management/contracts/asyncapi-v1.yaml
-  proto: microservices/quality-management/contracts/quality-management-v1.proto
-policy_fragment: microservices/quality-management/policy/inspection-lot-authorization.cedar
+  openapi: app/quality-management/contracts/openapi-v1.yaml
+  asyncapi: app/quality-management/contracts/asyncapi-v1.yaml
+  proto: app/quality-management/contracts/quality-management-v1.proto
+policy_fragment: app/quality-management/policy/inspection-lot-authorization.cedar
 settlement_boundary: marketplace-settles-tenant-deals-per-ADR-0314

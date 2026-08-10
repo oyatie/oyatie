@@ -6,7 +6,7 @@ autonomy_tier: T1
 risk_class: regulated-erp
 audit_event_class: EVT-QUALITY_MANAGEMENT-CERTIFICATE_OF_ANALYSIS-EXPORT
 policy_fragments:
-  - microservices/quality-management/policy/certificate-of-analysis-authorization.cedar
+  - app/quality-management/policy/certificate-of-analysis-authorization.cedar
 benchmarks:
   - "SAP QM Quality Management"
   - "Oracle Fusion Quality Management"

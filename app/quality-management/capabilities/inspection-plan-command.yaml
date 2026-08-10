@@ -6,7 +6,7 @@ autonomy_tier: T1
 risk_class: regulated-erp
 audit_event_class: EVT-QUALITY_MANAGEMENT-INSPECTION_PLAN-COMMAND
 policy_fragments:
-  - microservices/quality-management/policy/inspection-plan-authorization.cedar
+  - app/quality-management/policy/inspection-plan-authorization.cedar
 benchmarks:
   - "SAP QM Quality Management"
   - "Oracle Fusion Quality Management"
