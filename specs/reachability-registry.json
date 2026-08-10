@@ -6,10 +6,6 @@
       "prefix": ".claude/BUCK"
     },
     {
-      "anchor": "ADR-0515 + ADR-0701 governance pipeline: reviewed agent-lane deliver/restack/preflight harness under .claude/workflows/ (local bridge feedback only; merge authority remains oya-ci-required).",
-      "prefix": ".claude/workflows/"
-    },
-    {
       "anchor": "ADR-0600: Buck package marker for the reviewed .codex/hooks.json enforcement-liveness corpus target.",
       "prefix": ".codex/BUCK"
     },
@@ -628,6 +624,10 @@
     {
       "anchor": "ADR-0541: Buck package marker for the workflow capability residual corpus target. This package keeps the capability's rehomed service docs, manifests, contracts and OpenSLO YAML inside the Buck2 corpus graph after the capability-first rehome; without it those files leave buck2-packaged space entirely (measured across nine roots: 996 YAML files, unpackaged 1069 -> 75).",
       "prefix": "workflow/BUCK"
+    },
+    {
+      "anchor": "Founder ruling oyatie-0s8 / ADR-0562: capability-root service manifest for workflow/. Exact path registration (not a tree): workflow/ holds unrelated crate and service subtrees that carry their own reachability. Absorbed via integ/workflow.",
+      "prefix": "workflow/manifest.json"
     }
   ]
 }
