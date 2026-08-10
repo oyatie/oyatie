@@ -6,7 +6,7 @@
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
     "spec_id": "EXE-INTEG-BRANCH-ENVELOPES",
-    "version": "1.16.11",
+    "version": "1.16.12",
     "status": "Proposed",
     "owner_team": "council-architecture",
     "created_at": "2026-08-10T00:00:00Z",
@@ -14,7 +14,7 @@
     "self_owner_branch": "integ/specs",
     "primary_consumer": "governance/check/integ-envelope + .claude/workflows/deliver.js Claim",
     "purpose": "Policy-as-data for envelope containment, hub sole-owner, adjunct claims, concurrent-safe exemptions, tools/swarm adjunct ownership, hyperscaler monorepo patterns, Amendment B ternary layout + Pattern-First taxonomy + 16-lens judgment (volatile judgments live under governance/check/integ-envelope/judgments/), Amendment C operating-patterns catalog, Amendment D anti-drift INV-DOC-1…9 + Claim↔diff bind, merge_windows, mechanical Claim packet, and process-meta / forward-declared roots under Swarm Delivery Law.",
-    "prior_version": "1.16.10"
+    "prior_version": "1.16.11"
   },
   "admission": {
     "trunk": "dev",
@@ -4933,9 +4933,11 @@
             "land_status": "ready_for_integ_calendar"
           },
           "oya/governance/": {
-            "action": "delete_permanently",
-            "destination_integ": "integ/oya",
-            "land_status": "ready_for_integ_oya"
+            "action": "reorg_now",
+            "destination_integ": "integ/governance",
+            "shrink_source_integ": "integ/oya",
+            "land_status": "ready_for_integ_governance",
+            "note": "OVERRULE 1.16.12: close batch1b residual delete_permanently (row already reorg_now since 1.16.10); multi-destination decompose — authority first; NOT wholesale META dump"
           },
           "oya/translate/": {
             "action": "reorg_now",
@@ -5780,11 +5782,12 @@
       },
       {
         "scout_id": "339743f8",
-        "absorbed_at_version": "1.16.10",
+        "absorbed_at_version": "1.16.12",
         "accepted": [
           "OVERRULE oya/governance/ delete_permanently → reorg_now multi-destination decompose (authority→governance/, SLOs→ci|gateway|cell, iac→iac/)",
           "destination_integ=integ/governance for authority slice first; reclaim unique contracts/cedar/iac with live cites",
-          "forbid wholesale dump into META governance/; hold #1661 land until calendar+gov OVERRULEs absorbed"
+          "forbid wholesale dump into META governance/; hold #1661 land until calendar+gov OVERRULEs absorbed",
+          "1.16.12 close batch1b product_destinations residual delete_permanently for oya/governance/"
         ],
         "rejected": [
           {
