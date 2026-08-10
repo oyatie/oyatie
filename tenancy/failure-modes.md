@@ -13,7 +13,7 @@ related_artifacts:
   - tenancy/dpia.md
   - tenancy/policy/rls-isolation.md
   - tenancy/incident-response.md
-  - microservices/tenancy/runbooks/
+  - tenancy/runbooks/
 review_cadence: quarterly + after every Sev-1 / Sev-2 incident affecting tenancy
 doc_status: published
 ---
@@ -255,7 +255,7 @@ Enumerate the failure scenarios on-call must handle, the detection signal for ea
 - `tenancy/threat-model.md` (each FM has at least one corresponding STRIDE / LINDDUN threat).
 - `tenancy/dpia.md` (FM-02, FM-04, FM-06, FM-09 map to R-01, R-02, R-05, R-04 respectively).
 - `tenancy/incident-response.md` §"Severity Definitions".
-- `microservices/tenancy/runbooks/*` (recovery procedures).
+- `tenancy/runbooks/*` (recovery procedures).
 - `tenancy/capacity-model.md` (FM-15 + per-tenant limits).
 - Patroni operations docs — `patroni.readthedocs.io`.
 - Citus operations docs — `docs.citusdata.com`.

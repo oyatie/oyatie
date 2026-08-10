@@ -14,7 +14,7 @@ related_artifacts:
   - tenancy/compliance.md
   - tenancy/failure-modes.md
   - tenancy/multi-region.md
-  - microservices/tenancy/runbooks/
+  - tenancy/runbooks/
 review_cadence: quarterly + after every Sev-1 / Sev-2 incident
 doc_status: published
 ---
@@ -262,7 +262,7 @@ On-call compensation + handoff per `tenancy/runbooks/jwt-key-rotation.md` §"On-
 - `tenancy/failure-modes.md` (FM-IDs + severity classification).
 - `tenancy/compliance.md` §"Regulatory Notifications" (per-pack timelines).
 - `tenancy/multi-region.md` (DR failover).
-- `microservices/tenancy/runbooks/*` (per-scenario procedures).
+- `tenancy/runbooks/*` (per-scenario procedures).
 - `tenancy/dpia.md` (data-subject impact assessment).
 - `tenancy/threat-model.md` (security-incident threat IDs).
 - `docs/standards/incident-severity.md`.
