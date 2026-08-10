@@ -29,10 +29,10 @@
   ],
   "contracts": {
     "openapi": [
-      "microservices/connector/contracts/connect-retirement.openapi.yaml"
+      "gateway/connector/contracts/connector-retirement.openapi.yaml"
     ],
     "asyncapi": [
-      "microservices/connector/contracts/connect-retirement.asyncapi.yaml"
+      "gateway/connector/contracts/connector-retirement.asyncapi.yaml"
     ],
     "internal_grpc": {
       "transport": "http2",
@@ -218,10 +218,10 @@
     "deprecation_calendar": [],
     "public_surface_files": {
       "openapi": {
-        "2026-05-21": "microservices/connector/contracts/connect-retirement.openapi.yaml"
+        "2026-05-21": "gateway/connector/contracts/connector-retirement.openapi.yaml"
       },
       "asyncapi": {
-        "2026-05-21": "microservices/connector/contracts/connect-retirement.asyncapi.yaml"
+        "2026-05-21": "gateway/connector/contracts/connector-retirement.asyncapi.yaml"
       }
     }
   },

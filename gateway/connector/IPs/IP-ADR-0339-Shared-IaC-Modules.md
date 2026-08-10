@@ -15,7 +15,7 @@ lifecycle_rule: PROPOSED until the microservice wrappers invoke signed shared Op
 
 ## 1. Lifecycle, Boundary, And Stop Condition
 SCOPE-001: This IP binds `connector` to ADR-0339 shared IaC module doctrine without authoring Rust, changing crates, or applying infrastructure.
-SCOPE-002: Lifecycle state is PROPOSED for `connector` until the service-owned wrapper files under `gateway/connector/iac<context>/main.tf` invoke signed cloud-iac modules and implementation evidence is reviewed.
+SCOPE-002: Lifecycle state is PROPOSED for `connector` until the service-owned wrapper files under `gateway/connector/iac/<context>/main.tf` invoke signed cloud-iac modules and implementation evidence is reviewed.
 SCOPE-003: ACCEPTED status requires a later service implementation change, not this document-stage propagation.
 SCOPE-004: The only implementation authority created here is documentation intent plus manifest `iac_module_invocations` alignment for `connector`.
 SCOPE-005: The stop condition for this IP is a reviewable doctrine packet: IP present, manifest field populated, PRD adoption section appended, ARCH integration section appended, and ADR citations validated.
@@ -46,9 +46,9 @@ DOSSIER-BC-003: Bounded context `webhook-receiver` states: Bounded context entry
 DOSSIER-BC-004: Bounded context `signature-verification` states: Bounded context entry `signature-verification` is declared as a compact manifest value.; crate count=0.
 DOSSIER-BC-005: Bounded context `payload-canonicalization` states: Bounded context entry `payload-canonicalization` is declared as a compact manifest value.; crate count=0.
 DOSSIER-BC-006: Bounded context `connector-adapter` states: Bounded context entry `connector-adapter` is declared as a compact manifest value.; crate count=0.
-DOSSIER-CONTRACT-001: OpenAPI 3.2.0: microservices/connector/contracts/connect-retirement.openapi.yaml.
-DOSSIER-CONTRACT-002: AsyncAPI 3.1.0: microservices/connector/contracts/connect-retirement.asyncapi.yaml.
-DOSSIER-CONTRACT-003: proto3: microservices/connector/contracts/connect_retirement.proto.
+DOSSIER-CONTRACT-001: OpenAPI 3.2.0: gateway/connector/contracts/connector-retirement.openapi.yaml.
+DOSSIER-CONTRACT-002: AsyncAPI 3.1.0: gateway/connector/contracts/connector-retirement.asyncapi.yaml.
+DOSSIER-CONTRACT-003: proto3: gateway/connector/contracts/connector_retirement.proto.
 DOSSIER-CAPABILITY-001: T3 umbrella-retirement-readiness risk=unknown file=gateway/connector/capabilities/umbrella-retirement-readiness.yaml
 
 ## 3. ADR-0339 Doctrine Binding
@@ -271,9 +271,9 @@ LEADER-018: `connector` leader-scale posture keeps primitive selection explicit,
 
 ## 12. API And Contract Documentation Impact
 API-001: `connector` does not change REST, event, or proto payloads in this document-stage wave.
-API-002: OpenAPI 3.2.0 references for `connector` remain: OpenAPI 3.2.0: microservices/connector/contracts/connect-retirement.openapi.yaml
-API-003: AsyncAPI 3.1.0 references for `connector` remain: AsyncAPI 3.1.0: microservices/connector/contracts/connect-retirement.asyncapi.yaml
-API-004: proto3 references for `connector` remain: proto3: microservices/connector/contracts/connect_retirement.proto
+API-002: OpenAPI 3.2.0 references for `connector` remain: OpenAPI 3.2.0: gateway/connector/contracts/connector-retirement.openapi.yaml
+API-003: AsyncAPI 3.1.0 references for `connector` remain: AsyncAPI 3.1.0: gateway/connector/contracts/connector-retirement.asyncapi.yaml
+API-004: proto3 references for `connector` remain: proto3: gateway/connector/contracts/connector_retirement.proto
 API-005: If a future wrapper migration exposes deployment preview APIs, the public boundary must carry ADR-0342 date-version carriers separately from module semantic versions.
 API-006: If a future wrapper migration changes async deployment events, the AsyncAPI channel must identify module context, primitive, version_pin, tenant_class_scope, and cell_id.
 API-007: If a future wrapper migration changes proto deployment receipts, proto3 reserved tags must prevent silent field reuse.

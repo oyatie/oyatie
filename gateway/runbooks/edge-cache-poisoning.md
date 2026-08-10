@@ -71,6 +71,6 @@ If cache disable caused performance degradation:
 
 - `iac/edge-waf.yaml`
 - `iac/envoy-config.yaml`
-- `microservices/api-gateway/dpia.md`
+- `gateway/dpia/dpia.md`
 - ADR-0297 (in flight)
 - OWASP API Security Top 10 (2023) — A03 Cache Poisoning

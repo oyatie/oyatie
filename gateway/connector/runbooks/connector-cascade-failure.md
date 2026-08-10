@@ -88,7 +88,7 @@ kubectl rollout undo deployment/connect-adapter-worker -n connect
 
 - Blameless retro within 7d.
 - Evidence-pack export via ops-dashboard-control-center per ADR-0263.
-- Update vendor SLA tracking in `gateway/connector/catalog/connectors<connector>.yaml` if vendor-side.
+- Update vendor SLA tracking in `gateway/connector/catalog/connectors/<connector>.yaml` if vendor-side.
 - If oyatie-side regression: add property test to `oya-connector-adapter-domain` covering the regression.
 
 ## G. References

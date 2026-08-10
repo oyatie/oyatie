@@ -220,7 +220,7 @@ decision_owner: axis-connector + council-integrations
 - `oauth-token-health.openslo.yaml`: OAuth token fetch health target 0.995.
 - `webhook-receiver-throughput.openslo.yaml`: webhook ack latency target 0.995.
 - `dlq-overflow-prevention.openslo.yaml`: DLQ headroom target 0.99.
-- `connect-retirement.openslo.yaml`: retirement workflow target 0.99.
+- `connector-retirement.openslo.yaml`: retirement workflow target 0.99.
 - Abuse false-positive rate for legitimate vendor calls must stay <=0.1%.
 - Catalog search median time-to-first-wiring target is <=5 minutes from tenant signup.
 

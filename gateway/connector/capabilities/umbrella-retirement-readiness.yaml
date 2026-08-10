@@ -5,5 +5,5 @@ summary: Track retirement evidence for the dissolved umbrella.
 policy_refs:
   - gateway/connector/policy/no-new-runtime-scope.cedar
 contracts:
-  - microservices/connector/contracts/connect-retirement.openapi.yaml
-  - microservices/connector/contracts/connect_retirement.proto
+  - gateway/connector/contracts/connector-retirement.openapi.yaml
+  - gateway/connector/contracts/connector_retirement.proto

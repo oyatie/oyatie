@@ -13,6 +13,7 @@
 - Path hygiene: dropped missing `microservices/api-gateway/contracts/metric-naming-convention.md` convention_docs cite; retained verified capability YAML + OpenSLO under `gateway/`.
 - Catalog rows verified present under `registry/catalog/gateway-*-connector.yaml` (cited, not edited — outside `gateway/**`).
 - Seat A follow-up: remapped verified `microservices/api-gateway/` and `microservices/connector/` interior cites across `gateway/**` (capabilities, catalog, IPs, connector face, runbooks, README layout) to existing `gateway/` destinations only.
+- Seat A hygiene repair: restored template slashes (`gateway/iac/<context>`, `gateway/connector/catalog/connectors/<connector>`); retargeted verified `connect-retirement*` contract cites to `gateway/connector/contracts/connector-retirement*`; dpi cite → `gateway/dpia/dpia.md`.
 
 ## Stale refs found (next gaps, ordered)
 
@@ -33,7 +34,7 @@
 - `IP-014` → `microservices/api-gateway/IP-014-tls-cert-rotation-worker.md`
 - `IP-015` → `microservices/api-gateway/IP-015-canary-cohort-shifter.md`
 - `IP-016` → `microservices/api-gateway/IP-016-app-supervisor.md`
-2. **`gateway/connector/manifest.json`** — verified in-tree contract/capability/runbook cites remapped; missing connect-retirement / eval / PRD / threat-model cites remain deferred.
+2. **`gateway/connector/manifest.json`** — verified in-tree contract/capability/runbook cites remapped (including `connect-retirement*` → `gateway/connector/contracts/connector-retirement*`); missing IP-001 / eval / PRD / threat-model cites remain deferred.
 3. **North-south edge crates absent** — no `gateway/core|ports|facade` Cargo packages yet; edge behavior is capability YAML + OpenSLO only. Land kernels before claiming runtime readiness.
 4. **OpenSLO extras** — additional files under `gateway/observability/slos/` (connector-*, dlq-*, oauth-*, webhook-*) exist beyond the seven claimed root `slos[]`; decide promotion vs product-face ownership.
 
