@@ -12,7 +12,7 @@ related_adrs: [ADR-0007, ADR-0022, ADR-0131, ADR-0213]
 related_specs: [/specs/microservices/plugin-app-store.json]
 related_artifacts:
   - microservices/plugin-app-store/PRD.md
-  - microservices/plugin-app-store/policy/
+  - marketplace/plugin-app-store/policy/
 
 autonomy_tier: T3
 

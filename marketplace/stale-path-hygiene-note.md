@@ -37,3 +37,15 @@ Retargeted verified `microservices/marketplace/**` → `marketplace/**`, includi
 - Singular `policy/` directory cites (policies live under `marketplace/policies/`).
 - Cross-cap / missing IP-journey homes.
 - No hubs, no `Cargo.lock`, no merge.
+
+## Wave-5 Seat A follow-through (2026-08-10)
+
+Retargeted verified nested faces:
+
+- `microservices/plugin-app-store/{policy,iac}/**` → `marketplace/plugin-app-store/{policy,iac}/**`
+- `microservices/developer-sdk/{policy,iac}/**` → `marketplace/developer-sdk/{policy,iac}/**`
+
+### Deferred
+
+- Missing PRD/capacity-model/implementation-plans/eval fixtures under nested faces
+- No hubs, no `Cargo.lock`, no merge.
