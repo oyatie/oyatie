@@ -1,0 +1,20 @@
+[package]
+name = "oya-slides-domain"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+oya-data-boundary-kernel = { path = "../../../../libs/oya-data-boundary-kernel" }
+oya-collab-runtime-domain = { path = "../../../intelligence/crates/oya-collab-runtime-domain" }
+oya-document-format-domain = { path = "../../../intelligence/crates/oya-document-format-domain" }
+
+[lib]
+name = "oya_slides_domain"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

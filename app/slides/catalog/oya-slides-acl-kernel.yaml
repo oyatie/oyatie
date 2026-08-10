@@ -1,0 +1,23 @@
+# Canonical-base: specs/catalog/canonical-crate-record-schema.json (SWEEP-I Slice 6 per ADR-0064)
+name: oya-slides-acl-kernel
+microservice: slides
+bounded_context: acl
+layer: kernel
+purpose: |
+  Port-trait + entity declarations for deck + per-slide + named-block ACL.
+  Per ADR-SLIDES-0007 Cedar refinement model.
+ports_declared:
+  - AclEvaluator
+  - CedarPreviewer
+entities:
+  - AclEntry
+  - ScopedDecision
+  - PolicyImpact
+data_classes:
+  - AUDIT
+  - INTERNAL_ONLY
+ci_lanes:
+  - lean-a1
+  - port-location
+  - layer-correctness
+  - cedar-preview-required

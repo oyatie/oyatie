@@ -1,0 +1,277 @@
+asyncapi: 3.1.0
+info:
+  title: oya-slides events
+  version: 1.0.0
+  description: |
+    AsyncAPI for slides µservice — WS frames for real-time collaboration
+    + present-mode + broadcast-mode signaling + audience-engagement,
+    plus workflow event-bus events produced and consumed.
+    Per ADR-0135 + ADR-0131 + ADR-SLIDES-0001 (Loro CRDT) + ADR-SLIDES-0005 (LiveKit reuse).
+defaultContentType: application/json
+servers:
+  prod-ws:
+    host: ws.oyatie.com
+    protocol: wss
+    description: production WS gateway
+channels:
+  collab-stream:
+    address: /slides/v1/decks/{deck_id}/collab
+    description: real-time-collaboration CRDT op stream (per-deck shard)
+    parameters:
+      deck_id: { description: deck identifier }
+    messages:
+      CrdtOpFromClient: { $ref: '#/components/messages/CrdtOpFromClient' }
+      CrdtOpFromServer: { $ref: '#/components/messages/CrdtOpFromServer' }
+      ConflictSurfaced: { $ref: '#/components/messages/ConflictSurfaced' }
+      CursorPresence: { $ref: '#/components/messages/CursorPresence' }
+      EditorSessionOpened: { $ref: '#/components/messages/EditorSessionOpened' }
+      EditorSessionClosed: { $ref: '#/components/messages/EditorSessionClosed' }
+  present-mode-stream:
+    address: /slides/v1/decks/{deck_id}/present
+    description: present-mode events (slide navigation, presenter cursor, audience reactions)
+    parameters:
+      deck_id: { description: deck identifier }
+    messages:
+      SlideNavigated: { $ref: '#/components/messages/SlideNavigated' }
+      PresenterCursor: { $ref: '#/components/messages/PresenterCursor' }
+      AudienceReaction: { $ref: '#/components/messages/AudienceReaction' }
+      AudienceQuestion: { $ref: '#/components/messages/AudienceQuestion' }
+      AudiencePollResponse: { $ref: '#/components/messages/AudiencePollResponse' }
+  broadcast-signaling:
+    address: /slides/v1/decks/{deck_id}/broadcast/signaling
+    description: broadcast-mode LiveKit signaling bridge (per ADR-SLIDES-0005)
+    parameters:
+      deck_id: { description: deck identifier }
+    messages:
+      BroadcastStarted: { $ref: '#/components/messages/BroadcastStarted' }
+      BroadcastEnded: { $ref: '#/components/messages/BroadcastEnded' }
+      ViewerJoined: { $ref: '#/components/messages/ViewerJoined' }
+      ViewerLeft: { $ref: '#/components/messages/ViewerLeft' }
+      LiveKitSignalRouted: { $ref: '#/components/messages/LiveKitSignalRouted' }
+  workflow-bus-out:
+    address: oya.workflow.bus.slides
+    description: slides events produced to workflow event-bus
+    messages:
+      DeckOpened: { $ref: '#/components/messages/DeckOpened' }
+      DeckSaved: { $ref: '#/components/messages/DeckSaved' }
+      CollabMerged: { $ref: '#/components/messages/CollabMerged' }
+      CollabConflictSurfaced: { $ref: '#/components/messages/CollabConflictSurfaced' }
+      PresentModeStarted: { $ref: '#/components/messages/PresentModeStarted' }
+      PresentModeEnded: { $ref: '#/components/messages/PresentModeEnded' }
+      AclChanged: { $ref: '#/components/messages/AclChanged' }
+      ChartLinkBound: { $ref: '#/components/messages/ChartLinkBound' }
+      ChartLinkRevoked: { $ref: '#/components/messages/ChartLinkRevoked' }
+      AiDesignSuggested: { $ref: '#/components/messages/AiDesignSuggested' }
+      AiContentGenerated: { $ref: '#/components/messages/AiContentGenerated' }
+      ExportJobCompleted: { $ref: '#/components/messages/ExportJobCompleted' }
+      ImportJobCompleted: { $ref: '#/components/messages/ImportJobCompleted' }
+  workflow-bus-in:
+    address: oya.workflow.bus.consumed-by-slides
+    description: events consumed by slides
+    messages:
+      SheetsCellRangeUpdated: { $ref: '#/components/messages/SheetsCellRangeUpdated' }
+      SheetsAclRevoked: { $ref: '#/components/messages/SheetsAclRevoked' }
+      DocsQuoteUpdated: { $ref: '#/components/messages/DocsQuoteUpdated' }
+      FormsPollResponseReceived: { $ref: '#/components/messages/FormsPollResponseReceived' }
+      MessengerLivekitRoomTerminated: { $ref: '#/components/messages/MessengerLivekitRoomTerminated' }
+      TenantSeatLimitUpdated: { $ref: '#/components/messages/TenantSeatLimitUpdated' }
+      OntologyTypeDescriptorUpdated: { $ref: '#/components/messages/OntologyTypeDescriptorUpdated' }
+operations:
+  receiveClientOps:
+    action: receive
+    channel: { $ref: '#/channels/collab-stream' }
+    messages: [{ $ref: '#/channels/collab-stream/messages/CrdtOpFromClient' }]
+  sendServerOps:
+    action: send
+    channel: { $ref: '#/channels/collab-stream' }
+    messages:
+      - { $ref: '#/channels/collab-stream/messages/CrdtOpFromServer' }
+      - { $ref: '#/channels/collab-stream/messages/ConflictSurfaced' }
+      - { $ref: '#/channels/collab-stream/messages/CursorPresence' }
+  emitWorkflowEvents:
+    action: send
+    channel: { $ref: '#/channels/workflow-bus-out' }
+  consumeWorkflowEvents:
+    action: receive
+    channel: { $ref: '#/channels/workflow-bus-in' }
+components:
+  messages:
+    CrdtOpFromClient:
+      name: CrdtOpFromClient
+      title: Client CRDT op envelope
+      payload: { $ref: '#/components/schemas/CrdtOpEnvelope' }
+    CrdtOpFromServer:
+      name: CrdtOpFromServer
+      title: Server-rebroadcast CRDT op
+      payload: { $ref: '#/components/schemas/CrdtOpEnvelope' }
+    ConflictSurfaced:
+      name: ConflictSurfaced
+      title: CRDT conflict needs UI resolution
+      payload: { $ref: '#/components/schemas/Conflict' }
+    CursorPresence:
+      name: CursorPresence
+      payload: { $ref: '#/components/schemas/CursorPresence' }
+    EditorSessionOpened:
+      name: EditorSessionOpened
+      payload: { $ref: '#/components/schemas/EditorSession' }
+    EditorSessionClosed:
+      name: EditorSessionClosed
+      payload:
+        type: object
+        properties:
+          session_id: { type: string }
+          deck_id: { type: string }
+          closed_at: { type: string, format: date-time }
+    SlideNavigated:
+      name: SlideNavigated
+      payload:
+        type: object
+        properties:
+          deck_id: { type: string }
+          slide_id: { type: string }
+          ordinal: { type: integer }
+          navigator_oidc_sub: { type: string }
+          navigated_at: { type: string, format: date-time }
+    PresenterCursor:
+      name: PresenterCursor
+      payload:
+        type: object
+        properties:
+          deck_id: { type: string }
+          slide_id: { type: string }
+          x: { type: number }
+          y: { type: number }
+          ts: { type: string, format: date-time }
+    AudienceReaction:
+      name: AudienceReaction
+      payload:
+        type: object
+        properties:
+          deck_id: { type: string }
+          slide_id: { type: string }
+          reaction_kind: { type: string, enum: [thumbs_up, thumbs_down, heart, clap, smile, question] }
+          ts: { type: string, format: date-time }
+    AudienceQuestion:
+      name: AudienceQuestion
+      payload:
+        type: object
+        properties:
+          deck_id: { type: string }
+          question_id: { type: string }
+          question_text: { type: string }
+          ts: { type: string, format: date-time }
+    AudiencePollResponse:
+      name: AudiencePollResponse
+      payload:
+        type: object
+        properties:
+          deck_id: { type: string }
+          poll_id: { type: string }
+          response_value: { type: string }
+          ts: { type: string, format: date-time }
+    BroadcastStarted:
+      name: BroadcastStarted
+      payload: { $ref: '#/components/schemas/BroadcastSessionStarted' }
+    BroadcastEnded:
+      name: BroadcastEnded
+      payload: { $ref: '#/components/schemas/BroadcastSessionEnded' }
+    ViewerJoined:
+      name: ViewerJoined
+      payload:
+        type: object
+        properties:
+          session_id: { type: string }
+          viewer_pseudonym: { type: string }
+          joined_at: { type: string, format: date-time }
+    ViewerLeft:
+      name: ViewerLeft
+      payload:
+        type: object
+        properties:
+          session_id: { type: string }
+          viewer_pseudonym: { type: string }
+          left_at: { type: string, format: date-time }
+    LiveKitSignalRouted:
+      name: LiveKitSignalRouted
+      payload:
+        type: object
+        properties:
+          session_id: { type: string }
+          signal_kind: { type: string }
+          ts: { type: string, format: date-time }
+    DeckOpened: { name: DeckOpened, payload: { type: object } }
+    DeckSaved: { name: DeckSaved, payload: { type: object } }
+    CollabMerged: { name: CollabMerged, payload: { type: object } }
+    CollabConflictSurfaced: { name: CollabConflictSurfaced, payload: { type: object } }
+    PresentModeStarted: { name: PresentModeStarted, payload: { type: object } }
+    PresentModeEnded: { name: PresentModeEnded, payload: { type: object } }
+    AclChanged: { name: AclChanged, payload: { type: object } }
+    ChartLinkBound: { name: ChartLinkBound, payload: { type: object } }
+    ChartLinkRevoked: { name: ChartLinkRevoked, payload: { type: object } }
+    AiDesignSuggested: { name: AiDesignSuggested, payload: { type: object } }
+    AiContentGenerated: { name: AiContentGenerated, payload: { type: object } }
+    ExportJobCompleted: { name: ExportJobCompleted, payload: { type: object } }
+    ImportJobCompleted: { name: ImportJobCompleted, payload: { type: object } }
+    SheetsCellRangeUpdated: { name: SheetsCellRangeUpdated, payload: { type: object } }
+    SheetsAclRevoked: { name: SheetsAclRevoked, payload: { type: object } }
+    DocsQuoteUpdated: { name: DocsQuoteUpdated, payload: { type: object } }
+    FormsPollResponseReceived: { name: FormsPollResponseReceived, payload: { type: object } }
+    MessengerLivekitRoomTerminated: { name: MessengerLivekitRoomTerminated, payload: { type: object } }
+    TenantSeatLimitUpdated: { name: TenantSeatLimitUpdated, payload: { type: object } }
+    OntologyTypeDescriptorUpdated: { name: OntologyTypeDescriptorUpdated, payload: { type: object } }
+  schemas:
+    CrdtOpEnvelope:
+      type: object
+      required: [author_oidc_sub, sequence_num, op_payload, hmac, emitted_at]
+      properties:
+        author_oidc_sub: { type: string }
+        sequence_num: { type: integer, format: int64 }
+        op_payload: { type: string, format: byte, description: 'loro-encoded op bytes (base64)' }
+        hmac: { type: string, description: 'HMAC-SHA-256 over op envelope using per-session key' }
+        emitted_at: { type: string, format: date-time }
+    Conflict:
+      type: object
+      required: [conflict_id, branches]
+      properties:
+        conflict_id: { type: string }
+        branches:
+          type: array
+          items:
+            type: object
+            properties:
+              branch_id: { type: string }
+              author_oidc_sub: { type: string }
+              ops_summary: { type: string }
+    CursorPresence:
+      type: object
+      properties:
+        author_oidc_sub: { type: string }
+        deck_id: { type: string }
+        slide_id: { type: string }
+        x: { type: number }
+        y: { type: number }
+        ts: { type: string, format: date-time }
+    EditorSession:
+      type: object
+      properties:
+        session_id: { type: string }
+        deck_id: { type: string }
+        tenant_id: { type: string }
+        opened_at: { type: string, format: date-time }
+    BroadcastSessionStarted:
+      type: object
+      properties:
+        session_id: { type: string }
+        deck_id: { type: string }
+        presenter_oidc_sub: { type: string }
+        started_at: { type: string, format: date-time }
+        viewer_cap: { type: integer }
+        livekit_room: { type: string }
+    BroadcastSessionEnded:
+      type: object
+      properties:
+        session_id: { type: string }
+        deck_id: { type: string }
+        ended_at: { type: string, format: date-time }
+        attendee_count_aggregate: { type: integer }
+        duration_seconds: { type: integer }

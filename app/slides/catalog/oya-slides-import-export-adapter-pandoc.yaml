@@ -1,0 +1,16 @@
+# Canonical-base: specs/catalog/canonical-crate-record-schema.json (SWEEP-I Slice 6 per ADR-0064)
+name: oya-slides-import-export-adapter-pandoc
+microservice: slides
+bounded_context: import-export
+layer: adapter-pandoc
+purpose: |
+  Pandoc 3.x bridge for PPTX/ODP/Keynote import. gVisor-sandboxed.
+  Per ADR-SLIDES-0003 + ADR-0105 Amd.3.
+depends_on:
+  - oya-slides-import-export-kernel
+  - pandoc@^3.0
+backend: pandoc
+ci_lanes:
+  - gvisor-isolation
+  - cargo-deny
+  - cargo-nextest

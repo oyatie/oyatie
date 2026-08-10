@@ -1,0 +1,16 @@
+# Canonical-base: specs/catalog/canonical-crate-record-schema.json (SWEEP-I Slice 6 per ADR-0064)
+name: oya-slides-image-adapter-clamav
+microservice: slides
+bounded_context: image
+layer: adapter-clamav
+purpose: |
+  ClamAV malware scanner for uploaded image assets. Dual-scanner topology (OPSWAT secondary).
+  Per ADR-0105 Amd.3 + threat-model.md T-T-03.
+depends_on:
+  - oya-slides-image-kernel
+  - clamav
+backend: clamav
+ci_lanes:
+  - port-location
+  - layer-correctness
+  - cargo-nextest

@@ -1,24 +1,28 @@
 # app/slides reorg drain notes (`integ/slides`)
 
-## Ownership (rule 3e)
+## Ownership (rule 3d / 3e)
 
 - **Forever home:** `app/slides/**` (this rail).
-- **Source (read-only):** `oya/slides/**` on `origin/dev` until shrink-only delete lands on `integ/oya`.
+- **Source (read-only):** `oya/slides/**` on `origin/dev` until shrink-only delete on `integ/oya`.
 - **Writes:** only under `app/slides/**` on this tip.
+- **OVERRULE 3d:** product rail owns `app/slides/**` — never dump onto `integ/app`.
 
-## Completed (this rail)
+## Completed
 
 - Slice 1: product metadata absorb — `manifest.json`, `README.md`, `slos/**`.
+- Wave-1 full absorb: copied remaining `oya/slides/**` → `app/slides/**` (93 files, 1 `.rs`) from `origin/dev`.
+- In-tree cites retargeted `oya/slides` → `app/slides` and `//oya/slides` → `//app/slides`.
 
-## Next gaps (ordered)
+## Remaining
 
-1. **Contracts + policy** — `contracts/`, `policy/`, `cedar/`, `catalog/` from `oya/slides`.
-2. **Capabilities + crates** — bounded-context manifests and `oya-slides-*` crate rehome.
-3. **IaC + dashboards** — `iac/`, `dashboards/`, `runbooks/`, `scorecards/`, `decisions/`, `dpia/`, `IPs/`.
-4. **Shrink-only burn** — after verify, delete absorbed paths on `integ/oya` (not this rail).
+1. Verify destination tip contains forever bytes (this tip).
+2. Shrink-only burn of `oya/slides/**` on `integ/oya` (NOT this rail) after verify — **STOP #1661** until ordered.
+3. Hub retargets (`specs/**`, capability-registry) on tip-free `integ/specs`.
 
-## Out of envelope (do not touch from `integ/slides`)
+## Out of envelope
 
-- `oya/slides/**` deletes — `integ/oya` shrink-only rail only.
-- Other products under `oya/*` or `app/*`.
-- Hub retargets (`specs/**`) — tip-free `integ/specs` only.
+- `oya/slides/**` deletes — `integ/oya` shrink-only only.
+- `Cargo.lock` / root workspace membership — lock tip only.
+- `specs/**` hub edits — `integ/specs` only.
+- Sibling products under `oya/*` or `app/*` other than `slides`.
+- `#1661` product shrink — STOP (do not touch).

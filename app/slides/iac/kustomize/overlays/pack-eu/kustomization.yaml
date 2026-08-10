@@ -1,0 +1,31 @@
+# Canonical-base: microservices/governance/iac/kustomize/components/{namespace-restricted-profile,pack-overlay-canonical/<pack>} (SWEEP-I Slice 3 per ADR-0064)
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: slides
+
+resources:
+  - ../../base
+
+# Pack-EU specific overrides per `policy/data-residency.md` + multi-region.md
+configMapGenerator:
+  - name: slides-pack-overlay
+    literals:
+      - pack=eu
+      - residency_region=eu-frankfurt-1
+      - residency_secondary=eu-paris-1
+      - audit_retention_days=2555  # 7y GDPR Art. 30
+      - phi_redaction_required=false
+      - reduced_motion_default=false  # set true via per-deck override for eu-public-sector tenants
+      - color_blind_safe_default=true  # eu accessibility baseline
+      - t2_quota_per_day=50  # stricter under regional AI-risk
+      - pack_override_high_risk_auto_decision_allowed=false  # NO pack-wide high-risk auto-decision override
+      - special_category_consent_required=true
+
+patches:
+  - target: { kind: Deployment, name: slides-slides-runtime }
+    patch: |-
+      - op: add
+        path: /spec/template/spec/nodeSelector
+        value:
+          topology.kubernetes.io/region: eu-frankfurt-1

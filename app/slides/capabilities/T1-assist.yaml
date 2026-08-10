@@ -1,0 +1,120 @@
+# Canonical-base: specs/capabilities/canonical-tier-schema.json + eu-ai-act-risk-class-registry.json (SWEEP-I Slice 5 per ADR-0064)
+# Capability T1 — Assist tier
+# Foundry-runtime gated; per-invocation risk-class evaluation + audit.
+# Per ADR-SLIDES-0006 + regional AI-risk Art. 13 transparency + Art. 14 human oversight.
+
+automation_risk_class: T1
+capability_name: slides-assist
+microservice: slides
+status: Accepted
+foundry_runtime_integration: required
+risk_class_default: low_or_medium  # determined per-invocation
+authority: ADR-SLIDES-0006
+
+related_specs:
+  - microservices/slides/decisions/ADR-SLIDES-0006-ai-design-and-content-generation-bounds.md
+  - microservices/slides/contracts/openapi/slides.yaml
+
+capabilities:
+  - id: design-assist
+    name: Design assist
+    description: |
+      Holistic per-slide design suggestions (composition, balance, alignment).
+      Uses foundry-runtime tier-1 design LLM + design-rules engine.
+      Output passes through schema validator before tenant render.
+    inputs:
+      - current slide content (text + image + shape)
+      - applied theme
+      - target audience (per-deck metadata)
+    outputs:
+      - up to 5 design alternatives with brief explanation
+    latency_p95_ms: 1500
+    risk_class_default: low
+    auto_decision_risk_check: false  # design only; not employment/credit/legal/medical decision
+    audit_emit: true  # every invocation Ed25519-sealed
+    foundry_runtime_invocation: required
+    human_oversight_required: false  # tenant-accept-or-discard; not auto-applied
+    provenance_watermark: not_applicable  # design suggestion, not generated content
+
+  - id: layout-suggest
+    name: Layout suggest (deeper than T0)
+    description: |
+      Suggest a layout transformation for the slide; outputs delta-spec rather than full re-render.
+      Useful for "make this slide more visual" or "make this slide simpler".
+    inputs:
+      - current slide spec
+      - directive ("simplify" | "add-visual" | "two-column" | "centered" | etc.)
+    outputs:
+      - delta spec + before/after preview
+    latency_p95_ms: 1500
+    risk_class_default: low
+    auto_decision_risk_check: false
+    audit_emit: true
+    foundry_runtime_invocation: required
+    human_oversight_required: false
+
+  - id: copy-refine
+    name: Copy refinement
+    description: |
+      Refine text-box content for clarity, brevity, or tone. Tenant-supplied directive.
+    inputs:
+      - text-box content
+      - directive ("shorter" | "more formal" | "more casual" | "active-voice" | etc.)
+    outputs:
+      - refined text (preserving meaning)
+    latency_p95_ms: 1500
+    risk_class_default: low
+    auto_decision_risk_check: contextual  # marketing context → low; employment job posting → check high-risk auto-decision
+    audit_emit: true
+    foundry_runtime_invocation: required
+    human_oversight_required: true  # tenant must accept/discard
+
+  - id: accessibility-auto-alt-text
+    name: Auto alt-text for images
+    description: |
+      Image → alt-text generation. Per-pack PHI redaction (us-healthcare).
+      Tenant edits/accepts before final binding.
+    inputs:
+      - image asset binary (post-scan)
+      - per-pack PHI policy
+    outputs:
+      - suggested alt-text (≤ 200 chars)
+    latency_p95_ms: 2000
+    risk_class_default: low
+    auto_decision_risk_check: contextual  # medical image → check high-risk auto-decision medical-device subcontext
+    audit_emit: true
+    foundry_runtime_invocation: required
+    human_oversight_required: true
+    pack_overrides:
+      us-healthcare:
+        phi_redaction_required: true
+        consent_gate_required: true
+        risk_class_override: medium  # PHI presence elevates risk class
+
+  - id: slide-summary
+    name: Slide summary (one-line)
+    description: |
+      One-line summary of a slide, useful for slide-sorter labels OR per-slide screen reader summary.
+    inputs:
+      - current slide content
+    outputs:
+      - 1-line summary ≤ 100 chars
+    latency_p95_ms: 1500
+    risk_class_default: low
+    auto_decision_risk_check: false
+    audit_emit: true
+    foundry_runtime_invocation: required
+    human_oversight_required: false
+
+per_tenant_controls:
+  - opt_out_t1_per_capability: true
+  - per_pack_default_on: [kr, eu, us, jp, sg, au, in, br, ae, ksa]
+  - per_pack_default_off: [us-healthcare]  # us-healthcare default-off; tenant opt-in with BAA
+  - per_pack_phi_redaction_required: [us-healthcare]
+
+rate_limits:
+  per_user_per_minute: 60
+  per_tenant_per_hour: 10000  # T1 default
+  per_pack_per_day_overrideable: true
+
+cost_class: tier-1

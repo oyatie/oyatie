@@ -1,0 +1,102 @@
+# Canonical-base: specs/capabilities/canonical-tier-schema.json + eu-ai-act-risk-class-registry.json (SWEEP-I Slice 5 per ADR-0064)
+# Capability T0 — Suggest tier
+# Slides µservice low-risk text + design assist; deterministic + local-first when possible.
+# Per ADR-SLIDES-0006 risk-class enforcement (T0 always low-risk by definition).
+
+automation_risk_class: T0
+capability_name: slides-suggest
+microservice: slides
+status: Accepted
+foundry_runtime_integration: optional  # T0 may run locally without LLM for deterministic suggestions
+risk_class_default: low
+authority: ADR-SLIDES-0006
+related_specs:
+  - microservices/slides/contracts/openapi/slides.yaml
+  - microservices/slides/decisions/ADR-SLIDES-0006-ai-design-and-content-generation-bounds.md
+
+# Capabilities exposed at T0 tier
+capabilities:
+  - id: text-completion-suggest
+    name: Text autocompletion suggestion
+    description: |
+      Inline text completion suggestions in text-box editing.
+      Powered by a small local fast model OR foundry-runtime small-tier LLM.
+      Deterministic for the same prompt context (temperature = 0).
+    inputs:
+      - text-box current content
+      - cursor position
+      - per-pack language
+    outputs:
+      - up to 5 candidate completions ≤ 80 tokens each
+    latency_p95_ms: 200
+    risk_class: low
+    auto_decision_risk_check: not_applicable
+    audit_emit: false  # T0 suggestions not audited unless accepted (then routed via T1 acceptance log)
+    foundry_runtime_invocation: optional
+    determinism: high
+
+  - id: layout-hint
+    name: Layout hint
+    description: |
+      For a slide with N content boxes, suggest a layout from the slide-layout catalog
+      that best fits the content density. Rule-based heuristic + optional foundry-runtime
+      similarity match.
+    inputs:
+      - slide content shape (count + relative size of placeholders)
+      - applied theme palette
+    outputs:
+      - up to 3 layout candidates with confidence score
+    latency_p95_ms: 100
+    risk_class: low
+    auto_decision_risk_check: not_applicable
+    audit_emit: false
+    foundry_runtime_invocation: optional  # heuristic-first; LLM optional
+    determinism: high
+
+  - id: color-suggest
+    name: Theme palette suggestion
+    description: |
+      Suggest a color palette for a deck based on uploaded primary asset (image color analysis)
+      OR explicit brand-color seed. Returns palettes with WCAG 2.2 AA contrast pre-validated.
+    inputs:
+      - seed color OR uploaded primary asset
+      - pack color-blind-safe policy
+    outputs:
+      - up to 5 palette candidates, all WCAG AA + color-blind-safe verified
+    latency_p95_ms: 300
+    risk_class: low
+    auto_decision_risk_check: not_applicable
+    audit_emit: false
+    foundry_runtime_invocation: optional
+    determinism: medium  # different palettes returned across calls
+
+  - id: font-pairing-suggest
+    name: Font pairing suggestion
+    description: |
+      Given a primary font, suggest secondary font pairings from the typography library.
+      Rule-based + foundry-runtime tier-1 similarity match.
+    inputs:
+      - primary font family
+      - text-box content classification (heading | body | caption)
+    outputs:
+      - up to 3 paired font suggestions
+    latency_p95_ms: 100
+    risk_class: low
+    auto_decision_risk_check: not_applicable
+    audit_emit: false
+    foundry_runtime_invocation: optional
+    determinism: high
+
+# Tenant controls
+per_tenant_controls:
+  - opt_out_t0: true
+  - per_pack_default_on: [kr, eu, us, jp, sg, au, in, br, ae, ksa]
+  - per_pack_default_off: [us-healthcare]  # us-healthcare default-off; tenant opt-in
+
+# Rate limits (T0 generous; per-user)
+rate_limits:
+  per_user_per_minute: 200
+  per_tenant_per_hour: 100000
+
+# Cost class
+cost_class: tier-0  # very low; absorbed in subscription tier

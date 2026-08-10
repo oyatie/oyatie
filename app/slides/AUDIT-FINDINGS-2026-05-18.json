@@ -1,0 +1,297 @@
+{
+  "pack": "slides",
+  "scope_tier": "mature",
+  "scanned_files": 105,
+  "excluded_files": 3,
+  "violations": {
+    "valkey_engine": {
+      "severity": "hard",
+      "file_hits": [
+        {
+          "file": "microservices/slides/failure-modes.md",
+          "hits": [
+            {
+              "line": 16,
+              "excerpt": "| FM-02 | editor-rest | Valkey cluster split-brain | CRDT lease confusion \u2192 silent loss risk | lease verification + Sev-1 alarm | force lease reacquire; reconcile from Postgres CRDT snapshot | 5min; da"
+            }
+          ],
+          "hits_total": 1
+        },
+        {
+          "file": "microservices/slides/backfill-replay.md",
+          "hits": [
+            {
+              "line": 21,
+              "excerpt": "2. Freeze writes for affected decks via per-deck lease in Valkey (refuse new edits)."
+            }
+          ],
+          "hits_total": 1
+        },
+        {
+          "file": "microservices/slides/PRD.md",
+          "hits": [
+            {
+              "line": 145,
+              "excerpt": "- Editor session state, deck content (Postgres metadata, S3 snapshots, Valkey CRDT cache), per-deck ACL: pack-pinned per tenant `jurisdiction_code` (ADR-0117 inheritance)."
+            },
+            {
+              "line": 311,
+              "excerpt": "- `oya gate validate statelessness --microservice slides` \u2014 REST stateless (state in Postgres + Valkey + S3)"
+            },
+            {
+              "line": 424,
+              "excerpt": "**Active-active compatibility**: `stateless-compatible` for REST/SDK; `single-writer-compatible` for collab CRDT (one WS gateway pod owns active sessions for a given deck; lease-coordinated via Valkey)"
+            }
+          ],
+          "hits_total": 7
+        },
+        {
+          "file": "microservices/slides/dpia.md",
+          "hits": [
+            {
+              "line": 73,
+              "excerpt": "- Encryption at rest: SSE-KMS per-pack key for S3; pg_tde for Postgres; Valkey at-rest encryption."
+            },
+            {
+              "line": 74,
+              "excerpt": "- Per-tenant isolation: RLS + per-cell Valkey cluster + per-tenant S3 prefix + per-tenant CDN cache key."
+            },
+            {
+              "line": 121,
+              "excerpt": "- **Per-tenant CDN cache key + RLS + per-cell Valkey + per-tenant S3 prefix** \u2014 isolation across all storage tiers."
+            }
+          ],
+          "hits_total": 3
+        },
+        {
+          "file": "microservices/slides/capacity-model.md",
+          "hits": [
+            {
+              "line": 47,
+              "excerpt": "- Lease via Valkey: single-writer per deck."
+            },
+            {
+              "line": 75,
+              "excerpt": "### Valkey"
+            },
+            {
+              "line": 108,
+              "excerpt": "| Valkey connection-pool saturation | Valkey metrics | > 80% sustained | Sev-2 |"
+            }
+          ],
+          "hits_total": 3
+        },
+        {
+          "file": "microservices/slides/threat-model.md",
+          "hits": [
+            {
+              "line": 32,
+              "excerpt": "4. **slides-rest \u2194 Valkey** \u2014 per-cell cluster; cell-local CRDT state; cross-tenant key namespace."
+            },
+            {
+              "line": 76,
+              "excerpt": "| T-I-03 | Cross-tenant Valkey CRDT state leakage | real-time-collaboration | per-cell cluster; cell-local CRDT state; tenant_id prefix in Valkey key; pod-level isolation; HMAC binding | integration `te"
+            }
+          ],
+          "hits_total": 2
+        },
+        {
+          "file": "microservices/slides/multi-region.md",
+          "hits": [
+            {
+              "line": 34,
+              "excerpt": "| real-time-collaboration-worker (CRDT WS) | active-active within pack; deck-shard via consistent-hash | single-writer per deck via Valkey lease; lease pack-pinned |"
+            },
+            {
+              "line": 35,
+              "excerpt": "| broadcast-mode-worker | active-active within pack; deck-shard | single-writer per broadcast session via Valkey lease; LiveKit SFU pack-pinned via messenger |"
+            },
+            {
+              "line": 37,
+              "excerpt": "| Valkey | primary cluster + sentinel; cross-region not replicated (ephemeral) | RPO 1s via in-memory; reconstructable from Postgres on cold-start |"
+            }
+          ],
+          "hits_total": 6
+        },
+        {
+          "file": "microservices/slides/IP-001-layer-a-cdn-postgres-valkey-s3-ws-gateway-iac.md",
+          "hits": [
+            {
+              "line": 17,
+              "excerpt": "# IP-001: Layer-A IaC \u2014 CDN, WAF, Postgres, Valkey, S3, WS gateway, gVisor export pool"
+            },
+            {
+              "line": 21,
+              "excerpt": "Author the Layer-A infrastructure for slides: CDN edge cache + WAF + Postgres (Citus) deck metadata + Valkey (per-cell sentinel) for CRDT cache + S3 for deck snapshots/assets + WebSocket gateway servic"
+            }
+          ],
+          "hits_total": 2
+        },
+        {
+          "file": "microservices/slides/IP-005-real-time-collaboration-loro-kernel-domain-adapter.md",
+          "hits": [
+            {
+              "line": 95,
+              "excerpt": "- Valkey lease split-brain detected \u2014 STOP. Single-writer guarantee."
+            }
+          ],
+          "hits_total": 1
+        },
+        {
+          "file": "microservices/slides/compliance.md",
+          "hits": [
+            {
+              "line": 63,
+              "excerpt": "| PW.4 Reuse existing well-secured software | LTS-pinned Loro / Leptos / Pandoc / WeasyPrint / ffmpeg / Chromium-headless / LiveKit / Postgres / Valkey | `Cargo.lock` + Helm `values.yaml` LTS pins |"
+            }
+          ],
+          "hits_total": 1
+        },
+        {
+          "file": "microservices/slides/PHASE-01-SLIDES-FOUNDATION.md",
+          "hits": [
+            {
+              "line": 12,
+              "excerpt": "via cloud-iac \u00b5service (CDN + WebSocket gateway + Postgres + Valkey + S3 + gVisor sandbox for export"
+            },
+            {
+              "line": 77,
+              "excerpt": "| `IP-001-layer-a-cdn-postgres-valkey-s3-ws-gateway-iac.md` | IaC for CDN + Postgres + Valkey + S3 + WS gateway + gVisor export pool | pending | axis-workspace + cloud-iac | \u2014 |"
+            }
+          ],
+          "hits_total": 2
+        },
+        {
+          "file": "microservices/slides/cost-budget.md",
+          "hits": [
+            {
+              "line": 24,
+              "excerpt": "| Valkey (3-node sentinel cluster \u00d7 4 vCPU \u00d7 16 GiB) | OCI VM.Standard.E5.Flex | $920 | OCI list |"
+            }
+          ],
+          "hits_total": 1
+        },
+        {
+          "file": "microservices/slides/decisions/ADR-SLIDES-0001-crdt-library-selection.md",
+          "hits": [
+            {
+              "line": 65,
+              "excerpt": "- Ephemeral CRDT state in Valkey; reconstructable from Postgres on cold-start."
+            },
+            {
+              "line": 86,
+              "excerpt": "4. Loro snapshot encoding for Valkey persistence (`snapshot()` + `import_snapshot()`); canonical JSON projection ONLY for the deck-spec emission + import/export pipelines (per ADR-SLIDES-0003)."
+            },
+            {
+              "line": 89,
+              "excerpt": "7. Per-session HMAC-SHA-256 over each op envelope (T-T-01 mitigation); HMAC keys held in Valkey per-session; rotate on suspected tampering (per `runbooks/collab-conflict-resolution-crdt.md` Step 3a)."
+            }
+          ],
+          "hits_total": 3
+        },
+        {
+          "file": "microservices/slides/policy/editor-isolation.md",
+          "hits": [
+            {
+              "line": 24,
+              "excerpt": "2. **Per-cell Valkey cluster cell-locality**. CRDT state for a deck NEVER crosses cells."
+            },
+            {
+              "line": 32,
+              "excerpt": "10. **Single-writer lease per deck** via Valkey. Split-brain detected + reconciled."
+            },
+            {
+              "line": 43,
+              "excerpt": "- Direct DB / Valkey / S3 read or write from cross-\u00b5service consumers (must go through SDK)."
+            }
+          ],
+          "hits_total": 3
+        },
+        {
+          "file": "microservices/slides/catalog/oya-slides-real-time-collaboration-adapter-valkey.yaml",
+          "hits": [
+            {
+              "line": 7,
+              "excerpt": "Valkey (per-cell sentinel cluster) for ephemeral CRDT cache + editor-session lease."
+            }
+          ],
+          "hits_total": 1
+        },
+        {
+          "file": "microservices/slides/manifest.json",
+          "hits": [
+            {
+              "line": 142,
+              "excerpt": "\"title\": \"IP-001: Layer-A IaC \u2014 CDN, WAF, Postgres, Valkey, S3, WS gateway, gVisor export pool\","
+            }
+          ],
+          "hits_total": 1
+        }
+      ],
+      "match_count": 38
+    },
+    "react_client_primary": {
+      "severity": "soft",
+      "file_hits": [
+        {
+          "file": "microservices/slides/decisions/ADR-SLIDES-0002-rendering-canvas-substrate.md",
+          "hits": [
+            {
+              "line": 72,
+              "excerpt": "### Alternative A \u2014 React + canvas-2d (TypeScript)"
+            },
+            {
+              "line": 82,
+              "excerpt": "- Bundle size for React + canvas library ~300-500 KB gzip before app code."
+            }
+          ],
+          "hits_total": 2
+        }
+      ],
+      "match_count": 2
+    }
+  },
+  "ip_files_thin": [
+    {
+      "file": "microservices/slides/IP-013-acl-comments-version-history-embed-bridge.md",
+      "lines": 82
+    },
+    {
+      "file": "microservices/slides/IP-004-asset-bcs-image-video-audio-adapters.md",
+      "lines": 73
+    },
+    {
+      "file": "microservices/slides/IP-011-import-export-pptx-pdf-mp4-pipeline.md",
+      "lines": 93
+    },
+    {
+      "file": "microservices/slides/IP-008-themes-templates-master-slide-editor.md",
+      "lines": 64
+    },
+    {
+      "file": "microservices/slides/IP-009-animations-transitions-reduced-motion.md",
+      "lines": 93
+    },
+    {
+      "file": "microservices/slides/IP-006-real-time-collaboration-worker-sdk.md",
+      "lines": 81
+    },
+    {
+      "file": "microservices/slides/IP-014-visual-canvas-leptos-wasm-rest-sdk-app.md",
+      "lines": 89
+    },
+    {
+      "file": "microservices/slides/IP-012-accessibility-ai-design-ai-content-generation.md",
+      "lines": 86
+    },
+    {
+      "file": "microservices/slides/IP-007-chart-embed-bridge-to-sheets.md",
+      "lines": 64
+    },
+    {
+      "file": "microservices/slides/IP-010-presenter-audience-view-broadcast-mode-livekit.md",
+      "lines": 85
+    }
+  ],
+  "verdict": "HARD_VIOLATIONS"
+}

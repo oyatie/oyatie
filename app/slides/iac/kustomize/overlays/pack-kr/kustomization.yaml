@@ -1,0 +1,30 @@
+# Canonical-base: microservices/governance/iac/kustomize/components/{namespace-restricted-profile,pack-overlay-canonical/<pack>} (SWEEP-I Slice 3 per ADR-0064)
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: slides
+
+resources:
+  - ../../base
+
+# Pack-KR specific overrides per `policy/data-residency.md` + multi-region.md
+configMapGenerator:
+  - name: slides-pack-overlay
+    literals:
+      - pack=kr
+      - residency_region=ap-seoul-1
+      - residency_secondary=ap-tokyo-1
+      - audit_retention_days=2555  # 7y per 전자문서법
+      - phi_redaction_required=false
+      - reduced_motion_default=false
+      - color_blind_safe_default=false
+      - t2_quota_per_day=100
+      - pack_override_high_risk_auto_decision_allowed=false
+
+patches:
+  - target: { kind: Deployment, name: slides-slides-runtime }
+    patch: |-
+      - op: add
+        path: /spec/template/spec/nodeSelector
+        value:
+          topology.kubernetes.io/region: ap-seoul-1
