@@ -54,7 +54,7 @@ related_adrs:
   - ADR-0344
   - ADR-0345
 related_specs:
-  - /specs/microservices/payments.json
+  - /specs/app/payments.json
   - /specs/tenant-model.json
   - /specs/compliance-pack-matrix.json
   - /specs/per-microservice-flat-layout.json
@@ -1411,7 +1411,7 @@ The following sections will be added when the corresponding Slice agents complet
 
 - **Slice ADR-author** — link to `ADR-payments-substrate.md` (if authored) for the formal decision record.
 - **Slice runbook-author** — link to `app/payments/runbooks/charge-incident.md`, `subscription-renewal-incident.md`, `psp-failover.md`, `regulator-pull.md`.
-- **Slice spec-author** — link to `/specs/microservices/payments.json` (JSON Schema for charge / subscription / refund payloads + tenant model overlay).
+- **Slice spec-author** — link to `/specs/app/payments.json` (JSON Schema for charge / subscription / refund payloads + tenant model overlay).
 - **Slice user-story-bank** — extend `docs/user-stories/b2c-consumer-surfaces.md` with payment-product-surface stories; extend `b2b-work-surfaces.md` with B2B finance stories that REFERENCE this PRD.
 - **Slice testing-strategy** — link to `app/payments/testing-strategy.md` for E2E test catalog, fuzz-test plan, property-based subscription state-machine test, idempotency replay test, PSP-mock harness.
 - **Slice synthesis** — link to the keystone-bundle synthesis doc once it consolidates payment + identity + ontology + workflow PRDs.

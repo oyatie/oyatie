@@ -14,7 +14,7 @@ maturity: incubating
 created_at: 2026-05-20
 related_adrs: [ADR-0145, ADR-0244, ADR-0246, ADR-0255, ADR-0263, ADR-0292]
 related_specs:
-  - /specs/microservices/payments.json
+  - /specs/app/payments.json
   - /specs/tenant-model.json
 related_artifacts:
   - app/payments/PRD.md

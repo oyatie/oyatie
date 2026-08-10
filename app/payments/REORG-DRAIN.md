@@ -30,6 +30,8 @@
 
 **Optional specs note:** envelopes already encode zero-crate (`oya/payments/` judgment + #1451 cite). If a specs agent wants a `keep_deleted` / `do_not_reclaim` ledger tag, bump only on tip-free `integ/specs` — this rail does not touch hubs.
 
+- **Deepen hygiene (2026-08-10):** rewritten product-local `microservices/payments/` → `app/payments/` path cites inside forever home (hub `specs/microservices/**` + cross-product microservices cites left intact). Dest-verify COMPLETE [f60e93b2]; shrink gate ALLOWED. PARKED — no merge.
+
 ## Remaining for shrink phase (`integ/oya`)
 
 - Delete absorbed `oya/payments/**` paths after verify (shrink-only rail).
