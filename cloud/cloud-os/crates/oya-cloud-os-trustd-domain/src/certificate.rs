@@ -125,8 +125,8 @@ impl Certificate {
     }
 }
 
-/// A bundle of a certificate with its matching private key PEM, as returned to
-/// a node that just had its identity issued.
+/// A signed leaf certificate plus CA chain PEMs returned to a CSR requester.
+/// The requester already holds its private key; `key_pem` is intentionally empty.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct IssuedIdentity {
     /// The signed certificate.

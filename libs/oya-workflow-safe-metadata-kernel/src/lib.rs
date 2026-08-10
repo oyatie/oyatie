@@ -10,11 +10,31 @@
 /// common PEM-adjacent phrases. Matching is ASCII case-insensitive.
 pub fn contains_raw_secret_material(value: &str) -> bool {
     let lower = value.to_ascii_lowercase();
-    lower.contains("secret=")
+    contains_secret_assignment(&lower)
         || lower.contains("-----begin")
         || lower.contains("-----end")
         || lower.contains("private key")
         || contains_pem_variant(&lower)
+}
+
+/// Match `secret=` / `secret =` / `secret:` / `secret :` assignment shapes.
+fn contains_secret_assignment(lower: &str) -> bool {
+    let bytes = lower.as_bytes();
+    let needle = b"secret";
+    let mut i = 0;
+    while i + needle.len() <= bytes.len() {
+        if &bytes[i..i + needle.len()] == needle {
+            let mut j = i + needle.len();
+            while j < bytes.len() && bytes[j] == b' ' {
+                j += 1;
+            }
+            if j < bytes.len() && (bytes[j] == b'=' || bytes[j] == b':') {
+                return true;
+            }
+        }
+        i += 1;
+    }
+    false
 }
 
 fn contains_pem_variant(lower: &str) -> bool {
@@ -44,6 +64,9 @@ mod tests {
         assert!(contains_raw_secret_material("secret=super-secret-token"));
         assert!(contains_raw_secret_material("openbao://vault/secret=abc"));
         assert!(contains_raw_secret_material("SECRET=UPPERCASE"));
+        assert!(contains_raw_secret_material("secret = spaced-token"));
+        assert!(contains_raw_secret_material("secret: colon-token"));
+        assert!(contains_raw_secret_material("secret : spaced-colon"));
     }
 
     #[test]

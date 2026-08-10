@@ -209,23 +209,22 @@ fn parse_catalog_role(contents: &str) -> Option<String> {
 fn parse_catalog_source_crate(contents: &str) -> Option<String> {
     let mut in_traceability = false;
     for line in contents.lines() {
-        let stripped = line.trim();
-        if stripped.is_empty() || stripped.starts_with('#') {
+        let trimmed = line.trim_end();
+        if trimmed.trim().is_empty() || trimmed.trim_start().starts_with('#') {
             continue;
         }
-        if stripped == "traceability:" {
+        if trimmed.trim() == "traceability:" {
             in_traceability = true;
             continue;
         }
         if in_traceability {
-            // Indentation must be read from the raw line: `stripped` is already
-            // trim()'d, so `starts_with(' ')` would never hold and the nested
-            // `source_crate:` key would be misread as a sibling key.
-            let indented = line.starts_with(' ') || line.starts_with('\t');
-            if !indented && stripped.contains(':') {
+            // Boundary detection must use pre-trim indentation: `line.trim()` would
+            // make every nested `source_crate:` look top-level and exit early.
+            let indent = trimmed.len() - trimmed.trim_start().len();
+            if indent == 0 && trimmed.contains(':') {
                 break;
             }
-            let Some((key, value)) = stripped.split_once(':') else {
+            let Some((key, value)) = trimmed.trim_start().split_once(':') else {
                 continue;
             };
             if key.trim() == "source_crate" {

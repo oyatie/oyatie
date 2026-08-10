@@ -286,8 +286,8 @@ impl<S: SigningBackend> CertificateAuthority<S> {
         Ok(leaf)
     }
 
-    /// Sign a CSR and bundle the result with the requester's key PEM and the CA
-    /// chain, matching what trustd returns over its gRPC API.
+    /// Sign a CSR and return the leaf + CA PEMs. The requester already holds
+    /// the private key that signed the CSR; trustd never echoes it back.
     pub fn issue_identity(
         &mut self,
         csr: &CertificateSigningRequest,
@@ -302,7 +302,7 @@ impl<S: SigningBackend> CertificateAuthority<S> {
         let cert = self.sign_csr(csr, now)?;
         Ok(IssuedIdentity {
             cert_pem: cert.to_pem(),
-            key_pem: requester_key.private_pem(),
+            key_pem: PEMEncoded::new(PEMLabel::PrivateKey, Vec::new()),
             ca_pem: self.ca_pem(),
             certificate: cert,
         })
