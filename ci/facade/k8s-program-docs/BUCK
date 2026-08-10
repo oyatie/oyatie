@@ -4,6 +4,9 @@ rust_library(
     crate = "ci_k8s_program_docs",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde_json",
+    ],
 )
 
 rust_binary(
@@ -20,6 +23,9 @@ rust_test(
     crate = "ci_k8s_program_docs",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde_json",
+    ],
 )
 
 rust_test(
