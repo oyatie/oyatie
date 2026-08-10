@@ -9,7 +9,7 @@
   "claim_boundary": {
     "source_authority": "specs/microservices/crm.json",
     "source_authority_status": "preview metadata-only with explicit non-goals",
-    "inventory_root": "oya/crm",
+    "inventory_root": "app/crm",
     "legacy_microservices_crm_paths": "historical/provenance only; not current path authority in this checkout",
     "non_claims": [
       "no GA or production-readiness claim",
@@ -29,7 +29,8 @@
       "hyperscaler_benchmark",
       "sap_module_parity",
       "enterprise_benchmarks"
-    ]
+    ],
+    "source_dual_home": "oya/crm (until integ/oya shrink-only delete)"
   },
   "date": "2026-05-20",
   "binding_adrs": [
@@ -434,5 +435,22 @@
     "rationale": "No current measured runtime SLI is declared for this foundation or planning-only service; the manifest must not claim production or hyperscaler-ready SLO coverage until an OpenSLO file lands.",
     "cutover_on": "2026-12-31",
     "evidence": "specs/master-plan-sequencing.json#realignment_wave_sequence"
+  },
+  "crate_inventory": {
+    "forever_root": "app/crm/crates",
+    "source_root": "oya/crm/crates",
+    "crate_count": 2,
+    "rust_files_absorbed": 14,
+    "crate_dirs": [
+      "oya-crm-customer-engagement-domain",
+      "oya-crm-revenue-app"
+    ],
+    "evicted": [
+      {
+        "crate": "oya-procurement-source-to-pay-domain",
+        "reason": "not CRM forever-home; elevate to procurement rail",
+        "rust_files": 2
+      }
+    ]
   }
 }
