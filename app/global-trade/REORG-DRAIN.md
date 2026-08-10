@@ -12,6 +12,8 @@
 - Wave-1 absorb: copied `oya/global-trade/**` → `app/global-trade/**` (115 files) from `origin/dev`.
 - In-tree cites retargeted `oya/global-trade` → `app/global-trade` and `//oya/global-trade` → `//app/global-trade`.
 
+- **Deepen hygiene (2026-08-10):** rewritten product-local `microservices/global-trade/` → `app/global-trade/` path cites inside forever home (hub `specs/microservices/**` + cross-product microservices cites left intact). Dest-verify COMPLETE [f60e93b2]; shrink gate ALLOWED. PARKED — no merge.
+
 ## Remaining
 
 1. Verify destination tip contains forever bytes (this tip).

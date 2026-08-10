@@ -56,8 +56,8 @@ Create an evidence record, attach dashboard snapshots, update this runbook if a 
 
 ## G. References
 - docs/standards/documentation-rigor.md
-- microservices/global-trade/failure-modes.md
-- microservices/global-trade/incident-response.md
+- app/global-trade/failure-modes.md
+- app/global-trade/incident-response.md
 - SAP GTS Global Trade Services | Oracle Global Trade Management | Workday supplier-compliance workflow counterpart | NetSuite international tax and trade counterpart | Microsoft Dynamics 365 global trade and export-control counterpart
 - Runbook detail 001: marketplace-settlement-blocked for Global Trade.broker-filing preserves tenant_id, data_class, residency_pack, audit_event_class, OpenBao lease id, ECH/PQC transport evidence, marketplace settlement reference, and operator initials for post-incident review.
 - Runbook detail 002: marketplace-settlement-blocked for Global Trade.broker-filing preserves tenant_id, data_class, residency_pack, audit_event_class, OpenBao lease id, ECH/PQC transport evidence, marketplace settlement reference, and operator initials for post-incident review.
