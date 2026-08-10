@@ -148,7 +148,7 @@ Regulator Evidence Export Failure incident decision tree
   - Required audit: emit `EVT_AUDIT_CHAIN_REGULATOR_EVIDENCE_EXPORT_FAILURE_INCIDENT` with `branch=D`, `operator_id`, and `evidence_hash`.
 
 ## Resolution Steps
-1. Identify code owner path: `rg "regulator_evidence_export_failure|AuditChainRegulatorEvidenceExportFailureCritical|audit_chain.regulator_evidence_export_failure.incident_state" crates microservices/audit-chain -g "!audit/runbooks/**"`.
+1. Identify code owner path: `rg "regulator_evidence_export_failure|AuditChainRegulatorEvidenceExportFailureCritical|audit_chain.regulator_evidence_export_failure.incident_state" crates audit -g "!audit/runbooks/**"`.
 2. Patch domain invariant: `edit oya-audit-chain-domain where regulator_evidence_export_failure state transition is validated`.
 3. Patch API guard: `edit audit/contracts/openapi/audit-chain.yaml if the failing path is north-south or async handoff`.
 4. Patch policy: `edit microservices/audit-chain/policy/seal-integrity.md with explicit deny/permit branch and tenant/cell scope`.

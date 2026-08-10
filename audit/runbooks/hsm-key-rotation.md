@@ -148,7 +148,7 @@ HSM Key Rotation incident decision tree
   - Required audit: emit `EVT_AUDIT_CHAIN_HSM_KEY_ROTATION_INCIDENT` with `branch=D`, `operator_id`, and `evidence_hash`.
 
 ## Resolution Steps
-1. Identify code owner path: `rg "hsm_key_rotation|AuditChainHSMKeyRotationCritical|audit_chain.hsm_key_rotation.incident_state" crates microservices/audit-chain -g "!audit/runbooks/**"`.
+1. Identify code owner path: `rg "hsm_key_rotation|AuditChainHSMKeyRotationCritical|audit_chain.hsm_key_rotation.incident_state" crates audit -g "!audit/runbooks/**"`.
 2. Patch domain invariant: `edit oya-audit-chain-domain where hsm_key_rotation state transition is validated`.
 3. Patch API guard: `edit audit/contracts/openapi/audit-chain.yaml if the failing path is north-south or async handoff`.
 4. Patch policy: `edit microservices/audit-chain/policy/seal-integrity.md with explicit deny/permit branch and tenant/cell scope`.

@@ -70,3 +70,16 @@ Retargeted verified `microservices/audit-chain/slos/**` → `audit/observability
 - Missing `policy/seal-integrity.md`, PRD/ARCHITECTURE/parity matrices, and historical IP homes.
 - Cross-cap observability prometheusrule cites.
 - No hubs, no `Cargo.lock`, no merge.
+
+
+## Wave-5 Seat A follow-through (2026-08-10)
+
+Retargeted verified remaps:
+
+- Bare microservices/audit-chain owner-path cites in runbooks -> audit
+
+### Deferred
+
+- Missing IP-001..015 / PRD / ARCHITECTURE / MIGRATION / seal-integrity / parity matrices / eval fixtures
+- Cross-cap observability prometheusrule cites
+- No hubs, no Cargo.lock, no merge.
