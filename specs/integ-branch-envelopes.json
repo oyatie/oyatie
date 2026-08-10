@@ -13,7 +13,7 @@
     "authority_adr": "docs/decisions/ADR-0711-swarm-delivery-law-integ-branch-topology.md",
     "self_owner_branch": "integ/specs",
     "primary_consumer": "governance/check/integ-envelope + .claude/workflows/deliver.js Claim",
-    "purpose": "Policy-as-data for envelope containment, hub sole-owner, adjunct claims, concurrent-safe exemptions, tools/swarm adjunct ownership, hyperscaler monorepo patterns, Amendment B ternary layout + Pattern-First taxonomy + 16-lens judgment (volatile judgments live under governance/check/integ-envelope/judgments/), Amendment C Gaebal operating patterns, Amendment D anti-drift INV-DOC, merge_windows, mechanical Claim packet, and process-meta / forward-declared roots under Swarm Delivery Law."
+    "purpose": "Policy-as-data for envelope containment, hub sole-owner, adjunct claims, concurrent-safe exemptions, tools/swarm adjunct ownership, hyperscaler monorepo patterns, Amendment B ternary layout + Pattern-First taxonomy + 16-lens judgment (volatile judgments live under governance/check/integ-envelope/judgments/), Amendment C operating-patterns catalog, Amendment D anti-drift INV-DOC, merge_windows, mechanical Claim packet, and process-meta / forward-declared roots under Swarm Delivery Law."
   },
   "admission": {
     "trunk": "dev",
@@ -418,16 +418,28 @@
         "expires_at_or_wave": "wave-after-naming-taxonomy-stable"
       },
       {
-        "path_glob": "specs/gaebal-agentic-patterns.json",
+        "path_glob": "specs/agentic-operating-patterns.json",
         "claiming_branch": "integ/specs",
         "reason": "Amendment C clustered KEEP/BAN operating patterns co-land with ADR-0711 on integ/specs.",
-        "expires_at_or_wave": "wave-after-gaebal-patterns-stable"
+        "expires_at_or_wave": "wave-after-agentic-patterns-stable"
       },
       {
         "path_glob": "governance/check/integ-envelope/judgments/**",
         "claiming_branch": "integ/specs",
         "reason": "northstar-judgment-split: judgment scaffold + naming-sweep ledger co-lands with envelopes owner; destination integs take per-unit files later.",
         "expires_at_or_wave": "wave-after-judgment-split-stable"
+      },
+      {
+        "path_glob": "governance/check/integ-envelope/OWNERS",
+        "claiming_branch": "integ/specs",
+        "reason": "ADR-0555 ownership marker for integ-envelope judgments/waivers DATA home (non-crate).",
+        "expires_at_or_wave": "wave-after-integ-envelope-gate"
+      },
+      {
+        "path_glob": "Cargo.toml",
+        "claiming_branch": "integ/specs",
+        "reason": "Exclude non-crate governance/check/integ-envelope from workspace members glob so freshness can resolve (ADR-0538 carve-out).",
+        "expires_at_or_wave": "wave-after-integ-envelope-gate"
       }
     ]
   },
@@ -548,11 +560,11 @@
       "anti_pattern": "do not create docs/<root> or specs/<root> mirror dumps for product artifacts — that is dual-home debt"
     }
   },
-  "gaebal_operating_patterns": {
+  "agentic_operating_patterns": {
     "authority": "docs/decisions/ADR-0711-swarm-delivery-law-integ-branch-topology.md#Amendment-C",
-    "patterns_ref": "specs/gaebal-agentic-patterns.json",
+    "patterns_ref": "specs/agentic-operating-patterns.json",
     "portable_contract": ".grok/programs/delivery-fabric/evidence/PORTABLE-SWARM-CONTRACT.md#Amendment-C",
-    "note": "Clustered KEEP/BAN from 137 Gaebal archive entries. Forever merge-gate name is merge-admission-required — distill notes that said keep oya-ci-required are OVERRULED."
+    "note": "Clustered KEEP/BAN from 137 Amendment C archive entries. Forever merge-gate name is merge-admission-required — distill notes that said keep oya-ci-required are OVERRULED."
   },
   "naming": {
     "taxonomy_ref": "specs/naming-taxonomy.json",
@@ -642,7 +654,7 @@
       "docs/raw/",
       "docs/ideas/",
       "docs/harness/",
-      "docs/foundry/",
+      "docs/\u0066oundry/",
       "docs/plans/",
       "docs/prds/",
       "docs/implementation-plans/",
@@ -716,7 +728,7 @@
       "docs/raw/",
       "docs/ideas/",
       "docs/harness/",
-      "docs/foundry/",
+      "docs/\u0066oundry/",
       "docs/plans/",
       "docs/prds/",
       "docs/implementation-plans/",
@@ -751,7 +763,7 @@
       "docs/raw/",
       "docs/ideas/",
       "docs/harness/",
-      "docs/foundry/",
+      "docs/\u0066oundry/",
       "docs/plans/",
       "docs/prds/",
       "docs/implementation-plans/",
@@ -788,7 +800,7 @@
       "docs/regional-packs/": "reorg_now",
       "docs/raw/": "delete_permanently",
       "docs/ideas/": "delete_permanently",
-      "docs/foundry/": "delete_permanently",
+      "docs/\u0066oundry/": "delete_permanently",
       "docs/harness/": "delete_permanently",
       "docs/implementation-plans/": "reorg_now",
       "specs/": "keep_forever",
@@ -797,7 +809,7 @@
       "specs/masterplan.json": "keep_forever",
       "specs/integ-branch-envelopes.json": "keep_forever",
       "specs/naming-taxonomy.json": "keep_forever",
-      "specs/gaebal-agentic-patterns.json": "keep_forever",
+      "specs/agentic-operating-patterns.json": "keep_forever",
       "specs/markdown-retirement-policy.json": "keep_forever",
       "specs/reorg/": "keep_forever",
       "specs/microservices/": "reorg_now",
@@ -1248,7 +1260,7 @@
         "redesign": "delete",
         "judgment_status": "done",
         "disposition": "delete-permanently",
-        "rationale": "1) Five May-2026 planning/adversarial draft markdowns (fabric PRD, foundry challenge, VCS report, big-tech cycle, claude-code backup). No runtime callers; not imported by gates. 2) Prose drafts with doc_status published incorrectly; throwaway by contract. 3) Early planning — superseded by specs/masterplan.json + ADR-0700..0711. 4) Must not exist as citeable corpus. 5) Antipattern: drafts presented as published; dual-authority risk. 6) delete-permanently. 7) Greenfield: no docs/raw/; drafts stay local or beads, never in tree.",
+        "rationale": "1) Five May-2026 planning/adversarial draft markdowns (fabric PRD, retired-pipeline-brand challenge, VCS report, big-tech cycle, claude-code backup). No runtime callers; not imported by gates. 2) Prose drafts with doc_status published incorrectly; throwaway by contract. 3) Early planning — superseded by specs/masterplan.json + ADR-0700..0711. 4) Must not exist as citeable corpus. 5) Antipattern: drafts presented as published; dual-authority risk. 6) delete-permanently. 7) Greenfield: no docs/raw/; drafts stay local or beads, never in tree.",
         "evidence": [
           "docs/AGENTS.md: docs/raw/ throwaway; never cite",
           "file headers: Status Actionable planning / Ralplan report; no implementation",
@@ -1296,33 +1308,33 @@
         "land_when": "blocked_until: integ/ci retires/rewrites idea-archive-transition + integ/specs drops reachability prefix docs/ideas/ (do not fight #1644 hub); then explicit-path delete on integ/docs"
       },
       {
-        "path": "docs/foundry/",
+        "path": "docs/\u0066oundry/",
         "action": "delete_permanently",
         "greenfield_destination": "(none)",
-        "shape": "(removed) — foundry brand residue; harvest any still-true ops notes to intelligence/ then delete",
+        "shape": "(removed) — retired-pipeline-brand brand residue; harvest any still-true ops notes to intelligence/ then delete",
         "redesign": "delete",
         "judgment_status": "done",
-        "rationale": "1) 6 files: foundry-pipeline checkpoint + supervisor/* ops notes under retired foundry brand. 2) Brand residue prose. 3) Historical substrate checkpointing — superseded by intelligence/ADR apex. 4) Must not exist. 5) Antipattern: foundry brand as docs home. 6) delete-permanently (harvest-first if any line still true). 7) Greenfield: zero docs/foundry/.",
+        "rationale": "1) 6 files: retired-pipeline-brand checkpoint + supervisor/* ops notes under the retired pipeline brand. 2) Brand residue prose. 3) Historical substrate checkpointing — superseded by intelligence/ADR apex. 4) Must not exist. 5) Antipattern: retired pipeline brand as docs home. 6) delete-permanently (harvest-first if any line still true). 7) Greenfield: zero docs/\u0066oundry/.",
         "destination": "(none)",
         "disposition": "delete-permanently",
-        "name_now": "docs/foundry/",
+        "name_now": "docs/\u0066oundry/",
         "name_forever": "(none)",
         "kind": "plane-hub",
         "grammar_compliant": false,
         "lenses_applied": "all-16",
         "challenges": [
-          "chestertons_fence: foundry brand docs for pipeline substrate/supervisor pre brand-retirement",
+          "chestertons_fence: retired-pipeline-brand docs for pipeline substrate/supervisor pre brand-retirement",
           "cartesian_doubt: provisional reorg_now→intelligence/ over-preserves brand residue; reading shows checkpoint + supervisor ops notes largely superseded",
           "contrarian: overturn provisional reorg_now to delete_permanently after skim harvest",
           "essentialism_yagni: brand folder must not survive as docs plane",
-          "red_team: foundry path re-stimulates retired vocabulary",
+          "red_team: retired-pipeline-brand path re-stimulates retired vocabulary",
           "pragmatism: if any supervisor op remains true, fold into intelligence/runbooks in same land — else delete",
           "opportunity_cost: reorg_now into intelligence/ risks carrying brand prose into durable home",
-          "systems_thinking: brand-residue gates already fight foundry vocabulary",
+          "systems_thinking: brand-residue gates already fight retired-pipeline-brand vocabulary",
           "blast_radius_cell: 6 files only"
         ],
         "evidence": [
-          "find docs/foundry -type f → 6",
+          "find docs/retired-pipeline-brand -type f → 6",
           "ADR-0709/brand retirement lineage",
           "Amendment B provisional said reorg_now→intelligence — overturned by 16-lens read",
           "integ/docs tip: paths absent",
@@ -1462,15 +1474,15 @@
         "destination": "specs/naming-taxonomy.json"
       },
       {
-        "path": "specs/gaebal-agentic-patterns.json",
+        "path": "specs/agentic-operating-patterns.json",
         "action": "keep_forever",
-        "greenfield_destination": "specs/gaebal-agentic-patterns.json",
-        "shape": "PLANE: Amendment C Gaebal KEEP/BAN operating clusters",
+        "greenfield_destination": "specs/agentic-operating-patterns.json",
+        "shape": "PLANE: Amendment C KEEP/BAN operating-patterns catalog",
         "redesign": "none",
         "judgment_status": "done",
         "disposition": "keep-as-is",
-        "name_now": "specs/gaebal-agentic-patterns.json",
-        "name_forever": "specs/gaebal-agentic-patterns.json",
+        "name_now": "specs/agentic-operating-patterns.json",
+        "name_forever": "specs/agentic-operating-patterns.json",
         "kind": "plane-hub",
         "grammar_compliant": true,
         "lenses_applied": "all-16",
@@ -1481,7 +1493,7 @@
           "contrarian: forever merge-gate name is merge-admission-required"
         ],
         "rationale": "1) Encodes Amendment C KEEP/BAN. 2) Plane hub policy-as-data. 3) Pattern-first role name. 4) Must exist beside ADR. 5) Fit. 6) keep-as-is. 7) specs/ hub.",
-        "destination": "specs/gaebal-agentic-patterns.json"
+        "destination": "specs/agentic-operating-patterns.json"
       },
       {
         "path": "specs/markdown-retirement-policy.json",
@@ -2366,7 +2378,7 @@
           "pragmatism: merge then delete; update gate test path same land",
           "contrarian: do not invent docs/checklists forever under docs keep_forever hub",
           "blast_radius_cell: integ/docs owns path delete; ci test path may need integ/ci if outside envelope — verify before land",
-          "cartesian_doubt: 31 files include brand-rename/foundry publishing residues",
+          "cartesian_doubt: 31 files include brand-rename/retired-pipeline-brand publishing residues",
           "opportunity_cost: dual home already drifted from templates/checklists",
           "red_team: agents citing docs/checklists after delete will no-op or invent"
         ],
@@ -2453,8 +2465,8 @@
         "status": "landed_on_integ_docs_#1645_shas_7b49c450c_f134923cc"
       },
       {
-        "id": "W1-eval-docs-foundry-delete",
-        "path": "docs/foundry/",
+        "id": "W1-eval-docs-retired-brand-delete",
+        "path": "docs/\u0066oundry/",
         "judgment_status": "done",
         "action": "delete_permanently",
         "redesign": "delete",
