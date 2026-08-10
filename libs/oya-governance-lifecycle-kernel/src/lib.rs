@@ -116,6 +116,11 @@ pub struct Transition {
 /// resulting `LifecycledArtifact` records.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct SourceSpec {
+    /// Reader dispatch for the declaration surface:
+    /// - `yaml_document`: fence-less bare YAML records are read whole (catalog rows);
+    ///   top-level keys must be unindented.
+    /// - `yaml_front_matter` (and every other kind): a `---` fence is required; body
+    ///   lines are never treated as declarations.
     // data_class: INTERNAL_ONLY
     pub kind: String, // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
@@ -454,9 +459,14 @@ pub mod discovery {
     /// declared conditions (default-constructed filter), nothing
     /// matches — callers should set `SourceSpec.filter = None` in that
     /// case rather than passing an empty filter.
-    pub fn path_passes_filter(path: &Path, raw: &str, filter: &SourceFilter) -> bool {
+    pub fn path_passes_filter(
+        path: &Path,
+        raw: &str,
+        filter: &SourceFilter,
+        source_kind: &str,
+    ) -> bool {
         if let Some((field, want)) = &filter.kind_field_value
-            && let Some(got) = frontmatter_scalar(raw, field)
+            && let Some(got) = frontmatter_scalar(raw, field, source_kind)
             && got.eq_ignore_ascii_case(want)
         {
             return true;
@@ -490,24 +500,24 @@ pub mod discovery {
                 let raw = fs::read_to_string(&path)
                     .map_err(|e| format!("could not read {}: {e}", path.display()))?;
                 if let Some(filter) = &source.filter
-                    && !path_passes_filter(&path, &raw, filter)
+                    && !path_passes_filter(&path, &raw, filter, &source.kind)
                 {
                     continue;
                 }
-                let stage = frontmatter_scalar(&raw, &source.stage_field);
+                let stage = frontmatter_scalar(&raw, &source.stage_field, &source.kind);
                 let supersession = source
                     .supersession_field
                     .as_deref()
-                    .and_then(|f| frontmatter_scalar(&raw, f));
+                    .and_then(|f| frontmatter_scalar(&raw, f, &source.kind));
                 let deadline = source
                     .deadline_field
                     .as_deref()
-                    .and_then(|f| frontmatter_scalar(&raw, f))
+                    .and_then(|f| frontmatter_scalar(&raw, f, &source.kind))
                     .and_then(|s| parse_date(&s));
                 let milestone = source
                     .milestone_field
                     .as_deref()
-                    .and_then(|f| frontmatter_scalar(&raw, f));
+                    .and_then(|f| frontmatter_scalar(&raw, f, &source.kind));
                 out.push(LifecycledArtifact {
                     location: path.to_string_lossy().into_owned(),
                     kind: config.name.clone(),
@@ -534,7 +544,31 @@ pub mod discovery {
         NaiveDate::checked_ymd(y, m, d)
     }
 
-    pub fn frontmatter_scalar(raw: &str, field: &str) -> Option<String> {
+    /// Fence-less bare records are admitted only for `yaml_document`; keys must
+    /// start at column 0. Other kinds require a `---` fence.
+    pub fn frontmatter_scalar(raw: &str, field: &str, source_kind: &str) -> Option<String> {
+        let has_fence = raw.lines().any(|line| line.trim() == "---");
+        let allow_bare = source_kind == "yaml_document";
+        if !has_fence {
+            if !allow_bare {
+                return None;
+            }
+            for line in raw.lines() {
+                if !line.starts_with(field) {
+                    continue;
+                }
+                if let Some(rest) = line.strip_prefix(field)
+                    && let Some(rest) = rest.strip_prefix(':')
+                {
+                    let value = rest.trim().trim_matches('"').trim_matches('\'').trim();
+                    if value.is_empty() {
+                        return None;
+                    }
+                    return Some(value.to_string());
+                }
+            }
+            return None;
+        }
         let mut in_fm = false;
         let mut started = false;
         for line in raw.lines() {
@@ -1703,6 +1737,64 @@ mod tests {
         assert!(discovery::expand_glob(&shallow).is_err());
         assert!(discovery::expand_glob(&recursive).is_err());
     }
+
+    #[test]
+    fn fenceless_document_is_read_whole_without_widening_fenced_documents() {
+        // A bare declaration record — the shape of every `registry/catalog/*.yaml`.
+        // Before the fence-less admission this returned None for every field.
+        let bare = "context: audit\nrole: domain\napi_stability: preview\n";
+        assert_eq!(
+            discovery::frontmatter_scalar(bare, "api_stability", "yaml_document").as_deref(),
+            Some("preview"),
+            "fence-less yaml_document must be read whole"
+        );
+        assert_eq!(
+            discovery::frontmatter_scalar(bare, "api_stability", "yaml_front_matter"),
+            None,
+            "fence-less front-matter sources must still require a fence"
+        );
+
+        // Nested indented keys are not top-level declarations on bare YAML.
+        let nested = "metadata:\n  api_stability: preview\n";
+        assert_eq!(
+            discovery::frontmatter_scalar(nested, "api_stability", "yaml_document"),
+            None,
+            "indented nested keys must not satisfy a bare top-level field"
+        );
+
+        // A fenced document must NOT widen: a field that appears only in the
+        // BODY stays invisible. This is the assert that fails if the admission
+        // is written as "scan the whole document" — i.e. if the `break` at the
+        // closing fence is dropped.
+        // NOTE: the body scalar deliberately carries no `ADR-<digits>` token.
+        // `.rs` is in adr-citation-closure's scan_extensions and its
+        // citation_lines census is pinned by EQUALITY, so a realistic-looking
+        // ADR id in a test fixture reddens that gate.
+        let fenced = "---\nstatus: Accepted\n---\n\nsuperseded_by: replacement-doc\n";
+        assert_eq!(
+            discovery::frontmatter_scalar(fenced, "status", "yaml_front_matter").as_deref(),
+            Some("Accepted"),
+            "fenced front matter still resolves"
+        );
+        assert_eq!(
+            discovery::frontmatter_scalar(fenced, "superseded_by", "yaml_front_matter"),
+            None,
+            "a body line below the closing fence must stay unread"
+        );
+
+        // A line ABOVE the opening fence must also stay unread. THIS is the
+        // assert that fails if the admission is written as an unconditional
+        // `in_fm = true` rather than being keyed on the absence of a fence:
+        // the closing-fence `break` hides that mutation from the body case
+        // above, so without this line the over-broad implementation passes.
+        let preamble = "doc_status: published\n---\nstatus: Accepted\n---\n";
+        assert_eq!(
+            discovery::frontmatter_scalar(preamble, "doc_status", "yaml_front_matter"),
+            None,
+            "a line above the opening fence must stay unread"
+        );
+    }
+
     #[test]
     fn empty_input_is_clean() {
         let cfg = cfg_adr_status();
