@@ -10,10 +10,10 @@ related_adrs:
   - ADR-0263
   - ADR-0298
 companion_docs:
-  - microservices/feature-flags/runbooks/flag-mutation-cascade.md
-  - microservices/feature-flags/runbooks/experiment-rollback.md
+  - flags/runbooks/flag-mutation-cascade.md
+  - flags/runbooks/experiment-rollback.md
   - microservices/feature-flags/incident-response.md
-  - microservices/feature-flags/policy/safety-killswitch-authorization.cedar
+  - flags/policy/safety-killswitch-authorization.cedar
 planned_enforcement_ref: oya-governance-adr-adherence-matrix
 ---
 

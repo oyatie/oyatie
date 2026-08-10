@@ -6,8 +6,8 @@ plane: data
 slo: experiment-result-freshness
 contracts_consumed: []
 contracts_exposed:
-  - microservices/feature-flags/contracts/feature-flags-v1.proto
-  - microservices/feature-flags/contracts/asyncapi-v1.yaml
+  - flags/contracts/feature-flags-v1.proto
+  - flags/contracts/asyncapi-v1.yaml
 regulatory_packs_consumed: [oya-pack-kr, oya-pack-eu, oya-pack-us, oya-pack-us-healthcare, oya-pack-fedramp, oya-pack-eu-ai-act]
 lifecycle: {state: incubating, preview_since: 2026-05-20}
 traceability:

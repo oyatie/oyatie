@@ -6,7 +6,7 @@ plane: control
 slo: flag-state-propagation
 contracts_consumed: []
 contracts_exposed:
-  - microservices/feature-flags/contracts/feature-flags-v1.proto
+  - flags/contracts/feature-flags-v1.proto
 regulatory_packs_consumed: [oya-pack-eu, oya-pack-us, oya-pack-kr, oya-pack-fedramp]
 lifecycle: {state: incubating, preview_since: 2026-05-20}
 traceability:

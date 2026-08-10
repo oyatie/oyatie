@@ -84,7 +84,7 @@
     }
   ],
   "links": [
-    {"title": "Kill-Switch Runbook", "url": "microservices/feature-flags/runbooks/killswitch-engaged.md"},
+    {"title": "Kill-Switch Runbook", "url": "flags/runbooks/killswitch-engaged.md"},
     {"title": "Flag State Overview", "url": "/d/feature-flags-flag-state"}
   ]
 }

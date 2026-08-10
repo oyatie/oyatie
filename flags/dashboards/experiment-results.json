@@ -112,6 +112,6 @@
   ],
   "links": [
     {"title": "Flag State Overview", "url": "/d/feature-flags-flag-state"},
-    {"title": "Experiment Rollback Runbook", "url": "microservices/feature-flags/runbooks/experiment-rollback.md"}
+    {"title": "Experiment Rollback Runbook", "url": "flags/runbooks/experiment-rollback.md"}
   ]
 }
