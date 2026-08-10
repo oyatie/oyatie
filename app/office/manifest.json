@@ -21,7 +21,7 @@
       "no deployed Office runtime or measured SLO claimed by this absorb",
       "no substrate-port burn completed (storage/search/tenant/authz rewrite planned in REORG-DRAIN)",
       "no specs/capability-registry or hub retarget on this rail",
-      "no oya/office/** deletes on this rail"
+      "no app/office/** deletes on this rail"
     ]
   },
   "substrate_dag_position": {

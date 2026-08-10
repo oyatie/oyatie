@@ -6,7 +6,9 @@
 - **Source (read-only):** `oya/office/**` on `origin/dev` until shrink-only delete lands on `integ/oya`.
 - **Writes:** only under `app/office/**` on this tip.
 
-## Completed (this rail)
+## Completed
+
+- Hygiene deepen: retargeted `oya/office/` + `microservices/office/` path cites → `app/office/` in README/manifest (forever-home authority). (this rail)
 
 - Slice 1: invent inventory + forward-declared `manifest.json` (`869198b65`).
 - **Wave-1 absorb:** 19-crate forest copied to `app/office/` (63 crate files). BUCK path cites rewritten `//oya/office/` → `//app/office/`.
