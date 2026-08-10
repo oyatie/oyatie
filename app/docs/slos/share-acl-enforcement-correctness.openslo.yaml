@@ -1,0 +1,57 @@
+# Canonical-base: specs/openslo/canonical-envelope-schema.json + canonical-burn-rate-alert-template.openslo.yaml (SWEEP-I Slice 4 per ADR-0064)
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: docs-share-acl-enforcement-correctness
+  displayName: docs Sharing — ACL enforcement correctness (per-block ACL invariant)
+  labels:
+    microservice: docs
+    bounded_context: sharing-and-permissions
+    sli_kind: correctness
+    tier: external-facing
+    plane: control
+spec:
+  service: oya-docs-sharing-and-permissions-rest
+  description: |
+    Correctness SLI: zero per-block ACL violations. PRD-docs AC-04 load-bearing
+    invariant. The "good" metric is total ACL evaluations minus violations
+    (where a block was returned despite ACL denying); target is 100%.
+    Per ADR-DOCS-0004.
+  indicator:
+    metadata:
+      name: docs-share-acl-correctness-sli
+    spec:
+      ratioMetric:
+        counter: true
+        good:
+          metricSource:
+            type: prometheus
+            spec:
+              query: 'sum(rate(oya_docs_per_block_acl_check_total[5m])) - sum(rate(oya_docs_per_block_acl_violation_total[5m]))'
+        total:
+          metricSource:
+            type: prometheus
+            spec:
+              query: 'sum(rate(oya_docs_per_block_acl_check_total[5m]))'
+  objectives:
+    - target: 1.0  # 100% — any ACL violation is Sev-1
+      displayName: 100% per-block ACL enforcement (AC-04 invariant)
+  timeWindow:
+    - duration: 30d
+      isRolling: true
+  budgetingMethod: Occurrences
+  alertPolicies:
+    - kind: AlertPolicy
+      metadata:
+        name: docs-acl-violation-detected
+      spec:
+        description: ANY per-block ACL violation → immediate Sev-1 page
+        notificationTargets:
+          - target: grafana-oncall:docs-sev1
+        conditions:
+          - kind: AlertCondition
+            spec:
+              op: gte
+              threshold: 1
+              lookbackWindow: 5m
+              alertAfter: 0m

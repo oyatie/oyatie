@@ -1,0 +1,32 @@
+{{/*
+ServiceMonitor — Prometheus scrape config; per-µservice job labels.
+*/}}
+{{- if $.Values.serviceMonitor.enabled }}
+{{- range $bc := list "document-store" "collab-crdt" "block-types" "comments-and-suggestions" "version-history" "sharing-and-permissions" "export-import" "embed-resolver" }}
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: oya-docs-{{ $bc }}-sm
+  namespace: docs
+  labels:
+    microservice: docs
+    bc: {{ $bc }}
+    release: kube-prometheus-stack
+spec:
+  selector:
+    matchLabels:
+      microservice: docs
+      bc: {{ $bc }}
+  namespaceSelector:
+    matchNames: [docs]
+  endpoints:
+    - port: metrics
+      interval: {{ $.Values.serviceMonitor.interval }}
+      scrapeTimeout: 25s
+      relabelings:
+        - {sourceLabels: [__meta_kubernetes_namespace], targetLabel: namespace}
+        - {sourceLabels: [__meta_kubernetes_pod_label_microservice], targetLabel: microservice}
+        - {sourceLabels: [__meta_kubernetes_pod_label_bc], targetLabel: bc}
+{{- end }}
+{{- end }}

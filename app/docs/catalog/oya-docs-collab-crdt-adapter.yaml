@@ -1,0 +1,25 @@
+# Canonical-base: specs/catalog/canonical-crate-record-schema.json (SWEEP-I Slice 6 per ADR-0064)
+name: oya-docs-collab-crdt-adapter
+role: adapter
+backend: loro
+context: docs
+bc: collab-crdt
+plane: data
+slo: preview-data-plane
+contracts_consumed: []
+contracts_exposed: []
+regulatory_packs_consumed: [oya-pack-kr, oya-pack-eu, oya-pack-us, oya-pack-us-healthcare, oya-pack-jp, oya-pack-sg, oya-pack-au, oya-pack-in, oya-pack-br, oya-pack-ae, oya-pack-ksa]
+lifecycle: {state: incubating, preview_since: 2026-05-17, stable_since: null, deprecated_since: null}
+traceability:
+  github_issue: "oya-governance-pipeline://scaffold-pr-microservice-flat-layout-buildout-2026-05-17"
+  source_adrs: [ADR-0105, ADR-0131, ADR-DOCS-0001, ADR-WS-0001]
+  amendment_3_backend_qualified_adapter: true
+allowed_dependency_edges: [oya-docs-collab-crdt-kernel]
+data_classes_owned: [PERSONAL_DOC_CONTENT, PROFESSIONAL_DOC_CONTENT]
+operational_classes_owned: [AUDIT]
+autonomy_tier_required: T1
+implementation_notes: |
+  Loro 1.x CRDT engine wrapping. LoroTree backs block-tree; LoroMap backs
+  block attributes; LoroList backs block ordering. Snapshot encoding for
+  Valkey spool + Postgres persistence. Deterministic projection to canonical
+  block tree for AC-02 byte-equality + cross-µservice envelope consistency.

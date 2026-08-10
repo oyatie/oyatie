@@ -1,0 +1,24 @@
+# Canonical-base: specs/catalog/canonical-crate-record-schema.json (SWEEP-I Slice 6 per ADR-0064)
+name: oya-docs-export-import-adapter-opswat
+role: adapter
+backend: opswat
+context: docs
+bc: document-store
+plane: data
+slo: preview-data-plane
+contracts_consumed: []
+contracts_exposed: []
+regulatory_packs_consumed: [oya-pack-us-healthcare]
+lifecycle: {state: incubating, preview_since: 2026-05-17, stable_since: null, deprecated_since: null}
+traceability:
+  github_issue: "oya-governance-pipeline://scaffold-pr-microservice-flat-layout-buildout-2026-05-17"
+  source_adrs: [ADR-0105, ADR-0131]
+  amendment_3_backend_qualified_adapter: true
+allowed_dependency_edges: [oya-docs-document-store-kernel]
+data_classes_owned: [BEHAVIORAL_TENANT_PRODUCT, PHI]
+operational_classes_owned: [AUDIT]
+autonomy_tier_required: T1
+implementation_notes: |
+  Implements AttachmentScanner port trait against OPSWAT MetaDefender.
+  pack-us-healthcare-only HIPAA-grade alternative to ClamAV (multi-engine
+  scan; sandboxed file detonation; ePHI-aware policy).

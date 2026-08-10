@@ -1,0 +1,100 @@
+{
+  "$schema": "https://schemas.grafana.com/dashboard.json",
+  "_meta": {
+    "doc_class": "GrafanaDashboard",
+    "microservice": "docs",
+    "owner_team": "axis-docs + ops-sre-reliability",
+    "audience": "axis-docs SRE + ops-security (gVisor)",
+    "tenant_scoped": true,
+    "datasource": "per-pack Mimir; tenant-scoped via X-Scope-OrgID"
+  },
+  "uid": "docs-export-import-pipeline",
+  "title": "docs: export-import pipeline (Pandoc + WeasyPrint + Chromium; gVisor)",
+  "tags": ["docs", "export", "import", "pandoc", "weasyprint", "chromium", "gvisor", "ooxml"],
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "time": {"from": "now-6h", "to": "now"},
+  "templating": {
+    "list": [
+      {"name": "pack", "type": "custom", "label": "Pack",
+        "options": [
+          {"text": "pack-kr", "value": "kr", "selected": true},
+          {"text": "pack-eu", "value": "eu"},
+          {"text": "pack-us", "value": "us"},
+          {"text": "pack-us-healthcare", "value": "us-hc"},
+          {"text": "pack-jp", "value": "jp"},
+          {"text": "pack-sg", "value": "sg"},
+          {"text": "pack-au", "value": "au"},
+          {"text": "pack-in", "value": "in"},
+          {"text": "pack-br", "value": "br"},
+          {"text": "pack-ae", "value": "ae"},
+          {"text": "pack-ksa", "value": "ksa"}
+        ]},
+      {"name": "tenant", "type": "query", "label": "Tenant",
+        "query": "label_values(oya_docs_export_job_total{pack=\"$pack\"}, tenant_id)"}
+    ]
+  },
+  "panels": [
+    {"id": 1, "type": "stat", "title": "Export jobs/s (all formats)",
+      "gridPos": {"x": 0, "y": 0, "w": 6, "h": 4},
+      "targets": [{"expr": "sum(rate(oya_docs_export_job_total{pack=\"$pack\",tenant_id=\"$tenant\"}[5m]))", "refId": "A"}]},
+
+    {"id": 2, "type": "stat", "title": "Import jobs/s",
+      "gridPos": {"x": 6, "y": 0, "w": 6, "h": 4},
+      "targets": [{"expr": "sum(rate(oya_docs_import_job_total{pack=\"$pack\",tenant_id=\"$tenant\"}[5m]))", "refId": "A"}]},
+
+    {"id": 3, "type": "stat", "title": "Export failure rate (5m)",
+      "gridPos": {"x": 12, "y": 0, "w": 6, "h": 4},
+      "targets": [{"expr": "sum(rate(oya_docs_export_job_total{pack=\"$pack\",tenant_id=\"$tenant\",status=\"failed\"}[5m])) / sum(rate(oya_docs_export_job_total{pack=\"$pack\",tenant_id=\"$tenant\"}[5m]))", "refId": "A"}],
+      "fieldConfig": {"defaults": {"unit": "percentunit", "thresholds": {"mode": "absolute", "steps": [{"value": null, "color": "green"}, {"value": 0.05, "color": "yellow"}, {"value": 0.1, "color": "red"}]}}}},
+
+    {"id": 4, "type": "stat", "title": "gVisor seccomp violations (Sev-1 if > 0)",
+      "gridPos": {"x": 18, "y": 0, "w": 6, "h": 4},
+      "targets": [{"expr": "sum(rate(oya_docs_gvisor_seccomp_violation_total{pack=\"$pack\"}[5m]))", "refId": "A"}],
+      "fieldConfig": {"defaults": {"thresholds": {"mode": "absolute", "steps": [{"value": null, "color": "green"}, {"value": 0.001, "color": "red"}]}}}},
+
+    {"id": 5, "type": "timeseries", "title": "Export p99 by format (s)",
+      "gridPos": {"x": 0, "y": 4, "w": 12, "h": 8},
+      "targets": [
+        {"expr": "histogram_quantile(0.99, sum by (le, format) (rate(oya_docs_export_pdf_seconds_bucket{pack=\"$pack\",tenant_id=\"$tenant\"}[5m])))", "legendFormat": "pdf p99", "refId": "A"},
+        {"expr": "histogram_quantile(0.99, sum by (le, format) (rate(oya_docs_export_docx_seconds_bucket{pack=\"$pack\",tenant_id=\"$tenant\"}[5m])))", "legendFormat": "docx p99", "refId": "B"},
+        {"expr": "histogram_quantile(0.99, sum by (le, format) (rate(oya_docs_export_markdown_seconds_bucket{pack=\"$pack\",tenant_id=\"$tenant\"}[5m])))", "legendFormat": "markdown p99", "refId": "C"},
+        {"expr": "histogram_quantile(0.99, sum by (le, format) (rate(oya_docs_export_html_seconds_bucket{pack=\"$pack\",tenant_id=\"$tenant\"}[5m])))", "legendFormat": "html p99", "refId": "D"}
+      ]},
+
+    {"id": 6, "type": "timeseries", "title": "OOXML import fidelity ratio (per ADR-DOCS-0006)",
+      "gridPos": {"x": 12, "y": 4, "w": 12, "h": 8},
+      "targets": [
+        {"expr": "avg(oya_docs_ooxml_import_fidelity_ratio{pack=\"$pack\",tenant_id=\"$tenant\"})", "legendFormat": "avg fidelity", "refId": "A"},
+        {"expr": "sum(rate(oya_docs_ooxml_import_lost_feature_count{pack=\"$pack\",tenant_id=\"$tenant\"}[5m]))", "legendFormat": "lost-feature rate", "refId": "B"}
+      ],
+      "fieldConfig": {"defaults": {"unit": "percentunit"}}},
+
+    {"id": 7, "type": "timeseries", "title": "Pandoc / WeasyPrint / Chromium error counters",
+      "gridPos": {"x": 0, "y": 12, "w": 12, "h": 8},
+      "targets": [
+        {"expr": "sum by (backend) (rate(oya_docs_export_backend_error_total{pack=\"$pack\",tenant_id=\"$tenant\"}[5m]))", "legendFormat": "{{backend}}", "refId": "A"}
+      ]},
+
+    {"id": 8, "type": "timeseries", "title": "gVisor pool depth + queue lag",
+      "gridPos": {"x": 12, "y": 12, "w": 12, "h": 8},
+      "targets": [
+        {"expr": "sum(oya_docs_export_pool_depth{pack=\"$pack\"})", "legendFormat": "pool depth", "refId": "A"},
+        {"expr": "sum(oya_docs_export_queue_depth_seconds{pack=\"$pack\"})", "legendFormat": "queue depth (s)", "refId": "B"}
+      ]},
+
+    {"id": 9, "type": "table", "title": "PDF/A validation pass rate (per export job)",
+      "gridPos": {"x": 0, "y": 20, "w": 24, "h": 8},
+      "targets": [
+        {"expr": "sum by (pdfa_variant) (rate(oya_docs_export_pdfa_validation_pass_total{pack=\"$pack\",tenant_id=\"$tenant\"}[1h])) / sum by (pdfa_variant) (rate(oya_docs_export_pdfa_validation_total{pack=\"$pack\",tenant_id=\"$tenant\"}[1h]))", "format": "table", "refId": "A"}
+      ]}
+  ],
+  "annotations": {
+    "list": [
+      {"name": "rollouts", "datasource": "argo-rollouts", "iconColor": "blue", "query": "{microservice=\"docs\"}"},
+      {"name": "pandoc-upgrades", "datasource": "prometheus", "iconColor": "orange", "expr": "changes(oya_docs_pandoc_version[1h]) > 0"},
+      {"name": "weasyprint-upgrades", "datasource": "prometheus", "iconColor": "orange", "expr": "changes(oya_docs_weasyprint_version[1h]) > 0"}
+    ]
+  }
+}
