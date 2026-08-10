@@ -1,12 +1,85 @@
 {
   "schema_version": "1.0",
   "capability": "compute",
+  "_comment": "Capability-root manifest for compute/ (ADR-0562). Every crate and accounting count below was read off the tree at authoring time, not transcribed from legacy microservices/ paths.",
   "tier": "substrate",
   "substrate_dag_position": {
-    "stratum": "forward-declared"
+    "stratum": "forward-declared",
+    "depends_on": [],
+    "consumed_by_substrates": [],
+    "_note": "specs/capability-registry.json name=compute dag_node=compute — capability entry carries no grounded stratum yet (deliberately undeclared among pending founder/architecture ruling). forward-declared retained per R4 (TDA-S-RANK-INVERSION)."
   },
   "_tier_source": "specs/capability-registry.json name=compute dag_node=compute — capability entry carries no tier/substrate_dag_position (deliberately undeclared among the nine pending founder/architecture ruling). Historical classify-capability-roots authored tier=substrate with forward-declared stratum; retained rather than inventing an S-rank.",
   "_tier_subtype_note": "UNGROUNDED — capability-registry declares no tier_subtype and no absorbed legacy service manifest provides one. Deliberately ABSENT rather than invented; it lands when a grounded subtype exists.",
   "_stratum_note": "forward-declared retained: ADR-0562 capability-registry still leaves compute undeclared for stratum (unlike messaging, which now carries grounded S0). Restores compute/manifest.json authored on fix/tier-classify-capability-roots (blob 48d13cc8) but never landed on dev; R4 (TDA-S-RANK-INVERSION) treats forward-declared as rank-exempt and cannot manufacture a false GREEN.",
-  "_openslo_note": "No compute/observability/slos/*.openslo.yaml exists in-tree. OpenSLO refs are omitted rather than invented; SLO authoring lands with a runtime SLI, not this root-manifest slice."
+  "_openslo_note": "No compute/observability/slos/*.openslo.yaml exists in-tree. OpenSLO refs are omitted rather than invented; SLO authoring lands with a runtime SLI, not this root-manifest slice.",
+  "version": "0.1.0",
+  "owner": "axis-cloud-platform",
+  "purpose": "Owned compute engine substrate (ADR-0562 charter): VM + k8s-on-compute + functions/serverless facade sub-surfaces. The eight workspace crates under compute/ are the domain model, resource kernel, DC ops kernel, cloud-provider adapters, and REST facade APIs — no deployed runtime, measured SLO, or OpenSLO file is claimed by this capability-root slice.",
+  "bounded_contexts": [
+    {
+      "name": "compute-adapters",
+      "description": "Cloud-provider driven adapters under compute/adapters/.",
+      "crates": [
+        "compute-aws-adapter",
+        "compute-oci-adapter"
+      ]
+    },
+    {
+      "name": "compute-core",
+      "description": "Pure domain / resource / DC-ops kernels under compute/core/.",
+      "crates": [
+        "compute-domain",
+        "compute-dcops",
+        "compute-resource"
+      ]
+    },
+    {
+      "name": "compute-facade",
+      "description": "REST facade APIs for VM, k8s-on-compute, and functions under compute/facade/.",
+      "crates": [
+        "compute-functions-api",
+        "compute-k8s-api",
+        "compute-vm-api"
+      ]
+    }
+  ],
+  "layers": [
+    "adapters",
+    "core",
+    "facade"
+  ],
+  "capability_root_accounting": {
+    "crates_under_capability_root": 8,
+    "crates_by_layer": {
+      "adapters": 2,
+      "core": 3,
+      "facade": 3
+    },
+    "crates_covered_by_no_other_manifest": 8,
+    "_overlap_note": "All eight workspace members under compute/ are owned exclusively by this capability root; no absorbed sub-service manifests exist yet."
+  },
+  "contracts": {
+    "openapi": [],
+    "asyncapi": [],
+    "internal_grpc": {
+      "transport": "http2",
+      "language_profile": "proto3",
+      "contracts": []
+    },
+    "contract_status": "kernel_and_facade_only; no OpenAPI/AsyncAPI/proto contract files exist under compute/ today"
+  },
+  "doc_class": "Machine-Readable-Spec",
+  "foundation_non_claims": [
+    "this manifest describes the eight crates directly under compute/ and does NOT restate any future absorbed service manifests",
+    "no deployed process, served endpoint, measured benchmark, capacity telemetry or audit-chain writer is claimed for the capability root itself"
+  ],
+  "slos": [],
+  "slo_exemption": {
+    "status": "live_exempted_library_crates_no_deployed_runtime",
+    "owner": "axis-cloud-platform",
+    "rationale": "The compute/core, compute/adapters and compute/facade crates are capability-level libraries and REST facade stubs with no deployed process of their own, so no measured runtime SLI exists for them yet.",
+    "cutover_on": "2026-12-31",
+    "evidence": "No compute/observability/slos/ tree exists; OpenSLO authoring is deferred until a runtime SLI is grounded."
+  }
 }
