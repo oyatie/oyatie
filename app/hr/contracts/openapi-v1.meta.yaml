@@ -1,0 +1,22 @@
+tier: preview
+owner_team: axis-enterprise
+version: 1.0.0
+sunset: none-before-GA
+related_adrs:
+  - docs/decisions/ADR-0709-general-live-apex.md
+  - docs/adr-archive/ADR-0131-per-microservice-flat-layout.md
+  - docs/adr-archive/ADR-0132-product-platform-and-bundle-dissolution.md
+change_notes:
+  - id: CS-ENT-HR-004
+    date: 2026-05-23
+    summary: Adds sensitive-read policy decision request/response preview contract; runtime authorization, sensitive data retrieval, storage, and audit emission remain non-claims.
+
+  - id: CS-ENT-HR-005
+    date: 2026-05-23
+    summary: Adds leave payroll-impact request/response preview contract; leave balance calculation, payroll calculation, storage, Workflow execution, and audit emission remain non-claims.
+  - id: CS-ENT-HR-006
+    date: 2026-05-23
+    summary: Adds HR runtime adapter crate that dispatches existing preview routes through the repo-native Hyper foundation; deployed listener, storage, Workflow execution, Payroll calls, sensitive-data fetch, and runtime audit emission remain non-claims.
+  - id: CS-ENT-HR-007
+    date: 2026-06-25
+    summary: Adds fail-closed runtime authz port coverage for tenant-scoped HR control-plane mutations; deployed listener, storage, Workflow execution, Payroll calls, sensitive-data fetch, and runtime audit emission remain non-claims.
