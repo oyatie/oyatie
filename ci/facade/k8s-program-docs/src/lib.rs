@@ -217,8 +217,9 @@ pub struct Corpus {
     pub declared_leaves: DeclaredLeaves,
     /// The divergence ledger's own growth knobs plus its observed row count.
     pub divergence_ledger: DivergenceLedger,
-    /// INV-1 / INV-2: forbidden package edges parsed from `os/**/Cargo.toml` and
-    /// `k8s/**/Cargo.toml` (inline tables, named dependency tables, and `.workspace = true`).
+    /// INV-1 / INV-2: forbidden package/target edges parsed from `os|k8s/**/{Cargo.toml,BUCK}`
+    /// (inline tables, named dependency tables, `.workspace = true`, `package =` renames,
+    /// and Buck `//os/`↔`//k8s/` deps).
     pub cross_seam_edges: Vec<CrossSeamEdge>,
 }
 
@@ -381,7 +382,7 @@ pub fn evaluate(corpus: &Corpus) -> Evaluation {
             FindingCode::CrossSeamDependency,
             &edge.path,
             &format!(
-                "manifest declares forbidden cross-seam dependency `{}`; INV-1/INV-2 forbid os↔k8s Cargo edges in any TOML spelling (inline `{{ path }}`, named `[*.dependencies.<pkg>]` tables, or `.workspace = true`)",
+                "manifest declares forbidden cross-seam dependency `{}`; INV-1/INV-2 forbid os↔k8s Cargo/Buck edges in any TOML spelling (inline `{{ path }}`, named `[*.dependencies.<pkg>]` tables, `.workspace = true`, `package =` renames) or Buck `//os/`↔`//k8s/` target edges",
                 edge.dependency
             ),
         ));
@@ -625,27 +626,47 @@ fn scan_crate_leaves(repo_root: &Path) -> Result<Vec<String>, LoadError> {
     Ok(leaves)
 }
 
-/// INV-1 / INV-2: parse Cargo manifests under `os/` and `k8s/` for forbidden package names.
+/// INV-1 / INV-2: parse Cargo manifests and BUCK graphs under `os/` and `k8s/` for
+/// forbidden cross-seam edges.
 ///
 /// A formatting-specific `git grep` for `pkg = { path` misses named dependency tables
-/// (`[dependencies.k8s-foo]`) and workspace inheritance (`k8s-foo.workspace = true`).
+/// (`[dependencies.k8s-foo]`), workspace inheritance (`k8s-foo.workspace = true`), and
+/// `package = "k8s-…"` renames. BUCK target edges (`//k8s/…` from `os/`, `//os/…` from
+/// `k8s/`) are the same seam crossed through the Buck graph.
 fn scan_cross_seam_edges(repo_root: &Path) -> Result<Vec<CrossSeamEdge>, LoadError> {
     let mut edges = Vec::new();
-    for (capability, forbidden_prefix) in [("os", "k8s-"), ("k8s", "os-")] {
+    for (capability, forbidden_prefix, forbidden_buck_root) in [
+        ("os", "k8s-", "//k8s/"),
+        ("k8s", "os-", "//os/"),
+    ] {
         let root = repo_root.join(capability);
         if !root.is_dir() {
             continue;
         }
         for path in collect_files(&root, "R-DOC-SEAM-MANIFEST-TREE-UNREADABLE")? {
-            if path.file_name().is_none_or(|name| name != "Cargo.toml") {
+            let Some(name) = path.file_name().and_then(|n| n.to_str()) else {
                 continue;
-            }
+            };
             let contents = read_utf8(&path, "R-DOC-SEAM-MANIFEST-UNREADABLE")?;
-            for dependency in forbidden_package_deps(&contents, forbidden_prefix) {
-                edges.push(CrossSeamEdge {
-                    path: display_path(repo_root, &path),
-                    dependency,
-                });
+            let rel = display_path(repo_root, &path);
+            match name {
+                "Cargo.toml" => {
+                    for dependency in forbidden_package_deps(&contents, forbidden_prefix) {
+                        edges.push(CrossSeamEdge {
+                            path: rel.clone(),
+                            dependency,
+                        });
+                    }
+                }
+                "BUCK" => {
+                    for dependency in forbidden_buck_deps(&contents, forbidden_buck_root) {
+                        edges.push(CrossSeamEdge {
+                            path: rel.clone(),
+                            dependency,
+                        });
+                    }
+                }
+                _ => {}
             }
         }
     }
@@ -660,7 +681,7 @@ enum DepSection {
     Inactive,
     /// Inside `[dependencies]` / `[dev-dependencies]` / `[target.*.dependencies]`.
     Table,
-    /// Inside `[dependencies.<pkg>]` — the package name is already known.
+    /// Inside `[dependencies.<pkg>]` — scan for `package = "…"` renames too.
     NamedPackage,
 }
 
@@ -687,11 +708,56 @@ pub fn forbidden_package_deps(contents: &str, forbidden_prefix: &str) -> Vec<Str
             }
             continue;
         }
-        if matches!(section, DepSection::Table) {
-            if let Some(package) = dependency_key(trimmed) {
-                if package.starts_with(forbidden_prefix) {
-                    hits.push(package);
+        match section {
+            DepSection::Table => {
+                if let Some(package) = dependency_key(trimmed) {
+                    if package.starts_with(forbidden_prefix) {
+                        hits.push(package);
+                    }
                 }
+                // Rename evasion: `local = { package = "k8s-foo", path = "…" }`.
+                if let Some(package) = package_rename_value(trimmed) {
+                    if package.starts_with(forbidden_prefix) {
+                        hits.push(package);
+                    }
+                }
+            }
+            DepSection::NamedPackage => {
+                if let Some(package) = package_rename_value(trimmed) {
+                    if package.starts_with(forbidden_prefix) {
+                        hits.push(package);
+                    }
+                }
+            }
+            DepSection::Inactive => {}
+        }
+    }
+    hits.sort();
+    hits.dedup();
+    hits
+}
+
+/// BUCK target literals that cross the seam (`"//k8s/…"` from `os/`, `"//os/…"` from `k8s/`).
+pub fn forbidden_buck_deps(contents: &str, forbidden_root: &str) -> Vec<String> {
+    let mut hits = Vec::new();
+    for line in contents.lines() {
+        let trimmed = line.trim();
+        if trimmed.starts_with('#') {
+            continue;
+        }
+        for (index, _) in trimmed.match_indices(forbidden_root) {
+            let rest = &trimmed[index..];
+            let end = rest
+                .find(|character: char| {
+                    character == '"'
+                        || character == '\''
+                        || character == ','
+                        || character.is_whitespace()
+                })
+                .unwrap_or(rest.len());
+            let target = &rest[..end];
+            if !target.is_empty() {
+                hits.push(target.to_owned());
             }
         }
     }
@@ -727,6 +793,27 @@ fn dependency_key(line: &str) -> Option<String> {
         return None;
     }
     Some(name.to_owned())
+}
+
+/// `package = "k8s-foo"` / `package = 'k8s-foo'` inside an inline table or named dep section.
+fn package_rename_value(line: &str) -> Option<String> {
+    for (index, _) in line.match_indices("package") {
+        let before_ok = index == 0
+            || !line.as_bytes()[index - 1].is_ascii_alphanumeric() && line.as_bytes()[index - 1] != b'_' && line.as_bytes()[index - 1] != b'-';
+        let after = &line[index + "package".len()..];
+        if !before_ok || !after.starts_with(|c: char| c == '=' || c.is_whitespace()) {
+            continue;
+        }
+        let value = after.trim_start().strip_prefix('=')?.trim_start();
+        let quote = value.chars().next().filter(|c| *c == '"' || *c == '\'')?;
+        let rest = &value[quote.len_utf8()..];
+        let end = rest.find(quote)?;
+        let name = &rest[..end];
+        if !name.is_empty() {
+            return Some(name.to_owned());
+        }
+    }
+    None
 }
 
 /// Reads the declared leaf census. Absence is a load error rather than a finding: an evaluation run
@@ -2031,8 +2118,22 @@ mod tests {
             vec!["k8s-foo".to_owned()]
         );
 
+        let renamed = "[dependencies]\nlocal = { package = \"k8s-foo\", path = \"../../k8s/ports/foo\" }\n";
+        assert_eq!(
+            forbidden_package_deps(renamed, "k8s-"),
+            vec!["k8s-foo".to_owned()]
+        );
+
         let clean = "[dependencies]\nserde = { workspace = true }\nos-kernel = { path = \"../kernel\" }\n";
         assert!(forbidden_package_deps(clean, "k8s-").is_empty());
+
+        assert_eq!(
+            forbidden_buck_deps(
+                "deps = [\n    \"//k8s/ports/foo:k8s-foo\",\n    \"//os/core/bar:os-bar\",\n]\n",
+                "//k8s/"
+            ),
+            vec!["//k8s/ports/foo:k8s-foo".to_owned()]
+        );
 
         let mut corpus = live_fixture();
         corpus.cross_seam_edges = vec![CrossSeamEdge {
@@ -2043,5 +2144,30 @@ mod tests {
             &evaluate(&corpus),
             FindingCode::CrossSeamDependency
         ));
+    }
+
+    #[test]
+    fn a_generated_leaf_without_a_registered_region_fails_closed() {
+        let root = std::env::temp_dir().join("r-doc-generated-without-region-fixture");
+        let path = root.join(REGENERABLE_REGIONS);
+        fs::create_dir_all(path.parent().expect("the declaration has a parent directory"))
+            .expect("the fixture tree is creatable");
+        fs::write(
+            &path,
+            r#"{
+              "regions": [],
+              "origin_classification": {
+                "leaves": [{"path": "k8s/ports/upstream-api", "origin": "generated"}],
+                "census": {"k8s_leaves": 1, "os_leaves": 0, "total_leaves": 1}
+              }
+            }"#,
+        )
+        .expect("the fixture declaration is writable");
+        let result = load_declared_leaves(&root);
+        fs::remove_dir_all(&root).ok();
+        assert_eq!(
+            result.expect_err("generated without a region is malformed").code,
+            "R-DOC-K8S-PORT-REGIONS-MALFORMED"
+        );
     }
 }
