@@ -29,4 +29,10 @@ After `.grok/swarm/` verified alive on `integ/ci` tip:
 ```bash
 ./.grok/swarm/self-check.sh
 python3 ./.grok/swarm/claim_packet.py --self-test
+SWARM_ORCHESTRATOR=1 SWARM_CHECK_DRY_RUN=1 ./.grok/swarm/check-daemon-hotset integ-ci
 ```
+
+## Follow-on encode (this tip)
+
+- `northstar-daemon-hotset`: `.grok/harness/daemon-hotset.v1.json` + `.grok/swarm/check-daemon-hotset` + LSP carve-out in README.
+- `northstar-perimeter`: `.grok/harness/perimeter.v1.json` + PORTABLE cite (advisory scratch; no main-checkout writes).

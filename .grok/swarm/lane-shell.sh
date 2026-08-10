@@ -24,7 +24,7 @@ mkdir -p "$SHIM_BIN"
   ln -sfn ../toolguard cargo
   ln -sfn ../toolguard buck2
 )
-chmod +x "$SWARM_DIR"/{git-shim,toolguard,check-daemon,claim-push.sh,integ-reset-remote.sh,lane-shell.sh}
+chmod +x "$SWARM_DIR"/{git-shim,toolguard,check-daemon,check-daemon-hotset,claim-push.sh,integ-reset-remote.sh,lane-shell.sh}
 
 # Resolve real git once for the shim.
 if [[ -z "${GIT_REAL:-}" ]]; then

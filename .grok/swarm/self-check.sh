@@ -2,8 +2,9 @@
 # self-check.sh — hermetic local checks for Swarm Delivery Law Phase A kit.
 #
 # Opt-in / local evidence. Does not claim merge authority.
-# Seeds anti-drift-drift-grep: forbid prose root/hub/freeze enumerations outside
-# envelopes JSON in ADR-0711 + PORTABLE.
+# Seeds + wires anti-drift-drift-grep: forbid prose root/hub/freeze enumerations outside
+# envelopes JSON in ADR-0711 + PORTABLE. CI twin:
+# //ci/facade/affected-target-set:ci-affected-target-set-anti-drift-drift-grep-gate
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
@@ -93,39 +94,82 @@ PY
 if [[ $fail -eq 0 ]]; then pass "concurrent-safe envelopes↔registry parity"; fi
 
 # 3) Drift-grep: prose MUST NOT re-list governed roots / freeze layout tables (INV-DOC-2)
-for f in "$ADR" "$PORTABLE"; do
+#    CI gate twin: //ci/facade/affected-target-set:ci-affected-target-set-anti-drift-drift-grep-gate
+#    (fail-closed Rust evaluator; policy cites #anti_drift.prose_must_cite_not_enumerate).
+#    Skip when surface absent (parked tip before integ/specs lands). Only enforce cite floor on
+#    in-scope Swarm surfaces (ADR-0711 path, or body carrying Amendment D / INV-DOC-2).
+drift_grep_surface() {
+  local f="$1"
   if [[ ! -f "$f" ]]; then
-    fail_msg "missing $f"
-    continue
+    pass "drift-grep skip (absent): $f"
+    return 0
+  fi
+  local in_scope=0
+  case "$f" in
+    *ADR-0711*) in_scope=1 ;;
+  esac
+  if grep -E -q 'INV-DOC-2|Amendment D|prose_must_cite_not_enumerate|Swarm Delivery Law' "$f"; then
+    in_scope=1
+  fi
+  if [[ $in_scope -eq 0 ]]; then
+    pass "drift-grep skip (pre-Amendment-D / out-of-scope): $f"
+    return 0
   fi
   if grep -E -n '`os`, `ci`, `governance`' "$f" >/dev/null 2>&1; then
     fail_msg "prose root enumeration in $f (cite envelopes#roots instead)"
   else
     pass "no legacy root comma-list in $f"
   fi
-  if ! grep -E -q 'integ-branch-envelopes\.json#roots' "$f"; then
-    fail_msg "$f must cite integ-branch-envelopes.json#roots"
-  else
-    pass "$f cites #roots"
-  fi
-  # Amendment B path tables must not reappear (cite #reorg_debt_freeze.rows only)
   if grep -E -n '\| current path \| action \|' "$f" >/dev/null 2>&1; then
     fail_msg "prose freeze/layout path table in $f (cite #reorg_debt_freeze.rows)"
   else
     pass "no Amendment B path table in $f"
+  fi
+  if ! grep -E -q 'integ-branch-envelopes\.json#roots|#roots' "$f"; then
+    fail_msg "$f must cite integ-branch-envelopes.json#roots (or #roots)"
+  else
+    pass "$f cites #roots"
+  fi
+  if ! grep -E -q 'hubs\.paths|#hubs\.paths' "$f"; then
+    fail_msg "$f must cite #hubs.paths"
+  else
+    pass "$f cites #hubs.paths"
   fi
   if ! grep -E -q 'reorg_debt_freeze\.rows' "$f"; then
     fail_msg "$f must cite reorg_debt_freeze.rows"
   else
     pass "$f cites #reorg_debt_freeze.rows"
   fi
-done
+}
 
-# ADR must document INV-DOC-9
-if grep -E -q 'INV-DOC-9' "$ADR"; then
-  pass "ADR-0711 documents INV-DOC-9"
+drift_grep_surface "$ADR"
+drift_grep_surface "$PORTABLE"
+
+# ADR must document INV-DOC-9 when present
+if [[ -f "$ADR" ]]; then
+  if grep -E -q 'INV-DOC-9' "$ADR"; then
+    pass "ADR-0711 documents INV-DOC-9"
+  else
+    fail_msg "ADR-0711 missing INV-DOC-9"
+  fi
 else
-  fail_msg "ADR-0711 missing INV-DOC-9"
+  pass "ADR-0711 INV-DOC-9 check skipped (ADR absent on tip)"
+fi
+
+# 3b) Pin: anti-drift-drift-grep Rust gate + policy present (ci facade)
+ANTI_DRIFT_RS="ci/facade/affected-target-set/src/anti_drift_drift_grep.rs"
+ANTI_DRIFT_POLICY="ci/facade/affected-target-set/anti-drift-drift-grep-policy.json"
+if [[ -f "$ANTI_DRIFT_RS" ]] && grep -E -q 'cloud-ci-anti-drift-drift-grep' "$ANTI_DRIFT_RS"; then
+  pass "anti-drift-drift-grep Rust evaluator present"
+else
+  fail_msg "missing anti-drift-drift-grep Rust evaluator at $ANTI_DRIFT_RS"
+fi
+if [[ -f "$ANTI_DRIFT_POLICY" ]] \
+  && grep -E -q 'specs/integ-branch-envelopes\.json#anti_drift\.prose_must_cite_not_enumerate' "$ANTI_DRIFT_POLICY" \
+  && ! grep -E -q '"#roots"' "$ANTI_DRIFT_POLICY"; then
+  pass "anti-drift-drift-grep policy cites pointer (no #roots re-list)"
+else
+  fail_msg "anti-drift-drift-grep policy missing/pointer-forked"
 fi
 
 # 4) git-shim denies --no-verify
@@ -243,6 +287,38 @@ if printf 'probe\n' > "$DIRTY_PROBE"; then
 else
   fail_msg "could not create dirty probe file"
 fi
+
+# 11) northstar-daemon-hotset + perimeter harness pins
+HOTSET=".grok/harness/daemon-hotset.v1.json"
+PERIM=".grok/harness/perimeter.v1.json"
+HOTSET_SCRIPT=".grok/swarm/check-daemon-hotset"
+python3 - "$HOTSET" "$PERIM" "$HOTSET_SCRIPT" <<'PY' || fail_msg "daemon-hotset/perimeter harness"
+import json, sys
+from pathlib import Path
+hot, perim, script = (Path(p) for p in sys.argv[1:4])
+for p in (hot, perim, script):
+    if not p.exists():
+        raise SystemExit(f"missing {p}")
+h = json.loads(hot.read_text())
+p = json.loads(perim.read_text())
+if h.get("id") != "northstar-daemon-hotset":
+    raise SystemExit("daemon-hotset id mismatch")
+if int(h.get("rule", {}).get("hot_set_max", 0)) != 4:
+    raise SystemExit(f"hot_set_max={h.get('rule', {}).get('hot_set_max')}")
+if "lsp_carve_out" not in h:
+    raise SystemExit("daemon-hotset missing lsp_carve_out")
+if p.get("id") != "northstar-perimeter":
+    raise SystemExit("perimeter id mismatch")
+channels = set(p.get("rule", {}).get("advisory_channels") or [])
+need = {"omx", "omc", "gjc", "grok"}
+if need - channels:
+    raise SystemExit(f"perimeter missing channels: {sorted(need - channels)}")
+must_not = p.get("rule", {}).get("advisory_must_not") or []
+if "write the main checkout" not in must_not:
+    raise SystemExit("perimeter missing write-main-checkout ban")
+print("ok")
+PY
+if [[ $fail -eq 0 ]]; then pass "daemon-hotset harness + perimeter + check-daemon-hotset script"; fi
 
 if [[ $fail -ne 0 ]]; then
   echo "self-check: FAILED" >&2

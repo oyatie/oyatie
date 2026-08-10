@@ -1,9 +1,14 @@
 #!/usr/bin/env python3
 """swarm check-daemon — orchestrator-owned buck2 [check] → err.txt + .check/errors.json.
 
-Runs only when SWARM_ORCHESTRATOR=1 from the main checkout. Workers never run
-cargo or buck2; they read the human file at <main-checkout>/err.txt (absolute
-convention on this machine: /Users/jasonlee/Developer/oyatie/err.txt).
+Runs only when SWARM_ORCHESTRATOR=1. Allowed roots: main checkout, durable
+`.worktrees/integ-*` stations (northstar-daemon-hotset; ≤ hot_set_max via
+`.grok/swarm/check-daemon-hotset`), or explicit SWARM_CANDIDATE_ROOT.
+Workers never run cargo or buck2; they read err.txt at the selected root
+(default main-checkout convention: /Users/jasonlee/Developer/oyatie/err.txt).
+
+LSP/rust-analyzer read-only diagnostics are a carve-out ≠ this builder
+(see .grok/harness/daemon-hotset.v1.json#lsp_carve_out).
 
 Founder directive 2026-05-29 (tools/hooks/no-cargo-enforcer.sh): cargo
 build|check|test|clippy|run|bench is retired. Blessed type-check is
@@ -41,7 +46,11 @@ from pathlib import Path
 from typing import Any
 
 
-DENY_MSG = "check-daemon: requires SWARM_ORCHESTRATOR=1 (main checkout only)"
+DENY_MSG = (
+    "check-daemon: requires SWARM_ORCHESTRATOR=1 "
+    "(main checkout or .worktrees/integ-* via check-daemon-hotset / "
+    "SWARM_CANDIDATE_ROOT)"
+)
 
 # rustc-style: error[E0308]: …  /  warning: …  /  error: …
 _DIAG_HEAD = re.compile(
