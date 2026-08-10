@@ -7,7 +7,7 @@
     {
       "id": "incident-management-doc-set-001",
       "status": "closed-by-additive-artifacts",
-      "evidence": "microservices/incident-management/",
+      "evidence": "app/incident-management/",
       "target_artifacts": 100
     },
     {

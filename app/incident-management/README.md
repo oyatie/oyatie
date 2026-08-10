@@ -13,7 +13,7 @@ Binding authorities: docs/standards/documentation-rigor.md sections 1.1, 1.2, 2,
 Incident Management follows ADR-0330: `tenant_class` is `demo_trial` or `paid`, and paid contracts compose `billing_components` from `revenue_share`, `per_seat`, and `per_usage`. Incident paging, command, and postmortem capabilities use `availability` and compliance-pack gates instead of customer capability ladder; demo_trial is cap-bounded, while paid is always-on subject to Cedar and SLO policy.
 
 ## Scope and non-goals
-The incident-management entrypoint surface is owned inside microservices/incident-management/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
+The incident-management entrypoint surface is owned inside app/incident-management/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
 The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, and Cedar v4.2 LTS default-deny fragments.
 - scope-and-non-goals 001: Incident Management binds page-dispatch to tenant_id, principal_id, audience_type=ONCALL_RESPONDER, data_class=page_event, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against PagerDuty plus OpsGenie.
 - scope-and-non-goals 002: Incident Management binds escalation-evaluate to tenant_id, principal_id, audience_type=ONCALL_RESPONDER, data_class=escalation_policy, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against OpsGenie plus xMatters.
@@ -25,7 +25,7 @@ The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, Asyn
 - scope-and-non-goals 008: Incident Management binds escalation-evaluate to tenant_id, principal_id, audience_type=ONCALL_RESPONDER, data_class=postmortem_action, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against FireHydrant plus PagerDuty.
 
 ## Principals and tenant scope
-The incident-management entrypoint surface is owned inside microservices/incident-management/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
+The incident-management entrypoint surface is owned inside app/incident-management/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
 The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, and Cedar v4.2 LTS default-deny fragments.
 - principals-and-tenant-scope 001: Incident Management binds page-dispatch to tenant_id, principal_id, audience_type=ONCALL_RESPONDER, data_class=page_event, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against PagerDuty plus OpsGenie.
 - principals-and-tenant-scope 002: Incident Management binds escalation-evaluate to tenant_id, principal_id, audience_type=ONCALL_RESPONDER, data_class=escalation_policy, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against OpsGenie plus xMatters.
@@ -37,7 +37,7 @@ The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, Asyn
 - principals-and-tenant-scope 008: Incident Management binds escalation-evaluate to tenant_id, principal_id, audience_type=ONCALL_RESPONDER, data_class=postmortem_action, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against FireHydrant plus PagerDuty.
 
 ## Cedar gates and default deny
-The incident-management entrypoint surface is owned inside microservices/incident-management/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
+The incident-management entrypoint surface is owned inside app/incident-management/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
 The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, and Cedar v4.2 LTS default-deny fragments.
 - cedar-gates-and-default-deny 001: Incident Management binds page-dispatch to tenant_id, principal_id, audience_type=ONCALL_RESPONDER, data_class=page_event, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against PagerDuty plus OpsGenie.
 - cedar-gates-and-default-deny 002: Incident Management binds escalation-evaluate to tenant_id, principal_id, audience_type=ONCALL_RESPONDER, data_class=escalation_policy, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against OpsGenie plus xMatters.
@@ -49,7 +49,7 @@ The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, Asyn
 - cedar-gates-and-default-deny 008: Incident Management binds escalation-evaluate to tenant_id, principal_id, audience_type=ONCALL_RESPONDER, data_class=postmortem_action, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against FireHydrant plus PagerDuty.
 
 ## Data model and ontology projection
-The incident-management entrypoint surface is owned inside microservices/incident-management/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
+The incident-management entrypoint surface is owned inside app/incident-management/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
 The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, and Cedar v4.2 LTS default-deny fragments.
 - data-model-and-ontology-projection 001: Incident Management binds page-dispatch to tenant_id, principal_id, audience_type=ONCALL_RESPONDER, data_class=page_event, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against PagerDuty plus OpsGenie.
 - data-model-and-ontology-projection 002: Incident Management binds escalation-evaluate to tenant_id, principal_id, audience_type=ONCALL_RESPONDER, data_class=escalation_policy, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against OpsGenie plus xMatters.
@@ -61,7 +61,7 @@ The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, Asyn
 - data-model-and-ontology-projection 008: Incident Management binds escalation-evaluate to tenant_id, principal_id, audience_type=ONCALL_RESPONDER, data_class=postmortem_action, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against FireHydrant plus PagerDuty.
 
 ## Workflow and replay semantics
-The incident-management entrypoint surface is owned inside microservices/incident-management/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
+The incident-management entrypoint surface is owned inside app/incident-management/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
 The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, and Cedar v4.2 LTS default-deny fragments.
 - workflow-and-replay-semantics 001: Incident Management binds page-dispatch to tenant_id, principal_id, audience_type=ONCALL_RESPONDER, data_class=page_event, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against PagerDuty plus OpsGenie.
 - workflow-and-replay-semantics 002: Incident Management binds escalation-evaluate to tenant_id, principal_id, audience_type=ONCALL_RESPONDER, data_class=escalation_policy, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against OpsGenie plus xMatters.
@@ -73,7 +73,7 @@ The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, Asyn
 - workflow-and-replay-semantics 008: Incident Management binds escalation-evaluate to tenant_id, principal_id, audience_type=ONCALL_RESPONDER, data_class=postmortem_action, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against FireHydrant plus PagerDuty.
 
 ## Contracts and versioning
-The incident-management entrypoint surface is owned inside microservices/incident-management/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
+The incident-management entrypoint surface is owned inside app/incident-management/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
 The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, and Cedar v4.2 LTS default-deny fragments.
 - contracts-and-versioning 001: Incident Management binds page-dispatch to tenant_id, principal_id, audience_type=ONCALL_RESPONDER, data_class=page_event, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against PagerDuty plus OpsGenie.
 - contracts-and-versioning 002: Incident Management binds escalation-evaluate to tenant_id, principal_id, audience_type=ONCALL_RESPONDER, data_class=escalation_policy, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against OpsGenie plus xMatters.
@@ -85,7 +85,7 @@ The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, Asyn
 - contracts-and-versioning 008: Incident Management binds escalation-evaluate to tenant_id, principal_id, audience_type=ONCALL_RESPONDER, data_class=postmortem_action, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against FireHydrant plus PagerDuty.
 
 ## Transport and cryptography
-The incident-management entrypoint surface is owned inside microservices/incident-management/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
+The incident-management entrypoint surface is owned inside app/incident-management/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
 The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, and Cedar v4.2 LTS default-deny fragments.
 - transport-and-cryptography 001: Incident Management binds page-dispatch to tenant_id, principal_id, audience_type=ONCALL_RESPONDER, data_class=page_event, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against PagerDuty plus OpsGenie.
 - transport-and-cryptography 002: Incident Management binds escalation-evaluate to tenant_id, principal_id, audience_type=ONCALL_RESPONDER, data_class=escalation_policy, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against OpsGenie plus xMatters.
@@ -97,7 +97,7 @@ The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, Asyn
 - transport-and-cryptography 008: Incident Management binds escalation-evaluate to tenant_id, principal_id, audience_type=ONCALL_RESPONDER, data_class=postmortem_action, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against FireHydrant plus PagerDuty.
 
 ## Abuse defence and emergency bypass
-The incident-management entrypoint surface is owned inside microservices/incident-management/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
+The incident-management entrypoint surface is owned inside app/incident-management/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
 The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, and Cedar v4.2 LTS default-deny fragments.
 - abuse-defence-and-emergency-bypass 001: Incident Management binds page-dispatch to tenant_id, principal_id, audience_type=ONCALL_RESPONDER, data_class=page_event, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against PagerDuty plus OpsGenie.
 - abuse-defence-and-emergency-bypass 002: Incident Management binds escalation-evaluate to tenant_id, principal_id, audience_type=ONCALL_RESPONDER, data_class=escalation_policy, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against OpsGenie plus xMatters.
@@ -109,7 +109,7 @@ The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, Asyn
 - abuse-defence-and-emergency-bypass 008: Incident Management binds escalation-evaluate to tenant_id, principal_id, audience_type=ONCALL_RESPONDER, data_class=postmortem_action, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against FireHydrant plus PagerDuty.
 
 ## Marketplace settlement binding
-The incident-management entrypoint surface is owned inside microservices/incident-management/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
+The incident-management entrypoint surface is owned inside app/incident-management/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
 The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, and Cedar v4.2 LTS default-deny fragments.
 - marketplace-settlement-binding 001: Incident Management binds page-dispatch to tenant_id, principal_id, audience_type=ONCALL_RESPONDER, data_class=page_event, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against PagerDuty plus OpsGenie.
 - marketplace-settlement-binding 002: Incident Management binds escalation-evaluate to tenant_id, principal_id, audience_type=ONCALL_RESPONDER, data_class=escalation_policy, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against OpsGenie plus xMatters.
@@ -121,7 +121,7 @@ The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, Asyn
 - marketplace-settlement-binding 008: Incident Management binds escalation-evaluate to tenant_id, principal_id, audience_type=ONCALL_RESPONDER, data_class=postmortem_action, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against FireHydrant plus PagerDuty.
 
 ## Observability and audit events
-The incident-management entrypoint surface is owned inside microservices/incident-management/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
+The incident-management entrypoint surface is owned inside app/incident-management/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
 The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, and Cedar v4.2 LTS default-deny fragments.
 - observability-and-audit-events 001: Incident Management binds page-dispatch to tenant_id, principal_id, audience_type=ONCALL_RESPONDER, data_class=page_event, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against PagerDuty plus OpsGenie.
 - observability-and-audit-events 002: Incident Management binds escalation-evaluate to tenant_id, principal_id, audience_type=ONCALL_RESPONDER, data_class=escalation_policy, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against OpsGenie plus xMatters.
@@ -133,7 +133,7 @@ The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, Asyn
 - observability-and-audit-events 008: Incident Management binds escalation-evaluate to tenant_id, principal_id, audience_type=ONCALL_RESPONDER, data_class=postmortem_action, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against FireHydrant plus PagerDuty.
 
 ## Capacity and cost controls
-The incident-management entrypoint surface is owned inside microservices/incident-management/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
+The incident-management entrypoint surface is owned inside app/incident-management/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
 The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, and Cedar v4.2 LTS default-deny fragments.
 - capacity-and-cost-controls 001: Incident Management binds page-dispatch to tenant_id, principal_id, audience_type=ONCALL_RESPONDER, data_class=page_event, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against PagerDuty plus OpsGenie.
 - capacity-and-cost-controls 002: Incident Management binds escalation-evaluate to tenant_id, principal_id, audience_type=ONCALL_RESPONDER, data_class=escalation_policy, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against OpsGenie plus xMatters.
@@ -145,7 +145,7 @@ The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, Asyn
 - capacity-and-cost-controls 008: Incident Management binds escalation-evaluate to tenant_id, principal_id, audience_type=ONCALL_RESPONDER, data_class=postmortem_action, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against FireHydrant plus PagerDuty.
 
 ## Failure modes and rollback
-The incident-management entrypoint surface is owned inside microservices/incident-management/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
+The incident-management entrypoint surface is owned inside app/incident-management/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
 The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, and Cedar v4.2 LTS default-deny fragments.
 - failure-modes-and-rollback 001: Incident Management binds page-dispatch to tenant_id, principal_id, audience_type=ONCALL_RESPONDER, data_class=page_event, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against PagerDuty plus OpsGenie.
 - failure-modes-and-rollback 002: Incident Management binds escalation-evaluate to tenant_id, principal_id, audience_type=ONCALL_RESPONDER, data_class=escalation_policy, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against OpsGenie plus xMatters.
@@ -157,7 +157,7 @@ The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, Asyn
 - failure-modes-and-rollback 008: Incident Management binds escalation-evaluate to tenant_id, principal_id, audience_type=ONCALL_RESPONDER, data_class=postmortem_action, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against FireHydrant plus PagerDuty.
 
 ## Regional packs and residency
-The incident-management entrypoint surface is owned inside microservices/incident-management/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
+The incident-management entrypoint surface is owned inside app/incident-management/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
 The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, and Cedar v4.2 LTS default-deny fragments.
 - regional-packs-and-residency 001: Incident Management binds page-dispatch to tenant_id, principal_id, audience_type=ONCALL_RESPONDER, data_class=page_event, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against PagerDuty plus OpsGenie.
 - regional-packs-and-residency 002: Incident Management binds escalation-evaluate to tenant_id, principal_id, audience_type=ONCALL_RESPONDER, data_class=escalation_policy, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against OpsGenie plus xMatters.
@@ -169,7 +169,7 @@ The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, Asyn
 - regional-packs-and-residency 008: Incident Management binds escalation-evaluate to tenant_id, principal_id, audience_type=ONCALL_RESPONDER, data_class=postmortem_action, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against FireHydrant plus PagerDuty.
 
 ## Acceptance evidence
-The incident-management entrypoint surface is owned inside microservices/incident-management/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
+The incident-management entrypoint surface is owned inside app/incident-management/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
 The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, and Cedar v4.2 LTS default-deny fragments.
 - acceptance-evidence 001: Incident Management binds page-dispatch to tenant_id, principal_id, audience_type=ONCALL_RESPONDER, data_class=page_event, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against PagerDuty plus OpsGenie.
 - acceptance-evidence 002: Incident Management binds escalation-evaluate to tenant_id, principal_id, audience_type=ONCALL_RESPONDER, data_class=escalation_policy, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against OpsGenie plus xMatters.
