@@ -116,6 +116,12 @@ pub struct Transition {
 /// resulting `LifecycledArtifact` records.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct SourceSpec {
+    /// DESCRIPTIVE METADATA ONLY — **no reader dispatches on this field.** It is
+    /// parsed from the config and never branched on, so `yaml_front_matter` and
+    /// `yaml_document` are indistinguishable to `discover()`: both take the single
+    /// `frontmatter_scalar` path below. Do not read a `kind` as a promise that the
+    /// source is parsed differently, and do not add dispatch here without also
+    /// re-measuring every lane it would re-partition.
     // data_class: INTERNAL_ONLY
     pub kind: String, // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
@@ -534,8 +540,37 @@ pub mod discovery {
         NaiveDate::checked_ymd(y, m, d)
     }
 
+    /// Read one top-level scalar out of a document's declaration surface.
+    ///
+    /// A document that carries a `---` line delimits its declarations with a
+    /// front-matter fence and only the fenced region is read. A document with
+    /// NO `---` line anywhere is a bare declaration record (a plain YAML file
+    /// such as `registry/catalog/*.yaml`) and is read whole — without this the
+    /// reader returns `None` for every field of every fence-less file, and a
+    /// lane rooted on such a corpus certifies a reader bug as corpus debt.
+    ///
+    /// The fence-less admission is keyed on the ABSENCE of any `---` line, so
+    /// no input that resolves today can change: a file that yields `Some` must
+    /// contain a fence, and every fenced file takes the identical code path it
+    /// took before. The only behaviour delta is `None` -> `Some` on fence-less
+    /// files.
+    ///
+    /// SCOPE: that admission is CORPUS-WIDE, not confined to the `yaml_document`
+    /// source that motivated it. `SourceSpec.kind` is never dispatched on (see its
+    /// doc comment), so every lane's fence-less files are read whole — including
+    /// the `docs/**/*.md` and `docs/decisions/ADR-*.md` corpora. What BOUNDS that
+    /// today is measurement, not a code fence, so re-derive it before assuming:
+    /// at this tree 796 `docs/**/*.md` contain a `doc_status` substring and all 796
+    /// carry a `---` line, so the fence-less set contributing a `doc_status` is
+    /// EMPTY and doc-status stays at 1921/9; 10 of 10 `docs/decisions/ADR-*.md` are
+    /// fenced, so adr-status stays at 0 violations. A substring grep is a strict
+    /// SUPERSET of what can match here (the field must start the trimmed line), so
+    /// those are sound upper bounds. Note also that the failure mode if that ever
+    /// changes is BLOCKING, not silent: a spuriously-read declaration either shrinks
+    /// `stage_not_declared` below its frozen 1921 (`BaselineStale`) or grows
+    /// `unknown_stage` (a regression). Both red the required context.
     pub fn frontmatter_scalar(raw: &str, field: &str) -> Option<String> {
-        let mut in_fm = false;
+        let mut in_fm = !raw.lines().any(|line| line.trim() == "---");
         let mut started = false;
         for line in raw.lines() {
             if line.trim() == "---" {
@@ -1703,6 +1738,83 @@ mod tests {
         assert!(discovery::expand_glob(&shallow).is_err());
         assert!(discovery::expand_glob(&recursive).is_err());
     }
+    #[test]
+    fn a_wildcard_directory_component_is_a_literal_path_component_not_an_expansion() {
+        // `*/capabilities/*.yaml` LOOKS like it reaches the 378 capability
+        // records spread over 66 directories, and a lane disposition rests on
+        // it NOT doing so. `expand_glob` hands the directory half to the
+        // filesystem verbatim, so the `*` is a literal path component and the
+        // root cannot resolve. Widening this is a legitimate change — but it
+        // re-opens that disposition, which is why this assert exists.
+        let err = discovery::expand_glob("*/capabilities/*.yaml")
+            .expect_err("a wildcard directory component must not expand");
+        assert!(
+            err.contains("*/capabilities"),
+            "the unexpanded literal must appear in the error, got: {err}"
+        );
+    }
+    #[test]
+    fn a_recursive_tail_containing_a_slash_matches_zero_files_forever() {
+        // The natural-looking narrowing `<root>/**/migration-playbooks/*.md`
+        // is a vacuity bug in the costume of a correct pattern: the tail is
+        // handed to the FILE NAME matcher, and no file name begins with a
+        // directory segment.
+        assert!(
+            !discovery::matches_glob("from-vault-enterprise.md", "migration-playbooks/*.md"),
+            "a tail containing a path separator can never match a file name"
+        );
+        // Guard against co-breaking: the same name against the same tail with
+        // the directory segment removed DOES match, so the assert above is
+        // measuring the separator and not a matcher that rejects everything.
+        assert!(discovery::matches_glob(
+            "from-vault-enterprise.md",
+            "*.md"
+        ));
+    }
+    #[test]
+    fn fenceless_document_is_read_whole_without_widening_fenced_documents() {
+        // A bare declaration record — the shape of every `registry/catalog/*.yaml`.
+        // Before the fence-less admission this returned None for every field.
+        let bare = "context: audit\nrole: domain\napi_stability: preview\n";
+        assert_eq!(
+            discovery::frontmatter_scalar(bare, "api_stability").as_deref(),
+            Some("preview"),
+            "fence-less record must be read whole"
+        );
+
+        // A fenced document must NOT widen: a field that appears only in the
+        // BODY stays invisible. This is the assert that fails if the admission
+        // is written as "scan the whole document" — i.e. if the `break` at the
+        // closing fence is dropped.
+        // NOTE: the body scalar deliberately carries no `ADR-<digits>` token.
+        // `.rs` is in adr-citation-closure's scan_extensions and its
+        // citation_lines census is pinned by EQUALITY, so a realistic-looking
+        // ADR id in a test fixture reddens that gate.
+        let fenced = "---\nstatus: Accepted\n---\n\nsuperseded_by: replacement-doc\n";
+        assert_eq!(
+            discovery::frontmatter_scalar(fenced, "status").as_deref(),
+            Some("Accepted"),
+            "fenced front matter still resolves"
+        );
+        assert_eq!(
+            discovery::frontmatter_scalar(fenced, "superseded_by"),
+            None,
+            "a body line below the closing fence must stay unread"
+        );
+
+        // A line ABOVE the opening fence must also stay unread. THIS is the
+        // assert that fails if the admission is written as an unconditional
+        // `in_fm = true` rather than being keyed on the absence of a fence:
+        // the closing-fence `break` hides that mutation from the body case
+        // above, so without this line the over-broad implementation passes.
+        let preamble = "doc_status: published\n---\nstatus: Accepted\n---\n";
+        assert_eq!(
+            discovery::frontmatter_scalar(preamble, "doc_status"),
+            None,
+            "a line above the opening fence must stay unread"
+        );
+    }
+
     #[test]
     fn empty_input_is_clean() {
         let cfg = cfg_adr_status();
