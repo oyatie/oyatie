@@ -556,13 +556,15 @@ pub mod discovery {
     /// are not declarations. Every other `source_kind` retains the prior fence
     /// requirement so a fence-less ADR/doc body cannot launder `status:` lines.
     pub fn frontmatter_scalar(raw: &str, field: &str, source_kind: &str) -> Option<String> {
-        let has_fence = raw.lines().any(|line| line.trim() == "---");
-        let allow_bare = source_kind == "yaml_document";
-        if !has_fence {
-            if !allow_bare {
-                return None;
-            }
+        // `yaml_document` (catalog rows): always a bare-record reader. A leading
+        // `---` is a YAML document marker, NOT a front-matter fence — keep
+        // column-0 enforcement so nested keys after a marker cannot launder a
+        // declaration. Every other kind requires a real `---` front-matter fence.
+        if source_kind == "yaml_document" {
             for line in raw.lines() {
+                if line.trim() == "---" {
+                    continue;
+                }
                 // Bare YAML: refuse indented keys so nested maps cannot satisfy
                 // a top-level lifecycle field.
                 if !line.starts_with(field) {
@@ -578,6 +580,11 @@ pub mod discovery {
                     return Some(value.to_string());
                 }
             }
+            return None;
+        }
+
+        let has_fence = raw.lines().any(|line| line.trim() == "---");
+        if !has_fence {
             return None;
         }
         let mut in_fm = false;
@@ -1803,6 +1810,21 @@ mod tests {
             discovery::frontmatter_scalar(nested, "api_stability", "yaml_document"),
             None,
             "indented nested keys must not satisfy a bare top-level field"
+        );
+
+        // Explicit YAML document markers must not switch yaml_document into the
+        // front-matter branch (which trims indentation and would accept nested keys).
+        let marked = "---\nmetadata:\n  api_stability: preview\n";
+        assert_eq!(
+            discovery::frontmatter_scalar(marked, "api_stability", "yaml_document"),
+            None,
+            "--- is a YAML marker for yaml_document; nested keys stay unread"
+        );
+        let marked_top = "---\napi_stability: preview\n";
+        assert_eq!(
+            discovery::frontmatter_scalar(marked_top, "api_stability", "yaml_document").as_deref(),
+            Some("preview"),
+            "column-0 keys after a YAML marker remain readable"
         );
 
         // A fenced document must NOT widen: a field that appears only in the
