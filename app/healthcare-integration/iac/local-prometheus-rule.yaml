@@ -18,4 +18,4 @@ spec:
             service: healthcare-integration
           annotations:
             summary: Healthcare Integration phi-delivery-latency burn
-            runbook: microservices/healthcare-integration/runbooks/local-phi-delivery-latency-burn.md
+            runbook: app/healthcare-integration/runbooks/local-phi-delivery-latency-burn.md

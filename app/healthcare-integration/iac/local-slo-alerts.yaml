@@ -16,5 +16,5 @@ spec:
       long: 6h
       pageAt: 2
   runbooks:
-    - microservices/healthcare-integration/runbooks/local-phi-delivery-latency-burn.md
-    - microservices/healthcare-integration/runbooks/local-audit-completeness-gap.md
+    - app/healthcare-integration/runbooks/local-phi-delivery-latency-burn.md
+    - app/healthcare-integration/runbooks/local-audit-completeness-gap.md

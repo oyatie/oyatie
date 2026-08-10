@@ -6,13 +6,13 @@ bounded_context: clinical-interoperability
 layer: adapter-valkey
 layer_enum_authority: ADR-0105
 owners: [axis-healthcare-integration]
-source_root: microservices/healthcare-integration/src
+source_root: app/healthcare-integration/src
 contracts:
-  openapi: microservices/healthcare-integration/contracts/openapi-v1.yaml
-  asyncapi: microservices/healthcare-integration/contracts/asyncapi-v1.yaml
-  proto: microservices/healthcare-integration/contracts/healthcare-integration-v1.proto
+  openapi: app/healthcare-integration/contracts/openapi-v1.yaml
+  asyncapi: app/healthcare-integration/contracts/asyncapi-v1.yaml
+  proto: app/healthcare-integration/contracts/healthcare-integration-v1.proto
 policy:
-  default_deny: microservices/healthcare-integration/policy/clinical-interoperability-authorization.cedar
+  default_deny: app/healthcare-integration/policy/clinical-interoperability-authorization.cedar
 compliance:
   marketplace_settlement: ADR-0314 DealSet
   transport: ADR-0253-amendment h3-h2-h1 strict tls13 ech pqc
