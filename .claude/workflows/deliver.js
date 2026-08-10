@@ -950,7 +950,9 @@ do not invent lanes for empty space. Full list in envelopes JSON #hyperscaler_mo
 4. HUB EXCLUSIVITY — For every hub path listed in the envelopes spec that this run touches, check
    open PRs (\`gh pr list --state open --limit 500 --json number,headRefName,files\`; paginate if
    the page is full) and ensure no OTHER open integ PR already owns that hub. One hub, one owner
-   per wave. Missing waiver when needed = REFUSE.
+   per wave. Missing waiver when needed = REFUSE. Every \`active_waivers\` row MUST carry
+   \`expires_at_or_wave\`; a waiver whose named wave has already landed (or calendar expiry is past)
+   is STALE — REFUSE rather than treat it as perpetual authorization.
 
 5. ADMIT BY CHERRY-PICK — Only if 1–4 pass: cherry-pick approved unit commits onto \`${INTEG}\` in
    unit order (commit-producing, atomic). No stash, no reset, no force-push. \`--force-with-lease\`
@@ -1122,6 +1124,18 @@ SERVER-SIDE RESET (document in the PR body; execute only AFTER squash-merge to $
   No local \`git reset\`. Branch name persists for the next wave. Workers never run this.`,
   { label: 'land:single-pr-upsert', phase: 'Land' })
 
+// Land must confirm an upsert before we report a PR. A refused/failed Land is
+// prs_opened: 0 — never a successful-looking delivery for a run that opened nothing.
+const landText = typeof landed === 'string' ? landed : JSON.stringify(landed || {})
+const landPrMatch = landText.match(/https:\/\/github\.com\/[^\s"'`]+\/pull\/(\d+)/)
+  || landText.match(/\bpull\/(\d+)\b/)
+  || landText.match(/\"number\"\s*:\s*(\d+)/)
+const landPrNumber = landPrMatch ? Number(landPrMatch[1]) : 0
+const landOk = !!(landed && landPrNumber > 0 && !/\bREFUSE\b/i.test(landText.split('\n')[0] || ''))
+if (!landOk) {
+  log('Land did not confirm a PR upsert — reporting prs_opened: 0')
+}
+
 return {
   goal: GOAL,
   integration_branch: INTEG,
@@ -1131,6 +1145,8 @@ return {
   converged,
   claim: claimed,
   landed,
-  // One PR per integ/<root>, by construction. This field exists so a reader can confirm that.
-  prs_opened: 1,
+  pr_number: landOk ? landPrNumber : null,
+  pr_url: landOk ? (landPrMatch && landPrMatch[0].startsWith('http') ? landPrMatch[0] : null) : null,
+  // One PR per integ/<root> only when Land confirmed the upsert.
+  prs_opened: landOk ? 1 : 0,
 }
