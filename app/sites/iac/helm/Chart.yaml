@@ -1,0 +1,60 @@
+apiVersion: v2
+name: oya-sites
+description: |
+  Helm chart for the oyatie sites µservice. Bundles per-BC
+  Deployments + Services + HPAs + PDBs + NetworkPolicies +
+  ServiceMonitors + PrometheusRules + CronJobs (ACME cert renewal,
+  sitemap regeneration). Pulls dependency charts for Postgres
+  (page + site + cms-collection store), Valkey (page-render + CMS
+  cache), Meilisearch (per-tenant site search), cert-manager
+  (ACME cert reconcile), and libvips worker pods.
+
+  Per ADR-0131 (per-µservice flat layout) + ADR-0133 (LTS-pinned
+  versions) + ADR-SITES-0001 (Loro CRDT 1.x) + ADR-SITES-0003
+  (CDN substrate) + ADR-SITES-0004 (ACME) + ADR-SITES-0005
+  (CMS-collection + Meilisearch) + ADR-SITES-0007 (libvips
+  pipeline).
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+maintainers:
+  - name: axis-sites
+    email: sites@oyatie.com
+keywords:
+  - sites
+  - cms
+  - wordpress-class
+  - squarespace-class
+  - webflow-class
+  - notion-sites-class
+  - intranet
+  - acme
+  - rfc-8555
+  - cdn
+  - wcag-2-2-aa
+  - loro-crdt
+home: https://oyatie.com/microservices/sites
+sources:
+  - https://github.com/oyatie/oyatie/tree/main/microservices/sites
+annotations:
+  artifacthub.io/changes: |
+    - kind: added
+      description: "Initial sites µservice Helm chart (M03 ship surface)"
+  artifacthub.io/license: Internal-Use
+dependencies:
+  - name: postgres
+    version: "16.4.0"  # CloudNativePG LTS per docs/standards/observability-slo.md
+    repository: "oci://registry.oyatie.dev/charts/cloudnative-pg"
+    condition: postgres.enabled
+  - name: valkey
+    version: "7.2.0"   # LTS per docs/standards/observability-slo.md
+    repository: "oci://registry.oyatie.dev/charts/valkey-cluster"
+    condition: valkey.enabled
+  - name: meilisearch
+    version: "0.10.0"  # LTS per ADR-SITES-0005
+    repository: "oci://registry.oyatie.dev/charts/meilisearch"
+    condition: meilisearch.enabled
+  - name: cert-manager
+    version: "1.16.0"  # LTS per ADR-SITES-0004
+    repository: "oci://registry.oyatie.dev/charts/cert-manager"
+    condition: certManager.enabled

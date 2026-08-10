@@ -1,0 +1,92 @@
+{
+  "$schema": "https://schemas.grafana.com/dashboard.json",
+  "_meta": {
+    "doc_class": "GrafanaDashboard",
+    "microservice": "sites",
+    "owner_team": "axis-sites + council-product",
+    "audience": "council-product + axis-sites + axis-observability",
+    "tenant_scoped": true,
+    "datasource": "per-pack Mimir; tenant-scoped via X-Scope-OrgID"
+  },
+  "uid": "sites-editor-experience",
+  "title": "sites: editor experience + AI usage",
+  "tags": ["sites", "editor", "crdt", "ai"],
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "1m",
+  "time": {"from": "now-24h", "to": "now"},
+  "templating": {
+    "list": [
+      {"name": "pack", "type": "custom", "label": "Pack",
+        "options": [
+          {"text": "pack-kr", "value": "kr", "selected": true},
+          {"text": "pack-eu", "value": "eu"},
+          {"text": "pack-us", "value": "us"},
+          {"text": "pack-us-healthcare", "value": "us-hc"}
+        ]},
+      {"name": "tenant", "type": "query", "label": "Tenant",
+        "query": "label_values(oya_sites_editor_session_total{pack=\"$pack\"}, tenant_id)"}
+    ]
+  },
+  "panels": [
+    {"id": 1, "type": "stat", "title": "Active editor sessions",
+      "gridPos": {"x": 0, "y": 0, "w": 6, "h": 4},
+      "targets": [{"expr": "sum(oya_sites_editor_session_active{pack=\"$pack\",tenant_id=\"$tenant\"})", "refId": "A"}]},
+
+    {"id": 2, "type": "stat", "title": "Co-editing sessions (Loro CRDT)",
+      "gridPos": {"x": 6, "y": 0, "w": 6, "h": 4},
+      "targets": [{"expr": "sum(oya_sites_crdt_session_active{pack=\"$pack\",tenant_id=\"$tenant\"})", "refId": "A"}]},
+
+    {"id": 3, "type": "stat", "title": "T2 AI-page-build calls / 24h",
+      "gridPos": {"x": 12, "y": 0, "w": 6, "h": 4},
+      "targets": [{"expr": "sum(increase(oya_sites_ai_page_build_total{pack=\"$pack\",tenant_id=\"$tenant\"}[24h]))", "refId": "A"}]},
+
+    {"id": 4, "type": "stat", "title": "T2 AI-page-build refusal ratio (EU AI Act)",
+      "gridPos": {"x": 18, "y": 0, "w": 6, "h": 4},
+      "targets": [{"expr": "sum(rate(oya_sites_ai_page_build_refused_total{pack=\"$pack\",tenant_id=\"$tenant\",reason=\"context_overlay_high_risk\"}[1h])) / sum(rate(oya_sites_ai_page_build_total{pack=\"$pack\",tenant_id=\"$tenant\"}[1h]))", "refId": "A"}],
+      "fieldConfig": {"defaults": {"unit": "percentunit"}}},
+
+    {"id": 5, "type": "timeseries", "title": "Loro CRDT ops/s (per-tenant)",
+      "gridPos": {"x": 0, "y": 4, "w": 12, "h": 8},
+      "targets": [
+        {"expr": "sum(rate(oya_sites_crdt_op_total{pack=\"$pack\",tenant_id=\"$tenant\"}[5m]))", "legendFormat": "ops/s", "refId": "A"}
+      ]},
+
+    {"id": 6, "type": "timeseries", "title": "Editor write latency p50/p95/p99",
+      "gridPos": {"x": 12, "y": 4, "w": 12, "h": 8},
+      "targets": [
+        {"expr": "histogram_quantile(0.50, sum by (le) (rate(oya_sites_editor_write_seconds_bucket{pack=\"$pack\",tenant_id=\"$tenant\"}[5m])))", "legendFormat": "p50", "refId": "A"},
+        {"expr": "histogram_quantile(0.95, sum by (le) (rate(oya_sites_editor_write_seconds_bucket{pack=\"$pack\",tenant_id=\"$tenant\"}[5m])))", "legendFormat": "p95", "refId": "B"},
+        {"expr": "histogram_quantile(0.99, sum by (le) (rate(oya_sites_editor_write_seconds_bucket{pack=\"$pack\",tenant_id=\"$tenant\"}[5m])))", "legendFormat": "p99", "refId": "C"}
+      ]},
+
+    {"id": 7, "type": "timeseries", "title": "T0/T1/T2 invocations by tier",
+      "gridPos": {"x": 0, "y": 12, "w": 12, "h": 8},
+      "targets": [
+        {"expr": "sum(rate(oya_sites_t0_invocation_total{pack=\"$pack\",tenant_id=\"$tenant\"}[1h]))", "legendFormat": "T0", "refId": "A"},
+        {"expr": "sum(rate(oya_sites_t1_invocation_total{pack=\"$pack\",tenant_id=\"$tenant\"}[1h]))", "legendFormat": "T1", "refId": "B"},
+        {"expr": "sum(rate(oya_sites_t2_invocation_total{pack=\"$pack\",tenant_id=\"$tenant\"}[1h]))", "legendFormat": "T2", "refId": "C"}
+      ]},
+
+    {"id": 8, "type": "timeseries", "title": "T2 AI-page-build accept ratio (within 30s window)",
+      "gridPos": {"x": 12, "y": 12, "w": 12, "h": 8},
+      "targets": [
+        {"expr": "sum(rate(oya_sites_ai_page_build_accepted_total{pack=\"$pack\",tenant_id=\"$tenant\"}[1h])) / sum(rate(oya_sites_ai_page_build_total{pack=\"$pack\",tenant_id=\"$tenant\"}[1h]))", "legendFormat": "accept ratio", "refId": "A"}
+      ]},
+
+    {"id": 9, "type": "timeseries", "title": "Image-upload + optimize duration p95",
+      "gridPos": {"x": 0, "y": 20, "w": 12, "h": 8},
+      "targets": [
+        {"expr": "histogram_quantile(0.95, sum by (le) (rate(oya_sites_image_optimize_duration_seconds_bucket{pack=\"$pack\",tenant_id=\"$tenant\"}[5m])))", "legendFormat": "p95 (s)", "refId": "A"}
+      ]},
+
+    {"id": 10, "type": "timeseries", "title": "Domain-binding + cert events",
+      "gridPos": {"x": 12, "y": 20, "w": 12, "h": 8},
+      "targets": [
+        {"expr": "sum(rate(oya_sites_domain_bound_total{pack=\"$pack\",tenant_id=\"$tenant\"}[1h]))", "legendFormat": "domain bind", "refId": "A"},
+        {"expr": "sum(rate(oya_sites_cert_issued_total{pack=\"$pack\",tenant_id=\"$tenant\"}[1h]))", "legendFormat": "cert issued", "refId": "B"},
+        {"expr": "sum(rate(oya_sites_cert_renewed_total{pack=\"$pack\",tenant_id=\"$tenant\"}[1h]))", "legendFormat": "cert renewed", "refId": "C"},
+        {"expr": "sum(rate(oya_sites_cert_renewal_failed_total{pack=\"$pack\",tenant_id=\"$tenant\"}[1h]))", "legendFormat": "cert renew failed", "refId": "D"}
+      ]}
+  ]
+}

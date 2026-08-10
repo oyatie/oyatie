@@ -59,7 +59,7 @@
       "transport": "http2",
       "language_profile": "proto3",
       "contracts": [
-        "oya/sites/contracts/proto/sites.proto"
+        "app/sites/contracts/proto/sites.proto"
       ]
     }
   },
@@ -88,55 +88,55 @@
       "name": "sites-accessibility-wcag-correctness",
       "target": "1.0",
       "sli": "sum(rate(oya_sites_wcag_aa_validation_total{result=\"passed\"}[5m]))",
-      "file": "oya/sites/slos/accessibility-wcag-correctness.openslo.yaml"
+      "file": "app/sites/slos/accessibility-wcag-correctness.openslo.yaml"
     },
     {
       "name": "sites-acme-renew-latency",
       "target": "0.95",
       "sli": "histogram_quantile(0.95, sum(rate(oya_sites_acme_renewal_duration_seconds_bucket[5m])) by (le))",
-      "file": "oya/sites/slos/acme-renew-latency.openslo.yaml"
+      "file": "app/sites/slos/acme-renew-latency.openslo.yaml"
     },
     {
       "name": "sites-cms-query-latency",
       "target": "0.99",
       "sli": "histogram_quantile(0.95, sum(rate(oya_sites_cms_query_seconds_bucket[5m])) by (le))",
-      "file": "oya/sites/slos/cms-query-latency.openslo.yaml"
+      "file": "app/sites/slos/cms-query-latency.openslo.yaml"
     },
     {
       "name": "sites-image-optimize-latency",
       "target": "0.95",
       "sli": "histogram_quantile(0.95, sum(rate(oya_sites_image_optimize_duration_seconds_bucket[5m])) by (le))",
-      "file": "oya/sites/slos/image-optimize-latency.openslo.yaml"
+      "file": "app/sites/slos/image-optimize-latency.openslo.yaml"
     },
     {
       "name": "sites-page-render-latency",
       "target": "0.99",
       "sli": "histogram_quantile(0.95, sum(rate(oya_sites_page_render_seconds_bucket[5m])) by (le))",
-      "file": "oya/sites/slos/page-render-latency.openslo.yaml"
+      "file": "app/sites/slos/page-render-latency.openslo.yaml"
     },
     {
       "name": "sites-publish-latency",
       "target": "0.95",
       "sli": "histogram_quantile(0.95, sum(rate(oya_sites_publish_duration_seconds_bucket{site_size_class=\"medium\"}[5m])) by (le))",
-      "file": "oya/sites/slos/publish-latency.openslo.yaml"
+      "file": "app/sites/slos/publish-latency.openslo.yaml"
     },
     {
       "name": "sites-seo-meta-correctness",
       "target": "1.0",
       "sli": "sum(rate(oya_sites_seo_meta_validation_total{result=\"passed\"}[5m]))",
-      "file": "oya/sites/slos/seo-meta-correctness.openslo.yaml"
+      "file": "app/sites/slos/seo-meta-correctness.openslo.yaml"
     },
     {
       "name": "sites-site-search-latency",
       "target": "0.99",
       "sli": "histogram_quantile(0.95, sum(rate(oya_sites_search_query_seconds_bucket[5m])) by (le))",
-      "file": "oya/sites/slos/site-search-latency.openslo.yaml"
+      "file": "app/sites/slos/site-search-latency.openslo.yaml"
     },
     {
       "name": "sites-static-asset-latency",
       "target": "0.999",
       "sli": "histogram_quantile(0.95, sum(rate(oya_sites_static_asset_seconds_bucket{cache_state=\"hit\"}[5m])) by (le))",
-      "file": "oya/sites/slos/static-asset-latency.openslo.yaml"
+      "file": "app/sites/slos/static-asset-latency.openslo.yaml"
     }
   ],
   "ips": [

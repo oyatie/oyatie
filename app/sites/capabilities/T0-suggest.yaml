@@ -1,0 +1,143 @@
+# Canonical-base: specs/capabilities/canonical-tier-schema.json + eu-ai-act-risk-class-registry.json (SWEEP-I Slice 5 per ADR-0064)
+# T0-suggest capabilities — sites µservice
+#
+# Autonomy Tier 0: "suggest only". The system surfaces a recommendation; the user
+# must explicitly accept before any state mutation occurs. No reversibility window
+# is engaged because no action has been taken.
+#
+# Per `/specs/agentic-tiers.json` v1.0 + ADR-0133 + ADR-0140 (retired per ADR-0145).
+# Per EU AI Act Art. 50 transparency (informational labels apply even at T0).
+
+doc_class: AutonomyTierCatalog
+microservice: sites
+tier: T0
+owner_team: axis-sites + foundry-runtime
+date: 2026-05-17
+review_cadence: per-capability-launch + quarterly
+
+capabilities:
+  - id: T0-sites-seo-suggest
+    name: "SEO-meta suggestions"
+    description: |
+      Suggests title (≤70 chars), meta description (≤160 chars), Open Graph
+      tags, Twitter Card tags, and schema.org JSON-LD documents for a draft
+      page based on its content. User reviews + edits + accepts before publish.
+    surface: editor-ui (REST GET /v1/assist/seo-suggest)
+    triggers:
+      - editor explicitly requests "suggest SEO meta"
+      - editor opens publish-prep panel for a draft page
+    consent_basis:
+      personal_context: explicit-on-invocation
+      professional_context: explicit-on-invocation + tenant-policy-admission
+    data_class_processed: [BEHAVIORAL_TENANT_PRODUCT, PUBLIC_BY_TENANT_CHOICE]
+    data_class_emitted: PUBLIC_BY_TENANT_CHOICE
+    reversibility:
+      window_seconds: 0    # suggestion-only; nothing acted on
+      action_on_cancel: dismiss banner
+      cancel_surface: editor banner
+    model:
+      primary: tenant-default-llm
+      fallback: rule-based (extract first 70 chars of H1 title; extract first 160 chars of body for description)
+      private_inference: tenant-DEK-wrapped prompt; no cross-tenant training
+    latency_budget_p99_ms: 1500
+    audit_event: SitesSeoSuggested (Ed25519-sealed; payload — page id hash + suggestion hash)
+    fallback_on_model_failure: fall back to rule-based heuristic
+    risk_classification: minimal-risk
+    user_label: "AI suggested SEO meta — review before publish"
+
+  - id: T0-sites-alt-text-suggest
+    name: "Alt-text suggestion for images"
+    description: |
+      Suggests alt-text for an uploaded image. Suggestion is shown next to the
+      image in the editor; user must explicitly accept (or override) before
+      publish. WCAG 2.2 SC 1.1.1 — alt-text is mandatory; this is an authoring aid.
+    surface: editor-ui (REST POST /v1/assist/alt-text-suggest)
+    triggers:
+      - editor uploads an image block
+    consent_basis:
+      personal_context: explicit-on-opt-in
+      professional_context: explicit-on-opt-in + tenant-policy-admission
+    data_class_processed: [PUBLIC_BY_TENANT_CHOICE]
+    data_class_emitted: PUBLIC_BY_TENANT_CHOICE
+    reversibility:
+      window_seconds: 0
+      action_on_cancel: dismiss banner
+      cancel_surface: editor banner
+    model:
+      primary: tenant-default-llm-vision
+      fallback: empty-string + LEAN reminder to author manually
+      private_inference: tenant-DEK-wrapped image upload; no cross-tenant training
+    latency_budget_p99_ms: 2000
+    audit_event: SitesAltTextSuggested (Ed25519-sealed; payload — image hash + suggestion hash)
+    fallback_on_model_failure: empty suggestion (tenant must author)
+    risk_classification: minimal-risk
+    user_label: "AI suggested alt-text — edit if needed"
+    accessibility_note: |
+      Alt-text MUST be authored even if T0 is disabled. This capability accelerates
+      authoring, not replaces it. WCAG 2.2 AA correctness lane refuses publish on
+      empty alt-text regardless of T0.
+
+  - id: T0-sites-content-suggest
+    name: "Content suggestion for blocks"
+    description: |
+      Suggests paragraph completions / heading rewrites / link-anchor improvements
+      for blocks the user is currently editing. Inline editor surface. No accept
+      = no mutation.
+    surface: editor-ui (inline ghost text)
+    triggers:
+      - editor is actively typing in a block
+      - editor invokes "rewrite this" command
+    consent_basis:
+      personal_context: explicit-on-opt-in
+      professional_context: explicit-on-opt-in + tenant-policy-admission
+    data_class_processed: [BEHAVIORAL_TENANT_PRODUCT]
+    data_class_emitted: BEHAVIORAL_TENANT_PRODUCT (only if user accepts)
+    reversibility:
+      window_seconds: 0
+      action_on_cancel: dismiss ghost text
+      cancel_surface: keyboard ESC or click-away
+    model:
+      primary: tenant-default-llm
+      fallback: no fallback (silent)
+      private_inference: tenant-DEK-wrapped prompt
+    latency_budget_p99_ms: 800
+    audit_event: SitesContentSuggested (Ed25519-sealed; payload — block id hash + suggestion hash + accepted flag)
+    fallback_on_model_failure: silent
+    risk_classification: minimal-risk
+    user_label: "AI suggestion — Tab to accept, ESC to dismiss"
+
+  - id: T0-sites-redirect-suggest
+    name: "Redirect suggestion on URL change"
+    description: |
+      When an editor changes a page's route, the system suggests adding a 301
+      redirect from the old route to the new one. User must accept.
+    surface: editor-ui (REST POST /v1/assist/redirect-suggest)
+    triggers:
+      - editor changes a page's `route` field
+    consent_basis: explicit-on-opt-in (per-user preference)
+    data_class_processed: [INTERNAL_ONLY]
+    data_class_emitted: INTERNAL_ONLY
+    reversibility: {window_seconds: 0}
+    model: {primary: rule-based; no LLM}
+    latency_budget_p99_ms: 100
+    audit_event: SitesRedirectSuggested
+    risk_classification: minimal-risk
+    user_label: "Suggested redirect 301 — review"
+
+verification:
+  - All T0 capabilities are pure-suggestion — no state mutation without explicit user accept.
+  - All T0 suggestions emit a Cedar-evaluable principal/action/resource triple BEFORE rendering the suggestion.
+  - All T0 suggestions emit an audit-chain event when accepted (and optionally when dismissed for telemetry).
+  - All T0 capabilities are labelled per EU AI Act Art. 50.
+  - All T0 capabilities respect tenant-isolation: Tenant-A's prompts NEVER include Tenant-B's content.
+  - All T0 capabilities are tenant-tenant_class-gated: demo_trial tenant_class may receive rule-based; pro/business/enterprise unlock LLM-backed.
+
+references:
+  - /specs/agentic-tiers.json — autonomy tier spec.
+  - ADR-0140 — Cedar policy enforcement substrate.
+  - ADR-0133 — autonomy tiering as industry-best-practice axis.
+  - ADR-SITES-0006 — AI-page-build bounds (sibling at T2).
+  - EU AI Act Regulation (EU) 2024/1689 — Art. 50 transparency.
+  - WCAG 2.2 SC 1.1.1 (alt-text).
+  - microservices/sites/PRD.md §FR-26 (accessibility), §FR-09 (SEO).
+  - microservices/sites/policy/editor-isolation.md.

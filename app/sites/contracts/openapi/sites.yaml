@@ -1,0 +1,526 @@
+openapi: 3.2.0
+info:
+  title: oyatie Sites µservice API
+  version: 1.0.0
+  description: |
+    Sites µservice REST API. Surfaces site, page, block, theme, navigation,
+    url-routing, domain-binding, seo, cms-collection, search, and cdn-delivery
+    bounded contexts.
+
+    Per ADR-0135 (unbundle) + ADR-0132 (no-grouping forward policy):
+    sites is a standalone tenant-facing µservice. Cross-tenant flows traverse
+    Workflow + Ontology.
+
+    Authentication: OIDC + per-tenant API key (over HTTPS + mTLS where applicable).
+    Authorisation: Cedar policies (`tenant-scope.cedar`, `auditor-scope.cedar`,
+    `public-read.cedar`, `ci-scope.cedar`).
+  contact:
+    name: axis-sites
+    email: sites@oyatie.com
+  license:
+    name: Internal-Use
+servers:
+  - url: https://sites.{pack}.oyatie.com/v1
+    description: per-pack production endpoint
+    variables:
+      pack:
+        enum: [kr, eu, us, us-healthcare, jp, sg, au, in, br, ae, ksa]
+        default: kr
+
+security:
+  - oidcBearer: []
+  - tenantApiKey: []
+
+tags:
+  - name: sites
+    description: Site lifecycle (site BC)
+  - name: pages
+    description: Page lifecycle (page BC)
+  - name: blocks
+    description: Block authoring (block BC)
+  - name: themes
+    description: Theme + design tokens (theme BC)
+  - name: navigation
+    description: Header/footer/sidebar nav (navigation BC)
+  - name: url-routing
+    description: Clean URLs + redirects (url-routing BC)
+  - name: domains
+    description: Custom domain + ACME cert (domain-binding BC)
+  - name: seo
+    description: Meta + sitemap + robots (seo BC)
+  - name: cms-collections
+    description: Structured content (cms-collection BC)
+  - name: search
+    description: Site-wide search (search BC)
+  - name: cdn
+    description: Publish + cache invalidation (cdn-delivery BC)
+  - name: ai
+    description: T2 AI-page-build (page BC + foundry-runtime)
+
+paths:
+  /sites:
+    post:
+      summary: Create a site
+      tags: [sites]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SiteCreateRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Site'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '422': {$ref: '#/components/responses/UnprocessableEntity'}
+    get:
+      summary: List sites for the calling tenant
+      tags: [sites]
+      parameters:
+        - {name: visibility, in: query, schema: {type: string, enum: [public, intranet, private, draft]}}
+        - {name: limit,      in: query, schema: {type: integer, maximum: 1000, default: 50}}
+        - {name: cursor,     in: query, schema: {type: string}}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items: {type: array, items: {$ref: '#/components/schemas/Site'}}
+                  next_cursor: {type: string, nullable: true}
+
+  /sites/{site_id}:
+    parameters:
+      - {name: site_id, in: path, required: true, schema: {type: string, format: uuid}}
+    get:
+      summary: Get site
+      tags: [sites]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Site'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+    patch:
+      summary: Update site
+      tags: [sites]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/SiteUpdateRequest'}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Site'}
+    delete:
+      summary: Delete site (refused if legal-hold open)
+      tags: [sites]
+      responses:
+        '204': {description: No Content}
+        '409': {description: Legal hold open}
+
+  /sites/{site_id}/pages:
+    parameters:
+      - {name: site_id, in: path, required: true, schema: {type: string, format: uuid}}
+    post:
+      summary: Create page
+      tags: [pages]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/PageCreateRequest'}
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Page'}
+
+  /sites/{site_id}/pages/{page_id}:
+    parameters:
+      - {name: site_id, in: path, required: true, schema: {type: string, format: uuid}}
+      - {name: page_id, in: path, required: true, schema: {type: string, format: uuid}}
+    get: {tags: [pages], summary: Get page, responses: {'200': {description: OK, content: {application/json: {schema: {$ref: '#/components/schemas/Page'}}}}}}
+    patch:
+      tags: [pages]
+      summary: Update page draft
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/PageUpdateRequest'}}}}
+      responses: {'200': {description: OK}}
+    delete:
+      tags: [pages]
+      summary: Delete page (refused if legal-hold open)
+      responses: {'204': {description: No Content}, '409': {description: Legal hold open}}
+
+  /sites/{site_id}/pages/{page_id}/publish:
+    parameters:
+      - {name: site_id, in: path, required: true, schema: {type: string, format: uuid}}
+      - {name: page_id, in: path, required: true, schema: {type: string, format: uuid}}
+    post:
+      tags: [pages]
+      summary: Publish page draft → live
+      responses:
+        '202': {description: Publish enqueued; returns job id}
+        '422': {description: WCAG/SEO refusal; tenant must fix}
+
+  /sites/{site_id}/pages/{page_id}/revert:
+    parameters:
+      - {name: site_id, in: path, required: true, schema: {type: string, format: uuid}}
+      - {name: page_id, in: path, required: true, schema: {type: string, format: uuid}}
+    post:
+      tags: [pages]
+      summary: Revert page to prior version
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/PageRevertRequest'}}}}
+      responses: {'202': {description: Revert enqueued}}
+
+  /sites/{site_id}/pages/{page_id}/ai-build:
+    parameters:
+      - {name: site_id, in: path, required: true, schema: {type: string, format: uuid}}
+      - {name: page_id, in: path, required: true, schema: {type: string, format: uuid}}
+    post:
+      tags: [ai]
+      summary: T2 AI-page-build (refused for HR/legal/medical context per ADR-SITES-0006)
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/AiPageBuildRequest'}}}}
+      responses:
+        '200': {description: Suggested page draft; 30s reversibility window}
+        '403': {description: Context refused per EU AI Act}
+
+  /sites/{site_id}/domains:
+    parameters:
+      - {name: site_id, in: path, required: true, schema: {type: string, format: uuid}}
+    post:
+      tags: [domains]
+      summary: Bind custom domain (DNS verify + ACME cert)
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/DomainBindRequest'}}}}
+      responses:
+        '202': {description: DNS verify + ACME issuance pending; returns challenge details}
+
+  /sites/{site_id}/domains/{domain}:
+    parameters:
+      - {name: site_id, in: path, required: true, schema: {type: string, format: uuid}}
+      - {name: domain, in: path, required: true, schema: {type: string}}
+    delete:
+      tags: [domains]
+      summary: Unbind custom domain (revokes cert)
+      responses: {'204': {description: No Content}}
+
+  /sites/{site_id}/redirects:
+    parameters:
+      - {name: site_id, in: path, required: true, schema: {type: string, format: uuid}}
+    post:
+      tags: [url-routing]
+      summary: Create redirect (301/302/410)
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/RedirectCreateRequest'}}}}
+      responses: {'201': {description: Created}}
+
+  /sites/{site_id}/sitemap.xml:
+    parameters:
+      - {name: site_id, in: path, required: true, schema: {type: string, format: uuid}}
+    get:
+      tags: [seo]
+      summary: Emit sitemap.xml per Sitemap protocol
+      responses:
+        '200':
+          description: OK
+          content:
+            application/xml: {schema: {type: string}}
+
+  /sites/{site_id}/robots.txt:
+    parameters:
+      - {name: site_id, in: path, required: true, schema: {type: string, format: uuid}}
+    get:
+      tags: [seo]
+      summary: Emit robots.txt per Robots Exclusion Protocol
+      responses:
+        '200':
+          description: OK
+          content:
+            text/plain: {schema: {type: string}}
+
+  /sites/{site_id}/cms-collections:
+    parameters:
+      - {name: site_id, in: path, required: true, schema: {type: string, format: uuid}}
+    post:
+      tags: [cms-collections]
+      summary: Define CMS collection type
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/CollectionTypeCreateRequest'}}}}
+      responses: {'201': {description: Created}}
+
+  /sites/{site_id}/cms-collections/{collection_id}/entries:
+    parameters:
+      - {name: site_id, in: path, required: true, schema: {type: string, format: uuid}}
+      - {name: collection_id, in: path, required: true, schema: {type: string, format: uuid}}
+    post:
+      tags: [cms-collections]
+      summary: Create entry in CMS collection
+      responses: {'201': {description: Created}}
+    get:
+      tags: [cms-collections]
+      summary: List entries
+      responses: {'200': {description: OK}}
+
+  /sites/{site_id}/search:
+    parameters:
+      - {name: site_id, in: path, required: true, schema: {type: string, format: uuid}}
+    get:
+      tags: [search]
+      summary: Site-wide search
+      parameters:
+        - {name: q, in: query, required: true, schema: {type: string}}
+        - {name: limit, in: query, schema: {type: integer, maximum: 100, default: 10}}
+        - {name: scope, in: query, schema: {type: string, enum: [public_only, intranet, all]}}
+      responses:
+        '200': {description: OK, content: {application/json: {schema: {$ref: '#/components/schemas/SearchResultPage'}}}}
+
+  /sites/{site_id}/cdn-purge:
+    parameters:
+      - {name: site_id, in: path, required: true, schema: {type: string, format: uuid}}
+    post:
+      tags: [cdn]
+      summary: Invalidate CDN cache for URL pattern (signed)
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/CdnPurgeRequest'}}}}
+      responses: {'202': {description: Purge enqueued}}
+
+components:
+  x-oyatie-sharding-automation-event-surface:
+    microservice: sites
+    wave: 15-ZF-13
+    artifact_type: contracts
+    scope: OpenAPI components metadata for the sharding_automation event surface.
+    wire_shape: Extension-only annotation; no paths, operations, schemas, requestBodies, responses, headers, securitySchemes, or examples are added.
+    doctrine_refs:
+      ADR-0346:
+        purpose: >-
+          Establish that ./bin/oya verify --ci-required is the canonical local pre-push verifier and MUST locally mirror the full CI matrix and MUST block on exit-0 of EACH step before returning success to the caller.
+        enforced_by:
+          - oya-governance-oya-verify-ci-mirror-coverage
+          - oya-governance-oya-verify-ci-step-exit-semantics
+          - oya-governance-oya-verify-skip-flag-allowlist
+          - oya-governance-oya-submit-calls-verify
+          - oya-governance-oya-verify-exit-code-contract
+      ADR-0347:
+        purpose: >-
+          Declare that every oya-governance-* CI lane prefix in the Oyatie corpus RENAMES to oya-governance-* in a single bulk-rename pull request.
+        enforced_by:
+          - oya-governance-no-foundry-fitness-residue
+          - oya-governance-lane-prefix-vocabulary
+          - oya-governance-rename-inventory-presence
+      ADR-0348:
+        purpose: >-
+          Declare that cellular topology MUST support three control-plane-driven automation modes: AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING.
+        enforced_by:
+          - oya-governance-sharding-automation-coverage
+          - oya-governance-autosharding-manual-mode-refusal
+          - oya-governance-auto-rebalance-residency-honored
+          - oya-governance-dynamic-sharding-threshold-coverage
+          - oya-governance-audit-chain-emit-on-automation-events
+          - oya-governance-tenant-migration-reversibility
+        event_surface:
+          autosharding: tenant_to_cell_shard_placement is computed by the control plane automatically.
+          auto_rebalance: tenant migration honors residency and compliance pack constraints and is observable, reversible, and audit-chain-emit per ADR-0263.
+          dynamic_sharding: HOT-SPLIT and COLD-MERGE shard-count operations are atomic and audit-emit.
+          manifest_block: sharding_automation declares autosharding, auto_rebalance, and dynamic_sharding sub-blocks.
+      ADR-0349:
+        purpose: >-
+          Declare Jenkins (LTS) and ArgoCD as the two canonical self-hostable CI/CD substrates for the Oyatie corpus.
+        enforced_by:
+          - oya-governance-jenkins-github-actions-parity
+          - oya-governance-argocd-application-cosign-verified
+          - oya-governance-argocd-tenant-namespace-isolation
+          - oya-governance-jenkins-jcasc-only
+          - oya-governance-deploy-audit-chain-emit
+    consumer_guidance:
+      generators: Ignore this x-extension for SDK and server wire generation.
+      governance: Use this x-extension as doctrine metadata for sharding_automation event-surface review only.
+  securitySchemes:
+    oidcBearer: {type: openIdConnect, openIdConnectUrl: 'https://auth.oyatie.com/.well-known/openid-configuration'}
+    tenantApiKey: {type: apiKey, in: header, name: X-Oyatie-Tenant-Api-Key}
+
+  responses:
+    Forbidden:
+      description: Cedar policy refused
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/Error'}
+    UnprocessableEntity:
+      description: Validation failure (e.g., WCAG-AA refusal at publish)
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/Error'}
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/Error'}
+
+  schemas:
+    Site:
+      type: object
+      properties:
+        site_id: {type: string, format: uuid}
+        tenant_id: {type: string, format: uuid}
+        name: {type: string}
+        visibility: {type: string, enum: [public, intranet, private, draft]}
+        owner_user_id: {type: string, format: uuid}
+        created_at: {type: string, format: date-time}
+        updated_at: {type: string, format: date-time}
+        version: {type: integer}
+      required: [site_id, tenant_id, name, visibility, owner_user_id, created_at, updated_at, version]
+
+    SiteCreateRequest:
+      type: object
+      properties:
+        name: {type: string, maxLength: 200}
+        visibility: {type: string, enum: [public, intranet, private, draft]}
+      required: [name, visibility]
+
+    SiteUpdateRequest:
+      type: object
+      properties:
+        name: {type: string}
+        visibility: {type: string, enum: [public, intranet, private, draft]}
+
+    Page:
+      type: object
+      properties:
+        page_id: {type: string, format: uuid}
+        site_id: {type: string, format: uuid}
+        route: {type: string, description: "Clean URL path, e.g., /about, /blog/[slug]"}
+        title: {type: string}
+        page_state: {type: string, enum: [draft, scheduled, internal_review, published]}
+        published_version: {type: integer, nullable: true}
+        draft_version: {type: integer}
+        legal_hold_open: {type: boolean, default: false}
+        created_at: {type: string, format: date-time}
+        updated_at: {type: string, format: date-time}
+        blocks: {type: array, items: {$ref: '#/components/schemas/Block'}}
+        seo_meta: {$ref: '#/components/schemas/SeoMeta'}
+      required: [page_id, site_id, route, page_state, draft_version, created_at, updated_at]
+
+    PageCreateRequest:
+      type: object
+      properties:
+        route: {type: string}
+        title: {type: string}
+      required: [route, title]
+
+    PageUpdateRequest:
+      type: object
+      properties:
+        title: {type: string}
+        blocks: {type: array, items: {$ref: '#/components/schemas/Block'}}
+        seo_meta: {$ref: '#/components/schemas/SeoMeta'}
+
+    PageRevertRequest:
+      type: object
+      properties:
+        to_version: {type: integer}
+        reason: {type: string}
+      required: [to_version]
+
+    Block:
+      type: object
+      properties:
+        block_id: {type: string, format: uuid}
+        kind: {type: string, enum: [paragraph, heading, image, video, embed, form, cms-collection, code, quote, divider]}
+        portable_text: {type: object, description: "Sanity-style portable-text per ADR-SITES-0005"}
+        version: {type: integer}
+      required: [block_id, kind, portable_text, version]
+
+    SeoMeta:
+      type: object
+      properties:
+        title: {type: string, maxLength: 70}
+        description: {type: string, maxLength: 160}
+        canonical_url: {type: string, format: uri}
+        og:
+          type: object
+          properties:
+            title: {type: string}
+            description: {type: string}
+            image: {type: string, format: uri}
+            type: {type: string}
+        twitter:
+          type: object
+          properties:
+            card: {type: string, enum: [summary, summary_large_image]}
+            title: {type: string}
+            description: {type: string}
+            image: {type: string, format: uri}
+        json_ld: {type: array, items: {type: object}, description: "schema.org JSON-LD documents"}
+        hreflang: {type: array, items: {type: object, properties: {lang: {type: string}, url: {type: string, format: uri}}}}
+
+    AiPageBuildRequest:
+      type: object
+      properties:
+        prompt: {type: string, maxLength: 5000}
+        context_overlay: {type: string, enum: [marketing, blog, product, landing, intranet_general], description: "HR/legal/medical/employment/credit are REFUSED per ADR-SITES-0006"}
+      required: [prompt, context_overlay]
+
+    DomainBindRequest:
+      type: object
+      properties:
+        domain: {type: string, description: "FQDN, apex or subdomain, wildcard allowed (e.g., *.acme.example)"}
+        prefer_challenge: {type: string, enum: [dns01, http01, tls-alpn-01], default: dns01}
+      required: [domain]
+
+    RedirectCreateRequest:
+      type: object
+      properties:
+        from_path: {type: string}
+        to_path: {type: string}
+        status: {type: integer, enum: [301, 302, 410]}
+      required: [from_path, status]
+
+    CollectionTypeCreateRequest:
+      type: object
+      properties:
+        name: {type: string}
+        fields:
+          type: array
+          items:
+            type: object
+            properties:
+              name: {type: string}
+              type: {type: string, enum: [string, text, number, boolean, datetime, image, link, relationship]}
+              required: {type: boolean, default: false}
+      required: [name, fields]
+
+    SearchResultPage:
+      type: object
+      properties:
+        hits:
+          type: array
+          items:
+            type: object
+            properties:
+              page_id: {type: string, format: uuid}
+              route: {type: string}
+              title: {type: string}
+              snippet: {type: string}
+              score: {type: number, format: float}
+        next_cursor: {type: string, nullable: true}
+
+    CdnPurgeRequest:
+      type: object
+      properties:
+        pattern: {type: string, description: "URL pattern; '/' refused (over-broad)"}
+        scope: {type: string, enum: [single, site], default: single}
+      required: [pattern]
+
+    Error:
+      type: object
+      properties:
+        code: {type: string}
+        message: {type: string}
+        policy_citation: {type: string, description: "When refused by Cedar, the cited policy file + rule"}

@@ -1,0 +1,21 @@
+# Canonical-base: specs/catalog/canonical-crate-record-schema.json (SWEEP-I Slice 6 per ADR-0064)
+name: oya-sites-cdn-delivery-adapter-cloudflare-cdn-stub
+role: adapter
+context: sites
+bc: cdn-delivery
+plane: control
+slo: preview-control-plane
+contracts_consumed: [oya-sites-cdn-delivery-kernel.port.CacheInvalidator]
+contracts_exposed: []
+backend: cloudflare-cdn-stub
+backend_lts_pin: "Cloudflare API 2026-01-01"
+backend_residency: per-pack
+regulatory_packs_consumed: [oya-pack-kr, oya-pack-eu, oya-pack-us, oya-pack-us-healthcare, oya-pack-jp, oya-pack-sg, oya-pack-au, oya-pack-in, oya-pack-br, oya-pack-ae, oya-pack-ksa]
+lifecycle: {state: incubating, preview_since: 2026-05-17}
+traceability:
+  source_adrs: [ADR-0105, ADR-SITES-0003]
+data_classes_owned: [INTERNAL_ONLY]
+notes: |
+  Stub adapter per ADR-SITES-0003 — concrete Cloudflare-class or
+  self-managed Varnish/Caddy substrate selected per pack overlay.
+  Signed Ed25519 purge contract; cache-key version-hash format.
