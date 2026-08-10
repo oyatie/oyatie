@@ -208,97 +208,97 @@
       "id": "IP-001",
       "title": "Zitadel Helm deployment per pack",
       "acceptance_status": "ga",
-      "file": "microservices/identity/IP-001-zitadel-helm-per-pack.md"
+      "file": "iam/identity/IP-001-zitadel-helm-per-pack.md"
     },
     {
       "id": "IP-002",
       "title": "OIDC issuer kernel + JWKS verify",
       "acceptance_status": "ga",
-      "file": "microservices/identity/IP-002-oidc-issuer-kernel.md"
+      "file": "iam/identity/IP-002-oidc-issuer-kernel.md"
     },
     {
       "id": "IP-003",
       "title": "OIDC issuer Zitadel adapter",
       "acceptance_status": "ga",
-      "file": "microservices/identity/IP-003-oidc-issuer-adapter-zitadel.md"
+      "file": "iam/identity/IP-003-oidc-issuer-adapter-zitadel.md"
     },
     {
       "id": "IP-004",
       "title": "WebAuthn relying-party kernel",
       "acceptance_status": "ga",
-      "file": "microservices/identity/IP-004-webauthn-relying-party-kernel.md"
+      "file": "iam/identity/IP-004-webauthn-relying-party-kernel.md"
     },
     {
       "id": "IP-005",
       "title": "WebAuthn register/authenticate REST",
       "acceptance_status": "ga",
-      "file": "microservices/identity/IP-005-webauthn-rest.md"
+      "file": "iam/identity/IP-005-webauthn-rest.md"
     },
     {
       "id": "IP-006",
       "title": "FIDO-MDS3 AAGUID refresh worker",
       "acceptance_status": "ga",
-      "file": "microservices/identity/IP-006-aaguid-refresh-worker.md"
+      "file": "iam/identity/IP-006-aaguid-refresh-worker.md"
     },
     {
       "id": "IP-007",
       "title": "SCIM 2.0 server kernel + RFC 7644 conformance",
       "acceptance_status": "ga",
-      "file": "microservices/identity/IP-007-scim-server-kernel.md"
+      "file": "iam/identity/IP-007-scim-server-kernel.md"
     },
     {
       "id": "IP-008",
       "title": "SCIM Zitadel adapter (lifecycle propagation)",
       "acceptance_status": "ga",
-      "file": "microservices/identity/IP-008-scim-adapter-zitadel.md"
+      "file": "iam/identity/IP-008-scim-adapter-zitadel.md"
     },
     {
       "id": "IP-009",
       "title": "HRIS adapter contract + Workday/BambooHR/Rippling impls",
       "acceptance_status": "ga",
-      "file": "microservices/identity/IP-009-hris-adapter.md"
+      "file": "iam/identity/IP-009-hris-adapter.md"
     },
     {
       "id": "IP-010",
       "title": "Step-up ACR orchestrator + Cedar gate",
       "acceptance_status": "ga",
-      "file": "microservices/identity/IP-010-step-up-orchestrator.md"
+      "file": "iam/identity/IP-010-step-up-orchestrator.md"
     },
     {
       "id": "IP-011",
       "title": "External IdP federation (Workspace/Okta/Entra)",
       "acceptance_status": "ga",
-      "file": "microservices/identity/IP-011-external-idp-federation.md"
+      "file": "iam/identity/IP-011-external-idp-federation.md"
     },
     {
       "id": "IP-012",
       "title": "Audit emitter to audit-chain",
       "acceptance_status": "ga",
-      "file": "microservices/identity/IP-012-audit-emitter.md"
+      "file": "iam/identity/IP-012-audit-emitter.md"
     },
     {
       "id": "IP-013",
       "title": "Edge authz rules (Coraza + rate-limit + geo)",
       "acceptance_status": "ga",
-      "file": "microservices/identity/IP-013-edge-authz-rules.md"
+      "file": "iam/identity/IP-013-edge-authz-rules.md"
     },
     {
       "id": "IP-014",
       "title": "Continuous risk-scoring adjunct (CAEP)",
       "acceptance_status": "ga",
-      "file": "microservices/identity/IP-014-continuous-risk-scoring.md"
+      "file": "iam/identity/IP-014-continuous-risk-scoring.md"
     },
     {
       "id": "IP-015",
       "title": "oya-shared-* kernel crate exports + reference impls",
       "acceptance_status": "ga",
-      "file": "microservices/identity/IP-015-shared-kernel-crates.md"
+      "file": "iam/identity/IP-015-shared-kernel-crates.md"
     },
     {
       "id": "IP-016",
       "title": "Zitadel scale validation load test (gate before pack-eu bellwether)",
       "acceptance_status": "ga",
-      "file": "microservices/identity/IP-016-zitadel-scale-validation-load-test.md"
+      "file": "iam/identity/IP-016-zitadel-scale-validation-load-test.md"
     },
     {
       "id": "IP-017",
@@ -330,23 +330,23 @@
     "per_usage"
   ],
   "tenant_class_caps_ref": "iam/identity/capabilities/tenant-class-caps.yaml",
-  "tenant_class_cedar_fragment": "microservices/identity/policy/tenant-class.cedar",
+  "tenant_class_cedar_fragment": "iam/identity/policy/tenant-class.cedar",
   "tenant_class_iac_variants": {
-    "demo_trial": "microservices/identity/iac/oci-guest/always-free/",
+    "demo_trial": "iam/identity/iac/oci-guest/always-free/",
     "paid": [
-      "microservices/identity/iac/oyatie-public-cloud/",
-      "microservices/identity/iac/guest-on-aws/",
-      "microservices/identity/iac/guest-on-oci/",
-      "microservices/identity/iac/on-prem/",
-      "microservices/identity/iac/colo/",
-      "microservices/identity/iac/oyatie-as-cloud-provider/"
+      "iam/identity/iac/oyatie-public-cloud/",
+      "iam/identity/iac/guest-on-aws/",
+      "iam/identity/iac/guest-on-oci/",
+      "iam/identity/iac/on-prem/",
+      "iam/identity/iac/colo/",
+      "iam/identity/iac/oyatie-as-cloud-provider/"
     ]
   },
   "deployment_contexts": [
     {
       "id": "oyatie-public-cloud",
       "status": "supported",
-      "iac_module": "microservices/identity/iac/oyatie-public-cloud/main.tf",
+      "iac_module": "iam/identity/iac/oyatie-public-cloud/main.tf",
       "tenant_classes_supported": [
         "demo_trial",
         "paid"
@@ -355,7 +355,7 @@
     {
       "id": "guest-on-aws",
       "status": "supported",
-      "iac_module": "microservices/identity/iac/guest-on-aws/main.tf",
+      "iac_module": "iam/identity/iac/guest-on-aws/main.tf",
       "tenant_classes_supported": [
         "demo_trial",
         "paid"
@@ -364,7 +364,7 @@
     {
       "id": "guest-on-oci",
       "status": "supported",
-      "iac_module": "microservices/identity/iac/guest-on-oci/main.tf",
+      "iac_module": "iam/identity/iac/guest-on-oci/main.tf",
       "tenant_classes_supported": [
         "paid"
       ],
@@ -373,7 +373,7 @@
     {
       "id": "oci-guest-always-free",
       "status": "supported",
-      "iac_module": "microservices/identity/iac/oci-guest/always-free/main.tf",
+      "iac_module": "iam/identity/iac/oci-guest/always-free/main.tf",
       "tenant_classes_supported": [
         "demo_trial"
       ],
@@ -382,7 +382,7 @@
     {
       "id": "on-prem",
       "status": "supported",
-      "iac_module": "microservices/identity/iac/on-prem/main.tf",
+      "iac_module": "iam/identity/iac/on-prem/main.tf",
       "tenant_classes_supported": [
         "paid"
       ],
@@ -391,7 +391,7 @@
     {
       "id": "colo",
       "status": "supported",
-      "iac_module": "microservices/identity/iac/colo/main.tf",
+      "iac_module": "iam/identity/iac/colo/main.tf",
       "tenant_classes_supported": [
         "paid"
       ]
@@ -399,14 +399,14 @@
     {
       "id": "oyatie-as-cloud-provider",
       "status": "supported",
-      "iac_module": "microservices/identity/iac/oyatie-as-cloud-provider/main.tf",
+      "iac_module": "iam/identity/iac/oyatie-as-cloud-provider/main.tf",
       "tenant_classes_supported": [
         "paid"
       ],
       "note": "Provider-control-plane prerequisite per ADR-0328 §A.6; identity is provider identity/security service, not a cloud adapter"
     }
   ],
-  "supported_oses": "microservices/identity/supported-oses.json",
+  "supported_oses": "iam/identity/supported-oses.json",
   "lts_pins": {
     "zitadel": "v2.55.0",
     "zitadel_helm_chart": "9.34.1",
@@ -604,33 +604,33 @@
       "gdpr"
     ],
     "design_package": {
-      "prd": "microservices/identity/workload-identity/PRD.md",
-      "ip": "microservices/identity/IP-001-identity-design.md",
+      "prd": "iam/identity/workload-identity/PRD.md",
+      "ip": "iam/identity/IP-001-identity-design.md",
       "contracts": {
         "openapi": "iam/identity/contracts/identity.openapi.yaml",
         "asyncapi": "iam/identity/contracts/identity.asyncapi.yaml",
         "proto": "iam/identity/contracts/identity.proto"
       },
-      "policy": "microservices/identity/policy/identity.cedar",
+      "policy": "iam/identity/policy/identity.cedar",
       "capabilities": "iam/identity/capabilities/identity.capabilities.yaml",
       "slos": [
-        "microservices/identity/slos/authorize-latency-p99.openslo.yaml",
-        "microservices/identity/slos/validation-availability.openslo.yaml",
-        "microservices/identity/slos/decision-correctness.openslo.yaml"
+        "iam/identity/slos/authorize-latency-p99.openslo.yaml",
+        "iam/identity/slos/validation-availability.openslo.yaml",
+        "iam/identity/slos/decision-correctness.openslo.yaml"
       ],
       "runbooks": [
-        "microservices/identity/runbooks/jwks-fetch-failure.md",
-        "microservices/identity/runbooks/policy-store-unavailable.md"
+        "iam/identity/runbooks/jwks-fetch-failure.md",
+        "iam/identity/runbooks/policy-store-unavailable.md"
       ],
       "design_notes": [
         "microservices/identity/design/hyperscaler-best-practice-brief.md",
         "microservices/identity/threat-model.md",
-        "microservices/identity/design/failure-modes.md",
-        "microservices/identity/design/data-residency.md",
-        "microservices/identity/design/cost-finops.md",
-        "microservices/identity/design/audit-evidence-emission.md",
-        "microservices/identity/design/tenant-isolation.md",
-        "microservices/identity/design/operational-boundaries.md"
+        "iam/identity/design/failure-modes.md",
+        "iam/identity/design/data-residency.md",
+        "iam/identity/design/cost-finops.md",
+        "iam/identity/design/audit-evidence-emission.md",
+        "iam/identity/design/tenant-isolation.md",
+        "iam/identity/design/operational-boundaries.md"
       ]
     },
     "audit_chain": {
@@ -812,11 +812,11 @@
   "pod_runtime_tier": 1,
   "pod_runtime_tier_justification": "Identity is a foundation authentication substrate that touches tenant credentials, sessions, token claims, SCIM state, and federation metadata. It does not execute tenant-customer code, so Tier 0 is not warranted, but tenant-data-touching substrate isolation requires Tier 1 runtime placement.",
   "pod_runtime_tier_surface_evidence": [
-    "microservices/identity/PRD.md",
+    "iam/identity/PRD.md",
     "microservices/identity/ARCHITECTURE.md",
-    "microservices/identity/IP-004-webauthn-relying-party-kernel.md",
+    "iam/identity/IP-004-webauthn-relying-party-kernel.md",
     "microservices/identity/IP-017-multi-context-principal-resolver.md",
-    "microservices/identity/runbooks/idp-failover-drill.md"
+    "iam/identity/runbooks/idp-failover-drill.md"
   ],
   "tenant_version_pinning": {
     "declared_versions": [
