@@ -1,0 +1,655 @@
+{
+  "openapi": "3.2.0",
+  "info": {
+    "title": "Payroll Run API",
+    "version": "0.1.0",
+    "summary": "Payroll trial close, HR leave impact intake, and accounting journal draft contracts.",
+    "description": "Preview contract surface aligned to transport-neutral Rust DTO crates. This artifact defines wire shape for later runtime adapters; it does not claim a deployed endpoint.",
+    "x-oyatie-contract-status": "preview-not-deployed",
+    "x-oyatie-non-claims": [
+      "no deployed HTTP runtime",
+      "no authentication enforcement runtime",
+      "no storage adapter",
+      "no Workflow dispatch execution",
+      "no statutory filing transport",
+      "no cloud service integration claim",
+      "no payroll calculation from HR leave-impact metadata",
+      "no HR service runtime call"
+    ],
+    "x-source-standard": "OpenAPI Specification 3.2.0, official spec.openapis.org rendering checked 2026-05-23"
+  },
+  "servers": [
+    {
+      "url": "https://api.oyatie.example/payroll/v1",
+      "description": "Preview tenant-scoped URL shape for future adapters; not deployed by this changeset."
+    }
+  ],
+  "paths": {
+    "/payroll/v1/trial-closes": {
+      "post": {
+        "operationId": "closePayrollTrialRun",
+        "summary": "Create a payroll trial-close command envelope.",
+        "x-oyatie-app-function": "oya_payroll_run_app::close_trial_run",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PayrollTrialCloseRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Accepted for future runtime execution.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayrollAccepted"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationError"
+          },
+          "403": {
+            "$ref": "#/components/responses/AuthorizationError"
+          }
+        }
+      }
+    },
+    "/payroll/v1/accounting-journal-drafts": {
+      "post": {
+        "operationId": "preparePayrollAccountingJournalDraft",
+        "summary": "Prepare payroll-to-accounting journal draft dispatch metadata.",
+        "x-oyatie-app-function": "oya_payroll_run_app::prepare_accounting_dispatch",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PayrollJournalDraftRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Dispatch metadata accepted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayrollAccepted"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationError"
+          },
+          "403": {
+            "$ref": "#/components/responses/AuthorizationError"
+          }
+        }
+      }
+    },
+    "/payroll/v1/hr-leave-impact-intakes": {
+      "post": {
+        "operationId": "intakePayrollHrLeaveImpact",
+        "summary": "Accept metadata-only HR leave payroll-impact handoff for payroll planning.",
+        "x-oyatie-app-function": "oya_payroll_run_app::prepare_hr_leave_impact_intake",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HrLeaveImpactIntakeRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "HR leave impact metadata accepted for future payroll runtime adapters.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HrLeaveImpactIntakeResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationError"
+          },
+          "403": {
+            "$ref": "#/components/responses/AuthorizationError"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "tenantBearer": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "ApiErrorEnvelope": {
+        "type": "object",
+        "required": [
+          "error"
+        ],
+        "properties": {
+          "error": {
+            "type": "object",
+            "required": [
+              "code",
+              "message"
+            ],
+            "properties": {
+              "code": {
+                "type": "string",
+                "enum": [
+                  "VALIDATION_ERROR",
+                  "DOMAIN_ERROR",
+                  "AUTH_REQUIRED",
+                  "FORBIDDEN"
+                ]
+              },
+              "message": {
+                "type": "string"
+              },
+              "details": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "PayrollAccepted": {
+        "type": "object",
+        "required": [
+          "accepted",
+          "auditTopic",
+          "idempotencyKey",
+          "schemaVersion"
+        ],
+        "properties": {
+          "accepted": {
+            "type": "boolean"
+          },
+          "auditTopic": {
+            "type": "string"
+          },
+          "idempotencyKey": {
+            "type": "string"
+          },
+          "schemaVersion": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "service": {
+            "type": "string",
+            "const": "payroll"
+          }
+        }
+      },
+      "PayrollTrialCloseRequest": {
+        "type": "object",
+        "required": [
+          "runId",
+          "tenantId",
+          "legalEntityId",
+          "period",
+          "rulepackRef",
+          "rulepackEffectiveDate",
+          "evidenceDigest",
+          "approvalEvidenceRef",
+          "payees"
+        ],
+        "properties": {
+          "runId": {
+            "type": "string",
+            "pattern": "^prun_[A-Za-z0-9_-]+$"
+          },
+          "tenantId": {
+            "type": "string",
+            "pattern": "^ten_[A-Za-z0-9_-]+$"
+          },
+          "legalEntityId": {
+            "type": "string",
+            "pattern": "^le_[A-Za-z0-9_-]+$"
+          },
+          "period": {
+            "type": "string",
+            "pattern": "^[0-9]{4}-[0-9]{2}$"
+          },
+          "rulepackRef": {
+            "type": "string",
+            "pattern": "^rulepack/.+"
+          },
+          "rulepackEffectiveDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "evidenceDigest": {
+            "type": "string",
+            "pattern": "^sha256:[A-Fa-f0-9]{64}$",
+            "x-data-class": "FINANCIAL"
+          },
+          "approvalEvidenceRef": {
+            "type": "string",
+            "pattern": "^audit/.+"
+          },
+          "payees": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "$ref": "#/components/schemas/PayeeRequest"
+            }
+          }
+        }
+      },
+      "PayeeRequest": {
+        "type": "object",
+        "required": [
+          "payeeId",
+          "legalEntityId",
+          "payeeClass",
+          "personOrVendorRef",
+          "taxProfileRef",
+          "wageLedger"
+        ],
+        "properties": {
+          "payeeId": {
+            "type": "string",
+            "pattern": "^payee_[A-Za-z0-9_-]+$"
+          },
+          "legalEntityId": {
+            "type": "string",
+            "pattern": "^le_[A-Za-z0-9_-]+$"
+          },
+          "payeeClass": {
+            "type": "string",
+            "enum": [
+              "EMPLOYEE",
+              "CONTRACTOR",
+              "STATUTORY_DIRECTOR",
+              "VENDOR"
+            ]
+          },
+          "personOrVendorRef": {
+            "type": "string",
+            "pattern": "^(person|vendor)/.+",
+            "x-data-class": "PII_IDENTIFYING"
+          },
+          "taxProfileRef": {
+            "type": "string",
+            "pattern": "^tax/.+"
+          },
+          "wageLedger": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "$ref": "#/components/schemas/WageLedgerEntryRequest"
+            }
+          }
+        }
+      },
+      "WageLedgerEntryRequest": {
+        "type": "object",
+        "required": [
+          "entryId",
+          "payeeId",
+          "lineKind",
+          "amount",
+          "sourceRef"
+        ],
+        "properties": {
+          "entryId": {
+            "type": "string",
+            "pattern": "^wage_[A-Za-z0-9_-]+$"
+          },
+          "payeeId": {
+            "type": "string",
+            "pattern": "^payee_[A-Za-z0-9_-]+$"
+          },
+          "lineKind": {
+            "type": "string",
+            "enum": [
+              "GROSS_EARNINGS",
+              "TAX_WITHHOLDING",
+              "SOCIAL_INSURANCE",
+              "EMPLOYER_CONTRIBUTION",
+              "NET_PAY",
+              "REVERSAL"
+            ]
+          },
+          "amount": {
+            "$ref": "#/components/schemas/MoneyAmount"
+          },
+          "sourceRef": {
+            "type": "string",
+            "pattern": "^audit/.+"
+          }
+        }
+      },
+      "MoneyAmount": {
+        "type": "object",
+        "required": [
+          "amountMinor",
+          "currency"
+        ],
+        "properties": {
+          "amountMinor": {
+            "type": "integer",
+            "x-data-class": "FINANCIAL"
+          },
+          "currency": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 3,
+            "x-data-class": "FINANCIAL"
+          }
+        }
+      },
+      "PayrollJournalDraftRequest": {
+        "type": "object",
+        "required": [
+          "journalId",
+          "runId",
+          "tenantId",
+          "legalEntityId",
+          "period",
+          "sourcePayrollDigest",
+          "approvalEvidenceRef",
+          "lines"
+        ],
+        "properties": {
+          "journalId": {
+            "type": "string",
+            "pattern": "^jrn_[A-Za-z0-9_-]+$"
+          },
+          "runId": {
+            "type": "string",
+            "pattern": "^prun_[A-Za-z0-9_-]+$"
+          },
+          "tenantId": {
+            "type": "string",
+            "pattern": "^ten_[A-Za-z0-9_-]+$"
+          },
+          "legalEntityId": {
+            "type": "string",
+            "pattern": "^le_[A-Za-z0-9_-]+$"
+          },
+          "period": {
+            "type": "string",
+            "pattern": "^[0-9]{4}-[0-9]{2}$"
+          },
+          "sourcePayrollDigest": {
+            "type": "string",
+            "pattern": "^sha256:[A-Fa-f0-9]{64}$",
+            "x-data-class": "FINANCIAL"
+          },
+          "approvalEvidenceRef": {
+            "type": "string",
+            "pattern": "^audit/.+"
+          },
+          "lines": {
+            "type": "array",
+            "minItems": 2,
+            "items": {
+              "$ref": "#/components/schemas/JournalLineRequest"
+            }
+          }
+        }
+      },
+      "JournalLineRequest": {
+        "type": "object",
+        "required": [
+          "accountCode",
+          "debitMinor",
+          "creditMinor"
+        ],
+        "properties": {
+          "accountCode": {
+            "type": "string"
+          },
+          "debitMinor": {
+            "type": "integer",
+            "minimum": 0,
+            "x-data-class": "FINANCIAL"
+          },
+          "creditMinor": {
+            "type": "integer",
+            "minimum": 0,
+            "x-data-class": "FINANCIAL"
+          }
+        }
+      },
+      "HrLeaveImpactIntakeRequest": {
+        "type": "object",
+        "required": [
+          "runId",
+          "tenantId",
+          "legalEntityId",
+          "payrollPeriod",
+          "payeeId",
+          "employeeId",
+          "leaveRequestId",
+          "impactKind",
+          "sourceTopic",
+          "sourceHrIdempotencyKey",
+          "decisionEvidenceRef",
+          "routingEvidenceRef",
+          "payrollImpactEvidenceRef",
+          "payrollIntakeEvidenceRef",
+          "rulepackRef",
+          "rulepackEffectiveDate",
+          "receivedAtEpochSeconds"
+        ],
+        "properties": {
+          "runId": {
+            "type": "string",
+            "pattern": "^prun_[A-Za-z0-9_-]+$",
+            "x-data-class": "INTERNAL_ONLY"
+          },
+          "tenantId": {
+            "type": "string",
+            "pattern": "^ten_[A-Za-z0-9_-]+$",
+            "x-data-class": "INTERNAL_ONLY"
+          },
+          "legalEntityId": {
+            "type": "string",
+            "pattern": "^le_[A-Za-z0-9_-]+$",
+            "x-data-class": "INTERNAL_ONLY"
+          },
+          "payrollPeriod": {
+            "type": "string",
+            "pattern": "^[0-9]{4}-[0-9]{2}$",
+            "x-data-class": "FINANCIAL"
+          },
+          "payeeId": {
+            "type": "string",
+            "pattern": "^payee_[A-Za-z0-9_-]+$",
+            "x-data-class": "INTERNAL_ONLY"
+          },
+          "employeeId": {
+            "type": "string",
+            "pattern": "^emp_[A-Za-z0-9_-]+$",
+            "x-data-class": "INTERNAL_ONLY"
+          },
+          "leaveRequestId": {
+            "type": "string",
+            "pattern": "^leave_[A-Za-z0-9_-]+$",
+            "x-data-class": "INTERNAL_ONLY"
+          },
+          "impactKind": {
+            "type": "string",
+            "enum": [
+              "PAID_LEAVE",
+              "UNPAID_LEAVE_DEDUCTION",
+              "ATTENDANCE_CORRECTION",
+              "NO_PAYROLL_IMPACT"
+            ],
+            "x-data-class": "FINANCIAL"
+          },
+          "sourceTopic": {
+            "type": "string",
+            "const": "integration.hr.payroll.leave-impact",
+            "x-data-class": "INTERNAL_ONLY"
+          },
+          "sourceHrIdempotencyKey": {
+            "type": "string",
+            "x-data-class": "INTERNAL_ONLY"
+          },
+          "decisionEvidenceRef": {
+            "type": "string",
+            "pattern": "^audit/.+",
+            "x-data-class": "INTERNAL_ONLY"
+          },
+          "routingEvidenceRef": {
+            "type": "string",
+            "pattern": "^audit/.+",
+            "x-data-class": "INTERNAL_ONLY"
+          },
+          "payrollImpactEvidenceRef": {
+            "type": "string",
+            "pattern": "^audit/.+",
+            "x-data-class": "FINANCIAL"
+          },
+          "payrollIntakeEvidenceRef": {
+            "type": "string",
+            "pattern": "^audit/.+",
+            "x-data-class": "INTERNAL_ONLY"
+          },
+          "rulepackRef": {
+            "type": "string",
+            "pattern": "^rulepack/.+",
+            "x-data-class": "INTERNAL_ONLY"
+          },
+          "rulepackEffectiveDate": {
+            "type": "string",
+            "format": "date",
+            "x-data-class": "INTERNAL_ONLY"
+          },
+          "receivedAtEpochSeconds": {
+            "type": "integer",
+            "minimum": 1,
+            "x-data-class": "INTERNAL_ONLY"
+          }
+        },
+        "x-oyatie-non-claims": [
+          "OpenAPI shape only; payroll calculation, storage, HR service calls, Workflow execution, and audit-chain emission are not deployed by this contract."
+        ]
+      },
+      "HrLeaveImpactIntakeResponse": {
+        "type": "object",
+        "required": [
+          "integrationTopic",
+          "idempotencyKey",
+          "payrollPeriod",
+          "impactKind",
+          "payloadDataClass",
+          "schemaVersion"
+        ],
+        "properties": {
+          "integrationTopic": {
+            "type": "string",
+            "const": "integration.payroll.hr.leave-impact-intake",
+            "x-data-class": "INTERNAL_ONLY"
+          },
+          "idempotencyKey": {
+            "type": "string",
+            "x-data-class": "INTERNAL_ONLY"
+          },
+          "payrollPeriod": {
+            "type": "string",
+            "pattern": "^[0-9]{4}-[0-9]{2}$",
+            "x-data-class": "FINANCIAL"
+          },
+          "impactKind": {
+            "type": "string",
+            "enum": [
+              "PAID_LEAVE",
+              "UNPAID_LEAVE_DEDUCTION",
+              "ATTENDANCE_CORRECTION",
+              "NO_PAYROLL_IMPACT"
+            ],
+            "x-data-class": "FINANCIAL"
+          },
+          "payloadDataClass": {
+            "type": "string",
+            "const": "FINANCIAL",
+            "x-data-class": "INTERNAL_ONLY"
+          },
+          "schemaVersion": {
+            "type": "integer",
+            "minimum": 1,
+            "x-data-class": "PUBLIC"
+          }
+        }
+      }
+    },
+    "responses": {
+      "ValidationError": {
+        "description": "Consistent validation error envelope.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ApiErrorEnvelope"
+            }
+          }
+        }
+      },
+      "AuthenticationError": {
+        "description": "Caller credential is absent or invalid.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ApiErrorEnvelope"
+            }
+          }
+        }
+      },
+      "AuthorizationError": {
+        "description": "Verified principal is not authorized for the tenant-scoped payroll operation.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ApiErrorEnvelope"
+            }
+          }
+        }
+      }
+    }
+  },
+  "security": [
+    {
+      "tenantBearer": []
+    }
+  ],
+  "x-oyatie-data-boundary": {
+    "tenantScoped": true,
+    "auditEvidenceRequired": true,
+    "runtimeEmission": "future-adapter-slice"
+  }
+}

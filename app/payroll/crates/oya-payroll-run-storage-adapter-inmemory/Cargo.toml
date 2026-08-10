@@ -1,0 +1,21 @@
+[package]
+name = "oya-payroll-run-storage-adapter-inmemory"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+oya-payroll-run-app = { path = "../oya-payroll-run-app" }
+
+[dev-dependencies]
+oya-payroll-run-domain = { path = "../oya-payroll-run-domain" }
+
+[lib]
+name = "oya_payroll_run_storage_adapter_inmemory"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

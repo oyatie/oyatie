@@ -1,0 +1,15 @@
+tier: preview
+owner_team: axis-enterprise
+version: 1.0.0
+sunset: none-before-GA
+related_adrs:
+  - docs/decisions/ADR-0709-general-live-apex.md
+  - docs/adr-archive/ADR-0131-per-microservice-flat-layout.md
+  - docs/adr-archive/ADR-0132-product-platform-and-bundle-dissolution.md
+change_notes:
+  - id: CS-ENT-PAYROLL-002
+    date: 2026-05-23
+    summary: Adds HR leave payroll-impact intake preview contract; payroll calculation, HR service calls, storage, Workflow execution, and audit emission remain non-claims.
+  - id: CS-ENT-PAYROLL-003
+    date: 2026-05-23
+    summary: Adds payroll runtime adapter crate that dispatches existing preview routes through the repo-native Hyper foundation; deployed listener, storage, Workflow dispatch, statutory filing rails, and payroll calculation remain non-claims.

@@ -1,0 +1,24 @@
+rust_library(
+    name = "oya-payroll-run-storage-adapter-inmemory",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "oya_payroll_run_storage_adapter_inmemory",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//app/payroll/crates/oya-payroll-run-app:oya-payroll-run-app",
+        "//app/payroll/crates/oya-payroll-run-domain:oya-payroll-run-domain",
+    ],
+)
+
+rust_test(
+    name = "oya-payroll-run-storage-adapter-inmemory-storage",
+    srcs = ["tests/storage.rs"],
+    crate = "oya_payroll_run_storage_adapter_inmemory_storage",
+    crate_root = "tests/storage.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-payroll-run-storage-adapter-inmemory",
+        "//app/payroll/crates/oya-payroll-run-app:oya-payroll-run-app",
+        "//app/payroll/crates/oya-payroll-run-domain:oya-payroll-run-domain",
+    ],
+)
