@@ -12,17 +12,48 @@ related_adrs:
 companion_docs:
   - microservices/ops-dashboard-control-center/PRD.md
   - microservices/ops-dashboard-control-center/ARCHITECTURE.md
-  - microservices/ops-dashboard-control-center/manifest.json
+  - console/manifest.json
 planned_enforcement_ref: oya-governance-microservice-doc-set
 ---
 
-# ops-dashboard-control-center
+# console
 
-Internal ops substrate for SRE, release, tenant-support, compliance, and on-call-handoff operators. Gives the platform a single Cedar-gated, step-up-auth-protected, audit-emitting control surface for every admin action.
+Capability-root shell substrate (ADR-0562 + ADR-0615): platform-owned workspace shell + docs-portal under `console/{ports,core,adapters,facade}`. Ops-dashboard composition leaves (incident-command, cluster-health, finops-portal, …) remain planning scaffolds under this tree pending `app/ops-console/<vertical>` absorb.
 
 **Hyperscaler precedent:** AWS internal console (IAM-gated per-action), Stripe internal admin (step-up + full audit log), Backstage portal (service catalog + runbook), OpsLevel (ownership + SLO scorecard).
 
-## Bounded contexts
+## Directory layout
+
+```
+console/
+├── manifest.json                 — capability-root accounting (Seat A)
+├── OWNERS
+├── AUDIT-FINDINGS-2026-05-20.json
+├── ports/                        — workspace-shell + docs-portal kernels
+├── core/                         — usecase orchestration
+├── adapters/                     — kernel→wire projection
+├── facade/                       — REST boundaries + workspace-shell app
+├── capabilities/                 — ops-dashboard planning capability YAML
+├── catalog/                      — ops-dashboard planning Backstage rows
+├── contracts/{openapi,asyncapi,proto}/
+├── policy/cedar/
+├── runbooks/
+├── dashboards/
+├── slos/                         — ops-dashboard OpenSLO planning scaffolds
+├── iac/
+├── dpia/
+├── scorecards/
+└── IPs/
+```
+
+## Bounded contexts (shell crates)
+
+| BC | Purpose |
+|---|---|
+| `workspace-shell` | Surface catalog, visibility tiers, composition root (default-deny authn) |
+| `docs-portal` | Hot/warm/cold extractors, tenant manifest filter, live-feed port |
+
+## Ops-dashboard planning leaves (migration inventory)
 
 | BC | Purpose |
 |---|---|
@@ -31,23 +62,15 @@ Internal ops substrate for SRE, release, tenant-support, compliance, and on-call
 | `cluster-health` | Cluster/node/cell/mesh health signals; bootstrap/recovery |
 | `tenant-isolation-posture` | Tenant lifecycle, quota, isolation, policy posture views |
 | `policy-audit-evidence` | Policy decisions, audit trail, SLO state, evidence-pack export |
-| `tenant-admin-surface` | Tenant-admin panel (delegates to above BCs) |
-| `cell-operator-surface` | Cell-operator panel |
-| `pack-author-surface` | Cedar fragment + compliance-pack authoring |
 | `on-call-handoff` | On-call handoff creation, ack, escalation |
-| `adr-promotion-triage` | ADR promotion queue triage + recommendation |
-| `cedar-admin-console` | Cedar fragment publish/retire with quorum-2 step-up |
 | `finops-portal-integration` | FinOps cost-attribution panel integration |
 | `observability-pivot` | Observability quick-pivot from any operator action |
 
 ## Quick links
 
-- Architecture: `ARCHITECTURE.md`
-- PRD: `PRD.md`
-- Phase plan: `PHASE-01-INTERNAL-OPS-DASHBOARD.md`
-- Threat model: `threat-model.md`
-- DPIA: `dpia.md`
-- Compliance: `compliance.md`
+- Capability-root manifest: `manifest.json`
+- PRD / Architecture: deferred (`microservices/ops-dashboard-control-center/{PRD,ARCHITECTURE}.md` until in-tree homes land)
+- DPIA: `dpia/dpia.md`
 - Contracts: `contracts/openapi/`, `contracts/asyncapi/`, `contracts/proto/`
 - Cedar policy: `policy/cedar/`
 - Runbooks: `runbooks/`
@@ -55,7 +78,7 @@ Internal ops substrate for SRE, release, tenant-support, compliance, and on-call
 - SLOs: `slos/`
 - IaC: `iac/`
 - Catalog: `catalog/`
-- Implementation plans: `IP-001` through `IP-025`
+- Implementation plans: `IPs/`
 
 ## Key invariants
 
@@ -81,12 +104,13 @@ ODCC follows ADR-0330: `tenant_class` is `demo_trial` or `paid`, and paid contra
 ## Development
 
 ```bash
-cargo test -p oya-ops-dashboard-control-center-incident-command-kernel
-cargo test -p oya-ops-dashboard-control-center-deployment-command-app
+cargo test -p console-workspace-shell-kernel
+cargo test -p console-docs-portal-kernel
+cargo test -p console-workspace-shell-app
 cargo clippy -- -D warnings
 ```
 
-SLO targets: `slos/command-availability.openslo.yaml` (99.9%), `slos/incident-ack-latency.openslo.yaml` (99th ≤30s).
+Shell crates have no measured OpenSLO yet. Ops-dashboard planning SLO scaffolds live under `slos/` (e.g. `slos/command-availability.openslo.yaml`) and are not claimed as live shell SLIs.
 
 ## Doctrine references
 

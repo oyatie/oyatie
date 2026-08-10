@@ -11,8 +11,8 @@ related_adrs:
 companion_docs:
   - microservices/ops-dashboard-control-center/incident-response.md
   - microservices/ops-dashboard-control-center/compliance.md
-  - microservices/ops-dashboard-control-center/runbooks/tenant-scope-violation-detected.md
-  - microservices/ops-dashboard-control-center/runbooks/step-up-auth-bypass-attempt.md
+  - console/runbooks/tenant-scope-violation-detected.md
+  - console/runbooks/step-up-auth-bypass-attempt.md
 planned_enforcement_ref: oya-governance-microservice-doc-set
 ---
 

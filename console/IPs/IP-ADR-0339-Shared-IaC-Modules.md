@@ -65,16 +65,16 @@ DOSSIER-CRATE-017: Existing crate `oya-ops-dashboard-control-center-cluster-heal
 DOSSIER-CRATE-018: Existing crate `oya-ops-dashboard-control-center-cluster-health-domain` remains untouched by this document-stage IP.
 DOSSIER-CRATE-019: Existing crate `oya-ops-dashboard-control-center-cluster-health-usecase` remains untouched by this document-stage IP.
 DOSSIER-CRATE-020: Existing crate `oya-ops-dashboard-control-center-cluster-health-app` remains untouched by this document-stage IP.
-DOSSIER-CONTRACT-001: OpenAPI 3.2.0: microservices/ops-dashboard-control-center/contracts/openapi/ops-dashboard-control-center.yaml.
-DOSSIER-CONTRACT-002: AsyncAPI 3.1.0: microservices/ops-dashboard-control-center/contracts/asyncapi/ops-dashboard-control-center-events.yaml.
-DOSSIER-CONTRACT-003: proto3: microservices/ops-dashboard-control-center/contracts/proto/ops_dashboard_control_center.proto.
-DOSSIER-CAPABILITY-001: T? incident-declare risk=limited file=microservices/ops-dashboard-control-center/capabilities/incident-declare.yaml.
-DOSSIER-CAPABILITY-002: T? incident-remediation-approve risk=high file=microservices/ops-dashboard-control-center/capabilities/incident-remediation-approve.yaml.
-DOSSIER-CAPABILITY-003: T? deployment-approve risk=high file=microservices/ops-dashboard-control-center/capabilities/deployment-approve.yaml.
-DOSSIER-CAPABILITY-004: T? rollback-execute risk=high file=microservices/ops-dashboard-control-center/capabilities/rollback-execute.yaml.
-DOSSIER-CAPABILITY-005: T? cluster-health-query risk=minimal file=microservices/ops-dashboard-control-center/capabilities/cluster-health-query.yaml.
-DOSSIER-CAPABILITY-006: T? tenant-isolation-posture-query risk=limited file=microservices/ops-dashboard-control-center/capabilities/tenant-isolation-posture-query.yaml.
-DOSSIER-CAPABILITY-007: T? evidence-pack-export risk=limited file=microservices/ops-dashboard-control-center/capabilities/evidence-pack-export.yaml.
+DOSSIER-CONTRACT-001: OpenAPI 3.2.0: console/contracts/openapi/ops-dashboard-control-center.yaml.
+DOSSIER-CONTRACT-002: AsyncAPI 3.1.0: console/contracts/asyncapi/ops-dashboard-control-center-events.yaml.
+DOSSIER-CONTRACT-003: proto3: console/contracts/proto/ops_dashboard_control_center.proto.
+DOSSIER-CAPABILITY-001: T? incident-declare risk=limited file=console/capabilities/incident-declare.yaml.
+DOSSIER-CAPABILITY-002: T? incident-remediation-approve risk=high file=console/capabilities/incident-remediation-approve.yaml.
+DOSSIER-CAPABILITY-003: T? deployment-approve risk=high file=console/capabilities/deployment-approve.yaml.
+DOSSIER-CAPABILITY-004: T? rollback-execute risk=high file=console/capabilities/rollback-execute.yaml.
+DOSSIER-CAPABILITY-005: T? cluster-health-query risk=minimal file=console/capabilities/cluster-health-query.yaml.
+DOSSIER-CAPABILITY-006: T? tenant-isolation-posture-query risk=limited file=console/capabilities/tenant-isolation-posture-query.yaml.
+DOSSIER-CAPABILITY-007: T? evidence-pack-export risk=limited file=console/capabilities/evidence-pack-export.yaml.
 
 ## 3. ADR-0339 Doctrine Binding
 ADR0339-001: Purpose binding: collapse 385 per-service from-scratch module directories into roughly 50 shared OpenTofu primitives plus thin wrappers.
@@ -296,9 +296,9 @@ LEADER-018: `ops-dashboard-control-center` leader-scale posture keeps primitive 
 
 ## 12. API And Contract Documentation Impact
 API-001: `ops-dashboard-control-center` does not change REST, event, or proto payloads in this document-stage wave.
-API-002: OpenAPI 3.2.0 references for `ops-dashboard-control-center` remain: OpenAPI 3.2.0: microservices/ops-dashboard-control-center/contracts/openapi/ops-dashboard-control-center.yaml
-API-003: AsyncAPI 3.1.0 references for `ops-dashboard-control-center` remain: AsyncAPI 3.1.0: microservices/ops-dashboard-control-center/contracts/asyncapi/ops-dashboard-control-center-events.yaml
-API-004: proto3 references for `ops-dashboard-control-center` remain: proto3: microservices/ops-dashboard-control-center/contracts/proto/ops_dashboard_control_center.proto
+API-002: OpenAPI 3.2.0 references for `ops-dashboard-control-center` remain: OpenAPI 3.2.0: console/contracts/openapi/ops-dashboard-control-center.yaml
+API-003: AsyncAPI 3.1.0 references for `ops-dashboard-control-center` remain: AsyncAPI 3.1.0: console/contracts/asyncapi/ops-dashboard-control-center-events.yaml
+API-004: proto3 references for `ops-dashboard-control-center` remain: proto3: console/contracts/proto/ops_dashboard_control_center.proto
 API-005: If a future wrapper migration exposes deployment preview APIs, the public boundary must carry ADR-0342 date-version carriers separately from module semantic versions.
 API-006: If a future wrapper migration changes async deployment events, the AsyncAPI channel must identify module context, primitive, version_pin, tenant_class_scope, and cell_id.
 API-007: If a future wrapper migration changes proto deployment receipts, proto3 reserved tags must prevent silent field reuse.
@@ -322,7 +322,7 @@ ALT-004: Delay `ops-dashboard-control-center` manifest declaration until impleme
 ALT-005: Allow unpinned local module paths during migration; rejected because the exact path would work locally while hiding supply-chain and reproducibility risk.
 
 ## 15. Acceptance And Verification
-VERIFY-001: Static read confirms this file exists at `microservices/ops-dashboard-control-center/IPs/IP-ADR-0339-Shared-IaC-Modules.md`.
+VERIFY-001: Static read confirms this file exists at `console/IPs/IP-ADR-0339-Shared-IaC-Modules.md`.
 VERIFY-002: Static read confirms ADR-0339 is cited by exact ID.
 VERIFY-003: Static read confirms ADR-0322 is cited by exact ID.
 VERIFY-004: Static read confirms ADR-0181 is cited by exact ID.

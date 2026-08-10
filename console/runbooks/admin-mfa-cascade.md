@@ -9,8 +9,8 @@ related_adrs:
   - ADR-0296
 companion_docs:
   - microservices/ops-dashboard-control-center/incident-response.md
-  - microservices/ops-dashboard-control-center/runbooks/step-up-auth-bypass-attempt.md
-  - microservices/ops-dashboard-control-center/policy/cedar/step-up-auth-required.cedar
+  - console/runbooks/step-up-auth-bypass-attempt.md
+  - console/policy/cedar/step-up-auth-required.cedar
 planned_enforcement_ref: oya-governance-microservice-doc-set
 ---
 

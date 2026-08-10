@@ -4,7 +4,7 @@ availability: "paid tenant_class always-on; demo_trial cap-bounded"
 risk_class: limited
 description: Request a signed evidence pack export for an authorized scope.
 authz:
-  cedar_policy: microservices/ops-dashboard-control-center/policy/cedar/operator-actions.cedar
+  cedar_policy: console/policy/cedar/operator-actions.cedar
   requires_mfa: true
   requires_idempotency_key: true
 audit_chain:

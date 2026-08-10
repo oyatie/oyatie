@@ -8,8 +8,8 @@ related_adrs:
   - ADR-0263
 companion_docs:
   - microservices/ops-dashboard-control-center/incident-response.md
-  - microservices/ops-dashboard-control-center/policy/cedar/on-call-handoff-authorization.cedar
-  - microservices/ops-dashboard-control-center/runbooks/admin-action-rollback.md
+  - console/policy/cedar/on-call-handoff-authorization.cedar
+  - console/runbooks/admin-action-rollback.md
 planned_enforcement_ref: oya-governance-microservice-doc-set
 ---
 
