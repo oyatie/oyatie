@@ -43,5 +43,6 @@ Source dual-home remains under `oya/crm/crates/` until `integ/oya` shrink-only d
 - Hub retargets (`specs/**`) — tip-free `integ/specs` only.
 
 ## Reclaim (scaffold-vs-dump audit)
-- Completed remaining oya/crm → app/crm absorb after premature integ/oya shrink (`2a3dc1ebb`).
-- Source still on origin/dev; destination tip now holds full scaffold.
+- Completed remaining oya/crm → app/crm absorb after premature integ/oya shrink (`2a3dc1ebb`): catalog/contracts/policy/cedar/iac/runbooks/dashboards/capabilities (~105 files).
+- **Procurement remains evicted** from `app/crm/**` (elevate to procurement rail) — do not re-absorb `oya-procurement-source-to-pay-domain`.
+- Source still on origin/dev for procurement until that rail exists.
