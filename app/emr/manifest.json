@@ -365,10 +365,10 @@
   "pod_runtime_tier": 1,
   "pod_runtime_tier_justification": "EMR owns the longitudinal PHI chart-of-truth and touches tenant clinical data across clinician, portal, order, medication, and billing workflows. It does not execute tenant-customer code, so Tier 0 is not justified, but the blast radius and HIPAA data-plane duties require Tier 1 isolation and Tier-2 cell placement.",
   "pod_runtime_tier_surface_evidence": [
-    "microservices/emr/PRD.md",
-    "microservices/emr/ARCHITECTURE.md",
-    "microservices/emr/manifest.json",
-    "microservices/emr/contracts/openapi-emr-v1.yaml"
+    "app/emr/PRD.md",
+    "app/emr/ARCHITECTURE.md",
+    "app/emr/manifest.json",
+    "app/emr/contracts/openapi-emr-v1.yaml"
   ],
   "tenant_version_pinning": {
     "declared_versions": [
