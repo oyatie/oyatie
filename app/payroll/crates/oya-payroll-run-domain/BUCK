@@ -1,0 +1,142 @@
+rust_library(
+    name = "oya-payroll-run-domain",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "oya_payroll_run_domain",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+    ],
+)
+
+rust_test(
+    name = "oya-payroll-run-domain-accounting-bridge",
+    srcs = ["tests/accounting_bridge.rs", "tests/support.rs"],
+    crate = "oya_payroll_run_domain_accounting_bridge",
+    crate_root = "tests/accounting_bridge.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-payroll-run-domain",
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+    ],
+)
+
+rust_test(
+    name = "oya-payroll-run-domain-filing",
+    srcs = ["tests/filing.rs", "tests/support.rs"],
+    crate = "oya_payroll_run_domain_filing",
+    crate_root = "tests/filing.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-payroll-run-domain",
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+    ],
+)
+
+rust_test(
+    name = "oya-payroll-run-domain-group",
+    srcs = ["tests/group.rs", "tests/support.rs"],
+    crate = "oya_payroll_run_domain_group",
+    crate_root = "tests/group.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-payroll-run-domain",
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+    ],
+)
+
+rust_test(
+    name = "oya-payroll-run-domain-group-gl-posting",
+    srcs = ["tests/group_gl_posting.rs", "tests/support.rs"],
+    crate = "oya_payroll_run_domain_group_gl_posting",
+    crate_root = "tests/group_gl_posting.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-payroll-run-domain",
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+    ],
+)
+
+rust_test(
+    name = "oya-payroll-run-domain-hr-leave",
+    srcs = ["tests/hr_leave.rs"],
+    crate = "oya_payroll_run_domain_hr_leave",
+    crate_root = "tests/hr_leave.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-payroll-run-domain",
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+    ],
+)
+
+rust_test(
+    name = "oya-payroll-run-domain-kr-close",
+    srcs = ["tests/kr_close.rs", "tests/support.rs"],
+    crate = "oya_payroll_run_domain_kr_close",
+    crate_root = "tests/kr_close.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-payroll-run-domain",
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+    ],
+)
+
+rust_test(
+    name = "oya-payroll-run-domain-retro-adjustment",
+    srcs = ["tests/retro_adjustment.rs"],
+    crate = "oya_payroll_run_domain_retro_adjustment",
+    crate_root = "tests/retro_adjustment.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-payroll-run-domain",
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+    ],
+)
+
+rust_test(
+    name = "oya-payroll-run-domain-rollback",
+    srcs = ["tests/rollback.rs"],
+    crate = "oya_payroll_run_domain_rollback",
+    crate_root = "tests/rollback.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-payroll-run-domain",
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+    ],
+)
+
+rust_test(
+    name = "oya-payroll-run-domain-rulepack-manifest",
+    srcs = ["tests/rulepack_manifest.rs"],
+    crate = "oya_payroll_run_domain_rulepack_manifest",
+    crate_root = "tests/rulepack_manifest.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-payroll-run-domain",
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+    ],
+)
+
+rust_test(
+    name = "oya-payroll-run-domain-support",
+    srcs = ["tests/support.rs"],
+    crate = "oya_payroll_run_domain_support",
+    crate_root = "tests/support.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-payroll-run-domain",
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+    ],
+)
+
+rust_test(
+    name = "oya-payroll-run-domain-variance",
+    srcs = ["tests/variance.rs"],
+    crate = "oya_payroll_run_domain_variance",
+    crate_root = "tests/variance.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-payroll-run-domain",
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+    ],
+)
