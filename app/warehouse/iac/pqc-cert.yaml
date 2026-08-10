@@ -1,0 +1,14 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: oya-warehouse-pqc
+spec:
+  secretName: oya-warehouse-tls
+  commonName: warehouse.svc.oyatie.example
+  privateKey:
+    algorithm: Ed25519
+  usages: [server auth, client auth]
+  subject:
+    organizations: [Oyatie]
+  additionalOutputFormats:
+    - type: CombinedPEM
