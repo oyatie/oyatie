@@ -1,0 +1,52 @@
+// oyatie.contract.exposure: internal-only
+// oyatie.contract.transport: grpc-http2
+// oyatie.contract.identity: spiffe-mtls-tls13
+syntax = "proto3";
+
+package oyatie.incident_management.local.v1;
+
+message IncidentManagementLocalPolicyCheckRequest {
+  string tenant_id = 1;
+  string principal_id = 2;
+  string resource_id = 3;
+  string requested_action = 4;
+  string data_class = 5;
+  string purpose = 6;
+  string audit_event_class = 7;
+}
+
+message IncidentManagementLocalPolicyDecision {
+  string decision = 1;
+  string policy_file = 2;
+  string audit_event_id = 3;
+  string denied_reason = 4;
+}
+
+message IncidentManagementLocalSloStateRequest {
+  string tenant_id = 1;
+  string resource_id = 2;
+  string slo_name = 3;
+}
+
+message IncidentManagementLocalSloState {
+  string service = 1;
+  string slo_name = 2;
+  string window = 3;
+  double objective = 4;
+  double current_value = 5;
+  double burn_rate = 6;
+}
+
+message IncidentManagementSupportedActions {
+  string page_dispatch_action = 1;
+  string page_acknowledge_action = 2;
+  string escalation_advance_action = 3;
+  string warroom_open_action = 4;
+  string stakeholder_update_action = 5;
+  string postmortem_seal_action = 6;
+}
+
+service IncidentManagementLocalOperationsService {
+  rpc CheckLocalPolicy(IncidentManagementLocalPolicyCheckRequest) returns (IncidentManagementLocalPolicyDecision);
+  rpc GetLocalSloState(IncidentManagementLocalSloStateRequest) returns (IncidentManagementLocalSloState);
+}

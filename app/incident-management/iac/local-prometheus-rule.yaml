@@ -1,0 +1,21 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: incident-management-local-slo-burn
+  labels:
+    service: incident-management
+    suite: local-operational-primitive
+    adr: ADR-0130
+spec:
+  groups:
+    - name: incident-management.local.slo
+      rules:
+        - alert: IncidentManagementLocalSloBurn
+          expr: (sum(rate(oya_incident_management_page_to_acknowledge_good_total[5m])) / sum(rate(oya_incident_management_page_to_acknowledge_total[5m]))) < 0.995
+          for: 10m
+          labels:
+            severity: page
+            service: incident-management
+          annotations:
+            summary: Incident Management page-to-acknowledge burn
+            runbook: microservices/incident-management/runbooks/local-page-to-ack-burn.md

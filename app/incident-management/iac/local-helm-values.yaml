@@ -1,0 +1,17 @@
+service:
+  name: incident-management
+  suite: local-operational-primitive
+  audience: ONCALL_RESPONDER
+workloads:
+  pager-dispatcher:
+    replicas: 3
+    sloMetric: oya_incident_management_page_to_acknowledge
+  warroom-controller:
+    replicas: 2
+    sloMetric: oya_incident_management_escalation_delivery
+  escalation-engine:
+    replicas: 2
+    sloMetric: oya_incident_management_war_room_creation_latency
+policy:
+  directory: policies
+  defaultDeny: true
