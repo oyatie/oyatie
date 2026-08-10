@@ -104,6 +104,9 @@ case "$cmd" in
     if has_flag --amend; then
       deny "git commit --amend is banned — history rewriting is orchestrator-only"
     fi
+    if has_flag -n || has_flag --no-verify; then
+      deny "git commit -n/--no-verify is banned — hook bypass is never allowed in lane shells"
+    fi
     # Require explicit pathspecs so workers cannot commit a pre-populated index.
     pathspecs=()
     ci=0
@@ -117,8 +120,11 @@ case "$cmd" in
         -m|--message|-F|--file|--author|--date|--cleanup|--trailer)
           ci=$((ci + 2))
           ;;
-        -m*|-F*|--author=*|--date=*|--cleanup=*|--trailer=*|-S|--gpg-sign|--gpg-sign=*|-s|--signoff|-n|--no-verify|--allow-empty|--no-edit|-q|--quiet|-v|--verbose|-e|--edit|--only|--include)
+        -m*|-F*|--author=*|--date=*|--cleanup=*|--trailer=*|-S|--gpg-sign|--gpg-sign=*|-s|--signoff|--allow-empty|--no-edit|-q|--quiet|-v|--verbose|-e|--edit|--only|--include)
           ci=$((ci + 1))
+          ;;
+        -n|--no-verify)
+          deny "git commit -n/--no-verify is banned — hook bypass is never allowed in lane shells"
           ;;
         -*)
           deny "git commit option not allowlisted in lane shells: $a"
@@ -132,12 +138,23 @@ case "$cmd" in
     if ((${#pathspecs[@]} == 0)); then
       deny "git commit requires explicit pathspecs (no bare index commit)"
     fi
+    # Reject broad pathspecs after -- (same discipline as git add).
+    for a in ${pathspecs[@]+"${pathspecs[@]}"}; do
+      case "$a" in
+        .|-A|--all|\*|'*')
+          deny "git commit pathspec '$a' is too broad — name specific files"
+          ;;
+      esac
+    done
     exec "$GIT_REAL" "${args[@]}"
     ;;
 
   push)
     if [[ "${SWARM_BLESSED_PUSH:-}" != "1" ]]; then
       deny "git push is blocked in lane shells — use tools/swarm/claim-push.sh (sets SWARM_BLESSED_PUSH=1)"
+    fi
+    if has_flag -n || has_flag --no-verify; then
+      deny "git push -n/--no-verify is banned — hook bypass is never allowed"
     fi
     # Bare --force / -f without lease is always denied, even in blessed mode.
     force=0

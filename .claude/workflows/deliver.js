@@ -914,6 +914,7 @@ phase('Claim')
 
 // Swarm Delivery Law (ADR-0711): check-before-push onto durable integ/<root>.
 // Envelope verify + merge-tree preflight + hub exclusivity BEFORE Land opens/upserts a PR.
+const integRoot = INTEG.replace(/^integ\//, '')
 const claimed = await agent(`${CTX}
 
 CLAIM (ADR-0711 / specs/integ-branch-envelopes.json) for integration branch \`${INTEG}\`.
@@ -926,6 +927,10 @@ scope; envelopes follow capability boundaries (core/ports/adapters/facade); cent
 hub-only (no product type-dumps); one writer queue per integ tip; workers never cargo/buck2;
 do not invent lanes for empty space. Full list in envelopes JSON #hyperscaler_monorepo_patterns.
 
+ANTI-DRIFT (ADR-0711 Amendment D / envelopes #anti_drift): CLAIM body MUST include
+\`docs_touched: [...]\` and \`docs_action: update|add|delete|n/a\` (plus \`docs_action_why\` when
+n/a). Missing packet = REFUSE. Prose MUST cite JSON pointers — never re-list #roots/#planes/#hubs.
+
 1. FETCH — \`git fetch origin\` (and any remote holding \`${INTEG}\`). Re-verify at the moment of
    action; stale green is not authorization.
 
@@ -935,19 +940,18 @@ do not invent lanes for empty space. Full list in envelopes JSON #hyperscaler_mo
      (a) inside envelope(R), OR
      (b) an explicitly claimed adjunct leaf recorded for this wave, OR
      (c) a hub path with an in-diff waiver row under governance/check/integ-envelope/waivers/.
-   Concurrent-safe exemptions (.beads/**, evidence/**, .grok/programs/*/evidence/**) do not grant
+   Concurrent-safe exemptions are ONLY the narrowed set in
+   envelopes#concurrent_safe_exemptions.paths (not whole evidence/**) and do not grant
    envelope escape for product code. If any path fails, REFUSE and name it.
    Prefer owner-colocated capability artifacts over new central specs/docs dumps.
 
-3. MERGE-TREE PREFLIGHT — Read-only conflict check against the current integ tip:
-     \`git merge-tree $(git merge-base origin/${INTEG#integ/} 2>/dev/null || git rev-parse ${BASE}) \`
-     Prefer: ensure local tip of \`${INTEG}\` matches remote, then
-     \`git merge-tree $(git merge-base ${BASE} HEAD) $(git rev-parse origin/${INTEG} 2>/dev/null || echo ${BASE}) $(git rev-parse HEAD)\`
-   Or equivalent read-only merge-tree of unit tips onto \`origin/${INTEG}\` (create tracking ref if
-   missing by comparing against ${BASE}). If merge-tree reports a content conflict, REFUSE — do not
-   guess intent. Report the conflicting paths.
+3. MERGE-TREE PREFLIGHT — Read-only conflict check against the current integ tip. Prefer:
+     \`git fetch origin ${INTEG} 2>/dev/null; INTEG_TIP=\$(git rev-parse origin/${INTEG} 2>/dev/null || git rev-parse ${BASE}); BASE_SHA=\$(git merge-base ${BASE} HEAD); git merge-tree \$BASE_SHA \$INTEG_TIP HEAD\`
+   Root name for local tracking refs is \`${integRoot}\` (strip \`integ/\` from \`${INTEG}\`).
+   If merge-tree reports a content conflict, REFUSE — do not guess intent. Report the conflicting
+   paths. Blessed \`tools/swarm/claim-push.sh\` re-runs this merge-tree at push time.
 
-4. HUB EXCLUSIVITY — For every hub path listed in the envelopes spec that this run touches, check
+4. HUB EXCLUSIVITY — For every hub path listed in envelopes#hubs.paths that this run touches, check
    open PRs (\`gh pr list --state open --limit 500 --json number,headRefName,files\`; paginate if
    the page is full) and ensure no OTHER open integ PR already owns that hub. One hub, one owner
    per wave. Missing waiver when needed = REFUSE. Every \`active_waivers\` row MUST carry
@@ -959,26 +963,32 @@ do not invent lanes for empty space. Full list in envelopes JSON #hyperscaler_mo
    is forbidden here — it belongs only in blessed restack/server-side-reset scripts.
 
 
-6. REORG NOW + EVALUATION GATE (ADR-0711 Amendment B) — Load `reorg_debt_freeze` +
-   `naming` from `${ENVELOPES}` (taxonomy: specs/naming-taxonomy.json).
-   A) NEW BIRTHS: for every `git diff --diff-filter=A` path under `prefixes` /
-      `no_new_births_while_reorg_prefixes`: ALLOW only if unexpired one_shot_exception OR bead
-      contains `reorg-move-out` naming destination; else REFUSE.
+6. REORG NOW + EVALUATION GATE (ADR-0711 Amendment B) — Load \`reorg_debt_freeze\` +
+   \`naming\` from \`${ENVELOPES}\` (taxonomy: specs/naming-taxonomy.json; volatile judgments:
+   governance/check/integ-envelope/judgments/).
+   A) NEW BIRTHS (unit_root_birth only — see birth_gate.scope): for each \`git diff --diff-filter=A\`
+      path under freeze prefixes, REFUSE only when it introduces a NEW unit-root directory absent
+      on origin/dev (e.g. libs/<new-crate>/) without one_shot_exception or reorg-move-out bead.
+      Additive files inside an already-tracked unit root are NOT birth-gated.
    B) PATH CHANGES (diff-filter=D|R|AM under a classified unit path): ALLOW only if the unit
-      row has `judgment_status=done` with non-empty `rationale` and `redesign` in
+      judgment file / row has \`judgment_status=done\` with non-empty \`rationale\` and \`redesign\` in
       {none,refactor,rewrite,delete}. REFUSE git-mv-only / rename-only waves and any change
-      when judgment is `pending`. PR body MUST paste the 7-point judgment.
-   C) KEEP/REPLACE of an *existing* pattern: require `lenses_applied: all-16` (ids in
-      .grok/harness/lenses.v1.json — never a subset) and non-empty `challenges[]`.
-      Indefensible under full battery → delete/reshape; do not silently follow anti-patterns.
-   D) RENAMES: require taxonomy `kind` + `name_now`/`name_forever` + `grammar_compliant`;
-      taxonomy REPLACES brand/ADR naming anti-patterns (oya-/cloud- leading, ADR-in-job-titles,
-      firewall metaphor) — does not encode them. Prefer destination integ/<root>.
+      when judgment is \`pending\`. PR body MUST paste the 7-point judgment.
+   C) KEEP/REPLACE of an *existing* pattern at ROOT scope: require \`lenses_applied: all-16\`
+      (ids in .grok/harness/lenses.v1.json) and non-empty \`challenges[]\`. Leaf MAY use
+      \`inherit-root\`. Empty/templated challenges with all-16 = REFUSE (anti-stamp).
+   D) RENAMES: require taxonomy \`kind\` + \`name_now\`/\`name_forever\` + \`grammar_compliant\`;
+      taxonomy REPLACES brand/ADR naming anti-patterns — does not encode them.
    Prefer destination integ/<root> for redesign lands. Freeze source ownership ≠ birth license.
 
+7. DOC PACKET (Amendment D) — Include in CLAIM summary:
+      docs_touched: [<paths or n/a>]
+      docs_action: update|add|delete|n/a
+      docs_action_why: <required if n/a>
 
-Return CLAIM with the envelope id, path inventory, merge-tree result, hub owners, and cherry-pick
-SHAs — or REFUSE with the concrete blocker.`,
+
+Return CLAIM with the envelope id, path inventory, merge-tree result, hub owners, doc packet, and
+cherry-pick SHAs — or REFUSE with the concrete blocker.`,
   { label: 'claim:envelope-merge-tree-hub', phase: 'Claim', schema: SCOUT_SCHEMA })
 
 const claimOk = claimed && /^\s*CLAIM/i.test(claimed.summary || '')

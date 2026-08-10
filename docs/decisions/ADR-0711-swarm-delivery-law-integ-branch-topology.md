@@ -18,11 +18,11 @@ milestone: W0
 deliverables:
   - id: ADR-0711-D1
     description: "Durable integ/<root> + integ/docs + integ/specs branch topology with machine-readable path envelopes."
-    exit_criteria: "specs/integ-branch-envelopes.json exists; lists governed roots (os, ci, governance, workflow, cell, comms, data, iam, build, cloud, flags, libs, console, oya, marketplace, registry, tools) and planes (docs, specs); hub sole-owner list and adjunct claim rules are machine-readable; envelope self-ownership is integ/specs."
+    exit_criteria: "specs/integ-branch-envelopes.json exists; governed roots/planes/hubs are enumerated ONLY in that JSON (#roots, #planes, #hubs.paths) — prose cites JSON pointers and MUST NOT re-list; hub sole-owner list and adjunct claim rules are machine-readable; envelope self-ownership is integ/specs."
     verified_by: "oya-ci-required"
   - id: ADR-0711-D2
     description: "Worktree-per-agent isolation plus worker git allowlist (no stash/reset) and server-side integ reset after land."
-    exit_criteria: "PORTABLE-SWARM-CONTRACT.md carries Swarm Delivery Law; deliver.js Claim verifies envelope + merge-tree + hub exclusivity; Land upserts one PR per integ/<root> and documents server-side reset refspec; concurrent-safe exemptions for .beads/** and evidence/** are registered."
+    exit_criteria: "PORTABLE-SWARM-CONTRACT.md carries Swarm Delivery Law; deliver.js Claim verifies envelope + merge-tree + hub exclusivity; Land upserts one PR per integ/<root> and documents server-side reset refspec; concurrent-safe exemptions match specs/integ-branch-envelopes.json#concurrent_safe_exemptions.paths (narrowed per-lane evidence — not whole evidence/**)."
     verified_by: "oya-ci-required"
   - id: ADR-0711-D3
     description: "Hyperscaler monorepo patterns + anti-patterns encoded as first-class Swarm Delivery Law (not agent-swarm lessons alone)."
@@ -38,11 +38,15 @@ deliverables:
     verified_by: "oya-ci-required"
   - id: ADR-0711-D6
     description: "Amendment B Pattern-First + full 16-lens battery — establish specs/naming-taxonomy.json before renames; taxonomy REPLACES indefensible brand/ADR naming (does not encode it); judgments require lenses_applied=all-16 + challenges[] when keeping/replacing existing patterns; dual-emit merge-gate-context until founder protection flip."
-    exit_criteria: "specs/naming-taxonomy.json with overturned_patterns; ADR-0711 B-1b/B-1c + PORTABLE mirror; envelopes naming.judgment_template + naming_sweep[] cite kind + grammar_compliant + lenses_applied=all-16; no mass rename without taxonomy instance."
+    exit_criteria: "specs/naming-taxonomy.json with overturned_patterns; ADR-0711 B-1b/B-1c + PORTABLE mirror; envelopes naming.judgment_template + judgment_files.dir (naming_sweep lives under governance/check/integ-envelope/judgments/, not inlined); no mass rename without taxonomy instance."
     verified_by: "oya-ci-required"
   - id: ADR-0711-D7
     description: "Amendment C — Gaebal-gajae 137-entry distillation synthesized as clustered Gaebal operating patterns (KEEP/BAN), not 137 paraphrases; machine-readable specs/gaebal-agentic-patterns.json; distill notes that said keep name oya-ci-required are OVERRULED (forever name merge-admission-required)."
     exit_criteria: "ADR-0711 Amendment C + PORTABLE-SWARM-CONTRACT Amendment C present; specs/gaebal-agentic-patterns.json carries KEEP/BAN clusters + oyatie_apply tags; explicit OVERRULE of oya-ci-required-as-forever-name."
+    verified_by: "oya-ci-required"
+  - id: ADR-0711-D8
+    description: "Amendment D — Anti-drift documentation doctrine (INV-DOC-1…8); enumerate ONLY in envelopes JSON; docs_touched/docs_action packet; same-wave colocation; versioned anti_drift_doctrine_version; merge_windows policy-as-data."
+    exit_criteria: "ADR-0711 Amendment D + PORTABLE Amendment D present; envelopes #anti_drift + #merge_windows; deliver.js Claim requires docs_touched/docs_action; tools/swarm/self-check.sh drift-greps prose root enumerations."
     verified_by: "oya-ci-required"
 ---
 # ADR-0711: Swarm Delivery Law — integration branch topology and command discipline
@@ -77,21 +81,22 @@ agent lanes assemble onto trunk: unit work never opens a trunk PR; domain integ 
 
 ### D-1 — Durable integ branches are the only trunk admission surface
 
-One durable branch `integ/<root>` exists per governed top-level root:
+One durable branch `integ/<root>` exists per governed top-level root, and planes exist for
+cross-cutting hubs / process-meta. **Enumerate ONLY in machine law:**
 
-`os`, `ci`, `governance`, `workflow`, `cell`, `comms`, `data`, `iam`, `build`, `cloud`,
-`flags`, `libs`, `console`, `oya`, `marketplace`, `registry`, `tools`.
+- Roots: `specs/integ-branch-envelopes.json#roots`
+- Planes: `specs/integ-branch-envelopes.json#planes`
+- Hubs: `specs/integ-branch-envelopes.json#hubs.paths`
 
-Plus planes:
+Prose (this ADR, PORTABLE, AGENTS, plans) MUST cite those JSON pointers and MUST NOT re-list
+root/plane/hub/freeze sets (Amendment D / INV-DOC-2). Dual-truth between prose lists and JSON
+is a defect — fix same wave; JSON wins after challenge.
 
-- `integ/docs` — envelope `docs/**`
-- `integ/specs` — envelope `specs/**`
-
-**Capability-root note (2026-08-10):** top-level dirs `cell/`, `comms/`, `data/`, and `iam/`
-are capability roots under ADR-0701. They are now first-class governed integ envelopes
-(`integ/cell`, `integ/comms`, `integ/data`, `integ/iam`) — ownership = path = integ scope
-(D-9). Residual unit-PR content under those roots lands on the matching durable integ, not
-as standalone trunk PRs.
+**Capability-root note:** every closed capability-registry top-level dir that appears under
+`#roots` is a first-class governed integ envelope — ownership = path = integ scope (D-9).
+Residual unit-PR content under those roots lands on the matching durable integ, not as
+standalone trunk PRs. Forward-declared roots (e.g. `base/`, `app/`) remain routable even when
+the directory is still vacant.
 
 Branch list and path envelopes are policy-as-data in `specs/integ-branch-envelopes.json`.
 Changes reach `dev` only via a PR from `integ/*` (exception: `hotfix/*`, post-hoc review). At most
@@ -105,17 +110,8 @@ A PR from `integ/R` may touch only:
 2. explicitly claimed adjunct leaves, and
 3. waivered hub files.
 
-Hub files are sole-owner per wave (one integ carries a given hub edit):
-
-- `specs/masterplan.json`
-- `specs/capability-registry.json`
-- `specs/root-hub-pointers.json`
-- `docs/ADR-INDEX.md`
-- `docs/DOC-CATALOG.md`
-- `docs/CHANGELOG.md`
-- `governance/check/adr-citation-closure/adr-citation-closure-policy.json` (and other equality-pinned
-  `*-policy.json` census pins)
-- `Cargo.lock`
+Hub files are sole-owner per wave (one integ carries a given hub edit). Path set SSOT:
+`specs/integ-branch-envelopes.json#hubs.paths` (do not re-list here).
 
 A code integ carries a hub edit only with an in-diff waiver row (branch + hub + reason) under
 `governance/check/integ-envelope/waivers/` so atomic co-changes stay possible and auditable.
@@ -165,7 +161,8 @@ Structural fix first: worktree-per-agent removes the shared-index substrate. The
 after; `git push` via blessed script. One logical change = one commit of specifically named files.
 
 **Denied for workers:** `stash`, `reset` (all forms), `clean`, `restore`, `checkout`, `rebase`,
-`merge`, `branch -D/-f`, `update-ref`, `reflog expire`, `gc`, bare `push --force`.
+`merge`, `branch -D/-f`, `update-ref`, `reflog expire`, `gc`, bare `push --force`,
+`commit --no-verify` / `-n`, `push --no-verify`.
 
 Destructive operations exist only inside versioned, reviewed scripts that the integrator role runs
 (restack, server-side reset, worktree remove). Integrator uses cherry-pick (commit-producing,
@@ -178,8 +175,9 @@ are Phase A companions; this ADR is the law they enforce.
 
 - Citation census pins are re-derived on the integ tip (oyatie-o90), never git-merged as authority.
 - `Cargo.lock` lands with the integ that changed workspace membership.
-- Concurrent-safe exemptions (`.beads/**`, per-lane `evidence/**`) are recorded in
-  `registry/vcs/concurrent-safe-paths.yaml` and referenced from the envelope spec.
+- Concurrent-safe exemptions are recorded in `registry/vcs/concurrent-safe-paths.yaml` and MUST
+  match `specs/integ-branch-envelopes.json#concurrent_safe_exemptions.paths` (narrowed per-lane /
+  CI evidence prefixes — **not** the whole `evidence/**` tree).
 
 ### D-8 — Self-reference
 
@@ -653,6 +651,44 @@ Any distill note that said **keep the name `oya-ci-required`** is **OVERRULED**.
   (Amendment B / Phase C) — that is a cutover alias, **not** forever grammar.
 - Brand-prefix bans and ADR-in-title bans stand. Distill corpus is evidence for operating
   patterns, not authority to freeze indefensible names.
+
+### Amendment D (2026-08-10) — Anti-drift documentation doctrine
+
+Binding amendment. Machine law + packet + same-wave colocation so docs cannot drift after change.
+Portable mirror: `.grok/programs/delivery-fabric/evidence/PORTABLE-SWARM-CONTRACT.md` § Amendment D.
+Policy-as-data: `specs/integ-branch-envelopes.json#anti_drift` (`anti_drift_doctrine_version`).
+
+#### INV-DOC-1…8 (RFC 2119)
+
+1. **INV-DOC-1 (packet):** Every material change MUST declare `docs_touched[]` + `docs_action`
+   (`update|add|delete|n/a`) in Claim/Land/Fix-observation/commit trail; `n/a` REQUIRES
+   `docs_action_why`. Missing packet ⇒ incomplete Claim.
+2. **INV-DOC-2 (single enumeration SSOT):** Prose MUST NOT re-list roots/planes/freeze prefixes/hub
+   path sets; MUST cite JSON pointers (`#roots`, `#planes`, `#hubs.paths`,
+   `#reorg_debt_freeze.prefixes`, …). Dual-truth = defect; fix same wave; JSON wins after challenge.
+3. **INV-DOC-3 (same-wave colocation):** Load-bearing doc updates MUST land on the owning integ
+   same wave as the change. “Docs follow-up later” BANNED when docs are required for correct
+   application.
+4. **INV-DOC-4 (derived regen):** Generated artifacts MUST regenerate in the same change; hand-edit
+   of generated output MUST NOT (Amendment A-4).
+5. **INV-DOC-5 (cross-plane):** Specs/registry first when schema binds gates → docs hubs/indexes
+   next same window when load-bearing → adjunct/waiver for cross-plane; MUST NOT fight sole-owner
+   hubs; parked docs MUST cite specs tip SHA depended on.
+6. **INV-DOC-6 (stale):** Unverified tips/SHAs MUST refresh or mark unverified. Declared ≠ verified.
+7. **INV-DOC-7 (Limitations):** Doctrine docs MUST keep a Limitations section.
+8. **INV-DOC-8 (evolve doctrine):** Amend only via challenge → OVERRULE receipt → edit
+   ADR/PORTABLE/envelopes → bump `anti_drift_doctrine_version`. MUST NOT silently diverge plan
+   from in-repo law.
+
+#### Merge windows (policy-as-data)
+
+Hot-set ≤4 and restack-once/window are encoded in
+`specs/integ-branch-envelopes.json#merge_windows` — not plan-only dual-truth.
+
+#### Limitations
+
+Packet is prompt-enforced until mechanical Claim parses fail-closed. Does not rewrite DOC-CATALOG
+corpus; does not authorize mass ADR renames. Drift-grep: `tools/swarm/self-check.sh`.
 
 ## Consequences
 

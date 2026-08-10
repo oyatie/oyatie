@@ -61,18 +61,17 @@ Authoritative policy-as-data: `specs/integ-branch-envelopes.json`. Authoritative
 
 ### Topology
 
-1. One durable branch `integ/<root>` per governed top-level root: `os`, `ci`, `governance`,
-   `workflow`, `build`, `cloud`, `flags`, `libs`, `console`, `oya`, `marketplace`, `registry`.
-2. Planes: `integ/docs` (`docs/**`), `integ/specs` (`specs/**`).
+1. One durable branch `integ/<root>` per governed top-level root — **enumerate ONLY in**
+   `specs/integ-branch-envelopes.json#roots` (prose MUST NOT re-list; INV-DOC-2).
+2. Planes — **enumerate ONLY in** `specs/integ-branch-envelopes.json#planes` (includes docs/specs
+   hubs plus process-meta / root-manifest routing).
 3. Changes reach `dev` only via a PR from `integ/*` (exception: `hotfix/*`). At most one open PR
    per integ. Unit work never opens trunk PRs.
 
 ### Containment
 
 A PR from `integ/R` may touch only envelope(R) + explicitly claimed adjunct leaves + waivered hubs.
-Hub files (sole-owner per wave): `specs/masterplan.json`, `specs/capability-registry.json`,
-`specs/root-hub-pointers.json`, `docs/ADR-INDEX.md`, `docs/DOC-CATALOG.md`, `docs/CHANGELOG.md`,
-equality-pinned census `*-policy.json` (e.g. `adr-citation-closure-policy.json`), `Cargo.lock`.
+Hub path set SSOT: `specs/integ-branch-envelopes.json#hubs.paths` (do not re-list here).
 Hub edits from a code integ require an in-diff waiver row under
 `governance/check/integ-envelope/waivers/`.
 
@@ -86,8 +85,10 @@ Before pushing to `integ/R`:
 4. verify hub exclusivity against open PRs
 5. admit by cherry-pick
 6. re-verify at the moment of push — stale green is not authorization
+7. declare `docs_touched[]` + `docs_action` (Amendment D / INV-DOC-1)
 
-`--force-with-lease` only inside blessed restack/reset scripts.
+`--force-with-lease` only inside blessed restack/reset scripts. `--no-verify` / `-n` denied in
+worker shims.
 
 ### Lifecycle (server-side reset)
 
@@ -112,14 +113,17 @@ Allowed: read-only git (`status`, `diff`, `log`, `show`, `fetch`, `merge-base`, 
 `rev-parse`); `git add <explicit paths>`; immediate `git commit`; `git push` via blessed script.
 
 Denied: `stash`, `reset` (all forms), `clean`, `restore`, `checkout`, `rebase`, `merge`,
-`branch -D/-f`, `update-ref`, `reflog expire`, `gc`, bare `push --force`.
+`branch -D/-f`, `update-ref`, `reflog expire`, `gc`, bare `push --force`, `commit --no-verify`/`-n`,
+`push --no-verify`.
 
 ### Special files + concurrent-safe exemptions
 
 - Citation census re-derived on the integ tip (oyatie-o90), never treated as git-merge authority.
 - `Cargo.lock` lands with the integ that changed workspace membership.
-- Concurrent-safe exemptions (`.beads/**`, `evidence/**`, `.grok/programs/*/evidence/**`) live in
-  `registry/vcs/concurrent-safe-paths.yaml` and are referenced by the envelope spec.
+- Concurrent-safe exemptions MUST match
+  `specs/integ-branch-envelopes.json#concurrent_safe_exemptions.paths` (and
+  `registry/vcs/concurrent-safe-paths.yaml`) — narrowed per-lane/CI evidence, **not** whole
+  `evidence/**`.
 
 ### Self-reference
 
@@ -249,6 +253,24 @@ clusters (not paraphrases). Machine copy: `specs/gaebal-agentic-patterns.json`.
 **OVERRULE (naming):** distill notes that said keep name `oya-ci-required` are **overturned**.
 Forever name is **`merge-admission-required`**. Brand/ADR-in-title bans stand. Legacy protection
 pin is dual-emit cutover only.
+
+### Amendment D (2026-08-10) — Anti-drift documentation doctrine
+
+Mirror of ADR-0711 Amendment D. Policy-as-data:
+`specs/integ-branch-envelopes.json#anti_drift` (`anti_drift_doctrine_version`).
+
+**INV-DOC-1…8** — packet (`docs_touched`/`docs_action`); enumerate ONLY via JSON pointers
+(`#roots`, `#planes`, `#hubs.paths`, `#reorg_debt_freeze.prefixes`, …); same-wave colocation;
+derived regen; cross-plane order+adjunct; stale tip honesty; Limitations section; doctrine amend
+only via OVERRULE + version bump.
+
+**merge_windows** — hot-set ≤4 + restack-once/window live in
+`specs/integ-branch-envelopes.json#merge_windows` (cite; do not invent plan-only dual-truth).
+
+**Ensure:** Claim prompt requires doc packet; `tools/swarm/self-check.sh` drift-greps prose root
+enumerations. Mechanical fail-closed parse lands with `claim-mechanical`.
+
+**Limitations:** Prompt-enforced until mechanical Claim; no DOC-CATALOG rewrite; no mass ADR rename.
 
 
 ## Auth preflight (carry-forward)
