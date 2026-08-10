@@ -19,6 +19,38 @@
 //! This crate also surfaces the **secret status resources** ([`SecretStatus`])
 //! that Talos publishes as it generates certs, and a [`BundlePersistence`]
 //! boundary for loading/storing the bundle on disk.
+//!
+//! # This crate is a MODEL, and production cannot link it
+//!
+//! Nothing here performs cryptography. It is modeled end to end, and the model
+//! is not weak crypto, it is *no* crypto:
+//!
+//! * `KeyPair::from_seed` sets the private key to the seed **verbatim**, and
+//!   the public key to a reversible byte transform of it, so the public half
+//!   recovers the private half.
+//! * `InMemorySigner` "signs" with an 8-byte keyed FNV hash, and it is the only
+//!   signer `CertificateAuthority` has — `bootstrap` builds one from whatever
+//!   key pair it is handed, so even real key material yields a forgeable MAC
+//!   where a signature should be, and `verify` accepts it.
+//! * `SecretsBundle::generate` derives all four CAs, the service-account key,
+//!   the cluster secret and both tokens from one seed string, and
+//!   `FsBundleStore::save` writes that seed to disk in **plaintext**, so every
+//!   key in the cluster is regenerable from one line of one file.
+//!
+//! Unlike `os-trustd-domain`, there is no real backend beside the model to
+//! prefer: gating the modeled constructors and leaving the rest would gate
+//! everything reachable from them, which is this crate. So the gate sits at the
+//! crate root. Off-feature the crate is **empty**, and any production reference
+//! to any of it is E0432 (unresolved import) rather than a doc comment nobody
+//! reads. Real PKI for the OS port is a separate piece of work; until it lands,
+//! the build graph says so out loud instead of shipping a model that looks like
+//! an implementation.
+//!
+//! Measured on this tree: the production `os-secrets-domain` library has five
+//! reverse dependencies and **no binary** among them, and neither consuming
+//! library uses it outside `#[cfg(test)]`, so this gate removes no production
+//! behaviour — it removes the ability to acquire some.
+#![cfg(any(test, feature = "modeled-crypto"))]
 
 pub mod api;
 pub mod bundle;
@@ -299,6 +331,132 @@ impl<F: FileSystem> BundlePersistence for FsBundleStore<F> {
 mod tests {
     use super::*;
     use os_kernel::os::MemoryFs;
+
+    /// The crate-root gate must stay on a line of its own in `src/lib.rs`.
+    ///
+    /// The barrier itself is the `cfg`, not this test — no test can watch the
+    /// gate bite from inside a build where the gate is open, which every test
+    /// build is. What this test buys is that the gate cannot leave *quietly*:
+    /// deleting it, editing it, or commenting it out all turn this red.
+    ///
+    /// Matching at the *start* of a line rather than anywhere in the file is
+    /// deliberate. A `contains` check passes on a gate that has been commented
+    /// out — a `//`-prefixed line still contains the string — which was the
+    /// hole in the sibling guards in `os-trustd-domain` and
+    /// `os-cluster-mgmt-domain`. Both now carry this same shape, and those two
+    /// plus this one were the whole class — the suffix form survives nowhere in
+    /// the tree except in prose like this line.
+    /// Prefix-matching a whole line closes it while
+    /// still allowing a trailing comment on the gate itself. It also stops the
+    /// test satisfying itself: `GATE` below is written with escaped quotes, so
+    /// its own source line does not begin with the value it holds.
+    ///
+    /// Proven to fire: commenting the gate out and running this test gives
+    ///
+    /// ```text
+    /// src/lib.rs must carry the crate-root modeled-crypto gate on a line of its own
+    /// ```
+    #[test]
+    fn crate_root_gate_is_present() {
+        const GATE: &str = "#![cfg(any(test, feature = \"modeled-crypto\"))]";
+        assert!(
+            include_str!("lib.rs")
+                .lines()
+                .any(|l| l.trim_start().starts_with(GATE)),
+            "src/lib.rs must carry the crate-root modeled-crypto gate on a line of its own"
+        );
+    }
+
+    /// No production build target may turn the model on.
+    ///
+    /// This is the ONE route to the model that the modeled target's restricted
+    /// `visibility` cannot express. Visibility answers "who may depend on the
+    /// modeled target" — mechanically, as a buck2 analysis error. It says
+    /// nothing about the *production* target growing
+    /// `features = ["modeled-crypto"]`, which would hand the model to every
+    /// consumer of `os-secrets-domain` without touching the modeled target at
+    /// all. So this test is not redundant with visibility; it is its complement,
+    /// and it is deliberately the smallest form that covers that one route.
+    ///
+    /// Exactly one occurrence is asserted rather than parsed per target, which
+    /// also makes it anti-vacuous for free: a rename or reshape that loses the
+    /// modeled target drops the count to 0 and turns this red, so it cannot
+    /// silently stop checking anything.
+    ///
+    /// Proven to fire, by mutation rather than by argument. Adding
+    /// `features = ["modeled-crypto"]` to the production `rust_library` gives
+    ///
+    /// ```text
+    /// assertion `left == right` failed: exactly one BUCK target may enable
+    /// modeled-crypto (`os-secrets-domain-modeled`)
+    ///   left: 2
+    ///  right: 1
+    /// ```
+    ///
+    /// Known residual, stated rather than fixed: a *swap* satisfies this — move
+    /// `features = ["modeled-crypto"]` from the modeled target onto the
+    /// production one and delete it from the modeled, and the count stays 1.
+    /// That mutation renames what "production" means in a 2-line diff no
+    /// reviewer would miss, so counting is the proportionate instrument here;
+    /// per-target parsing is the upgrade path if it ever stops being.
+    #[test]
+    fn no_production_buck_target_enables_the_model() {
+        // Comments are stripped first so prose about the feature cannot be read
+        // as a target enabling it.
+        let buck: String = include_str!("../BUCK")
+            .lines()
+            .filter(|l| !l.trim_start().starts_with('#'))
+            .collect::<Vec<_>>()
+            .join("\n");
+
+        assert_eq!(
+            buck.matches("modeled-crypto").count(),
+            1,
+            "exactly one BUCK target may enable modeled-crypto \
+             (`os-secrets-domain-modeled`); a second occurrence means another \
+             target grew the feature, and zero means this guard stopped \
+             checking anything"
+        );
+    }
+
+    /// The feature must never become a DEFAULT feature.
+    ///
+    /// Non-defaultness is the whole load-bearing property: the crate-root
+    /// `cfg` only strips the crate while the feature is off, and a `default`
+    /// entry turns it on for every `cargo build` in the workspace. Before this
+    /// test that property was carried by a comment in `Cargo.toml` and nothing
+    /// else — the sibling guards read `src/lib.rs` and `BUCK`, and neither
+    /// reads the manifest. buck2 stays green through such a change because
+    /// buck2 features come from the target attribute and never consult
+    /// `Cargo.toml` at all, so buck2 alone cannot notice it.
+    ///
+    /// Proven to fire, by mutation: adding `default = ["modeled-crypto"]` to
+    /// the `[features]` section gives
+    ///
+    /// ```text
+    /// Cargo.toml [features] must not declare `default`: modeled-crypto is
+    /// non-default and that is the whole barrier
+    /// ```
+    #[test]
+    fn cargo_manifest_declares_no_default_feature() {
+        let manifest = include_str!("../Cargo.toml");
+
+        let features: Vec<&str> = manifest
+            .lines()
+            .skip_while(|l| l.trim() != "[features]")
+            .skip(1)
+            .take_while(|l| !l.trim_start().starts_with('['))
+            .map(str::trim)
+            .filter(|l| !l.is_empty() && !l.starts_with('#'))
+            .collect();
+
+        assert_eq!(
+            features,
+            ["modeled-crypto = []"],
+            "Cargo.toml [features] must not declare `default`: modeled-crypto \
+             is non-default and that is the whole barrier"
+        );
+    }
 
     #[test]
     fn secret_status_version_bumps_on_change() {
