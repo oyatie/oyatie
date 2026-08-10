@@ -9,7 +9,7 @@ Goal: by Friday EOD you can mint a CMK, issue + use a DEK via envelope encryptio
 - `docs/decisions/ADR-0702-identity-authz-live-apex.md` — tenant CMK isolation.
 - `docs/decisions/ADR-0709-general-live-apex.md — Foundry as a tenant of `cloud-kms` for its own signing.
 - `docs/adr-archive/ADR-0255-intelligence-as-two-layer-ai-substrate.md` — §D-4 distinguishes encryption-key BYOK from provider BYOK.
-- `microservices/cloud-kms/retired tenant_class adoption artifact` — the four tenant_classes and HSM backends.
+- `secrets/kms/PRD.md` + `secrets/kms/tenant-class-adoption-deltas-vs-counterparts-2026-05-20.md` — the four tenant_classes and HSM backends.
 - NIST FIPS 140-3, FIPS 203 (ML-KEM), FIPS 204 (ML-DSA) — at least skim the security policies of the certified modules.
 
 Clone:

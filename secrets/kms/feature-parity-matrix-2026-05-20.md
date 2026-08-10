@@ -10,8 +10,8 @@ counterpart_set: AWS KMS / Google Cloud KMS / HashiCorp Vault self-hosted
 
 1. Canonical audit mandate: `docs/decisions/ADR-0700-ci-admission-live-apex.md:3756-4153`.
 2. Canonical machine-readable constraints: `specs/master-plan-sequencing.json:704-868`.
-3. Local microservice purpose: `microservices/cloud-kms/retired tenant_class adoption artifact:7-11`, `secrets/kms/faqs/kms-engineer-faq.md:7-12`.
-4. Runtime/contract anchor: `contracts/openapi/cloud/cloud-kms-v1.yaml:1-168`, `crates/oya-cloud-kms-domain/src/lib.rs:1-113`.
+3. Local microservice purpose: `secrets/kms/PRD.md`, `secrets/kms/faqs/kms-engineer-faq.md:7-12`.
+4. Runtime/contract anchor: `contracts/openapi/cloud/cloud-kms-v1.yaml:1-168`, `secrets/core/kms-domain/src/lib.rs:1-113`.
 5. Documentation rigor: `docs/standards/documentation-rigor.md:133-190`, `docs/standards/brief-template.md:1720-1854`.
 
 ## External Source Set

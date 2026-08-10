@@ -10,8 +10,8 @@ date: 2026-05-20
 1. Canonical audit and benchmark disclosure rules: `docs/decisions/ADR-0700-ci-admission-live-apex.md:3756-4153`.
 2. Machine-readable deployment/context constraints: `specs/master-plan-sequencing.json:704-868`.
 3. Local microservice benchmark source: `secrets/kms/benchmarks/cloud-kms-vs-aws-kms-vs-azure-key-vault-vs-vault-enterprise.md:1-100`.
-4. Local tenant_class target source: `microservices/cloud-kms/retired tenant_class adoption artifact:13-83`.
-5. Runtime contract/code source: `contracts/openapi/cloud/cloud-kms-v1.yaml:1-168`, `crates/oya-cloud-kms-api/tests/cloud_kms_api.rs:203-352`.
+4. Local tenant_class target source: `secrets/kms/tenant-class-adoption-deltas-vs-counterparts-2026-05-20.md:13-83`.
+5. Runtime contract/code source: `contracts/openapi/cloud/cloud-kms-v1.yaml:1-168`, `secrets/ports/kms-api/tests/cloud_kms_api.rs:203-352`.
 
 ## Methodology Disclosure
 

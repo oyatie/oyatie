@@ -26,7 +26,7 @@ companion_docs:
 
 ## Architecture Boundary
 
-`cloud-kms` keeps its existing bounded context and flat `microservices/cloud-kms/src/` ownership under ADR-0131 and ADR-0132. This `ARCH.md` is the Wave 15-ZF architecture propagation surface for ADR-0346, ADR-0347, ADR-0348, and ADR-0349; service-specific deep architecture remains in `ARCHITECTURE.md` when that artifact exists.
+`cloud-kms` (nested under the secrets capability) keeps its bounded context under forever faces `secrets/{core,ports,adapters,facade}/` with KMS units (`secrets/core/kms-*`, `secrets/ports/kms-api`, `secrets/adapters/kms-*`, `secrets/facade/kms-*`) per ADR-0562/ADR-0615; ADR-0131/ADR-0132 are historical layout. This `ARCH.md` is the Wave 15-ZF architecture propagation surface for ADR-0346, ADR-0347, ADR-0348, and ADR-0349; service-specific deep architecture remains in `ARCHITECTURE.md` when that artifact exists.
 
 ## Wave 15-ZF Doctrine Context
 
