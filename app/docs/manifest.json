@@ -55,10 +55,10 @@
   ],
   "contracts": {
     "openapi": [
-      "microservices/docs/contracts/openapi/docs.yaml"
+      "app/docs/contracts/openapi/docs.yaml"
     ],
     "asyncapi": [
-      "microservices/docs/contracts/asyncapi/docs-events.yaml"
+      "app/docs/contracts/asyncapi/docs-events.yaml"
     ],
     "internal_grpc": {
       "transport": "http2",
@@ -72,19 +72,19 @@
     {
       "tier": "T1",
       "name": "T0-suggest",
-      "file": "microservices/docs/capabilities/T0-suggest.yaml",
+      "file": "app/docs/capabilities/T0-suggest.yaml",
       "risk_class": "minimal"
     },
     {
       "tier": "T1",
       "name": "T1-assist",
-      "file": "microservices/docs/capabilities/T1-assist.yaml",
+      "file": "app/docs/capabilities/T1-assist.yaml",
       "risk_class": "minimal"
     },
     {
       "tier": "T1",
       "name": "T2-auto",
-      "file": "microservices/docs/capabilities/T2-auto.yaml",
+      "file": "app/docs/capabilities/T2-auto.yaml",
       "risk_class": "minimal"
     }
   ],
@@ -149,91 +149,91 @@
       "id": "IP-001-iac-bootstrap",
       "title": "IP-001: IaC bootstrap — Helm + Kustomize for Postgres + S3 + Valkey + ClamAV + OPSWAT + gVisor",
       "acceptance_status": "ga",
-      "file": "microservices/docs/IP-001-iac-bootstrap.md"
+      "file": "app/docs/IP-001-iac-bootstrap.md"
     },
     {
       "id": "IP-002-document-store-kernel",
       "title": "IP-002: document-store kernel — Document + BlockTree + RetentionPolicyRef + LegalHoldRef + port traits",
       "acceptance_status": "ga",
-      "file": "microservices/docs/IP-002-document-store-kernel.md"
+      "file": "app/docs/IP-002-document-store-kernel.md"
     },
     {
       "id": "IP-003-document-store-domain-and-usecase",
       "title": "IP-003: document-store domain + usecase",
       "acceptance_status": "ga",
-      "file": "microservices/docs/IP-003-document-store-domain-and-usecase.md"
+      "file": "app/docs/IP-003-document-store-domain-and-usecase.md"
     },
     {
       "id": "IP-004-document-store-adapter-postgres-and-s3",
       "title": "IP-004: document-store -adapter-postgres + -adapter-s3 + RLS schema + tenant-DEK envelope",
       "acceptance_status": "ga",
-      "file": "microservices/docs/IP-004-document-store-adapter-postgres-and-s3.md"
+      "file": "app/docs/IP-004-document-store-adapter-postgres-and-s3.md"
     },
     {
       "id": "IP-005-block-types-kernel-domain",
       "title": "IP-005: block-types kernel + domain (block schema + sanitisation per ADR-DOCS-0002)",
       "acceptance_status": "ga",
-      "file": "microservices/docs/IP-005-block-types-kernel-domain.md"
+      "file": "app/docs/IP-005-block-types-kernel-domain.md"
     },
     {
       "id": "IP-006-collab-crdt-kernel-domain",
       "title": "IP-006: collab-crdt kernel + domain + adapter (Loro 1.x integration; cross-µservice consistent per ADR-DOCS-0001 + ADR-WS-0001)",
       "acceptance_status": "ga",
-      "file": "microservices/docs/IP-006-collab-crdt-kernel-domain.md"
+      "file": "app/docs/IP-006-collab-crdt-kernel-domain.md"
     },
     {
       "id": "IP-007-collab-crdt-adapter-valkey-worker",
       "title": "IP-007: collab-crdt -adapter-valkey + worker (WebSocket gateway)",
       "acceptance_status": "ga",
-      "file": "microservices/docs/IP-007-collab-crdt-adapter-valkey-worker.md"
+      "file": "app/docs/IP-007-collab-crdt-adapter-valkey-worker.md"
     },
     {
       "id": "IP-008-comments-and-suggestions",
       "title": "IP-008: comments-and-suggestions BC (9 crates)",
       "acceptance_status": "ga",
-      "file": "microservices/docs/IP-008-comments-and-suggestions.md"
+      "file": "app/docs/IP-008-comments-and-suggestions.md"
     },
     {
       "id": "IP-009-version-history",
       "title": "IP-009: version-history BC (8 crates)",
       "acceptance_status": "ga",
-      "file": "microservices/docs/IP-009-version-history.md"
+      "file": "app/docs/IP-009-version-history.md"
     },
     {
       "id": "IP-010-sharing-and-permissions",
       "title": "IP-010: sharing-and-permissions BC (8 crates; per-block ACL per ADR-DOCS-0004)",
       "acceptance_status": "ga",
-      "file": "microservices/docs/IP-010-sharing-and-permissions.md"
+      "file": "app/docs/IP-010-sharing-and-permissions.md"
     },
     {
       "id": "IP-011-export-import",
       "title": "IP-011: export-import BC (11 crates) — Pandoc + WeasyPrint + Chromium inside gVisor sandbox",
       "acceptance_status": "ga",
-      "file": "microservices/docs/IP-011-export-import.md"
+      "file": "app/docs/IP-011-export-import.md"
     },
     {
       "id": "IP-012-embed-resolver",
       "title": "IP-012: embed-resolver BC (8 crates)",
       "acceptance_status": "ga",
-      "file": "microservices/docs/IP-012-embed-resolver.md"
+      "file": "app/docs/IP-012-embed-resolver.md"
     },
     {
       "id": "IP-013-rest-websocket-protocol",
       "title": "IP-013: REST + WebSocket frame protocol",
       "acceptance_status": "ga",
-      "file": "microservices/docs/IP-013-rest-websocket-protocol.md"
+      "file": "app/docs/IP-013-rest-websocket-protocol.md"
     },
     {
       "id": "IP-014-ai-assist-wire",
       "title": "IP-014: AI writing-assist wire (T0/T1/T2 per ADR-DOCS-0005)",
       "acceptance_status": "ga",
-      "file": "microservices/docs/IP-014-ai-assist-wire.md"
+      "file": "app/docs/IP-014-ai-assist-wire.md"
     },
     {
       "id": "IP-015-hg-docs-registration-and-branch-protection",
       "title": "IP-015: HG-DOCS registration + branch-protection",
       "acceptance_status": "ga",
-      "file": "microservices/docs/IP-015-hg-docs-registration-and-branch-protection.md"
+      "file": "app/docs/IP-015-hg-docs-registration-and-branch-protection.md"
     }
   ],
   "regulatory_packs": [
@@ -473,10 +473,10 @@
   "pod_runtime_tier": 2,
   "pod_runtime_tier_justification": "Docs is a first-party collaborative document application. The CRDT and export surfaces process tenant document data but do not run tenant-supplied code, so ADR-0338 Tier 2 is the correct runtime and ADR-0340 Tier-3 is the matching application cell class.",
   "pod_runtime_tier_surface_evidence": [
-    "microservices/docs/PRD.md",
-    "microservices/docs/capacity-model.md",
-    "microservices/docs/IP-006-collab-crdt-kernel-domain.md",
-    "microservices/docs/IP-011-export-import.md"
+    "app/docs/PRD.md",
+    "app/docs/capacity-model.md",
+    "app/docs/IP-006-collab-crdt-kernel-domain.md",
+    "app/docs/IP-011-export-import.md"
   ],
   "tenant_version_pinning": {
     "declared_versions": [
@@ -491,10 +491,10 @@
     "deprecation_calendar": [],
     "public_surface_files": {
       "openapi": {
-        "2026-05-21": "microservices/docs/contracts/openapi/docs.yaml"
+        "2026-05-21": "app/docs/contracts/openapi/docs.yaml"
       },
       "asyncapi": {
-        "2026-05-21": "microservices/docs/contracts/asyncapi/docs-events.yaml"
+        "2026-05-21": "app/docs/contracts/asyncapi/docs-events.yaml"
       }
     }
   },
