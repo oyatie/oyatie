@@ -1,10 +1,11 @@
-//! Cloud network aggregate kernel.
+//! Network domain aggregate kernel.
 //!
 //! This crate owns the VPC, subnet, load-balancer, DNS-zone, CDN, interconnect,
 //! DDoS, and mesh invariants for `cloud.network.*` surfaces. It keeps the
 //! AWS/GCP/Azure-shaped primitives explicit while staying adapter-free:
 //! OVN/OVS/BGP/CoreDNS/Envoy implementations consume these typed contracts
-//! later.
+//! later. Cilium/Envoy/CoreDNS cell-guardrail metadata is proven by
+//! `network/core/domain/tests/cloud_network_dns_guardrails.rs`.
 // ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
 // `panic!()` to assert invariants under the `cfg(test)` exemption.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]

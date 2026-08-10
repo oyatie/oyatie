@@ -1,10 +1,10 @@
-//! Self-hosted / colo VPC adapter boundary for Cloud Network.
+//! Self-hosted / colo VPC adapter boundary for the network capability.
 //!
 //! This crate keeps on-prem and colo control-plane endpoint, site, cell, and
-//! fabric references outside the provider-neutral Cloud Network domain/API
-//! crates while implementing the shared VPC provider port contract. It builds
-//! deterministic request shapes only; credentialed live smoke remains a
-//! separate promotion gate.
+//! fabric references outside the provider-neutral `network/core` and
+//! `network/ports` crates while implementing the shared VPC provider port
+//! contract. It builds deterministic request shapes only; credentialed live
+//! smoke remains a separate promotion gate.
 //! ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
 //! `panic!()` to assert invariants under the `cfg(test)` exemption.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
