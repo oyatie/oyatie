@@ -6,14 +6,14 @@
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
     "spec_id": "EXE-INTEG-BRANCH-ENVELOPES",
-    "version": "1.7.0",
+    "version": "1.8.0",
     "status": "Proposed",
     "owner_team": "council-architecture",
     "created_at": "2026-08-10T00:00:00Z",
     "authority_adr": "docs/decisions/ADR-0711-swarm-delivery-law-integ-branch-topology.md",
     "self_owner_branch": "integ/specs",
     "primary_consumer": "governance/check/integ-envelope + .claude/workflows/deliver.js Claim",
-    "purpose": "Policy-as-data for envelope containment, hub exclusivity, concurrent-safe exemptions, tools/swarm adjunct ownership, hyperscaler monorepo patterns, and Amendment B ternary layout actions (reorg_now|keep_forever|delete_permanently) under the Swarm Delivery Law. Amendment B Pattern-First naming taxonomy + full 16-lens judgment battery."
+    "purpose": "Policy-as-data for envelope containment, hub exclusivity, concurrent-safe exemptions, tools/swarm adjunct ownership, hyperscaler monorepo patterns, Amendment B ternary layout + Pattern-First taxonomy + 16-lens judgment, and Amendment C Gaebal operating patterns under the Swarm Delivery Law."
   },
   "admission": {
     "trunk": "dev",
@@ -255,6 +255,12 @@
         "claiming_branch": "integ/specs",
         "reason": "Pattern-First Law policy-as-data co-lands with ADR-0711 Amendment B and envelopes naming_sweep on integ/specs.",
         "expires_at_or_wave": "wave-after-naming-taxonomy-stable"
+      },
+      {
+        "path_glob": "specs/gaebal-agentic-patterns.json",
+        "claiming_branch": "integ/specs",
+        "reason": "Amendment C clustered KEEP/BAN operating patterns co-land with ADR-0711 on integ/specs.",
+        "expires_at_or_wave": "wave-after-gaebal-patterns-stable"
       }
     ]
   },
@@ -358,6 +364,12 @@
       "rule": "planes integ/docs and integ/specs own only cross-cutting hubs and indexes; capability product docs/specs colocate under the owning root and travel with that integ/<root>",
       "anti_pattern": "do not create docs/<root> or specs/<root> mirror dumps for product artifacts — that is dual-home debt"
     }
+  },
+  "gaebal_operating_patterns": {
+    "authority": "docs/decisions/ADR-0711-swarm-delivery-law-integ-branch-topology.md#Amendment-C",
+    "patterns_ref": "specs/gaebal-agentic-patterns.json",
+    "portable_contract": ".grok/programs/delivery-fabric/evidence/PORTABLE-SWARM-CONTRACT.md#Amendment-C",
+    "note": "Clustered KEEP/BAN from 137 Gaebal archive entries. Forever merge-gate name is merge-admission-required — distill notes that said keep oya-ci-required are OVERRULED."
   },
   "naming": {
     "taxonomy_ref": "specs/naming-taxonomy.json",
@@ -1458,6 +1470,28 @@
         ],
         "rationale": "1) Defines kinds/grammar/classification for all renames. 2) Policy-as-data plane hub. 3) Pattern-First Law. 4) Must exist. 5) Fit. 6) keep-as-is (evolve in place). 7) specs/ hub. lenses_applied=all-16; challenges record replacement of brand-first grammar.",
         "destination": "specs/naming-taxonomy.json"
+      },
+      {
+        "path": "specs/gaebal-agentic-patterns.json",
+        "action": "keep_forever",
+        "greenfield_destination": "specs/gaebal-agentic-patterns.json",
+        "shape": "PLANE: Amendment C Gaebal KEEP/BAN operating clusters",
+        "redesign": "none",
+        "judgment_status": "done",
+        "disposition": "keep-as-is",
+        "name_now": "specs/gaebal-agentic-patterns.json",
+        "name_forever": "specs/gaebal-agentic-patterns.json",
+        "kind": "plane-hub",
+        "grammar_compliant": true,
+        "lenses_applied": "all-16",
+        "challenges": [
+          "essentialism_yagni: clusters not 137 paraphrases",
+          "chestertons_fence: archive is operating evidence, not naming authority — OVERRULE keep-oya-ci-required",
+          "pragmatism: thin machine copy for Claim/review checklists",
+          "contrarian: forever merge-gate name is merge-admission-required"
+        ],
+        "rationale": "1) Encodes Amendment C KEEP/BAN. 2) Plane hub policy-as-data. 3) Pattern-first role name. 4) Must exist beside ADR. 5) Fit. 6) keep-as-is. 7) specs/ hub.",
+        "destination": "specs/gaebal-agentic-patterns.json"
       },
       {
         "path": "specs/markdown-retirement-policy.json",

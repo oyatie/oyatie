@@ -1,0 +1,122 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.com/specs/gaebal-agentic-patterns.json",
+  "title": "GaebalAgenticPatterns",
+  "description": "Clustered KEEP/BAN operating patterns distilled from the Gaebal-gajae 137-entry archive into Swarm Delivery Law (ADR-0711 Amendment C). Not 137 paraphrases.",
+  "_meta": {
+    "doc_class": "Machine-Readable-Spec",
+    "spec_id": "EXE-GAEBAL-AGENTIC-PATTERNS",
+    "version": "1.0.0",
+    "status": "Proposed",
+    "owner_team": "council-architecture",
+    "created_at": "2026-08-10T00:00:00Z",
+    "authority_adr": "docs/decisions/ADR-0711-swarm-delivery-law-integ-branch-topology.md#Amendment-C",
+    "self_owner_branch": "integ/specs",
+    "corpus": "https://blog.gaebal-gajae.dev/archive.html",
+    "corpus_entries": "000-136",
+    "primary_consumers": [
+      ".grok/programs/delivery-fabric/evidence/PORTABLE-SWARM-CONTRACT.md",
+      "specs/integ-branch-envelopes.json",
+      ".claude/workflows/deliver.js Claim (advisory)"
+    ]
+  },
+  "oyatie_apply_tags": [
+    "swarm-delivery-law",
+    "integ",
+    "worktrees",
+    "no-slow-commands",
+    "reorg-evaluate",
+    "naming",
+    "16-lens",
+    "merge-admission"
+  ],
+  "keep": [
+    {
+      "id": "replicated-state-budget",
+      "rule": "Design cleanup/ownership of replicated state before scaling parallelism; size by replicated mass, not lane count.",
+      "oyatie_apply": ["worktrees", "no-slow-commands", "integ"]
+    },
+    {
+      "id": "observation-neq-authority",
+      "rule": "Dense observation does not grant intervene/APPROVE/own rights; automation stops at authority edge.",
+      "oyatie_apply": ["swarm-delivery-law", "16-lens"]
+    },
+    {
+      "id": "verified-empty-honest-halt",
+      "rule": "Verified-empty, honest undecided, and precise halt are completed ops — record them; do not invent work to fill silence.",
+      "oyatie_apply": ["swarm-delivery-law", "reorg-evaluate"]
+    },
+    {
+      "id": "evidence-before-done-receipt-wal",
+      "rule": "HEAD-keyed receipts; multi-signal done (CI + review + mergeState + live surface); new HEAD → new evidence; quarantine invalid receipts.",
+      "oyatie_apply": ["merge-admission", "integ", "swarm-delivery-law"]
+    },
+    {
+      "id": "fail-closed-blockers",
+      "rule": "Missing inputs/identity → fail closed; blockers named by gate with next action; silence only when proven idle.",
+      "oyatie_apply": ["swarm-delivery-law", "integ"]
+    },
+    {
+      "id": "subsystem-batch-role-separation",
+      "rule": "Batch same-subsystem work into one lane; planner ≠ implementer; one implementer + adversarial reviewers; accelerate on owner-hook, brake on verified empty.",
+      "oyatie_apply": ["swarm-delivery-law", "integ", "worktrees"]
+    },
+    {
+      "id": "git-lock-pid-check",
+      "rule": "On index.lock / shared-object contention: check owning pid, retry idempotent — never blind-delete the lock.",
+      "oyatie_apply": ["worktrees", "swarm-delivery-law"]
+    },
+    {
+      "id": "green-neq-go",
+      "rule": "Green admits the next gate only, not departure; same-author APPROVE banned; re-verify at moment of action.",
+      "oyatie_apply": ["merge-admission", "integ"]
+    },
+    {
+      "id": "live-smoke",
+      "rule": "Public/live smoke after deploy; build ≠ publish; wrapper noise ≠ artifact fail; post-merge until live surface is green.",
+      "oyatie_apply": ["swarm-delivery-law", "integ"]
+    },
+    {
+      "id": "sharp-labels-pattern-first",
+      "rule": "Sharp labels as action switches; forever names follow specs/naming-taxonomy.json.",
+      "oyatie_apply": ["naming", "reorg-evaluate"]
+    }
+  ],
+  "ban": [
+    {
+      "id": "invented-work",
+      "rule": "Inventing work into verified empty; activity theater; filler quotas; observing = intervening.",
+      "oyatie_apply": ["swarm-delivery-law", "reorg-evaluate"]
+    },
+    {
+      "id": "dual-truth",
+      "rule": "Dual-home / dual-truth; carrying yesterday’s green as today’s proof; sticky prior merge-admission green across new HEAD.",
+      "oyatie_apply": ["merge-admission", "integ"]
+    },
+    {
+      "id": "second-build-path-shared-wd",
+      "rule": "Cargo/second-build-path revival; slow commands in lanes; shared WD stash/reset chaos; PID kill without identity.",
+      "oyatie_apply": ["no-slow-commands", "worktrees"]
+    },
+    {
+      "id": "brand-opaque-adr-in-title-names",
+      "rule": "Leading oya-*/cloud-*/opaque/ADR-in-job-title durable names (Amendment B Pattern-First).",
+      "oyatie_apply": ["naming", "16-lens"]
+    },
+    {
+      "id": "silent-blocked-success",
+      "rule": "Silent success on blocked inputs; rubber-stamp thread resolve; merge ego after green; observation-density scoreboards.",
+      "oyatie_apply": ["swarm-delivery-law", "merge-admission"]
+    }
+  ],
+  "overrules": [
+    {
+      "id": "OV-merge-gate-forever-name",
+      "distill_claim": "keep name oya-ci-required",
+      "verdict": "OVERRULED",
+      "name_forever": "merge-admission-required",
+      "taxonomy_ref": "specs/naming-taxonomy.json#overturned_patterns/OP-merge-gate-brand",
+      "note": "Distill corpus is operating-pattern evidence, not naming authority. Brand/ADR-in-title bans stand. Legacy protection pin is dual-emit cutover only."
+    }
+  ]
+}

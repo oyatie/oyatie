@@ -40,6 +40,10 @@ deliverables:
     description: "Amendment B Pattern-First + full 16-lens battery — establish specs/naming-taxonomy.json before renames; taxonomy REPLACES indefensible brand/ADR naming (does not encode it); judgments require lenses_applied=all-16 + challenges[] when keeping/replacing existing patterns; dual-emit merge-gate-context until founder protection flip."
     exit_criteria: "specs/naming-taxonomy.json with overturned_patterns; ADR-0711 B-1b/B-1c + PORTABLE mirror; envelopes naming.judgment_template + naming_sweep[] cite kind + grammar_compliant + lenses_applied=all-16; no mass rename without taxonomy instance."
     verified_by: "oya-ci-required"
+  - id: ADR-0711-D7
+    description: "Amendment C — Gaebal-gajae 137-entry distillation synthesized as clustered Gaebal operating patterns (KEEP/BAN), not 137 paraphrases; machine-readable specs/gaebal-agentic-patterns.json; distill notes that said keep name oya-ci-required are OVERRULED (forever name merge-admission-required)."
+    exit_criteria: "ADR-0711 Amendment C + PORTABLE-SWARM-CONTRACT Amendment C present; specs/gaebal-agentic-patterns.json carries KEEP/BAN clusters + oyatie_apply tags; explicit OVERRULE of oya-ci-required-as-forever-name."
+    verified_by: "oya-ci-required"
 ---
 # ADR-0711: Swarm Delivery Law — integration branch topology and command discipline
 
@@ -248,6 +252,8 @@ fix the process not the output; batch same-subsystem work into one lane; green C
 authorization — re-verify at the moment of action; never delete a git lock without checking the
 owning process; automation stops at the edge of its authority; design cleanup/ownership for
 replicated state before scaling parallelism.
+
+Full clustered KEEP/BAN from the 137-entry Gaebal archive distillation: **Amendment C**.
 
 ### Amendment A (2026-08-10)
 
@@ -599,6 +605,53 @@ Prefer landing redesigns on the **destination** `integ/<root>`. Envelope members
 source does **not** authorize births or blind moves there.
 
 First wave = evaluated decisions with evidence (`judgments_done` / `first_wave`), not path shuffles.
+
+### Amendment C (2026-08-10) — Gaebal operating patterns
+
+Binding amendment. Distilled from **all 137** entries at
+https://blog.gaebal-gajae.dev/archive.html (14 batch distillers, entries 000–136). Encode
+**clusters**, not 137 paraphrases. Portable mirror:
+`.grok/programs/delivery-fabric/evidence/PORTABLE-SWARM-CONTRACT.md` § Amendment C.
+Policy-as-data: `specs/gaebal-agentic-patterns.json`.
+
+These clusters reinforce (do not replace) D-1…D-9, Amendment A, and Amendment B.
+
+#### C-1 — KEEP (clustered)
+
+| Cluster | Rule |
+|---|---|
+| **Replicated-state budget** | Design cleanup/ownership of replicated state **before** scaling parallelism; size by replicated mass (worktrees, caches, indexes), not lane count. |
+| **Observation ≠ authority** | Dense observation does not grant intervene/APPROVE/own rights; automation stops at the edge of its authority. |
+| **Verified-empty / honest halt** | Verified-empty, honest undecided, and precise halt are **completed ops** — record them; do not invent work to fill silence. |
+| **Evidence-before-done / receipt WAL** | Evidence chain > narrative: HEAD-keyed receipts; multi-signal done (CI + review + mergeState + live surface); **new HEAD → new evidence**; invalid receipts quarantine, never durable memory. |
+| **Fail-closed blockers** | Missing inputs/identity → fail closed; blockers named by gate with next action; silence only when proven idle. |
+| **Subsystem batch + role separation** | Batch same-subsystem work into one lane; one implementer + adversarial reviewers; planner ≠ implementer; two pedals — accelerate on owner-hook, brake on verified empty. |
+| **Git-lock pid check** | On `index.lock` / shared-object contention: check owning pid, retry idempotent — **never** blind-delete the lock. |
+| **Green ≠ go** | Green is admission to the *next* gate, not departure; same-author APPROVE banned; conversation/authority lines are brakes; re-verify at the moment of action. |
+| **Live smoke** | Public/live smoke after deploy; build ≠ publish; wrapper noise ≠ artifact fail; post-merge observation until live surface is actually green. |
+| **Sharp labels / pattern-first** | Sharp labels as action switches; defaults verified by next dogfood use; forever names follow `specs/naming-taxonomy.json`. |
+
+#### C-2 — BAN (clustered)
+
+| Cluster | Ban |
+|---|---|
+| **Invented work** | Inventing work into verified empty; activity theater; filler to fill quotas; observing = intervening. |
+| **Dual-truth** | Dual-home / dual-truth; carrying yesterday’s green as today’s proof; sticky prior `merge-admission` green across new HEAD. |
+| **Second build path / shared WD** | Cargo/second-build-path revival; slow commands in lanes; shared WD stash/reset chaos; PID kill without identity. |
+| **Brand / opaque / ADR-in-title names** | Leading `oya-*` / `cloud-*` / opaque / ADR-in-job-title durable names (Amendment B Pattern-First). |
+| **Silent blocked success** | Silent success on blocked inputs; rubber-stamp thread resolve; merge ego after green; scoreboards from observation density. |
+
+#### C-3 — OVERRULE: forever merge-gate name
+
+Any distill note that said **keep the name `oya-ci-required`** is **OVERRULED**.
+
+- **Forever name:** `merge-admission-required` (`specs/naming-taxonomy.json` overturned pattern
+  `OP-merge-gate-brand`).
+- Live GitHub protection may still pin the legacy string until dual-emit + founder flip
+  (Amendment B / Phase C) — that is a cutover alias, **not** forever grammar.
+- Brand-prefix bans and ADR-in-title bans stand. Distill corpus is evidence for operating
+  patterns, not authority to freeze indefensible names.
+
 ## Consequences
 
 ### Positive
@@ -644,17 +697,19 @@ First wave = evaluated decisions with evidence (`judgments_done` / `first_wave`)
 - **Treat libs/cloud/oya/infra/toolchains/tools as keep_forever or gradual freeze** — banned; Amendment B ternary requires reorg_now/delete_permanently NOW; freeze prefixes only block new births during the move.
 - **Mass-rename without a naming taxonomy** — banned; Pattern-First Law (B-1b) requires `specs/naming-taxonomy.json` kinds + grammar before renames; one-off bespoke names are debt.
 - **Keep `oya-` / `cloud-` leading brand prefixes because ADR-0017 / history said so** — banned for greenfield; brand prefix is not keep_forever; role-first forever names + dual-emit/alias for protection cutovers.
+- **Keep forever name `oya-ci-required` because Gaebal distill notes said so** — OVERRULED (Amendment C-3); forever name is `merge-admission-required`; distill is operating-pattern evidence, not naming authority.
 
 ## References
 
 - Naming taxonomy: `specs/naming-taxonomy.json`
+- Gaebal operating patterns: `specs/gaebal-agentic-patterns.json`
 - Policy: `specs/integ-branch-envelopes.json`
 - Portable rule text: `.grok/programs/delivery-fabric/evidence/PORTABLE-SWARM-CONTRACT.md`
 - Harness: `.claude/workflows/deliver.js` (Claim + Land)
 - Concurrent-safe registry: `registry/vcs/concurrent-safe-paths.yaml`
-- Operating contract: `docs/AGENTS.md` (worktree-per-lane; `oya-ci-required`)
+- Operating contract: `docs/AGENTS.md` (worktree-per-lane; sole required merge-admission context)
 - Layout apex: ADR-0701 (capability-first; supersedes ADR-0562 / ADR-0131 as live law)
-- CI admission apex: ADR-0700 (single `oya-ci-required`; ADR-0515 lineage)
+- CI admission apex: ADR-0700 (single required merge-admission context; ADR-0515 lineage; forever name `merge-admission-required`)
 - Specs topology provenance: ADR-0119 (flat cross-cutting `specs/` hub)
 - Doc colocation / g3doc pattern: ADR-0541 (corpus liveness; owner-colocated docs)
 - Affected testing: ADR-0554 / ADR-0700 lineage
