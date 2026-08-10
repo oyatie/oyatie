@@ -49,3 +49,21 @@ Retargeted verified nested faces:
 
 - Missing PRD/capacity-model/implementation-plans/eval fixtures under nested faces
 - No hubs, no `Cargo.lock`, no merge.
+
+## Wave-6 Seat A follow-through (2026-08-10)
+
+Retargeted verified runbook hygiene only:
+
+- `find microservices/marketplace/policy` → `find marketplace/policies` (13 marketplace runbooks)
+- Bare Identify-code-owner: `crates microservices/marketplace` → `crates marketplace` (13 runbooks)
+- OpenSLO (dest exists under `marketplace/observability/slos/`):
+  - `microservices/plugin-app-store/slos/per-plugin-rate-limit-correctness.openslo.yaml`
+  - `microservices/plugin-app-store/slos/catalog-browse-latency.openslo.yaml`
+  - `microservices/plugin-app-store/slos/plugin-revoke-latency.openslo.yaml`
+    → `marketplace/observability/slos/<same-name>`
+
+### Deferred
+
+- Missing `iac/kustomize/base/kustomization.yaml` (only `marketplace/iac/kustomization.yaml` exists — not invented)
+- Missing PRD / IP-journey / evidence/incident-reports / implementation-plans / eval fixtures
+- No hubs, no `Cargo.lock`, no merge.

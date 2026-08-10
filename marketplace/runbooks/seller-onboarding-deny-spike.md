@@ -92,7 +92,7 @@ doc_status: published
 19. Inspect feature flags: `oya flags get oya.marketplace.seller_onboarding_deny_spike.incident_hold --cell $CELL --tenant $TENANT --output yaml`.
 20. Inspect circuit breaker: `oya ops breaker status marketplace-seller-onboarding-deny-spike-circuit-breaker --cell $CELL --tenant $TENANT`.
 21. Check recent deploy: `kubectl -n marketplace rollout history deploy/marketplace-seller-onboarding-deny-spike-worker | tail -20`.
-22. Check policy file: `test -f marketplace/policies/deal-accept.cedar || find microservices/marketplace/policy -maxdepth 2 -type f | sort`.
+22. Check policy file: `test -f marketplace/policies/deal-accept.cedar || find marketplace/policies -maxdepth 2 -type f | sort`.
 23. Check SLO files: `ls marketplace/observability/slos/*.openslo.yaml | sort | rg "deal|deal"`.
 24. Check contract binding: `test -f marketplace/contracts/openapi-v1.yaml && sed -n '1,120p' marketplace/contracts/openapi-v1.yaml`.
 25. Run targeted SQL state query: `psql $OYA_PROD_DSN -c "select incident_id, tenant_id, cell_id, state, updated_at from marketplace_seller_onboarding_deny_spike_incidents where updated_at > now() - interval '30 minutes' order by updated_at desc limit 20;"`.
@@ -161,7 +161,7 @@ Seller Onboarding Deny Spike incident decision tree
   - Required audit: emit `EVT_MARKETPLACE_SELLER_ONBOARDING_DENY_SPIKE_INCIDENT` with `branch=D`, `operator_id`, and `evidence_hash`.
 
 ## Resolution Steps
-1. Identify code owner path: `rg "seller_onboarding_deny_spike|SellerOnboardingDenySpikeCritical|marketplace.seller_onboarding_deny_spike.incident_state" crates microservices/marketplace -g "!marketplace/runbooks/**"`.
+1. Identify code owner path: `rg "seller_onboarding_deny_spike|SellerOnboardingDenySpikeCritical|marketplace.seller_onboarding_deny_spike.incident_state" crates marketplace -g "!marketplace/runbooks/**"`.
 2. Patch domain invariant: `edit oya-cloud-marketplace-domain where seller_onboarding_deny_spike state transition is validated`.
 3. Patch API guard: `edit marketplace/contracts/openapi-v1.yaml if the failing path is north-south or async handoff`.
 4. Patch policy: `edit marketplace/policies/deal-accept.cedar with explicit deny/permit branch and tenant/cell scope`.
