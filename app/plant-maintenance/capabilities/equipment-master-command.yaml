@@ -6,7 +6,7 @@ autonomy_tier: T1
 risk_class: regulated-erp
 audit_event_class: EVT-PLANT_MAINTENANCE-EQUIPMENT_MASTER-COMMAND
 policy_fragments:
-  - microservices/plant-maintenance/policy/equipment-master-authorization.cedar
+  - app/plant-maintenance/policy/equipment-master-authorization.cedar
 benchmarks:
   - "SAP PM Plant Maintenance"
   - "Oracle Fusion Maintenance"

@@ -12,6 +12,8 @@
 - Wave-1 absorb: copied `oya/plant-maintenance/**` → `app/plant-maintenance/**` (127 files) from `origin/dev`.
 - In-tree cites retargeted `oya/plant-maintenance` → `app/plant-maintenance` and `//oya/plant-maintenance` → `//app/plant-maintenance`.
 
+- **Deepen hygiene (2026-08-10):** rewritten product-local `microservices/plant-maintenance/` → `app/plant-maintenance/` path cites inside forever home (hub `specs/microservices/**` + cross-product microservices cites left intact). Dest-verify COMPLETE [f60e93b2]; shrink gate ALLOWED. PARKED — no merge.
+
 ## Remaining
 
 1. Verify destination tip contains forever bytes (this tip).
