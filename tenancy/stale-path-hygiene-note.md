@@ -34,3 +34,14 @@ Continued verified remaps `microservices/tenancy/**` → `tenancy/**`, including
 - Journey-local contract/policy/test paths without in-tree counterparts; `src/crates/**` migration narratives; cross-cap cites.
 - No hubs, no `Cargo.lock`, no merge.
 
+## Wave-6 Seat A follow-through (2026-08-10)
+
+- Runbook Identify-code-owner paths: `crates microservices/tenancy -g` → `crates tenancy -g` (11 runbooks).
+- Verified OpenSLO dest remaps (`availability` / `correctness` / `freshness` / `latency` / `autosharding-events`) already present from wave-5; no further live dest remaps found.
+
+### Deferred
+
+- Journey-local SLO invents without in-tree dest (`cross-tenant-permit-grant`, `region-local-permit-eval-latency`, `offboarding-cascade-completion`, `waivers.md`).
+- Migration narratives (`git mv … microservices/tenancy/src/crates/…`); REMEDIATION-NOTES historical inventory counts; cross-cap cites.
+- No hubs, no `Cargo.lock`, no merge.
+

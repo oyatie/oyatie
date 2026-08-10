@@ -142,7 +142,7 @@ RLS Drift Recovery incident decision tree
   - Required audit: emit `EVT-TENANCY-RLS_DRIFT_RECOVERY-INCIDENT` with `branch=D`, `operator_id`, and `evidence_hash`.
 
 ## Resolution Steps
-1. Identify code owner path: `rg "rls_drift_recovery|TenancyRlsDriftRecoveryCritical|tenancy.rls_drift_recovery.incident_state" crates microservices/tenancy -g "!tenancy/runbooks/**"`.
+1. Identify code owner path: `rg "rls_drift_recovery|TenancyRlsDriftRecoveryCritical|tenancy.rls_drift_recovery.incident_state" crates tenancy -g "!tenancy/runbooks/**"`.
 2. Patch domain invariant: `edit oya-tenancy-domain where rls_drift_recovery state transition is validated`.
 3. Patch API guard: `edit microservices/tenancy/contracts/openapi.yaml or catalog REST binding if the failing path is north-south`.
 4. Patch policy: `edit microservices/tenancy/policy/rls-isolation.cedar or .md with explicit deny/permit branch`.

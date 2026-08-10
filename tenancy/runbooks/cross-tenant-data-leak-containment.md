@@ -142,7 +142,7 @@ Cross Tenant Data Leak Containment incident decision tree
   - Required audit: emit `EVT-TENANCY-CROSS_TENANT_DATA_LEAK_CONTAINMENT-INCIDENT` with `branch=D`, `operator_id`, and `evidence_hash`.
 
 ## Resolution Steps
-1. Identify code owner path: `rg "cross_tenant_data_leak_containment|TenancyCrossTenantDataLeakContainmentCritical|tenancy.cross_tenant_data_leak_containment.incident_state" crates microservices/tenancy -g "!tenancy/runbooks/**"`.
+1. Identify code owner path: `rg "cross_tenant_data_leak_containment|TenancyCrossTenantDataLeakContainmentCritical|tenancy.cross_tenant_data_leak_containment.incident_state" crates tenancy -g "!tenancy/runbooks/**"`.
 2. Patch domain invariant: `edit oya-tenancy-domain where cross_tenant_data_leak_containment state transition is validated`.
 3. Patch API guard: `edit microservices/tenancy/contracts/openapi.yaml or catalog REST binding if the failing path is north-south`.
 4. Patch policy: `edit microservices/tenancy/policy/rls-isolation.cedar or .md with explicit deny/permit branch`.

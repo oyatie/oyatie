@@ -142,7 +142,7 @@ Tenant Deletion Dsr Cascade incident decision tree
   - Required audit: emit `EVT-TENANCY-TENANT_DELETION_DSR_CASCADE-INCIDENT` with `branch=D`, `operator_id`, and `evidence_hash`.
 
 ## Resolution Steps
-1. Identify code owner path: `rg "tenant_deletion_dsr_cascade|TenancyTenantDeletionDsrCascadeCritical|tenancy.tenant_deletion_dsr_cascade.incident_state" crates microservices/tenancy -g "!tenancy/runbooks/**"`.
+1. Identify code owner path: `rg "tenant_deletion_dsr_cascade|TenancyTenantDeletionDsrCascadeCritical|tenancy.tenant_deletion_dsr_cascade.incident_state" crates tenancy -g "!tenancy/runbooks/**"`.
 2. Patch domain invariant: `edit oya-tenancy-domain where tenant_deletion_dsr_cascade state transition is validated`.
 3. Patch API guard: `edit microservices/tenancy/contracts/openapi.yaml or catalog REST binding if the failing path is north-south`.
 4. Patch policy: `edit microservices/tenancy/policy/rls-isolation.cedar or .md with explicit deny/permit branch`.
