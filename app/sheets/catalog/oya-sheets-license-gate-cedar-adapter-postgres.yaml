@@ -1,0 +1,21 @@
+# Canonical-base: specs/catalog/canonical-crate-record-schema.json (SWEEP-I Slice 6 per ADR-0064)
+name: oya-sheets-license-gate-cedar-adapter-postgres
+role: adapter-postgres
+context: sheets
+plane: control
+slo: preview-control-plane
+contracts_consumed: [postgres-16-lts]
+contracts_exposed: []
+regulatory_packs_consumed: [oya-pack-kr, oya-pack-eu, oya-pack-us, oya-pack-us-healthcare, oya-pack-jp, oya-pack-sg, oya-pack-au, oya-pack-in, oya-pack-br, oya-pack-ae, oya-pack-ksa]
+lifecycle: {state: incubating, preview_since: 2026-05-17}
+traceability:
+  github_issue: "oya-governance-pipeline://scaffold-pr-microservice-flat-layout-buildout-2026-05-17"
+  source_adrs: [ADR-0056, ADR-0105, ADR-0135, ADR-0131, ADR-0140 (retired per ADR-0145)]
+allowed_dependency_edges: [kernel, domain, usecase, api, adapter]
+data_classes_owned: [AUDIT, BEHAVIORAL_TENANT_PRODUCT]
+operational_classes_owned: [AUDIT]
+autonomy_tier_required: T2
+load_bearing_invariants:
+  - seat_license_append_only
+  - ed25519_signed_per_row_at_insert
+  - default_deny_on_cedar_evaluator_failure

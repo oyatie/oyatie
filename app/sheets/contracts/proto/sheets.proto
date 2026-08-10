@@ -1,0 +1,609 @@
+// oyatie.contract.exposure: internal-only
+// oyatie.contract.transport: grpc-http2
+// oyatie.contract.identity: spiffe-mtls-tls13
+
+// oya-sheets — gRPC contract
+// Internal sibling-service gRPC contract; public clients use contracts/openapi/sheets.yaml.
+// Per ADR-0135 net-new µservice + ADR-0131 unbundle + ADR-0056 BNF v4.1 + ADR-0105 13-layer.
+//
+// Authn: SPIFFE mTLS/TLS 1.3 authenticates the calling workload; forwarded user claims are
+// application authorization context and do not make this a public RPC surface.
+// Authz: Cedar policy evaluation server-side; same fragments as REST (policy/*.cedar);
+//        per-range ACL enforced per ADR-SHEETS-0006.
+// Tenancy: per-request metadata key "x-scope-orgid" = "tenant:<hashed-id>".
+
+syntax = "proto3";
+
+package oya.sheets.v1;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/struct.proto";
+
+// =========================================================================
+// Service: Sheets
+// =========================================================================
+service Sheets {
+  // Workbook session lifecycle (license-gated)
+  rpc OpenWorkbookSession(OpenWorkbookSessionRequest) returns (WorkbookSession);
+  rpc GetWorkbookSession(GetWorkbookSessionRequest) returns (WorkbookSession);
+  rpc CloseWorkbookSession(CloseWorkbookSessionRequest) returns (CloseWorkbookSessionResponse);
+  rpc ListWorkbookSessions(ListWorkbookSessionsRequest) returns (ListWorkbookSessionsResponse);
+
+  // Workbook load + save (Ed25519 sealed)
+  rpc LoadWorkbook(LoadWorkbookRequest) returns (LoadWorkbookResponse);
+  rpc SaveWorkbook(SaveWorkbookRequest) returns (SaveWorkbookResponse);
+
+  // Cell + range read/write (per-range ACL enforced)
+  rpc ReadCell(ReadCellRequest) returns (Cell);
+  rpc WriteCell(WriteCellRequest) returns (WriteAck);
+  rpc ReadRange(ReadRangeRequest) returns (Range);
+  rpc WriteRange(WriteRangeRequest) returns (WriteAck);
+
+  // Named ranges
+  rpc AddNamedRange(AddNamedRangeRequest) returns (NamedRange);
+  rpc RemoveNamedRange(RemoveNamedRangeRequest) returns (RemoveNamedRangeResponse);
+
+  // Charts + pivots + conditional formatting + data validation
+  rpc AuthorChart(AuthorChartRequest) returns (Chart);
+  rpc AuthorPivot(AuthorPivotRequest) returns (Pivot);
+  rpc ApplyConditionalFormat(ApplyConditionalFormatRequest) returns (ConditionalFormatAck);
+  rpc AddDataValidation(AddDataValidationRequest) returns (DataValidationAck);
+
+  // Collab CRDT (Loro 1.x; per ADR-SHEETS-0001 aligning ADR-WS-0001)
+  rpc StreamCrdtOps(stream CrdtOp) returns (stream CrdtOpAck);
+
+  // Recalc-progress streaming
+  rpc StreamRecalcProgress(StreamRecalcProgressRequest) returns (stream RecalcFrame);
+
+  // Sharing + per-range ACL
+  rpc ShareWorkbook(ShareWorkbookRequest) returns (Share);
+
+  // Import / export
+  rpc ImportXlsx(ImportXlsxRequest) returns (ImportJob);
+  rpc GetImportJob(GetImportJobRequest) returns (ImportJob);
+  rpc ExportXlsx(ExportXlsxRequest) returns (ExportJob);
+  rpc GetExportJob(GetExportJobRequest) returns (ExportJob);
+
+  // AI-formula + smart-fill (per ADR-SHEETS-0005)
+  rpc AiFormulaDraft(AiFormulaDraftRequest) returns (AiFormulaDraftResponse);
+  rpc SmartFillInfer(SmartFillRequest) returns (SmartFillResponse);
+
+  // Connected-sheets
+  rpc RegisterConnectedQuery(RegisterConnectedQueryRequest) returns (ConnectedQuery);
+  rpc RefreshConnectedQuery(RefreshConnectedQueryRequest) returns (RefreshAck);
+
+  // Comments + version-history + embed-bridge
+  rpc AddComment(AddCommentRequest) returns (Comment);
+  rpc ListVersionHistory(ListVersionHistoryRequest) returns (ListVersionHistoryResponse);
+  rpc RestoreVersion(RestoreVersionRequest) returns (RestoreAck);
+  rpc OpenEmbedBridge(OpenEmbedBridgeRequest) returns (EmbedDescriptor);
+}
+
+// =========================================================================
+// Common types
+// =========================================================================
+
+enum Pack {
+  PACK_UNSPECIFIED = 0;
+  PACK_KR = 1;
+  PACK_EU = 2;
+  PACK_US = 3;
+  PACK_US_HC = 4;
+  PACK_JP = 5;
+  PACK_SG = 6;
+  PACK_AU = 7;
+  PACK_IN = 8;
+  PACK_BR = 9;
+  PACK_AE = 10;
+  PACK_KSA = 11;
+}
+
+enum Jurisdiction {
+  JURISDICTION_UNSPECIFIED = 0;
+  JURISDICTION_BASE = 1;
+  JURISDICTION_KR = 2;
+  JURISDICTION_EU = 3;
+  JURISDICTION_US = 4;
+  JURISDICTION_US_HC = 5;
+  JURISDICTION_JP = 6;
+  JURISDICTION_SG = 7;
+  JURISDICTION_AU = 8;
+  JURISDICTION_IN = 9;
+  JURISDICTION_BR = 10;
+  JURISDICTION_AE = 11;
+  JURISDICTION_KSA = 12;
+}
+
+enum LicenseDecision {
+  LICENSE_DECISION_UNSPECIFIED = 0;
+  LICENSE_DECISION_ALLOW = 1;
+  LICENSE_DECISION_DENY_NO_SEAT = 2;
+  LICENSE_DECISION_DENY_REVOKED = 3;
+  LICENSE_DECISION_DENY_UNKNOWN_PRINCIPAL = 4;
+}
+
+enum DataClass {
+  DATA_CLASS_UNSPECIFIED = 0;
+  DATA_CLASS_INTERNAL_ONLY = 1;
+  DATA_CLASS_BEHAVIORAL_TENANT_PRODUCT = 2;
+  DATA_CLASS_PII_QUASI_IDENTIFIER = 3;
+  DATA_CLASS_PII_IDENTIFYING = 4;
+  DATA_CLASS_SECRET = 5;
+  DATA_CLASS_AUDIT = 6;
+  DATA_CLASS_PHI = 7;
+}
+
+enum ChartType {
+  CHART_TYPE_UNSPECIFIED = 0;
+  CHART_TYPE_BAR = 1;
+  CHART_TYPE_LINE = 2;
+  CHART_TYPE_PIE = 3;
+  CHART_TYPE_SCATTER = 4;
+  CHART_TYPE_AREA = 5;
+  CHART_TYPE_COMBO = 6;
+  CHART_TYPE_SPARKLINE = 7;
+}
+
+enum ExportFidelityTier {
+  EXPORT_FIDELITY_TIER_UNSPECIFIED = 0;
+  EXPORT_FIDELITY_TIER_BEST_EFFORT = 1;  // M03 target per ADR-SHEETS-0007
+  // EXPORT_FIDELITY_TIER_STRICT_OOXML = 2;  // scheduled-for-distinct-tracked-work subsequent-to-M03-completion
+}
+
+enum FormulaError {
+  FORMULA_ERROR_UNSPECIFIED = 0;
+  FORMULA_ERROR_NONE = 1;
+  FORMULA_ERROR_NULL = 2;
+  FORMULA_ERROR_DIV0 = 3;
+  FORMULA_ERROR_VALUE = 4;
+  FORMULA_ERROR_REF = 5;
+  FORMULA_ERROR_NAME = 6;
+  FORMULA_ERROR_NUM = 7;
+  FORMULA_ERROR_NA = 8;
+  FORMULA_ERROR_CIRCULAR = 9;
+  FORMULA_ERROR_SLOW = 10;
+}
+
+message WorkbookSession {
+  string session_id = 1;
+  string tenant_id = 2;
+  string workbook_id = 3;
+  string user_oidc_sub = 4;
+  google.protobuf.Timestamp opened_at = 5;
+  google.protobuf.Timestamp last_active = 6;
+  string crdt_state_sha = 7;
+  LicenseDecision license_decision = 8;
+}
+
+message Cell {
+  string cell_ref = 1;
+  google.protobuf.Value value = 2;
+  string formula = 3;
+  string format = 4;
+  DataClass data_class = 5;
+  FormulaError formula_error = 6;
+  string range_id = 7;  // populated if cell belongs to a named range
+}
+
+message Range {
+  string sheet_id = 1;
+  string start = 2;
+  string end = 3;
+  repeated Cell cells = 4;
+  string range_id = 5;
+}
+
+message NamedRange {
+  string name = 1;
+  string scope = 2;  // workbook | sheet
+  string range_ref = 3;
+}
+
+message Sheet {
+  string sheet_id = 1;
+  string name = 2;
+  uint32 position = 3;
+  uint32 freeze_rows = 4;
+  uint32 freeze_cols = 5;
+  bool protected = 6;
+}
+
+message Workbook {
+  string workbook_id = 1;
+  string version_sha = 2;
+  string parent_version_sha = 3;
+  string author_oidc_sub = 4;
+  string title = 5;
+  repeated Sheet sheets = 6;
+  repeated NamedRange named_ranges = 7;
+  string signature = 8;  // Ed25519
+}
+
+message Chart {
+  string chart_id = 1;
+  string sheet_id = 2;
+  ChartType type = 3;
+  string source_range = 4;
+  string title = 5;
+  google.protobuf.Struct x_axis = 6;
+  google.protobuf.Struct y_axis = 7;
+  repeated google.protobuf.Struct series = 8;
+}
+
+message Pivot {
+  string pivot_id = 1;
+  string sheet_id = 2;
+  string source_range = 3;
+  repeated string rows = 4;
+  repeated string columns = 5;
+  repeated PivotValue values = 6;
+  repeated google.protobuf.Struct filters = 7;
+}
+
+message PivotValue {
+  string field = 1;
+  string aggregator = 2;  // sum | count | avg | min | max | stddev | median | distinct_count
+}
+
+message Share {
+  string workbook_id = 1;
+  string principal = 2;
+  string permission = 3;  // view | comment | edit
+  repeated RangeAclEntry range_acl = 4;
+}
+
+message RangeAclEntry {
+  string range_id = 1;
+  string decision = 2;  // allow_read | allow_edit | deny
+}
+
+message Comment {
+  string comment_id = 1;
+  string cell_ref = 2;
+  string author_oidc_sub = 3;
+  string content = 4;
+  string parent_comment_id = 5;
+  bool resolved = 6;
+  google.protobuf.Timestamp created_at = 7;
+}
+
+message ImportJob {
+  string job_id = 1;
+  string status = 2;  // queued | av_scanning | importing_in_sandbox | completed | failed | refused_av_positive
+  string workbook_id = 3;
+  string error_message = 4;
+}
+
+message ExportJob {
+  string job_id = 1;
+  string status = 2;  // queued | exporting_in_sandbox | completed | failed
+  string download_url = 3;
+  string error_message = 4;
+}
+
+message ConnectedQuery {
+  string query_id = 1;
+  string workbook_id = 2;
+  string sheet_id = 3;
+  string range = 4;
+  google.protobuf.Struct source_descriptor = 5;
+  google.protobuf.Struct refresh_policy = 6;
+  google.protobuf.Timestamp last_refreshed_at = 7;
+}
+
+// =========================================================================
+// Session
+// =========================================================================
+
+message OpenWorkbookSessionRequest {
+  string workbook_id = 1;
+  string resume_from_offline_buffer_sha = 2;
+}
+message GetWorkbookSessionRequest { string session_id = 1; }
+message CloseWorkbookSessionRequest { string session_id = 1; }
+message CloseWorkbookSessionResponse {}
+message ListWorkbookSessionsRequest {}
+message ListWorkbookSessionsResponse { repeated WorkbookSession sessions = 1; }
+
+// =========================================================================
+// Load / Save
+// =========================================================================
+
+message LoadWorkbookRequest {
+  string workbook_id = 1;
+  Jurisdiction jurisdiction = 2;
+}
+message LoadWorkbookResponse {
+  Workbook workbook = 1;
+}
+
+message CellOp {
+  string sheet_id = 1;
+  string cell_ref = 2;
+  string op = 3;  // set_value | set_formula | set_format | delete
+  google.protobuf.Value value = 4;
+}
+
+message SaveWorkbookRequest {
+  string workbook_id = 1;
+  repeated CellOp cell_ops = 2;
+  bool cedar_preview_acknowledged = 3;
+  string commit_message = 4;
+}
+
+message SaveWorkbookResponse {
+  string workbook_id = 1;
+  string version_sha = 2;
+  google.protobuf.Timestamp accepted_at = 3;
+  string audit_chain_seal = 4;
+  uint64 cell_ops_count = 5;
+}
+
+// =========================================================================
+// Cell + range
+// =========================================================================
+
+message ReadCellRequest {
+  string workbook_id = 1;
+  string sheet_id = 2;
+  string cell_ref = 3;
+}
+
+message WriteCellRequest {
+  string workbook_id = 1;
+  string sheet_id = 2;
+  string cell_ref = 3;
+  Cell cell = 4;
+}
+
+message ReadRangeRequest {
+  string workbook_id = 1;
+  string sheet_id = 2;
+  string start = 3;
+  string end = 4;
+}
+
+message WriteRangeRequest {
+  string workbook_id = 1;
+  string sheet_id = 2;
+  Range range = 3;
+}
+
+message WriteAck {
+  string version_sha = 1;
+  google.protobuf.Timestamp accepted_at = 2;
+}
+
+// =========================================================================
+// Named ranges
+// =========================================================================
+
+message AddNamedRangeRequest {
+  string workbook_id = 1;
+  NamedRange named_range = 2;
+}
+
+message RemoveNamedRangeRequest {
+  string workbook_id = 1;
+  string name = 2;
+}
+
+message RemoveNamedRangeResponse {}
+
+// =========================================================================
+// Charts, pivots, formatting, validation
+// =========================================================================
+
+message AuthorChartRequest {
+  string workbook_id = 1;
+  Chart chart = 2;
+}
+
+message AuthorPivotRequest {
+  string workbook_id = 1;
+  Pivot pivot = 2;
+}
+
+message ApplyConditionalFormatRequest {
+  string workbook_id = 1;
+  string sheet_id = 2;
+  string range = 3;
+  google.protobuf.Struct rule = 4;
+}
+
+message ConditionalFormatAck {
+  string rule_id = 1;
+}
+
+message AddDataValidationRequest {
+  string workbook_id = 1;
+  string sheet_id = 2;
+  string range = 3;
+  google.protobuf.Struct rule = 4;
+}
+
+message DataValidationAck {
+  string validation_id = 1;
+}
+
+// =========================================================================
+// Collab CRDT
+// =========================================================================
+
+message CrdtOp {
+  string workbook_id = 1;
+  string author_oidc_sub = 2;
+  uint64 sequence_num = 3;
+  bytes op_payload = 4;  // Loro op format
+  string hmac = 5;
+  google.protobuf.Timestamp emitted_at = 6;
+}
+
+message CrdtOpAck {
+  string workbook_id = 1;
+  uint64 sequence_num = 2;
+  bool merged = 3;
+  bool conflict = 4;
+  string conflict_id = 5;
+}
+
+// =========================================================================
+// Recalc-progress
+// =========================================================================
+
+message StreamRecalcProgressRequest {
+  string workbook_id = 1;
+}
+
+message RecalcFrame {
+  string workbook_id = 1;
+  uint64 seq = 2;
+  string sheet_id = 3;
+  string range = 4;
+  uint64 cells_recalculated = 5;
+  uint64 cells_remaining = 6;
+  double progress_pct = 7;
+  google.protobuf.Timestamp emitted_at = 8;
+}
+
+// =========================================================================
+// Sharing
+// =========================================================================
+
+message ShareWorkbookRequest {
+  Share share = 1;
+}
+
+// =========================================================================
+// Import / export
+// =========================================================================
+
+message ImportXlsxRequest {
+  string file_url = 1;
+  string format = 2;  // xlsx | ods | csv | tsv | json_sheet
+}
+
+message GetImportJobRequest { string job_id = 1; }
+
+message ExportXlsxRequest {
+  string workbook_id = 1;
+  string format = 2;
+  ExportFidelityTier fidelity_tier = 3;
+}
+
+message GetExportJobRequest { string job_id = 1; }
+
+// =========================================================================
+// AI-formula + smart-fill
+// =========================================================================
+
+message AiFormulaDraftRequest {
+  string workbook_id = 1;
+  string sheet_id = 2;
+  string cell_ref = 3;
+  string prose = 4;
+  bool consent_acknowledged = 5;
+  Jurisdiction target_jurisdiction = 6;
+}
+
+message AiFormulaDraftResponse {
+  string draft_id = 1;
+  string candidate_formula = 2;
+  bool grammar_valid = 3;
+  repeated FormulaValidationError validation_errors = 4;
+  bool prompt_injection_detected = 5;
+  uint32 pii_redacted_count = 6;
+}
+
+message FormulaValidationError {
+  uint32 position = 1;
+  string message = 2;
+}
+
+message SmartFillRequest {
+  string workbook_id = 1;
+  string sheet_id = 2;
+  string range = 3;
+  repeated SmartFillSeed seed_cells = 4;
+}
+
+message SmartFillSeed {
+  string cell_ref = 1;
+  string value = 2;
+}
+
+message SmartFillResponse {
+  string inference_id = 1;
+  repeated Cell inferred_cells = 2;
+  double confidence = 3;
+}
+
+// =========================================================================
+// Connected-sheets
+// =========================================================================
+
+message RegisterConnectedQueryRequest {
+  ConnectedQuery query = 1;
+}
+
+message RefreshConnectedQueryRequest {
+  string query_id = 1;
+}
+
+message RefreshAck {
+  string query_id = 1;
+  uint64 row_count = 2;
+  google.protobuf.Timestamp refreshed_at = 3;
+}
+
+// =========================================================================
+// Comments + version-history + embed-bridge
+// =========================================================================
+
+message AddCommentRequest {
+  string workbook_id = 1;
+  Comment comment = 2;
+}
+
+message ListVersionHistoryRequest {
+  string workbook_id = 1;
+  uint32 limit = 2;
+}
+
+message VersionPointer {
+  string version_sha = 1;
+  google.protobuf.Timestamp created_at = 2;
+  string author_oidc_sub = 3;
+  string label = 4;
+}
+
+message ListVersionHistoryResponse {
+  repeated VersionPointer versions = 1;
+}
+
+message RestoreVersionRequest {
+  string workbook_id = 1;
+  string version_sha = 2;
+}
+
+message RestoreAck {
+  string new_version_sha = 1;
+  google.protobuf.Timestamp restored_at = 2;
+}
+
+message OpenEmbedBridgeRequest {
+  string workbook_id = 1;
+  string target_microservice = 2;  // docs | slides
+  string target_id = 3;
+  string range_or_chart = 4;
+  string refresh_policy = 5;  // live | snapshot
+}
+
+message EmbedDescriptor {
+  string embed_id = 1;
+  string workbook_id = 2;
+  string target_microservice = 3;
+  string target_id = 4;
+  string refresh_policy = 5;
+  google.protobuf.Timestamp created_at = 6;
+}

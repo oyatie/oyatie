@@ -1,0 +1,67 @@
+# Canonical-base: microservices/governance/iac/kustomize/components/{namespace-restricted-profile,pack-overlay-canonical/<pack>} (SWEEP-I Slice 3 per ADR-0064)
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Shared base for the sheets cluster, applied identically per-pack with pack-specific overlays
+# for: residency region, retention overrides, OpenBao secret-reference URIs, replica scaling
+# tier, OCI Object Storage endpoint, AI-formula provider routing.
+# Per ADR-0131 per-microservice flat layout + multi-region.md DR posture.
+
+namespace: sheets
+
+resources:
+  - namespace.yaml
+  - openbao-secret-references.yaml
+  - service-mesh-tenant-headers.yaml
+  - cdn-edge-config.yaml
+  - gvisor-runtime-class.yaml
+
+helmCharts:
+  - name: oya-sheets-sheets-postgres
+    valuesFile: ../../helm/sheets-postgres/values.yaml
+    releaseName: sheets-postgres
+    namespace: sheets
+  - name: oya-sheets-sheets-valkey
+    valuesFile: ../../helm/sheets-valkey/values.yaml
+    releaseName: sheets-valkey
+    namespace: sheets
+  - name: oya-sheets-cell-grid-rest
+    valuesFile: ../../helm/visual-grid-rest/values.yaml
+    releaseName: cell-grid-rest
+    namespace: sheets
+  - name: oya-sheets-collab-crdt-worker
+    valuesFile: ../../helm/collab-crdt-worker/values.yaml
+    releaseName: collab-crdt-worker
+    namespace: sheets
+  - name: oya-sheets-recalc-engine-worker
+    valuesFile: ../../helm/recalc-engine-worker/values.yaml
+    releaseName: recalc-engine-worker
+    namespace: sheets
+  - name: oya-sheets-xlsx-export-worker
+    valuesFile: ../../helm/xlsx-export-worker/values.yaml
+    releaseName: xlsx-export-worker
+    namespace: sheets
+  - name: oya-sheets-license-gate-cedar
+    valuesFile: ../../helm/license-gate-cedar/values.yaml
+    releaseName: license-gate-cedar
+    namespace: sheets
+  - name: oya-sheets-sheets-cdn
+    valuesFile: ../../helm/sheets-cdn/values.yaml
+    releaseName: sheets-cdn
+    namespace: sheets
+  - name: oya-sheets-sheets-waf
+    valuesFile: ../../helm/sheets-waf/values.yaml
+    releaseName: sheets-waf
+    namespace: sheets
+  - name: oya-sheets-clamav-sidecar
+    valuesFile: ../../helm/clamav-sidecar/values.yaml
+    releaseName: clamav-sidecar
+    namespace: sheets
+  - name: oya-sheets-opswat-sidecar
+    valuesFile: ../../helm/opswat-sidecar/values.yaml
+    releaseName: opswat-sidecar
+    namespace: sheets
+
+commonLabels:
+  app.kubernetes.io/part-of: oya-sheets
+  oyatie/microservice: sheets
