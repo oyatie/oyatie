@@ -1,0 +1,180 @@
+{
+  "$schema": "https://schemas.grafana.com/dashboard.json",
+  "_meta": {
+    "doc_class": "GrafanaDashboard",
+    "microservice": "sheets",
+    "owner_team": "axis-sheets + ops-sre-reliability",
+    "audience": "internal operators + axis-sheets",
+    "tenant_scoped": false,
+    "datasource": "Mimir aggregate (oya-sheets tenant)"
+  },
+  "uid": "sheets-collab-and-fanout",
+  "title": "Sheets — Collab CRDT + WebSocket Gateway + Fanout Health",
+  "tags": ["sheets", "collab", "crdt", "loro", "ws"],
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "time": {"from": "now-6h", "to": "now"},
+  "templating": {
+    "list": [
+      {
+        "name": "pack",
+        "type": "custom",
+        "options": [
+          {"text": "pack-kr", "value": "kr", "selected": true},
+          {"text": "pack-eu", "value": "eu"},
+          {"text": "pack-us", "value": "us"},
+          {"text": "pack-us-healthcare", "value": "us-hc"},
+          {"text": "pack-jp", "value": "jp"},
+          {"text": "pack-sg", "value": "sg"},
+          {"text": "pack-au", "value": "au"},
+          {"text": "pack-in", "value": "in"},
+          {"text": "pack-br", "value": "br"},
+          {"text": "pack-ae", "value": "ae"},
+          {"text": "pack-ksa", "value": "ksa"}
+        ],
+        "label": "Pack"
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Silent-loss attempts (MUST BE 0 — load-bearing invariant per AC-06)",
+      "gridPos": {"x": 0, "y": 0, "w": 6, "h": 4},
+      "targets": [
+        {"expr": "sum(oya_sheets_collab_silent_loss_attempt_total{pack=\"$pack\"})", "refId": "A"}
+      ],
+      "fieldConfig": {"defaults": {"thresholds": {"steps": [{"color": "green", "value": 0}, {"color": "red", "value": 1}]}}}
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Active CRDT sessions (concurrent editors)",
+      "gridPos": {"x": 6, "y": 0, "w": 6, "h": 4},
+      "targets": [
+        {"expr": "sum by (pack) (oya_sheets_collab_session_active{pack=\"$pack\"})", "refId": "A"}
+      ]
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "WS gateway pods active",
+      "gridPos": {"x": 12, "y": 0, "w": 6, "h": 4},
+      "targets": [
+        {"expr": "count(up{job=\"collab-crdt-worker\",pack=\"$pack\"} == 1)", "refId": "A"}
+      ]
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Concurrent WS connections (cluster)",
+      "gridPos": {"x": 18, "y": 0, "w": 6, "h": 4},
+      "targets": [
+        {"expr": "sum(oya_sheets_ws_connection_active{pack=\"$pack\"})", "refId": "A"}
+      ]
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "Collab cursor sync p99 (vs 150ms GA budget)",
+      "gridPos": {"x": 0, "y": 4, "w": 12, "h": 8},
+      "targets": [
+        {"expr": "histogram_quantile(0.99, sum by (le) (rate(oya_sheets_collab_cursor_sync_seconds_bucket{pack=\"$pack\"}[5m])))", "legendFormat": "cursor sync p99", "refId": "A"},
+        {"expr": "vector(0.15)", "legendFormat": "GA budget (150ms)", "refId": "B"}
+      ],
+      "fieldConfig": {"defaults": {"unit": "s"}}
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "CRDT merge p99 latency",
+      "gridPos": {"x": 12, "y": 4, "w": 12, "h": 8},
+      "targets": [
+        {"expr": "histogram_quantile(0.99, sum by (le) (rate(oya_sheets_collab_merge_seconds_bucket{pack=\"$pack\"}[5m])))", "legendFormat": "merge p99", "refId": "A"}
+      ],
+      "fieldConfig": {"defaults": {"unit": "s"}}
+    },
+    {
+      "id": 7,
+      "type": "timeseries",
+      "title": "CRDT op rate (publish + receive + rejected)",
+      "gridPos": {"x": 0, "y": 12, "w": 12, "h": 8},
+      "targets": [
+        {"expr": "sum(rate(oya_sheets_collab_op_published_total{pack=\"$pack\"}[1m]))", "legendFormat": "published / sec", "refId": "A"},
+        {"expr": "sum(rate(oya_sheets_collab_op_received_total{pack=\"$pack\"}[1m]))", "legendFormat": "received / sec", "refId": "B"},
+        {"expr": "sum(rate(oya_sheets_collab_op_rejected_total{pack=\"$pack\"}[1m]))", "legendFormat": "rejected (HMAC/replay) / sec", "refId": "C"}
+      ]
+    },
+    {
+      "id": 8,
+      "type": "timeseries",
+      "title": "Conflict surfaced rate (per workbook top-N)",
+      "gridPos": {"x": 12, "y": 12, "w": 12, "h": 8},
+      "targets": [
+        {"expr": "topk(10, rate(oya_sheets_collab_conflict_surfaced_total{pack=\"$pack\"}[5m]))", "legendFormat": "{{tenant_id}}/{{workbook_id}}", "refId": "A"}
+      ]
+    },
+    {
+      "id": 9,
+      "type": "timeseries",
+      "title": "Conflict resolution outcome",
+      "gridPos": {"x": 0, "y": 20, "w": 12, "h": 8},
+      "targets": [
+        {"expr": "sum by (resolution) (rate(oya_sheets_collab_conflict_resolved_total{pack=\"$pack\"}[5m]))", "legendFormat": "{{resolution}}", "refId": "A"}
+      ]
+    },
+    {
+      "id": 10,
+      "type": "timeseries",
+      "title": "Valkey lease state (split-brain detection)",
+      "gridPos": {"x": 12, "y": 20, "w": 12, "h": 8},
+      "targets": [
+        {"expr": "sum(oya_sheets_valkey_lease_acquired_total{pack=\"$pack\"}) - sum(oya_sheets_valkey_lease_released_total{pack=\"$pack\"})", "legendFormat": "outstanding leases", "refId": "A"},
+        {"expr": "increase(oya_sheets_valkey_lease_conflict_total{pack=\"$pack\"}[5m])", "legendFormat": "lease conflicts (split-brain)", "refId": "B"}
+      ]
+    },
+    {
+      "id": 11,
+      "type": "timeseries",
+      "title": "WS gateway pod CPU + memory + HPA replicas",
+      "gridPos": {"x": 0, "y": 28, "w": 12, "h": 8},
+      "targets": [
+        {"expr": "avg by (pod) (rate(container_cpu_usage_seconds_total{pod=~\"collab-crdt-worker.*\",pack=\"$pack\"}[5m]))", "legendFormat": "{{pod}} CPU", "refId": "A"},
+        {"expr": "kube_horizontalpodautoscaler_status_current_replicas{namespace=\"sheets\",horizontalpodautoscaler=\"collab-crdt-worker\",pack=\"$pack\"}", "legendFormat": "HPA replicas", "refId": "B"}
+      ]
+    },
+    {
+      "id": 12,
+      "type": "timeseries",
+      "title": "Cross-tenant / cross-workbook collab attempt rate (MUST BE 0)",
+      "gridPos": {"x": 12, "y": 28, "w": 12, "h": 8},
+      "targets": [
+        {"expr": "sum(rate(oya_sheets_collab_cross_tenant_attempt_total{pack=\"$pack\"}[5m]))", "legendFormat": "cross-tenant attempts/sec", "refId": "A"},
+        {"expr": "sum(rate(oya_sheets_collab_cross_workbook_attempt_total{pack=\"$pack\"}[5m]))", "legendFormat": "cross-workbook attempts/sec", "refId": "B"}
+      ],
+      "fieldConfig": {"defaults": {"thresholds": {"steps": [{"color": "green", "value": 0}, {"color": "red", "value": 0.001}]}}}
+    },
+    {
+      "id": 13,
+      "type": "stat",
+      "title": "Postgres connection pool saturation",
+      "gridPos": {"x": 0, "y": 36, "w": 12, "h": 4},
+      "targets": [
+        {"expr": "oya_sheets_postgres_connection_pool_saturation{pack=\"$pack\"}", "refId": "A"}
+      ],
+      "fieldConfig": {"defaults": {"unit": "percentunit", "thresholds": {"steps": [{"color": "green", "value": 0}, {"color": "yellow", "value": 0.7}, {"color": "red", "value": 0.9}]}}}
+    },
+    {
+      "id": 14,
+      "type": "timeseries",
+      "title": "Range-ACL drift detection (drift_total must be 0 cluster-wide)",
+      "gridPos": {"x": 12, "y": 36, "w": 12, "h": 4},
+      "targets": [
+        {"expr": "sum(oya_sheets_range_acl_drift_total{pack=\"$pack\"})", "legendFormat": "drift count", "refId": "A"}
+      ],
+      "fieldConfig": {"defaults": {"thresholds": {"steps": [{"color": "green", "value": 0}, {"color": "red", "value": 1}]}}}
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+# Canonical-base: specs/catalog/canonical-crate-record-schema.json (SWEEP-I Slice 6 per ADR-0064)
+name: oya-sheets-recalc-engine-worker
+role: worker
+context: sheets
+plane: data
+slo: preview-data-plane
+contracts_consumed: [formula-engine-sdk, postgres-sdk, valkey-sdk, arrow-parquet-sdk]
+contracts_exposed: []
+regulatory_packs_consumed: [oya-pack-kr, oya-pack-eu, oya-pack-us, oya-pack-us-healthcare, oya-pack-jp, oya-pack-sg, oya-pack-au, oya-pack-in, oya-pack-br, oya-pack-ae, oya-pack-ksa]
+lifecycle: {state: incubating, preview_since: 2026-05-17}
+traceability:
+  github_issue: "oya-governance-pipeline://scaffold-pr-microservice-flat-layout-buildout-2026-05-17"
+  source_adrs: [ADR-0056, ADR-0105, ADR-0135, ADR-0131, ADR-SHEETS-0003, ADR-SHEETS-0004]
+allowed_dependency_edges: [kernel, domain, usecase, api, adapter, sdk]
+data_classes_owned: [INTERNAL_ONLY]
+operational_classes_owned: []
+autonomy_tier_required: T2
+binary_kind: long-lived
+load_bearing_invariants:
+  - dep_graph_topological_correctness
+  - parallel_task_graph_determinism
+  - cycle_detection_refuses_not_loops
+  - slow_formula_budget_30s_kill
+  - hot_cold_arrow_parquet_boundary
