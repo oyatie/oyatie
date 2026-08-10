@@ -6,6 +6,8 @@ rust_library(
     visibility = ["PUBLIC"],
     deps = [
         "//build/port-engine/adapters/port-engine-frontend-go:port-engine-frontend-go",
+        "//build/port-engine/adapters/port-engine-hash:port-engine-hash",
+        "//build/port-engine/adapters/port-engine-rulepack:port-engine-rulepack",
         "//build/port-engine/adapters/port-engine-source-pin:port-engine-source-pin",
         "//build/port-engine/core/port-engine-kernel:port-engine-kernel",
         "//build/port-engine/core/port-engine-rust-ir:port-engine-rust-ir",
@@ -21,6 +23,8 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         "//build/port-engine/adapters/port-engine-frontend-go:port-engine-frontend-go",
+        "//build/port-engine/adapters/port-engine-hash:port-engine-hash",
+        "//build/port-engine/adapters/port-engine-rulepack:port-engine-rulepack",
         "//build/port-engine/adapters/port-engine-source-pin:port-engine-source-pin",
         "//build/port-engine/core/port-engine-kernel:port-engine-kernel",
         "//build/port-engine/core/port-engine-rust-ir:port-engine-rust-ir",

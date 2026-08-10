@@ -12,6 +12,9 @@
   leakage-forbidden fences (corpus needles + no host `Command` spawn); driver smoke wired.
 - W0-B Slice 6: `port-engine-app` hand-rolled CLI (`help|ready|pin|emit-stub|emit-syn|verify-e2e`)
   + six-axis receipt e2e (`unchanged`/`explained`/`unexplained`/`incomplete`).
+- W0-B Slice 7: `port-engine-hash` (sha2 → `sha256:<hex>`) + `port-engine-rulepack` (embedded
+  neutral v0 mirror of forever `specs/port-rules/**`) + facade CLI (`digest|rulepack|plan`) and
+  hashed receipt e2e. Forever specs tree remains integ/specs.
 - Toolchains dual-home: `build/toolchains/**` byte-copies `toolchains/BUCK` +
   `toolchains/cache/{BUCK,OWNERS,defs.bzl}` (4 files). Live buck cell remains
   `toolchains = toolchains` in `.buckconfig` until remap+shrink.
@@ -20,17 +23,19 @@
 
 1. **Lock absorb** — `Cargo.lock` / root `Cargo.toml` workspace membership refresh waits
    `#1646` land (ci/controller paths must exist before members); no third writer; libs `#1649`
-   must not steal lock. Then refresh lock for path-dep / workspace edges (serde, syn, quote).
+   must not steal lock. Then refresh lock for path-dep / workspace edges (serde, syn, quote, sha2).
 2. **Toolchains cell remap + shrink** — set `.buckconfig` `toolchains = build/toolchains`,
    update reachability/`toolchains/` prefixes (may need integ/specs attach), then delete
    root `toolchains/**`. Do not delete while the cell still points at the root path.
    **PARKED:** `.buckconfig` is outside `roots.build` envelope globs (`build/**` only).
-3. **W0-B residual beyond skeleton** — neutral `specs/port-rules/**` v0 (integ/specs), hashing
-   adapter for real digests, bootstrap Go extractor out-of-band admission (not in-process).
+3. **Forever port-rules materializer** — land live `specs/port-rules/**` on integ/specs; replace
+   package-local mirror with ADR-0597 materializer relationship (build tip keeps hermetic copy
+   until then). Bootstrap Go extractor remains out-of-band only.
 
 ## Out of envelope (do not touch from `integ/build`)
 
 - `specs/k8s-port/` — judgment pending; no rehome (Slice 3 embeds a same-package mirror only).
+- `specs/port-rules/**` — forever integ/specs (Slice 7 embeds hermetic mirror only).
 - `k8s/**` — separate integ rail (mechanical port *generates into* k8s/; does not own the tree).
 - `.buckconfig` cell remap for toolchains — coordinate with reachability/registry consumers.
 - `ci/controller/**` members — wait `#1646` land (reverted premature absorb @ `72530017a`).
