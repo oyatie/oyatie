@@ -21,4 +21,13 @@
 # `oya-governance-merge-queue-ref-hygiene`.
 schema_version: 1
 
-products: {}
+# Swarm Delivery Law (ADR-0711): append-only / per-lane surfaces that must not
+# refuse concurrent admission. Referenced from specs/integ-branch-envelopes.json
+# #concurrent_safe_exemptions. These exemptions do NOT authorize envelope escape
+# for product code.
+products:
+  oyatie:
+    safe_paths:
+      - .beads/**
+      - evidence/**
+      - .grok/programs/*/evidence/**
