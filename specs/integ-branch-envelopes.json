@@ -6,7 +6,7 @@
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
     "spec_id": "EXE-INTEG-BRANCH-ENVELOPES",
-    "version": "1.14.1",
+    "version": "1.15.0",
     "status": "Proposed",
     "owner_team": "council-architecture",
     "created_at": "2026-08-10T00:00:00Z",
@@ -726,7 +726,7 @@
       "docs/raw/",
       "docs/ideas/",
       "docs/harness/",
-      "docs/\u0066oundry/",
+      "docs/foundry/",
       "docs/plans/",
       "docs/prds/",
       "docs/implementation-plans/",
@@ -784,7 +784,6 @@
       "cloud/",
       "oya/",
       "infra/",
-      "toolchains/",
       "tools/",
       "packs/",
       "scripts/",
@@ -800,7 +799,7 @@
       "docs/raw/",
       "docs/ideas/",
       "docs/harness/",
-      "docs/\u0066oundry/",
+      "docs/foundry/",
       "docs/plans/",
       "docs/prds/",
       "docs/implementation-plans/",
@@ -819,7 +818,6 @@
       "cloud/",
       "oya/",
       "infra/",
-      "toolchains/",
       "tools/",
       "packs/",
       "scripts/",
@@ -835,7 +833,7 @@
       "docs/raw/",
       "docs/ideas/",
       "docs/harness/",
-      "docs/\u0066oundry/",
+      "docs/foundry/",
       "docs/plans/",
       "docs/prds/",
       "docs/implementation-plans/",
@@ -872,7 +870,7 @@
       "docs/regional-packs/": "reorg_now",
       "docs/raw/": "delete_permanently",
       "docs/ideas/": "delete_permanently",
-      "docs/\u0066oundry/": "delete_permanently",
+      "docs/foundry/": "delete_permanently",
       "docs/harness/": "delete_permanently",
       "docs/implementation-plans/": "reorg_now",
       "specs/": "keep_forever",
@@ -914,7 +912,7 @@
       "cloud/": "reorg_now",
       "oya/": "reorg_now",
       "infra/": "reorg_now",
-      "toolchains/": "reorg_now",
+      "toolchains/": "keep_forever",
       "tools/": "reorg_now",
       "cell/": "keep_forever",
       "iam/": "keep_forever",
@@ -1122,7 +1120,7 @@
         "action": "reorg_now",
         "greenfield_destination": "templates/",
         "shape": "single plane hub at templates/; merge unique; delete dual-home",
-        "note": "overlap with templates/ is dual-home debt",
+        "note": "dual-home kill docs side → templates/ (keep_forever hub). Scout delete of templates/ REJECTED; direction is docs/templates vacate, not reverse.",
         "redesign": "rewrite",
         "judgment_status": "done",
         "rationale": "1) 34 Accepted templates under docs/templates (INDEX status Accepted); root templates/ is pending-approval draft with 28 files + checklists. 2) Dual-home with zero byte-identical overlaps on shared basenames — accidental structure. 3) Author scaffolds for ADR/PR/IP/runbook/etc. 4) Templates must exist; dual docs/templates must not. 5) Antipattern: dual authority + docs sprawl for process scaffolds. 6) refactor-then-place: content-merge into templates/ (prefer Accepted docs variants + unique-only), rewrite INDEX, update cites, delete docs/templates/. 7) Greenfield: templates/ plane hub (taxonomy plane-hub examples_good).",
@@ -1142,13 +1140,17 @@
           "systems_thinking: many specs/standards/IPs cite docs/templates — same-land reference rewrite required",
           "blast_radius_cell: land on integ/docs with templates/ owned as plane; do not partial-move",
           "opportunity_cost: leaving dual-home guarantees template drift (already observed size diffs)",
-          "zero_trust: pending-approval root INDEX must not silently override Accepted docs/templates during merge without explicit judgment"
+          "zero_trust: pending-approval root INDEX must not silently override Accepted docs/templates during merge without explicit judgment",
+          "contrarian: scout[0b9a2531] delete templates keep docs/templates — REJECTED; Amendment B + #1645 establish templates/ forever",
+          "cartesian_doubt: Accepted docs/templates content is merge INPUT into templates/, not forever home"
         ],
         "evidence": [
           "docs/templates/INDEX.md status: Accepted",
           "templates/INDEX.md status: pending approval; lift_target still points into docs/templates (overturned)",
           "sha256 compare: 13 common basenames, 0 identical",
-          "specs/naming-taxonomy.json kinds.plane-hub examples_good includes templates/checklists/"
+          "specs/naming-taxonomy.json kinds.plane-hub examples_good includes templates/checklists/",
+          "scout 0b9a2531 absorbed with CHALLENGE — forever home templates/",
+          "W1-eval-docs-templates-reorg status judged_not_landed_dual_home_rewrite_required"
         ],
         "destination_integ": "integ/docs",
         "land_when": "judgment done — explicit-path rewrite merge on integ/docs; update all docs/templates cites in same land; do not git-mv-only; do not edit reachability unless prefixes exist (none today)"
@@ -1380,16 +1382,16 @@
         "land_when": "blocked_until: integ/ci retires/rewrites idea-archive-transition + integ/specs drops reachability prefix docs/ideas/ (do not fight #1644 hub); then explicit-path delete on integ/docs"
       },
       {
-        "path": "docs/\u0066oundry/",
+        "path": "docs/foundry/",
         "action": "delete_permanently",
         "greenfield_destination": "(none)",
         "shape": "(removed) — retired-pipeline-brand brand residue; harvest any still-true ops notes to intelligence/ then delete",
         "redesign": "delete",
         "judgment_status": "done",
-        "rationale": "1) 6 files: retired-pipeline-brand checkpoint + supervisor/* ops notes under the retired pipeline brand. 2) Brand residue prose. 3) Historical substrate checkpointing — superseded by intelligence/ADR apex. 4) Must not exist. 5) Antipattern: retired pipeline brand as docs home. 6) delete-permanently (harvest-first if any line still true). 7) Greenfield: zero docs/\u0066oundry/.",
+        "rationale": "1) 6 files: retired-pipeline-brand checkpoint + supervisor/* ops notes under the retired pipeline brand. 2) Brand residue prose. 3) Historical substrate checkpointing — superseded by intelligence/ADR apex. 4) Must not exist. 5) Antipattern: retired pipeline brand as docs home. 6) delete-permanently (harvest-first if any line still true). 7) Greenfield: zero docs/foundry/.",
         "destination": "(none)",
         "disposition": "delete-permanently",
-        "name_now": "docs/\u0066oundry/",
+        "name_now": "docs/foundry/",
         "name_forever": "(none)",
         "kind": "plane-hub",
         "grammar_compliant": false,
@@ -1781,14 +1783,26 @@
           "opportunity_cost: renaming the plane adds thrash — path already correct",
           "socratic: why would scaffolds live under docs/ when docs/ is reserved for contract/indexes/ADRs/standards/archive?",
           "blast_radius_cell: keep path stable while content authority flips",
-          "finops: one hub reduces duplicate review surface"
+          "finops: one hub reduces duplicate review surface",
+          "contrarian: REJECT scout[0b9a2531] delete templates/** toward docs/templates — forever home is templates/; #1645@ccf83c0da already landed docs/checklists→templates/checklists",
+          "chestertons_fence: Amendment B + envelopes planes.docs templates/** keep_forever overturn May-2026 lift_target into docs/",
+          "cartesian_doubt: Foundry/grit/CONSTITUTION residue and foundry-supervisor dead hooks are CONTENT defects, not proof the plane path should die",
+          "essentialism_yagni: one authoring hub at templates/; audit_rewrite deletes foundry-supervisor + brand residue without vacating the plane",
+          "pragmatism: keep path; schedule W-templates-audit-rewrite for brand/grit/foundry-supervisor delete on integ/docs",
+          "red_team: deleting templates/checklists in favor of docs/checklists would reverse #1645@ccf83c0da and re-open dual-home"
         ],
         "evidence": [
           "ADR-0711 Amendment B classification table templates/ keep_forever",
-          "naming-taxonomy plane-hub examples_good"
+          "naming-taxonomy plane-hub examples_good",
+          "scout 0b9a2531: templates dual-truth + Foundry/grit/foundry-supervisor residue (absorb with CHALLENGE)",
+          "PR #1645@ccf83c0da: docs/checklists dual-home closed INTO templates/checklists (not the reverse)",
+          "templates/foundry-supervisor/*.toml points at missing tools/foundry-supervisor-* hooks"
         ],
         "destination_integ": "integ/docs",
-        "land_when": "paired with docs/templates/ reorg_now land"
+        "land_when": "path keep; W-templates-audit-rewrite lands brand/grit/foundry-supervisor content delete on integ/docs; docs/templates/ reorg_now still required to kill docs dual-home",
+        "note": "FOREVER home is templates/ (keep_forever). Scout [0b9a2531] delete-direction REJECTED. Content quality wave audit_rewrite: strip brand/grit/CONSTITUTION residue and delete templates/foundry-supervisor/ (dead hooks) — path stays.",
+        "wave": "W-templates-audit-rewrite",
+        "land_status": "path_keep_forever_audit_rewrite_pending"
       },
       {
         "path": "templates/checklists/",
@@ -1814,14 +1828,55 @@
           "blast_radius_cell: gate path updates in same land as delete",
           "opportunity_cost: third copy already exists across docs/templates INDEX checklist section",
           "cartesian_doubt: templates/checklists today is subset; docs/checklists has extras (adr-promotion, audit-readiness, brand-rename-batch, …)",
-          "zero_trust: Accepted docs INDEX currently claims checklist authority under docs/checklists"
+          "zero_trust: Accepted docs INDEX currently claims checklist authority under docs/checklists",
+          "contrarian: REJECT scout delete of templates/checklists toward docs/checklists — inverted vs Amendment B + #1645@ccf83c0da",
+          "chestertons_fence: #1645 closed dual-home by moving INTO templates/checklists; do not reopen docs/checklists forever",
+          "cartesian_doubt: grit/brand residue inside checklist bodies is audit_rewrite content work, not plane deletion evidence",
+          "systems_thinking: cites retargeted to templates/checklists on integ/specs tip 058e5ab82 + integ/ci cite fix",
+          "pragmatism: keep templates/checklists/; finish docs/checklists delete residual if any remains on trunk after #1645",
+          "red_team: restoring docs/checklists as canonical re-duals the ritual forever path (INV-DOC-9)"
         ],
         "evidence": [
-          "ci/facade/supply-chain-audit/tests/supply_chain_audit.rs reads docs/checklists/release-readiness-checklist.md",
-          "docs/checklists count=31 vs templates/checklists subset"
+          "PR #1645@ccf83c0da docs(checklists): land dual-home into templates/checklists",
+          "integ/specs 058e5ab82 retarget checklist cites docs/checklists→templates/checklists",
+          "scout 0b9a2531 delete-direction REJECTED (superseded by #1645 land)"
         ],
         "destination_integ": "integ/docs",
-        "land_when": "paired with docs/checklists/ reorg_now land on integ/docs (templates/** now in planes.docs)"
+        "land_when": "landed_docs_side_on_integ_docs_#1645@ccf83c0da; residual cite sweep on integ/ci + integ/specs",
+        "note": "REJECT scout[0b9a2531] recommendation to delete templates/checklists in favor of docs/checklists — superseded by #1645@ccf83c0da land (docs→templates forever home).",
+        "land_status": "landed_forever_home_templates_checklists"
+      },
+      {
+        "path": "templates/foundry-supervisor/",
+        "action": "delete_permanently",
+        "greenfield_destination": "(none)",
+        "destination": "(none)",
+        "shape": "dead agent toml stubs; hooks missing; brand residue",
+        "redesign": "delete",
+        "judgment_status": "done",
+        "disposition": "delete-permanently",
+        "name_now": "templates/foundry-supervisor/",
+        "name_forever": "(none)",
+        "kind": "process-kit",
+        "grammar_compliant": false,
+        "lenses_applied": "inherit-root",
+        "challenges": [
+          "chestertons_fence: stubs pointed at tools/foundry-supervisor-* hooks that no longer exist on main",
+          "cartesian_doubt: product docs under docs/products/foundry/supervisor are not runtime consumers of these tomls",
+          "essentialism_yagni: keep_forever templates/ does not require keeping dead brand supervisor kits",
+          "pragmatism: delete on integ/docs under W-templates-audit-rewrite; no rewrite destination",
+          "red_team: leaving tomls re-teaches agents Bash(grit *) and retired oya git",
+          "opportunity_cost: audit_rewrite of living templates matter more once this trap is gone"
+        ],
+        "rationale": "1) claude/codex/gemini.toml agent supervisor stubs. 2) Brand/Foundry-era kit with missing tools/foundry-supervisor-* hooks. 3) Intended session hooks — dead. 4) Must not exist. 5) Antipattern: resurrected grit/oya-git permissions. 6) delete-permanently. 7) Greenfield: no templates/foundry-supervisor/; templates/ plane remains.",
+        "evidence": [
+          "scout 0b9a2531: hooks → missing tools/foundry-supervisor-{stop-hook,session-start}",
+          "templates/foundry-supervisor/{claude,codex,gemini}.toml present on tip"
+        ],
+        "destination_integ": "integ/docs",
+        "land_when": "W-templates-audit-rewrite on integ/docs",
+        "land_status": "ready_for_integ_docs",
+        "wave": "W-templates-audit-rewrite"
       },
       {
         "path": "governance/",
@@ -1913,7 +1968,7 @@
         "rationale": "PROVISIONAL reorg_now → `os/, kernel/, <capability>/, build/` shape `strangler source → durable meta/capability homes`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
         "destination": "os/, kernel/, <capability>/, build/"
       },
-            {
+      {
         "path": "cloud/cloud-os/",
         "action": "reorg_now",
         "greenfield_destination": "os/",
@@ -2133,6 +2188,52 @@
         "land_status": "ready_for_integ_crm"
       },
       {
+        "path": "oya/itsm/",
+        "action": "reorg_now",
+        "greenfield_destination": "app/itsm/",
+        "destination": "app/itsm/",
+        "shape": "product dump+6 crates rewrite into app/itsm/; NOT integ/oya; challenge incident-management overlap + phantom service-management",
+        "redesign": "rewrite",
+        "judgment_status": "done",
+        "disposition": "rewrite-into-durable-shape",
+        "name_now": "oya/itsm/",
+        "name_forever": "app/itsm/",
+        "kind": "app-product",
+        "grammar_compliant": true,
+        "lenses_applied": "all-16",
+        "challenges": [
+          "chestertons_fence: README brands ITSM as µservice/service-management capability — closed registry already classifies oya/itsm as app_products → forever app/itsm/; do not birth service-management/ capability root",
+          "cartesian_doubt: 162 files / 6 Cargo.toml (~1k LOC) are real product surface, but 13 catalog stubs name oya-itsm-service-management-* while only one umbrella service-management-service crate exists — phantom catalog fiction",
+          "essentialism_yagni: one forever product home app/itsm/; brand nest oya/itsm and phantom service-management slug must not survive as forever grammar",
+          "contrarian: reject land via integ/oya mega-drain — product subtree claims integ/itsm → app/itsm/** (forward-declared); integ/app is composition glue only",
+          "pragmatism: rewrite crates/contracts/slos/runbooks/iac into app/itsm/{core,ports,adapters,facade,apps}/; delete closed AUDIT receipt on land; rewrite stale microservices/itsm cites",
+          "systems_thinking: PagerDuty-class crates (on-call/escalation/incident-room/status/postmortem) overlap oya/incident-management (134 files, sre-incident-command) — crate decomposition blocked until paired incident-management judgment; product-level dest still app/itsm/",
+          "blast_radius_cell: ledger-only tip — no path drain, no hub registry/masterplan edits on this commit",
+          "opportunity_cost: parking under oya/ or waiting on integ/oya batch gate prolongs brand-prefix grammar and blocks product rail land",
+          "zero_trust: do not treat catalog service-management-* stubs or README capability slug as live registry authority",
+          "red_team: opening integ/oya for this product would smash multi-month product-rail rule and invite mega-PR collision with other oya/* dumps",
+          "operability_day2: ITSM Day-2 under app/itsm; incident-command overlap owners coordinate after paired judgment — not via silent git-mv into incident-management",
+          "finops_unit_cost: one product rail integ/itsm beats dual homes under oya/ + phantom service-management capability",
+          "shared_nothing: app/itsm is product cell; incident-management remains sibling app product until explicit merge/split judgment",
+          "constant_work: judgment closes now; path absorb waits integ/itsm — no reactive mega-PR",
+          "socratic: is service-management a registered capability? No — absent from closed 24-cap registry; ITSM is an app product composition",
+          "outside_the_box: scout 160229d2 — reorg_now rewrite to app/itsm/ + challenges incident-management overlap + phantom service-management; land rail integ/itsm NOT integ/oya"
+        ],
+        "rationale": "1) 162-file ITSM product (6 crates: on-call/escalation/incident-room/status/postmortem/service-management-service + contracts/slos/runbooks/iac/catalog). 2) Brand-prefixed oya/ nest vs ADR-0562 app product forever home; README phantom service-management capability slug. 3) Provide ITSM service desk/CMDB/change/incident product surface. 4) Must exist at app/itsm/; must not land via integ/oya; must not birth service-management/ capability. 5) Fit: envelopes roots.itsm forward_declared integ/itsm → app/itsm/**. 6) rewrite-into-durable-shape (not git-mv-only); crate split vs oya/incident-management deferred to paired judgment. 7) Forever: app/itsm/ (land_status ready_for_integ_itsm).",
+        "evidence": [
+          "git ls-tree -r --name-only origin/dev -- oya/itsm | wc -l → 162; Cargo.toml count → 6",
+          "crates: oya-itsm-{on-call-schedule,escalation-policy,incident-room,status-update,postmortem,service-management-service}",
+          "catalog/: 13 oya-itsm-service-management-*.yaml stubs vs single umbrella crate — phantom service-management surface",
+          "oya/incident-management: 134 files + oya-incident-management-sre-incident-command-app — PagerDuty-class overlap with ITSM incident crates",
+          "specs/capability-registry.json app_products.current_dirs includes oya/itsm → forever app/itsm/",
+          "envelopes roots.itsm forward_declared integ/itsm → app/itsm/** (1.14.0); NOT integ/oya",
+          "scout seat-B packet 160229d2"
+        ],
+        "destination_integ": "integ/itsm",
+        "land_when": "After this judgment: integ/itsm rewrites oya/itsm/** → app/itsm/** (ADR-0562 faces); do NOT open integ/oya for this product; defer PagerDuty-class crate split until oya/incident-management paired judgment; hub retargets only on tip-free integ/specs — not this judgment commit",
+        "land_status": "ready_for_integ_itsm"
+      },
+      {
         "path": "oya/",
         "action": "reorg_now",
         "greenfield_destination": "<capability>/ + app/<product>/",
@@ -2154,13 +2255,45 @@
       },
       {
         "path": "toolchains/",
-        "action": "reorg_now",
-        "greenfield_destination": "build/toolchains/",
-        "shape": "build meta owns toolchains",
-        "redesign": "rewrite",
-        "judgment_status": "pending",
-        "rationale": "PROVISIONAL reorg_now → `build/toolchains/` shape `build meta owns toolchains`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
-        "destination": "build/toolchains/"
+        "action": "keep_forever",
+        "greenfield_destination": "toolchains/",
+        "shape": "Buck2/Rust toolchain + ADR-0560 cache platform root",
+        "redesign": "none",
+        "judgment_status": "done",
+        "rationale": "1) Rust toolchain BUCK + ADR-0560 cache platform. 2) Current hermetic Buck2 wiring. 3) Pin/compile/cache substrate. 4) Must exist. 5) Fit at top-level toolchains/. 6) keep-as-is (overturn provisional reorg_now→build/toolchains/). 7) toolchains/ forever.",
+        "destination": "toolchains/",
+        "disposition": "keep-as-is",
+        "name_now": "toolchains/",
+        "name_forever": "toolchains/",
+        "kind": "meta-root",
+        "grammar_compliant": true,
+        "lenses_applied": "all-16",
+        "challenges": [
+          "chestertons_fence: toolchains/ pins Rust 1.97.1 + ADR-0560 cache platform — current, not strangler debt",
+          "cartesian_doubt: provisional reorg_now→build/toolchains/ lacked evidence of mis-home; scout says KEEP",
+          "essentialism_yagni: do not rename into build/ without load-bearing topology gain",
+          "pragmatism: keep_forever at toolchains/; remove from birth-freeze prefixes",
+          "systems_thinking: ci/facade/scm-facts-snapshot + reachability track toolchains/cache/",
+          "contrarian: REJECT provisional build/toolchains/ move — overturn pending reorg_now",
+          "opportunity_cost: move thrash vs ADR-0560 overlay work already correct here",
+          "blast_radius_cell: Buck2 graph root — unnecessary rename risks wide CI fan-in",
+          "zero_trust: keep path stable so overlay consumers do not chase renames",
+          "red_team: encoding reorg_now without judgment invited false drain waves",
+          "operability_day2: toolchain debug starts at toolchains/ + rust-toolchain.toml",
+          "finops_unit_cost: avoid dual-home during speculative build/ meta shuffle",
+          "shared_nothing: cache platform stays opt-in via CI overlays under toolchains/cache/",
+          "constant_work: judgment closes keep; no path change wave",
+          "socratic: is build/ the forever home? No measured defect in toolchains/ placement",
+          "outside_the_box: scout 0b9a2531 KEEP stands; mark done keep_forever"
+        ],
+        "evidence": [
+          "scout 0b9a2531: toolchains/** current (ADR-0560); recommended KEEP",
+          "rust-toolchain.toml pin matches toolchains/BUCK",
+          "specs/reachability-registry.json tracks toolchains/cache/"
+        ],
+        "destination_integ": "integ/build",
+        "land_when": "no path change",
+        "land_status": "keep_forever_no_path_change"
       },
       {
         "path": "tools/",
@@ -2168,9 +2301,76 @@
         "greenfield_destination": ".grok/ + ci/facade/ + delete remainder",
         "shape": "process kit leaves tools/; tools/swarm one-shot then vacate",
         "redesign": "rewrite",
-        "judgment_status": "pending",
-        "rationale": "PROVISIONAL reorg_now → `.grok/ + ci/facade/ + delete remainder` shape `process kit leaves tools/; tools/swarm one-shot then vacate`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
-        "destination": ".grok/ + ci/facade/ + delete remainder"
+        "judgment_status": "done",
+        "rationale": "1) Residual tools tree + swarm one-shot. 2) Transitional process-kit root under freeze. 3) Temporary home for swarm shims. 4) Must vacate. 5) Antipattern: tools as durable process plane. 6) rewrite leaves to .grok/ + ci/facade + delete. 7) Forever: no tools/ root.",
+        "destination": ".grok/ + ci/facade/ + delete remainder",
+        "disposition": "rewrite-into-durable-shape",
+        "name_now": "tools/",
+        "name_forever": "(none — process kit under .grok/; gates under ci/facade)",
+        "kind": "process-kit",
+        "grammar_compliant": false,
+        "lenses_applied": "all-16",
+        "challenges": [
+          "chestertons_fence: tools/ historically held agent kits — Amendment B freezes births; content must leave",
+          "cartesian_doubt: DISPOSITION.md keeps pointer SSOT; swarm leaf is the live one-shot exception",
+          "essentialism_yagni: no tools/ forever root in greenfield",
+          "pragmatism: swarm→.grok/; governance apps→ci/facade or delete; then vacate tools/",
+          "systems_thinking: envelopes still list tools/swarm adjunct — schedule cite rewrite with port",
+          "blast_radius_cell: tools/** under freeze; lands split by leaf owner",
+          "opportunity_cost: keeping tools/ invites more one-shot exceptions",
+          "contrarian: REJECT scout silence on tools root — parent must close with swarm leaf",
+          "zero_trust: no new tools/* unit roots without reorg-move-out",
+          "red_team: worktree-only tools/swarm copies masquerading as main forever home",
+          "operability_day2: operators find process kit under .grok/, not tools/",
+          "finops_unit_cost: one process-kit tree",
+          "shared_nothing: .grok/ owns swarm process; ci/facade owns gates",
+          "constant_work: judgment now; path port after #1644",
+          "socratic: why would greenfield keep tools/ when .grok/ is process kit?",
+          "outside_the_box: absorb scout 0b9a2531 tools/swarm→.grok/ as binding leaf"
+        ],
+        "evidence": [
+          "scout 0b9a2531 tools/swarm→.grok/",
+          "tools/DISPOSITION.md",
+          "one_shot_exceptions tools/swarm/**"
+        ],
+        "destination_integ": "integ/specs",
+        "land_when": "W-tools-swarm-to-grok + remainder leaf drains",
+        "land_status": "ready_for_leaf_drains"
+      },
+      {
+        "path": "tools/swarm/",
+        "action": "reorg_now",
+        "greenfield_destination": ".grok/",
+        "destination": ".grok/",
+        "shape": "process-kit vacate tools/; swarm shims → .grok/ bin/hooks",
+        "redesign": "rewrite",
+        "judgment_status": "done",
+        "disposition": "rewrite-into-durable-shape",
+        "name_now": "tools/swarm/",
+        "name_forever": ".grok/",
+        "kind": "process-kit",
+        "grammar_compliant": true,
+        "lenses_applied": "inherit-root",
+        "challenges": [
+          "chestertons_fence: #1644 one-shot birth under tools/swarm was transitional — expires after squash; north-star is .grok/",
+          "cartesian_doubt: tools/swarm absent on main; worktree-only copies must not become forever home",
+          "essentialism_yagni: process kit lives under .grok/; tools/ vacates",
+          "pragmatism: rewrite port claim-push/lane-shell/self-check into .grok/ then delete tools/swarm",
+          "systems_thinking: envelopes claim_exemption + deliver.js still cite tools/swarm paths — update same wave",
+          "opportunity_cost: delaying port prolongs dual process-kit homes",
+          "contrarian: REJECT keep tools/swarm forever as convenience — one_shot_exceptions.expires_when is explicit",
+          "red_team: agents treating tools/ as durable process home will birth more kits under freeze prefix"
+        ],
+        "rationale": "1) Swarm Delivery Law process shims (claim-push, lane-shell, git-shim, self-check). 2) One-shot #1644 birth under tools/; north-star .grok/. 3) Lane Claim/push ritual. 4) Must live under .grok/; tools/swarm must not forever. 5) Antipattern: tools/ as process kit root. 6) rewrite-into-durable-shape → .grok/. 7) Forever: .grok/.",
+        "evidence": [
+          "scout 0b9a2531: tools/swarm absent on main; north-star .grok/",
+          "reorg_debt_freeze.one_shot_exceptions tools/swarm/** expires after #1644 squash",
+          "tools/DISPOSITION.md + evidence/reorg/rr-tools-disposition-20260806.json"
+        ],
+        "destination_integ": "integ/specs",
+        "land_when": "after #1644 land: port to .grok/ then delete tools/swarm (reorg-move-out)",
+        "land_status": "ready_for_port_to_grok",
+        "wave": "W-tools-swarm-to-grok"
       },
       {
         "path": "cell/",
@@ -2465,12 +2665,200 @@
       {
         "path": "scripts/",
         "action": "reorg_now",
-        "greenfield_destination": "ci/ + build/ + delete obsolete py checks",
-        "shape": "no top-level scripts in greenfield",
+        "greenfield_destination": "ci/facade/ (+ delete obsolete py/shell bridges)",
+        "shape": "no top-level scripts in greenfield; leaf rewrite→Rust then delete",
         "redesign": "rewrite",
-        "judgment_status": "pending",
-        "rationale": "PROVISIONAL reorg_now → `ci/ + build/ + delete obsolete py checks` shape `no top-level scripts in greenfield`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
-        "destination": "ci/ + build/ + delete obsolete py checks"
+        "judgment_status": "done",
+        "rationale": "1) scripts/ci/regen-third-party.sh + scripts/tests/*.py legacy bridges. 2) Shell/Python temporary_legacy_bridge per rust-first policy. 3) Local feedback only — never oya-ci-required. 4) Must not exist as top-level forever. 5) Antipattern: dual automation languages. 6) rewrite-into-durable-shape per leaf into ci/facade Rust then delete. 7) Forever: ci/facade/.",
+        "destination": "ci/facade/ (+ delete obsolete py/shell bridges)",
+        "disposition": "rewrite-into-durable-shape",
+        "name_now": "scripts/",
+        "name_forever": "(none)",
+        "kind": "process-kit",
+        "grammar_compliant": false,
+        "lenses_applied": "all-16",
+        "challenges": [
+          "chestertons_fence: rust-first-automation-policy.json fences scripts/** as temporary_legacy_bridge — not forever home",
+          "cartesian_doubt: three Python checks + one shell regen are local bridge feedback, never merge authority",
+          "essentialism_yagni: no top-level scripts/ in greenfield; gates live under ci/facade Rust",
+          "pragmatism: per-leaf rewrite→ci Rust then delete; do not git-mv .py into ci/",
+          "systems_thinking: specs cite scripts/tests/*.py command fields — same-land cite update with rewrite",
+          "blast_radius_cell: path drain on integ/ci; judgment on integ/specs",
+          "opportunity_cost: leaving Python bridges invites agents to treat them as merge evidence",
+          "contrarian: REJECT keep scripts/ as convenience forever — CLI retirement + rust-first ban it",
+          "zero_trust: shell/python automation must not become Claim/merge authority",
+          "red_team: regen-third-party.sh drift vs Reindeer/ci facade replacement text",
+          "operability_day2: Day-2 gate owners debug ci/facade Rust, not scripts/",
+          "finops_unit_cost: one Rust gate graph beats dual py+Rust CI surfaces",
+          "shared_nothing: each check becomes a hermetic Buck2 target under ci/",
+          "constant_work: leaf judgments close now; rewrite lands on owning integ/ci",
+          "socratic: why would greenfield keep a scripts/ root when ALL CLI surfaces are retirement-marked?",
+          "outside_the_box: absorb scout 0b9a2531 leaf table as rewrite→delete, not strangler freeze"
+        ],
+        "evidence": [
+          "ci/facade/automation-language-policy/rust-first-automation-policy.json temporary_legacy_bridge",
+          "scout 0b9a2531 scripts leaf table",
+          "tracked: scripts/ci/regen-third-party.sh + 3 scripts/tests/*.py + OWNERS"
+        ],
+        "destination_integ": "integ/ci",
+        "land_when": "leaf rows rewrite on integ/ci then delete scripts/**",
+        "land_status": "ready_for_integ_ci_leaf_rewrite"
+      },
+      {
+        "path": "scripts/tests/cloud_observability_slo_evidence_check.py",
+        "action": "reorg_now",
+        "greenfield_destination": "ci/facade Rust cloud-observability SLO evidence gate",
+        "destination": "ci/facade Rust cloud-observability SLO evidence gate",
+        "shape": "rewrite→ci Rust gate then delete Python bridge",
+        "redesign": "rewrite",
+        "judgment_status": "done",
+        "disposition": "rewrite-into-durable-shape",
+        "name_now": "scripts/tests/cloud_observability_slo_evidence_check.py",
+        "name_forever": "(none — logic lives under ci/facade)",
+        "kind": "process-kit",
+        "grammar_compliant": false,
+        "lenses_applied": "inherit-root",
+        "challenges": [
+          "chestertons_fence: rust-first marks this as temporary_legacy_bridge — keep until Rust replacement lands",
+          "cartesian_doubt: Python script is local feedback only; not merge authority",
+          "essentialism_yagni: one hermetic Rust/Buck2 gate; delete .py after rewrite",
+          "pragmatism: rewrite into ci/facade then delete; do not git-mv .py",
+          "systems_thinking: update spec command cites in same land as delete",
+          "opportunity_cost: delaying rewrite prolongs dual-language CI surface"
+        ],
+        "rationale": "1) Legacy Python check at scripts/tests/cloud_observability_slo_evidence_check.py. 2) temporary_legacy_bridge. 3) Evidence/backlog slice check. 4) Must not remain after Rust gate exists. 5) Antipattern: Python merge-adjacent automation. 6) rewrite→ci/facade Rust cloud-observability SLO evidence gate then delete. 7) Forever under ci/facade.",
+        "evidence": [
+          "scout 0b9a2531 recommended rewrite→Rust then delete",
+          "consumers: specs/cloud-observability-slo-evidence-contract.json; rust-first policy"
+        ],
+        "destination_integ": "integ/ci",
+        "land_when": "integ/ci lands Rust gate + cite update then deletes this path",
+        "land_status": "ready_for_integ_ci",
+        "wave": "W-scripts-leaf-rewrite-delete"
+      },
+      {
+        "path": "scripts/tests/cloud_production_quality_kit_evidence_backlog_check.py",
+        "action": "reorg_now",
+        "greenfield_destination": "ci/facade Rust production-quality-kit evidence gate",
+        "destination": "ci/facade Rust production-quality-kit evidence gate",
+        "shape": "rewrite→ci Rust gate then delete Python bridge",
+        "redesign": "rewrite",
+        "judgment_status": "done",
+        "disposition": "rewrite-into-durable-shape",
+        "name_now": "scripts/tests/cloud_production_quality_kit_evidence_backlog_check.py",
+        "name_forever": "(none — logic lives under ci/facade)",
+        "kind": "process-kit",
+        "grammar_compliant": false,
+        "lenses_applied": "inherit-root",
+        "challenges": [
+          "chestertons_fence: rust-first marks this as temporary_legacy_bridge — keep until Rust replacement lands",
+          "cartesian_doubt: Python script is local feedback only; not merge authority",
+          "essentialism_yagni: one hermetic Rust/Buck2 gate; delete .py after rewrite",
+          "pragmatism: rewrite into ci/facade then delete; do not git-mv .py",
+          "systems_thinking: update spec command cites in same land as delete",
+          "opportunity_cost: delaying rewrite prolongs dual-language CI surface"
+        ],
+        "rationale": "1) Legacy Python check at scripts/tests/cloud_production_quality_kit_evidence_backlog_check.py. 2) temporary_legacy_bridge. 3) Evidence/backlog slice check. 4) Must not remain after Rust gate exists. 5) Antipattern: Python merge-adjacent automation. 6) rewrite→ci/facade Rust production-quality-kit evidence gate then delete. 7) Forever under ci/facade.",
+        "evidence": [
+          "scout 0b9a2531 recommended rewrite→Rust then delete",
+          "consumers: specs/cloud-production-quality-kit-evidence-backlog.json command field"
+        ],
+        "destination_integ": "integ/ci",
+        "land_when": "integ/ci lands Rust gate + cite update then deletes this path",
+        "land_status": "ready_for_integ_ci",
+        "wave": "W-scripts-leaf-rewrite-delete"
+      },
+      {
+        "path": "scripts/tests/dr_001_rto_rpo_matrix_slice_check.py",
+        "action": "reorg_now",
+        "greenfield_destination": "ci/facade Rust DR-001 RTO/RPO matrix gate",
+        "destination": "ci/facade Rust DR-001 RTO/RPO matrix gate",
+        "shape": "rewrite→ci Rust gate then delete Python bridge",
+        "redesign": "rewrite",
+        "judgment_status": "done",
+        "disposition": "rewrite-into-durable-shape",
+        "name_now": "scripts/tests/dr_001_rto_rpo_matrix_slice_check.py",
+        "name_forever": "(none — logic lives under ci/facade)",
+        "kind": "process-kit",
+        "grammar_compliant": false,
+        "lenses_applied": "inherit-root",
+        "challenges": [
+          "chestertons_fence: rust-first marks this as temporary_legacy_bridge — keep until Rust replacement lands",
+          "cartesian_doubt: Python script is local feedback only; not merge authority",
+          "essentialism_yagni: one hermetic Rust/Buck2 gate; delete .py after rewrite",
+          "pragmatism: rewrite into ci/facade then delete; do not git-mv .py",
+          "systems_thinking: update spec command cites in same land as delete",
+          "opportunity_cost: delaying rewrite prolongs dual-language CI surface"
+        ],
+        "rationale": "1) Legacy Python check at scripts/tests/dr_001_rto_rpo_matrix_slice_check.py. 2) temporary_legacy_bridge. 3) Evidence/backlog slice check. 4) Must not remain after Rust gate exists. 5) Antipattern: Python merge-adjacent automation. 6) rewrite→ci/facade Rust DR-001 RTO/RPO matrix gate then delete. 7) Forever under ci/facade.",
+        "evidence": [
+          "scout 0b9a2531 recommended rewrite→Rust then delete",
+          "consumers: specs/reachability-registry.json; rust-first policy"
+        ],
+        "destination_integ": "integ/ci",
+        "land_when": "integ/ci lands Rust gate + cite update then deletes this path",
+        "land_status": "ready_for_integ_ci",
+        "wave": "W-scripts-leaf-rewrite-delete"
+      },
+      {
+        "path": "scripts/ci/regen-third-party.sh",
+        "action": "reorg_now",
+        "greenfield_destination": "ci/facade/dependency-automation",
+        "destination": "ci/facade/dependency-automation",
+        "shape": "shell Reindeer wrapper → owned ci/facade then delete",
+        "redesign": "rewrite",
+        "judgment_status": "done",
+        "disposition": "rewrite-into-durable-shape",
+        "name_now": "scripts/ci/regen-third-party.sh",
+        "name_forever": "ci/facade/dependency-automation",
+        "kind": "process-kit",
+        "grammar_compliant": false,
+        "lenses_applied": "inherit-root",
+        "challenges": [
+          "chestertons_fence: Reindeer pin wrapper existed as temporary bridge — replacement text already points at ci/facade/dependency-automation",
+          "cartesian_doubt: shell regen is not hermetic Buck2 authority",
+          "essentialism_yagni: one facade home; delete scripts/ci after rewrite",
+          "pragmatism: rewrite into ci/facade then delete .sh",
+          "systems_thinking: reindeer.toml + third-party/BUCK docs cite this path — update same land",
+          "opportunity_cost: leaving shell invites non-Rust automation births"
+        ],
+        "rationale": "1) Shell third-party regen bridge. 2) temporary_legacy_bridge. 3) Regenerates third-party faces. 4) Must move to ci/facade then die as scripts path. 5) Antipattern: top-level scripts/ci. 6) rewrite-into-durable-shape → ci/facade/dependency-automation. 7) Forever: ci/facade/.",
+        "evidence": [
+          "scout 0b9a2531: rewrite → ci/facade/dependency-automation then delete",
+          "ci/facade/automation-language-policy/rust-first-automation-policy.json replacement text"
+        ],
+        "destination_integ": "integ/ci",
+        "land_when": "integ/ci rewrite + delete scripts/ci/",
+        "land_status": "ready_for_integ_ci",
+        "wave": "W-scripts-leaf-rewrite-delete"
+      },
+      {
+        "path": "scripts/tests/OWNERS",
+        "action": "delete_permanently",
+        "greenfield_destination": "(none)",
+        "destination": "(none)",
+        "shape": "metadata only; delete with sibling scripts retirement",
+        "redesign": "delete",
+        "judgment_status": "done",
+        "disposition": "delete-permanently",
+        "name_now": "scripts/tests/OWNERS",
+        "name_forever": "(none)",
+        "kind": "process-kit",
+        "grammar_compliant": false,
+        "lenses_applied": "inherit-root",
+        "challenges": [
+          "chestertons_fence: OWNERS (council-architecture) only meaningful while sibling scripts exist",
+          "essentialism_yagni: delete with last scripts/tests/*.py retirement",
+          "pragmatism: keep until siblings gone; no rehome"
+        ],
+        "rationale": "1) OWNERS metadata for scripts/tests. 2) Seed ownership only. 3) No runtime role. 4) Must not outlive siblings. 5) Fit: delete with scripts drain. 6) delete-permanently. 7) none.",
+        "evidence": [
+          "scout 0b9a2531: keep until sibling scripts retired"
+        ],
+        "destination_integ": "integ/ci",
+        "land_when": "delete with last scripts/tests/*.py on integ/ci",
+        "land_status": "paired_with_scripts_tests_delete",
+        "wave": "W-scripts-leaf-rewrite-delete"
       },
       {
         "path": "tasks/",
@@ -2676,11 +3064,13 @@
         "rationale": "1) 31 checklist markdowns for agent/human gates. 2) Dual-home with templates/checklists; INDEX Accepted under docs sprawl. 3) Process enforcement aids. 4) Content must exist; docs/checklists path must not. 5) Antipattern: process kits inside docs sprawl. 6) refactor-then-place into templates/checklists/. 7) templates/checklists/.",
         "evidence": [
           "docs/templates/INDEX.md Checklists section points at docs/checklists",
-          "find docs/checklists -type f | wc -l → 31"
+          "find docs/checklists -type f | wc -l → 31",
+          "PR #1645@ccf83c0da landed dual-home into templates/checklists",
+          "scout 0b9a2531 reverse-delete REJECTED"
         ],
         "destination_integ": "integ/docs",
-        "land_when": "envelope_hole_closed: planes.docs includes templates/** (envelopes 1.13.0) — explicit-path merge unique docs/checklists → templates/checklists then delete docs/checklists/ on integ/docs; prefer Accepted docs content on basename conflicts; update live cites in docs/** + .github PR template in same land; ci/facade/supply-chain-audit hardcoded path needs integ/ci coordinate (outside docs envelope)",
-        "land_status": "ready_for_integ_docs"
+        "land_when": "landed_on_integ_docs_#1645@ccf83c0da (docs→templates/checklists); REJECT reverse",
+        "land_status": "landed_on_integ_docs_#1645@ccf83c0da"
       },
       {
         "path": "docs/audits/",
@@ -2758,7 +3148,7 @@
       },
       {
         "id": "W1-eval-docs-retired-brand-delete",
-        "path": "docs/\u0066oundry/",
+        "path": "docs/foundry/",
         "judgment_status": "done",
         "action": "delete_permanently",
         "redesign": "delete",
@@ -2781,7 +3171,8 @@
         "action": "reorg_now",
         "redesign": "rewrite",
         "destination_integ": "integ/docs",
-        "status": "judged_not_landed_dual_home_rewrite_required"
+        "status": "judged_not_landed_dual_home_rewrite_required_confirm_docs_to_templates_reject_scout_reverse",
+        "note": "scout 0b9a2531 reverse REJECTED; forever home templates/"
       },
       {
         "id": "W1-eval-docs-audit-reorg",
@@ -2792,57 +3183,128 @@
         "destination_integ": "integ/docs",
         "status": "judged_destination_overturned_to_evidence_audits_not_audit_capability"
       },
-
-    {
-      "id": "W-cloud-leaf-cloud-os",
-      "path": "cloud/cloud-os/",
-      "judgment_status": "done",
-      "action": "reorg_now",
-      "redesign": "rewrite",
-      "destination_integ": "integ/os",
-      "land_status": "ready_for_integ_os",
-      "status": "judgment_closed_on_integ_specs_wave1"
-    },
-    {
-      "id": "W-cloud-leaf-cloud-kernel",
-      "path": "cloud/cloud-kernel/",
-      "judgment_status": "done",
-      "action": "reorg_now",
-      "redesign": "rewrite",
-      "destination_integ": "integ/kernel",
-      "land_status": "ready_for_integ_kernel",
-      "status": "judgment_closed_on_integ_specs_wave1"
-    },
-    {
-      "id": "W-oya-leaf-payments",
-      "path": "oya/payments/",
-      "judgment_status": "done",
-      "action": "reorg_now",
-      "redesign": "rewrite",
-      "destination_integ": "integ/payments",
-      "land_status": "ready_for_integ_payments",
-      "status": "judgment_closed_on_integ_specs_wave1"
-    },
-    {
-      "id": "W-oya-leaf-office",
-      "path": "oya/office/",
-      "judgment_status": "done",
-      "action": "reorg_now",
-      "redesign": "rewrite",
-      "destination_integ": "integ/office",
-      "land_status": "ready_for_integ_office",
-      "status": "judgment_closed_on_integ_specs_wave1"
-    },
-    {
-      "id": "W-oya-leaf-crm",
-      "path": "oya/crm/",
-      "judgment_status": "done",
-      "action": "reorg_now",
-      "redesign": "rewrite",
-      "destination_integ": "integ/crm",
-      "land_status": "ready_for_integ_crm",
-      "status": "judgment_closed_on_integ_specs_wave1"
-    }
+      {
+        "id": "W-cloud-leaf-cloud-os",
+        "path": "cloud/cloud-os/",
+        "judgment_status": "done",
+        "action": "reorg_now",
+        "redesign": "rewrite",
+        "destination_integ": "integ/os",
+        "land_status": "ready_for_integ_os",
+        "status": "judgment_closed_on_integ_specs_wave1"
+      },
+      {
+        "id": "W-cloud-leaf-cloud-kernel",
+        "path": "cloud/cloud-kernel/",
+        "judgment_status": "done",
+        "action": "reorg_now",
+        "redesign": "rewrite",
+        "destination_integ": "integ/kernel",
+        "land_status": "ready_for_integ_kernel",
+        "status": "judgment_closed_on_integ_specs_wave1"
+      },
+      {
+        "id": "W-oya-leaf-payments",
+        "path": "oya/payments/",
+        "judgment_status": "done",
+        "action": "reorg_now",
+        "redesign": "rewrite",
+        "destination_integ": "integ/payments",
+        "land_status": "ready_for_integ_payments",
+        "status": "judgment_closed_on_integ_specs_wave1"
+      },
+      {
+        "id": "W-oya-leaf-office",
+        "path": "oya/office/",
+        "judgment_status": "done",
+        "action": "reorg_now",
+        "redesign": "rewrite",
+        "destination_integ": "integ/office",
+        "land_status": "ready_for_integ_office",
+        "status": "judgment_closed_on_integ_specs_wave1"
+      },
+      {
+        "id": "W-oya-leaf-crm",
+        "path": "oya/crm/",
+        "judgment_status": "done",
+        "action": "reorg_now",
+        "redesign": "rewrite",
+        "destination_integ": "integ/crm",
+        "land_status": "ready_for_integ_crm",
+        "status": "judgment_closed_on_integ_specs_wave1"
+      },
+      {
+        "id": "W-oya-leaf-itsm",
+        "path": "oya/itsm/",
+        "judgment_status": "done",
+        "action": "reorg_now",
+        "redesign": "rewrite",
+        "destination_integ": "integ/itsm",
+        "land_status": "ready_for_integ_itsm",
+        "status": "judgment_closed_on_integ_specs_wave1",
+        "note": "land rail integ/itsm NOT integ/oya; challenges incident-management overlap + phantom service-management (scout 160229d2)"
+      },
+      {
+        "id": "W-templates-audit-rewrite",
+        "path": "templates/",
+        "judgment_status": "done",
+        "action": "keep_forever",
+        "redesign": "refactor",
+        "destination_integ": "integ/docs",
+        "land_status": "path_keep_audit_rewrite_pending",
+        "status": "scout_0b9a2531_absorbed_challenge_reject_delete_add_brand_grit_foundry_supervisor_delete_wave",
+        "note": "audit_rewrite wave: delete templates/foundry-supervisor/ + strip brand/grit/CONSTITUTION residue; forever home stays templates/"
+      },
+      {
+        "id": "W-templates-foundry-supervisor-delete",
+        "path": "templates/foundry-supervisor/",
+        "judgment_status": "done",
+        "action": "delete_permanently",
+        "redesign": "delete",
+        "destination_integ": "integ/docs",
+        "land_status": "ready_for_integ_docs",
+        "status": "judgment_closed_on_integ_specs_scout_absorb"
+      },
+      {
+        "id": "W-docs-templates-reorg-confirm",
+        "path": "docs/templates/",
+        "judgment_status": "done",
+        "action": "reorg_now",
+        "redesign": "rewrite",
+        "destination_integ": "integ/docs",
+        "land_status": "judged_not_landed_dual_home_rewrite_required",
+        "status": "confirmed_docs_side_vacate_into_templates_reject_scout_reverse"
+      },
+      {
+        "id": "W-scripts-leaf-rewrite-delete",
+        "path": "scripts/",
+        "judgment_status": "done",
+        "action": "reorg_now",
+        "redesign": "rewrite",
+        "destination_integ": "integ/ci",
+        "land_status": "ready_for_integ_ci_leaf_rewrite",
+        "status": "judgment_closed_scripts_leaves_rewrite_to_ci_rust_then_delete"
+      },
+      {
+        "id": "W-tools-swarm-to-grok",
+        "path": "tools/swarm/",
+        "judgment_status": "done",
+        "action": "reorg_now",
+        "redesign": "rewrite",
+        "destination_integ": "integ/specs",
+        "land_status": "ready_for_port_to_grok",
+        "status": "judgment_closed_tools_swarm_to_grok"
+      },
+      {
+        "id": "W-toolchains-keep",
+        "path": "toolchains/",
+        "judgment_status": "done",
+        "action": "keep_forever",
+        "redesign": "none",
+        "destination_integ": "integ/build",
+        "land_status": "keep_forever_no_path_change",
+        "status": "judgment_closed_overturn_provisional_reorg_now"
+      }
     ],
     "claim_exemption_marker": "reorg-move-out",
     "claim_exemption_rule": "New path births under no_new_births_while_reorg_prefixes are refused by deliver.js Claim unless the claimed bead title or body contains reorg-move-out naming the greenfield_destination. Prefer landing moves on the destination integ/<root>.",
@@ -2943,13 +3405,27 @@
     "judgments_done": [
       ".omc/",
       "docs/harness/",
-      "docs/raw/"
-    ,
+      "docs/raw/",
       "cloud/cloud-os/",
       "cloud/cloud-kernel/",
       "oya/payments/",
       "oya/office/",
-      "oya/crm/"
+      "oya/crm/",
+      "oya/itsm/",
+      "templates/",
+      "templates/checklists/",
+      "templates/foundry-supervisor/",
+      "docs/templates/",
+      "docs/checklists/",
+      "scripts/",
+      "scripts/tests/cloud_observability_slo_evidence_check.py",
+      "scripts/tests/cloud_production_quality_kit_evidence_backlog_check.py",
+      "scripts/tests/dr_001_rto_rpo_matrix_slice_check.py",
+      "scripts/ci/regen-third-party.sh",
+      "scripts/tests/OWNERS",
+      "tools/",
+      "tools/swarm/",
+      "toolchains/"
     ],
     "banned_operations": [
       "git_mv_only_without_judgment",
@@ -2966,7 +3442,28 @@
         "test_fixtures_inside_existing_crate"
       ],
       "claim_check": "deliver.js Claim: for each git diff --diff-filter=A path under freeze prefixes, compute whether it introduces a new unit-root directory absent on origin/dev; REFUSE only those unit-root births without one_shot_exception or reorg-move-out bead."
-    }
+    },
+    "scout_absorptions": [
+      {
+        "scout_id": "0b9a2531",
+        "absorbed_at_version": "1.15.0",
+        "accepted": [
+          "scripts/tests/*.py rewrite→ci Rust then delete",
+          "scripts/ci/regen-third-party.sh → ci/facade",
+          "tools/swarm → .grok/",
+          "toolchains/ keep",
+          "templates/foundry-supervisor delete",
+          "docs/templates dual-home kill into templates/"
+        ],
+        "rejected": [
+          {
+            "recommendation": "delete templates/** and templates/checklists in favor of docs/templates + docs/checklists",
+            "reason": "superseded by Amendment B keep_forever templates/ + #1645@ccf83c0da docs/checklists→templates/checklists land",
+            "challenge": "forever home is templates/; audit_rewrite content quality ≠ plane delete"
+          }
+        ]
+      }
+    ]
   },
   "anti_drift": {
     "anti_drift_doctrine_version": "1.1.0",
