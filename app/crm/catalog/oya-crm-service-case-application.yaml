@@ -1,0 +1,21 @@
+schema_version: "1.0"
+crate: oya-crm-service-case-application
+microservice: crm
+bounded_context: service-case
+layer: application
+adr_0105_layer: application
+owner_team: axis-crm
+status: planned
+sap_code: "CRM"
+benchmarks:
+  - "SAP CRM Customer Relationship Management"
+  - "Oracle Fusion Sales and Service"
+  - "Workday customer and service-workflow counterpart"
+  - "NetSuite CRM"
+  - "Microsoft Dynamics 365 Customer Engagement"
+contracts:
+  openapi: microservices/crm/contracts/openapi-v1.yaml
+  asyncapi: microservices/crm/contracts/asyncapi-v1.yaml
+  proto: microservices/crm/contracts/crm-v1.proto
+policy_fragment: microservices/crm/policy/service-case-authorization.cedar
+settlement_boundary: marketplace-settles-tenant-deals-per-ADR-0314
