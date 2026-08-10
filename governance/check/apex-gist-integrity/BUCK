@@ -21,9 +21,9 @@ rust_test(
 )
 
 # Live-tree gate: parses the ten live apexes and the archived member corpus, pins the census by
-# EQUALITY before any finding count, and carries the RED fixture that injects each of the four
-# defect shapes into the REAL observation set — so the gate is demonstrated capable of failing
-# rather than merely observed green.
+# EQUALITY before any finding count, pins findings per (code, apex) over the UNION of the observed
+# and frozen key sets, and carries the RED fixture that injects each defect shape into the REAL
+# observation set — so the gate is demonstrated capable of failing rather than merely observed green.
 rust_test(
     name = "check-apex-gist-integrity-gate",
     srcs = glob(["tests/**/*.rs", "**/*.json"]),
