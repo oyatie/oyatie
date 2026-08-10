@@ -23,3 +23,16 @@ Do not invent missing homes. No hubs, no `Cargo.lock`, no merge.
 ## Deferred
 
 - `src/` dump ownership narrative; any remaining missing historical assets.
+
+## Wave-5 Seat A follow-through (2026-08-10)
+
+Retargeted verified nested faces:
+
+- `microservices/data-warehouse/**` → `data/data-warehouse/**`
+- `microservices/data-pipeline/**` → `data/data-pipeline/**`
+- `microservices/analytics/**` → `data/analytics/**` (iac/IPs)
+
+### Deferred
+
+- Missing PRD/ARCHITECTURE/`src/` dump cites; remaining historical IP stems
+- No hubs, no `Cargo.lock`, no merge.
