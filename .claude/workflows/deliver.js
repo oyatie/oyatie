@@ -40,7 +40,9 @@ const BASE = A.base || 'origin/dev'
 const PR_BUDGET = A.pr_budget || 8
 const REVIEWERS = A.reviewers || 2
 const TRIAL_N = A.trial || 2
-const REPO = A.repo || '/Users/jasonlee/Developer/oyatie'
+const REPO = A.repo || require('child_process')
+  .execSync('git rev-parse --show-toplevel', { encoding: 'utf8' })
+  .trim()
 const INTEG = A.integration || 'integ/deliver-run'
 const ENVELOPES = `${REPO}/specs/integ-branch-envelopes.json`
 
@@ -472,7 +474,7 @@ const admit = await agent(`${CTX}
 
 ADMISSION CHECK. Decide whether this workflow may start at all. Spend nothing on the goal yet.
 
-1. \`gh pr list --state open --json number,title,isDraft,mergeStateStatus\` — count them.
+1. \`gh pr list --state open --limit 500 --json number,title,isDraft,mergeStateStatus\` — count them (paginate if the page is full).
 2. Report: total open, how many are DRAFT, how many are DIRTY (conflicting), how many are BLOCKED,
    and how many have been open more than a few days.
 3. COUNT CONTENTION, NOT RAW PRs. The budget exists to stop work piling up against work, so what
@@ -1003,8 +1005,9 @@ do not invent lanes for empty space. Full list in envelopes JSON #hyperscaler_mo
    guess intent. Report the conflicting paths.
 
 4. HUB EXCLUSIVITY — For every hub path listed in the envelopes spec that this run touches, check
-   open PRs (\`gh pr list --state open --json number,headRefName,files\`) and ensure no OTHER open
-   integ PR already owns that hub. One hub, one owner per wave. Missing waiver when needed = REFUSE.
+   open PRs (\`gh pr list --state open --limit 500 --json number,headRefName,files\`; paginate if
+   the page is full) and ensure no OTHER open integ PR already owns that hub. One hub, one owner
+   per wave. Missing waiver when needed = REFUSE.
 
 5. ADMIT BY CHERRY-PICK — Only if 1–4 pass: cherry-pick approved unit commits onto \`${INTEG}\` in
    unit order (commit-producing, atomic). No stash, no reset, no force-push. \`--force-with-lease\`

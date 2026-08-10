@@ -29,5 +29,9 @@ products:
   oyatie:
     safe_paths:
       - .beads/**
-      - evidence/**
+      # Per-lane / append-only evidence only — NOT the whole evidence/ tree
+      # (shared mutable JSON/Markdown and evidence/audit-chain.jsonl stay contested).
+      - evidence/ci/**
+      - evidence/lanes/**
+      - evidence/**/lane-*/
       - .grok/programs/*/evidence/**

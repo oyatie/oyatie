@@ -392,9 +392,9 @@ def main() -> None:
         targets = parse_targets(mode)
         text, buck_exit = run_buck2_check(root, targets)
         all_diags = parse_rustc_diagnostics(text)
-        if buck_exit not in (0, 1) and not all_diags:
-            # buck2 commonly exits 1 on build failure; other codes are tooling faults
-            # when no rustc diags were parsed.
+        if buck_exit != 0 and not all_diags:
+            # Any nonzero buck2 exit with zero rustc-style diagnostics is a hard
+            # tooling/config/action failure — never publish a false-success OK.
             die(
                 f"check-daemon: buck2 build failed (exit {buck_exit}) with no "
                 f"parsable rustc diagnostics:\n{text[-4000:]}"
