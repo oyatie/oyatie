@@ -487,15 +487,17 @@ Full machine-readable rows: `specs/integ-branch-envelopes.json#reorg_debt_freeze
 | `docs/DOC-CATALOG.md` | keep_forever | docs/DOC-CATALOG.md | hub catalog (until machine index replaces) |
 | `docs/adr-archive/` | keep_forever | docs/adr-archive/ | historical ADR archive (read-only growth via supersession) |
 | `docs/architecture/` | reorg_now | docs/decisions/ + capability ARCH.md | keep only cross-cutting; rest colocate |
-| `docs/audit/` | reorg_now | audit/ | capability-owned audit docs (~233 files) |
+| `docs/audit/` | reorg_now | evidence/audits/initial-sweep-2026-06-06/ | point-in-time sweep corpus → evidence/; NOT audit/ capability |
+| `docs/audits/` | delete_permanently | (none) | plural dual-name; May-2026 convention audit snapshot |
+| `docs/checklists/` | reorg_now | templates/checklists/ | merge unique; delete dual-home under docs sprawl |
 | `docs/ci/` | reorg_now | ci/ | capability-owned CI docs |
 | `docs/decisions/` | keep_forever | docs/decisions/ | live ADR apex files only |
-| `docs/foundry/` | reorg_now | intelligence/ or retire | foundry brand residue |
+| `docs/foundry/` | delete_permanently | (none) | foundry brand residue (self-RETIRED); do not rehome brand prose |
 | `docs/harness/` | delete_permanently | (none) | retired harness docs (ADR-0709 lineage) |
-| `docs/ideas/` | delete_permanently | (none) | harvest any keeper into bead then delete |
+| `docs/ideas/` | delete_permanently | (none) | harvest keepers→beads; retire idea-archive gate + reachability first |
 | `docs/implementation-plans/` | reorg_now | <capability>/IPs/ + beads | IPs colocate; tracking in beads |
 | `docs/localization-packs/` | reorg_now | compliance/packs/ or packs→compliance | jurisdiction packs with compliance capability |
-| `docs/plans/` | reorg_now | specs/masterplan.json + beads | plan authority is masterplan v2; retire prose dumps |
+| `docs/plans/` | reorg_now | specs/masterplan.json + beads (+ evidence/ for sealed mappings) | retire prose dumps; drop reachability prefixes with #1644 |
 | `docs/prds/` | reorg_now | <capability>/PRD.md or app/<product>/ | product PRDs colocate |
 | `docs/products/` | reorg_now | <capability>/ or app/<product>/ | owner-colocated product docs (g3doc) |
 | `docs/programs/` | reorg_now | governance/corpus/programs/ or owning capability | program dossiers leave central docs |

@@ -43,14 +43,14 @@
       "envelope_globs": [
         "audit/**"
       ],
-      "note": "Top-level capability root (ADR-0701). Governed under Swarm Delivery Law \u2014 ownership = path = integ scope (ADR-0711 D-9)."
+      "note": "Top-level capability root (ADR-0701). Governed under Swarm Delivery Law — ownership = path = integ scope (ADR-0711 D-9)."
     },
     "billing": {
       "branch": "integ/billing",
       "envelope_globs": [
         "billing/**"
       ],
-      "note": "Top-level capability root (ADR-0701). Governed under Swarm Delivery Law \u2014 ownership = path = integ scope (ADR-0711 D-9)."
+      "note": "Top-level capability root (ADR-0701). Governed under Swarm Delivery Law — ownership = path = integ scope (ADR-0711 D-9)."
     },
     "build": {
       "branch": "integ/build",
@@ -63,7 +63,7 @@
       "envelope_globs": [
         "cell/**"
       ],
-      "note": "Top-level capability root (ADR-0701). Governed under Swarm Delivery Law \u2014 ownership = path = integ scope (ADR-0711 D-9)."
+      "note": "Top-level capability root (ADR-0701). Governed under Swarm Delivery Law — ownership = path = integ scope (ADR-0711 D-9)."
     },
     "ci": {
       "branch": "integ/ci",
@@ -82,21 +82,21 @@
       "envelope_globs": [
         "comms/**"
       ],
-      "note": "Top-level capability root (ADR-0701). Governed under Swarm Delivery Law \u2014 ownership = path = integ scope (ADR-0711 D-9)."
+      "note": "Top-level capability root (ADR-0701). Governed under Swarm Delivery Law — ownership = path = integ scope (ADR-0711 D-9)."
     },
     "compliance": {
       "branch": "integ/compliance",
       "envelope_globs": [
         "compliance/**"
       ],
-      "note": "Top-level capability root (ADR-0701). Governed under Swarm Delivery Law \u2014 ownership = path = integ scope (ADR-0711 D-9)."
+      "note": "Top-level capability root (ADR-0701). Governed under Swarm Delivery Law — ownership = path = integ scope (ADR-0711 D-9)."
     },
     "compute": {
       "branch": "integ/compute",
       "envelope_globs": [
         "compute/**"
       ],
-      "note": "Top-level capability root (ADR-0701). Governed under Swarm Delivery Law \u2014 ownership = path = integ scope (ADR-0711 D-9)."
+      "note": "Top-level capability root (ADR-0701). Governed under Swarm Delivery Law — ownership = path = integ scope (ADR-0711 D-9)."
     },
     "console": {
       "branch": "integ/console",
@@ -109,7 +109,7 @@
       "envelope_globs": [
         "data/**"
       ],
-      "note": "Top-level capability root (ADR-0701). Governed under Swarm Delivery Law \u2014 ownership = path = integ scope (ADR-0711 D-9)."
+      "note": "Top-level capability root (ADR-0701). Governed under Swarm Delivery Law — ownership = path = integ scope (ADR-0711 D-9)."
     },
     "flags": {
       "branch": "integ/flags",
@@ -122,7 +122,7 @@
       "envelope_globs": [
         "gateway/**"
       ],
-      "note": "Top-level capability root (ADR-0701). Governed under Swarm Delivery Law \u2014 ownership = path = integ scope (ADR-0711 D-9)."
+      "note": "Top-level capability root (ADR-0701). Governed under Swarm Delivery Law — ownership = path = integ scope (ADR-0711 D-9)."
     },
     "governance": {
       "branch": "integ/governance",
@@ -135,28 +135,28 @@
       "envelope_globs": [
         "iac/**"
       ],
-      "note": "Top-level capability root (ADR-0701). Governed under Swarm Delivery Law \u2014 ownership = path = integ scope (ADR-0711 D-9)."
+      "note": "Top-level capability root (ADR-0701). Governed under Swarm Delivery Law — ownership = path = integ scope (ADR-0711 D-9)."
     },
     "iam": {
       "branch": "integ/iam",
       "envelope_globs": [
         "iam/**"
       ],
-      "note": "Top-level capability root (ADR-0701). Governed under Swarm Delivery Law \u2014 ownership = path = integ scope (ADR-0711 D-9)."
+      "note": "Top-level capability root (ADR-0701). Governed under Swarm Delivery Law — ownership = path = integ scope (ADR-0711 D-9)."
     },
     "intelligence": {
       "branch": "integ/intelligence",
       "envelope_globs": [
         "intelligence/**"
       ],
-      "note": "Top-level capability root (ADR-0701). Governed under Swarm Delivery Law \u2014 ownership = path = integ scope (ADR-0711 D-9)."
+      "note": "Top-level capability root (ADR-0701). Governed under Swarm Delivery Law — ownership = path = integ scope (ADR-0711 D-9)."
     },
     "k8s": {
       "branch": "integ/k8s",
       "envelope_globs": [
         "k8s/**"
       ],
-      "note": "Top-level capability root (ADR-0701). Governed under Swarm Delivery Law \u2014 ownership = path = integ scope (ADR-0711 D-9)."
+      "note": "Top-level capability root (ADR-0701). Governed under Swarm Delivery Law — ownership = path = integ scope (ADR-0711 D-9)."
     },
     "libs": {
       "branch": "integ/libs",
@@ -175,21 +175,21 @@
       "envelope_globs": [
         "messaging/**"
       ],
-      "note": "Top-level capability root (ADR-0701). Governed under Swarm Delivery Law \u2014 ownership = path = integ scope (ADR-0711 D-9)."
+      "note": "Top-level capability root (ADR-0701). Governed under Swarm Delivery Law — ownership = path = integ scope (ADR-0711 D-9)."
     },
     "network": {
       "branch": "integ/network",
       "envelope_globs": [
         "network/**"
       ],
-      "note": "Top-level capability root (ADR-0701). Governed under Swarm Delivery Law \u2014 ownership = path = integ scope (ADR-0711 D-9)."
+      "note": "Top-level capability root (ADR-0701). Governed under Swarm Delivery Law — ownership = path = integ scope (ADR-0711 D-9)."
     },
     "observability": {
       "branch": "integ/observability",
       "envelope_globs": [
         "observability/**"
       ],
-      "note": "Top-level capability root (ADR-0701). Governed under Swarm Delivery Law \u2014 ownership = path = integ scope (ADR-0711 D-9)."
+      "note": "Top-level capability root (ADR-0701). Governed under Swarm Delivery Law — ownership = path = integ scope (ADR-0711 D-9)."
     },
     "os": {
       "branch": "integ/os",
@@ -208,7 +208,7 @@
       "envelope_globs": [
         "policy/**"
       ],
-      "note": "Top-level capability root (ADR-0701). Governed under Swarm Delivery Law \u2014 ownership = path = integ scope (ADR-0711 D-9). Forward-declared: capability is registered but the top-level directory is not born yet; envelope exists so Claim can resolve integ/policy when the root appears."
+      "note": "Top-level capability root (ADR-0701). Governed under Swarm Delivery Law — ownership = path = integ scope (ADR-0711 D-9). Forward-declared: capability is registered but the top-level directory is not born yet; envelope exists so Claim can resolve integ/policy when the root appears."
     },
     "registry": {
       "branch": "integ/registry",
@@ -221,28 +221,28 @@
       "envelope_globs": [
         "secrets/**"
       ],
-      "note": "Top-level capability root (ADR-0701). Governed under Swarm Delivery Law \u2014 ownership = path = integ scope (ADR-0711 D-9)."
+      "note": "Top-level capability root (ADR-0701). Governed under Swarm Delivery Law — ownership = path = integ scope (ADR-0711 D-9)."
     },
     "storage": {
       "branch": "integ/storage",
       "envelope_globs": [
         "storage/**"
       ],
-      "note": "Top-level capability root (ADR-0701). Governed under Swarm Delivery Law \u2014 ownership = path = integ scope (ADR-0711 D-9)."
+      "note": "Top-level capability root (ADR-0701). Governed under Swarm Delivery Law — ownership = path = integ scope (ADR-0711 D-9)."
     },
     "tenancy": {
       "branch": "integ/tenancy",
       "envelope_globs": [
         "tenancy/**"
       ],
-      "note": "Top-level capability root (ADR-0701). Governed under Swarm Delivery Law \u2014 ownership = path = integ scope (ADR-0711 D-9)."
+      "note": "Top-level capability root (ADR-0701). Governed under Swarm Delivery Law — ownership = path = integ scope (ADR-0711 D-9)."
     },
     "tools": {
       "branch": "integ/tools",
       "envelope_globs": [
         "tools/**"
       ],
-      "note": "Transitional root under Amendment B reorg-target debt freeze. tools/swarm/** one-shot process-kit land via integ/specs (#1644) is the sole authorized birth wave; after that merge, tools/ is shrink-only \u2014 further births require an explicit reorg-move-out bead to a durable home."
+      "note": "Transitional root under Amendment B reorg-target debt freeze. tools/swarm/** one-shot process-kit land via integ/specs (#1644) is the sole authorized birth wave; after that merge, tools/ is shrink-only — further births require an explicit reorg-move-out bead to a durable home."
     },
     "workflow": {
       "branch": "integ/workflow",
@@ -312,7 +312,7 @@
     ],
     "rules": [
       "Adjunct leaves must be disjoint from every other open integ PR's claimed set.",
-      "Hub paths are never adjuncts \u2014 they use hub waivers only.",
+      "Hub paths are never adjuncts — they use hub waivers only.",
       "Concurrent-safe exemption paths do not require adjunct claims when the edit is append-only under the registered exemption.",
       "Cargo.lock may travel only with the integ that changed workspace membership (hub rule), never as a silent adjunct."
     ],
@@ -434,7 +434,7 @@
   "hyperscaler_monorepo_patterns": {
     "authority": "docs/decisions/ADR-0711-swarm-delivery-law-integ-branch-topology.md#D-9",
     "portable_contract": ".grok/programs/delivery-fabric/evidence/PORTABLE-SWARM-CONTRACT.md#Hyperscaler-monorepo-patterns-first-class",
-    "note": "First-class hyperscaler / clean-architecture monorepo rules \u2014 not agent-swarm folklore alone. Envelopes, hubs, and worker discipline must stay consistent with these patterns.",
+    "note": "First-class hyperscaler / clean-architecture monorepo rules — not agent-swarm folklore alone. Envelopes, hubs, and worker discipline must stay consistent with these patterns.",
     "cites": [
       "ADR-0119 (flat cross-cutting specs/ hub; product colocation via ADR-0131 amendment)",
       "ADR-0131 (service colocation + product-owned specs; superseded as live apex by ADR-0701)",
@@ -471,14 +471,14 @@
     ],
     "docs_specs_planes": {
       "rule": "planes integ/docs and integ/specs own only cross-cutting hubs and indexes; capability product docs/specs colocate under the owning root and travel with that integ/<root>",
-      "anti_pattern": "do not create docs/<root> or specs/<root> mirror dumps for product artifacts \u2014 that is dual-home debt"
+      "anti_pattern": "do not create docs/<root> or specs/<root> mirror dumps for product artifacts — that is dual-home debt"
     }
   },
   "gaebal_operating_patterns": {
     "authority": "docs/decisions/ADR-0711-swarm-delivery-law-integ-branch-topology.md#Amendment-C",
     "patterns_ref": "specs/gaebal-agentic-patterns.json",
     "portable_contract": ".grok/programs/delivery-fabric/evidence/PORTABLE-SWARM-CONTRACT.md#Amendment-C",
-    "note": "Clustered KEEP/BAN from 137 Gaebal archive entries. Forever merge-gate name is merge-admission-required \u2014 distill notes that said keep oya-ci-required are OVERRULED."
+    "note": "Clustered KEEP/BAN from 137 Gaebal archive entries. Forever merge-gate name is merge-admission-required — distill notes that said keep oya-ci-required are OVERRULED."
   },
   "naming": {
     "taxonomy_ref": "specs/naming-taxonomy.json",
@@ -572,7 +572,7 @@
         "taxonomy_posture": "replace_not_encode"
       },
       {
-        "name_now": "gate \u00b7 affected-set (ADR-0554, binding workspace coverage)",
+        "name_now": "gate · affected-set (ADR-0554, binding workspace coverage)",
         "name_forever": "affected-target-set (binding workspace coverage)",
         "kind": "ci-job",
         "grammar_compliant": false,
@@ -591,7 +591,7 @@
         "taxonomy_posture": "replace_not_encode"
       },
       {
-        "name_now": "integrity-canary (cold, from-empty \u2014 ADR-0556 D2 / ADR-0560)",
+        "name_now": "integrity-canary (cold, from-empty — ADR-0556 D2 / ADR-0560)",
         "name_forever": "cache-integrity-canary (cold from-empty)",
         "kind": "ci-job",
         "grammar_compliant": false,
@@ -677,7 +677,7 @@
         ],
         "action": "reorg_now",
         "redesign": "rewrite",
-        "owning_integ": "integ/libs \u2192 destination",
+        "owning_integ": "integ/libs → destination",
         "what_it_does": "Shared kernels/adapters/checks still branded; Amendment B libs/ is reorg_now",
         "lenses_applied": "all-16",
         "challenges": [
@@ -736,13 +736,13 @@
         "owning_integ": "integ/ci",
         "lenses_applied": "all-16",
         "challenges": [
-          "cartesian_doubt: code shows the job is a needs-fan-in verdict aggregator \u2014 brand token adds zero behavior",
+          "cartesian_doubt: code shows the job is a needs-fan-in verdict aggregator — brand token adds zero behavior",
           "essentialism_yagni: single required context is the irreducible mechanism; brand prefix is not",
-          "chestertons_fence: fence was cohesion+protection pin \u2014 keep single context, replace name via dual-emit",
+          "chestertons_fence: fence was cohesion+protection pin — keep single context, replace name via dual-emit",
           "contrarian: forever name should state admission role, not product brand",
           "pragmatism: dual-emit lets protection flip be one founder line without merge outage",
           "operability_day2: operators searching logs for brand miss the admission meaning",
-          "zero_trust: protection pin must stay explicit during rename \u2014 never silent retarget"
+          "zero_trust: protection pin must stay explicit during rename — never silent retarget"
         ],
         "chestertons_fence": "Single required merge context (ADR-0515/0700) plus product-brand cohesion for the fan-in job name and branch-protection string.",
         "verdict": "reshape",
@@ -789,8 +789,8 @@
           "contrarian: hyperscaler prefixes name the *vendor SDK surface*; inside an owned monorepo the capability/role IS the namespace",
           "essentialism_yagni: directory + capability-registry already disambiguate",
           "systems_thinking: brand prefix couples every rename to product marketing and freezes dual vocabulary (ci/facade/baseline-ratchet vs oya-cloud-ci-firewall-*)",
-          "red_team: brand residue gates already fight foundry/oya-vcs \u2014 encoding oya- as required greenfield law fights the de-brand north star",
-          "pragmatism: ci/facade/* dirs already moved to role-first; cargo/buck/bin names lag \u2014 taxonomy makes lag debt, not law"
+          "red_team: brand residue gates already fight foundry/oya-vcs — encoding oya- as required greenfield law fights the de-brand north star",
+          "pragmatism: ci/facade/* dirs already moved to role-first; cargo/buck/bin names lag — taxonomy makes lag debt, not law"
         ],
         "chestertons_fence": "ADR-0017 / crate-naming-convention required oya- for workspace uniqueness mirroring aws-/google-cloud- prefix shapes.",
         "verdict": "reshape",
@@ -810,7 +810,7 @@
         "owning_integ": "integ/ci",
         "lenses_applied": "all-16",
         "challenges": [
-          "cartesian_doubt: lib docs describe compare-mode + ratchet-invariant \u2014 not a network firewall",
+          "cartesian_doubt: lib docs describe compare-mode + ratchet-invariant — not a network firewall",
           "socratic: what does firewall do that baseline-ratchet does not already name?",
           "operability_day2: on-call chasing firewall finds metaphor, not the merge-base baseline face",
           "telemetry_first: job/echo labels saying cloud-ci-firewall diverge from path ci/facade/baseline-ratchet"
@@ -835,7 +835,7 @@
         "challenges": [
           "essentialism_yagni: chronology belongs in index/frontmatter, not the only navigable path key",
           "pragmatism: topic-shaped paths pass the self-explanatory path test; numbers do not",
-          "blast_radius_cell: mass-rename is high fan-in \u2014 batched judged renames only",
+          "blast_radius_cell: mass-rename is high fan-in — batched judged renames only",
           "chestertons_fence: keep ADR numbers as citation ids; replace path shape"
         ],
         "chestertons_fence": "Numbered ADR catalogs are industry-common for chronology and citation.",
@@ -856,7 +856,7 @@
         "redesign": "refactor",
         "lenses_applied": "all-16",
         "challenges": [
-          "cohort is branded/opaque by match rule \u2014 classify each hit as taxonomy instance; do not invent one-off names",
+          "cohort is branded/opaque by match rule — classify each hit as taxonomy instance; do not invent one-off names",
           "chestertons_fence: cohort existed under prior brand/ADR naming; taxonomy replaces cohort grammar"
         ],
         "judgment_status": "done",
@@ -873,7 +873,7 @@
         "redesign": "refactor",
         "lenses_applied": "all-16",
         "challenges": [
-          "cohort is branded/opaque by match rule \u2014 classify each hit as taxonomy instance; do not invent one-off names",
+          "cohort is branded/opaque by match rule — classify each hit as taxonomy instance; do not invent one-off names",
           "chestertons_fence: cohort existed under prior brand/ADR naming; taxonomy replaces cohort grammar"
         ],
         "judgment_status": "done",
@@ -890,7 +890,7 @@
         "redesign": "refactor",
         "lenses_applied": "all-16",
         "challenges": [
-          "cohort is branded/opaque by match rule \u2014 classify each hit as taxonomy instance; do not invent one-off names",
+          "cohort is branded/opaque by match rule — classify each hit as taxonomy instance; do not invent one-off names",
           "chestertons_fence: cohort existed under prior brand/ADR naming; taxonomy replaces cohort grammar"
         ],
         "judgment_status": "done",
@@ -907,7 +907,7 @@
         "redesign": "refactor",
         "lenses_applied": "all-16",
         "challenges": [
-          "cohort is branded/opaque by match rule \u2014 classify each hit as taxonomy instance; do not invent one-off names",
+          "cohort is branded/opaque by match rule — classify each hit as taxonomy instance; do not invent one-off names",
           "chestertons_fence: cohort existed under prior brand/ADR naming; taxonomy replaces cohort grammar"
         ],
         "judgment_status": "done",
@@ -924,7 +924,7 @@
         "redesign": "refactor",
         "lenses_applied": "all-16",
         "challenges": [
-          "cohort is branded/opaque by match rule \u2014 classify each hit as taxonomy instance; do not invent one-off names",
+          "cohort is branded/opaque by match rule — classify each hit as taxonomy instance; do not invent one-off names",
           "chestertons_fence: cohort existed under prior brand/ADR naming; taxonomy replaces cohort grammar"
         ],
         "judgment_status": "done",
@@ -941,7 +941,7 @@
         "redesign": "refactor",
         "lenses_applied": "all-16",
         "challenges": [
-          "cohort is branded/opaque by match rule \u2014 classify each hit as taxonomy instance; do not invent one-off names",
+          "cohort is branded/opaque by match rule — classify each hit as taxonomy instance; do not invent one-off names",
           "chestertons_fence: cohort existed under prior brand/ADR naming; taxonomy replaces cohort grammar"
         ],
         "judgment_status": "done",
@@ -958,7 +958,7 @@
         "redesign": "refactor",
         "lenses_applied": "all-16",
         "challenges": [
-          "cohort is branded/opaque by match rule \u2014 classify each hit as taxonomy instance; do not invent one-off names",
+          "cohort is branded/opaque by match rule — classify each hit as taxonomy instance; do not invent one-off names",
           "chestertons_fence: cohort existed under prior brand/ADR naming; taxonomy replaces cohort grammar"
         ],
         "judgment_status": "done",
@@ -975,7 +975,7 @@
         "redesign": "refactor",
         "lenses_applied": "all-16",
         "challenges": [
-          "cohort is branded/opaque by match rule \u2014 classify each hit as taxonomy instance; do not invent one-off names",
+          "cohort is branded/opaque by match rule — classify each hit as taxonomy instance; do not invent one-off names",
           "chestertons_fence: cohort existed under prior brand/ADR naming; taxonomy replaces cohort grammar"
         ],
         "judgment_status": "done",
@@ -1042,11 +1042,11 @@
       {
         "path_glob": "tools/swarm/**",
         "wave": "integ/specs#1644",
-        "reason": "Phase A process-kit land; immediately schedule reorg_now of tools/swarm \u2192 .grok/ after merge",
+        "reason": "Phase A process-kit land; immediately schedule reorg_now of tools/swarm → .grok/ after merge",
         "expires_when": "integ/specs#1644 squash-merged to origin/dev"
       }
     ],
-    "judgment_gate": "See reorg_debt_freeze.evaluation_gate \u2014 path changes require judgment_status=done"
+    "judgment_gate": "See reorg_debt_freeze.evaluation_gate — path changes require judgment_status=done"
   },
   "reorg_debt_freeze": {
     "authority": "docs/decisions/ADR-0711-swarm-delivery-law-integ-branch-topology.md#Amendment-B",
@@ -1079,6 +1079,8 @@
       "plan/",
       "tasks/",
       "benchmarks/",
+      "docs/audits/",
+      "docs/checklists/",
       "docs/templates/",
       "docs/products/",
       "docs/programs/",
@@ -1112,6 +1114,8 @@
       "plan/",
       "tasks/",
       "benchmarks/",
+      "docs/audits/",
+      "docs/checklists/",
       "docs/templates/",
       "docs/products/",
       "docs/programs/",
@@ -1133,7 +1137,7 @@
       "specs/openslo/",
       "wt-1616/"
     ],
-    "prefixes_meaning": "No NEW path births under these prefixes while reorg_now/delete_permanently executes. Prefixes are NOT a keep forever home \u2014 content must still be reorg_now or delete_permanently.",
+    "prefixes_meaning": "No NEW path births under these prefixes while reorg_now/delete_permanently executes. Prefixes are NOT a keep forever home — content must still be reorg_now or delete_permanently.",
     "classification": {
       "docs/": "keep_forever",
       "docs/AGENTS.md": "keep_forever",
@@ -1156,7 +1160,7 @@
       "docs/regional-packs/": "reorg_now",
       "docs/raw/": "delete_permanently",
       "docs/ideas/": "delete_permanently",
-      "docs/foundry/": "reorg_now",
+      "docs/foundry/": "delete_permanently",
       "docs/harness/": "delete_permanently",
       "docs/implementation-plans/": "reorg_now",
       "specs/": "keep_forever",
@@ -1164,6 +1168,8 @@
       "specs/root-hub-pointers.json": "keep_forever",
       "specs/masterplan.json": "keep_forever",
       "specs/integ-branch-envelopes.json": "keep_forever",
+      "specs/naming-taxonomy.json": "keep_forever",
+      "specs/gaebal-agentic-patterns.json": "keep_forever",
       "specs/markdown-retirement-policy.json": "keep_forever",
       "specs/reorg/": "keep_forever",
       "specs/microservices/": "reorg_now",
@@ -1244,7 +1250,9 @@
       ".cursor/": "keep_forever",
       "buck-out/": "delete_permanently",
       "target/": "delete_permanently",
-      "wt-1616/": "delete_permanently"
+      "wt-1616/": "delete_permanently",
+      "docs/checklists/": "reorg_now",
+      "docs/audits/": "delete_permanently"
     },
     "rows": [
       {
@@ -1255,7 +1263,7 @@
         "note": "Growth only for cross-cutting hubs; product dumps must leave",
         "redesign": "none",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `docs/` \u2192 `docs/` (PLANE hub: operating contract, indexes, live ADRs, standards, archive only). Full 7-point judgment still pending before structural change.",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `docs/` → `docs/` (PLANE hub: operating contract, indexes, live ADRs, standards, archive only). Full 7-point judgment still pending before structural change.",
         "destination": "docs/"
       },
       {
@@ -1265,18 +1273,41 @@
         "shape": "operating-contract apex",
         "redesign": "none",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `docs/AGENTS.md` \u2192 `docs/AGENTS.md` (operating-contract apex). Full 7-point judgment still pending before structural change.",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `docs/AGENTS.md` → `docs/AGENTS.md` (operating-contract apex). Full 7-point judgment still pending before structural change.",
         "destination": "docs/AGENTS.md"
       },
       {
         "path": "docs/decisions/",
         "action": "keep_forever",
         "greenfield_destination": "docs/decisions/",
-        "shape": "live ADR apex files only",
+        "shape": "live ADR apex files only; topic-shaped filenames batched via naming_sweep",
         "redesign": "none",
-        "judgment_status": "pending",
-        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `docs/decisions/` \u2192 `docs/decisions/` (live ADR apex files only). Full 7-point judgment still pending before structural change.",
-        "destination": "docs/decisions/"
+        "judgment_status": "done",
+        "rationale": "1) Live apex decision records (ADR-0700..0711 cluster) + INDEX/OWNERS/_disposition. 2) Markdown decisions with YAML frontmatter; archive split already done. 3) Binding architecture law. 4) Must exist. 5) Fit as docs plane apex. 6) keep-as-is for directory; filename topic-shape is separate batched sweep per naming-taxonomy overturned pattern. 7) docs/decisions/ forever.",
+        "destination": "docs/decisions/",
+        "disposition": "keep-as-is",
+        "name_now": "docs/decisions/",
+        "name_forever": "docs/decisions/",
+        "kind": "decision-record",
+        "grammar_compliant": true,
+        "lenses_applied": "all-16",
+        "challenges": [
+          "chestertons_fence: numbered ADR catalogs are industry-common for chronology/citation — keep directory + citation ids",
+          "contrarian: ADR-NNNN in filenames fails self-explanatory path test (OP-adr-numbered-decision-paths) — batched rename to docs/decisions/<topic>.md, numbers stay in frontmatter/INDEX",
+          "essentialism_yagni: directory forever; mass filename rename is separate judged naming_sweep instances — not this folder judgment",
+          "blast_radius_cell: 11 live apex ADRs here; 448 in adr-archive — never blind mass-rename",
+          "pragmatism: keep_forever path; schedule filename sweep rows citing kind=decision-record",
+          "systems_thinking: citation gates key on ADR numbers in body/frontmatter, not path shape alone",
+          "cartesian_doubt: folder correctly holds live apex only post-archive split",
+          "opportunity_cost: renaming the directory would thrash every pointer for zero topology gain",
+          "zero_trust: do not encode ADR-NNNN as forever grammar in taxonomy"
+        ],
+        "evidence": [
+          "11 ADR-*.md live under docs/decisions/ vs 448 in docs/adr-archive/",
+          "specs/naming-taxonomy.json overturned_patterns OP-adr-numbered-decision-paths"
+        ],
+        "destination_integ": "integ/docs",
+        "land_when": "no path change; filename naming_sweep is separate judged instances"
       },
       {
         "path": "docs/adr-archive/",
@@ -1284,9 +1315,32 @@
         "greenfield_destination": "docs/adr-archive/",
         "shape": "historical ADR archive (read-only growth via supersession)",
         "redesign": "none",
-        "judgment_status": "pending",
-        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `docs/adr-archive/` \u2192 `docs/adr-archive/` (historical ADR archive (read-only growth via supersession)). Full 7-point judgment still pending before structural change.",
-        "destination": "docs/adr-archive/"
+        "judgment_status": "done",
+        "rationale": "1) Historical ADR bodies retained for citation/supersession. 2) Archive corpus. 3) Immutability + auditability of decisions. 4) Must exist. 5) Fit. 6) keep-as-is. 7) docs/adr-archive/ forever.",
+        "destination": "docs/adr-archive/",
+        "disposition": "keep-as-is",
+        "name_now": "docs/adr-archive/",
+        "name_forever": "docs/adr-archive/",
+        "kind": "decision-record",
+        "grammar_compliant": true,
+        "lenses_applied": "all-16",
+        "challenges": [
+          "chestertons_fence: archive split keeps live apex thin — correct hyperscaler pattern",
+          "essentialism_yagni: do not merge archive back into decisions/",
+          "cartesian_doubt: 448 historical files are citations targets for supersession closure gates",
+          "pragmatism: keep forever; growth only via supersession moves",
+          "systems_thinking: adr-citation-closure depends on archive remaining addressable",
+          "opportunity_cost: topic-rename of archive filenames is lower priority than live apex",
+          "blast_radius_cell: huge fan-in — no opportunistic renames",
+          "contrarian: still subject to eventual topic-shape quality fix, but not blocking",
+          "zero_trust: archive must stay read-mostly to prevent silent resurrection of superseded law"
+        ],
+        "evidence": [
+          "ADR-0711 B-3 table keep_forever",
+          "governance/check/adr-citation-closure consumes archive paths"
+        ],
+        "destination_integ": "integ/docs",
+        "land_when": "no path change"
       },
       {
         "path": "docs/standards/",
@@ -1294,9 +1348,32 @@
         "greenfield_destination": "docs/standards/",
         "shape": "cross-cutting engineering standards hub",
         "redesign": "none",
-        "judgment_status": "pending",
-        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `docs/standards/` \u2192 `docs/standards/` (cross-cutting engineering standards hub). Full 7-point judgment still pending before structural change.",
-        "destination": "docs/standards/"
+        "judgment_status": "done",
+        "rationale": "1) Cross-cutting engineering standards (rust style, testing, git workflow, …). 2) Hub markdown. 3) Encode engineering bars. 4) Must exist. 5) Fit. 6) keep-as-is (evolve bodies in place). 7) docs/standards/ forever.",
+        "destination": "docs/standards/",
+        "disposition": "keep-as-is",
+        "name_now": "docs/standards/",
+        "name_forever": "docs/standards/",
+        "kind": "plane-hub",
+        "grammar_compliant": true,
+        "lenses_applied": "all-16",
+        "challenges": [
+          "chestertons_fence: standards hub is the right docs-plane content per Amendment B docs/ keep scope",
+          "essentialism_yagni: cross-cutting only — do not absorb capability runbooks here",
+          "cartesian_doubt: some standards still encode overturned brand-prefix law — evolve in place via taxonomy supersession, not folder move",
+          "pragmatism: keep forever; amend bodies when taxonomy overturns clauses",
+          "systems_thinking: heavily cited by gates and AGENTS",
+          "opportunity_cost: moving standards/ would thrash for zero gain",
+          "blast_radius_cell: high fan-in — path stable",
+          "contrarian: reject scattering standards into capabilities (loses cross-cutting SSOT)",
+          "zero_trust: standards bodies must stay reviewable in one hub"
+        ],
+        "evidence": [
+          "ADR-0711 B-3 docs/standards keep_forever",
+          "AGENTS.md points at docs/standards/"
+        ],
+        "destination_integ": "integ/docs",
+        "land_when": "no path change"
       },
       {
         "path": "docs/ADR-INDEX.md",
@@ -1305,7 +1382,7 @@
         "shape": "hub index",
         "redesign": "none",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `docs/ADR-INDEX.md` \u2192 `docs/ADR-INDEX.md` (hub index). Full 7-point judgment still pending before structural change.",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `docs/ADR-INDEX.md` → `docs/ADR-INDEX.md` (hub index). Full 7-point judgment still pending before structural change.",
         "destination": "docs/ADR-INDEX.md"
       },
       {
@@ -1315,7 +1392,7 @@
         "shape": "hub catalog (until machine index replaces)",
         "redesign": "none",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `docs/DOC-CATALOG.md` \u2192 `docs/DOC-CATALOG.md` (hub catalog (until machine index replaces)). Full 7-point judgment still pending before structural change.",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `docs/DOC-CATALOG.md` → `docs/DOC-CATALOG.md` (hub catalog (until machine index replaces)). Full 7-point judgment still pending before structural change.",
         "destination": "docs/DOC-CATALOG.md"
       },
       {
@@ -1325,19 +1402,44 @@
         "shape": "hub changelog",
         "redesign": "none",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `docs/CHANGELOG.md` \u2192 `docs/CHANGELOG.md` (hub changelog). Full 7-point judgment still pending before structural change.",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `docs/CHANGELOG.md` → `docs/CHANGELOG.md` (hub changelog). Full 7-point judgment still pending before structural change.",
         "destination": "docs/CHANGELOG.md"
       },
       {
         "path": "docs/templates/",
         "action": "reorg_now",
         "greenfield_destination": "templates/",
-        "shape": "merge unique templates into root templates/; delete dual-home",
+        "shape": "single plane hub at templates/; merge unique; delete dual-home",
         "note": "overlap with templates/ is dual-home debt",
         "redesign": "rewrite",
-        "judgment_status": "pending",
-        "rationale": "PROVISIONAL reorg_now \u2192 `templates/` shape `merge unique templates into root templates/; delete dual-home`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
-        "destination": "templates/"
+        "judgment_status": "done",
+        "rationale": "1) 34 Accepted templates under docs/templates (INDEX status Accepted); root templates/ is pending-approval draft with 28 files + checklists. 2) Dual-home with zero byte-identical overlaps on shared basenames — accidental structure. 3) Author scaffolds for ADR/PR/IP/runbook/etc. 4) Templates must exist; dual docs/templates must not. 5) Antipattern: dual authority + docs sprawl for process scaffolds. 6) refactor-then-place: content-merge into templates/ (prefer Accepted docs variants + unique-only), rewrite INDEX, update cites, delete docs/templates/. 7) Greenfield: templates/ plane hub (taxonomy plane-hub examples_good).",
+        "destination": "templates/",
+        "disposition": "refactor-then-place",
+        "name_now": "docs/templates/",
+        "name_forever": "templates/",
+        "kind": "plane-hub",
+        "grammar_compliant": true,
+        "lenses_applied": "all-16",
+        "challenges": [
+          "chestertons_fence: May-2026 lift put Accepted authority in docs/templates/ while root templates/ stayed pending-approval draft — fence was approval workflow, not ideal topology",
+          "contrarian: Amendment B inverts historical lift direction (templates/→docs/templates) because docs/ plane must shrink to contract/indexes/ADRs/standards/archive",
+          "cartesian_doubt: 13 shared basenames are ALL content-different (0 identical); 21 only-in-docs; checklists also dual-home with docs/checklists + templates/checklists — not a git-mv",
+          "essentialism_yagni: one template hub; Accepted supersets in docs/templates are merge inputs, not forever home",
+          "pragmatism: authority for merge = docs/templates Accepted INDEX + unique-only files; rewrite root INDEX to drop lift_target into docs/",
+          "systems_thinking: many specs/standards/IPs cite docs/templates — same-land reference rewrite required",
+          "blast_radius_cell: land on integ/docs with templates/ owned as plane; do not partial-move",
+          "opportunity_cost: leaving dual-home guarantees template drift (already observed size diffs)",
+          "zero_trust: pending-approval root INDEX must not silently override Accepted docs/templates during merge without explicit judgment"
+        ],
+        "evidence": [
+          "docs/templates/INDEX.md status: Accepted",
+          "templates/INDEX.md status: pending approval; lift_target still points into docs/templates (overturned)",
+          "sha256 compare: 13 common basenames, 0 identical",
+          "specs/naming-taxonomy.json kinds.plane-hub examples_good includes templates/checklists/"
+        ],
+        "destination_integ": "integ/docs",
+        "land_when": "judgment done — explicit-path rewrite merge on integ/docs; update all docs/templates cites in same land; do not git-mv-only; do not edit reachability unless prefixes exist (none today)"
       },
       {
         "path": "docs/products/",
@@ -1346,7 +1448,7 @@
         "shape": "owner-colocated product docs (g3doc)",
         "redesign": "rewrite",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL reorg_now \u2192 `<capability>/ or app/<product>/` shape `owner-colocated product docs (g3doc)`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
+        "rationale": "PROVISIONAL reorg_now → `<capability>/ or app/<product>/` shape `owner-colocated product docs (g3doc)`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
         "destination": "<capability>/ or app/<product>/"
       },
       {
@@ -1356,18 +1458,42 @@
         "shape": "program dossiers leave central docs",
         "redesign": "rewrite",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL reorg_now \u2192 `governance/corpus/programs/ or owning capability` shape `program dossiers leave central docs`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
+        "rationale": "PROVISIONAL reorg_now → `governance/corpus/programs/ or owning capability` shape `program dossiers leave central docs`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
         "destination": "governance/corpus/programs/ or owning capability"
       },
       {
         "path": "docs/audit/",
         "action": "reorg_now",
-        "greenfield_destination": "audit/",
-        "shape": "capability-owned audit docs (~233 files)",
+        "greenfield_destination": "evidence/audits/initial-sweep-2026-06-06/ (+ delete vacated)",
+        "shape": "point-in-time sweep corpus → evidence/; NOT audit/ capability code tree",
         "redesign": "rewrite",
-        "judgment_status": "pending",
-        "rationale": "PROVISIONAL reorg_now \u2192 `audit/` shape `capability-owned audit docs (~233 files)`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
-        "destination": "audit/"
+        "judgment_status": "done",
+        "rationale": "1) initial-sweep-2026-06-06 (~233 files) + retired-workflows — programme audit papers, not runtime audit capability. 2) Markdown/tsv working papers; not clean-arch faces. 3) One-shot corpus hygiene / ADR disposition inputs. 4) Historical evidence must remain reachable under evidence/; docs/audit path must not. 5) Antipattern: naming collision with audit/ capability + docs sprawl. 6) refactor-then-place into evidence/audits/; redesign=rewrite for cites. 7) evidence/audits/… forever shape; audit/ stays code capability.",
+        "destination": "evidence/audits/initial-sweep-2026-06-06/",
+        "disposition": "refactor-then-place",
+        "name_now": "docs/audit/",
+        "name_forever": "evidence/audits/initial-sweep-2026-06-06/",
+        "kind": "fixture-corpus",
+        "grammar_compliant": true,
+        "lenses_applied": "all-16",
+        "challenges": [
+          "chestertons_fence: June-2026 initial sweep produced ~233 markdown/tsv artifacts that drove ADR disposition — fence was programme working papers",
+          "cartesian_doubt: provisional destination audit/ is WRONG — audit/ is registered capability C/P/A/F code, not a docs dump",
+          "contrarian: overturn provisional Amendment B compact table destination audit/ → evidence/audits/",
+          "essentialism_yagni: keep sealed historical sweep under evidence/; do not grow docs/audit",
+          "systems_thinking: many docs/architecture + ADR cites reference docs/audit/initial-sweep — update cites or leave evidence path aliases in INDEX only",
+          "pragmatism: explicit-path relocate tree to evidence/audits/; delete docs/audit/; no git-mv-only without cite pass",
+          "blast_radius_cell: large fan-in cites — batch rewrite; do not partial-move",
+          "opportunity_cost: leaving 233 files under docs/ perpetuates sprawl and false capability ownership",
+          "socratic: would a greenfield hyperscaler put a one-shot sweep next to live ADRs or under evidence/"
+        ],
+        "evidence": [
+          "ls docs/audit → initial-sweep-2026-06-06, retired-workflows only",
+          "audit/ capability already keep_forever with C/P/A/F faces in Amendment B table",
+          "evidence/audits/ already exists as sealed audit evidence home"
+        ],
+        "destination_integ": "integ/docs",
+        "land_when": "explicit-path relocate + cite rewrite on integ/docs; do not place under audit/ capability; no reachability prefix today"
       },
       {
         "path": "docs/ci/",
@@ -1376,28 +1502,75 @@
         "shape": "capability-owned CI docs",
         "redesign": "rewrite",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL reorg_now \u2192 `ci/` shape `capability-owned CI docs`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
+        "rationale": "PROVISIONAL reorg_now → `ci/` shape `capability-owned CI docs`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
         "destination": "ci/"
       },
       {
         "path": "docs/architecture/",
         "action": "reorg_now",
-        "greenfield_destination": "docs/decisions/ + capability ARCH.md",
-        "shape": "keep only cross-cutting; rest colocate",
+        "greenfield_destination": "docs/decisions/ (cross-cutting only) + <capability>/ARCH.md + evidence/ for point-in-time audits",
+        "shape": "keep only cross-cutting durable architecture; relocate audits/ephemera; colocate owner ARCH",
         "redesign": "rewrite",
-        "judgment_status": "pending",
-        "rationale": "PROVISIONAL reorg_now \u2192 `docs/decisions/ + capability ARCH.md` shape `keep only cross-cutting; rest colocate`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
-        "destination": "docs/decisions/ + capability ARCH.md"
+        "judgment_status": "done",
+        "rationale": "1) 43 architecture notes/audits. 2) Mixed durable + ephemeral. 3) Explain system shape — ADRs now own binding law. 4) Dump must not exist; some content must. 5) Antipattern: parallel architecture authority. 6) rewrite/split then delete hub. 7) decisions + capability ARCH + evidence.",
+        "destination": "docs/decisions/ + capability ARCH.md + evidence/",
+        "disposition": "refactor-then-place",
+        "name_now": "docs/architecture/",
+        "name_forever": "(split — no single dump)",
+        "kind": "plane-hub",
+        "grammar_compliant": false,
+        "lenses_applied": "all-16",
+        "challenges": [
+          "chestertons_fence: architecture/ held cross-cutting design notes + one-shot corpus audits (six-hops, transition-classification, corpus-rigor)",
+          "cartesian_doubt: mix of durable architecture narrative and dated audit JSON/MD — not one kind",
+          "essentialism_yagni: greenfield has no docs/architecture dump; ADRs + owner ARCH.md suffice",
+          "pragmatism: classify each file — durable→decisions/standards; audit→evidence/; owner-specific→capability",
+          "systems_thinking: 43 files with cites from audit sweep — batch",
+          "opportunity_cost: keeping dump perpetuates second architecture authority beside ADRs",
+          "blast_radius_cell: medium; no blind git-mv",
+          "contrarian: do not keep_forever an architecture/ folder under docs just because the name sounds load-bearing",
+          "socratic: which files are still true after ADR-0700..0711 live apex?"
+        ],
+        "evidence": [
+          "find docs/architecture -type f | wc -l → 43",
+          "includes six-hops-reachability-audit, transition-classification JSON, corpus-rigor audits"
+        ],
+        "destination_integ": "integ/docs",
+        "land_when": "per-file classified explicit-path lands; no git-mv-only wave"
       },
       {
         "path": "docs/plans/",
         "action": "reorg_now",
-        "greenfield_destination": "specs/masterplan.json + beads",
-        "shape": "plan authority is masterplan v2; retire prose dumps",
-        "redesign": "rewrite",
-        "judgment_status": "pending",
-        "rationale": "PROVISIONAL reorg_now \u2192 `specs/masterplan.json + beads` shape `plan authority is masterplan v2; retire prose dumps`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
-        "destination": "specs/masterplan.json + beads"
+        "greenfield_destination": "specs/masterplan.json + beads (+ evidence/ for sealed mappings)",
+        "shape": "plan authority is masterplan v2; retire prose dumps; seal lane mappings under evidence/",
+        "redesign": "delete",
+        "judgment_status": "done",
+        "rationale": "1) 14 files: stale May-2026 rename/cutover packs + lifecycle-lane-disposition mapping absorbed via #1645. 2) Prose dumps; not machine plan authority. 3) Historical cutover planning — superseded by masterplan v2. 4) Must not exist as durable plane. 5) Antipattern: dual plan authority + reachability registration of review mappings. 6) delete-permanently after harvest; redesign=delete (not move). 7) Greenfield: specs/masterplan.json + beads; sealed mappings in evidence/.",
+        "destination": "specs/masterplan.json + beads (+ evidence/ for sealed mappings)",
+        "disposition": "delete-permanently",
+        "name_now": "docs/plans/",
+        "name_forever": "(none)",
+        "kind": "plane-hub",
+        "grammar_compliant": false,
+        "lenses_applied": "all-16",
+        "challenges": [
+          "chestertons_fence: May-2026 rename/cutover prose + M01 packs were pre-masterplan-v2 planning surfaces",
+          "cartesian_doubt: rename-plan-v4 (217KB) + 2026-05-12 plans are historical; lifecycle-lane-disposition mapping is review convention only",
+          "essentialism_yagni: live plan authority is specs/masterplan.json — prose dumps add dual authority",
+          "systems_thinking: #1645 added reachability prefixes under docs/plans/lifecycle-lane-disposition — fights #1644 reachability hub; drop prefixes on integ/specs when deleting",
+          "pragmatism: harvest sealed mappings → evidence/reorg or beads; delete remainder",
+          "opportunity_cost: keeping plans/ invites agents to treat stale rename plans as law",
+          "red_team: 217KB rename plan will be cited against ADR-0701 live apex",
+          "blast_radius_cell: do not delete while #1645 reachability rows still register the tree",
+          "socratic: if masterplan v2 is sole plan authority, why is docs/plans still reachable?"
+        ],
+        "evidence": [
+          "specs/masterplan.json is live plan authority (root-hub-pointers)",
+          "docs/ideas/planning-ssot-consolidation.md notes docs/plans/M01-* stale since 2026-05-19",
+          "integ/docs reachability diff adds docs/plans/lifecycle-lane-disposition/ (hub fight with #1644)"
+        ],
+        "destination_integ": "integ/docs",
+        "land_when": "blocked_until reachability prefixes for docs/plans/** dropped on integ/specs (#1644); harvest lifecycle mapping to evidence/ if still needed; then explicit-path delete on integ/docs"
       },
       {
         "path": "docs/prds/",
@@ -1406,7 +1579,7 @@
         "shape": "product PRDs colocate",
         "redesign": "rewrite",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL reorg_now \u2192 `<capability>/PRD.md or app/<product>/` shape `product PRDs colocate`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
+        "rationale": "PROVISIONAL reorg_now → `<capability>/PRD.md or app/<product>/` shape `product PRDs colocate`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
         "destination": "<capability>/PRD.md or app/<product>/"
       },
       {
@@ -1416,18 +1589,18 @@
         "shape": "owner-colocated runbooks; keep RUNBOOKS-INDEX hub",
         "redesign": "rewrite",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL reorg_now \u2192 `<capability>/runbooks/` shape `owner-colocated runbooks; keep RUNBOOKS-INDEX hub`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
+        "rationale": "PROVISIONAL reorg_now → `<capability>/runbooks/` shape `owner-colocated runbooks; keep RUNBOOKS-INDEX hub`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
         "destination": "<capability>/runbooks/"
       },
       {
         "path": "docs/localization-packs/",
         "action": "reorg_now",
-        "greenfield_destination": "compliance/packs/ or packs\u2192compliance",
+        "greenfield_destination": "compliance/packs/ or packs→compliance",
         "shape": "jurisdiction packs with compliance capability",
         "redesign": "rewrite",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL reorg_now \u2192 `compliance/packs/ or packs\u2192compliance` shape `jurisdiction packs with compliance capability`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
-        "destination": "compliance/packs/ or packs\u2192compliance"
+        "rationale": "PROVISIONAL reorg_now → `compliance/packs/ or packs→compliance` shape `jurisdiction packs with compliance capability`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
+        "destination": "compliance/packs/ or packs→compliance"
       },
       {
         "path": "docs/regional-packs/",
@@ -1436,7 +1609,7 @@
         "shape": "same as localization",
         "redesign": "rewrite",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL reorg_now \u2192 `compliance/packs/` shape `same as localization`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
+        "rationale": "PROVISIONAL reorg_now → `compliance/packs/` shape `same as localization`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
         "destination": "compliance/packs/"
       },
       {
@@ -1447,34 +1620,86 @@
         "redesign": "delete",
         "judgment_status": "done",
         "disposition": "delete-permanently",
-        "rationale": "1) Five May-2026 planning/adversarial draft markdowns (fabric PRD, foundry challenge, VCS report, big-tech cycle, claude-code backup). No runtime callers; not imported by gates. 2) Prose drafts with doc_status published incorrectly; throwaway by contract. 3) Early planning \u2014 superseded by specs/masterplan.json + ADR-0700..0711. 4) Must not exist as citeable corpus. 5) Antipattern: drafts presented as published; dual-authority risk. 6) delete-permanently. 7) Greenfield: no docs/raw/; drafts stay local or beads, never in tree.",
+        "rationale": "1) Five May-2026 planning/adversarial draft markdowns (fabric PRD, foundry challenge, VCS report, big-tech cycle, claude-code backup). No runtime callers; not imported by gates. 2) Prose drafts with doc_status published incorrectly; throwaway by contract. 3) Early planning — superseded by specs/masterplan.json + ADR-0700..0711. 4) Must not exist as citeable corpus. 5) Antipattern: drafts presented as published; dual-authority risk. 6) delete-permanently. 7) Greenfield: no docs/raw/; drafts stay local or beads, never in tree.",
         "evidence": [
           "docs/AGENTS.md: docs/raw/ throwaway; never cite",
-          "file headers: Status Actionable planning / Ralplan report; no implementation"
+          "file headers: Status Actionable planning / Ralplan report; no implementation",
+          "integ/docs tip: paths absent (ls docs/raw docs/harness → No such file)",
+          "git show a629eef44 — 6 files / 7230 deletions"
         ],
         "destination_integ": "integ/docs",
-        "land_when": "judgment done \u2014 open delete on integ/docs with this rationale in PR body",
-        "destination": "(none)"
+        "land_when": "landed_on_integ_docs_#1645 sha a629eef44 (verified absent in worktree)",
+        "destination": "(none)",
+        "land_status": "landed"
       },
       {
         "path": "docs/ideas/",
         "action": "delete_permanently",
         "greenfield_destination": "(none)",
-        "shape": "harvest any keeper into bead then delete",
+        "shape": "harvest keepers→beads; retire idea-archive gate; then delete tree",
         "redesign": "delete",
-        "judgment_status": "pending",
-        "rationale": "PROVISIONAL delete_permanently candidate `docs/ideas/`. Judgment pending \u2014 do not path-change yet.",
-        "destination": "(none)"
+        "judgment_status": "done",
+        "rationale": "1) 25 files: drafted proposals, declined AEC rationale, superseded archive/*, OWNERS+BUCK for frozen corpus. Gate consumer: idea-archive-transition (BASELINE_SCOPE_ROOT=docs/ideas/archive) + reachability prefix + doc-axis/affected-set references. 2) Prose dump with incorrect authority signals; not clean-arch product docs. 3) Capture net-new concepts — most already landed as ADRs/masterplan or explicitly DECLINED. 4) Must not exist as durable citeable plane; keepers→beads only. 5) Antipattern: dual authority + frozen-archive gate glued to docs sprawl. 6) delete-permanently AFTER gate retirement (not git-rm alone). 7) Greenfield: zero docs/ideas/; ideation off-tree or beads.",
+        "destination": "(none)",
+        "disposition": "delete-permanently",
+        "name_now": "docs/ideas/",
+        "name_forever": "(none)",
+        "kind": "plane-hub",
+        "grammar_compliant": false,
+        "lenses_applied": "all-16",
+        "challenges": [
+          "chestertons_fence: ADR-0388 + cross-artifact idea-archive-transition baseline scopes docs/ideas/archive — fence was byte-frozen non-authority corpus for evaluator, not a product docs home",
+          "cartesian_doubt: folder name says ideas; reality is mix of declined rationales, superseded May-28 archives, and drafted proposals already absorbed into ADRs/masterplan",
+          "essentialism_yagni: greenfield needs beads/ADRs for keepers — not a permanent docs/ideas plane",
+          "systems_thinking: blind delete breaks ci/facade/cross-artifact-agreement idea-archive-transition + reachability prefix docs/ideas/ (#1644 owns reachability)",
+          "pragmatism: land_when requires integ/ci gate rewrite + integ/specs reachability drop in same programme wave — not integ/docs alone",
+          "opportunity_cost: keeping the dump invites cite-as-authority drift (doc_status drafted/published confusion)",
+          "red_team: agents will treat drafted ideas as instructions if left reachable",
+          "blast_radius_cell: delete only after archive baseline + affected-set + doc-axis callers updated",
+          "zero_trust: non-authoritative corpus must not remain in reachability registry"
+        ],
+        "evidence": [
+          "ci/facade/cross-artifact-agreement/src/idea_archive_transition.rs BASELINE_SCOPE_ROOT=docs/ideas/archive",
+          "specs/reachability-registry.json prefix docs/ideas/",
+          "docs/ideas/agent-execution-controller.md STATUS: DECLINED D-AEC-DECLINE",
+          "docs/ideas/archive/* superseded_by ADR-0389/0390/0391"
+        ],
+        "destination_integ": "integ/docs",
+        "land_when": "blocked_until: integ/ci retires/rewrites idea-archive-transition + integ/specs drops reachability prefix docs/ideas/ (do not fight #1644 hub); then explicit-path delete on integ/docs"
       },
       {
         "path": "docs/foundry/",
-        "action": "reorg_now",
-        "greenfield_destination": "intelligence/ or retire",
-        "shape": "foundry brand residue",
-        "redesign": "rewrite",
-        "judgment_status": "pending",
-        "rationale": "PROVISIONAL reorg_now \u2192 `intelligence/ or retire` shape `foundry brand residue`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
-        "destination": "intelligence/ or retire"
+        "action": "delete_permanently",
+        "greenfield_destination": "(none)",
+        "shape": "(removed) — foundry brand residue; harvest any still-true ops notes to intelligence/ then delete",
+        "redesign": "delete",
+        "judgment_status": "done",
+        "rationale": "1) 6 files: foundry-pipeline checkpoint + supervisor/* ops notes under retired foundry brand. 2) Brand residue prose. 3) Historical substrate checkpointing — superseded by intelligence/ADR apex. 4) Must not exist. 5) Antipattern: foundry brand as docs home. 6) delete-permanently (harvest-first if any line still true). 7) Greenfield: zero docs/foundry/.",
+        "destination": "(none)",
+        "disposition": "delete-permanently",
+        "name_now": "docs/foundry/",
+        "name_forever": "(none)",
+        "kind": "plane-hub",
+        "grammar_compliant": false,
+        "lenses_applied": "all-16",
+        "challenges": [
+          "chestertons_fence: foundry brand docs for pipeline substrate/supervisor pre brand-retirement",
+          "cartesian_doubt: provisional reorg_now→intelligence/ over-preserves brand residue; reading shows checkpoint + supervisor ops notes largely superseded",
+          "contrarian: overturn provisional reorg_now to delete_permanently after skim harvest",
+          "essentialism_yagni: brand folder must not survive as docs plane",
+          "red_team: foundry path re-stimulates retired vocabulary",
+          "pragmatism: if any supervisor op remains true, fold into intelligence/runbooks in same land — else delete",
+          "opportunity_cost: reorg_now into intelligence/ risks carrying brand prose into durable home",
+          "systems_thinking: brand-residue gates already fight foundry vocabulary",
+          "blast_radius_cell: 6 files only"
+        ],
+        "evidence": [
+          "find docs/foundry -type f → 6",
+          "ADR-0709/brand retirement lineage",
+          "Amendment B provisional said reorg_now→intelligence — overturned by 16-lens read"
+        ],
+        "destination_integ": "integ/docs",
+        "land_when": "explicit-path delete on integ/docs after 10-min harvest skim; no reachability prefix today"
       },
       {
         "path": "docs/harness/",
@@ -1484,24 +1709,49 @@
         "redesign": "delete",
         "judgment_status": "done",
         "disposition": "delete-permanently",
-        "rationale": "1) Single report docs/harness/feature-currency-2026-05.md \u2014 backlog #71 changelog-currency for Claude/Codex features; scopes .claude/.codex/tools/hooks. No gate consumer. 2) Point-in-time inventory prose; harness standard already retirement tombstone. 3) Currency tracking for retired coordination brands \u2014 not north-star product. 4) Should not exist; live harness guidance is docs/AGENTS.md appendices + runtime skills. 5) Antipattern: documenting/expanding retired harness surface. 6) delete-permanently. 7) Greenfield: no docs/harness/; process notes in .grok evidence if needed.",
+        "rationale": "1) Single report docs/harness/feature-currency-2026-05.md — backlog #71 changelog-currency for Claude/Codex features; scopes .claude/.codex/tools/hooks. No gate consumer. 2) Point-in-time inventory prose; harness standard already retirement tombstone. 3) Currency tracking for retired coordination brands — not north-star product. 4) Should not exist; live harness guidance is docs/AGENTS.md appendices + runtime skills. 5) Antipattern: documenting/expanding retired harness surface. 6) delete-permanently. 7) Greenfield: no docs/harness/; process notes in .grok evidence if needed.",
         "evidence": [
           "docs/AGENTS.md Claude appendix: harness standard is retirement tombstone ADR-0619/0709",
-          "file self-describes backlog #71 scope limited to harness dirs"
+          "file self-describes backlog #71 scope limited to harness dirs",
+          "integ/docs tip: paths absent (ls docs/raw docs/harness → No such file)",
+          "git show a629eef44 — 6 files / 7230 deletions"
         ],
         "destination_integ": "integ/docs",
-        "land_when": "judgment done \u2014 open delete on integ/docs with this rationale in PR body",
-        "destination": "(none)"
+        "land_when": "landed_on_integ_docs_#1645 sha a629eef44 (verified absent in worktree)",
+        "destination": "(none)",
+        "land_status": "landed"
       },
       {
         "path": "docs/implementation-plans/",
         "action": "reorg_now",
-        "greenfield_destination": "<capability>/IPs/ + beads",
-        "shape": "IPs colocate; tracking in beads",
+        "greenfield_destination": "intelligence/IPs/ or owning capability IPs/ + beads",
+        "shape": "single IP file — colocate then delete hub",
         "redesign": "rewrite",
-        "judgment_status": "pending",
-        "rationale": "PROVISIONAL reorg_now \u2192 `<capability>/IPs/ + beads` shape `IPs colocate; tracking in beads`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
-        "destination": "<capability>/IPs/ + beads"
+        "judgment_status": "done",
+        "rationale": "1) One remaining IP markdown. 2) Central dump residue. 3) Track implementation — belongs with owner. 4) Hub must not exist. 5) Antipattern: central IP drawer. 6) refactor-then-place then delete hub. 7) capability IPs/ + beads.",
+        "destination": "intelligence/ (or owning capability) IPs/ + beads",
+        "disposition": "refactor-then-place",
+        "name_now": "docs/implementation-plans/",
+        "name_forever": "(none — colocate)",
+        "kind": "service-colocation",
+        "grammar_compliant": true,
+        "lenses_applied": "all-16",
+        "challenges": [
+          "chestertons_fence: central IP dump predates g3doc/ADR-0541 owner colocation",
+          "essentialism_yagni: only 1 file remains (IP-INTEL-MIGRATE-CANONICAL.md) — delete hub after colocate",
+          "pragmatism: move file to intelligence/ (or current owner) then delete directory",
+          "systems_thinking: low fan-in; safe explicit-path land on integ/docs once owner confirmed",
+          "opportunity_cost: keeping empty-ish hub invites rebirth",
+          "cartesian_doubt: directory name implies many IPs; corpus already moved elsewhere",
+          "blast_radius_cell: tiny",
+          "contrarian: do not preserve docs/implementation-plans forever as planning plane",
+          "socratic: why is an intelligence migration IP not next to intelligence/?"
+        ],
+        "evidence": [
+          "find docs/implementation-plans -type f → 1 file IP-INTEL-MIGRATE-CANONICAL.md"
+        ],
+        "destination_integ": "integ/docs",
+        "land_when": "confirm owner path (intelligence/ vs oya/intelligence strangler source); explicit-path move+delete; no reachability prefix"
       },
       {
         "path": "specs/",
@@ -1510,7 +1760,7 @@
         "shape": "PLANE hub: cross-cutting machine-readable authority only",
         "redesign": "none",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `specs/` \u2192 `specs/` (PLANE hub: cross-cutting machine-readable authority only). Full 7-point judgment still pending before structural change.",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `specs/` → `specs/` (PLANE hub: cross-cutting machine-readable authority only). Full 7-point judgment still pending before structural change.",
         "destination": "specs/"
       },
       {
@@ -1520,7 +1770,7 @@
         "shape": "closed registry (eventual governance/ copy is same hub move later if desired; keep SSOT)",
         "redesign": "none",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `specs/capability-registry.json` \u2192 `specs/capability-registry.json` (closed registry (eventual governance/ copy is same hub move later if desired; keep SSOT)). Full 7-point judgment still pending before structural change.",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `specs/capability-registry.json` → `specs/capability-registry.json` (closed registry (eventual governance/ copy is same hub move later if desired; keep SSOT)). Full 7-point judgment still pending before structural change.",
         "destination": "specs/capability-registry.json"
       },
       {
@@ -1530,7 +1780,7 @@
         "shape": "entry hub",
         "redesign": "none",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `specs/root-hub-pointers.json` \u2192 `specs/root-hub-pointers.json` (entry hub). Full 7-point judgment still pending before structural change.",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `specs/root-hub-pointers.json` → `specs/root-hub-pointers.json` (entry hub). Full 7-point judgment still pending before structural change.",
         "destination": "specs/root-hub-pointers.json"
       },
       {
@@ -1540,7 +1790,7 @@
         "shape": "live plan authority",
         "redesign": "none",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `specs/masterplan.json` \u2192 `specs/masterplan.json` (live plan authority). Full 7-point judgment still pending before structural change.",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `specs/masterplan.json` → `specs/masterplan.json` (live plan authority). Full 7-point judgment still pending before structural change.",
         "destination": "specs/masterplan.json"
       },
       {
@@ -1550,7 +1800,7 @@
         "shape": "Swarm Delivery Law policy-as-data",
         "redesign": "none",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `specs/integ-branch-envelopes.json` \u2192 `specs/integ-branch-envelopes.json` (Swarm Delivery Law policy-as-data). Full 7-point judgment still pending before structural change.",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `specs/integ-branch-envelopes.json` → `specs/integ-branch-envelopes.json` (Swarm Delivery Law policy-as-data). Full 7-point judgment still pending before structural change.",
         "destination": "specs/integ-branch-envelopes.json"
       },
       {
@@ -1567,9 +1817,9 @@
         "grammar_compliant": true,
         "lenses_applied": "all-16",
         "challenges": [
-          "cartesian_doubt: without taxonomy, renames invent one-offs \u2014 observed in oya-ci-required / firewall / ADR-in-titles debt",
+          "cartesian_doubt: without taxonomy, renames invent one-offs — observed in oya-ci-required / firewall / ADR-in-titles debt",
           "essentialism_yagni: one machine-readable pattern file; renames are instances",
-          "chestertons_fence: prior brand/ADR naming existed for cohesion and citation \u2014 taxonomy keeps mechanisms, replaces indefensible names",
+          "chestertons_fence: prior brand/ADR naming existed for cohesion and citation — taxonomy keeps mechanisms, replaces indefensible names",
           "contrarian: do not encode oya-/cloud- or ADR-in-path as forever grammar",
           "pragmatism: Claim/CI can classify via kinds later",
           "systems_thinking: ties envelopes naming_sweep to integ ownership",
@@ -1595,7 +1845,7 @@
         "lenses_applied": "all-16",
         "challenges": [
           "essentialism_yagni: clusters not 137 paraphrases",
-          "chestertons_fence: archive is operating evidence, not naming authority \u2014 OVERRULE keep-oya-ci-required",
+          "chestertons_fence: archive is operating evidence, not naming authority — OVERRULE keep-oya-ci-required",
           "pragmatism: thin machine copy for Claim/review checklists",
           "contrarian: forever merge-gate name is merge-admission-required"
         ],
@@ -1609,7 +1859,7 @@
         "shape": "docs lifecycle policy",
         "redesign": "none",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `specs/markdown-retirement-policy.json` \u2192 `specs/markdown-retirement-policy.json` (docs lifecycle policy). Full 7-point judgment still pending before structural change.",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `specs/markdown-retirement-policy.json` → `specs/markdown-retirement-policy.json` (docs lifecycle policy). Full 7-point judgment still pending before structural change.",
         "destination": "specs/markdown-retirement-policy.json"
       },
       {
@@ -1619,7 +1869,7 @@
         "shape": "executable move-plan hub (singleton live plan)",
         "redesign": "none",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `specs/reorg/` \u2192 `specs/reorg/` (executable move-plan hub (singleton live plan)). Full 7-point judgment still pending before structural change.",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `specs/reorg/` → `specs/reorg/` (executable move-plan hub (singleton live plan)). Full 7-point judgment still pending before structural change.",
         "destination": "specs/reorg/"
       },
       {
@@ -1629,7 +1879,7 @@
         "shape": "type-dump of product specs; colocate or delete superseded JSON",
         "redesign": "rewrite",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL reorg_now \u2192 `<capability>/manifest + contracts` shape `type-dump of product specs; colocate or delete superseded JSON`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
+        "rationale": "PROVISIONAL reorg_now → `<capability>/manifest + contracts` shape `type-dump of product specs; colocate or delete superseded JSON`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
         "destination": "<capability>/manifest + contracts"
       },
       {
@@ -1639,7 +1889,7 @@
         "shape": "product composition specs",
         "redesign": "rewrite",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL reorg_now \u2192 `app/<product>/ or capability facade` shape `product composition specs`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
+        "rationale": "PROVISIONAL reorg_now → `app/<product>/ or capability facade` shape `product composition specs`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
         "destination": "app/<product>/ or capability facade"
       },
       {
@@ -1649,7 +1899,7 @@
         "shape": "split: cross-cutting schemas KEEP; per-capability MOVE",
         "redesign": "rewrite",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL reorg_now \u2192 `<capability>/ or keep only cross-cutting schemas in specs/` shape `split: cross-cutting schemas KEEP; per-capability MOVE`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
+        "rationale": "PROVISIONAL reorg_now → `<capability>/ or keep only cross-cutting schemas in specs/` shape `split: cross-cutting schemas KEEP; per-capability MOVE`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
         "destination": "<capability>/ or keep only cross-cutting schemas in specs/"
       },
       {
@@ -1659,7 +1909,7 @@
         "shape": "crate/catalog authority is registry/",
         "redesign": "rewrite",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL reorg_now \u2192 `registry/catalog/` shape `crate/catalog authority is registry/`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
+        "rationale": "PROVISIONAL reorg_now → `registry/catalog/` shape `crate/catalog authority is registry/`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
         "destination": "registry/catalog/"
       },
       {
@@ -1669,7 +1919,7 @@
         "shape": "implementation plans colocate",
         "redesign": "rewrite",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL reorg_now \u2192 `<capability>/IPs/` shape `implementation plans colocate`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
+        "rationale": "PROVISIONAL reorg_now → `<capability>/IPs/` shape `implementation plans colocate`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
         "destination": "<capability>/IPs/"
       },
       {
@@ -1679,7 +1929,7 @@
         "shape": "absorbed residuals; do not rebirth",
         "redesign": "delete",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL delete_permanently candidate `specs/lifecycle-configs/`. Judgment pending \u2014 do not path-change yet.",
+        "rationale": "PROVISIONAL delete_permanently candidate `specs/lifecycle-configs/`. Judgment pending — do not path-change yet.",
         "destination": "(none)"
       },
       {
@@ -1689,7 +1939,7 @@
         "shape": "cross-cutting gate fixtures only",
         "redesign": "none",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `specs/fixtures/` \u2192 `specs/fixtures/` (cross-cutting gate fixtures only). Full 7-point judgment still pending before structural change.",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `specs/fixtures/` → `specs/fixtures/` (cross-cutting gate fixtures only). Full 7-point judgment still pending before structural change.",
         "destination": "specs/fixtures/"
       },
       {
@@ -1699,7 +1949,7 @@
         "shape": "SLO authoring colocated per service doctrine",
         "redesign": "rewrite",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL reorg_now \u2192 `<capability>/slos/*.openslo.yaml` shape `SLO authoring colocated per service doctrine`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
+        "rationale": "PROVISIONAL reorg_now → `<capability>/slos/*.openslo.yaml` shape `SLO authoring colocated per service doctrine`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
         "destination": "<capability>/slos/*.openslo.yaml"
       },
       {
@@ -1709,7 +1959,7 @@
         "shape": "policy capability home",
         "redesign": "rewrite",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL reorg_now \u2192 `policy/ (new capability root) + iam leftovers` shape `policy capability home`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
+        "rationale": "PROVISIONAL reorg_now → `policy/ (new capability root) + iam leftovers` shape `policy capability home`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
         "destination": "policy/ (new capability root) + iam leftovers"
       },
       {
@@ -1719,7 +1969,7 @@
         "shape": "API contracts hub",
         "redesign": "rewrite",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL reorg_now \u2192 `contracts/proto/ or capability contracts/` shape `API contracts hub`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
+        "rationale": "PROVISIONAL reorg_now → `contracts/proto/ or capability contracts/` shape `API contracts hub`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
         "destination": "contracts/proto/ or capability contracts/"
       },
       {
@@ -1729,7 +1979,7 @@
         "shape": "regional regime data with compliance",
         "redesign": "rewrite",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL reorg_now \u2192 `compliance/packs/` shape `regional regime data with compliance`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
+        "rationale": "PROVISIONAL reorg_now → `compliance/packs/` shape `regional regime data with compliance`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
         "destination": "compliance/packs/"
       },
       {
@@ -1739,7 +1989,7 @@
         "shape": "compliance-owned",
         "redesign": "rewrite",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL reorg_now \u2192 `compliance/` shape `compliance-owned`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
+        "rationale": "PROVISIONAL reorg_now → `compliance/` shape `compliance-owned`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
         "destination": "compliance/"
       },
       {
@@ -1749,7 +1999,7 @@
         "shape": "UI design system with console/app",
         "redesign": "rewrite",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL reorg_now \u2192 `console/ or app/shell/` shape `UI design system with console/app`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
+        "rationale": "PROVISIONAL reorg_now → `console/ or app/shell/` shape `UI design system with console/app`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
         "destination": "console/ or app/shell/"
       },
       {
@@ -1759,7 +2009,7 @@
         "shape": "port programme artifacts with owners",
         "redesign": "rewrite",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL reorg_now \u2192 `k8s/ or build/port-engine/` shape `port programme artifacts with owners`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
+        "rationale": "PROVISIONAL reorg_now → `k8s/ or build/port-engine/` shape `port programme artifacts with owners`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
         "destination": "k8s/ or build/port-engine/"
       },
       {
@@ -1769,7 +2019,7 @@
         "shape": "dual-home with audit/; single SSOT at audit/",
         "redesign": "rewrite",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL reorg_now \u2192 `audit/audit-event-class-registry.json` shape `dual-home with audit/; single SSOT at audit/`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
+        "rationale": "PROVISIONAL reorg_now → `audit/audit-event-class-registry.json` shape `dual-home with audit/; single SSOT at audit/`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
         "destination": "audit/audit-event-class-registry.json"
       },
       {
@@ -1779,7 +2029,7 @@
         "shape": "no top-level plan dump in greenfield",
         "redesign": "rewrite",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL reorg_now \u2192 `governance/corpus/plan/ + beads` shape `no top-level plan dump in greenfield`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
+        "rationale": "PROVISIONAL reorg_now → `governance/corpus/plan/ + beads` shape `no top-level plan dump in greenfield`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
         "destination": "governance/corpus/plan/ + beads"
       },
       {
@@ -1789,7 +2039,7 @@
         "shape": "governance graph substrate",
         "redesign": "rewrite",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL reorg_now \u2192 `governance/corpus/fabric-loop/` shape `governance graph substrate`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
+        "rationale": "PROVISIONAL reorg_now → `governance/corpus/fabric-loop/` shape `governance graph substrate`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
         "destination": "governance/corpus/fabric-loop/"
       },
       {
@@ -1797,20 +2047,66 @@
         "action": "keep_forever",
         "greenfield_destination": "templates/",
         "shape": "PLANE: single template hub (authority chain)",
-        "redesign": "none",
-        "judgment_status": "pending",
-        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `templates/` \u2192 `templates/` (PLANE: single template hub (authority chain)). Full 7-point judgment still pending before structural change.",
-        "destination": "templates/"
+        "redesign": "refactor",
+        "judgment_status": "done",
+        "rationale": "1) Process-kit scaffolds + agent toml stubs + checklists. 2) Currently pending-approval draft dual with docs/templates. 3) Single authoring hub. 4) Must exist as plane. 5) Fit once authority flips. 6) refactor-then-place content from docs/templates; redesign=refactor (path stays). 7) templates/ forever.",
+        "destination": "templates/",
+        "disposition": "refactor-then-place",
+        "name_now": "templates/",
+        "name_forever": "templates/",
+        "kind": "plane-hub",
+        "grammar_compliant": true,
+        "lenses_applied": "all-16",
+        "challenges": [
+          "chestertons_fence: root templates/ began as pending lift-into-docs draft — keep the path, overturn the lift_target semantics",
+          "cartesian_doubt: today root is NOT the Accepted authority; keep_forever is aspirational until docs/templates merge lands",
+          "essentialism_yagni: one hub path forever; INDEX rewrite is quality fix not a move",
+          "pragmatism: after merge, delete pending-approval/lift_target language; point STANDARDS-AND-TEMPLATES at templates/",
+          "systems_thinking: absorbs docs/templates + docs/checklists dual-homes",
+          "opportunity_cost: renaming the plane adds thrash — path already correct",
+          "socratic: why would scaffolds live under docs/ when docs/ is reserved for contract/indexes/ADRs/standards/archive?",
+          "blast_radius_cell: keep path stable while content authority flips",
+          "finops: one hub reduces duplicate review surface"
+        ],
+        "evidence": [
+          "ADR-0711 Amendment B classification table templates/ keep_forever",
+          "naming-taxonomy plane-hub examples_good"
+        ],
+        "destination_integ": "integ/docs",
+        "land_when": "paired with docs/templates/ reorg_now land"
       },
       {
         "path": "templates/checklists/",
         "action": "keep_forever",
         "greenfield_destination": "templates/checklists/",
-        "shape": "cross-cutting checklists",
-        "redesign": "none",
-        "judgment_status": "pending",
-        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `templates/checklists/` \u2192 `templates/checklists/` (cross-cutting checklists). Full 7-point judgment still pending before structural change.",
-        "destination": "templates/checklists/"
+        "shape": "cross-cutting checklists under templates plane",
+        "redesign": "refactor",
+        "judgment_status": "done",
+        "rationale": "1) Cross-cutting agent/human checklists. 2) Dual/triple home with docs/checklists (+ INDEX sections). 3) Enforce done-definition / preflight / release readiness. 4) Must exist under templates plane. 5) Fit. 6) refactor-then-place absorb docs/checklists uniques. 7) templates/checklists/ forever.",
+        "destination": "templates/checklists/",
+        "disposition": "refactor-then-place",
+        "name_now": "templates/checklists/",
+        "name_forever": "templates/checklists/",
+        "kind": "plane-hub",
+        "grammar_compliant": true,
+        "lenses_applied": "all-16",
+        "challenges": [
+          "chestertons_fence: checklists also live under docs/checklists (31 files) and were historically lifted there",
+          "essentialism_yagni: one checklist home under templates/",
+          "systems_thinking: ci/facade/supply-chain-audit reads docs/checklists/release-readiness-checklist.md — same-land cite update required",
+          "pragmatism: merge unique docs/checklists into templates/checklists then delete docs/checklists/",
+          "contrarian: do not keep docs/checklists forever as a second plane",
+          "blast_radius_cell: gate path updates in same land as delete",
+          "opportunity_cost: third copy already exists across docs/templates INDEX checklist section",
+          "cartesian_doubt: templates/checklists today is subset; docs/checklists has extras (adr-promotion, audit-readiness, brand-rename-batch, …)",
+          "zero_trust: Accepted docs INDEX currently claims checklist authority under docs/checklists"
+        ],
+        "evidence": [
+          "ci/facade/supply-chain-audit/tests/supply_chain_audit.rs reads docs/checklists/release-readiness-checklist.md",
+          "docs/checklists count=31 vs templates/checklists subset"
+        ],
+        "destination_integ": "integ/docs",
+        "land_when": "paired with new docs/checklists/ reorg_now row"
       },
       {
         "path": "governance/",
@@ -1819,7 +2115,7 @@
         "shape": "META: checks + corpus off runtime ladder",
         "redesign": "none",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `governance/` \u2192 `governance/` (META: checks + corpus off runtime ladder). Full 7-point judgment still pending before structural change.",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `governance/` → `governance/` (META: checks + corpus off runtime ladder). Full 7-point judgment still pending before structural change.",
         "destination": "governance/"
       },
       {
@@ -1829,7 +2125,7 @@
         "shape": "hermetic gate engines + policy-as-data",
         "redesign": "none",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `governance/check/` \u2192 `governance/check/` (hermetic gate engines + policy-as-data). Full 7-point judgment still pending before structural change.",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `governance/check/` → `governance/check/` (hermetic gate engines + policy-as-data). Full 7-point judgment still pending before structural change.",
         "destination": "governance/check/"
       },
       {
@@ -1839,7 +2135,7 @@
         "shape": "living monorepo governance graph",
         "redesign": "none",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `governance/corpus/` \u2192 `governance/corpus/` (living monorepo governance graph). Full 7-point judgment still pending before structural change.",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `governance/corpus/` → `governance/corpus/` (living monorepo governance graph). Full 7-point judgment still pending before structural change.",
         "destination": "governance/corpus/"
       },
       {
@@ -1849,7 +2145,7 @@
         "shape": "registered capability; finish clean-arch faces",
         "redesign": "none",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `flags/` \u2192 `flags/{core,ports,adapters,facade}/` (registered capability; finish clean-arch faces). Full 7-point judgment still pending before structural change.",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `flags/` → `flags/{core,ports,adapters,facade}/` (registered capability; finish clean-arch faces). Full 7-point judgment still pending before structural change.",
         "destination": "flags/{core,ports,adapters,facade}/"
       },
       {
@@ -1859,7 +2155,7 @@
         "shape": "keep unless pure PDP extract",
         "redesign": "none",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `flags/policy/` \u2192 `flags/policy/ or policy/ if PDP-shared` (keep unless pure PDP extract). Full 7-point judgment still pending before structural change.",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `flags/policy/` → `flags/policy/ or policy/ if PDP-shared` (keep unless pure PDP extract). Full 7-point judgment still pending before structural change.",
         "destination": "flags/policy/ or policy/ if PDP-shared"
       },
       {
@@ -1869,7 +2165,7 @@
         "shape": "registered capability; already faced",
         "redesign": "none",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `audit/` \u2192 `audit/{core,ports,adapters,facade}/` (registered capability; already faced). Full 7-point judgment still pending before structural change.",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `audit/` → `audit/{core,ports,adapters,facade}/` (registered capability; already faced). Full 7-point judgment still pending before structural change.",
         "destination": "audit/{core,ports,adapters,facade}/"
       },
       {
@@ -1879,37 +2175,37 @@
         "shape": "SSOT after specs dual deleted",
         "redesign": "none",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `audit/audit-event-class-registry.json` \u2192 `audit/audit-event-class-registry.json` (SSOT after specs dual deleted). Full 7-point judgment still pending before structural change.",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `audit/audit-event-class-registry.json` → `audit/audit-event-class-registry.json` (SSOT after specs dual deleted). Full 7-point judgment still pending before structural change.",
         "destination": "audit/audit-event-class-registry.json"
       },
       {
         "path": "libs/",
         "action": "reorg_now",
-        "greenfield_destination": "base/ (\u22653 caps) + owning capability core/",
+        "greenfield_destination": "base/ (≥3 caps) + owning capability core/",
         "shape": "ADR-0701 base/ + faces; rule-of-two ends",
         "redesign": "rewrite",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL reorg_now \u2192 `base/ (\u22653 caps) + owning capability core/` shape `ADR-0701 base/ + faces; rule-of-two ends`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
-        "destination": "base/ (\u22653 caps) + owning capability core/"
+        "rationale": "PROVISIONAL reorg_now → `base/ (≥3 caps) + owning capability core/` shape `ADR-0701 base/ + faces; rule-of-two ends`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
+        "destination": "base/ (≥3 caps) + owning capability core/"
       },
       {
         "path": "cloud/",
         "action": "reorg_now",
         "greenfield_destination": "os/, kernel/, <capability>/, build/",
-        "shape": "strangler source \u2192 durable meta/capability homes",
+        "shape": "strangler source → durable meta/capability homes",
         "redesign": "rewrite",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL reorg_now \u2192 `os/, kernel/, <capability>/, build/` shape `strangler source \u2192 durable meta/capability homes`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
+        "rationale": "PROVISIONAL reorg_now → `os/, kernel/, <capability>/, build/` shape `strangler source → durable meta/capability homes`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
         "destination": "os/, kernel/, <capability>/, build/"
       },
       {
         "path": "oya/",
         "action": "reorg_now",
         "greenfield_destination": "<capability>/ + app/<product>/",
-        "shape": "product dump \u2192 capability/app homes",
+        "shape": "product dump → capability/app homes",
         "redesign": "rewrite",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL reorg_now \u2192 `<capability>/ + app/<product>/` shape `product dump \u2192 capability/app homes`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
+        "rationale": "PROVISIONAL reorg_now → `<capability>/ + app/<product>/` shape `product dump → capability/app homes`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
         "destination": "<capability>/ + app/<product>/"
       },
       {
@@ -1919,7 +2215,7 @@
         "shape": "split by concern; no infra junk-drawer",
         "redesign": "rewrite",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL reorg_now \u2192 `build/, ci/, .grok/, iac/` shape `split by concern; no infra junk-drawer`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
+        "rationale": "PROVISIONAL reorg_now → `build/, ci/, .grok/, iac/` shape `split by concern; no infra junk-drawer`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
         "destination": "build/, ci/, .grok/, iac/"
       },
       {
@@ -1929,7 +2225,7 @@
         "shape": "build meta owns toolchains",
         "redesign": "rewrite",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL reorg_now \u2192 `build/toolchains/` shape `build meta owns toolchains`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
+        "rationale": "PROVISIONAL reorg_now → `build/toolchains/` shape `build meta owns toolchains`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
         "destination": "build/toolchains/"
       },
       {
@@ -1939,7 +2235,7 @@
         "shape": "process kit leaves tools/; tools/swarm one-shot then vacate",
         "redesign": "rewrite",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL reorg_now \u2192 `.grok/ + ci/facade/ + delete remainder` shape `process kit leaves tools/; tools/swarm one-shot then vacate`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
+        "rationale": "PROVISIONAL reorg_now → `.grok/ + ci/facade/ + delete remainder` shape `process kit leaves tools/; tools/swarm one-shot then vacate`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
         "destination": ".grok/ + ci/facade/ + delete remainder"
       },
       {
@@ -1949,7 +2245,7 @@
         "shape": "registered capability",
         "redesign": "none",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `cell/` \u2192 `cell/{core,ports,adapters,facade}/` (registered capability). Full 7-point judgment still pending before structural change.",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `cell/` → `cell/{core,ports,adapters,facade}/` (registered capability). Full 7-point judgment still pending before structural change.",
         "destination": "cell/{core,ports,adapters,facade}/"
       },
       {
@@ -1959,7 +2255,7 @@
         "shape": "registered capability",
         "redesign": "none",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `iam/` \u2192 `iam/{core,ports,adapters,facade}/` (registered capability). Full 7-point judgment still pending before structural change.",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `iam/` → `iam/{core,ports,adapters,facade}/` (registered capability). Full 7-point judgment still pending before structural change.",
         "destination": "iam/{core,ports,adapters,facade}/"
       },
       {
@@ -1969,7 +2265,7 @@
         "shape": "registered capability",
         "redesign": "none",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `tenancy/` \u2192 `tenancy/{core,ports,adapters,facade}/` (registered capability). Full 7-point judgment still pending before structural change.",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `tenancy/` → `tenancy/{core,ports,adapters,facade}/` (registered capability). Full 7-point judgment still pending before structural change.",
         "destination": "tenancy/{core,ports,adapters,facade}/"
       },
       {
@@ -1979,7 +2275,7 @@
         "shape": "registered capability",
         "redesign": "none",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `secrets/` \u2192 `secrets/{core,ports,adapters,facade}/` (registered capability). Full 7-point judgment still pending before structural change.",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `secrets/` → `secrets/{core,ports,adapters,facade}/` (registered capability). Full 7-point judgment still pending before structural change.",
         "destination": "secrets/{core,ports,adapters,facade}/"
       },
       {
@@ -1989,7 +2285,7 @@
         "shape": "registered capability",
         "redesign": "none",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `observability/` \u2192 `observability/{core,ports,adapters,facade}/` (registered capability). Full 7-point judgment still pending before structural change.",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `observability/` → `observability/{core,ports,adapters,facade}/` (registered capability). Full 7-point judgment still pending before structural change.",
         "destination": "observability/{core,ports,adapters,facade}/"
       },
       {
@@ -1999,7 +2295,7 @@
         "shape": "registered capability",
         "redesign": "none",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `data/` \u2192 `data/{core,ports,adapters,facade}/` (registered capability). Full 7-point judgment still pending before structural change.",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `data/` → `data/{core,ports,adapters,facade}/` (registered capability). Full 7-point judgment still pending before structural change.",
         "destination": "data/{core,ports,adapters,facade}/"
       },
       {
@@ -2009,7 +2305,7 @@
         "shape": "registered capability",
         "redesign": "none",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `storage/` \u2192 `storage/{core,ports,adapters,facade}/` (registered capability). Full 7-point judgment still pending before structural change.",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `storage/` → `storage/{core,ports,adapters,facade}/` (registered capability). Full 7-point judgment still pending before structural change.",
         "destination": "storage/{core,ports,adapters,facade}/"
       },
       {
@@ -2019,7 +2315,7 @@
         "shape": "registered capability",
         "redesign": "none",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `compute/` \u2192 `compute/{core,ports,adapters,facade}/` (registered capability). Full 7-point judgment still pending before structural change.",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `compute/` → `compute/{core,ports,adapters,facade}/` (registered capability). Full 7-point judgment still pending before structural change.",
         "destination": "compute/{core,ports,adapters,facade}/"
       },
       {
@@ -2029,7 +2325,7 @@
         "shape": "registered capability",
         "redesign": "none",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `k8s/` \u2192 `k8s/{core,ports,adapters,facade}/` (registered capability). Full 7-point judgment still pending before structural change.",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `k8s/` → `k8s/{core,ports,adapters,facade}/` (registered capability). Full 7-point judgment still pending before structural change.",
         "destination": "k8s/{core,ports,adapters,facade}/"
       },
       {
@@ -2039,7 +2335,7 @@
         "shape": "registered capability",
         "redesign": "none",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `network/` \u2192 `network/{core,ports,adapters,facade}/` (registered capability). Full 7-point judgment still pending before structural change.",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `network/` → `network/{core,ports,adapters,facade}/` (registered capability). Full 7-point judgment still pending before structural change.",
         "destination": "network/{core,ports,adapters,facade}/"
       },
       {
@@ -2049,7 +2345,7 @@
         "shape": "registered capability",
         "redesign": "none",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `gateway/` \u2192 `gateway/{core,ports,adapters,facade}/` (registered capability). Full 7-point judgment still pending before structural change.",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `gateway/` → `gateway/{core,ports,adapters,facade}/` (registered capability). Full 7-point judgment still pending before structural change.",
         "destination": "gateway/{core,ports,adapters,facade}/"
       },
       {
@@ -2059,7 +2355,7 @@
         "shape": "registered capability",
         "redesign": "none",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `messaging/` \u2192 `messaging/{core,ports,adapters,facade}/` (registered capability). Full 7-point judgment still pending before structural change.",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `messaging/` → `messaging/{core,ports,adapters,facade}/` (registered capability). Full 7-point judgment still pending before structural change.",
         "destination": "messaging/{core,ports,adapters,facade}/"
       },
       {
@@ -2069,7 +2365,7 @@
         "shape": "registered capability; absorb oya/intelligence",
         "redesign": "none",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `intelligence/` \u2192 `intelligence/{core,ports,adapters,facade}/` (registered capability; absorb oya/intelligence). Full 7-point judgment still pending before structural change.",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `intelligence/` → `intelligence/{core,ports,adapters,facade}/` (registered capability; absorb oya/intelligence). Full 7-point judgment still pending before structural change.",
         "destination": "intelligence/{core,ports,adapters,facade}/"
       },
       {
@@ -2079,7 +2375,7 @@
         "shape": "registered capability",
         "redesign": "none",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `workflow/` \u2192 `workflow/{core,ports,adapters,facade}/` (registered capability). Full 7-point judgment still pending before structural change.",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `workflow/` → `workflow/{core,ports,adapters,facade}/` (registered capability). Full 7-point judgment still pending before structural change.",
         "destination": "workflow/{core,ports,adapters,facade}/"
       },
       {
@@ -2089,7 +2385,7 @@
         "shape": "registered capability",
         "redesign": "none",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `ci/` \u2192 `ci/{core,ports,adapters,facade}/` (registered capability). Full 7-point judgment still pending before structural change.",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `ci/` → `ci/{core,ports,adapters,facade}/` (registered capability). Full 7-point judgment still pending before structural change.",
         "destination": "ci/{core,ports,adapters,facade}/"
       },
       {
@@ -2099,7 +2395,7 @@
         "shape": "registered capability",
         "redesign": "none",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `iac/` \u2192 `iac/{core,ports,adapters,facade}/` (registered capability). Full 7-point judgment still pending before structural change.",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `iac/` → `iac/{core,ports,adapters,facade}/` (registered capability). Full 7-point judgment still pending before structural change.",
         "destination": "iac/{core,ports,adapters,facade}/"
       },
       {
@@ -2109,7 +2405,7 @@
         "shape": "registered capability",
         "redesign": "none",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `billing/` \u2192 `billing/{core,ports,adapters,facade}/` (registered capability). Full 7-point judgment still pending before structural change.",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `billing/` → `billing/{core,ports,adapters,facade}/` (registered capability). Full 7-point judgment still pending before structural change.",
         "destination": "billing/{core,ports,adapters,facade}/"
       },
       {
@@ -2119,7 +2415,7 @@
         "shape": "registered capability",
         "redesign": "none",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `marketplace/` \u2192 `marketplace/{core,ports,adapters,facade}/` (registered capability). Full 7-point judgment still pending before structural change.",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `marketplace/` → `marketplace/{core,ports,adapters,facade}/` (registered capability). Full 7-point judgment still pending before structural change.",
         "destination": "marketplace/{core,ports,adapters,facade}/"
       },
       {
@@ -2129,7 +2425,7 @@
         "shape": "registered capability",
         "redesign": "none",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `console/` \u2192 `console/{core,ports,adapters,facade}/` (registered capability). Full 7-point judgment still pending before structural change.",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `console/` → `console/{core,ports,adapters,facade}/` (registered capability). Full 7-point judgment still pending before structural change.",
         "destination": "console/{core,ports,adapters,facade}/"
       },
       {
@@ -2139,7 +2435,7 @@
         "shape": "registered capability; absorb packs/",
         "redesign": "none",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `compliance/` \u2192 `compliance/{core,ports,adapters,facade}/` (registered capability; absorb packs/). Full 7-point judgment still pending before structural change.",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `compliance/` → `compliance/{core,ports,adapters,facade}/` (registered capability; absorb packs/). Full 7-point judgment still pending before structural change.",
         "destination": "compliance/{core,ports,adapters,facade}/"
       },
       {
@@ -2149,7 +2445,7 @@
         "shape": "registered capability",
         "redesign": "none",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `comms/` \u2192 `comms/{core,ports,adapters,facade}/` (registered capability). Full 7-point judgment still pending before structural change.",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `comms/` → `comms/{core,ports,adapters,facade}/` (registered capability). Full 7-point judgment still pending before structural change.",
         "destination": "comms/{core,ports,adapters,facade}/"
       },
       {
@@ -2159,7 +2455,7 @@
         "shape": "META rung-0",
         "redesign": "none",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `kernel/` \u2192 `kernel/{core,harness}/` (META rung-0). Full 7-point judgment still pending before structural change.",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `kernel/` → `kernel/{core,harness}/` (META rung-0). Full 7-point judgment still pending before structural change.",
         "destination": "kernel/{core,harness}/"
       },
       {
@@ -2169,7 +2465,7 @@
         "shape": "META rung-1",
         "redesign": "none",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `os/` \u2192 `os/{core,harness}/` (META rung-1). Full 7-point judgment still pending before structural change.",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `os/` → `os/{core,harness}/` (META rung-1). Full 7-point judgment still pending before structural change.",
         "destination": "os/{core,harness}/"
       },
       {
@@ -2179,7 +2475,7 @@
         "shape": "META: buck prelude, toolchains, generators",
         "redesign": "none",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `build/` \u2192 `build/` (META: buck prelude, toolchains, generators). Full 7-point judgment still pending before structural change.",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `build/` → `build/` (META: buck prelude, toolchains, generators). Full 7-point judgment still pending before structural change.",
         "destination": "build/"
       },
       {
@@ -2189,7 +2485,7 @@
         "shape": "META: reindeer vendored cell; never hand-edit product logic",
         "redesign": "none",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `third-party/` \u2192 `third-party/` (META: reindeer vendored cell; never hand-edit product logic). Full 7-point judgment still pending before structural change.",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `third-party/` → `third-party/` (META: reindeer vendored cell; never hand-edit product logic). Full 7-point judgment still pending before structural change.",
         "destination": "third-party/"
       },
       {
@@ -2199,7 +2495,7 @@
         "shape": "PLANE: catalogs, concurrent-safe, fixuptasks",
         "redesign": "none",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `registry/` \u2192 `registry/` (PLANE: catalogs, concurrent-safe, fixuptasks). Full 7-point judgment still pending before structural change.",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `registry/` → `registry/` (PLANE: catalogs, concurrent-safe, fixuptasks). Full 7-point judgment still pending before structural change.",
         "destination": "registry/"
       },
       {
@@ -2209,17 +2505,17 @@
         "shape": "PLANE: append-only evidence (concurrent-safe)",
         "redesign": "none",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `evidence/` \u2192 `evidence/` (PLANE: append-only evidence (concurrent-safe)). Full 7-point judgment still pending before structural change.",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `evidence/` → `evidence/` (PLANE: append-only evidence (concurrent-safe)). Full 7-point judgment still pending before structural change.",
         "destination": "evidence/"
       },
       {
         "path": "contracts/",
         "action": "keep_forever",
         "greenfield_destination": "contracts/",
-        "shape": "PLANE: cross-\u00b5service OpenAPI/Protobuf/AsyncAPI SSOT",
+        "shape": "PLANE: cross-µservice OpenAPI/Protobuf/AsyncAPI SSOT",
         "redesign": "none",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `contracts/` \u2192 `contracts/` (PLANE: cross-\u00b5service OpenAPI/Protobuf/AsyncAPI SSOT). Full 7-point judgment still pending before structural change.",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `contracts/` → `contracts/` (PLANE: cross-µservice OpenAPI/Protobuf/AsyncAPI SSOT). Full 7-point judgment still pending before structural change.",
         "destination": "contracts/"
       },
       {
@@ -2229,7 +2525,7 @@
         "shape": "jurisdiction localization+sovereignty under compliance",
         "redesign": "rewrite",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL reorg_now \u2192 `compliance/packs/` shape `jurisdiction localization+sovereignty under compliance`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
+        "rationale": "PROVISIONAL reorg_now → `compliance/packs/` shape `jurisdiction localization+sovereignty under compliance`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
         "destination": "compliance/packs/"
       },
       {
@@ -2239,7 +2535,7 @@
         "shape": "no top-level scripts in greenfield",
         "redesign": "rewrite",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL reorg_now \u2192 `ci/ + build/ + delete obsolete py checks` shape `no top-level scripts in greenfield`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
+        "rationale": "PROVISIONAL reorg_now → `ci/ + build/ + delete obsolete py checks` shape `no top-level scripts in greenfield`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
         "destination": "ci/ + build/ + delete obsolete py checks"
       },
       {
@@ -2249,7 +2545,7 @@
         "shape": "harvest then vacate top-level tasks/",
         "redesign": "rewrite",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL reorg_now \u2192 `beads (implementable) + <capability>/IPs/` shape `harvest then vacate top-level tasks/`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
+        "rationale": "PROVISIONAL reorg_now → `beads (implementable) + <capability>/IPs/` shape `harvest then vacate top-level tasks/`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
         "destination": "beads (implementable) + <capability>/IPs/"
       },
       {
@@ -2259,7 +2555,7 @@
         "shape": "no orphan benchmarks root",
         "redesign": "rewrite",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL reorg_now \u2192 `governance/check/benchmark/ + capability perf evidence` shape `no orphan benchmarks root`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
+        "rationale": "PROVISIONAL reorg_now → `governance/check/benchmark/ + capability perf evidence` shape `no orphan benchmarks root`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
         "destination": "governance/check/benchmark/ + capability perf evidence"
       },
       {
@@ -2269,7 +2565,7 @@
         "shape": "PROCESS_KIT: mm-delivery / swarm process (thin; not product)",
         "redesign": "none",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `.grok/` \u2192 `.grok/` (PROCESS_KIT: mm-delivery / swarm process (thin; not product)). Full 7-point judgment still pending before structural change.",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `.grok/` → `.grok/` (PROCESS_KIT: mm-delivery / swarm process (thin; not product)). Full 7-point judgment still pending before structural change.",
         "destination": ".grok/"
       },
       {
@@ -2279,7 +2575,7 @@
         "shape": "PROCESS_KIT: deliver.js + settings",
         "redesign": "none",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `.claude/` \u2192 `.claude/` (PROCESS_KIT: deliver.js + settings). Full 7-point judgment still pending before structural change.",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `.claude/` → `.claude/` (PROCESS_KIT: deliver.js + settings). Full 7-point judgment still pending before structural change.",
         "destination": ".claude/"
       },
       {
@@ -2289,7 +2585,7 @@
         "shape": "PROCESS_KIT: project skills overlay",
         "redesign": "none",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `.codex/` \u2192 `.codex/` (PROCESS_KIT: project skills overlay). Full 7-point judgment still pending before structural change.",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `.codex/` → `.codex/` (PROCESS_KIT: project skills overlay). Full 7-point judgment still pending before structural change.",
         "destination": ".codex/"
       },
       {
@@ -2299,7 +2595,7 @@
         "shape": "PROCESS_KIT: interim GHA runner surface (ADR-0700) until owned-runner cutover",
         "redesign": "none",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `.github/` \u2192 `.github/` (PROCESS_KIT: interim GHA runner surface (ADR-0700) until owned-runner cutover). Full 7-point judgment still pending before structural change.",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `.github/` → `.github/` (PROCESS_KIT: interim GHA runner surface (ADR-0700) until owned-runner cutover). Full 7-point judgment still pending before structural change.",
         "destination": ".github/"
       },
       {
@@ -2309,7 +2605,7 @@
         "shape": "PROCESS_KIT: cargo config",
         "redesign": "none",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `.cargo/` \u2192 `.cargo/` (PROCESS_KIT: cargo config). Full 7-point judgment still pending before structural change.",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `.cargo/` → `.cargo/` (PROCESS_KIT: cargo config). Full 7-point judgment still pending before structural change.",
         "destination": ".cargo/"
       },
       {
@@ -2319,7 +2615,7 @@
         "shape": "PROCESS_KIT: tool config",
         "redesign": "none",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `.config/` \u2192 `.config/` (PROCESS_KIT: tool config). Full 7-point judgment still pending before structural change.",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `.config/` → `.config/` (PROCESS_KIT: tool config). Full 7-point judgment still pending before structural change.",
         "destination": ".config/"
       },
       {
@@ -2329,7 +2625,7 @@
         "shape": "PROCESS_KIT: issue DB (usually local)",
         "redesign": "none",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `.beads/` \u2192 `.beads/` (PROCESS_KIT: issue DB (usually local)). Full 7-point judgment still pending before structural change.",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `.beads/` → `.beads/` (PROCESS_KIT: issue DB (usually local)). Full 7-point judgment still pending before structural change.",
         "destination": ".beads/"
       },
       {
@@ -2340,7 +2636,7 @@
         "redesign": "delete",
         "judgment_status": "done",
         "disposition": "delete-permanently",
-        "rationale": "1) Tracked ultragoal residue (OWNERS/preamble/friction/premise) claiming SUNSET under ADR-0709; not a control plane. Callers: historical IP prose + entry-surface denylist only. 2) Brand-residue docs, not clean-arch product code; dual with live .grok process kit. 3) Was keeping path-stable OMC slots \u2014 north star forbids OMC/OMX as coordination. 4) Must not exist as tracked authority. 5) Antipattern: retired harness brand as instruction surface. 6) delete-permanently (already landed on #1644 tip). 7) Greenfield: zero .omc/ tracked surface; process kit = .grok/ + bd.",
+        "rationale": "1) Tracked ultragoal residue (OWNERS/preamble/friction/premise) claiming SUNSET under ADR-0709; not a control plane. Callers: historical IP prose + entry-surface denylist only. 2) Brand-residue docs, not clean-arch product code; dual with live .grok process kit. 3) Was keeping path-stable OMC slots — north star forbids OMC/OMX as coordination. 4) Must not exist as tracked authority. 5) Antipattern: retired harness brand as instruction surface. 6) delete-permanently (already landed on #1644 tip). 7) Greenfield: zero .omc/ tracked surface; process kit = .grok/ + bd.",
         "evidence": [
           "git show pre-delete .omc/ultragoal/premise.txt SUNSET text",
           "specs/root-hub-pointers.json agent_entry_surface_allowlist superseded .omc/**",
@@ -2355,7 +2651,7 @@
         "shape": "retired; untracked local only",
         "redesign": "delete",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL delete_permanently candidate `.omx/`. Judgment pending \u2014 do not path-change yet.",
+        "rationale": "PROVISIONAL delete_permanently candidate `.omx/`. Judgment pending — do not path-change yet.",
         "destination": "(none)"
       },
       {
@@ -2365,7 +2661,7 @@
         "shape": "retired; untracked local only",
         "redesign": "delete",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL delete_permanently candidate `.gjc/`. Judgment pending \u2014 do not path-change yet.",
+        "rationale": "PROVISIONAL delete_permanently candidate `.gjc/`. Judgment pending — do not path-change yet.",
         "destination": "(none)"
       },
       {
@@ -2375,7 +2671,7 @@
         "shape": "untracked; use runtime agents not repo vendor",
         "redesign": "delete",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL delete_permanently candidate `.agents/`. Judgment pending \u2014 do not path-change yet.",
+        "rationale": "PROVISIONAL delete_permanently candidate `.agents/`. Judgment pending — do not path-change yet.",
         "destination": "(none)"
       },
       {
@@ -2385,7 +2681,7 @@
         "shape": "PROCESS_KIT: editor agents/rules (thin)",
         "redesign": "none",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `.cursor/` \u2192 `.cursor/` (PROCESS_KIT: editor agents/rules (thin)). Full 7-point judgment still pending before structural change.",
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `.cursor/` → `.cursor/` (PROCESS_KIT: editor agents/rules (thin)). Full 7-point judgment still pending before structural change.",
         "destination": ".cursor/"
       },
       {
@@ -2395,7 +2691,7 @@
         "shape": "build output; gitignored",
         "redesign": "delete",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL delete_permanently candidate `buck-out/`. Judgment pending \u2014 do not path-change yet.",
+        "rationale": "PROVISIONAL delete_permanently candidate `buck-out/`. Judgment pending — do not path-change yet.",
         "destination": "(none)"
       },
       {
@@ -2405,7 +2701,7 @@
         "shape": "cargo output; gitignored",
         "redesign": "delete",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL delete_permanently candidate `target/`. Judgment pending \u2014 do not path-change yet.",
+        "rationale": "PROVISIONAL delete_permanently candidate `target/`. Judgment pending — do not path-change yet.",
         "destination": "(none)"
       },
       {
@@ -2415,8 +2711,75 @@
         "shape": "accidental nested worktree in main checkout; remove",
         "redesign": "delete",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL delete_permanently candidate `wt-1616/`. Judgment pending \u2014 do not path-change yet.",
+        "rationale": "PROVISIONAL delete_permanently candidate `wt-1616/`. Judgment pending — do not path-change yet.",
         "destination": "(none)"
+      },
+      {
+        "path": "docs/checklists/",
+        "action": "reorg_now",
+        "greenfield_destination": "templates/checklists/",
+        "destination": "templates/checklists/",
+        "shape": "merge unique checklists into templates/checklists/; delete dual-home",
+        "redesign": "rewrite",
+        "judgment_status": "done",
+        "disposition": "refactor-then-place",
+        "name_now": "docs/checklists/",
+        "name_forever": "templates/checklists/",
+        "kind": "plane-hub",
+        "grammar_compliant": true,
+        "lenses_applied": "all-16",
+        "challenges": [
+          "chestertons_fence: Accepted docs/templates INDEX declares checklists live under docs/checklists — approval-era lift, not greenfield",
+          "essentialism_yagni: checklists are templates, not docs-plane content",
+          "systems_thinking: supply-chain-audit test hardcodes docs/checklists path",
+          "pragmatism: merge then delete; update gate test path same land",
+          "contrarian: do not invent docs/checklists forever under docs keep_forever hub",
+          "blast_radius_cell: integ/docs owns path delete; ci test path may need integ/ci if outside envelope — verify before land",
+          "cartesian_doubt: 31 files include brand-rename/foundry publishing residues",
+          "opportunity_cost: dual home already drifted from templates/checklists",
+          "red_team: agents citing docs/checklists after delete will no-op or invent"
+        ],
+        "rationale": "1) 31 checklist markdowns for agent/human gates. 2) Dual-home with templates/checklists; INDEX Accepted under docs sprawl. 3) Process enforcement aids. 4) Content must exist; docs/checklists path must not. 5) Antipattern: process kits inside docs sprawl. 6) refactor-then-place into templates/checklists/. 7) templates/checklists/.",
+        "evidence": [
+          "docs/templates/INDEX.md Checklists section points at docs/checklists",
+          "find docs/checklists -type f | wc -l → 31"
+        ],
+        "destination_integ": "integ/docs",
+        "land_when": "explicit-path merge+delete on integ/docs; update hardcoded ci cite in same programme (coordinate if ci path outside envelope)"
+      },
+      {
+        "path": "docs/audits/",
+        "action": "delete_permanently",
+        "greenfield_destination": "(none)",
+        "destination": "(none)",
+        "shape": "(removed) — singular point-in-time convention audit; dual-name with docs/audit/",
+        "redesign": "delete",
+        "judgment_status": "done",
+        "disposition": "delete-permanently",
+        "name_now": "docs/audits/",
+        "name_forever": "(none)",
+        "kind": "fixture-corpus",
+        "grammar_compliant": false,
+        "lenses_applied": "all-16",
+        "challenges": [
+          "chestertons_fence: 2026-05-12 crate-naming convention audit snapshot (140 crates GRENN/AMBER/RED) companion to rename plans",
+          "cartesian_doubt: plural docs/audits vs singular docs/audit is accidental dual-home naming",
+          "essentialism_yagni: point-in-time inventory superseded by live crate-catalog / membership gates",
+          "pragmatism: delete; if a sealed copy is needed, it already lives conceptually with rename-plan evidence — do not rehome under docs/",
+          "opportunity_cost: keeping invites agents to treat May-12 percentages as current truth",
+          "systems_thinking: glossary warning-sources.tsv cites the file for acronym provenance — clean those rows when deleting (registry lane) or accept stale-source debt",
+          "red_team: stale GREEN/RED shares will be cited against modern grammar",
+          "blast_radius_cell: no reachability prefix; low fan-in",
+          "socratic: why maintain a second audits/ spelling beside a 233-file audit/ sweep?"
+        ],
+        "rationale": "1) Single file docs/audits/convention-audit-2026-05-12.md — point-in-time crate grammar inventory. 2) Published reference prose; dual-name confusion with docs/audit/. 3) Supported May-2026 rename plans — superseded. 4) Must not exist. 5) Antipattern: dual audits/audit dirs + stale census as published. 6) delete-permanently. 7) Greenfield: no docs/audits/; live naming enforcement is gates + taxonomy.",
+        "evidence": [
+          "docs/audits/convention-audit-2026-05-12.md date 2026-05-12 n=140",
+          "no specs/reachability-registry prefix for docs/audits/",
+          "glossary warning-sources.tsv cites path for acronym rows only"
+        ],
+        "destination_integ": "integ/docs",
+        "land_when": "envelope-clean explicit-path delete on integ/docs; prefer same-land scrub of registry/glossary-vocabulary/warning-sources.tsv rows if that path is in-envelope — else note stale-source follow-up; do NOT touch reachability"
       }
     ],
     "first_wave": [
@@ -2435,7 +2798,7 @@
         "action": "delete_permanently",
         "redesign": "delete",
         "destination_integ": "integ/docs",
-        "status": "ready_to_land_with_judgment_in_PR_body"
+        "status": "landed_on_integ_docs_#1645_sha_a629eef44"
       },
       {
         "id": "W1-eval-docs-harness-delete",
@@ -2444,7 +2807,52 @@
         "action": "delete_permanently",
         "redesign": "delete",
         "destination_integ": "integ/docs",
-        "status": "ready_to_land_with_judgment_in_PR_body"
+        "status": "landed_on_integ_docs_#1645_sha_a629eef44"
+      },
+      {
+        "id": "W1-eval-docs-audits-delete",
+        "path": "docs/audits/",
+        "judgment_status": "done",
+        "action": "delete_permanently",
+        "redesign": "delete",
+        "destination_integ": "integ/docs",
+        "status": "ready_to_land_explicit_path_no_reachability"
+      },
+      {
+        "id": "W1-eval-docs-foundry-delete",
+        "path": "docs/foundry/",
+        "judgment_status": "done",
+        "action": "delete_permanently",
+        "redesign": "delete",
+        "destination_integ": "integ/docs",
+        "status": "ready_to_land_explicit_path_no_reachability_after_retired_skim"
+      },
+      {
+        "id": "W1-eval-docs-ideas-delete",
+        "path": "docs/ideas/",
+        "judgment_status": "done",
+        "action": "delete_permanently",
+        "redesign": "delete",
+        "destination_integ": "integ/docs",
+        "status": "blocked_on_idea_archive_gate_and_reachability_#1644"
+      },
+      {
+        "id": "W1-eval-docs-templates-reorg",
+        "path": "docs/templates/",
+        "judgment_status": "done",
+        "action": "reorg_now",
+        "redesign": "rewrite",
+        "destination_integ": "integ/docs",
+        "status": "judged_not_landed_dual_home_rewrite_required"
+      },
+      {
+        "id": "W1-eval-docs-audit-reorg",
+        "path": "docs/audit/",
+        "judgment_status": "done",
+        "action": "reorg_now",
+        "redesign": "rewrite",
+        "destination_integ": "integ/docs",
+        "status": "judged_destination_overturned_to_evidence_audits_not_audit_capability"
       }
     ],
     "claim_exemption_marker": "reorg-move-out",
@@ -2453,21 +2861,21 @@
       {
         "path_glob": "tools/swarm/**",
         "wave": "integ/specs#1644",
-        "reason": "Phase A process-kit land; immediately schedule reorg_now of tools/swarm \u2192 .grok/ after merge",
+        "reason": "Phase A process-kit land; immediately schedule reorg_now of tools/swarm → .grok/ after merge",
         "expires_when": "integ/specs#1644 squash-merged to origin/dev"
       }
     ],
     "historical_never_repeat": [
       {
         "ref": "#1642",
-        "note": "allow-new for cloud-os/libs was a one-shot drain \u2014 NEVER REPEAT"
+        "note": "allow-new for cloud-os/libs was a one-shot drain — NEVER REPEAT"
       }
     ],
     "enforcement": [
       "deliver.js Claim",
       "human/reviewer refuse of births under freeze prefixes without reorg-move-out bead"
     ],
-    "version": "2.0.0",
+    "version": "2.0.1",
     "evaluation_gate": {
       "required_before_path_change": true,
       "forbidden": [
@@ -2519,7 +2927,7 @@
           "lenses_applied",
           "challenges"
         ],
-        "rule": "Keeping or replacing an existing pattern requires lenses_applied=all-16 and challenges[]. Never subset. Indefensible under full battery \u2192 delete or reshape."
+        "rule": "Keeping or replacing an existing pattern requires lenses_applied=all-16 and challenges[]. Never subset. Indefensible under full battery → delete or reshape."
       },
       "naming_fields": [
         "name_now",
