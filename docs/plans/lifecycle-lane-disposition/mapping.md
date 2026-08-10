@@ -1,6 +1,6 @@
 ---
 doc_status: drafted
-doc_class: HowTo
+doc_class: Reference
 authority_tier: 3
 ---
 
@@ -87,9 +87,11 @@ Read out of the source; undocumented anywhere else. These kill most "obvious" re
    forever. That is a vacuity bug wearing the costume of a correct pattern.
 4. **Missing root → `Err` (red). Live root, empty match → `Ok(vec![])` (red once the ledger entry is
    gone).** This asymmetry is the entire subject of this goal.
-5. **`frontmatter_scalar` (537-565)** requires the document to open a `---` fence, matches the field
-   as a **prefix of a `trim_start()`ed line at any indentation**, and returns `None` for an empty
-   value — indistinguishable from "absent" → `StageNotDeclared`.
+5. **`frontmatter_scalar` (537-565)** *required* the document to open a `---` fence — **SUPERSEDED by
+   §3.2: this branch's kernel edit reads a fence-less document whole; any document containing a `---`
+   line keeps the identical fenced semantics** — matches the field as a **prefix of a
+   `trim_start()`ed line at any indentation**, and returns `None` for an empty value —
+   indistinguishable from "absent" → `StageNotDeclared`.
 6. **`discover()` returns `Err` on the FIRST unreadable / non-UTF-8 file**, turning the whole lane
    into `DiscoveryFailed`. Never re-root onto a tree holding binaries or symlinked directories.
 7. **`SourceSpec.filter` IS honoured** (unlike `kind`): `discover()` 492-495 skips non-matching files
