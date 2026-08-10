@@ -30,7 +30,7 @@ doc_status: published
 - Primary dashboard: `https://grafana.dev.oyatie.internal/d/cloud-billing-substrate/attribution?orgId=1&var-cell=prod-us-east-1`.
 - FOCUS dashboard: `https://grafana.dev.oyatie.internal/d/cloud-billing-substrate/focus-export?orgId=1&var-period=current`.
 - Loki query: `{namespace="cloud-billing",runbook="per-tenant-cost-attribution-mismatch"}`.
-- Canonical FAQ: `microservices/cloud-billing/faqs/billing-engineer-faq.md`.
+- Canonical FAQ: `billing/faqs/billing-engineer-faq.md`.
 - Related ADR: `docs/decisions/ADR-0701-monorepo-capability-live-apex.md`.
 - Related bus: `cloud_billing.metering.v1`.
 

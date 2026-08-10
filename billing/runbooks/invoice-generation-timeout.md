@@ -29,7 +29,7 @@ doc_status: published
 - Primary dashboard: `https://grafana.dev.oyatie.internal/d/cloud-billing-substrate/invoicing?orgId=1&var-period=current`.
 - Tax dashboard: `https://grafana.dev.oyatie.internal/d/cloud-billing-substrate/tax-handoff?orgId=1&var-period=current`.
 - Loki query: `{namespace="cloud-billing",runbook="invoice-generation-timeout"}`.
-- Canonical FAQ: `microservices/cloud-billing/faqs/billing-engineer-faq.md`.
+- Canonical FAQ: `billing/faqs/billing-engineer-faq.md`.
 - Related test: `crates/oya-cloud-billing-tax-app/tests/cloud_billing_invoice_api.rs`.
 - Related API: `crates/oya-cloud-finops-api/tests/cloud_finops_report_api.rs`.
 

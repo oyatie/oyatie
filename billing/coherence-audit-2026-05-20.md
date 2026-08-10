@@ -13,9 +13,9 @@ top_3_counterparts:
   - AWS Billing & Cost Management
   - Recurly
 deliverable_set:
-  - microservices/cloud-billing/coherence-audit-2026-05-20.md
-  - microservices/cloud-billing/feature-parity-matrix-2026-05-20.md
-  - microservices/cloud-billing/performance-benchmark-numbers-2026-05-20.md
+  - billing/coherence-audit-2026-05-20.md
+  - billing/feature-parity-matrix-2026-05-20.md
+  - billing/performance-benchmark-numbers-2026-05-20.md
 audit_only: true
 remediation_authorized: false
 ---
@@ -53,9 +53,9 @@ The following table enumerates every file under `microservices/cloud-billing/` t
 | `crates/oya-cloud-billing-domain/src/lib.rs` | 1030 | Domain kernel: BillingAccount, CloudBillingEvent, Invoice, InvoiceLineItem, BillingPeriod, RateCardRef, TaxRegistrationId, TaxInvoiceFormat, CloudBillingLedger. Idempotent ingest, Money::checked_add, ResourceId tenant/region check, regional pack → tax format mapping. | Strong substance bar on data model; the live code is Rust-only, has unit tests, and asserts tenant + region invariants. Does NOT yet model `tenant_class` enum, `billing_components` set, `revenue_share`, `per_seat`, or seat-count enforcement. |
 | `crates/oya-cloud-billing-kernel/src/lib.rs` | (kernel) | Domain-facing seam (re-export + adapter surface) | Inferred-on-tree; out-of-scope for this audit beyond noting the seam exists. |
 | `crates/oya-cloud-billing-tax-app/tests/cloud_billing_invoice_api.rs` | (api test) | Cross-µservice tax handoff test for the tax-app. | Out-of-scope for cloud-billing's own surface but evidence that cloud-billing emits the tax-naive invoice + cloud-billing-tax produces the per-jurisdiction lines. |
-| `microservices/cloud-billing/PRD.md` | MISSING | Required canonical µservice PRD per ADR-0328 D-4 + brief-template anchor 5 | NO — absence is a P0 finding by §D-4.6 (missing required local document). |
-| `microservices/cloud-billing/ARCHITECTURE.md` | MISSING | Required architecture overview per brief-template §3.1 anchor 5 | NO — absence is a P0 finding. |
-| `microservices/cloud-billing/README.md` | MISSING | Required entry doc | NO — P1 finding. |
+| `billing/PRD.md` | MISSING | Required canonical µservice PRD per ADR-0328 D-4 + brief-template anchor 5 | NO — absence is a P0 finding by §D-4.6 (missing required local document). |
+| `billing/ARCHITECTURE.md` | MISSING | Required architecture overview per brief-template §3.1 anchor 5 | NO — absence is a P0 finding. |
+| `billing/README.md` | MISSING | Required entry doc | NO — P1 finding. |
 | `microservices/cloud-billing/decisions/ADR-MS-*.md` | MISSING (directory absent) | Per-µservice ADRs (e.g. ADR-MS-001 metering bus, ADR-MS-002 FX lock provenance, ADR-MS-003 tenant_class authority) | NO — required canonical surface absent; P0 finding. |
 | `microservices/cloud-billing/implementation-plans/IP-*.md` | MISSING (directory absent) | Per-IP slice plans | NO — required surface absent; P1 finding. |
 | `microservices/cloud-billing/contracts/{openapi,asyncapi,proto}/*` | MISSING (directory absent) | OpenAPI 3.2.0 / AsyncAPI 3.1.0 / proto3 contracts; brief-template forbids handler-before-contract authoring | NO — P0 finding; the µservice has runtime code in `crates/oya-cloud-billing-domain` but no canonical contract surface to back it. |
@@ -63,7 +63,7 @@ The following table enumerates every file under `microservices/cloud-billing/` t
 | `microservices/cloud-billing/policies/*.cedar` | MISSING (directory absent) | Cedar permits cited throughout FAQ + runbooks (`cloud_billing::Action::{ReadUsage, IssueCreditMemo, PromoteInvoiceLive, …}`) | NO — P0 finding; Cedar authority is referenced but no policy file exists in tree. |
 | `microservices/cloud-billing/iac/{oyatie-public-cloud,guest-on-aws,guest-on-oci,on-prem,colo,oyatie-iaas}/` | MISSING (directory absent) | OpenTofu modules per §D-16 for all six deployment contexts | NO — P0 finding; cloud-billing claims multi-context behavior in benchmarks + runbooks but has no IaC surface. |
 | `microservices/cloud-billing/iac/oci-guest/always-free/` | MISSING | OCI Always Free module per §D-19 + `feedback_oci_always_free_maximization_2026_05_20.md` | NO — P0 finding; demo/trial tenants are supposed to land here. |
-| `microservices/cloud-billing/supported-oses.json` | MISSING | OS support manifest per §D-17 (Talos, RHEL/Oracle/SLES/Ubuntu/Debian/Rocky/AlmaLinux/CentOS-Stream/Amazon Linux/Flatcar/Photon, macOS Apple Silicon M5+) | NO — P0 finding; runbook `kubectl` invocations assume a Linux Kubernetes substrate but no OS matrix exists. |
+| `billing/supported-oses.json` | MISSING | OS support manifest per §D-17 (Talos, RHEL/Oracle/SLES/Ubuntu/Debian/Rocky/AlmaLinux/CentOS-Stream/Amazon Linux/Flatcar/Photon, macOS Apple Silicon M5+) | NO — P0 finding; runbook `kubectl` invocations assume a Linux Kubernetes substrate but no OS matrix exists. |
 | `microservices/cloud-billing/cross-microservice-handoffs.md` | MISSING | Cross-handoff matrix (cloud-billing-tax, payments, finops-portal, cloud-iam, audit-chain, cloud-kms, observability, cloud-compute-*, cloud-storage, tenancy) | NO — P1 finding; runbooks reference the surface but no consolidated matrix exists. |
 | `microservices/cloud-billing/capacity-model.md` | MISSING | Capacity math (5 M events/sec sustained, 18 M peak) | NO — P1 finding; capacity numbers exist in benchmark file but not normalized into a model. |
 | `microservices/cloud-billing/failure-modes.md` | MISSING | Failure-mode tree per §D-4.13 + documentation-rigor §1.1 | NO — P1 finding; runbooks describe triggers but no consolidated FMEA exists. |
@@ -158,15 +158,15 @@ The µservice must have backend code in Rust (Cargo workspace member), allowed n
 
 | ID | Severity | Dimension | File:line / Path | Finding | Remediation hint |
 |---|---|---|---|---|---|
-| CB-F-001 | P0 | Internal coherence (D-4.6) | `microservices/cloud-billing/PRD.md` (absent) | Required canonical PRD missing | Wave 15B Phase-0 substance gap; author PRD with tenant_class + billing_components scope, Big 8 personas (CFO + AR + RevOps + FinOps + SRE), success metrics, primary journeys, scope guardrails. |
-| CB-F-002 | P0 | Internal coherence (D-4.6) | `microservices/cloud-billing/ARCHITECTURE.md` (absent) | Required canonical architecture doc missing | Wave 15B; author ARCHITECTURE.md covering Kafka metering bus (5x replication, min-ISR=3), per-tenant ledger (Postgres-class), aggregation worker, period close worker, invoice worker, FX lock service, tax handoff, ERP export adapter, reservation recommender, cloud-iac onboarding. |
+| CB-F-001 | P0 | Internal coherence (D-4.6) | `billing/PRD.md` (absent) | Required canonical PRD missing | Wave 15B Phase-0 substance gap; author PRD with tenant_class + billing_components scope, Big 8 personas (CFO + AR + RevOps + FinOps + SRE), success metrics, primary journeys, scope guardrails. |
+| CB-F-002 | P0 | Internal coherence (D-4.6) | `billing/ARCHITECTURE.md` (absent) | Required canonical architecture doc missing | Wave 15B; author ARCHITECTURE.md covering Kafka metering bus (5x replication, min-ISR=3), per-tenant ledger (Postgres-class), aggregation worker, period close worker, invoice worker, FX lock service, tax handoff, ERP export adapter, reservation recommender, cloud-iac onboarding. |
 | CB-F-003 | P0 | Outbound + canonical (D-4.10, D-12) | `runbooks/invoice-generation-timeout.md:261`; `runbooks/per-tenant-cost-attribution-mismatch.md`; `runbooks/reservation-recommendation-engine-stall.md`; `faqs/billing-engineer-faq.md:Q20` | `foundry` referenced as still-active runtime owner | Wave 15I foundry retirement; replace with intelligence + workflow-engine + workflow-studio + ontology + governance + tenancy per ADR-0328 §D-12; for the runbook line "pause invoicing deploys" specifically, route through `cloud-iac` lane hold + foundry capability absorbed into governance. |
 | CB-F-004 | P0 | Canonical direction (D-4.16, no-tenant_class memory) | `tenant_class adoption record` (whole file); `benchmarks/...:Paid rows`; `runbooks/invoice-generation-timeout.md:23` (SLO authority tenant_class); `onboarding/...:TENANT_CLASS=paid`; `tutorials/...:TENANT_CLASS=paid`; `faqs/...:Q9,Q12,Q14,Q15`; `migration-playbooks/...:--tenant-class paid` | tenant_class tier system pervasive | Wave 15J tenant_class migration; replace with tenant_class binary + billing_components set; specifically: delete tenant_class adoption record, rewrite benchmark per-tenant overlays, replace runbook SLO authority with industry-leader uniform SLO + tenant_class overlay, replace onboarding TENANT_CLASS=paid with `TENANT_CLASS=paid BILLING_COMPONENTS=per_seat,per_usage`. |
 | CB-F-005 | P0 | Canonical direction (tenant_class memory) | µservice tree | `tenant_class ∈ {demo_trial, paid}` enum not defined on tree | Wave 15B; author `decisions/ADR-MS-001-tenant-class-authority.md` + extend `oya-cloud-billing-domain` with `TenantClass` enum + add `tenant_class` field to `BillingAccount`; cedar policy file in `policies/cloud-billing.cedar` gates compliance-pack + BYOK on `principal.tenant_class == paid`. |
 | CB-F-006 | P0 | Canonical direction (billing_components memory) | µservice tree | `billing_components` set + revenue_share + per_seat + per_usage not modeled | Wave 15B; extend kernel with `BillingComponent` enum + paid tenant `BillingComponentSet`; add `RevenueShareEvent` to `CloudBillingEventKind`; add `SeatLicense` primitive + per-seat enforcement seam to `cloud-iam`; document monthly settlement cohort for revenue_share + integration with `payments`. |
 | CB-F-007 | P0 | OpenTofu IaC (D-16) | `microservices/cloud-billing/iac/` (absent) | Zero OpenTofu modules for any of six deployment contexts | Wave 15B IaC sub-wave; author iac/oyatie-public-cloud/, iac/guest-on-aws/, iac/guest-on-oci/, iac/on-prem/, iac/colo/, iac/oyatie-iaas/, plus iac/oci-guest/always-free/ for demo_trial OCI default; each with main.tf, variables.tf, outputs.tf, versions.tf, README.md, sigstore+cosign signing per ADR-0039. |
 | CB-F-008 | P0 | Multi-context (D-15) | µservice tree | No supported-deployment-contexts.json manifest; no per-context tenant onboarding flow; no per-context CI lane | Wave 15B; author supported-deployment-contexts.json with all six contexts + CI lane mapping + tenant onboarding flow per context (tofu init → tofu plan → tofu apply through cloud-iac). |
-| CB-F-009 | P0 | OS support (D-17) | `microservices/cloud-billing/supported-oses.json` (absent) | OS support manifest missing | Wave 15B; author supported-oses.json with Tier-1 (13 OSes), Tier-2 (ppc64le, s390x test-only), explicit out-of-scope (Intel macOS, M1-M4, FreeBSD, OpenBSD, Windows Server, Solaris), architecture matrix (linux/amd64, linux/arm64, darwin/arm64-m5+), package formats. |
+| CB-F-009 | P0 | OS support (D-17) | `billing/supported-oses.json` (absent) | OS support manifest missing | Wave 15B; author supported-oses.json with Tier-1 (13 OSes), Tier-2 (ppc64le, s390x test-only), explicit out-of-scope (Intel macOS, M1-M4, FreeBSD, OpenBSD, Windows Server, Solaris), architecture matrix (linux/amd64, linux/arm64, darwin/arm64-m5+), package formats. |
 | CB-F-010 | P0 | Internal coherence (D-4.6) | `microservices/cloud-billing/contracts/` (absent) | No OpenAPI 3.2.0 / AsyncAPI 3.1.0 / proto3 contract surface on tree | Wave 15B; author contracts/openapi/cloud-billing.openapi.yaml (invoice + rate-card + cost-center + attribution-rule + reservation), contracts/asyncapi/cloud-billing.asyncapi.yaml (metering bus events + period close events + audit-chain events), contracts/proto/metering_event.proto (the FAQ Q4 protobuf snippet promoted to a canonical .proto). |
 | CB-F-011 | P0 | Internal coherence (D-4.6) + ADR-0130 | `microservices/cloud-billing/slos/` (absent) | No OpenSLO 1.0 SLO files on tree | Wave 15B; author slos/invoice-generation.openslo.yaml + slos/metering-bus.openslo.yaml + slos/focus-export.openslo.yaml; SLO numbers must come from the single industry-leader target overlay (industry: Stripe's invoicing SLO + deployment-context overlay) per the unified-quality-bar doctrine, NOT per-tenant_class. |
 | CB-F-012 | P0 | Internal coherence (D-4.6) + ADR-0243 | `microservices/cloud-billing/policies/` (absent) | No Cedar policy files on tree | Wave 15B; author policies/cloud-billing.cedar with permits for ReadUsage, ReadInvoice, ManageChargeback, PurchaseReservation, IssueCreditMemo, ExportFocusStream, PromoteInvoiceLive, ManageTransferPricing, ConvertReservation, IssueSovereignInvoice, ReconcileWithErp, EmergencyCreditMemo, ExportBepsReport; principal-attribute test on `tenant_class == paid` for compliance/BYOK/marketplace actions. |
@@ -241,16 +241,16 @@ These 15 questions feed Wave 14 aggregation; resolution dictates Wave 15A-J task
 
 The audit was performed by reading the following artifacts in full:
 
-(1) `microservices/cloud-billing/benchmarks/cloud-billing-vs-aws-cur-vs-gcp-billing-vs-azure-cost-management.md` (105 lines).
+(1) `billing/benchmarks/cloud-billing-vs-aws-cur-vs-gcp-billing-vs-azure-cost-management.md` (105 lines).
 (2) `microservices/cloud-billing/tenant_class adoption record` (93 lines).
-(3) `microservices/cloud-billing/faqs/billing-engineer-faq.md` (200 lines).
-(4) `microservices/cloud-billing/migration-playbooks/from-aws-cur-and-cloudability.md` (179 lines).
-(5) `microservices/cloud-billing/onboarding/billing-engineer-first-week.md` (174 lines).
-(6) `microservices/cloud-billing/reference-implementations/emit-usage-and-generate-invoice-rust-sdk.md` (200 lines).
-(7) `microservices/cloud-billing/runbooks/invoice-generation-timeout.md` (269 lines).
-(8) `microservices/cloud-billing/runbooks/per-tenant-cost-attribution-mismatch.md` (270 lines).
-(9) `microservices/cloud-billing/runbooks/reservation-recommendation-engine-stall.md` (267 lines).
-(10) `microservices/cloud-billing/tutorials/meter-attribute-invoice-and-export-focus.md` (196 lines).
+(3) `billing/faqs/billing-engineer-faq.md` (200 lines).
+(4) `billing/migration-playbooks/from-aws-cur-and-cloudability.md` (179 lines).
+(5) `billing/onboarding/billing-engineer-first-week.md` (174 lines).
+(6) `billing/reference-implementations/emit-usage-and-generate-invoice-rust-sdk.md` (200 lines).
+(7) `billing/runbooks/invoice-generation-timeout.md` (269 lines).
+(8) `billing/runbooks/per-tenant-cost-attribution-mismatch.md` (270 lines).
+(9) `billing/runbooks/reservation-recommendation-engine-stall.md` (267 lines).
+(10) `billing/tutorials/meter-attribute-invoice-and-export-focus.md` (196 lines).
 (11) `crates/oya-cloud-billing-domain/src/lib.rs` (1,030 lines).
 
 In addition, the audit consulted the following canonical-direction sources to evaluate alignment:
@@ -272,9 +272,9 @@ The audit consulted the following constraint memories:
 Chat history grep result: 54 matches for `cloud-billing` in `8f603fc7-eb0e-4752-ab03-f8ab63ce113d.jsonl` chat transcript; matches are session prose and do not change the audit's substantive verdicts.
 
 The audit did not modify the µservice tree; no commits were created; no contracts, SLOs, Cedar policies, or IaC modules were authored. All findings are advisory and queued to the Wave 14 backlog. The audit's deliverables are the three documents at:
-- `microservices/cloud-billing/coherence-audit-2026-05-20.md` (this file).
-- `microservices/cloud-billing/feature-parity-matrix-2026-05-20.md`.
-- `microservices/cloud-billing/performance-benchmark-numbers-2026-05-20.md`.
+- `billing/coherence-audit-2026-05-20.md` (this file).
+- `billing/feature-parity-matrix-2026-05-20.md`.
+- `billing/performance-benchmark-numbers-2026-05-20.md`.
 
 ## §7 Backlog Rows (per ADR-0328 §D-6.24)
 
@@ -618,9 +618,9 @@ End of audit.
 <!-- ORCHESTRATOR REPORT
   µservice: cloud-billing
   deliverables_landed:
-    - /Users/jasonlee/oyatie/microservices/cloud-billing/coherence-audit-2026-05-20.md (638 lines; floor 600; PASS)
-    - /Users/jasonlee/oyatie/microservices/cloud-billing/feature-parity-matrix-2026-05-20.md (438 lines; floor 400; PASS)
-    - /Users/jasonlee/oyatie/microservices/cloud-billing/performance-benchmark-numbers-2026-05-20.md (388 lines; floor 300; PASS)
+    - /Users/jasonlee/oyatie/billing/coherence-audit-2026-05-20.md (638 lines; floor 600; PASS)
+    - /Users/jasonlee/oyatie/billing/feature-parity-matrix-2026-05-20.md (438 lines; floor 400; PASS)
+    - /Users/jasonlee/oyatie/billing/performance-benchmark-numbers-2026-05-20.md (388 lines; floor 300; PASS)
   inventory_files_seen: 10 microservice docs + 1 domain kernel crate (oya-cloud-billing-domain/src/lib.rs at 1030 lines) + 2 cross-crate references (oya-cloud-billing-kernel, oya-cloud-billing-tax-app)
   inventory_lines_read: ~2,983 (1,953 µservice docs + 1,030 kernel)
   chat_history_matches_processed: 54 (grep -c "cloud-billing" on the project jsonl)

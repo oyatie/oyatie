@@ -150,7 +150,7 @@ audit-chain (IP-010) consumes the event stream and seals each event by hash (Ed2
 - `/Users/jasonlee/oyatie/contracts/asyncapi/cloud/cloud-billing-events-v1.yaml` (50 lines).
 - `/Users/jasonlee/oyatie/contracts/asyncapi/cloud/cloud-billing-events-v1.meta.yaml` (governance metadata).
 - `/Users/jasonlee/oyatie/contracts/proto/cloud/billing/v1/cloud-billing-event-v1.proto` (referenced schema).
-- `/Users/jasonlee/oyatie/microservices/cloud-billing/contracts/proto/cloud-billing.proto` lines 117–121 (AuditChainHeader), 223–263 (event ingest + retrieval messages).
+- `/Users/jasonlee/oyatie/billing/contracts/proto/cloud-billing.proto` lines 117–121 (AuditChainHeader), 223–263 (event ingest + retrieval messages).
 
 ### §F.2 ADR anchors
 

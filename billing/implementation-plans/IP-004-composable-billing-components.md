@@ -185,10 +185,10 @@ Attribute schema (per `tenant-class-binding.cedar`):
 
 ### §F.1 Source files
 
-- `/Users/jasonlee/oyatie/microservices/cloud-billing/contracts/proto/cloud-billing.proto` lines 26–31 (BillingComponent enum), 158–175 (MutateBillingComponentsRequest/Response), 631–638 (TenantClassApi service).
-- `/Users/jasonlee/oyatie/microservices/cloud-billing/policies/billing-components-gates.cedar` (156 lines, 12 named gates).
-- `/Users/jasonlee/oyatie/microservices/cloud-billing/policies/tenant-class-binding.cedar` lines 78–88 (closure rule).
-- `/Users/jasonlee/oyatie/microservices/cloud-billing/policies/cloud-billing.cedar` lines 56–76 (mutate / deny-demo gates).
+- `/Users/jasonlee/oyatie/billing/contracts/proto/cloud-billing.proto` lines 26–31 (BillingComponent enum), 158–175 (MutateBillingComponentsRequest/Response), 631–638 (TenantClassApi service).
+- `/Users/jasonlee/oyatie/billing/policies/billing-components-gates.cedar` (156 lines, 12 named gates).
+- `/Users/jasonlee/oyatie/billing/policies/tenant-class-binding.cedar` lines 78–88 (closure rule).
+- `/Users/jasonlee/oyatie/billing/policies/cloud-billing.cedar` lines 56–76 (mutate / deny-demo gates).
 
 ### §F.2 ADR anchors
 

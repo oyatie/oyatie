@@ -33,11 +33,11 @@ local_adrs:
   - decisions/ADR-MS-001-billing-components-composability.md
   - decisions/ADR-MS-002-revenue-share-settlement-pipeline.md
 companion_docs:
-  - microservices/cloud-billing/PRD.md
-  - microservices/cloud-billing/README.md
-  - microservices/cloud-billing/contracts/openapi.yaml
-  - microservices/cloud-billing/contracts/asyncapi.yaml
-  - microservices/cloud-billing/contracts/proto/cloud-billing.proto
+  - billing/PRD.md
+  - billing/README.md
+  - billing/contracts/openapi.yaml
+  - billing/contracts/asyncapi.yaml
+  - billing/contracts/proto/cloud-billing.proto
 ---
 
 # ARCH-cloud-billing: Composable Billing Substrate Architecture

@@ -161,8 +161,8 @@ This IP itself does not author Cedar fragments; it references existing gates in 
 ### §F.1 Source files
 
 - All sibling IPs in this sprint (IP-001 through IP-014).
-- `microservices/cloud-billing/feature-parity-matrix-2026-05-20.md` (canonical parity ledger; this IP is the structured summary).
-- `microservices/cloud-billing/PRD.md` (§2 Outcomes ties to counterpart parity).
+- `billing/feature-parity-matrix-2026-05-20.md` (canonical parity ledger; this IP is the structured summary).
+- `billing/PRD.md` (§2 Outcomes ties to counterpart parity).
 
 ### §F.2 ADR anchors
 
@@ -178,4 +178,4 @@ See §C above.
 ## §H Open questions
 
 - Whether to add a per-quarter automated parity-diff job that scrapes Stripe/Recurly changelog and surfaces new features. Current decision: manual quarterly review; automation cost > benefit at current cadence.
-- Whether to expose the parity matrix as a tenant-facing capability advertisement. Current decision: yes — `microservices/cloud-billing/feature-parity-matrix-2026-05-20.md` is published; finops-portal links to it for B2B procurement teams evaluating cloud-billing against incumbent tools.
+- Whether to expose the parity matrix as a tenant-facing capability advertisement. Current decision: yes — `billing/feature-parity-matrix-2026-05-20.md` is published; finops-portal links to it for B2B procurement teams evaluating cloud-billing against incumbent tools.

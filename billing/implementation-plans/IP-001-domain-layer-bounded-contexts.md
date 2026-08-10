@@ -119,7 +119,7 @@ Source axis is fixed to `AxisId::Cloud`; plane is fixed to `PlaneTag::Data`. Mtr
 
 ## §E Cedar Policy Bindings
 
-This IP is the data-shape contract for the following Cedar gates (defined in IP-009; full text in `microservices/cloud-billing/policies/cloud-billing.cedar` and sibling fragments):
+This IP is the data-shape contract for the following Cedar gates (defined in IP-009; full text in `billing/policies/cloud-billing.cedar` and sibling fragments):
 
 - `cap.cloud.billing.issue_invoice` — guards `CloudBillingLedger::generate_invoice`.
 - `cap.cloud.billing.emit_usage_event` — guards `CloudBillingLedger::ingest`.
@@ -153,7 +153,7 @@ Resource attribute schema for the Cedar evaluator (per `policies/tenant-class-bi
 
 ### §F.3 Downstream contracts
 
-- proto3 service definitions: `/Users/jasonlee/oyatie/microservices/cloud-billing/contracts/proto/cloud-billing.proto` (services: TenantClassApi, BillingAccountApi, MeteringApi, InvoiceApi, ReservationApi, SettlementApi, SubscriptionApi, SeatCountApi, FxLockApi, DunningApi, ExportApi).
+- proto3 service definitions: `/Users/jasonlee/oyatie/billing/contracts/proto/cloud-billing.proto` (services: TenantClassApi, BillingAccountApi, MeteringApi, InvoiceApi, ReservationApi, SettlementApi, SubscriptionApi, SeatCountApi, FxLockApi, DunningApi, ExportApi).
 - OpenAPI 3.2.0 surface: `/Users/jasonlee/oyatie/contracts/openapi/cloud/cloud-billing-invoice-v1.yaml` (544 lines, invoice generate endpoint).
 - AsyncAPI 3.1.0 envelope: `/Users/jasonlee/oyatie/contracts/asyncapi/cloud/cloud-billing-events-v1.yaml` (CloudEvents 1.0 + Protobuf payload).
 

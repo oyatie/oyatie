@@ -224,9 +224,9 @@ Per `settlement-gates.cedar` lines 116–126:
 
 ### §F.1 Source files
 
-- `/Users/jasonlee/oyatie/microservices/cloud-billing/contracts/proto/cloud-billing.proto` lines 71–76 (SettlementState enum), 65–69 (SettlementDirection), 408–444 (settlement messages + RPCs), 669–674 (SettlementApi service).
-- `/Users/jasonlee/oyatie/microservices/cloud-billing/policies/settlement-gates.cedar` (126 lines, 9 gates).
-- `/Users/jasonlee/oyatie/microservices/cloud-billing/policies/cloud-billing.cedar` lines 149–195 (settlement + read gates).
+- `/Users/jasonlee/oyatie/billing/contracts/proto/cloud-billing.proto` lines 71–76 (SettlementState enum), 65–69 (SettlementDirection), 408–444 (settlement messages + RPCs), 669–674 (SettlementApi service).
+- `/Users/jasonlee/oyatie/billing/policies/settlement-gates.cedar` (126 lines, 9 gates).
+- `/Users/jasonlee/oyatie/billing/policies/cloud-billing.cedar` lines 149–195 (settlement + read gates).
 
 ### §F.2 ADR anchors
 

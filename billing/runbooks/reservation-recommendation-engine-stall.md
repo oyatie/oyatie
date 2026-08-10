@@ -28,8 +28,8 @@ doc_status: published
 - Primary dashboard: `https://grafana.dev.oyatie.internal/d/cloud-billing-substrate/reservations?orgId=1&var-cell=prod-us-east-1`.
 - Forecast dashboard: `https://grafana.dev.oyatie.internal/d/cloud-billing-substrate/forecasting?orgId=1&var-period=current`.
 - Loki query: `{namespace="cloud-billing",runbook="reservation-recommendation-engine-stall"}`.
-- Canonical FAQ: `microservices/cloud-billing/faqs/billing-engineer-faq.md`.
-- Related benchmark: `microservices/cloud-billing/benchmarks/cloud-billing-vs-aws-cur-vs-gcp-billing-vs-azure-cost-management.md`.
+- Canonical FAQ: `billing/faqs/billing-engineer-faq.md`.
+- Related benchmark: `billing/benchmarks/cloud-billing-vs-aws-cur-vs-gcp-billing-vs-azure-cost-management.md`.
 - Related action: `cloud_billing::Action::ConvertReservation`.
 
 ## Trigger Conditions

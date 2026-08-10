@@ -26,7 +26,7 @@ tenant_class_scope: both
 
 ## §A Objective
 
-Document the existing proto3 gRPC contract at `microservices/cloud-billing/contracts/proto/cloud-billing.proto` (700 lines). gRPC is the **canonical** inter-microservice communication per ADR-0145 (direct gRPC + 3 invariants — no Workflow + Ontology forced-adapter rule). REST (IP-006) is the outside-facing translation; AsyncAPI (IP-007) is the event channel; gRPC is the synchronous request/response substrate that every Phase-0/1/2 µservice uses to talk to cloud-billing.
+Document the existing proto3 gRPC contract at `billing/contracts/proto/cloud-billing.proto` (700 lines). gRPC is the **canonical** inter-microservice communication per ADR-0145 (direct gRPC + 3 invariants — no Workflow + Ontology forced-adapter rule). REST (IP-006) is the outside-facing translation; AsyncAPI (IP-007) is the event channel; gRPC is the synchronous request/response substrate that every Phase-0/1/2 µservice uses to talk to cloud-billing.
 
 The contract carries 11 service definitions, 40+ message types, 8 enums, and Cedar action bindings inline-commented for every state-mutating RPC.
 
@@ -221,18 +221,18 @@ This is the spec-level binding; the runtime enforcement is in the gRPC intercept
 
 ### §F.1 Source files
 
-- `/Users/jasonlee/oyatie/microservices/cloud-billing/contracts/proto/cloud-billing.proto` (700 lines).
+- `/Users/jasonlee/oyatie/billing/contracts/proto/cloud-billing.proto` (700 lines).
 - `/Users/jasonlee/oyatie/contracts/proto/cloud/billing/v1/cloud-billing-event-v1.proto` (event ingest schema, AsyncAPI-referenced).
 - `/Users/jasonlee/oyatie/contracts/proto/cloud/billing/v1/cloud-billing-event-v1.meta.yaml` (governance metadata).
 
 ### §F.2 Cedar fragment cross-reference
 
-- `/Users/jasonlee/oyatie/microservices/cloud-billing/policies/cloud-billing.cedar` (master permits).
-- `/Users/jasonlee/oyatie/microservices/cloud-billing/policies/billing-components-gates.cedar`.
-- `/Users/jasonlee/oyatie/microservices/cloud-billing/policies/conversion-gates.cedar`.
-- `/Users/jasonlee/oyatie/microservices/cloud-billing/policies/demo-trial-gates.cedar`.
-- `/Users/jasonlee/oyatie/microservices/cloud-billing/policies/settlement-gates.cedar`.
-- `/Users/jasonlee/oyatie/microservices/cloud-billing/policies/tenant-class-binding.cedar`.
+- `/Users/jasonlee/oyatie/billing/policies/cloud-billing.cedar` (master permits).
+- `/Users/jasonlee/oyatie/billing/policies/billing-components-gates.cedar`.
+- `/Users/jasonlee/oyatie/billing/policies/conversion-gates.cedar`.
+- `/Users/jasonlee/oyatie/billing/policies/demo-trial-gates.cedar`.
+- `/Users/jasonlee/oyatie/billing/policies/settlement-gates.cedar`.
+- `/Users/jasonlee/oyatie/billing/policies/tenant-class-binding.cedar`.
 
 ### §F.3 ADR anchors
 

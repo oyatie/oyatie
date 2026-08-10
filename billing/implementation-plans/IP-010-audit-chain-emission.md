@@ -165,8 +165,8 @@ Audit-chain emission is not Cedar-gated at the cloud-billing side (it's a downst
 
 ### §F.1 Source files
 
-- `/Users/jasonlee/oyatie/microservices/cloud-billing/contracts/proto/cloud-billing.proto` lines 117–121 (AuditChainHeader message) + 12 RPC responses embedding it.
-- `/Users/jasonlee/oyatie/microservices/cloud-billing/policies/conversion-gates.cedar` lines 134–142 (audit-chain availability gate).
+- `/Users/jasonlee/oyatie/billing/contracts/proto/cloud-billing.proto` lines 117–121 (AuditChainHeader message) + 12 RPC responses embedding it.
+- `/Users/jasonlee/oyatie/billing/policies/conversion-gates.cedar` lines 134–142 (audit-chain availability gate).
 
 ### §F.2 ADR anchors
 

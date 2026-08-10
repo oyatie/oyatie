@@ -227,12 +227,12 @@ These five gates encode the demo_trial lifecycle state machine at the policy lay
 
 ### §F.1 Source files (all six present and substantive)
 
-- `/Users/jasonlee/oyatie/microservices/cloud-billing/policies/cloud-billing.cedar` (195 lines).
-- `/Users/jasonlee/oyatie/microservices/cloud-billing/policies/billing-components-gates.cedar` (156 lines).
-- `/Users/jasonlee/oyatie/microservices/cloud-billing/policies/conversion-gates.cedar` (142 lines).
-- `/Users/jasonlee/oyatie/microservices/cloud-billing/policies/demo-trial-gates.cedar` (174 lines).
-- `/Users/jasonlee/oyatie/microservices/cloud-billing/policies/settlement-gates.cedar` (126 lines).
-- `/Users/jasonlee/oyatie/microservices/cloud-billing/policies/tenant-class-binding.cedar` (88 lines).
+- `/Users/jasonlee/oyatie/billing/policies/cloud-billing.cedar` (195 lines).
+- `/Users/jasonlee/oyatie/billing/policies/billing-components-gates.cedar` (156 lines).
+- `/Users/jasonlee/oyatie/billing/policies/conversion-gates.cedar` (142 lines).
+- `/Users/jasonlee/oyatie/billing/policies/demo-trial-gates.cedar` (174 lines).
+- `/Users/jasonlee/oyatie/billing/policies/settlement-gates.cedar` (126 lines).
+- `/Users/jasonlee/oyatie/billing/policies/tenant-class-binding.cedar` (88 lines).
 
 ### §F.2 ADR anchors
 

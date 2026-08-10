@@ -39,7 +39,7 @@ doc_status: published
 - Alertmanager route: `oyatie-finops-portal-tenant-budget-headroom-low-critical`; silence only with incident commander approval and `EVT_FINOPS_PORTAL_TENANT_BUDGET_HEADROOM_LOW_INCIDENT` evidence.
 - Synthetic probe: `oya ops probe finops-portal tenant-budget-headroom-low --cell prod-us-east-1 --tenant synthetic-canary` returns `healthy=true`.
 - Drift detector: `registry/finops-portal/tenant-budget-headroom-low/expected-state.json` hash differs from live `https://finops-portal.internal.oyatie.dev/v1/finops/admin/state-hash`.
-- Service-specific metric `oya_finops_portal_tenant_budget_headroom_low_allocation_delta_cents` exceeds the threshold documented in `microservices/finops-portal/slos/tenant-invoice-render-latency.openslo.yaml`.
+- Service-specific metric `oya_finops_portal_tenant_budget_headroom_low_allocation_delta_cents` exceeds the threshold documented in `billing/finops-portal/slos/tenant-invoice-render-latency.openslo.yaml`.
 
 ## Symptoms
 - User-facing impact: tenant invoices, cost drilldowns, budget alerts, regulator evidence, and reservation recommendations may be stale or wrong.
@@ -75,11 +75,11 @@ doc_status: published
 15. Run production snapshot gate: `cargo run -p oya-dev-cli -- gate validate finops-portal-tenant-budget-headroom-low --production-snapshot --cell $CELL`.
 16. Run crate smoke test: `cargo test -p oya-cloud-finops-domain tenant_budget_headroom_low -- --nocapture`.
 17. Check API contract smoke: `curl -s https://finops-portal.internal.oyatie.dev/v1/finops/tenant-budget-headroom-low/incident-handoff -H "x-oya-tenant: $TENANT"`.
-18. Inspect config: `test -f microservices/finops-portal/iac/helm/finops-portal/values.yaml && sed -n '1,180p' microservices/finops-portal/iac/helm/finops-portal/values.yaml`.
+18. Inspect config: `test -f billing/finops-portal/iac/helm/finops-portal/values.yaml && sed -n '1,180p' billing/finops-portal/iac/helm/finops-portal/values.yaml`.
 19. Inspect feature flags: `oya flags get oya.finops-portal.tenant_budget_headroom_low.incident_hold --cell $CELL --tenant $TENANT --output yaml`.
 20. Inspect circuit breaker: `oya ops breaker status finops-portal-tenant-budget-headroom-low-circuit-breaker --cell $CELL --tenant $TENANT`.
 21. Check recent deploy: `kubectl -n finops-portal rollout history deploy/finops-portal-tenant-budget-headroom-low-worker | tail -20`.
-22. Check policy file: `test -f microservices/finops-portal/policy/cedar/ops-finops-dashboard-access.cedar || find microservices/finops-portal/policy -maxdepth 2 -type f | sort`.
+22. Check policy file: `test -f billing/finops-portal/policy/cedar/ops-finops-dashboard-access.cedar || find microservices/finops-portal/policy -maxdepth 2 -type f | sort`.
 23. Check SLO files: `ls microservices/finops-portal/slos/*.openslo.yaml | sort | rg "tenant|tenant"`.
 24. Check catalog components: `find microservices/finops-portal/catalog -maxdepth 1 -type f | sort | rg "budget|forecasting|showback|chargeback|rightsizing|commitment"`.
 25. Run targeted SQL state query: `psql $OYA_PROD_DSN -c "select incident_id, tenant_id, cell_id, state, updated_at from finops_portal_tenant_budget_headroom_low_incidents where updated_at > now() - interval '30 minutes' order by updated_at desc limit 20;"`.
@@ -122,7 +122,7 @@ Tenant Budget Headroom Low incident decision tree
 12. Raise HPA cap if saturation is proven: `kubectl -n finops-portal patch hpa finops-portal-tenant-budget-headroom-low-worker --type merge -p '{"spec":{"maxReplicas":12}}'`.
 13. Throttle hot tenant: `oya ops rate-limit set --tenant $TENANT --surface finops-portal.tenant-budget-headroom-low --rps 25 --ttl 30m`.
 14. Block abusive principal when relevant: `oya identity principal suspend --principal suspected-abuse --tenant $TENANT --reason $INCIDENT_ID`.
-15. Protect evidence: `oya evidence freeze --incident $INCIDENT_ID --paths microservices/finops-portal/runbooks/tenant-budget-headroom-low.md,evidence/incidents/$INCIDENT_ID.json`.
+15. Protect evidence: `oya evidence freeze --incident $INCIDENT_ID --paths billing/finops-portal/runbooks/tenant-budget-headroom-low.md,evidence/incidents/$INCIDENT_ID.json`.
 16. Notify service owners: `oya notify service-owner --microservice finops-portal --incident $INCIDENT_ID --channel #inc-finops-portal`.
 17. Open external vendor ticket: `oya vendor ticket open --vendor "AWS Enterprise Support billing desk" --incident $INCIDENT_ID --summary finops-portal-tenant-budget-headroom-low`.
 18. Confirm breaker effect: `oya ops breaker status finops-portal-tenant-budget-headroom-low-circuit-breaker --cell $CELL --tenant $TENANT --expect open`.
@@ -150,13 +150,13 @@ Tenant Budget Headroom Low incident decision tree
 ## Resolution Steps
 1. Identify code owner path: `rg "tenant_budget_headroom_low|FinopsPortalTenantBudgetHeadroomLowCritical|finops_portal.tenant_budget_headroom_low.incident_state" crates microservices/finops-portal -g "!microservices/finops-portal/runbooks/**"`.
 2. Patch domain invariant: `edit oya-cloud-finops-domain where tenant_budget_headroom_low state transition is validated`.
-3. Patch API guard: `edit microservices/finops-portal/contracts/tenant-invoice-public.openapi.yaml if the failing path is north-south or async handoff`.
-4. Patch policy: `edit microservices/finops-portal/policy/cedar/ops-finops-dashboard-access.cedar with explicit deny/permit branch and tenant/cell scope`.
-5. Patch runtime config: `edit microservices/finops-portal/iac/helm/finops-portal/values.yaml if deploy/config drift caused the incident`.
+3. Patch API guard: `edit billing/finops-portal/contracts/tenant-invoice-public.openapi.yaml if the failing path is north-south or async handoff`.
+4. Patch policy: `edit billing/finops-portal/policy/cedar/ops-finops-dashboard-access.cedar with explicit deny/permit branch and tenant/cell scope`.
+5. Patch runtime config: `edit billing/finops-portal/iac/helm/finops-portal/values.yaml if deploy/config drift caused the incident`.
 6. Add regression test: `cargo test -p oya-cloud-finops-domain tenant_budget_headroom_low_incident_regression -- --nocapture`.
 7. Add gate evidence: `cargo run -p oya-dev-cli -- gate validate finops-portal-tenant-budget-headroom-low --fixture incident-tenant-budget-headroom-low.json`.
-8. Add SLO assertion: `update microservices/finops-portal/slos/tenant-invoice-render-latency.openslo.yaml with alert FinopsPortalTenantBudgetHeadroomLowCritical when this was a missing alert`.
-9. Add dashboard panel: `update microservices/finops-portal/dashboards/tenant-cost-drilldown.grafana.json with oya_finops_portal_tenant_budget_headroom_low_error_ratio, oya_finops_portal_tenant_budget_headroom_low_lag_seconds, and oya_finops_portal_tenant_budget_headroom_low_queue_depth`.
+8. Add SLO assertion: `update billing/finops-portal/slos/tenant-invoice-render-latency.openslo.yaml with alert FinopsPortalTenantBudgetHeadroomLowCritical when this was a missing alert`.
+9. Add dashboard panel: `update billing/finops-portal/dashboards/tenant-cost-drilldown.grafana.json with oya_finops_portal_tenant_budget_headroom_low_error_ratio, oya_finops_portal_tenant_budget_headroom_low_lag_seconds, and oya_finops_portal_tenant_budget_headroom_low_queue_depth`.
 10. Rebuild affected crate: `cargo check -p oya-cloud-finops-domain --all-targets`.
 11. Run targeted tests: `cargo test -p oya-cloud-finops-domain --all-features`.
 12. Run policy validation: `cargo run -p oya-dev-cli -- gate validate finops-portal-policy --microservice finops-portal`.
@@ -174,10 +174,10 @@ Tenant Budget Headroom Low incident decision tree
 - `oya-cloud-finops-kernel`: inspect for `tenant_budget_headroom_low` invariants, alert emission, ADR-0263 evidence fields, and tenant/cell scoping before touching adjacent code.
 - `oya-cloud-finops-api`: inspect for `tenant_budget_headroom_low` invariants, alert emission, ADR-0263 evidence fields, and tenant/cell scoping before touching adjacent code.
 - `oya-cloud-billing-kernel`: inspect for `tenant_budget_headroom_low` invariants, alert emission, ADR-0263 evidence fields, and tenant/cell scoping before touching adjacent code.
-- `microservices/finops-portal/contracts/tenant-invoice-public.openapi.yaml`: verify request/response or event contract only when incident evidence points there.
-- `microservices/finops-portal/contracts/focus-export-internal.asyncapi.yaml`: verify request/response or event contract only when incident evidence points there.
-- `microservices/finops-portal/contracts/cost-allocation-policy-internal.proto`: verify request/response or event contract only when incident evidence points there.
-- `microservices/finops-portal/dashboards/tenant-cost-drilldown.grafana.json`: verify panel coverage for `oya_finops_portal_tenant_budget_headroom_low_error_ratio`, `oya_finops_portal_tenant_budget_headroom_low_lag_seconds`, and `oya_finops_portal_tenant_budget_headroom_low_allocation_delta_cents`.
+- `billing/finops-portal/contracts/tenant-invoice-public.openapi.yaml`: verify request/response or event contract only when incident evidence points there.
+- `billing/finops-portal/contracts/focus-export-internal.asyncapi.yaml`: verify request/response or event contract only when incident evidence points there.
+- `billing/finops-portal/contracts/cost-allocation-policy-internal.proto`: verify request/response or event contract only when incident evidence points there.
+- `billing/finops-portal/dashboards/tenant-cost-drilldown.grafana.json`: verify panel coverage for `oya_finops_portal_tenant_budget_headroom_low_error_ratio`, `oya_finops_portal_tenant_budget_headroom_low_lag_seconds`, and `oya_finops_portal_tenant_budget_headroom_low_allocation_delta_cents`.
 - `microservices/finops-portal/slos/`: verify alert vocabulary and threshold alignment before changing runtime thresholds.
 - `microservices/finops-portal/policy/`: verify policy branch ownership before relaxing deny rules or emergency bypasses.
 
@@ -186,7 +186,7 @@ Tenant Budget Headroom Low incident decision tree
 - `oya_finops_portal_tenant_budget_headroom_low_error_ratio < 0.005` for 3 consecutive 10 minute windows.
 - `oya_finops_portal_tenant_budget_headroom_low_lag_seconds < 120` for all production cells.
 - `oya_finops_portal_tenant_budget_headroom_low_queue_depth` is draining and not growing for the affected tenant.
-- Service-specific signal `oya_finops_portal_tenant_budget_headroom_low_allocation_delta_cents` is below the threshold documented in `microservices/finops-portal/slos/tenant-invoice-render-latency.openslo.yaml`.
+- Service-specific signal `oya_finops_portal_tenant_budget_headroom_low_allocation_delta_cents` is below the threshold documented in `billing/finops-portal/slos/tenant-invoice-render-latency.openslo.yaml`.
 - dashboard `https://grafana.dev.oyatie.internal/d/finops-portal-substrate/tenant-budget-headroom-low?orgId=1&var-cell=prod-us-east-1&var-pack=canonical-base&viewPanel=116` shows green panels for the affected cell.
 - audit-chain query for `EVT_FINOPS_PORTAL_TENANT_BUDGET_HEADROOM_LOW_INCIDENT` returns mitigation and resolution events.
 - circuit breaker `finops-portal-tenant-budget-headroom-low-circuit-breaker` is closed after rollback window.

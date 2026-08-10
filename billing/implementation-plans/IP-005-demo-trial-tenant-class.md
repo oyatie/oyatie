@@ -188,10 +188,10 @@ Demo-trial gates (in `demo-trial-gates.cedar`):
 
 ### §F.1 Source files
 
-- `/Users/jasonlee/oyatie/microservices/cloud-billing/policies/demo-trial-gates.cedar` (174 lines).
-- `/Users/jasonlee/oyatie/microservices/cloud-billing/policies/conversion-gates.cedar` (142 lines).
-- `/Users/jasonlee/oyatie/microservices/cloud-billing/policies/tenant-class-binding.cedar` (88 lines).
-- `/Users/jasonlee/oyatie/microservices/cloud-billing/contracts/proto/cloud-billing.proto` lines 143–156 (ConvertTenantToPaidRequest/Response), 127–141 (GetTenantClassResponse with `cap_breached`, `trial_expires_at_epoch_seconds`, `grace_window_expires_at_epoch_seconds`).
+- `/Users/jasonlee/oyatie/billing/policies/demo-trial-gates.cedar` (174 lines).
+- `/Users/jasonlee/oyatie/billing/policies/conversion-gates.cedar` (142 lines).
+- `/Users/jasonlee/oyatie/billing/policies/tenant-class-binding.cedar` (88 lines).
+- `/Users/jasonlee/oyatie/billing/contracts/proto/cloud-billing.proto` lines 143–156 (ConvertTenantToPaidRequest/Response), 127–141 (GetTenantClassResponse with `cap_breached`, `trial_expires_at_epoch_seconds`, `grace_window_expires_at_epoch_seconds`).
 - `/Users/jasonlee/oyatie/microservices/cloud-billing/iac/oci-guest/always-free/` (IaC for demo_trial OCI deployment).
 
 ### §F.2 ADR anchors

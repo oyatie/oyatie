@@ -71,21 +71,21 @@ Counterpart references added: ~ 60+ direct comparisons across 5 counterparts (St
 ## Files created in this sprint
 
 ```
-microservices/cloud-billing/implementation-plans/IP-001-domain-layer-bounded-contexts.md
-microservices/cloud-billing/implementation-plans/IP-002-kernel-layer-invoice-computation.md
-microservices/cloud-billing/implementation-plans/IP-003-tax-computation-multi-jurisdiction.md
-microservices/cloud-billing/implementation-plans/IP-004-composable-billing-components.md
-microservices/cloud-billing/implementation-plans/IP-005-demo-trial-tenant-class.md
-microservices/cloud-billing/implementation-plans/IP-006-openapi-invoice-endpoint.md
-microservices/cloud-billing/implementation-plans/IP-007-asyncapi-billing-events.md
-microservices/cloud-billing/implementation-plans/IP-008-grpc-service-surface.md
-microservices/cloud-billing/implementation-plans/IP-009-cedar-policy-fragments.md
-microservices/cloud-billing/implementation-plans/IP-010-audit-chain-emission.md
-microservices/cloud-billing/implementation-plans/IP-011-revenue-attribution-cost-centers.md
-microservices/cloud-billing/implementation-plans/IP-012-tenant-onboarding-billing-flow.md
-microservices/cloud-billing/implementation-plans/IP-013-dsr-cascade-retention-erasure.md
-microservices/cloud-billing/implementation-plans/IP-014-cell-aware-billing-data-residency.md
-microservices/cloud-billing/implementation-plans/IP-015-counterpart-parity-stripe-recurly-zuora-chargebee.md
+billing/implementation-plans/IP-001-domain-layer-bounded-contexts.md
+billing/implementation-plans/IP-002-kernel-layer-invoice-computation.md
+billing/implementation-plans/IP-003-tax-computation-multi-jurisdiction.md
+billing/implementation-plans/IP-004-composable-billing-components.md
+billing/implementation-plans/IP-005-demo-trial-tenant-class.md
+billing/implementation-plans/IP-006-openapi-invoice-endpoint.md
+billing/implementation-plans/IP-007-asyncapi-billing-events.md
+billing/implementation-plans/IP-008-grpc-service-surface.md
+billing/implementation-plans/IP-009-cedar-policy-fragments.md
+billing/implementation-plans/IP-010-audit-chain-emission.md
+billing/implementation-plans/IP-011-revenue-attribution-cost-centers.md
+billing/implementation-plans/IP-012-tenant-onboarding-billing-flow.md
+billing/implementation-plans/IP-013-dsr-cascade-retention-erasure.md
+billing/implementation-plans/IP-014-cell-aware-billing-data-residency.md
+billing/implementation-plans/IP-015-counterpart-parity-stripe-recurly-zuora-chargebee.md
 ```
 
 ## Existing files referenced (not modified)
@@ -94,16 +94,16 @@ microservices/cloud-billing/implementation-plans/IP-015-counterpart-parity-strip
 crates/oya-cloud-billing-domain/src/lib.rs (1,030 lines)
 crates/oya-cloud-billing-kernel/src/lib.rs (185 lines)
 crates/oya-cloud-billing-tax-app/src/lib.rs (276 lines)
-microservices/cloud-billing/contracts/proto/cloud-billing.proto (700 lines)
+billing/contracts/proto/cloud-billing.proto (700 lines)
 contracts/openapi/cloud/cloud-billing-invoice-v1.yaml (544 lines)
 contracts/asyncapi/cloud/cloud-billing-events-v1.yaml (50 lines)
-microservices/cloud-billing/policies/cloud-billing.cedar (195 lines)
-microservices/cloud-billing/policies/billing-components-gates.cedar (156 lines)
-microservices/cloud-billing/policies/conversion-gates.cedar (142 lines)
-microservices/cloud-billing/policies/demo-trial-gates.cedar (174 lines)
-microservices/cloud-billing/policies/settlement-gates.cedar (126 lines)
-microservices/cloud-billing/policies/tenant-class-binding.cedar (88 lines)
-microservices/cloud-billing/PRD.md (referenced for outcomes + personas)
+billing/policies/cloud-billing.cedar (195 lines)
+billing/policies/billing-components-gates.cedar (156 lines)
+billing/policies/conversion-gates.cedar (142 lines)
+billing/policies/demo-trial-gates.cedar (174 lines)
+billing/policies/settlement-gates.cedar (126 lines)
+billing/policies/tenant-class-binding.cedar (88 lines)
+billing/PRD.md (referenced for outcomes + personas)
 ```
 
 ## Closure assertions

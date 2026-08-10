@@ -46,9 +46,9 @@ DOSSIER-CRATE-002: Existing crate `oya-cloud-billing-kernel` remains untouched b
 DOSSIER-CONTRACT-001: OpenAPI 3.2.0: contracts/openapi/cloud/cloud-billing-invoice-v1.yaml.
 DOSSIER-CONTRACT-002: AsyncAPI 3.1.0: contracts/asyncapi/cloud/cloud-billing-events-v1.yaml.
 DOSSIER-CONTRACT-003: proto3: contracts/proto/cloud/billing/v1/cloud-billing-event-v1.proto.
-DOSSIER-CAPABILITY-001: T? billing-metering-ingest risk=high file=microservices/cloud-billing/implementation-plans/IP-007-asyncapi-billing-events.md.
-DOSSIER-CAPABILITY-002: T? invoice-generation risk=high file=microservices/cloud-billing/implementation-plans/IP-006-openapi-invoice-endpoint.md.
-DOSSIER-CAPABILITY-003: T? focus-export risk=limited file=microservices/cloud-billing/implementation-plans/IP-011-revenue-attribution-cost-centers.md.
+DOSSIER-CAPABILITY-001: T? billing-metering-ingest risk=high file=billing/implementation-plans/IP-007-asyncapi-billing-events.md.
+DOSSIER-CAPABILITY-002: T? invoice-generation risk=high file=billing/implementation-plans/IP-006-openapi-invoice-endpoint.md.
+DOSSIER-CAPABILITY-003: T? focus-export risk=limited file=billing/implementation-plans/IP-011-revenue-attribution-cost-centers.md.
 
 ## 3. ADR-0339 Doctrine Binding
 ADR0339-001: Purpose binding: collapse 385 per-service from-scratch module directories into roughly 50 shared OpenTofu primitives plus thin wrappers.
@@ -299,7 +299,7 @@ ALT-004: Delay `cloud-billing` manifest declaration until implementation; reject
 ALT-005: Allow unpinned local module paths during migration; rejected because the exact path would work locally while hiding supply-chain and reproducibility risk.
 
 ## 15. Acceptance And Verification
-VERIFY-001: Static read confirms this file exists at `microservices/cloud-billing/IPs/IP-ADR-0339-Shared-IaC-Modules.md`.
+VERIFY-001: Static read confirms this file exists at `billing/IPs/IP-ADR-0339-Shared-IaC-Modules.md`.
 VERIFY-002: Static read confirms ADR-0339 is cited by exact ID.
 VERIFY-003: Static read confirms ADR-0322 is cited by exact ID.
 VERIFY-004: Static read confirms ADR-0181 is cited by exact ID.

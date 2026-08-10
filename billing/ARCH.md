@@ -17,10 +17,10 @@ related_adrs:
   - ADR-0348
   - ADR-0349
 companion_docs:
-  - microservices/cloud-billing/manifest.json
-  - microservices/cloud-billing/PRD.md
-  - microservices/cloud-billing/README.md
-  - microservices/cloud-billing/ARCHITECTURE.md
+  - billing/manifest.json
+  - billing/PRD.md
+  - billing/README.md
+  - billing/ARCHITECTURE.md
 ---
 
 # Architecture: Cloud Billing

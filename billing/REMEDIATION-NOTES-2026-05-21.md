@@ -5,8 +5,8 @@ status: Accepted
 date: 2026-05-21
 microservice: cloud-billing
 scope: closure-documentation-only
-write_scope: microservices/cloud-billing/REMEDIATION-NOTES-2026-05-21.md
-source_audit: microservices/cloud-billing/coherence-audit-2026-05-20.md
+write_scope: billing/REMEDIATION-NOTES-2026-05-21.md
+source_audit: billing/coherence-audit-2026-05-20.md
 ---
 
 # cloud-billing Remediation Notes - 2026-05-21
@@ -66,7 +66,7 @@ Command evidence used:
 - `rg --files microservices/cloud-billing`
 - `find microservices/cloud-billing -maxdepth 3 -type d`
 - `wc -l $(rg --files microservices/cloud-billing | sort)`
-- `rg -n "CB-F-00[1-9]|CB-F-010|CB-F-011|CB-F-012|P0" microservices/cloud-billing/coherence-audit-2026-05-20.md`
+- `rg -n "CB-F-00[1-9]|CB-F-010|CB-F-011|CB-F-012|P0" billing/coherence-audit-2026-05-20.md`
 - `ls -la microservices/cloud-billing/decisions microservices/cloud-billing/implementation-plans microservices/cloud-billing/iac microservices/cloud-billing/iac/* microservices/cloud-billing/iac/oci-guest/always-free`
 - `rg -n "foundry|Bronze|Silver|Gold|Platinum|--tier|TIER=" microservices/cloud-billing`
 - `sed -n` reads of PRD, ARCHITECTURE, README, contracts, SLOs, policies, supported-oses, and IaC files.
@@ -81,19 +81,19 @@ The new target file is intentionally not included in that pre-finalizer number.
 
 Core spec artifacts:
 
-- `microservices/cloud-billing/PRD.md` - 786 lines.
-- `microservices/cloud-billing/ARCHITECTURE.md` - 1,042 lines.
-- `microservices/cloud-billing/README.md` - 418 lines.
-- `microservices/cloud-billing/coherence-audit-2026-05-20.md` - 638 lines.
-- `microservices/cloud-billing/feature-parity-matrix-2026-05-20.md` - 438 lines.
-- `microservices/cloud-billing/performance-benchmark-numbers-2026-05-20.md` - 388 lines.
-- `microservices/cloud-billing/supported-oses.json` - 152 lines.
+- `billing/PRD.md` - 786 lines.
+- `billing/ARCHITECTURE.md` - 1,042 lines.
+- `billing/README.md` - 418 lines.
+- `billing/coherence-audit-2026-05-20.md` - 638 lines.
+- `billing/feature-parity-matrix-2026-05-20.md` - 438 lines.
+- `billing/performance-benchmark-numbers-2026-05-20.md` - 388 lines.
+- `billing/supported-oses.json` - 152 lines.
 
 Contract artifacts:
 
-- `microservices/cloud-billing/contracts/openapi.yaml` - 993 lines.
-- `microservices/cloud-billing/contracts/asyncapi.yaml` - 438 lines.
-- `microservices/cloud-billing/contracts/proto/cloud-billing.proto` - 699 lines.
+- `billing/contracts/openapi.yaml` - 993 lines.
+- `billing/contracts/asyncapi.yaml` - 438 lines.
+- `billing/contracts/proto/cloud-billing.proto` - 699 lines.
 
 SLO artifacts:
 
@@ -308,7 +308,7 @@ D-1 manifest.json.
 
 Status: DEFERRED.
 
-Evidence: no `microservices/cloud-billing/manifest.json` was found.
+Evidence: no `billing/manifest.json` was found.
 
 D-2 PRD tenant-class capability surface.
 
@@ -434,7 +434,7 @@ Conclusion:
 
 Status: CLOSED for manifest presence and content.
 
-File: `microservices/cloud-billing/supported-oses.json`.
+File: `billing/supported-oses.json`.
 
 Line count: 152.
 
@@ -646,9 +646,9 @@ Existing Rust crates on tree (workspace members, confirmed):
 
 Existing contract surfaces on tree:
 
-- `microservices/cloud-billing/contracts/openapi.yaml` (993 lines).
-- `microservices/cloud-billing/contracts/asyncapi.yaml` (438 lines).
-- `microservices/cloud-billing/contracts/proto/cloud-billing.proto` (699 lines).
+- `billing/contracts/openapi.yaml` (993 lines).
+- `billing/contracts/asyncapi.yaml` (438 lines).
+- `billing/contracts/proto/cloud-billing.proto` (699 lines).
 
 Existing Cedar policies on tree:
 
@@ -702,7 +702,7 @@ REMEDIATION-NOTES section appended: Y.
 COMPLETION REPORT - Wave 15B cloud-billing remediation-notes finalizer
 
 Target written:
-microservices/cloud-billing/REMEDIATION-NOTES-2026-05-21.md
+billing/REMEDIATION-NOTES-2026-05-21.md
 
 Write scope honored:
 Only the remediation-notes target was authored by this finalizer.
@@ -749,7 +749,7 @@ Finalizer complete when this file exists, exceeds 200 lines, references existing
 ## Wave 15-Valkey migration (2026-05-21)
 
 Per ADR-0336, Redis vocabulary replaced with Valkey in:
-- `microservices/cloud-billing/ARCHITECTURE.md`
+- `billing/ARCHITECTURE.md`
 
 Counterpart-fact preservations:
 - None.
@@ -810,7 +810,7 @@ IP-by-IP changes:
 - Cost: Warm regional capacity, backup-drill evidence, and audit-chain continuity are mandatory operating expenses.
 
 ### Block 3: pod_runtime_tier
-- Values: pod_runtime_tier=2; evidence=microservices/cloud-billing/PRD.md, microservices/cloud-billing/ARCHITECTURE.md, microservices/cloud-billing/implementation-plans/IP-014-cell-aware-billing-data-residency.md.
+- Values: pod_runtime_tier=2; evidence=billing/PRD.md, billing/ARCHITECTURE.md, billing/implementation-plans/IP-014-cell-aware-billing-data-residency.md.
 - ADR: ADR-0338, cross-checked against ADR-0340 cell placement Tier-3.
 - Why: First-party billing application workload: it handles Oyatie-authored metering, invoices, settlement, and exports; it does not execute tenant-customer code, while FINANCIAL rows and event ledgers are protected by Cedar and audit-chain rather than a Tier-1 substrate runtime.
 - Rejected: defaulting blindly to Tier 2 was rejected because runtime isolation must follow tenant-code, substrate, app, or edge semantics rather than service-name convention.
