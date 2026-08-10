@@ -1,0 +1,171 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.com/specs/integ-branch-envelopes.json",
+  "title": "IntegBranchEnvelopes",
+  "description": "Machine-readable Swarm Delivery Law path envelopes: durable integ/<root> and integ/{docs,specs} branches, hub sole-owner list, adjunct claim rules, and concurrent-safe exemption pointers. Owned by integ/specs (ADR-0711 D-8).",
+  "_meta": {
+    "doc_class": "Machine-Readable-Spec",
+    "spec_id": "EXE-INTEG-BRANCH-ENVELOPES",
+    "version": "1.0.0",
+    "status": "Proposed",
+    "owner_team": "council-architecture",
+    "created_at": "2026-08-10T00:00:00Z",
+    "authority_adr": "docs/decisions/ADR-0711-swarm-delivery-law-integ-branch-topology.md",
+    "self_owner_branch": "integ/specs",
+    "primary_consumer": "governance/check/integ-envelope + .claude/workflows/deliver.js Claim",
+    "purpose": "Policy-as-data for envelope containment, hub exclusivity, and concurrent-safe exemptions under the Swarm Delivery Law."
+  },
+  "admission": {
+    "trunk": "dev",
+    "allowed_head_branch_prefixes": ["integ/", "hotfix/"],
+    "unit_branch_prefixes_forbidden_for_trunk_pr": ["impl/", "agent/", "lane/"],
+    "max_open_prs_per_integ": 1,
+    "post_land_reset": {
+      "mode": "server-side-refspec",
+      "refspec_template": "origin/dev:refs/heads/integ/{root}",
+      "command_example": "git push --force-with-lease origin origin/dev:refs/heads/integ/{root}",
+      "forbidden": ["local git reset", "worker force-push"]
+    }
+  },
+  "roots": {
+    "os": {
+      "branch": "integ/os",
+      "envelope_globs": ["os/**"]
+    },
+    "ci": {
+      "branch": "integ/ci",
+      "envelope_globs": ["ci/**"]
+    },
+    "governance": {
+      "branch": "integ/governance",
+      "envelope_globs": ["governance/**"]
+    },
+    "workflow": {
+      "branch": "integ/workflow",
+      "envelope_globs": ["workflow/**"]
+    },
+    "build": {
+      "branch": "integ/build",
+      "envelope_globs": ["build/**"]
+    },
+    "cloud": {
+      "branch": "integ/cloud",
+      "envelope_globs": ["cloud/**"]
+    },
+    "flags": {
+      "branch": "integ/flags",
+      "envelope_globs": ["flags/**"]
+    },
+    "libs": {
+      "branch": "integ/libs",
+      "envelope_globs": ["libs/**"]
+    },
+    "console": {
+      "branch": "integ/console",
+      "envelope_globs": ["console/**"]
+    },
+    "oya": {
+      "branch": "integ/oya",
+      "envelope_globs": ["oya/**"]
+    },
+    "marketplace": {
+      "branch": "integ/marketplace",
+      "envelope_globs": ["marketplace/**"]
+    },
+    "registry": {
+      "branch": "integ/registry",
+      "envelope_globs": ["registry/**"]
+    }
+  },
+  "planes": {
+    "docs": {
+      "branch": "integ/docs",
+      "envelope_globs": ["docs/**"]
+    },
+    "specs": {
+      "branch": "integ/specs",
+      "envelope_globs": ["specs/**"]
+    }
+  },
+  "hubs": {
+    "sole_owner_per_wave": true,
+    "paths": [
+      "specs/masterplan.json",
+      "specs/capability-registry.json",
+      "specs/root-hub-pointers.json",
+      "docs/ADR-INDEX.md",
+      "docs/DOC-CATALOG.md",
+      "docs/CHANGELOG.md",
+      "governance/check/adr-citation-closure/adr-citation-closure-policy.json",
+      "Cargo.lock"
+    ],
+    "waiver_dir": "governance/check/integ-envelope/waivers/",
+    "waiver_row_fields": ["branch", "hub", "reason"]
+  },
+  "adjunct_claims": {
+    "description": "A unit may touch paths outside envelope(R) only when an explicit adjunct claim is recorded for this wave. Claims are fail-closed: absent claim = refuse.",
+    "required_fields": ["path_glob", "claiming_branch", "reason", "expires_at_or_wave"],
+    "rules": [
+      "Adjunct leaves must be disjoint from every other open integ PR's claimed set.",
+      "Hub paths are never adjuncts — they use hub waivers only.",
+      "Concurrent-safe exemption paths do not require adjunct claims when the edit is append-only under the registered exemption.",
+      "Cargo.lock may travel only with the integ that changed workspace membership (hub rule), never as a silent adjunct."
+    ]
+  },
+  "claim_phase": {
+    "required_steps": [
+      "git fetch",
+      "verify unit diff is subset of envelope(R) + claimed adjuncts + waivered hubs",
+      "git merge-tree (read-only) against integ tip",
+      "verify hub exclusivity against open PRs",
+      "admit by cherry-pick",
+      "re-verify at push time"
+    ],
+    "encoded_in": [".claude/workflows/deliver.js#Claim"]
+  },
+  "concurrent_safe_exemptions": {
+    "registry": "registry/vcs/concurrent-safe-paths.yaml",
+    "paths": [
+      ".beads/**",
+      "evidence/**",
+      ".grok/programs/*/evidence/**"
+    ],
+    "note": "Exemptions reduce path-overlap refusal for append-only / per-lane evidence. They do not authorize envelope escape for product code."
+  },
+  "worker_git_discipline": {
+    "allow": [
+      "status",
+      "diff",
+      "log",
+      "show",
+      "fetch",
+      "merge-base",
+      "merge-tree",
+      "rev-parse",
+      "add <explicit paths>",
+      "commit",
+      "push (blessed script only)"
+    ],
+    "deny": [
+      "stash",
+      "reset",
+      "clean",
+      "restore",
+      "checkout",
+      "rebase",
+      "merge",
+      "branch -D/-f",
+      "update-ref",
+      "reflog expire",
+      "gc",
+      "push --force (bare)"
+    ],
+    "enforcement": "tools/swarm/git-shim (Phase A companion)"
+  },
+  "worktree_topology": {
+    "main_checkout": "orchestrator + check daemon only",
+    "integ_stations": ".worktrees/integ-<root>",
+    "worker_lanes": ".worktrees/lane-<bead>",
+    "worker_base_ref": "origin/dev"
+  }
+}
