@@ -3,6 +3,7 @@
   "_artifact_id": "knowledge-graph-dynamic",
   "_layer": "dynamic",
   "_meta": {
+    "seat_a_wave5_note": "2026-08-10: dropped edges referencing foundry-supervisor-template* / templates/foundry-supervisor (deleted on integ/docs #1645@2e7dace3b).",
     "doc_class": "Registry",
     "purpose": "DYNAMIC layer (Palantir Foundry 3-layer model): live state + telemetry pointers + audit-chain event stream. WHAT THINGS ARE RIGHT NOW. Real-time + time-series + recent activity.",
     "owner_team": "council-architecture + axis-foundry",
@@ -116,23 +117,6 @@
       "added_by": "worker-registry",
       "source_amendment": "v6-PRE-4",
       "rationale": "SettingsRenderer reads registry/accounts/*.toml at render time to produce per-account files. Data flow: accounts registry -> renderer -> per-account settings."
-    },
-    {
-      "edge_id": "lean-settings-drift__enforces__foundry-supervisor-template",
-      "subject_id": "lean-settings-drift",
-      "subject_type": "Artifact",
-      "predicate": "enforces",
-      "object_id": "foundry-supervisor-template-claude",
-      "object_type": "Artifact",
-      "object_description": "foundry-supervisor-template-{claude,codex,gemini} — all three templates enforced by this lane",
-      "added_at": "2026-05-15T00:00:00Z",
-      "added_by": "worker-registry",
-      "source_amendment": "v6-PRE-4",
-      "rationale": "lean-settings-drift CI lane runs SettingsRenderer::verify against all provider templates. Feature-flagged off until N>=10 account rows per v5 §A.1.2.",
-      "also_enforces": [
-        "foundry-supervisor-template-codex",
-        "foundry-supervisor-template-gemini"
-      ]
     },
     {
       "edge_id": "SettingsRenderer__reads__SecretStorePort",
