@@ -1,0 +1,177 @@
+openapi: 3.2.0
+info:
+  title: ITSM Local Operational API
+  version: 1.0.0
+  summary: Local operational contract for incident, change, problem, CMDB, knowledge base, and service-level management operations.
+  x-binding-adrs: [ADR-0130, ADR-0131, ADR-0139]
+servers:
+  - url: https://api.oyatie.com/itsm/v1
+    description: Tenant-scoped production API with HTTP/3 default and strict TLS 1.3.
+paths:
+  /itsm/v1/service-records/{resource_id}/policy-check:
+    post:
+      operationId: checkItsmLocalPolicy
+      summary: Evaluate ITSM local policy for incident, change, problem operations.
+      security: [{ tenantBearer: [] }]
+      parameters:
+        - name: resource_id
+          in: path
+          required: true
+          schema: { type: string, minLength: 8 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LocalPolicyCheckRequest'
+      responses:
+        '200':
+          description: Policy decision with audit event binding.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LocalPolicyDecision'
+  /itsm/v1/service-records/{resource_id}/slo-state:
+    get:
+      operationId: getItsmLocalSloState
+      summary: Read ITSM domain SLO burn state including mttr-objective.
+      security: [{ tenantBearer: [] }]
+      parameters:
+        - name: resource_id
+          in: path
+          required: true
+          schema: { type: string, minLength: 8 }
+        - name: slo_name
+          in: query
+          required: false
+          schema: { type: string }
+      responses:
+        '200':
+          description: Current SLO state for the local domain suite.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LocalSloState'
+  /itsm/v1/service-records/{resource_id}/operator-remediation:
+    post:
+      operationId: invokeItsmOperatorRemediation
+      summary: Start an audited remediation workflow for incident, change, problem, CMDB, knowledge base, and service-level management operations.
+      security: [{ tenantBearer: [] }]
+      parameters:
+        - name: resource_id
+          in: path
+          required: true
+          schema: { type: string, minLength: 8 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OperatorRemediationRequest'
+      responses:
+        '202':
+          description: Remediation workflow accepted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RemediationAccepted'
+components:
+  x-oyatie-sharding-automation-event-surface:
+    microservice: itsm
+    wave: 15-ZF-13
+    artifact_type: contracts
+    scope: OpenAPI components metadata for the sharding_automation event surface.
+    wire_shape: Extension-only annotation; no paths, operations, schemas, requestBodies, responses, headers, securitySchemes, or examples are added.
+    doctrine_refs:
+      ADR-0346:
+        purpose: >-
+          Establish that ./bin/oya verify --ci-required is the canonical local pre-push verifier and MUST locally mirror the full CI matrix and MUST block on exit-0 of EACH step before returning success to the caller.
+        enforced_by:
+          - oya-governance-oya-verify-ci-mirror-coverage
+          - oya-governance-oya-verify-ci-step-exit-semantics
+          - oya-governance-oya-verify-skip-flag-allowlist
+          - oya-governance-oya-submit-calls-verify
+          - oya-governance-oya-verify-exit-code-contract
+      ADR-0347:
+        purpose: >-
+          Declare that every oya-governance-* CI lane prefix in the Oyatie corpus RENAMES to oya-governance-* in a single bulk-rename pull request.
+        enforced_by:
+          - oya-governance-no-foundry-fitness-residue
+          - oya-governance-lane-prefix-vocabulary
+          - oya-governance-rename-inventory-presence
+      ADR-0348:
+        purpose: >-
+          Declare that cellular topology MUST support three control-plane-driven automation modes: AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING.
+        enforced_by:
+          - oya-governance-sharding-automation-coverage
+          - oya-governance-autosharding-manual-mode-refusal
+          - oya-governance-auto-rebalance-residency-honored
+          - oya-governance-dynamic-sharding-threshold-coverage
+          - oya-governance-audit-chain-emit-on-automation-events
+          - oya-governance-tenant-migration-reversibility
+        event_surface:
+          autosharding: tenant_to_cell_shard_placement is computed by the control plane automatically.
+          auto_rebalance: tenant migration honors residency and compliance pack constraints and is observable, reversible, and audit-chain-emit per ADR-0263.
+          dynamic_sharding: HOT-SPLIT and COLD-MERGE shard-count operations are atomic and audit-emit.
+          manifest_block: sharding_automation declares autosharding, auto_rebalance, and dynamic_sharding sub-blocks.
+      ADR-0349:
+        purpose: >-
+          Declare Jenkins (LTS) and ArgoCD as the two canonical self-hostable CI/CD substrates for the Oyatie corpus.
+        enforced_by:
+          - oya-governance-jenkins-github-actions-parity
+          - oya-governance-argocd-application-cosign-verified
+          - oya-governance-argocd-tenant-namespace-isolation
+          - oya-governance-jenkins-jcasc-only
+          - oya-governance-deploy-audit-chain-emit
+    consumer_guidance:
+      generators: Ignore this x-extension for SDK and server wire generation.
+      governance: Use this x-extension as doctrine metadata for sharding_automation event-surface review only.
+  securitySchemes:
+    tenantBearer:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    LocalPolicyCheckRequest:
+      type: object
+      required: [tenant_id, principal_id, requested_action, data_class, purpose, audit_event_class]
+      properties:
+        tenant_id: { type: string, minLength: 4 }
+        principal_id: { type: string, minLength: 4 }
+        requested_action: { type: string, enum: ['incident.ticket.create', 'change.request.approve', 'problem.link', 'cmdb.relation.update', 'sla.recompute', 'kb.publish'] }
+        data_class: { type: string, enum: ['incident_ticket', 'change_request', 'problem_record', 'cmdb_relation', 'sla_clock', 'knowledge_article'] }
+        purpose: { type: string, enum: ['operate', 'support', 'security-review', 'regulated-audit'] }
+        audit_event_class: { type: string, pattern: '^[A-Z][A-Za-z0-9]+$' }
+    LocalPolicyDecision:
+      type: object
+      required: [decision, policy_file, audit_event_id]
+      properties:
+        decision: { type: string, enum: ['permit', 'forbid'] }
+        policy_file: { type: string }
+        audit_event_id: { type: string }
+        denied_reason: { type: string }
+    LocalSloState:
+      type: object
+      required: [service, slo_name, window, objective, current_value, burn_rate]
+      properties:
+        service: { type: string, const: 'itsm' }
+        slo_name: { type: string }
+        window: { type: string }
+        objective: { type: number }
+        current_value: { type: number }
+        burn_rate: { type: number }
+    OperatorRemediationRequest:
+      type: object
+      required: [tenant_id, incident_key, runbook, mitigation]
+      properties:
+        tenant_id: { type: string }
+        incident_key: { type: string }
+        runbook: { type: string }
+        mitigation: { type: string }
+    RemediationAccepted:
+      type: object
+      required: [workflow_run_id, audit_event_id, expected_operator_update_at]
+      properties:
+        workflow_run_id: { type: string }
+        audit_event_id: { type: string }
+        expected_operator_update_at: { type: string, format: date-time }

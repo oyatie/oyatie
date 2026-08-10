@@ -1,0 +1,21 @@
+[package]
+name = "oya-itsm-status-update"
+version = "0.1.0"
+edition = "2024"
+rust-version.workspace = true
+license = "Apache-2.0"
+publish = false
+description = "Status Update bounded context for the ITSM µservice (statuspage-class incident communications)."
+
+[package.metadata.oya]
+microservice = "itsm"
+bounded_context = "status-update"
+counterparts = ["Atlassian Statuspage", "FireHydrant Statuspage", "Opsgenie Status"]
+binding_adrs = ["ADR-0105", "ADR-0131", "ADR-0243", "ADR-0244", "ADR-0245", "ADR-0263", "ADR-0328"]
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+[lints]
+workspace = true

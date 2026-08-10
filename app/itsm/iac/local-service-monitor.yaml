@@ -1,0 +1,20 @@
+apiVersion: oyatie.dev/v1
+kind: ServiceMonitor
+metadata:
+  name: itsm-local-ops
+  labels:
+    service: itsm
+    suite: local-operational-primitive
+    adr: ADR-0130
+spec:
+  service: itsm
+  endpoints:
+    - port: http3
+      path: /metrics
+      interval: 30s
+  metricAllowList:
+    - oya_itsm_mttr_objective_good_total
+    - oya_itsm_change_failure_rate_good_total
+  tenantScoped: true
+  policyFiles:
+    - policies/local-incident-ticket-scope.cedar

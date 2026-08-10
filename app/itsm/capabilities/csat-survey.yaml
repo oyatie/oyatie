@@ -1,0 +1,29 @@
+apiVersion: oyatie.dev/v2
+kind: CapabilityRecord
+metadata:
+  name: itsm-csat-survey
+  service: itsm
+spec:
+  businessCapability: service-management
+  capability: csat-survey
+  counterparts:
+    - "ServiceNow Survey"
+    - "Jira Service Management CSAT"
+    - "Freshservice CSAT"
+  bindingAdrs: [ADR-0105, ADR-0131, ADR-0243, ADR-0244, ADR-0263, ADR-0328]
+  surface:
+    survey_kinds:
+      - csat_post_incident_close
+      - ces_customer_effort_score
+      - nps_periodic
+    delivery_channels: [email, personal_messenger, in_app_widget]
+  tenantScope:
+    requiredFields: [tenant_id, requester_principal_id, audience_type, purpose, data_class]
+    dataClass: survey_response
+  cedarGate: microservices/itsm/policy/csat-survey-authorization.cedar
+  privacy:
+    pii_scope: respondent_principal_id_only
+    pseudonymization_supported_per_pack: [GDPR, KR-PIPA]
+  tenantClassSupport:
+    demo_trial: true
+    paid: true

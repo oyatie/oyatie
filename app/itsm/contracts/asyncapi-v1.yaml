@@ -1,0 +1,34 @@
+asyncapi: 3.1.0
+info:
+  title: ITSM Events
+  version: 1.0.0
+  description: Tenant-scoped event contract for incident, problem, change, service catalog, and CMDB evidence.
+defaultContentType: application/json
+channels:
+  itsm.events.v1:
+    address: itsm.events.v1
+    messages:
+      itsmActionAccepted:
+        $ref: '#/components/messages/ActionAccepted'
+operations:
+  publishActionAccepted:
+    action: send
+    channel:
+      $ref: '#/channels/itsm.events.v1'
+    messages:
+      - $ref: '#/channels/itsm.events.v1/messages/itsmActionAccepted'
+components:
+  messages:
+    ActionAccepted:
+      name: ItsmActionAccepted
+      title: ITSM action accepted
+      payload:
+        type: object
+        required: [tenant_id, principal_id, audit_event_class, event_time, deal_set_id]
+        properties:
+          tenant_id: { type: string }
+          principal_id: { type: string }
+          audit_event_class: { type: string }
+          event_time: { type: string, format: date-time }
+          deal_set_id: { type: string }
+          transport_profile: { type: string, const: h3-h2-h1-strict-tls13-ech-pqc }

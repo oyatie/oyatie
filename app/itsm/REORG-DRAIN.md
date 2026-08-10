@@ -8,17 +8,15 @@
 
 ## Completed (this rail)
 
-- Slice 1: product metadata absorb — `manifest.json`, `README.md`, `slos/**`.
+- Wave-1 absorb: product dump + 6 ITSM crates to `app/itsm/`.
+- Path cites rewritten `oya/itsm` → `app/itsm` inside forever home.
+- BUCK cites retargeted `//oya/itsm/` → `//app/itsm/`.
 
-## Next gaps (ordered)
+## Remaining for shrink phase (`integ/oya`)
 
-1. **Contracts + policy** — `contracts/`, `policy/`, `policies/`, `cedar/`, `catalog/` from `oya/itsm`.
-2. **Capabilities + crates** — bounded-context manifests and `oya-itsm-*` crate rehome.
-3. **IaC + dashboards** — `iac/`, `dashboards/`, `runbooks/`, `scorecards/`, `IPs/`, `decisions/`, `dpia/`.
-4. **Shrink-only burn** — after verify, delete absorbed paths on `integ/oya` (not this rail).
+- Delete absorbed `oya/itsm/**` paths after verify (shrink-only rail).
+- Hub retargets on tip-free `integ/specs`.
 
-## Out of envelope (do not touch from `integ/itsm`)
+## Out of envelope
 
 - `oya/itsm/**` deletes — `integ/oya` shrink-only rail only.
-- Other products under `oya/*` or `app/*`.
-- `Cargo.lock` / `AUDIT-FINDINGS-*` / `supported-oses.json` — deferred or judgment-gated.
