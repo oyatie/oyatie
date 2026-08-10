@@ -15,11 +15,17 @@ set -euo pipefail
 SWARM_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SHIM_BIN="${SWARM_DIR}/shim-bin"
 
-# Ensure shim-bin entries are symlinks so basename($0) stays git/cargo/buck2.
+# Ensure shim-bin entries are relative symlinks so basename($0) stays
+# git/cargo/buck2 WITHOUT rewriting tracked targets to absolute machine paths
+# (git stores symlink text; absolute targets dirty the worktree on every start).
 mkdir -p "$SHIM_BIN"
-ln -sfn "${SWARM_DIR}/git-shim" "${SHIM_BIN}/git"
-ln -sfn "${SWARM_DIR}/toolguard" "${SHIM_BIN}/cargo"
-ln -sfn "${SWARM_DIR}/toolguard" "${SHIM_BIN}/buck2"
+# Create relative links from inside shim-bin/ so the stored target stays ../…
+(
+  cd "$SHIM_BIN"
+  ln -sfn ../git-shim git
+  ln -sfn ../toolguard cargo
+  ln -sfn ../toolguard buck2
+)
 chmod +x "${SWARM_DIR}/git-shim" "${SWARM_DIR}/toolguard" "${SWARM_DIR}/check-daemon" \
   "${SWARM_DIR}/claim-push.sh" "${SWARM_DIR}/integ-reset-remote.sh" "${SWARM_DIR}/lane-shell.sh"
 

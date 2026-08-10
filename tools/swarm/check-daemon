@@ -78,12 +78,17 @@ def repo_root() -> Path:
         return Path.cwd().resolve()
 
 
-def is_main_checkout(root: Path) -> bool:
-    """Best-effort: main checkout is not a linked worktree (.git is a directory)."""
+def is_allowed_checkout(root: Path) -> bool:
+    """Main checkout, explicit candidate root, or a Swarm `.worktrees/` station."""
     git_path = root / ".git"
     if git_path.is_dir():
         return True
     if os.environ.get("SWARM_ALLOW_WORKTREE") == "1":
+        return True
+    if os.environ.get("SWARM_CANDIDATE_ROOT", "").strip():
+        return True
+    # Linked integ/worker stations live under .worktrees/ per envelopes topology.
+    if ".worktrees" in root.parts:
         return True
     return False
 
@@ -353,11 +358,14 @@ def main() -> None:
     if os.environ.get("SWARM_ORCHESTRATOR") != "1":
         die(DENY_MSG)
 
-    root = repo_root()
-    if not is_main_checkout(root):
+    candidate = os.environ.get("SWARM_CANDIDATE_ROOT", "").strip()
+    root = Path(candidate).resolve() if candidate else repo_root()
+    if not is_allowed_checkout(root):
         die(
-            "check-daemon: refusing to run in a linked worktree; "
-            "run from the main checkout (or set SWARM_ALLOW_WORKTREE=1 for tests)"
+            "check-daemon: refusing unmarked linked worktree; "
+            "run from main checkout, a `.worktrees/` station, "
+            "or set SWARM_CANDIDATE_ROOT=/path/to/candidate "
+            "(SWARM_ALLOW_WORKTREE=1 remains a test escape)"
         )
 
     mode = os.environ.get("SWARM_CHECK_MODE", "workspace").strip().lower()
