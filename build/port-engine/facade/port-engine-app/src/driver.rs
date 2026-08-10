@@ -1,13 +1,18 @@
 //! Facade driver wiring: composes kernel entry points with W0-B adapters.
 //!
-//! Slice 13 wires single-fixture canary emit (no bulk `k8s/`). Cell remap remains PARKED.
+//! Slice 14 wires canary materialize round-trip + planted-defect detect (no bulk `k8s/`).
+//! Cell remap remains PARKED.
 
 use std::collections::BTreeMap;
+use std::path::{Path, PathBuf};
 
 use port_engine_api::{
     Digest, Receipt, RegionId, RulePack, SourceModel, TargetIr, UnitId, w0_ready as api_ready,
 };
-use port_engine_emit::{emit_canary_checked, CanaryArtifact, EmitError, w0_ready as emit_ready};
+use port_engine_emit::{
+    emit_canary_checked, materialize_canary_roundtrip, select_canary, CanaryArtifact, EmitError,
+    w0_ready as emit_ready,
+};
 use port_engine_frontend_go::w0_ready as frontend_ready;
 use port_engine_hash::{digest_str, w0_ready as hash_ready};
 use port_engine_identity::{engine_digest, w0_ready as identity_ready};
@@ -22,7 +27,7 @@ use port_engine_transform::{apply, TransformError, w0_ready as transform_ready};
 
 use crate::receipt_codec::{emit_tree_digest, format_receipt, matches_golden};
 
-/// Slice 13 readiness: prior adapters + canary emit seam.
+/// Slice 14 readiness: prior adapters + canary emit / materialize seams.
 pub const fn w0_ready() -> bool {
     api_ready()
         && port_engine_source_pin::w0_ready()
@@ -294,6 +299,56 @@ pub fn smoke_emit_canary() -> Result<CanaryArtifact, PipelineError> {
     emit_canary_checked(&report.emitted).map_err(PipelineError::Canary)
 }
 
+/// Pipeline → canary golden → materialize single file → read-back round-trip.
+///
+/// `out_dir` basename must be [`port_engine_emit::CANARY_OUT_DIRNAME`]; never `k8s/`.
+///
+/// # Errors
+/// [`PipelineError`] on pipeline, canary, path, or round-trip refusal.
+pub fn smoke_materialize_canary(out_dir: &Path) -> Result<(CanaryArtifact, PathBuf), PipelineError> {
+    let artifact = smoke_emit_canary()?;
+    let dest = materialize_canary_roundtrip(out_dir, &artifact).map_err(PipelineError::Canary)?;
+    Ok((artifact, dest))
+}
+
+/// Plant a byte defect in the canary region; expect kernel Red / Unexplained.
+///
+/// Proves the single-fixture canary is on the verify surface without bulk corpus emit.
+///
+/// # Errors
+/// [`PipelineError`] when selection fails or the planted defect is not detected as Unexplained.
+pub fn smoke_canary_planted_defect() -> Result<port_engine_kernel::Verification, PipelineError> {
+    let previous = smoke_pipeline()?;
+    let canary = select_canary(&previous.emitted).map_err(PipelineError::Canary)?;
+    let mut current_emitted = previous.emitted.clone();
+    current_emitted.insert(
+        canary.region.clone(),
+        b"pub fn planted_canary_defect () { }".to_vec(),
+    );
+    let verification = port_engine_kernel::verify(
+        &previous.receipt,
+        &previous.emitted,
+        &previous.receipt,
+        &current_emitted,
+    );
+    let expected_red = matches!(
+        (&verification.verdict, &verification.delta),
+        (
+            port_engine_kernel::Verdict::Red,
+            port_engine_kernel::Delta::Unexplained { regions }
+        ) if regions.contains(&canary.region)
+    );
+    if !expected_red {
+        return Err(PipelineError::Emit(port_engine_api::PortError::Render {
+            detail: format!(
+                "planted canary defect expected Red/Unexplained containing `{}`, got {:?}",
+                canary.region.0, verification
+            ),
+        }));
+    }
+    Ok(verification)
+}
+
 /// Typed refusal from the Slice 7 plan smoke.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum PlanSmokeError {
@@ -360,7 +415,9 @@ mod tests {
     use super::*;
 
     #[test]
-    fn slice13_driver_wiring_is_ready() {
+    fn slice14_driver_wiring_is_ready() {
+        use std::time::{SystemTime, UNIX_EPOCH};
+
         assert!(w0_ready());
         fleet_pin().expect("fleet pin must load");
         smoke_render_stub().expect("empty renderer stub must emit");
@@ -399,6 +456,22 @@ mod tests {
         assert_eq!(verification.verdict, port_engine_kernel::Verdict::Green);
         let canary = smoke_emit_canary().expect("canary emit");
         assert!(canary.region.0.ends_with("__canary_empty_unit"));
+        let planted = smoke_canary_planted_defect().expect("planted defect");
+        assert_eq!(planted.verdict, port_engine_kernel::Verdict::Red);
+        let nanos = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .expect("time")
+            .as_nanos();
+        let out = std::env::temp_dir()
+            .join(format!("pe-facade-canary-{nanos}"))
+            .join(port_engine_emit::CANARY_OUT_DIRNAME);
+        let (art, dest) = smoke_materialize_canary(&out).expect("materialize");
+        assert_eq!(art.digest, canary.digest);
+        assert_eq!(
+            dest.file_name().and_then(|s| s.to_str()),
+            Some(port_engine_emit::CANARY_FILENAME)
+        );
+        let _ = std::fs::remove_dir_all(out.parent().expect("parent"));
         let (
             _pin,
             rust_ir,

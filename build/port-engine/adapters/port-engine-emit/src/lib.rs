@@ -1,7 +1,8 @@
-//! # port-engine-emit — single-fixture canary emit seam (W0-B Slice 13).
+//! # port-engine-emit — single-fixture canary emit seam (W0-B Slice 13/14).
 //!
 //! Selects **one** canary region from a rendered emit tree, compares it to a hermetic golden,
 //! and optionally materializes that single file under an allowlisted canary-out directory.
+//! Slice 14 adds read-back round-trip after materialize.
 //!
 //! Hard stops (W0-B / ADR-0704):
 //! - NEVER writes under `k8s/`
@@ -217,6 +218,31 @@ pub fn emit_canary_checked(
     Ok(artifact)
 }
 
+/// Materialize the canary then read it back; refuse on byte drift.
+///
+/// # Errors
+/// Path refusal, IO failure, or round-trip mismatch.
+pub fn materialize_canary_roundtrip(
+    out_dir: &Path,
+    artifact: &CanaryArtifact,
+) -> Result<PathBuf, EmitError> {
+    let dest = materialize_canary(out_dir, artifact)?;
+    let written = fs::read(&dest).map_err(|err| EmitError::Io {
+        detail: err.to_string(),
+    })?;
+    if written != artifact.bytes {
+        return Err(EmitError::Io {
+            detail: format!(
+                "canary round-trip mismatch at {}: wrote {} bytes, read {}",
+                dest.display(),
+                artifact.bytes.len(),
+                written.len()
+            ),
+        });
+    }
+    Ok(dest)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -291,10 +317,30 @@ mod tests {
             bytes: golden_canary_bytes().to_vec(),
             digest: golden_canary_digest(),
         };
-        let dest = materialize_canary(&root, &artifact).expect("materialize");
+        let dest = materialize_canary_roundtrip(&root, &artifact).expect("materialize+roundtrip");
         assert_eq!(dest.file_name().and_then(|s| s.to_str()), Some(CANARY_FILENAME));
         let written = fs::read(&dest).expect("read back");
         assert_eq!(written, golden_canary_bytes());
         let _ = fs::remove_dir_all(root.parent().expect("parent"));
+    }
+
+    /// ADR-0704 / W0-B fence: production emit must refuse `k8s` path components (bulk corpus).
+    #[test]
+    fn production_source_documents_k8s_refuse() {
+        let src = include_str!("lib.rs");
+        let production = src
+            .split("#[cfg(test)]")
+            .next()
+            .expect("lib.rs must have a production section");
+        assert!(
+            production.contains("refusing materialize under"),
+            "emit adapter must keep an explicit k8s materialize refuse path"
+        );
+        // Never construct a default destination under the corpus root.
+        let bad = ["\"", "k8s", "/", "\""].concat();
+        assert!(
+            !production.contains(&bad),
+            "emit adapter must not hard-code a k8s/ destination string"
+        );
     }
 }

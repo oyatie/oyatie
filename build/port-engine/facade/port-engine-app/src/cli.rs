@@ -1,8 +1,9 @@
-//! Hand-rolled CLI for `port-engine-app` (W0-B Slice 13).
+//! Hand-rolled CLI for `port-engine-app` (W0-B Slice 14).
 //!
 //! Bridge feedback only — never merge authority (CLI surfaces are retirement-marked). No clap /
 //! argv crate: keep the facade free of new lock-forcing deps.
 
+use std::path::Path;
 use std::process::ExitCode;
 
 use crate::driver;
@@ -10,7 +11,7 @@ use crate::receipt_codec;
 use crate::receipt_e2e;
 
 const USAGE: &str = "\
-port-engine-app — owned deterministic port-engine driver (W0-B Slice 13)
+port-engine-app — owned deterministic port-engine driver (W0-B Slice 14)
 
 Usage:
   port-engine-app <command> [args]
@@ -22,6 +23,9 @@ Commands:
   emit-stub         Smoke empty-renderer emit via kernel
   emit-syn          Smoke syn/quote typed emit
   emit-canary       Select single canary region; fail closed vs golden
+  materialize-canary <dir>
+                    Write single canary.rs under allowlisted canary-out dir
+  canary-defect     Plant canary byte defect; expect Red/Unexplained
   digest <text>     SHA-256 digest of UTF-8 text (Slice 7 hash adapter)
   rulepack          Load fixture-gated rulepack v0; print digest + fixture count
   plan              Plan embedded rulepack against example units
@@ -53,6 +57,8 @@ pub fn run(args: &[String]) -> ExitCode {
         "emit-stub" => cmd_emit_stub(),
         "emit-syn" => cmd_emit_syn(),
         "emit-canary" => cmd_emit_canary(),
+        "materialize-canary" => cmd_materialize_canary(args.get(1).map(String::as_str)),
+        "canary-defect" => cmd_canary_defect(),
         "digest" => cmd_digest(args.get(1).map(String::as_str)),
         "rulepack" => cmd_rulepack(),
         "plan" => cmd_plan(),
@@ -148,6 +154,45 @@ fn cmd_emit_canary() -> ExitCode {
         }
         Err(err) => {
             eprintln!("port-engine-app: emit-canary failed: {err}");
+            ExitCode::from(1)
+        }
+    }
+}
+
+fn cmd_materialize_canary(out_dir: Option<&str>) -> ExitCode {
+    let Some(out_dir) = out_dir else {
+        eprintln!("port-engine-app: materialize-canary requires <dir>");
+        eprint!("{USAGE}");
+        return ExitCode::from(2);
+    };
+    match driver::smoke_materialize_canary(Path::new(out_dir)) {
+        Ok((art, dest)) => {
+            println!(
+                "materialize-canary=ok region={} digest={} path={}",
+                art.region.0,
+                art.digest.0,
+                dest.display()
+            );
+            ExitCode::SUCCESS
+        }
+        Err(err) => {
+            eprintln!("port-engine-app: materialize-canary failed: {err}");
+            ExitCode::from(1)
+        }
+    }
+}
+
+fn cmd_canary_defect() -> ExitCode {
+    match driver::smoke_canary_planted_defect() {
+        Ok(verification) => {
+            println!(
+                "canary-defect=ok verdict={:?} delta={:?}",
+                verification.verdict, verification.delta
+            );
+            ExitCode::SUCCESS
+        }
+        Err(err) => {
+            eprintln!("port-engine-app: canary-defect failed: {err}");
             ExitCode::from(1)
         }
     }
@@ -330,7 +375,9 @@ mod tests {
     }
 
     #[test]
-    fn slice13_commands_succeed() {
+    fn slice14_commands_succeed() {
+        use std::time::{SystemTime, UNIX_EPOCH};
+
         assert_eq!(run(&args(&["digest", "port-engine"])), ExitCode::SUCCESS);
         assert_eq!(run(&args(&["rulepack"])), ExitCode::SUCCESS);
         assert_eq!(run(&args(&["plan"])), ExitCode::SUCCESS);
@@ -345,6 +392,20 @@ mod tests {
         assert_eq!(run(&args(&["verify"])), ExitCode::SUCCESS);
         assert_eq!(run(&args(&["verify-e2e"])), ExitCode::SUCCESS);
         assert_eq!(run(&args(&["emit-canary"])), ExitCode::SUCCESS);
+        assert_eq!(run(&args(&["canary-defect"])), ExitCode::SUCCESS);
+        let nanos = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .expect("time")
+            .as_nanos();
+        let out = std::env::temp_dir()
+            .join(format!("pe-cli-canary-{nanos}"))
+            .join(port_engine_emit::CANARY_OUT_DIRNAME);
+        let out_s = out.to_string_lossy().into_owned();
+        assert_eq!(
+            run(&args(&["materialize-canary", &out_s])),
+            ExitCode::SUCCESS
+        );
+        let _ = std::fs::remove_dir_all(out.parent().expect("parent"));
     }
 
     #[test]
@@ -355,5 +416,10 @@ mod tests {
     #[test]
     fn digest_without_arg_is_usage() {
         assert_eq!(run(&args(&["digest"])), ExitCode::from(2));
+    }
+
+    #[test]
+    fn materialize_canary_without_arg_is_usage() {
+        assert_eq!(run(&args(&["materialize-canary"])), ExitCode::from(2));
     }
 }
