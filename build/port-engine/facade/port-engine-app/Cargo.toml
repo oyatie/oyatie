@@ -7,7 +7,7 @@ publish = false
 license = "Apache-2.0"
 
 # Driver facade for the owned deterministic port engine: plan, render, verify, delta, receipt.
-# W0-B Slice 12 — receipt hardening + render/verify/delta. No Cargo.lock absorb.
+# W0-B Slice 13 — canary single-fixture emit. No Cargo.lock absorb.
 
 [[bin]]
 name = "port-engine-app"
@@ -25,6 +25,7 @@ port-engine-snapshot = { path = "../../adapters/port-engine-snapshot" }
 port-engine-identity = { path = "../../adapters/port-engine-identity" }
 port-engine-toolchain = { path = "../../adapters/port-engine-toolchain" }
 port-engine-transform = { path = "../../core/port-engine-transform" }
+port-engine-emit = { path = "../../adapters/port-engine-emit" }
 
 [lib]
 name = "port_engine_app"
