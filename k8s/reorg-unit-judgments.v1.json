@@ -1,0 +1,186 @@
+{
+  "schema_version": "reorg-unit-judgments.v1",
+  "authority": "docs/decisions/ADR-0711-swarm-delivery-law-integ-branch-topology.md#Amendment-B",
+  "owning_integ": "integ/k8s",
+  "ssot_todo": "free-capability-k8s-prep",
+  "tip_basis": "origin/dev @ 9755cf50eadf665c4339a158c0a39058d342d8b2",
+  "units": [
+    {
+      "path": "k8s/",
+      "action": "keep_forever",
+      "destination": "k8s/",
+      "shape": "capability-colocated k8s substrate docs/contracts/runbooks/IPs (ADR-0562/0615 capability root)",
+      "rationale": "1) Owns day-2 k8s ops + contract scaffolds for CS-CLOUD-COMPUTE / cloud-k8s substrate. 2) Capability root with core product docs colocated. 3) Binding for on-call runbooks + manifest contract paths. 4) Must exist as keep_forever capability root. 5) Fit: in-root forever home (not docs/k8s dump). 6) keep-as-is directory; interior stale microservices/cloud-k8s citations are hygiene, not topology move. 7) k8s/ forever.",
+      "redesign": "none — path hygiene only; do not invent missing contracts/legal/evidence trees",
+      "judgment_status": "done",
+      "disposition": "keep-as-is",
+      "name_now": "k8s/",
+      "name_forever": "k8s/",
+      "kind": "capability-root",
+      "grammar_compliant": true,
+      "lenses_applied": "all-16",
+      "challenges": [
+        "chestertons_fence: microservices/cloud-k8s citations existed as strangler compatibility while the tree moved — fence purpose was dual-home continuity",
+        "cartesian_doubt: tip has NO microservices/cloud-k8s directory; dead citations are worse than the fence they preserved",
+        "essentialism_yagni: retarget only where k8s/<counterpart> exists; do not invent legal/, evidence/, sdk-generation/, missing cedar companions",
+        "operability_day2: runbooks + manifest are load-bearing for 3am restore; IP-*.md prose can wait",
+        "opportunity_cost: rewriting every IP/compliance cite in one PR dilutes envelope-clean prep without ops upside",
+        "systems_thinking: MUST NOT touch specs/k8s-port/** or fight k8s-port programme from this tip",
+        "pragmatism: keep_forever + path hygiene on priority surfaces is the forever shape now",
+        "zero_trust: leave intentional legacy notes only when destination missing — never invent files to make greps green",
+        "blast_radius_cell: edits scoped to k8s/** only; no hubs, Cargo.lock, reachability, restack"
+      ],
+      "evidence": [
+        "test ! -d microservices/cloud-k8s",
+        "k8s/contracts/{openapi,asyncapi,proto} present",
+        "k8s/runbooks/* + k8s/{failure-modes,threat-model,multi-region,capacity-model,incident-response}.md present"
+      ],
+      "destination_integ": "integ/k8s",
+      "land_when": "wave-1 path hygiene; envelope registration may follow on integ/specs"
+    },
+    {
+      "path": "k8s/manifest.json",
+      "action": "keep_forever",
+      "destination": "k8s/manifest.json",
+      "shape": "capability manifest + service-local contract scaffold pointers",
+      "rationale": "1) CS-CLOUD-COMPUTE-001 readiness/non-claims surface. 2) JSON manifest. 3) Contract path SSOT for service-local scaffolds. 4) Must exist. 5) Fit under k8s/. 6) keep-as-is; retarget scaffolds to k8s/contracts/*. 7) k8s/manifest.json forever.",
+      "redesign": "none",
+      "judgment_status": "done",
+      "disposition": "keep-as-is",
+      "name_now": "k8s/manifest.json",
+      "name_forever": "k8s/manifest.json",
+      "kind": "capability-manifest",
+      "grammar_compliant": true,
+      "lenses_applied": "inherit-root",
+      "challenges": [
+        "chestertons_fence: microservices/cloud-k8s contract paths were compatibility scaffolds after directory move",
+        "cartesian_doubt: openapi+asyncapi scaffolds already exist under k8s/contracts/ — stale paths were false"
+      ],
+      "evidence": [
+        "k8s/contracts/openapi/cloud-k8s.yaml exists",
+        "k8s/contracts/asyncapi/cloud-k8s-events.yaml exists",
+        "k8s/contracts/proto/cloud-k8s.proto exists"
+      ],
+      "destination_integ": "integ/k8s",
+      "land_when": "this PR"
+    },
+    {
+      "path": "k8s/runbooks/",
+      "action": "keep_forever",
+      "destination": "k8s/runbooks/",
+      "shape": "day-2 ops runbooks for control-plane/etcd/CNI/CSI/mesh/ingress",
+      "rationale": "1) Sev-1 restore procedures. 2) Markdown runbooks with related_artifacts. 3) Operability bar. 4) Must exist. 5) Colocate under capability root. 6) keep-as-is; retarget related_artifacts to k8s/*. 7) k8s/runbooks/ forever.",
+      "redesign": "none",
+      "judgment_status": "done",
+      "disposition": "keep-as-is",
+      "name_now": "k8s/runbooks/",
+      "name_forever": "k8s/runbooks/",
+      "kind": "runbook",
+      "grammar_compliant": true,
+      "lenses_applied": "inherit-root",
+      "challenges": [
+        "chestertons_fence: related_artifacts pointed at microservices/cloud-k8s during strangler",
+        "operability_day2: dead FM/threat-model/control-plane-restore links fail the 3am test"
+      ],
+      "evidence": [
+        "all runbook microservices/cloud-k8s cites mapped to existing k8s/ counterparts",
+        "8 runbooks retargeted; 4 already clean"
+      ],
+      "destination_integ": "integ/k8s",
+      "land_when": "this PR"
+    },
+    {
+      "path": "k8s/contracts/",
+      "action": "keep_forever",
+      "destination": "k8s/contracts/",
+      "shape": "service-local OpenAPI/AsyncAPI/proto scaffolds",
+      "rationale": "1) Local contract scaffolds cited by manifest. 2) YAML+proto. 3) Planning/compat evidence (not runtime readiness). 4) Must exist as scaffolds. 5) Fit under k8s/. 6) keep-as-is. 7) k8s/contracts/ forever.",
+      "redesign": "none — do not invent additional contract files",
+      "judgment_status": "done",
+      "disposition": "keep-as-is",
+      "name_now": "k8s/contracts/",
+      "name_forever": "k8s/contracts/",
+      "kind": "api-contract",
+      "grammar_compliant": true,
+      "lenses_applied": "inherit-root",
+      "challenges": [
+        "essentialism_yagni: only retarget pointers to files that already exist",
+        "cartesian_doubt: root contracts/openapi/cloud/cloud-compute-*-v1.yaml remain the code-tested API evidence"
+      ],
+      "evidence": [
+        "openapi + asyncapi + proto present under k8s/contracts/"
+      ],
+      "destination_integ": "integ/k8s",
+      "land_when": "this PR (pointer hygiene only)"
+    },
+    {
+      "path": "k8s/failure-modes.md",
+      "action": "keep_forever",
+      "destination": "k8s/failure-modes.md",
+      "shape": "FM catalog referenced by runbooks",
+      "rationale": "1) Failure-mode IDs for Sev mapping. 2) Markdown catalog. 3) Day-2 cross-ref target. 4) Must exist. 5) Fit. 6) keep-as-is (interior cites deferred). 7) k8s/failure-modes.md forever.",
+      "redesign": "none this wave",
+      "judgment_status": "done",
+      "disposition": "keep-as-is",
+      "name_now": "k8s/failure-modes.md",
+      "name_forever": "k8s/failure-modes.md",
+      "kind": "ops-doc",
+      "grammar_compliant": true,
+      "lenses_applied": "inherit-root",
+      "challenges": [
+        "opportunity_cost: file itself is the destination; rewriting its outbound cites is follow-on, not wave-1 DoD"
+      ],
+      "evidence": [
+        "file exists; runbooks now point here"
+      ],
+      "destination_integ": "integ/k8s",
+      "land_when": "kept; outbound cite sweep optional follow-on"
+    },
+    {
+      "path": "k8s/threat-model.md",
+      "action": "keep_forever",
+      "destination": "k8s/threat-model.md",
+      "shape": "STRIDE/LINDDUN threat catalog referenced by runbooks",
+      "rationale": "1) Threat IDs for security runbooks. 2) Markdown. 3) Day-2 cross-ref. 4) Must exist. 5) Fit. 6) keep-as-is. 7) k8s/threat-model.md forever.",
+      "redesign": "none this wave",
+      "judgment_status": "done",
+      "disposition": "keep-as-is",
+      "name_now": "k8s/threat-model.md",
+      "name_forever": "k8s/threat-model.md",
+      "kind": "ops-doc",
+      "grammar_compliant": true,
+      "lenses_applied": "inherit-root",
+      "challenges": [
+        "opportunity_cost: outbound iac/compliance cites include missing destinations — leave as intentional legacy until files exist"
+      ],
+      "evidence": [
+        "file exists; ingress/envoy runbooks retargeted here"
+      ],
+      "destination_integ": "integ/k8s",
+      "land_when": "kept; outbound cite sweep optional follow-on"
+    },
+    {
+      "path": "k8s/runbooks/control-plane-restore.md",
+      "action": "keep_forever",
+      "destination": "k8s/runbooks/control-plane-restore.md",
+      "shape": "Sev-1 control-plane restore procedure",
+      "rationale": "1) Primary Sev-1 runbook. 2) Markdown. 3) Highest day-2 load. 4) Must exist. 5) Fit under runbooks/. 6) keep-as-is + path retarget. 7) forever path unchanged.",
+      "redesign": "none",
+      "judgment_status": "done",
+      "disposition": "keep-as-is",
+      "name_now": "k8s/runbooks/control-plane-restore.md",
+      "name_forever": "k8s/runbooks/control-plane-restore.md",
+      "kind": "runbook",
+      "grammar_compliant": true,
+      "lenses_applied": "inherit-root",
+      "challenges": [
+        "operability_day2: etcd-quorum-recovery and sibling runbooks must resolve this path in-tree"
+      ],
+      "evidence": [
+        "retargeted related_artifacts + References to k8s/* counterparts that exist"
+      ],
+      "destination_integ": "integ/k8s",
+      "land_when": "this PR"
+    }
+  ]
+}

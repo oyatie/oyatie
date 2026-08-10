@@ -7,8 +7,8 @@ status: Accepted
 owner_team: ops-sre-reliability + axis-cloud + ops-security
 date: 2026-05-17
 related_artifacts:
-  - microservices/cloud-k8s/failure-modes.md (FM-07)
-  - microservices/cloud-k8s/policy/cluster-isolation.md
+  - k8s/failure-modes.md (FM-07)
+  - k8s/policy/cluster-isolation.md
 doc_status: published
 ---
 
@@ -73,7 +73,7 @@ Total: ≤ 24h rotation cycle.
 
 ## References
 
-- `microservices/cloud-k8s/failure-modes.md` FM-07.
+- `k8s/failure-modes.md` FM-07.
 - Istio operations — `istio.io/latest/docs/ops/`.
 - Istio CA rotation — `istio.io/latest/docs/tasks/security/cert-management/plugin-ca-cert/`.
 - Istio canary upgrade — `istio.io/latest/docs/setup/upgrade/canary/`.

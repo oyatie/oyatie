@@ -7,9 +7,9 @@ status: Accepted
 owner_team: ops-sre-reliability + axis-cloud
 date: 2026-05-17
 related_artifacts:
-  - microservices/cloud-k8s/failure-modes.md (FM-01, FM-03, FM-14)
-  - microservices/cloud-k8s/multi-region.md
-  - microservices/cloud-k8s/capacity-model.md
+  - k8s/failure-modes.md (FM-01, FM-03, FM-14)
+  - k8s/multi-region.md
+  - k8s/capacity-model.md
 doc_status: published
 ---
 
@@ -119,10 +119,10 @@ Total cluster-restore RTO: ≤ 30 min from snapshot decision to operational clus
 
 ## References
 
-- `microservices/cloud-k8s/failure-modes.md`.
-- `microservices/cloud-k8s/multi-region.md` §"DR Failover" (if region-level escalation needed).
-- `microservices/cloud-k8s/capacity-model.md`.
-- `microservices/cloud-k8s/incident-response.md`.
+- `k8s/failure-modes.md`.
+- `k8s/multi-region.md` §"DR Failover" (if region-level escalation needed).
+- `k8s/capacity-model.md`.
+- `k8s/incident-response.md`.
 - Kubernetes high availability — `kubernetes.io/docs/tasks/administer-cluster/highly-available-control-plane/`.
 - etcd recovery — `etcd.io/docs/v3.5/op-guide/recovery/`.
 - kubeadm troubleshooting — `kubernetes.io/docs/setup/production-environment/tools/kubeadm/troubleshooting-kubeadm/`.
