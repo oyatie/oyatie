@@ -1,0 +1,109 @@
+{
+  "$schema": "https://schemas.grafana.com/dashboard.json",
+  "_meta": {
+    "doc_class": "GrafanaDashboard",
+    "microservice": "payments",
+    "owner_team": "ops-sre-reliability + axis-payments",
+    "audience": "internal operators + tenant-admins (per-tenant view via tenant template variable)",
+    "tenant_scoped": true,
+    "datasource": "Mimir (per-tenant + aggregate)"
+  },
+  "uid": "payments-overview",
+  "title": "Payments — Top-line KPIs",
+  "tags": ["payments", "overview", "kpi"],
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "time": {"from": "now-6h", "to": "now"},
+  "templating": {
+    "list": [
+      {"name": "tenant", "type": "query", "label": "Tenant", "datasource": "Mimir", "query": "label_values(payments_charge_total, tenant_id_class)"},
+      {"name": "psp", "type": "custom", "label": "PSP", "options": [
+        {"text": "all", "value": "$__all", "selected": true},
+        {"text": "stripe", "value": "stripe"},
+        {"text": "adyen", "value": "adyen"},
+        {"text": "toss", "value": "toss"},
+        {"text": "kakaopay", "value": "kakaopay"},
+        {"text": "line-pay", "value": "line-pay"},
+        {"text": "wechat-pay", "value": "wechat-pay"},
+        {"text": "alipay", "value": "alipay"}
+      ]}
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Charges / sec (current)",
+      "gridPos": {"x": 0, "y": 0, "w": 4, "h": 4},
+      "targets": [{"expr": "sum(rate(payments_charge_total{tenant_id_class=~\"$tenant\",psp=~\"$psp\"}[5m]))", "refId": "A"}]
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Success-rate (5m)",
+      "gridPos": {"x": 4, "y": 0, "w": 4, "h": 4},
+      "targets": [{"expr": "sum(rate(payments_charge_total{outcome=\"captured\",tenant_id_class=~\"$tenant\",psp=~\"$psp\"}[5m])) / sum(rate(payments_charge_total{tenant_id_class=~\"$tenant\",psp=~\"$psp\"}[5m]))", "refId": "A"}]
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "p99 latency (ms)",
+      "gridPos": {"x": 8, "y": 0, "w": 4, "h": 4},
+      "targets": [{"expr": "histogram_quantile(0.99, sum by (le)(rate(payments_charge_latency_ms_bucket{tenant_id_class=~\"$tenant\",psp=~\"$psp\"}[5m])))", "refId": "A"}]
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Active disputes",
+      "gridPos": {"x": 12, "y": 0, "w": 4, "h": 4},
+      "targets": [{"expr": "sum(payments_dispute_open_total{tenant_id_class=~\"$tenant\"})", "refId": "A"}]
+    },
+    {
+      "id": 5,
+      "type": "stat",
+      "title": "Payouts pending (24h)",
+      "gridPos": {"x": 16, "y": 0, "w": 4, "h": 4},
+      "targets": [{"expr": "sum(payments_payout_pending_total{tenant_id_class=~\"$tenant\"})", "refId": "A"}]
+    },
+    {
+      "id": 6,
+      "type": "stat",
+      "title": "Settlement discrepancy ($)",
+      "gridPos": {"x": 20, "y": 0, "w": 4, "h": 4},
+      "targets": [{"expr": "sum(payments_settlement_discrepancy_amount_total{tenant_id_class=~\"$tenant\"})", "refId": "A"}]
+    },
+    {
+      "id": 10,
+      "type": "timeseries",
+      "title": "Charge volume per PSP",
+      "gridPos": {"x": 0, "y": 4, "w": 12, "h": 8},
+      "targets": [{"expr": "sum by (psp) (rate(payments_charge_total{tenant_id_class=~\"$tenant\"}[5m]))", "refId": "A"}]
+    },
+    {
+      "id": 11,
+      "type": "timeseries",
+      "title": "Success-rate per PSP",
+      "gridPos": {"x": 12, "y": 4, "w": 12, "h": 8},
+      "targets": [{"expr": "sum by (psp) (rate(payments_charge_total{outcome=\"captured\",tenant_id_class=~\"$tenant\"}[5m])) / sum by (psp) (rate(payments_charge_total{tenant_id_class=~\"$tenant\"}[5m]))", "refId": "A"}]
+    },
+    {
+      "id": 12,
+      "type": "timeseries",
+      "title": "Charge-API latency (p50 / p95 / p99)",
+      "gridPos": {"x": 0, "y": 12, "w": 12, "h": 8},
+      "targets": [
+        {"expr": "histogram_quantile(0.5, sum by (le)(rate(payments_charge_latency_ms_bucket{tenant_id_class=~\"$tenant\",psp=~\"$psp\"}[5m])))", "refId": "p50"},
+        {"expr": "histogram_quantile(0.95, sum by (le)(rate(payments_charge_latency_ms_bucket{tenant_id_class=~\"$tenant\",psp=~\"$psp\"}[5m])))", "refId": "p95"},
+        {"expr": "histogram_quantile(0.99, sum by (le)(rate(payments_charge_latency_ms_bucket{tenant_id_class=~\"$tenant\",psp=~\"$psp\"}[5m])))", "refId": "p99"}
+      ]
+    },
+    {
+      "id": 13,
+      "type": "timeseries",
+      "title": "Decline-rate by reason-code",
+      "gridPos": {"x": 12, "y": 12, "w": 12, "h": 8},
+      "targets": [{"expr": "sum by (decline_reason) (rate(payments_charge_total{outcome=\"declined\",tenant_id_class=~\"$tenant\"}[5m]))", "refId": "A"}]
+    }
+  ]
+}

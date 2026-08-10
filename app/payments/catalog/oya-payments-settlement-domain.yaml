@@ -1,0 +1,18 @@
+# Canonical-base: specs/catalog/canonical-crate-record-schema.json (ADR-0064)
+name: oya-payments-settlement-domain
+role: domain
+context: payments
+plane: data
+slo: tier-1-high-priority
+contracts_consumed: []
+contracts_exposed: []
+regulatory_packs_consumed: [oya-pack-pci-dss-l1-v4, oya-pack-kr-fss, oya-pack-sox-itgc, oya-pack-au-aml-ctf]
+lifecycle: {state: incubating, preview_since: 2026-05-20}
+traceability:
+  github_issue: "oya-governance-pipeline://payments-doc-set-buildout-2026-05-20"
+  source_adrs: [ADR-0056, ADR-0105, ADR-0244, ADR-0252]
+  ip_ref: IP-016
+allowed_dependency_edges: [kernel]
+data_classes_owned: [FINANCIAL_SETTLEMENT, INTERNAL_ONLY]
+operational_classes_owned: [oya.payments.settlement.discrepancy-detected, oya.payments.settlement.high-value-discrepancy]
+autonomy_tier_required: T0

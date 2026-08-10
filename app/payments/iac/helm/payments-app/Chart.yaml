@@ -1,0 +1,23 @@
+apiVersion: v2
+name: oya-payments-app
+description: |
+  Helm chart for oya-payments-charge-app, oya-payments-webhook-handler, and
+  oya-payments-reconciliation-worker. PCI-scoped; Kata-VM-per-pod isolation
+  per ADR-0254. HTTP/3 + QUIC default per ADR-0253.
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+keywords:
+  - payments
+  - pci
+  - stripe
+  - adyen
+  - kata
+maintainers:
+  - name: axis-payments
+    email: axis-payments@oyatie.com
+annotations:
+  oyatie/microservice: payments
+  oyatie/slo-tier: tier-0-revenue-critical
+  oyatie/pci-scope: "true"
+  oyatie/adrs: "ADR-0131,ADR-0145,ADR-0248,ADR-0253,ADR-0254,ADR-0296"

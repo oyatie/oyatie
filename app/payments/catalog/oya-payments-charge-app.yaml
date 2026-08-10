@@ -1,0 +1,24 @@
+# Canonical-base: specs/catalog/canonical-crate-record-schema.json (ADR-0064)
+name: oya-payments-charge-app
+role: app
+context: payments
+plane: control
+slo: tier-0-revenue-critical
+contracts_consumed:
+  - openapi:openapi-v1.yaml
+  - proto:payments-v1.proto
+  - cedar:policy/charge-authorization.cedar
+  - cedar:policy/abuse-defence.cedar
+contracts_exposed:
+  - openapi:openapi-v1.yaml
+  - proto:payments-v1.proto
+regulatory_packs_consumed: [oya-pack-pci-dss-l1-v4, oya-pack-kr-fss, oya-pack-eu-psd2-sca, oya-pack-us-state-mtl, oya-pack-ccpa-cpra-2023, oya-pack-coppa-minor-refusal]
+lifecycle: {state: incubating, preview_since: 2026-05-20}
+traceability:
+  github_issue: "oya-governance-pipeline://payments-doc-set-buildout-2026-05-20"
+  source_adrs: [ADR-0056, ADR-0105, ADR-0131, ADR-0145, ADR-0248, ADR-0253, ADR-0254]
+  ip_ref: IP-015
+allowed_dependency_edges: [kernel, domain, usecase, adapter, rest, grpc]
+data_classes_owned: []
+operational_classes_owned: []
+autonomy_tier_required: T2

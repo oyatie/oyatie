@@ -9,13 +9,14 @@
 ## Completed (this rail)
 
 - Slice 1: product metadata absorb — `manifest.json`, `README.md`, `PRD.md`, `PHASE-01-PAYMENTS-MVP.md`, `slos/**`.
+- Slice 2: contracts + policy + capabilities + catalog + IPs + iac + dashboards + runbooks + scorecards + security + dpia + decisions (96 files total).
+- Path cites rewritten `oya/payments` → `app/payments` inside forever home.
+- `AUDIT-FINDINGS-2026-05-20.json` excluded per judgment (delete_permanently).
 
-## Next gaps (ordered)
+## Remaining for shrink phase (`integ/oya`)
 
-1. **Contracts + policy** — `contracts/`, `policy/`, `cedar/`, `catalog/` from `oya/payments`.
-2. **Capabilities + crates** — bounded-context manifests and `oya-payments-*` crate rehome.
-3. **IaC + dashboards** — `iac/`, `dashboards/`, `runbooks/`, `scorecards/`.
-4. **Shrink-only burn** — after verify, delete absorbed paths on `integ/oya` (not this rail).
+- Delete absorbed `oya/payments/**` paths after verify (shrink-only rail).
+- Hub retargets (`specs/capability-registry.json` app_products) on tip-free `integ/specs`.
 
 ## Out of envelope (do not touch from `integ/payments`)
 
