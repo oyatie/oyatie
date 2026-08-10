@@ -632,7 +632,8 @@ fn scan_crate_leaves(repo_root: &Path) -> Result<Vec<String>, LoadError> {
 ///
 /// A formatting-specific `git grep` for `pkg = { path` misses named dependency tables
 /// (`[dependencies.k8s-foo]`), quoted keys (`"k8s-foo" = { path = … }`), workspace
-/// inheritance (`k8s-foo.workspace = true`), and `package = "k8s-…"` renames. Buck target
+/// inheritance (`k8s-foo.workspace = true`), `package = "k8s-…"` renames, and Cargo
+/// `[patch]` / `[patch.crates-io]` overrides that still create a path edge. Buck target
 /// edges (`//k8s/…` from `os/`, `//os/…` from `k8s/`) are the same seam crossed through the
 /// Buck graph — including `BUCK.v2`, which buck2 prefers over `BUCK` when both exist.
 ///
@@ -685,7 +686,8 @@ fn scan_cross_seam_edges(repo_root: &Path) -> Result<Vec<CrossSeamEdge>, LoadErr
 #[derive(Clone, Copy)]
 enum DepSection {
     Inactive,
-    /// Inside `[dependencies]` / `[dev-dependencies]` / `[target.*.dependencies]`.
+    /// Inside `[dependencies]` / `[dev-dependencies]` / `[target.*.dependencies]` /
+    /// `[patch]` / `[patch.crates-io]` / `[patch."…"]`.
     Table,
     /// Inside `[dependencies.<pkg>]` — scan for `package = "…"` renames too.
     NamedPackage,
@@ -772,9 +774,14 @@ pub fn forbidden_buck_deps(contents: &str, forbidden_root: &str) -> Vec<String> 
     hits
 }
 
-/// `Some(None)` = open dependency table; `Some(Some(pkg))` = named package table; `None` = other.
+/// `Some(None)` = open dependency/patch table; `Some(Some(pkg))` = named package table; `None` = other.
 fn classify_dependency_header(inner: &str) -> Option<Option<String>> {
     let lower = inner.to_ascii_lowercase();
+    // Cargo `[patch]` / `[patch.crates-io]` / `[patch."https://…"]` overrides still create
+    // a path edge to the patched crate — INV-1/INV-2 must not stay green over them.
+    if lower == "patch" || lower.starts_with("patch.") {
+        return Some(None);
+    }
     let Some(index) = lower.rfind("dependencies") else {
         return None;
     };
@@ -1034,14 +1041,17 @@ fn load_validated_regions(
             )
         })?;
         for axis in REGION_RECEIPT_AXES {
-            if !receipt.contains_key(*axis) || receipt.get(*axis).is_some_and(Value::is_null) {
-                return Err(load_error(
-                    code,
-                    path,
-                    &format!(
-                        "region `{region_id}` receipt is missing axis `{axis}`; all six receipt axes are required"
-                    ),
-                ));
+            match receipt.get(*axis) {
+                Some(Value::String(value)) if !value.is_empty() => {}
+                _ => {
+                    return Err(load_error(
+                        code,
+                        path,
+                        &format!(
+                            "region `{region_id}` receipt axis `{axis}` must be a non-empty string; empty or non-string placeholders are not a bound digest"
+                        ),
+                    ));
+                }
             }
         }
         for prior in &prefixes {
@@ -2324,6 +2334,23 @@ mod tests {
             vec!["k8s-foo".to_owned()]
         );
 
+        // Cargo [patch] overrides create a path edge — INV-1 must not stay green.
+        let patch_crates_io = "[patch.crates-io]\nk8s-foo = { path = \"../../k8s/ports/foo\" }\n";
+        assert_eq!(
+            forbidden_package_deps(patch_crates_io, "k8s-"),
+            vec!["k8s-foo".to_owned()]
+        );
+        let patch_url = "[patch.\"https://github.com/example/k8s-foo\"]\nk8s-foo = { path = \"../../k8s/ports/foo\" }\n";
+        assert_eq!(
+            forbidden_package_deps(patch_url, "k8s-"),
+            vec!["k8s-foo".to_owned()]
+        );
+        let patch_renamed = "[patch.crates-io]\nlocal = { package = \"k8s-foo\", path = \"../../k8s/ports/foo\" }\n";
+        assert_eq!(
+            forbidden_package_deps(patch_renamed, "k8s-"),
+            vec!["k8s-foo".to_owned()]
+        );
+
         let clean = "[dependencies]\nserde = { workspace = true }\nos-kernel = { path = \"../kernel\" }\n";
         assert!(forbidden_package_deps(clean, "k8s-").is_empty());
 
@@ -2603,6 +2630,52 @@ mod tests {
         assert!(
             err.message.contains("first-party"),
             "expected first-party coverage refusal, got: {}",
+            err.message
+        );
+    }
+
+    #[test]
+    fn empty_or_non_string_receipt_axes_fail_closed() {
+        let root = std::env::temp_dir().join(format!(
+            "r-doc-empty-receipt-axes-{}",
+            std::process::id()
+        ));
+        let path = root.join(REGENERABLE_REGIONS);
+        fs::create_dir_all(path.parent().expect("parent")).expect("dirs");
+        // All six keys present, but empty strings / non-string placeholders bind nothing.
+        fs::write(
+            &path,
+            r#"{
+              "regions": [
+                {
+                  "region_id": "ports",
+                  "path_prefix": "k8s/ports",
+                  "origin": "generated",
+                  "producer": "build/port-engine",
+                  "receipt": {
+                    "pin": "",
+                    "snapshot_digest": "",
+                    "engine_digest": {},
+                    "rulepack_digest": "c",
+                    "toolchain_digest": "d",
+                    "formatter_digest": "e"
+                  }
+                }
+              ],
+              "origin_classification": {
+                "leaves": [],
+                "census": {"k8s_leaves": 0, "os_leaves": 0, "total_leaves": 0}
+              }
+            }"#,
+        )
+        .expect("write");
+        let result = load_declared_leaves(&root);
+        fs::remove_dir_all(&root).ok();
+        let err = result.expect_err("empty/non-string receipt axes must fail closed");
+        assert_eq!(err.code, "R-DOC-K8S-PORT-REGIONS-MALFORMED");
+        assert!(
+            err.message.contains("non-empty string") || err.message.contains("receipt axis"),
+            "expected empty-digest refusal, got: {}",
             err.message
         );
     }

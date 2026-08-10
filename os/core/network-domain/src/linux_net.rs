@@ -1459,6 +1459,25 @@ mod tests {
     }
 
     #[test]
+    fn both_substrates_agree_on_ipv4_address_keyed_duplicate() {
+        use os_kernel_abi::{InMemoryKernelNet, KernelNet};
+
+        // Arrange — forever shape: IPv4 address-keys like IPv6 (OVERRULE of
+        // prior CIDR-asymmetry dual-truth). Same host, new prefix → EEXIST.
+        let fake = InMemoryKernelNet::new().with_link("eth0");
+        fake.add_ipv4_address("eth0", "10.0.0.5", 24).unwrap();
+
+        // Act
+        let fake_err = fake.add_ipv4_address("eth0", "10.0.0.5", 32).unwrap_err();
+        let linux_err = errno_error("netlink request failed", -17);
+
+        // Assert
+        assert_eq!(fake_err.kind(), linux_err.kind());
+        assert_eq!(fake_err.kind(), "invalid_state");
+        assert_eq!(fake.ipv4_addresses("eth0").unwrap().len(), 1);
+    }
+
+    #[test]
     fn errno_classification_separates_sandbox_denial_from_a_real_failure() {
         // The classes PID 1 actually branches on. A substrate that reports
         // these without an errno number now still lands in the right arm,

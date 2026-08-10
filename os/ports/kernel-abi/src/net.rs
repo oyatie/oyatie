@@ -279,6 +279,15 @@ fn v6_cidr(addr: &str, prefix_len: u8) -> Result<String> {
     Ok(alloc::format!("{ip}/{prefix_len}"))
 }
 
+/// Address identity of a canonical `addr/prefix` CIDR string — prefix is metadata.
+///
+/// Forever shape for FakeNet: both IPv4 and IPv6 duplicate installs key on
+/// interface+address under `NLM_F_CREATE | NLM_F_EXCL`. A prior IPv4-only
+/// CIDR-string key was OVERRULED as dual-truth against the IPv6 contract.
+fn cidr_address_key(entry: &str) -> &str {
+    entry.split_once('/').map(|(a, _)| a).unwrap_or(entry)
+}
+
 /// The shape an IPv4 route must have before any substrate is asked to install
 /// it.
 ///
@@ -347,8 +356,14 @@ impl KernelNet for InMemoryKernelNet {
         // that is the safe direction — a stricter fake cannot let a bad test
         // pass — so the adapter's exact check order is deliberately not copied.
         let entry = v4_cidr(addr, prefix_len)?;
+        // Forever shape: IPv4 keys like IPv6 — interface+address, not full CIDR.
+        // Replaying `10.0.0.5/24` then `10.0.0.5/32` is EEXIST, not a second row.
+        let address_key = cidr_address_key(&entry).to_string();
         self.mutate(iface, |l| {
-            if l.ipv4.contains(&entry) {
+            if l.ipv4
+                .iter()
+                .any(|existing| cidr_address_key(existing) == address_key)
+            {
                 return Err(already_exists("address", iface, &entry));
             }
             l.ipv4.push(entry);
@@ -360,19 +375,12 @@ impl KernelNet for InMemoryKernelNet {
         let entry = v6_cidr(addr, prefix_len)?;
         // Linux keys IPv6 installs by interface+address, not by CIDR string:
         // replaying `fd00::5/64` then `fd00::5/128` is EEXIST, not a second row.
-        let address_key: String = entry
-            .split_once('/')
-            .map(|(a, _)| a)
-            .unwrap_or(entry.as_str())
-            .into();
+        let address_key = cidr_address_key(&entry).to_string();
         self.mutate(iface, |l| {
-            if l.ipv6.iter().any(|existing| {
-                existing
-                    .split_once('/')
-                    .map(|(a, _)| a)
-                    .unwrap_or(existing.as_str())
-                    == address_key
-            }) {
+            if l.ipv6
+                .iter()
+                .any(|existing| cidr_address_key(existing) == address_key)
+            {
                 return Err(already_exists("address", iface, &entry));
             }
             l.ipv6.push(entry);
@@ -583,19 +591,36 @@ mod tests {
     }
 
     #[test]
-    fn ipv4_duplicate_key_remains_full_cidr() {
-        // Arrange — intentional asymmetry with IPv6: IPv4 still keys on the
-        // canonical CIDR string, so the same host under a new prefix is allowed.
+    fn ipv4_duplicate_key_is_address_not_cidr() {
+        // Arrange — forever shape OVERRULES the prior IPv4 CIDR-asymmetry dual-truth:
+        // IPv4 keys like IPv6 (interface+address); prefix is metadata only.
         let net = InMemoryKernelNet::new().with_link("eth0");
         net.add_ipv4_address("eth0", "10.0.0.5", 24).unwrap();
 
         // Act
-        net.add_ipv4_address("eth0", "10.0.0.5", 32).unwrap();
+        let err = net.add_ipv4_address("eth0", "10.0.0.5", 32).unwrap_err();
+
+        // Assert — EEXIST, not a second row
+        assert_eq!(err.kind(), "invalid_state");
+        assert_eq!(
+            net.ipv4_addresses("eth0").unwrap(),
+            alloc::vec!["10.0.0.5/24".to_string()]
+        );
+    }
+
+    #[test]
+    fn distinct_ipv4_addresses_on_one_iface_are_both_kept() {
+        // Arrange — address-keying must not over-collapse unrelated rows.
+        let net = InMemoryKernelNet::new().with_link("eth0");
+
+        // Act
+        net.add_ipv4_address("eth0", "10.0.0.5", 24).unwrap();
+        net.add_ipv4_address("eth0", "10.0.0.6", 24).unwrap();
 
         // Assert
         assert_eq!(
             net.ipv4_addresses("eth0").unwrap(),
-            alloc::vec!["10.0.0.5/24".to_string(), "10.0.0.5/32".to_string()]
+            alloc::vec!["10.0.0.5/24".to_string(), "10.0.0.6/24".to_string()]
         );
     }
 
