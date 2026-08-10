@@ -1,12 +1,11 @@
-//! Fail-closed CLI stub for W0-B Slice 3. Real subcommands land in Slice 6.
+//! `port-engine-app` binary — W0-B Slice 6 CLI (bridge feedback only).
+use std::env;
 use std::process::ExitCode;
 
 fn main() -> ExitCode {
-    if port_engine_app::w0_ready() {
-        eprintln!("port-engine-app: Slice 3 driver wired — CLI lands Slice 6");
-        ExitCode::from(2)
-    } else {
-        eprintln!("port-engine-app: driver not ready");
-        ExitCode::from(2)
+    let mut args: Vec<String> = env::args().skip(1).collect();
+    if args.is_empty() {
+        args.push("help".to_owned());
     }
+    port_engine_app::cli::run(&args)
 }

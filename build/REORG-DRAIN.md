@@ -10,20 +10,23 @@
   test (`Command::new("go")` / `std::process::Command` refused in library sources).
 - W0-B Slice 5: `port-engine-rust-ir` syn/quote emit (`SynQuoteRenderer::render_rust_ir`) +
   leakage-forbidden fences (corpus needles + no host `Command` spawn); driver smoke wired.
+- W0-B Slice 6: `port-engine-app` hand-rolled CLI (`help|ready|pin|emit-stub|emit-syn|verify-e2e`)
+  + six-axis receipt e2e (`unchanged`/`explained`/`unexplained`/`incomplete`).
 - Toolchains dual-home: `build/toolchains/**` byte-copies `toolchains/BUCK` +
   `toolchains/cache/{BUCK,OWNERS,defs.bzl}` (4 files). Live buck cell remains
   `toolchains = toolchains` in `.buckconfig` until remap+shrink.
 
 ## Next gaps (ordered)
 
-1. **Slice 6** — CLI subcommands + six-axis receipt end-to-end on `port-engine-app`.
-2. **Lock absorb** — `Cargo.lock` / root `Cargo.toml` workspace membership refresh waits
+1. **Lock absorb** — `Cargo.lock` / root `Cargo.toml` workspace membership refresh waits
    `#1646` land (ci/controller paths must exist before members); no third writer; libs `#1649`
-   must not steal lock.
-3. **Toolchains cell remap + shrink** — set `.buckconfig` `toolchains = build/toolchains`,
+   must not steal lock. Then refresh lock for path-dep / workspace edges (serde, syn, quote).
+2. **Toolchains cell remap + shrink** — set `.buckconfig` `toolchains = build/toolchains`,
    update reachability/`toolchains/` prefixes (may need integ/specs attach), then delete
    root `toolchains/**`. Do not delete while the cell still points at the root path.
    **PARKED:** `.buckconfig` is outside `roots.build` envelope globs (`build/**` only).
+3. **W0-B residual beyond skeleton** — neutral `specs/port-rules/**` v0 (integ/specs), hashing
+   adapter for real digests, bootstrap Go extractor out-of-band admission (not in-process).
 
 ## Out of envelope (do not touch from `integ/build`)
 

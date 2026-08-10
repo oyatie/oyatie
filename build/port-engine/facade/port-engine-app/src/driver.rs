@@ -1,13 +1,13 @@
 //! Facade driver wiring: composes kernel entry points with W0-B adapters.
 //!
-//! Slice 5 wires rust-ir syn/quote emit; Slice 6 lands CLI and receipt end-to-end tests.
+//! Slice 6 wires CLI + six-axis receipt e2e (`receipt_e2e` / `cli` modules).
 
 use port_engine_api::w0_ready as api_ready;
 use port_engine_frontend_go::w0_ready as frontend_ready;
 use port_engine_rust_ir::{EmptyRenderer, RustIr, SynQuoteRenderer};
 use port_engine_source_pin::{load_embedded, receipt_pin};
 
-/// Slice 5 readiness: api + pin + rust-ir syn/quote + frontend-go decode wired.
+/// Slice 6 readiness: api + pin + rust-ir syn/quote + frontend-go decode wired.
 pub const fn w0_ready() -> bool {
     api_ready()
         && port_engine_source_pin::w0_ready()
@@ -52,7 +52,7 @@ pub fn smoke_syn_quote_render() -> Result<(), port_engine_api::PortError> {
     Ok(())
 }
 
-/// Re-export neutral kernel entry points for downstream CLI wiring (Slice 6).
+/// Re-export neutral kernel entry points for downstream CLI wiring.
 pub use port_engine_kernel::{emit, plan, verify, Verdict};
 
 /// Adapter readiness snapshot for diagnostics.
@@ -70,7 +70,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn slice5_driver_wiring_is_ready() {
+    fn slice6_driver_wiring_is_ready() {
         assert!(w0_ready());
         fleet_pin().expect("fleet pin must load");
         smoke_render_stub().expect("empty renderer stub must emit");
