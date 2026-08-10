@@ -177,10 +177,10 @@
   ],
   "contracts": {
     "openapi": [
-      "microservices/detection/contracts/openapi-v1.yaml"
+      "intelligence/detection/contracts/openapi-v1.yaml"
     ],
     "asyncapi": [
-      "microservices/detection/contracts/asyncapi-v1.yaml"
+      "intelligence/detection/contracts/asyncapi-v1.yaml"
     ],
     "internal_grpc": {
       "transport": "http2",
@@ -190,7 +190,7 @@
       ]
     },
     "trait": [
-      "microservices/detection/contracts/detection-rule-trait.md"
+      "intelligence/detection/contracts/detection-rule-trait.md"
     ]
   },
   "compliance_packs": [
@@ -263,11 +263,11 @@
   "pod_runtime_tier": 1,
   "pod_runtime_tier_justification": "Detection touches tenant risk events, features, graph signals, and investigation evidence. It does not execute tenant-customer code, but the tenant data plane and regulated scoring surface require Tier 1 runtime isolation.",
   "pod_runtime_tier_surface_evidence": [
-    "microservices/detection/PRD.md",
-    "microservices/detection/ARCHITECTURE.md",
-    "microservices/detection/IP-001-streaming-kernel.md",
-    "microservices/detection/IP-015-sandbox-replay-kernel.md",
-    "microservices/detection/runbooks/streaming-pipeline-lag.md"
+    "intelligence/detection/PRD.md",
+    "intelligence/detection/ARCHITECTURE.md",
+    "intelligence/detection/IP-001-streaming-kernel.md",
+    "intelligence/detection/IP-015-sandbox-replay-kernel.md",
+    "intelligence/detection/runbooks/streaming-pipeline-lag.md"
   ],
   "tenant_version_pinning": {
     "declared_versions": [
@@ -290,14 +290,14 @@
     ],
     "public_surface_files": {
       "openapi": {
-        "2026-05-21": "microservices/detection/contracts/openapi-v1.yaml",
-        "2026-02-21": "microservices/detection/contracts/openapi-v1.yaml",
-        "2025-11-21": "microservices/detection/contracts/openapi-v1.yaml"
+        "2026-05-21": "intelligence/detection/contracts/openapi-v1.yaml",
+        "2026-02-21": "intelligence/detection/contracts/openapi-v1.yaml",
+        "2025-11-21": "intelligence/detection/contracts/openapi-v1.yaml"
       },
       "asyncapi": {
-        "2026-05-21": "microservices/detection/contracts/asyncapi-v1.yaml",
-        "2026-02-21": "microservices/detection/contracts/asyncapi-v1.yaml",
-        "2025-11-21": "microservices/detection/contracts/asyncapi-v1.yaml"
+        "2026-05-21": "intelligence/detection/contracts/asyncapi-v1.yaml",
+        "2026-02-21": "intelligence/detection/contracts/asyncapi-v1.yaml",
+        "2025-11-21": "intelligence/detection/contracts/asyncapi-v1.yaml"
       }
     }
   },

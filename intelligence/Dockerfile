@@ -5,7 +5,7 @@
 # depends on workspace siblings. Build invocation from the repo root:
 #   docker build -f intelligence/Dockerfile \
 #                -t registry.oyatie.dev/oya-cloud-intelligence:0.1.0 .
-# Or via in-cluster BuildKit Job: see microservices/cloud-intelligence/k8s/
+# Or via in-cluster BuildKit Job: see intelligence/k8s/
 #
 # Hyperscaler-lens: rust:1.97.1-bookworm (Apache 2/MIT) +
 # gcr.io/distroless/cc-debian12:nonroot (Apache 2). Passes (a)-(d) of the lens.

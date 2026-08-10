@@ -15,7 +15,7 @@ lifecycle_rule: PROPOSED until the microservice wrappers invoke signed shared Op
 
 ## 1. Lifecycle, Boundary, And Stop Condition
 SCOPE-001: This IP binds `detection` to ADR-0339 shared IaC module doctrine without authoring Rust, changing crates, or applying infrastructure.
-SCOPE-002: Lifecycle state is PROPOSED for `detection` until the service-owned wrapper files under `microservices/detection/iac/<context>/main.tf` invoke signed cloud-iac modules and implementation evidence is reviewed.
+SCOPE-002: Lifecycle state is PROPOSED for `detection` until the service-owned wrapper files under `intelligence/detection/iac/<context>/main.tf` invoke signed cloud-iac modules and implementation evidence is reviewed.
 SCOPE-003: ACCEPTED status requires a later service implementation change, not this document-stage propagation.
 SCOPE-004: The only implementation authority created here is documentation intent plus manifest `iac_module_invocations` alignment for `detection`.
 SCOPE-005: The stop condition for this IP is a reviewable doctrine packet: IP present, manifest field populated, PRD adoption section appended, ARCH integration section appended, and ADR citations validated.
@@ -46,9 +46,9 @@ DOSSIER-BC-003: Bounded context `feature-store` states: Feast, Tecton, Vertex AI
 DOSSIER-BC-004: Bounded context `rules-engine` states: Sigma-rule-class declarative lifecycle; crate count=0.
 DOSSIER-BC-005: Bounded context `composite-scorer` states: LightGBM plus SHAP explainable risk aggregation; crate count=0.
 DOSSIER-BC-006: Bounded context `graph-store-community-detection` states: Apache AGE plus Neo4j plus Louvain link analysis; crate count=0.
-DOSSIER-CONTRACT-001: OpenAPI 3.2.0: microservices/detection/contracts/openapi-v1.yaml.
-DOSSIER-CONTRACT-002: AsyncAPI 3.1.0: microservices/detection/contracts/asyncapi-v1.yaml.
-DOSSIER-CONTRACT-003: proto3: microservices/detection/contracts/detection-v1.proto.
+DOSSIER-CONTRACT-001: OpenAPI 3.2.0: intelligence/detection/contracts/openapi-v1.yaml.
+DOSSIER-CONTRACT-002: AsyncAPI 3.1.0: intelligence/detection/contracts/asyncapi-v1.yaml.
+DOSSIER-CONTRACT-003: proto3: intelligence/detection/contracts/detection-v1.proto.
 DOSSIER-CAPABILITY-001: No capability records declared in manifest; ADR-0339 wrappers still protect deployment substrate for service runtime..
 
 ## 3. ADR-0339 Doctrine Binding
@@ -271,9 +271,9 @@ LEADER-018: `detection` leader-scale posture keeps primitive selection explicit,
 
 ## 12. API And Contract Documentation Impact
 API-001: `detection` does not change REST, event, or proto payloads in this document-stage wave.
-API-002: OpenAPI 3.2.0 references for `detection` remain: OpenAPI 3.2.0: microservices/detection/contracts/openapi-v1.yaml
-API-003: AsyncAPI 3.1.0 references for `detection` remain: AsyncAPI 3.1.0: microservices/detection/contracts/asyncapi-v1.yaml
-API-004: proto3 references for `detection` remain: proto3: microservices/detection/contracts/detection-v1.proto
+API-002: OpenAPI 3.2.0 references for `detection` remain: OpenAPI 3.2.0: intelligence/detection/contracts/openapi-v1.yaml
+API-003: AsyncAPI 3.1.0 references for `detection` remain: AsyncAPI 3.1.0: intelligence/detection/contracts/asyncapi-v1.yaml
+API-004: proto3 references for `detection` remain: proto3: intelligence/detection/contracts/detection-v1.proto
 API-005: If a future wrapper migration exposes deployment preview APIs, the public boundary must carry ADR-0342 date-version carriers separately from module semantic versions.
 API-006: If a future wrapper migration changes async deployment events, the AsyncAPI channel must identify module context, primitive, version_pin, tenant_class_scope, and cell_id.
 API-007: If a future wrapper migration changes proto deployment receipts, proto3 reserved tags must prevent silent field reuse.
@@ -297,7 +297,7 @@ ALT-004: Delay `detection` manifest declaration until implementation; rejected b
 ALT-005: Allow unpinned local module paths during migration; rejected because the exact path would work locally while hiding supply-chain and reproducibility risk.
 
 ## 15. Acceptance And Verification
-VERIFY-001: Static read confirms this file exists at `microservices/detection/IPs/IP-ADR-0339-Shared-IaC-Modules.md`.
+VERIFY-001: Static read confirms this file exists at `intelligence/detection/IPs/IP-ADR-0339-Shared-IaC-Modules.md`.
 VERIFY-002: Static read confirms ADR-0339 is cited by exact ID.
 VERIFY-003: Static read confirms ADR-0322 is cited by exact ID.
 VERIFY-004: Static read confirms ADR-0181 is cited by exact ID.

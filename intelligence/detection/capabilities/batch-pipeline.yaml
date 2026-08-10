@@ -37,4 +37,4 @@ regulatory_packs_consumed:
   - pack-ae
   - pack-ksa
 cedar_policy_fragments:
-  - microservices/detection/policy/batch-scope.cedar
+  - intelligence/detection/policy/batch-scope.cedar
