@@ -7,9 +7,11 @@ doc_status: published
 
 ## 2026-08-10 — Doctrine survival (INV-DOC-9) + DOC-UPDATE same-wave co-change
 
+- `doc.agents_operating_contract` 2026-08-10 lane-implementer — anti-branding: strip external brand/archive URL citations; cite Amendment C operating-patterns catalog / reflection corpus (`specs/agentic-operating-patterns.json`); bead `oyatie-dxz.5`.
 - `doc.agents_operating_contract` 2026-08-10 lane-implementer — add § Doctrine survival (binding) (rules-carry-why, anti-drift pointers, hindsight+beads, observation≠APPROVE, INV-DOC-9 survival).
 - `doc.doc_update_protocol` 2026-08-10 lane-implementer — amend one-doc-per-PR: load-bearing docs MUST same-wave co-change (`doc-update-protocol-overrule`).
 - `doc.swarm_agent_ritual` 2026-08-10 — add `docs/checklists/swarm-agent-ritual.md` (position diagram + claim digraph + role-scaled Tier-2 ritual); point from `docs/AGENTS.md`.
+- `doc.k8s_port_w0a_handoff` 2026-08-10 lane-implementer — same-wave anti-branding: replace external corpus names with Amendment C catalog cites.
 
 ## 2026-08-09 — ADR-0710 admission substrate proposed; sovereign-confidential idea page
 
