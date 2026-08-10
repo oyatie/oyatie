@@ -300,8 +300,8 @@ Every suite asserts that audit-chain fails closed when evidence integrity is unc
 - Manifest: `audit/manifest.json`.
 - Architecture: `microservices/audit-chain/ARCHITECTURE.md`.
 - Failure catalog: `microservices/audit-chain/failure-modes.md`.
-- Runbook directory: `microservices/audit-chain/runbooks/`.
-- SLO directory: `microservices/audit-chain/slos/`.
+- Runbook directory: `audit/runbooks/`.
+- SLO directory: `audit/observability/slos/`.
 - OpenAPI contract: `audit/contracts/openapi/audit-chain.yaml`.
 - AsyncAPI contract: `audit/contracts/asyncapi/audit-events.yaml`.
 - Proto contract: `audit/contracts/proto/audit-chain.proto`.

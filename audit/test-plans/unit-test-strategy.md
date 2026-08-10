@@ -333,10 +333,10 @@ The plan is written against the `audit/manifest.json` layer roster and ADR-0105 
 - Runbook: `audit/runbooks/merkle-seal-recovery.md`.
 - Runbook: `audit/runbooks/audit-export.md`.
 - Runbook: `audit/runbooks/retention-cascade.md`.
-- SLO: `microservices/audit-chain/slos/chain-of-custody-integrity-correctness.openslo.yaml`.
-- SLO: `microservices/audit-chain/slos/evidence-export-freshness.openslo.yaml`.
-- SLO: `microservices/audit-chain/slos/merkle-chain-verification-latency.openslo.yaml`.
-- SLO: `microservices/audit-chain/slos/seal-write-latency.openslo.yaml`.
+- SLO: `audit/observability/slos/chain-of-custody-integrity-correctness.openslo.yaml`.
+- SLO: `audit/observability/slos/evidence-export-freshness.openslo.yaml`.
+- SLO: `audit/observability/slos/merkle-chain-verification-latency.openslo.yaml`.
+- SLO: `audit/observability/slos/seal-write-latency.openslo.yaml`.
 - Contract: `audit/contracts/openapi/audit-chain.yaml`.
 - Contract: `audit/contracts/asyncapi/audit-events.yaml`.
 - Contract: `audit/contracts/proto/audit-chain.proto`.

@@ -60,3 +60,13 @@ Retargeted additional verified `microservices/audit-chain/**` cites to `audit/**
 catalog/contracts/proto/dashboards/policy/runbooks/IP-journey docs/test-plans where files exist.
 Deferred IP-001..015 / PRD / ARCHITECTURE / MIGRATION / cross-cap observability prometheusrule cites remain as listed above.
 
+
+## Wave-4 Seat A follow-through (2026-08-10)
+
+Retargeted verified `microservices/audit-chain/slos/**` → `audit/observability/slos/**` and other verified `audit/**` destinations (runbooks/, iac/, contracts/proto, policy/).
+
+### Deferred
+
+- Missing `policy/seal-integrity.md`, PRD/ARCHITECTURE/parity matrices, and historical IP homes.
+- Cross-cap observability prometheusrule cites.
+- No hubs, no `Cargo.lock`, no merge.

@@ -97,7 +97,7 @@
         "audit/ARCHITECTURE.md",
         "audit/MIGRATION-2026-05-21.md"
       ],
-      "_note": "Verified paths retargeted microservices/audit-chain/** \u2192 audit/**. Missing homes keep legacy microservices/audit-chain/** cites rather than inventing files (Seat A path-verification doctrine)."
+      "_note": "Verified paths retargeted audit/** \u2192 audit/**. Missing homes keep legacy audit/** cites rather than inventing files (Seat A path-verification doctrine)."
     }
   },
   "contracts": {

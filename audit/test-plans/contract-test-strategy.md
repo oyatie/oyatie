@@ -247,8 +247,8 @@ Audit-chain is a substrate; its contract tests are promotion blockers for downst
 - GitHub Actions job: `audit-chain-contract-test-strategy`.
 - Command: `oya contract openapi validate audit/contracts/openapi/audit-chain.yaml --version 3.2.0`.
 - Command: `oya contract asyncapi validate audit/contracts/asyncapi/audit-events.yaml --version 3.1.0`.
-- Command: `buf lint microservices/audit-chain/contracts/proto`.
-- Command: `buf breaking microservices/audit-chain/contracts/proto --against .git#branch=dev`.
+- Command: `buf lint audit/contracts/proto`.
+- Command: `buf breaking audit/contracts/proto --against .git#branch=dev`.
 - Command: `cargo test -p oya-audit-chain-contract-tests --all-features`.
 - Command: `cargo test -p oya-audit-chain-consumer-pacts --all-features`.
 - Governance crate enforcement: `oya-governance-substance-bar`.
@@ -299,8 +299,8 @@ Audit-chain is a substrate; its contract tests are promotion blockers for downst
 - Runbook: `audit/runbooks/audit-export.md`.
 - Runbook: `audit/runbooks/signature-verification-failure.md`.
 - Runbook: `audit/runbooks/retention-cascade.md`.
-- SLO: `microservices/audit-chain/slos/chain-of-custody-integrity-correctness.openslo.yaml`.
-- SLO: `microservices/audit-chain/slos/evidence-export-freshness.openslo.yaml`.
+- SLO: `audit/observability/slos/chain-of-custody-integrity-correctness.openslo.yaml`.
+- SLO: `audit/observability/slos/evidence-export-freshness.openslo.yaml`.
 - Consumer contract: `microservices/identity/contracts/asyncapi/identity-events.yaml`.
 - Consumer contract: `microservices/payments/contracts/asyncapi-v1.yaml`.
 - Consumer contract: `microservices/drive/contracts/asyncapi/drive-events.yaml`.
