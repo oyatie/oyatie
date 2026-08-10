@@ -562,7 +562,6 @@
         "_comment": "kuberos kernel + sysroot floor (ADR-0512 carve-out). cloud-kernel is the single 2nd-level crate. The bare `kernel` root is the ADR-0611 landed destination (kernel/core/asterinas-boundary + kernel/harness/asterinas-real-boot live there today, in kernel/'s own excluded nested workspace); it is absorbed exactly like every other destination root so the crates that already sit at the destination map to meta:kernel/ once the root is scanned.",
         "meta_dir": "kernel/",
         "current_dirs": [
-          "cloud/cloud-kernel",
           "kernel"
         ]
       },
@@ -570,7 +569,6 @@
         "_comment": "cloud-os node OS (Talos-class), rung 1.",
         "meta_dir": "os/",
         "current_dirs": [
-          "cloud/cloud-os",
           "os"
         ]
       }

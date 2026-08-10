@@ -170,9 +170,9 @@
         "_note": "forward-declared per ADR-0280 Appendix C; edges land in DAG v1.1.0"
       }
     },
-    "cloud/cloud-kernel/manifest.json": {
-      "service": "cloud/cloud-kernel",
-      "manifest": "cloud/cloud-kernel/manifest.json",
+    "kernel/manifest.json": {
+      "service": "kernel",
+      "manifest": "kernel/manifest.json",
       "capability": null,
       "tier": "substrate",
       "tier_subtype": "substrate-infra",
@@ -233,9 +233,9 @@
         "_note": "forward-declared per ADR-0280 Appendix C; edges land in DAG v1.1.0"
       }
     },
-    "cloud/cloud-os/manifest.json": {
-      "service": "cloud/cloud-os",
-      "manifest": "cloud/cloud-os/manifest.json",
+    "os/manifest.json": {
+      "service": "os",
+      "manifest": "os/manifest.json",
       "capability": null,
       "tier": "substrate",
       "tier_subtype": "substrate-infra",
