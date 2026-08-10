@@ -958,8 +958,10 @@ pub fn errno_error(ctx: &str, errno: i32) -> Error {
     match errno.unsigned_abs() {
         // EPERM / EACCES — the caller may not perform the operation.
         1 | 13 => Error::permission_denied(msg),
-        // ENOSYS / EOPNOTSUPP / ENOTTY — the substrate does not implement it.
-        38 | 95 | 25 => Error::unsupported(msg),
+        // ENOSYS / EOPNOTSUPP / ENOTTY / EPROTONOSUPPORT / EAFNOSUPPORT —
+        // the substrate does not implement the socket family or protocol
+        // (Linux asm-generic/errno.h values; netlink path is Linux-shaped).
+        38 | 95 | 25 | 93 | 97 => Error::unsupported(msg),
         // EEXIST — the address or route is already installed.
         17 => Error::invalid_state(msg),
         // ENOENT / ENODEV — the interface does not exist.
@@ -1445,6 +1447,8 @@ mod tests {
         assert_eq!(errno_error("op", -38).kind(), "unsupported"); // ENOSYS
         assert_eq!(errno_error("op", -95).kind(), "unsupported"); // EOPNOTSUPP
         assert_eq!(errno_error("op", -25).kind(), "unsupported"); // ENOTTY
+        assert_eq!(errno_error("op", -93).kind(), "unsupported"); // EPROTONOSUPPORT
+        assert_eq!(errno_error("op", -97).kind(), "unsupported"); // EAFNOSUPPORT
         assert_eq!(errno_error("op", -17).kind(), "invalid_state"); // EEXIST
         assert_eq!(errno_error("op", -2).kind(), "not_found"); // ENOENT
         assert_eq!(errno_error("op", -19).kind(), "not_found"); // ENODEV

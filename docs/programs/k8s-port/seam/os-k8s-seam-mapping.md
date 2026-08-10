@@ -226,8 +226,8 @@ diff-readable.
 
 | Id | Invariant | Check |
 |---|---|---|
-| INV-1 | No `os/` crate depends on any `k8s/` crate. | `git grep -nE '^k8s-[a-z-]+ *= *\{ *path' -- 'os/**/Cargo.toml'` exits 1. Positive control: the same pattern over `*/Cargo.toml` lists 13 files. |
-| INV-2 | No `k8s/` crate depends on any `os/` crate. | `git grep -nE '^os-[a-z-]+ *= *\{ *path' -- 'k8s/**/Cargo.toml'` exits 1. Positive control: same pattern over `*/Cargo.toml` lists 43 files. |
+| INV-1 | No `os/` crate depends on any `k8s/` crate. | `ci-k8s-program-docs` parses every `os/**/Cargo.toml` for package names starting with `k8s-` under dependency tables (inline `{ path }`, named `[dependencies.k8s-*]`, and `k8s-*.workspace = true`). Finding code `R-DOC-CROSS-SEAM-DEPENDENCY`. |
+| INV-2 | No `k8s/` crate depends on any `os/` crate. | Same gate over `k8s/**/Cargo.toml` for package names starting with `os-`. |
 | INV-3 | The count of upstream-Kubernetes `apiVersion:` emit sites in `os/` equals the frozen census. **Frozen at 16.** | Section 8 reproducer. Frozen at equality: growth is the chartered defect, and a unit that retires a site re-freezes the number in the same commit — an unrecorded shrink is red too, because banked headroom lets the site come back. |
 | INV-4 | Every `k8s/ports/upstream-*` crate is a dependency leaf (C1). | `git grep -nE '\{ *path *=' -- 'k8s/ports/upstream-*/Cargo.toml'` matches only other `upstream-` paths. Vacuously true until the first such crate exists. |
 | INV-5 | No file under a registered regenerable region is hand-edited. | Vacuously true until `specs/k8s-port/regenerable-regions.json` exists and is non-empty. Once it does, the diff must touch no listed path. |

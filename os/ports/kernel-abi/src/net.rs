@@ -358,8 +358,21 @@ impl KernelNet for InMemoryKernelNet {
 
     fn add_ipv6_address(&self, iface: &str, addr: &str, prefix_len: u8) -> Result<()> {
         let entry = v6_cidr(addr, prefix_len)?;
+        // Linux keys IPv6 installs by interface+address, not by CIDR string:
+        // replaying `fd00::5/64` then `fd00::5/128` is EEXIST, not a second row.
+        let address_key: String = entry
+            .split_once('/')
+            .map(|(a, _)| a)
+            .unwrap_or(entry.as_str())
+            .into();
         self.mutate(iface, |l| {
-            if l.ipv6.contains(&entry) {
+            if l.ipv6.iter().any(|existing| {
+                existing
+                    .split_once('/')
+                    .map(|(a, _)| a)
+                    .unwrap_or(existing.as_str())
+                    == address_key
+            }) {
                 return Err(already_exists("address", iface, &entry));
             }
             l.ipv6.push(entry);
@@ -489,6 +502,10 @@ mod tests {
         let net = InMemoryKernelNet::new().with_link("eth0");
         net.add_ipv6_address("eth0", "fd00::5", 64).unwrap();
         let err = net.add_ipv6_address("eth0", "fd00::5", 64).unwrap_err();
+        assert_eq!(err.kind(), "invalid_state");
+        assert_eq!(net.ipv6_addresses("eth0").len(), 1);
+        // Same address, different prefix — still EEXIST on Linux.
+        let err = net.add_ipv6_address("eth0", "fd00::5", 128).unwrap_err();
         assert_eq!(err.kind(), "invalid_state");
         assert_eq!(net.ipv6_addresses("eth0").len(), 1);
     }
