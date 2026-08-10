@@ -6,7 +6,7 @@
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
     "spec_id": "EXE-INTEG-BRANCH-ENVELOPES",
-    "version": "1.16.0",
+    "version": "1.16.1",
     "status": "Proposed",
     "owner_team": "council-architecture",
     "created_at": "2026-08-10T00:00:00Z",
@@ -323,6 +323,14 @@
         "tools/**"
       ],
       "note": "Transitional root under Amendment B reorg-target debt freeze. tools/swarm/** one-shot process-kit land via integ/specs (#1644) is the sole authorized birth wave; after that merge, tools/ is shrink-only — further births require an explicit reorg-move-out bead to a durable home."
+    },
+    "grok": {
+      "branch": "integ/ci",
+      "envelope_globs": [
+        ".grok/**"
+      ],
+      "note": "PROCESS_KIT forever home for mm-delivery / swarm process shims (tools/swarm → .grok/). Forward-declared until .grok/ judgment closes; destination_owns_reorg_now absorb owner for rows targeting .grok/. Peer to planes.process_meta PROCESS_KIT paths on integ/ci.",
+      "forward_declared": true
     },
     "workflow": {
       "branch": "integ/workflow",
@@ -2042,7 +2050,8 @@
         ],
         "destination_integ": "integ/os",
         "land_when": "Wave-2: integ/os absorbs forever residual (os/manifest.json + any missing crate bytes) coordinating one-writer with hot #1643; integ/cloud deletes drained cloud/cloud-os/**; hub retargets only on tip-free integ/specs — not this judgment commit",
-        "land_status": "ready_for_integ_os"
+        "land_status": "ready_for_integ_os",
+        "shrink_source_integ": "integ/cloud"
       },
       {
         "path": "cloud/cloud-kernel/",
@@ -2085,7 +2094,8 @@
         ],
         "destination_integ": "integ/kernel",
         "land_when": "After this judgment: integ/kernel absorbs framekernel into kernel/{core,harness}/ (rewrite); integ/cloud deletes drained cloud/cloud-kernel/**; do not route into os/; hub retargets on tip-free integ/specs only",
-        "land_status": "ready_for_integ_kernel"
+        "land_status": "ready_for_integ_kernel",
+        "shrink_source_integ": "integ/cloud"
       },
       {
         "path": "oya/payments/",
@@ -2130,7 +2140,8 @@
         ],
         "destination_integ": "integ/payments",
         "land_when": "After this judgment: integ/payments rewrites oya/payments/** → app/payments/** (fix phantom microservices/crate refs); delete AUDIT-FINDINGS-2026-05-20.json; do NOT route into billing/; hub retargets only on tip-free integ/specs — not this judgment commit",
-        "land_status": "ready_for_integ_payments"
+        "land_status": "ready_for_integ_payments",
+        "shrink_source_integ": "integ/oya"
       },
       {
         "path": "oya/office/",
@@ -2174,7 +2185,8 @@
         ],
         "destination_integ": "integ/office",
         "land_when": "After this judgment: integ/office rewrites product crates into app/office/{core,ports,adapters,facade,apps}/; burn tenant/authz/storage/search substrate into owning capability integs with thin app adapters; hub retargets only on tip-free integ/specs — not this judgment commit",
-        "land_status": "ready_for_integ_office"
+        "land_status": "ready_for_integ_office",
+        "shrink_source_integ": "integ/oya"
       },
       {
         "path": "oya/crm/",
@@ -2218,7 +2230,8 @@
         ],
         "destination_integ": "integ/crm",
         "land_when": "After this judgment: integ/crm rewrites CRM product to app/crm/**; evict oya-procurement-source-to-pay-domain to procurement forever home (coordinate owning integ); rewrite stale microservices/crm refs; hub retargets only on tip-free integ/specs — not this judgment commit",
-        "land_status": "ready_for_integ_crm"
+        "land_status": "ready_for_integ_crm",
+        "shrink_source_integ": "integ/oya"
       },
       {
         "path": "oya/itsm/",
@@ -2264,7 +2277,8 @@
         ],
         "destination_integ": "integ/itsm",
         "land_when": "After this judgment: integ/itsm rewrites oya/itsm/** → app/itsm/** (ADR-0562 faces); do NOT open integ/oya for this product; defer PagerDuty-class crate split until oya/incident-management paired judgment; hub retargets only on tip-free integ/specs — not this judgment commit",
-        "land_status": "ready_for_integ_itsm"
+        "land_status": "ready_for_integ_itsm",
+        "shrink_source_integ": "integ/oya"
       },
       {
         "path": "oya/calendar/",
@@ -2341,7 +2355,7 @@
         ],
         "destination_integ": "integ/app",
         "land_status": "ready_for_integ_app",
-        "land_when": "integ/app absorb; integ/oya delete oya/translate/**",
+        "land_when": "integ/app absorb; Phase 2 shrink-only: integ/oya delete oya/translate/**",
         "kind": "product-dump",
         "grammar_compliant": false,
         "judgment_status": "done",
@@ -2353,8 +2367,10 @@
           "essentialism_yagni: greenfield places products under capability roots or app/<product>/ — not oya/",
           "pragmatism: judgment-first batch; path drain only after judgment_status=done on integ/oya + dest integ",
           "systems_thinking: ban opening integ/oya mass forest until batch done — leaf deletes/moves only",
-          "opportunity_cost: leaving dumps blocks oya/ vacate and invites dual-home registration"
-        ]
+          "opportunity_cost: leaving dumps blocks oya/ vacate and invites dual-home registration",
+          "elevate: open integ/translate product rail if multi-month; else integ/app glue absorb only (programme rule 3d composition glue)"
+        ],
+        "shrink_source_integ": "integ/oya"
       },
       {
         "path": "oya/sites/",
@@ -2370,7 +2386,7 @@
         ],
         "destination_integ": "integ/app",
         "land_status": "ready_for_integ_app",
-        "land_when": "integ/app absorb; integ/oya delete oya/sites/**",
+        "land_when": "integ/app absorb; Phase 2 shrink-only: integ/oya delete oya/sites/**",
         "kind": "product-dump",
         "grammar_compliant": false,
         "judgment_status": "done",
@@ -2382,8 +2398,10 @@
           "essentialism_yagni: greenfield places products under capability roots or app/<product>/ — not oya/",
           "pragmatism: judgment-first batch; path drain only after judgment_status=done on integ/oya + dest integ",
           "systems_thinking: ban opening integ/oya mass forest until batch done — leaf deletes/moves only",
-          "opportunity_cost: leaving dumps blocks oya/ vacate and invites dual-home registration"
-        ]
+          "opportunity_cost: leaving dumps blocks oya/ vacate and invites dual-home registration",
+          "elevate: open integ/sites product rail if multi-month; else integ/app glue absorb only (programme rule 3d composition glue)"
+        ],
+        "shrink_source_integ": "integ/oya"
       },
       {
         "path": "oya/docs/",
@@ -2400,7 +2418,7 @@
         ],
         "destination_integ": "integ/app",
         "land_status": "ready_for_integ_app",
-        "land_when": "integ/app absorb; integ/oya delete oya/docs/**; forbid docs/ merge",
+        "land_when": "integ/app absorb; Phase 2 shrink-only: integ/oya delete oya/docs/**; forbid docs/ merge",
         "kind": "product-dump",
         "grammar_compliant": false,
         "judgment_status": "done",
@@ -2412,8 +2430,10 @@
           "essentialism_yagni: greenfield places products under capability roots or app/<product>/ — not oya/",
           "pragmatism: judgment-first batch; path drain only after judgment_status=done on integ/oya + dest integ",
           "systems_thinking: ban opening integ/oya mass forest until batch done — leaf deletes/moves only",
-          "opportunity_cost: leaving dumps blocks oya/ vacate and invites dual-home registration"
-        ]
+          "opportunity_cost: leaving dumps blocks oya/ vacate and invites dual-home registration",
+          "elevate: open integ/docs product rail if multi-month; else integ/app glue absorb only (programme rule 3d composition glue)"
+        ],
+        "shrink_source_integ": "integ/oya"
       },
       {
         "path": "oya/sheets/",
@@ -2443,7 +2463,8 @@
           "pragmatism: judgment-first batch; path drain only after judgment_status=done on integ/oya + dest integ",
           "systems_thinking: ban opening integ/oya mass forest until batch done — leaf deletes/moves only",
           "opportunity_cost: leaving dumps blocks oya/ vacate and invites dual-home registration"
-        ]
+        ],
+        "shrink_source_integ": "integ/oya"
       },
       {
         "path": "oya/ci-controller/",
@@ -2473,7 +2494,8 @@
           "pragmatism: judgment-first batch; path drain only after judgment_status=done on integ/oya + dest integ",
           "systems_thinking: ban opening integ/oya mass forest until batch done — leaf deletes/moves only",
           "opportunity_cost: leaving dumps blocks oya/ vacate and invites dual-home registration"
-        ]
+        ],
+        "shrink_source_integ": "integ/oya"
       },
       {
         "path": "oya/",
@@ -2571,16 +2593,19 @@
           "shared_nothing: .grok/ owns swarm process; ci/facade owns gates",
           "constant_work: judgment now; path port after #1644",
           "socratic: why would greenfield keep tools/ when .grok/ is process kit?",
-          "outside_the_box: absorb scout 0b9a2531 tools/swarm→.grok/ as binding leaf"
+          "outside_the_box: absorb scout 0b9a2531 tools/swarm→.grok/ as binding leaf",
+          "destination_owns_reorg_now: parent tools/ is shrink-only coordinator — absorb owned by child destination_integ rows (.grok/→integ/ci, ci/facade→integ/ci)",
+          "shrink_only: integ/tools deletes remainder after leaf absorbs; REJECT integ/specs as absorb owner for tools/ parent"
         ],
         "evidence": [
           "scout 0b9a2531 tools/swarm→.grok/",
           "tools/DISPOSITION.md",
           "one_shot_exceptions tools/swarm/**"
         ],
-        "destination_integ": "integ/specs",
-        "land_when": "W-tools-swarm-to-grok + remainder leaf drains",
-        "land_status": "ready_for_leaf_drains"
+        "destination_integ": "integ/tools",
+        "land_when": "Shrink-only on integ/tools after child leaf drains (tools/swarm→.grok/ on integ/ci, governance apps→integ/ci); parent tools/ is never absorb owner",
+        "land_status": "shrink_only_after_leaf_drains",
+        "shrink_source_integ": "integ/tools"
       },
       {
         "path": "tools/swarm/",
@@ -2604,7 +2629,8 @@
           "systems_thinking: envelopes claim_exemption + deliver.js still cite tools/swarm paths — update same wave",
           "opportunity_cost: delaying port prolongs dual process-kit homes",
           "contrarian: REJECT keep tools/swarm forever as convenience — one_shot_exceptions.expires_when is explicit",
-          "red_team: agents treating tools/ as durable process home will birth more kits under freeze prefix"
+          "red_team: agents treating tools/ as durable process home will birth more kits under freeze prefix",
+          "destination_owns_reorg_now: absorb owner integ/ci (.grok/** via roots.grok); integ/specs is envelopes hub only — not forever-path absorb owner"
         ],
         "rationale": "1) Swarm Delivery Law process shims (claim-push, lane-shell, git-shim, self-check). 2) One-shot #1644 birth under tools/; north-star .grok/. 3) Lane Claim/push ritual. 4) Must live under .grok/; tools/swarm must not forever. 5) Antipattern: tools/ as process kit root. 6) rewrite-into-durable-shape → .grok/. 7) Forever: .grok/.",
         "evidence": [
@@ -2612,10 +2638,11 @@
           "reorg_debt_freeze.one_shot_exceptions tools/swarm/** expires after #1644 squash",
           "tools/DISPOSITION.md + evidence/reorg/rr-tools-disposition-20260806.json"
         ],
-        "destination_integ": "integ/specs",
-        "land_when": "after #1644 land: port to .grok/ then delete tools/swarm (reorg-move-out)",
-        "land_status": "ready_for_port_to_grok",
-        "wave": "W-tools-swarm-to-grok"
+        "destination_integ": "integ/ci",
+        "land_when": "Phase 1: integ/ci absorbs tools/swarm → .grok/** (destination_owns_reorg_now); Phase 2: integ/tools shrink-only deletes tools/swarm/** after .grok/ verified",
+        "land_status": "absorb_on_integ_ci_then_shrink_integ_tools",
+        "wave": "W-tools-swarm-to-grok",
+        "shrink_source_integ": "integ/tools"
       },
       {
         "path": "tools/oya-governance-adapter-with-no-importer-app/",
@@ -2645,7 +2672,8 @@
         ],
         "destination_integ": "integ/ci",
         "land_when": "integ/ci rewrite absorb; update gate_registration; delete tools path",
-        "land_status": "ready_for_integ_ci"
+        "land_status": "ready_for_integ_ci",
+        "shrink_source_integ": "integ/tools"
       },
       {
         "path": "tools/oya-governance-adr-shape-app/",
@@ -2675,7 +2703,8 @@
         ],
         "destination_integ": "integ/ci",
         "land_when": "integ/ci rewrite absorb; update gate_registration; delete tools path",
-        "land_status": "ready_for_integ_ci"
+        "land_status": "ready_for_integ_ci",
+        "shrink_source_integ": "integ/tools"
       },
       {
         "path": "tools/oya-governance-banned-primitives-app/",
@@ -2705,7 +2734,8 @@
         ],
         "destination_integ": "integ/ci",
         "land_when": "integ/ci rewrite absorb; update gate_registration; delete tools path",
-        "land_status": "ready_for_integ_ci"
+        "land_status": "ready_for_integ_ci",
+        "shrink_source_integ": "integ/tools"
       },
       {
         "path": "cell/",
@@ -3769,7 +3799,7 @@
       "deliver.js Claim",
       "human/reviewer refuse of births under freeze prefixes without reorg-move-out bead"
     ],
-    "version": "2.1.0",
+    "version": "2.1.1",
     "evaluation_gate": {
       "required_before_path_change": true,
       "forbidden": [
@@ -3898,6 +3928,44 @@
         "test_fixtures_inside_existing_crate"
       ],
       "claim_check": "deliver.js Claim: for each git diff --diff-filter=A path under freeze prefixes, compute whether it introduces a new unit-root directory absent on origin/dev; REFUSE only those unit-root births without one_shot_exception or reorg-move-out bead."
+    },
+    "transitional_roots_shrink_only": {
+      "rule": "Transitional roots oya, libs, cloud, tools (integ/oya, integ/libs, integ/cloud, integ/tools) are shrink-only after judgment_status=done on child reorg_now rows — allowed: delete paths, REORG-DRAIN status notes; banned: cite-rewrite, hygiene, absorb/rewrite on source tip for reorg_now rows. OVERRULES programme rule 3d dump-phase hygiene on transitional tips.",
+      "transitional_roots": {
+        "oya": "integ/oya",
+        "libs": "integ/libs",
+        "cloud": "integ/cloud",
+        "tools": "integ/tools"
+      },
+      "allowed_on_transitional_tip": [
+        "delete paths under drained prefix",
+        "REORG-DRAIN status notes",
+        "dual-home burn after destination absorb verified"
+      ],
+      "banned_on_transitional_tip": [
+        "cite-rewrite on source tip for reorg_now rows",
+        "hygiene/absorb on source tip for reorg_now rows",
+        "deepening dump content on transitional prefix"
+      ],
+      "applies_when": "judgment_status=done on reorg_now row under transitional prefix"
+    },
+    "destination_owns_reorg_now": {
+      "rule": "Sole implementer for reorg_now absorb/rewrite = row.destination_integ (forever-path owner). Source transitional tip (shrink_source_integ) is delete-only after content verified alive on destination — never absorb owner.",
+      "read_source_from": "origin/dev or transitional tip for inventory only",
+      "write_forever_on": "row.destination_integ",
+      "shrink_on": "row.shrink_source_integ when set, else transitional root branch for row.path prefix"
+    },
+    "land_status_two_phase": {
+      "rule": "Two-phase relay for done reorg_now rows: (1) absorb/rewrite on destination_integ; (2) shrink-only delete on shrink_source_integ.",
+      "phase_absorb": "land_status ready_for_integ_<dest> — sole writer is destination_integ",
+      "phase_shrink": "land_status absorbed_then_deleted — shrink-only deletes on shrink_source_integ transitional tip",
+      "shrink_only_parent": "land_status shrink_only_* — transitional parent rows (tools/, oya/) coordinate leaf drains; parent is never absorb owner",
+      "shrink_source_integ_map": {
+        "oya/": "integ/oya",
+        "libs/": "integ/libs",
+        "cloud/": "integ/cloud",
+        "tools/": "integ/tools"
+      }
     },
     "scout_absorptions": [
       {
