@@ -15,8 +15,8 @@ metadata:
     tenant_class_eligibility: demo_trial,paid
     paid_billing_components_emitted: per_seat,per_usage
     tenant_class_principal_claim: principal.tenant_class
-    demo_trial_caps_ref: microservices/messenger/manifest.json#/tenant_class_adoption/demo_trial_caps
-    paid_compliance_gate_ref: microservices/messenger/policy/tenant-class.cedar#activate_compliance_pack
+    demo_trial_caps_ref: comms/messenger/manifest.json#/tenant_class_adoption/demo_trial_caps
+    paid_compliance_gate_ref: comms/messenger/policy/tenant-class.cedar#activate_compliance_pack
 spec:
   description: |
     Time from MessagePosted with mention tokens → MentionEmitted event +
