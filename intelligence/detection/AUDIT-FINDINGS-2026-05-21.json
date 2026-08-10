@@ -15,7 +15,7 @@
       "id": "DET-AUD-001",
       "severity": "info",
       "title": "Initial full PR-143-plus artifact roster created",
-      "evidence": "microservices/detection",
+      "evidence": "intelligence/detection",
       "status": "open-until-implementation"
     },
     {

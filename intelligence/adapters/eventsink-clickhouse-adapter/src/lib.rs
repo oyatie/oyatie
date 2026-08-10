@@ -1,4 +1,4 @@
-//! ClickHouse EventSink adapter for the cloud-intelligence OAuth subscription pool
+//! ClickHouse EventSink adapter for the intelligence OAuth subscription pool
 //! (ADR-0384 Path B, Stage-7 D6 production seam).
 //!
 //! Implements [`EventSink`] from `intelligence-kernel` by
