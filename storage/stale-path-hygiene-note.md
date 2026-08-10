@@ -38,3 +38,10 @@ Nearest envelope for noun **media** (no `integ/media` rail) = `integ/storage` ne
 
 - `microservices/recordings/IP-*.md`, `PRD.md`, `capacity-model.md`, `compliance.md`, historical ADR-RECORDINGS-* filenames, OpenSLO under recordings
 - `microservices/imaging/PRD.md`, `ARCHITECTURE.md`
+
+## Seat A wave-6 dep-ordered (2026-08-10)
+
+- Verified remaps applied: **8** cite(s) across **2** file(s).
+- Scope: path/manifest/SLO/contract/capability/catalog high-value only; missing homes deferred.
+- Product unblock: forever cites for nested faces + observability prometheusrule alias.
+- No hubs / Cargo.lock / merge / #1661 / cloud-os absorb.
