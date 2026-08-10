@@ -14,6 +14,10 @@
       "prefix": ".codex/BUCK"
     },
     {
+      "anchor": "ADR-0515 governance pipeline: reviewed Cursor model-routing and agent-ritual policy for cloud-ci delivery lanes.",
+      "prefix": ".cursor/rules/"
+    },
+    {
       "anchor": "ADR-0600 addendum 2026-07-02: GitHub community-health code of conduct (tool-mandated GitHub special file under the .github meta home).",
       "prefix": ".github/CODE_OF_CONDUCT.md"
     },
@@ -64,6 +68,18 @@
     {
       "anchor": "ADR-0541: Buck package marker for the cell capability residual corpus target. This package keeps the capability's rehomed service docs, manifests, contracts and OpenSLO YAML inside the Buck2 corpus graph after the capability-first rehome; without it those files leave buck2-packaged space entirely (measured across nine roots: 996 YAML files, unpackaged 1069 -> 75).",
       "prefix": "cell/BUCK"
+    },
+    {
+      "anchor": "ADR-0562 migration inventory: reviewed CI controller legacy-root drain record.",
+      "prefix": "ci/REORG-DRAIN.md"
+    },
+    {
+      "anchor": "ADR-0515 F-PR5-06: owned CI controller app, adapters, kernel, and Helm workload declaration; planned controller is not merge authority.",
+      "prefix": "ci/controller/"
+    },
+    {
+      "anchor": "ADR-0555 D3: CI gate evidence corpus for reviewed delivery-lane outcomes.",
+      "prefix": "ci/evidence/"
     },
     {
       "anchor": "ADR-0635 D5: named RED/GREEN mutation corpus consumed directly by the dependency-graph-acyclicity Buck gate test.",
