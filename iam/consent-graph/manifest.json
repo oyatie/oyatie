@@ -61,10 +61,10 @@
   ],
   "contracts": {
     "openapi": [
-      "microservices/consent-graph/contracts/openapi/consent-graph.yaml"
+      "iam/consent-graph/contracts/openapi/consent-graph.yaml"
     ],
     "asyncapi": [
-      "microservices/consent-graph/contracts/asyncapi/consent-events.yaml"
+      "iam/consent-graph/contracts/asyncapi/consent-events.yaml"
     ],
     "internal_grpc": {
       "transport": "http2",
@@ -78,20 +78,20 @@
     {
       "tier": "T3",
       "name": "consent-grant",
-      "file": "microservices/consent-graph/capabilities/consent-grant.yaml",
+      "file": "iam/consent-graph/capabilities/consent-grant.yaml",
       "risk_class": "high",
       "rationale": "Cross-tenant data flow authorization; legal-grade audit + revocation primitives required."
     },
     {
       "tier": "T2",
       "name": "consent-project-subscribe",
-      "file": "microservices/consent-graph/capabilities/consent-project-subscribe.yaml",
+      "file": "iam/consent-graph/capabilities/consent-project-subscribe.yaml",
       "risk_class": "limited"
     },
     {
       "tier": "T0",
       "name": "consent-enforce",
-      "file": "microservices/consent-graph/capabilities/consent-enforce.yaml",
+      "file": "iam/consent-graph/capabilities/consent-enforce.yaml",
       "risk_class": "none",
       "rationale": "Read-only Cedar evaluation; no data modification; deny-by-default failure mode."
     }
@@ -595,14 +595,14 @@
     ],
     "public_surface_files": {
       "openapi": {
-        "2026-05-21": "microservices/consent-graph/contracts/openapi/consent-graph.yaml",
-        "2026-02-21": "microservices/consent-graph/contracts/openapi/consent-graph.yaml",
-        "2025-11-21": "microservices/consent-graph/contracts/openapi/consent-graph.yaml"
+        "2026-05-21": "iam/consent-graph/contracts/openapi/consent-graph.yaml",
+        "2026-02-21": "iam/consent-graph/contracts/openapi/consent-graph.yaml",
+        "2025-11-21": "iam/consent-graph/contracts/openapi/consent-graph.yaml"
       },
       "asyncapi": {
-        "2026-05-21": "microservices/consent-graph/contracts/asyncapi/consent-events.yaml",
-        "2026-02-21": "microservices/consent-graph/contracts/asyncapi/consent-events.yaml",
-        "2025-11-21": "microservices/consent-graph/contracts/asyncapi/consent-events.yaml"
+        "2026-05-21": "iam/consent-graph/contracts/asyncapi/consent-events.yaml",
+        "2026-02-21": "iam/consent-graph/contracts/asyncapi/consent-events.yaml",
+        "2025-11-21": "iam/consent-graph/contracts/asyncapi/consent-events.yaml"
       }
     }
   },

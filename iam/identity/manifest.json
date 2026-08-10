@@ -95,14 +95,14 @@
   ],
   "contracts": {
     "openapi": [
-      "microservices/identity/contracts/openapi/identity.yaml",
-      "microservices/identity/contracts/openapi/multi-context-split.yaml",
-      "microservices/identity/contracts/openapi/workload.yaml"
+      "iam/identity/contracts/openapi/identity.yaml",
+      "iam/identity/contracts/openapi/multi-context-split.yaml",
+      "iam/identity/contracts/openapi/workload.yaml"
     ],
     "asyncapi": [
-      "microservices/identity/contracts/asyncapi/identity-events.yaml",
-      "microservices/identity/contracts/asyncapi/multi-context-events.yaml",
-      "microservices/identity/contracts/asyncapi/workload-events.yaml"
+      "iam/identity/contracts/asyncapi/identity-events.yaml",
+      "iam/identity/contracts/asyncapi/multi-context-events.yaml",
+      "iam/identity/contracts/asyncapi/workload-events.yaml"
     ],
     "internal_grpc": {
       "transport": "http2",
@@ -119,31 +119,31 @@
     {
       "tier": "T0",
       "name": "oidc-token-issue",
-      "file": "microservices/identity/capabilities/oidc-token-issue.yaml",
+      "file": "iam/identity/capabilities/oidc-token-issue.yaml",
       "risk_class": "none"
     },
     {
       "tier": "T0",
       "name": "webauthn-authenticate",
-      "file": "microservices/identity/capabilities/webauthn-authenticate.yaml",
+      "file": "iam/identity/capabilities/webauthn-authenticate.yaml",
       "risk_class": "none"
     },
     {
       "tier": "T1",
       "name": "step-up-acr-grant",
-      "file": "microservices/identity/capabilities/step-up-acr-grant.yaml",
+      "file": "iam/identity/capabilities/step-up-acr-grant.yaml",
       "risk_class": "limited"
     },
     {
       "tier": "T1",
       "name": "multi-context-principal-resolve",
-      "file": "microservices/identity/capabilities/multi-context-principal-resolve.yaml",
+      "file": "iam/identity/capabilities/multi-context-principal-resolve.yaml",
       "risk_class": "limited"
     },
     {
       "tier": "T2",
       "name": "scim-user-provision",
-      "file": "microservices/identity/capabilities/scim-user-provision.yaml",
+      "file": "iam/identity/capabilities/scim-user-provision.yaml",
       "risk_class": "limited"
     }
   ],
@@ -329,7 +329,7 @@
     "per_seat",
     "per_usage"
   ],
-  "tenant_class_caps_ref": "microservices/identity/capabilities/tenant-class-caps.yaml",
+  "tenant_class_caps_ref": "iam/identity/capabilities/tenant-class-caps.yaml",
   "tenant_class_cedar_fragment": "microservices/identity/policy/tenant-class.cedar",
   "tenant_class_iac_variants": {
     "demo_trial": "microservices/identity/iac/oci-guest/always-free/",
@@ -607,12 +607,12 @@
       "prd": "microservices/identity/workload-identity/PRD.md",
       "ip": "microservices/identity/IP-001-identity-design.md",
       "contracts": {
-        "openapi": "microservices/identity/contracts/identity.openapi.yaml",
-        "asyncapi": "microservices/identity/contracts/identity.asyncapi.yaml",
+        "openapi": "iam/identity/contracts/identity.openapi.yaml",
+        "asyncapi": "iam/identity/contracts/identity.asyncapi.yaml",
         "proto": "iam/identity/contracts/identity.proto"
       },
       "policy": "microservices/identity/policy/identity.cedar",
-      "capabilities": "microservices/identity/capabilities/identity.capabilities.yaml",
+      "capabilities": "iam/identity/capabilities/identity.capabilities.yaml",
       "slos": [
         "microservices/identity/slos/authorize-latency-p99.openslo.yaml",
         "microservices/identity/slos/validation-availability.openslo.yaml",
@@ -839,14 +839,14 @@
     ],
     "public_surface_files": {
       "openapi": {
-        "2026-05-21": "microservices/identity/contracts/openapi/identity.yaml",
-        "2026-02-21": "microservices/identity/contracts/openapi/identity.yaml",
-        "2025-11-21": "microservices/identity/contracts/openapi/identity.yaml"
+        "2026-05-21": "iam/identity/contracts/openapi/identity.yaml",
+        "2026-02-21": "iam/identity/contracts/openapi/identity.yaml",
+        "2025-11-21": "iam/identity/contracts/openapi/identity.yaml"
       },
       "asyncapi": {
-        "2026-05-21": "microservices/identity/contracts/asyncapi/identity-events.yaml",
-        "2026-02-21": "microservices/identity/contracts/asyncapi/identity-events.yaml",
-        "2025-11-21": "microservices/identity/contracts/asyncapi/identity-events.yaml"
+        "2026-05-21": "iam/identity/contracts/asyncapi/identity-events.yaml",
+        "2026-02-21": "iam/identity/contracts/asyncapi/identity-events.yaml",
+        "2025-11-21": "iam/identity/contracts/asyncapi/identity-events.yaml"
       }
     }
   },
