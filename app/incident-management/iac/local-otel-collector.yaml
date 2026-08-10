@@ -1,0 +1,34 @@
+apiVersion: opentelemetry.io/v1beta1
+kind: OpenTelemetryCollector
+metadata:
+  name: incident-management-local-otel
+  labels:
+    service: incident-management
+    suite: local-operational-primitive
+    adr: ADR-0130
+spec:
+  mode: deployment
+  config:
+    receivers:
+      otlp:
+        protocols:
+          grpc: {}
+          http: {}
+    processors:
+      attributes/local-domain:
+        actions:
+          - key: service.name
+            value: incident-management
+            action: upsert
+          - key: oyatie.domain_object
+            value: IncidentCommand
+            action: upsert
+    exporters:
+      otlphttp:
+        endpoint: http://observability-ingest.observability.svc:4318
+    service:
+      pipelines:
+        metrics:
+          receivers: [otlp]
+          processors: [attributes/local-domain]
+          exporters: [otlphttp]
