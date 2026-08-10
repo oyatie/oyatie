@@ -8,7 +8,7 @@ metadata:
     surface: chat-completions-stream
     sli_role: streaming-unique
     adr: "ADR-0373"
-    research_brief: "microservices/cloud-intelligence/design/hyperscaler-best-practice-brief.md#4"
+    research_brief: "intelligence/design/hyperscaler-best-practice-brief.md#4"
 spec:
   service: cloud-intelligence
   description: |

@@ -26,7 +26,7 @@ kubectl -n oya-cloud-intelligence get secret cloud-intelligence-secrets   # exis
 ## 2. Build the image  **[HUMAN-AUTH]**
 
 ```sh
-kubectl apply -f microservices/cloud-intelligence/k8s/buildkit-build.yaml
+kubectl apply -f intelligence/k8s/buildkit-build.yaml
 kubectl -n oya-ci wait --for=condition=complete job/cloud-intelligence-image-build --timeout=15m
 kubectl -n oya-registry exec deploy/registry -- ls /var/lib/registry/docker/registry/v2/repositories/cloud-intelligence/_manifests/tags
 ```
@@ -120,7 +120,7 @@ argocd app list | grep cloud-intelligence
 
 ### Enroll the first subscription
 
-See `microservices/cloud-intelligence/runbooks/enroll-first-subscription.md` for the
+See `intelligence/runbooks/enroll-first-subscription.md` for the
 step-by-step OAuth enrollment flow, secret-provider handle registration, ESO sync
 verification, and smoke-test commands.
 

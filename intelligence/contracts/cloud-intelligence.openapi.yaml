@@ -6,8 +6,8 @@ info:
     Multi-provider cloud-intelligence AI gateway — a key-pool reverse proxy fronting OpenAI/Codex,
     Anthropic, and Google Gemini behind ONE canonical OpenAI-compatible wire surface.
 
-    Design + research grounding: microservices/cloud-intelligence/PRD.md and
-    microservices/cloud-intelligence/design/hyperscaler-best-practice-brief.md (brief §2 REST API
+    Design + research grounding: intelligence/PRD.md and
+    intelligence/design/hyperscaler-best-practice-brief.md (brief §2 REST API
     contract). The OpenAI Chat Completions / Embeddings / Models surface is the de-facto
     industry standard (Azure APIM imports OpenAI- and Anthropic-Messages-conformant
     endpoints; Kong AI Proxy normalizes to llm/v1/*), so a stock OpenAI SDK works with

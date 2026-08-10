@@ -16,13 +16,13 @@ Run the build-and-push script from the repo root:
 ```sh
 ./scripts/build/build-and-push-cloud-intelligence.sh
 # Outputs: digest: sha256:<...>
-# Copy the digest into microservices/cloud-intelligence/iac/k8s/helm/values.yaml
+# Copy the digest into intelligence/iac/k8s/helm/values.yaml
 ```
 
 Pin the digest in Helm values and push to dev so ArgoCD can deploy:
 
 ```sh
-# Edit microservices/cloud-intelligence/iac/k8s/helm/values.yaml
+# Edit intelligence/iac/k8s/helm/values.yaml
 # Set:  digest: "sha256:<actual-digest-from-above>"
 git commit -am "chore(cloud-intelligence): pin v0.1.0 image digest to sha256:<...>" && git push origin dev
 # ArgoCD picks up the change within ~30s

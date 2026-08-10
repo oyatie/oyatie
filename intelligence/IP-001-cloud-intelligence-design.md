@@ -3,7 +3,7 @@
 **Phase:** LLM-GATEWAY-PRODUCTION-DESIGN
 **Owner:** council-foundry
 **Authority ADRs:** ADR-0090 (hyper backbone), ADR-0105 (layered kernel/rest), ADR-0131 (flat layout), ADR-0373 (provider-abstraction + canonical OpenAI surface), ADR-0373 (key-pool resilience state machine + per-tenant budgets), ADR-0373 (Bedrock-shaped audit + default-off body logging)
-**Research foundation:** `microservices/cloud-intelligence/design/hyperscaler-best-practice-brief.md`
+**Research foundation:** `intelligence/design/hyperscaler-best-practice-brief.md`
 **Status:** Planned (kernel implemented; rest crate + contracts spec'd to production)
 
 ## Scope
@@ -30,7 +30,7 @@ The pure kernel state machine (`crates/oya-cloud-intelligence-kernel/src/lib.rs`
 
 ## Deliverables
 
-1. **PRD** — `microservices/cloud-intelligence/PRD.md` (research-grounded; Acceptance Criteria AC-1..AC-8).
+1. **PRD** — `intelligence/PRD.md` (research-grounded; Acceptance Criteria AC-1..AC-8).
 2. **Contracts** (canonical versions mandatory):
    - `contracts/cloud-intelligence.openapi.yaml` — OpenAPI **3.2.0**.
    - `contracts/cloud-intelligence.asyncapi.yaml` — AsyncAPI **3.1.0**.
@@ -178,8 +178,8 @@ Contracts (T1/T2/T6) are authored first as the interface source of truth (api-an
 
 ## References
 
-- `microservices/cloud-intelligence/PRD.md` (§4 recommended design, §6 acceptance criteria).
-- `microservices/cloud-intelligence/design/hyperscaler-best-practice-brief.md` (cited per domain).
+- `intelligence/PRD.md` (§4 recommended design, §6 acceptance criteria).
+- `intelligence/design/hyperscaler-best-practice-brief.md` (cited per domain).
 - ADR-0090, ADR-0105, ADR-0131, ADR-0373, ADR-0373, ADR-0373.
 - Kernel: `crates/oya-cloud-intelligence-kernel/src/lib.rs` (implemented, unit-tested).
 - Rest foundation: `crates/oya-cloud-intelligence-rest/src/{proxy,channel,keystore,auth,metrics,logging,state,config}.rs`.
