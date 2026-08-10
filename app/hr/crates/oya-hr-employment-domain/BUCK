@@ -1,0 +1,118 @@
+rust_library(
+    name = "oya-hr-employment-domain",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "oya_hr_employment_domain",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+    ],
+)
+
+rust_test(
+    name = "oya-hr-employment-domain-employment",
+    srcs = ["tests/employment.rs"],
+    crate = "oya_hr_employment_domain_employment",
+    crate_root = "tests/employment.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-hr-employment-domain",
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+    ],
+)
+
+rust_test(
+    name = "oya-hr-employment-domain-kr-council",
+    srcs = ["tests/kr_council.rs"],
+    crate = "oya_hr_employment_domain_kr_council",
+    crate_root = "tests/kr_council.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-hr-employment-domain",
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+    ],
+)
+
+rust_test(
+    name = "oya-hr-employment-domain-kr-rules",
+    srcs = ["tests/kr_rules.rs"],
+    crate = "oya_hr_employment_domain_kr_rules",
+    crate_root = "tests/kr_rules.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-hr-employment-domain",
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+    ],
+)
+
+rust_test(
+    name = "oya-hr-employment-domain-leave",
+    srcs = ["tests/leave.rs"],
+    crate = "oya_hr_employment_domain_leave",
+    crate_root = "tests/leave.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-hr-employment-domain",
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+    ],
+)
+
+rust_test(
+    name = "oya-hr-employment-domain-leave-balance",
+    srcs = ["tests/leave_balance.rs"],
+    crate = "oya_hr_employment_domain_leave_balance",
+    crate_root = "tests/leave_balance.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-hr-employment-domain",
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+    ],
+)
+
+rust_test(
+    name = "oya-hr-employment-domain-leave-carryover-forfeiture",
+    srcs = ["tests/leave_carryover_forfeiture.rs"],
+    crate = "oya_hr_employment_domain_leave_carryover_forfeiture",
+    crate_root = "tests/leave_carryover_forfeiture.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-hr-employment-domain",
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+    ],
+)
+
+rust_test(
+    name = "oya-hr-employment-domain-onboarding",
+    srcs = ["tests/onboarding.rs"],
+    crate = "oya_hr_employment_domain_onboarding",
+    crate_root = "tests/onboarding.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-hr-employment-domain",
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+    ],
+)
+
+rust_test(
+    name = "oya-hr-employment-domain-privacy",
+    srcs = ["tests/privacy.rs"],
+    crate = "oya_hr_employment_domain_privacy",
+    crate_root = "tests/privacy.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-hr-employment-domain",
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+    ],
+)
+
+rust_test(
+    name = "oya-hr-employment-domain-rulepack-manifest",
+    srcs = ["tests/rulepack_manifest.rs"],
+    crate = "oya_hr_employment_domain_rulepack_manifest",
+    crate_root = "tests/rulepack_manifest.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-hr-employment-domain",
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+    ],
+)
