@@ -6,7 +6,7 @@
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
     "spec_id": "EXE-INTEG-BRANCH-ENVELOPES",
-    "version": "1.12.0",
+    "version": "1.13.0",
     "status": "Proposed",
     "owner_team": "council-architecture",
     "created_at": "2026-08-10T00:00:00Z",
@@ -279,8 +279,15 @@
     "docs": {
       "branch": "integ/docs",
       "envelope_globs": [
-        "docs/**"
-      ]
+        "docs/**",
+        "templates/**"
+      ],
+      "note": "DOCS plane + templates plane hub. templates/** is keep_forever (Amendment B) with destination_integ integ/docs on the templates/ and templates/checklists/ judgment rows — Claim must route those paths here so docs/checklists→templates/checklists and docs/templates→templates/ reorg_now lands are not orphaned outside every envelope. docs/** stays the operating-contract / ADR / standards / archive apex; templates/** is the single authoring hub for scaffolds/checklists (not a second docs dump). Closes northstar-envelope-holes for templates/.",
+      "owner_decision": {
+        "forever_owner": "integ/docs",
+        "rejected_alternative": "orphan templates/** or forever adjunct from integ/specs",
+        "why": "Chesterton: judgments already named integ/docs; forever adjunct is oxymoron; process_meta rejection of docs-plane expansion applies to root entry hubs (AGENTS/CLAUDE/.cursor), not to the templates plane hub."
+      }
     },
     "specs": {
       "branch": "integ/specs",
@@ -1758,7 +1765,7 @@
           "docs/checklists count=31 vs templates/checklists subset"
         ],
         "destination_integ": "integ/docs",
-        "land_when": "paired with new docs/checklists/ reorg_now row"
+        "land_when": "paired with docs/checklists/ reorg_now land on integ/docs (templates/** now in planes.docs)"
       },
       {
         "path": "governance/",
@@ -2397,7 +2404,8 @@
           "find docs/checklists -type f | wc -l → 31"
         ],
         "destination_integ": "integ/docs",
-        "land_when": "explicit-path merge+delete on integ/docs; update hardcoded ci cite in same programme (coordinate if ci path outside envelope)"
+        "land_when": "envelope_hole_closed: planes.docs includes templates/** (envelopes 1.13.0) — explicit-path merge unique docs/checklists → templates/checklists then delete docs/checklists/ on integ/docs; prefer Accepted docs content on basename conflicts; update live cites in docs/** + .github PR template in same land; ci/facade/supply-chain-audit hardcoded path needs integ/ci coordinate (outside docs envelope)",
+        "land_status": "ready_for_integ_docs"
       },
       {
         "path": "docs/audits/",
