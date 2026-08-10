@@ -1,0 +1,27 @@
+[package]
+name = "oya-cloud-os-cluster-mgmt-domain"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+description = "Cluster bootstrap, health, and discovery management for the operating-system Talos port."
+
+[features]
+# Deterministic *modeled* crypto stand-ins: every constructor that mints a
+# `Secret` (and therefore every CA, secrets bundle, config bundle, cluster plan,
+# and `create_cluster`). Non-default and never enabled by any production target:
+# the CA private-key material is derivable from the cluster name alone. Test
+# builds get it via `cfg(test)`.
+modeled-crypto = []
+
+[lib]
+name = "oya_cloud_os_cluster_mgmt_domain"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+os-kernel = { path = "../../../../os/core/kernel" }
+
+[lints]
+workspace = true

@@ -614,6 +614,13 @@
         ]
       },
       {
+        "_comment": "FANOUT-03: Group-A safe-metadata secret kernel homed under workflow orchestration substrate.",
+        "capability": "workflow",
+        "globs": [
+          "libs/oya-workflow-safe-metadata-kernel"
+        ]
+      },
+      {
         "_comment": "The owned data plane primitives (ADR-0562 'data→data'): the data boundary/outbox/SQL kernels + adapters dissolve into the data capability home.",
         "capability": "data",
         "globs": [

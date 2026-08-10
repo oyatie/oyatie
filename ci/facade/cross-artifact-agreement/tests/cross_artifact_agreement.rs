@@ -1138,6 +1138,7 @@ fn broad_workflow_consumers_require_the_producer_artifact_and_keep_the_merge_bas
         "ci/facade/artifact-inventory-registry/*.generated.json",
         "ci/facade/scm-facts-snapshot/scm-volatile-facts.generated.json",
         "ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json",
+        "ci/facade/scm-facts-snapshot/adr-census-parent-receipt.generated.json",
         "registry/graph/active-artifact-contract-edges.json",
     ] {
         assert_occurs_exactly_once(upload, path);

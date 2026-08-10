@@ -1,3 +1,4 @@
+use std::collections::BTreeSet;
 use std::fs;
 use std::path::{Path, PathBuf};
 
@@ -5,7 +6,10 @@ use check_data_class::{
     FieldIdentity, KernelField, LegacyUnannotatedField, validate_data_class_fitness,
 };
 
+use crate::workspace_manifest::read_package_name;
 use crate::{read_workspace_member_paths, usage};
+
+const DEFAULT_CATALOG_DIR: &str = "registry/catalog";
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct DataClassValidateArgs {
@@ -52,19 +56,184 @@ fn read_kernel_fields(workspace_manifest_path: &Path) -> Result<Vec<KernelField>
     let workspace_dir = workspace_manifest_path
         .parent()
         .unwrap_or_else(|| Path::new("."));
+    let catalog_dir = workspace_dir.join(DEFAULT_CATALOG_DIR);
+    let member_paths = read_workspace_member_paths(workspace_manifest_path)?;
+    let kernel_catalog_ids = load_kernel_catalog_ids(&catalog_dir)?;
+    let scan_members = select_kernel_scan_members(
+        &catalog_dir,
+        &kernel_catalog_ids,
+        workspace_dir,
+        &member_paths,
+    )?;
     let mut fields = Vec::new();
-    for member_path in read_workspace_member_paths(workspace_manifest_path)? {
-        let crate_name = Path::new(&member_path)
-            .file_name()
-            .and_then(|name| name.to_str())
-            .ok_or_else(|| format!("workspace member has invalid path: {member_path}"))?;
-        if !crate_name.ends_with("-kernel") {
-            continue;
-        }
+    for member_path in scan_members {
         let src_dir = workspace_dir.join(&member_path).join("src");
         collect_kernel_fields(workspace_dir, &src_dir, &mut fields)?;
     }
     Ok(fields)
+}
+
+fn select_kernel_scan_members(
+    catalog_dir: &Path,
+    kernel_catalog_ids: &[String],
+    workspace_dir: &Path,
+    member_paths: &[String],
+) -> Result<Vec<String>, String> {
+    let mut scan_members = BTreeSet::new();
+    for member_path in member_paths {
+        let manifest_path = workspace_dir.join(member_path).join("Cargo.toml");
+        if !manifest_path.is_file() {
+            continue;
+        }
+        let package_name = read_package_name(&manifest_path)?;
+        if is_kernel_role_catalog(catalog_dir, &package_name)? {
+            scan_members.insert(member_path.clone());
+        }
+    }
+
+    let mut coverage_errors = Vec::new();
+    for catalog_id in kernel_catalog_ids {
+        let Some(member_path) =
+            resolve_catalog_workspace_member(catalog_id, catalog_dir, workspace_dir, member_paths)?
+        else {
+            continue;
+        };
+        if scan_members.contains(&member_path) {
+            continue;
+        }
+        coverage_errors.push(format!(
+            "kernel catalog {catalog_id} maps to workspace member {member_path} but is absent from data-class scan set (registry/catalog/{catalog_id}.yaml role: kernel)"
+        ));
+    }
+    if !coverage_errors.is_empty() {
+        return Err(coverage_errors.join("\n"));
+    }
+
+    Ok(scan_members.into_iter().collect())
+}
+
+fn is_kernel_role_catalog(catalog_dir: &Path, catalog_id: &str) -> Result<bool, String> {
+    let path = catalog_dir.join(format!("{catalog_id}.yaml"));
+    if !path.is_file() {
+        return Ok(false);
+    }
+    let contents = fs::read_to_string(&path)
+        .map_err(|error| format!("catalog record unreadable {}: {error}", path.display()))?;
+    Ok(parse_catalog_role(&contents).as_deref() == Some("kernel"))
+}
+
+fn load_kernel_catalog_ids(catalog_dir: &Path) -> Result<Vec<String>, String> {
+    let entries = fs::read_dir(catalog_dir).map_err(|error| {
+        format!(
+            "kernel catalog directory unreadable {}: {error}",
+            catalog_dir.display()
+        )
+    })?;
+    let mut catalog_ids = Vec::new();
+    for entry in entries {
+        let entry =
+            entry.map_err(|error| format!("kernel catalog directory entry unreadable: {error}"))?;
+        let path = entry.path();
+        if path.extension().and_then(|extension| extension.to_str()) != Some("yaml") {
+            continue;
+        }
+        let Some(catalog_id) = path.file_stem().and_then(|stem| stem.to_str()) else {
+            continue;
+        };
+        let contents = fs::read_to_string(&path).map_err(|error| {
+            format!("kernel catalog record unreadable {}: {error}", path.display())
+        })?;
+        if parse_catalog_role(&contents).as_deref() == Some("kernel") {
+            catalog_ids.push(catalog_id.to_string());
+        }
+    }
+    catalog_ids.sort();
+    Ok(catalog_ids)
+}
+
+fn resolve_catalog_workspace_member(
+    catalog_id: &str,
+    catalog_dir: &Path,
+    workspace_dir: &Path,
+    member_paths: &[String],
+) -> Result<Option<String>, String> {
+    if let Some(source_crate) = read_catalog_source_crate(catalog_dir, catalog_id)? {
+        let member_path = source_crate
+            .strip_suffix("/Cargo.toml")
+            .unwrap_or(source_crate.as_str())
+            .to_string();
+        if member_paths.iter().any(|member| member == &member_path) {
+            return Ok(Some(member_path));
+        }
+    }
+
+    for member_path in member_paths {
+        let manifest_path = workspace_dir.join(member_path).join("Cargo.toml");
+        if !manifest_path.is_file() {
+            continue;
+        }
+        if read_package_name(&manifest_path)? == catalog_id {
+            return Ok(Some(member_path.clone()));
+        }
+    }
+
+    Ok(None)
+}
+
+fn read_catalog_source_crate(catalog_dir: &Path, catalog_id: &str) -> Result<Option<String>, String> {
+    let path = catalog_dir.join(format!("{catalog_id}.yaml"));
+    if !path.is_file() {
+        return Ok(None);
+    }
+    let contents = fs::read_to_string(&path)
+        .map_err(|error| format!("catalog record unreadable {}: {error}", path.display()))?;
+    Ok(parse_catalog_source_crate(&contents))
+}
+
+fn parse_catalog_role(contents: &str) -> Option<String> {
+    for line in contents.lines() {
+        let stripped = line.trim();
+        if stripped.is_empty() || stripped.starts_with('#') {
+            continue;
+        }
+        let Some((key, value)) = stripped.split_once(':') else {
+            continue;
+        };
+        if key.trim() == "role" {
+            return Some(value.trim().to_string());
+        }
+    }
+    None
+}
+
+fn parse_catalog_source_crate(contents: &str) -> Option<String> {
+    let mut in_traceability = false;
+    for line in contents.lines() {
+        let stripped = line.trim();
+        if stripped.is_empty() || stripped.starts_with('#') {
+            continue;
+        }
+        if stripped == "traceability:" {
+            in_traceability = true;
+            continue;
+        }
+        if in_traceability {
+            // Indentation must be read from the raw line: `stripped` is already
+            // trim()'d, so `starts_with(' ')` would never hold and the nested
+            // `source_crate:` key would be misread as a sibling key.
+            let indented = line.starts_with(' ') || line.starts_with('\t');
+            if !indented && stripped.contains(':') {
+                break;
+            }
+            let Some((key, value)) = stripped.split_once(':') else {
+                continue;
+            };
+            if key.trim() == "source_crate" {
+                return Some(value.trim().to_string());
+            }
+        }
+    }
+    None
 }
 
 fn collect_kernel_fields(
@@ -220,4 +389,102 @@ fn read_legacy_unannotated_fields(path: &Path) -> Result<Vec<LegacyUnannotatedFi
         });
     }
     Ok(allowances)
+}
+
+#[cfg(test)]
+mod tests {
+    use std::fs;
+
+    use super::*;
+
+    #[test]
+    fn parse_catalog_role_reads_kernel_role() {
+        let yaml = "context: os\nrole: kernel\nplane: control\n";
+        assert_eq!(parse_catalog_role(yaml), Some("kernel".to_string()));
+    }
+
+    #[test]
+    fn parse_catalog_source_crate_reads_traceability_block() {
+        let yaml = "context: os\nrole: kernel\ntraceability:\n  source_crate: os/ports/kernel-abi/Cargo.toml\n";
+        assert_eq!(
+            parse_catalog_source_crate(yaml),
+            Some("os/ports/kernel-abi/Cargo.toml".to_string())
+        );
+    }
+
+    #[test]
+    fn os_kernel_abi_catalog_resolves_to_scan_member_via_package_name() {
+        let temp = std::env::temp_dir().join(format!(
+            "oya-data-class-os-kernel-abi-{}",
+            std::process::id()
+        ));
+        let workspace_dir = &temp;
+        fs::create_dir_all(workspace_dir.join("registry/catalog")).expect("catalog dir");
+        fs::create_dir_all(workspace_dir.join("os/ports/kernel-abi/src")).expect("crate src");
+        fs::write(
+            workspace_dir.join("registry/catalog/os-kernel-abi.yaml"),
+            "context: os\nrole: kernel\ncapability: kernel-abi-port\nplane: control\ntraceability:\n  source_crate: os/ports/kernel-abi/Cargo.toml\n",
+        )
+        .expect("catalog yaml");
+        fs::write(
+            workspace_dir.join("os/ports/kernel-abi/Cargo.toml"),
+            "[package]\nname = \"os-kernel-abi\"\n",
+        )
+        .expect("crate manifest");
+
+        let catalog_dir = workspace_dir.join("registry/catalog");
+        let kernel_catalog_ids = load_kernel_catalog_ids(&catalog_dir).expect("catalog ids");
+        assert!(kernel_catalog_ids.contains(&"os-kernel-abi".to_string()));
+
+        let member_paths = vec!["os/ports/kernel-abi".to_string()];
+        let scan_members = select_kernel_scan_members(
+            &catalog_dir,
+            &kernel_catalog_ids,
+            workspace_dir,
+            &member_paths,
+        )
+        .expect("scan members");
+        assert_eq!(scan_members, vec!["os/ports/kernel-abi".to_string()]);
+    }
+
+    #[test]
+    fn kernel_catalog_coverage_fails_when_workspace_member_not_scanned() {
+        let temp = std::env::temp_dir().join(format!(
+            "oya-data-class-coverage-{}",
+            std::process::id()
+        ));
+        let workspace_dir = &temp;
+        fs::create_dir_all(workspace_dir.join("registry/catalog")).expect("catalog dir");
+        fs::create_dir_all(workspace_dir.join("os/ports/kernel-abi/src")).expect("crate src");
+        fs::write(
+            workspace_dir.join("registry/catalog/os-kernel-abi.yaml"),
+            "context: os\nrole: kernel\ncapability: kernel-abi-port\nplane: control\ntraceability:\n  source_crate: os/ports/kernel-abi/Cargo.toml\n",
+        )
+        .expect("catalog yaml");
+        fs::write(
+            workspace_dir.join("registry/catalog/not-a-kernel.yaml"),
+            "context: os\nrole: rest\ncapability: x\nplane: control\n",
+        )
+        .expect("non-kernel catalog");
+        fs::write(
+            workspace_dir.join("os/ports/kernel-abi/Cargo.toml"),
+            "[package]\nname = \"not-matching-package\"\n",
+        )
+        .expect("crate manifest");
+
+        let catalog_dir = workspace_dir.join("registry/catalog");
+        let kernel_catalog_ids = load_kernel_catalog_ids(&catalog_dir).expect("catalog ids");
+        let member_paths = vec!["os/ports/kernel-abi".to_string()];
+        let error = select_kernel_scan_members(
+            &catalog_dir,
+            &kernel_catalog_ids,
+            workspace_dir,
+            &member_paths,
+        )
+        .expect_err("missing scan coverage");
+        assert!(
+            error.contains("os-kernel-abi"),
+            "expected os-kernel-abi coverage error, got: {error}"
+        );
+    }
 }

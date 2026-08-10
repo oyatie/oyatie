@@ -39,6 +39,8 @@ Enforced by: `ci/facade/baseline-ratchet` test `reorg_at_most_one_executable_mov
 | `ci-graph-additions.json` | Companion graph for historical keystone lockfile edges |
 
 > **Spent leaf (no live plan file):** R-DUAL-CI-TIDE-MOVE (`oya/ci-tide` → `ci/tide/`) is applied in-tree; evidence `evidence/reorg/rr-dual-ci-tide-move-20260806.json`. Plan not kept LIVE because #1581 already holds the singleton for intelligence-remainder.
+>
+> **Wave25/26 closeout (2026-08-10):** PR #1620 (`1d3105277`) landed 29 residual rehomes; closeout evidence `evidence/reorg/rr-wave25-26-residual-consolidation-closeout-20260810.json`. Drafts #1580–#1608 superseded except **#1587** and **#1607** held on `oyatie-0s8` founder rulings.
 
 ## North-star / anti-debt
 

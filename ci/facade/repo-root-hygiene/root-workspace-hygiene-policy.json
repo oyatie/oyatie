@@ -55,6 +55,12 @@
     { "id": "omc-ultragoal-owners",          "kind": "exact", "value": ".omc/ultragoal/OWNERS",                     "reason": "keep-with-sunset brand residue ownership marker (ADR-0709); do not expand .omc tracked set" },
     { "id": "omc-ultragoal-preamble",        "kind": "exact", "value": ".omc/ultragoal/TEAMMATE-PREAMBLE.md",       "reason": "keep-with-sunset tombstone only — not live agent authority (ADR-0709)" },
     { "id": "omc-ultragoal-friction-ledger", "kind": "exact", "value": ".omc/ultragoal/friction-ledger.jsonl",      "reason": "CI load-bearing friction ledger path (ADR-0544 policy); path stable until future rehome" },
+    { "id": "claude-workflows-readme", "kind": "exact", "value": ".claude/workflows/README.md", "reason": "reviewed agent-lane workflow harness README; not runtime state" },
+    { "id": "claude-workflows-auth-preflight", "kind": "exact", "value": ".claude/workflows/auth-preflight.mjs", "reason": "reviewed gh auth preflight for agent deliver/restack harness" },
+    { "id": "claude-workflows-deliver", "kind": "exact", "value": ".claude/workflows/deliver.js", "reason": "reviewed agent-lane deliver orchestration harness" },
+    { "id": "claude-workflows-merge-check", "kind": "exact", "value": ".claude/workflows/merge-check.mjs", "reason": "reviewed merge-check helper for agent deliver harness" },
+    { "id": "claude-workflows-preflight", "kind": "exact", "value": ".claude/workflows/preflight.mjs", "reason": "reviewed preflight helper for agent deliver harness" },
+    { "id": "claude-workflows-restack", "kind": "exact", "value": ".claude/workflows/restack.js", "reason": "reviewed restack helper for agent deliver harness" },
     { "id": "omc-ultragoal-premise",         "kind": "exact", "value": ".omc/ultragoal/premise.txt",                "reason": "keep-with-sunset residual path slot; not live premise authority (ADR-0709)" }
   ],
   "product_contract": {

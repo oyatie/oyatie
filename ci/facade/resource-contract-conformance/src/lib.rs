@@ -17,6 +17,8 @@ use std::collections::{BTreeMap, BTreeSet};
 use serde_json::Value;
 
 pub const GATE_ID: &str = "cloud-ci-cloud-resource-contracts";
+const REPLACEMENT_GATE_TARGET: &str =
+    "//ci/facade/resource-contract-conformance:ci-resource-contract-conformance-gate";
 
 const REQUIRED_RESOURCE_FACETS: &[&str] = &[
     "orn",
@@ -305,7 +307,7 @@ fn validate_policy(policy: &Value, findings: &mut BTreeSet<Finding>) {
         let replacement = string_field(row, "replacement_target").unwrap_or_default();
         if legacy.is_empty()
             || disposition != "retired_primary_path"
-            || !replacement.contains("oya-cloud-ci-cloud-resource-contracts-app-gate")
+            || replacement != REPLACEMENT_GATE_TARGET
         {
             findings.insert(Finding::new(
                 "cloud_resource_contract_policy_source_migration_row_invalid",
@@ -1658,6 +1660,56 @@ mod tests {
                 .iter()
                 .any(|finding| finding.code
                     == "cloud_resource_contract_policy_primary_path_not_rust")
+        );
+    }
+
+    #[test]
+    fn source_migration_replacement_target_must_name_buck_gate() {
+        let policy = json!({
+            "gate_id": GATE_ID,
+            "primary_execution_path": "rust_buck2_cloud_ci_gate",
+            "source_migration_slice": [{
+                "legacy_path": "scripts/tests/cloud_resource_contract_parity_catalog_check.py",
+                "disposition": "retired_primary_path",
+                "replacement_target": REPLACEMENT_GATE_TARGET
+            }],
+            "spec_inputs": {
+                "cloud_resource_contract_parity_catalog": "specs/cloud-resource-contract-parity-catalog.json",
+                "cloud_control_plane_operation_contract": "specs/cloud-control-plane-operation-contract.json",
+                "cloud_enforceability_facets": "specs/cloud-enforceability-facets.json",
+                "cloud_hyperscaler_parity_taxonomy": "specs/cloud-hyperscaler-parity-taxonomy.json",
+                "cloud_resource_catalog_target": "specs/cloud-resource-catalog-target.json",
+                "cloud_control_plane_canonical": "specs/cloud-control-plane-canonical.json"
+            },
+            "claim_policy": {"metadata_only_required": true}
+        });
+        let findings = evaluate_keyed(&policy, &json!({}));
+        assert!(
+            !findings.iter().any(|finding| {
+                finding.code == "cloud_resource_contract_policy_source_migration_row_invalid"
+            }),
+            "expected valid replacement_target, got {findings:?}"
+        );
+    }
+
+    #[test]
+    fn source_migration_replacement_target_rejects_stale_gate_label() {
+        let policy = json!({
+            "gate_id": GATE_ID,
+            "primary_execution_path": "rust_buck2_cloud_ci_gate",
+            "source_migration_slice": [{
+                "legacy_path": "scripts/tests/cloud_resource_contract_parity_catalog_check.py",
+                "disposition": "retired_primary_path",
+                "replacement_target": "//ci/facade/resource-contract-conformance:oya-cloud-ci-cloud-resource-contracts-app-gate"
+            }],
+            "spec_inputs": {},
+            "claim_policy": {"metadata_only_required": true}
+        });
+        let findings = evaluate_keyed(&policy, &json!({}));
+        assert!(
+            findings.iter().any(|finding| {
+                finding.code == "cloud_resource_contract_policy_source_migration_row_invalid"
+            })
         );
     }
 
