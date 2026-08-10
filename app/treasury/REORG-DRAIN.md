@@ -12,6 +12,8 @@
 - Wave-1 absorb: copied `oya/treasury/**` → `app/treasury/**` (127 files) from `origin/dev`.
 - In-tree cites retargeted `oya/treasury` → `app/treasury` and `//oya/treasury` → `//app/treasury`.
 
+- **Deepen hygiene (2026-08-10):** rewritten product-local `microservices/treasury/` → `app/treasury/` path cites inside forever home (hub `specs/microservices/**` + cross-product microservices cites left intact). Dest-verify COMPLETE [f60e93b2]; shrink gate ALLOWED. PARKED — no merge.
+
 ## Remaining
 
 1. Verify destination tip contains forever bytes (this tip).

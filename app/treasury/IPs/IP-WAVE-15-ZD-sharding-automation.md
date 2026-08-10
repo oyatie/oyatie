@@ -15,7 +15,7 @@ sharding_role: regulated-workload-owner
 # IP-WAVE-15-ZD-sharding-automation: Treasury Sharding Automation Stance
 
 ## 1. Scope
-SCOPE-001: This IP is scoped only to `microservices/treasury/IPs/IP-WAVE-15-ZD-sharding-automation.md` for the ZF-9 artifact lane.
+SCOPE-001: This IP is scoped only to `app/treasury/IPs/IP-WAVE-15-ZD-sharding-automation.md` for the ZF-9 artifact lane.
 SCOPE-002: This is doctrine propagation, not Rust implementation, manifest editing, runbook authoring, Cedar policy authoring, SLO authoring, or contract editing.
 SCOPE-003: treasury must interpret ADR-0348 through its own bounded context: cash-position.
 SCOPE-004: treasury uses ADR-0346 as the local verifier contract for any downstream implementation PR that turns this plan into code.

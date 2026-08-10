@@ -6,7 +6,7 @@ autonomy_tier: T1
 risk_class: regulated-erp
 audit_event_class: EVT-TREASURY-CASH_POSITION-COMMAND
 policy_fragments:
-  - microservices/treasury/policy/cash-position-authorization.cedar
+  - app/treasury/policy/cash-position-authorization.cedar
 benchmarks:
   - "SAP TRM Treasury and Risk Management"
   - "Oracle Fusion Cash Management"

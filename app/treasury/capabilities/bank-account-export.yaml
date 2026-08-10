@@ -6,7 +6,7 @@ autonomy_tier: T1
 risk_class: regulated-erp
 audit_event_class: EVT-TREASURY-BANK_ACCOUNT-EXPORT
 policy_fragments:
-  - microservices/treasury/policy/bank-account-authorization.cedar
+  - app/treasury/policy/bank-account-authorization.cedar
 benchmarks:
   - "SAP TRM Treasury and Risk Management"
   - "Oracle Fusion Cash Management"
