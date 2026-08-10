@@ -158,12 +158,17 @@ fn run_producer_face(root: &Path, face: &str) -> Value {
 /// This was a `read_dir("cloud")` walk until the ADR-0562 rehomes emptied `cloud/`, at which point
 /// the walk silently found 2 of 21 — a scan that shrinks to nothing is a false green, so the set is
 /// now named explicitly and `manifest_missing` below fails closed on any entry that stops resolving.
+///
+/// Wave-2 absorb (#1659 / #1839 P1): `cloud/cloud-kernel/manifest.json` forever home is
+/// `kernel/manifest.json`. Cite the forever path here; `cloud_manifest_paths` may accept the
+/// transitional source only until destination bytes land (fail closed when neither resolves).
+/// Do not re-list hub enumerations — this is a named pin, not a dual-truth root table.
 const CLOUD_SUBSTRATE_MANIFESTS: [&str; 21] = [
     "billing/manifest.json",
     "billing/tax/manifest.json",
     "cell/cell-lifecycle/manifest.json",
     "cell/cell-rebalancer/manifest.json",
-    "cloud/cloud-kernel/manifest.json",
+    "kernel/manifest.json",
     "cloud/cloud-os/manifest.json",
     "data/cloud-data/manifest.json",
     "iac/manifest.json",
@@ -182,15 +187,28 @@ const CLOUD_SUBSTRATE_MANIFESTS: [&str; 21] = [
     "tenancy/manifest.json",
 ];
 
+/// Forever → transitional source still present on origin/dev until #1659 lands forever bytes.
+/// Drop an entry when the transitional path is burned and the forever path is on trunk.
+const CLOUD_SUBSTRATE_MANIFEST_FALLBACKS: &[(&str, &str)] = &[
+    ("kernel/manifest.json", "cloud/cloud-kernel/manifest.json"),
+];
+
 fn cloud_manifest_paths(root: &Path) -> Vec<PathBuf> {
     let mut paths = Vec::new();
     let mut missing = Vec::new();
     for relative in CLOUD_SUBSTRATE_MANIFESTS {
-        let manifest = root.join(relative);
-        if manifest.is_file() {
-            paths.push(manifest);
-        } else {
-            missing.push(relative);
+        let forever = root.join(relative);
+        if forever.is_file() {
+            paths.push(forever);
+            continue;
+        }
+        let transitional = CLOUD_SUBSTRATE_MANIFEST_FALLBACKS
+            .iter()
+            .find(|(forever_rel, _)| *forever_rel == relative)
+            .map(|(_, transitional_rel)| root.join(transitional_rel));
+        match transitional {
+            Some(path) if path.is_file() => paths.push(path),
+            _ => missing.push(relative),
         }
     }
     assert!(
