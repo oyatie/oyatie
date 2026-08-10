@@ -144,3 +144,17 @@ rust_test(
         ":ci-affected-target-set",
     ],
 )
+
+# ADR-0711 hub exclusivity: mechanical REFUSE when open integ PRs multi-own hubs listed at
+# specs/integ-branch-envelopes.json#hubs.paths (cite pointer; policy does not re-list).
+rust_test(
+    name = "ci-affected-target-set-hub-exclusivity-gate",
+    srcs = glob(["tests/**/*.rs", "**/*.json"]),
+    crate = "ci_affected_target_set_hub_exclusivity_gate",
+    crate_root = "tests/hub_exclusivity.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-affected-target-set",
+        "third-party//:serde_json",
+    ],
+)

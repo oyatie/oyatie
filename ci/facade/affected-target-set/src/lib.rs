@@ -38,8 +38,14 @@
 //!     in a declared `inert_selection_classes` class (docs) — or the diff is empty.
 //!
 //! ADR-0083 Tier-3: production code carries no unwrap/expect/panic; `#![forbid(unsafe_code)]`.
+//!
+//! Also hosts [`hub_exclusivity`] — mechanical REFUSE when open integ PRs multi-own hubs at
+//! `specs/integ-branch-envelopes.json#hubs.paths` (ADR-0711; colocated to avoid Cargo.lock hub
+//! churn from a new package).
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 #![forbid(unsafe_code)]
+
+pub mod hub_exclusivity;
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;

@@ -333,6 +333,12 @@
     ],
     "ci/facade/reset-eligibility-policy/reset-eligibility-policy.json": [
       "root//ci/facade/reset-eligibility-policy:ci-reset-eligibility-policy-gate"
+    ],
+    "specs/integ-branch-envelopes.json": [
+      "root//ci/facade/affected-target-set:ci-affected-target-set-hub-exclusivity-gate"
+    ],
+    "ci/facade/affected-target-set/hub-exclusivity-policy.json": [
+      "root//ci/facade/affected-target-set:ci-affected-target-set-hub-exclusivity-gate"
     ]
   },
   "_inert_selection_classes_note": "PREDICATE (1) of the selection-totality assertion: a NON-EMPTY diff that selects NO targets is a target-determination bug, never a pass — the lane would report success having built and tested NOTHING, i.e. green precisely BECAUSE it checked nothing. This list is the ONLY licence for that outcome: a diff consisting solely of these classes may legitimately select nothing. It used to name the docs/markdown classes; see `_docs_licence_revocation_note` for why that was a merge-authority hole and why they were removed. It is deliberately NOT derived from the `[]` entries in synthetic_dependencies, because those two statements differ — `synthetic_dependencies[X] = []` says 'X contributes no seed', this list says 'X may be the ENTIRE selection and still pass'. PR #1389 is the proof the split matters: `.github/**: []` was defensible as the first statement and a merge-authority hole as the second (a workflow-only PR resolved to NoGraphTargets and walked past the no-new-shell ratchet). With the split, adding a broad class to synthetic_dependencies as `[]` now FAILS RED naming the path instead of passing green; granting it an empty selection takes a second, single-purpose, reviewed line here. GROWING THIS LIST IS A MERGE-AUTHORITY CHANGE — an entry asserts the class can affect NO buck2 target whatsoever, and being wrong is silent. Absent field = empty = fail-closed (any non-empty diff that selects nothing is refused).",
