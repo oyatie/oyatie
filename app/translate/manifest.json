@@ -61,10 +61,10 @@
   ],
   "contracts": {
     "openapi": [
-      "microservices/translate/contracts/openapi/translate.yaml"
+      "app/translate/contracts/openapi/translate.yaml"
     ],
     "asyncapi": [
-      "microservices/translate/contracts/asyncapi/translate-events.yaml"
+      "app/translate/contracts/asyncapi/translate-events.yaml"
     ],
     "internal_grpc": {
       "transport": "http2",
@@ -78,19 +78,19 @@
     {
       "tier": "T0",
       "name": "translate-segment-suggest-and-lang-hint",
-      "file": "microservices/translate/capabilities/T0-suggest.yaml",
+      "file": "app/translate/capabilities/T0-suggest.yaml",
       "risk_class": "none"
     },
     {
       "tier": "T1",
       "name": "translate-assist-suggest-qe-and-langdetect",
-      "file": "microservices/translate/capabilities/T1-assist.yaml",
+      "file": "app/translate/capabilities/T1-assist.yaml",
       "risk_class": "minimal"
     },
     {
       "tier": "T2",
       "name": "translate-auto-translate-content-class",
-      "file": "microservices/translate/capabilities/T2-auto.yaml",
+      "file": "app/translate/capabilities/T2-auto.yaml",
       "risk_class": "limited"
     }
   ],
@@ -155,91 +155,91 @@
       "id": "IP-001-iac-and-pack-overlays",
       "title": "IP-001: IaC + per-pack overlays",
       "acceptance_status": "ga",
-      "file": "microservices/translate/IP-001-iac-and-pack-overlays.md"
+      "file": "app/translate/IP-001-iac-and-pack-overlays.md"
     },
     {
       "id": "IP-002-translate-router-kernel",
       "title": "IP-002: oya-translate-router-kernel",
       "acceptance_status": "ga",
-      "file": "microservices/translate/IP-002-translate-router-kernel.md"
+      "file": "app/translate/IP-002-translate-router-kernel.md"
     },
     {
       "id": "IP-003-translate-router-domain",
       "title": "IP-003: oya-translate-router-domain",
       "acceptance_status": "ga",
-      "file": "microservices/translate/IP-003-translate-router-domain.md"
+      "file": "app/translate/IP-003-translate-router-domain.md"
     },
     {
       "id": "IP-004-translate-router-usecase-and-api",
       "title": "IP-004: oya-translate-router-usecase + oya-translate-router-api",
       "acceptance_status": "ga",
-      "file": "microservices/translate/IP-004-translate-router-usecase-and-api.md"
+      "file": "app/translate/IP-004-translate-router-usecase-and-api.md"
     },
     {
       "id": "IP-005-translation-memory-stack",
       "title": "IP-005: Translation Memory stack (`oya-translate-tm-*`)",
       "acceptance_status": "ga",
-      "file": "microservices/translate/IP-005-translation-memory-stack.md"
+      "file": "app/translate/IP-005-translation-memory-stack.md"
     },
     {
       "id": "IP-006-termbase-and-glossary-stack",
       "title": "IP-006: Termbase + Glossary stack (`oya-translate-termbase-*`)",
       "acceptance_status": "ga",
-      "file": "microservices/translate/IP-006-termbase-and-glossary-stack.md"
+      "file": "app/translate/IP-006-termbase-and-glossary-stack.md"
     },
     {
       "id": "IP-007-quality-estimation-stack",
       "title": "IP-007: Quality Estimation stack (`oya-translate-qe-*`)",
       "acceptance_status": "ga",
-      "file": "microservices/translate/IP-007-quality-estimation-stack.md"
+      "file": "app/translate/IP-007-quality-estimation-stack.md"
     },
     {
       "id": "IP-008-language-detection-stack",
       "title": "IP-008: Language Detection stack (`oya-translate-langdetect-*`)",
       "acceptance_status": "ga",
-      "file": "microservices/translate/IP-008-language-detection-stack.md"
+      "file": "app/translate/IP-008-language-detection-stack.md"
     },
     {
       "id": "IP-009-document-translation-stack",
       "title": "IP-009: Document Translation stack (`oya-translate-doc-*`)",
       "acceptance_status": "ga",
-      "file": "microservices/translate/IP-009-document-translation-stack.md"
+      "file": "app/translate/IP-009-document-translation-stack.md"
     },
     {
       "id": "IP-010-bulk-translate-stack",
       "title": "IP-010: Bulk Translate stack (`oya-translate-bulk-*`)",
       "acceptance_status": "ga",
-      "file": "microservices/translate/IP-010-bulk-translate-stack.md"
+      "file": "app/translate/IP-010-bulk-translate-stack.md"
     },
     {
       "id": "IP-011-real-time-stream-stack",
       "title": "IP-011: Real-Time Stream stack (`oya-translate-stream-*`)",
       "acceptance_status": "ga",
-      "file": "microservices/translate/IP-011-real-time-stream-stack.md"
+      "file": "app/translate/IP-011-real-time-stream-stack.md"
     },
     {
       "id": "IP-012-engine-adapter-foundry-runtime",
       "title": "IP-012: Engine adapter — foundry-runtime (in-house)",
       "acceptance_status": "ga",
-      "file": "microservices/translate/IP-012-engine-adapter-foundry-runtime.md"
+      "file": "app/translate/IP-012-engine-adapter-foundry-runtime.md"
     },
     {
       "id": "IP-013-engine-adapters-external",
       "title": "IP-013: Engine adapters — external vendors (Anthropic / OpenAI / Google / DeepL)",
       "acceptance_status": "ga",
-      "file": "microservices/translate/IP-013-engine-adapters-external.md"
+      "file": "app/translate/IP-013-engine-adapters-external.md"
     },
     {
       "id": "IP-014-router-rest-worker-app",
       "title": "IP-014: Router REST + worker + app",
       "acceptance_status": "ga",
-      "file": "microservices/translate/IP-014-router-rest-worker-app.md"
+      "file": "app/translate/IP-014-router-rest-worker-app.md"
     },
     {
       "id": "IP-015-hg-translate-gate-registration",
       "title": "IP-015: HG-TRANSLATE hyperscaler-gate registration + SDK scaffold",
       "acceptance_status": "ga",
-      "file": "microservices/translate/IP-015-hg-translate-gate-registration.md"
+      "file": "app/translate/IP-015-hg-translate-gate-registration.md"
     }
   ],
   "regulatory_packs": [
@@ -465,10 +465,10 @@
   "pod_runtime_tier": 2,
   "pod_runtime_tier_justification": "Translate is a first-party translation and localization application; it handles tenant content but does not execute tenant-customer code or own key-management substrate responsibilities.",
   "pod_runtime_tier_surface_evidence": [
-    "microservices/translate/PRD.md",
-    "microservices/translate/ARCHITECTURE.md",
-    "microservices/translate/IP-002-translate-router-kernel.md",
-    "microservices/translate/contracts/openapi/translate.yaml"
+    "app/translate/PRD.md",
+    "app/translate/ARCHITECTURE.md",
+    "app/translate/IP-002-translate-router-kernel.md",
+    "app/translate/contracts/openapi/translate.yaml"
   ],
   "tenant_version_pinning": {
     "declared_versions": [
@@ -483,10 +483,10 @@
     "deprecation_calendar": [],
     "public_surface_files": {
       "openapi": {
-        "2026-05-21": "microservices/translate/contracts/openapi/translate.yaml"
+        "2026-05-21": "app/translate/contracts/openapi/translate.yaml"
       },
       "asyncapi": {
-        "2026-05-21": "microservices/translate/contracts/asyncapi/translate-events.yaml"
+        "2026-05-21": "app/translate/contracts/asyncapi/translate-events.yaml"
       }
     }
   },

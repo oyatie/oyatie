@@ -7,7 +7,9 @@
 - **Writes:** only under `app/translate/**` on this tip.
 - **OVERRULE 3d:** migrated off shared `integ/app` (wrong multi-product absorb shape). Source tip replay: `integ/app@7e3e1f82d`.
 
-## Completed (this rail)
+## Completed
+
+- Hygiene deepen: retargeted `oya/translate/` + `microservices/translate/` path cites → `app/translate/` in README/manifest (forever-home authority). (this rail)
 
 - Wave-1 absorb: product tree landed in forever home (86 files; replayed from `integ/app`).
 - Path cites rewritten `oya/translate` → `app/translate` where present in absorb commit.
