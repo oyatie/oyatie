@@ -10,7 +10,7 @@ license = "Apache-2.0"
 bounded_context = "cloud-ci"
 kind = "shared"
 layer = "app"
-purpose = "Binding workspace-coverage lane (ADR-0554) plus ADR-0711 hub-exclusivity evaluator: derives the buck2 affected-target set from the merge-base diff (fail-closed full escalation), and mechanically REFUSEs when open integ PRs multi-own hubs at specs/integ-branch-envelopes.json#hubs.paths."
+purpose = "Binding workspace-coverage lane (ADR-0554) plus ADR-0711 hub-exclusivity and anti-drift-drift-grep evaluators: derives the buck2 affected-target set from the merge-base diff (fail-closed full escalation); REFUSEs multi-owned hubs at #hubs.paths; REFUSEs ADR-0711/PORTABLE prose dual-truth enumerations outside #anti_drift.prose_must_cite_not_enumerate."
 
 # cloud-ci-affected-set (ADR-0554, FRIC-1781310000): the Rust successor that RETIRED the
 # transitional infra/ci/buck2-affected-gate.sh shell driver (removed ADR-0554 round-6). The
@@ -41,6 +41,10 @@ path = "src/bin/oya-cloud-ci-step-telemetry.rs"
 [[test]]
 name = "hub_exclusivity"
 path = "tests/hub_exclusivity.rs"
+
+[[test]]
+name = "anti_drift_drift_grep"
+path = "tests/anti_drift_drift_grep.rs"
 
 [dependencies]
 serde_json = { workspace = true }

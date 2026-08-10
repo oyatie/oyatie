@@ -158,3 +158,17 @@ rust_test(
         "third-party//:serde_json",
     ],
 )
+
+# ADR-0711 Amendment D / INV-DOC-2: mechanical REFUSE when ADR-0711/PORTABLE prose re-lists
+# roots/hubs/freeze enumerations outside #anti_drift.prose_must_cite_not_enumerate.
+rust_test(
+    name = "ci-affected-target-set-anti-drift-drift-grep-gate",
+    srcs = glob(["tests/**/*.rs", "**/*.json"]),
+    crate = "ci_affected_target_set_anti_drift_drift_grep_gate",
+    crate_root = "tests/anti_drift_drift_grep.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-affected-target-set",
+        "third-party//:serde_json",
+    ],
+)

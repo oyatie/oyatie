@@ -42,9 +42,14 @@
 //! Also hosts [`hub_exclusivity`] — mechanical REFUSE when open integ PRs multi-own hubs at
 //! `specs/integ-branch-envelopes.json#hubs.paths` (ADR-0711; colocated to avoid Cargo.lock hub
 //! churn from a new package).
+//!
+//! Also hosts [`anti_drift_drift_grep`] — mechanical REFUSE when ADR-0711 / PORTABLE prose
+//! re-lists roots/hubs/freeze enumerations outside
+//! `specs/integ-branch-envelopes.json#anti_drift.prose_must_cite_not_enumerate` (INV-DOC-2).
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 #![forbid(unsafe_code)]
 
+pub mod anti_drift_drift_grep;
 pub mod hub_exclusivity;
 
 use std::collections::{BTreeMap, BTreeSet};
