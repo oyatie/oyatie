@@ -1,0 +1,22 @@
+context: build
+role: kernel
+capability: apex-gist-integrity
+plane: control
+slo: cataloged-no-runtime-claim
+data_classes_owned: [INTERNAL_ONLY]
+operational_classes_owned: []
+api_stability: preview
+security_review: unreviewed
+supply_chain: source-only
+traceability:
+  source_crate: governance/check/apex-gist-integrity/Cargo.toml
+non_claims:
+  - decides that a carried block was CUT, never that its content is correct; a block that carries its source faithfully is clean here however wrong that source is
+  - the cut decision is a SOURCE comparison against the archived member, so it sees only carries that were SLICED; a block that was paraphrased, reworded or re-summarised is not comparable, falls back to the ends-mid-word shape predicate, and is invisible to both if it happens to end on punctuation
+  - a carry that matches its member at several sites is exonerated if ANY of them ends at a source block boundary, and a carry spanning a source block the segmenter split differently matches nothing; both under-detect deliberately, because a code that pins an equality ratchet must not invent findings
+  - the title check resolves against the spellings the member itself offers (filename stem, frontmatter title, H1) and is exact; it decides that a carried title is UNRESOLVABLE, never that a resolvable one is the right title for that member
+  - a member missing from the archive walk is neither source-compared, title-checked nor topic-checked; the census floor on archive size is what catches a collapsed walk, not the absence of findings
+  - reads the apex supersedes list and the archived member bodies only; it does not re-derive the consolidation that produced the apexes and cannot say what the generator intended to keep
+  - the topic check is keyword DATA over lowercased text, so a topic discussed without any configured needle is invisible and a needle appearing in an unrelated sense is a false positive
+  - shrink-only ratchet pinned by equality per (code, apex); it detects any NET change in one code within one apex, and does NOT detect a change that is net-zero there — repairing one finding and introducing another in the same apex under the same code leaves the pin satisfied. Keying by apex narrows that hole rather than closing it; it closes only for a code driven to 0
+  - ratchets, does not repair; it blocks new truncation and forces a repaired corpus to lower the pin, but restores no dropped content
