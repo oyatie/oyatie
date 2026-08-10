@@ -4,7 +4,7 @@ AGENT CLASS: microservice-ownership-coherence-audit-agent
 AGENT SLUG: codex-cloud-network-dns-audit
 MODE: audit-only
 BUNDLE: cloud-network-dns-coherence-audit-2026-05-20
-SCOPE: `/Users/jasonlee/oyatie/microservices/cloud-network-dns/`
+SCOPE: `/Users/jasonlee/oyatie/network/dns/`
 VCS CLAIM: `./bin/oya vcs claim --agent codex-cloud-network-dns-audit --intent "cloud-network-dns ownership coherence audit" microservices/cloud-network-dns::coherence-audit-2026-05-20` accepted.
 
 ## Header citation anchors
@@ -608,7 +608,7 @@ Severity totals: P0 = 0, P1 = 19, P2 = 12, P3 = 3.
 
 ## Verification notes
 
-- Inventory command used read-only file listing under `microservices/cloud-network-dns/`; all seven files were line-counted and sampled/read fully.
+- Inventory command used read-only file listing under `network/dns/`; all seven files were line-counted and sampled/read fully.
 - Forbidden source-language scan found no service-local forbidden source files.
 - OpenTofu/forbidden-pattern scan found no Terraform, Pulumi, CloudFormation, `null_resource`, `local-exec`, SSH provisioner, or tfstate references in the service path.
 - Existing service-local docs are substantive but incomplete; no padding-only scaffold finding was assigned.

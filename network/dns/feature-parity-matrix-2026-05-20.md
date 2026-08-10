@@ -4,7 +4,7 @@ AGENT CLASS: microservice-ownership-coherence-audit-agent
 AGENT SLUG: codex-cloud-network-dns-audit
 MODE: audit-only
 BUNDLE: cloud-network-dns-feature-parity-2026-05-20
-SCOPE: `/Users/jasonlee/oyatie/microservices/cloud-network-dns/`
+SCOPE: `/Users/jasonlee/oyatie/network/dns/`
 
 ## Header citation anchors
 
