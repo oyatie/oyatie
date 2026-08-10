@@ -32,11 +32,13 @@ Doctrine: ADR-0711 D-9 and
 
 **Git allowlist:** `status`, `diff`, `log`, `show`, `fetch`, `merge-base`,
 `merge-tree`, `rev-parse`, `add <explicit paths>` (no `.` / `-A` / `-u`),
-`commit`, and `push` only when `SWARM_BLESSED_PUSH=1` (blessed scripts).
+`commit` (explicit pathspecs).
 
-**Git denylist:** `stash`, `reset`, `clean`, `restore`, `checkout`, `rebase`,
-`merge`, `branch -D/-d/-f`, `update-ref`, `reflog`, `gc`, bare `push --force`,
-`commit --no-verify`/`-n`, `push --no-verify`.
+**Git denylist:** `push` (always — use `claim-push.sh`), `stash`, `reset`,
+`clean`, `restore`, `checkout`, `rebase`, `merge`, `branch -D/-d/-f`,
+`update-ref`, `reflog`, `gc`, `commit --no-verify`/`-n`, `-C` /
+`--git-dir` / `--work-tree` (cross-worktree escape). `SWARM_BLESSED_PUSH` is
+**not** an admission token; `lane-shell.sh` unsets it.
 
 **Build denylist:** `cargo` and `buck2` fail fast with:
 
@@ -83,8 +85,9 @@ The daemon does **not** invoke `bd` automatically in this phase.
 
 ## Blessed integrator scripts
 
-Always call real git (`GIT_REAL`, default `/usr/bin/git`). They set
-`SWARM_BLESSED_PUSH=1`.
+Always call real git directly (pinned from `/usr/bin/git` or PATH allowlist).
+They never admit push through the lane shim — `SWARM_BLESSED_PUSH` is retired
+as an admission flag (env-escape closed).
 
 ```bash
 # Claim preflight only (envelope + merge-tree + dirty refuse; no push)
@@ -103,6 +106,7 @@ python3 ./tools/swarm/claim_packet.py --file claim.txt --bind-diff origin/dev...
 ./tools/swarm/self-check.sh
 
 # After land: server-side reset integ tip to origin/dev (no local reset)
+# Accepts FF/merge ancestry OR squash tree-on-dev proof.
 ./tools/swarm/integ-reset-remote.sh os
 # → git push --force-with-lease origin origin/dev:refs/heads/integ/os
 ```
@@ -111,8 +115,8 @@ python3 ./tools/swarm/claim_packet.py --file claim.txt --bind-diff origin/dev...
 
 | Variable | Meaning |
 |----------|---------|
-| `GIT_REAL` | Absolute path to real git (shim forward target) |
-| `SWARM_BLESSED_PUSH=1` | Allow `git push` through the shim (blessed scripts only) |
+| `GIT_REAL` | Absolute path to real git (shim forward target; ignored/refused in lane-shell when ambient retarget differs from allowlist) |
+| `SWARM_BLESSED_PUSH` | **Retired as admission** — lane-shell unsets; shim always denies `push` |
 | `SWARM_ORCHESTRATOR=1` | Allow cargo/buck2 passthrough; required for `check-daemon` |
 | `SWARM_LANE=1` | Set by `lane-shell.sh` |
 | `SWARM_MAIN_CHECKOUT` | Override repo root for daemon outputs |

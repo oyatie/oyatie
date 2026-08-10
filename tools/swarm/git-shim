@@ -3,44 +3,64 @@
 #
 # Placed first on PATH (as `git` via shim-bin/) so workers cannot stash/reset/
 # force-push their way into chaos. Denied verbs exist only inside reviewed
-# blessed scripts under tools/swarm/*.sh (which call GIT_REAL directly).
+# blessed scripts under tools/swarm/*.sh (which call real git directly — never
+# this shim — so SWARM_BLESSED_PUSH is not an admission token).
 #
 # ALLOW: status, diff, log, show, fetch, merge-base, merge-tree, rev-parse,
-#        add <explicit paths> (no . / -A / -u), commit,
-#        push only when SWARM_BLESSED_PUSH=1 (and never bare --force/-f).
-# DENY:  stash, reset, clean, restore, checkout, rebase, merge,
-#        branch -D/-f, update-ref, reflog, gc, bare push --force.
+#        add <explicit paths> (no . / -A / -u), commit (with pathspecs).
+# DENY:  push (always — use claim-push.sh), stash, reset, clean, restore,
+#        checkout, rebase, merge, branch -D/-f, update-ref, reflog, gc,
+#        commit/push --no-verify/-n, -C/--git-dir/--work-tree (worktree escape).
 set -euo pipefail
 
-GIT_REAL="${GIT_REAL:-/usr/bin/git}"
-if [[ ! -x "$GIT_REAL" ]]; then
-  # Avoid recursing into this shim: resolve via a PATH without our prefix.
-  GIT_REAL="$(PATH="/usr/bin:/bin:/opt/homebrew/bin:/usr/local/bin" command -v git || true)"
+resolve_real_git() {
+  if [[ -x /usr/bin/git ]]; then
+    printf '%s\n' /usr/bin/git
+    return 0
+  fi
+  PATH="/usr/bin:/bin:/opt/homebrew/bin:/usr/local/bin" command -v git || true
+}
+
+# When SWARM_LANE=1, ignore ambient GIT_REAL (env-escape / absolute-git retarget).
+if [[ "${SWARM_LANE:-}" == "1" ]]; then
+  GIT_REAL="$(resolve_real_git)"
+else
+  GIT_REAL="${GIT_REAL:-}"
+  if [[ -z "$GIT_REAL" || ! -x "$GIT_REAL" ]]; then
+    GIT_REAL="$(resolve_real_git)"
+  fi
 fi
 if [[ ! -x "${GIT_REAL:-}" ]]; then
-  echo "git-shim: cannot locate real git (set GIT_REAL)" >&2
+  echo "git-shim: cannot locate real git" >&2
   exit 127
 fi
 
 deny() {
   echo "git-shim: DENIED: $*" >&2
-  echo "git-shim: worker allowlist is read-only git + explicit add/commit; push only via blessed scripts (SWARM_BLESSED_PUSH=1). See tools/swarm/README.md" >&2
+  echo "git-shim: worker allowlist is read-only git + explicit add/commit; push only via tools/swarm/claim-push.sh (never SWARM_BLESSED_PUSH). See tools/swarm/README.md" >&2
   exit 1
 }
 
 # Strip leading global options so the subcommand is argv[0] of the remainder.
+# Worktree-escape globals are hard-denied in lane shells.
 args=("$@")
 i=0
 while (( i < ${#args[@]} )); do
   a="${args[$i]}"
   case "$a" in
-    -C|-c|--git-dir|--work-tree|--namespace|--super-prefix|--config-env)
+    -C|--git-dir|--work-tree|--namespace|--super-prefix)
+      deny "git $a is banned in worker lanes — stay inside the lane worktree (no cross-worktree mutation)"
+      ;;
+    --git-dir=*|--work-tree=*|--namespace=*|--super-prefix=*)
+      deny "git $a is banned in worker lanes — stay inside the lane worktree (no cross-worktree mutation)"
+      ;;
+    -c|--config-env)
       if (( i + 1 >= ${#args[@]} )); then
         deny "incomplete global option: $a"
       fi
       i=$((i + 2))
       ;;
-    --git-dir=*|--work-tree=*|--namespace=*|--super-prefix=*|--config-env=*|-c=*)
+    -c=*|--config-env=*)
       i=$((i + 1))
       ;;
     -*)
@@ -89,6 +109,9 @@ case "$cmd" in
         -A|--all|-u|--update|.|-p|--patch|-i|--interactive)
           deny "git add $a is banned — stage explicit paths only (no '.', '-A', '-u', interactive)"
           ;;
+        --pathspec-from-file|--pathspec-from-file=*)
+          deny "git add --pathspec-from-file is banned — stage explicit paths only"
+          ;;
         --)
           break
           ;;
@@ -107,6 +130,9 @@ case "$cmd" in
     if has_flag -n || has_flag --no-verify; then
       deny "git commit -n/--no-verify is banned — hook bypass is never allowed in lane shells"
     fi
+    if has_flag -i || has_flag --include; then
+      deny "git commit -i/--include is banned — would commit neighbor staged files"
+    fi
     # Require explicit pathspecs so workers cannot commit a pre-populated index.
     pathspecs=()
     ci=0
@@ -120,11 +146,14 @@ case "$cmd" in
         -m|--message|-F|--file|--author|--date|--cleanup|--trailer)
           ci=$((ci + 2))
           ;;
-        -m*|-F*|--author=*|--date=*|--cleanup=*|--trailer=*|-S|--gpg-sign|--gpg-sign=*|-s|--signoff|--allow-empty|--no-edit|-q|--quiet|-v|--verbose|-e|--edit|--only|--include)
+        -m*|-F*|--author=*|--date=*|--cleanup=*|--trailer=*|-S|--gpg-sign|--gpg-sign=*|-s|--signoff|--allow-empty|--no-edit|-q|--quiet|-v|--verbose|-e|--edit|--only)
           ci=$((ci + 1))
           ;;
         -n|--no-verify)
           deny "git commit -n/--no-verify is banned — hook bypass is never allowed in lane shells"
+          ;;
+        -i|--include)
+          deny "git commit -i/--include is banned — would commit neighbor staged files"
           ;;
         -*)
           deny "git commit option not allowlisted in lane shells: $a"
@@ -150,25 +179,12 @@ case "$cmd" in
     ;;
 
   push)
-    if [[ "${SWARM_BLESSED_PUSH:-}" != "1" ]]; then
-      deny "git push is blocked in lane shells — use tools/swarm/claim-push.sh (sets SWARM_BLESSED_PUSH=1)"
-    fi
+    # Never admit push through the shim — SWARM_BLESSED_PUSH is not a capability.
+    # Blessed scripts call real git directly (claim-push.sh / integ-reset-remote.sh).
     if has_flag -n || has_flag --no-verify; then
       deny "git push -n/--no-verify is banned — hook bypass is never allowed"
     fi
-    # Bare --force / -f without lease is always denied, even in blessed mode.
-    force=0
-    lease=0
-    for a in ${rest[@]+"${rest[@]}"}; do
-      case "$a" in
-        --force|-f) force=1 ;;
-        --force-with-lease|--force-with-lease=*|--force-if-includes) lease=1 ;;
-      esac
-    done
-    if (( force == 1 && lease == 0 )); then
-      deny "bare git push --force/-f is banned; use --force-with-lease via blessed scripts"
-    fi
-    exec "$GIT_REAL" "${args[@]}"
+    deny "git push is blocked in lane shells — use tools/swarm/claim-push.sh (calls real git; env flag is not admission)"
     ;;
 
   stash|reset|clean|restore|checkout|rebase|merge|update-ref|reflog|gc)

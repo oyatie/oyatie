@@ -8,8 +8,8 @@
 #
 # --check: run envelope + merge-tree preflight only; do not push (claim-mechanical).
 #
-# Calls real git (never the lane shim). Sets SWARM_BLESSED_PUSH=1 in case PATH
-# still has the shim ahead of GIT_REAL resolution for nested helpers.
+# Calls real git directly (never the lane shim). Does NOT use SWARM_BLESSED_PUSH —
+# the shim denies push entirely; this script is the only admission path.
 #
 # Re-runs read-only merge-tree against the pinned integ tip BEFORE push so an
 # ambient HEAD change after agent Claim cannot publish an unauthorized tip
@@ -26,12 +26,20 @@ ROOT="${1:?usage: claim-push.sh [--check] <integ-root> [remote]}"
 REMOTE="${2:-origin}"
 BRANCH="integ/${ROOT}"
 
-GIT_REAL="${GIT_REAL:-/usr/bin/git}"
-if [[ ! -x "$GIT_REAL" ]]; then
-  GIT_REAL="$(PATH="/usr/bin:/bin:/opt/homebrew/bin:/usr/local/bin" command -v git)"
-fi
+resolve_real_git() {
+  if [[ -x /usr/bin/git ]]; then
+    printf '%s\n' /usr/bin/git
+    return 0
+  fi
+  PATH="/usr/bin:/bin:/opt/homebrew/bin:/usr/local/bin" command -v git
+}
 
-export SWARM_BLESSED_PUSH=1
+# Blessed scripts pin real git from the allowlist (ignore ambient GIT_REAL retarget).
+GIT_REAL="$(resolve_real_git)"
+if [[ ! -x "$GIT_REAL" ]]; then
+  echo "claim-push: REFUSE — cannot resolve real git" >&2
+  exit 127
+fi
 
 REPO_ROOT="$("$GIT_REAL" rev-parse --show-toplevel)"
 ENVELOPES="${REPO_ROOT}/specs/integ-branch-envelopes.json"
@@ -82,7 +90,9 @@ else
   echo "claim-push: merge-tree clean"
 fi
 
-# Soft registered-root check: ROOT must appear in envelopes#roots or #planes.
+# Registered-root check: ROOT must map to this exact branch in envelopes#roots
+# (or a plane whose branch equals BRANCH). Key membership alone is insufficient
+# (e.g. root "grok" must not invent integ/grok when roots.grok.branch is integ/ci).
 if ! python3 - "$ENVELOPES" "$ROOT" "$BRANCH" <<'PY'
 import json, sys
 path, root, branch = sys.argv[1:4]
@@ -90,11 +100,21 @@ with open(path) as f:
     e = json.load(f)
 roots = e.get("roots", {})
 planes = e.get("planes", {})
-ok = root in roots or any(p.get("branch") == branch for p in planes.values())
-if not ok:
-    print(f"claim-push: REFUSE — {branch} not in envelopes#roots/#planes", file=sys.stderr)
-    sys.exit(1)
-print(f"claim-push: envelope root/plane ok for {branch}")
+if root in roots:
+    expected = roots[root].get("branch")
+    if expected != branch:
+        print(
+            f"claim-push: REFUSE — roots[{root!r}].branch={expected!r} != {branch!r}",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+    print(f"claim-push: envelope root ok for {branch}")
+    sys.exit(0)
+if any(isinstance(p, dict) and p.get("branch") == branch for p in planes.values()):
+    print(f"claim-push: envelope plane ok for {branch}")
+    sys.exit(0)
+print(f"claim-push: REFUSE — {branch} not in envelopes#roots/#planes", file=sys.stderr)
+sys.exit(1)
 PY
 then
   exit 1

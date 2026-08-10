@@ -40,8 +40,8 @@ need_inv = [f"INV-DOC-{i}" for i in range(1, 10)]
 missing_inv = [x for x in need_inv if x not in inv]
 if missing_inv:
     raise SystemExit(f"anti_drift.invariants missing {missing_inv}")
-if e.get("_meta", {}).get("version") != "1.16.13":
-    raise SystemExit(f"_meta.version={e.get('_meta', {}).get('version')!r} want 1.16.13")
+if e.get("_meta", {}).get("version") != "1.16.14":
+    raise SystemExit(f"_meta.version={e.get('_meta', {}).get('version')!r} want 1.16.14")
 mw = e["merge_windows"]
 if mw.get("hot_set_max", 0) != 4:
     raise SystemExit(f"merge_windows.hot_set_max={mw.get('hot_set_max')}")
@@ -175,15 +175,39 @@ else
   fail_msg "ADR-0711 missing INV-DOC-9"
 fi
 
-# 4) git-shim denies --no-verify
+# 4) git-shim denies --no-verify + always denies push (env-escape closed)
 if grep -E -q 'deny.*--no-verify' "$GIT_SHIM"; then
   pass "git-shim denies --no-verify"
 else
   fail_msg "git-shim missing --no-verify deny"
 fi
+if grep -E -q 'git push is blocked in lane shells' "$GIT_SHIM" \
+  && ! grep -E -q 'SWARM_BLESSED_PUSH=1' "$GIT_SHIM"; then
+  pass "git-shim always denies push (no SWARM_BLESSED_PUSH admission)"
+else
+  fail_msg "git-shim must always deny push (retire SWARM_BLESSED_PUSH admission)"
+fi
+if grep -E -q 'unset SWARM_BLESSED_PUSH' tools/swarm/lane-shell.sh \
+  && grep -E -q 'main checkout detected|\.worktrees/' tools/swarm/lane-shell.sh \
+  && grep -E -q 'ambient GIT_REAL' tools/swarm/lane-shell.sh; then
+  pass "lane-shell unsets SWARM_BLESSED_PUSH + refuses main checkout/GIT_REAL retarget"
+else
+  fail_msg "lane-shell missing env-escape closes (unset blessed / main checkout / GIT_REAL)"
+fi
+if grep -E -q 'banned in worker lanes — stay inside the lane worktree' "$GIT_SHIM"; then
+  pass "git-shim denies -C/--git-dir/--work-tree escape"
+else
+  fail_msg "git-shim missing -C/--git-dir/--work-tree deny"
+fi
+if grep -E -q 'squash|appears on recent' tools/swarm/integ-reset-remote.sh; then
+  pass "integ-reset-remote accepts squash tree-on-dev land proof"
+else
+  fail_msg "integ-reset-remote missing squash land proof"
+fi
 # Behavioral probe (best-effort; skip if bash can't exec)
 SHIM="$ROOT/$GIT_SHIM"
 if [[ -x "$SHIM" ]]; then
+  out=""
   if out="$("$SHIM" commit -n -m x -- README.md 2>&1)" && true; then
     :
   fi
@@ -196,6 +220,24 @@ if [[ -x "$SHIM" ]]; then
     else
       fail_msg "git-shim runtime probe inconclusive and source gate missing"
     fi
+  fi
+  pout=""
+  if pout="$(SWARM_BLESSED_PUSH=1 "$SHIM" push origin HEAD:refs/heads/integ/specs 2>&1)" && true; then
+    :
+  fi
+  if printf '%s' "${pout:-}" | grep -qi 'DENIED\|blocked'; then
+    pass "git-shim runtime denies push even with SWARM_BLESSED_PUSH=1"
+  else
+    fail_msg "git-shim push probe did not DENY under SWARM_BLESSED_PUSH=1 (out=${pout:-empty})"
+  fi
+  cout=""
+  if cout="$(SWARM_LANE=1 "$SHIM" -C /tmp status 2>&1)" && true; then
+    :
+  fi
+  if printf '%s' "${cout:-}" | grep -qi 'DENIED\|worktree'; then
+    pass "git-shim runtime denies -C escape"
+  else
+    fail_msg "git-shim -C probe did not DENY (out=${cout:-empty})"
   fi
 fi
 
