@@ -147,4 +147,4 @@ Each subcommand is mirrored as an MCP tool in the gateway, so the same surface i
 - Internal: ADR-0020 (provider routing the registry triggers), ADR-0022 (autonomy gate every invocation passes through), ADR-0024 (eval gate at publish), ADR-0025 (audit-chain emission topic ownership).
 - External: [Model Context Protocol specification](https://modelcontextprotocol.io); MCP reference clients (Claude Desktop, Cursor, Continue, Cline, OpenAI Apps SDK).
 - Catalog template: `docs/templates/capability-record-template.yaml`.
-- Capability publishing checklist: `docs/checklists/foundry-capability-publishing.md`.
+- Capability publishing checklist: `templates/checklists/foundry-capability-publishing.md`.

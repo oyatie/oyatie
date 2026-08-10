@@ -75,7 +75,7 @@ If any pre-check fails, **STOP** and route to a different runbook (cite which) o
 **Agent path** (Foundry runbook-execution capability):
 - Every diagnostic step **MUST** capture raw stdout/stderr from a sanctioned command and attach it to the audit chain; retired helper wrappers must not be required.
 - After step completion, emit `EVT-RUNBOOK-STEP-<n>` with step ID + outcome + timestamp.
-- Halt and emit `BLOCKED_ON_HUMAN_ORCHESTRATOR` per `docs/checklists/escalation-checklist.md` if an unexpected outcome appears at any step.
+- Halt and emit `BLOCKED_ON_HUMAN_ORCHESTRATOR` per `templates/checklists/escalation-checklist.md` if an unexpected outcome appears at any step.
 <!-- agent-instructions:end -->
 
 **Human path:** the same commands; paste output to incident bridge.

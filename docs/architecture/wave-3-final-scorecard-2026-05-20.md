@@ -4728,7 +4728,7 @@ Workstreams defined for this audit: ADR decisions, microservice specifications, 
 - artifacts: 215; lines=77665
 - persona/journey anchors: persona=6031 journey=18700
 - compliance anchors: 3617
-- representative artifacts: docs/checklists/tenant-onboarding.md, docs/checklists/new-team-onboarding.md, docs/checklists/regional-pack-onboarding.md, docs/checklists/vertical-onboarding.md, docs/runbooks/tenant-onboarding.md, docs/runbooks/pack-onboarding.md, docs/runbooks/external-dep-onboarding.md, docs/runbooks/design-partner-onboarding.md, docs/tutorials/workflow-studio-build-employee-onboarding.md, docs/gtm/tenant-onboarding-90-day-program.md
+- representative artifacts: templates/checklists/tenant-onboarding.md, templates/checklists/new-team-onboarding.md, templates/checklists/regional-pack-onboarding.md, templates/checklists/vertical-onboarding.md, docs/runbooks/tenant-onboarding.md, docs/runbooks/pack-onboarding.md, docs/runbooks/external-dep-onboarding.md, docs/runbooks/design-partner-onboarding.md, docs/tutorials/workflow-studio-build-employee-onboarding.md, docs/gtm/tenant-onboarding-90-day-program.md
 - named gaps: none named; retain in regression audit
 ### Customer lane `investor materials`
 - artifacts: 19; lines=8988

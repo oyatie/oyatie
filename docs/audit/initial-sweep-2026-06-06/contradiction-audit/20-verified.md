@@ -36,7 +36,7 @@ false-positives on) — this strengthens, not weakens, their counts.
 
 ### A4. Gate wiring (the live contradiction) — CONFIRMED — HIGHEST SEVERITY
 - `governance-lanes/flat-crates.md`: `status: Accepted` (`:7`), severity `BLOCKER` (`:20`), enforces `oya-governance-flat-crates` (`:10`); kernel hard-fails `if depth != 3 { … NestedCrate … }` (`:42-44`,`:48`), with manifest depth modeled as `crates/<name>/Cargo.toml` (`:9`,`:15`). This depth-3 rule REJECTS the canonical depth-5 `{oya,cloud}/<service>/crates/<crate>/Cargo.toml` of ADR-0512. **Direct contradiction. CONFIRMED.**
-- Claimed live BLOCKER in 3 doc lists: `governance-lanes/INDEX.md:28` (flat-crates row, BLOCKER), `docs/AGENTS.md:231` (D7), `checklists/done-definition-checklist.md:33` (D7). All three CONFIRMED. *Path note:* AGENTS.md D7 resolves at `docs/AGENTS.md:231` (a second `AGENTS.md` exists at repo root; the cited content is the `docs/` copy).
+- Claimed live BLOCKER in 3 doc lists: `governance-lanes/INDEX.md:28` (flat-crates row, BLOCKER), `docs/AGENTS.md:231` (D7), `../../../../templates/checklists/done-definition-checklist.md:33` (D7). All three CONFIRMED. *Path note:* AGENTS.md D7 resolves at `docs/AGENTS.md:231` (a second `AGENTS.md` exists at repo root; the cited content is the `docs/` copy).
 - ABSENT from executable registry: `registry/quality/lanes.yaml` — independent case-insensitive grep for flat-crates/flat_crates = **0 matches**. The wired architecture lane is `lean-a1-architecture` → `cargo run -p oya-dev-cli -- gate validate architecture-boundaries`, `source: ADR-0056` (`lanes.yaml:485-493`). CONFIRMED — the BLOCKER is doc-declared but not machine-wired.
 
 ### A5. Stale LOCATION/gate refs (sampled) — CONFIRMED

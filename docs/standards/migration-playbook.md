@@ -47,7 +47,7 @@ Per `templates/migration-runbook-template.md` (planned):
    - Per-region residency verification
    - Per-vertical regulator binding identified
 2. **Pre-flight** (1-2 days)
-   - Tenant onboarded into Oyatie per [`checklists/tenant-onboarding.md`](../checklists/tenant-onboarding.md) (planned)
+   - Tenant onboarded into Oyatie per [`../../templates/checklists/tenant-onboarding.md`](../../templates/checklists/tenant-onboarding.md) (planned)
    - Per-cell allocation
    - Per-tenant DPIA completed per [`templates/dpia-template.md`](../templates/dpia-template.md)
    - Migration consent + DSR scope agreed

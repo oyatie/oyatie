@@ -61,7 +61,7 @@ Class A is best operated on by recurring SURFACE TYPE (the same string repeated 
 | `docs/MASTERPLAN.md` | scrub lane name | advertises retired `foundry` as live parallel lane |
 | `docs/prds/foundry.md` | scrub body + rename file (see C) | status Accepted, `microservice: foundry` — live PRD for a retired service |
 | `docs/products/foundry/PRD.md` + tree (28 files) | scrub body + rename tree (see C2) | status Draft, owner axis-foundry — live product spec |
-| `docs/checklists/foundry-capability-publishing.md` | scrub + rename | live capability-publishing checklist |
+| `templates/checklists/foundry-capability-publishing.md` | scrub + rename | live capability-publishing checklist |
 | `docs/architecture/foundry-fitness-to-governance-transition-2026-05-21.md` | **DEFER** (slug 0347 family) | transition doc tied to deferred slug — keep as context |
 | `docs/governance-lanes/foundry-corpus-citation.md`, `.omc/fitness-lanes/foundry-corpus-citation.md` | scrub + rename | live governance-lane spec |
 | `oya/*/manifest.json` "rationale …foundry (vector retrieval per ADR-0192)" (fleet) | scrub prose | live architectural description naming retired service |
@@ -105,7 +105,7 @@ Path families. "Repoint" = files containing the family path string in CONTENT (e
 | C10 | `docs/prds/foundry.md` | 1 | `docs/prds/intelligence.md` | 8 files | rename + repoint (live PRD, also class A body) |
 | C11 | `specs/microservices/foundry.json`, `specs/design-system/foundry-agent-run-timeline.json` | 2 | `intelligence.json`, `intelligence-agent-run-timeline.json` | 6 files | **WARN:** check if `.json` here regenerates (NOT *.generated.json, so likely hand-tracked) |
 | C12 | `oya/**/tests/foundry_*.rs`, `oya/developer-sdk/.../src/foundry_*.rs`, `libs/.../foundry_eval_run_api.rs` | ~16 test/src files | `intelligence_*.rs` test names | low external repoint (test fns) | rename test/src files (pairs with A) |
-| C13 | `docs/policies/foundry-supervisor.cedar`, `docs/decisions/templates/foundry-phase00-template.md`, `scripts/validate-foundry-phase00-evidence.mjs`, `docs/checklists/foundry-capability-publishing.md`, `docs/governance-lanes/foundry-corpus-citation.md` | ~5 | `intelligence-*` equivalents | per-file | rename + repoint (live policy/template/script) |
+| C13 | `docs/policies/foundry-supervisor.cedar`, `docs/decisions/templates/foundry-phase00-template.md`, `scripts/validate-foundry-phase00-evidence.mjs`, `templates/checklists/foundry-capability-publishing.md`, `docs/governance-lanes/foundry-corpus-citation.md` | ~5 | `intelligence-*` equivalents | per-file | rename + repoint (live policy/template/script) |
 | C14 | `docs/adr-archive/ADR-0335-intelligence-microservice-consolidation.md `ADR-0347…md`, `ADR-0363…md` (filenames carry foundry) | 3 | **DO NOT RENAME** | — | **DEFER** — these are 3 of the 6 founder-deferred slugs; filename rename = slug rename = founder gate |
 | C15 | HISTORICAL path families (KEEP): `oya/intelligence/_legacy-foundry/` (3), `.omc/archive/**/ralplan-foundry-*` (7), `docs/raw/agentic-delivery-foundry-critical-challenge.md`, `docs/localization-packs/kr/evidence/foundry.md` | — | KEEP | — | class B-by-design (legacy/archive/raw/evidence) |
 

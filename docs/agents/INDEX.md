@@ -44,7 +44,7 @@ A fresh agent in 7 steps:
 ## Cross-references into the broader doc set
 
 - Standards: [`docs/standards/INDEX.md`](../standards/INDEX.md).
-- Templates + checklists: [`docs/templates/INDEX.md`](../templates/INDEX.md) (and `docs/checklists/`).
+- Templates + checklists: [`docs/templates/INDEX.md`](../templates/INDEX.md) (and `templates/checklists/`).
 - Fitness lanes: [`docs/governance-lanes/`](../governance-lanes/) (parallel composer output).
 - Plan hierarchy: [`docs/MASTERPLAN.md`](../MASTERPLAN.md).
 - Operating contract: [`docs/AGENTS.md`](../AGENTS.md).

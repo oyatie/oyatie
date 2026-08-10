@@ -2,7 +2,7 @@
 doc_class: TemplateIndex
 status: pending approval
 purpose: |
-  Catalog of canonical templates and checklists for oyatie that lift to docs/templates/ and docs/checklists/ on approval. Single navigation point for human authors, agent capabilities, and fitness lanes that enforce template shape.
+  Catalog of canonical templates and checklists for oyatie that lift to docs/templates/ and templates/checklists/ on approval. Single navigation point for human authors, agent capabilities, and fitness lanes that enforce template shape.
 lift_target: oyatie/docs/STANDARDS-AND-TEMPLATES.md  # §Templates + §Checklists sections updated to reference these IDs
 authority_chain_declaration: |
   docs/CONSTITUTION.md > docs/AGENTS.md > docs/DOC-CATALOG.md > docs/STANDARDS-AND-TEMPLATES.md > /templates/INDEX.md (this file, working draft)
@@ -41,21 +41,22 @@ related:
 
 | ID | File | Purpose | Lift target | Owner | Verification path |
 |---|---|---|---|---|---|
-| CHK-DONE | `done-definition-checklist.md` | Extends `docs/AGENTS.md` D1-D19 with per-change-class variants. | `docs/checklists/done-definition.md` | `platform-governance` + `council-architecture` | `oya-ci-required` + per-lane CI status |
-| CHK-PRE | `pre-flight-checklist.md` | Per-change-class preconditions. | `docs/checklists/pre-flight.md` | `council-architecture` | `oya-governance-pr-shape` |
-| CHK-PHASE | `per-phase-completion-checklist.md` | Phase-internal verification. | `docs/checklists/per-phase-completion.md` | `council-architecture` | `oya-governance-plan-hierarchy` |
-| CHK-IP | `per-implementation-plan-checklist.md` | IP-internal verification. | `docs/checklists/per-implementation-plan.md` | `council-architecture` | `oya-governance-plan-hierarchy` |
-| CHK-DOCFRESH | `doc-freshness-checklist.md` | Per-doc-class staleness budget + auto-update path. | `docs/checklists/doc-freshness.md` | `council-architecture` | `oya-governance-doc-freshness` |
-| CHK-KICKOFF | `agent-kickoff-checklist.md` | Agent's first 5 actions before claiming task-local work. | `docs/checklists/agent-kickoff.md` | `platform-governance` | `oya-governance-banned-primitives` |
-| CHK-COMPLETE | `agent-completion-checklist.md` | Agent's last 5 actions before completion evidence is recorded. | `docs/checklists/agent-completion.md` | `platform-governance` | `oya-governance-banned-primitives` + `oya-governance-audit-emission` |
-| CHK-PRREV | `pr-review-checklist.md` | Reviewer agent's per-change-class verification. | `docs/checklists/pr-review.md` | `platform-governance` + per change-class team | trusted reviewer evidence producer (target; bounded by `F-PR5-06`) |
-| CHK-REL | `release-readiness-checklist.md` | Milestone-level release gate (wave-gate alignment). | `docs/checklists/release-readiness.md` | `ops-sre-reliability` + `council-architecture` | `oya-governance-release-readiness` |
-| CHK-INV | `inventory-update-checklist.md` | Every cutover/migration phase inventory ledger update. | `docs/checklists/inventory-update.md` | `axis-foundry` | `oya-governance-inventory-tracker` |
-| CHK-XAXIS | `cross-axis-contract-change-checklist.md` | Cross-axis contract change cascade. | `docs/checklists/cross-axis-contract-change.md` | `council-architecture` | `oya-governance-cross-axis-notify` |
-| CHK-ESC | `escalation-checklist.md` | When agent halts and emits `BLOCKED_ON_HUMAN_ORCHESTRATOR`. | `docs/checklists/escalation.md` | `council-architecture` | `oya-governance-banned-primitives` (audits halt events) |
+| CHK-DONE | `done-definition-checklist.md` | Extends `docs/AGENTS.md` D1-D19 with per-change-class variants. | `templates/checklists/done-definition.md` | `platform-governance` + `council-architecture` | `oya-ci-required` + per-lane CI status |
+| CHK-PRE | `pre-flight-checklist.md` | Per-change-class preconditions. | `templates/checklists/pre-flight.md` | `council-architecture` | `oya-governance-pr-shape` |
+| CHK-PHASE | `per-phase-completion-checklist.md` | Phase-internal verification. | `templates/checklists/per-phase-completion.md` | `council-architecture` | `oya-governance-plan-hierarchy` |
+| CHK-IP | `per-implementation-plan-checklist.md` | IP-internal verification. | `templates/checklists/per-implementation-plan.md` | `council-architecture` | `oya-governance-plan-hierarchy` |
+| CHK-DOCFRESH | `doc-freshness-checklist.md` | Per-doc-class staleness budget + auto-update path. | `templates/checklists/doc-freshness.md` | `council-architecture` | `oya-governance-doc-freshness` |
+| CHK-KICKOFF | `agent-kickoff-checklist.md` | Agent's first 5 actions before claiming task-local work. | `templates/checklists/agent-kickoff.md` | `platform-governance` | `oya-governance-banned-primitives` |
+| CHK-COMPLETE | `agent-completion-checklist.md` | Agent's last 5 actions before completion evidence is recorded. | `templates/checklists/agent-completion.md` | `platform-governance` | `oya-governance-banned-primitives` + `oya-governance-audit-emission` |
+| CHK-PRREV | `pr-review-checklist.md` | Reviewer agent's per-change-class verification. | `templates/checklists/pr-review.md` | `platform-governance` + per change-class team | trusted reviewer evidence producer (target; bounded by `F-PR5-06`) |
+| CHK-REL | `release-readiness-checklist.md` | Milestone-level release gate (wave-gate alignment). | `templates/checklists/release-readiness.md` | `ops-sre-reliability` + `council-architecture` | `oya-governance-release-readiness` |
+| CHK-INV | `inventory-update-checklist.md` | Every cutover/migration phase inventory ledger update. | `templates/checklists/inventory-update.md` | `axis-foundry` | `oya-governance-inventory-tracker` |
+| CHK-XAXIS | `cross-axis-contract-change-checklist.md` | Cross-axis contract change cascade. | `templates/checklists/cross-axis-contract-change.md` | `council-architecture` | `oya-governance-cross-axis-notify` |
+| CHK-ESC | `escalation-checklist.md` | When agent halts and emits `BLOCKED_ON_HUMAN_ORCHESTRATOR`. | `templates/checklists/escalation.md` | `council-architecture` | `oya-governance-banned-primitives` (audits halt events) |
+| CHK-SWARM-RITUAL | `swarm-agent-ritual.md` | Per-dispatch Tier-2 ritual (diagram + digraph + role-scaled receipt). Forever home; session rules MUST cite this path. | `templates/checklists/swarm-agent-ritual.md` | `platform-governance` | INV-DOC-9 / process_meta session rule (`integ/ci`) |
 
 ## Conflicts discovered with existing oyatie docs
 
 - Existing slim templates exist at `docs/templates/{pull-request-template.md, adr-template.md, capability-record-template.yaml, runbook-template.md, incident-postmortem-template.md}`. New variants here are **supersets**; lift replaces in-place (preserving CI-validator hooks). See per-file `lift_target:` + `supersedes:` frontmatter.
-- Existing checklist directory `docs/checklists/` already contains 20 thin files; new variants here add: `done-definition`, `pre-flight`, `per-phase-completion`, `per-implementation-plan`, `doc-freshness`, `agent-kickoff`, `agent-completion`, `pr-review`, `release-readiness`, `inventory-update`, `escalation`. The existing `cross-axis-contract-change.md` is extended (not replaced); see CHK-XAXIS frontmatter.
+- Canonical checklist home is `templates/checklists/` (docs/checklists/ deleted; dual-home closed); new variants here add: `done-definition`, `pre-flight`, `per-phase-completion`, `per-implementation-plan`, `doc-freshness`, `agent-kickoff`, `agent-completion`, `pr-review`, `release-readiness`, `inventory-update`, `escalation`. The existing `cross-axis-contract-change.md` is extended (not replaced); see CHK-XAXIS frontmatter.
 - `docs/templates/migration-runbook-template.md` and `docs/templates/dpia-template.md` and `docs/templates/team-charter-template.md` are out of scope of this delivery; preserve as-is.

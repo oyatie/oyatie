@@ -120,23 +120,23 @@ docs/automation/rustdoc-pipeline.md
 docs/automation/schema-doc-pipeline.md
 docs/automation/service-map-spec.md
 docs/automation/tech-stack-map-spec.md
-docs/checklists/agent-completion-checklist.md
-docs/checklists/agent-kickoff-checklist.md
-docs/checklists/build-vs-buy.md
-docs/checklists/cross-axis-contract-change-checklist.md
-docs/checklists/doc-freshness-checklist.md
-docs/checklists/done-definition-checklist.md
-docs/checklists/escalation-checklist.md
-docs/checklists/inventory-update-checklist.md
-docs/checklists/legacy-adr-deletion.md
-docs/checklists/per-implementation-plan-checklist.md
-docs/checklists/per-phase-completion-checklist.md
-docs/checklists/pr-review-checklist.md
-docs/checklists/pre-flight-checklist.md
-docs/checklists/pre-merge.md
-docs/checklists/regional-pack-onboarding.md
-docs/checklists/release-readiness-checklist.md
-docs/checklists/wave-gate.md
+templates/checklists/agent-completion-checklist.md
+templates/checklists/agent-kickoff-checklist.md
+templates/checklists/build-vs-buy.md
+templates/checklists/cross-axis-contract-change-checklist.md
+templates/checklists/doc-freshness-checklist.md
+templates/checklists/done-definition-checklist.md
+templates/checklists/escalation-checklist.md
+templates/checklists/inventory-update-checklist.md
+templates/checklists/legacy-adr-deletion.md
+templates/checklists/per-implementation-plan-checklist.md
+templates/checklists/per-phase-completion-checklist.md
+templates/checklists/pr-review-checklist.md
+templates/checklists/pre-flight-checklist.md
+templates/checklists/pre-merge.md
+templates/checklists/regional-pack-onboarding.md
+templates/checklists/release-readiness-checklist.md
+templates/checklists/wave-gate.md
 docs/decisions/ADR-0702-identity-authz-live-apex.md
 docs/decisions/ADR-0709-general-live-apex.md
 docs/decisions/ADR-0709-general-live-apex.md
@@ -659,7 +659,7 @@ All 10 showed `old_hits=0` (no remaining `oya-governance-fitness-`) and `new_hit
 | `docs/decisions/ADR-0705-product-protocol-live-apex.md` | 0 | 10 |
 | `docs/decisions/ADR-0700-ci-admission-live-apex.md` | 0 | 2 |
 | `docs/decisions/ADR-0709-general-live-apex.md` | 0 | 6 |
-| `docs/checklists/done-definition-checklist.md` | 0 | 29 |
+| `templates/checklists/done-definition-checklist.md` | 0 | 29 |
 | `docs/automation/dependency-graph-spec.md` | 0 | 2 |
 | `docs/templates/impl-plan-template.md` | 0 | 1 |
 | `docs/release/progressive-delivery/playbook-cross-axis-contract.md` | 0 | 4 |

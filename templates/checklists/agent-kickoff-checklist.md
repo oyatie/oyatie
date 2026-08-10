@@ -4,7 +4,7 @@ checklist_id: CHK-KICKOFF
 status: pending approval
 purpose: |
   The agent's first 5 actions before claiming any symbol. Encodes the agentic-navigation contract from `.omc/plans/MASTERPLAN.md §6`. Walked at the start of every agent session that intends to modify the repo.
-lift_target: oyatie/docs/checklists/agent-kickoff.md
+lift_target: oyatie/templates/checklists/agent-kickoff.md
 enforcing_fitness_lane: oya-governance-banned-primitives (audits the first `grit claim` was preceded by the kickoff icm-read)
 owner_team: axis-foundry
 related:

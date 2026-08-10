@@ -264,11 +264,11 @@ Sibling ADRs ADR-0053 (sanctioned primitives closed set) and ADR-0054 (grit scaf
 | oyatie/docs/decisions/RETIRED.md | file | KEEP | null | A8 | Retirement record for superseded ADRs |
 | oyatie/docs/decisions/README.md | file | KEEP | null | A8 | ADR README |
 
-### oyatie/docs/checklists/ (24 files)
+### oyatie/templates/checklists/ (24 files)
 
 | Path | Type | Classification | Archived at | Maps to spec criterion | Notes |
 |---|---|---|---|---|---|
-| oyatie/docs/checklists/ | dir | KEEP | null | A8 | Operational checklists (adr-promotion, audit-readiness, build-vs-buy, etc.); 24 files; all KEEP |
+| oyatie/templates/checklists/ | dir | KEEP | null | A8 | Operational checklists (adr-promotion, audit-readiness, build-vs-buy, etc.); 24 files; all KEEP |
 
 ### oyatie/docs/products/ (axis PRDs)
 

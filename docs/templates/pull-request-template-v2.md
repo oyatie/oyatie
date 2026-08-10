@@ -12,8 +12,8 @@ owner_team: platform-governance + council-architecture
 related:
   - docs/AGENTS.md  # §PR shape + §Done-Definition
   - docs/STANDARDS-AND-TEMPLATES.md  # §2
-  - docs/checklists/done-definition-checklist.md
-  - docs/checklists/pr-review-checklist.md
+  - templates/checklists/done-definition-checklist.md
+  - templates/checklists/pr-review-checklist.md
 adrs_cited:
   - ADR-0052  # inventory ledger (traceability row)
 rfc_2119_active: true
@@ -49,7 +49,7 @@ Each applicable line **MUST** be present with a pass/fail token (`PASS` / `FAIL`
 - Cross-axis contracts touched: `<list under contracts/>` (per `docs/DESIGN.md §10`)
 - ADRs cited: `<ADR-#### list>`
 - `MISTAKES-LEDGER` row referenced (if regression-class): `MFL-NNNN`
-- Cross-axis review label applied (if cross-axis contract change): `<label>` (see `docs/checklists/cross-axis-contract-change-checklist.md`)
+- Cross-axis review label applied (if cross-axis contract change): `<label>` (see `templates/checklists/cross-axis-contract-change-checklist.md`)
 - Implementation Plan ID (if executing an IP): `IP-NNN-<slug>`
 - Inventory ledger row (if migration-class): `INV-NNNN` (per ADR-0052)
 

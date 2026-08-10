@@ -47,7 +47,7 @@ adopted by Python docs, Canonical, Cloudflare.)
 | Quadrant | Audience question | Voice | Length cap | Examples in `docs/` |
 |---|---|---|---|---|
 | **Tutorial** (learning-oriented) | "I am new, walk me through it." | imperative, hand-holding, complete | ≤ 500 lines | `README.md` quickstart, onboarding tracks |
-| **How-to** (task-oriented) | "I know the system; how do I do X?" | imperative, terse, goal-focused | ≤ 300 lines | runbooks, `RUNBOOKS-INDEX.md` rows, `checklists/` |
+| **How-to** (task-oriented) | "I know the system; how do I do X?" | imperative, terse, goal-focused | ≤ 300 lines | runbooks, `RUNBOOKS-INDEX.md` rows, `../../templates/checklists/` |
 | **Reference** (info-oriented) | "What is the exact contract?" | declarative, exhaustive, no narrative | ≤ 600 lines | `SPEC.md`, `ADR-INDEX.md`, `GLOSSARY.md`, `contracts/` |
 | **Explanation** (understanding-oriented) | "Why does it work this way?" | narrative, comparative, opinionated | ≤ 400 lines | `DESIGN.md`, this file |
 

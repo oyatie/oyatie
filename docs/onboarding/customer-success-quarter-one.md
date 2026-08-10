@@ -102,7 +102,7 @@ Day-one artifact checklist:
 
 Read these files in order. Do not browse randomly; the order teaches authority, doctrine, contract, implementation, test, and operational evidence.
 1. docs/runbooks/tenant-onboarding.md
-2. docs/checklists/tenant-onboarding.md
+2. templates/checklists/tenant-onboarding.md
 3. docs/runbooks/design-partner-onboarding.md
 4. docs/runbooks/design-partner-feedback-session.md
 5. docs/user-journeys/j100-pack-rollout-from-tenant-onboarding-to-first-action/README.md
@@ -358,7 +358,7 @@ Handoff rules:
 ## Resources & References
 
 - docs/runbooks/tenant-onboarding.md
-- docs/checklists/tenant-onboarding.md
+- templates/checklists/tenant-onboarding.md
 - docs/runbooks/design-partner-onboarding.md
 - docs/runbooks/design-partner-feedback-session.md
 - docs/user-journeys/j100-pack-rollout-from-tenant-onboarding-to-first-action/README.md
@@ -382,7 +382,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row CSM-001 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill CSM-002: first-action journey
-- Read: docs/checklists/tenant-onboarding.md
+- Read: templates/checklists/tenant-onboarding.md
 - Connects to: migration playbook rollback and validation
 - Build or inspect: a minimal artifact that proves first-action journey without widening beyond customer success manager, tenant onboarding and migration success.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for first-action journey.
@@ -532,7 +532,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row CSM-016 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill CSM-017: onboarding checklist gap
-- Read: docs/checklists/tenant-onboarding.md
+- Read: templates/checklists/tenant-onboarding.md
 - Connects to: design partner feedback capture and synthesis
 - Build or inspect: a minimal artifact that proves onboarding checklist gap without widening beyond customer success manager, tenant onboarding and migration success.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for onboarding checklist gap.
@@ -682,7 +682,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row CSM-031 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill CSM-032: migration validation evidence
-- Read: docs/checklists/tenant-onboarding.md
+- Read: templates/checklists/tenant-onboarding.md
 - Connects to: migration playbook rollback and validation
 - Build or inspect: a minimal artifact that proves migration validation evidence without widening beyond customer success manager, tenant onboarding and migration success.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for migration validation evidence.
@@ -832,7 +832,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row CSM-046 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill CSM-047: capability tier explanation
-- Read: docs/checklists/tenant-onboarding.md
+- Read: templates/checklists/tenant-onboarding.md
 - Connects to: design partner feedback capture and synthesis
 - Build or inspect: a minimal artifact that proves capability tier explanation without widening beyond customer success manager, tenant onboarding and migration success.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for capability tier explanation.
@@ -982,7 +982,7 @@ Use this ledger when you need extra practice or when a mentor asks for stronger 
 - Done artifact: onboarding issue row CSM-061 contains file path, claim, evidence, rollback, and reviewer.
 
 ### Drill CSM-062: regional pack onboarding
-- Read: docs/checklists/tenant-onboarding.md
+- Read: templates/checklists/tenant-onboarding.md
 - Connects to: migration playbook rollback and validation
 - Build or inspect: a minimal artifact that proves regional pack onboarding without widening beyond customer success manager, tenant onboarding and migration success.
 - Failure tree: name happy path, tenant or region failure, malicious or mistaken actor, and stale-contract failure for regional pack onboarding.

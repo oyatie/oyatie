@@ -516,11 +516,11 @@ collision, Bominal-ADR-0119 disambiguation, ADR-0019 self-amendment).
 
 - 64 fitness-lane catalogue specs lifted from `.omc/governance-lanes/` to `docs/governance-lanes/` (64 lane files + INDEX). Status set to `Accepted`; `lift_target:` field removed; `date: 2026-05-12` added. ADR-0053 cited in lanes enforcing sanctioned-primitive rules (adapter-kernel, banned-primitives, bypass, cloud-mutation, cutover-bootstrap-window, direct-tool-invocation-audit, provider-agnostic); ADR-0052 cited in portfolio-citation (inventory); ADR-0054 cited in agent-completion-checklist, claim-ceiling, scaffold-claim-pattern. Kernel implementations deferred to Stage 3.
 
-## 2026-05-12 — Stage 1 Wave 2: templates + checklists lifted to docs/templates/ + docs/checklists/ (25 files)
+## 2026-05-12 — Stage 1 Wave 2: templates + checklists lifted to docs/templates/ + templates/checklists/ (25 files)
 
-- **doc.templates-index** (Tier 2): 13 template files lifted from `/templates/` to `docs/templates/` (INDEX + 12 templates); 12 checklist files lifted from `/templates/checklists/` to `docs/checklists/`. Status set to `Accepted`; `lift_target:` field removed; `date: 2026-05-12` added; ADR-0052 + ADR-0053 + ADR-0054 cited in every file's frontmatter and body prose where sanctioned primitives, inventory ledger, and scaffold-claim are referenced.
+- **doc.templates-index** (Tier 2): 13 template files lifted from `/templates/` to `docs/templates/` (INDEX + 12 templates); 12 checklist files lifted from `/templates/checklists/` to `templates/checklists/`. Status set to `Accepted`; `lift_target:` field removed; `date: 2026-05-12` added; ADR-0052 + ADR-0053 + ADR-0054 cited in every file's frontmatter and body prose where sanctioned primitives, inventory ledger, and scaffold-claim are referenced.
 - 4 templates renamed to `-v2` due to conflicts with existing `docs/templates/` files: `pull-request-template-v2.md`, `adr-template-v2.md`, `runbook-template-v2.md`, `capability-record-template-v2.yaml`. Each carries `header_note: "Supersedes prior docs/templates/<name>.md once reviewed."` and `supersedes:` frontmatter field.
-- 0 checklist conflicts (all 12 checklists are new additions; existing `docs/checklists/cross-axis-contract-change.md` preserved; new `cross-axis-contract-change-checklist.md` carries `extends:` pointer to the prior file).
+- 0 checklist conflicts (all 12 checklists are new additions; existing `templates/checklists/cross-axis-contract-change.md` preserved; new `cross-axis-contract-change-checklist.md` carries `extends:` pointer to the prior file).
 - Existing `docs/templates/` files preserved as-is: `migration-runbook-template.md`, `dpia-template.md`, `team-charter-template.md`, `threat-model-template.md`, `incident-postmortem-template.md`, and others out of scope of this delivery.
   - Authors: jason931225
   - ADRs cited: ADR-0052, ADR-0053, ADR-0054

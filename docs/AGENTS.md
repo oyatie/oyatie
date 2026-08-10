@@ -138,7 +138,7 @@ INV-DOC-9: doctrine that exists only in a plan file or chat is **not** survived.
 
 - **achieves:** every agent runs the same start/end checklist without pasting the whole north-star plan.
 - **origin:** strategy and procedure were conflated; babysit-only regressions followed.
-- **rule:** every implement/audit/review/plan/scout/recon dispatch MUST run the Tier-2 ritual: **A** Orient (one role + MUST-NOT; position diagram; premise check vs HEAD + bead + hindsight) → **B** Reasoning map (≥2 lenses; claim digraph tagged E/I/U; ≥1 real challenge) → **C** Doctrine (envelope-bounded; one writer; observation≠APPROVE; no `*-fast`; Claim `docs_touched`/`docs_action`) → **D** Close (role-scaled receipt; flow delta; exit — no CI babysit). Use a **position diagram** for orientation and a **claim digraph** when ≥2 load-bearing claims depend on each other. Dispatch cards cite this section + role + lane mission — not the whole programme SSOT. Forever home is `/templates/checklists/swarm-agent-ritual.md` (reorg-move-out; do **not** deepen `#reorg_debt_freeze` `docs/checklists/`); session-loaded copy rides process_meta `.cursor/rules/` on `integ/ci`.
+- **rule:** every implement/audit/review/plan/scout/recon dispatch MUST run the Tier-2 ritual: **A** Orient (one role + MUST-NOT; position diagram; premise check vs HEAD + bead + hindsight) → **B** Reasoning map (≥2 lenses; claim digraph tagged E/I/U; ≥1 real challenge) → **C** Doctrine (envelope-bounded; one writer; observation≠APPROVE; no `*-fast`; Claim `docs_touched`/`docs_action`) → **D** Close (role-scaled receipt; flow delta; exit — no CI babysit). Use a **position diagram** for orientation and a **claim digraph** when ≥2 load-bearing claims depend on each other. Dispatch cards cite this section + role + lane mission — not the whole programme SSOT. Forever home is `/templates/checklists/swarm-agent-ritual.md` (landed; `docs/checklists/` deleted — do **not** recreate); session-loaded copy rides process_meta `.cursor/rules/` on `integ/ci`.
 - **ensure:** this five-field rule present; orchestrator refuses babysit-only fleet (hard rule); receipts include role-scaled evidence; reorg-move-out bead tracks the templates land.
 - **overturn_when:** a recorded challenge shows the ritual blocks delivery AND a replacement ritual with five fields lands same-wave.
 
@@ -176,7 +176,7 @@ For any question, route to its authority. Click the link; do not duplicate inlin
 | Release / incident / on-call | [`RELEASE-MANAGEMENT.md`](RELEASE-MANAGEMENT.md) <!-- forward-reference: wave-1 -->, [`INCIDENT-MANAGEMENT.md`](INCIDENT-MANAGEMENT.md) <!-- forward-reference: wave-1 -->, [`standards/on-call.md`](standards/on-call.md) <!-- forward-reference: wave-1 --> |
 | Glossary (canonical vocabulary) | [`GLOSSARY.md`](GLOSSARY.md) <!-- forward-reference: wave-1 --> |
 | Machine-readable mirrors of the catalog | [`machine-readable/`](machine-readable/) <!-- forward-reference: wave-1 --> |
-| Per-dispatch agent ritual (Tier 2 — diagram + digraph + doctrine) | This contract § Doctrine survival → Per-dispatch ritual; forever home `/templates/checklists/swarm-agent-ritual.md` (reorg-move-out); session rule under process_meta `.cursor/rules/` (`integ/ci`) |
+| Per-dispatch agent ritual (Tier 2 — diagram + digraph + doctrine) | This contract § Doctrine survival → Per-dispatch ritual; forever home `/templates/checklists/swarm-agent-ritual.md` (landed); session rule under process_meta `.cursor/rules/` (`integ/ci`) |
 
 ## Bounded delivery and preservation
 
@@ -224,7 +224,7 @@ Before any change, every agent and every human MUST complete these items.
 5. **Confirm license posture.** New dependencies MUST clear the Buck2/cloud-ci supply-chain lane. AGPL / GPL / SSPL / BUSL / RSAL are not permitted in product code. *Why:* license drift is hard to undo. *Test:* supply-chain gate target exits 0.
 6. **Search MISTAKES-LEDGER for the failure-mode class.** *Why:* re-introducing a fixed defect is a regression. *Test:* PR `## Traceability` cites the relevant `MFL-NNNN` row OR a "no prior row" search note.
 7. **Identify the per-change-class reviewer agent.** *Why:* the target reviewer contract signs `## Code Review` at merge time; no signature, no merge once the trusted reviewer producer is live. *Test:* §"Per-change-class reviewer agents" table below; `F-PR5-06` tracks the current live-enforcement gap.
-8. **For cross-axis contract changes:** apply the cross-axis review label per [`checklists/cross-axis-contract-change.md`](checklists/cross-axis-contract-change.md) <!-- forward-reference: wave-1 -->; notify consumer-axis teams. *Why:* silent cross-axis changes break consumers. *Test:* PR label + `oya-governance-cross-axis-notify` lane.
+8. **For cross-axis contract changes:** apply the cross-axis review label per [`../templates/checklists/cross-axis-contract-change.md`](../templates/checklists/cross-axis-contract-change.md) <!-- forward-reference: wave-1 -->; notify consumer-axis teams. *Why:* silent cross-axis changes break consumers. *Test:* PR label + `oya-governance-cross-axis-notify` lane.
 9. **For hook / harness / CLI changes:** run the harness self-test first. *Why:* a broken hook silently disables every downstream gate. *Test:* harness self-test command (per harness; see §"Per-agent appendices").
 
 ## Per-change-class reviewer agents
@@ -351,7 +351,7 @@ Before declaring any change complete, every agent and every human MUST re-walk t
   promoted commit `oya-ci-required` status URL, rollout verification, rollback note,
   observability/golden-signal check, browser UX/user-story evidence, and Release
   Please/release-note impact. *Test:* PR comment or release evidence bundle linked
-  from `## Evidence`; see [`checklists/pre-merge.md`](checklists/pre-merge.md)
+  from `## Evidence`; see [`../templates/checklists/pre-merge.md`](../templates/checklists/pre-merge.md)
   §"After merge".
 
 If any box is unchecked, the change is not complete. Loop back; do not declare success.

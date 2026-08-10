@@ -4,7 +4,7 @@ checklist_id: CHK-INV
 status: pending approval
 purpose: |
   Inventory ledger update at every cutover / migration phase. Records source → archive → tombstone transitions for files, crates, contracts, and capabilities. Lifts from `.omc/scratch/inventory-draft-oyatie-cutover.md` shape.
-lift_target: oyatie/docs/checklists/inventory-update.md
+lift_target: oyatie/templates/checklists/inventory-update.md
 enforcing_fitness_lane: oya-governance-inventory-tracker
 owner_team: axis-foundry
 related:

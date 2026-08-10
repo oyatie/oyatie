@@ -24,7 +24,7 @@ doc_status: published
 
 ## 2. Authoring a new pack
 
-Per [`checklists/regional-pack-onboarding.md`](../checklists/regional-pack-onboarding.md):
+Per [`../../templates/checklists/regional-pack-onboarding.md`](../../templates/checklists/regional-pack-onboarding.md):
 1. Council ratification per ADR-0012 axis admission protocol (per-region pack inherits axis 3 vertical-cloud + cross-cutting)
 2. Pack scaffold via `oya pack new <region>` (Foundry skill `oya-regional-pack-author`)
 3. Fill 14 sections per [`_TEMPLATE.md`](_TEMPLATE.md): regulatory, compliance packs, i18n, currency, calendar, tax, identity providers, payment rails, address book, ecosystem partners, content safety, ad policy, industry data models, vendor partners

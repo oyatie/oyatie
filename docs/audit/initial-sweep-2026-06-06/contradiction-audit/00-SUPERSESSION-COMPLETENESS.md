@@ -83,7 +83,7 @@ depth-5 path:
     (`registry/quality/lanes.yaml:485-493`, `source: ADR-0056`, runs
     `cargo run -p oya-dev-cli -- gate validate architecture-boundaries`), updating that gate to require
     `{oya,cloud}/<service>/crates/` or `libs/<lib>/` per `ADR-0512:62`. Then strike the stale BLOCKER claims:
-    `docs/governance-lanes/INDEX.md:28`, `docs/AGENTS.md:231` (D7), `docs/checklists/done-definition-checklist.md:33` (D7).
+    `docs/governance-lanes/INDEX.md:28`, `docs/AGENTS.md:231` (D7), `templates/checklists/done-definition-checklist.md:33` (D7).
   - Note the registration drift: the lane is doc-declared a live BLOCKER but is **ABSENT from the executable
     registry** (`registry/quality/lanes.yaml`, grep flat = 0). It enforces the wrong topology AND is not machine-wired.
 
@@ -108,7 +108,7 @@ standards/design/roadmap/checklists/products: `ROADMAP.md:52,63,172`; `DESIGN.md
   `standards/code-review.md:35`; `standards/clean-architecture.md:49,396`; `standards/code-style-rust.md:142,268`;
   `standards/crate-naming-convention.md:42,423`; `standards/ci-lanes.md:155`; `standards/testing.md:245`;
   `products/_TEMPLATE.md:56,315`; `products/foundry/PRD.md:731,1035`; `products/cloud/PRD.md:807`;
-  `checklists/pre-push.md:29`; `checklists/pre-merge.md:21,26`; `checklists/vertical-onboarding.md:19`.
+  `../../../../templates/checklists/pre-push.md:29`; `../../../../templates/checklists/pre-merge.md:21,26`; `../../../../templates/checklists/vertical-onboarding.md:19`.
 registry/ + misc: `bounded-contexts.json:6`; `artifact-capabilities-registry.json:577`;
   `stub-audit/2026-05-17/adrs.jsonl:15,28,29,48`; `stub-audit/2026-05-17/missing-fitness-crates.json:106,899`;
   `milestone-audit/index.json:804-805,2545`; `stub-audit/2026-05-17/ips.jsonl:33`; `MISTAKES-LEDGER.md:56`;

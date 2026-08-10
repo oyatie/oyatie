@@ -167,4 +167,4 @@ The same agent runtime that authors customer workflows authors PRs against the s
 
 - Internal: ADR-0021 (registry shares the catalog), ADR-0022 (autonomy gate uses the same Cedar bundle that the platform fitness functions reference), ADR-0024 (eval is the same harness substrate).
 - Anti-references: external developer platforms as SoR are explicitly out per the build-vs-buy posture.
-- Foundry capability publishing checklist: `docs/checklists/foundry-capability-publishing.md`.
+- Foundry capability publishing checklist: `templates/checklists/foundry-capability-publishing.md`.

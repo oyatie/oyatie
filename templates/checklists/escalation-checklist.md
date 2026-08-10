@@ -4,7 +4,7 @@ checklist_id: CHK-ESC
 status: pending approval
 purpose: |
   When an agent halts and emits `BLOCKED_ON_HUMAN_ORCHESTRATOR`. The autonomy directive minimizes this set: every documented case is one the system genuinely cannot resolve mechanically. New escalation classes require an ADR; council reviews quarterly to shrink the set.
-lift_target: oyatie/docs/checklists/escalation.md
+lift_target: oyatie/templates/checklists/escalation.md
 enforcing_fitness_lane: oya-governance-banned-primitives (audits halt events)
 owner_team: council-architecture
 related:

@@ -4,7 +4,7 @@ checklist_id: CHK-PHASE
 status: pending approval
 purpose: |
   Phase-internal verification. Walked before flipping a phase INDEX `status:` from `in-progress` to `merged` and before emitting the phase-handoff icm event.
-lift_target: oyatie/docs/checklists/per-phase-completion.md
+lift_target: oyatie/templates/checklists/per-phase-completion.md
 enforcing_fitness_lane: oya-governance-plan-hierarchy
 owner_team: council-architecture
 related:
