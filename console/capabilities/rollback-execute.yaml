@@ -4,7 +4,7 @@ availability: "paid tenant_class always-on; demo_trial cap-bounded with step-up 
 risk_class: high
 description: Authorize rollback execution with target revision and rationale.
 authz:
-  cedar_policy: microservices/ops-dashboard-control-center/policy/cedar/operator-actions.cedar
+  cedar_policy: console/policy/cedar/operator-actions.cedar
   requires_mfa: true
   requires_idempotency_key: true
 audit_chain:

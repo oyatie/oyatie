@@ -1,237 +1,90 @@
 {
   "schema_version": "1.0",
-  "version": "0.1.0",
-  "status": "implemented-local-foundation-truth-down",
-  "change_set": "CS-CLOUD-OPS-FOUNDATION-001",
-  "regulatory_packs": [
-    "kr",
-    "eu",
-    "us",
-    "us-healthcare",
-    "jp",
-    "sg",
-    "au",
-    "in",
-    "br",
-    "ae",
-    "ksa"
-  ],
-  "lts_pins": {
-    "rust": "1.97.1"
-  },
-  "adrs": [
-    {
-      "id": "ADR-0028",
-      "title": "Cloud Microservice Architecture",
-      "scope": "repo",
-      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
-    },
-    {
-      "id": "ADR-0056",
-      "title": "Rust Clean Architecture BNF",
-      "scope": "repo",
-      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
-    },
-    {
-      "id": "ADR-0340",
-      "title": "Capacity Model Per Microservice Manifest",
-      "scope": "repo",
-      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
-    },
-    {
-      "id": "ADR-0343",
-      "title": "DR RTO/RPO Matrix Per Microservice Per Compliance Pack",
-      "scope": "repo",
-      "file": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
-    },
-    {
-      "id": "ADR-0344",
-      "title": "Sustainability FinOps Dimensional Model",
-      "scope": "repo",
-      "file": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
-    },
-    {
-      "id": "ADR-0348",
-      "title": "Autosharding Auto Rebalance Dynamic Sharding",
-      "scope": "repo",
-      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
-    },
-    {
-      "id": "ADR-0352",
-      "title": "Oyatie From-Scratch Architecture Handoff",
-      "scope": "repo",
-      "file": "docs/decisions/ADR-0709-general-live-apex.md"
-    }
-  ],
-  "slos": [],
-  "slo_exemption": {
-    "status": "live_exempted_no_runtime_sli",
-    "owner": "ops-sre-reliability",
-    "rationale": "No current measured runtime SLI exists for this foundation, retired, or local-scaffold service; the manifest must not claim production or hyperscaler-ready SLO coverage until an OpenSLO file lands.",
-    "cutover_on": "2026-12-31",
-    "evidence": "specs/master-plan-sequencing.json#realignment_wave_sequence"
-  },
-  "hyperscaler_inv_coverage": {
-    "circuit_breaker": "not_claimed_cs_cloud_ops_foundation_001_no_runtime_request_path",
-    "tenant_rate_limit": "not_claimed_cs_cloud_ops_foundation_001_no_live_api_or_quota_runtime",
-    "golden_signals": "not_claimed_cs_cloud_ops_foundation_001_no_measured_metrics_runtime",
-    "error_budget_burn": "not_claimed_cs_cloud_ops_foundation_001_slos_empty_until_runtime_sli_exists"
-  },
-  "audit_chain": {
-    "enabled": false,
-    "runtime_audit_emitter": false,
-    "seal_events": [],
-    "evidence_refs": [
-      "evidence/multispectrum/cs-cloud-ops-foundation-20260523.json"
-    ],
-    "non_claim": "Metadata guardrail records audit/evidence reference shapes only; no audit-chain writer or seal persistence is implemented by CS-CLOUD-OPS-FOUNDATION-001."
-  },
-  "secrets_substrate": {
-    "provider": "openbao-future-reference-only",
-    "raw_secret_material": false,
-    "non_claim": "No raw credential, provider token, kubeconfig, marketplace secret, or OpenBao runtime call is introduced or consumed."
-  },
-  "runtime_dependencies": {
-    "implemented": false,
-    "oss_packages": [],
-    "non_claim": "No service runtime dependency graph is claimed for this local foundation."
-  },
-  "sharding_automation": {
-    "autosharding": {
-      "enabled": false,
-      "mode": "not_claimed_runtime",
-      "intended_control_plane": "control_plane_driven"
-    },
-    "auto_rebalance": {
-      "enabled": false,
-      "audit_chain_emit": false,
-      "trigger_load_skew_threshold_percent": 30,
-      "honors_residency": true,
-      "honors_compliance_packs": true
-    },
-    "dynamic_sharding": {
-      "enabled": false,
-      "audit_chain_emit": false,
-      "hot_split_threshold_p99_ms": 50,
-      "hot_split_utilization_threshold_percent": 80,
-      "cold_merge_utilization_threshold_percent": 20,
-      "cold_merge_minimum_quiet_hours": 24
-    }
-  },
-  "dr": {
-    "multi_region_active_active": false,
-    "rto_p99_seconds": null,
-    "rpo_p99_seconds": null,
-    "non_claim": "No DR runtime or drill evidence is implemented."
-  },
-  "mesh_layering": {
-    "cilium_l4": true,
-    "ambient_ztunnel": true,
-    "ambient_waypoint": false,
-    "north_south_only": false,
-    "runtime_mesh_enabled": false,
-    "non_claim": "No Istio/Cilium/Envoy runtime configuration is implemented by this slice."
-  },
-  "iac": {
-    "opentofu_plan_apply": false,
-    "provider_live_smoke": false,
-    "non_claim": "No infrastructure provisioning is executed or claimed."
-  },
-  "runtime_data_processing": false,
-  "cloud_ops_foundation": {
-    "schema_version": 1,
-    "evidence_guardrail": "CloudOpsFoundationGuardrail",
-    "guardrail_file": "crates/oya-cloud-capacity-domain/src/lib.rs",
-    "guardrail_tests": "crates/oya-cloud-capacity-domain/tests/cloud_ops_foundation.rs",
-    "evidence_prefixes": {
-      "capacity": "evidence/cloud-ops/capacity/",
-      "cell": "evidence/cloud-ops/cell/",
-      "dcops": "evidence/cloud-ops/dcops/",
-      "finops": "evidence/cloud-ops/finops/",
-      "marketplace": "evidence/cloud-ops/marketplace/",
-      "fsh": "evidence/cloud-ops/fsh/",
-      "audit_chain": "audit-chain/cloud-ops/"
-    },
-    "runtime_claims": [],
-    "non_claim": "The guardrail proves tenant/region/cell-scoped metadata and capacity/rebalance bounds only; it does not run cloud operations workflows."
-  },
-  "source_guidance": [
-    {
-      "topic": "capacity_overload",
-      "source": "Google SRE Handling Overload",
-      "url": "https://sre.google/sre-book/handling-overload/",
-      "implication": "capacity is resource based, per-customer quota aware, and overload/retry claims require measured runtime evidence"
-    },
-    {
-      "topic": "node_autoscaling",
-      "source": "Kubernetes Node Autoscaling",
-      "url": "https://v1-32.docs.kubernetes.io/docs/concepts/cluster-administration/node-autoscaling/",
-      "implication": "node autoscaling is runtime infrastructure behavior and is not claimed by this local foundation"
-    },
-    {
-      "topic": "finops_focus",
-      "source": "FOCUS Specification",
-      "url": "https://focus.finops.org/focus-specification/",
-      "implication": "FOCUS exports need schema-backed data generation evidence and are not claimed as live exports here"
-    },
-    {
-      "topic": "opencost",
-      "source": "OpenCost Specification",
-      "url": "https://opencost.io/docs/specification/",
-      "implication": "Kubernetes cost allocation needs asset/resource allocation data; this slice keeps only domain/API metadata"
-    },
-    {
-      "topic": "dcops",
-      "source": "Uptime Institute Tier Classification",
-      "url": "https://uptimeinstitute.com/tiers",
-      "implication": "facility tier claims require site infrastructure evidence; this slice only validates pure DCOps domain records"
-    },
-    {
-      "topic": "marketplace",
-      "source": "AWS Marketplace SaaS products",
-      "url": "https://docs.aws.amazon.com/marketplace/latest/userguide/saas-products.html",
-      "implication": "SaaS marketplace sellers manage access/provisioning and integrate subscriptions/contracts; no live marketplace integration is claimed"
-    }
-  ],
-  "non_claims": [
-    "no live REST gRPC SDK worker database broker scheduler or dashboard runtime",
-    "no measured SLO SLI burn-rate Prometheus OpenSLO runtime evidence",
-    "no active-active DR failover drill backup restore or cross-region replication evidence",
-    "no OpenTofu plan/apply provider SDK Kubernetes controller or provider-live operation",
-    "no audit-chain writer Merkle seal persistence or external evidence-store runtime",
-    "no runtime autoscaling autosharding migration workflow or tenant move execution",
-    "no ops-dashboard-control-center crate family exists in the workspace",
-    "no incident command deployment command cluster health or operator dashboard runtime"
-  ],
-  "microservice": "ops-dashboard-control-center",
+  "capability": "console",
+  "_comment": "Capability-root manifest for console/ (ADR-0562 + ADR-0615). Every crate, capability file path, contract path, and accounting count below was read off the tree at authoring time. Legacy microservices/ops-dashboard-control-center dump paths are retired from load-bearing cites; ops-dashboard planning scaffolds that still live under console/ are named as migration inventory, not as deployed runtime.",
   "tier": "substrate",
   "tier_subtype": "substrate-governance",
-  "dr_tier": "T1",
   "substrate_dag_position": {
     "stratum": "S4",
     "depends_on": [],
     "consumed_by_substrates": [],
-    "_note": "forward-declared per ADR-0280 Appendix C; edges land in DAG v1.1.0"
+    "_note": "specs/capability-registry.json name=console dag_node=console stratum=S4"
   },
-  "owner": "ops-sre-reliability",
+  "_tier_source": "specs/capability-registry.json name=console dag_node=console stratum=S4",
+  "version": "0.1.0",
+  "owner": "axis-cloud-platform",
+  "purpose": "Operator/tenant console shell substrate (ADR-0562 charter + ADR-0615 shell/surface line): one platform-owned workspace shell + docs-portal surface composed at build time under console/{ports,core,adapters,facade}. The nine workspace crates are the shell kernel/usecase/adapter/REST/app and docs-portal counterparts. Ops-dashboard composition leaves (incident-command, cluster-health, finops-portal, …) remain planning scaffolds under console/{capabilities,catalog,contracts,slos,runbooks} pending app/ops-console/<vertical> absorb — no deployed ops-dashboard runtime or measured shell SLI is claimed by this capability-root slice.",
   "bounded_contexts": [
     {
-      "name": "dcops-domain-local-foundation",
-      "description": "Compatibility dashboard manifest now distinguishes the code-backed DCOps domain from the unimplemented ops dashboard runtime. DCOps domain covers site/facility/power/cooling/security/rack/equipment/cable/BMS/work-order/sustainability records. No dashboard service crates, incident/deployment command runtime, cluster-health collector, REST/event/proto transport, database, measured SLO, active-active DR, or audit-chain persistence is claimed.",
+      "name": "console-ports",
+      "description": "Pure std-only port traits under console/ports/ (workspace-shell surface catalog + docs-portal extractors/live-feed).",
       "crates": [
-        "oya-cloud-dcops-domain"
+        "console-docs-portal-kernel",
+        "console-workspace-shell-kernel"
+      ]
+    },
+    {
+      "name": "console-core",
+      "description": "Use-case orchestration under console/core/ depending only inward on the kernels.",
+      "crates": [
+        "console-docs-portal-usecase",
+        "console-workspace-shell-usecase"
+      ]
+    },
+    {
+      "name": "console-adapters",
+      "description": "Kernel→wire projection adapters under console/adapters/.",
+      "crates": [
+        "console-docs-portal-adapter",
+        "console-workspace-shell-adapter"
+      ]
+    },
+    {
+      "name": "console-facade",
+      "description": "REST boundaries + workspace-shell composition root under console/facade/.",
+      "crates": [
+        "console-docs-portal-rest",
+        "console-workspace-shell-app",
+        "console-workspace-shell-rest"
       ]
     }
   ],
   "layers": [
-    "domain"
+    "adapters",
+    "core",
+    "facade",
+    "ports"
   ],
+  "capability_root_accounting": {
+    "crates_under_capability_root": 9,
+    "crates_by_layer": {
+      "adapters": 2,
+      "core": 2,
+      "facade": 3,
+      "ports": 2
+    },
+    "crates_covered_by_no_other_manifest": 9,
+    "catalog_rows": [
+      "registry/catalog/console-docs-portal-adapter.yaml",
+      "registry/catalog/console-docs-portal-kernel.yaml",
+      "registry/catalog/console-docs-portal-rest.yaml",
+      "registry/catalog/console-docs-portal-usecase.yaml",
+      "registry/catalog/console-workspace-shell-adapter.yaml",
+      "registry/catalog/console-workspace-shell-app.yaml",
+      "registry/catalog/console-workspace-shell-kernel.yaml",
+      "registry/catalog/console-workspace-shell-rest.yaml",
+      "registry/catalog/console-workspace-shell-usecase.yaml"
+    ],
+    "_overlap_note": "All nine workspace members under console/{ports,core,adapters,facade} are owned exclusively by this capability root. console/catalog/oya-ops-dashboard-control-center-*.yaml rows are planning scaffolds for composition leaves, not additional workspace crates counted here."
+  },
   "contracts": {
     "openapi": [
-      "microservices/ops-dashboard-control-center/contracts/openapi/ops-dashboard-control-center.yaml"
+      "console/contracts/openapi/ops-dashboard-control-center.yaml",
+      "console/contracts/openapi-v1.yaml"
     ],
     "asyncapi": [
-      "microservices/ops-dashboard-control-center/contracts/asyncapi/ops-dashboard-control-center-events.yaml"
+      "console/contracts/asyncapi/ops-dashboard-control-center-events.yaml",
+      "console/contracts/asyncapi-v1.yaml"
     ],
     "internal_grpc": {
       "transport": "http2",
@@ -240,40 +93,177 @@
         "console/contracts/proto/ops_dashboard_control_center.proto"
       ]
     },
-    "contract_status": "service-local dashboard contracts are planning scaffolds; no ops-dashboard runtime crate or transport is implemented"
+    "contract_status": "verified console/contracts/{openapi,asyncapi,proto} files exist as planning scaffolds for ops-dashboard composition leaves; workspace-shell/docs-portal wire shapes are also declared in-crate against contracts/ops-workspace-shell-v1.openapi.yaml and contracts/ops-docs-v1.openapi.yaml names that are not yet present as files under console/contracts/ and are therefore not claimed here"
   },
   "capabilities": [
     {
+      "tier": "T0",
+      "name": "workspace-shell-surface-catalog-visibility-tiers",
+      "file": "console/ports/workspace-shell-kernel/src/lib.rs",
+      "risk_class": "none"
+    },
+    {
+      "tier": "T0",
+      "name": "docs-portal-extractor-hot-warm-cold-classes",
+      "file": "console/ports/docs-portal-kernel/src/lib.rs",
+      "risk_class": "none"
+    },
+    {
+      "tier": "T1",
+      "name": "workspace-shell-list-live-surfaces-and-health",
+      "file": "console/facade/workspace-shell-rest/src/lib.rs",
+      "risk_class": "medium"
+    },
+    {
+      "tier": "T1",
+      "name": "workspace-shell-composition-root-default-deny-authn",
+      "file": "console/facade/workspace-shell-app/src/lib.rs",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T1",
+      "name": "docs-portal-manifest-live-feed-refresh",
+      "file": "console/facade/docs-portal-rest/src/lib.rs",
+      "risk_class": "medium"
+    },
+    {
       "tier": "T2",
-      "name": "dcops-site-facility-power-cooling-security-domain-invariants",
-      "file": "crates/oya-cloud-dcops-domain/src/lib.rs",
+      "name": "cluster-health-query",
+      "file": "console/capabilities/cluster-health-query.yaml",
+      "risk_class": "minimal"
+    },
+    {
+      "tier": "T2",
+      "name": "incident-declare",
+      "file": "console/capabilities/incident-declare.yaml",
+      "risk_class": "limited"
+    },
+    {
+      "tier": "T2",
+      "name": "deployment-approve",
+      "file": "console/capabilities/deployment-approve.yaml",
       "risk_class": "high"
     },
     {
       "tier": "T2",
-      "name": "dcops-equipment-cable-bms-work-order-sustainability-domain-invariants",
-      "file": "crates/oya-cloud-dcops-domain/src/lib.rs",
+      "name": "rollback-execute",
+      "file": "console/capabilities/rollback-execute.yaml",
       "risk_class": "high"
     },
     {
       "tier": "T2",
-      "name": "cloud-ops-dcops-evidence-scope-guardrail",
-      "file": "crates/oya-cloud-capacity-domain/tests/cloud_ops_foundation.rs",
+      "name": "tenant-isolation-posture-query",
+      "file": "console/capabilities/tenant-isolation-posture-query.yaml",
+      "risk_class": "limited"
+    },
+    {
+      "tier": "T2",
+      "name": "evidence-pack-export",
+      "file": "console/capabilities/evidence-pack-export.yaml",
+      "risk_class": "limited"
+    },
+    {
+      "tier": "T2",
+      "name": "incident-remediation-approve",
+      "file": "console/capabilities/incident-remediation-approve.yaml",
       "risk_class": "high"
+    },
+    {
+      "tier": "T2",
+      "name": "step-up-auth-challenge",
+      "file": "console/capabilities/step-up-auth-challenge.yaml",
+      "risk_class": "limited"
     }
   ],
+  "slos": [],
+  "slo_exemption": {
+    "status": "live_exempted_library_crates_no_deployed_runtime",
+    "owner": "axis-cloud-platform",
+    "rationale": "The nine console/{ports,core,adapters,facade} crates are shell/docs-portal libraries and REST/composition stubs with no measured runtime SLI of their own. OpenSLO planning files exist under console/slos/ for ops-dashboard composition leaves but are not claimed as live shell SLIs.",
+    "cutover_on": "2026-12-31",
+    "evidence": "verified console/slos/*.openslo.yaml are ops-dashboard-control-center planning scaffolds; no console/observability/slos/ shell OpenSLO tree exists at manifest authoring time"
+  },
   "ips": [
     {
-      "id": "CS-CLOUD-OPS-FOUNDATION-001",
-      "title": "Capacity/cell/DCOps/FinOps/Marketplace/FSH evidence guardrail and manifest truth-down",
+      "id": "CS-CONSOLE-SHELL-001",
+      "title": "Workspace-shell surface catalog + default-deny composition root",
       "acceptance_status": "implemented-local-foundation",
-      "file": "crates/oya-cloud-capacity-domain/tests/cloud_ops_foundation.rs"
+      "file": "console/facade/workspace-shell-app/src/lib.rs"
+    },
+    {
+      "id": "CS-CONSOLE-DOCS-PORTAL-001",
+      "title": "Docs-portal hot/warm/cold extractors + manifest/live-feed use cases",
+      "acceptance_status": "implemented-local-foundation",
+      "file": "console/ports/docs-portal-kernel/src/lib.rs"
     }
   ],
-  "dcops_facility_claims": {
-    "uptime_tier_certification": false,
-    "ashrae_thermal_runtime": false,
-    "bms_runtime_integration": false,
-    "non_claim": "Facility standards guided domain boundaries, but no certified site, BMS telemetry, or dashboard runtime evidence is implemented."
+  "lts_pins": {
+    "rust": "1.97.1"
+  },
+  "adrs": [
+    {
+      "id": "ADR-0056",
+      "title": "Rust Clean Architecture BNF",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
+    },
+    {
+      "id": "ADR-0066",
+      "title": "Live Code-Introspection Docs Portal",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
+    },
+    {
+      "id": "ADR-0067",
+      "title": "Ops Workspace Shell Surface Slots",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
+    },
+    {
+      "id": "ADR-0562",
+      "title": "Capability First Repo Organization",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
+    },
+    {
+      "id": "ADR-0615",
+      "title": "Console Shell Versus Ops Composition Leaves",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
+    }
+  ],
+  "implemented_source_files": [
+    "console/adapters/docs-portal-adapter/src/lib.rs",
+    "console/adapters/workspace-shell-adapter/src/lib.rs",
+    "console/core/docs-portal-usecase/src/lib.rs",
+    "console/core/workspace-shell-usecase/src/lib.rs",
+    "console/facade/docs-portal-rest/src/lib.rs",
+    "console/facade/workspace-shell-app/src/lib.rs",
+    "console/facade/workspace-shell-app/src/main.rs",
+    "console/facade/workspace-shell-rest/src/lib.rs",
+    "console/ports/docs-portal-kernel/src/lib.rs",
+    "console/ports/workspace-shell-kernel/src/lib.rs"
+  ],
+  "doc_class": "Machine-Readable-Spec",
+  "foundation_non_claims": [
+    "this capability root describes the nine crates under console/{ports,core,adapters,facade} and does NOT claim a deployed ops-dashboard-control-center runtime, incident/deployment command service, cluster-health collector, or app/ops-console/<vertical> composition leaf",
+    "legacy microservices/ops-dashboard-control-center dump paths are retired from load-bearing cites; crates/oya-cloud-dcops-domain and crates/oya-cloud-capacity-domain are outside this capability root and are not claimed here",
+    "no measured shell SLI, active-active DR, OpenTofu plan/apply, or audit-chain writer runtime is claimed by this slice"
+  ],
+  "explicit_non_claims": [
+    "PRD.md, ARCHITECTURE.md, incident-response.md, compliance.md, and capacity-model.md are absent under console/ and remain deferred (legacy microservices/ops-dashboard-control-center cites retained only as deferred anchors in companion docs)",
+    "contracts/ops-workspace-shell-v1.openapi.yaml and contracts/ops-docs-v1.openapi.yaml are named in-crate but are not present as files under console/contracts/ and are not claimed",
+    "console/slos/*.openslo.yaml are planning scaffolds for ops-dashboard leaves and are not claimed as live shell OpenSLO coverage"
+  ],
+  "path_hygiene": {
+    "verified_retarget_prefix": "console/",
+    "deferred_missing_homes": [
+      "console/PRD.md",
+      "console/ARCHITECTURE.md",
+      "console/incident-response.md",
+      "console/compliance.md",
+      "console/capacity-model.md"
+    ],
+    "_note": "Seat A keep_forever prep: load-bearing cites that have verified console/** destinations are retargeted; missing homes stay deferred rather than invented."
   }
 }

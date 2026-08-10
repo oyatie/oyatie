@@ -8,7 +8,7 @@ metadata:
     verification logic, SLO burn-rate algebra, UEBA score aggregation invariants.
     Read-only; no write path.
   annotations:
-    backstage.io/managed-by-location: "file:microservices/ops-dashboard-control-center/catalog/oya-ops-dashboard-control-center-observability-pivot-kernel.yaml"
+    backstage.io/managed-by-location: "file:console/catalog/oya-ops-dashboard-control-center-observability-pivot-kernel.yaml"
     oya.dev/layer: kernel
     oya.dev/bounded-context: observability-pivot
     oya.dev/microservice: ops-dashboard-control-center

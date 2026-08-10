@@ -9,8 +9,8 @@ related_adrs:
   - ADR-0263
 companion_docs:
   - microservices/ops-dashboard-control-center/incident-response.md
-  - microservices/ops-dashboard-control-center/policy/cedar/tenant-scope-enforcement.cedar
-  - microservices/ops-dashboard-control-center/runbooks/forensic-investigation-handoff.md
+  - console/policy/cedar/tenant-scope-enforcement.cedar
+  - console/runbooks/forensic-investigation-handoff.md
 planned_enforcement_ref: oya-governance-microservice-doc-set
 ---
 

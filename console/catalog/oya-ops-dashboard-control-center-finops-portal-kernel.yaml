@@ -8,7 +8,7 @@ metadata:
     budget threshold domain logic, Welford online anomaly detector, tenant-scoped
     cost attribution invariants.
   annotations:
-    backstage.io/managed-by-location: "file:microservices/ops-dashboard-control-center/catalog/oya-ops-dashboard-control-center-finops-portal-kernel.yaml"
+    backstage.io/managed-by-location: "file:console/catalog/oya-ops-dashboard-control-center-finops-portal-kernel.yaml"
     oya.dev/layer: kernel
     oya.dev/bounded-context: finops-portal-integration
     oya.dev/microservice: ops-dashboard-control-center
