@@ -45,7 +45,7 @@ related_adrs:
   - ADR-0263
   - ADR-0292
 related_specs:
-  - /specs/microservices/payments.json
+  - /specs/app/payments.json
   - /specs/tenant-model.json
   - /specs/compliance-pack-matrix.json
 doc_status: published
