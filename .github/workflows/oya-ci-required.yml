@@ -652,6 +652,7 @@ jobs:
     permissions:
       contents: read
       actions: read
+      pull-requests: read
     # NO `needs: producer-regen`: this lane materializes its own faces (see the out-of-graph
     # boundary step below), so a producer failure cannot suppress this independent binding verdict.
     runs-on: ubuntu-latest  # binding linux-amd64 hosted; multi-arch soft via gate matrix; ARC oya-arm64 lab overflow only
@@ -896,10 +897,17 @@ jobs:
         timeout-minutes: 50
         env:
           BASE_REF: ${{ github.base_ref || 'dev' }}
+          # Live hub-exclusivity producer (ADR-0711): open-PR file facts via GitHub REST.
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
         run: |
           set -euo pipefail
           gate_bin="$(buck2 build //ci/facade/affected-target-set:oya-cloud-ci-affected-set-bin --show-output | awk '{print $2}')"
           telemetry_bin="$(buck2 build //ci/facade/affected-target-set:oya-cloud-ci-step-telemetry-bin --show-output | awk '{print $2}')"
+          hub_bin="$(buck2 build //ci/facade/affected-target-set:oya-cloud-ci-hub-exclusivity-bin --show-output | awk '{print $2}')"
+          # Hub sole-owner: cite envelopes #hubs.paths; multi-own among open integ PRs => REFUSE.
+          # Absent envelopes on parked tips skips (producer fail-open only for missing authority file).
+          "${hub_bin}" --repo-root . --repo "${GITHUB_REPOSITORY}"
           if [ "${EVENT_NAME}" = "pull_request" ]; then
             # PR tier: auto (cone-binding, hard-fail on a NEW break in the changed cone); a FULL
             # escalation runs the build-health ratchet AND the test-health ratchet (defect 3) against

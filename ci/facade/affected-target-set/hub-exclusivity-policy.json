@@ -1,5 +1,5 @@
 {
-  "_comment": "cloud-ci-hub-exclusivity policy (DATA). Hub path enumeration lives ONLY at specs/integ-branch-envelopes.json#hubs.paths — this pack cites the pointer and MUST NOT re-list. Producer loads hubs from that pointer and supplies open integ PR file facts; the Rust evaluator REFUSEs multi-own. Born under ci/facade/affected-target-set to avoid Cargo.lock hub churn + registry/catalog adjunct (new package would require both).",
+  "_comment": "cloud-ci-hub-exclusivity policy (DATA). Hub path enumeration lives ONLY at specs/integ-branch-envelopes.json#hubs.paths — this pack cites the pointer and MUST NOT re-list. Live producer (oya-cloud-ci-hub-exclusivity) loads hubs from that pointer and supplies open integ PR file facts (fixture or GitHub REST); the Rust evaluator REFUSEs multi-own. Wired into oya-ci-required affected-set admission. Born under ci/facade/affected-target-set to avoid Cargo.lock hub churn + registry/catalog adjunct (new package would require both).",
   "gate_id": "cloud-ci-hub-exclusivity",
   "schema_version": "1.0.0",
   "doctrine_adrs": [

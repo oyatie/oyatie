@@ -33,13 +33,16 @@ pub const CODE_AUTHORITY_POINTER_MISMATCH: &str = "hub_authority_pointer_mismatc
 pub const CODE_POLICY_GATE_ID_MISMATCH: &str = "hub_exclusivity_gate_id_mismatch";
 /// Envelopes JSON hubs.paths entry was missing or non-array (fail-closed parse).
 pub const CODE_HUBS_PATHS_MALFORMED: &str = "hubs_paths_malformed";
+/// Malformed / unparseable open-PR file-facts payload (producer DATA).
+pub const CODE_OPEN_PR_FACTS_MALFORMED: &str = "open_pr_facts_malformed";
 
-pub const VIOLATION_CODES: [&str; 5] = [
+pub const VIOLATION_CODES: [&str; 6] = [
     CODE_MULTI_OWN_HUB,
     CODE_AUTHORITY_EMPTY,
     CODE_AUTHORITY_POINTER_MISMATCH,
     CODE_POLICY_GATE_ID_MISMATCH,
     CODE_HUBS_PATHS_MALFORMED,
+    CODE_OPEN_PR_FACTS_MALFORMED,
 ];
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -136,6 +139,135 @@ pub struct OpenPrFact {
     pub number: u64,
     pub head_ref_name: String,
     pub files: BTreeSet<String>,
+}
+
+
+/// Default on-disk policy pack path (relative to repo root).
+pub const DEFAULT_POLICY_RELPATH: &str =
+    "ci/facade/affected-target-set/hub-exclusivity-policy.json";
+
+/// Envelopes document path that owns `#hubs.paths` (cite; do not re-list).
+pub const ENVELOPES_RELPATH: &str = "specs/integ-branch-envelopes.json";
+
+/// Parse producer-supplied open-PR file facts.
+///
+/// Accepted shapes (both are DATA — never instructions):
+/// - Simplified fixture: `[{ "number", "head_ref_name", "files": ["path", ...] }, ...]`
+/// - GitHub pulls list fragment: `[{ "number", "head": { "ref": "..." }, "files":
+///   [{ "filename": "..." }, ...] | ["path", ...] }, ...]`
+pub fn open_pr_facts_from_json(value: &Value) -> Result<Vec<OpenPrFact>, Finding> {
+    let arr = value.as_array().ok_or_else(|| {
+        Finding::new(
+            CODE_OPEN_PR_FACTS_MALFORMED,
+            "open_prs",
+            "open-PR file facts must be a JSON array",
+        )
+    })?;
+    let mut out = Vec::with_capacity(arr.len());
+    for (idx, entry) in arr.iter().enumerate() {
+        let number = entry
+            .get("number")
+            .and_then(Value::as_u64)
+            .ok_or_else(|| {
+                Finding::new(
+                    CODE_OPEN_PR_FACTS_MALFORMED,
+                    format!("open_prs[{idx}].number"),
+                    "each open PR fact requires a numeric `number`",
+                )
+            })?;
+        let head_ref_name = entry
+            .get("head_ref_name")
+            .and_then(Value::as_str)
+            .map(str::to_owned)
+            .or_else(|| {
+                entry
+                    .get("head")
+                    .and_then(|h| h.get("ref"))
+                    .and_then(Value::as_str)
+                    .map(str::to_owned)
+            })
+            .filter(|s| !s.trim().is_empty())
+            .ok_or_else(|| {
+                Finding::new(
+                    CODE_OPEN_PR_FACTS_MALFORMED,
+                    format!("open_prs[{idx}].head_ref_name"),
+                    "each open PR fact requires `head_ref_name` or `head.ref`",
+                )
+            })?;
+        let files_value = entry.get("files").ok_or_else(|| {
+            Finding::new(
+                CODE_OPEN_PR_FACTS_MALFORMED,
+                format!("open_prs[{idx}].files"),
+                "each open PR fact requires a `files` array",
+            )
+        })?;
+        let files_arr = files_value.as_array().ok_or_else(|| {
+            Finding::new(
+                CODE_OPEN_PR_FACTS_MALFORMED,
+                format!("open_prs[{idx}].files"),
+                "`files` must be a JSON array of paths or `{filename}` objects",
+            )
+        })?;
+        let mut files = BTreeSet::new();
+        for (fidx, f) in files_arr.iter().enumerate() {
+            let path = f
+                .as_str()
+                .map(str::trim)
+                .filter(|s| !s.is_empty())
+                .map(str::to_owned)
+                .or_else(|| {
+                    f.get("filename")
+                        .and_then(Value::as_str)
+                        .map(str::trim)
+                        .filter(|s| !s.is_empty())
+                        .map(str::to_owned)
+                });
+            match path {
+                Some(p) => {
+                    files.insert(p);
+                }
+                None => {
+                    return Err(Finding::new(
+                        CODE_OPEN_PR_FACTS_MALFORMED,
+                        format!("open_prs[{idx}].files[{fidx}]"),
+                        "file entries must be non-empty path strings or objects with `filename`",
+                    ));
+                }
+            }
+        }
+        out.push(OpenPrFact {
+            number,
+            head_ref_name,
+            files,
+        });
+    }
+    Ok(out)
+}
+
+/// Load policy + envelopes authority + open-PR facts and evaluate (pure; no I/O).
+pub fn evaluate_from_producer_docs(
+    policy_doc: &Value,
+    envelopes_doc: &Value,
+    open_prs_doc: &Value,
+) -> Report {
+    let policy = HubExclusivityPolicy::from_json(policy_doc);
+    let authority = match hubs_paths_from_envelopes(envelopes_doc) {
+        Ok(a) => a,
+        Err(finding) => {
+            let mut findings = BTreeSet::new();
+            findings.insert(finding);
+            return Report::from_findings(findings);
+        }
+    };
+    let open_prs = match open_pr_facts_from_json(open_prs_doc) {
+        Ok(p) => p,
+        Err(finding) => {
+            let mut findings = BTreeSet::new();
+            findings.insert(finding);
+            return Report::from_findings(findings);
+        }
+    };
+    evaluate(&policy, &authority, &open_prs)
 }
 
 /// Extract `#hubs.paths` from an envelopes document. Fail-closed on missing/non-array.
@@ -405,5 +537,67 @@ mod tests {
         let p = HubExclusivityPolicy::from_json(&value);
         assert_eq!(p.hubs_paths_authority, HUBS_PATHS_POINTER);
         assert!(p.sole_owner_per_wave);
+    }
+
+    #[test]
+    fn open_pr_facts_from_simplified_fixture() {
+        let doc = json!([
+            {
+                "number": 100,
+                "head_ref_name": "integ/a",
+                "files": ["Cargo.lock", "ci/x.rs"]
+            }
+        ]);
+        let facts = open_pr_facts_from_json(&doc).expect("parse");
+        assert_eq!(facts.len(), 1);
+        assert_eq!(facts[0].number, 100);
+        assert!(facts[0].files.contains("Cargo.lock"));
+    }
+
+    #[test]
+    fn open_pr_facts_from_github_shaped_fixture() {
+        let doc = json!([
+            {
+                "number": 200,
+                "head": { "ref": "integ/b" },
+                "files": [{ "filename": "docs/CHANGELOG.md" }]
+            }
+        ]);
+        let facts = open_pr_facts_from_json(&doc).expect("parse");
+        assert_eq!(facts[0].head_ref_name, "integ/b");
+        assert!(facts[0].files.contains("docs/CHANGELOG.md"));
+    }
+
+    #[test]
+    fn evaluate_from_producer_docs_multi_own_refuses() {
+        let policy = json!({
+            "gate_id": GATE_ID,
+            "hubs_paths_authority": HUBS_PATHS_POINTER,
+            "integ_head_ref_prefix": "integ/",
+            "sole_owner_per_wave": true
+        });
+        let envelopes = json!({
+            "hubs": { "paths": ["Cargo.lock", "docs/CHANGELOG.md"] }
+        });
+        let open_prs = json!([
+            {
+                "number": 1,
+                "head_ref_name": "integ/a",
+                "files": ["Cargo.lock", "a.rs"]
+            },
+            {
+                "number": 2,
+                "head_ref_name": "integ/b",
+                "files": ["Cargo.lock", "b.rs"]
+            }
+        ]);
+        let report = evaluate_from_producer_docs(&policy, &envelopes, &open_prs);
+        assert_eq!(report.verdict, Verdict::Refuse);
+        assert!(
+            report
+                .findings
+                .iter()
+                .any(|f| f.code == CODE_MULTI_OWN_HUB && f.key == "Cargo.lock")
+        );
     }
 }

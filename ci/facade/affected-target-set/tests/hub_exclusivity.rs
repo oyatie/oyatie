@@ -15,7 +15,8 @@ use std::path::PathBuf;
 
 use ci_affected_target_set::hub_exclusivity::{
     CODE_MULTI_OWN_HUB, GATE_ID, HUBS_PATHS_POINTER, HubAuthority, HubExclusivityPolicy,
-    OpenPrFact, Verdict, evaluate, hubs_paths_from_envelopes,
+    OpenPrFact, Verdict, evaluate, evaluate_from_producer_docs, hubs_paths_from_envelopes,
+    open_pr_facts_from_json,
 };
 use serde_json::Value;
 
@@ -135,4 +136,68 @@ fn live_envelopes_hubs_paths_bind_when_present() {
         "live authority with empty open set must be Green, got {:?}",
         report.findings
     );
+}
+
+#[test]
+fn producer_fixture_multi_own_refuses_via_evaluate_from_producer_docs() {
+    let root = repo_root();
+    let policy_doc: Value = serde_json::from_str(
+        &fs::read_to_string(root.join(POLICY_PATH)).expect("policy"),
+    )
+    .expect("policy json");
+    let envelopes_doc: Value = serde_json::from_str(
+        &fs::read_to_string(
+            root.join("ci/facade/affected-target-set/tests/fixtures/hub_exclusivity/envelopes-synthetic.json"),
+        )
+        .expect("synthetic envelopes"),
+    )
+    .expect("envelopes json");
+    let open_prs_doc: Value = serde_json::from_str(
+        &fs::read_to_string(
+            root.join(
+                "ci/facade/affected-target-set/tests/fixtures/hub_exclusivity/open-prs-multi-own.json",
+            ),
+        )
+        .expect("open prs fixture"),
+    )
+    .expect("open prs json");
+    let facts = open_pr_facts_from_json(&open_prs_doc).expect("facts");
+    assert_eq!(facts.len(), 2);
+    let report = evaluate_from_producer_docs(&policy_doc, &envelopes_doc, &open_prs_doc);
+    assert_eq!(report.verdict, Verdict::Refuse);
+    assert!(
+        report
+            .findings
+            .iter()
+            .any(|f| f.code == CODE_MULTI_OWN_HUB && f.key == "fixture/hub-a"),
+        "expected hub_multi_owned for fixture/hub-a, got {:?}",
+        report.findings
+    );
+}
+
+#[test]
+fn producer_fixture_sole_owner_is_green() {
+    let root = repo_root();
+    let policy_doc: Value = serde_json::from_str(
+        &fs::read_to_string(root.join(POLICY_PATH)).expect("policy"),
+    )
+    .expect("policy json");
+    let envelopes_doc: Value = serde_json::from_str(
+        &fs::read_to_string(
+            root.join("ci/facade/affected-target-set/tests/fixtures/hub_exclusivity/envelopes-synthetic.json"),
+        )
+        .expect("synthetic envelopes"),
+    )
+    .expect("envelopes json");
+    let open_prs_doc: Value = serde_json::from_str(
+        &fs::read_to_string(
+            root.join(
+                "ci/facade/affected-target-set/tests/fixtures/hub_exclusivity/open-prs-sole-owner.json",
+            ),
+        )
+        .expect("open prs fixture"),
+    )
+    .expect("open prs json");
+    let report = evaluate_from_producer_docs(&policy_doc, &envelopes_doc, &open_prs_doc);
+    assert_eq!(report.verdict, Verdict::Green, "{:?}", report.findings);
 }
