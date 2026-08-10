@@ -15,7 +15,7 @@ authority_tier: 3
 |---|---|---|
 | Repository baseline | authored against `origin/dev` @ `5e452bd70449b50cc66e63ffb9253adfcd7fc96e`; **rebased at Land onto `origin/dev` @ `1d31052774ef580553a5ff81014849bb38d6e327`** | Lane base for branch `impl/os-k8s-seam-conformance`. `git diff --stat 5e452bd70 1d3105277 -- os/` is empty — the new base touches no `os/` path — so every `os/` measurement below survives the rebase unchanged. Section 8 names the one number that did move. |
 | Upstream Kubernetes pin | `v1.36.1`, peeled commit `756939600b9a7180fc2df6550a4585b638875e67` | Read from `specs/k8s-port/upstream-pin.json` and **re-resolved against upstream**: `git ls-remote --tags https://github.com/kubernetes/kubernetes.git 'refs/tags/v1.36.1' 'refs/tags/v1.36.1^{}'` returns annotated tag object `5b824a493a7ca248b726b6ea09d53842b9b992c2` and this peeled commit, matching the pin file. |
-| Engine | `build/port-engine/*`, v0 — the path does not exist on the base tree | Not in force. Nothing in this lane emits. |
+| Engine | `build/port-engine/*`, v0 — `build/port-engine/core/port-engine-kernel` IS on the base tree (7 tracked files); it registers no producer | Not in force. A W0 skeleton with no front end, no rule data and no renderer: it emits no output and owns no path. |
 | Neutral rule pack | `specs/port-rules/**`, v0 — the path does not exist on the base tree | Not in force. No rule is authored or implied here. |
 | Corpus rule policy | `specs/k8s-port/rules/**`, v0 — unauthored | Not in force. |
 | Go front end | None. Repository measurements are `git grep` / `git ls-tree` over the base tree; the section 3.2 module column is `git ls-tree` / `git grep` over a blob-less fetch of the pin | Measurement instrument only; not an admitted extractor. No Go was parsed — only paths and top-level `type`/`const` declarations were read. |
@@ -267,8 +267,12 @@ scope and neither is a reason to move anything.
 
 ## 7. The cheapest correction available today, and what is deferred
 
-The engine is zero lines: `build/port-engine/**` and `specs/port-rules/**` do not exist on the base
-tree, and `specs/k8s-port/scope.json` reports no package enumeration has run. Creating empty
+The engine registers no producer. `build/port-engine/core/port-engine-kernel` IS on the base tree —
+7 tracked files, 924 lines — but it is an ADR-0637 D4 W0 seam skeleton that declares itself to have
+"no source-language front end (no parser, no grammar, no tree-sitter)", no rule DATA and "no corpus
+knowledge of any kind", so it emits nothing and owns no path. `specs/port-rules/**` genuinely does
+not exist, and `specs/k8s-port/scope.json` reports no package enumeration has run. Presence without
+production is why `"regions": []` is still correct. Creating empty
 `k8s/ports/upstream-*` crates now is scaffolding for an emitter that cannot run. **Do not create them.**
 
 What is worth doing while the duplication is small — each is one data file, zero crates:
@@ -280,7 +284,10 @@ What is worth doing while the duplication is small — each is one data file, ze
    at seam landing, enumerated expected-red ids) and `DVG-OS-DUPLICATE-STATIC-POD-RENDERER` (the two
    independent Pod renderers). The budget is exactly two new rows per wave; the five seeds are exempt.
    **Adding a third row in this wave is rejected by the ledger's own growth policy** — if a unit finds
-   a third divergence, it records it in the operations journal and waits for the next wave.
+   a third divergence, it records it in the operations journal and waits for the next wave. That
+   rejection has a reader: `ci-k8s-program-docs-gate` loads `baseline_seed_count` and
+   `max_new_rows_per_wave` FROM the ledger and reds `R-DOC-K8S-PORT-DIVERGENCE-GROWTH-BUDGET-EXCEEDED`
+   past their sum, so the sentence is enforced rather than asserted.
 3. The INV-3 equality-frozen ratchet, census 16.
 
 Deferred, with the reason: no seam crate, no `os → k8s` dependency (ADR-638 D6 and the closed
@@ -311,8 +318,8 @@ an arithmetic one.
 
 ```
 P='apiVersion: (v1(\\n|"|$)|[A-Za-z0-9.-]*\.k8s\.io/|(apps|batch|autoscaling|policy|extensions)/)'
-git grep -cE "$P" -- 'os/**/*.rs' | awk -F: '{s+=$2} END {print s}'    # => 16
-git grep -cE "$P" -- 'os/core/block-domain/src/controller.rs'          # => exit 1 (negative control)
+git grep -hE "$P" -- 'os/**/*.rs' | grep -cvE '^[[:space:]]*//'       # => 16
+git grep -cE "$P" -- 'os/core/block-domain/src/controller.rs'         # => exit 1 (negative control)
 ```
 
 The discriminator is the API **group shape**, never an enumeration of the groups that happened to
@@ -322,12 +329,25 @@ whose group ends in `.k8s.io` or is one of the five suffix-less upstream groups 
 `batch/v1` or `networking.k8s.io/v1` — exactly the growth this invariant exists to catch.
 
 The `git grep` line above is a **reproducer, not the definition**. It enumerates spellings, so it
-reads only an unquoted value after `apiVersion: `. The gate normalizes the value before classifying
+reads only an unquoted value after `apiVersion: `. The `grep -v` stage is not decoration: the
+gate skips any line whose first non-whitespace characters are `//`, because a comment naming an
+upstream `apiVersion` is documentation, not emission, and counting it would red the census with a
+diagnostic ("consume the seam instead of hand-writing it") that is wholly wrong for someone who
+wrote a comment. Without that stage the reproducer and the gate would disagree the first time such
+a comment lands. The gate normalizes the value before classifying
 it — a quoted key (`"apiVersion":`), a quoted value (`"apps/v1"`, `\"apps/v1\"`, `'apps/v1'`) and
 extra spaces all count, which is what stops the census being silently under-inclusive as soon as a
 site is written in any of those spellings. On this tree the two agree at 16 with zero per-line
 differences across all 373 `os/**/*.rs`, so the widening moved no number; it removed a way for a
 future site to hide. Where they can disagree, the gate is authoritative.
+
+The census has a companion red that no reproducer can express: a line whose `apiVersion` value is
+BUILT AT RUNTIME (`writeln!(out, "apiVersion: {}", group)`) emits an API group that is not in the
+source, so it is unclassifiable by any read of the file — a tokenizer does not help. Counted as
+absent, such a site is exactly how a new hand-written upstream serializer lands while this census
+stays frozen at 16 and the gate passes. The gate therefore fails closed on it
+(`R-DOC-OS-DYNAMIC-APIVERSION-UNCLASSIFIABLE`): make the value static, or consume it through the
+`k8s/ports` seam. Zero such sites exist on this tree.
 
 The negative control is the point: `os/core/block-domain/src/controller.rs` carries 16 `apiVersion:`
 lines of its own and matches none of them (trap T-1). The exclusion is structural, not incidental:
