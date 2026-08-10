@@ -377,8 +377,8 @@
   "pod_runtime_tier_surface_evidence": [
     "microservices/imaging/PRD.md",
     "microservices/imaging/ARCHITECTURE.md",
-    "microservices/imaging/manifest.json",
-    "microservices/imaging/contracts/openapi.yaml"
+    "storage/imaging/manifest.json",
+    "storage/imaging/contracts/openapi.yaml"
   ],
   "tenant_version_pinning": {
     "declared_versions": [

@@ -101,7 +101,7 @@ cost_profile:
     - PII-detector inference (pattern + lightweight NER)
 
 cedar_policy_fragments:
-  - microservices/recordings/policy/cedar/tenant-scope.cedar
+  - storage/recordings/policy/cedar/tenant-scope.cedar
 
 eval_set:
   baseline_inputs_path: microservices/recordings/capabilities/eval/t1-assist-baseline.jsonl

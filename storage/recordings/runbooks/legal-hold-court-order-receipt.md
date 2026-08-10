@@ -9,7 +9,7 @@ date: 2026-05-17
 related_artifacts:
   - microservices/recordings/PRD.md (FR-08, AC-08)
   - microservices/recordings/compliance.md (SEC 17a-4 + FINRA + HIPAA + KR 전자문서법)
-  - microservices/recordings/policy/cedar/legal-hold.cedar
+  - storage/recordings/policy/cedar/legal-hold.cedar
   - microservices/recordings/decisions/ADR-RECORDINGS-0002-retention-and-legal-hold-policy.md
   - microservices/recordings/slos/legal-hold-engagement-latency.openslo.yaml
   - microservices/recordings/slos/legal-hold-chain-of-custody-correctness.openslo.yaml

@@ -63,7 +63,7 @@ cost_profile:
     - acoustic-energy windowing on cached audio
 
 cedar_policy_fragments:
-  - microservices/recordings/policy/cedar/tenant-scope.cedar
+  - storage/recordings/policy/cedar/tenant-scope.cedar
 
 eval_set:
   baseline_inputs_path: microservices/recordings/capabilities/eval/t0-chapter-suggest-baseline.jsonl

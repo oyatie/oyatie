@@ -26,10 +26,10 @@
   ],
   "contracts": {
     "openapi": [
-      "microservices/recordings/contracts/openapi/recordings.yaml"
+      "storage/recordings/contracts/openapi/recordings.yaml"
     ],
     "asyncapi": [
-      "microservices/recordings/contracts/asyncapi/recordings-events.yaml"
+      "storage/recordings/contracts/asyncapi/recordings-events.yaml"
     ],
     "internal_grpc": {
       "transport": "http2",
@@ -43,19 +43,19 @@
     {
       "tier": "T0",
       "name": "chapter-marker-suggest",
-      "file": "microservices/recordings/capabilities/T0-suggest.yaml",
+      "file": "storage/recordings/capabilities/T0-suggest.yaml",
       "risk_class": "none"
     },
     {
       "tier": "T1",
       "name": "transcription-diarization-summary-pii-redact",
-      "file": "microservices/recordings/capabilities/T1-assist.yaml",
+      "file": "storage/recordings/capabilities/T1-assist.yaml",
       "risk_class": "minimal"
     },
     {
       "tier": "T2",
       "name": "auto-translate-and-auto-publish",
-      "file": "microservices/recordings/capabilities/T2-auto.yaml",
+      "file": "storage/recordings/capabilities/T2-auto.yaml",
       "risk_class": "limited"
     }
   ],
@@ -451,7 +451,7 @@
     "microservices/recordings/PRD.md",
     "microservices/recordings/IP-003-recording-ingest-bc.md",
     "microservices/recordings/IP-008-redaction-bc.md",
-    "microservices/recordings/runbooks/legal-hold-court-order-receipt.md"
+    "storage/recordings/runbooks/legal-hold-court-order-receipt.md"
   ],
   "tenant_version_pinning": {
     "declared_versions": [
@@ -464,10 +464,10 @@
     "deprecation_calendar": [],
     "public_surface_files": {
       "openapi": {
-        "2026-05-21": "microservices/recordings/contracts/openapi/recordings.yaml"
+        "2026-05-21": "storage/recordings/contracts/openapi/recordings.yaml"
       },
       "asyncapi": {
-        "2026-05-21": "microservices/recordings/contracts/asyncapi/recordings-events.yaml"
+        "2026-05-21": "storage/recordings/contracts/asyncapi/recordings-events.yaml"
       }
     }
   },

@@ -8,15 +8,17 @@
 
 ## Completed (this rail)
 
+- **Seat A wave-3:** remapped verified nested-face cites `microservices/{drive,recordings,imaging}/**` → `storage/{drive,recordings,imaging}/**` in nested manifests + runbooks (no invented IP/PRD homes).
+
 - Seat A interior prep: rewrite `storage/manifest.json` to capability-root shape (messaging@`2d1c81693` pattern): `capability` key, registry stratum **S2**, verified `storage/**` crate/contract/capability paths, eight-crate accounting + absorbed-service pointers.
 - Path hygiene on the **root** manifest: dropped missing `evidence/multispectrum/cs-cloud-storage-foundation-20260523.json`, comma-joined dual adapter `file` cite, and ungrounded `specs/master-plan-sequencing.json#…` SLO evidence fragment.
 - Catalog rows verified present under `registry/catalog/storage-*.yaml` (cited, not edited — outside `storage/**`).
 
 ## Stale refs found (next gaps, ordered)
 
-1. **`storage/drive/manifest.json`** — 21 missing path cites. Remap `microservices/drive/**` → `storage/drive/**` where the tree already holds the file (capabilities, contracts). IP markdown cites (`IP-001`…`IP-015`) and bare `runbooks/dr-failover.md` remain missing or need `storage/drive/runbooks/…` rebasing.
-2. **`storage/recordings/manifest.json`** — 21 missing path cites. Same class: `microservices/recordings/**` → `storage/recordings/**` for capabilities/contracts; IP markdown + bare runbook paths still drain.
-3. **`storage/imaging/manifest.json`** — 5 missing path cites (`microservices/healthcare-integration/…`, bare `contracts/*.yaml`, bare `runbooks/imaging-vna-failover.md`). Prefer `storage/imaging/**` locals already in-tree.
+1. **`storage/drive/manifest.json`** — capabilities/contracts remapped (wave-3). Residual: missing IP markdown (`IP-001`…`IP-015`) + bare `runbooks/dr-failover.md` (no invent).
+2. **`storage/recordings/manifest.json`** — capabilities/contracts + legal-hold runbook remapped (wave-3). Residual: missing IP markdown + remaining bare runbook paths.
+3. **`storage/imaging/manifest.json`** — openapi contract remapped (wave-3). Residual: `microservices/healthcare-integration/…`, PRD/ARCHITECTURE, bare runbook paths.
 4. **OpenSLO scaffolds** — 36 files under `storage/observability/slos/` exist but are **not** claimed by the capability-root `slos: []` / `slo_exemption` (no measured foundation SLI). Decide per product-face which YAML become live vs delete/retire.
 5. **Dual OpenAPI homes** — `storage/contracts/openapi/cloud/cloud-storage-*-v1.yaml` vs root `contracts/openapi/cloud/cloud-storage-*-v1.yaml` (files differ). Root copies are outside this envelope; converge or delete the non-authority copy on a contracts-aware rail.
 6. **Missing evidence blob** — `evidence/multispectrum/cs-cloud-storage-foundation-20260523.json` is absent from the tree; do not re-cite until a real evidence packet lands.

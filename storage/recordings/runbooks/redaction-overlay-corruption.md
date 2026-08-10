@@ -8,7 +8,7 @@ owner_team: ops-security + ops-compliance + axis-recordings + council-privacy
 date: 2026-05-17
 related_artifacts:
   - microservices/recordings/decisions/ADR-RECORDINGS-0003-redaction-and-pii-policy.md
-  - microservices/recordings/policy/cedar/legal-hold.cedar
+  - storage/recordings/policy/cedar/legal-hold.cedar
 doc_status: published
 ---
 

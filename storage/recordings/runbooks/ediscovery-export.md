@@ -9,7 +9,7 @@ date: 2026-05-17
 related_artifacts:
   - microservices/recordings/PRD.md (FR-10 eDiscovery)
   - microservices/recordings/compliance.md (FRCP + SEC 17a-4 + FINRA + HIPAA + KR 전자문서법)
-  - microservices/recordings/policy/cedar/legal-hold.cedar
+  - storage/recordings/policy/cedar/legal-hold.cedar
   - microservices/recordings/decisions/ADR-RECORDINGS-0002-retention-and-legal-hold-policy.md
 doc_status: published
 ---

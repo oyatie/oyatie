@@ -8,7 +8,7 @@
 ## Authority
 
 - ADR-0343 DR matrix.
-- Manifest `dr` block in `microservices/recordings/manifest.json`.
+- Manifest `dr` block in `storage/recordings/manifest.json`.
 - Compliance-pack floors in `specs/compliance-pack-floors.json`.
 
 ## Procedure

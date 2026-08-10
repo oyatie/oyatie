@@ -66,12 +66,12 @@ DOSSIER-CRATE-017: Existing crate `oya-drive-preview-adapter-libreoffice` remain
 DOSSIER-CRATE-018: Existing crate `oya-drive-preview-adapter-libvips` remains untouched by this document-stage IP.
 DOSSIER-CRATE-019: Existing crate `oya-drive-search-index-adapter-meilisearch` remains untouched by this document-stage IP.
 DOSSIER-CRATE-020: Existing crate `oya-drive-search-index-adapter-tika` remains untouched by this document-stage IP.
-DOSSIER-CONTRACT-001: OpenAPI 3.2.0: microservices/drive/contracts/openapi/drive.yaml.
-DOSSIER-CONTRACT-002: AsyncAPI 3.1.0: microservices/drive/contracts/asyncapi/drive-events.yaml.
-DOSSIER-CONTRACT-003: proto3: microservices/drive/contracts/proto/drive.proto.
-DOSSIER-CAPABILITY-001: T1 T0-suggest risk=minimal file=microservices/drive/capabilities/T0-suggest.yaml.
-DOSSIER-CAPABILITY-002: T1 T1-assist risk=minimal file=microservices/drive/capabilities/T1-assist.yaml.
-DOSSIER-CAPABILITY-003: T1 T2-auto risk=minimal file=microservices/drive/capabilities/T2-auto.yaml.
+DOSSIER-CONTRACT-001: OpenAPI 3.2.0: storage/drive/contracts/openapi/drive.yaml.
+DOSSIER-CONTRACT-002: AsyncAPI 3.1.0: storage/drive/contracts/asyncapi/drive-events.yaml.
+DOSSIER-CONTRACT-003: proto3: storage/drive/contracts/proto/drive.proto.
+DOSSIER-CAPABILITY-001: T1 T0-suggest risk=minimal file=storage/drive/capabilities/T0-suggest.yaml.
+DOSSIER-CAPABILITY-002: T1 T1-assist risk=minimal file=storage/drive/capabilities/T1-assist.yaml.
+DOSSIER-CAPABILITY-003: T1 T2-auto risk=minimal file=storage/drive/capabilities/T2-auto.yaml.
 
 ## 3. ADR-0339 Doctrine Binding
 ADR0339-001: Purpose binding: collapse 385 per-service from-scratch module directories into roughly 50 shared OpenTofu primitives plus thin wrappers.
@@ -293,9 +293,9 @@ LEADER-018: `drive` leader-scale posture keeps primitive selection explicit, rev
 
 ## 12. API And Contract Documentation Impact
 API-001: `drive` does not change REST, event, or proto payloads in this document-stage wave.
-API-002: OpenAPI 3.2.0 references for `drive` remain: OpenAPI 3.2.0: microservices/drive/contracts/openapi/drive.yaml
-API-003: AsyncAPI 3.1.0 references for `drive` remain: AsyncAPI 3.1.0: microservices/drive/contracts/asyncapi/drive-events.yaml
-API-004: proto3 references for `drive` remain: proto3: microservices/drive/contracts/proto/drive.proto
+API-002: OpenAPI 3.2.0 references for `drive` remain: OpenAPI 3.2.0: storage/drive/contracts/openapi/drive.yaml
+API-003: AsyncAPI 3.1.0 references for `drive` remain: AsyncAPI 3.1.0: storage/drive/contracts/asyncapi/drive-events.yaml
+API-004: proto3 references for `drive` remain: proto3: storage/drive/contracts/proto/drive.proto
 API-005: If a future wrapper migration exposes deployment preview APIs, the public boundary must carry ADR-0342 date-version carriers separately from module semantic versions.
 API-006: If a future wrapper migration changes async deployment events, the AsyncAPI channel must identify module context, primitive, version_pin, tenant_class_scope, and cell_id.
 API-007: If a future wrapper migration changes proto deployment receipts, proto3 reserved tags must prevent silent field reuse.
@@ -319,7 +319,7 @@ ALT-004: Delay `drive` manifest declaration until implementation; rejected becau
 ALT-005: Allow unpinned local module paths during migration; rejected because the exact path would work locally while hiding supply-chain and reproducibility risk.
 
 ## 15. Acceptance And Verification
-VERIFY-001: Static read confirms this file exists at `microservices/drive/IPs/IP-ADR-0339-Shared-IaC-Modules.md`.
+VERIFY-001: Static read confirms this file exists at `storage/drive/IPs/IP-ADR-0339-Shared-IaC-Modules.md`.
 VERIFY-002: Static read confirms ADR-0339 is cited by exact ID.
 VERIFY-003: Static read confirms ADR-0322 is cited by exact ID.
 VERIFY-004: Static read confirms ADR-0181 is cited by exact ID.
