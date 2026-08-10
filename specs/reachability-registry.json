@@ -6,10 +6,6 @@
       "prefix": ".claude/BUCK"
     },
     {
-      "anchor": "ADR-0515 + ADR-0701 governance pipeline: reviewed agent-lane deliver/restack/preflight harness under .claude/workflows/ (local bridge feedback only; merge authority remains oya-ci-required).",
-      "prefix": ".claude/workflows/"
-    },
-    {
       "anchor": "ADR-0600: Buck package marker for the reviewed .codex/hooks.json enforcement-liveness corpus target.",
       "prefix": ".codex/BUCK"
     },
@@ -140,6 +136,10 @@
     {
       "anchor": "ADR-0565 zero-GraphQL owned API surface: the oya-analytics-api catalog record, the second of the two files ADR-0565 names verbatim (with contracts.json) as where the analytics API surface is registered - cited at the pre-move path oya/analytics/catalog/oya-analytics-api.json. The ADR-0562 capability move to data/analytics/ relocated it and the citation stayed at the old path. EXACT path, not a tree: data/analytics/catalog/ holds sixteen further records with unrelated reasons that this registration deliberately does not claim.",
       "prefix": "data/analytics/catalog/oya-analytics-api.json"
+    },
+    {
+      "anchor": "Founder ruling oyatie-0s8 / ADR-0562: capability-root service manifest for data/. Exact path registration (not a tree): data/ holds unrelated crate and service subtrees that carry their own reachability. Absorbed via integ/data.",
+      "prefix": "data/manifest.json"
     },
     {
       "anchor": "ADR-0139 + DATA-005/G003: contract-only data-substrate OpenSLO skeleton home; static evidence-required SLO manifest for future operator reconciliation measurement, no measured-window claim.",
