@@ -1,0 +1,54 @@
+# Canonical-base: specs/openslo/canonical-envelope-schema.json + canonical-burn-rate-alert-template.openslo.yaml (SWEEP-I Slice 4 per ADR-0064)
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: notes-e2e-privacy-correctness
+  displayName: "notes: E2E privacy correctness = 100% (zero AI leakage on E2E)"
+  labels:
+    microservice: notes
+    bc: ai-assist
+    sli_class: correctness
+    owner_team: council-privacy + axis-notes
+    severity: load-bearing-invariant
+spec:
+  description: |
+    Correctness SLO for the E2E privacy invariant per ADR-NOTES-0005.
+    The single metric `oya_notes_ai_call_blocked_e2e_total` MUST stay at zero.
+    Any non-zero value over any window indicates either a successful refusal
+    (good — the invariant worked) OR an actual breach in flight (bad).
+    Per the type-system + Cedar + CI-lane defence in depth, a non-zero
+    `oya_notes_ai_call_blocked_e2e_total` IS the refusal counter
+    (i.e., something attempted an AI call on a Personal note, and we caught it).
+    The SLO is then framed as:
+      good = 1 - (refused / total_ai_call_attempts).
+    Refusals reflect successful invariant enforcement, but persistent refusals
+    indicate caller bugs that need fix-forward; persistent zero with also-zero
+    total_ai_call_attempts is benign.
+  service: notes
+  indicator:
+    metadata:
+      name: notes-e2e-privacy-correctness
+    spec:
+      ratioMetric:
+        counter: true
+        good:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: |
+                sum(rate(oya_notes_ai_assist_call_total{result="success",context_kind="Professional"}[5m]))
+        total:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: |
+                sum(rate(oya_notes_ai_assist_call_total[5m]))
+                +
+                sum(rate(oya_notes_ai_call_blocked_e2e_total[5m]))
+  timeWindow:
+    - duration: 30d
+      isRolling: true
+  budgetingMethod: Occurrences
+  objectives:
+    - target: 1.0
+      displayName: "100 % of AI calls on E2E content blocked over 30d"

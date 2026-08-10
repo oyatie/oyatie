@@ -1,0 +1,41 @@
+# Canonical-base: specs/openslo/canonical-envelope-schema.json + canonical-burn-rate-alert-template.openslo.yaml (SWEEP-I Slice 4 per ADR-0064)
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: notes-tag-search-latency
+  displayName: "notes: tag-search p95 ≤ 100ms"
+  labels:
+    microservice: notes
+    bc: tag-graph
+    sli_class: latency
+    owner_team: axis-notes
+spec:
+  description: |
+    Latency SLO for tag-search (Professional-tier server-side).
+    Personal-tier tag-search is client-side; this SLO covers server-side only.
+  service: notes
+  indicator:
+    metadata:
+      name: notes-tag-search-latency
+    spec:
+      ratioMetric:
+        counter: true
+        good:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: |
+                sum(rate(oya_notes_tag_search_duration_seconds_bucket{le="0.1"}[5m]))
+        total:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: |
+                sum(rate(oya_notes_tag_search_duration_seconds_count[5m]))
+  timeWindow:
+    - duration: 30d
+      isRolling: true
+  budgetingMethod: Occurrences
+  objectives:
+    - target: 0.95
+      displayName: "p95 ≤ 100ms for 95 % of 5min windows over 30d"

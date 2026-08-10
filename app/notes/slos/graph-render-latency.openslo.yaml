@@ -1,0 +1,42 @@
+# Canonical-base: specs/openslo/canonical-envelope-schema.json + canonical-burn-rate-alert-template.openslo.yaml (SWEEP-I Slice 4 per ADR-0064)
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: notes-graph-render-latency
+  displayName: "notes: graph-render p95 ≤ 1s for 5k-note vault"
+  labels:
+    microservice: notes
+    bc: graph-view-data
+    sli_class: latency
+    owner_team: axis-notes
+spec:
+  description: |
+    Latency SLO for graph-view server-side snapshot assembly + client-side
+    force-directed render (combined; client-reported via beacon).
+    Vault size bucketed; SLO target for 5k-node vault size class.
+  service: notes
+  indicator:
+    metadata:
+      name: notes-graph-render-latency
+    spec:
+      ratioMetric:
+        counter: true
+        good:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: |
+                sum(rate(oya_notes_graph_render_duration_seconds_bucket{vault_size_class="5k",le="1.0"}[5m]))
+        total:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: |
+                sum(rate(oya_notes_graph_render_duration_seconds_count{vault_size_class="5k"}[5m]))
+  timeWindow:
+    - duration: 30d
+      isRolling: true
+  budgetingMethod: Occurrences
+  objectives:
+    - target: 0.95
+      displayName: "p95 ≤ 1s for 95 % of 5min windows over 30d on 5k-node vaults"
