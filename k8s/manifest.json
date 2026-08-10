@@ -15,7 +15,7 @@
   "bounded_contexts": [
     {
       "name": "cloud-compute",
-      "description": "Code-backed Cloud Compute local foundation for provider-neutral VM, managed Kubernetes, and function metadata invariants plus tenant/cell workload identity, runtime isolation, scheduling, and audit-evidence guardrail. Capability-colocated docs/contracts live under k8s/ (formerly microservices/cloud-k8s); CS-CLOUD-COMPUTE-001 does not implement live Kubernetes bootstrap, EKS, OKE, EC2, OCI Compute, Lambda, service mesh, CNI, REST server, SDK, worker, OpenTofu plan/apply, measured SLO, active-active DR, provider-live smoke, or audit-chain persistence.",
+      "description": "Code-backed Cloud Compute local foundation for provider-neutral VM, managed Kubernetes, and function metadata invariants plus tenant/cell workload identity, runtime isolation, scheduling, and audit-evidence guardrail. Capability-colocated docs/contracts live under k8s/ (formerly k8s); CS-CLOUD-COMPUTE-001 does not implement live Kubernetes bootstrap, EKS, OKE, EC2, OCI Compute, Lambda, service mesh, CNI, REST server, SDK, worker, OpenTofu plan/apply, measured SLO, active-active DR, provider-live smoke, or audit-chain persistence.",
       "crates": [
         "oya-cloud-compute-domain",
         "oya-cloud-compute-functions-api",
