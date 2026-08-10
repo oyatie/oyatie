@@ -1,9 +1,12 @@
 #!/usr/bin/env bash
 # claim-push.sh — blessed integrator push of HEAD → integ/<root> with lease.
 #
-# Usage: claim-push.sh <root> [remote]
+# Usage: claim-push.sh [--check] <root> [remote]
 # Example: claim-push.sh os
+#          claim-push.sh --check specs
 #          claim-push.sh ci origin
+#
+# --check: run envelope + merge-tree preflight only; do not push (claim-mechanical).
 #
 # Calls real git (never the lane shim). Sets SWARM_BLESSED_PUSH=1 in case PATH
 # still has the shim ahead of GIT_REAL resolution for nested helpers.
@@ -13,7 +16,13 @@
 # (fix-1644-review / deliver merge-tree).
 set -euo pipefail
 
-ROOT="${1:?usage: claim-push.sh <integ-root> [remote]}"
+CHECK_ONLY=0
+if [[ "${1:-}" == "--check" ]]; then
+  CHECK_ONLY=1
+  shift
+fi
+
+ROOT="${1:?usage: claim-push.sh [--check] <integ-root> [remote]}"
 REMOTE="${2:-origin}"
 BRANCH="integ/${ROOT}"
 
@@ -72,6 +81,11 @@ print(f"claim-push: envelope root/plane ok for {branch}")
 PY
 then
   exit 1
+fi
+
+if (( CHECK_ONLY == 1 )); then
+  echo "claim-push: --check OK — envelope + merge-tree clean for ${BRANCH} (no push)"
+  exit 0
 fi
 
 echo "claim-push: pushing HEAD → ${REMOTE}/${BRANCH} (--force-with-lease)"
