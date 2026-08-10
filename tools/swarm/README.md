@@ -3,9 +3,9 @@
 Mechanical allowlists for worker lanes under the Swarm Delivery Law (root
 `integ/<root>` branches, worktree-per-agent, no slow commands in lanes).
 
-Doctrine (hyperscaler monorepo patterns + anti-patterns): ADR-0711 D-9 and
+Doctrine: ADR-0711 D-9 and
 `.grok/programs/delivery-fabric/evidence/PORTABLE-SWARM-CONTRACT.md`
-(section *Hyperscaler monorepo patterns*) — prefer the doctrine worktree for prose.
+(*Hyperscaler monorepo patterns*) — prefer the doctrine worktree for prose.
 
 ## Layout
 
@@ -72,8 +72,8 @@ become a bead. With `SWARM_BEADS_ESCALATE=1`, the daemon records fingerprints in
 ```bash
 bd create \
   --title "check-daemon: <crate> <file> persists" \
-  --tags "swarm,check-daemon,root:<root>" \
-  --body "fingerprint=<fp>; see .check/errors.json and err.txt"
+  --labels "swarm,check-daemon,root:<root>" \
+  --description "fingerprint=<fp>; see .check/errors.json and err.txt"
 ```
 
 The daemon does **not** invoke `bd` automatically in this phase.

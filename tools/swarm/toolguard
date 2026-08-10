@@ -26,24 +26,22 @@ if [[ "$name" != "cargo" && "$name" != "buck2" ]]; then
 fi
 
 if [[ "${SWARM_ORCHESTRATOR:-}" == "1" ]]; then
-  # Drop shim-bin from PATH so command -v finds the real binary.
+  # Drop this invocation's shim-bin from PATH so command -v finds the real binary.
   inv_dir="$(cd "$(dirname -- "$0")" && pwd)"
-  path_scrub=""
   if [[ "$(basename -- "$inv_dir")" == "shim-bin" ]]; then
     path_scrub="$inv_dir"
   elif [[ -d "${inv_dir}/shim-bin" ]]; then
     path_scrub="${inv_dir}/shim-bin"
+  else
+    path_scrub=""
   fi
-  cleaned=()
-  IFS=':' read -r -a path_parts <<< "${PATH:-}"
-  for p in "${path_parts[@]}"; do
-    [[ -n "$p" ]] || continue
-    if [[ -n "$path_scrub" && "$p" == "$path_scrub" ]]; then
-      continue
-    fi
-    cleaned+=("$p")
-  done
-  export PATH="$(IFS=':'; echo "${cleaned[*]}")"
+  if [[ -n "$path_scrub" ]]; then
+    # Exact PATH-segment remove (leading/trailing/middle).
+    _p=":${PATH-}:"
+    _p="${_p//:${path_scrub}:/:}"
+    _p="${_p#:}"
+    export PATH="${_p%:}"
+  fi
   real="$(command -v "$name" || true)"
   if [[ -z "${real:-}" ]]; then
     echo "toolguard: SWARM_ORCHESTRATOR=1 but cannot find real '$name' on PATH" >&2
