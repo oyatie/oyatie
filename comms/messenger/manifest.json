@@ -36,10 +36,10 @@
   ],
   "contracts": {
     "openapi": [
-      "microservices/messenger/contracts/openapi/messenger.yaml"
+      "comms/messenger/contracts/openapi/messenger.yaml"
     ],
     "asyncapi": [
-      "microservices/messenger/contracts/asyncapi/messenger-events.yaml"
+      "comms/messenger/contracts/asyncapi/messenger-events.yaml"
     ],
     "internal_grpc": {
       "transport": "http2",
@@ -53,19 +53,19 @@
     {
       "tier": "T0",
       "name": "smart-reply-suggest",
-      "file": "microservices/messenger/capabilities/T0-suggest.yaml",
+      "file": "comms/messenger/capabilities/T0-suggest.yaml",
       "risk_class": "none"
     },
     {
       "tier": "T1",
       "name": "thread-summary-and-action-item-extract",
-      "file": "microservices/messenger/capabilities/T1-assist.yaml",
+      "file": "comms/messenger/capabilities/T1-assist.yaml",
       "risk_class": "minimal"
     },
     {
       "tier": "T2",
       "name": "auto-mute-categorize-translate",
-      "file": "microservices/messenger/capabilities/T2-auto.yaml",
+      "file": "comms/messenger/capabilities/T2-auto.yaml",
       "risk_class": "limited"
     }
   ],
@@ -140,7 +140,7 @@
     },
     {
       "id": "IP-002-cargo-workspace-bootstrap",
-      "title": "IP-002: Cargo workspace bootstrap (per-µservice flat layout)",
+      "title": "IP-002: Cargo workspace bootstrap (per-\u00b5service flat layout)",
       "acceptance_status": "ga",
       "file": "microservices/messenger/IP-002-cargo-workspace-bootstrap.md"
     },
@@ -212,7 +212,7 @@
     },
     {
       "id": "IP-014-huddles-livekit-signaling",
-      "title": "IP-014: huddles BC — LiveKit signaling + WebRTC media (voice/video/screen-share)",
+      "title": "IP-014: huddles BC \u2014 LiveKit signaling + WebRTC media (voice/video/screen-share)",
       "acceptance_status": "ga",
       "file": "microservices/messenger/IP-014-huddles-livekit-signaling.md"
     },
@@ -224,7 +224,7 @@
     },
     {
       "id": "IP-NEW-hyperscaler-metric-emission",
-      "title": "IP-NEW: messenger µservice — wire HyperscalerMetrics trait at every canonical emission site",
+      "title": "IP-NEW: messenger \u00b5service \u2014 wire HyperscalerMetrics trait at every canonical emission site",
       "acceptance_status": "ga",
       "file": "microservices/messenger/IP-NEW-hyperscaler-metric-emission.md"
     }
@@ -309,10 +309,10 @@
     }
   ],
   "hyperscaler_inv_coverage": {
-    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
-    "tenant_rate_limit": "INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
-    "primary_sre_signals": "INV-FOUR-PRIMARY-SRE-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
-    "error_budget_burn": "INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
+    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
+    "tenant_rate_limit": "INV-SHUFFLE-SHARDING \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
+    "primary_sre_signals": "INV-FOUR-PRIMARY-SRE-SIGNALS \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
+    "error_budget_burn": "INV-SLO-ERROR-BUDGET \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
   },
   "audit_chain": {
     "enabled": true,
@@ -388,7 +388,7 @@
     "NIS2",
     "cn-pipl-2021"
   ],
-  "hyperscaler_benchmark": "circuit_breaker: INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaCapabilityCircuitOpen; tenant_rate_limit: INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaTenantRateLimit429Surge; primary_sre_signals: INV-FOUR-PRIMARY-SRE-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaSaturationCpuOver70pct; error_budget_burn: INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaErrorBudgetFastBurn1h14x; 1: AWS IAM service-linked roles is the reference pattern for the control shape described here; 2: Google Cloud service agents is the second reference pattern used to avoid a single-vendor cargo-cult design",
+  "hyperscaler_benchmark": "circuit_breaker: INV-CIRCUIT-BREAKER-BULKHEAD \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaCapabilityCircuitOpen; tenant_rate_limit: INV-SHUFFLE-SHARDING \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaTenantRateLimit429Surge; primary_sre_signals: INV-FOUR-PRIMARY-SRE-SIGNALS \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaSaturationCpuOver70pct; error_budget_burn: INV-SLO-ERROR-BUDGET \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yamlOyaErrorBudgetFastBurn1h14x; 1: AWS IAM service-linked roles is the reference pattern for the control shape described here; 2: Google Cloud service agents is the second reference pattern used to avoid a single-vendor cargo-cult design",
   "owner_team": "axis-messenger",
   "tenant_class_eligibility": [
     "demo_trial",
@@ -412,7 +412,7 @@
         "principal.cap_breached",
         "principal.demo_trial_expires_at"
       ],
-      "cedar_fragment": "microservices/messenger/policy/tenant-class.cedar",
+      "cedar_fragment": "comms/messenger/policy/tenant-class.cedar",
       "request_path": "gateway-bound interceptor passes cloud-iam claims to Cedar; messenger does not resolve tenant_class per request"
     },
     "demo_trial_caps": {
@@ -586,7 +586,7 @@
     "microservices/messenger/PRD.md",
     "microservices/messenger/IP-007-presence-bc.md",
     "microservices/messenger/IP-014-huddles-livekit-signaling.md",
-    "microservices/messenger/runbooks/e2e-encryption-key-rotation.md"
+    "comms/messenger/runbooks/e2e-encryption-key-rotation.md"
   ],
   "tenant_version_pinning": {
     "declared_versions": [
@@ -599,10 +599,10 @@
     "deprecation_calendar": [],
     "public_surface_files": {
       "openapi": {
-        "2026-05-21": "microservices/messenger/contracts/openapi/messenger.yaml"
+        "2026-05-21": "comms/messenger/contracts/openapi/messenger.yaml"
       },
       "asyncapi": {
-        "2026-05-21": "microservices/messenger/contracts/asyncapi/messenger-events.yaml"
+        "2026-05-21": "comms/messenger/contracts/asyncapi/messenger-events.yaml"
       }
     }
   },

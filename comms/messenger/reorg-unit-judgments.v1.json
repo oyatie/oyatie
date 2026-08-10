@@ -1,0 +1,96 @@
+{
+  "schema_version": "reorg-unit-judgments.v1",
+  "authority": "docs/decisions/ADR-0711-swarm-delivery-law-integ-branch-topology.md#Amendment-B",
+  "owning_integ": "integ/comms",
+  "ssot_todo": "capability-interior-prep",
+  "tip_basis": "origin/integ/comms @ a3efb857c (post mail OpenSLO runbook; no restack this wave)",
+  "wave": "wave-2",
+  "units": [
+    {
+      "path": "comms/messenger/",
+      "name_now": "comms/messenger/",
+      "name_forever": "comms/messenger/",
+      "kind": "absorbed-service",
+      "grammar_compliant": true,
+      "action": "keep_forever",
+      "destination": "comms/messenger/",
+      "shape": "messenger absorbed service under registered comms capability; contracts/capabilities/policy/runbooks/OpenSLO colocated",
+      "rationale": "Wave-2 Seat A prep (match #1651 asyncapi+schema+$id+fixture_path style): retarget OpenAPI/AsyncAPI contract paths, capability YAML, catalog contracts_exposed/consumed, tenant-class cedar fragment, public_surface_files, and verified runbook evidence off microservices/messenger/ to in-tree comms/messenger/** destinations that already exist. Prior tip already cleared messenger OpenSLO demo_trial_caps_ref/paid_compliance_gate_ref (10 files) and mail OpenSLO runbook. Manifest slos[] already cite forever paths under comms/observability/slos/messenger/ (10/10).",
+      "redesign": "none — pointer hygiene only; do not invent missing IP/PRD/observability homes",
+      "judgment_status": "prep",
+      "disposition": "keep-as-is",
+      "destination_integ": "integ/comms",
+      "lenses_applied": "scoped",
+      "challenges": [
+        "chestertons_fence: microservices/messenger/* cites were strangler continuity after ADR-0562 rehome — rewrite only when the forever file exists",
+        "cartesian_doubt: tip has NO microservices/messenger tree; openapi+asyncapi+capabilities+tenant-class.cedar+e2e runbook already under comms/messenger/",
+        "essentialism_yagni: do not author IP-001..015 or PRD.md just to silence deferred cites",
+        "zero_trust: foreign microservices/observability hyperscaler prometheusrule anchors stay deferred (outside comms/** envelope; no invent)",
+        "systems_thinking: envelope comms/** only; no hubs/reachability/Cargo.lock/land"
+      ],
+      "evidence": [
+        "comms/messenger/contracts/openapi/messenger.yaml present",
+        "comms/messenger/contracts/asyncapi/messenger-events.yaml present",
+        "comms/messenger/capabilities/{T0-suggest,T1-assist,T2-auto}.yaml present",
+        "comms/messenger/policy/tenant-class.cedar present",
+        "comms/observability/slos/messenger/*.openslo.yaml present (prior wave cleared microservices cites)",
+        "test ! -d microservices/messenger"
+      ],
+      "filled_this_wave": [
+        "manifest.contracts.openapi → comms/messenger/contracts/openapi/messenger.yaml",
+        "manifest.contracts.asyncapi → comms/messenger/contracts/asyncapi/messenger-events.yaml",
+        "manifest.capabilities[T0|T1|T2].file → comms/messenger/capabilities/*.yaml",
+        "manifest.tenant_class_adoption.principal_claim_binding.cedar_fragment → comms/messenger/policy/tenant-class.cedar",
+        "manifest.tenant_version_pinning.public_surface_files.{openapi,asyncapi} → forever contracts",
+        "manifest.pod_runtime_tier_surface_evidence e2e-encryption runbook → comms/messenger/runbooks/e2e-encryption-key-rotation.md",
+        "catalog oya-messenger-{app,message-stream-rest,channel-store-rest,presence-adapter-websocket} contract paths",
+        "contracts/openapi/messenger.yaml policy/*.cedar prose cite"
+      ],
+      "dest_deferred": [
+        {
+          "refs": "manifest.ips IP-001..IP-015 + IP-NEW (16 files)",
+          "reason": "no matching Markdown under comms/messenger/ (only IPs/IP-ADR-0339*, IPs/IP-WAVE-15-ZD*, IP-journey-j49* exist) — do not invent"
+        },
+        {
+          "refs": "manifest.pod_runtime_tier_surface_evidence PRD.md + IP-007 + IP-014",
+          "reason": "PRD.md / IP-007-presence-bc.md / IP-014-huddles-livekit-signaling.md absent under comms/messenger/"
+        },
+        {
+          "refs": "manifest hyperscaler_benchmark + resilience INV-* → microservices/observability/...prometheusrule.yaml",
+          "reason": "foreign observability capability; outside Seat A comms/** envelope; no invent of legal home"
+        },
+        {
+          "refs": "messenger runbooks/*.md corpus cites (failure-modes.md, capacity-model.md, threat-model.md, compliance.md, multi-region.md, …)",
+          "reason": "destination docs absent under comms/messenger/; left for later interior wave — not this contract slice"
+        }
+      ],
+      "openslo_ref_status": {
+        "manifest_slos_file_paths": "10/10 forever under comms/observability/slos/messenger/",
+        "openslo_annotation_refs_prior_tip": "demo_trial_caps_ref + paid_compliance_gate_ref filled @ 2c3496fd7",
+        "composition_and_autosharding": "files exist under comms/observability/slos/messenger/; not listed in manifest.slos[] historically — no invent of new manifest rows this wave",
+        "template_style_openslo_ref_field": "N/A — messenger has no workflow-studio index openslo_ref entries; contract/SLO path fields are the peer surface"
+      },
+      "land_when": "after judgment_status=done + oya-ci-required green (parked tip OK)"
+    },
+    {
+      "path": "comms/messenger/reorg-unit-judgments.v1.json",
+      "name_now": "comms/messenger/reorg-unit-judgments.v1.json",
+      "name_forever": "comms/messenger/reorg-unit-judgments.v1.json",
+      "kind": "judgment-surface",
+      "grammar_compliant": true,
+      "action": "keep_forever",
+      "destination": "comms/messenger/reorg-unit-judgments.v1.json",
+      "shape": "volatile per-unit Amendment B judgments colocated with keep_forever messenger service",
+      "rationale": "In-root judgment/prep note for Wave-2 contract+OpenSLO pointer hygiene; status remains prep until deferred IP/PRD/runbook corpus and foreign observability cites are resolved or explicitly waived.",
+      "redesign": "none",
+      "judgment_status": "prep",
+      "disposition": "keep-as-is",
+      "destination_integ": "integ/comms",
+      "lenses_applied": "inherit-root",
+      "challenges": [
+        "Do not flip judgment_status to done while 16 IP files + PRD + foreign observability cites remain dest-deferred."
+      ],
+      "land_when": "this PR (prep note)"
+    }
+  ]
+}
