@@ -39,7 +39,7 @@ tenant provisioning, dual-tenant boundary, child tenant hierarchy, data residenc
 This is a single-PR-sized plan. It does not edit ADRs, standards, existing PRDs, or ARCHITECTURE.md. It adds or changes only the service implementation, tests, contracts, and generated evidence needed for this journey slice.
 
 ## ChangeSet Boundary
-- Service root: `microservices/tenancy/`.
+- Service root: `tenancy/`.
 - Journey contract: `docs/user-journeys/j54-quote-to-contract-to-payment-saas/`.
 - Layout rule: flat per-µservice file placement per ADR-0131.
 - Layer vocabulary: ADR-0105 13-layer; no adapter/framework code in kernel/domain.

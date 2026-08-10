@@ -21,7 +21,7 @@ related_adrs:
 
 ## Scope
 
-tenancy owns tenant scope, pack activation state, and audience-type boundaries for j95-iso-27001-soc-2-annual-audit. The slice is a flat per-microservice implementation plan under microservices/tenancy/, matching ADR-0131.
+tenancy owns tenant scope, pack activation state, and audience-type boundaries for j95-iso-27001-soc-2-annual-audit. The slice is a flat per-microservice implementation plan under tenancy/, matching ADR-0131.
 The service participates in ISO-27001 + ISO-22301 + SOC-2-T2; exact article anchors are inherited from the journey and repeated below for implementer cold-start buildability.
 
 ## Exact regulatory anchors

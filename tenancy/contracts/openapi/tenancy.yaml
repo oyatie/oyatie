@@ -6,7 +6,7 @@ info:
   description: |
     Tenant-operator-facing and platform-operator-facing REST surface for the tenancy
     substrate. All endpoints require OIDC + Cedar policy authorization
-    (per `microservices/tenancy/policy/*.cedar`) and most are tenant-scoped via
+    (per `tenancy/policy/*.cedar`) and most are tenant-scoped via
     the JWT `tenant_id` claim.
 
     Cross-cutting authentication: OIDC bearer in `Authorization: Bearer <jwt>`.

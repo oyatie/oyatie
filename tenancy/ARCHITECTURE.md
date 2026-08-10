@@ -51,7 +51,7 @@ issued as `tenant.<id>.admin`, `tenant.<id>.member`, `tenant.<id>.kyb-officer`.
 - API surfaces: `tenancy/contracts/asyncapi/tenant-events.yaml`, `tenancy/contracts/openapi/tenancy.yaml`, `tenancy/contracts/proto/tenancy.proto`.
 - Cedar/policy surfaces: `tenancy/policy/abuse-defence.cedar`, `tenancy/policy/action-authorization.cedar`, `tenancy/policy/auditor-scope.cedar`, `tenancy/policy/ci-scope.cedar`, `tenancy/policy/data-residency.cedar`; +5 more.
 - State/event surfaces: `tenancy.tenancy`.
-- SLO/dashboard evidence: `microservices/tenancy/slos/availability.openslo.yaml`, `microservices/tenancy/slos/correctness.openslo.yaml`, `microservices/tenancy/slos/freshness.openslo.yaml`, `microservices/tenancy/slos/latency.openslo.yaml`, `tenancy/dashboards/cell-utilization.json`; +5 more.
+- SLO/dashboard evidence: `tenancy/observability/slos/availability.openslo.yaml`, `tenancy/observability/slos/correctness.openslo.yaml`, `tenancy/observability/slos/freshness.openslo.yaml`, `tenancy/observability/slos/latency.openslo.yaml`, `tenancy/dashboards/cell-utilization.json`; +5 more.
 - Runbook/IaC evidence: `tenancy/runbooks/citus-rebalance.md`, `tenancy/runbooks/dr-pair-promotion-drill.md`, `tenancy/runbooks/jwt-key-rotation.md`, `tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `tenancy/runbooks/rls-drift-recovery.md`; +11 more.
 - Compliance packs: `kr`, `eu`, `us`, `us-healthcare`, `jp`; +3 more; data classes: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 - Cross-service dependencies: `tenancy`, `identity`, `policy-engine`, `observability`, `audit-chain`; +2 more.
@@ -107,7 +107,7 @@ unchanged.
 - API surfaces: `tenancy/contracts/asyncapi/tenant-events.yaml`, `tenancy/contracts/openapi/tenancy.yaml`, `tenancy/contracts/proto/tenancy.proto`.
 - Cedar/policy surfaces: `tenancy/policy/abuse-defence.cedar`, `tenancy/policy/action-authorization.cedar`, `tenancy/policy/auditor-scope.cedar`, `tenancy/policy/ci-scope.cedar`, `tenancy/policy/data-residency.cedar`; +5 more.
 - State/event surfaces: `tenancy.tenancy`.
-- SLO/dashboard evidence: `microservices/tenancy/slos/availability.openslo.yaml`, `microservices/tenancy/slos/correctness.openslo.yaml`, `microservices/tenancy/slos/freshness.openslo.yaml`, `microservices/tenancy/slos/latency.openslo.yaml`, `tenancy/dashboards/cell-utilization.json`; +5 more.
+- SLO/dashboard evidence: `tenancy/observability/slos/availability.openslo.yaml`, `tenancy/observability/slos/correctness.openslo.yaml`, `tenancy/observability/slos/freshness.openslo.yaml`, `tenancy/observability/slos/latency.openslo.yaml`, `tenancy/dashboards/cell-utilization.json`; +5 more.
 - Runbook/IaC evidence: `tenancy/runbooks/citus-rebalance.md`, `tenancy/runbooks/dr-pair-promotion-drill.md`, `tenancy/runbooks/jwt-key-rotation.md`, `tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `tenancy/runbooks/rls-drift-recovery.md`; +11 more.
 - Compliance packs: `kr`, `eu`, `us`, `us-healthcare`, `jp`; +3 more; data classes: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 - Cross-service dependencies: `tenancy`, `identity`, `policy-engine`, `observability`, `audit-chain`; +2 more.
@@ -161,7 +161,7 @@ ADR-0296.
 - API surfaces: `tenancy/contracts/asyncapi/tenant-events.yaml`, `tenancy/contracts/openapi/tenancy.yaml`, `tenancy/contracts/proto/tenancy.proto`.
 - Cedar/policy surfaces: `tenancy/policy/abuse-defence.cedar`, `tenancy/policy/action-authorization.cedar`, `tenancy/policy/auditor-scope.cedar`, `tenancy/policy/ci-scope.cedar`, `tenancy/policy/data-residency.cedar`; +5 more.
 - State/event surfaces: `tenancy.tenancy`.
-- SLO/dashboard evidence: `microservices/tenancy/slos/availability.openslo.yaml`, `microservices/tenancy/slos/correctness.openslo.yaml`, `microservices/tenancy/slos/freshness.openslo.yaml`, `microservices/tenancy/slos/latency.openslo.yaml`, `tenancy/dashboards/cell-utilization.json`; +5 more.
+- SLO/dashboard evidence: `tenancy/observability/slos/availability.openslo.yaml`, `tenancy/observability/slos/correctness.openslo.yaml`, `tenancy/observability/slos/freshness.openslo.yaml`, `tenancy/observability/slos/latency.openslo.yaml`, `tenancy/dashboards/cell-utilization.json`; +5 more.
 - Runbook/IaC evidence: `tenancy/runbooks/citus-rebalance.md`, `tenancy/runbooks/dr-pair-promotion-drill.md`, `tenancy/runbooks/jwt-key-rotation.md`, `tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `tenancy/runbooks/rls-drift-recovery.md`; +11 more.
 - Compliance packs: `kr`, `eu`, `us`, `us-healthcare`, `jp`; +3 more; data classes: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 - Cross-service dependencies: `tenancy`, `identity`, `policy-engine`, `observability`, `audit-chain`; +2 more.
@@ -284,7 +284,7 @@ deps: `policy-engine`, `cloud-secrets`, `observability`, `audit-chain`, `cloud-i
 - API surfaces: `tenancy/contracts/asyncapi/tenant-events.yaml`, `tenancy/contracts/openapi/tenancy.yaml`, `tenancy/contracts/proto/tenancy.proto`.
 - Cedar/policy surfaces: `tenancy/policy/abuse-defence.cedar`, `tenancy/policy/action-authorization.cedar`, `tenancy/policy/auditor-scope.cedar`, `tenancy/policy/ci-scope.cedar`, `tenancy/policy/data-residency.cedar`; +5 more.
 - State/event surfaces: `tenancy.tenancy`.
-- SLO/dashboard evidence: `microservices/tenancy/slos/availability.openslo.yaml`, `microservices/tenancy/slos/correctness.openslo.yaml`, `microservices/tenancy/slos/freshness.openslo.yaml`, `microservices/tenancy/slos/latency.openslo.yaml`, `tenancy/dashboards/cell-utilization.json`; +5 more.
+- SLO/dashboard evidence: `tenancy/observability/slos/availability.openslo.yaml`, `tenancy/observability/slos/correctness.openslo.yaml`, `tenancy/observability/slos/freshness.openslo.yaml`, `tenancy/observability/slos/latency.openslo.yaml`, `tenancy/dashboards/cell-utilization.json`; +5 more.
 - Runbook/IaC evidence: `tenancy/runbooks/citus-rebalance.md`, `tenancy/runbooks/dr-pair-promotion-drill.md`, `tenancy/runbooks/jwt-key-rotation.md`, `tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `tenancy/runbooks/rls-drift-recovery.md`; +11 more.
 - Compliance packs: `kr`, `eu`, `us`, `us-healthcare`, `jp`; +3 more; data classes: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 - Cross-service dependencies: `tenancy`, `identity`, `policy-engine`, `observability`, `audit-chain`; +2 more.
@@ -339,7 +339,7 @@ ADR-0294. Tenant create/suspend/delete operations gated.
 - API surfaces: `tenancy/contracts/asyncapi/tenant-events.yaml`, `tenancy/contracts/openapi/tenancy.yaml`, `tenancy/contracts/proto/tenancy.proto`.
 - Cedar/policy surfaces: `tenancy/policy/abuse-defence.cedar`, `tenancy/policy/action-authorization.cedar`, `tenancy/policy/auditor-scope.cedar`, `tenancy/policy/ci-scope.cedar`, `tenancy/policy/data-residency.cedar`; +5 more.
 - State/event surfaces: `tenancy.tenancy`.
-- SLO/dashboard evidence: `microservices/tenancy/slos/availability.openslo.yaml`, `microservices/tenancy/slos/correctness.openslo.yaml`, `microservices/tenancy/slos/freshness.openslo.yaml`, `microservices/tenancy/slos/latency.openslo.yaml`, `tenancy/dashboards/cell-utilization.json`; +5 more.
+- SLO/dashboard evidence: `tenancy/observability/slos/availability.openslo.yaml`, `tenancy/observability/slos/correctness.openslo.yaml`, `tenancy/observability/slos/freshness.openslo.yaml`, `tenancy/observability/slos/latency.openslo.yaml`, `tenancy/dashboards/cell-utilization.json`; +5 more.
 - Runbook/IaC evidence: `tenancy/runbooks/citus-rebalance.md`, `tenancy/runbooks/dr-pair-promotion-drill.md`, `tenancy/runbooks/jwt-key-rotation.md`, `tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `tenancy/runbooks/rls-drift-recovery.md`; +11 more.
 - Compliance packs: `kr`, `eu`, `us`, `us-healthcare`, `jp`; +3 more; data classes: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 - Cross-service dependencies: `tenancy`, `identity`, `policy-engine`, `observability`, `audit-chain`; +2 more.
@@ -394,7 +394,7 @@ tenant-scope from tenancy's `oyatie.foundry.*` principal registry.
 - API surfaces: `tenancy/contracts/asyncapi/tenant-events.yaml`, `tenancy/contracts/openapi/tenancy.yaml`, `tenancy/contracts/proto/tenancy.proto`.
 - Cedar/policy surfaces: `tenancy/policy/abuse-defence.cedar`, `tenancy/policy/action-authorization.cedar`, `tenancy/policy/auditor-scope.cedar`, `tenancy/policy/ci-scope.cedar`, `tenancy/policy/data-residency.cedar`; +5 more.
 - State/event surfaces: `tenancy.tenancy`.
-- SLO/dashboard evidence: `microservices/tenancy/slos/availability.openslo.yaml`, `microservices/tenancy/slos/correctness.openslo.yaml`, `microservices/tenancy/slos/freshness.openslo.yaml`, `microservices/tenancy/slos/latency.openslo.yaml`, `tenancy/dashboards/cell-utilization.json`; +5 more.
+- SLO/dashboard evidence: `tenancy/observability/slos/availability.openslo.yaml`, `tenancy/observability/slos/correctness.openslo.yaml`, `tenancy/observability/slos/freshness.openslo.yaml`, `tenancy/observability/slos/latency.openslo.yaml`, `tenancy/dashboards/cell-utilization.json`; +5 more.
 - Runbook/IaC evidence: `tenancy/runbooks/citus-rebalance.md`, `tenancy/runbooks/dr-pair-promotion-drill.md`, `tenancy/runbooks/jwt-key-rotation.md`, `tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `tenancy/runbooks/rls-drift-recovery.md`; +11 more.
 - Compliance packs: `kr`, `eu`, `us`, `us-healthcare`, `jp`; +3 more; data classes: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 - Cross-service dependencies: `tenancy`, `identity`, `policy-engine`, `observability`, `audit-chain`; +2 more.
@@ -450,7 +450,7 @@ for KYB-KYC verifier (handles passport scans).
 - API surfaces: `tenancy/contracts/asyncapi/tenant-events.yaml`, `tenancy/contracts/openapi/tenancy.yaml`, `tenancy/contracts/proto/tenancy.proto`.
 - Cedar/policy surfaces: `tenancy/policy/abuse-defence.cedar`, `tenancy/policy/action-authorization.cedar`, `tenancy/policy/auditor-scope.cedar`, `tenancy/policy/ci-scope.cedar`, `tenancy/policy/data-residency.cedar`; +5 more.
 - State/event surfaces: `tenancy.tenancy`.
-- SLO/dashboard evidence: `microservices/tenancy/slos/availability.openslo.yaml`, `microservices/tenancy/slos/correctness.openslo.yaml`, `microservices/tenancy/slos/freshness.openslo.yaml`, `microservices/tenancy/slos/latency.openslo.yaml`, `tenancy/dashboards/cell-utilization.json`; +5 more.
+- SLO/dashboard evidence: `tenancy/observability/slos/availability.openslo.yaml`, `tenancy/observability/slos/correctness.openslo.yaml`, `tenancy/observability/slos/freshness.openslo.yaml`, `tenancy/observability/slos/latency.openslo.yaml`, `tenancy/dashboards/cell-utilization.json`; +5 more.
 - Runbook/IaC evidence: `tenancy/runbooks/citus-rebalance.md`, `tenancy/runbooks/dr-pair-promotion-drill.md`, `tenancy/runbooks/jwt-key-rotation.md`, `tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `tenancy/runbooks/rls-drift-recovery.md`; +11 more.
 - Compliance packs: `kr`, `eu`, `us`, `us-healthcare`, `jp`; +3 more; data classes: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 - Cross-service dependencies: `tenancy`, `identity`, `policy-engine`, `observability`, `audit-chain`; +2 more.
@@ -504,7 +504,7 @@ per manifest.
 - API surfaces: `tenancy/contracts/asyncapi/tenant-events.yaml`, `tenancy/contracts/openapi/tenancy.yaml`, `tenancy/contracts/proto/tenancy.proto`.
 - Cedar/policy surfaces: `tenancy/policy/abuse-defence.cedar`, `tenancy/policy/action-authorization.cedar`, `tenancy/policy/auditor-scope.cedar`, `tenancy/policy/ci-scope.cedar`, `tenancy/policy/data-residency.cedar`; +5 more.
 - State/event surfaces: `tenancy.tenancy`.
-- SLO/dashboard evidence: `microservices/tenancy/slos/availability.openslo.yaml`, `microservices/tenancy/slos/correctness.openslo.yaml`, `microservices/tenancy/slos/freshness.openslo.yaml`, `microservices/tenancy/slos/latency.openslo.yaml`, `tenancy/dashboards/cell-utilization.json`; +5 more.
+- SLO/dashboard evidence: `tenancy/observability/slos/availability.openslo.yaml`, `tenancy/observability/slos/correctness.openslo.yaml`, `tenancy/observability/slos/freshness.openslo.yaml`, `tenancy/observability/slos/latency.openslo.yaml`, `tenancy/dashboards/cell-utilization.json`; +5 more.
 - Runbook/IaC evidence: `tenancy/runbooks/citus-rebalance.md`, `tenancy/runbooks/dr-pair-promotion-drill.md`, `tenancy/runbooks/jwt-key-rotation.md`, `tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `tenancy/runbooks/rls-drift-recovery.md`; +11 more.
 - Compliance packs: `kr`, `eu`, `us`, `us-healthcare`, `jp`; +3 more; data classes: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 - Cross-service dependencies: `tenancy`, `identity`, `policy-engine`, `observability`, `audit-chain`; +2 more.
@@ -559,7 +559,7 @@ cell-rebalance commit ordering across regions.
 - API surfaces: `tenancy/contracts/asyncapi/tenant-events.yaml`, `tenancy/contracts/openapi/tenancy.yaml`, `tenancy/contracts/proto/tenancy.proto`.
 - Cedar/policy surfaces: `tenancy/policy/abuse-defence.cedar`, `tenancy/policy/action-authorization.cedar`, `tenancy/policy/auditor-scope.cedar`, `tenancy/policy/ci-scope.cedar`, `tenancy/policy/data-residency.cedar`; +5 more.
 - State/event surfaces: `tenancy.tenancy`.
-- SLO/dashboard evidence: `microservices/tenancy/slos/availability.openslo.yaml`, `microservices/tenancy/slos/correctness.openslo.yaml`, `microservices/tenancy/slos/freshness.openslo.yaml`, `microservices/tenancy/slos/latency.openslo.yaml`, `tenancy/dashboards/cell-utilization.json`; +5 more.
+- SLO/dashboard evidence: `tenancy/observability/slos/availability.openslo.yaml`, `tenancy/observability/slos/correctness.openslo.yaml`, `tenancy/observability/slos/freshness.openslo.yaml`, `tenancy/observability/slos/latency.openslo.yaml`, `tenancy/dashboards/cell-utilization.json`; +5 more.
 - Runbook/IaC evidence: `tenancy/runbooks/citus-rebalance.md`, `tenancy/runbooks/dr-pair-promotion-drill.md`, `tenancy/runbooks/jwt-key-rotation.md`, `tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `tenancy/runbooks/rls-drift-recovery.md`; +11 more.
 - Compliance packs: `kr`, `eu`, `us`, `us-healthcare`, `jp`; +3 more; data classes: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 - Cross-service dependencies: `tenancy`, `identity`, `policy-engine`, `observability`, `audit-chain`; +2 more.
@@ -615,7 +615,7 @@ SPIFFE for substrate-to-substrate.
 - API surfaces: `tenancy/contracts/asyncapi/tenant-events.yaml`, `tenancy/contracts/openapi/tenancy.yaml`, `tenancy/contracts/proto/tenancy.proto`.
 - Cedar/policy surfaces: `tenancy/policy/abuse-defence.cedar`, `tenancy/policy/action-authorization.cedar`, `tenancy/policy/auditor-scope.cedar`, `tenancy/policy/ci-scope.cedar`, `tenancy/policy/data-residency.cedar`; +5 more.
 - State/event surfaces: `tenancy.tenancy`.
-- SLO/dashboard evidence: `microservices/tenancy/slos/availability.openslo.yaml`, `microservices/tenancy/slos/correctness.openslo.yaml`, `microservices/tenancy/slos/freshness.openslo.yaml`, `microservices/tenancy/slos/latency.openslo.yaml`, `tenancy/dashboards/cell-utilization.json`; +5 more.
+- SLO/dashboard evidence: `tenancy/observability/slos/availability.openslo.yaml`, `tenancy/observability/slos/correctness.openslo.yaml`, `tenancy/observability/slos/freshness.openslo.yaml`, `tenancy/observability/slos/latency.openslo.yaml`, `tenancy/dashboards/cell-utilization.json`; +5 more.
 - Runbook/IaC evidence: `tenancy/runbooks/citus-rebalance.md`, `tenancy/runbooks/dr-pair-promotion-drill.md`, `tenancy/runbooks/jwt-key-rotation.md`, `tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `tenancy/runbooks/rls-drift-recovery.md`; +11 more.
 - Compliance packs: `kr`, `eu`, `us`, `us-healthcare`, `jp`; +3 more; data classes: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 - Cross-service dependencies: `tenancy`, `identity`, `policy-engine`, `observability`, `audit-chain`; +2 more.
@@ -670,7 +670,7 @@ in tier-1.
 - API surfaces: `tenancy/contracts/asyncapi/tenant-events.yaml`, `tenancy/contracts/openapi/tenancy.yaml`, `tenancy/contracts/proto/tenancy.proto`.
 - Cedar/policy surfaces: `tenancy/policy/abuse-defence.cedar`, `tenancy/policy/action-authorization.cedar`, `tenancy/policy/auditor-scope.cedar`, `tenancy/policy/ci-scope.cedar`, `tenancy/policy/data-residency.cedar`; +5 more.
 - State/event surfaces: `tenancy.tenancy`.
-- SLO/dashboard evidence: `microservices/tenancy/slos/availability.openslo.yaml`, `microservices/tenancy/slos/correctness.openslo.yaml`, `microservices/tenancy/slos/freshness.openslo.yaml`, `microservices/tenancy/slos/latency.openslo.yaml`, `tenancy/dashboards/cell-utilization.json`; +5 more.
+- SLO/dashboard evidence: `tenancy/observability/slos/availability.openslo.yaml`, `tenancy/observability/slos/correctness.openslo.yaml`, `tenancy/observability/slos/freshness.openslo.yaml`, `tenancy/observability/slos/latency.openslo.yaml`, `tenancy/dashboards/cell-utilization.json`; +5 more.
 - Runbook/IaC evidence: `tenancy/runbooks/citus-rebalance.md`, `tenancy/runbooks/dr-pair-promotion-drill.md`, `tenancy/runbooks/jwt-key-rotation.md`, `tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `tenancy/runbooks/rls-drift-recovery.md`; +11 more.
 - Compliance packs: `kr`, `eu`, `us`, `us-healthcare`, `jp`; +3 more; data classes: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 - Cross-service dependencies: `tenancy`, `identity`, `policy-engine`, `observability`, `audit-chain`; +2 more.
@@ -724,7 +724,7 @@ Library-first when bundled; network-opt-in fallback. `audience_type = INTERNAL_S
 - API surfaces: `tenancy/contracts/asyncapi/tenant-events.yaml`, `tenancy/contracts/openapi/tenancy.yaml`, `tenancy/contracts/proto/tenancy.proto`.
 - Cedar/policy surfaces: `tenancy/policy/abuse-defence.cedar`, `tenancy/policy/action-authorization.cedar`, `tenancy/policy/auditor-scope.cedar`, `tenancy/policy/ci-scope.cedar`, `tenancy/policy/data-residency.cedar`; +5 more.
 - State/event surfaces: `tenancy.tenancy`.
-- SLO/dashboard evidence: `microservices/tenancy/slos/availability.openslo.yaml`, `microservices/tenancy/slos/correctness.openslo.yaml`, `microservices/tenancy/slos/freshness.openslo.yaml`, `microservices/tenancy/slos/latency.openslo.yaml`, `tenancy/dashboards/cell-utilization.json`; +5 more.
+- SLO/dashboard evidence: `tenancy/observability/slos/availability.openslo.yaml`, `tenancy/observability/slos/correctness.openslo.yaml`, `tenancy/observability/slos/freshness.openslo.yaml`, `tenancy/observability/slos/latency.openslo.yaml`, `tenancy/dashboards/cell-utilization.json`; +5 more.
 - Runbook/IaC evidence: `tenancy/runbooks/citus-rebalance.md`, `tenancy/runbooks/dr-pair-promotion-drill.md`, `tenancy/runbooks/jwt-key-rotation.md`, `tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `tenancy/runbooks/rls-drift-recovery.md`; +11 more.
 - Compliance packs: `kr`, `eu`, `us`, `us-healthcare`, `jp`; +3 more; data classes: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 - Cross-service dependencies: `tenancy`, `identity`, `policy-engine`, `observability`, `audit-chain`; +2 more.
@@ -779,7 +779,7 @@ delegation to `compliance` µservice.
 - API surfaces: `tenancy/contracts/asyncapi/tenant-events.yaml`, `tenancy/contracts/openapi/tenancy.yaml`, `tenancy/contracts/proto/tenancy.proto`.
 - Cedar/policy surfaces: `tenancy/policy/abuse-defence.cedar`, `tenancy/policy/action-authorization.cedar`, `tenancy/policy/auditor-scope.cedar`, `tenancy/policy/ci-scope.cedar`, `tenancy/policy/data-residency.cedar`; +5 more.
 - State/event surfaces: `tenancy.tenancy`.
-- SLO/dashboard evidence: `microservices/tenancy/slos/availability.openslo.yaml`, `microservices/tenancy/slos/correctness.openslo.yaml`, `microservices/tenancy/slos/freshness.openslo.yaml`, `microservices/tenancy/slos/latency.openslo.yaml`, `tenancy/dashboards/cell-utilization.json`; +5 more.
+- SLO/dashboard evidence: `tenancy/observability/slos/availability.openslo.yaml`, `tenancy/observability/slos/correctness.openslo.yaml`, `tenancy/observability/slos/freshness.openslo.yaml`, `tenancy/observability/slos/latency.openslo.yaml`, `tenancy/dashboards/cell-utilization.json`; +5 more.
 - Runbook/IaC evidence: `tenancy/runbooks/citus-rebalance.md`, `tenancy/runbooks/dr-pair-promotion-drill.md`, `tenancy/runbooks/jwt-key-rotation.md`, `tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `tenancy/runbooks/rls-drift-recovery.md`; +11 more.
 - Compliance packs: `kr`, `eu`, `us`, `us-healthcare`, `jp`; +3 more; data classes: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 - Cross-service dependencies: `tenancy`, `identity`, `policy-engine`, `observability`, `audit-chain`; +2 more.
@@ -834,7 +834,7 @@ library_first`. `freshness_floor = 60s`.
 - API surfaces: `tenancy/contracts/asyncapi/tenant-events.yaml`, `tenancy/contracts/openapi/tenancy.yaml`, `tenancy/contracts/proto/tenancy.proto`.
 - Cedar/policy surfaces: `tenancy/policy/abuse-defence.cedar`, `tenancy/policy/action-authorization.cedar`, `tenancy/policy/auditor-scope.cedar`, `tenancy/policy/ci-scope.cedar`, `tenancy/policy/data-residency.cedar`; +5 more.
 - State/event surfaces: `tenancy.tenancy`.
-- SLO/dashboard evidence: `microservices/tenancy/slos/availability.openslo.yaml`, `microservices/tenancy/slos/correctness.openslo.yaml`, `microservices/tenancy/slos/freshness.openslo.yaml`, `microservices/tenancy/slos/latency.openslo.yaml`, `tenancy/dashboards/cell-utilization.json`; +5 more.
+- SLO/dashboard evidence: `tenancy/observability/slos/availability.openslo.yaml`, `tenancy/observability/slos/correctness.openslo.yaml`, `tenancy/observability/slos/freshness.openslo.yaml`, `tenancy/observability/slos/latency.openslo.yaml`, `tenancy/dashboards/cell-utilization.json`; +5 more.
 - Runbook/IaC evidence: `tenancy/runbooks/citus-rebalance.md`, `tenancy/runbooks/dr-pair-promotion-drill.md`, `tenancy/runbooks/jwt-key-rotation.md`, `tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `tenancy/runbooks/rls-drift-recovery.md`; +11 more.
 - Compliance packs: `kr`, `eu`, `us`, `us-healthcare`, `jp`; +3 more; data classes: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 - Cross-service dependencies: `tenancy`, `identity`, `policy-engine`, `observability`, `audit-chain`; +2 more.
@@ -893,7 +893,7 @@ Audit-event-classes:
 - API surfaces: `tenancy/contracts/asyncapi/tenant-events.yaml`, `tenancy/contracts/openapi/tenancy.yaml`, `tenancy/contracts/proto/tenancy.proto`.
 - Cedar/policy surfaces: `tenancy/policy/abuse-defence.cedar`, `tenancy/policy/action-authorization.cedar`, `tenancy/policy/auditor-scope.cedar`, `tenancy/policy/ci-scope.cedar`, `tenancy/policy/data-residency.cedar`; +5 more.
 - State/event surfaces: `tenancy.tenancy`.
-- SLO/dashboard evidence: `microservices/tenancy/slos/availability.openslo.yaml`, `microservices/tenancy/slos/correctness.openslo.yaml`, `microservices/tenancy/slos/freshness.openslo.yaml`, `microservices/tenancy/slos/latency.openslo.yaml`, `tenancy/dashboards/cell-utilization.json`; +5 more.
+- SLO/dashboard evidence: `tenancy/observability/slos/availability.openslo.yaml`, `tenancy/observability/slos/correctness.openslo.yaml`, `tenancy/observability/slos/freshness.openslo.yaml`, `tenancy/observability/slos/latency.openslo.yaml`, `tenancy/dashboards/cell-utilization.json`; +5 more.
 - Runbook/IaC evidence: `tenancy/runbooks/citus-rebalance.md`, `tenancy/runbooks/dr-pair-promotion-drill.md`, `tenancy/runbooks/jwt-key-rotation.md`, `tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `tenancy/runbooks/rls-drift-recovery.md`; +11 more.
 - Compliance packs: `kr`, `eu`, `us`, `us-healthcare`, `jp`; +3 more; data classes: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 - Cross-service dependencies: `tenancy`, `identity`, `policy-engine`, `observability`, `audit-chain`; +2 more.
@@ -946,7 +946,7 @@ API tier for legitimate enumeration. UX-floor preserved per `policy/abuse-defenc
 - API surfaces: `tenancy/contracts/asyncapi/tenant-events.yaml`, `tenancy/contracts/openapi/tenancy.yaml`, `tenancy/contracts/proto/tenancy.proto`.
 - Cedar/policy surfaces: `tenancy/policy/abuse-defence.cedar`, `tenancy/policy/action-authorization.cedar`, `tenancy/policy/auditor-scope.cedar`, `tenancy/policy/ci-scope.cedar`, `tenancy/policy/data-residency.cedar`; +5 more.
 - State/event surfaces: `tenancy.tenancy`.
-- SLO/dashboard evidence: `microservices/tenancy/slos/availability.openslo.yaml`, `microservices/tenancy/slos/correctness.openslo.yaml`, `microservices/tenancy/slos/freshness.openslo.yaml`, `microservices/tenancy/slos/latency.openslo.yaml`, `tenancy/dashboards/cell-utilization.json`; +5 more.
+- SLO/dashboard evidence: `tenancy/observability/slos/availability.openslo.yaml`, `tenancy/observability/slos/correctness.openslo.yaml`, `tenancy/observability/slos/freshness.openslo.yaml`, `tenancy/observability/slos/latency.openslo.yaml`, `tenancy/dashboards/cell-utilization.json`; +5 more.
 - Runbook/IaC evidence: `tenancy/runbooks/citus-rebalance.md`, `tenancy/runbooks/dr-pair-promotion-drill.md`, `tenancy/runbooks/jwt-key-rotation.md`, `tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `tenancy/runbooks/rls-drift-recovery.md`; +11 more.
 - Compliance packs: `kr`, `eu`, `us`, `us-healthcare`, `jp`; +3 more; data classes: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 - Cross-service dependencies: `tenancy`, `identity`, `policy-engine`, `observability`, `audit-chain`; +2 more.
@@ -999,7 +999,7 @@ OpenBao SecretReference `${openbao:secret/<tenant_id>/tenancy/<key>}`. Sidecar i
 - API surfaces: `tenancy/contracts/asyncapi/tenant-events.yaml`, `tenancy/contracts/openapi/tenancy.yaml`, `tenancy/contracts/proto/tenancy.proto`.
 - Cedar/policy surfaces: `tenancy/policy/abuse-defence.cedar`, `tenancy/policy/action-authorization.cedar`, `tenancy/policy/auditor-scope.cedar`, `tenancy/policy/ci-scope.cedar`, `tenancy/policy/data-residency.cedar`; +5 more.
 - State/event surfaces: `tenancy.tenancy`.
-- SLO/dashboard evidence: `microservices/tenancy/slos/availability.openslo.yaml`, `microservices/tenancy/slos/correctness.openslo.yaml`, `microservices/tenancy/slos/freshness.openslo.yaml`, `microservices/tenancy/slos/latency.openslo.yaml`, `tenancy/dashboards/cell-utilization.json`; +5 more.
+- SLO/dashboard evidence: `tenancy/observability/slos/availability.openslo.yaml`, `tenancy/observability/slos/correctness.openslo.yaml`, `tenancy/observability/slos/freshness.openslo.yaml`, `tenancy/observability/slos/latency.openslo.yaml`, `tenancy/dashboards/cell-utilization.json`; +5 more.
 - Runbook/IaC evidence: `tenancy/runbooks/citus-rebalance.md`, `tenancy/runbooks/dr-pair-promotion-drill.md`, `tenancy/runbooks/jwt-key-rotation.md`, `tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `tenancy/runbooks/rls-drift-recovery.md`; +11 more.
 - Compliance packs: `kr`, `eu`, `us`, `us-healthcare`, `jp`; +3 more; data classes: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 - Cross-service dependencies: `tenancy`, `identity`, `policy-engine`, `observability`, `audit-chain`; +2 more.
@@ -1055,7 +1055,7 @@ Compatible packs: `kr-csap`, `eu-sovereign`, `cn-pipl`, `us-healthcare`, `us-fin
 - API surfaces: `tenancy/contracts/asyncapi/tenant-events.yaml`, `tenancy/contracts/openapi/tenancy.yaml`, `tenancy/contracts/proto/tenancy.proto`.
 - Cedar/policy surfaces: `tenancy/policy/abuse-defence.cedar`, `tenancy/policy/action-authorization.cedar`, `tenancy/policy/auditor-scope.cedar`, `tenancy/policy/ci-scope.cedar`, `tenancy/policy/data-residency.cedar`; +5 more.
 - State/event surfaces: `tenancy.tenancy`.
-- SLO/dashboard evidence: `microservices/tenancy/slos/availability.openslo.yaml`, `microservices/tenancy/slos/correctness.openslo.yaml`, `microservices/tenancy/slos/freshness.openslo.yaml`, `microservices/tenancy/slos/latency.openslo.yaml`, `tenancy/dashboards/cell-utilization.json`; +5 more.
+- SLO/dashboard evidence: `tenancy/observability/slos/availability.openslo.yaml`, `tenancy/observability/slos/correctness.openslo.yaml`, `tenancy/observability/slos/freshness.openslo.yaml`, `tenancy/observability/slos/latency.openslo.yaml`, `tenancy/dashboards/cell-utilization.json`; +5 more.
 - Runbook/IaC evidence: `tenancy/runbooks/citus-rebalance.md`, `tenancy/runbooks/dr-pair-promotion-drill.md`, `tenancy/runbooks/jwt-key-rotation.md`, `tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `tenancy/runbooks/rls-drift-recovery.md`; +11 more.
 - Compliance packs: `kr`, `eu`, `us`, `us-healthcare`, `jp`; +3 more; data classes: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 - Cross-service dependencies: `tenancy`, `identity`, `policy-engine`, `observability`, `audit-chain`; +2 more.
@@ -1109,7 +1109,7 @@ tenant_class does not reduce feature surface. EU age verification per pack-overl
 - API surfaces: `tenancy/contracts/asyncapi/tenant-events.yaml`, `tenancy/contracts/openapi/tenancy.yaml`, `tenancy/contracts/proto/tenancy.proto`.
 - Cedar/policy surfaces: `tenancy/policy/abuse-defence.cedar`, `tenancy/policy/action-authorization.cedar`, `tenancy/policy/auditor-scope.cedar`, `tenancy/policy/ci-scope.cedar`, `tenancy/policy/data-residency.cedar`; +5 more.
 - State/event surfaces: `tenancy.tenancy`.
-- SLO/dashboard evidence: `microservices/tenancy/slos/availability.openslo.yaml`, `microservices/tenancy/slos/correctness.openslo.yaml`, `microservices/tenancy/slos/freshness.openslo.yaml`, `microservices/tenancy/slos/latency.openslo.yaml`, `tenancy/dashboards/cell-utilization.json`; +5 more.
+- SLO/dashboard evidence: `tenancy/observability/slos/availability.openslo.yaml`, `tenancy/observability/slos/correctness.openslo.yaml`, `tenancy/observability/slos/freshness.openslo.yaml`, `tenancy/observability/slos/latency.openslo.yaml`, `tenancy/dashboards/cell-utilization.json`; +5 more.
 - Runbook/IaC evidence: `tenancy/runbooks/citus-rebalance.md`, `tenancy/runbooks/dr-pair-promotion-drill.md`, `tenancy/runbooks/jwt-key-rotation.md`, `tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `tenancy/runbooks/rls-drift-recovery.md`; +11 more.
 - Compliance packs: `kr`, `eu`, `us`, `us-healthcare`, `jp`; +3 more; data classes: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 - Cross-service dependencies: `tenancy`, `identity`, `policy-engine`, `observability`, `audit-chain`; +2 more.
@@ -1163,7 +1163,7 @@ Foundry principal registration carries meta-trust-root attestation; tenancy pers
 - API surfaces: `tenancy/contracts/asyncapi/tenant-events.yaml`, `tenancy/contracts/openapi/tenancy.yaml`, `tenancy/contracts/proto/tenancy.proto`.
 - Cedar/policy surfaces: `tenancy/policy/abuse-defence.cedar`, `tenancy/policy/action-authorization.cedar`, `tenancy/policy/auditor-scope.cedar`, `tenancy/policy/ci-scope.cedar`, `tenancy/policy/data-residency.cedar`; +5 more.
 - State/event surfaces: `tenancy.tenancy`.
-- SLO/dashboard evidence: `microservices/tenancy/slos/availability.openslo.yaml`, `microservices/tenancy/slos/correctness.openslo.yaml`, `microservices/tenancy/slos/freshness.openslo.yaml`, `microservices/tenancy/slos/latency.openslo.yaml`, `tenancy/dashboards/cell-utilization.json`; +5 more.
+- SLO/dashboard evidence: `tenancy/observability/slos/availability.openslo.yaml`, `tenancy/observability/slos/correctness.openslo.yaml`, `tenancy/observability/slos/freshness.openslo.yaml`, `tenancy/observability/slos/latency.openslo.yaml`, `tenancy/dashboards/cell-utilization.json`; +5 more.
 - Runbook/IaC evidence: `tenancy/runbooks/citus-rebalance.md`, `tenancy/runbooks/dr-pair-promotion-drill.md`, `tenancy/runbooks/jwt-key-rotation.md`, `tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `tenancy/runbooks/rls-drift-recovery.md`; +11 more.
 - Compliance packs: `kr`, `eu`, `us`, `us-healthcare`, `jp`; +3 more; data classes: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 - Cross-service dependencies: `tenancy`, `identity`, `policy-engine`, `observability`, `audit-chain`; +2 more.
@@ -1219,7 +1219,7 @@ Per-tenant Cedar RLS fragments publish with ≥60s soak. Headers carry
 - API surfaces: `tenancy/contracts/asyncapi/tenant-events.yaml`, `tenancy/contracts/openapi/tenancy.yaml`, `tenancy/contracts/proto/tenancy.proto`.
 - Cedar/policy surfaces: `tenancy/policy/abuse-defence.cedar`, `tenancy/policy/action-authorization.cedar`, `tenancy/policy/auditor-scope.cedar`, `tenancy/policy/ci-scope.cedar`, `tenancy/policy/data-residency.cedar`; +5 more.
 - State/event surfaces: `tenancy.tenancy`.
-- SLO/dashboard evidence: `microservices/tenancy/slos/availability.openslo.yaml`, `microservices/tenancy/slos/correctness.openslo.yaml`, `microservices/tenancy/slos/freshness.openslo.yaml`, `microservices/tenancy/slos/latency.openslo.yaml`, `tenancy/dashboards/cell-utilization.json`; +5 more.
+- SLO/dashboard evidence: `tenancy/observability/slos/availability.openslo.yaml`, `tenancy/observability/slos/correctness.openslo.yaml`, `tenancy/observability/slos/freshness.openslo.yaml`, `tenancy/observability/slos/latency.openslo.yaml`, `tenancy/dashboards/cell-utilization.json`; +5 more.
 - Runbook/IaC evidence: `tenancy/runbooks/citus-rebalance.md`, `tenancy/runbooks/dr-pair-promotion-drill.md`, `tenancy/runbooks/jwt-key-rotation.md`, `tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `tenancy/runbooks/rls-drift-recovery.md`; +11 more.
 - Compliance packs: `kr`, `eu`, `us`, `us-healthcare`, `jp`; +3 more; data classes: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 - Cross-service dependencies: `tenancy`, `identity`, `policy-engine`, `observability`, `audit-chain`; +2 more.
@@ -1273,7 +1273,7 @@ Bootstrap-tier-1. SPIFFE attestation + kill-switch wired in `iac/k8s-network-pol
 - API surfaces: `tenancy/contracts/asyncapi/tenant-events.yaml`, `tenancy/contracts/openapi/tenancy.yaml`, `tenancy/contracts/proto/tenancy.proto`.
 - Cedar/policy surfaces: `tenancy/policy/abuse-defence.cedar`, `tenancy/policy/action-authorization.cedar`, `tenancy/policy/auditor-scope.cedar`, `tenancy/policy/ci-scope.cedar`, `tenancy/policy/data-residency.cedar`; +5 more.
 - State/event surfaces: `tenancy.tenancy`.
-- SLO/dashboard evidence: `microservices/tenancy/slos/availability.openslo.yaml`, `microservices/tenancy/slos/correctness.openslo.yaml`, `microservices/tenancy/slos/freshness.openslo.yaml`, `microservices/tenancy/slos/latency.openslo.yaml`, `tenancy/dashboards/cell-utilization.json`; +5 more.
+- SLO/dashboard evidence: `tenancy/observability/slos/availability.openslo.yaml`, `tenancy/observability/slos/correctness.openslo.yaml`, `tenancy/observability/slos/freshness.openslo.yaml`, `tenancy/observability/slos/latency.openslo.yaml`, `tenancy/dashboards/cell-utilization.json`; +5 more.
 - Runbook/IaC evidence: `tenancy/runbooks/citus-rebalance.md`, `tenancy/runbooks/dr-pair-promotion-drill.md`, `tenancy/runbooks/jwt-key-rotation.md`, `tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `tenancy/runbooks/rls-drift-recovery.md`; +11 more.
 - Compliance packs: `kr`, `eu`, `us`, `us-healthcare`, `jp`; +3 more; data classes: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 - Cross-service dependencies: `tenancy`, `identity`, `policy-engine`, `observability`, `audit-chain`; +2 more.
@@ -1352,7 +1352,7 @@ This anchor is closed for `tenancy` against ADR-0248 §D-1: cell tier, shard wid
 - Capability records cited: `tenancy/capabilities/dr-pair-promote.yaml`, `tenancy/capabilities/dsr-cascade-execute.yaml`, `tenancy/capabilities/isolation-policy-emit.yaml`, `tenancy/capabilities/kyb-kyc-complete.yaml`, `tenancy/capabilities/quota-update.yaml`, `tenancy/capabilities/tenant-resolve.yaml`.
 - API surfaces cited: `tenancy/contracts/asyncapi/tenant-events.yaml`, `tenancy/contracts/openapi/tenancy.yaml`, `tenancy/contracts/proto/tenancy.proto`.
 - Cedar/policy artifacts cited: `tenancy/policy/abuse-defence.cedar`, `tenancy/policy/action-authorization.cedar`, `tenancy/policy/auditor-scope.cedar`, `tenancy/policy/ci-scope.cedar`, `tenancy/policy/data-residency.cedar`, `tenancy/policy/data-residency.md`; +4 more.
-- SLO and dashboard evidence: `microservices/tenancy/slos/availability.openslo.yaml`, `microservices/tenancy/slos/correctness.openslo.yaml`, `microservices/tenancy/slos/freshness.openslo.yaml`, `microservices/tenancy/slos/latency.openslo.yaml`, `tenancy/dashboards/cell-utilization.json`, `tenancy/dashboards/dr-pairing-state.json`; +4 more.
+- SLO and dashboard evidence: `tenancy/observability/slos/availability.openslo.yaml`, `tenancy/observability/slos/correctness.openslo.yaml`, `tenancy/observability/slos/freshness.openslo.yaml`, `tenancy/observability/slos/latency.openslo.yaml`, `tenancy/dashboards/cell-utilization.json`, `tenancy/dashboards/dr-pairing-state.json`; +4 more.
 - Runbook/IaC evidence: `tenancy/runbooks/citus-rebalance.md`, `tenancy/runbooks/dr-pair-promotion-drill.md`, `tenancy/runbooks/jwt-key-rotation.md`, `tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `tenancy/runbooks/rls-drift-recovery.md`, `tenancy/runbooks/tenant-deletion-dsr-cascade.md`; +14 more.
 - Data classes declared for this control: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 
@@ -1361,7 +1361,7 @@ This anchor is closed for `tenancy` against ADR-0248 §D-1: cell tier, shard wid
 - Cedar binding: `tenancy/policy/abuse-defence.cedar`, `tenancy/policy/action-authorization.cedar`, `tenancy/policy/auditor-scope.cedar`, `tenancy/policy/ci-scope.cedar`, `tenancy/policy/data-residency.cedar`, `tenancy/policy/data-residency.md`; +4 more.
 - State/event binding: `tenancy.tenancy`.
 - Capability binding: `dsr-cascade-execute`, `isolation-policy-emit`, `tenant-resolve`.
-- SLO binding: `microservices/tenancy/slos/availability.openslo.yaml`, `microservices/tenancy/slos/correctness.openslo.yaml`, `microservices/tenancy/slos/freshness.openslo.yaml`, `microservices/tenancy/slos/latency.openslo.yaml`.
+- SLO binding: `tenancy/observability/slos/availability.openslo.yaml`, `tenancy/observability/slos/correctness.openslo.yaml`, `tenancy/observability/slos/freshness.openslo.yaml`, `tenancy/observability/slos/latency.openslo.yaml`.
 - Runbook binding: `tenancy/runbooks/citus-rebalance.md`, `tenancy/runbooks/dr-pair-promotion-drill.md`, `tenancy/runbooks/jwt-key-rotation.md`, `tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `tenancy/runbooks/rls-drift-recovery.md`, `tenancy/runbooks/tenant-deletion-dsr-cascade.md`; +2 more.
 
 ### Cross-service links
@@ -1414,7 +1414,7 @@ This anchor is closed for `tenancy` against documentation-rigor.md §3.2.5: appl
 - Capability records cited: `tenancy/capabilities/dr-pair-promote.yaml`, `tenancy/capabilities/dsr-cascade-execute.yaml`, `tenancy/capabilities/isolation-policy-emit.yaml`, `tenancy/capabilities/kyb-kyc-complete.yaml`, `tenancy/capabilities/quota-update.yaml`, `tenancy/capabilities/tenant-resolve.yaml`.
 - API surfaces cited: `tenancy/contracts/asyncapi/tenant-events.yaml`, `tenancy/contracts/openapi/tenancy.yaml`, `tenancy/contracts/proto/tenancy.proto`.
 - Cedar/policy artifacts cited: `tenancy/policy/abuse-defence.cedar`, `tenancy/policy/action-authorization.cedar`, `tenancy/policy/auditor-scope.cedar`, `tenancy/policy/ci-scope.cedar`, `tenancy/policy/data-residency.cedar`, `tenancy/policy/data-residency.md`; +4 more.
-- SLO and dashboard evidence: `microservices/tenancy/slos/availability.openslo.yaml`, `microservices/tenancy/slos/correctness.openslo.yaml`, `microservices/tenancy/slos/freshness.openslo.yaml`, `microservices/tenancy/slos/latency.openslo.yaml`, `tenancy/dashboards/cell-utilization.json`, `tenancy/dashboards/dr-pairing-state.json`; +4 more.
+- SLO and dashboard evidence: `tenancy/observability/slos/availability.openslo.yaml`, `tenancy/observability/slos/correctness.openslo.yaml`, `tenancy/observability/slos/freshness.openslo.yaml`, `tenancy/observability/slos/latency.openslo.yaml`, `tenancy/dashboards/cell-utilization.json`, `tenancy/dashboards/dr-pairing-state.json`; +4 more.
 - Runbook/IaC evidence: `tenancy/runbooks/citus-rebalance.md`, `tenancy/runbooks/dr-pair-promotion-drill.md`, `tenancy/runbooks/jwt-key-rotation.md`, `tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `tenancy/runbooks/rls-drift-recovery.md`, `tenancy/runbooks/tenant-deletion-dsr-cascade.md`; +14 more.
 - Data classes declared for this control: `INTERNAL_ONLY`, `AUDIT`, `PII_QUASI`.
 
@@ -1423,7 +1423,7 @@ This anchor is closed for `tenancy` against documentation-rigor.md §3.2.5: appl
 - Cedar binding: `tenancy/policy/abuse-defence.cedar`, `tenancy/policy/action-authorization.cedar`, `tenancy/policy/auditor-scope.cedar`, `tenancy/policy/ci-scope.cedar`, `tenancy/policy/data-residency.cedar`, `tenancy/policy/data-residency.md`; +4 more.
 - State/event binding: `tenancy.tenancy`.
 - Capability binding: `dsr-cascade-execute`, `isolation-policy-emit`, `tenant-resolve`.
-- SLO binding: `microservices/tenancy/slos/availability.openslo.yaml`, `microservices/tenancy/slos/correctness.openslo.yaml`, `microservices/tenancy/slos/freshness.openslo.yaml`, `microservices/tenancy/slos/latency.openslo.yaml`.
+- SLO binding: `tenancy/observability/slos/availability.openslo.yaml`, `tenancy/observability/slos/correctness.openslo.yaml`, `tenancy/observability/slos/freshness.openslo.yaml`, `tenancy/observability/slos/latency.openslo.yaml`.
 - Runbook binding: `tenancy/runbooks/citus-rebalance.md`, `tenancy/runbooks/dr-pair-promotion-drill.md`, `tenancy/runbooks/jwt-key-rotation.md`, `tenancy/runbooks/kyb-kyc-pipeline-stalled.md`, `tenancy/runbooks/rls-drift-recovery.md`, `tenancy/runbooks/tenant-deletion-dsr-cascade.md`; +2 more.
 
 ### Cross-service links

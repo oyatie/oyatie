@@ -15,7 +15,7 @@ acceptance_lanes: [cargo-nextest, oya-governance-openslo-conformance]
 
 ## Intent
 
-Author k6 load tests; Patroni-failover availability drill; quarterly synthetic cross-tenant probe; tenancy OpenSLO manifests at `microservices/tenancy/slos/{availability,latency,correctness,freshness}.openslo.yaml`.
+Author k6 load tests; Patroni-failover availability drill; quarterly synthetic cross-tenant probe; tenancy OpenSLO manifests at `tenancy/observability/slos/{availability,latency,correctness,freshness}.openslo.yaml`.
 
 ## Concrete File Targets
 
@@ -25,10 +25,10 @@ Author k6 load tests; Patroni-failover availability drill; quarterly synthetic c
 | `microservices/tenancy/tests/load/patroni-failover-availability.sh` | create — induce Patroni primary loss; measure validate availability |
 | `microservices/tenancy/tests/integration/synthetic_cross_tenant_probe.rs` | create — quarterly drill |
 | `microservices/tenancy/tests/e2e/dsr_cascade_proof.rs` | create — full DSR drill across all M01 µservices |
-| `microservices/tenancy/slos/availability.openslo.yaml` | create |
-| `microservices/tenancy/slos/latency.openslo.yaml` | create |
-| `microservices/tenancy/slos/correctness.openslo.yaml` | create — RLS-no-cross-tenant probe success rate ≥ 100% |
-| `microservices/tenancy/slos/freshness.openslo.yaml` | create — RLS drift detection within 5min |
+| `tenancy/observability/slos/availability.openslo.yaml` | create |
+| `tenancy/observability/slos/latency.openslo.yaml` | create |
+| `tenancy/observability/slos/correctness.openslo.yaml` | create — RLS-no-cross-tenant probe success rate ≥ 100% |
+| `tenancy/observability/slos/freshness.openslo.yaml` | create — RLS drift detection within 5min |
 | `microservices/tenancy/slos/waivers.md` | create — empty register |
 
 ## Code Shape

@@ -355,7 +355,7 @@ Each pack's overlay at `regional-packs/<pack>/tenancy-rls-overlay.md` maps the l
 - ADR-0140: Cedar policy enforcement.
 - `tenancy/threat-model.md` §"Trust Boundaries" + T-T-01 + T-I-01 + T-I-02 + T-E-01.
 - `tenancy/dpia.md` R-01.
-- `microservices/tenancy/policy/{tenant-scope, ci-scope, auditor-scope, public-read}.cedar`.
+- `tenancy/policy/{tenant-scope, ci-scope, auditor-scope, public-read}.cedar`.
 - `tenancy/policy/data-residency.md`.
 - Postgres RLS docs — `postgresql.org/docs/16/ddl-rowsecurity.html`.
 - Citus multi-tenant docs — `docs.citusdata.com/en/stable/use_cases/multi_tenant.html`.

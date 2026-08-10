@@ -21,7 +21,7 @@ related_adrs:
 
 ## Scope
 
-tenancy owns tenant scope, pack activation state, and audience-type boundaries for j97-sg-pdpa-mas-singapore-tenant. The slice is a flat per-microservice implementation plan under microservices/tenancy/, matching ADR-0131.
+tenancy owns tenant scope, pack activation state, and audience-type boundaries for j97-sg-pdpa-mas-singapore-tenant. The slice is a flat per-microservice implementation plan under tenancy/, matching ADR-0131.
 The service participates in SG-PDPA + MAS; exact article anchors are inherited from the journey and repeated below for implementer cold-start buildability.
 
 ## Exact regulatory anchors

@@ -403,7 +403,7 @@ Key parity gaps to close (ordered by priority):
 2. **Machine-verifiable proof-of-erasure** (Stripe / Auth0 compliance parity; oyatie differentiator): cryptographic erasure-certificate aggregated from every µservice's per-tenant DSR handler; no competitor produces this artifact today at the granularity oyatie targets.
 3. **Cell health routing** (AWS internal parity; Citus + Patroni-backed): routing table updated within ≤ 2s of cell-unhealthy signal; tenant requests transparently failed over within-pack.
 4. **Multi-pack residency** (Microsoft Entra / Auth0 partial): 11 region-pinned packs; no cross-pack movement default; per-pack legal-overlay (KR PIPA / GDPR / HIPAA / etc.) authored end-to-end.
-5. **Cedar-policy-enforced tenant scope** (no competitor): fine-grained policy evaluation per request via ADR-0140 Cedar fragments at `microservices/tenancy/policy/*.cedar`.
+5. **Cedar-policy-enforced tenant scope** (no competitor): fine-grained policy evaluation per request via ADR-0140 Cedar fragments at `tenancy/policy/*.cedar`.
 
 Key oyatie differentiators (NOT in any competitor):
 

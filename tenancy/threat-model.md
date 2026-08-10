@@ -50,7 +50,7 @@ All components introduced by Bominal ADR-0018 (tenancy + RLS posture, inherited)
 | Patroni (HA management for Postgres + Citus coordinator) | `oya-tenancy-cell-assignment-*` (8 crates) |
 | Valkey (cell-assignment + tenant-validate cache) | `oya-tenancy-dsr-cascade-*` (8 crates) |
 | OpenBao (JWT signing key + DB password secrets) | RLS policy YAML at `microservices/tenancy/policy/rls/*.yaml` |
-| sqlx migration runner (schema + RLS DDL emission) | Cedar policy fragments at `microservices/tenancy/policy/*.cedar` |
+| sqlx migration runner (schema + RLS DDL emission) | Cedar policy fragments at `tenancy/policy/*.cedar` |
 
 ### Out-of-scope
 
@@ -153,7 +153,7 @@ Per Bominal ADR-0028 (audit-chain + data-class taxonomy) and the `oya-check-data
 | DSR request records | `AUDIT` + `SENSITIVE_PIPA_ART23` | High | ≥ 7y after request completion; immutable | Postgres + audit-chain |
 | Erasure receipts (per-µservice) | `AUDIT` | High | ≥ 7y; immutable; Merkle leaf | Postgres + audit-chain |
 | Proof-of-erasure certificates | `AUDIT` (regulator-disclosable) | High | indefinite | audit-chain + `microservices/tenancy/evidence/dsr/` |
-| Cedar policy fragments | `INTERNAL_ONLY` | Medium | git history | `microservices/tenancy/policy/*.cedar` |
+| Cedar policy fragments | `INTERNAL_ONLY` | Medium | git history | `tenancy/policy/*.cedar` |
 | Tenant onboarding consent records | `AUDIT` + `PII_IDENTIFYING` (operator identity) | High | per pack legal min; default 7y | Postgres + audit-chain |
 | Valkey cache contents (tenant validate results) | `BEHAVIORAL_TENANT_PRODUCT` | Medium (transient) | 60s TTL | Valkey in-memory |
 | Audit-chain seals (per lifecycle event) | `AUDIT` | High | indefinite; immutable | audit-chain µservice |

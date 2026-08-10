@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "capability": "tenancy",
-  "_comment": "Capability-root manifest for tenancy/ (ADR-0562). Every crate name, capability file path, contract path, IP path and accounting count below was read off the tenancy/ tree at authoring time (tip equals origin/dev tenancy tree), not transcribed from legacy microservices/tenancy/ or libs/oya-tenancy-* dump paths. Catalog rows cite only registry/catalog/tenancy-*.yaml files that exist; two in-tree crates lack registry catalog rows and are not invented here.",
+  "_comment": "Capability-root manifest for tenancy/ (ADR-0562). Every crate name, capability file path, contract path, IP path and accounting count below was read off the tenancy/ tree at authoring time (tip equals origin/dev tenancy tree), not transcribed from legacy tenancy/ or libs/oya-tenancy-* dump paths. Catalog rows cite only registry/catalog/tenancy-*.yaml files that exist; two in-tree crates lack registry catalog rows and are not invented here.",
   "tier": "substrate",
   "tier_subtype": "substrate-tenancy",
   "dr_tier": "T1",

@@ -24,3 +24,13 @@ Do not invent missing homes. No hubs, no `Cargo.lock`, no merge.
 
 - Cross-capability cites (`microservices/observability/…`, `microservices/cloud-iac/…`, foreign PRDs).
 - Historical inventory narratives that name retired dump paths as audit evidence (leave until shrink rail).
+
+## Wave-5 Seat A follow-through (2026-08-10)
+
+Continued verified remaps `microservices/tenancy/**` → `tenancy/**`, including `slos/**` → `tenancy/observability/slos/**` for OpenSLO files that exist; runbooks/policy/contracts/iac directory cites.
+
+### Deferred
+
+- Journey-local contract/policy/test paths without in-tree counterparts; `src/crates/**` migration narratives; cross-cap cites.
+- No hubs, no `Cargo.lock`, no merge.
+
