@@ -1,7 +1,7 @@
 # Canonical-base: microservices/governance/iac/helm/_oya-helpers (SWEEP-I Slice 2 per ADR-0064)
 # oyatie recordings µservice Helm values
 #
-# Per-pack overlays (microservices/recordings/iac/kustomize/overlays/pack-*)
+# Per-pack overlays (storage/recordings/iac/kustomize/overlays/pack-*)
 # refine these values. Secrets resolved at request time via OpenBao.
 
 commonLabels:

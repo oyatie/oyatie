@@ -25,3 +25,16 @@ Do not invent missing homes. No hubs, no `Cargo.lock`, no merge.
 
 - Missing `src/` / `tests/` / `ARCHITECTURE.md` / historical IP homes under drive/recordings/imaging
 - Cross-cap observability/governance/cloud-iac cites
+
+## Seat A media tranche (2026-08-10)
+
+Nearest envelope for noun **media** (no `integ/media` rail) = `integ/storage` nested faces `storage/recordings/**` + `storage/imaging/**` (drive is adjacent file substrate).
+
+### Retargeted (verified)
+
+- `microservices/recordings/iac/kustomize/overlays/**` cites → `storage/recordings/iac/kustomize/overlays/**` when overlays tree present
+
+### Deferred (missing homes — do not invent)
+
+- `microservices/recordings/IP-*.md`, `PRD.md`, `capacity-model.md`, `compliance.md`, historical ADR-RECORDINGS-* filenames, OpenSLO under recordings
+- `microservices/imaging/PRD.md`, `ARCHITECTURE.md`
