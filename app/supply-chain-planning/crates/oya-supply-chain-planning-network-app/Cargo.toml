@@ -1,0 +1,42 @@
+[package]
+name = "oya-supply-chain-planning-network-app"
+edition = "2024"
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+description = "Rust src scaffold for the Supply Chain Planning network application surface."
+
+[package.metadata.oya]
+microservice = "supply-chain-planning"
+title = "Supply Chain Planning"
+bounded_context = "network-planning"
+layer = "app"
+wave = "wave-3"
+owner_team = "axis-erp-supply-chain + council-product"
+data_classification = "tenant-scoped planning records with audit evidence"
+criticality_tier = "product-critical"
+binding_adrs = ["ADR-0105", "ADR-0131"]
+openapi = "contracts/openapi-v1.yaml"
+asyncapi = "contracts/asyncapi-v1.yaml"
+protobuf = "contracts/supply-chain-planning-v1.proto"
+
+[lib]
+name = "oya_supply_chain_planning_network_app"
+path = "src/lib.rs"
+doctest = false
+
+[[bin]]
+name = "oya-supply-chain-planning-network"
+path = "src/main.rs"
+
+[dependencies]
+clap = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+toml = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+
+[lints]
+workspace = true

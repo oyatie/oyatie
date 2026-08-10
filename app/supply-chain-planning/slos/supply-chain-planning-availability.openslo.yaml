@@ -1,0 +1,29 @@
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: supply-chain-planning-availability
+  labels:
+    service: supply-chain-planning
+    sap_code: "SCM/APO"
+spec:
+  description: "Supply Chain Planning supply-chain-planning-availability objective; benchmarks SAP SCM/APO and SAP IBP | Oracle Supply Chain Planning | Workday Adaptive Planning supply-chain scenario counterpart | NetSuite Demand Planning | Microsoft Dynamics 365 Master Planning"
+  service: supply-chain-planning
+  indicator:
+    metadata:
+      name: supply-chain-planning-availability-sli
+    spec:
+      ratioMetric:
+        counter: true
+        good:
+          metricSource:
+            type: prometheus
+            spec:
+              query: "sum(rate(http_requests_total{service=\"supply-chain-planning\",status=~\"2..\"}[5m]))"
+        total:
+          metricSource:
+            type: prometheus
+            spec:
+              query: "sum(rate(http_requests_total{service=\"supply-chain-planning\"}[5m]))"
+  objectives:
+    - displayName: supply-chain-planning-availability
+      target: 0.999

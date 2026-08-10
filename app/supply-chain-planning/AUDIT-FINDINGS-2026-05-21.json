@@ -1,0 +1,71 @@
+{
+  "schema_version": "1.0",
+  "date": "2026-05-21",
+  "service": "supply-chain-planning",
+  "verdict": "second-pass-authored",
+  "sap_code": "SCM/APO",
+  "artifact_target": 100,
+  "findings": [
+    {
+      "id": "supply-chain-planning-demand-plan-doc-set",
+      "status": "closed-by-second-pass",
+      "evidence": [
+        "policy/demand-plan-authorization.cedar",
+        "catalog/oya-supply-chain-planning-demand-plan-domain.yaml",
+        "runbooks/source-import-stalled.md"
+      ]
+    },
+    {
+      "id": "supply-chain-planning-supply-network-plan-doc-set",
+      "status": "closed-by-second-pass",
+      "evidence": [
+        "policy/supply-network-plan-authorization.cedar",
+        "catalog/oya-supply-chain-planning-supply-network-plan-domain.yaml",
+        "runbooks/source-import-stalled.md"
+      ]
+    },
+    {
+      "id": "supply-chain-planning-available-to-promise-doc-set",
+      "status": "closed-by-second-pass",
+      "evidence": [
+        "policy/available-to-promise-authorization.cedar",
+        "catalog/oya-supply-chain-planning-available-to-promise-domain.yaml",
+        "runbooks/source-import-stalled.md"
+      ]
+    },
+    {
+      "id": "supply-chain-planning-replenishment-plan-doc-set",
+      "status": "closed-by-second-pass",
+      "evidence": [
+        "policy/replenishment-plan-authorization.cedar",
+        "catalog/oya-supply-chain-planning-replenishment-plan-domain.yaml",
+        "runbooks/source-import-stalled.md"
+      ]
+    },
+    {
+      "id": "supply-chain-planning-transportation-plan-doc-set",
+      "status": "closed-by-second-pass",
+      "evidence": [
+        "policy/transportation-plan-authorization.cedar",
+        "catalog/oya-supply-chain-planning-transportation-plan-domain.yaml",
+        "runbooks/source-import-stalled.md"
+      ]
+    },
+    {
+      "id": "supply-chain-planning-planning-scenario-doc-set",
+      "status": "closed-by-second-pass",
+      "evidence": [
+        "policy/planning-scenario-authorization.cedar",
+        "catalog/oya-supply-chain-planning-planning-scenario-domain.yaml",
+        "runbooks/source-import-stalled.md"
+      ]
+    }
+  ],
+  "benchmarks": [
+    "SAP SCM/APO and SAP IBP",
+    "Oracle Supply Chain Planning",
+    "Workday Adaptive Planning supply-chain scenario counterpart",
+    "NetSuite Demand Planning",
+    "Microsoft Dynamics 365 Master Planning"
+  ]
+}
