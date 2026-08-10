@@ -159,17 +159,19 @@ fn run_producer_face(root: &Path, face: &str) -> Value {
 /// the walk silently found 2 of 21 — a scan that shrinks to nothing is a false green, so the set is
 /// now named explicitly and `manifest_missing` below fails closed on any entry that stops resolving.
 ///
-/// Wave-2 absorb (#1659 / #1839 P1): `cloud/cloud-kernel/manifest.json` forever home is
-/// `kernel/manifest.json`. Cite the forever path here; `cloud_manifest_paths` may accept the
-/// transitional source only until destination bytes land (fail closed when neither resolves).
-/// Do not re-list hub enumerations — this is a named pin, not a dual-truth root table.
+/// Wave-2 absorb: forever homes for burned `cloud/` pins —
+/// `cloud/cloud-kernel/manifest.json` → `kernel/manifest.json` (#1659 / #1839 P1);
+/// `cloud/cloud-os/manifest.json` → `os/manifest.json` (#1926 / #1839). Cite forever paths
+/// here; `cloud_manifest_paths` may accept transitional sources only until destination bytes
+/// land (fail closed when neither resolves). Do not re-list hub enumerations — named pins,
+/// not a dual-truth root table.
 const CLOUD_SUBSTRATE_MANIFESTS: [&str; 21] = [
     "billing/manifest.json",
     "billing/tax/manifest.json",
     "cell/cell-lifecycle/manifest.json",
     "cell/cell-rebalancer/manifest.json",
     "kernel/manifest.json",
-    "cloud/cloud-os/manifest.json",
+    "os/manifest.json",
     "data/cloud-data/manifest.json",
     "iac/manifest.json",
     "iam/cloud-iam/manifest.json",
@@ -187,10 +189,12 @@ const CLOUD_SUBSTRATE_MANIFESTS: [&str; 21] = [
     "tenancy/manifest.json",
 ];
 
-/// Forever → transitional source still present on origin/dev until #1659 lands forever bytes.
-/// Drop an entry when the transitional path is burned and the forever path is on trunk.
+/// Forever → transitional source still present on origin/dev until forever bytes land
+/// (#1659 kernel; #1926 os). Drop an entry when the transitional path is burned and the
+/// forever path is on trunk.
 const CLOUD_SUBSTRATE_MANIFEST_FALLBACKS: &[(&str, &str)] = &[
     ("kernel/manifest.json", "cloud/cloud-kernel/manifest.json"),
+    ("os/manifest.json", "cloud/cloud-os/manifest.json"),
 ];
 
 fn cloud_manifest_paths(root: &Path) -> Vec<PathBuf> {
