@@ -1,0 +1,56 @@
+# Canonical-base: specs/openslo/canonical-envelope-schema.json + canonical-burn-rate-alert-template.openslo.yaml (SWEEP-I Slice 4 per ADR-0064)
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: oya-sheets-crdt-merge-no-silent-loss
+  displayName: Sheets Collab — No silent loss (correctness invariant; aligns workflow-studio AC-06 + docs)
+  labels:
+    microservice: sheets
+    bounded_context: collab-crdt
+    sli_kind: correctness
+    tier: external-facing
+    plane: data
+spec:
+  service: oya-sheets-collab-crdt-worker
+  description: |
+    Correctness SLI: zero silent CRDT op losses. AC-06 load-bearing invariant; aligns with
+    workflow-studio ADR-WS-0001 + ADR-SHEETS-0001 Loro 1.x adoption + docs collab-crdt invariant.
+    Target is 100%. Any silent-loss event triggers Sev-1.
+  indicator:
+    metadata:
+      name: crdt-merge-no-silent-loss-sli
+    spec:
+      ratioMetric:
+        counter: true
+        good:
+          metricSource:
+            type: prometheus
+            spec:
+              query: 'sum(rate(oya_sheets_collab_op_published_total[5m])) - sum(rate(oya_sheets_collab_silent_loss_attempt_total[5m]))'
+        total:
+          metricSource:
+            type: prometheus
+            spec:
+              query: 'sum(rate(oya_sheets_collab_op_published_total[5m]))'
+  objectives:
+    - target: 1.0
+      displayName: 100% of CRDT ops merge without silent loss (AC-06 invariant)
+  timeWindow:
+    - duration: 30d
+      isRolling: true
+  budgetingMethod: Occurrences
+  alertPolicies:
+    - kind: AlertPolicy
+      metadata:
+        name: collab-silent-loss-detected
+      spec:
+        description: ANY silent loss event → immediate Sev-1 page
+        notificationTargets:
+          - target: grafana-oncall:sheets-sev1
+        conditions:
+          - kind: AlertCondition
+            spec:
+              op: gte
+              threshold: 1
+              lookbackWindow: 5m
+              alertAfter: 0m
