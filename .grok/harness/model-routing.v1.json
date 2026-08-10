@@ -1,44 +1,78 @@
 {
-  "version": "1.1.0",
-  "description": "Multi-model role→preset priors. Cursor Task slugs are authoritative for dispatches. No *-fast tiers. No gjc/omc/omx.",
+  "version": "1.2.0",
+  "description": "Multi-model role→preset priors informed by CursorBench 3.2 score/cost. Cursor Task slugs authoritative. No *-fast. Terra/Luna are cost tiers, not quality escalations.",
+  "source": {
+    "cursorbench": {
+      "url": "https://cursor.com/cursorbench",
+      "version": "3.2",
+      "retrieved": "2026-08-10",
+      "notes": [
+        "Grok 4.5 rows are asterisked: earlier Cursor codebase snapshot unintentionally in training; impact unclear",
+        "Small score gaps may not be statistically meaningful",
+        "Do not treat Terra/Luna as stronger than Sol/Grok/Opus/Fable"
+      ]
+    }
+  },
   "forbidden_clis": ["gjc", "omc", "omx", "hermes"],
   "forbidden_model_slug_substrings": ["-fast"],
   "presets": {
     "cursor-grok-4.5-high": {
       "label": "Cursor Grok 4.5 High",
       "role": "default_implementation",
-      "cursor_model": "cursor-grok-4.5-high"
+      "cursor_model": "cursor-grok-4.5-high",
+      "cursorbench": { "score_pct": 66.7, "cost_usd": 1.51, "tokens": 19521, "steps": 33, "caveat": "contamination_asterisk" }
     },
     "composer-2.5": {
       "label": "Composer 2.5",
       "role": "light_scout_recon",
-      "cursor_model": "composer-2.5"
+      "cursor_model": "composer-2.5",
+      "cursorbench": { "score_pct": 56.1, "cost_usd": 0.44, "tokens": 14286, "steps": 33 }
     },
     "claude-opus-5-thinking-high": {
       "label": "Opus 5 High",
       "role": "critic_security",
-      "cursor_model": "claude-opus-5-thinking-high"
+      "cursor_model": "claude-opus-5-thinking-high",
+      "cursorbench": { "score_pct": 66.7, "cost_usd": 3.91, "tokens": 27932, "steps": 48 }
     },
     "gpt-5.6-sol-high": {
       "label": "GPT-5.6 Sol High",
       "role": "executor_verifier_peer",
-      "cursor_model": "gpt-5.6-sol-high"
+      "cursor_model": "gpt-5.6-sol-high",
+      "cursorbench": { "score_pct": 63.5, "cost_usd": 2.79, "tokens": 13867, "steps": 32 }
     },
     "claude-fable-5-thinking-max": {
       "label": "Fable 5 Max",
-      "role": "architect_planning",
-      "cursor_model": "claude-fable-5-thinking-max"
+      "role": "architect_planning_max_stakes_quality",
+      "cursor_model": "claude-fable-5-thinking-max",
+      "cursorbench": { "score_pct": 70.5, "cost_usd": 17.32, "tokens": 103525, "steps": 72 }
     },
     "gpt-5.6-terra-xhigh": {
       "label": "GPT-5.6 Terra Extra High",
-      "role": "high_blast_deliberate",
-      "cursor_model": "gpt-5.6-terra-xhigh"
+      "role": "cost_aware_mechanical",
+      "cursor_model": "gpt-5.6-terra-xhigh",
+      "cursorbench": { "score_pct": 59.2, "cost_usd": 1.15, "tokens": 16089, "steps": 29 },
+      "not": "quality_escalation_above_sol_or_grok"
     },
     "gpt-5.6-luna-max": {
       "label": "GPT-5.6 Luna Max",
-      "role": "max_stakes",
-      "cursor_model": "gpt-5.6-luna-max"
+      "role": "cost_max_high_volume",
+      "cursor_model": "gpt-5.6-luna-max",
+      "cursorbench": { "score_pct": 61.1, "cost_usd": 0.39, "tokens": 87973, "steps": 61 },
+      "not": "max_stakes_quality_despite_name"
     }
+  },
+  "quality_ladder_asc": [
+    "composer-2.5",
+    "gpt-5.6-terra-xhigh",
+    "gpt-5.6-luna-max",
+    "gpt-5.6-sol-high",
+    "cursor-grok-4.5-high",
+    "claude-opus-5-thinking-high",
+    "claude-fable-5-thinking-max"
+  ],
+  "cost_efficiency_notes": {
+    "best_score_per_usd_approx": ["composer-2.5", "gpt-5.6-luna-max", "cursor-grok-4.5-high"],
+    "do_not_escalate_quality_via": ["gpt-5.6-terra-xhigh", "gpt-5.6-luna-max"]
   },
   "priors": {
     "ORCHESTRATOR": { "preset": "cursor-grok-4.5-high", "provider": "xai", "model": "grok-4.5", "effort": "high" },
@@ -49,7 +83,10 @@
     "CRITIC": { "preset": "claude-opus-5-thinking-high", "provider": "anthropic", "model": "claude-opus-5", "effort": "high", "min_instances": 2 },
     "SECURITY": { "preset": "claude-opus-5-thinking-high", "provider": "anthropic", "model": "claude-opus-5", "effort": "high" },
     "VERIFIER": { "preset": "gpt-5.6-sol-high", "provider": "openai-codex", "model": "gpt-5.6-sol", "effort": "high" },
-    "EXECUTOR_PEER": { "preset": "gpt-5.6-sol-high", "provider": "openai-codex", "model": "gpt-5.6-sol", "effort": "high" }
+    "EXECUTOR_PEER": { "preset": "gpt-5.6-sol-high", "provider": "openai-codex", "model": "gpt-5.6-sol", "effort": "high" },
+    "MECHANICAL_CHEAP": { "preset": "gpt-5.6-terra-xhigh", "provider": "openai-codex", "model": "gpt-5.6-terra", "effort": "xhigh" },
+    "HIGH_VOLUME_CHEAP": { "preset": "gpt-5.6-luna-max", "provider": "openai-codex", "model": "gpt-5.6-luna", "effort": "max" },
+    "MAX_STAKES_QUALITY": { "preset": "claude-fable-5-thinking-max", "provider": "anthropic", "model": "claude-fable-5", "effort": "max" }
   },
   "complexity_axes": ["reasoning", "ambiguity", "blast_radius", "adversarial", "tool_loop"],
   "rules": [
@@ -66,7 +103,8 @@
       "then": {
         "forbid_effort_below": "high",
         "require_dual_critic": true,
-        "prefer_executor_preset": "gpt-5.6-terra-xhigh"
+        "prefer_quality_preset": "claude-fable-5-thinking-max",
+        "forbid_presets_as_escalation": ["gpt-5.6-terra-xhigh", "gpt-5.6-luna-max"]
       }
     },
     {
@@ -75,12 +113,13 @@
         "require_dual_critic": true,
         "require_security": true,
         "human_admit": true,
-        "prefer_preset": "gpt-5.6-luna-max"
+        "prefer_quality_preset": "claude-fable-5-thinking-max",
+        "critic_preset": "claude-opus-5-thinking-high"
       }
     },
     {
       "when": { "task_class": "mechanical", "judgment_weight_lte": 2 },
-      "then": { "allow_default_implement": "cursor-grok-4.5-high" }
+      "then": { "allow_presets": ["cursor-grok-4.5-high", "gpt-5.6-terra-xhigh", "gpt-5.6-luna-max"] }
     },
     {
       "when": { "independence_required": true },
