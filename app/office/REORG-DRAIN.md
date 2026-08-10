@@ -3,13 +3,18 @@
 ## Ownership (rule 3e)
 
 - **Forever home:** `app/office/**` (this rail).
-- **Source (read-only):** `oya/office/**` on `origin/dev` — 19-crate forest, **no** top-level `Cargo.toml` / product manifest.
+- **Source (read-only):** `oya/office/**` on `origin/dev` until shrink-only delete lands on `integ/oya`.
 - **Writes:** only under `app/office/**` on this tip.
-- **This slice:** inventory-only + forward-declared `manifest.json`. **No crate code moves.**
 
-## Inventory (`origin/dev:oya/office`, 2026-08-10)
+## Completed (this rail)
 
-19 crate directories (63 tracked files total; forest only — no non-crate siblings):
+- Slice 1: invent inventory + forward-declared `manifest.json` (`869198b65`).
+- **Wave-1 absorb:** 19-crate forest copied to `app/office/` (63 crate files). BUCK path cites rewritten `//oya/office/` → `//app/office/`.
+- Substrate ports (tenant/authz/storage/search kernels + product kernel split) retained in-place; burn into capability homes deferred to follow-on slice.
+
+## Inventory (absorbed forest)
+
+19 crate directories (63 tracked crate files; forest only — no non-crate siblings on source):
 
 | Dir | Face (heuristic) | Files |
 |-----|------------------|------:|
@@ -33,41 +38,43 @@
 | `oya-office-tenant-domain` | domain / substrate-port candidate | 3 |
 | `oya-office-web-app` | app | 4 |
 
-Source authority for this table: `git ls-tree` of `origin/dev:oya/office` (no top-level manifest on that tip).
+## Substrate ports rewrite plan (follow-on; rewrite ≠ forever git-mv)
 
-## Completed (this rail)
+Judgment: substrate-shaped contracts burn into capability homes via redesign/rewrite (path + crate rename + consumer retarget). Wave-1 dual-homes them under `app/office/` so product crates stay buildable; capability rails own the burn.
 
-- Slice 1: create `app/office/REORG-DRAIN.md` + forward-declared inventory `app/office/manifest.json`.
-- Crate dirs listed; source paths remain under `oya/office/**` until a later absorb slice.
+| Crate (`app/office/`) | Intent | Proposed forever home | Notes |
+|-----------------------|--------|-----------------------|-------|
+| `oya-office-storage-kernel` | Object/metadata storage **port** | `storage/` | Port-trait / kernel layer; drop `oya-office-*` prefix. |
+| `oya-office-search-kernel` | Tenant-scoped search/index **port** | search/indexing capability (pending registry) | Keep redaction contracts. |
+| `oya-office-tenant-domain` | Tenant/quota/rate-limit/region | `tenancy/` (+ `iam/` if split) | Rewrite deps onto shared tenancy IDs. |
+| `oya-office-authz-domain` | Authz / sharing / export | `iam/` authz surface | Extract shared policy; leave Office gates in product domain. |
+| `oya-office-kernel` | Shared IDs, request context, audit | Split: generic → tenancy/iam; Office-only stays here | Do not promote whole crate as platform substrate. |
 
-## Substrate ports rewrite plan (follow-on; rewrite ≠ git-mv)
+**In-forest consumers (Wave-1 tip census, BUCK deps):**
 
-Office currently vendors substrate-shaped contracts inside the product forest. They must **burn into capability homes** via redesign/rewrite (path + crate rename + consumer retarget), not a blind tree move into `app/office/`.
-
-| Source crate (`oya/office/`) | Intent | Proposed forever home (judgment) | Notes |
-|------------------------------|--------|----------------------------------|-------|
-| `oya-office-storage-kernel` | Provider-neutral object/metadata storage **port** | `storage/` (capability ports face) | Docstring already says port-trait / kernel layer; stop prefixing `oya-office-*`. |
-| `oya-office-search-kernel` | Tenant-scoped search/index **port** | search/indexing capability (or owning substrate once registered) | Keep redaction contracts; drop Office-only naming. |
-| `oya-office-tenant-domain` | Tenant/quota/rate-limit/region allowlist contracts | `tenancy/` (+ `iam/` if control-plane splits) | Depends only on `oya-office-kernel` today — rewrite deps onto shared tenancy IDs. |
-| `oya-office-authz-domain` | Authz / sharing / export / audit-bound access | `iam/` authz surface | G083 tenant-security baseline spans Drive/API/search/collab/storage — extract shared policy, leave Office-specific gates in product domain. |
-| `oya-office-kernel` | Shared IDs, request context, audit shape | Split: generic IDs → tenancy/iam kernels; Office-only types stay as `app/office` product kernel | Do **not** promote the whole crate as a platform substrate. |
+| Substrate crate | In-forest dependents |
+|-----------------|----------------------|
+| `oya-office-kernel` | authz, tenant, storage, search, collab, drive-*, format-*, doc/sheet/slide, sheets-api, web-app, workers, apps |
+| `oya-office-authz-domain` | `drive-domain`, `drive-api` |
+| `oya-office-storage-kernel` | (none in-forest BUCK — elevate external cites) |
+| `oya-office-search-kernel` | (none in-forest BUCK — elevate external cites) |
+| `oya-office-tenant-domain` | (none in-forest BUCK — elevate external cites) |
 
 **Order (suggested):**
 
-1. Inventory consumers of the five crates above (BUCK + Cargo path deps) — still on `oya/office/**` until absorb.
-2. Land capability-side port traits (storage/search/tenancy/iam) with Office adapters behind ports.
-3. Absorb remaining Office product crates into `app/office/**` (drive/doc/sheet/slide/collab/format + apps/workers).
-4. Rewrite Office consumers onto capability ports; delete Office-prefixed substrate crates.
-5. Shrink-only delete `oya/office/**` on `integ/oya` after verify.
+1. Land capability-side port traits (storage/search/tenancy/iam) with Office adapters behind ports.
+2. Rewrite Office consumers onto capability ports; delete Office-prefixed substrate crates from `app/office/`.
+3. Shrink-only delete `oya/office/**` on `integ/oya` after verify.
+4. Hub retargets on tip-free `integ/specs`.
 
-Sibling dual-home note (judgment, out of this rail): docs/sheets/slides may share surfaces with this forest — do not annex from `integ/office`.
+Sibling dual-home note (judgment, out of this rail): docs/sheets/slides may share surfaces — do not annex from `integ/office`.
 
 ## Remaining for later slices
 
-1. **Absorb product crates** into `app/office/**` (still deferred — not this tip).
-2. **Substrate ports rewrite** per table above (capability rails + this rail for consumer retarget).
-3. **Shrink-only burn** of `oya/office/**` on `integ/oya`.
-4. **Hub retargets** (`specs/**`, capability-registry `app_products`) on tip-free `integ/specs`.
+1. **Substrate ports rewrite** per table (capability rails + this rail for consumer retarget).
+2. **Shrink-only burn** of `oya/office/**` on `integ/oya`.
+3. **Hub retargets** (`specs/**`, capability-registry `app_products`) on tip-free `integ/specs`.
+4. **Crate rename** `oya-office-*` → destination naming (follow-on with substrate burn).
 
 ## Out of envelope
 
@@ -75,3 +82,4 @@ Sibling dual-home note (judgment, out of this rail): docs/sheets/slides may shar
 - `Cargo.lock` / root workspace membership — lock tip only.
 - `specs/**` hub edits — `integ/specs` only.
 - Sibling products under `oya/*` or `app/*` other than office.
+- Capability-home writes (`storage/`, `tenancy/`, `iam/`) — those destination rails.

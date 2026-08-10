@@ -1,0 +1,24 @@
+[package]
+name = "oya-office-format-worker"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+oya-office-drive-domain = { path = "../oya-office-drive-domain" }
+oya-office-format-domain = { path = "../oya-office-format-domain" }
+oya-office-kernel = { path = "../oya-office-kernel" }
+
+[lib]
+name = "oya_office_format_worker"
+path = "src/lib.rs"
+doctest = false
+
+[[bin]]
+name = "oya-office-format-worker"
+path = "src/main.rs"
+
+[lints]
+workspace = true

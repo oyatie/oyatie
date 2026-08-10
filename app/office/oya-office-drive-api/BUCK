@@ -1,0 +1,25 @@
+rust_library(
+    name = "oya-office-drive-api",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "oya_office_drive_api",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//app/office/oya-office-authz-domain:oya-office-authz-domain",
+        "//app/office/oya-office-drive-domain:oya-office-drive-domain",
+        "//app/office/oya-office-kernel:oya-office-kernel",
+    ],
+)
+
+rust_test(
+    name = "oya-office-drive-api-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "oya_office_drive_api",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//app/office/oya-office-authz-domain:oya-office-authz-domain",
+        "//app/office/oya-office-drive-domain:oya-office-drive-domain",
+        "//app/office/oya-office-kernel:oya-office-kernel",
+    ],
+)

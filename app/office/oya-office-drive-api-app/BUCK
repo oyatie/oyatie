@@ -1,0 +1,38 @@
+rust_library(
+    name = "oya-office-drive-api-app",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "oya_office_drive_api_app",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//app/office/oya-office-drive-api:oya-office-drive-api",
+        "//app/office/oya-office-drive-domain:oya-office-drive-domain",
+        "//app/office/oya-office-kernel:oya-office-kernel",
+    ],
+)
+
+rust_binary(
+    name = "oya-office-drive-api-gateway",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate_root = "src/main.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//app/office/oya-office-drive-api-app:oya-office-drive-api-app",
+        "//app/office/oya-office-drive-api:oya-office-drive-api",
+        "//app/office/oya-office-drive-domain:oya-office-drive-domain",
+        "//app/office/oya-office-kernel:oya-office-kernel",
+    ],
+)
+
+rust_test(
+    name = "oya-office-drive-api-app-tests",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "oya_office_drive_api_app",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//app/office/oya-office-drive-api:oya-office-drive-api",
+        "//app/office/oya-office-drive-domain:oya-office-drive-domain",
+        "//app/office/oya-office-kernel:oya-office-kernel",
+    ],
+)
