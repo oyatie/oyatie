@@ -8,10 +8,10 @@
     "stratum": "forward-declared",
     "depends_on": [],
     "consumed_by_substrates": [],
-    "_note": "capability has no ADR-0280 §D-1 DAG node yet; forward-declared (Appendix C class)"
+    "_note": "capability has no ADR-0280 \u00a7D-1 DAG node yet; forward-declared (Appendix C class)"
   },
   "owner": "axis-governance",
-  "purpose": "Canonical OpenFeature-compatible runtime flag substrate with tenant, persona, cohort, and emergency kill-switch targeting. Consumed by all 46+ µservices as shared substrate per ADR-0245.",
+  "purpose": "Canonical OpenFeature-compatible runtime flag substrate with tenant, persona, cohort, and emergency kill-switch targeting. Consumed by all 46+ \u00b5services as shared substrate per ADR-0245.",
   "substrate_dependencies": [
     "oya-shared-policy-eval",
     "oya-shared-hlc",
@@ -292,12 +292,12 @@
   },
   "contracts": {
     "openapi": [
-      "microservices/feature-flags/contracts/feature-flags.openapi.yaml",
-      "microservices/feature-flags/contracts/openapi-v1.yaml"
+      "flags/contracts/feature-flags.openapi.yaml",
+      "flags/contracts/openapi-v1.yaml"
     ],
     "asyncapi": [
-      "microservices/feature-flags/contracts/feature-flags.asyncapi.yaml",
-      "microservices/feature-flags/contracts/asyncapi-v1.yaml"
+      "flags/contracts/feature-flags.asyncapi.yaml",
+      "flags/contracts/asyncapi-v1.yaml"
     ],
     "internal_grpc": {
       "transport": "http2",
@@ -315,31 +315,31 @@
     {
       "tier": "T0",
       "name": "flag-evaluation",
-      "file": "microservices/feature-flags/capabilities/flag-evaluation.yaml"
+      "file": "flags/capabilities/flag-evaluation.yaml"
     },
     {
       "tier": "T0",
       "name": "flag-evaluate",
-      "file": "microservices/feature-flags/capabilities/flag-evaluate.yaml",
+      "file": "flags/capabilities/flag-evaluate.yaml",
       "emergency_bypass": true
     },
     {
       "tier": "T2",
       "name": "experiment-design",
-      "file": "microservices/feature-flags/capabilities/experiment-design.yaml",
+      "file": "flags/capabilities/experiment-design.yaml",
       "step_up_class": "B"
     },
     {
       "tier": "T1",
       "name": "killswitch-trigger",
-      "file": "microservices/feature-flags/capabilities/killswitch-trigger.yaml",
+      "file": "flags/capabilities/killswitch-trigger.yaml",
       "step_up_class": "C",
       "life_safety": true
     },
     {
       "tier": "T2",
       "name": "pack-overlay-subscribe",
-      "file": "microservices/feature-flags/capabilities/pack-overlay-subscribe.yaml",
+      "file": "flags/capabilities/pack-overlay-subscribe.yaml",
       "requires_foundry_attestation": true
     }
   ],
@@ -498,23 +498,23 @@
     }
   ],
   "catalog_records": [
-    "microservices/feature-flags/catalog/oya-feature-flags-flag-kernel.yaml",
-    "microservices/feature-flags/catalog/oya-feature-flags-flag-domain.yaml",
-    "microservices/feature-flags/catalog/oya-feature-flags-flag-usecase.yaml",
-    "microservices/feature-flags/catalog/oya-feature-flags-flag-adapter-postgres.yaml",
-    "microservices/feature-flags/catalog/oya-feature-flags-flag-app.yaml",
-    "microservices/feature-flags/catalog/oya-feature-flags-flag-rest.yaml",
-    "microservices/feature-flags/catalog/oya-feature-flags-targeting-kernel.yaml",
-    "microservices/feature-flags/catalog/oya-feature-flags-experiment-kernel.yaml",
-    "microservices/feature-flags/catalog/oya-feature-flags-killswitch-kernel.yaml",
-    "microservices/feature-flags/catalog/oya-feature-flags-rollout-kernel.yaml",
-    "microservices/feature-flags/catalog/oya-feature-flags-metric-kernel.yaml"
+    "flags/catalog/oya-feature-flags-flag-kernel.yaml",
+    "flags/catalog/oya-feature-flags-flag-domain.yaml",
+    "flags/catalog/oya-feature-flags-flag-usecase.yaml",
+    "flags/catalog/oya-feature-flags-flag-adapter-postgres.yaml",
+    "flags/catalog/oya-feature-flags-flag-app.yaml",
+    "flags/catalog/oya-feature-flags-flag-rest.yaml",
+    "flags/catalog/oya-feature-flags-targeting-kernel.yaml",
+    "flags/catalog/oya-feature-flags-experiment-kernel.yaml",
+    "flags/catalog/oya-feature-flags-killswitch-kernel.yaml",
+    "flags/catalog/oya-feature-flags-rollout-kernel.yaml",
+    "flags/catalog/oya-feature-flags-metric-kernel.yaml"
   ],
   "naming_justifications": {
-    "microservice": "feature-flags — single-concern substrate per ADR-0132 no-grouping policy; hyphen-separated per BNF v4.1",
+    "microservice": "feature-flags \u2014 single-concern substrate per ADR-0132 no-grouping policy; hyphen-separated per BNF v4.1",
     "crate_pattern": "oya-feature-flags-<bc>-<layer> per ADR-0105 13-layer enum; BC values: flag, targeting, experiment, metric, rollout, killswitch",
-    "kafka_topics": "oya.feature-flags.<event-class> — dot-separated namespace; snake_case event class per ADR-0263",
-    "cedar_fragments": "policy/<capability>-<action>-authorization.cedar — kebab-case; action-scoped per ADR-0183"
+    "kafka_topics": "oya.feature-flags.<event-class> \u2014 dot-separated namespace; snake_case event class per ADR-0263",
+    "cedar_fragments": "policy/<capability>-<action>-authorization.cedar \u2014 kebab-case; action-scoped per ADR-0183"
   },
   "regulatory_packs": [
     "us",
@@ -667,7 +667,7 @@
     "microservices/feature-flags/PRD.md",
     "microservices/feature-flags/ARCHITECTURE.md",
     "microservices/feature-flags/IP-002-flag-kernel.md",
-    "microservices/feature-flags/contracts/openapi-v1.yaml"
+    "flags/contracts/openapi-v1.yaml"
   ],
   "tenant_version_pinning": {
     "declared_versions": [
@@ -682,10 +682,10 @@
     "deprecation_calendar": [],
     "public_surface_files": {
       "openapi": {
-        "2026-05-21": "microservices/feature-flags/contracts/openapi-v1.yaml"
+        "2026-05-21": "flags/contracts/openapi-v1.yaml"
       },
       "asyncapi": {
-        "2026-05-21": "microservices/feature-flags/contracts/asyncapi-v1.yaml"
+        "2026-05-21": "flags/contracts/asyncapi-v1.yaml"
       }
     }
   },

@@ -46,14 +46,14 @@ DOSSIER-BC-003: Bounded context `experiment` states: Bounded context entry `expe
 DOSSIER-BC-004: Bounded context `metric-attribution` states: Bounded context entry `metric-attribution` is declared as a compact manifest value.; crate count=0.
 DOSSIER-BC-005: Bounded context `rollout` states: Bounded context entry `rollout` is declared as a compact manifest value.; crate count=0.
 DOSSIER-BC-006: Bounded context `killswitch` states: Bounded context entry `killswitch` is declared as a compact manifest value.; crate count=0.
-DOSSIER-CONTRACT-001: OpenAPI 3.2.0: microservices/feature-flags/contracts/feature-flags.openapi.yaml, microservices/feature-flags/contracts/openapi-v1.yaml.
-DOSSIER-CONTRACT-002: AsyncAPI 3.1.0: microservices/feature-flags/contracts/feature-flags.asyncapi.yaml, microservices/feature-flags/contracts/asyncapi-v1.yaml.
-DOSSIER-CONTRACT-003: proto3: microservices/feature-flags/contracts/feature_flags.proto, microservices/feature-flags/contracts/feature-flags-v1.proto.
-DOSSIER-CAPABILITY-001: T0 flag-evaluation risk=unknown file=microservices/feature-flags/capabilities/flag-evaluation.yaml.
-DOSSIER-CAPABILITY-002: T0 flag-evaluate risk=unknown file=microservices/feature-flags/capabilities/flag-evaluate.yaml.
-DOSSIER-CAPABILITY-003: T2 experiment-design risk=unknown file=microservices/feature-flags/capabilities/experiment-design.yaml.
-DOSSIER-CAPABILITY-004: T1 killswitch-trigger risk=unknown file=microservices/feature-flags/capabilities/killswitch-trigger.yaml.
-DOSSIER-CAPABILITY-005: T2 pack-overlay-subscribe risk=unknown file=microservices/feature-flags/capabilities/pack-overlay-subscribe.yaml.
+DOSSIER-CONTRACT-001: OpenAPI 3.2.0: flags/contracts/feature-flags.openapi.yaml, flags/contracts/openapi-v1.yaml.
+DOSSIER-CONTRACT-002: AsyncAPI 3.1.0: flags/contracts/feature-flags.asyncapi.yaml, flags/contracts/asyncapi-v1.yaml.
+DOSSIER-CONTRACT-003: proto3: flags/contracts/feature_flags.proto, flags/contracts/feature-flags-v1.proto.
+DOSSIER-CAPABILITY-001: T0 flag-evaluation risk=unknown file=flags/capabilities/flag-evaluation.yaml.
+DOSSIER-CAPABILITY-002: T0 flag-evaluate risk=unknown file=flags/capabilities/flag-evaluate.yaml.
+DOSSIER-CAPABILITY-003: T2 experiment-design risk=unknown file=flags/capabilities/experiment-design.yaml.
+DOSSIER-CAPABILITY-004: T1 killswitch-trigger risk=unknown file=flags/capabilities/killswitch-trigger.yaml.
+DOSSIER-CAPABILITY-005: T2 pack-overlay-subscribe risk=unknown file=flags/capabilities/pack-overlay-subscribe.yaml.
 
 ## 3. ADR-0339 Doctrine Binding
 ADR0339-001: Purpose binding: collapse 385 per-service from-scratch module directories into roughly 50 shared OpenTofu primitives plus thin wrappers.
@@ -275,9 +275,9 @@ LEADER-018: `feature-flags` leader-scale posture keeps primitive selection expli
 
 ## 12. API And Contract Documentation Impact
 API-001: `feature-flags` does not change REST, event, or proto payloads in this document-stage wave.
-API-002: OpenAPI 3.2.0 references for `feature-flags` remain: OpenAPI 3.2.0: microservices/feature-flags/contracts/feature-flags.openapi.yaml, microservices/feature-flags/contracts/openapi-v1.yaml
-API-003: AsyncAPI 3.1.0 references for `feature-flags` remain: AsyncAPI 3.1.0: microservices/feature-flags/contracts/feature-flags.asyncapi.yaml, microservices/feature-flags/contracts/asyncapi-v1.yaml
-API-004: proto3 references for `feature-flags` remain: proto3: microservices/feature-flags/contracts/feature_flags.proto, microservices/feature-flags/contracts/feature-flags-v1.proto
+API-002: OpenAPI 3.2.0 references for `feature-flags` remain: OpenAPI 3.2.0: flags/contracts/feature-flags.openapi.yaml, flags/contracts/openapi-v1.yaml
+API-003: AsyncAPI 3.1.0 references for `feature-flags` remain: AsyncAPI 3.1.0: flags/contracts/feature-flags.asyncapi.yaml, flags/contracts/asyncapi-v1.yaml
+API-004: proto3 references for `feature-flags` remain: proto3: flags/contracts/feature_flags.proto, flags/contracts/feature-flags-v1.proto
 API-005: If a future wrapper migration exposes deployment preview APIs, the public boundary must carry ADR-0342 date-version carriers separately from module semantic versions.
 API-006: If a future wrapper migration changes async deployment events, the AsyncAPI channel must identify module context, primitive, version_pin, tenant_class_scope, and cell_id.
 API-007: If a future wrapper migration changes proto deployment receipts, proto3 reserved tags must prevent silent field reuse.
@@ -301,7 +301,7 @@ ALT-004: Delay `feature-flags` manifest declaration until implementation; reject
 ALT-005: Allow unpinned local module paths during migration; rejected because the exact path would work locally while hiding supply-chain and reproducibility risk.
 
 ## 15. Acceptance And Verification
-VERIFY-001: Static read confirms this file exists at `microservices/feature-flags/IPs/IP-ADR-0339-Shared-IaC-Modules.md`.
+VERIFY-001: Static read confirms this file exists at `flags/IPs/IP-ADR-0339-Shared-IaC-Modules.md`.
 VERIFY-002: Static read confirms ADR-0339 is cited by exact ID.
 VERIFY-003: Static read confirms ADR-0322 is cited by exact ID.
 VERIFY-004: Static read confirms ADR-0181 is cited by exact ID.

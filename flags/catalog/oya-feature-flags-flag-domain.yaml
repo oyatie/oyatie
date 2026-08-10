@@ -5,9 +5,9 @@ context: feature-flags
 plane: control
 slo: flag-eval-latency
 contracts_consumed:
-  - microservices/feature-flags/contracts/feature-flags-v1.proto
+  - flags/contracts/feature-flags-v1.proto
 contracts_exposed:
-  - microservices/feature-flags/contracts/openapi-v1.yaml
+  - flags/contracts/openapi-v1.yaml
 regulatory_packs_consumed: [oya-pack-kr, oya-pack-eu, oya-pack-us, oya-pack-us-healthcare, oya-pack-fedramp, oya-pack-eu-ai-act]
 lifecycle: {state: incubating, preview_since: 2026-05-20}
 traceability:

@@ -14,7 +14,7 @@ related_adrs:
 companion_docs:
   - microservices/feature-flags/ARCHITECTURE.md
   - microservices/feature-flags/PRD.md
-  - microservices/feature-flags/manifest.json
+  - flags/manifest.json
 planned_enforcement_ref: oya-governance-microservice-doc-set
 ---
 
@@ -41,28 +41,13 @@ Hyperscaler precedents: LaunchDarkly relay-proxy model, Statsig server-side eval
 ## Directory layout
 
 ```
-microservices/feature-flags/
-├── ARCHITECTURE.md          — §principals §cedar-gates §tenant-scoping §transport §observability
-├── CHANGELOG.md             — SemVer history
-├── compliance.md            — §pack-overlay-roster §day-one-cert-readiness §detection-substrate-binding
-├── competitor-parity-matrix.md
-├── capacity-model.md
-├── cost-budget.md
-├── dpia.md
-├── failure-modes.md
-├── incident-response.md
+flags/
 ├── manifest.json
-├── multi-region.md
-├── backfill-replay.md
-├── sdk-plan.md
-├── PRD.md
-├── PHASE-01-LAUNCHDARKLY-CLASS-FLAG-SUBSTRATE.md
-├── threat-model.md
-├── IP-001-feature-flags-design-readiness.md
-├── IP-002-flag-kernel.md … IP-020-*.md
+├── catalog.yaml
 ├── AUDIT-FINDINGS-2026-05-20.json
 ├── scorecards/overrides.json
 ├── capabilities/
+│   ├── flag-evaluation.yaml
 │   ├── flag-evaluate.yaml
 │   ├── experiment-design.yaml
 │   ├── killswitch-trigger.yaml
@@ -70,15 +55,22 @@ microservices/feature-flags/
 ├── catalog/
 │   └── oya-feature-flags-{bc}-{layer}.yaml  (≥11 records)
 ├── contracts/
+│   ├── feature-flags.openapi.yaml
 │   ├── openapi-v1.yaml           — OpenAPI 3.2.0; OpenFeature-compatible
+│   ├── feature-flags.asyncapi.yaml
 │   ├── asyncapi-v1.yaml          — AsyncAPI 3.1.0; flag-state-changed events
-│   ├── feature-flags-v1.proto    — proto3 gRPC surface
-│   └── openfeature-sdk-contract.md
+│   ├── feature_flags.proto
+│   └── feature-flags-v1.proto    — proto3 gRPC surface
+├── core/
+│   ├── evaluation-domain/        — flag evaluation engine
+│   └── server/                   — REST/gRPC/OFREP runtime
 ├── dashboards/
 │   ├── flag-state-overview.json
 │   ├── experiment-results.json
-│   ├── killswitch-history.json
-│   └── pack-override-coverage.md
+│   └── killswitch-history.json
+├── decisions/
+│   └── ADR-MS-001-flag-evaluation-killswitch-and-experiment-contract.md
+├── dpia/dpia.md
 ├── iac/
 │   ├── k8s-deployment.yaml
 │   ├── helm-values.yaml
@@ -88,7 +80,17 @@ microservices/feature-flags/
 │   ├── ech-config.yaml
 │   ├── pqc-cert.yaml
 │   ├── edge-waf.yaml
+│   ├── k8s/helm/
 │   └── terraform/main.tf
+├── IPs/
+│   ├── IP-ADR-0339-Shared-IaC-Modules.md
+│   └── IP-WAVE-15-ZD-sharding-automation.md
+├── observability/slos/
+│   ├── flag-eval-latency.openslo.yaml
+│   ├── flag-state-propagation.openslo.yaml
+│   ├── experiment-result-freshness.openslo.yaml
+│   ├── killswitch-fire-latency.openslo.yaml
+│   └── feature-flags.openslo.yaml
 ├── policy/
 │   ├── flag-mutation-authorization.cedar
 │   ├── experiment-design-authorization.cedar
@@ -96,27 +98,24 @@ microservices/feature-flags/
 │   ├── safety-killswitch-authorization.cedar
 │   ├── abuse-defence.cedar
 │   ├── pack-overlay-authorization.cedar
-│   ├── data-residency.md
 │   ├── auditor-scope.cedar
 │   ├── ci-scope.cedar
 │   ├── emergency-services-bypass.cedar
-│   └── tenant-targeting.cedar  (existing)
-├── runbooks/
-│   ├── killswitch-engaged.md
-│   ├── flag-mutation-cascade.md
-│   ├── experiment-rollback.md
-│   ├── audit-replay.md
-│   ├── pack-override-cascade.md
-│   ├── stale-targeting-rule.md
-│   ├── experiment-stat-sig-violation.md
-│   ├── a11y-flag-violation.md
-│   └── flag-evaluation-regression.md  (existing)
-└── slos/
-    ├── flag-eval-latency.openslo.yaml
-    ├── flag-state-propagation.openslo.yaml
-    ├── experiment-result-freshness.openslo.yaml
-    ├── killswitch-fire-latency.openslo.yaml
-    └── feature-flags.openslo.yaml  (existing)
+│   └── tenant-targeting.cedar
+├── release/runtime-safety-policy.json
+└── runbooks/
+    ├── killswitch-engaged.md
+    ├── flag-mutation-cascade.md
+    ├── experiment-rollback.md
+    ├── audit-replay.md
+    ├── pack-override-cascade.md
+    ├── stale-targeting-rule.md
+    ├── experiment-stat-sig-violation.md
+    ├── a11y-flag-violation.md
+    ├── flag-evaluation-regression.md
+    ├── hot-split.md
+    ├── cold-merge.md
+    └── auto-rebalance.md
 ```
 
 ## Bounded contexts

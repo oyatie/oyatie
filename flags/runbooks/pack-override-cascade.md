@@ -9,9 +9,9 @@ related_adrs:
   - ADR-0243
   - ADR-0251
 companion_docs:
-  - microservices/feature-flags/runbooks/killswitch-engaged.md
+  - flags/runbooks/killswitch-engaged.md
   - microservices/feature-flags/compliance.md
-  - microservices/feature-flags/policy/pack-flag-override.cedar
+  - flags/policy/pack-flag-override.cedar
 planned_enforcement_ref: oya-governance-adr-adherence-matrix
 ---
 

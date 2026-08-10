@@ -3,7 +3,7 @@ tier: T0
 owner_team: axis-governance
 summary: Evaluate tenant-scoped feature flags with lifecycle and audit controls.
 policy_refs:
-  - microservices/feature-flags/policy/tenant-targeting.cedar
+  - flags/policy/tenant-targeting.cedar
 contracts:
-  - microservices/feature-flags/contracts/feature-flags.openapi.yaml
-  - microservices/feature-flags/contracts/feature_flags.proto
+  - flags/contracts/feature-flags.openapi.yaml
+  - flags/contracts/feature_flags.proto

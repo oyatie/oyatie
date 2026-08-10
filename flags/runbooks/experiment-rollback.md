@@ -8,8 +8,8 @@ related_adrs:
   - ADR-0159
   - ADR-0263
 companion_docs:
-  - microservices/feature-flags/runbooks/experiment-stat-sig-violation.md
-  - microservices/feature-flags/runbooks/killswitch-engaged.md
+  - flags/runbooks/experiment-stat-sig-violation.md
+  - flags/runbooks/killswitch-engaged.md
   - microservices/feature-flags/incident-response.md
 planned_enforcement_ref: oya-governance-adr-adherence-matrix
 ---

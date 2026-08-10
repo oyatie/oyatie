@@ -9,7 +9,7 @@ related_adrs:
   - ADR-0308
   - ADR-0309
 companion_docs:
-  - microservices/feature-flags/runbooks/experiment-rollback.md
+  - flags/runbooks/experiment-rollback.md
   - microservices/feature-flags/compliance.md
 planned_enforcement_ref: oya-governance-adr-adherence-matrix
 ---

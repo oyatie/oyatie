@@ -8,8 +8,8 @@ related_adrs:
   - ADR-0159
   - ADR-0294
 companion_docs:
-  - microservices/feature-flags/runbooks/flag-mutation-cascade.md
-  - microservices/feature-flags/runbooks/killswitch-engaged.md
+  - flags/runbooks/flag-mutation-cascade.md
+  - flags/runbooks/killswitch-engaged.md
   - microservices/feature-flags/incident-response.md
 planned_enforcement_ref: oya-governance-adr-adherence-matrix
 ---

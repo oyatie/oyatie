@@ -129,6 +129,6 @@
   "links": [
     {"title": "Experiment Results", "url": "/d/feature-flags-experiments"},
     {"title": "Kill-Switch History", "url": "/d/feature-flags-killswitch"},
-    {"title": "Runbooks", "url": "microservices/feature-flags/runbooks/"}
+    {"title": "Runbooks", "url": "flags/runbooks/"}
   ]
 }
