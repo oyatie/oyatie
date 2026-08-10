@@ -40,8 +40,8 @@ need_inv = [f"INV-DOC-{i}" for i in range(1, 10)]
 missing_inv = [x for x in need_inv if x not in inv]
 if missing_inv:
     raise SystemExit(f"anti_drift.invariants missing {missing_inv}")
-if e.get("_meta", {}).get("version") != "1.12.0":
-    raise SystemExit(f"_meta.version={e.get('_meta', {}).get('version')!r} want 1.12.0")
+if e.get("_meta", {}).get("version") != "1.16.4":
+    raise SystemExit(f"_meta.version={e.get('_meta', {}).get('version')!r} want 1.16.4")
 mw = e["merge_windows"]
 if mw.get("hot_set_max", 0) != 4:
     raise SystemExit(f"merge_windows.hot_set_max={mw.get('hot_set_max')}")
@@ -60,15 +60,24 @@ if "process_meta" not in e["planes"]:
     raise SystemExit("missing planes.process_meta")
 # root-ops-contract-route: root survival hubs + .cursor must be routable via process_meta
 pm_globs = set(e["planes"]["process_meta"].get("envelope_globs") or [])
-need_pm = {"AGENTS.md", "CLAUDE.md", "README.md", ".cursor/**"}
+need_pm = {"AGENTS.md", "CLAUDE.md", "README.md", "HANDOFF.md", ".cursor/**"}
 missing_pm = sorted(need_pm - pm_globs)
 if missing_pm:
     raise SystemExit(f"planes.process_meta missing root-ops globs: {missing_pm}")
 if e["planes"]["process_meta"].get("branch") != "integ/ci":
     raise SystemExit("planes.process_meta.branch must remain integ/ci (forever owner)")
+# northstar residual: HANDOFF indexed under northstar_baseline.root_survival
+nb = e.get("reorg_debt_freeze", {}).get("northstar_baseline", {})
+rs = (nb.get("root_survival") or {}).get("HANDOFF.md") or {}
+if rs.get("destination_integ") != "integ/ci" or rs.get("forever") != "HANDOFF.md":
+    raise SystemExit("northstar_baseline.root_survival.HANDOFF.md must route forever→integ/ci")
+for rail in ("oya/itsm/", "oya/sheets/", "oya/translate/", "oya/sites/"):
+    pr = (nb.get("product_rails") or {}).get(rail) or {}
+    if not pr.get("destination_integ") or not pr.get("shrink_source_integ"):
+        raise SystemExit(f"northstar_baseline.product_rails missing two-phase fields for {rail}")
 print("ok")
 PY
-if [[ $fail -eq 0 ]]; then pass "envelopes schema keys + anti_drift INV-DOC-1…9 + merge_windows + holes + root-ops process_meta"; fi
+if [[ $fail -eq 0 ]]; then pass "envelopes schema keys + anti_drift INV-DOC-1…9 + merge_windows + holes + root-ops process_meta + HANDOFF"; fi
 
 # 2) Registry ↔ envelopes concurrent-safe parity (narrowed evidence)
 python3 - "$ENVELOPES" "$REGISTRY" <<'PY' || fail_msg "concurrent-safe parity"

@@ -6,7 +6,7 @@
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
     "spec_id": "EXE-INTEG-BRANCH-ENVELOPES",
-    "version": "1.16.3",
+    "version": "1.16.4",
     "status": "Proposed",
     "owner_team": "council-architecture",
     "created_at": "2026-08-10T00:00:00Z",
@@ -367,14 +367,15 @@
         ".cursor/**",
         "AGENTS.md",
         "CLAUDE.md",
-        "README.md"
+        "README.md",
+        "HANDOFF.md"
       ],
-      "note": "PROCESS_META — PROCESS_KIT + root operating-contract entry hubs (ADR-0700; markdown-retirement survival set). Forever owner integ/ci (not integ/docs): docs plane stays docs/** (apex docs/AGENTS.md); root AGENTS/CLAUDE/README and .cursor/** are session entry / editor kit peers of .github/.claude — adjuncts expire, so do not park forever ownership on integ/docs. Bootstrap wave may still adjunct-claim from integ/specs. Closes root-ops-contract-route / northstar-envelope-holes for these paths.",
+      "note": "PROCESS_META — PROCESS_KIT + root operating-contract entry hubs (ADR-0700; markdown-retirement survival set). Forever owner integ/ci (not integ/docs): docs plane stays docs/** (apex docs/AGENTS.md); root AGENTS/CLAUDE/README/HANDOFF and .cursor/** are session entry / editor kit peers of .github/.claude — adjuncts expire, so do not park forever ownership on integ/docs. HANDOFF.md is the founder thin fresh-session redirect (keep_forever at root; no path move). Bootstrap wave may still adjunct-claim from integ/specs. Closes root-ops-contract-route / northstar-envelope-holes for these paths.",
       "forward_declared_owner": "integ/ci",
       "owner_decision": {
         "forever_owner": "integ/ci",
         "rejected_alternative": "integ/docs adjunct or docs-plane glob expansion",
-        "why": "Chesterton: process_meta already owns PROCESS_KIT peers; forever adjunct is oxymoron; expanding docs beyond docs/** conflates PLANE hub with root entry hubs. Content land of root file doctrine is a follow-on lane after this route exists."
+        "why": "Chesterton: process_meta already owns PROCESS_KIT peers; forever adjunct is oxymoron; expanding docs beyond docs/** conflates PLANE hub with root entry hubs. HANDOFF stays root thin redirect (markdown-retirement survival), not a docs/** plane citizen. Content land of root file doctrine is a follow-on lane after this route exists."
       }
     },
     "root_manifests": {
@@ -4354,6 +4355,16 @@
           "forever": ".grok/**",
           "shrink_source_integ": "integ/tools",
           "envelope_root": "roots.grok"
+        }
+      },
+      "root_survival": {
+        "HANDOFF.md": {
+          "destination_integ": "integ/ci",
+          "forever": "HANDOFF.md",
+          "envelope_plane": "planes.process_meta",
+          "shrink_source_integ": null,
+          "two_phase_note": "Phase 1: integ/ci owns forever path via planes.process_meta (route Claim). Phase 2: no shrink — path already at forever home (keep_forever thin redirect; markdown-retirement founder exception).",
+          "note": "Closes northstar-envelope-holes residual HANDOFF.md; content edits follow integ/ci process_meta forever owner"
         }
       }
     },
