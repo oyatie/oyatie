@@ -71,7 +71,7 @@ fn committed_policy_declares_retired_python_sources_and_rust_primary_path() {
     );
     assert!(policy["source_migration_slice"].as_array().unwrap().iter().all(|row| {
         row["replacement_target"]
-            == "//ci/facade/resource-contract-conformance:oya-cloud-ci-cloud-resource-contracts-app-gate"
+            == "//ci/facade/resource-contract-conformance:ci-resource-contract-conformance-gate"
             && row["disposition"] == "retired_primary_path"
     }));
 }

@@ -4016,6 +4016,14 @@ fn write_kernel_workspace(root: &Path, lib_rs: &str) {
     write_workspace_manifest(root, &["crates/example-kernel"]);
     write_package_manifest(&crate_dir, "example-kernel");
     fs::write(crate_dir.join("src/lib.rs"), lib_rs).expect("kernel source written");
+    // FANOUT-02: data-class scan roots are selected from catalog role:kernel.
+    let catalog_dir = root.join("registry/catalog");
+    fs::create_dir_all(&catalog_dir).expect("catalog dir created");
+    fs::write(
+        catalog_dir.join("example-kernel.yaml"),
+        "context: test\nrole: kernel\ncapability: example\nplane: control\n",
+    )
+    .expect("kernel catalog written");
 }
 
 fn write_workspace_manifest(root: &Path, members: &[&str]) {

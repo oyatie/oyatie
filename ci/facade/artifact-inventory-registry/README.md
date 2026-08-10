@@ -20,9 +20,9 @@ firewall's own evaluator (so its verdict cannot drift from CI's):
 
 ```
 # 1. Scaffold an admission-passing PR body (dogfood the sibling preflight):
-buck2 run //libs/oya-check-pr-traceability:pr-traceability-admission-bin -- --scaffold > /tmp/body.md
+buck2 run //governance/check/pr-traceability:pr-traceability-admission-bin -- --scaffold > /tmp/body.md
 #    ...edit /tmp/body.md, then validate it:
-buck2 run //libs/oya-check-pr-traceability:pr-traceability-admission-bin -- --check /tmp/body.md
+buck2 run //governance/check/pr-traceability:pr-traceability-admission-bin -- --check /tmp/body.md
 
 # 2. Check the files your branch ADDS before you push:
 buck2 run //ci/facade/artifact-inventory-registry:oya-cloud-ci-accounting-registry-app-bin -- \
