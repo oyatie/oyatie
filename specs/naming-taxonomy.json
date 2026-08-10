@@ -6,7 +6,7 @@
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
     "spec_id": "EXE-NAMING-TAXONOMY",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "status": "Proposed",
     "owner_team": "council-architecture",
     "created_at": "2026-08-10T00:00:00Z",
@@ -29,7 +29,9 @@
     "supersedes_for_greenfield": [
       "ADR-0017 / crate-naming-convention required_prefix=oya- as durable greenfield law",
       "brand-first cloud-ci-* / oya-cloud-ci-* gate and binary names"
-    ]
+    ],
+    "prior_version": "1.1.0",
+    "updated_at": "2026-08-10T00:00:00Z"
   },
   "pattern_first_law": {
     "rule": "Grammar, semantics, taxonomy, structure, and architecture MUST follow an established pattern. If no hyperscaler-maintainable AND mechanically-classifiable pattern exists, ESTABLISH THE PATTERN FIRST (this file + ADR amendment), THEN apply renames/reorgs as instances. No one-off bespoke names.",
@@ -175,16 +177,21 @@
     },
     "decision-record": {
       "description": "Live architecture decision file under docs/decisions/",
-      "path_shape": "docs/decisions/<topic>.md",
-      "name_shape": "topic-shaped kebab; ADR number MAY appear in frontmatter/index ONLY, not as required path segment",
+      "path_shape": "docs/decisions/ADR-NNNN-<topic>.md",
+      "name_shape": "ADR-NNNN-<topic> kebab; number is durable path segment; indexes/frontmatter carry nav",
       "integ": "integ/docs (hub) with integ/specs adjunct when co-landing doctrine",
       "examples_good": [
-        "docs/decisions/swarm-delivery-law-integ-branch-topology.md"
-      ],
-      "examples_bad": [
         "docs/decisions/ADR-0711-swarm-delivery-law-integ-branch-topology.md"
       ],
-      "batch_rule": "Rename in judged batches; never blind mass-rename the whole tree in one PR"
+      "examples_bad": [
+        "docs/decisions/swarm-delivery-law-integ-branch-topology.md (topic-only mass-rename theater)",
+        "docs/decisions/ADR-711-missing-zero-pad.md"
+      ],
+      "batch_rule": "MUST NOT mass-rename ADR files for taxonomy optics; keep ADR-NNNN-<topic>; indexes carry nav (adr-rename-overturn)",
+      "achieves": "Stable citation paths + ordered indexes without high-fan-in rename churn",
+      "origin": "Challenged Pattern-First draft that treated ADR-NNNN path prefixes as indefensible",
+      "ensure": "overturned_patterns OP-adr-numbered-decision-paths verdict=keep; ADR-0711 Amendment E",
+      "overturn_when": "Measured findability failure + batched judged rename plan clears 16-lens with dual-emit cutover"
     },
     "process-kit": {
       "description": "Agent/process tooling surfaces (thin; not product)",
@@ -241,13 +248,15 @@
     "forbidden_path_segments": [
       {
         "pattern": "ADR-[0-9]{4}",
-        "where": "path segments and durable filenames",
+        "where": "path segments and durable filenames OUTSIDE docs/decisions/",
         "allowed_in": [
+          "docs/decisions/ADR-NNNN-<topic>.md (Amendment E / adr-rename-overturn — forever path shape)",
           "docs/ADR-INDEX.md rows",
           "frontmatter id fields",
           "prose citations",
           "archive provenance"
-        ]
+        ],
+        "note": "CI job titles and non-decision durable paths still MUST NOT embed ADR-NNNN; decision-record filenames KEEP ADR-NNNN-<topic>"
       }
     ],
     "forbidden_user_visible_tokens": [
@@ -478,18 +487,21 @@
     {
       "name_now": "docs/decisions/ADR-NNNN-*.md",
       "kind": "decision-record",
-      "name_forever": "docs/decisions/<topic>.md (number in index/frontmatter only)",
-      "grammar_compliant": false,
-      "violations": [
-        "adr_number_path_segment"
-      ],
-      "action": "reorg_now",
+      "name_forever": "docs/decisions/ADR-NNNN-<topic>.md (indexes/frontmatter carry nav)",
+      "grammar_compliant": true,
+      "violations": [],
+      "action": "keep_forever",
       "redesign": "refactor",
       "owning_integ": "integ/docs",
       "land_plan": "judged batches; indexes keep numbers",
-      "what_it_does": "Live ADR apex files; number-as-filename forces ADR recall to navigate",
+      "what_it_does": "Live ADR path shape; number is citation-stable durable segment",
       "lenses_applied": "all-16",
-      "taxonomy_posture": "replace_not_encode"
+      "taxonomy_posture": "keep_nnnn_topic_indexes",
+      "challenges": [
+        "chestertons_fence: numbered ADR catalogs exist for chronology+citation — fence holds",
+        "blast_radius_cell: mass-rename is high fan-in with no measured findability win",
+        "essentialism_yagni: indexes already provide topic nav; path churn is not irreducible"
+      ]
     },
     {
       "name_now": "specs/fixtures/cloud-ci-firewall/",
@@ -573,7 +585,8 @@
       "one_off_bespoke_name_outside_kinds",
       "rename_without_taxonomy_kind",
       "change_github_branch_protection_from_agent",
-      "blind_mass_rename_docs_decisions"
+      "blind_mass_rename_docs_decisions",
+      "mass_rename_adr_for_optics"
     ]
   },
   "lens_battery": {
@@ -683,18 +696,21 @@
       "id": "OP-adr-numbered-decision-paths",
       "name_now": "docs/decisions/ADR-NNNN-*.md",
       "kind": "decision-record",
-      "name_forever": "docs/decisions/<topic>.md",
+      "name_forever": "docs/decisions/ADR-NNNN-<topic>.md",
       "lenses_applied": "all-16",
       "chestertons_fence": "Numbered ADR catalogs are industry-common for chronology and citation.",
       "challenges": [
-        "essentialism_yagni: chronology belongs in index/frontmatter, not the only navigable path key",
-        "pragmatism: topic-shaped paths pass the self-explanatory path test; numbers do not",
-        "blast_radius_cell: mass-rename is high fan-in — batched judged renames only",
-        "chestertons_fence: keep ADR numbers as citation ids; replace path shape"
+        "chestertons_fence: numbered paths are industry-common citation anchors — state why before removing",
+        "blast_radius_cell: mass-rename of 400+ ADRs is high fan-in with dual-truth risk during cutover",
+        "pragmatism: indexes/frontmatter already solve topic findability without path churn",
+        "opportunity_cost: rename theater displaces land of binding law (#1644)",
+        "cartesian_doubt: no measured evidence that topic-only paths improve operator outcomes here"
       ],
-      "verdict": "reshape",
-      "defensible_core": "stable citation ids + ordered index",
-      "indefensible": "ADR-NNNN as mandatory durable filename prefix"
+      "verdict": "keep",
+      "defensible_core": "stable ADR-NNNN-<topic> citation paths + ordered indexes/frontmatter for nav",
+      "indefensible": "blind mass-rename to topic-only filenames for taxonomy optics",
+      "overrule_of": "prior reshape-to-topic-only proposal",
+      "note": "adr-rename-overturn (2026-08-10): forever-correct is NNNN-topic + indexes — not churn later, not churn now"
     }
   ]
 }

@@ -2,23 +2,41 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://docs.oyatie.com/specs/agentic-operating-patterns.json",
   "title": "AgenticOperatingPatterns",
-  "description": "Clustered KEEP/BAN operating patterns distilled into Swarm Delivery Law (ADR-0711 Amendment C / operating-patterns catalog). Not paraphrases of the source archive.",
+  "description": "Clustered KEEP/BAN operating patterns distilled into Swarm Delivery Law (ADR-0711 Amendment C / operating-patterns catalog). Not paraphrases of the source archive. Load-bearing entries carry rules-with-why fields (achieves/origin/rule/ensure/overturn_when).",
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
     "spec_id": "EXE-AGENTIC-OPERATING-PATTERNS",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "status": "Proposed",
     "owner_team": "council-architecture",
     "created_at": "2026-08-10T00:00:00Z",
+    "updated_at": "2026-08-10T00:00:00Z",
     "authority_adr": "docs/decisions/ADR-0711-swarm-delivery-law-integ-branch-topology.md#Amendment-C",
     "self_owner_branch": "integ/specs",
     "corpus": "ADR-0711 Amendment C operating-patterns catalog (archive distillation 000-136)",
     "corpus_entries": "000-136",
+    "prior_version": "1.0.0",
     "primary_consumers": [
       ".grok/programs/delivery-fabric/evidence/PORTABLE-SWARM-CONTRACT.md",
       "specs/integ-branch-envelopes.json",
       ".claude/workflows/deliver.js Claim (advisory)"
     ]
+  },
+  "rule_shape": {
+    "required_fields": [
+      "id",
+      "achieves",
+      "origin",
+      "rule",
+      "ensure",
+      "overturn_when"
+    ],
+    "achieves": "what the rule protects / makes true",
+    "origin": "failure or pressure that created the rule",
+    "rule": "the mechanism (RFC-2119 MUST/MUST NOT where applicable)",
+    "ensure": "how we prove it still holds (gate, receipt, test, review)",
+    "overturn_when": "first-principles conditions under which replacing it is legal (challenge → OVERRULE → version bump)",
+    "note": "Rules are hypotheses, not folklore. Rules without why train obedience; rules with why train judgment."
   },
   "oyatie_apply_tags": [
     "swarm-delivery-law",
@@ -33,7 +51,11 @@
   "keep": [
     {
       "id": "replicated-state-budget",
+      "achieves": "Parallelism scales without unbounded worktree/cache/index mass.",
+      "origin": "Fleet fan-out sized by lane count produced replicated-state thrash.",
       "rule": "Design cleanup/ownership of replicated state before scaling parallelism; size by replicated mass, not lane count.",
+      "ensure": "Window receipts record hot-set + worktree inventory; merge_windows.hot_set_max caps restackable tips.",
+      "overturn_when": "A measured constant-work design removes replicated mass as the binding constraint.",
       "oyatie_apply": [
         "worktrees",
         "no-slow-commands",
@@ -42,7 +64,11 @@
     },
     {
       "id": "observation-neq-authority",
+      "achieves": "Automation and babysit cannot mint merge/APPROVE authority from density of observation.",
+      "origin": "Observation packets and green CI were treated as land license.",
       "rule": "Dense observation does not grant intervene/APPROVE/own rights; automation stops at authority edge.",
+      "ensure": "Claim/Land refuse observation-as-APPROVE; dual-critic + oya-ci-required remain admission predicates.",
+      "overturn_when": "A new admission predicate is dual-emitted and founder-flipped with explicit OVERRULE receipt.",
       "oyatie_apply": [
         "swarm-delivery-law",
         "16-lens"
@@ -50,7 +76,11 @@
     },
     {
       "id": "verified-empty-honest-halt",
+      "achieves": "Empty space stays empty; agents do not invent work for optics.",
+      "origin": "Coverage-optics deepen and filler quotas into verified-empty roots.",
       "rule": "Verified-empty, honest undecided, and precise halt are completed ops — record them; do not invent work to fill silence.",
+      "ensure": "Judgment rows may be verified-empty; scaffold-idle requires written reason.",
+      "overturn_when": "A named consumer + acceptance criteria appear for previously empty space.",
       "oyatie_apply": [
         "swarm-delivery-law",
         "reorg-evaluate"
@@ -58,7 +88,11 @@
     },
     {
       "id": "evidence-before-done-receipt-wal",
+      "achieves": "Done claims are HEAD-keyed and multi-signal; stale tips cannot launder as current proof.",
+      "origin": "Sticky prior greens and narrative done without receipts.",
       "rule": "HEAD-keyed receipts; multi-signal done (CI + review + mergeState + live surface); new HEAD → new evidence; quarantine invalid receipts.",
+      "ensure": "Claim packet + babysit window receipts cite tip SHA; re-verify at moment of action.",
+      "overturn_when": "Admission predicates change via dual-emit + founder flip with doctrine bump.",
       "oyatie_apply": [
         "merge-admission",
         "integ",
@@ -67,7 +101,11 @@
     },
     {
       "id": "fail-closed-blockers",
+      "achieves": "Missing inputs fail closed with a named next action.",
+      "origin": "Silent success on blocked inputs and rubber-stamp thread resolve.",
       "rule": "Missing inputs/identity → fail closed; blockers named by gate with next action; silence only when proven idle.",
+      "ensure": "Claim/Land + gates REFUSE on missing packet/waiver/hub exclusivity.",
+      "overturn_when": "A gate proves a safe default-open path under zero-trust review.",
       "oyatie_apply": [
         "swarm-delivery-law",
         "integ"
@@ -75,7 +113,11 @@
     },
     {
       "id": "subsystem-batch-role-separation",
+      "achieves": "One writer queue per subsystem; planner ≠ implementer; adversarial review.",
+      "origin": "Same-subsystem thrash across many tips; self-approve loops.",
       "rule": "Batch same-subsystem work into one lane; planner ≠ implementer; one implementer + adversarial reviewers; accelerate on owner-hook, brake on verified empty.",
+      "ensure": "Envelope sole-owner + role tags on dispatches; critic separate from implementer.",
+      "overturn_when": "A different role topology is OVERRULEd with measured blast-radius evidence.",
       "oyatie_apply": [
         "swarm-delivery-law",
         "integ",
@@ -84,7 +126,11 @@
     },
     {
       "id": "git-lock-pid-check",
+      "achieves": "Shared-object/index.lock contention does not cause blind lock deletion.",
+      "origin": "Agents deleted index.lock and corrupted shared WD state.",
       "rule": "On index.lock / shared-object contention: check owning pid, retry idempotent — never blind-delete the lock.",
+      "ensure": "Worker git allowlist denies destructive unlock; shim/toolguard refuse.",
+      "overturn_when": "Worktree isolation makes shared locks impossible and shim enforcement proves it.",
       "oyatie_apply": [
         "worktrees",
         "swarm-delivery-law"
@@ -92,7 +138,11 @@
     },
     {
       "id": "green-neq-go",
+      "achieves": "Green admits the next gate only; same-author APPROVE banned.",
+      "origin": "Merge ego after green; observation density as scoreboard.",
       "rule": "Green admits the next gate only, not departure; same-author APPROVE banned; re-verify at moment of action.",
+      "ensure": "Branch protection + Tide author≠reviewer floor; Land re-checks tip.",
+      "overturn_when": "A stronger multi-party admission model replaces current predicates with dual-emit evidence.",
       "oyatie_apply": [
         "merge-admission",
         "integ"
@@ -100,7 +150,11 @@
     },
     {
       "id": "live-smoke",
+      "achieves": "Build≠publish; post-merge until live surface is green.",
+      "origin": "Wrapper noise treated as artifact fail; deploy without live smoke.",
       "rule": "Public/live smoke after deploy; build ≠ publish; wrapper noise ≠ artifact fail; post-merge until live surface is green.",
+      "ensure": "Post-merge product-completion packet requires live/observability evidence.",
+      "overturn_when": "A different live-proof contract is accepted with SLO-backed ensure path.",
       "oyatie_apply": [
         "swarm-delivery-law",
         "integ"
@@ -108,17 +162,64 @@
     },
     {
       "id": "sharp-labels-pattern-first",
+      "achieves": "Forever names follow taxonomy; labels act as switches not decoration.",
+      "origin": "Brand/opaque/ADR-in-title durable names and one-off bespoke renames.",
       "rule": "Sharp labels as action switches; forever names follow specs/naming-taxonomy.json.",
+      "ensure": "naming_sweep cites kind + grammar_compliant; taxonomy overturned_patterns for indefensible shapes.",
+      "overturn_when": "Taxonomy kinds/grammar are OVERRULEd with 16-lens judgment_status=done.",
       "oyatie_apply": [
         "naming",
         "reorg-evaluate"
+      ]
+    },
+    {
+      "id": "adr-path-nnnn-topic-indexes",
+      "achieves": "Stable ADR citation paths without mass-rename churn; indexes carry navigation.",
+      "origin": "Pattern-First draft proposed topic-only ADR paths; challenged mass rename as taxonomy theater (adr-rename-overturn).",
+      "rule": "Keep docs/decisions/ADR-NNNN-<topic>.md forever; indexes/frontmatter carry nav; MUST NOT mass-rename ADR files for optics.",
+      "ensure": "specs/naming-taxonomy.json#kinds.decision-record + overturned_patterns OP-adr-numbered-decision-paths verdict=keep; ADR-0711 Amendment E; naming_sweep rows match.",
+      "overturn_when": "A measured findability failure proves NNNN-topic harmful AND a batched judged rename plan clears 16-lens with zero dual-truth during cutover.",
+      "oyatie_apply": [
+        "naming",
+        "16-lens",
+        "swarm-delivery-law"
+      ]
+    },
+    {
+      "id": "daemon-hotset-early-check",
+      "achieves": "Early buck2 [check] feedback on ≤hot_set_max integ stations without worker-lane builds or cargo revival.",
+      "origin": "16-lens northstar R9; founder 2026-05-29 no-cargo; false parallelism paid full CI per unit.",
+      "rule": "Run check-daemon on hot-set integ stations (≤ merge_windows.hot_set_max); main checkout remains orchestrator+daemon; LSP/rust-analyzer read-only ≠ build ≠ merge authority.",
+      "ensure": "envelopes#daemon_hotset + #merge_windows; process-kit harness under .grok/harness/daemon-hotset.v1.json when birthed on owning integ; self-check cites hot_set_max.",
+      "overturn_when": "envelopes#merge_windows.hot_set_max changes same-wave OR blessed local type-check leaves buck2 [check] OR founder authorizes different warm-daemon topology.",
+      "oyatie_apply": [
+        "no-slow-commands",
+        "worktrees",
+        "integ"
+      ]
+    },
+    {
+      "id": "advisory-scratch-perimeter",
+      "achieves": "Advisory channels cannot write main checkout or mint merge authority; hotfix/* is not a prose-only trunk escape.",
+      "origin": "16-lens northstar R10; optional omx/omc/gjc/grok used as default drivers / main-checkout writers.",
+      "rule": "Advisory omx/omc/gjc/grok MUST run in scratch worktrees/clones and MUST NOT write the main checkout; hotfix/* requires founder ack or incident evidence (Phase B gate).",
+      "ensure": "envelopes#perimeter; .grok/harness/perimeter.v1.json when birthed on owning integ; Claim/Land refuse hotfix without evidence schema when Phase B live.",
+      "overturn_when": "Founder retires advisory channels OR Phase B hotfix evidence schema is amended OR worktree topology (ADR-0711 D-5) is OVERRULEd.",
+      "oyatie_apply": [
+        "swarm-delivery-law",
+        "worktrees",
+        "merge-admission"
       ]
     }
   ],
   "ban": [
     {
       "id": "invented-work",
+      "achieves": "Prevents activity theater filling verified-empty space.",
+      "origin": "Filler quotas and observe=intervene conflation.",
       "rule": "Inventing work into verified empty; activity theater; filler quotas; observing = intervening.",
+      "ensure": "verified-empty judgments + scaffold-idle reasons; observation≠APPROVE.",
+      "overturn_when": "Named consumer + acceptance criteria exist for the previously empty space.",
       "oyatie_apply": [
         "swarm-delivery-law",
         "reorg-evaluate"
@@ -126,7 +227,11 @@
     },
     {
       "id": "dual-truth",
+      "achieves": "Single enumeration SSOT; yesterday's green cannot prove today's tip.",
+      "origin": "Prose re-lists + sticky prior merge greens across new HEAD.",
       "rule": "Dual-home / dual-truth; carrying yesterday’s green as today’s proof; sticky prior merge-admission green across new HEAD.",
+      "ensure": "INV-DOC-2 + drift-grep; HEAD-keyed receipts.",
+      "overturn_when": "N/A as a ban class — replace only by proving a single new SSOT with dual-emit cutover.",
       "oyatie_apply": [
         "merge-admission",
         "integ"
@@ -134,7 +239,11 @@
     },
     {
       "id": "second-build-path-shared-wd",
+      "achieves": "One blessed build path; no shared-WD stash/reset chaos.",
+      "origin": "Cargo revival + shared WD agent collisions.",
       "rule": "Cargo/second-build-path revival; slow commands in lanes; shared WD stash/reset chaos; PID kill without identity.",
+      "ensure": "no-cargo-enforcer + toolguard; worktree-per-lane; check-daemon buck2 [check] only.",
+      "overturn_when": "Founder authorizes a different blessed local type-check with no second path.",
       "oyatie_apply": [
         "no-slow-commands",
         "worktrees"
@@ -142,7 +251,11 @@
     },
     {
       "id": "brand-opaque-adr-in-title-names",
-      "rule": "Leading oya-*/cloud-*/opaque/ADR-in-job-title durable names (Amendment B Pattern-First).",
+      "achieves": "Role-first forever names; ADR numbers stay citation ids not job-title path keys for CI.",
+      "origin": "oya-/cloud- prefixes and ADR-in-job-title durable names.",
+      "rule": "Leading oya-*/cloud-*/opaque/ADR-in-job-title durable names (Amendment B Pattern-First). Note: ADR file paths keep ADR-NNNN-<topic> (Amendment E OVERRULE) — this ban targets CI job titles and brand prefixes, not decision-record filenames.",
+      "ensure": "naming-taxonomy overturned_patterns + naming_sweep.",
+      "overturn_when": "Taxonomy OVERRULE with 16-lens judgment_status=done.",
       "oyatie_apply": [
         "naming",
         "16-lens"
@@ -150,10 +263,26 @@
     },
     {
       "id": "silent-blocked-success",
+      "achieves": "Blocked inputs cannot report success; observation density ≠ scoreboard.",
+      "origin": "Rubber-stamp thread resolve and merge ego after green.",
       "rule": "Silent success on blocked inputs; rubber-stamp thread resolve; merge ego after green; observation-density scoreboards.",
+      "ensure": "Fail-closed Claim + Tide author≠reviewer; window receipts.",
+      "overturn_when": "Admission predicates change with explicit OVERRULE and ensure path.",
       "oyatie_apply": [
         "swarm-delivery-law",
         "merge-admission"
+      ]
+    },
+    {
+      "id": "mass-adr-rename-theater",
+      "achieves": "Blocks taxonomy-theater churn across docs/decisions/.",
+      "origin": "Proposed topic-only mass rename of ADR-NNNN-* paths without findability failure evidence.",
+      "rule": "Mass-rename ADR files for optics; treating ADR-NNNN path segment as indefensible when indexes already carry nav.",
+      "ensure": "OP-adr-numbered-decision-paths verdict=keep; Amendment E; naming_sweep forever=NNNN-topic.",
+      "overturn_when": "Same as keep adr-path-nnnn-topic-indexes.overturn_when.",
+      "oyatie_apply": [
+        "naming",
+        "16-lens"
       ]
     }
   ],
@@ -165,6 +294,14 @@
       "name_forever": "merge-admission-required",
       "taxonomy_ref": "specs/naming-taxonomy.json#overturned_patterns/OP-merge-gate-brand",
       "note": "Distill corpus is operating-pattern evidence, not naming authority. Brand/ADR-in-title bans stand. Legacy protection pin is dual-emit cutover only."
+    },
+    {
+      "id": "OV-adr-topic-only-mass-rename",
+      "distill_claim": "reshape docs/decisions/ADR-NNNN-*.md → docs/decisions/<topic>.md",
+      "verdict": "OVERRULED",
+      "name_forever": "docs/decisions/ADR-NNNN-<topic>.md (indexes/frontmatter carry nav)",
+      "taxonomy_ref": "specs/naming-taxonomy.json#overturned_patterns/OP-adr-numbered-decision-paths",
+      "note": "adr-rename-overturn: forever-correct is NNNN-topic + indexes — not churn later, not churn now. Chesterton: numbered paths are citation-stable; mass rename is high fan-in theater."
     }
   ]
 }

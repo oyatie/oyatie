@@ -5,12 +5,13 @@
   "description": "Volatile naming_sweep rows moved out of sole-owner envelopes JSON (northstar-judgment-split). Destination integs carry per-unit judgment files; this index is the bootstrap ledger until per-unit split completes.",
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "status": "Proposed",
     "owner_branch": "integ/specs",
     "authority": "docs/decisions/ADR-0711-swarm-delivery-law-integ-branch-topology.md#Amendment-B-Pattern-First",
     "moved_from": "specs/integ-branch-envelopes.json#naming.naming_sweep",
-    "reason": "fix-1644-review: drop inlined naming_sweep from wrong home (envelopes topology/hubs/freeze only)"
+    "reason": "fix-1644-review: drop inlined naming_sweep from wrong home (envelopes topology/hubs/freeze only)",
+    "prior_version": "1.0.0"
   },
   "judgment_template_ref": "specs/integ-branch-envelopes.json#naming.judgment_template",
   "rows": [
@@ -73,7 +74,7 @@
       "taxonomy_posture": "replace_not_encode"
     },
     {
-      "name_now": "gate \u00b7 affected-set (ADR-0554, binding workspace coverage)",
+      "name_now": "gate · affected-set (ADR-0554, binding workspace coverage)",
       "name_forever": "affected-target-set (binding workspace coverage)",
       "kind": "ci-job",
       "grammar_compliant": false,
@@ -92,7 +93,7 @@
       "taxonomy_posture": "replace_not_encode"
     },
     {
-      "name_now": "integrity-canary (cold, from-empty \u2014 ADR-0556 D2 / ADR-0560)",
+      "name_now": "integrity-canary (cold, from-empty — ADR-0556 D2 / ADR-0560)",
       "name_forever": "cache-integrity-canary (cold from-empty)",
       "kind": "ci-job",
       "grammar_compliant": false,
@@ -178,7 +179,7 @@
       ],
       "action": "reorg_now",
       "redesign": "rewrite",
-      "owning_integ": "integ/libs \u2192 destination",
+      "owning_integ": "integ/libs → destination",
       "what_it_does": "Shared kernels/adapters/checks still branded; Amendment B libs/ is reorg_now",
       "lenses_applied": "all-16",
       "challenges": [
@@ -189,13 +190,13 @@
     },
     {
       "name_now": "docs/decisions/ADR-NNNN-*.md",
-      "name_forever": "docs/decisions/<topic>.md (number in index/frontmatter only)",
+      "name_forever": "docs/decisions/ADR-NNNN-<topic>.md (indexes/frontmatter carry nav)",
       "kind": "decision-record",
-      "grammar_compliant": false,
+      "grammar_compliant": true,
       "violations": [
         "adr_number_path_segment"
       ],
-      "action": "reorg_now",
+      "action": "keep_forever",
       "redesign": "refactor",
       "owning_integ": "integ/docs",
       "what_it_does": "Live ADR apex files; number-as-filename forces ADR recall to navigate",
@@ -204,7 +205,9 @@
         "taxonomy_posture=replace_not_encode; see overturned_patterns for fence+challenge detail on related practice"
       ],
       "judgment_status": "done",
-      "taxonomy_posture": "replace_not_encode"
+      "taxonomy_posture": "replace_not_encode",
+      "verdict": "keep",
+      "note": "adr-rename-overturn OVERRULE of topic-only reshape"
     },
     {
       "name_now": "specs/fixtures/cloud-ci-firewall/",
@@ -237,13 +240,13 @@
       "owning_integ": "integ/ci",
       "lenses_applied": "all-16",
       "challenges": [
-        "cartesian_doubt: code shows the job is a needs-fan-in verdict aggregator \u2014 brand token adds zero behavior",
+        "cartesian_doubt: code shows the job is a needs-fan-in verdict aggregator — brand token adds zero behavior",
         "essentialism_yagni: single required context is the irreducible mechanism; brand prefix is not",
-        "chestertons_fence: fence was cohesion+protection pin \u2014 keep single context, replace name via dual-emit",
+        "chestertons_fence: fence was cohesion+protection pin — keep single context, replace name via dual-emit",
         "contrarian: forever name should state admission role, not product brand",
         "pragmatism: dual-emit lets protection flip be one founder line without merge outage",
         "operability_day2: operators searching logs for brand miss the admission meaning",
-        "zero_trust: protection pin must stay explicit during rename \u2014 never silent retarget"
+        "zero_trust: protection pin must stay explicit during rename — never silent retarget"
       ],
       "chestertons_fence": "Single required merge context (ADR-0515/0700) plus product-brand cohesion for the fan-in job name and branch-protection string.",
       "verdict": "reshape",
@@ -290,8 +293,8 @@
         "contrarian: hyperscaler prefixes name the *vendor SDK surface*; inside an owned monorepo the capability/role IS the namespace",
         "essentialism_yagni: directory + capability-registry already disambiguate",
         "systems_thinking: brand prefix couples every rename to product marketing and freezes dual vocabulary (ci/facade/baseline-ratchet vs oya-cloud-ci-firewall-*)",
-        "red_team: brand residue gates already fight retired brand stems \u2014 encoding oya- as required greenfield law fights the de-brand north star",
-        "pragmatism: ci/facade/* dirs already moved to role-first; cargo/buck/bin names lag \u2014 taxonomy makes lag debt, not law"
+        "red_team: brand residue gates already fight retired brand stems — encoding oya- as required greenfield law fights the de-brand north star",
+        "pragmatism: ci/facade/* dirs already moved to role-first; cargo/buck/bin names lag — taxonomy makes lag debt, not law"
       ],
       "chestertons_fence": "ADR-0017 / crate-naming-convention required oya- for workspace uniqueness mirroring aws-/google-cloud- prefix shapes.",
       "verdict": "reshape",
@@ -311,7 +314,7 @@
       "owning_integ": "integ/ci",
       "lenses_applied": "all-16",
       "challenges": [
-        "cartesian_doubt: lib docs describe compare-mode + ratchet-invariant \u2014 not a network firewall",
+        "cartesian_doubt: lib docs describe compare-mode + ratchet-invariant — not a network firewall",
         "socratic: what does firewall do that baseline-ratchet does not already name?",
         "operability_day2: on-call chasing firewall finds metaphor, not the merge-base baseline face",
         "telemetry_first: job/echo labels saying cloud-ci-firewall diverge from path ci/facade/baseline-ratchet"
@@ -326,25 +329,26 @@
     {
       "id": "OP-adr-numbered-decision-paths",
       "name_now": "docs/decisions/ADR-NNNN-*.md",
-      "name_forever": "docs/decisions/<topic>.md",
+      "name_forever": "docs/decisions/ADR-NNNN-<topic>.md (indexes/frontmatter carry nav)",
       "kind": "decision-record",
-      "grammar_compliant": false,
-      "action": "keep_forever_with_rename",
+      "grammar_compliant": true,
+      "action": "keep_forever",
       "redesign": "refactor",
       "owning_integ": "integ/docs",
       "lenses_applied": "all-16",
       "challenges": [
         "essentialism_yagni: chronology belongs in index/frontmatter, not the only navigable path key",
         "pragmatism: topic-shaped paths pass the self-explanatory path test; numbers do not",
-        "blast_radius_cell: mass-rename is high fan-in \u2014 batched judged renames only",
+        "blast_radius_cell: mass-rename is high fan-in — batched judged renames only",
         "chestertons_fence: keep ADR numbers as citation ids; replace path shape"
       ],
       "chestertons_fence": "Numbered ADR catalogs are industry-common for chronology and citation.",
-      "verdict": "reshape",
-      "defensible_core": "stable citation ids + ordered index",
-      "indefensible": "ADR-NNNN as mandatory durable filename prefix",
+      "verdict": "keep",
+      "defensible_core": "stable ADR-NNNN-<topic> citation paths + indexes for nav",
+      "indefensible": "blind mass-rename to topic-only for taxonomy optics",
       "judgment_status": "done",
-      "taxonomy_posture": "replace_not_encode"
+      "taxonomy_posture": "replace_not_encode",
+      "note": "adr-rename-overturn OVERRULE of topic-only reshape"
     },
     {
       "id": "cohort-ci-job-display",
@@ -357,7 +361,7 @@
       "redesign": "refactor",
       "lenses_applied": "all-16",
       "challenges": [
-        "cohort is branded/opaque by match rule \u2014 classify each hit as taxonomy instance; do not invent one-off names",
+        "cohort is branded/opaque by match rule — classify each hit as taxonomy instance; do not invent one-off names",
         "chestertons_fence: cohort existed under prior brand/ADR naming; taxonomy replaces cohort grammar"
       ],
       "judgment_status": "done",
@@ -374,7 +378,7 @@
       "redesign": "refactor",
       "lenses_applied": "all-16",
       "challenges": [
-        "cohort is branded/opaque by match rule \u2014 classify each hit as taxonomy instance; do not invent one-off names",
+        "cohort is branded/opaque by match rule — classify each hit as taxonomy instance; do not invent one-off names",
         "chestertons_fence: cohort existed under prior brand/ADR naming; taxonomy replaces cohort grammar"
       ],
       "judgment_status": "done",
@@ -391,7 +395,7 @@
       "redesign": "refactor",
       "lenses_applied": "all-16",
       "challenges": [
-        "cohort is branded/opaque by match rule \u2014 classify each hit as taxonomy instance; do not invent one-off names",
+        "cohort is branded/opaque by match rule — classify each hit as taxonomy instance; do not invent one-off names",
         "chestertons_fence: cohort existed under prior brand/ADR naming; taxonomy replaces cohort grammar"
       ],
       "judgment_status": "done",
@@ -408,7 +412,7 @@
       "redesign": "refactor",
       "lenses_applied": "all-16",
       "challenges": [
-        "cohort is branded/opaque by match rule \u2014 classify each hit as taxonomy instance; do not invent one-off names",
+        "cohort is branded/opaque by match rule — classify each hit as taxonomy instance; do not invent one-off names",
         "chestertons_fence: cohort existed under prior brand/ADR naming; taxonomy replaces cohort grammar"
       ],
       "judgment_status": "done",
@@ -425,7 +429,7 @@
       "redesign": "refactor",
       "lenses_applied": "all-16",
       "challenges": [
-        "cohort is branded/opaque by match rule \u2014 classify each hit as taxonomy instance; do not invent one-off names",
+        "cohort is branded/opaque by match rule — classify each hit as taxonomy instance; do not invent one-off names",
         "chestertons_fence: cohort existed under prior brand/ADR naming; taxonomy replaces cohort grammar"
       ],
       "judgment_status": "done",
@@ -442,7 +446,7 @@
       "redesign": "refactor",
       "lenses_applied": "all-16",
       "challenges": [
-        "cohort is branded/opaque by match rule \u2014 classify each hit as taxonomy instance; do not invent one-off names",
+        "cohort is branded/opaque by match rule — classify each hit as taxonomy instance; do not invent one-off names",
         "chestertons_fence: cohort existed under prior brand/ADR naming; taxonomy replaces cohort grammar"
       ],
       "judgment_status": "done",
@@ -459,7 +463,7 @@
       "redesign": "refactor",
       "lenses_applied": "all-16",
       "challenges": [
-        "cohort is branded/opaque by match rule \u2014 classify each hit as taxonomy instance; do not invent one-off names",
+        "cohort is branded/opaque by match rule — classify each hit as taxonomy instance; do not invent one-off names",
         "chestertons_fence: cohort existed under prior brand/ADR naming; taxonomy replaces cohort grammar"
       ],
       "judgment_status": "done",
@@ -476,7 +480,7 @@
       "redesign": "refactor",
       "lenses_applied": "all-16",
       "challenges": [
-        "cohort is branded/opaque by match rule \u2014 classify each hit as taxonomy instance; do not invent one-off names",
+        "cohort is branded/opaque by match rule — classify each hit as taxonomy instance; do not invent one-off names",
         "chestertons_fence: cohort existed under prior brand/ADR naming; taxonomy replaces cohort grammar"
       ],
       "judgment_status": "done",

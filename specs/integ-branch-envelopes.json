@@ -6,15 +6,15 @@
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
     "spec_id": "EXE-INTEG-BRANCH-ENVELOPES",
-    "version": "1.16.16",
+    "version": "1.16.17",
     "status": "Accepted",
     "owner_team": "council-architecture",
     "created_at": "2026-08-10T00:00:00Z",
     "authority_adr": "docs/decisions/ADR-0711-swarm-delivery-law-integ-branch-topology.md",
     "self_owner_branch": "integ/specs",
     "primary_consumer": "governance/check/integ-envelope + .claude/workflows/deliver.js Claim",
-    "purpose": "Policy-as-data for envelope containment, hub sole-owner, adjunct claims, concurrent-safe exemptions, process-kit deferred to .grok/ (Rust-first; no tools/swarm birth on #1644), hyperscaler monorepo patterns, Amendment B ternary layout + Pattern-First taxonomy + 16-lens judgment (volatile judgments live under governance/check/integ-envelope/judgments/), Amendment C operating-patterns catalog, Amendment D anti-drift INV-DOC-1…9 + Claim↔diff bind, merge_windows, mechanical Claim packet, and process-meta / forward-declared roots under Swarm Delivery Law.",
-    "prior_version": "1.16.14"
+    "purpose": "Policy-as-data for envelope containment, hub sole-owner, adjunct claims, concurrent-safe exemptions, process-kit deferred to .grok/ (Rust-first; no tools/swarm birth on #1644), hyperscaler monorepo patterns, Amendment B ternary layout + Pattern-First taxonomy + 16-lens judgment (volatile judgments live under governance/check/integ-envelope/judgments/), Amendment C operating-patterns catalog, Amendment D anti-drift INV-DOC-1…9 + Claim↔diff bind, merge_windows, mechanical Claim packet, and process-meta / forward-declared roots under Swarm Delivery Law, daemon_hotset + perimeter northstar, rules-with-why / adr-rename-overturn.",
+    "prior_version": "1.16.16"
   },
   "admission": {
     "trunk": "dev",
@@ -828,10 +828,14 @@
     "enforcement": "deferred: .grok/ git-shim / toolguard (Rust-first); doctrine in PORTABLE-SWARM-CONTRACT + ADR-0711 D-9; no shell birth under tools/ on #1644"
   },
   "worktree_topology": {
-    "main_checkout": "orchestrator + check daemon only",
+    "main_checkout": "orchestrator + check-daemon only (durable writes)",
     "integ_stations": ".worktrees/integ-<root>",
     "worker_lanes": ".worktrees/lane-<bead>",
-    "worker_base_ref": "origin/dev"
+    "worker_base_ref": "origin/dev",
+    "scratch_advisory": ".worktrees/scratch-* or explicit scratch clones (advisory channels only)",
+    "lsp_carve_out": "rust-analyzer / IDE LSP read-only diagnostics allowed; LSP ≠ build ≠ merge authority",
+    "daemon_hotset_ref": "#daemon_hotset",
+    "perimeter_ref": "#perimeter"
   },
   "hyperscaler_monorepo_patterns": {
     "authority": "docs/decisions/ADR-0711-swarm-delivery-law-integ-branch-topology.md#D-9",
@@ -880,7 +884,9 @@
     "authority": "docs/decisions/ADR-0711-swarm-delivery-law-integ-branch-topology.md#Amendment-C",
     "patterns_ref": "specs/agentic-operating-patterns.json",
     "portable_contract": ".grok/programs/delivery-fabric/evidence/PORTABLE-SWARM-CONTRACT.md#Amendment-C",
-    "note": "Clustered KEEP/BAN from 137 Amendment C archive entries. Forever merge-gate name is merge-admission-required — distill notes that said keep oya-ci-required are OVERRULED."
+    "note": "Clustered KEEP/BAN from 137 Amendment C archive entries; Amendment E requires achieves/origin/rule/ensure/overturn_when on each load-bearing entry. Forever merge-gate name is merge-admission-required — distill notes that said keep oya-ci-required are OVERRULED. adr-rename-overturn: ADR paths stay ADR-NNNN-<topic>.",
+    "patterns_version": "1.1.0",
+    "rule_shape_ref": "specs/agentic-operating-patterns.json#rule_shape"
   },
   "naming": {
     "taxonomy_ref": "specs/naming-taxonomy.json",
@@ -5979,7 +5985,8 @@
       "Mechanical Claim packet parse + Claim↔diff bind (docs_touched/paths ↔ git diff --name-only) live in deliver.js + claim_packet.py; claim-push refuses dirty porcelain",
       "Does not rewrite DOC-CATALOG corpus",
       "Does not authorize mass ADR renames",
-      "INV-DOC-9 root-file content land owned by integ/ci via planes.process_meta (route ≠ content)"
+      "INV-DOC-9 root-file content land owned by integ/ci via planes.process_meta (route ≠ content)",
+      "adr-rename-overturn: keep ADR-NNNN-<topic>; indexes carry nav — do not authorize mass ADR renames"
     ],
     "claim_fields": {
       "required_on_CLAIM": [
@@ -6020,6 +6027,104 @@
       "plan_only_window_policy",
       "restack_parked_outside_window",
       "hot_set_gt_max"
+    ]
+  },
+  "daemon_hotset": {
+    "authority": "docs/decisions/ADR-0711-swarm-delivery-law-integ-branch-topology.md#Amendment-E",
+    "portable_contract": ".grok/programs/delivery-fabric/evidence/PORTABLE-SWARM-CONTRACT.md#Northstar-daemon-hotset--advisory-perimeter",
+    "status": "binding",
+    "process_kit_mirror": ".grok/harness/daemon-hotset.v1.json",
+    "process_kit_owner": "roots.grok → integ/ci (birth harness on owning integ; do not dual-home SSOT here)",
+    "achieves": "Early buck2 [check] feedback on at most hot_set_max restackable integ stations without worker-lane builds or cargo revival.",
+    "origin": "16-lens northstar R9 (northstar-daemon-hotset); founder 2026-05-29 no-cargo; ADR-0711 A-2.",
+    "rule": {
+      "hot_set_max": 4,
+      "cite_hot_set_max": "specs/integ-branch-envelopes.json#merge_windows.hot_set_max",
+      "stations": ".worktrees/integ-<root> (durable integ stations only)",
+      "main_checkout": "orchestrator + check-daemon still allowed; remains the default warm buck2 home",
+      "worker_lanes": "FORBIDDEN — toolguard denies cargo/buck2; workers read err.txt only",
+      "builder": "buck2 build --keep-going //...[check] (or SWARM_CHECK_TARGETS); never cargo",
+      "orchestrator_env": "SWARM_ORCHESTRATOR=1 required",
+      "station_env": "SWARM_CANDIDATE_ROOT=<abs path to .worktrees/integ-*> selects the station tree",
+      "cap_enforcement": "check-daemon-hotset REFUSEs when station count > hot_set_max"
+    },
+    "lsp_carve_out": {
+      "allowed": [
+        "rust-analyzer / IDE LSP read-only diagnostics in any worktree",
+        "editor hover/goto/completion backed by rust-analyzer"
+      ],
+      "forbidden": [
+        "treating LSP diagnostics as merge authority",
+        "invoking cargo check/build/test/clippy via LSP code actions in worker lanes",
+        "equating rust-analyzer with check-daemon or oya-ci-required"
+      ],
+      "note": "LSP read-only ≠ build. Blessed type-check remains buck2 [check] via check-daemon / check-daemon-hotset."
+    },
+    "ensure": [
+      "specs/integ-branch-envelopes.json#daemon_hotset is SSOT for doctrine",
+      "cite merge_windows.hot_set_max (do not re-state a second max)",
+      "process-kit harness mirror MAY exist under .grok/harness/ on owning integ",
+      "LSP read-only ≠ buck2 [check] ≠ oya-ci-required"
+    ],
+    "overturn_when": [
+      "envelopes#merge_windows.hot_set_max changes (update this file same-wave)",
+      "buck2 [check] retired or replaced as blessed local type-check",
+      "founder authorizes a different warm-daemon topology"
+    ],
+    "forbidden": [
+      "hot_set_gt_max",
+      "daemon_on_lane_worktrees",
+      "cargo_check_revival",
+      "lsp_as_merge_authority"
+    ]
+  },
+  "perimeter": {
+    "authority": "docs/decisions/ADR-0711-swarm-delivery-law-integ-branch-topology.md#Amendment-E",
+    "portable_contract": ".grok/programs/delivery-fabric/evidence/PORTABLE-SWARM-CONTRACT.md#Northstar-daemon-hotset--advisory-perimeter",
+    "status": "binding",
+    "process_kit_mirror": ".grok/harness/perimeter.v1.json",
+    "process_kit_owner": "roots.grok → integ/ci (birth harness on owning integ; do not dual-home SSOT here)",
+    "achieves": "Close the prose-only backdoor where advisory channels write the main checkout; keep hotfix/* from becoming an ungoverned trunk escape.",
+    "origin": "16-lens northstar R10 (northstar-perimeter); model-routing optional advisory channels.",
+    "rule": {
+      "advisory_channels": [
+        "omx",
+        "omc",
+        "gjc",
+        "grok"
+      ],
+      "advisory_must": "run in scratch worktrees or clones under .worktrees/ (or an explicit scratch clone path)",
+      "advisory_must_not": [
+        "write the main checkout",
+        "claim merge authority",
+        "replace Task model: slug dispatch for implement/scout",
+        "treat CursorBench ranks as transferable to these channels"
+      ],
+      "madmax": "omx/omc --madmax = permission bypass + tmux (compound); founder-optional only — never worker-lane normal",
+      "hotfix_trunk": {
+        "allowed_heads": [
+          "integ/*",
+          "hotfix/*"
+        ],
+        "hotfix_requires": "founder ack OR incident evidence before Phase B gate admits hotfix/*",
+        "note": "Prose alone is not a backdoor — encode the gate; do not invent hotfix lands without evidence"
+      }
+    },
+    "ensure": [
+      "specs/integ-branch-envelopes.json#perimeter is SSOT for doctrine",
+      "advisory channels scratch-only; never main-checkout durable writes",
+      "hotfix/* requires founder ack OR incident evidence before Phase B admits",
+      "process-kit harness mirror MAY exist under .grok/harness/ on owning integ"
+    ],
+    "overturn_when": [
+      "founder retires advisory channels",
+      "Phase B hotfix admission gate ships a different evidence schema",
+      "worktree topology (ADR-0711 D-5) is amended"
+    ],
+    "forbidden": [
+      "advisory_write_main_checkout",
+      "advisory_as_merge_authority",
+      "hotfix_without_founder_or_incident_evidence"
     ]
   }
 }

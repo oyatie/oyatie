@@ -281,6 +281,28 @@ deferred `.grok/` Rust self-check drift-greps prose root/path enumerations.
 on integ/ci; no DOC-CATALOG rewrite; no mass ADR rename; INV-DOC-9 root content land =
 `integ/ci` (`planes.process_meta`) after route.
 
+### Amendment E (2026-08-10) — adr-rename-overturn + rules-with-why + northstar pins
+
+Mirror of ADR-0711 Amendment E.
+
+**E-1 adr-rename-overturn:** forever path is `docs/decisions/ADR-NNNN-<topic>.md`;
+indexes/frontmatter carry nav. **OVERRULE** topic-only mass rename. Taxonomy
+`OP-adr-numbered-decision-paths` verdict=`keep`.
+
+**E-2 rules-with-why:** load-bearing KEEP/BAN/MUST carry achieves/origin/rule/ensure/overturn_when
+in `specs/agentic-operating-patterns.json` (`rule_shape`).
+
+**E-3 northstar pins (cite envelopes; do not dual-home max/channel lists):**
+
+- `specs/integ-branch-envelopes.json#daemon_hotset` — check-daemon on ≤`#merge_windows.hot_set_max`
+  integ stations; main checkout orchestrator+daemon; LSP read-only ≠ build.
+- `specs/integ-branch-envelopes.json#perimeter` — advisory channels scratch-only; `hotfix/*`
+  requires founder ack or incident evidence (Phase B).
+
+Process-kit harness mirrors under `.grok/harness/` birth on owning integ for `roots.grok`
+(doctrine SSOT remains envelopes).
+
+<a id="Northstar-daemon-hotset--advisory-perimeter"></a>
 
 ## Auth preflight (carry-forward)
 

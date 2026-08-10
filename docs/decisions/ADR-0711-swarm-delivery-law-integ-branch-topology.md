@@ -48,6 +48,10 @@ deliverables:
     description: "Amendment D — Anti-drift documentation doctrine (INV-DOC-1…9); enumerate ONLY in envelopes JSON; docs_touched/docs_action packet; same-wave colocation; versioned anti_drift_doctrine_version; merge_windows policy-as-data."
     exit_criteria: "ADR-0711 Amendment D + PORTABLE Amendment D present; envelopes #anti_drift + #merge_windows; deliver.js Claim requires docs_touched/docs_action; drift-grep deferred to .grok/ Rust self-check (no tools/swarm birth on #1644)."
     verified_by: "oya-ci-required"
+  - id: ADR-0711-D10
+    description: "Amendment E — adr-rename-overturn (forever ADR-NNNN-<topic> + indexes); rules-with-why on load-bearing MUST/KEEP/BAN; daemon_hotset + perimeter northstar as envelopes policy-as-data."
+    exit_criteria: "ADR-0711 Amendment E + PORTABLE Amendment E present; naming-taxonomy decision-record keep NNNN-topic; agentic-operating-patterns carry achieves/origin/ensure/overturn_when; envelopes #daemon_hotset + #perimeter binding."
+    verified_by: "oya-ci-required"
 ---
 # ADR-0711: Swarm Delivery Law — integration branch topology and command discipline
 
@@ -407,8 +411,8 @@ Extends (does not invent a parallel cosmology):
 |---|---|
 | Role-first tokens | Name states behavior (`baseline-ratchet`, `merge-admission-required`) |
 | Forbidden leading brand | `oya-` / `oya_` / `cloud-` / `cloud_` as leading durable prefixes |
-| Forbidden ADR path segments | `ADR-NNNN` must not be required to navigate; indexes/frontmatter may list numbers |
-| Self-explanatory path test | Path+filename alone convey purpose |
+| ADR path shape (Amendment E) | Forever `docs/decisions/ADR-NNNN-<topic>.md`; indexes/frontmatter carry nav — MUST NOT mass-rename for optics |
+| Self-explanatory path test | Path+filename alone convey purpose (`NNNN` + topic together) |
 | Brand ≠ keep_forever | Brand prefix alone never justifies durable home |
 
 **Kinds** (see taxonomy for full set): `capability-root`, `plane-hub`, `meta-root`,
@@ -426,7 +430,7 @@ Extends (does not invent a parallel cosmology):
 | `oya-ci-required` | merge-gate-context | `merge-admission-required` (dual-emit until founder protection flip) |
 | `freshness (…, ADR-0539)` | ci-job | `generated-artifact-freshness (lock + faces)` |
 | `cloud-ci-firewall (…) ` | ci-job | `admission-baseline-ratchet (+ gate-registration)` |
-| `docs/decisions/ADR-NNNN-*.md` | decision-record | `docs/decisions/<topic>.md` (batched; not blind mass-rename) |
+| `docs/decisions/ADR-NNNN-*.md` | decision-record | `docs/decisions/ADR-NNNN-<topic>.md` (**keep** — indexes carry nav; Amendment E OVERRULE of topic-only mass rename) |
 
 **Execution order:** taxonomy lands on `integ/specs` → sweep rows cite kinds → renames execute
 as taxonomy instances on owning `integ/<root>`. Agents MUST NOT change GitHub branch protection;
@@ -592,6 +596,54 @@ Mechanical Claim packet parse + Claim↔diff bind (`docs_touched`/`paths` ↔
 authorize mass ADR renames. Drift-grep: deferred `.grok/` Rust self-check (interim: deliver.js Claim + PORTABLE review). Root-file content land of
 INV-DOC-9 short form is owned by `integ/ci` (`planes.process_meta`) — route ≠ content.
 
+### Amendment E (2026-08-10) — adr-rename-overturn + rules-with-why + northstar pins
+
+Binding amendment. Challenge applied now (no defer-as-debt).
+
+#### E-1 — ADR path forever shape (`adr-rename-overturn`)
+
+**OVERRULE** any Pattern-First / taxonomy draft that reshapes
+`docs/decisions/ADR-NNNN-*.md` → `docs/decisions/<topic>.md` as forever law.
+
+| Field | Content |
+|---|---|
+| **achieves** | Stable citation paths without high-fan-in rename churn; topic findability via indexes |
+| **origin** | Challenged mass-rename proposal treated `ADR-NNNN` path segments as indefensible optics debt |
+| **rule** | Keep `docs/decisions/ADR-NNNN-<topic>.md`; indexes/frontmatter carry nav; MUST NOT mass-rename ADR files for taxonomy theater |
+| **ensure** | `specs/naming-taxonomy.json` kind `decision-record` + `OP-adr-numbered-decision-paths` verdict=`keep`; naming_sweep rows match; this amendment |
+| **overturn_when** | Measured findability failure proves NNNN-topic harmful AND a batched judged rename clears 16-lens with dual-emit cutover and zero dual-truth |
+
+Chesterton: numbered ADR catalogs exist for chronology + citation. Indexes already solve topic
+nav. Mass rename is blast-radius theater, not irreducible cleanup.
+
+#### E-2 — Rules carry why (reflection shape)
+
+Every load-bearing MUST / KEEP / BAN records **achieves**, **origin**, **rule**, **ensure**,
+**overturn_when**. Rules are hypotheses, not folklore. Encode in
+`specs/agentic-operating-patterns.json` (`rule_shape` + per-entry fields) and cite from this ADR /
+PORTABLE. Amend via challenge → OVERRULE → version bump (INV-DOC-8) — never silent drift.
+
+#### E-3 — Daemon hot-set + advisory perimeter (northstar)
+
+Policy-as-data SSOT (cite; do not dual-home max/channel lists in prose):
+
+- `specs/integ-branch-envelopes.json#daemon_hotset` — check-daemon on hot-set integ stations
+  ≤ `#merge_windows.hot_set_max` (4); main checkout remains orchestrator+daemon; LSP/rust-analyzer
+  read-only ≠ build ≠ merge authority.
+- `specs/integ-branch-envelopes.json#perimeter` — advisory `omx`/`omc`/`gjc`/`grok` scratch-only
+  (never main-checkout durable writes); `hotfix/*` requires founder ack or incident evidence
+  (Phase B gate) — prose alone is not a trunk backdoor.
+
+Process-kit harness mirrors (`.grok/harness/daemon-hotset.v1.json`,
+`.grok/harness/perimeter.v1.json`) birth on the owning integ for `roots.grok` — doctrine SSOT stays
+envelopes. Prior `#1646` harness land was stripped as OOB; re-birth is tip-hygiene on that owner,
+not a second SSOT.
+
+#### Limitations (Amendment E)
+
+Does not flip GitHub branch protection. Does not birth `.grok/` process-kit binaries on `#1644`.
+Does not authorize `sweep-execute` naming moves before `#1644` land. Observation ≠ APPROVE.
+
 ## Consequences
 
 ### Positive
@@ -636,8 +688,10 @@ INV-DOC-9 short form is owned by `integ/ci` (`planes.process_meta`) — route �
 
 - **Treat libs/cloud/oya/infra/toolchains/tools as keep_forever or gradual freeze** — banned; Amendment B ternary requires reorg_now/delete_permanently NOW; freeze prefixes only block new births during the move.
 - **Mass-rename without a naming taxonomy** — banned; Pattern-First Law (B-1b) requires `specs/naming-taxonomy.json` kinds + grammar before renames; one-off bespoke names are debt.
+- **Mass-rename ADR files to topic-only paths for taxonomy optics** — OVERRULED (Amendment E-1 / `adr-rename-overturn`); forever is `ADR-NNNN-<topic>` + indexes.
 - **Keep `oya-` / `cloud-` leading brand prefixes because ADR-0017 / history said so** — banned for greenfield; brand prefix is not keep_forever; role-first forever names + dual-emit/alias for protection cutovers.
 - **Keep forever name `oya-ci-required` because Amendment C distill notes said so** — OVERRULED (Amendment C-3); forever name is `merge-admission-required`; distill is operating-pattern evidence, not naming authority.
+- **Defer rules-with-why / daemon-hotset / perimeter as Phase-B debt** — banned; forever shapes encode now (Amendment E); enforcement wiring may trail doctrine.
 
 ## References
 
