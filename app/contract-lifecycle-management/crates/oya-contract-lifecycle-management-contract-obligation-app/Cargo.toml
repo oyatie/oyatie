@@ -1,0 +1,43 @@
+[package]
+name = "oya-contract-lifecycle-management-contract-obligation-app"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+description = "Rust src scaffold for the Contract Lifecycle Management contract obligation application surface."
+
+[package.metadata.oya]
+microservice = "contract-lifecycle-management"
+title = "Contract Lifecycle Management"
+bounded_context = "contract-obligation"
+layer = "app"
+wave = "wave-4-rolling-remediated"
+owner_team = "axis-contract-lifecycle-management + council-product"
+data_classification = "tenant-scoped legal-evidence records with audit-chain seal"
+criticality = "product-critical"
+availability_target = "99.95"
+binding_adrs = ["ADR-0105", "ADR-0131", "ADR-0132", "ADR-0145", "ADR-0243", "ADR-0244", "ADR-0245", "ADR-0251", "ADR-0328", "ADR-0329", "ADR-0330", "ADR-0331"]
+openapi = "contracts/openapi-v1.yaml"
+asyncapi = "contracts/asyncapi-v1.yaml"
+protobuf = "contracts/contract-lifecycle-management-v1.proto"
+
+[lib]
+name = "oya_contract_lifecycle_management_contract_obligation_app"
+path = "src/lib.rs"
+doctest = false
+
+[[bin]]
+name = "oya-contract-lifecycle-management-contract-obligation"
+path = "src/main.rs"
+
+[dependencies]
+clap = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+toml = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+
+[lints]
+workspace = true

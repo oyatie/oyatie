@@ -1,0 +1,31 @@
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: contract-lifecycle-management-policy-decision-latency
+  labels:
+    service: contract-lifecycle-management
+    adr: ADR-0139
+spec:
+  service: contract-lifecycle-management
+  indicator:
+    metadata:
+      name: policy-decision-latency
+    spec:
+      ratioMetric:
+        counter: true
+        good:
+          metricSource:
+            type: prometheus
+            spec:
+              query: sum(rate(oya_contract_lifecycle_management_policy_decision_latency_good_total[5m]))
+        total:
+          metricSource:
+            type: prometheus
+            spec:
+              query: sum(rate(oya_contract_lifecycle_management_policy_decision_latency_total[5m]))
+  objectives:
+    - displayName: Contract Lifecycle Management policy-decision-latency
+      target: 0.999
+  timeWindow:
+    - duration: 30d
+      isRolling: true

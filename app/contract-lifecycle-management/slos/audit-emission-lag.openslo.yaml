@@ -1,0 +1,31 @@
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: contract-lifecycle-management-audit-emission-lag
+  labels:
+    service: contract-lifecycle-management
+    adr: ADR-0139
+spec:
+  service: contract-lifecycle-management
+  indicator:
+    metadata:
+      name: audit-emission-lag
+    spec:
+      ratioMetric:
+        counter: true
+        good:
+          metricSource:
+            type: prometheus
+            spec:
+              query: sum(rate(oya_contract_lifecycle_management_audit_emission_lag_good_total[5m]))
+        total:
+          metricSource:
+            type: prometheus
+            spec:
+              query: sum(rate(oya_contract_lifecycle_management_audit_emission_lag_total[5m]))
+  objectives:
+    - displayName: Contract Lifecycle Management audit-emission-lag
+      target: 0.999
+  timeWindow:
+    - duration: 30d
+      isRolling: true
