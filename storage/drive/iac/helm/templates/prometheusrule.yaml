@@ -19,7 +19,7 @@ spec:
           labels: {severity: page, microservice: drive, bc: folder-hierarchy}
           annotations:
             summary: "file-list p99 14× the 30d SLO budget over the last 1h"
-            runbook: "microservices/drive/runbooks/object-storage-degraded.md"
+            runbook: "storage/drive/runbooks/object-storage-degraded.md"
 
         # Upload multipart throughput burn-rate
         - alert: DriveUploadMultipartFastBurn1h14x
@@ -30,7 +30,7 @@ spec:
           labels: {severity: page, microservice: drive, bc: upload}
           annotations:
             summary: "upload multipart 1GB p99 14× the 30d SLO budget over the last 1h"
-            runbook: "microservices/drive/runbooks/upload-multipart-stuck.md"
+            runbook: "storage/drive/runbooks/upload-multipart-stuck.md"
 
         # Download first-byte burn-rate
         - alert: DriveDownloadFirstByteFastBurn1h14x
@@ -41,7 +41,7 @@ spec:
           labels: {severity: page, microservice: drive, bc: download}
           annotations:
             summary: "download first-byte (warm) p99 14× the 30d SLO budget over the last 1h"
-            runbook: "microservices/drive/runbooks/object-storage-degraded.md"
+            runbook: "storage/drive/runbooks/object-storage-degraded.md"
 
         # Search query burn-rate
         - alert: DriveSearchFastBurn1h14x
@@ -62,7 +62,7 @@ spec:
           labels: {severity: page, microservice: drive, bc: sync}
           annotations:
             summary: "sync delta p99 14× the 30d SLO budget over the last 1h"
-            runbook: "microservices/drive/runbooks/sync-conflict-resolution.md"
+            runbook: "storage/drive/runbooks/sync-conflict-resolution.md"
 
         # Share-link verify CPU/latency burn-rate
         - alert: DriveShareLinkMintFastBurn1h14x
@@ -73,7 +73,7 @@ spec:
           labels: {severity: page, microservice: drive, bc: share-link}
           annotations:
             summary: "share-link mint p99 14× the 30d SLO budget over the last 1h"
-            runbook: "microservices/drive/runbooks/share-link-takeover-incident.md"
+            runbook: "storage/drive/runbooks/share-link-takeover-incident.md"
 
         # Preview render burn-rate
         - alert: DrivePreviewFastBurn1h14x
@@ -93,7 +93,7 @@ spec:
           labels: {severity: page, microservice: drive, bc: immutability-tier, sev: 1}
           annotations:
             summary: "WORM immutability violation detected (zero-tolerance)"
-            runbook: "microservices/drive/runbooks/immutability-tier-violation.md"
+            runbook: "storage/drive/runbooks/immutability-tier-violation.md"
 
         # Scan correctness — zero-tolerance immediate alert
         - alert: DriveScanCorrectnessViolationImmediate
@@ -103,7 +103,7 @@ spec:
           labels: {severity: page, microservice: drive, bc: dlp-virus-scan, sev: 1}
           annotations:
             summary: "Scan correctness violation: a file reached durable storage without verdict"
-            runbook: "microservices/drive/runbooks/virus-scan-rollback.md"
+            runbook: "storage/drive/runbooks/virus-scan-rollback.md"
 
         # Share-link enumeration detected
         - alert: DriveShareLinkEnumerationDetected
@@ -113,5 +113,5 @@ spec:
           labels: {severity: page, microservice: drive, bc: share-link, sev: 1}
           annotations:
             summary: "Share-link enumeration pattern detected"
-            runbook: "microservices/drive/runbooks/share-link-takeover-incident.md"
+            runbook: "storage/drive/runbooks/share-link-takeover-incident.md"
 {{- end }}

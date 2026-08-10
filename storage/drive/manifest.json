@@ -75,10 +75,10 @@
   ],
   "contracts": {
     "openapi": [
-      "microservices/drive/contracts/openapi/drive.yaml"
+      "storage/drive/contracts/openapi/drive.yaml"
     ],
     "asyncapi": [
-      "microservices/drive/contracts/asyncapi/drive-events.yaml"
+      "storage/drive/contracts/asyncapi/drive-events.yaml"
     ],
     "internal_grpc": {
       "transport": "http2",
@@ -92,19 +92,19 @@
     {
       "tier": "T1",
       "name": "T0-suggest",
-      "file": "microservices/drive/capabilities/T0-suggest.yaml",
+      "file": "storage/drive/capabilities/T0-suggest.yaml",
       "risk_class": "minimal"
     },
     {
       "tier": "T1",
       "name": "T1-assist",
-      "file": "microservices/drive/capabilities/T1-assist.yaml",
+      "file": "storage/drive/capabilities/T1-assist.yaml",
       "risk_class": "minimal"
     },
     {
       "tier": "T1",
       "name": "T2-auto",
-      "file": "microservices/drive/capabilities/T2-auto.yaml",
+      "file": "storage/drive/capabilities/T2-auto.yaml",
       "risk_class": "minimal"
     }
   ],
@@ -540,10 +540,10 @@
     "deprecation_calendar": [],
     "public_surface_files": {
       "openapi": {
-        "2026-05-21": "microservices/drive/contracts/openapi/drive.yaml"
+        "2026-05-21": "storage/drive/contracts/openapi/drive.yaml"
       },
       "asyncapi": {
-        "2026-05-21": "microservices/drive/contracts/asyncapi/drive-events.yaml"
+        "2026-05-21": "storage/drive/contracts/asyncapi/drive-events.yaml"
       }
     }
   },

@@ -104,7 +104,7 @@
           "hits_total": 1
         },
         {
-          "file": "microservices/recordings/runbooks/playback-cdn-cache-cascade.md",
+          "file": "storage/recordings/runbooks/playback-cdn-cache-cascade.md",
           "hits": [
             {
               "line": 43,

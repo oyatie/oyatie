@@ -131,8 +131,8 @@ storage:
 # ── Cedar policy fragments ──────────────────────────────────────────────────
 policy:
   cedar:
-    - microservices/recordings/policy/cedar/tenant-scope.cedar
-    - microservices/recordings/policy/cedar/ci-scope.cedar
-    - microservices/recordings/policy/cedar/auditor-scope.cedar
-    - microservices/recordings/policy/cedar/public-read.cedar
-    - microservices/recordings/policy/cedar/legal-hold.cedar
+    - storage/recordings/policy/cedar/tenant-scope.cedar
+    - storage/recordings/policy/cedar/ci-scope.cedar
+    - storage/recordings/policy/cedar/auditor-scope.cedar
+    - storage/recordings/policy/cedar/public-read.cedar
+    - storage/recordings/policy/cedar/legal-hold.cedar

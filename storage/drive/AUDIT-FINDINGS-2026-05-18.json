@@ -80,7 +80,7 @@
             },
             {
               "line": 36,
-              "excerpt": "| `microservices/drive/iac/helm/templates/networkpolicy.yaml` | created | mesh-only ingress; egress to OpenBao + Postgres + Valkey + object-store + Meili + Tika + ClamAV + OPSWAT + cross-\u00b5service mesh;"
+              "excerpt": "| `storage/drive/iac/helm/templates/networkpolicy.yaml` | created | mesh-only ingress; egress to OpenBao + Postgres + Valkey + object-store + Meili + Tika + ClamAV + OPSWAT + cross-\u00b5service mesh;"
             }
           ],
           "hits_total": 4
@@ -152,7 +152,7 @@
           "hits_total": 1
         },
         {
-          "file": "microservices/drive/runbooks/upload-multipart-stuck.md",
+          "file": "storage/drive/runbooks/upload-multipart-stuck.md",
           "hits": [
             {
               "line": 45,
@@ -162,7 +162,7 @@
           "hits_total": 1
         },
         {
-          "file": "microservices/drive/catalog/oya-drive-upload-kernel.yaml",
+          "file": "storage/drive/catalog/oya-drive-upload-kernel.yaml",
           "hits": [
             {
               "line": 18,
@@ -172,7 +172,7 @@
           "hits_total": 1
         },
         {
-          "file": "microservices/drive/catalog/oya-drive-upload-adapter-valkey.yaml",
+          "file": "storage/drive/catalog/oya-drive-upload-adapter-valkey.yaml",
           "hits": [
             {
               "line": 21,
@@ -192,7 +192,7 @@
           "hits_total": 1
         },
         {
-          "file": "microservices/drive/iac/helm/Chart.yaml",
+          "file": "storage/drive/iac/helm/Chart.yaml",
           "hits": [
             {
               "line": 7,
@@ -202,7 +202,7 @@
           "hits_total": 1
         },
         {
-          "file": "microservices/drive/iac/helm/templates/networkpolicy.yaml",
+          "file": "storage/drive/iac/helm/templates/networkpolicy.yaml",
           "hits": [
             {
               "line": 45,
@@ -212,7 +212,7 @@
           "hits_total": 1
         },
         {
-          "file": "microservices/drive/manifest.json",
+          "file": "storage/drive/manifest.json",
           "hits": [
             {
               "line": 191,
@@ -346,7 +346,7 @@
           "hits_total": 1
         },
         {
-          "file": "microservices/drive/runbooks/immutability-tier-violation.md",
+          "file": "storage/drive/runbooks/immutability-tier-violation.md",
           "hits": [
             {
               "line": 155,
@@ -356,7 +356,7 @@
           "hits_total": 1
         },
         {
-          "file": "microservices/drive/runbooks/upload-multipart-stuck.md",
+          "file": "storage/drive/runbooks/upload-multipart-stuck.md",
           "hits": [
             {
               "line": 91,
@@ -370,7 +370,7 @@
           "hits_total": 2
         },
         {
-          "file": "microservices/drive/runbooks/object-storage-degraded.md",
+          "file": "storage/drive/runbooks/object-storage-degraded.md",
           "hits": [
             {
               "line": 14,
@@ -444,7 +444,7 @@
           "hits_total": 1
         },
         {
-          "file": "microservices/drive/catalog/oya-drive-file-store-adapter-s3.yaml",
+          "file": "storage/drive/catalog/oya-drive-file-store-adapter-s3.yaml",
           "hits": [
             {
               "line": 9,
@@ -454,7 +454,7 @@
           "hits_total": 1
         },
         {
-          "file": "microservices/drive/manifest.json",
+          "file": "storage/drive/manifest.json",
           "hits": [
             {
               "line": 191,
@@ -464,7 +464,7 @@
           "hits_total": 1
         },
         {
-          "file": "microservices/drive/dashboards/storage-and-bandwidth.json",
+          "file": "storage/drive/dashboards/storage-and-bandwidth.json",
           "hits": [
             {
               "line": 58,
