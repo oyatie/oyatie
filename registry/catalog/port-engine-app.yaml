@@ -11,6 +11,6 @@ supply_chain: source-only
 traceability:
   source_crate: build/port-engine/facade/port-engine-app/Cargo.toml
 non_claims:
-  - W0-B Slice 1 skeleton only; no plan/render/verify/delta/receipt driver exists yet
+  - W0-B Slice 3 driver wiring only; CLI subcommands and six-axis receipt end-to-end tests land in Slice 6
   - defines NO capability; build/ is a meta directory that owns zero capability crates (ADR-0637 D1)
   - CLI exits non-zero until Slice 6; six-axis receipt end-to-end tests land there, not here

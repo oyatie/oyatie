@@ -4,6 +4,21 @@ rust_library(
     crate = "port_engine_rust_ir",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
+    deps = [
+        "//build/port-engine/ports/port-engine-api:port-engine-api",
+    ],
+)
+
+# Compiles #[cfg(test)] modules in src/lib.rs (empty renderer stub).
+rust_test(
+    name = "port-engine-rust-ir-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "port_engine_rust_ir",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//build/port-engine/ports/port-engine-api:port-engine-api",
+    ],
 )
 
 rust_test(

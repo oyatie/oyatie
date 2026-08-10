@@ -11,6 +11,6 @@ supply_chain: source-only
 traceability:
   source_crate: build/port-engine/core/port-engine-rust-ir/Cargo.toml
 non_claims:
-  - W0-B Slice 1 skeleton only; no TargetIr renderer or syn/quote wiring exists yet
+  - W0-B Slice 3 empty renderer stub only; syn/quote path and leakage-forbidden tests land in Slice 5
   - defines NO capability; build/ is a meta directory that owns zero capability crates (ADR-0637 D1)
   - deterministic render path and leakage-forbidden tests land in Slice 5
