@@ -1,8 +1,8 @@
-//! OCI network adapter boundary for Cloud Network.
+//! OCI network adapter boundary for the network capability.
 //!
 //! This crate keeps OCI compartment, region, VCN path, and evidence refs outside
-//! provider-neutral Cloud Network domain/API crates while implementing the VPC
-//! provider port contract. It builds deterministic request shapes only;
+//! provider-neutral `network/core` and `network/ports` crates while implementing
+//! the VPC provider port contract. It builds deterministic request shapes only;
 //! credentialed live smoke remains a separate promotion gate.
 // ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
 // `panic!()` to assert invariants under the `cfg(test)` exemption.

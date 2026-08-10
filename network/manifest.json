@@ -1,25 +1,24 @@
 {
   "schema_version": "1.0",
   "capability": "network",
-  "_comment": "Capability-root manifest for network/ (ADR-0562). Every crate, contract path, IP path and accounting count below was read off the network/ tree at authoring time, not transcribed from legacy crates/oya-cloud-network-* or microservices/cloud-network dump paths.",
+  "_comment": "Capability-root manifest for network/ (ADR-0562). Every crate, capability file path, fixture path, contract path, OpenSLO path, and accounting count below was read off the tree at authoring time, not transcribed from legacy cloud/cloud-network, cloud/cloud-network-dns, crates/oya-cloud-network-*, or microservices/ dump paths.",
   "tier": "substrate",
   "tier_subtype": "substrate-network",
-  "dr_tier": "T1",
   "substrate_dag_position": {
     "stratum": "S1",
     "depends_on": [],
     "consumed_by_substrates": [],
-    "_note": "specs/capability-registry.json name=network dag_node=network stratum=S1; depends_on/consumed_by currently empty on registry entry (forward-declared edges remain vacant)."
+    "_note": "specs/capability-registry.json name=network dag_node=network stratum=S1"
   },
-  "_tier_source": "specs/capability-registry.json name=network dag_node=network stratum=S1; tier_subtype=substrate-network retained from grounded prior service manifest (capability-registry omits tier_subtype).",
-  "_tier_subtype_note": "RETAINED \u2014 substrate-network was already declared; governed facet kept rather than inventing absence.",
+  "_tier_source": "specs/capability-registry.json name=network dag_node=network stratum=S1; tier_subtype retained from absorbed cloud-network / cloud-network-dns service manifests (classify-capability-roots blob 0087b2796)",
+  "_stratum_note": "S1 from ADR-0562 capability-registry (dag_node network). Replaces the pre-rehome microservice manifest that still cited crates/oya-cloud-network-* dump paths after wave-26 rehome into network/{core,ports,adapters}.",
   "version": "0.1.0",
   "owner": "axis-cloud-network",
-  "purpose": "Network + DNS substrate (capability-registry charter): VPC/subnet/load-balancer/DNS-zone domain invariants, provider-neutral OCI/self-hosted command shaping, Cilium/Envoy/CoreDNS cell guardrail metadata, and DNS product face under network/dns/. No live Cilium policy apply, Envoy xDS, CoreDNS deployment, REST server, measured foundation SLO, active-active DR, or audit-chain persistence is claimed by this capability-root slice.",
+  "purpose": "Network + DNS substrate (ADR-0562 charter): VPC/subnet/LB/DNS-zone domain invariants, residency kernel, provider-neutral OCI/self-hosted command-shaping adapters, VPC/LB/DNS API ports, and transport-profile contract. Cilium/Envoy/CoreDNS cell guardrails are metadata-only in-tree. Apache/OSS Cilium·Envoy·CoreDNS remain transitional data-plane deps behind ports (ADR-0510); no live policy apply, xDS push, CoreDNS deploy, REST server, measured create-API SLI, or audit-chain runtime is claimed by this capability-root slice.",
   "bounded_contexts": [
     {
       "name": "network-adapters",
-      "description": "Transient-infra driven adapters under network/adapters/ (OCI + self-hosted command shaping).",
+      "description": "Transient-infra driven adapters under network/adapters/.",
       "crates": [
         "network-oci",
         "network-selfhosted"
@@ -27,7 +26,7 @@
     },
     {
       "name": "network-core",
-      "description": "Pure domain/residency surfaces under network/core/.",
+      "description": "Pure domain and residency kernels under network/core/.",
       "crates": [
         "network-domain",
         "network-residency"
@@ -35,7 +34,7 @@
     },
     {
       "name": "network-ports",
-      "description": "API boundary crates under network/ports/ (VPC, LB, DNS, transport-profile).",
+      "description": "Provider-neutral API / transport ports under network/ports/.",
       "crates": [
         "network-dns",
         "network-lb",
@@ -67,21 +66,17 @@
       "registry/catalog/network-transport-profile.yaml",
       "registry/catalog/network-vpc.yaml"
     ],
-    "absorbed_services": [
-      {
-        "service": "dns",
-        "manifest": "network/dns/manifest.json"
-      }
-    ],
-    "_overlap_note": "Eight workspace members under network/{adapters,core,ports} are owned by this capability root. network/dns carries its own sub-manifest (registry absorb list) and is listed as absorbed, not double-counted in crates_under_capability_root."
+    "_overlap_note": "All eight workspace members under network/{adapters,core,ports} are owned exclusively by this capability root. network/dns/manifest.json remains a nested absorbed microservice residual (docs/contracts/OpenSLO only; zero Cargo.toml under network/dns/) and does not own any of the eight crates."
   },
   "contracts": {
     "openapi": [
       "network/contracts/openapi/cloud/cloud-network-vpc-v1.yaml",
-      "network/contracts/openapi/cloud/cloud-network-lb-v1.yaml"
+      "network/contracts/openapi/cloud/cloud-network-lb-v1.yaml",
+      "network/dns/contracts/openapi/cloud/cloud-network-dns-v1.yaml"
     ],
     "asyncapi": [
-      "network/contracts/asyncapi/cloud-network-design-events.yaml"
+      "network/contracts/asyncapi/cloud-network-design-events.yaml",
+      "network/dns/contracts/asyncapi/cloud-network-dns-design-events.yaml"
     ],
     "internal_grpc": {
       "transport": "http2",
@@ -90,7 +85,7 @@
         "network/contracts/proto/cloud-network-design.proto"
       ]
     },
-    "contract_status": "verified in-tree under network/contracts/; parallel root contracts/openapi/cloud/cloud-network-*-v1.yaml copies may also exist outside this envelope and are not re-cited here."
+    "contract_status": "openapi+asyncapi+proto present under network/ and network/dns/contracts/; ports expose typed create boundaries without a deployed REST/gRPC server"
   },
   "capabilities": [
     {
@@ -107,8 +102,20 @@
     },
     {
       "tier": "T1",
+      "name": "dns-zone-domain-invariants",
+      "file": "network/core/domain/src/lib.rs",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T1",
       "name": "cilium-envoy-coredns-cell-guardrail-metadata",
       "file": "network/core/domain/src/lib.rs",
+      "risk_class": "high"
+    },
+    {
+      "tier": "T1",
+      "name": "platform-residency-kernel",
+      "file": "network/core/residency/src/lib.rs",
       "risk_class": "high"
     },
     {
@@ -125,67 +132,137 @@
     },
     {
       "tier": "T1",
-      "name": "oci-and-selfhosted-network-command-shaping-adapters",
-      "file": "network/adapters/oci/src/lib.rs",
-      "risk_class": "high"
-    },
-    {
-      "tier": "T1",
-      "name": "selfhosted-network-command-shaping-adapter",
-      "file": "network/adapters/selfhosted/src/lib.rs",
-      "risk_class": "high"
-    },
-    {
-      "tier": "T1",
-      "name": "dns-zone-api-boundary",
+      "name": "cloud-network-dns-zone-create-api-boundary",
       "file": "network/ports/dns/src/lib.rs",
       "risk_class": "high"
     },
     {
       "tier": "T1",
-      "name": "transport-profile-api-boundary",
+      "name": "endpoint-transport-profile-contract",
       "file": "network/ports/transport-profile/src/lib.rs",
-      "risk_class": "high"
+      "risk_class": "medium"
     },
     {
       "tier": "T1",
-      "name": "network-residency-invariants",
-      "file": "network/core/residency/src/lib.rs",
-      "risk_class": "high"
+      "name": "oci-network-command-shaping-adapter",
+      "file": "network/adapters/oci/src/lib.rs",
+      "risk_class": "medium"
+    },
+    {
+      "tier": "T1",
+      "name": "selfhosted-network-command-shaping-adapter",
+      "file": "network/adapters/selfhosted/src/lib.rs",
+      "risk_class": "medium"
     }
   ],
   "conformance_fixtures": [
     {
-      "name": "cloud-network-dns-guardrails",
-      "file": "network/core/domain/tests/cloud_network_dns_guardrails.rs"
+      "name": "cilium-envoy-coredns-cell-guardrails",
+      "file": "network/core/domain/tests/cloud_network_dns_guardrails.rs",
+      "domain": "network/core/domain/src/lib.rs"
+    },
+    {
+      "name": "vpc-create-api-boundary",
+      "file": "network/ports/vpc/tests/cloud_network_vpc_api.rs",
+      "port": "network/ports/vpc/src/lib.rs"
+    },
+    {
+      "name": "lb-create-api-boundary",
+      "file": "network/ports/lb/tests/cloud_network_lb_api.rs",
+      "port": "network/ports/lb/src/lib.rs"
+    },
+    {
+      "name": "dns-zone-create-api-boundary",
+      "file": "network/ports/dns/tests/cloud_network_dns_api.rs",
+      "port": "network/ports/dns/src/lib.rs"
     }
   ],
-  "slos": [],
+  "slos": [
+    "network/observability/slos/cloud-network/autosharding-events.openslo.yaml",
+    "network/observability/slos/cloud-network-dns/autosharding-events.openslo.yaml"
+  ],
   "slo_exemption": {
-    "status": "live_exempted_no_runtime_sli",
+    "status": "live_exempted_no_measured_create_api_sli",
     "owner": "axis-cloud-network",
-    "rationale": "No measured foundation SLI is claimed by this local-foundation slice. OpenSLO scaffolds exist under network/observability/slos/ but are not promoted into slos[] until a measured runtime SLI is grounded. Prior evidence cite specs/master-plan-sequencing.json#\u2026 is retired as ungrounded.",
+    "rationale": "OpenSLO YAML for ADR-0348 autosharding events exists under network/observability/slos/ and is cited in slos[] above. No measured VPC/LB/DNS create-API or data-plane runtime SLI is implemented by the eight local-foundation crates; production traffic SLIs are not claimed by this capability-root slice.",
     "cutover_on": "2026-12-31",
-    "evidence": "verified glob network/observability/slos/**/*.openslo.yaml finds scaffold files only; capability-root slos[] left empty rather than inventing measured coverage"
+    "evidence": "verified glob network/observability/slos/**/*.openslo.yaml returns the two autosharding-events files cited in slos[]; no create-API OpenSLO file exists under network/"
   },
   "ips": [
     {
       "id": "CS-CLOUD-NETWORK-DNS-001",
-      "title": "Cloud Network + DNS local foundation guardrails",
+      "title": "Cilium/Envoy/CoreDNS cell guardrail foundation and Cloud Network manifest truth-down",
       "acceptance_status": "implemented-local-foundation",
       "file": "network/core/domain/tests/cloud_network_dns_guardrails.rs"
-    },
-    {
-      "id": "IP-ADR-0339-Shared-IaC-Modules",
-      "title": "Shared IaC modules note",
-      "acceptance_status": "note",
-      "file": "network/IPs/IP-ADR-0339-Shared-IaC-Modules.md"
-    },
-    {
-      "id": "IP-WAVE-15-ZD-sharding-automation",
-      "title": "Wave-15 ZD sharding automation note",
-      "acceptance_status": "note",
-      "file": "network/IPs/IP-WAVE-15-ZD-sharding-automation.md"
     }
+  ],
+  "lts_pins": {
+    "rust": "1.97.1"
+  },
+  "adrs": [
+    {
+      "id": "ADR-0044",
+      "title": "Service Mesh Istio Ambient And Envoy Gateway",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
+    },
+    {
+      "id": "ADR-0148",
+      "title": "Service Mesh Cilium Ambient Layered",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0700-ci-admission-live-apex.md"
+    },
+    {
+      "id": "ADR-0253",
+      "title": "Network Topology Edge Service Mesh",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0708-platform-foundations-live-apex.md"
+    },
+    {
+      "id": "ADR-0510",
+      "title": "Transitional Upstream Behind Stable Ports",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0709-general-live-apex.md"
+    },
+    {
+      "id": "ADR-0536",
+      "title": "Sixteen Substrate Domains",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
+    },
+    {
+      "id": "ADR-0562",
+      "title": "Capability First Repo Organization",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
+    }
+  ],
+  "implemented_source_files": [
+    "network/adapters/oci/src/lib.rs",
+    "network/adapters/selfhosted/src/lib.rs",
+    "network/core/domain/src/lib.rs",
+    "network/core/domain/tests/cloud_network_dns_guardrails.rs",
+    "network/core/residency/src/lib.rs",
+    "network/ports/dns/src/authz.rs",
+    "network/ports/dns/src/lib.rs",
+    "network/ports/dns/tests/cloud_network_dns_api.rs",
+    "network/ports/lb/src/authz.rs",
+    "network/ports/lb/src/lib.rs",
+    "network/ports/lb/tests/cloud_network_lb_api.rs",
+    "network/ports/transport-profile/src/lib.rs",
+    "network/ports/vpc/src/authz.rs",
+    "network/ports/vpc/src/lib.rs",
+    "network/ports/vpc/tests/cloud_network_vpc_api.rs"
+  ],
+  "doc_class": "Machine-Readable-Spec",
+  "foundation_non_claims": [
+    "no REST server, SDK crate, worker, Kubernetes controller, Envoy xDS adapter, CoreDNS deployment adapter, Cilium policy apply path, or live data-plane reconciler is implemented by this capability-root slice",
+    "no measured create-API SLI, p99 latency, active-active DR, route convergence, DNS query runtime, sharding execution, mesh runtime enforcement, provider lockfile, OpenTofu plan/apply, or capacity telemetry evidence is claimed for Cloud Network runtime",
+    "legacy cloud/cloud-network and cloud/cloud-network-dns paths are retired; all eight crates are homed under network/{core,ports,adapters} per ADR-0562 and must not be re-cited from crates/oya-cloud-network-* dump paths in this manifest"
+  ],
+  "explicit_non_claims": [
+    "OpenSLO files under network/observability/slos/ are the ADR-0348 autosharding-event envelopes cited in slos[]; they are not a claim of measured VPC/LB/DNS create-API or data-plane SLI",
+    "network/dns/manifest.json remains a nested absorbed residual and is not restated here; its crate cites must not override the eight in-tree network/* crate homes above"
   ]
 }
+

@@ -1,8 +1,9 @@
 # Residual product/docs surface for network capability (dual-home burn-down).
 # Live crates live under network/{core,ports,adapters} with their own package
-# BUCKs. This package owns residual service docs, manifests, contracts, and
-# OpenSLO YAML rehomed from cloud/cloud-network and cloud/cloud-network-dns
-# (wave 26) so they remain in the Buck2 corpus graph (ADR-0541).
+# BUCKs. This package owns residual service docs, capability-root manifest,
+# contracts, and OpenSLO YAML now under network/observability/slos/ (rehomed
+# from cloud/cloud-network and cloud/cloud-network-dns in wave 26) so they
+# remain in the Buck2 corpus graph (ADR-0541).
 
 load("//governance/corpus/extract:yaml_facts.bzl", "corpus_yaml_facts_shards")
 
