@@ -30,6 +30,18 @@ const OS_ROOT: &str = "os";
 /// drift in either direction. Hand-writing upstream Kubernetes wire surface is what ADR-0704
 /// charters as generated, so growth here is the defect and an unrecorded shrink is a lie.
 pub const UPSTREAM_EMIT_SITE_CEILING: usize = 16;
+/// W0 divergence row identities pinned by equality so a constant cumulative size
+/// cannot hide a swap. Retirements and additions update this pin in the same commit.
+const FROZEN_DIVERGENCE_ROW_IDS: &[&str] = &[
+    "DVG-BOOTSTRAP-GO-FRONTEND",
+    "DVG-CEDAR-AUTHORIZATION-SEAM",
+    "DVG-OS-DUPLICATE-STATIC-POD-RENDERER",
+    "DVG-OS-HANDROLLED-K8S-API-SERIALIZERS",
+    "DVG-OWNED-AUDIT-CHAIN-EMISSION",
+    "DVG-OWNED-OBSERVABILITY-EMISSION",
+    "DVG-REMOVED-IN-TREE-PROVIDERS-VOLUME-PLUGINS",
+];
+
 /// The five upstream Kubernetes API groups that carry no `.k8s.io` suffix. Every other upstream
 /// group is recognised structurally by that suffix rather than by enumeration.
 const SUFFIXLESS_UPSTREAM_GROUPS: [&str; 5] =
@@ -191,6 +203,8 @@ pub struct DivergenceLedger {
     pub rows: usize,
     pub baseline_seed_count: usize,
     pub max_new_rows_per_wave: usize,
+    /// Stable row identities. Cumulative size alone cannot see a swap (delete N, add N+k).
+    pub row_ids: Vec<String>,
 }
 
 /// The leaf census `specs/k8s-port/regenerable-regions.json` declares.
@@ -325,6 +339,18 @@ pub fn evaluate(corpus: &Corpus) -> Evaluation {
             &format!(
                 "{} divergence rows exceed the ledger's own declared budget of {} (baseline_seed_count {} + max_new_rows_per_wave {}); the growth policy is DATA in this file and this is its reader — a further divergence is recorded in the operations journal and waits for the next wave gate",
                 ledger.rows, budget, ledger.baseline_seed_count, ledger.max_new_rows_per_wave
+            ),
+        ));
+    }
+    let observed_ids: BTreeSet<&str> = ledger.row_ids.iter().map(String::as_str).collect();
+    let frozen_ids: BTreeSet<&str> = FROZEN_DIVERGENCE_ROW_IDS.iter().copied().collect();
+    if observed_ids != frozen_ids {
+        findings.push(finding(
+            FindingCode::DivergenceLedgerGrowthBudgetExceeded,
+            DIVERGENCE_LEDGER,
+            &format!(
+                "divergence row identity set does not equal the frozen W0 pin (observed {:?}, frozen {:?}); a swap that preserves cumulative size still changes membership — update the pin in the same commit as any retirement or addition",
+                observed_ids, frozen_ids
             ),
         ));
     }
@@ -476,13 +502,20 @@ fn load_divergence_ledger(repo_root: &Path) -> Result<DivergenceLedger, LoadErro
         ));
     }
     let document = read_json(&path, CODE)?;
-    let rows = document
+    let rows_value = document
         .get("rows")
         .and_then(Value::as_array)
-        .ok_or_else(|| load_error(CODE, &path, "`rows` must be an array"))?
-        .len();
+        .ok_or_else(|| load_error(CODE, &path, "`rows` must be an array"))?;
+    let mut row_ids = Vec::with_capacity(rows_value.len());
+    for row in rows_value {
+        let id = row.get("id").and_then(Value::as_str).ok_or_else(|| {
+            load_error(CODE, &path, "every divergence row must carry a string `id`")
+        })?;
+        row_ids.push(id.to_owned());
+    }
+    row_ids.sort();
     Ok(DivergenceLedger {
-        rows,
+        rows: rows_value.len(),
         baseline_seed_count: json_usize(
             &document,
             "/growth_policy/baseline_seed_count",
@@ -495,6 +528,7 @@ fn load_divergence_ledger(repo_root: &Path) -> Result<DivergenceLedger, LoadErro
             &path,
             CODE,
         )?,
+        row_ids,
     })
 }
 
@@ -555,6 +589,7 @@ fn load_declared_leaves(repo_root: &Path) -> Result<DeclaredLeaves, LoadError> {
     // A `Vec`, never a `BTreeSet`: duplicates must survive, because the row-count comparison in
     // `evaluate` is what catches a deletion or a rename that a per-leaf presence check cannot see.
     let mut rows = Vec::with_capacity(leaves.len());
+    const CLOSED_ORIGINS: &[&str] = &["first-party", "generated"];
     for leaf in leaves {
         let value = leaf.get("path").and_then(Value::as_str).ok_or_else(|| {
             load_error(
@@ -563,6 +598,23 @@ fn load_declared_leaves(repo_root: &Path) -> Result<DeclaredLeaves, LoadError> {
                 "every `origin_classification.leaves` row must carry a string `path`",
             )
         })?;
+        let origin = leaf.get("origin").and_then(Value::as_str).ok_or_else(|| {
+            load_error(
+                CODE,
+                &path,
+                "every `origin_classification.leaves` row must carry a closed `origin` classification",
+            )
+        })?;
+        if !CLOSED_ORIGINS.contains(&origin) {
+            return Err(load_error(
+                CODE,
+                &path,
+                &format!(
+                    "leaf origin `{origin}` is outside the closed set {:?}",
+                    CLOSED_ORIGINS
+                ),
+            ));
+        }
         rows.push(value.to_owned());
     }
     Ok(DeclaredLeaves {
@@ -650,12 +702,46 @@ pub fn dynamic_api_version_sites(contents: &str) -> usize {
     contents
         .lines()
         .filter(|line| {
-            is_scannable_line(line)
-                && api_version_values(line)
-                    .iter()
-                    .any(|value| value.contains('{'))
+            if !is_scannable_line(line) {
+                return false;
+            }
+            // Format-placeholder emissions (`apiVersion: {}`) are unclassifiable.
+            if api_version_values(line)
+                .iter()
+                .any(|value| value.contains('{'))
+            {
+                return true;
+            }
+            // Split/computed emissions: key written with an empty same-line value
+            // (e.g. `out.push_str("apiVersion: ");` then a later push of the group).
+            // Bare identifier mentions (`let field = "apiVersion";`) are not emissions.
+            empty_api_version_emit(line)
         })
         .count()
+}
+
+/// True when the line emits an `apiVersion:` / `"apiVersion":` key with no resolvable value.
+fn empty_api_version_emit(line: &str) -> bool {
+    for (index, _) in line.match_indices("apiVersion") {
+        let mut rest = &line[index + "apiVersion".len()..];
+        rest = strip_quote(rest);
+        let Some(mut rest) = rest.strip_prefix(':') else {
+            continue;
+        };
+        rest = rest.trim_start_matches([' ', '\t']);
+        rest = strip_quote(rest);
+        if rest.is_empty()
+            || rest.starts_with("\\n")
+            || rest.starts_with('"')
+            || rest.starts_with('\'')
+            || rest.starts_with(')')
+            || rest.starts_with(';')
+            || rest.starts_with(',')
+        {
+            return true;
+        }
+    }
+    false
 }
 
 /// Every `apiVersion` value on the line, **normalized once before classification**. Classifying raw
@@ -1292,6 +1378,7 @@ mod tests {
                 rows: 7,
                 baseline_seed_count: 5,
                 max_new_rows_per_wave: 2,
+                            row_ids: Vec::new(),
             },
         }
     }
