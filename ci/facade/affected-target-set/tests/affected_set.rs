@@ -1069,3 +1069,75 @@ fn wrong_pack_for_engine_is_rejected() {
     let err = Policy::from_json(r#"{"gate_id": "cloud-ci-something-else"}"#).unwrap_err();
     assert!(format!("{err}").contains("wrong pack"));
 }
+
+// ── A whole-tree SCANNER over OWNED source must be reachable by declaration ──────────────
+
+#[test]
+fn a_synthetic_declaration_is_additive_on_top_of_a_real_owner() {
+    // THE RED. `resolve` used to `continue` the moment `owner()` was non-empty, so a scanner gate
+    // whose INPUTS are owned source could not be wired by declaration at all: the owning crate and
+    // its rdeps were seeded and the scan never ran. The declaration must ADD to the owner, never
+    // replace it — widening a cone cannot manufacture a false green, whereas the narrow cone could
+    // (and did) let the one change class a census ratchet exists to catch pass unexecuted.
+    let p = Policy::from_json(
+        r#"{
+            "gate_id": "cloud-ci-affected-set",
+            "universe": "//...",
+            "full_run_targets": ["//..."],
+            "full_trigger_patterns": ["**/*.bzl"],
+            "require_owner_patterns": ["**/*.rs"],
+            "package_definition_basenames": ["BUCK.v2", "BUCK"],
+            "package_sibling_basenames": ["Cargo.toml"],
+            "cell_roots": {"": "//"},
+            "synthetic_dependencies": {"os/**/*.rs": ["root//ci/facade/scanner:gate"]},
+            "inert_selection_classes": [],
+            "default_base_ref": "origin/dev"
+        }"#,
+    )
+    .expect("pack parses");
+    let path = "os/core/kubelet-domain/src/spec.rs";
+    let plan = plan_changes(&[Change::Present(path.into())], &p);
+    let decision = resolve(
+        &plan,
+        &owners(&[(path, &["root//os/core/kubelet-domain:os-kubelet-domain"])]),
+        &p,
+    );
+    match decision {
+        Decision::Affected { seeds } => {
+            assert!(
+                seeds.iter().any(|s| s == "root//os/core/kubelet-domain:os-kubelet-domain"),
+                "the real owner must still be seeded; got {seeds:?}"
+            );
+            assert!(
+                seeds.iter().any(|s| s == "root//ci/facade/scanner:gate"),
+                "the declared scanner must ALSO be seeded; got {seeds:?}"
+            );
+        }
+        other => panic!("expected Affected, got {other:?}"),
+    }
+}
+
+#[test]
+fn the_shipped_pack_wires_the_k8s_port_census_scan_roots_to_their_gate() {
+    // The declaration is only worth its line if the SHIPPED pack carries it: the k8s-program-docs
+    // gate scans os/**/*.rs for the INV-3 upstream-apiVersion census, and a serializer added to an
+    // already-existing os/ file is exactly the change the equality freeze exists to catch.
+    const GATE: &str = "root//ci/facade/k8s-program-docs:ci-k8s-program-docs-gate";
+    let p = Policy::from_json(&fs::read_to_string(shipped_pack_path()).expect("read shipped pack"))
+        .expect("shipped pack parses");
+    assert_eq!(p.gate_id, GATE_ID);
+    for path in [
+        "os/core/kubelet-domain/src/spec.rs",
+        "k8s/ports/anything/src/lib.rs",
+    ] {
+        let plan = plan_changes(&[Change::Present(path.into())], &p);
+        let decision = resolve(&plan, &owners(&[(path, &["root//some/owner:target"])]), &p);
+        match decision {
+            Decision::Affected { seeds } => assert!(
+                seeds.iter().any(|s| s == GATE),
+                "`{path}` must seed {GATE}; got {seeds:?}"
+            ),
+            other => panic!("expected Affected for `{path}`, got {other:?}"),
+        }
+    }
+}

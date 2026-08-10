@@ -692,6 +692,16 @@ pub fn resolve(
         let owners = owner_results.get(path).map(Vec::as_slice).unwrap_or(&[]);
         if !owners.is_empty() {
             seeds.extend(owners.iter().cloned());
+            // A synthetic declaration is ADDITIVE on top of a real owner, never a substitute for
+            // one. Before this, `owner()` non-empty returned immediately, so a whole-tree SCANNER
+            // whose inputs are OWNED source could not be declared at all: the only reachable
+            // wiring was a real buck2 dep edge from the scanner onto every crate it reads, which
+            // (a) makes a text-scanning gate link the tree it scans and (b) is a hand-enumerated
+            // list that rots silently — the same class the `.github/**` `[]` regression created.
+            // Widening the seed set can only widen the cone, so this cannot produce a false green.
+            if let Some(synthetic) = synthetic_seeds(path, policy) {
+                seeds.extend(synthetic);
+            }
             continue;
         }
         // Unowned Present file. A graph-invisibility refusal dominates: even a full-workspace run
@@ -778,9 +788,12 @@ pub fn unjustified_empty_selection(plan: &Plan, policy: &Policy) -> Vec<String> 
 
 /// The union of synthetic seed targets from EVERY `synthetic_dependencies` pattern matching
 /// `path`, or `None` if NO pattern matched. `Some(vec![])` means the path matched at least one
-/// EXPLICIT inert declaration (`[]`) — accounted for, seeds no target. Used only for unowned,
-/// non-owner-required paths (owned paths are seeded by `owner()`; owner-required unowned paths
-/// refuse), so a synthetic declaration never shadows a real owner.
+/// EXPLICIT inert declaration (`[]`) — accounted for, seeds no target. Consulted for owner-required
+/// unowned paths only via the refusal branch (they refuse first); for every other path it is the
+/// union ON TOP OF whatever `owner()` returned, so a synthetic declaration ADDS to a real owner and
+/// can never shadow one. That additivity is what lets a whole-tree SCANNER over OWNED source
+/// (`ci/facade/k8s-program-docs` reading `os/**/*.rs`) be wired by declaration instead of by a
+/// hand-enumerated buck2 dep edge onto every crate it reads.
 fn synthetic_seeds(path: &str, policy: &Policy) -> Option<Vec<String>> {
     let mut matched = false;
     let mut seeds = Vec::new();
