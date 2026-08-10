@@ -47,14 +47,32 @@ pub const GATE_ID: &str = "governance-check-adr-citation-closure";
 /// and no named ADR resolves to the cited one. Blocking — this is the de-stale defect.
 pub const CODE_CITATION_MISMATCH: &str = "adr_citation_closure_mismatch";
 
-/// An authority surface cites an ADR whose archived status is `Rejected`. Blocking — a rejected
-/// decision is not law, and a path citation to it looks exactly like a citation to live doctrine.
+/// An authority surface cites an ADR whose status carries NO implement authority. Blocking — a
+/// decision that is not law looks exactly like a citation to live doctrine on the surfaces that
+/// ARE the governance contract.
 ///
 /// Checked over BOTH halves of the line. `scan_line` moves an id that appears as a `decisions/`
 /// PATH out of `context`, so a surface that writes the id twice — `[ADR-0347](decisions/ADR-0347-…)`
 /// — leaves `context` empty. Scanning only `context` therefore blinded this rule to exactly the
 /// citations that state the doctrine most explicitly: the ones that both name and link it.
+///
+/// The code name is historical: the rule began as `Rejected`-only and the id is pinned by the
+/// policy's equality ceilings, so it is kept rather than renamed for a widened predicate.
 pub const CODE_REJECTED_AUTHORITY: &str = "adr_citation_rejected_authority";
+
+/// Statuses that carry NO implement authority, taken verbatim from the repository's own rule at
+/// `docs/decisions/_disposition/2026-08-06-live-resolution-rule.json`: "If status
+/// Proposed/Deprecated/Rejected -> not implement authority".
+///
+/// `Superseded` is DELIBERATELY ABSENT, and the difference matters. A superseded ADR resolves
+/// THROUGH `superseded_by` to a live successor and is cited as history on purpose — root
+/// `CLAUDE.md` carries `historical_substrate_adrs` and `historical_vcs_ratchet_adrs` blocks that
+/// do exactly that. Measured on the three authority surfaces: 21 of the ids they name are
+/// `Superseded`, so widening this to `status != "Accepted"` would manufacture 21 accusations
+/// against citations that are correct. Supersession already has its own rules (the closure
+/// oracle, [`CODE_UNRESOLVABLE`], [`CODE_ASYMMETRY`]); this one is about LIFECYCLE, and the two
+/// questions must not be overloaded onto one predicate.
+pub const NON_ENFORCING_STATUSES: [&str; 3] = ["Proposed", "Deprecated", "Rejected"];
 
 /// A `decisions/` path citation naming an ADR that is not a live apex — either no record exists at
 /// all, or the record is an archived member. Blocking — the path does not resolve to a file under
@@ -708,17 +726,27 @@ pub fn evaluate(records: &[AdrRecord], citations: &[CitationLine], policy: &Poli
         // the decision it mandates — carry the id only in `cited` and were invisible here.
         if citation.authority_surface {
             for id in citation.cited.iter().chain(citation.context.iter()) {
-                if oracle.record(id).is_some_and(|r| r.status == "Rejected") {
-                    findings.push(Finding {
-                        code: CODE_REJECTED_AUTHORITY.to_owned(),
-                        subject: at.clone(),
-                        detail: format!(
-                            "authority surface cites {id}, whose archived status is Rejected — a \
-                             rejected decision is not law"
-                        ),
-                        blocking: true,
-                    });
+                // LIFECYCLE, not location. `record.live` answers "does this path resolve to a
+                // file" and is the terminator for CODE_DANGLING_CITATION; authority is a separate
+                // question and gets a separate rule rather than an overload of that predicate.
+                // See NON_ENFORCING_STATUSES for why this is not `!= "Accepted"`.
+                let Some(record) = oracle.record(id) else {
+                    continue;
+                };
+                if !NON_ENFORCING_STATUSES.contains(&record.status.as_str()) {
+                    continue;
                 }
+                findings.push(Finding {
+                    code: CODE_REJECTED_AUTHORITY.to_owned(),
+                    subject: at.clone(),
+                    detail: format!(
+                        "authority surface cites {id}, whose status is {} — a {} decision is not \
+                         implement authority",
+                        record.status,
+                        record.status.to_lowercase()
+                    ),
+                    blocking: true,
+                });
             }
         }
 
@@ -1006,6 +1034,52 @@ mod tests {
         assert_eq!(
             evaluate(&chain(), &[line], &permissive()).count(CODE_CITATION_MISMATCH),
             0
+        );
+    }
+
+    /// A LIVE apex whose status is `Proposed` is authority-invisible on the old `== "Rejected"`
+    /// rule, and being live it is also invisible to the dangling-path rule — so before this it
+    /// produced no finding of any kind. This is the exact shape ADR-0710 introduced: the first
+    /// non-`Accepted` file ever placed under `docs/decisions/`.
+    #[test]
+    fn an_authority_surface_citing_a_proposed_apex_fails_closed() {
+        let mut records = chain();
+        let mut proposed = apex("ADR-0710", &[]);
+        proposed.status = "Proposed".to_owned();
+        records.push(proposed);
+
+        let cited_as_path = cite("CLAUDE.md", &["ADR-0710"], &[], true);
+        let verdict = evaluate(&records, &[cited_as_path.clone()], &permissive());
+        assert_eq!(verdict.count(CODE_REJECTED_AUTHORITY), 1);
+        assert!(verdict.failed());
+        assert_eq!(
+            verdict.count(CODE_DANGLING_CITATION),
+            0,
+            "it is LIVE: the path resolves, so widening lifecycle must not manufacture a \
+             broken-link accusation against a file that demonstrably exists"
+        );
+
+        let named_only = cite("AGENTS.md", &[], &["ADR-0710"], true);
+        assert_eq!(
+            evaluate(&records, &[named_only], &permissive()).count(CODE_REJECTED_AUTHORITY),
+            1,
+            "both halves of the line, exactly as the Rejected case already requires"
+        );
+    }
+
+    /// The narrowing that keeps this rule honest. `Superseded` resolves through `superseded_by` to
+    /// a live successor and is cited as HISTORY on the authority surfaces deliberately — root
+    /// CLAUDE.md's `historical_substrate_adrs` block is 21 such ids. A `!= "Accepted"` predicate
+    /// would accuse every one of them.
+    #[test]
+    fn an_authority_surface_citing_a_superseded_adr_is_not_accused() {
+        let records = chain(); // ADR-0349 and ADR-0515 are Superseded with successors
+        let line = cite("CLAUDE.md", &[], &["ADR-0515"], true);
+        assert_eq!(
+            evaluate(&records, &[line], &permissive()).count(CODE_REJECTED_AUTHORITY),
+            0,
+            "superseded is resolvable history, not a lifecycle defect — supersession has its own \
+             rules and must not be overloaded onto the authority predicate"
         );
     }
 

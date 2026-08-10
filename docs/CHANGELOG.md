@@ -5,6 +5,28 @@ doc_status: published
 
 # Changelog
 
+## 2026-08-09 — ADR-0710 admission substrate proposed; sovereign-confidential idea page
+
+- Proposed **ADR-0710** as the Kubernetes admission-substrate decision: ValidatingAdmissionPolicy
+  + CEL and Pod Security Admission in-process, with no default policy webhook. It is **Proposed
+  and non-authoritative**, not a ratified decision — clause D-8 is gated on unfinished evidence
+  about the *workload* isolation boundary, and until it is Accepted the admission clauses of
+  ADR-0183, ADR-0379 and ADR-0338 REMAIN IN FORCE and are not replaced.
+- Specified the D-6 CI-issued image allowlist end to end rather than only at its issuance edge:
+  record schema, TTL-bounded validity, revocation with mandatory re-issuance on verifier-policy
+  change, stale-projection DENY, and garbage collection — so relocating signature verification
+  out of the request path is a relocation of the check rather than an unbounded cache.
+- Scoped D-1's removal gate to policy-engine-owned webhooks and engine-native policy resources,
+  stated its evaluation point as rendered manifests or the live cluster, and added the PSA
+  presence precondition; qualified D-2's Pod Security Admission coverage with the measured
+  10-of-26 unlabelled-namespace figure instead of asserting deployment.
+- Added `docs/ideas/sovereign-confidential-kubernetes.md` as a non-ratified **Idea-Onepager**,
+  with its upstream-transition table re-indexed by layer so the host Linux/KVM layer no longer
+  hides behind the owned-VMM row.
+- Updated the `docs/ADR-INDEX.md`, `docs/machine-readable/decisions.json` and
+  `specs/root-hub-pointers.json` projection faces for the new record, and re-froze the
+  adr-citation-closure census with its provenance re-derived.
+
 ## 2026-08-04 — Bounded cross-run affected-baseline provenance correction
 
 - Accepted ADR-0636 as the narrow interim authority for the already-promoted cross-run baseline consumer without closing #1504.

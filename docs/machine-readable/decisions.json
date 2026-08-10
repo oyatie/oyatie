@@ -6,12 +6,13 @@
   },
   "_metadata": {
     "source": "docs/decisions",
-    "total_adrs": 10,
-    "numbering": "contiguous ADR-0700..ADR-0709 (gap-free)",
+    "total_adrs": 11,
+    "numbering": "contiguous ADR-0700..ADR-0710 (gap-free)",
     "gaps": [],
-    "next_adr": "ADR-0710",
+    "next_adr": "ADR-0711",
     "status_counts": {
-      "Accepted": 10
+      "Accepted": 10,
+      "Proposed": 1
     }
   },
   "decisions": [
@@ -134,6 +135,18 @@
       "supersedes": ["ADR-0003", "ADR-0004", "ADR-0006", "ADR-0008", "ADR-0014", "ADR-0016", "ADR-0018", "ADR-0020", "ADR-0022", "ADR-0023", "ADR-0024", "ADR-0025", "ADR-0039", "ADR-0045", "ADR-0048", "ADR-0051", "ADR-0055", "ADR-0060", "ADR-0061", "ADR-0062", "ADR-0063", "ADR-0064", "ADR-0065", "ADR-0067", "ADR-0069", "ADR-0092", "ADR-0096", "ADR-0098", "ADR-0100", "ADR-0105", "ADR-0108", "ADR-0109", "ADR-0115", "ADR-0116", "ADR-0119", "ADR-0122", "ADR-0133", "ADR-0144", "ADR-0146", "ADR-0147", "ADR-0149", "ADR-0150", "ADR-0151", "ADR-0152", "ADR-0153", "ADR-0154", "ADR-0156", "ADR-0161", "ADR-0164", "ADR-0168", "ADR-0169", "ADR-0171", "ADR-0173", "ADR-0174", "ADR-0178", "ADR-0179", "ADR-0181", "ADR-0184", "ADR-0189", "ADR-0192", "ADR-0193", "ADR-0195", "ADR-0196", "ADR-0200", "ADR-0202", "ADR-0203", "ADR-0205", "ADR-0207", "ADR-0209", "ADR-0211", "ADR-0212", "ADR-0216", "ADR-0217", "ADR-0219", "ADR-0221", "ADR-0235", "ADR-0237", "ADR-0238", "ADR-0239", "ADR-0250", "ADR-0252", "ADR-0254", "ADR-0257", "ADR-0272", "ADR-0292", "ADR-0296", "ADR-0298", "ADR-0299", "ADR-0304", "ADR-0308", "ADR-0317", "ADR-0318", "ADR-0324", "ADR-0337", "ADR-0339", "ADR-0350", "ADR-0362", "ADR-0364", "ADR-0365", "ADR-0368", "ADR-0371", "ADR-0382", "ADR-0388", "ADR-0389", "ADR-0390", "ADR-0391", "ADR-0393", "ADR-0397", "ADR-0478", "ADR-0481", "ADR-0506", "ADR-0507", "ADR-0508", "ADR-0518", "ADR-0541", "ADR-0542", "ADR-0555", "ADR-0557", "ADR-0558", "ADR-0568", "ADR-0610", "ADR-0619", "ADR-0622", "ADR-0623", "ADR-0625", "ADR-0626"],
       "superseded_by": [],
       "related": []
+    },
+    {
+      "adr": "ADR-0710",
+      "number": 710,
+      "title": "Kubernetes admission substrate is the API server: VAP/CEL + PSA, no policy webhook",
+      "status": "Proposed",
+      "owner": "council-architecture",
+      "date": "2026-08-08",
+      "path": "decisions/ADR-0710-kubernetes-admission-substrate-is-the-api-server.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0183", "ADR-0338", "ADR-0379", "ADR-0702"]
     }
   ]
 }

@@ -97,3 +97,41 @@ Do **not** blind-delete while P2 active.
 | **Redirect** | `adr-redirect.v1.json` maps old numbers → live apex + archive path |
 
 **Live tree:** only Accepted apex files + README + `_disposition/`.
+
+## Amendment 2026-08-09 — gated Proposed apexes (ADR-0710)
+
+**Scope of the rule above, stated because it was being read wider than it was written.**
+"Forbidden terminal statuses: `Proposed`" and "Decide **now** — no parking as Proposed" were
+authored for the E1–E2 disposition of ~458 **inherited** ADRs whose decisions had already been
+made in practice and never recorded. They forbid **parking**: leaving a decision undecided with
+no gate, no owed evidence, and no date. They were never a rule that a newly authored apex must
+assert a posture *before* the evidence that would justify it is in — which is the opposite
+failure, and a worse one for a security clause.
+
+**What is now admitted, and only this.** A **gated Proposed apex** may live under
+`docs/decisions/`. It must satisfy all four:
+
+1. It is a **topic apex**, not a member to be folded into one.
+2. Its `status: Proposed` is attached to a **named clause**, stated in the ADR's Status section,
+   which is the reason it is not Accepted.
+3. That clause names **the evidence it waits on** and what outcome decides it either way — an
+   answerable question, not an intention to revisit.
+4. It carries **no implement authority while Proposed**, and that is *enforced rather than
+   promised*. `2026-08-06-live-resolution-rule.json` already ranks Proposed/Deprecated/Rejected
+   as "not implement authority", and `governance/check/adr-citation-closure` now fails closed
+   under `adr_citation_rejected_authority` when any of the three authority surfaces
+   (`CLAUDE.md`, `AGENTS.md`, `docs/AGENTS.md`) cites an ADR in one of those three statuses.
+
+**Anything not meeting all four is still forbidden**, and the E2 rules above apply to it
+unchanged: decide now, no parking.
+
+**The distinction this amendment records.** Tree location is a **discoverability** property;
+frontmatter status is an **authority** property. Conflating them is what made the original rule
+read as forbidding this case, and it is also what made the old gate safe only by coincidence —
+liveness was a *directory* property, so an unenforced status under `docs/decisions/` was invisible
+to every rule. Enforcing the two separately is what makes admitting this case safe: a gated
+Proposed apex is findable at step 1 and is not law, and the **gate**, not this prose, holds the
+second half.
+
+**Instances.** ADR-0710 (Kubernetes admission substrate), gated on clause D-8's workload-boundary
+evidence. It is the first and so far only one.
