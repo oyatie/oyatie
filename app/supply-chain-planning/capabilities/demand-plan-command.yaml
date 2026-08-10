@@ -6,7 +6,7 @@ autonomy_tier: T1
 risk_class: regulated-erp
 audit_event_class: EVT-SUPPLY_CHAIN_PLANNING-DEMAND_PLAN-COMMAND
 policy_fragments:
-  - microservices/supply-chain-planning/policy/demand-plan-authorization.cedar
+  - app/supply-chain-planning/policy/demand-plan-authorization.cedar
 benchmarks:
   - "SAP SCM/APO and SAP IBP"
   - "Oracle Supply Chain Planning"

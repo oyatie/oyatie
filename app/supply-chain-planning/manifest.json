@@ -346,10 +346,10 @@
   "pod_runtime_tier": 2,
   "pod_runtime_tier_justification": "Tier 2 first-party application runtime: it handles tenant workflows and tenant records but does not execute tenant-customer code or own shared substrate primitives.",
   "pod_runtime_tier_surface_evidence": [
-    "microservices/supply-chain-planning/ARCHITECTURE.md",
-    "microservices/supply-chain-planning/IP-019-atp-compute.md",
-    "microservices/supply-chain-planning/IP-023-constraint-based-supply-heuristic.md",
-    "microservices/supply-chain-planning/slos/supply-chain-planning-latency-p99.openslo.yaml"
+    "app/supply-chain-planning/ARCHITECTURE.md",
+    "app/supply-chain-planning/IP-019-atp-compute.md",
+    "app/supply-chain-planning/IP-023-constraint-based-supply-heuristic.md",
+    "app/supply-chain-planning/slos/supply-chain-planning-latency-p99.openslo.yaml"
   ],
   "tenant_version_pinning": {
     "declared_versions": [
@@ -362,10 +362,10 @@
     "deprecation_calendar": [],
     "public_surface_files": {
       "openapi": {
-        "2026-05-21": "microservices/supply-chain-planning/contracts/openapi-v1.yaml"
+        "2026-05-21": "app/supply-chain-planning/contracts/openapi-v1.yaml"
       },
       "asyncapi": {
-        "2026-05-21": "microservices/supply-chain-planning/contracts/asyncapi-v1.yaml"
+        "2026-05-21": "app/supply-chain-planning/contracts/asyncapi-v1.yaml"
       }
     }
   },

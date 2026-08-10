@@ -6,7 +6,7 @@ autonomy_tier: T1
 risk_class: regulated-erp
 audit_event_class: EVT-SUPPLY_CHAIN_PLANNING-AVAILABLE_TO_PROMISE-EXPORT
 policy_fragments:
-  - microservices/supply-chain-planning/policy/available-to-promise-authorization.cedar
+  - app/supply-chain-planning/policy/available-to-promise-authorization.cedar
 benchmarks:
   - "SAP SCM/APO and SAP IBP"
   - "Oracle Supply Chain Planning"

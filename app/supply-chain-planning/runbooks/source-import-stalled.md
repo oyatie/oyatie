@@ -56,8 +56,8 @@ Create an evidence record, attach dashboard snapshots, update this runbook if a 
 
 ## G. References
 - docs/standards/documentation-rigor.md
-- microservices/supply-chain-planning/failure-modes.md
-- microservices/supply-chain-planning/incident-response.md
+- app/supply-chain-planning/failure-modes.md
+- app/supply-chain-planning/incident-response.md
 - SAP SCM/APO and SAP IBP | Oracle Supply Chain Planning | Workday Adaptive Planning supply-chain scenario counterpart | NetSuite Demand Planning | Microsoft Dynamics 365 Master Planning
 - Runbook detail 001: source-import-stalled for Supply Chain Planning.demand-plan preserves tenant_id, data_class, residency_pack, audit_event_class, OpenBao lease id, ECH/PQC transport evidence, marketplace settlement reference, and operator initials for post-incident review.
 - Runbook detail 002: source-import-stalled for Supply Chain Planning.demand-plan preserves tenant_id, data_class, residency_pack, audit_event_class, OpenBao lease id, ECH/PQC transport evidence, marketplace settlement reference, and operator initials for post-incident review.
