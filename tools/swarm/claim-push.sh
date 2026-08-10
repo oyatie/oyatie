@@ -43,7 +43,7 @@ echo "claim-push: fetching ${REMOTE}"
 "$GIT_REAL" fetch --prune "$REMOTE"
 
 DEV_TIP="$("$GIT_REAL" rev-parse "${REMOTE}/dev^{commit}")"
-HEAD_SHA="$("$GIT_REAL" rev-parse HEAD^{commit}")"
+HEAD_SHA="$("$GIT_REAL" rev-parse 'HEAD^{commit}')"
 INTEG_TIP="${EXPECTED:-$DEV_TIP}"
 
 BASE_SHA="$("$GIT_REAL" merge-base "$DEV_TIP" "$HEAD_SHA")"
