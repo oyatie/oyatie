@@ -3,7 +3,7 @@
 #
 # Build context is the WORKSPACE root (not this directory) because the binary
 # depends on workspace siblings. Build invocation from the repo root:
-#   docker build -f microservices/cloud-intelligence/Dockerfile \
+#   docker build -f intelligence/Dockerfile \
 #                -t registry.oyatie.dev/oya-cloud-intelligence:0.1.0 .
 # Or via in-cluster BuildKit Job: see microservices/cloud-intelligence/k8s/
 #

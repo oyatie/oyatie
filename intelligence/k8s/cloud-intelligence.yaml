@@ -1166,7 +1166,7 @@ spec:
       containers:
         - name: cloud-intelligence
           # Image is built via BuildKit (per ADR-0381 D1); operator runs the
-          # build Job at microservices/cloud-intelligence/k8s/buildkit-build.yaml
+          # build Job at intelligence/k8s/buildkit-build.yaml
           # (deferred until operator authorization — see microservices/llm-
           # gateway/k8s/BUILDKIT-JOB-TEMPLATE.md). Before first deploy, the
           # image must exist in the in-cluster registry.

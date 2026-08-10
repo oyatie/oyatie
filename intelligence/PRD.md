@@ -14,7 +14,7 @@ related_adrs:
   - ADR-0373
   - ADR-0373
   - ADR-0373
-research_brief: microservices/cloud-intelligence/design/hyperscaler-best-practice-brief.md
+research_brief: intelligence/design/hyperscaler-best-practice-brief.md
 ---
 
 # Cloud Intelligence service — Product Requirements Document
@@ -23,7 +23,7 @@ research_brief: microservices/cloud-intelligence/design/hyperscaler-best-practic
 **Owner:** council-foundry
 **Layout:** Flat per ADR-0131
 **Backbone:** hyper canonical HTTP per ADR-0090; layered kernel/rest per ADR-0105
-**Research foundation:** `microservices/cloud-intelligence/design/hyperscaler-best-practice-brief.md` (10-domain cited brief, 2026-05-26)
+**Research foundation:** `intelligence/design/hyperscaler-best-practice-brief.md` (10-domain cited brief, 2026-05-26)
 
 > This PRD is the convergent product spec. Every recommended-design decision below is grounded in the hyperscaler best-practice brief and cites the brief's domain (e.g. "brief §1 Architecture") and the upstream vendor evidence the brief drew from (Azure APIM, AWS Bedrock, Cloudflare AI Gateway, Kong AI Proxy, LiteLLM, Apigee, GCP Model Armor, OpenAI, OWASP). The brief's full source list is at brief §"Sources".
 
@@ -263,11 +263,11 @@ Deferred (Non-Goals / follow-on): exact-match + semantic response caching; multi
 
 ## 10. Implementation plan
 
-See `microservices/cloud-intelligence/IP-001-cloud-intelligence-design.md`.
+See `intelligence/IP-001-cloud-intelligence-design.md`.
 
 ## 11. References
 
-- Research brief: `microservices/cloud-intelligence/design/hyperscaler-best-practice-brief.md` (cited per domain throughout).
+- Research brief: `intelligence/design/hyperscaler-best-practice-brief.md` (cited per domain throughout).
 - ADRs: ADR-0090 (hyper backbone), ADR-0105 (layered architecture), ADR-0131 (flat layout), ADR-0373 (gateway-specific — see `manifest.json`).
 - Design dossier: `design/threat-model.md`, `design/failure-modes.md`, `design/data-residency.md`, `design/cost-finops.md`, `design/audit-evidence-emission.md`, `design/tenant-isolation.md`, `design/operational-boundaries.md`.
 - Contracts: `contracts/cloud-intelligence.openapi.yaml`, `contracts/cloud-intelligence.asyncapi.yaml`, `contracts/cloud-intelligence.proto`.

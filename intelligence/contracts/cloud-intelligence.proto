@@ -4,8 +4,8 @@
 
 // Oyatie Cloud Intelligence service — admin/internal gRPC contract.
 //
-// Design + research grounding: microservices/cloud-intelligence/PRD.md §4 and
-// microservices/cloud-intelligence/design/hyperscaler-best-practice-brief.md.
+// Design + research grounding: intelligence/PRD.md §4 and
+// intelligence/design/hyperscaler-best-practice-brief.md.
 // This is the ADMIN/INTERNAL control-plane surface (the data plane is the
 // OpenAI-compatible REST surface in cloud-intelligence.openapi.yaml). It mirrors the
 // admin operations in the OpenAPI `admin` tag: pool status, key refresh, status, accounts, analytics, and circuit-breaker resume.

@@ -1,7 +1,7 @@
 # BuildKit Job that builds the cloud-intelligence image (per ADR-0381 D1).
 # Context: the full git repo (workspace root) — the binary depends on workspace
 # siblings. context-sub-path is empty (we want the root); the Dockerfile is at
-# microservices/cloud-intelligence/Dockerfile, referenced via --opt filename=...
+# intelligence/Dockerfile, referenced via --opt filename=...
 #
 # Cache backend: SeaweedFS-on-Talos (ADR-0381 D4) on the shared
 # oya-ci-buildkit-cache bucket. Cell-pinned (soft) to oya.cell/ci.
@@ -56,7 +56,7 @@ spec:
                 build \
                 --frontend dockerfile.v0 \
                 --opt "context=${CONTEXT_URL}" \
-                --opt "filename=microservices/cloud-intelligence/Dockerfile" \
+                --opt "filename=intelligence/Dockerfile" \
                 --output "type=image,name=registry.oya-registry.svc.cluster.local:5000/cloud-intelligence:dev,push=true,registry.insecure=true" \
                 --import-cache "${CACHE_PARAMS}" \
                 --export-cache "${CACHE_PARAMS},mode=max" \

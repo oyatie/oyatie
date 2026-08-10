@@ -1,7 +1,7 @@
 # Oyatie Cloud Intelligence — capability catalog
 #
-# Design + research grounding: microservices/cloud-intelligence/PRD.md and
-# microservices/cloud-intelligence/design/hyperscaler-best-practice-brief.md.
+# Design + research grounding: intelligence/PRD.md and
+# intelligence/design/hyperscaler-best-practice-brief.md.
 # Tiers/risk per the repo capability classification; policy_action references
 # owned policy-engine actions. The current policy fixture is mapped by a
 # transient authz adapter; slo_anchor references slos/*.openslo.yaml.
@@ -14,7 +14,7 @@
 microservice: cloud-intelligence
 owner: council-foundry
 introducing_phase: LLM-GATEWAY-PRODUCTION-DESIGN
-research_brief: microservices/cloud-intelligence/design/hyperscaler-best-practice-brief.md
+research_brief: intelligence/design/hyperscaler-best-practice-brief.md
 
 capabilities:
   - capability_id: cloud-intelligence.chat.completions

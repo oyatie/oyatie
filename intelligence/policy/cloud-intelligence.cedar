@@ -13,7 +13,7 @@
 //
 // Authority: ADR-0007 Cedar fragment coverage, ADR-0373 (key-pool resilience +
 // per-tenant isolation), ADR-0373 (audit). Research grounding:
-// microservices/cloud-intelligence/design/hyperscaler-best-practice-brief.md
+// intelligence/design/hyperscaler-best-practice-brief.md
 // (brief §2 two security schemes / per-operation realm; brief §5 constant-time tokens,
 //  per-realm rate limits; brief §6 per-tenant isolation unit; brief §7 audit-read gated
 //  behind a distinct authority).
