@@ -104,8 +104,8 @@
       "tenancy",
       "workflow"
     ],
-    "expected_total": 101,
-    "expected_live_v1_total": 63,
+    "expected_total": 96,
+    "expected_live_v1_total": 58,
     "canonical_schema_version": "1.0",
     "reviewed_legacy_service_manifests": [
       "comms/comms-email/manifest.json",
@@ -151,7 +151,7 @@
     ],
     "legacy_review_rule": "Named legacy manifests remain migration inventory only. They receive no protocol exemption: shape-independent checks still reject internal gRPC outside HTTP/2 and FlatBuffers without the benchmark-gated derived-adapter posture.",
     "public_proto_posture": "No public_surface_files.proto carrier is permitted, including in legacy manifests. Every Buck-corpus Proto is internal-only and marker-classified; live Proto service contracts must also be declared through contracts.internal_grpc. Named reviewed-legacy service contracts remain migration inventory, receive no content exemption, and do not imply runtime readiness.",
-    "_comment": "2026-08-09 (founder ruling oyatie-0s8): expected_total 96 -> 101 AND expected_live_v1_total 58 -> 63. BOTH counts move by the SAME +5 and by the same cause, because all five new manifests declare canonical_schema_version 1.0 and therefore land in the live-v1 corpus as well as the governed universe; a +5/+5 pair is the expected signature here, and a +5 that failed to move the live count would mean a manifest had been born outside v1.0. FIVE capability-root manifests are ADDED, and every one of the five is named: cell/manifest.json, comms/manifest.json, data/manifest.json, iam/manifest.json, workflow/manifest.json. These are the `<root>/manifest.json` shape - the ADR-0562 capability's OWN service manifest - for the five governed_service_roots that carried only sub-service manifests. The delta is +5 and it is an ADD, not a widened walk: the collection rule, the governed roots and the tests/ skip are all unchanged, so the same walk over the previous tree still yields 96. Measured cause: the capability-first rehome left 169 of the 171 crates directly under those five roots (cell/core+ports, comms+data+iam+workflow core/ports/adapters/facade) belonging to NO manifest at all, because each sub-service manifest covers only its own service. PRIOR ENTRY, retained for the audit trail - 2026-08-08 (PR #1620): 97 -> 96, the governed-manifest walk began skipping tests/ directories, removing exactly one entry, cell/core/regional-pack/tests/fixtures/kr/manifest.json, a FIXTURE rather than a service."
+    "_comment": "HOLD for destination capability-root PRs (#1651–#1655 / cell|comms|data|iam|workflow): expected_total stays 96 and expected_live_v1_total stays 58 until those five `<root>/manifest.json` files land on the merge base. Raising to 101/63 here alone reds product-protocol-policy-gate on this tree. When the five manifests merge, re-freeze 96->101 and 58->63 in the same change (founder ruling oyatie-0s8). PRIOR ENTRY retained below in spirit — 2026-08-08 (PR #1620): 97 -> 96 via tests/ skip."
   },
   "rules": [
     {
