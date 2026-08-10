@@ -15,7 +15,7 @@ sharding_role: regulated-workload-owner
 # IP-WAVE-15-ZD-sharding-automation: Mail Sharding Automation Stance
 
 ## 1. Scope
-SCOPE-001: This IP is scoped only to `microservices/mail/IPs/IP-WAVE-15-ZD-sharding-automation.md` for the ZF-9 artifact lane.
+SCOPE-001: This IP is scoped only to `comms/mail/IPs/IP-WAVE-15-ZD-sharding-automation.md` for the ZF-9 artifact lane.
 SCOPE-002: This is doctrine propagation, not Rust implementation, manifest editing, runbook authoring, Cedar policy authoring, SLO authoring, or contract editing.
 SCOPE-003: mail must interpret ADR-0348 through its own bounded context: dual-context-isolation.
 SCOPE-004: mail uses ADR-0346 as the local verifier contract for any downstream implementation PR that turns this plan into code.

@@ -9,7 +9,7 @@ date: 2026-05-17
 last_drill_date: 2026-05-17
 related_artifacts:
   - microservices/meet/failure-modes.md (FM-01)
-  - microservices/meet/dashboards/meeting-quality-mos.json
+  - comms/meet/dashboards/meeting-quality-mos.json
   - microservices/meet/slos/media-glass-to-glass-latency.openslo.yaml
   - microservices/meet/slos/participant-join-latency.openslo.yaml
 doc_status: published
@@ -73,5 +73,5 @@ Sev-2 default; Sev-1 if sustained > 15 min OR if a pack-us-financial / pack-us-h
 - coturn ops `github.com/coturn/coturn/wiki`.
 - ITU-T G.107 (E-model for MOS computation).
 - ITU-T Y.1541 (IPTV class).
-- `microservices/meet/dashboards/meeting-quality-mos.json`.
-- `microservices/messenger/runbooks/huddle-sfu-degraded.md` (sibling pattern).
+- `comms/meet/dashboards/meeting-quality-mos.json`.
+- `comms/messenger/runbooks/huddle-sfu-degraded.md` (sibling pattern).

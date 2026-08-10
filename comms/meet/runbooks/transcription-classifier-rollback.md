@@ -9,8 +9,8 @@ date: 2026-05-17
 last_drill_date: 2026-05-17
 related_artifacts:
   - microservices/meet/failure-modes.md (FM-04)
-  - microservices/meet/dashboards/ai-features-quality.json
-  - microservices/meet/capabilities/T1-assist.yaml
+  - comms/meet/dashboards/ai-features-quality.json
+  - comms/meet/capabilities/T1-assist.yaml
   - microservices/meet/threat-model.md (T-T-02)
   - microservices/meet/compliance.md (EU AI Act)
 doc_status: published
@@ -105,5 +105,5 @@ If the issue is with translation overlay (live cross-language captions):
 - HELM eval framework `crfm.stanford.edu/helm/`.
 - ADR-MEET-0002; ADR-MEET-0006.
 - `microservices/meet/threat-model.md` T-T-02.
-- `microservices/meet/capabilities/T1-assist.yaml`.
-- `microservices/messenger/runbooks/moderation-classifier-rollback.md` (analogous pattern).
+- `comms/meet/capabilities/T1-assist.yaml`.
+- `comms/messenger/runbooks/moderation-classifier-rollback.md` (analogous pattern).

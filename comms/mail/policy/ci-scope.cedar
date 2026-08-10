@@ -80,7 +80,7 @@ permit (
 )
 when {
   resource has path &&
-  resource.path like "microservices/mail/**"
+  resource.path like "comms/mail/**"
 };
 
 // =============================================================================

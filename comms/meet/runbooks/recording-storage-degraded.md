@@ -9,7 +9,7 @@ date: 2026-05-17
 last_drill_date: 2026-05-17
 related_artifacts:
   - microservices/meet/failure-modes.md (FM-03)
-  - microservices/meet/dashboards/recording-pipeline.json
+  - comms/meet/dashboards/recording-pipeline.json
   - microservices/meet/slos/recording-start-latency.openslo.yaml
   - microservices/meet/policy/data-residency.md
 doc_status: published
@@ -113,4 +113,4 @@ After outage recovery, run `meet replay-events --tenant <t> --from <outage-start
 - ADR-MEET-0002 (recording pipeline).
 - `microservices/meet/threat-model.md` T-T-01; T-D-04.
 - OCI Object Storage status page.
-- `microservices/messenger/runbooks/attachment-restore.md` (analogous pattern).
+- `comms/messenger/runbooks/attachment-restore.md` (analogous pattern).

@@ -6,7 +6,7 @@ related_adrs: [ADR-0329, ADR-0330, ADR-0331]
 companion_docs:
   - microservices/messenger/PRD.md
   - microservices/messenger/ARCHITECTURE.md
-  - microservices/messenger/manifest.json
+  - comms/messenger/manifest.json
 ---
 
 # Messenger µservice — README

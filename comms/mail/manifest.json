@@ -72,10 +72,10 @@
   ],
   "contracts": {
     "openapi": [
-      "microservices/mail/contracts/openapi/mail.yaml"
+      "comms/mail/contracts/openapi/mail.yaml"
     ],
     "asyncapi": [
-      "microservices/mail/contracts/asyncapi/mail-events.yaml"
+      "comms/mail/contracts/asyncapi/mail-events.yaml"
     ],
     "internal_grpc": {
       "transport": "http2",
@@ -89,19 +89,19 @@
     {
       "tier": "T1",
       "name": "T0-suggest",
-      "file": "microservices/mail/capabilities/T0-suggest.yaml",
+      "file": "comms/mail/capabilities/T0-suggest.yaml",
       "risk_class": "minimal"
     },
     {
       "tier": "T1",
       "name": "T1-assist",
-      "file": "microservices/mail/capabilities/T1-assist.yaml",
+      "file": "comms/mail/capabilities/T1-assist.yaml",
       "risk_class": "minimal"
     },
     {
       "tier": "T1",
       "name": "T2-auto",
-      "file": "microservices/mail/capabilities/T2-auto.yaml",
+      "file": "comms/mail/capabilities/T2-auto.yaml",
       "risk_class": "minimal"
     }
   ],
@@ -547,7 +547,7 @@
     "microservices/mail/PRD.md",
     "microservices/mail/IP-004-mailbox-store-s3-adapter.md",
     "microservices/mail/IP-008-imap-frontend.md",
-    "microservices/mail/runbooks/mailbox-restore-from-backup.md"
+    "comms/mail/runbooks/mailbox-restore-from-backup.md"
   ],
   "tenant_version_pinning": {
     "declared_versions": [
@@ -560,10 +560,10 @@
     "deprecation_calendar": [],
     "public_surface_files": {
       "openapi": {
-        "2026-05-21": "microservices/mail/contracts/openapi/mail.yaml"
+        "2026-05-21": "comms/mail/contracts/openapi/mail.yaml"
       },
       "asyncapi": {
-        "2026-05-21": "microservices/mail/contracts/asyncapi/mail-events.yaml"
+        "2026-05-21": "comms/mail/contracts/asyncapi/mail-events.yaml"
       }
     }
   },

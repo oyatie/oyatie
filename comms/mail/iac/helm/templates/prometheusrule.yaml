@@ -19,7 +19,7 @@ spec:
           labels: {severity: page, microservice: mail, sli: inbound-availability, burn: fast}
           annotations:
             summary: "mail inbound SMTP availability fast-burn (1h 14x)"
-            runbook_url: microservices/mail/runbooks/smtp-queue-backup.md
+            runbook_url: comms/mail/runbooks/smtp-queue-backup.md
 
     - name: mail-deliverability
       interval: 60s
@@ -28,17 +28,17 @@ spec:
           expr: max(oya_mail_outbound_queue_depth_seconds) > 60
           for: 5m
           labels: {severity: page}
-          annotations: {runbook_url: microservices/mail/runbooks/smtp-queue-backup.md}
+          annotations: {runbook_url: comms/mail/runbooks/smtp-queue-backup.md}
         - alert: mail-deliverability-reputation-collapse
           expr: min(oya_mail_deliverability_reputation_score) < 70
           for: 10m
           labels: {severity: page}
-          annotations: {runbook_url: microservices/mail/runbooks/smtp-queue-backup.md}
+          annotations: {runbook_url: comms/mail/runbooks/smtp-queue-backup.md}
         - alert: mail-dkim-key-overdue-90d
           expr: max(oya_mail_dkim_key_age_days) > 90
           for: 1h
           labels: {severity: page}
-          annotations: {runbook_url: microservices/mail/runbooks/dkim-key-rotation.md}
+          annotations: {runbook_url: comms/mail/runbooks/dkim-key-rotation.md}
 
     - name: mail-dual-context
       interval: 60s
@@ -57,7 +57,7 @@ spec:
           expr: increase(oya_mail_personal_pillar_kms_violation_total[5m]) > 0
           for: 1m
           labels: {severity: page, microservice: mail, invariant: DCI-03}
-          annotations: {runbook_url: microservices/mail/runbooks/e2e-encryption-key-recovery.md}
+          annotations: {runbook_url: comms/mail/runbooks/e2e-encryption-key-recovery.md}
 
     - name: mail-dlp
       interval: 60s
@@ -66,12 +66,12 @@ spec:
           expr: max(oya_mail_dlp_quarantine_age_p99_seconds) > 7200
           for: 30m
           labels: {severity: page}
-          annotations: {runbook_url: microservices/mail/runbooks/dlp-quarantine-release.md}
+          annotations: {runbook_url: comms/mail/runbooks/dlp-quarantine-release.md}
         - alert: mail-spam-fp-surge
           expr: oya_mail_inbound_spam_false_positive_rate_5m > 0.05
           for: 10m
           labels: {severity: page}
-          annotations: {runbook_url: microservices/mail/runbooks/spam-rule-rollback.md}
+          annotations: {runbook_url: comms/mail/runbooks/spam-rule-rollback.md}
 
     - name: mail-legal-hold
       interval: 60s

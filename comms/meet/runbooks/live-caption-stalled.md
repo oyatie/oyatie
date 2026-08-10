@@ -9,9 +9,9 @@ date: 2026-05-17
 last_drill_date: 2026-05-17
 related_artifacts:
   - microservices/meet/failure-modes.md (FM-06)
-  - microservices/meet/dashboards/ai-features-quality.json
+  - comms/meet/dashboards/ai-features-quality.json
   - microservices/meet/slos/live-caption-latency.openslo.yaml
-  - microservices/meet/capabilities/T1-assist.yaml
+  - comms/meet/capabilities/T1-assist.yaml
 doc_status: published
 ---
 
@@ -83,4 +83,4 @@ Even if live captions fail entirely, batch transcription (Whisper-large, GPU-bat
 - OpenAI Whisper paper.
 - faster-whisper / CTranslate2 docs.
 - `microservices/meet/threat-model.md` T-D-03.
-- `microservices/meet/capabilities/T1-assist.yaml`.
+- `comms/meet/capabilities/T1-assist.yaml`.

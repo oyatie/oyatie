@@ -72,9 +72,9 @@ gateway:
     - mail-kr.oyatie.com
   pathPrefix: /v1
   tlsTermination: parent-gateway-tls13-ech-pqc
-  openapiContract: microservices/mail/contracts/openapi/mail.yaml
-  echConfigRef: microservices/mail/iac/ech-config.yaml
-  pqcCertificateRef: microservices/mail/iac/pqc-cert.yaml
+  openapiContract: comms/mail/contracts/openapi/mail.yaml
+  echConfigRef: comms/mail/iac/ech-config.yaml
+  pqcCertificateRef: comms/mail/iac/pqc-cert.yaml
   nonClaim: static-httproute-template-only-no-live-gateway-dns-tls-or-cloud-rollout
 
 config:

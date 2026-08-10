@@ -15,7 +15,7 @@ lifecycle_rule: PROPOSED until the microservice wrappers invoke signed shared Op
 
 ## 1. Lifecycle, Boundary, And Stop Condition
 SCOPE-001: This IP binds `messenger` to ADR-0339 shared IaC module doctrine without authoring Rust, changing crates, or applying infrastructure.
-SCOPE-002: Lifecycle state is PROPOSED for `messenger` until the service-owned wrapper files under `microservices/messenger/iac/<context>/main.tf` invoke signed cloud-iac modules and implementation evidence is reviewed.
+SCOPE-002: Lifecycle state is PROPOSED for `messenger` until the service-owned wrapper files under `comms/messenger/iac/<context>/main.tf` invoke signed cloud-iac modules and implementation evidence is reviewed.
 SCOPE-003: ACCEPTED status requires a later service implementation change, not this document-stage propagation.
 SCOPE-004: The only implementation authority created here is documentation intent plus manifest `iac_module_invocations` alignment for `messenger`.
 SCOPE-005: The stop condition for this IP is a reviewable doctrine packet: IP present, manifest field populated, PRD adoption section appended, ARCH integration section appended, and ADR citations validated.
@@ -57,12 +57,12 @@ DOSSIER-CRATE-013: Existing crate `oya-messenger-message-stream-rest` remains un
 DOSSIER-CRATE-014: Existing crate `oya-messenger-presence-adapter-livekit` remains untouched by this document-stage IP.
 DOSSIER-CRATE-015: Existing crate `oya-messenger-presence-adapter-valkey` remains untouched by this document-stage IP.
 DOSSIER-CRATE-016: Existing crate `oya-messenger-presence-adapter-websocket` remains untouched by this document-stage IP.
-DOSSIER-CONTRACT-001: OpenAPI 3.2.0: microservices/messenger/contracts/openapi/messenger.yaml.
-DOSSIER-CONTRACT-002: AsyncAPI 3.1.0: microservices/messenger/contracts/asyncapi/messenger-events.yaml.
-DOSSIER-CONTRACT-003: proto3: microservices/messenger/contracts/proto/messenger.proto.
-DOSSIER-CAPABILITY-001: T0 smart-reply-suggest risk=none file=microservices/messenger/capabilities/T0-suggest.yaml.
-DOSSIER-CAPABILITY-002: T1 thread-summary-and-action-item-extract risk=minimal file=microservices/messenger/capabilities/T1-assist.yaml.
-DOSSIER-CAPABILITY-003: T2 auto-mute-categorize-translate risk=limited file=microservices/messenger/capabilities/T2-auto.yaml.
+DOSSIER-CONTRACT-001: OpenAPI 3.2.0: comms/messenger/contracts/openapi/messenger.yaml.
+DOSSIER-CONTRACT-002: AsyncAPI 3.1.0: comms/messenger/contracts/asyncapi/messenger-events.yaml.
+DOSSIER-CONTRACT-003: proto3: comms/messenger/contracts/proto/messenger.proto.
+DOSSIER-CAPABILITY-001: T0 smart-reply-suggest risk=none file=comms/messenger/capabilities/T0-suggest.yaml.
+DOSSIER-CAPABILITY-002: T1 thread-summary-and-action-item-extract risk=minimal file=comms/messenger/capabilities/T1-assist.yaml.
+DOSSIER-CAPABILITY-003: T2 auto-mute-categorize-translate risk=limited file=comms/messenger/capabilities/T2-auto.yaml.
 
 ## 3. ADR-0339 Doctrine Binding
 ADR0339-001: Purpose binding: collapse 385 per-service from-scratch module directories into roughly 50 shared OpenTofu primitives plus thin wrappers.
@@ -289,9 +289,9 @@ LEADER-018: `messenger` leader-scale posture keeps primitive selection explicit,
 
 ## 12. API And Contract Documentation Impact
 API-001: `messenger` does not change REST, event, or proto payloads in this document-stage wave.
-API-002: OpenAPI 3.2.0 references for `messenger` remain: OpenAPI 3.2.0: microservices/messenger/contracts/openapi/messenger.yaml
-API-003: AsyncAPI 3.1.0 references for `messenger` remain: AsyncAPI 3.1.0: microservices/messenger/contracts/asyncapi/messenger-events.yaml
-API-004: proto3 references for `messenger` remain: proto3: microservices/messenger/contracts/proto/messenger.proto
+API-002: OpenAPI 3.2.0 references for `messenger` remain: OpenAPI 3.2.0: comms/messenger/contracts/openapi/messenger.yaml
+API-003: AsyncAPI 3.1.0 references for `messenger` remain: AsyncAPI 3.1.0: comms/messenger/contracts/asyncapi/messenger-events.yaml
+API-004: proto3 references for `messenger` remain: proto3: comms/messenger/contracts/proto/messenger.proto
 API-005: If a future wrapper migration exposes deployment preview APIs, the public boundary must carry ADR-0342 date-version carriers separately from module semantic versions.
 API-006: If a future wrapper migration changes async deployment events, the AsyncAPI channel must identify module context, primitive, version_pin, tenant_class_scope, and cell_id.
 API-007: If a future wrapper migration changes proto deployment receipts, proto3 reserved tags must prevent silent field reuse.
@@ -315,7 +315,7 @@ ALT-004: Delay `messenger` manifest declaration until implementation; rejected b
 ALT-005: Allow unpinned local module paths during migration; rejected because the exact path would work locally while hiding supply-chain and reproducibility risk.
 
 ## 15. Acceptance And Verification
-VERIFY-001: Static read confirms this file exists at `microservices/messenger/IPs/IP-ADR-0339-Shared-IaC-Modules.md`.
+VERIFY-001: Static read confirms this file exists at `comms/messenger/IPs/IP-ADR-0339-Shared-IaC-Modules.md`.
 VERIFY-002: Static read confirms ADR-0339 is cited by exact ID.
 VERIFY-003: Static read confirms ADR-0322 is cited by exact ID.
 VERIFY-004: Static read confirms ADR-0181 is cited by exact ID.

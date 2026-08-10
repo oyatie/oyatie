@@ -5,7 +5,7 @@ info:
   summary: REST API for the meet µservice — meeting-room CRUD, meeting-instance lifecycle, participant + lobby, recording, transcription, webinar, live-stream egress
   description: |
     Tenant-facing REST surface for the meet µservice. All endpoints require
-    OIDC + Cedar authorisation (per `microservices/meet/policy/*.cedar`) and
+    OIDC + Cedar authorisation (per `comms/meet/policy/*.cedar`) and
     are tenant-scoped via `X-Scope-OrgID` header.
 
     Real-time signaling path is via WebSocket at

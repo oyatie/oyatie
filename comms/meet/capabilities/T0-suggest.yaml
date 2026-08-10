@@ -16,8 +16,8 @@ created_at: 2026-05-17
 related_adrs: [ADR-0022, ADR-0135, ADR-0131, ADR-0133, ADR-MEET-0006]
 related_artifacts:
   - microservices/meet/PRD.md (FR-01)
-  - microservices/meet/contracts/openapi/meet.yaml
-  - microservices/meet/policy/meeting-scope.cedar
+  - comms/meet/contracts/openapi/meet.yaml
+  - comms/meet/policy/meeting-scope.cedar
 
 autonomy_tier: T0
 # T0 = suggest-only; per ADR-0022 autonomy tiers (Bominal-inherited).
@@ -104,8 +104,8 @@ cost_profile:
     - Calendar µservice lookup for prior-meeting context
 
 cedar_policy_fragments:
-  - microservices/meet/policy/meeting-scope.cedar
-  - microservices/meet/policy/tenant-scope.cedar
+  - comms/meet/policy/meeting-scope.cedar
+  - comms/meet/policy/tenant-scope.cedar
 
 eval_set:
   baseline_inputs_path: microservices/meet/capabilities/eval/t0-suggest-baseline.jsonl

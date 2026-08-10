@@ -16,5 +16,5 @@ spec:
       long: 6h
       pageAt: 2
   runbooks:
-    - microservices/contact-center/runbooks/local-call-drop-burn.md
-    - microservices/contact-center/runbooks/local-transfer-success-drop.md
+    - comms/contact-center/runbooks/local-call-drop-burn.md
+    - comms/contact-center/runbooks/local-transfer-success-drop.md

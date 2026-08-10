@@ -8,11 +8,11 @@
       "microservices/mail/threat-model.md",
       "microservices/mail/dpia.md",
       "microservices/mail/policy/dual-context-isolation.md",
-      "microservices/mail/capabilities/T1-assist.yaml",
-      "microservices/mail/capabilities/T2-auto.yaml",
-      "microservices/mail/runbooks/dlp-quarantine-release.md",
-      "microservices/mail/runbooks/spam-rule-rollback.md",
-      "microservices/mail/runbooks/e2e-encryption-key-recovery.md"
+      "comms/mail/capabilities/T1-assist.yaml",
+      "comms/mail/capabilities/T2-auto.yaml",
+      "comms/mail/runbooks/dlp-quarantine-release.md",
+      "comms/mail/runbooks/spam-rule-rollback.md",
+      "comms/mail/runbooks/e2e-encryption-key-recovery.md"
     ],
     "audience": "internal security operators (admin RBAC + Cedar)",
     "tenant_scoped": false,

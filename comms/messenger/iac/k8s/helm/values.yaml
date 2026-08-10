@@ -72,9 +72,9 @@ gateway:
     - messenger-kr.oyatie.com
   pathPrefix: /api/v1
   tlsTermination: parent-gateway-tls13-ech-pqc
-  openapiContract: microservices/messenger/contracts/openapi/messenger.yaml
-  echConfigRef: microservices/messenger/iac/ech-config.yaml
-  pqcCertificateRef: microservices/messenger/iac/pqc-cert.yaml
+  openapiContract: comms/messenger/contracts/openapi/messenger.yaml
+  echConfigRef: comms/messenger/iac/ech-config.yaml
+  pqcCertificateRef: comms/messenger/iac/pqc-cert.yaml
   nonClaim: static-httproute-template-only-no-live-gateway-dns-tls-or-cloud-rollout
 
 config:

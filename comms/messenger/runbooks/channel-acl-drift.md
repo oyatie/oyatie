@@ -9,7 +9,7 @@ date: 2026-05-17
 related_artifacts:
   - microservices/messenger/failure-modes.md (FM-05)
   - microservices/messenger/threat-model.md (T-T-04)
-  - microservices/messenger/policy/tenant-scope.cedar
+  - comms/messenger/policy/tenant-scope.cedar
 doc_status: published
 ---
 
@@ -77,5 +77,5 @@ If reads-during-drift exposed messages to non-authoritative members:
 
 - `microservices/messenger/failure-modes.md` FM-05.
 - `microservices/messenger/threat-model.md` T-T-04.
-- `microservices/messenger/policy/tenant-scope.cedar`.
+- `comms/messenger/policy/tenant-scope.cedar`.
 - `microservices/messenger/incident-response.md` (breach-suspect path).

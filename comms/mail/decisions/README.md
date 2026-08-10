@@ -10,7 +10,7 @@ doc_status: published
 
 This directory holds ADRs that govern the `mail` µservice exclusively, per the per-microservice flat layout in ADR-0131. Cross-cutting ADRs that govern multiple µservices remain at `docs/decisions/` at the repo root.
 
-Each ADR closes one Open Question (or derived gap) surfaced in `microservices/mail/PRD.md`, in `microservices/mail/PHASE-01-MAIL-DISSOLUTION-FROM-CONNECT.md`, or in a capability / runbook / DPIA artifact under `microservices/mail/`.
+Each ADR closes one Open Question (or derived gap) surfaced in `microservices/mail/PRD.md`, in `microservices/mail/PHASE-01-MAIL-DISSOLUTION-FROM-CONNECT.md`, or in a capability / runbook / DPIA artifact under `comms/mail/`.
 
 ## Index
 

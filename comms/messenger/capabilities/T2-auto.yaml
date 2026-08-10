@@ -92,8 +92,8 @@ cost_profile:
     - Translation inference (large model when invoked)
 
 cedar_policy_fragments:
-  - microservices/messenger/policy/channel-scope.cedar
-  - microservices/messenger/policy/tenant-scope.cedar
+  - comms/messenger/policy/channel-scope.cedar
+  - comms/messenger/policy/tenant-scope.cedar
 
 eval_set:
   reference_inputs_path: microservices/messenger/capabilities/eval/t2-auto-reference.jsonl

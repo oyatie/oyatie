@@ -4,7 +4,7 @@ shape: How-to
 related_adrs: [ADR-0201, ADR-0255, ADR-0263]
 companion_docs:
   - microservices/comms-email/IP-020-reputation-monitor-worker.md
-  - microservices/comms-email/dashboards/reputation-monitoring.json
+  - comms/comms-email/dashboards/reputation-monitoring.json
 ---
 
 # Runbook — reputation-drop circuit-breaker engaged
