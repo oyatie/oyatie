@@ -50,3 +50,10 @@ Nearest envelope for noun **search** (no `integ/search` rail) = `integ/data` →
 
 - Cross-cap scorecard resolver paths under `data/facade/**` that still cite `microservices/<ms>/scorecards` (facade concern; not search-core)
 - Invented `integ/search` rail (elevate via NO_RAIL/specs tip-free only — out of Seat A envelope)
+
+## Seat A wave-6 dep-ordered (2026-08-10)
+
+- Verified remaps applied: **20** cite(s) across **3** file(s).
+- Scope: path/manifest/SLO/contract/capability/catalog high-value only; missing homes deferred.
+- Product unblock: forever cites for nested faces + observability prometheusrule alias.
+- No hubs / Cargo.lock / merge / #1661 / cloud-os absorb.
