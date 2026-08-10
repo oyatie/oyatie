@@ -6,10 +6,6 @@
       "prefix": ".claude/BUCK"
     },
     {
-      "anchor": "ADR-0515 + ADR-0701 governance pipeline: reviewed agent-lane deliver/restack/preflight harness under .claude/workflows/ (local bridge feedback only; merge authority remains oya-ci-required).",
-      "prefix": ".claude/workflows/"
-    },
-    {
       "anchor": "ADR-0600: Buck package marker for the reviewed .codex/hooks.json enforcement-liveness corpus target.",
       "prefix": ".codex/BUCK"
     },
@@ -92,6 +88,10 @@
     {
       "anchor": "ADR-0541: Buck package marker for the comms capability residual corpus target. This package keeps the capability's rehomed service docs, manifests, contracts and OpenSLO YAML inside the Buck2 corpus graph after the capability-first rehome; without it those files leave buck2-packaged space entirely (measured across nine roots: 996 YAML files, unpackaged 1069 -> 75).",
       "prefix": "comms/BUCK"
+    },
+    {
+      "anchor": "Founder ruling oyatie-0s8 / ADR-0562: capability-root service manifest for comms/. Exact path registration (not a tree): comms/ holds unrelated crate and service subtrees that carry their own reachability. Absorbed via integ/comms.",
+      "prefix": "comms/manifest.json"
     },
     {
       "anchor": "ADR-0165 (chaos-engineering substrate): the messenger chaos-scenario catalog fixtures (pod-kill, network-delay-100ms, dependency-failure, disk-slow-1000ms) referenced by the runtime-control-loop contract scenario refs (non-executable, not applied or run at runtime), homed under comms per ADR-0562 §10.16; justified in docs/decisions/ADR-0701-monorepo-capability-live-apex.md",

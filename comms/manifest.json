@@ -1,0 +1,228 @@
+{
+  "schema_version": "1.0",
+  "microservice": "comms",
+  "_comment": "Capability-root manifest for comms/ (founder ruling oyatie-0s8). This is the ADR-0562 capability's OWN service manifest, the `<root>/manifest.json` shape that ci/facade/service-tier-metadata treats as top-level. It exists because the capability-first rehome left 24 of the 24 crates directly under comms/ belonging to NO manifest: the sub-service manifests under comms/*/manifest.json cover their own services only. Every crate, service, count and SLO path below was read off the tree, not transcribed.",
+  "tier": "substrate",
+  "tier_subtype": "substrate-comms",
+  "dr_tier": "T0",
+  "dr_tier_derivation": "Strictest dr_tier declared by any absorbed service of this capability (comms-email=T0, contact-center=T1, emergency=T3, mail=T0, meet=T0, messenger=T0). The shared crates sit in the failure path of the strictest consumer, so the capability root may not claim a weaker DR class than the service that depends on it.",
+  "substrate_dag_position": {
+    "stratum": "S2",
+    "depends_on": [],
+    "consumed_by_substrates": [],
+    "_note": "ADR-0562 capability-registry declares comms tier=substrate stratum=S2; all six absorbed services declare the same value."
+  },
+  "version": "0.1.0",
+  "owner": "axis-cloud-platform",
+  "purpose": "Communications substrate capability root. The crates directly under comms/ are the shared mail, messenger, meet, calendar and address-book domain/usecase model, its port boundaries, its REST/gRPC facades and its Postgres adapters. The deployed comms services (comms-email, contact-center, emergency, mail, meet, messenger) carry their own manifests, SLOs and contracts.",
+  "bounded_contexts": [
+    {
+      "name": "comms-adapters",
+      "description": "Capability-level driven adapters (storage, transport, provider) under comms/adapters/.",
+      "crates": [
+        "comms-mail-mailbox-postgres",
+        "comms-messenger-stream-postgres"
+      ]
+    },
+    {
+      "name": "comms-core",
+      "description": "Capability-level domain / usecase / kernel crates (pure, no I/O) under comms/core/.",
+      "crates": [
+        "comms-calendar-domain",
+        "comms-calendar-usecase",
+        "comms-mail-domain",
+        "comms-mail-mailbox-app",
+        "comms-mail-mailbox-usecase",
+        "comms-meet-domain",
+        "comms-meet-usecase",
+        "comms-messenger-domain",
+        "comms-messenger-stream-app",
+        "comms-messenger-stream-usecase",
+        "connect-address-book-domain",
+        "connect-address-book-usecase"
+      ]
+    },
+    {
+      "name": "comms-facade",
+      "description": "Capability-level composition, app and evidence crates under comms/facade/.",
+      "crates": [
+        "comms-contact-center-voice-routing",
+        "comms-mail-mailbox-grpc",
+        "comms-mail-mailbox-rest",
+        "comms-messenger-stream-grpc",
+        "comms-messenger-stream-rest"
+      ]
+    },
+    {
+      "name": "comms-ports",
+      "description": "Capability-level port + API boundary crates under comms/ports/.",
+      "crates": [
+        "comms-calendar-api",
+        "comms-mail-mailbox-api",
+        "comms-meet-api",
+        "comms-messenger-stream-api",
+        "connect-address-book-api"
+      ]
+    }
+  ],
+  "layers": [
+    "adapters",
+    "core",
+    "facade",
+    "ports"
+  ],
+  "capability_root_accounting": {
+    "crates_under_capability_root": 24,
+    "crates_by_layer": {
+      "adapters": 2,
+      "core": 12,
+      "facade": 5,
+      "ports": 5
+    },
+    "crates_covered_by_no_other_manifest": 24,
+    "crates_also_declared_by_an_absorbed_service": [],
+    "_overlap_note": "COMPUTED, not asserted. No crate under this capability root is declared by any absorbed service manifest, so the whole crate set below was unowned before this file.",
+    "absorbed_services": [
+      {
+        "service": "comms-email",
+        "manifest": "comms/comms-email/manifest.json"
+      },
+      {
+        "service": "contact-center",
+        "manifest": "comms/contact-center/manifest.json"
+      },
+      {
+        "service": "emergency",
+        "manifest": "comms/emergency/manifest.json"
+      },
+      {
+        "service": "mail",
+        "manifest": "comms/mail/manifest.json"
+      },
+      {
+        "service": "meet",
+        "manifest": "comms/meet/manifest.json"
+      },
+      {
+        "service": "messenger",
+        "manifest": "comms/messenger/manifest.json"
+      }
+    ],
+    "absorbed_service_facet_divergence": false,
+    "absorbed_service_facets": [
+      {
+        "service": "comms-email",
+        "tier_subtype": "substrate-comms",
+        "dr_tier": "T0",
+        "stratum": "S2"
+      },
+      {
+        "service": "contact-center",
+        "tier_subtype": "substrate-comms",
+        "dr_tier": "T1",
+        "stratum": "S2"
+      },
+      {
+        "service": "emergency",
+        "tier_subtype": "substrate-comms",
+        "dr_tier": "T3",
+        "stratum": "S2"
+      },
+      {
+        "service": "mail",
+        "tier_subtype": "substrate-comms",
+        "dr_tier": "T0",
+        "stratum": "S2"
+      },
+      {
+        "service": "meet",
+        "tier_subtype": "substrate-comms",
+        "dr_tier": "T0",
+        "stratum": "S2"
+      },
+      {
+        "service": "messenger",
+        "tier_subtype": "substrate-comms",
+        "dr_tier": "T0",
+        "stratum": "S2"
+      }
+    ]
+  },
+  "contracts": {
+    "openapi": [],
+    "asyncapi": [],
+    "internal_grpc": {
+      "transport": "http2",
+      "language_profile": "proto3",
+      "contracts": []
+    }
+  },
+  "contracts_non_claim": "This capability root serves no endpoint of its own, so all three carrier arrays are EMPTY rather than populated: every OpenAPI, AsyncAPI and proto contract under comms/ belongs to one of the absorbed services listed above and is declared by that service's manifest. The internal_grpc block is present-and-empty, not omitted, because the H2/proto3 posture binds any internal gRPC this capability may later expose (ADR-0056/0105 zero-GraphQL, internal-only Protobuf); an omitted block would read as an unruled surface.",
+  "adrs": [
+    {
+      "id": "ADR-0562",
+      "title": "Closed Capability Registry And Deterministic Placement",
+      "scope": "repo"
+    },
+    {
+      "id": "ADR-0245",
+      "title": "Tier As Manifest Facet",
+      "scope": "repo"
+    },
+    {
+      "id": "ADR-0280",
+      "title": "Substrate Dependency DAG",
+      "scope": "repo"
+    },
+    {
+      "id": "ADR-0348",
+      "title": "Autosharding Auto Rebalance Dynamic Sharding",
+      "scope": "repo"
+    }
+  ],
+  "sharding_automation": {
+    "autosharding": {
+      "enabled": false,
+      "mode": "not_claimed_runtime",
+      "intended_control_plane": "control_plane_driven"
+    },
+    "auto_rebalance": {
+      "enabled": false,
+      "trigger_load_skew_threshold_percent": 30,
+      "honors_residency": true,
+      "honors_compliance_packs": true,
+      "audit_chain_emit": false
+    },
+    "dynamic_sharding": {
+      "enabled": false,
+      "hot_split_threshold_p99_ms": 50,
+      "hot_split_utilization_threshold_percent": 80,
+      "cold_merge_utilization_threshold_percent": 20,
+      "cold_merge_minimum_quiet_hours": 24,
+      "audit_chain_emit": false
+    },
+    "non_claim": "A capability root of library crates has no tenant shards to split, merge or rebalance. Sharding automation is claimed by the absorbed services that actually run, in their own manifests; ADR-0348 automation is declared disabled here rather than omitted so the absence is a measured statement instead of a gap."
+  },
+  "dr": {
+    "rto_p99_seconds": null,
+    "rpo_p99_seconds": null,
+    "multi_region_active_active": false,
+    "backup_substrate": [],
+    "failover_runbook": null,
+    "replication_shape": "not_claimed_runtime",
+    "non_claim": "No runtime store, failover drill or DR evidence belongs to this capability root; DR is exercised by the absorbed services. `dr_tier` above is the inherited obligation, not a measured result."
+  },
+  "doc_class": "Machine-Readable-Spec",
+  "foundation_non_claims": [
+    "this manifest describes the 24 crates directly under comms/ and does NOT restate, aggregate or supersede the 6 absorbed service manifests listed above",
+    "no deployed process, served endpoint, measured benchmark, capacity telemetry or audit-chain writer is claimed for the capability root itself"
+  ],
+  "slos": [],
+  "slo_exemption": {
+    "status": "live_exempted_library_crates_no_deployed_runtime",
+    "owner": "axis-cloud-platform",
+    "rationale": "The comms/core, comms/ports, comms/adapters and comms/facade crates are capability-level libraries and transport facades with no deployed process of their own, so no measured runtime SLI exists for them; the six deployed comms services carry their own OpenSLO files under comms/*/slos/ and comms/observability/slos/. This root manifest is an accounting surface for the shared crates, not a restatement of service SLO coverage.",
+    "cutover_on": "2026-12-31",
+    "evidence": "comms/observability/slos/ \u2014 the capability's OpenSLO files all sit under a per-service subdirectory there, none at capability level, which is the measured statement that no SLI belongs to the root crates"
+  }
+}
