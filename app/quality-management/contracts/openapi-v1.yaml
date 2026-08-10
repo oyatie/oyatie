@@ -1,0 +1,289 @@
+openapi: 3.2.0
+info:
+  title: Quality Management API
+  version: 1.0.0
+  summary: SAP QM parity API with marketplace settlement boundaries
+servers:
+  - url: https://api.oyatie.example/quality-management
+    description: HTTP/3 default, ECH advertised, PQC hybrid offered when supported
+x-enterprise-benchmarks:
+  - "SAP QM Quality Management"
+  - "Oracle Fusion Quality Management"
+  - "Workday Extend quality-workflow counterpart"
+  - "NetSuite Quality Management"
+  - "Microsoft Dynamics 365 Supply Chain Quality Management"
+paths:
+  /v1/quality-management/inspection-plan:
+    post:
+      summary: Create or amend Quality Management inspection-plan
+      operationId: quality_management_inspection_plan_mutate
+      x-transport:
+        default: HTTP/3
+        fallback: [HTTP/2, HTTP/1.1]
+        ech: advertised
+        pqc: X25519MLKEM768-when-supported
+      x-bnf-version: "BNF v4.1"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InspectionPlanCommand"
+      responses:
+        "202":
+          description: Accepted with signed audit event
+  /v1/quality-management/inspection-lot:
+    post:
+      summary: Create or amend Quality Management inspection-lot
+      operationId: quality_management_inspection_lot_mutate
+      x-transport:
+        default: HTTP/3
+        fallback: [HTTP/2, HTTP/1.1]
+        ech: advertised
+        pqc: X25519MLKEM768-when-supported
+      x-bnf-version: "BNF v4.1"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InspectionLotCommand"
+      responses:
+        "202":
+          description: Accepted with signed audit event
+  /v1/quality-management/certificate-of-analysis:
+    post:
+      summary: Create or amend Quality Management certificate-of-analysis
+      operationId: quality_management_certificate_of_analysis_mutate
+      x-transport:
+        default: HTTP/3
+        fallback: [HTTP/2, HTTP/1.1]
+        ech: advertised
+        pqc: X25519MLKEM768-when-supported
+      x-bnf-version: "BNF v4.1"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CertificateOfAnalysisCommand"
+      responses:
+        "202":
+          description: Accepted with signed audit event
+  /v1/quality-management/quality-notification:
+    post:
+      summary: Create or amend Quality Management quality-notification
+      operationId: quality_management_quality_notification_mutate
+      x-transport:
+        default: HTTP/3
+        fallback: [HTTP/2, HTTP/1.1]
+        ech: advertised
+        pqc: X25519MLKEM768-when-supported
+      x-bnf-version: "BNF v4.1"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QualityNotificationCommand"
+      responses:
+        "202":
+          description: Accepted with signed audit event
+  /v1/quality-management/quality-hold:
+    post:
+      summary: Create or amend Quality Management quality-hold
+      operationId: quality_management_quality_hold_mutate
+      x-transport:
+        default: HTTP/3
+        fallback: [HTTP/2, HTTP/1.1]
+        ech: advertised
+        pqc: X25519MLKEM768-when-supported
+      x-bnf-version: "BNF v4.1"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QualityHoldCommand"
+      responses:
+        "202":
+          description: Accepted with signed audit event
+  /v1/quality-management/audit-evidence:
+    post:
+      summary: Create or amend Quality Management audit-evidence
+      operationId: quality_management_audit_evidence_mutate
+      x-transport:
+        default: HTTP/3
+        fallback: [HTTP/2, HTTP/1.1]
+        ech: advertised
+        pqc: X25519MLKEM768-when-supported
+      x-bnf-version: "BNF v4.1"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AuditEvidenceCommand"
+      responses:
+        "202":
+          description: Accepted with signed audit event
+components:
+  x-oyatie-sharding-automation-event-surface:
+    microservice: quality-management
+    wave: 15-ZF-13
+    artifact_type: contracts
+    scope: OpenAPI components metadata for the sharding_automation event surface.
+    wire_shape: Extension-only annotation; no paths, operations, schemas, requestBodies, responses, headers, securitySchemes, or examples are added.
+    doctrine_refs:
+      ADR-0346:
+        purpose: >-
+          Establish that ./bin/oya verify --ci-required is the canonical local pre-push verifier and MUST locally mirror the full CI matrix and MUST block on exit-0 of EACH step before returning success to the caller.
+        enforced_by:
+          - oya-governance-oya-verify-ci-mirror-coverage
+          - oya-governance-oya-verify-ci-step-exit-semantics
+          - oya-governance-oya-verify-skip-flag-allowlist
+          - oya-governance-oya-submit-calls-verify
+          - oya-governance-oya-verify-exit-code-contract
+      ADR-0347:
+        purpose: >-
+          Declare that every oya-governance-* CI lane prefix in the Oyatie corpus RENAMES to oya-governance-* in a single bulk-rename pull request.
+        enforced_by:
+          - oya-governance-no-foundry-fitness-residue
+          - oya-governance-lane-prefix-vocabulary
+          - oya-governance-rename-inventory-presence
+      ADR-0348:
+        purpose: >-
+          Declare that cellular topology MUST support three control-plane-driven automation modes: AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING.
+        enforced_by:
+          - oya-governance-sharding-automation-coverage
+          - oya-governance-autosharding-manual-mode-refusal
+          - oya-governance-auto-rebalance-residency-honored
+          - oya-governance-dynamic-sharding-threshold-coverage
+          - oya-governance-audit-chain-emit-on-automation-events
+          - oya-governance-tenant-migration-reversibility
+        event_surface:
+          autosharding: tenant_to_cell_shard_placement is computed by the control plane automatically.
+          auto_rebalance: tenant migration honors residency and compliance pack constraints and is observable, reversible, and audit-chain-emit per ADR-0263.
+          dynamic_sharding: HOT-SPLIT and COLD-MERGE shard-count operations are atomic and audit-emit.
+          manifest_block: sharding_automation declares autosharding, auto_rebalance, and dynamic_sharding sub-blocks.
+      ADR-0349:
+        purpose: >-
+          Declare Jenkins (LTS) and ArgoCD as the two canonical self-hostable CI/CD substrates for the Oyatie corpus.
+        enforced_by:
+          - oya-governance-jenkins-github-actions-parity
+          - oya-governance-argocd-application-cosign-verified
+          - oya-governance-argocd-tenant-namespace-isolation
+          - oya-governance-jenkins-jcasc-only
+          - oya-governance-deploy-audit-chain-emit
+    consumer_guidance:
+      generators: Ignore this x-extension for SDK and server wire generation.
+      governance: Use this x-extension as doctrine metadata for sharding_automation event-surface review only.
+  schemas:
+    InspectionPlanCommand:
+      type: object
+      required: [tenant_id, principal_id, idempotency_key, payload, compliance_packs]
+      properties:
+        tenant_id:
+          type: string
+        principal_id:
+          type: string
+        idempotency_key:
+          type: string
+        compliance_packs:
+          type: array
+          items:
+            type: string
+        marketplace_settlement_ref:
+          type: string
+        payload:
+          type: object
+    InspectionLotCommand:
+      type: object
+      required: [tenant_id, principal_id, idempotency_key, payload, compliance_packs]
+      properties:
+        tenant_id:
+          type: string
+        principal_id:
+          type: string
+        idempotency_key:
+          type: string
+        compliance_packs:
+          type: array
+          items:
+            type: string
+        marketplace_settlement_ref:
+          type: string
+        payload:
+          type: object
+    CertificateOfAnalysisCommand:
+      type: object
+      required: [tenant_id, principal_id, idempotency_key, payload, compliance_packs]
+      properties:
+        tenant_id:
+          type: string
+        principal_id:
+          type: string
+        idempotency_key:
+          type: string
+        compliance_packs:
+          type: array
+          items:
+            type: string
+        marketplace_settlement_ref:
+          type: string
+        payload:
+          type: object
+    QualityNotificationCommand:
+      type: object
+      required: [tenant_id, principal_id, idempotency_key, payload, compliance_packs]
+      properties:
+        tenant_id:
+          type: string
+        principal_id:
+          type: string
+        idempotency_key:
+          type: string
+        compliance_packs:
+          type: array
+          items:
+            type: string
+        marketplace_settlement_ref:
+          type: string
+        payload:
+          type: object
+    QualityHoldCommand:
+      type: object
+      required: [tenant_id, principal_id, idempotency_key, payload, compliance_packs]
+      properties:
+        tenant_id:
+          type: string
+        principal_id:
+          type: string
+        idempotency_key:
+          type: string
+        compliance_packs:
+          type: array
+          items:
+            type: string
+        marketplace_settlement_ref:
+          type: string
+        payload:
+          type: object
+    AuditEvidenceCommand:
+      type: object
+      required: [tenant_id, principal_id, idempotency_key, payload, compliance_packs]
+      properties:
+        tenant_id:
+          type: string
+        principal_id:
+          type: string
+        idempotency_key:
+          type: string
+        compliance_packs:
+          type: array
+          items:
+            type: string
+        marketplace_settlement_ref:
+          type: string
+        payload:
+          type: object

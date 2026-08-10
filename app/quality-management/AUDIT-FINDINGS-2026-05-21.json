@@ -1,0 +1,71 @@
+{
+  "schema_version": "1.0",
+  "date": "2026-05-21",
+  "service": "quality-management",
+  "verdict": "second-pass-authored",
+  "sap_code": "QM",
+  "artifact_target": 100,
+  "findings": [
+    {
+      "id": "quality-management-inspection-plan-doc-set",
+      "status": "closed-by-second-pass",
+      "evidence": [
+        "policy/inspection-plan-authorization.cedar",
+        "catalog/oya-quality-management-inspection-plan-domain.yaml",
+        "runbooks/source-import-stalled.md"
+      ]
+    },
+    {
+      "id": "quality-management-inspection-lot-doc-set",
+      "status": "closed-by-second-pass",
+      "evidence": [
+        "policy/inspection-lot-authorization.cedar",
+        "catalog/oya-quality-management-inspection-lot-domain.yaml",
+        "runbooks/source-import-stalled.md"
+      ]
+    },
+    {
+      "id": "quality-management-certificate-of-analysis-doc-set",
+      "status": "closed-by-second-pass",
+      "evidence": [
+        "policy/certificate-of-analysis-authorization.cedar",
+        "catalog/oya-quality-management-certificate-of-analysis-domain.yaml",
+        "runbooks/source-import-stalled.md"
+      ]
+    },
+    {
+      "id": "quality-management-quality-notification-doc-set",
+      "status": "closed-by-second-pass",
+      "evidence": [
+        "policy/quality-notification-authorization.cedar",
+        "catalog/oya-quality-management-quality-notification-domain.yaml",
+        "runbooks/source-import-stalled.md"
+      ]
+    },
+    {
+      "id": "quality-management-quality-hold-doc-set",
+      "status": "closed-by-second-pass",
+      "evidence": [
+        "policy/quality-hold-authorization.cedar",
+        "catalog/oya-quality-management-quality-hold-domain.yaml",
+        "runbooks/source-import-stalled.md"
+      ]
+    },
+    {
+      "id": "quality-management-audit-evidence-doc-set",
+      "status": "closed-by-second-pass",
+      "evidence": [
+        "policy/audit-evidence-authorization.cedar",
+        "catalog/oya-quality-management-audit-evidence-domain.yaml",
+        "runbooks/source-import-stalled.md"
+      ]
+    }
+  ],
+  "benchmarks": [
+    "SAP QM Quality Management",
+    "Oracle Fusion Quality Management",
+    "Workday Extend quality-workflow counterpart",
+    "NetSuite Quality Management",
+    "Microsoft Dynamics 365 Supply Chain Quality Management"
+  ]
+}

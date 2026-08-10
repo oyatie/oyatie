@@ -1,0 +1,42 @@
+[package]
+name = "oya-quality-management-inspection-app"
+edition = "2024"
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+description = "Rust src scaffold for the Quality Management inspection application surface."
+
+[package.metadata.oya]
+microservice = "quality-management"
+title = "Quality Management"
+bounded_context = "inspection-quality"
+layer = "app"
+wave = "wave-3"
+owner_team = "axis-erp-quality + council-product"
+data_classification = "tenant-scoped quality records with audit evidence"
+criticality_tier = "product-critical"
+binding_adrs = ["ADR-0105", "ADR-0131"]
+openapi = "contracts/openapi-v1.yaml"
+asyncapi = "contracts/asyncapi-v1.yaml"
+protobuf = "contracts/quality-management-v1.proto"
+
+[lib]
+name = "oya_quality_management_inspection_app"
+path = "src/lib.rs"
+doctest = false
+
+[[bin]]
+name = "oya-quality-management-inspection"
+path = "src/main.rs"
+
+[dependencies]
+clap = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+toml = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+
+[lints]
+workspace = true

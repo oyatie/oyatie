@@ -1,0 +1,22 @@
+rust_library(
+    name = "oya-quality-management-domain",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "oya_quality_management_domain",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+    ],
+)
+
+rust_test(
+    name = "oya-quality-management-domain-quality-management",
+    srcs = ["tests/quality_management.rs"],
+    crate = "oya_quality_management_domain_quality_management",
+    crate_root = "tests/quality_management.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-quality-management-domain",
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+    ],
+)
