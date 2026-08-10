@@ -6,7 +6,7 @@ autonomy_tier: T1
 risk_class: regulated-erp
 audit_event_class: EVT-WAREHOUSE-PUTAWAY_TASK-EXPORT
 policy_fragments:
-  - microservices/warehouse/policy/putaway-task-authorization.cedar
+  - app/warehouse/policy/putaway-task-authorization.cedar
 benchmarks:
   - "SAP EWM Extended Warehouse Management"
   - "Oracle Fusion Warehouse Management"
