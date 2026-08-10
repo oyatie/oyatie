@@ -10045,7 +10045,27 @@ dependencies = [
 ]
 
 [[package]]
+name = "port-engine-api"
+version = "0.1.0"
+
+[[package]]
+name = "port-engine-app"
+version = "0.1.0"
+
+[[package]]
+name = "port-engine-frontend-go"
+version = "0.1.0"
+
+[[package]]
 name = "port-engine-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "port-engine-rust-ir"
+version = "0.1.0"
+
+[[package]]
+name = "port-engine-source-pin"
 version = "0.1.0"
 
 [[package]]
