@@ -1,9 +1,0 @@
-# Canonical-base: microservices/governance/iac/kustomize/components/{namespace-restricted-profile,pack-overlay-canonical/<pack>} (SWEEP-I Slice 3 per ADR-0064)
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: sheets
-  labels:
-    istio-injection: enabled
-    oyatie/microservice: sheets
-    oyatie/owning-axis: ecosystem-infrastructure-backbone
