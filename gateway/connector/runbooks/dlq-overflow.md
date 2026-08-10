@@ -80,5 +80,5 @@ DLQ entries dropped via retention-cap are non-recoverable. Communicate to tenant
 
 - ADR-0145 §invariant-1 (DLQ overflow semantics)
 - ADR-0263 audit-event emission
-- `microservices/connector/runbooks/connector-cascade-failure.md`
+- `gateway/connector/runbooks/connector-cascade-failure.md`
 - `microservices/connector/compliance.md` (retention by pack)

@@ -29,45 +29,35 @@ It DOES NOT authenticate (handoff to identity), DOES NOT host the policy-engine 
 
 | Audience | Start here |
 |---|---|
-| Intern, cold-start | `PRD.md` → `ARCHITECTURE.md` § A (entry point) |
-| Architect | `ARCHITECTURE.md` §B (layer trace) → `threat-model.md` |
-| SRE | `runbooks/` index → `failure-modes.md` |
-| Compliance | `compliance.md` → `dpia.md` |
-| Product manager | `PRD.md` → `competitor-parity-matrix.md` |
-| Capacity planner | `capacity-model.md` → `cost-budget.md` |
+| Intern, cold-start | `README.md` → `manifest.json` → `contracts/` |
+| Architect | `manifest.json` → `decisions/` → `policy/` |
+| SRE | `runbooks/` → `observability/slos/` → `dashboards/` |
+| Compliance | `dpia/` → `scorecards/` |
+| Connector / adapters | `connector/` → `adapters/` |
+| Drain / deferred cites | `REORG-DRAIN.md` |
 
 ## What's where
 
 ```
-microservices/api-gateway/
-├── PRD.md                          Product requirements (≥40 stories)
-├── ARCHITECTURE.md                 Layer-by-layer trace
-├── PHASE-01-EDGE-SUBSTRATE-BUILDOUT.md
+gateway/
 ├── README.md                       This file
-├── CHANGELOG.md
-├── threat-model.md                 STRIDE + LINDDUN
-├── dpia.md                         GDPR Art. 35 DPIA
-├── compliance.md                   Pack overlay roster + ADR-adherence matrix
-├── capacity-model.md               Little's Law / queue theory
-├── cost-budget.md                  $/M-request frontier
-├── failure-modes.md                Failure-mode tree
-├── multi-region.md                 Cross-region behaviour
-├── incident-response.md            On-call playbook
-├── backfill-replay.md              Audit replay model
-├── competitor-parity-matrix.md     vs Cloudflare/AWS API Gateway/Apigee/Kong
-├── sdk-plan.md                     Client SDK surfaces
-├── operational-boundaries.md       What we will/will not do
-├── manifest.json                   Artifact roster + ADR roster
-├── scorecards/overrides.json       AWS WA / Google SRE / CIS / SLSA scorecards
+├── manifest.json                   Capability-root + edge artifact roster
+├── REORG-DRAIN.md                  Deferred microservices/ cites + next gaps
+├── adapters/                       gateway-*-connector workspace crates (10)
+├── capabilities/                   v2 capability records
+├── catalog/                        Forward-declared oya-api-gateway-* rows
+├── cedar/                          Cedar fragments (edge)
+├── connector/                      Absorbed connector service tree
+├── contracts/                      OpenAPI + AsyncAPI + proto3 (verified)
+├── dashboards/                     Grafana JSON + cross-reference docs
+├── decisions/                      Service-local ADRs
+├── dpia/                           DPIA materials
+├── iac/                            K8s + cert-manager + ECH/PQC config
+├── IPs/                            Landed IP dossiers (ADR-0339, Wave-15-ZD)
+├── observability/slos/             OpenSLO v1 manifests
 ├── policy/                         Cedar v4 fragments
 ├── runbooks/                       On-call procedures
-├── contracts/                      OpenAPI 3.2.0 + AsyncAPI 3.1.0 + proto3
-├── capabilities/                   v2 capability records
-├── dashboards/                     Grafana JSON + cross-reference docs
-├── slos/                           OpenSLO v1 manifests
-├── catalog/                        Per-crate-per-layer records
-├── iac/                            K8s + Envoy + Cloudflare + cert-manager
-└── IP-NNN-*.md                     Single-PR-sized atomic deliverables
+└── scorecards/                     Scorecard overrides
 ```
 
 ## CI lanes that gate this µservice

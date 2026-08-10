@@ -69,4 +69,4 @@ After repair:
 - ADR-0248
 - `multi-region.md`
 - `iac/k8s-deployment.yaml`
-- `microservices/observability/runbooks/canary-graduation.md`
+- `observability/runbooks/canary-graduation.md`

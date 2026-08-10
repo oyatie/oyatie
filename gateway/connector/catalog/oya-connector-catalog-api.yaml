@@ -6,7 +6,7 @@ plane: control
 slo: preview-control-plane
 contracts_consumed: []
 contracts_exposed:
-  - microservices/connector/contracts/openapi/connector-integration.yaml
+  - gateway/connector/contracts/openapi/connector-integration.yaml
 regulatory_packs_consumed: [oya-pack-kr, oya-pack-eu, oya-pack-us, oya-pack-jp]
 lifecycle: {state: incubating, preview_since: 2026-05-20}
 traceability:

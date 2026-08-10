@@ -9,7 +9,7 @@ companion_docs:
   - microservices/connector/threat-model.md
   - microservices/connector/compliance.md
   - microservices/connector/policy/data-residency.md
-  - microservices/connector/runbooks/connector-cascade-failure.md
+  - gateway/connector/runbooks/connector-cascade-failure.md
 doc_status: published
 ---
 
@@ -170,6 +170,6 @@ kubectl exec -n connect deploy/connect-oauth-broker -- \
 - ADR-0276 backup portability GDPR Art. 20
 - ADR-0296 library-first credential sidecar
 - `microservices/connector/policy/data-residency.md`
-- `microservices/connector/runbooks/connector-cascade-failure.md`
+- `gateway/connector/runbooks/connector-cascade-failure.md`
 - `microservices/connector/compliance.md §pack-overlay-roster`
 - GDPR Art. 33/34 breach notification obligations

@@ -8,9 +8,11 @@
 
 ## Completed (this rail)
 
+- Interior path hygiene (Seat A follow-through): retargeted verified `microservices/api-gateway/**` and `microservices/connector/**` cites under `gateway/**` (capabilities, catalog, IPs, runbooks, connector absorb face, README tree label) only where destinations exist; missing historical assets remain legacy cites.
 - Seat A interior prep: rewrite `gateway/manifest.json` to capability-root shape: `capability` key, registry stratum **S0** (dag_node=api-gateway), verified `gateway/**` capability/contract/OpenSLO paths, ten-crate adapter accounting + absorbed connector pointer.
 - Path hygiene: dropped missing `microservices/api-gateway/contracts/metric-naming-convention.md` convention_docs cite; retained verified capability YAML + OpenSLO under `gateway/`.
 - Catalog rows verified present under `registry/catalog/gateway-*-connector.yaml` (cited, not edited — outside `gateway/**`).
+- Seat A follow-up: remapped verified `microservices/api-gateway/` and `microservices/connector/` interior cites across `gateway/**` (capabilities, catalog, IPs, connector face, runbooks, README layout) to existing `gateway/` destinations only.
 
 ## Stale refs found (next gaps, ordered)
 
@@ -31,7 +33,7 @@
 - `IP-014` → `microservices/api-gateway/IP-014-tls-cert-rotation-worker.md`
 - `IP-015` → `microservices/api-gateway/IP-015-canary-cohort-shifter.md`
 - `IP-016` → `microservices/api-gateway/IP-016-app-supervisor.md`
-2. **`gateway/connector/manifest.json`** — nested absorb face may still carry pre-move path cites; remap in a follow-up interior slice.
+2. **`gateway/connector/manifest.json`** — verified in-tree contract/capability/runbook cites remapped; missing connect-retirement / eval / PRD / threat-model cites remain deferred.
 3. **North-south edge crates absent** — no `gateway/core|ports|facade` Cargo packages yet; edge behavior is capability YAML + OpenSLO only. Land kernels before claiming runtime readiness.
 4. **OpenSLO extras** — additional files under `gateway/observability/slos/` (connector-*, dlq-*, oauth-*, webhook-*) exist beyond the seven claimed root `slos[]`; decide promotion vs product-face ownership.
 

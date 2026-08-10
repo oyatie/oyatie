@@ -66,4 +66,4 @@ After fix:
 - ADR-0114, ADR-0139
 - `microservices/observability/IP-014-automated-rollback-primitive.md`
 - `iac/envoy-config-bluegreen.yaml`
-- `microservices/api-gateway/runbooks/circuit-breaker-engaged.md`
+- `gateway/runbooks/circuit-breaker-engaged.md`

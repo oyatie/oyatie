@@ -3,7 +3,7 @@ tier: T3
 owner_team: council-architecture
 summary: Track retirement evidence for the dissolved umbrella.
 policy_refs:
-  - microservices/connector/policy/no-new-runtime-scope.cedar
+  - gateway/connector/policy/no-new-runtime-scope.cedar
 contracts:
   - microservices/connector/contracts/connect-retirement.openapi.yaml
   - microservices/connector/contracts/connect_retirement.proto

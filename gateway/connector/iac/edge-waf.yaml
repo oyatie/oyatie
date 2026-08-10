@@ -10,7 +10,7 @@ metadata:
   namespace: connector
   annotations:
     binding_adr: "ADR-0297"
-    doc_ref: "microservices/connector/policy/abuse-defence.cedar"
+    doc_ref: "gateway/connector/policy/abuse-defence.cedar"
 data:
   waf_config.yaml: |
     # ── Global rate-limit (anti-bot control #1) ──────────────────────────────

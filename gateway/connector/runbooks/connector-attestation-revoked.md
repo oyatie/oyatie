@@ -7,9 +7,9 @@ date: 2026-05-20
 related_adrs: [ADR-0243, ADR-0247, ADR-0249, ADR-0263, ADR-0293, ADR-0294, ADR-0295, ADR-0296]
 companion_docs:
   - microservices/connector/threat-model.md
-  - microservices/connector/policy/connector-catalog-publishing.cedar
-  - microservices/connector/runbooks/connector-cascade-failure.md
-  - microservices/connector/runbooks/signature-verification-cascade-failure.md
+  - gateway/connector/policy/connector-catalog-publishing.cedar
+  - gateway/connector/runbooks/connector-cascade-failure.md
+  - gateway/connector/runbooks/signature-verification-cascade-failure.md
 doc_status: published
 ---
 
@@ -175,6 +175,6 @@ kubectl exec -n connect deploy/connect-audit-reader -- \
 - ADR-0293 meta-trust-root attestation path
 - ADR-0294 Cedar fragment soak window
 - ADR-0295 bootstrap CI SPIFFE + kill-switch
-- `microservices/connector/policy/connector-catalog-publishing.cedar`
-- `microservices/connector/runbooks/connector-cascade-failure.md`
+- `gateway/connector/policy/connector-catalog-publishing.cedar`
+- `gateway/connector/runbooks/connector-cascade-failure.md`
 - `docs/runbooks/security-incident-response.md`

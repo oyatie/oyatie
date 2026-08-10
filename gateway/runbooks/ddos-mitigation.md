@@ -83,8 +83,8 @@ If WAF mode "under attack" causes excessive legitimate-user friction (CAPTCHA st
 
 - `microservices/api-gateway/threat-model.md` §C-D
 - `microservices/api-gateway/failure-modes.md` §A
-- `microservices/api-gateway/runbooks/rate-limit-saturation.md`
-- `microservices/api-gateway/runbooks/bot-storm.md`
+- `gateway/runbooks/rate-limit-saturation.md`
+- `gateway/runbooks/bot-storm.md`
 - ADR-0157, ADR-0297 (in flight).
 - Cloudflare DDoS Trends Report 2024 H2.
 - Akamai State of the Internet — Security Report 2024.

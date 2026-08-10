@@ -89,6 +89,6 @@ If WAF block caused false positive (legitimate vendor IPs blocked):
 
 - ADR-0263 audit-event emission
 - ADR-0297 abuse-defence baseline
-- `microservices/connector/policy/abuse-defence.cedar`
-- `microservices/connector/policy/webhook-receiver-gating.cedar`
+- `gateway/connector/policy/abuse-defence.cedar`
+- `gateway/connector/policy/webhook-receiver-gating.cedar`
 - documentation-rigor.md §3.2.3 UX-floor invariants

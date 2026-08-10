@@ -11,12 +11,12 @@ maturity: stable
 created_at: 2026-05-20
 related_adrs: [ADR-0253, ADR-0295, ADR-0296]
 related_artifacts:
-  - microservices/api-gateway/iac/cert-manager.yaml
-  - microservices/api-gateway/iac/ech-config.yaml
-  - microservices/api-gateway/iac/pqc-cert.yaml
-  - microservices/api-gateway/runbooks/tls-cert-rotation.md
-  - microservices/api-gateway/runbooks/ech-key-rotation.md
-  - microservices/api-gateway/runbooks/pqc-cert-rotation.md
+  - gateway/iac/cert-manager.yaml
+  - gateway/iac/ech-config.yaml
+  - gateway/iac/pqc-cert.yaml
+  - gateway/runbooks/tls-cert-rotation.md
+  - gateway/runbooks/ech-key-rotation.md
+  - gateway/runbooks/pqc-cert-rotation.md
 
 autonomy_tier: T0
 

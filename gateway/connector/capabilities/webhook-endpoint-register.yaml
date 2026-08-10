@@ -17,8 +17,8 @@ created_at: 2026-05-20
 related_adrs: [ADR-0243, ADR-0244, ADR-0253, ADR-0263, ADR-0273, ADR-0296]
 related_artifacts:
   - microservices/connector/PRD.md
-  - microservices/connector/contracts/openapi/connector-integration.yaml
-  - microservices/connector/policy/webhook-receiver-gating.cedar
+  - gateway/connector/contracts/openapi/connector-integration.yaml
+  - gateway/connector/policy/webhook-receiver-gating.cedar
 
 autonomy_tier: T3
 # T3: provisions external DNS + registers endpoint with vendor API; external side-effect.
@@ -78,7 +78,7 @@ cost_profile:
     - Vendor API call to register endpoint
 
 cedar_policy_fragments:
-  - microservices/connector/policy/webhook-receiver-gating.cedar
+  - gateway/connector/policy/webhook-receiver-gating.cedar
 
 sunset:
   status: none

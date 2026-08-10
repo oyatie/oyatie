@@ -75,5 +75,5 @@ If bot-score threshold lowering caused legitimate-user lockout:
 - `policy/abuse-defence.cedar`
 - `dashboards/bot-score-distribution.json`
 - `microservices/api-gateway/threat-model.md` §C-D
-- `microservices/api-gateway/runbooks/ddos-mitigation.md`
+- `gateway/runbooks/ddos-mitigation.md`
 - ADR-0297 (in flight)

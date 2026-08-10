@@ -72,5 +72,5 @@ Throttle override is auto-expiring (default 1h); no manual rollback needed. If b
 
 - ADR-0145 inter-microservice communication §invariant-1 (circuit-breaker)
 - ADR-0248 cellular architecture (shuffle-sharding)
-- `microservices/connector/runbooks/dlq-overflow.md`
+- `gateway/connector/runbooks/dlq-overflow.md`
 - `microservices/connector/capacity-model.md`

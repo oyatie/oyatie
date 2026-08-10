@@ -47,7 +47,7 @@
     {
       "tier": "T3",
       "name": "umbrella-retirement-readiness",
-      "file": "microservices/connector/capabilities/umbrella-retirement-readiness.yaml"
+      "file": "gateway/connector/capabilities/umbrella-retirement-readiness.yaml"
     }
   ],
   "slos": [
@@ -204,8 +204,8 @@
   "pod_runtime_tier_surface_evidence": [
     "microservices/connector/PRD.md",
     "microservices/connector/IP-003-oauth-broker-domain-kernel.md",
-    "microservices/connector/runbooks/oauth-token-revocation-cascade.md",
-    "microservices/connector/iac/openbao-policy.hcl"
+    "gateway/connector/runbooks/oauth-token-revocation-cascade.md",
+    "gateway/connector/iac/openbao-policy.hcl"
   ],
   "tenant_version_pinning": {
     "declared_versions": [

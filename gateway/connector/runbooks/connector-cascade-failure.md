@@ -88,13 +88,13 @@ kubectl rollout undo deployment/connect-adapter-worker -n connect
 
 - Blameless retro within 7d.
 - Evidence-pack export via ops-dashboard-control-center per ADR-0263.
-- Update vendor SLA tracking in `microservices/connector/catalog/connectors/<connector>.yaml` if vendor-side.
+- Update vendor SLA tracking in `gateway/connector/catalog/connectors<connector>.yaml` if vendor-side.
 - If oyatie-side regression: add property test to `oya-connector-adapter-domain` covering the regression.
 
 ## G. References
 
 - ADR-0145 inter-microservice communication reform §invariant-1
 - ADR-0263 audit-event emission contract
-- `microservices/connector/runbooks/dlq-overflow.md`
-- `microservices/connector/runbooks/connector-rate-limit-saturation.md`
+- `gateway/connector/runbooks/dlq-overflow.md`
+- `gateway/connector/runbooks/connector-rate-limit-saturation.md`
 - Vendor status page links: status.salesforce.com, status.stripe.com, etc.

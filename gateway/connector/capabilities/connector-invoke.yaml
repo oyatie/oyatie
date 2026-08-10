@@ -17,8 +17,8 @@ related_adrs: [ADR-0145, ADR-0243, ADR-0246, ADR-0248, ADR-0255, ADR-0263, ADR-0
 related_specs: []
 related_artifacts:
   - microservices/connector/PRD.md
-  - microservices/connector/contracts/openapi/connector-integration.yaml
-  - microservices/connector/policy/connector-authorization.cedar
+  - gateway/connector/contracts/openapi/connector-integration.yaml
+  - gateway/connector/policy/connector-authorization.cedar
 
 autonomy_tier: T2
 # T2: reads tenant credentials (sensitive), writes to vendor API (external side-effect),
@@ -94,7 +94,7 @@ cost_profile:
     - DLQ write on failure (conditional)
 
 cedar_policy_fragments:
-  - microservices/connector/policy/connector-authorization.cedar
+  - gateway/connector/policy/connector-authorization.cedar
 
 eval_set:
   baseline_inputs_path: microservices/connector/capabilities/eval/connector-invoke-baseline.jsonl

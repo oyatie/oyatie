@@ -17,8 +17,8 @@ created_at: 2026-05-20
 related_adrs: [ADR-0243, ADR-0244, ADR-0246, ADR-0253, ADR-0255, ADR-0263, ADR-0296]
 related_artifacts:
   - microservices/connector/PRD.md
-  - microservices/connector/contracts/openapi/connector-integration.yaml
-  - microservices/connector/policy/oauth-broker-authorization.cedar
+  - gateway/connector/contracts/openapi/connector-integration.yaml
+  - gateway/connector/policy/oauth-broker-authorization.cedar
 
 autonomy_tier: T3
 # T3: initiates external OAuth redirect that results in credential issuance;
@@ -83,7 +83,7 @@ cost_profile:
     - State nonce write (OpenBao KV, 10m TTL)
 
 cedar_policy_fragments:
-  - microservices/connector/policy/oauth-broker-authorization.cedar
+  - gateway/connector/policy/oauth-broker-authorization.cedar
 
 sunset:
   status: none

@@ -15,7 +15,7 @@ lifecycle_rule: PROPOSED until the microservice wrappers invoke signed shared Op
 
 ## 1. Lifecycle, Boundary, And Stop Condition
 SCOPE-001: This IP binds `api-gateway` to ADR-0339 shared IaC module doctrine without authoring Rust, changing crates, or applying infrastructure.
-SCOPE-002: Lifecycle state is PROPOSED for `api-gateway` until the service-owned wrapper files under `microservices/api-gateway/iac/<context>/main.tf` invoke signed cloud-iac modules and implementation evidence is reviewed.
+SCOPE-002: Lifecycle state is PROPOSED for `api-gateway` until the service-owned wrapper files under `gateway/iac<context>/main.tf` invoke signed cloud-iac modules and implementation evidence is reviewed.
 SCOPE-003: ACCEPTED status requires a later service implementation change, not this document-stage propagation.
 SCOPE-004: The only implementation authority created here is documentation intent plus manifest `iac_module_invocations` alignment for `api-gateway`.
 SCOPE-005: The stop condition for this IP is a reviewable doctrine packet: IP present, manifest field populated, PRD adoption section appended, ARCH integration section appended, and ADR citations validated.
@@ -44,13 +44,13 @@ DOSSIER-BC-001: Bounded context `canary-route-shift` states: Bounded context ent
 DOSSIER-BC-002: Bounded context `edge-cedar-eval` states: Bounded context entry `edge-cedar-eval` is declared as a compact manifest value.; crate count=0.
 DOSSIER-BC-003: Bounded context `north-south-request-admission` states: Bounded context entry `north-south-request-admission` is declared as a compact manifest value.; crate count=0.
 DOSSIER-BC-004: Bounded context `tls-handshake-terminate` states: Bounded context entry `tls-handshake-terminate` is declared as a compact manifest value.; crate count=0.
-DOSSIER-CONTRACT-001: OpenAPI 3.2.0: microservices/api-gateway/contracts/api-gateway.openapi.yaml.
-DOSSIER-CONTRACT-002: AsyncAPI 3.1.0: microservices/api-gateway/contracts/api-gateway.asyncapi.yaml.
-DOSSIER-CONTRACT-003: proto3: microservices/api-gateway/contracts/api_gateway.proto.
-DOSSIER-CAPABILITY-001: T0 north-south-request-admission risk=minimal file=microservices/api-gateway/capabilities/north-south-request-admission.yaml.
-DOSSIER-CAPABILITY-002: T0 edge-cedar-eval risk=minimal file=microservices/api-gateway/capabilities/edge-cedar-eval.yaml.
-DOSSIER-CAPABILITY-003: T0 tls-handshake-terminate risk=minimal file=microservices/api-gateway/capabilities/tls-handshake-terminate.yaml.
-DOSSIER-CAPABILITY-004: T2 canary-route-shift risk=limited file=microservices/api-gateway/capabilities/canary-route-shift.yaml.
+DOSSIER-CONTRACT-001: OpenAPI 3.2.0: gateway/contracts/api-gateway.openapi.yaml
+DOSSIER-CONTRACT-002: AsyncAPI 3.1.0: gateway/contracts/api-gateway.asyncapi.yaml
+DOSSIER-CONTRACT-003: proto3: gateway/contracts/api_gateway.proto
+DOSSIER-CAPABILITY-001: T0 north-south-request-admission risk=minimal file=gateway/capabilities/north-south-request-admission.yaml
+DOSSIER-CAPABILITY-002: T0 edge-cedar-eval risk=minimal file=gateway/capabilities/edge-cedar-eval.yaml
+DOSSIER-CAPABILITY-003: T0 tls-handshake-terminate risk=minimal file=gateway/capabilities/tls-handshake-terminate.yaml
+DOSSIER-CAPABILITY-004: T2 canary-route-shift risk=limited file=gateway/capabilities/canary-route-shift.yaml
 
 ## 3. ADR-0339 Doctrine Binding
 ADR0339-001: Purpose binding: collapse 385 per-service from-scratch module directories into roughly 50 shared OpenTofu primitives plus thin wrappers.
@@ -272,9 +272,9 @@ LEADER-018: `api-gateway` leader-scale posture keeps primitive selection explici
 
 ## 12. API And Contract Documentation Impact
 API-001: `api-gateway` does not change REST, event, or proto payloads in this document-stage wave.
-API-002: OpenAPI 3.2.0 references for `api-gateway` remain: OpenAPI 3.2.0: microservices/api-gateway/contracts/api-gateway.openapi.yaml
-API-003: AsyncAPI 3.1.0 references for `api-gateway` remain: AsyncAPI 3.1.0: microservices/api-gateway/contracts/api-gateway.asyncapi.yaml
-API-004: proto3 references for `api-gateway` remain: proto3: microservices/api-gateway/contracts/api_gateway.proto
+API-002: OpenAPI 3.2.0 references for `api-gateway` remain: OpenAPI 3.2.0: gateway/contracts/api-gateway.openapi.yaml
+API-003: AsyncAPI 3.1.0 references for `api-gateway` remain: AsyncAPI 3.1.0: gateway/contracts/api-gateway.asyncapi.yaml
+API-004: proto3 references for `api-gateway` remain: proto3: gateway/contracts/api_gateway.proto
 API-005: If a future wrapper migration exposes deployment preview APIs, the public boundary must carry ADR-0342 date-version carriers separately from module semantic versions.
 API-006: If a future wrapper migration changes async deployment events, the AsyncAPI channel must identify module context, primitive, version_pin, tenant_class_scope, and cell_id.
 API-007: If a future wrapper migration changes proto deployment receipts, proto3 reserved tags must prevent silent field reuse.
@@ -298,7 +298,7 @@ ALT-004: Delay `api-gateway` manifest declaration until implementation; rejected
 ALT-005: Allow unpinned local module paths during migration; rejected because the exact path would work locally while hiding supply-chain and reproducibility risk.
 
 ## 15. Acceptance And Verification
-VERIFY-001: Static read confirms this file exists at `microservices/api-gateway/IPs/IP-ADR-0339-Shared-IaC-Modules.md`.
+VERIFY-001: Static read confirms this file exists at `gateway/IPs/IP-ADR-0339-Shared-IaC-Modules.md`.
 VERIFY-002: Static read confirms ADR-0339 is cited by exact ID.
 VERIFY-003: Static read confirms ADR-0322 is cited by exact ID.
 VERIFY-004: Static read confirms ADR-0181 is cited by exact ID.

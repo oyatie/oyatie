@@ -11,7 +11,7 @@ maturity: stable
 created_at: 2026-05-20
 related_adrs: [ADR-0114, ADR-0139, ADR-0294]
 related_artifacts:
-  - microservices/api-gateway/runbooks/blue-green-rollback.md
+  - gateway/runbooks/blue-green-rollback.md
   - microservices/observability/IP-015-canary-cohort-weighting.md
 
 autonomy_tier: T2
@@ -43,7 +43,7 @@ cost_profile:
   estimated_cost_usd_per_call: 0.0001
 
 cedar_policy_fragments:
-  - microservices/api-gateway/policy/ci-scope.cedar
+  - gateway/policy/ci-scope.cedar
 
 sunset:
   status: none

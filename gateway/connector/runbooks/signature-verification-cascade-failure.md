@@ -72,5 +72,5 @@ If rotation broke legitimate flow: extend grace window; coordinate with tenant.
 ## G. References
 
 - ADR-0263, ADR-0297
-- `microservices/connector/policy/payload-signature-verification.cedar`
-- `microservices/connector/runbooks/webhook-replay-attack-detected.md`
+- `gateway/connector/policy/payload-signature-verification.cedar`
+- `gateway/connector/runbooks/webhook-replay-attack-detected.md`
