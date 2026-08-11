@@ -83,9 +83,12 @@ claim.
 3. **Placement** (general vs edge-tuned hardware: SR-IOV, hugepages, CPU pinning) — restores
    historical Tier-3's nodepool contract without inventing a fourth isolation tier.
 
-Pool binding (proposed; depends on ADR-0712 Accept): `shared-kernel` may land on Asterinas
-pools only after A1+Accept; interim Linux-primary per ADR-0712. `private-kernel*` pin to
-KVM-capable stripped-Linux pools; `private-kernel-attested` requires attestation-capable pools.
+Pool binding (proposed; depends on ADR-0712 Accept of **D-1** specifically): `shared-kernel`
+may land on Asterinas pools only after A1 is green **and** founder Accepts **D-1** (the
+two-SKU co-selection). Accept of **G5** keeps Asterinas soak-only permanently and MUST NOT
+authorize Asterinas production placement. Interim Linux-primary per ADR-0712.
+`private-kernel*` pin to KVM-capable stripped-Linux pools; `private-kernel-attested` requires
+attestation-capable pools.
 
 ### D-1a — Deterministic `pod_runtime_tier` → axes migration table
 
@@ -129,7 +132,9 @@ On Accept, encode MUST follow this order:
    `kata-cloud-hypervisor` RuntimeClass name — it MUST alias to `private-kernel` under that
    lifetime. Lifetime contract is also recorded on
    `masterplan_v2.work_items[MPV2-0055].runtimeclass_alias_lifetime` (planning field while
-   Proposed; encode-time evaluator activates on Accept).
+   Proposed). The blocking alias-lifetime evaluator is **not** claimed as live while this ADR
+   is Proposed; it MUST be implemented and wired into `oya-ci-required` in the Accept-encode PR
+   that introduces the alias — recording a prospective evaluator name alone is insufficient.
 4. **`oya-governance-runtime-class-allowlist`** lane update lands in the **same PR** as the
    rename, or the PR fails closed.
 

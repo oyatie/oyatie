@@ -81,7 +81,8 @@ Accept does not invent it) is:
 2. **Asterinas remains soak / boot evidence only** until A1 is green **and** founder Accepts
    D-1 (or Accepts G5, which keeps Asterinas soak-only permanently).
 
-On Accept after A1 evidence:
+On Accept of **D-1** after A1 evidence (not on Accept of G5, and not on a generic ADR-level
+Accept alone):
 
 1. **Asterinas pools** serve **`shared-kernel`** workloads, with a recorded TDX-guest trajectory
    (not a day-one claim).
@@ -92,6 +93,8 @@ On Accept after A1 evidence:
 4. ValidatingAdmissionPolicy (or the live admission substrate until ADR-0710 Accept) MUST refuse
    `private-kernel*` RuntimeClasses on non-KVM pools and MUST refuse
    `private-kernel-attested` on pools lacking attestation capability evidence.
+
+Accept of **G5** does **not** authorize Asterinas production `shared-kernel` placement.
 
 A1 evidence is a **4-surface ABI matrix**, not a syscall count:
 
