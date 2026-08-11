@@ -180,7 +180,9 @@ are Phase A companions; this ADR is the law they enforce.
 ### D-7 — Special files and concurrent-safe exemptions
 
 - Citation census pins are re-derived on the integ tip (oyatie-o90), never git-merged as authority.
-- `Cargo.lock` lands with the integ that changed workspace membership.
+- `Cargo.lock` is owned solely by `integ/build` (`#planes.root_manifests`). Other
+  integs MUST NOT rewrite the lock for membership travel; they require an unexpired
+  `hubs.active_waivers` row (`hub: Cargo.lock`) before any lock edit.
 - Concurrent-safe exemptions are recorded in `registry/vcs/concurrent-safe-paths.yaml` and MUST
   match `specs/integ-branch-envelopes.json#concurrent_safe_exemptions.paths` (narrowed per-lane /
   CI evidence prefixes — **not** the whole `evidence/**` tree).
