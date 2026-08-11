@@ -26,6 +26,7 @@ os-block-domain = { path = "../block-domain" }
 os-controllers-domain = { path = "../controllers-domain" }
 os-cosi-domain = { path = "../cosi-domain" }
 os-kernel = { path = "../kernel" }
+os-kernel-abi = { path = "../../ports/kernel-abi" }
 os-machine-config-domain = { path = "../machine-config-domain" }
 os-machined-domain = { path = "../machined-domain" }
 os-network-domain = { path = "../network-domain" }
