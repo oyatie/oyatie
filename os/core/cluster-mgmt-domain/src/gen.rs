@@ -10,6 +10,15 @@
 //! deterministic fingerprints derived from the cluster name and a counter, so
 //! tests can assert that the same input yields the same bundle and that
 //! control-plane and worker configs share the same CA.
+//!
+//! That is not a doc-comment promise. [`Secret`] has a private field and
+//! [`Secret::derive`] is its only constructor, and `derive` — plus every
+//! function that transitively reaches it — is behind
+//! `cfg(any(test, feature = "modeled-crypto"))`. The feature is non-default and
+//! no production target enables it, so a production build cannot construct a
+//! [`Secret`], and therefore cannot construct a [`CertificateAuthority`],
+//! [`SecretsBundle`], [`ConfigBundle`], [`crate::ClusterPlan`], or call
+//! [`crate::create_cluster`]. Misuse is a link/compile error, not a review miss.
 
 use crate::ClusterError;
 use os_kernel::machine_type::MachineType;
@@ -25,6 +34,7 @@ pub struct Secret(String);
 
 impl Secret {
     /// Derive a secret deterministically from a seed string.
+    #[cfg(any(test, feature = "modeled-crypto"))]
     pub fn derive(seed: &str) -> Self {
         Secret(hex_hash(seed.as_bytes()))
     }
@@ -45,6 +55,7 @@ pub struct CertificateAuthority {
 }
 
 impl CertificateAuthority {
+    #[cfg(any(test, feature = "modeled-crypto"))]
     fn derive(cluster: &str, kind: &str) -> Self {
         CertificateAuthority {
             cert: Secret::derive(&format!("{cluster}:{kind}:ca:cert")),
@@ -81,6 +92,7 @@ pub struct SecretsBundle {
 
 impl SecretsBundle {
     /// Generate a fresh secrets bundle for `cluster_name`.
+    #[cfg(any(test, feature = "modeled-crypto"))]
     pub fn generate(cluster_name: &str) -> Result<Self, ClusterError> {
         if cluster_name.trim().is_empty() {
             return Err(ClusterError::invalid("cluster name is empty"));
@@ -244,6 +256,7 @@ pub struct ConfigBundle {
 
 impl ConfigBundle {
     /// Generate a config bundle from input, deriving a fresh secrets bundle.
+    #[cfg(any(test, feature = "modeled-crypto"))]
     pub fn generate(input: &GenInput) -> Result<Self, ClusterError> {
         let secrets = SecretsBundle::generate(&input.cluster_name)?;
         Self::generate_with_secrets(input, secrets)
@@ -251,6 +264,7 @@ impl ConfigBundle {
 
     /// Generate a config bundle from input reusing an existing secrets bundle
     /// (mirrors `talosctl gen config --with-secrets`).
+    #[cfg(any(test, feature = "modeled-crypto"))]
     pub fn generate_with_secrets(
         input: &GenInput,
         secrets: SecretsBundle,
