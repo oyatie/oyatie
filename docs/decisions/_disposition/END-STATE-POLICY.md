@@ -133,5 +133,12 @@ to every rule. Enforcing the two separately is what makes admitting this case sa
 Proposed apex is findable at step 1 and is not law, and the **gate**, not this prose, holds the
 second half.
 
-**Instances.** ADR-0710 (Kubernetes admission substrate), gated on clause D-8's workload-boundary
-evidence. It is the first and so far only one.
+**Instances.**
+
+- ADR-0710 (Kubernetes admission substrate), gated on clause D-8's workload-boundary evidence.
+- ADR-0711 (node kernel + pool matrix / F1(a)), gated on A1 4-surface ABI matrix evidence.
+- ADR-0712 (owned node runtime / F1(b)), gated on founder Accept/Reject of the no-daemon shape.
+- ADR-0713 (isolation-property tier names / F1(c)), gated on enforcement re-home before rename.
+- ADR-0714 (ADR-0710 Accept blocked on D-8 / F1(d)), gated on the same D-8 evidence packet.
+- ADR-0715 (OS-layer retirement / F1(e)), gated on fleet-basis + boot-marker + `os/` charter
+  preconditions.
