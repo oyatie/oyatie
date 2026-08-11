@@ -400,7 +400,7 @@ jobs:
   #    runner; per the runbook the existing firewall runner suffices — no separate aggregator bin
   #    is required for PRE-work.
   gate-baseline-ratchet:
-    name: cloud-ci-firewall (baseline ratchet + gate-registration meta-test)
+    name: admission.policy (path ownership + baseline ratchet + gate-registration)
     runs-on: ubuntu-latest  # binding linux-amd64 hosted; multi-arch soft via gate matrix; ARC oya-arm64 lab overflow only
     steps:
       # actions/checkout@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
@@ -422,7 +422,7 @@ jobs:
       # it is never converted to artifact reuse.
       - name: Materialize cloud-ci generated faces
         run: rustup toolchain install && rustc --version && buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root . --github-event
-      - name: buck2 test cloud-ci-firewall
+      - name: buck2 test admission.policy
         run: |
           set -euo pipefail
           buck2 test \
@@ -1246,7 +1246,7 @@ jobs:
           echo "  gate (matrix)     = ${{ needs.gate.result }}"
           echo "  freshness         = ${{ needs.gate-generated-artifact-freshness.result }}"
           echo "  registry-drift    = ${{ needs.gate-inventory-registry-drift.result }}"
-          echo "  cloud-ci-firewall = ${{ needs.gate-baseline-ratchet.result }}"
+          echo "  admission.policy  = ${{ needs.gate-baseline-ratchet.result }}"
           echo "  generated-diff    = ${{ needs.generated-output-diff-policy.result }}"
           echo "  buck2             = ${{ needs.buck2.result }}"
           echo "  affected-set      = ${{ needs.gate-affected-target-set.result }}"
@@ -1271,9 +1271,9 @@ jobs:
           echo "oya-ci-required: RED — at least one constituent gate lane failed or was skipped."
           exit 1
 
-  # Dual-emit (naming_sweep / sweep-execute): publish forever check title alongside legacy
-  # `oya-ci-required` during the dual-publish window. Branch protection stays on
-  # `oya-ci-required` until founder PAUSE-AND-PAIR flip — observation≠APPROVE.
+  # Dual-emit forever public status `merge-admission-required` alongside legacy
+  # `oya-ci-required` until founder PAUSE-AND-PAIR protection flip.
+  # Sole forever protected string = merge-admission-required (matches forever workflow filename).
   #
   # automation-language-policy is a merge-base CEILING (door:one-way): a new workflow `run:`
   # key is born-blocking. Mirror via job `if:` + `uses:` only (inline-shell scan skips `uses:`).
@@ -1312,20 +1312,6 @@ jobs:
             README.md
           sparse-checkout-cone-mode: true
 
-  admission-baseline-ratchet:
-    name: admission-baseline-ratchet (+ gate-registration)
-    runs-on: ubuntu-latest
-    if: ${{ always() && needs.gate-baseline-ratchet.result == 'success' }}
-    needs: [gate-baseline-ratchet]
-    steps:
-      - name: Dual-emit forever title (uses-only; no new inline shell)
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-        with:
-          persist-credentials: false
-          fetch-depth: 1
-          sparse-checkout: |
-            README.md
-          sparse-checkout-cone-mode: true
 
   affected-target-set:
     name: affected-target-set (binding workspace coverage)
