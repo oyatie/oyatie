@@ -1,0 +1,25 @@
+# templates/foundry-supervisor/codex.toml
+version = 1
+provider_family = "OpenAIOrCodex"
+target_root = "~"
+
+[provider_overrides]
+disable_skills = true
+omitted_hook_events = []
+
+[[hooks]]
+event = "Stop"
+command = "$WORKSPACE_ROOT/tools/foundry-supervisor-stop-hook"
+args = []
+
+[[mcp_servers]]
+name = "oya-mcp-gateway"
+transport = "Stdio"
+command_or_url = "$WORKSPACE_ROOT/target/release/oya-mcp-gateway"
+
+# Stale `Bash(grit *)` permission removed 2026-05-18 — grit pipeline retired per ADR-0116.
+# Canonical git drop-in primitive is `oya git` (feedback_oya_git_canonical_2026_05_18);
+# Oya VCS remains policy-ratchet compatibility for claim / verify / done / promote.
+
+[[allowed_tools]]
+name = "Read"
