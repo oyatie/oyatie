@@ -8,9 +8,13 @@ operational_classes_owned: []
 api_stability: preview
 security_review: unreviewed
 supply_chain: source-only
+# Excluded from root Cargo workspace until integ/build absorbs lock membership
+# (Cargo.toml exclude). Catalog-liveness requires explicit non-live marker.
+status: designed-ahead-row-no-crate
 traceability:
   source_crate: os/harness/attestation-relying-party/Cargo.toml
 non_claims:
+  - crate lives on disk but is excluded from the root live Cargo workspace until integ/build lock absorb; row is inventory + SLO face only
   - relying-party type scaffold only; does not fetch AMD KDS / Intel PCS collateral
   - never claims live SNP/TDX/CCA hardware quotes; stub verdicts are UNKNOWN
   - does not amend ConfidentialPlatform sealed impls; extends the story via RP types
