@@ -108,6 +108,7 @@ pub struct ClusterPlan {
 impl ClusterPlan {
     /// Plan a cluster from a spec: allocate IPs, generate configs, build the
     /// provisioner request.
+    #[cfg(any(test, feature = "modeled-crypto"))]
     pub fn plan(spec: &ClusterSpec) -> Result<Self, ClusterError> {
         spec.validate()?;
 
