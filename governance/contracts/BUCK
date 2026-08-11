@@ -1,0 +1,11 @@
+# META governance contracts absorb (openapi/asyncapi) from oya/governance.
+# Keep YAML inside a Buck2 package so corpus-index-coverage does not count them
+# as unpackaged (ADR-0541). Do not glob the whole governance/ tree — waiver YAML
+# under check/integ-envelope is already in the frozen unpackaged baseline.
+
+load("//governance/corpus/extract:yaml_facts.bzl", "corpus_yaml_facts_shards")
+
+corpus_yaml_facts_shards(
+    srcs = glob(["**/*.yaml", "**/*.yml"]),
+    shard_size = 256,
+)
