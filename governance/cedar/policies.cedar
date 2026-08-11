@@ -3,14 +3,14 @@
 // ADR-0346 purpose: ./bin/oya verify --ci-required is the canonical local pre-push verifier and MUST locally mirror the full CI matrix.
 // ADR-0346 enforced_by: oya-governance-oya-verify-ci-mirror-coverage; oya-governance-oya-verify-ci-step-exit-semantics; oya-governance-oya-verify-skip-flag-allowlist; oya-governance-oya-submit-calls-verify; oya-governance-oya-verify-exit-code-contract.
 // ADR-0347 purpose: every oya-governance-* CI lane prefix in the Oyatie corpus RENAMES to oya-governance-* in a single bulk-rename pull request.
-// ADR-0347 enforced_by: oya-governance-no-foundry-fitness-residue; oya-governance-lane-prefix-vocabulary; oya-governance-rename-inventory-presence.
+// ADR-0347 enforced_by: oya-governance-no-legacy-fitness-residue; oya-governance-lane-prefix-vocabulary; oya-governance-rename-inventory-presence.
 // ADR-0348 purpose: cellular topology MUST support AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING; tenant migration honors residency + compliance pack constraints; cross-jurisdiction migration requires an explicit Cedar permit per ADR-0243; every automation event MUST emit per ADR-0263.
 // ADR-0348 enforced_by: oya-governance-sharding-automation-coverage; oya-governance-autosharding-manual-mode-refusal; oya-governance-auto-rebalance-residency-honored; oya-governance-dynamic-sharding-threshold-coverage; oya-governance-audit-chain-emit-on-automation-events; oya-governance-tenant-migration-reversibility.
-// ADR-0349 purpose: Jenkins is the canonical CI orchestrator for air-gap + on-prem + colo + oyatie-as-cloud-provider contexts where GitHub Actions runners are not available; ArgoCD is the canonical GitOps CD orchestrator; ArgoCD REPLACES manual kubectl apply and Helm CLI deploys across all contexts.
-// ADR-0349 enforced_by: oya-governance-jenkins-github-actions-parity; oya-governance-argocd-application-cosign-verified; oya-governance-argocd-tenant-namespace-isolation; oya-governance-jenkins-jcasc-only; oya-governance-deploy-audit-chain-emit.
+// ADR-0349 purpose: Self-hosted CI is the canonical CI orchestrator for air-gap + on-prem + colo + oyatie-as-cloud-provider contexts where GitHub Actions runners are not available; ArgoCD is the canonical GitOps CD orchestrator; ArgoCD REPLACES manual kubectl apply and Helm CLI deploys across all contexts.
+// ADR-0349 enforced_by: oya-governance-self-hosted-ci-github-actions-parity; oya-governance-argocd-application-cosign-verified; oya-governance-argocd-tenant-namespace-isolation; oya-governance-self-hosted-ci-jcasc-only; oya-governance-deploy-audit-chain-emit.
 
 permit(
-  principal == ServicePrincipal::"oyatie.foundry.cell-orchestrator",
+  principal == ServicePrincipal::"oyatie.governance.cell-orchestrator",
   action in [Action::"ComputeAutoshardingPlacement", Action::"ExecuteAutoRebalance", Action::"ExecuteDynamicSharding"],
   resource is ShardingAutomation
 ) when {
@@ -24,7 +24,7 @@ permit(
 };
 
 forbid(
-  principal == ServicePrincipal::"oyatie.foundry.cell-orchestrator",
+  principal == ServicePrincipal::"oyatie.governance.cell-orchestrator",
   action in [Action::"ExecuteAutoRebalance", Action::"ExecuteDynamicSharding"],
   resource is ShardingAutomation
 ) when {
@@ -38,7 +38,7 @@ forbid(
 };
 
 forbid(
-  principal == ServicePrincipal::"oyatie.foundry.cell-orchestrator",
+  principal == ServicePrincipal::"oyatie.governance.cell-orchestrator",
   action == Action::"MigrateTenantCrossJurisdiction",
   resource is TenantMigration
 ) unless {
@@ -49,7 +49,7 @@ forbid(
 };
 
 permit(
-  principal == ServicePrincipal::"oyatie.jenkins.ci",
+  principal == ServicePrincipal::"oyatie.self-hosted.ci",
   action == Action::"RunCiMirror",
   resource is ServiceCiSurface
 ) when {
@@ -66,7 +66,7 @@ permit(
 };
 
 permit(
-  principal == ServicePrincipal::"oyatie.jenkins.ci",
+  principal == ServicePrincipal::"oyatie.self-hosted.ci",
   action == Action::"RunSelfHostedCi",
   resource is ServiceCiSurface
 ) when {
@@ -79,7 +79,7 @@ permit(
 };
 
 forbid(
-  principal == ServicePrincipal::"oyatie.jenkins.ci",
+  principal == ServicePrincipal::"oyatie.self-hosted.ci",
   action in [Action::"RunCiMirror", Action::"RunSelfHostedCi"],
   resource is ServiceCiSurface
 ) when {

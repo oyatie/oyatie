@@ -71,7 +71,7 @@ permit (
 )
 when {
     resource.tenant_id == "internal" ||
-    principal in role::"axis-foundry-on-call"
+    principal in role::"axis-governance-on-call"
 };
 
 // P6 — Internal engineer reads any non-AUDIT Finding view
@@ -114,7 +114,7 @@ when {
     !(principal in role::"council-privacy-cross-pack-admin")
 };
 
-// F3 — Refuse non-axis-foundry-on-call from AUDIT-view Findings except for
+// F3 — Refuse non-axis-governance-on-call from AUDIT-view Findings except for
 //      ops-security or external auditors during a JIT window
 forbid (
     principal,

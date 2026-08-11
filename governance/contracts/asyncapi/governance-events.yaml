@@ -7,7 +7,7 @@ info:
     Workflow event bus (tenancy µservice) per ADR-0131 §"Integration via Workflow + Ontology".
     Every event carries an audit-chain Ed25519 seal.
   contact:
-    name: axis-foundry
+    name: axis-governance
 
 defaultContentType: application/json
 

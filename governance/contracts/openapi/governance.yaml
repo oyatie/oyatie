@@ -10,7 +10,7 @@ info:
     Authentication: OIDC bearer token; per-tenant claim binds resources.
     Rate limit: per-principal 100 req/s; per-source-ip 50 req/s.
   contact:
-    name: axis-foundry
+    name: axis-governance
     url: https://github.com/oyatie/oyatie
   license:
     name: MIT
@@ -257,7 +257,7 @@ components:
         purpose: >-
           Declare that every oya-governance-* CI lane prefix in the Oyatie corpus RENAMES to oya-governance-* in a single bulk-rename pull request.
         enforced_by:
-          - oya-governance-no-foundry-fitness-residue
+          - oya-governance-no-legacy-fitness-residue
           - oya-governance-lane-prefix-vocabulary
           - oya-governance-rename-inventory-presence
       ADR-0348:
@@ -277,12 +277,12 @@ components:
           manifest_block: sharding_automation declares autosharding, auto_rebalance, and dynamic_sharding sub-blocks.
       ADR-0349:
         purpose: >-
-          Declare Jenkins (LTS) and ArgoCD as the two canonical self-hostable CI/CD substrates for the Oyatie corpus.
+          Declare self-hosted CI (LTS) and ArgoCD as the two canonical self-hostable CI/CD substrates for the Oyatie corpus.
         enforced_by:
-          - oya-governance-jenkins-github-actions-parity
+          - oya-governance-self-hosted-ci-github-actions-parity
           - oya-governance-argocd-application-cosign-verified
           - oya-governance-argocd-tenant-namespace-isolation
-          - oya-governance-jenkins-jcasc-only
+          - oya-governance-self-hosted-ci-jcasc-only
           - oya-governance-deploy-audit-chain-emit
     consumer_guidance:
       generators: Ignore this x-extension for SDK and server wire generation.
