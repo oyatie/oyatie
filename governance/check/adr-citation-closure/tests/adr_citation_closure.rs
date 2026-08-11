@@ -318,25 +318,16 @@ fn report(observed: &Observed, verdict: &Verdict) -> String {
     out
 }
 
-// THE GATE, as a SHRINK-ONLY RATCHET pinned by equality.
+// THE GATE, as a SHRINK-ONLY RATCHET on *semantic finding* ceilings (equality).
 //
-// This started as `assert!(!verdict.failed())` — red by design, on the reasoning that tuning it green
-// rather than repairing the citations would be the false green the gate exists to stop. That reasoning
-// is right and is preserved; the mechanism was wrong for this repo. `affected-set: test-health` counts
-// ANY failing test in the affected set as a regression against a baseline of zero, so a permanently-red
-// test cannot land at all — the gate would have been correct and unmergeable.
-//
-// Equality, not `<=`, is what keeps it honest, and it is the pattern the sibling
-// `ci/facade/corpus-index-coverage` gate already proves out. A NEW finding exceeds the ceiling and
-// fails. A REPAIRED finding falls below it and ALSO fails, forcing the ceiling down in the same change
-// so the ratchet keeps biting. Slack is never allowed to accumulate silently.
-//
-// The census assertion below it is what distinguishes a repaired corpus from a collapsed walk: both
-// report fewer findings, and only the census tells them apart.
+// Absolute census equality (`files_scanned` / `citation_lines` / `adr_records`) was DELETED as a
+// merge blocker (PROCESS_TAX / audit 79f76050). Hand re-freeze of those counters is not tip-entitled.
+// Anti-vacuity for the walk is machine-derived (`every_tracked_scannable_file_is_counted…`,
+// vacuous-scan refuse, `min_*` floors). Finding ceilings stay: a NEW finding exceeds the ceiling
+// and fails; a REPAIRED finding falls below it and ALSO fails, forcing the ceiling down same-change.
 #[test]
 fn live_tree_findings_equal_the_frozen_ceilings() {
-    let root = repo_root();
-    let raw = std::fs::read_to_string(root.join(POLICY_PATH)).expect("read policy");
+    let raw = std::fs::read_to_string(repo_root().join(POLICY_PATH)).expect("read policy");
     let doc: serde_json::Value = serde_json::from_str(&raw).expect("policy parses");
     let ceiling = |key: &str| -> usize {
         usize::try_from(
@@ -350,43 +341,25 @@ fn live_tree_findings_equal_the_frozen_ceilings() {
     let (_, observed, verdict) = live();
     let count = |code: &str| verdict.findings.iter().filter(|f| f.code == code).count();
 
-    // THE CORPUS IS PINNED BEFORE THE FINDINGS ARE.
-    //
-    // A high-effort review PROVED this gate could be turned green without repairing a
-    // single citation: append two entries to `exempt_path_prefixes`, lower the two
-    // ceilings in the same file, and all ten tests pass while 281 findings silently
-    // leave the enforced set. The corpus definition and the ceilings live in one policy
-    // file, so a policy-only edit satisfied a ratchet meant to require repair.
-    //
-    // The census values the policy itself calls "the anti-vacuity anchor" were asserted
-    // by NO test, which is what made the exploit invisible. Pinning them by equality
-    // closes it: narrowing the corpus necessarily moves `files_scanned` and
-    // `citation_lines`, so shrinking the scan now fails HERE, before any finding count
-    // is even compared. Repairing citations moves the finding counts and leaves these
-    // untouched — which is exactly the distinction the ratchet was supposed to make.
-    for (label, actual, key) in [
-        ("files_scanned", observed.files_scanned, "files_scanned"),
-        ("citation_lines", verdict.census.citation_lines, "citation_lines"),
-        ("adr_records", verdict.census.adr_records, "adr_records"),
-    ] {
-        let frozen = ceiling(key);
-        assert_eq!(
-            actual, frozen,
-            "{label}: observed {actual}, frozen {frozen}. This is the CORPUS, not a \
-             finding count. If it moved because the scan was narrowed, that is the \
-             false-green path and the narrowing must be justified on its own terms \
-             rather than folded into a repair. If it moved because tracked files were \
-             genuinely added or removed, re-freeze it in the SAME change.\n{}",
-            report(&observed, &verdict)
-        );
-    }
+    // PROCESS_TAX DELETE (audit 79f76050 / Fail-class law): hand equality pins on absolute
+    // census (`files_scanned` / `citation_lines` / `adr_records`) are NOT merge blockers.
+    // Anti-vacuity lives in machine oracles instead:
+    //   - `every_tracked_scannable_file_is_counted_and_nothing_untracked_is` (git ls-files ∩ scan)
+    //   - vacuous-scan refuse below
+    //   - policy `min_*` floors
+    // Semantic finding ceilings (mismatch / rejected_authority / …) remain enforced.
 
     // Anti-vacuity FIRST: every count below is meaningless if the walk saw nothing.
     assert_eq!(
         count(CODE_VACUOUS_SCAN),
         0,
         "the walk collapsed — its zero findings are not evidence\n{}",
-        report(observed, verdict)
+        report(&observed, &verdict)
+    );
+    assert!(
+        observed.files_scanned > 0,
+        "census walk saw zero files — refuse vacuous green\n{}",
+        report(&observed, &verdict)
     );
 
     for (code, key) in [
@@ -406,7 +379,7 @@ fn live_tree_findings_equal_the_frozen_ceilings() {
              introduced and must be repaired rather than admitted. Below it, findings were repaired \
              and `measured.{key}` must be lowered to {observed_count} in the SAME change so the \
              ratchet keeps biting.\n{}",
-            report(observed, verdict)
+            report(&observed, &verdict)
         );
     }
 }
