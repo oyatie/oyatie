@@ -95,7 +95,7 @@ jobs:
     # ADR-0560 D4's contract — from-empty, NO overlay, NO actions/cache step — is a property of
     # the STEPS, which are unchanged. Running in-cluster additionally puts the canary where the
     # NativeLink CAS is actually reachable, which is a precondition for it ever covering RE.
-    runs-on: ubuntu-latest  # binding linux-amd64 hosted; ARC oya-arm64 is lab overflow only
+    runs-on: ubuntu-latest  # binding linux-amd64 hosted (ARC retired)
     timeout-minutes: 120
     steps:
       # actions/checkout@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
