@@ -10,11 +10,52 @@
 /// common PEM-adjacent phrases. Matching is ASCII case-insensitive.
 pub fn contains_raw_secret_material(value: &str) -> bool {
     let lower = value.to_ascii_lowercase();
-    lower.contains("secret=")
+    contains_secret_assignment(&lower)
         || lower.contains("-----begin")
         || lower.contains("-----end")
         || lower.contains("private key")
         || contains_pem_variant(&lower)
+}
+
+/// Match `secret=` / `secret =` / `secret:` / `secret :` assignment shapes.
+///
+/// URI / credential refs are not assignments:
+/// - `scheme:secret:name` (e.g. OpenBao) — colon immediately before `secret`
+/// - `secret://...` at value start — `secret` is the URI scheme, not a key
+fn contains_secret_assignment(lower: &str) -> bool {
+    let bytes = lower.as_bytes();
+    let needle = b"secret";
+    let mut i = 0;
+    while i + needle.len() <= bytes.len() {
+        if &bytes[i..i + needle.len()] == needle {
+            let mut j = i + needle.len();
+            while j < bytes.len() && bytes[j] == b' ' {
+                j += 1;
+            }
+            if j < bytes.len() && (bytes[j] == b'=' || bytes[j] == b':') {
+                if bytes[j] == b':' {
+                    // `*:secret:*` credential-reference form — keep as safe.
+                    if i > 0 && bytes[i - 1] == b':' {
+                        i += 1;
+                        continue;
+                    }
+                    // `secret://...` URI scheme only when `secret` is the whole
+                    // scheme at index 0 (not an embedded `*_secret:/...`).
+                    if i == 0
+                        && j + 2 < bytes.len()
+                        && bytes[j + 1] == b'/'
+                        && bytes[j + 2] == b'/'
+                    {
+                        i += 1;
+                        continue;
+                    }
+                }
+                return true;
+            }
+        }
+        i += 1;
+    }
+    false
 }
 
 fn contains_pem_variant(lower: &str) -> bool {
@@ -44,6 +85,11 @@ mod tests {
         assert!(contains_raw_secret_material("secret=super-secret-token"));
         assert!(contains_raw_secret_material("openbao://vault/secret=abc"));
         assert!(contains_raw_secret_material("SECRET=UPPERCASE"));
+        assert!(contains_raw_secret_material("secret = spaced-token"));
+        assert!(contains_raw_secret_material("secret: colon-token"));
+        assert!(contains_raw_secret_material("secret : spaced-colon"));
+        // Embedded `*_secret:/...` is still an assignment, not a URI scheme.
+        assert!(contains_raw_secret_material("client_secret:/raw-token"));
     }
 
     #[test]
@@ -75,5 +121,9 @@ mod tests {
         assert!(!contains_raw_secret_material("bearer-token-ref"));
         assert!(!contains_raw_secret_material("authorization-policy-bundle-v3"));
         assert!(!contains_raw_secret_material("api_key_ref=not-a-needle"));
+        // Valid OpenBao credential reference used by execution-engine-app.
+        assert!(!contains_raw_secret_material("openbao:secret:workflow-execution"));
+        // Canonical secret-scheme URI used by secrets lease lifecycle.
+        assert!(!contains_raw_secret_material("secret://ten_alpha/db-creds"));
     }
 }
