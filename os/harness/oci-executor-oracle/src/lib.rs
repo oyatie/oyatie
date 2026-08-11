@@ -21,6 +21,7 @@
 use serde::Deserialize;
 use serde_json::Value;
 use std::collections::BTreeSet;
+use std::fmt;
 
 /// Embedded CVE / adversarial obligation inventory (scaffold).
 pub const CVE_OBLIGATIONS_JSON: &str =
@@ -39,15 +40,94 @@ pub const REQUIRED_CVE_IDS: [&str; 3] = [
 /// Required fixture role for every oracle row.
 pub const ORACLE_ROLE: &str = "differential_oracle";
 
+/// Matchable harness errors (scaffold; no thiserror dep).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum HarnessError {
+    Parse(String),
+    Schema(String),
+    UnknownOracle(String),
+    DuplicateOracle(String),
+    MissingOracle(String),
+    OracleShipped(String),
+    OracleRole(String),
+    OraclePin(String),
+    UnknownCve(String),
+    DuplicateCve(String),
+    MissingCve(String),
+    CveNotRequired(String),
+    ConformanceLaundering,
+}
+
+impl fmt::Display for HarnessError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Parse(m)
+            | Self::Schema(m)
+            | Self::UnknownOracle(m)
+            | Self::DuplicateOracle(m)
+            | Self::MissingOracle(m)
+            | Self::OracleShipped(m)
+            | Self::OracleRole(m)
+            | Self::OraclePin(m)
+            | Self::UnknownCve(m)
+            | Self::DuplicateCve(m)
+            | Self::MissingCve(m)
+            | Self::CveNotRequired(m) => write!(f, "{m}"),
+            Self::ConformanceLaundering => write!(
+                f,
+                "conformance-laundering ban: oracle executors must not be selected as shipped product"
+            ),
+        }
+    }
+}
+
+/// Closed oracle identity enum — the only values `ExecutorKind::Oracle` may carry.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum OracleId {
+    Youki,
+    Runc,
+    Crun,
+}
+
+impl OracleId {
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Youki => "youki",
+            Self::Runc => "runc",
+            Self::Crun => "crun",
+        }
+    }
+
+    pub fn try_from_str(id: &str) -> Result<Self, HarnessError> {
+        match id {
+            "youki" => Ok(Self::Youki),
+            "runc" => Ok(Self::Runc),
+            "crun" => Ok(Self::Crun),
+            other => Err(HarnessError::UnknownOracle(other.to_owned())),
+        }
+    }
+
+    pub const fn all() -> [Self; 3] {
+        [Self::Youki, Self::Runc, Self::Crun]
+    }
+}
+
 /// Outcome of a differential comparison (scaffold).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum DiffVerdict {
     /// Not yet executed — default for scaffold.
     Stubbed,
-    /// Owned executor matched oracle (future measured path).
+    /// Owned executor matched oracle (measured path).
     Match,
-    /// Owned executor diverged from oracle (future measured path).
+    /// Owned executor diverged from oracle (measured path).
     Diverge,
+}
+
+/// Typed measured outcome carried by live adapters.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct MeasuredOutcome {
+    /// Opaque digest of exit/status/stderr (adapter-defined).
+    pub result_digest: String,
 }
 
 /// Per-side operation observation. Live adapters emit one of these; a separate
@@ -57,8 +137,10 @@ pub struct OperationObservation {
     pub kind: ExecutorKind,
     pub operation: &'static str,
     pub bundle_id: String,
-    /// Scaffold: empty. Live adapters carry exit/status/stderr digests here.
-    pub notes: String,
+    /// False for scaffold stubs; true once a live adapter executed the op.
+    pub executed: bool,
+    /// Present only when `executed` — compared for Match/Diverge.
+    pub measured: Option<MeasuredOutcome>,
 }
 
 impl OperationObservation {
@@ -67,12 +149,30 @@ impl OperationObservation {
             kind,
             operation,
             bundle_id: bundle_id.to_owned(),
-            notes: "scaffold stub — no process spawn".into(),
+            executed: false,
+            measured: None,
+        }
+    }
+
+    pub fn measured(
+        kind: ExecutorKind,
+        operation: &'static str,
+        bundle_id: &str,
+        result_digest: impl Into<String>,
+    ) -> Self {
+        Self {
+            kind,
+            operation,
+            bundle_id: bundle_id.to_owned(),
+            executed: true,
+            measured: Some(MeasuredOutcome {
+                result_digest: result_digest.into(),
+            }),
         }
     }
 }
 
-/// Compare two observations into a differential verdict (scaffold).
+/// Compare two observations into a differential verdict.
 pub fn compare_observations(
     owned: &OperationObservation,
     oracle: &OperationObservation,
@@ -83,8 +183,14 @@ pub fn compare_observations(
     if owned.operation != oracle.operation || owned.bundle_id != oracle.bundle_id {
         return DiffVerdict::Diverge;
     }
-    // Scaffold path: both sides stubbed ⇒ Stubbed (not a measured Match).
-    DiffVerdict::Stubbed
+    if !owned.executed || !oracle.executed {
+        return DiffVerdict::Stubbed;
+    }
+    match (&owned.measured, &oracle.measured) {
+        (Some(a), Some(b)) if a.result_digest == b.result_digest => DiffVerdict::Match,
+        (Some(_), Some(_)) => DiffVerdict::Diverge,
+        _ => DiffVerdict::Diverge,
+    }
 }
 
 /// Kill signal seam aligned with `os_runtime` / containerd task Signal (scaffold).
@@ -101,13 +207,13 @@ pub enum ExecutorKind {
     /// Forever product path (owned-from-spec shim library). Bodies arrive later.
     Owned,
     /// Differential oracle only — must never be selected as shipped runtime.
-    Oracle { id: &'static str },
+    Oracle(OracleId),
 }
 
 impl ExecutorKind {
     /// True iff this kind is forbidden as a shipped product runtime.
     pub const fn is_oracle_only(self) -> bool {
-        matches!(self, Self::Oracle { .. })
+        matches!(self, Self::Oracle(_))
     }
 
     /// True iff this kind is the forever product executor.
@@ -157,37 +263,34 @@ impl OciExecutor for OwnedExecutorStub {
 /// Oracle adapter stub — identity only; never ship. Construction is allowlisted.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct OracleStub {
-    id: &'static str,
+    id: OracleId,
 }
 
 impl OracleStub {
     pub const fn youki() -> Self {
-        Self { id: "youki" }
+        Self { id: OracleId::Youki }
     }
     pub const fn runc() -> Self {
-        Self { id: "runc" }
+        Self { id: OracleId::Runc }
     }
     pub const fn crun() -> Self {
-        Self { id: "crun" }
+        Self { id: OracleId::Crun }
     }
 
-    /// Validated construction against [`ORACLE_IDS`]. Rejects unknown identities.
-    pub fn try_new(id: &'static str) -> Result<Self, String> {
-        if ORACLE_IDS.contains(&id) {
-            Ok(Self { id })
-        } else {
-            Err(format!("oracle id {id} is not in ORACLE_IDS allowlist"))
-        }
+    pub fn try_new(id: &str) -> Result<Self, HarnessError> {
+        Ok(Self {
+            id: OracleId::try_from_str(id)?,
+        })
     }
 
-    pub const fn id(self) -> &'static str {
+    pub const fn id(self) -> OracleId {
         self.id
     }
 }
 
 impl OciExecutor for OracleStub {
     fn kind(&self) -> ExecutorKind {
-        ExecutorKind::Oracle { id: self.id }
+        ExecutorKind::Oracle(self.id)
     }
 }
 
@@ -211,7 +314,6 @@ struct OracleRow {
     id: String,
     role: String,
     shipped: bool,
-    /// Immutable pin fields (scaffold placeholders until live adapters land).
     revision: String,
     platform: String,
 }
@@ -222,82 +324,96 @@ struct CveRow {
     required: bool,
 }
 
-/// Parse and structurally validate the embedded obligations fixture.
-pub fn validate_obligations() -> Result<Value, String> {
-    let root: ObligationsRoot = serde_json::from_str(CVE_OBLIGATIONS_JSON)
-        .map_err(|e| format!("cve obligations parse error: {e}"))?;
+fn validate_root(root: &ObligationsRoot) -> Result<(), HarnessError> {
     if root.schema_version != "0.1.0" {
-        return Err("schema_version must be 0.1.0".into());
+        return Err(HarnessError::Schema("schema_version must be 0.1.0".into()));
     }
     if root.status != "scaffold" {
-        return Err("status must be scaffold".into());
+        return Err(HarnessError::Schema("status must be scaffold".into()));
     }
     if root.claim_posture.oracles_are_shipped_product {
-        return Err("claim_posture.oracles_are_shipped_product must be false".into());
+        return Err(HarnessError::Schema(
+            "claim_posture.oracles_are_shipped_product must be false".into(),
+        ));
     }
     if !root.claim_posture.owned_executor_is_product_path {
-        return Err("claim_posture.owned_executor_is_product_path must be true".into());
+        return Err(HarnessError::Schema(
+            "claim_posture.owned_executor_is_product_path must be true".into(),
+        ));
     }
 
-    // Exact one-to-one match with ORACLE_IDS: reject duplicates and extras.
     if root.oracles.len() != ORACLE_IDS.len() {
-        return Err(format!(
+        return Err(HarnessError::Schema(format!(
             "oracles must be exactly {} rows (got {})",
             ORACLE_IDS.len(),
             root.oracles.len()
-        ));
+        )));
     }
     let mut seen = BTreeSet::new();
     for row in &root.oracles {
-        if !ORACLE_IDS.contains(&row.id.as_str()) {
-            return Err(format!("unknown oracle id {}", row.id));
-        }
-        if !seen.insert(row.id.as_str()) {
-            return Err(format!("duplicate oracle id {}", row.id));
+        let oid = OracleId::try_from_str(&row.id)?;
+        if !seen.insert(oid.as_str()) {
+            return Err(HarnessError::DuplicateOracle(row.id.clone()));
         }
         if row.shipped {
-            return Err(format!("oracle {} must have shipped=false", row.id));
+            return Err(HarnessError::OracleShipped(row.id.clone()));
         }
         if row.role != ORACLE_ROLE {
-            return Err(format!(
+            return Err(HarnessError::OracleRole(format!(
                 "oracle {} role must be {ORACLE_ROLE} (got {})",
                 row.id, row.role
-            ));
+            )));
         }
         if row.revision.trim().is_empty() {
-            return Err(format!("oracle {} must pin a non-empty revision", row.id));
+            return Err(HarnessError::OraclePin(format!(
+                "oracle {} must pin a non-empty revision",
+                row.id
+            )));
         }
         if row.platform.trim().is_empty() {
-            return Err(format!("oracle {} must pin a non-empty platform", row.id));
+            return Err(HarnessError::OraclePin(format!(
+                "oracle {} must pin a non-empty platform",
+                row.id
+            )));
         }
     }
-    for id in ORACLE_IDS {
-        if !seen.contains(id) {
-            return Err(format!("missing oracle row for {id}"));
+    for id in OracleId::all() {
+        if !seen.contains(id.as_str()) {
+            return Err(HarnessError::MissingOracle(id.as_str().to_owned()));
         }
     }
 
-    // Closed mandatory CVE set — every REQUIRED_CVE_IDS entry must be present
-    // with required=true; extras with required=false are rejected.
     let mut cve_seen = BTreeSet::new();
     for cve in &root.cve_regression_obligations {
         if !REQUIRED_CVE_IDS.contains(&cve.id.as_str()) {
-            return Err(format!("unknown cve obligation id {}", cve.id));
+            return Err(HarnessError::UnknownCve(cve.id.clone()));
         }
         if !cve_seen.insert(cve.id.as_str()) {
-            return Err(format!("duplicate cve obligation id {}", cve.id));
+            return Err(HarnessError::DuplicateCve(cve.id.clone()));
         }
         if !cve.required {
-            return Err(format!("obligation {} must be required=true", cve.id));
+            return Err(HarnessError::CveNotRequired(cve.id.clone()));
         }
     }
     for id in REQUIRED_CVE_IDS {
         if !cve_seen.contains(id) {
-            return Err(format!("missing required cve obligation {id}"));
+            return Err(HarnessError::MissingCve(id.to_owned()));
         }
     }
+    Ok(())
+}
 
-    serde_json::from_str(CVE_OBLIGATIONS_JSON).map_err(|e| e.to_string())
+/// Validate obligations JSON text (used by embedded fixture + negative tests).
+pub fn validate_obligations_json(json: &str) -> Result<Value, HarnessError> {
+    let root: ObligationsRoot =
+        serde_json::from_str(json).map_err(|e| HarnessError::Parse(e.to_string()))?;
+    validate_root(&root)?;
+    serde_json::from_str(json).map_err(|e| HarnessError::Parse(e.to_string()))
+}
+
+/// Parse and structurally validate the embedded obligations fixture.
+pub fn validate_obligations() -> Result<Value, HarnessError> {
+    validate_obligations_json(CVE_OBLIGATIONS_JSON)
 }
 
 /// Pair owned stub with one oracle for a future differential run.
@@ -306,12 +422,9 @@ pub fn differential_pair(oracle: OracleStub) -> (OwnedExecutorStub, OracleStub) 
 }
 
 /// Conformance-laundering guard: refuse selecting an oracle as the product runtime.
-pub fn refuse_oracle_as_product(kind: ExecutorKind) -> Result<(), String> {
+pub fn refuse_oracle_as_product(kind: ExecutorKind) -> Result<(), HarnessError> {
     if kind.is_oracle_only() {
-        return Err(
-            "conformance-laundering ban: oracle executors must not be selected as shipped product"
-                .into(),
-        );
+        return Err(HarnessError::ConformanceLaundering);
     }
     Ok(())
 }
@@ -331,6 +444,7 @@ mod tests {
             assert!(stub.kind().is_oracle_only());
             assert!(!stub.kind().is_owned_product());
             assert_eq!(stub.create_stub("bundle").operation, "create");
+            assert!(!stub.create_stub("bundle").executed);
             assert_eq!(
                 stub.kill_stub("bundle", KillSignal::Term).operation,
                 "kill"
@@ -349,13 +463,16 @@ mod tests {
     #[test]
     fn refuse_shipping_youki() {
         let err = refuse_oracle_as_product(OracleStub::youki().kind()).unwrap_err();
-        assert!(err.contains("conformance-laundering"));
+        assert_eq!(err, HarnessError::ConformanceLaundering);
     }
 
     #[test]
     fn oracle_try_new_rejects_unknown() {
-        assert!(OracleStub::try_new("containerd").is_err());
-        assert_eq!(OracleStub::try_new("youki").unwrap().id(), "youki");
+        assert!(matches!(
+            OracleStub::try_new("containerd"),
+            Err(HarnessError::UnknownOracle(_))
+        ));
+        assert_eq!(OracleStub::try_new("youki").unwrap().id(), OracleId::Youki);
     }
 
     #[test]
@@ -366,22 +483,44 @@ mod tests {
     }
 
     #[test]
+    fn compare_measured_match_and_diverge() {
+        let owned_ok = OperationObservation::measured(
+            ExecutorKind::Owned,
+            "start",
+            "b1",
+            "digest-a",
+        );
+        let oracle_ok = OperationObservation::measured(
+            ExecutorKind::Oracle(OracleId::Runc),
+            "start",
+            "b1",
+            "digest-a",
+        );
+        let oracle_bad = OperationObservation::measured(
+            ExecutorKind::Oracle(OracleId::Runc),
+            "start",
+            "b1",
+            "digest-b",
+        );
+        assert_eq!(
+            compare_observations(&owned_ok, &oracle_ok),
+            DiffVerdict::Match
+        );
+        assert_eq!(
+            compare_observations(&owned_ok, &oracle_bad),
+            DiffVerdict::Diverge
+        );
+    }
+
+    #[test]
     fn missing_required_cve_fails_validation() {
-        // Negative: drop one mandatory id from a synthetic root.
         let mut root: Value = serde_json::from_str(CVE_OBLIGATIONS_JSON).unwrap();
         root["cve_regression_obligations"]
             .as_array_mut()
             .unwrap()
             .retain(|row| row["id"] != "CVE-2019-5736");
-        // Re-run the closed-set check inline (fixture const is fixed; assert the
-        // REQUIRED_CVE_IDS contract that validate_obligations enforces).
-        assert!(REQUIRED_CVE_IDS.contains(&"CVE-2019-5736"));
-        let remaining: BTreeSet<_> = root["cve_regression_obligations"]
-            .as_array()
-            .unwrap()
-            .iter()
-            .filter_map(|r| r["id"].as_str())
-            .collect();
-        assert!(!remaining.contains("CVE-2019-5736"));
+        let json = serde_json::to_string(&root).unwrap();
+        let err = validate_obligations_json(&json).unwrap_err();
+        assert_eq!(err, HarnessError::MissingCve("CVE-2019-5736".into()));
     }
 }
