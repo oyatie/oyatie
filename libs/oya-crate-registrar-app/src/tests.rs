@@ -525,6 +525,20 @@ fn catalog_fresh_render_has_required_fields() {
 }
 
 #[test]
+fn catalog_fresh_render_declares_the_api_stability_tier() {
+    // A row rendered WITHOUT `api_stability:` is born-blocking: the ci/facade/lifecycle-status
+    // api-stability-tier lane is rooted on registry/catalog/*.yaml with stage_field
+    // `api_stability` and has NO frozen violation row, so one undeclared row is an unbaselined
+    // `stage_not_declared`. This test is the thing that fails if the key is ever dropped again.
+    let yaml = catalog_yaml::compute("iam/core/identity-domain", "control", "ga-control-plane")
+        .unwrap();
+    assert!(
+        yaml.lines().any(|l| l == "api_stability: preview"),
+        "fresh catalog row must declare the canonical first tier as a TOP-LEVEL scalar, got:\n{yaml}"
+    );
+}
+
+#[test]
 fn catalog_reapply_is_byte_identical_noop() {
     let once = catalog_yaml::compute("iam/core/identity-domain", "control", "ga-control-plane")
         .unwrap();
