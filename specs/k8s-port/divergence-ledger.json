@@ -126,6 +126,52 @@
       "rationale": "The out-of-band Go extractor is a temporary dependency that produces a signed, content-addressed SourceModel snapshot; it is excluded from verify() and must be replaced by a model-equivalent owned Rust front end.",
       "review_cadence": "every wave gate and before every front-end replacement increment",
       "conformance_impact": "No behavior difference is authorized by the bootstrap dependency; any observed conformance impact remains a defect until exact IDs are enumerated and ratified."
+    },
+    {
+      "activation_state": "not_activated",
+      "adr_references": [
+        "ADR-0637",
+        "ADR-0638",
+        "ADR-0704"
+      ],
+      "category": "hand_rolled_upstream_api_serialization",
+      "conformance_expected_red": {
+        "id_state": "pending_enumeration",
+        "ratification_requirement": "W0-B and W2 must enumerate and ratify exact upstream conformance IDs before any of the sixteen sites may be treated as an authorized divergence rather than an unledgered defect.",
+        "test_ids": []
+      },
+      "expiry": {
+        "condition": "Expires when every one of the sixteen sites consumes a generated k8s/ports/upstream-* seam crate instead of a hand-rolled string builder, or when an accepted ADR renews it.",
+        "latest_review_gate": "every wave gate through W5"
+      },
+      "id": "DVG-OS-HANDROLLED-K8S-API-SERIALIZERS",
+      "owner": "os Talos-port owner",
+      "rationale": "Sixteen sites in seven files across three crates (os/core/k8s-control-domain, os/core/kubelet-domain, os/core/kubernetes-domain) hand-write upstream Kubernetes API wire surface across seven API groups as Rust string builders. Upstream Talos does not: internal/app/machined/pkg/controllers/k8s/kubelet_spec.go imports k8s.io/kubelet/config/v1beta1, k8s.io/api/core/v1 and k8s.io/apimachinery/pkg/runtime and marshals typed structs, so the Rust port severed a real import edge. It cannot be repaired today - the port engine is zero lines, no k8s/ports/upstream-* seam crate exists, and ADR-638 D6 defers the os-to-k8s dependency direction to W0-G - so the debt is ledgered and bounded here rather than left silent. Replacing a lossy builder changes emitted bytes and will move os/harness/difftest-app vectors; that is why this is a divergence carrying an expiry and not a re-baseline.",
+      "review_cadence": "every wave gate and before the first k8s/ports/upstream-* seam crate lands",
+      "conformance_impact": "Manifests emitted for pod-security.admission.config.k8s.io/v1, apiserver.config.k8s.io/v1, audit.k8s.io/v1, kubelet.config.k8s.io/v1beta1, rbac.authorization.k8s.io/v1, apps/v1 and core/v1 may omit fields, order fields differently, or emit non-conformant YAML relative to upstream typed marshalling; os-kubelet-domain spec::render_config_yaml documents itself as not a full YAML serializer and emits five KubeletConfiguration fields. Exact affected conformance IDs remain pending enumeration."
+    },
+    {
+      "activation_state": "not_activated",
+      "adr_references": [
+        "ADR-0637",
+        "ADR-0638",
+        "ADR-0704"
+      ],
+      "category": "duplicate_hand_rolled_renderer",
+      "conformance_expected_red": {
+        "id_state": "pending_enumeration",
+        "ratification_requirement": "W0-B and W2 must enumerate and ratify exact upstream conformance IDs before either renderer's output may be treated as an authorized divergence rather than an unledgered defect.",
+        "test_ids": []
+      },
+      "expiry": {
+        "condition": "Expires when both call sites render core/v1 Pod through one generated seam type, or when an accepted ADR renews it.",
+        "latest_review_gate": "every wave gate through W5"
+      },
+      "id": "DVG-OS-DUPLICATE-STATIC-POD-RENDERER",
+      "owner": "os Talos-port owner",
+      "rationale": "Two independent core/v1 Pod renderers exist inside os/ alone: StaticPod::render in os/core/kubernetes-domain/src/static_pod.rs and StaticPodSpec::render_manifest in os/core/k8s-control-domain/src/static_pod_controller.rs. Their bodies were read and they are NOT equivalent - they differ in container-list indentation, in whether labels, priorityClassName, volumeMounts and volumes are emitted at all, and in container cardinality (a list versus exactly one) - and each crate additionally defines its own StaticPodPhase enum with a different variant set. This row records the duplication so that the seam collapses it. It does not authorize deleting either renderer: a name match is not a semantic match, ADR-638 D5 charters the landed Talos corpus as the engine's proof surface, and only a body-level equivalence proof with its difftest evidence could retire one of them.",
+      "review_cadence": "every wave gate and before the first k8s/ports/upstream-* seam crate lands",
+      "conformance_impact": "Identical logical input yields different core/v1 Pod bytes depending on which crate renders it, so at most one of the two can match upstream typed marshalling. Exact affected conformance IDs remain pending enumeration."
     }
   ]
 }
