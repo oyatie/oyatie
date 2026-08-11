@@ -336,7 +336,7 @@ jobs:
       # new baselined key is born-blocking by design. That is the correct verdict for a shell
       # step, and the right home for a materialize-if-absent primitive is the owned CI runner,
       # where it is a first-class action rather than a `run:` line.
-      - name: Download regenerated faces (producer-regen artifact)
+      - name: Download regenerated faces (producer-regen artifact, ADR-0556 D5 QW-1)
         # actions/download-artifact@v8.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
@@ -451,7 +451,7 @@ jobs:
       # it is never converted to artifact reuse.
       - name: Materialize cloud-ci generated faces
         run: rustup toolchain install && rustc --version && buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root . --github-event
-      - name: buck2 test admission.policy
+      - name: buck2 test cloud-ci-firewall
         run: |
           set -euo pipefail
           buck2 test \
@@ -628,7 +628,7 @@ jobs:
       # sanity: once owned cloud-ci flips this lane from `bypass` to warm-ro/rw, a 0%-hit run or
       # missing cache counters is an INFRA-RED misconfiguration, not advisory noise. Today GitHub
       # Actions remains the transitional adapter and this lane stays bypass while NativeLink is dark.
-      - name: Cache-hit telemetry + warm-mode guard
+      - name: Cache-hit telemetry + warm-mode guard (ADR-0560)
         if: always()
         run: |
           set -euo pipefail
