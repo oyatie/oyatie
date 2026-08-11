@@ -21,7 +21,7 @@ pub fn contains_raw_secret_material(value: &str) -> bool {
 ///
 /// URI / credential refs are not assignments:
 /// - `scheme:secret:name` (e.g. OpenBao) — colon immediately before `secret`
-/// - `secret://...` — `secret` is the URI scheme, not an assignment key
+/// - `secret://...` at value start — `secret` is the URI scheme, not a key
 fn contains_secret_assignment(lower: &str) -> bool {
     let bytes = lower.as_bytes();
     let needle = b"secret";
@@ -39,8 +39,13 @@ fn contains_secret_assignment(lower: &str) -> bool {
                         i += 1;
                         continue;
                     }
-                    // `secret://...` URI scheme form — keep as safe.
-                    if j + 1 < bytes.len() && bytes[j + 1] == b'/' {
+                    // `secret://...` URI scheme only when `secret` is the whole
+                    // scheme at index 0 (not an embedded `*_secret:/...`).
+                    if i == 0
+                        && j + 2 < bytes.len()
+                        && bytes[j + 1] == b'/'
+                        && bytes[j + 2] == b'/'
+                    {
                         i += 1;
                         continue;
                     }
@@ -83,6 +88,8 @@ mod tests {
         assert!(contains_raw_secret_material("secret = spaced-token"));
         assert!(contains_raw_secret_material("secret: colon-token"));
         assert!(contains_raw_secret_material("secret : spaced-colon"));
+        // Embedded `*_secret:/...` is still an assignment, not a URI scheme.
+        assert!(contains_raw_secret_material("client_secret:/raw-token"));
     }
 
     #[test]
