@@ -1,33 +1,458 @@
 {
-  "version": "1.0.0",
-  "description": "Fine-tune role→model priors and complexity overrides. No gjc/omc/omx. Multi-model via mm-role CLIs when used; Grok workflows use session model + lens prompts.",
-  "forbidden_clis": ["gjc", "omc", "omx", "hermes"],
-  "priors": {
-    "ORCHESTRATOR": { "provider": "xai", "model": "grok-4.5", "effort": "high" },
-    "ARCHITECT": { "provider": "anthropic", "model": "claude-fable-5", "effort": "high" },
-    "PLANNER": { "provider": "openai-codex", "model": "gpt-5.6-sol", "effort": "high" },
-    "EXECUTOR": { "provider": "openai-codex", "model": "gpt-5.6-sol", "effort": "high" },
-    "CRITIC": { "provider": "anthropic", "model": "claude-opus-5", "effort": "high", "min_instances": 2 },
-    "SECURITY": { "provider": "anthropic", "model": "claude-opus-5", "effort": "high" },
-    "VERIFIER": { "provider": "openai-codex", "model": "gpt-5.6-sol", "effort": "high" }
+  "version": "1.4.0",
+  "description": "CursorBench 3.2 informs Cursor Task model slugs only. Optional advisory channels omx/omc/gjc/grok (side panel or tmux) are separate — CursorBench does not transfer. madmax (omx/omc) = permission bypass + tmux (compound). Tmux-only: omx/omx --tmux, omc launch, gjc --tmux, grok inside tmux. gjc especially with /usage; gjc stats opens usage dashboard. Advisory only; never merge authority. No *-fast.",
+  "source": {
+    "cursorbench": {
+      "url": "https://cursor.com/cursorbench",
+      "version": "3.2",
+      "retrieved": "2026-08-10",
+      "applies_to": "cursor_task_model_slugs_only",
+      "does_not_apply_to": [
+        "omx",
+        "omc",
+        "gjc",
+        "grok",
+        "side_panel",
+        "tmux_spawn"
+      ],
+      "notes": [
+        "Grok 4.5 rows are asterisked: earlier Cursor codebase snapshot unintentionally in training; impact unclear",
+        "Small score gaps may not be statistically meaningful",
+        "Do not treat Terra/Luna as stronger than Sol/Grok/Opus/Fable",
+        "Do not map CursorBench ranks onto side-panel or tmux omx/omc/gjc/grok sessions"
+      ]
+    }
   },
-  "complexity_axes": ["reasoning", "ambiguity", "blast_radius", "adversarial", "tool_loop"],
+  "forbidden_clis": [
+    "hermes"
+  ],
+  "forbidden_clis_scope": "worker_lanes_merge_authority_standins",
+  "forbidden_clis_reason": "Bare unsupervised brand CLIs as merge-authority stand-ins stay banned in worker lanes; orchestrator may open advisory side-panel or tmux sessions (omx/omc/gjc --tmux/grok in tmux; madmax only when founder intentionally wants bypass+tmux)",
+  "side_panel_channels": {
+    "allowed": true,
+    "authority": "advisory_only_never_merge",
+    "cursorbench_transfers": false,
+    "channels": {
+      "omx": {
+        "backend": "codex",
+        "product": "oh-my-codex",
+        "use_when": "independent_codex_side_review_or_alternate_executor_path",
+        "side_panel": "cursor_side_panel",
+        "tmux_only": [
+          "omx",
+          "omx --tmux"
+        ],
+        "madmax": {
+          "command": "omx --madmax",
+          "semantics": "permission_bypass_plus_tmux",
+          "compound": true,
+          "worker_lane_normal": false,
+          "note": "Optional founder dangerous tool; not bypass-only; not tmux-only"
+        }
+      },
+      "omc": {
+        "backend": "claude",
+        "product": "oh-my-claudecode",
+        "use_when": "independent_claude_side_critique_security_or_design_pass",
+        "side_panel": "cursor_side_panel",
+        "tmux_only": [
+          "omc launch"
+        ],
+        "related": [
+          "omc interop"
+        ],
+        "madmax": {
+          "command": "omc --madmax",
+          "semantics": "permission_bypass_plus_tmux",
+          "compound": true,
+          "worker_lane_normal": false,
+          "note": "Optional founder dangerous tool; macOS requires tmux to launch madmax"
+        }
+      },
+      "gjc": {
+        "backend": "multi_model",
+        "product": "@gajae-code/coding-agent",
+        "use_when": "parallel_multi_provider_deliberation",
+        "especially_with": [
+          "/usage",
+          "gjc stats"
+        ],
+        "especially_with_reason": "multi-provider spend visibility; gjc stats syncs sessions then serves dashboard http://localhost:3847 until Ctrl+C (interactive, not one-shot print); in-session /usage needs live confirm",
+        "side_panel": "cursor_side_panel",
+        "tmux_only": [
+          "gjc --tmux"
+        ],
+        "madmax_equivalent": false
+      },
+      "grok": {
+        "backend": "grok_build_tui",
+        "binary": "~/.grok/bin/grok",
+        "use_when": "interactive_grok_tui_advisory_session",
+        "side_panel": "cursor_or_host_tui",
+        "tmux_only": [
+          "run grok inside tmux"
+        ],
+        "no_builtin_tmux_flag": true,
+        "always_approve": {
+          "flag": "--always-approve",
+          "semantics": "auto_approve_tools",
+          "not_equivalent_to_madmax": true
+        }
+      }
+    },
+    "prefer_task_slugs_for_cursor_dispatches": true,
+    "flag_semantics": {
+      "madmax": "permission_bypass_plus_tmux",
+      "gjc_tmux": "tmux_only",
+      "grok_in_tmux": "tmux_host_spawn_no_builtin_flag"
+    },
+    "note": "Pick omx/omc/gjc/grok by provider need and independence — not by CursorBench score/cost rows. Prefer side panel when it works; use tmux-only commands for attachable sessions; use madmax only when founder intentionally wants bypass+tmux.",
+    "interactive_fallback": {
+      "when": "side_panel_not_directly_usable",
+      "tmux_only_spawns": [
+        "omx",
+        "omx --tmux",
+        "omc launch",
+        "gjc --tmux",
+        "grok inside tmux"
+      ],
+      "madmax_spawns_bypass_plus_tmux": [
+        "omx --madmax",
+        "omc --madmax"
+      ],
+      "note": "Attach to the tmux session to interact; prefer side panel when available; do not leave long-lived madmax writing the main checkout from agent probes"
+    }
+  },
+  "capability_matrix": {
+    "smoke_date": "2026-08-10",
+    "authority": "advisory_only_never_merge",
+    "cursorbench_transfers": false,
+    "checks": [
+      {
+        "check": "omx doctor",
+        "result": "works_partial",
+        "evidence": "exit 0; 1 fail: process identity unavailable; ownership warnings on stale .omx/tmp"
+      },
+      {
+        "check": "omc info",
+        "result": "works",
+        "evidence": "exit 0; prints system/agent info"
+      },
+      {
+        "check": "gjc stats",
+        "result": "works_interactive",
+        "evidence": "syncs sessions then serves dashboard http://localhost:3847 until Ctrl+C — not a one-shot print"
+      },
+      {
+        "check": "live_omx_tmux",
+        "result": "works",
+        "evidence": "omx-oyatie-agent-fanout-07-… attached; panes node in repo"
+      },
+      {
+        "check": "live_omc_tmux",
+        "result": "works",
+        "evidence": "omc-oyatie-agent-fanout-07-… attached"
+      },
+      {
+        "check": "live_gjc_tmux",
+        "result": "works",
+        "evidence": "gajae_code_agent-… attached"
+      },
+      {
+        "check": "live_grok_tmux",
+        "result": "works",
+        "evidence": "session 88 running grok-1.0.0-macos-aarch64 cwd=/Users/jasonlee/Developer/oyatie (founder-opened); reconfirmed 2026-08-10 via tmux list-sessions"
+      },
+      {
+        "check": "omx_omc_madmax_from_agent_sandbox",
+        "result": "doesnt_env",
+        "evidence": "sandbox EPERM on ~/.omx-runs; do not leave long-lived madmax writing main checkout from agent probes"
+      },
+      {
+        "check": "side_panel_drive_from_agent",
+        "result": "unverified",
+        "evidence": "human UI; no full open Cursor side panel API for omx/omc/gjc"
+      },
+      {
+        "check": "gjc_in_session_usage",
+        "result": "unverified",
+        "evidence": "CLI confirms gjc stats; /usage needs live interactive confirm"
+      },
+      {
+        "check": "cursorbench_to_optional_channels",
+        "result": "doesnt_transfer",
+        "evidence": "law"
+      }
+    ]
+  },
+  "forbidden_model_slug_substrings": [
+    "-fast"
+  ],
+  "presets": {
+    "cursor-grok-4.5-high": {
+      "label": "Cursor Grok 4.5 High",
+      "role": "default_implementation",
+      "cursor_model": "cursor-grok-4.5-high",
+      "cursorbench": {
+        "score_pct": 66.7,
+        "cost_usd": 1.51,
+        "tokens": 19521,
+        "steps": 33,
+        "caveat": "contamination_asterisk"
+      }
+    },
+    "composer-2.5": {
+      "label": "Composer 2.5",
+      "role": "light_scout_recon",
+      "cursor_model": "composer-2.5",
+      "cursorbench": {
+        "score_pct": 56.1,
+        "cost_usd": 0.44,
+        "tokens": 14286,
+        "steps": 33
+      }
+    },
+    "claude-opus-5-thinking-high": {
+      "label": "Opus 5 High",
+      "role": "critic_security",
+      "cursor_model": "claude-opus-5-thinking-high",
+      "cursorbench": {
+        "score_pct": 66.7,
+        "cost_usd": 3.91,
+        "tokens": 27932,
+        "steps": 48
+      }
+    },
+    "gpt-5.6-sol-high": {
+      "label": "GPT-5.6 Sol High",
+      "role": "executor_verifier_peer",
+      "cursor_model": "gpt-5.6-sol-high",
+      "cursorbench": {
+        "score_pct": 63.5,
+        "cost_usd": 2.79,
+        "tokens": 13867,
+        "steps": 32
+      }
+    },
+    "claude-fable-5-thinking-max": {
+      "label": "Fable 5 Max",
+      "role": "architect_planning_max_stakes_quality",
+      "cursor_model": "claude-fable-5-thinking-max",
+      "cursorbench": {
+        "score_pct": 70.5,
+        "cost_usd": 17.32,
+        "tokens": 103525,
+        "steps": 72
+      }
+    },
+    "gpt-5.6-terra-xhigh": {
+      "label": "GPT-5.6 Terra Extra High",
+      "role": "cost_aware_mechanical",
+      "cursor_model": "gpt-5.6-terra-xhigh",
+      "cursorbench": {
+        "score_pct": 59.2,
+        "cost_usd": 1.15,
+        "tokens": 16089,
+        "steps": 29
+      },
+      "not": "quality_escalation_above_sol_or_grok"
+    },
+    "gpt-5.6-luna-max": {
+      "label": "GPT-5.6 Luna Max",
+      "role": "cost_max_high_volume",
+      "cursor_model": "gpt-5.6-luna-max",
+      "cursorbench": {
+        "score_pct": 61.1,
+        "cost_usd": 0.39,
+        "tokens": 87973,
+        "steps": 61
+      },
+      "not": "max_stakes_quality_despite_name"
+    }
+  },
+  "quality_ladder_asc": [
+    "composer-2.5",
+    "gpt-5.6-terra-xhigh",
+    "gpt-5.6-luna-max",
+    "gpt-5.6-sol-high",
+    "cursor-grok-4.5-high",
+    "claude-opus-5-thinking-high",
+    "claude-fable-5-thinking-max"
+  ],
+  "cost_efficiency_notes": {
+    "best_score_per_usd_approx": [
+      "composer-2.5",
+      "gpt-5.6-luna-max",
+      "cursor-grok-4.5-high"
+    ],
+    "do_not_escalate_quality_via": [
+      "gpt-5.6-terra-xhigh",
+      "gpt-5.6-luna-max"
+    ]
+  },
+  "priors": {
+    "ORCHESTRATOR": {
+      "preset": "cursor-grok-4.5-high",
+      "provider": "xai",
+      "model": "grok-4.5",
+      "effort": "high"
+    },
+    "EXECUTOR": {
+      "preset": "cursor-grok-4.5-high",
+      "provider": "xai",
+      "model": "grok-4.5",
+      "effort": "high"
+    },
+    "SCOUT": {
+      "preset": "composer-2.5",
+      "provider": "cursor",
+      "model": "composer-2.5",
+      "effort": "default"
+    },
+    "ARCHITECT": {
+      "preset": "claude-fable-5-thinking-max",
+      "provider": "anthropic",
+      "model": "claude-fable-5",
+      "effort": "max"
+    },
+    "PLANNER": {
+      "preset": "claude-fable-5-thinking-max",
+      "provider": "anthropic",
+      "model": "claude-fable-5",
+      "effort": "max"
+    },
+    "CRITIC": {
+      "preset": "claude-opus-5-thinking-high",
+      "provider": "anthropic",
+      "model": "claude-opus-5",
+      "effort": "high",
+      "min_instances": 2
+    },
+    "SECURITY": {
+      "preset": "claude-opus-5-thinking-high",
+      "provider": "anthropic",
+      "model": "claude-opus-5",
+      "effort": "high"
+    },
+    "VERIFIER": {
+      "preset": "gpt-5.6-sol-high",
+      "provider": "openai-codex",
+      "model": "gpt-5.6-sol",
+      "effort": "high"
+    },
+    "EXECUTOR_PEER": {
+      "preset": "gpt-5.6-sol-high",
+      "provider": "openai-codex",
+      "model": "gpt-5.6-sol",
+      "effort": "high"
+    },
+    "MECHANICAL_CHEAP": {
+      "preset": "gpt-5.6-terra-xhigh",
+      "provider": "openai-codex",
+      "model": "gpt-5.6-terra",
+      "effort": "xhigh"
+    },
+    "HIGH_VOLUME_CHEAP": {
+      "preset": "gpt-5.6-luna-max",
+      "provider": "openai-codex",
+      "model": "gpt-5.6-luna",
+      "effort": "max"
+    },
+    "MAX_STAKES_QUALITY": {
+      "preset": "claude-fable-5-thinking-max",
+      "provider": "anthropic",
+      "model": "claude-fable-5",
+      "effort": "max"
+    }
+  },
+  "complexity_axes": [
+    "reasoning",
+    "ambiguity",
+    "blast_radius",
+    "adversarial",
+    "tool_loop"
+  ],
   "rules": [
     {
-      "when": { "judgment_weight_gte": 4 },
-      "then": { "forbid_effort_below": "high", "require_dual_critic": true }
+      "when": {
+        "task_class": "scout_recon"
+      },
+      "then": {
+        "require_preset": "composer-2.5",
+        "forbid_edits": true
+      }
     },
     {
-      "when": { "blast_surface": "oya-ci-required" },
-      "then": { "require_dual_critic": true, "require_security": true, "human_admit": true }
+      "when": {
+        "task_class": [
+          "architect",
+          "planning",
+          "ralplan"
+        ]
+      },
+      "then": {
+        "require_preset": "claude-fable-5-thinking-max"
+      }
     },
     {
-      "when": { "task_class": "mechanical", "judgment_weight_lte": 2 },
-      "then": { "allow_effort": "medium" }
+      "when": {
+        "judgment_weight_gte": 4
+      },
+      "then": {
+        "forbid_effort_below": "high",
+        "require_dual_critic": true,
+        "prefer_quality_preset": "claude-fable-5-thinking-max",
+        "forbid_presets_as_escalation": [
+          "gpt-5.6-terra-xhigh",
+          "gpt-5.6-luna-max"
+        ]
+      }
     },
     {
-      "when": { "independence_required": true },
-      "then": { "critic_provider_ne_executor_provider": true }
+      "when": {
+        "blast_surface": [
+          "merge-admission-required",
+          "oya-ci-required",
+          "human_admit"
+        ]
+      },
+      "then": {
+        "require_dual_critic": true,
+        "require_security": true,
+        "human_admit": true,
+        "prefer_quality_preset": "claude-fable-5-thinking-max",
+        "critic_preset": "claude-opus-5-thinking-high"
+      }
+    },
+    {
+      "when": {
+        "task_class": "mechanical",
+        "judgment_weight_lte": 2
+      },
+      "then": {
+        "allow_presets": [
+          "cursor-grok-4.5-high",
+          "gpt-5.6-terra-xhigh",
+          "gpt-5.6-luna-max"
+        ]
+      }
+    },
+    {
+      "when": {
+        "independence_required": true
+      },
+      "then": {
+        "critic_provider_ne_executor_provider": true
+      }
+    },
+    {
+      "when": {
+        "model_slug_contains": "-fast"
+      },
+      "then": {
+        "forbid": true,
+        "reason": "no premium for slightly faster inference"
+      }
     }
   ],
   "fitness": {
