@@ -9334,6 +9334,10 @@
         "preplanning_authority_closure_ref": "evidence/consolidation/preplanning-authority-closure-20260713.json",
         "dispatched_waves": [],
         "note": "Current founder_ratification re-binds the sequencing digest after F1 planning anchors and explicitly sets authorizes_execution_wave_dispatch=false. Closing the pre-planning hold alone MUST NOT unblock waves; a separate founder execution-dispatch ratification is required. No wave has dispatched."
+      },
+      "governance_evaluation_clock": {
+        "utc_date": "2026-08-11",
+        "purpose": "Hermetic as-of date for decision_timebox expiry evaluation (never wall-clock). Babysit/founder advances this date (or sets decision_timebox.as_of_utc_date) past a deadline to fire expiry findings; silent skip when neither clock nor as_of is set is intentional until the clock is advanced."
       }
     },
     "planning_entry_contract": {

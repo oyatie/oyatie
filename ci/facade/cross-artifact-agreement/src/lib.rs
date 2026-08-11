@@ -2023,6 +2023,22 @@ pub fn evaluate_masterplan_v2_ratification_digest(
         ));
     }
 
+    // Dispatch-authorization flag must agree between masterplan and evidence so a planning-only
+    // ratification cannot be laundered into dispatch authority by editing only the masterplan.
+    let recorded_authorizes = sequencing
+        .get("founder_ratification")
+        .and_then(|ratification| ratification.get("authorizes_execution_wave_dispatch"))
+        .and_then(Value::as_bool);
+    let evidence_authorizes = ratification_evidence
+        .get("authorizes_execution_wave_dispatch")
+        .and_then(Value::as_bool);
+    if recorded_authorizes != evidence_authorizes {
+        findings.insert(Finding::new(
+            "masterplan_execution_wave_dispatch_unratified",
+            "masterplan_v2.sequencing.founder_ratification.authorizes_execution_wave_dispatch",
+        ));
+    }
+
     findings
 }
 
@@ -2887,11 +2903,18 @@ fn evaluate_decision_timeboxes_with_clock(
             status,
             "claimed-open" | "open" | "todo" | "in-progress" | "blocked"
         );
-        if still_open
-            && is_yyyy_mm_dd(deadline)
-            && deadline < as_of
-            && !completion_evidence_attached(item)
-        {
+        if !(still_open && is_yyyy_mm_dd(deadline) && deadline < as_of) {
+            continue;
+        }
+        // Expiry requires an explicit Accept/Reject closure of the target ADR — nonempty
+        // evidence_refs alone (D-8 packet, review notes, etc.) does not suppress the finding.
+        let closure_ok = timebox.get("closure").is_some_and(|closure| {
+            matches!(
+                non_empty_field(closure, "target_status"),
+                Some("Accepted") | Some("Rejected")
+            ) && non_empty_field(closure, "evidence_ref").is_some()
+        });
+        if !closure_ok {
             findings.insert(Finding::new(
                 "masterplan_evidence_state_invalid",
                 &format!("{id}@decision_timebox.expired"),
@@ -2902,12 +2925,41 @@ fn evaluate_decision_timeboxes_with_clock(
 
 fn is_yyyy_mm_dd(value: &str) -> bool {
     let bytes = value.as_bytes();
-    bytes.len() == 10
+    if !(bytes.len() == 10
         && bytes[4] == b'-'
         && bytes[7] == b'-'
         && bytes[..4].iter().all(u8::is_ascii_digit)
         && bytes[5..7].iter().all(u8::is_ascii_digit)
-        && bytes[8..].iter().all(u8::is_ascii_digit)
+        && bytes[8..].iter().all(u8::is_ascii_digit))
+    {
+        return false;
+    }
+    let Ok(year) = value[..4].parse::<i32>() else {
+        return false;
+    };
+    let Ok(month) = value[5..7].parse::<u32>() else {
+        return false;
+    };
+    let Ok(day) = value[8..10].parse::<u32>() else {
+        return false;
+    };
+    if !(1..=12).contains(&month) || day == 0 {
+        return false;
+    }
+    let max_day = match month {
+        1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
+        4 | 6 | 9 | 11 => 30,
+        2 => {
+            let leap = year % 4 == 0 && (year % 100 != 0 || year % 400 == 0);
+            if leap {
+                29
+            } else {
+                28
+            }
+        }
+        _ => return false,
+    };
+    day <= max_day
 }
 
 fn any_non_empty_field<'a>(value: &'a Value, fields: &[&str]) -> Option<&'a str> {
