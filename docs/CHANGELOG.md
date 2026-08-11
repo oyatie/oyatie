@@ -6,6 +6,14 @@ doc_status: published
 
 # Changelog
 
+## 2026-08-11 — Live Postgres law folded into ADR-0700
+
+- Restated binding **Live Postgres law** on `docs/decisions/ADR-0700-ci-admission-live-apex.md`
+  (hard norm §8): mocks default; live PG for durable truth only; path-optional PR arming;
+  **touched surface (+ dependents)** inside an armed job — **BAN** broad PG suite as default
+  PR tax; full estate on trunk / `merge_group` / nightly / ship. Transitional coarse
+  adapter/facade cones remain until workflow touched-target select lands.
+
 ## 2026-08-11 — Portable doctrine + Automations ritual + ADR-rename overturn (docs)
 
 - Landed **portable Swarm doctrine** single source
