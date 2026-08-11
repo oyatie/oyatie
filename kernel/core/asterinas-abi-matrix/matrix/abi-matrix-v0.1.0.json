@@ -406,7 +406,7 @@
     "preferred_evidence_path": "qemu-tcg-against-pinned-iso",
     "live_hardware_required": false,
     "status": "skeleton",
-    "measured_today": [
+    "hermetic_validated_today": [
       "matrix schema + column contract",
       "four surfaces present with required columns",
       "G5-trigger flags on cgroup/netlink/overlay rows",
@@ -418,6 +418,7 @@
       "guest-side surface probes under QEMU",
       "available_on_asterinas_pin transitions unknown→present|gap",
       "G5 evaluation_status pending_measurement→fired|clear"
-    ]
+    ],
+    "note": "hermetic_validated_today is contract validation only; scaffold ≠ green matrix; QEMU probes not yet executed."
   }
 }
