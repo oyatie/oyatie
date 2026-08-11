@@ -19,7 +19,11 @@
 //!
 //! data_class: PUBLIC
 
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize};
+use std::fmt;
+
+/// Hard ceiling for attestation-result TTL (short-TTL lock). Default stub uses 300s.
+pub const MAX_RESULT_TTL_SECONDS: u32 = 600;
 
 /// TEE types already modeled on `ConfidentialPlatform` (SNP → TDX → ARM CCA).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -38,6 +42,15 @@ impl TeeType {
             Self::SevSnp => "sev-snp",
             Self::Tdx => "tdx",
             Self::ArmCca => "arm-cca",
+        }
+    }
+
+    pub fn try_from_str(s: &str) -> Option<Self> {
+        match s {
+            "sev-snp" => Some(Self::SevSnp),
+            "tdx" => Some(Self::Tdx),
+            "arm-cca" => Some(Self::ArmCca),
+            _ => None,
         }
     }
 }
@@ -146,24 +159,61 @@ impl VerifiedAttestationClaims {
     }
 }
 
+#[derive(Debug, Deserialize)]
+struct AttestationResultWire {
+    verdict: AttestationVerdict,
+    tee_type: String,
+    ttl_seconds: u32,
+    hardware_verified: bool,
+    claims: VerifiedAttestationClaims,
+    notes: String,
+}
+
 /// Short-TTL attestation **result** (not raw evidence).
 ///
-/// Day-1 path: short-TTL result → SVID + Cedar. A signed transport envelope for
-/// off-node results is future work (scaffolds ≠ production); do not treat this
-/// struct alone as authenticatable across a trust boundary.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+/// Fields are private; construct only via [`Self::fail_closed`] (or validated
+/// Deserialize). Day-1 path: short-TTL result → SVID + Cedar. A signed transport
+/// envelope for off-node results is future work (scaffolds ≠ production).
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct AttestationResult {
-    pub verdict: AttestationVerdict,
-    pub tee_type: String,
-    pub ttl_seconds: u32,
-    pub hardware_verified: bool,
-    pub claims: VerifiedAttestationClaims,
-    pub notes: String,
+    verdict: AttestationVerdict,
+    tee_type: String,
+    ttl_seconds: u32,
+    hardware_verified: bool,
+    claims: VerifiedAttestationClaims,
+    notes: String,
 }
 
 impl AttestationResult {
+    pub fn verdict(&self) -> AttestationVerdict {
+        self.verdict
+    }
+    pub fn tee_type(&self) -> &str {
+        &self.tee_type
+    }
+    pub fn ttl_seconds(&self) -> u32 {
+        self.ttl_seconds
+    }
+    pub fn hardware_verified(&self) -> bool {
+        self.hardware_verified
+    }
+    pub fn claims(&self) -> &VerifiedAttestationClaims {
+        &self.claims
+    }
+    pub fn notes(&self) -> &str {
+        &self.notes
+    }
+
+    fn clamp_ttl(ttl_seconds: u32) -> u32 {
+        if ttl_seconds == 0 {
+            1
+        } else {
+            ttl_seconds.min(MAX_RESULT_TTL_SECONDS)
+        }
+    }
+
     /// Non-bypassable fail-closed constructor: stale/unavailable collateral
-    /// cannot yield Pass regardless of caller intent.
+    /// cannot yield Pass; TTL is clamped to [`MAX_RESULT_TTL_SECONDS`].
     pub fn fail_closed(
         mut verdict: AttestationVerdict,
         tee: TeeType,
@@ -182,11 +232,39 @@ impl AttestationResult {
         Self {
             verdict,
             tee_type: tee.as_str().to_owned(),
-            ttl_seconds,
+            ttl_seconds: Self::clamp_ttl(ttl_seconds),
             hardware_verified,
             claims,
             notes: notes.into(),
         }
+    }
+
+    fn from_wire(wire: AttestationResultWire) -> Result<Self, String> {
+        let tee = TeeType::try_from_str(&wire.tee_type)
+            .ok_or_else(|| format!("unknown tee_type {}", wire.tee_type))?;
+        // Deserialization has no collateral context — treat as Fresh for the
+        // freshness rule, but still refuse Pass without hardware_verified and
+        // clamp TTL. Callers transporting results across trust boundaries must
+        // use the future signed envelope (deferred).
+        let mut verdict = wire.verdict;
+        if matches!(verdict, AttestationVerdict::Pass) && !wire.hardware_verified {
+            verdict = AttestationVerdict::Unknown;
+        }
+        Ok(Self {
+            verdict,
+            tee_type: tee.as_str().to_owned(),
+            ttl_seconds: Self::clamp_ttl(wire.ttl_seconds),
+            hardware_verified: wire.hardware_verified,
+            claims: wire.claims,
+            notes: wire.notes,
+        })
+    }
+}
+
+impl<'de> Deserialize<'de> for AttestationResult {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        let wire = AttestationResultWire::deserialize(deserializer)?;
+        Self::from_wire(wire).map_err(serde::de::Error::custom)
     }
 }
 
@@ -199,6 +277,16 @@ pub enum VerifierError {
     CollateralTransport(String),
     /// Cryptographic processing failed (invalid evidence).
     Crypto(String),
+}
+
+impl fmt::Display for VerifierError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::EvidenceParse(m) | Self::CollateralTransport(m) | Self::Crypto(m) => {
+                write!(f, "{m}")
+            }
+        }
+    }
 }
 
 /// Off-node relying-party verifier port (owned). Scaffold stub only.
@@ -230,8 +318,6 @@ impl RelyingPartyVerifier for StubRelyingPartyVerifier {
         evidence: &GuestEvidence,
         collateral: CollateralStatus,
     ) -> Result<AttestationResult, VerifierError> {
-        // Hard ban: scaffold must never emit Pass when hardware was not verified,
-        // and never Pass on stale/unavailable collateral.
         let intended = match collateral {
             CollateralStatus::Stale | CollateralStatus::Unavailable => AttestationVerdict::Unknown,
             CollateralStatus::Fresh => AttestationVerdict::Unknown,
@@ -264,8 +350,8 @@ mod tests {
         let v = StubRelyingPartyVerifier::default();
         let evidence = GuestEvidence::scaffold_collector(TeeType::SevSnp, 64);
         let r = v.verify(&evidence, CollateralStatus::Stale).unwrap();
-        assert_eq!(r.verdict, AttestationVerdict::Unknown);
-        assert!(!r.hardware_verified);
+        assert_eq!(r.verdict(), AttestationVerdict::Unknown);
+        assert!(!r.hardware_verified());
     }
 
     #[test]
@@ -275,7 +361,7 @@ mod tests {
         let r = v
             .verify(&evidence, CollateralStatus::Unavailable)
             .unwrap();
-        assert_eq!(r.verdict, AttestationVerdict::Unknown);
+        assert_eq!(r.verdict(), AttestationVerdict::Unknown);
     }
 
     #[test]
@@ -285,7 +371,7 @@ mod tests {
         assert!(!evidence.hardware_quote_claimed);
         assert_eq!(evidence.evidence_bytes_len(), 0);
         let r = v.verify(&evidence, CollateralStatus::Fresh).unwrap();
-        assert_eq!(r.verdict, AttestationVerdict::Unknown);
+        assert_eq!(r.verdict(), AttestationVerdict::Unknown);
     }
 
     #[test]
@@ -319,7 +405,36 @@ mod tests {
             VerifiedAttestationClaims::scaffold_unknown(),
             "attempted bypass",
         );
-        assert_eq!(r.verdict, AttestationVerdict::Unknown);
+        assert_eq!(r.verdict(), AttestationVerdict::Unknown);
+    }
+
+    #[test]
+    fn ttl_is_clamped_to_max() {
+        let r = AttestationResult::fail_closed(
+            AttestationVerdict::Unknown,
+            TeeType::Tdx,
+            CollateralStatus::Fresh,
+            u32::MAX,
+            false,
+            VerifiedAttestationClaims::scaffold_unknown(),
+            "ttl clamp",
+        );
+        assert_eq!(r.ttl_seconds(), MAX_RESULT_TTL_SECONDS);
+    }
+
+    #[test]
+    fn deserialize_refuses_pass_without_hardware() {
+        let json = r#"{
+            "verdict":"Pass",
+            "tee_type":"sev-snp",
+            "ttl_seconds":999999,
+            "hardware_verified":false,
+            "claims":{"tcb_status":"x","measurement_id":"","policy_hash":"","debug_disabled":false,"issued_at_unix":0},
+            "notes":"bypass"
+        }"#;
+        let r: AttestationResult = serde_json::from_str(json).unwrap();
+        assert_eq!(r.verdict(), AttestationVerdict::Unknown);
+        assert_eq!(r.ttl_seconds(), MAX_RESULT_TTL_SECONDS);
     }
 
     #[test]
