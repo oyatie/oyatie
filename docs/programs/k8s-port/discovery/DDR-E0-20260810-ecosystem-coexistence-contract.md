@@ -47,7 +47,8 @@ and not “everything passed through port-engine.”
 | kube-apiserver HTTP/JSON + Protobuf envelope | client-go, controller-runtime, kubectl, operators |
 | Authn/authz hooks / TokenReview / SubjectAccessReview | existing IdP/webhook patterns; Cedar PEP is a **server-side** divergence with enumerated conformance IDs (future) |
 | Aggregate APIs / CRDs / conversion / validation webhooks | language of webhook binary irrelevant |
-| kubelet ↔ CRI (external face) | device plugins and listed node agents only |
+| kubelet ↔ Device Plugin API | device plugins (not CRI); kubelet-local gRPC registration surface |
+| External CRI Unix-socket face (versioned compatibility profile) | listed external consumers only (for example crictl, node-problem-detector); unlisted = REFUSE |
 | CNI / CSI / cloud-provider interfaces | **CONSUME** plugin binaries (usually Go); we do not PORT every plugin |
 | Helm / charts / YAML | unchanged — talk to the API |
 
@@ -76,9 +77,13 @@ Go containerd CONSUME is bootstrap only.
 | Posture | When | How |
 |---|---|---|
 | PORT (default for kubelet, apiserver) | TCB / surface / mechanical bump matter | port-engine + conformance |
-| CONSUME Go binary (time-boxed) | Bootstrap, canary, or not-yet-in-PORT | scope row + pin + digest + **dated expiry**; same APIs |
-| CONSUME Go forever | Rare first-party exception | scope row + rationale; **BAN** for kubelet/apiserver product path |
+| CONSUME Go binary (time-boxed only) | Bootstrap, canary, or not-yet-in-PORT | scope row + pin + digest + **calendar-dated fail-closed expiry** + named owned-Rust destination; same APIs |
 | Customer/partner Go | Always | Unsupported to rewrite; supported as API clients |
+
+**Ban:** first-party forever-Go product code (including a permanent “CONSUME Go forever”
+exception row). Any first-party Go binary is a temporary adapter with an owned-Rust destination
+and dated expiry — never a silent dual-stack forever posture. **Ban** applies a fortiori to
+kubelet/apiserver product path.
 
 **Do not require** a Go apiserver alongside Rust for ecosystem apps if wire parity holds. Optional
 Go control-plane canary (CONSUME upstream binaries in a shadow cell) is a *validation* tactic,
