@@ -107,7 +107,9 @@ const REQUIRED_SLO_LINKED_CLOUD_MANIFESTS: [&str; 6] = [
 ///                                  unchanged.
 ///   2026-08-11  757 -> pin 759     Live catalog grew by two rows (integ/ci babysit tip); pin
 ///                                  matches measured census only — no contract change.
-const SLO_CATALOG_CENSUS: usize = 759;
+///   2026-08-11  759 -> pin 761     After merge(dev) absorbing #1926 os/harness + cloud-os
+///                                  residual, live catalog grew by two rows; re-freeze only.
+const SLO_CATALOG_CENSUS: usize = 761;
 
 fn producer_command(root: &Path, producer_bin: Option<&str>) -> Result<Command, String> {
     if let Some(bin) = producer_bin {
