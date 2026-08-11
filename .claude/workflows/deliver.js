@@ -773,7 +773,9 @@ because they were told to report a wrong mapping rather than obey it did the run
 unretirable ratchet. Say explicitly which of your rulings rest on evidence you gathered and which
 rest on inference, so a unit knows which ones are worth challenging.
 
-Write it to a file under docs/ or .omc/ and commit it to \`${INTEG}\` as the first commit. Return
+Write it to a tracked file under docs/ (preferred: docs/checklists/ or docs/superpowers/ when
+those trees already exist for the goal — never under .omc/, which is gitignored as retired OMC
+residue per ADR-0711 Amendment B) and commit it to \`${INTEG}\` as the first commit. Return
 the path and the mapping's key decisions. Every later unit will be checked against this document,
 so ambiguity here becomes divergence later.`,
   { label: 'map:patterns', phase: 'Map', model: PLAN_MODEL })
@@ -1274,6 +1276,28 @@ if (!(claimed && claimPacketFormat.ok)) {
 // refused wave cannot leave unauthorised commits behind. This compensating reset is workflow-
 // owned and returns to a SHA recorded seconds earlier; agent/worker resets remain forbidden.
 const cpAssemble = require('child_process')
+// Fail closed on a dirty station before recording preAssemblyTip / hard-reset restore
+// (Codex #1644): restoreStation() uses `git reset --hard`, which would destroy
+// pre-existing tracked or staged operator edits if assembly or Claim-bind fails.
+const stationPorcelain = cpAssemble.execFileSync(
+  'git',
+  ['-C', CLAIM_REPO, 'status', '--porcelain'],
+  { encoding: 'utf8' },
+).trim()
+if (stationPorcelain) {
+  const dirtySample = stationPorcelain.split('\n').slice(0, 20).join(' | ')
+  log(`REFUSED — claim station ${CLAIM_REPO} is dirty before mechanical assembly; refuse rather than hard-reset operator work`)
+  return {
+    goal: GOAL,
+    integration_branch: INTEG,
+    claim_repo: CLAIM_REPO,
+    refused: 'dirty claim station before assembly',
+    dirty_sample: dirtySample,
+    remedy: `Commit, stash outside the durable station, or clean ${CLAIM_REPO} so \`git status --porcelain\` is empty, then re-run Claim. Assembly will not hard-reset a dirty station.`,
+    prs_opened: 0,
+  }
+}
+
 const preAssemblyTip = cpAssemble.execFileSync('git', ['-C', CLAIM_REPO, 'rev-parse', 'HEAD'], { encoding: 'utf8' }).trim()
 const restoreStation = () => {
   try { cpAssemble.execFileSync('git', ['-C', CLAIM_REPO, 'cherry-pick', '--abort'], { stdio: 'ignore' }) } catch (_) { /* no pick in progress */ }
@@ -1356,6 +1380,10 @@ while (round < 3 && !converged && !processThrash) {
 
 CONVERGENCE ROUND ${round} on branch \`${INTEG}\` (ASSEMBLED tip — Claim already cherry-picked approved unit commits).
 PRIOR FAILURE-CLASS ROUNDS THIS RUN: ${failureClassRounds.size ? [...failureClassRounds.entries()].map(([c, n]) => `${c}=${n}`).join(', ') : '(none yet)'}
+
+CLAIM_REPO (assembled integration station — BIND HERE): \`${CLAIM_REPO}\`
+All builds, tests, edits, and commits for this round MUST use \`-C ${CLAIM_REPO}\` / cwd \`${CLAIM_REPO}\`.
+Do NOT repair the main checkout \`${REPO}\` when it differs from CLAIM_REPO — Re-Claim and Land bind only the station tip.
 
 The tree already contains every approved unit commit (Claim assembled them). Now make THAT tip GREEN — do not converge an empty integ shell.
 

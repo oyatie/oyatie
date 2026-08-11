@@ -1,12 +1,24 @@
 # Package integ-envelope waivers/judgments into the Buck2 corpus graph (ADR-0541).
 # Without this package the waiver YAML sits unpackaged and trips the corpus-index
 # unpackaged ceiling when new waivers land on integ/specs.
+# JSON judgments (e.g. judgments/naming-sweep.json) are packaged via filegroup —
+# corpus_yaml_facts_shards is YAML-only and must not silently drop the JSON corpus.
 
 load("//governance/corpus/extract:yaml_facts.bzl", "corpus_yaml_facts_shards")
 
 filegroup(
     name = "integ-envelope-waivers",
     srcs = glob(["waivers/**/*.yaml", "waivers/**/*.yml"]),
+    visibility = ["PUBLIC"],
+)
+
+filegroup(
+    name = "integ-envelope-judgments",
+    srcs = glob([
+        "judgments/**/*.yaml",
+        "judgments/**/*.yml",
+        "judgments/**/*.json",
+    ]),
     visibility = ["PUBLIC"],
 )
 
