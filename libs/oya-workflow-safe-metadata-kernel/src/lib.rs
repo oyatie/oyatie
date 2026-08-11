@@ -18,6 +18,10 @@ pub fn contains_raw_secret_material(value: &str) -> bool {
 }
 
 /// Match `secret=` / `secret =` / `secret:` / `secret :` assignment shapes.
+///
+/// URI path refs of the form `scheme:secret:name` (e.g. OpenBao credential
+/// refs) are not assignments — a colon immediately before `secret` means the
+/// token is a path segment, not a key.
 fn contains_secret_assignment(lower: &str) -> bool {
     let bytes = lower.as_bytes();
     let needle = b"secret";
@@ -29,6 +33,11 @@ fn contains_secret_assignment(lower: &str) -> bool {
                 j += 1;
             }
             if j < bytes.len() && (bytes[j] == b'=' || bytes[j] == b':') {
+                // `*:secret:*` credential-reference form — keep as safe.
+                if bytes[j] == b':' && i > 0 && bytes[i - 1] == b':' {
+                    i += 1;
+                    continue;
+                }
                 return true;
             }
         }
@@ -98,5 +107,7 @@ mod tests {
         assert!(!contains_raw_secret_material("bearer-token-ref"));
         assert!(!contains_raw_secret_material("authorization-policy-bundle-v3"));
         assert!(!contains_raw_secret_material("api_key_ref=not-a-needle"));
+        // Valid OpenBao credential reference used by execution-engine-app.
+        assert!(!contains_raw_secret_material("openbao:secret:workflow-execution"));
     }
 }
