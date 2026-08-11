@@ -96,6 +96,8 @@ exclude = [
   "ci/facade/automation-language-policy",
   "cloud/cloud-kernel",
   "governance/check/integ-envelope",
+  # New on integ/governance tip; exclude until integ/build (root_manifests sole owner) absorbs Cargo.lock membership.
+  "governance/check/apex-gist-integrity",
   "kernel",
   "storage/adapters/nativelink",
 ]
