@@ -1,6 +1,6 @@
 ---
 doc_class: Program-Discovery-Decision-Record
-doc_status: discovery
+doc_status: drafted
 discovery_id: DDR-E0-20260810-node-stack-forever-shape
 judgment_class: node-stack-forever-shape
 recorded_at: 2026-08-10
