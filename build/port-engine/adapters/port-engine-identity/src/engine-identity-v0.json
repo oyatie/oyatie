@@ -1,0 +1,18 @@
+{
+  "engine": "port-engine",
+  "wave": "W0-B",
+  "slice": 9,
+  "crates": [
+    "port-engine-api",
+    "port-engine-kernel",
+    "port-engine-rust-ir",
+    "port-engine-source-pin",
+    "port-engine-frontend-go",
+    "port-engine-hash",
+    "port-engine-rulepack",
+    "port-engine-snapshot",
+    "port-engine-identity",
+    "port-engine-toolchain",
+    "port-engine-app"
+  ]
+}

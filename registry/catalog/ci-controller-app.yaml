@@ -1,0 +1,15 @@
+context: ci
+role: app
+capability: ci-controller
+plane: control
+slo: cataloged-no-runtime-claim
+data_classes_owned: [INTERNAL_ONLY]
+operational_classes_owned: []
+api_stability: preview
+security_review: unreviewed
+supply_chain: source-only
+traceability:
+  source_crate: ci/controller/app/Cargo.toml
+non_claims:
+  - cloud-ci controller app face; local bridge only, never merge authority
+  - pair with integ/ci content forever tip (#1646 restack keeps members)

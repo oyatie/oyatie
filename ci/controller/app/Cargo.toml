@@ -1,0 +1,42 @@
+[package]
+name = "ci-controller-app"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+# kube-rs Controller application library + binary for the oya-ci controller.
+# Phase 1 of oya-ci bespoke-Prow: spawns K8s gate Jobs, watches them, posts
+# terminal GitHub commit-statuses via crier pattern.
+# ADR-0387 (ci-gate substrate); see docs/ideas/oya-ci-bespoke-prow.md Phase 1.
+
+[[bin]]
+name = "oya-ci-controller"
+path = "src/bin/oya-ci-controller.rs"
+
+[lib]
+name = "ci_controller_app"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+ci-controller-kernel = { path = "../kernel" }
+ci-controller-k8s-adapter = { path = "../k8s-adapter" }
+ci-controller-github-adapter = { path = "../github-adapter" }
+kube = { workspace = true }
+kube-runtime = { workspace = true }
+k8s-openapi = { workspace = true }
+axum = { workspace = true }
+tokio = { workspace = true, features = ["rt-multi-thread", "macros", "signal"] }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+futures = "0.3"
+
+[lints]
+workspace = true
+
+[dev-dependencies]
+tower = { workspace = true }
