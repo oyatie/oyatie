@@ -7430,17 +7430,17 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-ci-controller-app"
+name = "ci-controller-app"
 version = "0.1.0"
 dependencies = [
  "axum",
+ "ci-controller-github-adapter",
+ "ci-controller-k8s-adapter",
+ "ci-controller-kernel",
  "futures",
  "k8s-openapi",
  "kube",
  "kube-runtime",
- "oya-ci-controller-github-adapter",
- "oya-ci-controller-k8s-adapter",
- "oya-ci-controller-kernel",
  "serde",
  "serde_json",
  "tokio",
@@ -7450,24 +7450,24 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-ci-controller-github-adapter"
+name = "ci-controller-github-adapter"
 version = "0.1.0"
 dependencies = [
+ "ci-controller-kernel",
  "httpmock",
- "oya-ci-controller-kernel",
  "reqwest 0.13.4",
  "serde",
  "serde_json",
 ]
 
 [[package]]
-name = "oya-ci-controller-k8s-adapter"
+name = "ci-controller-k8s-adapter"
 version = "0.1.0"
 dependencies = [
+ "ci-controller-kernel",
  "k8s-openapi",
  "kube",
  "kube-runtime",
- "oya-ci-controller-kernel",
  "serde",
  "serde_json",
  "tokio",
@@ -7475,7 +7475,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-ci-controller-kernel"
+name = "ci-controller-kernel"
 version = "0.1.0"
 dependencies = [
  "serde",

@@ -4,8 +4,8 @@
   "status": "binding",
   "authority": "ADR-0711 Amendment A-2 + D-5; specs/integ-branch-envelopes.json#merge_windows",
   "portable_contract": ".grok/programs/delivery-fabric/evidence/PORTABLE-SWARM-CONTRACT.md",
-  "script": ".grok/swarm/check-daemon-hotset",
-  "daemon": ".grok/swarm/check-daemon",
+  "script": ".grok/process-kit (oya-process-kit-check-daemon; buck2 target TBD)",
+  "daemon": ".grok/process-kit/src/bin/check_daemon.rs",
   "achieves": "Early buck2 [check] feedback on at most hot_set_max restackable integ stations without worker-lane builds or cargo revival.",
   "origin": "16-lens northstar R9 (northstar-daemon-hotset); founder 2026-05-29 no-cargo; ADR-0711 A-2.",
   "rule": {
@@ -13,7 +13,7 @@
     "cite_hot_set_max": "specs/integ-branch-envelopes.json#merge_windows.hot_set_max",
     "stations": ".worktrees/integ-<root> (durable integ stations only)",
     "main_checkout": "orchestrator + check-daemon still allowed; remains the default warm buck2 home",
-    "worker_lanes": "FORBIDDEN — toolguard denies cargo/buck2; workers read err.txt only",
+    "worker_lanes": "FORBIDDEN \u2014 toolguard denies cargo/buck2; workers read err.txt only",
     "builder": "buck2 build --keep-going //...[check] (or SWARM_CHECK_TARGETS); never cargo",
     "orchestrator_env": "SWARM_ORCHESTRATOR=1 required",
     "station_env": "SWARM_CANDIDATE_ROOT=<abs path to .worktrees/integ-*> selects the station tree",
@@ -29,13 +29,12 @@
       "invoking cargo check/build/test/clippy via LSP code actions in worker lanes",
       "equating rust-analyzer with check-daemon or oya-ci-required"
     ],
-    "note": "LSP read-only ≠ build. Blessed type-check remains buck2 [check] via check-daemon / check-daemon-hotset."
+    "note": "LSP read-only \u2260 build. Blessed type-check remains buck2 [check] via check-daemon / check-daemon-hotset."
   },
   "ensure": [
-    ".grok/swarm/check-daemon accepts .worktrees/ stations or SWARM_CANDIDATE_ROOT",
-    ".grok/swarm/check-daemon-hotset caps stations at hot_set_max and fans check-daemon",
-    ".grok/swarm/README.md documents hot-set + LSP carve-out",
-    "self-check / claim packet cites this harness when changing daemon wiring"
+    ".grok/process-kit lib refuses SWARM_BLESSED_PUSH inherit + GIT_REAL retarget",
+    ".grok/process-kit check-daemon stub requires SWARM_ORCHESTRATOR=1",
+    "buck2 wire + integ/build workspace membership before claiming live hot-set"
   ],
   "overturn_when": [
     "envelopes#merge_windows.hot_set_max changes (update this file same-wave)",
