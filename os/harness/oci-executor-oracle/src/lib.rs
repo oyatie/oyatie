@@ -20,7 +20,7 @@
 
 use serde::Deserialize;
 use serde_json::Value;
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 use std::fmt;
 
 /// Embedded CVE / adversarial obligation inventory (scaffold).
@@ -82,6 +82,13 @@ pub enum HarnessError {
     IncompleteMatrixCoverage(String),
     DuplicateMatrixCell(String),
     UnknownMatrixCve(String),
+    InconsistentOraclePin(String),
+    MissingCveExecution,
+    CveExecutionMismatch {
+        expected: String,
+        owned: Option<String>,
+        oracle: Option<String>,
+    },
     FreeFormMatchForbidden,
     NotOracleObservation,
     /// Pairwise Match is not a conformance claim without full oracle×CVE coverage.
@@ -109,7 +116,8 @@ impl fmt::Display for HarnessError {
             | Self::DuplicateBlocker(m)
             | Self::IncompleteMatrixCoverage(m)
             | Self::DuplicateMatrixCell(m)
-            | Self::UnknownMatrixCve(m) => write!(f, "{m}"),
+            | Self::UnknownMatrixCve(m)
+            | Self::InconsistentOraclePin(m) => write!(f, "{m}"),
             Self::EmptyBundleDigest => write!(f, "bundle content_digest must be non-empty"),
             Self::ScaffoldBundleNotMeasured => {
                 write!(f, "measured observations cannot use scaffold bundle digests")
@@ -117,11 +125,24 @@ impl fmt::Display for HarnessError {
             Self::ScaffoldPinNotMeasured => {
                 write!(f, "measured observations cannot use scaffold oracle pins")
             }
+            Self::MissingCveExecution => {
+                write!(f, "comparison requires CveExecutionId on both observations")
+            }
+            Self::CveExecutionMismatch {
+                expected,
+                owned,
+                oracle,
+            } => write!(
+                f,
+                "cve execution mismatch: expected {expected}, owned={owned:?}, oracle={oracle:?}"
+            ),
             Self::FreeFormMatchForbidden => write!(
                 f,
                 "Match/Diverge matrix cells must be derived from ComparisonRecord"
             ),
-            Self::NotOracleObservation => write!(f, "comparison oracle side must be ExecutorKind::Oracle"),
+            Self::NotOracleObservation => {
+                write!(f, "comparison oracle side must be ExecutorKind::Oracle")
+            }
             Self::CveClassMismatch { id, expected, got } => {
                 write!(f, "cve {id} class must be {expected} (got {got})")
             }
@@ -146,8 +167,25 @@ fn expected_cve_class(id: &str) -> Option<&'static str> {
         .map(|(_, class)| *class)
 }
 
+/// FNV-1a 64-bit (local; no crate dep) for measured bundle digests.
+fn fnv1a64(data: &[u8]) -> u64 {
+    const OFFSET: u64 = 0xcbf29ce484222325;
+    const PRIME: u64 = 0x100000001b3;
+    let mut hash = OFFSET;
+    for &byte in data {
+        hash ^= u64::from(byte);
+        hash = hash.wrapping_mul(PRIME);
+    }
+    hash
+}
+
+fn push_len_prefixed(buf: &mut Vec<u8>, part: &[u8]) {
+    buf.extend_from_slice(&(part.len() as u64).to_le_bytes());
+    buf.extend_from_slice(part);
+}
+
 /// Closed oracle identity enum — the only values `ExecutorKind::Oracle` may carry.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum OracleId {
     Youki,
     Runc,
@@ -268,6 +306,14 @@ impl OciOperation {
     }
 }
 
+/// Byte inputs that uniquely determine a measured bundle content digest.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct BundleInputs<'a> {
+    pub config: &'a [u8],
+    pub rootfs_fingerprint: &'a [u8],
+    pub mounts_fingerprint: &'a [u8],
+}
+
 /// Content-derived OCI bundle identity (id alone is insufficient). Fields private.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BundleIdentity {
@@ -276,14 +322,17 @@ pub struct BundleIdentity {
 }
 
 impl BundleIdentity {
-    pub fn try_new(bundle_id: &str, content_digest: &str) -> Result<Self, HarnessError> {
-        if content_digest.trim().is_empty() {
-            return Err(HarnessError::EmptyBundleDigest);
-        }
-        Ok(Self {
+    /// Derive a deterministic `oya1:{fnv1a64:016x}` digest from bundle byte inputs.
+    pub fn from_inputs(bundle_id: &str, inputs: &BundleInputs<'_>) -> Self {
+        let mut buf = Vec::new();
+        push_len_prefixed(&mut buf, inputs.config);
+        push_len_prefixed(&mut buf, inputs.rootfs_fingerprint);
+        push_len_prefixed(&mut buf, inputs.mounts_fingerprint);
+        let digest = format!("oya1:{:016x}", fnv1a64(&buf));
+        Self {
             bundle_id: bundle_id.to_owned(),
-            content_digest: content_digest.to_owned(),
-        })
+            content_digest: digest,
+        }
     }
 
     /// Scaffold placeholder digest keyed by bundle id (not a live OCI digest).
@@ -358,35 +407,67 @@ impl ExecutionState {
     }
 }
 
-/// Identity of an OCI executor implementation behind the shared trait.
+/// CVE fixture binding — only REQUIRED_CVE_IDS; class from REQUIRED_CVE_CLASSES.
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub enum ExecutorKind {
-    /// Forever product path (owned-from-spec shim library). Bodies arrive later.
+pub struct CveExecutionId {
+    cve_id: String,
+    class: String,
+}
+
+impl CveExecutionId {
+    pub fn try_new(cve_id: &str) -> Result<Self, HarnessError> {
+        let Some(class) = expected_cve_class(cve_id) else {
+            return Err(HarnessError::UnknownCve(cve_id.to_owned()));
+        };
+        Ok(Self {
+            cve_id: cve_id.to_owned(),
+            class: class.to_owned(),
+        })
+    }
+
+    pub fn cve_id(&self) -> &str {
+        &self.cve_id
+    }
+
+    pub fn class(&self) -> &str {
+        &self.class
+    }
+}
+
+/// Private identity variants — `Owned` is not constructible outside this module.
+#[derive(Debug, Clone, PartialEq, Eq)]
+enum ExecutorKindInner {
     Owned,
-    /// Differential oracle only — must never be selected as shipped runtime.
     Oracle { id: OracleId, pin: OraclePin },
 }
 
+/// Identity of an OCI executor implementation behind the shared trait.
+///
+/// `Owned` is sealed: only [`OwnedExecutorStub::kind`] can construct it.
+/// Oracle kinds come from [`OracleStub`].
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ExecutorKind(ExecutorKindInner);
+
 impl ExecutorKind {
     pub const fn is_oracle_only(&self) -> bool {
-        matches!(self, Self::Oracle { .. })
+        matches!(self.0, ExecutorKindInner::Oracle { .. })
     }
 
     pub const fn is_owned_product(&self) -> bool {
-        matches!(self, Self::Owned)
+        matches!(self.0, ExecutorKindInner::Owned)
     }
 
     pub fn oracle_id(&self) -> Option<OracleId> {
-        match self {
-            Self::Oracle { id, .. } => Some(*id),
-            Self::Owned => None,
+        match &self.0 {
+            ExecutorKindInner::Oracle { id, .. } => Some(*id),
+            ExecutorKindInner::Owned => None,
         }
     }
 
     pub fn oracle_pin(&self) -> Option<&OraclePin> {
-        match self {
-            Self::Oracle { pin, .. } => Some(pin),
-            Self::Owned => None,
+        match &self.0 {
+            ExecutorKindInner::Oracle { pin, .. } => Some(pin),
+            ExecutorKindInner::Owned => None,
         }
     }
 }
@@ -399,6 +480,7 @@ pub struct OperationObservation {
     operation: OciOperation,
     bundle: BundleIdentity,
     execution: ExecutionState,
+    cve_execution: Option<CveExecutionId>,
 }
 
 impl OperationObservation {
@@ -426,6 +508,9 @@ impl OperationObservation {
     pub fn executed(&self) -> bool {
         self.execution.is_executed()
     }
+    pub fn cve_execution(&self) -> Option<&CveExecutionId> {
+        self.cve_execution.as_ref()
+    }
 
     pub fn stubbed(kind: ExecutorKind, operation: OciOperation, bundle: BundleIdentity) -> Self {
         Self {
@@ -433,6 +518,7 @@ impl OperationObservation {
             operation,
             bundle,
             execution: ExecutionState::Stubbed,
+            cve_execution: None,
         }
     }
 
@@ -445,10 +531,14 @@ impl OperationObservation {
     }
 
     /// Measured construction rejects scaffold bundle digests and scaffold oracle pins.
+    ///
+    /// Matrix measured comparisons require [`Some`] [`CveExecutionId`] via
+    /// [`ComparisonRecord::try_from_observations`].
     pub fn try_measured(
         kind: ExecutorKind,
         operation: OciOperation,
         bundle: BundleIdentity,
+        cve: Option<CveExecutionId>,
         outcome: MeasuredOutcome,
     ) -> Result<Self, HarnessError> {
         if bundle.is_scaffold() {
@@ -464,6 +554,7 @@ impl OperationObservation {
             operation,
             bundle,
             execution: ExecutionState::Measured(outcome),
+            cve_execution: cve,
         })
     }
 }
@@ -528,6 +619,22 @@ impl ComparisonRecord {
         if !oracle.kind.is_oracle_only() {
             return Err(HarnessError::NotOracleObservation);
         }
+        let owned_cve = owned.cve_execution.as_ref();
+        let oracle_cve = oracle.cve_execution.as_ref();
+        match (owned_cve, oracle_cve) {
+            (None, _) | (_, None) => {
+                return Err(HarnessError::MissingCveExecution);
+            }
+            (Some(a), Some(b)) => {
+                if a != b || a.cve_id() != cve_id {
+                    return Err(HarnessError::CveExecutionMismatch {
+                        expected: cve_id.to_owned(),
+                        owned: Some(a.cve_id().to_owned()),
+                        oracle: Some(b.cve_id().to_owned()),
+                    });
+                }
+            }
+        }
         let verdict = compare_observations(&owned, &oracle);
         Ok(Self {
             cve_id: cve_id.to_owned(),
@@ -551,10 +658,17 @@ impl ComparisonRecord {
     }
 
     pub fn to_matrix_cell(&self) -> MatrixCell {
-        let (id, pin) = match self.oracle.kind() {
-            ExecutorKind::Oracle { id, pin } => (*id, pin.clone()),
-            ExecutorKind::Owned => unreachable!("validated in try_from_observations"),
-        };
+        let id = self
+            .oracle
+            .kind()
+            .oracle_id()
+            .expect("validated in try_from_observations");
+        let pin = self
+            .oracle
+            .kind()
+            .oracle_pin()
+            .expect("validated in try_from_observations")
+            .clone();
         MatrixCell {
             oracle: id,
             pin,
@@ -585,12 +699,24 @@ pub fn required_matrix_pairs() -> Vec<(OracleId, &'static str)> {
 }
 
 /// Reject incomplete oracle × CVE coverage before any conformance-shaped claim.
+/// Also requires one declared pin per [`OracleId`] across all cells.
 pub fn validate_matrix_coverage(cells: &[MatrixCell]) -> Result<(), HarnessError> {
     let required = required_matrix_pairs();
     let mut seen = BTreeSet::new();
+    let mut pins_by_oracle: BTreeMap<OracleId, &OraclePin> = BTreeMap::new();
     for cell in cells {
         if !REQUIRED_CVE_IDS.contains(&cell.cve_id.as_str()) {
             return Err(HarnessError::UnknownMatrixCve(cell.cve_id.clone()));
+        }
+        if let Some(existing) = pins_by_oracle.get(&cell.oracle) {
+            if *existing != &cell.pin {
+                return Err(HarnessError::InconsistentOraclePin(format!(
+                    "oracle {} has inconsistent pins across matrix cells",
+                    cell.oracle.as_str()
+                )));
+            }
+        } else {
+            pins_by_oracle.insert(cell.oracle, &cell.pin);
         }
         let key = (cell.oracle.as_str(), cell.cve_id.as_str());
         if !seen.insert(key) {
@@ -678,7 +804,7 @@ pub struct OwnedExecutorStub;
 
 impl OciExecutor for OwnedExecutorStub {
     fn kind(&self) -> ExecutorKind {
-        ExecutorKind::Owned
+        ExecutorKind(ExecutorKindInner::Owned)
     }
 }
 
@@ -734,10 +860,10 @@ impl OracleStub {
 
 impl OciExecutor for OracleStub {
     fn kind(&self) -> ExecutorKind {
-        ExecutorKind::Oracle {
+        ExecutorKind(ExecutorKindInner::Oracle {
             id: self.id,
             pin: self.pin.clone(),
-        }
+        })
     }
 }
 
@@ -909,7 +1035,29 @@ mod tests {
     }
 
     fn live_bundle(id: &str) -> BundleIdentity {
-        BundleIdentity::try_new(id, "sha256:bundle-config-rootfs").unwrap()
+        BundleIdentity::from_inputs(
+            id,
+            &BundleInputs {
+                config: b"config-v1",
+                rootfs_fingerprint: b"rootfs-a",
+                mounts_fingerprint: b"mounts-a",
+            },
+        )
+    }
+
+    fn alt_bundle(id: &str) -> BundleIdentity {
+        BundleIdentity::from_inputs(
+            id,
+            &BundleInputs {
+                config: b"config-v1",
+                rootfs_fingerprint: b"rootfs-b",
+                mounts_fingerprint: b"mounts-a",
+            },
+        )
+    }
+
+    fn cve(id: &str) -> CveExecutionId {
+        CveExecutionId::try_new(id).unwrap()
     }
 
     fn safe_outcome(exit: i32, fp: &str) -> MeasuredOutcome {
@@ -968,36 +1116,38 @@ mod tests {
         let owned = OwnedExecutorStub.create_stub("b1");
         let oracle = OracleStub::runc().create_stub("b1");
         assert_eq!(compare_observations(&owned, &oracle), DiffVerdict::Stubbed);
+        assert!(owned.cve_execution().is_none());
+        assert!(oracle.cve_execution().is_none());
     }
 
     #[test]
     fn compare_measured_match_and_diverge() {
         let bundle = live_bundle("b1");
-        let pin = live_pin();
         let owned_ok = OperationObservation::try_measured(
-            ExecutorKind::Owned,
+            OwnedExecutorStub.kind(),
             OciOperation::Start,
             bundle.clone(),
+            None,
             safe_outcome(0, "fp-a"),
         )
         .unwrap();
         let oracle_ok = OperationObservation::try_measured(
-            ExecutorKind::Oracle {
-                id: OracleId::Runc,
-                pin: pin.clone(),
-            },
+            OracleStub::try_new_pinned("runc", live_pin())
+                .unwrap()
+                .kind(),
             OciOperation::Start,
             bundle.clone(),
+            None,
             safe_outcome(0, "fp-a"),
         )
         .unwrap();
         let oracle_bad = OperationObservation::try_measured(
-            ExecutorKind::Oracle {
-                id: OracleId::Runc,
-                pin,
-            },
+            OracleStub::try_new_pinned("runc", live_pin())
+                .unwrap()
+                .kind(),
             OciOperation::Start,
             bundle,
+            None,
             safe_outcome(1, "fp-b"),
         )
         .unwrap();
@@ -1014,9 +1164,10 @@ mod tests {
     #[test]
     fn asymmetric_execution_diverges() {
         let owned = OperationObservation::try_measured(
-            ExecutorKind::Owned,
+            OwnedExecutorStub.kind(),
             OciOperation::Start,
             live_bundle("b1"),
+            None,
             safe_outcome(0, "fp"),
         )
         .unwrap();
@@ -1027,15 +1178,12 @@ mod tests {
     #[test]
     fn kill_signal_mismatch_diverges() {
         let owned = OperationObservation::stubbed_scaffold(
-            ExecutorKind::Owned,
+            OwnedExecutorStub.kind(),
             OciOperation::Kill(KillSignal::Term),
             "b1",
         );
         let oracle = OperationObservation::stubbed_scaffold(
-            ExecutorKind::Oracle {
-                id: OracleId::Youki,
-                pin: OraclePin::scaffold(),
-            },
+            OracleStub::youki().kind(),
             OciOperation::Kill(KillSignal::Kill),
             "b1",
         );
@@ -1054,27 +1202,30 @@ mod tests {
 
     #[test]
     fn bundle_content_digest_mismatch_diverges() {
-        let owned = OwnedExecutorStub
-            .create_with_bundle(BundleIdentity::try_new("b1", "digest-a").unwrap());
-        let oracle = OracleStub::runc()
-            .create_with_bundle(BundleIdentity::try_new("b1", "digest-b").unwrap());
+        let owned = OwnedExecutorStub.create_with_bundle(live_bundle("b1"));
+        let oracle = OracleStub::runc().create_with_bundle(alt_bundle("b1"));
+        assert_ne!(owned.content_digest(), oracle.content_digest());
         assert_eq!(compare_observations(&owned, &oracle), DiffVerdict::Diverge);
     }
 
     #[test]
-    fn empty_bundle_digest_rejected() {
-        assert_eq!(
-            BundleIdentity::try_new("b1", "  ").unwrap_err(),
-            HarnessError::EmptyBundleDigest
-        );
+    fn from_inputs_digest_is_oya1_fnv() {
+        let a = live_bundle("b1");
+        assert!(a.content_digest().starts_with("oya1:"));
+        assert_eq!(a.content_digest().len(), "oya1:".len() + 16);
+        let same = live_bundle("b1");
+        assert_eq!(a.content_digest(), same.content_digest());
+        let different = alt_bundle("b1");
+        assert_ne!(a.content_digest(), different.content_digest());
     }
 
     #[test]
     fn measured_rejects_scaffold_bundle() {
         let err = OperationObservation::try_measured(
-            ExecutorKind::Owned,
+            OwnedExecutorStub.kind(),
             OciOperation::Start,
             BundleIdentity::scaffold("b1"),
+            None,
             safe_outcome(0, "fp"),
         )
         .unwrap_err();
@@ -1084,12 +1235,10 @@ mod tests {
     #[test]
     fn measured_rejects_scaffold_oracle_pin() {
         let err = OperationObservation::try_measured(
-            ExecutorKind::Oracle {
-                id: OracleId::Runc,
-                pin: OraclePin::scaffold(),
-            },
+            OracleStub::runc().kind(),
             OciOperation::Start,
             live_bundle("b1"),
+            None,
             safe_outcome(0, "fp"),
         )
         .unwrap_err();
@@ -1101,21 +1250,21 @@ mod tests {
         let mut leaky = safe_outcome(0, "fp");
         leaky.security.fd_leak_absent = false;
         let bundle = live_bundle("b1");
-        let pin = live_pin();
         let owned = OperationObservation::try_measured(
-            ExecutorKind::Owned,
+            OwnedExecutorStub.kind(),
             OciOperation::Start,
             bundle.clone(),
+            None,
             safe_outcome(0, "fp"),
         )
         .unwrap();
         let oracle = OperationObservation::try_measured(
-            ExecutorKind::Oracle {
-                id: OracleId::Crun,
-                pin,
-            },
+            OracleStub::try_new_pinned("crun", live_pin())
+                .unwrap()
+                .kind(),
             OciOperation::Start,
             bundle,
+            None,
             leaky,
         )
         .unwrap();
@@ -1127,21 +1276,21 @@ mod tests {
         let mut unsafe_out = safe_outcome(0, "fp");
         unsafe_out.security.fd_leak_absent = false;
         let bundle = live_bundle("b1");
-        let pin = live_pin();
         let owned = OperationObservation::try_measured(
-            ExecutorKind::Owned,
+            OwnedExecutorStub.kind(),
             OciOperation::Start,
             bundle.clone(),
+            None,
             unsafe_out.clone(),
         )
         .unwrap();
         let oracle = OperationObservation::try_measured(
-            ExecutorKind::Oracle {
-                id: OracleId::Youki,
-                pin,
-            },
+            OracleStub::try_new_pinned("youki", live_pin())
+                .unwrap()
+                .kind(),
             OciOperation::Start,
             bundle,
+            None,
             unsafe_out,
         )
         .unwrap();
@@ -1150,10 +1299,27 @@ mod tests {
 
     #[test]
     fn matrix_requires_full_oracle_cve_coverage() {
+        let cve_id = "CVE-2019-5736";
         let incomplete = [ComparisonRecord::try_from_observations(
-            "CVE-2019-5736",
-            OwnedExecutorStub.create_stub("b1"),
-            OracleStub::runc().create_stub("b1"),
+            cve_id,
+            OperationObservation::try_measured(
+                OwnedExecutorStub.kind(),
+                OciOperation::Start,
+                live_bundle("b1"),
+                Some(cve(cve_id)),
+                safe_outcome(0, "fp"),
+            )
+            .unwrap(),
+            OperationObservation::try_measured(
+                OracleStub::try_new_pinned("runc", live_pin())
+                    .unwrap()
+                    .kind(),
+                OciOperation::Start,
+                live_bundle("b1"),
+                Some(cve(cve_id)),
+                safe_outcome(0, "fp"),
+            )
+            .unwrap(),
         )
         .unwrap()];
         assert!(matches!(
@@ -1196,12 +1362,14 @@ mod tests {
     #[test]
     fn comparison_records_bind_verdict_to_observations() {
         let mut records = Vec::new();
-        for (oracle_id, cve) in required_matrix_pairs() {
+        for (oracle_id, cve_id) in required_matrix_pairs() {
             let oracle = OracleStub::try_new_pinned(oracle_id.as_str(), live_pin()).unwrap();
+            let exec = cve(cve_id);
             let owned = OperationObservation::try_measured(
-                ExecutorKind::Owned,
+                OwnedExecutorStub.kind(),
                 OciOperation::Start,
                 live_bundle("b1"),
+                Some(exec.clone()),
                 safe_outcome(0, "fp"),
             )
             .unwrap();
@@ -1209,10 +1377,12 @@ mod tests {
                 oracle.kind(),
                 OciOperation::Start,
                 live_bundle("b1"),
+                Some(exec),
                 safe_outcome(0, "fp"),
             )
             .unwrap();
-            records.push(ComparisonRecord::try_from_observations(cve, owned, oracle_obs).unwrap());
+            records
+                .push(ComparisonRecord::try_from_observations(cve_id, owned, oracle_obs).unwrap());
         }
         assert_eq!(
             aggregate_comparison_records(&records).unwrap(),
@@ -1222,6 +1392,118 @@ mod tests {
         assert!(records
             .iter()
             .all(|r| !r.oracle().kind().oracle_pin().unwrap().is_scaffold()));
+    }
+
+    #[test]
+    fn comparison_record_rejects_missing_cve_execution() {
+        let owned = OperationObservation::try_measured(
+            OwnedExecutorStub.kind(),
+            OciOperation::Start,
+            live_bundle("b1"),
+            None,
+            safe_outcome(0, "fp"),
+        )
+        .unwrap();
+        let oracle = OperationObservation::try_measured(
+            OracleStub::try_new_pinned("runc", live_pin())
+                .unwrap()
+                .kind(),
+            OciOperation::Start,
+            live_bundle("b1"),
+            None,
+            safe_outcome(0, "fp"),
+        )
+        .unwrap();
+        assert_eq!(
+            ComparisonRecord::try_from_observations("CVE-2019-5736", owned, oracle).unwrap_err(),
+            HarnessError::MissingCveExecution
+        );
+    }
+
+    #[test]
+    fn comparison_record_rejects_mismatched_cve_execution() {
+        let owned = OperationObservation::try_measured(
+            OwnedExecutorStub.kind(),
+            OciOperation::Start,
+            live_bundle("b1"),
+            Some(cve("CVE-2019-5736")),
+            safe_outcome(0, "fp"),
+        )
+        .unwrap();
+        let oracle = OperationObservation::try_measured(
+            OracleStub::try_new_pinned("runc", live_pin())
+                .unwrap()
+                .kind(),
+            OciOperation::Start,
+            live_bundle("b1"),
+            Some(cve("CVE-2024-21626")),
+            safe_outcome(0, "fp"),
+        )
+        .unwrap();
+        assert!(matches!(
+            ComparisonRecord::try_from_observations("CVE-2019-5736", owned, oracle).unwrap_err(),
+            HarnessError::CveExecutionMismatch { .. }
+        ));
+    }
+
+    #[test]
+    fn comparison_record_rejects_cve_id_param_mismatch() {
+        let exec = cve("CVE-2024-21626");
+        let owned = OperationObservation::try_measured(
+            OwnedExecutorStub.kind(),
+            OciOperation::Start,
+            live_bundle("b1"),
+            Some(exec.clone()),
+            safe_outcome(0, "fp"),
+        )
+        .unwrap();
+        let oracle = OperationObservation::try_measured(
+            OracleStub::try_new_pinned("runc", live_pin())
+                .unwrap()
+                .kind(),
+            OciOperation::Start,
+            live_bundle("b1"),
+            Some(exec),
+            safe_outcome(0, "fp"),
+        )
+        .unwrap();
+        // Same CveExecutionId on both sides, but wrong vs matrix cell label.
+        assert!(matches!(
+            ComparisonRecord::try_from_observations("CVE-2019-5736", owned, oracle).unwrap_err(),
+            HarnessError::CveExecutionMismatch { .. }
+        ));
+    }
+
+    #[test]
+    fn inconsistent_oracle_pin_across_matrix_rejected() {
+        let mut cells = Vec::new();
+        for (oracle, cve_id) in required_matrix_pairs() {
+            let pin = if oracle == OracleId::Runc && cve_id == "CVE-2024-21626" {
+                OraclePin::try_new("sha256:other", "linux/amd64").unwrap()
+            } else {
+                live_pin()
+            };
+            cells.push(MatrixCell {
+                oracle,
+                pin,
+                cve_id: cve_id.to_owned(),
+                verdict: DiffVerdict::Stubbed,
+            });
+        }
+        assert!(matches!(
+            validate_matrix_coverage(&cells).unwrap_err(),
+            HarnessError::InconsistentOraclePin(_)
+        ));
+    }
+
+    #[test]
+    fn cve_execution_id_rejects_unknown() {
+        assert!(matches!(
+            CveExecutionId::try_new("CVE-NOT-IN-CORPUS"),
+            Err(HarnessError::UnknownCve(_))
+        ));
+        let ok = CveExecutionId::try_new("CVE-2019-5736").unwrap();
+        assert_eq!(ok.class(), "proc_self_exe_reexec");
     }
 
     #[test]
