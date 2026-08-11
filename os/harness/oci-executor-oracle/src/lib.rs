@@ -18,6 +18,7 @@
 //!
 //! data_class: PUBLIC
 
+use sha2::{Digest, Sha256};
 use serde::Deserialize;
 use serde_json::Value;
 use std::collections::{BTreeMap, BTreeSet};
@@ -183,6 +184,7 @@ pub enum HarnessError {
     ScaffoldPinNotMeasured,
     WeakBundleDigestNotMeasured,
     MissingFixtureReceipt,
+    MissingSecurityEvidence,
     CveReceiptBundleMismatch(String),
     MissingHostEnvironment,
     HostEnvironmentMismatch(String),
@@ -263,6 +265,12 @@ impl fmt::Display for HarnessError {
                     "measured CVE execution requires CveExecutionId::from_fixture_material receipt"
                 )
             }
+            Self::MissingSecurityEvidence => {
+                write!(
+                    f,
+                    "measured security postconditions require from_runner_evidence receipt"
+                )
+            }
             Self::CveReceiptBundleMismatch(m) => {
                 write!(f, "CVE fixture receipt does not bind to measured bundle: {m}")
             }
@@ -334,6 +342,18 @@ fn postcondition_held_for_class(security: &SecurityPostconditions, class: &str) 
 }
 
 /// FNV-1a 64-bit (local; no crate dep) for hermetic digests / fixture receipts.
+
+fn sha256_hex(data: &[u8]) -> String {
+    let mut hasher = Sha256::new();
+    hasher.update(data);
+    let dig = hasher.finalize();
+    let mut out = String::with_capacity(64);
+    for b in dig {
+        out.push_str(&format!("{b:02x}"));
+    }
+    out
+}
+
 fn fnv1a64(data: &[u8]) -> u64 {
     const OFFSET: u64 = 0xcbf29ce484222325;
     const PRIME: u64 = 0x100000001b3;
@@ -621,19 +641,49 @@ pub struct SecurityPostconditions {
     pub proc_self_exe_reexec_blocked: bool,
     pub fd_leak_absent: bool,
     pub mount_symlink_race_safe: bool,
+    /// Collision-resistant receipt over runner evidence bytes; empty = unauthenticated.
+    evidence_receipt: String,
 }
 
 impl SecurityPostconditions {
-    pub const fn all_held() -> Self {
+    /// Unauthenticated scaffold defaults (stub path only — measured requires evidence).
+    pub fn all_held() -> Self {
         Self {
             proc_self_exe_reexec_blocked: true,
             fd_leak_absent: true,
             mount_symlink_race_safe: true,
+            evidence_receipt: String::new(),
         }
+    }
+
+    /// Measured-path constructor: postconditions must bind to runner evidence bytes.
+    pub fn from_runner_evidence(
+        proc_self_exe_reexec_blocked: bool,
+        fd_leak_absent: bool,
+        mount_symlink_race_safe: bool,
+        evidence_bytes: &[u8],
+    ) -> Result<Self, HarnessError> {
+        if evidence_bytes.is_empty() {
+            return Err(HarnessError::MissingSecurityEvidence);
+        }
+        Ok(Self {
+            proc_self_exe_reexec_blocked,
+            fd_leak_absent,
+            mount_symlink_race_safe,
+            evidence_receipt: format!("sha256:{}", sha256_hex(evidence_bytes)),
+        })
     }
 
     pub const fn all_held_bool(&self) -> bool {
         self.proc_self_exe_reexec_blocked && self.fd_leak_absent && self.mount_symlink_race_safe
+    }
+
+    pub fn evidence_receipt(&self) -> &str {
+        &self.evidence_receipt
+    }
+
+    pub fn has_authenticated_evidence(&self) -> bool {
+        !self.evidence_receipt.is_empty()
     }
 }
 
@@ -681,7 +731,7 @@ pub struct CveFixtureMaterial<'a> {
 pub struct CveExecutionId {
     cve_id: String,
     class: String,
-    /// `fnv1a64:{016x}` over len-prefixed `(cve_id || fixture_bytes)`; empty = bare/non-measured.
+    /// `sha256:{hex}` over len-prefixed `(cve_id || fixture_bytes || bundle digest)`; empty = bare.
     fixture_receipt: String,
 }
 
@@ -727,7 +777,7 @@ impl CveExecutionId {
         push_len_prefixed(&mut buf, material.cve_id.as_bytes());
         push_len_prefixed(&mut buf, material.fixture_bytes);
         push_len_prefixed(&mut buf, bundle.content_digest().as_bytes());
-        let fixture_receipt = format!("fnv1a64:{:016x}", fnv1a64(&buf));
+        let fixture_receipt = format!("sha256:{}", sha256_hex(&buf));
         Ok(Self {
             cve_id: material.cve_id.to_owned(),
             class: class.to_owned(),
@@ -863,7 +913,7 @@ impl MeasuredHostEnvironment {
             push_len_prefixed(&mut buf, part.as_bytes());
         }
         Ok(Self {
-            digest: format!("env1:{:016x}", fnv1a64(&buf)),
+            digest: format!("env1:sha256:{}", sha256_hex(&buf)),
             platform: platform.to_owned(),
         })
     }
@@ -983,6 +1033,9 @@ impl OperationObservation {
                     host.platform()
                 )));
             }
+        }
+        if !outcome.security.has_authenticated_evidence() {
+            return Err(HarnessError::MissingSecurityEvidence);
         }
         if let Some(ref cve_id) = cve {
             if !cve_id.has_fixture_receipt() {
@@ -1574,6 +1627,15 @@ impl OracleStub {
         }
     }
 
+    /// Inventory-bound oracle stub (sealed adapter identity + declared pin).
+    pub fn from_inventory(id: OracleId) -> Result<Self, HarnessError> {
+        let pins = obligation_oracle_pins()?;
+        let Some(pin) = pins.get(&id) else {
+            return Err(HarnessError::MissingOracle(id.as_str().to_owned()));
+        };
+        Self::try_new_pinned(id.as_str(), pin.clone())
+    }
+
     pub fn try_new(id: &str) -> Result<Self, HarnessError> {
         Ok(Self {
             id: OracleId::try_from_str(id)?,
@@ -1581,7 +1643,8 @@ impl OracleStub {
         })
     }
 
-    pub fn try_new_pinned(id: &str, pin: OraclePin) -> Result<Self, HarnessError> {
+    /// Crate-local pin binding — public surface is inventory-bound factories only.
+    pub(crate) fn try_new_pinned(id: &str, pin: OraclePin) -> Result<Self, HarnessError> {
         Ok(Self {
             id: OracleId::try_from_str(id)?,
             pin,
@@ -1892,7 +1955,13 @@ mod tests {
             exit_code: exit,
             status: "exited".into(),
             stderr_fingerprint: fp.into(),
-            security: SecurityPostconditions::all_held(),
+            security: SecurityPostconditions::from_runner_evidence(
+                true,
+                true,
+                true,
+                format!("safe-evidence:{fp}").as_bytes(),
+            )
+            .unwrap(),
         }
     }
 
@@ -2780,7 +2849,7 @@ mod tests {
         assert!(!ok.has_fixture_receipt());
         let measured = fixture_for("CVE-2019-5736", &measured_bundle("b1", HEX_A));
         assert!(measured.has_fixture_receipt());
-        assert!(measured.fixture_receipt().starts_with("fnv1a64:"));
+        assert!(measured.fixture_receipt().starts_with("sha256:"));
     }
 
     #[test]
