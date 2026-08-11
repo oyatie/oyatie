@@ -1,14 +1,43 @@
-# oya-ci-required — the SINGLE canonical blocking required status check (ONE CANONICAL CI).
+# oya-ci-required — event-trigger HOST for merge admission until quiet cutover.
+#
+# Forever public protected status string: `merge-admission-required`
+# (dual-emitted below; matches forever workflow filename merge-admission-required.yml).
+# Legacy brand `oya-ci-required` remains the event-trigger host + current BP context until
+# founder PAUSE-AND-PAIR protection flip. ADR refs belong in comments/docs/evidence only.
 #
 # Authority: ADR-0515 (Phase-0 firewall + one-canonical-CI + cloud-native posture; Accepted
 # 2026-06-07). Rulings: D-CICD-AUTHORITY, ONE CANONICAL CI, D-SEQUENCE (firewall-first),
-# D-DOCTRINE (no false-green / surface-all).
+# D-DOCTRINE (no false-green / surface-all). Living SSOT:
+# domain_stack § Merge admission + domain green (path_ownership).
+#
+# ── CI profiles (ci-split-profiles) ──────────────────────────────────────────
+# Profile A — `domain.<envelope>.stabilize` (LOCAL_GREEN):
+#   Envelope fence + graph-affected Buck2/tests for touched scope under owned prefixes.
+#   In-domain adds under envelope_globs MUST pass admission.policy without per-file tip-free
+#   (producer consumes specs/integ-branch-envelopes.json#roots.*.envelope_globs).
+#   MUST NOT require hub edits (specs/**, ci/**) or premature product-protocol bumps.
+#   Forever title scaffolding: .github/workflows/domain-stabilize.yml (workflow_call only).
+#
+# Profile B — `merge-admission-required` (ADMIT_READY / SHIP):
+#   Profile A green on tip + hub contracts + lock sole-owner + review/Tide floor.
+#   This workflow's fan-in (legacy job id oya-ci-required) + dual-emit title
+#   `merge-admission-required` is today's merge authority surface.
+#
+# Quiet cutover (BAN double full CI; BP flip = PAUSE-AND-PAIR only):
+#   1) Confirm dual-emit `merge-admission-required` green on recent tips.
+#   2) Move pull_request/push/merge_group/workflow_dispatch onto merge-admission-required.yml
+#      (inline body or `uses:` this file via workflow_call).
+#   3) Leave THIS file as workflow_call-only body OR delete after uses: lands.
+#   4) Founder PAUSE-AND-PAIR: flip required check context oya-ci-required →
+#      merge-admission-required; then retire dual-emit shim jobs.
+#   Do NOT enable event triggers on both files at once.
 #
 # Design (per FIREWALL-GO-LIVE-RUNBOOK.md Part 2 + CICD-DESIGN-PLAN Stage 1A/1B): the gate
 # lanes fan OUT (fail-fast:false, surface-all) and fan IN to ONE zero-build job named
 # `oya-ci-required` that has NO command set of its own — it is green IFF every constituent
-# gate lane is green. Branch protection keys on that one context name. The GH #983 PR
-# metadata preflight is folded into the affected-set lane so it adds no new workflow shell surface.
+# gate lane is green. Branch protection keys on that one context name until PAUSE-AND-PAIR.
+# The GH #983 PR metadata preflight is folded into the affected-set lane so it adds no new
+# workflow shell surface.
 # F-PR5-06 target: the repo-owned controller adapter can produce fail-closed `oya-pr-review`
 # packets from GitHub PR/review APIs, bound to PR + exact head + author + designated eligible
 # reviewer policy + APPROVED verdict + durable review URL. It is deliberately NOT wired here until the trusted

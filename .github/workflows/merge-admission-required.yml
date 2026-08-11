@@ -13,7 +13,8 @@
 #
 # Retired brands (comments only): oya-ci-required, firewall, cloud-ci-firewall.
 # Sub-jobs: admission.* (e.g. admission.policy, admission.graph-affected).
-# Domain: domain.<envelope>.stabilize. Trunk: trunk.postsubmit → trunk.health.
+# Domain: domain.<envelope>.stabilize (see domain-stabilize.yml workflow_call anchor).
+# Trunk: trunk.postsubmit → trunk.health.
 name: merge-admission-required
 on:
   workflow_call:
