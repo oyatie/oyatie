@@ -1,7 +1,11 @@
 # A1 ABI-matrix probe harness (skeleton). Pure matrix load + stub probe plan are
 # hermetic (buck2/cargo unit-tested). Live QEMU guest probing is a later impure
-# binary path — preferred evidence is QEMU-TCG against the pinned Asterinas ISO
+# path — preferred evidence is QEMU-TCG against the pinned Asterinas ISO
 # (no live hardware required).
+#
+# The rust_binary target is a local-bridge harness receipt emitter (retirement-
+# marked; same class as asterinas-real-boot bins), not a product CLI capability.
+# The rust_library is the sanctioned automation surface.
 
 _MATRIX = "//kernel/core/asterinas-abi-matrix:kernel-asterinas-abi-matrix"
 _BOUNDARY = "//kernel/core/asterinas-boundary:kernel-asterinas-boundary"
@@ -16,6 +20,7 @@ rust_library(
     deps = [_MATRIX, _BOUNDARY] + _TP,
 )
 
+# Local-bridge only — not a product CLI surface (CLI retirement).
 rust_binary(
     name = "kernel-asterinas-abi-probe-bin",
     srcs = ["src/main.rs"],

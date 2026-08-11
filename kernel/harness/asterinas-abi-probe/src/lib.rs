@@ -1,9 +1,9 @@
 #![forbid(unsafe_code)]
-//! Probe harness skeleton for the Asterinas four-surface ABI matrix (A1).
+//! Probe harness skeleton for the Asterinas ABI / kernel-service matrix (A1).
 //!
 //! Today this crate:
 //! - loads/validates the embedded matrix
-//! - builds a deterministic probe plan for runc/youki/containerd/kubelet footprints
+//! - builds a deterministic probe plan from matrix rows + `components_profiled`
 //! - emits stub outcomes (`Stubbed`) so hermetic tests pass without live QEMU
 //!
 //! Tomorrow (QEMU-provable path, no live hardware required):
@@ -11,26 +11,36 @@
 //! - run guest-side surface probes and component strace/seccomp profiles
 //! - write receipts that flip `available_on_asterinas_pin` from `unknown` → `present|gap`
 //!
+//! The optional `[[bin]]` is a local-bridge harness receipt emitter (same class as
+//! `asterinas-real-boot`), not a product CLI capability surface. The library API is
+//! the sanctioned automation surface; CLI surfaces remain retirement-marked.
+//!
 //! data_class: PUBLIC
 
 use kernel_asterinas_abi_matrix::{
-    self as matrix, G5Evaluation, MatrixRow, REQUIRED_SURFACES,
+    self as matrix, G5Evaluation, MatrixError, MatrixRow, REQUIRED_SURFACES,
 };
 use kernel_asterinas_boundary as pin;
 use serde_json::Value;
 
-/// Components whose footprints the probe plan will eventually measure.
-pub const PROFILE_TARGETS: [&str; 4] = ["runc", "youki", "containerd", "kubelet"];
-
 /// Preferred evidence path (plan law): QEMU-TCG against the pinned ISO.
+/// data_class: PUBLIC
 pub const PREFERRED_EVIDENCE_PATH: &str = "qemu-tcg-against-pinned-iso";
+
+/// Re-export closed profiled-component set from the matrix crate (single authority).
+/// data_class: PUBLIC
+pub const PROFILE_TARGETS: [&str; 4] = matrix::PROFILED_COMPONENTS;
 
 /// One planned probe against a matrix row (or a component footprint aggregate).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ProbePlanItem {
+    /// Probe kind. data_class: PUBLIC
     pub kind: ProbeKind,
+    /// Matrix row id or component id. data_class: PUBLIC
     pub target_id: String,
+    /// Surface key when kind is SurfaceAvailability. data_class: PUBLIC
     pub surface: Option<String>,
+    /// Stubbed until measured receipts exist. data_class: PUBLIC
     pub status: ProbeItemStatus,
 }
 
@@ -53,20 +63,27 @@ pub enum ProbeItemStatus {
 /// Deterministic probe plan derived from the matrix (no I/O).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ProbePlan {
+    /// Pinned release tag. data_class: PUBLIC
     pub release_tag: String,
+    /// Pinned boot ISO asset name. data_class: PUBLIC
     pub boot_iso_asset: String,
+    /// Preferred evidence path id. data_class: PUBLIC
     pub evidence_path: String,
+    /// Whether live hardware is required (always false for QEMU-TCG path). data_class: PUBLIC
     pub live_hardware_required: bool,
+    /// Ordered probe items. data_class: PUBLIC
     pub items: Vec<ProbePlanItem>,
+    /// Stable F1(a) consumption prose. data_class: PUBLIC
     pub f1a_consumption_note: String,
 }
 
 /// Build the scaffold probe plan: one SurfaceAvailability item per matrix row, plus one
-/// ComponentFootprint item per profiled component. All items start Stubbed.
-pub fn build_probe_plan(root: &Value) -> Result<ProbePlan, String> {
+/// ComponentFootprint item per `components_profiled` entry (closed set validated by matrix).
+pub fn build_probe_plan(root: &Value) -> Result<ProbePlan, MatrixError> {
     matrix::validate_matrix(root)?;
     let rows = matrix::all_rows(root)?;
-    let mut items = Vec::with_capacity(rows.len() + PROFILE_TARGETS.len());
+    let components = matrix::profiled_component_ids(root)?;
+    let mut items = Vec::with_capacity(rows.len() + components.len());
     for row in &rows {
         items.push(ProbePlanItem {
             kind: ProbeKind::SurfaceAvailability,
@@ -75,10 +92,10 @@ pub fn build_probe_plan(root: &Value) -> Result<ProbePlan, String> {
             status: ProbeItemStatus::Stubbed,
         });
     }
-    for component in PROFILE_TARGETS {
+    for component in components {
         items.push(ProbePlanItem {
             kind: ProbeKind::ComponentFootprint,
-            target_id: component.to_string(),
+            target_id: component,
             surface: None,
             status: ProbeItemStatus::Stubbed,
         });
@@ -109,20 +126,24 @@ pub fn stub_probe_receipt(item: &ProbePlanItem) -> Value {
         "available_on_asterinas_pin": Value::Null,
         "evidence_path": PREFERRED_EVIDENCE_PATH,
         "live_hardware_required": false,
-        "notes": "Scaffold stub — QEMU-TCG probe not yet executed; unknown availability remains valid.",
+        "notes": "Scaffold stub — QEMU-TCG probe not yet executed; unknown availability remains valid. Scaffold ≠ green matrix.",
     })
 }
 
 /// Aggregate scaffold run: validate matrix, build plan, emit stub receipts, evaluate G5.
 #[derive(Debug, Clone)]
 pub struct ScaffoldRun {
+    /// Deterministic probe plan. data_class: PUBLIC
     pub plan: ProbePlan,
+    /// Stub receipts (not measured). data_class: PUBLIC
     pub stub_receipts: Vec<Value>,
+    /// G5 evaluation (PendingMeasurement on scaffold unknowns). data_class: PUBLIC
     pub g5: G5Evaluation,
+    /// Flattened matrix rows. data_class: PUBLIC
     pub rows: Vec<MatrixRow>,
 }
 
-pub fn run_scaffold() -> Result<ScaffoldRun, String> {
+pub fn run_scaffold() -> Result<ScaffoldRun, MatrixError> {
     let root = matrix::parse_matrix()?;
     let plan = build_probe_plan(&root)?;
     let stub_receipts = plan.items.iter().map(stub_probe_receipt).collect();
@@ -145,12 +166,16 @@ pub fn scaffold_summary_receipt(run: &ScaffoldRun) -> Value {
         .filter(|r| r["status"] == "stubbed")
         .count();
     let g5_json = match &run.g5 {
-        G5Evaluation::Clear {
+        G5Evaluation::PendingMeasurement {
             unknown_g5_row_ids,
         } => serde_json::json!({
-            "status": "clear",
+            "status": "pending_measurement",
             "unknown_g5_row_ids": unknown_g5_row_ids,
-            "note": "unknown does not fire G5; F1(a) remains blocked on measurement",
+            "note": "unknown does not fire G5 and must not serialize as clear; F1(a) remains blocked on measurement",
+        }),
+        G5Evaluation::Clear => serde_json::json!({
+            "status": "clear",
+            "note": "all G5 rows measured present with no gaps",
         }),
         G5Evaluation::Fired { gap_row_ids } => serde_json::json!({
             "status": "fired",
@@ -179,7 +204,7 @@ pub fn scaffold_summary_receipt(run: &ScaffoldRun) -> Value {
         "measured_today": [
             "matrix schema + column contract",
             "four surfaces present",
-            "G5-trigger flags",
+            "G5-trigger flags including cgroup delegation/enforcement rows",
             "pool-matrix notes",
             "probe plan enumeration",
         ],
@@ -188,6 +213,7 @@ pub fn scaffold_summary_receipt(run: &ScaffoldRun) -> Value {
             "guest-side QEMU surface probes",
             "available_on_asterinas_pin transitions",
         ],
+        "scaffold_is_not": "green_matrix",
     })
 }
 
@@ -217,15 +243,19 @@ mod tests {
     fn scaffold_run_is_hermetic_and_stubbed() {
         let run = run_scaffold().expect("scaffold");
         assert!(!run.plan.items.is_empty());
-        assert!(run.plan.items.iter().all(|i| i.status == ProbeItemStatus::Stubbed));
+        assert!(run
+            .plan
+            .items
+            .iter()
+            .all(|i| i.status == ProbeItemStatus::Stubbed));
         assert_eq!(run.plan.evidence_path, PREFERRED_EVIDENCE_PATH);
         assert!(!run.plan.live_hardware_required);
         assert_eq!(run.stub_receipts.len(), run.plan.items.len());
-        assert!(matches!(run.g5, G5Evaluation::Clear { .. }));
+        assert!(matches!(run.g5, G5Evaluation::PendingMeasurement { .. }));
     }
 
     #[test]
-    fn plan_covers_four_surfaces_and_four_components() {
+    fn plan_covers_four_surfaces_and_profiled_components() {
         let root = matrix::parse_matrix().unwrap();
         let plan = build_probe_plan(&root).unwrap();
         for surface in REQUIRED_SURFACES {
@@ -248,7 +278,7 @@ mod tests {
     }
 
     #[test]
-    fn summary_receipt_refuses_canonical_claim() {
+    fn summary_receipt_refuses_canonical_claim_and_clear_on_unknowns() {
         let run = run_scaffold().unwrap();
         let summary = scaffold_summary_receipt(&run);
         assert_eq!(
@@ -257,6 +287,8 @@ mod tests {
         );
         assert_eq!(summary["measured_receipt_count"], 0);
         assert!(summary["stubbed_receipt_count"].as_u64().unwrap() > 0);
+        assert_eq!(summary["g5_evaluation"]["status"], "pending_measurement");
+        assert_ne!(summary["g5_evaluation"]["status"], "clear");
     }
 
     #[test]

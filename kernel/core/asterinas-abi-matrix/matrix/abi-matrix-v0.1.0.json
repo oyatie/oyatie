@@ -5,12 +5,49 @@
   "schema_version": "0.1.0",
   "status": "scaffold",
   "wave": "A1-W0-entry",
-  "description": "Four-surface Linux-ABI measurement matrix for the pinned Asterinas release vs the node-stack footprint (runc/youki/containerd/kubelet). This is evidence scaffolding for founder decision F1(a); it does NOT claim Asterinas is the canonical node kernel.",
+  "description": "ABI/kernel-service measurement matrix (not syscalls alone) for the pinned Asterinas release vs the node-stack footprint (runc/youki/containerd/kubelet). v0.1.0 closes four surfaces; mandatory sub-surfaces and Round-4/5 row classes are scoped in a1_scope. Evidence scaffolding for founder decision F1(a); scaffold ≠ green matrix; does NOT claim Asterinas is the canonical node kernel.",
+  "a1_scope": {
+    "kind": "abi_kernel_service_matrix",
+    "not_merely": "syscalls",
+    "surfaces_v0_closed_set": [
+      "syscalls",
+      "proc_sys_cgroupfs",
+      "netlink",
+      "mount_semantics"
+    ],
+    "mandatory_sub_surfaces": [
+      "device",
+      "ioctl",
+      "ebpf",
+      "securityfs",
+      "lsm",
+      "pidfd",
+      "unix_cred"
+    ],
+    "round_4_5_row_classes": [
+      "io_uring",
+      "seccomp",
+      "device_driver"
+    ],
+    "netfilter_nftables_placement": "netlink surface row nl-netfilter (critical; kube-proxy has no netfilter-free mode)",
+    "container_critical_sub_surface_verdict_table": "A1 exit artifact — not claimed green by this scaffold",
+    "pool_posture": {
+      "linux_pools": "primary_production_path",
+      "asterinas_shared_kernel": "soak_until_a1_green"
+    },
+    "evidence_class_today": "boot_marker_or_scaffold_until_probes_run",
+    "scaffold_is_not": "green_matrix",
+    "out_of_code_scope_pointers": [
+      "CRI semantics",
+      "PID1 stub",
+      "runtime-controller / node supervisor"
+    ]
+  },
   "claim_posture": {
     "asterinas_is_canonical_node_kernel": false,
     "blocked_on": "F1(a)",
-    "evidence_role": "Feeds the F1(a) kernel + pool-matrix ruling: published surface delta + G5 trigger evaluation. Availability values may remain unknown until QEMU probe receipts land.",
-    "g5_fallback": "If cgroup v2 delegation, netlink, or overlayfs gaps persist as measured gaps (not merely unknown), Linux/Talos-class kernel stays the node kernel and Asterinas remains soak/boot evidence."
+    "evidence_role": "Feeds the F1(a) kernel + pool-matrix ruling: published surface delta + G5 trigger evaluation. Availability values may remain unknown until QEMU probe receipts land. Scaffold ≠ Accept; Founder Accept / F1 remain external.",
+    "g5_fallback": "If cgroup v2 delegation, netlink, or overlayfs gaps persist as measured gaps (not merely unknown), Linux pools remain the primary production path and Asterinas shared-kernel stays soak until A1 goes green."
   },
   "asterinas_pin": {
     "release_tag": "v0.17.2",
@@ -70,7 +107,7 @@
       "netlink",
       "overlayfs"
     ],
-    "evaluation_rule": "A G5-trigger row with available_on_asterinas_pin == gap (measured absence or non-enforcing) evaluates the G5 fallback. unknown does not fire G5; it keeps F1(a) blocked on measurement.",
+    "evaluation_rule": "A G5-trigger row with available_on_asterinas_pin == gap evaluates Fired. unknown does not fire G5 and MUST NOT serialize as clear — evaluate_g5 returns PendingMeasurement while unknowns remain. Clear is reserved for fully measured non-gap G5 rows. evaluate_g5 is declarative over the availability column for scaffold wiring; binding present/gap to probe receipts is a post-scaffold measurement obligation.",
     "evaluation_status": "pending_measurement"
   },
   "column_contract": {
@@ -169,7 +206,61 @@
           "available_on_asterinas_pin": "unknown",
           "severity": "high",
           "g5_trigger": true,
-          "notes": "cgroup v2 CPU accounting; G5 class cgroup_v2_delegation."
+          "notes": "cgroup v2 CPU accounting; G5 class cgroup_v2_delegation. Accounting-present ≠ delegation/enforcement."
+        },
+        {
+          "id": "fs-cgroup-controllers",
+          "name": "cgroup.controllers (discovery)",
+          "required_by_node_stack": ["kubelet", "runc", "youki"],
+          "available_on_asterinas_pin": "unknown",
+          "severity": "critical",
+          "g5_trigger": true,
+          "notes": "Controller discovery before enablement; G5 class cgroup_v2_delegation."
+        },
+        {
+          "id": "fs-cgroup-subtree-control",
+          "name": "cgroup.subtree_control (delegation)",
+          "required_by_node_stack": ["kubelet", "runc", "youki"],
+          "available_on_asterinas_pin": "unknown",
+          "severity": "critical",
+          "g5_trigger": true,
+          "notes": "Load-bearing cgroup v2 delegation: enable controllers on a subtree. Accounting files alone must not clear G5."
+        },
+        {
+          "id": "fs-cgroup-procs",
+          "name": "cgroup.procs (task migration)",
+          "required_by_node_stack": ["kubelet", "runc", "youki"],
+          "available_on_asterinas_pin": "unknown",
+          "severity": "critical",
+          "g5_trigger": true,
+          "notes": "Task migration into delegated cgroups; required for sandbox placement."
+        },
+        {
+          "id": "fs-cgroup-memory-max",
+          "name": "memory.max (enforcement)",
+          "required_by_node_stack": ["kubelet", "runc", "youki"],
+          "available_on_asterinas_pin": "unknown",
+          "severity": "critical",
+          "g5_trigger": true,
+          "notes": "Writable memory limit enforcement; distinct from memory.current accounting."
+        },
+        {
+          "id": "fs-cgroup-cpu-max",
+          "name": "cpu.max (enforcement)",
+          "required_by_node_stack": ["kubelet", "runc", "youki"],
+          "available_on_asterinas_pin": "unknown",
+          "severity": "critical",
+          "g5_trigger": true,
+          "notes": "Writable CPU limit enforcement; distinct from cpu.stat accounting."
+        },
+        {
+          "id": "fs-cgroup-pids-max",
+          "name": "pids.max (enforcement)",
+          "required_by_node_stack": ["kubelet", "runc", "youki"],
+          "available_on_asterinas_pin": "unknown",
+          "severity": "high",
+          "g5_trigger": true,
+          "notes": "PID limit enforcement for sandbox fan-out control."
         },
         {
           "id": "fs-statfs-eviction",
@@ -220,7 +311,7 @@
           "available_on_asterinas_pin": "unknown",
           "severity": "critical",
           "g5_trigger": true,
-          "notes": "kube-proxy has no netfilter-free mode; measured gap here is a hard G5 signal."
+          "notes": "Netfilter/nftables placement is explicit on the netlink surface (not a separate surface). kube-proxy has no netfilter-free mode; measured gap here is a hard G5 signal."
         }
       ]
     },
