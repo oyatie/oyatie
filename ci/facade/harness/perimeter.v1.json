@@ -6,7 +6,12 @@
   "achieves": "Close the prose-only backdoor where advisory channels write the main checkout; keep hotfix/* from becoming an ungoverned trunk escape.",
   "origin": "16-lens northstar R10 (northstar-perimeter); model-routing optional advisory channels.",
   "rule": {
-    "advisory_channels": ["omx", "omc", "gjc", "grok"],
+    "advisory_channels": [
+      "omx",
+      "omc",
+      "gjc",
+      "grok"
+    ],
     "advisory_must": "run in scratch worktrees or clones under .worktrees/ (or an explicit scratch clone path)",
     "advisory_must_not": [
       "write the main checkout",
@@ -14,16 +19,19 @@
       "replace Task model: slug dispatch for implement/scout",
       "treat CursorBench ranks as transferable to these channels"
     ],
-    "madmax": "omx/omc --madmax = permission bypass + tmux (compound); founder-optional only — never worker-lane normal",
+    "madmax": "omx/omc --madmax = permission bypass + tmux (compound); founder-optional only \u2014 never worker-lane normal",
     "hotfix_trunk": {
-      "allowed_heads": ["integ/*", "hotfix/*"],
+      "allowed_heads": [
+        "integ/*",
+        "hotfix/*"
+      ],
       "hotfix_requires": "founder ack OR incident evidence before Phase B gate admits hotfix/*",
-      "note": "Prose alone is not a backdoor — encode the gate; do not invent hotfix lands without evidence"
+      "note": "Prose alone is not a backdoor \u2014 encode the gate; do not invent hotfix lands without evidence"
     }
   },
   "ensure": [
-    ".grok/harness/perimeter.v1.json is the policy-as-data pin for advisory scratch",
-    ".grok/swarm/README.md + PORTABLE cite this file (do not re-list channel matrices elsewhere as SSOT)",
+    "ci/facade/harness/perimeter.v1.json is the policy-as-data pin for advisory scratch",
+    "PORTABLE + envelopes#perimeter cite this file (do not re-list channel matrices elsewhere as SSOT)",
     "main checkout remains orchestrator + check-daemon (+ human founder) only for durable writes"
   ],
   "overturn_when": [

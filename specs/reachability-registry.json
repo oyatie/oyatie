@@ -782,7 +782,7 @@
       "prefix": "tools/opensk-vendored/UPSTREAM-CONFIG.json"
     },
     {
-      "anchor": "ADR-0711 D-9: tools/swarm process-kit birth aborted on #1644 (automation-language-policy); deferred to .grok/ Rust-first. Prefix retained as tombstone / do-not-birth marker until .grok/ lands.",
+      "anchor": "ADR-0711 D-9: tools/swarm process-kit birth aborted on #1644 (automation-language-policy). Forever home encoded: ci/process-kit/** (Buck //ci/process-kit:…) + ci/facade/harness/{daemon-hotset,perimeter}.v1.json. Prefix retained as tombstone / do-not-birth marker.",
       "prefix": "tools/swarm/",
       "status": "deferred"
     },

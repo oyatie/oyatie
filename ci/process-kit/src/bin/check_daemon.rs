@@ -26,7 +26,7 @@ fn main() -> ExitCode {
         }
     }
     eprintln!(
-        "check-daemon: OK (stub) — buck target //.grok/process-kit:oya-process-kit-check-daemon; \
+        "check-daemon: OK (stub) — buck target //ci/process-kit:oya-process-kit-check-daemon; \
          full //[check] fan-out pending integ/build membership"
     );
     ExitCode::SUCCESS

@@ -1,5 +1,6 @@
-# Rust-first process-kit (ADR-0711). Root Cargo.toml membership is owned by
-# integ/build (#planes.root_manifests) — no [package] here until that absorb.
+# Rust-first process-kit forever home: ci/process-kit (ADR-0711; roots.ci).
+# Root Cargo.toml membership is owned by integ/build (#planes.root_manifests) —
+# no [package] here until that absorb. BAN agent-dotdirs as forever homes.
 
 rust_library(
     name = "oya-process-kit",

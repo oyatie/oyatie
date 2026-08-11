@@ -15,6 +15,11 @@
 #   admission.policy allows in-envelope paths via envelope_globs (no tip-free tax).
 #   MUST NOT require hub edits (specs/**, ci/**) for LOCAL_GREEN.
 #
+# Tip entitlement (cheap doc now — see ci/REORG-DRAIN.md):
+#   SKIP Profile A expensive jobs when tip_class == idle OR preflight receipt is
+#   missing. Absence of receipt = skip (not CODE fail). Do not treat idle tips as
+#   entitled to full LOCAL_GREEN spend.
+#
 # Retired brands (comments only): oya-ci-required, firewall, cloud-ci-firewall.
 name: domain-stabilize
 on:

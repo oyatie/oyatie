@@ -1,7 +1,8 @@
 //! Rust-first process-kit primitives (ADR-0711 / PORTABLE-SWARM-CONTRACT).
 //!
 //! Shell `tools/swarm/**` birth was aborted on #1644 (automation-language ceiling).
-//! This crate is the forever home under `roots.grok` → `integ/ci`.
+//! Forever home: `ci/process-kit/**` under `roots.ci` → `integ/ci`
+//! (BAN agent-dotdirs as forever homes).
 
 pub mod claim_push;
 pub mod git_shim;
