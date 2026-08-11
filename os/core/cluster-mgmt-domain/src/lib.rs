@@ -127,6 +127,7 @@ impl From<os_kernel::Error> for ClusterError {
 ///
 /// This ties the modules together with a provisioner injected by the caller so
 /// the OS boundary stays behind a trait.
+#[cfg(any(test, feature = "modeled-crypto"))]
 pub fn create_cluster<P: Provisioner>(
     spec: &ClusterSpec,
     provisioner: &mut P,
@@ -177,6 +178,89 @@ mod tests {
 
     fn docker_spec() -> ClusterSpec {
         ClusterSpec::new("test", 1, 2, ProvisionerKind::Docker)
+    }
+
+    /// The feature must never become a DEFAULT feature.
+    ///
+    /// Non-defaultness is the load-bearing property of the whole gate: the
+    /// `cfg` above only strips the constructors while the feature is off, and a
+    /// `default` entry turns it on for every `cargo build` in the workspace.
+    /// Before this test that property was carried by a comment in `Cargo.toml`
+    /// and nothing else, and buck2 cannot notice the change because buck2
+    /// features come from the target attribute and never consult `Cargo.toml`.
+    ///
+    /// Sibling of the same guard in `os-secrets-domain` and `os-trustd-domain`.
+    /// Proven to fire by adding `default = ["modeled-crypto"]` to `[features]`.
+    #[test]
+    fn cargo_manifest_declares_no_default_feature() {
+        let features: Vec<&str> = include_str!("../Cargo.toml")
+            .lines()
+            .skip_while(|l| l.trim() != "[features]")
+            .skip(1)
+            .take_while(|l| !l.trim_start().starts_with('['))
+            .map(str::trim)
+            .filter(|l| !l.is_empty() && !l.starts_with('#'))
+            .collect();
+
+        assert_eq!(
+            features,
+            ["modeled-crypto = []"],
+            "Cargo.toml [features] must not declare `default`: modeled-crypto \
+             is non-default and that is the whole barrier"
+        );
+    }
+
+    /// No buck2 target in this package may enable the model.
+    ///
+    /// The sibling of `no_production_buck_target_enables_the_model` in
+    /// `os-secrets-domain`, and the reason it has to exist here too: that crate
+    /// closed the INSTANCE and this one was left open, which is the exact class
+    /// failure this branch is about. `Cargo.toml` and the `cfg` attributes are
+    /// half the barrier; the other half is the build graph, and buck2 features
+    /// come from the target attribute, so a `features = ["modeled-crypto"]` on
+    /// the production `rust_library` would hand the modeled `Secret` and
+    /// `SecretsBundle` constructors to every consumer without touching a line
+    /// of Rust or of the manifest — invisible to both existing guards.
+    ///
+    /// Zero, not one: unlike `os-secrets-domain` there is no modeled *target*
+    /// here. The gate is `cfg(any(test, feature = "modeled-crypto"))`, so the
+    /// `rust_test` already sees the modeled items through `test` and no target
+    /// in this package ever needs the feature. Any occurrence is therefore a
+    /// production one.
+    ///
+    /// The `contains` line below is what makes this anti-vacuous: an assertion
+    /// that a count is zero passes on an empty string, so the test first proves
+    /// it read the BUCK file it meant to read.
+    ///
+    /// Proven to fire, by mutation: adding `features = ["modeled-crypto"]` to
+    /// the `os-cluster-mgmt-domain` `rust_library` gives
+    ///
+    /// ```text
+    /// assertion `left == right` failed: no buck2 target in this package may
+    /// enable modeled-crypto
+    ///   left: 1
+    ///  right: 0
+    /// ```
+    #[test]
+    fn no_buck_target_enables_the_model() {
+        let buck: String = include_str!("../BUCK")
+            .lines()
+            .filter(|l| !l.trim_start().starts_with('#'))
+            .collect::<Vec<_>>()
+            .join("\n");
+
+        assert!(
+            buck.contains("os-cluster-mgmt-domain"),
+            "read the wrong BUCK file: a zero-count assertion below would pass vacuously"
+        );
+        assert_eq!(
+            buck.matches("modeled-crypto").count(),
+            0,
+            "no buck2 target in this package may enable modeled-crypto: the crate gate \
+             is cfg(any(test, feature = \"modeled-crypto\")), so the rust_test already \
+             sees the modeled items via `test`, and the only thing a feature attribute \
+             here could do is put them in a production library"
+        );
     }
 
     #[test]
@@ -445,6 +529,91 @@ mod tests {
         let mut p = InMemoryProvisioner::new(ProvisionerKind::Docker);
         let err = create_cluster(&spec, &mut p).unwrap_err();
         assert_eq!(err.kind(), "invalid");
+    }
+
+    /// Every constructor that mints modeled CA/token material — and every
+    /// function that transitively reaches one — must stay behind the
+    /// non-default `modeled-crypto` gate, so a production build cannot link a
+    /// path that yields CA keys derived from the cluster name. `Secret` has a
+    /// private field and no other constructor, so gating `Secret::derive`
+    /// makes the whole downstream bundle unconstructible off-feature.
+    ///
+    /// The barrier is the `cfg`; this test only proves it does not silently
+    /// disappear.
+    // ponytail: source-text assertion. A `cfg` cannot be observed from inside a
+    // build where it is enabled, and a compile-fail harness (trybuild) would be
+    // a new dependency.
+    //
+    // That the gate BITES is proven separately, and by execution rather than by
+    // assertion — a rule never seen to fire is the false green it exists to
+    // prevent. Adding `pub fn probe() -> Secret { Secret::derive("prod") }` to
+    // `gen.rs`, outside `cfg(test)`, and building the PRODUCTION target:
+    //
+    //   buck2 build //os/core/cluster-mgmt-domain:os-cluster-mgmt-domain
+    //   error[E0599]: no associated function or constant named `derive` found
+    //                 for struct `Secret` in the current scope
+    //   BUILD FAILED
+    //
+    // Not merely private off-feature: it does not EXIST, so no caller can reach
+    // modeled CA material and no downstream bundle can be constructed. The
+    // `rust_library` rule in BUCK declares no `features`, so no production
+    // target can turn `modeled-crypto` on. This test guards the attribute that
+    // makes that true.
+    #[test]
+    fn modeled_crypto_constructors_stay_behind_the_gate() {
+        const GATE: &str = "#[cfg(any(test, feature = \"modeled-crypto\"))]";
+
+        // (source file, item signature)
+        let required: [(&str, &str); 7] = [
+            (include_str!("gen.rs"), "pub fn derive(seed: &str) -> Self {"),
+            (
+                include_str!("gen.rs"),
+                "fn derive(cluster: &str, kind: &str) -> Self {",
+            ),
+            (
+                include_str!("gen.rs"),
+                "pub fn generate(cluster_name: &str) -> Result<Self, ClusterError> {",
+            ),
+            (
+                include_str!("gen.rs"),
+                "pub fn generate(input: &GenInput) -> Result<Self, ClusterError> {",
+            ),
+            (include_str!("gen.rs"), "pub fn generate_with_secrets("),
+            (
+                include_str!("bundle.rs"),
+                "pub fn plan(spec: &ClusterSpec) -> Result<Self, ClusterError> {",
+            ),
+            (
+                include_str!("lib.rs"),
+                "pub fn create_cluster<P: Provisioner>(",
+            ),
+        ];
+
+        // Prefix-match the last non-blank preceding LINE, rather than
+        // suffix-matching the text before the signature. The earlier
+        // `src[..i].trim_end().ends_with(GATE)` was satisfied by
+        // `// #[cfg(any(test, feature = "modeled-crypto"))]` — a commented-out
+        // gate still ends with the gate string — so the quiet way to remove
+        // the barrier left this test green while the item became unconditional
+        // and linkable by production. Deletion was caught; commenting out was
+        // not. Same shape as `os_secrets_domain::tests::crate_root_gate_is_present`
+        // and `os_trustd_domain::token::tests::gated`.
+        //
+        // Proven to fire, by mutation: commenting out the gate above
+        // `pub fn derive(seed: &str) -> Self {` in `gen.rs` gives
+        //
+        //   `pub fn derive(seed: &str) -> Self {` must be immediately preceded
+        //   by #[cfg(any(test, feature = "modeled-crypto"))]
+        for (src, signature) in required {
+            let gated = src.match_indices(signature).any(|(i, _)| {
+                src[..i]
+                    .lines()
+                    .rev()
+                    .find(|l| !l.trim().is_empty())
+                    .is_some_and(|l| l.trim_start().starts_with(GATE))
+            });
+            assert!(gated, "`{signature}` must be immediately preceded by {GATE}");
+        }
     }
 
     #[test]
