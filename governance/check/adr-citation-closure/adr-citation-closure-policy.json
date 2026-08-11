@@ -37,7 +37,7 @@
     "archived_with_successor": 425,
     "rejected": 16,
     "citation_lines": 9016,
-    "files_scanned": 16610,
+    "files_scanned": 16611,
     "adr_citation_closure_mismatch": 252,
     "adr_citation_dangling_path": 2293,
     "adr_citation_rejected_authority": 3,
@@ -77,7 +77,8 @@
     "_integ_docs_restack_after_1659_2026_08_11_pr1645": "PR #1645 integ/docs restack onto origin/dev@4232ea2ed after #1659 land. Kept origin/dev citation policy tip (oyatie-o90 — never trust git merge of this file; files_scanned 16606, citation_lines 8921 from #1659). Gate observed files_scanned 16606 vs frozen 16606 (net 0). Attribution: docs absorb relocates checklists to templates/checklists and deletes audit/scratch planes while adding node-stack ADR/discovery docs — net corpus shrink. lifecycle stage_not_declared held at 1921 after tip 207d633 declared doc_status on release-readiness. citation_lines/finding ceilings re-asserted after this files_scanned re-freeze. Also shrink adr_citation_dangling_path 2002->2000 (observed by gate after restack; repaired/removed dangling citations from checklist relocate).",
     "_integ_docs_restack_remeasure_2026_08_11_pr1645_after_1644": "PR #1645 integ/docs merge origin/dev@8aa043a03 after #1644. Kept origin/dev policy tip (oyatie-o90); unioned F1 ADR-0712..0715 with Swarm ADR-0711. Provisional files_scanned=16616 citation_lines=8996 adr_records=464 live_apexes=16; finding ceilings=min(docs,dev).",
     "_integ_docs_affected_set_remeasure_2026_08_11_pr1645": "PR #1645 tip 33b94f6e1 after ADR-INDEX regen. Live gate observed files_scanned 16610 (was frozen 16616), citation_lines 9016 (was 8996), adr_citation_dangling_path 2293 (was incorrectly frozen 2000 via min(docs,dev) after #1644; #1644 tip carried ~2295 from friction-ledger absorption). adr_records 464 / live_apexes 16 held. Other finding ceilings held (mismatch 252, rejected_authority 3, asymmetry 29, unresolvable 8, ambiguous 2). files_scanned -6 is genuine tracked/scanned corpus shrink from the docs absorb + index regen (not scan narrowing). Re-frozen in the same change per gate contract; values read from check-adr-citation-closure-gate assertion text.",
-    "_integ_docs_restack_after_1933_2026_08_11_pr1645": "PR #1645 integ/docs restack onto origin/dev@713dc2ea1 after #1933. Kept origin/dev policy tip including _integ_specs_tipfree_1933 (oyatie-o90). Census from pre-restack tip gate: files_scanned=16610 citation_lines=9016 adr_records=464 live_apexes=16 dangling_path=2293. CI may re-freeze if observed differs."
+    "_integ_docs_restack_after_1933_2026_08_11_pr1645": "PR #1645 integ/docs restack onto origin/dev@713dc2ea1 after #1933. Kept origin/dev policy tip including _integ_specs_tipfree_1933 (oyatie-o90). Census from pre-restack tip gate: files_scanned=16610 citation_lines=9016 adr_records=464 live_apexes=16 dangling_path=2293. CI may re-freeze if observed differs.",
+    "_integ_docs_restack_remeasure_2026_08_11_pr1645_after_1933": "PR #1645 integ/docs restack onto origin/dev@713dc2ea1 after #1933. Kept origin/dev policy tip (oyatie-o90) then remeasured live. Updated files_scanned=16611."
   },
   "product_contract": {
     "born_blocking": "Born BLOCKING and RED. Unlike a coverage ratchet there is no defensible ceiling here: a citation that resolves to the wrong apex is not debt to be burned down, it is a statement that is false today, and freezing a ceiling would licence the corpus to keep lying at its current rate. The gate reports every mismatch and fails until they are repaired.",
