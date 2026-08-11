@@ -33,10 +33,10 @@ doc_status: published
 | ADR-0709 | Accepted | Live general architecture and remaining accepted doctrine | council-architecture | [`ADR-0709-general-live-apex.md`](decisions/ADR-0709-general-live-apex.md) |
 | ADR-0710 | Proposed | Kubernetes admission substrate is the API server: VAP/CEL + PSA, no policy webhook | council-architecture | [`ADR-0710-kubernetes-admission-substrate-is-the-api-server.md`](decisions/ADR-0710-kubernetes-admission-substrate-is-the-api-server.md) |
 | ADR-0711 | Proposed | Node kernel + pool matrix: Asterinas shared-kernel pools with co-selected stripped-Linux KVM SKU | council-architecture | [`ADR-0711-node-kernel-pool-matrix.md`](decisions/ADR-0711-node-kernel-pool-matrix.md) |
-| ADR-0712 | Proposed | Owned node runtime: supervisor libraries, no manager daemon; CRI external face; Go containerd bootstrap CONSUME | council-architecture | [`ADR-0712-owned-node-runtime-no-manager-daemon.md`](decisions/ADR-0712-owned-node-runtime-no-manager-daemon.md) |
+| ADR-0712 | Proposed | Owned node runtime — supervisor libraries, no manager daemon | council-architecture | [`ADR-0712-owned-node-runtime-no-manager-daemon.md`](decisions/ADR-0712-owned-node-runtime-no-manager-daemon.md) |
 | ADR-0713 | Proposed | Runtime tier rename to isolation-property names with orthogonal placement axis | council-architecture | [`ADR-0713-isolation-property-runtime-tier-names.md`](decisions/ADR-0713-isolation-property-runtime-tier-names.md) |
 | ADR-0714 | Proposed | ADR-0710 Accept/Reject is blocked on D-8 workload-boundary evidence | council-architecture | [`ADR-0714-adr-0710-accept-blocked-on-d8.md`](decisions/ADR-0714-adr-0710-accept-blocked-on-d8.md) |
-| ADR-0715 | Proposed | OS-layer retirement: node supervisor as OS; apex noun amend proposal; os/ harvest-then-retire | council-architecture | [`ADR-0715-os-layer-retirement-supervisor-as-os.md`](decisions/ADR-0715-os-layer-retirement-supervisor-as-os.md) |
+| ADR-0715 | Proposed | OS-layer retirement — node supervisor as OS; apex noun amend proposal | council-architecture | [`ADR-0715-os-layer-retirement-supervisor-as-os.md`](decisions/ADR-0715-os-layer-retirement-supervisor-as-os.md) |
 
 ## Update protocol
 
