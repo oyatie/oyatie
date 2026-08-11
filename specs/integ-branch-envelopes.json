@@ -6,7 +6,7 @@
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
     "spec_id": "EXE-INTEG-BRANCH-ENVELOPES",
-    "version": "1.16.19",
+    "version": "1.16.20",
     "status": "Accepted",
     "owner_team": "council-architecture",
     "created_at": "2026-08-10T00:00:00Z",
@@ -14,7 +14,7 @@
     "self_owner_branch": "integ/specs",
     "primary_consumer": "governance/check/integ-envelope + .claude/workflows/deliver.js Claim",
     "purpose": "Policy-as-data for envelope containment, hub sole-owner, adjunct claims, concurrent-safe exemptions, process-kit deferred to .grok/ (Rust-first; no tools/swarm birth on #1644), hyperscaler monorepo patterns, Amendment B ternary layout + Pattern-First taxonomy + 16-lens judgment (volatile judgments live under governance/check/integ-envelope/judgments/), Amendment C operating-patterns catalog, Amendment D anti-drift INV-DOC-1…9 + Claim↔diff bind, merge_windows, mechanical Claim packet, and process-meta / forward-declared roots under Swarm Delivery Law, daemon_hotset + perimeter northstar, rules-with-why / adr-rename-overturn.",
-    "prior_version": "1.16.18"
+    "prior_version": "1.16.19"
   },
   "admission": {
     "trunk": "dev",
@@ -4148,11 +4148,45 @@
         "path": "intelligence/",
         "action": "keep_forever",
         "greenfield_destination": "intelligence/{core,ports,adapters,facade}/",
-        "shape": "registered capability; absorb oya/intelligence",
+        "shape": "registered capability root; absorb oya/intelligence through the capability faces",
         "redesign": "none",
-        "judgment_status": "pending",
-        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `intelligence/` → `intelligence/{core,ports,adapters,facade}/` (registered capability; absorb oya/intelligence). Full 7-point judgment still pending before structural change.",
-        "destination": "intelligence/{core,ports,adapters,facade}/"
+        "judgment_status": "done",
+        "rationale": "1) The registered intelligence root is the durable capability home. 2) oya/intelligence is legacy inventory, not a second root. 3) Provide the owned intelligence substrate. 4) It must retain the four capability faces under intelligence/. 5) Fit ADR-0701 and the closed capability registry. 6) keep-as-is. 7) Forever: intelligence/.",
+        "destination": "intelligence/{core,ports,adapters,facade}/",
+        "disposition": "keep-as-is",
+        "evidence": [
+          "registered roots.intelligence envelope: intelligence/**",
+          "origin/dev intelligence/ and oya/intelligence/ are distinct capability/source evidence surfaces",
+          "PR #1694 owns the intelligence/** rail but is not merge evidence",
+          "destination receipt remains required before any integ/oya source shrink"
+        ],
+        "destination_integ": "integ/intelligence",
+        "land_status": "ready_for_integ_intelligence",
+        "land_when": "Judgment closure only: destination-owned absorb and any source shrink remain separately receipt-gated.",
+        "kind": "capability-root",
+        "grammar_compliant": true,
+        "name_now": "intelligence/",
+        "name_forever": "intelligence/",
+        "lenses_applied": "all-16",
+        "challenges": [
+          "chestertons_fence: the registered intelligence/ root is already the durable capability home; do not preserve an accidental oya/ alias",
+          "cartesian_doubt: intelligence/ and oya/intelligence/ are distinct evidence surfaces; verify ownership before any source shrink",
+          "essentialism_yagni: one capability root with the four faces is enough; do not mint another intelligence mega-root",
+          "contrarian: reject treating #1694 hygiene as a judgment close or treating a parked PR as merge evidence",
+          "pragmatism: close the row now, but leave byte absorb and source shrink to destination-owned work",
+          "systems_thinking: integ/intelligence owns intelligence/**; integ/oya may shrink only after a destination receipt",
+          "blast_radius_cell: keep the packet root-scoped; no hubs, Cargo.lock, or cross-capability edits",
+          "opportunity_cost: a closed judgment removes ambiguity without pretending the capability migration is landed",
+          "red_team: a future integ/app or app/intelligence/<context> nest would recreate the forbidden serialization",
+          "operability_day2: the destination rail and four-face home give the capability one debuggable owner",
+          "finops_unit_cost: avoid duplicating capability engines across intelligence/ and oya/intelligence/",
+          "shared_nothing: tenant/product compositions consume the capability; they do not own its engine",
+          "constant_work: judgment closure is deterministic and bounded; no speculative destination rewrite belongs here",
+          "socratic: the row answers where intelligence belongs with the registered root, not with a new product rail",
+          "outside_the_box: retain the existing root and use parked #1694 hygiene as evidence, not as a reason to invent a third home",
+          "zero_trust: require path-scoped receipts and CI evidence before accepting any source deletion or cross-root claim"
+        ],
+        "shrink_source_integ": "integ/oya"
       },
       {
         "path": "workflow/",
@@ -6225,7 +6259,8 @@
       "oya/marketing-automation/",
       "oya/performance-management/",
       "oya/production-planning/",
-      "oya/whiteboard/"
+      "oya/whiteboard/",
+      "intelligence/"
     ],
     "banned_operations": [
       "git_mv_only_without_judgment",
