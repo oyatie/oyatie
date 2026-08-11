@@ -114,7 +114,7 @@ If backend logs show ETag computation errors → backend regression.
    ```bash
    git switch -c rollback/calendar-caldav-$INCIDENT_ID dev
    # Reset the release pointer/evidence to the prior LTS pin, commit the rollback PR,
-   # and require Jenkins + `oya gate run-all --ci-required` before merge.
+   # and require `oya-ci-required` + `oya gate run-all --ci-required` before merge.
    ```
 2. Page council-architecture; the regression is in our strong-ETag
    computation (per ADR-CAL-0001 — backend-qualified adapter must

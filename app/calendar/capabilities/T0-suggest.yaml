@@ -12,7 +12,7 @@
 doc_class: AutonomyTierCatalog
 microservice: calendar
 tier: T0
-owner_team: axis-calendar + foundry-runtime + council-privacy
+owner_team: axis-calendar + platform-runtime + council-privacy
 date: 2026-05-17
 review_cadence: per-capability-launch + quarterly
 
@@ -39,7 +39,7 @@ capabilities:
       surface: free/busy projection only — NEVER raw event content
       rule: oya-calendar-availability-resolver-domain enforces FreeBusyProjection minimum-necessary (PRD AC-02)
     model:
-      primary: tenant-default-llm (foundry-runtime managed) for slot ranking
+      primary: tenant-default-llm (platform-runtime managed) for slot ranking
       fallback: rule-based heuristic (next-3-business-hours)
       private_inference: tenant-DEK-wrapped prompt; no cross-tenant training
     latency_budget_p99_ms: 300

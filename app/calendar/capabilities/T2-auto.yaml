@@ -16,7 +16,7 @@
 doc_class: AutonomyTierCatalog
 microservice: calendar
 tier: T2
-owner_team: axis-calendar + foundry-runtime + council-privacy
+owner_team: axis-calendar + platform-runtime + council-privacy
 date: 2026-05-17
 review_cadence: per-capability-launch + quarterly + annually for AI Act conformity
 

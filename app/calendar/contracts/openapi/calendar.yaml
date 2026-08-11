@@ -417,7 +417,6 @@ components:
         purpose: >-
           Declare that every oya-governance-* CI lane prefix in the Oyatie corpus RENAMES to oya-governance-* in a single bulk-rename pull request.
         enforced_by:
-          - oya-governance-no-foundry-fitness-residue
           - oya-governance-lane-prefix-vocabulary
           - oya-governance-rename-inventory-presence
       ADR-0348:
@@ -437,12 +436,12 @@ components:
           manifest_block: sharding_automation declares autosharding, auto_rebalance, and dynamic_sharding sub-blocks.
       ADR-0349:
         purpose: >-
-          Preserve Jenkins/Prow-shaped wording as historical provenance while ADR-0515 makes GitHub Actions the live runner until explicit owned-runner cutover; ArgoCD remains a bridge/reference CD adapter where separately authorized.
+          Preserve legacy-CI-shaped wording as historical provenance while ADR-0515 makes GitHub Actions the live runner until explicit owned-runner cutover; ArgoCD remains a bridge/reference CD adapter where separately authorized.
         enforced_by:
-          - oya-governance-jenkins-github-actions-parity
+          - oya-governance-github-actions-parity
           - oya-governance-argocd-application-cosign-verified
           - oya-governance-argocd-tenant-namespace-isolation
-          - oya-governance-jenkins-jcasc-only
+          - oya-governance-owned-ci-declarative-only
           - oya-governance-deploy-audit-chain-emit
     consumer_guidance:
       generators: Ignore this x-extension for SDK and server wire generation.
