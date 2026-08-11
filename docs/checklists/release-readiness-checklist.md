@@ -1,17 +1,22 @@
 ---
 doc_class: Checklist
 checklist_id: CHK-REL
-status: pending approval
+status: Accepted
+date: 2026-05-12
 purpose: |
   Milestone-level release gate. Walked at every wave-gate boundary per `docs/ROADMAP.md §2`. Trace to `.omc/plans/MASTERPLAN.md §13 Definition of done`.
-lift_target: oyatie/templates/checklists/release-readiness.md
 enforcing_fitness_lane: oya-governance-release-readiness
 owner_team: ops-sre-reliability + council-architecture
 related:
   - docs/RELEASE-MANAGEMENT.md
   - docs/ROADMAP.md
   - .omc/plans/MASTERPLAN.md
-  - /templates/checklists/per-phase-completion-checklist.md
+  - docs/checklists/per-phase-completion-checklist.md
+adrs_cited:
+  - ADR-0052  # inventory ledger (wave-gate audit emission)
+  - ADR-0053  # sanctioned primitives (agent release path)
+  - ADR-0054  # scaffold-claim (capability scaffolding at release)
+doc_status: published
 ---
 
 # Release Readiness Checklist (wave-gate)
