@@ -8646,7 +8646,18 @@
           "ADR-0714",
           "ADR-0701"
         ],
-        "evidence_refs": []
+        "evidence_refs": [],
+        "runtimeclass_alias_lifetime": {
+          "legacy_runtime_class": "kata-cloud-hypervisor",
+          "maps_to": "private-kernel",
+          "introduction_work_item": "MPV2-0055",
+          "lifetime": "exactly-one-contiguous-execution-wave-after-rename-encode-lands",
+          "removal_transition": "blocking-allowlist-and-alias-deletion-in-next-contiguous-wave-or-fail-closed",
+          "evaluator": "encode-time-runtime-class-alias-lifetime (activates on Accept; planning-only while Proposed)"
+        },
+        "depends_on_work_items": [
+          "MPV2-0053"
+        ]
       },
       {
         "id": "MPV2-0056",
@@ -8668,7 +8679,7 @@
           "expiry_outcome_if_d8_unresolved": "explicit-reject-adr-0710-hosted-topology-self-fail",
           "silent_accept_forbidden": true,
           "evaluator": "cloud-ci-cross-artifact-agreement/masterplan-v2-decision-timebox",
-          "expiry_enforcement": "hermetic: schema always; calendar fire when as_of_utc_date (on this object) or masterplan_v2.governance_evaluation_clock.utc_date is set past deadline_utc_date — never wall-clock"
+          "expiry_enforcement": "hermetic: schema always; calendar fire when as_of_utc_date (on this object) or masterplan_v2.governance_evaluation_clock.utc_date is set past deadline_utc_date — never wall-clock; closure required regardless of work-item open/closed status"
         }
       }
     ],
@@ -8888,6 +8899,11 @@
         "from": "MPV2-0051",
         "to": "MPV2-0052",
         "relationship": "k8s-port-w0-phase-ordering"
+      },
+      {
+        "from": "MPV2-0053",
+        "to": "MPV2-0055",
+        "relationship": "unblocks"
       }
     ],
     "sequencing": {
@@ -9047,93 +9063,93 @@
         },
         {
           "index": 26,
-          "work_item_id": "MPV2-0055",
-          "derivation_basis": "no prerequisites in masterplan_v2.dependency_edges"
-        },
-        {
-          "index": 27,
           "work_item_id": "MPV2-0056",
           "derivation_basis": "no prerequisites in masterplan_v2.dependency_edges"
         },
         {
-          "index": 28,
+          "index": 27,
           "work_item_id": "MPV2-0002",
           "derivation_basis": "depends on MPV2-0001 in masterplan_v2.dependency_edges"
         },
         {
-          "index": 29,
+          "index": 28,
           "work_item_id": "MPV2-0003",
           "derivation_basis": "depends on MPV2-0001 in masterplan_v2.dependency_edges"
         },
         {
-          "index": 30,
+          "index": 29,
           "work_item_id": "MPV2-0005",
           "derivation_basis": "depends on MPV2-0001 in masterplan_v2.dependency_edges"
         },
         {
-          "index": 31,
+          "index": 30,
           "work_item_id": "MPV2-0006",
           "derivation_basis": "depends on MPV2-0001 in masterplan_v2.dependency_edges"
         },
         {
-          "index": 32,
+          "index": 31,
           "work_item_id": "MPV2-0008",
           "derivation_basis": "depends on MPV2-0009, MPV2-0010, MPV2-0011, MPV2-0012, MPV2-0013, MPV2-0014, MPV2-0015, MPV2-0016, MPV2-0017 in masterplan_v2.dependency_edges"
         },
         {
-          "index": 33,
+          "index": 32,
           "work_item_id": "MPV2-0018",
           "derivation_basis": "depends on MPV2-0019 in masterplan_v2.dependency_edges"
         },
         {
-          "index": 34,
+          "index": 33,
           "work_item_id": "MPV2-0020",
           "derivation_basis": "depends on MPV2-0021, MPV2-0022 in masterplan_v2.dependency_edges"
         },
         {
-          "index": 35,
+          "index": 34,
           "work_item_id": "MPV2-0029",
           "derivation_basis": "depends on MPV2-0028 in masterplan_v2.dependency_edges"
         },
         {
-          "index": 36,
+          "index": 35,
           "work_item_id": "MPV2-0030",
           "derivation_basis": "depends on MPV2-0028 in masterplan_v2.dependency_edges"
         },
         {
-          "index": 37,
+          "index": 36,
           "work_item_id": "MPV2-0031",
           "derivation_basis": "depends on MPV2-0028 in masterplan_v2.dependency_edges"
         },
         {
-          "index": 38,
+          "index": 37,
           "work_item_id": "MPV2-0032",
           "derivation_basis": "depends on MPV2-0028 in masterplan_v2.dependency_edges"
         },
         {
-          "index": 39,
+          "index": 38,
           "work_item_id": "MPV2-0033",
           "derivation_basis": "depends on MPV2-0034 in masterplan_v2.dependency_edges"
         },
         {
-          "index": 40,
+          "index": 39,
           "work_item_id": "MPV2-0035",
           "derivation_basis": "depends on MPV2-0034 in masterplan_v2.dependency_edges"
         },
         {
-          "index": 41,
+          "index": 40,
           "work_item_id": "MPV2-0037",
           "derivation_basis": "depends on MPV2-0036 in masterplan_v2.dependency_edges"
         },
         {
-          "index": 42,
+          "index": 41,
           "work_item_id": "MPV2-0042",
           "derivation_basis": "depends on MPV2-0041 in masterplan_v2.dependency_edges"
         },
         {
-          "index": 43,
+          "index": 42,
           "work_item_id": "MPV2-0046",
           "derivation_basis": "depends on MPV2-0045 in masterplan_v2.dependency_edges"
+        },
+        {
+          "index": 43,
+          "work_item_id": "MPV2-0055",
+          "derivation_basis": "depends on MPV2-0053 in masterplan_v2.dependency_edges"
         },
         {
           "index": 44,
@@ -9231,7 +9247,6 @@
             "MPV2-0045",
             "MPV2-0053",
             "MPV2-0054",
-            "MPV2-0055",
             "MPV2-0056"
           ],
           "dispatch_state": "ratified-not-dispatched"
@@ -9254,7 +9269,8 @@
             "MPV2-0035",
             "MPV2-0037",
             "MPV2-0042",
-            "MPV2-0046"
+            "MPV2-0046",
+            "MPV2-0055"
           ],
           "dispatch_state": "ratified-not-dispatched"
         },
@@ -9317,7 +9333,7 @@
         "authorizes_execution_wave_dispatch": false,
         "ratification_scope": "sequencing-digest-and-f1-planning-anchors-only",
         "ratification_authority": "Founder-proxy Round-4 approval (2026-08-10) for F1 Proposed ADR planning anchors MPV2-0053..MPV2-0056 in masterplan_v2; preserves W0 dependency topology; does not grant implement authority for Proposed ADRs ADR-0712..ADR-0715 and does not authorize execution-wave dispatch. A separate founder execution-dispatch ratification with authorizes_execution_wave_dispatch=true is required before execution_wave_dispatch.state may leave blocked (in addition to preplanning_authority_closure).",
-        "ratified_sequencing_digest": "sha256:664baeb76649761bfe1cea7c69f14d3dd4986202912c5a4d3d4f7216d4c46674",
+        "ratified_sequencing_digest": "sha256:e197ad33be5f3158db3dca797a58dd2f500c12ad2158e42ffa2fb934ebd51004",
         "digest_recipe": "sha256 over canonical JSON (sorted keys, separators ',' ':') of {\"dependency_edges\": sorted [from, to] pairs, \"execution_waves\": wave work_item_ids arrays in wave order, \"work_item_order\": work_item_id strings in index order}",
         "invalidation_rule": "Any mutation of a masterplan_v2.dependency_edges from/to endpoint pair, sequencing.work_item_order, or sequencing.execution_waves work_item_ids changes the digest and voids this ratification; relationship labels and other edge metadata are outside this sequencing digest. A fresh re-derivation and founder-ratification record are required before further wave dispatch whenever a covered field changes.",
         "required_before": "execution-wave-dispatch"
@@ -9334,10 +9350,6 @@
         "preplanning_authority_closure_ref": "evidence/consolidation/preplanning-authority-closure-20260713.json",
         "dispatched_waves": [],
         "note": "Current founder_ratification re-binds the sequencing digest after F1 planning anchors and explicitly sets authorizes_execution_wave_dispatch=false. Closing the pre-planning hold alone MUST NOT unblock waves; a separate founder execution-dispatch ratification is required. No wave has dispatched."
-      },
-      "governance_evaluation_clock": {
-        "utc_date": "2026-08-11",
-        "purpose": "Hermetic as-of date for decision_timebox expiry evaluation (never wall-clock). Babysit/founder advances this date (or sets decision_timebox.as_of_utc_date) past a deadline to fire expiry findings; silent skip when neither clock nor as_of is set is intentional until the clock is advanced."
       }
     },
     "planning_entry_contract": {
@@ -9515,6 +9527,10 @@
     "non_claims": [
       "Sub-AC 4 records the founder-ratification decision for the re-derived sequencing (see masterplan_v2.sequencing.founder_ratification and evidence/goals/masterplan-v2-sequencing-founder-ratification-20260702.json); it does not claim E2E loop execution, and no execution wave has dispatched.",
       "Legacy completion claims absorbed from the P00 GitOps VCS phase, its implementation plans, and the realignment wave sequence are not surfaced as verified done; they remain claimed-done-unverified until evidence refs attach."
-    ]
+    ],
+    "governance_evaluation_clock": {
+      "utc_date": "2026-08-11",
+      "purpose": "Hermetic as-of date for decision_timebox expiry evaluation (never wall-clock). Babysit/founder advances this date (or sets decision_timebox.as_of_utc_date) past a deadline to fire expiry findings; silent skip when neither clock nor as_of is set is intentional until the clock is advanced."
+    }
   }
 }
