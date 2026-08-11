@@ -37,6 +37,16 @@ pub const REQUIRED_CVE_IDS: [&str; 3] = [
     "CVE-MOUNT-SYMLINK-RACE",
 ];
 
+/// Exact ID → regression-class mapping (adversarial corpus contract).
+pub const REQUIRED_CVE_CLASSES: [(&str, &str); 3] = [
+    ("CVE-2019-5736", "proc_self_exe_reexec"),
+    ("CVE-2024-21626", "fd_leak"),
+    ("CVE-MOUNT-SYMLINK-RACE", "mount_symlink_race"),
+];
+
+/// Exact readiness blocker set (Round-2 programme lock labels — not MPV2 IDs).
+pub const REQUIRED_BLOCKERS: [&str; 3] = ["F1(b)", "W0", "port-engine-cri-oci"];
+
 /// Required fixture role for every oracle row.
 pub const ORACLE_ROLE: &str = "differential_oracle";
 
@@ -55,6 +65,10 @@ pub enum HarnessError {
     DuplicateCve(String),
     MissingCve(String),
     CveNotRequired(String),
+    CveClassMismatch { id: String, expected: String, got: String },
+    MissingBlocker(String),
+    UnknownBlocker(String),
+    DuplicateBlocker(String),
     ConformanceLaundering,
 }
 
@@ -72,7 +86,14 @@ impl fmt::Display for HarnessError {
             | Self::UnknownCve(m)
             | Self::DuplicateCve(m)
             | Self::MissingCve(m)
-            | Self::CveNotRequired(m) => write!(f, "{m}"),
+            | Self::CveNotRequired(m)
+            | Self::MissingBlocker(m)
+            | Self::UnknownBlocker(m)
+            | Self::DuplicateBlocker(m) => write!(f, "{m}"),
+            Self::CveClassMismatch { id, expected, got } => write!(
+                f,
+                "cve {id} class must be {expected} (got {got})"
+            ),
             Self::ConformanceLaundering => write!(
                 f,
                 "conformance-laundering ban: oracle executors must not be selected as shipped product"
@@ -82,6 +103,13 @@ impl fmt::Display for HarnessError {
 }
 
 impl std::error::Error for HarnessError {}
+
+fn expected_cve_class(id: &str) -> Option<&'static str> {
+    REQUIRED_CVE_CLASSES
+        .iter()
+        .find(|(cid, _)| *cid == id)
+        .map(|(_, class)| *class)
+}
 
 /// Closed oracle identity enum — the only values `ExecutorKind::Oracle` may carry.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -125,12 +153,20 @@ pub enum DiffVerdict {
     Diverge,
 }
 
-/// Closed OCI operation set for differential observations.
+/// Kill signal seam aligned with `os_runtime` / containerd task Signal (scaffold).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum KillSignal {
+    Term,
+    Kill,
+    Hup,
+}
+
+/// Closed OCI operation set — kill always carries its signal (invalid combos unrepresentable).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum OciOperation {
     Create,
     Start,
-    Kill,
+    Kill(KillSignal),
     Delete,
 }
 
@@ -139,8 +175,15 @@ impl OciOperation {
         match self {
             Self::Create => "create",
             Self::Start => "start",
-            Self::Kill => "kill",
+            Self::Kill(_) => "kill",
             Self::Delete => "delete",
+        }
+    }
+
+    pub const fn kill_signal(self) -> Option<KillSignal> {
+        match self {
+            Self::Kill(signal) => Some(signal),
+            _ => None,
         }
     }
 }
@@ -180,8 +223,6 @@ pub struct OperationObservation {
     kind: ExecutorKind,
     operation: OciOperation,
     bundle_id: String,
-    /// Kill signal when `operation == Kill`; otherwise None.
-    kill_signal: Option<KillSignal>,
     execution: ExecutionState,
 }
 
@@ -195,8 +236,9 @@ impl OperationObservation {
     pub fn bundle_id(&self) -> &str {
         &self.bundle_id
     }
+    /// Kill signal when operation is [`OciOperation::Kill`]; otherwise `None`.
     pub fn kill_signal(&self) -> Option<KillSignal> {
-        self.kill_signal
+        self.operation.kill_signal()
     }
     pub fn execution(&self) -> &ExecutionState {
         &self.execution
@@ -205,17 +247,11 @@ impl OperationObservation {
         self.execution.is_executed()
     }
 
-    pub fn stubbed(
-        kind: ExecutorKind,
-        operation: OciOperation,
-        bundle_id: &str,
-        kill_signal: Option<KillSignal>,
-    ) -> Self {
+    pub fn stubbed(kind: ExecutorKind, operation: OciOperation, bundle_id: &str) -> Self {
         Self {
             kind,
             operation,
             bundle_id: bundle_id.to_owned(),
-            kill_signal,
             execution: ExecutionState::Stubbed,
         }
     }
@@ -224,14 +260,12 @@ impl OperationObservation {
         kind: ExecutorKind,
         operation: OciOperation,
         bundle_id: &str,
-        kill_signal: Option<KillSignal>,
         outcome: MeasuredOutcome,
     ) -> Self {
         Self {
             kind,
             operation,
             bundle_id: bundle_id.to_owned(),
-            kill_signal,
             execution: ExecutionState::Measured(outcome),
         }
     }
@@ -245,10 +279,8 @@ pub fn compare_observations(
     if !owned.kind.is_owned_product() || !oracle.kind.is_oracle_only() {
         return DiffVerdict::Diverge;
     }
-    if owned.operation != oracle.operation
-        || owned.bundle_id != oracle.bundle_id
-        || owned.kill_signal != oracle.kill_signal
-    {
+    // Operation equality includes Kill(signal) — signal mismatch ⇒ Diverge.
+    if owned.operation != oracle.operation || owned.bundle_id != oracle.bundle_id {
         return DiffVerdict::Diverge;
     }
     match (&owned.execution, &oracle.execution) {
@@ -258,14 +290,6 @@ pub fn compare_observations(
         // Partial wiring / failed differential run — not the all-scaffold case.
         _ => DiffVerdict::Diverge,
     }
-}
-
-/// Kill signal seam aligned with `os_runtime` / containerd task Signal (scaffold).
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum KillSignal {
-    Term,
-    Kill,
-    Hup,
 }
 
 /// Identity of an OCI executor implementation behind the shared trait.
@@ -298,27 +322,22 @@ pub trait OciExecutor {
 
     /// Scaffold create — no filesystem / namespace mutation.
     fn create_stub(&self, bundle_id: &str) -> OperationObservation {
-        OperationObservation::stubbed(self.kind(), OciOperation::Create, bundle_id, None)
+        OperationObservation::stubbed(self.kind(), OciOperation::Create, bundle_id)
     }
 
     /// Scaffold start — no process spawn.
     fn start_stub(&self, bundle_id: &str) -> OperationObservation {
-        OperationObservation::stubbed(self.kind(), OciOperation::Start, bundle_id, None)
+        OperationObservation::stubbed(self.kind(), OciOperation::Start, bundle_id)
     }
 
-    /// Scaffold kill — signal retained on the observation for differential compare.
+    /// Scaffold kill — signal is part of the closed operation type.
     fn kill_stub(&self, bundle_id: &str, signal: KillSignal) -> OperationObservation {
-        OperationObservation::stubbed(
-            self.kind(),
-            OciOperation::Kill,
-            bundle_id,
-            Some(signal),
-        )
+        OperationObservation::stubbed(self.kind(), OciOperation::Kill(signal), bundle_id)
     }
 
     /// Scaffold delete — no cleanup side effects.
     fn delete_stub(&self, bundle_id: &str) -> OperationObservation {
-        OperationObservation::stubbed(self.kind(), OciOperation::Delete, bundle_id, None)
+        OperationObservation::stubbed(self.kind(), OciOperation::Delete, bundle_id)
     }
 }
 
@@ -383,6 +402,7 @@ struct ObligationsRoot {
 struct ClaimPosture {
     oracles_are_shipped_product: bool,
     owned_executor_is_product_path: bool,
+    blocked_on: Vec<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -397,6 +417,7 @@ struct OracleRow {
 #[derive(Debug, Deserialize)]
 struct CveRow {
     id: String,
+    class: String,
     required: bool,
 }
 
@@ -422,6 +443,22 @@ fn validate_root(root: &ObligationsRoot) -> Result<(), HarnessError> {
         return Err(HarnessError::Schema(
             "claim_posture.owned_executor_is_product_path must be true".into(),
         ));
+    }
+
+    // Exact blocker set — programme lock labels, not MPV2 IDs.
+    let mut blockers_seen = BTreeSet::new();
+    for blocker in &root.claim_posture.blocked_on {
+        if !REQUIRED_BLOCKERS.contains(&blocker.as_str()) {
+            return Err(HarnessError::UnknownBlocker(blocker.clone()));
+        }
+        if !blockers_seen.insert(blocker.as_str()) {
+            return Err(HarnessError::DuplicateBlocker(blocker.clone()));
+        }
+    }
+    for required in REQUIRED_BLOCKERS {
+        if !blockers_seen.contains(required) {
+            return Err(HarnessError::MissingBlocker(required.to_owned()));
+        }
     }
 
     if root.oracles.len() != ORACLE_IDS.len() {
@@ -467,14 +504,21 @@ fn validate_root(root: &ObligationsRoot) -> Result<(), HarnessError> {
 
     let mut cve_seen = BTreeSet::new();
     for cve in &root.cve_regression_obligations {
-        if !REQUIRED_CVE_IDS.contains(&cve.id.as_str()) {
+        let Some(expected_class) = expected_cve_class(&cve.id) else {
             return Err(HarnessError::UnknownCve(cve.id.clone()));
-        }
+        };
         if !cve_seen.insert(cve.id.as_str()) {
             return Err(HarnessError::DuplicateCve(cve.id.clone()));
         }
         if !cve.required {
             return Err(HarnessError::CveNotRequired(cve.id.clone()));
+        }
+        if cve.class != expected_class {
+            return Err(HarnessError::CveClassMismatch {
+                id: cve.id.clone(),
+                expected: expected_class.to_owned(),
+                got: cve.class.clone(),
+            });
         }
     }
     for id in REQUIRED_CVE_IDS {
@@ -528,7 +572,7 @@ mod tests {
             assert_eq!(stub.create_stub("bundle").operation(), OciOperation::Create);
             assert!(!stub.create_stub("bundle").executed());
             let kill = stub.kill_stub("bundle", KillSignal::Term);
-            assert_eq!(kill.operation(), OciOperation::Kill);
+            assert_eq!(kill.operation(), OciOperation::Kill(KillSignal::Term));
             assert_eq!(kill.kill_signal(), Some(KillSignal::Term));
         }
     }
@@ -579,21 +623,18 @@ mod tests {
             ExecutorKind::Owned,
             OciOperation::Start,
             "b1",
-            None,
             outcome_a.clone(),
         );
         let oracle_ok = OperationObservation::measured(
             ExecutorKind::Oracle(OracleId::Runc),
             OciOperation::Start,
             "b1",
-            None,
             outcome_a,
         );
         let oracle_bad = OperationObservation::measured(
             ExecutorKind::Oracle(OracleId::Runc),
             OciOperation::Start,
             "b1",
-            None,
             outcome_b,
         );
         assert_eq!(
@@ -612,7 +653,6 @@ mod tests {
             ExecutorKind::Owned,
             OciOperation::Start,
             "b1",
-            None,
             MeasuredOutcome {
                 exit_code: 0,
                 status: "exited".into(),
@@ -627,17 +667,28 @@ mod tests {
     fn kill_signal_mismatch_diverges() {
         let owned = OperationObservation::stubbed(
             ExecutorKind::Owned,
-            OciOperation::Kill,
+            OciOperation::Kill(KillSignal::Term),
             "b1",
-            Some(KillSignal::Term),
         );
         let oracle = OperationObservation::stubbed(
             ExecutorKind::Oracle(OracleId::Youki),
-            OciOperation::Kill,
+            OciOperation::Kill(KillSignal::Kill),
             "b1",
-            Some(KillSignal::Kill),
         );
         assert_eq!(compare_observations(&owned, &oracle), DiffVerdict::Diverge);
+    }
+
+    #[test]
+    fn kill_operation_always_carries_signal() {
+        let kill = OwnedExecutorStub.kill_stub("b1", KillSignal::Hup);
+        assert!(matches!(
+            kill.operation(),
+            OciOperation::Kill(KillSignal::Hup)
+        ));
+        assert_eq!(kill.kill_signal(), Some(KillSignal::Hup));
+        assert_eq!(OciOperation::Create.kill_signal(), None);
+        assert_eq!(OciOperation::Start.kill_signal(), None);
+        assert_eq!(OciOperation::Delete.kill_signal(), None);
     }
 
     #[test]
@@ -650,5 +701,51 @@ mod tests {
         let json = serde_json::to_string(&root).unwrap();
         let err = validate_obligations_json(&json).unwrap_err();
         assert_eq!(err, HarnessError::MissingCve("CVE-2019-5736".into()));
+    }
+
+    #[test]
+    fn swapped_cve_class_fails_validation() {
+        let mut root: Value = serde_json::from_str(CVE_OBLIGATIONS_JSON).unwrap();
+        for row in root["cve_regression_obligations"].as_array_mut().unwrap() {
+            if row["id"] == "CVE-2019-5736" {
+                row["class"] = Value::String("fd_leak".into());
+            }
+        }
+        let json = serde_json::to_string(&root).unwrap();
+        let err = validate_obligations_json(&json).unwrap_err();
+        assert_eq!(
+            err,
+            HarnessError::CveClassMismatch {
+                id: "CVE-2019-5736".into(),
+                expected: "proc_self_exe_reexec".into(),
+                got: "fd_leak".into(),
+            }
+        );
+    }
+
+    #[test]
+    fn missing_blocker_fails_validation() {
+        for required in REQUIRED_BLOCKERS {
+            let mut root: Value = serde_json::from_str(CVE_OBLIGATIONS_JSON).unwrap();
+            root["claim_posture"]["blocked_on"]
+                .as_array_mut()
+                .unwrap()
+                .retain(|b| b.as_str() != Some(required));
+            let json = serde_json::to_string(&root).unwrap();
+            let err = validate_obligations_json(&json).unwrap_err();
+            assert_eq!(err, HarnessError::MissingBlocker(required.to_owned()));
+        }
+    }
+
+    #[test]
+    fn unknown_blocker_fails_validation() {
+        let mut root: Value = serde_json::from_str(CVE_OBLIGATIONS_JSON).unwrap();
+        root["claim_posture"]["blocked_on"]
+            .as_array_mut()
+            .unwrap()
+            .push(Value::String("NOT-A-BLOCKER".into()));
+        let json = serde_json::to_string(&root).unwrap();
+        let err = validate_obligations_json(&json).unwrap_err();
+        assert_eq!(err, HarnessError::UnknownBlocker("NOT-A-BLOCKER".into()));
     }
 }
