@@ -4,7 +4,7 @@
     "authority": "ADR-0544 FRIC-total-accounting meta-gate go-live; door:one-way",
     "baseline_schema_version": 1,
     "frozen_at": "2026-06-10",
-    "ledger_path": ".omc/ultragoal/friction-ledger.jsonl"
+    "ledger_path": "ci/facade/action-item-accounting/friction-ledger.jsonl"
   },
   "codes": {
     "friction_missing_required_field": [
