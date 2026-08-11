@@ -8653,7 +8653,7 @@
           "introduction_work_item": "MPV2-0055",
           "lifetime": "exactly-one-contiguous-execution-wave-after-rename-encode-lands",
           "removal_transition": "blocking-allowlist-and-alias-deletion-in-next-contiguous-wave-or-fail-closed",
-          "evaluator": "encode-time-runtime-class-alias-lifetime (activates on Accept; planning-only while Proposed)"
+          "evaluator": "planning-contract-only while Proposed; blocking alias-lifetime evaluator MUST ship in the Accept-encode PR that introduces the alias (wired into oya-ci-required) — no live evaluator is claimed by this Proposed draft"
         },
         "depends_on_work_items": [
           "MPV2-0053"
@@ -8916,10 +8916,10 @@
         "ci/facade/cross-artifact-agreement/tests/cross_artifact_agreement.rs#masterplan_v2_sequencing_is_zero_based_and_founder_ratification_recorded"
       ],
       "rederivation": {
-        "rederived_at": "2026-08-11T01:00:00Z",
-        "repo_head_at_derivation": "08c1b73f574c65044feb9f65975d5a6181b6b57f",
+        "rederived_at": "2026-08-11T05:00:00Z",
+        "repo_head_at_derivation": "a226d807914b38b9e8ad2174afe01fe4ea98d363",
         "work_item_count": 57,
-        "dependency_edge_count": 43,
+        "dependency_edge_count": 44,
         "wave_count": 8,
         "wave_rule": "wave(n) = 0 when n has no prerequisite edges in masterplan_v2.dependency_edges; otherwise 1 + max(wave(prerequisite)) over all prerequisites of n; ties within a wave order lexicographically by work-item id, and work_item_order is the wave-major concatenation with contiguous zero-based indices",
         "inherited_orderings_ignored": [
@@ -8928,7 +8928,8 @@
           "docs/ROADMAP.md",
           "specs/planning-closure-status-closure-ledger.json",
           ".omc/ultragoal/goals.json"
-        ]
+        ],
+        "note": "Includes F1 planning edge MPV2-0053→MPV2-0055 (ADR-0714 depends_on ADR-0712); W0 k8s-port edges otherwise preserved."
       },
       "work_item_order": [
         {
@@ -9332,7 +9333,7 @@
         "decision_ref": "evidence/goals/f1-node-forever-shape-sequencing-founder-ratification-20260810.json",
         "authorizes_execution_wave_dispatch": false,
         "ratification_scope": "sequencing-digest-and-f1-planning-anchors-only",
-        "ratification_authority": "Founder-proxy Round-4 approval (2026-08-10) for F1 Proposed ADR planning anchors MPV2-0053..MPV2-0056 in masterplan_v2; preserves W0 dependency topology; does not grant implement authority for Proposed ADRs ADR-0712..ADR-0715 and does not authorize execution-wave dispatch. A separate founder execution-dispatch ratification with authorizes_execution_wave_dispatch=true is required before execution_wave_dispatch.state may leave blocked (in addition to preplanning_authority_closure).",
+        "ratification_authority": "Founder-proxy Round-4 approval (2026-08-10) for F1 Proposed ADR planning anchors MPV2-0053..MPV2-0056 in masterplan_v2; adds MPV2-0053→MPV2-0055 dependency edge; does not grant implement authority for Proposed ADRs ADR-0712..ADR-0715 and does not authorize execution-wave dispatch. A separate founder (principal approved_by=founder) execution-dispatch ratification with authorizes_execution_wave_dispatch=true is required before execution_wave_dispatch.state may leave blocked (in addition to preplanning_authority_closure).",
         "ratified_sequencing_digest": "sha256:e197ad33be5f3158db3dca797a58dd2f500c12ad2158e42ffa2fb934ebd51004",
         "digest_recipe": "sha256 over canonical JSON (sorted keys, separators ',' ':') of {\"dependency_edges\": sorted [from, to] pairs, \"execution_waves\": wave work_item_ids arrays in wave order, \"work_item_order\": work_item_id strings in index order}",
         "invalidation_rule": "Any mutation of a masterplan_v2.dependency_edges from/to endpoint pair, sequencing.work_item_order, or sequencing.execution_waves work_item_ids changes the digest and voids this ratification; relationship labels and other edge metadata are outside this sequencing digest. A fresh re-derivation and founder-ratification record are required before further wave dispatch whenever a covered field changes.",
