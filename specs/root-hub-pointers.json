@@ -16,7 +16,8 @@
       "that should utilize machine readable pointers to relevant files",
       "Heavy diet. Make sure everything has a purpose."
     ],
-    "version": "1.0.0"
+    "version": "1.0.0",
+    "updated_at": "2026-08-11T00:00:00Z"
   },
   "agent_quick_start_protocol": {
     "step_1_read_authority": "Read entry_points.decision_principles + .agent_operating_contract + .masterplan + .markdown_retirement_policy + .gitops_vcs_replacement; entry_points.master_plan_sequencing is provenance/compatibility only after masterplan v2 authority consolidation.",
@@ -173,6 +174,14 @@
       "phase_status": "overdue-needs-replan",
       "promotion_condition": "Promotion requires authority-cohesion evidence and reviewer approval; until then this projection is discovery/planning support only.",
       "purpose": "Machine-readable projection target for the agent operating contract. It supports root-hub discovery without superseding docs/AGENTS.md before explicit PHASE-5 promotion evidence."
+    },
+    "agentic_operating_patterns": {
+      "current_path": "/specs/agentic-operating-patterns.json",
+      "kind": "spec",
+      "migration_phase": "swarm-delivery-law-live",
+      "purpose": "Operating-patterns catalog (achieves/origin/ensure/overturn_when) distilled from archive 000-136 (ADR-0711 Amendment C).",
+      "authority_adr": "docs/decisions/ADR-0711-swarm-delivery-law-integ-branch-topology.md#Amendment-C",
+      "self_owner_branch": "integ/specs"
     },
     "api_contract_ssot_canonical": {
       "current_path": "/specs/api-contract-ssot-canonical.json",
@@ -528,6 +537,14 @@
       "purpose": "Machine-readable claim ceiling for production-ready, hyperscaler-grade, mechanically-enforced, secure, isolated, tenant-facing, retired, done, parity, full, complete, automatic, and equivalent language. Defines target/spec/enforced/production/hyperscaler tiers and evidence domains; blocks empty promises through cloud-ci/Rust gate evidence rather than new oya CLI surfaces.",
       "target_path_after_md_retirement": "same (machine-readable claim/evidence contract)"
     },
+    "integ_branch_envelopes": {
+      "current_path": "/specs/integ-branch-envelopes.json",
+      "kind": "spec",
+      "migration_phase": "swarm-delivery-law-live",
+      "purpose": "Policy-as-data for integ/<root> envelope containment, hubs, concurrent-safe exemptions, Claim/Land admission (ADR-0711).",
+      "authority_adr": "docs/decisions/ADR-0711-swarm-delivery-law-integ-branch-topology.md",
+      "self_owner_branch": "integ/specs"
+    },
     "iterative_fix_loop": {
       "current_path": "/specs/iterative-fix-loop.json",
       "kind": "spec",
@@ -666,6 +683,14 @@
       "current_coverage_claim": false,
       "retired_usage": "Historical evidence only; do not use this entry as precedent for new evidence/multispectrum files or as current coverage proof.",
       "purpose": "Historical multispectrum evidence bundle for G011 rust-test-wiring-generator batch (ADR-0540 local bridge generator); retained as immutable provenance only after the evidence-file convention retirement."
+    },
+    "naming_taxonomy": {
+      "current_path": "/specs/naming-taxonomy.json",
+      "kind": "spec",
+      "migration_phase": "swarm-delivery-law-live",
+      "purpose": "Pattern-first naming taxonomy (kinds, name_now/name_forever grammar) for Claim rename refusal (ADR-0711 Amendment B).",
+      "authority_adr": "docs/decisions/ADR-0711-swarm-delivery-law-integ-branch-topology.md#Amendment-B-Pattern-First",
+      "self_owner_branch": "integ/specs"
     },
     "oyatie_doctrine": {
       "current_path": "/specs/oyatie-doctrine.json",
