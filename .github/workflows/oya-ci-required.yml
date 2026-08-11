@@ -13,7 +13,8 @@
 # packets from GitHub PR/review APIs, bound to PR + exact head + author + designated eligible
 # reviewer policy + APPROVED verdict + durable review URL. It is deliberately NOT wired here until the trusted
 # controller is deployed and API/readback evidence exists. At cutover it becomes a constituent
-# input to this fan-in; branch protection continues to require only `oya-ci-required`.
+# input to this fan-in; branch protection continues to require only `oya-ci-required`
+# until founder PAUSE-AND-PAIR flip after dual-emit of `merge-admission-required` is green.
 #
 # ░░ LIVE ░░
 # Go-live executed 2026-06-08 (founder-authorized "fully autonomous through both"): the blocking
@@ -1266,4 +1267,49 @@ jobs:
             exit 0
           fi
           echo "oya-ci-required: RED — at least one constituent gate lane failed or was skipped."
+          exit 1
+
+  # Dual-emit (naming_sweep / sweep-execute): publish forever check title alongside legacy
+  # `oya-ci-required` during the dual-publish window. Branch protection stays on
+  # `oya-ci-required` until founder PAUSE-AND-PAIR flip — observation≠APPROVE.
+  merge-admission-required:
+    name: merge-admission-required
+    runs-on: ubuntu-latest
+    if: ${{ always() }}
+    needs:
+      - gate
+      - gate-generated-artifact-freshness
+      - gate-inventory-registry-drift
+      - gate-baseline-ratchet
+      - generated-output-diff-policy
+      - buck2
+      - gate-affected-target-set
+      - gate-live-postgres-adapters
+      - gate-live-postgres-facades
+    steps:
+      - name: Fan-in verdict (dual-emit forever title)
+        run: |
+          echo "Gate results:"
+          echo "  gate (matrix)     = ${{ needs.gate.result }}"
+          echo "  freshness         = ${{ needs.gate-generated-artifact-freshness.result }}"
+          echo "  registry-drift    = ${{ needs.gate-inventory-registry-drift.result }}"
+          echo "  cloud-ci-firewall = ${{ needs.gate-baseline-ratchet.result }}"
+          echo "  generated-diff    = ${{ needs.generated-output-diff-policy.result }}"
+          echo "  buck2             = ${{ needs.buck2.result }}"
+          echo "  affected-set      = ${{ needs.gate-affected-target-set.result }}"
+          echo "  live-postgres/adapters = ${{ needs.gate-live-postgres-adapters.result }}"
+          echo "  live-postgres/facades  = ${{ needs.gate-live-postgres-facades.result }}"
+          if [ "${{ needs.gate.result }}" = "success" ] \
+            && [ "${{ needs.gate-generated-artifact-freshness.result }}" = "success" ] \
+            && [ "${{ needs.gate-inventory-registry-drift.result }}" = "success" ] \
+            && [ "${{ needs.gate-baseline-ratchet.result }}" = "success" ] \
+            && [ "${{ needs.generated-output-diff-policy.result }}" = "success" ] \
+            && [ "${{ needs.buck2.result }}" = "success" ] \
+            && [ "${{ needs.gate-affected-target-set.result }}" = "success" ] \
+            && { [ "${{ needs.gate-live-postgres-adapters.result }}" = "success" ] || [ "${{ needs.gate-live-postgres-adapters.result }}" = "skipped" ]; } \
+            && { [ "${{ needs.gate-live-postgres-facades.result }}" = "success" ] || [ "${{ needs.gate-live-postgres-facades.result }}" = "skipped" ]; }; then
+            echo "merge-admission-required: GREEN — dual-emit with oya-ci-required."
+            exit 0
+          fi
+          echo "merge-admission-required: RED — at least one constituent gate lane failed or was skipped."
           exit 1

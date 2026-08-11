@@ -14,3 +14,8 @@ ssot_todo: unblocking-caps
 2. `.grok/**` swarm kit adds/edits → forever `integ/grok` (envelope `roots.grok`); transitional tools vacate separate.
 
 Unblocks: hub-exclusivity/Claim for admission producer path; de-conflicts root_manifests sole-owner.
+
+## Follow-up (post-#1644 restack)
+
+- Restored `.grok/harness/daemon-hotset.v1.json` + `perimeter.v1.json` on `integ/ci` (envelope `roots.grok` → `integ/ci`; binding mirrors). Shell process-kit remains deferred Rust-first (automation-language; #1644 aborted `tools/swarm/**`).
+- Re-dropped root `Cargo.toml` `ci/controller/**` members + tip `Cargo.lock` churn — forever `#planes.root_manifests` → `integ/build`.
