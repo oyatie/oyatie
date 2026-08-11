@@ -37,6 +37,74 @@ pub const AVAILABILITY_VALUES: [&str; 3] = ["present", "gap", "unknown"];
 /// data_class: PUBLIC
 pub const SEVERITY_VALUES: [&str; 4] = ["critical", "high", "medium", "low"];
 
+/// Availability on the pinned Asterinas release (closed domain).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Availability {
+    /// Surface present and enforcing as claimed.
+    /// data_class: PUBLIC
+    Present,
+    /// Measured absence or non-enforcing.
+    /// data_class: PUBLIC
+    Gap,
+    /// Not yet measured (scaffold default).
+    /// data_class: PUBLIC
+    Unknown,
+}
+
+impl Availability {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Present => "present",
+            Self::Gap => "gap",
+            Self::Unknown => "unknown",
+        }
+    }
+
+    pub fn parse(s: &str) -> Result<Self, MatrixError> {
+        match s {
+            "present" => Ok(Self::Present),
+            "gap" => Ok(Self::Gap),
+            "unknown" => Ok(Self::Unknown),
+            other => Err(MatrixError::Row(format!(
+                "available_on_asterinas_pin invalid: {other}"
+            ))),
+        }
+    }
+}
+
+/// Severity if the surface is absent/non-enforcing (closed domain).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Severity {
+    /// data_class: PUBLIC
+    Critical,
+    /// data_class: PUBLIC
+    High,
+    /// data_class: PUBLIC
+    Medium,
+    /// data_class: PUBLIC
+    Low,
+}
+
+impl Severity {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Critical => "critical",
+            Self::High => "high",
+            Self::Medium => "medium",
+            Self::Low => "low",
+        }
+    }
+
+    pub fn parse(s: &str) -> Result<Self, MatrixError> {
+        match s {
+            "critical" => Ok(Self::Critical),
+            "high" => Ok(Self::High),
+            "medium" => Ok(Self::Medium),
+            "low" => Ok(Self::Low),
+            other => Err(MatrixError::Row(format!("severity invalid: {other}"))),
+        }
+    }
+}
 /// G5 trigger classes from the round-2 plan (cgroup v2 delegation / netlink / overlayfs).
 /// data_class: PUBLIC
 pub const G5_TRIGGER_CLASSES: [&str; 3] = ["cgroup_v2_delegation", "netlink", "overlayfs"];
@@ -63,6 +131,9 @@ pub const REQUIRED_ROWS_V0_1_0: &[(&str, &[&str])] = &[
         &[
             "fs-proc-stat",
             "fs-proc-meminfo",
+            "fs-proc-sys-net-core-somaxconn",
+            "fs-sys-class-net",
+            "fs-sys-fs-cgroup",
             "fs-cgroup-memory-current",
             "fs-cgroup-cpu-stat",
             "fs-cgroup-controllers",
@@ -159,9 +230,9 @@ pub struct MatrixRow {
     /// Node-stack consumers that require this surface. data_class: PUBLIC
     pub required_by_node_stack: Vec<String>,
     /// Availability on the pinned Asterinas release. data_class: PUBLIC
-    pub available_on_asterinas_pin: String,
+    pub available_on_asterinas_pin: Availability,
     /// Severity if absent/non-enforcing. data_class: PUBLIC
-    pub severity: String,
+    pub severity: Severity,
     /// Whether a measured gap fires G5. data_class: PUBLIC
     pub g5_trigger: bool,
 }
@@ -250,6 +321,12 @@ pub fn validate_matrix(root: &Value) -> Result<(), MatrixError> {
             pin::BOOT_ISO_ASSET
         )));
     }
+    if pin_obj.get("boot_iso_sha256").and_then(|v| v.as_str()) != Some(pin::BOOT_ISO_SHA256) {
+        return Err(MatrixError::PinDrift(format!(
+            "asterinas_pin.boot_iso_sha256 must match boundary pin {}",
+            pin::BOOT_ISO_SHA256
+        )));
+    }
 
     let pools = obj
         .get("pool_matrix_notes")
@@ -262,6 +339,39 @@ pub fn validate_matrix(root: &Value) -> Result<(), MatrixError> {
     {
         return Err(MatrixError::Schema(
             "pool_matrix_notes.asterinas_exposes_dev_kvm must be false".into(),
+        ));
+    }
+    let ast_pools = pools
+        .get("asterinas_pools")
+        .and_then(|v| v.as_object())
+        .ok_or_else(|| MatrixError::Schema("pool_matrix_notes.asterinas_pools missing".into()))?;
+    let ast_tiers = ast_pools
+        .get("serve_tiers")
+        .and_then(|v| v.as_array())
+        .ok_or_else(|| MatrixError::Schema("asterinas_pools.serve_tiers missing".into()))?;
+    if ast_tiers.len() != 1 || ast_tiers[0].as_str() != Some("shared-kernel") {
+        return Err(MatrixError::Schema(
+            "asterinas_pools.serve_tiers must be exactly [shared-kernel]".into(),
+        ));
+    }
+    let linux_pools = pools
+        .get("linux_kvm_pools")
+        .and_then(|v| v.as_object())
+        .ok_or_else(|| MatrixError::Schema("pool_matrix_notes.linux_kvm_pools missing".into()))?;
+    let linux_tiers = linux_pools
+        .get("serve_tiers")
+        .and_then(|v| v.as_array())
+        .ok_or_else(|| MatrixError::Schema("linux_kvm_pools.serve_tiers missing".into()))?;
+    for required in ["private-kernel", "private-kernel-attested"] {
+        if !linux_tiers.iter().any(|t| t.as_str() == Some(required)) {
+            return Err(MatrixError::Schema(format!(
+                "linux_kvm_pools.serve_tiers missing {required}"
+            )));
+        }
+    }
+    if linux_pools.get("sku_status").and_then(|v| v.as_str()) != Some("permanent-co-selected") {
+        return Err(MatrixError::Schema(
+            "linux_kvm_pools.sku_status must be permanent-co-selected".into(),
         ));
     }
     let snap = pools
@@ -292,12 +402,48 @@ pub fn validate_matrix(root: &Value) -> Result<(), MatrixError> {
         .get("classes")
         .and_then(|v| v.as_array())
         .ok_or_else(|| MatrixError::Schema("g5 classes missing".into()))?;
+    if classes.len() != G5_TRIGGER_CLASSES.len() {
+        return Err(MatrixError::Schema(format!(
+            "g5_trigger_definition.classes must declare exactly {} entries",
+            G5_TRIGGER_CLASSES.len()
+        )));
+    }
+    let mut seen_classes = Vec::new();
+    for c in classes {
+        let Some(name) = c.as_str() else {
+            return Err(MatrixError::Schema(
+                "g5_trigger_definition.classes entries must be non-empty strings".into(),
+            ));
+        };
+        if !G5_TRIGGER_CLASSES.contains(&name) {
+            return Err(MatrixError::Schema(format!(
+                "g5_trigger_definition.classes contains undeclared class {name}"
+            )));
+        }
+        if seen_classes.iter().any(|s| s == name) {
+            return Err(MatrixError::Schema(format!(
+                "g5_trigger_definition.classes duplicate {name}"
+            )));
+        }
+        seen_classes.push(name.to_string());
+    }
     for expected in G5_TRIGGER_CLASSES {
-        if !classes.iter().any(|c| c.as_str() == Some(expected)) {
+        if !seen_classes.iter().any(|c| c == expected) {
             return Err(MatrixError::Schema(format!(
                 "g5_trigger_definition.classes missing {expected}"
             )));
         }
+    }
+    let eval_status = g5
+        .get("evaluation_status")
+        .and_then(|v| v.as_str())
+        .ok_or_else(|| {
+            MatrixError::Schema("g5_trigger_definition.evaluation_status missing".into())
+        })?;
+    if !["pending_measurement", "clear", "fired"].contains(&eval_status) {
+        return Err(MatrixError::Schema(format!(
+            "g5_trigger_definition.evaluation_status invalid: {eval_status}"
+        )));
     }
 
     validate_components_profiled(obj)?;
@@ -331,7 +477,48 @@ pub fn validate_matrix(root: &Value) -> Result<(), MatrixError> {
         validate_surface_rows(surface, &surfaces[surface], &mut seen_ids)?;
     }
     validate_row_census_and_g5_triggers(surfaces)?;
+    validate_evaluation_status_matches_rows(obj, surfaces)?;
 
+    Ok(())
+}
+
+fn validate_evaluation_status_matches_rows(
+    obj: &serde_json::Map<String, Value>,
+    surfaces: &serde_json::Map<String, Value>,
+) -> Result<(), MatrixError> {
+    let declared = obj["g5_trigger_definition"]["evaluation_status"]
+        .as_str()
+        .unwrap_or_default();
+    let mut has_gap = false;
+    let mut has_unknown = false;
+    for surface in REQUIRED_SURFACES {
+        let rows = surfaces[surface]["rows"].as_array().unwrap();
+        for row in rows {
+            if row.get("g5_trigger").and_then(|v| v.as_bool()) != Some(true) {
+                continue;
+            }
+            match row
+                .get("available_on_asterinas_pin")
+                .and_then(|v| v.as_str())
+            {
+                Some("gap") => has_gap = true,
+                Some("unknown") => has_unknown = true,
+                _ => {}
+            }
+        }
+    }
+    let expected = if has_gap {
+        "fired"
+    } else if has_unknown {
+        "pending_measurement"
+    } else {
+        "clear"
+    };
+    if declared != expected {
+        return Err(MatrixError::Schema(format!(
+            "g5_trigger_definition.evaluation_status={declared} disagrees with row availability ({expected})"
+        )));
+    }
     Ok(())
 }
 
@@ -499,22 +686,14 @@ fn validate_surface_rows(
                     "{surface}[{i}].available_on_asterinas_pin must be string"
                 ))
             })?;
-        if !AVAILABILITY_VALUES.contains(&avail) {
-            return Err(MatrixError::Row(format!(
-                "{surface}[{i}].available_on_asterinas_pin invalid: {avail}"
-            )));
-        }
+        Availability::parse(avail)?;
         let sev = r
             .get("severity")
             .and_then(|v| v.as_str())
             .ok_or_else(|| {
                 MatrixError::Row(format!("{surface}[{i}].severity must be string"))
             })?;
-        if !SEVERITY_VALUES.contains(&sev) {
-            return Err(MatrixError::Row(format!(
-                "{surface}[{i}].severity invalid: {sev}"
-            )));
-        }
+        Severity::parse(sev)?;
         let req = r
             .get("required_by_node_stack")
             .and_then(|v| v.as_array())
@@ -573,11 +752,12 @@ pub fn all_rows(root: &Value) -> Result<Vec<MatrixRow>, MatrixError> {
         for row in rows {
             let id = row["id"].as_str().unwrap_or_default().to_string();
             let name = row["name"].as_str().unwrap_or_default().to_string();
-            let available_on_asterinas_pin = row["available_on_asterinas_pin"]
-                .as_str()
-                .unwrap_or_default()
-                .to_string();
-            let severity = row["severity"].as_str().unwrap_or_default().to_string();
+            let available_on_asterinas_pin = Availability::parse(
+                row["available_on_asterinas_pin"]
+                    .as_str()
+                    .unwrap_or_default(),
+            )?;
+            let severity = Severity::parse(row["severity"].as_str().unwrap_or_default())?;
             let g5_trigger = row["g5_trigger"].as_bool().unwrap_or(false);
             let required_by_node_stack = row["required_by_node_stack"]
                 .as_array()
@@ -611,10 +791,10 @@ pub fn evaluate_g5(root: &Value) -> Result<G5Evaluation, MatrixError> {
     let mut gap_row_ids = Vec::new();
     let mut unknown_g5_row_ids = Vec::new();
     for row in rows.into_iter().filter(|r| r.g5_trigger) {
-        match row.available_on_asterinas_pin.as_str() {
-            "gap" => gap_row_ids.push(row.id),
-            "unknown" => unknown_g5_row_ids.push(row.id),
-            _ => {}
+        match row.available_on_asterinas_pin {
+            Availability::Gap => gap_row_ids.push(row.id),
+            Availability::Unknown => unknown_g5_row_ids.push(row.id),
+            Availability::Present => {}
         }
     }
     if !gap_row_ids.is_empty() {
@@ -670,7 +850,7 @@ mod tests {
         let rows = all_rows(&root).unwrap();
         assert!(rows
             .iter()
-            .all(|r| r.available_on_asterinas_pin == "unknown"));
+            .all(|r| r.available_on_asterinas_pin == Availability::Unknown));
     }
 
     #[test]
@@ -686,7 +866,7 @@ mod tests {
             .any(|r| r.id == "mnt-overlayfs-whiteouts" && r.g5_trigger));
         assert!(rows
             .iter()
-            .any(|r| r.id == "nl-netfilter" && r.severity == "critical"));
+            .any(|r| r.id == "nl-netfilter" && r.severity == Severity::Critical));
     }
 
     #[test]
@@ -712,6 +892,7 @@ mod tests {
                 row["available_on_asterinas_pin"] = Value::String("gap".into());
             }
         }
+        root["g5_trigger_definition"]["evaluation_status"] = Value::String("fired".into());
         match evaluate_g5(&root).unwrap() {
             G5Evaluation::Fired { gap_row_ids } => {
                 assert!(gap_row_ids.iter().any(|id| id == "nl-route"));
@@ -831,6 +1012,9 @@ mod tests {
         for id in [
             "fs-proc-stat",
             "fs-proc-meminfo",
+            "fs-proc-sys-net-core-somaxconn",
+            "fs-sys-class-net",
+            "fs-sys-fs-cgroup",
             "fs-cgroup-memory-current",
             "fs-cgroup-cpu-stat",
             "fs-cgroup-subtree-control",
