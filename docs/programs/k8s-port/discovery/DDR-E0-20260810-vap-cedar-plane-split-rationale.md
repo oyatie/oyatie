@@ -93,8 +93,13 @@ If and when F1(d) Accepts ADR-0710:
   two-plane split MUST NOT be read as banning caller-sensitive admission.
 - Pattern-adopt source for any k8s authorizer adapter must verify provenance rows (known artifact:
   `awslabs/cedar-access-control-for-k8s`) — abandoned-repo deps are banned.
-- Chain `[Node, RBAC, Cedar]` in AdditiveAllow first; Cedar-primary only after ratified
-  expected-red IDs (W0+).
+- Cedar is **authorization-only** with explicit modes: **Shadow** / **AdditiveAllow** / **Guard**.
+  Chain `[Node, RBAC, Cedar]` starts in **AdditiveAllow** (union-style; an earlier allow may
+  short-circuit before Cedar — this is intentional for CNCF certification runs, which execute
+  with Cedar in AdditiveAllow only). Attestation-dependent secret access and other restrictive
+  tenant policies that need a Cedar veto require **Guard** (conjunctive) mode — activated only
+  after ratified expected-red IDs (W0+). Do not misread AdditiveAllow as “Cedar already
+  enforces every protected request.”
 
 ## Round-2 basis
 

@@ -47,33 +47,43 @@ scope, ledger, or registry requires the matching F1 founder ADR and/or W0 artifa
 
 ## Judgment
 
-### J1 — Mechanical Kubernetes PORT stays; PID1 duties stay owned
+### J1 — Mechanical Kubernetes PORT stays; PID1 stays a minimal stub
 
 Mechanical port-engine PORT of first-party Kubernetes A-prime (including kubelet) remains the
-product path. PID1 duties (mount/reap/signals, bootstrap networking preconditions, machine-config
-ingestion shaped as Kubernetes config, node identity bootstrap) live in an **owned node supervisor**
-wrapper around the projected kubelet — never inside the projection (Go-runtime-shaped assumptions).
+product path. **PID1** is a **minimal reaper/launcher stub** only (mount/reap/signals, bootstrap
+networking preconditions, machine-config ingestion shaped as Kubernetes config, node identity
+bootstrap hand-off). The projected kubelet and runtime-controller run in a **restartable
+non-PID1 supervisor child**. Per-sandbox shims survive via **subreaper + durable-record
+reconciliation**; upgrades are restart+reconnect; a **kill-9 continuity** test is required so
+one panic cannot lose all pods (Round-4 adversarial fix).
 
 **Ban:** hand-maintained / kube-rs paraphrase kubelet. **Ban:** Go kubelet as forever product
 userspace (bootstrap CONSUME of upstream binaries for canary/validation is a validation tactic, not
-the forever shape).
-
-### J2 — No container-manager daemon product; owned runtime libraries + CRI face
+the forever shape). **Ban:** placing projected kubelet + runtime-controller in PID1.
+### J2 — No container-manager daemon product; owned runtime libraries + CRI faces
 
 There is **no** long-lived container-manager daemon as forever product, and **no** containerd
 product PORT. Forever shape:
 
 - **Owned runtime libraries** inside the node supervisor: CAS image store, short-lived sandboxed
   pull workers, per-sandbox shims, owned executor library.
-- **CRI survives only as an external compatibility face** with a closed, contract-tested consumer
-  list (for example crictl, node-problem-detector). Unlisted consumers = REFUSE. Internal
-  components MUST NOT route through CRI.
-- **Bootstrap only:** pinned Go containerd as **CONSUME** with a **dated expiry** and a future
-  ledger row (ledger row itself is **out of E0** — do not invent rows here).
+- **CRI semantics stay canonical** (Round-3/4 lock):
+  - **In-process CRI-shaped transport** — owned trait generated from the pinned CRI proto; the
+    projected kubelet drives the owned runtime through this seam (mechanical PORT keeps its
+    upstream runtime path; this is **not** “rewrite kubelet off CRI”).
+  - **External Unix socket** — versioned compatibility profile **v1** (RPCs, streaming server,
+    evented PLEG, gRPC error-code semantics, peer creds, rate limits, read-only RPC set) for a
+    closed, contract-tested external consumer list (for example crictl, node-problem-detector).
+    Unlisted external consumers = REFUSE. Profile is **not** a binary-name allowlist.
+  - Device plugins remain on the **Device Plugin API**, not the external CRI socket.
+- **Bootstrap only:** K1-reference declared bootstrap (pinned youki/Go-containerd) as **CONSUME**
+  with a **calendar-dated fail-closed expiry** toward K1-owned; youki/runc/crun remain differential
+  oracles and are **never shipped** to green a gate. Future ledger row for the CONSUME is
+  **out of E0** — do not invent rows here.
 
 **Ban:** hand mini-CRI in any role. **Ban:** shipping a manager daemon as the forever product
-without a founder ADR that explicitly overrules this derivation.
-
+without a founder ADR that explicitly overrules this derivation. **Ban:** collapsing Device Plugin
+API into the external CRI face.
 Comparative reject (not adopted): prior-art stacks that keep a forever Go container-manager + Go
 kubelet userspace as the product shape are rejected for the forever path; they may inform bootstrap
 or soak evidence only when explicitly time-boxed.
@@ -104,10 +114,22 @@ isolation mechanism.
 
 **Pool physics:** Asterinas exposes no `/dev/kvm` (TDX *guest* trajectory). Therefore
 `private-kernel`* classes **cannot** schedule on Asterinas pools; they pin to **KVM-capable
-stripped-Linux host pools** (co-selected permanent SKU). Asterinas pools serve `shared-kernel`
-(+ future TDX-guest role). VAP MUST forbid `private-kernel`* on non-KVM pools when enforcement
-lands (enforcement remap is F1(c), not E0).
+stripped-Linux host pools** (co-selected permanent SKU). Linux pools are the **primary production
+path**; Asterinas shared-kernel is **soak** until the A1 ABI/kernel-service matrix (including
+io_uring, seccomp, and device/driver rows) goes green. Asterinas pools serve `shared-kernel`
+(+ future TDX-guest role).
 
+**Attested placement (split from ordinary private-kernel):** KVM capability alone admits
+`private-kernel` but **not** `private-kernel-attested`. The attested class additionally requires
+an **attestation-capability** pool label / scheduling constraint (SEV-SNP, TDX, CCA, or another
+quote source the J6 collector can produce). Day-1 attested claim is **attested-identity** (host
+in TCB, explicitly labeled); operator-excluded confidentiality (guest-pull) is the F1 Isolation
+target — not a day-1 claim.
+
+VAP MUST forbid `private-kernel`* on non-KVM pools and forbid `private-kernel-attested` on pools
+lacking attestation capability when enforcement lands (enforcement remap is F1(c), not E0). VAP/CEL
+itself remains target-pending-F1(d) (which may resolve as explicit Reject per ADR-0710 D-8); live
+admission law today remains ADR-0701/Kubewarden.
 **Ban:** branded RuntimeClass names (including vendor brands such as `kata` as a class name).
 Kata-as-component dissolves: the shim compiled for the guest role is the same code; Cloud
 Hypervisor remains the VMM.
@@ -116,17 +138,21 @@ Hypervisor remains the VMM.
 
 The Talos-style **OS layer noun is retired** as forever product. The node supervisor **is** the OS
 substrate. Disposition for the existing `os/` tree: **harvest-then-retire** — keep network / install
-/ disk / time domains and `init-app` PID1 primitives (mount/reaper/switch_root); delete dual-truth
-simulation halves (COSI, apid, trustd, `config-v1alpha1`, controller runtime) once F1(e)
-preconditions land (fleet-basis replacement, boot-marker contract, charter amendment).
+/ disk / time domains and `init-app` PID1 primitives (mount/reaper/switch_root as the **minimal
+stub**); delete dual-truth simulation halves (COSI, apid, trustd, `config-v1alpha1`, controller
+runtime) only once F1(e) preconditions land (fleet-basis replacement, boot-marker contract,
+charter amendment, **and** a named SVID issuance/verifier replacement with a migration edge for
+live IAM adapters that currently depend on `os/core/trustd-domain` /
+`TrustdEcdsaIssuanceBackend`). Do **not** schedule trustd deletion as “simulation half” removal
+while J6 still consumes the existing SVID issuer path.
 
 Genuine residuals as **siblings, not an OS noun:** upgrade actor (A/B install + rollback),
 out-of-band break-glass node API, NTP/disk-crypto clients.
 
 **Target apex noun (proposal only — F1(e), not encoded here as Accepted):**
-`k8s (projected) → node supervisor (owned; PID1 + runtime) → guest kernel`, with upgrade actor and
-break-glass as named siblings. **This discovery record does not amend ADR-0701.**
-
+`k8s (projected) → node supervisor (minimal PID1 stub + restartable non-PID1 supervisor child) →
+guest kernel`, with upgrade actor and break-glass as named siblings. **This discovery record does
+not amend ADR-0701.**
 ### J6 — Relying-party attestation
 
 Attestation follows the relying-party pattern (RATS / KBS):
@@ -152,11 +178,15 @@ families + mount semantics) that feeds F1(a). This record does not claim that ma
 
 ## Round-2 basis
 
-Encodes Round-2 FINAL SHAPE consensus: owned runtime libraries + CRI external face; Go containerd =
-dated bootstrap CONSUME only; owned executor as shim library with oracle law; isolation-property
-tier names on pool matrix; OS-layer retirement / supervisor-as-OS; relying-party attestation;
-surface ratchets. Round-1 locks that conflict (containerd product PORT; G6 vendored-youki default;
-process/kata/confidential naming as forever) are **superseded** and MUST NOT be re-encoded as fact.
+Encodes Round-2 FINAL SHAPE consensus as amended by Round-3/4 locks: owned runtime libraries +
+canonical CRI (in-process trait + external profile v1); Go containerd / youki = dated K1-reference
+bootstrap CONSUME only with owned destination; owned executor as shim library with oracle law;
+isolation-property tier names on pool matrix (Linux primary; Asterinas soak; attested placement
+split); OS-layer retirement / supervisor-as-OS with **minimal PID1 stub** + restartable non-PID1
+child; relying-party attestation (day-1 = attested-identity); surface ratchets. Round-1 locks that
+conflict (containerd product PORT; G6 vendored-youki default; process/kata/confidential naming as
+forever; “internal MUST NOT route through CRI” without an in-process CRI-shaped seam) are
+**superseded** and MUST NOT be re-encoded as fact.
 
 ## Alternatives
 
@@ -173,12 +203,16 @@ process/kata/confidential naming as forever) are **superseded** and MUST NOT be 
 
 | Item | Blocked on |
 |---|---|
-| Apex noun amend (supervisor-as-OS) | F1(e) founder ADR; fleet-basis + boot markers + `os/` charter |
+| Apex noun amend (supervisor-as-OS) | F1(e) founder ADR; fleet-basis + boot markers + `os/` charter + SVID issuance/verifier replacement before trustd harvest |
 | OWN disposition token + Go-containerd bootstrap scope row | F1(b); `scope.json` vocabulary today is PORT/CONSUME/EXCLUDE |
-| Tier rename + VAP enforcement remap | F1(c); Kyverno→VAP enforcement before rename |
+| Tier rename + VAP enforcement remap + attestation-capability pool labels | F1(c); Kyverno→VAP enforcement before rename (VAP/CEL live-law flip remains F1(d)) |
 | Attestation adapter activation + Cedar context keys | W0 ledger test-ids + ConfidentialPlatform extension |
-| Ledger growth (`DVG-OWNED-NODE-RUNTIME`, oracle escape, …) | Baseline five rows must gain ratified `test_ids` first; 2/wave cap |
+| Ledger growth (`DVG-OWNED-NODE-RUNTIME`, oracle escape, …) | Baseline five rows must gain ratified `test_ids` first; grandfathered existing OS rows; then weighted budget + 2/wave cap |
 
+`F1(a)`–`F1(e)` and sibling Round-3/4 labels (A1, K1/K2) are **program sequencing tags** for
+founder-ADR / soak work tracked on the node-stack program (F1 drafts on #1929; founder Accept
+remains external). They are **not** a parallel masterplan namespace and do not invent `MPV2-*`
+IDs here; mapping into `specs/masterplan.json` work items is F1 encode / dispatcher work, not E0.
 ## Naming law
 
 Forever nouns used in this record: **node supervisor**, **guest kernel**, **owned runtime**,

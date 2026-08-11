@@ -34,8 +34,14 @@ authority_tier: 3
 
 This record does **not** add, edit, or expire any row in `specs/k8s-port/divergence-ledger.json`.
 It does not ratify empty `test_ids` arrays. It does not amend ADR-0701 / ADR-0704 Accepted text.
-Ledger growth remains capped at two new rows per wave **after** the five baseline rows carry
-ratified test identifiers (W0 ledger work).
+
+**Growth ban (further growth only):** at authoring tip the live ledger already contains seven
+rows — the five ADR-0638 baseline seeds plus the two already-landed OS rows
+(`DVG-OS-HANDROLLED-K8S-API-SERIALIZERS`, `DVG-OS-DUPLICATE-STATIC-POD-RENDERER`). Those seven
+are **grandfathered**. Further ledger growth is banned until the five baseline rows carry
+ratified `test_ids` (W0). After that unlock, growth uses the Round-3/4 weighted budget
+(security-boundary 5 / ecosystem-visible 3 / internal 1 / test-oracle 0) with a per-wave
+ceiling of 6 points **plus** the existing 2-rows/wave cap; divergences only as separate adapters.
 
 ## Judgment
 
@@ -90,7 +96,7 @@ is taken.
 | Fork divergences into port-engine projection | Pin-bump liability; dual-truth |
 | Soft / best-effort adapters that pass-through on error | Dual-truth; fails fail-closed bar |
 | Bit-compatible abandon of Cedar/audit/observability doctrine | Rejected by ADR-0638 doctrine-first posture |
-| Unbounded ledger growth to “encode everything now” | Cap 2/wave; baseline `test_ids` empty — growth banned until ratified |
+| Unbounded ledger growth to “encode everything now” | Cap 2/wave + weighted 6-pt ceiling; baseline `test_ids` empty — **further** growth banned until ratified; existing non-baseline OS rows are grandfathered |
 
 ## Downstream blockers
 

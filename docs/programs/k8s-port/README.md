@@ -21,7 +21,17 @@ authority_tier: 2
 
 ADR-0637 and ADR-0638 govern this program. This guide operationalizes their record-lane requirement; it does not amend the ADRs, approve W1+, ratify a measured threshold, or make an unlanded engine, rule pack, front end, gate, or receipt schema operative.
 
-The approved program plan §A and §B.5 define the baseline header and the three standing record lanes. Repository-wide operating requirements remain governed by [`docs/AGENTS.md`](../../AGENTS.md). The record lanes are evidence and routing surfaces, not substitutes for the scope, detached-surface, rule-pack, canary, or receipt registries.
+The approved program plan §A and §B.5 define the baseline header and the three standing record lanes
+(operations, prescriptions, doctrine) that R-DOC monitors. Repository-wide operating requirements
+remain governed by [`docs/AGENTS.md`](../../AGENTS.md). The record lanes are evidence and routing
+surfaces, not substitutes for the scope, detached-surface, rule-pack, canary, or receipt registries.
+
+**Provisional E0 discovery lane (zero-apex):** [`discovery/`](discovery/INDEX.md) holds encodable
+judgments that are **not** doctrine and **not** Accepted apex. Discovery grants **no implement
+authority** (zero-apex law), MUST NOT silently amend apex / scope / ledger, and MUST graduate to
+doctrine (and ADR when cross-lane) before becoming binding. Discovery is **not** a fourth R-DOC
+standing lane under ADR-0637; R-DOC continues to monitor operations / prescriptions / doctrine only.
+Amending ADR-0637 to promote discovery into a standing R-DOC lane is founder work — out of E0.
 
 ## Routing
 
@@ -31,7 +41,7 @@ Use the lane that matches the record's purpose before looking for a date:
 |---|---|---|
 | A run or wave judgment, fix, gate failure, or no-rule-change rationale | [`operations/`](operations/INDEX.md) | Repeated incident class → prescription review. |
 | A repeatable execution procedure | [`prescriptions/`](prescriptions/INDEX.md) | Binding judgment in a procedure → doctrine. |
-| An encodable discovery judgment that is not yet doctrine and not Accepted apex | [`discovery/`](discovery/INDEX.md) | Graduate to doctrine when binding inside this program; ADR when binding elsewhere. Discovery MUST NOT silently amend apex, scope, or ledger. |
+| An encodable discovery judgment that is not yet doctrine and not Accepted apex (provisional E0; zero-apex) | [`discovery/`](discovery/INDEX.md) | Graduate to doctrine when binding inside this program; ADR when binding elsewhere. Discovery MUST NOT silently amend apex, scope, or ledger, and is not an R-DOC standing lane. |
 | A rare, binding cross-lane judgment | [`doctrine/`](doctrine/INDEX.md) | Binding elsewhere → ADR within one wave. |
 
 Chronological listings are secondary navigation only. An entry is found by lane and incident or judgment class first, then by wave and run.
@@ -57,6 +67,10 @@ Chronological listings are secondary navigation only. An entry is found by lane 
 | Fact ownership | `k8s/core/port-accounting-kernel` counters | ADR-0633 population-liveness predicates |
 | Licensing and attribution | `upstream-pin.json`, `licensing.json`, per-file provenance, and generated `k8s/NOTICE` | supply-chain and license policy |
 | Program-memory durability | operations, prescriptions, and doctrine entries | `ci/facade/k8s-program-docs` R-DOC |
+
+Discovery entries are provisional E0 judgment memory under zero-apex law; they are **not** counted
+as R-DOC standing-lane population. Graduation into doctrine (and ADR when required) is what brings
+a judgment under the doctrine-to-ADR deadline and R-DOC monitoring.
 
 Every program document MUST carry the baseline version header above. The `ci/facade/k8s-program-docs` R-DOC gate is fail-closed and RED when any of these conditions holds:
 

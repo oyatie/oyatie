@@ -44,6 +44,7 @@ if cross-lane, to an ADR — not by silently promoting this file's authority.
 | Alternatives | Material alternatives considered and why rejected (comparative prior art may be named only as **not adopted**). |
 | Downstream blockers | What F1 / W0 / ledger work is required before encode as doctrine, scope, or ledger. |
 | Naming law | Forever nouns used; product-name bans observed. |
+| Success / failure bar (graduation) | Explicit acceptance criteria, SLO objective, named failure modes, and a failure-injection test — **required before doctrine/ADR graduation**. E0 discovery MAY defer these into Downstream blockers; a record without them remains provisional judgment memory and MUST NOT be treated as implement-ready. |
 
 Document shape for each entry:
 
@@ -58,6 +59,7 @@ Document shape for each entry:
 ## Alternatives
 ## Downstream blockers
 ## Naming law
+## Success / failure bar (optional at E0; required at graduation)
 ```
 
 ## Index (lane-first)
