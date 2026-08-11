@@ -29,9 +29,18 @@ pub const REQUIRED_SURFACES: [&str; 4] = [
     "mount_semantics",
 ];
 
-/// Closed set of availability values permitted on each row.
+/// Closed set of node-stack consumer identifiers for `required_by_node_stack`.
 /// data_class: PUBLIC
-pub const AVAILABILITY_VALUES: [&str; 3] = ["present", "gap", "unknown"];
+pub const NODE_STACK_CONSUMERS: [&str; 8] = [
+    "kubelet",
+    "cAdvisor",
+    "eviction",
+    "kube-proxy",
+    "CNI",
+    "runc",
+    "youki",
+    "containerd",
+];
 
 /// Closed set of severity values permitted on each row.
 /// data_class: PUBLIC
@@ -709,7 +718,14 @@ fn validate_surface_rows(
         }
         for (j, entry) in req.iter().enumerate() {
             match entry.as_str() {
-                Some(s) if !s.is_empty() => {}
+                Some(s) if !s.is_empty() => {
+                    if !NODE_STACK_CONSUMERS.contains(&s) {
+                        return Err(MatrixError::Row(format!(
+                            "{surface}[{i}].required_by_node_stack[{j}] unsupported consumer {s}; closed set is {:?}",
+                            NODE_STACK_CONSUMERS
+                        )));
+                    }
+                }
                 _ => {
                     return Err(MatrixError::Row(format!(
                         "{surface}[{i}].required_by_node_stack[{j}] must be a non-empty string"
@@ -942,6 +958,15 @@ mod tests {
             Value::Array(vec![Value::Null]);
         let err = validate_matrix(&root).expect_err("null consumer");
         assert!(err.to_string().contains("required_by_node_stack"));
+    }
+
+    #[test]
+    fn rejects_unknown_node_stack_consumer() {
+        let mut root = parse_matrix().unwrap();
+        root["surfaces"]["syscalls"]["rows"][0]["required_by_node_stack"] =
+            Value::Array(vec![Value::String("kubelet-typo".into())]);
+        let err = validate_matrix(&root).expect_err("typo consumer");
+        assert!(err.to_string().contains("unsupported consumer"));
     }
 
     #[test]
