@@ -1,0 +1,17 @@
+context: os
+role: test
+capability: attestation-relying-party
+plane: control
+slo: cataloged-no-runtime-claim
+data_classes_owned: [PUBLIC, INTERNAL_ONLY]
+operational_classes_owned: []
+api_stability: preview
+security_review: unreviewed
+supply_chain: source-only
+traceability:
+  source_crate: os/harness/attestation-relying-party/Cargo.toml
+non_claims:
+  - relying-party type scaffold only; does not fetch AMD KDS / Intel PCS collateral
+  - never claims live SNP/TDX/CCA hardware quotes; stub verdicts are UNKNOWN
+  - does not amend ConfidentialPlatform sealed impls; extends the story via RP types
+  - Cedar context key injection and SVID binding are future adapter work (blocked on F1/W0/K3)
