@@ -13,7 +13,6 @@ rust_library(
         "//os/core/network-domain:os-network-domain",
         "//os/core/platform-domain:os-platform-domain",
         "//os/core/runtime-cri-domain:os-runtime-cri-domain",
-        "//os/core/secrets-domain:os-secrets-domain",
     ],
 )
 
@@ -41,6 +40,6 @@ rust_test(
         "//os/core/network-domain:os-network-domain",
         "//os/core/platform-domain:os-platform-domain",
         "//os/core/runtime-cri-domain:os-runtime-cri-domain",
-        "//os/core/secrets-domain:os-secrets-domain",
+        "//os/core/secrets-domain:os-secrets-domain-modeled",
     ],
 )
