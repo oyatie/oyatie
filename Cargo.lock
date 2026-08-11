@@ -1523,6 +1523,60 @@ dependencies = [
 ]
 
 [[package]]
+name = "ci-controller-app"
+version = "0.1.0"
+dependencies = [
+ "axum",
+ "ci-controller-github-adapter",
+ "ci-controller-k8s-adapter",
+ "ci-controller-kernel",
+ "futures",
+ "k8s-openapi",
+ "kube",
+ "kube-runtime",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tower 0.5.3",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
+name = "ci-controller-github-adapter"
+version = "0.1.0"
+dependencies = [
+ "ci-controller-kernel",
+ "httpmock",
+ "reqwest 0.13.4",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "ci-controller-k8s-adapter"
+version = "0.1.0"
+dependencies = [
+ "ci-controller-kernel",
+ "k8s-openapi",
+ "kube",
+ "kube-runtime",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
+name = "ci-controller-kernel"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "sha2",
+]
+
+[[package]]
 name = "ci-core-dependency-isolation"
 version = "0.1.0"
 dependencies = [
@@ -6900,6 +6954,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "os-attestation-relying-party"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "os-block-domain"
 version = "0.1.0"
 dependencies = [
@@ -7123,6 +7185,15 @@ dependencies = [
  "libc",
  "os-kernel",
  "os-kernel-abi",
+]
+
+[[package]]
+name = "os-oci-executor-oracle"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "sha2",
 ]
 
 [[package]]
@@ -10097,22 +10168,115 @@ version = "0.1.0"
 [[package]]
 name = "port-engine-app"
 version = "0.1.0"
+dependencies = [
+ "port-engine-api",
+ "port-engine-emit",
+ "port-engine-frontend-go",
+ "port-engine-hash",
+ "port-engine-identity",
+ "port-engine-kernel",
+ "port-engine-rulepack",
+ "port-engine-rust-ir",
+ "port-engine-snapshot",
+ "port-engine-source-pin",
+ "port-engine-toolchain",
+ "port-engine-transform",
+]
+
+[[package]]
+name = "port-engine-emit"
+version = "0.1.0"
+dependencies = [
+ "port-engine-api",
+ "port-engine-hash",
+]
 
 [[package]]
 name = "port-engine-frontend-go"
 version = "0.1.0"
+dependencies = [
+ "port-engine-api",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "port-engine-hash"
+version = "0.1.0"
+dependencies = [
+ "port-engine-api",
+ "sha2",
+]
+
+[[package]]
+name = "port-engine-identity"
+version = "0.1.0"
+dependencies = [
+ "port-engine-api",
+ "port-engine-hash",
+]
 
 [[package]]
 name = "port-engine-kernel"
 version = "0.1.0"
+dependencies = [
+ "port-engine-api",
+]
+
+[[package]]
+name = "port-engine-rulepack"
+version = "0.1.0"
+dependencies = [
+ "port-engine-api",
+ "port-engine-hash",
+ "port-engine-kernel",
+ "port-engine-transform",
+ "serde",
+ "serde_json",
+]
 
 [[package]]
 name = "port-engine-rust-ir"
 version = "0.1.0"
+dependencies = [
+ "port-engine-api",
+ "quote",
+ "syn 2.0.119",
+]
+
+[[package]]
+name = "port-engine-snapshot"
+version = "0.1.0"
+dependencies = [
+ "port-engine-api",
+ "port-engine-frontend-go",
+ "port-engine-hash",
+ "port-engine-source-pin",
+]
 
 [[package]]
 name = "port-engine-source-pin"
 version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "port-engine-toolchain"
+version = "0.1.0"
+dependencies = [
+ "port-engine-api",
+ "port-engine-hash",
+]
+
+[[package]]
+name = "port-engine-transform"
+version = "0.1.0"
+dependencies = [
+ "port-engine-api",
+ "port-engine-rust-ir",
+]
 
 [[package]]
 name = "portable-atomic"
