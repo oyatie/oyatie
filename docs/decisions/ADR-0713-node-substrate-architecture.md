@@ -333,4 +333,4 @@ daemon" is Accepted without checkbox (a) and the recovery DoD.
 - ADR-0701 / ADR-0704 (live substrate); ADR-0637 / ADR-0638 (port-engine); ADR-0520 provenance
 - ADR-0712 (pool matrix; related SKU physics)
 - Round-2/4 Discovery local artifact `e6ec1a68` — provenance only
-- PR #1929 Round-4 amend; merges former draft topics ADR-0712+ADR-0715; vacates ADR-0711 for #1644
+- PR #1929 Round-4 amend; merges former owned-runtime + os/-retirement draft topics; vacates the colliding draft number reserved for PR #1644

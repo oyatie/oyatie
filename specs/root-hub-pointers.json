@@ -126,7 +126,7 @@
     "adr_0712_node_kernel_pool_matrix": {
       "current_path": "docs/decisions/ADR-0712-node-kernel-pool-matrix.md",
       "kind": "doc",
-      "purpose": "PROPOSED — NON-AUTHORITATIVE DESIGN CONTEXT, NOT A RULE. F1(a) founder pause-and-pair (MPV2-0053): Linux-pools primary; Asterinas soak until A1 green; co-SKU matrix gated on A1 4-surface ABI matrix evidence; attestation-capable pools required for private-kernel-attested; named fallback G5. ADR-0711 vacated for PR #1644 Swarm Delivery Law. Not implement authority while Proposed.",
+      "purpose": "PROPOSED — NON-AUTHORITATIVE DESIGN CONTEXT, NOT A RULE. F1(a) founder pause-and-pair (MPV2-0053): Linux-pools primary; Asterinas soak until A1 green; co-SKU matrix gated on A1 4-surface ABI matrix evidence; attestation-capable pools required for private-kernel-attested; named fallback G5. Prior draft number vacated for PR #1644 Swarm Delivery Law. Not implement authority while Proposed.",
       "target_path_after_md_retirement": "same"
     },
     "adr_0713_node_substrate_architecture": {

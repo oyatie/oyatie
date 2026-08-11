@@ -137,8 +137,8 @@ second half.
 
 - ADR-0710 (Kubernetes admission substrate), gated on clause D-8's workload-boundary evidence.
 - ADR-0712 (node kernel + pool matrix / F1(a) / MPV2-0053), gated on A1 4-surface ABI matrix
-  evidence (Linux-primary / Asterinas-soak interim until Accept). ADR-0711 is reserved for
-  PR #1644 Swarm Delivery Law and is not an F1 instance here.
+  evidence (Linux-primary / Asterinas-soak interim until Accept). The number between ADR-0710 and
+  ADR-0712 is reserved for PR #1644 Swarm Delivery Law and is not an F1 instance here.
 - ADR-0713 (Node Substrate Architecture / MPV2-0054), severable gated apex: Accept (a) owned
   runtime waits on state-machine/recovery DoD + kill-9/upgrade reconvergence tests (founder
   choice alone is insufficient); Accept (b) `os/`-retirement encode waits on D-3 preconditions
