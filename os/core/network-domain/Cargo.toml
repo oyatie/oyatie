@@ -14,6 +14,7 @@ doctest = false
 
 [dependencies]
 os-kernel = { path = "../kernel" }
+os-kernel-abi = { path = "../../ports/kernel-abi" }
 
 # Linux-only: the real rtnetlink/ioctl syscall surface in `linux_net` is built
 # from raw `libc` FFI (no other external crates). On non-Linux hosts only the
