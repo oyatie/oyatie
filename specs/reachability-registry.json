@@ -262,8 +262,32 @@
       "prefix": "gateway/iac/spire-trust-bundle.yaml"
     },
     {
+      "anchor": "ADR-0615 §2 Q13 + ADR-0555: META governance authority absorb from oya/governance (cedar/contracts/policy/packs) into governance/; non-crate policy-as-data + contracts reached by governance lane; not cargo-members.",
+      "prefix": "governance/REORG-DRAIN.md"
+    },
+    {
+      "anchor": "ADR-0615 §2 Q13 + ADR-0555: cedar policy fragments absorbed under META governance/cedar/ (authority slice from oya/governance); non-crate DATA.",
+      "prefix": "governance/cedar/"
+    },
+    {
+      "anchor": "ADR-0555: apex-gist-integrity gate crate under governance/check; temporarily excluded from Cargo workspace members until integ/build absorbs lock — register tree so firewall reachability is not blocked on workspace membership.",
+      "prefix": "governance/check/apex-gist-integrity/"
+    },
+    {
       "anchor": "ADR-0711 + ADR-0555: integ-envelope judgments/waivers DATA home (non-crate under governance/check); owned by integ/specs adjunct; excluded from Cargo workspace members.",
       "prefix": "governance/check/integ-envelope/"
+    },
+    {
+      "anchor": "ADR-0615 §2 Q13 + ADR-0555: governance contracts (openapi/asyncapi/proto) absorbed under META governance/contracts/.",
+      "prefix": "governance/contracts/"
+    },
+    {
+      "anchor": "ADR-0615 §2 Q13 + ADR-0555: compliance pack pointers absorbed under META governance/packs/.",
+      "prefix": "governance/packs/"
+    },
+    {
+      "anchor": "ADR-0615 §2 Q13 + ADR-0555: cedar policy surfaces absorbed under META governance/policy/.",
+      "prefix": "governance/policy/"
     },
     {
       "anchor": "ADR-0339 IAC-001 shared OpenTofu module library: the iac capability architecture document, named verbatim by ADR-0339 in its governed-surfaces list and again in its landing-deliverables list (gains the module-library scope expansion description at landing), both at the pre-move path cloud/cloud-iac/ARCHITECTURE.md. The ADR-0562 capability move to iac/ relocated the file and both citations stayed at the old path. A capability doc is not crate-resident, so cargo-members cannot reach it. EXACT path, not a tree: iac/ already registers iac/modules/ separately.",
