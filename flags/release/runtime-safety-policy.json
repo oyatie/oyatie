@@ -91,7 +91,6 @@
   },
   "feature_flag_lifecycle_cleanup_gate": {
     "accepted_spec_ref": "specs/feature-flag-substrate-canonical.json",
-    "status_lifecycle_ref": "specs/lifecycle-configs/feature-flag-status-lifecycle.json",
     "ci_lane": "feature-flag-lifecycle",
     "release_toggle": {
       "sunset_at_required": true,
