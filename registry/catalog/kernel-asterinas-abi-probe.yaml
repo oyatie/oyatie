@@ -1,0 +1,16 @@
+context: kernel
+role: test
+capability: asterinas-abi-probe
+plane: control
+slo: cataloged-no-runtime-claim
+data_classes_owned: [PUBLIC, INTERNAL_ONLY]
+operational_classes_owned: []
+api_stability: preview
+security_review: unreviewed
+supply_chain: source-only
+traceability:
+  source_crate: kernel/harness/asterinas-abi-probe/Cargo.toml
+non_claims:
+  - harness scaffold only; builds a deterministic probe plan and emits stub outcomes
+  - hermetic tests pass without live QEMU; measured present/gap receipts are future work
+  - does not claim Asterinas is the canonical guest/node kernel (blocked on founder ADR F1(a))
