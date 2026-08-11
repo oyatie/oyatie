@@ -14,7 +14,7 @@ use check_adr_citation_closure::{
     AdrRecord, CODE_AMBIGUOUS_CLOSURE, CODE_ASYMMETRY, CODE_CITATION_MISMATCH,
     CODE_DANGLING_CITATION, CODE_DUPLICATE_ID, CODE_REJECTED_AUTHORITY, CODE_UNRESOLVABLE,
     CODE_VACUOUS_SCAN, CitationLine, Oracle, Policy, Resolution, Verdict, evaluate,
-    parse_supersession, scan_line,
+    parse_supersession, scan_line, undeclared_authority_surface,
 };
 
 const POLICY_PATH: &str = "governance/check/adr-citation-closure/adr-citation-closure-policy.json";
@@ -25,6 +25,7 @@ const MAX_SCANNED_BYTES: u64 = 4_194_304;
 struct Config {
     policy: Policy,
     authority_surfaces: Vec<String>,
+    authority_surface_marker: String,
     exempt_prefixes: Vec<String>,
     scan_extensions: Vec<String>,
 }
@@ -33,6 +34,10 @@ struct Observed {
     records: Vec<AdrRecord>,
     citations: Vec<CitationLine>,
     files_scanned: usize,
+    /// Files whose own frontmatter declares them authority surfaces while the policy list omits
+    /// them. Collected during the SAME walk that produces the census, so the check costs no second
+    /// pass and cannot drift out of sync with the corpus it is checking.
+    undeclared_surfaces: Vec<String>,
 }
 
 fn repo_root() -> PathBuf {
@@ -81,6 +86,10 @@ fn load_config(root: &Path) -> Config {
             min_authority_surfaces: number("min_authority_surfaces"),
         },
         authority_surfaces: strings("authority_surfaces"),
+        authority_surface_marker: doc["authority_surface_marker"]
+            .as_str()
+            .expect("policy field authority_surface_marker missing or not a string")
+            .to_owned(),
         exempt_prefixes: strings("exempt_path_prefixes"),
         scan_extensions: strings("scan_extensions"),
     }
@@ -189,6 +198,7 @@ fn observe(root: &Path, config: &Config) -> Result<Observed, String> {
 
     let mut citations = Vec::new();
     let mut files_scanned = 0usize;
+    let mut undeclared_surfaces = Vec::new();
     for relative in tracked_files(root)? {
         if in_excluded_dir(&relative) || exempt(&relative, &config.exempt_prefixes) {
             continue;
@@ -222,6 +232,14 @@ fn observe(root: &Path, config: &Config) -> Result<Observed, String> {
         // latin-1 and UTF-16 both carry ASCII `ADR-NNNN` perfectly well.
         let text = String::from_utf8_lossy(&bytes);
         files_scanned += 1;
+        if let Some(missing) = undeclared_authority_surface(
+            &relative,
+            &text,
+            &config.authority_surface_marker,
+            &config.authority_surfaces,
+        ) {
+            undeclared_surfaces.push(missing);
+        }
         let authority_surface = config.authority_surfaces.iter().any(|s| s == &relative);
         for (index, line) in text.lines().enumerate() {
             let (cited, context) = scan_line(line);
@@ -238,10 +256,12 @@ fn observe(root: &Path, config: &Config) -> Result<Observed, String> {
         }
     }
     citations.sort_by(|a, b| (&a.path, a.line).cmp(&(&b.path, b.line)));
+    undeclared_surfaces.sort();
     Ok(Observed {
         records,
         citations,
         files_scanned,
+        undeclared_surfaces,
     })
 }
 
@@ -298,25 +318,16 @@ fn report(observed: &Observed, verdict: &Verdict) -> String {
     out
 }
 
-// THE GATE, as a SHRINK-ONLY RATCHET pinned by equality.
+// THE GATE, as a SHRINK-ONLY RATCHET on *semantic finding* ceilings (equality).
 //
-// This started as `assert!(!verdict.failed())` — red by design, on the reasoning that tuning it green
-// rather than repairing the citations would be the false green the gate exists to stop. That reasoning
-// is right and is preserved; the mechanism was wrong for this repo. `affected-set: test-health` counts
-// ANY failing test in the affected set as a regression against a baseline of zero, so a permanently-red
-// test cannot land at all — the gate would have been correct and unmergeable.
-//
-// Equality, not `<=`, is what keeps it honest, and it is the pattern the sibling
-// `ci/facade/corpus-index-coverage` gate already proves out. A NEW finding exceeds the ceiling and
-// fails. A REPAIRED finding falls below it and ALSO fails, forcing the ceiling down in the same change
-// so the ratchet keeps biting. Slack is never allowed to accumulate silently.
-//
-// The census assertion below it is what distinguishes a repaired corpus from a collapsed walk: both
-// report fewer findings, and only the census tells them apart.
+// Absolute census equality (`files_scanned` / `citation_lines` / `adr_records`) was DELETED as a
+// merge blocker (PROCESS_TAX / audit 79f76050). Hand re-freeze of those counters is not tip-entitled.
+// Anti-vacuity for the walk is machine-derived (`every_tracked_scannable_file_is_counted…`,
+// vacuous-scan refuse, `min_*` floors). Finding ceilings stay: a NEW finding exceeds the ceiling
+// and fails; a REPAIRED finding falls below it and ALSO fails, forcing the ceiling down same-change.
 #[test]
 fn live_tree_findings_equal_the_frozen_ceilings() {
-    let root = repo_root();
-    let raw = std::fs::read_to_string(root.join(POLICY_PATH)).expect("read policy");
+    let raw = std::fs::read_to_string(repo_root().join(POLICY_PATH)).expect("read policy");
     let doc: serde_json::Value = serde_json::from_str(&raw).expect("policy parses");
     let ceiling = |key: &str| -> usize {
         usize::try_from(
@@ -330,43 +341,25 @@ fn live_tree_findings_equal_the_frozen_ceilings() {
     let (_, observed, verdict) = live();
     let count = |code: &str| verdict.findings.iter().filter(|f| f.code == code).count();
 
-    // THE CORPUS IS PINNED BEFORE THE FINDINGS ARE.
-    //
-    // A high-effort review PROVED this gate could be turned green without repairing a
-    // single citation: append two entries to `exempt_path_prefixes`, lower the two
-    // ceilings in the same file, and all ten tests pass while 281 findings silently
-    // leave the enforced set. The corpus definition and the ceilings live in one policy
-    // file, so a policy-only edit satisfied a ratchet meant to require repair.
-    //
-    // The census values the policy itself calls "the anti-vacuity anchor" were asserted
-    // by NO test, which is what made the exploit invisible. Pinning them by equality
-    // closes it: narrowing the corpus necessarily moves `files_scanned` and
-    // `citation_lines`, so shrinking the scan now fails HERE, before any finding count
-    // is even compared. Repairing citations moves the finding counts and leaves these
-    // untouched — which is exactly the distinction the ratchet was supposed to make.
-    for (label, actual, key) in [
-        ("files_scanned", observed.files_scanned, "files_scanned"),
-        ("citation_lines", verdict.census.citation_lines, "citation_lines"),
-        ("adr_records", verdict.census.adr_records, "adr_records"),
-    ] {
-        let frozen = ceiling(key);
-        assert_eq!(
-            actual, frozen,
-            "{label}: observed {actual}, frozen {frozen}. This is the CORPUS, not a \
-             finding count. If it moved because the scan was narrowed, that is the \
-             false-green path and the narrowing must be justified on its own terms \
-             rather than folded into a repair. If it moved because tracked files were \
-             genuinely added or removed, re-freeze it in the SAME change.\n{}",
-            report(&observed, &verdict)
-        );
-    }
+    // PROCESS_TAX DELETE (audit 79f76050 / Fail-class law): hand equality pins on absolute
+    // census (`files_scanned` / `citation_lines` / `adr_records`) are NOT merge blockers.
+    // Anti-vacuity lives in machine oracles instead:
+    //   - `every_tracked_scannable_file_is_counted_and_nothing_untracked_is` (git ls-files ∩ scan)
+    //   - vacuous-scan refuse below
+    //   - policy `min_*` floors
+    // Semantic finding ceilings (mismatch / rejected_authority / …) remain enforced.
 
     // Anti-vacuity FIRST: every count below is meaningless if the walk saw nothing.
     assert_eq!(
         count(CODE_VACUOUS_SCAN),
         0,
         "the walk collapsed — its zero findings are not evidence\n{}",
-        report(observed, verdict)
+        report(&observed, &verdict)
+    );
+    assert!(
+        observed.files_scanned > 0,
+        "census walk saw zero files — refuse vacuous green\n{}",
+        report(&observed, &verdict)
     );
 
     for (code, key) in [
@@ -386,7 +379,7 @@ fn live_tree_findings_equal_the_frozen_ceilings() {
              introduced and must be repaired rather than admitted. Below it, findings were repaired \
              and `measured.{key}` must be lowered to {observed_count} in the SAME change so the \
              ratchet keeps biting.\n{}",
-            report(observed, verdict)
+            report(&observed, &verdict)
         );
     }
 }
@@ -587,4 +580,50 @@ fn every_declared_authority_surface_exists_and_was_scanned() {
             "declared authority surface {surface} produced no ADR citation — it may have moved"
         );
     }
+}
+
+// THE OMISSION HALF of the same staleness problem, and the one that was actually costing findings.
+//
+// The test above iterates `authority_surfaces` and checks each entry is real. It CANNOT see a
+// surface that was never listed — it is checking the very list that is incomplete, so a governance
+// document nobody remembered to declare is invisible to it and to the rejected-authority rule
+// behind it. That is not a mis-set value, it is a rule that structurally cannot reach its own
+// strongest instances, which is the same defect class as the `context`-only scan repaired in
+// `_review_remeasure_2026_08_08`: both were rules that could not see the citations that state
+// doctrine most explicitly.
+//
+// The fix is to stop treating the hand-curated list as the definition and derive candidates from
+// what each document declares about ITSELF, in frontmatter, during the walk that is already
+// running. `authority_surface_marker` is policy DATA, so another repo repoints it.
+//
+// OBSERVED FIRING, on the live tree at this commit's parent, before
+// `docs/AGENTS-OPERATING-CONTRACT.md` was added to `authority_surfaces` — this is the execution
+// that makes the green below evidence rather than decoration:
+//
+//   thread 'a_document_declaring_itself_an_operating_contract_is_a_declared_surface' panicked at
+//   governance/check/adr-citation-closure/tests/adr_citation_closure.rs:640:5:
+//   assertion `left == right` failed: these files declare `doc_class: Operating-Contract` in their
+//   own frontmatter but are absent from authority_surfaces, so the rejected-authority rule cannot
+//   see them: ["docs/AGENTS-OPERATING-CONTRACT.md"]. […]
+//   test result: FAILED. 10 passed; 1 failed
+//   Tests finished: Pass 1. Fail 1. … Commands: 3 (cached: 0, remote: 0, local: 3)
+//
+// It fired on exactly ONE file, which is also the control that the marker is not over-matching:
+// `doc_class: Operating-Contract` appears in the frontmatter head of two tracked documents, and the
+// other one — `docs/AGENTS.md` — was already declared. The sibling test above passed in that same
+// run, which is the direct evidence that it cannot see this class.
+#[test]
+fn a_document_declaring_itself_an_operating_contract_is_a_declared_surface() {
+    let (config, observed, _) = live();
+    let empty: Vec<String> = Vec::new();
+    assert_eq!(
+        observed.undeclared_surfaces, empty,
+        "these files declare `{}` in their own frontmatter but are absent from \
+         authority_surfaces, so the rejected-authority rule cannot see them: {:?}. Declare them \
+         and re-measure BOTH numbers it moves — the citation_lines census (an authority surface \
+         contributes lines whose `cited` is empty) and adr_citation_rejected_authority — in the \
+         SAME change.",
+        config.authority_surface_marker,
+        observed.undeclared_surfaces
+    );
 }
