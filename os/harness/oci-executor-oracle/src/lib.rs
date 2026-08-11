@@ -740,10 +740,9 @@ enum ExecutorKindInner {
 
 /// Identity of an OCI executor implementation behind the shared trait.
 ///
-/// `Owned` is sealed: only [`OwnedExecutorStub::kind`] /
-/// [`OwnedExecutorStub::try_measured_identity`] (capability-gated) /
-/// [`owned_measured_kind`] can construct it. Oracle kinds come from [`OracleStub`].
-/// Capability tokens are minted solely by [`OwnedExecutorStub::claim_adapter_capability`].
+/// `Owned` is sealed: only [`OwnedExecutorStub::kind`] constructs it. Public API
+/// yields scaffold pins only; measured Owned minting is `pub(crate)` (harness tests).
+/// Oracle kinds come from [`OracleStub`].
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ExecutorKind(ExecutorKindInner);
 
@@ -1325,16 +1324,6 @@ pub struct OwnedExecutorStub {
     pin: OwnedPin,
 }
 
-/// Non-forgeable capability for measured Owned identity issuance.
-///
-/// Private field prevents downstream crates (including oracle adapters) from
-/// constructing this token. Only [`OwnedExecutorStub::claim_adapter_capability`]
-/// mints it after obligations inventory validation.
-#[derive(Debug, Clone, Copy)]
-pub struct OwnedAdapterCapability {
-    _priv: (),
-}
-
 impl Default for OwnedExecutorStub {
     fn default() -> Self {
         Self::scaffold()
@@ -1342,28 +1331,23 @@ impl Default for OwnedExecutorStub {
 }
 
 impl OwnedExecutorStub {
-    /// Public harness owned stub (scaffold pin only — adapters cannot forge measured pins).
+    /// Public harness owned stub (scaffold pin only).
+    ///
+    /// Measured Owned identity is **not** publicly issuable: oracle adapters and
+    /// other downstream crates can only hold the scaffold product path. Live
+    /// measured minting stays `pub(crate)` until an in-tree owned adapter provides
+    /// a sealed integration (oracles must never emit Owned [`ExecutorKind`]).
     pub fn scaffold() -> Self {
         Self {
             pin: OwnedPin::scaffold(),
         }
     }
 
-    /// Mint the owned-adapter capability (inventory-gated). Oracle adapters cannot forge this.
-    pub fn claim_adapter_capability() -> Result<OwnedAdapterCapability, HarnessError> {
-        validate_obligations()?;
-        Ok(OwnedAdapterCapability { _priv: () })
-    }
-
-    /// Controlled factory for measured Owned identity — requires owned-adapter capability.
+    /// Crate-local measured Owned identity (immutable pin only).
     ///
-    /// Accepts only immutable pin forms (`sha256:`/`git:`). Scaffold pins are
-    /// rejected. The capability closes the forge path where a runc/youki/crun
-    /// adapter could mint a measured Owned [`ExecutorKind`].
-    pub fn try_measured_identity(
-        pin: OwnedPin,
-        _capability: OwnedAdapterCapability,
-    ) -> Result<Self, HarnessError> {
+    /// Not part of the public API — prevents runc/youki/crun adapters from minting
+    /// a measured Owned kind that would pass [`refuse_oracle_as_product`].
+    pub(crate) fn try_measured_identity(pin: OwnedPin) -> Result<Self, HarnessError> {
         if pin.is_scaffold() || !is_immutable_revision(pin.revision()) {
             return Err(HarnessError::ScaffoldPinNotMeasured);
         }
@@ -1378,14 +1362,6 @@ impl OwnedExecutorStub {
     pub fn pin(&self) -> &OwnedPin {
         &self.pin
     }
-}
-
-/// Public sealed Owned [`ExecutorKind`] for measured observations (immutable pin + capability).
-pub fn owned_measured_kind(
-    pin: OwnedPin,
-    capability: OwnedAdapterCapability,
-) -> Result<ExecutorKind, HarnessError> {
-    Ok(OwnedExecutorStub::try_measured_identity(pin, capability)?.kind())
 }
 
 /// Public owned stub for harness use after inventory validation (scaffold product path only).
@@ -1659,16 +1635,12 @@ mod tests {
     const CVE_FD: &str = "CVE-2024-21626";
     const CVE_PROC: &str = "CVE-2019-5736";
 
-    fn owned_cap() -> OwnedAdapterCapability {
-        OwnedExecutorStub::claim_adapter_capability().unwrap()
-    }
-
     fn live_owned_pin() -> OwnedPin {
         OwnedPin::try_new(&format!("sha256:{HEX_OWNED}"), "linux/amd64").unwrap()
     }
 
     fn live_owned() -> OwnedExecutorStub {
-        OwnedExecutorStub::try_measured_identity(live_owned_pin(), owned_cap()).unwrap()
+        OwnedExecutorStub::try_measured_identity(live_owned_pin()).unwrap()
     }
 
     fn inventory_pins() -> BTreeMap<OracleId, OraclePin> {
@@ -2065,12 +2037,10 @@ mod tests {
     }
 
     #[test]
-    fn public_try_measured_identity_supports_measured_observations() {
-        let cap = owned_cap();
-        let owned = OwnedExecutorStub::try_measured_identity(live_owned_pin(), cap).unwrap();
+    fn crate_local_measured_identity_supports_measured_observations() {
+        let owned = OwnedExecutorStub::try_measured_identity(live_owned_pin()).unwrap();
         assert!(!owned.pin().is_scaffold());
-        let kind = owned_measured_kind(live_owned_pin(), cap).unwrap();
-        assert!(kind.is_owned_product());
+        assert!(owned.kind().is_owned_product());
         let obs = OperationObservation::try_measured(
             owned.kind(),
             OciOperation::Start,
@@ -2081,9 +2051,11 @@ mod tests {
         .unwrap();
         assert!(obs.executed());
         assert_eq!(
-            OwnedExecutorStub::try_measured_identity(OwnedPin::scaffold(), cap).unwrap_err(),
+            OwnedExecutorStub::try_measured_identity(OwnedPin::scaffold()).unwrap_err(),
             HarnessError::ScaffoldPinNotMeasured
         );
+        // Public surface cannot elevate scaffold → measured Owned.
+        assert!(OwnedExecutorStub::scaffold().pin().is_scaffold());
     }
 
     #[test]
