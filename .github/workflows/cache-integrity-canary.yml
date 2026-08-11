@@ -68,7 +68,7 @@ on:
 
 jobs:
   canary:
-    name: "integrity-canary (cold, from-empty — ADR-0556 D2 / ADR-0560)"
+    name: "integrity-canary (cold, from-empty)"
     outputs:
       warm_licensed: ${{ steps.license.outputs.warm_licensed }}
     env:

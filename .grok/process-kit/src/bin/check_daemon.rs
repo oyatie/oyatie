@@ -1,9 +1,11 @@
 //! Orchestrator check-daemon stub (Rust-first).
 //!
 //! Full `buck2 build //...[check]` fan-out remains a follow-on once this crate
-//! is buck-wired. This binary encodes admission + env-escape refuse now.
+//! is workspace-absorbed via integ/build. This binary encodes admission + refuses now.
 
+use oya_process_kit::git_shim::refuse_no_verify;
 use oya_process_kit::{detect_env_escapes, require_orchestrator};
+use std::env;
 use std::process::ExitCode;
 
 fn main() -> ExitCode {
@@ -16,8 +18,16 @@ fn main() -> ExitCode {
         eprintln!("check-daemon: REFUSE — env escapes {escapes:?}");
         return ExitCode::from(3);
     }
+    if let Ok(extra) = env::var("SWARM_CHECK_DAEMON_GIT_ARGV") {
+        let args: Vec<&str> = extra.split_whitespace().collect();
+        if let Err(e) = refuse_no_verify(&args) {
+            eprintln!("{e}");
+            return ExitCode::from(4);
+        }
+    }
     eprintln!(
-        "check-daemon: OK (stub) — buck2 [check] fan-out not yet wired; see .grok/process-kit/README.md"
+        "check-daemon: OK (stub) — buck target //.grok/process-kit:oya-process-kit-check-daemon; \
+         full //[check] fan-out pending integ/build membership"
     );
     ExitCode::SUCCESS
 }

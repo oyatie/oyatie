@@ -3,6 +3,10 @@
 //! Shell `tools/swarm/**` birth was aborted on #1644 (automation-language ceiling).
 //! This crate is the forever home under `roots.grok` → `integ/ci`.
 
+pub mod claim_push;
+pub mod git_shim;
+pub mod toolguard;
+
 use std::env;
 use std::path::Path;
 
@@ -61,23 +65,35 @@ mod tests {
     #[test]
     fn detects_blessed_push_inheritance() {
         let _g = ENV_LOCK.lock().unwrap();
-        env::remove_var("SWARM_BLESSED_PUSH");
+        unsafe {
+            env::remove_var("SWARM_BLESSED_PUSH");
+        }
         assert!(detect_env_escapes(false).is_empty());
-        env::set_var("SWARM_BLESSED_PUSH", "1");
+        unsafe {
+            env::set_var("SWARM_BLESSED_PUSH", "1");
+        }
         assert_eq!(
             detect_env_escapes(false),
             vec![EnvEscape::BlessedPushInherited]
         );
-        env::remove_var("SWARM_BLESSED_PUSH");
+        unsafe {
+            env::remove_var("SWARM_BLESSED_PUSH");
+        }
     }
 
     #[test]
     fn orchestrator_gate() {
         let _g = ENV_LOCK.lock().unwrap();
-        env::remove_var("SWARM_ORCHESTRATOR");
+        unsafe {
+            env::remove_var("SWARM_ORCHESTRATOR");
+        }
         assert!(require_orchestrator().is_err());
-        env::set_var("SWARM_ORCHESTRATOR", "1");
+        unsafe {
+            env::set_var("SWARM_ORCHESTRATOR", "1");
+        }
         assert!(require_orchestrator().is_ok());
-        env::remove_var("SWARM_ORCHESTRATOR");
+        unsafe {
+            env::remove_var("SWARM_ORCHESTRATOR");
+        }
     }
 }
