@@ -69,6 +69,12 @@ pub enum HarnessError {
     MissingBlocker(String),
     UnknownBlocker(String),
     DuplicateBlocker(String),
+    EmptyBundleDigest,
+    IncompleteMatrixCoverage(String),
+    DuplicateMatrixCell(String),
+    UnknownMatrixCve(String),
+    /// Pairwise Match is not a conformance claim without full oracle×CVE coverage.
+    ConformanceWithoutFullMatrix,
     ConformanceLaundering,
 }
 
@@ -89,10 +95,18 @@ impl fmt::Display for HarnessError {
             | Self::CveNotRequired(m)
             | Self::MissingBlocker(m)
             | Self::UnknownBlocker(m)
-            | Self::DuplicateBlocker(m) => write!(f, "{m}"),
+            | Self::DuplicateBlocker(m)
+            | Self::IncompleteMatrixCoverage(m)
+            | Self::DuplicateMatrixCell(m)
+            | Self::UnknownMatrixCve(m) => write!(f, "{m}"),
+            Self::EmptyBundleDigest => write!(f, "bundle content_digest must be non-empty"),
             Self::CveClassMismatch { id, expected, got } => write!(
                 f,
                 "cve {id} class must be {expected} (got {got})"
+            ),
+            Self::ConformanceWithoutFullMatrix => write!(
+                f,
+                "conformance verdict requires full oracle × CVE matrix coverage"
             ),
             Self::ConformanceLaundering => write!(
                 f,
@@ -188,12 +202,59 @@ impl OciOperation {
     }
 }
 
+/// Content-derived OCI bundle identity (id alone is insufficient).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct BundleIdentity {
+    pub bundle_id: String,
+    /// Digest of config/rootfs/mounts — empty rejected at construction.
+    pub content_digest: String,
+}
+
+impl BundleIdentity {
+    pub fn try_new(bundle_id: &str, content_digest: &str) -> Result<Self, HarnessError> {
+        if content_digest.trim().is_empty() {
+            return Err(HarnessError::EmptyBundleDigest);
+        }
+        Ok(Self {
+            bundle_id: bundle_id.to_owned(),
+            content_digest: content_digest.to_owned(),
+        })
+    }
+
+    /// Scaffold placeholder digest keyed by bundle id (not a live OCI digest).
+    pub fn scaffold(bundle_id: &str) -> Self {
+        Self {
+            bundle_id: bundle_id.to_owned(),
+            content_digest: format!("scaffold:unresolved:{bundle_id}"),
+        }
+    }
+}
+
+/// Typed CVE / OCI-state security postconditions (adversarial corpus contract).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SecurityPostconditions {
+    pub proc_self_exe_reexec_blocked: bool,
+    pub fd_leak_absent: bool,
+    pub mount_symlink_race_safe: bool,
+}
+
+impl SecurityPostconditions {
+    pub const fn all_held() -> Self {
+        Self {
+            proc_self_exe_reexec_blocked: true,
+            fd_leak_absent: true,
+            mount_symlink_race_safe: true,
+        }
+    }
+}
+
 /// Canonical measured outcome (shared contract — not adapter-defined digests).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct MeasuredOutcome {
     pub exit_code: i32,
     pub status: String,
     pub stderr_fingerprint: String,
+    pub security: SecurityPostconditions,
 }
 
 /// Execution state — closed so measured outcomes cannot coexist with "unexecuted".
@@ -222,7 +283,7 @@ impl ExecutionState {
 pub struct OperationObservation {
     kind: ExecutorKind,
     operation: OciOperation,
-    bundle_id: String,
+    bundle: BundleIdentity,
     execution: ExecutionState,
 }
 
@@ -233,8 +294,14 @@ impl OperationObservation {
     pub fn operation(&self) -> OciOperation {
         self.operation
     }
+    pub fn bundle(&self) -> &BundleIdentity {
+        &self.bundle
+    }
     pub fn bundle_id(&self) -> &str {
-        &self.bundle_id
+        &self.bundle.bundle_id
+    }
+    pub fn content_digest(&self) -> &str {
+        &self.bundle.content_digest
     }
     /// Kill signal when operation is [`OciOperation::Kill`]; otherwise `None`.
     pub fn kill_signal(&self) -> Option<KillSignal> {
@@ -247,31 +314,42 @@ impl OperationObservation {
         self.execution.is_executed()
     }
 
-    pub fn stubbed(kind: ExecutorKind, operation: OciOperation, bundle_id: &str) -> Self {
+    pub fn stubbed(kind: ExecutorKind, operation: OciOperation, bundle: BundleIdentity) -> Self {
         Self {
             kind,
             operation,
-            bundle_id: bundle_id.to_owned(),
+            bundle,
             execution: ExecutionState::Stubbed,
         }
+    }
+
+    pub fn stubbed_scaffold(
+        kind: ExecutorKind,
+        operation: OciOperation,
+        bundle_id: &str,
+    ) -> Self {
+        Self::stubbed(kind, operation, BundleIdentity::scaffold(bundle_id))
     }
 
     pub fn measured(
         kind: ExecutorKind,
         operation: OciOperation,
-        bundle_id: &str,
+        bundle: BundleIdentity,
         outcome: MeasuredOutcome,
     ) -> Self {
         Self {
             kind,
             operation,
-            bundle_id: bundle_id.to_owned(),
+            bundle,
             execution: ExecutionState::Measured(outcome),
         }
     }
 }
 
 /// Compare two observations into a differential verdict.
+///
+/// Pairwise `Match` is **not** a conformance / Accept claim — callers must run
+/// [`aggregate_oracle_cve_matrix`] over the full oracle × CVE set first.
 pub fn compare_observations(
     owned: &OperationObservation,
     oracle: &OperationObservation,
@@ -279,17 +357,94 @@ pub fn compare_observations(
     if !owned.kind.is_owned_product() || !oracle.kind.is_oracle_only() {
         return DiffVerdict::Diverge;
     }
-    // Operation equality includes Kill(signal) — signal mismatch ⇒ Diverge.
-    if owned.operation != oracle.operation || owned.bundle_id != oracle.bundle_id {
+    // Operation equality includes Kill(signal); bundle compares id + content digest.
+    if owned.operation != oracle.operation || owned.bundle != oracle.bundle {
         return DiffVerdict::Diverge;
     }
     match (&owned.execution, &oracle.execution) {
         (ExecutionState::Stubbed, ExecutionState::Stubbed) => DiffVerdict::Stubbed,
+        // Equality includes SecurityPostconditions — exit-only Match is unreachable.
         (ExecutionState::Measured(a), ExecutionState::Measured(b)) if a == b => DiffVerdict::Match,
         (ExecutionState::Measured(_), ExecutionState::Measured(_)) => DiffVerdict::Diverge,
         // Partial wiring / failed differential run — not the all-scaffold case.
         _ => DiffVerdict::Diverge,
     }
+}
+
+/// One cell of the required oracle × CVE differential matrix.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct MatrixCell {
+    pub oracle: OracleId,
+    pub cve_id: String,
+    pub verdict: DiffVerdict,
+}
+
+/// Scaffold-only aggregate — never an Accept / product conformance claim.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum MatrixAggregate {
+    /// Exact oracle × CVE coverage present; measurements still scaffold/stubbed.
+    ScaffoldCoverageComplete,
+    /// Exact coverage with measured cells (still ≠ Accept — no product ship).
+    MeasuredCoverageComplete,
+}
+
+/// Exact closed set of (oracle, cve) pairs that must be covered.
+pub fn required_matrix_pairs() -> Vec<(OracleId, &'static str)> {
+    let mut out = Vec::with_capacity(ORACLE_IDS.len() * REQUIRED_CVE_IDS.len());
+    for oracle in OracleId::all() {
+        for cve in REQUIRED_CVE_IDS {
+            out.push((oracle, cve));
+        }
+    }
+    out
+}
+
+/// Reject incomplete oracle × CVE coverage before any conformance-shaped claim.
+pub fn validate_matrix_coverage(cells: &[MatrixCell]) -> Result<(), HarnessError> {
+    let required = required_matrix_pairs();
+    let mut seen = BTreeSet::new();
+    for cell in cells {
+        if !REQUIRED_CVE_IDS.contains(&cell.cve_id.as_str()) {
+            return Err(HarnessError::UnknownMatrixCve(cell.cve_id.clone()));
+        }
+        let key = (cell.oracle.as_str(), cell.cve_id.as_str());
+        if !seen.insert(key) {
+            return Err(HarnessError::DuplicateMatrixCell(format!(
+                "{}×{}",
+                cell.oracle.as_str(),
+                cell.cve_id
+            )));
+        }
+    }
+    for (oracle, cve) in &required {
+        if !seen.contains(&(oracle.as_str(), *cve)) {
+            return Err(HarnessError::IncompleteMatrixCoverage(format!(
+                "missing {}×{cve}",
+                oracle.as_str()
+            )));
+        }
+    }
+    Ok(())
+}
+
+/// Aggregate the exact oracle × CVE matrix. Never yields Accept.
+pub fn aggregate_oracle_cve_matrix(cells: &[MatrixCell]) -> Result<MatrixAggregate, HarnessError> {
+    validate_matrix_coverage(cells)?;
+    if cells.iter().any(|c| c.verdict == DiffVerdict::Stubbed) {
+        Ok(MatrixAggregate::ScaffoldCoverageComplete)
+    } else {
+        Ok(MatrixAggregate::MeasuredCoverageComplete)
+    }
+}
+
+/// Pairwise Match alone must not be treated as product conformance.
+pub fn refuse_pairwise_match_as_conformance(
+    cells: &[MatrixCell],
+) -> Result<MatrixAggregate, HarnessError> {
+    if cells.is_empty() {
+        return Err(HarnessError::ConformanceWithoutFullMatrix);
+    }
+    aggregate_oracle_cve_matrix(cells)
 }
 
 /// Identity of an OCI executor implementation behind the shared trait.
@@ -322,22 +477,31 @@ pub trait OciExecutor {
 
     /// Scaffold create — no filesystem / namespace mutation.
     fn create_stub(&self, bundle_id: &str) -> OperationObservation {
-        OperationObservation::stubbed(self.kind(), OciOperation::Create, bundle_id)
+        OperationObservation::stubbed_scaffold(self.kind(), OciOperation::Create, bundle_id)
     }
 
     /// Scaffold start — no process spawn.
     fn start_stub(&self, bundle_id: &str) -> OperationObservation {
-        OperationObservation::stubbed(self.kind(), OciOperation::Start, bundle_id)
+        OperationObservation::stubbed_scaffold(self.kind(), OciOperation::Start, bundle_id)
     }
 
     /// Scaffold kill — signal is part of the closed operation type.
     fn kill_stub(&self, bundle_id: &str, signal: KillSignal) -> OperationObservation {
-        OperationObservation::stubbed(self.kind(), OciOperation::Kill(signal), bundle_id)
+        OperationObservation::stubbed_scaffold(
+            self.kind(),
+            OciOperation::Kill(signal),
+            bundle_id,
+        )
     }
 
     /// Scaffold delete — no cleanup side effects.
     fn delete_stub(&self, bundle_id: &str) -> OperationObservation {
-        OperationObservation::stubbed(self.kind(), OciOperation::Delete, bundle_id)
+        OperationObservation::stubbed_scaffold(self.kind(), OciOperation::Delete, bundle_id)
+    }
+
+    /// Create with an explicit content-derived bundle identity.
+    fn create_with_bundle(&self, bundle: BundleIdentity) -> OperationObservation {
+        OperationObservation::stubbed(self.kind(), OciOperation::Create, bundle)
     }
 }
 
@@ -613,28 +777,31 @@ mod tests {
             exit_code: 0,
             status: "exited".into(),
             stderr_fingerprint: "fp-a".into(),
+            security: SecurityPostconditions::all_held(),
         };
         let outcome_b = MeasuredOutcome {
             exit_code: 1,
             status: "exited".into(),
             stderr_fingerprint: "fp-b".into(),
+            security: SecurityPostconditions::all_held(),
         };
+        let bundle = BundleIdentity::scaffold("b1");
         let owned_ok = OperationObservation::measured(
             ExecutorKind::Owned,
             OciOperation::Start,
-            "b1",
+            bundle.clone(),
             outcome_a.clone(),
         );
         let oracle_ok = OperationObservation::measured(
             ExecutorKind::Oracle(OracleId::Runc),
             OciOperation::Start,
-            "b1",
+            bundle.clone(),
             outcome_a,
         );
         let oracle_bad = OperationObservation::measured(
             ExecutorKind::Oracle(OracleId::Runc),
             OciOperation::Start,
-            "b1",
+            bundle,
             outcome_b,
         );
         assert_eq!(
@@ -652,11 +819,12 @@ mod tests {
         let owned = OperationObservation::measured(
             ExecutorKind::Owned,
             OciOperation::Start,
-            "b1",
+            BundleIdentity::scaffold("b1"),
             MeasuredOutcome {
                 exit_code: 0,
                 status: "exited".into(),
                 stderr_fingerprint: "fp".into(),
+                security: SecurityPostconditions::all_held(),
             },
         );
         let oracle = OracleStub::runc().start_stub("b1");
@@ -665,17 +833,89 @@ mod tests {
 
     #[test]
     fn kill_signal_mismatch_diverges() {
-        let owned = OperationObservation::stubbed(
+        let owned = OperationObservation::stubbed_scaffold(
             ExecutorKind::Owned,
             OciOperation::Kill(KillSignal::Term),
             "b1",
         );
-        let oracle = OperationObservation::stubbed(
+        let oracle = OperationObservation::stubbed_scaffold(
             ExecutorKind::Oracle(OracleId::Youki),
             OciOperation::Kill(KillSignal::Kill),
             "b1",
         );
         assert_eq!(compare_observations(&owned, &oracle), DiffVerdict::Diverge);
+    }
+
+    #[test]
+    fn bundle_content_digest_mismatch_diverges() {
+        let owned = OwnedExecutorStub.create_with_bundle(
+            BundleIdentity::try_new("b1", "digest-a").unwrap(),
+        );
+        let oracle = OracleStub::runc().create_with_bundle(
+            BundleIdentity::try_new("b1", "digest-b").unwrap(),
+        );
+        assert_eq!(compare_observations(&owned, &oracle), DiffVerdict::Diverge);
+    }
+
+    #[test]
+    fn empty_bundle_digest_rejected() {
+        assert_eq!(
+            BundleIdentity::try_new("b1", "  ").unwrap_err(),
+            HarnessError::EmptyBundleDigest
+        );
+    }
+
+    #[test]
+    fn security_postcondition_mismatch_diverges() {
+        let base = MeasuredOutcome {
+            exit_code: 0,
+            status: "exited".into(),
+            stderr_fingerprint: "fp".into(),
+            security: SecurityPostconditions::all_held(),
+        };
+        let mut leaky = base.clone();
+        leaky.security.fd_leak_absent = false;
+        let bundle = BundleIdentity::scaffold("b1");
+        let owned = OperationObservation::measured(
+            ExecutorKind::Owned,
+            OciOperation::Start,
+            bundle.clone(),
+            base,
+        );
+        let oracle = OperationObservation::measured(
+            ExecutorKind::Oracle(OracleId::Crun),
+            OciOperation::Start,
+            bundle,
+            leaky,
+        );
+        assert_eq!(compare_observations(&owned, &oracle), DiffVerdict::Diverge);
+    }
+
+    #[test]
+    fn matrix_requires_full_oracle_cve_coverage() {
+        // Single pairwise Match is not enough.
+        let incomplete = [MatrixCell {
+            oracle: OracleId::Runc,
+            cve_id: "CVE-2019-5736".into(),
+            verdict: DiffVerdict::Match,
+        }];
+        assert!(matches!(
+            refuse_pairwise_match_as_conformance(&incomplete),
+            Err(HarnessError::IncompleteMatrixCoverage(_))
+        ));
+
+        let mut cells = Vec::new();
+        for (oracle, cve) in required_matrix_pairs() {
+            cells.push(MatrixCell {
+                oracle,
+                cve_id: cve.to_owned(),
+                verdict: DiffVerdict::Stubbed,
+            });
+        }
+        assert_eq!(
+            aggregate_oracle_cve_matrix(&cells).unwrap(),
+            MatrixAggregate::ScaffoldCoverageComplete
+        );
     }
 
     #[test]
