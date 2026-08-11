@@ -96,6 +96,10 @@ exclude = [
   "ci/facade/automation-language-policy",
   "cloud/cloud-kernel",
   "governance/check/integ-envelope",
+  # Bridge: new os/harness crates on integ/os tip — exclude until integ/build
+  # (#planes.root_manifests) absorbs Cargo.lock membership (cargo-lock-sole-owner).
+  "os/harness/attestation-relying-party",
+  "os/harness/oci-executor-oracle",
   "kernel",
   "storage/adapters/nativelink",
 ]

@@ -143,6 +143,8 @@ impl<S: SigningBackend> SecurityService<S> {
         requester_key: &KeyPair,
         now: u64,
     ) -> Result<Option<IssuedIdentity>> {
+        // Revoked certificates must never mint a fresh serial.
+        self.crl.ensure_valid(current)?;
         // The cert must currently chain to this CA before we'll rotate it.
         self.ca.verify(current, now).or_else(|e| {
             // An already-expired cert still gets rotated, but other failures
@@ -153,6 +155,12 @@ impl<S: SigningBackend> SecurityService<S> {
                 Err(e)
             }
         })?;
+        // Renewal is bound to the key that already holds `current`.
+        if !requester_key.matches_public(&current.public_key_der) {
+            return Err(TrustError::csr_rejected(
+                "renewal requester key does not match the presented certificate",
+            ));
+        }
 
         let needs = current.validity.is_expired(now) || current.validity.needs_renewal(now, 1, 2);
         if !needs {
@@ -163,15 +171,13 @@ impl<S: SigningBackend> SecurityService<S> {
             .validity
             .not_after
             .saturating_sub(current.validity.not_before);
-        let mut csr = CertificateSigningRequest {
+        let csr = CertificateSigningRequest {
             subject: current.subject.clone(),
             usage: current.usage,
             sans: current.sans.clone(),
             public_key_der: current.public_key_der.clone(),
             ttl_secs: ttl.max(1),
         };
-        // Preserve the public key binding to the requester's key pair.
-        csr.public_key_der = requester_key.public_der().to_vec();
         let identity = self.ca.issue_identity(&csr, requester_key, now)?;
         Ok(Some(identity))
     }
@@ -273,12 +279,17 @@ mod tests {
         // issue with TTL 3600 at now=2000 -> valid [2000,5600)
         let resp = svc.handle_certificate(&req, &key, 2000).unwrap();
         let cert = resp.identity.certificate.clone();
+        assert!(resp.identity.key_pem.der().is_empty());
         // early: more than half life remains -> no renewal
         assert!(svc.renew_if_needed(&cert, &key, 2100).unwrap().is_none());
         // late: less than half remains -> renews
         let renewed = svc.renew_if_needed(&cert, &key, 4000).unwrap();
         assert!(renewed.is_some());
         assert!(renewed.unwrap().certificate.serial > cert.serial);
+        let foreign = KeyPair::from_seed(b"other-node");
+        assert!(svc.renew_if_needed(&cert, &foreign, 4000).is_err());
+        svc.revoke(cert.serial, RevocationReason::KeyCompromise, 4100);
+        assert!(svc.renew_if_needed(&cert, &key, 4200).is_err());
     }
 
     #[test]
