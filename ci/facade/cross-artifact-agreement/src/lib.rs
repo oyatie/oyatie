@@ -2053,7 +2053,10 @@ pub fn evaluate_masterplan_v2_ratification_digest(
     }
 
     // Approver principal must agree between masterplan and durable evidence so flipping
-    // masterplan approved_by to `founder` cannot launder a founder-proxy receipt.
+    // masterplan approved_by to `founder` cannot launder a founder-proxy receipt. Enforce
+    // whenever evidence declares an approver, or whenever either side claims dispatch
+    // authorization; digest-only evidence fixtures without an approver remain valid while
+    // planning-blocked.
     let recorded_approved_by = sequencing
         .get("founder_ratification")
         .and_then(|ratification| non_empty_field(ratification, "approved_by"));
@@ -2062,7 +2065,10 @@ pub fn evaluate_masterplan_v2_ratification_digest(
             .get("decision")
             .and_then(|decision| non_empty_field(decision, "approved_by"))
     });
-    if recorded_approved_by != evidence_approved_by {
+    let enforce_approver_agreement = evidence_approved_by.is_some()
+        || recorded_authorizes == Some(true)
+        || evidence_authorizes == Some(true);
+    if enforce_approver_agreement && recorded_approved_by != evidence_approved_by {
         findings.insert(Finding::new(
             "masterplan_execution_wave_dispatch_unratified",
             "masterplan_v2.sequencing.founder_ratification.approved_by",
