@@ -1,9 +1,23 @@
+- 2026-08-11 — Phase0 merge-admission-required + domain green / path_ownership cite (SSOT absorb); bead oyatie-dxz docs-governance.
 ---
 purpose: Oyatie — Canonical Docs Changelog
 doc_status: published
 ---
 
 # Changelog
+
+## 2026-08-11 — Portable doctrine + Automations ritual + ADR-rename overturn (docs)
+
+- Landed **portable Swarm doctrine** single source
+  [`templates/portable-swarm-doctrine.md`](../templates/portable-swarm-doctrine.md)
+  (`portable_doctrine_version` **1.0.0**) plus new-repo
+  [`templates/README-doctrine-pointer.md`](../templates/README-doctrine-pointer.md).
+- Added short **Cursor Automations** (advisory-only) subsection to
+  [`templates/checklists/swarm-agent-ritual.md`](../templates/checklists/swarm-agent-ritual.md);
+  do not recreate `docs/checklists/` dual-home.
+- Documented **adr-rename-overturn** challenge on `docs/AGENTS.md` (cite ADR-0711 E-1;
+  MUST NOT mass-rename `ADR-NNNN-<topic>` for taxonomy optics).
+- Same-wave operating-contract pointers under Doctrine survival + canonical doc map.
 
 ## 2026-08-11 — ADR-0711 Cargo.lock sole-owner amend
 
