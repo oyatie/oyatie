@@ -1,5 +1,5 @@
 context: os
-role: test-fixtures
+role: test
 capability: oci-executor-oracle
 plane: control
 slo: cataloged-no-runtime-claim
