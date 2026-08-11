@@ -220,7 +220,7 @@ pub fn scaffold_summary_receipt(run: &ScaffoldRun) -> Value {
         },
         "pool_matrix_notes_recorded": true,
         "f1a_consumption_note": run.plan.f1a_consumption_note,
-        "measured_today": [
+        "hermetic_validated_today": [
             "matrix schema + column contract",
             "four surfaces present",
             "G5-trigger flags including cgroup delegation/enforcement rows",
@@ -233,6 +233,7 @@ pub fn scaffold_summary_receipt(run: &ScaffoldRun) -> Value {
             "available_on_asterinas_pin transitions",
         ],
         "scaffold_is_not": "green_matrix",
+        "note": "hermetic_validated_today is contract validation, not pinned-kernel measurement; measured_receipt_count remains 0 until QEMU receipts land.",
     })
 }
 
