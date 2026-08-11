@@ -98,6 +98,7 @@ defaults; admission MUST validate the migrated fields.
 | Legacy `pod_runtime_tier` | Live RuntimeClass (today) | Isolation property | Placement | Trust classification | Notes |
 |---|---|---|---|---|---|
 | `0` | `kata-cloud-hypervisor` (Kata-class) | `private-kernel` | `general` | unchanged (keep existing trust 0..3 field) | Same Kata isolation class as `1`; does **not** auto-upgrade to `private-kernel-attested` |
+| `0` | **no-runtime / scaffold sentinel** (explicit non-pod accounting) | _(no isolation property)_ | _(n/a)_ | unchanged | Preserve the sentinel — do **not** invent a RuntimeClass or private-kernel claim. Corpus includes `cloud/cloud-os/manifest.json` and `cloud/cloud-kernel/manifest.json` where `pod_runtime_tier: 0` is reserved for scaffold accounting with no pod runtime |
 | `1` | `kata-cloud-hypervisor` (Kata-class) | `private-kernel` | `general` | unchanged | Same isolation as `0`; trust axis stays separate |
 | `2` | `runc` | `shared-kernel` | `general` | unchanged | First-party shared-kernel |
 | `3` | `runc-edge` **or** explicit edge nodepool evidence | `shared-kernel` | `edge` | unchanged | Placement carries former Tier-3 edge/perf contract (SR-IOV, hugepages, CPU pinning) **only** when RuntimeClass / pool evidence is edge |
@@ -107,6 +108,11 @@ defaults; admission MUST validate the migrated fields.
 (`runtimeClassName: runc-edge`, edge nodepool labels/selectors, or an explicit edge placement
 field already present). Integer `3` alone is **insufficient** — encoders MUST audit the Tier-3
 corpus and keep control-plane/kernel records on `general` placement.
+
+**No-runtime sentinel rule for legacy `0`:** when a manifest explicitly records that
+`pod_runtime_tier: 0` is scaffold/accounting only (no pod RuntimeClass / no workload runtime),
+encoders MUST preserve that sentinel and MUST NOT emit `private-kernel` isolation or schedule
+onto private-kernel pools.
 
 **`private-kernel-attested` has no legacy `pod_runtime_tier` preimage.** It is introduced only by
 explicit manifest/RuntimeClass selection after Accept, and only onto attestation-capable pools
