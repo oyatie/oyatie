@@ -697,6 +697,18 @@ pub fn resolve(
 ) -> Decision {
     let mut refusals: Vec<String> = Vec::new();
     let mut seeds: BTreeSet<String> = plan.package_patterns.iter().cloned().collect();
+    // Package-sibling manifests (`Cargo.toml`, `build.rs`) never enter `owner_paths` —
+    // `plan_changes` records only the enclosing package pattern and continues. Synthetic
+    // declarations for those paths (e.g. `os/**/Cargo.toml` → k8s-program-docs census) must
+    // still union here; otherwise a manifest-only leaf edit selects the package but never the
+    // gate that reads the leaf set.
+    for (path, class) in &plan.classified {
+        if matches!(class, PathClass::PackagePattern(_))
+            && let Some(synth) = synthetic_seeds(path, policy)
+        {
+            seeds.extend(synth);
+        }
+    }
     let mut unmapped: Vec<String> = Vec::new();
     for path in &plan.owner_paths {
         let owners = owner_results.get(path).map(Vec::as_slice).unwrap_or(&[]);
