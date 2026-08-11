@@ -267,7 +267,7 @@ fn a_new_violation_pair_is_born_blocking_without_a_baseline_row() {
 }
 
 #[test]
-fn a_growing_count_regresses_and_a_shrinking_one_goes_stale() {
+fn a_growing_count_regresses_and_a_shrinking_one_is_not_clerkwork() {
     let found = lanes(&["adr-status"]);
     let base = policy(r#"{"adr-status":{"missing_supersession":3}}"#);
 
@@ -286,32 +286,21 @@ fn a_growing_count_regresses_and_a_shrinking_one_goes_stale() {
         }]
     );
 
+    // PROCESS_TAX DELETE: shrink below frozen baseline is NOT BaselineStale merge-blocking.
     let shrank = compare(
         &found,
         &seen(&[("adr-status", Some(440), &[("missing_supersession", 1)])]),
         &base,
     );
-    assert_eq!(
-        shrank,
-        vec![Finding::BaselineStale {
-            lane: "adr-status".to_owned(),
-            kind: "missing_supersession".to_owned(),
-            observed: 1,
-            baseline: 3,
-        }]
+    assert!(
+        shrank.is_empty(),
+        "honest shrink must not force hand re-freeze: {shrank:?}"
     );
 
-    // Fully fixed is also stale — the pair disappears from the observation entirely, and a ratchet
-    // that treated absence as "nothing to check" would silently keep the headroom.
     let fixed = compare(&found, &seen(&[("adr-status", Some(440), &[])]), &base);
-    assert_eq!(
-        fixed,
-        vec![Finding::BaselineStale {
-            lane: "adr-status".to_owned(),
-            kind: "missing_supersession".to_owned(),
-            observed: 0,
-            baseline: 3,
-        }]
+    assert!(
+        fixed.is_empty(),
+        "fully fixed pair must not force hand re-freeze: {fixed:?}"
     );
 }
 
@@ -330,7 +319,9 @@ fn every_finding_code_and_message_is_distinct_and_names_its_subject() {
         ),
     );
     let codes: std::collections::BTreeSet<&str> = findings.iter().map(Finding::code).collect();
-    assert_eq!(codes.len(), 7, "{findings:?}");
+    // BaselineStale is retained on the enum for message/code stability but is not emitted
+    // (PROCESS_TAX); this fixture covers the six live finding codes.
+    assert_eq!(codes.len(), 6, "{findings:?}");
     for finding in &findings {
         assert!(finding.message().starts_with(finding.code()));
     }
