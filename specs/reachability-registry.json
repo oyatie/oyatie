@@ -86,10 +86,6 @@
       "prefix": "cell/"
     },
     {
-      "anchor": "ADR-0541: Buck package marker for the cell capability residual corpus target. This package keeps the capability's rehomed service docs, manifests, contracts and OpenSLO YAML inside the Buck2 corpus graph after the capability-first rehome; without it those files leave buck2-packaged space entirely (measured across nine roots: 996 YAML files, unpackaged 1069 -> 75).",
-      "prefix": "cell/BUCK"
-    },
-    {
       "prefix": "ci/controller/iac/",
       "anchor": "ADR-0515 cloud-ci controller Helm surface dual-homed with integ/ci; reachable with ci/controller workspace members on #1934 sole-owner absorb"
     },
