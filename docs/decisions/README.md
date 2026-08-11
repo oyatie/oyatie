@@ -1,6 +1,6 @@
 # ADR live source of truth (clean)
 
-**Accepted topic-apex ADRs live here, plus any GATED PROPOSED apex** — 15 files: ADR-0700…0709 Accepted, ADR-0710 + ADR-0712…0715 Proposed (ADR-0711 reserved for PR #1644 Swarm Delivery Law; not present on this branch). All historical ADRs (former Accepted members, Superseded, Rejected) are in [`docs/adr-archive/`](../adr-archive/).
+**Accepted topic-apex ADRs live here, plus any GATED PROPOSED apex** — 15 files: ADR-0700…0709 Accepted, ADR-0710 + ADR-0712…0715 Proposed (one number between 0710 and 0712 is reserved for PR #1644 Swarm Delivery Law and is not present on this branch). All historical ADRs (former Accepted members, Superseded, Rejected) are in [`docs/adr-archive/`](../adr-archive/).
 
 A **gated Proposed apex** is a new topic apex deliberately not yet Accepted because a named clause waits on named evidence. It lives here so agents resolve it at step 1 instead of missing it, and it is **not implement authority while Proposed**. That is enforced, not promised: the live-resolution rule in [`_disposition/2026-08-06-live-resolution-rule.json`](_disposition/2026-08-06-live-resolution-rule.json) ranks Proposed/Deprecated/Rejected as "not implement authority", and the `adr-citation-closure` gate fails closed under `adr_citation_rejected_authority` when any of the three authority surfaces cites one. **Location is discoverability; status is authority** — see [`_disposition/END-STATE-POLICY.md`](_disposition/END-STATE-POLICY.md) for the four conditions a gated Proposed apex must meet.
 

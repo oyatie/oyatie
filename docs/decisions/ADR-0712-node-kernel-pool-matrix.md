@@ -222,4 +222,4 @@ Proposed — **not implement authority**. Authority surfaces (`CLAUDE.md`, `AGEN
 - ADR-0611 (Asterinas deferral), ADR-0701 / ADR-0704 (live substrate gist)
 - ADR-0714 (isolation-property names; attested-identity vs operator-excluded target)
 - Round-2 Discovery local artifact `e6ec1a68` — provenance only, not live plan authority
-- PR #1929 F1 founder Proposed apex set; number vacated ADR-0711 for PR #1644 Swarm Delivery Law
+- PR #1929 F1 founder Proposed apex set; vacated the prior draft number (now reserved for PR #1644 Swarm Delivery Law integ-branch topology) so this file is ADR-0712
