@@ -27,7 +27,7 @@ deliverables:
     verified_by: "oya-ci-required"
   - id: ADR-0712-D3
     description: "Attestation-capable pool constraint for private-kernel-attested: pool MUST advertise TEE hardware profile (selected TDX/SEV-SNP) AND relying-party reachability as pool properties; admission MUST deny private-kernel-attested unless both are present with evidence."
-    exit_criteria: "Accept records the attestation-capable pool capability schema and deny rule; day-1 attested tier is labeled attested-identity (host in TCB); operator-excluded confidentiality (guest-pull) remains the F1 Isolation target, not a day-1 claim."
+    exit_criteria: "Accept records the attestation-capable pool capability schema and deny rule; day-1 attested tier is labeled attested-identity (host in TCB); pool TEE+RP is necessary but not sufficient — attested identity/authz requires fresh nonce-bound quote validated by relying party before leaving quarantine; operator-excluded confidentiality (guest-pull) remains the F1 Isolation target, not a day-1 claim."
     verified_by: "oya-ci-required"
 ---
 # ADR-0712: Node kernel + pool matrix — Linux primary; Asterinas soak until A1
@@ -72,7 +72,10 @@ Bominal inheritance: no Bominal equivalent — oyatie override for owned node-ke
 
 ### D-1 — Permanent two-SKU pool matrix (gated on A1) with Linux-primary interim posture
 
-**Interim posture (binding while Proposed and until Accept of D-1 or G5):**
+**Interim posture (nonbinding planning guidance while Proposed):** this paragraph is **not**
+live placement law and **must not** be followed as if Accepted. Live law remains ADR-0701 /
+ADR-0704 until founder Accept of D-1 or G5. The intended post-Accept interim (recorded here so
+Accept does not invent it) is:
 
 1. **Linux pools are primary** for production shared-kernel and private-kernel placement.
 2. **Asterinas remains soak / boot evidence only** until A1 is green **and** founder Accepts
@@ -128,9 +131,19 @@ On Accept:
 3. **Day-1 attested tier** is **attested-identity**: the host remains in the TCB and that fact
    MUST be explicitly labeled on the RuntimeClass / isolation property documentation and on
    any customer-facing attestation claim. Day-1 MUST NOT claim operator-excluded confidentiality.
-4. **Operator-excluded confidentiality** (guest-pull / host-out-of-TCB) is the **F1 Isolation
+4. **Pool properties are necessary, not sufficient, for attested authorization.** Scheduling
+   admission may place a pod onto an attestation-capable pool only when (1)–(2) hold. Granting
+   the `private-kernel-attested` **identity / authz context** (and any customer-facing attested
+   claim) additionally REQUIRES a **fresh nonce-bound attestation quote** tied to the pod, the
+   image measurement, and the node, validated by the relying party. Until that validation
+   succeeds, the workload MUST remain **quarantined** from attested authorization (ordinary
+   deny / non-attested identity only). A stale or misconfigured pool, or an unapproved guest
+   measurement, MUST NOT receive attested identity solely from pool TEE profile + RP
+   reachability.
+5. **Operator-excluded confidentiality** (guest-pull / host-out-of-TCB) is the **F1 Isolation
    target** tracked under the isolation-names package ([ADR-0714](ADR-0714-isolation-property-runtime-tier-names.md))
-   — not a day-1 encode claim of this ADR.
+   — not a day-1 encode claim of this ADR. That target inherits the same quote-before-authz
+   rule with a stronger measurement profile (host out of TCB).
 
 ## Consequences
 

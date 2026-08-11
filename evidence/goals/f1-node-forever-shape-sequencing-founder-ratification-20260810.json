@@ -8,8 +8,10 @@
     "subject": "Add F1 Proposed ADR planning work items MPV2-0053..MPV2-0056 (definition class) to masterplan_v2 without changing W0 dependency edges",
     "required_before": "execution-wave-dispatch",
     "dispatch_state_at_ratification": "No masterplan execution wave is recorded as dispatched; the separate pre-planning authority hold remains open.",
-    "scope_limit": "Planning anchors only. Proposed ADRs ADR-0712..ADR-0715 remain not implement authority. Does not authorize encode, Accept flips, or W1+."
+    "scope_limit": "Planning anchors only. Proposed ADRs ADR-0712..ADR-0715 remain not implement authority. Does not authorize encode, Accept flips, W1+, or execution-wave dispatch. authorizes_execution_wave_dispatch remains false until a separate founder execution-dispatch ratification is recorded."
   },
+  "authorizes_execution_wave_dispatch": false,
+  "ratification_scope": "sequencing-digest-and-f1-planning-anchors-only",
   "ratification_authority": {
     "basis": "Founder-proxy Round-4 decisions for PR #1929 F1 Proposed apex amend (2026-08-10).",
     "decision_refs": [

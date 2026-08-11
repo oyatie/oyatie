@@ -1957,10 +1957,12 @@ pub fn evaluate_masterplan_v2_sequencing(masterplan: &Value) -> BTreeSet<Finding
     }
     evaluate_execution_wave_dispatch(
         sequencing.get("execution_wave_dispatch"),
+        sequencing.get("founder_ratification"),
         founder_ratified,
         preplanning_hold_open,
         &mut findings,
     );
+    evaluate_decision_timeboxes(v2.get("work_items"), &mut findings);
 
     findings
 }
@@ -2707,6 +2709,7 @@ fn evaluate_preplanning_entry_contract(
 
 fn evaluate_execution_wave_dispatch(
     execution_wave_dispatch: Option<&Value>,
+    founder_ratification: Option<&Value>,
     founder_ratified: bool,
     preplanning_hold_open: bool,
     findings: &mut BTreeSet<Finding>,
@@ -2795,6 +2798,125 @@ fn evaluate_execution_wave_dispatch(
             "masterplan_v2.sequencing.execution_wave_dispatch.preplanning_hold_bypassed",
         ));
     }
+
+    // Digest/planning ratification must not silently authorize wave dispatch. When the
+    // recorded founder_ratification explicitly refuses dispatch authority, or when the
+    // dispatch object requires a dispatch-authorizing ratification that is not present,
+    // state must remain blocked.
+    let authorizes_dispatch = founder_ratification
+        .and_then(|ratification| ratification.get("authorizes_execution_wave_dispatch"))
+        .and_then(Value::as_bool);
+    if authorizes_dispatch == Some(false) && !dispatch_blocked {
+        findings.insert(Finding::new(
+            "masterplan_execution_wave_dispatch_unratified",
+            "masterplan_v2.sequencing.founder_ratification.authorizes_execution_wave_dispatch",
+        ));
+    }
+    if dispatch
+        .get("requires_dispatch_authorizing_ratification")
+        .and_then(Value::as_bool)
+        == Some(true)
+        && authorizes_dispatch != Some(true)
+        && !dispatch_blocked
+    {
+        findings.insert(Finding::new(
+            "masterplan_execution_wave_dispatch_unratified",
+            "masterplan_v2.sequencing.execution_wave_dispatch.requires_dispatch_authorizing_ratification",
+        ));
+    }
+}
+
+/// Fail-closed evaluator for optional `work_items[].decision_timebox` rows.
+///
+/// Schema is enforced whenever the object is present. Calendar expiry fails only after
+/// `deadline_utc_date` (YYYY-MM-DD, compared as UTC civil date) while the item remains
+/// open without completion evidence — so a future deadline stays green until it fires.
+fn evaluate_decision_timeboxes(work_items: Option<&Value>, findings: &mut BTreeSet<Finding>) {
+    let Some(items) = work_items.and_then(Value::as_array) else {
+        return;
+    };
+    let today = utc_civil_date_yyyy_mm_dd();
+    for (index, item) in items.iter().enumerate() {
+        let Some(timebox) = item.get("decision_timebox") else {
+            continue;
+        };
+        let id = non_empty_field(item, "id")
+            .map(str::to_owned)
+            .unwrap_or_else(|| format!("work_items[{index}]"));
+        let Some(deadline) = non_empty_field(timebox, "deadline_utc_date") else {
+            findings.insert(Finding::new(
+                "masterplan_evidence_state_invalid",
+                &format!("{id}@decision_timebox.deadline_utc_date"),
+            ));
+            continue;
+        };
+        if !is_yyyy_mm_dd(deadline) {
+            findings.insert(Finding::new(
+                "masterplan_evidence_state_invalid",
+                &format!("{id}@decision_timebox.deadline_utc_date"),
+            ));
+        }
+        for field in ["target_adr", "on_expiry"] {
+            if non_empty_field(timebox, field).is_none() {
+                findings.insert(Finding::new(
+                    "masterplan_evidence_state_invalid",
+                    &format!("{id}@decision_timebox.{field}"),
+                ));
+            }
+        }
+        let status = non_empty_field(item, "status").unwrap_or("");
+        let still_open = matches!(
+            status,
+            "claimed-open" | "open" | "todo" | "in-progress" | "blocked"
+        );
+        if still_open
+            && is_yyyy_mm_dd(deadline)
+            && deadline < today.as_str()
+            && !completion_evidence_attached(item)
+        {
+            findings.insert(Finding::new(
+                "masterplan_evidence_state_invalid",
+                &format!("{id}@decision_timebox.expired"),
+            ));
+        }
+    }
+}
+
+fn is_yyyy_mm_dd(value: &str) -> bool {
+    let bytes = value.as_bytes();
+    bytes.len() == 10
+        && bytes[4] == b'-'
+        && bytes[7] == b'-'
+        && bytes[..4].iter().all(u8::is_ascii_digit)
+        && bytes[5..7].iter().all(u8::is_ascii_digit)
+        && bytes[8..].iter().all(u8::is_ascii_digit)
+}
+
+fn utc_civil_date_yyyy_mm_dd() -> String {
+    use std::time::{SystemTime, UNIX_EPOCH};
+    let secs = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map(|d| d.as_secs())
+        .unwrap_or(0);
+    // Civil UTC date via days since Unix epoch (proleptic Gregorian).
+    let days = (secs / 86_400) as i64;
+    let (y, m, d) = civil_yyyy_mm_dd_from_unix_days(days);
+    format!("{y:04}-{m:02}-{d:02}")
+}
+
+fn civil_yyyy_mm_dd_from_unix_days(days: i64) -> (i32, u32, u32) {
+    // Algorithm from civil_from_days (Howard Hinnant), public domain.
+    let z = days + 719_468;
+    let era = if z >= 0 { z } else { z - 146_096 } / 146_097;
+    let doe = (z - era * 146_097) as u64;
+    let yoe = (doe - doe / 1460 + doe / 36524 - doe / 146_096) / 365;
+    let y = (yoe as i64 + era * 400) as i32;
+    let doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
+    let mp = (5 * doy + 2) / 153;
+    let d = (doy - (153 * mp + 2) / 5 + 1) as u32;
+    let m = if mp < 10 { mp + 3 } else { mp - 9 } as u32;
+    let y = if m <= 2 { y + 1 } else { y };
+    (y, m, d)
 }
 
 fn any_non_empty_field<'a>(value: &'a Value, fields: &[&str]) -> Option<&'a str> {
