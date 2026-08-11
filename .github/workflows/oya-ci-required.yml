@@ -17,6 +17,9 @@
 #   (producer consumes specs/integ-branch-envelopes.json#roots.*.envelope_globs).
 #   MUST NOT require hub edits (specs/**, ci/**) or premature product-protocol bumps.
 #   Forever title scaffolding: .github/workflows/domain-stabilize.yml (workflow_call only).
+#   Tip entitlement: SKIP expensive Profile A work when tip_class=idle OR preflight
+#   receipt missing (absence=skip, not CODE fail). Wire job `if:` in a follow-on
+#   commit — see ci/REORG-DRAIN.md (do not thrash mid-CI for this alone).
 #
 # Profile B — `merge-admission-required` (ADMIT_READY / SHIP):
 #   Profile A green on tip + hub contracts + lock sole-owner + review/Tide floor.
@@ -429,7 +432,7 @@ jobs:
   #    runner; per the runbook the existing firewall runner suffices — no separate aggregator bin
   #    is required for PRE-work.
   gate-baseline-ratchet:
-    name: admission.policy (path ownership + baseline ratchet + gate-registration)
+    name: admission.policy (path ownership + baseline ratchet + gate-registration meta-test)
     runs-on: ubuntu-latest  # binding linux-amd64 hosted; multi-arch soft via gate matrix; ARC oya-arm64 lab overflow only
     steps:
       # actions/checkout@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.

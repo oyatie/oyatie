@@ -36,8 +36,8 @@
     "archived": 448,
     "archived_with_successor": 425,
     "rejected": 16,
-    "citation_lines": 8999,
-    "files_scanned": 16629,
+    "citation_lines": 9001,
+    "files_scanned": 16650,
     "adr_citation_closure_mismatch": 252,
     "adr_citation_dangling_path": 2295,
     "adr_citation_rejected_authority": 3,
@@ -77,7 +77,8 @@
     "_integ_os_restack_remeasure_2026_08_11_pr1926_after_1644": "PR #1926 integ/os merge origin/dev@8aa043a03 after #1644. Kept origin/dev policy tip (oyatie-o90). Provisional files_scanned=16623 citation_lines=8996 adr_records=460 live_apexes=12; finding ceilings=min(os,dev).",
     "_integ_os_restack_after_1933_2026_08_11_pr1926": "PR #1926 integ/os restack onto origin/dev@713dc2ea1 after #1933. Kept origin/dev policy tip including _integ_specs_tipfree_1933 (oyatie-o90). files_scanned from integ/os tip absorb (16623); citation_lines=8996; finding ceilings from origin/dev (dangling_path=2295). CI may re-freeze if observed differs.",
     "_integ_os_firewall_fix_exclude_bridge_fold_2026_08_11": "PR #1926 firewall fix-forward: fold cargo-lock-exclude-bridge evidence into already-registered os/evidence/cargo-lock-bridge-strip-20260811.md and delete the unregistered sibling (unreachable/unjustified). files_scanned 16623 -> 16622.",
-    "_integ_os_remeasure_2026_08_11_pr1926_tip_0922c0ac": "PR #1926 tip 0922c0ac89bf: affected-set FULL-tier TEST-REGRESSION on check-adr-citation-closure-gate. Gate observed files_scanned 16629 vs frozen 16622 (+7). Re-derived locally (left 16629 / right 16622). Attribution vs origin/dev@16617: exactly 12 non-exempt scanned adds (os/evidence/{cargo-lock-bridge-strip,wave2-cloud-os-absorb}.md; os/harness/{attestation-relying-party,oci-executor-oracle} Cargo.toml+src+tests(+fixtures); os/manifest.json; registry/catalog/os-{attestation-relying-party,oci-executor-oracle}.yaml). Prior 16622 freeze undercounted absorb corpus (fold note deleted one unregistered sibling but did not re-measure full tip set). Second-pass after files_scanned re-freeze: citation_lines observed 8999 vs frozen 8996 (+3); re-freeze citation_lines 8996->8999. Finding ceilings held on both passes (mismatch 252, dangling_path 2295, rejected_authority 3, asymmetry 29, unresolvable 8, ambiguous 2)."
+    "_integ_os_remeasure_2026_08_11_pr1926_tip_0922c0ac": "PR #1926 tip 0922c0ac89bf: affected-set FULL-tier TEST-REGRESSION on check-adr-citation-closure-gate. Gate observed files_scanned 16629 vs frozen 16622 (+7). Re-derived locally (left 16629 / right 16622). Attribution vs origin/dev@16617: exactly 12 non-exempt scanned adds (os/evidence/{cargo-lock-bridge-strip,wave2-cloud-os-absorb}.md; os/harness/{attestation-relying-party,oci-executor-oracle} Cargo.toml+src+tests(+fixtures); os/manifest.json; registry/catalog/os-{attestation-relying-party,oci-executor-oracle}.yaml). Prior 16622 freeze undercounted absorb corpus (fold note deleted one unregistered sibling but did not re-measure full tip set). Second-pass after files_scanned re-freeze: citation_lines observed 8999 vs frozen 8996 (+3); re-freeze citation_lines 8996->8999. Finding ceilings held on both passes (mismatch 252, dangling_path 2295, rejected_authority 3, asymmetry 29, unresolvable 8, ambiguous 2).",
+    "_integ_ci_restack_after_1926_2026_08_11_pr1646": "PR #1646 integ/ci merge(dev) after #1926 land. Affected-set FULL-tier observed files_scanned 16650 vs frozen 16629 (+21) and citation_lines 9001 vs frozen 8999 (+2). Attribution: base absorb of os/harness + cloud-os residual scanned corpus plus integ/ci tip scanned adds; finding ceilings held (mismatch 252, dangling_path 2295, rejected_authority 3, asymmetry 29, unresolvable 8, ambiguous 2). Re-freeze both corpus pins in the same change per gate contract."
   },
   "product_contract": {
     "born_blocking": "Born BLOCKING and RED. Unlike a coverage ratchet there is no defensible ceiling here: a citation that resolves to the wrong apex is not debt to be burned down, it is a statement that is false today, and freezing a ceiling would licence the corpus to keep lying at its current rate. The gate reports every mismatch and fails until they are repaired.",
