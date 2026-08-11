@@ -15,7 +15,14 @@ doctest = false
 [dependencies]
 os-kernel = { path = "../kernel" }
 os-runtime-cri-domain = { path = "../runtime-cri-domain" }
-os-secrets-domain = { path = "../secrets-domain" }
+
+# Test-only, and it has always been: every `os_secrets_domain` use in this crate
+# is inside a `#[cfg(test)] mod tests`. That crate models Talos PKI rather than
+# implementing it and lives behind its non-default `modeled-crypto` feature, so
+# the dependency is declared where it is actually used and the library build
+# does not link it at all.
+[dev-dependencies]
+os-secrets-domain = { path = "../secrets-domain", features = ["modeled-crypto"] }
 
 [lints]
 workspace = true
