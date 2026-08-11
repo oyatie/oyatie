@@ -2052,6 +2052,23 @@ pub fn evaluate_masterplan_v2_ratification_digest(
         ));
     }
 
+    // Approver principal must agree between masterplan and durable evidence so flipping
+    // masterplan approved_by to `founder` cannot launder a founder-proxy receipt.
+    let recorded_approved_by = sequencing
+        .get("founder_ratification")
+        .and_then(|ratification| non_empty_field(ratification, "approved_by"));
+    let evidence_approved_by = non_empty_field(ratification_evidence, "approved_by").or_else(|| {
+        ratification_evidence
+            .get("decision")
+            .and_then(|decision| non_empty_field(decision, "approved_by"))
+    });
+    if recorded_approved_by != evidence_approved_by {
+        findings.insert(Finding::new(
+            "masterplan_execution_wave_dispatch_unratified",
+            "masterplan_v2.sequencing.founder_ratification.approved_by",
+        ));
+    }
+
     findings
 }
 
