@@ -12,8 +12,9 @@
     "declared_roots_total": 200,
     "key_format": "<policy_file>::<json_pointer>::<declared_value>",
     "policy": "shrink-only; a NEW dead root fails, and a landed forward declaration must be retired",
-    "_build_root_retired_2026_08_09": "The three `::build` forward declarations (dto-authz-trust, embedded-asset-hermeticity, authz-coverage) were RETIRED here because build/ landed its first crate — build/port-engine/core/port-engine-kernel, PR #1621 — which is verbatim the event their own reason strings named (`Created when build/ lands its first crate`). Retirement is a DELETION FROM THIS EXEMPTION MAP ONLY: `build` stays in all three policies' scan_roots arrays untouched, and now resolves, so it is a live audited root rather than an unaudited standing exemption. That is the whole point of forward_declarations being pinned by forward_declarations_are_all_still_absent: a declaration whose path arrives must stop being tolerated in the same change that makes it real. The three sibling roots app/, base/ and policy/ remain absent and remain declared; whoever lands their first crate owes the same one-line retirement. NOT retired here: module-membership declared no `build` entry, so it had nothing to retire.",
-    "_build_widening_measured_2026_08_09": "The widening is not free of consequence and was measured rather than assumed. embedded-asset-hermeticity now walks build/, and the new crate carries four include_str! sites (src/lib.rs:78 `lib.rs`, src/lib.rs:93 `../tests/seams.rs`, tests/neutrality.rs:42 `../src/lib.rs`, tests/neutrality.rs:48 `seams.rs`). All four resolve inside targets whose BUCK srcs already provide them — the library globs `src/**/*.rs` plus `tests/seams.rs`, and the neutrality test globs all three — so the gate stays green with no baseline movement. caller-supplied-authorization and endpoint-authorization-coverage now walk build/ too; the kernel exposes no DTO deserialization and no HTTP endpoint, so both are likewise zero-delta. Verified by running all three gates, not by reading the policies."
+    "_build_root_retired_2026_08_09": "The three `::build` forward declarations (dto-authz-trust, embedded-asset-hermeticity, authz-coverage) were RETIRED here because build/ landed its first crate \u2014 build/port-engine/core/port-engine-kernel, PR #1621 \u2014 which is verbatim the event their own reason strings named (`Created when build/ lands its first crate`). Retirement is a DELETION FROM THIS EXEMPTION MAP ONLY: `build` stays in all three policies' scan_roots arrays untouched, and now resolves, so it is a live audited root rather than an unaudited standing exemption. That is the whole point of forward_declarations being pinned by forward_declarations_are_all_still_absent: a declaration whose path arrives must stop being tolerated in the same change that makes it real. Sibling roots base/ and policy/ remain absent and remain declared; whoever lands their first crate owes the same one-line retirement. app/ was later retired in _app_root_retired_2026_08_11. NOT retired here: module-membership declared no `build` entry, so it had nothing to retire.",
+    "_build_widening_measured_2026_08_09": "The widening is not free of consequence and was measured rather than assumed. embedded-asset-hermeticity now walks build/, and the new crate carries four include_str! sites (src/lib.rs:78 `lib.rs`, src/lib.rs:93 `../tests/seams.rs`, tests/neutrality.rs:42 `../src/lib.rs`, tests/neutrality.rs:48 `seams.rs`). All four resolve inside targets whose BUCK srcs already provide them \u2014 the library globs `src/**/*.rs` plus `tests/seams.rs`, and the neutrality test globs all three \u2014 so the gate stays green with no baseline movement. caller-supplied-authorization and endpoint-authorization-coverage now walk build/ too; the kernel exposes no DTO deserialization and no HTTP endpoint, so both are likewise zero-delta. Verified by running all three gates, not by reading the policies.",
+    "_app_root_retired_2026_08_11": "The four `::app` forward declarations (dto-authz-trust, embedded-asset-hermeticity, authz-coverage, module-membership) were RETIRED here because app/ landed its first tracked path \u2014 app/README.md on integ/app (PR #1668, OVERRULE 3d glue-only). Retirement is a DELETION FROM THIS EXEMPTION MAP ONLY: `app` stays in each policy's scan_roots arrays untouched, and now resolves, so it is a live audited root. README-only (zero crates) keeps hermeticity/authz widening zero-delta. Sibling roots base/ and policy/ remain absent and remain declared."
   },
   "min_expected_roots": 150,
   "coverage_bearing_keys": [
@@ -34,21 +35,13 @@
   ],
   "exempt_policy_files": {},
   "forward_declarations": {
-    "ci/facade/caller-supplied-authorization/dto-authz-trust-policy.json::/scan_roots::app": {
-      "value": "app",
-      "reason": "AUTHZ SCAN-SCOPE PRE-WIDENING (ADR-0562 §10.29 mandate, applied ahead of the move rather than after it). ADR-0615 relocates 33 product dirs from oya/<product>/ to app/<product>/; oya IS in this gate's scan_roots and app was NOT, so that move would have silently removed the entire product surface from the ADR-0582 caller-supplied-authz class-fix with no CI red — the gate has no per-crate expectation, so a departed crate is invisible. Declared while app/ holds zero crates, which is the only moment the widening is provably zero-delta (no new findings, no baseline churn). Created by the first app-tier move."
-    },
     "ci/facade/caller-supplied-authorization/dto-authz-trust-policy.json::/scan_roots::base": {
       "value": "base",
       "reason": "Same pre-widening as app/ above. base/ is the ADR-0562 shared floor (>=3 capability consumers); a primitive there can carry an authorization DTO, so the class-fix must see it from the moment it lands. Created by the first libs/ consolidation move."
     },
     "ci/facade/caller-supplied-authorization/dto-authz-trust-policy.json::/scan_roots::policy": {
       "value": "policy",
-      "reason": "Same pre-widening as app/ above. policy is the capability ADR-0615 extracted from iam and is where PBAC/PDP code lands — the single root where a caller-supplied-authz defect would be most consequential. Created when the policy capability lands its first crate."
-    },
-    "ci/facade/embedded-asset-hermeticity/embedded-asset-hermeticity-policy.json::/scan_roots::app": {
-      "value": "app",
-      "reason": "SCAN-SCOPE PRE-WIDENING (ADR-0562 \u00a710.29). This gate's scan_roots carried ALL FOUR legacy source roots (oya, libs, cloud, tools) and only nine roots total, making it the widest blind spot in the reorg: any move out of a legacy root into a capability root left its scan universe silently. Declared while app/ is empty so the widening is zero-delta. Created by the first app-tier move."
+      "reason": "Same pre-widening as app/ above. policy is the capability ADR-0615 extracted from iam and is where PBAC/PDP code lands \u2014 the single root where a caller-supplied-authz defect would be most consequential. Created when the policy capability lands its first crate."
     },
     "ci/facade/embedded-asset-hermeticity/embedded-asset-hermeticity-policy.json::/scan_roots::base": {
       "value": "base",
@@ -58,10 +51,6 @@
       "value": "policy",
       "reason": "Same pre-widening as app/ above; the policy capability (ADR-0615, extracted from iam) will embed Cedar/policy assets, exactly the include_str! class this gate maps. Created when the policy capability lands its first crate."
     },
-    "ci/facade/endpoint-authorization-coverage/authz-coverage-policy.json::/scan_roots::app": {
-      "value": "app",
-      "reason": "AUTHZ SCAN-SCOPE PRE-WIDENING, sibling of the dto-authz-trust entry above and for the same measured reason: oya IS in this gate's scan_roots and app was NOT, so the ADR-0615 33-product move would have silently removed the product surface from the issue #770 / AUTH-005 unauthenticated-HTTP-control-plane gate. AUTH-005 was the dominant finding of the whole-repo review, so this is the highest-consequence instance of the ADR-0562 §10.29 class. Declared while app/ is empty and the widening is provably zero-delta. Created by the first app-tier move."
-    },
     "ci/facade/endpoint-authorization-coverage/authz-coverage-policy.json::/scan_roots::base": {
       "value": "base",
       "reason": "Same pre-widening as app/ above. A shared-floor primitive can expose an HTTP control plane; new-surface detection must cover base/ before it holds code."
@@ -70,17 +59,13 @@
       "value": "policy",
       "reason": "Same pre-widening as app/ above. The policy capability (ADR-0615, extracted from iam) will expose policy-decision endpoints; an unauthenticated control plane there is the worst case this gate exists to block."
     },
-    "ci/facade/module-membership/capability-membership-policy.json::/scan_roots::app": {
-      "value": "app",
-      "reason": "ADR-0562 capability-first destination. Declared ahead of creation so the first product app can land without a policy edit; module-membership already lists app/ in meta_directories and allowed_top_level_dirs. Created by the first app-tier move."
-    },
     "ci/facade/module-membership/capability-membership-policy.json::/scan_roots::base": {
       "value": "base",
       "reason": "ADR-0562 capability-first destination for the shared floor. Declared ahead of creation for the same reason as app/; created by the first libs/ consolidation move."
     },
     "ci/facade/module-membership/capability-membership-policy.json::/scan_roots::policy": {
       "value": "policy",
-      "reason": "Declared capability in the ADR-0562 closed registry with no directory yet; created when the policy-pack capability lands its first crate. This membership `scan_roots` forward declaration is SOUND and stays: scan_roots is pure coverage, so naming a not-yet-existing root costs nothing and the root is walked the moment it appears. Its tier-policy twin (`crate_root_globs::policy/*/*`) was RETIRED 2026-08-01 because the tier policy gives no such free ride: every crate_root_globs root must also appear in service_roots/capability_roots/unclassified_roots (pinned by every_governed_glob_root_is_declared_in_the_policy), and for a crate-less `policy` the only reachable option was `unclassified_roots`, a live SKIP-ALL-EDGES exemption that R6b correctly REDs. The forward declaration therefore structurally required a standing violation to exist, which is why it was baselined rather than fixed. Re-add the glob together with a real root declaration in the same change that lands policy/'s first crate — the ADR-0615 re-home of the nine iam-mapped Cedar/PDP crates, filed separately as a MOVE."
+      "reason": "Declared capability in the ADR-0562 closed registry with no directory yet; created when the policy-pack capability lands its first crate. This membership `scan_roots` forward declaration is SOUND and stays: scan_roots is pure coverage, so naming a not-yet-existing root costs nothing and the root is walked the moment it appears. Its tier-policy twin (`crate_root_globs::policy/*/*`) was RETIRED 2026-08-01 because the tier policy gives no such free ride: every crate_root_globs root must also appear in service_roots/capability_roots/unclassified_roots (pinned by every_governed_glob_root_is_declared_in_the_policy), and for a crate-less `policy` the only reachable option was `unclassified_roots`, a live SKIP-ALL-EDGES exemption that R6b correctly REDs. The forward declaration therefore structurally required a standing violation to exist, which is why it was baselined rather than fixed. Re-add the glob together with a real root declaration in the same change that lands policy/'s first crate \u2014 the ADR-0615 re-home of the nine iam-mapped Cedar/PDP crates, filed separately as a MOVE."
     }
   },
   "baselined_dead_roots": [

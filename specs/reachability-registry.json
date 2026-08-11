@@ -54,6 +54,10 @@
       "prefix": ".grok/"
     },
     {
+      "anchor": "ADR-0562 § app/<product>/ tenant compositions + OVERRULE 3d: integ/app owns composition-glue routing only (app/README.md). Product forever homes land on integ/<product>, not this rail.",
+      "prefix": "app/README.md"
+    },
+    {
       "anchor": "Envelope prefix ownership (integ/calendar → app/calendar/**): product scaffold reclaim (#1671 tip 0c787bda). Dir prefix — not per-file tip-free. Covers non-crate faces (manifest/contracts/slos/runbooks/iac/catalog/policy). Calendar policy identifiers/principals stay free of decision-number tokens; decision cites belong in comments/docs only.",
       "prefix": "app/calendar/"
     },
