@@ -33,5 +33,5 @@ fn integration_summary_documents_f1a_consumption() {
     let note = summary["f1a_consumption_note"].as_str().unwrap_or_default();
     assert!(note.contains("F1(a)"));
     assert!(note.contains("G5"));
-    assert!(matches!(run.g5, G5Evaluation::Clear { .. }));
+    assert!(matches!(run.g5, G5Evaluation::PendingMeasurement { .. }));
 }

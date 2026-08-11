@@ -1,5 +1,5 @@
 context: kernel
-role: test
+role: infrastructure
 capability: asterinas-abi-probe
 plane: control
 slo: cataloged-no-runtime-claim
@@ -9,12 +9,16 @@ api_stability: preview
 security_review: unreviewed
 supply_chain: source-only
 # Nested `kernel/` workspace (ADR-0512 carve-out) is excluded from the root live
-# member universe; catalog-liveness requires an explicit non-live marker.
+# member universe; catalog-liveness requires an explicit non-live marker even when
+# the nested Cargo/Buck targets exist. This is inventory + SLO face only — not a
+# D5 capability publication (no eval-set / Cosign / autonomy-tier uplift in A1).
 status: designed-ahead-row-no-crate
 traceability:
   source_crate: kernel/harness/asterinas-abi-probe/Cargo.toml
 non_claims:
   - harness scaffold only; builds a deterministic probe plan and emits stub outcomes
+  - optional bin is local-bridge receipt emitter (CLI-retirement); library is the sanctioned surface
   - crate lives in the ADR-0512 nested kernel workspace (not a root live member); row is inventory + SLO face only
   - hermetic tests pass without live QEMU; measured present/gap receipts are future work
   - does not claim Asterinas is the canonical guest/node kernel (blocked on founder ADR F1(a))
+  - scaffold ≠ green matrix; Founder Accept / F1 remain external
