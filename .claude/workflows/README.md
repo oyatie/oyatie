@@ -6,7 +6,7 @@ cannot import is a workflow that breaks silently.
 
 | workflow | input | question it answers |
 |---|---|---|
-| **`deliver`** | a goal or bead | *build it* — scout, map, trial, scale, converge, land ONE pull request |
+| **`deliver`** | a goal or bead | *build it* — scout, map, trial, scale, converge, claim, land ONE pull request per `integ/<root>` |
 | **`verify`** | a PR, branch or working tree | *is this change right* — review, QA, GitOps drift, maintainability |
 | **`audit`** | the merged codebase | *what is already wrong* — in capability chunks, filed to the backlog |
 | **`restack`** | the base moved | *make every open PR follow it* — rebase, re-derive pinned numbers, push |
@@ -85,6 +85,8 @@ proving it fires — a rule that cannot be shown to fire is the false green it e
 - `node .claude/workflows/auth-preflight.mjs` — required before push/merge/babysit/restack (`preflight.mjs` runs this automatically).
 - Equality-pinned census merge protocol — mandatory re-derive after rebase even when git auto-merges clean (oyatie-o90; see `deliver.js` / `restack.js`).
 - Two-round rule — same failure class twice → fix process/oracle, not output (`deliver.js` Converge).
+- Claim phase (ADR-0711) — envelope verify + `git merge-tree` preflight + hub exclusivity before any integ push (`deliver.js` Claim; policy in `specs/integ-branch-envelopes.json`).
+- Land upsert — at most one open PR per durable `integ/<root>`; after squash-merge, server-side reset via `git push --force-with-lease origin origin/dev:refs/heads/integ/<root>` (no local `git reset`).
 - Bead counters are not live state — prove merge/remaining work with `git merge-base` / `gh pr view` before claim or close.
 
 ---
