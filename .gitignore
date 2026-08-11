@@ -249,3 +249,13 @@ _ralplan_workflow.js
 # in product PRs — process-kit hygiene only.
 .grok/mm-runs/
 .grok/memory/
+
+# Swarm check-daemon outputs (orchestrator main-checkout only; workers read these).
+/err.txt
+/.check/
+
+# retired OMC residue (ADR-0711 Amendment B delete_permanently)
+.omc/
+
+# Swarm Delivery Law linked worktrees (ADR-0711); topology uses .worktrees/ not .claude/worktrees/
+.worktrees/
