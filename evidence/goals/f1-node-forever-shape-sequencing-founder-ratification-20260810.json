@@ -1,0 +1,51 @@
+{
+  "record_class": "founder-ratification-decision",
+  "record_id": "f1-node-forever-shape-sequencing-founder-ratification-20260810",
+  "recorded_at": "2026-08-10T00:00:00Z",
+  "decision": {
+    "decision_status": "ratified",
+    "approved_by": "founder-proxy-round-4",
+    "subject": "Add F1 Proposed ADR planning work items MPV2-0053..MPV2-0056 (definition class) to masterplan_v2 without changing W0 dependency edges",
+    "required_before": "execution-wave-dispatch",
+    "dispatch_state_at_ratification": "No masterplan execution wave is recorded as dispatched; the separate pre-planning authority hold remains open.",
+    "scope_limit": "Planning anchors only. Proposed ADRs ADR-0712..ADR-0715 remain not implement authority. Does not authorize encode, Accept flips, or W1+."
+  },
+  "ratification_authority": {
+    "basis": "Founder-proxy Round-4 decisions for PR #1929 F1 Proposed apex amend (2026-08-10).",
+    "decision_refs": [
+      "docs/decisions/ADR-0712-node-kernel-pool-matrix.md",
+      "docs/decisions/ADR-0713-node-substrate-architecture.md",
+      "docs/decisions/ADR-0714-isolation-property-runtime-tier-names.md",
+      "docs/decisions/ADR-0715-f1-admission-adr-0710-d8-gate.md"
+    ],
+    "scope_limit": "Binds only to the exact sequencing content identified by ratified_sequencing_digest."
+  },
+  "ratified_sequencing_digest": "sha256:664baeb76649761bfe1cea7c69f14d3dd4986202912c5a4d3d4f7216d4c46674",
+  "digest_recipe": "sha256 over canonical JSON (sorted keys, separators ',' ':') of {\"dependency_edges\": sorted [from, to] pairs from masterplan_v2.dependency_edges, \"execution_waves\": the work_item_ids arrays of masterplan_v2.sequencing.execution_waves in wave order, \"work_item_order\": the work_item_id strings of masterplan_v2.sequencing.work_item_order in index order}",
+  "derivation": {
+    "derivation_mode": "zero-based-rederived-from-masterplan-v2-dependency-dag",
+    "source_of_truth": "/specs/masterplan.json#masterplan_v2.dependency_edges",
+    "repository_baseline": "origin/docs/f1-founder-adrs-proposed-20260810@08c1b73f574c65044feb9f65975d5a6181b6b57f",
+    "work_item_count": 57,
+    "dependency_edge_count": 43,
+    "wave_count": 8,
+    "wave_sizes": [
+      28,
+      16,
+      5,
+      3,
+      2,
+      1,
+      1,
+      1
+    ],
+    "wave_rule": "wave(n) = 0 when n has no prerequisite edges; otherwise 1 + max(wave(prerequisite)). Within a wave, work-item ids sort lexicographically; work_item_order is the wave-major concatenation with contiguous zero-based indices.",
+    "added_work_items": [
+      "MPV2-0053",
+      "MPV2-0054",
+      "MPV2-0055",
+      "MPV2-0056"
+    ],
+    "dependency_edges_unchanged": true
+  }
+}

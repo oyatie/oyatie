@@ -6,13 +6,13 @@
   },
   "_metadata": {
     "source": "docs/decisions",
-    "total_adrs": 16,
-    "numbering": "contiguous ADR-0700..ADR-0715 (gap-free)",
-    "gaps": [],
+    "total_adrs": 15,
+    "numbering": "ADR-0700..ADR-0715 (non-contiguous; gaps: ADR-0711)",
+    "gaps": ["ADR-0711"],
     "next_adr": "ADR-0716",
     "status_counts": {
       "Accepted": 10,
-      "Proposed": 6
+      "Proposed": 5
     }
   },
   "decisions": [
@@ -149,64 +149,52 @@
       "related": ["ADR-0183", "ADR-0338", "ADR-0379", "ADR-0702"]
     },
     {
-      "adr": "ADR-0711",
-      "number": 711,
-      "title": "Node kernel + pool matrix: Asterinas shared-kernel pools with co-selected stripped-Linux KVM SKU",
-      "status": "Proposed",
-      "owner": "council-architecture",
-      "date": "2026-08-10",
-      "path": "decisions/ADR-0711-node-kernel-pool-matrix.md",
-      "supersedes": [],
-      "superseded_by": [],
-      "related": ["ADR-0611", "ADR-0704", "ADR-0713"]
-    },
-    {
       "adr": "ADR-0712",
       "number": 712,
-      "title": "Owned node runtime — supervisor libraries, no manager daemon",
+      "title": "Node kernel + pool matrix — Linux primary; Asterinas soak until A1",
       "status": "Proposed",
       "owner": "council-architecture",
       "date": "2026-08-10",
-      "path": "decisions/ADR-0712-owned-node-runtime-no-manager-daemon.md",
+      "path": "decisions/ADR-0712-node-kernel-pool-matrix.md",
       "supersedes": [],
       "superseded_by": [],
-      "related": ["ADR-0637", "ADR-0638", "ADR-0704", "ADR-0715"]
+      "related": ["ADR-0611", "ADR-0704", "ADR-0714"]
     },
     {
       "adr": "ADR-0713",
       "number": 713,
-      "title": "Runtime tier rename to isolation-property names with orthogonal placement axis",
+      "title": "Node Substrate Architecture — PID1 stub + restartable supervisor; severable Accept",
       "status": "Proposed",
       "owner": "council-architecture",
       "date": "2026-08-10",
-      "path": "decisions/ADR-0713-isolation-property-runtime-tier-names.md",
+      "path": "decisions/ADR-0713-node-substrate-architecture.md",
       "supersedes": [],
       "superseded_by": [],
-      "related": ["ADR-0338", "ADR-0710", "ADR-0711"]
+      "related": ["ADR-0520", "ADR-0637", "ADR-0638", "ADR-0704", "ADR-0712"]
     },
     {
       "adr": "ADR-0714",
       "number": 714,
-      "title": "ADR-0710 Accept/Reject is blocked on D-8 workload-boundary evidence",
+      "title": "Isolation-property RuntimeClass names with orthogonal placement axis",
       "status": "Proposed",
       "owner": "council-architecture",
       "date": "2026-08-10",
-      "path": "decisions/ADR-0714-adr-0710-accept-blocked-on-d8.md",
+      "path": "decisions/ADR-0714-isolation-property-runtime-tier-names.md",
       "supersedes": [],
       "superseded_by": [],
-      "related": ["ADR-0701", "ADR-0710", "ADR-0338", "ADR-0379"]
+      "related": ["ADR-0338", "ADR-0710", "ADR-0712", "ADR-0715"]
     },
     {
       "adr": "ADR-0715",
       "number": 715,
-      "title": "OS-layer retirement — node supervisor as OS; apex noun amend proposal",
+      "title": "F1 Admission package — ADR-0710 Accept/Reject blocked on D-8",
       "status": "Proposed",
       "owner": "council-architecture",
       "date": "2026-08-10",
-      "path": "decisions/ADR-0715-os-layer-retirement-supervisor-as-os.md",
+      "path": "decisions/ADR-0715-f1-admission-adr-0710-d8-gate.md",
       "supersedes": [],
       "superseded_by": [],
-      "related": ["ADR-0520", "ADR-0701", "ADR-0712"]
+      "related": ["ADR-0701", "ADR-0710", "ADR-0338", "ADR-0379", "ADR-0714"]
     }
   ]
 }
