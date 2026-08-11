@@ -89,6 +89,10 @@ On Accept of **this** ADR:
 5. Until Accept or Reject of ADR-0710, **live law** for admission substrate remains ADR-0701's
    carried ADR-0379/0338 gist (Kubewarden default; Kyverno historical).
 
+Promotion/conformance process-law (not an Accept of this ADR): flake taxonomy + rerun budget
+before the first full CNCF+Sonobuoy promotion-gate claim is recorded under
+[ADR-0713 D-A9](ADR-0713-node-substrate-architecture.md) alongside K1-owned security-response.
+
 Rejecting **this** ADR means the F1 Admission package edge text is refused as written — it does
 **not** silently Accept ADR-0710. ADR-0710's own Status gate still applies independently.
 
