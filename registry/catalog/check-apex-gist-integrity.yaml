@@ -8,6 +8,10 @@ operational_classes_owned: []
 api_stability: preview
 security_review: unreviewed
 supply_chain: source-only
+# Excluded from root Cargo workspace members until integ/build absorbs lock
+# (apex-gist-integrity carve-out). Catalog-liveness requires an explicit non-live
+# marker while the crate is not a root live member — inventory + SLO face only.
+status: designed-ahead-row-no-crate
 traceability:
   source_crate: governance/check/apex-gist-integrity/Cargo.toml
 non_claims:
