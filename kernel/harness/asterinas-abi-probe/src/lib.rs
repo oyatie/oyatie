@@ -129,8 +129,21 @@ pub fn stub_probe_receipt(item: &ProbePlanItem) -> Value {
         "available_on_asterinas_pin": Value::Null,
         "evidence_path": PREFERRED_EVIDENCE_PATH,
         "boot_iso_sha256": pin::BOOT_ISO_SHA256,
+        "matrix_contract": matrix_contract_identity(),
         "live_hardware_required": false,
-        "notes": "Scaffold stub — QEMU-TCG probe not yet executed; unknown availability remains valid. Scaffold ≠ green matrix. Digests bind future measured receipts to the verified ISO bytes.",
+        "notes": "Scaffold stub — QEMU-TCG probe not yet executed; unknown availability remains valid. Scaffold ≠ green matrix. Digests bind future measured receipts to the verified ISO bytes and embedded matrix contract.",
+    })
+}
+
+/// Identity of the embedded matrix contract carried on every receipt.
+fn matrix_contract_identity() -> Value {
+    let root = matrix::parse_matrix().unwrap_or(Value::Null);
+    serde_json::json!({
+        "matrix_id": root.get("matrix_id").and_then(|v| v.as_str()).unwrap_or("asterinas-abi-matrix"),
+        "schema_version": root.get("schema_version").and_then(|v| v.as_str()).unwrap_or("0.1.0"),
+        "$id": root.get("$id").cloned().unwrap_or(Value::Null),
+        "status": root.get("status").and_then(|v| v.as_str()).unwrap_or("scaffold"),
+        "matrix_json_byte_len": matrix::MATRIX_JSON.len(),
     })
 }
 
@@ -194,6 +207,7 @@ pub fn scaffold_summary_receipt(run: &ScaffoldRun) -> Value {
         "boot_iso_asset": run.plan.boot_iso_asset,
         "boot_iso_sha256": run.plan.boot_iso_sha256,
         "evidence_path": run.plan.evidence_path,
+        "matrix_contract": matrix_contract_identity(),
         "live_hardware_required": run.plan.live_hardware_required,
         "surfaces_covered": surfaces_covered,
         "probe_item_count": run.plan.items.len(),
