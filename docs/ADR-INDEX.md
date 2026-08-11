@@ -45,14 +45,6 @@ doc_status: published
 - Per-ADR amendments preserve the original ADR number; the amended ADR cites its original date and links to the amending PR.
 - Supersession is recorded in the per-ADR header and mirrored here on regeneration.
 
-## Deleted / unassigned ADR numbers
-
-The directory is intentionally non-contiguous. Every existing `docs/decisions/ADR-*.md` file is included in the table and machine-readable mirror; the following gaps are not counted as ADR files.
-
-| Number range | Reason |
-|---|---|
-| 0711 | Not represented by a `docs/decisions/ADR-*.md` file; reserved, deleted, or retired. |
-
 ## Sources scanned
 
 - `decisions/` directory listing — 16 ADR files (sorted ascending)
