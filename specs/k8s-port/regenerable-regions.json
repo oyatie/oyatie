@@ -139,7 +139,7 @@
       "repository_baseline": {
         "ref": "origin/dev",
         "commit": "9755cf50e",
-        "rebase_revalidation": "Restacked integ/os onto origin/dev@9755cf50e after #1642 land. Re-ran git ls-files k8s/*/*/Cargo.toml os/*/*/Cargo.toml: k8s_leaves 18, os_leaves 42, total 60. Added first-party row for os/ports/kernel-abi (+1 os leaf vs prior 41)."
+        "rebase_revalidation": "Restacked integ/os onto origin/dev@9755cf50e after #1642 land, then added os/harness/oci-executor-oracle (differential-oracle harness scaffold). Re-ran git ls-files k8s/*/*/Cargo.toml os/*/*/Cargo.toml: k8s_leaves 18, os_leaves 43, total 61. Delta vs prior 42/60: +1 os leaf for this harness (kernel-ABI already counted in the prior 42)."
       },
       "k8s_leaves": 18,
       "os_leaves": 43,
