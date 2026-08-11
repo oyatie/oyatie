@@ -12,7 +12,7 @@ doc_status: published
 ## At-a-glance
 
 - **Total ADRs:** 16
-- **Numbering:** contiguous ADR-0700..ADR-0715 (gap-free; 0711 filled by Swarm Delivery Law)
+- **Numbering:** contiguous ADR-0700..ADR-0715 (gap-free)
 - **Next ADR number:** 0716
 - **Status counts:** Accepted 11, Proposed 5
 - **Legacy retirement:** see [`ADR-LEGACY-REGRESSION-MAPPING.md`](ADR-LEGACY-REGRESSION-MAPPING.md).
