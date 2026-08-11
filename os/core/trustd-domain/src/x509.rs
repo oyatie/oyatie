@@ -506,6 +506,14 @@ impl KeyPair {
     /// Deterministically derive a key pair from a seed. This stands in for a
     /// real keygen; the public key is a fixed transform of the seed so the same
     /// seed always yields the same identity.
+    ///
+    /// There is no keygen here: the "private key" is the seed verbatim and the
+    /// "public key" is a reversible byte transform of it, so anyone holding the
+    /// public half recovers the private half. Behind the non-default
+    /// `modeled-crypto` feature; no production target enables it. Real key
+    /// material enters via [`KeyPair::new`], and real keygen via
+    /// [`crate::signer::EcdsaP256Signer::generate`].
+    #[cfg(any(test, feature = "modeled-crypto"))]
     pub fn from_seed(seed: &[u8]) -> Self {
         let private_der = seed.to_vec();
         let public_der: Vec<u8> = seed.iter().rev().map(|b| b ^ 0xA5).collect();
