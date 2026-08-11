@@ -293,7 +293,7 @@ fn commutativity_holds_modulo_the_pinned_append_order_rule() {
 fn live_ledger_is_modeled_and_canonicalization_preserves_the_gate_verdict() {
     let root = repo_root();
     let policy = live_policy();
-    let ledger_path = root.join(".omc/ultragoal/friction-ledger.jsonl");
+    let ledger_path = root.join("ci/facade/action-item-accounting/friction-ledger.jsonl");
     let live = std::fs::read_to_string(&ledger_path)
         .unwrap_or_else(|e| panic!("read {}: {e}", ledger_path.display()));
 
