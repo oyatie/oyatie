@@ -14,12 +14,12 @@ fn scaffold_validates_and_pairs_without_spawning() {
     assert_eq!(owned_obs.operation(), OciOperation::Start);
     assert_eq!(oracle_obs.operation(), OciOperation::Start);
     assert_eq!(
-        compare_observations(&owned_obs, &oracle_obs),
+        compare_observations("CVE-2024-21626", &owned_obs, &oracle_obs),
         DiffVerdict::Stubbed
     );
     let kill = oracle.kill_stub("b1", KillSignal::Kill);
     assert_eq!(kill.operation(), OciOperation::Kill(KillSignal::Kill));
     assert_eq!(kill.kill_signal(), Some(KillSignal::Kill));
-    refuse_oracle_as_product(&OwnedExecutorStub.kind()).unwrap();
+    refuse_oracle_as_product(&OwnedExecutorStub::scaffold().kind()).unwrap();
     assert!(refuse_oracle_as_product(&oracle.kind()).is_err());
 }
