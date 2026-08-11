@@ -70,8 +70,28 @@
       "prefix": "billing/tax/manifest.json"
     },
     {
+      "prefix": "build/REORG-DRAIN.md",
+      "anchor": "build/ drain inventory for toolchains + port-engine W0 continue; OWNERS via build/OWNERS council-architecture"
+    },
+    {
+      "prefix": "build/evidence/",
+      "anchor": "planes.root_manifests forever-owner absorb evidence for Cargo.lock sole-owner land (#1934); OWNERS via build/OWNERS council-architecture"
+    },
+    {
+      "prefix": "build/toolchains/",
+      "anchor": "ADR-0560 D3 / build sole-owner: toolchains cache platform rehomed under build/toolchains (was toolchains/cache/); OWNERS cloud-ci-platform"
+    },
+    {
       "anchor": "Envelope prefix ownership (integ/cell → cell/**): capability root tree (#1652 tip 65dd343bd). Covers cell/manifest.json + cell/*/manifest.json + evidence/IPs. Subsumes transitional cell/BUCK seed.",
       "prefix": "cell/"
+    },
+    {
+      "anchor": "ADR-0541: Buck package marker for the cell capability residual corpus target. This package keeps the capability's rehomed service docs, manifests, contracts and OpenSLO YAML inside the Buck2 corpus graph after the capability-first rehome; without it those files leave buck2-packaged space entirely (measured across nine roots: 996 YAML files, unpackaged 1069 -> 75).",
+      "prefix": "cell/BUCK"
+    },
+    {
+      "prefix": "ci/controller/iac/",
+      "anchor": "ADR-0515 cloud-ci controller Helm surface dual-homed with integ/ci; reachable with ci/controller workspace members on #1934 sole-owner absorb"
     },
     {
       "anchor": "ADR-0635 D5: named RED/GREEN mutation corpus consumed directly by the dependency-graph-acyclicity Buck gate test.",

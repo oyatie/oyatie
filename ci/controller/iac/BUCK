@@ -1,0 +1,7 @@
+# Package the controller Helm surface so its YAML is a build-graph input
+# (corpus-index unpackaged ratchet). Content forever tip remains integ/ci.
+filegroup(
+    name = "ci-controller-iac",
+    srcs = glob(["**/*"]),
+    visibility = ["PUBLIC"],
+)
