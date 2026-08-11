@@ -1962,9 +1962,22 @@ pub fn evaluate_masterplan_v2_sequencing(masterplan: &Value) -> BTreeSet<Finding
         preplanning_hold_open,
         &mut findings,
     );
+    // Prefer masterplan_v2.governance_evaluation_clock (canonical). Reject a sequencing-nested
+    // clock-only placement so babysit cannot "advance" a path the evaluator never reads.
     let clock = v2
         .get("governance_evaluation_clock")
         .and_then(|clock| non_empty_field(clock, "utc_date"));
+    if clock.is_none()
+        && sequencing
+            .get("governance_evaluation_clock")
+            .and_then(|clock| non_empty_field(clock, "utc_date"))
+            .is_some()
+    {
+        findings.insert(Finding::new(
+            "masterplan_evidence_state_invalid",
+            "masterplan_v2.sequencing.governance_evaluation_clock(misplaced; use masterplan_v2.governance_evaluation_clock)",
+        ));
+    }
     evaluate_decision_timeboxes_with_clock(v2.get("work_items"), clock, &mut findings);
 
     findings
@@ -2818,30 +2831,30 @@ fn evaluate_execution_wave_dispatch(
         ));
     }
 
-    // Digest/planning ratification must not silently authorize wave dispatch. When the
-    // recorded founder_ratification explicitly refuses dispatch authority, or when the
-    // dispatch object requires a dispatch-authorizing ratification that is not present,
-    // state must remain blocked.
+    // Digest/planning ratification must not silently authorize wave dispatch. Leaving
+    // `state` unblocked is fail-closed: both the dispatch object's
+    // `requires_dispatch_authorizing_ratification` flag and the ratification's
+    // `authorizes_execution_wave_dispatch` MUST be present and true. Absent fields must
+    // not be treated as authorization (None == None is not sufficient).
     let authorizes_dispatch = founder_ratification
         .and_then(|ratification| ratification.get("authorizes_execution_wave_dispatch"))
         .and_then(Value::as_bool);
-    if authorizes_dispatch == Some(false) && !dispatch_blocked {
-        findings.insert(Finding::new(
-            "masterplan_execution_wave_dispatch_unratified",
-            "masterplan_v2.sequencing.founder_ratification.authorizes_execution_wave_dispatch",
-        ));
-    }
-    if dispatch
+    let requires_dispatch_authorizing = dispatch
         .get("requires_dispatch_authorizing_ratification")
-        .and_then(Value::as_bool)
-        == Some(true)
-        && authorizes_dispatch != Some(true)
-        && !dispatch_blocked
-    {
-        findings.insert(Finding::new(
-            "masterplan_execution_wave_dispatch_unratified",
-            "masterplan_v2.sequencing.execution_wave_dispatch.requires_dispatch_authorizing_ratification",
-        ));
+        .and_then(Value::as_bool);
+    if !dispatch_blocked {
+        if requires_dispatch_authorizing != Some(true) {
+            findings.insert(Finding::new(
+                "masterplan_execution_wave_dispatch_unratified",
+                "masterplan_v2.sequencing.execution_wave_dispatch.requires_dispatch_authorizing_ratification",
+            ));
+        }
+        if authorizes_dispatch != Some(true) {
+            findings.insert(Finding::new(
+                "masterplan_execution_wave_dispatch_unratified",
+                "masterplan_v2.sequencing.founder_ratification.authorizes_execution_wave_dispatch",
+            ));
+        }
     }
 }
 
@@ -2898,12 +2911,9 @@ fn evaluate_decision_timeboxes_with_clock(
             ));
             continue;
         }
-        let status = non_empty_field(item, "status").unwrap_or("");
-        let still_open = matches!(
-            status,
-            "claimed-open" | "open" | "todo" | "in-progress" | "blocked"
-        );
-        if !(still_open && is_yyyy_mm_dd(deadline) && deadline < as_of) {
+        // Calendar fire is independent of work-item open/closed status: marking the item
+        // `done` after the deadline must not skip the Accept/Reject closure check.
+        if !(is_yyyy_mm_dd(deadline) && deadline < as_of) {
             continue;
         }
         // Expiry requires an explicit Accept/Reject closure of the target ADR — nonempty

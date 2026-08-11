@@ -5,7 +5,7 @@
   "decision": {
     "decision_status": "ratified",
     "approved_by": "founder-proxy-round-4",
-    "subject": "Add F1 Proposed ADR planning work items MPV2-0053..MPV2-0056 (definition class) to masterplan_v2 without changing W0 dependency edges",
+    "subject": "Add F1 Proposed ADR planning work items MPV2-0053..MPV2-0056 (definition class) to masterplan_v2; add MPV2-0053\u2192MPV2-0055 dependency for ADR-0714 depends_on ADR-0712",
     "required_before": "execution-wave-dispatch",
     "dispatch_state_at_ratification": "No masterplan execution wave is recorded as dispatched; the separate pre-planning authority hold remains open.",
     "scope_limit": "Planning anchors only. Proposed ADRs ADR-0712..ADR-0715 remain not implement authority. Does not authorize encode, Accept flips, W1+, or execution-wave dispatch. authorizes_execution_wave_dispatch remains false until a separate founder execution-dispatch ratification is recorded."
@@ -22,18 +22,18 @@
     ],
     "scope_limit": "Binds only to the exact sequencing content identified by ratified_sequencing_digest."
   },
-  "ratified_sequencing_digest": "sha256:664baeb76649761bfe1cea7c69f14d3dd4986202912c5a4d3d4f7216d4c46674",
+  "ratified_sequencing_digest": "sha256:e197ad33be5f3158db3dca797a58dd2f500c12ad2158e42ffa2fb934ebd51004",
   "digest_recipe": "sha256 over canonical JSON (sorted keys, separators ',' ':') of {\"dependency_edges\": sorted [from, to] pairs from masterplan_v2.dependency_edges, \"execution_waves\": the work_item_ids arrays of masterplan_v2.sequencing.execution_waves in wave order, \"work_item_order\": the work_item_id strings of masterplan_v2.sequencing.work_item_order in index order}",
   "derivation": {
     "derivation_mode": "zero-based-rederived-from-masterplan-v2-dependency-dag",
     "source_of_truth": "/specs/masterplan.json#masterplan_v2.dependency_edges",
-    "repository_baseline": "origin/docs/f1-founder-adrs-proposed-20260810@08c1b73f574c65044feb9f65975d5a6181b6b57f",
+    "repository_baseline": "origin/docs/f1-founder-adrs-proposed-20260810@95d1afad91428e47cef95d64df2672930bb11095",
     "work_item_count": 57,
-    "dependency_edge_count": 43,
+    "dependency_edge_count": 44,
     "wave_count": 8,
     "wave_sizes": [
-      28,
-      16,
+      27,
+      17,
       5,
       3,
       2,
