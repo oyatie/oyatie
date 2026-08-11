@@ -112,7 +112,10 @@ const REQUIRED_SLO_LINKED_CLOUD_MANIFESTS: [&str; 6] = [
 ///   2026-08-11  761 -> pin 762     BASE MOVE from #1647: registry/catalog/check-apex-gist-
 ///                                  integrity.yaml (apex-gist-integrity designed-ahead row).
 ///                                  Tracked catalog yamls 762->763; enumerated face rows +1.
-const SLO_CATALOG_CENSUS: usize = 762;
+///   2026-08-11  762 -> pin 773     BASE MOVE from #1934: +4 ci-controller-* and +7 port-engine
+///                                  W0-B catalog rows (face enumerated 773). Keep dual-home
+///                                  oya/ci-controller until lock/baseline tip-free cleanup.
+const SLO_CATALOG_CENSUS: usize = 773;
 
 fn producer_command(root: &Path, producer_bin: Option<&str>) -> Result<Command, String> {
     if let Some(bin) = producer_bin {
