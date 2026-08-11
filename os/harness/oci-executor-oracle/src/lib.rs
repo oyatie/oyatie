@@ -81,6 +81,8 @@ impl fmt::Display for HarnessError {
     }
 }
 
+impl std::error::Error for HarnessError {}
+
 /// Closed oracle identity enum — the only values `ExecutorKind::Oracle` may carry.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum OracleId {
@@ -151,22 +153,58 @@ pub struct MeasuredOutcome {
     pub stderr_fingerprint: String,
 }
 
+/// Execution state — closed so measured outcomes cannot coexist with "unexecuted".
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum ExecutionState {
+    Stubbed,
+    Measured(MeasuredOutcome),
+}
+
+impl ExecutionState {
+    pub const fn is_executed(&self) -> bool {
+        matches!(self, Self::Measured(_))
+    }
+
+    pub fn measured(&self) -> Option<&MeasuredOutcome> {
+        match self {
+            Self::Measured(m) => Some(m),
+            Self::Stubbed => None,
+        }
+    }
+}
+
 /// Per-side operation observation. Live adapters emit one of these; a separate
 /// differential runner compares the pair into a [`DiffVerdict`].
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct OperationObservation {
-    pub kind: ExecutorKind,
-    pub operation: OciOperation,
-    pub bundle_id: String,
+    kind: ExecutorKind,
+    operation: OciOperation,
+    bundle_id: String,
     /// Kill signal when `operation == Kill`; otherwise None.
-    pub kill_signal: Option<KillSignal>,
-    /// False for scaffold stubs; true once a live adapter executed the op.
-    pub executed: bool,
-    /// Present only when `executed` — compared for Match/Diverge.
-    pub measured: Option<MeasuredOutcome>,
+    kill_signal: Option<KillSignal>,
+    execution: ExecutionState,
 }
 
 impl OperationObservation {
+    pub fn kind(&self) -> ExecutorKind {
+        self.kind
+    }
+    pub fn operation(&self) -> OciOperation {
+        self.operation
+    }
+    pub fn bundle_id(&self) -> &str {
+        &self.bundle_id
+    }
+    pub fn kill_signal(&self) -> Option<KillSignal> {
+        self.kill_signal
+    }
+    pub fn execution(&self) -> &ExecutionState {
+        &self.execution
+    }
+    pub fn executed(&self) -> bool {
+        self.execution.is_executed()
+    }
+
     pub fn stubbed(
         kind: ExecutorKind,
         operation: OciOperation,
@@ -178,8 +216,7 @@ impl OperationObservation {
             operation,
             bundle_id: bundle_id.to_owned(),
             kill_signal,
-            executed: false,
-            measured: None,
+            execution: ExecutionState::Stubbed,
         }
     }
 
@@ -195,8 +232,7 @@ impl OperationObservation {
             operation,
             bundle_id: bundle_id.to_owned(),
             kill_signal,
-            executed: true,
-            measured: Some(outcome),
+            execution: ExecutionState::Measured(outcome),
         }
     }
 }
@@ -215,14 +251,12 @@ pub fn compare_observations(
     {
         return DiffVerdict::Diverge;
     }
-    match (owned.executed, oracle.executed) {
-        (false, false) => DiffVerdict::Stubbed,
+    match (&owned.execution, &oracle.execution) {
+        (ExecutionState::Stubbed, ExecutionState::Stubbed) => DiffVerdict::Stubbed,
+        (ExecutionState::Measured(a), ExecutionState::Measured(b)) if a == b => DiffVerdict::Match,
+        (ExecutionState::Measured(_), ExecutionState::Measured(_)) => DiffVerdict::Diverge,
         // Partial wiring / failed differential run — not the all-scaffold case.
-        (true, false) | (false, true) => DiffVerdict::Diverge,
-        (true, true) => match (&owned.measured, &oracle.measured) {
-            (Some(a), Some(b)) if a == b => DiffVerdict::Match,
-            _ => DiffVerdict::Diverge,
-        },
+        _ => DiffVerdict::Diverge,
     }
 }
 
@@ -491,11 +525,11 @@ mod tests {
         for stub in [OracleStub::youki(), OracleStub::runc(), OracleStub::crun()] {
             assert!(stub.kind().is_oracle_only());
             assert!(!stub.kind().is_owned_product());
-            assert_eq!(stub.create_stub("bundle").operation, OciOperation::Create);
-            assert!(!stub.create_stub("bundle").executed);
+            assert_eq!(stub.create_stub("bundle").operation(), OciOperation::Create);
+            assert!(!stub.create_stub("bundle").executed());
             let kill = stub.kill_stub("bundle", KillSignal::Term);
-            assert_eq!(kill.operation, OciOperation::Kill);
-            assert_eq!(kill.kill_signal, Some(KillSignal::Term));
+            assert_eq!(kill.operation(), OciOperation::Kill);
+            assert_eq!(kill.kill_signal(), Some(KillSignal::Term));
         }
     }
 
