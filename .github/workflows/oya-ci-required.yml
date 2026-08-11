@@ -1292,3 +1292,50 @@ jobs:
           sparse-checkout: |
             README.md
           sparse-checkout-cone-mode: true
+
+  # Dual-emit remaining naming_sweep CI titles (uses-only; no new inline shell).
+  # Protection flip = PAUSE-AND-PAIR only — do not flip alone.
+  generated-artifact-freshness:
+    name: generated-artifact-freshness (lock + faces)
+    runs-on: ubuntu-latest
+    if: ${{ always() && needs.gate-generated-artifact-freshness.result == 'success' }}
+    needs: [gate-generated-artifact-freshness]
+    steps:
+      - name: Dual-emit forever title (uses-only; no new inline shell)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+          sparse-checkout: |
+            README.md
+          sparse-checkout-cone-mode: true
+
+  admission-baseline-ratchet:
+    name: admission-baseline-ratchet (+ gate-registration)
+    runs-on: ubuntu-latest
+    if: ${{ always() && needs.gate-baseline-ratchet.result == 'success' }}
+    needs: [gate-baseline-ratchet]
+    steps:
+      - name: Dual-emit forever title (uses-only; no new inline shell)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+          sparse-checkout: |
+            README.md
+          sparse-checkout-cone-mode: true
+
+  affected-target-set:
+    name: affected-target-set (binding workspace coverage)
+    runs-on: ubuntu-latest
+    if: ${{ always() && needs.gate-affected-target-set.result == 'success' }}
+    needs: [gate-affected-target-set]
+    steps:
+      - name: Dual-emit forever title (uses-only; no new inline shell)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+          sparse-checkout: |
+            README.md
+          sparse-checkout-cone-mode: true

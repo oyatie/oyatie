@@ -234,18 +234,18 @@ jobs:
           if-no-files-found: warn
 
   # Dual-emit forever check title (naming_sweep). Protection flip = PAUSE-AND-PAIR only.
+  # automation-language-policy: no new workflow `run:` — uses-only mirror (see oya-ci-required).
   cache-integrity-canary-forever-title:
     name: "cache-integrity-canary (cold from-empty)"
     runs-on: ubuntu-latest
-    if: ${{ always() }}
+    if: ${{ always() && needs.canary.result == 'success' }}
     needs: [canary]
     steps:
-      - name: Dual-emit forever title
-        run: |
-          echo "legacy=canary result=${{ needs.canary.result }}"
-          if [ "${{ needs.canary.result }}" = "success" ]; then
-            echo "cache-integrity-canary: GREEN (dual-emit)"
-            exit 0
-          fi
-          echo "cache-integrity-canary: RED"
-          exit 1
+      - name: Dual-emit forever title (uses-only; no new inline shell)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+          sparse-checkout: |
+            README.md
+          sparse-checkout-cone-mode: true
