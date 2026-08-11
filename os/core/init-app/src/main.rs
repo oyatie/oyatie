@@ -287,31 +287,6 @@ pub fn write_pre_config_resolv_conf_at(path: impl AsRef<Path>, body: &str) -> st
     }
 }
 
-/// Extract the errno from a `os_network_domain` error's Display string. Pure /
-/// host-testable.
-///
-/// The `linux_net` module is dep-light and surfaces failures as
-/// `Error::Other("<ctx>: errno <N>")` (socket-level) or
-/// `"netlink request failed: errno <N>"` (rtnetlink ACK, where the kernel's
-/// negative errno has already been negated back to positive). Both end in
-/// `errno <N>`, so we pull the trailing integer (taking its absolute value, to
-/// be robust to either sign convention). Returns `-1` when no errno is present,
-/// which forces the "unexpected" classification (i.e. fail loudly rather than
-/// silently tolerate an unparseable error).
-pub fn net_errno(msg: &str) -> i32 {
-    match msg.rsplit_once("errno ") {
-        Some((_, tail)) => {
-            let digits: String = tail
-                .trim()
-                .chars()
-                .take_while(|c| c.is_ascii_digit() || *c == '-')
-                .collect();
-            digits.parse::<i32>().map(i32::abs).unwrap_or(-1)
-        }
-        None => -1,
-    }
-}
-
 /// Project the image-cache runtime plan PID1 should hand to runtime adapters.
 ///
 /// This is pure and host-testable: machine config supplies the
@@ -1486,12 +1461,14 @@ mod init {
     use os_controllers_domain::{Domain, MachineConfigDocument, RegistryBuilder};
     use os_cosi_domain::State;
     use os_init_app::config::{StaticAddress, try_early_config};
+    use os_init_app::net_error::{net_already_exists, net_skip_reason};
     use os_init_app::platform_config::{
         FileConfigStore, pre_config_network_bootstrap, resolve_config,
     };
     use os_init_app::{DEFAULT_HOSTNAME, MACHINE_CONFIG_PATH, PROC_CMDLINE_PATH};
 
     use os_kernel::MachineType;
+    use os_kernel_abi::KernelNet;
     use os_machined_domain::boot::{
         BootPhaseId, BootRuntimeMode, BootSequencer, BootService, MountRequest, ProgressLogger,
         RestartPolicy, Runtime, SysctlOutcome, TaskOutcome, detect_runtime_mode, mount_skip_reason,
@@ -1510,13 +1487,23 @@ mod init {
         boot_cosi_bridge_start_line, dhcp6_iaid_from_mac, dhcp6_transaction_id,
         hydrate_bootstrap_image_cache_mount_state, hydrate_declared_image_cache_block_state,
         image_cache_copy_adapter_for_boot_privilege, image_cache_copy_execution_status_label,
-        image_cache_copy_state_line, ms_flags_from_str, net_errno, pid1_registryd_launch_result,
+        image_cache_copy_state_line, ms_flags_from_str, pid1_registryd_launch_result,
         pre_config_bootstrap_line, pre_config_dhcp4_start_line, pre_config_dhcp6_start_line,
         pre_config_resolv_conf_body, project_image_cache_runtime_plan_from_cosi_state,
         ready_ipv6_link_local_from_proc, reaped_line,
         run_image_cache_runtime_adapters_with_supervisor_and_copy_adapter, seq_task_line,
         service_started_line, sysctl_path, write_pre_config_resolv_conf_at,
     };
+
+    /// The kernel-network port binding for this build.
+    ///
+    /// PID 1 reaches the kernel's network stack only through
+    /// [`os_kernel_abi::KernelNet`]; `LinuxNet` is one adapter for it. Swapping
+    /// the kernel substrate for another that implements the same operations is
+    /// a change to this one function, not to the call sites below.
+    fn kernel_net() -> impl KernelNet {
+        os_network_domain::linux_net::LinuxNet::new()
+    }
 
     /// Entry point for the real PID 1. Never returns: on any path it powers the
     /// machine off (and if `reboot(2)` somehow returns, the trailing loop keeps
@@ -1706,7 +1693,7 @@ mod init {
                 "[net] eth0: assigning {}/{} (add_ipv4)",
                 addr.addr, addr.prefix
             );
-            match os_network_domain::linux_net::add_ipv4("eth0", &addr.addr, addr.prefix) {
+            match kernel_net().add_ipv4_address("eth0", &addr.addr, addr.prefix) {
                 Ok(()) => println!("[net] eth0: add_ipv4 ok"),
                 Err(e) => {
                     // add_ipv4 (RTM_NEWADDR) is BEST EFFORT under a sandbox: the
@@ -1717,8 +1704,7 @@ mod init {
                     // EEXIST (re-run) and any other errno are merely noted, since
                     // eth0 addressing never aborts the boot. On a real kernel
                     // add_ipv4 succeeds and this path never runs.
-                    let errno = net_errno(&e.to_string());
-                    match privileged_op_skip_reason(errno) {
+                    match net_skip_reason(&e) {
                         Some(reason) => self.skip_log("add_ipv4(eth0)", reason),
                         None => println!("[net] eth0: add_ipv4 error (tolerated): {e}"),
                     }
@@ -1726,7 +1712,7 @@ mod init {
             }
 
             // Verification path: read the kernel's view back.
-            match os_network_domain::linux_net::query_addrs("eth0") {
+            match kernel_net().ipv4_addresses("eth0") {
                 Ok(addrs) => {
                     let joined = if addrs.is_empty() {
                         "<none>".to_string()
@@ -1742,7 +1728,7 @@ mod init {
             }
 
             // Cross-confirmation from /sys.
-            match os_network_domain::linux_net::get_operstate("eth0") {
+            match kernel_net().link_oper_state("eth0") {
                 Ok(state) => println!("net: eth0 operstate={state}"),
                 Err(e) => {
                     println!("[net] eth0: get_operstate error: {e}");
@@ -1773,19 +1759,14 @@ mod init {
                 wait_for_iface(iface, 50, self.mode);
             }
             println!("[net] {iface}: pre-config link up (set_link_up / rtnetlink RTM_NEWLINK)");
-            match os_network_domain::linux_net::set_link_up(iface) {
+            match kernel_net().set_link_up(iface) {
                 Ok(()) => println!("[net] {iface}: pre-config link up"),
-                Err(e) => {
-                    let errno = net_errno(&e.to_string());
-                    match privileged_op_skip_reason(errno) {
-                        Some(reason) => {
-                            self.skip_log(&format!("pre_config_link_up({iface})"), reason)
-                        }
-                        None => {
-                            println!("[net] {iface}: pre-config link-up error (tolerated): {e}")
-                        }
+                Err(e) => match net_skip_reason(&e) {
+                    Some(reason) => self.skip_log(&format!("pre_config_link_up({iface})"), reason),
+                    None => {
+                        println!("[net] {iface}: pre-config link-up error (tolerated): {e}")
                     }
-                }
+                },
             }
 
             if bootstrap.dhcp4 {
@@ -1928,15 +1909,17 @@ mod init {
                     "[net] {iface}: DHCPv4 assigning {}/{}",
                     address.address, address.prefix_len
                 );
-                match os_network_domain::linux_net::add_ipv4(
+                match kernel_net().add_ipv4_address(
                     iface,
                     &address.address.to_string(),
                     address.prefix_len,
                 ) {
                     Ok(()) => println!("[net] {iface}: DHCPv4 address applied"),
                     Err(e) => {
-                        let errno = net_errno(&e.to_string());
-                        if errno == libc::EEXIST {
+                        // The port contract makes a duplicate install
+                        // `InvalidState` on every substrate, so this no longer
+                        // depends on the adapter spelling a Linux EEXIST.
+                        if net_already_exists(&e) {
                             println!("[net] {iface}: DHCPv4 address already exists");
                         } else {
                             println!("[net] {iface}: DHCPv4 address apply error: {e}");
@@ -1971,18 +1954,17 @@ mod init {
                     route.gateway.map(|addr| addr.to_string()),
                     route.metric
                 );
-                match os_network_domain::linux_net::add_ipv4_route(
+                match kernel_net().add_ipv4_route(
                     iface,
                     destination,
                     route.prefix_len,
                     gateway,
                     route.metric,
-                    route.protocol.protocol_id(),
+                    route.protocol.into(),
                 ) {
                     Ok(()) => println!("[net] {iface}: DHCPv4 route applied"),
                     Err(e) => {
-                        let errno = net_errno(&e.to_string());
-                        if errno == libc::EEXIST {
+                        if net_already_exists(&e) {
                             println!("[net] {iface}: DHCPv4 route already exists");
                         } else {
                             println!("[net] {iface}: DHCPv4 route apply error: {e}");
@@ -2143,14 +2125,15 @@ mod init {
             lease: &os_network_domain::Dhcp6Lease,
         ) {
             let iface = bootstrap.interface;
-            let output =
-                match os_network_domain::OperatorSpec::dhcp6(iface).apply_dhcp6_lease(lease, false) {
-                    Ok(output) => output,
-                    Err(e) => {
-                        println!("[net] {iface}: DHCPv6 lease conversion error: {e}");
-                        return;
-                    }
-                };
+            let output = match os_network_domain::OperatorSpec::dhcp6(iface)
+                .apply_dhcp6_lease(lease, false)
+            {
+                Ok(output) => output,
+                Err(e) => {
+                    println!("[net] {iface}: DHCPv6 lease conversion error: {e}");
+                    return;
+                }
+            };
 
             let os_network_domain::OperatorOutput {
                 addresses,
@@ -2166,15 +2149,14 @@ mod init {
                             "[net] {iface}: DHCPv6 assigning {}/{}",
                             address.address, address.prefix_len
                         );
-                        match os_network_domain::linux_net::add_ipv6(
+                        match kernel_net().add_ipv6_address(
                             iface,
                             &address.address.to_string(),
                             address.prefix_len,
                         ) {
                             Ok(()) => println!("[net] {iface}: DHCPv6 address applied"),
                             Err(e) => {
-                                let errno = net_errno(&e.to_string());
-                                if errno == libc::EEXIST {
+                                if net_already_exists(&e) {
                                     println!("[net] {iface}: DHCPv6 address already exists");
                                 } else {
                                     println!("[net] {iface}: DHCPv6 address apply error: {e}");
@@ -2437,7 +2419,7 @@ mod init {
                 wait_for_iface(iface, 50, self.mode);
             }
             println!("[net] {iface}: bringing up (set_link_up / rtnetlink RTM_NEWLINK)");
-            match os_network_domain::linux_net::set_link_up(iface) {
+            match kernel_net().set_link_up(iface) {
                 Ok(()) => {
                     println!("[net] {iface}: link up");
                     if iface == "lo" {
@@ -3288,7 +3270,9 @@ mod tests {
 
     #[test]
     fn pid1_registryd_launcher_accepts_only_source_registryd_without_claiming_health() {
-        assert!(!pid1_registryd_launch_result(os_runtime_cri_domain::REGISTRYD_SERVICE_ID).unwrap());
+        assert!(
+            !pid1_registryd_launch_result(os_runtime_cri_domain::REGISTRYD_SERVICE_ID).unwrap()
+        );
 
         let err = pid1_registryd_launch_result("not-registryd").unwrap_err();
         assert!(
@@ -3539,27 +3523,6 @@ fe8000000000000002005efffe102031 03 40 20 08 eth1\n";
     }
 
     #[test]
-    fn net_errno_parses_linux_net_error_strings() {
-        // rtnetlink ACK failure (kernel errno negated back to positive).
-        assert_eq!(net_errno("netlink request failed: errno 1"), 1);
-        // socket-level failure context prefix.
-        assert_eq!(net_errno("socket(AF_NETLINK): errno 13"), 13);
-        assert_eq!(net_errno("open(/sys/class/net/eth0): errno 2"), 2);
-        // Absolute value taken, regardless of sign convention.
-        assert_eq!(net_errno("netlink request failed: errno -1"), 1);
-        // Trailing punctuation after the number is tolerated.
-        assert_eq!(net_errno("foo: errno 95 (oops)"), 95);
-    }
-
-    #[test]
-    fn net_errno_unparseable_yields_minus_one() {
-        // No "errno" marker => -1 (forces the unexpected/fail classification).
-        assert_eq!(net_errno("address exists"), -1);
-        assert_eq!(net_errno(""), -1);
-        assert_eq!(net_errno("errno notanumber"), -1);
-    }
-
-    #[test]
     fn svc_constants_are_consistent() {
         assert_eq!(SVC_PATH, "/usr/bin/svc");
         assert_eq!(SVC_NAME, "svc");
@@ -3776,14 +3739,20 @@ machine:
             host.environment(),
             os_runtime_cri_domain::ImageCacheCopyRuntimeEnvironment::HostSafe
         );
-        assert_eq!(host.gate(), os_runtime_cri_domain::ImageCacheCopyGate::Disabled);
+        assert_eq!(
+            host.gate(),
+            os_runtime_cri_domain::ImageCacheCopyGate::Disabled
+        );
 
         let vm = image_cache_copy_adapter_for_boot_privilege(true);
         assert_eq!(
             vm.environment(),
             os_runtime_cri_domain::ImageCacheCopyRuntimeEnvironment::VmPrivileged
         );
-        assert_eq!(vm.gate(), os_runtime_cri_domain::ImageCacheCopyGate::Enabled);
+        assert_eq!(
+            vm.gate(),
+            os_runtime_cri_domain::ImageCacheCopyGate::Enabled
+        );
     }
 
     #[test]
@@ -5224,7 +5193,8 @@ machine:
             registryd_action: os_runtime_cri_domain::RegistrydAction::Start,
             ..ImageCacheRuntimePlan::default()
         };
-        let service = os_runtime_cri_domain::RegistrydRuntimeService::from_runtime_plan(&plan).clone();
+        let service =
+            os_runtime_cri_domain::RegistrydRuntimeService::from_runtime_plan(&plan).clone();
 
         let listener = std::net::TcpListener::bind(("127.0.0.1", 0)).unwrap();
         let address = listener.local_addr().unwrap();
@@ -5399,7 +5369,10 @@ machine:
 
         assert!(
             launcher
-                .launch_registryd_runtime_service(os_runtime_cri_domain::REGISTRYD_SERVICE_ID, &service)
+                .launch_registryd_runtime_service(
+                    os_runtime_cri_domain::REGISTRYD_SERVICE_ID,
+                    &service
+                )
                 .unwrap()
         );
 
@@ -5548,7 +5521,10 @@ machine:
 
         assert!(
             launcher
-                .launch_registryd_runtime_service(os_runtime_cri_domain::REGISTRYD_SERVICE_ID, &service)
+                .launch_registryd_runtime_service(
+                    os_runtime_cri_domain::REGISTRYD_SERVICE_ID,
+                    &service
+                )
                 .unwrap()
         );
 
@@ -5714,7 +5690,10 @@ machine:
 
         assert!(
             launcher
-                .launch_registryd_runtime_service(os_runtime_cri_domain::REGISTRYD_SERVICE_ID, &service)
+                .launch_registryd_runtime_service(
+                    os_runtime_cri_domain::REGISTRYD_SERVICE_ID,
+                    &service
+                )
                 .unwrap()
         );
 
@@ -5885,7 +5864,10 @@ machine:
 
         assert!(
             launcher
-                .launch_registryd_runtime_service(os_runtime_cri_domain::REGISTRYD_SERVICE_ID, &service)
+                .launch_registryd_runtime_service(
+                    os_runtime_cri_domain::REGISTRYD_SERVICE_ID,
+                    &service
+                )
                 .unwrap()
         );
 
@@ -6081,7 +6063,10 @@ machine:
 
         assert!(
             launcher
-                .launch_registryd_runtime_service(os_runtime_cri_domain::REGISTRYD_SERVICE_ID, &service)
+                .launch_registryd_runtime_service(
+                    os_runtime_cri_domain::REGISTRYD_SERVICE_ID,
+                    &service
+                )
                 .unwrap()
         );
 
@@ -6284,7 +6269,10 @@ machine:
 
         assert!(
             launcher
-                .launch_registryd_runtime_service(os_runtime_cri_domain::REGISTRYD_SERVICE_ID, &service)
+                .launch_registryd_runtime_service(
+                    os_runtime_cri_domain::REGISTRYD_SERVICE_ID,
+                    &service
+                )
                 .unwrap()
         );
 
@@ -6477,7 +6465,10 @@ machine:
 
         assert!(
             launcher
-                .launch_registryd_runtime_service(os_runtime_cri_domain::REGISTRYD_SERVICE_ID, &service)
+                .launch_registryd_runtime_service(
+                    os_runtime_cri_domain::REGISTRYD_SERVICE_ID,
+                    &service
+                )
                 .unwrap()
         );
 
@@ -6669,7 +6660,10 @@ machine:
 
         assert!(
             launcher
-                .launch_registryd_runtime_service(os_runtime_cri_domain::REGISTRYD_SERVICE_ID, &service)
+                .launch_registryd_runtime_service(
+                    os_runtime_cri_domain::REGISTRYD_SERVICE_ID,
+                    &service
+                )
                 .unwrap()
         );
 
@@ -6861,7 +6855,10 @@ machine:
 
         assert!(
             launcher
-                .launch_registryd_runtime_service(os_runtime_cri_domain::REGISTRYD_SERVICE_ID, &service)
+                .launch_registryd_runtime_service(
+                    os_runtime_cri_domain::REGISTRYD_SERVICE_ID,
+                    &service
+                )
                 .unwrap()
         );
 
@@ -6951,7 +6948,10 @@ machine:
 
         assert!(
             launcher
-                .launch_registryd_runtime_service(os_runtime_cri_domain::REGISTRYD_SERVICE_ID, &service)
+                .launch_registryd_runtime_service(
+                    os_runtime_cri_domain::REGISTRYD_SERVICE_ID,
+                    &service
+                )
                 .unwrap()
         );
         os_machined_domain::ServiceLauncher::stop(
@@ -7004,7 +7004,10 @@ machine:
         let service = os_runtime_cri_domain::RegistrydRuntimeService::from_runtime_plan(&plan);
         assert!(
             launcher
-                .launch_registryd_runtime_service(os_runtime_cri_domain::REGISTRYD_SERVICE_ID, &service)
+                .launch_registryd_runtime_service(
+                    os_runtime_cri_domain::REGISTRYD_SERVICE_ID,
+                    &service
+                )
                 .unwrap()
         );
 
@@ -7531,7 +7534,9 @@ provisioning:
 
     #[test]
     fn image_cache_bootstrap_mount_state_seeds_ready_roots_when_canonical_paths_exist() {
-        use os_block_domain::{IMAGE_CACHE_VOLUME_ID, VolumeMountStatusResource, VolumeStatusResource};
+        use os_block_domain::{
+            IMAGE_CACHE_VOLUME_ID, VolumeMountStatusResource, VolumeStatusResource,
+        };
         use os_cosi_domain::State;
         use os_runtime_cri_domain::{
             IMAGE_CACHE_DISK_MOUNT_POINT, IMAGE_CACHE_DISK_VOLUME_ID, IMAGE_CACHE_ISO_MOUNT_POINT,

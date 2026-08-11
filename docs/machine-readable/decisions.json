@@ -6,12 +6,12 @@
   },
   "_metadata": {
     "source": "docs/decisions",
-    "total_adrs": 11,
-    "numbering": "contiguous ADR-0700..ADR-0710 (gap-free)",
+    "total_adrs": 12,
+    "numbering": "contiguous ADR-0700..ADR-0711 (gap-free)",
     "gaps": [],
-    "next_adr": "ADR-0711",
+    "next_adr": "ADR-0712",
     "status_counts": {
-      "Accepted": 10,
+      "Accepted": 11,
       "Proposed": 1
     }
   },
@@ -147,6 +147,18 @@
       "supersedes": [],
       "superseded_by": [],
       "related": ["ADR-0183", "ADR-0338", "ADR-0379", "ADR-0702"]
+    },
+    {
+      "adr": "ADR-0711",
+      "number": 711,
+      "title": "Swarm Delivery Law — integration branch topology and command discipline",
+      "status": "Accepted",
+      "owner": "council-architecture",
+      "date": "2026-08-10",
+      "path": "decisions/ADR-0711-swarm-delivery-law-integ-branch-topology.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0111", "ADR-0119", "ADR-0131", "ADR-0363", "ADR-0366", "ADR-0515", "ADR-0541", "ADR-0554", "ADR-0562"]
     }
   ]
 }
