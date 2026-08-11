@@ -6426,7 +6426,7 @@
       },
       {
         "scout_id": "tip-free-packets-no-rail-20260810",
-        "absorbed_at_version": "1.16.17",
+        "absorbed_at_version": "1.16.19",
         "accepted": [
           "NO_RAIL forward-declared product roots: application, community, design-collaboration, financial-planning, learning-management, marketing-automation, performance-management, production-planning, whiteboard",
           "nine reorg_now product judgments with destination-first shrink rules",
