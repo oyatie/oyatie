@@ -18,8 +18,8 @@ milestone: F1
 masterplan_work_item: MPV2-0054
 deliverables:
   - id: ADR-0713-A
-    description: "Severable Accept (a) — owned runtime shape: minimal PID1 reaper/launcher stub; projected kubelet + runtime-controller in restartable NON-PID1 supervisor child (one process); in-process CRI-shaped transport with CRI semantics canonical; external Unix socket behind versioned compatibility profile v1; no long-lived container-manager daemon; OWN token + Go containerd bootstrap CONSUME proposals; overrule containerd product PORT. State-machine/recovery DoD + kill-9-supervisor continuity and upgrade-reconnect tests required before Accept of (a)."
-    exit_criteria: "Founder checks Accept (a) independently of (b). Accept (a) forbidden until state-machine/recovery DoD is recorded and required tests (kill-9 supervisor continuity + upgrade reconnect asserting kubelet-level reconvergence) are named as mandatory encode evidence. Reject (a) restores CONSUME-external-runtimes posture without owned-runtime encode."
+    description: "Severable Accept (a) — owned runtime shape: minimal PID1 reaper/launcher stub; projected kubelet + runtime-controller in restartable NON-PID1 supervisor child (one process); in-process CRI-shaped transport with CRI semantics canonical; external Unix socket behind versioned compatibility profile v1 (bootstrap-minimal vs promotion-complete); no long-lived container-manager daemon; OWN token + Go containerd bootstrap CONSUME proposals; overrule containerd product PORT. Round-5 Node Substrate DoD package (stub respawn constant-work; exclusive supervisor lease + dual-supervisor race; telemetry-first + NodeReady flap SLO/OpenSLO-or-EV0-owner; zero-trust checklist; FinOps K-stage exits; CAS crash semantics; stub LOC ratchet) + Round-4 recovery tests required before Accept of (a). Process-law exits recorded in body: K1-owned gated on owned-executor security-response; flake/rerun policy before first promotion-gate claim."
+    exit_criteria: "Founder checks Accept (a) independently of (b). Accept (a) forbidden until state-machine/recovery DoD (incl. Round-5 package D-A3..D-A4 / D-A7..D-A9) is recorded and required tests (kill-9 continuity + upgrade reconnect + dual-supervisor race + stub respawn budget escalate) asserting kubelet-level reconvergence are named as mandatory encode evidence. Reject (a) restores CONSUME-external-runtimes posture without owned-runtime encode."
     verified_by: "oya-ci-required"
   - id: ADR-0713-B
     description: "Severable Accept (b) — os/-layer retirement encode: apex noun amend proposal (k8s projected → node supervisor → guest kernel); os/ harvest-then-retire; D-3 preconditions (machine-config harvest receipt before config-v1alpha1 delete; fleet-basis pin replacement; boot-marker contract; os/ charter amendment)."
@@ -35,8 +35,9 @@ deliverables:
 Accept checkboxes:
 
 - **(a) Owned runtime shape** — waits on founder Accept/Reject **and** on the
-  **state-machine / recovery Definition of Done** plus required continuity tests named below.
-  Founder choice alone is insufficient.
+  **state-machine / recovery Definition of Done** (Round-4 continuity + **Round-5** stub
+  respawn / exclusive lease / telemetry / zero-trust / FinOps package) plus required tests
+  named below. Founder choice alone is insufficient.
 - **(b) `os/`-layer retirement encode** — waits on **D-3 preconditions** (machine-config harvest,
   fleet-basis pin replacement, boot-marker contract, `os/` charter), listed and not assumed done.
 
@@ -54,7 +55,7 @@ input only.
 
 ### Severable Accept checkboxes (founder)
 
-- [ ] **(a) Accept owned runtime shape** (D-A1..D-A4) — after state-machine/recovery DoD + named tests
+- [ ] **(a) Accept owned runtime shape** (D-A1..D-A9) — after state-machine/recovery DoD incl. Round-5 package + named tests
 - [ ] **(b) Accept `os/`-layer retirement encode** (D-B1..D-B3) — after D-3 preconditions / waiver
 
 ## Context
@@ -119,21 +120,27 @@ through the external socket.
 The external Unix socket is gated by a **versioned compatibility profile `v1`**, **NOT** a
 closed binary-name allowlist. Profile `v1` MUST enumerate and contract-test:
 
-| Profile `v1` element | Requirement |
-|---|---|
-| RPCs | Closed set of supported CRI RPC methods; unlisted = REFUSE |
-| Streaming server | Supported streaming RPCs + backpressure / deadline rules |
-| Evented PLEG | Event delivery contract compatible with projected kubelet expectations |
-| Error-code semantics | Stable mapping for refused / unavailable / invalid |
-| Peer credentials | SO_PEERCRED (or platform equivalent) authentication rules |
-| Rate limits | Per-peer and global limits |
-| Read-only RPC set | Explicit subset safe for read-only external consumers |
+| Profile `v1` element | Requirement | Completeness tier |
+|---|---|---|
+| RPCs | Closed set of supported CRI RPC methods; unlisted = REFUSE | **bootstrap-minimal** |
+| Error-code semantics | Stable mapping for refused / unavailable / invalid | **bootstrap-minimal** |
+| Peer credentials | SO_PEERCRED (or platform equivalent) authentication rules | **bootstrap-minimal** |
+| Rate limits | Per-peer and global limits | **bootstrap-minimal** |
+| Streaming server | Supported streaming RPCs + backpressure / deadline rules | **promotion-complete** |
+| Evented PLEG | Event delivery contract compatible with projected kubelet expectations | **promotion-complete** |
+| Read-only RPC set | Explicit subset safe for read-only external consumers | **promotion-complete** |
+
+**Round-5 (cheap):** every profile `v1` section MUST be marked **bootstrap-minimal** or
+**promotion-complete**. **K1-reference** MUST NOT be blocked on a full streaming server —
+bootstrap-minimal is the minimal RPC/error/peer-cred surface needed to schedule a pod;
+promotion-complete adds streaming, evented PLEG, and the full read-only observability set
+before any promotion/release claim.
 
 Unlisted profile elements and callers that fail peer-cred / rate-limit / RPC-set checks are
 **REFUSED**. Implementers MUST NOT invent additional authorized consumers by binary name;
 authorization is profile + peer cred, version-negotiated.
 
-#### D-A3 — Shim survival, upgrades, and required tests
+#### D-A3 — Shim survival, upgrades, leases, and required tests
 
 On Accept (a):
 
@@ -141,16 +148,34 @@ On Accept (a):
    **adopt-or-kill** reconciliation against those records (not "manager daemon remembers").
 2. **Supervisor upgrades:** restart the NON-PID1 supervisor child + **reconnect**; PID1 stub
    stays up across the restart window as specified by the recovery state machine.
-3. **Required tests (encode evidence; mandatory before claiming Accept (a) DoD met):**
+3. **Stub respawn constant-work law (Round-5 MAJOR):** PID1 stub **MUST rate-limit** supervisor
+   restarts — **exponential backoff + jitter**, **max restarts / window**, and **escalate to
+   break-glass / Node condition** when the restart budget is exceeded. Restart storms MUST NOT
+   become unbounded PID1 work (constant-work / anti-fragility).
+4. **Exclusive supervisor lease / anti-split-brain (Round-5 MAJOR):** single-writer lease via
+   **pidfd and/or lockfile + generation**. A second supervisor **MUST refuse** or take over
+   **only with a fenced generation**. This lease covers **supervisor ownership of the durable
+   store**; adopt-or-kill remains the shim survival law.
+5. **CAS / durable-schema crash semantics (Round-5 cheap):** durable writes have an explicit
+   **commit point**; readers MUST tolerate **n−1** schema and detect/refuse a **torn write**.
+   Crash between prepare and commit leaves the prior committed generation authoritative;
+   recovery MUST NOT treat a partial record as live ownership without the lease generation
+   check above.
+6. **Required tests (encode evidence; mandatory before claiming Accept (a) DoD met):**
    - **kill -9 supervisor continuity** — shims/workloads survive; durable-record reconciliation
      restores or kills correctly; **kubelet-level reconvergence** is asserted (not merely
-     "process still running").
+     "process still running"); NodeReady flap within a **falsifiable numeric budget** (or
+     TBD-with-owner at EV0 — not vague "within budget").
    - **Upgrade reconnect** — supervisor restart+reconnect completes with **kubelet-level
-     reconvergence** asserted.
-   - **Bounded recovery objective** — both tests MUST bind a **measurable** maximum or
-     percentile recovery budget (wall-clock to kubelet-level reconvergence) recorded in the
-     recovery DoD; exceeding the budget fails the test. Exact numeric SLO is an Accept (a)
-     encode parameter, not founder-silent unbounded "eventually".
+     reconvergence** asserted under the same flap budget rule.
+   - **Dual-supervisor race** — Done-when for the exclusive lease: two supervisors racing MUST
+     yield exactly one writer (refuse or fenced takeover); durable-store ownership stays single.
+   - **Stub respawn budget escalate** — exceeding max restarts/window fires the break-glass /
+     Node condition path (not silent unbounded restart).
+   - **Bounded recovery objective** — continuity/upgrade tests MUST bind a **measurable**
+     maximum or percentile recovery budget (wall-clock to kubelet-level reconvergence) recorded
+     in the recovery DoD; exceeding the budget fails the test. Exact numeric SLO is an Accept
+     (a) encode parameter, not founder-silent unbounded "eventually".
 
 #### D-A4 — State-machine / recovery DoD (gate for Accept (a))
 
@@ -160,8 +185,13 @@ Definition of Done** exists that names:
 1. Boot marker → supervisor up → runtime ready → kubelet register → CNI validate → taint remove
    (checked edges).
 2. Crash / kill-9 / upgrade restart transitions and adopt-or-kill outcomes.
-3. Escalation to NotReady on unrecoverable loops.
-4. Mapping of the two required tests in D-A3 to those transitions.
+3. Stub respawn backoff/jitter/window/escalate transitions (D-A3 item 3).
+4. Exclusive supervisor lease acquire / refuse / fenced-takeover transitions (D-A3 item 4).
+5. Escalation to NotReady on unrecoverable loops.
+6. Mapping of the required tests in D-A3 to those transitions.
+7. **Stub LOC / privilege ratchet (Round-5 cheap):** harvest into the stub MUST NOT fatten
+   PID1 beyond named residuals (~hundreds of lines). First ratchet fixture = canonical
+   stub-split architecture (passes); fat PID1 / kubelet-in-PID1 fails the fixture.
 
 Without that DoD, Accept (a) would assert an untestable forever shape.
 
@@ -188,6 +218,55 @@ On Accept (a):
 - **Required:** D5 third-corpus neutrality proof uses **ttrpc and/or go-cni** (satellite), not
   containerd product PORT.
 - Mechanical **k8s** PORT (including kubelet) remains under ADR-0704.
+
+#### D-A7 — Node telemetry-first DoD (Round-5 MAJOR)
+
+**Day-1 before any K-stage "promotion past dev" claim** (Proposed-founder encode gate for Accept
+(a) follow-on; not an Accept of this ADR by itself). Mandatory metric + trace set:
+
+| Signal | Requirement |
+|---|---|
+| Supervisor restart count / reason | Counter + reason label (lease loss, OOM, upgrade, budget escalate, …) |
+| Shim adopt / kill | Counters for adopt-or-kill outcomes |
+| CRI REFUSE | Counter for out-of-profile / unauthorized peers |
+| Pull QPS / bytes | Registry request rate + bytes fetched (ties to pull-storm differential) |
+| Attestation UNKNOWN / TTL | Gauge/counter for stale/UNKNOWN and result TTL expiry |
+| NodeReady flap SLO | **Falsifiable numeric budget** (or explicit TBD-with-owner at EV0) |
+
+**OpenSLO** (or an **explicit EV0 deferral with named owner**) is required for the NodeReady flap
+objective and any other day-1 SLO claimed as gateable. No K-stage "promotion past dev" claim
+without this set published.
+
+#### D-A8 — Zero-trust checklist beyond attestation (Round-5 MAJOR)
+
+On Accept (a) encode, Node Substrate MUST clear this checklist (attestation alone is insufficient):
+
+1. Break-glass **authn/authz + audit**
+2. A/B supervisor **image signature verify**
+3. Durable-record **tamper posture**
+4. Shim↔supervisor channel **peer-cred**
+5. Verifier **mTLS / identity**
+6. Pull-worker **egress allowlist**
+
+#### D-A9 — FinOps unit-cost exits + process-law K exits (Round-5)
+
+**FinOps / unit-cost (Proposed-founder):** Done-when rows at **K1-reference / K2 / private-kernel**
+exits MUST include (measure at EV0/K — **do not invent tip numbers**):
+
+- Density floor **or** `$/pod-class` unit cost
+- **Supervisor RSS** budget
+- **Guest-pull extra registry-bytes** vs host-CAS (attested confidentiality path)
+
+**Process-law exits (recorded here while this ADR stays Proposed; not silent Open items):**
+
+1. **Owned-executor security-response = K1-owned exit precondition.** Embargo handling + patch
+   SLA process MUST exist before promoting the forever path from **K1-reference** to
+   **K1-owned**. Until it does, stay on K1-reference (youki/runc/crun remain differential
+   oracles only — never shipped to green a gate).
+2. **Conformance flake/rerun policy before first promotion-gate claim.** A minimal flake
+   taxonomy + rerun budget MUST be published before the first **promotion/release** claim that
+   runs full CNCF + Sonobuoy. PR-gate smoke subsets are unaffected; this is a promotion-gate
+   precondition, not an Accept of this ADR.
 
 ### Accept (b) — `os/`-layer retirement encode
 
@@ -248,7 +327,9 @@ Silent assumption that these are already done is a **defect**.
 |---|---|---|
 | PID1 stub + supervisor child crates (destination capability TBD) | create | Accept (a): full owned-runtime shape. Accept (b)-only: PID1 stub + harvest surfaces required by D-B2/D-B3 may land; retire/delete of destination-assumed `os/` halves blocked until Accept (a) or dated waiver; full NON-PID1 kubelet/runtime-controller child remains Accept (a)-gated |
 | CRI compatibility profile `v1` contract + tests | create | RPCs, streaming, PLEG, errors, peer cred, rate limits, read-only set — Accept (a) |
-| kill-9 continuity + upgrade reconnect tests | create | Mandatory encode evidence for Accept (a) DoD |
+| kill-9 continuity + upgrade reconnect + dual-supervisor race + stub respawn escalate tests | create | Mandatory encode evidence for Accept (a) DoD (Round-4 + Round-5) |
+| Node telemetry / OpenSLO (or EV0 deferral-with-owner) + zero-trust checklist evidence | create | Accept (a) follow-on before K-stage promotion claims |
+| Stub LOC ratchet fixture + CAS torn-write / n−1 schema tests | create | Round-5 cheap encode evidence for Accept (a) |
 | `specs/k8s-port/scope.json` | update | OWN token + bootstrap CONSUME — Accept (a) follow-on only |
 | `os/` domains | harvest then delete | Accept (b) only; after D-B3 receipts |
 | `docs/decisions/ADR-0701-*.md` | amend | Apex noun — Accept (b) follow-on only |
@@ -268,11 +349,15 @@ cluster control plane after Accept encode; Object/Link types land in the owning 
 ### Negative
 
 - Large migration; bootstrap CONSUME window must be dated; OWN token is a schema change.
-- Recovery DoD is on the critical path before Accept (a).
+- Recovery DoD (Round-4 continuity + Round-5 respawn/lease/telemetry/zero-trust/FinOps) is on
+  the critical path before Accept (a).
+- K1-owned and promotion-gate claims stay blocked on process-law exits even while this ADR is
+  Proposed.
 
 ### Operational
 
-- Boot receipts become checked edges; crash-loops escalate to NotReady.
+- Boot receipts become checked edges; crash-loops escalate to NotReady; stub restart storms
+  escalate via budgeted Node condition / break-glass.
 - CI: Accept evidence rides `oya-ci-required`; no authority-surface citation while Proposed.
 
 ## Clean Architecture Impact
@@ -346,5 +431,5 @@ daemon" is Accepted without checkbox (a) and the recovery DoD.
 - Live masterplan: `MPV2-0054` in `/specs/masterplan.json#masterplan_v2.work_items`
 - ADR-0701 / ADR-0704 (live substrate); ADR-0637 / ADR-0638 (port-engine); ADR-0520 provenance
 - ADR-0712 (pool matrix; related SKU physics)
-- Round-2/4 Discovery local artifact `e6ec1a68` — provenance only
-- PR #1929 Round-4 amend; merges former owned-runtime + os/-retirement draft topics; vacates the colliding draft number reserved for PR #1644
+- Round-2/4/5 Discovery local artifact `e6ec1a68` — provenance only
+- PR #1929 Round-4 amend + Round-5 DoD absorb; merges former owned-runtime + os/-retirement draft topics; vacates the colliding draft number reserved for PR #1644
