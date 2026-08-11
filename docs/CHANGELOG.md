@@ -12,7 +12,9 @@ doc_status: published
   no implement authority). Remaining Phase B/C work stays deliverable completion, not a status gate.
 - Regenerated `docs/ADR-INDEX.md` + `docs/machine-readable/decisions.json` together (12 live ADRs;
   Accepted 11 / Proposed 1). **ADR-0710** remains the sole gated Proposed apex (D-8 evidence).
-- Bumped `specs/integ-branch-envelopes.json` to **1.16.14** / `status: Accepted` to match ADR-0711.
+- Bumped `specs/integ-branch-envelopes.json` to **1.16.14** / `status: Accepted` at the acceptance
+  event; later same-PR amendments (D/E/F + review repairs) advance the envelope version further —
+  the live value is `specs/integ-branch-envelopes.json#_meta.version`, not this entry.
 
 ## 2026-08-09 — ADR-0710 admission substrate proposed; sovereign-confidential idea page
 

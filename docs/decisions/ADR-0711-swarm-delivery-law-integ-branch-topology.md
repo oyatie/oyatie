@@ -591,8 +591,10 @@ Hot-set ≤4 and restack-once/window are encoded in
 #### Limitations
 
 Mechanical Claim packet parse + Claim↔diff bind (`docs_touched`/`paths` ↔
-`git diff --name-only`) are live in `deliver.js` + `claim_packet.py`;
-`claim-push.sh` refuses dirty porcelain. Does not rewrite DOC-CATALOG corpus; does not
+`git diff --name-only`) are live in `deliver.js` ONLY — the `claim_packet.py` birth was
+aborted on #1644 (automation-language: Rust-first), and a blessed dirty-tree-refusing
+claim-push helper is deferred to the `.grok/` Rust process-kit; neither exists in-tree
+yet, so `deliver.js` is the sole live admission parse. Does not rewrite DOC-CATALOG corpus; does not
 authorize mass ADR renames. Drift-grep: deferred `.grok/` Rust self-check (interim: deliver.js Claim + PORTABLE review). Root-file content land of
 INV-DOC-9 short form is owned by `integ/ci` (`planes.process_meta`) — route ≠ content.
 

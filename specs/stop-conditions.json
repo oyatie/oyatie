@@ -12,13 +12,13 @@
       "docs/AGENTS.md",
       "/templates/checklists/done-definition-checklist.md",
       "/templates/checklists/agent-completion-checklist.md",
-      "templates/checklists/wave-gate.md",
+      "docs/checklists/wave-gate.md",
       "templates/checklists/release-readiness-checklist.md",
       "templates/checklists/per-phase-completion-checklist.md",
       "templates/checklists/agent-completion-checklist.md"
     ],
     "deduplicates_existing": [
-      "templates/checklists/wave-gate.md",
+      "docs/checklists/wave-gate.md",
       "templates/checklists/release-readiness-checklist.md",
       "templates/checklists/per-phase-completion-checklist.md",
       "templates/checklists/agent-completion-checklist.md"

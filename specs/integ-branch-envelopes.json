@@ -6,7 +6,7 @@
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
     "spec_id": "EXE-INTEG-BRANCH-ENVELOPES",
-    "version": "1.16.17",
+    "version": "1.16.18",
     "status": "Accepted",
     "owner_team": "council-architecture",
     "created_at": "2026-08-10T00:00:00Z",
@@ -14,7 +14,7 @@
     "self_owner_branch": "integ/specs",
     "primary_consumer": "governance/check/integ-envelope + .claude/workflows/deliver.js Claim",
     "purpose": "Policy-as-data for envelope containment, hub sole-owner, adjunct claims, concurrent-safe exemptions, process-kit deferred to .grok/ (Rust-first; no tools/swarm birth on #1644), hyperscaler monorepo patterns, Amendment B ternary layout + Pattern-First taxonomy + 16-lens judgment (volatile judgments live under governance/check/integ-envelope/judgments/), Amendment C operating-patterns catalog, Amendment D anti-drift INV-DOC-1…9 + Claim↔diff bind, merge_windows, mechanical Claim packet, and process-meta / forward-declared roots under Swarm Delivery Law, daemon_hotset + perimeter northstar, rules-with-why / adr-rename-overturn.",
-    "prior_version": "1.16.16"
+    "prior_version": "1.16.17"
   },
   "admission": {
     "trunk": "dev",
@@ -28,6 +28,7 @@
       "lane/"
     ],
     "max_open_prs_per_integ": 1,
+    "glob_resolution": "longest-match-wins (fix-1644-codex): a path matched by a MORE SPECIFIC sibling root/plane glob belongs ONLY to that owner — integ/app (app/**) never admits an app/<product>/** subtree owned by a product root, and both branches simultaneously satisfying containment for one file is a defect, not a choice. Claim evaluates this rule mechanically before (a) envelope-containment passes.",
     "post_land_reset": {
       "mode": "server-side-refspec",
       "refspec_template": "origin/dev:refs/heads/integ/{root}",
@@ -643,7 +644,7 @@
       {
         "path_glob": ".grok/programs/delivery-fabric/evidence/PORTABLE-SWARM-CONTRACT.md",
         "claiming_branch": "integ/specs",
-        "reason": "Portable Swarm Contract is concurrent-safe evidence for the delivery-fabric program and travels with the law bootstrap.",
+        "reason": "Portable Swarm Contract is per-program contract evidence for the delivery-fabric program and travels with the law bootstrap (not a concurrent-safe exemption — a shared mutable file stays contested; fix-1644-codex).",
         "expires_at_or_wave": "wave-after-integ-tools-first-land"
       },
       {
@@ -788,12 +789,10 @@
     "registry": "registry/vcs/concurrent-safe-paths.yaml",
     "paths": [
       ".beads/**",
-      "evidence/ci/**",
       "evidence/lanes/**",
-      "evidence/**/lane-*/",
-      ".grok/programs/*/evidence/**"
+      "evidence/**/lane-*/"
     ],
-    "note": "Exemptions reduce path-overlap refusal for append-only / per-lane evidence only. NOT the whole evidence/** tree — shared mutable evidence stays contested. They do not authorize envelope escape for product code. Mirror of registry/vcs/concurrent-safe-paths.yaml."
+    "note": "Exemptions reduce path-overlap refusal for PER-LANE paths only (fix-1644-codex narrowed evidence/ci/** and .grok/programs/*/evidence/** away: those globs also exempted fixed shared outputs — slsa-provenance.predicate.json, trivy-summary.txt, parallel-monitor-status.json, PORTABLE-SWARM-CONTRACT.md — letting two waves pass overlap admission on the SAME file). Distinct per-lane filenames never overlap; same-path shared/latest/snapshot/contract/generated outputs stay contested. They do not authorize envelope escape for product code. Mirror of registry/vcs/concurrent-safe-paths.yaml."
   },
   "worker_git_discipline": {
     "allow": [
@@ -1886,13 +1885,23 @@
         "destination": "<capability>/IPs/"
       },
       {
-        "path": "specs/lifecycle-configs/",
+        "path": "specs/lifecycle-configs/{capability,crate,dependency,feature-flag,migration,plan}-status-lifecycle.json",
         "action": "delete_permanently",
         "greenfield_destination": "(none)",
         "shape": "absorbed residuals; do not rebirth",
         "redesign": "delete",
+        "judgment_status": "done",
+        "rationale": "JUDGED + EXECUTED this wave (#1644, deletion commit 6b080cb6d): these six lifecycle lanes never observed a corpus — ci/facade/lifecycle-status/lifecycle-status-policy.json#known_broken_lanes records the measured defect ('source roots never existed or were gitignored') and its frozen_violation_baseline enumerates only lanes that observe anything. Deleting a config whose lane is enumerated known-broken is that policy's own graduation path (an entry naming a deleted config fails closed, forcing the shrink in the same PR). Rebirth forbidden; a new lifecycle is a NEW config with a live corpus.",
+        "destination": "(none)"
+      },
+      {
+        "path": "specs/lifecycle-configs/",
+        "action": "delete_permanently",
+        "greenfield_destination": "(none)",
+        "shape": "remaining live configs: adr-status / api-stability-tier / doc-status",
+        "redesign": "delete",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL delete_permanently candidate `specs/lifecycle-configs/`. Judgment pending — do not path-change yet.",
+        "rationale": "PROVISIONAL for the REMAINING three configs only: adr-status-lifecycle.json and doc-status-lifecycle.json still observe live corpora (lifecycle-status frozen_violation_baseline) and api-stability-tier-lifecycle.json remains the declared config while its tier facet graduated onto registry/catalog/*.yaml. Judgment pending — do not path-change these until each lane's absorption ruling lands.",
         "destination": "(none)"
       },
       {

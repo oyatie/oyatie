@@ -5,13 +5,13 @@
   "description": "Volatile naming_sweep rows moved out of sole-owner envelopes JSON (northstar-judgment-split). Destination integs carry per-unit judgment files; this index is the bootstrap ledger until per-unit split completes.",
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
-    "version": "1.1.0",
+    "version": "1.1.1",
     "status": "Proposed",
     "owner_branch": "integ/specs",
     "authority": "docs/decisions/ADR-0711-swarm-delivery-law-integ-branch-topology.md#Amendment-B-Pattern-First",
     "moved_from": "specs/integ-branch-envelopes.json#naming.naming_sweep",
     "reason": "fix-1644-review: drop inlined naming_sweep from wrong home (envelopes topology/hubs/freeze only)",
-    "prior_version": "1.0.0"
+    "prior_version": "1.1.0"
   },
   "judgment_template_ref": "specs/integ-branch-envelopes.json#naming.judgment_template",
   "rows": [
@@ -29,7 +29,7 @@
       "what_it_does": "Fan-in job: green IFF every required gate lane succeeded; sole branch-protection merge context today",
       "lenses_applied": "all-16",
       "challenges": [
-        "taxonomy_posture=replace_not_encode; see overturned_patterns for fence+challenge detail on related practice"
+        "Chesterton: oya-ci-required is the LIVE required branch-protection context — renaming it breaks required-check continuity for every open PR at once. The rename needs a dual-publish window (old+new contexts green) plus a protection-rule flip executed by integ/ci, never a text sweep."
       ],
       "judgment_status": "done",
       "taxonomy_posture": "replace_not_encode"
@@ -48,7 +48,7 @@
       "what_it_does": "Fast lane: stale Cargo.lock + stale generated faces first diagnosis",
       "lenses_applied": "all-16",
       "challenges": [
-        "taxonomy_posture=replace_not_encode; see overturned_patterns for fence+challenge detail on related practice"
+        "Challenge: the ADR number in the display name is today the only operator pointer from the lane to its authority; dropping it before the generated-face docs carry that pointer orphans lookup mid-incident. Rename ships together with the doc pointer, not before it."
       ],
       "judgment_status": "done",
       "taxonomy_posture": "replace_not_encode"
@@ -68,7 +68,7 @@
       "what_it_does": "Merge-base baseline compare-mode + ratchet-invariant; blocks NEW debt; hosts gate-registration meta-test",
       "lenses_applied": "all-16",
       "challenges": [
-        "taxonomy_posture=replace_not_encode; see overturned_patterns for fence+challenge detail on related practice"
+        "Challenge: admission-baseline-ratchet is more precise, but firewall is the name operators grep for in incident notes and dashboards; the shrink-only ratchet semantics must survive the rename verbatim or a regression reads as new debt. Dual-name window + dashboard re-key in the same wave."
       ],
       "judgment_status": "done",
       "taxonomy_posture": "replace_not_encode"
@@ -87,7 +87,7 @@
       "what_it_does": "Binding affected-set cone or fail-closed full workspace run",
       "lenses_applied": "all-16",
       "challenges": [
-        "taxonomy_posture=replace_not_encode; see overturned_patterns for fence+challenge detail on related practice"
+        "Challenge: affected-set-policy.json seeds gates by id — renaming the binding lane without moving the id in oya-ci.toml and the disposition table in ONE commit produces a silent seed/label split where the census stops selecting the lane it thinks it pins."
       ],
       "judgment_status": "done",
       "taxonomy_posture": "replace_not_encode"
@@ -106,7 +106,7 @@
       "what_it_does": "Cold CAS/cache integrity canary outside merge fan-in",
       "lenses_applied": "all-16",
       "challenges": [
-        "taxonomy_posture=replace_not_encode; see overturned_patterns for fence+challenge detail on related practice"
+        "Challenge: the cold canary sits OUTSIDE merge fan-in by design; a rename into required-gate grammar invites wiring it into the fan-in for consistency, which would defeat the from-empty isolation it exists to provide. The new name must keep the out-of-band role legible."
       ],
       "judgment_status": "done",
       "taxonomy_posture": "replace_not_encode"
@@ -125,7 +125,7 @@
       "what_it_does": "Workflow file hosting the required merge-admission fan-in",
       "lenses_applied": "all-16",
       "challenges": [
-        "taxonomy_posture=replace_not_encode; see overturned_patterns for fence+challenge detail on related practice"
+        "Challenge: the workflow FILE name keys gh run history and context provenance; renaming it re-keys run filtering for every consumer. Execute in a quiet window with the context name pinned unchanged, never mid-queue."
       ],
       "judgment_status": "done",
       "taxonomy_posture": "replace_not_encode"
@@ -144,7 +144,7 @@
       "what_it_does": "Enabled-gate accounting ids consumed by baseline producer / disposition table",
       "lenses_applied": "all-16",
       "challenges": [
-        "taxonomy_posture=replace_not_encode; see overturned_patterns for fence+challenge detail on related practice"
+        "Challenge: [[gates.enabled]] ids are equality-pinned by the baseline producer and disposition table; a prefix sweep without the paired baseline migration reds the ratchet by construction. Ids migrate table-by-table with their baselines, not via grep."
       ],
       "judgment_status": "done",
       "taxonomy_posture": "replace_not_encode"
@@ -164,7 +164,7 @@
       "what_it_does": "Buck/cargo binaries for CI facades; role already often in directory name",
       "lenses_applied": "all-16",
       "challenges": [
-        "taxonomy_posture=replace_not_encode; see overturned_patterns for fence+challenge detail on related practice"
+        "Challenge: bin names are buck2 target labels AND release-image entrypoints; a rename without alias targets breaks pinned invocations in evidence and runbooks. Keep alias targets for one wave, then drop them in the follow-up."
       ],
       "judgment_status": "done",
       "taxonomy_posture": "replace_not_encode"
@@ -183,7 +183,7 @@
       "what_it_does": "Shared kernels/adapters/checks still branded; Amendment B libs/ is reorg_now",
       "lenses_applied": "all-16",
       "challenges": [
-        "taxonomy_posture=replace_not_encode; see overturned_patterns for fence+challenge detail on related practice"
+        "Challenge: crate renames cascade through Cargo.toml deps, BUCK labels and reindeer pins in one move; Amendment B already routes libs/ as reorg_now, so each rename rides its crate’s capability move (destination decides the forever name) — a standalone brand sweep would churn the graph twice."
       ],
       "judgment_status": "done",
       "taxonomy_posture": "replace_not_encode"
@@ -202,7 +202,7 @@
       "what_it_does": "Live ADR apex files; number-as-filename forces ADR recall to navigate",
       "lenses_applied": "all-16",
       "challenges": [
-        "taxonomy_posture=replace_not_encode; see overturned_patterns for fence+challenge detail on related practice"
+        "Challenge (why keep_forever wins): decisions/ADR-NNNN path grammar is load-bearing for the citation-closure census — a topic-first file rename would re-key every pinned citation line at once. Recall pain is real but belongs to the index layer (topic columns), not to file moves."
       ],
       "judgment_status": "done",
       "taxonomy_posture": "replace_not_encode",
@@ -224,7 +224,7 @@
       "what_it_does": "Fixture corpus for admission baseline-ratchet predicates",
       "lenses_applied": "all-16",
       "challenges": [
-        "taxonomy_posture=replace_not_encode; see overturned_patterns for fence+challenge detail on related practice"
+        "Challenge: fixture paths are hardcoded in admission baseline-ratchet predicate tests; moving the directory re-baselines snapshot expectations. Move only with the loader made path-relative in the same change, and re-freeze expectations in that same PR."
       ],
       "judgment_status": "done",
       "taxonomy_posture": "replace_not_encode"

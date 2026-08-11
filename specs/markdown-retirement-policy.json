@@ -79,7 +79,7 @@
       "docs/runbooks/*.md → /registry/runbooks.json",
       "docs/prds/*.md → /registry/prds.json",
       "docs/templates/*.md → /templates/*.json or *.yaml",
-      "templates/checklists/*.md → /specs/checklists.json",
+      "docs/checklists/*.md → /specs/checklists.json",
       ".omc/plans/ralplan-*.md → .omc/plans/ralplan-*.json (instances of plan-schema.json)",
       "/specs/*.md → /specs/*.json",
       "/evidence/goals/*.md → /registry/goals.json",

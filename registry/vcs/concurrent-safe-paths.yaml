@@ -29,9 +29,14 @@ products:
   oyatie:
     safe_paths:
       - .beads/**
-      # Per-lane / append-only evidence only — NOT the whole evidence/ tree
-      # (shared mutable JSON/Markdown and evidence/audit-chain.jsonl stay contested).
-      - evidence/ci/**
+      # Per-lane paths ONLY (fix-1644-codex). The former evidence/ci/** and
+      # .grok/programs/*/evidence/** rows also exempted FIXED shared outputs
+      # (evidence/ci/slsa/slsa-provenance.predicate.json, trivy-summary.txt,
+      # .grok/programs/cas-fabric/evidence/parallel-monitor-status.json,
+      # PORTABLE-SWARM-CONTRACT.md) — two waves could pass overlap admission
+      # while editing the SAME shared file. Distinct per-lane filenames never
+      # overlap and need no exemption; same-path shared/latest/snapshot/
+      # contract/generated outputs stay contested. Grow this list back only
+      # with NARROW named rows.
       - evidence/lanes/**
       - evidence/**/lane-*/
-      - .grok/programs/*/evidence/**

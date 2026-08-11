@@ -26,7 +26,7 @@
       "docs/standards/observability.md",
       "docs/standards/release-management.md",
       "docs/standards/ci-lanes.md",
-      "templates/checklists/wave-gate.md",
+      "docs/checklists/wave-gate.md",
       "templates/checklists/release-readiness-checklist.md",
       "templates/checklists/done-definition-checklist.md",
       "specs/products/workflow.json",
@@ -55,7 +55,7 @@
     ],
     "deduplicates_existing": [
       "docs/standards/hyperscaler-best-practices.md",
-      "templates/checklists/wave-gate.md",
+      "docs/checklists/wave-gate.md",
       "templates/checklists/release-readiness-checklist.md"
     ],
     "supersedes_retired_gate_ids": [
