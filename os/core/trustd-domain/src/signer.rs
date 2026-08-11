@@ -10,9 +10,12 @@
 //!   signature over the to-be-signed bytes; `verify` checks it with AWS-LC
 //!   against the signer's public point. This is what production issuance uses,
 //!   and what makes the issued leaves carry real DER + real signatures.
-//! * [`InMemorySigner`] — a deterministic keyed-hash MAC retained for the
+//! * `InMemorySigner` — a deterministic keyed-hash MAC retained for the
 //!   shape-model unit tests (it has no host-entropy / external-crate needs). It
-//!   is NOT a real signature and never produces a real DER leaf.
+//!   is NOT a real signature and never produces a real DER leaf. It is behind
+//!   the non-default `modeled-crypto` feature, so a production build cannot
+//!   link it (unlinked here rather than intra-doc-linked, since the item does
+//!   not exist off-feature).
 //!
 //! The trait shape (`sign`/`verify`/`key_id`) is already asymmetric-compatible,
 //! so swapping `InMemorySigner` for `EcdsaP256Signer` does not change the CA,
@@ -48,11 +51,25 @@ pub trait SigningBackend {
 /// Deterministic in-memory signer: an FNV-1a keyed hash over the private key
 /// concatenated with the message. Only a signer constructed from the same
 /// private key produces a signature that verifies.
+///
+/// This is a *modeled* signing backend, not a weak real one: the "signature" is
+/// 8 bytes of FNV-1a, and [`InMemorySigner::from_seed`] makes the private key
+/// literally equal the seed bytes — so anyone who knows the seed string forges
+/// any signature this backend accepts. It satisfies the same [`SigningBackend`]
+/// bound [`crate::ca::CertificateAuthority::bootstrap`] takes, so an un-gated
+/// copy lets a production build stand up a CA issuing forgeable certificates.
+/// Hence the non-default `modeled-crypto` feature: no production target enables
+/// it, so production cannot link this type. Production signs with
+/// [`EcdsaP256Signer`].
+// The gate sits below the `derive` so it is textually adjacent to the item it
+// guards, which is what `token::tests` asserts.
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[cfg(any(test, feature = "modeled-crypto"))]
 pub struct InMemorySigner {
     private_key: Vec<u8>,
 }
 
+#[cfg(any(test, feature = "modeled-crypto"))]
 impl InMemorySigner {
     /// Construct from raw private key bytes.
     pub fn new(private_key: impl Into<Vec<u8>>) -> Self {
@@ -83,6 +100,7 @@ impl InMemorySigner {
     }
 }
 
+#[cfg(any(test, feature = "modeled-crypto"))]
 impl SigningBackend for InMemorySigner {
     fn sign(&self, tbs: &[u8]) -> Vec<u8> {
         self.mac(tbs).to_vec()
