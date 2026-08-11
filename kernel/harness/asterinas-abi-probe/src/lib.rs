@@ -67,6 +67,8 @@ pub struct ProbePlan {
     pub release_tag: String,
     /// Pinned boot ISO asset name. data_class: PUBLIC
     pub boot_iso_asset: String,
+    /// Pinned boot ISO sha256 (bytes identity). data_class: PUBLIC
+    pub boot_iso_sha256: String,
     /// Preferred evidence path id. data_class: PUBLIC
     pub evidence_path: String,
     /// Whether live hardware is required (always false for QEMU-TCG path). data_class: PUBLIC
@@ -103,6 +105,7 @@ pub fn build_probe_plan(root: &Value) -> Result<ProbePlan, MatrixError> {
     Ok(ProbePlan {
         release_tag: pin::RELEASE_TAG.to_string(),
         boot_iso_asset: pin::BOOT_ISO_ASSET.to_string(),
+        boot_iso_sha256: pin::BOOT_ISO_SHA256.to_string(),
         evidence_path: PREFERRED_EVIDENCE_PATH.to_string(),
         live_hardware_required: false,
         items,
@@ -125,8 +128,9 @@ pub fn stub_probe_receipt(item: &ProbePlanItem) -> Value {
         "measured": false,
         "available_on_asterinas_pin": Value::Null,
         "evidence_path": PREFERRED_EVIDENCE_PATH,
+        "boot_iso_sha256": pin::BOOT_ISO_SHA256,
         "live_hardware_required": false,
-        "notes": "Scaffold stub — QEMU-TCG probe not yet executed; unknown availability remains valid. Scaffold ≠ green matrix.",
+        "notes": "Scaffold stub — QEMU-TCG probe not yet executed; unknown availability remains valid. Scaffold ≠ green matrix. Digests bind future measured receipts to the verified ISO bytes.",
     })
 }
 
@@ -188,6 +192,7 @@ pub fn scaffold_summary_receipt(run: &ScaffoldRun) -> Value {
         "wave": "A1-W0-entry",
         "release_tag": run.plan.release_tag,
         "boot_iso_asset": run.plan.boot_iso_asset,
+        "boot_iso_sha256": run.plan.boot_iso_sha256,
         "evidence_path": run.plan.evidence_path,
         "live_hardware_required": run.plan.live_hardware_required,
         "surfaces_covered": surfaces_covered,
@@ -225,6 +230,7 @@ pub fn qemu_probe_coupling_note() -> Value {
         "iso_pin": {
             "release_tag": pin::RELEASE_TAG,
             "boot_iso_asset": pin::BOOT_ISO_ASSET,
+            "boot_iso_sha256": pin::BOOT_ISO_SHA256,
             "download_url": pin::BOOT_ISO_DOWNLOAD_URL,
         },
         "accel": "tcg",
