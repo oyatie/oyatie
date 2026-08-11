@@ -6900,6 +6900,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "os-attestation-relying-party"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "os-block-domain"
 version = "0.1.0"
 dependencies = [
