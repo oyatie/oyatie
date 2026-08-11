@@ -53,6 +53,49 @@ pub const ORACLE_ROLE: &str = "differential_oracle";
 /// Scaffold pin marker — forbidden on measured observations.
 pub const SCAFFOLD_PIN_REVISION: &str = "pin:scaffold-unresolved";
 
+/// Closed platform allowlist for non-empty pin identities (exact strings).
+pub const ALLOWED_PIN_PLATFORMS: [&str; 2] = ["linux/amd64", "linux/arm64"];
+
+/// Canonical adversarial fixture bytes per [`REQUIRED_CVE_IDS`] (crate-local SSOT).
+pub const CANONICAL_CVE_FIXTURES: [(&str, &[u8]); 3] = [
+    (
+        "CVE-2019-5736",
+        b"canonical-adversarial:CVE-2019-5736:proc_self_exe_reexec",
+    ),
+    (
+        "CVE-2024-21626",
+        b"canonical-adversarial:CVE-2024-21626:fd_leak",
+    ),
+    (
+        "CVE-MOUNT-SYMLINK-RACE",
+        b"canonical-adversarial:CVE-MOUNT-SYMLINK-RACE:mount_symlink_race",
+    ),
+];
+
+/// Look up canonical fixture bytes for a required CVE id.
+pub fn canonical_cve_fixture_bytes(cve_id: &str) -> Option<&'static [u8]> {
+    CANONICAL_CVE_FIXTURES
+        .iter()
+        .find(|(id, _)| *id == cve_id)
+        .map(|(_, bytes)| *bytes)
+}
+
+/// Build canonical [`CveFixtureMaterial`] for a required CVE id.
+pub fn canonical_cve_fixture_material(cve_id: &str) -> Result<CveFixtureMaterial<'static>, HarnessError> {
+    let Some(fixture_bytes) = canonical_cve_fixture_bytes(cve_id) else {
+        return Err(HarnessError::UnknownCve(cve_id.to_owned()));
+    };
+    debug_assert!(!fixture_bytes.is_empty());
+    Ok(CveFixtureMaterial {
+        cve_id: CANONICAL_CVE_FIXTURES
+            .iter()
+            .find(|(id, _)| *id == cve_id)
+            .map(|(id, _)| *id)
+            .expect("canonical bytes imply id"),
+        fixture_bytes,
+    })
+}
+
 /// Matchable harness errors (scaffold; no thiserror dep).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum HarnessError {
@@ -74,6 +117,8 @@ pub enum HarnessError {
         expected: String,
         got: String,
     },
+    /// Fixture bytes empty or not exactly the canonical material for the CVE.
+    NonCanonicalCveFixture(String),
     MissingBlocker(String),
     UnknownBlocker(String),
     DuplicateBlocker(String),
@@ -117,6 +162,7 @@ impl fmt::Display for HarnessError {
             | Self::DuplicateCve(m)
             | Self::MissingCve(m)
             | Self::CveNotRequired(m)
+            | Self::NonCanonicalCveFixture(m)
             | Self::MissingBlocker(m)
             | Self::UnknownBlocker(m)
             | Self::DuplicateBlocker(m)
@@ -262,8 +308,11 @@ fn validate_pin_revision(revision: &str, pin_kind: &str) -> Result<(), HarnessEr
 }
 
 fn validate_pin_platform(platform: &str, pin_kind: &str) -> Result<(), HarnessError> {
-    if platform.trim().is_empty() {
-        let msg = format!("{pin_kind} platform pin must be non-empty");
+    let platform = platform.trim();
+    if !ALLOWED_PIN_PLATFORMS.contains(&platform) {
+        let msg = format!(
+            "{pin_kind} platform must be one of {ALLOWED_PIN_PLATFORMS:?} (got {platform:?})"
+        );
         return Err(if pin_kind == "owned" {
             HarnessError::OwnedPin(msg)
         } else {
@@ -582,12 +631,22 @@ impl CveExecutionId {
         })
     }
 
-    /// Measured-path constructor: validates CVE allowlist, stores class, embeds
-    /// FNV-1a receipt over len-prefixed `(cve_id || fixture_bytes)`.
+    /// Measured-path constructor: validates CVE allowlist, requires exact
+    /// canonical fixture bytes for that CVE, embeds FNV-1a receipt over
+    /// len-prefixed `(cve_id || fixture_bytes)`.
     pub fn from_fixture_material(material: &CveFixtureMaterial<'_>) -> Result<Self, HarnessError> {
         let Some(class) = expected_cve_class(material.cve_id) else {
             return Err(HarnessError::UnknownCve(material.cve_id.to_owned()));
         };
+        let Some(canonical) = canonical_cve_fixture_bytes(material.cve_id) else {
+            return Err(HarnessError::UnknownCve(material.cve_id.to_owned()));
+        };
+        if material.fixture_bytes.is_empty() || material.fixture_bytes != canonical {
+            return Err(HarnessError::NonCanonicalCveFixture(format!(
+                "fixture bytes for {} must be the non-empty canonical adversarial material",
+                material.cve_id
+            )));
+        }
         let mut buf = Vec::new();
         push_len_prefixed(&mut buf, material.cve_id.as_bytes());
         push_len_prefixed(&mut buf, material.fixture_bytes);
@@ -767,7 +826,11 @@ impl OperationObservation {
 ///
 /// Pairwise `Match` is **not** a conformance / Accept claim — callers must run
 /// [`aggregate_comparison_records`] over the full oracle × CVE set first.
-/// Equal-but-unsafe security postconditions diverge (never Match).
+///
+/// When exit/status/stderr_fingerprint match:
+/// - both security all-held → [`DiffVerdict::Match`]
+/// - owned all-held and oracle not (hardened vs vulnerable CVE reproduction) → Match
+/// - owned unsafe (including both-equally-unsafe) → [`DiffVerdict::Diverge`]
 pub fn compare_observations(
     owned: &OperationObservation,
     oracle: &OperationObservation,
@@ -780,15 +843,20 @@ pub fn compare_observations(
     }
     match (&owned.execution, &oracle.execution) {
         (ExecutionState::Stubbed, ExecutionState::Stubbed) => DiffVerdict::Stubbed,
-        (ExecutionState::Measured(a), ExecutionState::Measured(b)) if a == b => {
+        (ExecutionState::Measured(a), ExecutionState::Measured(b)) => {
+            let measured_core_equal = a.exit_code == b.exit_code
+                && a.status == b.status
+                && a.stderr_fingerprint == b.stderr_fingerprint;
+            if !measured_core_equal {
+                return DiffVerdict::Diverge;
+            }
+            // Preserve owned hardening over vulnerable oracle CVE reproduction.
             if a.security.all_held_bool() {
                 DiffVerdict::Match
             } else {
-                // Both sides equally unsafe — not a safe Match.
                 DiffVerdict::Diverge
             }
         }
-        (ExecutionState::Measured(_), ExecutionState::Measured(_)) => DiffVerdict::Diverge,
         _ => DiffVerdict::Diverge,
     }
 }
@@ -1061,19 +1129,27 @@ impl Default for OwnedExecutorStub {
 }
 
 impl OwnedExecutorStub {
+    /// Public harness owned stub (scaffold pin only — adapters cannot forge measured pins).
     pub fn scaffold() -> Self {
         Self {
             pin: OwnedPin::scaffold(),
         }
     }
 
-    pub fn try_pinned(pin: OwnedPin) -> Result<Self, HarnessError> {
+    /// Crate-local measured-path constructor; not public so external crates cannot mint Owned.
+    pub(crate) fn try_pinned(pin: OwnedPin) -> Result<Self, HarnessError> {
         Ok(Self { pin })
     }
 
     pub fn pin(&self) -> &OwnedPin {
         &self.pin
     }
+}
+
+/// Public owned stub for harness use after inventory validation (scaffold product path only).
+pub fn owned_stub_from_validated_inventory() -> Result<OwnedExecutorStub, HarnessError> {
+    validate_obligations()?;
+    Ok(OwnedExecutorStub::scaffold())
 }
 
 impl OciExecutor for OwnedExecutorStub {
@@ -1353,18 +1429,14 @@ mod tests {
     }
 
     fn fixture_for(cve_id: &str) -> CveExecutionId {
-        // Distinct fixture bytes per CVE — not a reused Start label.
-        let bytes: &[u8] = match cve_id {
-            "CVE-2019-5736" => b"fixture-bytes:CVE-2019-5736:proc_self_exe",
-            "CVE-2024-21626" => b"fixture-bytes:CVE-2024-21626:fd_leak",
-            "CVE-MOUNT-SYMLINK-RACE" => b"fixture-bytes:CVE-MOUNT-SYMLINK-RACE:mount",
-            other => panic!("unexpected cve {other}"),
-        };
-        CveExecutionId::from_fixture_material(&CveFixtureMaterial {
-            cve_id,
-            fixture_bytes: bytes,
-        })
-        .unwrap()
+        CveExecutionId::from_fixture_material(&canonical_cve_fixture_material(cve_id).unwrap())
+            .unwrap()
+    }
+
+    fn unsafe_outcome(exit: i32, fp: &str) -> MeasuredOutcome {
+        let mut out = safe_outcome(exit, fp);
+        out.security.fd_leak_absent = false;
+        out
     }
 
     fn safe_outcome(exit: i32, fp: &str) -> MeasuredOutcome {
@@ -1596,9 +1668,7 @@ mod tests {
     }
 
     #[test]
-    fn security_postcondition_mismatch_diverges() {
-        let mut leaky = safe_outcome(0, "fp");
-        leaky.security.fd_leak_absent = false;
+    fn owned_safe_vs_oracle_unsafe_matches() {
         let bundle = measured_bundle("b1", HEX_A);
         let owned = OperationObservation::try_measured(
             live_owned().kind(),
@@ -1615,16 +1685,15 @@ mod tests {
             OciOperation::Start,
             bundle,
             None,
-            leaky,
+            unsafe_outcome(0, "fp"),
         )
         .unwrap();
-        assert_eq!(compare_observations(&owned, &oracle), DiffVerdict::Diverge);
+        assert_eq!(compare_observations(&owned, &oracle), DiffVerdict::Match);
     }
 
     #[test]
     fn both_unsafe_equal_outcomes_diverge() {
-        let mut unsafe_out = safe_outcome(0, "fp");
-        unsafe_out.security.fd_leak_absent = false;
+        let unsafe_out = unsafe_outcome(0, "fp");
         let bundle = measured_bundle("b1", HEX_B);
         let owned = OperationObservation::try_measured(
             live_owned().kind(),
@@ -1645,6 +1714,71 @@ mod tests {
         )
         .unwrap();
         assert_eq!(compare_observations(&owned, &oracle), DiffVerdict::Diverge);
+    }
+
+    #[test]
+    fn owned_unsafe_vs_oracle_safe_diverges() {
+        let bundle = measured_bundle("b1", HEX_A);
+        let owned = OperationObservation::try_measured(
+            live_owned().kind(),
+            OciOperation::Start,
+            bundle.clone(),
+            None,
+            unsafe_outcome(0, "fp"),
+        )
+        .unwrap();
+        let oracle = OperationObservation::try_measured(
+            OracleStub::try_new_pinned("runc", live_oracle_pin())
+                .unwrap()
+                .kind(),
+            OciOperation::Start,
+            bundle,
+            None,
+            safe_outcome(0, "fp"),
+        )
+        .unwrap();
+        assert_eq!(compare_observations(&owned, &oracle), DiffVerdict::Diverge);
+    }
+
+    #[test]
+    fn owned_hardened_matrix_still_measured_coverage_complete() {
+        let owned = live_owned();
+        let mut records = Vec::new();
+        for (oracle_id, cve_id) in required_matrix_pairs() {
+            let oracle = OracleStub::try_new_pinned(oracle_id.as_str(), live_oracle_pin()).unwrap();
+            let exec = fixture_for(cve_id);
+            let hex = match cve_id {
+                "CVE-2019-5736" => HEX_A,
+                "CVE-2024-21626" => HEX_B,
+                "CVE-MOUNT-SYMLINK-RACE" => HEX_C,
+                other => panic!("unexpected {other}"),
+            };
+            let bundle = measured_bundle("b1", hex);
+            // Oracle reproduces vulnerable CVE surface; owned holds all postconditions.
+            let owned_obs = OperationObservation::try_measured(
+                owned.kind(),
+                OciOperation::Start,
+                bundle.clone(),
+                Some(exec.clone()),
+                safe_outcome(0, "fp"),
+            )
+            .unwrap();
+            let oracle_obs = OperationObservation::try_measured(
+                oracle.kind(),
+                OciOperation::Start,
+                bundle,
+                Some(exec),
+                unsafe_outcome(0, "fp"),
+            )
+            .unwrap();
+            records
+                .push(ComparisonRecord::try_from_observations(cve_id, owned_obs, oracle_obs).unwrap());
+        }
+        assert!(records.iter().all(|r| r.verdict() == DiffVerdict::Match));
+        assert_eq!(
+            aggregate_comparison_records(&records).unwrap(),
+            MatrixAggregate::MeasuredCoverageComplete
+        );
     }
 
     #[test]
@@ -1884,40 +2018,60 @@ mod tests {
     }
 
     #[test]
-    fn comparison_record_rejects_distinct_fixture_receipts() {
-        let a = CveExecutionId::from_fixture_material(&CveFixtureMaterial {
-            cve_id: "CVE-2019-5736",
-            fixture_bytes: b"fixture-a",
-        })
-        .unwrap();
-        let b = CveExecutionId::from_fixture_material(&CveFixtureMaterial {
-            cve_id: "CVE-2019-5736",
-            fixture_bytes: b"fixture-b",
-        })
-        .unwrap();
-        assert_ne!(a.fixture_receipt(), b.fixture_receipt());
-        let owned = OperationObservation::try_measured(
-            live_owned().kind(),
-            OciOperation::Start,
-            measured_bundle("b1", HEX_A),
-            Some(a),
-            safe_outcome(0, "fp"),
-        )
-        .unwrap();
-        let oracle = OperationObservation::try_measured(
-            OracleStub::try_new_pinned("runc", live_oracle_pin())
-                .unwrap()
-                .kind(),
-            OciOperation::Start,
-            measured_bundle("b1", HEX_A),
-            Some(b),
-            safe_outcome(0, "fp"),
-        )
-        .unwrap();
+    fn from_fixture_material_rejects_empty_and_non_canonical_bytes() {
         assert!(matches!(
-            ComparisonRecord::try_from_observations("CVE-2019-5736", owned, oracle).unwrap_err(),
-            HarnessError::CveExecutionMismatch { .. }
+            CveExecutionId::from_fixture_material(&CveFixtureMaterial {
+                cve_id: "CVE-2019-5736",
+                fixture_bytes: b"",
+            }),
+            Err(HarnessError::NonCanonicalCveFixture(_))
         ));
+        assert!(matches!(
+            CveExecutionId::from_fixture_material(&CveFixtureMaterial {
+                cve_id: "CVE-2019-5736",
+                fixture_bytes: b"wrong-bytes-not-canonical",
+            }),
+            Err(HarnessError::NonCanonicalCveFixture(_))
+        ));
+        let ok = CveExecutionId::from_fixture_material(
+            &canonical_cve_fixture_material("CVE-2019-5736").unwrap(),
+        )
+        .unwrap();
+        assert!(ok.has_fixture_receipt());
+        // Canonical bytes are distinct across REQUIRED_CVE_IDS.
+        let mut receipts = BTreeSet::new();
+        for id in REQUIRED_CVE_IDS {
+            let exec = fixture_for(id);
+            assert!(receipts.insert(exec.fixture_receipt().to_owned()));
+        }
+        assert_eq!(receipts.len(), REQUIRED_CVE_IDS.len());
+    }
+
+    #[test]
+    fn pin_platform_rejects_typos_outside_allowlist() {
+        assert!(matches!(
+            OraclePin::try_new(&format!("sha256:{HEX_A}"), "linux/am64"),
+            Err(HarnessError::OraclePin(_))
+        ));
+        assert!(matches!(
+            OwnedPin::try_new(&format!("sha256:{HEX_A}"), "linux/am64"),
+            Err(HarnessError::OwnedPin(_))
+        ));
+        assert!(matches!(
+            OraclePin::try_new(&format!("sha256:{HEX_A}"), ""),
+            Err(HarnessError::OraclePin(_))
+        ));
+        assert!(OraclePin::try_new(&format!("sha256:{HEX_A}"), "linux/amd64").is_ok());
+        assert!(OraclePin::try_new(&format!("sha256:{HEX_A}"), "linux/arm64").is_ok());
+        assert_eq!(OraclePin::scaffold().platform(), "linux/amd64");
+    }
+
+    #[test]
+    fn owned_stub_from_validated_inventory_is_scaffold_product_path() {
+        let owned = owned_stub_from_validated_inventory().unwrap();
+        assert!(owned.kind().is_owned_product());
+        assert!(owned.pin().is_scaffold());
+        refuse_oracle_as_product(&owned.kind()).unwrap();
     }
 
     #[test]
