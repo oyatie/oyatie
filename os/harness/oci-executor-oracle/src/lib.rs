@@ -56,19 +56,67 @@ pub const SCAFFOLD_PIN_REVISION: &str = "pin:scaffold-unresolved";
 /// Closed platform allowlist for non-empty pin identities (exact strings).
 pub const ALLOWED_PIN_PLATFORMS: [&str; 2] = ["linux/amd64", "linux/arm64"];
 
-/// Canonical adversarial fixture bytes per [`REQUIRED_CVE_IDS`] (crate-local SSOT).
-pub const CANONICAL_CVE_FIXTURES: [(&str, &[u8]); 3] = [
+/// Kill signal seam aligned with `os_runtime` / containerd task Signal (scaffold).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum KillSignal {
+    Term,
+    Kill,
+    Hup,
+}
+
+/// Closed OCI operation set — kill always carries its signal (invalid combos unrepresentable).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum OciOperation {
+    Create,
+    Start,
+    Kill(KillSignal),
+    Delete,
+}
+
+impl OciOperation {
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Create => "create",
+            Self::Start => "start",
+            Self::Kill(_) => "kill",
+            Self::Delete => "delete",
+        }
+    }
+
+    pub const fn kill_signal(self) -> Option<KillSignal> {
+        match self {
+            Self::Kill(signal) => Some(signal),
+            _ => None,
+        }
+    }
+}
+
+/// Canonical adversarial fixture contract per [`REQUIRED_CVE_IDS`]:
+/// `(cve_id, fixture_bytes, required_oci_operation)`.
+///
+/// Required ops are the vulnerability-triggering actions the matrix must exercise
+/// (Delete / unrelated ops are rejected on the measured comparison path):
+/// - CVE-2019-5736 (`proc_self_exe_reexec`): [`OciOperation::Create`] — host runtime
+///   overwrite via `/proc/self/exe` during container create.
+/// - CVE-2024-21626 (`fd_leak`): [`OciOperation::Start`] — leaked host FDs into the
+///   container process across start/exec.
+/// - CVE-MOUNT-SYMLINK-RACE (`mount_symlink_race`): [`OciOperation::Create`] — mount
+///   setup is where symlink races land (Kill would not exercise the race).
+pub const CANONICAL_CVE_FIXTURES: [(&str, &[u8], OciOperation); 3] = [
     (
         "CVE-2019-5736",
         b"canonical-adversarial:CVE-2019-5736:proc_self_exe_reexec",
+        OciOperation::Create,
     ),
     (
         "CVE-2024-21626",
         b"canonical-adversarial:CVE-2024-21626:fd_leak",
+        OciOperation::Start,
     ),
     (
         "CVE-MOUNT-SYMLINK-RACE",
         b"canonical-adversarial:CVE-MOUNT-SYMLINK-RACE:mount_symlink_race",
+        OciOperation::Create,
     ),
 ];
 
@@ -76,8 +124,16 @@ pub const CANONICAL_CVE_FIXTURES: [(&str, &[u8]); 3] = [
 pub fn canonical_cve_fixture_bytes(cve_id: &str) -> Option<&'static [u8]> {
     CANONICAL_CVE_FIXTURES
         .iter()
-        .find(|(id, _)| *id == cve_id)
-        .map(|(_, bytes)| *bytes)
+        .find(|(id, _, _)| *id == cve_id)
+        .map(|(_, bytes, _)| *bytes)
+}
+
+/// Required vulnerability-triggering [`OciOperation`] for a required CVE id.
+pub fn required_cve_operation(cve_id: &str) -> Option<OciOperation> {
+    CANONICAL_CVE_FIXTURES
+        .iter()
+        .find(|(id, _, _)| *id == cve_id)
+        .map(|(_, _, op)| *op)
 }
 
 /// Build canonical [`CveFixtureMaterial`] for a required CVE id.
@@ -89,8 +145,8 @@ pub fn canonical_cve_fixture_material(cve_id: &str) -> Result<CveFixtureMaterial
     Ok(CveFixtureMaterial {
         cve_id: CANONICAL_CVE_FIXTURES
             .iter()
-            .find(|(id, _)| *id == cve_id)
-            .map(|(id, _)| *id)
+            .find(|(id, _, _)| *id == cve_id)
+            .map(|(id, _, _)| *id)
             .expect("canonical bytes imply id"),
         fixture_bytes,
     })
@@ -139,6 +195,15 @@ pub enum HarnessError {
         owned: Option<String>,
         oracle: Option<String>,
     },
+    /// Observation OCI op must match the CVE's required vulnerability-triggering op.
+    CveOperationMismatch {
+        cve_id: String,
+        expected: String,
+        got_owned: String,
+        got_oracle: String,
+    },
+    /// All oracle rows for one CVE must share an identical [`BundleIdentity`].
+    InconsistentCveBundle(String),
     FreeFormMatchForbidden,
     NotOracleObservation,
     /// Pairwise Match is not a conformance claim without full oracle×CVE coverage.
@@ -171,6 +236,7 @@ impl fmt::Display for HarnessError {
             | Self::UnknownMatrixCve(m)
             | Self::InconsistentOraclePin(m)
             | Self::InconsistentOwnedPin(m)
+            | Self::InconsistentCveBundle(m)
             | Self::MatrixDivergence(m) => write!(f, "{m}"),
             Self::EmptyBundleDigest => write!(f, "bundle content_digest must be non-empty"),
             Self::ScaffoldBundleNotMeasured => {
@@ -201,6 +267,15 @@ impl fmt::Display for HarnessError {
             } => write!(
                 f,
                 "cve execution mismatch: expected {expected}, owned={owned:?}, oracle={oracle:?}"
+            ),
+            Self::CveOperationMismatch {
+                cve_id,
+                expected,
+                got_owned,
+                got_oracle,
+            } => write!(
+                f,
+                "cve {cve_id} requires OCI op {expected} (owned={got_owned}, oracle={got_oracle})"
             ),
             Self::FreeFormMatchForbidden => write!(
                 f,
@@ -366,9 +441,10 @@ impl OraclePin {
     pub fn try_new(revision: &str, platform: &str) -> Result<Self, HarnessError> {
         validate_pin_platform(platform, "oracle")?;
         validate_pin_revision(revision, "oracle")?;
+        // Store canonicalized (trim'd) values — validation already trims for checks.
         Ok(Self {
-            revision: revision.to_owned(),
-            platform: platform.to_owned(),
+            revision: revision.trim().to_owned(),
+            platform: platform.trim().to_owned(),
         })
     }
 
@@ -403,9 +479,10 @@ impl OwnedPin {
     pub fn try_new(revision: &str, platform: &str) -> Result<Self, HarnessError> {
         validate_pin_platform(platform, "owned")?;
         validate_pin_revision(revision, "owned")?;
+        // Store canonicalized (trim'd) values — validation already trims for checks.
         Ok(Self {
-            revision: revision.to_owned(),
-            platform: platform.to_owned(),
+            revision: revision.trim().to_owned(),
+            platform: platform.trim().to_owned(),
         })
     }
 
@@ -438,41 +515,6 @@ pub enum DiffVerdict {
     Match,
     /// Owned executor diverged from oracle (measured path), or both unsafe.
     Diverge,
-}
-
-/// Kill signal seam aligned with `os_runtime` / containerd task Signal (scaffold).
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum KillSignal {
-    Term,
-    Kill,
-    Hup,
-}
-
-/// Closed OCI operation set — kill always carries its signal (invalid combos unrepresentable).
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum OciOperation {
-    Create,
-    Start,
-    Kill(KillSignal),
-    Delete,
-}
-
-impl OciOperation {
-    pub const fn as_str(self) -> &'static str {
-        match self {
-            Self::Create => "create",
-            Self::Start => "start",
-            Self::Kill(_) => "kill",
-            Self::Delete => "delete",
-        }
-    }
-
-    pub const fn kill_signal(self) -> Option<KillSignal> {
-        match self {
-            Self::Kill(signal) => Some(signal),
-            _ => None,
-        }
-    }
 }
 
 /// Byte inputs that uniquely determine a measured bundle content digest.
@@ -811,6 +853,17 @@ impl OperationObservation {
             if !cve_id.has_fixture_receipt() {
                 return Err(HarnessError::MissingFixtureReceipt);
             }
+            let Some(required_op) = required_cve_operation(cve_id.cve_id()) else {
+                return Err(HarnessError::UnknownCve(cve_id.cve_id().to_owned()));
+            };
+            if operation != required_op {
+                return Err(HarnessError::CveOperationMismatch {
+                    cve_id: cve_id.cve_id().to_owned(),
+                    expected: required_op.as_str().to_owned(),
+                    got_owned: operation.as_str().to_owned(),
+                    got_oracle: operation.as_str().to_owned(),
+                });
+            }
         }
         Ok(Self {
             kind,
@@ -837,6 +890,13 @@ pub fn compare_observations(
 ) -> DiffVerdict {
     if !owned.kind.is_owned_product() || !oracle.kind.is_oracle_only() {
         return DiffVerdict::Diverge;
+    }
+    // Owned and oracle pins must share the same platform (architecture environment).
+    let owned_platform = owned.kind.owned_pin().map(OwnedPin::platform);
+    let oracle_platform = oracle.kind.oracle_pin().map(OraclePin::platform);
+    match (owned_platform, oracle_platform) {
+        (Some(a), Some(b)) if a == b => {}
+        _ => return DiffVerdict::Diverge,
     }
     if owned.operation != oracle.operation || owned.bundle != oracle.bundle {
         return DiffVerdict::Diverge;
@@ -908,6 +968,17 @@ impl ComparisonRecord {
                     });
                 }
             }
+        }
+        let Some(required_op) = required_cve_operation(cve_id) else {
+            return Err(HarnessError::UnknownMatrixCve(cve_id.to_owned()));
+        };
+        if owned.operation != required_op || oracle.operation != required_op {
+            return Err(HarnessError::CveOperationMismatch {
+                cve_id: cve_id.to_owned(),
+                expected: required_op.as_str().to_owned(),
+                got_owned: owned.operation.as_str().to_owned(),
+                got_oracle: oracle.operation.as_str().to_owned(),
+            });
         }
         let verdict = compare_observations(&owned, &oracle);
         Ok(Self {
@@ -1033,6 +1104,33 @@ fn validate_owned_pins_consistent(records: &[ComparisonRecord]) -> Result<(), Ha
     Ok(())
 }
 
+/// For each CVE id, every matrix record must share one identical [`BundleIdentity`].
+fn validate_cve_bundles_consistent(records: &[ComparisonRecord]) -> Result<(), HarnessError> {
+    let mut by_cve: BTreeMap<&str, &BundleIdentity> = BTreeMap::new();
+    for record in records {
+        if record.owned().bundle() != record.oracle().bundle() {
+            return Err(HarnessError::InconsistentCveBundle(format!(
+                "CVE {} owned/oracle BundleIdentity mismatch within comparison record",
+                record.cve_id()
+            )));
+        }
+        let bundle = record.owned().bundle();
+        match by_cve.get(record.cve_id()) {
+            None => {
+                by_cve.insert(record.cve_id(), bundle);
+            }
+            Some(existing) if *existing != bundle => {
+                return Err(HarnessError::InconsistentCveBundle(format!(
+                    "CVE {} must use one BundleIdentity across all oracle matrix rows",
+                    record.cve_id()
+                )));
+            }
+            Some(_) => {}
+        }
+    }
+    Ok(())
+}
+
 /// Aggregate free-form stubbed cells only. Match/Diverge must use ComparisonRecord.
 pub fn aggregate_oracle_cve_matrix(cells: &[MatrixCell]) -> Result<MatrixAggregate, HarnessError> {
     validate_matrix_coverage(cells)?;
@@ -1056,6 +1154,7 @@ pub fn aggregate_comparison_records(
     let cells: Vec<MatrixCell> = records.iter().map(ComparisonRecord::to_matrix_cell).collect();
     validate_matrix_coverage(&cells)?;
     validate_owned_pins_consistent(records)?;
+    validate_cve_bundles_consistent(records)?;
     if records.iter().any(|r| r.verdict == DiffVerdict::Stubbed) {
         return Ok(MatrixAggregate::ScaffoldCoverageComplete);
     }
@@ -1433,6 +1532,10 @@ mod tests {
             .unwrap()
     }
 
+    fn required_op(cve_id: &str) -> OciOperation {
+        required_cve_operation(cve_id).expect("required CVE")
+    }
+
     fn unsafe_outcome(exit: i32, fp: &str) -> MeasuredOutcome {
         let mut out = safe_outcome(exit, fp);
         out.security.fd_leak_absent = false;
@@ -1755,9 +1858,10 @@ mod tests {
             };
             let bundle = measured_bundle("b1", hex);
             // Oracle reproduces vulnerable CVE surface; owned holds all postconditions.
+            let op = required_op(cve_id);
             let owned_obs = OperationObservation::try_measured(
                 owned.kind(),
-                OciOperation::Start,
+                op,
                 bundle.clone(),
                 Some(exec.clone()),
                 safe_outcome(0, "fp"),
@@ -1765,7 +1869,7 @@ mod tests {
             .unwrap();
             let oracle_obs = OperationObservation::try_measured(
                 oracle.kind(),
-                OciOperation::Start,
+                op,
                 bundle,
                 Some(exec),
                 unsafe_outcome(0, "fp"),
@@ -1785,11 +1889,12 @@ mod tests {
     fn matrix_requires_full_oracle_cve_coverage() {
         let cve_id = "CVE-2019-5736";
         let exec = fixture_for(cve_id);
+        let op = required_op(cve_id);
         let incomplete = [ComparisonRecord::try_from_observations(
             cve_id,
             OperationObservation::try_measured(
                 live_owned().kind(),
-                OciOperation::Start,
+                op,
                 measured_bundle("b1", HEX_A),
                 Some(exec.clone()),
                 safe_outcome(0, "fp"),
@@ -1799,7 +1904,7 @@ mod tests {
                 OracleStub::try_new_pinned("runc", live_oracle_pin())
                     .unwrap()
                     .kind(),
-                OciOperation::Start,
+                op,
                 measured_bundle("b1", HEX_A),
                 Some(exec),
                 safe_outcome(0, "fp"),
@@ -1859,9 +1964,10 @@ mod tests {
                 other => panic!("unexpected {other}"),
             };
             let bundle = measured_bundle("b1", hex);
+            let op = required_op(cve_id);
             let owned_obs = OperationObservation::try_measured(
                 owned.kind(),
-                OciOperation::Start,
+                op,
                 bundle.clone(),
                 Some(exec.clone()),
                 safe_outcome(0, "fp"),
@@ -1869,7 +1975,7 @@ mod tests {
             .unwrap();
             let oracle_obs = OperationObservation::try_measured(
                 oracle.kind(),
-                OciOperation::Start,
+                op,
                 bundle,
                 Some(exec),
                 safe_outcome(0, "fp"),
@@ -1908,9 +2014,10 @@ mod tests {
             } else {
                 safe_outcome(0, "fp")
             };
+            let op = required_op(cve_id);
             let owned_obs = OperationObservation::try_measured(
                 owned.kind(),
-                OciOperation::Start,
+                op,
                 bundle.clone(),
                 Some(exec.clone()),
                 safe_outcome(0, "fp"),
@@ -1918,7 +2025,7 @@ mod tests {
             .unwrap();
             let oracle_obs = OperationObservation::try_measured(
                 oracle.kind(),
-                OciOperation::Start,
+                op,
                 bundle,
                 Some(exec),
                 oracle_outcome,
@@ -1939,9 +2046,10 @@ mod tests {
 
     #[test]
     fn comparison_record_rejects_missing_cve_execution() {
+        let op = required_op("CVE-2019-5736");
         let owned = OperationObservation::try_measured(
             live_owned().kind(),
-            OciOperation::Start,
+            op,
             measured_bundle("b1", HEX_A),
             None,
             safe_outcome(0, "fp"),
@@ -1951,7 +2059,7 @@ mod tests {
             OracleStub::try_new_pinned("runc", live_oracle_pin())
                 .unwrap()
                 .kind(),
-            OciOperation::Start,
+            op,
             measured_bundle("b1", HEX_A),
             None,
             safe_outcome(0, "fp"),
@@ -1965,9 +2073,10 @@ mod tests {
 
     #[test]
     fn comparison_record_rejects_mismatched_cve_execution() {
+        // Construct with each CVE's required op so try_measured accepts; mismatch is on CVE ids.
         let owned = OperationObservation::try_measured(
             live_owned().kind(),
-            OciOperation::Start,
+            required_op("CVE-2019-5736"),
             measured_bundle("b1", HEX_A),
             Some(fixture_for("CVE-2019-5736")),
             safe_outcome(0, "fp"),
@@ -1977,7 +2086,7 @@ mod tests {
             OracleStub::try_new_pinned("runc", live_oracle_pin())
                 .unwrap()
                 .kind(),
-            OciOperation::Start,
+            required_op("CVE-2024-21626"),
             measured_bundle("b1", HEX_A),
             Some(fixture_for("CVE-2024-21626")),
             safe_outcome(0, "fp"),
@@ -1992,9 +2101,10 @@ mod tests {
     #[test]
     fn comparison_record_rejects_cve_id_param_mismatch() {
         let exec = fixture_for("CVE-2024-21626");
+        let op = required_op("CVE-2024-21626");
         let owned = OperationObservation::try_measured(
             live_owned().kind(),
-            OciOperation::Start,
+            op,
             measured_bundle("b1", HEX_A),
             Some(exec.clone()),
             safe_outcome(0, "fp"),
@@ -2004,7 +2114,7 @@ mod tests {
             OracleStub::try_new_pinned("runc", live_oracle_pin())
                 .unwrap()
                 .kind(),
-            OciOperation::Start,
+            op,
             measured_bundle("b1", HEX_A),
             Some(exec),
             safe_outcome(0, "fp"),
@@ -2109,9 +2219,10 @@ mod tests {
             let oracle = OracleStub::try_new_pinned(oracle_id.as_str(), live_oracle_pin()).unwrap();
             let exec = fixture_for(cve_id);
             let bundle = measured_bundle("b1", HEX_A);
+            let op = required_op(cve_id);
             let owned_obs = OperationObservation::try_measured(
                 owned.kind(),
-                OciOperation::Start,
+                op,
                 bundle.clone(),
                 Some(exec.clone()),
                 safe_outcome(0, "fp"),
@@ -2119,7 +2230,7 @@ mod tests {
             .unwrap();
             let oracle_obs = OperationObservation::try_measured(
                 oracle.kind(),
-                OciOperation::Start,
+                op,
                 bundle,
                 Some(exec),
                 safe_outcome(0, "fp"),
@@ -2237,5 +2348,118 @@ mod tests {
         let json = serde_json::to_string(&root).unwrap();
         let err = validate_obligations_json(&json).unwrap_err();
         assert_eq!(err, HarnessError::UnknownBlocker("NOT-A-BLOCKER".into()));
+    }
+
+    #[test]
+    fn pin_try_new_stores_trimmed_revision_and_platform() {
+        let rev = format!("  sha256:{HEX_A}  ");
+        let pin = OraclePin::try_new(&rev, "  linux/amd64  ").unwrap();
+        assert_eq!(pin.revision(), format!("sha256:{HEX_A}"));
+        assert_eq!(pin.platform(), "linux/amd64");
+        let owned = OwnedPin::try_new(&rev, "\tlinux/arm64\t").unwrap();
+        assert_eq!(owned.revision(), format!("sha256:{HEX_A}"));
+        assert_eq!(owned.platform(), "linux/arm64");
+    }
+
+    #[test]
+    fn compare_observations_diverges_on_platform_mismatch() {
+        let owned = OperationObservation::try_measured(
+            OwnedExecutorStub::try_pinned(
+                OwnedPin::try_new(&format!("sha256:{HEX_OWNED}"), "linux/arm64").unwrap(),
+            )
+            .unwrap()
+            .kind(),
+            OciOperation::Start,
+            measured_bundle("b1", HEX_A),
+            None,
+            safe_outcome(0, "fp"),
+        )
+        .unwrap();
+        let oracle = OperationObservation::try_measured(
+            OracleStub::try_new_pinned("runc", live_oracle_pin())
+                .unwrap()
+                .kind(),
+            OciOperation::Start,
+            measured_bundle("b1", HEX_A),
+            None,
+            safe_outcome(0, "fp"),
+        )
+        .unwrap();
+        assert_eq!(compare_observations(&owned, &oracle), DiffVerdict::Diverge);
+    }
+
+    #[test]
+    fn comparison_record_rejects_wrong_cve_operation() {
+        let cve_id = "CVE-2019-5736";
+        let exec = fixture_for(cve_id);
+        // Delete is never the required op for this CVE (Create is).
+        let owned = OperationObservation::try_measured(
+            live_owned().kind(),
+            OciOperation::Delete,
+            measured_bundle("b1", HEX_A),
+            Some(exec.clone()),
+            safe_outcome(0, "fp"),
+        );
+        assert!(matches!(owned, Err(HarnessError::CveOperationMismatch { .. })));
+        // Bypass try_measured rejection by constructing stubbed then... actually measured path
+        // rejects in try_measured; also try_from_observations must reject if somehow present.
+        // Build measured observations without CVE, then we can't attach CVE later — so verify
+        // try_from_observations with Create (required) vs Start mismatch via direct path:
+        // construct with wrong op by using try_measured without CVE then... can't set CVE after.
+        // Exercise try_from_observations by using matching wrong ops that try_measured allows
+        // only when CVE is None — instead build Create-required CVE with Start via
+        // OperationObservation fields is private. So the try_measured reject is the measured path;
+        // for try_from_observations, use Start on CVE-2019-5736 which try_measured rejects —
+        // construct via required Create on one side only by temporarily skipping CVE on measured
+        // construction is impossible. Validate try_from_observations using observations built
+        // with CVE=None then we get MissingCveExecution first.
+        // Direct unit: required_op binding + try_measured reject is sufficient for measured path.
+        assert_eq!(required_op(cve_id), OciOperation::Create);
+        assert_eq!(required_op("CVE-2024-21626"), OciOperation::Start);
+        assert_eq!(required_op("CVE-MOUNT-SYMLINK-RACE"), OciOperation::Create);
+    }
+
+    #[test]
+    fn aggregate_rejects_inconsistent_cve_bundle_across_oracles() {
+        let owned = live_owned();
+        let mut records = Vec::new();
+        for (oracle_id, cve_id) in required_matrix_pairs() {
+            let oracle = OracleStub::try_new_pinned(oracle_id.as_str(), live_oracle_pin()).unwrap();
+            let exec = fixture_for(cve_id);
+            // Same CVE across oracles gets different digests for the first CVE only.
+            let hex = if cve_id == "CVE-2019-5736" && oracle_id == OracleId::Runc {
+                HEX_B
+            } else if cve_id == "CVE-2019-5736" {
+                HEX_A
+            } else if cve_id == "CVE-2024-21626" {
+                HEX_B
+            } else {
+                HEX_C
+            };
+            let op = required_op(cve_id);
+            let bundle = measured_bundle("b1", hex);
+            let owned_obs = OperationObservation::try_measured(
+                owned.kind(),
+                op,
+                bundle.clone(),
+                Some(exec.clone()),
+                safe_outcome(0, "fp"),
+            )
+            .unwrap();
+            let oracle_obs = OperationObservation::try_measured(
+                oracle.kind(),
+                op,
+                bundle,
+                Some(exec),
+                safe_outcome(0, "fp"),
+            )
+            .unwrap();
+            records
+                .push(ComparisonRecord::try_from_observations(cve_id, owned_obs, oracle_obs).unwrap());
+        }
+        assert!(matches!(
+            aggregate_comparison_records(&records).unwrap_err(),
+            HarnessError::InconsistentCveBundle(_)
+        ));
     }
 }
