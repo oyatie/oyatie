@@ -1,0 +1,290 @@
+{
+  "$schema": "https://docs.oyatie.com/schemas/asterinas-abi-matrix.v0.1.0.json",
+  "$id": "https://docs.oyatie.com/kernel/core/asterinas-abi-matrix/matrix/abi-matrix-v0.1.0.json",
+  "matrix_id": "asterinas-abi-matrix",
+  "schema_version": "0.1.0",
+  "status": "scaffold",
+  "wave": "A1-W0-entry",
+  "description": "Four-surface Linux-ABI measurement matrix for the pinned Asterinas release vs the node-stack footprint (runc/youki/containerd/kubelet). This is evidence scaffolding for founder decision F1(a); it does NOT claim Asterinas is the canonical node kernel.",
+  "claim_posture": {
+    "asterinas_is_canonical_node_kernel": false,
+    "blocked_on": "F1(a)",
+    "evidence_role": "Feeds the F1(a) kernel + pool-matrix ruling: published surface delta + G5 trigger evaluation. Availability values may remain unknown until QEMU probe receipts land.",
+    "g5_fallback": "If cgroup v2 delegation, netlink, or overlayfs gaps persist as measured gaps (not merely unknown), Linux/Talos-class kernel stays the node kernel and Asterinas remains soak/boot evidence."
+  },
+  "asterinas_pin": {
+    "release_tag": "v0.17.2",
+    "release_commit": "23adfdfd72b05cee8d232809caea81a4b33d3488",
+    "boundary_crate": "kernel-asterinas-boundary",
+    "pin_manifest": "kernel/core/asterinas-boundary/pins/asterinas-release-v0.17.2.json",
+    "boot_iso_asset": "asterinas-nixos-0.17.2-x86_64.iso"
+  },
+  "components_profiled": [
+    {
+      "id": "runc",
+      "role": "oci-runtime-oracle",
+      "footprint_status": "stubbed",
+      "notes": "Upper bound the owned executor must beat; profile via strace/seccomp under pinned ISO (QEMU)."
+    },
+    {
+      "id": "youki",
+      "role": "oci-runtime-oracle",
+      "footprint_status": "stubbed",
+      "notes": "Upper bound the owned executor must beat; differential oracle, never shipped default."
+    },
+    {
+      "id": "containerd",
+      "role": "bootstrap-consume-dated",
+      "footprint_status": "stubbed",
+      "notes": "Go containerd CONSUME bootstrap footprint; product manager daemon is overruled — still profiled as node-stack reference."
+    },
+    {
+      "id": "kubelet",
+      "role": "projected-node-agent",
+      "footprint_status": "stubbed",
+      "notes": "Includes cAdvisor-class metrics and eviction paths that drive procfs/cgroupfs/statfs rows."
+    }
+  ],
+  "pool_matrix_notes": {
+    "asterinas_exposes_dev_kvm": false,
+    "rationale": "Asterinas is a TDX guest target and exposes no /dev/kvm. private-kernel and private-kernel-attested tiers therefore cannot schedule onto Asterinas pools.",
+    "asterinas_pools": {
+      "serve_tiers": ["shared-kernel"],
+      "future_role": "tdx-guest"
+    },
+    "linux_kvm_pools": {
+      "serve_tiers": ["private-kernel", "private-kernel-attested"],
+      "sku_status": "permanent-co-selected",
+      "vmm": "cloud-hypervisor",
+      "notes": "Stripped-Linux KVM host pools are a permanent SKU, not a fallback."
+    },
+    "snapshotter_posture": {
+      "asterinas_pools": "native-snapshotter-first",
+      "linux_shared_kernel_pools": "overlayfs-required-day-one",
+      "notes": "Overlayfs is required primarily on shared-kernel/Linux pools. On Asterinas, prefer the native snapshotter first; overlayfs edges remain High severity when the shared-kernel tier is in scope."
+    }
+  },
+  "g5_trigger_definition": {
+    "classes": [
+      "cgroup_v2_delegation",
+      "netlink",
+      "overlayfs"
+    ],
+    "evaluation_rule": "A G5-trigger row with available_on_asterinas_pin == gap (measured absence or non-enforcing) evaluates the G5 fallback. unknown does not fire G5; it keeps F1(a) blocked on measurement.",
+    "evaluation_status": "pending_measurement"
+  },
+  "column_contract": {
+    "required_by_node_stack": "Closed list of node-stack consumers that need the surface (kubelet, cAdvisor, eviction, kube-proxy, CNI, runc/youki executor, containerd bootstrap).",
+    "available_on_asterinas_pin": "One of: present | gap | unknown. Scaffold defaults to unknown until the probe harness produces QEMU receipts against the pinned ISO.",
+    "severity": "One of: critical | high | medium | low.",
+    "g5_trigger": "Boolean. True iff a measured gap on this row is a G5 fallback trigger class (cgroup v2 delegation / netlink / overlayfs)."
+  },
+  "surfaces": {
+    "syscalls": {
+      "surface_id": "syscalls",
+      "description": "Syscall families required by the node stack / OCI executor oracles. Not a raw syscall-count slogan — rows are named families or load-bearing calls.",
+      "rows": [
+        {
+          "id": "sc-clone-namespaces",
+          "name": "clone/unshare (namespaces)",
+          "required_by_node_stack": ["runc", "youki", "kubelet"],
+          "available_on_asterinas_pin": "unknown",
+          "severity": "critical",
+          "g5_trigger": false,
+          "notes": "Process/network/mount/uts/ipc/cgroup namespace creation for sandboxes."
+        },
+        {
+          "id": "sc-mount-umount",
+          "name": "mount/umount2",
+          "required_by_node_stack": ["runc", "youki", "kubelet"],
+          "available_on_asterinas_pin": "unknown",
+          "severity": "critical",
+          "g5_trigger": false,
+          "notes": "Sandbox rootfs + bind mounts; pairs with mount_semantics surface."
+        },
+        {
+          "id": "sc-pivot-root",
+          "name": "pivot_root",
+          "required_by_node_stack": ["runc", "youki"],
+          "available_on_asterinas_pin": "unknown",
+          "severity": "high",
+          "g5_trigger": false,
+          "notes": "OCI rootfs isolation; also tracked under mount_semantics."
+        },
+        {
+          "id": "sc-seccomp",
+          "name": "seccomp (SECCOMP_SET_MODE_FILTER)",
+          "required_by_node_stack": ["runc", "youki", "containerd"],
+          "available_on_asterinas_pin": "unknown",
+          "severity": "high",
+          "g5_trigger": false,
+          "notes": "Runtime seccomp profiles; measurement target for allowlist ratchet."
+        },
+        {
+          "id": "sc-bpf-cgroup-devices",
+          "name": "bpf (cgroup device controller)",
+          "required_by_node_stack": ["runc", "youki"],
+          "available_on_asterinas_pin": "unknown",
+          "severity": "high",
+          "g5_trigger": true,
+          "notes": "cgroup-v2 device controller needs eBPF; G5-adjacent to cgroup_v2_delegation fidelity."
+        }
+      ]
+    },
+    "proc_sys_cgroupfs": {
+      "surface_id": "proc_sys_cgroupfs",
+      "description": "procfs/sysfs/cgroupfs file surfaces. cAdvisor and eviction paths are first-class — mountable ≠ enforcing.",
+      "rows": [
+        {
+          "id": "fs-proc-stat",
+          "name": "/proc/stat",
+          "required_by_node_stack": ["kubelet", "cAdvisor"],
+          "available_on_asterinas_pin": "unknown",
+          "severity": "high",
+          "g5_trigger": false,
+          "notes": "cAdvisor CPU accounting."
+        },
+        {
+          "id": "fs-proc-meminfo",
+          "name": "/proc/meminfo",
+          "required_by_node_stack": ["kubelet", "cAdvisor"],
+          "available_on_asterinas_pin": "unknown",
+          "severity": "high",
+          "g5_trigger": false,
+          "notes": "cAdvisor / kubelet memory pressure inputs."
+        },
+        {
+          "id": "fs-cgroup-memory-current",
+          "name": "memory.current (cgroup v2)",
+          "required_by_node_stack": ["kubelet", "cAdvisor", "runc", "youki"],
+          "available_on_asterinas_pin": "unknown",
+          "severity": "high",
+          "g5_trigger": true,
+          "notes": "cgroup v2 memory usage; G5 class cgroup_v2_delegation when absent or non-enforcing."
+        },
+        {
+          "id": "fs-cgroup-cpu-stat",
+          "name": "cpu.stat (cgroup v2)",
+          "required_by_node_stack": ["kubelet", "cAdvisor", "runc", "youki"],
+          "available_on_asterinas_pin": "unknown",
+          "severity": "high",
+          "g5_trigger": true,
+          "notes": "cgroup v2 CPU accounting; G5 class cgroup_v2_delegation."
+        },
+        {
+          "id": "fs-statfs-eviction",
+          "name": "statfs (ephemeral-storage eviction)",
+          "required_by_node_stack": ["kubelet"],
+          "available_on_asterinas_pin": "unknown",
+          "severity": "high",
+          "g5_trigger": false,
+          "notes": "kubelet eviction manager disk pressure signals."
+        }
+      ]
+    },
+    "netlink": {
+      "surface_id": "netlink",
+      "description": "Netlink families required for node networking. Critical risk: kube-proxy has no netfilter-free mode; ROUTE/LINK/ADDR are load-bearing.",
+      "rows": [
+        {
+          "id": "nl-route",
+          "name": "NETLINK_ROUTE (ROUTE)",
+          "required_by_node_stack": ["kube-proxy", "CNI", "kubelet"],
+          "available_on_asterinas_pin": "unknown",
+          "severity": "critical",
+          "g5_trigger": true,
+          "notes": "Routes/neighbors; G5 class netlink."
+        },
+        {
+          "id": "nl-link",
+          "name": "NETLINK_ROUTE (LINK)",
+          "required_by_node_stack": ["CNI", "kube-proxy", "runc", "youki"],
+          "available_on_asterinas_pin": "unknown",
+          "severity": "critical",
+          "g5_trigger": true,
+          "notes": "Link create/set for veth/bridge; G5 class netlink."
+        },
+        {
+          "id": "nl-addr",
+          "name": "NETLINK_ROUTE (ADDR)",
+          "required_by_node_stack": ["CNI", "kube-proxy"],
+          "available_on_asterinas_pin": "unknown",
+          "severity": "critical",
+          "g5_trigger": true,
+          "notes": "Address assignment on sandbox links; G5 class netlink."
+        },
+        {
+          "id": "nl-netfilter",
+          "name": "netfilter / nftables netlink",
+          "required_by_node_stack": ["kube-proxy"],
+          "available_on_asterinas_pin": "unknown",
+          "severity": "critical",
+          "g5_trigger": true,
+          "notes": "kube-proxy has no netfilter-free mode; measured gap here is a hard G5 signal."
+        }
+      ]
+    },
+    "mount_semantics": {
+      "surface_id": "mount_semantics",
+      "description": "Mount propagation and overlay semantics. Overlayfs is primarily required on shared-kernel/Linux pools; Asterinas prefers native snapshotter first.",
+      "rows": [
+        {
+          "id": "mnt-ms-shared",
+          "name": "MS_SHARED mount propagation",
+          "required_by_node_stack": ["runc", "youki", "kubelet"],
+          "available_on_asterinas_pin": "unknown",
+          "severity": "high",
+          "g5_trigger": false,
+          "notes": "Propagation setup for nested mounts / kubelet volume plumbing."
+        },
+        {
+          "id": "mnt-ms-slave",
+          "name": "MS_SLAVE mount propagation",
+          "required_by_node_stack": ["runc", "youki", "kubelet"],
+          "available_on_asterinas_pin": "unknown",
+          "severity": "high",
+          "g5_trigger": false,
+          "notes": "Sandbox mount isolation relative to host."
+        },
+        {
+          "id": "mnt-overlayfs-whiteouts",
+          "name": "overlayfs whiteouts / xattrs",
+          "required_by_node_stack": ["containerd", "runc", "youki"],
+          "available_on_asterinas_pin": "unknown",
+          "severity": "high",
+          "g5_trigger": true,
+          "notes": "G5 class overlayfs when shared-kernel/Linux pools require overlay snapshotter. Asterinas pools: native snapshotter first — this row remains tracked for shared-kernel fidelity."
+        },
+        {
+          "id": "mnt-pivot-root",
+          "name": "pivot_root semantics",
+          "required_by_node_stack": ["runc", "youki"],
+          "available_on_asterinas_pin": "unknown",
+          "severity": "high",
+          "g5_trigger": false,
+          "notes": "Cross-listed with syscalls; mount-namespace correctness after pivot."
+        }
+      ]
+    }
+  },
+  "probe_harness": {
+    "crate": "kernel-asterinas-abi-probe",
+    "path": "kernel/harness/asterinas-abi-probe",
+    "preferred_evidence_path": "qemu-tcg-against-pinned-iso",
+    "live_hardware_required": false,
+    "status": "skeleton",
+    "measured_today": [
+      "matrix schema + column contract",
+      "four surfaces present with required columns",
+      "G5-trigger flags on cgroup/netlink/overlay rows",
+      "pool-matrix notes (no /dev/kvm; native snapshotter first)",
+      "claim_posture refuses canonical-kernel claim"
+    ],
+    "stubbed_today": [
+      "live strace/seccomp footprints for runc/youki/containerd/kubelet",
+      "guest-side surface probes under QEMU",
+      "available_on_asterinas_pin transitions unknown→present|gap",
+      "G5 evaluation_status pending_measurement→fired|clear"
+    ]
+  }
+}
