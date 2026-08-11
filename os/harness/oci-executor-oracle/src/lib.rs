@@ -96,8 +96,8 @@ impl OciOperation {
 ///
 /// Required ops are the vulnerability-triggering actions the matrix must exercise
 /// (Delete / unrelated ops are rejected on the measured comparison path):
-/// - CVE-2019-5736 (`proc_self_exe_reexec`): [`OciOperation::Create`] — host runtime
-///   overwrite via `/proc/self/exe` during container create.
+/// - CVE-2019-5736 (`proc_self_exe_reexec`): [`OciOperation::Start`] — malicious
+///   `/proc/self/exe` overwrite payload runs after Start (create alone does not exec).
 /// - CVE-2024-21626 (`fd_leak`): [`OciOperation::Start`] — leaked host FDs into the
 ///   container process across start/exec.
 /// - CVE-MOUNT-SYMLINK-RACE (`mount_symlink_race`): [`OciOperation::Create`] — mount
@@ -106,7 +106,7 @@ pub const CANONICAL_CVE_FIXTURES: [(&str, &[u8], OciOperation); 3] = [
     (
         "CVE-2019-5736",
         b"canonical-adversarial:CVE-2019-5736:proc_self_exe_reexec",
-        OciOperation::Create,
+        OciOperation::Start,
     ),
     (
         "CVE-2024-21626",
@@ -2392,29 +2392,24 @@ mod tests {
     fn comparison_record_rejects_wrong_cve_operation() {
         let cve_id = "CVE-2019-5736";
         let exec = fixture_for(cve_id);
-        // Delete is never the required op for this CVE (Create is).
+        // Create alone does not exec the /proc/self/exe overwrite — Start is required.
         let owned = OperationObservation::try_measured(
             live_owned().kind(),
-            OciOperation::Delete,
+            OciOperation::Create,
             measured_bundle("b1", HEX_A),
             Some(exec.clone()),
             safe_outcome(0, "fp"),
         );
         assert!(matches!(owned, Err(HarnessError::CveOperationMismatch { .. })));
-        // Bypass try_measured rejection by constructing stubbed then... actually measured path
-        // rejects in try_measured; also try_from_observations must reject if somehow present.
-        // Build measured observations without CVE, then we can't attach CVE later — so verify
-        // try_from_observations with Create (required) vs Start mismatch via direct path:
-        // construct with wrong op by using try_measured without CVE then... can't set CVE after.
-        // Exercise try_from_observations by using matching wrong ops that try_measured allows
-        // only when CVE is None — instead build Create-required CVE with Start via
-        // OperationObservation fields is private. So the try_measured reject is the measured path;
-        // for try_from_observations, use Start on CVE-2019-5736 which try_measured rejects —
-        // construct via required Create on one side only by temporarily skipping CVE on measured
-        // construction is impossible. Validate try_from_observations using observations built
-        // with CVE=None then we get MissingCveExecution first.
-        // Direct unit: required_op binding + try_measured reject is sufficient for measured path.
-        assert_eq!(required_op(cve_id), OciOperation::Create);
+        let delete = OperationObservation::try_measured(
+            live_owned().kind(),
+            OciOperation::Delete,
+            measured_bundle("b1", HEX_A),
+            Some(exec),
+            safe_outcome(0, "fp"),
+        );
+        assert!(matches!(delete, Err(HarnessError::CveOperationMismatch { .. })));
+        assert_eq!(required_op(cve_id), OciOperation::Start);
         assert_eq!(required_op("CVE-2024-21626"), OciOperation::Start);
         assert_eq!(required_op("CVE-MOUNT-SYMLINK-RACE"), OciOperation::Create);
     }
