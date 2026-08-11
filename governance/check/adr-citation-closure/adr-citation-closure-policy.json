@@ -37,7 +37,7 @@
     "archived_with_successor": 425,
     "rejected": 16,
     "citation_lines": 8901,
-    "files_scanned": 16608,
+    "files_scanned": 16611,
     "adr_citation_closure_mismatch": 252,
     "adr_citation_dangling_path": 2002,
     "adr_citation_rejected_authority": 3,

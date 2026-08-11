@@ -70,3 +70,6 @@ Document shape for each entry:
 | [`DDR-E0-20260810-divergence-adapter-law`](DDR-E0-20260810-divergence-adapter-law.md) | Divergence-as-adapter + fail-closed adapters | discovery |
 | [`DDR-E0-20260810-ecosystem-coexistence-contract`](DDR-E0-20260810-ecosystem-coexistence-contract.md) | Ecosystem wire/API coexistence | discovery |
 | [`DDR-E0-20260810-vap-cedar-plane-split-rationale`](DDR-E0-20260810-vap-cedar-plane-split-rationale.md) | VAP/CEL admission vs Cedar authz plane-split rationale | discovery |
+| [`DDR-20260810-sonobuoy-licensing-artifact-class-proposal`](DDR-20260810-sonobuoy-licensing-artifact-class-proposal.md) | Sonobuoy named `artifact_class` proposal (no live licensing flip) | discovery |
+| [`DDR-20260810-cri-external-face-closed-consumer-list-stub`](DDR-20260810-cri-external-face-closed-consumer-list-stub.md) | CRI external-face closed consumer list stub (no scope.json encode) | discovery |
+| [`DDR-20260810-boot-marker-fleet-basis-draft`](DDR-20260810-boot-marker-fleet-basis-draft.md) | Boot-marker / fleet-basis draft replacements (F1(e) preconditions) | discovery |
