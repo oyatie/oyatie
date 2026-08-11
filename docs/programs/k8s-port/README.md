@@ -31,6 +31,7 @@ Use the lane that matches the record's purpose before looking for a date:
 |---|---|---|
 | A run or wave judgment, fix, gate failure, or no-rule-change rationale | [`operations/`](operations/INDEX.md) | Repeated incident class → prescription review. |
 | A repeatable execution procedure | [`prescriptions/`](prescriptions/INDEX.md) | Binding judgment in a procedure → doctrine. |
+| An encodable discovery judgment that is not yet doctrine and not Accepted apex | [`discovery/`](discovery/INDEX.md) | Graduate to doctrine when binding inside this program; ADR when binding elsewhere. Discovery MUST NOT silently amend apex, scope, or ledger. |
 | A rare, binding cross-lane judgment | [`doctrine/`](doctrine/INDEX.md) | Binding elsewhere → ADR within one wave. |
 
 Chronological listings are secondary navigation only. An entry is found by lane and incident or judgment class first, then by wave and run.
