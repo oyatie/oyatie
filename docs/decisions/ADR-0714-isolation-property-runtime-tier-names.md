@@ -12,7 +12,7 @@ supersedes: []
 superseded_by: []
 amends: [ADR-0701]
 amended_by: []
-depends_on: []
+depends_on: [ADR-0712]
 related: [ADR-0338, ADR-0710, ADR-0712, ADR-0715]
 milestone: F1
 masterplan_work_item: MPV2-0055

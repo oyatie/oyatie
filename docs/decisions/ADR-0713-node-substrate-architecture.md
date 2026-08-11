@@ -232,8 +232,8 @@ Silent assumption that these are already done is a **defect**.
 
 | Path / Crate | Change type | Notes |
 |---|---|---|
-| PID1 stub + supervisor child crates (destination capability TBD) | create | Blocked until Accept (a) |
-| CRI compatibility profile `v1` contract + tests | create | RPCs, streaming, PLEG, errors, peer cred, rate limits, read-only set |
+| PID1 stub + supervisor child crates (destination capability TBD) | create | Accept (a): full owned-runtime shape. Accept (b)-only: PID1 stub + harvest/retire surfaces required by D-B2 may land without Accept (a); full NON-PID1 kubelet/runtime-controller child remains Accept (a)-gated |
+| CRI compatibility profile `v1` contract + tests | create | RPCs, streaming, PLEG, errors, peer cred, rate limits, read-only set — Accept (a) |
 | kill-9 continuity + upgrade reconnect tests | create | Mandatory encode evidence for Accept (a) DoD |
 | `specs/k8s-port/scope.json` | update | OWN token + bootstrap CONSUME — Accept (a) follow-on only |
 | `os/` domains | harvest then delete | Accept (b) only; after D-B3 receipts |

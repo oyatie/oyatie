@@ -127,7 +127,10 @@ On Accept:
    - **Relying-party reachability** — evidence that the attestation relying party endpoint(s)
      required by the platform are reachable from that pool's attestation path.
 2. Admission MUST **deny** `private-kernel-attested` unless both properties are present with
-   current evidence. KVM-only is insufficient.
+   current evidence. KVM-only is insufficient. Deny rules alone are not enough for placement:
+   RuntimeClass / isolation-property objects MUST also carry **scheduling.nodeSelector and
+   tolerations** (ADR-0338 pattern) that bind `private-kernel*` to compatible pools so a pod
+   cannot schedule onto an incompatible node after admission.
 3. **Day-1 attested tier** is **attested-identity**: the host remains in the TCB and that fact
    MUST be explicitly labeled on the RuntimeClass / isolation property documentation and on
    any customer-facing attestation claim. Day-1 MUST NOT claim operator-excluded confidentiality.
