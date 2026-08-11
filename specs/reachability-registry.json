@@ -510,6 +510,54 @@
       "prefix": "observability/BUCK"
     },
     {
+      "anchor": "integ/os absorb (#1926): OS harness oracle/attestation scaffolds + cargo-lock bridge strip receipt; workspace-excluded until integ/build lock membership absorb; reachability registration clears unjustified/unreachable.",
+      "prefix": "os/evidence/cargo-lock-bridge-strip-20260811.md"
+    },
+    {
+      "anchor": "ADR-0701 + Wave-2 absorb receipt on integ/os: evidence packet recording cloud/cloud-os residual → os/ forever-home harvest (manifest + dual-home OWNERS); indexing/receipt only.",
+      "prefix": "os/evidence/wave2-cloud-os-absorb.md"
+    },
+    {
+      "anchor": "integ/os absorb (#1926): OS harness oracle/attestation scaffolds + cargo-lock bridge strip receipt; workspace-excluded until integ/build lock membership absorb; reachability registration clears unjustified/unreachable.",
+      "prefix": "os/harness/attestation-relying-party/BUCK"
+    },
+    {
+      "anchor": "integ/os absorb (#1926): OS harness oracle/attestation scaffolds + cargo-lock bridge strip receipt; workspace-excluded until integ/build lock membership absorb; reachability registration clears unjustified/unreachable.",
+      "prefix": "os/harness/attestation-relying-party/Cargo.toml"
+    },
+    {
+      "anchor": "integ/os absorb (#1926): OS harness oracle/attestation scaffolds + cargo-lock bridge strip receipt; workspace-excluded until integ/build lock membership absorb; reachability registration clears unjustified/unreachable.",
+      "prefix": "os/harness/attestation-relying-party/src/lib.rs"
+    },
+    {
+      "anchor": "integ/os absorb (#1926): OS harness oracle/attestation scaffolds + cargo-lock bridge strip receipt; workspace-excluded until integ/build lock membership absorb; reachability registration clears unjustified/unreachable.",
+      "prefix": "os/harness/attestation-relying-party/tests/relying_party_scaffold.rs"
+    },
+    {
+      "anchor": "integ/os absorb (#1926): OS harness oracle/attestation scaffolds + cargo-lock bridge strip receipt; workspace-excluded until integ/build lock membership absorb; reachability registration clears unjustified/unreachable.",
+      "prefix": "os/harness/oci-executor-oracle/BUCK"
+    },
+    {
+      "anchor": "integ/os absorb (#1926): OS harness oracle/attestation scaffolds + cargo-lock bridge strip receipt; workspace-excluded until integ/build lock membership absorb; reachability registration clears unjustified/unreachable.",
+      "prefix": "os/harness/oci-executor-oracle/Cargo.toml"
+    },
+    {
+      "anchor": "integ/os absorb (#1926): OS harness oracle/attestation scaffolds + cargo-lock bridge strip receipt; workspace-excluded until integ/build lock membership absorb; reachability registration clears unjustified/unreachable.",
+      "prefix": "os/harness/oci-executor-oracle/fixtures/cve-regression-obligations-v0.1.0.json"
+    },
+    {
+      "anchor": "integ/os absorb (#1926): OS harness oracle/attestation scaffolds + cargo-lock bridge strip receipt; workspace-excluded until integ/build lock membership absorb; reachability registration clears unjustified/unreachable.",
+      "prefix": "os/harness/oci-executor-oracle/src/lib.rs"
+    },
+    {
+      "anchor": "integ/os absorb (#1926): OS harness oracle/attestation scaffolds + cargo-lock bridge strip receipt; workspace-excluded until integ/build lock membership absorb; reachability registration clears unjustified/unreachable.",
+      "prefix": "os/harness/oci-executor-oracle/tests/oracle_scaffold.rs"
+    },
+    {
+      "anchor": "ADR-0701 monorepo capability live-apex + Wave-2 cloud-os absorb (#1926): forever-home microservice manifest for the os/ capability root after cloud/cloud-os residual drain; declarative inventory only — not a live node runtime claim.",
+      "prefix": "os/manifest.json"
+    },
+    {
       "anchor": "ADR-0535 §5: root oya-deps.toml is the closed-schema DATA contract for the owned Rust dependency bump-bot and dependency-automation gate.",
       "prefix": "oya-deps.toml"
     },
