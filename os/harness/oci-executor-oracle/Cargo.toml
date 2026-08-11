@@ -1,8 +1,14 @@
+# Standalone package root: excluded from the monorepo Cargo workspace until
+# integ/build absorbs membership (Cargo.lock sole-owner). Explicit fields + a
+# local [workspace] table keep `cargo metadata` / supplementary cargo test working
+# without inheriting the parent root workspace.
+[workspace]
+
 [package]
 name = "os-oci-executor-oracle"
-edition.workspace = true
-version.workspace = true
-rust-version.workspace = true
+edition = "2024"
+version = "0.1.0"
+rust-version = "1.97.1"
 publish = false
 license = "Apache-2.0"
 description = "Differential-oracle harness skeleton for the owned OCI executor (youki/runc/crun as oracles only)."
@@ -15,6 +21,3 @@ doctest = false
 [dependencies]
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-
-[lints]
-workspace = true
