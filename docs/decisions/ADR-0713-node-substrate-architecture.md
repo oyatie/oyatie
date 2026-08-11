@@ -23,7 +23,7 @@ deliverables:
     verified_by: "oya-ci-required"
   - id: ADR-0713-B
     description: "Severable Accept (b) — os/-layer retirement encode: apex noun amend proposal (k8s projected → node supervisor → guest kernel); os/ harvest-then-retire; D-3 preconditions (machine-config harvest receipt before config-v1alpha1 delete; fleet-basis pin replacement; boot-marker contract; os/ charter amendment)."
-    exit_criteria: "Founder checks Accept (b) independently of (a). Accept (b) forbidden until D-3 preconditions land or carry dated founder waiver. Encode PRs may not mass-delete os/ before harvest receipts."
+    exit_criteria: "Founder checks Accept (b) independently of (a) for harvest/charter work. Accept (b) forbidden until D-3/D-B3 preconditions land or carry dated founder waiver. Retire/delete of destination-assumed os/ halves forbidden until Accept (a) or dated waiver. Encode PRs may not mass-delete os/ before harvest receipts."
     verified_by: "oya-ci-required"
 ---
 # ADR-0713: Node Substrate Architecture — PID1 stub + restartable supervisor; severable Accept
@@ -147,6 +147,10 @@ On Accept (a):
      "process still running").
    - **Upgrade reconnect** — supervisor restart+reconnect completes with **kubelet-level
      reconvergence** asserted.
+   - **Bounded recovery objective** — both tests MUST bind a **measurable** maximum or
+     percentile recovery budget (wall-clock to kubelet-level reconvergence) recorded in the
+     recovery DoD; exceeding the budget fails the test. Exact numeric SLO is an Accept (a)
+     encode parameter, not founder-silent unbounded "eventually".
 
 #### D-A4 — State-machine / recovery DoD (gate for Accept (a))
 
@@ -190,11 +194,21 @@ On Accept (a):
 #### D-B1 — Apex noun amend proposal (text only)
 
 On Accept (b), a **follow-on** amend to ADR-0701 (separate PR) replaces the owned substrate
-stack noun with:
+stack noun. The **destination** noun (full forever shape) is:
 
 ```text
 k8s (projected) → node supervisor (owned PID1 stub + restartable supervisor child) → guest kernel
 ```
+
+**Severability rule for Accept (b)-only (without Accept (a)):**
+- D-B2 harvest + D-B3 precondition work MAY proceed.
+- Apex noun amend under Accept (b)-only MUST name an **interim** bridge:
+  `PID1 stub + external/runtime bridge (CONSUME path)` — **not** claim the full restartable
+  NON-PID1 kubelet/runtime-controller child as already landed.
+- **Retire/delete** of dual-truth `os/` halves that the destination topology assumes (D-B2 step 2)
+  is **forbidden** until Accept (a) lands the child **or** a dated founder waiver names the
+  interim bridge and residual risk.
+- The full destination noun above requires **Accept (a)+(b)** (or Accept (b) after Accept (a)).
 
 Named siblings (not an OS noun): upgrade actor; break-glass node API; NTP / disk-crypto clients.
 
@@ -232,7 +246,7 @@ Silent assumption that these are already done is a **defect**.
 
 | Path / Crate | Change type | Notes |
 |---|---|---|
-| PID1 stub + supervisor child crates (destination capability TBD) | create | Accept (a): full owned-runtime shape. Accept (b)-only: PID1 stub + harvest/retire surfaces required by D-B2 may land without Accept (a); full NON-PID1 kubelet/runtime-controller child remains Accept (a)-gated |
+| PID1 stub + supervisor child crates (destination capability TBD) | create | Accept (a): full owned-runtime shape. Accept (b)-only: PID1 stub + harvest surfaces required by D-B2/D-B3 may land; retire/delete of destination-assumed `os/` halves blocked until Accept (a) or dated waiver; full NON-PID1 kubelet/runtime-controller child remains Accept (a)-gated |
 | CRI compatibility profile `v1` contract + tests | create | RPCs, streaming, PLEG, errors, peer cred, rate limits, read-only set — Accept (a) |
 | kill-9 continuity + upgrade reconnect tests | create | Mandatory encode evidence for Accept (a) DoD |
 | `specs/k8s-port/scope.json` | update | OWN token + bootstrap CONSUME — Accept (a) follow-on only |
@@ -315,7 +329,7 @@ pub trait SandboxRecordStore: Send + Sync {
 | Outcome | Effect |
 |---|---|
 | **Accept (a) only** | Owned runtime shape + OWN/bootstrap proposals become amend authority; `os/` noun/retire unchanged |
-| **Accept (b) only** | Apex noun amend + `os/` harvest-then-retire authorized after D-B3; no owned-runtime encode from (a) |
+| **Accept (b) only** | Apex interim noun + `os/` harvest authorized after D-B3; retire/delete of destination-assumed halves blocked until Accept (a) or dated waiver; no full supervisor-child encode from (a) |
 | **Accept (a)+(b)** | Full Node Substrate Architecture program |
 | **Reject (a)** | Live `SCP-CONSUME-EXTERNAL-RUNTIMES` posture remains for runtime |
 | **Reject (b)** | Live ADR-0701 OS/substrate noun and `os/` charter unchanged |
