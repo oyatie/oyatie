@@ -77,10 +77,12 @@ On Accept of **this** ADR:
    ADR-0710 already notes for tenant-vs-tenant sharing under today's defaults). That Reject
    MUST be an explicit ADR-0710 status flip by founder process — this Proposed ADR does not
    flip it.
-4. **Timebox trigger:** if the D-8 evidence packet is not published by the dated trigger
-   recorded on `MPV2-0056` (or a successor dated founder amendment to that work item), founder
-   MUST either publish the packet or record **explicit Reject** of ADR-0710. The timebox does
-   not silently Accept anything.
+4. **Timebox trigger (machine-readable):** `MPV2-0056.decision_timebox.deadline_utc_date`
+   is **2026-09-10**. If the D-8 evidence packet is not published by that date (or a successor
+   dated founder amendment to that structured field), founder MUST either publish the packet or
+   record **explicit Reject** of ADR-0710. The timebox does not silently Accept anything. The
+   cross-artifact agreement gate evaluates the timebox schema and, once the UTC date has
+   passed with the work item still open and no Accept/Reject evidence attached, fails closed.
 5. Until Accept or Reject of ADR-0710, **live law** for admission substrate remains ADR-0701's
    carried ADR-0379/0338 gist (Kubewarden default; Kyverno historical).
 
