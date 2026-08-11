@@ -80,10 +80,12 @@ On Accept of **this** ADR:
 4. **Timebox trigger (machine-readable):** `MPV2-0056.decision_timebox.deadline_utc_date`
    is **2026-09-10**. Schema is always enforced by cross-artifact-agreement. Calendar expiry is
    hermetic: it fires when `as_of_utc_date` on that object (or
-   `masterplan_v2.governance_evaluation_clock.utc_date`) is set past the deadline while the item
-   remains open without Accept/Reject evidence — never via wall clock. If the D-8 packet is not
-   published by the deadline, founder MUST either publish it or record **explicit Reject** of
-   ADR-0710; the timebox does not silently Accept anything.
+   `masterplan_v2.governance_evaluation_clock.utc_date` — **not** a
+   `sequencing.`-nested clock) is set past the deadline — never via wall clock. Expiry requires
+   `decision_timebox.closure` proving Accept or Reject of ADR-0710 **regardless of whether
+   MPV2-0056 is still open or marked done**. If the D-8 packet is not published by the deadline,
+   founder MUST either publish it or record **explicit Reject** of ADR-0710; the timebox does
+   not silently Accept anything.
 5. Until Accept or Reject of ADR-0710, **live law** for admission substrate remains ADR-0701's
    carried ADR-0379/0338 gist (Kubewarden default; Kyverno historical).
 
