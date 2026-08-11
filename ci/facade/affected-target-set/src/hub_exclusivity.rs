@@ -384,6 +384,32 @@ pub fn evaluate(
     Report::from_findings(findings)
 }
 
+/// Filter multi-own findings to those that implicate `candidate_pr`.
+///
+/// Fleet-wide multi-own among *other* open integ PRs must not poison an innocent
+/// candidate's required context. When `candidate_pr` is `None`, all findings are kept
+/// (hermetic / whole-fleet evaluation). When `Some(n)`, only `hub_multi_owned` findings
+/// whose owner list includes `#n` refuse the candidate; other multi-owns are dropped.
+pub fn filter_findings_for_candidate(
+    report: Report,
+    candidate_pr: Option<u64>,
+) -> (Report, Vec<Finding>) {
+    let Some(candidate) = candidate_pr else {
+        return (report, Vec::new());
+    };
+    let needle = format!("#{candidate}");
+    let mut kept = BTreeSet::new();
+    let mut deferred = Vec::new();
+    for finding in report.findings {
+        if finding.code == CODE_MULTI_OWN_HUB && !finding.detail.contains(&needle) {
+            deferred.push(finding);
+            continue;
+        }
+        kept.insert(finding);
+    }
+    (Report::from_findings(kept), deferred)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -433,6 +459,15 @@ mod tests {
         assert_eq!(multi[0].key, "hub/a.json");
         assert!(multi[0].detail.contains("#1643"));
         assert!(multi[0].detail.contains("#1647"));
+        // Innocent candidate (not an owner of hub/a) must not refuse on third-party multi-own.
+        let (scoped, deferred) = filter_findings_for_candidate(report.clone(), Some(1644));
+        assert_eq!(scoped.verdict, Verdict::Green);
+        assert_eq!(deferred.len(), 1);
+        // Implicated candidate still refuses.
+        let (scoped_owner, deferred_owner) =
+            filter_findings_for_candidate(report, Some(1643));
+        assert_eq!(scoped_owner.verdict, Verdict::Refuse);
+        assert!(deferred_owner.is_empty());
     }
 
     #[test]

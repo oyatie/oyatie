@@ -906,7 +906,7 @@ jobs:
           # Hub sole-owner (ADR-0711): build+run on the gate_bin line so shrink-only inline-shell
           # ceiling stays 17 (merge-base). Multi-own among open integ PRs => REFUSE; missing
           # envelopes skips (producer fail-open only for missing authority file).
-          gate_bin="$(buck2 build //ci/facade/affected-target-set:oya-cloud-ci-affected-set-bin --show-output | awk '{print $2}')"; hub_bin="$(buck2 build //ci/facade/affected-target-set:oya-cloud-ci-hub-exclusivity-bin --show-output | awk '{print $2}')"; "${hub_bin}" --repo-root . --live-open-prs --repo "${GITHUB_REPOSITORY}"
+          gate_bin="$(buck2 build //ci/facade/affected-target-set:oya-cloud-ci-affected-set-bin --show-output | awk '{print $2}')"; hub_bin="$(buck2 build //ci/facade/affected-target-set:oya-cloud-ci-hub-exclusivity-bin --show-output | awk '{print $2}')"; "${hub_bin}" --repo-root . --live-open-prs --repo "${GITHUB_REPOSITORY}" --candidate-pr "${{ github.event.pull_request.number }}"
           telemetry_bin="$(buck2 build //ci/facade/affected-target-set:oya-cloud-ci-step-telemetry-bin --show-output | awk '{print $2}')"
           if [ "${EVENT_NAME}" = "pull_request" ]; then
             # PR tier: auto (cone-binding, hard-fail on a NEW break in the changed cone); a FULL

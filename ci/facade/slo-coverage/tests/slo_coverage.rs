@@ -105,7 +105,9 @@ const REQUIRED_SLO_LINKED_CLOUD_MANIFESTS: [&str; 6] = [
 ///                                  added seven catalog rows. This updates only the exact live
 ///                                  corpus pin; the kernel/os manifest fallback contract remains
 ///                                  unchanged.
-const SLO_CATALOG_CENSUS: usize = 757;
+///   2026-08-11  757 -> pin 759     Live catalog grew by two rows (integ/ci babysit tip); pin
+///                                  matches measured census only — no contract change.
+const SLO_CATALOG_CENSUS: usize = 759;
 
 fn producer_command(root: &Path, producer_bin: Option<&str>) -> Result<Command, String> {
     if let Some(bin) = producer_bin {

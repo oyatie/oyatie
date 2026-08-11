@@ -25,7 +25,7 @@ use std::time::Duration;
 
 use ci_affected_target_set::hub_exclusivity::{
     DEFAULT_POLICY_RELPATH, ENVELOPES_RELPATH, GATE_ID, HUBS_PATHS_POINTER, Verdict,
-    evaluate_from_producer_docs, open_pr_facts_from_json,
+    evaluate_from_producer_docs, filter_findings_for_candidate, open_pr_facts_from_json,
 };
 use serde_json::{Value, json};
 
@@ -48,6 +48,8 @@ struct Args {
     open_prs_fixture: Option<PathBuf>,
     live_open_prs: bool,
     repo: Option<String>,
+    /// When set, only multi-own findings that implicate this PR refuse the candidate.
+    candidate_pr: Option<u64>,
 }
 
 fn env_truthy(name: &str) -> bool {
@@ -68,6 +70,7 @@ fn parse_args(mut argv: std::env::Args) -> Result<Args, String> {
     let mut open_prs_fixture = None;
     let mut live_open_prs = env_truthy(LIVE_OPEN_PRS_ENV);
     let mut repo = None;
+    let mut candidate_pr = None;
     while let Some(arg) = argv.next() {
         match arg.as_str() {
             "--repo-root" => {
@@ -88,6 +91,13 @@ fn parse_args(mut argv: std::env::Args) -> Result<Args, String> {
             }
             "--live-open-prs" => live_open_prs = true,
             "--repo" => repo = Some(argv.next().ok_or("--repo needs a value")?),
+            "--candidate-pr" => {
+                let raw = argv.next().ok_or("--candidate-pr needs a value")?;
+                let n: u64 = raw
+                    .parse()
+                    .map_err(|_| format!("--candidate-pr must be a PR number, got {raw:?}"))?;
+                candidate_pr = Some(n);
+            }
             other => return Err(format!("unknown argument `{other}`")),
         }
     }
@@ -97,6 +107,7 @@ fn parse_args(mut argv: std::env::Args) -> Result<Args, String> {
         open_prs_fixture,
         live_open_prs,
         repo,
+        candidate_pr,
     })
 }
 
@@ -342,11 +353,19 @@ fn run(args: &Args) -> ExitCode {
     }
 
     let report = evaluate_from_producer_docs(&policy_doc, &envelopes_doc, &open_prs_doc);
+    let (report, deferred) = filter_findings_for_candidate(report, args.candidate_pr);
+    for f in &deferred {
+        eprintln!(
+            "{LOG}: observe (not candidate) — [{}] {}: {}",
+            f.code, f.key, f.detail
+        );
+    }
     match report.verdict {
         Verdict::Green => {
             println!(
-                "{LOG}: GREEN — {GATE_ID}; authority={HUBS_PATHS_POINTER}; open_prs={}",
-                open_prs_doc.as_array().map(Vec::len).unwrap_or(0)
+                "{LOG}: GREEN — {GATE_ID}; authority={HUBS_PATHS_POINTER}; open_prs={}; candidate={:?}",
+                open_prs_doc.as_array().map(Vec::len).unwrap_or(0),
+                args.candidate_pr
             );
             ExitCode::SUCCESS
         }
@@ -409,6 +428,7 @@ mod tests {
             open_prs_fixture: None,
             live_open_prs: false,
             repo: None,
+            candidate_pr: None,
         };
         let doc = load_open_pr_facts(&args).expect("hermetic empty facts");
         assert_eq!(doc, json!([]));
@@ -431,6 +451,7 @@ mod tests {
             open_prs_fixture: None,
             live_open_prs: true,
             repo: Some("owner/name".to_owned()),
+            candidate_pr: None,
         };
         assert_eq!(resolve_repo(&args).expect("repo"), "owner/name");
     }
@@ -445,6 +466,7 @@ mod tests {
             open_prs_fixture: Some(PathBuf::from("/nonexistent/open-prs.json")),
             live_open_prs: true,
             repo: Some("owner/name".to_owned()),
+            candidate_pr: None,
         };
         let err = load_open_pr_facts(&args).expect_err("missing fixture must not fall through to live");
         assert_eq!(err, ExitCode::from(2));
