@@ -12,20 +12,32 @@ ssot_todo: cargo-lock-sole-owner
 
 # First lock-owning land (this tip)
 
-Do **not** tip-heroics lock updates on `integ/os`, `integ/cloud`, `integ/ci`, `integ/governance`, or lane PRs.
+Dual-homes path trees **only** so freshness/`cargo metadata` can resolve members; forever content owners stay:
 
-## Pending absorbs (after non-owner strips)
+| Path | Forever content tip |
+| --- | --- |
+| `ci/controller/**` | `integ/ci` (#1646) |
+| `os/harness/{oci-executor-oracle,attestation-relying-party}/**` | `integ/os` (#1926) |
 
-| Source tip | Membership delta | Lock action on integ/build | Gate |
-| --- | --- | --- | --- |
-| `#1839` integ/cloud | Remove `cloud/cloud-os/crates/oya-*` glob (burn) | Drop `oya-cloud-os-*-domain` packages from lock after crates gone from `dev` **or** same-wave as burn land | expire cloud toml bridge |
-| `#1926` integ/os | Un-exclude `os/harness/{oci-executor-oracle,attestation-relying-party}` | Add `os-oci-executor-oracle` + `os-attestation-relying-party` via `cargo metadata` with crates present | expire `integ-os-cargo-lock-bridge` waiver |
-| `#1647` integ/governance | Un-exclude `governance/check/apex-gist-integrity` | Add `check-apex-gist-integrity` | drop gov exclude bridge |
-| `#1646` integ/ci | `ci/controller/**` members + lock (freshness bridge @ `1a831291f`) | Take member+lock ownership; content stays on integ/ci | expire ci lock bridge |
-| `#1931` lane | Superseded into `#1926` harness | none (no third writer) | close/strip |
+## Absorbed this land
+
+| Source | Membership / lock action |
+| --- | --- |
+| `#1646` | Add `ci/controller/{app,github-adapter,k8s-adapter,kernel}` members + lock packages `ci-controller-*` |
+| `#1926` | Un-exclude ready: add harness crates + lock packages `os-oci-executor-oracle`, `os-attestation-relying-party` |
+| `#1839` | Drop `cloud/cloud-os/crates/oya-*` glob + prune `oya-cloud-os-*-domain` lock packages |
+| build tip | Refresh missing `port-engine-*` lock packages for existing `build/port-engine/*/*` members |
+
+## Post-land follow-ups
+
+1. `#1646` strips root `Cargo.lock` + controller **members** (sources stay).
+2. `#1839` strips `Cargo.toml` cloud-os glob bridge (build owns it).
+3. `#1926` drops harness exclude bridge.
+4. Expire `integ-os-cargo-lock-bridge.yaml` on specs tip-free after this lands.
+5. `#1647` apex-gist exclude → later build absorb (not this wave).
 
 ## Done-when
 
 1. No open non-`integ/build` PR diffs root `Cargo.lock`.
-2. Temporary excludes/waivers expired in the same wave as the build lock land.
+2. Temporary excludes/waivers expired same-wave or immediately after land.
 3. Freshness green on `integ/build` after lock absorb.
