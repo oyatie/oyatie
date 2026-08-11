@@ -13,6 +13,7 @@ license = "Apache-2.0"
 # proven without any of the machinery it will later drive.
 
 [dependencies]
+port-engine-api = { path = "../../ports/port-engine-api" }
 
 [lib]
 name = "port_engine_kernel"
