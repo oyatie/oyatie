@@ -14,9 +14,13 @@ authority_tier: 3
 | Authority | Version this document was authored against | Status at authoring (2026-08-10) |
 |---|---|---|
 | Repository baseline | `origin/dev` @ `9a56538c74b1fce4d474869956dd278f7fe1981e` | Discovery proposal lane base. |
-| Scope registry | `specs/k8s-port/scope.json` | `pending_source_model_manifest`; disposition vocab `[PORT, CONSUME, EXCLUDE]` only. |
-| F1(b) Proposed | ADR-0712 | OWN disposition + CRI external face; **do not encode scope.json until Accept**. |
-
+| Upstream Kubernetes pin | `v1.36.1`, peeled commit `756939600b9a7180fc2df6550a4585b638875e67` | Pinned program input; discovery only — no pin flip. |
+| Engine | `build/port-engine/*`, v0 | Not in force as a producer for this record. |
+| Neutral rule pack | `specs/port-rules/**`, v0 | Not in force. |
+| Corpus rule policy | `specs/k8s-port/rules/**`, v0 — unauthored | Not in force. |
+| Go front end | Bootstrap extractor; strategy ruled | Not in force. |
+| Reproducibility tuple / receipt schema | `pin`, `snapshot_digest`, `engine_digest`, `rulepack_digest`, `toolchain_digest`, `formatter_digest` | Six required axes; not in force. This record emits no receipt. |
+| Program authority | ADR-0701 live apex + ADR-0715 Proposed (F1(e) preconditions) | Discovery **draft/proposal** only — does not Accept ADR-0715. |
 ## Record identity
 
 - **Stable ID:** `DDR-20260810-cri-external-face-closed-consumer-list-stub`.
