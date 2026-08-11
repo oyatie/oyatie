@@ -218,7 +218,12 @@ rust_binary(
 
 rust_test(
     name = "ci-affected-target-set-owners-from-envelopes-gate",
-    srcs = glob(["tests/**/*.rs", "**/*.json"]),
+    srcs = glob([
+        "tests/**/*.rs",
+        "**/*.json",
+        # Emit face (not *.json): must be owned so affected-set does not escalate on it.
+        "owners-from-envelopes/CODEOWNERS",
+    ]),
     crate = "ci_affected_target_set_owners_from_envelopes_gate",
     crate_root = "tests/owners_from_envelopes.rs",
     visibility = ["PUBLIC"],
