@@ -109,7 +109,10 @@ const REQUIRED_SLO_LINKED_CLOUD_MANIFESTS: [&str; 6] = [
 ///                                  matches measured census only — no contract change.
 ///   2026-08-11  759 -> pin 761     After merge(dev) absorbing #1926 os/harness + cloud-os
 ///                                  residual, live catalog grew by two rows; re-freeze only.
-const SLO_CATALOG_CENSUS: usize = 761;
+///   2026-08-11  761 -> pin 762     BASE MOVE from #1647: registry/catalog/check-apex-gist-
+///                                  integrity.yaml (apex-gist-integrity designed-ahead row).
+///                                  Tracked catalog yamls 762->763; enumerated face rows +1.
+const SLO_CATALOG_CENSUS: usize = 762;
 
 fn producer_command(root: &Path, producer_bin: Option<&str>) -> Result<Command, String> {
     if let Some(bin) = producer_bin {
