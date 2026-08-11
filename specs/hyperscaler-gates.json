@@ -27,8 +27,8 @@
       "docs/standards/release-management.md",
       "docs/standards/ci-lanes.md",
       "docs/checklists/wave-gate.md",
-      "docs/checklists/release-readiness-checklist.md",
-      "docs/checklists/done-definition-checklist.md",
+      "templates/checklists/release-readiness-checklist.md",
+      "templates/checklists/done-definition-checklist.md",
       "specs/products/workflow.json",
       "specs/products/workflow-studio.json",
       "specs/workspace-hygiene.json",
@@ -56,7 +56,7 @@
     "deduplicates_existing": [
       "docs/standards/hyperscaler-best-practices.md",
       "docs/checklists/wave-gate.md",
-      "docs/checklists/release-readiness-checklist.md"
+      "templates/checklists/release-readiness-checklist.md"
     ],
     "supersedes_retired_gate_ids": [
       "HG-GRIT"
