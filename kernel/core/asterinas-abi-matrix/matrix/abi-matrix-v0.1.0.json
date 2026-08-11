@@ -54,7 +54,8 @@
     "release_commit": "23adfdfd72b05cee8d232809caea81a4b33d3488",
     "boundary_crate": "kernel-asterinas-boundary",
     "pin_manifest": "kernel/core/asterinas-boundary/pins/asterinas-release-v0.17.2.json",
-    "boot_iso_asset": "asterinas-nixos-0.17.2-x86_64.iso"
+    "boot_iso_asset": "asterinas-nixos-0.17.2-x86_64.iso",
+    "boot_iso_sha256": "bf6e161ecc8b8080b842a339cee5f55d18b93d99b1e39c7c07681ff3aca0090a"
   },
   "components_profiled": [
     {
@@ -170,7 +171,7 @@
     },
     "proc_sys_cgroupfs": {
       "surface_id": "proc_sys_cgroupfs",
-      "description": "procfs/sysfs/cgroupfs file surfaces. cAdvisor and eviction paths are first-class — mountable ≠ enforcing.",
+      "description": "procfs/sysfs/cgroupfs file surfaces (not cgroup-only). Includes representative /proc/sys and sysfs views plus cAdvisor/eviction paths — mountable ≠ enforcing.",
       "rows": [
         {
           "id": "fs-proc-stat",
@@ -189,6 +190,33 @@
           "severity": "high",
           "g5_trigger": false,
           "notes": "cAdvisor / kubelet memory pressure inputs."
+        },
+        {
+          "id": "fs-proc-sys-net-core-somaxconn",
+          "name": "/proc/sys/net/core/somaxconn",
+          "required_by_node_stack": ["kube-proxy", "CNI", "kubelet"],
+          "available_on_asterinas_pin": "unknown",
+          "severity": "high",
+          "g5_trigger": false,
+          "notes": "Representative /proc/sys (sysctl) load-bearing net core knob for node networking."
+        },
+        {
+          "id": "fs-sys-class-net",
+          "name": "/sys/class/net",
+          "required_by_node_stack": ["CNI", "kube-proxy", "kubelet"],
+          "available_on_asterinas_pin": "unknown",
+          "severity": "high",
+          "g5_trigger": false,
+          "notes": "Representative sysfs network device enumeration."
+        },
+        {
+          "id": "fs-sys-fs-cgroup",
+          "name": "/sys/fs/cgroup",
+          "required_by_node_stack": ["kubelet", "runc", "youki"],
+          "available_on_asterinas_pin": "unknown",
+          "severity": "critical",
+          "g5_trigger": false,
+          "notes": "sysfs view of the cgroup mount; pairs with cgroupfs delegation rows."
         },
         {
           "id": "fs-cgroup-memory-current",
