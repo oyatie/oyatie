@@ -78,11 +78,12 @@ On Accept of **this** ADR:
    MUST be an explicit ADR-0710 status flip by founder process — this Proposed ADR does not
    flip it.
 4. **Timebox trigger (machine-readable):** `MPV2-0056.decision_timebox.deadline_utc_date`
-   is **2026-09-10**. If the D-8 evidence packet is not published by that date (or a successor
-   dated founder amendment to that structured field), founder MUST either publish the packet or
-   record **explicit Reject** of ADR-0710. The timebox does not silently Accept anything. The
-   cross-artifact agreement gate evaluates the timebox schema and, once the UTC date has
-   passed with the work item still open and no Accept/Reject evidence attached, fails closed.
+   is **2026-09-10**. Schema is always enforced by cross-artifact-agreement. Calendar expiry is
+   hermetic: it fires when `as_of_utc_date` on that object (or
+   `masterplan_v2.governance_evaluation_clock.utc_date`) is set past the deadline while the item
+   remains open without Accept/Reject evidence — never via wall clock. If the D-8 packet is not
+   published by the deadline, founder MUST either publish it or record **explicit Reject** of
+   ADR-0710; the timebox does not silently Accept anything.
 5. Until Accept or Reject of ADR-0710, **live law** for admission substrate remains ADR-0701's
    carried ADR-0379/0338 gist (Kubewarden default; Kyverno historical).
 
