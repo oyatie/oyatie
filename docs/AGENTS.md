@@ -123,8 +123,37 @@ INV-DOC-9: doctrine that exists only in a plan file or chat is **not** survived.
 - **achieves:** preserve merge integrity and blast-radius discipline.
 - **origin:** logs/CI green / chat observation treated as APPROVE; roles collapsed.
 - **rule:** observation (logs/CI/reviews) ≠ merge APPROVE authority; orchestrate ≠ implement ≠ babysit.
-- **ensure:** reviewer APPROVE + green `oya-ci-required` remain distinct; coordinator/worker split in this contract.
+- **ensure:** reviewer APPROVE + green `merge-admission-required` (retired brand `oya-ci-required` until PAUSE-AND-PAIR) remain distinct; coordinator/worker split in this contract.
 - **overturn_when:** a recorded OVERRULE replaces the admission model with an equally fail-closed alternative.
+
+### Merge admission + domain green (Phase0)
+
+- **achieves:** honest LOCAL_GREEN for domain tips; one unbranded merge authority.
+- **origin:** tip-free tax (#1660 compute/**, #1680 iac/governance/**) + branded `oya-ci-required`/`firewall`.
+- **rule:** Team ≡ integ envelope root; prefix allow from `envelope_globs`; sole protected check `merge-admission-required`; observation≠APPROVE. Machine: `specs/integ-branch-envelopes.json#path_ownership`.
+- **ensure:** SSOT § Merge admission + domain green; CI dual-emit until protection flip; no premature expected_total bumps for LOCAL_GREEN.
+- **overturn_when:** founder replaces admission model with equally fail-closed unbranded names and prefix-ownership enforcement.
+
+### ADR path shape — challenge overturn (`adr-rename-overturn`)
+
+**Challenge applied now — do NOT mass-rename ADR files.** Forever-correct is
+`docs/decisions/ADR-NNNN-<topic>.md` plus indexes/frontmatter for nav. Binding law:
+ADR-0711 Amendment E-1 + `specs/naming-taxonomy.json` decision-record keep + portable
+core [`templates/portable-swarm-doctrine.md`](../templates/portable-swarm-doctrine.md).
+
+- **achieves:** stable citation paths without high-fan-in rename churn; topic findability via indexes.
+- **origin:** challenged Pattern-First / taxonomy draft that treated `ADR-NNNN` path segments as indefensible optics debt.
+- **rule:** MUST keep `ADR-NNNN-<topic>` filenames; MUST NOT mass-rename for taxonomy theater; indexes carry nav.
+- **ensure:** this five-field overturn present; taxonomy kind `decision-record` verdict keep; Amendment E-1 cited — no rename batch on this tip.
+- **overturn_when:** measured findability failure proves NNNN-topic harmful AND a batched judged rename clears multi-lens review with dual-emit cutover and zero dual-truth.
+
+### Portable doctrine pointer (global contracts)
+
+- **achieves:** repo-agnostic Swarm core survives in Claude/Codex/Cursor global files without +N plans.
+- **origin:** doctrine that lived only in programme plans did not load for every-repo agents.
+- **rule:** single source [`templates/portable-swarm-doctrine.md`](../templates/portable-swarm-doctrine.md) (`portable_doctrine_version`); globals carry short form + pointer; new repos use [`templates/README-doctrine-pointer.md`](../templates/README-doctrine-pointer.md); repo slots stay in root contracts.
+- **ensure:** version pin in the portable template; CHANGELOG row on bump; globals MUST NOT diverge from the short form.
+- **overturn_when:** challenge → OVERRULE bumps `portable_doctrine_version` with same-wave global sync.
 
 ### Survival rule itself (INV-DOC-9)
 
@@ -138,8 +167,8 @@ INV-DOC-9: doctrine that exists only in a plan file or chat is **not** survived.
 
 - **achieves:** every agent runs the same start/end checklist without pasting the whole north-star plan.
 - **origin:** strategy and procedure were conflated; babysit-only regressions followed.
-- **rule:** every implement/audit/review/plan/scout/recon dispatch MUST run the Tier-2 ritual: **A** Orient (one role + MUST-NOT; position diagram; premise check vs HEAD + bead + hindsight) → **B** Reasoning map (≥2 lenses; claim digraph tagged E/I/U; ≥1 real challenge) → **C** Doctrine (envelope-bounded; one writer; observation≠APPROVE; no `*-fast`; Claim `docs_touched`/`docs_action`) → **D** Close (role-scaled receipt; flow delta; exit — no CI babysit). Use a **position diagram** for orientation and a **claim digraph** when ≥2 load-bearing claims depend on each other. Dispatch cards cite this section + role + lane mission — not the whole programme SSOT. Forever home is `/templates/checklists/swarm-agent-ritual.md` (landed; `docs/checklists/` deleted — do **not** recreate); session-loaded copy rides process_meta `.cursor/rules/` on `integ/ci`.
-- **ensure:** this five-field rule present; orchestrator refuses babysit-only fleet (hard rule); receipts include role-scaled evidence; reorg-move-out bead tracks the templates land.
+- **rule:** every implement/audit/review/plan/scout/recon dispatch MUST run the Tier-2 ritual: **A** Orient (one role + MUST-NOT; position diagram; premise check vs HEAD + bead + hindsight) → **B** Reasoning map (≥2 lenses; claim digraph tagged E/I/U; ≥1 real challenge) → **C** Doctrine (envelope-bounded; one writer; observation≠APPROVE; no `*-fast`; Claim `docs_touched`/`docs_action`; Cursor Automations advisory-only) → **D** Close (role-scaled receipt; flow delta; exit — no CI babysit). Use a **position diagram** for orientation and a **claim digraph** when ≥2 load-bearing claims depend on each other. Dispatch cards cite this section + role + lane mission — not the whole programme SSOT. Forever home is `/templates/checklists/swarm-agent-ritual.md` (landed; includes **Cursor Automations** subsection; `docs/checklists/` deleted — do **not** recreate); session-loaded copy rides process_meta `.cursor/rules/` on `integ/ci`.
+- **ensure:** this five-field rule present; orchestrator refuses babysit-only fleet (hard rule); receipts include role-scaled evidence; Automations subsection present in the forever checklist; reorg-move-out bead tracks the templates land.
 - **overturn_when:** a recorded challenge shows the ritual blocks delivery AND a replacement ritual with five fields lands same-wave.
 
 ## RFC-2119 normative-language statement
@@ -176,7 +205,9 @@ For any question, route to its authority. Click the link; do not duplicate inlin
 | Release / incident / on-call | [`RELEASE-MANAGEMENT.md`](RELEASE-MANAGEMENT.md) <!-- forward-reference: wave-1 -->, [`INCIDENT-MANAGEMENT.md`](INCIDENT-MANAGEMENT.md) <!-- forward-reference: wave-1 -->, [`standards/on-call.md`](standards/on-call.md) <!-- forward-reference: wave-1 --> |
 | Glossary (canonical vocabulary) | [`GLOSSARY.md`](GLOSSARY.md) <!-- forward-reference: wave-1 --> |
 | Machine-readable mirrors of the catalog | [`machine-readable/`](machine-readable/) <!-- forward-reference: wave-1 --> |
-| Per-dispatch agent ritual (Tier 2 — diagram + digraph + doctrine) | This contract § Doctrine survival → Per-dispatch ritual; forever home `/templates/checklists/swarm-agent-ritual.md` (landed); session rule under process_meta `.cursor/rules/` (`integ/ci`) |
+| Per-dispatch agent ritual (Tier 2 — diagram + digraph + doctrine) | This contract § Doctrine survival → Per-dispatch ritual; forever home `/templates/checklists/swarm-agent-ritual.md` (landed; Automations subsection); session rule under process_meta `.cursor/rules/` (`integ/ci`) |
+| Portable Swarm doctrine (repo-agnostic global core) | [`../templates/portable-swarm-doctrine.md`](../templates/portable-swarm-doctrine.md); new-repo pointer [`../templates/README-doctrine-pointer.md`](../templates/README-doctrine-pointer.md) |
+| ADR path shape overturn (no mass rename) | This contract § Doctrine survival → ADR path shape; ADR-0711 Amendment E-1 (cite; do not dual-home enumerations) |
 
 ## Bounded delivery and preservation
 
@@ -453,6 +484,7 @@ The full machine-readable list is in this file's front-matter `excludes:` block.
 
 ## Sources scanned
 
+- 2026-08-11 — portable Swarm doctrine pointer + adr-rename-overturn challenge + Automations ritual cite; bead `oyatie-dxz` docs-governance; no mass ADR rename.
 - 2026-08-10 — anti-branding: remove external brand/archive URL citations from § Bounded delivery and per-agent appendices; cite Amendment C operating-patterns catalog / reflection corpus (`specs/agentic-operating-patterns.json`); bead `oyatie-dxz.5`.
 - 2026-08-10 — INV-DOC-9 doctrine survival (binding) + DOC-UPDATE same-wave co-change amendment; bead `oyatie-dxz.5` under docs-governance epic `oyatie-dxz`; Amendment C operating-patterns catalog / reflection corpus (brand-free).
 - 2026-05-10 — initial draft authored from agentic-workflow best practice + RFC-2119 + RFC-8174 + Diátaxis (historical; do not treat external product names as authority).
