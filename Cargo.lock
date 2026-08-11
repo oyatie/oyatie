@@ -7126,14 +7126,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "os-oci-executor-oracle"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_json",
-]
-
-[[package]]
 name = "os-perf-domain"
 version = "0.1.0"
 dependencies = [
