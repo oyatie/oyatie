@@ -432,8 +432,16 @@ fn general_arc_runner_has_no_database_admin_projection(values: &str) -> bool {
 fn live_postgres_arc_cell_is_ephemeral_and_isolated(values: &str) -> bool {
     const POSTGRES_16_DIGEST: &str = "mirror.gcr.io/library/postgres:16@sha256:33f923b05f64ca54ac4401c01126a6b92afe839a0aa0a52bc5aeb5cc958e5f20";
 
+    // maxRunners:1 was the live overflow cell; maxRunners:0 is the tip-declared
+    // retirement (hosted postgres:16 services own merge gates). Tombstone values
+    // must keep the isolation shape until the Argo app is removed.
+    let max_runners_ok = values.lines().any(|line| {
+        let bare = line.split('#').next().unwrap_or("").trim();
+        bare == "maxRunners: 1" || bare == "maxRunners: 0"
+    });
+
     values.contains("runnerScaleSetName: oya-live-postgres-arm64")
-        && values.contains("maxRunners: 1")
+        && max_runners_ok
         && values.contains("name: arc-gha-rs-controller")
         && values.contains("oya.io/ci-cell: live-postgres")
         && values.contains("name: generate-postgres-credentials")
@@ -1578,7 +1586,7 @@ fn live_postgres_lanes_use_a_dedicated_ephemeral_arc_sidecar_cell() {
         .unwrap_or_else(|e| panic!("read {}: {e}", live_values_path.display()));
     assert!(
         live_postgres_arc_cell_is_ephemeral_and_isolated(&live_values),
-        "dedicated live-Postgres ARC values must declare a pinned native sidecar, memory-backed per-pod state and credentials, readiness, and no shared Secret/CNPG reference"
+        "dedicated live-Postgres ARC values must keep the ephemeral isolation shape (maxRunners 1 live or 0 retired) with pinned native sidecar, memory-backed per-pod state/credentials, readiness, and no shared Secret/CNPG reference"
     );
 
     let policy_path = live_postgres_network_policy_path(&root);
