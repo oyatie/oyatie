@@ -202,3 +202,28 @@ rust_test(
         "third-party//:serde_json",
     ],
 )
+
+# owners-from-envelopes: CODEOWNERS + directory OWNERS faces from integ envelopes
+# (#path_ownership / #roots / #planes). Living SSOT domain_stack_integ_model.
+rust_binary(
+    name = "oya-cloud-ci-owners-from-envelopes-bin",
+    srcs = glob(["src/**/*.rs"]),
+    crate_root = "src/bin/oya-cloud-ci-owners-from-envelopes.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-affected-target-set",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "ci-affected-target-set-owners-from-envelopes-gate",
+    srcs = glob(["tests/**/*.rs", "**/*.json"]),
+    crate = "ci_affected_target_set_owners_from_envelopes_gate",
+    crate_root = "tests/owners_from_envelopes.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-affected-target-set",
+        "third-party//:serde_json",
+    ],
+)

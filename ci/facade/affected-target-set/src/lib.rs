@@ -46,11 +46,15 @@
 //! Also hosts [`anti_drift_drift_grep`] — mechanical REFUSE when ADR-0711 / PORTABLE prose
 //! re-lists roots/hubs/freeze enumerations outside
 //! `specs/integ-branch-envelopes.json#anti_drift.prose_must_cite_not_enumerate` (INV-DOC-2).
+//!
+//! Also hosts [`owners_from_envelopes`] — generate CODEOWNERS / directory OWNERS faces from
+//! `#roots`/`#planes` (+ `#path_ownership`) without Cargo.lock hub churn from a new package.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 #![forbid(unsafe_code)]
 
 pub mod anti_drift_drift_grep;
 pub mod hub_exclusivity;
+pub mod owners_from_envelopes;
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
