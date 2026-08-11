@@ -45,6 +45,69 @@ pub const G5_TRIGGER_CLASSES: [&str; 3] = ["cgroup_v2_delegation", "netlink", "o
 /// data_class: PUBLIC
 pub const PROFILED_COMPONENTS: [&str; 4] = ["runc", "youki", "containerd", "kubelet"];
 
+/// Exact v0.1.0 row-id census per surface (availability may mutate; identity set may not).
+/// data_class: PUBLIC
+pub const REQUIRED_ROWS_V0_1_0: &[(&str, &[&str])] = &[
+    (
+        "syscalls",
+        &[
+            "sc-clone-namespaces",
+            "sc-mount-umount",
+            "sc-pivot-root",
+            "sc-seccomp",
+            "sc-bpf-cgroup-devices",
+        ],
+    ),
+    (
+        "proc_sys_cgroupfs",
+        &[
+            "fs-proc-stat",
+            "fs-proc-meminfo",
+            "fs-cgroup-memory-current",
+            "fs-cgroup-cpu-stat",
+            "fs-cgroup-controllers",
+            "fs-cgroup-subtree-control",
+            "fs-cgroup-procs",
+            "fs-cgroup-memory-max",
+            "fs-cgroup-cpu-max",
+            "fs-cgroup-pids-max",
+            "fs-statfs-eviction",
+        ],
+    ),
+    (
+        "netlink",
+        &["nl-route", "nl-link", "nl-addr", "nl-netfilter"],
+    ),
+    (
+        "mount_semantics",
+        &[
+            "mnt-ms-shared",
+            "mnt-ms-slave",
+            "mnt-overlayfs-whiteouts",
+            "mnt-pivot-root",
+        ],
+    ),
+];
+
+/// Closed set of row ids that MUST declare `g5_trigger: true` in v0.1.0.
+/// data_class: PUBLIC
+pub const REQUIRED_G5_TRIGGER_IDS: &[&str] = &[
+    "sc-bpf-cgroup-devices",
+    "fs-cgroup-memory-current",
+    "fs-cgroup-cpu-stat",
+    "fs-cgroup-controllers",
+    "fs-cgroup-subtree-control",
+    "fs-cgroup-procs",
+    "fs-cgroup-memory-max",
+    "fs-cgroup-cpu-max",
+    "fs-cgroup-pids-max",
+    "nl-route",
+    "nl-link",
+    "nl-addr",
+    "nl-netfilter",
+    "mnt-overlayfs-whiteouts",
+];
+
 /// Matchable library error for matrix parse / validation / evaluation.
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[non_exhaustive]
@@ -258,15 +321,67 @@ pub fn validate_matrix(root: &Value) -> Result<(), MatrixError> {
             )));
         }
     }
+    let mut seen_ids: Vec<String> = Vec::new();
     for surface in REQUIRED_SURFACES {
         if !surfaces.contains_key(surface) {
             return Err(MatrixError::Surface(format!(
                 "surfaces missing required surface {surface}"
             )));
         }
-        validate_surface_rows(surface, &surfaces[surface])?;
+        validate_surface_rows(surface, &surfaces[surface], &mut seen_ids)?;
     }
+    validate_row_census_and_g5_triggers(surfaces)?;
 
+    Ok(())
+}
+
+fn validate_row_census_and_g5_triggers(
+    surfaces: &serde_json::Map<String, Value>,
+) -> Result<(), MatrixError> {
+    for (surface, expected_ids) in REQUIRED_ROWS_V0_1_0 {
+        let rows = surfaces[*surface]["rows"]
+            .as_array()
+            .ok_or_else(|| MatrixError::Row(format!("{surface}.rows missing")))?;
+        let actual: Vec<&str> = rows
+            .iter()
+            .filter_map(|r| r.get("id").and_then(|v| v.as_str()))
+            .collect();
+        if actual.len() != expected_ids.len() {
+            return Err(MatrixError::Row(format!(
+                "surface {surface} must declare exactly {} versioned row ids; found {}",
+                expected_ids.len(),
+                actual.len()
+            )));
+        }
+        for expected in *expected_ids {
+            if !actual.iter().any(|id| id == expected) {
+                return Err(MatrixError::Row(format!(
+                    "surface {surface} missing required versioned row id {expected}"
+                )));
+            }
+        }
+        for id in &actual {
+            if !expected_ids.iter().any(|e| e == id) {
+                return Err(MatrixError::Row(format!(
+                    "surface {surface} contains undeclared row id {id}"
+                )));
+            }
+        }
+        for row in rows {
+            let id = row.get("id").and_then(|v| v.as_str()).unwrap_or_default();
+            let g5 = row.get("g5_trigger").and_then(|v| v.as_bool()).unwrap_or(false);
+            if REQUIRED_G5_TRIGGER_IDS.contains(&id) && !g5 {
+                return Err(MatrixError::Row(format!(
+                    "row {id} is in the closed G5-trigger set and must declare g5_trigger=true"
+                )));
+            }
+            if g5 && !REQUIRED_G5_TRIGGER_IDS.contains(&id) {
+                return Err(MatrixError::Row(format!(
+                    "row {id} declares g5_trigger=true but is outside the closed G5-trigger set"
+                )));
+            }
+        }
+    }
     Ok(())
 }
 
@@ -315,10 +430,19 @@ fn validate_components_profiled(
     Ok(())
 }
 
-fn validate_surface_rows(surface: &str, surface_val: &Value) -> Result<(), MatrixError> {
+fn validate_surface_rows(
+    surface: &str,
+    surface_val: &Value,
+    seen_ids: &mut Vec<String>,
+) -> Result<(), MatrixError> {
     let obj = surface_val
         .as_object()
         .ok_or_else(|| MatrixError::Surface(format!("surface {surface} must be an object")))?;
+    if obj.get("surface_id").and_then(|v| v.as_str()) != Some(surface) {
+        return Err(MatrixError::Surface(format!(
+            "surfaces.{surface}.surface_id must equal enclosing key {surface}"
+        )));
+    }
     let rows = obj
         .get("rows")
         .and_then(|v| v.as_array())
@@ -353,6 +477,12 @@ fn validate_surface_rows(surface: &str, surface_val: &Value) -> Result<(), Matri
             .ok_or_else(|| {
                 MatrixError::Row(format!("{surface}[{i}].id must be a non-empty string"))
             })?;
+        if seen_ids.iter().any(|s| s == id) {
+            return Err(MatrixError::Row(format!(
+                "duplicate matrix row id {id} (must be globally unique)"
+            )));
+        }
+        seen_ids.push(id.to_string());
         let _name = r
             .get("name")
             .and_then(|v| v.as_str())
@@ -360,7 +490,6 @@ fn validate_surface_rows(surface: &str, surface_val: &Value) -> Result<(), Matri
             .ok_or_else(|| {
                 MatrixError::Row(format!("{surface}[{i}].name must be a non-empty string"))
             })?;
-        let _ = id;
 
         let avail = r
             .get("available_on_asterinas_pin")
@@ -640,6 +769,53 @@ mod tests {
         root["surfaces"]["extra_surface"] = serde_json::json!({"rows": []});
         let err = validate_matrix(&root).expect_err("extra surface");
         assert!(err.to_string().contains("extra_surface") || err.to_string().contains("exactly"));
+    }
+
+    #[test]
+    fn rejects_surface_id_mismatch() {
+        let mut root = parse_matrix().unwrap();
+        root["surfaces"]["netlink"]["surface_id"] = Value::String("other".into());
+        let err = validate_matrix(&root).expect_err("surface_id mismatch");
+        assert!(err.to_string().contains("surface_id"));
+    }
+
+    #[test]
+    fn rejects_duplicate_row_ids() {
+        let mut root = parse_matrix().unwrap();
+        // Cross-surface id collision (mount row renamed to an existing netlink id).
+        root["surfaces"]["mount_semantics"]["rows"][0]["id"] =
+            Value::String("nl-route".into());
+        let err = validate_matrix(&root).expect_err("duplicate id");
+        assert!(
+            err.to_string().contains("duplicate")
+                || err.to_string().contains("undeclared")
+                || err.to_string().contains("missing required")
+        );
+    }
+
+    #[test]
+    fn rejects_false_g5_trigger_on_closed_set_row() {
+        let mut root = parse_matrix().unwrap();
+        let rows = root["surfaces"]["netlink"]["rows"].as_array_mut().unwrap();
+        for row in rows.iter_mut() {
+            if row["id"] == "nl-route" {
+                row["g5_trigger"] = Value::Bool(false);
+                row["available_on_asterinas_pin"] = Value::String("gap".into());
+            }
+        }
+        let err = validate_matrix(&root).expect_err("must refuse false-clear G5 bypass");
+        assert!(err.to_string().contains("g5_trigger"));
+    }
+
+    #[test]
+    fn rejects_missing_versioned_row_id() {
+        let mut root = parse_matrix().unwrap();
+        let rows = root["surfaces"]["netlink"]["rows"].as_array_mut().unwrap();
+        rows.retain(|r| r["id"] != "nl-netfilter");
+        let err = validate_matrix(&root).expect_err("missing census row");
+        assert!(
+            err.to_string().contains("nl-netfilter") || err.to_string().contains("exactly")
+        );
     }
 
     #[test]
