@@ -1,0 +1,718 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.com/specs/naming-taxonomy.json",
+  "title": "NamingTaxonomy",
+  "description": "Pattern-first naming taxonomy for paths, crates, CI jobs, merge contexts, checks, and policy faces. Extends capability-first (ADR-0701/0562), plane hubs (ADR-0119), and service colocation (ADR-0131 lineage). Brand-first prefixes are debt, not grammar.",
+  "_meta": {
+    "doc_class": "Machine-Readable-Spec",
+    "spec_id": "EXE-NAMING-TAXONOMY",
+    "version": "1.2.1",
+    "status": "Accepted",
+    "owner_team": "council-architecture",
+    "created_at": "2026-08-10T00:00:00Z",
+    "authority_adr": "docs/decisions/ADR-0711-swarm-delivery-law-integ-branch-topology.md#Amendment-B-Pattern-First",
+    "self_owner_branch": "integ/specs",
+    "primary_consumers": [
+      "specs/integ-branch-envelopes.json#naming",
+      "governance/check/integ-envelope (future)",
+      ".claude/workflows/deliver.js Claim (future classifier)"
+    ],
+    "extends": [
+      "ADR-0701 (capability-first layout apex)",
+      "ADR-0562 (C/P/A/F faces — topology retained under ADR-0701)",
+      "ADR-0119 (flat cross-cutting specs/ hub)",
+      "ADR-0131 lineage (owner-colocated product artifacts)",
+      "ADR-0541 (g3doc owner-colocated docs)",
+      "docs/standards/crate-naming-convention.md (role segments; brand-prefix clause SUPERSEDED for greenfield)",
+      "docs/standards/naming-convention-bnf-v4.md (cross-artifact id grammar — align role tokens)"
+    ],
+    "supersedes_for_greenfield": [
+      "ADR-0017 / crate-naming-convention required_prefix=oya- as durable greenfield law",
+      "brand-first cloud-ci-* / oya-cloud-ci-* gate and binary names"
+    ],
+    "prior_version": "1.2.0",
+    "updated_at": "2026-08-11T00:00:00Z",
+    "accepted_at": "2026-08-11T00:00:00Z",
+    "acceptance_note": "Promoted Accepted on #1644 so Claim rename/classifier refusal criteria match ADR-0711 Amendment B/C + END-STATE-POLICY (Proposed carries no implement authority)."
+  },
+  "pattern_first_law": {
+    "rule": "Grammar, semantics, taxonomy, structure, and architecture MUST follow an established pattern. If no hyperscaler-maintainable AND mechanically-classifiable pattern exists, ESTABLISH THE PATTERN FIRST (this file + ADR amendment), THEN apply renames/reorgs as instances. No one-off bespoke names.",
+    "greenfield_test": "path + filename alone convey purpose without requiring brand lore or ADR number recall",
+    "forbidden_rationale": [
+      "history_or_brand_justifies_opaque_name",
+      "see_ADR_N_as_primary_module_explanation",
+      "keep_misleading_name_for_compatibility_without_alias_plan"
+    ]
+  },
+  "kinds": {
+    "capability-root": {
+      "description": "Registered capability top-level directory with C/P/A/F faces",
+      "path_shape": "<capability>/{core,ports,adapters,facade}/…",
+      "name_shape": "<capability> (single kebab token from capability-registry)",
+      "integ": "integ/<capability>",
+      "examples_good": [
+        "iam/",
+        "ci/",
+        "flags/",
+        "audit/"
+      ],
+      "examples_bad": [
+        "oya/",
+        "cloud/"
+      ]
+    },
+    "plane-hub": {
+      "description": "Cross-cutting hub plane (not product dump)",
+      "path_shape": "{docs,specs,templates,contracts,registry,evidence}/…",
+      "name_shape": "topic tokens; no product brand prefix",
+      "integ": "integ/docs | integ/specs | owning plane integ",
+      "examples_good": [
+        "specs/masterplan.json",
+        "templates/checklists/"
+      ],
+      "examples_bad": [
+        "docs/products/ dump",
+        "specs/microservices/ type-dump"
+      ]
+    },
+    "meta-root": {
+      "description": "Platform meta rung outside capability ladder",
+      "path_shape": "{kernel,os,build,governance,third-party}/…",
+      "name_shape": "role token",
+      "integ": "integ/<meta> when registered else destination integ",
+      "examples_good": [
+        "governance/check/",
+        "build/toolchains/"
+      ],
+      "examples_bad": [
+        "infra/ junk drawer"
+      ]
+    },
+    "check-crate": {
+      "description": "Hermetic governance/fitness check engine under governance/check/",
+      "path_shape": "governance/check/<role>/",
+      "name_shape": "<role> (behavior: what is checked)",
+      "cargo_shape": "check-<role> or bare <role> matching directory",
+      "integ": "integ/governance",
+      "examples_good": [
+        "governance/check/adr-citation-closure/",
+        "governance/check/integ-envelope/"
+      ],
+      "examples_bad": [
+        "libs/oya-check-*",
+        "libs/oya-governance-*-kernel as forever home"
+      ]
+    },
+    "ci-facade": {
+      "description": "CI admission gate / producer under ci/facade/",
+      "path_shape": "ci/facade/<role>/",
+      "name_shape": "<role> (behavior)",
+      "buck_shape": "ci-<role> | ci-<role>-gate | ci-<role>-bin",
+      "integ": "integ/ci",
+      "examples_good": [
+        "ci/facade/baseline-ratchet/",
+        "ci/facade/affected-target-set/"
+      ],
+      "examples_bad": [
+        "oya-cloud-ci-*-app",
+        "cloud/cloud-ci/gates/*"
+      ]
+    },
+    "ci-job": {
+      "description": "GitHub Actions (or successor) job display name and job key",
+      "path_shape": ".github/workflows/<workflow>.yml::<job_key>",
+      "name_shape": "role-first prose or kebab; NO ADR numbers; NO brand prefixes",
+      "integ": "integ/ci",
+      "examples_good": [
+        "generated-artifact-freshness (lock + faces)",
+        "admission-baseline-ratchet (+ gate-registration)",
+        "affected-target-set (binding workspace coverage)"
+      ],
+      "examples_bad": [
+        "freshness (lock + generated faces, ADR-0539)",
+        "cloud-ci-firewall (baseline ratchet + gate-registration meta-test)",
+        "gate · affected-set (ADR-0554, binding workspace coverage)"
+      ]
+    },
+    "merge-gate-context": {
+      "description": "Single required branch-protection / merge-admission status context",
+      "path_shape": "workflow fan-in job name (and any dual-emit alias)",
+      "name_shape": "<role>-required — describes admission role, not product brand",
+      "integ": "integ/ci (in-repo) + founder-paired branch protection flip",
+      "examples_good": [
+        "merge-admission-required"
+      ],
+      "examples_bad": [
+        "oya-ci-required",
+        "cloud-ci-required"
+      ],
+      "dual_emit_rule": "While protection still keys the legacy context, emit BOTH legacy and forever names as sibling fan-in jobs with identical needs/verdict. Founder flips protection in one line; then delete legacy job."
+    },
+    "policy-face": {
+      "description": "Machine-readable gate/policy/disposition DATA face",
+      "path_shape": "<owner>/<role>.{json,toml,yaml} or oya-ci.toml [[gates.enabled]] id",
+      "name_shape": "<role> matching ci-facade / check-crate role",
+      "integ": "owning integ (usually integ/ci or integ/governance)",
+      "examples_good": [
+        "id = \"baseline-ratchet\"",
+        "id = \"brand-residue\""
+      ],
+      "examples_bad": [
+        "id = \"cloud-ci-firewall\"",
+        "id = \"cloud-ci-freshness\"",
+        "required_prefix = \"oya-\""
+      ]
+    },
+    "service-colocation": {
+      "description": "Product/service artifacts colocated with owning capability or app/<product>",
+      "path_shape": "<capability>/… or app/<product>/…",
+      "name_shape": "capability or product role token",
+      "integ": "integ/<capability> or product integ",
+      "examples_good": [
+        "iam/facade/identity-service/",
+        "app/<product>/"
+      ],
+      "examples_bad": [
+        "specs/microservices/<product>.json as forever home",
+        "docs/products/ dump"
+      ]
+    },
+    "decision-record": {
+      "description": "Live architecture decision file under docs/decisions/",
+      "path_shape": "docs/decisions/ADR-NNNN-<topic>.md",
+      "name_shape": "ADR-NNNN-<topic> kebab; number is durable path segment; indexes/frontmatter carry nav",
+      "integ": "integ/docs (hub) with integ/specs adjunct when co-landing doctrine",
+      "examples_good": [
+        "docs/decisions/ADR-0711-swarm-delivery-law-integ-branch-topology.md"
+      ],
+      "examples_bad": [
+        "docs/decisions/swarm-delivery-law-integ-branch-topology.md (topic-only mass-rename theater)",
+        "docs/decisions/ADR-711-missing-zero-pad.md"
+      ],
+      "batch_rule": "MUST NOT mass-rename ADR files for taxonomy optics; keep ADR-NNNN-<topic>; indexes carry nav (adr-rename-overturn)",
+      "achieves": "Stable citation paths + ordered indexes without high-fan-in rename churn",
+      "origin": "Challenged Pattern-First draft that treated ADR-NNNN path prefixes as indefensible",
+      "ensure": "overturned_patterns OP-adr-numbered-decision-paths verdict=keep; ADR-0711 Amendment E",
+      "overturn_when": "Measured findability failure + batched judged rename plan clears 16-lens with dual-emit cutover"
+    },
+    "process-kit": {
+      "description": "Agent/process tooling surfaces (thin; not product)",
+      "path_shape": ".{grok,claude,codex,cursor,beads,github}/…",
+      "name_shape": "tool role; no product brand in durable authority paths",
+      "integ": "integ/specs bootstrap adjunct or process-kit integ",
+      "examples_good": [
+        ".grok/programs/delivery-fabric/",
+        ".claude/workflows/deliver.js"
+      ],
+      "examples_bad": [
+        ".omc/ as tracked authority"
+      ]
+    },
+    "fixture-corpus": {
+      "description": "Gate fixture trees under specs/fixtures/",
+      "path_shape": "specs/fixtures/<role>/",
+      "name_shape": "<role> matching owning gate",
+      "integ": "integ/ci or integ/specs for cross-cutting",
+      "examples_good": [
+        "specs/fixtures/ci-baseline-ratchet/"
+      ],
+      "examples_bad": [
+        "specs/fixtures/cloud-ci-firewall/"
+      ]
+    },
+    "shared-lib-debt": {
+      "description": "libs/ shared crates pending base/ or capability-core reorg (Amendment B reorg_now)",
+      "path_shape": "libs/<role>/ (greenfield) — NOT libs/oya-*",
+      "name_shape": "<domain>-<role>[-<face>] without leading brand",
+      "integ": "integ/libs during strangler; destination integ/<capability> or integ for base/",
+      "examples_good": [
+        "libs/data-outbox-kernel/ → data/core/… or base/"
+      ],
+      "examples_bad": [
+        "libs/oya-shared-*",
+        "libs/oya-governance-*",
+        "libs/oya-check-*"
+      ]
+    }
+  },
+  "grammar": {
+    "role_first": true,
+    "token_separator": "-",
+    "case": "kebab-dir_and_cargo; snake_crate_root_ok",
+    "self_explanatory_path_test": "A new engineer reading only the path+filename can state the unit's job without opening an ADR or brand glossary",
+    "forbidden_leading_brand_prefixes": [
+      "oya-",
+      "oya_",
+      "cloud-",
+      "cloud_"
+    ],
+    "forbidden_leading_brand_note": "Leading product-brand prefixes are anti-patterns for durable names. Historical citations and carve-outs in deny-lists are not greenfield grammar. Brand prefix alone NEVER justifies keep_forever.",
+    "forbidden_path_segments": [
+      {
+        "pattern": "ADR-[0-9]{4}",
+        "where": "path segments and durable filenames OUTSIDE docs/decisions/",
+        "allowed_in": [
+          "docs/decisions/ADR-NNNN-<topic>.md (Amendment E / adr-rename-overturn — forever path shape)",
+          "docs/ADR-INDEX.md rows",
+          "frontmatter id fields",
+          "prose citations",
+          "archive provenance"
+        ],
+        "note": "CI job titles and non-decision durable paths still MUST NOT embed ADR-NNNN; decision-record filenames KEEP ADR-NNNN-<topic>"
+      }
+    ],
+    "forbidden_user_visible_tokens": [
+      "ADR-[0-9]{4} inside CI job name: fields",
+      "firewall as brand for baseline-ratchet role",
+      "retired CI/SCM brand stems as live product vocabulary"
+    ],
+    "ci_job_name_grammar": "<role> [(short qualifier)] — no ADR numbers, no brand prefixes, no opaque metaphors",
+    "merge_gate_grammar": "<admission-role>-required",
+    "buck_target_grammar": "ci-<role>[-gate|-bin|-unittest] | check-<role>[-gate]",
+    "cargo_package_grammar": "<role> | <domain>-<role> | ci-<role> | check-<role> — no leading oya-/cloud-"
+  },
+  "classification_rules": [
+    {
+      "id": "CR-capability-root",
+      "when": "path matches registered capability root from specs/capability-registry.json",
+      "kind": "capability-root",
+      "integ": "integ/<capability>",
+      "name_shape": "kinds.capability-root.name_shape"
+    },
+    {
+      "id": "CR-plane-hub",
+      "when": "path under docs/|specs/|templates/|contracts/|registry/|evidence/ AND cross-cutting (not product dump)",
+      "kind": "plane-hub",
+      "integ": "integ/docs or integ/specs per hubs sole-owner",
+      "name_shape": "kinds.plane-hub.name_shape"
+    },
+    {
+      "id": "CR-check-crate",
+      "when": "path under governance/check/<name>/ OR libs/oya-check-* OR libs/oya-governance-*",
+      "kind": "check-crate",
+      "integ": "integ/governance",
+      "name_shape": "kinds.check-crate.name_shape",
+      "debt_signal": "libs/oya-check-* and libs/oya-governance-* are branded shared-lib-debt pending move/rename into governance/check/<role>"
+    },
+    {
+      "id": "CR-ci-facade",
+      "when": "path under ci/facade/<name>/ OR historical cloud/cloud-ci/gates/* OR buck/cargo name oya-cloud-ci-*",
+      "kind": "ci-facade",
+      "integ": "integ/ci",
+      "name_shape": "kinds.ci-facade.name_shape"
+    },
+    {
+      "id": "CR-ci-job",
+      "when": "GitHub workflow job key or job name: field under .github/workflows/",
+      "kind": "ci-job",
+      "integ": "integ/ci",
+      "name_shape": "kinds.ci-job.name_shape"
+    },
+    {
+      "id": "CR-merge-gate",
+      "when": "fan-in job that is the sole required branch-protection context OR alias thereof",
+      "kind": "merge-gate-context",
+      "integ": "integ/ci (+ founder protection flip)",
+      "name_shape": "kinds.merge-gate-context.name_shape"
+    },
+    {
+      "id": "CR-policy-face",
+      "when": "oya-ci.toml [[gates.enabled]].id OR gate-disposition / baseline / policy JSON faces",
+      "kind": "policy-face",
+      "integ": "owning integ",
+      "name_shape": "kinds.policy-face.name_shape"
+    },
+    {
+      "id": "CR-decision-record",
+      "when": "docs/decisions/**/*.md",
+      "kind": "decision-record",
+      "integ": "integ/docs",
+      "name_shape": "kinds.decision-record.name_shape"
+    },
+    {
+      "id": "CR-fixture",
+      "when": "specs/fixtures/<name>/",
+      "kind": "fixture-corpus",
+      "integ": "integ/ci or integ/specs",
+      "name_shape": "kinds.fixture-corpus.name_shape"
+    },
+    {
+      "id": "CR-shared-lib-debt",
+      "when": "libs/** with leading oya-/cloud- OR Amendment B libs/ reorg_now",
+      "kind": "shared-lib-debt",
+      "integ": "integ/libs → destination",
+      "name_shape": "kinds.shared-lib-debt.name_shape"
+    }
+  ],
+  "canonical_instances": [
+    {
+      "name_now": "oya-ci-required",
+      "kind": "merge-gate-context",
+      "name_forever": "merge-admission-required",
+      "grammar_compliant": false,
+      "violations": [
+        "leading_brand_prefix:oya-"
+      ],
+      "action": "keep_forever_with_rename",
+      "redesign": "refactor",
+      "owning_integ": "integ/ci",
+      "land_plan": "dual_emit_sibling_fan_in_then_founder_protection_flip",
+      "what_it_does": "Fan-in job: green IFF every required gate lane succeeded; sole branch-protection merge context today",
+      "lenses_applied": "all-16",
+      "taxonomy_posture": "replace_not_encode"
+    },
+    {
+      "name_now": "freshness (lock + generated faces, ADR-0539)",
+      "kind": "ci-job",
+      "name_forever": "generated-artifact-freshness (lock + faces)",
+      "grammar_compliant": false,
+      "violations": [
+        "adr_number_in_user_visible_name"
+      ],
+      "action": "keep_forever_with_rename",
+      "redesign": "refactor",
+      "owning_integ": "integ/ci",
+      "what_it_does": "Fast lane: stale Cargo.lock + stale generated faces first diagnosis",
+      "lenses_applied": "all-16",
+      "taxonomy_posture": "replace_not_encode"
+    },
+    {
+      "name_now": "cloud-ci-firewall (baseline ratchet + gate-registration meta-test)",
+      "kind": "ci-job",
+      "name_forever": "admission-baseline-ratchet (+ gate-registration)",
+      "grammar_compliant": false,
+      "violations": [
+        "leading_brand_prefix:cloud-",
+        "opaque_brand_metaphor:firewall"
+      ],
+      "action": "keep_forever_with_rename",
+      "redesign": "refactor",
+      "owning_integ": "integ/ci",
+      "path_now": "ci/facade/baseline-ratchet/",
+      "path_forever": "ci/facade/baseline-ratchet/",
+      "what_it_does": "Merge-base baseline compare-mode + ratchet-invariant; blocks NEW debt; hosts gate-registration meta-test",
+      "lenses_applied": "all-16",
+      "taxonomy_posture": "replace_not_encode"
+    },
+    {
+      "name_now": "gate · affected-set (ADR-0554, binding workspace coverage)",
+      "kind": "ci-job",
+      "name_forever": "affected-target-set (binding workspace coverage)",
+      "grammar_compliant": false,
+      "violations": [
+        "adr_number_in_user_visible_name"
+      ],
+      "action": "keep_forever_with_rename",
+      "redesign": "refactor",
+      "owning_integ": "integ/ci",
+      "what_it_does": "Binding affected-set cone or fail-closed full workspace run",
+      "lenses_applied": "all-16",
+      "taxonomy_posture": "replace_not_encode"
+    },
+    {
+      "name_now": "integrity-canary (cold, from-empty — ADR-0556 D2 / ADR-0560)",
+      "kind": "ci-job",
+      "name_forever": "cache-integrity-canary (cold from-empty)",
+      "grammar_compliant": false,
+      "violations": [
+        "adr_number_in_user_visible_name"
+      ],
+      "action": "keep_forever_with_rename",
+      "redesign": "refactor",
+      "owning_integ": "integ/ci",
+      "what_it_does": "Cold CAS/cache integrity canary outside merge fan-in",
+      "lenses_applied": "all-16",
+      "taxonomy_posture": "replace_not_encode"
+    },
+    {
+      "name_now": ".github/workflows/oya-ci-required.yml",
+      "kind": "ci-job",
+      "name_forever": ".github/workflows/merge-admission-required.yml",
+      "grammar_compliant": false,
+      "violations": [
+        "leading_brand_prefix:oya-"
+      ],
+      "action": "reorg_now",
+      "redesign": "refactor",
+      "owning_integ": "integ/ci",
+      "land_plan": "rename workflow file after dual-emit+protection flip; update all path pins in same land",
+      "what_it_does": "Workflow file hosting the required merge-admission fan-in",
+      "lenses_applied": "all-16",
+      "taxonomy_posture": "replace_not_encode"
+    },
+    {
+      "name_now": "cloud-ci-* (oya-ci.toml [[gates.enabled]] ids)",
+      "kind": "policy-face",
+      "name_forever": "<ci-facade-role> (e.g. total-accounting, cross-artifact-agreement, brand-residue)",
+      "grammar_compliant": false,
+      "violations": [
+        "leading_brand_prefix:cloud-"
+      ],
+      "action": "reorg_now",
+      "redesign": "refactor",
+      "owning_integ": "integ/ci",
+      "what_it_does": "Enabled-gate accounting ids consumed by baseline producer / disposition table",
+      "lenses_applied": "all-16",
+      "taxonomy_posture": "replace_not_encode"
+    },
+    {
+      "name_now": "oya-cloud-ci-*-bin / oya-cloud-ci-firewall-signoff-fixer",
+      "kind": "ci-facade",
+      "name_forever": "ci-<role>-bin (e.g. ci-baseline-ratchet-signoff-fixer, ci-materialize-generated-faces-bin)",
+      "grammar_compliant": false,
+      "violations": [
+        "leading_brand_prefix:oya-",
+        "leading_brand_prefix:cloud-"
+      ],
+      "action": "reorg_now",
+      "redesign": "refactor",
+      "owning_integ": "integ/ci",
+      "what_it_does": "Buck/cargo binaries for CI facades; role already often in directory name",
+      "lenses_applied": "all-16",
+      "taxonomy_posture": "replace_not_encode"
+    },
+    {
+      "name_now": "libs/oya-* / libs/oya_*",
+      "kind": "shared-lib-debt",
+      "name_forever": "<domain>-<role> under base/ or owning capability core/ (strip leading oya-)",
+      "grammar_compliant": false,
+      "violations": [
+        "leading_brand_prefix:oya-"
+      ],
+      "action": "reorg_now",
+      "redesign": "rewrite",
+      "owning_integ": "integ/libs → destination",
+      "what_it_does": "Shared kernels/adapters/checks still branded; Amendment B libs/ is reorg_now",
+      "lenses_applied": "all-16",
+      "taxonomy_posture": "replace_not_encode"
+    },
+    {
+      "name_now": "docs/decisions/ADR-NNNN-*.md",
+      "kind": "decision-record",
+      "name_forever": "docs/decisions/ADR-NNNN-<topic>.md (indexes/frontmatter carry nav)",
+      "grammar_compliant": true,
+      "violations": [],
+      "action": "keep_forever",
+      "redesign": "refactor",
+      "owning_integ": "integ/docs",
+      "land_plan": "judged batches; indexes keep numbers",
+      "what_it_does": "Live ADR path shape; number is citation-stable durable segment",
+      "lenses_applied": "all-16",
+      "taxonomy_posture": "keep_nnnn_topic_indexes",
+      "challenges": [
+        "chestertons_fence: numbered ADR catalogs exist for chronology+citation — fence holds",
+        "blast_radius_cell: mass-rename is high fan-in with no measured findability win",
+        "essentialism_yagni: indexes already provide topic nav; path churn is not irreducible"
+      ]
+    },
+    {
+      "name_now": "specs/fixtures/cloud-ci-firewall/",
+      "kind": "fixture-corpus",
+      "name_forever": "specs/fixtures/ci-baseline-ratchet/",
+      "grammar_compliant": false,
+      "violations": [
+        "leading_brand_prefix:cloud-",
+        "opaque_brand_metaphor:firewall"
+      ],
+      "action": "reorg_now",
+      "redesign": "refactor",
+      "owning_integ": "integ/ci",
+      "what_it_does": "Fixture corpus for admission baseline-ratchet predicates",
+      "lenses_applied": "all-16",
+      "taxonomy_posture": "replace_not_encode"
+    }
+  ],
+  "inventory_cohorts": {
+    "description": "Mechanically classifiable cohorts for naming_sweep. Exact path lists are regenerated by inventory scripts; cohorts bind kind+grammar so Claim/CI can classify without bespoke names.",
+    "cohorts": [
+      {
+        "id": "cohort-ci-job-display",
+        "kind": "ci-job",
+        "match": ".github/workflows/** job name: fields matching forbidden grammar",
+        "owning_integ": "integ/ci"
+      },
+      {
+        "id": "cohort-merge-gate",
+        "kind": "merge-gate-context",
+        "match": "fan-in required context names with leading brand",
+        "owning_integ": "integ/ci"
+      },
+      {
+        "id": "cohort-policy-face-cloud-ci",
+        "kind": "policy-face",
+        "match": "oya-ci.toml id = cloud-ci-*",
+        "owning_integ": "integ/ci"
+      },
+      {
+        "id": "cohort-ci-buck-oya-cloud",
+        "kind": "ci-facade",
+        "match": "ci/**/BUCK name = oya-cloud-ci-* OR oya-ci-*",
+        "owning_integ": "integ/ci"
+      },
+      {
+        "id": "cohort-libs-oya-prefix",
+        "kind": "shared-lib-debt",
+        "match": "libs/oya-* directories and Cargo package names",
+        "owning_integ": "integ/libs"
+      },
+      {
+        "id": "cohort-check-oya-governance",
+        "kind": "check-crate",
+        "match": "libs/oya-check-* | libs/oya-governance-* | governance/check/* (check dirs often already role-first)",
+        "owning_integ": "integ/governance"
+      },
+      {
+        "id": "cohort-decision-adr-prefix",
+        "kind": "decision-record",
+        "match": "docs/decisions/ADR-[0-9]{4}-*.md",
+        "owning_integ": "integ/docs"
+      },
+      {
+        "id": "cohort-fixture-brand",
+        "kind": "fixture-corpus",
+        "match": "specs/fixtures/{cloud-ci-*,*firewall*,*oya-*}",
+        "owning_integ": "integ/ci"
+      }
+    ]
+  },
+  "rename_execution_policy": {
+    "order": [
+      "land this taxonomy + ADR Pattern-First on integ/specs",
+      "record naming_sweep rows citing kind + grammar_compliant",
+      "execute taxonomy instances on owning integ (high-confidence in-repo first)",
+      "dual-emit merge-gate-context before protection flip",
+      "no mass rename without judgment_status=done and taxonomy kind"
+    ],
+    "banned": [
+      "one_off_bespoke_name_outside_kinds",
+      "rename_without_taxonomy_kind",
+      "change_github_branch_protection_from_agent",
+      "blind_mass_rename_docs_decisions",
+      "mass_rename_adr_for_optics"
+    ]
+  },
+  "lens_battery": {
+    "authority": ".grok/harness/lenses.v1.json",
+    "required": "all-16",
+    "rule": "Judgments that keep or replace existing patterns MUST set lenses_applied=all-16 and challenges[]. Taxonomy REPLACES indefensible practice; it must not encode anti-patterns as forever grammar.",
+    "ids": [
+      "cartesian_doubt",
+      "essentialism_yagni",
+      "chestertons_fence",
+      "contrarian",
+      "socratic",
+      "pragmatism",
+      "red_team",
+      "systems_thinking",
+      "operability_day2",
+      "opportunity_cost",
+      "blast_radius_cell",
+      "constant_work",
+      "shared_nothing",
+      "finops",
+      "telemetry_first",
+      "zero_trust"
+    ]
+  },
+  "overturned_patterns": [
+    {
+      "id": "OP-merge-gate-brand",
+      "name_now": "oya-ci-required",
+      "kind": "merge-gate-context",
+      "name_forever": "merge-admission-required",
+      "lenses_applied": "all-16",
+      "chestertons_fence": "Single required merge context (ADR-0515/0700) plus product-brand cohesion for the fan-in job name and branch-protection string.",
+      "challenges": [
+        "cartesian_doubt: code shows the job is a needs-fan-in verdict aggregator — brand token adds zero behavior",
+        "essentialism_yagni: single required context is the irreducible mechanism; brand prefix is not",
+        "chestertons_fence: fence was cohesion+protection pin — keep single context, replace name via dual-emit",
+        "contrarian: forever name should state admission role, not product brand",
+        "pragmatism: dual-emit lets protection flip be one founder line without merge outage",
+        "operability_day2: operators searching logs for brand miss the admission meaning",
+        "zero_trust: protection pin must stay explicit during rename — never silent retarget"
+      ],
+      "verdict": "reshape",
+      "defensible_core": "exactly one required merge-admission context",
+      "indefensible": "leading oya- brand as durable context identity"
+    },
+    {
+      "id": "OP-adr-in-job-title",
+      "name_now": "CI job name: fields embedding ADR-NNNN",
+      "kind": "ci-job",
+      "name_forever": "role-first title without ADR numbers",
+      "examples_now": [
+        "freshness (lock + generated faces, ADR-0539)",
+        "gate · affected-set (ADR-0554, binding workspace coverage)",
+        "integrity-canary (cold, from-empty — ADR-0556 D2 / ADR-0560)"
+      ],
+      "lenses_applied": "all-16",
+      "chestertons_fence": "Operators used ADR numbers in titles as a jump link to governing decisions during Phase-0 go-live.",
+      "challenges": [
+        "cartesian_doubt: job title is not an index; ADR INDEX / comments already cite numbers",
+        "essentialism_yagni: title needs role + short qualifier only",
+        "socratic: why must a merge check name require ADR recall to understand?",
+        "operability_day2: opaque ADR soup slows incident triage for people outside the writing cohort",
+        "finops: cognitive load tax on every PR check list"
+      ],
+      "verdict": "reshape",
+      "defensible_core": "traceability to governing decisions",
+      "indefensible": "ADR number as user-visible name segment"
+    },
+    {
+      "id": "OP-brand-prefix-grammar",
+      "name_now": "leading oya-/cloud- on crates, gates, bins, faces",
+      "kind": "policy-face",
+      "name_forever": "role-first tokens per naming-taxonomy grammar",
+      "lenses_applied": "all-16",
+      "chestertons_fence": "ADR-0017 / crate-naming-convention required oya- for workspace uniqueness mirroring aws-/google-cloud- prefix shapes.",
+      "challenges": [
+        "contrarian: hyperscaler prefixes name the *vendor SDK surface*; inside an owned monorepo the capability/role IS the namespace",
+        "essentialism_yagni: directory + capability-registry already disambiguate",
+        "systems_thinking: brand prefix couples every rename to product marketing and freezes dual vocabulary (ci/facade/baseline-ratchet vs oya-cloud-ci-firewall-*)",
+        "red_team: brand residue gates already fight retired brand stems — encoding oya- as required greenfield law fights the de-brand north star",
+        "pragmatism: ci/facade/* dirs already moved to role-first; cargo/buck/bin names lag — taxonomy makes lag debt, not law"
+      ],
+      "verdict": "reshape",
+      "defensible_core": "mechanical uniqueness + role segment discipline",
+      "indefensible": "required_prefix=oya- / cloud-ci-* as greenfield forever grammar"
+    },
+    {
+      "id": "OP-firewall-metaphor",
+      "name_now": "cloud-ci-firewall",
+      "kind": "ci-job",
+      "name_forever": "admission-baseline-ratchet",
+      "path_forever": "ci/facade/baseline-ratchet/",
+      "lenses_applied": "all-16",
+      "chestertons_fence": "Phase-0 FIREWALL-PLAN used firewall as go-live metaphor for the single readiness ratchet over born-blocking gates.",
+      "challenges": [
+        "cartesian_doubt: lib docs describe compare-mode + ratchet-invariant — not a network firewall",
+        "socratic: what does firewall do that baseline-ratchet does not already name?",
+        "operability_day2: on-call chasing firewall finds metaphor, not the merge-base baseline face",
+        "telemetry_first: job/echo labels saying cloud-ci-firewall diverge from path ci/facade/baseline-ratchet"
+      ],
+      "verdict": "reshape",
+      "defensible_core": "baseline ratchet + gate-registration meta-test as admission predicates",
+      "indefensible": "firewall brand as durable identity"
+    },
+    {
+      "id": "OP-adr-numbered-decision-paths",
+      "name_now": "docs/decisions/ADR-NNNN-*.md",
+      "kind": "decision-record",
+      "name_forever": "docs/decisions/ADR-NNNN-<topic>.md",
+      "lenses_applied": "all-16",
+      "chestertons_fence": "Numbered ADR catalogs are industry-common for chronology and citation.",
+      "challenges": [
+        "chestertons_fence: numbered paths are industry-common citation anchors — state why before removing",
+        "blast_radius_cell: mass-rename of 400+ ADRs is high fan-in with dual-truth risk during cutover",
+        "pragmatism: indexes/frontmatter already solve topic findability without path churn",
+        "opportunity_cost: rename theater displaces land of binding law (#1644)",
+        "cartesian_doubt: no measured evidence that topic-only paths improve operator outcomes here"
+      ],
+      "verdict": "keep",
+      "defensible_core": "stable ADR-NNNN-<topic> citation paths + ordered indexes/frontmatter for nav",
+      "indefensible": "blind mass-rename to topic-only filenames for taxonomy optics",
+      "overrule_of": "prior reshape-to-topic-only proposal",
+      "note": "adr-rename-overturn (2026-08-10): forever-correct is NNNN-topic + indexes — not churn later, not churn now"
+    }
+  ]
+}
