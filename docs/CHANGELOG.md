@@ -6,6 +6,14 @@ doc_status: published
 
 # Changelog
 
+## 2026-08-11 — Custom ARC runner fleets retired
+
+- Declared **ARC overflow RETIRED**: `oya-arm64` / `oya-live-postgres-arm64` tip
+  `maxRunners: 0`; soft multi-arch remains GitHub-hosted; lab CAS = founder laptop
+  (sibling CAS track). Idea update:
+  [`docs/ideas/hosted-ci-lab-cas-agent-fleet.md`](ideas/hosted-ci-lab-cas-agent-fleet.md).
+  Live cluster drain checklist: `infra/arc/README.md` (lands on integ/ci tip).
+
 ## 2026-08-11 — Live Postgres law folded into ADR-0700
 
 - Restated binding **Live Postgres law** on `docs/decisions/ADR-0700-ci-admission-live-apex.md`
