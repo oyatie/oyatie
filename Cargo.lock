@@ -1692,6 +1692,9 @@ version = "0.1.0"
 [[package]]
 name = "ci-k8s-program-docs"
 version = "0.1.0"
+dependencies = [
+ "serde_json",
+]
 
 [[package]]
 name = "ci-layer-dependency-acyclicity"
@@ -7024,6 +7027,7 @@ dependencies = [
  "os-controllers-domain",
  "os-cosi-domain",
  "os-kernel",
+ "os-kernel-abi",
  "os-machine-config-domain",
  "os-machined-domain",
  "os-network-domain",
@@ -7050,6 +7054,13 @@ dependencies = [
 [[package]]
 name = "os-kernel"
 version = "0.1.0"
+
+[[package]]
+name = "os-kernel-abi"
+version = "0.1.0"
+dependencies = [
+ "os-kernel",
+]
 
 [[package]]
 name = "os-kubelet-domain"
@@ -7111,6 +7122,7 @@ version = "0.1.0"
 dependencies = [
  "libc",
  "os-kernel",
+ "os-kernel-abi",
 ]
 
 [[package]]
