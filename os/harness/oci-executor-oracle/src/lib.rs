@@ -188,6 +188,8 @@ pub enum HarnessError {
     UnknownMatrixCve(String),
     InconsistentOraclePin(String),
     InconsistentOwnedPin(String),
+    /// Record oracle pin does not match the validated obligations inventory pin.
+    InventoryOraclePinMismatch(String),
     MatrixDivergence(String),
     MissingCveExecution,
     CveExecutionMismatch {
@@ -236,6 +238,7 @@ impl fmt::Display for HarnessError {
             | Self::UnknownMatrixCve(m)
             | Self::InconsistentOraclePin(m)
             | Self::InconsistentOwnedPin(m)
+            | Self::InventoryOraclePinMismatch(m)
             | Self::InconsistentCveBundle(m)
             | Self::MatrixDivergence(m) => write!(f, "{m}"),
             Self::EmptyBundleDigest => write!(f, "bundle content_digest must be non-empty"),
@@ -727,8 +730,9 @@ enum ExecutorKindInner {
 
 /// Identity of an OCI executor implementation behind the shared trait.
 ///
-/// `Owned` is sealed: only [`OwnedExecutorStub::kind`] can construct it.
-/// Oracle kinds come from [`OracleStub`].
+/// `Owned` is sealed: only [`OwnedExecutorStub::kind`] /
+/// [`OwnedExecutorStub::try_measured_identity`] / [`owned_measured_kind`] can
+/// construct it. Oracle kinds come from [`OracleStub`].
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ExecutorKind(ExecutorKindInner);
 
@@ -880,10 +884,13 @@ impl OperationObservation {
 /// Pairwise `Match` is **not** a conformance / Accept claim — callers must run
 /// [`aggregate_comparison_records`] over the full oracle × CVE set first.
 ///
-/// When exit/status/stderr_fingerprint match:
-/// - both security all-held → [`DiffVerdict::Match`]
-/// - owned all-held and oracle not (hardened vs vulnerable CVE reproduction) → Match
-/// - owned unsafe (including both-equally-unsafe) → [`DiffVerdict::Diverge`]
+/// Measured path:
+/// - owned security all-held + oracle **not** all-held → [`DiffVerdict::Match`]
+///   even when exit_code / status / stderr_fingerprint differ (owned blocked the
+///   exploit with a different core outcome)
+/// - owned security all-held + oracle all-held + equal core → Match
+/// - owned security all-held + oracle all-held + unequal core → Diverge
+/// - owned **not** all-held → [`DiffVerdict::Diverge`] (outcomes differ or both unsafe)
 pub fn compare_observations(
     owned: &OperationObservation,
     oracle: &OperationObservation,
@@ -907,13 +914,17 @@ pub fn compare_observations(
             let measured_core_equal = a.exit_code == b.exit_code
                 && a.status == b.status
                 && a.stderr_fingerprint == b.stderr_fingerprint;
+            // Owned hardened vs vulnerable oracle: accept even when core outcomes differ.
+            if a.security.all_held_bool() && !b.security.all_held_bool() {
+                return DiffVerdict::Match;
+            }
             if !measured_core_equal {
                 return DiffVerdict::Diverge;
             }
-            // Preserve owned hardening over vulnerable oracle CVE reproduction.
             if a.security.all_held_bool() {
                 DiffVerdict::Match
             } else {
+                // Owned unsafe (including both-equally-unsafe) → Diverge.
                 DiffVerdict::Diverge
             }
         }
@@ -1131,25 +1142,46 @@ fn validate_cve_bundles_consistent(records: &[ComparisonRecord]) -> Result<(), H
     Ok(())
 }
 
-/// Aggregate free-form stubbed cells only. Match/Diverge must use ComparisonRecord.
-pub fn aggregate_oracle_cve_matrix(cells: &[MatrixCell]) -> Result<MatrixAggregate, HarnessError> {
-    validate_matrix_coverage(cells)?;
-    if cells
-        .iter()
-        .any(|c| matches!(c.verdict, DiffVerdict::Match | DiffVerdict::Diverge))
-    {
-        return Err(HarnessError::FreeFormMatchForbidden);
+fn validate_oracle_pins_against_expected(
+    records: &[ComparisonRecord],
+    expected: &BTreeMap<OracleId, OraclePin>,
+) -> Result<(), HarnessError> {
+    for record in records {
+        let Some(id) = record.oracle().kind().oracle_id() else {
+            return Err(HarnessError::NotOracleObservation);
+        };
+        let Some(pin) = record.oracle().kind().oracle_pin() else {
+            return Err(HarnessError::InventoryOraclePinMismatch(format!(
+                "oracle {} comparison record missing OraclePin",
+                id.as_str()
+            )));
+        };
+        match expected.get(&id) {
+            Some(exp) if exp == pin => {}
+            Some(exp) => {
+                return Err(HarnessError::InventoryOraclePinMismatch(format!(
+                    "oracle {} pin revision={} platform={} does not match inventory revision={} platform={}",
+                    id.as_str(),
+                    pin.revision(),
+                    pin.platform(),
+                    exp.revision(),
+                    exp.platform()
+                )));
+            }
+            None => {
+                return Err(HarnessError::InventoryOraclePinMismatch(format!(
+                    "oracle {} has no expected inventory pin",
+                    id.as_str()
+                )));
+            }
+        }
     }
-    Ok(MatrixAggregate::ScaffoldCoverageComplete)
+    Ok(())
 }
 
-/// Aggregate typed comparison records (verdict derived from observations + CVE).
-///
-/// - Any stubbed cell → [`MatrixAggregate::ScaffoldCoverageComplete`]
-/// - Full measured coverage with any [`DiffVerdict::Diverge`] → [`HarnessError::MatrixDivergence`]
-/// - Full measured coverage all Match → [`MatrixAggregate::MeasuredCoverageComplete`]
-pub fn aggregate_comparison_records(
+fn aggregate_comparison_records_inner(
     records: &[ComparisonRecord],
+    expected_pins: Option<&BTreeMap<OracleId, OraclePin>>,
 ) -> Result<MatrixAggregate, HarnessError> {
     let cells: Vec<MatrixCell> = records.iter().map(ComparisonRecord::to_matrix_cell).collect();
     validate_matrix_coverage(&cells)?;
@@ -1158,6 +1190,16 @@ pub fn aggregate_comparison_records(
     if records.iter().any(|r| r.verdict == DiffVerdict::Stubbed) {
         return Ok(MatrixAggregate::ScaffoldCoverageComplete);
     }
+    // Measured path: require oracle pins match the expected / inventory map.
+    let owned_expected;
+    let expected = match expected_pins {
+        Some(map) => map,
+        None => {
+            owned_expected = obligation_oracle_pins()?;
+            &owned_expected
+        }
+    };
+    validate_oracle_pins_against_expected(records, expected)?;
     if records.iter().any(|r| r.verdict == DiffVerdict::Diverge) {
         let diverged: Vec<String> = records
             .iter()
@@ -1178,6 +1220,50 @@ pub fn aggregate_comparison_records(
         )));
     }
     Ok(MatrixAggregate::MeasuredCoverageComplete)
+}
+
+/// Aggregate free-form stubbed cells only. Match/Diverge must use ComparisonRecord.
+pub fn aggregate_oracle_cve_matrix(cells: &[MatrixCell]) -> Result<MatrixAggregate, HarnessError> {
+    validate_matrix_coverage(cells)?;
+    if cells
+        .iter()
+        .any(|c| matches!(c.verdict, DiffVerdict::Match | DiffVerdict::Diverge))
+    {
+        return Err(HarnessError::FreeFormMatchForbidden);
+    }
+    Ok(MatrixAggregate::ScaffoldCoverageComplete)
+}
+
+/// Aggregate typed comparison records (verdict derived from observations + CVE).
+///
+/// - Any stubbed cell → [`MatrixAggregate::ScaffoldCoverageComplete`]
+/// - Full measured coverage with any [`DiffVerdict::Diverge`] → [`HarnessError::MatrixDivergence`]
+/// - Full measured coverage all Match → [`MatrixAggregate::MeasuredCoverageComplete`]
+///
+/// Measured path requires each oracle pin to match the validated obligations inventory
+/// ([`obligation_oracle_pins`]). Use [`aggregate_comparison_records_with_expected_pins`]
+/// to supply an explicit pin map instead.
+pub fn aggregate_comparison_records(
+    records: &[ComparisonRecord],
+) -> Result<MatrixAggregate, HarnessError> {
+    aggregate_comparison_records_inner(records, None)
+}
+
+/// Aggregate measured comparison records against an explicit oracle → pin map.
+pub fn aggregate_comparison_records_with_expected_pins(
+    records: &[ComparisonRecord],
+    expected_pins: &BTreeMap<OracleId, OraclePin>,
+) -> Result<MatrixAggregate, HarnessError> {
+    aggregate_comparison_records_inner(records, Some(expected_pins))
+}
+
+/// Aggregate measured comparison records against pins loaded from the validated
+/// embedded obligations fixture ([`CVE_OBLIGATIONS_JSON`]).
+pub fn aggregate_comparison_records_against_inventory(
+    records: &[ComparisonRecord],
+) -> Result<MatrixAggregate, HarnessError> {
+    let pins = obligation_oracle_pins()?;
+    aggregate_comparison_records_with_expected_pins(records, &pins)
 }
 
 /// Pairwise Match alone must not be treated as product conformance.
@@ -1235,7 +1321,19 @@ impl OwnedExecutorStub {
         }
     }
 
-    /// Crate-local measured-path constructor; not public so external crates cannot mint Owned.
+    /// Controlled public factory for measured Owned identity.
+    ///
+    /// Accepts only immutable pin forms (`sha256:`/`git:`). Scaffold pins are
+    /// rejected so external crates implementing [`OciExecutor`] can mint a
+    /// measured Owned kind without making [`ExecutorKind`] constructible.
+    pub fn try_measured_identity(pin: OwnedPin) -> Result<Self, HarnessError> {
+        if pin.is_scaffold() || !is_immutable_revision(pin.revision()) {
+            return Err(HarnessError::ScaffoldPinNotMeasured);
+        }
+        Ok(Self { pin })
+    }
+
+    /// Crate-local pin constructor (includes scaffold for stub tests).
     pub(crate) fn try_pinned(pin: OwnedPin) -> Result<Self, HarnessError> {
         Ok(Self { pin })
     }
@@ -1243,6 +1341,11 @@ impl OwnedExecutorStub {
     pub fn pin(&self) -> &OwnedPin {
         &self.pin
     }
+}
+
+/// Public sealed Owned [`ExecutorKind`] for measured observations (immutable pin only).
+pub fn owned_measured_kind(pin: OwnedPin) -> Result<ExecutorKind, HarnessError> {
+    Ok(OwnedExecutorStub::try_measured_identity(pin)?.kind())
 }
 
 /// Public owned stub for harness use after inventory validation (scaffold product path only).
@@ -1464,6 +1567,27 @@ pub fn validate_obligations() -> Result<Value, HarnessError> {
     validate_obligations_json(CVE_OBLIGATIONS_JSON)
 }
 
+/// Load oracle id → pin map from validated obligations JSON.
+pub fn obligation_oracle_pins_from_json(
+    json: &str,
+) -> Result<BTreeMap<OracleId, OraclePin>, HarnessError> {
+    let root: ObligationsRoot =
+        serde_json::from_str(json).map_err(|e| HarnessError::Parse(e.to_string()))?;
+    validate_root(&root)?;
+    let mut map = BTreeMap::new();
+    for row in &root.oracles {
+        let id = OracleId::try_from_str(&row.id)?;
+        let pin = OraclePin::try_new(&row.revision, &row.platform)?;
+        map.insert(id, pin);
+    }
+    Ok(map)
+}
+
+/// Load oracle id → pin map from the embedded validated obligations fixture.
+pub fn obligation_oracle_pins() -> Result<BTreeMap<OracleId, OraclePin>, HarnessError> {
+    obligation_oracle_pins_from_json(CVE_OBLIGATIONS_JSON)
+}
+
 /// Pair owned stub with one oracle for a future differential run.
 pub fn differential_pair(oracle: OracleStub) -> (OwnedExecutorStub, OracleStub) {
     (OwnedExecutorStub::scaffold(), oracle)
@@ -1497,7 +1621,16 @@ mod tests {
     }
 
     fn live_owned() -> OwnedExecutorStub {
-        OwnedExecutorStub::try_pinned(live_owned_pin()).unwrap()
+        OwnedExecutorStub::try_measured_identity(live_owned_pin()).unwrap()
+    }
+
+    fn inventory_pins() -> BTreeMap<OracleId, OraclePin> {
+        obligation_oracle_pins().unwrap()
+    }
+
+    fn pinned_oracle(id: OracleId) -> OracleStub {
+        let pin = inventory_pins()[&id].clone();
+        OracleStub::try_new_pinned(id.as_str(), pin).unwrap()
     }
 
     /// Stub/hermetic oya1 digest (rejected on measured path).
@@ -1795,6 +1928,77 @@ mod tests {
     }
 
     #[test]
+    fn owned_safe_nonzero_vs_oracle_unsafe_zero_matches() {
+        // Owned blocks exploit (nonzero exit / different stderr) while oracle
+        // reproduces CVE successfully — still Match when owned security holds.
+        let bundle = measured_bundle("b1", HEX_A);
+        let owned = OperationObservation::try_measured(
+            live_owned().kind(),
+            OciOperation::Start,
+            bundle.clone(),
+            None,
+            safe_outcome(1, "blocked-exploit"),
+        )
+        .unwrap();
+        let oracle = OperationObservation::try_measured(
+            OracleStub::try_new_pinned("runc", live_oracle_pin())
+                .unwrap()
+                .kind(),
+            OciOperation::Start,
+            bundle,
+            None,
+            unsafe_outcome(0, "exploit-ran"),
+        )
+        .unwrap();
+        assert_eq!(compare_observations(&owned, &oracle), DiffVerdict::Match);
+    }
+
+    #[test]
+    fn owned_unsafe_core_diff_still_diverges() {
+        let bundle = measured_bundle("b1", HEX_A);
+        let owned = OperationObservation::try_measured(
+            live_owned().kind(),
+            OciOperation::Start,
+            bundle.clone(),
+            None,
+            unsafe_outcome(1, "owned-unsafe"),
+        )
+        .unwrap();
+        let oracle = OperationObservation::try_measured(
+            OracleStub::try_new_pinned("youki", live_oracle_pin())
+                .unwrap()
+                .kind(),
+            OciOperation::Start,
+            bundle,
+            None,
+            unsafe_outcome(0, "oracle-unsafe"),
+        )
+        .unwrap();
+        assert_eq!(compare_observations(&owned, &oracle), DiffVerdict::Diverge);
+    }
+
+    #[test]
+    fn public_try_measured_identity_supports_measured_observations() {
+        let owned = OwnedExecutorStub::try_measured_identity(live_owned_pin()).unwrap();
+        assert!(!owned.pin().is_scaffold());
+        let kind = owned_measured_kind(live_owned_pin()).unwrap();
+        assert!(kind.is_owned_product());
+        let obs = OperationObservation::try_measured(
+            owned.kind(),
+            OciOperation::Start,
+            measured_bundle("b1", HEX_A),
+            None,
+            safe_outcome(0, "fp"),
+        )
+        .unwrap();
+        assert!(obs.executed());
+        assert_eq!(
+            OwnedExecutorStub::try_measured_identity(OwnedPin::scaffold()).unwrap_err(),
+            HarnessError::ScaffoldPinNotMeasured
+        );
+    }
+
+    #[test]
     fn both_unsafe_equal_outcomes_diverge() {
         let unsafe_out = unsafe_outcome(0, "fp");
         let bundle = measured_bundle("b1", HEX_B);
@@ -1848,7 +2052,7 @@ mod tests {
         let owned = live_owned();
         let mut records = Vec::new();
         for (oracle_id, cve_id) in required_matrix_pairs() {
-            let oracle = OracleStub::try_new_pinned(oracle_id.as_str(), live_oracle_pin()).unwrap();
+            let oracle = pinned_oracle(oracle_id);
             let exec = fixture_for(cve_id);
             let hex = match cve_id {
                 "CVE-2019-5736" => HEX_A,
@@ -1864,7 +2068,8 @@ mod tests {
                 op,
                 bundle.clone(),
                 Some(exec.clone()),
-                safe_outcome(0, "fp"),
+                // Nonzero exit: owned blocked exploit; oracle still reproduces CVE.
+                safe_outcome(1, "owned-blocked"),
             )
             .unwrap();
             let oracle_obs = OperationObservation::try_measured(
@@ -1872,7 +2077,7 @@ mod tests {
                 op,
                 bundle,
                 Some(exec),
-                unsafe_outcome(0, "fp"),
+                unsafe_outcome(0, "oracle-reproduced"),
             )
             .unwrap();
             records
@@ -1881,6 +2086,10 @@ mod tests {
         assert!(records.iter().all(|r| r.verdict() == DiffVerdict::Match));
         assert_eq!(
             aggregate_comparison_records(&records).unwrap(),
+            MatrixAggregate::MeasuredCoverageComplete
+        );
+        assert_eq!(
+            aggregate_comparison_records_against_inventory(&records).unwrap(),
             MatrixAggregate::MeasuredCoverageComplete
         );
     }
@@ -1954,7 +2163,7 @@ mod tests {
         let owned = live_owned();
         let mut records = Vec::new();
         for (oracle_id, cve_id) in required_matrix_pairs() {
-            let oracle = OracleStub::try_new_pinned(oracle_id.as_str(), live_oracle_pin()).unwrap();
+            let oracle = pinned_oracle(oracle_id);
             let exec = fixture_for(cve_id);
             // Distinct sha256 digests across CVE rows (not one reused Start blob).
             let hex = match cve_id {
@@ -2005,7 +2214,7 @@ mod tests {
         let owned = live_owned();
         let mut records = Vec::new();
         for (oracle_id, cve_id) in required_matrix_pairs() {
-            let oracle = OracleStub::try_new_pinned(oracle_id.as_str(), live_oracle_pin()).unwrap();
+            let oracle = pinned_oracle(oracle_id);
             let exec = fixture_for(cve_id);
             let bundle = measured_bundle("b1", HEX_A);
             let diverge = oracle_id == OracleId::Runc && cve_id == "CVE-2019-5736";
@@ -2216,7 +2425,7 @@ mod tests {
         let mut records = Vec::new();
         for (i, (oracle_id, cve_id)) in required_matrix_pairs().into_iter().enumerate() {
             let owned = if i == 0 { &owned_b } else { &owned_a };
-            let oracle = OracleStub::try_new_pinned(oracle_id.as_str(), live_oracle_pin()).unwrap();
+            let oracle = pinned_oracle(oracle_id);
             let exec = fixture_for(cve_id);
             let bundle = measured_bundle("b1", HEX_A);
             let op = required_op(cve_id);
@@ -2419,7 +2628,7 @@ mod tests {
         let owned = live_owned();
         let mut records = Vec::new();
         for (oracle_id, cve_id) in required_matrix_pairs() {
-            let oracle = OracleStub::try_new_pinned(oracle_id.as_str(), live_oracle_pin()).unwrap();
+            let oracle = pinned_oracle(oracle_id);
             let exec = fixture_for(cve_id);
             // Same CVE across oracles gets different digests for the first CVE only.
             let hex = if cve_id == "CVE-2019-5736" && oracle_id == OracleId::Runc {
@@ -2456,5 +2665,73 @@ mod tests {
             aggregate_comparison_records(&records).unwrap_err(),
             HarnessError::InconsistentCveBundle(_)
         ));
+    }
+
+    #[test]
+    fn obligation_oracle_pins_are_distinct_immutable() {
+        let pins = obligation_oracle_pins().unwrap();
+        assert_eq!(pins.len(), ORACLE_IDS.len());
+        let mut revs = BTreeSet::new();
+        for id in OracleId::all() {
+            let pin = &pins[&id];
+            assert!(!pin.is_scaffold());
+            assert!(pin.revision().starts_with("sha256:"));
+            assert!(revs.insert(pin.revision().to_owned()));
+        }
+    }
+
+    #[test]
+    fn aggregate_rejects_oracle_pin_not_in_inventory() {
+        let owned = live_owned();
+        let mut records = Vec::new();
+        for (oracle_id, cve_id) in required_matrix_pairs() {
+            // Same live pin for every oracle — valid sha256 but not inventory.
+            let oracle =
+                OracleStub::try_new_pinned(oracle_id.as_str(), live_oracle_pin()).unwrap();
+            let exec = fixture_for(cve_id);
+            let hex = match cve_id {
+                "CVE-2019-5736" => HEX_A,
+                "CVE-2024-21626" => HEX_B,
+                "CVE-MOUNT-SYMLINK-RACE" => HEX_C,
+                other => panic!("unexpected {other}"),
+            };
+            let bundle = measured_bundle("b1", hex);
+            let op = required_op(cve_id);
+            let owned_obs = OperationObservation::try_measured(
+                owned.kind(),
+                op,
+                bundle.clone(),
+                Some(exec.clone()),
+                safe_outcome(0, "fp"),
+            )
+            .unwrap();
+            let oracle_obs = OperationObservation::try_measured(
+                oracle.kind(),
+                op,
+                bundle,
+                Some(exec),
+                safe_outcome(0, "fp"),
+            )
+            .unwrap();
+            records
+                .push(ComparisonRecord::try_from_observations(cve_id, owned_obs, oracle_obs).unwrap());
+        }
+        assert!(matches!(
+            aggregate_comparison_records(&records).unwrap_err(),
+            HarnessError::InventoryOraclePinMismatch(_)
+        ));
+        assert!(matches!(
+            aggregate_comparison_records_against_inventory(&records).unwrap_err(),
+            HarnessError::InventoryOraclePinMismatch(_)
+        ));
+        // Explicit expected map matching the undeclared pin still aggregates.
+        let mut expected = BTreeMap::new();
+        for id in OracleId::all() {
+            expected.insert(id, live_oracle_pin());
+        }
+        assert_eq!(
+            aggregate_comparison_records_with_expected_pins(&records, &expected).unwrap(),
+            MatrixAggregate::MeasuredCoverageComplete
+        );
     }
 }
