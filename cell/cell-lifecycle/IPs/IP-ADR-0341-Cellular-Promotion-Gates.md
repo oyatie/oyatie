@@ -357,8 +357,8 @@ enforced_by:
 286. Downstream implementation verification must prove no code path stores raw telemetry or compliance payloads in LifecycleHistory.
 
 ## 21. Acceptance Criteria
-287. AC-001: `microservices/cell-lifecycle/manifest.json` declares `cell_promotion_gates`.
-288. AC-002: `microservices/cell-lifecycle/manifest.json` declares `cell_promotion_history`.
+287. AC-001: `cell/cell-lifecycle/manifest.json` declares `cell_promotion_gates`.
+288. AC-002: `cell/cell-lifecycle/manifest.json` declares `cell_promotion_history`.
 289. AC-003: `cell_promotion_gates.applicable_tiers` includes 0, 1, 2, 3, and 4.
 290. AC-004: `cell_promotion_gates.cellular_deployment_pattern` is `substrate_dedicated`.
 291. AC-005: `cell_promotion_gates.default_initial_tier` is 0 for the Tier 0 substrate placement of `cell-lifecycle`.
