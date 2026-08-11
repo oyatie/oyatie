@@ -371,8 +371,34 @@ pub fn validate_matrix(root: &Value) -> Result<(), MatrixError> {
         .get("serve_tiers")
         .and_then(|v| v.as_array())
         .ok_or_else(|| MatrixError::Schema("linux_kvm_pools.serve_tiers missing".into()))?;
-    for required in ["private-kernel", "private-kernel-attested"] {
-        if !linux_tiers.iter().any(|t| t.as_str() == Some(required)) {
+    const LINUX_KVM_TIERS: [&str; 2] = ["private-kernel", "private-kernel-attested"];
+    if linux_tiers.len() != LINUX_KVM_TIERS.len() {
+        return Err(MatrixError::Schema(format!(
+            "linux_kvm_pools.serve_tiers must declare exactly {} tiers",
+            LINUX_KVM_TIERS.len()
+        )));
+    }
+    let mut seen_linux_tiers = Vec::new();
+    for t in linux_tiers {
+        let Some(name) = t.as_str().filter(|s| !s.is_empty()) else {
+            return Err(MatrixError::Schema(
+                "linux_kvm_pools.serve_tiers entries must be non-empty strings".into(),
+            ));
+        };
+        if !LINUX_KVM_TIERS.contains(&name) {
+            return Err(MatrixError::Schema(format!(
+                "linux_kvm_pools.serve_tiers contains undeclared tier {name}"
+            )));
+        }
+        if seen_linux_tiers.iter().any(|s| s == name) {
+            return Err(MatrixError::Schema(format!(
+                "linux_kvm_pools.serve_tiers duplicate {name}"
+            )));
+        }
+        seen_linux_tiers.push(name.to_string());
+    }
+    for required in LINUX_KVM_TIERS {
+        if !seen_linux_tiers.iter().any(|t| t == required) {
             return Err(MatrixError::Schema(format!(
                 "linux_kvm_pools.serve_tiers missing {required}"
             )));
@@ -967,6 +993,22 @@ mod tests {
             Value::Array(vec![Value::String("kubelet-typo".into())]);
         let err = validate_matrix(&root).expect_err("typo consumer");
         assert!(err.to_string().contains("unsupported consumer"));
+    }
+
+    #[test]
+    fn rejects_extra_linux_kvm_tier() {
+        let mut root = parse_matrix().unwrap();
+        root["pool_matrix_notes"]["linux_kvm_pools"]["serve_tiers"] = serde_json::json!([
+            "private-kernel",
+            "private-kernel-attested",
+            "shared-kernel"
+        ]);
+        let err = validate_matrix(&root).expect_err("extra linux kvm tier");
+        assert!(
+            err.to_string().contains("exactly")
+                || err.to_string().contains("undeclared")
+                || err.to_string().contains("shared-kernel")
+        );
     }
 
     #[test]
