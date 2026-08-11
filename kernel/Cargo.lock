@@ -567,6 +567,24 @@ dependencies = [
  "wasm-bindgen",
 ]
 
+
+[[package]]
+name = "kernel-asterinas-abi-matrix"
+version = "0.1.0"
+dependencies = [
+ "kernel-asterinas-boundary",
+ "serde_json",
+]
+
+[[package]]
+name = "kernel-asterinas-abi-probe"
+version = "0.1.0"
+dependencies = [
+ "kernel-asterinas-abi-matrix",
+ "kernel-asterinas-boundary",
+ "serde_json",
+]
+
 [[package]]
 name = "kernel-asterinas-boundary"
 version = "0.1.0"
