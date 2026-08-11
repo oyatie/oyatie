@@ -119,7 +119,8 @@ Denied: `stash`, `reset` (all forms), `clean`, `restore`, `checkout`, `rebase`, 
 ### Special files + concurrent-safe exemptions
 
 - Citation census re-derived on the integ tip (oyatie-o90), never treated as git-merge authority.
-- `Cargo.lock` lands with the integ that changed workspace membership.
+- `Cargo.lock` is owned solely by `integ/build` (`#planes.root_manifests`). Other
+  integs need an unexpired `hubs.active_waivers` row — never membership-travel.
 - Concurrent-safe exemptions MUST match
   `specs/integ-branch-envelopes.json#concurrent_safe_exemptions.paths` (and
   `registry/vcs/concurrent-safe-paths.yaml`) — narrowed per-lane/CI evidence, **not** whole
