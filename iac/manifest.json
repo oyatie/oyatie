@@ -150,31 +150,45 @@
   ],
   "slos": [
     {
-      "name": "autosharding-events",
+      "name": "cloud-iac-autosharding-hot-split-latency",
+      "target": "0.99",
+      "sli": "histogram_quantile(0.99, sum(rate(oya_autosharding_hot_split_duration_seconds_bucket{microservice=\"cloud-iac\",automation_event=\"hot_split\"}[5m])) by (le))",
       "file": "iac/observability/slos/autosharding-events.openslo.yaml"
     },
     {
-      "name": "helm-chart-lint-correctness",
+      "name": "oya-cloud-iac-helm-chart-lint-correctness",
+      "target": "1.0",
+      "sli": "sum(rate(oya_cloud_iac_helm_lint_total{outcome=\"pass\"}[5m]))",
       "file": "iac/observability/slos/helm-chart-lint-correctness.openslo.yaml"
     },
     {
-      "name": "iac-apply-latency",
+      "name": "oya-cloud-iac-iac-apply-latency",
+      "target": "0.95",
+      "sli": "sum(rate(oya_cloud_iac_apply_duration_seconds_bucket{le=\"30\"}[5m]))",
       "file": "iac/observability/slos/iac-apply-latency.openslo.yaml"
     },
     {
-      "name": "iac-render-latency",
+      "name": "oya-cloud-iac-iac-render-latency",
+      "target": "0.95",
+      "sli": "sum(rate(oya_cloud_iac_render_duration_seconds_bucket{le=\"10\"}[5m]))",
       "file": "iac/observability/slos/iac-render-latency.openslo.yaml"
     },
     {
-      "name": "iac-rollback-latency",
+      "name": "oya-cloud-iac-iac-rollback-latency",
+      "target": "0.95",
+      "sli": "sum(rate(oya_cloud_iac_rollback_duration_seconds_bucket{le=\"60\"}[5m]))",
       "file": "iac/observability/slos/iac-rollback-latency.openslo.yaml"
     },
     {
-      "name": "iac-validator-availability",
+      "name": "oya-cloud-iac-iac-validator-availability",
+      "target": "0.999",
+      "sli": "sum(rate(oya_cloud_iac_validate_total{outcome=~\"pass|fail\"}[5m]))",
       "file": "iac/observability/slos/iac-validator-availability.openslo.yaml"
     },
     {
-      "name": "slsa-provenance-completeness",
+      "name": "oya-cloud-iac-slsa-provenance-completeness",
+      "target": "1.0",
+      "sli": "sum(rate(oya_cloud_iac_apply_total{slsa_l3=\"true\"}[5m]))",
       "file": "iac/observability/slos/slsa-provenance-completeness.openslo.yaml"
     }
   ],
