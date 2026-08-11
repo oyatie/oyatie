@@ -112,3 +112,18 @@ Follow-ups:
 - Why: IaC dependency on shared primitives must be machine-readable so module pins, signatures, and wrapper-thinness can be checked at admission.
 - Rejected: hand-authored, per-service OpenTofu resources were rejected as the long-term target because they preserve the duplication ADR-0339 was created to remove.
 - Cost: Future IaC edits must use shared module pins and keep service wrappers thin.
+
+## Stale path hygiene (integ/secrets prep — parked)
+
+Retarget only verified in-tree destinations under `secrets/**` / `secrets/kms/**`. Do not invent missing homes. No hubs, no `Cargo.lock`, no merge.
+
+Retargeted (verified across Seat A waves):
+- `microservices/cloud-secrets/**` → `secrets/**` when present
+- `microservices/cloud-kms/**` → `secrets/kms/**` when present
+- KMS SLO alias → `secrets/observability/slos/cloud-kms/`
+- Burned `crates/oya-cloud-kms-*` → forever faces `secrets/{core,ports,adapters}/**`
+- `ARCH.md` ownership cites → `secrets/{core,ports,adapters,facade}/`
+
+Deferred (still missing — do not invent): journey-local jNN fixtures; `legal/**`; `byok-ceremony.md`; missing OpenBao HCL/schema; burned secrets-domain/rotator cites without forever files; `crates/oya-cloud-kms-adapter-vault-enterprise/` (no vault adapter home).
+
+Parked: machine-readable `reorg-unit-judgments.v1.json` deferred until reachability-registered (ADR-0555) via specs rail — new husk JSON at capability root fails `cloud-ci-total-accounting` unjustified/unreachable.
