@@ -154,6 +154,10 @@
       "prefix": "docs/adr-archive/"
     },
     {
+      "anchor": "Transitional dual-home for supply-chain-audit live gate path docs/checklists/release-readiness-checklist.md after templates/checklists forever-home move; elevate gate cite rewrite to integ/ci. Content mirrors templates/checklists/release-readiness-checklist.md RR14.",
+      "prefix": "docs/checklists/release-readiness-checklist.md"
+    },
+    {
       "anchor": "ADR-0555 D3: the governance decision corpus — every decision is crosswalk-accounted (decision-crosswalk.generated.json); orphan/unpropagated/status pathologies are the cross-artifact gate's BLOCKING codes, so per-decision reachability is derived from the corpus itself, not hand-mentioned per file",
       "prefix": "docs/decisions/"
     },
