@@ -21,6 +21,7 @@ Do **not** tip-heroics lock updates on `integ/os`, `integ/cloud`, `integ/ci`, `i
 | `#1839` integ/cloud | Remove `cloud/cloud-os/crates/oya-*` glob (burn) | Drop `oya-cloud-os-*-domain` packages from lock after crates gone from `dev` **or** same-wave as burn land | expire cloud toml bridge |
 | `#1926` integ/os | Un-exclude `os/harness/{oci-executor-oracle,attestation-relying-party}` | Add `os-oci-executor-oracle` + `os-attestation-relying-party` via `cargo metadata` with crates present | expire `integ-os-cargo-lock-bridge` waiver |
 | `#1647` integ/governance | Un-exclude `governance/check/apex-gist-integrity` | Add `check-apex-gist-integrity` | drop gov exclude bridge |
+| `#1646` integ/ci | `ci/controller/**` members + lock (freshness bridge @ `1a831291f`) | Take member+lock ownership; content stays on integ/ci | expire ci lock bridge |
 | `#1931` lane | Superseded into `#1926` harness | none (no third writer) | close/strip |
 
 ## Done-when
