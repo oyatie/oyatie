@@ -904,6 +904,10 @@ jobs:
           set -euo pipefail
           gate_bin="$(buck2 build //ci/facade/affected-target-set:oya-cloud-ci-affected-set-bin --show-output | awk '{print $2}')"
           telemetry_bin="$(buck2 build //ci/facade/affected-target-set:oya-cloud-ci-step-telemetry-bin --show-output | awk '{print $2}')"
+          hub_bin="$(buck2 build //ci/facade/affected-target-set:oya-cloud-ci-hub-exclusivity-bin --show-output | awk '{print $2}')"
+          # Hub sole-owner: cite envelopes #hubs.paths; multi-own among open integ PRs => REFUSE.
+          # Absent envelopes on parked tips skips (producer fail-open only for missing authority file).
+          "${hub_bin}" --repo-root . --live-open-prs --repo "${GITHUB_REPOSITORY}"
           if [ "${EVENT_NAME}" = "pull_request" ]; then
             # PR tier: auto (cone-binding, hard-fail on a NEW break in the changed cone); a FULL
             # escalation runs the build-health ratchet AND the test-health ratchet (defect 3) against
