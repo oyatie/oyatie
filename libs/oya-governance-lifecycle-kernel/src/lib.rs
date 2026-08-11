@@ -116,6 +116,11 @@ pub struct Transition {
 /// resulting `LifecycledArtifact` records.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct SourceSpec {
+    /// Reader dispatch for the declaration surface:
+    /// - `yaml_document`: fence-less bare YAML records are read whole (catalog rows);
+    ///   top-level keys must be unindented.
+    /// - `yaml_front_matter` (and every other kind): a `---` fence is required; body
+    ///   lines are never treated as declarations.
     // data_class: INTERNAL_ONLY
     pub kind: String, // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
@@ -454,9 +459,14 @@ pub mod discovery {
     /// declared conditions (default-constructed filter), nothing
     /// matches — callers should set `SourceSpec.filter = None` in that
     /// case rather than passing an empty filter.
-    pub fn path_passes_filter(path: &Path, raw: &str, filter: &SourceFilter) -> bool {
+    pub fn path_passes_filter(
+        path: &Path,
+        raw: &str,
+        filter: &SourceFilter,
+        source_kind: &str,
+    ) -> bool {
         if let Some((field, want)) = &filter.kind_field_value
-            && let Some(got) = frontmatter_scalar(raw, field)
+            && let Some(got) = frontmatter_scalar(raw, field, source_kind)
             && got.eq_ignore_ascii_case(want)
         {
             return true;
@@ -490,24 +500,24 @@ pub mod discovery {
                 let raw = fs::read_to_string(&path)
                     .map_err(|e| format!("could not read {}: {e}", path.display()))?;
                 if let Some(filter) = &source.filter
-                    && !path_passes_filter(&path, &raw, filter)
+                    && !path_passes_filter(&path, &raw, filter, &source.kind)
                 {
                     continue;
                 }
-                let stage = frontmatter_scalar(&raw, &source.stage_field);
+                let stage = frontmatter_scalar(&raw, &source.stage_field, &source.kind);
                 let supersession = source
                     .supersession_field
                     .as_deref()
-                    .and_then(|f| frontmatter_scalar(&raw, f));
+                    .and_then(|f| frontmatter_scalar(&raw, f, &source.kind));
                 let deadline = source
                     .deadline_field
                     .as_deref()
-                    .and_then(|f| frontmatter_scalar(&raw, f))
+                    .and_then(|f| frontmatter_scalar(&raw, f, &source.kind))
                     .and_then(|s| parse_date(&s));
                 let milestone = source
                     .milestone_field
                     .as_deref()
-                    .and_then(|f| frontmatter_scalar(&raw, f));
+                    .and_then(|f| frontmatter_scalar(&raw, f, &source.kind));
                 out.push(LifecycledArtifact {
                     location: path.to_string_lossy().into_owned(),
                     kind: config.name.clone(),
@@ -534,7 +544,66 @@ pub mod discovery {
         NaiveDate::checked_ymd(y, m, d)
     }
 
-    pub fn frontmatter_scalar(raw: &str, field: &str) -> Option<String> {
+    /// Fence-less bare records are admitted only for `yaml_document`; keys must
+    /// start at column 0. Other kinds require a `---` fence.
+    pub fn frontmatter_scalar(raw: &str, field: &str, source_kind: &str) -> Option<String> {
+        // Inline-comment-aware scalar read (fix-1644-codex): `api_stability:
+        // preview # initial tier` must parse as `preview` — the previous bare
+        // trim kept the comment, so a valid catalog row with an ordinary YAML
+        // comment failed stage_lookup as UnknownStage. Per YAML, `#` opens a
+        // comment only at start-of-scalar or after whitespace, and never inside
+        // a quoted scalar — quoted bodies are read verbatim to their close
+        // quote instead.
+        fn clean_scalar(rest: &str) -> Option<String> {
+            let trimmed = rest.trim();
+            let value = match trimmed.chars().next() {
+                Some(q @ ('"' | '\'')) => match trimmed[1..].find(q) {
+                    Some(end) => trimmed[1..1 + end].trim().to_string(),
+                    // Unterminated quote: preserve the previous trim behaviour.
+                    None => trimmed.trim_matches(q).trim().to_string(),
+                },
+                _ => {
+                    let bytes = trimmed.as_bytes();
+                    let mut cut = trimmed.len();
+                    for (i, &b) in bytes.iter().enumerate() {
+                        if b == b'#' && (i == 0 || bytes[i - 1].is_ascii_whitespace()) {
+                            cut = i;
+                            break;
+                        }
+                    }
+                    trimmed[..cut].trim_end().to_string()
+                }
+            };
+            if value.is_empty() { None } else { Some(value) }
+        }
+
+        // `yaml_document` (catalog rows): always a bare-record reader. A leading
+        // `---` is a YAML document marker, NOT a front-matter fence — keep
+        // column-0 enforcement so nested keys after a marker cannot launder a
+        // declaration. Every other kind requires a real `---` front-matter fence.
+        if source_kind == "yaml_document" {
+            for line in raw.lines() {
+                if line.trim() == "---" {
+                    continue;
+                }
+                // Bare YAML: refuse indented keys so nested maps cannot satisfy
+                // a top-level lifecycle field.
+                if !line.starts_with(field) {
+                    continue;
+                }
+                if let Some(rest) = line.strip_prefix(field)
+                    && let Some(rest) = rest.strip_prefix(':')
+                {
+                    return clean_scalar(rest);
+                }
+            }
+            return None;
+        }
+
+        let has_fence = raw.lines().any(|line| line.trim() == "---");
+        if !has_fence {
+            return None;
+        }
         let mut in_fm = false;
         let mut started = false;
         for line in raw.lines() {
@@ -554,11 +623,7 @@ pub mod discovery {
             if let Some(rest) = trimmed.strip_prefix(field)
                 && let Some(rest) = rest.strip_prefix(':')
             {
-                let value = rest.trim().trim_matches('"').trim_matches('\'').trim();
-                if value.is_empty() {
-                    return None;
-                }
-                return Some(value.to_string());
+                return clean_scalar(rest);
             }
         }
         None
@@ -1703,6 +1768,131 @@ mod tests {
         assert!(discovery::expand_glob(&shallow).is_err());
         assert!(discovery::expand_glob(&recursive).is_err());
     }
+
+    #[test]
+    fn fenceless_document_is_read_whole_without_widening_fenced_documents() {
+        // A bare declaration record — the shape of every `registry/catalog/*.yaml`.
+        // Before the fence-less admission this returned None for every field.
+        let bare = "context: audit\nrole: domain\napi_stability: preview\n";
+        assert_eq!(
+            discovery::frontmatter_scalar(bare, "api_stability", "yaml_document").as_deref(),
+            Some("preview"),
+            "fence-less yaml_document must be read whole"
+        );
+        assert_eq!(
+            discovery::frontmatter_scalar(bare, "api_stability", "yaml_front_matter"),
+            None,
+            "fence-less front-matter sources must still require a fence"
+        );
+
+        // Nested indented keys are not top-level declarations on bare YAML.
+        let nested = "metadata:\n  api_stability: preview\n";
+        assert_eq!(
+            discovery::frontmatter_scalar(nested, "api_stability", "yaml_document"),
+            None,
+            "indented nested keys must not satisfy a bare top-level field"
+        );
+
+        // Explicit YAML document markers must not switch yaml_document into the
+        // front-matter branch (which trims indentation and would accept nested keys).
+        let marked = "---\nmetadata:\n  api_stability: preview\n";
+        assert_eq!(
+            discovery::frontmatter_scalar(marked, "api_stability", "yaml_document"),
+            None,
+            "--- is a YAML marker for yaml_document; nested keys stay unread"
+        );
+        let marked_top = "---\napi_stability: preview\n";
+        assert_eq!(
+            discovery::frontmatter_scalar(marked_top, "api_stability", "yaml_document").as_deref(),
+            Some("preview"),
+            "column-0 keys after a YAML marker remain readable"
+        );
+
+        // A fenced document must NOT widen: a field that appears only in the
+        // BODY stays invisible. This is the assert that fails if the admission
+        // is written as "scan the whole document" — i.e. if the `break` at the
+        // closing fence is dropped.
+        // NOTE: the body scalar deliberately carries no `ADR-<digits>` token.
+        // `.rs` is in adr-citation-closure's scan_extensions and its
+        // citation_lines census is pinned by EQUALITY, so a realistic-looking
+        // ADR id in a test fixture reddens that gate.
+        let fenced = "---\nstatus: Accepted\n---\n\nsuperseded_by: replacement-doc\n";
+        assert_eq!(
+            discovery::frontmatter_scalar(fenced, "status", "yaml_front_matter").as_deref(),
+            Some("Accepted"),
+            "fenced front matter still resolves"
+        );
+        assert_eq!(
+            discovery::frontmatter_scalar(fenced, "superseded_by", "yaml_front_matter"),
+            None,
+            "a body line below the closing fence must stay unread"
+        );
+
+        // A line ABOVE the opening fence must also stay unread. THIS is the
+        // assert that fails if the admission is written as an unconditional
+        // `in_fm = true` rather than being keyed on the absence of a fence:
+        // the closing-fence `break` hides that mutation from the body case
+        // above, so without this line the over-broad implementation passes.
+        let preamble = "doc_status: published\n---\nstatus: Accepted\n---\n";
+        assert_eq!(
+            discovery::frontmatter_scalar(preamble, "doc_status", "yaml_front_matter"),
+            None,
+            "a line above the opening fence must stay unread"
+        );
+    }
+
+    #[test]
+    fn inline_yaml_comments_are_stripped_without_widening_quoted_scalars() {
+        // fix-1644-codex: an ordinary inline comment on a valid catalog row must
+        // not surface as UnknownStage. (Fixtures deliberately avoid `ADR-<digits>`
+        // tokens — see the census note in the fence-widening test above.)
+        let commented = "context: audit\napi_stability: preview # initial tier\n";
+        assert_eq!(
+            discovery::frontmatter_scalar(commented, "api_stability", "yaml_document").as_deref(),
+            Some("preview"),
+            "inline comment after an unquoted scalar must be stripped"
+        );
+
+        // Quoted scalars keep their `#` — YAML comments cannot start inside quotes.
+        let quoted = "api_stability: \"pre # view\"\n";
+        assert_eq!(
+            discovery::frontmatter_scalar(quoted, "api_stability", "yaml_document").as_deref(),
+            Some("pre # view"),
+            "a hash inside a quoted scalar is content, not a comment"
+        );
+        let single_quoted = "api_stability: 'pre # view' # trailing\n";
+        assert_eq!(
+            discovery::frontmatter_scalar(single_quoted, "api_stability", "yaml_document")
+                .as_deref(),
+            Some("pre # view"),
+            "single-quoted scalar keeps its hash; trailing comment is dropped"
+        );
+
+        // No preceding whitespace means no comment per YAML.
+        let glued = "api_stability: preview#tier\n";
+        assert_eq!(
+            discovery::frontmatter_scalar(glued, "api_stability", "yaml_document").as_deref(),
+            Some("preview#tier"),
+            "hash glued to the scalar is content, not a comment"
+        );
+
+        // A line that is ONLY a comment after the colon carries no value.
+        let empty = "api_stability: # to be decided\n";
+        assert_eq!(
+            discovery::frontmatter_scalar(empty, "api_stability", "yaml_document"),
+            None,
+            "comment-only value must stay None"
+        );
+
+        // The fenced front-matter branch gets the same treatment.
+        let fenced = "---\nstatus: published # via review\n---\n";
+        assert_eq!(
+            discovery::frontmatter_scalar(fenced, "status", "yaml_front_matter").as_deref(),
+            Some("published"),
+            "fenced branch must strip inline comments identically"
+        );
+    }
+
     #[test]
     fn empty_input_is_clean() {
         let cfg = cfg_adr_status();
