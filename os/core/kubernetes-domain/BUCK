@@ -7,7 +7,6 @@ rust_library(
     deps = [
         "//os/core/kernel:os-kernel",
         "//os/core/runtime-cri-domain:os-runtime-cri-domain",
-        "//os/core/secrets-domain:os-secrets-domain",
     ],
 )
 
@@ -20,6 +19,6 @@ rust_test(
     deps = [
         "//os/core/kernel:os-kernel",
         "//os/core/runtime-cri-domain:os-runtime-cri-domain",
-        "//os/core/secrets-domain:os-secrets-domain",
+        "//os/core/secrets-domain:os-secrets-domain-modeled",
     ],
 )
