@@ -199,6 +199,7 @@ fn fetch_open_pr_file_facts(api: &GitHubApi, repo: &str) -> Result<Value, String
             continue;
         }
         let mut files: Vec<Value> = Vec::new();
+        let mut oversized = false;
         for page in 1..=MAX_PAGES {
             let route =
                 format!("repos/{repo}/pulls/{number}/files?per_page={PER_PAGE}&page={page}");
@@ -220,10 +221,20 @@ fn fetch_open_pr_file_facts(api: &GitHubApi, repo: &str) -> Result<Value, String
                 break;
             }
             if page == MAX_PAGES {
-                return Err(format!(
-                    "PR #{number} file list exceeded {MAX_PAGES} pages — refuse rather than truncate"
-                ));
+                // Do not hard-fail the whole fleet when one oversized integ PR (e.g. dump
+                // delete) exceeds the page ceiling. Skip it so it cannot claim hub ownership
+                // (truncated facts must not mint exclusivity rights) and cannot poison unrelated
+                // integ lanes. Open-PR list overflow above still refuses.
+                eprintln!(
+                    "{LOG}: skip PR #{number} ({head_ref}) — file list exceeded {MAX_PAGES} pages \
+                     of {PER_PAGE}; oversized PRs cannot claim hub exclusivity"
+                );
+                oversized = true;
+                break;
             }
+        }
+        if oversized {
+            continue;
         }
         facts.push(json!({
             "number": number,
