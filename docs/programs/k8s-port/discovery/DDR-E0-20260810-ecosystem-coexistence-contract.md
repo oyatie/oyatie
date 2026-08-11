@@ -1,6 +1,6 @@
 ---
 doc_class: Program-Discovery-Decision-Record
-doc_status: discovery
+doc_status: drafted
 discovery_id: DDR-E0-20260810-ecosystem-coexistence-contract
 judgment_class: ecosystem-coexistence-contract
 recorded_at: 2026-08-10
