@@ -308,6 +308,34 @@ pub fn validate_matrix(root: &Value) -> Result<(), MatrixError> {
         ));
     }
 
+    let a1_scope = obj
+        .get("a1_scope")
+        .and_then(|v| v.as_object())
+        .ok_or_else(|| MatrixError::Schema("a1_scope missing".into()))?;
+    if a1_scope.get("kind").and_then(|v| v.as_str()) != Some("abi_kernel_service_matrix") {
+        return Err(MatrixError::Schema(
+            "a1_scope.kind must be abi_kernel_service_matrix".into(),
+        ));
+    }
+    let posture = a1_scope
+        .get("pool_posture")
+        .and_then(|v| v.as_object())
+        .ok_or_else(|| MatrixError::Schema("a1_scope.pool_posture missing".into()))?;
+    if posture.get("linux_pools").and_then(|v| v.as_str()) != Some("primary_production_path") {
+        return Err(MatrixError::Schema(
+            "a1_scope.pool_posture.linux_pools must be primary_production_path".into(),
+        ));
+    }
+    if posture
+        .get("asterinas_shared_kernel")
+        .and_then(|v| v.as_str())
+        != Some("soak_until_a1_green")
+    {
+        return Err(MatrixError::Schema(
+            "a1_scope.pool_posture.asterinas_shared_kernel must be soak_until_a1_green".into(),
+        ));
+    }
+
     let pin_obj = obj
         .get("asterinas_pin")
         .and_then(|v| v.as_object())
@@ -513,7 +541,33 @@ pub fn validate_matrix(root: &Value) -> Result<(), MatrixError> {
     }
     validate_row_census_and_g5_triggers(surfaces)?;
     validate_evaluation_status_matches_rows(obj, surfaces)?;
+    validate_probe_harness(obj)?;
 
+    Ok(())
+}
+
+fn validate_probe_harness(obj: &serde_json::Map<String, Value>) -> Result<(), MatrixError> {
+    let harness = obj
+        .get("probe_harness")
+        .and_then(|v| v.as_object())
+        .ok_or_else(|| MatrixError::Schema("probe_harness missing".into()))?;
+    if harness.get("preferred_evidence_path").and_then(|v| v.as_str())
+        != Some("qemu-tcg-against-pinned-iso")
+    {
+        return Err(MatrixError::Schema(
+            "probe_harness.preferred_evidence_path must be qemu-tcg-against-pinned-iso".into(),
+        ));
+    }
+    if harness.get("live_hardware_required").and_then(|v| v.as_bool()) != Some(false) {
+        return Err(MatrixError::Schema(
+            "probe_harness.live_hardware_required must be false".into(),
+        ));
+    }
+    if harness.get("crate").and_then(|v| v.as_str()) != Some("kernel-asterinas-abi-probe") {
+        return Err(MatrixError::Schema(
+            "probe_harness.crate must be kernel-asterinas-abi-probe".into(),
+        ));
+    }
     Ok(())
 }
 
