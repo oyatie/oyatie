@@ -163,7 +163,7 @@
     {
       "adr": "ADR-0712",
       "number": 712,
-      "title": "Owned node runtime: supervisor libraries, no manager daemon; CRI external face; Go containerd bootstrap CONSUME",
+      "title": "Owned node runtime — supervisor libraries, no manager daemon",
       "status": "Proposed",
       "owner": "council-architecture",
       "date": "2026-08-10",
@@ -199,7 +199,7 @@
     {
       "adr": "ADR-0715",
       "number": 715,
-      "title": "OS-layer retirement: node supervisor as OS; apex noun amend proposal; os/ harvest-then-retire",
+      "title": "OS-layer retirement — node supervisor as OS; apex noun amend proposal",
       "status": "Proposed",
       "owner": "council-architecture",
       "date": "2026-08-10",
