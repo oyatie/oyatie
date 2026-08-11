@@ -5,7 +5,7 @@
   "decision": {
     "decision_status": "ratified",
     "approved_by": "founder-proxy-round-4",
-    "subject": "Add F1 Proposed ADR planning work items MPV2-0053..MPV2-0056 (definition class) to masterplan_v2; add MPV2-0053\u2192MPV2-0055 dependency for ADR-0714 depends_on ADR-0712",
+    "subject": "Add F1 Proposed ADR planning work items MPV2-0053..MPV2-0056 (definition class) to masterplan_v2; add dependency edge MPV2-0053\u2192MPV2-0055 for ADR-0714 depends_on ADR-0712",
     "required_before": "execution-wave-dispatch",
     "dispatch_state_at_ratification": "No masterplan execution wave is recorded as dispatched; the separate pre-planning authority hold remains open.",
     "scope_limit": "Planning anchors only. Proposed ADRs ADR-0712..ADR-0715 remain not implement authority. Does not authorize encode, Accept flips, W1+, or execution-wave dispatch. authorizes_execution_wave_dispatch remains false until a separate founder execution-dispatch ratification is recorded."
@@ -48,6 +48,14 @@
       "MPV2-0055",
       "MPV2-0056"
     ],
-    "dependency_edges_unchanged": true
+    "dependency_edges_unchanged": false,
+    "added_dependency_edges": [
+      {
+        "from": "MPV2-0053",
+        "to": "MPV2-0055",
+        "relationship": "unblocks"
+      }
+    ],
+    "note": "F1 planning added MPV2-0053\u2192MPV2-0055; W0 k8s-port dependency topology otherwise unchanged."
   }
 }

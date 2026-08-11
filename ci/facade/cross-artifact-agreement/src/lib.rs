@@ -2855,6 +2855,19 @@ fn evaluate_execution_wave_dispatch(
                 "masterplan_v2.sequencing.founder_ratification.authorizes_execution_wave_dispatch",
             ));
         }
+        // Dispatch-authorizing ratification must be the founder principal, not a proxy
+        // substring match. Planning-only founder-proxy receipts remain valid while blocked.
+        let approved_by = founder_ratification
+            .and_then(|ratification| non_empty_field(ratification, "approved_by"))
+            .unwrap_or("");
+        if authorizes_dispatch == Some(true)
+            && !approved_by.eq_ignore_ascii_case("founder")
+        {
+            findings.insert(Finding::new(
+                "masterplan_execution_wave_dispatch_unratified",
+                "masterplan_v2.sequencing.founder_ratification.approved_by",
+            ));
+        }
     }
 }
 
@@ -2921,7 +2934,19 @@ fn evaluate_decision_timeboxes_with_clock(
             ));
         }
         let target_adr = non_empty_field(timebox, "target_adr");
-        let as_of = non_empty_field(timebox, "as_of_utc_date").or(fallback_as_of_utc_date);
+        let local_as_of = non_empty_field(timebox, "as_of_utc_date");
+        let as_of = match (local_as_of, fallback_as_of_utc_date) {
+            (Some(local), Some(global)) => {
+                // Prefer the later valid date so a stale object-local as_of cannot
+                // disable the global governance_evaluation_clock babysit.
+                if is_yyyy_mm_dd(local) && is_yyyy_mm_dd(global) {
+                    Some(if local >= global { local } else { global })
+                } else {
+                    local_as_of.or(fallback_as_of_utc_date)
+                }
+            }
+            (local, global) => local.or(global),
+        };
         let Some(as_of) = as_of else {
             continue;
         };
