@@ -106,8 +106,13 @@ reason = "append-only audit chain — NEVER rewritten"
 
 [[vocab.carve_outs]]
 kind = "path_exact"
-value = ".omc/ultragoal/friction-ledger.jsonl"
-reason = "append-only local lane friction ledger — records historical defect text and is not a product/governance vocabulary source"
+value = "ci/facade/action-item-accounting/friction-ledger.jsonl"
+reason = "append-only local lane friction ledger (retargeted from deleted .omc/ultragoal/) — records historical defect text and is not a product/governance vocabulary source"
+
+[[vocab.carve_outs]]
+kind = "path_exact"
+value = "specs/integ-branch-envelopes.json"
+reason = "faithful judgment map that must name real filesystem paths under delete targets including retired-pipeline-brand directories (docs/foundry/, templates/foundry-supervisor/); embeds path strings as data, not live product vocabulary — same carve class as specs/microservice-tier-classification.json"
 
 [[vocab.carve_outs]]
 kind = "path_suffix"

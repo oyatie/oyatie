@@ -4,6 +4,6 @@ wave=W0-B;ordinal=1;completed=false;operations_entries=;no_extraction_rationale=
 wave=W0-C;ordinal=2;completed=false;operations_entries=;no_extraction_rationale=
 wave=W0-D;ordinal=3;completed=false;operations_entries=;no_extraction_rationale=
 wave=W0-E;ordinal=4;completed=false;operations_entries=;no_extraction_rationale=
-wave=W0-F;ordinal=5;completed=false;operations_entries=;no_extraction_rationale=
+wave=W0-F;ordinal=5;completed=false;operations_entries=W0-F-20260809-os-overlap-archaeology.md;no_extraction_rationale=
 wave=W0-G;ordinal=6;completed=false;operations_entries=;no_extraction_rationale=
 wave=W0-H;ordinal=7;completed=false;operations_entries=;no_extraction_rationale=
