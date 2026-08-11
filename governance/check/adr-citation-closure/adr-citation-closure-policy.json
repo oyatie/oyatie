@@ -37,7 +37,7 @@
     "archived_with_successor": 425,
     "rejected": 16,
     "citation_lines": 8921,
-    "files_scanned": 16605,
+    "files_scanned": 16608,
     "adr_citation_closure_mismatch": 252,
     "adr_citation_dangling_path": 2002,
     "adr_citation_rejected_authority": 3,
@@ -66,7 +66,8 @@
     "_integ_bundle_remeasure_2026_08_10_pr1642": "PR #1642 one-shot disjoint drain. Against the pre-catalog-row tip that observed files_scanned=16591 (frozen 16532), commit 2285a4df6 added four scanned registry/catalog/oya-cloud-os-*-domain.yaml rows (+4) and no other non-exempt tracked scanable adds, so freeze 16532 -> 16595. Finding ceilings held (mismatch 252, dangling_path 2002, rejected_authority 3, asymmetry 29, unresolvable 8, ambiguous 2); citation_lines/adr_records/live_apexes unchanged \u2014 corpus growth, not scan narrowing or finding repair. Re-frozen in the same change per gate contract.",
     "_e0_discovery_ddr_add_2026_08_10_pr1928_on_integ_docs": "Absorb #1928 onto integ/docs tip. Adds five tracked scanned files under docs/programs/k8s-port/discovery/ (DDR-E0-20260810-{divergence-adapter-law,ecosystem-coexistence-contract,node-stack-forever-shape,vap-cedar-plane-split-rationale}.md plus INDEX.md) and modifies README.md (already scanned). files_scanned 16595 -> 16600 equals tracked scanned-file add (+5). citation_lines held at 8902 (integ/docs tip; DDRs are not authority_surfaces and write no decisions/ADR-NNNN paths). adr_records/live_apexes/finding ceilings unchanged \u2014 corpus growth, not scan narrowing. Re-freeze SAME-change with corpus add.",
     "_f1_founder_proposed_remeasure_2026_08_10_on_integ_docs": "Absorb #1929 initial F1 Proposed set onto integ/docs tip (pre-Round-4 numbering ADR-0711..0715). TRACKED ADD +5 scanned ADR files under docs/decisions/ (files_scanned 16600 -> 16605). adr_records 459 -> 464 and live_apexes 11 -> 16. citation_lines 8902 -> 8917 (+15): five INDEX table path rows + five decisions.json path records + five root-hub-pointers current_path entries. Finding ceilings held \u2014 corpus growth. Round-4 commit will renumber past 0711 and re-freeze.",
-    "_f1_round4_remeasure_2026_08_10_on_integ_docs": "Absorb #1929 Round-4 onto integ/docs: renumber F1 off ADR-0711; merge owned-runtime+os-retirement into ADR-0713; net TRACKED scanned delta 0 (delete 5 old ADR + add 4 new ADR + add 1 evidence/goals JSON). adr_records 464->463, live_apexes 16->15. citation_lines 8917->8921 (+4). Finding ceilings held."
+    "_f1_round4_remeasure_2026_08_10_on_integ_docs": "Absorb #1929 Round-4 onto integ/docs: renumber F1 off ADR-0711; merge owned-runtime+os-retirement into ADR-0713; net TRACKED scanned delta 0 (delete 5 old ADR + add 4 new ADR + add 1 evidence/goals JSON). adr_records 464->463, live_apexes 16->15. citation_lines 8917->8921 (+4). Finding ceilings held.",
+    "_1930_discovery_proposals_on_integ_docs": "Absorb #1930 onto integ/docs: three discovery proposal DDRs (sonobuoy-licensing, cri-external-face, boot-marker-fleet-basis) + INDEX update. files_scanned 16605 -> 16608; citation_lines/adr_records/live_apexes held; finding ceilings held."
   },
   "product_contract": {
     "born_blocking": "Born BLOCKING and RED. Unlike a coverage ratchet there is no defensible ceiling here: a citation that resolves to the wrong apex is not debt to be burned down, it is a statement that is false today, and freezing a ceiling would licence the corpus to keep lying at its current rate. The gate reports every mismatch and fails until they are repaired.",
