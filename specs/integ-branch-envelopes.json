@@ -6,7 +6,7 @@
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
     "spec_id": "EXE-INTEG-BRANCH-ENVELOPES",
-    "version": "1.16.22",
+    "version": "1.16.23",
     "status": "Accepted",
     "owner_team": "council-architecture",
     "created_at": "2026-08-10T00:00:00Z",
@@ -6647,7 +6647,7 @@
         "compute/manifest.json and compute/stale-path-hygiene-note.md on integ/compute (#1660)",
         "iac/governance/** on integ/iac (#1680) — tip-free tax REJECTED as forever shape"
       ],
-      "transitional": "Until admission.policy consumes envelope_globs as prefix allow, hub (integ/specs) MAY register exact paths or dir prefixes in specs/reachability-registry.json. Prefer dir prefix compute/ over per-file. BAN tip-encode F1 Accept; BAN plan sprawl (amend living SSOT only).",
+      "transitional": "admission.policy consumes roots.*.envelope_globs as prefix allow (source tag envelope-prefix-ownership on integ/ci). Per-file tip-free / reachability-registry rows are OPTIONAL redundancy for in-envelope paths — not required for LOCAL_GREEN. Hub MAY still register exact paths or dir prefixes for out-of-envelope / transitional cases. Prefer dir prefix over per-file. BAN tip-encode F1 Accept; BAN plan sprawl (amend living SSOT only).",
       "new_root_or_transfer": "New top-level root birth or ownership transfer → rare integ/specs envelope amend (LSC-style)."
     },
     "manifest_inventory": {
@@ -6671,6 +6671,6 @@
       ],
       "identifier_law": "ADR numbers, F-PR/ticket refs MUST NOT appear in workflow/job/gate/env/Rust/JSON-API identifiers — comments/docs/evidence only."
     },
-    "phase1_note": "integ/ci tip carries forever filename .github/workflows/merge-admission-required.yml (workflow_call) + dual-emit title; event triggers remain on oya-ci-required.yml until quiet cutover (BAN double CI). Protection flip PAUSE-AND-PAIR."
+    "phase1_note": "integ/ci: forever filename merge-admission-required.yml + domain-stabilize.yml (both workflow_call) + dual-emit title; event triggers remain on oya-ci-required.yml until quiet cutover (BAN double CI). admission.policy wired to envelope_globs. Protection flip PAUSE-AND-PAIR."
   }
 }
