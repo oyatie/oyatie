@@ -8,9 +8,13 @@ operational_classes_owned: []
 api_stability: preview
 security_review: unreviewed
 supply_chain: source-only
+# Nested `kernel/` workspace (ADR-0512 carve-out) is excluded from the root live
+# member universe; catalog-liveness requires an explicit non-live marker.
+status: designed-ahead-row-no-crate
 traceability:
   source_crate: kernel/core/asterinas-abi-matrix/Cargo.toml
 non_claims:
   - A1 W0-entry scaffold only; embeds and validates a versioned four-surface ABI matrix artifact
+  - crate lives in the ADR-0512 nested kernel workspace (not a root live member); row is inventory + SLO face only
   - does not claim Asterinas is the canonical guest/node kernel (blocked on founder ADR F1(a))
   - unknown availability rows are expected; no live QEMU or hardware evidence is produced here
