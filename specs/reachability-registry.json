@@ -222,6 +222,10 @@
       "prefix": "gateway/iac/spire-trust-bundle.yaml"
     },
     {
+      "anchor": "ADR-0711 + ADR-0555: integ-envelope judgments/waivers DATA home (non-crate under governance/check); owned by integ/specs adjunct; excluded from Cargo workspace members.",
+      "prefix": "governance/check/integ-envelope/"
+    },
+    {
       "anchor": "ADR-0339 IAC-001 shared OpenTofu module library: the iac capability architecture document, named verbatim by ADR-0339 in its governed-surfaces list and again in its landing-deliverables list (gains the module-library scope expansion description at landing), both at the pre-move path cloud/cloud-iac/ARCHITECTURE.md. The ADR-0562 capability move to iac/ relocated the file and both citations stayed at the old path. A capability doc is not crate-resident, so cargo-members cannot reach it. EXACT path, not a tree: iac/ already registers iac/modules/ separately.",
       "prefix": "iac/ARCHITECTURE.md"
     },
@@ -518,6 +522,10 @@
       "prefix": "specs/BUCK"
     },
     {
+      "anchor": "ADR-0711 Amendment C: machine-readable KEEP/BAN operating-patterns catalog owned by integ/specs.",
+      "prefix": "specs/agentic-operating-patterns.json"
+    },
+    {
       "anchor": "ADR-0560 D2 (executing ADR-0556 D2): the warm-license kill-switch DATA read by the cache-wiring resolver and pinned by its conformance gate; ships warm_reads_licensed=false until the first GREEN canary against a live substrate",
       "prefix": "specs/cache-warm-license.json"
     },
@@ -554,6 +562,10 @@
       "prefix": "specs/history-only-retirement-facts.schema.json"
     },
     {
+      "anchor": "ADR-0711 D-8: Swarm Delivery Law path envelopes policy-as-data; sole-owner integ/specs.",
+      "prefix": "specs/integ-branch-envelopes.json"
+    },
+    {
       "anchor": "ADR-0637 + ADR-0638: the machine-readable Kubernetes Go-to-Rust W0 policy corpus (immutable upstream pin, whole-corpus scope, governed divergence ledger, and fail-closed licensing requirements) is the reviewed source of truth for the oya-port program and its R-DOC/gate consumers.",
       "prefix": "specs/k8s-port/"
     },
@@ -564,6 +576,10 @@
     {
       "anchor": "ADR-0632 hermetic input declaration: exact microservice-schema BUCK file exporting the closed public/internal contract schema to the product-protocol gate.",
       "prefix": "specs/microservices/BUCK"
+    },
+    {
+      "anchor": "ADR-0711 Amendment B Pattern-First Law: naming taxonomy policy-as-data owned by integ/specs.",
+      "prefix": "specs/naming-taxonomy.json"
     },
     {
       "anchor": "ADR-0610: pre-registered frozen Policy-IR benchmark stage-0 artifacts (rubric = sole grade authority, fixture suite = graded corpus); evidence-admissibility pre-registration.",
@@ -640,6 +656,11 @@
     {
       "anchor": "ADR-0508 Phase-1 reference metadata: tools/opensk-vendored/UPSTREAM-CONFIG.json is the machine-readable upstream tracking config for the OpenSK reference, with source vendoring deferred to a follow-up IP.",
       "prefix": "tools/opensk-vendored/UPSTREAM-CONFIG.json"
+    },
+    {
+      "anchor": "ADR-0711 D-9: tools/swarm process-kit birth aborted on #1644 (automation-language-policy); deferred to .grok/ Rust-first. Prefix retained as tombstone / do-not-birth marker until .grok/ lands.",
+      "prefix": "tools/swarm/",
+      "status": "deferred"
     },
     {
       "anchor": "ADR-0541: Buck package marker for the workflow capability residual corpus target. This package keeps the capability's rehomed service docs, manifests, contracts and OpenSLO YAML inside the Buck2 corpus graph after the capability-first rehome; without it those files leave buck2-packaged space entirely (measured across nine roots: 996 YAML files, unpackaged 1069 -> 75).",

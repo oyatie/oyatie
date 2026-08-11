@@ -90,12 +90,16 @@ exclude = [
   # buck2-only gate home; nativelink is the dark NativeLink CAS/AC k8s declaration + OWNERS
   # seed rehomed by CAS Lane 3A / specs/reorg/nativelink-storage-move-plan.json).
   #
+  # `governance/check/integ-envelope` is matched by `governance/check/*` but holds only
+  # judgments/waivers DATA (no [package] manifest) — exclude so cargo/freshness resolve.
+  #
   # The ~23 `<cap>/observability`-shaped entries that used to live here are GONE, not relocated:
   # they existed solely because `<cap>/*/*` matched satellite directories, and the layer globs
   # above do not match them. That is the point of the change — a capability move no longer adds
   # an exclusion for satellite dirs outside the four faces.
   "ci/facade/automation-language-policy",
   "cloud/cloud-kernel",
+  "governance/check/integ-envelope",
   "kernel",
   "storage/adapters/nativelink",
 ]

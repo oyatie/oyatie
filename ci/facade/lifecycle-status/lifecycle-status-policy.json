@@ -19,34 +19,6 @@
     }
   },
   "known_broken_lanes": {
-    "_comment": "RESTORED for integ/ci standing alone: six dark lifecycle configs still exist under specs/lifecycle-configs until integ/specs #1644 deletes them. Emptying known_broken_lanes before those deletes reds lifecycle_status_lane_discovered_nothing. After #1644 merges, restack and empty this block again with the disposition comment from the absorbed goal.",
-    "api-stability-tier-lifecycle": {
-      "defect": "source root docs/api-stability does not exist; the lane has never observed an artifact",
-      "resolution": "re-root onto the live API-stability surface (registry/catalog *.yaml api_stability fields) or delete the config, and delete this entry in the same PR"
-    },
-    "capability-status-lifecycle": {
-      "defect": "source root resolves but the glob matches ZERO artifacts, so the lane evaluates perfectly clean while observing nothing \u2014 a vacuous green the kernel cannot detect because its glob only errors on a missing directory",
-      "resolution": "re-root onto the live capability surface (specs/capability-registry.json / <cap>/catalog) or delete the config, and delete this entry in the same PR"
-    },
-    "crate-status-lifecycle": {
-      "defect": "source root crates/*-domain does not exist \u2014 the capability-first reorg (ADR-0562) moved every crate out of crates/ and the config was never re-rooted; this is the reorg-move scan-root blindness class",
-      "resolution": "re-root onto the live crate surface (registry/catalog/*.yaml) or delete the config, and delete this entry in the same PR"
-    },
-    "dependency-status-lifecycle": {
-      "defect": "source root docs/dependencies does not exist; the lane has never observed an artifact",
-      "resolution": "re-root onto registry/dependency-rationales.json / oya-deps.toml or delete the config, and delete this entry in the same PR"
-    },
-    "feature-flag-status-lifecycle": {
-      "defect": "source root docs/feature-flags does not exist; the lane has never observed an artifact",
-      "resolution": "re-root onto the live feature-flag surface or delete the config, and delete this entry in the same PR"
-    },
-    "migration-status-lifecycle": {
-      "defect": "source root .omc/plans/milestones is GITIGNORED agent operational state, absent from every CI checkout by construction \u2014 this lane could never have run in required CI even if it had been wired",
-      "resolution": "re-root onto a tracked migration surface (docs/migration-playbooks, specs/reorg/*.json) or delete the config, and delete this entry in the same PR"
-    },
-    "plan-status-lifecycle": {
-      "defect": "source root .omc/plans/milestones is GITIGNORED agent operational state, absent from every CI checkout by construction \u2014 same structural defect as migration-status-lifecycle",
-      "resolution": "re-root onto the tracked masterplan surface (specs/masterplan.json) or delete the config, and delete this entry in the same PR"
-    }
+    "_comment": "Lanes that CANNOT observe a live corpus today. Every one was measured, not assumed. A listed lane may fail discovery or observe zero artifacts without reddening the required context; an UNLISTED lane doing either is born-blocking. Shrink-only in both directions: a listed lane that starts observing artifacts fails with known_broken_lane_now_live and must lose its entry in the same PR, and an entry naming a deleted config also fails. Every entry states a resolution \u2014 a defect with no resolution is a permanent excuse, and the parser rejects it. Empty after graduation of api-stability-tier-lifecycle onto registry/catalog and deletion of the six configs whose source roots never existed (or were gitignored). New known_broken entries require a measured defect + resolution string; shrink-only thereafter."
   }
 }
