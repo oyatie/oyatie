@@ -123,11 +123,32 @@ pub enum DiffVerdict {
     Diverge,
 }
 
-/// Typed measured outcome carried by live adapters.
+/// Closed OCI operation set for differential observations.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum OciOperation {
+    Create,
+    Start,
+    Kill,
+    Delete,
+}
+
+impl OciOperation {
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Create => "create",
+            Self::Start => "start",
+            Self::Kill => "kill",
+            Self::Delete => "delete",
+        }
+    }
+}
+
+/// Canonical measured outcome (shared contract — not adapter-defined digests).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct MeasuredOutcome {
-    /// Opaque digest of exit/status/stderr (adapter-defined).
-    pub result_digest: String,
+    pub exit_code: i32,
+    pub status: String,
+    pub stderr_fingerprint: String,
 }
 
 /// Per-side operation observation. Live adapters emit one of these; a separate
@@ -135,8 +156,10 @@ pub struct MeasuredOutcome {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct OperationObservation {
     pub kind: ExecutorKind,
-    pub operation: &'static str,
+    pub operation: OciOperation,
     pub bundle_id: String,
+    /// Kill signal when `operation == Kill`; otherwise None.
+    pub kill_signal: Option<KillSignal>,
     /// False for scaffold stubs; true once a live adapter executed the op.
     pub executed: bool,
     /// Present only when `executed` — compared for Match/Diverge.
@@ -144,11 +167,17 @@ pub struct OperationObservation {
 }
 
 impl OperationObservation {
-    pub fn stubbed(kind: ExecutorKind, operation: &'static str, bundle_id: &str) -> Self {
+    pub fn stubbed(
+        kind: ExecutorKind,
+        operation: OciOperation,
+        bundle_id: &str,
+        kill_signal: Option<KillSignal>,
+    ) -> Self {
         Self {
             kind,
             operation,
             bundle_id: bundle_id.to_owned(),
+            kill_signal,
             executed: false,
             measured: None,
         }
@@ -156,18 +185,18 @@ impl OperationObservation {
 
     pub fn measured(
         kind: ExecutorKind,
-        operation: &'static str,
+        operation: OciOperation,
         bundle_id: &str,
-        result_digest: impl Into<String>,
+        kill_signal: Option<KillSignal>,
+        outcome: MeasuredOutcome,
     ) -> Self {
         Self {
             kind,
             operation,
             bundle_id: bundle_id.to_owned(),
+            kill_signal,
             executed: true,
-            measured: Some(MeasuredOutcome {
-                result_digest: result_digest.into(),
-            }),
+            measured: Some(outcome),
         }
     }
 }
@@ -180,16 +209,20 @@ pub fn compare_observations(
     if !owned.kind.is_owned_product() || !oracle.kind.is_oracle_only() {
         return DiffVerdict::Diverge;
     }
-    if owned.operation != oracle.operation || owned.bundle_id != oracle.bundle_id {
+    if owned.operation != oracle.operation
+        || owned.bundle_id != oracle.bundle_id
+        || owned.kill_signal != oracle.kill_signal
+    {
         return DiffVerdict::Diverge;
     }
-    if !owned.executed || !oracle.executed {
-        return DiffVerdict::Stubbed;
-    }
-    match (&owned.measured, &oracle.measured) {
-        (Some(a), Some(b)) if a.result_digest == b.result_digest => DiffVerdict::Match,
-        (Some(_), Some(_)) => DiffVerdict::Diverge,
-        _ => DiffVerdict::Diverge,
+    match (owned.executed, oracle.executed) {
+        (false, false) => DiffVerdict::Stubbed,
+        // Partial wiring / failed differential run — not the all-scaffold case.
+        (true, false) | (false, true) => DiffVerdict::Diverge,
+        (true, true) => match (&owned.measured, &oracle.measured) {
+            (Some(a), Some(b)) if a == b => DiffVerdict::Match,
+            _ => DiffVerdict::Diverge,
+        },
     }
 }
 
@@ -231,22 +264,27 @@ pub trait OciExecutor {
 
     /// Scaffold create — no filesystem / namespace mutation.
     fn create_stub(&self, bundle_id: &str) -> OperationObservation {
-        OperationObservation::stubbed(self.kind(), "create", bundle_id)
+        OperationObservation::stubbed(self.kind(), OciOperation::Create, bundle_id, None)
     }
 
     /// Scaffold start — no process spawn.
     fn start_stub(&self, bundle_id: &str) -> OperationObservation {
-        OperationObservation::stubbed(self.kind(), "start", bundle_id)
+        OperationObservation::stubbed(self.kind(), OciOperation::Start, bundle_id, None)
     }
 
-    /// Scaffold kill — signal carried for future OCI kill semantics comparison.
-    fn kill_stub(&self, bundle_id: &str, _signal: KillSignal) -> OperationObservation {
-        OperationObservation::stubbed(self.kind(), "kill", bundle_id)
+    /// Scaffold kill — signal retained on the observation for differential compare.
+    fn kill_stub(&self, bundle_id: &str, signal: KillSignal) -> OperationObservation {
+        OperationObservation::stubbed(
+            self.kind(),
+            OciOperation::Kill,
+            bundle_id,
+            Some(signal),
+        )
     }
 
     /// Scaffold delete — no cleanup side effects.
     fn delete_stub(&self, bundle_id: &str) -> OperationObservation {
-        OperationObservation::stubbed(self.kind(), "delete", bundle_id)
+        OperationObservation::stubbed(self.kind(), OciOperation::Delete, bundle_id, None)
     }
 }
 
@@ -294,9 +332,13 @@ impl OciExecutor for OracleStub {
     }
 }
 
+/// Expected fixture_set_id for the embedded obligations document.
+pub const EXPECTED_FIXTURE_SET_ID: &str = "oci-executor-cve-regression-obligations";
+
 #[derive(Debug, Deserialize)]
 struct ObligationsRoot {
     schema_version: String,
+    fixture_set_id: String,
     status: String,
     claim_posture: ClaimPosture,
     oracles: Vec<OracleRow>,
@@ -327,6 +369,12 @@ struct CveRow {
 fn validate_root(root: &ObligationsRoot) -> Result<(), HarnessError> {
     if root.schema_version != "0.1.0" {
         return Err(HarnessError::Schema("schema_version must be 0.1.0".into()));
+    }
+    if root.fixture_set_id != EXPECTED_FIXTURE_SET_ID {
+        return Err(HarnessError::Schema(format!(
+            "fixture_set_id must be {EXPECTED_FIXTURE_SET_ID} (got {})",
+            root.fixture_set_id
+        )));
     }
     if root.status != "scaffold" {
         return Err(HarnessError::Schema("status must be scaffold".into()));
@@ -443,12 +491,11 @@ mod tests {
         for stub in [OracleStub::youki(), OracleStub::runc(), OracleStub::crun()] {
             assert!(stub.kind().is_oracle_only());
             assert!(!stub.kind().is_owned_product());
-            assert_eq!(stub.create_stub("bundle").operation, "create");
+            assert_eq!(stub.create_stub("bundle").operation, OciOperation::Create);
             assert!(!stub.create_stub("bundle").executed);
-            assert_eq!(
-                stub.kill_stub("bundle", KillSignal::Term).operation,
-                "kill"
-            );
+            let kill = stub.kill_stub("bundle", KillSignal::Term);
+            assert_eq!(kill.operation, OciOperation::Kill);
+            assert_eq!(kill.kill_signal, Some(KillSignal::Term));
         }
     }
 
@@ -484,23 +531,36 @@ mod tests {
 
     #[test]
     fn compare_measured_match_and_diverge() {
+        let outcome_a = MeasuredOutcome {
+            exit_code: 0,
+            status: "exited".into(),
+            stderr_fingerprint: "fp-a".into(),
+        };
+        let outcome_b = MeasuredOutcome {
+            exit_code: 1,
+            status: "exited".into(),
+            stderr_fingerprint: "fp-b".into(),
+        };
         let owned_ok = OperationObservation::measured(
             ExecutorKind::Owned,
-            "start",
+            OciOperation::Start,
             "b1",
-            "digest-a",
+            None,
+            outcome_a.clone(),
         );
         let oracle_ok = OperationObservation::measured(
             ExecutorKind::Oracle(OracleId::Runc),
-            "start",
+            OciOperation::Start,
             "b1",
-            "digest-a",
+            None,
+            outcome_a,
         );
         let oracle_bad = OperationObservation::measured(
             ExecutorKind::Oracle(OracleId::Runc),
-            "start",
+            OciOperation::Start,
             "b1",
-            "digest-b",
+            None,
+            outcome_b,
         );
         assert_eq!(
             compare_observations(&owned_ok, &oracle_ok),
@@ -510,6 +570,40 @@ mod tests {
             compare_observations(&owned_ok, &oracle_bad),
             DiffVerdict::Diverge
         );
+    }
+
+    #[test]
+    fn asymmetric_execution_diverges() {
+        let owned = OperationObservation::measured(
+            ExecutorKind::Owned,
+            OciOperation::Start,
+            "b1",
+            None,
+            MeasuredOutcome {
+                exit_code: 0,
+                status: "exited".into(),
+                stderr_fingerprint: "fp".into(),
+            },
+        );
+        let oracle = OracleStub::runc().start_stub("b1");
+        assert_eq!(compare_observations(&owned, &oracle), DiffVerdict::Diverge);
+    }
+
+    #[test]
+    fn kill_signal_mismatch_diverges() {
+        let owned = OperationObservation::stubbed(
+            ExecutorKind::Owned,
+            OciOperation::Kill,
+            "b1",
+            Some(KillSignal::Term),
+        );
+        let oracle = OperationObservation::stubbed(
+            ExecutorKind::Oracle(OracleId::Youki),
+            OciOperation::Kill,
+            "b1",
+            Some(KillSignal::Kill),
+        );
+        assert_eq!(compare_observations(&owned, &oracle), DiffVerdict::Diverge);
     }
 
     #[test]
