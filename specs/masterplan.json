@@ -7169,7 +7169,7 @@
         "id": "P-OWNED-STACK-KERNEL",
         "program_class": "owned-stack",
         "owned_stack_layer": "cloud-kernel",
-        "scope": "kuberos no_std kernel and sysroot recursion floor (cloud/cloud-kernel, ADR-0512 carve-out workspace), ADR-0537 ladder rung 0 beneath cloud-os.",
+        "scope": "kuberos no_std kernel and sysroot recursion floor (kernel/, ADR-0512 carve-out workspace), ADR-0537 ladder rung 0 beneath cloud-os.",
         "owner": "cloud-platform",
         "hyperscaler_bar_exit_criteria": [
           "Kernel and sysroot changes carry hermetic carve-out build/test evidence before any status advances.",
@@ -7191,7 +7191,7 @@
         "id": "P-OWNED-STACK-OS",
         "program_class": "owned-stack",
         "owned_stack_layer": "cloud-os",
-        "scope": "Talos-class cloud-os node operating system (cloud/cloud-os), ADR-0537 ladder rung 1: the node substrate the capability ladder runs on, including the trust-chain/root-of-trust surfaces.",
+        "scope": "Talos-class cloud-os node operating system (os/), ADR-0537 ladder rung 1: the node substrate the capability ladder runs on, including the trust-chain/root-of-trust surfaces.",
         "owner": "cloud-platform",
         "hyperscaler_bar_exit_criteria": [
           "Node OS image, boot, and trust-chain claims are backed by build/rollout evidence instead of narration.",
@@ -7389,7 +7389,7 @@
           "ADR-0536",
           "ADR-0537"
         ],
-        "ladder_statement": "kuberos kernel (cloud/cloud-kernel) -> cloud-os (cloud/cloud-os) -> cloud-k8s -> cloud services -> oyatie products (ADR-0537 §3; ADR-0510 transitional implementations stay behind stable owned interfaces).",
+        "ladder_statement": "kuberos kernel (kernel) -> cloud-os (os) -> cloud-k8s -> cloud services -> oyatie products (ADR-0537 §3; ADR-0510 transitional implementations stay behind stable owned interfaces).",
         "rungs": [
           {
             "rung": 0,
@@ -7399,6 +7399,7 @@
             ],
             "source_anchors": [
               "cloud/cloud-kernel",
+              "kernel",
               "specs/capability-registry.json#meta_directories[kernel/]"
             ]
           },
@@ -7409,8 +7410,8 @@
               "P-OWNED-STACK-OS"
             ],
             "source_anchors": [
-              "os",
               "cloud/cloud-os",
+              "os",
               "specs/capability-registry.json#meta_directories[os/]"
             ]
           },
