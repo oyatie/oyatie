@@ -160,11 +160,14 @@ fn parse_catalog_source_crate(contents: &str) -> Option<String> {
             continue;
         }
         if in_traceability {
-            if !stripped.starts_with(' ') && stripped.contains(':') {
+            // Indentation must be read from the raw line: `stripped` is already
+            // trim()'d, so `starts_with(' ')` would never hold and the nested
+            // `source_crate:` key would be misread as a sibling key.
+            let indented = line.starts_with(' ') || line.starts_with('\t');
+            if !indented && stripped.contains(':') {
                 break;
             }
-            let trimmed = stripped.trim_start();
-            let Some((key, value)) = trimmed.split_once(':') else {
+            let Some((key, value)) = stripped.split_once(':') else {
                 continue;
             };
             if key.trim() == "source_crate" {
