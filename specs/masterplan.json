@@ -8659,7 +8659,16 @@
           "ADR-0710",
           "ADR-0701"
         ],
-        "evidence_refs": []
+        "evidence_refs": [],
+        "decision_timebox": {
+          "deadline_utc_date": "2026-09-10",
+          "target_adr": "ADR-0710",
+          "owning_proposed_adr": "ADR-0715",
+          "on_expiry": "require_explicit_accept_or_reject_of_target_adr",
+          "expiry_outcome_if_d8_unresolved": "explicit-reject-adr-0710-hosted-topology-self-fail",
+          "silent_accept_forbidden": true,
+          "evaluator": "cloud-ci-cross-artifact-agreement/masterplan-v2-decision-timebox"
+        }
       }
     ],
     "dependency_edge_semantics": "from is prerequisite, to is dependent",
@@ -9301,10 +9310,12 @@
       "founder_ratification": {
         "decision_recorded": true,
         "decision_status": "ratified",
-        "approved_by": "founder",
+        "approved_by": "founder-proxy-round-4",
         "recorded_at": "2026-08-10T00:00:00Z",
         "decision_ref": "evidence/goals/f1-node-forever-shape-sequencing-founder-ratification-20260810.json",
-        "ratification_authority": "Founder-proxy Round-4 approval (2026-08-10) for F1 Proposed ADR planning anchors MPV2-0053..MPV2-0056 in masterplan_v2; preserves W0 dependency topology; does not grant implement authority for Proposed ADRs ADR-0712..ADR-0715 and does not authorize execution-wave dispatch (preplanning hold remains open).",
+        "authorizes_execution_wave_dispatch": false,
+        "ratification_scope": "sequencing-digest-and-f1-planning-anchors-only",
+        "ratification_authority": "Founder-proxy Round-4 approval (2026-08-10) for F1 Proposed ADR planning anchors MPV2-0053..MPV2-0056 in masterplan_v2; preserves W0 dependency topology; does not grant implement authority for Proposed ADRs ADR-0712..ADR-0715 and does not authorize execution-wave dispatch. A separate founder execution-dispatch ratification with authorizes_execution_wave_dispatch=true is required before execution_wave_dispatch.state may leave blocked (in addition to preplanning_authority_closure).",
         "ratified_sequencing_digest": "sha256:664baeb76649761bfe1cea7c69f14d3dd4986202912c5a4d3d4f7216d4c46674",
         "digest_recipe": "sha256 over canonical JSON (sorted keys, separators ',' ':') of {\"dependency_edges\": sorted [from, to] pairs, \"execution_waves\": wave work_item_ids arrays in wave order, \"work_item_order\": work_item_id strings in index order}",
         "invalidation_rule": "Any mutation of a masterplan_v2.dependency_edges from/to endpoint pair, sequencing.work_item_order, or sequencing.execution_waves work_item_ids changes the digest and voids this ratification; relationship labels and other edge metadata are outside this sequencing digest. A fresh re-derivation and founder-ratification record are required before further wave dispatch whenever a covered field changes.",
@@ -9315,12 +9326,13 @@
         "allowed_without_founder_ratification": false,
         "requires_preplanning_authority_closure": true,
         "allowed_without_preplanning_authority_closure": false,
+        "requires_dispatch_authorizing_ratification": true,
         "state": "blocked",
         "blocked_reason": "preplanning_authority_closure",
         "ratification_ref": "/specs/masterplan.json#masterplan_v2.sequencing.founder_ratification",
         "preplanning_authority_closure_ref": "evidence/consolidation/preplanning-authority-closure-20260713.json",
         "dispatched_waves": [],
-        "note": "Founder sequencing ratification was recorded 2026-07-02 before any execution-wave dispatch, but it does not close the 2026-07-13 pre-planning authority review. Dispatch remains blocked while masterplan_v2.planning_entry_contract.state is open; no wave has dispatched."
+        "note": "Current founder_ratification re-binds the sequencing digest after F1 planning anchors and explicitly sets authorizes_execution_wave_dispatch=false. Closing the pre-planning hold alone MUST NOT unblock waves; a separate founder execution-dispatch ratification is required. No wave has dispatched."
       }
     },
     "planning_entry_contract": {
