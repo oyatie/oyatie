@@ -1,0 +1,10 @@
+# Hub waiver — Swarm Delivery Law bootstrap (ADR-0711 Phase A)
+# Fields: branch, hub, reason (specs/integ-branch-envelopes.json#hubs.waiver_row_fields)
+branch: integ/specs
+hub: docs/ADR-INDEX.md
+reason: >-
+  Index ADR-0711 in the same integ/specs bootstrap PR that introduces the ADR
+  and envelopes (sole-owner hub waiver for this wave).
+wave: swarm-delivery-law-bootstrap-20260810
+
+expires_at_or_wave: wave-after-integ-specs-bootstrap-land
