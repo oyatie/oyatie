@@ -5,6 +5,14 @@ doc_status: published
 
 # Changelog
 
+## 2026-08-11 — ADR-0711 Cargo.lock sole-owner amend
+
+- Amended **ADR-0711** D-7: `Cargo.lock` is owned solely by `integ/build`
+  (`#planes.root_manifests`); other integs require an unexpired
+  `hubs.active_waivers` row (`hub: Cargo.lock`) before any lock edit.
+- Companion envelope / portable-swarm-contract text and the `integ/os`
+  bridge waiver land with the tip-free integ/specs packet (PR #1933).
+
 ## 2026-08-10 — ADR-0711 Accepted (Swarm Delivery Law)
 
 - Promoted **ADR-0711** from Proposed → **Accepted** (founder): Claim/Land already enforced the
