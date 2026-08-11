@@ -36,9 +36,11 @@
   "cell_roots": {
     "": "//"
   },
-  "_synthetic_dependencies_note": "ADR-0554 round-6 (defect 2): every changed path must map to a buck2 owner() OR an explicit synthetic-dependency declaration here, otherwise it escalates to FULL (an unowned, undeclared path is derivation uncertainty — the old silent 'docs class — fine' default was a selector hole). Each key is a micro-glob; the value is the list of synthetic seed targets the path contributes (a whole-tree-scanner input declared as a graph edge). An EMPTY list is an explicit inert declaration: 'this class is not a buck2 graph input.' A declaration is ADDITIVE: it UNIONS with owner() rather than applying only when owner() is EMPTY. An owner proves a path is a graph input; it does NOT prove the owner's rdeps cone reaches every target that READS the path, and adr-citation-closure is the standing counter-example (whole-tree census, own package untouched by an ADR edit). An EMPTY list still contributes no seed, so declaring docs inert never shadows a real owner — an owned instance is still seeded by owner() either way. CONSERVATIVE by design: only clearly-inert, commonly-touched doc classes are declared, so a docs-only PR stays fast; EVERYTHING ELSE unowned (yaml/toml/json/txt config, unknown extensions) escalates to FULL until a class earns an evidence-backed declaration. Broadening this map is an optimization follow-up, never a soundness requirement.",
+  "_synthetic_dependencies_note": "ADR-0554 round-6 (defect 2): every changed path must map to a buck2 owner() OR an explicit synthetic-dependency declaration here, otherwise it escalates to FULL (an unowned, undeclared path is derivation uncertainty — the old silent 'docs class — fine' default was a selector hole). Each key is a micro-glob; the value is the list of synthetic seed targets the path contributes (a whole-tree-scanner input declared as a graph edge). An EMPTY list is an explicit inert declaration: 'this class is not a buck2 graph input.' A declaration is ADDITIVE: it UNIONS with owner() rather than applying only when owner() is EMPTY. An owner proves a path is a graph input; it does NOT prove the owner's rdeps cone reaches every target that READS the path, and adr-citation-closure / k8s-program-docs are the standing counter-examples (whole-tree census, own package untouched by an edit). An EMPTY list still contributes no seed, so declaring a class inert never shadows a real owner — an owned instance is still seeded by owner() either way. Package-sibling manifests (`Cargo.toml` / `build.rs`) never enter owner_paths; resolve() still unions synthetic declarations for PathClass::PackagePattern so manifest-only leaf edits (e.g. os/**/Cargo.toml) select their census gates. CONSERVATIVE by design: EVERYTHING unowned and undeclared (yaml/toml/json/txt config, unknown extensions) escalates to FULL until a class earns an evidence-backed declaration. Broadening this map is an optimization follow-up, never a soundness requirement. HISTORICAL CORRECTION (bead oyatie-1ld): this note previously claimed declarations applied only when owner() is empty, and earlier still declared docs/markdown `[]` — both were FALSE; see `_docs_and_markdown_seed_note` and `_k8s_port_census_seed_note`.",
   "_github_seed_note": "`.github/**` is the canonical whole-tree-scanner input: owner() is empty for it BY DEFINITION (it is nobody's declared src), which is the PREMISE of a synthetic declaration, not evidence of inertness. Two cheaper shapes were tried and reverted. (1) Declaring it INERT (`[]`) is a FALSE GREEN — a dozen gate tests read `.github/**` at runtime by climbing from cwd to a repo-root marker, and a workflow-only PR resolved to NoGraphTargets and walked past the no-new-shell ratchet (PR #1389, reverted by #1391). (2) Making it OWNED (export_file + $(location)) was ALSO wrong at the time, and for a reason since fixed at the root: resolve() SHORT-CIRCUITED on a non-empty owner() (`seeds.extend(owners); continue`) and never reached synthetic_seeds(), so owning these paths DISABLED this mechanism for them and narrowed the cone to the export's own rdeps. Synthetic declarations are now ADDITIVE (they union with owner()), so ownership no longer suppresses the declaration and this hazard is closed for every class in this map, not just `.github/**`. Declaring the seeds here remains the right shape regardless: it states the live-tree edge explicitly instead of leaving coverage to an export's incidental rdeps. The seeds below are PACKAGE patterns, not individual targets: a package pattern is robust to target renames and is a strict SUPERSET of the specific test targets that read the tree — over-seeding costs build time, under-seeding is a merge-authority hole. The list is not hand-trusted: ci-affected-target-set-github-consumer-coverage derives the consumer set FROM THE TREE (a quote-anchored `.github` path literal in a .rs/.json under a rust_test-bearing buck2 package) and fails closed on any package missing here, so consumer N+1 cannot land unwired. `.gitignore` and `.gitattributes` are deliberately NOT declared — no consumer was verified for them, so they keep escalating to FULL (the safe default). `**/OWNERS` WAS in that undeclared set and has since earned its own evidence-backed declaration; see `_owners_seed_note`. ONE seed is deliberately un-derivable and must not be deleted just because the completeness gate stays green without it: root//ci/facade/artifact-inventory-registry: (the accounting producer) names no `.github` literal at all — it consumes `git ls-files` verbatim, so every tracked `.github` path becomes an accounting row and an add/remove/edit there can flip ci-baseline-ratchet-gate through the frozen baseline + signoff. Its cone was measured to be a strict subset of the derived seeds' cone (zero added targets), so pinning it makes that coverage explicit at zero build cost instead of accidental. UN-DERIVABLE CLASS, enumerated deliberately: five packages consume `git ls-files` verbatim rather than naming a `.github` literal, so the completeness gate can never derive them. `artifact-inventory-registry`, `scm-facts-snapshot` (src/lib.rs:3527, tracked-paths universe moved verbatim from the producer's old git_ls_files), `artifact-accountability`, `crate-registration`, and `inventory-registry-drift` all flow a tracked `.github` add/remove/edit into accounting rows and can flip `ci-baseline-ratchet-gate`. Four of them are in the cone TODAY only transitively, via a dependency edge on a declared seed — exactly the accidental coverage this note rejects, and ADR-0552's scm-facts/accounting split is actively refactoring that edge. Measured cost of pinning all five: ZERO added targets (each already in the cone). Pinning converts accidental coverage into stated coverage at no build cost.",
+  "_k8s_port_census_seed_note": "FOREVER SHAPE (reconcile integ-ci ↔ integ-os pack drift, QA bab0ab1b): `os/**/*.rs`, `k8s/**/*.rs`, `os/**/Cargo.toml`, and `k8s/**/Cargo.toml` seed `ci-k8s-program-docs-gate` because that gate equality-pins an INV-3 upstream-apiVersion census over those scan roots. Without these keys, an owned serializer edit under os/ or a manifest-only leaf Cargo.toml change selects only the crate cone and never the census gate — under-selection, not FULL thrash. The Cargo.toml keys require the package-sibling synthetic union in resolve(); without it, plan_changes never puts manifests on owner_paths and the declaration is dead. Docs/markdown KEEP the broad accounting+citation seed lists (oyatie-1ld / PR #1623) and MUST NOT regress to OS's inert docs/** + citation-only **/*.md shape.",
   "_owners_seed_note": "`**/OWNERS` is the governance-marker class, declared after PR #1473 — a ONE-LINE diff adding `os/OWNERS` — escalated to FULL and burned 42 minutes before its runner died. Same PREMISE as `.github/**`: owner() is empty because an OWNERS file is nobody's declared src, it is a whole-tree-scanner INPUT. NOT INERT, and the distinction is the whole point: `[]` asserts 'affects no buck2 target', and OWNERS is a live input to the machinery that JUDGES it — artifact-inventory-registry resolves the nearest up-tree OWNERS for every tracked path and validates the file's content schema + breadth bound; baseline-ratchet carries tc-FW-bad-owners-addition-orphans-signoff-entry / tc-FW-good-owners-addition-with-entry-retired firewall fixtures; automation-language-policy asserts the retirement control plane HAS an OWNERS boundary and that `registry/OWNERS` does NOT exist; libs/oya-ci-config holds the `[owners]` marker name + breadth bound as data; libs/oya-crate-registrar-{kernel,app} WRITE `<dir>/OWNERS` during born-accounting. An OWNERS-only PR declared inert would select nothing and skip precisely the gates that judge it — the reverted PR #1389 shape. So the class is declared with REAL seeds, and it is deliberately absent from inert_selection_classes. COMPLETENESS, and why the `.github` gate does not drop in: ci-affected-target-set-github-consumer-coverage derives its list via scan_path_literal_consumers, which keys on a repo-root DIRECTORY prefix (needle `\"<class_dir>`). OWNERS is a BASENAME class over 109 directories, so that scan both MISSES real consumers (`\".omc/ultragoal/OWNERS\"` does not start with `\"OWNERS`) and ADMITS coincidental hits (`\"OWNERS:{dir}\"`, an owner-map value) — an under-approximating scan would rubber-stamp this list, which is worse than no gate. The classes are CHAINED instead: both are whole-tree accounting inputs, so ci-affected-target-set-fixtures asserts this list is a SUPERSET of the `.github/**` list, and the derived gate that keeps THAT list complete transitively keeps this one from rotting. The three seeds beyond that superset are the OWNERS-specific consumers, pinned by name. `LICENSE` was measured in the same shape and deliberately NOT declared here: one tracked instance, effectively never touched, and a different consumer (repo-root-hygiene judges the ROOT allowlist, not a nested copy) — it keeps escalating to FULL, the safe default, until it earns its own evidence-backed line. Same for `.gitignore` / `.gitattributes`.",
+  "_docs_and_markdown_seed_note": "`docs/**`, `**/*.md` and `**/*.mdx` are whole-tree accounting/census INPUTS, not inert. They were declared `[]` AND licensed to be the entire selection, which is the reverted PR #1389 `.github/**` shape a third time. THE INCIDENT: PR #1623 self-disclosed a GREEN required CI carrying a RED equality-pinned census — its diff was markdown, the derive resolved NO-GRAPH-TARGETS, and `check-adr-citation-closure` (which scans EVERY tracked `.md` and asserts `files_scanned` by EQUALITY) never executed. Reproduced locally on this very branch: commit d36648ff9 added ONE `docs/*.md` file and the gate failed `assertion left == right failed: files_scanned: observed 16519, frozen 16518`. Under the old pack that commit's CI would have been green. PREMISE, same as `.github/**`: `owner()` is empty for a doc BY DEFINITION (it is nobody's declared src) — that is the premise of a synthetic declaration, never evidence of inertness. Every tracked path is an accounting row for `artifact-inventory-registry` / `scm-facts-snapshot` / `artifact-accountability` / `crate-registration` / `inventory-registry-drift`, any of which can flip `ci-baseline-ratchet-gate`; a `.md` additionally moves the adr-citation-closure census. SEED LIST = the `.github/**` whole-tree accounting list (held complete mechanically by ci-affected-target-set-github-consumer-coverage) PLUS `governance/check/adr-citation-closure`, the `.md`-specific census whose equality pin the incident tripped. ANTI-ROT is the `**/OWNERS` chain, for the same reason: `scan_path_literal_consumers` keys on a repo-root DIRECTORY prefix, so it cannot derive a BASENAME/EXTENSION class — ci-affected-target-set-fixtures instead asserts these three lists are identical to each other and a SUPERSET of the derived `.github/**` list, so a new whole-tree gate forced into that list is forced into these. MEASURED AND DELIBERATELY NOT SEEDED: `scan_path_literal_consumers(root, \"docs\")` derives 87 rust_test-bearing packages, because `\"docs` matches any path literal starting with `docs/`. Seeding 87 packages approaches the FULL tier and would be paid by every documentation PR, so the CONTENT gates over markdown (brand-residue, doc-axis, retired-vocabulary, adr-placeholders) remain unseeded: that is a real and separate hole, with no recorded incident, and closing it needs a measured cone, not a wider glob. What is fixed here is the ACCOUNTING/CENSUS hole, which has one.",
   "_baseline_repair_control_plane_seed_note": "PR #1486 exposed a baseline-restoration deadlock: six exact unowned registry/spec paths forced FULL, while the clean merge-base materializer failed on the stale artifact path the candidate repaired. These paths are NOT inert. Artifact/dependency rows have live readers; decision-rights and forbidden-operations name their mechanical enforcement packages but are not yet parsed directly by those packages, an explicit semantic-coverage gap rather than a readiness claim. All six feed SCM/generated-face accounting. Common seeds are exact leaf gates, pinned directly instead of relying on today's transitive rdeps edges. The package-wide/library seeds that reach the dev CLI were measured and rejected here because their reverse-dependency closure selects the loop-recovery test, which recursively invokes Cargo across the workspace even though it does not read these inputs. Path-specific leaf seeds add live readers, declared enforcers, or the contract-slice gate. The declaration is intentionally exact-path only: an unknown unowned JSON path still escalates to FULL until its consumers are evidenced.",
   "synthetic_dependencies": {
     "**/OWNERS": [
@@ -199,6 +201,18 @@
     "docs/programs/k8s-port/**": [
       "root//ci/facade/k8s-program-docs:ci-k8s-program-docs-gate"
     ],
+    "os/**/*.rs": [
+      "root//ci/facade/k8s-program-docs:ci-k8s-program-docs-gate"
+    ],
+    "k8s/**/*.rs": [
+      "root//ci/facade/k8s-program-docs:ci-k8s-program-docs-gate"
+    ],
+    "os/**/Cargo.toml": [
+      "root//ci/facade/k8s-program-docs:ci-k8s-program-docs-gate"
+    ],
+    "k8s/**/Cargo.toml": [
+      "root//ci/facade/k8s-program-docs:ci-k8s-program-docs-gate"
+    ],
     "docs/decisions/ADR-0704-k8s-port-live-apex.md": [
       "root//ci/facade/k8s-program-docs:ci-k8s-program-docs-gate"
     ],
@@ -235,12 +249,82 @@
       "root//ci/facade/cross-artifact-agreement:ci-cross-artifact-agreement-gate",
       "root//ci/facade/baseline-ratchet:ci-baseline-ratchet-gate"
     ],
-    "docs/**": [],
+    "docs/**": [
+      "root//ci/facade/affected-target-set:",
+      "root//ci/facade/artifact-accountability:",
+      "root//ci/facade/artifact-inventory-registry:",
+      "root//ci/facade/automation-language-policy:",
+      "root//ci/facade/baseline-ratchet:",
+      "root//ci/facade/build-cache-policy:",
+      "root//ci/facade/corpus-index-coverage:",
+      "root//ci/facade/crate-registration:",
+      "root//ci/facade/cross-artifact-agreement:",
+      "root//ci/facade/dependency-automation:",
+      "root//ci/facade/gate-self-conformance:",
+      "root//ci/facade/generated-artifact-freshness:",
+      "root//ci/facade/generated-artifact-policy:",
+      "root//ci/facade/inventory-registry-drift:",
+      "root//ci/facade/repo-root-hygiene:",
+      "root//ci/facade/scm-facts-snapshot:",
+      "root//ci/facade/supply-chain-audit:",
+      "root//governance/check/adr-citation-closure:",
+      "root//governance/check/doc-catalog:",
+      "root//governance/check/image-signing-discipline:",
+      "root//governance/check/slsa-l3-evidence-grounded:",
+      "root//libs/oya-governance-gate-catalog-domain:",
+      "root//marketplace/facade/dev-cli:"
+    ],
     "evidence/reorg/**": [],
     "**/*.md": [
-      "root//governance/check/adr-citation-closure:check-adr-citation-closure-gate"
+      "root//ci/facade/affected-target-set:",
+      "root//ci/facade/artifact-accountability:",
+      "root//ci/facade/artifact-inventory-registry:",
+      "root//ci/facade/automation-language-policy:",
+      "root//ci/facade/baseline-ratchet:",
+      "root//ci/facade/build-cache-policy:",
+      "root//ci/facade/corpus-index-coverage:",
+      "root//ci/facade/crate-registration:",
+      "root//ci/facade/cross-artifact-agreement:",
+      "root//ci/facade/dependency-automation:",
+      "root//ci/facade/gate-self-conformance:",
+      "root//ci/facade/generated-artifact-freshness:",
+      "root//ci/facade/generated-artifact-policy:",
+      "root//ci/facade/inventory-registry-drift:",
+      "root//ci/facade/repo-root-hygiene:",
+      "root//ci/facade/scm-facts-snapshot:",
+      "root//ci/facade/supply-chain-audit:",
+      "root//governance/check/adr-citation-closure:",
+      "root//governance/check/doc-catalog:",
+      "root//governance/check/image-signing-discipline:",
+      "root//governance/check/slsa-l3-evidence-grounded:",
+      "root//libs/oya-governance-gate-catalog-domain:",
+      "root//marketplace/facade/dev-cli:"
     ],
-    "**/*.mdx": [],
+    "**/*.mdx": [
+      "root//ci/facade/affected-target-set:",
+      "root//ci/facade/artifact-accountability:",
+      "root//ci/facade/artifact-inventory-registry:",
+      "root//ci/facade/automation-language-policy:",
+      "root//ci/facade/baseline-ratchet:",
+      "root//ci/facade/build-cache-policy:",
+      "root//ci/facade/corpus-index-coverage:",
+      "root//ci/facade/crate-registration:",
+      "root//ci/facade/cross-artifact-agreement:",
+      "root//ci/facade/dependency-automation:",
+      "root//ci/facade/gate-self-conformance:",
+      "root//ci/facade/generated-artifact-freshness:",
+      "root//ci/facade/generated-artifact-policy:",
+      "root//ci/facade/inventory-registry-drift:",
+      "root//ci/facade/repo-root-hygiene:",
+      "root//ci/facade/scm-facts-snapshot:",
+      "root//ci/facade/supply-chain-audit:",
+      "root//governance/check/adr-citation-closure:",
+      "root//governance/check/doc-catalog:",
+      "root//governance/check/image-signing-discipline:",
+      "root//governance/check/slsa-l3-evidence-grounded:",
+      "root//libs/oya-governance-gate-catalog-domain:",
+      "root//marketplace/facade/dev-cli:"
+    ],
     "specs/reset-eligibility.schema.json": [
       "root//ci/facade/reset-eligibility-policy:ci-reset-eligibility-policy-gate"
     ],
@@ -251,12 +335,10 @@
       "root//ci/facade/reset-eligibility-policy:ci-reset-eligibility-policy-gate"
     ]
   },
-  "_inert_selection_classes_note": "PREDICATE (1) of the selection-totality assertion: a NON-EMPTY diff that selects NO targets is a target-determination bug, never a pass — the lane would report success having built and tested NOTHING, i.e. green precisely BECAUSE it checked nothing. This list is the ONLY licence for that outcome: a diff consisting solely of these classes may legitimately select nothing (a docs-only PR). It is deliberately NOT derived from the `[]` entries in synthetic_dependencies, because those two statements differ — `synthetic_dependencies[X] = []` says 'X contributes no seed', this list says 'X may be the ENTIRE selection and still pass'. PR #1389 is the proof the split matters: `.github/**: []` was defensible as the first statement and a merge-authority hole as the second (a workflow-only PR resolved to NoGraphTargets and walked past the no-new-shell ratchet). With the split, adding a broad class to synthetic_dependencies as `[]` now FAILS RED naming the path instead of passing green; granting it an empty selection takes a second, single-purpose, reviewed line here. GROWING THIS LIST IS A MERGE-AUTHORITY CHANGE — an entry asserts the class can affect NO buck2 target whatsoever, and being wrong is silent. Absent field = empty = fail-closed (any non-empty diff that selects nothing is refused).",
-  "_evidence_reorg_inert_note": "R-DUAL-0615: evidence/reorg/** is inventory/disposition evidence only; not a buck2 graph input. md covered by **/*.md; JSON declared synthetic [] + inert so reorg-evidence PRs avoid FULL thrash under cancel-in-progress.",
-  "_markdown_seed_note": "WHY `**/*.md` IS NOT INERT: the adr-citation-closure gate equality-pins a WHOLE-TREE census (`measured.files_scanned`, `measured.citation_lines`) over its `scan_extensions`, which include `.md`. Any tracked `.md` add or delete therefore moves a pinned term — while the gate's OWN package is untouched, so nothing selects it: `root//governance/check/adr-citation-closure:check-adr-citation-closure-gate` is reachable only through its package glob (`srcs = glob([\"tests/**/*.rs\", \"**/*.json\"])`). A markdown-only diff resolved NoGraphTargets and the census test never executed — observed live on PR #1623, whose CI reported GREEN while carrying a red census. `**/*.md` must therefore seed the only package that can produce that verdict. THE SEED UNIONS WITH owner(), it is not a no-owner fallback, and that distinction is the whole coverage: `buck2 uquery \"inputs(//...)\"` reports 463 tracked `.md` files as buck2-OWNED (448 docs/adr-archive, 10 docs/decisions, 3 docs/ideas/archive, 2 doc-parser fixtures), and 458 of them ARE the ADR record set this gate counts. An ADR edit carries owners (`docs/decisions:adr-corpus` plus its export_file), and their rdeps cone reaches only ci-product-protocol-policy-gate, which asserts neither files_scanned nor citation_lines. Had the seed stayed a fallback it would have covered the unowned tail while missing exactly the files that move adr_records, archived, archived_with_successor, rejected, files_scanned and citation_lines. DELIBERATE SCOPE LIMIT, so the next lane does not read this as complete: the gate also scans .json/.jsonl/.yaml/.yml/.toml/.rs/.cedar/.txt, but those paths are almost always buck2-owned, so the synthetic map never applies to them — widening to those classes is a separate and larger question and is NOT done here.",
+  "_inert_selection_classes_note": "PREDICATE (1) of the selection-totality assertion: a NON-EMPTY diff that selects NO targets is a target-determination bug, never a pass — the lane would report success having built and tested NOTHING, i.e. green precisely BECAUSE it checked nothing. This list is the ONLY licence for that outcome: a diff consisting solely of these classes may legitimately select nothing. It used to name the docs/markdown classes; see `_docs_licence_revocation_note` for why that was a merge-authority hole and why they were removed. It is deliberately NOT derived from the `[]` entries in synthetic_dependencies, because those two statements differ — `synthetic_dependencies[X] = []` says 'X contributes no seed', this list says 'X may be the ENTIRE selection and still pass'. PR #1389 is the proof the split matters: `.github/**: []` was defensible as the first statement and a merge-authority hole as the second (a workflow-only PR resolved to NoGraphTargets and walked past the no-new-shell ratchet). With the split, adding a broad class to synthetic_dependencies as `[]` now FAILS RED naming the path instead of passing green; granting it an empty selection takes a second, single-purpose, reviewed line here. GROWING THIS LIST IS A MERGE-AUTHORITY CHANGE — an entry asserts the class can affect NO buck2 target whatsoever, and being wrong is silent. Absent field = empty = fail-closed (any non-empty diff that selects nothing is refused).",
+  "_evidence_reorg_inert_note": "R-DUAL-0615: evidence/reorg/** is inventory/disposition evidence only; not a buck2 graph input. Its markdown is now SEEDED via **/*.md (bead oyatie-1ld — a tracked .md moves the adr-citation-closure census regardless of which directory it sits in); only the JSON remains declared synthetic [] + inert, so reorg-evidence PRs avoid FULL thrash under cancel-in-progress.",
+  "_docs_licence_revocation_note": "`docs/**`, `**/*.md` and `**/*.mdx` HELD this licence and no longer do (bead oyatie-1ld). The licence asserts a class 'may be the ENTIRE selection and still pass', and PR #1623 is the proof that was false for markdown: a markdown-only diff rode the empty selection to a green required context while carrying a red equality-pinned census. With those classes now seeding real targets the licence is never reached on the shipped pack, so revoking it changes no passing run — it removes the SECOND, independent authorisation, so that emptying the seed list (by edit or by rot) fails RED as RefuseEmptySelection instead of silently returning to NO-GRAPH-TARGETS. Exactly the belt-and-braces `shipped_pack_does_not_license_the_github_class_to_select_nothing` holds for `.github/**`. `evidence/reorg/**` KEEPS its licence: its markdown now seeds via `**/*.md`, and R-DUAL-0615 declares the remaining JSON inert. That residual is UNVERIFIED here — an `evidence/reorg/*.json`-only diff still selects nothing while adding a tracked accounting row, and revoking an ADR-backed declaration is not this bead's call.",
   "inert_selection_classes": [
-    "docs/**",
-    "**/*.mdx",
     "evidence/reorg/**"
   ],
   "default_base_ref": "origin/dev",
