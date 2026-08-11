@@ -23,3 +23,6 @@ ssot_todo: cargo-lock-sole-owner
 Unblocks when sequenced: every membership tip blocked on root_manifests sole-owner; ci tip no longer needs Cargo.toml (elevate stands on `#1646`).
 
 **No `Cargo.lock` edit this tip** — lock == `origin/dev` (1529 pkgs); refresh only after controller members are real.
+
+## 2026-08-11 first lock-owning land
+Controller members + lock absorbed on integ/build (paths dual-homed from #1646 for resolve). See cargo-lock-sole-owner-absorb-path.md.
