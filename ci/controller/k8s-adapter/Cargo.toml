@@ -1,5 +1,5 @@
 [package]
-name = "oya-ci-controller-k8s-adapter"
+name = "ci-controller-k8s-adapter"
 edition.workspace = true
 version.workspace = true
 rust-version.workspace = true
@@ -9,7 +9,6 @@ license = "Apache-2.0"
 # K8s Job spawn + watch adapter for the oya-ci controller.
 # Implements kernel::JobSpawner and provides observe_job() projection.
 # Uses kube-rs to create/watch batch/v1 Jobs in namespace oya-ci.
-# Package name retained for Cargo.lock parity until integ/build (#1934) renames.
 
 [lib]
 name = "ci_controller_k8s_adapter"
@@ -17,7 +16,7 @@ path = "src/lib.rs"
 doctest = false
 
 [dependencies]
-oya-ci-controller-kernel = { path = "../kernel" }
+ci-controller-kernel = { path = "../kernel" }
 kube = { workspace = true }
 kube-runtime = { workspace = true }
 k8s-openapi = { workspace = true }

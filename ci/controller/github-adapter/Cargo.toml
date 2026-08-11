@@ -1,5 +1,5 @@
 [package]
-name = "oya-ci-controller-github-adapter"
+name = "ci-controller-github-adapter"
 edition.workspace = true
 version.workspace = true
 rust-version.workspace = true
@@ -11,7 +11,6 @@ license = "Apache-2.0"
 # blocking HTTP. Posts to the GitHub Statuses API: POST /repos/<owner>/<repo>/statuses/<sha>.
 # HTTP shape lifted from the proven oya-ci-webhook-gateway-github-adapter (ADR-0387 D5).
 # Forge-of-record = GitHub (D2/D-FORGE).
-# Package name retained for Cargo.lock parity until integ/build (#1934) renames.
 
 [lib]
 name = "ci_controller_github_adapter"
@@ -19,7 +18,7 @@ path = "src/lib.rs"
 doctest = false
 
 [dependencies]
-oya-ci-controller-kernel = { path = "../kernel" }
+ci-controller-kernel = { path = "../kernel" }
 reqwest = { workspace = true }
 serde = { workspace = true }
 

@@ -82,6 +82,18 @@
       "prefix": "billing/tax/manifest.json"
     },
     {
+      "prefix": "build/REORG-DRAIN.md",
+      "anchor": "build/ drain inventory for toolchains + port-engine W0 continue; OWNERS via build/OWNERS council-architecture"
+    },
+    {
+      "prefix": "build/evidence/",
+      "anchor": "planes.root_manifests forever-owner absorb evidence for Cargo.lock sole-owner land (#1934); OWNERS via build/OWNERS council-architecture"
+    },
+    {
+      "prefix": "build/toolchains/",
+      "anchor": "ADR-0560 D3 / build sole-owner: toolchains cache platform rehomed under build/toolchains (was toolchains/cache/); OWNERS cloud-ci-platform"
+    },
+    {
       "anchor": "Envelope prefix ownership (integ/cell → cell/**): capability root tree (#1652 tip 65dd343bd). Covers cell/manifest.json + cell/*/manifest.json + evidence/IPs. Subsumes transitional cell/BUCK seed.",
       "prefix": "cell/"
     },

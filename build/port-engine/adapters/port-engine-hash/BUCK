@@ -1,0 +1,34 @@
+rust_library(
+    name = "port-engine-hash",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "port_engine_hash",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//build/port-engine/ports/port-engine-api:port-engine-api",
+        "third-party//:sha2",
+    ],
+)
+
+rust_test(
+    name = "port-engine-hash-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "port_engine_hash",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//build/port-engine/ports/port-engine-api:port-engine-api",
+        "third-party//:sha2",
+    ],
+)
+
+rust_test(
+    name = "port-engine-hash-readiness",
+    srcs = glob(["tests/readiness.rs"]),
+    crate = "port_engine_hash_readiness",
+    crate_root = "tests/readiness.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":port-engine-hash",
+    ],
+)

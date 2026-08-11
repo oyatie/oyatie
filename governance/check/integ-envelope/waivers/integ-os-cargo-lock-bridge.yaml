@@ -1,9 +1,0 @@
-# Bridge waiver: integ/os may have carried Cargo.lock while integ/build was not yet
-# sole writer. Expires when integ/build lands as forever lock owner (cargo-lock-sole-owner).
-branch: integ/os
-hub: Cargo.lock
-reason: >-
-  Temporary bridge after #1643 land while #planes.root_manifests forever owner
-  integ/build absorbs lock membership. Ban third writers; expire on integ/build
-  first lock-owning land.
-expires_at_or_wave: wave-after-integ-build-first-land
