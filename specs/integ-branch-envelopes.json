@@ -6,7 +6,7 @@
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
     "spec_id": "EXE-INTEG-BRANCH-ENVELOPES",
-    "version": "1.16.20",
+    "version": "1.16.21",
     "status": "Accepted",
     "owner_team": "council-architecture",
     "created_at": "2026-08-10T00:00:00Z",
@@ -14,7 +14,7 @@
     "self_owner_branch": "integ/specs",
     "primary_consumer": "governance/check/integ-envelope + .claude/workflows/deliver.js Claim",
     "purpose": "Policy-as-data for envelope containment, hub sole-owner, adjunct claims, concurrent-safe exemptions, process-kit deferred to .grok/ (Rust-first; no tools/swarm birth on #1644), hyperscaler monorepo patterns, Amendment B ternary layout + Pattern-First taxonomy + 16-lens judgment (volatile judgments live under governance/check/integ-envelope/judgments/), Amendment C operating-patterns catalog, Amendment D anti-drift INV-DOC-1…9 + Claim↔diff bind, merge_windows, mechanical Claim packet, and process-meta / forward-declared roots under Swarm Delivery Law, daemon_hotset + perimeter northstar, rules-with-why / adr-rename-overturn.",
-    "prior_version": "1.16.19"
+    "prior_version": "1.16.20"
   },
   "admission": {
     "trunk": "dev",
@@ -688,6 +688,13 @@
         "reason": "Absorb #1628+#1629 leaf residuals: files_scanned freeze coupled to lifecycle-config deletions on integ/specs (ADR-0711 dual-trunk closeout).",
         "waiver_file": "governance/check/integ-envelope/waivers/integ-specs-adr-citation-closure-1628-1629.yaml",
         "expires_at_or_wave": "wave-after-integ-specs-bootstrap-land"
+      },
+      {
+        "branch": "integ/os",
+        "hub": "Cargo.lock",
+        "reason": "Bridge after #1643: sole lock writer moves to integ/build; expire on integ/build first lock-owning land.",
+        "waiver_file": "governance/check/integ-envelope/waivers/integ-os-cargo-lock-bridge.yaml",
+        "expires_at_or_wave": "wave-after-integ-build-first-land"
       }
     ],
     "_waiver_expiry_rule": "Every active_waivers row MUST carry expires_at_or_wave. Claim REFUSES a hub edit authorized only by a waiver whose expires_at_or_wave wave has already landed (or whose calendar expiry is past). Bootstrap waivers die at the named wave."
@@ -704,7 +711,7 @@
       "Adjunct leaves must be disjoint from every other open integ PR's claimed set.",
       "Hub paths are never adjuncts — they use hub waivers only.",
       "Concurrent-safe exemption paths do not require adjunct claims when the edit is append-only under the registered exemption.",
-      "Cargo.lock may travel only with the integ that changed workspace membership (hub rule), never as a silent adjunct."
+      "Cargo.lock edits are owned solely by integ/build via #planes.root_manifests — other integs MUST use an unexpired hubs.active_waivers row (never membership-travel, never silent adjunct)."
     ],
     "active": [
       {
