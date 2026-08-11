@@ -96,6 +96,11 @@
       "vmm": "cloud-hypervisor",
       "notes": "Stripped-Linux KVM host pools are a permanent SKU, not a fallback."
     },
+    "linux_shared_kernel_pools": {
+      "serve_tiers": ["shared-kernel"],
+      "sku_status": "primary-production-path",
+      "notes": "While Asterinas shared-kernel remains soak_until_a1_green, Linux shared-kernel pools are the primary production placement for shared-kernel workloads (overlayfs day-one)."
+    },
     "snapshotter_posture": {
       "asterinas_pools": "native-snapshotter-first",
       "linux_shared_kernel_pools": "overlayfs-required-day-one",
@@ -373,6 +378,15 @@
           "severity": "high",
           "g5_trigger": true,
           "notes": "G5 class overlayfs when shared-kernel/Linux pools require overlay snapshotter. Asterinas pools: native snapshotter first — this row remains tracked for shared-kernel fidelity."
+        },
+        {
+          "id": "mnt-asterinas-native-snapshotter",
+          "name": "Asterinas native snapshotter (preferred path)",
+          "required_by_node_stack": ["containerd"],
+          "available_on_asterinas_pin": "unknown",
+          "severity": "critical",
+          "g5_trigger": false,
+          "notes": "Preferred Asterinas snapshotter path (native-snapshotter-first). Not a G5 class by itself, but F1(a) must not treat Asterinas pools as ready while this remains unknown/gap — measured separately from overlayfs G5."
         },
         {
           "id": "mnt-pivot-root",

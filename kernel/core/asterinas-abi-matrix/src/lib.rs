@@ -164,6 +164,7 @@ pub const REQUIRED_ROWS_V0_1_0: &[(&str, &[&str])] = &[
             "mnt-ms-shared",
             "mnt-ms-slave",
             "mnt-overlayfs-whiteouts",
+            "mnt-asterinas-native-snapshotter",
             "mnt-pivot-root",
         ],
     ),
@@ -435,6 +436,28 @@ pub fn validate_matrix(root: &Value) -> Result<(), MatrixError> {
     if linux_pools.get("sku_status").and_then(|v| v.as_str()) != Some("permanent-co-selected") {
         return Err(MatrixError::Schema(
             "linux_kvm_pools.sku_status must be permanent-co-selected".into(),
+        ));
+    }
+    let linux_sk = pools
+        .get("linux_shared_kernel_pools")
+        .and_then(|v| v.as_object())
+        .ok_or_else(|| {
+            MatrixError::Schema("pool_matrix_notes.linux_shared_kernel_pools missing".into())
+        })?;
+    let linux_sk_tiers = linux_sk
+        .get("serve_tiers")
+        .and_then(|v| v.as_array())
+        .ok_or_else(|| {
+            MatrixError::Schema("linux_shared_kernel_pools.serve_tiers missing".into())
+        })?;
+    if linux_sk_tiers.len() != 1 || linux_sk_tiers[0].as_str() != Some("shared-kernel") {
+        return Err(MatrixError::Schema(
+            "linux_shared_kernel_pools.serve_tiers must be exactly [shared-kernel]".into(),
+        ));
+    }
+    if linux_sk.get("sku_status").and_then(|v| v.as_str()) != Some("primary-production-path") {
+        return Err(MatrixError::Schema(
+            "linux_shared_kernel_pools.sku_status must be primary-production-path".into(),
         ));
     }
     let snap = pools
