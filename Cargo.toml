@@ -102,10 +102,8 @@ exclude = [
   "governance/check/integ-envelope",
   # New on integ/governance tip; exclude until integ/build (root_manifests sole owner) absorbs Cargo.lock membership.
   "governance/check/apex-gist-integrity",
-  # Bridge: new os/harness crates on integ/os tip — exclude until integ/build
-  # (#planes.root_manifests) absorbs Cargo.lock membership (cargo-lock-sole-owner).
-  "os/harness/attestation-relying-party",
-  "os/harness/oci-executor-oracle",
+  # os/harness/{attestation-relying-party,oci-executor-oracle} absorbed into
+  # Cargo.lock sole-owner membership on #1934 (expires integ-os-cargo-lock-bridge).
   "kernel",
   "storage/adapters/nativelink",
 ]
