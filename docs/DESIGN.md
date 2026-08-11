@@ -5,6 +5,9 @@ doc_status: published
 
 # Oyatie — Architecture & Design Document (DESIGN)
 
+> **RETIRED brand (DOCS_AUTHORITY — 2026-08-11):** **Foundry is not a live product.** Live agent runtime / control-plane authority is **intelligence** (ADR-0335). Machine retirement tombstone: [`specs/microservices/foundry.json`](../specs/microservices/foundry.json). Historical "Foundry" axis prose below is **non-authority** scrap — do not treat as live SSOT. Product shelf deleted (git history).
+
+
 ## Constitutional authority — [CONSTITUTION.md](CONSTITUTION.md)
 
 
@@ -16,16 +19,16 @@ doc_status: published
 
 ## 1. Cohesion thesis (one product, seven axes)
 
-Oyatie is **not** an AWS clone, **not** a Salesforce clone, **not** a Naver clone, **not** a Google clone — and **not** a portfolio of any of them. Oyatie is a single product that **contains** all four kinds of surface, joined at a single tenancy model, a single identity, a single capability registry, a single audit chain, and a single agent runtime + engineering platform (Foundry).
+Oyatie is **not** an AWS clone, **not** a Salesforce clone, **not** a Naver clone, **not** a Google clone — and **not** a portfolio of any of them. Oyatie is a single product that **contains** all four kinds of surface, joined at a single tenancy model, a single identity, a single capability registry, a single audit chain, and a single agent runtime + engineering platform (**intelligence**; Foundry brand retired).
 
-The seven axes are *(the former separate engineering-platform axis is now part of Foundry, 2026-05-09; Workspace / Productivity Platform added as Axis 2 on 2026-05-09)*:
+The seven axes are *(engineering-platform axis consolidated into the **intelligence** capability — Foundry brand retired ADR-0335; Workspace / Productivity Platform added as Axis 2 on 2026-05-09)*:
 
 | Axis | Reads as | Owning bounded context (flat-crates target) |
 |---|---|---|
 | 1. SaaS multi-tenant shared substrate | "The shared substrate — tenancy, workflows, plugins, Ontology, marketplace" (per MASTERPLAN.md §2.4: `platform` retired → `shared`; Object Graph renamed → Ontology) | `crates/oya-platform-tenant-*`, `crates/oya-saas-workflow-*`, `crates/oya-saas-plugin-*` (BNF paths retained pending ADR-grade rename per ADR-0015 migration ledger) |
 | 2. **Workspace / Productivity Platform (NEW 2026-05-09)** — Mail / Docs / Sheets / Slides / Drive / Calendar / Meet / Chat / Forms / Sites / Tasks / Notes / Translate / Recordings | "The canonical end-user apps everyone uses every day" — Google Workspace / Naver Works / Microsoft 365 / AWS Productivity (WorkMail / WorkDocs / Chime) class | `crates/oya-workspace-{mail,calendar,docs,sheets,slides,drive,meet,chat,forms,sites,tasks,notes,translate,recordings}-*` |
 | 3. Vertical industry cloud | "How that work is shaped per industry" | `crates/oya-vertical-{healthcare,industrial,logistics,fintech,legal,corporate,retail,education,public,hospitality,construction,realestate,agriculture,food}-*` |
-| 4. **Foundry: AI agent runtime + control plane + engineering platform** | "Who or what *executes* the work AND how engineers + customers build all of the above" | `crates/oya-foundry-*` covering: agent runtime (`-runtime-*`, `-capability-*`, `-policy-*`, `-evidence-*`), provider adapters (`-adapter-{anthropic,openai,gemini}-{api,subscription}-*`), and engineering-platform surfaces (`-catalog-*`, `-repoctl-*`, `-gates-*`, `-scorecard-*`, `-fitness-*`, `-marketplace-*`) |
+| 4. **Intelligence: AI agent runtime + control plane + engineering platform** (Foundry brand retired) | "Who or what *executes* the work AND how engineers + customers build all of the above" | `intelligence/**` / transitional `oya-foundry-*` crates covering: agent runtime (`-runtime-*`, `-capability-*`, `-policy-*`, `-evidence-*`), provider adapters (`-adapter-{anthropic,openai,gemini}-{api,subscription}-*`), and engineering-platform surfaces (`-catalog-*`, `-repoctl-*`, `-gates-*`, `-scorecard-*`, `-fitness-*`, `-marketplace-*`) |
 | 5. Cloud provider | "What runs everything" | `crates/oya-cloud-{compute,storage,network,iam,billing,observability}-*` |
 | 6. Search engine | "How any object becomes findable" | `crates/oya-search-{crawler,parser,index,rank,query,serp}-*` |
 | 7. Advertising + analytics | "How attention and intent are monetized" | `crates/oya-ads-{auction,target,attribute,console}-*`, `crates/oya-analytics-{event,warehouse,report}-*` |
@@ -65,7 +68,7 @@ Every cell above maps to one or more flat-crates targets. Cross-cell contracts a
 
 ---
 
-## 3. Foundry as accelerator (the force-multiplier axis)
+## 3. Intelligence as accelerator (Foundry brand retired — non-authority scrap)
 
 > **Premise:** Building Foundry-Preview *immediately after* W-Foundation accelerates *all five other axes* exponentially. Foundry is **second**, not first; Foundation correctness gates are the prerequisite.
 

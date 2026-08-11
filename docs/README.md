@@ -36,7 +36,7 @@ This file is the canonical human-readable entry point for `/Users/jasonlee/oyati
 
 The navigation rule is simple: start from the authority chain, choose the section that matches the question, read the top canonical docs first, then follow the extended library only as needed. This hub favors resolving links over summarizing everything inline; the goal is six-hops reachability with enough substance that a new contributor knows which corpus shelf owns each answer.
 
-Cross-link policy for this hub: every Markdown link in this file must resolve to an existing file, directory, or local section. If a requested target does not exist, this hub names it in code text instead of creating a broken link. During this gardening pass, `microservices/intelligence/spec/` was requested but does not exist; use the existing Foundry PRD, architecture, manifest, catalog, and service ADR surfaces until that directory is created by a separate microservice-scope change.
+Cross-link policy for this hub: every Markdown link in this file must resolve to an existing file, directory, or local section. If a requested target does not exist, this hub names it in code text instead of creating a broken link. During this gardening pass, `microservices/intelligence/spec/` was requested but does not exist; use the **intelligence** capability surfaces + `specs/microservices/foundry.json` retirement tombstone (Foundry product shelf deleted; do not cite Foundry as live authority).
 
 <a id="top-navigation"></a>
 **Top Navigation**
@@ -49,7 +49,7 @@ Cross-link policy for this hub: every Markdown link in this file must resolve to
 6. [§5 Personas](#section-5-personas)
 7. [§6 Standards](#section-6-standards)
 8. [§7 Onboarding](#section-7-onboarding)
-9. [§8 Foundry / Pipeline](#section-8-governance-pipeline)
+9. [§8 Governance Pipeline](#section-8-governance-pipeline)
 10. [§9 Compliance Packs](#section-9-compliance-packs)
 11. [§10 Capability Tiers](#section-10-capability-tiers)
 12. [§11 Governance Crates](#section-11-governance-crates)
@@ -247,7 +247,6 @@ Related sections: [§2 Decisions](#section-2-decisions), [§3 Products](#section
 15. [diagrams/marketplace-deal-settlement-flow.md](architecture/diagrams/marketplace-deal-settlement-flow.md) - Marketplace Deal Settlement Flow: canonical navigation target for this shelf.
 16. [diagrams/tenant-lifecycle-state-machine.md](architecture/diagrams/tenant-lifecycle-state-machine.md) - Tenant Lifecycle State Machine: canonical navigation target for this shelf.
 17. [enterprise-software-coverage-matrix-2026-05-21.md](architecture/enterprise-software-coverage-matrix-2026-05-21.md) - Enterprise Software Coverage Matrix 2026 05 21: canonical navigation target for this shelf.
-18. [foundry-fitness-to-governance-transition-2026-05-21.md](architecture/foundry-fitness-to-governance-transition-2026-05-21.md) - Foundry Fitness To Governance Transition 2026 05 21: canonical navigation target for this shelf.
 19. [hyperscaler-pattern-attribution.md](architecture/hyperscaler-pattern-attribution.md) - Hyperscaler Pattern Attribution: canonical navigation target for this shelf.
 20. [ip-corpus-line-audit-2026-05-21.md](architecture/ip-corpus-line-audit-2026-05-21.md) - Ip Corpus Line Audit 2026 05 21: canonical navigation target for this shelf.
 21. [ip-cross-reference-sweep-2026-05-20.md](architecture/ip-cross-reference-sweep-2026-05-20.md) - Ip Cross Reference Sweep 2026 05 20: canonical navigation target for this shelf.
@@ -275,7 +274,7 @@ Related sections: [§2 Decisions](#section-2-decisions), [§3 Products](#section
 
 ### Section Purpose
 
-Decisions own the why. ADRs explain the invariants behind tenant scoping, audit emission, capability tiers, role projection, B2B coverage, Foundry pipeline control, and the keystone bundle. Use this section before changing any primitive that has a policy, architecture, or compatibility consequence.
+Decisions own the why. ADRs explain the invariants behind tenant scoping, audit emission, capability tiers, role projection, B2B coverage, governance pipeline control, and the keystone bundle. Use this section before changing any primitive that has a policy, architecture, or compatibility consequence.
 
 ### Canonical Docs (Top 15)
 
@@ -297,7 +296,7 @@ Decisions own the why. ADRs explain the invariants behind tenant scoping, audit 
 
 ### Related Sections
 
-Related sections: [§1 Architecture](#section-1-architecture), [§6 Standards](#section-6-standards), [§8 Foundry / Pipeline](#section-8-governance-pipeline), [§10 Capability Tiers](#section-10-capability-tiers), [§13 Wave Sequence](#section-13-wave-sequence).
+Related sections: [§1 Architecture](#section-1-architecture), [§6 Standards](#section-6-standards), [§8 Governance Pipeline](#section-8-governance-pipeline), [§10 Capability Tiers](#section-10-capability-tiers), [§13 Wave Sequence](#section-13-wave-sequence).
 
 ### When To Read
 
@@ -357,7 +356,7 @@ Related sections: [§1 Architecture](#section-1-architecture), [§6 Standards](#
 24. [ADR-0320-apprentice-intern-resident-fellow-transient-identity.md](decisions/ADR-0320-apprentice-intern-resident-fellow-transient-identity.md) - ADR 0320 Apprentice Intern Resident Fellow Transient Identity: decision record; read for why this primitive or policy exists before changing dependent specs.
 25. [ADR-0321-b2b-saas-industry-leader-coverage.md](decisions/ADR-0321-b2b-saas-industry-leader-coverage.md) - ADR 0321 B2B Saas Industry Leader Coverage: decision record; read for why this primitive or policy exists before changing dependent specs.
 
-### Foundry Pipeline ADR-0110 Through ADR-0116
+### Governance Pipeline ADR-0110 Through ADR-0116 (historical Foundry brand)
 
 1. [ADR-0110-changeset-state-machine.md](decisions/ADR-0110-changeset-state-machine.md) - ADR 0110 Changeset State Machine: decision record; read for why this primitive or policy exists before changing dependent specs.
 2. [ADR-0111-merge-queue-projected-state-fix-at-any-stage.md](decisions/ADR-0111-merge-queue-projected-state-fix-at-any-stage.md) - ADR 0111 Merge Queue Projected State Fix At Any Stage: decision record; read for why this primitive or policy exists before changing dependent specs.
@@ -387,14 +386,12 @@ Products translate the ecosystem thesis into concrete PRDs. This shelf separates
 9. [accounting PRD](prds/accounting.md) - Accounting PRD for enterprise M03 scope.
 10. [communications PRD](prds/communications.md) - PRD for Messenger, Mail, and Community communication surfaces.
 11. [cloud product PRD](products/cloud/PRD.md) - Cloud product PRD surface.
-12. [foundry product PRD](products/foundry/PRD.md) - Foundry product PRD surface.
-13. [foundry phase 00 spec](products/foundry/PHASE-00-SPEC.md) - Foundry Phase 00 product specification.
 14. [ERP coverage PRD](products/erp-coverage/PRD.md) - ERP coverage PRD surface.
 15. [workplace integration PRD](products/workplace-integration/PRD.md) - Workplace integration PRD surface.
 
 ### Related Sections
 
-Related sections: [§1 Architecture](#section-1-architecture), [§4 User Journeys](#section-4-user-journeys), [§5 Personas](#section-5-personas), [§8 Foundry / Pipeline](#section-8-governance-pipeline), [§13 Wave Sequence](#section-13-wave-sequence).
+Related sections: [§1 Architecture](#section-1-architecture), [§4 User Journeys](#section-4-user-journeys), [§5 Personas](#section-5-personas), [§8 Governance Pipeline](#section-8-governance-pipeline), [§13 Wave Sequence](#section-13-wave-sequence).
 
 ### When To Read
 
@@ -409,34 +406,6 @@ Related sections: [§1 Architecture](#section-1-architecture), [§4 User Journey
 2. [products/_TEMPLATE.md](products/_TEMPLATE.md) - Template: product or microservice requirements authority for scope, users, boundaries, and success metrics.
 3. [products/cloud/PRD.md](products/cloud/PRD.md) - PRD: product or microservice requirements authority for scope, users, boundaries, and success metrics.
 4. [products/erp-coverage/PRD.md](products/erp-coverage/PRD.md) - PRD: product or microservice requirements authority for scope, users, boundaries, and success metrics.
-5. [products/foundry/PHASE-00-SPEC.md](products/foundry/PHASE-00-SPEC.md) - Phase 00 Spec: product or microservice requirements authority for scope, users, boundaries, and success metrics.
-6. [products/foundry/PRD.md](products/foundry/PRD.md) - PRD: product or microservice requirements authority for scope, users, boundaries, and success metrics.
-7. [products/foundry/supervisor/README.md](products/foundry/supervisor/README.md) - Supervisor: product or microservice requirements authority for scope, users, boundaries, and success metrics.
-8. [products/foundry/supervisor/jsonl-supervisor-adapter/ARCHITECTURE.md](products/foundry/supervisor/jsonl-supervisor-adapter/ARCHITECTURE.md) - Architecture: product or microservice requirements authority for scope, users, boundaries, and success metrics.
-9. [products/foundry/supervisor/jsonl-supervisor-adapter/BENCHMARKS.md](products/foundry/supervisor/jsonl-supervisor-adapter/BENCHMARKS.md) - Benchmarks: product or microservice requirements authority for scope, users, boundaries, and success metrics.
-10. [products/foundry/supervisor/jsonl-supervisor-adapter/OPERATIONS.md](products/foundry/supervisor/jsonl-supervisor-adapter/OPERATIONS.md) - Operations: product or microservice requirements authority for scope, users, boundaries, and success metrics.
-11. [products/foundry/supervisor/jsonl-supervisor-adapter/README.md](products/foundry/supervisor/jsonl-supervisor-adapter/README.md) - Jsonl Supervisor Adapter: product or microservice requirements authority for scope, users, boundaries, and success metrics.
-12. [products/foundry/supervisor/jsonl-supervisor-adapter/SECURITY.md](products/foundry/supervisor/jsonl-supervisor-adapter/SECURITY.md) - Security: product or microservice requirements authority for scope, users, boundaries, and success metrics.
-13. [products/foundry/supervisor/settings-template-adapter/ARCHITECTURE.md](products/foundry/supervisor/settings-template-adapter/ARCHITECTURE.md) - Architecture: product or microservice requirements authority for scope, users, boundaries, and success metrics.
-14. [products/foundry/supervisor/settings-template-adapter/BENCHMARKS.md](products/foundry/supervisor/settings-template-adapter/BENCHMARKS.md) - Benchmarks: product or microservice requirements authority for scope, users, boundaries, and success metrics.
-15. [products/foundry/supervisor/settings-template-adapter/OPERATIONS.md](products/foundry/supervisor/settings-template-adapter/OPERATIONS.md) - Operations: product or microservice requirements authority for scope, users, boundaries, and success metrics.
-16. [products/foundry/supervisor/settings-template-adapter/README.md](products/foundry/supervisor/settings-template-adapter/README.md) - Settings Template Adapter: product or microservice requirements authority for scope, users, boundaries, and success metrics.
-17. [products/foundry/supervisor/settings-template-adapter/SECURITY.md](products/foundry/supervisor/settings-template-adapter/SECURITY.md) - Security: product or microservice requirements authority for scope, users, boundaries, and success metrics.
-18. [products/foundry/supervisor/settings-template-kernel/ARCHITECTURE.md](products/foundry/supervisor/settings-template-kernel/ARCHITECTURE.md) - Architecture: product or microservice requirements authority for scope, users, boundaries, and success metrics.
-19. [products/foundry/supervisor/settings-template-kernel/BENCHMARKS.md](products/foundry/supervisor/settings-template-kernel/BENCHMARKS.md) - Benchmarks: product or microservice requirements authority for scope, users, boundaries, and success metrics.
-20. [products/foundry/supervisor/settings-template-kernel/OPERATIONS.md](products/foundry/supervisor/settings-template-kernel/OPERATIONS.md) - Operations: product or microservice requirements authority for scope, users, boundaries, and success metrics.
-21. [products/foundry/supervisor/settings-template-kernel/README.md](products/foundry/supervisor/settings-template-kernel/README.md) - Settings Template Kernel: product or microservice requirements authority for scope, users, boundaries, and success metrics.
-22. [products/foundry/supervisor/settings-template-kernel/SECURITY.md](products/foundry/supervisor/settings-template-kernel/SECURITY.md) - Security: product or microservice requirements authority for scope, users, boundaries, and success metrics.
-23. [products/foundry/supervisor/supervisor-app/ARCHITECTURE.md](products/foundry/supervisor/supervisor-app/ARCHITECTURE.md) - Architecture: product or microservice requirements authority for scope, users, boundaries, and success metrics.
-24. [products/foundry/supervisor/supervisor-app/BENCHMARKS.md](products/foundry/supervisor/supervisor-app/BENCHMARKS.md) - Benchmarks: product or microservice requirements authority for scope, users, boundaries, and success metrics.
-25. [products/foundry/supervisor/supervisor-app/OPERATIONS.md](products/foundry/supervisor/supervisor-app/OPERATIONS.md) - Operations: product or microservice requirements authority for scope, users, boundaries, and success metrics.
-26. [products/foundry/supervisor/supervisor-app/README.md](products/foundry/supervisor/supervisor-app/README.md) - Supervisor App: product or microservice requirements authority for scope, users, boundaries, and success metrics.
-27. [products/foundry/supervisor/supervisor-app/SECURITY.md](products/foundry/supervisor/supervisor-app/SECURITY.md) - Security: product or microservice requirements authority for scope, users, boundaries, and success metrics.
-28. [products/foundry/supervisor/supervisor-kernel/ARCHITECTURE.md](products/foundry/supervisor/supervisor-kernel/ARCHITECTURE.md) - Architecture: product or microservice requirements authority for scope, users, boundaries, and success metrics.
-29. [products/foundry/supervisor/supervisor-kernel/BENCHMARKS.md](products/foundry/supervisor/supervisor-kernel/BENCHMARKS.md) - Benchmarks: product or microservice requirements authority for scope, users, boundaries, and success metrics.
-30. [products/foundry/supervisor/supervisor-kernel/OPERATIONS.md](products/foundry/supervisor/supervisor-kernel/OPERATIONS.md) - Operations: product or microservice requirements authority for scope, users, boundaries, and success metrics.
-31. [products/foundry/supervisor/supervisor-kernel/README.md](products/foundry/supervisor/supervisor-kernel/README.md) - Supervisor Kernel: product or microservice requirements authority for scope, users, boundaries, and success metrics.
-32. [products/foundry/supervisor/supervisor-kernel/SECURITY.md](products/foundry/supervisor/supervisor-kernel/SECURITY.md) - Security: product or microservice requirements authority for scope, users, boundaries, and success metrics.
 33. [products/product-docs-w1-2026-05-20-checkpoint.md](products/product-docs-w1-2026-05-20-checkpoint.md) - Product Docs W1 2026 05 20 Checkpoint: product or microservice requirements authority for scope, users, boundaries, and success metrics.
 34. [products/workplace-integration/PRD.md](products/workplace-integration/PRD.md) - PRD: product or microservice requirements authority for scope, users, boundaries, and success metrics.
 
@@ -446,7 +415,6 @@ Related sections: [§1 Architecture](#section-1-architecture), [§4 User Journey
 2. [prds/accounting.md](prds/accounting.md) - Accounting: product or microservice requirements authority for scope, users, boundaries, and success metrics.
 3. [prds/application.md](prds/application.md) - Application: product or microservice requirements authority for scope, users, boundaries, and success metrics.
 4. [prds/communications.md](prds/communications.md) - Communications: microservice requirements authority for Messenger, Mail, and Community scope, users, boundaries, and success metrics.
-5. [prds/foundry.md](prds/foundry.md) - Foundry: product or microservice requirements authority for scope, users, boundaries, and success metrics.
 6. [prds/hr.md](prds/hr.md) - Hr: product or microservice requirements authority for scope, users, boundaries, and success metrics.
 7. [prds/ontology.md](prds/ontology.md) - Ontology: product or microservice requirements authority for scope, users, boundaries, and success metrics.
 8. [prds/payroll.md](prds/payroll.md) - Payroll: product or microservice requirements authority for scope, users, boundaries, and success metrics.
@@ -1006,7 +974,7 @@ Onboarding guides turn the standards and corpus into role-specific first-day, fi
 
 ### Related Sections
 
-Related sections: [§0 Operating Map](#section-0-operating-map), [§5 Personas](#section-5-personas), [§6 Standards](#section-6-standards), [§8 Foundry / Pipeline](#section-8-governance-pipeline), [§13 Wave Sequence](#section-13-wave-sequence).
+Related sections: [§0 Operating Map](#section-0-operating-map), [§5 Personas](#section-5-personas), [§6 Standards](#section-6-standards), [§8 Governance Pipeline](#section-8-governance-pipeline), [§13 Wave Sequence](#section-13-wave-sequence).
 
 ### When To Read
 
@@ -1031,11 +999,11 @@ Related sections: [§0 Operating Map](#section-0-operating-map), [§5 Personas](
 12. [swe-platform-engineer-month-one.md](onboarding/swe-platform-engineer-month-one.md) - Swe Platform Engineer Month One: role-specific onboarding path with verifiable first artifacts.
 
 <a id="section-8-governance-pipeline"></a>
-## §8 Foundry / Pipeline
+## §8 Governance Pipeline
 
 ### Section Purpose
 
-Foundry and the pipeline docs explain how agentic work is claimed, verified, reviewed, promoted, supervised, and evidenced. This section ties the ADR-0110..0116 sequence to product docs, supervisor docs, and the Foundry microservice corpus while respecting that `microservices/intelligence/spec/` is absent in the current checkout.
+Governance pipeline docs explain how agentic work is claimed, verified, reviewed, promoted, supervised, and evidenced. This section ties the ADR-0110..0116 sequence to the **intelligence** capability surfaces and `specs/microservices/foundry.json` retirement tombstone (Foundry product shelf deleted; not live authority). `microservices/intelligence/spec/` remains absent in the current checkout.
 
 ### Canonical Docs (Top 15)
 
@@ -1044,13 +1012,11 @@ Foundry and the pipeline docs explain how agentic work is claimed, verified, rev
 3. [ADR-0112](decisions/ADR-0112-webhook-driven-intelligence-agent-invocation.md) - webhook-driven Foundry agent invocation.
 4. [ADR-0113](decisions/ADR-0113-vcs-orchestrator-end-to-end.md) - end-to-end VCS orchestrator.
 5. [ADR-0116](decisions/ADR-0116-retire-external-agent-coordination-tooling.md) - retirement of external agent coordination tooling.
-6. [Foundry product PRD](products/foundry/PRD.md) - Foundry product PRD (historical brand surface; prefer intelligence ADRs).
-7. [Foundry Phase 00 spec](products/foundry/PHASE-00-SPEC.md) - Foundry Phase 00 spec (historical).
-8. [microservices Foundry PRD](../microservices/intelligence/PRD.md) - microservice PRD for Foundry implementation.
-9. [microservices Foundry architecture](../microservices/intelligence/ARCHITECTURE.md) - microservice architecture for Foundry.
-10. [Foundry manifest](../microservices/intelligence/manifest.json) - Foundry microservice manifest.
-11. [claim done verify promote tutorial](../microservices/intelligence/tutorials/claim-work-done-verify-promote-cycle.md) - tutorial for claim / done / verify / promote cycle.
-12. [Foundry service ADR](../microservices/intelligence/decisions/ADR-FND-001-agentic-claim-isolation-vs-shared-lock-cedar-gate.md) - service ADR for claim isolation and Cedar gate.
+6. [microservices intelligence PRD](../microservices/intelligence/PRD.md) - microservice PRD (intelligence; Foundry brand retired).
+7. [microservices intelligence architecture](../microservices/intelligence/ARCHITECTURE.md) - microservice architecture for intelligence.
+8. [intelligence manifest](../microservices/intelligence/manifest.json) - intelligence microservice manifest.
+9. [claim done verify promote tutorial](../microservices/intelligence/tutorials/claim-work-done-verify-promote-cycle.md) - tutorial for claim / done / verify / promote cycle.
+10. [intelligence service ADR](../microservices/intelligence/decisions/ADR-FND-001-agentic-claim-isolation-vs-shared-lock-cedar-gate.md) - service ADR for claim isolation and Cedar gate.
 
 ### Related Sections
 
@@ -1059,9 +1025,9 @@ Related sections: [§2 Decisions](#section-2-decisions), [§3 Products](#section
 ### When To Read
 
 - Read this before changing Oya VCS, claim/verify/done/promote semantics, merge queue behavior, webhook invocation, or agent supervision.
-- Read this before implementing Foundry capability, evidence, guardrails, provider-router, runtime, or supervisor slices.
-- Read this when a task mentions pipeline, Foundry, ChangeSet, admission, promotion, or agentic evidence.
-- Read the existing Foundry PRD, architecture, manifest, and service ADRs instead of linking to the absent `microservices/intelligence/spec/` directory.
+- Read this before implementing intelligence capability, evidence, guardrails, provider-router, runtime, or supervisor slices.
+- Read this when a task mentions pipeline, ChangeSet, admission, promotion, or agentic evidence (Foundry brand retired).
+- Read the intelligence PRD, architecture, manifest, and service ADRs instead of linking to the absent `microservices/intelligence/spec/` directory; do not cite deleted Foundry product shelf paths.
 
 ### Foundry Docs And Microservice Entry Points
 
@@ -1317,7 +1283,7 @@ Capability tiers define capability maturity and autonomy boundaries across produ
 
 ### Related Sections
 
-Related sections: [§2 Decisions](#section-2-decisions), [§6 Standards](#section-6-standards), [§8 Foundry / Pipeline](#section-8-governance-pipeline), [§9 Compliance Packs](#section-9-compliance-packs), [§11 Governance Crates](#section-11-governance-crates).
+Related sections: [§2 Decisions](#section-2-decisions), [§6 Standards](#section-6-standards), [§8 Governance Pipeline](#section-8-governance-pipeline), [§9 Compliance Packs](#section-9-compliance-packs), [§11 Governance Crates](#section-11-governance-crates).
 
 ### When To Read
 
@@ -1355,7 +1321,7 @@ Governance crates are executable policy lanes. They turn standards and ADRs into
 
 ### Related Sections
 
-Related sections: [§2 Decisions](#section-2-decisions), [§6 Standards](#section-6-standards), [§8 Foundry / Pipeline](#section-8-governance-pipeline), [§10 Capability Tiers](#section-10-capability-tiers), [§13 Wave Sequence](#section-13-wave-sequence).
+Related sections: [§2 Decisions](#section-2-decisions), [§6 Standards](#section-6-standards), [§8 Governance Pipeline](#section-8-governance-pipeline), [§10 Capability Tiers](#section-10-capability-tiers), [§13 Wave Sequence](#section-13-wave-sequence).
 
 ### When To Read
 
@@ -1449,7 +1415,7 @@ Wave sequence answers what happens now, what recently changed, and what comes ne
 
 ### Related Sections
 
-Related sections: [§0 Operating Map](#section-0-operating-map), [§1 Architecture](#section-1-architecture), [§2 Decisions](#section-2-decisions), [§8 Foundry / Pipeline](#section-8-governance-pipeline), [§9 Compliance Packs](#section-9-compliance-packs).
+Related sections: [§0 Operating Map](#section-0-operating-map), [§1 Architecture](#section-1-architecture), [§2 Decisions](#section-2-decisions), [§8 Governance Pipeline](#section-8-governance-pipeline), [§9 Compliance Packs](#section-9-compliance-packs).
 
 ### When To Read
 
@@ -1548,30 +1514,6 @@ Related sections: [§0 Operating Map](#section-0-operating-map), [§1 Architectu
 87. [runbooks/fintech-payment-failure.md](runbooks/fintech-payment-failure.md) - Fintech Payment Failure: operational procedure for incident, rollback, audit, release, or service recovery.
 88. [runbooks/flat-crates-move-pr.md](runbooks/flat-crates-move-pr.md) - Flat Crates Move Pr: operational procedure for incident, rollback, audit, release, or service recovery.
 89. [runbooks/forbidden-license-rollback.md](runbooks/forbidden-license-rollback.md) - Forbidden License Rollback: operational procedure for incident, rollback, audit, release, or service recovery.
-90. [runbooks/foundry/autonomy-ceiling-breach-attempt.md](runbooks/foundry/autonomy-ceiling-breach-attempt.md) - Autonomy Ceiling Breach Attempt: operational procedure for incident, rollback, audit, release, or service recovery.
-91. [runbooks/foundry/capability-eval-regression.md](runbooks/foundry/capability-eval-regression.md) - Capability Eval Regression: operational procedure for incident, rollback, audit, release, or service recovery.
-92. [runbooks/foundry/cost-ceiling-exceeded.md](runbooks/foundry/cost-ceiling-exceeded.md) - Cost Ceiling Exceeded: operational procedure for incident, rollback, audit, release, or service recovery.
-93. [runbooks/foundry/prompt-injection-fired.md](runbooks/foundry/prompt-injection-fired.md) - Prompt Injection Fired: operational procedure for incident, rollback, audit, release, or service recovery.
-94. [runbooks/foundry/provider-quota-exhausted.md](runbooks/foundry/provider-quota-exhausted.md) - Provider Quota Exhausted: operational procedure for incident, rollback, audit, release, or service recovery.
-95. [runbooks/foundry/sandbox-escape-detected.md](runbooks/foundry/sandbox-escape-detected.md) - Sandbox Escape Detected: operational procedure for incident, rollback, audit, release, or service recovery.
-96. [runbooks/foundry/subscription-token-expired.md](runbooks/foundry/subscription-token-expired.md) - Subscription Token Expired: operational procedure for incident, rollback, audit, release, or service recovery.
-97. [runbooks/foundry/supervisor/lifecycle.md](runbooks/foundry/supervisor/lifecycle.md) - Lifecycle: operational procedure for incident, rollback, audit, release, or service recovery.
-98. [runbooks/foundry-agent-daemon.md](runbooks/foundry-agent-daemon.md) - Foundry Agent Daemon: operational procedure for incident, rollback, audit, release, or service recovery.
-99. [runbooks/foundry-autonomy-break-glass.md](runbooks/foundry-autonomy-break-glass.md) - Foundry Autonomy Break Glass: operational procedure for incident, rollback, audit, release, or service recovery.
-100. [runbooks/foundry-autonomy-policy-rollback.md](runbooks/foundry-autonomy-policy-rollback.md) - Foundry Autonomy Policy Rollback: operational procedure for incident, rollback, audit, release, or service recovery.
-101. [runbooks/foundry-bypass-expiry-monitor.md](runbooks/foundry-bypass-expiry-monitor.md) - Foundry Bypass Expiry Monitor: operational procedure for incident, rollback, audit, release, or service recovery.
-102. [runbooks/foundry-capability-publish.md](runbooks/foundry-capability-publish.md) - Foundry Capability Publish: operational procedure for incident, rollback, audit, release, or service recovery.
-103. [runbooks/foundry-fitness-rollback.md](runbooks/foundry-fitness-rollback.md) - Foundry Fitness Rollback: operational procedure for incident, rollback, audit, release, or service recovery.
-104. [runbooks/foundry-mcp-gateway-incident.md](runbooks/foundry-mcp-gateway-incident.md) - Foundry Mcp Gateway Incident: operational procedure for incident, rollback, audit, release, or service recovery.
-105. [runbooks/foundry-model-cutover.md](runbooks/foundry-model-cutover.md) - Foundry Model Cutover: operational procedure for incident, rollback, audit, release, or service recovery.
-106. [runbooks/foundry-model-lora-adapter-rollback.md](runbooks/foundry-model-lora-adapter-rollback.md) - Foundry Model Lora Adapter Rollback: operational procedure for incident, rollback, audit, release, or service recovery.
-107. [runbooks/foundry-model-training-incident.md](runbooks/foundry-model-training-incident.md) - Foundry Model Training Incident: operational procedure for incident, rollback, audit, release, or service recovery.
-108. [runbooks/foundry-platform-incident.md](runbooks/foundry-platform-incident.md) - Foundry Platform Incident: operational procedure for incident, rollback, audit, release, or service recovery.
-109. [runbooks/foundry-robotics-anti-scope-review.md](runbooks/foundry-robotics-anti-scope-review.md) - Foundry Robotics Anti Scope Review: operational procedure for incident, rollback, audit, release, or service recovery.
-110. [runbooks/foundry-robotics-safe-stop.md](runbooks/foundry-robotics-safe-stop.md) - Foundry Robotics Safe Stop: operational procedure for incident, rollback, audit, release, or service recovery.
-111. [runbooks/foundry-sandbox-escape.md](runbooks/foundry-sandbox-escape.md) - Foundry Sandbox Escape: operational procedure for incident, rollback, audit, release, or service recovery.
-112. [runbooks/foundry-sandbox-warm-pool.md](runbooks/foundry-sandbox-warm-pool.md) - Foundry Sandbox Warm Pool: operational procedure for incident, rollback, audit, release, or service recovery.
-113. [runbooks/foundry-vision-lawful-basis-incident.md](runbooks/foundry-vision-lawful-basis-incident.md) - Foundry Vision Lawful Basis Incident: operational procedure for incident, rollback, audit, release, or service recovery.
 114. [runbooks/gl-reconciliation.md](runbooks/gl-reconciliation.md) - Gl Reconciliation: operational procedure for incident, rollback, audit, release, or service recovery.
 115. [runbooks/glossary-amendment-pr.md](runbooks/glossary-amendment-pr.md) - Glossary Amendment Pr: operational procedure for incident, rollback, audit, release, or service recovery.
 117. [runbooks/healthcare-break-glass.md](runbooks/healthcare-break-glass.md) - Healthcare Break Glass: operational procedure for incident, rollback, audit, release, or service recovery.

@@ -405,7 +405,7 @@ If any box is unchecked, the change is not complete. Loop back; do not declare s
 | Registered capability roots with `core/`, `ports/`, `adapters/`, `facade/`; `app/<product>/` for multi-capability compositions | Canonical destination topology per ADR-0562 as amended by ADR-0615. Existing `{oya,cloud}/...`, `libs/`, and top-level `crates/` paths are migration inventory until their strangler moves are verified. |
 | `infra/`, `scripts/`, `registry/` | Supporting implementation and governance tree; `registry/catalog/` is the live crate catalog. |
 | `modules/`, `services/`, `platform/`, `tools/` | Retired legacy implementation roots; do not recreate. |
-| `registry/capability-templates/` | Capability records + metering events (Foundry-consumed). |
+| `registry/capability-templates/` | Capability records + metering events (intelligence-consumed; Foundry brand retired). |
 | `contracts/` | Per-cross-axis contract spec files (OpenAPI, Protobuf, AsyncAPI). |
 | Repo root (`README.md`, `CLAUDE.md`, `AGENTS.md`, `HANDOFF.md`) | Founder-authorized Markdown survival set. `HANDOFF.md` is a thin fresh-session redirect only, never a plan/backlog/status authority. `CLAUDE.md` and this file are binding for agents; `/specs/root-hub-pointers.json` remains the redirect hub. Thinness lint may apply to redirect/index helper files only; it does not demote CLAUDE.md or docs/AGENTS.md. |
 
