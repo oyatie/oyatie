@@ -135,18 +135,18 @@
     "scope": "The two capabilities the port seam runs between: k8s/ (the destination ADR-638 D1 names) and os/ (the consumer). Other capabilities are out of scope for this file and are not silently claimed by it.",
     "leaf_definition": "A directory holding a tracked Cargo.toml at <capability>/<face>/<crate>/Cargo.toml.",
     "census": {
-      "measured_at": "2026-08-10",
+      "measured_at": "2026-08-11",
       "repository_baseline": {
         "ref": "origin/dev",
         "commit": "9755cf50e",
         "rebase_revalidation": "Restacked integ/os onto origin/dev@9755cf50e after #1642 land. Re-ran git ls-files k8s/*/*/Cargo.toml os/*/*/Cargo.toml: k8s_leaves 18, os_leaves 42, total 60. Added first-party row for os/ports/kernel-abi (+1 os leaf vs prior 41)."
       },
       "k8s_leaves": 18,
-      "os_leaves": 42,
-      "total_leaves": 60,
+      "os_leaves": 43,
+      "total_leaves": 61,
       "generated_leaves": 0,
       "reproducer": "git ls-files 'k8s/*/*/Cargo.toml' 'os/*/*/Cargo.toml'",
-      "note": "os/ is 40 crates under os/core/, 1 under os/harness/, 1 under os/ports/. Talos hand-port under os/core+harness remains first-party by ADR-638 D5 charter. os/ports/kernel-abi is the owned kernel-ABI seam (first-party port face), not generated."
+      "note": "os/ is 40 crates under os/core/, 2 under os/harness/, 1 under os/ports/. Talos hand-port under os/core+harness remains first-party by ADR-638 D5 charter. os/ports/kernel-abi is the owned kernel-ABI seam (first-party port face), not generated."
     },
     "leaves": [
       {
@@ -383,6 +383,10 @@
       },
       {
         "path": "os/harness/difftest-app",
+        "origin": "first-party"
+      },
+      {
+        "path": "os/harness/oci-executor-oracle",
         "origin": "first-party"
       },
       {
