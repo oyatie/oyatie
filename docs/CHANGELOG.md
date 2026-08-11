@@ -5,6 +5,17 @@ doc_status: published
 
 # Changelog
 
+## 2026-08-10 — ADR-0711 Accepted (Swarm Delivery Law)
+
+- Promoted **ADR-0711** from Proposed → **Accepted** (founder): Claim/Land already enforced the
+  Swarm Delivery Law while status was Proposed, which END-STATE-POLICY forbids (Proposed carries
+  no implement authority). Remaining Phase B/C work stays deliverable completion, not a status gate.
+- Regenerated `docs/ADR-INDEX.md` + `docs/machine-readable/decisions.json` together (12 live ADRs;
+  Accepted 11 / Proposed 1). **ADR-0710** remains the sole gated Proposed apex (D-8 evidence).
+- Bumped `specs/integ-branch-envelopes.json` to **1.16.14** / `status: Accepted` at the acceptance
+  event; later same-PR amendments (D/E/F + review repairs) advance the envelope version further —
+  the live value is `specs/integ-branch-envelopes.json#_meta.version`, not this entry.
+
 ## 2026-08-09 — ADR-0710 admission substrate proposed; sovereign-confidential idea page
 
 - Proposed **ADR-0710** as the Kubernetes admission-substrate decision: ValidatingAdmissionPolicy

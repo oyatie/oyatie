@@ -11,10 +11,10 @@ doc_status: published
 
 ## At-a-glance
 
-- **Total ADRs:** 15
-- **Numbering:** ADR-0700..ADR-0715 (non-contiguous; gaps: 0711)
+- **Total ADRs:** 16
+- **Numbering:** contiguous ADR-0700..ADR-0715 (gap-free; 0711 filled by Swarm Delivery Law)
 - **Next ADR number:** 0716
-- **Status counts:** Accepted 10, Proposed 5
+- **Status counts:** Accepted 11, Proposed 5
 - **Legacy retirement:** see [`ADR-LEGACY-REGRESSION-MAPPING.md`](ADR-LEGACY-REGRESSION-MAPPING.md).
 
 ## Full table (one row per ADR, sorted by ADR number)
@@ -32,6 +32,7 @@ doc_status: published
 | ADR-0708 | Accepted | Live platform foundations: cells, residency, workflow, plugins, search | council-architecture | [`ADR-0708-platform-foundations-live-apex.md`](decisions/ADR-0708-platform-foundations-live-apex.md) |
 | ADR-0709 | Accepted | Live general architecture and remaining accepted doctrine | council-architecture | [`ADR-0709-general-live-apex.md`](decisions/ADR-0709-general-live-apex.md) |
 | ADR-0710 | Proposed | Kubernetes admission substrate is the API server: VAP/CEL + PSA, no policy webhook | council-architecture | [`ADR-0710-kubernetes-admission-substrate-is-the-api-server.md`](decisions/ADR-0710-kubernetes-admission-substrate-is-the-api-server.md) |
+| ADR-0711 | Accepted | Swarm Delivery Law — integration branch topology and command discipline | council-architecture | [`ADR-0711-swarm-delivery-law-integ-branch-topology.md`](decisions/ADR-0711-swarm-delivery-law-integ-branch-topology.md) |
 | ADR-0712 | Proposed | Node kernel + pool matrix — Linux primary; Asterinas soak until A1 | council-architecture | [`ADR-0712-node-kernel-pool-matrix.md`](decisions/ADR-0712-node-kernel-pool-matrix.md) |
 | ADR-0713 | Proposed | Node Substrate Architecture — PID1 stub + restartable supervisor; severable Accept | council-architecture | [`ADR-0713-node-substrate-architecture.md`](decisions/ADR-0713-node-substrate-architecture.md) |
 | ADR-0714 | Proposed | Isolation-property RuntimeClass names with orthogonal placement axis | council-architecture | [`ADR-0714-isolation-property-runtime-tier-names.md`](decisions/ADR-0714-isolation-property-runtime-tier-names.md) |
@@ -54,6 +55,6 @@ The directory is intentionally non-contiguous. Every existing `docs/decisions/AD
 
 ## Sources scanned
 
-- `decisions/` directory listing — 15 ADR files (sorted ascending)
+- `decisions/` directory listing — 16 ADR files (sorted ascending)
 - [`machine-readable/decisions.json`](machine-readable/decisions.json) — generated machine mirror
 - [`DOC-CATALOG.md`](DOC-CATALOG.md) — owner / cadence / dependent docs / validation checks

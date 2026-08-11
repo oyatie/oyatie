@@ -5833,7 +5833,8 @@
       "ADR-0706",
       "ADR-0707",
       "ADR-0708",
-      "ADR-0709"
+      "ADR-0709",
+      "ADR-0711"
     ],
     "bound_specs": [
       "specs/ci-farm-substrate-canonical.json",
