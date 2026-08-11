@@ -63,6 +63,33 @@ impl RouteProtocol {
     }
 }
 
+// The kernel-ABI port speaks `RouteOrigin` (who installed the route) and
+// deliberately does not carry the `RTPROT_*` encoding, which is a Linux detail.
+// These conversions are the only place the two vocabularies meet, so the
+// numeric mapping above stays the single source of the encoding.
+
+impl From<RouteProtocol> for os_kernel_abi::RouteOrigin {
+    fn from(value: RouteProtocol) -> Self {
+        match value {
+            RouteProtocol::Static => os_kernel_abi::RouteOrigin::Static,
+            RouteProtocol::Boot => os_kernel_abi::RouteOrigin::Boot,
+            RouteProtocol::Kernel => os_kernel_abi::RouteOrigin::Kernel,
+            RouteProtocol::Dhcp => os_kernel_abi::RouteOrigin::Dhcp,
+        }
+    }
+}
+
+impl From<os_kernel_abi::RouteOrigin> for RouteProtocol {
+    fn from(value: os_kernel_abi::RouteOrigin) -> Self {
+        match value {
+            os_kernel_abi::RouteOrigin::Static => RouteProtocol::Static,
+            os_kernel_abi::RouteOrigin::Boot => RouteProtocol::Boot,
+            os_kernel_abi::RouteOrigin::Kernel => RouteProtocol::Kernel,
+            os_kernel_abi::RouteOrigin::Dhcp => RouteProtocol::Dhcp,
+        }
+    }
+}
+
 /// A single routing-table entry.
 ///
 /// Equivalent to `network.RouteSpecSpec`. A destination with `prefix_len == 0`
@@ -380,6 +407,22 @@ mod tests {
         assert!(r.validate().is_ok());
         assert!(!r.is_default());
         assert_eq!(r.id(), "42/inet4/10.0.0.1/172.16.0.0/16/100");
+    }
+
+    #[test]
+    fn route_origin_round_trips_and_preserves_the_rtprot_encoding() {
+        for protocol in [
+            RouteProtocol::Static,
+            RouteProtocol::Boot,
+            RouteProtocol::Kernel,
+            RouteProtocol::Dhcp,
+        ] {
+            let origin: os_kernel_abi::RouteOrigin = protocol.into();
+            let back: RouteProtocol = origin.into();
+            assert_eq!(back, protocol);
+            // The port must not change what the adapter writes on the wire.
+            assert_eq!(back.protocol_id(), protocol.protocol_id());
+        }
     }
 
     #[test]
