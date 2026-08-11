@@ -96,8 +96,6 @@ exclude = [
   "ci/facade/automation-language-policy",
   "cloud/cloud-kernel",
   "governance/check/integ-envelope",
-  # Bridge until integ/build lock absorb (lane content via #1926).
-  "os/harness/oci-executor-oracle",
   "kernel",
   "storage/adapters/nativelink",
 ]
