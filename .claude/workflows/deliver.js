@@ -63,12 +63,51 @@ function resolveClaimRepo() {
     const headBranch = cp.execFileSync('git', ['-C', REPO, 'rev-parse', '--abbrev-ref', 'HEAD'], { encoding: 'utf8' }).trim()
     if (INTEG && headBranch === INTEG) return REPO
   } catch (_) { /* fall through */ }
-  return REPO
+  // fix-1644-codex: NO silent main-checkout fallback. A station missing at startup used to pin
+  // Claim to the main checkout even when .worktrees/integ-<root> was created minutes later for
+  // assembly — Claim then diffed and authorized the wrong HEAD. Unresolvable now means null, and
+  // the Claim phase fails closed (see requireClaimRepoOnInteg) instead of guessing.
+  return null
 }
-const CLAIM_REPO = resolveClaimRepo()
+let CLAIM_REPO = resolveClaimRepo()
+
+// Re-resolve the station AT CLAIM TIME and verify it actually sits on INTEG (fix-1644-codex).
+// One-time startup resolution is not enough: the station may be created after startup, and a
+// checkout on any other branch must never be diffed or assembled as if it were the integ tip.
+function requireClaimRepoOnInteg() {
+  CLAIM_REPO = resolveClaimRepo()
+  const station = `${REPO}/.worktrees/integ-${INTEG.replace(/^integ\//, '')}`
+  if (!CLAIM_REPO) {
+    return { ok: false, why: `no claim repo: neither args.claim_repo / SWARM_CANDIDATE_ROOT, nor ${station}, nor REPO already on ${INTEG}` }
+  }
+  try {
+    const headBranch = require('child_process')
+      .execFileSync('git', ['-C', CLAIM_REPO, 'rev-parse', '--abbrev-ref', 'HEAD'], { encoding: 'utf8' }).trim()
+    if (headBranch !== INTEG) {
+      return { ok: false, why: `claim repo ${CLAIM_REPO} is on ${JSON.stringify(headBranch)}, not ${INTEG}` }
+    }
+  } catch (err) {
+    return { ok: false, why: `cannot verify claim repo branch: ${String((err && err.message) || err)}` }
+  }
+  return { ok: true }
+}
 
 if (!INTEG) {
   throw new Error('deliver.js requires args.integration matching a root/plane branch in specs/integ-branch-envelopes.json (e.g. integ/specs). The former default integ/deliver-run is not an envelope and would fail Claim.')
+}
+// Registry bind (fix-1644-codex): a nonempty-but-unregistered value (`integ/typo`, `foo`) used to
+// pass this gate even though the error text promised a root/plane match — resolveClaimRepo could
+// then fall back to an unrelated checkout and a CLAIM verdict could ride a branch outside the
+// declared topology. Exact match against the machine law, fail-closed, before anything runs.
+{
+  const envelopesDoc = JSON.parse(require('fs').readFileSync(ENVELOPES, 'utf8'))
+  const registeredBranches = new Set([
+    ...Object.values(envelopesDoc.roots || {}).map(r => r && r.branch),
+    ...Object.values(envelopesDoc.planes || {}).map(pl => pl && pl.branch),
+  ].filter(Boolean))
+  if (!registeredBranches.has(INTEG)) {
+    throw new Error(`deliver.js args.integration ${JSON.stringify(INTEG)} is not a registered roots[*].branch or planes[*].branch in ${ENVELOPES} — refusing before any checkout can be mutated. Registered: ${[...registeredBranches].sort().join(', ')}`)
+  }
 }
 
 // PLANNER/WORKER MODEL ASYMMETRY, adopted from Cursor's measured swarm economics: the same quality
@@ -454,11 +493,15 @@ function parsePathList(raw) {
   return s.split(/[,;]/).map(p => p.trim().replace(/^['"`]|['"`]$/g, '')).filter(p => p && !/^n\/a$/i.test(p))
 }
 
+// EXACT repository-relative paths only (fix-1644-codex): suffix matching let `README.md` bind
+// against `tools/README.md` and a declaration like `json` bind against ANY changed JSON file —
+// a vague or deliberately evasive inventory could authorize an unrelated diff. This predicate is
+// the mechanical Claim→diff authorization, so the only tolerated variance is a leading `./`.
 function pathInDiff(declared, changedSet) {
-  if (changedSet.has(declared)) return true
+  const norm = String(declared).replace(/^\.\//, '')
+  if (changedSet.has(norm)) return true
   for (const c of changedSet) {
-    if (c === declared || c.endsWith('/' + declared) || c.endsWith(declared)) return true
-    if (declared.endsWith('/' + c) || declared.endsWith(c)) return true
+    if (String(c).replace(/^\.\//, '') === norm) return true
   }
   return false
 }
@@ -519,6 +562,15 @@ function parseClaimPacket(summary, opts = {}) {
       errors.push(`docs_action must be update|add|delete|n/a, got ${JSON.stringify(docsAction)}`)
     } else if (docsAction.toLowerCase() === 'n/a' && !docsActionWhy) {
       errors.push('docs_action=n/a requires docs_action_why (INV-DOC-1)')
+    }
+    // Nonempty inventory (fix-1644-codex): update/add/delete with docs_touched `[]` (parses to
+    // an empty list) or `n/a` (parses to null) used to skip the bind entirely, so Land could
+    // proceed without naming ONE documentation change. n/a is reserved for docs_action: n/a.
+    if (docsAction && ['update', 'add', 'delete'].includes(docsAction.toLowerCase())) {
+      const touchedForAction = parsePathList(docsTouched)
+      if (touchedForAction == null || touchedForAction.length === 0) {
+        errors.push(`docs_action=${docsAction.toLowerCase()} requires a nonempty docs_touched path list, got ${JSON.stringify(docsTouched)} (docs_touched: n/a is reserved for docs_action: n/a)`)
+      }
     }
 
     if (bindDiff) {
@@ -1057,14 +1109,53 @@ phase('Claim')
 // Swarm Delivery Law (ADR-0711): check-before-push onto durable integ/<root>.
 // Envelope verify + merge-tree preflight + hub exclusivity BEFORE Land opens/upserts a PR.
 const integRoot = INTEG.replace(/^integ\//, '')
+
+// Station + manifest preconditions (fix-1644-codex) — both fail closed BEFORE the agent runs.
+const stationCheck = requireClaimRepoOnInteg()
+if (!stationCheck.ok) {
+  log(`REFUSED — integration station unresolved: ${stationCheck.why}`)
+  return {
+    goal: GOAL,
+    integration_branch: INTEG,
+    refused: 'claim station unresolved',
+    station: stationCheck.why,
+    remedy: `Create the durable station first (git worktree add ${REPO}/.worktrees/integ-${integRoot} ${INTEG}) or pass args.claim_repo — Claim never diffs or assembles a checkout that is not on ${INTEG}.`,
+    prs_opened: 0,
+  }
+}
+
+// Closed ordered manifest of exactly the approved unit commits (fix-1644-codex): Claim and the
+// mechanical assembly below admit THESE SHAs and nothing else. A rejected unit's branch still
+// exists in the object store, so "cherry-pick approved unit commits" without a manifest let a
+// Claim agent admit a rejected tip — or silently omit an approved one.
+const admitManifest = approvedUnits.map(u => ({ id: u.unit.id, sha: (u.impl && u.impl.commit_sha) || null }))
+const manifestGaps = admitManifest.filter(m => !m.sha || !/^[0-9a-f]{7,40}$/i.test(String(m.sha)))
+if (manifestGaps.length) {
+  log(`REFUSED — approved unit(s) without a usable commit sha: ${manifestGaps.map(m => m.id).join(', ')}`)
+  return {
+    goal: GOAL,
+    integration_branch: INTEG,
+    refused: 'approved unit missing commit sha',
+    units_missing_sha: manifestGaps.map(m => m.id),
+    remedy: 'Every approved unit must report impl.commit_sha — re-run the unit or fix the implementer packet before Claim.',
+    prs_opened: 0,
+  }
+}
+
 const claimed = await agent(`${CTX}
 
 CLAIM (ADR-0711 Accepted / specs/integ-branch-envelopes.json) for integration branch \`${INTEG}\`.
 Policy file: \`${ENVELOPES}\`.
-Claim↔diff bind repo (assembled tip): \`${CLAIM_REPO}\` — run all \`git diff\` / cherry-pick
-inventory commands with \`-C ${CLAIM_REPO}\` (not a unit worktree or stale main checkout).
+Claim↔diff bind repo (station, verified on ${INTEG}): \`${CLAIM_REPO}\` — run all read-only
+\`git diff\` / \`git show\` inventory commands with \`-C ${CLAIM_REPO}\` (not a unit worktree or a
+stale main checkout). The workflow assembles AFTER your packet passes mechanical validation; the
+manifest SHAs resolve here because the station and unit worktrees share one object store.
 
 This phase is a GATE. First line of summary must be exactly "CLAIM" or "REFUSE".
+
+APPROVED UNIT MANIFEST (closed, ordered — the ONLY commits this wave admits; never harvest SHAs
+from branch names, reflog or prose):
+${admitManifest.map((m, i) => `  ${i + 1}. unit ${m.id} → ${m.sha}`).join('\n')}
 
 HYPERSCALER MONOREPO PATTERNS (ADR-0711 D-9 — enforce, do not narrate): ownership=path=integ
 scope; envelopes follow capability boundaries (core/ports/adapters/facade); central docs/specs are
@@ -1079,21 +1170,30 @@ n/a). Missing packet = REFUSE. Prose MUST cite JSON pointers — never re-list #
    action; stale green is not authorization.
 
 2. ENVELOPE VERIFY — Load \`${ENVELOPES}\`. Resolve which root/plane \`${INTEG}\` maps to. List every
-   path this run would push onto \`${INTEG}\` (\`git diff --name-only ${BASE}...\` on unit tips and
-   the assembled tree). Every path MUST be:
+   path this run would push onto \`${INTEG}\` (\`git diff --name-only ${BASE}...\` over each manifest
+   sha and their union — assembly happens only after your packet passes). Every path MUST be:
      (a) inside envelope(R), OR
      (b) an explicitly claimed adjunct leaf recorded for this wave, OR
      (c) a hub path with an in-diff waiver row under governance/check/integ-envelope/waivers/.
    Concurrent-safe exemptions are ONLY the narrowed set in
    envelopes#concurrent_safe_exemptions.paths (not whole evidence/**) and do not grant
    envelope escape for product code. If any path fails, REFUSE and name it.
+   LONGEST-MATCH-WINS (envelopes#admission.glob_resolution): a path matched by a MORE SPECIFIC
+   sibling root/plane glob belongs ONLY to that owner — \`integ/app\` (app/**) never admits an
+   app/<product>/** subtree owned by a product root, even though the broad glob also matches.
    Prefer owner-colocated capability artifacts over new central specs/docs dumps.
 
-3. MERGE-TREE PREFLIGHT — Read-only conflict check against the current integ tip. Prefer:
-     \`git fetch origin ${INTEG} 2>/dev/null; INTEG_TIP=\$(git rev-parse origin/${INTEG} 2>/dev/null || git rev-parse ${BASE}); BASE_SHA=\$(git merge-base ${BASE} HEAD); git merge-tree \$BASE_SHA \$INTEG_TIP HEAD\`
+3. MERGE-TREE PREFLIGHT — Read-only conflict check of the ADMISSION CANDIDATE against the current
+   integ tip. First: \`git fetch origin ${INTEG} 2>/dev/null; INTEG_TIP=\$(git rev-parse origin/${INTEG} 2>/dev/null || git rev-parse ${BASE})\`.
+   Then preflight the MANIFEST SHAs in admission order — NOT HEAD-vs-INTEG_TIP, which compares the
+   integ branch with itself (units are not assembled yet) and reports a clean preflight for a
+   conflicting unit. For each manifest sha S:
+     \`git merge-tree \$(git merge-base \$INTEG_TIP S) \$INTEG_TIP S\`
    Root name for local tracking refs is \`${integRoot}\` (strip \`integ/\` from \`${INTEG}\`).
    If merge-tree reports a content conflict, REFUSE — do not guess intent. Report the conflicting
-   paths. Blessed claim-push (deferred `.grok/` Rust process-kit) re-runs this merge-tree at push time.
+   paths. The workflow re-detects conflicts mechanically at assembly and restores the station, but
+   a REFUSE here is cheaper. Blessed claim-push (deferred \`.grok/\` Rust process-kit) re-runs this
+   merge-tree at push time.
 
 4. HUB EXCLUSIVITY — For every hub path listed in envelopes#hubs.paths that this run touches, check
    open PRs (\`gh pr list --state open --limit 500 --json number,headRefName,files\`; paginate if
@@ -1102,9 +1202,11 @@ n/a). Missing packet = REFUSE. Prose MUST cite JSON pointers — never re-list #
    \`expires_at_or_wave\`; a waiver whose named wave has already landed (or calendar expiry is past)
    is STALE — REFUSE rather than treat it as perpetual authorization.
 
-5. ADMIT BY CHERRY-PICK — Only if 1–4 pass: cherry-pick approved unit commits onto \`${INTEG}\` in
-   unit order (commit-producing, atomic). No stash, no reset, no force-push. \`--force-with-lease\`
-   is forbidden here — it belongs only in blessed restack/server-side-reset scripts.
+5. READ-ONLY DECISION — assembly is NOT yours (fix-1644-codex). A Claim agent that cherry-picked
+   before its packet was validated left unauthorised commits in the durable station whenever the
+   packet was malformed. Do NOT cherry-pick, commit, reset, stash or force-push in ANY checkout.
+   The workflow itself cherry-picks EXACTLY the approved manifest SHAs, in order, only after your
+   packet passes mechanical validation — and restores the pre-assembly tip on any failure.
 
 
 6. REORG NOW + EVALUATION GATE (ADR-0711 Amendment B) — Load \`reorg_debt_freeze\` +
@@ -1134,8 +1236,8 @@ n/a). Missing packet = REFUSE. Prose MUST cite JSON pointers — never re-list #
    lists of untouched paths = REFUSE.
 
 
-Return CLAIM with the envelope id, path inventory, merge-tree result, hub owners, doc packet, and
-cherry-pick SHAs — or REFUSE with the concrete blocker.
+Return CLAIM with the envelope id, path inventory (from the manifest commits), merge-tree result,
+hub owners, and doc packet — or REFUSE with the concrete blocker.
 
 FORMAT (mechanical — fail-closed; substring "/CLAIM/" is NOT enough):
   Line 1: CLAIM   OR   REFUSE
@@ -1145,25 +1247,98 @@ FORMAT (mechanical — fail-closed; substring "/CLAIM/" is NOT enough):
   paths: [path, ...]   # optional path inventory; bound to git diff --name-only when present`,
   { label: 'claim:envelope-merge-tree-hub', phase: 'Claim', schema: SCOUT_SCHEMA })
 
-const claimPacket = parseClaimPacket(claimed && claimed.summary, { bindDiff: true })
-const claimOk = !!(claimed && claimPacket.ok)
-if (claimPacket.errors.length) {
-  log(`CLAIM packet errors: ${claimPacket.errors.join('; ')}`)
+// STAGE 1 — mechanical packet validation BEFORE any mutation (fix-1644-codex): the agent used to
+// cherry-pick mid-prompt and only then have its packet parsed, so a malformed packet left
+// unauthorised commits in the durable station for a later run. Format/doc fields first; the
+// Claim↔diff bind runs in stage 3 over the exact assembled tip it authorizes.
+const claimPacketFormat = parseClaimPacket(claimed && claimed.summary, { bindDiff: false })
+if (claimPacketFormat.errors.length) {
+  log(`CLAIM packet errors: ${claimPacketFormat.errors.join('; ')}`)
 }
-log(claimOk
-  ? 'CLAIM passed — mechanical packet + Claim↔diff bind + agent gate clear'
-  : 'REFUSED — Claim gate failed (mechanical packet and/or agent); do not Land')
-if (!claimOk) {
+if (!(claimed && claimPacketFormat.ok)) {
+  log('REFUSED — Claim gate failed (mechanical packet and/or agent); nothing was assembled')
   return {
     goal: GOAL,
     integration_branch: INTEG,
-    refused: 'claim gate failed',
+    refused: 'claim gate failed (packet format)',
     claim: claimed,
-    claim_packet: claimPacket,
-    remedy: 'Fix envelope containment, resolve merge-tree conflicts, acquire hub waiver, complete docs_touched/docs_action packet, or bind docs_touched/paths to git diff --name-only — then re-run Claim.',
+    claim_packet: claimPacketFormat,
+    remedy: 'Fix envelope containment, resolve merge-tree conflicts, acquire hub waiver, or complete the docs_touched/docs_action packet — then re-run Claim. The station was not mutated.',
     prs_opened: 0,
   }
 }
+
+// STAGE 2 — MECHANICAL, BOUNDED ASSEMBLY (fix-1644-codex): the workflow — never an agent — now
+// cherry-picks exactly the approved manifest SHAs, in order, onto the verified station. Any
+// failure aborts the in-progress pick and hard-restores the recorded pre-assembly tip, so a
+// refused wave cannot leave unauthorised commits behind. This compensating reset is workflow-
+// owned and returns to a SHA recorded seconds earlier; agent/worker resets remain forbidden.
+const cpAssemble = require('child_process')
+const preAssemblyTip = cpAssemble.execFileSync('git', ['-C', CLAIM_REPO, 'rev-parse', 'HEAD'], { encoding: 'utf8' }).trim()
+const restoreStation = () => {
+  try { cpAssemble.execFileSync('git', ['-C', CLAIM_REPO, 'cherry-pick', '--abort'], { stdio: 'ignore' }) } catch (_) { /* no pick in progress */ }
+  try {
+    cpAssemble.execFileSync('git', ['-C', CLAIM_REPO, 'reset', '--hard', preAssemblyTip], { stdio: 'ignore' })
+    return true
+  } catch (_) { return false }
+}
+let assemblyError = null
+for (const m of admitManifest) {
+  try {
+    cpAssemble.execFileSync('git', ['-C', CLAIM_REPO, 'cherry-pick', m.sha], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] })
+  } catch (err) {
+    const detail = String((err && (err.stderr || err.message)) || err)
+    if (/empty|nothing to commit/i.test(detail)) {
+      // Unit already contained in the integ tip (e.g. after a restack) — drop it, not the wave.
+      try { cpAssemble.execFileSync('git', ['-C', CLAIM_REPO, 'cherry-pick', '--skip'], { stdio: 'ignore' }); continue } catch (_) { /* fall through */ }
+    }
+    assemblyError = `cherry-pick ${m.sha} (unit ${m.id}) failed: ${detail.slice(0, 400)}`
+    break
+  }
+}
+if (assemblyError) {
+  const restored = restoreStation()
+  log(`REFUSED — mechanical assembly failed; station ${restored ? 'restored to' : 'MUST BE MANUALLY RESTORED TO'} ${preAssemblyTip}`)
+  return {
+    goal: GOAL,
+    integration_branch: INTEG,
+    refused: 'claim assembly failed',
+    assembly_error: assemblyError,
+    pre_assembly_tip: preAssemblyTip,
+    station_restored: restored,
+    claim: claimed,
+    claim_packet: claimPacketFormat,
+    remedy: 'A conflict at assembly is real information the merge-tree preflight should have caught — fix the unit or the integ tip, then re-run Claim. Never hand-resolve into the station.',
+    prs_opened: 0,
+  }
+}
+
+// STAGE 3 — Claim↔diff bind over the ASSEMBLED tip (the tree Land would push).
+const claimPacket = parseClaimPacket(claimed && claimed.summary, { bindDiff: true })
+const claimOk = !!(claimed && claimPacket.ok)
+if (claimPacket.errors.length) {
+  log(`CLAIM packet errors (assembled bind): ${claimPacket.errors.join('; ')}`)
+}
+log(claimOk
+  ? 'CLAIM passed — mechanical packet + bounded assembly + Claim↔diff bind clear'
+  : 'REFUSED — Claim bind failed on the assembled tip; do not Land')
+if (!claimOk) {
+  const restored = restoreStation()
+  log(`Station ${restored ? 'restored to' : 'MUST BE MANUALLY RESTORED TO'} ${preAssemblyTip}`)
+  return {
+    goal: GOAL,
+    integration_branch: INTEG,
+    refused: 'claim gate failed (assembled bind)',
+    claim: claimed,
+    claim_packet: claimPacket,
+    pre_assembly_tip: preAssemblyTip,
+    station_restored: restored,
+    remedy: 'Bind docs_touched/paths to git diff --name-only over the assembled tip — the declared inventory must match what assembly actually produced. Then re-run Claim.',
+    prs_opened: 0,
+  }
+}
+// Snapshot the Claim-time full inventory for the Re-Claim containment check (fix-1644-codex).
+const claimChangedPaths = new Set((claimPacket.changed_paths || []).map(pp => String(pp).replace(/^\.\//, '')))
 
 // ---------------------------------------------------------------------------
 phase('Converge')
@@ -1241,13 +1416,25 @@ if (reClaimDiff && reClaimDiff.error) {
   reClaimPacket.errors.push(`Re-Claim git diff failed in CLAIM_REPO: ${reClaimDiff.error}`)
   reClaimPacket.ok = false
 }
+// FULL-INVENTORY CONTAINMENT (fix-1644-codex): re-binding the OLD packet to the new diff only
+// proves the DECLARED paths still occur somewhere in it — it is blind to paths Converge ADDED.
+// A post-Converge path absent from the Claim-time inventory was never seen by the envelope, hub
+// or merge-tree checks the packet certifies; fail closed and demand a fresh Claim instead of
+// trusting a binder that cannot enumerate.
+const reClaimNewPaths = (Array.isArray(reClaimDiff) ? reClaimDiff : [])
+  .map(pp => String(pp).replace(/^\.\//, ''))
+  .filter(pp => !claimChangedPaths.has(pp))
+if (reClaimNewPaths.length) {
+  reClaimPacket.errors.push(`Converge introduced path(s) not present at Claim time: ${reClaimNewPaths.slice(0, 20).join(', ')}${reClaimNewPaths.length > 20 ? ` (+${reClaimNewPaths.length - 20} more)` : ''} — the pre-Converge CLAIM packet does not authorize them`)
+  reClaimPacket.ok = false
+}
 const reClaimOk = !!(claimOk && reClaimPacket.ok)
 if (reClaimPacket.errors.length) {
   log(`Re-Claim packet errors: ${reClaimPacket.errors.join('; ')}`)
 }
 log(reClaimOk
-  ? 'Re-Claim passed — post-Converge tip still binds to Claim packet'
-  : 'REFUSED — Converge changed the tip; re-run Claim before Land')
+  ? 'Re-Claim passed — post-Converge tip introduces no unclaimed paths and still binds to the Claim packet'
+  : 'REFUSED — Converge changed the tip beyond the Claim inventory; re-run Claim before Land')
 if (!reClaimOk) {
   return {
     goal: GOAL,
@@ -1281,14 +1468,17 @@ reviewer ≠ PR author, OR (b) a tip-bound programme Land packet is recorded for
 Tide floor may land on integ/ci before trunk — do not treat partial Tide harden as trunk authority.
 
 UPSERT RULE:
-  - \`gh pr list --head ${INTEG} --base ${BASE.replace(/^origin\\//, '')} --state open --json number,url\`
+  - \`gh pr list --head ${INTEG} --base ${BASE.replace(/^origin\//, '')} --state open --json number,url\`
   - If one exists: update title/body and push the tip (\`gh pr edit\` / push). That IS the single PR.
   - If none exists: \`gh pr create\` once.
   - If more than one open PR shares this head: REFUSE and report — human must close duplicates.
 
-RESIDUAL ASSEMBLE ONLY (Claim already assembled before Converge): if any approved unit tip is
-still absent from \`${INTEG}\`, cherry-pick it now. A conflict here is real information — STOP
-and report rather than guessing. Never treat Land as the first assemble.
+NO ASSEMBLY IN LAND (fix-1644-codex — Re-Claim authorized THIS tip, not a future one): the
+workflow already cherry-picked every approved manifest SHA mechanically before Converge. If any
+approved unit is somehow absent from \`${INTEG}\` now, REFUSE and report it — do NOT cherry-pick
+here. A commit added after Re-Claim invalidates the authorization Land rides on: envelope
+containment, hub exclusivity and merge-tree were checked against the authorized tip, and the
+local sweep below checks builds and tests, not containment. The run returns to Claim instead.
 
 THE ORDER IS: PREVENT, then CATCH LOCALLY AND FIX, then — only then — upsert the PR. A PR is where a
 defect turns expensive: it costs a 30-70 minute CI round trip to learn what a local gate run answers
@@ -1329,23 +1519,38 @@ conflicts with everything else in flight, and has to be re-derived later. Landin
 strictly better than adding another blocked PR to the pile.
 
 If the preconditions hold, UPSERT ONE PR whose body states: what changed, what was MEASURED (with the
-commands), what was refused and why, and what remains open. Return the PR number and URL.
+commands), what was refused and why, and what remains open.
+
+FORMAT (mechanical — fail-closed, same discipline as Claim; incidental PR URLs in prose prove
+nothing, and a duplicate-PR report must never read as success):
+  Line 1: LANDED <full https PR URL>    OR    REFUSE: <concrete reason>
+  Anything else on line 1 — including "REFUSED", prose before the token, or a PR URL that only
+  appears later in the body — parses as NOT landed (prs_opened: 0).
 
 SERVER-SIDE RESET (document in the PR body; execute only AFTER squash-merge to ${BASE}, never now):
-  \`git push --force-with-lease origin ${BASE}:refs/heads/${INTEG}\`
+  1. \`git fetch origin ${BASE.replace(/^origin\//, '')}\` — MANDATORY first. After GitHub performs the squash
+     merge, the local \`${BASE}\` still points at the PRE-merge commit; \`--force-with-lease\` only
+     guards the OLD value of the destination ref (\`git push -h\`: "require old value of ref to be
+     at this value") — it never refreshes the source. Skipping the fetch force-pushes a stale
+     commit and starts the next wave BEHIND \`dev\`.
+  2. Verify \`git rev-parse ${BASE}\` equals the promoted squash-merge SHA reported for the merged
+     PR (compare against its mergeCommit oid). Only then:
+  3. \`git push --force-with-lease origin ${BASE}:refs/heads/${INTEG}\`
   No local \`git reset\`. Branch name persists for the next wave. Workers never run this.`,
   { label: 'land:single-pr-upsert', phase: 'Land' })
 
-// Land must confirm an upsert before we report a PR. A refused/failed Land is
-// prs_opened: 0 — never a successful-looking delivery for a run that opened nothing.
-const landText = typeof landed === 'string' ? landed : JSON.stringify(landed || {})
-const landPrMatch = landText.match(/https:\/\/github\.com\/[^\s"'`]+\/pull\/(\d+)/)
-  || landText.match(/\bpull\/(\d+)\b/)
-  || landText.match(/\"number\"\s*:\s*(\d+)/)
-const landPrNumber = landPrMatch ? Number(landPrMatch[1]) : 0
-const landOk = !!(landed && landPrNumber > 0 && !/\bREFUSE\b/i.test(landText.split('\n')[0] || ''))
+// Land must PROVE an upsert before we report a PR (fix-1644-codex): success used to be inferred
+// from ANY PR URL, `pull/<n>`, or `"number": <n>` anywhere in the response, while REFUSE was
+// honored only as the exact word on line 1 — so a first line `REFUSED — duplicate PRs
+// https://github.com/o/r/pull/123` parsed as a successful upsert. Structured verdict only:
+// line 1 must read `LANDED <pr-url>`; everything else is prs_opened: 0.
+const landText = typeof landed === 'string' ? landed : String((landed && landed.summary) || '')
+const landFirstLine = (landText.split(/\r?\n/).map(l => l.trim()).filter(Boolean)[0]) || ''
+const landVerdict = landFirstLine.match(/^LANDED\s+(https:\/\/github\.com\/\S+\/pull\/(\d+))\s*$/i)
+const landPrNumber = landVerdict ? Number(landVerdict[2]) : 0
+const landOk = !!(landed && landVerdict && landPrNumber > 0)
 if (!landOk) {
-  log('Land did not confirm a PR upsert — reporting prs_opened: 0')
+  log('Land did not return a line-1 `LANDED <pr-url>` verdict — reporting prs_opened: 0')
 }
 
 return {
@@ -1358,7 +1563,7 @@ return {
   claim: claimed,
   landed,
   pr_number: landOk ? landPrNumber : null,
-  pr_url: landOk ? (landPrMatch && landPrMatch[0].startsWith('http') ? landPrMatch[0] : null) : null,
+  pr_url: landOk ? landVerdict[1] : null,
   // One PR per integ/<root> only when Land confirmed the upsert.
   prs_opened: landOk ? 1 : 0,
 }

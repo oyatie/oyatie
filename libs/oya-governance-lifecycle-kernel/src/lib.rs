@@ -547,6 +547,36 @@ pub mod discovery {
     /// Fence-less bare records are admitted only for `yaml_document`; keys must
     /// start at column 0. Other kinds require a `---` fence.
     pub fn frontmatter_scalar(raw: &str, field: &str, source_kind: &str) -> Option<String> {
+        // Inline-comment-aware scalar read (fix-1644-codex): `api_stability:
+        // preview # initial tier` must parse as `preview` — the previous bare
+        // trim kept the comment, so a valid catalog row with an ordinary YAML
+        // comment failed stage_lookup as UnknownStage. Per YAML, `#` opens a
+        // comment only at start-of-scalar or after whitespace, and never inside
+        // a quoted scalar — quoted bodies are read verbatim to their close
+        // quote instead.
+        fn clean_scalar(rest: &str) -> Option<String> {
+            let trimmed = rest.trim();
+            let value = match trimmed.chars().next() {
+                Some(q @ ('"' | '\'')) => match trimmed[1..].find(q) {
+                    Some(end) => trimmed[1..1 + end].trim().to_string(),
+                    // Unterminated quote: preserve the previous trim behaviour.
+                    None => trimmed.trim_matches(q).trim().to_string(),
+                },
+                _ => {
+                    let bytes = trimmed.as_bytes();
+                    let mut cut = trimmed.len();
+                    for (i, &b) in bytes.iter().enumerate() {
+                        if b == b'#' && (i == 0 || bytes[i - 1].is_ascii_whitespace()) {
+                            cut = i;
+                            break;
+                        }
+                    }
+                    trimmed[..cut].trim_end().to_string()
+                }
+            };
+            if value.is_empty() { None } else { Some(value) }
+        }
+
         // `yaml_document` (catalog rows): always a bare-record reader. A leading
         // `---` is a YAML document marker, NOT a front-matter fence — keep
         // column-0 enforcement so nested keys after a marker cannot launder a
@@ -564,11 +594,7 @@ pub mod discovery {
                 if let Some(rest) = line.strip_prefix(field)
                     && let Some(rest) = rest.strip_prefix(':')
                 {
-                    let value = rest.trim().trim_matches('"').trim_matches('\'').trim();
-                    if value.is_empty() {
-                        return None;
-                    }
-                    return Some(value.to_string());
+                    return clean_scalar(rest);
                 }
             }
             return None;
@@ -597,11 +623,7 @@ pub mod discovery {
             if let Some(rest) = trimmed.strip_prefix(field)
                 && let Some(rest) = rest.strip_prefix(':')
             {
-                let value = rest.trim().trim_matches('"').trim_matches('\'').trim();
-                if value.is_empty() {
-                    return None;
-                }
-                return Some(value.to_string());
+                return clean_scalar(rest);
             }
         }
         None
@@ -1816,6 +1838,58 @@ mod tests {
             discovery::frontmatter_scalar(preamble, "doc_status", "yaml_front_matter"),
             None,
             "a line above the opening fence must stay unread"
+        );
+    }
+
+    #[test]
+    fn inline_yaml_comments_are_stripped_without_widening_quoted_scalars() {
+        // fix-1644-codex: an ordinary inline comment on a valid catalog row must
+        // not surface as UnknownStage. (Fixtures deliberately avoid `ADR-<digits>`
+        // tokens — see the census note in the fence-widening test above.)
+        let commented = "context: audit\napi_stability: preview # initial tier\n";
+        assert_eq!(
+            discovery::frontmatter_scalar(commented, "api_stability", "yaml_document").as_deref(),
+            Some("preview"),
+            "inline comment after an unquoted scalar must be stripped"
+        );
+
+        // Quoted scalars keep their `#` — YAML comments cannot start inside quotes.
+        let quoted = "api_stability: \"pre # view\"\n";
+        assert_eq!(
+            discovery::frontmatter_scalar(quoted, "api_stability", "yaml_document").as_deref(),
+            Some("pre # view"),
+            "a hash inside a quoted scalar is content, not a comment"
+        );
+        let single_quoted = "api_stability: 'pre # view' # trailing\n";
+        assert_eq!(
+            discovery::frontmatter_scalar(single_quoted, "api_stability", "yaml_document")
+                .as_deref(),
+            Some("pre # view"),
+            "single-quoted scalar keeps its hash; trailing comment is dropped"
+        );
+
+        // No preceding whitespace means no comment per YAML.
+        let glued = "api_stability: preview#tier\n";
+        assert_eq!(
+            discovery::frontmatter_scalar(glued, "api_stability", "yaml_document").as_deref(),
+            Some("preview#tier"),
+            "hash glued to the scalar is content, not a comment"
+        );
+
+        // A line that is ONLY a comment after the colon carries no value.
+        let empty = "api_stability: # to be decided\n";
+        assert_eq!(
+            discovery::frontmatter_scalar(empty, "api_stability", "yaml_document"),
+            None,
+            "comment-only value must stay None"
+        );
+
+        // The fenced front-matter branch gets the same treatment.
+        let fenced = "---\nstatus: published # via review\n---\n";
+        assert_eq!(
+            discovery::frontmatter_scalar(fenced, "status", "yaml_front_matter").as_deref(),
+            Some("published"),
+            "fenced branch must strip inline comments identically"
         );
     }
 
