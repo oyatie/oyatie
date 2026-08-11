@@ -2900,6 +2900,27 @@ fn evaluate_decision_timeboxes_with_clock(
                 ));
             }
         }
+        // Fail-closed policy shape: only the supported expiry action and an explicit
+        // silent-accept ban are legal. Arbitrary nonempty on_expiry / missing boolean
+        // must not silently weaken the timebox.
+        const REQUIRED_ON_EXPIRY: &str = "require_explicit_accept_or_reject_of_target_adr";
+        if non_empty_field(timebox, "on_expiry").is_some_and(|value| value != REQUIRED_ON_EXPIRY) {
+            findings.insert(Finding::new(
+                "masterplan_evidence_state_invalid",
+                &format!("{id}@decision_timebox.on_expiry"),
+            ));
+        }
+        if timebox
+            .get("silent_accept_forbidden")
+            .and_then(Value::as_bool)
+            != Some(true)
+        {
+            findings.insert(Finding::new(
+                "masterplan_evidence_state_invalid",
+                &format!("{id}@decision_timebox.silent_accept_forbidden"),
+            ));
+        }
+        let target_adr = non_empty_field(timebox, "target_adr");
         let as_of = non_empty_field(timebox, "as_of_utc_date").or(fallback_as_of_utc_date);
         let Some(as_of) = as_of else {
             continue;
@@ -2918,11 +2939,22 @@ fn evaluate_decision_timeboxes_with_clock(
         }
         // Expiry requires an explicit Accept/Reject closure of the target ADR — nonempty
         // evidence_refs alone (D-8 packet, review notes, etc.) does not suppress the finding.
+        // Closure must name the same target_adr and an evidence path under evidence/ or
+        // docs/decisions/. Live ADR frontmatter status cross-check against decisions.json is
+        // a separate corpus gate (sequencing evaluator is masterplan-scoped).
         let closure_ok = timebox.get("closure").is_some_and(|closure| {
-            matches!(
+            let status_ok = matches!(
                 non_empty_field(closure, "target_status"),
                 Some("Accepted") | Some("Rejected")
-            ) && non_empty_field(closure, "evidence_ref").is_some()
+            );
+            let adr_ok = matches!(
+                (target_adr, non_empty_field(closure, "target_adr")),
+                (Some(expected), Some(actual)) if expected == actual
+            );
+            let evidence_ok = non_empty_field(closure, "evidence_ref").is_some_and(|path| {
+                path.starts_with("evidence/") || path.starts_with("docs/decisions/")
+            });
+            status_ok && adr_ok && evidence_ok
         });
         if !closure_ok {
             findings.insert(Finding::new(
