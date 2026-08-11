@@ -7,6 +7,9 @@ rust_library(
     crate = "port_engine_kernel",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
+    deps = [
+        "//build/port-engine/ports/port-engine-api:port-engine-api",
+    ],
 )
 
 # Seam tests: each of the three entry points is proven inhabitable by in-memory fakes alone, and
@@ -20,6 +23,7 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         ":port-engine-kernel",
+        "//build/port-engine/ports/port-engine-api:port-engine-api",
     ],
 )
 

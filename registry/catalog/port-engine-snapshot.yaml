@@ -1,0 +1,15 @@
+context: build
+role: adapter
+capability: port-engine
+plane: control
+slo: cataloged-no-runtime-claim
+data_classes_owned: [INTERNAL_ONLY]
+operational_classes_owned: []
+api_stability: preview
+security_review: unreviewed
+supply_chain: source-only
+traceability:
+  source_crate: build/port-engine/adapters/port-engine-snapshot/Cargo.toml
+non_claims:
+  - W0-B snapshot admission adapter
+  - defines NO capability; build/ owns_crates=false (ADR-0637 D1)

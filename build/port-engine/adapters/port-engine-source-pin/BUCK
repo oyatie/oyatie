@@ -1,9 +1,28 @@
+# Package-local src/upstream-pin.json mirrors specs/k8s-port/upstream-pin.json so
+# include_str! stays hermetic under buck2 (same-package asset pattern).
 rust_library(
     name = "port-engine-source-pin",
-    srcs = glob(["src/**/*.rs"]),
+    srcs = glob(["src/**/*.rs", "src/**/*.json"]),
     crate = "port_engine_source_pin",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde",
+        "third-party//:serde_json",
+    ],
+)
+
+# Compiles #[cfg(test)] modules in src/lib.rs (embedded pin + license refusal).
+rust_test(
+    name = "port-engine-source-pin-unittest",
+    srcs = glob(["src/**/*.rs", "src/**/*.json"]),
+    crate = "port_engine_source_pin",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde",
+        "third-party//:serde_json",
+    ],
 )
 
 rust_test(

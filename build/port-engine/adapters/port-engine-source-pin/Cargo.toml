@@ -7,9 +7,11 @@ publish = false
 license = "Apache-2.0"
 
 # Upstream pin acquisition and license verification for the owned deterministic port engine.
-# W0-B Slice 1 skeleton only — pin loader and bootstrap extractor admission land in Slice 3.
+# W0-B Slice 3 — pin loader present; bootstrap extractor admission lands in later slices.
 
 [dependencies]
+serde.workspace = true
+serde_json.workspace = true
 
 [lib]
 name = "port_engine_source_pin"

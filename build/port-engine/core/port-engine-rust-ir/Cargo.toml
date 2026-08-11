@@ -7,9 +7,13 @@ publish = false
 license = "Apache-2.0"
 
 # Rust IR and deterministic renderer for the owned deterministic port engine (ADR-0637 D1).
-# W0-B Slice 1 skeleton only — TargetIr rendering and syn/quote wiring land in Slice 5.
+# W0-B Slice 5 — syn/quote emit path + leakage-forbidden architecture fences.
+# Cargo.lock absorb remains intentional sole-owner work (parked until #1646 land).
 
 [dependencies]
+port-engine-api = { path = "../../ports/port-engine-api" }
+quote = { workspace = true }
+syn = { workspace = true }
 
 [lib]
 name = "port_engine_rust_ir"

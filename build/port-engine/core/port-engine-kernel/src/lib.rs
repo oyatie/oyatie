@@ -1,8 +1,9 @@
-//! # port-engine-kernel — the neutral seam surface of the owned deterministic port engine (W0).
+//! # port-engine-kernel — neutrality enforcement and entry points for the port engine (W0).
 //!
-//! ADR-0637 (archived; live via apex ADR-0704) D1 authorizes the engine at `build/port-engine/*`
-//! and enumerates the seams this crate defines: SourceModel, RulePack, TransformPlan, TargetIr,
-//! Renderer, receipt, delta, and verification. D4 authorizes **W0 only** — so this crate is a
+//! ADR-0637 (archived; live via apex ADR-0704) D1 authorizes the engine at `build/port-engine/*`.
+//! Neutral seam types (`SourceModel`, `RulePack`, `TransformPlan`, `TargetIr`, `Renderer`,
+//! `Receipt`) live in `port-engine-api`; this crate owns compile-time neutrality enforcement,
+//! `plan` / `emit` / `verify`, and delta classification. D4 authorizes **W0 only** — so this crate is a
 //! SKELETON with real seams and real refusals, and deliberately contains:
 //!
 //! - no source-language front end (no parser, no grammar, no tree-sitter);
@@ -28,7 +29,7 @@
 //! neutral kernel read the corpus it is defined by not knowing, which is the exact coupling D1
 //! forbids, and it would let an edit to corpus policy silently widen or narrow what the engine
 //! may contain. The structural properties carry the rest of the weight and are complete where the
-//! text scan is not — this crate has no dependencies, its seams name no corpus type, and rule
+//! text scan is not — seam types name no corpus type (see `port-engine-api`), and rule
 //! semantics live in DATA under `specs/port-rules/**` where a corpus-specific rule is supposed to
 //! be. The canary set is a cheap backstop on top of that, never the argument for neutrality.
 //!
@@ -99,7 +100,11 @@
 #![allow(long_running_const_eval)]
 
 use std::collections::{BTreeMap, BTreeSet};
-use std::fmt;
+
+use port_engine_api::{
+    PlanStep, PortError, Receipt, ReceiptAxis, RegionId, Renderer, RuleId, RulePack, SourceModel,
+    TargetIr, TransformPlan, UnitId,
+};
 
 // ---------------------------------------------------------------------------------------------
 // Compile-time neutrality enforcement (ADR-0637 D1).
@@ -210,21 +215,6 @@ const fn is_identifier_byte(byte: u8) -> bool {
     byte.is_ascii_alphanumeric() || byte == b'_'
 }
 
-/// True for the bytes a [`LanguagePair`] slug may contain: ASCII lowercase alphanumeric, `_`, and
-/// `+` (so `c++` stays spellable).
-///
-/// The grammar is derived from what the value IS USED AS — one portable path component under
-/// `specs/port-rules/lang/` — rather than from the bytes some review round happened to name. A
-/// denylist grown one byte at a time is only ever as complete as the last hostile example someone
-/// thought of; an allowlist is complete by construction, and the burden lands on whoever wants to
-/// widen it.
-///
-/// `.` is excluded, which deletes `.`, `..` and the hidden-file forms at once instead of by three
-/// more special cases. A version belongs on the receipt's toolchain axis, not in a language slug.
-const fn is_slug_byte(byte: u8) -> bool {
-    byte.is_ascii_lowercase() || byte.is_ascii_digit() || byte == b'_' || byte == b'+'
-}
-
 /// Case-insensitive WHOLE-IDENTIFIER search, usable in a `const` context. `word` MUST already be
 /// lowercase.
 ///
@@ -288,254 +278,8 @@ const _: () = {
 };
 
 // ---------------------------------------------------------------------------------------------
-// Seams (ADR-0637 D1).
+// Delta classification (ADR-0637 D2) — kernel entry points below.
 // ---------------------------------------------------------------------------------------------
-
-/// The source→target language pair a [`RulePack`] is authored for.
-///
-/// This is DATA, not a type parameter: the rule namespace is `specs/port-rules/lang/<pair>/**`,
-/// so a second pair is a second directory of rule data over the same engine, never a second
-/// engine. Both fields are opaque slugs — the kernel compares them and never interprets them.
-#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
-pub struct LanguagePair {
-    /// Slug of the language being read (matches [`SourceModel::language`]).
-    pub source: String, // data_class: INTERNAL_ONLY
-    /// Slug of the language being emitted (matches [`TargetIr::target_language`]).
-    pub target: String, // data_class: INTERNAL_ONLY
-}
-
-impl LanguagePair {
-    /// The `<pair>` path segment of the rule namespace, e.g. `source-target`.
-    ///
-    /// FAIL-CLOSED, and the reason is an addressing collision rather than tidiness. The segment is
-    /// the two slugs joined by `-`, so if a slug may itself contain `-` the join is not injective:
-    /// `("a-b", "c")` and `("a", "b-c")` both render `a-b-c`, and once this value addresses
-    /// `specs/port-rules/lang/<pair>` the two pairs select the SAME rule namespace. One of them is
-    /// then reading or overwriting the other's rules with no error anywhere. Refusing the
-    /// ambiguity here is the only place it is cheap: after the join the information is gone.
-    ///
-    /// The rule is that neither slug may be empty or carry a byte outside [`is_slug_byte`], the
-    /// grammar of ONE portable path component. That is what the ADR fixes the segment to be —
-    /// a single component of the form `<source>-<target>` — and the grammar is derived from that
-    /// USE rather than from the separator collision alone. A slug of `a/b` renders `a/b-c`, which
-    /// is two components, not one; a slug of `..` or a leading `/` is worse than a wrong name,
-    /// because `Path::join` documents that an absolute operand REPLACES the receiver, so the
-    /// namespace root would be discarded rather than descended from. Refusing the whole class here
-    /// costs one predicate; enumerating the hostile bytes costs a review round each.
-    ///
-    /// # Errors
-    /// [`PortError::AmbiguousLanguagePair`] when either slug is empty or carries a byte the
-    /// component grammar does not admit (the separator among them).
-    pub fn slug(&self) -> Result<String, PortError> {
-        for slug in [&self.source, &self.target] {
-            if slug.is_empty() || !slug.bytes().all(is_slug_byte) {
-                return Err(PortError::AmbiguousLanguagePair {
-                    source: self.source.clone(),
-                    target: self.target.clone(),
-                });
-            }
-        }
-        Ok(format!("{}{PAIR_SEPARATOR}{}", self.source, self.target))
-    }
-}
-
-/// The byte joining the two slugs of a [`LanguagePair::slug`], and therefore the byte neither slug
-/// may contain.
-pub const PAIR_SEPARATOR: char = '-';
-
-/// The join is injective only while the separator sits OUTSIDE the slug grammar. Asserted at
-/// compile time rather than argued in prose, so widening [`is_slug_byte`] to admit `-` fails the
-/// build instead of silently making two pairs address one rule namespace.
-const _: () = assert!(
-    !is_slug_byte(PAIR_SEPARATOR as u8),
-    "the separator must sit outside the slug grammar or the join stops being injective"
-);
-
-/// A stable identity for one translatable unit of the source model.
-#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
-pub struct UnitId(pub String); // data_class: INTERNAL_ONLY
-
-/// A stable identity for one rule in a [`RulePack`].
-#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
-pub struct RuleId(pub String); // data_class: INTERNAL_ONLY
-
-/// A stable identity for one emitted region (the ADR-0597 registered regenerable region).
-#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
-pub struct RegionId(pub String); // data_class: INTERNAL_ONLY
-
-/// An opaque content digest. The kernel COMPARES digests and never computes one — hashing is an
-/// adapter concern, and keeping it out of here is what lets the receipt seam stay pure.
-#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
-pub struct Digest(pub String); // data_class: INTERNAL_ONLY
-
-/// The canonical semantic model of the source corpus, as produced by a front end.
-///
-/// The kernel never inspects a unit's contents: the front end owns source-language semantics, this
-/// trait owns only identity and order. `units` is order-significant and MUST be deterministic for
-/// a given input — [`plan`] rejects a duplicate id because that is the shape in which a
-/// non-deterministic model reaches the engine.
-pub trait SourceModel {
-    /// Slug of the language this model was read from.
-    fn language(&self) -> &str;
-    /// Digest of the snapshot this model was derived from (the receipt's `snapshot_digest`).
-    fn snapshot_digest(&self) -> Digest;
-    /// The translatable units, in deterministic order.
-    fn units(&self) -> Vec<UnitId>;
-}
-
-/// Neutral rule data, addressed by [`LanguagePair`].
-///
-/// Rule SEMANTICS live in the data, not here. The kernel needs exactly two things: which pair the
-/// pack serves, and which of its declared rules apply to a unit — in pack order, because rule
-/// order is part of the transform.
-pub trait RulePack {
-    /// The language pair this pack is authored for.
-    fn pair(&self) -> &LanguagePair;
-    /// Digest of the pack contents (the receipt's `rulepack_digest`).
-    fn digest(&self) -> Digest;
-    /// Every rule the pack declares, in pack order.
-    fn rules(&self) -> Vec<RuleId>;
-    /// The declared rules that apply to `unit`, in pack order. Returning a rule absent from
-    /// [`RulePack::rules`] is a pack defect and [`plan`] refuses it.
-    fn rules_for(&self, unit: &UnitId) -> Vec<RuleId>;
-}
-
-/// One step of a [`TransformPlan`]: apply `rule` to `unit`.
-#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
-pub struct PlanStep {
-    /// The unit the rule applies to.
-    pub unit: UnitId, // data_class: INTERNAL_ONLY
-    /// The rule to apply.
-    pub rule: RuleId, // data_class: INTERNAL_ONLY
-}
-
-/// The deterministic, ordered transform to execute. Data only: holding it does not run it.
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub struct TransformPlan {
-    /// The pair this plan translates.
-    pub pair: LanguagePair, // data_class: INTERNAL_ONLY
-    /// The steps, in execution order (model unit order, then pack rule order).
-    pub steps: Vec<PlanStep>, // data_class: INTERNAL_ONLY
-}
-
-/// The neutral intermediate representation handed to a [`Renderer`].
-///
-/// As with [`SourceModel`], the kernel sees identity and order, never content.
-pub trait TargetIr {
-    /// Slug of the language this IR will be emitted as.
-    fn target_language(&self) -> &str;
-    /// The regions this IR emits, in deterministic order.
-    fn regions(&self) -> Vec<RegionId>;
-}
-
-/// Turns a [`TargetIr`] into emitted bytes, one blob per region.
-pub trait Renderer {
-    /// Slug of the language this renderer emits.
-    fn target_language(&self) -> &str;
-    /// Digest of the formatter this renderer applies (the receipt's `formatter_digest`).
-    fn formatter_digest(&self) -> Digest;
-    /// Render every region of `ir`. The returned key set MUST equal `ir.regions()`; [`emit`]
-    /// enforces that rather than trusting it.
-    ///
-    /// # Errors
-    /// Whatever the implementation refuses with — [`PortError::Render`] exists so that sentence is
-    /// true of this closed enum. [`emit`] adds the region-set proof on top.
-    fn render(&self, ir: &dyn TargetIr) -> Result<BTreeMap<RegionId, Vec<u8>>, PortError>;
-}
-
-/// The six receipt axes ADR-0637 fixes. Every emitted-byte change must be attributable to at least
-/// one of them; see [`verify`].
-#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
-pub enum ReceiptAxis {
-    /// The upstream pin the source snapshot was taken at.
-    Pin,
-    /// The digest of the source snapshot.
-    Snapshot,
-    /// The digest of the engine binary.
-    Engine,
-    /// The digest of the rule pack.
-    RulePack,
-    /// The digest of the toolchain.
-    Toolchain,
-    /// The digest of the formatter.
-    Formatter,
-}
-
-/// Every axis, in declaration order. Registered as a constant so a seventh axis cannot be added
-/// without the comparison in [`Receipt::differing_axes`] being updated alongside it.
-pub const RECEIPT_AXES: [ReceiptAxis; 6] = [
-    ReceiptAxis::Pin,
-    ReceiptAxis::Snapshot,
-    ReceiptAxis::Engine,
-    ReceiptAxis::RulePack,
-    ReceiptAxis::Toolchain,
-    ReceiptAxis::Formatter,
-];
-
-/// The six-axis provenance of one emission.
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub struct Receipt {
-    /// The upstream pin (an opaque revision identifier).
-    pub pin: String, // data_class: INTERNAL_ONLY
-    /// Digest of the source snapshot.
-    pub snapshot_digest: Digest, // data_class: INTERNAL_ONLY
-    /// Digest of the engine that emitted.
-    pub engine_digest: Digest, // data_class: INTERNAL_ONLY
-    /// Digest of the rule pack in force.
-    pub rulepack_digest: Digest, // data_class: INTERNAL_ONLY
-    /// Digest of the toolchain in force.
-    pub toolchain_digest: Digest, // data_class: INTERNAL_ONLY
-    /// Digest of the formatter in force.
-    pub formatter_digest: Digest, // data_class: INTERNAL_ONLY
-}
-
-impl Receipt {
-    /// The axes on which `self` and `other` disagree.
-    #[must_use]
-    pub fn differing_axes(&self, other: &Self) -> BTreeSet<ReceiptAxis> {
-        let mut differing = BTreeSet::new();
-        for axis in RECEIPT_AXES {
-            let differs = match axis {
-                ReceiptAxis::Pin => self.pin != other.pin,
-                ReceiptAxis::Snapshot => self.snapshot_digest != other.snapshot_digest,
-                ReceiptAxis::Engine => self.engine_digest != other.engine_digest,
-                ReceiptAxis::RulePack => self.rulepack_digest != other.rulepack_digest,
-                ReceiptAxis::Toolchain => self.toolchain_digest != other.toolchain_digest,
-                ReceiptAxis::Formatter => self.formatter_digest != other.formatter_digest,
-            };
-            if differs {
-                differing.insert(axis);
-            }
-        }
-        differing
-    }
-
-    /// The axes that say NOTHING — an empty pin or an empty digest.
-    ///
-    /// [`Receipt::differing_axes`] answers "did this axis move", which is only a usable answer
-    /// when the axis carries a value on both sides. An unfilled axis makes an apparent difference
-    /// absence of information rather than evidence of a cause, and [`verify`] must not spend it as
-    /// an explanation. Walks [`RECEIPT_AXES`] for the same reason `differing_axes` does: a seventh
-    /// axis cannot be added without this answer being updated alongside it.
-    #[must_use]
-    pub fn incomplete_axes(&self) -> BTreeSet<ReceiptAxis> {
-        let mut incomplete = BTreeSet::new();
-        for axis in RECEIPT_AXES {
-            let empty = match axis {
-                ReceiptAxis::Pin => self.pin.is_empty(),
-                ReceiptAxis::Snapshot => self.snapshot_digest.0.is_empty(),
-                ReceiptAxis::Engine => self.engine_digest.0.is_empty(),
-                ReceiptAxis::RulePack => self.rulepack_digest.0.is_empty(),
-                ReceiptAxis::Toolchain => self.toolchain_digest.0.is_empty(),
-                ReceiptAxis::Formatter => self.formatter_digest.0.is_empty(),
-            };
-            if empty {
-                incomplete.insert(axis);
-            }
-        }
-        incomplete
-    }
-}
 
 /// The classification of an emitted-byte change between two receipts.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -587,158 +331,6 @@ pub struct Verification {
     /// Why.
     pub delta: Delta, // data_class: INTERNAL_ONLY
 }
-
-/// A typed, fail-closed refusal. Every variant carries enough to act on without re-deriving.
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub enum PortError {
-    /// A language slug did not match the one it was paired against.
-    LanguageMismatch {
-        /// What the consumer required.
-        expected: String, // data_class: INTERNAL_ONLY
-        /// What it was handed.
-        actual: String, // data_class: INTERNAL_ONLY
-    },
-    /// The source model emitted the same unit id twice, so step order is ambiguous.
-    DuplicateUnit {
-        /// The repeated id.
-        unit: UnitId, // data_class: INTERNAL_ONLY
-    },
-    /// `rules_for` returned a rule the pack does not declare.
-    UndeclaredRule {
-        /// The unit it was returned for.
-        unit: UnitId, // data_class: INTERNAL_ONLY
-        /// The undeclared rule.
-        rule: RuleId, // data_class: INTERNAL_ONLY
-    },
-    /// `rules_for` returned pack-declared rules in an order that is not the pack's own.
-    ///
-    /// The trait contracts BOTH [`RulePack::rules`] and [`RulePack::rules_for`] as pack order, and
-    /// rule order is part of the transform — so a pack that answers the second question in a
-    /// different order than the first makes the plan depend on which question was asked. Two
-    /// implementations over the SAME rule data would then produce different plans, which is the
-    /// non-determinism this engine exists to exclude. Refused rather than silently re-sorted, for
-    /// the same reason [`PortError::DuplicateUnit`] is refused rather than deduplicated: the
-    /// defect is in the pack, and repairing it here would hide it there.
-    RuleOrderViolation {
-        /// The unit `rules_for` was asked about.
-        unit: UnitId, // data_class: INTERNAL_ONLY
-        /// The rule that arrived out of pack order (or a second time).
-        rule: RuleId, // data_class: INTERNAL_ONLY
-    },
-    /// A renderer's emitted region set was not exactly the IR's region set.
-    RegionSetMismatch {
-        /// Regions the IR declared that the renderer did not emit.
-        missing: BTreeSet<RegionId>, // data_class: INTERNAL_ONLY
-        /// Regions the renderer emitted that the IR did not declare.
-        unexpected: BTreeSet<RegionId>, // data_class: INTERNAL_ONLY
-    },
-    /// A [`TargetIr`] declared the same region identity twice.
-    ///
-    /// The declared regions are compared against the emitted ones as SETS, so a duplicate would
-    /// collapse on the way in and a renderer that emitted the region once would satisfy the
-    /// comparison — one declared occurrence lost with nothing to show for it. This is the same
-    /// ambiguous-identity condition [`PortError::DuplicateUnit`] refuses on the source side.
-    DuplicateRegion {
-        /// The repeated region identity.
-        region: RegionId, // data_class: INTERNAL_ONLY
-    },
-    /// A [`RulePack`] declared the same rule identity twice.
-    ///
-    /// [`RulePack::rules`] is both the membership set AND the ORDER authority, so a repeated id
-    /// makes the rule's position ambiguous: the plan's step order would depend on which occurrence
-    /// was consulted. Whether that ambiguity ever surfaced also depended on what
-    /// [`RulePack::rules_for`] happened to answer, which is the shape of a defect that hides.
-    /// Refused rather than deduplicated, exactly as [`PortError::DuplicateUnit`] and
-    /// [`PortError::DuplicateRegion`] are — the defect is in the pack, and repairing it here would
-    /// hide it there.
-    DuplicateRule {
-        /// The repeated rule identity.
-        rule: RuleId, // data_class: INTERNAL_ONLY
-    },
-    /// A renderer refused for a reason of its own.
-    ///
-    /// [`Renderer::render`] is contracted to return "whatever the implementation refuses with",
-    /// and without this variant that sentence was not true of a closed enum whose other variants
-    /// are all engine-side conditions: malformed IR, a formatter failure, or any other
-    /// renderer-specific refusal had nowhere to go except a misclassification. The detail is
-    /// opaque to the kernel — it is carried, never interpreted.
-    Render {
-        /// The renderer's own description of its refusal.
-        detail: String, // data_class: INTERNAL_ONLY
-    },
-    /// A [`LanguagePair`] cannot address a rule namespace unambiguously.
-    ///
-    /// See [`LanguagePair::slug`] — an empty slug, or one carrying a byte outside the component
-    /// grammar, stops the joined segment being ONE addressable path component. Carrying
-    /// [`PAIR_SEPARATOR`] makes it non-injective, so two distinct pairs address one namespace;
-    /// carrying a separator, a traversal or a leading root makes it not a component at all.
-    AmbiguousLanguagePair {
-        /// The source slug as supplied.
-        source: String, // data_class: INTERNAL_ONLY
-        /// The target slug as supplied.
-        target: String, // data_class: INTERNAL_ONLY
-    },
-}
-
-impl fmt::Display for PortError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::LanguageMismatch { expected, actual } => {
-                write!(
-                    f,
-                    "language mismatch: expected `{expected}`, got `{actual}`"
-                )
-            }
-            Self::DuplicateUnit { unit } => {
-                write!(
-                    f,
-                    "duplicate source unit `{}`: plan order is ambiguous",
-                    unit.0
-                )
-            }
-            Self::UndeclaredRule { unit, rule } => write!(
-                f,
-                "rule `{}` applied to unit `{}` is not declared by the pack",
-                rule.0, unit.0
-            ),
-            Self::RuleOrderViolation { unit, rule } => write!(
-                f,
-                "rule `{}` arrived out of pack order for unit `{}`: rules_for must answer in the \
-                 order rules() declares",
-                rule.0, unit.0
-            ),
-            Self::RegionSetMismatch {
-                missing,
-                unexpected,
-            } => write!(
-                f,
-                "renderer region set mismatch: {} missing, {} unexpected",
-                missing.len(),
-                unexpected.len()
-            ),
-            Self::DuplicateRegion { region } => write!(
-                f,
-                "duplicate declared region `{}`: region identity is ambiguous",
-                region.0
-            ),
-            Self::DuplicateRule { rule } => write!(
-                f,
-                "duplicate declared rule `{}`: rule order is ambiguous",
-                rule.0
-            ),
-            Self::Render { detail } => write!(f, "renderer refused: {detail}"),
-            Self::AmbiguousLanguagePair { source, target } => write!(
-                f,
-                "language pair (`{source}`, `{target}`) cannot address a rule namespace \
-                 unambiguously: neither slug may be empty or carry a byte outside the path \
-                 component grammar (`{PAIR_SEPARATOR}` among them), because the joined value is \
-                 ONE path component"
-            ),
-        }
-    }
-}
-
-impl std::error::Error for PortError {}
 
 /// Build the deterministic [`TransformPlan`] for `model` under `pack`.
 ///

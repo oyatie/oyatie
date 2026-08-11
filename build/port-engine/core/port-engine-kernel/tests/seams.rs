@@ -15,11 +15,11 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use port_engine_kernel::{
-    Delta, Digest, LanguagePair, PlanStep, PortError, RECEIPT_AXES, Receipt, ReceiptAxis, RegionId,
-    Renderer, RuleId, RulePack, SourceModel, TargetIr, UnitId, Verdict, Verification, emit, plan,
-    verify,
+use port_engine_api::{
+    Digest, LanguagePair, PlanStep, PortError, RECEIPT_AXES, Receipt, ReceiptAxis, RegionId,
+    Renderer, RuleId, RulePack, SourceModel, TargetIr, UnitId,
 };
+use port_engine_kernel::{Delta, Verdict, Verification, emit, plan, verify};
 
 // The in-memory fakes. Their only job is to prove each seam is inhabitable without a front end, a
 // rule corpus, or a filesystem — which is the whole W0 claim.

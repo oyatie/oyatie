@@ -1,0 +1,22 @@
+[package]
+name = "port-engine-hash"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+# Hashing adapter for receipt digests (ADR-0637 D1). Kernel COMPARES digests; this adapter COMPUTES.
+# W0-B Slice 7 — sha2-256 → `sha256:<hex>` Digest. No Cargo.lock absorb this tip.
+
+[dependencies]
+port-engine-api = { path = "../../ports/port-engine-api" }
+sha2 = { workspace = true }
+
+[lib]
+name = "port_engine_hash"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true
