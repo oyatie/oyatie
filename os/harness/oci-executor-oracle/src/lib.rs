@@ -311,6 +311,16 @@ fn expected_cve_class(id: &str) -> Option<&'static str> {
         .map(|(_, class)| *class)
 }
 
+/// Whether the security postcondition identified by a CVE class is held.
+fn postcondition_held_for_class(security: &SecurityPostconditions, class: &str) -> bool {
+    match class {
+        "proc_self_exe_reexec" => security.proc_self_exe_reexec_blocked,
+        "fd_leak" => security.fd_leak_absent,
+        "mount_symlink_race" => security.mount_symlink_race_safe,
+        _ => false,
+    }
+}
+
 /// FNV-1a 64-bit (local; no crate dep) for hermetic digests / fixture receipts.
 fn fnv1a64(data: &[u8]) -> u64 {
     const OFFSET: u64 = 0xcbf29ce484222325;
@@ -731,8 +741,9 @@ enum ExecutorKindInner {
 /// Identity of an OCI executor implementation behind the shared trait.
 ///
 /// `Owned` is sealed: only [`OwnedExecutorStub::kind`] /
-/// [`OwnedExecutorStub::try_measured_identity`] / [`owned_measured_kind`] can
-/// construct it. Oracle kinds come from [`OracleStub`].
+/// [`OwnedExecutorStub::try_measured_identity`] (capability-gated) /
+/// [`owned_measured_kind`] can construct it. Oracle kinds come from [`OracleStub`].
+/// Capability tokens are minted solely by [`OwnedExecutorStub::claim_adapter_capability`].
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ExecutorKind(ExecutorKindInner);
 
@@ -879,22 +890,26 @@ impl OperationObservation {
     }
 }
 
-/// Compare two observations into a differential verdict.
+/// Compare two observations into a differential verdict for a required CVE cell.
 ///
 /// Pairwise `Match` is **not** a conformance / Accept claim — callers must run
 /// [`aggregate_comparison_records`] over the full oracle × CVE set first.
 ///
-/// Measured path:
-/// - owned security all-held + oracle **not** all-held → [`DiffVerdict::Match`]
+/// Measured path (active CVE class only — unrelated security flags do not count):
+/// - owned holds the CVE postcondition + oracle does **not** → [`DiffVerdict::Match`]
 ///   even when exit_code / status / stderr_fingerprint differ (owned blocked the
 ///   exploit with a different core outcome)
-/// - owned security all-held + oracle all-held + equal core → Match
-/// - owned security all-held + oracle all-held + unequal core → Diverge
-/// - owned **not** all-held → [`DiffVerdict::Diverge`] (outcomes differ or both unsafe)
+/// - owned holds CVE postcondition + oracle holds + equal core → Match
+/// - owned holds CVE postcondition + oracle holds + unequal core → Diverge
+/// - owned does **not** hold the CVE postcondition → [`DiffVerdict::Diverge`]
 pub fn compare_observations(
+    cve_id: &str,
     owned: &OperationObservation,
     oracle: &OperationObservation,
 ) -> DiffVerdict {
+    let Some(class) = expected_cve_class(cve_id) else {
+        return DiffVerdict::Diverge;
+    };
     if !owned.kind.is_owned_product() || !oracle.kind.is_oracle_only() {
         return DiffVerdict::Diverge;
     }
@@ -914,17 +929,20 @@ pub fn compare_observations(
             let measured_core_equal = a.exit_code == b.exit_code
                 && a.status == b.status
                 && a.stderr_fingerprint == b.stderr_fingerprint;
-            // Owned hardened vs vulnerable oracle: accept even when core outcomes differ.
-            if a.security.all_held_bool() && !b.security.all_held_bool() {
+            let owned_holds = postcondition_held_for_class(&a.security, class);
+            let oracle_holds = postcondition_held_for_class(&b.security, class);
+            // Owned hardened vs vulnerable oracle on the *active* CVE postcondition:
+            // Match even when core outcomes differ. Unrelated flag failures alone do not qualify.
+            if owned_holds && !oracle_holds {
                 return DiffVerdict::Match;
             }
             if !measured_core_equal {
                 return DiffVerdict::Diverge;
             }
-            if a.security.all_held_bool() {
+            if owned_holds {
                 DiffVerdict::Match
             } else {
-                // Owned unsafe (including both-equally-unsafe) → Diverge.
+                // Owned unsafe on this CVE (including both-equally-unsafe) → Diverge.
                 DiffVerdict::Diverge
             }
         }
@@ -991,7 +1009,7 @@ impl ComparisonRecord {
                 got_oracle: oracle.operation.as_str().to_owned(),
             });
         }
-        let verdict = compare_observations(&owned, &oracle);
+        let verdict = compare_observations(cve_id, &owned, &oracle);
         Ok(Self {
             cve_id: cve_id.to_owned(),
             owned,
@@ -1307,6 +1325,16 @@ pub struct OwnedExecutorStub {
     pin: OwnedPin,
 }
 
+/// Non-forgeable capability for measured Owned identity issuance.
+///
+/// Private field prevents downstream crates (including oracle adapters) from
+/// constructing this token. Only [`OwnedExecutorStub::claim_adapter_capability`]
+/// mints it after obligations inventory validation.
+#[derive(Debug, Clone, Copy)]
+pub struct OwnedAdapterCapability {
+    _priv: (),
+}
+
 impl Default for OwnedExecutorStub {
     fn default() -> Self {
         Self::scaffold()
@@ -1321,12 +1349,21 @@ impl OwnedExecutorStub {
         }
     }
 
-    /// Controlled public factory for measured Owned identity.
+    /// Mint the owned-adapter capability (inventory-gated). Oracle adapters cannot forge this.
+    pub fn claim_adapter_capability() -> Result<OwnedAdapterCapability, HarnessError> {
+        validate_obligations()?;
+        Ok(OwnedAdapterCapability { _priv: () })
+    }
+
+    /// Controlled factory for measured Owned identity — requires owned-adapter capability.
     ///
     /// Accepts only immutable pin forms (`sha256:`/`git:`). Scaffold pins are
-    /// rejected so external crates implementing [`OciExecutor`] can mint a
-    /// measured Owned kind without making [`ExecutorKind`] constructible.
-    pub fn try_measured_identity(pin: OwnedPin) -> Result<Self, HarnessError> {
+    /// rejected. The capability closes the forge path where a runc/youki/crun
+    /// adapter could mint a measured Owned [`ExecutorKind`].
+    pub fn try_measured_identity(
+        pin: OwnedPin,
+        _capability: OwnedAdapterCapability,
+    ) -> Result<Self, HarnessError> {
         if pin.is_scaffold() || !is_immutable_revision(pin.revision()) {
             return Err(HarnessError::ScaffoldPinNotMeasured);
         }
@@ -1343,9 +1380,12 @@ impl OwnedExecutorStub {
     }
 }
 
-/// Public sealed Owned [`ExecutorKind`] for measured observations (immutable pin only).
-pub fn owned_measured_kind(pin: OwnedPin) -> Result<ExecutorKind, HarnessError> {
-    Ok(OwnedExecutorStub::try_measured_identity(pin)?.kind())
+/// Public sealed Owned [`ExecutorKind`] for measured observations (immutable pin + capability).
+pub fn owned_measured_kind(
+    pin: OwnedPin,
+    capability: OwnedAdapterCapability,
+) -> Result<ExecutorKind, HarnessError> {
+    Ok(OwnedExecutorStub::try_measured_identity(pin, capability)?.kind())
 }
 
 /// Public owned stub for harness use after inventory validation (scaffold product path only).
@@ -1616,12 +1656,19 @@ mod tests {
         OraclePin::try_new(&format!("sha256:{HEX_ORACLE}"), "linux/amd64").unwrap()
     }
 
+    const CVE_FD: &str = "CVE-2024-21626";
+    const CVE_PROC: &str = "CVE-2019-5736";
+
+    fn owned_cap() -> OwnedAdapterCapability {
+        OwnedExecutorStub::claim_adapter_capability().unwrap()
+    }
+
     fn live_owned_pin() -> OwnedPin {
         OwnedPin::try_new(&format!("sha256:{HEX_OWNED}"), "linux/amd64").unwrap()
     }
 
     fn live_owned() -> OwnedExecutorStub {
-        OwnedExecutorStub::try_measured_identity(live_owned_pin()).unwrap()
+        OwnedExecutorStub::try_measured_identity(live_owned_pin(), owned_cap()).unwrap()
     }
 
     fn inventory_pins() -> BTreeMap<OracleId, OraclePin> {
@@ -1670,8 +1717,17 @@ mod tests {
     }
 
     fn unsafe_outcome(exit: i32, fp: &str) -> MeasuredOutcome {
+        unsafe_outcome_for_cve(CVE_FD, exit, fp)
+    }
+
+    fn unsafe_outcome_for_cve(cve_id: &str, exit: i32, fp: &str) -> MeasuredOutcome {
         let mut out = safe_outcome(exit, fp);
-        out.security.fd_leak_absent = false;
+        match expected_cve_class(cve_id).expect("required CVE") {
+            "proc_self_exe_reexec" => out.security.proc_self_exe_reexec_blocked = false,
+            "fd_leak" => out.security.fd_leak_absent = false,
+            "mount_symlink_race" => out.security.mount_symlink_race_safe = false,
+            other => panic!("unexpected class {other}"),
+        }
         out
     }
 
@@ -1731,7 +1787,7 @@ mod tests {
     fn compare_stubbed_pair_is_stubbed() {
         let owned = OwnedExecutorStub::scaffold().create_stub("b1");
         let oracle = OracleStub::runc().create_stub("b1");
-        assert_eq!(compare_observations(&owned, &oracle), DiffVerdict::Stubbed);
+        assert_eq!(compare_observations(CVE_FD, &owned, &oracle), DiffVerdict::Stubbed);
         assert!(owned.cve_execution().is_none());
         assert!(oracle.cve_execution().is_none());
     }
@@ -1768,11 +1824,11 @@ mod tests {
         )
         .unwrap();
         assert_eq!(
-            compare_observations(&owned_ok, &oracle_ok),
+            compare_observations(CVE_FD, &owned_ok, &oracle_ok),
             DiffVerdict::Match
         );
         assert_eq!(
-            compare_observations(&owned_ok, &oracle_bad),
+            compare_observations(CVE_FD, &owned_ok, &oracle_bad),
             DiffVerdict::Diverge
         );
     }
@@ -1788,7 +1844,7 @@ mod tests {
         )
         .unwrap();
         let oracle = OracleStub::runc().start_stub("b1");
-        assert_eq!(compare_observations(&owned, &oracle), DiffVerdict::Diverge);
+        assert_eq!(compare_observations(CVE_FD, &owned, &oracle), DiffVerdict::Diverge);
     }
 
     #[test]
@@ -1803,7 +1859,7 @@ mod tests {
             OciOperation::Kill(KillSignal::Kill),
             "b1",
         );
-        assert_eq!(compare_observations(&owned, &oracle), DiffVerdict::Diverge);
+        assert_eq!(compare_observations(CVE_FD, &owned, &oracle), DiffVerdict::Diverge);
     }
 
     #[test]
@@ -1822,7 +1878,7 @@ mod tests {
             OwnedExecutorStub::scaffold().create_with_bundle(oya1_bundle("b1"));
         let oracle = OracleStub::runc().create_with_bundle(alt_oya1_bundle("b1"));
         assert_ne!(owned.content_digest(), oracle.content_digest());
-        assert_eq!(compare_observations(&owned, &oracle), DiffVerdict::Diverge);
+        assert_eq!(compare_observations(CVE_FD, &owned, &oracle), DiffVerdict::Diverge);
     }
 
     #[test]
@@ -1924,7 +1980,7 @@ mod tests {
             unsafe_outcome(0, "fp"),
         )
         .unwrap();
-        assert_eq!(compare_observations(&owned, &oracle), DiffVerdict::Match);
+        assert_eq!(compare_observations(CVE_FD, &owned, &oracle), DiffVerdict::Match);
     }
 
     #[test]
@@ -1950,10 +2006,41 @@ mod tests {
             unsafe_outcome(0, "exploit-ran"),
         )
         .unwrap();
-        assert_eq!(compare_observations(&owned, &oracle), DiffVerdict::Match);
+        assert_eq!(compare_observations(CVE_FD, &owned, &oracle), DiffVerdict::Match);
     }
 
     #[test]
+    fn unrelated_security_flag_failure_does_not_match_on_core_diff() {
+        // CVE-2019-5736 cares about proc_self_exe_reexec_blocked. Oracle fails only
+        // fd_leak_absent (unrelated) while holding the active postcondition — core
+        // divergence must not become Match via the hardening exception.
+        let bundle = measured_bundle("b1", HEX_A);
+        let owned = OperationObservation::try_measured(
+            live_owned().kind(),
+            OciOperation::Start,
+            bundle.clone(),
+            None,
+            safe_outcome(1, "blocked-exploit"),
+        )
+        .unwrap();
+        let mut oracle_out = safe_outcome(0, "exploit-ran");
+        oracle_out.security.fd_leak_absent = false; // unrelated flag only
+        let oracle = OperationObservation::try_measured(
+            OracleStub::try_new_pinned("crun", live_oracle_pin())
+                .unwrap()
+                .kind(),
+            OciOperation::Start,
+            bundle,
+            None,
+            oracle_out,
+        )
+        .unwrap();
+        assert_eq!(
+            compare_observations(CVE_PROC, &owned, &oracle),
+            DiffVerdict::Diverge
+        );
+    }
+
     fn owned_unsafe_core_diff_still_diverges() {
         let bundle = measured_bundle("b1", HEX_A);
         let owned = OperationObservation::try_measured(
@@ -1974,14 +2061,15 @@ mod tests {
             unsafe_outcome(0, "oracle-unsafe"),
         )
         .unwrap();
-        assert_eq!(compare_observations(&owned, &oracle), DiffVerdict::Diverge);
+        assert_eq!(compare_observations(CVE_FD, &owned, &oracle), DiffVerdict::Diverge);
     }
 
     #[test]
     fn public_try_measured_identity_supports_measured_observations() {
-        let owned = OwnedExecutorStub::try_measured_identity(live_owned_pin()).unwrap();
+        let cap = owned_cap();
+        let owned = OwnedExecutorStub::try_measured_identity(live_owned_pin(), cap).unwrap();
         assert!(!owned.pin().is_scaffold());
-        let kind = owned_measured_kind(live_owned_pin()).unwrap();
+        let kind = owned_measured_kind(live_owned_pin(), cap).unwrap();
         assert!(kind.is_owned_product());
         let obs = OperationObservation::try_measured(
             owned.kind(),
@@ -1993,7 +2081,7 @@ mod tests {
         .unwrap();
         assert!(obs.executed());
         assert_eq!(
-            OwnedExecutorStub::try_measured_identity(OwnedPin::scaffold()).unwrap_err(),
+            OwnedExecutorStub::try_measured_identity(OwnedPin::scaffold(), cap).unwrap_err(),
             HarnessError::ScaffoldPinNotMeasured
         );
     }
@@ -2020,7 +2108,7 @@ mod tests {
             unsafe_out,
         )
         .unwrap();
-        assert_eq!(compare_observations(&owned, &oracle), DiffVerdict::Diverge);
+        assert_eq!(compare_observations(CVE_FD, &owned, &oracle), DiffVerdict::Diverge);
     }
 
     #[test]
@@ -2044,7 +2132,7 @@ mod tests {
             safe_outcome(0, "fp"),
         )
         .unwrap();
-        assert_eq!(compare_observations(&owned, &oracle), DiffVerdict::Diverge);
+        assert_eq!(compare_observations(CVE_FD, &owned, &oracle), DiffVerdict::Diverge);
     }
 
     #[test]
@@ -2077,7 +2165,7 @@ mod tests {
                 op,
                 bundle,
                 Some(exec),
-                unsafe_outcome(0, "oracle-reproduced"),
+                unsafe_outcome_for_cve(cve_id, 0, "oracle-reproduced"),
             )
             .unwrap();
             records
@@ -2594,7 +2682,7 @@ mod tests {
             safe_outcome(0, "fp"),
         )
         .unwrap();
-        assert_eq!(compare_observations(&owned, &oracle), DiffVerdict::Diverge);
+        assert_eq!(compare_observations(CVE_FD, &owned, &oracle), DiffVerdict::Diverge);
     }
 
     #[test]
