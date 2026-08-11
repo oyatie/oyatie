@@ -1,5 +1,5 @@
 context: os
-role: test-fixtures
+role: test
 capability: attestation-relying-party
 plane: control
 slo: cataloged-no-runtime-claim
