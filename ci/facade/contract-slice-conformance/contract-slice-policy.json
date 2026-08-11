@@ -1665,12 +1665,6 @@
           ]
         },
         {
-          "field": "feature_flag_lifecycle_cleanup_gate.status_lifecycle_ref",
-          "allowed": [
-            "specs/lifecycle-configs/feature-flag-status-lifecycle.json"
-          ]
-        },
-        {
           "field": "feature_flag_lifecycle_cleanup_gate.ci_lane",
           "allowed": [
             "feature-flag-lifecycle"
