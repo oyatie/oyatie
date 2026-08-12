@@ -50,14 +50,15 @@
     },
     {
       "gate": "affected-target-set",
-      "class": "trusted_baseline_artifact_retrieval_boundary",
-      "reason": "The ADR-0554 D8 trusted-baseline consumer reads the GitHub Actions runs/artifacts REST API to decide whether the FULL tier may skip its cold merge-base rebuild. This is a genuine network edge and is declared as one rather than hidden behind a CLI: the previous `gh api` subprocess concealed it, and concealed with it the fact that `gh` is absent from the owned arm64 runner image, so the fast path never once ran on the owned fleet. A separate row is possible here where a second `Command::new` row was not, because hermetic exceptions key on (gate, code, token) and `reqwest` is a distinct token \u2014 no `rules.insert` collision. The adapter bears NO verdict: it returns bytes, and the pure selector/validator functions (`trusted_dev_push_run_id`, `trusted_baseline_artifact_id`, `validate_trusted_baseline_artifact`) decide whether those bytes may become a baseline. Provenance is checked against the API's own response, so a candidate cannot launder a regression by publishing a look-alike artifact; and ANY doubt \u2014 including an unreachable API \u2014 refuses the reuse and runs the untouched cold rebuild, so this edge can cost wall-clock and never correctness. The API host is a compile-time constant, not a flag, so provenance validation cannot be pointed at a candidate-controlled server. Count 3 = the client field, the client builder, and the response type of the single `get` seam every route goes through; the ceiling is set to the exact observed count so a widening network surface has to be argued for here rather than absorbed into slack.",
-      "cutover_note": "Retire when the typed cloud-ci runner/reconciler API exposes cross-run artifact retrieval, at which point the consumer calls that API instead of GitHub directly and this row is deleted. Until then the shared shape belongs in one place: the sibling `oya-cloud-ci-run-terminal-state` consumer in ci/facade/baseline-ratchet grew the same client for the same reason, and the two must be extracted into a single ci/facade GitHub adapter once both have landed (that extraction needs its own crate, BUCK target, workspace member row, and a `scan.non_gate_crates` entry, so it is a deliberate follow-up rather than a drive-by).",
+      "class": "github_rest_adapter_boundary",
+      "reason": "Two owned GitHub REST adapters under affected-target-set share the (gate, hermetic_violation, reqwest) exception key and MUST share one row (rules.insert overwrites): (1) ADR-0554 D8 trusted-baseline consumer in oya-cloud-ci-build-health.rs (3 sites: client field, builder, Response type on get); (2) ADR-0711 hub-exclusivity live open-PR file-facts producer in oya-cloud-ci-hub-exclusivity.rs (2 sites: client field, builder). Both return bytes only — pure validators decide verdicts; any API/capability fault refuses reuse or FAILs closed; missing envelopes SKIP for hub-exclusivity. Ceiling 5 = exact observed count across both paths; no slack.",
+      "cutover_note": "Extract ONE shared ci/facade GitHub REST adapter crate (with scan.non_gate_crates) and delete this dual-path row when trusted-baseline, hub-exclusivity, and run-terminal-state all call it. Retire entirely when typed cloud-ci runner APIs own cross-run artifacts and concurrent open-PR file facts.",
       "fixuptask_id": "GH-1323-CUTOVER-TRUSTED-BASELINE-TYPED-ARTIFACT-API",
       "allowed_paths": [
-        "ci/facade/affected-target-set/src/bin/oya-cloud-ci-build-health.rs"
+        "ci/facade/affected-target-set/src/bin/oya-cloud-ci-build-health.rs",
+        "ci/facade/affected-target-set/src/bin/oya-cloud-ci-hub-exclusivity.rs"
       ],
-      "max_occurrences": 3,
+      "max_occurrences": 5,
       "tokens": [
         "reqwest"
       ]

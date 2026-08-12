@@ -80,6 +80,36 @@ rust_test(
     ],
 )
 
+# ADR-0711 hub-exclusivity live producer: loads #hubs.paths + open-PR changed files (fixture or
+# GitHub REST via reqwest) and REFUSEs multi-own. Invoked from the oya-ci-required affected-set
+# admission path with --live-open-prs.
+rust_binary(
+    name = "oya-cloud-ci-hub-exclusivity-bin",
+    srcs = glob(["src/**/*.rs"]),
+    crate_root = "src/bin/oya-cloud-ci-hub-exclusivity.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-affected-target-set",
+        # Owned GitHub REST adapter (same reason as build-health): `gh` is absent on the owned
+        # arm64 runner image, so live open-PR file facts must not shell out.
+        "third-party//:reqwest",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "oya-cloud-ci-hub-exclusivity-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_cloud_ci_hub_exclusivity_unittest",
+    crate_root = "src/bin/oya-cloud-ci-hub-exclusivity.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-affected-target-set",
+        "third-party//:reqwest",
+        "third-party//:serde_json",
+    ],
+)
+
 rust_test(
     name = "ci-affected-target-set-unittest",
     srcs = glob(["src/**/*.rs", "**/*.json"]),
@@ -142,5 +172,63 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         ":ci-affected-target-set",
+    ],
+)
+
+# ADR-0711 hub exclusivity: mechanical REFUSE when open integ PRs multi-own hubs listed at
+# specs/integ-branch-envelopes.json#hubs.paths (cite pointer; policy does not re-list).
+rust_test(
+    name = "ci-affected-target-set-hub-exclusivity-gate",
+    srcs = glob(["tests/**/*.rs", "**/*.json"]),
+    crate = "ci_affected_target_set_hub_exclusivity_gate",
+    crate_root = "tests/hub_exclusivity.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-affected-target-set",
+        "third-party//:serde_json",
+    ],
+)
+
+# ADR-0711 Amendment D / INV-DOC-2: mechanical REFUSE when ADR-0711/PORTABLE prose re-lists
+# roots/hubs/freeze enumerations outside #anti_drift.prose_must_cite_not_enumerate.
+rust_test(
+    name = "ci-affected-target-set-anti-drift-drift-grep-gate",
+    srcs = glob(["tests/**/*.rs", "**/*.json"]),
+    crate = "ci_affected_target_set_anti_drift_drift_grep_gate",
+    crate_root = "tests/anti_drift_drift_grep.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-affected-target-set",
+        "third-party//:serde_json",
+    ],
+)
+
+# owners-from-envelopes: CODEOWNERS + directory OWNERS faces from integ envelopes
+# (#path_ownership / #roots / #planes). Living SSOT domain_stack_integ_model.
+rust_binary(
+    name = "oya-cloud-ci-owners-from-envelopes-bin",
+    srcs = glob(["src/**/*.rs"]),
+    crate_root = "src/bin/oya-cloud-ci-owners-from-envelopes.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-affected-target-set",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "ci-affected-target-set-owners-from-envelopes-gate",
+    srcs = glob([
+        "tests/**/*.rs",
+        "**/*.json",
+        # Emit face (not *.json): must be owned so affected-set does not escalate on it.
+        "owners-from-envelopes/CODEOWNERS",
+    ]),
+    crate = "ci_affected_target_set_owners_from_envelopes_gate",
+    crate_root = "tests/owners_from_envelopes.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-affected-target-set",
+        "third-party//:serde_json",
     ],
 )

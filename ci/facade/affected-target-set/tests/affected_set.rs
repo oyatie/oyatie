@@ -113,9 +113,9 @@ fn red_class_cf16525_out_of_scope_source_lands_in_the_affected_seeds() {
 
 #[test]
 fn docs_only_diff_is_no_graph_targets_via_explicit_inert_declaration() {
-    // FIXTURE pack, not the shipped one: this pins the KERNEL semantics of a `[]` declaration
-    // plus a matching selection licence. The SHIPPED pack no longer declares docs/markdown that
-    // way — see `a_markdown_only_diff_selects_the_census_gates_in_the_shipped_pack`.
+    // FIXTURE pack: pins KERNEL semantics of `[]` + matching selection licence. The SHIPPED pack
+    // restores the same shape for docs/markdown (PROCESS_TAX DELETE / audit 79f76050) — see
+    // `a_markdown_only_diff_is_no_graph_targets_in_the_shipped_pack`.
     let p = policy();
     let changes = [Change::Present("docs/decisions/ADR-0001-x.md".into())];
     let plan = plan_changes(&changes, &p);
@@ -218,11 +218,9 @@ fn empty_diff_selects_nothing_legitimately() {
 
 #[test]
 fn inert_class_that_still_holds_a_licence_keeps_selecting_nothing_in_the_shipped_pack() {
-    // The other GREEN half, against the SHIPPED pack rather than a fixture: a class that IS still
-    // declared inert-by-seed AND still licensed must keep passing with an empty selection, or the
-    // predicate would RED a legitimate PR — a gate that fires on everything is as useless as one
-    // that fires on nothing. `evidence/reorg/**` JSON is the only such class left; the docs and
-    // markdown classes lost both halves with bead oyatie-1ld (see the tests below).
+    // GREEN half against the SHIPPED pack: inert-by-seed + licensed must keep passing empty
+    // selection. docs/markdown regained the licence with PROCESS_TAX DELETE (audit 79f76050);
+    // evidence/reorg/** JSON remains the R-DUAL-0615 residual.
     let p = Policy::from_json(&fs::read_to_string(shipped_pack_path()).expect("read shipped pack"))
         .expect("shipped pack parses");
     let path = "evidence/reorg/wave-42-inventory.json";
@@ -235,114 +233,73 @@ fn inert_class_that_still_holds_a_licence_keeps_selecting_nothing_in_the_shipped
     );
 }
 
-// ── The markdown/docs whole-tree census class (bead oyatie-1ld, PR #1623 shape) ───────────
+// ── Docs/markdown inert again (PROCESS_TAX DELETE, audit 79f76050) ───────────────────────
 //
-// THE INCIDENT. PR #1623 self-disclosed a GREEN required context carrying a RED equality-pinned
-// census. Its diff was markdown; the shipped pack declared `docs/**` / `**/*.md` / `**/*.mdx`
-// as `[]` AND licensed them to be the entire selection, so the derive resolved NO-GRAPH-TARGETS
-// and `check-adr-citation-closure` — which scans EVERY tracked `.md` and asserts `files_scanned`
-// by EQUALITY — never executed. This is the reverted `.github/**: []` hole (PR #1389) a third
-// time, in a class nobody re-examined because "docs are inert" reads as obviously true.
-//
-// It is not true. `owner()` being empty for a doc is the PREMISE of a synthetic declaration, not
-// evidence of inertness: every tracked path is an accounting row for the whole-tree consumers,
-// and a `.md` additionally moves the citation census.
+// oyatie-1ld / PR #1623 forced every `**/*.md` to seed the equality-pinned citation census so a
+// docs-only PR could not false-green past a red freeze. That premise died when hand
+// `files_scanned`/`citation_lines` equality was deleted as a merge blocker. Tip entitlement:
+// docs-only / re-freeze commits get no CI — restore NoGraphTargets.
 
-/// RED (PR #1623): a lone markdown change must SELECT the census gate that judges it, not sail
-/// past on an empty selection. Reproduced on this very branch — commit d36648ff9 added one
-/// `docs/*.md` and `check-adr-citation-closure` failed
-/// `assertion left == right failed: files_scanned: observed 16519, frozen 16518`. Under the old
-/// pack that commit's CI would have reported green.
+/// Docs-only / markdown-only diffs resolve NoGraphTargets on the shipped pack (Fail-class law).
 #[test]
-fn a_markdown_only_diff_selects_the_census_gates_in_the_shipped_pack() {
+fn a_markdown_only_diff_is_no_graph_targets_in_the_shipped_pack() {
+    let p = Policy::from_json(&fs::read_to_string(shipped_pack_path()).expect("read shipped pack"))
+        .expect("shipped pack parses");
     for path in [
         "docs/decisions/ADR-0700-ci-admission-live-apex.md",
         "README.md",
         "docs/guide/x.mdx",
-        // Not under docs/: the citation census scans by EXTENSION, repo-wide.
         "cloud/cloud-billing/PRD.md",
-        // Non-markdown under docs/ is still a tracked accounting row.
         "docs/programs/inventory.json",
     ] {
-        let packages = shipped_seed_packages(path);
-        for required in [
-            // The equality-pinned `.md` census the incident tripped.
-            "governance/check/adr-citation-closure",
-            // Whole-tree accounting: a tracked add/remove becomes a row here...
-            "ci/facade/artifact-inventory-registry",
-            "ci/facade/scm-facts-snapshot",
-            // ...and a row change can flip the frozen baseline.
-            "ci/facade/baseline-ratchet",
-        ] {
-            assert!(
-                packages.contains(required),
-                "`{path}` must seed `{required}`; got {packages:?}"
-            );
-        }
-    }
-}
-
-/// ANTI-ROT, the `**/OWNERS` chain applied to an EXTENSION class. `scan_path_literal_consumers`
-/// keys on a repo-root DIRECTORY prefix, so the derived github-consumer-coverage gate cannot be
-/// pointed at `**/*.md`. Requiring these lists to be a SUPERSET of the mechanically-derived
-/// `.github/**` list makes that gate protect them transitively: a new whole-tree accounting gate
-/// forced into the `.github` list is forced into these.
-#[test]
-fn the_markdown_seed_lists_are_supersets_of_the_derived_github_list() {
-    let github_pkgs = shipped_seed_packages(".github/workflows/oya-ci-required.yml");
-    for path in ["docs/x.md", "README.md", "docs/guide/x.mdx", "docs/x.json"] {
-        let pkgs = shipped_seed_packages(path);
-        let missing: Vec<&String> = github_pkgs.difference(&pkgs).collect();
-        assert!(
-            missing.is_empty(),
-            "`{path}`'s seed list must contain every `.github/**` seed so the derived \
-             github-consumer-coverage gate keeps it from rotting; missing {missing:?}"
+        let decision = resolve(
+            &plan_changes(&[Change::Present(path.into())], &p),
+            &owners(&[(path, &[])]),
+            &p,
         );
-    }
-}
-
-/// The three declarations are ONE class written three times because JSON glob keys cannot alias.
-/// Without this, a future edit updates `**/*.md` and silently leaves `docs/**` behind — the
-/// hand-maintained-list rot this pack's own notes warn about.
-///
-/// EACH PROBE ISOLATES EXACTLY ONE DECLARATION, and that is load-bearing. The first draft of this
-/// test probed `docs/x.md` / `docs/x.json` / `docs/guide/x.mdx`; because `synthetic_seeds` UNIONS
-/// and all three sit under `docs/`, `docs/**` alone satisfied every probe and the test stayed
-/// GREEN through the mutation run that emptied `**/*.md`. A test that cannot fail is the false
-/// green this bead is about, so the probes are now disjoint: `README.md` matches ONLY `**/*.md`,
-/// `web/x.mdx` matches ONLY `**/*.mdx`, `docs/x.json` matches ONLY `docs/**`.
-#[test]
-fn the_docs_and_markdown_seed_lists_are_identical() {
-    let docs_only = shipped_seed_packages("docs/x.json");
-    for path in ["README.md", "web/x.mdx"] {
         assert_eq!(
-            shipped_seed_packages(path),
-            docs_only,
-            "`{path}` must carry the same whole-tree seed list as `docs/**`"
+            decision,
+            Decision::NoGraphTargets,
+            "`{path}` must be docs/markdown inert (PROCESS_TAX DELETE); got {decision:?}"
         );
     }
 }
 
-/// Belt to the seed list's braces, exactly as
-/// `shipped_pack_does_not_license_the_github_class_to_select_nothing` does for `.github/**`:
-/// even if these seed lists were emptied by edit or by rot, the classes hold NO licence to be
-/// the entire selection, so the PR #1623 outcome is RefuseEmptySelection rather than a green
-/// NO-GRAPH-TARGETS. Two independent authorisations had to be true for the incident; this
-/// removes the second.
+/// The three inert declarations stay aligned: each probe isolates one glob key.
 #[test]
-fn shipped_pack_does_not_license_the_docs_or_markdown_classes_to_select_nothing() {
+fn the_docs_and_markdown_classes_are_uniformly_inert_in_the_shipped_pack() {
     let p = Policy::from_json(&fs::read_to_string(shipped_pack_path()).expect("read shipped pack"))
         .expect("shipped pack parses");
-    let licensed: Vec<&String> = p
-        .inert_selection_classes
-        .iter()
-        .filter(|c| c.starts_with("docs/") || c.ends_with("*.md") || c.ends_with("*.mdx"))
-        .collect();
-    assert!(
-        licensed.is_empty(),
-        "no docs/markdown class may hold an empty-selection licence (bead oyatie-1ld); got \
-         {licensed:?}"
-    );
+    for (path, pattern) in [
+        ("README.md", "**/*.md"),
+        ("web/x.mdx", "**/*.mdx"),
+        ("docs/x.json", "docs/**"),
+    ] {
+        assert_eq!(
+            p.synthetic_dependencies.get(pattern).map(Vec::as_slice),
+            Some([].as_slice()),
+            "`{pattern}` must be synthetic [] (probe `{path}`)"
+        );
+        assert!(
+            p.inert_selection_classes.iter().any(|c| c == pattern),
+            "`{pattern}` must hold the empty-selection licence; got {:?}",
+            p.inert_selection_classes
+        );
+    }
+}
+
+/// Docs/markdown classes MUST hold the empty-selection licence (tip entitlement / Fail-class law).
+#[test]
+fn shipped_pack_licenses_the_docs_and_markdown_classes_to_select_nothing() {
+    let p = Policy::from_json(&fs::read_to_string(shipped_pack_path()).expect("read shipped pack"))
+        .expect("shipped pack parses");
+    for required in ["docs/**", "**/*.md", "**/*.mdx"] {
+        assert!(
+            p.inert_selection_classes.iter().any(|c| c == required),
+            "`{required}` must be licensed inert; got {:?}",
+            p.inert_selection_classes
+        );
+    }
 }
 
 #[test]
@@ -852,11 +809,7 @@ fn shipped_pack_parses_and_matches_the_engine() {
 
 #[test]
 fn archive_epoch_e4_inputs_seed_cross_artifact_agreement_gate() {
-    // E4 archive inputs are cross-artifact-agreement inputs. Synthetic declarations UNION, so the
-    // narrow archive mapping contributes this gate ON TOP OF whatever the broad class contributes.
-    // Asserted by CONTAINMENT, not equality: `docs/**`/`**/*.md` stopped contributing `[]` with
-    // bead oyatie-1ld, and an equality assertion here would have to be re-hand-edited every time
-    // the whole-tree list moves — which is how a narrow mapping gets silently dropped instead.
+    // Narrow `docs/ideas/archive/**` mapping UNIONS with inert broad docs/** ([]). Containment.
     let required = "root//ci/facade/cross-artifact-agreement:ci-cross-artifact-agreement-gate";
     for path in [
         "docs/ideas/archive/e4-transition.md",
@@ -872,11 +825,10 @@ fn archive_epoch_e4_inputs_seed_cross_artifact_agreement_gate() {
 
 #[test]
 fn k8s_program_records_and_rules_seed_the_live_r_doc_gate() {
-    // Containment, same rationale as the E4 test above.
+    // Narrow seeds only — broad docs/** / **/*.md are inert again (PROCESS_TAX DELETE).
     let required = "root//ci/facade/k8s-program-docs:ci-k8s-program-docs-gate";
     for path in [
         "docs/programs/k8s-port/README.md",
-        "docs/decisions/ADR-0704-k8s-port-live-apex.md",
         "specs/port-rules/lang/go-rust/example.md",
         "specs/k8s-port/rules/example.md",
     ] {
