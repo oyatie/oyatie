@@ -1,0 +1,69 @@
+{
+  "_comment": "ci-reorg-target-debt gate policy (DATA, not code). North-Star Completion Programme bootstrap step T3b: Global Binding Rule 1 (no-new-reorg-target-debt), normative from this gate's admission onward. The six reorg-target forms live HERE as data — the Rust kernel hardcodes no oyatie-specific prefix, path, or name, so another repo adopts this gate by editing this policy (pipeline-as-product). Existing target-prefix estate is migration inventory covered shrink-only by the committed baseline; anything NEW under a target form fails closed. Approved-plan authority: evidence/ralplan/oyatie-north-star-completion-v1-approved-plan-20260812.md; bootstrap evidence: evidence/goals/north-star-completion-t1-hold-lift-receipt-20260812.json, evidence/goals/north-star-completion-t2-execution-authorization-20260812.json, evidence/goals/north-star-completion-option-b-contingency-contract-20260812.json.",
+  "gate_id": "ci-reorg-target-debt",
+  "schema_version": "1.0.0",
+  "target_forms": {
+    "_comment": "The six reorg-target forms of Global Binding Rule 1. name_prefixes bind NEW crate/module/binary names and workspace dependency names (Arm B and the dep-name half of audit mode); path_prefixes bind NEW tracked files (Arm A) and NEW work-item evidence anchors (Arm C).",
+    "name_prefixes": ["cloud-", "cloud_", "oya-", "oya_"],
+    "path_prefixes": ["oya/", "cloud/"]
+  },
+  "baseline": {
+    "_comment": "Arm A baseline strategy: a committed SORTED PATH LIST of every tracked file under the target path prefixes at gate-authoring time, plus the (empty-at-birth) Arm B dep inventory and the Arm C anchor inventory. Born-blocking zero-NEW ratchet: a tracked target-prefix file absent from the list fails closed with the exact violating path. SHRINK-ONLY: removals are always admissible, and a removal REQUIRES baseline regeneration in the same change — a baseline row whose file no longer exists fails the gate (stale-row detection, mirroring the gate-coverage-baseline re-freeze convention) with the regeneration command in the failure message, so burned-down debt can never silently regain headroom.",
+    "strategy": "committed-sorted-path-list",
+    "file": "ci/facade/reorg-target-debt/reorg-target-debt-baseline.json",
+    "shrink_only": true,
+    "removal_requires_regeneration": true,
+    "regeneration_command": "buck2 run //ci/facade/reorg-target-debt:ci-reorg-target-debt-bin -- --regen-baseline"
+  },
+  "exemptions": {
+    "_comment": "Empty at birth. Each future entry is a reviewed path or path-prefix excluded from Arms A/C and audit mode, carrying its own justification; expansion is a governance act, never a gate-side default.",
+    "path_prefixes": []
+  },
+  "scan": {
+    "_comment": "Read-only filesystem walk parameters for the live-tree collector. On a clean checkout the walk over the target-prefix roots with these directory names skipped equals the git-tracked set exactly (verified at gate authoring); untracked residue under a target prefix fails closed by design.",
+    "skip_dir_names": [".git", "buck-out", "target", "node_modules", ".venv", "__pycache__"]
+  },
+  "workspace_manifest": {
+    "_comment": "Arm B input: the root workspace manifest's [workspace.dependencies] table (inline-table and subsection forms). Member manifests inherit through the workspace table, so the root table is the single declaration surface this arm binds; zero target-form entries exist at birth, so Arm B is born-green at an empty baseline.",
+    "path": "Cargo.toml",
+    "section": "workspace.dependencies"
+  },
+  "masterplan": {
+    "_comment": "Arm C input: the parsed planning SSOT. The evaluator deep-walks the provided JSON value; any string found under one of anchor_field_names (directly or inside an array) that begins with a target path prefix is an evidence anchor under test. This arm is synthetic-fixture-proven at birth and re-binds to the live work-item id space at Wave 1. The two pre-existing target anchors in today's corpus are carried shrink-only in the baseline.",
+    "path": "specs/masterplan.json",
+    "anchor_field_names": ["source_anchors", "evidence_anchor", "evidence_anchors", "evidence_path", "anchor", "artifact_ref", "source_path"]
+  },
+  "reduction_claims": {
+    "_comment": "Arm D contract: an artifact object asserting a net target-surface-reduction claim is refused unless it binds the measurement. All three companion fields are required; before_count and after_count are DATA carried by the artifact under test — this gate never invents or compares numeric thresholds. Any future numeric corridor slot is a NAMED PLACEHOLDER routed to the Wave 5 corridor freeze (see corridor_placeholders).",
+    "claim_field": "claim",
+    "claim_values": ["net_target_surface_reduction"],
+    "required_fields": ["before_count", "after_count", "census_snapshot_ref"]
+  },
+  "audit_mode": {
+    "_comment": "Deterministic interval audit over an explicit commit range <from>..<to>. Git I/O stays at the CALLER boundary (scm-facts precedent: the gate fleet keeps one out-of-graph git boundary; this crate spawns no subprocess): the caller materializes a captured commit-set JSON and the binary's audit engine — the SAME code path the fixture suite proves — evaluates it. FAIL-CLOSED: a missing, unparseable, empty, incomplete (complete != true, or a commit missing any fact array), or range-less input is a non-zero explicit RTD_AUDIT_INPUT_INVALID finding, never a pass. A commit introducing a file/dep/anchor under a target form relative to the range base is reported per commit and per arm; the report stays red until every finding's commit carries a remediation record. The report is machine-readable JSON suitable for committing as a durable evidence record.",
+    "input_schema": "ci-reorg-target-debt-interval-audit-input.v1",
+    "invocation": "buck2 run //ci/facade/reorg-target-debt:ci-reorg-target-debt-bin -- --mode audit --commit-set <captured-input.json> [--out <report.json>]",
+    "commit_set_materialization": [
+      "The caller (coordinator) materializes the captured input for <from>..<to> with plain git, outside this crate:",
+      "1. commits: git rev-list --reverse <from>..<to>",
+      "2. per commit added_paths: git diff-tree --no-commit-id --name-only --diff-filter=A -r <sha>",
+      "3. per commit added_workspace_path_deps / added_dep_names: entries present in [workspace.dependencies] of the root manifest at <sha> and absent at <sha>^ (objects {name, path}; name-only entries carry an empty path)",
+      "4. per commit added_evidence_anchors: anchor strings (per masterplan.anchor_field_names) present in the planning SSOT at <sha> and absent at <sha>^",
+      "5. set range.from/range.to to the exact shas and complete=true only when every commit in the range carries all four fact arrays"
+    ]
+  },
+  "liveness": {
+    "_comment": "Every run — blocking and audit — emits evaluated_path_count and the evaluated_arms list in its report. A missing scheduled run is a GAP, never a pass: absence of a report is absence of evidence, and no consumer may treat a silent interval as green.",
+    "signal_fields": ["evaluated_path_count", "evaluated_arms"]
+  },
+  "corridor_placeholders": {
+    "_comment": "No numeric threshold is minted by this gate. Any future numeric corridor slot (e.g. a maximum admissible target-surface size) is a named placeholder resolved only by the Wave 5 corridor freeze.",
+    "wave5_corridor_freeze": ["RTD_CORRIDOR_MAX_TARGET_SURFACE"]
+  },
+  "product_contract": {
+    "born_pack_shaped": "Target forms, baseline location, scan parameters, manifest/masterplan paths, anchor field names, claim schema, and exemptions are DATA here; the Rust kernel fixes only the evaluation ALGORITHM.",
+    "ratchet": "Born-blocking at the committed baseline: the live tree is green at ZERO new debt, so any NEW target-form file, dep, or anchor fails closed from the first admitted run.",
+    "execution": "Buck2-native Rust gate under //ci/facade/reorg-target-debt; enforced by the required buck2 lane (buck2 test //ci/...) behind oya-ci-required."
+  },
+  "purpose": "No-new-reorg-target-debt gate (Global Binding Rule 1). Arm A refuses new tracked files under reorg-target path prefixes against a shrink-only committed baseline; Arm B refuses new workspace dependencies that point into or are named under target forms; Arm C refuses work items whose evidence anchors point under target prefixes; Arm D refuses unproven net-debt-reduction claims lacking a census-bound before/after measurement; audit mode replays Arms A-C over an explicit commit range and fails closed on incomplete input or unremediated findings."
+}
