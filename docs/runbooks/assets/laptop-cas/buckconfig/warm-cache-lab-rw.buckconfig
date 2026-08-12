@@ -1,0 +1,25 @@
+# LAB opt-in WARM READ+WRITE overlay — laptop NativeLink CAS (Phase A).
+# Dark relative to fleet: specs/cache-warm-license.json MUST stay
+# warm_reads_licensed=false until integrity-canary is GREEN against this endpoint.
+# Do NOT merge into root .buckconfig. Local/dev-agentic use only until go-gate.
+#
+# Client mTLS identity: append a mode-0600 .buckconfig.local from
+# ~/oyatie-cas/tls/client-writer.{crt,key} + ca.crt (see runbook).
+
+[buck2]
+  default_allow_cache_upload = true
+
+[buck2_re_client]
+  # Local loopback while developing; swap to cas-writer.lab.oyatie.dev after tunnel
+  engine_address = grpcs://127.0.0.1:50051
+  cas_address = grpcs://127.0.0.1:50051
+  action_cache_address = grpcs://127.0.0.1:50051
+  instance_name = main
+  tls = true
+
+[oya_cache]
+  remote_cache_enabled = true
+  allow_cache_uploads = true
+
+[build]
+  execution_platforms = toolchains//cache:cache-platform
