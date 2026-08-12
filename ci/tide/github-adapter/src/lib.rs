@@ -192,6 +192,7 @@ struct Page<T> {
 struct GitHubPr {
     number: u64,
     title: String,
+    user: GitHubUser,
     head: GitHubPrRef,
     base: GitHubPrRef,
     /// `null` while GitHub is still computing, `true`/`false` otherwise.
@@ -399,6 +400,7 @@ fn pr_from_wire(pr: GitHubPr) -> PullRequest {
     PullRequest {
         number: pr.number,
         title: pr.title,
+        author: pr.user.login,
         head_sha: pr.head.sha,
         base_ref: pr.base.ref_name,
         mergeable: pr.mergeable,

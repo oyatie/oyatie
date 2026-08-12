@@ -12,6 +12,42 @@ Agent-executable instructions are fenced for the agent-coordination lane. Human 
 
 Manual Wave-B bootstrap note (prose only): agents enter the governance pipeline by creating an isolated worktree branch and opening a protected pull request against `dev`; ADR-0363 retires the bespoke VCS ratchet and ADR-0515 owns cloud-ci/oya-ci Tide admission (ADR-0513 is historical: frontmatter status Superseded, superseded_by ADR-0515, accepted 2026-06-07). The agentic delivery fabric vision and staged rollout are governed by the ADR-0516..ADR-0535 fabric cluster.
 
+## Doctrine survival (INV-DOC-9)
+
+INV-DOC-9: doctrine that exists only in a plan file or chat is **not** survived. Binding law MUST live on session-loaded surfaces (this file + `CLAUDE.md`), plus the owning ADR / envelopes / PORTABLE docs agents actually load. Full operating contract: [`docs/AGENTS.md`](docs/AGENTS.md). Amendment C catalog (brand-free): [`specs/agentic-operating-patterns.json`](specs/agentic-operating-patterns.json). Do not re-list envelope contents here (INV-DOC-2) — cite JSON pointers under `specs/integ-branch-envelopes.json`.
+
+### Rules carry why
+
+- **achieves:** stop blind obedience and silent drift of load-bearing MUST rules.
+- **origin:** why-less rules became cargo-cult; failures could not be challenged.
+- **rule:** every load-bearing MUST records five fields — achieves, origin, rule, ensure, overturn_when. Rules are hypotheses amended via challenge → OVERRULE → version bump; never silent drift.
+- **ensure:** reviewer audit of five-field presence on new MUST; anti-drift version bump on OVERRULE.
+- **overturn_when:** a recorded challenge shows the five fields false or incomplete AND a replacement rule with five fields lands same-wave.
+
+### Observation ≠ APPROVE; role separation
+
+- **achieves:** preserve merge integrity and blast-radius discipline.
+- **origin:** logs/CI green / chat observation treated as APPROVE; roles collapsed.
+- **rule:** observation (logs/CI/reviews) ≠ merge APPROVE authority; orchestrate ≠ implement ≠ babysit.
+- **ensure:** reviewer APPROVE + green `oya-ci-required` remain distinct; coordinator/worker split below.
+- **overturn_when:** a recorded OVERRULE replaces the admission model with an equally fail-closed alternative.
+
+### Survival rule itself (INV-DOC-9)
+
+- **achieves:** doctrine survives across agent sessions.
+- **origin:** plan-only / chat-only law vanished when sessions reset.
+- **rule:** doctrine MUST live in this entry hub + owning ADR/envelopes/PORTABLE; plan/chat alone is not survived.
+- **ensure:** this section present; pointers to `docs/AGENTS.md`, envelopes anti-drift, and Amendment C catalog.
+- **overturn_when:** PHASE-5 promotion moves the operating contract AND this survival section migrates atomically with evidence.
+
+### Per-dispatch ritual (Tier 2)
+
+- **achieves:** every agent runs the same start/end checklist without pasting the whole north-star plan.
+- **origin:** strategy and procedure were conflated; babysit-only regressions followed.
+- **rule:** every implement/audit/review/plan/scout/recon dispatch MUST run the Tier-2 ritual. In-repo short form: [`.cursor/rules/swarm-agent-ritual.mdc`](.cursor/rules/swarm-agent-ritual.mdc). Canonical long form (docs tip; forever home may become `templates/checklists/`): [`docs/checklists/swarm-agent-ritual.md`](docs/checklists/swarm-agent-ritual.md).
+- **ensure:** ritual file tracked under process_meta; receipts include role-scaled evidence.
+- **overturn_when:** a recorded challenge shows the ritual blocks delivery AND a replacement ritual with five fields lands same-wave.
+
 ## What Oyatie is
 
 An owned, cloud-native, hyperscale platform built in Rust — a unified **delivery fabric**

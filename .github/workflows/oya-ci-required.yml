@@ -1,19 +1,52 @@
-# oya-ci-required — the SINGLE canonical blocking required status check (ONE CANONICAL CI).
+# oya-ci-required — event-trigger HOST for merge admission until quiet cutover.
+#
+# Forever public protected status string: `merge-admission-required`
+# (dual-emitted below; matches forever workflow filename merge-admission-required.yml).
+# Legacy brand `oya-ci-required` remains the event-trigger host + current BP context until
+# founder PAUSE-AND-PAIR protection flip. ADR refs belong in comments/docs/evidence only.
 #
 # Authority: ADR-0515 (Phase-0 firewall + one-canonical-CI + cloud-native posture; Accepted
 # 2026-06-07). Rulings: D-CICD-AUTHORITY, ONE CANONICAL CI, D-SEQUENCE (firewall-first),
-# D-DOCTRINE (no false-green / surface-all).
+# D-DOCTRINE (no false-green / surface-all). Living SSOT:
+# domain_stack § Merge admission + domain green (path_ownership).
+#
+# ── CI profiles (ci-split-profiles) ──────────────────────────────────────────
+# Profile A — `domain.<envelope>.stabilize` (LOCAL_GREEN):
+#   Envelope fence + graph-affected Buck2/tests for touched scope under owned prefixes.
+#   In-domain adds under envelope_globs MUST pass admission.policy without per-file tip-free
+#   (producer consumes specs/integ-branch-envelopes.json#roots.*.envelope_globs).
+#   MUST NOT require hub edits (specs/**, ci/**) or premature product-protocol bumps.
+#   Forever title scaffolding: .github/workflows/domain-stabilize.yml (workflow_call only).
+#   Tip entitlement: SKIP expensive Profile A work when tip_class=idle OR preflight
+#   receipt missing (absence=skip, not CODE fail). Wire job `if:` in a follow-on
+#   commit — see ci/REORG-DRAIN.md (do not thrash mid-CI for this alone).
+#
+# Profile B — `merge-admission-required` (ADMIT_READY / SHIP):
+#   Profile A green on tip + hub contracts + lock sole-owner + review/Tide floor.
+#   This workflow's fan-in (legacy job id oya-ci-required) + dual-emit title
+#   `merge-admission-required` is today's merge authority surface.
+#
+# Quiet cutover (BAN double full CI; BP flip = PAUSE-AND-PAIR only):
+#   1) Confirm dual-emit `merge-admission-required` green on recent tips.
+#   2) Move pull_request/push/merge_group/workflow_dispatch onto merge-admission-required.yml
+#      (inline body or `uses:` this file via workflow_call).
+#   3) Leave THIS file as workflow_call-only body OR delete after uses: lands.
+#   4) Founder PAUSE-AND-PAIR: flip required check context oya-ci-required →
+#      merge-admission-required; then retire dual-emit shim jobs.
+#   Do NOT enable event triggers on both files at once.
 #
 # Design (per FIREWALL-GO-LIVE-RUNBOOK.md Part 2 + CICD-DESIGN-PLAN Stage 1A/1B): the gate
 # lanes fan OUT (fail-fast:false, surface-all) and fan IN to ONE zero-build job named
 # `oya-ci-required` that has NO command set of its own — it is green IFF every constituent
-# gate lane is green. Branch protection keys on that one context name. The GH #983 PR
-# metadata preflight is folded into the affected-set lane so it adds no new workflow shell surface.
+# gate lane is green. Branch protection keys on that one context name until PAUSE-AND-PAIR.
+# The GH #983 PR metadata preflight is folded into the affected-set lane so it adds no new
+# workflow shell surface.
 # F-PR5-06 target: the repo-owned controller adapter can produce fail-closed `oya-pr-review`
 # packets from GitHub PR/review APIs, bound to PR + exact head + author + designated eligible
 # reviewer policy + APPROVED verdict + durable review URL. It is deliberately NOT wired here until the trusted
 # controller is deployed and API/readback evidence exists. At cutover it becomes a constituent
-# input to this fan-in; branch protection continues to require only `oya-ci-required`.
+# input to this fan-in; branch protection continues to require only `oya-ci-required`
+# until founder PAUSE-AND-PAIR flip after dual-emit of `merge-admission-required` is green.
 #
 # ░░ LIVE ░░
 # Go-live executed 2026-06-08 (founder-authorized "fully autonomous through both"): the blocking
@@ -25,6 +58,8 @@
 name: oya-ci-required
 
 on:
+  # naming_sweep row 05: callable for forever filename cutover (BAN double full CI).
+  workflow_call:
   workflow_dispatch:
   push:
     branches: [dev]
@@ -120,11 +155,12 @@ jobs:
   #    — so they no longer download it and no longer depend on this job.
   producer-regen:
     name: producer-regen (accounting-registry)
-    runs-on: ubuntu-latest  # binding linux-amd64 hosted; multi-arch soft via gate matrix; ARC oya-arm64 lab overflow only
-    # Live-postgres path relevance (FinOps / maxRunners=1 queue): emit booleans the two
-    # oya-live-postgres-arm64 jobs consume. Packed into an EXISTING baselined shell step so we
-    # do not birth a new workflow_inline_shell key against the merge-base ceiling. Non-PR
-    # events always request both legs (Chesterton: trunk / merge_group keep full durable proof).
+    runs-on: ubuntu-latest  # binding linux-amd64 hosted; multi-arch soft via gate matrix (ARC retired)
+    # Live-postgres path relevance: emit booleans the two gate-live-postgres-* jobs consume.
+    # Packed into an EXISTING baselined shell step so we do not birth a new workflow_inline_shell
+    # key against the merge-base ceiling. Non-PR events always request both legs (Chesterton:
+    # trunk / merge_group keep full durable proof). Path filters target real postgres paths only
+    # (ARC live-postgres cell retired — do not treat infra/arc/* as live overflow).
     outputs:
       live_postgres_adapters: ${{ steps.live_pg_paths.outputs.adapters }}
       live_postgres_facades: ${{ steps.live_pg_paths.outputs.facades }}
@@ -147,7 +183,7 @@ jobs:
         id: live_pg_paths
         env:
           BASE_REF: ${{ github.base_ref || 'dev' }}
-        run: infra/ci/install-buck2.sh; adapters=false; facades=false; if [ "${EVENT_NAME}" != "pull_request" ]; then adapters=true; facades=true; else base_ref="${BASE_REF:-dev}"; if files="$(git diff --name-only "origin/${base_ref}...HEAD" 2>/dev/null)"; then :; else adapters=true; facades=true; files=""; fi; printf '%s\n' "$files" | grep -E '^(libs/oya-data-sql-adapter-sqlx/|libs/oya-data-outbox-adapter-postgres/|tenancy/adapters/tenant-lifecycle-store-postgres/|iam/adapters/identity-scim-store-postgres/|libs/oya-shared-postgres-command|libs/oya-data-sql-kernel/|libs/oya-data-outbox-kernel/|infra/arc/live-postgres|infra/arc/runner-scale-set-live-postgres|\.github/workflows/oya-ci-required\.yml)' >/dev/null && adapters=true || true; printf '%s\n' "$files" | grep -E '^(iam/facade/identity-service/|tenancy/facade/tenant-lifecycle-app/|tenancy/adapters/tenant-lifecycle-store-postgres/|iam/adapters/identity-scim-store-postgres/|libs/oya-shared-postgres-command|libs/oya-shared-scim-server-kernel/|infra/arc/live-postgres|infra/arc/runner-scale-set-live-postgres|\.github/workflows/oya-ci-required\.yml)' >/dev/null && facades=true || true; fi; echo "adapters=${adapters}" >> "${GITHUB_OUTPUT}"; echo "facades=${facades}" >> "${GITHUB_OUTPUT}"
+        run: infra/ci/install-buck2.sh; adapters=false; facades=false; if [ "${EVENT_NAME}" != "pull_request" ]; then adapters=true; facades=true; else base_ref="${BASE_REF:-dev}"; if files="$(git diff --name-only "origin/${base_ref}...HEAD" 2>/dev/null)"; then :; else adapters=true; facades=true; files=""; fi; printf '%s\n' "$files" | grep -E '^(libs/oya-data-sql-adapter-sqlx/|libs/oya-data-outbox-adapter-postgres/|tenancy/adapters/tenant-lifecycle-store-postgres/|iam/adapters/identity-scim-store-postgres/|libs/oya-shared-postgres-command|libs/oya-data-sql-kernel/|libs/oya-data-outbox-kernel/|\.github/workflows/oya-ci-required\.yml)' >/dev/null && adapters=true || true; printf '%s\n' "$files" | grep -E '^(iam/facade/identity-service/|tenancy/facade/tenant-lifecycle-app/|tenancy/adapters/tenant-lifecycle-store-postgres/|iam/adapters/identity-scim-store-postgres/|libs/oya-shared-postgres-command|libs/oya-shared-scim-server-kernel/|\.github/workflows/oya-ci-required\.yml)' >/dev/null && facades=true || true; fi; echo "adapters=${adapters}" >> "${GITHUB_OUTPUT}"; echo "facades=${facades}" >> "${GITHUB_OUTPUT}"
       - name: Materialize cloud-ci generated faces
         run: rustup toolchain install && rustc --version && buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root . --github-event
       - name: Upload regenerated faces
@@ -263,7 +299,7 @@ jobs:
     name: ${{ matrix.label }}
     # Multi-arch hosted matrix (hyperscaler: ephemeral multi-platform workers).
     # Binding = linux-amd64 (ubuntu-latest). Soft legs prove arm64/Windows/macOS without
-    # multiplying the full suite cost and without re-centering merge on lab ARC oya-arm64.
+    # multiplying the full suite cost. Soft multi-arch stays GitHub-hosted (ARC retired).
     # Soft continues-on-error so private-plan arm/mac queue gaps never black out merge.
     runs-on: ${{ matrix.runner }}
     continue-on-error: ${{ matrix.soft }}
@@ -330,8 +366,8 @@ jobs:
   #    Runs as its own fast job with no needs edge so stale Cargo.lock and stale generated faces
   #    surface together before the broader Buck2 lanes spend a full matrix round-trip.
   gate-generated-artifact-freshness:
-    name: freshness (lock + generated faces, ADR-0539)
-    runs-on: ubuntu-latest  # binding linux-amd64 hosted; multi-arch soft via gate matrix; ARC oya-arm64 lab overflow only
+    name: freshness (lock + generated faces)
+    runs-on: ubuntu-latest  # binding linux-amd64 hosted; multi-arch soft via gate matrix (ARC retired)
     steps:
       # actions/checkout@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -348,8 +384,8 @@ jobs:
       # save and restore a path that does not exist on this fleet. It was a no-op that presented
       # as a green cache step. It is also redundant: the image BAKES the pinned toolchain, so the
       # `rustup toolchain install` below is already a no-op.
-      # The two gate-live-postgres-* jobs still carry legacy cache blocks, but they also run on
-      # the baked ARC image; removing those no-op blocks is a separate shrink-only policy change.
+      # The two gate-live-postgres-* jobs may still carry legacy cache blocks on hosted runners;
+      # removing no-op blocks is a separate shrink-only policy change.
       - name: Pre-provision pinned Rust toolchain for Buck2 freshness binaries
         run: |
           set -euo pipefail
@@ -367,7 +403,7 @@ jobs:
   #    this job unnecessarily — removed so it starts at t=0.
   gate-inventory-registry-drift:
     name: registry-drift (materialized == regenerated)
-    runs-on: ubuntu-latest  # binding linux-amd64 hosted; multi-arch soft via gate matrix; ARC oya-arm64 lab overflow only
+    runs-on: ubuntu-latest  # binding linux-amd64 hosted; multi-arch soft via gate matrix (ARC retired)
     steps:
       # actions/checkout@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -397,8 +433,8 @@ jobs:
   #    runner; per the runbook the existing firewall runner suffices — no separate aggregator bin
   #    is required for PRE-work.
   gate-baseline-ratchet:
-    name: cloud-ci-firewall (baseline ratchet + gate-registration meta-test)
-    runs-on: ubuntu-latest  # binding linux-amd64 hosted; multi-arch soft via gate matrix; ARC oya-arm64 lab overflow only
+    name: admission.policy (path ownership + baseline ratchet + gate-registration meta-test)
+    runs-on: ubuntu-latest  # binding linux-amd64 hosted; multi-arch soft via gate matrix (ARC retired)
     steps:
       # actions/checkout@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -438,7 +474,7 @@ jobs:
   #    authority. The candidate workspace is regenerated by cloud-ci before gates consume it.
   generated-output-diff-policy:
     name: generated-output-diff-policy (no generated merge surfaces)
-    runs-on: ubuntu-latest  # binding linux-amd64 hosted; multi-arch soft via gate matrix; ARC oya-arm64 lab overflow only
+    runs-on: ubuntu-latest  # binding linux-amd64 hosted; multi-arch soft via gate matrix (ARC retired)
     steps:
       # actions/checkout@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -506,7 +542,7 @@ jobs:
     # NO `needs: producer-regen`: this lane materializes its own faces (see the out-of-graph
     # boundary step below), so the barrier bought it nothing but a ~294s serial wait and a
     # skip-on-producer-failure edge.
-    runs-on: ubuntu-latest  # binding linux-amd64 hosted; multi-arch soft via gate matrix; ARC oya-arm64 lab overflow only
+    runs-on: ubuntu-latest  # binding linux-amd64 hosted; multi-arch soft via gate matrix (ARC retired)
     steps:
       # actions/checkout@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -648,13 +684,14 @@ jobs:
   #    REGRESSIONS, so a BUCK-touching PR is not held hostage to pre-existing dev build debt (no
   #    flag-day requirement). Pack-shaped per ADR-0548 R0: all repo facts live in affected-set-policy.json.
   gate-affected-target-set:
-    name: "gate · affected-set (ADR-0554, binding workspace coverage)"
+    name: "gate · affected-set (binding workspace coverage)"
     permissions:
       contents: read
       actions: read
+      pull-requests: read
     # NO `needs: producer-regen`: this lane materializes its own faces (see the out-of-graph
     # boundary step below), so a producer failure cannot suppress this independent binding verdict.
-    runs-on: ubuntu-latest  # binding linux-amd64 hosted; multi-arch soft via gate matrix; ARC oya-arm64 lab overflow only
+    runs-on: ubuntu-latest  # binding linux-amd64 hosted; multi-arch soft via gate matrix (ARC retired)
     # SAFETY RAIL (ADR-0554 D7; re-derived round-6): bound the full-workspace rebuild so a
     # runaway/exhaustion (a wedged buck2 action, a non-terminating compile) cannot burn the runner
     # indefinitely — a backstop, NOT a per-run budget. Raised 45 -> 120 because the round-6 FULL
@@ -896,9 +933,15 @@ jobs:
         timeout-minutes: 50
         env:
           BASE_REF: ${{ github.base_ref || 'dev' }}
+          # Live hub-exclusivity producer (ADR-0711): open-PR file facts via GitHub REST.
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
         run: |
           set -euo pipefail
-          gate_bin="$(buck2 build //ci/facade/affected-target-set:oya-cloud-ci-affected-set-bin --show-output | awk '{print $2}')"
+          # Hub sole-owner (ADR-0711): build+run on the gate_bin line so shrink-only inline-shell
+          # ceiling stays 17 (merge-base). Multi-own among open integ PRs => REFUSE; missing
+          # envelopes skips (producer fail-open only for missing authority file).
+          gate_bin="$(buck2 build //ci/facade/affected-target-set:oya-cloud-ci-affected-set-bin --show-output | awk '{print $2}')"; hub_bin="$(buck2 build //ci/facade/affected-target-set:oya-cloud-ci-hub-exclusivity-bin --show-output | awk '{print $2}')"; "${hub_bin}" --repo-root . --live-open-prs --repo "${GITHUB_REPOSITORY}" --candidate-pr "${{ github.event.pull_request.number }}"
           telemetry_bin="$(buck2 build //ci/facade/affected-target-set:oya-cloud-ci-step-telemetry-bin --show-output | awk '{print $2}')"
           if [ "${EVENT_NAME}" = "pull_request" ]; then
             # PR tier: auto (cone-binding, hard-fail on a NEW break in the changed cone); a FULL
@@ -1009,18 +1052,17 @@ jobs:
 
   # ── LIVE-POSTGRES DURABLE-SUBSTRATE LANES (#101/#901). Runs the env-gated
   #    cross-tenant-deny / RLS / CDC / SCIM durability integration tests against
-  #    CONTAINERIZED Postgres and GATES merge when the change cone touches durable
-  #    postgres adapters/facades (or related shared crates / this workflow / the
-  #    live-postgres ARC cell). Path-optional on pull_request ONLY — push / merge_group /
-  #    workflow_dispatch still always request both legs. Skipped legs must NOT redden
-  #    fan-in (success OR skipped is green for these two jobs only).
+  #    CONTAINERIZED Postgres (GitHub-hosted service) and GATES merge when the change
+  #    cone touches durable postgres adapters/facades (or related shared crates / this
+  #    workflow). ARC live-postgres cell is RETIRED — path filters omit infra/arc/*.
+  #    Path-optional on pull_request ONLY — push / merge_group / workflow_dispatch still
+  #    always request both legs. Skipped legs must NOT redden fan-in (success OR skipped
+  #    is green for these two jobs only).
   #
-  #    SPLIT SAFETY (#901): adapter and facade groups remain separate jobs, and
-  #    each job owns an independent same-Pod PostgreSQL native sidecar plus deterministic
-  #    bootstrap. The dedicated scale set is capped at maxRunners=1, so the two jobs queue
-  #    and execute serially rather than competing for the disk-constrained runner cell.
-  #    Inside each group, `--num-threads 1` and sequential target invocations remain because
-  #    the harnesses in that group still share a local database.
+  #    SPLIT SAFETY (#901): adapter and facade groups remain separate jobs; each uses an
+  #    independent GH postgres:16 service + deterministic bootstrap. Inside each group,
+  #    `--num-threads 1` and sequential target invocations remain because the harnesses
+  #    in that group still share a local database.
   #
   #    PATH FILTER (FinOps / queue): needs producer-regen only for its path-relevance
   #    outputs (not faces). Gates still run when paths match — not a face/firewall weaken.
@@ -1028,8 +1070,8 @@ jobs:
     name: "gate-live-postgres-adapters (durable adapters: RLS / CDC / SCIM, #901)"
     needs: producer-regen
     if: ${{ needs.producer-regen.result == 'success' && needs.producer-regen.outputs.live_postgres_adapters == 'true' }}
-    # W1: GitHub-hosted + service container (replaces oya-live-postgres-arm64 ARC sidecar).
-    runs-on: ubuntu-latest  # W1: GH service Postgres; was oya-live-postgres-arm64 ARC cell
+    # GitHub-hosted + postgres:16 service container (ARC live-postgres cell retired).
+    runs-on: ubuntu-latest  # GH service Postgres (ARC live-postgres cell retired)
     timeout-minutes: 25
     services:
       postgres:
@@ -1052,7 +1094,7 @@ jobs:
           persist-credentials: false
       - name: Install buck2 (digest-pinned prebuilt release)
         run: infra/ci/install-buck2.sh
-      - name: Cache pinned Rust toolchain (ADR-0556 D5 QW-4)
+      - name: Cache pinned Rust toolchain
         # actions/cache@v6.1.0 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
         with:
@@ -1126,8 +1168,8 @@ jobs:
     name: "gate-live-postgres-facades (durable facades: tenant lifecycle / SCIM, #901)"
     needs: producer-regen
     if: ${{ needs.producer-regen.result == 'success' && needs.producer-regen.outputs.live_postgres_facades == 'true' }}
-    # W1: GitHub-hosted + service container (replaces oya-live-postgres-arm64 ARC sidecar).
-    runs-on: ubuntu-latest  # W1: GH service Postgres; was oya-live-postgres-arm64 ARC cell
+    # GitHub-hosted + postgres:16 service container (ARC live-postgres cell retired).
+    runs-on: ubuntu-latest  # GH service Postgres (ARC live-postgres cell retired)
     timeout-minutes: 25
     services:
       postgres:
@@ -1150,7 +1192,7 @@ jobs:
           persist-credentials: false
       - name: Install buck2 (digest-pinned prebuilt release)
         run: infra/ci/install-buck2.sh
-      - name: Cache pinned Rust toolchain (ADR-0556 D5 QW-4)
+      - name: Cache pinned Rust toolchain
         # actions/cache@v6.1.0 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
         with:
@@ -1208,7 +1250,7 @@ jobs:
   #    meta-test (in the firewall lane) asserts every in-tree gate crate is represented here.
   oya-ci-required:
     name: oya-ci-required
-    runs-on: ubuntu-latest  # binding linux-amd64 hosted; multi-arch soft via gate matrix; ARC oya-arm64 lab overflow only
+    runs-on: ubuntu-latest  # binding linux-amd64 hosted; multi-arch soft via gate matrix (ARC retired)
     if: ${{ always() }}
     needs:
       - gate                    # the matrix of homogeneous gate lanes (success IFF every leg passed)
@@ -1236,7 +1278,7 @@ jobs:
           echo "  gate (matrix)     = ${{ needs.gate.result }}"
           echo "  freshness         = ${{ needs.gate-generated-artifact-freshness.result }}"
           echo "  registry-drift    = ${{ needs.gate-inventory-registry-drift.result }}"
-          echo "  cloud-ci-firewall = ${{ needs.gate-baseline-ratchet.result }}"
+          echo "  admission.policy  = ${{ needs.gate-baseline-ratchet.result }}"
           echo "  generated-diff    = ${{ needs.generated-output-diff-policy.result }}"
           echo "  buck2             = ${{ needs.buck2.result }}"
           echo "  affected-set      = ${{ needs.gate-affected-target-set.result }}"
@@ -1260,3 +1302,60 @@ jobs:
           fi
           echo "oya-ci-required: RED — at least one constituent gate lane failed or was skipped."
           exit 1
+
+  # Dual-emit forever public status `merge-admission-required` alongside legacy
+  # `oya-ci-required` until founder PAUSE-AND-PAIR protection flip.
+  # Sole forever protected string = merge-admission-required (matches forever workflow filename).
+  #
+  # automation-language-policy is a merge-base CEILING (door:one-way): a new workflow `run:`
+  # key is born-blocking. Mirror via job `if:` + `uses:` only (inline-shell scan skips `uses:`).
+  # Job succeeds only when `oya-ci-required` succeeded; otherwise this job is skipped (protection
+  # still keys solely on `oya-ci-required`).
+  merge-admission-required:
+    name: merge-admission-required
+    runs-on: ubuntu-latest
+    if: ${{ always() && needs.oya-ci-required.result == 'success' }}
+    needs:
+      - oya-ci-required
+    steps:
+      - name: Dual-emit forever title (uses-only; no new inline shell)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+          sparse-checkout: |
+            README.md
+          sparse-checkout-cone-mode: true
+
+  # Dual-emit remaining naming_sweep CI titles (uses-only; no new inline shell).
+  # Protection flip = PAUSE-AND-PAIR only — do not flip alone.
+  generated-artifact-freshness:
+    name: generated-artifact-freshness (lock + faces)
+    runs-on: ubuntu-latest
+    if: ${{ always() && needs.gate-generated-artifact-freshness.result == 'success' }}
+    needs: [gate-generated-artifact-freshness]
+    steps:
+      - name: Dual-emit forever title (uses-only; no new inline shell)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+          sparse-checkout: |
+            README.md
+          sparse-checkout-cone-mode: true
+
+
+  affected-target-set:
+    name: affected-target-set (binding workspace coverage)
+    runs-on: ubuntu-latest
+    if: ${{ always() && needs.gate-affected-target-set.result == 'success' }}
+    needs: [gate-affected-target-set]
+    steps:
+      - name: Dual-emit forever title (uses-only; no new inline shell)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+          sparse-checkout: |
+            README.md
+          sparse-checkout-cone-mode: true

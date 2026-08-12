@@ -45,7 +45,8 @@ use ci_artifact_inventory_registry::{
     CrosswalkInputs, DecisionCrosswalkRow, EnforcementInputs, EnforcementRow, GateInputs,
     OwnersIntegrity, Policy, ProducerError, RepoInputs, adr_id_from_filename, allocate_next_adr_id,
     build_decision_crosswalk, build_enforcement_inventory, build_gate_baseline, build_registry,
-    fix_owners, fix_reachability, front_matter_field, load_reachability_registry,
+    ENVELOPE_PREFIX_OWNERSHIP_SOURCE, ENVELOPES_RELPATH, fix_owners, fix_reachability,
+    front_matter_field, load_envelope_prefix_allows, load_reachability_registry,
     registration_matches, resolve_owners, to_canonical_json,
 };
 use oya_check_brand_residue::forbidden_vocab::{
@@ -3289,6 +3290,47 @@ status: Accepted
         fs::remove_dir_all(root).expect("remove temp repo");
     }
 
+    #[test]
+    fn resolve_reachability_allows_envelope_prefix_without_tip_free() {
+        let root = unique_temp_repo();
+        fs::create_dir_all(root.join("specs")).expect("create specs");
+        // Empty tip-free registry on purpose — envelope prefixes must be sufficient.
+        fs::write(
+            root.join("specs/reachability-registry.json"),
+            r#"{"registered":[]}"#,
+        )
+        .expect("write empty registry");
+        fs::write(
+            root.join(ENVELOPES_RELPATH),
+            r#"{
+              "roots": {
+                "compute": {
+                  "branch": "integ/compute",
+                  "envelope_globs": ["compute/**"]
+                }
+              }
+            }"#,
+        )
+        .expect("write envelopes");
+        let cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
+        let paths = vec![
+            "compute/manifest.json".to_owned(),
+            "compute/stale-path-hygiene-note.md".to_owned(),
+            "foreign/not-owned.rs".to_owned(),
+        ];
+        let map = resolve_reachability(&root, &paths, &cfg).expect("resolve");
+        assert_eq!(
+            map.get("compute/manifest.json"),
+            Some(&vec![ENVELOPE_PREFIX_OWNERSHIP_SOURCE.to_owned()])
+        );
+        assert_eq!(
+            map.get("compute/stale-path-hygiene-note.md"),
+            Some(&vec![ENVELOPE_PREFIX_OWNERSHIP_SOURCE.to_owned()])
+        );
+        assert!(!map.contains_key("foreign/not-owned.rs"));
+        fs::remove_dir_all(root).expect("remove temp repo");
+    }
+
     /// A text registry reaches a path when it NAMES the path — not when the path's characters
     /// occur somewhere inside it.
     ///
@@ -4527,8 +4569,13 @@ fn collect_repo_inputs(
 
 /// Reachability: a path is reachable if a live registry points at it. We resolve the
 /// real registries (masterplan.json / root-hub-pointers.json / Cargo.toml members /
-/// DOC-CATALOG / the reviewed reachability registry) and mark each tracked path with the
-/// registries that mention it.
+/// DOC-CATALOG / the reviewed reachability registry / envelope `envelope_globs` prefixes)
+/// and mark each tracked path with the registries that mention it.
+///
+/// Envelope prefix ownership (admission.policy / path_ownership law): paths under an owned
+/// `roots.*.envelope_globs` prefix (e.g. `compute/**` → `compute/`) are in-domain — they MUST
+/// NOT require per-file tip-free / reachability-registry rows. Source tag:
+/// [`ENVELOPE_PREFIX_OWNERSHIP_SOURCE`].
 ///
 /// The three TEXT registries are matched by whole path token, NOT by substring. A registry
 /// reaches a path when it NAMES the path; `masterplan.contains("OWNERS")` is also true of
@@ -4549,6 +4596,7 @@ fn resolve_reachability(
     let doc_catalog = mentioned_path_index(&doc_catalog);
     let cargo_members = read_cargo_member_prefixes(repo_root)?;
     let registrations = load_reachability_registry(&repo_root.join(&cfg.reachability.registry))?;
+    let envelope_prefixes = load_envelope_prefix_allows(&repo_root.join(ENVELOPES_RELPATH))?;
 
     let mut map: BTreeMap<String, Vec<String>> = BTreeMap::new();
     for path in paths {
@@ -4570,6 +4618,12 @@ fn resolve_reachability(
             .any(|entry| registration_matches(path, &entry.prefix))
         {
             reach.push("reachability-registry".into());
+        }
+        if envelope_prefixes
+            .iter()
+            .any(|entry| registration_matches(path, &entry.prefix))
+        {
+            reach.push(ENVELOPE_PREFIX_OWNERSHIP_SOURCE.into());
         }
         if !reach.is_empty() {
             map.insert(path.clone(), reach);
@@ -4901,11 +4955,13 @@ fn check_added_paths(
 fn unjustified_remediation(path: &str) -> String {
     format!(
         "register `{path}` in a live reachability registry (masterplan / root-hub-pointers / \
-         DOC-CATALOG / the reviewed reachability-registry), or land it under a workspace Cargo \
-         member — a reached path is justified by the registry that reaches it, so this clears \
-         `unreachable` too. Only if NO live registry can reach it, add the exact path token \
-         `{path}` to the governing ADR under docs/decisions/ — precedent: ADR-0515 for ci/ gate \
-         surfaces, ADR-0251 for compliance artifacts"
+         DOC-CATALOG / the reviewed reachability-registry / an owned envelope_globs prefix in \
+         {ENVELOPES_RELPATH}), or land it under a workspace Cargo member — a reached path is \
+         justified by the registry that reaches it, so this clears `unreachable` too. In-domain \
+         paths under envelope prefixes need no per-file tip-free row. Only if NO live registry \
+         can reach it, add the exact path token `{path}` to the governing ADR under \
+         docs/decisions/ — precedent: ADR-0515 for ci/ gate surfaces, ADR-0251 for compliance \
+         artifacts"
     )
 }
 
@@ -4957,8 +5013,9 @@ fn report_check(verdicts: &[AddedPathVerdict]) -> bool {
         if verdict.blocking_codes.contains("unreachable") {
             println!(
                 "    fix (unreachable): register `{}` in a live reachability registry (masterplan / \
-                 root-hub-pointers / DOC-CATALOG / the reviewed reachability-registry), or land it \
-                 under a workspace Cargo member",
+                 root-hub-pointers / DOC-CATALOG / the reviewed reachability-registry), land it \
+                 under a workspace Cargo member, OR place it under an owned envelope_globs \
+                 prefix in {ENVELOPES_RELPATH} (in-domain — no per-file tip-free required)",
                 verdict.path
             );
         }

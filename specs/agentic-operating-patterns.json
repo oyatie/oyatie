@@ -192,7 +192,7 @@
       "achieves": "Early buck2 [check] feedback on ≤hot_set_max integ stations without worker-lane builds or cargo revival.",
       "origin": "16-lens northstar R9; founder 2026-05-29 no-cargo; false parallelism paid full CI per unit.",
       "rule": "Run check-daemon on hot-set integ stations (≤ merge_windows.hot_set_max); main checkout remains orchestrator+daemon; LSP/rust-analyzer read-only ≠ build ≠ merge authority.",
-      "ensure": "envelopes#daemon_hotset + #merge_windows; process-kit harness under .grok/harness/daemon-hotset.v1.json when birthed on owning integ; self-check cites hot_set_max.",
+      "ensure": "envelopes#daemon_hotset + #merge_windows; process-kit harness under ci/facade/harness/daemon-hotset.v1.json on integ/ci; self-check cites hot_set_max.",
       "overturn_when": "envelopes#merge_windows.hot_set_max changes same-wave OR blessed local type-check leaves buck2 [check] OR founder authorizes different warm-daemon topology.",
       "oyatie_apply": [
         "no-slow-commands",
@@ -205,7 +205,7 @@
       "achieves": "Advisory channels cannot write main checkout or mint merge authority; hotfix/* is not a prose-only trunk escape.",
       "origin": "16-lens northstar R10; optional omx/omc/gjc/grok used as default drivers / main-checkout writers.",
       "rule": "Advisory omx/omc/gjc/grok MUST run in scratch worktrees/clones and MUST NOT write the main checkout; hotfix/* requires founder ack or incident evidence (Phase B gate).",
-      "ensure": "envelopes#perimeter; .grok/harness/perimeter.v1.json when birthed on owning integ; Claim/Land refuse hotfix without evidence schema when Phase B live.",
+      "ensure": "envelopes#perimeter; ci/facade/harness/perimeter.v1.json on integ/ci; Claim/Land refuse hotfix without evidence schema when Phase B live.",
       "overturn_when": "Founder retires advisory channels OR Phase B hotfix evidence schema is amended OR worktree topology (ADR-0711 D-5) is OVERRULEd.",
       "oyatie_apply": [
         "swarm-delivery-law",
