@@ -29,10 +29,10 @@ doc_status: published
 | `AGENTS.md` | 1 | `9` | `22` | yes |
 | `CLAUDE.md` | 1 | `9` | `22` | yes |
 | `docs/AGENTS.md` | 1 | `145` | `164` | yes |
-| `docs/checklists/agent-completion-checklist.md` | 1 | `26` | `78` | yes |
-| `docs/checklists/agent-kickoff-checklist.md` | 1 | `25` | `64` | yes |
-| `docs/checklists/escalation-checklist.md` | 1 | `63` | `76` | yes |
-| `docs/checklists/inventory-update-checklist.md` | 1 | `69` | `73` | yes |
+| `templates/checklists/agent-completion-checklist.md` | 1 | `26` | `78` | yes |
+| `templates/checklists/agent-kickoff-checklist.md` | 1 | `25` | `64` | yes |
+| `templates/checklists/escalation-checklist.md` | 1 | `63` | `76` | yes |
+| `templates/checklists/inventory-update-checklist.md` | 1 | `69` | `73` | yes |
 | `docs/standards/agent-instructions-discipline.md` | 1 | `43` | `45` | yes |
 | `docs/templates/implementation-plan-template.md` | 1 | `75` | `83` | yes |
 | `docs/templates/pull-request-template-v2.md` | 1 | `37` | `42` | yes |

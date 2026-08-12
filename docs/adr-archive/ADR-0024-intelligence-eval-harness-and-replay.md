@@ -161,4 +161,4 @@ A nightly job (CI lane `foundry-eval-nightly`) runs every published capability's
 
 - Internal: ADR-0020 (router; A/B winners feed back into routing), ADR-0021 (registry; publish gate), ADR-0022 (autonomy; adversarial cohort proves the gate works), ADR-0023 (sandbox; replay determinism), ADR-0026 (in-house substrate; eval is the cutover gate).
 - External: Anthropic responsible-scaling policy and adversarial prompt patterns; Apollo Research evaluations; standard NLP metrics (BLEU, ROUGE, F1).
-- Capability publishing checklist: `docs/checklists/foundry-capability-publishing.md`.
+- Capability publishing checklist: `templates/checklists/foundry-capability-publishing.md`.

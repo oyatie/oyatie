@@ -4,7 +4,7 @@ checklist_id: CHK-PRE
 status: pending approval
 purpose: |
   Every change class precondition. Walked before any agent claims a symbol or any human stages a commit. Extends `docs/AGENTS.md §Pre-flight checklist`.
-lift_target: oyatie/docs/checklists/pre-flight.md
+lift_target: oyatie/templates/checklists/pre-flight.md
 enforcing_fitness_lane: oya-governance-pr-shape
 owner_team: council-architecture
 related:

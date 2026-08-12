@@ -2308,7 +2308,7 @@ Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0246](../deci
 
 ### Week 4 task 02
 Focus: Apply `workflow` doctrine to incident shadow and first sole-ownership slice with ADR-0247 as the decision anchor.
-Read: Inspect `docs/checklists/done-definition-checklist.md` and one adjacent file discovered with `rg -n "workflow" docs specs crates | sed -n '1,20p'`.
+Read: Inspect `templates/checklists/done-definition-checklist.md` and one adjacent file discovered with `rg -n "workflow" docs specs crates | sed -n '1,20p'`.
 Build: Produce a small note, fixture, or doc patch that clarifies one intern-buildability gap without widening scope.
 Artifact: `month-one-week-4-02` containing changed path or no-change evidence, source command, expected reviewer, and glossary rows.
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
@@ -2338,7 +2338,7 @@ Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0249](../deci
 
 ### Week 4 task 05
 Focus: Apply `foundry` doctrine to incident shadow and first sole-ownership slice with ADR-0250 as the decision anchor.
-Read: Inspect `docs/checklists/done-definition-checklist.md` and one adjacent file discovered with `rg -n "foundry" docs specs crates | sed -n '1,20p'`.
+Read: Inspect `templates/checklists/done-definition-checklist.md` and one adjacent file discovered with `rg -n "foundry" docs specs crates | sed -n '1,20p'`.
 Build: Produce a small note, fixture, or doc patch that clarifies one intern-buildability gap without widening scope.
 Artifact: `month-one-week-4-05` containing changed path or no-change evidence, source command, expected reviewer, and glossary rows.
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
@@ -2368,7 +2368,7 @@ Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0252](../deci
 
 ### Week 4 task 08
 Focus: Apply `policy-engine` doctrine to incident shadow and first sole-ownership slice with ADR-0253 as the decision anchor.
-Read: Inspect `docs/checklists/done-definition-checklist.md` and one adjacent file discovered with `rg -n "policy-engine" docs specs crates | sed -n '1,20p'`.
+Read: Inspect `templates/checklists/done-definition-checklist.md` and one adjacent file discovered with `rg -n "policy-engine" docs specs crates | sed -n '1,20p'`.
 Build: Produce a small note, fixture, or doc patch that clarifies one intern-buildability gap without widening scope.
 Artifact: `month-one-week-4-08` containing changed path or no-change evidence, source command, expected reviewer, and glossary rows.
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
@@ -2398,7 +2398,7 @@ Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0255](../deci
 
 ### Week 4 task 11
 Focus: Apply `audit-chain` doctrine to incident shadow and first sole-ownership slice with ADR-0257 as the decision anchor.
-Read: Inspect `docs/checklists/done-definition-checklist.md` and one adjacent file discovered with `rg -n "audit-chain" docs specs crates | sed -n '1,20p'`.
+Read: Inspect `templates/checklists/done-definition-checklist.md` and one adjacent file discovered with `rg -n "audit-chain" docs specs crates | sed -n '1,20p'`.
 Build: Produce a small note, fixture, or doc patch that clarifies one intern-buildability gap without widening scope.
 Artifact: `month-one-week-4-11` containing changed path or no-change evidence, source command, expected reviewer, and glossary rows.
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
@@ -2428,7 +2428,7 @@ Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0263](../deci
 
 ### Week 4 task 14
 Focus: Apply `tenancy` doctrine to incident shadow and first sole-ownership slice with ADR-0273 as the decision anchor.
-Read: Inspect `docs/checklists/done-definition-checklist.md` and one adjacent file discovered with `rg -n "tenancy" docs specs crates | sed -n '1,20p'`.
+Read: Inspect `templates/checklists/done-definition-checklist.md` and one adjacent file discovered with `rg -n "tenancy" docs specs crates | sed -n '1,20p'`.
 Build: Produce a small note, fixture, or doc patch that clarifies one intern-buildability gap without widening scope.
 Artifact: `month-one-week-4-14` containing changed path or no-change evidence, source command, expected reviewer, and glossary rows.
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
@@ -2458,7 +2458,7 @@ Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0280](../deci
 
 ### Week 4 task 17
 Focus: Apply `ontology` doctrine to incident shadow and first sole-ownership slice with ADR-0284 as the decision anchor.
-Read: Inspect `docs/checklists/done-definition-checklist.md` and one adjacent file discovered with `rg -n "ontology" docs specs crates | sed -n '1,20p'`.
+Read: Inspect `templates/checklists/done-definition-checklist.md` and one adjacent file discovered with `rg -n "ontology" docs specs crates | sed -n '1,20p'`.
 Build: Produce a small note, fixture, or doc patch that clarifies one intern-buildability gap without widening scope.
 Artifact: `month-one-week-4-17` containing changed path or no-change evidence, source command, expected reviewer, and glossary rows.
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
@@ -2488,7 +2488,7 @@ Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0293](../deci
 
 ### Week 4 task 20
 Focus: Apply `ops-dashboard` doctrine to incident shadow and first sole-ownership slice with ADR-0294 as the decision anchor.
-Read: Inspect `docs/checklists/done-definition-checklist.md` and one adjacent file discovered with `rg -n "ops-dashboard" docs specs crates | sed -n '1,20p'`.
+Read: Inspect `templates/checklists/done-definition-checklist.md` and one adjacent file discovered with `rg -n "ops-dashboard" docs specs crates | sed -n '1,20p'`.
 Build: Produce a small note, fixture, or doc patch that clarifies one intern-buildability gap without widening scope.
 Artifact: `month-one-week-4-20` containing changed path or no-change evidence, source command, expected reviewer, and glossary rows.
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
@@ -2518,7 +2518,7 @@ Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0296](../deci
 
 ### Week 4 task 23
 Focus: Apply `workflow` doctrine to incident shadow and first sole-ownership slice with ADR-0311 as the decision anchor.
-Read: Inspect `docs/checklists/done-definition-checklist.md` and one adjacent file discovered with `rg -n "workflow" docs specs crates | sed -n '1,20p'`.
+Read: Inspect `templates/checklists/done-definition-checklist.md` and one adjacent file discovered with `rg -n "workflow" docs specs crates | sed -n '1,20p'`.
 Build: Produce a small note, fixture, or doc patch that clarifies one intern-buildability gap without widening scope.
 Artifact: `month-one-week-4-23` containing changed path or no-change evidence, source command, expected reviewer, and glossary rows.
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
@@ -2548,7 +2548,7 @@ Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0316](../deci
 
 ### Week 4 task 26
 Focus: Apply `foundry` doctrine to incident shadow and first sole-ownership slice with ADR-0317 as the decision anchor.
-Read: Inspect `docs/checklists/done-definition-checklist.md` and one adjacent file discovered with `rg -n "foundry" docs specs crates | sed -n '1,20p'`.
+Read: Inspect `templates/checklists/done-definition-checklist.md` and one adjacent file discovered with `rg -n "foundry" docs specs crates | sed -n '1,20p'`.
 Build: Produce a small note, fixture, or doc patch that clarifies one intern-buildability gap without widening scope.
 Artifact: `month-one-week-4-26` containing changed path or no-change evidence, source command, expected reviewer, and glossary rows.
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
@@ -2578,7 +2578,7 @@ Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0243](../deci
 
 ### Week 4 task 29
 Focus: Apply `policy-engine` doctrine to incident shadow and first sole-ownership slice with ADR-0244 as the decision anchor.
-Read: Inspect `docs/checklists/done-definition-checklist.md` and one adjacent file discovered with `rg -n "policy-engine" docs specs crates | sed -n '1,20p'`.
+Read: Inspect `templates/checklists/done-definition-checklist.md` and one adjacent file discovered with `rg -n "policy-engine" docs specs crates | sed -n '1,20p'`.
 Build: Produce a small note, fixture, or doc patch that clarifies one intern-buildability gap without widening scope.
 Artifact: `month-one-week-4-29` containing changed path or no-change evidence, source command, expected reviewer, and glossary rows.
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
@@ -2608,7 +2608,7 @@ Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0246](../deci
 
 ### Week 4 task 32
 Focus: Apply `audit-chain` doctrine to incident shadow and first sole-ownership slice with ADR-0247 as the decision anchor.
-Read: Inspect `docs/checklists/done-definition-checklist.md` and one adjacent file discovered with `rg -n "audit-chain" docs specs crates | sed -n '1,20p'`.
+Read: Inspect `templates/checklists/done-definition-checklist.md` and one adjacent file discovered with `rg -n "audit-chain" docs specs crates | sed -n '1,20p'`.
 Build: Produce a small note, fixture, or doc patch that clarifies one intern-buildability gap without widening scope.
 Artifact: `month-one-week-4-32` containing changed path or no-change evidence, source command, expected reviewer, and glossary rows.
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
@@ -2638,7 +2638,7 @@ Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0249](../deci
 
 ### Week 4 task 35
 Focus: Apply `tenancy` doctrine to incident shadow and first sole-ownership slice with ADR-0250 as the decision anchor.
-Read: Inspect `docs/checklists/done-definition-checklist.md` and one adjacent file discovered with `rg -n "tenancy" docs specs crates | sed -n '1,20p'`.
+Read: Inspect `templates/checklists/done-definition-checklist.md` and one adjacent file discovered with `rg -n "tenancy" docs specs crates | sed -n '1,20p'`.
 Build: Produce a small note, fixture, or doc patch that clarifies one intern-buildability gap without widening scope.
 Artifact: `month-one-week-4-35` containing changed path or no-change evidence, source command, expected reviewer, and glossary rows.
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
@@ -2668,7 +2668,7 @@ Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0252](../deci
 
 ### Week 4 task 38
 Focus: Apply `ontology` doctrine to incident shadow and first sole-ownership slice with ADR-0253 as the decision anchor.
-Read: Inspect `docs/checklists/done-definition-checklist.md` and one adjacent file discovered with `rg -n "ontology" docs specs crates | sed -n '1,20p'`.
+Read: Inspect `templates/checklists/done-definition-checklist.md` and one adjacent file discovered with `rg -n "ontology" docs specs crates | sed -n '1,20p'`.
 Build: Produce a small note, fixture, or doc patch that clarifies one intern-buildability gap without widening scope.
 Artifact: `month-one-week-4-38` containing changed path or no-change evidence, source command, expected reviewer, and glossary rows.
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
@@ -2698,7 +2698,7 @@ Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0255](../deci
 
 ### Week 4 task 41
 Focus: Apply `ops-dashboard` doctrine to incident shadow and first sole-ownership slice with ADR-0257 as the decision anchor.
-Read: Inspect `docs/checklists/done-definition-checklist.md` and one adjacent file discovered with `rg -n "ops-dashboard" docs specs crates | sed -n '1,20p'`.
+Read: Inspect `templates/checklists/done-definition-checklist.md` and one adjacent file discovered with `rg -n "ops-dashboard" docs specs crates | sed -n '1,20p'`.
 Build: Produce a small note, fixture, or doc patch that clarifies one intern-buildability gap without widening scope.
 Artifact: `month-one-week-4-41` containing changed path or no-change evidence, source command, expected reviewer, and glossary rows.
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
@@ -2728,7 +2728,7 @@ Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0263](../deci
 
 ### Week 4 task 44
 Focus: Apply `workflow` doctrine to incident shadow and first sole-ownership slice with ADR-0273 as the decision anchor.
-Read: Inspect `docs/checklists/done-definition-checklist.md` and one adjacent file discovered with `rg -n "workflow" docs specs crates | sed -n '1,20p'`.
+Read: Inspect `templates/checklists/done-definition-checklist.md` and one adjacent file discovered with `rg -n "workflow" docs specs crates | sed -n '1,20p'`.
 Build: Produce a small note, fixture, or doc patch that clarifies one intern-buildability gap without widening scope.
 Artifact: `month-one-week-4-44` containing changed path or no-change evidence, source command, expected reviewer, and glossary rows.
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
@@ -2758,7 +2758,7 @@ Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0280](../deci
 
 ### Week 4 task 47
 Focus: Apply `foundry` doctrine to incident shadow and first sole-ownership slice with ADR-0284 as the decision anchor.
-Read: Inspect `docs/checklists/done-definition-checklist.md` and one adjacent file discovered with `rg -n "foundry" docs specs crates | sed -n '1,20p'`.
+Read: Inspect `templates/checklists/done-definition-checklist.md` and one adjacent file discovered with `rg -n "foundry" docs specs crates | sed -n '1,20p'`.
 Build: Produce a small note, fixture, or doc patch that clarifies one intern-buildability gap without widening scope.
 Artifact: `month-one-week-4-47` containing changed path or no-change evidence, source command, expected reviewer, and glossary rows.
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
@@ -2788,7 +2788,7 @@ Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0293](../deci
 
 ### Week 4 task 50
 Focus: Apply `policy-engine` doctrine to incident shadow and first sole-ownership slice with ADR-0294 as the decision anchor.
-Read: Inspect `docs/checklists/done-definition-checklist.md` and one adjacent file discovered with `rg -n "policy-engine" docs specs crates | sed -n '1,20p'`.
+Read: Inspect `templates/checklists/done-definition-checklist.md` and one adjacent file discovered with `rg -n "policy-engine" docs specs crates | sed -n '1,20p'`.
 Build: Produce a small note, fixture, or doc patch that clarifies one intern-buildability gap without widening scope.
 Artifact: `month-one-week-4-50` containing changed path or no-change evidence, source command, expected reviewer, and glossary rows.
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
@@ -2818,7 +2818,7 @@ Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0296](../deci
 
 ### Week 4 task 53
 Focus: Apply `audit-chain` doctrine to incident shadow and first sole-ownership slice with ADR-0311 as the decision anchor.
-Read: Inspect `docs/checklists/done-definition-checklist.md` and one adjacent file discovered with `rg -n "audit-chain" docs specs crates | sed -n '1,20p'`.
+Read: Inspect `templates/checklists/done-definition-checklist.md` and one adjacent file discovered with `rg -n "audit-chain" docs specs crates | sed -n '1,20p'`.
 Build: Produce a small note, fixture, or doc patch that clarifies one intern-buildability gap without widening scope.
 Artifact: `month-one-week-4-53` containing changed path or no-change evidence, source command, expected reviewer, and glossary rows.
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
@@ -2848,7 +2848,7 @@ Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0316](../deci
 
 ### Week 4 task 56
 Focus: Apply `tenancy` doctrine to incident shadow and first sole-ownership slice with ADR-0317 as the decision anchor.
-Read: Inspect `docs/checklists/done-definition-checklist.md` and one adjacent file discovered with `rg -n "tenancy" docs specs crates | sed -n '1,20p'`.
+Read: Inspect `templates/checklists/done-definition-checklist.md` and one adjacent file discovered with `rg -n "tenancy" docs specs crates | sed -n '1,20p'`.
 Build: Produce a small note, fixture, or doc patch that clarifies one intern-buildability gap without widening scope.
 Artifact: `month-one-week-4-56` containing changed path or no-change evidence, source command, expected reviewer, and glossary rows.
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
@@ -2878,7 +2878,7 @@ Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0243](../deci
 
 ### Week 4 task 59
 Focus: Apply `ontology` doctrine to incident shadow and first sole-ownership slice with ADR-0244 as the decision anchor.
-Read: Inspect `docs/checklists/done-definition-checklist.md` and one adjacent file discovered with `rg -n "ontology" docs specs crates | sed -n '1,20p'`.
+Read: Inspect `templates/checklists/done-definition-checklist.md` and one adjacent file discovered with `rg -n "ontology" docs specs crates | sed -n '1,20p'`.
 Build: Produce a small note, fixture, or doc patch that clarifies one intern-buildability gap without widening scope.
 Artifact: `month-one-week-4-59` containing changed path or no-change evidence, source command, expected reviewer, and glossary rows.
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
@@ -2908,7 +2908,7 @@ Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0246](../deci
 
 ### Week 4 task 62
 Focus: Apply `ops-dashboard` doctrine to incident shadow and first sole-ownership slice with ADR-0247 as the decision anchor.
-Read: Inspect `docs/checklists/done-definition-checklist.md` and one adjacent file discovered with `rg -n "ops-dashboard" docs specs crates | sed -n '1,20p'`.
+Read: Inspect `templates/checklists/done-definition-checklist.md` and one adjacent file discovered with `rg -n "ops-dashboard" docs specs crates | sed -n '1,20p'`.
 Build: Produce a small note, fixture, or doc patch that clarifies one intern-buildability gap without widening scope.
 Artifact: `month-one-week-4-62` containing changed path or no-change evidence, source command, expected reviewer, and glossary rows.
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
@@ -2938,7 +2938,7 @@ Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0249](../deci
 
 ### Week 4 task 65
 Focus: Apply `workflow` doctrine to incident shadow and first sole-ownership slice with ADR-0250 as the decision anchor.
-Read: Inspect `docs/checklists/done-definition-checklist.md` and one adjacent file discovered with `rg -n "workflow" docs specs crates | sed -n '1,20p'`.
+Read: Inspect `templates/checklists/done-definition-checklist.md` and one adjacent file discovered with `rg -n "workflow" docs specs crates | sed -n '1,20p'`.
 Build: Produce a small note, fixture, or doc patch that clarifies one intern-buildability gap without widening scope.
 Artifact: `month-one-week-4-65` containing changed path or no-change evidence, source command, expected reviewer, and glossary rows.
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
@@ -2968,7 +2968,7 @@ Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0252](../deci
 
 ### Week 4 task 68
 Focus: Apply `foundry` doctrine to incident shadow and first sole-ownership slice with ADR-0253 as the decision anchor.
-Read: Inspect `docs/checklists/done-definition-checklist.md` and one adjacent file discovered with `rg -n "foundry" docs specs crates | sed -n '1,20p'`.
+Read: Inspect `templates/checklists/done-definition-checklist.md` and one adjacent file discovered with `rg -n "foundry" docs specs crates | sed -n '1,20p'`.
 Build: Produce a small note, fixture, or doc patch that clarifies one intern-buildability gap without widening scope.
 Artifact: `month-one-week-4-68` containing changed path or no-change evidence, source command, expected reviewer, and glossary rows.
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
@@ -2998,7 +2998,7 @@ Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0255](../deci
 
 ### Week 4 task 71
 Focus: Apply `policy-engine` doctrine to incident shadow and first sole-ownership slice with ADR-0257 as the decision anchor.
-Read: Inspect `docs/checklists/done-definition-checklist.md` and one adjacent file discovered with `rg -n "policy-engine" docs specs crates | sed -n '1,20p'`.
+Read: Inspect `templates/checklists/done-definition-checklist.md` and one adjacent file discovered with `rg -n "policy-engine" docs specs crates | sed -n '1,20p'`.
 Build: Produce a small note, fixture, or doc patch that clarifies one intern-buildability gap without widening scope.
 Artifact: `month-one-week-4-71` containing changed path or no-change evidence, source command, expected reviewer, and glossary rows.
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.
@@ -3028,7 +3028,7 @@ Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md), [ADR-0263](../deci
 
 ### Week 4 task 74
 Focus: Apply `audit-chain` doctrine to incident shadow and first sole-ownership slice with ADR-0273 as the decision anchor.
-Read: Inspect `docs/checklists/done-definition-checklist.md` and one adjacent file discovered with `rg -n "audit-chain" docs specs crates | sed -n '1,20p'`.
+Read: Inspect `templates/checklists/done-definition-checklist.md` and one adjacent file discovered with `rg -n "audit-chain" docs specs crates | sed -n '1,20p'`.
 Build: Produce a small note, fixture, or doc patch that clarifies one intern-buildability gap without widening scope.
 Artifact: `month-one-week-4-74` containing changed path or no-change evidence, source command, expected reviewer, and glossary rows.
 Review evidence: The reviewer can reproduce the command, find the cited ADR, and understand the accepted or rejected path.

@@ -4,7 +4,7 @@ checklist_id: CHK-DOCFRESH
 status: pending approval
 purpose: |
   Per-doc-class staleness budget and auto-update path. Walked monthly by the doc-freshness fitness lane and at every `EVT-WAVE-GATE-PASSED` per `docs/DOC-CATALOG.md`.
-lift_target: oyatie/docs/checklists/doc-freshness.md
+lift_target: oyatie/templates/checklists/doc-freshness.md
 enforcing_fitness_lane: oya-governance-doc-freshness
 owner_team: council-architecture
 related:

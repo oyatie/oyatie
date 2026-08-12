@@ -79,8 +79,8 @@ pub struct SessionTicket {
 **Root cause:** `SettingsRenderer::verify()` is comparing against a stale template or incomplete render manifest.
 
 **Fix:**
-1. Verify template file was updated: `ls -la templates/foundry-supervisor/claude.toml`
-2. Force re-render: `cargo run -p oya-dev-cli -- settings-drift --reconcile`
+1. `templates/foundry-supervisor/` was deleted (hooks pointed at missing `tools/foundry-supervisor-*` binaries). Do not expect that path; settings-template drift for that tree is retired until a replacement lands.
+2. Force re-render (local bridge only): `cargo run -p oya-dev-cli -- settings-drift --reconcile`
 3. Check drift report: `cat .omc/state/settings-drift-report.json`
 
 ## Audit Trail Verification

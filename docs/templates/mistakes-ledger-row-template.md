@@ -72,7 +72,7 @@ The active ledger uses a table. New rows append to `docs/MISTAKES-LEDGER.md §3 
 
 1. **One row per failure mode**, never bundle two distinct mistakes into one row.
 2. **No PII, no personal names** — root cause is *systems and processes*, not people (CONSTITUTION §Decision principles).
-3. **Mechanical prevention is mandatory** — if you cannot name a CI lane / hook / validator / runtime gate, file an escalation (`docs/checklists/escalation-checklist.md`). ADR-0053 sanctioned primitives are valid prevention mechanisms.
+3. **Mechanical prevention is mandatory** — if you cannot name a CI lane / hook / validator / runtime gate, file an escalation (`templates/checklists/escalation-checklist.md`). ADR-0053 sanctioned primitives are valid prevention mechanisms.
 4. **Cite at least one link** — PR, ADR, runbook, or postmortem.
 5. **Quarterly council review** — patterns across rows (≥ 3 rows in the same cluster) trigger meta-prevention per `docs/standards/prevention-doctrine.md §6`.
 6. **PR cite rule** — PRs that ship a mechanical prevention for a prior failure **MUST** cite the new MFL row in `## Traceability` per D17 of `docs/AGENTS.md §Done-Definition checklist`.

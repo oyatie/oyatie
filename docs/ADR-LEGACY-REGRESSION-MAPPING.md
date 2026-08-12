@@ -7,7 +7,7 @@ doc_status: published
 
 > **Status:** auto-generated 2026-05-09 by regression-check agent
 > **Owner:** crew-adr-promotion + council-architecture
-> **Purpose:** verify every legacy ADR's substance is preserved (FULL/EXPANDED) or explicitly retired (DROPPED-WITH-REASON) in the new pack before legacy deletion per [legacy-adr-deletion.md §2](checklists/legacy-adr-deletion.md)
+> **Purpose:** verify every legacy ADR's substance is preserved (FULL/EXPANDED) or explicitly retired (DROPPED-WITH-REASON) in the new pack before legacy deletion per [legacy-adr-deletion.md §2](../templates/checklists/legacy-adr-deletion.md)
 
 ## Summary
 
@@ -30,7 +30,7 @@ doc_status: published
 - 50 new pack ADRs at `/Users/jasonlee/oyatie/docs/adr-archive/ADR-0001-cohesion-thesis-one-product-flat-catalog.md`
 - New pack README: `docs/decisions/README.md`
 - Consolidation strategy: `docs/ADR-CONSOLIDATION-PLAN.md`
-- Deletion checklist: `docs/checklists/legacy-adr-deletion.md`
+- Deletion checklist: `templates/checklists/legacy-adr-deletion.md`
 - Retirement note: `docs/decisions/RETIRED.md`
 
 ## Coverage verdict legend
@@ -216,7 +216,7 @@ No legacy ADRs were anti-scope per PRD §3.3 (the 127 corpus all describes subst
 
 ## 4. Verification checklist linkage
 
-Per `docs/checklists/legacy-adr-deletion.md` §2:
+Per `templates/checklists/legacy-adr-deletion.md` §2:
 
 - ☑ Every legacy ADR appears in the table above (127 rows verified — see §2)
 - ☑ Step 15: Every row has FULL or EXPANDED, OR PARTIAL/DROPPED with explicit founder + council justification — mobile-clients gap (ADR-0201/0202/0037 row) closed by ADR-0051; remaining 15 PARTIAL + 4 DROPPED rows are recipe/UX/regulatory specificity gaps (no architectural regression) reviewed and accepted by founder per the 2026-05-09 deletion authorization ("Don't keep residue or retired artifacts. they all go as part of the cleanup")
@@ -244,7 +244,7 @@ Per `docs/checklists/legacy-adr-deletion.md` §2:
 ## 6. Sources
 
 - User directive 2026-05-09: "DELETE LEGACY ADR when you are done and sure that we have not regressed in feature, function, depth, maturity, and have only expanded in positive manner"
-- [`docs/checklists/legacy-adr-deletion.md`](checklists/legacy-adr-deletion.md)
+- [`templates/checklists/legacy-adr-deletion.md`](../templates/checklists/legacy-adr-deletion.md)
 - [`docs/ADR-CONSOLIDATION-PLAN.md`](ADR-CONSOLIDATION-PLAN.md)
 - [`docs/decisions/RETIRED.md`](decisions/RETIRED.md)
 - [`docs/decisions/README.md`](decisions/README.md)

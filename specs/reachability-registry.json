@@ -82,16 +82,16 @@
       "prefix": "billing/tax/manifest.json"
     },
     {
-      "prefix": "build/REORG-DRAIN.md",
-      "anchor": "build/ drain inventory for toolchains + port-engine W0 continue; OWNERS via build/OWNERS council-architecture"
+      "anchor": "build/ drain inventory for toolchains + port-engine W0 continue; OWNERS via build/OWNERS council-architecture",
+      "prefix": "build/REORG-DRAIN.md"
     },
     {
-      "prefix": "build/evidence/",
-      "anchor": "planes.root_manifests forever-owner absorb evidence for Cargo.lock sole-owner land (#1934); OWNERS via build/OWNERS council-architecture"
+      "anchor": "planes.root_manifests forever-owner absorb evidence for Cargo.lock sole-owner land (#1934); OWNERS via build/OWNERS council-architecture",
+      "prefix": "build/evidence/"
     },
     {
-      "prefix": "build/toolchains/",
-      "anchor": "ADR-0560 D3 / build sole-owner: toolchains cache platform rehomed under build/toolchains (was toolchains/cache/); OWNERS cloud-ci-platform"
+      "anchor": "ADR-0560 D3 / build sole-owner: toolchains cache platform rehomed under build/toolchains (was toolchains/cache/); OWNERS cloud-ci-platform",
+      "prefix": "build/toolchains/"
     },
     {
       "anchor": "Envelope prefix ownership (integ/cell → cell/**): capability root tree (#1652 tip 65dd343bd). Covers cell/manifest.json + cell/*/manifest.json + evidence/IPs. Subsumes transitional cell/BUCK seed.",
@@ -222,12 +222,32 @@
       "prefix": "docs/adr-archive/"
     },
     {
+      "anchor": "Cloud-provider + full-ecosystem north-star architecture essay (integ/docs INV-DOC-9 survival).",
+      "prefix": "docs/architecture/cloud-provider-full-ecosystem-north-star.md"
+    },
+    {
+      "anchor": "Transitional dual-home for supply-chain-audit live gate path docs/checklists/release-readiness-checklist.md after templates/checklists forever-home move; elevate gate cite rewrite to integ/ci. Content mirrors templates/checklists/release-readiness-checklist.md RR14.",
+      "prefix": "docs/checklists/release-readiness-checklist.md"
+    },
+    {
       "anchor": "ADR-0555 D3: the governance decision corpus — every decision is crosswalk-accounted (decision-crosswalk.generated.json); orphan/unpropagated/status pathologies are the cross-artifact gate's BLOCKING codes, so per-decision reachability is derived from the corpus itself, not hand-mentioned per file",
       "prefix": "docs/decisions/"
     },
     {
       "anchor": "ADR-0388 amendment (E4 preparation): docs/ideas/BUCK and its narrow OWNERS marker expose only the byte-frozen, non-authoritative idea-archive candidate corpus to the cross-artifact evaluator; no archive closure or planning dispatch is implied.",
       "prefix": "docs/ideas/"
+    },
+    {
+      "anchor": "docs lane absorb: lifecycle-lane-disposition unit mapping for re-root-or-delete of dark lifecycle lanes; review-visible conversion table only (not live enforcement).",
+      "prefix": "docs/plans/lifecycle-lane-disposition/mapping.md"
+    },
+    {
+      "anchor": "founder ruling oyatie-0s8: mechanical mapping for capability-root service manifests (<root>/manifest.json); conversion table for reviewer-checkable units.",
+      "prefix": "docs/programs/capability-root-manifests/MAPPING.md"
+    },
+    {
+      "anchor": "G004 burn-down-enforcement-debt programme: binding unit mapping for impl/g004-enforcement-debt lane; conventions/invariants every unit converges on.",
+      "prefix": "docs/programs/g004-enforcement-debt/g004-enforcement-debt-mapping.md"
     },
     {
       "anchor": "ADR-0639 D6 (Wave4 scarce-runner queue hygiene, PR #1570 / #1569): design note for live oya-ci-required cancel-in-progress + Tide/merge_group isolation under docs/programs/hyperscaler-delivery-lanes/; documents Bun superseding-run lesson and #1509 sha non-PR group key. Non-crate program doc tree (parallel to docs/programs/k8s-port/); dual-critic packets live under evidence/ci/ which is covered by the existing evidence/ reachability prefix.",
@@ -238,8 +258,32 @@
       "prefix": "docs/programs/k8s-port/"
     },
     {
+      "anchor": "Laptop CAS lab compose/buckconfig/canary assets for NativeLink warm-cache operator drills (integ/docs).",
+      "prefix": "docs/runbooks/assets/laptop-cas/"
+    },
+    {
       "anchor": "ADR-0537 step-0 root ceremony port: draft operator-facing runbook for redacted offline root-of-trust evidence packets and custody posture checks.",
       "prefix": "docs/runbooks/cloud/root-of-trust-ceremony.md"
+    },
+    {
+      "anchor": "Laptop CAS lab operator runbook (integ/docs; NativeLink warm-cache drills).",
+      "prefix": "docs/runbooks/laptop-cas-buck2-cache-only.md"
+    },
+    {
+      "anchor": "Laptop CAS lab operator runbook (integ/docs; NativeLink warm-cache drills).",
+      "prefix": "docs/runbooks/laptop-cas-cloudflare-tunnel.md"
+    },
+    {
+      "anchor": "Laptop CAS lab operator runbook (integ/docs; NativeLink warm-cache drills).",
+      "prefix": "docs/runbooks/laptop-cas-dual-arch-digests.md"
+    },
+    {
+      "anchor": "Laptop CAS lab operator runbook (integ/docs; NativeLink warm-cache drills).",
+      "prefix": "docs/runbooks/laptop-cas-integrity-canary.md"
+    },
+    {
+      "anchor": "Laptop CAS lab operator runbook (integ/docs; NativeLink warm-cache drills).",
+      "prefix": "docs/runbooks/laptop-cas-lab.md"
     },
     {
       "anchor": "ADR-0052 KEEP-inventory: security governance program (de-staled from SECURITY-PROGRAM.md); homed in its own docs/security-program/ subtree so ADR-0555 nearest-ancestor OWNERS can own it without over-claiming docs/.",
@@ -766,6 +810,10 @@
       "prefix": "storage/drive/manifest.json"
     },
     {
+      "anchor": "INV-DOC-9 / docs AGENTS operating contract: forever home for the per-dispatch Tier-2 swarm agent ritual checklist (CHK-SWARM-RITUAL); session rules under .cursor/rules MUST cite this path. Brand-free process meta — not merge authority.",
+      "prefix": "templates/checklists/swarm-agent-ritual.md"
+    },
+    {
       "anchor": "ADR-0541: Buck package marker for the tenancy capability residual corpus target. This package keeps the capability's rehomed service docs, manifests, contracts and OpenSLO YAML inside the Buck2 corpus graph after the capability-first rehome; without it those files leave buck2-packaged space entirely (measured across nine roots: 996 YAML files, unpackaged 1069 -> 75).",
       "prefix": "tenancy/BUCK"
     },
@@ -795,8 +843,7 @@
     },
     {
       "anchor": "ADR-0711 D-9: tools/swarm process-kit birth aborted on #1644 (automation-language-policy). Forever home encoded: ci/process-kit/** (Buck //ci/process-kit:…) + ci/facade/harness/{daemon-hotset,perimeter}.v1.json. Prefix retained as tombstone / do-not-birth marker.",
-      "prefix": "tools/swarm/",
-      "status": "deferred"
+      "prefix": "tools/swarm/"
     },
     {
       "anchor": "ADR-0541: Buck package marker for the workflow capability residual corpus target. This package keeps the capability's rehomed service docs, manifests, contracts and OpenSLO YAML inside the Buck2 corpus graph after the capability-first rehome; without it those files leave buck2-packaged space entirely (measured across nine roots: 996 YAML files, unpackaged 1069 -> 75).",

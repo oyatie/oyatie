@@ -25,7 +25,6 @@ companion_docs:
   - docs/standards/error-handling.md
   - docs/standards/testing.md
   - docs/standards/dependency-policy.md
-  - docs/audits/convention-audit-2026-05-12.md
   - docs/plans/rename-plan-2026-05-12.md
   - .omc/governance-lanes/architecture-conventions.md
   - docs/research/hyperscaler-best-practices-2026-05-12.md

@@ -4,7 +4,7 @@ checklist_id: CHK-IP
 status: pending approval
 purpose: |
   IP-internal verification. Walked before flipping an IP `status:` from `in-progress` to `merged` and before the worker agent runs `grit done`.
-lift_target: oyatie/docs/checklists/per-implementation-plan.md
+lift_target: oyatie/templates/checklists/per-implementation-plan.md
 enforcing_fitness_lane: oya-governance-plan-hierarchy
 owner_team: council-architecture
 related:

@@ -3,9 +3,9 @@ doc_class: Checklist
 checklist_id: CHK-XAXIS
 status: pending approval
 purpose: |
-  Cross-axis contract change cascade. Walked before any change that modifies a row in `docs/DESIGN.md §10` (cross-axis contract registry) or any file under `contracts/`. Extends existing `docs/checklists/cross-axis-contract-change.md` (preserved).
-lift_target: oyatie/docs/checklists/cross-axis-contract-change.md
-extends: docs/checklists/cross-axis-contract-change.md
+  Cross-axis contract change cascade. Walked before any change that modifies a row in `docs/DESIGN.md §10` (cross-axis contract registry) or any file under `contracts/`. Extends existing `templates/checklists/cross-axis-contract-change.md` (preserved).
+lift_target: oyatie/templates/checklists/cross-axis-contract-change.md
+extends: templates/checklists/cross-axis-contract-change.md
 enforcing_fitness_lane: oya-governance-cross-axis-notify
 owner_team: council-architecture
 related:

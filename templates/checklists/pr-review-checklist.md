@@ -4,7 +4,7 @@ checklist_id: CHK-PRREV
 status: pending approval
 purpose: |
   Reviewer agent's verification list per change class. Walked by the reviewer agent named in `docs/AGENTS.md §Per-change-class reviewer agents` before signing `## Code Review` at merge.
-lift_target: oyatie/docs/checklists/pr-review.md
+lift_target: oyatie/templates/checklists/pr-review.md
 enforcing_fitness_lane: guard-pr-merge-review.mjs
 owner_team: axis-foundry + per change-class team
 related:
@@ -62,7 +62,7 @@ related:
 ### privacy / consent / DSR paths (privacy-reviewer)
 - [ ] `data_class` annotation present on every new kernel field. *Lane:* `oya-governance-data-class`.
 - [ ] DPIA referenced if PHI/PII direct identifier touched.
-- [ ] DSR cascade path validated per `docs/checklists/dsr-cascade.md`.
+- [ ] DSR cascade path validated per `templates/checklists/dsr-cascade.md`.
 
 ### feature / bugfix (tdd-guide)
 - [ ] Test written **before** the fix; test fails on buggy commit, passes on fix. *(advisory; TDD)*

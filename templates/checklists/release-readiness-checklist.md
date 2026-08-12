@@ -4,7 +4,7 @@ checklist_id: CHK-REL
 status: pending approval
 purpose: |
   Milestone-level release gate. Walked at every wave-gate boundary per `docs/ROADMAP.md §2`. Trace to `.omc/plans/MASTERPLAN.md §13 Definition of done`.
-lift_target: oyatie/docs/checklists/release-readiness.md
+lift_target: oyatie/templates/checklists/release-readiness.md
 enforcing_fitness_lane: oya-governance-release-readiness
 owner_team: ops-sre-reliability + council-architecture
 related:
@@ -39,7 +39,7 @@ related:
 - [ ] **RR11** Every shipped binary has Cosign keyless OIDC signature. *Lane:* `oya-governance-supply-chain`.
 - [ ] **RR12** Every shipped binary has Syft / CycloneDX SBOM artifact. *Lane:* `oya-governance-supply-chain`.
 - [ ] **RR13** SLSA L2+ provenance attestation present + Rekor log index recorded. *Lane:* `oya-governance-supply-chain`.
-- [ ] **RR14** Dependency and advisory posture is green. *Lane:* `cloud-ci-supply-chain-audit`.
+- [ ] **RR14** Dependency/advisory posture green via `cloud-ci-supply-chain-audit` (owned RustSec advisory scan over vendored mirror; `cargo-vet` retired until maintained inputs). *Lane:* `cloud-ci-supply-chain-audit`. *Evidence:* `oya-ci-required` supply-chain packet or `buck2 test //ci/facade/supply-chain-audit:ci-supply-chain-audit-gate`.
 
 ## SRE / observability
 

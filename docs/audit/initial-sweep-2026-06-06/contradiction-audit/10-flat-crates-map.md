@@ -97,7 +97,7 @@ Gate registration drift (also a contradiction):
 - The lane IS listed as a live `existing`/`BLOCKER` gate in:
   - `docs/governance-lanes/INDEX.md:28` — `| flat-crates | existing | STANDARD/flat-workspace | oya-governance-flat-crates-kernel | tools/oya-governance-flat-crates | cargo run -p oya-governance-flat-crates | 100 | BLOCKER |`
   - `docs/AGENTS.md:231` — D7 lane list includes `... bypass, flat-crates, runbook-index-resolves, doc-catalog`
-  - `docs/checklists/done-definition-checklist.md:33` — same D7 lane list
+  - `templates/checklists/done-definition-checklist.md:33` — same D7 lane list
 - But it is **ABSENT from the executable lane registry** `registry/quality/lanes.yaml`
   (`grep -in 'flat|nestedcrate|crates_checked|flat-workspace'` → rc=1, no match). The lane actually wired
   in lanes.yaml is `lean-a1-architecture` → `cargo run -p oya-dev-cli -- gate validate architecture-boundaries`
@@ -185,9 +185,9 @@ docs/ standards + design + roadmap — "flat-crates target" / top-level `crates/
 | `docs/standards/testing.md:245` | `ADR-0003 (audit chain), ADR-0015 (flat crates).` |
 | `docs/products/_TEMPLATE.md:56,315` | `Cite the flat-crates target prefix (e.g. \`crates/oya-foundry-*\`)` / `Every flat-crates target referenced exists in \`Cargo.toml\`` |
 | `docs/products/foundry/PRD.md:1035`, `docs/products/cloud/PRD.md:807` | `Every flat-crates target referenced exists in \`Cargo.toml\` or planned roadmap` |
-| `docs/checklists/pre-push.md:29` | `... if this is a flat-crates move PR (per ADR-0015), \`registry/migrations/2026-flat-crate-migration/\` entry added` |
-| `docs/checklists/pre-merge.md:21,26` | `lists flat-crates targets touched` / `flat-crates-move → merge-queue serialization on root Cargo.toml` |
-| `docs/checklists/vertical-onboarding.md:19` | `Vertical kernel flat-crates target reserved at \`crates/oya-vertical-<name>-kernel-*\`` |
+| `templates/checklists/pre-push.md:29` | `... if this is a flat-crates move PR (per ADR-0015), \`registry/migrations/2026-flat-crate-migration/\` entry added` |
+| `templates/checklists/pre-merge.md:21,26` | `lists flat-crates targets touched` / `flat-crates-move → merge-queue serialization on root Cargo.toml` |
+| `templates/checklists/vertical-onboarding.md:19` | `Vertical kernel flat-crates target reserved at \`crates/oya-vertical-<name>-kernel-*\`` |
 | `docs/DESIGN.md:505`, `docs/specs/deep-dive-oyatie-sst-consolidation.md:17,52`, `docs/specs/deep-dive-trace-...:39` | `flat-crates ADR-0015 target` / `Cargo.toml ... flat-crates workspace, 140+ crates` |
 
 registry/ — references the superseded model by name:
