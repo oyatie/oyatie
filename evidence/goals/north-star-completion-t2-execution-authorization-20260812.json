@@ -1,0 +1,41 @@
+{
+  "record_class": "execution-authorization-record",
+  "record_id": "north-star-completion-t2-execution-authorization-20260812",
+  "bootstrap_step": "T2",
+  "programme": "oyatie-north-star-completion-v1",
+  "recorded_at": "2026-08-12T23:30:00Z",
+  "decision": {
+    "decision_status": "authorized",
+    "approved_by": "founder",
+    "subject": "Separate founder authorization to dispatch product execution for the North-Star Completion Programme, distinct from and additional to the T1 plan approval.",
+    "authorization_mechanism": "Founder gate selection 'Approve execution via ultragoal' at the ralplan approval gate (workflowGate ralplan/approval), owner session 019ff62e-5d1c-7000-939d-d58fa859fa6e, 2026-08-12. Plan approval is not execution authorization; this record is the execution authorization.",
+    "scope_limit": "Authorizes the bootstrap chain T3a/T3b/T4/T5 and subsequent execution waves strictly per the approved plan (sha256 95132e4e2ef165667223117a026e3c3d5856a45250b4a7101b7cefef5ddd6ab1), each subject to its own entry conditions, gates, and evidence obligations. It does not itself close masterplan_v2.planning_entry_contract, does not dispatch any wave, and does not waive any admission gate."
+  },
+  "authorization_basis": {
+    "t1_receipt": "evidence/goals/north-star-completion-t1-hold-lift-receipt-20260812.json",
+    "approved_plan": "evidence/ralplan/oyatie-north-star-completion-v1-approved-plan-20260812.md",
+    "approved_plan_sha256": "95132e4e2ef165667223117a026e3c3d5856a45250b4a7101b7cefef5ddd6ab1",
+    "crystallized_spec": "evidence/ralplan/oyatie-north-star-completion-v1-crystallized-spec-20260812.json",
+    "crystallized_spec_sha256": "8c730c54c3145404ef6ab10163f52c69c5796b2beb5b60fc5ea3c5c31bdb0b62"
+  },
+  "global_binding_rule_1": {
+    "name": "no-new-reorg-target-debt",
+    "normative_from": "This record. From T2 onward no wave, lane, or bootstrap step may create new code, capability, crate, module, path dependency, exit dependency, work item, or evidence anchor under a reorg-target prefix.",
+    "target_prefixes": [
+      "cloud-*",
+      "cloud_",
+      "oya-*",
+      "oya_",
+      "oya/**",
+      "cloud/**"
+    ],
+    "mechanical_from": "Bootstrap T3b, when the no-new-reorg-target-debt check goes live as a blocking check in the incumbent required admission context (oya-ci-required).",
+    "interval_rule": "The T2-to-T3b interval is policy-only by construction: it carries no gate runs and none are claimed. It is closed by a retrospective audit executed at T3b: the gate binary in audit mode over the exact commit range and ref-state delta between this record's merge commit and gate go-live, with any hit reverted or dispositioned before T4.",
+    "interval_audit_anchor": "The squash-merge commit of the protected PR landing this record on dev is the start anchor of the T2-to-T3b interval audit range."
+  },
+  "companion_artifact": {
+    "option_b_contingency_contract": "evidence/goals/north-star-completion-option-b-contingency-contract-20260812.json",
+    "relationship": "Authored at this same approval-time step, Accepted-as-dormant and not in force, so the contract governing a possible T3a/T3b admission failure exists before any event that could activate it."
+  },
+  "claim_ceiling": "This record proves founder execution authorization and the normative start of Global Binding Rule 1 and nothing else. Dispatch remains blocked while masterplan_v2.planning_entry_contract.state is open; no gate run is claimed for any interval in which the gate was not live."
+}
