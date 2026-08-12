@@ -6,6 +6,18 @@ doc_status: published
 
 # Changelog
 
+## 2026-08-11 — Cloud provider + full ecosystem north-star (INV-DOC-9)
+
+- Survived product spine in operating contract
+  [`docs/AGENTS.md`](AGENTS.md) § Doctrine survival → *Cloud provider + full ecosystem*
+  plus architecture pointer
+  [`docs/architecture/cloud-provider-full-ecosystem-north-star.md`](architecture/cloud-provider-full-ecosystem-north-star.md).
+- Locks: **not compute-only** — full CSP capacity (hyperscaler-parity+) **and** curated
+  ecosystem broader than hyperscalers; EU/SECA named as aligned digital north-star;
+  **BAN** personal-data sovereignty UX theater; SECA-capable Rust + smooth entry/exit.
+- Glossary: disambiguate **SECA** (cloud API vs tax acronym).
+- Programme phase Done-when remains in living N=1 tracker — **BAN** second architecture plan.
+
 ## 2026-08-11 — Custom ARC runner fleets retired
 
 - Declared **ARC overflow RETIRED**: `oya-arm64` / `oya-live-postgres-arm64` tip
