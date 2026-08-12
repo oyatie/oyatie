@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Laptop CAS lab (NativeLink warm-cache operator drills)
+doc_status: published
+---
+
 # Laptop CAS — integrity-canary scaffold
 
 Trust invariant (`specs/cache-warmth-policy.json`): warm IFF class is warm-eligible **and** the latest cold integrity-canary is GREEN.  

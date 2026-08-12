@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Laptop CAS lab (NativeLink warm-cache operator drills)
+doc_status: published
+---
+
 # Laptop CAS lab (NativeLink cache-only)
 
 **Runtime home:** `~/oyatie-cas/` on the founder macOS arm64 always-on host.  

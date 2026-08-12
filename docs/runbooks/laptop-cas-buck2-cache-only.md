@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Laptop CAS lab (NativeLink warm-cache operator drills)
+doc_status: published
+---
+
 # Laptop CAS — Buck2 cache-only opt-in (fail-closed)
 
 ## Existing surfaces (do not weaken)

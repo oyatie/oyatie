@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Laptop CAS lab (NativeLink warm-cache operator drills)
+doc_status: published
+---
+
 # Laptop CAS — dual-arch digests
 
 CAS does **not** need two NativeLink processes. Digests are content-addressed **per platform**:

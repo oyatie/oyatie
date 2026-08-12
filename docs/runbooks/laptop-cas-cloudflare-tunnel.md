@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Laptop CAS lab (NativeLink warm-cache operator drills)
+doc_status: published
+---
+
 # Laptop CAS — Cloudflare Tunnel + Access / mTLS
 
 **BAN:** anonymous public gRPC to NativeLink. Tunnel without Access/mTLS is incomplete.
