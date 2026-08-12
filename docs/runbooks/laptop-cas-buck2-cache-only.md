@@ -9,7 +9,7 @@ doc_status: published
 
 | Surface | Role |
 |---------|------|
-| `toolchains/cache/` | Execution platform with `remote_cache_enabled` + `allow_cache_uploads` (defaults false) |
+| `build/toolchains/cache/` (cell `toolchains//cache`) | Execution platform with `remote_cache_enabled` + `allow_cache_uploads` (defaults false) |
 | `infra/ci/buckconfig/warm-cache-rw.buckconfig` | In-cluster writer overlay (dark while license false) |
 | `infra/ci/buckconfig/warm-cache-ro.buckconfig` | In-cluster reader overlay |
 | `specs/cache-warmth-policy.json` | Per-class warmth / read / write |

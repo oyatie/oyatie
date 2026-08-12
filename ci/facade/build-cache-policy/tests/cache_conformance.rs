@@ -768,8 +768,8 @@ fn overlays_parse_select_the_cache_platform_and_carry_no_identity() {
         );
 
         let oya = cfg
-            .get("oya_cache")
-            .unwrap_or_else(|| panic!("{path}: no [oya_cache]"));
+            .get("remote_cache")
+            .unwrap_or_else(|| panic!("{path}: no [remote_cache]"));
         assert_eq!(oya["remote_cache_enabled"], "true", "{path}");
         assert_eq!(oya["allow_cache_uploads"], uploads, "{path}");
 
@@ -868,8 +868,8 @@ fn root_buckconfig_stays_dark() {
          (ADR-0560 dark-wiring invariant)"
     );
     assert!(
-        !cfg.contains_key("oya_cache"),
-        "root .buckconfig grew an [oya_cache] section — cache wiring must stay opt-in"
+        !cfg.contains_key("remote_cache"),
+        "root .buckconfig grew an [remote_cache] section — cache wiring must stay opt-in"
     );
     assert_eq!(
         cfg["build"]["execution_platforms"], "prelude//platforms:default",
