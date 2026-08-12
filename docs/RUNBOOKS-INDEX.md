@@ -48,14 +48,8 @@ Per-axis under [`runbooks/<axis>/<runbook-id>.md`](runbooks/) (inside `docs/`). 
 - `vertical-logistics/edi-counterparty-down.md`
 - (per-vertical)
 
-### Foundry
-- `foundry/provider-quota-exhausted.md`
-- `foundry/subscription-token-expired.md`
-- `foundry/autonomy-ceiling-breach-attempt.md`
-- `foundry/capability-eval-regression.md`
-- `foundry/sandbox-escape-detected.md`
-- `foundry/prompt-injection-fired.md`
-- `foundry/cost-ceiling-exceeded.md`
+### Intelligence (Foundry product shelf deleted — DOCS_AUTHORITY 2026-08-11)
+> Live Foundry runbook stubs under `docs/runbooks/foundry*` were removed with the product shelf. Prefer intelligence capability runbooks / ADRs; do not reintroduce Foundry-as-live authority paths.
 
 ### Cloud
 - `cloud/iam-key-rotation.md`
