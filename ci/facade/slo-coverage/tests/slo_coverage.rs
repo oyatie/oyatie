@@ -8,7 +8,10 @@ use std::fs;
 use std::path::{Component, Path, PathBuf};
 use std::process::Command;
 
-use ci_slo_coverage::{Verdict, evaluate, evaluate_keyed};
+use ci_slo_coverage::{
+    CODE_CATALOG_CENSUS_DROP_UNATTRIBUTED, Verdict, evaluate, evaluate_catalog_census,
+    evaluate_keyed,
+};
 use serde_json::Value;
 
 const REQUIRED_SLO_LINKED_CLOUD_MANIFESTS: [&str; 6] = [
@@ -20,44 +23,99 @@ const REQUIRED_SLO_LINKED_CLOUD_MANIFESTS: [&str; 6] = [
     "tenancy/manifest.json",
 ];
 
-/// FALSE-GREEN FLOOR: the producer must be shown to have actually enumerated the
-/// catalog. A broken collector returns zero rows, finds zero violations, and would
-/// otherwise report a clean pass — so an implausibly small corpus is a gate failure,
-/// never coverage.
+/// FALSE-GREEN CENSUS PIN: the producer must be shown to have actually enumerated the catalog.
+/// A broken collector returns zero rows, finds zero violations, and would otherwise report a
+/// clean pass — so the observed row count is pinned by EQUALITY and any move must be re-frozen,
+/// with an attribution, in the change that caused it. The rule itself is
+/// [`ci_slo_coverage::evaluate_catalog_census`], which documents why equality and not a floor;
+/// the history that proves the point is below.
 ///
-/// This is a floor on COLLECTION, not a ratchet on catalog SIZE. It therefore has to
-/// be lowered deliberately whenever rows are legitimately removed, and the lowering
-/// belongs in the same change as the removal so the two are reviewed together.
+/// THE HISTORY. This was `MIN_SLO_CATALOG_ROWS`, a floor, and it went stale three times in the
+/// same way — because it was a floor on a term whose legitimate direction is DOWN:
 ///
-/// 783 rows existed when the previous value of 776 was set — 7 rows of slack. The
-/// ProviderAuthPort consolidation deleted 10 rows, leaving 773, and moved the floor to
-/// 766 to preserve exactly that same 7-row margin.
+///   783 rows existed when the value 776 was set — 7 rows of slack. The ProviderAuthPort
+///   consolidation deleted 10 rows, leaving 773, and moved the floor to 766 to preserve exactly
+///   that same 7-row margin.
 ///
-/// 2026-07-31: the floor was left at 766 while the corpus fell to 755, so this gate was
-/// RED on dev. The convention above was not followed by the removals that landed after it:
-///   #1451 chore(payments): delete the closed oya/payments crate cluster  -20 rows
-///   #1413 chore(libs): delete the orphaned oya-gen-microservice-manifests-app  -1 row
-/// Each deletion is legitimate and reviewed; none lowered the floor in the same change.
-/// They were able to merge that way because this gate produced NO VERDICT at the time —
-/// the artifact-storage-quota outage failed `producer-regen`, and every `needs:` leg was
-/// SKIPPED rather than run. A skipped gate is not a passing gate, and this is what that
-/// distinction costs: a born-blocking floor sat stale behind a lane nobody was reading.
+///   2026-07-31: the floor was left at 766 while the corpus fell to 755, so this gate was RED on
+///   dev. The convention was not followed by the removals that landed after it:
+///     #1451 chore(payments): delete the closed oya/payments crate cluster  -20 rows
+///     #1413 chore(libs): delete the orphaned oya-gen-microservice-manifests-app  -1 row
+///   Each deletion is legitimate and reviewed; none lowered the floor in the same change. They
+///   were able to merge that way because this gate produced NO VERDICT at the time — the
+///   artifact-storage-quota outage failed `producer-regen`, and every `needs:` leg was SKIPPED
+///   rather than run. A skipped gate is not a passing gate, and this is what that distinction
+///   costs: a born-blocking floor sat stale behind a lane nobody was reading.
 ///
-/// 2026-08-01: two later, reviewed consolidations again removed live catalog rows without
-/// carrying this floor in the same change:
-///   #1485 refactor(intelligence): collapse three provider adapters into one  -2 rows
-///   #1483 fix(ci): retire eight duplicate dark lifecycle catalog rows        -8 rows
+///   2026-08-01: two later, reviewed consolidations again removed live catalog rows without
+///   carrying the floor in the same change:
+///     #1485 refactor(intelligence): collapse three provider adapters into one  -2 rows
+///     #1483 fix(ci): retire eight duplicate dark lifecycle catalog rows        -8 rows
+///   745 rows existed then; the floor moved to 738 to preserve the same 7-row margin.
 ///
-/// 745 rows exist today. The floor moves to 738 to preserve the same 7-row margin rather
-/// than silently loosening or tightening the guard.
+/// The floor's own closing note asked for an INDEPENDENT enumeration to remove the manual step.
+/// That would have removed the staleness by removing the guard's independence — a count derived
+/// from the same tree the producer walks cannot contradict the producer. Equality removes the
+/// staleness instead: a pin that must match exactly cannot silently drift, because drift IS the
+/// failure, and it is reported in the change that causes it rather than discovered a wave later.
 ///
-/// NOTE for the next removal: this constant has now gone stale three times in the same way.
-/// A floor that must be hand-lowered on every legitimate deletion is a staleness surface;
-/// deriving it from an INDEPENDENT enumeration of the catalog files on disk (with a small
-/// absolute floor purely to catch a both-are-zero scan) would keep the empty-scan
-/// protection while removing the manual step. That is a separate reviewed change, not a
-/// side effect of un-reddening dev.
-const MIN_SLO_CATALOG_ROWS: usize = 738;
+/// ATTRIBUTIONS (append one line per move; never move this number without one):
+///   2026-08-01  745 -> floor 738   (see history above; the last move made as a floor)
+///   2026-08-09  738 -> pin 749     re-measure at the floor -> pin conversion. GROWTH, not a
+///                                  correction: the corpus was 745 when the floor last moved and
+///                                  the producer enumerates 749 rows on dev today, which an
+///                                  independent count of registry/catalog/*.yaml confirms. The
+///                                  floor saw neither the four arrivals nor the eleven rows of
+///                                  slack it was sitting on — 738 against 749 means the producer
+///                                  could have silently lost eleven rows and still passed. That
+///                                  slack is what this pin removes.
+///   2026-08-09  749 -> pin 750     BASE MOVE, not a change of what this branch enumerates. The
+///                                  one added row is named: crate_id `port-engine-kernel`,
+///                                  source_path `registry/catalog/port-engine-kernel.yaml`,
+///                                  introduced by dev commit 885794461 (PR #1621, port-engine W0
+///                                  skeleton, ADR-0637 D1). `git diff --name-only
+///                                  origin/dev...HEAD -- registry/catalog/port-engine-kernel.yaml`
+///                                  is EMPTY, so this branch does not contribute it.
+///
+///                                  WHICH OF THE TWO IT WAS, since the gate says a count cannot
+///                                  tell a legitimate arrival from a widened enumeration: it was
+///                                  an ARRIVAL, and the discriminator is a control rather than an
+///                                  argument. The SAME producer binary, built from this branch's
+///                                  head, was run twice over the same source tree with only the
+///                                  `--scm-facts` face swapped — the pre-rebase face gives 749
+///                                  rows and the regenerated face gives 750, added 1, removed 0.
+///                                  Holding the predicate fixed and moving only the corpus isolates
+///                                  the delta to the corpus. Independently: the enumerating
+///                                  producer is ci/facade/artifact-inventory-registry, which this
+///                                  branch does not touch at all; the slo-coverage edits in this
+///                                  branch are to the census RULE
+///                                  (`evaluate_catalog_census`), never to the walk.
+///
+///                                  WHY IT WAS MISSED until CI, recorded because the failure mode
+///                                  outlived the number: `scm-facts.generated.json` is gitignored
+///                                  and locally MATERIALIZED, so a lane that rebases without
+///                                  regenerating it keeps enumerating the pre-rebase corpus. The
+///                                  local gate ran GREEN at 749 against a face materialized hours
+///                                  before the rebase, and CI — which regenerates it — read 750.
+///                                  Regenerate the face after any rebase before trusting a census
+///                                  pin locally; a green local census gate proves nothing about a
+///                                  stale face.
+///
+///   2026-08-10  750 -> pin 757     Re-measured after the kernel and os SLO-home retargets
+///                                  added seven catalog rows. This updates only the exact live
+///                                  corpus pin; the kernel/os manifest fallback contract remains
+///                                  unchanged.
+///   2026-08-11  757 -> pin 759     Live catalog grew by two rows (integ/ci babysit tip); pin
+///                                  matches measured census only — no contract change.
+///   2026-08-11  759 -> pin 761     After merge(dev) absorbing #1926 os/harness + cloud-os
+///                                  residual, live catalog grew by two rows; re-freeze only.
+///   2026-08-11  761 -> pin 762     BASE MOVE from #1647: registry/catalog/check-apex-gist-
+///                                  integrity.yaml (apex-gist-integrity designed-ahead row).
+///                                  Tracked catalog yamls 762->763; enumerated face rows +1.
+///   2026-08-11  762 -> pin 773     BASE MOVE from #1934: +4 ci-controller-* and +7 port-engine
+///                                  W0-B catalog rows (face enumerated 773). Keep dual-home
+///                                  oya/ci-controller until lock/baseline tip-free cleanup.
+const SLO_CATALOG_CENSUS: usize = 773;
 
 fn producer_command(root: &Path, producer_bin: Option<&str>) -> Result<Command, String> {
     if let Some(bin) = producer_bin {
@@ -115,13 +173,20 @@ fn run_producer_face(root: &Path, face: &str) -> Value {
 /// This was a `read_dir("cloud")` walk until the ADR-0562 rehomes emptied `cloud/`, at which point
 /// the walk silently found 2 of 21 — a scan that shrinks to nothing is a false green, so the set is
 /// now named explicitly and `manifest_missing` below fails closed on any entry that stops resolving.
+///
+/// Wave-2 absorb: forever homes for burned `cloud/` pins —
+/// `cloud/cloud-kernel/manifest.json` → `kernel/manifest.json` (#1659 / #1839 P1);
+/// `cloud/cloud-os/manifest.json` → `os/manifest.json` (#1926 / #1839). Cite forever paths
+/// here; `cloud_manifest_paths` may accept transitional sources only until destination bytes
+/// land (fail closed when neither resolves). Do not re-list hub enumerations — named pins,
+/// not a dual-truth root table.
 const CLOUD_SUBSTRATE_MANIFESTS: [&str; 21] = [
     "billing/manifest.json",
     "billing/tax/manifest.json",
     "cell/cell-lifecycle/manifest.json",
     "cell/cell-rebalancer/manifest.json",
-    "cloud/cloud-kernel/manifest.json",
-    "cloud/cloud-os/manifest.json",
+    "kernel/manifest.json",
+    "os/manifest.json",
     "data/cloud-data/manifest.json",
     "iac/manifest.json",
     "iam/cloud-iam/manifest.json",
@@ -139,15 +204,30 @@ const CLOUD_SUBSTRATE_MANIFESTS: [&str; 21] = [
     "tenancy/manifest.json",
 ];
 
+/// Forever → transitional source still present on origin/dev until forever bytes land
+/// (#1659 kernel; #1926 os). Drop an entry when the transitional path is burned and the
+/// forever path is on trunk.
+const CLOUD_SUBSTRATE_MANIFEST_FALLBACKS: &[(&str, &str)] = &[
+    ("kernel/manifest.json", "cloud/cloud-kernel/manifest.json"),
+    ("os/manifest.json", "cloud/cloud-os/manifest.json"),
+];
+
 fn cloud_manifest_paths(root: &Path) -> Vec<PathBuf> {
     let mut paths = Vec::new();
     let mut missing = Vec::new();
     for relative in CLOUD_SUBSTRATE_MANIFESTS {
-        let manifest = root.join(relative);
-        if manifest.is_file() {
-            paths.push(manifest);
-        } else {
-            missing.push(relative);
+        let forever = root.join(relative);
+        if forever.is_file() {
+            paths.push(forever);
+            continue;
+        }
+        let transitional = CLOUD_SUBSTRATE_MANIFEST_FALLBACKS
+            .iter()
+            .find(|(forever_rel, _)| *forever_rel == relative)
+            .map(|(_, transitional_rel)| root.join(transitional_rel));
+        match transitional {
+            Some(path) if path.is_file() => paths.push(path),
+            _ => missing.push(relative),
         }
     }
     assert!(
@@ -407,11 +487,16 @@ fn slo_coverage_verdict_matches_the_live_catalog() {
     let root = repo_root();
     let face = run_producer_face(&root, "slo-coverage");
     let rows = face["rows"].as_array().expect("slo-coverage face rows");
-    assert!(
-        rows.len() >= MIN_SLO_CATALOG_ROWS,
-        "the slo-coverage face should enumerate at least {MIN_SLO_CATALOG_ROWS} current catalog rows, got {}",
-        rows.len()
-    );
+    if let Some(census) = evaluate_catalog_census(rows.len(), SLO_CATALOG_CENSUS) {
+        panic!("[{}] {}", census.code, census.detail);
+    }
+
+    // The pin AS COMMITTED, against the LIVE producer, still rejects the false green it exists
+    // for. The assertion above is the control: the live corpus sits exactly at the pin, so this
+    // failure is the rule biting and not a mis-set number.
+    let collapsed = evaluate_catalog_census(0, SLO_CATALOG_CENSUS)
+        .expect("a zero-row enumeration must never read as coverage");
+    assert_eq!(collapsed.code, CODE_CATALOG_CENSUS_DROP_UNATTRIBUTED);
 
     let findings = evaluate_keyed(&face);
     let verdict = evaluate(&face).verdict;

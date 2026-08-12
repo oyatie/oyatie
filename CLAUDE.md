@@ -27,6 +27,17 @@ hyperscale lenses / engineering bars are single-sourced in [`AGENTS.md`](AGENTS.
 *Engineering principles & review lenses*). Read that file together with this one before any
 non-trivial decision, design, or merge — none of it is duplicated here.
 
+## Doctrine survival (INV-DOC-9)
+
+INV-DOC-9: plan/chat-only doctrine is **not** survived. Binding short form + why-fields live in
+[`AGENTS.md`](AGENTS.md#doctrine-survival-inv-doc-9); full operating contract in
+[`docs/AGENTS.md`](docs/AGENTS.md); Amendment C catalog at
+[`specs/agentic-operating-patterns.json`](specs/agentic-operating-patterns.json).
+
+Per-dispatch ritual (Tier 2): [`.cursor/rules/swarm-agent-ritual.mdc`](.cursor/rules/swarm-agent-ritual.mdc)
+(short) and [`docs/checklists/swarm-agent-ritual.md`](docs/checklists/swarm-agent-ritual.md)
+(canonical long form; forever home may become `templates/checklists/`).
+
 <!-- agent-instructions:start -->
 coordination_surface: governance_pipeline
 retirement_adr: docs/decisions/ADR-0701-monorepo-capability-live-apex.md

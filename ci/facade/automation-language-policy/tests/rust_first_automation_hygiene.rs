@@ -1619,8 +1619,8 @@ fn interpreter_command_authority_dimension_is_enabled_for_rust_automation_source
         .filter_map(Value::as_str)
         .collect();
     assert!(
-        excluded.contains(&"cloud/cloud-os/"),
-        "cloud/cloud-os is fenced to the later kernel/OS story for task-4; got {excluded:?}"
+        !excluded.contains(&"cloud/cloud-os/"),
+        "cloud/cloud-os/ Wave2 drain cleared the task-4 exclude; got {excluded:?}"
     );
 }
 

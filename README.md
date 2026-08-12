@@ -6,10 +6,10 @@ vertical, search, and analytics products that run on it. AI agents are the prima
 quality is enforced and auto-remediated so that sub-standard output cannot enter the canonical tree.
 
 Canonical, machine-readable specs live under [`docs/`](docs/), [`specs/`](specs/), and
-[`registry/`](registry/). Agents read [`AGENTS.md`](AGENTS.md) and [`CLAUDE.md`](CLAUDE.md) for the
-canonical entry-point pointers; the mandatory agent entry surface is
-[`specs/masterplan.json`](specs/masterplan.json) (single-writer authority for live plan content,
-work items, status evidence, and the dependency DAG — see
+[`registry/`](registry/). Agents MUST load root [`AGENTS.md`](AGENTS.md) / [`CLAUDE.md`](CLAUDE.md)
+(INV-DOC-9 doctrine survival) for entry-point pointers and binding short-form law; the mandatory
+agent entry surface is [`specs/masterplan.json`](specs/masterplan.json) (single-writer authority
+for live plan content, work items, status evidence, and the dependency DAG — see
 [`specs/root-hub-pointers.json`](specs/root-hub-pointers.json)). Architecture decisions live in
 [`docs/decisions/`](docs/decisions/) (ADRs); the apex vision is the **Agentic Delivery Fabric**
 (ADR-0516…0535).

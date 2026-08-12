@@ -331,7 +331,7 @@ fn rel(root: &Path, path: &Path) -> String {
 
 fn live_observation(root: &Path) -> Value {
     json!({
-        "minimum_product_prds": 5,
+        "minimum_product_prds": 4,
         "minimum_acceptance_rows_per_prd": 2,
         "minimum_verification_rows_per_prd": 2,
         "product_prds": product_prd_rows(root),

@@ -68,7 +68,7 @@ on:
 
 jobs:
   canary:
-    name: "integrity-canary (cold, from-empty — ADR-0556 D2 / ADR-0560)"
+    name: "integrity-canary (cold, from-empty)"
     outputs:
       warm_licensed: ${{ steps.license.outputs.warm_licensed }}
     env:
@@ -95,7 +95,7 @@ jobs:
     # ADR-0560 D4's contract — from-empty, NO overlay, NO actions/cache step — is a property of
     # the STEPS, which are unchanged. Running in-cluster additionally puts the canary where the
     # NativeLink CAS is actually reachable, which is a precondition for it ever covering RE.
-    runs-on: ubuntu-latest  # binding linux-amd64 hosted; ARC oya-arm64 is lab overflow only
+    runs-on: ubuntu-latest  # binding linux-amd64 hosted (ARC retired)
     timeout-minutes: 120
     steps:
       # actions/checkout@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
@@ -232,3 +232,20 @@ jobs:
           # canary runs daily, so 30 days keeps a full month of cold-vs-warm verdicts.
           retention-days: 30
           if-no-files-found: warn
+
+  # Dual-emit forever check title (naming_sweep). Protection flip = PAUSE-AND-PAIR only.
+  # automation-language-policy: no new workflow `run:` — uses-only mirror (see oya-ci-required).
+  cache-integrity-canary-forever-title:
+    name: "cache-integrity-canary (cold from-empty)"
+    runs-on: ubuntu-latest
+    if: ${{ always() && needs.canary.result == 'success' }}
+    needs: [canary]
+    steps:
+      - name: Dual-emit forever title (uses-only; no new inline shell)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+          sparse-checkout: |
+            README.md
+          sparse-checkout-cone-mode: true

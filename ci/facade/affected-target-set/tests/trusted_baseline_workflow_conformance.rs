@@ -39,6 +39,24 @@ fn actions_read_is_job_scoped_to_the_only_consumer() {
 }
 
 #[test]
+fn hub_exclusivity_live_producer_is_invoked_on_binding_affected_set_step() {
+    let workflow = workflow();
+    let job = affected_job(&workflow);
+    assert!(
+        job.contains("oya-cloud-ci-hub-exclusivity-bin"),
+        "binding step must build the hub-exclusivity producer binary"
+    );
+    assert!(
+        job.contains("--live-open-prs"),
+        "binding step must opt into live open-PR file facts (not fixture-only)"
+    );
+    assert!(
+        job.contains("pull-requests: read"),
+        "job needs pull-requests:read for open PR + files list REST"
+    );
+}
+
+#[test]
 fn exact_producer_is_the_sole_attempt_bound_publisher_and_cold_fallback_remains() {
     let workflow = workflow();
     let job = affected_job(&workflow);

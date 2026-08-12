@@ -14,6 +14,10 @@
       "prefix": ".codex/BUCK"
     },
     {
+      "anchor": "ADR-0515 governance pipeline: reviewed Cursor model-routing and agent-ritual policy for cloud-ci delivery lanes.",
+      "prefix": ".cursor/rules/"
+    },
+    {
       "anchor": "ADR-0600 addendum 2026-07-02: GitHub community-health code of conduct (tool-mandated GitHub special file under the .github meta home).",
       "prefix": ".github/CODE_OF_CONDUCT.md"
     },
@@ -36,6 +40,14 @@
     {
       "anchor": "ADR-0560 D4 (executing ADR-0556 D2 'no canary, no warm'): the scheduled cold integrity-canary workflow — from-empty pinned build + assert-cold + digest manifests + verdict artifact; shape pinned by the oya-cloud-ci-cache-wiring-app conformance gate",
       "prefix": ".github/workflows/cache-integrity-canary.yml"
+    },
+    {
+      "anchor": "Phase0 dual-emit / naming_sweep: domain-stabilize workflow callable/entry surface under integ/ci; local bridge feedback only — merge authority remains oya-ci-required until PAUSE-AND-PAIR forever-name flip to merge-admission-required (ADR-0515).",
+      "prefix": ".github/workflows/domain-stabilize.yml"
+    },
+    {
+      "anchor": "Forever merge-admission workflow filename + dual-emit public status string merge-admission-required (workflow_call-only body until quiet cutover); protection context flip remains PAUSE-AND-PAIR (ADR-0515).",
+      "prefix": ".github/workflows/merge-admission-required.yml"
     },
     {
       "anchor": "mm-kit land (PR #1575): tracked multi-model delivery harness under .grok/ (bins, harness schemas, roles, workflows, program doctrine). Process tooling only — not merge authority; admission remains reviewer APPROVE + oya-ci-required (ADR-0515). Runtime journals (.grok/mm-runs/, .grok/memory/) stay gitignored. Ownership seed .grok/OWNERS (cloud-ci-platform).",
@@ -86,8 +98,16 @@
       "prefix": "cell/"
     },
     {
-      "prefix": "ci/controller/iac/",
-      "anchor": "ADR-0515 cloud-ci controller Helm surface dual-homed with integ/ci; reachable with ci/controller workspace members on #1934 sole-owner absorb"
+      "anchor": "ADR-0562 migration inventory: reviewed CI controller legacy-root drain record.",
+      "prefix": "ci/REORG-DRAIN.md"
+    },
+    {
+      "anchor": "ADR-0515 F-PR5-06: owned CI controller app, adapters, kernel, and Helm workload declaration; planned controller is not merge authority.",
+      "prefix": "ci/controller/"
+    },
+    {
+      "anchor": "ADR-0555 D3: CI gate evidence corpus for reviewed delivery-lane outcomes.",
+      "prefix": "ci/evidence/"
     },
     {
       "anchor": "ADR-0635 D5: named RED/GREEN mutation corpus consumed directly by the dependency-graph-acyclicity Buck gate test.",
@@ -794,7 +814,7 @@
       "prefix": "tools/opensk-vendored/UPSTREAM-CONFIG.json"
     },
     {
-      "anchor": "ADR-0711 D-9: tools/swarm process-kit birth aborted on #1644 (automation-language-policy); deferred to .grok/ Rust-first. Prefix retained as tombstone / do-not-birth marker until .grok/ lands.",
+      "anchor": "ADR-0711 D-9: tools/swarm process-kit birth aborted on #1644 (automation-language-policy). Forever home encoded: ci/process-kit/** (Buck //ci/process-kit:…) + ci/facade/harness/{daemon-hotset,perimeter}.v1.json. Prefix retained as tombstone / do-not-birth marker.",
       "prefix": "tools/swarm/",
       "status": "deferred"
     },

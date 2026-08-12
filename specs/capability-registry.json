@@ -366,7 +366,6 @@
       ],
       "absorbs_current_dirs": [
         "ci",
-        "oya/ci-controller",
         "oya/ci-webhook-gateway"
       ],
       "dag_node": "delivery-fabric",

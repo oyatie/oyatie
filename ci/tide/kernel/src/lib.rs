@@ -14,11 +14,19 @@
 //!
 //! A PR is merge-eligible iff ALL of:
 //! 1. The configured `required_status_context` has state `success` on the HEAD SHA.
-//! 2. The number of approving reviews >= `approval_policy.min_approvals`.
+//! 2. The number of **author≠reviewer** approving reviews >=
+//!    `approval_policy.min_approvals` (floor ≥1; `OYA_TIDE_MIN_APPROVALS=0` is
+//!    clamped). Self-APPROVE and tip-green/thread-resolution are observation only
+//!    (`observation≠APPROVE`, `registry/fixuptasks.jsonl#F-PR5-06`).
 //! 3. No blocking label (`hold` / `do-not-merge`) is present.
 //! 4. The PR is not stale/behind the protected base. Stale approved PRs are a
 //!    controller-owned branch-refresh action, never a merge.
 //! 5. The forge reports the PR as clean and mergeable (no conflicts).
+//!
+//! Tide does **not** close the GitHub branch-protection hole where
+//! `required_approving_review_count` is null/0 and squash auto-merge can fire on
+//! conversation-resolution alone — that remains F-PR5-06 / PAUSE-AND-PAIR plus
+//! programme Land-packet babysit (see bead `oyatie-45t0.3`).
 //!
 //! ## Forge of record (D-FORGE)
 //!
@@ -236,9 +244,12 @@ impl TideConfig {
         let required_status_context = get("OYA_TIDE_REQUIRED_STATUS_CONTEXT")
             .filter(|v| !v.trim().is_empty())
             .unwrap_or_else(|| DEFAULT_REQUIRED_STATUS_CONTEXT.to_owned());
+        // Floor ≥ DEFAULT_MIN_APPROVALS (1): env may raise the bar, never lower it
+        // to 0 (F-PR5-06 / observation≠APPROVE — tip-green alone must not merge).
         let min_approvals: u32 = get("OYA_TIDE_MIN_APPROVALS")
             .and_then(|v| v.trim().parse().ok())
-            .unwrap_or(DEFAULT_MIN_APPROVALS);
+            .unwrap_or(DEFAULT_MIN_APPROVALS)
+            .max(DEFAULT_MIN_APPROVALS);
         let poll_interval_secs: u64 = get("OYA_TIDE_POLL_INTERVAL_SECS")
             .and_then(|v| v.trim().parse().ok())
             .unwrap_or(DEFAULT_POLL_INTERVAL_SECS);
@@ -281,6 +292,11 @@ pub struct PullRequest {
     pub number: u64,
     /// PR title.
     pub title: String,
+    /// Forge login of the PR author (user who opened the PR).
+    ///
+    /// Approvals from this login do **not** satisfy
+    /// [`ApprovalPolicy::min_approvals`] (author≠reviewer / F-PR5-06).
+    pub author: String,
     /// HEAD commit SHA.
     pub head_sha: String,
     /// Base branch (target of the PR).
@@ -442,7 +458,9 @@ impl std::fmt::Display for IneligibleReason {
 /// # Rules (all must hold)
 ///
 /// 1. `status_state == CommitStatusState::Success` for the required context.
-/// 2. Count of `ReviewState::Approved` reviews >= `config.approval_policy.min_approvals`.
+/// 2. Count of distinct latest `ReviewState::Approved` reviews from reviewers
+///    **other than** `pr.author` >= `config.approval_policy.min_approvals`
+///    (author self-APPROVE is observation only; F-PR5-06 / observation≠APPROVE).
 /// 3. No label matches a blocking prefix (`hold`, `do-not-merge`), case-insensitive.
 /// 4. `pr.merge_state == MergeState::Clean`; stale PRs are branch-refresh
 ///    work, while other non-clean states are not merge work.
@@ -455,10 +473,12 @@ pub fn is_mergeable(input: &EligibilityInput<'_>) -> std::result::Result<(), Ine
         });
     }
 
-    // Rule 2 — sufficient distinct latest approving reviews. Later reviews from
-    // the same reviewer supersede older approvals, so REQUEST_CHANGES /
-    // DISMISSED states cannot be bypassed by a stale approval on another page.
-    let approvals = latest_approving_review_count(input.reviews);
+    // Rule 2 — sufficient distinct latest approving reviews from non-authors.
+    // Later reviews from the same reviewer supersede older approvals, so
+    // REQUEST_CHANGES / DISMISSED cannot be bypassed by a stale approval.
+    // Author self-APPROVE never counts (even when GH required_approving_review_count
+    // is null — Tide still enforces programme Land admission).
+    let approvals = latest_approving_review_count(input.reviews, &input.pr.author);
     if approvals < input.config.approval_policy.min_approvals {
         return Err(IneligibleReason::InsufficientApprovals {
             actual: approvals,
@@ -496,8 +516,9 @@ pub fn is_mergeable(input: &EligibilityInput<'_>) -> std::result::Result<(), Ine
     Ok(())
 }
 
-fn latest_approving_review_count(reviews: &[Review]) -> u32 {
+fn latest_approving_review_count(reviews: &[Review], author: &str) -> u32 {
     let mut latest: Vec<&Review> = Vec::new();
+    let author_norm = author.trim().to_ascii_lowercase();
 
     for review in reviews {
         match latest
@@ -515,7 +536,10 @@ fn latest_approving_review_count(reviews: &[Review]) -> u32 {
 
     latest
         .into_iter()
-        .filter(|review| review.state == ReviewState::Approved)
+        .filter(|review| {
+            review.state == ReviewState::Approved
+                && !review.reviewer.trim().eq_ignore_ascii_case(&author_norm)
+        })
         .count() as u32
 }
 
@@ -599,6 +623,7 @@ mod tests {
         PullRequest {
             number: 42,
             title: "feat: add tide".to_owned(),
+            author: "pr-author".to_owned(),
             head_sha: "deadbeef01234567".to_owned(),
             base_ref: "dev".to_owned(),
             mergeable: Some(true),
@@ -756,6 +781,65 @@ mod tests {
                 required: 2
             })
         );
+    }
+
+    #[test]
+    fn author_self_approve_does_not_count_toward_min_approvals() {
+        // F-PR5-06 / observation≠APPROVE: author≠reviewer required even when
+        // GH required_approving_review_count is null.
+        let cfg = default_config();
+        let pr = approved_pr();
+        let reviews = vec![Review {
+            reviewer: pr.author.clone(),
+            state: ReviewState::Approved,
+            submitted_at: Some("2026-08-10T18:00:00Z".to_owned()),
+            id: Some(99),
+            api_order: 0,
+        }];
+        let input = input_all_green(&pr, &reviews, &cfg);
+        assert_eq!(
+            is_mergeable(&input),
+            Err(IneligibleReason::InsufficientApprovals {
+                actual: 0,
+                required: 1
+            })
+        );
+    }
+
+    #[test]
+    fn author_self_approve_plus_independent_approve_is_eligible() {
+        let cfg = default_config();
+        let pr = approved_pr();
+        let reviews = vec![
+            Review {
+                reviewer: pr.author.clone(),
+                state: ReviewState::Approved,
+                submitted_at: Some("2026-08-10T18:00:00Z".to_owned()),
+                id: Some(1),
+                api_order: 0,
+            },
+            Review {
+                reviewer: "independent-reviewer".to_owned(),
+                state: ReviewState::Approved,
+                submitted_at: Some("2026-08-10T18:01:00Z".to_owned()),
+                id: Some(2),
+                api_order: 1,
+            },
+        ];
+        let input = input_all_green(&pr, &reviews, &cfg);
+        assert_eq!(is_mergeable(&input), Ok(()));
+    }
+
+    #[test]
+    fn min_approvals_env_zero_clamps_to_floor_one() {
+        let cfg = TideConfig::from_lookup(|k| {
+            if k == "OYA_TIDE_MIN_APPROVALS" {
+                Some("0".to_owned())
+            } else {
+                None
+            }
+        });
+        assert_eq!(cfg.approval_policy.min_approvals, DEFAULT_MIN_APPROVALS);
     }
 
     #[test]
