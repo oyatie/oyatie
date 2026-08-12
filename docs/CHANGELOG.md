@@ -1,9 +1,51 @@
+- 2026-08-11 — Phase0 merge-admission-required + domain green / path_ownership cite (SSOT absorb); bead oyatie-dxz docs-governance.
 ---
 purpose: Oyatie — Canonical Docs Changelog
 doc_status: published
 ---
 
 # Changelog
+
+## 2026-08-11 — Cloud provider + full ecosystem north-star (INV-DOC-9)
+
+- Survived product spine in operating contract
+  [`docs/AGENTS.md`](AGENTS.md) § Doctrine survival → *Cloud provider + full ecosystem*
+  plus architecture pointer
+  [`docs/architecture/cloud-provider-full-ecosystem-north-star.md`](architecture/cloud-provider-full-ecosystem-north-star.md).
+- Locks: **not compute-only** — full CSP capacity (hyperscaler-parity+) **and** curated
+  ecosystem broader than hyperscalers; EU/SECA named as aligned digital north-star;
+  **BAN** personal-data sovereignty UX theater; SECA-capable Rust + smooth entry/exit.
+- Glossary: disambiguate **SECA** (cloud API vs tax acronym).
+- Programme phase Done-when remains in living N=1 tracker — **BAN** second architecture plan.
+
+## 2026-08-11 — Custom ARC runner fleets retired
+
+- Declared **ARC overflow RETIRED**: `oya-arm64` / `oya-live-postgres-arm64` tip
+  `maxRunners: 0`; soft multi-arch remains GitHub-hosted; lab CAS = founder laptop
+  (sibling CAS track). Idea update:
+  [`docs/ideas/hosted-ci-lab-cas-agent-fleet.md`](ideas/hosted-ci-lab-cas-agent-fleet.md).
+  Live cluster drain checklist: `infra/arc/README.md` (lands on integ/ci tip).
+
+## 2026-08-11 — Live Postgres law folded into ADR-0700
+
+- Restated binding **Live Postgres law** on `docs/decisions/ADR-0700-ci-admission-live-apex.md`
+  (hard norm §8): mocks default; live PG for durable truth only; path-optional PR arming;
+  **touched surface (+ dependents)** inside an armed job — **BAN** broad PG suite as default
+  PR tax; full estate on trunk / `merge_group` / nightly / ship. Transitional coarse
+  adapter/facade cones remain until workflow touched-target select lands.
+
+## 2026-08-11 — Portable doctrine + Automations ritual + ADR-rename overturn (docs)
+
+- Landed **portable Swarm doctrine** single source
+  [`templates/portable-swarm-doctrine.md`](../templates/portable-swarm-doctrine.md)
+  (`portable_doctrine_version` **1.0.0**) plus new-repo
+  [`templates/README-doctrine-pointer.md`](../templates/README-doctrine-pointer.md).
+- Added short **Cursor Automations** (advisory-only) subsection to
+  [`templates/checklists/swarm-agent-ritual.md`](../templates/checklists/swarm-agent-ritual.md);
+  do not recreate `docs/checklists/` dual-home.
+- Documented **adr-rename-overturn** challenge on `docs/AGENTS.md` (cite ADR-0711 E-1;
+  MUST NOT mass-rename `ADR-NNNN-<topic>` for taxonomy optics).
+- Same-wave operating-contract pointers under Doctrine survival + canonical doc map.
 
 ## 2026-08-11 — ADR-0711 Cargo.lock sole-owner amend
 
@@ -535,11 +577,11 @@ collision, Bominal-ADR-0119 disambiguation, ADR-0019 self-amendment).
 
 - 64 fitness-lane catalogue specs lifted from `.omc/governance-lanes/` to `docs/governance-lanes/` (64 lane files + INDEX). Status set to `Accepted`; `lift_target:` field removed; `date: 2026-05-12` added. ADR-0053 cited in lanes enforcing sanctioned-primitive rules (adapter-kernel, banned-primitives, bypass, cloud-mutation, cutover-bootstrap-window, direct-tool-invocation-audit, provider-agnostic); ADR-0052 cited in portfolio-citation (inventory); ADR-0054 cited in agent-completion-checklist, claim-ceiling, scaffold-claim-pattern. Kernel implementations deferred to Stage 3.
 
-## 2026-05-12 — Stage 1 Wave 2: templates + checklists lifted to docs/templates/ + docs/checklists/ (25 files)
+## 2026-05-12 — Stage 1 Wave 2: templates + checklists lifted to docs/templates/ + templates/checklists/ (25 files)
 
-- **doc.templates-index** (Tier 2): 13 template files lifted from `/templates/` to `docs/templates/` (INDEX + 12 templates); 12 checklist files lifted from `/templates/checklists/` to `docs/checklists/`. Status set to `Accepted`; `lift_target:` field removed; `date: 2026-05-12` added; ADR-0052 + ADR-0053 + ADR-0054 cited in every file's frontmatter and body prose where sanctioned primitives, inventory ledger, and scaffold-claim are referenced.
+- **doc.templates-index** (Tier 2): 13 template files lifted from `/templates/` to `docs/templates/` (INDEX + 12 templates); 12 checklist files lifted from `/templates/checklists/` to `templates/checklists/`. Status set to `Accepted`; `lift_target:` field removed; `date: 2026-05-12` added; ADR-0052 + ADR-0053 + ADR-0054 cited in every file's frontmatter and body prose where sanctioned primitives, inventory ledger, and scaffold-claim are referenced.
 - 4 templates renamed to `-v2` due to conflicts with existing `docs/templates/` files: `pull-request-template-v2.md`, `adr-template-v2.md`, `runbook-template-v2.md`, `capability-record-template-v2.yaml`. Each carries `header_note: "Supersedes prior docs/templates/<name>.md once reviewed."` and `supersedes:` frontmatter field.
-- 0 checklist conflicts (all 12 checklists are new additions; existing `docs/checklists/cross-axis-contract-change.md` preserved; new `cross-axis-contract-change-checklist.md` carries `extends:` pointer to the prior file).
+- 0 checklist conflicts (all 12 checklists are new additions; existing `templates/checklists/cross-axis-contract-change.md` preserved; new `cross-axis-contract-change-checklist.md` carries `extends:` pointer to the prior file).
 - Existing `docs/templates/` files preserved as-is: `migration-runbook-template.md`, `dpia-template.md`, `team-charter-template.md`, `threat-model-template.md`, `incident-postmortem-template.md`, and others out of scope of this delivery.
   - Authors: jason931225
   - ADRs cited: ADR-0052, ADR-0053, ADR-0054

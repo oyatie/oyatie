@@ -8,7 +8,7 @@ purpose: |
   "ready to merge"; D19 is walked after squash merge before product-complete.
   Re-walk at the loop-cancellation boundary per `docs/AGENTS.md §Long-running
   loop rule`.
-lift_target: oyatie/docs/checklists/done-definition.md
+lift_target: oyatie/templates/checklists/done-definition.md
 enforcing_fitness_lane: guard-pr-merge-review.mjs + per-lane CI status
 owner_team: axis-foundry + council-architecture
 related:
@@ -49,7 +49,7 @@ related:
   promoted commit `oya-ci-required` status URL, rollout verification, rollback note,
   observability/golden-signal check, browser UX/user-story evidence, and Release
   Please/release-note impact. *Verification:* PR comment or release evidence bundle
-  linked from `## Evidence`; see `docs/checklists/pre-merge.md §After merge`.
+  linked from `## Evidence`; see `templates/checklists/pre-merge.md §After merge`.
 
 ## Per-change-class additions
 

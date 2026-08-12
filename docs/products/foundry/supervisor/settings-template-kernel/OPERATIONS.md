@@ -12,9 +12,14 @@ doc_status: published
 
 ### Validate Template Structure
 
+> **Retired path:** `templates/foundry-supervisor/` was deleted (hooks pointed at
+> missing `tools/foundry-supervisor-*` binaries). Do not invoke validate/render
+> against that tree until a replacement template root lands.
+
 ```bash
+# Local bridge only — pass a live template path when one exists:
 cargo run -p oya-dev-cli -- gate validate settings-template \
-  --template templates/foundry-supervisor/claude.toml
+  --template <live-settings-template.toml>
 
 # Expected: pass if:
 # - All required fields present
@@ -48,9 +53,9 @@ SettingsRenderer::verify()
 ### Verifying Drift Detection Works
 
 ```bash
-# Render once
+# Render once (requires a live template path — templates/foundry-supervisor/ deleted)
 cargo run -p oya-dev-cli -- settings-template render \
-  --template templates/foundry-supervisor/claude.toml \
+  --template <live-settings-template.toml> \
   --account-id test-account
 
 # Check manifest
@@ -59,9 +64,9 @@ cat .omc/state/settings-template-manifest.json
 # Manually edit rendered file
 echo '"extra_field": true' >> ~/.claude/settings.json
 
-# Verify detects drift
+# Verify detects drift (pass a live templates root)
 cargo run -p oya-dev-cli -- gate validate settings-drift \
-  --templates-root templates/foundry-supervisor \
+  --templates-root <live-templates-root> \
   --accounts-root registry/accounts
 
 # Should report DriftState::Modified with diff
@@ -100,7 +105,7 @@ cargo run -p oya-dev-cli -- gate validate settings-drift \
 
 1. Create new renderer in adapter crate (e.g., `AwsRenderer`)
 2. Implement `SettingsRenderer` trait
-3. Create new template TOML: `templates/foundry-supervisor/aws.toml`
+3. Create new template TOML under a live templates root (do not recreate `templates/foundry-supervisor/`)
 4. Register in CI lane: `lean-settings-drift` subcommand
 
 ## References

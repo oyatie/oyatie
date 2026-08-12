@@ -23,7 +23,7 @@ The single most important finding: the governance prose names enforcers that **d
 
 **Net:** the real machine floor a consolidation PR must clear is **`oya verify --ci-required --include-deferred`** (the pre-push shim → `oya-dev-cli verify` → `gate run-all`), plus the per-PR lanes in `lanes.yaml` (96 lanes; `gate validate <name>`). The 5-H2 / `## Code Review` / D18-changelog shape is **documented doctrine** that the *named* validators don't yet enforce — produce them anyway (the seam lane reads the multispectrum evidence, and the soak window arms the rest).
 
-**Source basis:** `docs/AGENTS.md:68-75,211-244`; `docs/checklists/done-definition-checklist.md`; `docs/DOC-UPDATE-PROTOCOL.md`; `docs/templates/pull-request-template-v2.md`; `registry/quality/lanes.yaml` (96 lanes); `scripts/hooks/pre-push.sh`; `scripts/validate-adr-shape.mjs`; `libs/oya-governance-pr-traceability-kernel/src/lib.rs`; `libs/oya-check-dependency-seam/`. Repo-wide `find`/`grep` for `guard-pr-merge-review`, `traceability-validator`, `oya-pr-review` returned **no implementation**.
+**Source basis:** `docs/AGENTS.md:68-75,211-244`; `templates/checklists/done-definition-checklist.md`; `docs/DOC-UPDATE-PROTOCOL.md`; `docs/templates/pull-request-template-v2.md`; `registry/quality/lanes.yaml` (96 lanes); `scripts/hooks/pre-push.sh`; `scripts/validate-adr-shape.mjs`; `libs/oya-governance-pr-traceability-kernel/src/lib.rs`; `libs/oya-check-dependency-seam/`. Repo-wide `find`/`grep` for `guard-pr-merge-review`, `traceability-validator`, `oya-pr-review` returned **no implementation**.
 
 ---
 
@@ -88,7 +88,7 @@ Change class: <feature | bugfix | refactor | migration | docs | chore | capabili
 
 ## 2 — Done-Definition D1..D18 checklist (per-lane)
 
-**Source:** `docs/AGENTS.md:221-244` (core D1-D18) + `docs/checklists/done-definition-checklist.md` (CHK-DONE, Accepted 2026-05-12; per-change-class additions). The two are intentional mirrors — AGENTS.md is the §source; the checklist extends with per-class rows. (Minor drift: AGENTS.md D7 is folded into the checklist's enumerated `oya-governance-{…}` lane set; checklist D12 = `oya verify --ci-required`, AGENTS.md D12 = "required cloud-ci/oya-ci context.")
+**Source:** `docs/AGENTS.md:221-244` (core D1-D18) + `templates/checklists/done-definition-checklist.md` (CHK-DONE, Accepted 2026-05-12; per-change-class additions). The two are intentional mirrors — AGENTS.md is the §source; the checklist extends with per-class rows. (Minor drift: AGENTS.md D7 is folded into the checklist's enumerated `oya-governance-{…}` lane set; checklist D12 = `oya verify --ci-required`, AGENTS.md D12 = "required cloud-ci/oya-ci context.")
 
 Walk **all** D1-D18, then the **per-change-class** rows that apply. Each row carries a typed verification path (lane name / command / `(advisory)`).
 
@@ -117,7 +117,7 @@ Walk **all** D1-D18, then the **per-change-class** rows that apply. Each row car
 
 **migration** (crate moves — the dominant consolidation class):
 - [ ] Schema up + down + dry-run + per-tenant + per-cell rollback shipped. *Lane:* `oya-governance-schema-migration`. *(N/A for pure crate moves; mark not-applicable.)*
-- [ ] Inventory row added per `docs/checklists/inventory-update-checklist.md` (ADR-0052). *Lane:* `oya-governance-inventory-tracker`.
+- [ ] Inventory row added per `templates/checklists/inventory-update-checklist.md` (ADR-0052). *Lane:* `oya-governance-inventory-tracker`.
 
 **refactor** (pure crate relocate / rename, no semantic change):
 - [ ] Public API surface unchanged. *Command:* `cargo public-api --diff`.
@@ -325,7 +325,7 @@ authority_chain_declaration: |
 ## 8 — Sources (all read read-only from `/Users/jasonlee/Developer/source`)
 
 - `docs/AGENTS.md` (operating contract — §multispectrum :68-75; §PR shape :211-219; §Done-Definition :221-244; §reviewer agents :151-168; §Long-running loop :270-272)
-- `docs/checklists/done-definition-checklist.md` (CHK-DONE; per-change-class additions)
+- `templates/checklists/done-definition-checklist.md` (CHK-DONE; per-change-class additions)
 - `docs/DOC-UPDATE-PROTOCOL.md` (5-stage; CHANGELOG step 8; 5-H2 step 18)
 - `docs/templates/pull-request-template-v2.md` (TPL-PR; 5 H2 + Code Review)
 - `docs/templates/adr-template-v2.md` (TPL-ADR; front-matter + body shape)

@@ -391,7 +391,7 @@ The fintech vertical lives at `crates/oya-vertical-fintech-*`. Per [DESIGN.md §
 
 ## 6. Operational checklist (per fintech tenant onboarding)
 
-> Mirrored at [`checklists/fintech-tenant-onboarding.md`](../checklists/tenant-onboarding.md).
+> Mirrored at [`../../templates/checklists/fintech-tenant-onboarding.md`](../../templates/checklists/tenant-onboarding.md).
 
 1. ☐ Confirm tenant posture (PG / wallet / bank / brokerage / lending / etc.)
 2. ☐ Confirm region(s) → load relevant pack(s)

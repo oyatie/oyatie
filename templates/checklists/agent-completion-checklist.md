@@ -4,7 +4,7 @@ checklist_id: CHK-COMPLETE
 status: pending approval
 purpose: |
   The agent's last 5 actions before `grit done`. Closes the agentic-navigation contract. Walked at the end of every agent session that modified the repo.
-lift_target: oyatie/docs/checklists/agent-completion.md
+lift_target: oyatie/templates/checklists/agent-completion.md
 enforcing_fitness_lane: oya-governance-banned-primitives + oya-governance-audit-emission
 owner_team: axis-foundry
 related:
