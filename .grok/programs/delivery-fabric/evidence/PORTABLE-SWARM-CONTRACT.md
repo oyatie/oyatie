@@ -52,7 +52,7 @@ bd show <id>
 12. **Do not** invent work or invent lanes for empty verified space — claim only `implementable` beads.
 13. **Do not** land paragraph narration comments — code must be self-explanatory; comments only for non-obvious intent/trade-offs/constraints (ADR-0711 Amendment A-3).
 14. **Do not** hand-edit generated artifacts — require `@generated` + generator id + SSOT pointer; regen via the one-command path; hermetic drift check owns freshness (ADR-0711 Amendment A-4).
-15. **Do not** birth new paths under `reorg_debt_freeze.prefixes` (vacating / reorg_now sources). Content must `reorg_now` or `delete_permanently` NOW — freeze ≠ keep. `tools/swarm/**` one-shot birth on `#1644` was aborted (automation-language-policy); birth Rust process-kit under `.grok/` directly when ready.
+15. **Do not** birth new paths under `reorg_debt_freeze.prefixes` (vacating / reorg_now sources). Content must `reorg_now` or `delete_permanently` NOW — freeze ≠ keep. `tools/swarm/**` one-shot birth on `#1644` was aborted (automation-language-policy); forever Rust process-kit is `ci/process-kit/**` (BAN agent-dotdirs as forever homes).
 
 ## Swarm Delivery Law (ADR-0711)
 
@@ -300,8 +300,9 @@ in `specs/agentic-operating-patterns.json` (`rule_shape`).
 - `specs/integ-branch-envelopes.json#perimeter` — advisory channels scratch-only; `hotfix/*`
   requires founder ack or incident evidence (Phase B).
 
-Process-kit harness mirrors under `.grok/harness/` birth on owning integ for `roots.grok`
-(doctrine SSOT remains envelopes).
+Process-kit harness mirrors live under `ci/facade/harness/` on `integ/ci` (`roots.ci`);
+forever Rust kit is `ci/process-kit/**` (BAN agent-dotdirs as forever homes). Doctrine SSOT
+remains envelopes `#daemon_hotset` / `#perimeter`.
 
 <a id="Northstar-daemon-hotset--advisory-perimeter"></a>
 

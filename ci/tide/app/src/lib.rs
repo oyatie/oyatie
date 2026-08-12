@@ -325,6 +325,7 @@ mod tests {
         PullRequest {
             number: 7,
             title: "ci: tide stale refresh".to_owned(),
+            author: "pr-author".to_owned(),
             head_sha: "abc123".to_owned(),
             base_ref: "dev".to_owned(),
             mergeable: Some(true),

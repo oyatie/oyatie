@@ -13,7 +13,7 @@
     "authority_adr": "docs/decisions/ADR-0711-swarm-delivery-law-integ-branch-topology.md",
     "self_owner_branch": "integ/specs",
     "primary_consumer": "governance/check/integ-envelope + .claude/workflows/deliver.js Claim",
-    "purpose": "Policy-as-data for envelope containment, hub sole-owner, adjunct claims, concurrent-safe exemptions, process-kit deferred to .grok/ (Rust-first; no tools/swarm birth on #1644), hyperscaler monorepo patterns, Amendment B ternary layout + Pattern-First taxonomy + 16-lens judgment (volatile judgments live under governance/check/integ-envelope/judgments/), Amendment C operating-patterns catalog, Amendment D anti-drift INV-DOC-1…9 + Claim↔diff bind, merge_windows, mechanical Claim packet, and process-meta / forward-declared roots under Swarm Delivery Law, daemon_hotset + perimeter northstar, rules-with-why / adr-rename-overturn.",
+    "purpose": "Policy-as-data for envelope containment, hub sole-owner, adjunct claims, concurrent-safe exemptions, process-kit forever ci/process-kit (Rust-first; no tools/swarm birth on #1644; BAN agent-dotdirs forever homes), hyperscaler monorepo patterns, Amendment B ternary layout + Pattern-First taxonomy + 16-lens judgment (volatile judgments live under governance/check/integ-envelope/judgments/), Amendment C operating-patterns catalog, Amendment D anti-drift INV-DOC-1…9 + Claim↔diff bind, merge_windows, mechanical Claim packet, and process-meta / forward-declared roots under Swarm Delivery Law, daemon_hotset + perimeter northstar, rules-with-why / adr-rename-overturn.",
     "prior_version": "1.16.20"
   },
   "admission": {
@@ -217,7 +217,7 @@
       "envelope_globs": [
         ".grok/**"
       ],
-      "note": "PROCESS_KIT forever home for mm-delivery / swarm process shims. Birth directly under .grok/ as Rust-first (automation-language-policy forbids new shell/Python under tools/). Forward-declared until .grok/ judgment closes; destination_owns_reorg_now absorb owner for rows targeting .grok/. Peer to planes.process_meta PROCESS_KIT paths on integ/ci.",
+      "note": "Residual agent-dotdir envelope for ephemeral / transitional .grok/ surfaces (mm-runs, memory, non-forever harness). Founder OVERRULE: BAN agent-dotdirs as forever homes — Rust process-kit forever is ci/process-kit/** (Buck //ci/process-kit:…); daemon-hotset + perimeter forever are ci/facade/harness/** under roots.ci. Do not birth new forever policy under .grok/.",
       "forward_declared": true
     },
     "hr": {
@@ -857,7 +857,7 @@
       "parsers": [
         ".claude/workflows/deliver.js#parseClaimPacket"
       ],
-      "push_check": "deferred: .grok/ process-kit claim-push (Rust-first); until then Land uses deliver.js merge-tree preflight only"
+      "push_check": "deferred: ci/process-kit claim-push (Rust-first); until then Land uses deliver.js merge-tree preflight only"
     },
     "encoded_in": [
       ".claude/workflows/deliver.js#Claim",
@@ -903,7 +903,7 @@
       "commit --no-verify/-n",
       "push --no-verify"
     ],
-    "enforcement": "deferred: .grok/ git-shim / toolguard (Rust-first); doctrine in PORTABLE-SWARM-CONTRACT + ADR-0711 D-9; no shell birth under tools/ on #1644"
+    "enforcement": "deferred: ci/process-kit git-shim / toolguard (Rust-first); doctrine in PORTABLE-SWARM-CONTRACT + ADR-0711 D-9; no shell birth under tools/ on #1644"
   },
   "worktree_topology": {
     "main_checkout": "orchestrator + check-daemon only (durable writes)",
@@ -1080,7 +1080,7 @@
     "claim_exemption_marker": "reorg-move-out",
     "one_shot_exceptions": [],
     "judgment_gate": "See reorg_debt_freeze.evaluation_gate — path changes require judgment_status=done",
-    "one_shot_exceptions_note": "#1644 aborted tools/swarm/** one-shot birth: automation-language-policy forbids new non-Rust under tools/ vs immutable merge-base ceiling. Process kit lands later under .grok/ as Rust."
+    "one_shot_exceptions_note": "#1644 aborted tools/swarm/** one-shot birth: automation-language-policy forbids new non-Rust under tools/ vs immutable merge-base ceiling. Process kit forever home: ci/process-kit (Rust)."
   },
   "reorg_debt_freeze": {
     "authority": "docs/decisions/ADR-0711-swarm-delivery-law-integ-branch-topology.md#Amendment-B",
@@ -3871,7 +3871,7 @@
         "destination": ".grok/ + ci/facade/ + delete remainder",
         "disposition": "rewrite-into-durable-shape",
         "name_now": "tools/",
-        "name_forever": "(none — process kit under .grok/; gates under ci/facade)",
+        "name_forever": "(none — process kit under ci/process-kit; gates under ci/facade)",
         "kind": "process-kit",
         "grammar_compliant": false,
         "lenses_applied": "all-16",
@@ -3886,7 +3886,7 @@
           "contrarian: REJECT scout silence on tools root — parent must close with swarm leaf",
           "zero_trust: no new tools/* unit roots without reorg-move-out",
           "red_team: worktree-only .grok/ process-kit copies masquerading as main forever home",
-          "operability_day2: operators find process kit under .grok/, not tools/",
+          "operability_day2: operators find process kit under ci/process-kit/, not tools/",
           "finops_unit_cost: one process-kit tree",
           "shared_nothing: .grok/ owns swarm process; ci/facade owns gates",
           "constant_work: judgment now; path port after #1644",
@@ -3901,7 +3901,7 @@
           "#1644 aborted tools/swarm birth (automation-language ceiling)"
         ],
         "destination_integ": "integ/tools",
-        "land_when": "Shrink-only on integ/tools after child leaf drains (.grok/ process-kit birth on integ/ci (no tools/swarm intermediate), governance apps→integ/ci); parent tools/ is never absorb owner",
+        "land_when": "Shrink-only on integ/tools after child leaf drains (ci/process-kit birth on integ/ci (no tools/swarm intermediate), governance apps→integ/ci); parent tools/ is never absorb owner",
         "land_status": "shrink_only_after_leaf_drains",
         "shrink_source_integ": "integ/tools"
       },
@@ -3932,11 +3932,11 @@
           "deliver.js#parseClaimPacket owns Claim mechanical on #1644"
         ],
         "destination_integ": "integ/ci",
-        "land_when": "No tools/swarm birth on #1644. Later: integ/ci births Rust process-kit under .grok/** (destination_owns_reorg_now); tools/ stays shrink-only.",
+        "land_when": "No tools/swarm birth on #1644. Encoded: integ/ci owns ci/process-kit/** + ci/facade/harness/**; tools/ stays shrink-only.",
         "land_status": "absorb_on_integ_ci_then_shrink_integ_tools",
         "wave": "W-tools-swarm-to-grok",
         "shrink_source_integ": "integ/tools",
-        "forever_name": "(never; .grok/ process-kit instead)"
+        "forever_name": "(never; ci/process-kit instead)"
       },
       {
         "path": "tools/oya-governance-adapter-with-no-importer-app/",
@@ -5418,8 +5418,8 @@
         "land_status": "absorb_on_integ_ci_then_shrink_integ_tools",
         "shrink_source_integ": "integ/tools",
         "status": "judgment_closed_tools_swarm_to_grok",
-        "note": "absorb owner integ/ci via roots.grok (.grok/**); integ/specs is envelopes hub only — not forever-path absorb owner (#1644 automation-language abort)",
-        "two_phase_note": "Aborted: do not birth tools/swarm. Birth Rust process-kit under .grok/ on integ/ci when ready.",
+        "note": "absorb owner integ/ci via roots.ci (ci/process-kit/** + ci/facade/harness/**); residual roots.grok for ephemeral .grok/**; integ/specs is envelopes hub only — not forever-path absorb owner (#1644 automation-language abort)",
+        "two_phase_note": "Aborted: do not birth tools/swarm. Birth Rust process-kit under ci/process-kit on integ/ci (done encode).",
         "disposition": "delete_permanently"
       },
       {
@@ -6096,7 +6096,7 @@
       "process_kit": {
         "tools/swarm/": {
           "destination_integ": "integ/ci",
-          "forever": ".grok/**",
+          "forever": "ci/process-kit/**",
           "shrink_source_integ": "integ/tools",
           "envelope_root": "roots.grok"
         }
@@ -6330,7 +6330,7 @@
         "accepted": [
           "scripts/tests/*.py rewrite→ci Rust then delete",
           "scripts/ci/regen-third-party.sh → ci/facade",
-          "tools/swarm → .grok/ (skip tools/swarm birth; land Rust under .grok/ directly)",
+          "tools/swarm → ci/process-kit (skip tools/swarm birth; land Rust under ci/process-kit)",
           "toolchains/ keep",
           "templates/foundry-supervisor delete",
           "docs/templates dual-home kill into templates/"
@@ -6446,7 +6446,7 @@
         ]
       }
     ],
-    "one_shot_exceptions_note": "#1644 aborted tools/swarm/** one-shot birth: automation-language-policy forbids new non-Rust under tools/ vs immutable merge-base ceiling. Process kit lands later under .grok/ as Rust."
+    "one_shot_exceptions_note": "#1644 aborted tools/swarm/** one-shot birth: automation-language-policy forbids new non-Rust under tools/ vs immutable merge-base ceiling. Process kit forever home: ci/process-kit (Rust)."
   },
   "anti_drift": {
     "anti_drift_doctrine_version": "1.1.0",
@@ -6537,8 +6537,8 @@
     "authority": "docs/decisions/ADR-0711-swarm-delivery-law-integ-branch-topology.md#Amendment-E",
     "portable_contract": ".grok/programs/delivery-fabric/evidence/PORTABLE-SWARM-CONTRACT.md#Northstar-daemon-hotset--advisory-perimeter",
     "status": "binding",
-    "process_kit_mirror": ".grok/harness/daemon-hotset.v1.json",
-    "process_kit_owner": "roots.grok → integ/ci (birth harness on owning integ; do not dual-home SSOT here)",
+    "process_kit_mirror": "ci/facade/harness/daemon-hotset.v1.json",
+    "process_kit_owner": "roots.ci → integ/ci (forever: ci/process-kit + ci/facade/harness; BAN agent-dotdirs as forever homes)",
     "achieves": "Early buck2 [check] feedback on at most hot_set_max restackable integ stations without worker-lane builds or cargo revival.",
     "origin": "16-lens northstar R9 (northstar-daemon-hotset); founder 2026-05-29 no-cargo; ADR-0711 A-2.",
     "rule": {
@@ -6567,7 +6567,7 @@
     "ensure": [
       "specs/integ-branch-envelopes.json#daemon_hotset is SSOT for doctrine",
       "cite merge_windows.hot_set_max (do not re-state a second max)",
-      "process-kit harness mirror MAY exist under .grok/harness/ on owning integ",
+      "process-kit harness mirror lives under ci/facade/harness/ on integ/ci",
       "LSP read-only ≠ buck2 [check] ≠ oya-ci-required"
     ],
     "overturn_when": [
@@ -6586,8 +6586,8 @@
     "authority": "docs/decisions/ADR-0711-swarm-delivery-law-integ-branch-topology.md#Amendment-E",
     "portable_contract": ".grok/programs/delivery-fabric/evidence/PORTABLE-SWARM-CONTRACT.md#Northstar-daemon-hotset--advisory-perimeter",
     "status": "binding",
-    "process_kit_mirror": ".grok/harness/perimeter.v1.json",
-    "process_kit_owner": "roots.grok → integ/ci (birth harness on owning integ; do not dual-home SSOT here)",
+    "process_kit_mirror": "ci/facade/harness/perimeter.v1.json",
+    "process_kit_owner": "roots.ci → integ/ci (forever: ci/process-kit + ci/facade/harness; BAN agent-dotdirs as forever homes)",
     "achieves": "Close the prose-only backdoor where advisory channels write the main checkout; keep hotfix/* from becoming an ungoverned trunk escape.",
     "origin": "16-lens northstar R10 (northstar-perimeter); model-routing optional advisory channels.",
     "rule": {
@@ -6618,7 +6618,7 @@
       "specs/integ-branch-envelopes.json#perimeter is SSOT for doctrine",
       "advisory channels scratch-only; never main-checkout durable writes",
       "hotfix/* requires founder ack OR incident evidence before Phase B admits",
-      "process-kit harness mirror MAY exist under .grok/harness/ on owning integ"
+      "process-kit harness mirror lives under ci/facade/harness/ on integ/ci"
     ],
     "overturn_when": [
       "founder retires advisory channels",

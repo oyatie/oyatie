@@ -38,8 +38,23 @@
 //!     in a declared `inert_selection_classes` class (docs) — or the diff is empty.
 //!
 //! ADR-0083 Tier-3: production code carries no unwrap/expect/panic; `#![forbid(unsafe_code)]`.
+//!
+//! Also hosts [`hub_exclusivity`] — mechanical REFUSE when open integ PRs multi-own hubs at
+//! `specs/integ-branch-envelopes.json#hubs.paths` (ADR-0711; colocated to avoid Cargo.lock hub
+//! churn from a new package).
+//!
+//! Also hosts [`anti_drift_drift_grep`] — mechanical REFUSE when ADR-0711 / PORTABLE prose
+//! re-lists roots/hubs/freeze enumerations outside
+//! `specs/integ-branch-envelopes.json#anti_drift.prose_must_cite_not_enumerate` (INV-DOC-2).
+//!
+//! Also hosts [`owners_from_envelopes`] — generate CODEOWNERS / directory OWNERS faces from
+//! `#roots`/`#planes` (+ `#path_ownership`) without Cargo.lock hub churn from a new package.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 #![forbid(unsafe_code)]
+
+pub mod anti_drift_drift_grep;
+pub mod hub_exclusivity;
+pub mod owners_from_envelopes;
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
@@ -2675,7 +2690,7 @@ mod tests {
         let baseline = set(&[
             "root//third-party:blake3",
             "root//libs/oya-data-sql-adapter-sqlx:oya-data-sql-adapter-sqlx-unittest",
-            "root//oya/ci-controller/crates/oya-ci-controller-app:oya-ci-controller",
+            "root//ci/controller/app:oya-ci-controller",
             "root//libs/oya-shared-backbone-grpc-generated-adapter:oya-shared-backbone-grpc-generated-adapter-build-script-run",
         ]);
         let head = baseline.clone();

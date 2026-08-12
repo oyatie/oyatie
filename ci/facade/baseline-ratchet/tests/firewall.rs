@@ -348,7 +348,13 @@ fn buck_backed_firewall_requires_declared_corpus_env() {
 }
 
 fn fixture_dir(root: &Path) -> PathBuf {
-    root.join("specs/fixtures/cloud-ci-firewall")
+    // naming_sweep forever path; legacy fallback one wave.
+    let forever = root.join("specs/fixtures/ci-baseline-ratchet");
+    if forever.is_dir() {
+        forever
+    } else {
+        root.join("specs/fixtures/cloud-ci-firewall")
+    }
 }
 
 fn current_from_value(value: &Value) -> BTreeMap<String, BTreeMap<String, BTreeSet<String>>> {

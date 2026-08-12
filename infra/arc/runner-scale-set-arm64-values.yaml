@@ -1,5 +1,15 @@
-# Runner scale set `oya-arm64` — the owned CI runner fleet holding merge
-# authority (founder ruling 2026-07-29). ADR-0630.
+# =============================================================================
+# RETIRED (2026-08-11) — custom ARC runner fleet decommissioned.
+# Merge CI is GitHub-hosted ubuntu-latest only (oya-ci-required). Soft multi-arch
+# stays on GitHub-hosted ubuntu-24.04-arm / windows / macos. Lab CAS = founder
+# laptop NativeLink (+ tunnel), not ARC overflow.
+# Desired state: maxRunners 0. Live cluster: apply/sync then remove Argo apps
+# (see README.md § Founder live-ops checklist). Do not schedule new jobs here.
+# Historical capacity prose below is provenance only.
+# =============================================================================
+#
+# Runner scale set `oya-arm64` — HISTORICAL. Was the owned CI runner fleet holding
+# merge authority (founder ruling 2026-07-29). ADR-0630 (archive).
 #
 # ONE SCALE SET PER ARCHITECTURE. The cluster is heterogeneous by design
 # ("arm64 / amd64 should both be a supported path"); an amd64 box joining means
@@ -22,13 +32,9 @@ controllerServiceAccount:
 # queued behind the baked runner image, because pre-warming a pod that then
 # spends two minutes installing rustc buys almost nothing.
 #
-# maxRunners=4 on two general workers (≈2 per node) after expanding each
-# general user volume to 120 Gi on the 150 Gi data disk (ADR-0630 capacity
-# reconsider 2026-08-05). Local-path still does not enforce claim size; topology
-# spread DoNotSchedule maxSkew=1 caps ~2 general runners per hostname so
-# 2×44 Gi + reserve fits under 120 Gi. Host has headroom for larger Talos VMs
-# (see CAPACITY-PROFILE-CI-HEAVY). Does not activate CAS warm / RE.
-maxRunners: 4
+# RETIRED: was maxRunners=4 (CI-heavy dual-worker). Capacity packing is historical.
+# Does not activate CAS warm / RE.
+maxRunners: 0  # RETIRED — scale-to-zero; remove Argo app after sync
 minRunners: 0
 listenerMetrics:
   gauges:

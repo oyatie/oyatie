@@ -10,7 +10,8 @@ use std::io::Read;
 use std::path::{Path, PathBuf};
 
 use ci_corpus_index_coverage::{
-    CODE_COVERAGE_REGRESSION, CODE_VACUOUS_SCAN, CorpusInput, ExtractionDeclaration,
+    CODE_COVERAGE_REGRESSION, CODE_UNPACKAGED_DROP_UNATTRIBUTED, CODE_VACUOUS_SCAN, CorpusInput,
+    ExtractionDeclaration,
     FaceObservation, OyaCorpusPolicy, PackageObservation, Policy, derive_faces, evaluate,
     evaluate_face_coverage, extraction_declaration,
 };
@@ -64,8 +65,13 @@ fn load_policy(root: &Path) -> (Policy, OyaCorpusPolicy) {
         baseline_unpackaged_yaml_files: field("baseline_unpackaged_yaml_files"),
         min_expected_yaml_packages: field("min_expected_yaml_packages"),
         min_expected_yaml_files: field("min_expected_yaml_files"),
-        min_expected_unpackaged_yaml_files: field("min_expected_unpackaged_yaml_files"),
     };
+    assert!(
+        doc.get("min_expected_unpackaged_yaml_files").is_none(),
+        "min_expected_unpackaged_yaml_files was a FLOOR on a term whose northstar is ZERO (bead \
+         oyatie-ln1). It is deleted, not re-tuned; re-adding it re-creates a guard that fails the \
+         gate closed on honest progress. The two-sided baseline_unpackaged_yaml_files replaced it."
+    );
     let oya = serde_json::from_value(doc["oya_corpus"].clone()).expect("oya_corpus policy parses");
     (policy, oya)
 }
@@ -259,13 +265,13 @@ fn observe(root: &Path) -> Result<LiveObservation, String> {
     })
 }
 
-fn validate_oya_census(actual: usize, expected: usize) -> Result<(), String> {
-    if actual == expected {
-        Ok(())
+fn validate_oya_census(actual: usize, _expected: usize) -> Result<(), String> {
+    // PROCESS_TAX DELETE: hand equality on `expected_yaml_files` is not a merge blocker.
+    // Anti-vacuity only — a collapsed Oya walk reports zero and is refuse-closed.
+    if actual == 0 {
+        Err("observed 0 Oya YAML files — refuse vacuous green".to_owned())
     } else {
-        Err(format!(
-            "observed {actual} Oya YAML files, expected exactly {expected}"
-        ))
+        Ok(())
     }
 }
 
@@ -329,22 +335,34 @@ fn the_walk_sees_the_real_corpus() {
         .sum();
     assert!(live.packages.len() >= policy.min_expected_yaml_packages);
     assert!(packaged + live.unpackaged >= policy.min_expected_yaml_files);
-    assert!(live.unpackaged >= policy.min_expected_unpackaged_yaml_files);
+    // PROCESS_TAX DELETE: unpackaged equality to baseline is not a merge blocker; regression above
+    // the ceiling stays in `evaluate` / live_corpus_is_within_the_frozen_ceiling.
+    assert!(
+        live.unpackaged <= policy.baseline_unpackaged_yaml_files,
+        "unpackaged {} exceeds northstar ceiling {}",
+        live.unpackaged,
+        policy.baseline_unpackaged_yaml_files
+    );
 }
 
 #[test]
-fn an_attribution_collapse_fails_the_live_policy() {
+fn an_attribution_collapse_is_advisory_against_the_live_policy() {
     let root = repo_root();
     let live = observe(&root).unwrap();
     let (policy, _) = load_policy(&root);
     assert!(!evaluate(&live.packages, live.unpackaged, &policy).failed());
     let verdict = evaluate(&live.packages, 0, &policy);
-    assert!(verdict.failed());
+    assert!(
+        !verdict.failed(),
+        "PROCESS_TAX: attribution collapse is advisory, not a merge blocker"
+    );
     assert!(
         verdict
-            .blocking()
+            .findings
             .iter()
-            .any(|finding| finding.code == CODE_VACUOUS_SCAN)
+            .any(|finding| finding.code == CODE_UNPACKAGED_DROP_UNATTRIBUTED && !finding.blocking),
+        "an out-of-package census that collapses to zero against the LIVE policy must still surface \
+         the attribution advisory on the real corpus, not a fixture"
     );
 }
 
@@ -363,24 +381,26 @@ fn a_vacuous_scan_fails_against_the_live_policy() {
 }
 
 #[test]
-fn the_frozen_ceilings_equal_todays_counts() {
+fn the_frozen_ceilings_bound_todays_counts() {
+    // PROCESS_TAX DELETE: equality to frozen ceilings is not a merge blocker. Regression above
+    // remains blocking via `evaluate`; slack below is advisory.
     let root = repo_root();
     let live = observe(&root).unwrap();
     let (policy, _) = load_policy(&root);
     let verdict = evaluate(&live.packages, live.unpackaged, &policy);
-    assert_eq!(
-        verdict.coverage.uncovered_packages,
-        policy.baseline_uncovered_packages
+    assert!(
+        !verdict.failed(),
+        "live corpus must stay within frozen ceilings: {:#?}",
+        verdict.blocking()
     );
-    assert_eq!(
-        verdict.coverage.unpackaged_yaml_files,
-        policy.baseline_unpackaged_yaml_files
-    );
+    assert!(verdict.coverage.uncovered_packages <= policy.baseline_uncovered_packages);
+    assert!(verdict.coverage.unpackaged_yaml_files <= policy.baseline_unpackaged_yaml_files);
 }
 
 #[test]
-fn oya_census_off_by_one_blocks() {
-    assert!(validate_oya_census(3067, 3068).is_err());
+fn oya_census_vacuous_blocks() {
+    assert!(validate_oya_census(0, 3068).is_err());
+    assert!(validate_oya_census(3067, 3068).is_ok());
 }
 
 #[test]

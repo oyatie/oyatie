@@ -756,7 +756,7 @@ fn active_admission_wires_signature_provenance_sbom_and_vet_posture() {
     );
 
     let checklist =
-        std::fs::read_to_string(root.join("docs/checklists/release-readiness-checklist.md"))
+        std::fs::read_to_string(root.join("templates/checklists/release-readiness-checklist.md"))
             .expect("read release readiness checklist");
     assert!(
         checklist.contains("cloud-ci-supply-chain-audit")

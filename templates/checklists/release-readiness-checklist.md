@@ -39,7 +39,7 @@ related:
 - [ ] **RR11** Every shipped binary has Cosign keyless OIDC signature. *Lane:* `oya-governance-supply-chain`.
 - [ ] **RR12** Every shipped binary has Syft / CycloneDX SBOM artifact. *Lane:* `oya-governance-supply-chain`.
 - [ ] **RR13** SLSA L2+ provenance attestation present + Rekor log index recorded. *Lane:* `oya-governance-supply-chain`.
-- [ ] **RR14** `cargo-vet` clean for sensitive crates. *Command:* `cargo vet`.
+- [ ] **RR14** Dependency and advisory posture is green. *Lane:* `cloud-ci-supply-chain-audit`.
 
 ## SRE / observability
 

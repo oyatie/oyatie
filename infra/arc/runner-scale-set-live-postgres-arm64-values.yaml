@@ -1,7 +1,14 @@
-# Dedicated PostgreSQL-16 integration-test cell for the two required live-data
-# lanes. Each ARC runner Pod executes one GitHub job and owns one same-Pod
-# PostgreSQL native sidecar. No Service, PVC, CNPG reference, or production/shared
-# credential enters this cell; Pod deletion is the teardown boundary. ADR-0630.
+# =============================================================================
+# RETIRED (2026-08-11) — live-postgres ARC cell decommissioned.
+# Live-PG merge gates use GitHub-hosted ubuntu-latest + postgres:16 service
+# containers. Soft multi-arch stays hosted. Do not schedule jobs on this label.
+# Desired state: maxRunners 0. Founder: sync then remove Argo app (README checklist).
+# Historical cell prose below is provenance only.
+# =============================================================================
+#
+# Dedicated PostgreSQL-16 integration-test cell (HISTORICAL). Each ARC runner Pod
+# executed one GitHub job and owned one same-Pod PostgreSQL native sidecar.
+# ADR-0630 (archive).
 githubConfigUrl: https://github.com/jason931225/oyatie
 githubConfigSecret: oyatie-arc-app
 runnerScaleSetName: oya-live-postgres-arm64
@@ -11,9 +18,8 @@ runnerScaleSetName: oya-live-postgres-arm64
 controllerServiceAccount:
   namespace: arc-systems
   name: arc-gha-rs-controller
-# Fail closed to one disk-heavy integration job on this set's physically
-# separate 48 Gi Talos user volume. Local-path claim size is not enforcement.
-maxRunners: 1
+# RETIRED: was maxRunners 1 on the 48 Gi live-postgres volume.
+maxRunners: 0  # RETIRED — scale-to-zero; remove Argo app after sync
 minRunners: 0
 template:
   metadata:

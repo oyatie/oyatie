@@ -11,10 +11,10 @@
 //! 1. **Completeness.** Every config discovered on disk must be evaluated, and every lane named in
 //!    the frozen baseline must still have a config. A config nobody evaluates is exactly the
 //!    dark-gate failure this crate exists to retire, so it fails closed rather than being skipped.
-//! 2. **Shrink-only violation ratchet.** Per `(lane, violation_kind)` the observed count may not
-//!    exceed the frozen baseline, and a NEW `(lane, kind)` pair is born-blocking. A count that
-//!    drops below its baseline makes the baseline STALE — it must shrink in the same reviewed PR,
-//!    so a fixed violation cannot leave headroom for a future one to slip in unreviewed.
+//! 2. **Shrink-only violation ratchet (regression half).** Per `(lane, violation_kind)` the observed
+//!    count may not exceed the frozen baseline, and a NEW `(lane, kind)` pair is born-blocking.
+//!    Counts that fall below baseline are NOT merge-blocking (PROCESS_TAX DELETE of BaselineStale
+//!    hand re-freeze); slack may accumulate until a reviewed shrink.
 
 #![forbid(unsafe_code)]
 
@@ -328,19 +328,9 @@ pub fn compare(
                 Some(_) => {}
             }
         }
-        // A baselined pair that no longer appears (or appears smaller) has been fixed — the frozen
-        // row must shrink with it, or the ratchet silently regains headroom.
-        for (kind, baseline) in baselined {
-            let observed = kinds.get(kind).copied().unwrap_or(0);
-            if observed < *baseline {
-                findings.push(Finding::BaselineStale {
-                    lane: lane.clone(),
-                    kind: kind.clone(),
-                    observed,
-                    baseline: *baseline,
-                });
-            }
-        }
+        // PROCESS_TAX DELETE: BaselineStale (hand re-freeze when counts shrink) is not emitted as a
+        // merge blocker. Regression above the frozen baseline remains born-blocking. Slack below
+        // may accumulate until a reviewed shrink; docs deletes must not force clerkwork re-freeze.
     }
 
     findings

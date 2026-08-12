@@ -40,17 +40,10 @@
     "cloud-ci-total-accounting": {
       "unjustified": [
         "docs/standards/image-discipline.md",
-        "docs/standards/security-review.md",
-        "registry/stores/canon-id-crosswalk.json",
-        "registry/stores/design-store.json",
-        "registry/stores/instructions-store.json"
+        "docs/standards/security-review.md"
       ],
       "unreachable": [
-        ".github/workflows/oya-ci-required.yml",
-        "registry/stores/canon-id-crosswalk.json",
-        "registry/stores/design-store.json",
-        "registry/stores/instructions-store.json",
-        "registry/stores/registry-store.json"
+        ".github/workflows/oya-ci-required.yml"
       ]
     },
     "cloud-ci-brand-residue": {
@@ -342,6 +335,31 @@
         "ADR-0392",
         "ADR-0510",
         "ADR-0572"
+      ]
+    },
+    {
+      "date": "2026-08-11",
+      "retired_by": "oya-cloud-ci-firewall-signoff-fixer --fix (mechanical inert-entry retirement, FRIC-1781280001)",
+      "rationale": "Mechanically derived: entry key absent from the CANDIDATE tree (current AND proposed) — the door admits nothing in the change under evaluation, so the exemption protects nothing and is a standing re-introduction ticket. Inert-ness is read against the candidate, not the merge-base frozen face, so PR-admission and push-admission agree (FRIC-1781280001 inert-door detector; ADR-0551 hardening; FRIC-1781460000 PR/push symmetry).",
+      "gate": "cloud-ci-total-accounting",
+      "code": "unjustified",
+      "keys": [
+        "registry/stores/canon-id-crosswalk.json",
+        "registry/stores/design-store.json",
+        "registry/stores/instructions-store.json"
+      ]
+    },
+    {
+      "date": "2026-08-11",
+      "retired_by": "oya-cloud-ci-firewall-signoff-fixer --fix (mechanical inert-entry retirement, FRIC-1781280001)",
+      "rationale": "Mechanically derived: entry key absent from the CANDIDATE tree (current AND proposed) — the door admits nothing in the change under evaluation, so the exemption protects nothing and is a standing re-introduction ticket. Inert-ness is read against the candidate, not the merge-base frozen face, so PR-admission and push-admission agree (FRIC-1781280001 inert-door detector; ADR-0551 hardening; FRIC-1781460000 PR/push symmetry).",
+      "gate": "cloud-ci-total-accounting",
+      "code": "unreachable",
+      "keys": [
+        "registry/stores/canon-id-crosswalk.json",
+        "registry/stores/design-store.json",
+        "registry/stores/instructions-store.json",
+        "registry/stores/registry-store.json"
       ]
     }
   ]

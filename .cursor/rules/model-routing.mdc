@@ -1,0 +1,96 @@
+---
+description: Oyatie multi-model routing — CursorBench why for whole stake ladder. Planner=Opus5 Max, architect=Fable5 Max, impl=Grok, critic MAY Grok (Opus/Sol escalate). Narrow prefer Luna-max / Composer fallback. Bans *-fast.
+alwaysApply: true
+---
+
+# Model routing (Task / multi-model dispatches)
+
+**Authority / why:** founder preset allowlist + [CursorBench](https://cursor.com/cursorbench) (CursorBench 3.2 scores/cost) for **Cursor Task `model:` slugs only**. CursorBench is the explicit **why** for the **whole** stake ladder (not only the narrow carve-out). Small score gaps may not be meaningful; Grok 4.5 carries a published contamination caveat (`*`).
+
+## Presets (Cursor Task slugs only)
+
+| Preset | Cursor Task `model` slug | CursorBench 3.2 | Role |
+|--------|--------------------------|-----------------|------|
+| **Cursor Grok 4.5 High** | `cursor-grok-4.5-high` | 66.7%* · $1.51 · 33 steps | **Default implementation** + **/critic MAY (default-ok)** — absorb / Seat A\|B / envelopes / judgments / code / hub |
+| **Composer 2.5** | `composer-2.5` | 56.1% · $0.44 · 33 steps | **Fallback** for narrow/bound/non-critical if Luna-max unavailable — **not** implement |
+| **Fable 5 Max** | `claude-fable-5-thinking-max` | **70.5%** · $17.32 · 72 steps | **/architect** (CursorBench architect stake) · max-stakes quality · critic escalate optional |
+| **Opus 5 Max** | `claude-opus-5-thinking-max` | plan-stake Max | **/planner** (CursorBench plan stake) · critic escalate optional |
+| **Opus 5 High** | `claude-opus-5-thinking-high` | 66.7% · $3.91 · 48 steps | Critic escalate / security / adversarial (cross-provider; not banned) |
+| **GPT-5.6 Sol High** | `gpt-5.6-sol-high` | 63.5% · $2.79 · 32 steps | Multi-model executor / verifier peer · critic escalate optional (cross-provider) |
+| **GPT-5.6 Terra Extra High** | `gpt-5.6-terra-xhigh` | 59.2% · $1.15 · 29 steps | **Cost-aware mid tier** — mechanical/bulk when lower quality bar is OK |
+| **GPT-5.6 Luna Max** | `gpt-5.6-luna-max` | 61.1% · $0.39 · 61 steps | **Prefer** narrow/bound/non-critical — **not** implement / **not** max-stakes |
+
+## CursorBench-informed stake ladder (do not invert)
+
+Quality (for hard judgment) goes **up** cost, not down:
+
+1. **Narrow / bound / non-critical** → prefer Luna Max (Composer 2.5 fallback)
+2. **Default implement** → Grok 4.5 High*
+3. **Peer / diversity** → Sol High (or Grok)
+4. **Critic** → **Grok 4.5 High MAY (default-ok)**; escalate Opus 5 High / Sol High / Fable for adversarial/cross-provider (esp. when implementer is also Grok)
+5. **Planner** → **Opus 5 Max** (`claude-opus-5-thinking-max`) — founder override; **not** Fable
+6. **Architect / max-stakes quality** → **Fable 5 Max** (`claude-fable-5-thinking-max`)
+
+**Anti-pattern (corrected):** Sol → Terra → Luna as a “harder” ladder. On CursorBench, Terra Extra High (59.2%) and Luna Max (61.1%) score **below** Sol High (63.5%) and Grok High (66.7%*). They are **cheaper**, not stronger.
+
+**Anti-pattern (stale):** planner + architect both on Fable. Founder split: **planner = Opus5 Max / architect = Fable5 Max**.
+
+## Dispatch rules (binding 3g)
+
+1. **Default** implementing/editing/debugging `Task` → **`cursor-grok-4.5-high`** (`.cursor/agents/lane-implementer.md`).
+2. **Scout / light recon** → **`composer-2.5`** (`.cursor/agents/scout.md`) only when Luna-max path does not apply. Scout→edit → re-dispatch to Grok (or architect/planner if design-shaped). Never let scout edit.
+3. **Planner / ralplan** → **`claude-opus-5-thinking-max`** (Opus5 Max — CursorBench plan stake).
+4. **Architect** → **`claude-fable-5-thinking-max`** (Fable5 Max — CursorBench architect stake).
+5. **Critic** → **MAY `cursor-grok-4.5-high` (default-ok)**. Opus High (`claude-opus-5-thinking-high`) / Sol High / Fable remain **optional escalate** for adversarial/cross-provider — **do not ban**. **Escalate-when (same-provider blindness):** if implementer is also Grok, escalate critic to Sol/Opus when adversarial/security, merge-admission/Claim APPROVE, contested SSOT/doctrine, or prior Grok-critic returned a thin ACCEPT.
+6. **Narrow / bounded / minimal-reasoning / non-critical** → **prefer `gpt-5.6-luna-max`**; Composer (`composer-2.5`) = **fallback if Luna-max unavailable**.
+7. **Cost-sensitive mechanical** bulk → Terra Extra High or Luna Max **only** when wrong answers are cheap to catch.
+8. **BAN all `*-fast` model slugs** (incl. `composer-2.5-fast`).
+9. Unavailable `composer-2.5` on narrow slice → prefer Luna-max first; never a fast-tier fallback. Unavailable Luna-max → Composer. Substantive implement omission → `cursor-grok-4.5-high`. `inherit` only if parent is already Grok 4.5.
+10. Machine-readable priors: `.grok/harness/model-routing.v1.json` (advisory; Cursor Task slugs above govern Task dispatches).
+11. Re-read CursorBench when changing presets; record score/cost/date in the harness `cursorbench` block when present.
+
+## Optional advisory channels (omx / omc / gjc / grok)
+
+**Not default drivers.** Use only when useful for a second opinion, alternate provider path, or multi-provider usage visibility. **CursorBench does not transfer** to these channels.
+
+| Channel | Backend | Side panel | Interactive tmux | Bypass compound |
+|---------|---------|------------|------------------|-----------------|
+| **omx** | Codex (`oh-my-codex`) | Cursor side panel | `omx` / `omx --tmux` (detached tmux by default on supported terminals) | `omx --madmax` = **permission bypass + tmux** |
+| **omc** | Claude (Oh-My-ClaudeCode) | Cursor side panel | `omc launch` (tmux shell integration); `omc interop` for OMC+OMX split | `omc --madmax` = **permission bypass + tmux** |
+| **gjc** | Multi-model (`@gajae-code`) | Cursor side panel | `gjc --tmux` | no madmax equivalent in help |
+| **grok** | Grok Build TUI (`~/.grok/bin/grok`) | Cursor / host TUI | run `grok` **inside** tmux (no built-in `--tmux` flag) | `--always-approve` is auto-approve tools (not the same compound as madmax) |
+
+### Flag semantics (founder lock)
+
+- **`--madmax` (omx/omc)** = **permission bypass + tmux** (compound). Dangerous. Optional founder tool — not worker-lane normal.
+- **`gjc --tmux`** = tmux interactivity only.
+- **`grok` in tmux** = attachable interactive session; spawn via host tmux (founder-opened session is valid evidence).
+- Prefer side panel when it works; use tmux when you need to attach/interact directly.
+
+### Usage / spend
+
+- **`gjc` + `/usage`** (in-session) and/or **`gjc stats`** (opens a local usage dashboard; blocks until Ctrl+C) for **multi-provider** spend visibility.
+- omx/omc/grok alone do not replace that cross-provider view.
+
+### Rules
+
+- Channel output is **advisory** — never merge authority, never a substitute for green merge-admission / `oya-ci-required`.
+- Prefer Task `model:` slugs for implement/scout inside Cursor agent dispatches.
+- Pick omx/omc/gjc/grok by provider need and independence — **not** by CursorBench rank.
+- Worker lanes must not treat bare `gjc`/`omc`/`omx`/`hermes` as merge-authority stand-ins. Orchestrator may open advisory side-panel or tmux sessions (`omx`/`omc`/`gjc --tmux`/`grok` in tmux; madmax only when founder intentionally wants bypass+tmux).
+
+## Capability matrix (smoke 2026-08-10)
+
+| Check | Result | Evidence |
+|-------|--------|----------|
+| `omx doctor` | **works** (partial) | exit 0; 1 fail: process identity unavailable; ownership warnings on stale `.omx/tmp` |
+| `omc info` | **works** | exit 0; prints system/agent info |
+| `gjc stats` | **works** (interactive) | syncs sessions then serves dashboard `http://localhost:3847` until Ctrl+C — not a one-shot print |
+| Live `omx` tmux | **works** | e.g. `omx-oyatie-agent-fanout-07-…` attached, panes `node` in repo |
+| Live `omc` tmux | **works** | e.g. `omc-oyatie-agent-fanout-07-…` attached |
+| Live `gjc` tmux | **works** | e.g. `gajae_code_agent-…` attached |
+| Live `grok` tmux | **works** | session `88` running `grok-1.0.0-macos-aarch64` cwd=`/Users/jasonlee/Developer/oyatie` (founder-opened) |
+| `omx --madmax` / `omc --madmax` full spawn from agent sandbox | **doesn't** (env) | sandbox `EPERM` on `~/.omx-runs`; do not leave long-lived madmax writing main checkout from agent probes |
+| Side panel drive from this agent | **unverified** | human UI; no full “open Cursor side panel” API for omx/omc/gjc |
+| In-session `gjc /usage` | **unverified** | CLI confirms `gjc stats`; `/usage` needs live interactive confirm |
+| CursorBench → these channels | **doesn't transfer** | law |

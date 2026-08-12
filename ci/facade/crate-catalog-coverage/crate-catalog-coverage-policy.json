@@ -5,7 +5,8 @@
     "frozen_at": "the first commit of ci/facade/crate-catalog-coverage",
     "uncatalogued_total": 197,
     "policy": "shrink-only; a new or moved crate must carry its catalog row in the same change",
-    "pr1934_fix_forward": "Catalogued live ci-controller-* / port-engine W0-B / os-harness absorb crates. Kept oya-ci-controller-* in uncatalogued baseline (legacy dual-home under oya/ci-controller/crates)."
+    "pr1934_fix_forward": "Catalogued live ci-controller-* / port-engine W0-B / os-harness absorb crates. Kept oya-ci-controller-* in uncatalogued baseline (legacy dual-home under oya/ci-controller/crates).",
+    "pr1646_absorb_complete": "Dropped oya-ci-controller-* from uncatalogued baseline after dual-home delete; live ci-controller-* are catalogued. Lock orphans pruned same change."
   },
   "min_expected_crates": 800,
   "uncatalogued": [
@@ -142,10 +143,6 @@
     "oya-cargo-lock-merge-driver-app",
     "oya-cargo-lock-transform-kernel",
     "oya-ci-config-kernel",
-    "oya-ci-controller-app",
-    "oya-ci-controller-github-adapter",
-    "oya-ci-controller-k8s-adapter",
-    "oya-ci-controller-kernel",
     "oya-ci-gate-contract",
     "oya-ci-materializer-kernel",
     "oya-cloud-kernel-app",
