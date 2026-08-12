@@ -22,14 +22,14 @@ So the working Access-TCP proof stays on branch tip, not on `dev`:
 
 | Field | Value |
 |-------|-------|
-| Branch | `agent/laptop-cas-gha-proof-20260812` |
+| Branch | `lab/laptop-cas-gha-proof` |
 | Tip with green REAPI job | `6f03d0977` |
 | Green run | https://github.com/jason931225/oyatie/actions/runs/31555198011 |
 
 ```bash
-# optional: re-run from the archived tip (workflow file exists on that ref only)
-gh workflow run laptop-cas-gha-proof.yml --ref agent/laptop-cas-gha-proof-20260812
-gh workflow run laptop-cas-gha-proof.yml --ref agent/laptop-cas-gha-proof-20260812 -f run_buck2=true
+# optional: re-run from the lab tip (workflow file exists on that ref only)
+gh workflow run laptop-cas-gha-proof.yml --ref lab/laptop-cas-gha-proof
+gh workflow run laptop-cas-gha-proof.yml --ref lab/laptop-cas-gha-proof -f run_buck2=true
 ```
 
 Day-to-day lab canary (preferred):
