@@ -13,7 +13,7 @@ superseded_by: []
 amends: []
 amended_by: []
 depends_on: []
-related: []
+related: [ADR-0711]
 milestone: W0
 deliverables:
   - id: ADR-0701-D1
@@ -26,6 +26,7 @@ deliverables:
 ## Status
 
 **Accepted** — live consolidated source-of-truth entry for topic `monorepo_capability` (E5 2026-08-06).
+Amended 2026-08-12 (Capability reshape rubric).
 
 ## Context
 
@@ -42,6 +43,26 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 3. **Contradictions** among members are resolved by later higher-number members and by
    ADR-0515 / ADR-0363 / ADR-0562 / ADR-0615 / ADR-0635 / ADR-0637–0639 when applicable.
 4. **Activation-sensitive** items (warm CAS, RE workers) remain fail-closed until explicit go-gate.
+5. **Capability reshape** uses the four-gate rubric below; path-change execution remains
+   ADR-0711 B-1a (7-point) + B-1c (16-lens) — do not fork a third checklist.
+
+### Amendment A (2026-08-12) — Capability reshape rubric (four gates)
+
+Compresses greenfield layout law for judging reorg units. Maps onto ADR-0711 B-1a
+(7-point evaluation gate) and B-1c (full 16-lens battery); **MUST NOT** invent a parallel
+checklist. Freeze-prefix / debt rows stay only in
+`specs/integ-branch-envelopes.json#reorg_debt_freeze` (INV-DOC-2 — do not re-list here).
+Claim / path-change refusal: ADR-0711 B-1a + `judgment_status=done`.
+
+| Gate | Question | Pass means |
+|---|---|---|
+| **1. Ought** | Where is the greenfield home? | Registry membership, placement rule, and `app/` vs capability root vs meta (`kernel` / `os` / `base` / `governance` / `build` / `third-party`) are decided. |
+| **2. Shape** | What face structure? | Destination uses faces `core` \| `ports` \| `adapters` \| `facade`; no dual engine/facade; no template-clone forests as durable structure. |
+| **3. Relevance** | Should this artifact exist? | Disposition is one of: keep / refactor-then-place / rewrite / `delete_permanently`. |
+| **4. Quality** | Hyperscaler-grade? | Reject IP/markdown dump, brand residue, and dual-home. Require `judgment_status=done` before any path change. |
+
+This rubric is the human/agent reading law in this apex; B-1a remains the mandatory
+7-point write-up before `reorg_now` or `delete_permanently`.
 
 ## Preserved member gists
 
