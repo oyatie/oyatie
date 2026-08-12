@@ -1,0 +1,38 @@
+{
+  "case": "Interval-audit detection: a synthetic captured commit range containing exactly one planted target-debt commit; the audit reports exactly that commit and stays fail-closed (red) until a remediation record is present. The gate test additionally re-runs this capture WITH a remediation record and asserts green-with-evidence.",
+  "kind": "interval-audit",
+  "input": {
+    "audit_input": {
+      "schema": "ci-reorg-target-debt-interval-audit-input.v1",
+      "range": { "from": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1", "to": "c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3" },
+      "complete": true,
+      "commits": [
+        {
+          "sha": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+          "added_paths": ["docs/fine-artifact.md"],
+          "added_workspace_path_deps": [],
+          "added_dep_names": [],
+          "added_evidence_anchors": []
+        },
+        {
+          "sha": "b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
+          "added_paths": ["cloud/planted-target-debt/src/lib.rs"],
+          "added_workspace_path_deps": [],
+          "added_dep_names": [],
+          "added_evidence_anchors": []
+        },
+        {
+          "sha": "c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3",
+          "added_paths": ["specs/fine-artifact.json"],
+          "added_workspace_path_deps": [],
+          "added_dep_names": [],
+          "added_evidence_anchors": []
+        }
+      ],
+      "remediation_records": []
+    }
+  },
+  "expected_verdict": "red",
+  "expected_finding_commits": ["b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2"],
+  "expected_codes": []
+}

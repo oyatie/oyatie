@@ -258,6 +258,7 @@
     "supply-chain-audit": "Supply-chain findings require dependency upgrades, vendor review, or explicit security decisions.",
     "topology-manifest-contract": "Cell topology manifest contract findings require source-of-truth spec, fixture, root-hub, or ADR-scope decisions; the gate must not synthesize topology or residency evidence.",
     "workspace-member-coverage": "Workspace glob coverage findings require workspace membership or exclusion policy changes, not blind manifest edits.",
-    "reset-eligibility-policy": "Reset eligibility findings require new provider inventory, recovery proof, retention/legal decisions, and independent approvals; the gate must never fabricate evidence or authorize deletion."
+    "reset-eligibility-policy": "Reset eligibility findings require new provider inventory, recovery proof, retention/legal decisions, and independent approvals; the gate must never fabricate evidence or authorize deletion.",
+    "reorg-target-debt": "A new file, dependency, or evidence anchor under a reorg-target form is a placement decision (Global Binding Rule 1): the fix is homing the artifact outside the target prefixes or shrinking the estate, never a gate-authored rewrite. The explicit --regen-baseline surface exists ONLY to record admissible shrink; automating it for additions would launder new target debt into the baseline."
   }
 }

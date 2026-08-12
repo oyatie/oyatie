@@ -1844,6 +1844,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "ci-reorg-target-debt"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+]
+
+[[package]]
 name = "ci-repo-root-hygiene"
 version = "0.1.0"
 dependencies = [

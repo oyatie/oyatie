@@ -1,0 +1,15 @@
+{
+  "case": "Arm D refusal: a net target-surface-reduction claim without the bound before/after measurement and census snapshot ref fails closed.",
+  "kind": "reduction-claims",
+  "input": {
+    "artifact": {
+      "claims": [
+        {
+          "claim": "net_target_surface_reduction",
+          "note": "asserted without any measurement"
+        }
+      ]
+    }
+  },
+  "expected_codes": ["RTD_UNPROVEN_REDUCTION_CLAIM"]
+}

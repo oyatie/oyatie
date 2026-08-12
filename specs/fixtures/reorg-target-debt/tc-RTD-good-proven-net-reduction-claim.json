@@ -1,0 +1,17 @@
+{
+  "case": "Arm D pass: a net target-surface-reduction claim carrying all required fields (counts are DATA of the artifact under test bound to a census snapshot ref; the gate mints no threshold).",
+  "kind": "reduction-claims",
+  "input": {
+    "artifact": {
+      "claims": [
+        {
+          "claim": "net_target_surface_reduction",
+          "before_count": 4981,
+          "after_count": 4600,
+          "census_snapshot_ref": "reorg-target-census@synthetic-fixture-snapshot"
+        }
+      ]
+    }
+  },
+  "expected_codes": []
+}
