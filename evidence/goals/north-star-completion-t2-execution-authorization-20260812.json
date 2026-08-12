@@ -3,12 +3,12 @@
   "record_id": "north-star-completion-t2-execution-authorization-20260812",
   "bootstrap_step": "T2",
   "programme": "oyatie-north-star-completion-v1",
-  "recorded_at": "2026-08-12T23:30:00Z",
+  "recorded_at": "2026-08-12T23:17:31Z",
   "decision": {
     "decision_status": "authorized",
     "approved_by": "founder",
     "subject": "Separate founder authorization to dispatch product execution for the North-Star Completion Programme, distinct from and additional to the T1 plan approval.",
-    "authorization_mechanism": "Founder gate selection 'Approve execution via ultragoal' at the ralplan approval gate (workflowGate ralplan/approval), owner session 019ff62e-5d1c-7000-939d-d58fa859fa6e, 2026-08-12. Plan approval is not execution authorization; this record is the execution authorization.",
+    "authorization_mechanism": "Founder gate selection 'Approve execution via ultragoal' at the ralplan approval gate (workflowGate ralplan/approval), owner session 019ff62e-5d1c-7000-939d-d58fa859fa6e, 2026-08-12. The selection text itself names execution, not merely plan acceptance: it is a single founder decision with two distinct effects, partitioned into two separate records as the approved plan requires. The T1 receipt records the plan/spec approval effect; this record records the execution-authorization effect. Plan approval alone is never execution authorization; absent this record, no execution step of the bootstrap chain is authorized.",
     "scope_limit": "Authorizes the bootstrap chain T3a/T3b/T4/T5 and subsequent execution waves strictly per the approved plan (sha256 95132e4e2ef165667223117a026e3c3d5856a45250b4a7101b7cefef5ddd6ab1), each subject to its own entry conditions, gates, and evidence obligations. It does not itself close masterplan_v2.planning_entry_contract, does not dispatch any wave, and does not waive any admission gate."
   },
   "authorization_basis": {
@@ -32,6 +32,7 @@
     "interval_rule": "The T2-to-T3b interval is policy-only by construction: it carries no gate runs and none are claimed. It is closed by a retrospective audit executed at T3b: the gate binary in audit mode over the exact commit range and ref-state delta between this record's merge commit and gate go-live, with any hit reverted or dispositioned before T4.",
     "interval_audit_anchor": "The squash-merge commit of the protected PR landing this record on dev is the start anchor of the T2-to-T3b interval audit range."
   },
+  "work_item_authority": "specs/masterplan.json#masterplan_v2 remains the sole work-item and dispatch authority. This record moves no authority into any plan document: dispatch stays blocked while planning_entry_contract.state is open, unblocks only through the evaluated T4 transition, and every wave executes as masterplan_v2 work items once Wave 1 mints them. The approved plan is the sequencing basis this authorization cites, not a parallel authority surface.",
   "companion_artifact": {
     "option_b_contingency_contract": "evidence/goals/north-star-completion-option-b-contingency-contract-20260812.json",
     "relationship": "Authored at this same approval-time step, Accepted-as-dormant and not in force, so the contract governing a possible T3a/T3b admission failure exists before any event that could activate it."
