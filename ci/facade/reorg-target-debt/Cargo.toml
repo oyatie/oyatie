@@ -1,0 +1,33 @@
+[package]
+name = "ci-reorg-target-debt"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[package.metadata.oya]
+bounded_context = "cloud-ci"
+kind = "shared"
+layer = "app"
+purpose = "No-new-reorg-target-debt gate (Global Binding Rule 1, North-Star Completion bootstrap T3b): refuses new files, workspace dependencies, work-item evidence anchors, and unproven reduction claims under the reorg-target forms, against a shrink-only committed baseline; ships a deterministic fail-closed interval-audit mode."
+
+# ci-reorg-target-debt: pure policy-as-data evaluators (Arms A-D + interval audit) with
+# read-only collectors at the edge. Born pack-shaped: the six reorg-target forms, baseline
+# location, scan parameters, manifest/masterplan paths, anchor field names, and claim schema
+# live in reorg-target-debt-policy.json. The Rust kernel hardcodes no oyatie-specific prefix.
+
+[lib]
+name = "ci_reorg_target_debt"
+path = "src/lib.rs"
+doctest = false
+
+[[bin]]
+name = "ci-reorg-target-debt-bin"
+path = "src/main.rs"
+
+[dependencies]
+serde_json = { workspace = true }
+
+[lints]
+workspace = true

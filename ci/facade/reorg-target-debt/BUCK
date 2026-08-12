@@ -1,0 +1,54 @@
+rust_library(
+    name = "ci-reorg-target-debt",
+    srcs = glob(["src/**/*.rs", "**/*.json"]),
+    crate = "ci_reorg_target_debt",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde_json",
+    ],
+)
+
+# Gate + baseline-regeneration + interval-audit binary. LOCAL BRIDGE feedback only: merge
+# authority is the gate test below behind oya-ci-required, never this binary.
+# `buck2 run ... -- --regen-baseline` is the one-command regeneration the gate's shrink-only
+# failure messages name; `--mode audit --commit-set <capture>` is the deterministic
+# fail-closed interval audit (git I/O stays at the caller boundary; see policy audit_mode).
+rust_binary(
+    name = "ci-reorg-target-debt-bin",
+    srcs = glob(["src/**/*.rs", "**/*.json"]),
+    crate_root = "src/main.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-reorg-target-debt",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "ci-reorg-target-debt-unittest",
+    srcs = glob(["src/**/*.rs", "**/*.json"]),
+    crate = "ci_reorg_target_debt",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde_json",
+    ],
+)
+
+# Born-blocking no-new-reorg-target-debt gate (Global Binding Rule 1; bootstrap step T3b).
+# Live-corpus half: Arms A-D over the real tree against the committed shrink-only baseline
+# (zero NEW debt). Fixture half: specs/fixtures/reorg-target-debt/tc-*.json prove every
+# refusal class, the proven-claim pass, and the fail-closed interval audit through the same
+# engine the binary runs.
+rust_test(
+    name = "ci-reorg-target-debt-gate",
+    srcs = glob(["tests/**/*.rs", "**/*.json"]),
+    crate = "ci_reorg_target_debt_gate",
+    crate_root = "tests/reorg_target_debt.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-reorg-target-debt",
+        "third-party//:serde_json",
+    ],
+)

@@ -1,0 +1,23 @@
+{
+  "case": "Interval-audit fail-closed: a capture that declares itself incomplete is an explicit RTD_AUDIT_INPUT_INVALID rejection, never a pass.",
+  "kind": "interval-audit",
+  "input": {
+    "audit_input": {
+      "schema": "ci-reorg-target-debt-interval-audit-input.v1",
+      "range": { "from": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1", "to": "c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3" },
+      "complete": false,
+      "commits": [
+        {
+          "sha": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+          "added_paths": ["docs/fine-artifact.md"],
+          "added_workspace_path_deps": [],
+          "added_dep_names": [],
+          "added_evidence_anchors": []
+        }
+      ],
+      "remediation_records": []
+    }
+  },
+  "expected_verdict": "invalid",
+  "expected_codes": []
+}

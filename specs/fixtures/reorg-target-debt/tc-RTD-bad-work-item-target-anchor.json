@@ -1,0 +1,14 @@
+{
+  "case": "Arm C refusal: a work item (synthetic id space; re-binds to the live id space at Wave 1) whose evidence anchor points under a reorg-target path prefix fails closed.",
+  "kind": "masterplan",
+  "input": {
+    "baseline_anchors": [],
+    "plan": {
+      "work_items": [
+        { "id": "SYN-RTD-001", "source_anchors": ["oya/synthetic-legacy-module"] },
+        { "id": "SYN-RTD-002", "evidence_anchor": "specs/fine-artifact.json" }
+      ]
+    }
+  },
+  "expected_codes": ["RTD_NEW_TARGET_ANCHOR"]
+}

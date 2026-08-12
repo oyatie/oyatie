@@ -1,0 +1,17 @@
+{
+  "case": "Arm B refusal: a new [workspace.dependencies] entry whose path points into a reorg-target prefix fails closed.",
+  "kind": "workspace-manifest",
+  "input": {
+    "baseline_workspace_path_deps": [],
+    "baseline_dep_names": [],
+    "manifest_lines": [
+      "[workspace]",
+      "members = []",
+      "",
+      "[workspace.dependencies]",
+      "serde = { version = \"1\" }",
+      "storage-legacy = { path = \"cloud/legacy-storage-estate\" }"
+    ]
+  },
+  "expected_codes": ["RTD_NEW_TARGET_PATH_DEP"]
+}

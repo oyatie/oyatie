@@ -1,0 +1,13 @@
+{
+  "case": "Arm A refusal: a tracked file newly minted under a reorg-target path prefix, absent from the shrink-only baseline, fails closed (Global Binding Rule 1).",
+  "kind": "tree",
+  "input": {
+    "baseline_paths": ["cloud/legacy-estate/kernel.rs"],
+    "paths": [
+      "cloud/legacy-estate/kernel.rs",
+      "cloud/newly-minted-module/src/lib.rs",
+      "docs/fine.md"
+    ]
+  },
+  "expected_codes": ["RTD_NEW_TARGET_PATH"]
+}
