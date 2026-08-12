@@ -41,7 +41,7 @@
     "citation_lines": 8996,
     "files_scanned": 16632,
     "adr_citation_closure_mismatch": 252,
-    "adr_citation_dangling_path": 2293,
+    "adr_citation_dangling_path": 2277,
     "adr_citation_rejected_authority": 6,
     "adr_duplicate_id": 0,
     "adr_closure_asymmetry": 29,
@@ -87,7 +87,8 @@
     "_integ_governance_restack_1926_remeasure_2026_08_11": "PR #1647 restack onto origin/dev@fa067201e (#1926 os absorb). Union of governance tip reclaim paths + os absorb scanned corpus. PROCESS_TAX: files_scanned/citation_lines are provenance only (equality DELETED as merge blockers); finding ceilings remain. Re-measure values below from live gate after merge.",
     "_integ_app_glue_remeasure_2026_08_11_pr1668": "PR #1668 integ/app OVERRULE 3d glue-only restack onto origin/dev@fa067201e after #1926/#1935. Kept origin/dev policy tip including _integ_os_remeasure_2026_08_11_pr1926_tip_0922c0ac (oyatie-o90 — never trust git merge of this file; files_scanned=16629 citation_lines=8999). This branch adds exactly one non-exempt scanned path — app/README.md — plus extensionless app/OWNERS (not scanned). Tracked scanned-add delta 1 equals observed 16629->16630. citation_lines held at 8999 and finding ceilings held (mismatch 252, dangling_path 2295, rejected_authority 3, asymmetry 29, unresolvable 8, ambiguous 2) — corpus growth from glue README add, not scan narrowing or finding repair. Same change also retires landed app/ forward_declarations and registers reachability for app/README.md while preserving #1935 oyatie-0s8 reachability entries.",
     "_integ_governance_restack_1668_remeasure_2026_08_11": "PR #1647 restack onto origin/dev@bb53208ae (#1668). PROCESS_TAX: census equality remains off merge path; finding ceilings re-asserted by live gate after merge.",
-    "_integ_docs_restack_remeasure_2026_08_11_pr1645_after_1646": "PR #1645 integ/docs restack onto origin/dev@9e086c122 after #1646 land. Kept origin/dev policy tip (oyatie-o90) then live-derived. adr_citation_dangling_path 2295 -> 2293. Other finding ceilings held. No Cargo.lock authorship on this lane."
+    "_integ_docs_restack_remeasure_2026_08_11_pr1645_after_1646": "PR #1645 integ/docs restack onto origin/dev@9e086c122 after #1646 land. Kept origin/dev policy tip (oyatie-o90) then live-derived. adr_citation_dangling_path 2295 -> 2293. Other finding ceilings held. No Cargo.lock authorship on this lane.",
+    "_foundry_p0_remeasure_2026_08_11_pr1937_after_1645": "PR #1937 Foundry product-shelf DELETE restacked onto origin/dev@faeec5b71 (#1645 land). oyatie-o90: started from origin/dev tip of this policy (dangling_path 2293; census advisory), then re-measured after Foundry deletes applied. adr_citation_dangling_path 2293 -> 2277 (delta -16): Foundry P0 delete removed decisions/ path citations carried by the deleted product/runbook/PRD/checklist shelf; equality ratchet requires same-change ceiling lower so the ratchet keeps biting. READ FROM THE GATE: check-adr-citation-closure-gate live_tree_findings_equal_the_frozen_ceilings printed 'adr_citation_dangling_path: observed 2277, frozen ceiling 2293'. Other semantic finding ceilings held (mismatch 252, rejected_authority 6, asymmetry 29, unresolvable 8, ambiguous 2, scan_vacuous 0, duplicate_id 0). Absolute census fields remain ADVISORY ONLY per _process_tax_delete_2026_08_11 — not re-frozen."
   },
   "product_contract": {
     "born_blocking": "Born BLOCKING and RED. Unlike a coverage ratchet there is no defensible ceiling here: a citation that resolves to the wrong apex is not debt to be burned down, it is a statement that is false today, and freezing a ceiling would licence the corpus to keep lying at its current rate. The gate reports every mismatch and fails until they are repaired.",
