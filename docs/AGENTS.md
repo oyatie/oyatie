@@ -163,6 +163,14 @@ core [`templates/portable-swarm-doctrine.md`](../templates/portable-swarm-doctri
 - **ensure:** this section present; pointers to ADR-0711 Amendment D, `specs/integ-branch-envelopes.json#anti_drift`, and PORTABLE Amendment D.
 - **overturn_when:** PHASE-5 promotion moves the operating contract AND this survival section migrates atomically with evidence.
 
+### Cloud provider + full ecosystem (binding)
+
+- **achieves:** agents load the product spine without plan-only amnesia — full CSP capacity + curated ecosystem broader than hyperscalers.
+- **origin:** compute-wedge plans and chat locks were not INV-DOC-9-survived; EU naming was misread as checklist-primary.
+- **rule:** Oyatie **MUST** target **entire cloud-provider capacity** (hyperscaler-parity+ IaaS→PaaS→progressive catalog) **and** a **curated ecosystem** (infra → enterprise → consumer) as **one service** — **not** compute-only, **not** a broker of glued vendors. EU/SECA are named because they **align with what cloud ought to look like**; **MUST NOT** copy personal-data sovereignty decisions that tax end-user UX. SECA-capable Rust contracts + smooth entry/exit remain. Phase encode starts at control-plane spine (Track A Phase 0); product rails (Track B) stay per-product `integ/<product>`→`app/<product>/**` (rule 3d). Detail: [`architecture/cloud-provider-full-ecosystem-north-star.md`](architecture/cloud-provider-full-ecosystem-north-star.md).
+- **ensure:** this five-field rule present; architecture pointer published; CHANGELOG row same-wave; agents cite this section — not a second `.plan.md`.
+- **overturn_when:** founder Accepts broker/marketplace-primary or compute-only forever via ADR **and** this section + architecture pointer are amended same-wave.
+
 ### Per-dispatch ritual (Tier 2)
 
 - **achieves:** every agent runs the same start/end checklist without pasting the whole north-star plan.
@@ -208,6 +216,7 @@ For any question, route to its authority. Click the link; do not duplicate inlin
 | Per-dispatch agent ritual (Tier 2 — diagram + digraph + doctrine) | This contract § Doctrine survival → Per-dispatch ritual; forever home `/templates/checklists/swarm-agent-ritual.md` (landed; Automations subsection); session rule under process_meta `.cursor/rules/` (`integ/ci`) |
 | Portable Swarm doctrine (repo-agnostic global core) | [`../templates/portable-swarm-doctrine.md`](../templates/portable-swarm-doctrine.md); new-repo pointer [`../templates/README-doctrine-pointer.md`](../templates/README-doctrine-pointer.md) |
 | ADR path shape overturn (no mass rename) | This contract § Doctrine survival → ADR path shape; ADR-0711 Amendment E-1 (cite; do not dual-home enumerations) |
+| Cloud provider + full ecosystem north-star | This contract § Doctrine survival → Cloud provider + full ecosystem; [`architecture/cloud-provider-full-ecosystem-north-star.md`](architecture/cloud-provider-full-ecosystem-north-star.md) |
 
 ## Bounded delivery and preservation
 
@@ -484,6 +493,7 @@ The full machine-readable list is in this file's front-matter `excludes:` block.
 
 ## Sources scanned
 
+- 2026-08-11 — cloud provider + full ecosystem north-star survival (INV-DOC-9): binding five-field rule + architecture pointer; EU/SECA as aligned reference; BAN personal-data UX theater; bead `oyatie-dxz` docs-governance.
 - 2026-08-11 — portable Swarm doctrine pointer + adr-rename-overturn challenge + Automations ritual cite; bead `oyatie-dxz` docs-governance; no mass ADR rename.
 - 2026-08-10 — anti-branding: remove external brand/archive URL citations from § Bounded delivery and per-agent appendices; cite Amendment C operating-patterns catalog / reflection corpus (`specs/agentic-operating-patterns.json`); bead `oyatie-dxz.5`.
 - 2026-08-10 — INV-DOC-9 doctrine survival (binding) + DOC-UPDATE same-wave co-change amendment; bead `oyatie-dxz.5` under docs-governance epic `oyatie-dxz`; Amendment C operating-patterns catalog / reflection corpus (brand-free).

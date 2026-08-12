@@ -454,7 +454,8 @@ For KR terms with English equivalents, both are acceptable in docs; use whicheve
 | SCADA | Supervisory Control and Data Acquisition | §7 |
 | SCIM | Cross-domain identity provisioning | §4 |
 | SDK | Software Development Kit | (engineering) |
-| SECA | Self-Employment Contributions Act | §7 / tax journeys |
+| SECA (cloud) | Sovereign European Cloud API — open declarative cloud infrastructure API (EuroStack / IPCEI-CIS); oyatie SECA-capable contracts are Rust-first | [architecture/cloud-provider-full-ecosystem-north-star.md](architecture/cloud-provider-full-ecosystem-north-star.md) · [spec.secapi.cloud](https://spec.secapi.cloud/) |
+| SECA (tax) | Self-Employment Contributions Act | §7 / tax journeys |
 | SERP | Search Engine Results Page | §6 |
 | SES | Simple Email Service | §7 / email communications |
 | SLO / SLI / SLA | Service Level Objective / Indicator / Agreement | §2 |
