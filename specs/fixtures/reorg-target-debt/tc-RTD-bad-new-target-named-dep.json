@@ -1,0 +1,13 @@
+{
+  "case": "Arm B refusal: a new workspace dependency minted under a reorg-target name prefix fails closed even without a path (synthetic name; nothing real is minted).",
+  "kind": "workspace-manifest",
+  "input": {
+    "baseline_workspace_path_deps": [],
+    "baseline_dep_names": [],
+    "manifest_lines": [
+      "[workspace.dependencies]",
+      "oya-synthetic-fixture-kernel = { version = \"1\" }"
+    ]
+  },
+  "expected_codes": ["RTD_NEW_TARGET_DEP_NAME"]
+}
