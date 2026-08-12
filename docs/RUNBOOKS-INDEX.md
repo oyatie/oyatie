@@ -48,8 +48,8 @@ Per-axis under [`runbooks/<axis>/<runbook-id>.md`](runbooks/) (inside `docs/`). 
 - `vertical-logistics/edi-counterparty-down.md`
 - (per-vertical)
 
-### Intelligence (Foundry product shelf deleted — DOCS_AUTHORITY 2026-08-11)
-> Live Foundry runbook stubs under `docs/runbooks/foundry*` were removed with the product shelf. Prefer intelligence capability runbooks / ADRs; do not reintroduce Foundry-as-live authority paths.
+### Intelligence (DOCS_AUTHORITY — product shelf deleted 2026-08-11)
+> Former axis runbook stubs under the retired product shelf were removed with that shelf. Prefer intelligence capability runbooks / ADRs; do not reintroduce retired-brand live authority paths.
 
 ### Cloud
 - `cloud/iam-key-rotation.md`
