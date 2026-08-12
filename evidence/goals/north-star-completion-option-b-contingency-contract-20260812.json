@@ -3,7 +3,7 @@
   "record_id": "north-star-completion-option-b-contingency-contract-20260812",
   "bootstrap_step": "T2",
   "programme": "oyatie-north-star-completion-v1",
-  "recorded_at": "2026-08-12T23:30:00Z",
+  "recorded_at": "2026-08-12T23:17:31Z",
   "contract_status": {
     "status": "accepted-as-dormant",
     "in_force": false,
@@ -13,27 +13,52 @@
   "purpose": "Option B pre-dispatch observation contingency: if activated, census enumeration and baseline measurement may start between execution authorization (T2) and Wave 1 dispatch (T5), with receipts bound retroactively to canonical masterplan_v2 ids once minted. Observation-only lanes; they mutate no product path and can create no reorg-target debt.",
   "activation_rule": {
     "kind": "event-based-founder-activation",
-    "trigger": "A recorded blocking event only: T3a evaluator amendment refused at admission, or T3b gate installation refused at admission. Never a wall-clock timer, never schedule pressure.",
+    "trigger": "A recorded blocking event on the authority-bootstrap chain only. Recognized blocking-event classes: (a) the T3a evaluator amendment refused at admission; (b) the T3b gate installation refused at admission; (c) a qualified-human or founder review required for the closure candidate recorded as unavailable; (d) a no_dispatch_stop_condition firing against the closure candidate. Never a wall-clock timer, never schedule pressure. The event must itself be recorded as durable evidence before activation approval is sought.",
     "approval": "Explicit founder activation approval recorded as a durable evidence artifact referencing this contract's record_id and the recorded blocking event.",
     "effect": "Activation flips this already-existing artifact in force unchanged. Redrafting this contract at or after the activation event is prohibited; any amendment requires a fresh founder-approved revision recorded before any event it would govern."
   },
   "observation_receipt_schema": {
-    "receipt_id": "string, unique, stable",
-    "observation_class": "one of: census-enumeration | baseline-measurement",
-    "subject": "string; the enumerated root or measured surface",
-    "observed_at": "RFC 3339 UTC timestamp",
-    "enumerator_identity": "tool or lane identity plus pinned version producing the observation",
-    "repository_baseline": "commit SHA the observation was taken against",
-    "content_digest": "sha256 over the observation payload bytes",
-    "binding_state": "one of: unbound | bound",
-    "bound_work_item_id": "canonical masterplan_v2 work-item id once bound; null while unbound"
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "receipt_id",
+      "observation_class",
+      "subject",
+      "observed_at",
+      "enumerator_identity",
+      "enumerator_version",
+      "repository_baseline",
+      "content_digest",
+      "binding_state",
+      "bound_work_item_id"
+    ],
+    "properties": {
+      "receipt_id": { "type": "string", "minLength": 1 },
+      "observation_class": { "enum": ["census-enumeration", "baseline-measurement"] },
+      "subject": { "type": "string", "minLength": 1 },
+      "observed_at": { "type": "string", "format": "date-time" },
+      "enumerator_identity": { "type": "string", "minLength": 1 },
+      "enumerator_version": { "type": "string", "minLength": 1 },
+      "repository_baseline": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+      "content_digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+      "binding_state": { "enum": ["unbound", "bound"] },
+      "bound_work_item_id": { "type": ["string", "null"] }
+    },
+    "allOf": [
+      {
+        "if": { "properties": { "binding_state": { "const": "bound" } } },
+        "then": { "properties": { "bound_work_item_id": { "type": "string", "minLength": 1 } } },
+        "else": { "properties": { "bound_work_item_id": { "type": "null" } } }
+      }
+    ]
   },
   "binding_procedure": "A receipt minted before canonical ids exist is retroactively bound by a binding record that references the receipt content_digest and the minted canonical masterplan_v2 id. Binding must complete at or before the Wave 5 corridor freeze. Binding records are durable evidence artifacts; a projection surface never mints or mutates a binding.",
   "pre_id_receipt_is_not_drift_rule": "A pre-id receipt bound to its canonical id before the Wave 5 corridor freeze does not constitute canonical-id drift and must not be counted by the no-drift reconciliation gate as a divergence.",
   "unbound_receipt_inadmissible_default": "Fail-closed: any observation receipt still unbound at the Wave 5 corridor freeze is inadmissible as evidence for any exit criterion, corridor derivation, or completion claim.",
   "wave1_encoding_contract": {
-    "rule": "Wave 1 encodes this contract into the masterplan_v2 id space with a canonical id, owner, and reopen rule as a projection of this T2 artifact, verified byte-equivalent to it. Wave 1 gives the contract identity, not existence; contents are carried forward unchanged.",
-    "byte_equivalence_subject": "The exact committed bytes of this file at the squash-merge commit that lands it on dev; the Wave 1 encoding must record this file's path and sha256 and prove equivalence against those bytes."
+    "rule": "Wave 1 encodes this contract into the masterplan_v2 id space as a projection: a work item carrying a canonical id, owner, and reopen rule that REFERENCES this artifact. Wave 1 gives the contract identity, not existence; the contract text is never redrafted during encoding.",
+    "byte_equivalence_subject": "The exact committed bytes of this file at the squash-merge commit that lands it on dev. The Wave 1 projection records this file's repository path and sha256 digest, and the equivalence proof is that the live file at that path still hashes to the recorded digest at encoding time. The canonical id, owner, and reopen rule are projection metadata on the masterplan_v2 item, outside the equivalence subject; they never mutate this file, so the requirement is satisfiable by construction."
   },
   "claim_ceiling": "This contract is dormant and grants nothing while not in force. Its existence proves only contract precedence for the Option B contingency. No observation lane may start, and no receipt is admissible, unless the activation rule above has been satisfied and recorded."
 }
