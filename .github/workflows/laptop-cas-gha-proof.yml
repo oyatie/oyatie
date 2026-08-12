@@ -17,10 +17,18 @@ on:
         required: false
         type: boolean
         default: false
+  # Same-repo PR only — lets this new workflow execute before it lands on default branch.
+  # Fork PRs are excluded by the job-level `if` (no secrets to forks).
+  pull_request:
+    paths:
+      - ".github/workflows/laptop-cas-gha-proof.yml"
+      - "infra/ci/laptop-cas/**"
+      - "infra/ci/buckconfig/laptop-cas-github-*.buckconfig"
+      - "docs/runbooks/laptop-cas-gha-proof.md"
 
 # Never cancel mid-proof; one run at a time is enough.
 concurrency:
-  group: laptop-cas-gha-proof
+  group: laptop-cas-gha-proof-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: false
 
 permissions:
@@ -30,8 +38,8 @@ jobs:
   reapi:
     name: REAPI Access-TCP proof
     runs-on: ubuntu-latest
-    # Trusted repo only — secrets must never run on fork PRs (this workflow has no pull_request trigger).
-    if: ${{ github.repository == 'jason931225/oyatie' }}
+    # Trusted same-repo only — BAN fork PR secret access.
+    if: ${{ github.repository == 'jason931225/oyatie' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
     timeout-minutes: 20
     steps:
       - name: Checkout
@@ -90,7 +98,7 @@ jobs:
   buck2:
     name: Buck2 warm-overlay smoke (optional)
     needs: reapi
-    if: ${{ github.repository == 'jason931225/oyatie' && inputs.run_buck2 }}
+    if: ${{ github.repository == 'jason931225/oyatie' && github.event_name == 'workflow_dispatch' && inputs.run_buck2 }}
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
