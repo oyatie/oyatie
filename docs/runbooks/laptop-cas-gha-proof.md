@@ -1,3 +1,8 @@
+---
+purpose: Laptop CAS — GitHub-hosted prelicense proof (Access-TCP; lab tip only)
+doc_status: published
+---
+
 # Laptop CAS — GitHub-hosted prelicense proof
 
 > **Status:** Active

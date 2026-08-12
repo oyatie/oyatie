@@ -278,6 +278,10 @@
       "prefix": "docs/runbooks/laptop-cas-dual-arch-digests.md"
     },
     {
+      "anchor": "Laptop CAS GHA Access-TCP prelicense proof runbook (lab tip on lab/laptop-cas-gha-proof; no new workflow shell on dev).",
+      "prefix": "docs/runbooks/laptop-cas-gha-proof.md"
+    },
+    {
       "anchor": "Laptop CAS lab operator runbook (integ/docs; NativeLink warm-cache drills).",
       "prefix": "docs/runbooks/laptop-cas-integrity-canary.md"
     },
