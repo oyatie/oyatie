@@ -16,22 +16,24 @@
       "title": "Oyatie North-Star Completion Programme crystallized specification",
       "version": "1.0.0",
       "source": "deep-interview session 019ff62e-5d1c-7000-939d-d58fa859fa6e, 36 rounds scored, final ambiguity 0.42, structural-floor closure override explicitly user-confirmed",
-      "durable_copy": "evidence/ralplan/oyatie-north-star-completion-v1-crystallized-spec-20260812.json",
-      "content_sha256": "8c730c54c3145404ef6ab10163f52c69c5796b2beb5b60fc5ea3c5c31bdb0b62"
+      "content_sha256": "8c730c54c3145404ef6ab10163f52c69c5796b2beb5b60fc5ea3c5c31bdb0b62",
+      "content_bytes": 10305,
+      "digest_recipe": "sha256 over the crystallized_spec object serialized as JSON with 2-space indent, literal UTF-8, trailing newline"
     },
     "consensus_plan": {
       "title": "Oyatie North-Star Completion Programme — consensus execution plan",
       "ralplan_run_id": "oyatie-north-star-completion-v1",
       "consensus": "Deliberate mode; consensus at pass 3 (stage-03): architect CLEAR/APPROVE, critic OKAY; disposition conflict:risk-6:ARCH-8:CRIT-6 resolved by synthesis; post-interview reconciliation 3/3 confirmed clean.",
-      "durable_copy": "evidence/ralplan/oyatie-north-star-completion-v1-approved-plan-20260812.md",
-      "content_sha256": "95132e4e2ef165667223117a026e3c3d5856a45250b4a7101b7cefef5ddd6ab1"
+      "content_sha256": "95132e4e2ef165667223117a026e3c3d5856a45250b4a7101b7cefef5ddd6ab1",
+      "content_bytes": 96428,
+      "digest_recipe": "sha256 over the exact final plan file bytes (stage-03-final, 336 lines)"
     }
   },
   "hold_context": {
     "hold": "masterplan_v2.planning_entry_contract open since 2026-07-13 with binding_plan_approval_allowed=false and dispatch_allowed=false; dispatch blocked on preplanning_authority_closure; dispatched_waves empty.",
     "relationship": "This receipt records the founder approval that begins the lawful authority-bootstrap chain S0-T6 defined by the approved plan. The hold itself lifts only at T4, through a protected evidence-bearing amendment extending the cross-artifact evaluator with the closed-state proof contract, after every entry condition is proven."
   },
-  "durable_evidence_rule": "Stored under the durable repository evidence path class (evidence/**) because the evaluator staleness rule rejects .gjc/**, .omc/**, and .omx/** references; plan-store paths are not admissible evidence. The durable copies referenced above carry the exact approved bytes and their sha256 digests.",
+  "durable_evidence_rule": "Stored under the durable repository evidence path class (evidence/**) because the evaluator staleness rule rejects .gjc/**, .omc/**, and .omx/** references; plan-store paths are not admissible evidence. This receipt pins the approved content by sha256 digest and byte count. Full-text repository archival of the approved documents is deferred: their text uses vocabulary the retired-vocabulary deny-list (brand-residue gate) blocks for new files, and the approved plan itself schedules deny-list carve-outs at Wave 1; landing the full text before that carve-out would require growing signed-off debt, which this bootstrap step refuses. Verification procedure: recompute sha256 over the retained plan-store bytes (session 019ff62e-5d1c-7000-939d-d58fa859fa6e, ralplan run oyatie-north-star-completion-v1, stage-03-final/pending-approval) and over the crystallized_spec serialization; both must equal the digests recorded here. The plan-store location is provenance narrative only, never an evidence anchor.",
   "claim_ceiling": "This record proves founder approval of the named spec and plan content hashes and nothing else. It does not close or imply closure of any planning-entry, qualified-human-review, Phase-0, execution-dispatch, or product-completion gate.",
   "successor_steps": {
     "t2_execution_authorization": "evidence/goals/north-star-completion-t2-execution-authorization-20260812.json",
