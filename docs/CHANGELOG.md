@@ -6,6 +6,13 @@ doc_status: published
 
 # Changelog
 
+## 2026-08-12 — ADR-0701 Capability reshape rubric (four gates)
+
+- Amended [`docs/decisions/ADR-0701-monorepo-capability-live-apex.md`](decisions/ADR-0701-monorepo-capability-live-apex.md)
+  with a short **Capability reshape rubric** (Ought / Shape / Relevance / Quality).
+- Cross-refs ADR-0711 B-1a as execution; maps onto existing 7-point + 16-lens — no third
+  checklist; freeze rows stay in envelopes only (INV-DOC-2).
+
 ## 2026-08-11 — Cloud provider + full ecosystem north-star (INV-DOC-9)
 
 - Survived product spine in operating contract
