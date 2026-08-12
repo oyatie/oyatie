@@ -85,14 +85,30 @@ mod tests {
     #[test]
     fn orchestrator_gate() {
         let _g = ENV_LOCK.lock().unwrap();
+        // Isolate from CI/host env that may already export SWARM_ORCHESTRATOR.
         unsafe {
             env::remove_var("SWARM_ORCHESTRATOR");
         }
-        assert!(require_orchestrator().is_err());
+        let denied = require_orchestrator();
+        assert!(
+            denied.is_err(),
+            "expected refuse without SWARM_ORCHESTRATOR=1, got {denied:?}"
+        );
         unsafe {
             env::set_var("SWARM_ORCHESTRATOR", "1");
         }
-        assert!(require_orchestrator().is_ok());
+        // Re-read via require_orchestrator (not a cached view); some runners
+        // only surface env changes on the next var::var call after set_var.
+        let allowed = require_orchestrator();
+        assert_eq!(
+            env::var("SWARM_ORCHESTRATOR").ok().as_deref(),
+            Some("1"),
+            "set_var did not stick before require_orchestrator"
+        );
+        assert!(
+            allowed.is_ok(),
+            "expected admit with SWARM_ORCHESTRATOR=1, got {allowed:?}"
+        );
         unsafe {
             env::remove_var("SWARM_ORCHESTRATOR");
         }
