@@ -22,7 +22,8 @@ use ci_cross_artifact_agreement::{
     evaluate_masterplan_v2_plan_evidence_drift, evaluate_masterplan_v2_preplanning_candidate_facts,
     evaluate_masterplan_v2_program_coverage, evaluate_masterplan_v2_projection_freshness,
     evaluate_masterplan_v2_ratification_digest, evaluate_masterplan_v2_read_contract_archives,
-    evaluate_masterplan_v2_sequencing, evaluate_registry_derived_policy_sync, ratchet,
+    evaluate_masterplan_v2_sequencing, evaluate_registry_derived_policy_sync,
+    normalize_closure_evidence_ref, ratchet,
 };
 use serde_json::Value;
 use sha2::{Digest, Sha256};
@@ -312,10 +313,8 @@ fn protected_scm_context_excludes_candidate_authored_facts() {
 #[test]
 fn retirement_sources_do_not_silently_amend_accepted_adr_0613() {
     let root = repo_root();
-    let adr = fs::read_to_string(root.join(
-        "docs/decisions/ADR-0700-ci-admission-live-apex.md",
-    ))
-    .expect("read accepted ADR-0613");
+    let adr = fs::read_to_string(root.join("docs/decisions/ADR-0700-ci-admission-live-apex.md"))
+        .expect("read accepted ADR-0613");
     assert!(
         !adr.contains("### E7 history-only retirement facts"),
         "implementation provenance must not silently widen an Accepted ADR"
@@ -518,9 +517,10 @@ fn normalizes_to_public_grpc_contradiction(text: &str) -> bool {
 #[test]
 fn public_protocol_authority_keeps_grpc_and_proto_internal() {
     let root = repo_root();
-    let documentation =
-        fs::read_to_string(root.join("docs/adr-archive/ADR-0203-documentation-engine-three-tier.md"))
-            .expect("read ADR-0203");
+    let documentation = fs::read_to_string(
+        root.join("docs/adr-archive/ADR-0203-documentation-engine-three-tier.md"),
+    )
+    .expect("read ADR-0203");
     let versioning =
         fs::read_to_string(root.join("docs/adr-archive/ADR-0258-api-versioning-model.md"))
             .expect("read ADR-0258");
@@ -535,9 +535,11 @@ fn public_protocol_authority_keeps_grpc_and_proto_internal() {
     // Historical protocol ADRs may be Superseded by apex; authority text + reciprocal
     // related edges remain the binding corpus check (live apex is ADR-0705/0709).
     assert!(
-        (documentation.contains("- Status: Accepted") || documentation.contains("status: Superseded"))
+        (documentation.contains("- Status: Accepted")
+            || documentation.contains("status: Superseded"))
             && documentation.contains("ADR-0258 (API versioning model)")
-            && (versioning.contains("status: Accepted") || versioning.contains("status: Superseded"))
+            && (versioning.contains("status: Accepted")
+                || versioning.contains("status: Superseded"))
             && versioning.contains("ADR-0203")
             && versioning.contains("## ADR-0203 public-contract reconciliation"),
         "ADR-0203 and ADR-0258 must stay related and explicitly reconciled (Accepted or Superseded historical)"
@@ -1618,6 +1620,23 @@ fn masterplan_v2_current_preplanning_candidate_matches_cited_evidence() {
 }
 
 #[test]
+fn closed_planning_entry_preserves_the_historical_open_candidate_receipt() {
+    let (mut masterplan, evidence) = live_preplanning_candidate_fixture();
+    let contract = &mut masterplan["masterplan_v2"]["planning_entry_contract"];
+    contract["state"] = serde_json::json!("closed");
+    contract["binding_plan_approval_allowed"] = serde_json::json!(true);
+    contract["dispatch_allowed"] = serde_json::json!(true);
+    contract["closure_evidence"] = serde_json::json!({});
+
+    let findings = evaluate_masterplan_v2_preplanning_candidate_facts(&masterplan, &evidence);
+    assert!(
+        findings.is_empty(),
+        "the closure transition closes through its separate closure-evidence chain \
+         without rewriting the digest-pinned historical candidate receipt: {findings:?}"
+    );
+}
+
+#[test]
 fn preplanning_candidate_paired_missing_fields_fail_closed() {
     let (mut masterplan, mut evidence) = live_preplanning_candidate_fixture();
     masterplan["masterplan_v2"]["planning_entry_contract"]["current_pr_candidate_state"]
@@ -1645,7 +1664,8 @@ fn preplanning_candidate_wrong_field_types_fail_closed() {
 #[test]
 fn preplanning_candidate_contract_field_drift_has_a_keyed_reason() {
     let (mut masterplan, evidence) = live_preplanning_candidate_fixture();
-    masterplan["masterplan_v2"]["planning_entry_contract"]["state"] = serde_json::json!("closed");
+    masterplan["masterplan_v2"]["planning_entry_contract"]["state"] =
+        serde_json::json!("unsupported");
 
     assert_preplanning_candidate_drift_reason(&masterplan, &evidence, "field_mismatch");
 }
@@ -2517,23 +2537,77 @@ fn adr_0624_is_explicitly_nonbinding_and_preserves_preplanning_hold() {
     );
 
     assert_eq!(control_plane["active_epoch"].as_str(), Some("P2"));
-    assert_eq!(contract["state"].as_str(), Some("open"));
-    assert_eq!(
-        contract["binding_plan_approval_allowed"].as_bool(),
-        Some(false)
-    );
-    assert_eq!(contract["dispatch_allowed"].as_bool(), Some(false));
-    assert_eq!(dispatch["state"].as_str(), Some("blocked"));
-    assert_eq!(
-        dispatch["blocked_reason"].as_str(),
-        Some("preplanning_authority_closure")
-    );
-    assert!(
-        dispatch["dispatched_waves"]
-            .as_array()
-            .is_some_and(|waves| waves.is_empty()),
-        "no execution wave may dispatch while HOLD(Planning) remains open"
-    );
+    assert_lawful_planning_entry_state(contract, dispatch);
+}
+
+/// The planning-entry contract has exactly TWO lawful shapes:
+/// - the OPEN hold: both authority flags false, dispatch structurally blocked on
+///   `preplanning_authority_closure`, zero dispatched waves; or
+/// - the fully-evidenced CLOSED transition: both flags true plus a
+///   `closure_evidence` chain whose refs resolve to durable, parseable `evidence/**`
+///   records that the pure evaluator accepts.
+/// Anything else is a hard failure. The live tree stays green only in the open
+/// hold; a live closed planning contract panics here until a trusted
+/// exact-pull-request/head review-admission packet is supplied.
+fn assert_lawful_planning_entry_state(contract: &Value, dispatch: &Value) {
+    match contract["state"].as_str() {
+        Some("open") => {
+            assert_eq!(
+                contract["binding_plan_approval_allowed"].as_bool(),
+                Some(false),
+                "open hold must keep binding plan approval locked"
+            );
+            assert_eq!(
+                contract["dispatch_allowed"].as_bool(),
+                Some(false),
+                "open hold must keep dispatch locked"
+            );
+            assert_eq!(dispatch["state"].as_str(), Some("blocked"));
+            assert_eq!(
+                dispatch["blocked_reason"].as_str(),
+                Some("preplanning_authority_closure")
+            );
+            assert!(
+                dispatch["dispatched_waves"]
+                    .as_array()
+                    .is_some_and(|waves| waves.is_empty()),
+                "no execution wave may dispatch while HOLD(Planning) remains open"
+            );
+        }
+        Some("closed") => {
+            panic!(
+                "the live planning-entry contract cannot close until the blocking gate receives \
+                 a trusted review-admission packet bound to the exact pull request and head"
+            );
+        }
+        other => {
+            panic!("planning_entry_contract.state must be exactly open or closed, got {other:?}")
+        }
+    }
+}
+
+#[test]
+fn closure_evidence_refs_use_one_canonical_path_for_validation_and_loading() {
+    let normalized = normalize_closure_evidence_ref(Some(&serde_json::json!(
+        "  ././evidence/goals/receipt.json  "
+    )));
+    assert_eq!(normalized.as_deref(), Some("evidence/goals/receipt.json"));
+
+    for rejected in [
+        "/evidence/goals/receipt.json",
+        "~/evidence/goals/receipt.json",
+        "evidence/../goals/receipt.json",
+        ".gjc/receipt.json",
+        ".omc/receipt.json",
+        ".omx/receipt.json",
+        "specs/receipt.json",
+    ] {
+        assert_eq!(
+            normalize_closure_evidence_ref(Some(&serde_json::json!(rejected))),
+            None,
+            "{rejected:?} must not carry closure authority"
+        );
+    }
 }
 
 /// Productized false-green guard: planning closure is an architecture authority, so the
@@ -2657,8 +2731,7 @@ fn gate1_is_born_blocking_on_the_live_corpus() {
     // (Superseded) while live crosswalk rows are apex-only. Phantom resolution still
     // knows the archive id (known_ids), so citations must not reappear as phantoms.
     assert!(
-        root
-            .join("docs/adr-archive/ADR-0397-pulsar-oxia-canonical-event-bus.md")
+        root.join("docs/adr-archive/ADR-0397-pulsar-oxia-canonical-event-bus.md")
             .is_file(),
         "ADR-0397 reconstruction record must remain on disk under the historical archive"
     );
@@ -3097,7 +3170,6 @@ fn source_derived_adr_records(root: &Path) -> Vec<AdrDecisionRecord> {
         })
         .clone()
 }
-
 
 fn disk_adr_records_for_relation_guards(root: &Path) -> Vec<AdrDecisionRecord> {
     let mut records = Vec::new();
