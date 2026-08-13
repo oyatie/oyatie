@@ -22,7 +22,8 @@ use ci_cross_artifact_agreement::{
     evaluate_masterplan_v2_plan_evidence_drift, evaluate_masterplan_v2_preplanning_candidate_facts,
     evaluate_masterplan_v2_program_coverage, evaluate_masterplan_v2_projection_freshness,
     evaluate_masterplan_v2_ratification_digest, evaluate_masterplan_v2_read_contract_archives,
-    evaluate_masterplan_v2_sequencing, evaluate_registry_derived_policy_sync, ratchet,
+    evaluate_masterplan_v2_sequencing, evaluate_planning_entry_closure_evidence,
+    evaluate_registry_derived_policy_sync, ratchet,
 };
 use serde_json::Value;
 use sha2::{Digest, Sha256};
@@ -2517,23 +2518,123 @@ fn adr_0624_is_explicitly_nonbinding_and_preserves_preplanning_hold() {
     );
 
     assert_eq!(control_plane["active_epoch"].as_str(), Some("P2"));
-    assert_eq!(contract["state"].as_str(), Some("open"));
-    assert_eq!(
-        contract["binding_plan_approval_allowed"].as_bool(),
-        Some(false)
-    );
-    assert_eq!(contract["dispatch_allowed"].as_bool(), Some(false));
-    assert_eq!(dispatch["state"].as_str(), Some("blocked"));
-    assert_eq!(
-        dispatch["blocked_reason"].as_str(),
-        Some("preplanning_authority_closure")
-    );
-    assert!(
-        dispatch["dispatched_waves"]
-            .as_array()
-            .is_some_and(|waves| waves.is_empty()),
-        "no execution wave may dispatch while HOLD(Planning) remains open"
-    );
+    assert_lawful_planning_entry_state(&root, &masterplan, contract, dispatch);
+}
+
+/// The planning-entry contract has exactly TWO lawful shapes (bootstrap T3a):
+/// - the OPEN hold: both authority flags false, dispatch structurally blocked on
+///   `preplanning_authority_closure`, zero dispatched waves; or
+/// - the fully-evidenced CLOSED transition (landed by T4): both flags true plus a
+///   `closure_evidence` chain whose refs resolve to durable, parseable `evidence/**`
+///   records that the pure evaluator accepts.
+/// Anything else is a hard failure. This keeps the tree green today (open) and keeps it
+/// green after T4 flips the state — but ONLY with the complete proof chain on disk.
+fn assert_lawful_planning_entry_state(
+    root: &Path,
+    masterplan: &Value,
+    contract: &Value,
+    dispatch: &Value,
+) {
+    match contract["state"].as_str() {
+        Some("open") => {
+            assert_eq!(
+                contract["binding_plan_approval_allowed"].as_bool(),
+                Some(false),
+                "open hold must keep binding plan approval locked"
+            );
+            assert_eq!(
+                contract["dispatch_allowed"].as_bool(),
+                Some(false),
+                "open hold must keep dispatch locked"
+            );
+            assert_eq!(dispatch["state"].as_str(), Some("blocked"));
+            assert_eq!(
+                dispatch["blocked_reason"].as_str(),
+                Some("preplanning_authority_closure")
+            );
+            assert!(
+                dispatch["dispatched_waves"]
+                    .as_array()
+                    .is_some_and(|waves| waves.is_empty()),
+                "no execution wave may dispatch while HOLD(Planning) remains open"
+            );
+        }
+        Some("closed") => {
+            assert_eq!(
+                contract["binding_plan_approval_allowed"].as_bool(),
+                Some(true),
+                "lawful closed transition must explicitly unlock binding plan approval"
+            );
+            assert_eq!(
+                contract["dispatch_allowed"].as_bool(),
+                Some(true),
+                "lawful closed transition must explicitly unlock dispatch"
+            );
+            let closure_evidence = &contract["closure_evidence"];
+            // EVERY closure-evidence ref (including the qualified-human approval ref)
+            // must resolve to a durable, parseable evidence/** record in THIS tree, and
+            // the pure evaluator content-validates every one of the loaded documents
+            // below (the caller owns file I/O) — pointing a ref at an empty or
+            // unrelated document must fail.
+            let load_ref = |field_container: &Value, field: &str, label: &str| -> Value {
+                let evidence_ref = field_container[field]
+                    .as_str()
+                    .unwrap_or_else(|| panic!("closure_evidence.{label} must be a string ref"));
+                assert!(
+                    evidence_ref.starts_with("evidence/"),
+                    "closure_evidence.{label} must live under evidence/**: {evidence_ref}"
+                );
+                let resolved = root.join(evidence_ref);
+                assert!(
+                    resolved.is_file(),
+                    "closure_evidence.{label} must resolve to a committed record: {}",
+                    resolved.display()
+                );
+                load_json(&resolved)
+            };
+            let t1 = load_ref(
+                closure_evidence,
+                "t1_hold_lift_receipt_ref",
+                "t1_hold_lift_receipt_ref",
+            );
+            let t2 = load_ref(
+                closure_evidence,
+                "t2_execution_authorization_ref",
+                "t2_execution_authorization_ref",
+            );
+            let t3b_gate_liveness = load_ref(
+                closure_evidence,
+                "t3b_gate_liveness_ref",
+                "t3b_gate_liveness_ref",
+            );
+            let t3b_interval_audit = load_ref(
+                closure_evidence,
+                "t3b_interval_audit_ref",
+                "t3b_interval_audit_ref",
+            );
+            let approval = load_ref(
+                &closure_evidence["qualified_human_closure_approval"],
+                "approval_ref",
+                "qualified_human_closure_approval.approval_ref",
+            );
+            let findings = evaluate_planning_entry_closure_evidence(
+                masterplan,
+                &t1,
+                &t2,
+                &t3b_gate_liveness,
+                &t3b_interval_audit,
+                &approval,
+            );
+            assert!(
+                findings.is_empty(),
+                "closed planning-entry contract must carry a fully valid closure-evidence \
+                 chain: {findings:?}"
+            );
+        }
+        other => panic!(
+            "planning_entry_contract.state must be exactly open or closed, got {other:?}"
+        ),
+    }
 }
 
 /// Productized false-green guard: planning closure is an architecture authority, so the
