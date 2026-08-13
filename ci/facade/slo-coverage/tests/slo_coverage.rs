@@ -115,7 +115,10 @@ const REQUIRED_SLO_LINKED_CLOUD_MANIFESTS: [&str; 6] = [
 ///   2026-08-11  762 -> pin 773     BASE MOVE from #1934: +4 ci-controller-* and +7 port-engine
 ///                                  W0-B catalog rows (face enumerated 773). Keep dual-home
 ///                                  oya/ci-controller until lock/baseline tip-free cleanup.
-const SLO_CATALOG_CENSUS: usize = 773;
+///   2026-08-13  773 -> pin 774     PR #1943 adds exactly one catalog row,
+///                                  registry/catalog/ci-reorg-target-debt.yaml. The producer
+///                                  enumeration is unchanged; this is an attributed corpus arrival.
+const SLO_CATALOG_CENSUS: usize = 774;
 
 fn producer_command(root: &Path, producer_bin: Option<&str>) -> Result<Command, String> {
     if let Some(bin) = producer_bin {
