@@ -22,8 +22,8 @@ use ci_cross_artifact_agreement::{
     evaluate_masterplan_v2_plan_evidence_drift, evaluate_masterplan_v2_preplanning_candidate_facts,
     evaluate_masterplan_v2_program_coverage, evaluate_masterplan_v2_projection_freshness,
     evaluate_masterplan_v2_ratification_digest, evaluate_masterplan_v2_read_contract_archives,
-    evaluate_masterplan_v2_sequencing, evaluate_planning_entry_closure_evidence,
-    evaluate_registry_derived_policy_sync, normalize_closure_evidence_ref, ratchet,
+    evaluate_masterplan_v2_sequencing, evaluate_registry_derived_policy_sync,
+    normalize_closure_evidence_ref, ratchet,
 };
 use serde_json::Value;
 use sha2::{Digest, Sha256};
@@ -1631,8 +1631,8 @@ fn closed_planning_entry_preserves_the_historical_open_candidate_receipt() {
     let findings = evaluate_masterplan_v2_preplanning_candidate_facts(&masterplan, &evidence);
     assert!(
         findings.is_empty(),
-        "T4 closes through its separate closure-evidence chain without rewriting the \
-         digest-pinned historical candidate receipt: {findings:?}"
+        "the closure transition closes through its separate closure-evidence chain \
+         without rewriting the digest-pinned historical candidate receipt: {findings:?}"
     );
 }
 
@@ -2537,23 +2537,19 @@ fn adr_0624_is_explicitly_nonbinding_and_preserves_preplanning_hold() {
     );
 
     assert_eq!(control_plane["active_epoch"].as_str(), Some("P2"));
-    assert_lawful_planning_entry_state(&root, &masterplan, contract, dispatch);
+    assert_lawful_planning_entry_state(contract, dispatch);
 }
 
-/// The planning-entry contract has exactly TWO lawful shapes (bootstrap T3a):
+/// The planning-entry contract has exactly TWO lawful shapes:
 /// - the OPEN hold: both authority flags false, dispatch structurally blocked on
 ///   `preplanning_authority_closure`, zero dispatched waves; or
-/// - the fully-evidenced CLOSED transition (landed by T4): both flags true plus a
+/// - the fully-evidenced CLOSED transition: both flags true plus a
 ///   `closure_evidence` chain whose refs resolve to durable, parseable `evidence/**`
 ///   records that the pure evaluator accepts.
-/// Anything else is a hard failure. This keeps the tree green today (open) and keeps it
-/// green after T4 flips the state — but ONLY with the complete proof chain on disk.
-fn assert_lawful_planning_entry_state(
-    root: &Path,
-    masterplan: &Value,
-    contract: &Value,
-    dispatch: &Value,
-) {
+/// Anything else is a hard failure. The live tree stays green only in the open
+/// hold; a live closed planning contract panics here until a trusted
+/// exact-pull-request/head review-admission packet is supplied.
+fn assert_lawful_planning_entry_state(contract: &Value, dispatch: &Value) {
     match contract["state"].as_str() {
         Some("open") => {
             assert_eq!(
@@ -2579,72 +2575,9 @@ fn assert_lawful_planning_entry_state(
             );
         }
         Some("closed") => {
-            assert_eq!(
-                contract["binding_plan_approval_allowed"].as_bool(),
-                Some(true),
-                "lawful closed transition must explicitly unlock binding plan approval"
-            );
-            assert_eq!(
-                contract["dispatch_allowed"].as_bool(),
-                Some(true),
-                "lawful closed transition must explicitly unlock dispatch"
-            );
-            let closure_evidence = &contract["closure_evidence"];
-            // EVERY closure-evidence ref (including the qualified-human approval ref)
-            // must resolve to a durable, parseable evidence/** record in THIS tree, and
-            // the pure evaluator content-validates every one of the loaded documents
-            // below (the caller owns file I/O) — pointing a ref at an empty or
-            // unrelated document must fail.
-            let load_ref = |field_container: &Value, field: &str, label: &str| -> Value {
-                let evidence_ref = normalize_closure_evidence_ref(field_container.get(field))
-                    .unwrap_or_else(|| {
-                        panic!("closure_evidence.{label} must be a canonicalizable evidence/** ref")
-                    });
-                let resolved = root.join(&evidence_ref);
-                assert!(
-                    resolved.is_file(),
-                    "closure_evidence.{label} must resolve to a committed record: {}",
-                    resolved.display()
-                );
-                load_json(&resolved)
-            };
-            let t1 = load_ref(
-                closure_evidence,
-                "t1_hold_lift_receipt_ref",
-                "t1_hold_lift_receipt_ref",
-            );
-            let t2 = load_ref(
-                closure_evidence,
-                "t2_execution_authorization_ref",
-                "t2_execution_authorization_ref",
-            );
-            let t3b_gate_liveness = load_ref(
-                closure_evidence,
-                "t3b_gate_liveness_ref",
-                "t3b_gate_liveness_ref",
-            );
-            let t3b_interval_audit = load_ref(
-                closure_evidence,
-                "t3b_interval_audit_ref",
-                "t3b_interval_audit_ref",
-            );
-            let approval = load_ref(
-                &closure_evidence["qualified_human_closure_approval"],
-                "approval_ref",
-                "qualified_human_closure_approval.approval_ref",
-            );
-            let findings = evaluate_planning_entry_closure_evidence(
-                masterplan,
-                &t1,
-                &t2,
-                &t3b_gate_liveness,
-                &t3b_interval_audit,
-                &approval,
-            );
-            assert!(
-                findings.is_empty(),
-                "closed planning-entry contract must carry a fully valid closure-evidence \
-                 chain: {findings:?}"
+            panic!(
+                "the live planning-entry contract cannot close until the blocking gate receives \
+                 a trusted review-admission packet bound to the exact pull request and head"
             );
         }
         other => {

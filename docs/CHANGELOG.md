@@ -6,7 +6,7 @@ doc_status: published
 
 # Changelog
 
-## 2026-08-12 — Masterplan stale inline sequencing digest removed (bootstrap T3a)
+## 2026-08-12 — Masterplan stale inline sequencing digest removed
 
 - Normalized the one `masterplan_v2.planning_entry_contract.no_dispatch_stop_conditions`
   entry in [`specs/masterplan.json`](../specs/masterplan.json) that pinned a stale inline
@@ -14,9 +14,10 @@ doc_status: published
   founder-ratification record mechanism
   (`masterplan_v2.sequencing.founder_ratification` + its `decision_ref` evidence record,
   enforced by `evaluate_masterplan_v2_ratification_digest`) — no inline digest literal is
-  authoritative there. Contract state stays `open` until T4. Companion change: the
-  cross-artifact evaluator gains the closed-state planning-entry proof contract
-  (`ci/facade/cross-artifact-agreement`), PR #1942.
+  authoritative there. Contract state stays `open` until a fully evidenced
+  closure transition. Companion change: the cross-artifact evaluator gains the
+  closed-state planning-entry proof contract
+  (`ci/facade/cross-artifact-agreement`).
 
 ## 2026-08-11 — Cloud provider + full ecosystem north-star (INV-DOC-9)
 

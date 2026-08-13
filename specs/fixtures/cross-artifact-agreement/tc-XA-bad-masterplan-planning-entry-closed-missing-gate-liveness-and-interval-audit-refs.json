@@ -1,10 +1,10 @@
 {
-  "fixture_id": "TC-XA-BAD-masterplan-planning-entry-closed-missing-t3b-refs",
+  "fixture_id": "TC-XA-BAD-masterplan-planning-entry-closed-missing-gate-liveness-and-interval-audit-refs",
   "expected_verdict": "RED",
   "expected_violations": [
     "masterplan_execution_wave_dispatch_unratified"
   ],
-  "description": "Closed planning-entry transition without the T3b gate-liveness receipt and T2-to-T3b interval-audit refs: closure before the reorg-target-debt gate is proven live (and its policy-only interval audited) fails closed.",
+  "description": "Closed planning-entry transition without the target-debt gate-liveness receipt and authorization-to-gate interval-audit refs: closure before the gate is proven live and its policy-only interval is audited fails closed.",
   "decisions": [
     {
       "id": "ADR-0516",

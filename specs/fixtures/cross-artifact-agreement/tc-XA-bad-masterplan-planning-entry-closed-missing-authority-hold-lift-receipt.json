@@ -1,10 +1,10 @@
 {
-  "fixture_id": "TC-XA-BAD-masterplan-planning-entry-closed-missing-t1-receipt",
+  "fixture_id": "TC-XA-BAD-masterplan-planning-entry-closed-missing-authority-hold-lift-receipt",
   "expected_verdict": "RED",
   "expected_violations": [
     "masterplan_execution_wave_dispatch_unratified"
   ],
-  "description": "Closed planning-entry transition without the T1 authority-hold-lift receipt ref: the closure evidence chain is broken at its root, so the closed state fails closed as an unratified dispatch bypass.",
+  "description": "Closed planning-entry transition without the authority-hold-lift receipt ref: the closure evidence chain is broken at its root, so the closed state fails closed as an unratified dispatch bypass.",
   "decisions": [
     {
       "id": "ADR-0516",

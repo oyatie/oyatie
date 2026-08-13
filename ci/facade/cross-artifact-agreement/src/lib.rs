@@ -2309,11 +2309,12 @@ fn preplanning_candidate_facts_agree(
 }
 
 /// Open hold keeps dispatch/binding locked and must byte-agree with the historical
-/// PR #1340 non-closure receipt. The closed hold (bootstrap T4) never demands
-/// agreement from that receipt: it is a pinned historical observation of the OPEN
-/// hold and stays byte-immutable forever, so a lawful T4 must NOT rewrite it into
-/// claiming binding/dispatch. Closed-state flag agreement is carried by the
-/// contract's `closure_evidence` chain instead (deep content validation lives in
+/// non-closure receipt. The closed hold (the planning-entry closure transition)
+/// never demands agreement from that receipt: it is a pinned historical
+/// observation of the OPEN hold and stays byte-immutable forever, so a lawful
+/// closure transition must NOT rewrite it into claiming binding/dispatch.
+/// Closed-state flag agreement is carried by the contract's `closure_evidence`
+/// chain instead (deep content validation lives in
 /// [`evaluate_closed_preplanning_entry_contract`] and
 /// [`evaluate_planning_entry_closure_evidence`]).
 fn preplanning_hold_shape_agrees(
@@ -2788,11 +2789,12 @@ fn evaluate_open_preplanning_entry_contract(
     valid
 }
 
-/// The lawful closed transition (bootstrap T4) is fully evidenced or it is not closed:
+/// The lawful closed transition is fully evidenced or it is not closed:
 /// both authority flags are explicitly true AND a `closure_evidence` object carries the
-/// durable proof chain (T1 hold-lift receipt, T2 execution authorization, T3b gate
-/// liveness + interval audit, a fresh no-dispatch snapshot, and an explicit
-/// qualified-human/founder closure approval). Anything less keeps emitting
+/// durable proof chain (the authority-hold-lift receipt, the execution-authorization
+/// record, the target-debt gate-liveness receipt, the authorization-to-gate interval
+/// audit, a fresh no-dispatch snapshot, and an explicit qualified-human/founder
+/// closure approval). Anything less keeps emitting
 /// `masterplan_execution_wave_dispatch_unratified` findings — closed-without-proof is
 /// indistinguishable from an unlawful bypass.
 fn evaluate_closed_preplanning_entry_contract(
@@ -2828,26 +2830,39 @@ const PLANNING_ENTRY_CLOSURE_REF_FIELDS: [&str; 4] = [
     "t3b_interval_audit_ref",
 ];
 
-/// Founder-ratified approved-content digests, pinned from the merged T1 hold-lift
-/// receipt (evidence/goals/north-star-completion-t1-hold-lift-receipt-20260812.json).
+/// Founder-ratified approved-content digests, pinned from the merged
+/// authority-hold-lift receipt
+/// (evidence/goals/north-star-completion-t1-hold-lift-receipt-20260812.json).
 /// The full spec/plan texts are deliberately NOT in-tree until the Wave 1
 /// brand-residue carve-out, so re-derivation from artifacts is impossible by design;
 /// instead of accepting any well-formed sha256, the evaluator pins the exact
-/// ratified values so a T1 record cannot claim founder approval for unrelated content.
+/// ratified values so an authority-hold-lift record cannot claim founder approval
+/// for unrelated content.
 const T1_APPROVED_CRYSTALLIZED_SPEC_SHA256: &str =
     "8c730c54c3145404ef6ab10163f52c69c5796b2beb5b60fc5ea3c5c31bdb0b62";
 const T1_APPROVED_CONSENSUS_PLAN_SHA256: &str =
     "95132e4e2ef165667223117a026e3c3d5856a45250b4a7101b7cefef5ddd6ab1";
 
-/// The T2 execution-authorization anchor: the squash-merge SHA of protected PR #1941,
-/// which landed the T1/T2 authority-bootstrap receipts on dev (historical programme
-/// fact). The T2-to-T3b interval audit must declare its audited range FROM this
-/// anchor — a clean audit of some other interval is not closure evidence.
+const T2_EXECUTION_AUTHORIZATION_RECORD_ID: &str =
+    "north-star-completion-t2-execution-authorization-20260812";
+const T2_EXECUTION_AUTHORIZATION_BOOTSTRAP_STEP: &str = "T2";
+const T2_EXECUTION_AUTHORIZATION_PROGRAMME: &str = "oyatie-north-star-completion-v1";
+const T2_EXECUTION_AUTHORIZATION_T1_RECEIPT: &str =
+    "evidence/goals/north-star-completion-t1-hold-lift-receipt-20260812.json";
+
+/// The canonical execution-authorization anchor that landed the authority-bootstrap
+/// receipts on the protected branch. The interval audit must start at this exact
+/// historical boundary; a clean audit of any other interval is not closure evidence.
 const T2_EXECUTION_AUTHORIZATION_ANCHOR_SHA: &str = "fecc126ebe7ded4949c8ac26b59b8a1e6bcb371c";
 
-/// The exact gate whose liveness the closure transition depends on. The T3b
-/// gate-liveness receipt must name this target (identity binding), not merely claim
-/// that some gate somewhere is live.
+/// Existing trusted-controller packet contract. Repository-authored closure metadata can
+/// declare that this packet is required, but only a caller that observed the exact PR/head
+/// through the trusted controller may supply the packet itself.
+const REVIEW_ADMISSION_PACKET_CONTRACT: &str = "ci/controller/kernel/ReviewAdmissionPacket";
+
+/// The exact gate whose liveness the closure transition depends on. The
+/// target-debt gate-liveness receipt must name this target (identity binding),
+/// not merely claim that some gate somewhere is live.
 const T3B_GATE_LIVENESS_TARGET: &str = "//ci/facade/reorg-target-debt";
 
 /// Normalize a closure-evidence ref to the canonical repo-relative `evidence/**`
@@ -2885,10 +2900,10 @@ pub fn normalize_closure_evidence_ref(value: Option<&Value>) -> Option<String> {
 
 /// Structural (pure, no-I/O) half of the closed-state proof contract: every closure
 /// evidence ref is present and admissible, the transition snapshot proves no wave had
-/// dispatched, and an explicit qualified-human/founder approval object exists. Document
-/// content is validated by [`evaluate_planning_entry_closure_evidence`], to which the
-/// caller feeds the parsed evidence docs (the caller owns file I/O, mirroring
-/// [`evaluate_masterplan_v2_ratification_digest`]).
+/// dispatched, and the contract declares the existing trusted review-admission packet as
+/// mandatory. Evidence content and the externally supplied packet are validated by
+/// [`evaluate_planning_entry_closure_evidence`]; the caller owns file I/O and trusted
+/// controller observation, mirroring [`evaluate_masterplan_v2_ratification_digest`].
 fn evaluate_planning_entry_closure_evidence_shape(
     contract: &serde_json::Map<String, Value>,
     findings: &mut BTreeSet<Finding>,
@@ -2920,8 +2935,9 @@ fn evaluate_planning_entry_closure_evidence_shape(
             &format!("{PLANNING_ENTRY_CLOSURE_EVIDENCE_KEY}.dispatched_waves_at_transition"),
         ));
     }
-    // The open-hold candidate's APPROVED review was bot-submitted; the closed state must
-    // carry an explicit founder/qualified-human proof, never inherit the bot review.
+    // Candidate-authored metadata can only declare the trusted-controller contract. It
+    // cannot assert a reviewer, verdict, or evidence ref: the exact PR/head-bound packet is
+    // injected separately into evaluate_planning_entry_closure_evidence.
     let Some(approval) = evidence
         .get("qualified_human_closure_approval")
         .and_then(Value::as_object)
@@ -2932,57 +2948,65 @@ fn evaluate_planning_entry_closure_evidence_shape(
         ));
         return;
     };
-    if !approval
-        .get("approved_by")
+    if approval
+        .get("review_admission_contract")
         .and_then(Value::as_str)
-        .is_some_and(|approved_by| approved_by.eq_ignore_ascii_case("founder"))
+        != Some(REVIEW_ADMISSION_PACKET_CONTRACT)
     {
         findings.insert(Finding::new(
             "masterplan_execution_wave_dispatch_unratified",
             &format!(
-                "{PLANNING_ENTRY_CLOSURE_EVIDENCE_KEY}.qualified_human_closure_approval.approved_by"
+                "{PLANNING_ENTRY_CLOSURE_EVIDENCE_KEY}.qualified_human_closure_approval.review_admission_contract"
             ),
         ));
     }
     if approval
-        .get("qualified_human_approval_proven")
+        .get("trusted_packet_required")
         .and_then(Value::as_bool)
         != Some(true)
     {
         findings.insert(Finding::new(
             "masterplan_execution_wave_dispatch_unratified",
             &format!(
-                "{PLANNING_ENTRY_CLOSURE_EVIDENCE_KEY}.qualified_human_closure_approval.qualified_human_approval_proven"
+                "{PLANNING_ENTRY_CLOSURE_EVIDENCE_KEY}.qualified_human_closure_approval.trusted_packet_required"
             ),
         ));
     }
-    if normalize_closure_evidence_ref(approval.get("approval_ref")).is_none() {
+    if [
+        "approved_by",
+        "qualified_human_approval_proven",
+        "approval_ref",
+    ]
+    .iter()
+    .any(|field| approval.contains_key(*field))
+    {
         findings.insert(Finding::new(
             "masterplan_execution_wave_dispatch_unratified",
             &format!(
-                "{PLANNING_ENTRY_CLOSURE_EVIDENCE_KEY}.qualified_human_closure_approval.approval_ref"
+                "{PLANNING_ENTRY_CLOSURE_EVIDENCE_KEY}.qualified_human_closure_approval.candidate_authored_authority"
             ),
         ));
     }
 }
 
 /// Verify the parsed closure-evidence documents behind a CLOSED planning-entry
-/// contract — EVERY referenced record, not just T1/T2:
-/// - the T1 authority-hold-lift receipt and the T2 execution-authorization record
+/// contract — EVERY referenced record, not just the hold-lift and authorization
+/// documents:
+/// - the authority-hold-lift receipt and the execution-authorization record
 ///   must each be founder-approved records of the exact declared class carrying the
-///   exact per-class decision status (T1 `approved`, T2 `authorized` — never
-///   interchangeable), and the T1 receipt must pin both approved-content sha256
-///   digests to the exact founder-ratified constants
+///   exact per-class decision status (hold-lift `approved`, authorization
+///   `authorized` — never interchangeable), and the hold-lift receipt must pin
+///   both approved-content sha256 digests to the exact founder-ratified constants
 ///   ([`T1_APPROVED_CRYSTALLIZED_SPEC_SHA256`], [`T1_APPROVED_CONSENSUS_PLAN_SHA256`]);
-/// - the T3b gate-liveness receipt (`record_class: gate-liveness-receipt`,
+/// - the target-debt gate-liveness receipt (`record_class: gate-liveness-receipt`,
 ///   `status: live`, `gate_target` naming [`T3B_GATE_LIVENESS_TARGET`]) and the
-///   T2-to-T3b interval-audit record (`record_class: t2-t3b-interval-audit`,
+///   authorization-to-gate interval-audit record (`record_class: t2-t3b-interval-audit`,
 ///   `status: clean`, `audit_range.from_anchor` equal to
 ///   [`T2_EXECUTION_AUTHORIZATION_ANCHOR_SHA`] with a declared `to_anchor`) must be
 ///   content-valid and bound to THIS transition, not merely present-and-parseable;
-/// - the approval record behind `approval_ref` is the same founder-authorized T2
-///   execution-authorization record required by the bootstrap contract, so the
-///   masterplan cannot self-assert a different approval source.
+/// - an externally supplied [`REVIEW_ADMISSION_PACKET_CONTRACT`] value must be bound to
+///   the exact PR/head observed by the trusted caller. Repository-authored approval refs,
+///   booleans, and principals are never closure authority.
 ///
 /// The caller owns resolving `closure_evidence.*_ref` paths to the supplied parsed
 /// documents; keeping file I/O outside this function preserves the pure evaluator
@@ -2993,7 +3017,9 @@ pub fn evaluate_planning_entry_closure_evidence(
     t2_execution_authorization: &Value,
     t3b_gate_liveness_receipt: &Value,
     t3b_interval_audit: &Value,
-    qualified_human_closure_approval: &Value,
+    expected_closure_pr_number: u64,
+    expected_closure_head_sha: &str,
+    trusted_review_admission_packet: Option<&Value>,
 ) -> BTreeSet<Finding> {
     let mut findings = BTreeSet::new();
 
@@ -3047,6 +3073,40 @@ pub fn evaluate_planning_entry_closure_evidence(
         "authorized",
         &mut findings,
     );
+    for (field, expected) in [
+        ("record_id", T2_EXECUTION_AUTHORIZATION_RECORD_ID),
+        ("bootstrap_step", T2_EXECUTION_AUTHORIZATION_BOOTSTRAP_STEP),
+        ("programme", T2_EXECUTION_AUTHORIZATION_PROGRAMME),
+    ] {
+        if non_empty_field(t2_execution_authorization, field) != Some(expected) {
+            findings.insert(Finding::new(
+                "masterplan_execution_wave_dispatch_unratified",
+                &format!(
+                    "{PLANNING_ENTRY_CLOSURE_EVIDENCE_KEY}.t2_execution_authorization.{field}"
+                ),
+            ));
+        }
+    }
+    let authorization_basis = t2_execution_authorization
+        .get("authorization_basis")
+        .unwrap_or(&Value::Null);
+    for (field, expected) in [
+        ("t1_receipt", T2_EXECUTION_AUTHORIZATION_T1_RECEIPT),
+        ("approved_plan_sha256", T1_APPROVED_CONSENSUS_PLAN_SHA256),
+        (
+            "crystallized_spec_sha256",
+            T1_APPROVED_CRYSTALLIZED_SPEC_SHA256,
+        ),
+    ] {
+        if non_empty_field(authorization_basis, field) != Some(expected) {
+            findings.insert(Finding::new(
+                "masterplan_execution_wave_dispatch_unratified",
+                &format!(
+                    "{PLANNING_ENTRY_CLOSURE_EVIDENCE_KEY}.t2_execution_authorization.authorization_basis.{field}"
+                ),
+            ));
+        }
+    }
     evaluate_closure_evidence_receipt(
         t3b_gate_liveness_receipt,
         "t3b_gate_liveness",
@@ -3083,7 +3143,8 @@ pub fn evaluate_planning_entry_closure_evidence(
             ),
         ));
     }
-    if non_empty_field(audit_range, "to_anchor").is_none() {
+    let to_anchor = non_empty_field(audit_range, "to_anchor");
+    if !to_anchor.is_some_and(is_commit_sha_hex) {
         findings.insert(Finding::new(
             "masterplan_execution_wave_dispatch_unratified",
             &format!(
@@ -3091,11 +3152,24 @@ pub fn evaluate_planning_entry_closure_evidence(
             ),
         ));
     }
-    evaluate_closure_evidence_record(
-        qualified_human_closure_approval,
-        "qualified_human_closure_approval.approval_record",
-        "execution-authorization-record",
-        "authorized",
+    let go_live_sha = non_empty_field(t3b_gate_liveness_receipt, "go_live_sha");
+    if !go_live_sha.is_some_and(is_commit_sha_hex) {
+        findings.insert(Finding::new(
+            "masterplan_execution_wave_dispatch_unratified",
+            &format!("{PLANNING_ENTRY_CLOSURE_EVIDENCE_KEY}.t3b_gate_liveness.go_live_sha"),
+        ));
+    } else if go_live_sha != to_anchor {
+        findings.insert(Finding::new(
+            "masterplan_execution_wave_dispatch_unratified",
+            &format!(
+                "{PLANNING_ENTRY_CLOSURE_EVIDENCE_KEY}.t3b_gate_liveness.go_live_sha_to_anchor"
+            ),
+        ));
+    }
+    evaluate_trusted_closure_review_admission(
+        trusted_review_admission_packet,
+        expected_closure_pr_number,
+        expected_closure_head_sha,
         &mut findings,
     );
 
@@ -3164,6 +3238,167 @@ fn evaluate_closure_evidence_receipt(
             "masterplan_execution_wave_dispatch_unratified",
             &format!("{PLANNING_ENTRY_CLOSURE_EVIDENCE_KEY}.{record_label}.status"),
         ));
+    }
+}
+
+fn insert_closure_finding(findings: &mut BTreeSet<Finding>, suffix: &str) {
+    findings.insert(Finding::new(
+        "masterplan_execution_wave_dispatch_unratified",
+        &format!("{PLANNING_ENTRY_CLOSURE_EVIDENCE_KEY}.{suffix}"),
+    ));
+}
+
+fn review_principal_identity(value: Option<&Value>) -> Option<(u64, &str, &str)> {
+    let principal = value?.as_object()?;
+    let id = principal.get("id")?.as_u64().filter(|id| *id != 0)?;
+    let account_type = principal.get("account_type")?.as_str()?;
+    if !matches!(account_type, "User" | "Bot" | "Organization") {
+        return None;
+    }
+    let login = principal
+        .get("login")?
+        .as_str()
+        .filter(|login| !login.trim().is_empty())?;
+    Some((id, account_type, login))
+}
+
+fn is_durable_http_url(value: &str) -> bool {
+    let value = value.trim();
+    value.starts_with("https://") || value.starts_with("http://")
+}
+
+fn is_sha256_hex(value: &str) -> bool {
+    value.len() == 64 && value.bytes().all(|byte| byte.is_ascii_hexdigit())
+}
+
+/// Validate the existing trusted-controller packet at the cross-artifact boundary.
+///
+/// Trust comes from how the caller obtained this value, not from any repository field.
+/// This function validates the packet's complete serialized contract and binds it to the
+/// exact CI-observed closure PR/head supplied separately by that caller.
+fn evaluate_trusted_closure_review_admission(
+    packet: Option<&Value>,
+    expected_pr_number: u64,
+    expected_head_sha: &str,
+    findings: &mut BTreeSet<Finding>,
+) {
+    const PREFIX: &str = "qualified_human_closure_approval.trusted_review_admission_packet";
+    let Some(packet) = packet.and_then(Value::as_object) else {
+        insert_closure_finding(findings, PREFIX);
+        return;
+    };
+
+    if expected_pr_number == 0 {
+        insert_closure_finding(
+            findings,
+            "qualified_human_closure_approval.trusted_context.pr_number",
+        );
+    }
+    if packet.get("pr_number").and_then(Value::as_u64) != Some(expected_pr_number) {
+        insert_closure_finding(findings, &format!("{PREFIX}.pr_number"));
+    }
+
+    if !is_commit_sha_hex(expected_head_sha) {
+        insert_closure_finding(
+            findings,
+            "qualified_human_closure_approval.trusted_context.head_sha",
+        );
+    }
+    if packet.get("head_sha").and_then(Value::as_str) != Some(expected_head_sha) {
+        insert_closure_finding(findings, &format!("{PREFIX}.head_sha"));
+    }
+
+    let author = review_principal_identity(packet.get("author"));
+    let reviewer = review_principal_identity(packet.get("reviewer"));
+    if author.is_none() {
+        insert_closure_finding(findings, &format!("{PREFIX}.author"));
+    }
+    if reviewer.is_none_or(|(_, account_type, _)| account_type != "User") {
+        insert_closure_finding(findings, &format!("{PREFIX}.reviewer"));
+    }
+    if author.zip(reviewer).is_some_and(
+        |((author_id, author_type, _), (reviewer_id, reviewer_type, _))| {
+            author_id == reviewer_id && author_type == reviewer_type
+        },
+    ) {
+        insert_closure_finding(findings, &format!("{PREFIX}.reviewer_separation"));
+    }
+
+    for field in [
+        "reviewer_eligibility_policy_ref",
+        "reviewer_eligibility_policy_version",
+        "reviewer_eligibility_policy_issuer",
+    ] {
+        if packet
+            .get(field)
+            .and_then(Value::as_str)
+            .is_none_or(|value| value.trim().is_empty())
+        {
+            insert_closure_finding(findings, &format!("{PREFIX}.{field}"));
+        }
+    }
+    if packet
+        .get("reviewer_eligibility_policy_sha256")
+        .and_then(Value::as_str)
+        .is_none_or(|digest| !is_sha256_hex(digest))
+    {
+        insert_closure_finding(
+            findings,
+            &format!("{PREFIX}.reviewer_eligibility_policy_sha256"),
+        );
+    }
+
+    let evaluated_at = packet
+        .get("policy_evaluated_at_unix_s")
+        .and_then(Value::as_i64);
+    let effective_at = packet
+        .get("reviewer_eligibility_policy_effective_at_unix_s")
+        .and_then(Value::as_i64);
+    let expires_at = packet
+        .get("reviewer_eligibility_policy_expires_at_unix_s")
+        .and_then(Value::as_i64);
+    if !matches!(
+        (effective_at, evaluated_at, expires_at),
+        (Some(effective), Some(evaluated), Some(expires))
+            if effective > 0 && effective <= evaluated && evaluated < expires
+    ) {
+        insert_closure_finding(findings, &format!("{PREFIX}.policy_validity_window"));
+    }
+    if packet
+        .get("reviewer_eligibility_policy_revoked")
+        .and_then(Value::as_bool)
+        != Some(false)
+    {
+        insert_closure_finding(
+            findings,
+            &format!("{PREFIX}.reviewer_eligibility_policy_revoked"),
+        );
+    }
+
+    let producer = packet.get("producer").and_then(Value::as_object);
+    if producer
+        .and_then(|producer| producer.get("github_app_id"))
+        .and_then(Value::as_u64)
+        .is_none_or(|id| id == 0)
+    {
+        insert_closure_finding(findings, &format!("{PREFIX}.producer.github_app_id"));
+    }
+    if producer
+        .and_then(|producer| producer.get("workload_identity"))
+        .and_then(Value::as_str)
+        .is_none_or(|identity| identity.trim().is_empty())
+    {
+        insert_closure_finding(findings, &format!("{PREFIX}.producer.workload_identity"));
+    }
+    if packet.get("verdict").and_then(Value::as_str) != Some("approved") {
+        insert_closure_finding(findings, &format!("{PREFIX}.verdict"));
+    }
+    if packet
+        .get("evidence_url")
+        .and_then(Value::as_str)
+        .is_none_or(|url| !is_durable_http_url(url))
+    {
+        insert_closure_finding(findings, &format!("{PREFIX}.evidence_url"));
     }
 }
 
@@ -3285,6 +3520,16 @@ fn evaluate_execution_wave_dispatch(
     let dispatched_waves_empty = dispatched_waves.is_some_and(Vec::is_empty);
     let dispatch_blocked =
         dispatch.get("state").and_then(Value::as_str) == Some(DISPATCH_BLOCKED_STATE);
+
+    // Bootstrap T4 closes the planning-entry authority contract but MUST NOT also perform
+    // T5 dispatch. The actual dispatch object at the closed transition therefore remains
+    // blocked with an empty wave list. A later protected T5 amendment owns any unblocking.
+    if !preplanning_hold_open && (!dispatch_blocked || !dispatched_waves_empty) {
+        findings.insert(Finding::new(
+            "masterplan_execution_wave_dispatch_unratified",
+            "masterplan_v2.sequencing.execution_wave_dispatch.t4_transition_not_blocked",
+        ));
+    }
 
     // Digest/planning ratification must not silently authorize wave dispatch. Leaving
     // `state` unblocked is fail-closed: both the dispatch object's
@@ -6195,9 +6440,8 @@ mod tests {
                 "t3b_interval_audit_ref": "evidence/goals/north-star-completion-t3b-interval-audit-20260812.json",
                 "dispatched_waves_at_transition": [],
                 "qualified_human_closure_approval": {
-                    "approved_by": "founder",
-                    "qualified_human_approval_proven": true,
-                    "approval_ref": "evidence/goals/north-star-completion-t4-closure-approval-20260812.json"
+                    "review_admission_contract": "ci/controller/kernel/ReviewAdmissionPacket",
+                    "trusted_packet_required": true
                 }
             }
         })
@@ -6560,10 +6804,10 @@ mod tests {
                 "allowed_without_founder_ratification": false,
                 "requires_preplanning_authority_closure": true,
                 "allowed_without_preplanning_authority_closure": false,
-                "requires_dispatch_authorizing_ratification": true,
                 "preplanning_authority_closure_ref": "evidence/consolidation/preplanning-authority-closure-20260713.json",
-                "state": "ratified-dispatched",
-                "dispatched_waves": [0]
+                "state": "blocked",
+                "blocked_reason": "preplanning_authority_closure",
+                "dispatched_waves": []
             }),
         );
         masterplan["masterplan_v2"]["planning_entry_contract"] =
@@ -6658,23 +6902,31 @@ mod tests {
             "masterplan_v2.planning_entry_contract.closure_evidence.qualified_human_closure_approval"
         )));
 
-        // A bot principal is not a qualified-human/founder closure approval.
-        let mut bot = minimal_closed_sequenced_masterplan();
-        bot["masterplan_v2"]["planning_entry_contract"]["closure_evidence"]["qualified_human_closure_approval"]
-            ["approved_by"] = json!("coderabbitai[bot]");
-        let findings = evaluate_masterplan_v2_sequencing(&bot);
+        let mut wrong_contract = minimal_closed_sequenced_masterplan();
+        wrong_contract["masterplan_v2"]["planning_entry_contract"]["closure_evidence"]["qualified_human_closure_approval"]
+            ["review_admission_contract"] = json!("candidate-authored-review-record");
+        let findings = evaluate_masterplan_v2_sequencing(&wrong_contract);
         assert!(findings.contains(&Finding::new(
             "masterplan_execution_wave_dispatch_unratified",
-            "masterplan_v2.planning_entry_contract.closure_evidence.qualified_human_closure_approval.approved_by"
+            "masterplan_v2.planning_entry_contract.closure_evidence.qualified_human_closure_approval.review_admission_contract"
         )));
 
         let mut unproven = minimal_closed_sequenced_masterplan();
         unproven["masterplan_v2"]["planning_entry_contract"]["closure_evidence"]["qualified_human_closure_approval"]
-            ["qualified_human_approval_proven"] = json!(false);
+            ["trusted_packet_required"] = json!(false);
         let findings = evaluate_masterplan_v2_sequencing(&unproven);
         assert!(findings.contains(&Finding::new(
             "masterplan_execution_wave_dispatch_unratified",
-            "masterplan_v2.planning_entry_contract.closure_evidence.qualified_human_closure_approval.qualified_human_approval_proven"
+            "masterplan_v2.planning_entry_contract.closure_evidence.qualified_human_closure_approval.trusted_packet_required"
+        )));
+
+        let mut candidate_authority = minimal_closed_sequenced_masterplan();
+        candidate_authority["masterplan_v2"]["planning_entry_contract"]["closure_evidence"]["qualified_human_closure_approval"]
+            ["approval_ref"] = json!("evidence/goals/candidate-authored-approval.json");
+        let findings = evaluate_masterplan_v2_sequencing(&candidate_authority);
+        assert!(findings.contains(&Finding::new(
+            "masterplan_execution_wave_dispatch_unratified",
+            "masterplan_v2.planning_entry_contract.closure_evidence.qualified_human_closure_approval.candidate_authored_authority"
         )));
     }
 
@@ -6699,9 +6951,17 @@ mod tests {
     fn valid_t2_execution_authorization() -> Value {
         json!({
             "record_class": "execution-authorization-record",
+            "record_id": "north-star-completion-t2-execution-authorization-20260812",
+            "bootstrap_step": "T2",
+            "programme": "oyatie-north-star-completion-v1",
             "decision": {
                 "decision_status": "authorized",
                 "approved_by": "founder"
+            },
+            "authorization_basis": {
+                "t1_receipt": "evidence/goals/north-star-completion-t1-hold-lift-receipt-20260812.json",
+                "approved_plan_sha256": "95132e4e2ef165667223117a026e3c3d5856a45250b4a7101b7cefef5ddd6ab1",
+                "crystallized_spec_sha256": "8c730c54c3145404ef6ab10163f52c69c5796b2beb5b60fc5ea3c5c31bdb0b62"
             }
         })
     }
@@ -6710,7 +6970,8 @@ mod tests {
         json!({
             "record_class": "gate-liveness-receipt",
             "status": "live",
-            "gate_target": "//ci/facade/reorg-target-debt"
+            "gate_target": "//ci/facade/reorg-target-debt",
+            "go_live_sha": "a1b763d62c8ef1d784fa361b9311b2842ee3d18a"
         })
     }
 
@@ -6726,7 +6987,34 @@ mod tests {
     }
 
     fn valid_closure_approval_record() -> Value {
-        valid_t2_execution_authorization()
+        json!({
+            "pr_number": 1944,
+            "head_sha": "0123456789abcdef0123456789abcdef01234567",
+            "author": {
+                "id": 1001,
+                "account_type": "User",
+                "login": "candidate-author"
+            },
+            "reviewer": {
+                "id": 2002,
+                "account_type": "User",
+                "login": "independent-reviewer"
+            },
+            "reviewer_eligibility_policy_ref": "registry/reviewer-eligibility/t4.json",
+            "reviewer_eligibility_policy_version": "1.0.0",
+            "reviewer_eligibility_policy_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "reviewer_eligibility_policy_issuer": "oya-ci-review-controller",
+            "policy_evaluated_at_unix_s": 1_800_000_000,
+            "reviewer_eligibility_policy_effective_at_unix_s": 1_700_000_000,
+            "reviewer_eligibility_policy_expires_at_unix_s": 1_900_000_000,
+            "reviewer_eligibility_policy_revoked": false,
+            "producer": {
+                "github_app_id": 15368,
+                "workload_identity": "github-actions:oya-ci/review-admission"
+            },
+            "verdict": "approved",
+            "evidence_url": "https://github.com/jason931225/oyatie/pull/1944#pullrequestreview-1"
+        })
     }
 
     fn closure_evidence_findings(
@@ -6742,7 +7030,9 @@ mod tests {
             t2,
             t3b_gate_liveness,
             t3b_interval_audit,
-            approval,
+            1944,
+            "0123456789abcdef0123456789abcdef01234567",
+            Some(approval),
         )
     }
 
@@ -6882,8 +7172,8 @@ mod tests {
     fn planning_entry_closure_evidence_content_validates_t3b_and_approval_records() {
         const KEY: &str = "masterplan_v2.planning_entry_contract.closure_evidence";
 
-        // An empty (or unrelated) document behind every non-T1/T2 ref fails closed on
-        // BOTH the class and the per-class status — exists-and-parses is not enough.
+        // Empty T3b records fail on class/status, and an empty externally supplied
+        // review packet cannot acquire authority merely by being present.
         let findings = closure_evidence_findings(
             &valid_t1_hold_lift_receipt(),
             &valid_t2_execution_authorization(),
@@ -6896,9 +7186,15 @@ mod tests {
             format!("{KEY}.t3b_gate_liveness.status"),
             format!("{KEY}.t3b_interval_audit.record_class"),
             format!("{KEY}.t3b_interval_audit.status"),
-            format!("{KEY}.qualified_human_closure_approval.approval_record.record_class"),
-            format!("{KEY}.qualified_human_closure_approval.approval_record.approved_by"),
-            format!("{KEY}.qualified_human_closure_approval.approval_record.decision_status"),
+            format!(
+                "{KEY}.qualified_human_closure_approval.trusted_review_admission_packet.pr_number"
+            ),
+            format!(
+                "{KEY}.qualified_human_closure_approval.trusted_review_admission_packet.author"
+            ),
+            format!(
+                "{KEY}.qualified_human_closure_approval.trusted_review_admission_packet.reviewer"
+            ),
         ] {
             assert!(
                 findings.contains(&Finding::new(
@@ -6939,10 +7235,10 @@ mod tests {
             &format!("{KEY}.t3b_interval_audit.status")
         )));
 
-        // The approval record must carry the exact founder principal itself — the
-        // masterplan's inline approved_by:founder cannot self-assert it.
+        // A bot packet cannot satisfy the qualified-human reviewer boundary even when
+        // every other controller field is well formed.
         let mut bot_approval = valid_closure_approval_record();
-        bot_approval["decision"]["approved_by"] = json!("coderabbitai[bot]");
+        bot_approval["reviewer"]["account_type"] = json!("Bot");
         let findings = closure_evidence_findings(
             &valid_t1_hold_lift_receipt(),
             &valid_t2_execution_authorization(),
@@ -6952,7 +7248,9 @@ mod tests {
         );
         assert!(findings.contains(&Finding::new(
             "masterplan_execution_wave_dispatch_unratified",
-            &format!("{KEY}.qualified_human_closure_approval.approval_record.approved_by")
+            &format!(
+                "{KEY}.qualified_human_closure_approval.trusted_review_admission_packet.reviewer"
+            )
         )));
     }
 
@@ -7001,6 +7299,118 @@ mod tests {
             "masterplan_execution_wave_dispatch_unratified",
             &format!("{KEY}.t1_hold_lift_receipt.approved_content.consensus_plan.content_sha256")
         )));
+    }
+
+    #[test]
+    fn planning_entry_closure_evidence_pins_exact_t2_identity_and_basis() {
+        const KEY: &str = "masterplan_v2.planning_entry_contract.closure_evidence";
+        for (pointer, expected_suffix) in [
+            ("/record_id", "record_id"),
+            ("/bootstrap_step", "bootstrap_step"),
+            ("/programme", "programme"),
+            (
+                "/authorization_basis/t1_receipt",
+                "authorization_basis.t1_receipt",
+            ),
+            (
+                "/authorization_basis/approved_plan_sha256",
+                "authorization_basis.approved_plan_sha256",
+            ),
+            (
+                "/authorization_basis/crystallized_spec_sha256",
+                "authorization_basis.crystallized_spec_sha256",
+            ),
+        ] {
+            let mut t2 = valid_t2_execution_authorization();
+            *t2.pointer_mut(pointer)
+                .expect("valid T2 helper must carry every pinned field") =
+                json!("unrelated-programme-value");
+            let findings = closure_evidence_findings(
+                &valid_t1_hold_lift_receipt(),
+                &t2,
+                &valid_t3b_gate_liveness_receipt(),
+                &valid_t3b_interval_audit(),
+                &valid_closure_approval_record(),
+            );
+            assert!(
+                findings.contains(&Finding::new(
+                    "masterplan_execution_wave_dispatch_unratified",
+                    &format!("{KEY}.t2_execution_authorization.{expected_suffix}")
+                )),
+                "T2 drift at {pointer} must fail closed: {findings:?}"
+            );
+        }
+    }
+
+    #[test]
+    fn planning_entry_closure_evidence_requires_trusted_exact_head_review_packet() {
+        const PREFIX: &str = "masterplan_v2.planning_entry_contract.closure_evidence.qualified_human_closure_approval";
+        let no_packet = evaluate_planning_entry_closure_evidence(
+            &minimal_closed_sequenced_masterplan(),
+            &valid_t1_hold_lift_receipt(),
+            &valid_t2_execution_authorization(),
+            &valid_t3b_gate_liveness_receipt(),
+            &valid_t3b_interval_audit(),
+            1944,
+            "0123456789abcdef0123456789abcdef01234567",
+            None,
+        );
+        assert!(no_packet.contains(&Finding::new(
+            "masterplan_execution_wave_dispatch_unratified",
+            &format!("{PREFIX}.trusted_review_admission_packet")
+        )));
+
+        let mut wrong_candidate = valid_closure_approval_record();
+        wrong_candidate["pr_number"] = json!(9999);
+        wrong_candidate["head_sha"] = json!("ffffffffffffffffffffffffffffffffffffffff");
+        let findings = closure_evidence_findings(
+            &valid_t1_hold_lift_receipt(),
+            &valid_t2_execution_authorization(),
+            &valid_t3b_gate_liveness_receipt(),
+            &valid_t3b_interval_audit(),
+            &wrong_candidate,
+        );
+        for field in ["pr_number", "head_sha"] {
+            assert!(findings.contains(&Finding::new(
+                "masterplan_execution_wave_dispatch_unratified",
+                &format!("{PREFIX}.trusted_review_admission_packet.{field}")
+            )));
+        }
+
+        let mut same_principal = valid_closure_approval_record();
+        same_principal["reviewer"] = same_principal["author"].clone();
+        let findings = closure_evidence_findings(
+            &valid_t1_hold_lift_receipt(),
+            &valid_t2_execution_authorization(),
+            &valid_t3b_gate_liveness_receipt(),
+            &valid_t3b_interval_audit(),
+            &same_principal,
+        );
+        assert!(findings.contains(&Finding::new(
+            "masterplan_execution_wave_dispatch_unratified",
+            &format!("{PREFIX}.trusted_review_admission_packet.reviewer_separation")
+        )));
+
+        let mut invalid_policy = valid_closure_approval_record();
+        invalid_policy["reviewer_eligibility_policy_revoked"] = json!(true);
+        let evaluated_at = invalid_policy["policy_evaluated_at_unix_s"].clone();
+        invalid_policy["reviewer_eligibility_policy_expires_at_unix_s"] = evaluated_at;
+        let findings = closure_evidence_findings(
+            &valid_t1_hold_lift_receipt(),
+            &valid_t2_execution_authorization(),
+            &valid_t3b_gate_liveness_receipt(),
+            &valid_t3b_interval_audit(),
+            &invalid_policy,
+        );
+        for field in [
+            "policy_validity_window",
+            "reviewer_eligibility_policy_revoked",
+        ] {
+            assert!(findings.contains(&Finding::new(
+                "masterplan_execution_wave_dispatch_unratified",
+                &format!("{PREFIX}.trusted_review_admission_packet.{field}")
+            )));
+        }
     }
 
     #[test]
@@ -7061,6 +7471,34 @@ mod tests {
                 "missing audit_range must fail closed on {field}: {findings:?}"
             );
         }
+
+        let mut mismatched_live = valid_t3b_gate_liveness_receipt();
+        mismatched_live["go_live_sha"] = json!("ffffffffffffffffffffffffffffffffffffffff");
+        let findings = closure_evidence_findings(
+            &valid_t1_hold_lift_receipt(),
+            &valid_t2_execution_authorization(),
+            &mismatched_live,
+            &valid_t3b_interval_audit(),
+            &valid_closure_approval_record(),
+        );
+        assert!(findings.contains(&Finding::new(
+            "masterplan_execution_wave_dispatch_unratified",
+            &format!("{KEY}.t3b_gate_liveness.go_live_sha_to_anchor")
+        )));
+
+        let mut truncated_live = valid_t3b_gate_liveness_receipt();
+        truncated_live["go_live_sha"] = json!("a1b763d6");
+        let findings = closure_evidence_findings(
+            &valid_t1_hold_lift_receipt(),
+            &valid_t2_execution_authorization(),
+            &truncated_live,
+            &valid_t3b_interval_audit(),
+            &valid_closure_approval_record(),
+        );
+        assert!(findings.contains(&Finding::new(
+            "masterplan_execution_wave_dispatch_unratified",
+            &format!("{KEY}.t3b_gate_liveness.go_live_sha")
+        )));
     }
 
     #[test]
@@ -7093,7 +7531,7 @@ mod tests {
     }
 
     #[test]
-    fn masterplan_v2_sequencing_accepts_authorized_dispatch_after_preplanning_close() {
+    fn masterplan_v2_sequencing_rejects_t5_dispatch_during_t4_closure_transition() {
         let mut authorized = minimal_sequenced_masterplan(
             json!({
                 "decision_recorded": true,
@@ -7119,10 +7557,10 @@ mod tests {
             minimal_closed_planning_entry_contract();
 
         let findings = evaluate_masterplan_v2_sequencing(&authorized);
-        assert!(
-            findings.is_empty(),
-            "closed hold + founder-authorized dispatch with a known wave must be green: {findings:?}"
-        );
+        assert!(findings.contains(&Finding::new(
+            "masterplan_execution_wave_dispatch_unratified",
+            "masterplan_v2.sequencing.execution_wave_dispatch.t4_transition_not_blocked"
+        )));
     }
 
     #[test]
