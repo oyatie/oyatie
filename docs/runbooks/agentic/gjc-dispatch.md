@@ -11,13 +11,13 @@ last_drilled: null
 slo_topic: oya.intelligence.pipeline.dispatch
 audit_emission_topic: oya.ops.runbook.invoked
 related_runbooks: [RB-SANCTIONED-PRIMITIVES-PREFLIGHT]
-related_adrs: [ADR-0711, ADR-0700, ADR-0515]
+related_adrs: [ADR-0711, ADR-0700]
 diataxis_class: how-to
 data_classes_touched: [INTERNAL_ONLY]
 audience: INTERNAL
 authority_chain_declaration: |
   docs/AGENTS.md sanctioned worktree sequence + ADR-0711 worktree-per-agent isolation +
-  ADR-0700 / ADR-0515 oya-ci-required merge admission > this runbook.
+  ADR-0700 oya-ci-required merge admission (supersedes archived ADR-0515) > this runbook.
 doc_status: published
 ---
 
@@ -140,5 +140,5 @@ Emit `oya.ops.runbook.invoked` with: `runbook-id=RB-AGENTIC-GJC-DISPATCH`, invok
 
 - [`docs/AGENTS.md`](../../AGENTS.md) isolated-worktree sequence.
 - [ADR-0711](../../decisions/ADR-0711-swarm-delivery-law-integ-branch-topology.md) worktree-per-agent isolation.
-- [ADR-0700](../../decisions/ADR-0700-ci-admission-live-apex.md) / [ADR-0515](../../decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md) `oya-ci-required`.
+- [ADR-0700](../../decisions/ADR-0700-ci-admission-live-apex.md) `oya-ci-required` (live apex; supersedes archived ADR-0515).
 - [`templates/runbook-template-v2.md`](../../templates/runbook-template-v2.md).
