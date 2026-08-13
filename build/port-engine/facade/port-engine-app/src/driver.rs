@@ -1,7 +1,7 @@
 //! Facade driver wiring: composes kernel entry points with W0-B adapters.
 //!
 //! Slice 14 wires canary materialize round-trip + planted-defect detect (no bulk `k8s/`).
-//! Cell remap remains PARKED.
+//! Toolchain receipts bind the canonical `build/toolchains` cell through hermetic mirrors.
 
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
