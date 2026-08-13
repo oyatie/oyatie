@@ -38,7 +38,7 @@ fn temp_root() -> PathBuf {
 }
 
 fn write_minimal_candidate(root: &Path, pin: &str) {
-    fs::create_dir_all(root.join("toolchains")).unwrap();
+    fs::create_dir_all(root.join("build/toolchains")).unwrap();
     fs::create_dir_all(root.join("docs/standards")).unwrap();
     fs::write(
         root.join("rust-toolchain.toml"),
@@ -56,7 +56,7 @@ fn write_minimal_candidate(root: &Path, pin: &str) {
     )
     .unwrap();
     fs::write(
-        root.join("toolchains/BUCK"),
+        root.join("build/toolchains/BUCK"),
         format!("# Rust {pin} toolchain\n"),
     )
     .unwrap();

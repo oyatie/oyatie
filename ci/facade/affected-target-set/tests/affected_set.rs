@@ -31,6 +31,7 @@ fn policy() -> Policy {
                 ".buckconfig",
                 ".buckconfig.local",
                 ".buckconfig.d/**",
+                "build/toolchains/**",
                 "toolchains/**",
                 "third-party/**",
                 "**/*.bzl",
@@ -416,6 +417,8 @@ fn buckconfig_toolchains_third_party_bzl_and_toolchain_pin_escalate_to_full() {
     for path in [
         ".buckconfig",
         ".buckconfig.d/extra.bcfg",
+        "build/toolchains/BUCK",
+        "build/toolchains/rust.bzl",
         "toolchains/BUCK",
         "toolchains/rust.bzl",
         "third-party/BUCK",
