@@ -253,8 +253,8 @@
   "evidence_queries": [
     "git fetch origin dev --prune",
     "gh api graphql: all OPEN pullRequests against dev with head/base SHAs, exact current-head status context named oya-ci-required, aggregate rollup inputs, mergeability, reviews, and reviewThreads",
-    "gh api repos/jason931225/oyatie/compare/dev...<head_sha> for each observed PR",
-    "gh api --paginate --slurp repos/jason931225/oyatie/pulls/<number>/files?per_page=100 for each observed PR; rename-aware sets include filename plus previous_filename and are sorted with LF before sha256",
+    "gh api repos/jason931225/oyatie/compare/<base_sha>...<head_sha> for each observed PR; both immutable SHAs are stored in the row",
+    "gh api --paginate --slurp repos/jason931225/oyatie/pulls/<number>/files?per_page=100 captured while the PR was at the stored head_sha; the rename-aware result is retained by per-row path_set_sha256 using path_set_digest_recipe",
     "gh pr comment <number> --body-file <triage-comment> for the 15 non-leader PARK rows",
     "gh pr list --state merged --base dev --limit 100 with immutable result digest for bounded supersession follow-through",
     "gh pr list --state closed --base dev --limit 100 with immutable result digest for bounded supersession follow-through"
