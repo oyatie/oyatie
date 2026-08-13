@@ -6,6 +6,13 @@ doc_status: published
 
 # Changelog
 
+## 2026-08-13 — Protected remote-cache proof runbook
+
+- Added and indexed a template-complete runbook for verifying authenticated, certificate-checked
+  cache reachability from GitHub-hosted runners.
+- Warm reads remain disabled until a protected default-branch proof and a from-empty integrity
+  canary both pass and the exact integrity run is bound into the license record.
+
 ## 2026-08-11 — Cloud provider + full ecosystem north-star (INV-DOC-9)
 
 - Survived product spine in operating contract
