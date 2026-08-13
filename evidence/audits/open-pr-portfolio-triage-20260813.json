@@ -14,12 +14,17 @@
     "programme_rule": "No execution wave may dispatch and no binding masterplan work-item id may be minted before the evaluated T4 closed-state transition; bootstrap PRs 1941, 1942, and 1943 remain leader-owned.",
     "approved_plan_sha256": "95132e4e2ef165667223117a026e3c3d5856a45250b4a7101b7cefef5ddd6ab1",
     "approved_plan_digest_scope": {
-      "source": "team task approved-plan authority",
-      "subject": "ralplan pending-approval artifact exact bytes",
+      "source": "evidence/goals/north-star-completion-t1-hold-lift-receipt-20260812.json#decision.approved_content.consensus_plan",
+      "subject": "approved consensus plan exact final file bytes",
       "digest_algorithm": "sha256",
-      "note": "This is an externally supplied programme anchor, not a digest of specs/masterplan.json."
+      "note": "The merged T1 receipt records content_sha256, byte count, and the exact-byte digest recipe."
     },
-    "merge_authorization_invariant": "No row is merge-authorized while planning_entry_contract.state is open. REBASE-THEN-MERGE denotes repair eligibility only; merge remains held behind review, branch protection, and the single required context."
+    "merge_authorization_invariant": "No row is merge-authorized while planning_entry_contract.state is open. REBASE-THEN-MERGE denotes repair eligibility only; merge remains held behind review, branch protection, and the single required context.",
+    "programme_gate_authority_refs": [
+      "specs/masterplan.json#masterplan_v2.planning_entry_contract",
+      "evidence/goals/north-star-completion-t2-execution-authorization-20260812.json#decision.scope_limit"
+    ],
+    "snapshot_validity": "Historical point-in-time observation at observed_at on base_sha. Later PR merges or head changes do not rewrite row states; disposition follow-through is recorded separately."
   },
   "scope": {
     "launch_brief_open_pr_count": 30,
@@ -112,7 +117,8 @@
           1941,
           1942,
           1943
-        ]
+        ],
+        "query_shape": "GraphQL open-PR metadata response exact bytes"
       },
       {
         "sequence": "preartifact-final",
@@ -150,7 +156,8 @@
           1941,
           1942,
           1943
-        ]
+        ],
+        "query_shape": "gh pr list compact number/headRefOid response exact bytes after sort_by(number)"
       }
     ],
     "fanout_range_nonopen_dispositions": [
@@ -189,10 +196,11 @@
         "state": "CLOSED",
         "closed_at": "2026-08-11T18:29:35Z"
       }
-    ]
+    ],
+    "snapshot_digest_scope": "Supplemental digest over each query result file exactly as emitted; pr_numbers arrays are the authoritative set-equality evidence. Each snapshot records its distinct query shape."
   },
   "classification_contract": {
-    "MERGE-NOW": "Current-head oya-ci-required is green, no merge conflict exists, no active review thread remains, and no programme sequencing conflict exists.",
+    "MERGE-NOW": "Current-head oya-ci-required is green, no merge conflict exists, no active review thread remains, formal review is APPROVED, branch protection is satisfied, and no programme sequencing conflict exists.",
     "REBASE-THEN-MERGE": "The change may proceed independently, but its branch, required context, atomicity, or review findings require repair and current-head revalidation before merge consideration.",
     "PARK": "The change is blocked on a named programme gate or serialization point; leader-owned bootstrap PRs are parked without triage-lane comments.",
     "CLOSE-SUPERSEDED": "A named later commit or PR already supplies the intended outcome, making the current head redundant."
@@ -214,7 +222,7 @@
         "count": 25
       },
       {
-        "state": "PENDING",
+        "state": "MISSING",
         "count": 3
       },
       {
@@ -239,7 +247,7 @@
     "exact_path_disjointness": "Rename-aware comparison includes both filename and previous_filename. Four exact source-path overlaps exist, all between PR 1672 renames and PR 1661 deletions; no other exact overlap was observed.",
     "bootstrap_overlap": "Rename-aware comparison found zero exact path overlaps between non-bootstrap PRs and PRs 1941, 1942, or 1943. Programme overlap remains semantic and is recorded per row.",
     "no_merge_now_reason": "Every observed PR has at least one disqualifier: active unresolved review threads, a non-green or missing required context, stale base divergence, or a named programme sequencing block.",
-    "no_close_superseded_reason": "No open head is fully contained by dev, and no later merged commit or PR was found that supplies the complete intended outcome of an open PR. Semantic successor relationships are represented as dependencies rather than unsupported closure claims.",
+    "no_close_superseded_reason": "CLOSE-SUPERSEDED requires a named superseding PR or commit with complete-outcome evidence. No row had that proof in the point-in-time collection, so none receives a closure recommendation; absence of proof stays in PARK or REBASE-THEN-MERGE.",
     "reorg_serialization": "PRs 1665 and 1672 form one coupled CRM/procurement eviction-reclaim co-land group, not a dependency cycle. PR 1661 remains blocked on both."
   },
   "evidence_queries": [
@@ -247,7 +255,9 @@
     "gh api graphql: all OPEN pullRequests against dev with head/base SHAs, exact current-head status context named oya-ci-required, aggregate rollup inputs, mergeability, reviews, and reviewThreads",
     "gh api repos/jason931225/oyatie/compare/dev...<head_sha> for each observed PR",
     "gh api --paginate --slurp repos/jason931225/oyatie/pulls/<number>/files?per_page=100 for each observed PR; rename-aware sets include filename plus previous_filename and are sorted with LF before sha256",
-    "gh pr comment <number> --body-file <triage-comment> for the 15 non-leader PARK rows"
+    "gh pr comment <number> --body-file <triage-comment> for the 15 non-leader PARK rows",
+    "gh pr list --state merged --base dev --limit 100 with immutable result digest for bounded supersession follow-through",
+    "gh pr list --state closed --base dev --limit 100 with immutable result digest for bounded supersession follow-through"
   ],
   "rows": [
     {
@@ -260,12 +270,12 @@
         "behind_by": 0
       },
       "ci": {
-        "state": "PENDING",
+        "state": "MISSING",
         "details_url": null,
         "observed_on_head_sha": true,
         "context_name": "oya-ci-required",
         "rollup_state": "PENDING",
-        "lookup": "exact-context-absent-while-workflow-pending"
+        "lookup": "exact-context-absent"
       },
       "conflicts": false,
       "github_merge_state": "BLOCKED",
@@ -281,7 +291,7 @@
         "registry"
       ],
       "classification": "PARK",
-      "rationale": "Merge consideration is held by oya-ci-required:PENDING, active-review-threads:11, programme-gate:bootstrap-t1t5.",
+      "rationale": "Merge consideration is held by oya-ci-required:MISSING, active-review-threads:11, programme-gate:bootstrap-t1t5.",
       "programme_gate": "bootstrap-t1t5",
       "semantic_dependencies": [
         1941,
@@ -295,12 +305,19 @@
       "path_set_count": 19,
       "mergeable": "MERGEABLE",
       "disqualifiers": [
-        "oya-ci-required:PENDING",
+        "oya-ci-required:MISSING",
         "active-review-threads:11",
         "programme-gate:bootstrap-t1t5"
       ],
       "recommended_action_owner_source": "specs/OWNERS",
-      "co_land_group": null
+      "co_land_group": null,
+      "top_level_roots_basis": "current filename values returned by the PR files API",
+      "rename_aware_top_level_roots": [
+        "Cargo.lock",
+        "ci",
+        "registry",
+        "specs"
+      ]
     },
     {
       "number": 1942,
@@ -312,12 +329,12 @@
         "behind_by": 0
       },
       "ci": {
-        "state": "PENDING",
+        "state": "MISSING",
         "details_url": null,
         "observed_on_head_sha": true,
         "context_name": "oya-ci-required",
         "rollup_state": "PENDING",
-        "lookup": "exact-context-absent-while-workflow-pending"
+        "lookup": "exact-context-absent"
       },
       "conflicts": false,
       "github_merge_state": "BLOCKED",
@@ -331,7 +348,7 @@
         "ci"
       ],
       "classification": "PARK",
-      "rationale": "Merge consideration is held by oya-ci-required:PENDING, active-review-threads:3, programme-gate:bootstrap-t1t5.",
+      "rationale": "Merge consideration is held by oya-ci-required:MISSING, active-review-threads:3, programme-gate:bootstrap-t1t5.",
       "programme_gate": "bootstrap-t1t5",
       "semantic_dependencies": [
         1941
@@ -346,12 +363,17 @@
       "path_set_count": 8,
       "mergeable": "MERGEABLE",
       "disqualifiers": [
-        "oya-ci-required:PENDING",
+        "oya-ci-required:MISSING",
         "active-review-threads:3",
         "programme-gate:bootstrap-t1t5"
       ],
       "recommended_action_owner_source": "specs/OWNERS",
-      "co_land_group": null
+      "co_land_group": null,
+      "top_level_roots_basis": "current filename values returned by the PR files API",
+      "rename_aware_top_level_roots": [
+        "ci",
+        "specs"
+      ]
     },
     {
       "number": 1941,
@@ -363,12 +385,12 @@
         "behind_by": 0
       },
       "ci": {
-        "state": "PENDING",
+        "state": "MISSING",
         "details_url": null,
         "observed_on_head_sha": true,
         "context_name": "oya-ci-required",
         "rollup_state": "PENDING",
-        "lookup": "exact-context-absent-while-workflow-pending"
+        "lookup": "exact-context-absent"
       },
       "conflicts": false,
       "github_merge_state": "BLOCKED",
@@ -381,7 +403,7 @@
         "evidence"
       ],
       "classification": "PARK",
-      "rationale": "Merge consideration is held by oya-ci-required:PENDING, active-review-threads:10, programme-gate:bootstrap-t1t5.",
+      "rationale": "Merge consideration is held by oya-ci-required:MISSING, active-review-threads:10, programme-gate:bootstrap-t1t5.",
       "programme_gate": "bootstrap-t1t5",
       "semantic_dependencies": [],
       "blocks_prs": [
@@ -395,12 +417,16 @@
       "path_set_count": 3,
       "mergeable": "MERGEABLE",
       "disqualifiers": [
-        "oya-ci-required:PENDING",
+        "oya-ci-required:MISSING",
         "active-review-threads:10",
         "programme-gate:bootstrap-t1t5"
       ],
       "recommended_action_owner_source": "evidence/OWNERS",
-      "co_land_group": null
+      "co_land_group": null,
+      "top_level_roots_basis": "current filename values returned by the PR files API",
+      "rename_aware_top_level_roots": [
+        "evidence"
+      ]
     },
     {
       "number": 1940,
@@ -450,7 +476,16 @@
         "active-review-threads:2"
       ],
       "recommended_action_owner_source": "build/OWNERS",
-      "co_land_group": null
+      "co_land_group": null,
+      "top_level_roots_basis": "current filename values returned by the PR files API",
+      "rename_aware_top_level_roots": [
+        ".buckconfig",
+        "build",
+        "ci",
+        "docs",
+        "infra",
+        "toolchains"
+      ]
     },
     {
       "number": 1939,
@@ -496,7 +531,12 @@
         "programme-gate:wave1-delivery-fabric-cas-operability"
       ],
       "recommended_action_owner_source": "specs/OWNERS",
-      "co_land_group": null
+      "co_land_group": null,
+      "top_level_roots_basis": "current filename values returned by the PR files API",
+      "rename_aware_top_level_roots": [
+        "docs",
+        "specs"
+      ]
     },
     {
       "number": 1938,
@@ -542,7 +582,11 @@
         "active-review-threads:6"
       ],
       "recommended_action_owner_source": "OWNERS",
-      "co_land_group": null
+      "co_land_group": null,
+      "top_level_roots_basis": "current filename values returned by the PR files API",
+      "rename_aware_top_level_roots": [
+        "cloud"
+      ]
     },
     {
       "number": 1937,
@@ -590,7 +634,13 @@
         "active-review-threads:13"
       ],
       "recommended_action_owner_source": "OWNERS",
-      "co_land_group": null
+      "co_land_group": null,
+      "top_level_roots_basis": "current filename values returned by the PR files API",
+      "rename_aware_top_level_roots": [
+        "docs",
+        "governance",
+        "templates"
+      ]
     },
     {
       "number": 1680,
@@ -639,7 +689,11 @@
         "programme-gate:wave1-product-capability-reorg"
       ],
       "recommended_action_owner_source": "iac/OWNERS",
-      "co_land_group": null
+      "co_land_group": null,
+      "top_level_roots_basis": "current filename values returned by the PR files API",
+      "rename_aware_top_level_roots": [
+        "iac"
+      ]
     },
     {
       "number": 1677,
@@ -688,7 +742,11 @@
         "programme-gate:wave1-product-capability-reorg"
       ],
       "recommended_action_owner_source": "app/OWNERS",
-      "co_land_group": null
+      "co_land_group": null,
+      "top_level_roots_basis": "current filename values returned by the PR files API",
+      "rename_aware_top_level_roots": [
+        "app"
+      ]
     },
     {
       "number": 1676,
@@ -737,7 +795,11 @@
         "programme-gate:wave1-product-capability-reorg"
       ],
       "recommended_action_owner_source": "app/OWNERS",
-      "co_land_group": null
+      "co_land_group": null,
+      "top_level_roots_basis": "current filename values returned by the PR files API",
+      "rename_aware_top_level_roots": [
+        "app"
+      ]
     },
     {
       "number": 1675,
@@ -786,7 +848,11 @@
         "programme-gate:wave1-product-capability-reorg"
       ],
       "recommended_action_owner_source": "app/OWNERS",
-      "co_land_group": null
+      "co_land_group": null,
+      "top_level_roots_basis": "current filename values returned by the PR files API",
+      "rename_aware_top_level_roots": [
+        "app"
+      ]
     },
     {
       "number": 1672,
@@ -835,7 +901,12 @@
         "programme-gate:wave1-product-capability-reorg"
       ],
       "recommended_action_owner_source": "app/OWNERS",
-      "co_land_group": "crm-procurement-eviction-reclaim"
+      "co_land_group": "crm-procurement-eviction-reclaim",
+      "top_level_roots_basis": "current filename values returned by the PR files API",
+      "rename_aware_top_level_roots": [
+        "app",
+        "oya"
+      ]
     },
     {
       "number": 1671,
@@ -884,7 +955,11 @@
         "programme-gate:wave1-product-capability-reorg"
       ],
       "recommended_action_owner_source": "app/OWNERS",
-      "co_land_group": null
+      "co_land_group": null,
+      "top_level_roots_basis": "current filename values returned by the PR files API",
+      "rename_aware_top_level_roots": [
+        "app"
+      ]
     },
     {
       "number": 1670,
@@ -933,7 +1008,11 @@
         "programme-gate:wave1-product-capability-reorg"
       ],
       "recommended_action_owner_source": "app/OWNERS",
-      "co_land_group": null
+      "co_land_group": null,
+      "top_level_roots_basis": "current filename values returned by the PR files API",
+      "rename_aware_top_level_roots": [
+        "app"
+      ]
     },
     {
       "number": 1669,
@@ -982,7 +1061,11 @@
         "programme-gate:wave1-product-capability-reorg"
       ],
       "recommended_action_owner_source": "app/OWNERS",
-      "co_land_group": null
+      "co_land_group": null,
+      "top_level_roots_basis": "current filename values returned by the PR files API",
+      "rename_aware_top_level_roots": [
+        "app"
+      ]
     },
     {
       "number": 1667,
@@ -1031,7 +1114,11 @@
         "programme-gate:wave1-product-capability-reorg"
       ],
       "recommended_action_owner_source": "app/OWNERS",
-      "co_land_group": null
+      "co_land_group": null,
+      "top_level_roots_basis": "current filename values returned by the PR files API",
+      "rename_aware_top_level_roots": [
+        "app"
+      ]
     },
     {
       "number": 1666,
@@ -1080,7 +1167,11 @@
         "programme-gate:wave1-product-capability-reorg"
       ],
       "recommended_action_owner_source": "app/OWNERS",
-      "co_land_group": null
+      "co_land_group": null,
+      "top_level_roots_basis": "current filename values returned by the PR files API",
+      "rename_aware_top_level_roots": [
+        "app"
+      ]
     },
     {
       "number": 1665,
@@ -1129,7 +1220,11 @@
         "programme-gate:wave1-product-capability-reorg"
       ],
       "recommended_action_owner_source": "app/OWNERS",
-      "co_land_group": "crm-procurement-eviction-reclaim"
+      "co_land_group": "crm-procurement-eviction-reclaim",
+      "top_level_roots_basis": "current filename values returned by the PR files API",
+      "rename_aware_top_level_roots": [
+        "app"
+      ]
     },
     {
       "number": 1664,
@@ -1178,7 +1273,11 @@
         "programme-gate:wave1-product-capability-reorg"
       ],
       "recommended_action_owner_source": "app/OWNERS",
-      "co_land_group": null
+      "co_land_group": null,
+      "top_level_roots_basis": "current filename values returned by the PR files API",
+      "rename_aware_top_level_roots": [
+        "app"
+      ]
     },
     {
       "number": 1663,
@@ -1227,7 +1326,11 @@
         "programme-gate:wave1-product-capability-reorg"
       ],
       "recommended_action_owner_source": "app/OWNERS",
-      "co_land_group": null
+      "co_land_group": null,
+      "top_level_roots_basis": "current filename values returned by the PR files API",
+      "rename_aware_top_level_roots": [
+        "app"
+      ]
     },
     {
       "number": 1661,
@@ -1288,7 +1391,11 @@
         "programme-gate:wave1-product-capability-reorg"
       ],
       "recommended_action_owner_source": "OWNERS",
-      "co_land_group": null
+      "co_land_group": null,
+      "top_level_roots_basis": "current filename values returned by the PR files API",
+      "rename_aware_top_level_roots": [
+        "oya"
+      ]
     },
     {
       "number": 1660,
@@ -1334,7 +1441,11 @@
         "active-review-threads:8"
       ],
       "recommended_action_owner_source": "compute/OWNERS",
-      "co_land_group": null
+      "co_land_group": null,
+      "top_level_roots_basis": "current filename values returned by the PR files API",
+      "rename_aware_top_level_roots": [
+        "compute"
+      ]
     },
     {
       "number": 1658,
@@ -1380,7 +1491,11 @@
         "active-review-threads:10"
       ],
       "recommended_action_owner_source": "messaging/OWNERS",
-      "co_land_group": null
+      "co_land_group": null,
+      "top_level_roots_basis": "current filename values returned by the PR files API",
+      "rename_aware_top_level_roots": [
+        "messaging"
+      ]
     },
     {
       "number": 1657,
@@ -1426,7 +1541,11 @@
         "active-review-threads:13"
       ],
       "recommended_action_owner_source": "secrets/OWNERS",
-      "co_land_group": null
+      "co_land_group": null,
+      "top_level_roots_basis": "current filename values returned by the PR files API",
+      "rename_aware_top_level_roots": [
+        "secrets"
+      ]
     },
     {
       "number": 1656,
@@ -1471,7 +1590,11 @@
         "active-review-threads:3"
       ],
       "recommended_action_owner_source": "k8s/OWNERS",
-      "co_land_group": null
+      "co_land_group": null,
+      "top_level_roots_basis": "current filename values returned by the PR files API",
+      "rename_aware_top_level_roots": [
+        "k8s"
+      ]
     },
     {
       "number": 1655,
@@ -1517,7 +1640,11 @@
         "active-review-threads:11"
       ],
       "recommended_action_owner_source": "iam/OWNERS",
-      "co_land_group": null
+      "co_land_group": null,
+      "top_level_roots_basis": "current filename values returned by the PR files API",
+      "rename_aware_top_level_roots": [
+        "iam"
+      ]
     },
     {
       "number": 1654,
@@ -1563,7 +1690,11 @@
         "active-review-threads:6"
       ],
       "recommended_action_owner_source": "data/OWNERS",
-      "co_land_group": null
+      "co_land_group": null,
+      "top_level_roots_basis": "current filename values returned by the PR files API",
+      "rename_aware_top_level_roots": [
+        "data"
+      ]
     },
     {
       "number": 1653,
@@ -1609,7 +1740,11 @@
         "active-review-threads:13"
       ],
       "recommended_action_owner_source": "comms/OWNERS",
-      "co_land_group": null
+      "co_land_group": null,
+      "top_level_roots_basis": "current filename values returned by the PR files API",
+      "rename_aware_top_level_roots": [
+        "comms"
+      ]
     },
     {
       "number": 1652,
@@ -1655,7 +1790,11 @@
         "active-review-threads:17"
       ],
       "recommended_action_owner_source": "cell/OWNERS",
-      "co_land_group": null
+      "co_land_group": null,
+      "top_level_roots_basis": "current filename values returned by the PR files API",
+      "rename_aware_top_level_roots": [
+        "cell"
+      ]
     },
     {
       "number": 1651,
@@ -1701,7 +1840,11 @@
         "active-review-threads:10"
       ],
       "recommended_action_owner_source": "workflow/OWNERS",
-      "co_land_group": null
+      "co_land_group": null,
+      "top_level_roots_basis": "current filename values returned by the PR files API",
+      "rename_aware_top_level_roots": [
+        "workflow"
+      ]
     },
     {
       "number": 1650,
@@ -1747,7 +1890,11 @@
         "active-review-threads:1"
       ],
       "recommended_action_owner_source": "flags/OWNERS",
-      "co_land_group": null
+      "co_land_group": null,
+      "top_level_roots_basis": "current filename values returned by the PR files API",
+      "rename_aware_top_level_roots": [
+        "flags"
+      ]
     }
   ],
   "programme_gate_catalog": {
@@ -1814,5 +1961,18 @@
     "affected_prs": [
       1937
     ]
+  },
+  "path_set_digest_recipe": "For each PR, collect every repo-relative filename plus previous_filename when status is renamed; sort unique with LC_ALL=C; emit one path per line with LF after every line including the last; sha256 the resulting bytes.",
+  "recommended_action_owner_rule": "Route to one real OWNERS token, without overriding repository ownership. For multi-root PRs choose the owner of the load-bearing surface named by the action; use root OWNERS only when that surface lacks a deeper OWNERS file.",
+  "supersession_search": {
+    "boundary": "Supplemental bounded follow-through, not a rewrite of the observed-at snapshot",
+    "queried_at": "2026-08-13T00:48:44Z",
+    "merged_query": "gh pr list --state merged --base dev --limit 100 --json number,headRefOid,mergeCommit,mergedAt,closedAt",
+    "merged_result_sha256": "dc61431d20aeb8fb29236e199343f402679a43dc07f478fb055e4d124211e3e5",
+    "merged_result_count": 100,
+    "closed_query": "gh pr list --state closed --base dev --limit 100 --json number,headRefOid,mergeCommit,mergedAt,closedAt",
+    "closed_result_sha256": "dfe1d3a9c841bc1ccc0dd2333e5c16a5665f85556f25f99ddbd9990f28756e1c",
+    "closed_result_count": 100,
+    "classification_rule": "A history hit alone is insufficient; CLOSE-SUPERSEDED requires named complete-outcome evidence."
   }
 }
