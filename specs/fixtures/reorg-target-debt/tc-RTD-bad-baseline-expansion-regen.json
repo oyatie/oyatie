@@ -1,0 +1,12 @@
+{
+  "case": "Shrink-only regeneration guard: a --regen-baseline snapshot that would ADD a path (here riding alongside a legitimate removal) is a hard RTD_BASELINE_EXPANSION refusal — the documented regeneration workflow must not launder new debt into the baseline.",
+  "kind": "baseline-regen",
+  "input": {
+    "baseline_paths": ["cloud/legacy-estate/kernel.rs", "cloud/legacy-estate/removed.rs"],
+    "baseline_anchors": ["cloud/legacy-estate/kernel.rs"],
+    "candidate_paths": ["cloud/legacy-estate/kernel.rs", "cloud/newly-minted-module/src/lib.rs"],
+    "candidate_anchors": ["cloud/legacy-estate/kernel.rs"]
+  },
+  "expected_regen": "refused",
+  "expected_codes": []
+}

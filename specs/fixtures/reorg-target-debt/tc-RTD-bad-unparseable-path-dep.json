@@ -1,0 +1,13 @@
+{
+  "case": "Arm B fail-closed: a dependency entry declaring a `path` key whose value the line parser cannot read as a quoted string is an explicit RTD_DEP_PATH_UNPARSEABLE finding — never a silently empty path that reports green.",
+  "kind": "workspace-manifest",
+  "input": {
+    "baseline_workspace_path_deps": [],
+    "baseline_dep_names": [],
+    "manifest_lines": [
+      "[workspace.dependencies]",
+      "legacy-mystery = { path = unquoted_nonsense }"
+    ]
+  },
+  "expected_codes": ["RTD_DEP_PATH_UNPARSEABLE"]
+}

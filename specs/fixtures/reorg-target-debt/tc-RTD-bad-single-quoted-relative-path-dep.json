@@ -1,0 +1,14 @@
+{
+  "case": "Arm B refusal: single-quoted (TOML literal string) and `./`-relative path spellings are valid Cargo syntax and must be parsed and normalized before the prefix check — neither spelling may evade the gate.",
+  "kind": "workspace-manifest",
+  "input": {
+    "baseline_workspace_path_deps": [],
+    "baseline_dep_names": [],
+    "manifest_lines": [
+      "[workspace.dependencies]",
+      "legacy-single = { path = 'cloud/legacy-single-quoted-estate' }",
+      "legacy-relative = { path = \"./cloud/legacy-relative-estate\" }"
+    ]
+  },
+  "expected_codes": ["RTD_NEW_TARGET_PATH_DEP", "RTD_NEW_TARGET_PATH_DEP"]
+}

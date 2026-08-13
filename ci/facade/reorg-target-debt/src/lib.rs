@@ -53,6 +53,9 @@ pub const CODE_NEW_TARGET_PATH: &str = "RTD_NEW_TARGET_PATH";
 pub const CODE_STALE_BASELINE_PATH: &str = "RTD_STALE_BASELINE_PATH";
 pub const CODE_NEW_TARGET_PATH_DEP: &str = "RTD_NEW_TARGET_PATH_DEP";
 pub const CODE_NEW_TARGET_DEP_NAME: &str = "RTD_NEW_TARGET_DEP_NAME";
+pub const CODE_NEW_TARGET_NAME: &str = "RTD_NEW_TARGET_NAME";
+pub const CODE_DEP_PATH_UNPARSEABLE: &str = "RTD_DEP_PATH_UNPARSEABLE";
+pub const CODE_BASELINE_EXPANSION: &str = "RTD_BASELINE_EXPANSION";
 pub const CODE_NEW_TARGET_ANCHOR: &str = "RTD_NEW_TARGET_ANCHOR";
 pub const CODE_UNPROVEN_REDUCTION_CLAIM: &str = "RTD_UNPROVEN_REDUCTION_CLAIM";
 pub const CODE_AUDIT_INPUT_INVALID: &str = "RTD_AUDIT_INPUT_INVALID";
@@ -129,13 +132,19 @@ impl Report {
         })
     }
 
-    /// Merge arm reports into one blocking verdict, summing the liveness signal.
+    /// Merge arm reports into one blocking verdict, summing the liveness signal. Arm
+    /// ids are deduplicated: several inputs may contribute to the same arm (e.g. the
+    /// root workspace table and the member-manifest scan both feed Arm B).
     pub fn merge(reports: Vec<Report>) -> Report {
-        let mut evaluated_arms = Vec::new();
+        let mut evaluated_arms: Vec<String> = Vec::new();
         let mut evaluated_path_count = 0;
         let mut findings = Vec::new();
         for report in reports {
-            evaluated_arms.extend(report.evaluated_arms);
+            for arm in report.evaluated_arms {
+                if !evaluated_arms.contains(&arm) {
+                    evaluated_arms.push(arm);
+                }
+            }
             evaluated_path_count += report.evaluated_path_count;
             findings.extend(report.findings);
         }
@@ -177,11 +186,18 @@ pub struct Policy {
     pub exempt_path_prefixes: Vec<String>,
     pub skip_dir_names: BTreeSet<String>,
     pub workspace_manifest_path: String,
+    pub workspace_section: String,
+    pub cargo_manifest_file_name: String,
+    pub buck_file_names: BTreeSet<String>,
+    pub member_dependency_sections: Vec<String>,
     pub masterplan_path: String,
     pub anchor_field_names: BTreeSet<String>,
     pub claim_field: String,
     pub claim_values: BTreeSet<String>,
     pub required_claim_fields: Vec<String>,
+    pub before_count_field: String,
+    pub after_count_field: String,
+    pub claim_scan_roots: Vec<String>,
 }
 
 fn required_str_array(value: &Value, section: &str, key: &str) -> Result<Vec<String>, GateError> {
@@ -195,13 +211,28 @@ fn required_str_array(value: &Value, section: &str, key: &str) -> Result<Vec<Str
     items
         .iter()
         .map(|item| {
-            item.as_str().map(str::to_owned).ok_or_else(|| {
-                GateError::Policy(format!(
-                    "{CODE_POLICY_INVALID}: non-string entry in {section}.{key}"
-                ))
-            })
+            item.as_str()
+                .filter(|entry| !entry.trim().is_empty())
+                .map(str::to_owned)
+                .ok_or_else(|| {
+                    GateError::Policy(format!(
+                        "{CODE_POLICY_INVALID}: non-string or empty entry in {section}.{key}"
+                    ))
+                })
         })
         .collect()
+}
+
+/// Load-bearing collections must not be empty: an empty list would silently disable an
+/// arm while the report still lists it as evaluated (a false-green required check).
+fn non_empty(list: Vec<String>, section: &str, key: &str) -> Result<Vec<String>, GateError> {
+    if list.is_empty() {
+        return Err(GateError::Policy(format!(
+            "{CODE_POLICY_INVALID}: {section}.{key} must be a non-empty array — an empty \
+             load-bearing collection silently disables an arm"
+        )));
+    }
+    Ok(list)
 }
 
 fn required_str(value: &Value, section: &str, key: &str) -> Result<String, GateError> {
@@ -209,9 +240,12 @@ fn required_str(value: &Value, section: &str, key: &str) -> Result<String, GateE
         .get(section)
         .and_then(|s| s.get(key))
         .and_then(Value::as_str)
+        .filter(|text| !text.trim().is_empty())
         .map(str::to_owned)
         .ok_or_else(|| {
-            GateError::Policy(format!("{CODE_POLICY_INVALID}: missing string {section}.{key}"))
+            GateError::Policy(format!(
+                "{CODE_POLICY_INVALID}: missing or empty string {section}.{key}"
+            ))
         })
 }
 
@@ -237,6 +271,18 @@ impl Policy {
                 )));
             }
         }
+        let required_claim_fields =
+            non_empty(required_str_array(policy, "reduction_claims", "required_fields")?, "reduction_claims", "required_fields")?;
+        let before_count_field = required_str(policy, "reduction_claims", "before_count_field")?;
+        let after_count_field = required_str(policy, "reduction_claims", "after_count_field")?;
+        for field in [&before_count_field, &after_count_field] {
+            if !required_claim_fields.contains(field) {
+                return Err(GateError::Policy(format!(
+                    "{CODE_POLICY_INVALID}: reduction_claims count field {field:?} must also \
+                     appear in reduction_claims.required_fields"
+                )));
+            }
+        }
         Ok(Self {
             name_prefixes,
             path_prefixes,
@@ -247,15 +293,36 @@ impl Policy {
                 .into_iter()
                 .collect(),
             workspace_manifest_path: required_str(policy, "workspace_manifest", "path")?,
+            workspace_section: required_str(policy, "workspace_manifest", "section")?,
+            cargo_manifest_file_name: required_str(policy, "name_surface", "cargo_manifest_file_name")?,
+            buck_file_names: required_str_array(policy, "name_surface", "buck_file_names")?
+                .into_iter()
+                .collect(),
+            member_dependency_sections: non_empty(
+                required_str_array(policy, "name_surface", "dependency_sections")?,
+                "name_surface",
+                "dependency_sections",
+            )?,
             masterplan_path: required_str(policy, "masterplan", "path")?,
-            anchor_field_names: required_str_array(policy, "masterplan", "anchor_field_names")?
-                .into_iter()
-                .collect(),
+            anchor_field_names: non_empty(
+                required_str_array(policy, "masterplan", "anchor_field_names")?,
+                "masterplan",
+                "anchor_field_names",
+            )?
+            .into_iter()
+            .collect(),
             claim_field: required_str(policy, "reduction_claims", "claim_field")?,
-            claim_values: required_str_array(policy, "reduction_claims", "claim_values")?
-                .into_iter()
-                .collect(),
-            required_claim_fields: required_str_array(policy, "reduction_claims", "required_fields")?,
+            claim_values: non_empty(
+                required_str_array(policy, "reduction_claims", "claim_values")?,
+                "reduction_claims",
+                "claim_values",
+            )?
+            .into_iter()
+            .collect(),
+            required_claim_fields,
+            before_count_field,
+            after_count_field,
+            claim_scan_roots: required_str_array(policy, "reduction_claims", "scan_roots")?,
         })
     }
 
@@ -413,29 +480,87 @@ pub fn evaluate_tree(policy: &Policy, baseline: &Baseline, paths: &BTreeSet<Stri
 // Arm B — new workspace dependencies into / named under target forms.
 // ─────────────────────────────────────────────────────────────────────────────
 
-/// One `[workspace.dependencies]` entry: the dependency name and, when declared, its
-/// `path` value (empty string when the entry has no path key).
+/// One dependency-table entry: the dependency name and, when declared, its `path` value
+/// (empty string when the entry has no path key). `path_unparseable` is the fail-closed
+/// marker: a `path` key whose value the line parser could not extract as a quoted string
+/// must surface as a finding, never as a silently empty path.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct WorkspaceDep {
     pub name: String,
     pub path: String,
+    pub path_unparseable: bool,
 }
 
+/// Parse a TOML basic or literal string value (double OR single quotes — both are valid
+/// Cargo path spellings).
 fn toml_str_value(raw: &str) -> Option<String> {
     let trimmed = raw.trim().trim_end_matches(',').trim();
-    trimmed
-        .strip_prefix('"')
-        .and_then(|rest| rest.strip_suffix('"'))
-        .map(str::to_owned)
+    for quote in ['"', '\''] {
+        if let Some(rest) = trimmed.strip_prefix(quote) {
+            return rest
+                .strip_suffix(quote)
+                .filter(|inner| !inner.contains(quote))
+                .map(str::to_owned);
+        }
+    }
+    None
 }
 
-fn inline_table_path(value: &str) -> Option<String> {
-    let (_, tail) = value.split_once("path")?;
-    let tail = tail.trim_start();
-    let tail = tail.strip_prefix('=')?;
-    let tail = tail.trim_start();
-    let tail = tail.strip_prefix('"')?;
-    tail.split('"').next().map(str::to_owned)
+/// Extract the `path` key's string value from an inline-table dependency value.
+/// `Ok(None)`: no `path` key. `Ok(Some(path))`: parsed. `Err(())`: a `path` key exists
+/// but its value is not a plainly quoted string — the caller FAILS CLOSED.
+fn inline_table_path(value: &str) -> Result<Option<String>, ()> {
+    let bytes = value.as_bytes();
+    let mut search = 0usize;
+    while let Some(found) = value[search..].find("path") {
+        let start = search + found;
+        search = start + 4;
+        // A real key occurrence is preceded by '{', ',', or whitespace (never part of a
+        // longer identifier or inside a quoted string) and followed by '='.
+        let before_ok = start
+            .checked_sub(1)
+            .is_some_and(|i| matches!(bytes[i], b'{' | b',') || bytes[i].is_ascii_whitespace());
+        if !before_ok {
+            continue;
+        }
+        let after = value[start + 4..].trim_start();
+        let Some(after_eq) = after.strip_prefix('=') else {
+            continue;
+        };
+        let after_eq = after_eq.trim_start();
+        let mut chars = after_eq.chars();
+        let quote = match chars.next() {
+            Some(q @ ('"' | '\'')) => q,
+            _ => return Err(()),
+        };
+        let rest = chars.as_str();
+        return match rest.find(quote) {
+            Some(end) => Ok(Some(rest[..end].to_owned())),
+            None => Err(()),
+        };
+    }
+    Ok(None)
+}
+
+/// Lexically normalize a repo-relative path: resolve `.` and `..` components against
+/// `base_dir` (the declaring manifest's repo-relative directory; empty for the root) so
+/// equivalent spellings such as `./cloud/x` or `../../cloud/x` cannot evade the prefix
+/// check. A path escaping the repo root is returned raw (it cannot name in-repo debt,
+/// and returning it keeps the report honest).
+pub fn normalize_rel_path(base_dir: &str, raw: &str) -> String {
+    let mut stack: Vec<&str> = Vec::new();
+    for part in base_dir.split('/').chain(raw.split('/')) {
+        match part {
+            "" | "." => {}
+            ".." => {
+                if stack.pop().is_none() {
+                    return raw.to_owned();
+                }
+            }
+            other => stack.push(other),
+        }
+    }
+    stack.join("/")
 }
 
 /// Deliberately a line parser, not a TOML dependency: the workspace table is a flat
@@ -463,6 +588,7 @@ pub fn parse_workspace_dependencies(manifest: &str, section: &str) -> Vec<Worksp
                 deps.push(WorkspaceDep {
                     name,
                     path: String::new(),
+                    path_unparseable: false,
                 });
                 in_table = false;
                 current_subsection = Some(deps.len() - 1);
@@ -473,12 +599,17 @@ pub fn parse_workspace_dependencies(manifest: &str, section: &str) -> Vec<Worksp
             continue;
         }
         if let Some(index) = current_subsection {
-            if let Some(value) = bare.strip_prefix("path") {
+            if let Some(value) = bare.strip_prefix("path")
+                && value.starts_with(|c: char| c == '=' || c.is_whitespace())
+            {
                 let value = value.trim_start();
-                if let Some(value) = value.strip_prefix('=')
-                    && let Some(path) = toml_str_value(value)
-                {
-                    deps[index].path = path;
+                if let Some(value) = value.strip_prefix('=') {
+                    match toml_str_value(value) {
+                        Some(path) => deps[index].path = path,
+                        // FAIL-CLOSED: a path key whose value we cannot read must
+                        // surface, never silently evaluate as "no path".
+                        None => deps[index].path_unparseable = true,
+                    }
                 }
             }
             continue;
@@ -486,17 +617,30 @@ pub fn parse_workspace_dependencies(manifest: &str, section: &str) -> Vec<Worksp
         if !in_table {
             continue;
         }
-        let Some((name, value)) = bare.split_once('=') else {
-            continue;
-        };
-        let name = name.trim().trim_matches('"').to_owned();
-        if name.is_empty() {
-            continue;
+        if let Some(dep) = parse_dep_entry_line(bare) {
+            deps.push(dep);
         }
-        let path = inline_table_path(value).unwrap_or_default();
-        deps.push(WorkspaceDep { name, path });
     }
     deps
+}
+
+/// Parse one `name = <value>` dependency-table line into a [`WorkspaceDep`].
+fn parse_dep_entry_line(bare: &str) -> Option<WorkspaceDep> {
+    let (name, value) = bare.split_once('=')?;
+    let name = name.trim().trim_matches('"').trim_matches('\'').to_owned();
+    if name.is_empty() {
+        return None;
+    }
+    let (path, path_unparseable) = match inline_table_path(value) {
+        Ok(Some(path)) => (path, false),
+        Ok(None) => (String::new(), false),
+        Err(()) => (String::new(), true),
+    };
+    Some(WorkspaceDep {
+        name,
+        path,
+        path_unparseable,
+    })
 }
 
 /// Pure Arm B evaluator over the parsed workspace-dependency entries.
@@ -507,35 +651,66 @@ pub fn evaluate_workspace_deps(
 ) -> Report {
     let mut findings = Vec::new();
     for dep in deps {
-        if !dep.path.is_empty()
-            && policy.under_target_path_prefix(&dep.path)
-            && !baseline.workspace_path_dep_hashes.contains(&entry_digest(&dep.path))
-        {
-            findings.push(Finding::new(
-                CODE_NEW_TARGET_PATH_DEP,
-                ARM_B,
-                format!("{} -> {}", dep.name, dep.path),
-                "new workspace path dependency into a reorg-target path prefix; Global Binding \
-                 Rule 1 refuses new dependency edges into the target estate",
-            ));
-        }
-        if policy.carries_target_name_prefix(&dep.name)
-            && !baseline.dep_name_hashes.contains(&entry_digest(&dep.name))
-        {
-            findings.push(Finding::new(
-                CODE_NEW_TARGET_DEP_NAME,
-                ARM_B,
-                dep.name.clone(),
-                "new workspace dependency named under a reorg-target name prefix; Global Binding \
-                 Rule 1 refuses minting new target-form names",
-            ));
-        }
+        push_dep_findings(policy, baseline, dep, "", &mut findings);
     }
     findings.sort();
     Report {
         evaluated_arms: vec![ARM_B.to_owned()],
         evaluated_path_count: deps.len(),
         findings,
+    }
+}
+
+/// The shared Arm B refusal logic for one dependency entry. `base_dir` is the declaring
+/// manifest's repo-relative directory (empty for the root manifest); declared paths are
+/// lexically normalized against it before the prefix/baseline checks so relative
+/// spellings cannot evade the gate.
+fn push_dep_findings(
+    policy: &Policy,
+    baseline: &Baseline,
+    dep: &WorkspaceDep,
+    base_dir: &str,
+    findings: &mut Vec<Finding>,
+) {
+    let origin = if base_dir.is_empty() {
+        String::new()
+    } else {
+        format!(" (declared under {base_dir}/)")
+    };
+    if dep.path_unparseable {
+        findings.push(Finding::new(
+            CODE_DEP_PATH_UNPARSEABLE,
+            ARM_B,
+            format!("{}{origin}", dep.name),
+            "dependency declares a `path` whose value this gate cannot read as a quoted \
+             string; fail-closed — spell the path as a plainly quoted TOML string so the \
+             gate can evaluate it",
+        ));
+    }
+    if !dep.path.is_empty() {
+        let path = normalize_rel_path(base_dir, &dep.path);
+        if policy.under_target_path_prefix(&path)
+            && !baseline.workspace_path_dep_hashes.contains(&entry_digest(&path))
+        {
+            findings.push(Finding::new(
+                CODE_NEW_TARGET_PATH_DEP,
+                ARM_B,
+                format!("{} -> {path}{origin}", dep.name),
+                "new path dependency into a reorg-target path prefix; Global Binding \
+                 Rule 1 refuses new dependency edges into the target estate",
+            ));
+        }
+    }
+    if policy.carries_target_name_prefix(&dep.name)
+        && !baseline.dep_name_hashes.contains(&entry_digest(&dep.name))
+    {
+        findings.push(Finding::new(
+            CODE_NEW_TARGET_DEP_NAME,
+            ARM_B,
+            format!("{}{origin}", dep.name),
+            "new dependency named under a reorg-target name prefix; Global Binding \
+             Rule 1 refuses minting new target-form names",
+        ));
     }
 }
 
@@ -547,6 +722,171 @@ pub fn evaluate_workspace_manifest(
     section: &str,
 ) -> Report {
     evaluate_workspace_deps(policy, baseline, &parse_workspace_dependencies(manifest, section))
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Arm B (name surface) — crate/binary names and member-manifest path dependencies.
+// The policy binds target NAME prefixes to every NEW crate, module, and binary name,
+// and Cargo members may declare direct path dependencies without inheriting from the
+// root [workspace.dependencies] table — so Arm B must cover member manifests and
+// declared names, not only the root dependency table.
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// A declared name (crate/package, `[[bin]]`, or build-graph target) plus the
+/// repo-relative file that declares it.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub struct NameDecl {
+    pub name: String,
+    pub origin: String,
+}
+
+/// The facts one Cargo manifest contributes to Arm B.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct ManifestFacts {
+    pub package_name: Option<String>,
+    pub bin_names: Vec<String>,
+    pub path_deps: Vec<WorkspaceDep>,
+}
+
+/// Line-parse one Cargo manifest for its `[package]` name, `[[bin]]` names, and every
+/// entry in the policy-declared dependency sections (including `[target.….<section>]`
+/// variants and `[<section>.<name>]` subsections). Same deliberate line-parser posture
+/// as [`parse_workspace_dependencies`].
+pub fn parse_manifest_facts(manifest: &str, dependency_sections: &[String]) -> ManifestFacts {
+    #[derive(PartialEq)]
+    enum Section {
+        Package,
+        Bin,
+        Deps,
+        DepSub(usize),
+        Other,
+    }
+    let mut facts = ManifestFacts::default();
+    let mut section = Section::Other;
+    for line in manifest.lines() {
+        let bare = line.split('#').next().unwrap_or("").trim();
+        if bare.is_empty() {
+            continue;
+        }
+        if bare.starts_with('[') {
+            let header = bare.trim_start_matches('[').trim_end_matches(']').trim();
+            section = if bare.starts_with("[[") {
+                if header == "bin" { Section::Bin } else { Section::Other }
+            } else if header == "package" {
+                Section::Package
+            } else if dependency_sections
+                .iter()
+                .any(|d| header == d || header.ends_with(&format!(".{d}")))
+            {
+                Section::Deps
+            } else if let Some(name) = dependency_sections
+                .iter()
+                .find_map(|d| header.strip_prefix(&format!("{d}.")))
+            {
+                facts.path_deps.push(WorkspaceDep {
+                    name: name.trim().to_owned(),
+                    path: String::new(),
+                    path_unparseable: false,
+                });
+                Section::DepSub(facts.path_deps.len() - 1)
+            } else {
+                Section::Other
+            };
+            continue;
+        }
+        match section {
+            Section::Package | Section::Bin => {
+                if let Some(rest) = bare.strip_prefix("name")
+                    && rest.starts_with(|c: char| c == '=' || c.is_whitespace())
+                    && let Some(rest) = rest.trim_start().strip_prefix('=')
+                    && let Some(name) = toml_str_value(rest)
+                {
+                    if section == Section::Package {
+                        facts.package_name = Some(name);
+                    } else {
+                        facts.bin_names.push(name);
+                    }
+                }
+            }
+            Section::Deps => {
+                if let Some(dep) = parse_dep_entry_line(bare) {
+                    facts.path_deps.push(dep);
+                }
+            }
+            Section::DepSub(index) => {
+                if let Some(rest) = bare.strip_prefix("path")
+                    && rest.starts_with(|c: char| c == '=' || c.is_whitespace())
+                    && let Some(rest) = rest.trim_start().strip_prefix('=')
+                {
+                    match toml_str_value(rest) {
+                        Some(path) => facts.path_deps[index].path = path,
+                        None => facts.path_deps[index].path_unparseable = true,
+                    }
+                }
+            }
+            Section::Other => {}
+        }
+    }
+    facts
+}
+
+/// Line-parse a Buck build file for `name = "…"` target declarations (either quote
+/// style). Names whose values are not plain quoted strings are skipped — a target-form
+/// name must be a literal to exist, and literals are what this scan binds.
+pub fn parse_buck_target_names(text: &str) -> Vec<String> {
+    let mut names = Vec::new();
+    for line in text.lines() {
+        let bare = line.split('#').next().unwrap_or("").trim();
+        if let Some(rest) = bare.strip_prefix("name")
+            && rest.starts_with(|c: char| c == '=' || c.is_whitespace())
+            && let Some(rest) = rest.trim_start().strip_prefix('=')
+            && let Some(name) = toml_str_value(rest)
+        {
+            names.push(name);
+        }
+    }
+    names
+}
+
+/// Everything the repo-wide name-surface scan feeds Arm B beyond the root workspace
+/// table: declared names plus member-manifest path dependencies, each with the
+/// repo-relative origin manifest.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct NameSurface {
+    pub names: Vec<NameDecl>,
+    pub member_path_deps: Vec<(String, WorkspaceDep)>,
+}
+
+/// Pure Arm B evaluator over the repo-wide name surface.
+pub fn evaluate_name_surface(
+    policy: &Policy,
+    baseline: &Baseline,
+    surface: &NameSurface,
+) -> Report {
+    let mut findings = Vec::new();
+    for decl in &surface.names {
+        if policy.carries_target_name_prefix(&decl.name)
+            && !baseline.dep_name_hashes.contains(&entry_digest(&decl.name))
+        {
+            findings.push(Finding::new(
+                CODE_NEW_TARGET_NAME,
+                ARM_B,
+                format!("{} (declared in {})", decl.name, decl.origin),
+                "new crate/binary/build-target name minted under a reorg-target name prefix; \
+                 Global Binding Rule 1 refuses minting new target-form names",
+            ));
+        }
+    }
+    for (origin, dep) in &surface.member_path_deps {
+        let base_dir = origin.rsplit_once('/').map(|(dir, _)| dir).unwrap_or("");
+        push_dep_findings(policy, baseline, dep, base_dir, &mut findings);
+    }
+    findings.sort();
+    Report {
+        evaluated_arms: vec![ARM_B.to_owned()],
+        evaluated_path_count: surface.names.len() + surface.member_path_deps.len(),
+        findings,
+    }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -662,29 +1002,61 @@ fn claim_field_proven(map: &Map<String, Value>, field: &str) -> bool {
     }
 }
 
+/// Every reason a reduction claim fails: missing/empty companion fields, non-numeric
+/// counts, or counts that do not actually reduce (`after >= before`). The gate still
+/// mints no threshold — the counts are DATA of the artifact under test; the only
+/// comparison is the direction the claim itself asserts.
+fn claim_problems(policy: &Policy, map: &Map<String, Value>) -> Vec<String> {
+    let mut problems = Vec::new();
+    for field in &policy.required_claim_fields {
+        if field == &policy.before_count_field || field == &policy.after_count_field {
+            if !matches!(map.get(field.as_str()), Some(Value::Number(_))) {
+                problems.push(format!("{field} must be a number"));
+            }
+        } else if !claim_field_proven(map, field) {
+            problems.push(format!("missing or empty {field}"));
+        }
+    }
+    if problems.is_empty() {
+        let before = map.get(&policy.before_count_field).and_then(Value::as_f64);
+        let after = map.get(&policy.after_count_field).and_then(Value::as_f64);
+        match (before, after) {
+            (Some(before), Some(after)) if after < before => {}
+            (Some(before), Some(after)) => problems.push(format!(
+                "claimed reduction does not reduce: {}={after} is not below {}={before}",
+                policy.after_count_field, policy.before_count_field
+            )),
+            _ => problems.push("counts are not finite numbers".to_owned()),
+        }
+    }
+    problems
+}
+
 /// Pure Arm D evaluator. A net target-surface-reduction claim is refused unless every
-/// policy-declared companion field is present and non-empty: the counts are DATA carried
-/// by the artifact under test, bound to a census snapshot ref — the gate compares nothing
-/// numeric and mints no threshold.
+/// policy-declared companion field is present, the counts are numeric, the claimed
+/// direction actually reduces, and the census snapshot ref is bound.
 pub fn evaluate_reduction_claims(policy: &Policy, artifact: &Value) -> Report {
+    evaluate_reduction_claims_at(policy, "", artifact)
+}
+
+/// Arm D over one artifact, with `origin` (the artifact's repo-relative path, empty for
+/// the planning SSOT) prefixed onto every reported claim location.
+pub fn evaluate_reduction_claims_at(policy: &Policy, origin: &str, artifact: &Value) -> Report {
     let mut claims = Vec::new();
-    collect_claim_objects(artifact, &policy.claim_field, &policy.claim_values, "", &mut claims);
+    collect_claim_objects(artifact, &policy.claim_field, &policy.claim_values, origin, &mut claims);
     let mut findings = Vec::new();
     for (location, map) in &claims {
-        let missing: Vec<&String> = policy
-            .required_claim_fields
-            .iter()
-            .filter(|field| !claim_field_proven(map, field))
-            .collect();
-        if !missing.is_empty() {
+        let problems = claim_problems(policy, map);
+        if !problems.is_empty() {
             findings.push(Finding::new(
                 CODE_UNPROVEN_REDUCTION_CLAIM,
                 ARM_D,
                 format!("claim at {location}"),
                 format!(
-                    "net target-surface-reduction claim without its bound measurement; missing \
-                     or empty required field(s): {missing:?}. A reduction claim must carry the \
-                     before/after counts and the census snapshot ref they were measured against"
+                    "net target-surface-reduction claim without its proven measurement: \
+                     {problems:?}. A reduction claim must carry numeric before/after counts \
+                     that actually reduce and the census snapshot ref they were measured \
+                     against"
                 ),
             ));
         }
@@ -814,6 +1186,22 @@ pub fn audit_interval(policy: &Policy, input: &Value) -> Result<AuditReport, Gat
         }
     }
 
+    // Bind the capture to the declared range: the materialization recipe produces
+    // `git rev-list --reverse <from>..<to>`, so the LAST captured commit must be the
+    // declared range head. A truncated or unrelated capture cannot simply assert
+    // `complete: true` and audit green over commits that never reach the range head.
+    let last_sha = commits
+        .last()
+        .and_then(|commit| commit.get("sha"))
+        .and_then(Value::as_str)
+        .unwrap_or("");
+    if last_sha != range_to {
+        return Err(audit_invalid(format!(
+            "capture is not bound to the declared range: the last captured commit \
+             {last_sha:?} is not range.to {range_to:?}"
+        )));
+    }
+
     let mut findings = Vec::new();
     let mut evaluated_path_count = 0;
     for commit in commits {
@@ -848,8 +1236,31 @@ pub fn audit_interval(policy: &Policy, input: &Value) -> Result<AuditReport, Gat
             }
         }
         for dep in added_path_deps {
-            let name = dep.get("name").and_then(Value::as_str).unwrap_or("");
-            let path = dep.get("path").and_then(Value::as_str).unwrap_or("");
+            // FAIL-CLOSED: a malformed dependency fact (non-object, or missing typed
+            // name/path) must never silently degrade to an empty dependency that audits
+            // green — that would hide a target-prefix edge from durable audit evidence.
+            let object = dep.as_object().ok_or_else(|| {
+                audit_invalid(format!(
+                    "commit {sha}: added_workspace_path_deps entry must be an object with \
+                     string name and path fields"
+                ))
+            })?;
+            let name = object
+                .get("name")
+                .and_then(Value::as_str)
+                .filter(|name| !name.trim().is_empty())
+                .ok_or_else(|| {
+                    audit_invalid(format!(
+                        "commit {sha}: added_workspace_path_deps entry is missing a \
+                         non-empty string name"
+                    ))
+                })?;
+            let path = object.get("path").and_then(Value::as_str).ok_or_else(|| {
+                audit_invalid(format!(
+                    "commit {sha}: added_workspace_path_deps entry {name:?} is missing a \
+                     string path (name-only entries carry an empty string path)"
+                ))
+            })?;
             if !path.is_empty() && policy.under_target_path_prefix(path) {
                 findings.push(Finding::new(
                     CODE_AUDIT_TARGET_DEBT_COMMIT,
@@ -922,6 +1333,20 @@ pub fn load_baseline(repo_root: &Path, policy: &Policy) -> Result<Baseline, Gate
     Baseline::from_value(&load_json(&repo_root.join(&policy.baseline_file))?)
 }
 
+fn rel_string(path: &Path, repo_root: &Path) -> Result<String, GateError> {
+    let rel = path
+        .strip_prefix(repo_root)
+        .map_err(|error| GateError::Io(format!("relativize {}: {error}", path.display())))?;
+    let mut rel_text = String::new();
+    for component in rel.components() {
+        if !rel_text.is_empty() {
+            rel_text.push('/');
+        }
+        rel_text.push_str(&component.as_os_str().to_string_lossy());
+    }
+    Ok(rel_text)
+}
+
 fn walk_files(
     root: &Path,
     repo_root: &Path,
@@ -935,22 +1360,18 @@ fn walk_files(
             entry.map_err(|error| GateError::Io(format!("dir entry {}: {error}", root.display())))?;
         let path = entry.path();
         let name = entry.file_name().to_string_lossy().into_owned();
-        if path.is_dir() {
+        // Symlink-safe: DirEntry::file_type never follows symlinks, so a directory
+        // symlink is recorded as a LEAF entry instead of being traversed — a link such
+        // as `<target>/loop -> ..` can neither hide debt nor hang the gate in a cycle.
+        let file_type = entry
+            .file_type()
+            .map_err(|error| GateError::Io(format!("file_type {}: {error}", path.display())))?;
+        if file_type.is_dir() {
             if !skip.contains(&name) {
                 walk_files(&path, repo_root, skip, out)?;
             }
         } else {
-            let rel = path
-                .strip_prefix(repo_root)
-                .map_err(|error| GateError::Io(format!("relativize {}: {error}", path.display())))?;
-            let mut rel_text = String::new();
-            for component in rel.components() {
-                if !rel_text.is_empty() {
-                    rel_text.push('/');
-                }
-                rel_text.push_str(&component.as_os_str().to_string_lossy());
-            }
-            out.insert(rel_text);
+            out.insert(rel_string(&path, repo_root)?);
         }
     }
     Ok(())
@@ -973,38 +1394,210 @@ pub fn collect_target_prefix_paths(
     Ok(out)
 }
 
-/// Snapshot the current tree into a fresh baseline value (the `--regen-baseline` surface).
-pub fn regenerate_baseline(repo_root: &Path, policy: &Policy) -> Result<Baseline, GateError> {
-    let paths = collect_target_prefix_paths(repo_root, policy)?;
+/// Collect the repo-wide name surface: every Cargo manifest's package/bin names and
+/// dependency-section path entries, plus every Buck file's target names. File names are
+/// policy DATA; the walk is symlink-safe and skips the policy's skip-dir names.
+pub fn collect_name_surface(repo_root: &Path, policy: &Policy) -> Result<NameSurface, GateError> {
+    let mut wanted: BTreeSet<String> = policy.buck_file_names.clone();
+    wanted.insert(policy.cargo_manifest_file_name.clone());
+    let mut files = BTreeSet::new();
+    walk_files(repo_root, repo_root, &policy.skip_dir_names, &mut files)?;
+    let mut surface = NameSurface::default();
+    for rel in files {
+        let file_name = rel.rsplit_once('/').map(|(_, name)| name).unwrap_or(&rel);
+        if !wanted.contains(file_name) {
+            continue;
+        }
+        let text = fs::read_to_string(repo_root.join(&rel))
+            .map_err(|error| GateError::Io(format!("read {rel}: {error}")))?;
+        if file_name == policy.cargo_manifest_file_name {
+            let facts = parse_manifest_facts(&text, &policy.member_dependency_sections);
+            if let Some(name) = facts.package_name {
+                surface.names.push(NameDecl {
+                    name,
+                    origin: rel.clone(),
+                });
+            }
+            for name in facts.bin_names {
+                surface.names.push(NameDecl {
+                    name,
+                    origin: rel.clone(),
+                });
+            }
+            for dep in facts.path_deps {
+                surface.member_path_deps.push((rel.clone(), dep));
+            }
+        } else {
+            for name in parse_buck_target_names(&text) {
+                surface.names.push(NameDecl {
+                    name,
+                    origin: rel.clone(),
+                });
+            }
+        }
+    }
+    Ok(surface)
+}
+
+/// Collect every JSON artifact under the policy's reduction-claim scan roots (an absent
+/// root contributes nothing; an unparseable artifact under a scan root fails closed).
+pub fn collect_claim_artifacts(
+    repo_root: &Path,
+    policy: &Policy,
+) -> Result<Vec<(String, Value)>, GateError> {
+    let mut out = Vec::new();
+    for root_rel in &policy.claim_scan_roots {
+        let root = repo_root.join(root_rel);
+        if !root.is_dir() {
+            continue;
+        }
+        let mut files = BTreeSet::new();
+        walk_files(&root, repo_root, &policy.skip_dir_names, &mut files)?;
+        for rel in files {
+            if rel.ends_with(".json") {
+                out.push((rel.clone(), load_json(&repo_root.join(&rel))?));
+            }
+        }
+    }
+    Ok(out)
+}
+
+/// The literal (pre-digest) snapshot a regeneration would freeze. Kept literal so the
+/// shrink-only enforcement can NAME exactly what a refused expansion tried to add.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct BaselineCandidate {
+    pub paths: BTreeSet<String>,
+    pub workspace_path_deps: BTreeSet<String>,
+    pub dep_names: BTreeSet<String>,
+    pub anchors: BTreeSet<String>,
+}
+
+impl BaselineCandidate {
+    pub fn to_baseline(&self) -> Baseline {
+        Baseline {
+            path_hashes: self.paths.iter().map(|entry| entry_digest(entry)).collect(),
+            workspace_path_dep_hashes: self
+                .workspace_path_deps
+                .iter()
+                .map(|entry| entry_digest(entry))
+                .collect(),
+            dep_name_hashes: self.dep_names.iter().map(|entry| entry_digest(entry)).collect(),
+            anchors: self.anchors.clone(),
+        }
+    }
+}
+
+/// Snapshot the current tree into the literal baseline candidate the regeneration path
+/// freezes. Fails closed on any unparseable dependency path.
+pub fn collect_baseline_candidate(
+    repo_root: &Path,
+    policy: &Policy,
+) -> Result<BaselineCandidate, GateError> {
+    let mut candidate = BaselineCandidate {
+        paths: collect_target_prefix_paths(repo_root, policy)?,
+        ..BaselineCandidate::default()
+    };
     let manifest = fs::read_to_string(repo_root.join(&policy.workspace_manifest_path))
         .map_err(|error| {
             GateError::Io(format!("read {}: {error}", policy.workspace_manifest_path))
         })?;
-    let deps = parse_workspace_dependencies(&manifest, "workspace.dependencies");
-    let mut workspace_path_dep_hashes = BTreeSet::new();
-    let mut dep_name_hashes = BTreeSet::new();
-    for dep in deps {
-        if !dep.path.is_empty() && policy.under_target_path_prefix(&dep.path) {
-            workspace_path_dep_hashes.insert(entry_digest(&dep.path));
+    let mut add_dep = |dep: &WorkspaceDep, base_dir: &str, origin: &str| -> Result<(), GateError> {
+        if dep.path_unparseable {
+            return Err(GateError::Input(format!(
+                "{CODE_DEP_PATH_UNPARSEABLE}: dependency {:?} in {origin} declares a path \
+                 this gate cannot read; refusing to regenerate over an unevaluable surface",
+                dep.name
+            )));
+        }
+        if !dep.path.is_empty() {
+            let path = normalize_rel_path(base_dir, &dep.path);
+            if policy.under_target_path_prefix(&path) {
+                candidate.workspace_path_deps.insert(path);
+            }
         }
         if policy.carries_target_name_prefix(&dep.name) {
-            dep_name_hashes.insert(entry_digest(&dep.name));
+            candidate.dep_names.insert(dep.name.clone());
+        }
+        Ok(())
+    };
+    for dep in parse_workspace_dependencies(&manifest, &policy.workspace_section) {
+        add_dep(&dep, "", &policy.workspace_manifest_path)?;
+    }
+    let surface = collect_name_surface(repo_root, policy)?;
+    for (origin, dep) in &surface.member_path_deps {
+        let base_dir = origin.rsplit_once('/').map(|(dir, _)| dir).unwrap_or("");
+        add_dep(dep, base_dir, origin)?;
+    }
+    drop(add_dep);
+    for decl in surface.names {
+        if policy.carries_target_name_prefix(&decl.name) {
+            candidate.dep_names.insert(decl.name);
         }
     }
     let plan = load_json(&repo_root.join(&policy.masterplan_path))?;
     let mut anchor_hits = Vec::new();
     collect_anchor_strings(&plan, &policy.anchor_field_names, "", &mut anchor_hits);
-    let anchors = anchor_hits
+    candidate.anchors = anchor_hits
         .into_iter()
         .filter(|(_, anchor)| policy.under_target_path_prefix(anchor) && !policy.exempt(anchor))
         .map(|(_, anchor)| anchor)
         .collect();
-    Ok(Baseline {
-        path_hashes: paths.iter().map(|path| entry_digest(path)).collect(),
-        workspace_path_dep_hashes,
-        dep_name_hashes,
-        anchors,
-    })
+    Ok(candidate)
+}
+
+/// SHRINK-ONLY regeneration guard: refuse any candidate that would ADD an entry to any
+/// baseline set. Without this, the documented `--regen-baseline` workflow could launder
+/// new debt into the baseline (add file + regenerate + commit both), bypassing the
+/// zero-new-debt ratchet through its own tooling. Removals remain always admissible.
+pub fn enforce_shrink_only(
+    prior: &Baseline,
+    candidate: &BaselineCandidate,
+) -> Result<(), GateError> {
+    let mut added: Vec<String> = Vec::new();
+    for (kind, entries, prior_hashes) in [
+        ("path", &candidate.paths, &prior.path_hashes),
+        ("workspace-path-dep", &candidate.workspace_path_deps, &prior.workspace_path_dep_hashes),
+        ("name", &candidate.dep_names, &prior.dep_name_hashes),
+    ] {
+        for entry in entries {
+            if !prior_hashes.contains(&entry_digest(entry)) {
+                added.push(format!("{kind}: {entry}"));
+            }
+        }
+    }
+    for anchor in &candidate.anchors {
+        if !prior.anchors.contains(anchor) {
+            added.push(format!("anchor: {anchor}"));
+        }
+    }
+    if added.is_empty() {
+        return Ok(());
+    }
+    let shown: Vec<&String> = added.iter().take(20).collect();
+    Err(GateError::Input(format!(
+        "{CODE_BASELINE_EXPANSION}: regeneration would ADD {} entr(y/ies) to the \
+         shrink-only baseline (first {}: {shown:?}); refusing. The baseline only \
+         shrinks — remove the new target-form debt instead of baselining it. \
+         (Initial adoption freezes a baseline only when no committed baseline file \
+         exists yet; expanding coverage is a reviewed governance act on the committed \
+         file, never a regeneration side effect.)",
+        added.len(),
+        shown.len(),
+    )))
+}
+
+/// Snapshot the current tree into a fresh baseline value (the `--regen-baseline`
+/// surface). When a committed baseline already exists, the regeneration is
+/// SHRINK-ONLY: any entry the candidate would add is a hard refusal
+/// ([`enforce_shrink_only`]). A missing baseline file is the initial-adoption freeze.
+pub fn regenerate_baseline(repo_root: &Path, policy: &Policy) -> Result<Baseline, GateError> {
+    let candidate = collect_baseline_candidate(repo_root, policy)?;
+    let prior_path = repo_root.join(&policy.baseline_file);
+    if prior_path.is_file() {
+        let prior = Baseline::from_value(&load_json(&prior_path)?)?;
+        enforce_shrink_only(&prior, &candidate)?;
+    }
+    Ok(candidate.to_baseline())
 }
 
 /// Run all four blocking arms over the live tree and merge into one verdict.
@@ -1014,13 +1607,19 @@ pub fn check_live_tree(repo_root: &Path, policy: &Policy, baseline: &Baseline) -
         .map_err(|error| {
             GateError::Io(format!("read {}: {error}", policy.workspace_manifest_path))
         })?;
+    let surface = collect_name_surface(repo_root, policy)?;
     let plan = load_json(&repo_root.join(&policy.masterplan_path))?;
-    Ok(Report::merge(vec![
+    let mut reports = vec![
         evaluate_tree(policy, baseline, &paths),
-        evaluate_workspace_manifest(policy, baseline, &manifest, "workspace.dependencies"),
+        evaluate_workspace_manifest(policy, baseline, &manifest, &policy.workspace_section),
+        evaluate_name_surface(policy, baseline, &surface),
         evaluate_masterplan(policy, baseline, &plan),
         evaluate_reduction_claims(policy, &plan),
-    ]))
+    ];
+    for (origin, artifact) in collect_claim_artifacts(repo_root, policy)? {
+        reports.push(evaluate_reduction_claims_at(policy, &origin, &artifact));
+    }
+    Ok(Report::merge(reports))
 }
 
 #[cfg(test)]
@@ -1041,6 +1640,11 @@ mod tests {
             "exemptions": { "path_prefixes": [] },
             "scan": { "skip_dir_names": [".git", "buck-out", "target"] },
             "workspace_manifest": { "path": "Cargo.toml", "section": "workspace.dependencies" },
+            "name_surface": {
+                "cargo_manifest_file_name": "Cargo.toml",
+                "buck_file_names": ["BUCK"],
+                "dependency_sections": ["dependencies", "dev-dependencies", "build-dependencies"]
+            },
             "masterplan": {
                 "path": "specs/masterplan.json",
                 "anchor_field_names": ["source_anchors", "evidence_anchor", "anchor"]
@@ -1048,7 +1652,10 @@ mod tests {
             "reduction_claims": {
                 "claim_field": "claim",
                 "claim_values": ["net_target_surface_reduction"],
-                "required_fields": ["before_count", "after_count", "census_snapshot_ref"]
+                "required_fields": ["before_count", "after_count", "census_snapshot_ref"],
+                "before_count_field": "before_count",
+                "after_count_field": "after_count",
+                "scan_roots": ["evidence", "registry"]
             }
         })
     }
@@ -1082,6 +1689,35 @@ mod tests {
             Policy::from_value(&value).is_err(),
             "a path prefix without a trailing slash would match sibling names"
         );
+    }
+
+    #[test]
+    fn policy_rejects_empty_load_bearing_collections_and_empty_entries() {
+        // An empty anchor/claim/required-field collection silently disables an arm
+        // while the report still lists it as evaluated — refuse at load time.
+        for (section, key) in [
+            ("masterplan", "anchor_field_names"),
+            ("reduction_claims", "claim_values"),
+            ("reduction_claims", "required_fields"),
+            ("name_surface", "dependency_sections"),
+        ] {
+            let mut value = test_policy_value();
+            value[section][key] = json!([]);
+            assert!(
+                Policy::from_value(&value).is_err(),
+                "empty {section}.{key} must fail closed"
+            );
+        }
+        // Empty-string entries are refused everywhere; an empty exemption prefix would
+        // exempt EVERYTHING.
+        let mut value = test_policy_value();
+        value["exemptions"]["path_prefixes"] = json!([""]);
+        assert!(Policy::from_value(&value).is_err());
+        // The count fields must be covered by required_fields, or the numeric proof
+        // could be skipped entirely.
+        let mut value = test_policy_value();
+        value["reduction_claims"]["required_fields"] = json!(["census_snapshot_ref"]);
+        assert!(Policy::from_value(&value).is_err());
     }
 
     #[test]
@@ -1199,6 +1835,213 @@ mod tests {
         };
         let report = evaluate_workspace_deps(&policy, &baseline, &deps);
         assert_eq!(report.verdict(), Verdict::Green, "baselined entries are shrink-only inventory");
+    }
+
+    #[test]
+    fn arm_b_parses_single_quoted_relative_and_unparseable_paths_fail_closed() {
+        let policy = test_policy();
+        let manifest = concat!(
+            "[workspace.dependencies]\n",
+            "legacy-single = { path = 'cloud/legacy-single-quoted' }\n",
+            "legacy-relative = { path = \"./cloud/legacy-relative\" }\n",
+            "legacy-mystery = { path = unquoted_nonsense }\n",
+        );
+        let deps = parse_workspace_dependencies(manifest, "workspace.dependencies");
+        assert_eq!(deps.len(), 3);
+        assert_eq!(deps[0].path, "cloud/legacy-single-quoted");
+        assert_eq!(deps[1].path, "./cloud/legacy-relative");
+        assert!(deps[2].path_unparseable, "an unreadable path value must be marked, not dropped");
+
+        let report = evaluate_workspace_deps(&policy, &Baseline::default(), &deps);
+        assert_eq!(
+            codes(&report),
+            vec![CODE_DEP_PATH_UNPARSEABLE, CODE_NEW_TARGET_PATH_DEP, CODE_NEW_TARGET_PATH_DEP]
+        );
+        // `./cloud/...` is normalized before the prefix check and baselined under its
+        // normalized spelling.
+        let baseline = Baseline {
+            workspace_path_dep_hashes: ["cloud/legacy-single-quoted", "cloud/legacy-relative"]
+                .iter()
+                .map(|p| entry_digest(p))
+                .collect(),
+            ..Baseline::default()
+        };
+        let report = evaluate_workspace_deps(&policy, &baseline, &deps[..2]);
+        assert_eq!(report.verdict(), Verdict::Green);
+    }
+
+    #[test]
+    fn normalize_rel_path_resolves_dot_and_parent_components() {
+        assert_eq!(normalize_rel_path("", "./cloud/x"), "cloud/x");
+        assert_eq!(normalize_rel_path("libs/foo", "../../cloud/x"), "cloud/x");
+        assert_eq!(normalize_rel_path("libs/foo", "./bar"), "libs/foo/bar");
+        assert_eq!(
+            normalize_rel_path("", "../outside"),
+            "../outside",
+            "a path escaping the repo root is returned raw"
+        );
+    }
+
+    #[test]
+    fn name_surface_refuses_new_target_names_and_member_path_deps() {
+        let policy = test_policy();
+        let manifest = concat!(
+            "[package]\n",
+            "name = \"cloud-synthetic-new-kernel\"\n\n",
+            "[[bin]]\n",
+            "name = \"oya_synthetic_new_bin\"\n\n",
+            "[dependencies]\n",
+            "legacy-estate = { path = \"../../cloud/legacy-estate-crate\" }\n\n",
+            "[dev-dependencies.legacy-dev]\n",
+            "path = \"../../oya/legacy-dev-crate\"\n",
+        );
+        let facts = parse_manifest_facts(
+            manifest,
+            &["dependencies".to_owned(), "dev-dependencies".to_owned()],
+        );
+        assert_eq!(facts.package_name.as_deref(), Some("cloud-synthetic-new-kernel"));
+        assert_eq!(facts.bin_names, vec!["oya_synthetic_new_bin"]);
+        assert_eq!(facts.path_deps.len(), 2);
+
+        let origin = "libs/synthetic/Cargo.toml".to_owned();
+        let mut surface = NameSurface::default();
+        if let Some(name) = facts.package_name.clone() {
+            surface.names.push(NameDecl { name, origin: origin.clone() });
+        }
+        for name in facts.bin_names.clone() {
+            surface.names.push(NameDecl { name, origin: origin.clone() });
+        }
+        for dep in facts.path_deps.clone() {
+            surface.member_path_deps.push((origin.clone(), dep));
+        }
+        let report = evaluate_name_surface(&policy, &Baseline::default(), &surface);
+        assert_eq!(
+            codes(&report),
+            vec![
+                CODE_NEW_TARGET_NAME,
+                CODE_NEW_TARGET_NAME,
+                CODE_NEW_TARGET_PATH_DEP,
+                CODE_NEW_TARGET_PATH_DEP,
+            ],
+            "findings: {:#?}",
+            report.findings
+        );
+        // Baselined names and member dep paths (normalized against the declaring
+        // manifest's directory) are shrink-only inventory.
+        let baseline = Baseline {
+            dep_name_hashes: ["cloud-synthetic-new-kernel", "oya_synthetic_new_bin"]
+                .iter()
+                .map(|n| entry_digest(n))
+                .collect(),
+            workspace_path_dep_hashes: ["cloud/legacy-estate-crate", "oya/legacy-dev-crate"]
+                .iter()
+                .map(|p| entry_digest(p))
+                .collect(),
+            ..Baseline::default()
+        };
+        let report = evaluate_name_surface(&policy, &baseline, &surface);
+        assert_eq!(report.verdict(), Verdict::Green, "findings: {:#?}", report.findings);
+    }
+
+    #[test]
+    fn buck_target_names_parse_both_quote_styles_and_skip_non_literals() {
+        let text = concat!(
+            "rust_binary(\n",
+            "    name = \"cloud-synthetic-buck-bin\",\n",
+            ")\n",
+            "rust_library(\n",
+            "    name = 'oya-synthetic-buck-lib',  # trailing comment\n",
+            ")\n",
+            "weird(\n",
+            "    name = \"prefix-\" + suffix,\n",
+            ")\n",
+        );
+        assert_eq!(
+            parse_buck_target_names(text),
+            vec!["cloud-synthetic-buck-bin", "oya-synthetic-buck-lib"]
+        );
+    }
+
+    #[test]
+    fn regeneration_refuses_baseline_expansion_and_allows_shrink() {
+        let prior = Baseline {
+            path_hashes: ["cloud/legacy/kernel.rs", "cloud/legacy/gone.rs"]
+                .iter()
+                .map(|p| entry_digest(p))
+                .collect(),
+            anchors: ["cloud/legacy/kernel.rs"].iter().map(|a| (*a).to_owned()).collect(),
+            ..Baseline::default()
+        };
+        // Shrink: strictly fewer entries — admissible.
+        let shrink = BaselineCandidate {
+            paths: ["cloud/legacy/kernel.rs"].iter().map(|p| (*p).to_owned()).collect(),
+            anchors: ["cloud/legacy/kernel.rs"].iter().map(|a| (*a).to_owned()).collect(),
+            ..BaselineCandidate::default()
+        };
+        assert!(enforce_shrink_only(&prior, &shrink).is_ok());
+        // Expansion: a NEW path rides along with a legitimate removal — refused.
+        let expansion = BaselineCandidate {
+            paths: ["cloud/legacy/kernel.rs", "cloud/newly-minted/lib.rs"]
+                .iter()
+                .map(|p| (*p).to_owned())
+                .collect(),
+            anchors: ["cloud/legacy/kernel.rs"].iter().map(|a| (*a).to_owned()).collect(),
+            ..BaselineCandidate::default()
+        };
+        let error = enforce_shrink_only(&prior, &expansion).unwrap_err();
+        assert!(
+            error.to_string().contains(CODE_BASELINE_EXPANSION)
+                && error.to_string().contains("cloud/newly-minted/lib.rs"),
+            "the refusal must carry the code and name the attempted addition: {error}"
+        );
+        // New anchors are expansions too.
+        let anchor_expansion = BaselineCandidate {
+            paths: ["cloud/legacy/kernel.rs"].iter().map(|p| (*p).to_owned()).collect(),
+            anchors: ["cloud/legacy/kernel.rs", "oya/new-anchor"]
+                .iter()
+                .map(|a| (*a).to_owned())
+                .collect(),
+            ..BaselineCandidate::default()
+        };
+        assert!(enforce_shrink_only(&prior, &anchor_expansion).is_err());
+    }
+
+    #[test]
+    fn arm_d_refuses_non_numeric_and_non_reducing_counts() {
+        let policy = test_policy();
+        let growth = json!({
+            "claims": [{
+                "claim": "net_target_surface_reduction",
+                "before_count": 10,
+                "after_count": 20,
+                "census_snapshot_ref": "reorg-census@deadbeef"
+            }]
+        });
+        let report = evaluate_reduction_claims(&policy, &growth);
+        assert_eq!(codes(&report), vec![CODE_UNPROVEN_REDUCTION_CLAIM]);
+        assert!(report.findings[0].detail.contains("does not reduce"));
+
+        let stringly = json!({
+            "claims": [{
+                "claim": "net_target_surface_reduction",
+                "before_count": "many",
+                "after_count": "few",
+                "census_snapshot_ref": "reorg-census@deadbeef"
+            }]
+        });
+        let report = evaluate_reduction_claims(&policy, &stringly);
+        assert_eq!(codes(&report), vec![CODE_UNPROVEN_REDUCTION_CLAIM]);
+
+        let equal = json!({
+            "claims": [{
+                "claim": "net_target_surface_reduction",
+                "before_count": 10,
+                "after_count": 10,
+                "census_snapshot_ref": "reorg-census@deadbeef"
+            }]
+        });
+        let report = evaluate_reduction_claims(&policy, &equal);
+        assert_eq!(codes(&report), vec![CODE_UNPROVEN_REDUCTION_CLAIM]);
     }
 
     #[test]
@@ -1337,6 +2180,53 @@ mod tests {
         );
         let report = audit_interval(&policy, &hollow).unwrap();
         assert_eq!(report.verdict(), Verdict::Red);
+    }
+
+    #[test]
+    fn audit_fails_closed_on_malformed_dep_facts_and_unbound_range() {
+        let policy = test_policy();
+        // A malformed added_workspace_path_deps element must never silently become an
+        // empty dependency that audits green.
+        let mut malformed = audit_input(json!([clean_commit("b2b2b2")]), json!([]));
+        malformed["commits"][0]["added_workspace_path_deps"] = json!(["not-an-object"]);
+        let error = audit_interval(&policy, &malformed).unwrap_err();
+        assert!(error.to_string().contains("RTD_AUDIT_INPUT_INVALID"), "{error}");
+        let mut missing_path = audit_input(json!([clean_commit("b2b2b2")]), json!([]));
+        missing_path["commits"][0]["added_workspace_path_deps"] =
+            json!([{ "name": "legacy-dep" }]);
+        assert!(audit_interval(&policy, &missing_path).is_err());
+        // A capture whose last commit is not range.to is not bound to the declared
+        // range: `complete: true` alone must not audit green.
+        let unbound = audit_input(json!([clean_commit("a1a1a1")]), json!([]));
+        let error = audit_interval(&policy, &unbound).unwrap_err();
+        assert!(
+            error.to_string().contains("not bound to the declared range"),
+            "{error}"
+        );
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn tree_walk_records_directory_symlinks_as_leaves_instead_of_following() {
+        let root = std::env::temp_dir().join(format!(
+            "rtd-symlink-walk-{}-{:?}",
+            std::process::id(),
+            std::thread::current().id()
+        ));
+        let _ = fs::remove_dir_all(&root);
+        fs::create_dir_all(root.join("cloud/real")).unwrap();
+        fs::write(root.join("cloud/real/file.rs"), "// synthetic").unwrap();
+        // A directory symlink pointing back up would loop forever if followed.
+        std::os::unix::fs::symlink("..", root.join("cloud/loop")).unwrap();
+
+        let policy = test_policy();
+        let paths = collect_target_prefix_paths(&root, &policy).unwrap();
+        assert!(paths.contains("cloud/real/file.rs"));
+        assert!(
+            paths.contains("cloud/loop"),
+            "a tracked directory symlink under a target prefix is itself a leaf entry: {paths:?}"
+        );
+        fs::remove_dir_all(&root).unwrap();
     }
 
     #[test]

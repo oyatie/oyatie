@@ -1,0 +1,22 @@
+{
+  "case": "Arm B (name surface) refusal: a member manifest's direct [dependencies] path edge into a reorg-target prefix fails closed — Cargo members are not required to inherit through the root workspace table, so member-declared relative paths are resolved repo-relative and checked.",
+  "kind": "name-surface",
+  "input": {
+    "baseline_dep_names": [],
+    "baseline_workspace_path_deps": [],
+    "names": [],
+    "member_path_deps": [
+      {
+        "origin": "libs/synthetic-fixture/Cargo.toml",
+        "name": "legacy-estate-dep",
+        "path": "../../cloud/legacy-estate-crate"
+      },
+      {
+        "origin": "libs/synthetic-fixture/Cargo.toml",
+        "name": "fine-dep",
+        "path": "../fine-crate"
+      }
+    ]
+  },
+  "expected_codes": ["RTD_NEW_TARGET_PATH_DEP"]
+}

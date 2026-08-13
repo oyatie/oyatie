@@ -14,6 +14,7 @@
     "file": "ci/facade/reorg-target-debt/reorg-target-debt-baseline.json",
     "shrink_only": true,
     "removal_requires_regeneration": true,
+    "regeneration_enforces_shrink_only": "The --regen-baseline surface itself refuses expansion: the candidate snapshot is compared with the committed baseline and ANY added path/dep/name/anchor is a hard RTD_BASELINE_EXPANSION refusal, so the documented regeneration workflow cannot launder new debt into the baseline. A missing baseline file is the initial-adoption freeze; expanding coverage is a reviewed governance act on the committed file, never a regeneration side effect.",
     "regeneration_command": "buck2 run //ci/facade/reorg-target-debt:ci-reorg-target-debt-bin -- --regen-baseline"
   },
   "exemptions": {
@@ -25,9 +26,15 @@
     "skip_dir_names": [".git", "buck-out", "target", "node_modules", ".venv", "__pycache__"]
   },
   "workspace_manifest": {
-    "_comment": "Arm B input: the root workspace manifest's [workspace.dependencies] table (inline-table and subsection forms). Member manifests inherit through the workspace table, so the root table is the single declaration surface this arm binds; zero target-form entries exist at birth, so Arm B is born-green at an empty baseline.",
+    "_comment": "Arm B input, half one: the root workspace manifest's dependency table (inline-table and subsection forms; double- OR single-quoted path values; relative spellings are lexically normalized before evaluation; a path value the parser cannot read is a fail-closed RTD_DEP_PATH_UNPARSEABLE finding). Cargo members are NOT required to inherit through this table, so Arm B additionally scans every member manifest and declared name via name_surface below.",
     "path": "Cargo.toml",
     "section": "workspace.dependencies"
+  },
+  "name_surface": {
+    "_comment": "Arm B input, half two: the repo-wide name-and-member-dependency surface the target NAME prefixes bind. Every Cargo manifest contributes its [package] name, [[bin]] names, and path entries in the listed dependency sections (resolved repo-relative against the declaring manifest's directory); every Buck file contributes its literal target names. Existing target-form names and member path deps are migration inventory carried shrink-only by the committed baseline; minting a NEW target-form crate/binary/build-target name or a NEW member path dependency into a target prefix fails closed.",
+    "cargo_manifest_file_name": "Cargo.toml",
+    "buck_file_names": ["BUCK"],
+    "dependency_sections": ["dependencies", "dev-dependencies", "build-dependencies"]
   },
   "masterplan": {
     "_comment": "Arm C input: the parsed planning SSOT. The evaluator deep-walks the provided JSON value; any string found under one of anchor_field_names (directly or inside an array) that begins with a target path prefix is an evidence anchor under test. This arm is synthetic-fixture-proven at birth and re-binds to the live work-item id space at Wave 1. The two pre-existing target anchors in today's corpus are carried shrink-only in the baseline.",
@@ -35,20 +42,23 @@
     "anchor_field_names": ["source_anchors", "evidence_anchor", "evidence_anchors", "evidence_path", "anchor", "artifact_ref", "source_path"]
   },
   "reduction_claims": {
-    "_comment": "Arm D contract: an artifact object asserting a net target-surface-reduction claim is refused unless it binds the measurement. All three companion fields are required; before_count and after_count are DATA carried by the artifact under test — this gate never invents or compares numeric thresholds. Any future numeric corridor slot is a NAMED PLACEHOLDER routed to the Wave 5 corridor freeze (see corridor_placeholders).",
+    "_comment": "Arm D contract: an artifact object asserting a net target-surface-reduction claim is refused unless it binds the measurement: all companion fields present, the two count fields NUMERIC, and after_count strictly below before_count — a claim whose own numbers demonstrate growth (or nonnumeric counts) is refused. The gate still mints no numeric threshold: the only comparison is the direction the claim itself asserts; any future corridor slot stays a NAMED PLACEHOLDER routed to the Wave 5 corridor freeze (see corridor_placeholders). Beyond the planning SSOT, every *.json artifact under scan_roots is evaluated for claims (an absent root contributes nothing; an unparseable artifact under a scan root fails closed).",
     "claim_field": "claim",
     "claim_values": ["net_target_surface_reduction"],
-    "required_fields": ["before_count", "after_count", "census_snapshot_ref"]
+    "required_fields": ["before_count", "after_count", "census_snapshot_ref"],
+    "before_count_field": "before_count",
+    "after_count_field": "after_count",
+    "scan_roots": ["evidence", "registry"]
   },
   "audit_mode": {
-    "_comment": "Deterministic interval audit over an explicit commit range <from>..<to>. Git I/O stays at the CALLER boundary (scm-facts precedent: the gate fleet keeps one out-of-graph git boundary; this crate spawns no subprocess): the caller materializes a captured commit-set JSON and the binary's audit engine — the SAME code path the fixture suite proves — evaluates it. FAIL-CLOSED: a missing, unparseable, empty, incomplete (complete != true, or a commit missing any fact array), or range-less input is a non-zero explicit RTD_AUDIT_INPUT_INVALID finding, never a pass. A commit introducing a file/dep/anchor under a target form relative to the range base is reported per commit and per arm; the report stays red until every finding's commit carries a remediation record. The report is machine-readable JSON suitable for committing as a durable evidence record.",
+    "_comment": "Deterministic interval audit over an explicit commit range <from>..<to>. Git I/O stays at the CALLER boundary (scm-facts precedent: the gate fleet keeps one out-of-graph git boundary; this crate spawns no subprocess): the caller materializes a captured commit-set JSON and the binary's audit engine — the SAME code path the fixture suite proves — evaluates it. FAIL-CLOSED: a missing, unparseable, empty, incomplete (complete != true, or a commit missing any fact array), range-less, range-unbound (the last captured commit must BE range.to — rev-list --reverse ends at the range head, so a truncated capture cannot self-assert completeness), or malformed (any added_workspace_path_deps element that is not an object with a non-empty string name and a string path) input is a non-zero explicit RTD_AUDIT_INPUT_INVALID finding, never a pass. A commit introducing a file/dep/anchor under a target form relative to the range base is reported per commit and per arm; the report stays red until every finding's commit carries a remediation record. The report is machine-readable JSON suitable for committing as a durable evidence record.",
     "input_schema": "ci-reorg-target-debt-interval-audit-input.v1",
     "invocation": "buck2 run //ci/facade/reorg-target-debt:ci-reorg-target-debt-bin -- --mode audit --commit-set <captured-input.json> [--out <report.json>]",
     "commit_set_materialization": [
       "The caller (coordinator) materializes the captured input for <from>..<to> with plain git, outside this crate:",
       "1. commits: git rev-list --reverse <from>..<to>",
       "2. per commit added_paths: git diff-tree --no-commit-id --name-only --diff-filter=A -r <sha>",
-      "3. per commit added_workspace_path_deps / added_dep_names: entries present in [workspace.dependencies] of the root manifest at <sha> and absent at <sha>^ (objects {name, path}; name-only entries carry an empty path)",
+      "3. per commit added_workspace_path_deps / added_dep_names: dependency entries and declared names present on the Arm B surface (root workspace table, member-manifest dependency sections, package/bin/Buck target names) at <sha> and absent at <sha>^ (objects {name, path}; name-only entries carry an empty string path)",
       "4. per commit added_evidence_anchors: anchor strings (per masterplan.anchor_field_names) present in the planning SSOT at <sha> and absent at <sha>^",
       "5. set range.from/range.to to the exact shas and complete=true only when every commit in the range carries all four fact arrays"
     ]

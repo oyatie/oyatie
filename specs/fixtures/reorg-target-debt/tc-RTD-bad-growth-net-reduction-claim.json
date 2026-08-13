@@ -1,0 +1,23 @@
+{
+  "case": "Arm D refusal: a net target-surface-reduction claim whose own numbers demonstrate growth (after_count >= before_count) or whose counts are not numeric is refused — nonempty fields alone are not proof of reduction.",
+  "kind": "reduction-claims",
+  "input": {
+    "artifact": {
+      "claims": [
+        {
+          "claim": "net_target_surface_reduction",
+          "before_count": 10,
+          "after_count": 20,
+          "census_snapshot_ref": "reorg-target-census@synthetic-fixture-snapshot"
+        },
+        {
+          "claim": "net_target_surface_reduction",
+          "before_count": "many",
+          "after_count": "few",
+          "census_snapshot_ref": "reorg-target-census@synthetic-fixture-snapshot"
+        }
+      ]
+    }
+  },
+  "expected_codes": ["RTD_UNPROVEN_REDUCTION_CLAIM", "RTD_UNPROVEN_REDUCTION_CLAIM"]
+}

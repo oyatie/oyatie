@@ -22,8 +22,9 @@ use std::path::{Path, PathBuf};
 use serde_json::Value;
 
 use ci_reorg_target_debt::{
-    Baseline, Policy, Report, Verdict, audit_interval, check_live_tree,
-    collect_target_prefix_paths, entry_digest, evaluate_masterplan, evaluate_reduction_claims,
+    Baseline, BaselineCandidate, NameDecl, NameSurface, Policy, Report, Verdict, WorkspaceDep,
+    audit_interval, check_live_tree, collect_target_prefix_paths, enforce_shrink_only,
+    entry_digest, evaluate_masterplan, evaluate_name_surface, evaluate_reduction_claims,
     evaluate_tree, evaluate_workspace_manifest, load_baseline, load_json, load_policy,
     POLICY_PATH,
 };
@@ -136,13 +137,21 @@ fn committed_baseline_file_carries_digests_not_literal_paths() {
 
 // ─── (b) fixture corpus ─────────────────────────────────────────────────────
 
-const REQUIRED_CASES: [&str; 6] = [
+const REQUIRED_CASES: [&str; 14] = [
     "tc-RTD-bad-new-file-under-target-prefix.json",
     "tc-RTD-bad-new-workspace-path-dep.json",
+    "tc-RTD-bad-single-quoted-relative-path-dep.json",
+    "tc-RTD-bad-unparseable-path-dep.json",
+    "tc-RTD-bad-new-target-crate-name.json",
+    "tc-RTD-bad-new-member-target-path-dep.json",
     "tc-RTD-bad-work-item-target-anchor.json",
     "tc-RTD-bad-unproven-net-reduction-claim.json",
+    "tc-RTD-bad-growth-net-reduction-claim.json",
     "tc-RTD-good-proven-net-reduction-claim.json",
+    "tc-RTD-bad-baseline-expansion-regen.json",
     "tc-RTD-audit-bad-planted-target-debt-commit.json",
+    "tc-RTD-audit-bad-malformed-dep-fact.json",
+    "tc-RTD-audit-bad-range-mismatch.json",
 ];
 
 /// Fixtures declare baselines as LITERAL synthetic strings (parse-verbatim inputs); the
@@ -219,6 +228,14 @@ fn run_fixture(policy: &Policy, fixture: &Value, name: &str) {
                 .expect("reduction-claims fixture declares artifact");
             evaluate_reduction_claims(policy, artifact)
         }
+        "name-surface" => {
+            let surface = name_surface_from_fixture(input, name);
+            evaluate_name_surface(policy, &baseline, &surface)
+        }
+        "baseline-regen" => {
+            run_baseline_regen_fixture(fixture, input, name);
+            return;
+        }
         "interval-audit" => {
             run_audit_fixture(policy, fixture, input, name);
             return;
@@ -235,6 +252,78 @@ fn run_fixture(policy: &Policy, fixture: &Value, name: &str) {
         !report.evaluated_arms.is_empty(),
         "{name}: every evaluation carries the liveness arm list"
     );
+}
+
+/// Build a synthetic name surface from fixture data: `names` entries carry
+/// `{name, origin}`; `member_path_deps` entries carry `{origin, name, path}`.
+fn name_surface_from_fixture(input: &Value, _name: &str) -> NameSurface {
+    let mut surface = NameSurface::default();
+    for decl in input
+        .get("names")
+        .and_then(Value::as_array)
+        .unwrap_or(&Vec::new())
+    {
+        surface.names.push(NameDecl {
+            name: decl["name"].as_str().expect("name is a string").to_owned(),
+            origin: decl["origin"].as_str().expect("origin is a string").to_owned(),
+        });
+    }
+    for dep in input
+        .get("member_path_deps")
+        .and_then(Value::as_array)
+        .unwrap_or(&Vec::new())
+    {
+        surface.member_path_deps.push((
+            dep["origin"].as_str().expect("origin is a string").to_owned(),
+            WorkspaceDep {
+                name: dep["name"].as_str().expect("dep name is a string").to_owned(),
+                path: dep["path"].as_str().expect("dep path is a string").to_owned(),
+                path_unparseable: dep
+                    .get("path_unparseable")
+                    .and_then(Value::as_bool)
+                    .unwrap_or(false),
+            },
+        ));
+    }
+    surface
+}
+
+/// Prove the shrink-only regeneration guard through the same [`enforce_shrink_only`]
+/// the `--regen-baseline` surface runs: `expected_regen` is `"ok"` or `"refused"`.
+fn run_baseline_regen_fixture(fixture: &Value, input: &Value, name: &str) {
+    let set = |key: &str| -> BTreeSet<String> {
+        input
+            .get(key)
+            .and_then(Value::as_array)
+            .map(|items| {
+                items
+                    .iter()
+                    .map(|v| v.as_str().expect("entry is a string").to_owned())
+                    .collect()
+            })
+            .unwrap_or_default()
+    };
+    let prior = baseline_from_fixture(input);
+    let candidate = BaselineCandidate {
+        paths: set("candidate_paths"),
+        workspace_path_deps: set("candidate_workspace_path_deps"),
+        dep_names: set("candidate_dep_names"),
+        anchors: set("candidate_anchors"),
+    };
+    let expected = fixture
+        .get("expected_regen")
+        .and_then(Value::as_str)
+        .unwrap_or_else(|| panic!("{name}: baseline-regen fixture must declare expected_regen"));
+    match enforce_shrink_only(&prior, &candidate) {
+        Ok(()) => assert_eq!(expected, "ok", "{name}: expansion was NOT refused"),
+        Err(error) => {
+            assert_eq!(expected, "refused", "{name}: unexpected refusal: {error}");
+            assert!(
+                error.to_string().contains("RTD_BASELINE_EXPANSION"),
+                "{name}: refusal must carry the explicit code: {error}"
+            );
+        }
+    }
 }
 
 fn run_audit_fixture(policy: &Policy, fixture: &Value, input: &Value, name: &str) {
