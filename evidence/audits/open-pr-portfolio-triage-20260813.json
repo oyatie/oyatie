@@ -24,7 +24,13 @@
       "specs/masterplan.json#masterplan_v2.planning_entry_contract",
       "evidence/goals/north-star-completion-t2-execution-authorization-20260812.json#decision.scope_limit"
     ],
-    "snapshot_validity": "Historical point-in-time observation at observed_at on base_sha. Later PR merges or head changes do not rewrite row states; disposition follow-through is recorded separately."
+    "snapshot_validity": "Historical point-in-time observation at observed_at on base_sha. The row states and classifications use the authority supplied in the team brief at collection time. Later PR merges or head changes do not rewrite those rows; repository-verifiable authority and disposition follow-through are recorded separately.",
+    "post_snapshot_authority_evaluation": {
+      "evaluated_at": "2026-08-13T01:53:29Z",
+      "anchor_commit": "fecc126ebe7ded4949c8ac26b59b8a1e6bcb371c",
+      "anchor_commit_role": "First dev commit containing the T1 and T2 repository evidence refs cited by programme_gate_authority_refs.",
+      "effect": "Confirms the externally supplied programme authority in repository history; does not rewrite the observed_at PR states or classifications."
+    }
   },
   "scope": {
     "launch_brief_open_pr_count": 30,
