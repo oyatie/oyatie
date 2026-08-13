@@ -31,7 +31,8 @@
     "ci/facade/endpoint-authorization-coverage/authz-coverage-policy.json",
     "ci/facade/layer-dependency-acyclicity/tier-dependency-acyclicity-policy.json",
     "ci/facade/module-membership/capability-membership-policy.json",
-    "ci/facade/operator-secret-rbac/operator-secret-bootstrap-policy.json"
+    "ci/facade/operator-secret-rbac/operator-secret-bootstrap-policy.json",
+    "ci/facade/reorg-target-debt/reorg-target-debt-policy.json"
   ],
   "exempt_policy_files": {},
   "forward_declarations": {
