@@ -2239,6 +2239,7 @@ fn preplanning_candidate_facts_agree(
             nonclosure_state,
             nonclosure_binding,
             nonclosure_dispatch,
+            contract.get("closure_evidence"),
         )
         && state_baseline == baseline_base
         && state_base == baseline_base
@@ -2306,9 +2307,14 @@ fn preplanning_candidate_facts_agree(
     })
 }
 
-/// The immutable candidate receipt records the historical open hold. A later closed
-/// transition unlocks the live contract through its separate closure-evidence chain without
-/// rewriting that time-scoped receipt.
+/// Open hold keeps dispatch/binding locked and must byte-agree with the historical
+/// PR #1340 non-closure receipt. The closed hold (bootstrap T4) never demands
+/// agreement from that receipt: it is a pinned historical observation of the OPEN
+/// hold and stays byte-immutable forever, so a lawful T4 must NOT rewrite it into
+/// claiming binding/dispatch. Closed-state flag agreement is carried by the
+/// contract's `closure_evidence` chain instead (deep content validation lives in
+/// [`evaluate_closed_preplanning_entry_contract`] and
+/// [`evaluate_planning_entry_closure_evidence`]).
 fn preplanning_hold_shape_agrees(
     contract_state: &str,
     binding_allowed: bool,
@@ -2316,21 +2322,26 @@ fn preplanning_hold_shape_agrees(
     nonclosure_state: &str,
     nonclosure_binding: bool,
     nonclosure_dispatch: bool,
+    closure_evidence: Option<&Value>,
 ) -> bool {
+    // The historical non-closure receipt recorded the OPEN hold with both
+    // authorities locked; any other claim means the pinned receipt was rewritten
+    // into internally contradictory evidence.
+    let receipt_immutable = nonclosure_state == PREPLANNING_ENTRY_STATE_OPEN
+        && !nonclosure_binding
+        && !nonclosure_dispatch;
+    if !receipt_immutable {
+        return false;
+    }
     match contract_state {
         PREPLANNING_ENTRY_STATE_OPEN => {
-            nonclosure_state == PREPLANNING_ENTRY_STATE_OPEN
-                && !binding_allowed
-                && !dispatch_allowed
-                && !nonclosure_binding
-                && !nonclosure_dispatch
+            !binding_allowed && !dispatch_allowed && closure_evidence.is_none()
         }
         PREPLANNING_ENTRY_STATE_CLOSED => {
-            binding_allowed
-                && dispatch_allowed
-                && nonclosure_state == PREPLANNING_ENTRY_STATE_OPEN
-                && !nonclosure_binding
-                && !nonclosure_dispatch
+            // The lawful closed transition unlocks BOTH authorities explicitly and
+            // proves it with the closure-evidence chain — never by mutating the
+            // historical receipt into agreement with the new flags.
+            binding_allowed && dispatch_allowed && closure_evidence.is_some_and(Value::is_object)
         }
         _ => false,
     }
@@ -2816,6 +2827,28 @@ const PLANNING_ENTRY_CLOSURE_REF_FIELDS: [&str; 4] = [
     "t3b_interval_audit_ref",
 ];
 
+/// Founder-ratified approved-content digests, pinned from the merged T1 hold-lift
+/// receipt (evidence/goals/north-star-completion-t1-hold-lift-receipt-20260812.json).
+/// The full spec/plan texts are deliberately NOT in-tree until the Wave 1
+/// brand-residue carve-out, so re-derivation from artifacts is impossible by design;
+/// instead of accepting any well-formed sha256, the evaluator pins the exact
+/// ratified values so a T1 record cannot claim founder approval for unrelated content.
+const T1_APPROVED_CRYSTALLIZED_SPEC_SHA256: &str =
+    "8c730c54c3145404ef6ab10163f52c69c5796b2beb5b60fc5ea3c5c31bdb0b62";
+const T1_APPROVED_CONSENSUS_PLAN_SHA256: &str =
+    "95132e4e2ef165667223117a026e3c3d5856a45250b4a7101b7cefef5ddd6ab1";
+
+/// The T2 execution-authorization anchor: the squash-merge SHA of protected PR #1941,
+/// which landed the T1/T2 authority-bootstrap receipts on dev (historical programme
+/// fact). The T2-to-T3b interval audit must declare its audited range FROM this
+/// anchor — a clean audit of some other interval is not closure evidence.
+const T2_EXECUTION_AUTHORIZATION_ANCHOR_SHA: &str = "fecc126ebe7ded4949c8ac26b59b8a1e6bcb371c";
+
+/// The exact gate whose liveness the closure transition depends on. The T3b
+/// gate-liveness receipt must name this target (identity binding), not merely claim
+/// that some gate somewhere is live.
+const T3B_GATE_LIVENESS_TARGET: &str = "//ci/facade/reorg-target-debt";
+
 /// A closure-evidence ref is admissible only as a durable repo-relative `evidence/**`
 /// path. Runtime/plan stores (`.gjc/**`, `.omc/**`, `.omx/**`), absolute paths, and
 /// parent-directory escapes can never carry closure authority.
@@ -2931,14 +2964,17 @@ fn evaluate_planning_entry_closure_evidence_shape(
 ///   must each be founder-approved records of the exact declared class carrying the
 ///   exact per-class decision status (T1 `approved`, T2 `authorized` — never
 ///   interchangeable), and the T1 receipt must pin both approved-content sha256
-///   digests;
+///   digests to the exact founder-ratified constants
+///   ([`T1_APPROVED_CRYSTALLIZED_SPEC_SHA256`], [`T1_APPROVED_CONSENSUS_PLAN_SHA256`]);
 /// - the T3b gate-liveness receipt (`record_class: gate-liveness-receipt`,
-///   `status: live`) and the T2-to-T3b interval-audit record
-///   (`record_class: t2-t3b-interval-audit`, `status: clean`) must be content-valid,
-///   not merely present-and-parseable;
-/// - the approval record behind `approval_ref` is the T2 execution-authorization
-///   record required by the bootstrap contract; it must independently validate as
-///   founder-authorized rather than relying on the masterplan object's assertion.
+///   `status: live`, `gate_target` naming [`T3B_GATE_LIVENESS_TARGET`]) and the
+///   T2-to-T3b interval-audit record (`record_class: t2-t3b-interval-audit`,
+///   `status: clean`, `audit_range.from_anchor` equal to
+///   [`T2_EXECUTION_AUTHORIZATION_ANCHOR_SHA`] with a declared `to_anchor`) must be
+///   content-valid and bound to THIS transition, not merely present-and-parseable;
+/// - the approval record behind `approval_ref` is the same founder-authorized T2
+///   execution-authorization record required by the bootstrap contract, so the
+///   masterplan cannot self-assert a different approval source.
 ///
 /// The caller owns resolving `closure_evidence.*_ref` paths to the supplied parsed
 /// documents; keeping file I/O outside this function preserves the pure evaluator
@@ -2974,15 +3010,20 @@ pub fn evaluate_planning_entry_closure_evidence(
         "approved",
         &mut findings,
     );
-    // Both approved-content digests must be pinned in the T1 receipt: the crystallized
-    // spec and the consensus plan are what the founder actually approved.
-    for content in ["crystallized_spec", "consensus_plan"] {
+    // Both approved-content digests must equal the founder-ratified constants: the
+    // crystallized spec and the consensus plan are what the founder actually approved,
+    // and a syntactically valid but unratified digest is a claim about DIFFERENT
+    // content. Full artifact re-derivation lands with the Wave 1 archival carve-out.
+    for (content, ratified_digest) in [
+        ("crystallized_spec", T1_APPROVED_CRYSTALLIZED_SPEC_SHA256),
+        ("consensus_plan", T1_APPROVED_CONSENSUS_PLAN_SHA256),
+    ] {
         let digest = t1_hold_lift_receipt
             .get("approved_content")
             .and_then(|approved| approved.get(content))
             .and_then(|entry| entry.get("content_sha256"))
             .and_then(Value::as_str);
-        if !digest.is_some_and(is_sha256_hex) {
+        if digest != Some(ratified_digest) {
             findings.insert(Finding::new(
                 "masterplan_execution_wave_dispatch_unratified",
                 &format!(
@@ -3005,6 +3046,14 @@ pub fn evaluate_planning_entry_closure_evidence(
         "live",
         &mut findings,
     );
+    // Identity binding to the transition: the liveness receipt must name the exact
+    // gate target the closure depends on.
+    if non_empty_field(t3b_gate_liveness_receipt, "gate_target") != Some(T3B_GATE_LIVENESS_TARGET) {
+        findings.insert(Finding::new(
+            "masterplan_execution_wave_dispatch_unratified",
+            &format!("{PLANNING_ENTRY_CLOSURE_EVIDENCE_KEY}.t3b_gate_liveness.gate_target"),
+        ));
+    }
     evaluate_closure_evidence_receipt(
         t3b_interval_audit,
         "t3b_interval_audit",
@@ -3012,6 +3061,26 @@ pub fn evaluate_planning_entry_closure_evidence(
         "clean",
         &mut findings,
     );
+    // Transition-specific provenance: the interval audit must declare the audited
+    // range, anchored FROM the T2 authorization merge. Stale evidence from another
+    // interval must fail closed.
+    let audit_range = t3b_interval_audit.get("audit_range").unwrap_or(&Value::Null);
+    if non_empty_field(audit_range, "from_anchor") != Some(T2_EXECUTION_AUTHORIZATION_ANCHOR_SHA) {
+        findings.insert(Finding::new(
+            "masterplan_execution_wave_dispatch_unratified",
+            &format!(
+                "{PLANNING_ENTRY_CLOSURE_EVIDENCE_KEY}.t3b_interval_audit.audit_range.from_anchor"
+            ),
+        ));
+    }
+    if non_empty_field(audit_range, "to_anchor").is_none() {
+        findings.insert(Finding::new(
+            "masterplan_execution_wave_dispatch_unratified",
+            &format!(
+                "{PLANNING_ENTRY_CLOSURE_EVIDENCE_KEY}.t3b_interval_audit.audit_range.to_anchor"
+            ),
+        ));
+    }
     evaluate_closure_evidence_record(
         qualified_human_closure_approval,
         "qualified_human_closure_approval.approval_record",
@@ -3088,8 +3157,8 @@ fn evaluate_closure_evidence_receipt(
     }
 }
 
-fn is_sha256_hex(value: &str) -> bool {
-    value.len() == 64 && value.bytes().all(|byte| byte.is_ascii_hexdigit())
+fn is_commit_sha_hex(value: &str) -> bool {
+    value.len() == 40 && value.bytes().all(|byte| byte.is_ascii_hexdigit())
 }
 
 fn preplanning_entry_shared_fields_valid(
@@ -6395,37 +6464,57 @@ mod tests {
     }
     #[test]
     fn preplanning_hold_shape_accepts_closed_dispatch_transition() {
+        let closure_evidence = minimal_closed_planning_entry_contract()["closure_evidence"].clone();
         assert!(preplanning_hold_shape_agrees(
             PREPLANNING_ENTRY_STATE_OPEN,
             false,
             false,
             PREPLANNING_ENTRY_STATE_OPEN,
             false,
-            false
+            false,
+            None
         ));
+        // The lawful T4: contract closed with both flags true, the historical
+        // non-closure receipt untouched (still open-shaped), closure evidence present.
         assert!(preplanning_hold_shape_agrees(
             PREPLANNING_ENTRY_STATE_CLOSED,
             true,
             true,
             PREPLANNING_ENTRY_STATE_OPEN,
             false,
-            false
+            false,
+            Some(&closure_evidence)
+        ));
+        // A closed transition may NEVER rewrite the pinned historical non-closure
+        // receipt into claiming the closed state or unlocked authorities.
+        assert!(!preplanning_hold_shape_agrees(
+            PREPLANNING_ENTRY_STATE_CLOSED,
+            true,
+            true,
+            PREPLANNING_ENTRY_STATE_CLOSED,
+            true,
+            true,
+            Some(&closure_evidence)
         ));
         assert!(!preplanning_hold_shape_agrees(
             PREPLANNING_ENTRY_STATE_CLOSED,
             true,
-            false,
+            true,
             PREPLANNING_ENTRY_STATE_OPEN,
             false,
-            false
+            true,
+            Some(&closure_evidence)
         ));
+        // Closed without the closure-evidence chain is not a lawful shape: the
+        // closed-state flags are proven against closure evidence, not the receipt.
         assert!(!preplanning_hold_shape_agrees(
             PREPLANNING_ENTRY_STATE_CLOSED,
             true,
             true,
-            PREPLANNING_ENTRY_STATE_CLOSED,
-            true,
-            true
+            PREPLANNING_ENTRY_STATE_OPEN,
+            false,
+            false,
+            None
         ));
         // Closed with binding still locked is not a lawful shape.
         assert!(!preplanning_hold_shape_agrees(
@@ -6434,7 +6523,18 @@ mod tests {
             true,
             PREPLANNING_ENTRY_STATE_OPEN,
             false,
-            false
+            false,
+            Some(&closure_evidence)
+        ));
+        // An open hold with the receipt claiming an unlocked authority is drift.
+        assert!(!preplanning_hold_shape_agrees(
+            PREPLANNING_ENTRY_STATE_OPEN,
+            false,
+            false,
+            PREPLANNING_ENTRY_STATE_OPEN,
+            true,
+            false,
+            None
         ));
     }
 
@@ -6603,14 +6703,19 @@ mod tests {
     fn valid_t3b_gate_liveness_receipt() -> Value {
         json!({
             "record_class": "gate-liveness-receipt",
-            "status": "live"
+            "status": "live",
+            "gate_target": "//ci/facade/reorg-target-debt"
         })
     }
 
     fn valid_t3b_interval_audit() -> Value {
         json!({
             "record_class": "t2-t3b-interval-audit",
-            "status": "clean"
+            "status": "clean",
+            "audit_range": {
+                "from_anchor": "fecc126ebe7ded4949c8ac26b59b8a1e6bcb371c",
+                "to_anchor": "a1b763d62c8ef1d784fa361b9311b2842ee3d18a"
+            }
         })
     }
 
@@ -6840,6 +6945,187 @@ mod tests {
         assert!(findings.contains(&Finding::new(
             "masterplan_execution_wave_dispatch_unratified",
             &format!("{KEY}.qualified_human_closure_approval.approval_record.approved_by")
+        )));
+    }
+
+    #[test]
+    fn planning_entry_closure_evidence_pins_the_ratified_t1_digests() {
+        const KEY: &str = "masterplan_v2.planning_entry_contract.closure_evidence";
+
+        // Swapped digests are syntactically perfect sha256 values that were never
+        // ratified for that content — both must fail closed.
+        let mut swapped = valid_t1_hold_lift_receipt();
+        swapped["approved_content"]["crystallized_spec"]["content_sha256"] =
+            json!(T1_APPROVED_CONSENSUS_PLAN_SHA256);
+        swapped["approved_content"]["consensus_plan"]["content_sha256"] =
+            json!(T1_APPROVED_CRYSTALLIZED_SPEC_SHA256);
+        let findings = closure_evidence_findings(
+            &swapped,
+            &valid_t2_execution_authorization(),
+            &valid_t3b_gate_liveness_receipt(),
+            &valid_t3b_interval_audit(),
+            &valid_closure_approval_record(),
+        );
+        for content in ["crystallized_spec", "consensus_plan"] {
+            assert!(
+                findings.contains(&Finding::new(
+                    "masterplan_execution_wave_dispatch_unratified",
+                    &format!("{KEY}.t1_hold_lift_receipt.approved_content.{content}.content_sha256")
+                )),
+                "unratified {content} digest must fail closed: {findings:?}"
+            );
+        }
+
+        // An arbitrary well-formed 64-hex digest cannot claim founder approval.
+        let mut arbitrary = valid_t1_hold_lift_receipt();
+        arbitrary["approved_content"]["consensus_plan"]["content_sha256"] =
+            json!("deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef");
+        let findings = closure_evidence_findings(
+            &arbitrary,
+            &valid_t2_execution_authorization(),
+            &valid_t3b_gate_liveness_receipt(),
+            &valid_t3b_interval_audit(),
+            &valid_closure_approval_record(),
+        );
+        assert!(findings.contains(&Finding::new(
+            "masterplan_execution_wave_dispatch_unratified",
+            &format!("{KEY}.t1_hold_lift_receipt.approved_content.consensus_plan.content_sha256")
+        )));
+    }
+
+    #[test]
+    fn planning_entry_closure_evidence_binds_t3b_records_to_the_transition() {
+        const KEY: &str = "masterplan_v2.planning_entry_contract.closure_evidence";
+
+        // A liveness receipt naming a different gate is not evidence for THIS
+        // transition.
+        let mut wrong_gate = valid_t3b_gate_liveness_receipt();
+        wrong_gate["gate_target"] = json!("//ci/facade/cross-artifact-agreement");
+        let findings = closure_evidence_findings(
+            &valid_t1_hold_lift_receipt(),
+            &valid_t2_execution_authorization(),
+            &wrong_gate,
+            &valid_t3b_interval_audit(),
+            &valid_closure_approval_record(),
+        );
+        assert!(findings.contains(&Finding::new(
+            "masterplan_execution_wave_dispatch_unratified",
+            &format!("{KEY}.t3b_gate_liveness.gate_target")
+        )));
+
+        // An interval audit anchored FROM some other commit audited a different
+        // interval; a missing range declares nothing at all.
+        let mut wrong_anchor = valid_t3b_interval_audit();
+        wrong_anchor["audit_range"]["from_anchor"] =
+            json!("ffffffffffffffffffffffffffffffffffffffff");
+        let findings = closure_evidence_findings(
+            &valid_t1_hold_lift_receipt(),
+            &valid_t2_execution_authorization(),
+            &valid_t3b_gate_liveness_receipt(),
+            &wrong_anchor,
+            &valid_closure_approval_record(),
+        );
+        assert!(findings.contains(&Finding::new(
+            "masterplan_execution_wave_dispatch_unratified",
+            &format!("{KEY}.t3b_interval_audit.audit_range.from_anchor")
+        )));
+
+        let mut rangeless = valid_t3b_interval_audit();
+        rangeless
+            .as_object_mut()
+            .expect("interval audit must be an object")
+            .remove("audit_range");
+        let findings = closure_evidence_findings(
+            &valid_t1_hold_lift_receipt(),
+            &valid_t2_execution_authorization(),
+            &valid_t3b_gate_liveness_receipt(),
+            &rangeless,
+            &valid_closure_approval_record(),
+        );
+        for field in ["from_anchor", "to_anchor"] {
+            assert!(
+                findings.contains(&Finding::new(
+                    "masterplan_execution_wave_dispatch_unratified",
+                    &format!("{KEY}.t3b_interval_audit.audit_range.{field}")
+                )),
+                "missing audit_range must fail closed on {field}: {findings:?}"
+            );
+        }
+    }
+
+    #[test]
+    fn planning_entry_closure_evidence_requires_approval_binding_fields() {
+        const KEY: &str = "masterplan_v2.planning_entry_contract.closure_evidence";
+        const APPROVAL: &str = "qualified_human_closure_approval.approval_record";
+
+        // Every independently auditable binding field is REQUIRED: strip them all and
+        // each one must fail closed.
+        let mut unbound = valid_closure_approval_record();
+        for field in [
+            "approval_pr_number",
+            "review_id",
+            "review_url",
+            "approved_head_sha",
+        ] {
+            unbound
+                .as_object_mut()
+                .expect("approval record must be an object")
+                .remove(field);
+        }
+        let findings = closure_evidence_findings(
+            &valid_t1_hold_lift_receipt(),
+            &valid_t2_execution_authorization(),
+            &valid_t3b_gate_liveness_receipt(),
+            &valid_t3b_interval_audit(),
+            &unbound,
+        );
+        for field in ["approval_pr_number", "review_reference", "approved_head_sha"] {
+            assert!(
+                findings.contains(&Finding::new(
+                    "masterplan_execution_wave_dispatch_unratified",
+                    &format!("{KEY}.{APPROVAL}.{field}")
+                )),
+                "missing approval binding field must fail closed on {field}: {findings:?}"
+            );
+        }
+
+        // Either review reference form (id or URL) satisfies the binding alone.
+        for keep in ["review_id", "review_url"] {
+            let mut single_ref = valid_closure_approval_record();
+            for field in ["review_id", "review_url"] {
+                if field != keep {
+                    single_ref
+                        .as_object_mut()
+                        .expect("approval record must be an object")
+                        .remove(field);
+                }
+            }
+            let findings = closure_evidence_findings(
+                &valid_t1_hold_lift_receipt(),
+                &valid_t2_execution_authorization(),
+                &valid_t3b_gate_liveness_receipt(),
+                &valid_t3b_interval_audit(),
+                &single_ref,
+            );
+            assert!(
+                findings.is_empty(),
+                "a {keep}-only review reference must satisfy the binding: {findings:?}"
+            );
+        }
+
+        // A truncated head SHA is not an approved-head pin.
+        let mut short_head = valid_closure_approval_record();
+        short_head["approved_head_sha"] = json!("a1b763d");
+        let findings = closure_evidence_findings(
+            &valid_t1_hold_lift_receipt(),
+            &valid_t2_execution_authorization(),
+            &valid_t3b_gate_liveness_receipt(),
+            &valid_t3b_interval_audit(),
+            &short_head,
+        );
+        assert!(findings.contains(&Finding::new(
+            "masterplan_execution_wave_dispatch_unratified",
+            &format!("{KEY}.{APPROVAL}.approved_head_sha")
         )));
     }
 
