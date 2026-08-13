@@ -2306,8 +2306,9 @@ fn preplanning_candidate_facts_agree(
     })
 }
 
-/// Open hold keeps dispatch/binding locked; closed hold requires matching receipt flags so
-/// authorized dispatch is not permanently blocked by the open-only evidence predicate.
+/// The immutable candidate receipt records the historical open hold. A later closed
+/// transition unlocks the live contract through its separate closure-evidence chain without
+/// rewriting that time-scoped receipt.
 fn preplanning_hold_shape_agrees(
     contract_state: &str,
     binding_allowed: bool,
@@ -2316,20 +2317,20 @@ fn preplanning_hold_shape_agrees(
     nonclosure_binding: bool,
     nonclosure_dispatch: bool,
 ) -> bool {
-    if nonclosure_state != contract_state {
-        return false;
-    }
     match contract_state {
         PREPLANNING_ENTRY_STATE_OPEN => {
-            !binding_allowed
+            nonclosure_state == PREPLANNING_ENTRY_STATE_OPEN
+                && !binding_allowed
                 && !dispatch_allowed
                 && !nonclosure_binding
                 && !nonclosure_dispatch
         }
         PREPLANNING_ENTRY_STATE_CLOSED => {
-            // The lawful closed transition unlocks BOTH authorities explicitly; a
-            // closed state with binding still false is not a shape this contract knows.
-            binding_allowed && dispatch_allowed && nonclosure_binding && nonclosure_dispatch
+            binding_allowed
+                && dispatch_allowed
+                && nonclosure_state == PREPLANNING_ENTRY_STATE_OPEN
+                && !nonclosure_binding
+                && !nonclosure_dispatch
         }
         _ => false,
     }
@@ -6341,23 +6342,23 @@ mod tests {
             PREPLANNING_ENTRY_STATE_CLOSED,
             true,
             true,
-            PREPLANNING_ENTRY_STATE_CLOSED,
-            true,
-            true
+            PREPLANNING_ENTRY_STATE_OPEN,
+            false,
+            false
         ));
         assert!(!preplanning_hold_shape_agrees(
             PREPLANNING_ENTRY_STATE_CLOSED,
             true,
             false,
-            PREPLANNING_ENTRY_STATE_CLOSED,
-            true,
+            PREPLANNING_ENTRY_STATE_OPEN,
+            false,
             false
         ));
         assert!(!preplanning_hold_shape_agrees(
             PREPLANNING_ENTRY_STATE_CLOSED,
             true,
             true,
-            PREPLANNING_ENTRY_STATE_OPEN,
+            PREPLANNING_ENTRY_STATE_CLOSED,
             true,
             true
         ));
@@ -6366,9 +6367,9 @@ mod tests {
             PREPLANNING_ENTRY_STATE_CLOSED,
             false,
             true,
-            PREPLANNING_ENTRY_STATE_CLOSED,
+            PREPLANNING_ENTRY_STATE_OPEN,
             false,
-            true
+            false
         ));
     }
 
