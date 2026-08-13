@@ -2989,71 +2989,6 @@ fn evaluate_planning_entry_closure_evidence_shape(
     }
 }
 
-/// Verify the protected-base boundary between the T4 closure transition and a
-/// later T5 dispatch amendment.
-///
-/// The candidate tree cannot prove this ordering with its own
-/// `dispatched_waves_at_transition` snapshot. The caller must therefore supply
-/// the immutable masterplan from the protected base observed by the trusted
-/// controller:
-/// - open base -> closed candidate is T4 and must remain blocked with no waves;
-/// - closed base -> closed candidate is later than T4, so the normal founder
-///   dispatch-authorization checks may admit T5.
-pub fn evaluate_planning_entry_transition(
-    protected_base_masterplan: &Value,
-    candidate_masterplan: &Value,
-) -> BTreeSet<Finding> {
-    let mut findings = BTreeSet::new();
-    let candidate_state = candidate_masterplan
-        .get("masterplan_v2")
-        .and_then(|v2| v2.get("planning_entry_contract"))
-        .and_then(|contract| contract.get("state"))
-        .and_then(Value::as_str);
-    if candidate_state != Some(PREPLANNING_ENTRY_STATE_CLOSED) {
-        findings.insert(Finding::new(
-            "masterplan_execution_wave_dispatch_unratified",
-            "masterplan_v2.planning_entry_contract.state",
-        ));
-        return findings;
-    }
-
-    let protected_base_state = protected_base_masterplan
-        .get("masterplan_v2")
-        .and_then(|v2| v2.get("planning_entry_contract"))
-        .and_then(|contract| contract.get("state"))
-        .and_then(Value::as_str);
-    match protected_base_state {
-        Some(PREPLANNING_ENTRY_STATE_OPEN) => {
-            let dispatch = candidate_masterplan
-                .get("masterplan_v2")
-                .and_then(|v2| v2.get("sequencing"))
-                .and_then(|sequencing| sequencing.get("execution_wave_dispatch"));
-            let dispatch_blocked = dispatch
-                .and_then(|dispatch| dispatch.get("state"))
-                .and_then(Value::as_str)
-                == Some(DISPATCH_BLOCKED_STATE);
-            let dispatched_waves_empty = dispatch
-                .and_then(|dispatch| dispatch.get("dispatched_waves"))
-                .and_then(Value::as_array)
-                .is_some_and(Vec::is_empty);
-            if !dispatch_blocked || !dispatched_waves_empty {
-                findings.insert(Finding::new(
-                    "masterplan_execution_wave_dispatch_unratified",
-                    "masterplan_v2.sequencing.execution_wave_dispatch.t4_transition_not_blocked",
-                ));
-            }
-        }
-        Some(PREPLANNING_ENTRY_STATE_CLOSED) => {}
-        _ => {
-            findings.insert(Finding::new(
-                "masterplan_execution_wave_dispatch_unratified",
-                "masterplan_v2.planning_entry_contract.protected_base_state",
-            ));
-        }
-    }
-    findings
-}
-
 /// Verify the parsed closure-evidence documents behind a CLOSED planning-entry
 /// contract — EVERY referenced record, not just the hold-lift and authorization
 /// documents:
@@ -3585,6 +3520,16 @@ fn evaluate_execution_wave_dispatch(
     let dispatched_waves_empty = dispatched_waves.is_some_and(Vec::is_empty);
     let dispatch_blocked =
         dispatch.get("state").and_then(Value::as_str) == Some(DISPATCH_BLOCKED_STATE);
+
+    // Bootstrap T4 closes the planning-entry authority contract but MUST NOT also perform
+    // T5 dispatch. The actual dispatch object at the closed transition therefore remains
+    // blocked with an empty wave list. A later protected T5 amendment owns any unblocking.
+    if !preplanning_hold_open && (!dispatch_blocked || !dispatched_waves_empty) {
+        findings.insert(Finding::new(
+            "masterplan_execution_wave_dispatch_unratified",
+            "masterplan_v2.sequencing.execution_wave_dispatch.t4_transition_not_blocked",
+        ));
+    }
 
     // Digest/planning ratification must not silently authorize wave dispatch. Leaving
     // `state` unblocked is fail-closed: both the dispatch object's
@@ -7586,76 +7531,36 @@ mod tests {
     }
 
     #[test]
-    fn masterplan_v2_sequencing_accepts_founder_authorized_t5_after_t4_closure() {
-        let mut authorized = minimal_dispatching_masterplan(true);
+    fn masterplan_v2_sequencing_rejects_t5_dispatch_during_t4_closure_transition() {
+        let mut authorized = minimal_sequenced_masterplan(
+            json!({
+                "decision_recorded": true,
+                "decision_status": "ratified",
+                "approved_by": "founder",
+                "authorizes_execution_wave_dispatch": true,
+                "recorded_at": "2026-07-02T00:00:00Z",
+                "decision_ref": "evidence/goals/masterplan-v2-sequencing-founder-ratification-20260702.json",
+                "ratified_sequencing_digest": "sha256:b8e44b41bef2dcdea05deec44a22905ac24154494ae229f43aacd2fe078e731d"
+            }),
+            json!({
+                "requires_founder_ratification": true,
+                "allowed_without_founder_ratification": false,
+                "requires_preplanning_authority_closure": true,
+                "allowed_without_preplanning_authority_closure": false,
+                "requires_dispatch_authorizing_ratification": true,
+                "preplanning_authority_closure_ref": "evidence/consolidation/preplanning-authority-closure-20260713.json",
+                "state": "ratified-dispatched",
+                "dispatched_waves": [0]
+            }),
+        );
         authorized["masterplan_v2"]["planning_entry_contract"] =
             minimal_closed_planning_entry_contract();
 
         let findings = evaluate_masterplan_v2_sequencing(&authorized);
-        assert!(
-            findings.is_empty(),
-            "a later T5 amendment with separate exact-founder dispatch authorization must be green: {findings:?}"
-        );
-
-        let mut protected_base = authorized.clone();
-        protected_base["masterplan_v2"]["sequencing"]["execution_wave_dispatch"]["state"] =
-            json!(DISPATCH_BLOCKED_STATE);
-        protected_base["masterplan_v2"]["sequencing"]["execution_wave_dispatch"]["dispatched_waves"] =
-            json!([]);
-        let transition_findings = evaluate_planning_entry_transition(&protected_base, &authorized);
-        assert!(
-            transition_findings.is_empty(),
-            "a closed protected base proves T4 already landed before T5: {transition_findings:?}"
-        );
-    }
-
-    #[test]
-    fn planning_entry_transition_rejects_dispatch_in_same_change_as_t4_closure() {
-        let mut combined_t4_t5 = minimal_dispatching_masterplan(true);
-        let mut protected_base = combined_t4_t5.clone();
-        protected_base["masterplan_v2"]["sequencing"]["execution_wave_dispatch"]["state"] =
-            json!(DISPATCH_BLOCKED_STATE);
-        protected_base["masterplan_v2"]["sequencing"]["execution_wave_dispatch"]["dispatched_waves"] =
-            json!([]);
-        let mut lawful_t4 = protected_base.clone();
-        lawful_t4["masterplan_v2"]["planning_entry_contract"] =
-            minimal_closed_planning_entry_contract();
-        let lawful_findings = evaluate_planning_entry_transition(&protected_base, &lawful_t4);
-        assert!(
-            lawful_findings.is_empty(),
-            "T4 may close from an open base while dispatch remains blocked and empty: \
-             {lawful_findings:?}"
-        );
-
-        combined_t4_t5["masterplan_v2"]["planning_entry_contract"] =
-            minimal_closed_planning_entry_contract();
-
-        let findings = evaluate_planning_entry_transition(&protected_base, &combined_t4_t5);
         assert!(findings.contains(&Finding::new(
             "masterplan_execution_wave_dispatch_unratified",
             "masterplan_v2.sequencing.execution_wave_dispatch.t4_transition_not_blocked"
         )));
-    }
-
-    #[test]
-    fn masterplan_v2_sequencing_rejects_t5_without_dispatch_authorization() {
-        let mut unauthorized = minimal_dispatching_masterplan(false);
-        unauthorized["masterplan_v2"]["planning_entry_contract"] =
-            minimal_closed_planning_entry_contract();
-
-        let findings = evaluate_masterplan_v2_sequencing(&unauthorized);
-        for key in [
-            "masterplan_v2.sequencing.founder_ratification.authorizes_execution_wave_dispatch",
-            "masterplan_v2.sequencing.execution_wave_dispatch.dispatched_waves",
-        ] {
-            assert!(
-                findings.contains(&Finding::new(
-                    "masterplan_execution_wave_dispatch_unratified",
-                    key
-                )),
-                "closed planning entry must not permit T5 without separate dispatch authorization: {findings:?}"
-            );
-        }
     }
 
     #[test]
@@ -7997,30 +7902,6 @@ mod tests {
             ]
         });
         masterplan
-    }
-
-    fn minimal_dispatching_masterplan(authorizes_dispatch: bool) -> Value {
-        minimal_sequenced_masterplan(
-            json!({
-                "decision_recorded": true,
-                "decision_status": "ratified",
-                "approved_by": "founder",
-                "authorizes_execution_wave_dispatch": authorizes_dispatch,
-                "recorded_at": "2026-07-02T00:00:00Z",
-                "decision_ref": "evidence/goals/masterplan-v2-sequencing-founder-ratification-20260702.json",
-                "ratified_sequencing_digest": "sha256:b8e44b41bef2dcdea05deec44a22905ac24154494ae229f43aacd2fe078e731d"
-            }),
-            json!({
-                "requires_founder_ratification": true,
-                "allowed_without_founder_ratification": false,
-                "requires_preplanning_authority_closure": true,
-                "allowed_without_preplanning_authority_closure": false,
-                "requires_dispatch_authorizing_ratification": true,
-                "preplanning_authority_closure_ref": "evidence/consolidation/preplanning-authority-closure-20260713.json",
-                "state": "ratified-dispatched",
-                "dispatched_waves": [0]
-            }),
-        )
     }
 
     fn minimal_projection_freshness_masterplan() -> Value {

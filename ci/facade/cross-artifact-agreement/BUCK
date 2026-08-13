@@ -54,13 +54,6 @@ rust_test(
         # absent; no empty or candidate-authored fallback is permitted.
         "OYA_HISTORY_ONLY_RETIREMENT_FACTS": "ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json",
     },
-    # A CLOSED planning entry has no candidate-authored defaults here. Once the trusted
-    # review controller tracked by F-PR5-06 is live, its caller must supply
-    # EVENT_PULL_REQUEST_NUMBER, EVENT_PULL_REQUEST_HEAD_SHA,
-    # OYA_CI_REVIEW_ADMISSION_PACKET_PATH, and OYA_CI_PROTECTED_BASE_MASTERPLAN_PATH through
-    # Buck's test executor (`buck2 test ... -- --env KEY=VALUE`). The current workflow
-    # intentionally supplies none while the live contract remains OPEN; CLOSED fails closed
-    # until that controller boundary is deployed.
     resources = [
         "//docs/ideas:idea-archive-candidate-tree",
     ],
