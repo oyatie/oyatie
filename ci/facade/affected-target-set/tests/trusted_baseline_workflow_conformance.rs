@@ -54,6 +54,12 @@ fn hub_exclusivity_live_producer_is_invoked_on_binding_affected_set_step() {
         job.contains("pull-requests: read"),
         "job needs pull-requests:read for open PR + files list REST"
     );
+    assert!(
+        job.contains("if [ \"${EVENT_NAME}\" = \"pull_request\" ]")
+            && job.contains("elif [ \"${EVENT_NAME}\" = \"merge_group\" ]"),
+        "hub exclusivity must run with an exact candidate on pull requests and fleet-wide on \
+         merge-group admission"
+    );
 }
 
 #[test]
