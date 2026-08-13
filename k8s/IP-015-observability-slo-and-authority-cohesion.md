@@ -15,26 +15,26 @@ acceptance_lanes: [openslo-schema, oya-governance-authority-cohesion, oya-govern
 
 ## Intent
 
-Author OpenSLO manifests at `k8s/slos/*.openslo.yaml` so cloud-k8s's release pointer can advance past `dev` per ADR-0139. Then register HG-CLOUD-K8S in the authority-cohesion gate so cross-microservice claims (e.g., "Cluster bootstrap p99 ≤ 30min") have a verifier.
+Author four planned OpenSLO manifests at these exact future destinations — `k8s/slos/cluster-bootstrap-availability.openslo.yaml`, `k8s/slos/node-join-latency.openslo.yaml`, `k8s/slos/network-policy-propagation-latency.openslo.yaml`, and `k8s/slos/api-proxy-decision-latency.openslo.yaml` — so the cloud-k8s release pointer can advance past `dev`. These four files are planned outputs of this ChangeSet and are not present in the tree today. Existing files under `k8s/slos/` measure other signals and must not be treated as substitutes. Then register HG-CLOUD-K8S in the authority-cohesion gate so cross-microservice claims (for example, cluster bootstrap p99 within 30 minutes) have a verifier.
 
 ## ChangeSet boundary
 
-OpenSLO manifests for 4 SLIs + authority-cohesion registry update.
+OpenSLO manifests for the four named SLIs below (future outputs at the exact `k8s/slos/` destinations) plus an authority-cohesion registry update.
 
 ## Concrete File Targets
 
 | Path | Action |
 |---|---|
-| `microservices/cloud-k8s/slos/cluster-bootstrap-availability.openslo.yaml` | create |
-| `microservices/cloud-k8s/slos/node-join-latency.openslo.yaml` | create |
-| `microservices/cloud-k8s/slos/network-policy-propagation-latency.openslo.yaml` | create |
-| `microservices/cloud-k8s/slos/api-proxy-decision-latency.openslo.yaml` | create |
+| `k8s/slos/cluster-bootstrap-availability.openslo.yaml` | create — planned; not present today |
+| `k8s/slos/node-join-latency.openslo.yaml` | create — planned; not present today |
+| `k8s/slos/network-policy-propagation-latency.openslo.yaml` | create — planned; not present today |
+| `k8s/slos/api-proxy-decision-latency.openslo.yaml` | create — planned; not present today |
 | `registry/authority-cohesion.json` | update — register HG-CLOUD-K8S |
 
 ## Code Shape
 
 ```yaml
-# slos/cluster-bootstrap-availability.openslo.yaml
+# k8s/slos/cluster-bootstrap-availability.openslo.yaml
 apiVersion: openslo/v1
 kind: SLO
 metadata:
@@ -73,7 +73,7 @@ spec:
 ```
 
 ```yaml
-# slos/api-proxy-decision-latency.openslo.yaml
+# k8s/slos/api-proxy-decision-latency.openslo.yaml
 apiVersion: openslo/v1
 kind: SLO
 metadata:
@@ -109,10 +109,10 @@ spec:
       "owner_team": "axis-cloud",
       "registered_at": "k8s/",
       "slo_manifests": [
-        "microservices/cloud-k8s/slos/cluster-bootstrap-availability.openslo.yaml",
-        "microservices/cloud-k8s/slos/node-join-latency.openslo.yaml",
-        "microservices/cloud-k8s/slos/network-policy-propagation-latency.openslo.yaml",
-        "microservices/cloud-k8s/slos/api-proxy-decision-latency.openslo.yaml"
+        "k8s/slos/cluster-bootstrap-availability.openslo.yaml",
+        "k8s/slos/node-join-latency.openslo.yaml",
+        "k8s/slos/network-policy-propagation-latency.openslo.yaml",
+        "k8s/slos/api-proxy-decision-latency.openslo.yaml"
       ],
       "claim_doc": "k8s/competitor-parity-matrix.md"
     }
@@ -123,7 +123,17 @@ spec:
 ## Acceptance Gates
 
 ```bash
-for slo in k8s/slos/*.openslo.yaml; do
+# Precondition: the four planned destinations must exist as this
+# ChangeSet's outputs. Do not glob k8s/slos/*.openslo.yaml — those
+# existing files are unrelated and must not satisfy this check.
+planned_slos=(
+  k8s/slos/cluster-bootstrap-availability.openslo.yaml
+  k8s/slos/node-join-latency.openslo.yaml
+  k8s/slos/network-policy-propagation-latency.openslo.yaml
+  k8s/slos/api-proxy-decision-latency.openslo.yaml
+)
+for slo in "${planned_slos[@]}"; do
+  test -f "$slo" || { echo "missing planned SLO $slo" >&2; exit 1; }
   cargo run -p oya-observability-slo-engine-rest -- validate "$slo"
 done
 cargo run -p oya-dev-cli -- gate validate authority-cohesion
@@ -132,7 +142,7 @@ cargo run -p oya-dev-cli -- gate validate oya-governance-promotion-readiness --m
 
 ## Test Plan
 
-- All 4 OpenSLO manifests validate per OpenSLO v1.0 schema (AC-01 of observability PRD)
+- The four planned OpenSLO files exist at the exact destinations above and validate per OpenSLO v1.0 schema (cluster bootstrap availability, node join latency, network-policy propagation latency, API-proxy decision latency). Existing `k8s/slos/*` files are not substitutes.
 - HG-CLOUD-K8S registered in authority-cohesion: `gate list --id HG-CLOUD-K8S` returns it
 - oya-governance-promotion-readiness lane: green for cloud-k8s at head SHA (cluster up, all 4 SLIs green)
 - Burn-rate alarms wired to grafana-oncall

@@ -39,8 +39,11 @@ service mesh control plane, the Envoy data plane, and the CNI / CRI /
 CSI integrations that every other oyatie microservice runs on top of.
 Per ADR-0121, the stack is upstream Kubernetes 1.35 LTS + containerd
 2.3.0 LTS + Istio 1.29.2 + Envoy + Cilium 1.18 + CSI drivers per
-storage backend. Per ADR-0131, cloud-k8s sits flat under
-k8s/ with src/ as the canonical code root.
+storage backend. The capability directory is k8s/. There is no
+k8s/src tree. Current implementation lives in k8s/core/,
+k8s/ports/, k8s/adapters/, and k8s/facade/. Earlier plans named
+microservices/cloud-k8s/src/ as the crate root; that path is
+historical and is not a live code home.
 
 Per master-plan-sequencing.json D-1.16, the Phase 0 canonical name is
 cloud-compute-k8s. The live directory is cloud-k8s. ADR-0328 D-1.107
