@@ -90,7 +90,7 @@
       "prefix": "build/evidence/"
     },
     {
-      "anchor": "ADR-0560 D3 / build sole-owner: toolchains cache platform rehomed under build/toolchains (was toolchains/cache/); OWNERS cloud-ci-platform",
+      "anchor": "ADR-0560 D3 / build sole-owner: toolchains cache platform under build/toolchains (cell toolchains//cache); [remote_cache] knobs; OWNERS cloud-ci-platform",
       "prefix": "build/toolchains/"
     },
     {
@@ -820,10 +820,6 @@
     {
       "anchor": "ADR-0555 D3: reindeer-vendored third-party tree — a DERIVED class regenerated from Cargo.lock (drift impossible by regeneration); its accounting is the lockfile + buckification, not per-file mentions",
       "prefix": "third-party/"
-    },
-    {
-      "anchor": "ADR-0560 D3: the cache-only execution platform (toolchains//cache:cache-platform) the overlays select; mirrors prelude//platforms:default with [oya_cache] knobs; ownership seed toolchains/cache/OWNERS (cloud-ci-platform)",
-      "prefix": "toolchains/cache/"
     },
     {
       "anchor": "PR #1582 tools/* reorg disposition (north-star): human-facing summary of rewrite/refactor/delete classes for the tools debt zone; SSOT machine form evidence/reorg/rr-tools-disposition-20260806.json. Process/docs only — not merge authority. Ownership seed tools/OWNERS (cloud-ci-platform).",

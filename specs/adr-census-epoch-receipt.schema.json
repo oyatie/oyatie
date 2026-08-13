@@ -316,9 +316,9 @@
         "path": {
           "enum": [
             ".buckconfig",
+            "build/toolchains/BUCK",
             "rust-toolchain.toml",
-            "third-party/BUCK",
-            "toolchains/BUCK"
+            "third-party/BUCK"
           ]
         },
         "sha256": {

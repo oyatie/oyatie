@@ -6,11 +6,12 @@
   "full_run_targets": [
     "//..."
   ],
-  "_full_trigger_note": "Two seam classes here. (1) Build config/macros whose blast radius the per-package rdeps cone cannot bound — .buckconfig + .buckconfig.local + .buckconfig.d/** (all read by buck2, all committable), toolchains/**, third-party/** (reindeer vendor + fixups), Starlark **/*.bzl + **/*.bxl, rust-toolchain.toml. (2) Buildfiles and PACKAGE files are handled by package_definition_basenames (escalate to FULL on any change) AND mirrored here as **/PACKAGE so a NEW PACKAGE file (which evaluates to [] and would otherwise look like a plain no-owner file) is never a silent no-op. Cargo.lock is deliberately NOT a trigger: buck2 never reads it — a dependency change that affects buck2 semantics MUST touch third-party/**; the cargo lanes + ADR-0539 freshness gate own lock hygiene.",
+  "_full_trigger_note": "Two seam classes here. (1) Build config/macros whose blast radius the per-package rdeps cone cannot bound — .buckconfig + .buckconfig.local + .buckconfig.d/** (all read by buck2, all committable), build/toolchains/** + retired toolchains/**, third-party/** (reindeer vendor + fixups), Starlark **/*.bzl + **/*.bxl, rust-toolchain.toml. (2) Buildfiles and PACKAGE files are handled by package_definition_basenames (escalate to FULL on any change) AND mirrored here as **/PACKAGE so a NEW PACKAGE file (which evaluates to [] and would otherwise look like a plain no-owner file) is never a silent no-op. Cargo.lock is deliberately NOT a trigger: buck2 never reads it — a dependency change that affects buck2 semantics MUST touch third-party/**; the cargo lanes + ADR-0539 freshness gate own lock hygiene.",
   "full_trigger_patterns": [
     ".buckconfig",
     ".buckconfig.local",
     ".buckconfig.d/**",
+    "build/toolchains/**",
     "toolchains/**",
     "third-party/**",
     "**/*.bzl",

@@ -775,7 +775,7 @@ jobs:
     assert!(buck_declares_a_test_rule(
         &root.join("ci/facade/baseline-ratchet/BUCK")
     ));
-    assert!(!buck_declares_a_test_rule(&root.join("toolchains/BUCK")));
+    assert!(!buck_declares_a_test_rule(&root.join("build/toolchains/BUCK")));
     assert!(!buck_declares_a_test_rule(&root.join("does/not/exist/BUCK")));
 }
 
@@ -1682,7 +1682,7 @@ fn workspace_resolver_differential_is_a_self_hosted_buck2_binding() {
 #[test]
 fn windows_buck2_toolchain_uses_prelude_msvc_defaults() {
     let root = repo_root();
-    let toolchains = fs::read_to_string(root.join("toolchains/BUCK"))
+    let toolchains = fs::read_to_string(root.join("build/toolchains/BUCK"))
         .expect("read system toolchain declarations");
 
     assert!(

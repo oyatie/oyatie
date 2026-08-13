@@ -2137,6 +2137,9 @@ mod tests {
         assert!(glob_match("toolchains/**", "toolchains/BUCK"));
         assert!(glob_match("toolchains/**", "toolchains/a/b.bzl"));
         assert!(!glob_match("toolchains/**", "toolchainsx/a"));
+        assert!(glob_match("build/toolchains/**", "build/toolchains/BUCK"));
+        assert!(glob_match("build/toolchains/**", "build/toolchains/a/b.bzl"));
+        assert!(!glob_match("build/toolchains/**", "build/toolchainsx/a"));
         assert!(glob_match(".buckconfig", ".buckconfig"));
         assert!(!glob_match(".buckconfig", "x/.buckconfig"));
     }
@@ -2168,6 +2171,7 @@ mod tests {
             full_run_targets: vec!["//...".to_owned()],
             full_trigger_patterns: vec![
                 ".buckconfig".to_owned(),
+                "build/toolchains/**".to_owned(),
                 "toolchains/**".to_owned(),
                 "third-party/**".to_owned(),
                 "**/*.bzl".to_owned(),

@@ -50,7 +50,7 @@ update = "sync-rust-pin"
 reason = "Release image builder uses the same Rust pin."
 
 [[managed_file]]
-path = "toolchains/BUCK"
+path = "build/toolchains/BUCK"
 role = "buck2-toolchain-comment"
 update = "sync-rust-pin"
 reason = "Buck2 toolchain documentation follows the same Rust pin."
