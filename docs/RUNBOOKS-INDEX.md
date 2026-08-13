@@ -80,6 +80,8 @@ Per-axis under [`runbooks/<axis>/<runbook-id>.md`](runbooks/) (inside `docs/`). 
 - `analytics/dp-budget-exhausted.md`
 
 ### Ops
+- [`runbooks/laptop-cas-gha-proof.md`](runbooks/laptop-cas-gha-proof.md) — protected GitHub-hosted
+  reachability and integrity proof before remote-cache warm reads are licensed.
 - `ops/sev-1-bridge-procedure.md`
 - `ops/regulator-notification-procedure.md`
 - `ops/trust-portal-publish-procedure.md`
