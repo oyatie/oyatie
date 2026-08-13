@@ -19,10 +19,12 @@ use std::path::PathBuf;
 use std::process::ExitCode;
 
 use ci_reorg_target_debt::{
-    POLICY_PATH, Verdict, audit_interval, check_live_tree, load_baseline, load_json, load_policy,
-    regenerate_baseline,
+    POLICY_PATH, Verdict, audit_interval, bind_audit_input_to_authoritative_range, check_live_tree,
+    load_baseline, load_json, load_policy, regenerate_baseline,
 };
 
+const AUDIT_RANGE_PATH: &str =
+    "ci/facade/reorg-target-debt/reorg-target-debt-audit-range.generated.json";
 const USAGE: &str = "usage: ci-reorg-target-debt-bin [--repo-root <path>] [--policy <path>] \
                      [--mode check|audit] [--commit-set <path>] [--out <path>] [--regen-baseline]";
 
@@ -156,7 +158,7 @@ fn main() -> ExitCode {
             eprintln!("--mode audit requires --commit-set; {USAGE}");
             return ExitCode::from(2);
         };
-        let input = match load_json(&commit_set_path) {
+        let mut input = match load_json(&commit_set_path) {
             Ok(input) => input,
             Err(error) => {
                 // FAIL-CLOSED: an unreadable capture is an explicit finding, never a pass.
@@ -164,6 +166,20 @@ fn main() -> ExitCode {
                 return ExitCode::FAILURE;
             }
         };
+        let authoritative = match load_json(&args.repo_root.join(AUDIT_RANGE_PATH)) {
+            Ok(input) => input,
+            Err(error) => {
+                eprintln!(
+                    "RTD_AUDIT_INPUT_INVALID: cannot load SCM-boundary audit range \
+                     {AUDIT_RANGE_PATH}: {error}"
+                );
+                return ExitCode::FAILURE;
+            }
+        };
+        if let Err(error) = bind_audit_input_to_authoritative_range(&mut input, &authoritative) {
+            eprintln!("{error}");
+            return ExitCode::FAILURE;
+        }
         return match audit_interval(&policy, &input) {
             Ok(report) => {
                 let rendered = render(&report.to_json());

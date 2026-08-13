@@ -542,7 +542,7 @@ fn fixture_corpus_proves_every_arm_through_the_live_engine() {
 }
 
 #[test]
-fn audit_remediation_lifecycle_planted_commit_stays_red_until_remediated() {
+fn audit_planted_commit_stays_red_and_prose_remediation_is_refused() {
     let root = repo_root();
     let policy = live_policy(&root);
     let dir = fixtures_dir(&root);
@@ -557,8 +557,8 @@ fn audit_remediation_lifecycle_planted_commit_stays_red_until_remediated() {
         "unremediated planted debt stays red"
     );
 
-    // The SAME capture with a remediation record present goes green while the finding
-    // stays reported as durable evidence.
+    // Candidate-authored prose is not an authority boundary and must never turn the same
+    // captured violation green.
     let planted_sha = report.findings[0]
         .subject
         .split(':')
@@ -568,12 +568,12 @@ fn audit_remediation_lifecycle_planted_commit_stays_red_until_remediated() {
     audit_input["remediation_records"] = serde_json::json!([
         { "commit": planted_sha, "resolution": "reverted; target-surface census re-measured" }
     ]);
-    let remediated = audit_interval(&policy, &audit_input).expect("remediated audit runs");
-    assert_eq!(remediated.verdict(), Verdict::Green);
-    assert_eq!(
-        remediated.findings.len(),
-        report.findings.len(),
-        "remediation resolves the verdict, never erases the evidence"
+    let error = audit_interval(&policy, &audit_input).expect_err("prose remediation is refused");
+    assert!(
+        error
+            .to_string()
+            .contains("remediation_records are not self-authorizing"),
+        "{error}"
     );
 }
 #[test]

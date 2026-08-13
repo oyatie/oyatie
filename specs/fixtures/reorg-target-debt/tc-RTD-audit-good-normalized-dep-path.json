@@ -4,12 +4,17 @@
   "input": {
     "audit_input": {
       "schema": "ci-reorg-target-debt-interval-audit-input.v1",
-      "range": { "from": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1", "to": "b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2" },
+      "range": {
+        "from": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "to": "b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2"
+      },
       "complete": true,
       "commits": [
         {
           "sha": "b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
-          "added_paths": ["docs/fine-artifact.md"],
+          "added_paths": [
+            "docs/fine-artifact.md"
+          ],
           "added_workspace_path_deps": [
             {
               "name": "fine-neighbor",
@@ -21,7 +26,10 @@
           "added_evidence_anchors": []
         }
       ],
-      "remediation_records": []
+      "remediation_records": [],
+      "authoritative_commits": [
+        "b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2"
+      ]
     }
   },
   "expected_verdict": "green",

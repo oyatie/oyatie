@@ -4,18 +4,26 @@
   "input": {
     "audit_input": {
       "schema": "ci-reorg-target-debt-interval-audit-input.v1",
-      "range": { "from": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1", "to": "c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3" },
+      "range": {
+        "from": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "to": "c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3"
+      },
       "complete": false,
       "commits": [
         {
           "sha": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
-          "added_paths": ["docs/fine-artifact.md"],
+          "added_paths": [
+            "docs/fine-artifact.md"
+          ],
           "added_workspace_path_deps": [],
           "added_dep_names": [],
           "added_evidence_anchors": []
         }
       ],
-      "remediation_records": []
+      "remediation_records": [],
+      "authoritative_commits": [
+        "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1"
+      ]
     }
   },
   "expected_verdict": "invalid",

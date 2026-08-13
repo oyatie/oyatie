@@ -22,8 +22,9 @@
 //! - Arm D ([`evaluate_reduction_claims`]): net target-surface-reduction claims lacking
 //!   the census-bound before/after measurement.
 //! - Audit mode ([`audit_interval`]): replays Arms A–C over a captured commit-set for an
-//!   explicit range; fails closed on missing/empty/incomplete input and on any finding
-//!   without a remediation record. Git I/O stays at the caller boundary.
+//!   explicit range; fails closed on missing/empty/incomplete input and on any finding.
+//!   Candidate-authored remediation prose cannot authorize a violation. Git I/O stays at
+//!   the caller boundary.
 //!
 //! Every report carries the liveness signal (`evaluated_path_count`, `evaluated_arms`):
 //! a missing scheduled run is a gap, never a pass.
@@ -33,7 +34,7 @@
 use std::collections::BTreeSet;
 use std::fmt;
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 use serde_json::{Map, Value, json};
 use sha2::{Digest, Sha256};
@@ -46,12 +47,14 @@ pub const POLICY_PATH: &str = "ci/facade/reorg-target-debt/reorg-target-debt-pol
 const PROTECTED_BASE_REF: &str = "origin/dev";
 const FROZEN_REFERENCE_PATH: &str =
     "ci/facade/reorg-target-debt/reorg-target-debt-merge-base.generated.json";
+const SCM_FACTS_PATH: &str = "ci/facade/artifact-inventory-registry/scm-facts.generated.json";
 /// The T2 protected-base commit from which this gate is first adopted. The policy and
 /// baseline do not exist at this exact merge base, so this one bootstrap transition freezes
 /// the live estate. Every later change has a protected merge-base baseline and is subject to
 /// the immutable ceiling.
 const INITIAL_ADOPTION_BASE_SHA: &str = "fecc126ebe7ded4949c8ac26b59b8a1e6bcb371c";
 pub const AUDIT_INPUT_SCHEMA: &str = "ci-reorg-target-debt-interval-audit-input.v1";
+pub const AUDIT_RANGE_SCHEMA: &str = "ci-reorg-target-debt-audit-range.v1";
 
 pub const ARM_A: &str = "arm-a-target-path-files";
 pub const ARM_B: &str = "arm-b-workspace-target-deps";
@@ -887,6 +890,7 @@ pub struct NameDecl {
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct ManifestFacts {
     pub package_name: Option<String>,
+    pub lib_name: Option<String>,
     pub bin_names: Vec<String>,
     pub path_deps: Vec<WorkspaceDep>,
 }
@@ -918,6 +922,10 @@ pub fn parse_manifest_facts(
     if let Some(package) = root.get("package") {
         let package = toml_table(package, "[package]")?;
         facts.package_name = toml_string_field(package, "name", "[package]")?;
+    }
+    if let Some(lib) = root.get("lib") {
+        let lib = toml_table(lib, "[lib]")?;
+        facts.lib_name = toml_string_field(lib, "name", "[lib]")?;
     }
     if let Some(bins) = root.get("bin") {
         let bins = bins
@@ -956,12 +964,49 @@ pub fn parse_buck_target_names(text: &str) -> Vec<String> {
         if let Some(rest) = bare.strip_prefix("name")
             && rest.starts_with(|c: char| c == '=' || c.is_whitespace())
             && let Some(rest) = rest.trim_start().strip_prefix('=')
-            && let Some(name) = toml_str_value(rest)
         {
-            names.push(name);
+            if let Some(name) = toml_str_value(rest) {
+                names.push(name);
+            } else {
+                let value = rest.trim().trim_end_matches(',').trim();
+                let parts = value
+                    .split('+')
+                    .map(|part| toml_str_value(part.trim()))
+                    .collect::<Option<Vec<_>>>();
+                if let Some(parts) = parts
+                    && parts.len() > 1
+                {
+                    names.push(parts.concat());
+                }
+            }
         }
     }
     names
+}
+
+fn has_unresolved_buck_name_expression(text: &str) -> bool {
+    text.lines().any(|line| {
+        let bare = line.split('#').next().unwrap_or("").trim();
+        let Some(rest) = bare.strip_prefix("name") else {
+            return false;
+        };
+        if !rest.starts_with(|c: char| c == '=' || c.is_whitespace()) {
+            return false;
+        }
+        let Some(value) = rest.trim_start().strip_prefix('=') else {
+            return false;
+        };
+        let value = value.trim().trim_end_matches(',').trim();
+        let safe_export_path_comprehension =
+            value == "path" && text.contains("export_file(") && text.contains("for path in [");
+        let computed_from_literals = value.split('+').count() > 1
+            && value
+                .split('+')
+                .all(|part| toml_str_value(part.trim()).is_some());
+        toml_str_value(value).is_none()
+            && !safe_export_path_comprehension
+            && !computed_from_literals
+    })
 }
 
 fn collect_rust_module_declarations(
@@ -1086,6 +1131,10 @@ fn collect_anchor_strings(
     }
 }
 
+fn anchor_identity(location: &str, anchor: &str) -> String {
+    format!("{location}\0{anchor}")
+}
+
 /// Pure Arm C evaluator over a parsed planning value. Any string found under a
 /// policy-declared anchor field that begins with a target path prefix and is not carried
 /// by the shrink-only baseline is NEW target-anchored evidence and fails closed.
@@ -1094,9 +1143,10 @@ pub fn evaluate_masterplan(policy: &Policy, baseline: &Baseline, plan: &Value) -
     collect_anchor_strings(plan, &policy.anchor_field_names, "", &mut anchors);
     let mut findings = Vec::new();
     for (location, anchor) in &anchors {
+        let identity = anchor_identity(location, anchor);
         if policy.under_target_path_prefix(anchor)
             && !policy.exempt(anchor)
-            && !baseline.anchors.contains(anchor)
+            && !baseline.anchors.contains(&identity)
         {
             findings.push(Finding::new(
                 CODE_NEW_TARGET_ANCHOR,
@@ -1384,7 +1434,6 @@ pub struct AuditReport {
     pub evaluated_commit_count: usize,
     pub evaluated_path_count: usize,
     pub findings: Vec<Finding>,
-    pub remediated_commits: BTreeSet<String>,
     pub unremediated_finding_count: usize,
 }
 
@@ -1407,7 +1456,6 @@ impl AuditReport {
             "evaluated_commit_count": self.evaluated_commit_count,
             "evaluated_path_count": self.evaluated_path_count,
             "findings": self.findings.iter().map(Finding::to_json).collect::<Vec<_>>(),
-            "remediated_commits": self.remediated_commits,
             "unremediated_finding_count": self.unremediated_finding_count,
         })
     }
@@ -1460,14 +1508,52 @@ fn commit_str_array(commit: &Value, sha: &str, key: &str) -> Result<Vec<String>,
         .collect()
 }
 
+pub fn bind_audit_input_to_authoritative_range(
+    input: &mut Value,
+    authoritative: &Value,
+) -> Result<(), GateError> {
+    if authoritative.get("schema").and_then(Value::as_str) != Some(AUDIT_RANGE_SCHEMA)
+        || authoritative.get("source").and_then(Value::as_str) != Some("scm-facts-boundary")
+    {
+        return Err(audit_invalid(
+            "authoritative audit range has a foreign schema/source",
+        ));
+    }
+    let from = authoritative
+        .pointer("/range/from")
+        .and_then(Value::as_str)
+        .filter(|value| !value.is_empty())
+        .ok_or_else(|| audit_invalid("authoritative audit range missing range.from"))?;
+    let to = authoritative
+        .pointer("/range/to")
+        .and_then(Value::as_str)
+        .filter(|value| !value.is_empty())
+        .ok_or_else(|| audit_invalid("authoritative audit range missing range.to"))?;
+    if input.pointer("/range/from").and_then(Value::as_str) != Some(from)
+        || input.pointer("/range/to").and_then(Value::as_str) != Some(to)
+    {
+        return Err(audit_invalid(
+            "candidate audit range does not equal the SCM-boundary authoritative range",
+        ));
+    }
+    let commits = authoritative
+        .get("commits")
+        .and_then(Value::as_array)
+        .filter(|commits| !commits.is_empty())
+        .ok_or_else(|| audit_invalid("authoritative audit range has no commits"))?
+        .clone();
+    input["authoritative_commits"] = Value::Array(commits);
+    Ok(())
+}
+
 /// Deterministic interval audit over a captured commit-set (the caller owns git I/O).
 ///
 /// FAIL-CLOSED contract: a wrong schema, missing/empty range, `complete != true`, an
 /// empty commit list, or a commit missing any of the four fact arrays is an error the
 /// binary surfaces as a non-zero `RTD_AUDIT_INPUT_INVALID` verdict — never a pass. Every
 /// commit introducing a file/dep/anchor under a target form relative to the range base is
-/// reported; the report stays red until each finding's commit carries a remediation
-/// record with a non-empty resolution.
+/// reported; this bootstrap mode accepts only a clean zero-finding interval. A separately
+/// protected disposition mechanism must exist before any exception can become authoritative.
 pub fn audit_interval(policy: &Policy, input: &Value) -> Result<AuditReport, GateError> {
     if input.get("schema").and_then(Value::as_str) != Some(AUDIT_INPUT_SCHEMA) {
         return Err(audit_invalid(format!(
@@ -1501,27 +1587,48 @@ pub fn audit_interval(policy: &Policy, input: &Value) -> Result<AuditReport, Gat
         ));
     }
 
-    let mut remediated_commits = BTreeSet::new();
-    let no_records = Vec::new();
-    for record in input
+    let remediation_records = input
         .get("remediation_records")
         .and_then(Value::as_array)
-        .unwrap_or(&no_records)
-    {
-        let sha = record.get("commit").and_then(Value::as_str).unwrap_or("");
-        let resolution = record
-            .get("resolution")
-            .and_then(Value::as_str)
-            .unwrap_or("");
-        if !sha.is_empty() && !resolution.trim().is_empty() {
-            remediated_commits.insert(sha.to_owned());
-        }
+        .ok_or_else(|| audit_invalid("remediation_records must be an array"))?;
+    if !remediation_records.is_empty() {
+        return Err(audit_invalid(
+            "remediation_records are not self-authorizing evidence; this bootstrap audit accepts \
+             only a clean zero-finding interval. Revert the target debt before recapturing the \
+             complete range, or land a separately protected disposition mechanism first",
+        ));
     }
 
-    // Bind the capture to the declared range: the materialization recipe produces
-    // `git rev-list --reverse <from>..<to>`, so the LAST captured commit must be the
-    // declared range head. A truncated or unrelated capture cannot simply assert
-    // `complete: true` and audit green over commits that never reach the range head.
+    let authoritative_commits = input
+        .get("authoritative_commits")
+        .and_then(Value::as_array)
+        .ok_or_else(|| {
+            audit_invalid(
+                "authoritative_commits must carry the SCM-boundary ordered range membership",
+            )
+        })?;
+    if authoritative_commits.len() != commits.len() {
+        return Err(audit_invalid(format!(
+            "captured commit count {} differs from authoritative SCM-boundary count {}",
+            commits.len(),
+            authoritative_commits.len()
+        )));
+    }
+    for (index, (commit, authoritative_sha)) in
+        commits.iter().zip(authoritative_commits).enumerate()
+    {
+        let captured_sha = commit.get("sha").and_then(Value::as_str).unwrap_or("");
+        let authoritative_sha = authoritative_sha.as_str().unwrap_or("");
+        if captured_sha.is_empty()
+            || authoritative_sha.is_empty()
+            || captured_sha != authoritative_sha
+        {
+            return Err(audit_invalid(format!(
+                "captured commit at index {index} {captured_sha:?} does not equal authoritative \
+                 SCM-boundary commit {authoritative_sha:?}"
+            )));
+        }
+    }
     let last_sha = commits
         .last()
         .and_then(|commit| commit.get("sha"))
@@ -1674,20 +1781,13 @@ pub fn audit_interval(policy: &Policy, input: &Value) -> Result<AuditReport, Gat
         }
     }
     findings.sort();
-    let unremediated_finding_count = findings
-        .iter()
-        .filter(|finding| {
-            let sha = finding.subject.split(':').next().unwrap_or("");
-            !remediated_commits.contains(sha)
-        })
-        .count();
+    let unremediated_finding_count = findings.len();
     Ok(AuditReport {
         range_from,
         range_to,
         evaluated_commit_count: commits.len(),
         evaluated_path_count,
         findings,
-        remediated_commits,
         unremediated_finding_count,
     })
 }
@@ -2062,21 +2162,51 @@ fn walk_files(
     Ok(())
 }
 
-/// Collect every file under the policy's target path prefixes via a deterministic
-/// read-only walk (skip dirs are policy DATA). On a clean checkout this equals the
-/// tracked set; untracked residue under a target prefix fails closed by design.
+fn load_tracked_paths(repo_root: &Path) -> Result<BTreeSet<String>, GateError> {
+    let facts = load_json(&repo_root.join(SCM_FACTS_PATH)).map_err(|error| {
+        GateError::Io(format!(
+            "load tracked-path facts {SCM_FACTS_PATH}: {error}; materialize generated faces first"
+        ))
+    })?;
+    if facts.get("schema").and_then(Value::as_str) != Some("oya-ci/scm-facts/v2") {
+        return Err(GateError::Input(format!(
+            "{CODE_NAME_SURFACE_UNPARSEABLE}: tracked-path facts schema is not oya-ci/scm-facts/v2"
+        )));
+    }
+    let paths = facts
+        .get("tracked_paths")
+        .and_then(Value::as_array)
+        .ok_or_else(|| {
+            GateError::Input(format!(
+                "{CODE_NAME_SURFACE_UNPARSEABLE}: tracked-path facts missing tracked_paths"
+            ))
+        })?;
+    let mut tracked = BTreeSet::new();
+    for path in paths {
+        let path = path.as_str().ok_or_else(|| {
+            GateError::Input(format!(
+                "{CODE_NAME_SURFACE_UNPARSEABLE}: tracked-path facts contain a non-string"
+            ))
+        })?;
+        tracked.insert(path.to_owned());
+    }
+    if tracked.is_empty() {
+        return Err(GateError::Input(format!(
+            "{CODE_NAME_SURFACE_UNPARSEABLE}: tracked-path facts are empty"
+        )));
+    }
+    Ok(tracked)
+}
+
+/// Collect every tracked file under a target prefix from the sanctioned SCM facts face.
 pub fn collect_target_prefix_paths(
     repo_root: &Path,
     policy: &Policy,
 ) -> Result<BTreeSet<String>, GateError> {
-    let mut out = BTreeSet::new();
-    for prefix in &policy.path_prefixes {
-        let root: PathBuf = repo_root.join(prefix.trim_end_matches('/'));
-        if root.is_dir() {
-            walk_files(&root, repo_root, &policy.skip_dir_names, &mut out)?;
-        }
-    }
-    Ok(out)
+    Ok(load_tracked_paths(repo_root)?
+        .into_iter()
+        .filter(|path| policy.under_target_path_prefix(path))
+        .collect())
 }
 
 /// Collect the repo-wide name surface: every Cargo manifest's package/bin names and
@@ -2087,8 +2217,7 @@ pub fn collect_target_prefix_paths(
 pub fn collect_name_surface(repo_root: &Path, policy: &Policy) -> Result<NameSurface, GateError> {
     let mut wanted: BTreeSet<String> = policy.buck_file_names.clone();
     wanted.insert(policy.cargo_manifest_file_name.clone());
-    let mut files = BTreeSet::new();
-    walk_files(repo_root, repo_root, &policy.skip_dir_names, &mut files)?;
+    let files = load_tracked_paths(repo_root)?;
     let mut surface = NameSurface::default();
     for rel in files {
         let file_name = rel.rsplit_once('/').map(|(_, name)| name).unwrap_or(&rel);
@@ -2099,24 +2228,91 @@ pub fn collect_name_surface(repo_root: &Path, policy: &Policy) -> Result<NameSur
         let text = fs::read_to_string(repo_root.join(&rel))
             .map_err(|error| GateError::Io(format!("read {rel}: {error}")))?;
         if file_name == policy.cargo_manifest_file_name {
-            let facts = parse_manifest_facts(&text, &policy.member_dependency_sections)?;
-            if let Some(name) = facts.package_name {
+            let ManifestFacts {
+                package_name,
+                lib_name,
+                bin_names,
+                path_deps,
+            } = parse_manifest_facts(&text, &policy.member_dependency_sections)?;
+            if let Some(name) = package_name.clone() {
                 surface.names.push(NameDecl {
                     name,
                     origin: rel.clone(),
                 });
             }
-            for name in facts.bin_names {
+            if let Some(name) = lib_name.clone() {
                 surface.names.push(NameDecl {
                     name,
+                    origin: format!("{rel}::lib"),
+                });
+            }
+            for name in &bin_names {
+                surface.names.push(NameDecl {
+                    name: name.clone(),
                     origin: rel.clone(),
                 });
             }
-            for dep in facts.path_deps {
+            for dep in path_deps {
                 surface.member_path_deps.push((
                     rel.clone(),
                     canonicalize_workspace_dep(repo_root, &rel, dep)?,
                 ));
+            }
+            let manifest_dir = manifest_base_dir(&rel);
+            let source_dir = if manifest_dir.is_empty() {
+                repo_root.join("src")
+            } else {
+                repo_root.join(manifest_dir).join("src")
+            };
+            if let Some(package_name) = package_name {
+                let implicit_lib = source_dir.join("lib.rs");
+                if implicit_lib.is_file() && lib_name.is_none() {
+                    surface.names.push(NameDecl {
+                        name: package_name.replace('-', "_"),
+                        origin: format!("{rel}::implicit-lib"),
+                    });
+                }
+                let implicit_bin = source_dir.join("main.rs");
+                if implicit_bin.is_file() && bin_names.is_empty() {
+                    surface.names.push(NameDecl {
+                        name: package_name,
+                        origin: format!("{rel}::implicit-bin"),
+                    });
+                }
+            }
+            let bin_dir = source_dir.join("bin");
+            if bin_dir.is_dir() {
+                for entry in fs::read_dir(&bin_dir).map_err(|error| {
+                    GateError::Io(format!(
+                        "read implicit Cargo bin dir {}: {error}",
+                        bin_dir.display()
+                    ))
+                })? {
+                    let entry = entry.map_err(|error| {
+                        GateError::Io(format!(
+                            "read implicit Cargo bin entry {}: {error}",
+                            bin_dir.display()
+                        ))
+                    })?;
+                    let path = entry.path();
+                    let name = if path.extension().and_then(|value| value.to_str()) == Some("rs") {
+                        path.file_stem()
+                            .and_then(|value| value.to_str())
+                            .map(str::to_owned)
+                    } else if path.is_dir() && path.join("main.rs").is_file() {
+                        path.file_name()
+                            .and_then(|value| value.to_str())
+                            .map(str::to_owned)
+                    } else {
+                        None
+                    };
+                    if let Some(name) = name {
+                        surface.names.push(NameDecl {
+                            name,
+                            origin: rel_string(&path, repo_root)?,
+                        });
+                    }
+                }
             }
         } else if is_rust {
             for (name, parent_scope) in parse_rust_module_declarations(&text)? {
@@ -2128,6 +2324,13 @@ pub fn collect_name_surface(repo_root: &Path, policy: &Policy) -> Result<NameSur
                 surface.names.push(NameDecl { name, origin });
             }
         } else {
+            if has_unresolved_buck_name_expression(&text) {
+                return Err(GateError::Input(format!(
+                    "{CODE_NAME_SURFACE_UNPARSEABLE}: {rel} contains a Buck `name =` expression \
+                     that is not one plain quoted literal; fail closed until the sanctioned \
+                     materialized target graph supplies its resolved identity"
+                )));
+            }
             for name in parse_buck_target_names(&text) {
                 surface.names.push(NameDecl {
                     name,
@@ -2146,17 +2349,12 @@ pub fn collect_claim_artifacts(
     policy: &Policy,
 ) -> Result<Vec<(String, Value)>, GateError> {
     let mut out = Vec::new();
-    for root_rel in &policy.claim_scan_roots {
-        let root = repo_root.join(root_rel);
-        if !root.is_dir() {
-            continue;
-        }
-        let mut files = BTreeSet::new();
-        walk_files(&root, repo_root, &policy.skip_dir_names, &mut files)?;
-        for rel in files {
-            if rel.ends_with(".json") {
-                out.push((rel.clone(), load_json(&repo_root.join(&rel))?));
-            }
+    for rel in load_tracked_paths(repo_root)? {
+        let under_scan_root = policy.claim_scan_roots.iter().any(|root| {
+            rel == *root || rel.starts_with(&format!("{}/", root.trim_end_matches('/')))
+        });
+        if under_scan_root && rel.ends_with(".json") {
+            out.push((rel.clone(), load_json(&repo_root.join(&rel))?));
         }
     }
     Ok(out)
@@ -2250,7 +2448,7 @@ pub fn collect_baseline_candidate(
     candidate.anchors = anchor_hits
         .into_iter()
         .filter(|(_, anchor)| policy.under_target_path_prefix(anchor) && !policy.exempt(anchor))
-        .map(|(_, anchor)| anchor)
+        .map(|(location, anchor)| anchor_identity(&location, &anchor))
         .collect();
     Ok(candidate)
 }
@@ -2543,6 +2741,20 @@ mod tests {
 
     fn codes(report: &Report) -> Vec<&str> {
         report.findings.iter().map(|f| f.code.as_str()).collect()
+    }
+
+    fn write_test_scm_facts(root: &Path, paths: &[&str]) {
+        let target = root.join(SCM_FACTS_PATH);
+        fs::create_dir_all(target.parent().expect("scm facts parent")).unwrap();
+        fs::write(
+            target,
+            serde_json::to_vec_pretty(&json!({
+                "schema": "oya-ci/scm-facts/v2",
+                "tracked_paths": paths
+            }))
+            .unwrap(),
+        )
+        .unwrap();
     }
 
     #[test]
@@ -3031,12 +3243,88 @@ mod tests {
             "mod cloud_new;\nconst TEXT: &str = \"mod oya_not_real;\";\n",
         )
         .unwrap();
+        write_test_scm_facts(&root, &["libs/safe/src/lib.rs"]);
         let policy = test_policy();
         let surface = collect_name_surface(&root, &policy).unwrap();
         let report = evaluate_name_surface(&policy, &Baseline::default(), &surface);
         assert_eq!(codes(&report), vec![CODE_NEW_TARGET_NAME]);
         assert!(report.findings[0].subject.contains("cloud_new"));
         fs::remove_dir_all(&root).unwrap();
+    }
+
+    #[test]
+    fn name_surface_collects_lib_implicit_bins_and_refuses_computed_buck_names() {
+        let root = std::env::temp_dir().join(format!(
+            "rtd-cargo-target-surface-{}-{:?}",
+            std::process::id(),
+            std::thread::current().id()
+        ));
+        let _ = fs::remove_dir_all(&root);
+        fs::create_dir_all(root.join("libs/safe/src/bin")).unwrap();
+        fs::write(
+            root.join("libs/safe/Cargo.toml"),
+            "[package]\nname = \"safe\"\nversion = \"0.1.0\"\n[lib]\nname = \"oya_lib\"\n",
+        )
+        .unwrap();
+        fs::write(root.join("libs/safe/src/lib.rs"), "").unwrap();
+        fs::write(root.join("libs/safe/src/bin/cloud-new.rs"), "fn main() {}").unwrap();
+        write_test_scm_facts(
+            &root,
+            &[
+                "libs/safe/Cargo.toml",
+                "libs/safe/src/lib.rs",
+                "libs/safe/src/bin/cloud-new.rs",
+            ],
+        );
+        let policy = test_policy();
+        let surface = collect_name_surface(&root, &policy).unwrap();
+        let report = evaluate_name_surface(&policy, &Baseline::default(), &surface);
+        assert_eq!(
+            codes(&report),
+            vec![CODE_NEW_TARGET_NAME, CODE_NEW_TARGET_NAME]
+        );
+
+        fs::write(
+            root.join("libs/safe/BUCK"),
+            "rust_library(\n    name = \"oya_\" + \"computed\",\n)\n",
+        )
+        .unwrap();
+        write_test_scm_facts(
+            &root,
+            &[
+                "libs/safe/BUCK",
+                "libs/safe/Cargo.toml",
+                "libs/safe/src/lib.rs",
+                "libs/safe/src/bin/cloud-new.rs",
+            ],
+        );
+        let surface = collect_name_surface(&root, &policy).unwrap();
+        let report = evaluate_name_surface(&policy, &Baseline::default(), &surface);
+        assert!(
+            report
+                .findings
+                .iter()
+                .any(|finding| finding.subject.contains("oya_computed")),
+            "{:?}",
+            report.findings
+        );
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn target_path_collector_does_not_skip_tracked_shaped_directory_names() {
+        let root = std::env::temp_dir().join(format!(
+            "rtd-skip-name-{}-{:?}",
+            std::process::id(),
+            std::thread::current().id()
+        ));
+        let _ = fs::remove_dir_all(&root);
+        fs::create_dir_all(root.join("cloud/x/target")).unwrap();
+        fs::write(root.join("cloud/x/target/config.json"), "{}").unwrap();
+        write_test_scm_facts(&root, &["cloud/x/target/config.json"]);
+        let paths = collect_target_prefix_paths(&root, &test_policy()).unwrap();
+        assert!(paths.contains("cloud/x/target/config.json"));
+        fs::remove_dir_all(root).unwrap();
     }
 
     #[test]
@@ -3150,14 +3438,30 @@ mod tests {
         assert_eq!(report.evaluated_path_count, 2);
 
         let baseline = Baseline {
-            anchors: ["oya/synthetic-legacy-module"]
-                .iter()
-                .map(|p| (*p).to_owned())
-                .collect(),
+            anchors: [anchor_identity(
+                "/work_items/0/source_anchors/0",
+                "oya/synthetic-legacy-module",
+            )]
+            .iter()
+            .cloned()
+            .collect(),
             ..Baseline::default()
         };
         let report = evaluate_masterplan(&policy, &baseline, &plan);
         assert_eq!(report.verdict(), Verdict::Green);
+
+        let reused = json!({
+            "work_items": [
+                { "id": "SYN-RTD-000", "source_anchors": ["specs/fine.json"] },
+                { "id": "SYN-RTD-003", "source_anchors": ["oya/synthetic-legacy-module"] }
+            ]
+        });
+        let report = evaluate_masterplan(&policy, &baseline, &reused);
+        assert_eq!(
+            codes(&report),
+            vec![CODE_NEW_TARGET_ANCHOR],
+            "reusing the same anchor at a new work-item identity must be new debt"
+        );
     }
 
     #[test]
@@ -3264,10 +3568,17 @@ mod tests {
     }
 
     fn audit_input(commits: Value, remediation: Value) -> Value {
+        let authoritative_commits = commits
+            .as_array()
+            .expect("commits array")
+            .iter()
+            .map(|commit| commit["sha"].clone())
+            .collect::<Vec<_>>();
         json!({
             "schema": AUDIT_INPUT_SCHEMA,
             "range": { "from": "a1a1a1", "to": "b2b2b2" },
             "complete": true,
+            "authoritative_commits": authoritative_commits,
             "commits": commits,
             "remediation_records": remediation,
         })
@@ -3284,7 +3595,7 @@ mod tests {
     }
 
     #[test]
-    fn audit_reports_exactly_the_planted_commit_and_stays_red_until_remediated() {
+    fn audit_reports_exactly_the_planted_commit_and_refuses_prose_remediation() {
         let policy = test_policy();
         let planted = json!({
             "sha": "b2b2b2",
@@ -3304,16 +3615,12 @@ mod tests {
             input["commits"].clone(),
             json!([{ "commit": "b2b2b2", "resolution": "reverted in c3c3c3; census re-measured" }]),
         );
-        let report = audit_interval(&policy, &remediated).unwrap();
-        assert_eq!(
-            report.verdict(),
-            Verdict::Green,
-            "a remediation record resolves the finding"
-        );
-        assert_eq!(
-            report.findings.len(),
-            1,
-            "the finding stays reported as evidence"
+        let error = audit_interval(&policy, &remediated).unwrap_err();
+        assert!(
+            error
+                .to_string()
+                .contains("remediation_records are not self-authorizing"),
+            "{error}"
         );
     }
 
@@ -3354,8 +3661,7 @@ mod tests {
             json!([planted]),
             json!([{ "commit": "b2b2b2", "resolution": "  " }]),
         );
-        let report = audit_interval(&policy, &hollow).unwrap();
-        assert_eq!(report.verdict(), Verdict::Red);
+        assert!(audit_interval(&policy, &hollow).is_err());
     }
 
     #[test]
@@ -3377,6 +3683,32 @@ mod tests {
             instructions.contains("treats output as a set"),
             "per-parent duplicate paths must collapse deterministically: {instructions}"
         );
+    }
+
+    #[test]
+    fn audit_range_membership_is_bound_from_scm_face_not_candidate_array() {
+        let mut input = audit_input(
+            json!([clean_commit("a1a1a1"), clean_commit("b2b2b2")]),
+            json!([]),
+        );
+        input["authoritative_commits"] = json!(["candidate-controlled"]);
+        let face = json!({
+            "schema": AUDIT_RANGE_SCHEMA,
+            "source": "scm-facts-boundary",
+            "range": { "from": "a1a1a1", "to": "b2b2b2" },
+            "commits": ["a1a1a1", "b2b2b2"]
+        });
+        bind_audit_input_to_authoritative_range(&mut input, &face).unwrap();
+        assert_eq!(input["authoritative_commits"], json!(["a1a1a1", "b2b2b2"]));
+        assert!(audit_interval(&test_policy(), &input).is_ok());
+
+        let foreign = json!({
+            "schema": AUDIT_RANGE_SCHEMA,
+            "source": "candidate",
+            "range": { "from": "a1a1a1", "to": "b2b2b2" },
+            "commits": ["a1a1a1", "b2b2b2"]
+        });
+        assert!(bind_audit_input_to_authoritative_range(&mut input, &foreign).is_err());
     }
 
     #[test]
@@ -3404,6 +3736,17 @@ mod tests {
                 .contains("not bound to the declared range"),
             "{error}"
         );
+
+        let mut omitted = audit_input(
+            json!([clean_commit("a1a1a1"), clean_commit("b2b2b2")]),
+            json!([]),
+        );
+        omitted["authoritative_commits"] = json!(["a1a1a1", "middle", "b2b2b2"]);
+        let error = audit_interval(&policy, &omitted).unwrap_err();
+        assert!(
+            error.to_string().contains("authoritative SCM-boundary"),
+            "{error}"
+        );
     }
 
     #[cfg(unix)]
@@ -3419,6 +3762,7 @@ mod tests {
         fs::write(root.join("cloud/real/file.rs"), "// synthetic").unwrap();
         // A directory symlink pointing back up would loop forever if followed.
         std::os::unix::fs::symlink("..", root.join("cloud/loop")).unwrap();
+        write_test_scm_facts(&root, &["cloud/loop", "cloud/real/file.rs"]);
 
         let policy = test_policy();
         let paths = collect_target_prefix_paths(&root, &policy).unwrap();
@@ -3897,6 +4241,16 @@ mod tests {
              legacy = { path = \"cloud/x\" }\n",
         )
         .unwrap();
+        write_test_scm_facts(
+            &root,
+            &[
+                "Cargo.toml",
+                "cloud/x/Cargo.toml",
+                "ci/facade/reorg-target-debt/reorg-target-debt-baseline.json",
+                "ci/facade/reorg-target-debt/reorg-target-debt-policy.json",
+                "specs/masterplan.json",
+            ],
+        );
 
         let policy = test_policy();
         let candidate = collect_baseline_candidate(&root, &policy).unwrap();
