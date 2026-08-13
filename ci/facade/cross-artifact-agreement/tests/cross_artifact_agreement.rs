@@ -23,7 +23,7 @@ use ci_cross_artifact_agreement::{
     evaluate_masterplan_v2_program_coverage, evaluate_masterplan_v2_projection_freshness,
     evaluate_masterplan_v2_ratification_digest, evaluate_masterplan_v2_read_contract_archives,
     evaluate_masterplan_v2_sequencing, evaluate_planning_entry_closure_evidence,
-    evaluate_registry_derived_policy_sync, ratchet,
+    evaluate_registry_derived_policy_sync, normalize_closure_evidence_ref, ratchet,
 };
 use serde_json::Value;
 use sha2::{Digest, Sha256};
@@ -313,10 +313,8 @@ fn protected_scm_context_excludes_candidate_authored_facts() {
 #[test]
 fn retirement_sources_do_not_silently_amend_accepted_adr_0613() {
     let root = repo_root();
-    let adr = fs::read_to_string(root.join(
-        "docs/decisions/ADR-0700-ci-admission-live-apex.md",
-    ))
-    .expect("read accepted ADR-0613");
+    let adr = fs::read_to_string(root.join("docs/decisions/ADR-0700-ci-admission-live-apex.md"))
+        .expect("read accepted ADR-0613");
     assert!(
         !adr.contains("### E7 history-only retirement facts"),
         "implementation provenance must not silently widen an Accepted ADR"
@@ -519,9 +517,10 @@ fn normalizes_to_public_grpc_contradiction(text: &str) -> bool {
 #[test]
 fn public_protocol_authority_keeps_grpc_and_proto_internal() {
     let root = repo_root();
-    let documentation =
-        fs::read_to_string(root.join("docs/adr-archive/ADR-0203-documentation-engine-three-tier.md"))
-            .expect("read ADR-0203");
+    let documentation = fs::read_to_string(
+        root.join("docs/adr-archive/ADR-0203-documentation-engine-three-tier.md"),
+    )
+    .expect("read ADR-0203");
     let versioning =
         fs::read_to_string(root.join("docs/adr-archive/ADR-0258-api-versioning-model.md"))
             .expect("read ADR-0258");
@@ -536,9 +535,11 @@ fn public_protocol_authority_keeps_grpc_and_proto_internal() {
     // Historical protocol ADRs may be Superseded by apex; authority text + reciprocal
     // related edges remain the binding corpus check (live apex is ADR-0705/0709).
     assert!(
-        (documentation.contains("- Status: Accepted") || documentation.contains("status: Superseded"))
+        (documentation.contains("- Status: Accepted")
+            || documentation.contains("status: Superseded"))
             && documentation.contains("ADR-0258 (API versioning model)")
-            && (versioning.contains("status: Accepted") || versioning.contains("status: Superseded"))
+            && (versioning.contains("status: Accepted")
+                || versioning.contains("status: Superseded"))
             && versioning.contains("ADR-0203")
             && versioning.contains("## ADR-0203 public-contract reconciliation"),
         "ADR-0203 and ADR-0258 must stay related and explicitly reconciled (Accepted or Superseded historical)"
@@ -2595,14 +2596,11 @@ fn assert_lawful_planning_entry_state(
             // below (the caller owns file I/O) — pointing a ref at an empty or
             // unrelated document must fail.
             let load_ref = |field_container: &Value, field: &str, label: &str| -> Value {
-                let evidence_ref = field_container[field]
-                    .as_str()
-                    .unwrap_or_else(|| panic!("closure_evidence.{label} must be a string ref"));
-                assert!(
-                    evidence_ref.starts_with("evidence/"),
-                    "closure_evidence.{label} must live under evidence/**: {evidence_ref}"
-                );
-                let resolved = root.join(evidence_ref);
+                let evidence_ref = normalize_closure_evidence_ref(field_container.get(field))
+                    .unwrap_or_else(|| {
+                        panic!("closure_evidence.{label} must be a canonicalizable evidence/** ref")
+                    });
+                let resolved = root.join(&evidence_ref);
                 assert!(
                     resolved.is_file(),
                     "closure_evidence.{label} must resolve to a committed record: {}",
@@ -2649,9 +2647,33 @@ fn assert_lawful_planning_entry_state(
                  chain: {findings:?}"
             );
         }
-        other => panic!(
-            "planning_entry_contract.state must be exactly open or closed, got {other:?}"
-        ),
+        other => {
+            panic!("planning_entry_contract.state must be exactly open or closed, got {other:?}")
+        }
+    }
+}
+
+#[test]
+fn closure_evidence_refs_use_one_canonical_path_for_validation_and_loading() {
+    let normalized = normalize_closure_evidence_ref(Some(&serde_json::json!(
+        "  ././evidence/goals/receipt.json  "
+    )));
+    assert_eq!(normalized.as_deref(), Some("evidence/goals/receipt.json"));
+
+    for rejected in [
+        "/evidence/goals/receipt.json",
+        "~/evidence/goals/receipt.json",
+        "evidence/../goals/receipt.json",
+        ".gjc/receipt.json",
+        ".omc/receipt.json",
+        ".omx/receipt.json",
+        "specs/receipt.json",
+    ] {
+        assert_eq!(
+            normalize_closure_evidence_ref(Some(&serde_json::json!(rejected))),
+            None,
+            "{rejected:?} must not carry closure authority"
+        );
     }
 }
 
@@ -2776,8 +2798,7 @@ fn gate1_is_born_blocking_on_the_live_corpus() {
     // (Superseded) while live crosswalk rows are apex-only. Phantom resolution still
     // knows the archive id (known_ids), so citations must not reappear as phantoms.
     assert!(
-        root
-            .join("docs/adr-archive/ADR-0397-pulsar-oxia-canonical-event-bus.md")
+        root.join("docs/adr-archive/ADR-0397-pulsar-oxia-canonical-event-bus.md")
             .is_file(),
         "ADR-0397 reconstruction record must remain on disk under the historical archive"
     );
@@ -3216,7 +3237,6 @@ fn source_derived_adr_records(root: &Path) -> Vec<AdrDecisionRecord> {
         })
         .clone()
 }
-
 
 fn disk_adr_records_for_relation_guards(root: &Path) -> Vec<AdrDecisionRecord> {
     let mut records = Vec::new();

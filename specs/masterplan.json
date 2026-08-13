@@ -9496,7 +9496,7 @@
         "the live sequencing digest differs from masterplan_v2.sequencing.founder_ratification.ratified_sequencing_digest or from the digest recorded in the durable evidence record at masterplan_v2.sequencing.founder_ratification.decision_ref, without a fresh founder ratification record (mechanism: evaluate_masterplan_v2_ratification_digest; no inline digest literal is authoritative here)",
         "any dispatched_waves entry exists before all prior conditions close"
       ],
-      "closure_rule": "A later protected evidence-bearing amendment must extend the cross-artifact evaluator with the closed-state proof contract and may then set state=closed, binding_plan_approval_allowed=true, and dispatch_allowed=true only after every entry condition is proven. The current evaluator deliberately accepts only the open hold. Until the transition lands, the exact terminal state is blocked-preplanning-authority-closure, not ready or complete.",
+      "closure_rule": "The closed-state evaluator is installed and can validate a fully-evidenced closed planning-entry contract. Actual transition to state=closed, binding_plan_approval_allowed=true, and dispatch_allowed=true remains blocked until the trusted server-side qualified-human protected-review producer already tracked by F-PR5-06 binds the real T4 candidate, head, and reviewer facts; candidate-authored metadata is not trust. Until that producer binds those facts, the exact terminal state is blocked-preplanning-authority-closure, not ready or complete.",
       "authority_resolution_record": {
         "state": "founder-choices-resolved-hold-still-open",
         "resolved_at": "2026-08-01T00:00:00Z",
