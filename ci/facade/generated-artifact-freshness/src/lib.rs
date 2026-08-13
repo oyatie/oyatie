@@ -93,6 +93,8 @@ const RATCHET_MERGE_BASE_FACE: &str =
     "ci/facade/generated-artifact-policy/ratchet-merge-base.generated.json";
 const REORG_TARGET_DEBT_MERGE_BASE_FACE: &str =
     "ci/facade/reorg-target-debt/reorg-target-debt-merge-base.generated.json";
+const REORG_TARGET_DEBT_AUDIT_RANGE_FACE: &str =
+    "ci/facade/reorg-target-debt/reorg-target-debt-audit-range.generated.json";
 const REORG_TARGET_DEBT_POLICY: &str = "ci/facade/reorg-target-debt/reorg-target-debt-policy.json";
 const REORG_TARGET_DEBT_BASELINE: &str =
     "ci/facade/reorg-target-debt/reorg-target-debt-baseline.json";
@@ -2236,6 +2238,36 @@ fn materialize_reorg_target_debt_merge_base(
     })
 }
 
+fn materialize_reorg_target_debt_audit_range(
+    repo_root: &Path,
+    merge_base: &str,
+) -> Result<(), FreshnessError> {
+    let face_path = repo_root.join(REORG_TARGET_DEBT_AUDIT_RANGE_FACE);
+    if let Some(parent) = face_path.parent() {
+        std::fs::create_dir_all(parent)
+            .map_err(|error| FreshnessError::new(format!("mkdir {}: {error}", parent.display())))?;
+    }
+    let body = serde_json::to_string_pretty(&serde_json::json!({
+        "schema": "ci-reorg-target-debt-audit-range.v1",
+        "source": "scm-facts-boundary",
+        "range": {
+            "from": merge_base,
+            "to": merge_base
+        },
+        "commits": [merge_base]
+    }))
+    .map_err(|error| {
+        FreshnessError::new(format!(
+            "serialize {REORG_TARGET_DEBT_AUDIT_RANGE_FACE}: {error}"
+        ))
+    })?;
+    std::fs::write(&face_path, body).map_err(|error| {
+        FreshnessError::new(format!(
+            "write {REORG_TARGET_DEBT_AUDIT_RANGE_FACE}: {error}"
+        ))
+    })
+}
+
 fn emit_materialized_scm_facts(
     tools: &MaterializerTools,
     repo_root: &Path,
@@ -2321,6 +2353,7 @@ fn emit_materialized_scm_facts(
     // merge-base-content face — a plain filesystem read, not a new git boundary.
     materialize_ratchet_merge_base_contents(repo_root, &worktree.path)?;
     materialize_reorg_target_debt_merge_base(repo_root, &worktree.path, &merge_base)?;
+    materialize_reorg_target_debt_audit_range(repo_root, &merge_base)?;
 
     drop(regen_verify_cleanup);
     drop(regen_face_cleanup);
@@ -2925,6 +2958,24 @@ mod materialize_generated_faces_tests {
 
         std::fs::remove_dir_all(root).expect("remove output root");
         std::fs::remove_dir_all(worktree).expect("remove merge-base worktree");
+    }
+
+    #[test]
+    fn reorg_target_debt_audit_range_is_scm_boundary_owned() {
+        let root = temp_root("rtd-audit-range-root");
+        let merge_base = "2222222222222222222222222222222222222222";
+        materialize_reorg_target_debt_audit_range(&root, merge_base)
+            .expect("materialize audit range");
+        let face: serde_json::Value = serde_json::from_str(
+            &std::fs::read_to_string(root.join(REORG_TARGET_DEBT_AUDIT_RANGE_FACE))
+                .expect("read audit range"),
+        )
+        .expect("parse audit range");
+        assert_eq!(face["schema"], "ci-reorg-target-debt-audit-range.v1");
+        assert_eq!(face["source"], "scm-facts-boundary");
+        assert_eq!(face["range"]["from"], merge_base);
+        assert_eq!(face["commits"], serde_json::json!([merge_base]));
+        std::fs::remove_dir_all(root).expect("remove output root");
     }
 
     #[cfg(unix)]
