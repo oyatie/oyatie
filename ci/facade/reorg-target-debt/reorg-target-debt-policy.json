@@ -7,6 +7,11 @@
     "name_prefixes": ["cloud-", "cloud_", "oya-", "oya_"],
     "path_prefixes": ["oya/", "cloud/"]
   },
+  "adoption": {
+    "_comment": "Repository-instance identity consumed as DATA by the neutral engine and generated SCM face. `initial_adoption_base_sha` is the exact protected-base merge commit immediately before this gate first lands; it must be refreshed if the bootstrap PR is rebased before admission. Once live, the immutable merge-base policy freezes both values.",
+    "protected_base_ref": "origin/dev",
+    "initial_adoption_base_sha": "fecc126ebe7ded4949c8ac26b59b8a1e6bcb371c"
+  },
   "baseline": {
     "_comment": "Arm A baseline strategy: a committed SORTED, DEDUPLICATED LIST OF PER-PATH DIGESTS — the lowercase sha256 hex of each tracked target-prefix path string at gate-authoring time — plus the Arm B dep-digest inventory (path-dep entries are digests of the (declaring-manifest, dependency-name, normalized-destination) tuple so a new edge to an already-baselined destination is still NEW debt) and the Arm C anchor inventory (anchors stay literal; verified free of scanner-relevant tokens). Digests, not literal paths: the committed file must carry none of the retired vocabulary embedded in migration-inventory path names (brand-residue ratchet blocks NEW files carrying those tokens), while exact set semantics are preserved. Born-blocking zero-NEW ratchet: the gate hashes each LIVE target-prefix path and a digest absent from the list fails closed reporting the exact violating LIVE path. SHRINK-ONLY: removals are always admissible, and a removal REQUIRES baseline regeneration in the same change — a baseline digest matching no live path fails the gate (stale-row detection, mirroring the gate-coverage-baseline re-freeze convention) as a count plus digest-prefix bucket with the regeneration command in the failure message, so burned-down debt can never silently regain headroom. Widening the Arm B path-dep key from destination-only to the edge-identity tuple is a reviewed initial freeze (same rationale as the prior name-surface widening): regenerate via the policy-declared --regen-baseline surface after temporarily moving the committed baseline aside so the missing-file adoption path can snapshot the live estate.",
     "strategy": "committed-sorted-path-digest-list",
@@ -37,9 +42,10 @@
     "dependency_sections": ["dependencies", "dev-dependencies", "build-dependencies"]
   },
   "masterplan": {
-    "_comment": "Arm C input: the parsed planning SSOT. The evaluator deep-walks the provided JSON value; any string found under one of anchor_field_names (directly or inside an array) that begins with a target path prefix is an evidence anchor under test. This arm is synthetic-fixture-proven at birth and re-binds to the live work-item id space at Wave 1. The two pre-existing target anchors in today's corpus are carried shrink-only in the baseline.",
+    "_comment": "Arm C input: the parsed planning SSOT. Target-path anchors are lexically normalized and keyed by the nearest owning object's first stable identity field in the declared precedence plus the anchor field/name. Array indices are never identity, so unrelated insertions and reordering cannot flap the ratchet. A target anchor without a stable owner fails closed. The two pre-existing owned-stack anchors are carried shrink-only under their stable rung identities.",
     "path": "specs/masterplan.json",
-    "anchor_field_names": ["source_anchors", "evidence_anchor", "evidence_anchors", "evidence_path", "anchor", "artifact_ref", "source_path"]
+    "anchor_field_names": ["source_anchors", "evidence_anchor", "evidence_anchors", "evidence_path", "anchor", "artifact_ref", "source_path"],
+    "stable_owner_identity_fields": ["id", "work_item_id", "program_id", "record_id", "rung", "layer"]
   },
   "reduction_claims": {
     "_comment": "Arm D contract: an artifact object asserting a net target-surface-reduction claim is refused unless it binds the measurement: all companion fields present, the two count fields NUMERIC, and after_count strictly below before_count — a claim whose own numbers demonstrate growth (or nonnumeric counts) is refused. The gate still mints no numeric threshold: the only comparison is the direction the claim itself asserts; any future corridor slot stays a NAMED PLACEHOLDER routed to the Wave 5 corridor freeze (see corridor_placeholders). Beyond the planning SSOT, every *.json artifact under scan_roots is evaluated for claims (an absent root contributes nothing; an unparseable artifact under a scan root fails closed).",

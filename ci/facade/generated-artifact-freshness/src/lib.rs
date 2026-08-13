@@ -2213,9 +2213,36 @@ fn materialize_reorg_target_debt_merge_base(
                 })?;
             (false, policy, baseline)
         };
+    let identity_policy = if missing_at_merge_base {
+        let candidate_policy_path = repo_root.join(REORG_TARGET_DEBT_POLICY);
+        std::fs::read_to_string(&candidate_policy_path)
+            .map_err(|error| {
+                FreshnessError::new(format!(
+                    "read candidate {REORG_TARGET_DEBT_POLICY} for adoption identity: {error}"
+                ))
+            })
+            .and_then(|text| {
+                serde_json::from_str::<serde_json::Value>(&text).map_err(|error| {
+                    FreshnessError::new(format!(
+                        "parse candidate {REORG_TARGET_DEBT_POLICY} for adoption identity: {error}"
+                    ))
+                })
+            })?
+    } else {
+        policy.clone()
+    };
+    let protected_base_ref = identity_policy
+        .pointer("/adoption/protected_base_ref")
+        .and_then(serde_json::Value::as_str)
+        .filter(|value| !value.trim().is_empty())
+        .ok_or_else(|| {
+            FreshnessError::new(format!(
+                "{REORG_TARGET_DEBT_POLICY} missing adoption.protected_base_ref"
+            ))
+        })?;
     let snapshot = serde_json::json!({
         "schema": "ci-reorg-target-debt-merge-base-snapshot.v1",
-        "base_ref": "origin/dev",
+        "base_ref": protected_base_ref,
         "merge_base": merge_base,
         "missing_at_merge_base": missing_at_merge_base,
         "policy": policy,
@@ -2238,25 +2265,96 @@ fn materialize_reorg_target_debt_merge_base(
     })
 }
 
+fn full_commit_sha(value: &str) -> bool {
+    value.len() == 40 && value.bytes().all(|byte| byte.is_ascii_hexdigit())
+}
+
+fn reorg_target_debt_audit_range_value(
+    merge_base: &str,
+    evaluated_commit: &str,
+    commits: &[String],
+) -> Result<serde_json::Value, FreshnessError> {
+    if !full_commit_sha(merge_base) || !full_commit_sha(evaluated_commit) {
+        return Err(FreshnessError::new(
+            "materialize reorg-target-debt audit range: endpoints must be full 40-hex commit ids",
+        ));
+    }
+    if merge_base == evaluated_commit || commits.is_empty() {
+        return Err(FreshnessError::new(
+            "materialize reorg-target-debt audit range: the requested <from>..<to> interval is empty",
+        ));
+    }
+    let mut seen = std::collections::BTreeSet::new();
+    for commit in commits {
+        if !full_commit_sha(commit) || commit == merge_base || !seen.insert(commit) {
+            return Err(FreshnessError::new(
+                "materialize reorg-target-debt audit range: ordered commits contain a malformed, duplicate, or from-endpoint entry",
+            ));
+        }
+    }
+    if commits.last().map(String::as_str) != Some(evaluated_commit) {
+        return Err(FreshnessError::new(
+            "materialize reorg-target-debt audit range: ordered commits do not end at the evaluated commit",
+        ));
+    }
+    Ok(serde_json::json!({
+        "schema": "ci-reorg-target-debt-audit-range.v1",
+        "source": "scm-facts-boundary",
+        "range": {
+            "from": merge_base,
+            "to": evaluated_commit
+        },
+        "commits": commits
+    }))
+}
+
+fn resolve_reorg_target_debt_interval_commits(
+    repo_root: &Path,
+    merge_base: &str,
+    evaluated_commit: &str,
+) -> Result<Vec<String>, FreshnessError> {
+    run_status(
+        Command::new("git").arg("-C").arg(repo_root).args([
+            "merge-base",
+            "--is-ancestor",
+            merge_base,
+            evaluated_commit,
+        ]),
+        "verify reorg-target-debt audit range ancestry",
+    )?;
+    let revision_range = format!("{merge_base}..{evaluated_commit}");
+    let output = run_output(
+        Command::new("git").arg("-C").arg(repo_root).args([
+            "rev-list",
+            "--reverse",
+            &revision_range,
+        ]),
+        "resolve ordered reorg-target-debt audit range",
+    )?;
+    let commits = output
+        .lines()
+        .map(str::trim)
+        .filter(|line| !line.is_empty())
+        .map(str::to_owned)
+        .collect::<Vec<_>>();
+    let _ = reorg_target_debt_audit_range_value(merge_base, evaluated_commit, &commits)?;
+    Ok(commits)
+}
+
 fn materialize_reorg_target_debt_audit_range(
     repo_root: &Path,
     merge_base: &str,
+    evaluated_commit: &str,
 ) -> Result<(), FreshnessError> {
+    let commits =
+        resolve_reorg_target_debt_interval_commits(repo_root, merge_base, evaluated_commit)?;
     let face_path = repo_root.join(REORG_TARGET_DEBT_AUDIT_RANGE_FACE);
     if let Some(parent) = face_path.parent() {
         std::fs::create_dir_all(parent)
             .map_err(|error| FreshnessError::new(format!("mkdir {}: {error}", parent.display())))?;
     }
-    let body = serde_json::to_string_pretty(&serde_json::json!({
-        "schema": "ci-reorg-target-debt-audit-range.v1",
-        "source": "scm-facts-boundary",
-        "range": {
-            "from": merge_base,
-            "to": merge_base
-        },
-        "commits": [merge_base]
-    }))
-    .map_err(|error| {
+    let face = reorg_target_debt_audit_range_value(merge_base, evaluated_commit, &commits)?;
+    let body = serde_json::to_string_pretty(&face).map_err(|error| {
         FreshnessError::new(format!(
             "serialize {REORG_TARGET_DEBT_AUDIT_RANGE_FACE}: {error}"
         ))
@@ -2353,7 +2451,22 @@ fn emit_materialized_scm_facts(
     // merge-base-content face — a plain filesystem read, not a new git boundary.
     materialize_ratchet_merge_base_contents(repo_root, &worktree.path)?;
     materialize_reorg_target_debt_merge_base(repo_root, &worktree.path, &merge_base)?;
-    materialize_reorg_target_debt_audit_range(repo_root, &merge_base)?;
+    let evaluated_commit = if let Some(retirement) = retirement {
+        retirement.evaluated_commit.clone()
+    } else if let Some(expected_head) = historical_dev_push {
+        expected_head.to_owned()
+    } else {
+        run_output(
+            Command::new("git")
+                .arg("-C")
+                .arg(repo_root)
+                .args(["rev-parse", "HEAD"]),
+            "resolve locally evaluated commit for reorg-target-debt audit range",
+        )?
+        .trim()
+        .to_owned()
+    };
+    materialize_reorg_target_debt_audit_range(repo_root, &merge_base, &evaluated_commit)?;
 
     drop(regen_verify_cleanup);
     drop(regen_face_cleanup);
@@ -2930,7 +3043,7 @@ mod materialize_generated_faces_tests {
         .expect("create merge-base policy parent");
         std::fs::write(
             worktree.join(REORG_TARGET_DEBT_POLICY),
-            r#"{"gate_id":"ci-reorg-target-debt"}"#,
+            r#"{"gate_id":"ci-reorg-target-debt","adoption":{"protected_base_ref":"refs/heads/protected"}}"#,
         )
         .expect("write merge-base policy");
         std::fs::write(
@@ -2952,6 +3065,7 @@ mod materialize_generated_faces_tests {
             "ci-reorg-target-debt-merge-base-snapshot.v1"
         );
         assert_eq!(face["merge_base"], merge_base);
+        assert_eq!(face["base_ref"], "refs/heads/protected");
         assert_eq!(face["missing_at_merge_base"], false);
         assert_eq!(face["policy"]["gate_id"], "ci-reorg-target-debt");
         assert_eq!(face["baseline"]["arm_a_path_hashes"], serde_json::json!([]));
@@ -2961,21 +3075,75 @@ mod materialize_generated_faces_tests {
     }
 
     #[test]
-    fn reorg_target_debt_audit_range_is_scm_boundary_owned() {
-        let root = temp_root("rtd-audit-range-root");
-        let merge_base = "2222222222222222222222222222222222222222";
-        materialize_reorg_target_debt_audit_range(&root, merge_base)
-            .expect("materialize audit range");
-        let face: serde_json::Value = serde_json::from_str(
-            &std::fs::read_to_string(root.join(REORG_TARGET_DEBT_AUDIT_RANGE_FACE))
-                .expect("read audit range"),
+    fn initial_reorg_target_debt_snapshot_reads_candidate_adoption_identity() {
+        let root = temp_root("rtd-initial-snapshot-root");
+        let worktree = temp_root("rtd-initial-snapshot-worktree");
+        std::fs::create_dir_all(&worktree).expect("create empty merge-base worktree");
+        let candidate_policy = root.join(REORG_TARGET_DEBT_POLICY);
+        std::fs::create_dir_all(candidate_policy.parent().expect("candidate policy parent"))
+            .expect("create candidate policy parent");
+        std::fs::write(
+            &candidate_policy,
+            r#"{"adoption":{"protected_base_ref":"origin/custom-protected"}}"#,
         )
-        .expect("parse audit range");
+        .expect("write candidate adoption policy");
+        let merge_base = "1111111111111111111111111111111111111111";
+        materialize_reorg_target_debt_merge_base(&root, &worktree, merge_base)
+            .expect("materialize initial snapshot");
+        let face: serde_json::Value = serde_json::from_str(
+            &std::fs::read_to_string(root.join(REORG_TARGET_DEBT_MERGE_BASE_FACE))
+                .expect("read initial snapshot"),
+        )
+        .expect("parse initial snapshot");
+        assert_eq!(face["base_ref"], "origin/custom-protected");
+        assert_eq!(face["missing_at_merge_base"], true);
+        assert!(face["policy"].is_null());
+        assert!(face["baseline"].is_null());
+        std::fs::remove_dir_all(root).expect("remove output root");
+        std::fs::remove_dir_all(worktree).expect("remove merge-base worktree");
+    }
+
+    #[test]
+    fn reorg_target_debt_audit_range_is_scm_boundary_owned() {
+        let merge_base = "1111111111111111111111111111111111111111";
+        let middle = "2222222222222222222222222222222222222222".to_owned();
+        let evaluated = "3333333333333333333333333333333333333333";
+        let commits = vec![middle.clone(), evaluated.to_owned()];
+        let face = reorg_target_debt_audit_range_value(merge_base, evaluated, &commits)
+            .expect("materialize exact audit range value");
         assert_eq!(face["schema"], "ci-reorg-target-debt-audit-range.v1");
         assert_eq!(face["source"], "scm-facts-boundary");
         assert_eq!(face["range"]["from"], merge_base);
-        assert_eq!(face["commits"], serde_json::json!([merge_base]));
-        std::fs::remove_dir_all(root).expect("remove output root");
+        assert_eq!(face["range"]["to"], evaluated);
+        assert_eq!(face["commits"], serde_json::json!([middle, evaluated]));
+    }
+
+    #[test]
+    fn reorg_target_debt_audit_range_rejects_empty_or_unbound_facts() {
+        let merge_base = "1111111111111111111111111111111111111111";
+        let evaluated = "3333333333333333333333333333333333333333";
+        assert!(
+            reorg_target_debt_audit_range_value(merge_base, merge_base, &[]).is_err(),
+            "equal endpoints are an empty interval, never a synthetic one-commit capture"
+        );
+        assert!(
+            reorg_target_debt_audit_range_value(
+                merge_base,
+                evaluated,
+                &["2222222222222222222222222222222222222222".to_owned()]
+            )
+            .is_err(),
+            "ordered facts must end at the evaluated commit"
+        );
+        assert!(
+            reorg_target_debt_audit_range_value(
+                merge_base,
+                evaluated,
+                &["not-a-full-sha".to_owned(), evaluated.to_owned(),]
+            )
+            .is_err(),
+            "malformed commit facts must fail closed"
+        );
     }
 
     #[cfg(unix)]
@@ -4206,8 +4374,8 @@ fi
 test -n "$out"
 mkdir -p "$(dirname "$out")"
 printf '{{"facts":[]}}\n' > "$out"
-# ADR-0616 PR-1: publish the merge-base sha the cross-check materializes.
-if [ -n "$mbout" ]; then git rev-parse HEAD > "$mbout"; fi
+# ADR-0616 PR-1: publish the protected merge-base sha the cross-check materializes.
+if [ -n "$mbout" ]; then git rev-parse HEAD~2 > "$mbout"; fi
 "#
             ),
         );
@@ -4285,10 +4453,86 @@ printf 'generated dashboard\n' > docs/architecture/product-graph.html
             },
         };
 
-        // ADR-0616 PR-1: the frozen-baseline regen cross-check materializes a merge-base worktree,
-        // so the fixture root must be a real git repo with a committed HEAD (the fake emitter
-        // publishes its sha as the merge-base).
+        // ADR-0616 PR-1: create a protected seed, then two candidate commits. The
+        // fake emitter publishes HEAD~2 as the merge base so the live materializer
+        // must preserve exact ordering across a non-trivial two-commit interval.
         init_git_repo(&root);
+        let policy_path = root.join(REORG_TARGET_DEBT_POLICY);
+        std::fs::create_dir_all(policy_path.parent().expect("candidate policy parent"))
+            .expect("create candidate policy parent");
+        std::fs::write(
+            &policy_path,
+            r#"{"adoption":{"protected_base_ref":"origin/dev"}}"#,
+        )
+        .expect("write candidate policy");
+        for args in [
+            vec!["add", REORG_TARGET_DEBT_POLICY],
+            vec!["commit", "-q", "-m", "candidate"],
+        ] {
+            let output = Command::new("git")
+                .arg("-C")
+                .arg(&root)
+                .args(&args)
+                .output()
+                .expect("commit candidate policy");
+            assert!(
+                output.status.success(),
+                "git {args:?} failed: {}",
+                String::from_utf8_lossy(&output.stderr)
+            );
+        }
+        let intermediate_commit = {
+            let output = Command::new("git")
+                .arg("-C")
+                .arg(&root)
+                .args(["rev-parse", "HEAD"])
+                .output()
+                .expect("resolve intermediate fixture commit");
+            assert!(output.status.success());
+            String::from_utf8(output.stdout)
+                .expect("intermediate fixture commit is UTF-8")
+                .trim()
+                .to_owned()
+        };
+        let interval_marker = root.join("specs/interval-marker.json");
+        std::fs::create_dir_all(interval_marker.parent().expect("interval marker parent"))
+            .expect("create interval marker parent");
+        std::fs::write(&interval_marker, "{}\n").expect("write interval marker");
+        for args in [
+            vec!["add", "specs/interval-marker.json"],
+            vec!["commit", "-q", "-m", "candidate follow-up"],
+        ] {
+            let output = Command::new("git")
+                .arg("-C")
+                .arg(&root)
+                .args(&args)
+                .output()
+                .expect("commit interval marker");
+            assert!(
+                output.status.success(),
+                "git {args:?} failed: {}",
+                String::from_utf8_lossy(&output.stderr)
+            );
+        }
+        let rev_parse = |revision: &str| {
+            let output = Command::new("git")
+                .arg("-C")
+                .arg(&root)
+                .args(["rev-parse", revision])
+                .output()
+                .expect("resolve fixture revision");
+            assert!(
+                output.status.success(),
+                "git rev-parse {revision} failed: {}",
+                String::from_utf8_lossy(&output.stderr)
+            );
+            String::from_utf8(output.stdout)
+                .expect("fixture revision is UTF-8")
+                .trim()
+                .to_owned()
+        };
+        let expected_merge_base = rev_parse("HEAD~2");
+        let expected_evaluated_commit = rev_parse("HEAD");
 
         materialize_generated_faces_with_tools(&tools, &root, None, None)
             .expect("materialize faces and architecture product graph");
@@ -4361,6 +4605,22 @@ printf 'generated dashboard\n' > docs/architecture/product-graph.html
             std::fs::read_to_string(root.join(ACTIVE_ARTIFACT_CONTRACT_GRAPH_PATH))
                 .expect("active-artifact graph materialized"),
             "{\"edges\":[]}\n"
+        );
+        let interval_face: serde_json::Value = serde_json::from_str(
+            &std::fs::read_to_string(root.join(REORG_TARGET_DEBT_AUDIT_RANGE_FACE))
+                .expect("reorg-target-debt interval face materialized"),
+        )
+        .expect("parse reorg-target-debt interval face");
+        assert_eq!(
+            interval_face,
+            reorg_target_debt_audit_range_value(
+                &expected_merge_base,
+                &expected_evaluated_commit,
+                &[intermediate_commit, expected_evaluated_commit.clone()],
+            )
+            .expect("derive expected exact interval face"),
+            "the live materializer must bind the generated face to exact ordered \
+             merge_base..evaluated_commit membership"
         );
     }
 
