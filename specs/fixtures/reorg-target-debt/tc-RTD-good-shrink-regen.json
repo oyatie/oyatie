@@ -1,0 +1,12 @@
+{
+  "case": "Shrink-only regeneration pass: a snapshot that only removes entries relative to the committed baseline is always admissible — removals shrink the migration inventory and the regeneration re-freezes it.",
+  "kind": "baseline-regen",
+  "input": {
+    "baseline_paths": ["cloud/legacy-estate/kernel.rs", "cloud/legacy-estate/removed.rs"],
+    "baseline_anchors": ["cloud/legacy-estate/kernel.rs"],
+    "candidate_paths": ["cloud/legacy-estate/kernel.rs"],
+    "candidate_anchors": ["cloud/legacy-estate/kernel.rs"]
+  },
+  "expected_regen": "ok",
+  "expected_codes": []
+}

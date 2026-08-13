@@ -1,0 +1,23 @@
+{
+  "case": "Interval-audit fail-closed: a capture whose last commit is not the declared range.to is not bound to the declared range — `complete: true` alone must not audit green over a truncated or unrelated commit list.",
+  "kind": "interval-audit",
+  "input": {
+    "audit_input": {
+      "schema": "ci-reorg-target-debt-interval-audit-input.v1",
+      "range": { "from": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1", "to": "c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3" },
+      "complete": true,
+      "commits": [
+        {
+          "sha": "b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
+          "added_paths": ["docs/fine-artifact.md"],
+          "added_workspace_path_deps": [],
+          "added_dep_names": [],
+          "added_evidence_anchors": []
+        }
+      ],
+      "remediation_records": []
+    }
+  },
+  "expected_verdict": "invalid",
+  "expected_codes": []
+}

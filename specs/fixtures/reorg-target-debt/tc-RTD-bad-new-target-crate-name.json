@@ -1,0 +1,15 @@
+{
+  "case": "Arm B (name surface) refusal: a new crate or binary name minted under a reorg-target name prefix fails closed even when it lives outside the target directories and never touches the root workspace table (synthetic names; nothing real is minted).",
+  "kind": "name-surface",
+  "input": {
+    "baseline_dep_names": [],
+    "baseline_workspace_path_deps": [],
+    "names": [
+      { "name": "cloud-synthetic-new-kernel", "origin": "libs/synthetic-fixture/Cargo.toml" },
+      { "name": "oya_synthetic_new_bin", "origin": "libs/synthetic-fixture/BUCK" },
+      { "name": "perfectly-fine-crate", "origin": "libs/fine/Cargo.toml" }
+    ],
+    "member_path_deps": []
+  },
+  "expected_codes": ["RTD_NEW_TARGET_NAME", "RTD_NEW_TARGET_NAME"]
+}

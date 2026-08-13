@@ -1,0 +1,23 @@
+{
+  "case": "Interval-audit fail-closed: a malformed added_workspace_path_deps element (not an object with a non-empty string name and a string path) is an explicit RTD_AUDIT_INPUT_INVALID rejection — it must never silently degrade to an empty dependency that audits green.",
+  "kind": "interval-audit",
+  "input": {
+    "audit_input": {
+      "schema": "ci-reorg-target-debt-interval-audit-input.v1",
+      "range": { "from": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1", "to": "b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2" },
+      "complete": true,
+      "commits": [
+        {
+          "sha": "b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
+          "added_paths": ["docs/fine-artifact.md"],
+          "added_workspace_path_deps": ["not-an-object"],
+          "added_dep_names": [],
+          "added_evidence_anchors": []
+        }
+      ],
+      "remediation_records": []
+    }
+  },
+  "expected_verdict": "invalid",
+  "expected_codes": []
+}
