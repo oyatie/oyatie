@@ -6,8 +6,8 @@ rust-version.workspace = true
 publish = false
 license = "Apache-2.0"
 
-# Dual-home toolchain corpus → receipt `toolchain_digest` (W0-B Slice 9).
-# Hermetic mirrors of build/toolchains/**; .buckconfig cell remap remains PARKED.
+# Canonical toolchain corpus → receipt `toolchain_digest` (W0-B Slice 9).
+# Hermetic mirrors of the live build/toolchains/** cell.
 # No Cargo.lock absorb this tip.
 
 [dependencies]
