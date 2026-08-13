@@ -1033,8 +1033,7 @@ pub const REQUIRED_CONTEXT_WORKFLOW_PATH: &str = ".github/workflows/oya-ci-requi
 /// path. A workflow run is an aggregate: an unrelated hosted lane may fail after this owned,
 /// isolated producer completed successfully. Binding reuse to this exact job preserves the
 /// producer verdict without laundering the aggregate run's other failures.
-pub const AFFECTED_SET_PRODUCER_JOB_NAME: &str =
-    "gate · affected-set (ADR-0554, binding workspace coverage)";
+pub const AFFECTED_SET_PRODUCER_JOB_NAME: &str = "gate · affected-set (binding workspace coverage)";
 
 /// Provenance of the unique canonical workflow run selected for one merge base.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -2522,7 +2521,7 @@ mod tests {
                 run_id: 30_747_487_757,
                 run_attempt: 1,
                 job_id: 91_495_435_478,
-                job_name: "gate · affected-set (ADR-0554, binding workspace coverage)".to_owned(),
+                job_name: "gate · affected-set (binding workspace coverage)".to_owned(),
                 step_number: 8,
                 step_name: "Binding affected-set build + test (cone-binding; FULL tier = build-health ratchet)".to_owned(),
             },

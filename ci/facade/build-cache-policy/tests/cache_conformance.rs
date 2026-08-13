@@ -1197,8 +1197,12 @@ fn live_postgres_coverage_remains_split_across_required_same_pod_jobs() {
     assert!(!required.contains("  gate-live-postgres:"));
     assert!(required.contains("buck2 test — durable adapters"));
     assert!(required.contains("buck2 test — durable facades"));
-    assert!(required.contains("      - gate-live-postgres-adapters # #901:"));
-    assert!(required.contains("      - gate-live-postgres-facades  # #901:"));
+    assert!(required.contains(
+        "      - gate-live-postgres-adapters # durable adapter tenant-isolation/change-capture/directory-sync tests"
+    ));
+    assert!(required.contains(
+        "      - gate-live-postgres-facades  # durable facade tenant-lifecycle/directory-sync tests"
+    ));
 }
 
 #[test]

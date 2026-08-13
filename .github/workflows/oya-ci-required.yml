@@ -933,15 +933,16 @@ jobs:
         timeout-minutes: 50
         env:
           BASE_REF: ${{ github.base_ref || 'dev' }}
-          # Live hub-exclusivity producer (ADR-0711): open-PR file facts via GitHub REST.
+          # Live hub-exclusivity producer: open-PR file facts via GitHub REST.
           GH_TOKEN: ${{ github.token }}
           GITHUB_REPOSITORY: ${{ github.repository }}
         run: |
           set -euo pipefail
-          # Hub sole-owner (ADR-0711): build+run on the gate_bin line so shrink-only inline-shell
-          # ceiling stays 17 (merge-base). Multi-own among open integ PRs => REFUSE; missing
-          # envelopes skips. PR events only: a push has no candidate PR (dev-red 2026-08-12..13).
-          gate_bin="$(buck2 build //ci/facade/affected-target-set:oya-cloud-ci-affected-set-bin --show-output | awk '{print $2}')"; hub_bin="$(buck2 build //ci/facade/affected-target-set:oya-cloud-ci-hub-exclusivity-bin --show-output | awk '{print $2}')"; [ "${EVENT_NAME}" != "pull_request" ] || "${hub_bin}" --repo-root . --live-open-prs --repo "${GITHUB_REPOSITORY}" --candidate-pr "${{ github.event.pull_request.number }}"
+          # The governed hub must have one open integration owner at both pull-request and
+          # merge-queue admission. Ordinary pushes have no candidate pull request and skip this
+          # fleet comparison; merge-group admission runs it without a candidate filter so a
+          # previously green head cannot merge after a conflicting integration owner appears.
+          gate_bin="$(buck2 build //ci/facade/affected-target-set:oya-cloud-ci-affected-set-bin --show-output | awk '{print $2}')"; hub_bin="$(buck2 build //ci/facade/affected-target-set:oya-cloud-ci-hub-exclusivity-bin --show-output | awk '{print $2}')"; if [ "${EVENT_NAME}" = "pull_request" ]; then "${hub_bin}" --repo-root . --live-open-prs --repo "${GITHUB_REPOSITORY}" --candidate-pr "${{ github.event.pull_request.number }}"; elif [ "${EVENT_NAME}" = "merge_group" ]; then "${hub_bin}" --repo-root . --live-open-prs --repo "${GITHUB_REPOSITORY}"; fi
           telemetry_bin="$(buck2 build //ci/facade/affected-target-set:oya-cloud-ci-step-telemetry-bin --show-output | awk '{print $2}')"
           if [ "${EVENT_NAME}" = "pull_request" ]; then
             # PR tier: auto (cone-binding, hard-fail on a NEW break in the changed cone); a FULL
@@ -1050,7 +1051,7 @@ jobs:
           retention-days: 30
           if-no-files-found: warn
 
-  # ── LIVE-POSTGRES DURABLE-SUBSTRATE LANES (#101/#901). Runs the env-gated
+  # ── LIVE-POSTGRES DURABLE-SUBSTRATE LANES. Runs the env-gated
   #    cross-tenant-deny / RLS / CDC / SCIM durability integration tests against
   #    CONTAINERIZED Postgres (GitHub-hosted service) and GATES merge when the change
   #    cone touches durable postgres adapters/facades (or related shared crates / this
@@ -1059,7 +1060,7 @@ jobs:
   #    always request both legs. Skipped legs must NOT redden fan-in (success OR skipped
   #    is green for these two jobs only).
   #
-  #    SPLIT SAFETY (#901): adapter and facade groups remain separate jobs; each uses an
+  #    SPLIT SAFETY: adapter and facade groups remain separate jobs; each uses an
   #    independent GH postgres:16 service + deterministic bootstrap. Inside each group,
   #    `--num-threads 1` and sequential target invocations remain because the harnesses
   #    in that group still share a local database.
@@ -1067,7 +1068,7 @@ jobs:
   #    PATH FILTER (FinOps / queue): needs producer-regen only for its path-relevance
   #    outputs (not faces). Gates still run when paths match — not a face/firewall weaken.
   gate-live-postgres-adapters:
-    name: "gate-live-postgres-adapters (durable adapters: RLS / CDC / SCIM, #901)"
+    name: "gate · live Postgres adapters (tenant isolation, change capture, directory sync)"
     needs: producer-regen
     if: ${{ needs.producer-regen.result == 'success' && needs.producer-regen.outputs.live_postgres_adapters == 'true' }}
     # GitHub-hosted + postgres:16 service container (ARC live-postgres cell retired).
@@ -1165,7 +1166,7 @@ jobs:
           buck2 test --local-only --num-threads 1 //iam/adapters/identity-scim-store-postgres:identity-scim-store-postgres-unittest -- "${LIVE_ENV[@]}"
           buck2 test --local-only --num-threads 1 //iam/adapters/identity-scim-store-postgres:identity-scim-store-postgres-live -- "${LIVE_ENV[@]}"
   gate-live-postgres-facades:
-    name: "gate-live-postgres-facades (durable facades: tenant lifecycle / SCIM, #901)"
+    name: "gate · live Postgres facades (tenant lifecycle and directory sync)"
     needs: producer-regen
     if: ${{ needs.producer-regen.result == 'success' && needs.producer-regen.outputs.live_postgres_facades == 'true' }}
     # GitHub-hosted + postgres:16 service container (ARC live-postgres cell retired).
@@ -1259,9 +1260,9 @@ jobs:
       - gate-baseline-ratchet  # bespoke: baseline ratchet + gate_registration meta-test
       - generated-output-diff-policy # generated outputs are never PR merge surfaces
       - buck2                   # hermetic buck2 build + affected gate tests
-      - gate-affected-target-set       # binding workspace coverage: affected cone or fail-closed full run (ADR-0554)
-      - gate-live-postgres-adapters # #901: durable adapter RLS / CDC / SCIM tests against isolated live Postgres
-      - gate-live-postgres-facades  # #901: durable facade tenant lifecycle / SCIM tests against isolated live Postgres
+      - gate-affected-target-set       # binding workspace coverage: affected cone or fail-closed full run
+      - gate-live-postgres-adapters # durable adapter tenant-isolation/change-capture/directory-sync tests against isolated live Postgres
+      - gate-live-postgres-facades  # durable facade tenant-lifecycle/directory-sync tests against isolated live Postgres
     steps:
       # TYPED TERMINAL STATE — the classifier that separates `fail` from `no-verdict` from
       # `blocked` (//ci/facade/baseline-ratchet:oya-cloud-ci-run-terminal-state-bin) is NOT invoked
