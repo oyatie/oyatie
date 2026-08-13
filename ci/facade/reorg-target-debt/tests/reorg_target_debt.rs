@@ -22,11 +22,11 @@ use std::path::{Path, PathBuf};
 use serde_json::Value;
 
 use ci_reorg_target_debt::{
-    Baseline, BaselineCandidate, NameDecl, NameSurface, Policy, Report, Verdict, WorkspaceDep,
-    audit_interval, check_live_tree, collect_target_prefix_paths, enforce_shrink_only,
-    entry_digest, evaluate_masterplan, evaluate_name_surface, evaluate_reduction_claims,
-    evaluate_tree, evaluate_workspace_manifest, load_baseline, load_json, load_policy,
-    POLICY_PATH,
+    Baseline, BaselineCandidate, NameDecl, NameSurface, POLICY_PATH, Policy, Report, Verdict,
+    WorkspaceDep, audit_interval, check_live_tree, collect_target_prefix_paths,
+    enforce_shrink_only, entry_digest, evaluate_masterplan, evaluate_name_surface,
+    evaluate_reduction_claims, evaluate_tree, evaluate_workspace_manifest, load_baseline,
+    load_json, load_policy, parse_manifest_facts, workspace_path_dep_digest,
 };
 
 /// Walk up from the test's working directory to the repo root (the dir holding the
@@ -123,12 +123,18 @@ fn committed_baseline_file_carries_digests_not_literal_paths() {
     let root = repo_root();
     let policy = live_policy(&root);
     let raw = load_json(&root.join(&policy.baseline_file)).expect("load raw baseline value");
-    for key in ["arm_a_path_hashes", "arm_b_workspace_path_dep_hashes", "arm_b_dep_name_hashes"] {
+    for key in [
+        "arm_a_path_hashes",
+        "arm_b_workspace_path_dep_hashes",
+        "arm_b_dep_name_hashes",
+    ] {
         for entry in raw[key].as_array().expect("digest array") {
             let entry = entry.as_str().expect("digest entry is a string");
             assert!(
                 entry.len() == 64
-                    && entry.bytes().all(|b| matches!(b, b'0'..=b'9' | b'a'..=b'f')),
+                    && entry
+                        .bytes()
+                        .all(|b| matches!(b, b'0'..=b'9' | b'a'..=b'f')),
                 "{key} entry {entry:?} is not a lowercase sha256 hex digest"
             );
         }
@@ -137,13 +143,15 @@ fn committed_baseline_file_carries_digests_not_literal_paths() {
 
 // ─── (b) fixture corpus ─────────────────────────────────────────────────────
 
-const REQUIRED_CASES: [&str; 14] = [
+const REQUIRED_CASES: [&str; 18] = [
     "tc-RTD-bad-new-file-under-target-prefix.json",
     "tc-RTD-bad-new-workspace-path-dep.json",
     "tc-RTD-bad-single-quoted-relative-path-dep.json",
     "tc-RTD-bad-unparseable-path-dep.json",
     "tc-RTD-bad-new-target-crate-name.json",
     "tc-RTD-bad-new-member-target-path-dep.json",
+    "tc-RTD-bad-new-edge-to-baselined-destination.json",
+    "tc-RTD-bad-target-qualified-dep-subtable.json",
     "tc-RTD-bad-work-item-target-anchor.json",
     "tc-RTD-bad-unproven-net-reduction-claim.json",
     "tc-RTD-bad-growth-net-reduction-claim.json",
@@ -152,11 +160,16 @@ const REQUIRED_CASES: [&str; 14] = [
     "tc-RTD-audit-bad-planted-target-debt-commit.json",
     "tc-RTD-audit-bad-malformed-dep-fact.json",
     "tc-RTD-audit-bad-range-mismatch.json",
+    "tc-RTD-audit-bad-relative-spelling-dep.json",
+    "tc-RTD-audit-good-normalized-dep-path.json",
 ];
 
 /// Fixtures declare baselines as LITERAL synthetic strings (parse-verbatim inputs); the
-/// harness digests them through the SAME [`entry_digest`] the engine and `--regen-baseline`
-/// use, so the fixture corpus proves the hashed-baseline membership semantics end to end.
+/// harness digests them through the SAME [`entry_digest`] / [`workspace_path_dep_digest`]
+/// the engine and `--regen-baseline` use, so the fixture corpus proves the hashed-baseline
+/// membership semantics end to end. Arm B path-dep rows are `{origin, name, dest}` objects
+/// (the edge-identity tuple); a leftover string form is refused so destination-only
+/// membership cannot sneak back into the corpus.
 fn baseline_from_fixture(input: &Value) -> Baseline {
     let set = |key: &str| -> BTreeSet<String> {
         input
@@ -171,9 +184,39 @@ fn baseline_from_fixture(input: &Value) -> Baseline {
             .unwrap_or_default()
     };
     let digests = |key: &str| set(key).iter().map(|entry| entry_digest(entry)).collect();
+    let path_dep_hashes = input
+        .get("baseline_workspace_path_deps")
+        .and_then(Value::as_array)
+        .map(|items| {
+            items
+                .iter()
+                .map(|item| {
+                    let object = item.as_object().unwrap_or_else(|| {
+                        panic!(
+                            "baseline_workspace_path_deps entries must be                              {{origin, name, dest}} objects (edge-identity tuple);                              destination-only strings are refused"
+                        )
+                    });
+                    workspace_path_dep_digest(
+                        object
+                            .get("origin")
+                            .and_then(Value::as_str)
+                            .expect("edge origin is a string"),
+                        object
+                            .get("name")
+                            .and_then(Value::as_str)
+                            .expect("edge name is a string"),
+                        object
+                            .get("dest")
+                            .and_then(Value::as_str)
+                            .expect("edge dest is a string"),
+                    )
+                })
+                .collect()
+        })
+        .unwrap_or_default();
     Baseline {
         path_hashes: digests("baseline_paths"),
-        workspace_path_dep_hashes: digests("baseline_workspace_path_deps"),
+        workspace_path_dep_hashes: path_dep_hashes,
         dep_name_hashes: digests("baseline_dep_names"),
         anchors: set("baseline_anchors"),
     }
@@ -232,6 +275,41 @@ fn run_fixture(policy: &Policy, fixture: &Value, name: &str) {
             let surface = name_surface_from_fixture(input, name);
             evaluate_name_surface(policy, &baseline, &surface)
         }
+        "member-manifest" => {
+            // Prove the live member-manifest parser (including target-qualified
+            // subtables) rather than a pre-parsed name-surface injection.
+            let manifest = input
+                .get("manifest_lines")
+                .and_then(Value::as_array)
+                .expect("member-manifest fixture declares manifest_lines")
+                .iter()
+                .map(|v| v.as_str().expect("manifest line is a string"))
+                .collect::<Vec<_>>()
+                .join("\n");
+            let origin = input
+                .get("origin")
+                .and_then(Value::as_str)
+                .expect("member-manifest fixture declares origin")
+                .to_owned();
+            let facts = parse_manifest_facts(&manifest, &policy.member_dependency_sections);
+            let mut surface = NameSurface::default();
+            if let Some(pkg) = facts.package_name {
+                surface.names.push(NameDecl {
+                    name: pkg,
+                    origin: origin.clone(),
+                });
+            }
+            for bin in facts.bin_names {
+                surface.names.push(NameDecl {
+                    name: bin,
+                    origin: origin.clone(),
+                });
+            }
+            for dep in facts.path_deps {
+                surface.member_path_deps.push((origin.clone(), dep));
+            }
+            evaluate_name_surface(policy, &baseline, &surface)
+        }
         "baseline-regen" => {
             run_baseline_regen_fixture(fixture, input, name);
             return;
@@ -265,7 +343,10 @@ fn name_surface_from_fixture(input: &Value, _name: &str) -> NameSurface {
     {
         surface.names.push(NameDecl {
             name: decl["name"].as_str().expect("name is a string").to_owned(),
-            origin: decl["origin"].as_str().expect("origin is a string").to_owned(),
+            origin: decl["origin"]
+                .as_str()
+                .expect("origin is a string")
+                .to_owned(),
         });
     }
     for dep in input
@@ -274,10 +355,19 @@ fn name_surface_from_fixture(input: &Value, _name: &str) -> NameSurface {
         .unwrap_or(&Vec::new())
     {
         surface.member_path_deps.push((
-            dep["origin"].as_str().expect("origin is a string").to_owned(),
+            dep["origin"]
+                .as_str()
+                .expect("origin is a string")
+                .to_owned(),
             WorkspaceDep {
-                name: dep["name"].as_str().expect("dep name is a string").to_owned(),
-                path: dep["path"].as_str().expect("dep path is a string").to_owned(),
+                name: dep["name"]
+                    .as_str()
+                    .expect("dep name is a string")
+                    .to_owned(),
+                path: dep["path"]
+                    .as_str()
+                    .expect("dep path is a string")
+                    .to_owned(),
                 path_unparseable: dep
                     .get("path_unparseable")
                     .and_then(Value::as_bool)
@@ -391,7 +481,13 @@ fn fixture_corpus_proves_every_arm_through_the_live_engine() {
 
     let mut names: Vec<String> = fs::read_dir(&dir)
         .unwrap_or_else(|e| panic!("read fixtures dir {}: {e}", dir.display()))
-        .map(|entry| entry.expect("dir entry").file_name().to_string_lossy().into_owned())
+        .map(|entry| {
+            entry
+                .expect("dir entry")
+                .file_name()
+                .to_string_lossy()
+                .into_owned()
+        })
         .filter(|name| name.starts_with("tc-") && name.ends_with(".json"))
         .collect();
     names.sort();
@@ -420,7 +516,11 @@ fn audit_remediation_lifecycle_planted_commit_stays_red_until_remediated() {
     let mut audit_input = planted["input"]["audit_input"].clone();
 
     let report = audit_interval(&policy, &audit_input).expect("planted-range audit runs");
-    assert_eq!(report.verdict(), Verdict::Red, "unremediated planted debt stays red");
+    assert_eq!(
+        report.verdict(),
+        Verdict::Red,
+        "unremediated planted debt stays red"
+    );
 
     // The SAME capture with a remediation record present goes green while the finding
     // stays reported as durable evidence.

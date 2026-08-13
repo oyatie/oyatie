@@ -1,0 +1,30 @@
+{
+  "case": "Interval-audit pass: the same relative spelling, once normalized against the declaring-manifest origin, is outside every target path prefix and therefore GREEN. Proves the audit applies the live Arm B normalizer rather than rejecting every relative path wholesale.",
+  "kind": "interval-audit",
+  "input": {
+    "audit_input": {
+      "schema": "ci-reorg-target-debt-interval-audit-input.v1",
+      "range": { "from": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1", "to": "b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2" },
+      "complete": true,
+      "commits": [
+        {
+          "sha": "b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
+          "added_paths": ["docs/fine-artifact.md"],
+          "added_workspace_path_deps": [
+            {
+              "name": "fine-neighbor",
+              "path": "../fine-crate",
+              "origin": "libs/synthetic-fixture/Cargo.toml"
+            }
+          ],
+          "added_dep_names": [],
+          "added_evidence_anchors": []
+        }
+      ],
+      "remediation_records": []
+    }
+  },
+  "expected_verdict": "green",
+  "expected_finding_commits": [],
+  "expected_codes": []
+}

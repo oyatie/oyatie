@@ -1,0 +1,23 @@
+{
+  "case": "Arm B (name surface) refusal: a NEW path edge from a different declaring manifest to a destination already frozen in the baseline fails closed. Destination-only membership would let any non-target crate add a valid edge to an already-baselined estate path; the baseline keys the (origin, name, dest) tuple.",
+  "kind": "name-surface",
+  "input": {
+    "baseline_dep_names": [],
+    "baseline_workspace_path_deps": [
+      {
+        "origin": "libs/already-wired/Cargo.toml",
+        "name": "legacy-estate",
+        "dest": "cloud/legacy-estate-crate"
+      }
+    ],
+    "names": [],
+    "member_path_deps": [
+      {
+        "origin": "libs/new-consumer/Cargo.toml",
+        "name": "legacy-estate",
+        "path": "../../cloud/legacy-estate-crate"
+      }
+    ]
+  },
+  "expected_codes": ["RTD_NEW_TARGET_PATH_DEP"]
+}

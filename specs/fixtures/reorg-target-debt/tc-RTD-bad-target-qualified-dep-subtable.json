@@ -1,0 +1,20 @@
+{
+  "case": "Arm B (member-manifest parser) refusal: a target-qualified dependency subtable such as [target.'cfg(unix)'.dependencies.hidden-estate] is valid Cargo syntax and must be collected. Classifying it as Other would drop the path/name and let a new conditional edge into the migration estate pass.",
+  "kind": "member-manifest",
+  "input": {
+    "baseline_dep_names": [],
+    "baseline_workspace_path_deps": [],
+    "origin": "libs/synthetic-fixture/Cargo.toml",
+    "manifest_lines": [
+      "[package]",
+      "name = \"fine-crate\"",
+      "",
+      "[target.'cfg(unix)'.dependencies.hidden-estate]",
+      "path = \"../../cloud/hidden-estate\"",
+      "",
+      "[target.x86_64-unknown-linux-gnu.dev-dependencies]",
+      "legacy-target-dev = { path = \"../../oya/legacy-target-dev\" }"
+    ]
+  },
+  "expected_codes": ["RTD_NEW_TARGET_PATH_DEP", "RTD_NEW_TARGET_PATH_DEP"]
+}

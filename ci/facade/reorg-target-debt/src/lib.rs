@@ -206,7 +206,9 @@ fn required_str_array(value: &Value, section: &str, key: &str) -> Result<Vec<Str
         .and_then(|s| s.get(key))
         .and_then(Value::as_array)
         .ok_or_else(|| {
-            GateError::Policy(format!("{CODE_POLICY_INVALID}: missing array {section}.{key}"))
+            GateError::Policy(format!(
+                "{CODE_POLICY_INVALID}: missing array {section}.{key}"
+            ))
         })?;
     items
         .iter()
@@ -271,8 +273,11 @@ impl Policy {
                 )));
             }
         }
-        let required_claim_fields =
-            non_empty(required_str_array(policy, "reduction_claims", "required_fields")?, "reduction_claims", "required_fields")?;
+        let required_claim_fields = non_empty(
+            required_str_array(policy, "reduction_claims", "required_fields")?,
+            "reduction_claims",
+            "required_fields",
+        )?;
         let before_count_field = required_str(policy, "reduction_claims", "before_count_field")?;
         let after_count_field = required_str(policy, "reduction_claims", "after_count_field")?;
         for field in [&before_count_field, &after_count_field] {
@@ -294,7 +299,11 @@ impl Policy {
                 .collect(),
             workspace_manifest_path: required_str(policy, "workspace_manifest", "path")?,
             workspace_section: required_str(policy, "workspace_manifest", "section")?,
-            cargo_manifest_file_name: required_str(policy, "name_surface", "cargo_manifest_file_name")?,
+            cargo_manifest_file_name: required_str(
+                policy,
+                "name_surface",
+                "cargo_manifest_file_name",
+            )?,
             buck_file_names: required_str_array(policy, "name_surface", "buck_file_names")?
                 .into_iter()
                 .collect(),
@@ -335,22 +344,74 @@ impl Policy {
     }
 
     pub fn exempt(&self, path: &str) -> bool {
-        self.exempt_path_prefixes.iter().any(|p| path.starts_with(p))
+        self.exempt_path_prefixes
+            .iter()
+            .any(|p| path.starts_with(p))
     }
 }
 
 /// The canonical per-entry digest for the hashed baseline sets: lowercase sha256 hex of
-/// the exact repo-relative path (or dependency-name) string. The baseline commits these
-/// digests instead of literal strings so the committed file never carries the retired
-/// vocabulary embedded in migration-inventory path names (brand-residue ratchet), while
-/// membership stays an exact set comparison: hash the live string, look it up.
+/// the exact frozen string. The baseline commits these digests instead of literal
+/// strings so the committed file never carries the retired vocabulary embedded in
+/// migration-inventory path names (brand-residue ratchet), while membership stays an
+/// exact set comparison: hash the live string, look it up.
+///
+/// Arm A hashes the repo-relative path. Arm B name hashes hash the crate/dep name.
+/// Arm B path-dep hashes hash the edge-identity tuple
+/// `"<declaring-manifest>\0<dependency-name>\0<normalized-destination>"` via
+/// [`workspace_path_dep_digest`] so a new edge to an already-baselined destination
+/// from a different manifest cannot hide behind destination-only membership.
 pub fn entry_digest(entry: &str) -> String {
     format!("{:x}", Sha256::digest(entry.as_bytes()))
 }
 
+/// Canonical Arm B path-dep baseline key: declaring manifest path (empty for the
+/// root workspace table), dependency name, and the lexically normalized destination.
+pub fn workspace_path_dep_key(origin: &str, name: &str, normalized_dest: &str) -> String {
+    format!("{origin}\0{name}\0{normalized_dest}")
+}
+
+/// Digest of [`workspace_path_dep_key`] — the membership token stored in
+/// `arm_b_workspace_path_dep_hashes`.
+pub fn workspace_path_dep_digest(origin: &str, name: &str, normalized_dest: &str) -> String {
+    entry_digest(&workspace_path_dep_key(origin, name, normalized_dest))
+}
+
+/// Directory of a repo-relative manifest path (`Cargo.toml` at the root → empty).
+fn manifest_base_dir(origin: &str) -> &str {
+    origin.rsplit_once('/').map(|(dir, _)| dir).unwrap_or("")
+}
+
+/// Classify a TOML table header against the policy-declared dependency sections.
+///
+/// Recognizes top-level `[dependencies]`, `[dependencies.name]`, the
+/// `[target.<triple-or-cfg>.dependencies]` / `[target.<…>.dependencies.name]`
+/// forms (and the `dev-` / `build-` variants), and any other header that ends
+/// with `.<section>` / `.<section>.<name>`. Unrecognized headers stay `None`
+/// so the caller can fail closed as `Other`.
+fn dependency_header_kind<'h>(
+    header: &'h str,
+    dependency_sections: &[String],
+) -> Option<Option<&'h str>> {
+    for section in dependency_sections {
+        if header == section.as_str() || header.ends_with(&format!(".{section}")) {
+            return Some(None);
+        }
+        let marker = format!(".{section}.");
+        if let Some(idx) = header.find(&marker) {
+            return Some(Some(&header[idx + marker.len()..]));
+        }
+        if let Some(name) = header.strip_prefix(&format!("{section}.")) {
+            return Some(Some(name));
+        }
+    }
+    None
+}
+
 /// The committed shrink-only baseline: the migration-inventory estate the gate covers.
-/// Arm A and Arm B sets hold per-entry sha256 digests ([`entry_digest`]); Arm C anchors
-/// stay literal (verified free of scanner-relevant tokens at authoring time).
+/// Arm A and Arm B sets hold per-entry sha256 digests ([`entry_digest`] /
+/// [`workspace_path_dep_digest`]); Arm C anchors stay literal (verified free of
+/// scanner-relevant tokens at authoring time).
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct Baseline {
     pub path_hashes: BTreeSet<String>,
@@ -361,7 +422,9 @@ pub struct Baseline {
 
 fn baseline_set(value: &Value, key: &str) -> Result<BTreeSet<String>, GateError> {
     let items = value.get(key).and_then(Value::as_array).ok_or_else(|| {
-        GateError::Policy(format!("{CODE_POLICY_INVALID}: baseline missing array {key}"))
+        GateError::Policy(format!(
+            "{CODE_POLICY_INVALID}: baseline missing array {key}"
+        ))
     })?;
     items
         .iter()
@@ -378,8 +441,10 @@ fn baseline_set(value: &Value, key: &str) -> Result<BTreeSet<String>, GateError>
 fn baseline_digest_set(value: &Value, key: &str) -> Result<BTreeSet<String>, GateError> {
     let set = baseline_set(value, key)?;
     for entry in &set {
-        let well_formed =
-            entry.len() == 64 && entry.bytes().all(|b| matches!(b, b'0'..=b'9' | b'a'..=b'f'));
+        let well_formed = entry.len() == 64
+            && entry
+                .bytes()
+                .all(|b| matches!(b, b'0'..=b'9' | b'a'..=b'f'));
         if !well_formed {
             return Err(GateError::Policy(format!(
                 "{CODE_POLICY_INVALID}: baseline {key} entry {entry:?} is not a lowercase \
@@ -395,7 +460,10 @@ impl Baseline {
     pub fn from_value(value: &Value) -> Result<Self, GateError> {
         Ok(Self {
             path_hashes: baseline_digest_set(value, "arm_a_path_hashes")?,
-            workspace_path_dep_hashes: baseline_digest_set(value, "arm_b_workspace_path_dep_hashes")?,
+            workspace_path_dep_hashes: baseline_digest_set(
+                value,
+                "arm_b_workspace_path_dep_hashes",
+            )?,
             dep_name_hashes: baseline_digest_set(value, "arm_b_dep_name_hashes")?,
             anchors: baseline_set(value, "arm_c_anchors")?,
         })
@@ -405,11 +473,13 @@ impl Baseline {
         json!({
             "_comment": format!(
                 "Committed shrink-only baseline for {GATE_ID} (strategy: committed-sorted-path-digest-list). \
-                 Arm A and Arm B entries are lowercase sha256 hex digests of the exact path/name \
-                 strings — the migration-inventory estate at freeze time, committed WITHOUT its \
-                 literal names so this file stays free of brand-residue vocabulary. Anything NEW \
-                 fails closed and is reported by its literal live path. Regenerate ONLY alongside \
-                 an admissible shrink, with the policy-declared regeneration command."
+                 Arm A entries are lowercase sha256 hex digests of the exact path strings; Arm B path-dep \
+                 entries are digests of the (declaring-manifest, dependency-name, normalized-destination) \
+                 tuple; Arm B name entries are digests of the exact name strings — the migration-inventory \
+                 estate at freeze time, committed WITHOUT its literal names so this file stays free of \
+                 brand-residue vocabulary. Anything NEW fails closed and is reported by its literal live \
+                 path. Regenerate ONLY alongside an admissible shrink, with the policy-declared \
+                 regeneration command."
             ),
             "gate_id": GATE_ID,
             "entry_digest": "sha256-hex-of-exact-entry-string",
@@ -548,19 +618,29 @@ fn inline_table_path(value: &str) -> Result<Option<String>, ()> {
 /// check. A path escaping the repo root is returned raw (it cannot name in-repo debt,
 /// and returning it keeps the report honest).
 pub fn normalize_rel_path(base_dir: &str, raw: &str) -> String {
+    match try_normalize_rel_path(base_dir, raw) {
+        Some(path) => path,
+        None => raw.to_owned(),
+    }
+}
+
+/// Same lexical walk as [`normalize_rel_path`], but `None` when the path escapes the
+/// repo root (a `..` pops an empty stack). Audit mode uses this to fail closed on
+/// non-normalizable captured spellings rather than prefix-testing the raw string.
+pub fn try_normalize_rel_path(base_dir: &str, raw: &str) -> Option<String> {
     let mut stack: Vec<&str> = Vec::new();
     for part in base_dir.split('/').chain(raw.split('/')) {
         match part {
             "" | "." => {}
             ".." => {
                 if stack.pop().is_none() {
-                    return raw.to_owned();
+                    return None;
                 }
             }
             other => stack.push(other),
         }
     }
-    stack.join("/")
+    Some(stack.join("/"))
 }
 
 /// Deliberately a line parser, not a TOML dependency: the workspace table is a flat
@@ -643,7 +723,8 @@ fn parse_dep_entry_line(bare: &str) -> Option<WorkspaceDep> {
     })
 }
 
-/// Pure Arm B evaluator over the parsed workspace-dependency entries.
+/// Pure Arm B evaluator over the parsed workspace-dependency entries of the root
+/// workspace table (`origin` is empty so the edge key is `"\0<name>\0<dest>"`).
 pub fn evaluate_workspace_deps(
     policy: &Policy,
     baseline: &Baseline,
@@ -651,7 +732,7 @@ pub fn evaluate_workspace_deps(
 ) -> Report {
     let mut findings = Vec::new();
     for dep in deps {
-        push_dep_findings(policy, baseline, dep, "", &mut findings);
+        push_dep_findings(policy, baseline, dep, "", "", &mut findings);
     }
     findings.sort();
     Report {
@@ -661,18 +742,22 @@ pub fn evaluate_workspace_deps(
     }
 }
 
-/// The shared Arm B refusal logic for one dependency entry. `base_dir` is the declaring
-/// manifest's repo-relative directory (empty for the root manifest); declared paths are
-/// lexically normalized against it before the prefix/baseline checks so relative
-/// spellings cannot evade the gate.
+/// The shared Arm B refusal logic for one dependency entry. `origin` is the declaring
+/// manifest's repo-relative path (empty for the root workspace table); `base_dir` is
+/// that manifest's directory. Declared paths are lexically normalized against
+/// `base_dir` before the prefix/baseline checks so relative spellings cannot evade the
+/// gate. Baseline membership is the (origin, name, normalized-destination) tuple
+/// digest, never the destination alone — a new edge from a different manifest to an
+/// already-baselined destination is NEW debt.
 fn push_dep_findings(
     policy: &Policy,
     baseline: &Baseline,
     dep: &WorkspaceDep,
+    origin: &str,
     base_dir: &str,
     findings: &mut Vec<Finding>,
 ) {
-    let origin = if base_dir.is_empty() {
+    let origin_note = if base_dir.is_empty() {
         String::new()
     } else {
         format!(" (declared under {base_dir}/)")
@@ -681,7 +766,7 @@ fn push_dep_findings(
         findings.push(Finding::new(
             CODE_DEP_PATH_UNPARSEABLE,
             ARM_B,
-            format!("{}{origin}", dep.name),
+            format!("{}{origin_note}", dep.name),
             "dependency declares a `path` whose value this gate cannot read as a quoted \
              string; fail-closed — spell the path as a plainly quoted TOML string so the \
              gate can evaluate it",
@@ -690,12 +775,14 @@ fn push_dep_findings(
     if !dep.path.is_empty() {
         let path = normalize_rel_path(base_dir, &dep.path);
         if policy.under_target_path_prefix(&path)
-            && !baseline.workspace_path_dep_hashes.contains(&entry_digest(&path))
+            && !baseline
+                .workspace_path_dep_hashes
+                .contains(&workspace_path_dep_digest(origin, &dep.name, &path))
         {
             findings.push(Finding::new(
                 CODE_NEW_TARGET_PATH_DEP,
                 ARM_B,
-                format!("{} -> {path}{origin}", dep.name),
+                format!("{} -> {path}{origin_note}", dep.name),
                 "new path dependency into a reorg-target path prefix; Global Binding \
                  Rule 1 refuses new dependency edges into the target estate",
             ));
@@ -707,7 +794,7 @@ fn push_dep_findings(
         findings.push(Finding::new(
             CODE_NEW_TARGET_DEP_NAME,
             ARM_B,
-            format!("{}{origin}", dep.name),
+            format!("{}{origin_note}", dep.name),
             "new dependency named under a reorg-target name prefix; Global Binding \
              Rule 1 refuses minting new target-form names",
         ));
@@ -721,7 +808,11 @@ pub fn evaluate_workspace_manifest(
     manifest: &str,
     section: &str,
 ) -> Report {
-    evaluate_workspace_deps(policy, baseline, &parse_workspace_dependencies(manifest, section))
+    evaluate_workspace_deps(
+        policy,
+        baseline,
+        &parse_workspace_dependencies(manifest, section),
+    )
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -771,24 +862,25 @@ pub fn parse_manifest_facts(manifest: &str, dependency_sections: &[String]) -> M
         if bare.starts_with('[') {
             let header = bare.trim_start_matches('[').trim_end_matches(']').trim();
             section = if bare.starts_with("[[") {
-                if header == "bin" { Section::Bin } else { Section::Other }
+                if header == "bin" {
+                    Section::Bin
+                } else {
+                    Section::Other
+                }
             } else if header == "package" {
                 Section::Package
-            } else if dependency_sections
-                .iter()
-                .any(|d| header == d || header.ends_with(&format!(".{d}")))
-            {
-                Section::Deps
-            } else if let Some(name) = dependency_sections
-                .iter()
-                .find_map(|d| header.strip_prefix(&format!("{d}.")))
-            {
-                facts.path_deps.push(WorkspaceDep {
-                    name: name.trim().to_owned(),
-                    path: String::new(),
-                    path_unparseable: false,
-                });
-                Section::DepSub(facts.path_deps.len() - 1)
+            } else if let Some(sub_name) = dependency_header_kind(header, dependency_sections) {
+                match sub_name {
+                    None => Section::Deps,
+                    Some(name) => {
+                        facts.path_deps.push(WorkspaceDep {
+                            name: name.trim().to_owned(),
+                            path: String::new(),
+                            path_unparseable: false,
+                        });
+                        Section::DepSub(facts.path_deps.len() - 1)
+                    }
+                }
             } else {
                 Section::Other
             };
@@ -878,8 +970,8 @@ pub fn evaluate_name_surface(
         }
     }
     for (origin, dep) in &surface.member_path_deps {
-        let base_dir = origin.rsplit_once('/').map(|(dir, _)| dir).unwrap_or("");
-        push_dep_findings(policy, baseline, dep, base_dir, &mut findings);
+        let base_dir = manifest_base_dir(origin);
+        push_dep_findings(policy, baseline, dep, origin, base_dir, &mut findings);
     }
     findings.sort();
     Report {
@@ -911,10 +1003,7 @@ fn collect_anchor_strings(
                         Value::Array(items) => {
                             for (index, item) in items.iter().enumerate() {
                                 if let Value::String(anchor) = item {
-                                    out.push((
-                                        format!("{child_location}/{index}"),
-                                        anchor.clone(),
-                                    ));
+                                    out.push((format!("{child_location}/{index}"), anchor.clone()));
                                 }
                             }
                         }
@@ -982,12 +1071,24 @@ fn collect_claim_objects<'v>(
                 out.push((location.to_owned(), map));
             }
             for (key, child) in map {
-                collect_claim_objects(child, claim_field, claim_values, &format!("{location}/{key}"), out);
+                collect_claim_objects(
+                    child,
+                    claim_field,
+                    claim_values,
+                    &format!("{location}/{key}"),
+                    out,
+                );
             }
         }
         Value::Array(items) => {
             for (index, item) in items.iter().enumerate() {
-                collect_claim_objects(item, claim_field, claim_values, &format!("{location}/{index}"), out);
+                collect_claim_objects(
+                    item,
+                    claim_field,
+                    claim_values,
+                    &format!("{location}/{index}"),
+                    out,
+                );
             }
         }
         _ => {}
@@ -1043,7 +1144,13 @@ pub fn evaluate_reduction_claims(policy: &Policy, artifact: &Value) -> Report {
 /// the planning SSOT) prefixed onto every reported claim location.
 pub fn evaluate_reduction_claims_at(policy: &Policy, origin: &str, artifact: &Value) -> Report {
     let mut claims = Vec::new();
-    collect_claim_objects(artifact, &policy.claim_field, &policy.claim_values, origin, &mut claims);
+    collect_claim_objects(
+        artifact,
+        &policy.claim_field,
+        &policy.claim_values,
+        origin,
+        &mut claims,
+    );
     let mut findings = Vec::new();
     for (location, map) in &claims {
         let problems = claim_problems(policy, map);
@@ -1180,7 +1287,10 @@ pub fn audit_interval(policy: &Policy, input: &Value) -> Result<AuditReport, Gat
         .unwrap_or(&no_records)
     {
         let sha = record.get("commit").and_then(Value::as_str).unwrap_or("");
-        let resolution = record.get("resolution").and_then(Value::as_str).unwrap_or("");
+        let resolution = record
+            .get("resolution")
+            .and_then(Value::as_str)
+            .unwrap_or("");
         if !sha.is_empty() && !resolution.trim().is_empty() {
             remediated_commits.insert(sha.to_owned());
         }
@@ -1261,14 +1371,41 @@ pub fn audit_interval(policy: &Policy, input: &Value) -> Result<AuditReport, Gat
                      string path (name-only entries carry an empty string path)"
                 ))
             })?;
-            if !path.is_empty() && policy.under_target_path_prefix(path) {
-                findings.push(Finding::new(
-                    CODE_AUDIT_TARGET_DEBT_COMMIT,
-                    ARM_B,
-                    format!("{sha}: {name} -> {path}"),
-                    "commit introduced a workspace path dependency into a reorg-target prefix \
-                     within the audited range",
-                ));
+            if !path.is_empty() {
+                // Relative spellings such as `../../cloud/x` are valid Cargo path
+                // values; the live Arm B evaluator normalizes them against the
+                // declaring manifest. Audit mode must do the same, so the capture
+                // must carry that origin. A missing origin or a path that cannot
+                // be normalized is RTD_AUDIT_INPUT_INVALID — never a silent green.
+                let origin = object
+                    .get("origin")
+                    .and_then(Value::as_str)
+                    .map(str::trim)
+                    .filter(|origin| !origin.is_empty())
+                    .ok_or_else(|| {
+                        audit_invalid(format!(
+                            "commit {sha}: added_workspace_path_deps entry {name:?} with a \
+                             non-empty path must carry a non-empty string origin (the \
+                             declaring manifest) so the path can be normalized"
+                        ))
+                    })?;
+                let normalized = try_normalize_rel_path(manifest_base_dir(origin), path)
+                    .ok_or_else(|| {
+                        audit_invalid(format!(
+                            "commit {sha}: added_workspace_path_deps entry {name:?} path \
+                             {path:?} (origin {origin:?}) is not a normalizable repo-relative \
+                             path"
+                        ))
+                    })?;
+                if policy.under_target_path_prefix(&normalized) {
+                    findings.push(Finding::new(
+                        CODE_AUDIT_TARGET_DEBT_COMMIT,
+                        ARM_B,
+                        format!("{sha}: {name} -> {normalized}"),
+                        "commit introduced a workspace path dependency into a reorg-target prefix \
+                         within the audited range",
+                    ));
+                }
             }
         }
         for name in &added_dep_names {
@@ -1356,8 +1493,8 @@ fn walk_files(
     let entries = fs::read_dir(root)
         .map_err(|error| GateError::Io(format!("read_dir {}: {error}", root.display())))?;
     for entry in entries {
-        let entry =
-            entry.map_err(|error| GateError::Io(format!("dir entry {}: {error}", root.display())))?;
+        let entry = entry
+            .map_err(|error| GateError::Io(format!("dir entry {}: {error}", root.display())))?;
         let path = entry.path();
         let name = entry.file_name().to_string_lossy().into_owned();
         // Symlink-safe: DirEntry::file_type never follows symlinks, so a directory
@@ -1481,7 +1618,11 @@ impl BaselineCandidate {
                 .iter()
                 .map(|entry| entry_digest(entry))
                 .collect(),
-            dep_name_hashes: self.dep_names.iter().map(|entry| entry_digest(entry)).collect(),
+            dep_name_hashes: self
+                .dep_names
+                .iter()
+                .map(|entry| entry_digest(entry))
+                .collect(),
             anchors: self.anchors.clone(),
         }
     }
@@ -1497,8 +1638,8 @@ pub fn collect_baseline_candidate(
         paths: collect_target_prefix_paths(repo_root, policy)?,
         ..BaselineCandidate::default()
     };
-    let manifest = fs::read_to_string(repo_root.join(&policy.workspace_manifest_path))
-        .map_err(|error| {
+    let manifest =
+        fs::read_to_string(repo_root.join(&policy.workspace_manifest_path)).map_err(|error| {
             GateError::Io(format!("read {}: {error}", policy.workspace_manifest_path))
         })?;
     let mut add_dep = |dep: &WorkspaceDep, base_dir: &str, origin: &str| -> Result<(), GateError> {
@@ -1512,7 +1653,9 @@ pub fn collect_baseline_candidate(
         if !dep.path.is_empty() {
             let path = normalize_rel_path(base_dir, &dep.path);
             if policy.under_target_path_prefix(&path) {
-                candidate.workspace_path_deps.insert(path);
+                candidate
+                    .workspace_path_deps
+                    .insert(workspace_path_dep_key(origin, &dep.name, &path));
             }
         }
         if policy.carries_target_name_prefix(&dep.name) {
@@ -1521,12 +1664,12 @@ pub fn collect_baseline_candidate(
         Ok(())
     };
     for dep in parse_workspace_dependencies(&manifest, &policy.workspace_section) {
-        add_dep(&dep, "", &policy.workspace_manifest_path)?;
+        // Root workspace table: empty origin so the edge key is "\0<name>\0<dest>".
+        add_dep(&dep, "", "")?;
     }
     let surface = collect_name_surface(repo_root, policy)?;
     for (origin, dep) in &surface.member_path_deps {
-        let base_dir = origin.rsplit_once('/').map(|(dir, _)| dir).unwrap_or("");
-        add_dep(dep, base_dir, origin)?;
+        add_dep(dep, manifest_base_dir(origin), origin)?;
     }
     drop(add_dep);
     for decl in surface.names {
@@ -1556,7 +1699,11 @@ pub fn enforce_shrink_only(
     let mut added: Vec<String> = Vec::new();
     for (kind, entries, prior_hashes) in [
         ("path", &candidate.paths, &prior.path_hashes),
-        ("workspace-path-dep", &candidate.workspace_path_deps, &prior.workspace_path_dep_hashes),
+        (
+            "workspace-path-dep",
+            &candidate.workspace_path_deps,
+            &prior.workspace_path_dep_hashes,
+        ),
         ("name", &candidate.dep_names, &prior.dep_name_hashes),
     ] {
         for entry in entries {
@@ -1601,10 +1748,14 @@ pub fn regenerate_baseline(repo_root: &Path, policy: &Policy) -> Result<Baseline
 }
 
 /// Run all four blocking arms over the live tree and merge into one verdict.
-pub fn check_live_tree(repo_root: &Path, policy: &Policy, baseline: &Baseline) -> Result<Report, GateError> {
+pub fn check_live_tree(
+    repo_root: &Path,
+    policy: &Policy,
+    baseline: &Baseline,
+) -> Result<Report, GateError> {
     let paths = collect_target_prefix_paths(repo_root, policy)?;
-    let manifest = fs::read_to_string(repo_root.join(&policy.workspace_manifest_path))
-        .map_err(|error| {
+    let manifest =
+        fs::read_to_string(repo_root.join(&policy.workspace_manifest_path)).map_err(|error| {
             GateError::Io(format!("read {}: {error}", policy.workspace_manifest_path))
         })?;
     let surface = collect_name_surface(repo_root, policy)?;
@@ -1787,14 +1938,22 @@ mod tests {
             "arm_c_anchors": [],
         });
         let baseline = Baseline::from_value(&value).unwrap();
-        assert!(baseline.path_hashes.contains(&entry_digest("cloud/legacy/kernel.rs")));
+        assert!(
+            baseline
+                .path_hashes
+                .contains(&entry_digest("cloud/legacy/kernel.rs"))
+        );
     }
 
     #[test]
     fn entry_digest_is_deterministic_lowercase_sha256_hex() {
         let digest = entry_digest("docs/example.md");
         assert_eq!(digest.len(), 64);
-        assert!(digest.bytes().all(|b| matches!(b, b'0'..=b'9' | b'a'..=b'f')));
+        assert!(
+            digest
+                .bytes()
+                .all(|b| matches!(b, b'0'..=b'9' | b'a'..=b'f'))
+        );
         assert_eq!(digest, entry_digest("docs/example.md"));
         assert_ne!(digest, entry_digest("docs/example.md "));
     }
@@ -1826,15 +1985,25 @@ mod tests {
         assert_eq!(report.evaluated_path_count, 4);
 
         let baseline = Baseline {
-            workspace_path_dep_hashes: ["cloud/legacy-storage", "oya/legacy-subsection"]
+            workspace_path_dep_hashes: [
+                ("", "storage-legacy", "cloud/legacy-storage"),
+                ("", "subsection-dep", "oya/legacy-subsection"),
+            ]
+            .iter()
+            .map(|(origin, name, dest)| workspace_path_dep_digest(origin, name, dest))
+            .collect(),
+            dep_name_hashes: ["oya-shiny-new-kernel"]
                 .iter()
                 .map(|p| entry_digest(p))
                 .collect(),
-            dep_name_hashes: ["oya-shiny-new-kernel"].iter().map(|p| entry_digest(p)).collect(),
             ..Baseline::default()
         };
         let report = evaluate_workspace_deps(&policy, &baseline, &deps);
-        assert_eq!(report.verdict(), Verdict::Green, "baselined entries are shrink-only inventory");
+        assert_eq!(
+            report.verdict(),
+            Verdict::Green,
+            "baselined entries are shrink-only inventory"
+        );
     }
 
     #[test]
@@ -1850,20 +2019,30 @@ mod tests {
         assert_eq!(deps.len(), 3);
         assert_eq!(deps[0].path, "cloud/legacy-single-quoted");
         assert_eq!(deps[1].path, "./cloud/legacy-relative");
-        assert!(deps[2].path_unparseable, "an unreadable path value must be marked, not dropped");
+        assert!(
+            deps[2].path_unparseable,
+            "an unreadable path value must be marked, not dropped"
+        );
 
         let report = evaluate_workspace_deps(&policy, &Baseline::default(), &deps);
         assert_eq!(
             codes(&report),
-            vec![CODE_DEP_PATH_UNPARSEABLE, CODE_NEW_TARGET_PATH_DEP, CODE_NEW_TARGET_PATH_DEP]
+            vec![
+                CODE_DEP_PATH_UNPARSEABLE,
+                CODE_NEW_TARGET_PATH_DEP,
+                CODE_NEW_TARGET_PATH_DEP
+            ]
         );
         // `./cloud/...` is normalized before the prefix check and baselined under its
         // normalized spelling.
         let baseline = Baseline {
-            workspace_path_dep_hashes: ["cloud/legacy-single-quoted", "cloud/legacy-relative"]
-                .iter()
-                .map(|p| entry_digest(p))
-                .collect(),
+            workspace_path_dep_hashes: [
+                ("", "legacy-single", "cloud/legacy-single-quoted"),
+                ("", "legacy-relative", "cloud/legacy-relative"),
+            ]
+            .iter()
+            .map(|(origin, name, dest)| workspace_path_dep_digest(origin, name, dest))
+            .collect(),
             ..Baseline::default()
         };
         let report = evaluate_workspace_deps(&policy, &baseline, &deps[..2]);
@@ -1899,17 +2078,26 @@ mod tests {
             manifest,
             &["dependencies".to_owned(), "dev-dependencies".to_owned()],
         );
-        assert_eq!(facts.package_name.as_deref(), Some("cloud-synthetic-new-kernel"));
+        assert_eq!(
+            facts.package_name.as_deref(),
+            Some("cloud-synthetic-new-kernel")
+        );
         assert_eq!(facts.bin_names, vec!["oya_synthetic_new_bin"]);
         assert_eq!(facts.path_deps.len(), 2);
 
         let origin = "libs/synthetic/Cargo.toml".to_owned();
         let mut surface = NameSurface::default();
         if let Some(name) = facts.package_name.clone() {
-            surface.names.push(NameDecl { name, origin: origin.clone() });
+            surface.names.push(NameDecl {
+                name,
+                origin: origin.clone(),
+            });
         }
         for name in facts.bin_names.clone() {
-            surface.names.push(NameDecl { name, origin: origin.clone() });
+            surface.names.push(NameDecl {
+                name,
+                origin: origin.clone(),
+            });
         }
         for dep in facts.path_deps.clone() {
             surface.member_path_deps.push((origin.clone(), dep));
@@ -1933,14 +2121,30 @@ mod tests {
                 .iter()
                 .map(|n| entry_digest(n))
                 .collect(),
-            workspace_path_dep_hashes: ["cloud/legacy-estate-crate", "oya/legacy-dev-crate"]
-                .iter()
-                .map(|p| entry_digest(p))
-                .collect(),
+            workspace_path_dep_hashes: [
+                (
+                    "libs/synthetic/Cargo.toml",
+                    "legacy-estate",
+                    "cloud/legacy-estate-crate",
+                ),
+                (
+                    "libs/synthetic/Cargo.toml",
+                    "legacy-dev",
+                    "oya/legacy-dev-crate",
+                ),
+            ]
+            .iter()
+            .map(|(origin, name, dest)| workspace_path_dep_digest(origin, name, dest))
+            .collect(),
             ..Baseline::default()
         };
         let report = evaluate_name_surface(&policy, &baseline, &surface);
-        assert_eq!(report.verdict(), Verdict::Green, "findings: {:#?}", report.findings);
+        assert_eq!(
+            report.verdict(),
+            Verdict::Green,
+            "findings: {:#?}",
+            report.findings
+        );
     }
 
     #[test]
@@ -1969,13 +2173,22 @@ mod tests {
                 .iter()
                 .map(|p| entry_digest(p))
                 .collect(),
-            anchors: ["cloud/legacy/kernel.rs"].iter().map(|a| (*a).to_owned()).collect(),
+            anchors: ["cloud/legacy/kernel.rs"]
+                .iter()
+                .map(|a| (*a).to_owned())
+                .collect(),
             ..Baseline::default()
         };
         // Shrink: strictly fewer entries — admissible.
         let shrink = BaselineCandidate {
-            paths: ["cloud/legacy/kernel.rs"].iter().map(|p| (*p).to_owned()).collect(),
-            anchors: ["cloud/legacy/kernel.rs"].iter().map(|a| (*a).to_owned()).collect(),
+            paths: ["cloud/legacy/kernel.rs"]
+                .iter()
+                .map(|p| (*p).to_owned())
+                .collect(),
+            anchors: ["cloud/legacy/kernel.rs"]
+                .iter()
+                .map(|a| (*a).to_owned())
+                .collect(),
             ..BaselineCandidate::default()
         };
         assert!(enforce_shrink_only(&prior, &shrink).is_ok());
@@ -1985,7 +2198,10 @@ mod tests {
                 .iter()
                 .map(|p| (*p).to_owned())
                 .collect(),
-            anchors: ["cloud/legacy/kernel.rs"].iter().map(|a| (*a).to_owned()).collect(),
+            anchors: ["cloud/legacy/kernel.rs"]
+                .iter()
+                .map(|a| (*a).to_owned())
+                .collect(),
             ..BaselineCandidate::default()
         };
         let error = enforce_shrink_only(&prior, &expansion).unwrap_err();
@@ -1996,7 +2212,10 @@ mod tests {
         );
         // New anchors are expansions too.
         let anchor_expansion = BaselineCandidate {
-            paths: ["cloud/legacy/kernel.rs"].iter().map(|p| (*p).to_owned()).collect(),
+            paths: ["cloud/legacy/kernel.rs"]
+                .iter()
+                .map(|p| (*p).to_owned())
+                .collect(),
             anchors: ["cloud/legacy/kernel.rs", "oya/new-anchor"]
                 .iter()
                 .map(|a| (*a).to_owned())
@@ -2058,7 +2277,10 @@ mod tests {
         assert_eq!(report.evaluated_path_count, 2);
 
         let baseline = Baseline {
-            anchors: ["oya/synthetic-legacy-module"].iter().map(|p| (*p).to_owned()).collect(),
+            anchors: ["oya/synthetic-legacy-module"]
+                .iter()
+                .map(|p| (*p).to_owned())
+                .collect(),
             ..Baseline::default()
         };
         let report = evaluate_masterplan(&policy, &baseline, &plan);
@@ -2140,8 +2362,16 @@ mod tests {
             json!([{ "commit": "b2b2b2", "resolution": "reverted in c3c3c3; census re-measured" }]),
         );
         let report = audit_interval(&policy, &remediated).unwrap();
-        assert_eq!(report.verdict(), Verdict::Green, "a remediation record resolves the finding");
-        assert_eq!(report.findings.len(), 1, "the finding stays reported as evidence");
+        assert_eq!(
+            report.verdict(),
+            Verdict::Green,
+            "a remediation record resolves the finding"
+        );
+        assert_eq!(
+            report.findings.len(),
+            1,
+            "the finding stays reported as evidence"
+        );
     }
 
     #[test]
@@ -2156,7 +2386,10 @@ mod tests {
         assert!(audit_interval(&policy, &incomplete).is_err());
         // Missing fact array on a commit.
         let mut missing = audit_input(json!([clean_commit("a1a1a1")]), json!([]));
-        missing["commits"][0].as_object_mut().unwrap().remove("added_paths");
+        missing["commits"][0]
+            .as_object_mut()
+            .unwrap()
+            .remove("added_paths");
         assert!(audit_interval(&policy, &missing).is_err());
         // Wrong schema.
         let mut wrong = audit_input(json!([clean_commit("a1a1a1")]), json!([]));
@@ -2190,17 +2423,21 @@ mod tests {
         let mut malformed = audit_input(json!([clean_commit("b2b2b2")]), json!([]));
         malformed["commits"][0]["added_workspace_path_deps"] = json!(["not-an-object"]);
         let error = audit_interval(&policy, &malformed).unwrap_err();
-        assert!(error.to_string().contains("RTD_AUDIT_INPUT_INVALID"), "{error}");
+        assert!(
+            error.to_string().contains("RTD_AUDIT_INPUT_INVALID"),
+            "{error}"
+        );
         let mut missing_path = audit_input(json!([clean_commit("b2b2b2")]), json!([]));
-        missing_path["commits"][0]["added_workspace_path_deps"] =
-            json!([{ "name": "legacy-dep" }]);
+        missing_path["commits"][0]["added_workspace_path_deps"] = json!([{ "name": "legacy-dep" }]);
         assert!(audit_interval(&policy, &missing_path).is_err());
         // A capture whose last commit is not range.to is not bound to the declared
         // range: `complete: true` alone must not audit green.
         let unbound = audit_input(json!([clean_commit("a1a1a1")]), json!([]));
         let error = audit_interval(&policy, &unbound).unwrap_err();
         assert!(
-            error.to_string().contains("not bound to the declared range"),
+            error
+                .to_string()
+                .contains("not bound to the declared range"),
             "{error}"
         );
     }
@@ -2227,6 +2464,163 @@ mod tests {
             "a tracked directory symlink under a target prefix is itself a leaf entry: {paths:?}"
         );
         fs::remove_dir_all(&root).unwrap();
+    }
+
+    #[test]
+    fn arm_b_new_edge_to_baselined_destination_from_another_manifest_is_refused() {
+        let policy = test_policy();
+        let dest = "cloud/legacy-estate-crate";
+        let baseline = Baseline {
+            workspace_path_dep_hashes: [workspace_path_dep_digest(
+                "libs/already-wired/Cargo.toml",
+                "legacy-estate",
+                dest,
+            )]
+            .into_iter()
+            .collect(),
+            ..Baseline::default()
+        };
+        let surface = NameSurface {
+            names: Vec::new(),
+            member_path_deps: vec![(
+                "libs/new-consumer/Cargo.toml".to_owned(),
+                WorkspaceDep {
+                    name: "legacy-estate".to_owned(),
+                    path: "../../cloud/legacy-estate-crate".to_owned(),
+                    path_unparseable: false,
+                },
+            )],
+        };
+        let report = evaluate_name_surface(&policy, &baseline, &surface);
+        assert_eq!(
+            codes(&report),
+            vec![CODE_NEW_TARGET_PATH_DEP],
+            "a new edge from a different manifest to an already-baselined destination is NEW debt: {:#?}",
+            report.findings
+        );
+        // The original edge remains inventory.
+        let original = NameSurface {
+            names: Vec::new(),
+            member_path_deps: vec![(
+                "libs/already-wired/Cargo.toml".to_owned(),
+                WorkspaceDep {
+                    name: "legacy-estate".to_owned(),
+                    path: "../../cloud/legacy-estate-crate".to_owned(),
+                    path_unparseable: false,
+                },
+            )],
+        };
+        let report = evaluate_name_surface(&policy, &baseline, &original);
+        assert_eq!(report.verdict(), Verdict::Green);
+    }
+
+    #[test]
+    fn parse_manifest_facts_collects_target_qualified_dependency_subtables() {
+        let manifest = concat!(
+            "[package]\n",
+            "name = \"fine-crate\"\n\n",
+            "[target.'cfg(unix)'.dependencies.hidden-estate]\n",
+            "path = \"../../cloud/hidden-estate\"\n\n",
+            "[target.x86_64-unknown-linux-gnu.dev-dependencies]\n",
+            "legacy-target-dev = { path = \"../../oya/legacy-target-dev\" }\n\n",
+            "[profile.release]\n",
+            "lto = true\n",
+        );
+        let facts = parse_manifest_facts(
+            manifest,
+            &[
+                "dependencies".to_owned(),
+                "dev-dependencies".to_owned(),
+                "build-dependencies".to_owned(),
+            ],
+        );
+        assert_eq!(
+            facts.path_deps.len(),
+            2,
+            "target-qualified tables must be collected: {facts:?}"
+        );
+        assert_eq!(facts.path_deps[0].name, "hidden-estate");
+        assert_eq!(facts.path_deps[0].path, "../../cloud/hidden-estate");
+        assert_eq!(facts.path_deps[1].name, "legacy-target-dev");
+        assert_eq!(facts.path_deps[1].path, "../../oya/legacy-target-dev");
+
+        let origin = "libs/synthetic/Cargo.toml".to_owned();
+        let surface = NameSurface {
+            names: Vec::new(),
+            member_path_deps: facts
+                .path_deps
+                .into_iter()
+                .map(|dep| (origin.clone(), dep))
+                .collect(),
+        };
+        let report = evaluate_name_surface(&test_policy(), &Baseline::default(), &surface);
+        assert_eq!(
+            codes(&report),
+            vec![CODE_NEW_TARGET_PATH_DEP, CODE_NEW_TARGET_PATH_DEP],
+            "target-qualified path edges into the estate fail closed: {:#?}",
+            report.findings
+        );
+    }
+
+    #[test]
+    fn audit_normalizes_captured_dep_paths_against_origin_and_refuses_unnormalizable() {
+        let policy = test_policy();
+        let planted = json!({
+            "sha": "b2b2b2",
+            "added_paths": ["docs/fine.md"],
+            "added_workspace_path_deps": [{
+                "name": "legacy-estate",
+                "path": "../../cloud/planted-estate",
+                "origin": "libs/synthetic/Cargo.toml"
+            }],
+            "added_dep_names": [],
+            "added_evidence_anchors": [],
+        });
+        let input = audit_input(json!([planted]), json!([]));
+        let report = audit_interval(&policy, &input).unwrap();
+        assert_eq!(report.verdict(), Verdict::Red);
+        assert_eq!(report.findings.len(), 1);
+        assert!(
+            report.findings[0].subject.contains("cloud/planted-estate"),
+            "audit must report the normalized destination, not the raw spelling: {}",
+            report.findings[0].subject
+        );
+
+        let missing_origin = json!({
+            "sha": "b2b2b2",
+            "added_paths": ["docs/fine.md"],
+            "added_workspace_path_deps": [{
+                "name": "legacy-estate",
+                "path": "../../cloud/planted-estate"
+            }],
+            "added_dep_names": [],
+            "added_evidence_anchors": [],
+        });
+        let error =
+            audit_interval(&policy, &audit_input(json!([missing_origin]), json!([]))).unwrap_err();
+        assert!(
+            error.to_string().contains("RTD_AUDIT_INPUT_INVALID")
+                && error.to_string().contains("origin"),
+            "{error}"
+        );
+
+        let escaped = json!({
+            "sha": "b2b2b2",
+            "added_paths": ["docs/fine.md"],
+            "added_workspace_path_deps": [{
+                "name": "legacy-estate",
+                "path": "../../../../outside",
+                "origin": "libs/synthetic/Cargo.toml"
+            }],
+            "added_dep_names": [],
+            "added_evidence_anchors": [],
+        });
+        let error = audit_interval(&policy, &audit_input(json!([escaped]), json!([]))).unwrap_err();
+        assert!(
+            error.to_string().contains("RTD_AUDIT_INPUT_INVALID")
+                && error.to_string().contains("not a normalizable"),
+            "{error}"
+        );
     }
 
     #[test]
