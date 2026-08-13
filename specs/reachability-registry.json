@@ -258,6 +258,10 @@
       "prefix": "docs/programs/k8s-port/"
     },
     {
+      "anchor": "ADR-0711 worktree-per-agent isolation + ADR-0700/ADR-0515 oya-ci-required admission: operator-facing runbook for dispatching autonomous GJC work into isolated /.worktrees/ lanes (M3 mechanism of the approved multi-repo orchestration programme); indexed in docs/RUNBOOKS-INDEX.md.",
+      "prefix": "docs/runbooks/agentic/gjc-dispatch.md"
+    },
+    {
       "anchor": "Laptop CAS lab compose/buckconfig/canary assets for NativeLink warm-cache operator drills (integ/docs).",
       "prefix": "docs/runbooks/assets/laptop-cas/"
     },
