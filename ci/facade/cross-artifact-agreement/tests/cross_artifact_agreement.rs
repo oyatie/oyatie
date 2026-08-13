@@ -22,7 +22,8 @@ use ci_cross_artifact_agreement::{
     evaluate_masterplan_v2_plan_evidence_drift, evaluate_masterplan_v2_preplanning_candidate_facts,
     evaluate_masterplan_v2_program_coverage, evaluate_masterplan_v2_projection_freshness,
     evaluate_masterplan_v2_ratification_digest, evaluate_masterplan_v2_read_contract_archives,
-    evaluate_masterplan_v2_sequencing, evaluate_registry_derived_policy_sync,
+    evaluate_masterplan_v2_sequencing, evaluate_planning_entry_closure_evidence,
+    evaluate_planning_entry_transition, evaluate_registry_derived_policy_sync,
     normalize_closure_evidence_ref, ratchet,
 };
 use serde_json::Value;
@@ -2485,8 +2486,6 @@ fn adr_0624_is_explicitly_nonbinding_and_preserves_preplanning_hold() {
     let sequencing = load_json(&root.join("specs/master-plan-sequencing.json"));
     let control_plane = load_json(&root.join("registry/adr-census-epoch/control-plane.json"));
     let planning = &masterplan["planning_authority"];
-    let contract = &masterplan["masterplan_v2"]["planning_entry_contract"];
-    let dispatch = &masterplan["masterplan_v2"]["sequencing"]["execution_wave_dispatch"];
     let dispositions =
         &masterplan["masterplan_v2"]["accepted_decision_propagation_dispositions"]["decisions"];
 
@@ -2537,7 +2536,7 @@ fn adr_0624_is_explicitly_nonbinding_and_preserves_preplanning_hold() {
     );
 
     assert_eq!(control_plane["active_epoch"].as_str(), Some("P2"));
-    assert_lawful_planning_entry_state(contract, dispatch);
+    assert_lawful_planning_entry_state(&root, &masterplan);
 }
 
 /// The planning-entry contract has exactly TWO lawful shapes:
@@ -2545,11 +2544,12 @@ fn adr_0624_is_explicitly_nonbinding_and_preserves_preplanning_hold() {
 ///   `preplanning_authority_closure`, zero dispatched waves; or
 /// - the fully-evidenced CLOSED transition: both flags true plus a
 ///   `closure_evidence` chain whose refs resolve to durable, parseable `evidence/**`
-///   records that the pure evaluator accepts.
-/// Anything else is a hard failure. The live tree stays green only in the open
-/// hold; a live closed planning contract panics here until a trusted
-/// exact-pull-request/head review-admission packet is supplied.
-fn assert_lawful_planning_entry_state(contract: &Value, dispatch: &Value) {
+///   records that the pure evaluator accepts together with an externally supplied,
+///   exact-pull-request/head review-admission packet and protected-base masterplan.
+/// Anything else is a hard failure.
+fn assert_lawful_planning_entry_state(root: &Path, masterplan: &Value) {
+    let contract = &masterplan["masterplan_v2"]["planning_entry_contract"];
+    let dispatch = &masterplan["masterplan_v2"]["sequencing"]["execution_wave_dispatch"];
     match contract["state"].as_str() {
         Some("open") => {
             assert_eq!(
@@ -2575,15 +2575,169 @@ fn assert_lawful_planning_entry_state(contract: &Value, dispatch: &Value) {
             );
         }
         Some("closed") => {
-            panic!(
-                "the live planning-entry contract cannot close until the blocking gate receives \
-                 a trusted review-admission packet bound to the exact pull request and head"
+            let closure_evidence = contract["closure_evidence"]
+                .as_object()
+                .expect("closed planning_entry_contract.closure_evidence must be an object");
+            let t1 =
+                load_closure_evidence_record(root, closure_evidence, "t1_hold_lift_receipt_ref");
+            let t2 = load_closure_evidence_record(
+                root,
+                closure_evidence,
+                "t2_execution_authorization_ref",
+            );
+            let t3b_gate =
+                load_closure_evidence_record(root, closure_evidence, "t3b_gate_liveness_ref");
+            let t3b_interval =
+                load_closure_evidence_record(root, closure_evidence, "t3b_interval_audit_ref");
+
+            let pr_number = std::env::var("EVENT_PULL_REQUEST_NUMBER")
+                .ok()
+                .and_then(|value| value.parse::<u64>().ok())
+                .filter(|value| *value != 0)
+                .expect(
+                    "closed planning entry requires positive CI-observed \
+                     EVENT_PULL_REQUEST_NUMBER",
+                );
+            let head_sha = std::env::var("EVENT_PULL_REQUEST_HEAD_SHA")
+                .ok()
+                .map(|value| value.trim().to_owned())
+                .filter(|value| !value.is_empty())
+                .expect("closed planning entry requires CI-observed EVENT_PULL_REQUEST_HEAD_SHA");
+            let configured_packet_path = std::env::var("OYA_CI_REVIEW_ADMISSION_PACKET_PATH").ok();
+            let packet_path = trusted_controller_input_path(
+                root,
+                "OYA_CI_REVIEW_ADMISSION_PACKET_PATH",
+                configured_packet_path.as_deref(),
+            )
+            .unwrap_or_else(|message| panic!("{message}"));
+            let packet = load_json(&packet_path);
+            let configured_base_path = std::env::var("OYA_CI_PROTECTED_BASE_MASTERPLAN_PATH").ok();
+            let protected_base_path = trusted_controller_input_path(
+                root,
+                "OYA_CI_PROTECTED_BASE_MASTERPLAN_PATH",
+                configured_base_path.as_deref(),
+            )
+            .unwrap_or_else(|message| panic!("{message}"));
+            let protected_base_masterplan = load_json(&protected_base_path);
+
+            let mut findings = evaluate_planning_entry_closure_evidence(
+                masterplan,
+                &t1,
+                &t2,
+                &t3b_gate,
+                &t3b_interval,
+                pr_number,
+                &head_sha,
+                Some(&packet),
+            );
+            findings.extend(evaluate_planning_entry_transition(
+                &protected_base_masterplan,
+                masterplan,
+            ));
+            assert!(
+                findings.is_empty(),
+                "closed planning entry requires complete closure records and a trusted \
+                 exact-head review-admission packet plus an immutable protected-base \
+                 transition snapshot: {findings:?}"
             );
         }
         other => {
             panic!("planning_entry_contract.state must be exactly open or closed, got {other:?}")
         }
     }
+}
+
+fn load_closure_evidence_record(
+    root: &Path,
+    closure_evidence: &serde_json::Map<String, Value>,
+    field: &str,
+) -> Value {
+    let normalized =
+        normalize_closure_evidence_ref(closure_evidence.get(field)).unwrap_or_else(|| {
+            panic!("closure_evidence.{field} must be an admissible evidence/** ref")
+        });
+    let path = root.join(normalized);
+    assert!(
+        path.is_file(),
+        "closure_evidence.{field} must resolve to a committed record: {}",
+        path.display()
+    );
+    load_json(&path)
+}
+
+fn trusted_controller_input_path(
+    root: &Path,
+    variable: &str,
+    configured_path: Option<&str>,
+) -> Result<PathBuf, String> {
+    // This is defence in depth, not producer authentication. The future F-PR5-06
+    // controller caller owns provenance and must populate these paths from protected
+    // forge observations; a candidate-controlled workflow must never set them.
+    let configured_path = configured_path
+        .map(str::trim)
+        .filter(|path| !path.is_empty())
+        .ok_or_else(|| format!("closed planning entry requires {variable}"))?;
+    let input_path = Path::new(configured_path);
+    if !input_path.is_absolute() {
+        return Err(format!(
+            "{variable} must be an absolute trusted-controller path"
+        ));
+    }
+
+    let canonical_root = fs::canonicalize(root)
+        .map_err(|error| format!("canonicalize repository root {}: {error}", root.display()))?;
+    let canonical_input = fs::canonicalize(input_path)
+        .map_err(|error| format!("canonicalize {variable} {}: {error}", input_path.display()))?;
+    if !canonical_input.is_file() {
+        return Err(format!(
+            "{variable} must resolve to a file: {}",
+            canonical_input.display()
+        ));
+    }
+    if canonical_input.starts_with(&canonical_root) {
+        return Err(format!(
+            "{variable} must resolve outside the candidate repository: {}",
+            canonical_input.display()
+        ));
+    }
+    Ok(canonical_input)
+}
+
+#[test]
+fn trusted_controller_input_paths_reject_candidate_files() {
+    let root = repo_root();
+    let external_dir = tempfile::tempdir().expect("external controller-input tempdir");
+    for (variable, file_name) in [
+        (
+            "OYA_CI_REVIEW_ADMISSION_PACKET_PATH",
+            "review-admission.json",
+        ),
+        (
+            "OYA_CI_PROTECTED_BASE_MASTERPLAN_PATH",
+            "protected-base-masterplan.json",
+        ),
+    ] {
+        let external_input = external_dir.path().join(file_name);
+        fs::write(&external_input, b"{}").expect("write external controller input");
+        let resolved = trusted_controller_input_path(&root, variable, external_input.to_str())
+            .expect("external trusted-controller input path must be accepted");
+        assert_eq!(
+            resolved,
+            fs::canonicalize(&external_input).expect("canonical external input")
+        );
+    }
+
+    let candidate_file = root.join("specs/root-hub-pointers.json");
+    let error = trusted_controller_input_path(
+        &root,
+        "OYA_CI_REVIEW_ADMISSION_PACKET_PATH",
+        candidate_file.to_str(),
+    )
+    .expect_err("candidate-authored packet path must be rejected");
+    assert!(
+        error.contains("outside the candidate repository"),
+        "rejection must name the trust-boundary violation: {error}"
+    );
 }
 
 #[test]
