@@ -17,8 +17,9 @@
   hashed receipt e2e. Forever specs tree remains integ/specs.
 - W0-B Slice 8: `port-engine-snapshot` admits OOB bootstrap SourceModel fixture (pin + content
   digest verify; never spawns Go) + facade CLI `admit-snapshot` + e2e binds admitted digest.
-- W0-B Slice 9: `port-engine-identity` (`engine_digest`) + `port-engine-toolchain` (dual-home
-  corpus → `toolchain_digest`; cell remap still PARKED) + facade `pipeline|receipt|engine|toolchain`.
+- W0-B Slice 9: `port-engine-identity` (`engine_digest`) + `port-engine-toolchain`
+  (hermetic live-toolchain corpus → `toolchain_digest`) + facade
+  `pipeline|receipt|engine|toolchain`.
 - W0-B Slice 10: fixture-gated `port-engine-rulepack` (object rules + ≥1 `selecting_fixtures` each;
   missing/omitted fixtures refuse load) — hermetic mirror only; forever tree still integ/specs.
 - W0-B Slice 11: `port-engine-transform` applies plan constructions/preconditions → `RustIr`;
@@ -30,29 +31,23 @@
   `port-engine-canary-out` only; facade `emit-canary`. Refuses `k8s/` / bulk emit.
 - W0-B Slice 14: canary materialize round-trip (`materialize-canary`) + planted-defect
   detect (`canary-defect` → Red/Unexplained on canary region); still no bulk `k8s/`.
-- Toolchains dual-home: `build/toolchains/**` byte-copies `toolchains/BUCK` +
-  `toolchains/cache/{BUCK,OWNERS,defs.bzl}` (4 files). Live buck cell remains
-  `toolchains = toolchains` in `.buckconfig` until remap+shrink. Slice 9 mirrors those bytes
-  under `port-engine-toolchain/src/corpus/*.txt` for hermetic receipt binding (`.txt` so buck2
-  srcs globs include them; logical dual-home paths stay in the digest preimage) — keep mirrors
-  in sync when dual-home bytes change.
+- Toolchains cell: `.buckconfig` maps `toolchains` directly to `build/toolchains`; the retired
+  root `toolchains/**` copy is gone. Slice 9 mirrors the live toolchain bytes under
+  `port-engine-toolchain/src/corpus/*.txt` for hermetic receipt binding (`.txt` keeps them inside
+  Buck2 source globs). Keep these receipt mirrors byte-identical to the live cell whenever
+  toolchain definitions change.
 
 ## Next gaps (ordered)
 
 1. **Lock absorb** — `Cargo.lock` / root `Cargo.toml` workspace membership refresh waits
    `#1646` land (ci/controller paths must exist before members); no third writer; libs `#1649`
    must not steal lock. Then refresh lock for path-dep / workspace edges (serde, syn, quote, sha2).
-2. **Toolchains cell remap + shrink** — set `.buckconfig` `toolchains = build/toolchains`,
-   update reachability/`toolchains/` prefixes (may need integ/specs attach), then delete
-   root `toolchains/**`. Do not delete while the cell still points at the root path.
-   **PARKED:** `.buckconfig` is outside `roots.build` envelope globs (`build/**` only).
-   After remap, prefer digesting the live cell path and drop the package-local corpus mirror.
-3. **Forever port-rules materializer** — land live `specs/port-rules/**` on integ/specs; replace
+2. **Forever port-rules materializer** — land live `specs/port-rules/**` on integ/specs; replace
    package-local mirror with ADR-0597 materializer relationship (build tip keeps hermetic copy
    until then). Bootstrap Go extractor remains out-of-band only (Slice 8 admits artifacts only).
-4. **Richer constructions** — expand beyond `pass_through` / `empty_canary` once forever
+3. **Richer constructions** — expand beyond `pass_through` / `empty_canary` once forever
    `specs/port-rules/**` lands; keep kernel free of construction vocabulary.
-5. **k8s/ materializer emit** — regenerable output into `k8s/` waits integ/k8s rail + ADR-0597
+4. **k8s/ materializer emit** — regenerable output into `k8s/` waits integ/k8s rail + ADR-0597
    materializer; W0-B forbids bulk corpus emission from integ/build.
 
 ## Out of envelope (do not touch from `integ/build`)
@@ -60,5 +55,4 @@
 - `specs/k8s-port/` — judgment pending; no rehome (Slice 3 embeds a same-package mirror only).
 - `specs/port-rules/**` — forever integ/specs (Slice 7 embeds hermetic mirror only).
 - `k8s/**` — separate integ rail (mechanical port *generates into* k8s/; does not own the tree).
-- `.buckconfig` cell remap for toolchains — coordinate with reachability/registry consumers.
 - `ci/controller/**` members — wait `#1646` land (reverted premature absorb @ `72530017a`).

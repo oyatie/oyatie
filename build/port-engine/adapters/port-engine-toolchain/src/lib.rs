@@ -1,10 +1,9 @@
 //! # port-engine-toolchain — receipt `toolchain_digest` binder (W0-B Slice 9).
 //!
-//! Digests the hermetic dual-home toolchain corpus (`build/toolchains/**` mirrored under
+//! Digests the hermetic live-toolchain corpus (`build/toolchains/**` mirrored under
 //! `src/corpus/*.txt`). Filenames avoid nesting a `BUCK` path (buck2 srcs globs exclude those).
-//! Cell remap (`.buckconfig` `toolchains = build/toolchains`) remains PARKED outside the
-//! `roots.build` envelope; this adapter binds the dual-home *bytes* so the receipt axis is
-//! content-addressed without rewriting the live buck cell.
+//! The adapter binds byte-identical mirrors of the canonical cell so the receipt axis remains
+//! content-addressed and hermetic.
 #![forbid(unsafe_code)]
 
 use port_engine_api::Digest;
