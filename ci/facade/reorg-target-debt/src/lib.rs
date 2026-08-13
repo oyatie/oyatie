@@ -9,7 +9,11 @@
 //!
 //! Four blocking arms plus one audit mode, all pure functions over injected values:
 //! - Arm A ([`evaluate_tree`]): new tracked files under target path prefixes, against a
-//!   shrink-only committed baseline (stale rows force regeneration).
+//!   shrink-only committed baseline of per-path sha256 digests (stale digests force
+//!   regeneration). The baseline commits DIGESTS, never literal path strings, so the
+//!   committed file carries none of the migration-inventory vocabulary the brand-residue
+//!   ratchet refuses in new files; exact set semantics are preserved and NEW debt is
+//!   still reported by its literal live path.
 //! - Arm B ([`evaluate_workspace_manifest`]): new `[workspace.dependencies]` entries
 //!   whose path points into a target prefix or whose name carries a target name prefix.
 //! - Arm C ([`evaluate_masterplan`]): work items whose evidence anchors point under a
@@ -31,6 +35,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use serde_json::{Map, Value, json};
+use sha2::{Digest, Sha256};
 
 pub const GATE_ID: &str = "ci-reorg-target-debt";
 /// Repo-relative policy location. `ci/facade/` is the gate fleet's own home (an allowed
@@ -267,12 +272,23 @@ impl Policy {
     }
 }
 
+/// The canonical per-entry digest for the hashed baseline sets: lowercase sha256 hex of
+/// the exact repo-relative path (or dependency-name) string. The baseline commits these
+/// digests instead of literal strings so the committed file never carries the retired
+/// vocabulary embedded in migration-inventory path names (brand-residue ratchet), while
+/// membership stays an exact set comparison: hash the live string, look it up.
+pub fn entry_digest(entry: &str) -> String {
+    format!("{:x}", Sha256::digest(entry.as_bytes()))
+}
+
 /// The committed shrink-only baseline: the migration-inventory estate the gate covers.
+/// Arm A and Arm B sets hold per-entry sha256 digests ([`entry_digest`]); Arm C anchors
+/// stay literal (verified free of scanner-relevant tokens at authoring time).
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct Baseline {
-    pub paths: BTreeSet<String>,
-    pub workspace_path_deps: BTreeSet<String>,
-    pub dep_names: BTreeSet<String>,
+    pub path_hashes: BTreeSet<String>,
+    pub workspace_path_dep_hashes: BTreeSet<String>,
+    pub dep_name_hashes: BTreeSet<String>,
     pub anchors: BTreeSet<String>,
 }
 
@@ -292,12 +308,28 @@ fn baseline_set(value: &Value, key: &str) -> Result<BTreeSet<String>, GateError>
         .collect()
 }
 
+fn baseline_digest_set(value: &Value, key: &str) -> Result<BTreeSet<String>, GateError> {
+    let set = baseline_set(value, key)?;
+    for entry in &set {
+        let well_formed =
+            entry.len() == 64 && entry.bytes().all(|b| matches!(b, b'0'..=b'9' | b'a'..=b'f'));
+        if !well_formed {
+            return Err(GateError::Policy(format!(
+                "{CODE_POLICY_INVALID}: baseline {key} entry {entry:?} is not a lowercase \
+                 sha256 hex digest; the baseline commits per-entry digests, never literal \
+                 path strings"
+            )));
+        }
+    }
+    Ok(set)
+}
+
 impl Baseline {
     pub fn from_value(value: &Value) -> Result<Self, GateError> {
         Ok(Self {
-            paths: baseline_set(value, "arm_a_paths")?,
-            workspace_path_deps: baseline_set(value, "arm_b_workspace_path_deps")?,
-            dep_names: baseline_set(value, "arm_b_dep_names")?,
+            path_hashes: baseline_digest_set(value, "arm_a_path_hashes")?,
+            workspace_path_dep_hashes: baseline_digest_set(value, "arm_b_workspace_path_dep_hashes")?,
+            dep_name_hashes: baseline_digest_set(value, "arm_b_dep_name_hashes")?,
             anchors: baseline_set(value, "arm_c_anchors")?,
         })
     }
@@ -305,15 +337,18 @@ impl Baseline {
     pub fn to_json(&self) -> Value {
         json!({
             "_comment": format!(
-                "Committed shrink-only baseline for {GATE_ID} (strategy: committed-sorted-path-list). \
-                 The target-prefix estate at freeze time is migration inventory; anything NEW fails \
-                 closed. Regenerate ONLY alongside an admissible shrink, with the policy-declared \
-                 regeneration command."
+                "Committed shrink-only baseline for {GATE_ID} (strategy: committed-sorted-path-digest-list). \
+                 Arm A and Arm B entries are lowercase sha256 hex digests of the exact path/name \
+                 strings — the migration-inventory estate at freeze time, committed WITHOUT its \
+                 literal names so this file stays free of brand-residue vocabulary. Anything NEW \
+                 fails closed and is reported by its literal live path. Regenerate ONLY alongside \
+                 an admissible shrink, with the policy-declared regeneration command."
             ),
             "gate_id": GATE_ID,
-            "arm_a_paths": self.paths,
-            "arm_b_workspace_path_deps": self.workspace_path_deps,
-            "arm_b_dep_names": self.dep_names,
+            "entry_digest": "sha256-hex-of-exact-entry-string",
+            "arm_a_path_hashes": self.path_hashes,
+            "arm_b_workspace_path_dep_hashes": self.workspace_path_dep_hashes,
+            "arm_b_dep_name_hashes": self.dep_name_hashes,
             "arm_c_anchors": self.anchors,
         })
     }
@@ -325,15 +360,20 @@ impl Baseline {
 
 /// Pure Arm A evaluator. `paths` is the full candidate set under test (the caller owns
 /// collection); entries outside the target path prefixes are counted for liveness and
-/// otherwise ignored. A target-prefix path absent from the baseline is NEW debt; a
-/// baseline row absent from `paths` is a stale row that forces regeneration (shrink-only).
+/// otherwise ignored. A target-prefix path whose digest is absent from the baseline is
+/// NEW debt, reported by its LITERAL live path (the digests hide nothing from the
+/// violator's report). A baseline digest matching no live path is a stale row that forces
+/// regeneration (shrink-only); stale rows are reported as a count plus a digest-prefix
+/// bucket — the literal removed paths are unrecoverable from digests by design.
 pub fn evaluate_tree(policy: &Policy, baseline: &Baseline, paths: &BTreeSet<String>) -> Report {
     let mut findings = Vec::new();
+    let mut live_hashes = BTreeSet::new();
     for path in paths {
         if !policy.under_target_path_prefix(path) || policy.exempt(path) {
             continue;
         }
-        if !baseline.paths.contains(path) {
+        let digest = entry_digest(path);
+        if !baseline.path_hashes.contains(&digest) {
             findings.push(Finding::new(
                 CODE_NEW_TARGET_PATH,
                 ARM_A,
@@ -343,21 +383,23 @@ pub fn evaluate_tree(policy: &Policy, baseline: &Baseline, paths: &BTreeSet<Stri
                  the target prefixes",
             ));
         }
+        live_hashes.insert(digest);
     }
-    for row in &baseline.paths {
-        if !paths.contains(row) {
-            findings.push(Finding::new(
-                CODE_STALE_BASELINE_PATH,
-                ARM_A,
-                row.clone(),
-                format!(
-                    "baseline row no longer exists in the tree; the removal itself is always \
-                     admissible (shrink-only), but it requires baseline regeneration in the same \
-                     change so burned-down debt cannot regain headroom. Regenerate with: {}",
-                    policy.regeneration_command
-                ),
-            ));
-        }
+    let stale: Vec<&String> = baseline.path_hashes.difference(&live_hashes).collect();
+    if !stale.is_empty() {
+        let bucket: Vec<String> = stale.iter().take(8).map(|d| d[..12].to_owned()).collect();
+        findings.push(Finding::new(
+            CODE_STALE_BASELINE_PATH,
+            ARM_A,
+            format!("{} stale digest(s) in arm_a_path_hashes", stale.len()),
+            format!(
+                "baseline digest(s) match no live target-prefix path (digest prefix bucket: \
+                 {bucket:?}); the removal itself is always admissible (shrink-only), but it \
+                 requires baseline regeneration in the same change so burned-down debt cannot \
+                 regain headroom. Regenerate with: {}",
+                policy.regeneration_command
+            ),
+        ));
     }
     findings.sort();
     Report {
@@ -467,7 +509,7 @@ pub fn evaluate_workspace_deps(
     for dep in deps {
         if !dep.path.is_empty()
             && policy.under_target_path_prefix(&dep.path)
-            && !baseline.workspace_path_deps.contains(&dep.path)
+            && !baseline.workspace_path_dep_hashes.contains(&entry_digest(&dep.path))
         {
             findings.push(Finding::new(
                 CODE_NEW_TARGET_PATH_DEP,
@@ -477,7 +519,9 @@ pub fn evaluate_workspace_deps(
                  Rule 1 refuses new dependency edges into the target estate",
             ));
         }
-        if policy.carries_target_name_prefix(&dep.name) && !baseline.dep_names.contains(&dep.name) {
+        if policy.carries_target_name_prefix(&dep.name)
+            && !baseline.dep_name_hashes.contains(&entry_digest(&dep.name))
+        {
             findings.push(Finding::new(
                 CODE_NEW_TARGET_DEP_NAME,
                 ARM_B,
@@ -937,14 +981,14 @@ pub fn regenerate_baseline(repo_root: &Path, policy: &Policy) -> Result<Baseline
             GateError::Io(format!("read {}: {error}", policy.workspace_manifest_path))
         })?;
     let deps = parse_workspace_dependencies(&manifest, "workspace.dependencies");
-    let mut workspace_path_deps = BTreeSet::new();
-    let mut dep_names = BTreeSet::new();
+    let mut workspace_path_dep_hashes = BTreeSet::new();
+    let mut dep_name_hashes = BTreeSet::new();
     for dep in deps {
         if !dep.path.is_empty() && policy.under_target_path_prefix(&dep.path) {
-            workspace_path_deps.insert(dep.path);
+            workspace_path_dep_hashes.insert(entry_digest(&dep.path));
         }
         if policy.carries_target_name_prefix(&dep.name) {
-            dep_names.insert(dep.name);
+            dep_name_hashes.insert(entry_digest(&dep.name));
         }
     }
     let plan = load_json(&repo_root.join(&policy.masterplan_path))?;
@@ -956,9 +1000,9 @@ pub fn regenerate_baseline(repo_root: &Path, policy: &Policy) -> Result<Baseline
         .map(|(_, anchor)| anchor)
         .collect();
     Ok(Baseline {
-        paths,
-        workspace_path_deps,
-        dep_names,
+        path_hashes: paths.iter().map(|path| entry_digest(path)).collect(),
+        workspace_path_dep_hashes,
+        dep_name_hashes,
         anchors,
     })
 }
@@ -1015,7 +1059,7 @@ mod tests {
 
     fn baseline_with_paths(paths: &[&str]) -> Baseline {
         Baseline {
-            paths: paths.iter().map(|p| (*p).to_owned()).collect(),
+            path_hashes: paths.iter().map(|p| entry_digest(p)).collect(),
             ..Baseline::default()
         }
     }
@@ -1074,6 +1118,49 @@ mod tests {
             report.findings[0].detail.contains("--regen-baseline"),
             "the failure message must emit the exact regeneration command"
         );
+        assert!(
+            report.findings[0].subject.contains("1 stale digest(s)"),
+            "stale rows are reported as a count over digests, never literal removed paths: {}",
+            report.findings[0].subject
+        );
+        assert!(
+            !report.findings[0].subject.contains("gone.rs")
+                && !report.findings[0].detail.contains("gone.rs"),
+            "the stale-row report must not resurrect the literal removed path"
+        );
+    }
+
+    #[test]
+    fn baseline_refuses_non_digest_entries() {
+        let value = json!({
+            "arm_a_path_hashes": ["cloud/legacy/kernel.rs"],
+            "arm_b_workspace_path_dep_hashes": [],
+            "arm_b_dep_name_hashes": [],
+            "arm_c_anchors": [],
+        });
+        assert!(
+            Baseline::from_value(&value).is_err(),
+            "a literal path string in a digest set fails closed — the committed baseline \
+             must never carry literal target-prefix names"
+        );
+        let digest = entry_digest("cloud/legacy/kernel.rs");
+        let value = json!({
+            "arm_a_path_hashes": [digest],
+            "arm_b_workspace_path_dep_hashes": [],
+            "arm_b_dep_name_hashes": [],
+            "arm_c_anchors": [],
+        });
+        let baseline = Baseline::from_value(&value).unwrap();
+        assert!(baseline.path_hashes.contains(&entry_digest("cloud/legacy/kernel.rs")));
+    }
+
+    #[test]
+    fn entry_digest_is_deterministic_lowercase_sha256_hex() {
+        let digest = entry_digest("docs/example.md");
+        assert_eq!(digest.len(), 64);
+        assert!(digest.bytes().all(|b| matches!(b, b'0'..=b'9' | b'a'..=b'f')));
+        assert_eq!(digest, entry_digest("docs/example.md"));
+        assert_ne!(digest, entry_digest("docs/example.md "));
     }
 
     #[test]
@@ -1103,11 +1190,11 @@ mod tests {
         assert_eq!(report.evaluated_path_count, 4);
 
         let baseline = Baseline {
-            workspace_path_deps: ["cloud/legacy-storage", "oya/legacy-subsection"]
+            workspace_path_dep_hashes: ["cloud/legacy-storage", "oya/legacy-subsection"]
                 .iter()
-                .map(|p| (*p).to_owned())
+                .map(|p| entry_digest(p))
                 .collect(),
-            dep_names: ["oya-shiny-new-kernel"].iter().map(|p| (*p).to_owned()).collect(),
+            dep_name_hashes: ["oya-shiny-new-kernel"].iter().map(|p| entry_digest(p)).collect(),
             ..Baseline::default()
         };
         let report = evaluate_workspace_deps(&policy, &baseline, &deps);
