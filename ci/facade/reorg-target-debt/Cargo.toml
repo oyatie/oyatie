@@ -10,7 +10,7 @@ license = "Apache-2.0"
 bounded_context = "cloud-ci"
 kind = "shared"
 layer = "app"
-purpose = "No-new-reorg-target-debt gate (Global Binding Rule 1, North-Star Completion bootstrap T3b): refuses new files, workspace dependencies, work-item evidence anchors, and unproven reduction claims under the reorg-target forms, against a shrink-only committed baseline; ships a deterministic fail-closed interval-audit mode."
+purpose = "No-new-reorg-target-debt gate (Global Binding Rule 1, North-Star Completion bootstrap T3b): refuses new files, dependency edges, declaration-scoped Cargo/Buck/Rust module names, work-item evidence anchors, and unbound reduction claims under the reorg-target forms, against a shrink-only committed and immutable merge-base baseline; ships a deterministic fail-closed interval-audit mode."
 
 # ci-reorg-target-debt: pure policy-as-data evaluators (Arms A-D + interval audit) with
 # read-only collectors at the edge. Born pack-shaped: the six reorg-target forms, baseline
@@ -29,6 +29,8 @@ path = "src/main.rs"
 [dependencies]
 serde_json = { workspace = true }
 sha2 = { workspace = true }
+syn = { workspace = true }
+toml = { workspace = true }
 
 [lints]
 workspace = true

@@ -22,11 +22,12 @@ use std::path::{Path, PathBuf};
 use serde_json::Value;
 
 use ci_reorg_target_debt::{
-    Baseline, BaselineCandidate, NameDecl, NameSurface, POLICY_PATH, Policy, Report, Verdict,
-    WorkspaceDep, audit_interval, check_live_tree, collect_target_prefix_paths,
-    enforce_shrink_only, entry_digest, evaluate_masterplan, evaluate_name_surface,
-    evaluate_reduction_claims, evaluate_tree, evaluate_workspace_manifest, load_baseline,
-    load_json, load_policy, parse_manifest_facts, workspace_path_dep_digest,
+    Baseline, BaselineCandidate, CODE_DEP_PATH_UNPARSEABLE, NameDecl, NameSurface, POLICY_PATH,
+    Policy, Report, Verdict, WorkspaceDep, audit_interval, check_live_tree,
+    collect_baseline_candidate, collect_target_prefix_paths, enforce_shrink_only, entry_digest,
+    evaluate_masterplan, evaluate_name_surface, evaluate_reduction_claims, evaluate_tree,
+    evaluate_workspace_manifest, load_baseline, load_json, load_policy, name_decl_digest,
+    parse_manifest_facts, workspace_path_dep_digest,
 };
 
 /// Walk up from the test's working directory to the repo root (the dir holding the
@@ -97,6 +98,8 @@ fn committed_baseline_matches_the_live_target_prefix_estate_exactly() {
     let policy = live_policy(&root);
     let baseline = load_baseline(&root, &policy).expect("load committed baseline");
     let live = collect_target_prefix_paths(&root, &policy).expect("collect target-prefix paths");
+    let candidate =
+        collect_baseline_candidate(&root, &policy).expect("collect live Arm B candidate");
 
     // Digest set semantics: hash each live path, compare exact sets. NEW debt is reported
     // by its literal live path; stale baseline digests are reported as a count (the
@@ -113,6 +116,18 @@ fn committed_baseline_matches_the_live_target_prefix_estate_exactly() {
          digest(s). New files under a target prefix are refused (Global Binding Rule 1); \
          admissible removals require regenerating the baseline with: {}",
         policy.regeneration_command
+    );
+
+    let live_arm_b = candidate.to_baseline();
+    assert_eq!(
+        baseline.workspace_path_dep_hashes, live_arm_b.workspace_path_dep_hashes,
+        "Arm B tuple hashes must match the live collected set exactly; extra or stale \
+         hashes are unauthorized headroom"
+    );
+    assert_eq!(
+        baseline.dep_name_hashes, live_arm_b.dep_name_hashes,
+        "Arm B name hashes must match the live collected set exactly; extra or stale \
+         hashes are unauthorized headroom"
     );
 }
 
@@ -259,7 +274,26 @@ fn run_fixture(policy: &Policy, fixture: &Value, name: &str) {
                 .map(|v| v.as_str().expect("manifest line is a string"))
                 .collect::<Vec<_>>()
                 .join("\n");
-            evaluate_workspace_manifest(policy, &baseline, &manifest, "workspace.dependencies")
+            match evaluate_workspace_manifest(
+                policy,
+                &baseline,
+                &manifest,
+                "workspace.dependencies",
+            ) {
+                Ok(report) => report,
+                Err(error) => {
+                    assert_eq!(
+                        expected_codes,
+                        vec![CODE_DEP_PATH_UNPARSEABLE.to_owned()],
+                        "{name}: a parser refusal must match the declared fail-closed code"
+                    );
+                    assert!(
+                        error.to_string().contains(CODE_DEP_PATH_UNPARSEABLE),
+                        "{name}: parser refusal must carry {CODE_DEP_PATH_UNPARSEABLE}: {error}"
+                    );
+                    return;
+                }
+            }
         }
         "masterplan" => {
             let plan = input.get("plan").expect("masterplan fixture declares plan");
@@ -291,7 +325,8 @@ fn run_fixture(policy: &Policy, fixture: &Value, name: &str) {
                 .and_then(Value::as_str)
                 .expect("member-manifest fixture declares origin")
                 .to_owned();
-            let facts = parse_manifest_facts(&manifest, &policy.member_dependency_sections);
+            let facts = parse_manifest_facts(&manifest, &policy.member_dependency_sections)
+                .unwrap_or_else(|error| panic!("{name}: member-manifest parse failed: {error}"));
             let mut surface = NameSurface::default();
             if let Some(pkg) = facts.package_name {
                 surface.names.push(NameDecl {
@@ -539,5 +574,51 @@ fn audit_remediation_lifecycle_planted_commit_stays_red_until_remediated() {
         remediated.findings.len(),
         report.findings.len(),
         "remediation resolves the verdict, never erases the evidence"
+    );
+}
+#[test]
+fn committed_arm_b_baseline_rejects_extra_tuple_and_name_hashes() {
+    let root = repo_root();
+    let policy = live_policy(&root);
+    let candidate =
+        collect_baseline_candidate(&root, &policy).expect("collect live Arm B candidate");
+    let extra_tuple = workspace_path_dep_digest(
+        "libs/unauthorized/Cargo.toml",
+        "sneaky",
+        "cloud/sneaky-estate",
+    );
+    let extra_name = name_decl_digest("libs/unauthorized/BUCK", "oya-preauthorized");
+    let mut bloated = candidate.to_baseline();
+    bloated
+        .workspace_path_dep_hashes
+        .insert(extra_tuple.clone());
+    assert_ne!(
+        bloated.workspace_path_dep_hashes,
+        candidate.to_baseline().workspace_path_dep_hashes,
+        "an extra tuple hash must be distinguishable from the live collected set"
+    );
+    bloated.dep_name_hashes.insert(extra_name.clone());
+    assert!(
+        !candidate
+            .to_baseline()
+            .dep_name_hashes
+            .contains(&extra_name),
+        "an extra name hash must be distinguishable from the live collected set"
+    );
+}
+
+#[test]
+fn same_change_edge_plus_hash_expansion_is_refused() {
+    let root = repo_root();
+    let policy = live_policy(&root);
+    let prior = load_baseline(&root, &policy).expect("load committed baseline");
+    let mut candidate = collect_baseline_candidate(&root, &policy).expect("collect live candidate");
+    candidate.workspace_path_deps.insert(
+        "libs/new-consumer/Cargo.toml\0legacy-estate\0cloud/legacy-estate-crate".to_owned(),
+    );
+    let error = enforce_shrink_only(&prior, &candidate).expect_err("same-change expansion");
+    assert!(
+        error.to_string().contains("RTD_BASELINE_EXPANSION"),
+        "{error}"
     );
 }

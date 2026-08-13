@@ -437,6 +437,35 @@
       }
     },
     {
+      "artifact_id": "ci-reorg-target-debt-merge-base-snapshot",
+      "path": "ci/facade/reorg-target-debt/reorg-target-debt-merge-base.generated.json",
+      "artifact_class": "review-artifact",
+      "materialization_mode": "not-tracked-in-git",
+      "merge_policy": "never-manual-merge-regenerate-from-source-tree",
+      "owner_team": "cloud-ci-platform",
+      "source_inputs": [
+        "ci/facade/reorg-target-debt/reorg-target-debt-policy.json at merge-base source worktree",
+        "ci/facade/reorg-target-debt/reorg-target-debt-baseline.json at merge-base source worktree",
+        "merge-base revision emitted by the scm-facts boundary"
+      ],
+      "final_tree_validation": "The generated-artifact freshness materializer reuses its single sanctioned merge-base source worktree and writes a schema-bound policy+baseline snapshot. The reorg-target-debt gate consumes only this declared JSON input and fails closed on absence, foreign schema/base_ref, malformed policy/baseline, or a missing-at-merge-base state outside the exact T2 adoption anchor. Gate production code never shells out to git.",
+      "public_product_contract": "Immutable origin/dev merge-base policy and baseline for the reorg-target-debt anti-laundering ceiling. The one initial-adoption snapshot declares missing_at_merge_base=true with null policy/baseline; every later snapshot carries parseable merge-base policy and baseline values. Never hand-edited.",
+      "generator": {
+        "runner": "buck2",
+        "generator_target": "//ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin",
+        "operation_id": "emit-reorg-target-debt-merge-base-snapshot",
+        "parameters": {
+          "mode": "materialize"
+        },
+        "input_contract": [
+          "repo-root",
+          "declared-source-inputs",
+          "full-depth-scm"
+        ],
+        "output_mode": "declared-artifact-path-write"
+      }
+    },
+    {
       "artifact_id": "ci-friction-accounting-hand-shrunk-baseline",
       "path": "ci/facade/action-item-accounting/friction-accounting-baseline.json",
       "artifact_class": "hand-curated-ratchet",

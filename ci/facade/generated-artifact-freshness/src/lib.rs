@@ -91,6 +91,11 @@ const MOVE_MANIFEST_FACE: &str = "specs/reorg/move-manifest.generated.json";
 /// without itself calling git (gate production code must stay hermetic).
 const RATCHET_MERGE_BASE_FACE: &str =
     "ci/facade/generated-artifact-policy/ratchet-merge-base.generated.json";
+const REORG_TARGET_DEBT_MERGE_BASE_FACE: &str =
+    "ci/facade/reorg-target-debt/reorg-target-debt-merge-base.generated.json";
+const REORG_TARGET_DEBT_POLICY: &str = "ci/facade/reorg-target-debt/reorg-target-debt-policy.json";
+const REORG_TARGET_DEBT_BASELINE: &str =
+    "ci/facade/reorg-target-debt/reorg-target-debt-baseline.json";
 const PRODUCER_FACES: [(&str, &str); 6] = [
     ("accounting-registry.generated.json", "registry"),
     ("ttl-policy.generated.json", "ttl-policy"),
@@ -2164,6 +2169,73 @@ fn materialize_ratchet_merge_base_contents(
         .map_err(|error| FreshnessError::new(format!("write {RATCHET_MERGE_BASE_FACE}: {error}")))
 }
 
+/// Materialize the reorg-target-debt gate's immutable policy+baseline allowance source from
+/// the SAME merge-base worktree used for the unified firewall snapshot. Gate tests consume
+/// this plain JSON input hermetically; they never spawn git or depend on ambient `.git`.
+fn materialize_reorg_target_debt_merge_base(
+    repo_root: &Path,
+    worktree: &Path,
+    merge_base: &str,
+) -> Result<(), FreshnessError> {
+    let policy_path = worktree.join(REORG_TARGET_DEBT_POLICY);
+    let baseline_path = worktree.join(REORG_TARGET_DEBT_BASELINE);
+    let (missing_at_merge_base, policy, baseline) =
+        if !policy_path.is_file() && !baseline_path.is_file() {
+            (true, serde_json::Value::Null, serde_json::Value::Null)
+        } else {
+            let policy = std::fs::read_to_string(&policy_path)
+                .map_err(|error| {
+                    FreshnessError::new(format!(
+                        "read merge-base {REORG_TARGET_DEBT_POLICY}: {error}"
+                    ))
+                })
+                .and_then(|text| {
+                    serde_json::from_str(&text).map_err(|error| {
+                        FreshnessError::new(format!(
+                            "parse merge-base {REORG_TARGET_DEBT_POLICY}: {error}"
+                        ))
+                    })
+                })?;
+            let baseline = std::fs::read_to_string(&baseline_path)
+                .map_err(|error| {
+                    FreshnessError::new(format!(
+                        "read merge-base {REORG_TARGET_DEBT_BASELINE}: {error}"
+                    ))
+                })
+                .and_then(|text| {
+                    serde_json::from_str(&text).map_err(|error| {
+                        FreshnessError::new(format!(
+                            "parse merge-base {REORG_TARGET_DEBT_BASELINE}: {error}"
+                        ))
+                    })
+                })?;
+            (false, policy, baseline)
+        };
+    let snapshot = serde_json::json!({
+        "schema": "ci-reorg-target-debt-merge-base-snapshot.v1",
+        "base_ref": "origin/dev",
+        "merge_base": merge_base,
+        "missing_at_merge_base": missing_at_merge_base,
+        "policy": policy,
+        "baseline": baseline,
+    });
+    let face_path = repo_root.join(REORG_TARGET_DEBT_MERGE_BASE_FACE);
+    if let Some(parent) = face_path.parent() {
+        std::fs::create_dir_all(parent)
+            .map_err(|error| FreshnessError::new(format!("mkdir {}: {error}", parent.display())))?;
+    }
+    let body = serde_json::to_string_pretty(&snapshot).map_err(|error| {
+        FreshnessError::new(format!(
+            "serialize {REORG_TARGET_DEBT_MERGE_BASE_FACE}: {error}"
+        ))
+    })?;
+    std::fs::write(&face_path, body).map_err(|error| {
+        FreshnessError::new(format!(
+            "write {REORG_TARGET_DEBT_MERGE_BASE_FACE}: {error}"
+        ))
+    })
+}
+
 fn emit_materialized_scm_facts(
     tools: &MaterializerTools,
     repo_root: &Path,
@@ -2248,6 +2320,7 @@ fn emit_materialized_scm_facts(
     // Reuse the SAME merge-base worktree (still open) to materialize the ratchet-baseline
     // merge-base-content face — a plain filesystem read, not a new git boundary.
     materialize_ratchet_merge_base_contents(repo_root, &worktree.path)?;
+    materialize_reorg_target_debt_merge_base(repo_root, &worktree.path, &merge_base)?;
 
     drop(regen_verify_cleanup);
     drop(regen_face_cleanup);
@@ -2809,6 +2882,49 @@ mod materialize_generated_faces_tests {
         let root = std::env::temp_dir().join(format!("{label}-{}-{nanos}", std::process::id()));
         let _ = std::fs::remove_dir_all(&root);
         root
+    }
+
+    #[test]
+    fn reorg_target_debt_snapshot_comes_from_materialized_merge_base_tree() {
+        let root = temp_root("rtd-merge-base-snapshot-root");
+        let worktree = temp_root("rtd-merge-base-snapshot-tree");
+        std::fs::create_dir_all(
+            worktree
+                .join(REORG_TARGET_DEBT_POLICY)
+                .parent()
+                .expect("policy parent"),
+        )
+        .expect("create merge-base policy parent");
+        std::fs::write(
+            worktree.join(REORG_TARGET_DEBT_POLICY),
+            r#"{"gate_id":"ci-reorg-target-debt"}"#,
+        )
+        .expect("write merge-base policy");
+        std::fs::write(
+            worktree.join(REORG_TARGET_DEBT_BASELINE),
+            r#"{"arm_a_path_hashes":[]}"#,
+        )
+        .expect("write merge-base baseline");
+        let merge_base = "1111111111111111111111111111111111111111";
+
+        materialize_reorg_target_debt_merge_base(&root, &worktree, merge_base)
+            .expect("materialize reorg-target-debt snapshot");
+        let face: serde_json::Value = serde_json::from_str(
+            &std::fs::read_to_string(root.join(REORG_TARGET_DEBT_MERGE_BASE_FACE))
+                .expect("read snapshot"),
+        )
+        .expect("parse snapshot");
+        assert_eq!(
+            face["schema"],
+            "ci-reorg-target-debt-merge-base-snapshot.v1"
+        );
+        assert_eq!(face["merge_base"], merge_base);
+        assert_eq!(face["missing_at_merge_base"], false);
+        assert_eq!(face["policy"]["gate_id"], "ci-reorg-target-debt");
+        assert_eq!(face["baseline"]["arm_a_path_hashes"], serde_json::json!([]));
+
+        std::fs::remove_dir_all(root).expect("remove output root");
+        std::fs::remove_dir_all(worktree).expect("remove merge-base worktree");
     }
 
     #[cfg(unix)]

@@ -7,6 +7,8 @@ rust_library(
     deps = [
         "third-party//:serde_json",
         "third-party//:sha2",
+        "third-party//:syn",
+        "third-party//:toml",
     ],
 )
 
@@ -35,6 +37,8 @@ rust_test(
     deps = [
         "third-party//:serde_json",
         "third-party//:sha2",
+        "third-party//:syn",
+        "third-party//:toml",
     ],
 )
 

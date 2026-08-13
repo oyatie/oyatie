@@ -47,24 +47,30 @@ fn parse_args(args: Vec<String>) -> Result<Option<Args>, String> {
         match arg.as_str() {
             "--repo-root" => {
                 repo_root = PathBuf::from(
-                    iter.next().ok_or_else(|| format!("--repo-root requires a path; {USAGE}"))?,
+                    iter.next()
+                        .ok_or_else(|| format!("--repo-root requires a path; {USAGE}"))?,
                 );
             }
             "--policy" => {
-                policy_path =
-                    iter.next().ok_or_else(|| format!("--policy requires a path; {USAGE}"))?;
+                policy_path = iter
+                    .next()
+                    .ok_or_else(|| format!("--policy requires a path; {USAGE}"))?;
             }
             "--mode" => {
-                mode = iter.next().ok_or_else(|| format!("--mode requires a value; {USAGE}"))?;
+                mode = iter
+                    .next()
+                    .ok_or_else(|| format!("--mode requires a value; {USAGE}"))?;
             }
             "--commit-set" => {
-                commit_set = Some(PathBuf::from(
-                    iter.next().ok_or_else(|| format!("--commit-set requires a path; {USAGE}"))?,
-                ));
+                commit_set =
+                    Some(PathBuf::from(iter.next().ok_or_else(|| {
+                        format!("--commit-set requires a path; {USAGE}")
+                    })?));
             }
             "--out" => {
                 out = Some(PathBuf::from(
-                    iter.next().ok_or_else(|| format!("--out requires a path; {USAGE}"))?,
+                    iter.next()
+                        .ok_or_else(|| format!("--out requires a path; {USAGE}"))?,
                 ));
             }
             "--regen-baseline" => regen_baseline = true,
@@ -76,7 +82,9 @@ fn parse_args(args: Vec<String>) -> Result<Option<Args>, String> {
         return Err(format!("--mode must be check or audit; {USAGE}"));
     }
     if mode == "audit" && commit_set.is_none() {
-        return Err(format!("--mode audit requires --commit-set <path>; {USAGE}"));
+        return Err(format!(
+            "--mode audit requires --commit-set <path>; {USAGE}"
+        ));
     }
     Ok(Some(Args {
         repo_root,
