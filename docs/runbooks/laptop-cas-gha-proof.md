@@ -7,8 +7,8 @@ doc_status: published
 
 > **Owner:** `ops-sre-reliability`
 > **Severity supported:** Sev 3
-> **Last verified:** 2026-08-12 by the platform owner in a controlled lab run
-> **Related:** [Remote cache runbook](buck2-nativelink-remote-cache.md), [SLO catalog](../SLO-CATALOG.md)
+> **Last verified:** Not yet verified end to end
+> **Related:** [Laptop cache-only runbook](laptop-cas-buck2-cache-only.md), [SLO catalog](../SLO-CATALOG.md)
 
 ---
 
@@ -42,9 +42,13 @@ do not run branch-controlled shell automation with cache credentials.
    commit.
    If differs: discard the run; it is not admission evidence.
 
-3. ☐ Run the canonical cache integrity canary from an empty build state.
+3. ☐ Locate a successful `dev` push run for the exact commit under test whose
+   `cache-writer-<commit>` artifact contains the writer receipt, then dispatch
+   `cache-integrity-canary-schedule.yml` from that same protected `dev` commit with
+   `prelicense_probe=true` and `writer_run_id` set to that run's numeric ID.
    Expected: the cold and warm builds produce byte-identical output digests and the canonical
-   `prelicense_probe` verdict is GREEN.
+   `prelicense_probe` verdict artifact is GREEN. An `INACTIVE_NO_ENDPOINT` result or a skipped
+   `reader-identity` job is not proof.
    If differs: keep warm reads unlicensed and quarantine the affected cache endpoint.
 
 4. ☐ Bind the successful integrity-canary run in
