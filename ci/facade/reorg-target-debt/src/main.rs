@@ -19,8 +19,9 @@ use std::path::PathBuf;
 use std::process::ExitCode;
 
 use ci_reorg_target_debt::{
-    POLICY_PATH, Verdict, audit_interval, bind_audit_input_to_authoritative_range, check_live_tree,
-    load_baseline, load_json, load_policy, regenerate_baseline,
+    ARM_A, ARM_AUDIT, ARM_B, ARM_C, CODE_AUDIT_INPUT_INVALID, GATE_ID, POLICY_PATH, Verdict,
+    audit_interval, bind_audit_input_to_authoritative_range, check_live_tree, load_baseline,
+    load_json, load_policy, regenerate_baseline,
 };
 
 const AUDIT_RANGE_PATH: &str =
@@ -102,6 +103,44 @@ fn render(value: &serde_json::Value) -> String {
     serde_json::to_string_pretty(value).unwrap_or_else(|_| value.to_string())
 }
 
+fn emit_invalid_audit_report(out: Option<&PathBuf>, detail: &str) -> Result<(), std::io::Error> {
+    let report = serde_json::json!({
+        "gate_id": GATE_ID,
+        "mode": ARM_AUDIT,
+        "range": {
+            "from": serde_json::Value::Null,
+            "to": serde_json::Value::Null
+        },
+        "verdict": "red",
+        "evaluated_arms": [ARM_A, ARM_B, ARM_C],
+        "evaluated_commit_count": 0,
+        "evaluated_path_count": 0,
+        "findings": [{
+            "code": CODE_AUDIT_INPUT_INVALID,
+            "arm": ARM_AUDIT,
+            "subject": "audit-input",
+            "detail": detail
+        }],
+        "unremediated_finding_count": 1
+    });
+    let rendered = render(&report);
+    println!("{rendered}");
+    if let Some(out) = out {
+        fs::write(out, format!("{rendered}\n"))?;
+    }
+    Ok(())
+}
+
+fn fail_invalid_audit(out: Option<&PathBuf>, detail: &str, diagnostic: &str) -> ExitCode {
+    if let Err(error) = emit_invalid_audit_report(out, detail) {
+        eprintln!("failed to write invalid audit report: {error}");
+        eprintln!("{CODE_AUDIT_INPUT_INVALID}: {diagnostic}");
+        return ExitCode::from(2);
+    }
+    eprintln!("{CODE_AUDIT_INPUT_INVALID}: {diagnostic}");
+    ExitCode::FAILURE
+}
+
 fn main() -> ExitCode {
     let args = match parse_args(std::env::args().skip(1).collect()) {
         Ok(None) => {
@@ -161,24 +200,29 @@ fn main() -> ExitCode {
         let mut input = match load_json(&commit_set_path) {
             Ok(input) => input,
             Err(error) => {
-                // FAIL-CLOSED: an unreadable capture is an explicit finding, never a pass.
-                eprintln!("RTD_AUDIT_INPUT_INVALID: cannot load commit-set: {error}");
-                return ExitCode::FAILURE;
+                return fail_invalid_audit(
+                    args.out.as_ref(),
+                    "captured commit-set is missing, unreadable, or malformed",
+                    &format!("cannot load commit-set: {error}"),
+                );
             }
         };
         let authoritative = match load_json(&args.repo_root.join(AUDIT_RANGE_PATH)) {
             Ok(input) => input,
             Err(error) => {
-                eprintln!(
-                    "RTD_AUDIT_INPUT_INVALID: cannot load SCM-boundary audit range \
-                     {AUDIT_RANGE_PATH}: {error}"
+                return fail_invalid_audit(
+                    args.out.as_ref(),
+                    "SCM-boundary audit range is missing, unreadable, or malformed",
+                    &format!("cannot load SCM-boundary audit range {AUDIT_RANGE_PATH}: {error}"),
                 );
-                return ExitCode::FAILURE;
             }
         };
         if let Err(error) = bind_audit_input_to_authoritative_range(&mut input, &authoritative) {
-            eprintln!("{error}");
-            return ExitCode::FAILURE;
+            return fail_invalid_audit(
+                args.out.as_ref(),
+                "captured commit-set does not match the authoritative SCM-boundary range",
+                &error.to_string(),
+            );
         }
         return match audit_interval(&policy, &input) {
             Ok(report) => {
@@ -195,10 +239,11 @@ fn main() -> ExitCode {
                     Verdict::Red => ExitCode::FAILURE,
                 }
             }
-            Err(error) => {
-                eprintln!("{error}");
-                ExitCode::FAILURE
-            }
+            Err(error) => fail_invalid_audit(
+                args.out.as_ref(),
+                "captured commit-set is incomplete or violates the interval-audit input contract",
+                &error.to_string(),
+            ),
         };
     }
 

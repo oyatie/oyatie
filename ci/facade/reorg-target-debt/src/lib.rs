@@ -31,7 +31,7 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 #![forbid(unsafe_code)]
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 use std::fmt;
 use std::fs;
 use std::path::Path;
@@ -44,15 +44,9 @@ pub const GATE_ID: &str = "ci-reorg-target-debt";
 /// Repo-relative policy location. `ci/facade/` is the gate fleet's own home (an allowed
 /// literal shape for gate crates); every reorg-target-specific string lives in the policy.
 pub const POLICY_PATH: &str = "ci/facade/reorg-target-debt/reorg-target-debt-policy.json";
-const PROTECTED_BASE_REF: &str = "origin/dev";
 const FROZEN_REFERENCE_PATH: &str =
     "ci/facade/reorg-target-debt/reorg-target-debt-merge-base.generated.json";
 const SCM_FACTS_PATH: &str = "ci/facade/artifact-inventory-registry/scm-facts.generated.json";
-/// The T2 protected-base commit from which this gate is first adopted. The policy and
-/// baseline do not exist at this exact merge base, so this one bootstrap transition freezes
-/// the live estate. Every later change has a protected merge-base baseline and is subject to
-/// the immutable ceiling.
-const INITIAL_ADOPTION_BASE_SHA: &str = "fecc126ebe7ded4949c8ac26b59b8a1e6bcb371c";
 pub const AUDIT_INPUT_SCHEMA: &str = "ci-reorg-target-debt-interval-audit-input.v1";
 pub const AUDIT_RANGE_SCHEMA: &str = "ci-reorg-target-debt-audit-range.v1";
 
@@ -195,6 +189,8 @@ impl std::error::Error for GateError {}
 pub struct Policy {
     pub name_prefixes: Vec<String>,
     pub path_prefixes: Vec<String>,
+    pub protected_base_ref: String,
+    pub initial_adoption_base_sha: String,
     pub baseline_file: String,
     pub regeneration_command: String,
     pub exempt_path_prefixes: Vec<String>,
@@ -206,6 +202,7 @@ pub struct Policy {
     pub member_dependency_sections: Vec<String>,
     pub masterplan_path: String,
     pub anchor_field_names: BTreeSet<String>,
+    pub stable_owner_identity_fields: Vec<String>,
     pub claim_field: String,
     pub claim_values: BTreeSet<String>,
     pub required_claim_fields: Vec<String>,
@@ -290,6 +287,15 @@ impl Policy {
                 )));
             }
         }
+        let protected_base_ref = required_str(policy, "adoption", "protected_base_ref")?;
+        let initial_adoption_base_sha =
+            required_str(policy, "adoption", "initial_adoption_base_sha")?;
+        if !is_full_commit_sha(&initial_adoption_base_sha) {
+            return Err(GateError::Policy(format!(
+                "{CODE_POLICY_INVALID}: adoption.initial_adoption_base_sha must be a full \
+                 40-hex commit id"
+            )));
+        }
         let required_claim_fields = non_empty(
             required_str_array(policy, "reduction_claims", "required_fields")?,
             "reduction_claims",
@@ -318,6 +324,8 @@ impl Policy {
         Ok(Self {
             name_prefixes,
             path_prefixes,
+            protected_base_ref,
+            initial_adoption_base_sha,
             baseline_file: required_str(policy, "baseline", "file")?,
             regeneration_command: required_str(policy, "baseline", "regeneration_command")?,
             exempt_path_prefixes: required_str_array(policy, "exemptions", "path_prefixes")?,
@@ -347,6 +355,11 @@ impl Policy {
             )?
             .into_iter()
             .collect(),
+            stable_owner_identity_fields: non_empty(
+                required_str_array(policy, "masterplan", "stable_owner_identity_fields")?,
+                "masterplan",
+                "stable_owner_identity_fields",
+            )?,
             claim_field: required_str(policy, "reduction_claims", "claim_field")?,
             claim_values: non_empty(
                 required_str_array(policy, "reduction_claims", "claim_values")?,
@@ -433,6 +446,10 @@ fn path_spelling_rejected(raw: &str) -> bool {
     }
     let bytes = raw.as_bytes();
     bytes.len() >= 2 && bytes[0].is_ascii_alphabetic() && bytes[1] == b':'
+}
+
+fn is_full_commit_sha(value: &str) -> bool {
+    value.len() == 40 && value.bytes().all(|byte| byte.is_ascii_hexdigit())
 }
 
 /// The committed shrink-only baseline: the migration-inventory estate the gate covers.
@@ -887,12 +904,25 @@ pub struct NameDecl {
 }
 
 /// The facts one Cargo manifest contributes to Arm B.
-#[derive(Debug, Clone, Default, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ManifestFacts {
     pub package_name: Option<String>,
+    pub autobins: bool,
     pub lib_name: Option<String>,
     pub bin_names: Vec<String>,
     pub path_deps: Vec<WorkspaceDep>,
+}
+
+impl Default for ManifestFacts {
+    fn default() -> Self {
+        Self {
+            package_name: None,
+            autobins: true,
+            lib_name: None,
+            bin_names: Vec::new(),
+            path_deps: Vec::new(),
+        }
+    }
 }
 
 fn toml_string_field(
@@ -905,6 +935,21 @@ fn toml_string_field(
         Some(TomlValue::String(value)) => Ok(Some(value.clone())),
         Some(_) => Err(toml_parse_error(format!(
             "{context}.{key} must be a string"
+        ))),
+    }
+}
+
+fn toml_bool_field(
+    table: &toml::map::Map<String, TomlValue>,
+    key: &str,
+    context: &str,
+    default: bool,
+) -> Result<bool, GateError> {
+    match table.get(key) {
+        None => Ok(default),
+        Some(TomlValue::Boolean(value)) => Ok(*value),
+        Some(_) => Err(toml_parse_error(format!(
+            "{context}.{key} must be a boolean"
         ))),
     }
 }
@@ -922,6 +967,7 @@ pub fn parse_manifest_facts(
     if let Some(package) = root.get("package") {
         let package = toml_table(package, "[package]")?;
         facts.package_name = toml_string_field(package, "name", "[package]")?;
+        facts.autobins = toml_bool_field(package, "autobins", "[package]", true)?;
     }
     if let Some(lib) = root.get("lib") {
         let lib = toml_table(lib, "[lib]")?;
@@ -933,9 +979,9 @@ pub fn parse_manifest_facts(
             .ok_or_else(|| toml_parse_error("[[bin]] must be an array of tables"))?;
         for (index, bin) in bins.iter().enumerate() {
             let bin = toml_table(bin, &format!("[[bin]][{index}]"))?;
-            if let Some(name) = toml_string_field(bin, "name", &format!("[[bin]][{index}]"))? {
-                facts.bin_names.push(name);
-            }
+            let name = toml_string_field(bin, "name", &format!("[[bin]][{index}]"))?
+                .ok_or_else(|| toml_parse_error(format!("[[bin]][{index}].name is required")))?;
+            facts.bin_names.push(name);
         }
     }
     collect_named_dep_sections(root, dependency_sections, "", &mut facts.path_deps)?;
@@ -1094,45 +1140,196 @@ pub fn evaluate_name_surface(
 // Arm C — work items with target-path evidence anchors.
 // ─────────────────────────────────────────────────────────────────────────────
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct AnchorObservation {
+    owner_location: Option<String>,
+    owner_instance: Option<String>,
+    field: String,
+    anchor: String,
+}
+
+fn stable_object_identity(map: &Map<String, Value>, identity_fields: &[String]) -> Option<String> {
+    for field in identity_fields {
+        let Some(value) = map.get(field) else {
+            continue;
+        };
+        let rendered = match value {
+            Value::String(value) if !value.trim().is_empty() => value.trim().to_owned(),
+            Value::Number(value) => value.to_string(),
+            _ => continue,
+        };
+        return Some(format!("{field}={rendered}"));
+    }
+    None
+}
+
 fn collect_anchor_strings(
     value: &Value,
     field_names: &BTreeSet<String>,
-    location: &str,
-    out: &mut Vec<(String, String)>,
+    identity_fields: &[String],
+    structural_path: &str,
+    occurrence_path: &str,
+    inherited_owner: Option<&str>,
+    inherited_owner_instance: Option<&str>,
+    out: &mut Vec<AnchorObservation>,
 ) {
     match value {
         Value::Object(map) => {
+            let local_identity = stable_object_identity(map, identity_fields);
+            let local_owner = local_identity
+                .as_ref()
+                .map(|identity| format!("{structural_path}[{identity}]"));
+            let local_owner_instance = local_identity.as_ref().map(|_| occurrence_path.to_owned());
+            let owner = local_owner.as_deref().or(inherited_owner);
+            let owner_instance = local_owner_instance.as_deref().or(inherited_owner_instance);
             for (key, child) in map {
-                let child_location = format!("{location}/{key}");
+                let child_path = format!("{structural_path}/{key}");
+                let child_occurrence_path = format!("{occurrence_path}/{key}");
                 if field_names.contains(key) {
                     match child {
-                        Value::String(anchor) => {
-                            out.push((child_location.clone(), anchor.clone()));
-                        }
+                        Value::String(anchor) => out.push(AnchorObservation {
+                            owner_location: owner.map(str::to_owned),
+                            owner_instance: owner_instance.map(str::to_owned),
+                            field: key.clone(),
+                            anchor: anchor.clone(),
+                        }),
                         Value::Array(items) => {
-                            for (index, item) in items.iter().enumerate() {
+                            for item in items {
                                 if let Value::String(anchor) = item {
-                                    out.push((format!("{child_location}/{index}"), anchor.clone()));
+                                    out.push(AnchorObservation {
+                                        owner_location: owner.map(str::to_owned),
+                                        owner_instance: owner_instance.map(str::to_owned),
+                                        field: key.clone(),
+                                        anchor: anchor.clone(),
+                                    });
                                 }
                             }
                         }
                         _ => {}
                     }
                 }
-                collect_anchor_strings(child, field_names, &child_location, out);
+                collect_anchor_strings(
+                    child,
+                    field_names,
+                    identity_fields,
+                    &child_path,
+                    &child_occurrence_path,
+                    owner,
+                    owner_instance,
+                    out,
+                );
             }
         }
         Value::Array(items) => {
+            // Array indices are deliberately excluded from identity. Each load-bearing
+            // anchor must inherit a stable object id from its own item or an ancestor.
             for (index, item) in items.iter().enumerate() {
-                collect_anchor_strings(item, field_names, &format!("{location}/{index}"), out);
+                collect_anchor_strings(
+                    item,
+                    field_names,
+                    identity_fields,
+                    structural_path,
+                    &format!("{occurrence_path}/{index}"),
+                    inherited_owner,
+                    inherited_owner_instance,
+                    out,
+                );
             }
         }
         _ => {}
     }
 }
 
-fn anchor_identity(location: &str, anchor: &str) -> String {
-    format!("{location}\0{anchor}")
+fn has_target_hint_after_ambiguous_prefix(policy: &Policy, raw: &str) -> bool {
+    let mut candidate = raw.trim().replace('\\', "/");
+    if candidate.len() >= 2 && candidate.as_bytes()[1] == b':' {
+        candidate = candidate[2..].to_owned();
+    }
+    while let Some(stripped) = candidate
+        .strip_prefix('/')
+        .or_else(|| candidate.strip_prefix("./"))
+        .or_else(|| candidate.strip_prefix("../"))
+    {
+        candidate = stripped.to_owned();
+    }
+    policy
+        .path_prefixes
+        .iter()
+        .any(|prefix| candidate.starts_with(prefix))
+}
+
+fn normalize_target_anchor(policy: &Policy, raw: &str) -> Result<Option<String>, ()> {
+    if let Some(normalized) = try_normalize_rel_path("", raw.trim()) {
+        return Ok(policy
+            .under_target_path_prefix(&normalized)
+            .then_some(normalized));
+    }
+    if has_target_hint_after_ambiguous_prefix(policy, raw) {
+        Err(())
+    } else {
+        Ok(None)
+    }
+}
+
+fn anchor_identity(owner_location: &str, field: &str, anchor: &str) -> String {
+    format!("{owner_location}/{field}\0{anchor}")
+}
+
+fn stable_target_anchor_identities(
+    policy: &Policy,
+    plan: &Value,
+) -> Result<BTreeSet<String>, GateError> {
+    let mut observations = Vec::new();
+    collect_anchor_strings(
+        plan,
+        &policy.anchor_field_names,
+        &policy.stable_owner_identity_fields,
+        "",
+        "",
+        None,
+        None,
+        &mut observations,
+    );
+    let mut identities = BTreeSet::new();
+    let mut owner_instances = BTreeMap::new();
+    for observation in observations {
+        let normalized = normalize_target_anchor(policy, &observation.anchor).map_err(|()| {
+            GateError::Input(format!(
+                "{CODE_NEW_TARGET_ANCHOR}: evidence anchor {:?} has an absolute, escaping, \
+                 Windows, or otherwise ambiguous target-path spelling",
+                observation.anchor
+            ))
+        })?;
+        let Some(normalized) = normalized else {
+            continue;
+        };
+        if policy.exempt(&normalized) {
+            continue;
+        }
+        let owner = observation.owner_location.ok_or_else(|| {
+            GateError::Input(format!(
+                "{CODE_NEW_TARGET_ANCHOR}: target evidence anchor {normalized:?} is not owned by \
+                 an object carrying one of masterplan.stable_owner_identity_fields"
+            ))
+        })?;
+        let owner_instance = observation.owner_instance.ok_or_else(|| {
+            GateError::Input(format!(
+                "{CODE_NEW_TARGET_ANCHOR}: stable owner {owner:?} has no traversal instance"
+            ))
+        })?;
+        if let Some(previous_instance) = owner_instances.get(&owner) {
+            if previous_instance != &owner_instance {
+                return Err(GateError::Input(format!(
+                    "{CODE_NEW_TARGET_ANCHOR}: stable owner identity {owner:?} is reused by \
+                     multiple anchor-bearing objects"
+                )));
+            }
+        } else {
+            owner_instances.insert(owner.clone(), owner_instance);
+        }
+        identities.insert(anchor_identity(&owner, &observation.field, &normalized));
+    }
+    Ok(identities)
 }
 
 /// Pure Arm C evaluator over a parsed planning value. Any string found under a
@@ -1140,18 +1337,75 @@ fn anchor_identity(location: &str, anchor: &str) -> String {
 /// by the shrink-only baseline is NEW target-anchored evidence and fails closed.
 pub fn evaluate_masterplan(policy: &Policy, baseline: &Baseline, plan: &Value) -> Report {
     let mut anchors = Vec::new();
-    collect_anchor_strings(plan, &policy.anchor_field_names, "", &mut anchors);
+    collect_anchor_strings(
+        plan,
+        &policy.anchor_field_names,
+        &policy.stable_owner_identity_fields,
+        "",
+        "",
+        None,
+        None,
+        &mut anchors,
+    );
     let mut findings = Vec::new();
-    for (location, anchor) in &anchors {
-        let identity = anchor_identity(location, anchor);
-        if policy.under_target_path_prefix(anchor)
-            && !policy.exempt(anchor)
-            && !baseline.anchors.contains(&identity)
-        {
+    let mut owner_instances = BTreeMap::new();
+    for observation in &anchors {
+        let normalized = match normalize_target_anchor(policy, &observation.anchor) {
+            Ok(Some(normalized)) => normalized,
+            Ok(None) => continue,
+            Err(()) => {
+                findings.push(Finding::new(
+                    CODE_NEW_TARGET_ANCHOR,
+                    ARM_C,
+                    observation.anchor.clone(),
+                    "work-item evidence anchor uses an absolute, escaping, Windows, or \
+                     otherwise ambiguous target-path spelling",
+                ));
+                continue;
+            }
+        };
+        if policy.exempt(&normalized) {
+            continue;
+        }
+        let Some(owner) = observation.owner_location.as_deref() else {
             findings.push(Finding::new(
                 CODE_NEW_TARGET_ANCHOR,
                 ARM_C,
-                format!("{anchor} (at {location})"),
+                normalized,
+                "target-path evidence anchor has no stable owning object identity; positional \
+                 JSON pointers are refused",
+            ));
+            continue;
+        };
+        let Some(owner_instance) = observation.owner_instance.as_deref() else {
+            findings.push(Finding::new(
+                CODE_NEW_TARGET_ANCHOR,
+                ARM_C,
+                owner,
+                "stable anchor owner has no traversal instance; identity cannot be proven unique",
+            ));
+            continue;
+        };
+        if let Some(previous_instance) = owner_instances.get(owner) {
+            if previous_instance != owner_instance {
+                findings.push(Finding::new(
+                    CODE_NEW_TARGET_ANCHOR,
+                    ARM_C,
+                    owner,
+                    "stable owner identity is reused by multiple anchor-bearing objects; \
+                     array position cannot disambiguate policy authority",
+                ));
+                continue;
+            }
+        } else {
+            owner_instances.insert(owner.to_owned(), owner_instance.to_owned());
+        }
+        let identity = anchor_identity(owner, &observation.field, &normalized);
+        if !baseline.anchors.contains(&identity) {
+            findings.push(Finding::new(
+                CODE_NEW_TARGET_ANCHOR,
+                ARM_C,
+                format!("{normalized} (owner {owner})"),
                 "work-item evidence anchor points under a reorg-target path prefix; Global \
                  Binding Rule 1 refuses new target-anchored work items — anchor evidence at the \
                  artifact's post-migration home",
@@ -1769,15 +2023,26 @@ pub fn audit_interval(policy: &Policy, input: &Value) -> Result<AuditReport, Gat
             }
         }
         for anchor in &added_anchors {
-            if policy.under_target_path_prefix(anchor) && !policy.exempt(anchor) {
-                findings.push(Finding::new(
-                    CODE_AUDIT_TARGET_DEBT_COMMIT,
-                    ARM_C,
-                    format!("{sha}: {anchor}"),
-                    "commit introduced a work-item evidence anchor under a reorg-target path \
-                     prefix within the audited range",
-                ));
+            let normalized = match normalize_target_anchor(policy, anchor) {
+                Ok(Some(normalized)) => normalized,
+                Ok(None) => continue,
+                Err(()) => {
+                    return Err(audit_invalid(format!(
+                        "commit {sha}: added evidence anchor {anchor:?} has an absolute, \
+                         escaping, Windows, or otherwise ambiguous target-path spelling"
+                    )));
+                }
+            };
+            if policy.exempt(&normalized) {
+                continue;
             }
+            findings.push(Finding::new(
+                CODE_AUDIT_TARGET_DEBT_COMMIT,
+                ARM_C,
+                format!("{sha}: {normalized}"),
+                "commit introduced a work-item evidence anchor under a reorg-target path \
+                 prefix within the audited range",
+            ));
         }
     }
     findings.sort();
@@ -1828,6 +2093,7 @@ struct FrozenReference {
 
 fn load_frozen_baseline_from_merge_base(
     repo_root: &Path,
+    candidate_policy: &Policy,
 ) -> Result<Option<FrozenReference>, GateError> {
     let snapshot = load_json(&repo_root.join(FROZEN_REFERENCE_PATH)).map_err(|error| {
         GateError::Io(format!(
@@ -1838,7 +2104,8 @@ fn load_frozen_baseline_from_merge_base(
     })?;
     if snapshot.get("schema").and_then(Value::as_str)
         != Some("ci-reorg-target-debt-merge-base-snapshot.v1")
-        || snapshot.get("base_ref").and_then(Value::as_str) != Some(PROTECTED_BASE_REF)
+        || snapshot.get("base_ref").and_then(Value::as_str)
+            != Some(candidate_policy.protected_base_ref.as_str())
     {
         return Err(GateError::Policy(format!(
             "{CODE_POLICY_INVALID}: frozen reorg-target-debt snapshot has a foreign schema or \
@@ -1863,13 +2130,14 @@ fn load_frozen_baseline_from_merge_base(
             ))
         })?;
     if missing_at_merge_base {
-        if merge_base != INITIAL_ADOPTION_BASE_SHA
+        if merge_base != candidate_policy.initial_adoption_base_sha
             || !snapshot.get("policy").is_some_and(Value::is_null)
             || !snapshot.get("baseline").is_some_and(Value::is_null)
         {
             return Err(GateError::Policy(format!(
                 "{CODE_POLICY_INVALID}: missing-at-merge-base is lawful only for exact initial \
-                 adoption anchor {INITIAL_ADOPTION_BASE_SHA} with null policy and baseline"
+                 adoption anchor {} with null policy and baseline",
+                candidate_policy.initial_adoption_base_sha
             )));
         }
         return Ok(None);
@@ -1897,6 +2165,16 @@ fn validate_candidate_policy_against_frozen(
     candidate: &Policy,
 ) -> Result<(), GateError> {
     let exact_fields = [
+        (
+            "adoption.protected_base_ref",
+            frozen.protected_base_ref.as_str(),
+            candidate.protected_base_ref.as_str(),
+        ),
+        (
+            "adoption.initial_adoption_base_sha",
+            frozen.initial_adoption_base_sha.as_str(),
+            candidate.initial_adoption_base_sha.as_str(),
+        ),
         (
             "baseline.file",
             frozen.baseline_file.as_str(),
@@ -1960,6 +2238,12 @@ fn validate_candidate_policy_against_frozen(
                  immutable merge-base value {frozen_value:?}"
             )));
         }
+    }
+    if candidate.stable_owner_identity_fields != frozen.stable_owner_identity_fields {
+        return Err(GateError::Policy(format!(
+            "{CODE_POLICY_INVALID}: candidate masterplan.stable_owner_identity_fields differs \
+             from the immutable merge-base identity precedence"
+        )));
     }
 
     fn as_set(values: &[String]) -> BTreeSet<&str> {
@@ -2230,6 +2514,7 @@ pub fn collect_name_surface(repo_root: &Path, policy: &Policy) -> Result<NameSur
         if file_name == policy.cargo_manifest_file_name {
             let ManifestFacts {
                 package_name,
+                autobins,
                 lib_name,
                 bin_names,
                 path_deps,
@@ -2273,7 +2558,7 @@ pub fn collect_name_surface(repo_root: &Path, policy: &Policy) -> Result<NameSur
                     });
                 }
                 let implicit_bin = source_dir.join("main.rs");
-                if implicit_bin.is_file() && bin_names.is_empty() {
+                if autobins && implicit_bin.is_file() && !bin_names.contains(&package_name) {
                     surface.names.push(NameDecl {
                         name: package_name,
                         origin: format!("{rel}::implicit-bin"),
@@ -2281,7 +2566,7 @@ pub fn collect_name_surface(repo_root: &Path, policy: &Policy) -> Result<NameSur
                 }
             }
             let bin_dir = source_dir.join("bin");
-            if bin_dir.is_dir() {
+            if autobins && bin_dir.is_dir() {
                 for entry in fs::read_dir(&bin_dir).map_err(|error| {
                     GateError::Io(format!(
                         "read implicit Cargo bin dir {}: {error}",
@@ -2443,13 +2728,7 @@ pub fn collect_baseline_candidate(
         }
     }
     let plan = load_json(&repo_root.join(&policy.masterplan_path))?;
-    let mut anchor_hits = Vec::new();
-    collect_anchor_strings(&plan, &policy.anchor_field_names, "", &mut anchor_hits);
-    candidate.anchors = anchor_hits
-        .into_iter()
-        .filter(|(_, anchor)| policy.under_target_path_prefix(anchor) && !policy.exempt(anchor))
-        .map(|(location, anchor)| anchor_identity(&location, &anchor))
-        .collect();
+    candidate.anchors = stable_target_anchor_identities(policy, &plan)?;
     Ok(candidate)
 }
 
@@ -2520,11 +2799,52 @@ pub fn evaluate_arm_b_baseline_exactness(
     }
 }
 
+/// Exact live-vs-committed Arm C comparison. A removed anchor must burn its allowance;
+/// otherwise the stale row would let a later change restore the same target debt.
+pub fn evaluate_arm_c_baseline_exactness(
+    policy: &Policy,
+    baseline: &Baseline,
+    candidate: &BaselineCandidate,
+) -> Report {
+    let live = candidate.to_baseline();
+    let stale: Vec<&String> = baseline.anchors.difference(&live.anchors).collect();
+    let mut findings = Vec::new();
+    if !stale.is_empty() {
+        let bucket: Vec<String> = stale
+            .iter()
+            .take(8)
+            .map(|identity| entry_digest(identity)[..12].to_owned())
+            .collect();
+        findings.push(Finding::new(
+            CODE_STALE_BASELINE_PATH,
+            ARM_C,
+            format!(
+                "{} extra/stale stable anchor identity row(s) in arm_c_anchors",
+                stale.len()
+            ),
+            format!(
+                "committed Arm C identities are not an exact match of the live collected set \
+                 (digest prefix bucket: {bucket:?}); regenerate with: {}",
+                policy.regeneration_command
+            ),
+        ));
+    }
+    Report {
+        evaluated_arms: vec![ARM_C.to_owned()],
+        evaluated_path_count: candidate.anchors.len(),
+        findings,
+    }
+}
+
 /// Enforce the protected merge-base baseline as an immutable anti-expansion ceiling.
 /// Candidate baseline rows may shrink, but cannot grow to waive debt introduced in the
 /// same change. This check is independent of live-vs-candidate exactness: both predicates
 /// are required to prevent either stale headroom or same-change laundering.
-pub fn evaluate_baseline_ceiling(frozen: &Baseline, candidate: &Baseline) -> Report {
+pub fn evaluate_baseline_ceiling(
+    protected_base_ref: &str,
+    frozen: &Baseline,
+    candidate: &Baseline,
+) -> Report {
     let dimensions = [
         (
             ARM_A,
@@ -2568,7 +2888,7 @@ pub fn evaluate_baseline_ceiling(frozen: &Baseline, candidate: &Baseline) -> Rep
             arm,
             format!("{} new protected-baseline row(s) in {field}", growth.len()),
             format!(
-                "candidate baseline grows beyond the immutable {PROTECTED_BASE_REF} merge-base \
+                "candidate baseline grows beyond the immutable {protected_base_ref} merge-base \
                  ceiling (prefix bucket: {bucket:?}); remove the new target-form debt instead \
                  of adding its hash to the baseline"
             ),
@@ -2650,7 +2970,7 @@ pub fn check_live_tree(
     policy: &Policy,
     baseline: &Baseline,
 ) -> Result<Report, GateError> {
-    let frozen_reference = load_frozen_baseline_from_merge_base(repo_root)?;
+    let frozen_reference = load_frozen_baseline_from_merge_base(repo_root, policy)?;
     if let Some(frozen) = &frozen_reference {
         validate_candidate_policy_against_frozen(&frozen.policy, policy)?;
     }
@@ -2671,12 +2991,17 @@ pub fn check_live_tree(
         evaluate_workspace_deps(policy, baseline, &workspace_deps),
         evaluate_name_surface(policy, baseline, &surface),
         evaluate_arm_b_baseline_exactness(policy, baseline, &candidate),
+        evaluate_arm_c_baseline_exactness(policy, baseline, &candidate),
         evaluate_masterplan(policy, baseline, &plan),
         evaluate_reduction_claims(policy, &plan),
         evaluate_census_snapshot_refs_at(repo_root, policy, &policy.masterplan_path, &plan),
     ];
     if let Some(frozen) = frozen_reference {
-        reports.push(evaluate_baseline_ceiling(&frozen.baseline, baseline));
+        reports.push(evaluate_baseline_ceiling(
+            &policy.protected_base_ref,
+            &frozen.baseline,
+            baseline,
+        ));
     }
     for (origin, artifact) in collect_claim_artifacts(repo_root, policy)? {
         reports.push(evaluate_reduction_claims_at(policy, &origin, &artifact));
@@ -2698,6 +3023,10 @@ mod tests {
                 "name_prefixes": ["cloud-", "cloud_", "oya-", "oya_"],
                 "path_prefixes": ["oya/", "cloud/"]
             },
+            "adoption": {
+                "protected_base_ref": "origin/dev",
+                "initial_adoption_base_sha": "fecc126ebe7ded4949c8ac26b59b8a1e6bcb371c"
+            },
             "baseline": {
                 "file": "ci/facade/reorg-target-debt/reorg-target-debt-baseline.json",
                 "regeneration_command": "buck2 run //ci/facade/reorg-target-debt:ci-reorg-target-debt-bin -- --regen-baseline"
@@ -2712,7 +3041,8 @@ mod tests {
             },
             "masterplan": {
                 "path": "specs/masterplan.json",
-                "anchor_field_names": ["source_anchors", "evidence_anchor", "anchor"]
+                "anchor_field_names": ["source_anchors", "evidence_anchor"],
+                "stable_owner_identity_fields": ["id", "rung", "layer"]
             },
             "reduction_claims": {
                 "claim_field": "claim",
@@ -2779,6 +3109,7 @@ mod tests {
         // while the report still lists it as evaluated — refuse at load time.
         for (section, key) in [
             ("masterplan", "anchor_field_names"),
+            ("masterplan", "stable_owner_identity_fields"),
             ("reduction_claims", "claim_values"),
             ("reduction_claims", "required_fields"),
             ("name_surface", "dependency_sections"),
@@ -2800,6 +3131,9 @@ mod tests {
         let mut value = test_policy_value();
         value["reduction_claims"]["required_fields"] = json!(["census_snapshot_ref"]);
         assert!(Policy::from_value(&value).is_err());
+        let mut value = test_policy_value();
+        value["adoption"]["initial_adoption_base_sha"] = json!("short");
+        assert!(Policy::from_value(&value).is_err());
     }
 
     #[test]
@@ -2820,10 +3154,21 @@ mod tests {
         repointed["baseline"]["file"] = json!("candidate-controlled-baseline.json");
         let repointed = Policy::from_value(&repointed).unwrap();
         assert!(validate_candidate_policy_against_frozen(&frozen, &repointed).is_err());
+
+        let mut repointed = test_policy_value();
+        repointed["adoption"]["protected_base_ref"] = json!("origin/candidate");
+        let repointed = Policy::from_value(&repointed).unwrap();
+        assert!(validate_candidate_policy_against_frozen(&frozen, &repointed).is_err());
+
+        let mut reordered = test_policy_value();
+        reordered["masterplan"]["stable_owner_identity_fields"] = json!(["rung", "id", "layer"]);
+        let reordered = Policy::from_value(&reordered).unwrap();
+        assert!(validate_candidate_policy_against_frozen(&frozen, &reordered).is_err());
     }
 
     #[test]
     fn frozen_snapshot_bootstrap_is_only_the_exact_t2_anchor() {
+        let policy = test_policy();
         let root = std::env::temp_dir().join(format!(
             "rtd-bootstrap-snapshot-{}-{:?}",
             std::process::id(),
@@ -2836,7 +3181,7 @@ mod tests {
                 root.join(FROZEN_REFERENCE_PATH),
                 serde_json::to_vec_pretty(&json!({
                     "schema": "ci-reorg-target-debt-merge-base-snapshot.v1",
-                    "base_ref": PROTECTED_BASE_REF,
+                    "base_ref": policy.protected_base_ref.as_str(),
                     "merge_base": merge_base,
                     "missing_at_merge_base": true,
                     "policy": null,
@@ -2846,14 +3191,14 @@ mod tests {
             )
             .unwrap();
         };
-        write_snapshot(INITIAL_ADOPTION_BASE_SHA);
+        write_snapshot(&policy.initial_adoption_base_sha);
         assert!(
-            load_frozen_baseline_from_merge_base(&root)
+            load_frozen_baseline_from_merge_base(&root, &policy)
                 .unwrap()
                 .is_none()
         );
         write_snapshot("1111111111111111111111111111111111111111");
-        assert!(load_frozen_baseline_from_merge_base(&root).is_err());
+        assert!(load_frozen_baseline_from_merge_base(&root, &policy).is_err());
         fs::remove_dir_all(root).unwrap();
     }
 
@@ -3263,17 +3608,24 @@ mod tests {
         fs::create_dir_all(root.join("libs/safe/src/bin")).unwrap();
         fs::write(
             root.join("libs/safe/Cargo.toml"),
-            "[package]\nname = \"safe\"\nversion = \"0.1.0\"\n[lib]\nname = \"oya_lib\"\n",
+            "[package]\nname = \"safe\"\nversion = \"0.1.0\"\n[lib]\nname = \"oya_lib\"\n\
+             [[bin]]\nname = \"safe-explicit\"\npath = \"src/bin/safe-explicit.rs\"\n",
         )
         .unwrap();
         fs::write(root.join("libs/safe/src/lib.rs"), "").unwrap();
         fs::write(root.join("libs/safe/src/bin/cloud-new.rs"), "fn main() {}").unwrap();
+        fs::write(
+            root.join("libs/safe/src/bin/safe-explicit.rs"),
+            "fn main() {}",
+        )
+        .unwrap();
         write_test_scm_facts(
             &root,
             &[
                 "libs/safe/Cargo.toml",
                 "libs/safe/src/lib.rs",
                 "libs/safe/src/bin/cloud-new.rs",
+                "libs/safe/src/bin/safe-explicit.rs",
             ],
         );
         let policy = test_policy();
@@ -3296,6 +3648,7 @@ mod tests {
                 "libs/safe/Cargo.toml",
                 "libs/safe/src/lib.rs",
                 "libs/safe/src/bin/cloud-new.rs",
+                "libs/safe/src/bin/safe-explicit.rs",
             ],
         );
         let surface = collect_name_surface(&root, &policy).unwrap();
@@ -3307,6 +3660,65 @@ mod tests {
                 .any(|finding| finding.subject.contains("oya_computed")),
             "{:?}",
             report.findings
+        );
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn cargo_autobins_controls_implicit_binary_discovery() {
+        let enabled = parse_manifest_facts(
+            "[package]\nname = \"safe\"\nversion = \"0.1.0\"\n",
+            &["dependencies".to_owned()],
+        )
+        .unwrap();
+        assert!(enabled.autobins);
+        let disabled = parse_manifest_facts(
+            "[package]\nname = \"safe\"\nversion = \"0.1.0\"\nautobins = false\n",
+            &["dependencies".to_owned()],
+        )
+        .unwrap();
+        assert!(!disabled.autobins);
+        assert!(
+            parse_manifest_facts(
+                "[package]\nname = \"safe\"\nversion = \"0.1.0\"\n[[bin]]\npath = \"src/main.rs\"\n",
+                &["dependencies".to_owned()],
+            )
+            .is_err(),
+            "an unnamed explicit binary is unevaluable and must fail closed"
+        );
+
+        let root = std::env::temp_dir().join(format!(
+            "rtd-autobins-{}-{:?}",
+            std::process::id(),
+            std::thread::current().id()
+        ));
+        let _ = fs::remove_dir_all(&root);
+        fs::create_dir_all(root.join("libs/safe/src/bin")).unwrap();
+        fs::write(
+            root.join("libs/safe/Cargo.toml"),
+            "[package]\nname = \"safe\"\nversion = \"0.1.0\"\nautobins = false\n",
+        )
+        .unwrap();
+        fs::write(
+            root.join("libs/safe/src/bin/cloud-disabled.rs"),
+            "fn main() {}",
+        )
+        .unwrap();
+        write_test_scm_facts(
+            &root,
+            &[
+                "libs/safe/Cargo.toml",
+                "libs/safe/src/bin/cloud-disabled.rs",
+            ],
+        );
+        let policy = test_policy();
+        let surface = collect_name_surface(&root, &policy).unwrap();
+        assert!(
+            surface
+                .names
+                .iter()
+                .all(|decl| decl.name != "cloud-disabled"),
+            "autobins=false must suppress Cargo's implicit src/bin targets"
         );
         fs::remove_dir_all(root).unwrap();
     }
@@ -3439,7 +3851,8 @@ mod tests {
 
         let baseline = Baseline {
             anchors: [anchor_identity(
-                "/work_items/0/source_anchors/0",
+                "/work_items[id=SYN-RTD-001]",
+                "source_anchors",
                 "oya/synthetic-legacy-module",
             )]
             .iter()
@@ -3462,6 +3875,110 @@ mod tests {
             vec![CODE_NEW_TARGET_ANCHOR],
             "reusing the same anchor at a new work-item identity must be new debt"
         );
+    }
+
+    #[test]
+    fn arm_c_normalizes_paths_and_ignores_array_reordering() {
+        let policy = test_policy();
+        let original = json!({
+            "work_items": [
+                { "id": "SYN-RTD-001", "source_anchors": ["./cloud/legacy/../kernel"] }
+            ]
+        });
+        let identities =
+            stable_target_anchor_identities(&policy, &original).expect("stable anchor identities");
+        let baseline = Baseline {
+            anchors: identities,
+            ..Baseline::default()
+        };
+        let reordered = json!({
+            "work_items": [
+                { "id": "UNRELATED", "source_anchors": ["specs/fine.json"] },
+                { "id": "SYN-RTD-001", "source_anchors": ["cloud/kernel"] }
+            ]
+        });
+        assert_eq!(
+            evaluate_masterplan(&policy, &baseline, &reordered).verdict(),
+            Verdict::Green,
+            "stable owner identity must survive unrelated array insertions"
+        );
+
+        let escaping = json!({
+            "work_items": [
+                { "id": "SYN-RTD-002", "source_anchors": ["../cloud/hidden"] }
+            ]
+        });
+        assert_eq!(
+            codes(&evaluate_masterplan(
+                &policy,
+                &Baseline::default(),
+                &escaping
+            )),
+            vec![CODE_NEW_TARGET_ANCHOR],
+            "escaping target spellings must fail closed"
+        );
+    }
+
+    #[test]
+    fn arm_c_duplicate_stable_owner_identity_fails_closed() {
+        let policy = test_policy();
+        let duplicated = json!({
+            "work_items": [
+                {
+                    "id": "SYN-RTD-001",
+                    "rung": 0,
+                    "source_anchors": ["cloud/legacy"]
+                },
+                {
+                    "id": "SYN-RTD-001",
+                    "rung": 1,
+                    "source_anchors": ["cloud/legacy"]
+                }
+            ]
+        });
+        assert!(
+            stable_target_anchor_identities(&policy, &duplicated).is_err(),
+            "baseline materialization must not collapse sibling owners that reuse the \
+             first policy-selected stable identity"
+        );
+
+        let baseline = Baseline {
+            anchors: [anchor_identity(
+                "/work_items[id=SYN-RTD-001]",
+                "source_anchors",
+                "cloud/legacy",
+            )]
+            .into_iter()
+            .collect(),
+            ..Baseline::default()
+        };
+        let report = evaluate_masterplan(&policy, &baseline, &duplicated);
+        assert_eq!(codes(&report), vec![CODE_NEW_TARGET_ANCHOR]);
+        assert!(
+            report.findings[0]
+                .detail
+                .contains("reused by multiple anchor-bearing objects"),
+            "{:#?}",
+            report.findings
+        );
+    }
+
+    #[test]
+    fn arm_c_stale_baseline_identity_is_refused() {
+        let policy = test_policy();
+        let baseline = Baseline {
+            anchors: [anchor_identity(
+                "/work_items[id=SYN-RTD-001]",
+                "source_anchors",
+                "cloud/legacy",
+            )]
+            .into_iter()
+            .collect(),
+            ..Baseline::default()
+        };
+        let candidate = BaselineCandidate::default();
+        let report = evaluate_arm_c_baseline_exactness(&policy, &baseline, &candidate);
+        assert_eq!(codes(&report), vec![CODE_STALE_BASELINE_PATH]);
     }
 
     #[test]
@@ -3933,6 +4450,43 @@ mod tests {
     }
 
     #[test]
+    fn audit_normalizes_captured_anchors_and_refuses_ambiguous_target_spellings() {
+        let policy = test_policy();
+        let planted = json!({
+            "sha": "b2b2b2",
+            "added_paths": ["docs/fine.md"],
+            "added_workspace_path_deps": [],
+            "added_dep_names": [],
+            "added_evidence_anchors": ["./cloud/legacy/../planted-estate"],
+        });
+        let report = audit_interval(&policy, &audit_input(json!([planted]), json!([]))).unwrap();
+        assert_eq!(report.verdict(), Verdict::Red);
+        assert_eq!(report.findings.len(), 1);
+        assert!(
+            report.findings[0].subject.contains("cloud/planted-estate"),
+            "audit must apply the same normalized Arm-C spelling used by the live evaluator: {}",
+            report.findings[0].subject
+        );
+
+        for anchor in ["../cloud/escaped", "cloud\\ambiguous"] {
+            let ambiguous = json!({
+                "sha": "b2b2b2",
+                "added_paths": ["docs/fine.md"],
+                "added_workspace_path_deps": [],
+                "added_dep_names": [],
+                "added_evidence_anchors": [anchor],
+            });
+            let error =
+                audit_interval(&policy, &audit_input(json!([ambiguous]), json!([]))).unwrap_err();
+            assert!(
+                error.to_string().contains("RTD_AUDIT_INPUT_INVALID")
+                    && error.to_string().contains("evidence anchor"),
+                "{anchor:?} must fail closed: {error}"
+            );
+        }
+    }
+
+    #[test]
     fn merged_report_carries_the_liveness_signal() {
         let policy = test_policy();
         let paths: BTreeSet<String> = ["docs/fine.md"].iter().map(|p| (*p).to_owned()).collect();
@@ -4193,6 +4747,7 @@ mod tests {
         let _ = fs::remove_dir_all(&root);
         fs::create_dir_all(root.join("ci/facade/reorg-target-debt")).unwrap();
         fs::create_dir_all(root.join("specs")).unwrap();
+        let policy = test_policy();
         fs::write(
             root.join(POLICY_PATH),
             format!(
@@ -4213,7 +4768,7 @@ mod tests {
             root.join(FROZEN_REFERENCE_PATH),
             serde_json::to_vec_pretty(&json!({
                 "schema": "ci-reorg-target-debt-merge-base-snapshot.v1",
-                "base_ref": PROTECTED_BASE_REF,
+                "base_ref": policy.protected_base_ref.as_str(),
                 "merge_base": "1111111111111111111111111111111111111111",
                 "missing_at_merge_base": false,
                 "policy": test_policy_value(),
@@ -4252,7 +4807,6 @@ mod tests {
             ],
         );
 
-        let policy = test_policy();
         let candidate = collect_baseline_candidate(&root, &policy).unwrap();
         let candidate_baseline = candidate.to_baseline();
         fs::write(
