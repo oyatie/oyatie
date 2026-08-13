@@ -121,11 +121,11 @@ fn main() -> ExitCode {
                 match fs::write(&target, bytes) {
                     Ok(()) => {
                         println!(
-                            "reorg-target-debt baseline regenerated: {} ({} path(s), {} dep path(s), {} dep name(s), {} anchor(s))",
+                            "reorg-target-debt baseline regenerated: {} ({} path digest(s), {} dep path digest(s), {} dep name digest(s), {} anchor(s))",
                             target.display(),
-                            baseline.paths.len(),
-                            baseline.workspace_path_deps.len(),
-                            baseline.dep_names.len(),
+                            baseline.path_hashes.len(),
+                            baseline.workspace_path_dep_hashes.len(),
+                            baseline.dep_name_hashes.len(),
                             baseline.anchors.len(),
                         );
                         ExitCode::SUCCESS

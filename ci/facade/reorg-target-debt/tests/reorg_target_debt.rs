@@ -23,8 +23,9 @@ use serde_json::Value;
 
 use ci_reorg_target_debt::{
     Baseline, Policy, Report, Verdict, audit_interval, check_live_tree,
-    collect_target_prefix_paths, evaluate_masterplan, evaluate_reduction_claims, evaluate_tree,
-    evaluate_workspace_manifest, load_baseline, load_json, load_policy, POLICY_PATH,
+    collect_target_prefix_paths, entry_digest, evaluate_masterplan, evaluate_reduction_claims,
+    evaluate_tree, evaluate_workspace_manifest, load_baseline, load_json, load_policy,
+    POLICY_PATH,
 };
 
 /// Walk up from the test's working directory to the repo root (the dir holding the
@@ -96,15 +97,41 @@ fn committed_baseline_matches_the_live_target_prefix_estate_exactly() {
     let baseline = load_baseline(&root, &policy).expect("load committed baseline");
     let live = collect_target_prefix_paths(&root, &policy).expect("collect target-prefix paths");
 
-    let new: Vec<&String> = live.difference(&baseline.paths).collect();
-    let stale: Vec<&String> = baseline.paths.difference(&live).collect();
+    // Digest set semantics: hash each live path, compare exact sets. NEW debt is reported
+    // by its literal live path; stale baseline digests are reported as a count (the
+    // literal removed paths are unrecoverable from digests by design).
+    let live_hashes: BTreeSet<String> = live.iter().map(|path| entry_digest(path)).collect();
+    let new: Vec<&String> = live
+        .iter()
+        .filter(|path| !baseline.path_hashes.contains(&entry_digest(path)))
+        .collect();
+    let stale_count = baseline.path_hashes.difference(&live_hashes).count();
     assert!(
-        new.is_empty() && stale.is_empty(),
-        "baseline drift — NEW target-prefix file(s) {new:?} / stale baseline row(s) {stale:?}. \
-         New files under a target prefix are refused (Global Binding Rule 1); admissible \
-         removals require regenerating the baseline with: {}",
+        new.is_empty() && stale_count == 0,
+        "baseline drift — NEW target-prefix file(s) {new:?} / {stale_count} stale baseline \
+         digest(s). New files under a target prefix are refused (Global Binding Rule 1); \
+         admissible removals require regenerating the baseline with: {}",
         policy.regeneration_command
     );
+}
+
+/// The committed baseline file must never carry a literal target-prefix path string:
+/// per-path digests are the whole admissibility story versus the brand-residue ratchet.
+#[test]
+fn committed_baseline_file_carries_digests_not_literal_paths() {
+    let root = repo_root();
+    let policy = live_policy(&root);
+    let raw = load_json(&root.join(&policy.baseline_file)).expect("load raw baseline value");
+    for key in ["arm_a_path_hashes", "arm_b_workspace_path_dep_hashes", "arm_b_dep_name_hashes"] {
+        for entry in raw[key].as_array().expect("digest array") {
+            let entry = entry.as_str().expect("digest entry is a string");
+            assert!(
+                entry.len() == 64
+                    && entry.bytes().all(|b| matches!(b, b'0'..=b'9' | b'a'..=b'f')),
+                "{key} entry {entry:?} is not a lowercase sha256 hex digest"
+            );
+        }
+    }
 }
 
 // ─── (b) fixture corpus ─────────────────────────────────────────────────────
@@ -118,6 +145,9 @@ const REQUIRED_CASES: [&str; 6] = [
     "tc-RTD-audit-bad-planted-target-debt-commit.json",
 ];
 
+/// Fixtures declare baselines as LITERAL synthetic strings (parse-verbatim inputs); the
+/// harness digests them through the SAME [`entry_digest`] the engine and `--regen-baseline`
+/// use, so the fixture corpus proves the hashed-baseline membership semantics end to end.
 fn baseline_from_fixture(input: &Value) -> Baseline {
     let set = |key: &str| -> BTreeSet<String> {
         input
@@ -131,10 +161,11 @@ fn baseline_from_fixture(input: &Value) -> Baseline {
             })
             .unwrap_or_default()
     };
+    let digests = |key: &str| set(key).iter().map(|entry| entry_digest(entry)).collect();
     Baseline {
-        paths: set("baseline_paths"),
-        workspace_path_deps: set("baseline_workspace_path_deps"),
-        dep_names: set("baseline_dep_names"),
+        path_hashes: digests("baseline_paths"),
+        workspace_path_dep_hashes: digests("baseline_workspace_path_deps"),
+        dep_name_hashes: digests("baseline_dep_names"),
         anchors: set("baseline_anchors"),
     }
 }
