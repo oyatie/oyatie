@@ -8,8 +8,9 @@
     "path_prefixes": ["oya/", "cloud/"]
   },
   "baseline": {
-    "_comment": "Arm A baseline strategy: a committed SORTED PATH LIST of every tracked file under the target path prefixes at gate-authoring time, plus the (empty-at-birth) Arm B dep inventory and the Arm C anchor inventory. Born-blocking zero-NEW ratchet: a tracked target-prefix file absent from the list fails closed with the exact violating path. SHRINK-ONLY: removals are always admissible, and a removal REQUIRES baseline regeneration in the same change — a baseline row whose file no longer exists fails the gate (stale-row detection, mirroring the gate-coverage-baseline re-freeze convention) with the regeneration command in the failure message, so burned-down debt can never silently regain headroom.",
-    "strategy": "committed-sorted-path-list",
+    "_comment": "Arm A baseline strategy: a committed SORTED, DEDUPLICATED LIST OF PER-PATH DIGESTS — the lowercase sha256 hex of each tracked target-prefix path string at gate-authoring time — plus the (empty-at-birth) Arm B dep-digest inventory and the Arm C anchor inventory (anchors stay literal; verified free of scanner-relevant tokens). Digests, not literal paths: the committed file must carry none of the retired vocabulary embedded in migration-inventory path names (brand-residue ratchet blocks NEW files carrying those tokens), while exact set semantics are preserved. Born-blocking zero-NEW ratchet: the gate hashes each LIVE target-prefix path and a digest absent from the list fails closed reporting the exact violating LIVE path. SHRINK-ONLY: removals are always admissible, and a removal REQUIRES baseline regeneration in the same change — a baseline digest matching no live path fails the gate (stale-row detection, mirroring the gate-coverage-baseline re-freeze convention) as a count plus digest-prefix bucket with the regeneration command in the failure message, so burned-down debt can never silently regain headroom.",
+    "strategy": "committed-sorted-path-digest-list",
+    "entry_digest": "sha256-hex-of-exact-entry-string",
     "file": "ci/facade/reorg-target-debt/reorg-target-debt-baseline.json",
     "shrink_only": true,
     "removal_requires_regeneration": true,
