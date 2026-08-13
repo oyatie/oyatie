@@ -2571,57 +2571,64 @@ fn assert_lawful_planning_entry_state(
                 "lawful closed transition must explicitly unlock dispatch"
             );
             let closure_evidence = &contract["closure_evidence"];
-            // Every closure-evidence ref must resolve to a durable, parseable
-            // evidence/** record in THIS tree (the caller owns file I/O; the pure
-            // evaluator validates the parsed content below).
-            for field in [
-                "t1_hold_lift_receipt_ref",
-                "t2_execution_authorization_ref",
-                "t3b_gate_liveness_ref",
-                "t3b_interval_audit_ref",
-            ] {
-                let evidence_ref = closure_evidence[field]
+            // EVERY closure-evidence ref (including the qualified-human approval ref)
+            // must resolve to a durable, parseable evidence/** record in THIS tree, and
+            // the pure evaluator content-validates every one of the loaded documents
+            // below (the caller owns file I/O) — pointing a ref at an empty or
+            // unrelated document must fail.
+            let load_ref = |field_container: &Value, field: &str, label: &str| -> Value {
+                let evidence_ref = field_container[field]
                     .as_str()
-                    .unwrap_or_else(|| panic!("closure_evidence.{field} must be a string ref"));
+                    .unwrap_or_else(|| panic!("closure_evidence.{label} must be a string ref"));
                 assert!(
                     evidence_ref.starts_with("evidence/"),
-                    "closure_evidence.{field} must live under evidence/**: {evidence_ref}"
+                    "closure_evidence.{label} must live under evidence/**: {evidence_ref}"
                 );
                 let resolved = root.join(evidence_ref);
                 assert!(
                     resolved.is_file(),
-                    "closure_evidence.{field} must resolve to a committed record: {}",
+                    "closure_evidence.{label} must resolve to a committed record: {}",
                     resolved.display()
                 );
-                load_json(&resolved); // must parse
-            }
-            let t1 = load_json(
-                &root.join(
-                    closure_evidence["t1_hold_lift_receipt_ref"]
-                        .as_str()
-                        .expect("t1 ref checked above"),
-                ),
+                load_json(&resolved)
+            };
+            let t1 = load_ref(
+                closure_evidence,
+                "t1_hold_lift_receipt_ref",
+                "t1_hold_lift_receipt_ref",
             );
-            let t2 = load_json(
-                &root.join(
-                    closure_evidence["t2_execution_authorization_ref"]
-                        .as_str()
-                        .expect("t2 ref checked above"),
-                ),
+            let t2 = load_ref(
+                closure_evidence,
+                "t2_execution_authorization_ref",
+                "t2_execution_authorization_ref",
             );
-            let findings = evaluate_planning_entry_closure_evidence(masterplan, &t1, &t2);
+            let t3b_gate_liveness = load_ref(
+                closure_evidence,
+                "t3b_gate_liveness_ref",
+                "t3b_gate_liveness_ref",
+            );
+            let t3b_interval_audit = load_ref(
+                closure_evidence,
+                "t3b_interval_audit_ref",
+                "t3b_interval_audit_ref",
+            );
+            let approval = load_ref(
+                &closure_evidence["qualified_human_closure_approval"],
+                "approval_ref",
+                "qualified_human_closure_approval.approval_ref",
+            );
+            let findings = evaluate_planning_entry_closure_evidence(
+                masterplan,
+                &t1,
+                &t2,
+                &t3b_gate_liveness,
+                &t3b_interval_audit,
+                &approval,
+            );
             assert!(
                 findings.is_empty(),
                 "closed planning-entry contract must carry a fully valid closure-evidence \
                  chain: {findings:?}"
-            );
-            let approval_ref = contract["closure_evidence"]["qualified_human_closure_approval"]
-                ["approval_ref"]
-                .as_str()
-                .expect("qualified_human_closure_approval.approval_ref must be a string ref");
-            assert!(
-                root.join(approval_ref).is_file(),
-                "qualified-human closure approval must resolve to a committed record: {approval_ref}"
             );
         }
         other => panic!(
