@@ -5,10 +5,10 @@ runbook_id: RB-AGENTIC-GJC-DISPATCH
 title: "Dispatch autonomous GJC work into oyatie without dirtying the hub"
 status: active
 severities_supported: [Sev-3, Sev-4]
-owner_team: axis-foundry + council-architecture
+owner_team: ops-sre-reliability + council-architecture
 last_verified: 2026-08-13
 last_drilled: null
-slo_topic: oya.foundry.pipeline.dispatch
+slo_topic: oya.intelligence.pipeline.dispatch
 audit_emission_topic: oya.ops.runbook.invoked
 related_runbooks: [RB-SANCTIONED-PRIMITIVES-PREFLIGHT]
 related_adrs: [ADR-0711, ADR-0700, ADR-0515]
@@ -35,7 +35,7 @@ Do not use this runbook for production incidents, merge-queue conflicts, or Swar
 
 ## SLO impact
 
-- SLO affected: `oya.foundry.pipeline.dispatch`.
+- SLO affected: `oya.intelligence.pipeline.dispatch` (registration in `docs/SLO-CATALOG.md` pending; until registered, treat this as process telemetry, not a measured objective).
 - This is planned dispatch work, not live mitigation.
 - Hub dirt from unsanctioned worktrees is Sev-3 process failure; treat as stop-the-line for further enqueue.
 
@@ -94,13 +94,18 @@ git -C /Users/jasonlee/Developer/oyatie worktree add /Users/jasonlee/Developer/o
 ## Lane lifecycle
 
 - One writer per lane. A finished agent id is not evidence the worktree is free.
-- At terminal state the lane is **PARKED** in place. NEVER `git worktree remove`.
+- At terminal state the lane is **PARKED** in place. Autonomous workers NEVER run `git worktree remove`; removal is reserved to the human integrator after evidence preservation, per the ephemeral-lane topology in ADR-0711.
 - NEVER `pkill`/`killall` git, and NEVER `rm` `index.lock` / `gc.pid`.
 - Parked register fields: `path`, `branch`, `head`, `owner`, `reason`.
 
 ## Landing
 
-- Open a normal protected PR to `dev` from the lane worktree (`gh pr create --base dev`).
+- Push the lane branch explicitly, then open a normal protected PR to `dev` non-interactively:
+
+  ```sh
+  git -C <hub>/.worktrees/lane-<id> push -u origin agent/<id>
+  gh pr create --base dev --head agent/<id> --title "<title>" --body-file <body-file>
+  ```
 - `oya-ci-required` MUST be green before merge.
 - No automation merges. No auto-merge. Humans squash-merge after review.
 
@@ -129,7 +134,7 @@ If Phase A or B dirtied the hub or wrote outside the lane:
 
 ## Audit-chain emission
 
-Emit `oya.ops.runbook.invoked` with: `runbook-id=RB-AGENTIC-GJC-DISPATCH`, invoker-id, timestamp, outcome (`resolved|escalated|unresolved`), hub SHA, lane path, lane HEAD, and whether `INVALID_WORKDIR` fired.
+Emit `oya.ops.runbook.invoked` with: `runbook-id=RB-AGENTIC-GJC-DISPATCH`, invoker-id, timestamp, outcome (`resolved|escalated|unresolved`), hub SHA, lane path, lane HEAD, and whether `INVALID_WORKDIR` fired. Until an event-registry row and producer exist for this topic, record the same fields in the lane's parked register/receipt and treat the registry emission as pending.
 
 ## Sources
 
