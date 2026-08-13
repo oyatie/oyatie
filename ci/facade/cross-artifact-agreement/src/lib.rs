@@ -2306,8 +2306,9 @@ fn preplanning_candidate_facts_agree(
     })
 }
 
-/// Open hold keeps dispatch/binding locked; closed hold requires matching receipt flags so
-/// authorized dispatch is not permanently blocked by the open-only evidence predicate.
+/// The immutable candidate receipt records the historical open hold. A later closed
+/// transition unlocks the live contract through its separate closure-evidence chain without
+/// rewriting that time-scoped receipt.
 fn preplanning_hold_shape_agrees(
     contract_state: &str,
     binding_allowed: bool,
@@ -2316,20 +2317,20 @@ fn preplanning_hold_shape_agrees(
     nonclosure_binding: bool,
     nonclosure_dispatch: bool,
 ) -> bool {
-    if nonclosure_state != contract_state {
-        return false;
-    }
     match contract_state {
         PREPLANNING_ENTRY_STATE_OPEN => {
-            !binding_allowed
+            nonclosure_state == PREPLANNING_ENTRY_STATE_OPEN
+                && !binding_allowed
                 && !dispatch_allowed
                 && !nonclosure_binding
                 && !nonclosure_dispatch
         }
         PREPLANNING_ENTRY_STATE_CLOSED => {
-            // The lawful closed transition unlocks BOTH authorities explicitly; a
-            // closed state with binding still false is not a shape this contract knows.
-            binding_allowed && dispatch_allowed && nonclosure_binding && nonclosure_dispatch
+            binding_allowed
+                && dispatch_allowed
+                && nonclosure_state == PREPLANNING_ENTRY_STATE_OPEN
+                && !nonclosure_binding
+                && !nonclosure_dispatch
         }
         _ => false,
     }
@@ -2933,12 +2934,11 @@ fn evaluate_planning_entry_closure_evidence_shape(
 ///   digests;
 /// - the T3b gate-liveness receipt (`record_class: gate-liveness-receipt`,
 ///   `status: live`) and the T2-to-T3b interval-audit record
-///   (`record_class: interval-audit-record`, `status: clean`) must be content-valid,
+///   (`record_class: t2-t3b-interval-audit`, `status: clean`) must be content-valid,
 ///   not merely present-and-parseable;
-/// - the qualified-human closure-approval record behind `approval_ref`
-///   (`record_class: qualified-human-closure-approval`, decision `approved` by the
-///   exact founder principal) must itself prove the approval — the masterplan may
-///   not self-assert it.
+/// - the approval record behind `approval_ref` is the T2 execution-authorization
+///   record required by the bootstrap contract; it must independently validate as
+///   founder-authorized rather than relying on the masterplan object's assertion.
 ///
 /// The caller owns resolving `closure_evidence.*_ref` paths to the supplied parsed
 /// documents; keeping file I/O outside this function preserves the pure evaluator
@@ -3008,15 +3008,15 @@ pub fn evaluate_planning_entry_closure_evidence(
     evaluate_closure_evidence_receipt(
         t3b_interval_audit,
         "t3b_interval_audit",
-        "interval-audit-record",
+        "t2-t3b-interval-audit",
         "clean",
         &mut findings,
     );
     evaluate_closure_evidence_record(
         qualified_human_closure_approval,
         "qualified_human_closure_approval.approval_record",
-        "qualified-human-closure-approval",
-        "approved",
+        "execution-authorization-record",
+        "authorized",
         &mut findings,
     );
 
@@ -6407,23 +6407,23 @@ mod tests {
             PREPLANNING_ENTRY_STATE_CLOSED,
             true,
             true,
-            PREPLANNING_ENTRY_STATE_CLOSED,
-            true,
-            true
+            PREPLANNING_ENTRY_STATE_OPEN,
+            false,
+            false
         ));
         assert!(!preplanning_hold_shape_agrees(
             PREPLANNING_ENTRY_STATE_CLOSED,
             true,
             false,
-            PREPLANNING_ENTRY_STATE_CLOSED,
-            true,
+            PREPLANNING_ENTRY_STATE_OPEN,
+            false,
             false
         ));
         assert!(!preplanning_hold_shape_agrees(
             PREPLANNING_ENTRY_STATE_CLOSED,
             true,
             true,
-            PREPLANNING_ENTRY_STATE_OPEN,
+            PREPLANNING_ENTRY_STATE_CLOSED,
             true,
             true
         ));
@@ -6432,9 +6432,9 @@ mod tests {
             PREPLANNING_ENTRY_STATE_CLOSED,
             false,
             true,
-            PREPLANNING_ENTRY_STATE_CLOSED,
+            PREPLANNING_ENTRY_STATE_OPEN,
             false,
-            true
+            false
         ));
     }
 
@@ -6609,19 +6609,13 @@ mod tests {
 
     fn valid_t3b_interval_audit() -> Value {
         json!({
-            "record_class": "interval-audit-record",
+            "record_class": "t2-t3b-interval-audit",
             "status": "clean"
         })
     }
 
     fn valid_closure_approval_record() -> Value {
-        json!({
-            "record_class": "qualified-human-closure-approval",
-            "decision": {
-                "decision_status": "approved",
-                "approved_by": "founder"
-            }
-        })
+        valid_t2_execution_authorization()
     }
 
     fn closure_evidence_findings(

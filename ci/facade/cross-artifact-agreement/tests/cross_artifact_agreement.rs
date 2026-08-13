@@ -1619,6 +1619,22 @@ fn masterplan_v2_current_preplanning_candidate_matches_cited_evidence() {
 }
 
 #[test]
+fn closed_planning_entry_preserves_the_historical_open_candidate_receipt() {
+    let (mut masterplan, evidence) = live_preplanning_candidate_fixture();
+    let contract = &mut masterplan["masterplan_v2"]["planning_entry_contract"];
+    contract["state"] = serde_json::json!("closed");
+    contract["binding_plan_approval_allowed"] = serde_json::json!(true);
+    contract["dispatch_allowed"] = serde_json::json!(true);
+
+    let findings = evaluate_masterplan_v2_preplanning_candidate_facts(&masterplan, &evidence);
+    assert!(
+        findings.is_empty(),
+        "T4 closes through its separate closure-evidence chain without rewriting the \
+         digest-pinned historical candidate receipt: {findings:?}"
+    );
+}
+
+#[test]
 fn preplanning_candidate_paired_missing_fields_fail_closed() {
     let (mut masterplan, mut evidence) = live_preplanning_candidate_fixture();
     masterplan["masterplan_v2"]["planning_entry_contract"]["current_pr_candidate_state"]
@@ -1646,7 +1662,8 @@ fn preplanning_candidate_wrong_field_types_fail_closed() {
 #[test]
 fn preplanning_candidate_contract_field_drift_has_a_keyed_reason() {
     let (mut masterplan, evidence) = live_preplanning_candidate_fixture();
-    masterplan["masterplan_v2"]["planning_entry_contract"]["state"] = serde_json::json!("closed");
+    masterplan["masterplan_v2"]["planning_entry_contract"]["state"] =
+        serde_json::json!("unsupported");
 
     assert_preplanning_candidate_drift_reason(&masterplan, &evidence, "field_mismatch");
 }
