@@ -1625,6 +1625,7 @@ fn closed_planning_entry_preserves_the_historical_open_candidate_receipt() {
     contract["state"] = serde_json::json!("closed");
     contract["binding_plan_approval_allowed"] = serde_json::json!(true);
     contract["dispatch_allowed"] = serde_json::json!(true);
+    contract["closure_evidence"] = serde_json::json!({});
 
     let findings = evaluate_masterplan_v2_preplanning_candidate_facts(&masterplan, &evidence);
     assert!(
