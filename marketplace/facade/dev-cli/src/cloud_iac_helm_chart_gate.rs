@@ -549,14 +549,8 @@ mod tests {
     fn valid_temp_repo(name: &str) -> TempRepo {
         let temp = TempRepo::new(name);
         temp.write(DEFAULT_MANIFEST, &valid_manifest());
-        temp.write(
-            "cloud/cloud-iac/iac/k8s/helm/Chart.yaml",
-            valid_chart(),
-        );
-        temp.write(
-            "cloud/cloud-iac/iac/k8s/helm/values.yaml",
-            valid_values(),
-        );
+        temp.write("cloud/cloud-iac/iac/k8s/helm/Chart.yaml", valid_chart());
+        temp.write("cloud/cloud-iac/iac/k8s/helm/values.yaml", valid_values());
         temp.write(
             "cloud/cloud-iac/iac/k8s/helm/templates/deployment.yaml",
             &valid_deployment(),

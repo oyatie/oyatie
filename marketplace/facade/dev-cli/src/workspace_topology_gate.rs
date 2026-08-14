@@ -129,8 +129,7 @@ pub(crate) fn parse_workspace_topology_validate_args(
     }
 
     Ok(WorkspaceTopologyArgs {
-        emit_report_path: emit_report_path
-            .map(|path| resolve_repo_path(&repo_root, path)),
+        emit_report_path: emit_report_path.map(|path| resolve_repo_path(&repo_root, path)),
         repo_root,
         severity,
     })
@@ -647,7 +646,11 @@ mod tests {
             "microservices/accounting/crates/oya-accounting-journal-domain",
             "oya-accounting-journal-domain",
         );
-        write_member(&root, "libs/oya-check-brand-residue", "oya-check-brand-residue");
+        write_member(
+            &root,
+            "libs/oya-check-brand-residue",
+            "oya-check-brand-residue",
+        );
         write_member(
             &root,
             "tools/oya-governance-adr-shape-app",
@@ -702,7 +705,11 @@ mod tests {
             .iter()
             .filter(|f| f.rule == WorkspaceTopologyRule::R2NestedWorkspace)
             .collect();
-        assert!(!r2.is_empty(), "expected R2 finding, got: {:?}", report.findings);
+        assert!(
+            !r2.is_empty(),
+            "expected R2 finding, got: {:?}",
+            report.findings
+        );
         cleanup(&root);
     }
 
@@ -718,15 +725,27 @@ mod tests {
                 "microservices/svc-b/crates/oya-svc-domain",
             ],
         );
-        write_member(&root, "microservices/svc-a/crates/oya-svc-domain", "oya-svc-domain");
-        write_member(&root, "microservices/svc-b/crates/oya-svc-domain", "oya-svc-domain");
+        write_member(
+            &root,
+            "microservices/svc-a/crates/oya-svc-domain",
+            "oya-svc-domain",
+        );
+        write_member(
+            &root,
+            "microservices/svc-b/crates/oya-svc-domain",
+            "oya-svc-domain",
+        );
         let report = run(&root, true);
         let r3: Vec<_> = report
             .findings
             .iter()
             .filter(|f| f.rule == WorkspaceTopologyRule::R3DuplicateName)
             .collect();
-        assert!(!r3.is_empty(), "expected R3 finding, got: {:?}", report.findings);
+        assert!(
+            !r3.is_empty(),
+            "expected R3 finding, got: {:?}",
+            report.findings
+        );
         cleanup(&root);
     }
 
@@ -743,7 +762,11 @@ mod tests {
             .iter()
             .filter(|f| f.rule == WorkspaceTopologyRule::R4PhantomMember)
             .collect();
-        assert!(!r4.is_empty(), "expected R4 finding, got: {:?}", report.findings);
+        assert!(
+            !r4.is_empty(),
+            "expected R4 finding, got: {:?}",
+            report.findings
+        );
         cleanup(&root);
     }
 
@@ -768,7 +791,11 @@ mod tests {
             .iter()
             .filter(|f| f.rule == WorkspaceTopologyRule::R5OrphanCrate)
             .collect();
-        assert!(!r5.is_empty(), "expected R5 finding, got: {:?}", report.findings);
+        assert!(
+            !r5.is_empty(),
+            "expected R5 finding, got: {:?}",
+            report.findings
+        );
         cleanup(&root);
     }
 
@@ -786,7 +813,11 @@ mod tests {
             .iter()
             .filter(|f| f.rule == WorkspaceTopologyRule::R6InvalidLocation)
             .collect();
-        assert!(!r6.is_empty(), "expected R6 finding, got: {:?}", report.findings);
+        assert!(
+            !r6.is_empty(),
+            "expected R6 finding, got: {:?}",
+            report.findings
+        );
         cleanup(&root);
     }
 
@@ -810,7 +841,11 @@ mod tests {
             "oya-accounting-domain",
         );
         write_member(&root, "libs/oya-shared-types", "oya-shared-types");
-        write_member(&root, "tools/oya-governance-adr-app", "oya-governance-adr-app");
+        write_member(
+            &root,
+            "tools/oya-governance-adr-app",
+            "oya-governance-adr-app",
+        );
         let report = run(&root, true);
         let r7: Vec<_> = report
             .findings
@@ -834,7 +869,11 @@ mod tests {
             .iter()
             .filter(|f| f.rule == WorkspaceTopologyRule::R7DirNameMismatch)
             .collect();
-        assert!(!r7.is_empty(), "expected R7 finding, got: {:?}", report.findings);
+        assert!(
+            !r7.is_empty(),
+            "expected R7 finding, got: {:?}",
+            report.findings
+        );
         assert!(
             r7[0].detail.contains("oya-accounting-domain"),
             "detail should mention dir basename, got: {}",
@@ -862,7 +901,10 @@ mod tests {
             .iter()
             .filter(|f| f.rule == WorkspaceTopologyRule::R6InvalidLocation)
             .collect();
-        assert!(r6.is_empty(), "cloud/<svc>/crates/<crate> should pass R6, got: {r6:?}");
+        assert!(
+            r6.is_empty(),
+            "cloud/<svc>/crates/<crate> should pass R6, got: {r6:?}"
+        );
         cleanup(&root);
     }
 
@@ -878,14 +920,20 @@ mod tests {
             .iter()
             .filter(|f| f.rule == WorkspaceTopologyRule::R6InvalidLocation)
             .collect();
-        assert!(r6.is_empty(), "oya/<svc>/crates/<crate> should pass R6, got: {r6:?}");
+        assert!(
+            r6.is_empty(),
+            "oya/<svc>/crates/<crate> should pass R6, got: {r6:?}"
+        );
         cleanup(&root);
     }
 
     #[test]
     fn cloud_orphan_crate_detected() {
         let root = scratch_root("cloud-r5");
-        write_workspace(&root, &["oya/accounting/crates/oya-accounting-journal-domain"]);
+        write_workspace(
+            &root,
+            &["oya/accounting/crates/oya-accounting-journal-domain"],
+        );
         write_member(
             &root,
             "oya/accounting/crates/oya-accounting-journal-domain",
@@ -909,7 +957,11 @@ mod tests {
             .iter()
             .filter(|f| f.rule == WorkspaceTopologyRule::R5OrphanCrate)
             .collect();
-        assert!(!r5.is_empty(), "expected R5 orphan finding for cloud crate, got: {:?}", report.findings);
+        assert!(
+            !r5.is_empty(),
+            "expected R5 orphan finding for cloud crate, got: {:?}",
+            report.findings
+        );
         cleanup(&root);
     }
 
