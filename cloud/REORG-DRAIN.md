@@ -14,4 +14,10 @@
   [`../evidence/reorg/rr-cloud-kernel-disposition-20260806.md`](../evidence/reorg/rr-cloud-kernel-disposition-20260806.md)
   — `cloud/cloud-kernel/**` holds unique
   kuberos bytes; `#1659` was Asterinas ABI absorb only, not a kuberos absorb. Do not delete until
-  the zero-crate residual rehome tracked in the masterplan lands.
+  the S4/S5 zero-crate residual rehome lands — staged in the governed envelope
+  [`../specs/integ-branch-envelopes.json`](../specs/integ-branch-envelopes.json) (`cloud/cloud-kernel/`
+  `reorg_now` row, `judgment_status: done`) and in the disposition record above; the keep-rule is
+  registered in the live plan as the `P-OWNED-STACK-KERNEL` rung-0 source anchor `cloud/cloud-kernel`
+  in `specs/masterplan.json#masterplan_v2`. No S4/S5 rehome work item is minted in
+  `masterplan_v2.work_items` yet; that registration remains genuinely-outstanding debt (requires a
+  founder-ratified sequencing re-derivation before a dispatchable work item can land).
