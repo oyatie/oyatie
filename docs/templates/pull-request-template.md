@@ -26,7 +26,7 @@ rfc_2119_active: true
 
 ## Verification
 
-- `cargo fmt --all --check` / `cargo test` (or targeted equivalents); reviewer evidence rides Buck2/cloud-ci `oya-ci-required` — `<PASS|FAIL>` — `<excerpt>`
+- `cargo fmt --all --check` / clippy (`--workspace --all-targets -- -D warnings`) / `cargo test` (or targeted equivalents); reviewer evidence rides the `oya-ci-required` context — `<PASS|FAIL>` — `<excerpt>`
 - `oya-ci-required` PR context — `<PASS|PENDING>` — `<check URL>`
 
 ## Code Review
