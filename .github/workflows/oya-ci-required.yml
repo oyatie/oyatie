@@ -88,6 +88,13 @@ jobs:
       OYA_CI_ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS: ${{ github.workspace }}/.claude
       OYA_CI_ENFORCEMENT_LIVENESS_CODEX_HOOKS: ${{ github.workspace }}/.codex
       OYA_CI_ENFORCEMENT_LIVENESS_HOOKS_DIR: ${{ github.workspace }}/tools/hooks
+      # History-only retirement facts face (materialized before tests; the
+      # ci-scm-facts-snapshot emitter writes it — fail-closed cross-artifact
+      # consumers read it from this env path).
+      OYA_HISTORY_ONLY_RETIREMENT_FACTS: ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json
+      # Sanctioned ADR-index producer binary (built in the producer step below;
+      # fail-closed cross-artifact tests exec it via this env path).
+      OYA_ADR_INDEX_PRODUCER_BIN: ${{ github.workspace }}/target/debug/oya
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
@@ -117,10 +124,11 @@ jobs:
       - name: Materialize generated faces
         run: cargo run --locked -p ci-generated-artifact-freshness --bin oya-cloud-ci-materialize-generated-faces -- --repo-root . --github-event
       # Shared accounting-registry producer for OYA_CI_PRODUCER_BIN and
-      # OYA_CI_ENFORCEMENT_LIVENESS_PRODUCER. Step name is a frozen
+      # OYA_CI_ENFORCEMENT_LIVENESS_PRODUCER, plus the sanctioned ADR-index
+      # producer binary (OYA_ADR_INDEX_PRODUCER_BIN). Step name is a frozen
       # workflow_inline_shell baseline key — do not rename.
       - name: Build enforcement-liveness producer
-        run: cargo build --locked -p ci-artifact-inventory-registry --bin oya-cloud-ci-accounting-registry-app
+        run: cargo build --locked -p ci-artifact-inventory-registry --bin oya-cloud-ci-accounting-registry-app && cargo build --locked -p marketplace-dev-cli --bin oya
       # Every workspace member, including the whole ci/facade gate fleet, runs here.
       - name: Workspace tests
         run: cargo test --locked --workspace
