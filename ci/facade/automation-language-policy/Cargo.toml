@@ -1,0 +1,29 @@
+[package]
+name = "ci-automation-language-policy"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+# Rust-first automation ratchet. Historically buck2-only; a Cargo manifest was added so the
+# gate is enforced by the cargo merge path (cargo test --workspace) as well as locally.
+
+[package.metadata.oya]
+bounded_context = "cloud-ci"
+kind = "shared"
+layer = "app"
+purpose = "Rust-first automation hygiene ratchet: non-Rust automation is exceptioned or born-blocking; workflow inline shell is ratcheted against a frozen baseline with a reviewed replacement window."
+
+[lib]
+name = "oya_cloud_ci_rust_first_automation_hygiene_app"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+serde_json = { workspace = true }
+serde_yaml = { workspace = true }
+toml = { workspace = true }
+
+[lints]
+workspace = true

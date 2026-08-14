@@ -24,4 +24,4 @@ CAS does **not** need two NativeLink processes. Digests are content-addressed **
 
 ## Go-gate
 
-Fleet warm reads stay fail-closed (`specs/cache-warm-license.json` → `warm_reads_licensed: false`) until the integrity-canary is GREEN against the laptop endpoint. See `laptop-cas-integrity-canary.md`.
+Fleet warm reads stay fail-closed (`specs/cache-warm-license.json` → `warm_reads_licensed: false`) (the integrity-canary trust chain is retired by ADR-0716; warm reads stay unlicensed until a successor CAS trust anchor is stood up).
