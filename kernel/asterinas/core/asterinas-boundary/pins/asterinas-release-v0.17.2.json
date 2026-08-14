@@ -1,6 +1,6 @@
 {
   "$schema": "https://docs.oyatie.com/schemas/kuberos-asterinas-release-pin.v0.1.0.json",
-  "$id": "https://docs.oyatie.com/kernel/core/asterinas-boundary/pins/asterinas-release-v0.17.2.json",
+  "$id": "https://docs.oyatie.com/kernel/asterinas/core/asterinas-boundary/pins/asterinas-release-v0.17.2.json",
   "component": "asterinas/kernel",
   "upstream_repository": "https://github.com/asterinas/asterinas",
   "pin_status": "pinned",

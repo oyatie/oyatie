@@ -7,7 +7,7 @@
 # (DRY; a bump edits one list, not five). `_BOUNDARY` = the compile-time upstream pin + closed
 # marker set; `_TP_CORE` = serde_json + sha2 (receipts + digests), used by every target;
 # `_REGEX` = the marker-scan regex, used only where boot-verdict logic compiles.
-_BOUNDARY = "//kernel/core/asterinas-boundary:kernel-asterinas-boundary"
+_BOUNDARY = "//kernel/asterinas/core/asterinas-boundary:kernel-asterinas-boundary"
 _TP_CORE = ["third-party//:serde_json", "third-party//:sha2"]
 _REGEX = ["third-party//:regex"]
 
