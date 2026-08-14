@@ -8,14 +8,16 @@
     {
       "pr": 1587,
       "title": "refactor(reorg): burn-down oya/feature-flags residual into flags/",
-      "decision": "superseded",
-      "lens_rationale": "Opportunity Cost + Systems Thinking: the residual was already burned by the wave25/26 consolidation (#1620, squash 1d3105277, merged 2026-08-09). Verified at origin/dev@4a4f71a14: zero tracked paths under oya/feature-flags, zero capability-registry / tier-classification / reachability references, flags/ holds the runbooks and artifacts. Re-running the draft would be a no-op path move; the work is done.",
+      "decision": "restore",
+      "lens_rationale": "Opportunity Cost + Systems Thinking: the residual was already burned by the wave25/26 consolidation (#1620, squash 1d3105277, merged 2026-08-09), but the held README disposition must be resolved explicitly, not silently discarded. The wave25/26 closeout (evidence/reorg/rr-wave25-26-residual-consolidation-closeout-20260810.json, oyatie-0s8 ruling options) decided: RESTORE the disambiguated README at flags/README.oya-flags-placeholder.md, because #1620 deleted oya/oya-flags/README.md only as a name-collision casualty (the name collided with flags/README.md) — not as a deliberate content deletion. LANDED in this PR: content restored byte-identical from the last dev commit containing oya/oya-flags/README.md (932f1e1e8, verified identical to the #1587 draft rename 39c627ada), written to flags/README.oya-flags-placeholder.md; flags/OWNERS covers the subtree.",
       "evidence": [
         "git ls-files | grep -c '^oya/feature-flags' == 0",
         "grep -c 'oya/feature-flags' specs/capability-registry.json == 0",
-        "flags/runbooks/* present at dev tip"
+        "flags/runbooks/* present at dev tip",
+        "flags/README.oya-flags-placeholder.md landed in this PR; sha1 93904079914fe538f3167dc399d10e25b2a08bb9 (byte-identical to 932f1e1e8:oya/oya-flags/README.md and 39c627ada:flags/README.oya-flags-placeholder.md)",
+        "flags/OWNERS present (axis-cloud-platform) — subtree covered"
       ],
-      "action": "none beyond this record; draft stays closed"
+      "action": "restoration landed in this PR (flags/README.oya-flags-placeholder.md); draft stays closed with decision=restore recorded"
     },
     {
       "pr": 1607,
@@ -23,7 +25,7 @@
       "decision": "superseded-by-integ-cloud",
       "lens_rationale": "Essentialism + Blast-radius + Operability/Day-2: one home per concern. The draft's premise (zero-crate residual) was falsified by the Wave-2 judgment (specs/integ-branch-envelopes.json: 4 crates / 56 paths remained on dev). The sanctioned carrier is integ/cloud PR #1938 (delete cloud/cloud-os/**, dest-verified forever homes under os/core). Consumer-absence proof re-verified at #1938 head: zero Cargo.toml / BUCK / rust-ident references to the four oya-cloud-os-*-domain crates outside the deleted subtree; os/core holds the evolved live successors (os/core/{cluster-mgmt,kubernetes,secrets,trustd}-domain).",
       "evidence": [
-        "grep -rl 'oya_cloud_os_(trustd|cluster_mgmt|kubernetes|secrets)_domain' --include='*.rs' outside cloud/cloud-os == empty",
+        "grep -rlE 'oya_cloud_os_(trustd|cluster_mgmt|kubernetes|secrets)_domain' --include='*.rs' outside cloud/cloud-os == 0 matches (extended-regex re-run 2026-08-14; the only 4 hits are inside the deleted cloud/cloud-os subtree itself)",
         "Cargo.lock: zero oya-cloud-os- package entries after fix 79fdd53db",
         "PR #1938 head updated 8dedce905 -> 79fdd53db with admission housekeeping (workspace glob, lock prune, 4 baseline-row burn, registry/masterplan/tier/test-fixture cites)",
         "cargo metadata --no-deps resolves clean at 79fdd53db"
@@ -50,7 +52,7 @@
         {
           "from": "storage.absorbs_current_dirs[storage/imaging]",
           "disk": "storage/imaging EXISTS",
-          "closeout": "Batch-5 storage move-plan (registry-only; 0-crate scaffold)"
+          "closeout": "Batch-5 storage move-plan: atomic move of the storage/imaging filesystem scaffold (35 tracked manifest/contract/Cedar/IaC/runbook files) to its capability home + consumer retargeting; registry-entry removal alone would orphan live consumers"
         },
         {
           "from": "observability.absorbs_current_dirs[observability/diagnostics]",
@@ -73,16 +75,14 @@
       "executable": [
         "specs/reorg/intelligence-remainder-move-plan.json (78 moves + 78 artifacts; oya/intelligence still holds 78 crate dirs at dev)"
       ],
-      "parked": [
-        "specs/reorg/nativelink-storage-move-plan.PARKED.json (CAS 3A; prereq G039 terminal + singleton free)"
-      ],
+      "parked": [],
       "blocked": [
         "specs/reorg/kernel-move-plan.BLOCKED.json (3 mechanical defects, dry-run proven)"
       ]
     },
     "g039_terminal": {
       "state": "terminal-packet-closed",
-      "facts": "#1558 merged a1bd1f14a; oya-ci-required SUCCESS on promoted SHA (completed 2026-08-05T11:50:47Z); R3 packet finalized 2026-08-14 via .grok/bin/mm-packet --closed -> .grok/programs/cas-fabric/evidence/1558-post-merge-completion-packet.json (completion_packet_closed=true). CAS 3A unpark now gates only on the move-plan singleton freeing (PR #1956 merge)."
+      "facts": "#1558 merged a1bd1f14a; oya-ci-required SUCCESS on promoted SHA (completed 2026-08-05T11:50:47Z); R3 packet finalized 2026-08-14 via .grok/bin/mm-packet --closed -> .grok/programs/cas-fabric/evidence/1558-post-merge-completion-packet.json (completion_packet_closed=true). CAS Lane 3A is EXECUTED: #1563 merged 2026-08-05, promoted 010c132ec, storage/adapters/nativelink exists (see evidence/completion/oyatie-oso.5-packet.md). The packet's criteria_met=false is ONLY because the promoted-SHA oya-ci-required run was cancelled (runner starvation) - re-verify is post-merge hygiene, not a move lane. specs/reorg/nativelink-storage-move-plan.PARKED.json deleted as spent in PR #1954."
     }
   },
   "non_claims": [
