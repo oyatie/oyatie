@@ -2,8 +2,8 @@
 
 use kernel_asterinas_abi_matrix::{self as matrix, G5Evaluation};
 use kernel_asterinas_abi_probe::{
-    build_probe_plan, run_scaffold, scaffold_summary_receipt, ProbeItemStatus, ProbeKind,
-    PROFILE_TARGETS,
+    PROFILE_TARGETS, ProbeItemStatus, ProbeKind, build_probe_plan, run_scaffold,
+    scaffold_summary_receipt,
 };
 
 #[test]
@@ -23,7 +23,11 @@ fn integration_scaffold_plan_matches_matrix_row_count() {
         .count();
     assert_eq!(surface_items, rows.len());
     assert_eq!(footprint_items, PROFILE_TARGETS.len());
-    assert!(plan.items.iter().all(|i| i.status == ProbeItemStatus::Stubbed));
+    assert!(
+        plan.items
+            .iter()
+            .all(|i| i.status == ProbeItemStatus::Stubbed)
+    );
 }
 
 #[test]

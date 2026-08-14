@@ -1801,12 +1801,7 @@ pub mod soak {
         mut boot_runner: F,
     ) -> Result<SoakOutcome, Box<dyn std::error::Error>>
     where
-        F: FnMut(
-            &SoakConfig,
-            &str,
-            usize,
-            &Path,
-        ) -> Result<BootRecord, Box<dyn std::error::Error>>,
+        F: FnMut(&SoakConfig, &str, usize, &Path) -> Result<BootRecord, Box<dyn std::error::Error>>,
     {
         std::fs::create_dir_all(&dests.run_dir)?;
 
@@ -1881,7 +1876,11 @@ pub mod soak {
         .to_string();
         // Honest-fail: only after the attempt budget is exhausted without a clean 10/10.
         let gap_register = if passing_attempt_id.is_none() {
-            Some(build_soak_gap_register_entry(cfg, &dests.run_dir, now_unix()))
+            Some(build_soak_gap_register_entry(
+                cfg,
+                &dests.run_dir,
+                now_unix(),
+            ))
         } else {
             None
         };
@@ -2027,7 +2026,10 @@ pub mod soak {
             assert!(attempt_is_pass(&records, ITERATION_COUNT));
 
             // Nine clean boots is not a pass.
-            assert!(!attempt_is_pass(&records[..ITERATION_COUNT - 1], ITERATION_COUNT));
+            assert!(!attempt_is_pass(
+                &records[..ITERATION_COUNT - 1],
+                ITERATION_COUNT
+            ));
 
             // Passing boots NEVER aggregate across attempts: relabel the last boot's attempt id.
             let mut split = records.clone();
@@ -2063,7 +2065,10 @@ pub mod soak {
                 v["raw_serial_log"]["digest_recomputed_from_disk_at_record_build"],
                 serde_json::Value::Bool(true)
             );
-            assert_eq!(v["matched_marker"]["matched_text_verbatim"], "Reached target Basic System");
+            assert_eq!(
+                v["matched_marker"]["matched_text_verbatim"],
+                "Reached target Basic System"
+            );
         }
     }
 }
