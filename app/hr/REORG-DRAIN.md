@@ -9,7 +9,13 @@
 ## Completed
 
 - Wave-1 absorb replayed from `integ/app@84ea18fc1` (40 files).
-- Admission edits claimed: `governance/capability-registry.json` membership mapping (`app/hr` in `current_dirs`) and root `Cargo.toml` ADR-0538 exclude — recorded as hub waiver + adjunct claim on `integ/hr` (see `specs/integ-branch-envelopes.json`), gate-required for `oya-ci-required` while the source stays live.
+
+## Elevate (out of envelope, gate-required)
+
+- The absorb's gate-required admission edits cross the `app/hr/**` envelope, and the envelope authorization must be routed through `integ/specs` (the envelopes file + waiver directory are integ/specs-owned per deliver.js ENVELOPE VERIFY — the HR lane must not self-edit them):
+  1. **`governance/capability-registry.json`** membership mapping (`app/hr` in `membership_lint_coverage.app_products.current_dirs`) — needs an `integ/hr` hub waiver row + waiver file under `governance/check/integ-envelope/waivers/` recorded by integ/specs; gate-required for `ci-module-membership` (MEM-NEW-UNMAPPED-CRATE).
+  2. **Root `Cargo.toml`** ADR-0538 exclude for `app/hr/crates` — needs an `integ/hr` adjunct claim in `specs/integ-branch-envelopes.json` recorded by integ/specs; gate-required for `cloud-ci-workspace-glob-coverage` (crate_dir_not_covered).
+  Both were previously self-claimed on this tip and reverted here per the review thread; they expire at the integ/hr drain.
 
 ## Drain prerequisites (`integ/oya` shrink, after verify)
 
