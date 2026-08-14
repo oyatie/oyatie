@@ -8,10 +8,14 @@ doc_status: published
 
 ## 2026-08-14 — Git pre-push hook automates the local face-settle --verify step
 
-- Added [`scripts/git-hooks/pre-push`](../scripts/git-hooks/pre-push): every branch push now
-  runs the canonical `oya-cloud-ci-face-settle --verify` check locally (read-only, blocking on
-  stale faces with the tool's remediation output; no bypass by design). Wired per clone with
-  `git config core.hooksPath scripts/git-hooks`.
+- Added the owned Rust verifier `oya-pre-push-verify`
+  (`//ci/facade/generated-artifact-freshness:oya-pre-push-verify-bin`): every branch push whose
+  pushed SHA equals HEAD now runs the canonical `oya-cloud-ci-face-settle --verify` check locally
+  (read-only, blocking on stale faces with the tool's remediation output; no bypass by design;
+  fail-closed when the pushed SHA differs from HEAD). Per the repo stack invariant the hook is
+  Rust, not shell, and it is installed OUTSIDE the checked-out tree so a contribution can never
+  replace the hook git executes: `buck2 run //ci/facade/generated-artifact-freshness:oya-pre-push-verify-bin -- install` copies the pinned binary into the git common-dir `hooks/` and points
+  `core.hooksPath` there (the tracked Bash `scripts/git-hooks/pre-push` is removed).
 - Updated the face-settle protocol paragraph in
   [`docs/oya-ci/gate-catalog.md`](oya-ci/gate-catalog.md) and the Claude Code appendix hook list in
   [`docs/AGENTS.md`](AGENTS.md). The cloud-ci freshness gate behind `oya-ci-required` remains the
