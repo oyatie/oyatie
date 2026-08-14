@@ -4663,7 +4663,7 @@ fn path_like_tokens(body: &str) -> impl Iterator<Item = &str> {
 /// 2. A `#fragment` suffix is cut. `masterplan.json` names most of its evidence anchors as
 ///    `<path>#<symbol>` — `/infra/branch-protection/dev.json#required_status_checks`,
 ///    `ci/facade/cross-artifact-agreement/src/lib.rs#evaluate_masterplan_v2_projection_freshness`,
-///    `specs/capability-registry.json#meta_directories[kernel/]`. Those ARE references to the
+///    `governance/capability-registry.json#meta_directories[kernel/]`. Those ARE references to the
 ///    file; only the deep link is extra.
 ///
 /// The old substring test matched both shapes by accident. An exact test has to normalize them

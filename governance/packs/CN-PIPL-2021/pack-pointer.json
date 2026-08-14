@@ -10,7 +10,9 @@
   "pack_id": "CN-PIPL-2021",
   "canonical_manifest_path": "packs/cn/compliance/manifest.json",
   "version": "1.0.0",
-  "jurisdiction_overlay": ["CN"],
+  "jurisdiction_overlay": [
+    "CN"
+  ],
   "governance_fragments": [
     "pack-cn-pipl-2021-consent-gating",
     "pack-cn-pipl-2021-cross-border-transfer-gating",
@@ -18,9 +20,17 @@
     "pack-cn-pipl-2021-minor-protection",
     "pack-cn-pipl-2021-sensitive-pi-handling"
   ],
-  "applies_to_microservices": ["consent", "identity", "governance", "audit-chain", "tenancy"],
+  "applies_to_microservices": [
+    "consent",
+    "identity",
+    "governance",
+    "audit-chain",
+    "tenancy"
+  ],
   "cell_eligibility": {
-    "requires_certification": ["CN-PIPL-eligible"]
+    "requires_certification": [
+      "CN-PIPL-eligible"
+    ]
   },
   "effective_at": "2026-05-20T00:00:00Z",
   "sunset_at": null

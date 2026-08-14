@@ -134,9 +134,9 @@ def main() -> int:
     code_d, deleted = sh(["git", "diff", "--name-only", "--diff-filter=D", f"{args.base}...HEAD"])
     del_oya = [f for f in deleted.splitlines() if f.startswith("oya/")]
     if del_oya:
-        # require either evidence/reorg or specs/capability-registry change
+        # require either evidence/reorg or governance/capability-registry change
         has_evidence = any(f.startswith("evidence/reorg/") for f in changed)
-        has_registry = "specs/capability-registry.json" in changed
+        has_registry = "governance/capability-registry.json" in changed
         add(
             "dual_home_consumer_packet",
             has_evidence and has_registry,
