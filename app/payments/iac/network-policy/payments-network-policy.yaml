@@ -54,6 +54,11 @@ spec:
         - ports:
             - port: "8443"
               protocol: TCP
+            # HTTP/3 (QUIC) per the advertised Alt-Svc: h3=":8443" — QUIC rides
+            # UDP, so both transports must be admitted or the upgrade can never
+            # reach the workload (ADR-0253 HTTP/3 default).
+            - port: "8443"
+              protocol: UDP
 
     # PSP webhook inbound (Stripe, Adyen, Toss, KakaoPay, LINE Pay, WeChat Pay,
     # Alipay). PSP sources are not pinned by a single-provider CIDR allowlist
@@ -105,11 +110,17 @@ spec:
             - port: "8200"
               protocol: TCP
 
-    # CRDB (CockroachDB) — payments namespace
-    - toEndpoints:
-        - matchLabels:
-            app.kubernetes.io/name: cockroachdb
-            oyatie/microservice: payments
+    # CRDB (CockroachDB) — managed CockroachDB Cloud cluster
+    #
+    # cockroach_cluster.payments (terraform/payments-crdb.tf) is a MANAGED
+    # CockroachDB Cloud cluster, not an in-cluster Service, so a toEndpoints
+    # label match can never select it. Egress to the SQL endpoint must be
+    # FQDN-based; the concrete hostname is the provisioned cluster's SQL DNS
+    # name (stored in the DATABASE_URL secret). Until the cluster is
+    # provisioned, the FQDN below is the canonical placeholder operators
+    # replace with the actual `<cluster>.<random>.crdb.cloud.io` endpoint.
+    - toFQDNs:
+        - matchName: "payments.crdb.cloud.oyatie.dev"
       toPorts:
         - ports:
             - port: "26257"

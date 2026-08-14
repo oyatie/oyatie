@@ -15,8 +15,16 @@ resources:
   - openbao-secret-references.yaml
   - ../../network-policy/payments-network-policy.yaml
 
+# Charts live beside this base at app/payments/iac/helm/<name>/; chartHome
+# lets kustomize resolve them locally (no remote repo required) — the entry
+# name is the checked-in chart DIRECTORY (payments-app), whose Chart.yaml
+# declares name: oya-payments-app.
+helmGlobals:
+  chartHome: ../../helm
+
 helmCharts:
-  - name: oyatie-microservices-app
+  - name: payments-app
+    version: 0.1.0
     valuesFile: ../../helm/payments-app/values.yaml
     releaseName: payments-app
     namespace: payments
