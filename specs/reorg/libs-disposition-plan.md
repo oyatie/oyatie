@@ -9,8 +9,8 @@
 
 | Group | Count | Destination | Class | Note |
 |---|---|---|---|---|
-| `libs/oya-check-*` + `libs/oya-governance-*` | ~77 | `governance/check/*` | move | #1498 precedent: the dep-lint authority's leaf kernels already homed 56 there; these are the same fleet. Governance-engine code, not capability crates (registry comment). |
-| `libs/oya-advisory-mirror-kernel`, `oya-buck-syntax-kernel`, `oya-cargo-lock-transform-kernel`, `oya-ci-gate-contract`, `oya-ci-config`, `oya-ci-materializer-kernel`, `oya-crate-registrar-app`, `oya-crate-registrar-kernel`, `oya-workspace-members-kernel` | 9 | `build/` | move | Registry `build/` glob: buck2/workspace/manifest tooling. |
+| `libs/oya-check-*` + `libs/oya-governance-*` + **`tools/oya-governance-*-app`** (6) | ~83 | `governance/check/*` | move | #1498 precedent: the dep-lint authority's leaf kernels already homed 56 there; these are the same fleet plus their gate binaries (the -app crates still path-dep the un-homed kernels, so they move in the same plan). Governance-engine code, not capability crates (registry comment). |
+| `libs/oya-advisory-mirror-kernel`, `oya-buck-syntax-kernel`, `oya-cargo-lock-transform-kernel`, `oya-ci-gate-contract`, `oya-ci-config`, `oya-ci-materializer-kernel`, `oya-crate-registrar-app`, `oya-crate-registrar-kernel`, `oya-workspace-members-kernel` + **the 13 build/CI-engine tools apps** (fixup-ledger-merge-driver, architecture-graph-generator, buck-test-wiring, cargo-lock-merge-driver, checkout-guard, fabric-loop-state, friction-ledger-merge-driver, lane-supervisor, reorg-codemod, tooling-agent-read, xtask-metadata-augment + 2 remaining of the 19 tools/ crates re-audited at execution) | 22 | `build/` | move | Registry `build/` glob: buck2/workspace/manifest tooling. The reorg codemod moves LAST (it must stay stationary until the remaining move lanes finish). |
 | `libs/oya-workflow-safe-metadata-kernel` | 1 | `workflow/` | move | Registry capability glob (FANOUT-03). |
 
 Execution: one move-plan per group; same-PR registry glob flips + baseline burns + catalog row re-keys.
@@ -61,8 +61,8 @@ For each proposed base/ crate the move-plan PR must attach: the ≥3-capability 
 
 ## Sequencing (each step one PR, one executable move-plan)
 
-1. governance/check fleet (~77) — largest single burn; mirror #1498.
-2. build/ group (9) + workflow leaf (1).
+1. governance/check fleet (~83: libs kernels + the 6 tools gate apps) — largest single burn; mirror #1498.
+2. build/ group (~22: 9 libs + 13 tools apps; codemod app last) + workflow leaf (1).
 3. messaging outbox family (16+2).
 4. comms family (protocol transport, email, presence, realtime).
 5. data/ (olap + timeseries) + observability (metrics + tracing).
