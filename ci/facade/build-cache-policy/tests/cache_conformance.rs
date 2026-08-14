@@ -20,7 +20,7 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
 use std::{
-    collections::HashSet,
+    collections::{BTreeSet, HashSet},
     path::{Component, Path, PathBuf},
 };
 
@@ -62,6 +62,102 @@ fn validated_service_port(service: &YamlValue, role: &str) -> Result<u64, String
     Ok(port)
 }
 
+fn role_ingress_ports(policy: &YamlValue, role: &str) -> Result<BTreeSet<u64>, String> {
+    let label = format!("oya.io/nativelink-cas-{role}");
+    let rules = policy["spec"]["ingress"]
+        .as_sequence()
+        .ok_or_else(|| "NativeLink ingress policy has no ingress rules".to_string())?;
+    let mut ports = BTreeSet::new();
+    for rule in rules {
+        let matches_role = rule["from"].as_sequence().is_some_and(|peers| {
+            peers.iter().any(|peer| {
+                peer["podSelector"]["matchLabels"][label.as_str()].as_str() == Some("true")
+            })
+        });
+        if !matches_role {
+            continue;
+        }
+        let declared = rule["ports"]
+            .as_sequence()
+            .ok_or_else(|| format!("{role} ingress rule has no ports"))?;
+        for port in declared {
+            ports.insert(
+                port["port"]
+                    .as_u64()
+                    .ok_or_else(|| format!("{role} ingress port is missing or non-numeric"))?,
+            );
+        }
+    }
+    if ports.is_empty() {
+        Err(format!(
+            "NativeLink ingress policy has no rule for role `{role}`"
+        ))
+    } else {
+        Ok(ports)
+    }
+}
+
+fn namespace_egress_ports(policy: &YamlValue, namespace: &str) -> Result<BTreeSet<u64>, String> {
+    let rules = policy["spec"]["egress"]
+        .as_sequence()
+        .ok_or_else(|| "runner egress policy has no egress rules".to_string())?;
+    let mut ports = BTreeSet::new();
+    for rule in rules {
+        let matches_namespace = rule["to"].as_sequence().is_some_and(|peers| {
+            peers.iter().any(|peer| {
+                peer["namespaceSelector"]["matchLabels"]["kubernetes.io/metadata.name"].as_str()
+                    == Some(namespace)
+            })
+        });
+        if !matches_namespace {
+            continue;
+        }
+        let declared = rule["ports"]
+            .as_sequence()
+            .ok_or_else(|| format!("runner egress rule for `{namespace}` has no ports"))?;
+        for port in declared {
+            ports.insert(port["port"].as_u64().ok_or_else(|| {
+                format!("runner egress port for `{namespace}` is missing or non-numeric")
+            })?);
+        }
+    }
+    if ports.is_empty() {
+        Err(format!(
+            "runner egress policy has no rule for namespace `{namespace}`"
+        ))
+    } else {
+        Ok(ports)
+    }
+}
+
+fn validate_endpoint_network_policy_ports(
+    ingress_policy: &YamlValue,
+    runner_egress_policy: &YamlValue,
+    role_ports: &[(&str, u64)],
+) -> Result<(), String> {
+    let expected_egress = role_ports
+        .iter()
+        .map(|(_, port)| *port)
+        .collect::<BTreeSet<_>>();
+    for (role, port) in role_ports {
+        let actual = role_ingress_ports(ingress_policy, role)?;
+        let expected = BTreeSet::from([*port]);
+        if actual != expected {
+            return Err(format!(
+                "{role} ingress ports {actual:?} disagree with endpoint port {port}"
+            ));
+        }
+    }
+    let actual_egress = namespace_egress_ports(runner_egress_policy, "oya-ci")?;
+    if actual_egress != expected_egress {
+        return Err(format!(
+            "runner egress ports {actual_egress:?} disagree with endpoint ports \
+             {expected_egress:?}"
+        ));
+    }
+    Ok(())
+}
+
 fn validate_server_san_preflight(
     runbook: &str,
     expected_sans: &HashSet<String>,
@@ -78,33 +174,6 @@ fn validate_server_san_preflight(
         ));
     }
     Ok(())
-}
-
-fn endpoint_port(address: &str) -> Result<u64, String> {
-    address
-        .rsplit_once(':')
-        .and_then(|(_, port)| port.parse::<u64>().ok())
-        .ok_or_else(|| format!("validated endpoint address `{address}` has no numeric port"))
-}
-
-fn require_network_policy_port(
-    rule: &YamlValue,
-    expected_port: u64,
-    context: &str,
-) -> Result<(), String> {
-    let ports = rule["ports"]
-        .as_sequence()
-        .ok_or_else(|| format!("{context} has no ports"))?;
-    if ports
-        .iter()
-        .any(|entry| entry["port"].as_u64() == Some(expected_port))
-    {
-        Ok(())
-    } else {
-        Err(format!(
-            "{context} does not allow endpoint port {expected_port}"
-        ))
-    }
 }
 
 fn licensed_fixture() -> Value {
@@ -947,9 +1016,14 @@ fn endpoint_data_matches_the_nativelink_services_and_instances() {
         .iter()
         .find(|document| {
             document.get("kind").and_then(YamlValue::as_str) == Some("NetworkPolicy")
-                && document["metadata"]["name"].as_str() == Some("nativelink-cas-ingress")
+                && document
+                    .get("metadata")
+                    .and_then(|metadata| metadata.get("name"))
+                    .and_then(YamlValue::as_str)
+                    == Some("nativelink-cas-ingress")
         })
         .expect("NativeLink ingress NetworkPolicy");
+    let mut role_ports = Vec::new();
 
     for (role, endpoint, read_only) in [
         ("writer", endpoints.writer(), false),
@@ -971,26 +1045,11 @@ fn endpoint_data_matches_the_nativelink_services_and_instances() {
             .as_str()
             .expect("Service namespace");
         let port = validated_service_port(service, role).expect("validated Service port");
+        role_ports.push((role, port));
         assert_eq!(
             endpoint.socket_address(),
             format!("{service_name}.{namespace}.svc.cluster.local:{port}")
         );
-        let role_label = format!("oya.io/nativelink-cas-{role}");
-        let ingress_rule = ingress_policy["spec"]["ingress"]
-            .as_sequence()
-            .and_then(|rules| {
-                rules.iter().find(|rule| {
-                    rule["from"].as_sequence().is_some_and(|sources| {
-                        sources.iter().any(|source| {
-                            source["podSelector"]["matchLabels"][role_label.as_str()].as_str()
-                                == Some("true")
-                        })
-                    })
-                })
-            })
-            .unwrap_or_else(|| panic!("{role} ingress rule"));
-        require_network_policy_port(ingress_rule, port, &format!("{role} ingress rule"))
-            .expect("ingress port matches endpoint DATA");
 
         let server = servers
             .iter()
@@ -1021,6 +1080,25 @@ fn endpoint_data_matches_the_nativelink_services_and_instances() {
         );
     }
 
+    let runner_policies = std::fs::read_to_string(root.join(RUNNER_NETWORK_POLICY_PATH))
+        .expect("read runner NetworkPolicies");
+    let runner_policies = serde_yaml::Deserializer::from_str(&runner_policies)
+        .map(|document| YamlValue::deserialize(document).expect("parse runner NetworkPolicy"))
+        .collect::<Vec<_>>();
+    let runner_egress_policy = runner_policies
+        .iter()
+        .find(|document| {
+            document.get("kind").and_then(YamlValue::as_str) == Some("NetworkPolicy")
+                && document
+                    .get("metadata")
+                    .and_then(|metadata| metadata.get("name"))
+                    .and_then(YamlValue::as_str)
+                    == Some("ci-runners-egress-allowlist")
+        })
+        .expect("runner egress NetworkPolicy");
+    validate_endpoint_network_policy_ports(ingress_policy, runner_egress_policy, &role_ports)
+        .expect("NetworkPolicy ports match endpoint DATA");
+
     let runbook = std::fs::read_to_string(root.join(EXTERNAL_SECRETS_RUNBOOK_PATH))
         .expect("read external-secrets runbook");
     let expected_sans = [
@@ -1037,42 +1115,10 @@ fn endpoint_data_matches_the_nativelink_services_and_instances() {
     .collect::<HashSet<_>>();
     validate_server_san_preflight(&runbook, &expected_sans)
         .expect("server certificate SAN preflight matches endpoint DATA");
-
-    let runner_policy = std::fs::read_to_string(root.join(RUNNER_NETWORK_POLICY_PATH))
-        .expect("read runner NetworkPolicy");
-    let runner_policies = serde_yaml::Deserializer::from_str(&runner_policy)
-        .map(|document| YamlValue::deserialize(document).expect("parse runner NetworkPolicy"))
-        .collect::<Vec<_>>();
-    let runner_egress = runner_policies
-        .iter()
-        .find(|document| {
-            document["metadata"]["name"].as_str() == Some("ci-runners-egress-allowlist")
-        })
-        .expect("runner egress NetworkPolicy");
-    let oya_ci_rule = runner_egress["spec"]["egress"]
-        .as_sequence()
-        .and_then(|rules| {
-            rules.iter().find(|rule| {
-                rule["to"].as_sequence().is_some_and(|destinations| {
-                    destinations.iter().any(|destination| {
-                        destination["namespaceSelector"]["matchLabels"]
-                            ["kubernetes.io/metadata.name"]
-                            .as_str()
-                            == Some("oya-ci")
-                    })
-                })
-            })
-        })
-        .expect("runner egress rule for oya-ci");
-    for endpoint in [endpoints.writer(), endpoints.reader()] {
-        let port = endpoint_port(endpoint.socket_address()).expect("validated endpoint port");
-        require_network_policy_port(oya_ci_rule, port, "runner egress rule for oya-ci")
-            .expect("runner egress port matches endpoint DATA");
-    }
 }
 
 #[test]
-fn endpoint_conformance_rejects_target_port_and_server_san_drift() {
+fn endpoint_conformance_rejects_target_port_server_san_and_network_policy_drift() {
     let service: YamlValue =
         serde_yaml::from_str("spec:\n  ports:\n    - port: 50051\n      targetPort: 50052\n")
             .expect("parse Service fixture");
@@ -1098,13 +1144,64 @@ fn endpoint_conformance_rejects_target_port_and_server_san_drift() {
             .contains("disagrees")
     );
 
-    let stale_policy: YamlValue =
-        serde_yaml::from_str("ports:\n  - protocol: TCP\n    port: 50051\n")
-            .expect("parse NetworkPolicy rule fixture");
+    let mut ingress_policy: YamlValue = serde_yaml::from_str(
+        r#"
+spec:
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              oya.io/nativelink-cas-writer: "true"
+      ports: [{ protocol: TCP, port: 50051 }]
+    - from:
+        - podSelector:
+            matchLabels:
+              oya.io/nativelink-cas-reader: "true"
+      ports: [{ protocol: TCP, port: 50052 }]
+"#,
+    )
+    .expect("parse ingress policy fixture");
+    let mut runner_egress_policy: YamlValue = serde_yaml::from_str(
+        r#"
+spec:
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: oya-ci
+      ports:
+        - { protocol: TCP, port: 50051 }
+        - { protocol: TCP, port: 50052 }
+"#,
+    )
+    .expect("parse runner egress policy fixture");
+    let role_ports = [("writer", 50051), ("reader", 50052)];
+    validate_endpoint_network_policy_ports(&ingress_policy, &runner_egress_policy, &role_ports)
+        .expect("matching NetworkPolicy fixture");
+
+    ingress_policy["spec"]["ingress"][0]["ports"][0]["port"] =
+        serde_yaml::to_value(50050_u64).expect("serialize stale ingress port");
     assert!(
-        require_network_policy_port(&stale_policy, 50052, "stale policy")
-            .unwrap_err()
-            .contains("does not allow")
+        validate_endpoint_network_policy_ports(
+            &ingress_policy,
+            &runner_egress_policy,
+            &role_ports,
+        )
+        .unwrap_err()
+        .contains("writer ingress ports")
+    );
+    ingress_policy["spec"]["ingress"][0]["ports"][0]["port"] =
+        serde_yaml::to_value(50051_u64).expect("serialize restored ingress port");
+    runner_egress_policy["spec"]["egress"][0]["ports"][1]["port"] =
+        serde_yaml::to_value(50053_u64).expect("serialize stale egress port");
+    assert!(
+        validate_endpoint_network_policy_ports(
+            &ingress_policy,
+            &runner_egress_policy,
+            &role_ports,
+        )
+        .unwrap_err()
+        .contains("runner egress ports")
     );
 }
 
@@ -1324,6 +1421,24 @@ fn workflows_exchange_oidc_only_for_trusted_jobs_and_never_use_static_cert_secre
     let root = repo_root();
     let controller =
         std::fs::read_to_string(root.join("ci/facade/build-cache-policy/src/main.rs")).unwrap();
+    let bypass = controller
+        .split("if resolution.mode == app::CacheMode::Bypass {")
+        .nth(1)
+        .and_then(|tail| {
+            tail.split("let endpoints = app::load_endpoint_profile(root)?;")
+                .next()
+        })
+        .expect("controlled_child bypass branch");
+    let bypass_kill = bypass
+        .find("kill_buck2(root, &isolation)?;")
+        .expect("bypass daemon kill");
+    let bypass_run = bypass
+        .find("return run_child(root, &child_command)")
+        .expect("bypass child run");
+    assert!(
+        bypass_kill < bypass_run,
+        "a declared-cold child must kill its isolation before Buck2 starts"
+    );
     for binding in [
         "ACTIONS_ID_TOKEN_REQUEST_URL",
         "/v1/auth/jwt/login",
