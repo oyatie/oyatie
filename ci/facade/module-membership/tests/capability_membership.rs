@@ -95,10 +95,10 @@ fn policy_gate_id_matches_the_crate_contract() {
 fn registry_membership_coverage_block_is_present() {
     // The registry extension MUST be present or the gate cannot evaluate.
     let root = repo_root();
-    let registry = load_json(&root.join("specs/capability-registry.json"));
+    let registry = load_json(&root.join("governance/capability-registry.json"));
     assert!(
         registry.get("membership_lint_coverage").is_some(),
-        "specs/capability-registry.json must carry the membership_lint_coverage block"
+        "governance/capability-registry.json must carry the membership_lint_coverage block"
     );
 }
 
@@ -174,7 +174,7 @@ fn fixture_policy(repo: &Path) -> Value {
         object.remove("legacy_root_freeze");
     }
     // The fixture registry lives at the fixture repo root.
-    write_file(repo, "specs/capability-registry.json", fixture_registry());
+    write_file(repo, "governance/capability-registry.json", fixture_registry());
     // Also stamp root-hub-pointers so any walk-up logic that targets the fixture is satisfied.
     write_file(repo, "specs/root-hub-pointers.json", "{}\n");
     policy
@@ -242,7 +242,7 @@ fn red_crate_in_two_capabilities_fails_from_disk() {
     // Repoint the fixture registry to one where two caps both absorb cloud/cloud-iam.
     write_file(
         root,
-        "specs/capability-registry.json",
+        "governance/capability-registry.json",
         r#"{
   "capabilities": [
     { "name": "iam", "absorbs_current_dirs": ["cloud/cloud-iam"] },
@@ -488,7 +488,7 @@ fn virtual_workspace_manifest_is_not_a_crate() {
 #[test]
 fn live_registry_absorbs_dirs_all_resolve() {
     let root = repo_root();
-    let registry = load_json(&root.join("specs/capability-registry.json"));
+    let registry = load_json(&root.join("governance/capability-registry.json"));
 
     let capabilities = registry
         .get("capabilities")

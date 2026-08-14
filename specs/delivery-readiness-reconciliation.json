@@ -346,7 +346,7 @@
           "specs/masterplan.json",
           "specs/master-plan-sequencing.json",
           "specs/planning-closure-contract.json",
-          "specs/capability-registry.json",
+          "governance/capability-registry.json",
           "registry/fixuptasks.jsonl"
         ],
         "role": "Owns discoverable product/capability/work/backlog facts at the same git commit as the universe snapshot."
@@ -1258,7 +1258,7 @@
             "specs/masterplan.json",
             "specs/master-plan-sequencing.json",
             "specs/planning-closure-status-closure-ledger.json",
-            "specs/capability-registry.json",
+            "governance/capability-registry.json",
             "registry/fixuptasks.jsonl",
             "evidence/ralplan/full-delivery-universe.json",
             "tracked_milestone_or_evidence_ledger"
