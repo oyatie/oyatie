@@ -95,6 +95,24 @@ jobs:
       # Sanctioned ADR-index producer binary (built in the producer step below;
       # fail-closed cross-artifact tests exec it via this env path).
       OYA_ADR_INDEX_PRODUCER_BIN: ${{ github.workspace }}/target/debug/oya
+      # Product-protocol-policy gate inputs (buck2 declares these via $(location)
+      # in ci/facade/product-protocol-policy/BUCK; the cargo workspace tests need
+      # the same absolute paths so the fail-closed gates run under cargo too).
+      OYA_API_CONTRACT_SSOT: ${{ github.workspace }}/specs/api-contract-ssot-canonical.json
+      OYA_ENDPOINT_TRANSPORT_PROFILE: ${{ github.workspace }}/network/ports/transport-profile/endpoint-transport-profile.contract.json
+      OYA_MASTER_PLAN_SEQUENCING: ${{ github.workspace }}/specs/master-plan-sequencing.json
+      OYA_MICROSERVICE_MANIFEST_SCHEMA: ${{ github.workspace }}/specs/microservices/manifest-schema.json
+      OYA_PRODUCT_PROTOCOL_CONTRACT: ${{ github.workspace }}/specs/product-protocol-contract.json
+      OYA_PRODUCT_PROTOCOL_NEGATIVE_CASES: ${{ github.workspace }}/ci/facade/product-protocol-policy/fixtures/negative-cases.json
+      OYA_PRODUCT_PROTOCOL_POLICY: ${{ github.workspace }}/ci/facade/product-protocol-policy/product-protocol-policy.json
+      OYA_ROOT_HUB_POINTERS: ${{ github.workspace }}/specs/root-hub-pointers.json
+      OYA_ADR_0632: ${{ github.workspace }}/docs/adr-archive/ADR-0632-product-protocol-and-owned-fabric-posture.md
+      OYA_ADR_0157: ${{ github.workspace }}/docs/adr-archive/ADR-0157-api-gateway-tier.md
+      OYA_ADR_0167: ${{ github.workspace }}/docs/adr-archive/ADR-0167-tenant-cli.md
+      OYA_ADR_0176: ${{ github.workspace }}/docs/adr-archive/ADR-0176-brownout-degradation-signal-api.md
+      OYA_ADR_0182: ${{ github.workspace }}/docs/adr-archive/ADR-0182-api-gateway-north-south-vs-service-mesh-east-west-separation.md
+      OYA_ADR_0246: ${{ github.workspace }}/docs/adr-archive/ADR-0246-policy-engine-substrate-promotion.md
+      OYA_ADR_0258: ${{ github.workspace }}/docs/adr-archive/ADR-0258-api-versioning-model.md
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
