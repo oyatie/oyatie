@@ -115,7 +115,10 @@ const REQUIRED_SLO_LINKED_CLOUD_MANIFESTS: [&str; 6] = [
 ///   2026-08-11  762 -> pin 773     BASE MOVE from #1934: +4 ci-controller-* and +7 port-engine
 ///                                  W0-B catalog rows (face enumerated 773). Keep dual-home
 ///                                  oya/ci-controller until lock/baseline tip-free cleanup.
-const SLO_CATALOG_CENSUS: usize = 773;
+///   2026-08-14  773 -> pin 774     Owned ADR-0535 actuator row added: registry/catalog/
+///                                  ci-rust-toolchain-bump-proposer.yaml (the rust toolchain
+///                                  bump proposer crate). Face enumerated 774.
+const SLO_CATALOG_CENSUS: usize = 774;
 
 fn producer_command(root: &Path, producer_bin: Option<&str>) -> Result<Command, String> {
     if let Some(bin) = producer_bin {
@@ -144,8 +147,7 @@ fn repo_root() -> PathBuf {
 }
 
 fn run_producer_face(root: &Path, face: &str) -> Value {
-    let scm_facts = root
-        .join("ci/facade/artifact-inventory-registry/scm-facts.generated.json");
+    let scm_facts = root.join("ci/facade/artifact-inventory-registry/scm-facts.generated.json");
     let producer_bin = std::env::var("OYA_CI_PRODUCER_BIN").ok();
     let mut command = producer_command(root, producer_bin.as_deref()).expect("producer command");
 

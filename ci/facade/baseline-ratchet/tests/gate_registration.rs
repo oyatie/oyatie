@@ -56,10 +56,11 @@ use serde_json::Value;
 /// job runs their `-unittest` targets, and planning-projection's library code additionally runs
 /// inside the bespoke `gate-generated-artifact-freshness` lane that depends on it.
 const PRODUCER_CRATE: &str = "artifact-inventory-registry";
-const NON_GATE_CRATES: [&str; 3] = [
+const NON_GATE_CRATES: [&str; 4] = [
     "artifact-inventory-registry",
     "crate-registration",
     "planning-projection",
+    "rust-toolchain-bump-proposer",
 ];
 
 /// Walk up from the test's working directory to the repo root (the dir holding the canonical

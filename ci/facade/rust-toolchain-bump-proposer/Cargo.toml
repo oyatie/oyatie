@@ -1,0 +1,29 @@
+[package]
+name = "ci-rust-toolchain-bump-proposer"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[package.metadata.oya]
+bounded_context = "cloud-ci"
+kind = "shared"
+layer = "app"
+purpose = "Owned Rust actuator for the ADR-0535 dependency-automation engine: proposes and deterministically applies a stable Rust toolchain pin bump across every drift surface the freshness gate enforces."
+
+[lib]
+name = "ci_rust_toolchain_bump_proposer"
+path = "src/lib.rs"
+doctest = false
+
+[[bin]]
+name = "oya-cloud-ci-rust-toolchain-bump-proposer"
+path = "src/main.rs"
+
+[dependencies]
+ci-dependency-automation = { path = "../dependency-automation" }
+ci-generated-artifact-freshness = { path = "../generated-artifact-freshness" }
+
+[lints]
+workspace = true
