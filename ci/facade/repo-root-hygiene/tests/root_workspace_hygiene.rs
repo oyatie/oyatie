@@ -456,6 +456,33 @@ fn corpus_budget_reductions_must_lower_the_frozen_ceiling() {
     let Some(protected_counts) = protected_counts else {
         return; // this PR introduces the block; nothing to compare against yet
     };
+    // Fresh-authorization guard: a reviewed_raises record that already exists in the
+    // PROTECTED policy is a historical authorization for a PREVIOUS ceiling — reusing it
+    // after a later cleanup (which lowered the ceiling) would let a future PR grow back to
+    // an old number without a new reviewed DATA edit, breaking shrink-only net-reduction.
+    // The candidate record must be new relative to origin/dev.
+    let protected_reviewed_raises = {
+        let output = Command::new("git")
+            .args([
+                "show",
+                "origin/dev:ci/facade/repo-root-hygiene/root-workspace-hygiene-policy.json",
+            ])
+            .current_dir(&root)
+            .output()
+            .expect("run git show for the protected reviewed raises");
+        if output.status.success() {
+            let protected: serde_json::Value =
+                serde_json::from_slice(&output.stdout).expect("parse protected policy");
+            protected
+                .get("corpus_budget")
+                .and_then(|budget| budget.get("reviewed_raises"))
+                .and_then(serde_json::Value::as_array)
+                .cloned()
+                .unwrap_or_default()
+        } else {
+            Vec::new()
+        }
+    };
 
     let observed = observed_from_scm_facts(&root);
     let observed_counts = ci_repo_root_hygiene::corpus_class_counts(&policy, &observed);
@@ -477,7 +504,21 @@ fn corpus_budget_reductions_must_lower_the_frozen_ceiling() {
                 let target = classes.get(class)?.as_u64()?;
                 let reason = entry.get("reason")?.as_str()?;
                 let adr = entry.get("adr")?.as_str()?;
-                (target == candidate && !reason.trim().is_empty() && !adr.trim().is_empty())
+                // Reject the record if the same class -> candidate authorization already
+                // exists in the protected policy: it was authorized from an older source
+                // ceiling, so it is not fresh authorization for THIS raise.
+                let already_protected = protected_reviewed_raises.iter().any(|protected| {
+                    protected
+                        .get("classes")
+                        .and_then(serde_json::Value::as_object)
+                        .and_then(|classes| classes.get(class))
+                        .and_then(serde_json::Value::as_u64)
+                        == Some(candidate)
+                });
+                (target == candidate
+                    && !reason.trim().is_empty()
+                    && !adr.trim().is_empty()
+                    && !already_protected)
                     .then(|| format!("{class}: {reason} (ADR: {adr})"))
             })
             .next()

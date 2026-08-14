@@ -83,3 +83,9 @@ ci/facade/action-item-accounting/friction-ledger.jsonl merge=friction-ledger
 # corpus-doc-parser census ParserSource equality (soft platform-smoke scm-facts integration).
 *.rs text eol=lf
 *.toml text eol=lf
+# Force LF for Markdown too: the ADR front-matter readers (adr_planning_frontmatter and
+# planning_ssot_coverage_gate strip the LF-only "---\n" fence) and the materializer's
+# `gen masterplan` projection depend on LF blobs. On windows-latest a CRLF worktree made
+# every docs/decisions/ADR-*.md front-matter unreadable, so the board-sync projection
+# rendered "masterplan contains no deliverables" (cross-platform-smoke materialize step).
+*.md text eol=lf
