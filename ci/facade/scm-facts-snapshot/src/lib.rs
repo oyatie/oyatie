@@ -1800,6 +1800,8 @@ fn historical_p2_toolchain_command(historical_root: &Path) -> Command {
     command
         .arg("toolchain")
         .arg("install")
+        .arg("--profile")
+        .arg("default")
         .current_dir(historical_root);
     remove_outer_buck_process_state(&mut command);
     command
@@ -5868,7 +5870,15 @@ mod tests {
             .get_args()
             .map(|arg| arg.to_string_lossy().into_owned())
             .collect::<Vec<_>>();
-        assert_eq!(args, vec!["toolchain".to_owned(), "install".to_owned()]);
+        assert_eq!(
+            args,
+            vec![
+                "toolchain".to_owned(),
+                "install".to_owned(),
+                "--profile".to_owned(),
+                "default".to_owned(),
+            ]
+        );
 
         // The load-bearing detail. `rustup toolchain install` with no argument
         // resolves rust-toolchain.toml from the working directory, so the cwd
