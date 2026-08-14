@@ -8,7 +8,7 @@ metadata:
     microservice: payments
     bounded_context: dispute
     sli_class: latency
-    tier: substrate-hero
+    tier: data-plane
     plane: data
     owner_team: axis-payments + ops-fraud
     pack_scope: all

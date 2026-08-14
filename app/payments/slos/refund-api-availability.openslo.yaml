@@ -8,7 +8,7 @@ metadata:
     microservice: payments
     bounded_context: refund
     sli_class: availability
-    tier: substrate-hero
+    tier: data-plane
     plane: data
     owner_team: axis-payments
     pack_scope: all
@@ -16,7 +16,10 @@ spec:
   service: payments
   description: |
     Refund-API availability. A request is "good" when the REST surface returns
-    2xx OR 4xx-from-business-rule within deadline.
+    2xx or an explicitly recognized business-decline response (400, 409, 422)
+    within deadline. Authentication (401), authorization (403), and rate-limit
+    (429) responses are NOT counted as good so auth/rate-limit regressions
+    cannot report 100% availability.
   indicator:
     metadata:
       name: payments-refund-api-success-ratio
@@ -28,7 +31,7 @@ spec:
             type: Prometheus
             spec:
               query: |
-                sum(rate(payments_refund_api_requests_total{status_code=~"2..|4.."}[5m]))
+                sum(rate(payments_refund_api_requests_total{status_code=~"2..|400|409|422"}[5m]))
         total:
           metricSource:
             type: Prometheus

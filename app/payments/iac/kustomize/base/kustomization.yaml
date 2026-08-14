@@ -13,17 +13,16 @@ namespace: payments
 resources:
   - namespace.yaml
   - openbao-secret-references.yaml
-  - network-policy.yaml
-  - pci-pod-security-policy.yaml
+  - ../../network-policy/payments-network-policy.yaml
 
 helmCharts:
-  - name: oya-payments-app
+  - name: oyatie-microservices-app
     valuesFile: ../../helm/payments-app/values.yaml
     releaseName: payments-app
     namespace: payments
 
 commonLabels:
-  app.kubernetes.io/part-of: oya-payments
+  app.kubernetes.io/part-of: oyatie-microservices
   oyatie/microservice: payments
   oyatie/pci-scope: "true"
 

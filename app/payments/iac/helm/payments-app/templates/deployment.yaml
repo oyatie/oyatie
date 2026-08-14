@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Chart.Name }}
+  labels:
+    app.kubernetes.io/name: {{ .Chart.Name }}
+    app.kubernetes.io/part-of: oyatie-microservices
+    app.kubernetes.io/managed-by: Helm
+spec:
+  replicas: {{ .Values.payments.replicaCount }}
+  minReadySeconds: {{ .Values.payments.minReadySeconds }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ .Chart.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ .Chart.Name }}
+        app.kubernetes.io/part-of: oyatie-microservices
+        istio.io/dataplane-mode: ambient
+    spec:
+      runtimeClassName: {{ .Values.payments.runtimeClassName }}
+      securityContext:
+{{ toYaml .Values.payments.podSecurityContext | indent 8 }}
+      containers:
+        - name: app
+          image: "{{ .Values.payments.image.repository }}:{{ .Values.payments.image.tag }}"
+          imagePullPolicy: {{ .Values.payments.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.payments.service.port }}
+            - name: metrics
+              containerPort: {{ .Values.payments.service.metricsPort }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.payments.livenessProbe.httpGet.path }}
+              port: {{ .Values.payments.livenessProbe.httpGet.port }}
+            initialDelaySeconds: {{ .Values.payments.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.payments.livenessProbe.periodSeconds }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.payments.readinessProbe.httpGet.path }}
+              port: {{ .Values.payments.readinessProbe.httpGet.port }}
+            initialDelaySeconds: {{ .Values.payments.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.payments.readinessProbe.periodSeconds }}
+          resources:
+{{ toYaml .Values.payments.resources | indent 12 }}
+          securityContext:
+{{ toYaml .Values.payments.containerSecurityContext | indent 12 }}

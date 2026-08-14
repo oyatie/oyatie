@@ -14,11 +14,16 @@ metadata:
 spec:
   endpointSelector:
     matchLabels:
-      app.kubernetes.io/part-of: oya-payments
+      # Must match the pod labels applied by the deployed Helm chart
+      # (iac/k8s/helm/templates/deployment.yaml): part-of: oyatie-microservices.
+      app.kubernetes.io/part-of: oyatie-microservices
 
   # ─── Ingress ─────────────────────────────────────────────────────────────────
   ingress:
-    # gRPC from internal µservices (cloud-billing, messenger, etc.)
+    # gRPC from internal µservices (cloud-billing, messenger, etc.). Paths are
+    # rooted at the services declared by contracts/payments-v1.proto
+    # (package oyatie.payments.v1): ChargeService, RefundService, PayoutService,
+    # DisputeService, SubscriptionService, SubMerchantService.
     - fromEndpoints:
         - matchLabels:
             oyatie/microservice-family: product
@@ -29,7 +34,17 @@ spec:
           rules:
             http:
               - method: POST
-                path: "/payments.v1.PaymentsService/.*"
+                path: "/oyatie.payments.v1.ChargeService/.*"
+              - method: POST
+                path: "/oyatie.payments.v1.RefundService/.*"
+              - method: POST
+                path: "/oyatie.payments.v1.PayoutService/.*"
+              - method: POST
+                path: "/oyatie.payments.v1.DisputeService/.*"
+              - method: POST
+                path: "/oyatie.payments.v1.SubscriptionService/.*"
+              - method: POST
+                path: "/oyatie.payments.v1.SubMerchantService/.*"
 
     # REST from API gateway
     - fromEndpoints:
@@ -40,26 +55,13 @@ spec:
             - port: "8443"
               protocol: TCP
 
-    # PSP webhook inbound (Stripe, Adyen, Toss IPs)
-    - fromCIDRSet:
-        # Stripe webhook source CIDRs (https://stripe.com/docs/ips)
-        - cidr: "3.18.12.63/32"
-        - cidr: "3.130.192.231/32"
-        - cidr: "13.235.14.237/32"
-        - cidr: "13.235.122.149/32"
-        - cidr: "18.211.135.69/32"
-        - cidr: "35.154.171.200/32"
-        - cidr: "52.15.183.38/32"
-        - cidr: "54.187.174.169/32"
-        - cidr: "54.187.205.235/32"
-        - cidr: "54.187.216.72/32"
-        - cidr: "54.241.31.99/32"
-        - cidr: "54.241.31.102/32"
-        - cidr: "54.241.34.107/32"
-      toPorts:
-        - ports:
-            - port: "8443"
-              protocol: TCP
+    # PSP webhook inbound (Stripe, Adyen, Toss, KakaoPay, LINE Pay, WeChat Pay,
+    # Alipay). PSP sources are not pinned by a single-provider CIDR allowlist
+    # (a Stripe-only list would drop every other enabled provider's callbacks);
+    # webhook traffic is admitted only through the authenticated north-south
+    # ingress above (API gateway), which performs the per-PSP HMAC signature
+    # validation declared in contracts/openapi-v1.yaml and enforced by
+    # policy/abuse-defence.cedar (HMAC + 300s replay window).
 
     # Prometheus scrape from observability namespace
     - fromEndpoints:

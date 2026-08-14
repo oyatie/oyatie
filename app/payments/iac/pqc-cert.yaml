@@ -33,7 +33,11 @@ spec:
   duration: 2160h  # 90 days
   renewBefore: 360h  # 15 days
   privateKey:
-    algorithm: ed25519+ml-dsa-65-hybrid
+    # cert-manager admits only its supported algorithms (e.g. Ed25519); the
+    # ML-DSA hybrid augmentation is performed by the implemented issuer
+    # (oyatie offline-CA ceremony, ADR-0247) rather than as a composite
+    # privateKey.algorithm string that the standard CRD would reject.
+    algorithm: Ed25519
     encoding: PKCS8
   dnsNames:
     - payments.oyatie.com
