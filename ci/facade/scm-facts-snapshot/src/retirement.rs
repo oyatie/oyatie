@@ -845,7 +845,6 @@ fn atomic_replace_ignored_generated_file(
     result
 }
 
-#[cfg(unix)]
 fn canonical_ignored_generated_path<'a>(
     repo_root: &Path,
     relative_path: &'a Path,
@@ -2482,28 +2481,26 @@ mod tests {
 
     #[cfg(not(unix))]
     #[test]
-    fn non_unix_canonical_ignored_generated_writer_fails_closed() {
+    fn non_unix_canonical_ignored_generated_writer_fails_closed_on_escape() {
+        // The non-unix fallback must keep the same fail-closed boundary as the dirfd writer: a
+        // non-repo-relative path is rejected before any git or filesystem probe.
         let err = CanonicalIgnoredGeneratedWriter::open(
             Path::new("."),
-            Path::new(
-                "ci/facade/artifact-inventory-registry/adr-census-epoch-receipt.generated.json",
-            ),
+            Path::new("../escape.generated.json"),
         )
-        .expect_err("non-unix stub must fail closed");
+        .expect_err("non-unix writer must reject a parent-dir traversal");
         assert!(
-            err.contains("Unix dirfd"),
-            "unexpected non-unix stub error: {err}"
+            err.contains("must be normal and repo-relative"),
+            "unexpected non-unix open error: {err}"
         );
         let err = write_canonical_ignored_generated_file(
             Path::new("."),
-            Path::new(
-                "ci/facade/artifact-inventory-registry/adr-census-epoch-receipt.generated.json",
-            ),
+            Path::new("../escape.generated.json"),
             b"{}",
         )
         .expect_err("non-unix free function must fail closed");
         assert!(
-            err.contains("Unix dirfd"),
+            err.contains("must be normal and repo-relative"),
             "unexpected non-unix free-function error: {err}"
         );
     }
