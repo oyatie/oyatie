@@ -63,6 +63,13 @@ metadata:
     app.kubernetes.io/part-of: oya-substrate
     app: nativelink-cas
     oya.io/adr: ADR-0560
+# Immutable: NativeLink reads this configuration only at startup, so an in-place
+# cas.json edit must never update the mounted payload without a pod restart. The
+# API server rejects any in-place change to an immutable ConfigMap; a payload
+# change therefore requires a new ConfigMap name plus a Deployment volume-reference
+# update in this same manifest, which changes the pod template and triggers the
+# Recreate rollout below.
+immutable: true
 data:
   cas.json: |
     {
@@ -251,8 +258,12 @@ spec:
     metadata:
       annotations:
         # Forces the Recreate rollout whenever the startup-only NativeLink
-        # ConfigMap payload changes. This is the sha256 of the cas.json block-scalar
-        # payload (de-indented, trailing newline); update it when that payload changes.
+        # ConfigMap payload changes. The digest is the sha256 of the cas.json
+        # YAML block-scalar value (de-indented lines + trailing newline). The
+        # ConfigMap is immutable, so a stale digest cannot silently leave the old
+        # config mounted: any payload change requires a new ConfigMap name and
+        # Deployment volume reference, which changes the pod template and rolls
+        # the pod even if this digest were overlooked.
         oya.io/config-sha256: "96c6ec8d1bb3983f487acee2c6e92e15927a6a28e1fb0529b344cd6030e2391c"
       labels:
         app: nativelink-cas
