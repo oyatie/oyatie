@@ -413,11 +413,13 @@ fn live_policy_findings_carry_concrete_remediation() {
     );
 }
 
-/// ADR-0717: a reduction that lands WITHOUT lowering the frozen ceiling would leave headroom for
-/// later growth back to the original number, breaking shrink-only. This live test loads the
-/// protected policy from the merge-base (origin/dev) and fails when the tree has shrunk below the
-/// protected ceiling while the candidate ceiling is unchanged. Absent a protected corpus_budget
-/// block (this PR is the first to introduce it), the check is a no-op.
+/// ADR-0717: a reduction that lands WITHOUT lowering the frozen ceiling to the live
+/// count would leave headroom for later growth back toward the original number,
+/// breaking shrink-only. This live test loads the protected policy from the
+/// merge-base (origin/dev) and fails when the tree has shrunk below the protected
+/// ceiling while the candidate ceiling still sits above the live count (including
+/// partial drops). Absent a protected corpus_budget block (this PR is the first to
+/// introduce it), the check is a no-op.
 #[test]
 fn corpus_budget_reductions_must_lower_the_frozen_ceiling() {
     let root = repo_root();
@@ -468,9 +470,14 @@ fn corpus_budget_reductions_must_lower_the_frozen_ceiling() {
             "corpus_budget.counts.{class} grew from {protected} to {candidate} without review; budgets are shrink-only"
         );
         let observed_count = observed_counts.get(class).copied().unwrap_or(0) as u64;
-        if observed_count < protected && candidate == protected {
+        if ci_repo_root_hygiene::corpus_class_reduction_leaves_headroom(
+            protected,
+            candidate,
+            observed_count,
+        ) {
             panic!(
-                "corpus class {class} shrank from {protected} to {observed_count} but the frozen ceiling was not lowered;                  lower corpus_budget.counts.{class} to {observed_count} in this same PR so the reduction is preserved"
+                "corpus class {class} shrank from {protected} to {observed_count} but the frozen ceiling is still {candidate}; \
+                 lower corpus_budget.counts.{class} to {observed_count} in this same PR so the reduction is preserved"
             );
         }
     }

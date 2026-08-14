@@ -481,6 +481,20 @@ pub fn evaluate_corpus_budget(policy: &Value, observed: &Value) -> BTreeSet<Find
     findings
 }
 
+/// ADR-0717 reduction-preserving predicate (pure, zero I/O).
+///
+/// A class that shrank below the merge-base (`protected`) ceiling must lower the
+/// candidate ceiling all the way to the live count. Leftover slack is grow-back
+/// headroom: `observed <= original frozen` stays green, so post-cleanup files can
+/// grow back without one-in-one-out. Partial ceiling drops leave the same hole.
+pub fn corpus_class_reduction_leaves_headroom(
+    protected_ceiling: u64,
+    candidate_ceiling: u64,
+    observed_count: u64,
+) -> bool {
+    observed_count < protected_ceiling && candidate_ceiling > observed_count
+}
+
 /// Extract YAML mapping key paths without retaining or inspecting scalar values.
 ///
 /// Generated Talos machine configurations are YAML mappings whose credential-bearing topology is
@@ -1049,6 +1063,21 @@ spec:
                 .any(|f| f.code == "corpus_budget_malformed"),
             "a missing class count must fail closed as malformed; got {findings:#?}"
         );
+    }
+
+    #[test]
+    fn corpus_budget_unlowered_reduction_leaves_headroom() {
+        // Review example: evidence 249 → 240 with the frozen ceiling still 249.
+        assert!(corpus_class_reduction_leaves_headroom(249, 249, 240));
+        assert!(!corpus_class_reduction_leaves_headroom(249, 240, 240));
+        assert!(!corpus_class_reduction_leaves_headroom(249, 249, 249));
+    }
+
+    #[test]
+    fn corpus_budget_partial_ceiling_drop_still_leaves_headroom() {
+        // Lowering 249 → 245 while the live count is 240 still lets five files grow back.
+        assert!(corpus_class_reduction_leaves_headroom(249, 245, 240));
+        assert!(!corpus_class_reduction_leaves_headroom(249, 240, 240));
     }
 
     #[test]
