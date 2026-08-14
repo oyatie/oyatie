@@ -1,0 +1,23 @@
+{{- if .Values.cedar.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.cedar.policyConfigMapName | quote }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.microservice.id | quote }}
+    oyatie.com/policy-engine: cedar
+    oyatie.com/adr-0246: policy-engine-substrate
+data:
+  policies.cedar: |
+    // Deployed Cedar for calendar is FAIL-CLOSED DEFAULT-DENY: it ships no permit statements,
+    // so Cedar denies every request that is not explicitly permitted.
+    //
+    // Authorization for calendar workloads rides the cloud-iam PDP, which loads the authored
+    // policy set under app/calendar/policy/*.cedar and app/calendar/cedar/policies.cedar
+    // (auditor-scope, ci-scope, public-read, tenant-scope, sharding/ADR-0346-0349 fragments).
+    // Per the cedar-deploy-parity gate (GH #16 / ADR-0608), a deployed ConfigMap must never
+    // carry an over-broad tenant-class blanket permit or grant more than the capability
+    // authored; until the calendar microservices land with a real deployed policy, this
+    // placeholder intentionally deploys no permits (Cedar default deny) so nothing is
+    // authorized that the authored policy has not explicitly allowed.
+{{- end }}

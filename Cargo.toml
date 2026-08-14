@@ -65,7 +65,7 @@ members = [
   # reviewer's call to make knowingly, not one to discover.
   #
   # Scoped to `build/port-engine/`, never `build/*`: `build/` stays a meta directory that owns zero
-  # CAPABILITY crates (specs/capability-registry.json, `owns_crates: false`), and this glob must
+  # CAPABILITY crates (governance/capability-registry.json, `owns_crates: false`), and this glob must
   # never widen into a licence for one.
   "build/port-engine/*/*",
 

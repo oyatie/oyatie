@@ -187,7 +187,7 @@ fn capability_apply_roundtrip_and_idempotent() {
     assert_eq!(after_first, tmp.read(capability_mapping::REGISTRY_PATH));
 }
 
-/// The real `specs/capability-registry.json` is HAND-AUTHORED with a deliberate key order
+/// The real `governance/capability-registry.json` is HAND-AUTHORED with a deliberate key order
 /// (`_comment`, `schema_version`, `doctrine_adr`, …) — nothing close to sorted. The
 /// canonical-json policy pins `sort_keys: false` precisely because "sorting would churn 1452 repo
 /// files and destroy intentional order on the agent entry surface". A writer that re-sorts on
