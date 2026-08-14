@@ -60,11 +60,11 @@ kernel/
 absorbed into `kernel/{core,harness}` and names that as the forever shape, including the
 `finops_unit_cost` challenge "one nested kernel workspace forever avoids duplicate CI graphs".
 This card's two-workspace topology (kuberos + asterinas) therefore **amends that judgment**; the
-toolchain/edition conflict above is the mechanical evidence for the amendment. The B1 split PR
-must land that envelope authority change (amendment/OVERRULE of `W-cloud-leaf-cloud-kernel` to the
-two-nested-workspace shape, with the five-field doctrine record) **before** this card can be
-dispatched — see §Pre-dispatch gates. This card neither silently overrules the envelope nor
-dispatches against it.
+toolchain/edition conflict above is the mechanical evidence for the amendment. The amendment
+(OVERRULE of `W-cloud-leaf-cloud-kernel` to the two-nested-workspace shape, with the five-field
+doctrine record) is its OWN governance PR — sequencing step 0 — a true prerequisite that must
+land before any blocker-resolution PR dispatches; it is NOT bundled into the B1 split PR. This
+card neither silently overrules the envelope nor dispatches against it — see §Pre-dispatch gates.
 
 **B1a — cross-workspace transfer mechanism (whole-workspace transfer).** Every re-anchored crate
 move goes from the `cloud/cloud-kernel` workspace to the distinct `kernel/kuberos` workspace.
@@ -77,14 +77,21 @@ source workspace (the workspace root is a co-moving artifact in the same plan). 
 cross-workspace moves stay fail-closed (`WorkspaceSpan` unchanged). Unit + integration tests prove
 both the admit and the unchanged refusal.
 
-**B1b — no pre-created move-plan artifact targets.** The B1 split PR creates the kuberos workspace
-root by **transferring** `cloud/cloud-kernel`'s root files (`Cargo.toml`, `Cargo.lock`,
-`rust-toolchain.toml`, `.cargo/config.toml`) as the scaffold, so the re-anchored move-plan's
-artifact list is revised to **drop those four already-transferred entries** and keep only the files
-whose destinations are free (`OWNERS`, `BUCK`, `manifest.json`, `.gitignore`, `specs/`, `tests/`,
-`out/`). `apply_plan`'s `TargetExists` preflight (`src/plan.rs:103-119`) therefore never fires for
-the workspace root, and the split PR's `cargo metadata` gate-green is real (the transferred root
-resolves). Do NOT pre-create any artifact that a later move-plan will transfer.
+**B1b — no pre-created move-plan artifact targets; the workspace root transfers ATOMICALLY with
+its crates.** The split PR does NOT pre-create the `kernel/kuberos/` workspace root. A root
+manifest moved ahead of its members cannot be gate-green: `cloud/cloud-kernel/Cargo.toml` names
+its members through relative `crates/...` paths, so a manifest sitting at `kernel/kuberos/`
+while the seven crates still live under `cloud/cloud-kernel/crates` fails `cargo metadata`
+(members unresolvable). A transitional manifest (empty/stub members) is REJECTED: it would need a
+second ownership rule and an intermediate state that the codemod's ownership validation cannot
+represent. Instead, the move PR performs ONE atomic `apply_plan` run that transfers the
+workspace-root artifacts (`Cargo.toml`, `Cargo.lock`, `rust-toolchain.toml`, `.cargo/config.toml`)
+AND the 7 crates + 13 riding crates together, under the B1a whole-workspace-transfer mode. The
+codemod's `rewrite_owning_workspaces`/`rewrite_workspace_manifest` re-expresses the moved
+manifest's `members`/`exclude` for the new root in the same run, so `cargo metadata` resolves at
+`kernel/kuberos/` post-move. Because nothing is pre-created, `apply_plan`'s `TargetExists`
+preflight (`src/plan.rs:103-119`) never fires. Do NOT pre-create any artifact that a later
+move-plan will transfer.
 
 **B1c — rewrite runtime paths during the asterinas re-anchor.** The real-boot binaries retain
 default receipt paths (`kernel/harness/asterinas-real-boot/receipts/...` in
@@ -110,24 +117,46 @@ workspace-relative patterns (`/target`, `/crates/.../tests-host/target`, `/out/*
 `/out/*.bin`, `/out/*.log`, `/out/.stage-b-target/`) for the new `kernel/kuberos/` layout
 (`/adapters/...`, `/out/*.elf`, ...) so generated ELF/bin/log outputs stay ignored.
 
-**B1f — reconcile the lockfile corpus in the workspace-split PR.** The supply-chain audit gate
+**B1f — reconcile the lockfile corpus across the split and move PRs.** The supply-chain audit gate
 (`ci/facade/supply-chain-audit/supply-chain-audit-policy.json#lockfile_corpus`) authoritatively
 pins the current corpus (`Cargo.toml`, `cloud/cloud-kernel/Cargo.toml`,
 `cloud/cloud-kernel/crates/.../tests-host/Cargo.toml`, `kernel/Cargo.toml`), and its live test
 (`ci/facade/supply-chain-audit/tests/supply_chain_audit.rs:163-186`) asserts that exact corpus.
-The split PR temporarily adds `kernel/kuberos` while re-anchoring the asterinas pair to
-`kernel/asterinas`, so the SCM projection and the configured corpus diverge. The B1 split PR must
-therefore update `lockfile_corpus` (+ `min_lockfiles`) AND the committed test expectation in the
-same PR; the move PR later re-points the `cloud/cloud-kernel` pair and the `tests-host` pair to
-their `kernel/kuberos` destinations. These policy/test transitions are explicit, gate-scoped
-changes of their owning PRs — never silent.
+The split PR re-anchors the asterinas pair (`kernel/Cargo.toml` → `kernel/asterinas/Cargo.toml`),
+so it must update `lockfile_corpus` (+ `min_lockfiles`) AND the committed test expectation in the
+same PR. The move PR then performs the atomic kuberos transfer: it adds the
+`kernel/kuberos/Cargo.toml` pair and re-points the `cloud/cloud-kernel` pair and the `tests-host`
+pair to their `kernel/kuberos` destinations — again with the policy + test transition in the same
+PR, never silent.
 
-**Acceptance criteria:** one nested workspace per rung; `cargo metadata` resolves in both; no
+**B1g — retarget the Asterinas catalog and matrix paths during the re-anchor.** The re-anchor
+moves `kernel/{core,harness}` → `kernel/asterinas/{core,harness}`, but the following
+hand-maintained projections still point at the old tree and are NOT rewritten by the codemod
+(which rewrites Cargo/BUCK/Rust identifiers and `docs/decisions` anchors only, not arbitrary
+YAML/JSON fields):
+- `registry/catalog/kernel-asterinas-abi-matrix.yaml` (`traceability.source_crate` =
+  `kernel/core/asterinas-abi-matrix/Cargo.toml`);
+- `registry/catalog/kernel-asterinas-abi-probe.yaml` (`traceability.source_crate` =
+  `kernel/harness/asterinas-abi-probe/Cargo.toml`);
+- `kernel/core/asterinas-abi-matrix/matrix/abi-matrix-v0.1.0.json` (`$id`,
+  `asterinas_pin.pin_manifest` = `kernel/core/asterinas-boundary/pins/...`, and
+  `probe_harness.path` = `kernel/harness/asterinas-abi-probe`).
+
+Catalog-liveness deliberately tolerates missing `source_crate` paths for these
+`designed-ahead-row-no-crate` records, so the split can merge green while publishing dead
+traceability. The split PR must therefore retarget all of the above to the
+`kernel/asterinas/...` destinations and add a stale `kernel/{core,harness}` path check to the B1
+acceptance criteria (no governed catalog/matrix artifact may still reference the vacated tree).
+
+**Acceptance criteria:** one nested workspace per rung; `cargo metadata` resolves in both (the
+kuberos root only after its atomic transfer — nothing resolves at a pre-created stub root); no
 cross-workspace path-deps between kuberos and asterinas (they are disjoint ladders); the B1a
-whole-workspace transfer is test-proven; the B1b artifact list contains no pre-created target; the
-B1c runtime paths are rewritten and tested; the B1d linker paths are rewritten and both targets
-build for real; the B1e `.gitignore` transfers and retargets; the B1f lockfile corpus and test
-transition in their owning PRs; the envelope authority change (§B1 prerequisite) lands.
+whole-workspace transfer is test-proven; the B1b atomic root+crates transfer leaves no pre-created
+target and no transitional manifest; the B1c runtime paths are rewritten and tested; the B1d
+linker paths are rewritten and both targets build for real; the B1e `.gitignore` transfers and
+retargets; the B1f lockfile corpus and test transition in their owning PRs; the B1g catalog and
+matrix projections retarget to `kernel/asterinas/...` with a stale `kernel/{core,harness}` check;
+the envelope authority change (§B1 prerequisite) lands.
 
 ## Blocker B2 — codemod does not rewrite `[workspace.dependencies]`
 
@@ -182,21 +211,34 @@ waits on it. Not on the baseline-burn critical path (20 rows vs libs/oya).
 
 ## Sequencing
 
-1. **B1 workspace split + authority change (own PR, gate-green).** Asterinas re-anchor
-   (`kernel/{core,harness}` → `kernel/asterinas/{core,harness}`) + kuberos workspace-root transfer
-   (B1a codemod whole-workspace-transfer mode, B1b artifact-list revision, B1c runtime-path
-   rewrite + tests, B1d linker config rewrite + real build of both targets, B1e `.gitignore`
-   transfer/retarget, B1f supply-chain corpus + test transition), PLUS the
-   `integ-branch-envelopes.json#W-cloud-leaf-cloud-kernel` amendment to the two-nested-workspace
-   shape. (The former B2 codemod step is already on trunk via #1523.)
+0. **Envelope authority change (own governance PR — true prerequisite).** Land the
+   `integ-branch-envelopes.json#W-cloud-leaf-cloud-kernel` amendment (OVERRULE to the
+   two-nested-workspace shape, five-field doctrine record). This dispatches FIRST, before any
+   blocker-resolution PR, so later steps are not dispatching against the unamended envelope.
+1. **B1 asterinas re-anchor + codemod whole-workspace-transfer mode (own PR, gate-green).**
+   Asterinas re-anchor (`kernel/{core,harness}` → `kernel/asterinas/{core,harness}`), landing the
+   B1a codemod whole-workspace-transfer mode (tested: workspace root co-moves as an artifact with
+   its crates; `WorkspaceSpan` still fail-closed otherwise). The asterinas move itself is a
+   whole-workspace transfer — `kernel/Cargo.toml` (the ADR-0611 root) co-moves to
+   `kernel/asterinas/Cargo.toml` with its `members` re-expressed, exactly the atomic pattern B1a
+   admits. The PR also carries B1c runtime-path rewrite + tests, B1g catalog/matrix retarget +
+   stale `kernel/{core,harness}` check, and the B1f split-side supply-chain corpus + test
+   transition (`kernel` → `kernel/asterinas`). NO `kernel/kuberos/` root is created here (B1b:
+   nothing to pre-create, no transitional manifest). (The former B2 codemod step is already on
+   trunk via #1523.)
 2. **B3 pre-move include refactor (own PR, behavior-preserving, gate-green).** B3b re-home so the
    host harness consumes the production module sources (no fixture copies); verify on the nightly
    `build-std` toolchain.
 3. **Re-anchor + execute the move-plan (own PR).** Plan file re-committed under `specs/reorg/`
-   with the `kernel/kuberos/` destinations; artifact list drops the already-transferred workspace
-   root (B1b); singleton applies. Includes the B3a baseline path relabel
-   (`embedded-asset-hermeticity-baseline.json`, ceilings unchanged) and the manifest/projection
-   stage (below).
+   with the `kernel/kuberos/` destinations; ONE atomic `apply_plan` run transfers the
+   workspace-root artifacts (Cargo.toml, Cargo.lock, rust-toolchain.toml, .cargo/config.toml)
+   AND the 7 crates + 13 riding crates together under the B1a mode (B1b: destinations are free,
+   `TargetExists` never fires, members re-expressed for the new root). Includes B1d linker config
+   rewrite + real build of both targets, B1e `.gitignore` transfer/retarget, B1f move-side
+   supply-chain corpus + test transition (`cloud/cloud-kernel` + tests-host pairs →
+   `kernel/kuberos`), the B3a baseline path relabel
+   (`embedded-asset-hermeticity-baseline.json`, ceilings unchanged), and the manifest/projection
+   stage (below); singleton applies.
 4. **Manifest + projection retarget in the same move PR.** `manifest.json` and `specs/` are
    non-crate artifacts that `apply_plan` moves content-preserving without rewriting JSON: the
    manifest keeps `metadata_file`/`destination_path`/ownership references under the deleted
@@ -216,18 +258,25 @@ waits on it. Not on the baseline-burn critical path (20 rows vs libs/oya).
 
 ## Pre-dispatch gates
 
-This card is planning-only/blocked and NON-DISPATCHING until ALL of:
+This card is planning-only/blocked and NON-DISPATCHING. Dispatch is TIERED so that
+blocker-resolution PRs can run before the blockers they resolve are closed (no dependency cycle):
 
+**Tier A — prerequisite gates (before step 0 and step 1/2 dispatch):**
 - `masterplan_v2.planning_entry_contract` transitions from `state: open` to closed
   (`binding_plan_approval_allowed` and `dispatch_allowed` become true);
 - the kernel-unblock work item + its dependency edges are registered in
   `/specs/masterplan.json#masterplan_v2.work_items` (+ `dependency_edges`) via the
   coordinator-owned single-writer mutation path — no competing dispatch surface;
-- the `integ-branch-envelopes.json#W-cloud-leaf-cloud-kernel` authority change (two-nested-
-  workspace shape) is merged;
-- B1 (incl. B1a–B1f) and B3b clear; B3a's PR #1965 lands on dev and the re-anchored dry-run is
-  zero-refusal;
+- the `integ-branch-envelopes.json#W-cloud-leaf-cloud-kernel` authority change (step 0, own
+  governance PR) is merged — it is a true prerequisite, not a step-1 bundle.
+
+**Tier B — move-execution gate (before step 3/4/5 dispatch):**
+- B1 (incl. B1a–B1g) and B3b clear via steps 1–2; B3a's PR #1965 lands on dev and the
+  re-anchored dry-run is zero-refusal;
 - the move-plan singleton (`specs/reorg/*-move-plan.json`) is free.
+
+Blockers are resolved by their own PRs (steps 1–2) and are NOT required closed before those PRs
+dispatch — full blocker closure is reserved for the final move-plan execution (Tier B).
 
 ## Non-goals
 
