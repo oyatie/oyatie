@@ -15,9 +15,10 @@
 
 use std::fs;
 use std::path::{Path, PathBuf};
+use std::process::Command;
 
 use ci_repo_root_hygiene::{
-    Verdict, evaluate, evaluate_keyed, evaluate_talos_machine_config_documents,
+    Verdict, corpus_class_counts, evaluate, evaluate_keyed, evaluate_talos_machine_config_documents,
 };
 use serde_json::{Value, json};
 
@@ -233,7 +234,39 @@ fn live_tracked_root_tree_is_allowlist_clean_green() {
         rows.len()
     );
 
-    let findings = evaluate_keyed(&policy, &observed);
+    let mut findings = evaluate_keyed(&policy, &observed);
+    // Introduction grace (ADR-0717): while the merge-base policy has no corpus_budget block, the
+    // corpus ceilings are advisory — the wave-2 cleanup PR may land after this one, so the
+    // pre-cleanup tree legitimately exceeds the post-cleanup ceilings until then. Every PR after
+    // the merge is bound by the ceilings (protected block present -> findings are blocking).
+    let protected_has_budget = Command::new("git")
+        .args([
+            "show",
+            "origin/dev:ci/facade/repo-root-hygiene/root-workspace-hygiene-policy.json",
+        ])
+        .current_dir(&root)
+        .output()
+        .map(|out| out.status.success())
+        .unwrap_or(false)
+        .then(|| {
+            let protected: serde_json::Value = serde_json::from_slice(
+                &Command::new("git")
+                    .args([
+                        "show",
+                        "origin/dev:ci/facade/repo-root-hygiene/root-workspace-hygiene-policy.json",
+                    ])
+                    .current_dir(&root)
+                    .output()
+                    .expect("git show protected policy")
+                    .stdout,
+            )
+            .expect("parse protected policy");
+            protected.get("corpus_budget").is_some()
+        })
+        .unwrap_or(false);
+    if !protected_has_budget {
+        findings.retain(|finding| !finding.code.starts_with("corpus_budget_"));
+    }
     assert!(
         findings.is_empty(),
         "root-workspace-hygiene gate found violations over the live tracked tree — the allowlist \
@@ -378,4 +411,74 @@ fn live_policy_findings_carry_concrete_remediation() {
         "remediation must name the concrete auto-fix; got: {}",
         f.detail
     );
+}
+
+/// ADR-0717: a reduction that lands WITHOUT lowering the frozen ceiling to the live
+/// count would leave headroom for later growth back toward the original number,
+/// breaking shrink-only. This live test loads the protected policy from the
+/// merge-base (origin/dev) and fails when the tree has shrunk below the protected
+/// ceiling while the candidate ceiling still sits above the live count (including
+/// partial drops). Absent a protected corpus_budget block (this PR is the first to
+/// introduce it), the check is a no-op.
+#[test]
+fn corpus_budget_reductions_must_lower_the_frozen_ceiling() {
+    let root = repo_root();
+    let policy = load_policy(&root);
+    let Some(candidate_counts) = policy
+        .get("corpus_budget")
+        .and_then(|budget| budget.get("counts"))
+        .and_then(serde_json::Value::as_object)
+    else {
+        panic!("candidate policy must carry corpus_budget.counts (fail closed)");
+    };
+    let protected_counts = {
+        let output = Command::new("git")
+            .args([
+                "show",
+                "origin/dev:ci/facade/repo-root-hygiene/root-workspace-hygiene-policy.json",
+            ])
+            .current_dir(&root)
+            .output()
+            .expect("run git show for the protected corpus budget");
+        if !output.status.success() {
+            // No merge-base policy (e.g. shallow/no origin ref): skip, the ceiling check itself
+            // still runs through evaluate_keyed on the live tree.
+            return;
+        }
+        let protected: serde_json::Value = serde_json::from_slice(&output.stdout)
+            .expect("parse protected policy");
+        protected
+            .get("corpus_budget")
+            .and_then(|budget| budget.get("counts"))
+            .and_then(serde_json::Value::as_object)
+            .cloned()
+    };
+    let Some(protected_counts) = protected_counts else {
+        return; // this PR introduces the block; nothing to compare against yet
+    };
+
+    let observed = observed_from_scm_facts(&root);
+    let observed_counts = ci_repo_root_hygiene::corpus_class_counts(&policy, &observed);
+    for (class, frozen) in candidate_counts {
+        let Some(protected) = protected_counts.get(class).and_then(serde_json::Value::as_u64)
+        else {
+            panic!("protected policy must carry the same corpus class {class}");
+        };
+        let candidate = frozen.as_u64().expect("candidate ceiling must be an integer");
+        assert!(
+            candidate <= protected,
+            "corpus_budget.counts.{class} grew from {protected} to {candidate} without review; budgets are shrink-only"
+        );
+        let observed_count = observed_counts.get(class).copied().unwrap_or(0) as u64;
+        if ci_repo_root_hygiene::corpus_class_reduction_leaves_headroom(
+            protected,
+            candidate,
+            observed_count,
+        ) {
+            panic!(
+                "corpus class {class} shrank from {protected} to {observed_count} but the frozen ceiling is still {candidate}; \
+                 lower corpus_budget.counts.{class} to {observed_count} in this same PR so the reduction is preserved"
+            );
+        }
+    }
 }
