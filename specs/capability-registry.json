@@ -532,6 +532,7 @@
         "oya/financial-planning",
         "oya/global-trade",
         "oya/hr",
+        "app/hr",
         "oya/incident-management",
         "oya/itsm",
         "oya/learning-management",
