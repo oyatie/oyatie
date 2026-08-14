@@ -211,7 +211,7 @@ fn repo_root() -> Result<PathBuf, String> {
 /// idempotent: the reconciler fails closed when the binary disagrees with the declaration (declared
 /// hook name, protocol, pinned tools, or generator source dirs drift) instead of installing stale.
 fn reconcile(args: &[String]) -> Result<String, String> {
-    let mut repo_root: Option<PathBuf> = None;
+    let mut cli_repo_root: Option<PathBuf> = None;
     let mut iter = args.iter();
     while let Some(arg) = iter.next() {
         match arg.as_str() {
@@ -219,7 +219,7 @@ fn reconcile(args: &[String]) -> Result<String, String> {
                 let Some(value) = iter.next() else {
                     return Err("reconcile: --repo-root requires a path".to_owned());
                 };
-                repo_root = Some(PathBuf::from(value));
+                cli_repo_root = Some(PathBuf::from(value));
             }
             "--help" | "-h" => {
                 return Err("usage: oya-pre-push-verify reconcile [--repo-root <path>]".to_owned());
@@ -231,7 +231,7 @@ fn reconcile(args: &[String]) -> Result<String, String> {
             }
         }
     }
-    let root = match repo_root {
+    let root = match cli_repo_root {
         Some(root) => root,
         None => repo_root()?,
     };
