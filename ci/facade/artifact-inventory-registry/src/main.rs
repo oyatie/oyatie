@@ -3659,6 +3659,9 @@ struct ManifestFlags {
     has_lib: bool,
     lib_doctest_false: bool,
     is_workspace_root: bool,
+    has_version_concrete: bool,
+    has_rust_version_concrete: bool,
+    has_lints_concrete: bool,
 }
 
 /// Enumerate the first-party `oya-*` crates and emit their §2.5#7 manifest-hygiene flags (the
@@ -3707,6 +3710,9 @@ fn collect_manifest_hygiene(
                 "has_license": f.license,
                 "has_lints_workspace": f.lints_workspace,
                 "is_workspace_root": f.is_workspace_root,
+                "has_version_concrete": f.has_version_concrete,
+                "has_rust_version_concrete": f.has_rust_version_concrete,
+                "has_lints_concrete": f.has_lints_concrete,
                 "has_lib": f.has_lib,
                 "has_lib_doctest_false": f.lib_doctest_false,
             })
@@ -3721,9 +3727,11 @@ fn collect_manifest_hygiene(
 fn parse_manifest_flags(contents: &str) -> ManifestFlags {
     let mut f = ManifestFlags::default();
     // A manifest declaring its own `[workspace]` table IS a workspace root: it cannot inherit
-    // `version`/`rust-version`/`[lints]` from a parent workspace, so concrete values there are
+    // `version`/`rust-version`/`[lints]` from a parent workspace, so CONCRETE values there are
     // the legitimate form (e.g. a parked nested-workspace-root destination crate). The gate
-    // skips the workspace-inheritance checks for such rows while enforcing every other field.
+    // therefore requires the concrete forms for workspace roots — never a blanket bypass: a
+    // `[workspace]` table on a manifest that omits `version`/`rust-version`/`[lints]` entirely
+    // is still a violation.
     f.is_workspace_root = has_workspace_table(contents);
     let mut section = "";
     for raw in contents.lines() {
@@ -3733,7 +3741,13 @@ fn parse_manifest_flags(contents: &str) -> ManifestFlags {
             continue;
         }
         if let Some(rest) = line.strip_prefix('[') {
-            section = match rest.split(']').next().unwrap_or("").trim() {
+            let table = rest.split(']').next().unwrap_or("").trim();
+            // Any `[lints]` / `[lints.*]` table is a CONCRETE lints table (a workspace-root
+            // manifest can never satisfy the inherited form, so its own table is the valid one).
+            if table.starts_with("lints") {
+                f.has_lints_concrete = true;
+            }
+            section = match table {
                 "package" => "package",
                 "lints" => "lints",
                 "lib" => "lib",
@@ -3749,8 +3763,20 @@ fn parse_manifest_flags(contents: &str) -> ManifestFlags {
                 if is_workspace_inherited(line, "version") {
                     f.version_workspace = true;
                 }
+                if !is_workspace_inherited(line, "version")
+                    && line.starts_with("version")
+                    && line.contains('=')
+                {
+                    f.has_version_concrete = true;
+                }
                 if is_workspace_inherited(line, "rust-version") {
                     f.rust_version_workspace = true;
+                }
+                if !is_workspace_inherited(line, "rust-version")
+                    && line.starts_with("rust-version")
+                    && line.contains('=')
+                {
+                    f.has_rust_version_concrete = true;
                 }
                 if line.starts_with("publish") && line.contains('=') && line.contains("false") {
                     f.publish_false = true;

@@ -14,11 +14,28 @@
 //! ## Contract
 //! Input: `{"rows":[{"crate_name": "...", "manifest_path": "...", "has_version_workspace": bool,
 //! "has_publish_false": bool, "has_license": bool, "has_rust_version_workspace": bool,
-//! "has_lints_workspace": bool, "is_workspace_root": bool, "has_lib": bool,
+//! "has_lints_workspace": bool, "is_workspace_root": bool, "has_version_concrete": bool,
+//! "has_rust_version_concrete": bool, "has_lints_concrete": bool, "has_lib": bool,
 //! "has_lib_doctest_false": bool}]}`. `evaluate_keyed` emits one
-//! `Finding{code,key}` per missing field (`key` = crate name); `evaluate` is the bare-code
-//! projection. `baseline-block-on-new` freezes today's keys so only NEW debt blocks.
+//! `Finding{code,key}` per missing field; `evaluate` is the bare-code projection.
+//! `baseline-block-on-new` freezes today's keys so only NEW debt blocks.
 //! ADR-0083 Tier-3: production code carries no unwrap/expect/panic.
+//!
+//! ## Finding identity (`key` = manifest_path, fallback crate_name)
+//! A rehomed destination crate can share its package name with the retained legacy source
+//! (integ/procurement absorb, PR #1672). Keying findings by `crate_name` would collapse
+//! path-distinct violations in the `BTreeSet` and the baseline ratchet, letting a baselined
+//! legacy violation mask a newly introduced defect in the destination — so the finding/baseline
+//! identity is the `manifest_path` the producer emits, with `crate_name` retained for display.
+//! Rows without `manifest_path` (unit fixtures) fall back to `crate_name` so the key is never
+//! empty.
+//!
+//! ## Workspace roots require CONCRETE fields, never a bypass
+//! A manifest declaring its own `[workspace]` table IS a workspace root: it cannot inherit
+//! `version`/`rust-version`/`[lints]` from a parent workspace, so the CONCRETE forms are the
+//! valid ones and the gate REQUIRES them (`has_version_concrete`, `has_rust_version_concrete`,
+//! `has_lints_concrete`). A `[workspace]` table on a manifest that omits those fields entirely
+//! still fires the same §2.5#7 codes; members require the workspace-inherited forms instead.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 #![forbid(unsafe_code)]
 
@@ -116,30 +133,58 @@ pub fn evaluate_keyed(input: &Value) -> BTreeSet<Finding> {
             findings.insert(malformed_input(&format!("<malformed-row-{index}>")));
             continue;
         };
-        // A manifest that IS a workspace root (declares its own `[workspace]` table) legitimately
-        // carries concrete `version`/`rust-version` and a concrete `[lints]` table — it is the
-        // workspace it would otherwise inherit from (e.g. a parked nested-workspace-root
-        // destination crate whose retained legacy source shares its package name). For such a
-        // root the workspace-inheritance fields are not required; every other field stays
-        // enforced, and rows without the flag (all root-workspace members) behave unchanged.
+        // The finding/baseline identity is the MANIFEST PATH, not the crate name: a rehomed
+        // destination and its retained legacy source can share a package name, and a name key
+        // would collapse path-distinct violations in the BTreeSet and the baseline ratchet — a
+        // baselined legacy violation could mask a newly introduced defect in the destination.
+        // The crate name stays for display; rows without manifest_path (unit fixtures) fall back
+        // to the crate name so the key is never empty.
+        let key = row
+            .get("manifest_path")
+            .and_then(Value::as_str)
+            .filter(|p| !p.is_empty())
+            .map(str::to_owned)
+            .unwrap_or_else(|| name.to_owned());
+        // A manifest that IS a workspace root (declares its own `[workspace]` table) cannot
+        // inherit `version`/`rust-version`/`[lints]` from a parent workspace — it IS the
+        // workspace. For such a root the CONCRETE forms are required and validated (never a
+        // blanket bypass: a `[workspace]` table on a manifest that omits those fields entirely
+        // still fires). Members require the workspace-inherited forms. Every other field
+        // (publish/license/doctest) is enforced identically for both.
         let is_workspace_root = flag(row, "is_workspace_root");
-        if !is_workspace_root && !flag(row, "has_version_workspace") {
-            findings.insert(Finding::new("manifest_missing_version_workspace", name));
-        }
-        if !is_workspace_root && !flag(row, "has_rust_version_workspace") {
-            findings.insert(Finding::new(
-                "manifest_missing_rust_version_workspace",
-                name,
-            ));
+        if is_workspace_root {
+            if !flag(row, "has_version_concrete") {
+                findings.insert(Finding::new("manifest_missing_version_workspace", &key));
+            }
+            if !flag(row, "has_rust_version_concrete") {
+                findings.insert(Finding::new(
+                    "manifest_missing_rust_version_workspace",
+                    &key,
+                ));
+            }
+        } else {
+            if !flag(row, "has_version_workspace") {
+                findings.insert(Finding::new("manifest_missing_version_workspace", &key));
+            }
+            if !flag(row, "has_rust_version_workspace") {
+                findings.insert(Finding::new(
+                    "manifest_missing_rust_version_workspace",
+                    &key,
+                ));
+            }
         }
         if !flag(row, "has_publish_false") {
-            findings.insert(Finding::new("manifest_missing_publish_false", name));
+            findings.insert(Finding::new("manifest_missing_publish_false", &key));
         }
         if !flag(row, "has_license") {
-            findings.insert(Finding::new("manifest_missing_license", name));
+            findings.insert(Finding::new("manifest_missing_license", &key));
         }
-        if !is_workspace_root && !flag(row, "has_lints_workspace") {
-            findings.insert(Finding::new("manifest_missing_lints_workspace", name));
+        if is_workspace_root {
+            if !flag(row, "has_lints_concrete") {
+                findings.insert(Finding::new("manifest_missing_lints_workspace", &key));
+            }
+        } else if !flag(row, "has_lints_workspace") {
+            findings.insert(Finding::new("manifest_missing_lints_workspace", &key));
         }
         // doctest=false is only required when the crate declares a [lib] table.
         // `has_lib` is the shape discriminator; if it is absent or not a bool,
@@ -149,7 +194,7 @@ pub fn evaluate_keyed(input: &Value) -> BTreeSet<Finding> {
             continue;
         };
         if has_lib && !flag(row, "has_lib_doctest_false") {
-            findings.insert(Finding::new("manifest_missing_lib_doctest_false", name));
+            findings.insert(Finding::new("manifest_missing_lib_doctest_false", &key));
         }
     }
     findings
@@ -241,12 +286,16 @@ mod tests {
         // gate must not flag them — while publish/license/doctest stay enforced.
         let input = json!({ "rows": [{
             "crate_name": "oya-procurement-source-to-pay-domain",
+            "manifest_path": "app/procurement/crates/oya-procurement-source-to-pay-domain/Cargo.toml",
             "has_version_workspace": false,
             "has_rust_version_workspace": false,
             "has_publish_false": true,
             "has_license": true,
             "has_lints_workspace": false,
             "is_workspace_root": true,
+            "has_version_concrete": true,
+            "has_rust_version_concrete": true,
+            "has_lints_concrete": true,
             "has_lib": true,
             "has_lib_doctest_false": true,
         }]});
@@ -254,6 +303,77 @@ mod tests {
             evaluate_keyed(&input).is_empty(),
             "workspace-root concrete fields must not fire inheritance codes: {:?}",
             evaluate_keyed(&input)
+        );
+    }
+
+    #[test]
+    fn workspace_root_missing_concrete_fields_fires_the_codes() {
+        // A `[workspace]` table is NEVER a blanket bypass: a workspace root that omits the
+        // concrete version/rust-version/lints entirely still violates §2.5#7 (thread
+        // PRRT_kwDOSbSl2s6ZSiy0).
+        let input = json!({ "rows": [{
+            "crate_name": "oya-empty-root",
+            "manifest_path": "app/empty/crates/oya-empty-root/Cargo.toml",
+            "has_version_workspace": false,
+            "has_rust_version_workspace": false,
+            "has_publish_false": true,
+            "has_license": true,
+            "has_lints_workspace": false,
+            "is_workspace_root": true,
+            "has_version_concrete": false,
+            "has_rust_version_concrete": false,
+            "has_lints_concrete": false,
+            "has_lib": true,
+            "has_lib_doctest_false": true,
+        }]});
+        let codes: BTreeSet<String> = evaluate_keyed(&input).into_iter().map(|f| f.code).collect();
+        assert!(codes.contains("manifest_missing_version_workspace"));
+        assert!(codes.contains("manifest_missing_rust_version_workspace"));
+        assert!(codes.contains("manifest_missing_lints_workspace"));
+        assert!(!codes.contains("manifest_missing_publish_false"));
+        assert!(!codes.contains("manifest_missing_license"));
+        assert!(!codes.contains("manifest_missing_lib_doctest_false"));
+    }
+
+    #[test]
+    fn same_name_dest_and_source_violations_key_by_manifest_path() {
+        // Two manifests sharing a package name that BOTH violate the same rule must yield TWO
+        // distinct findings keyed by manifest_path — a name key would collapse them and let a
+        // baselined legacy violation mask the destination defect (thread
+        // PRRT_kwDOSbSl2s6ZSiyy).
+        let input = json!({ "rows": [
+            {
+                "crate_name": "oya-dup-domain",
+                "manifest_path": "app/prod/crates/oya-dup-domain/Cargo.toml",
+                "has_version_workspace": false,
+                "has_rust_version_workspace": false,
+                "has_publish_false": true,
+                "has_license": true,
+                "has_lints_workspace": false,
+                "has_lib": true,
+                "has_lib_doctest_false": true,
+            },
+            {
+                "crate_name": "oya-dup-domain",
+                "manifest_path": "oya/crm/crates/oya-dup-domain/Cargo.toml",
+                "has_version_workspace": false,
+                "has_rust_version_workspace": false,
+                "has_publish_false": true,
+                "has_license": true,
+                "has_lints_workspace": false,
+                "has_lib": true,
+                "has_lib_doctest_false": true,
+            },
+        ]});
+        let keys: BTreeSet<String> = evaluate_keyed(&input).into_iter().map(|f| f.key).collect();
+        assert_eq!(
+            keys,
+            [
+                "app/prod/crates/oya-dup-domain/Cargo.toml".to_string(),
+                "oya/crm/crates/oya-dup-domain/Cargo.toml".to_string(),
+            ]
+            .into_iter()
+            .collect()
         );
     }
 
@@ -267,6 +387,9 @@ mod tests {
             "has_license": false,
             "has_lints_workspace": false,
             "is_workspace_root": true,
+            "has_version_concrete": true,
+            "has_rust_version_concrete": true,
+            "has_lints_concrete": true,
             "has_lib": true,
             "has_lib_doctest_false": false,
         }]});
