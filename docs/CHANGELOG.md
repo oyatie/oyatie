@@ -14,8 +14,16 @@ doc_status: published
   (read-only, blocking on stale faces with the tool's remediation output; no bypass by design;
   fail-closed when the pushed SHA differs from HEAD). Per the repo stack invariant the hook is
   Rust, not shell, and it is installed OUTSIDE the checked-out tree so a contribution can never
-  replace the hook git executes: `buck2 run //ci/facade/generated-artifact-freshness:oya-pre-push-verify-bin -- install` copies the pinned binary into the git common-dir `hooks/` and points
-  `core.hooksPath` there (the tracked Bash `scripts/git-hooks/pre-push` is removed).
+  replace the hook git executes (the tracked Bash `scripts/git-hooks/pre-push` is removed).
+- `buck2 run //ci/facade/generated-artifact-freshness:oya-pre-push-verify-bin -- install` now
+  (a) PRESERVES an existing `core.hooksPath` (installs into the already-configured hooks dir and
+  never rewrites the configuration, so org-managed commit-msg/signing/security hooks keep working;
+  refuses if the configured path points inside the checked-out tree), (b) pins the generator tool
+  binaries (built once from the install-time checkout) next to the verifier so the hook NEVER
+  builds from the active checkout's Buck graph — it executes only the prebuilt tools against the
+  repo tree as DATA, closing the checkout-controlled-code execution path — and (c) writes a
+  protocol manifest. The hook fails closed with an explicit reinstall requirement when the manifest
+  or the repository's tracked generated-face protocol is stale.
 - Updated the face-settle protocol paragraph in
   [`docs/oya-ci/gate-catalog.md`](oya-ci/gate-catalog.md) and the Claude Code appendix hook list in
   [`docs/AGENTS.md`](AGENTS.md). The cloud-ci freshness gate behind `oya-ci-required` remains the

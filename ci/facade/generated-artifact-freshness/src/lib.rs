@@ -82,6 +82,26 @@ const MASTERPLAN_GENERATOR_TARGET: &str = "//marketplace/facade/dev-cli:oya";
 const ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS_TARGET: &str = "//.claude:settings-json";
 const ENFORCEMENT_LIVENESS_CODEX_HOOKS_TARGET: &str = "//.codex:hooks-json";
 const ENFORCEMENT_LIVENESS_HOOKS_DIR_TARGET: &str = "//tools/hooks:top-level-hook-scripts";
+
+/// Protocol version of the installed pre-push verifier (`oya-pre-push-verify`). Bump whenever
+/// [`GENERATED_FACE_PATHS`] or the face-tool target constants change: installed verifiers embed
+/// this value, record it in their install manifest, and fail closed with an explicit reinstall
+/// requirement when the manifest is missing or stale.
+pub const PRE_PUSH_VERIFIER_PROTOCOL_VERSION: u32 = 1;
+
+/// Install-manifest file name, written next to the installed `pre-push` hook (outside the
+/// checked-out tree). The hook reads it at push time to enforce the protocol version handshake.
+pub const PRE_PUSH_VERIFIER_MANIFEST_FILE: &str = "oya-pre-push-verify-manifest.json";
+
+/// Subdirectory (relative to the installed hook's directory) holding the PINNED generator tool
+/// binaries built once at install time from the install-time checkout. The hook executes these
+/// prebuilt binaries at push time and never builds from the active checkout's Buck graph.
+pub const PRE_PUSH_VERIFIER_TOOLS_DIR: &str = "oya-pre-push-tools";
+
+const PRE_PUSH_TOOL_EMITTER: &str = "emitter";
+const PRE_PUSH_TOOL_PRODUCER: &str = "producer";
+const PRE_PUSH_TOOL_MASTERPLAN_GENERATOR: &str = "masterplan-generator";
+const PRE_PUSH_TOOL_ARCHITECTURE_GRAPH_GENERATOR: &str = "architecture-graph-generator";
 const MOVE_MANIFEST_FACE: &str = "specs/reorg/move-manifest.generated.json";
 /// De-committed face: merge-base CONTENT of every `normal-source-merge` hand-curated-ratchet
 /// artifact, keyed by declared path. Materialized from the SAME merge-base source worktree this
@@ -420,7 +440,30 @@ pub fn run_face_settle_with_buck2(
     repo_root: &Path,
     mode: FaceSettleMode,
 ) -> Result<FaceSettleReport, FreshnessError> {
-    // Assert tree preconditions BEFORE the buck2 regeneration so a dirty tree fails in
+    let tools = build_face_tools(repo_root)?;
+    run_face_settle_with_tools(repo_root, mode, &tools)
+}
+
+/// Run the face-settle flow with PREBUILT tool paths (no buck2 invocation). The pre-push hook
+/// uses this entry point with tools that were built ONCE at install time and copied into the
+/// hooks dir (outside the checked-out tree), so a contribution can never make the hook build or
+/// execute a checkout-controlled Buck target. The generator tools are trusted prebuilt
+/// binaries; the repo tree is consumed as DATA only.
+pub fn run_face_settle_with_pinned_tools(
+    repo_root: &Path,
+    mode: FaceSettleMode,
+    tools_dir: &Path,
+) -> Result<FaceSettleReport, FreshnessError> {
+    let tools = pinned_face_tools(repo_root, tools_dir)?;
+    run_face_settle_with_tools(repo_root, mode, &tools)
+}
+
+fn run_face_settle_with_tools(
+    repo_root: &Path,
+    mode: FaceSettleMode,
+    tools: &FaceTools,
+) -> Result<FaceSettleReport, FreshnessError> {
+    // Assert tree preconditions BEFORE the regeneration so a dirty tree fails in
     // milliseconds instead of after a build. Verify certifies the COMMITTED tree (HEAD),
     // so it requires the FULL tracked tree clean (faces included); the other modes keep
     // the existing non-face cleanliness contract.
@@ -430,7 +473,7 @@ pub fn run_face_settle_with_buck2(
             assert_non_face_tree_clean(repo_root)?;
         }
     }
-    let regenerated_faces = regenerate_faces_with_buck2(repo_root)?;
+    let regenerated_faces = regenerate_faces_with_tools(repo_root, tools, None)?;
     match mode {
         FaceSettleMode::Check => check_regenerated_faces(repo_root, regenerated_faces),
         FaceSettleMode::Verify => verify_committed_tree(repo_root, regenerated_faces),
@@ -438,6 +481,234 @@ pub fn run_face_settle_with_buck2(
             settle_regenerated_faces(repo_root, regenerated_faces, mode)
         }
     }
+}
+
+fn pinned_face_tools(repo_root: &Path, tools_dir: &Path) -> Result<FaceTools, FreshnessError> {
+    let emitter = tools_dir.join(PRE_PUSH_TOOL_EMITTER);
+    let producer = tools_dir.join(PRE_PUSH_TOOL_PRODUCER);
+    let masterplan_generator = tools_dir.join(PRE_PUSH_TOOL_MASTERPLAN_GENERATOR);
+    let architecture_graph_generator = tools_dir.join(PRE_PUSH_TOOL_ARCHITECTURE_GRAPH_GENERATOR);
+    let corpus = EnforcementLivenessCorpusPaths {
+        // The enforcement-liveness corpus is DATA from the CURRENT tree (the face being verified
+        // reflects the current `.claude` / `.codex` / `tools/hooks` state), resolved directly from
+        // the repo root instead of through checkout-controlled Buck filegroup targets.
+        claude_settings: repo_root.join(ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS),
+        codex_hooks: repo_root.join(ENFORCEMENT_LIVENESS_CODEX_HOOKS),
+        hooks_dir: repo_root.join(ENFORCEMENT_LIVENESS_HOOKS_DIR),
+    };
+    for (label, path) in [
+        ("emitter", &emitter),
+        ("producer", &producer),
+        ("masterplan generator", &masterplan_generator),
+        ("architecture graph generator", &architecture_graph_generator),
+    ] {
+        if !path.is_file() {
+            return Err(FreshnessError::new(format!(
+                "pinned pre-push verifier tool `{label}` missing at {} — reinstall the hook (buck2 run //ci/facade/generated-artifact-freshness:oya-pre-push-verify-bin -- install)",
+                path.display()
+            )));
+        }
+    }
+    Ok(FaceTools {
+        emitter,
+        producer,
+        masterplan_generator,
+        architecture_graph_generator,
+        enforcement_liveness_corpus: corpus,
+    })
+}
+
+/// Build the face generator tools from the (trusted) install-time checkout and copy the resulting
+/// binaries into `dest_dir` under fixed names. Called by the hook installer only; the installed
+/// binaries are the pinned verifier the hook later executes.
+pub fn install_pre_push_verifier_tools(
+    repo_root: &Path,
+    dest_dir: &Path,
+) -> Result<(), FreshnessError> {
+    let tools = build_face_tools(repo_root)?;
+    std::fs::create_dir_all(dest_dir).map_err(|error| {
+        FreshnessError::new(format!(
+            "create pre-push verifier tools dir {}: {error}",
+            dest_dir.display()
+        ))
+    })?;
+    for (name, src) in [
+        (PRE_PUSH_TOOL_EMITTER, &tools.emitter),
+        (PRE_PUSH_TOOL_PRODUCER, &tools.producer),
+        (PRE_PUSH_TOOL_MASTERPLAN_GENERATOR, &tools.masterplan_generator),
+        (
+            PRE_PUSH_TOOL_ARCHITECTURE_GRAPH_GENERATOR,
+            &tools.architecture_graph_generator,
+        ),
+    ] {
+        let dest = dest_dir.join(name);
+        std::fs::copy(src, &dest).map_err(|error| {
+            FreshnessError::new(format!(
+                "pin pre-push verifier tool {} -> {}: {error}",
+                src.display(),
+                dest.display()
+            ))
+        })?;
+    }
+    Ok(())
+}
+
+/// Write the installed-verifier manifest (protocol version) next to the installed hook. The hook
+/// reads this at push time and fails closed with a reinstall requirement when the version is
+/// missing or stale.
+pub fn write_pre_push_verifier_manifest(hooks_dir: &Path) -> Result<(), FreshnessError> {
+    let path = hooks_dir.join(PRE_PUSH_VERIFIER_MANIFEST_FILE);
+    let manifest = serde_json::json!({
+        "protocol_version": PRE_PUSH_VERIFIER_PROTOCOL_VERSION,
+    });
+    let text = serde_json::to_string_pretty(&manifest).map_err(|error| {
+        FreshnessError::new(format!(
+            "serialize pre-push verifier manifest: {error}"
+        ))
+    })?;
+    std::fs::write(&path, format!("{text}\n")).map_err(|error| {
+        FreshnessError::new(format!(
+            "write pre-push verifier manifest {}: {error}",
+            path.display()
+        ))
+    })
+}
+
+/// Read the installed-verifier manifest and require it to match the embedded protocol version.
+/// Returns the recorded version; fails closed (with an explicit reinstall requirement) when the
+/// manifest is missing, malformed, or stale.
+pub fn read_pre_push_verifier_manifest(hooks_dir: &Path) -> Result<u32, FreshnessError> {
+    let path = hooks_dir.join(PRE_PUSH_VERIFIER_MANIFEST_FILE);
+    let text = std::fs::read_to_string(&path).map_err(|error| {
+        FreshnessError::new(format!(
+            "pre-push verifier manifest missing at {} ({error}) — reinstall the hook (buck2 run //ci/facade/generated-artifact-freshness:oya-pre-push-verify-bin -- install)",
+            path.display()
+        ))
+    })?;
+    let value: serde_json::Value = serde_json::from_str(&text).map_err(|error| {
+        FreshnessError::new(format!(
+            "parse pre-push verifier manifest {}: {error}",
+            path.display()
+        ))
+    })?;
+    let installed = value
+        .get("protocol_version")
+        .and_then(|value| value.as_u64())
+        .ok_or_else(|| {
+            FreshnessError::new(format!(
+                "pre-push verifier manifest {} lacks protocol_version",
+                path.display()
+            ))
+        })? as u32;
+    if installed != PRE_PUSH_VERIFIER_PROTOCOL_VERSION {
+        return Err(FreshnessError::new(format!(
+            "installed pre-push verifier protocol {installed} is out of date (repository requires {PRE_PUSH_VERIFIER_PROTOCOL_VERSION}) — reinstall the hook (buck2 run //ci/facade/generated-artifact-freshness:oya-pre-push-verify-bin -- install)"
+        )));
+    }
+    Ok(installed)
+}
+
+/// Fail closed when the repository's generated-face protocol differs from the one this verifier
+/// was built with. Reads TRACKED repository data (never executes checkout code) and compares:
+///
+/// 1. the embedded [`PRE_PUSH_VERIFIER_PROTOCOL_VERSION`] against the value currently declared in
+///    the tracked `src/lib.rs` — a later repository update that bumps the protocol (e.g. renames a
+///    generator target or changes a face contract) forces an explicit reinstall instead of a
+///    confusing permanent failure;
+/// 2. the PR-owned face basenames declared in the generated-artifact control-plane manifest
+///    against the embedded [`GENERATED_FACE_PATHS`] — adding/removing/renaming a generated face
+///    likewise forces a reinstall instead of silently checking obsolete coverage.
+pub fn verify_pre_push_verifier_protocol(repo_root: &Path) -> Result<(), FreshnessError> {
+    let lib_path = repo_root.join("ci/facade/generated-artifact-freshness/src/lib.rs");
+    let lib_source = std::fs::read_to_string(&lib_path).map_err(|error| {
+        FreshnessError::new(format!(
+            "read freshness gate lib.rs {}: {error}",
+            lib_path.display()
+        ))
+    })?;
+    let declared_version = parse_pre_push_verifier_protocol_version(&lib_source).ok_or_else(|| {
+        FreshnessError::new(format!(
+            "{} does not declare PRE_PUSH_VERIFIER_PROTOCOL_VERSION (protocol handshake unavailable)",
+            lib_path.display()
+        ))
+    })?;
+    if declared_version != PRE_PUSH_VERIFIER_PROTOCOL_VERSION {
+        return Err(FreshnessError::new(format!(
+            "repository pre-push verifier protocol is now v{declared_version} but this installed hook was built for v{PRE_PUSH_VERIFIER_PROTOCOL_VERSION} — reinstall the hook (buck2 run //ci/facade/generated-artifact-freshness:oya-pre-push-verify-bin -- install)"
+        )));
+    }
+
+    let path = repo_root.join(CONTROL_PLANE_MANIFEST);
+    let text = std::fs::read_to_string(&path).map_err(|error| {
+        FreshnessError::new(format!(
+            "read generated-artifact control-plane {}: {error}",
+            path.display()
+        ))
+    })?;
+    let manifest: serde_json::Value = serde_json::from_str(&text).map_err(|error| {
+        FreshnessError::new(format!(
+            "parse generated-artifact control-plane {}: {error}",
+            path.display()
+        ))
+    })?;
+    let Some(artifacts) = manifest.get("artifacts").and_then(|value| value.as_array()) else {
+        return Err(FreshnessError::new(format!(
+            "generated-artifact control-plane {} has no artifacts array",
+            path.display()
+        )));
+    };
+    let faces_dir_prefix = format!("{FACES_DIR}/");
+    let mut declared = BTreeSet::new();
+    for artifact in artifacts {
+        let Some(mode) = artifact
+            .get("materialization_mode")
+            .and_then(|value| value.as_str())
+        else {
+            continue;
+        };
+        if mode != NOT_TRACKED_IN_GIT_MODE && mode != MAIN_BRANCH_MATERIALIZED_MODE {
+            continue;
+        }
+        let Some(artifact_path) = artifact.get("path").and_then(|value| value.as_str()) else {
+            continue;
+        };
+        // Scope to the canonical faces dir, exclude controller-owned artifacts, and require the
+        // generated-face suffix so unrelated manifest rows never enter the coverage contract.
+        if !artifact_path.starts_with(&faces_dir_prefix)
+            || !artifact_path.ends_with(".generated.json")
+            || CONTROLLER_MATERIALIZED_ARTIFACT_PATHS.contains(&artifact_path)
+        {
+            continue;
+        }
+        declared.insert(file_basename(artifact_path).to_owned());
+    }
+    let embedded: BTreeSet<String> = GENERATED_FACE_PATHS
+        .iter()
+        .map(|path| file_basename(path).to_owned())
+        .collect();
+    if declared != embedded {
+        return Err(FreshnessError::new(format!(
+            "repository generated-face protocol changed: installed verifier covers {embedded:?} but the repository now declares {declared:?} — reinstall the hook (buck2 run //ci/facade/generated-artifact-freshness:oya-pre-push-verify-bin -- install)"
+        )));
+    }
+    Ok(())
+}
+
+/// Extract the `PRE_PUSH_VERIFIER_PROTOCOL_VERSION` value from the tracked freshness-gate source
+/// as DATA (a text parse; never executes checkout code). Fails closed when the declaration is
+/// absent or malformed.
+fn parse_pre_push_verifier_protocol_version(lib_source: &str) -> Option<u32> {
+    const MARKER: &str = "PRE_PUSH_VERIFIER_PROTOCOL_VERSION: u32 = ";
+    for line in lib_source.lines() {
+        let Some(rest) = line.split_once(MARKER) else {
+            continue;
+        };
+        let Some(rest) = rest.split_once(';') else {
+            continue;
+        };
+        return rest.0.trim().parse().ok();
+    }
+    None
 }
 
 pub fn materialize_generated_faces_with_buck2(repo_root: &Path) -> Result<(), FreshnessError> {
@@ -1459,6 +1730,16 @@ fn regenerate_faces_with_buck2_with_retirement(
     retirement: Option<&RetirementMaterializeArgs>,
 ) -> Result<RegeneratedFaces, FreshnessError> {
     let tools = build_face_tools(repo_root)?;
+    regenerate_faces_with_tools(repo_root, &tools, retirement)
+}
+
+/// Regenerate the faces with PREBUILT generator tools (no buck2 invocation). The pre-push hook
+/// uses this path with the pinned tools built at install time; the repo tree is consumed as data.
+fn regenerate_faces_with_tools(
+    repo_root: &Path,
+    tools: &FaceTools,
+    retirement: Option<&RetirementMaterializeArgs>,
+) -> Result<RegeneratedFaces, FreshnessError> {
     let scm_facts = temporary_scm_facts_path()?;
     let cleanup = TempFileCleanup {
         path: scm_facts.clone(),
@@ -1470,8 +1751,8 @@ fn regenerate_faces_with_buck2_with_retirement(
     let volatile_cleanup = TempFileCleanup {
         path: volatile_facts.clone(),
     };
-    emit_scm_facts(&tools, repo_root, &scm_facts, &volatile_facts)?;
-    let regenerated = regenerate_all_faces(&tools, repo_root, &scm_facts, retirement)?;
+    emit_scm_facts(tools, repo_root, &scm_facts, &volatile_facts)?;
+    let regenerated = regenerate_all_faces(tools, repo_root, &scm_facts, retirement)?;
     drop(cleanup);
     drop(volatile_cleanup);
     Ok(regenerated)
