@@ -15,10 +15,10 @@
 # cannot write through this path.
 
 [buck2_re_client]
-  engine_address = __CACHE_RE_ADDRESS__
-  cas_address = __CACHE_RE_ADDRESS__
-  action_cache_address = __CACHE_RE_ADDRESS__
-  instance_name = __CACHE_INSTANCE_NAME__
+  engine_address = grpc://nativelink-cas-reader.oya-ci.svc.cluster.local:50052
+  cas_address = grpc://nativelink-cas-reader.oya-ci.svc.cluster.local:50052
+  action_cache_address = grpc://nativelink-cas-reader.oya-ci.svc.cluster.local:50052
+  instance_name = main
   tls = true
 
 [oya_cache]
