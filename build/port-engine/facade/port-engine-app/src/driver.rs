@@ -10,7 +10,7 @@ use port_engine_api::{
     Digest, Receipt, RegionId, RulePack, SourceModel, TargetIr, UnitId, w0_ready as api_ready,
 };
 use port_engine_emit::{
-    emit_canary_checked, materialize_canary_roundtrip, select_canary, CanaryArtifact, EmitError,
+    CanaryArtifact, EmitError, emit_canary_checked, materialize_canary_roundtrip, select_canary,
     w0_ready as emit_ready,
 };
 use port_engine_frontend_go::w0_ready as frontend_ready;
@@ -19,11 +19,11 @@ use port_engine_identity::{engine_digest, w0_ready as identity_ready};
 use port_engine_rulepack::{LoadedRulePack, RulepackError, w0_ready as rulepack_ready};
 use port_engine_rust_ir::{EmptyRenderer, RustIr, SynQuoteRenderer};
 use port_engine_snapshot::{
-    admit_embedded_fixture, AdmittedSnapshot, AdmitError, w0_ready as snapshot_ready,
+    AdmitError, AdmittedSnapshot, admit_embedded_fixture, w0_ready as snapshot_ready,
 };
 use port_engine_source_pin::{load_embedded, receipt_pin};
 use port_engine_toolchain::{toolchain_digest, w0_ready as toolchain_ready};
-use port_engine_transform::{apply, TransformError, w0_ready as transform_ready};
+use port_engine_transform::{TransformError, apply, w0_ready as transform_ready};
 
 use crate::receipt_codec::{emit_tree_digest, format_receipt, matches_golden};
 
@@ -143,8 +143,6 @@ pub struct PipelineReport {
 /// Typed refusal from the Slice 11 pipeline.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum PipelineError {
-    /// Fleet pin could not load.
-    Pin(port_engine_source_pin::PinError),
     /// Snapshot admission refused.
     Admit(AdmitError),
     /// Rulepack load failed.
@@ -162,7 +160,6 @@ pub enum PipelineError {
 impl std::fmt::Display for PipelineError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Pin(err) => write!(f, "pipeline pin: {err}"),
             Self::Admit(err) => write!(f, "pipeline admit: {err}"),
             Self::Rulepack(err) => write!(f, "pipeline rulepack: {err}"),
             Self::Plan(err) => write!(f, "pipeline plan: {err}"),
@@ -192,21 +189,19 @@ pub fn smoke_transform() -> Result<usize, PipelineError> {
 /// # Errors
 /// [`PipelineError`] on any stage refusal.
 pub fn smoke_pipeline() -> Result<PipelineReport, PipelineError> {
-    let pin = fleet_pin().map_err(PipelineError::Pin)?;
     let admitted = smoke_admit_snapshot().map_err(PipelineError::Admit)?;
+    let pin = admitted.pin().to_owned();
     let pack = LoadedRulePack::load_embedded().map_err(PipelineError::Rulepack)?;
     let plan = port_engine_kernel::plan(admitted.as_model(), &pack).map_err(PipelineError::Plan)?;
     let ir = apply(&plan, &pack, admitted.as_model()).map_err(PipelineError::Transform)?;
 
     let formatter_label = "fmt-pipeline-transform-v0";
     let renderer = SynQuoteRenderer::new(formatter_label);
-    let emitted = renderer
-        .render_rust_ir(&ir)
-        .map_err(PipelineError::Emit)?;
+    let emitted = renderer.render_rust_ir(&ir).map_err(PipelineError::Emit)?;
 
     let receipt = Receipt {
         pin,
-        snapshot_digest: admitted.snapshot_digest.clone(),
+        snapshot_digest: admitted.artifact_digest().clone(),
         engine_digest: engine_digest(),
         rulepack_digest: pack.digest(),
         toolchain_digest: toolchain_digest(),
@@ -255,10 +250,7 @@ pub fn smoke_delta() -> Result<port_engine_kernel::Verification, PipelineError> 
         &current.emitted,
     );
     if verification.verdict != port_engine_kernel::Verdict::Green
-        || !matches!(
-            verification.delta,
-            port_engine_kernel::Delta::Unchanged
-        )
+        || !matches!(verification.delta, port_engine_kernel::Delta::Unchanged)
     {
         return Err(PipelineError::Emit(port_engine_api::PortError::Render {
             detail: format!(
@@ -305,7 +297,9 @@ pub fn smoke_emit_canary() -> Result<CanaryArtifact, PipelineError> {
 ///
 /// # Errors
 /// [`PipelineError`] on pipeline, canary, path, or round-trip refusal.
-pub fn smoke_materialize_canary(out_dir: &Path) -> Result<(CanaryArtifact, PathBuf), PipelineError> {
+pub fn smoke_materialize_canary(
+    out_dir: &Path,
+) -> Result<(CanaryArtifact, PathBuf), PipelineError> {
     let artifact = smoke_emit_canary()?;
     let dest = materialize_canary_roundtrip(out_dir, &artifact).map_err(PipelineError::Canary)?;
     Ok((artifact, dest))
@@ -389,7 +383,7 @@ impl SourceModel for RulepackModel {
 }
 
 /// Re-export neutral kernel entry points for downstream CLI wiring.
-pub use port_engine_kernel::{emit, plan, verify, Verdict};
+pub use port_engine_kernel::{Verdict, emit, plan, verify};
 
 /// Adapter readiness snapshot for diagnostics.
 ///
@@ -430,7 +424,7 @@ mod tests {
         let steps = smoke_plan().expect("plan smoke must succeed");
         assert_eq!(steps, 3);
         let admitted = smoke_admit_snapshot().expect("snapshot fixture must admit");
-        assert!(admitted.snapshot_digest.0.starts_with("sha256:"));
+        assert!(admitted.artifact_digest().0.starts_with("sha256:"));
         let eng = smoke_engine_digest();
         assert!(eng.0.starts_with("sha256:"));
         let tc = smoke_toolchain_digest();

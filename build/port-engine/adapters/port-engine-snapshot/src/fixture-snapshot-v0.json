@@ -1,6 +1,6 @@
 {
   "language": "go",
-  "snapshot_digest": "sha256:b541cdee7bcb23984d8d56171e66f66fdbec027b40a06953105540d5915b33fb",
+  "snapshot_digest": "sha256:5a3bca44537be2cc8d1cb909616b741e8e4e1d1b879dc231e40dfc56d75e3f7a",
   "packages": [
     {
       "unit_id": "example.com/a",
