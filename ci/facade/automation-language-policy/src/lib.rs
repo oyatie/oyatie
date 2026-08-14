@@ -66,8 +66,9 @@ pub const VIOLATION_CODES: [&str; 20] = [
     // shrinking its matching baseline.
     "rust_first_automation_scan_scope_narrowing",
     // Reviewed-replacement window (ADR-0716): a deliberate CI redesign replaces the whole
-    // inline-shell baseline; the window must carry a strictly higher schema_version plus a
-    // non-empty reason and ADR. The PR review is the admission control.
+    // inline-shell baseline; the window must carry a +1 schema_version, a substantive reason,
+    // and a new Accepted ADR that is absent from the protected merge-base. Candidate-controlled
+    // version bumps that reuse an existing ADR cannot self-authorize.
     "rust_first_automation_workflow_inline_shell_replacement_window_incomplete",
 ];
 
@@ -644,6 +645,45 @@ pub fn evaluate_workflow_inline_shell_keyed(
     findings
 }
 
+fn replacement_window_version(baseline: &Value) -> u64 {
+    baseline
+        .get("replacement_window")
+        .and_then(|window| window.get("schema_version"))
+        .and_then(Value::as_u64)
+        .unwrap_or(0)
+}
+
+fn replacement_window_adr(baseline: &Value) -> &str {
+    baseline
+        .get("replacement_window")
+        .and_then(|window| window.get("adr"))
+        .and_then(Value::as_str)
+        .unwrap_or_default()
+}
+
+fn replacement_adr_is_well_formed(adr: &str) -> bool {
+    adr.starts_with("docs/decisions/ADR-")
+        && adr.ends_with(".md")
+        && adr
+            .strip_prefix("docs/decisions/ADR-")
+            .and_then(|rest| rest.strip_suffix(".md"))
+            .is_some_and(|slug| {
+                slug.len() > 4
+                    && slug[..4].bytes().all(|b| b.is_ascii_digit())
+                    && slug[4..]
+                        .bytes()
+                        .all(|b| b.is_ascii_alphanumeric() || b == b'-')
+            })
+}
+
+fn replacement_window_finding(detail: impl Into<String>) -> Finding {
+    Finding::new(
+        "rust_first_automation_workflow_inline_shell_replacement_window_incomplete",
+        "replacement_window",
+        detail,
+    )
+}
+
 /// Enforce the immutable merge-base workflow baseline as an anti-expansion ceiling. A candidate
 /// may remove an accepted shell step or reduce its line count, but it may not add a baseline key
 /// or raise a line-count ceiling to waive newly introduced workflow shell debt.
@@ -653,47 +693,41 @@ pub fn validate_workflow_inline_shell_baseline_ceiling(
 ) -> BTreeSet<Finding> {
     let mut findings = BTreeSet::new();
     // ADR-0716 reviewed-replacement window: a deliberate CI redesign may replace the whole
-    // inline-shell baseline by declaring `replacement_window` with a strictly higher
-    // schema_version plus a substantive reason and a well-formed ADR path. The PR review is
-    // the admission control; without the window the ceiling stays shrink-only (one-way door).
-    // The window does NOT self-authorize: the reason must be substantive (>= 40 trimmed
-    // chars), the ADR must name a docs/decisions/ADR-NNNN-<topic>.md record, and the live
-    // corpus test separately requires that ADR file to exist and be Accepted in the same PR.
-    if let Some(window) = candidate_baseline.get("replacement_window") {
-        let candidate_version = window
-            .get("schema_version")
-            .and_then(Value::as_u64)
-            .unwrap_or(0);
-        let protected_version = protected_baseline
-            .get("replacement_window")
-            .and_then(|w| w.get("schema_version"))
-            .and_then(Value::as_u64)
-            .unwrap_or(0);
+    // inline-shell baseline by declaring `replacement_window` with schema_version == protected + 1,
+    // a substantive reason, and a *new* well-formed ADR path (not the consumed protected ADR).
+    // Without the window the ceiling stays shrink-only (one-way door). JSON metadata alone still
+    // cannot self-authorize: [`validate_replacement_window_authorization`] requires the named ADR
+    // to exist, be Accepted, and be absent from the protected merge-base tree.
+    if candidate_baseline.get("replacement_window").is_some() {
+        let candidate_version = replacement_window_version(candidate_baseline);
+        let protected_version = replacement_window_version(protected_baseline);
         if candidate_version > protected_version {
-            let reason = window.get("reason").and_then(Value::as_str).unwrap_or_default();
-            let adr = window.get("adr").and_then(Value::as_str).unwrap_or_default();
-            let well_formed_adr = adr.starts_with("docs/decisions/ADR-")
-                && adr.ends_with(".md")
-                && adr
-                    .strip_prefix("docs/decisions/ADR-")
-                    .and_then(|rest| rest.strip_suffix(".md"))
-                    .is_some_and(|slug| {
-                        slug.len() > 4
-                            && slug[..4].bytes().all(|b| b.is_ascii_digit())
-                            && slug[4..].bytes().all(|b| b.is_ascii_alphanumeric() || b == b'-')
-                    });
+            let reason = candidate_baseline
+                .get("replacement_window")
+                .and_then(|window| window.get("reason"))
+                .and_then(Value::as_str)
+                .unwrap_or_default();
+            let adr = replacement_window_adr(candidate_baseline);
+            let protected_adr = replacement_window_adr(protected_baseline);
+            if candidate_version != protected_version.saturating_add(1) {
+                findings.insert(replacement_window_finding(
+                    "a reviewed baseline replacement must bump schema_version by exactly 1; \
+                     arbitrary candidate-controlled jumps cannot self-authorize",
+                ));
+            }
             if reason.trim().len() < 40 {
-                findings.insert(Finding::new(
-                    "rust_first_automation_workflow_inline_shell_replacement_window_incomplete",
-                    "replacement_window",
+                findings.insert(replacement_window_finding(
                     "a reviewed baseline replacement must carry a substantive (>= 40 trimmed chars) reason",
                 ));
             }
-            if !well_formed_adr {
-                findings.insert(Finding::new(
-                    "rust_first_automation_workflow_inline_shell_replacement_window_incomplete",
-                    "replacement_window",
+            if !replacement_adr_is_well_formed(adr) {
+                findings.insert(replacement_window_finding(
                     "the replacement window's adr must be a well-formed docs/decisions/ADR-NNNN-<topic>.md path",
+                ));
+            } else if !protected_adr.is_empty() && adr == protected_adr {
+                findings.insert(replacement_window_finding(
+                    "a replacement must name a new ADR; reusing the protected window's ADR cannot \
+                     self-authorize another bump",
                 ));
             }
             return findings;
@@ -724,6 +758,75 @@ pub fn validate_workflow_inline_shell_baseline_ceiling(
             }
             Some(_) => {}
         }
+    }
+
+    findings
+}
+
+/// Bind a replacement-window bump to an exact reviewed transition: the named ADR must exist in
+/// the candidate tree, be Accepted, match its filename id, and be absent from the protected
+/// merge-base. Reusing any ADR already on `origin/dev` (including the consumed window's ADR)
+/// cannot authorize a new baseline rewrite.
+pub fn validate_replacement_window_authorization(
+    candidate_baseline: &Value,
+    protected_baseline: &Value,
+    repo_root: &Path,
+) -> BTreeSet<Finding> {
+    let mut findings = BTreeSet::new();
+    if candidate_baseline.get("replacement_window").is_none() {
+        return findings;
+    }
+    let candidate_version = replacement_window_version(candidate_baseline);
+    let protected_version = replacement_window_version(protected_baseline);
+    if candidate_version <= protected_version {
+        return findings;
+    }
+    let adr = replacement_window_adr(candidate_baseline);
+    if !replacement_adr_is_well_formed(adr) {
+        return findings;
+    }
+
+    let adr_path = repo_root.join(adr);
+    match fs::read_to_string(&adr_path) {
+        Err(_) => {
+            findings.insert(replacement_window_finding(format!(
+                "the replacement window ADR must exist in this PR: {adr}"
+            )));
+        }
+        Ok(text) => {
+            if !text.contains("status: Accepted") {
+                findings.insert(replacement_window_finding(
+                    "the replacement window's ADR must be Accepted",
+                ));
+            }
+            let number = adr
+                .strip_prefix("docs/decisions/ADR-")
+                .and_then(|rest| rest.get(..4))
+                .unwrap_or_default();
+            if !text.contains(&format!("id: ADR-{number}")) {
+                findings.insert(replacement_window_finding(
+                    "the replacement window ADR frontmatter id must match its filename number",
+                ));
+            }
+        }
+    }
+
+    let source = GitCliFrozenPolicySource { repo_root };
+    match source.merge_base(PROTECTED_BASE_REF) {
+        Err(_) => {
+            findings.insert(replacement_window_finding(
+                "cannot admit a replacement window without a resolvable protected merge-base",
+            ));
+        }
+        Ok(merge_base) => match source.show_file(&merge_base, adr) {
+            Ok(_) => {
+                findings.insert(replacement_window_finding(
+                    "the named ADR already exists on the protected merge-base; a replacement must \
+                     introduce a new ADR in this PR",
+                ));
+            }
+            Err(_) => {}
+        },
     }
 
     findings

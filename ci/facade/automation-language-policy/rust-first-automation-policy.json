@@ -294,7 +294,7 @@
       ]
     },
     "workflow_inline_shell": {
-      "_comment": "pipeline-glue(a): parses the declared workflow roots with a real YAML parser, emits one schema-v2 keyed observation per (file, job, required unique run-step name) with exact effective-command shell_lines, and ratchets it against the embedded workflow_inline_shell_baseline. New keys or line-count growth are born-blocking EXCEPT via a reviewed replacement_window (schema_version bump + reason + ADR, admitted by ADR-0716); retired keys or line-count shrink must shrink the baseline in the same PR. Missing or duplicate names fail closed.",
+      "_comment": "pipeline-glue(a): parses the declared workflow roots with a real YAML parser, emits one schema-v2 keyed observation per (file, job, required unique run-step name) with exact effective-command shell_lines, and ratchets it against the embedded workflow_inline_shell_baseline. New keys or line-count growth are born-blocking EXCEPT via a reviewed replacement_window (+1 schema_version + substantive reason + a new Accepted ADR absent from the protected merge-base); retired keys or line-count shrink must shrink the baseline in the same PR. Missing or duplicate names fail closed.",
       "enabled": true,
       "extensions": [
         ".yaml",
@@ -310,7 +310,7 @@
   "workflow_inline_shell_baseline": {
     "_comment": "FROZEN exact named-step baseline of accepted workflow inline shell. Each entry is {key, shell_lines}, keyed as <workflow-relpath>::<job-id>::<required unique run-step name>. ADR-0716 replaced the whole baseline in one reviewed window: the CI merge path moved from buck2 to cargo, all job/step names became self-explanatory and debranded, and the cache-integrity canary plus the docs-graph-drift adapter were retired.",
     "_provenance": {
-      "authority": "pipeline-glue(a): rust-first ratchet workflow-inline-shell; door:one-way except a reviewed replacement_window (schema_version bump + reason + ADR) admits a deliberate CI redesign",
+      "authority": "pipeline-glue(a): rust-first ratchet workflow-inline-shell; door:one-way except a reviewed replacement_window (+1 schema_version + reason + a new Accepted ADR absent from origin/dev) admits a deliberate CI redesign",
       "baseline_schema_version": 2,
       "frozen_from_commit": "ADR-0716 cargo-merge-path PR",
       "keys_by_file": {

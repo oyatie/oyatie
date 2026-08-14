@@ -13,14 +13,15 @@ use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 use oya_cloud_ci_rust_first_automation_hygiene_app::{
     Finding, Verdict, collect_observed_cli_package_authority,
     collect_observed_forbidden_workflow_uses, collect_observed_interpreter_command_authority,
-    collect_observed_non_rust_automation, collect_observed_workflow_inline_shell, evaluate,
-    evaluate_cli_package_authority, evaluate_forbidden_workflow_uses,
-    evaluate_interpreter_command_authority, evaluate_keyed,
-    detect_renames_since_merge_base, evaluate_non_rust_exception_baseline_keyed,
-    evaluate_workflow_inline_shell_keyed, load_non_rust_exception_baseline_from_merge_base,
-    load_scan_from_merge_base, load_workflow_inline_shell_baseline_from_merge_base,
-    relabel_baseline_keys_for_renames, validate_non_rust_exception_baseline_ceiling,
-    validate_non_rust_exception_baseline_ceiling_with_renames, validate_scan_scope_ceiling,
+    collect_observed_non_rust_automation, collect_observed_workflow_inline_shell,
+    detect_renames_since_merge_base, evaluate, evaluate_cli_package_authority,
+    evaluate_forbidden_workflow_uses, evaluate_interpreter_command_authority, evaluate_keyed,
+    evaluate_non_rust_exception_baseline_keyed, evaluate_workflow_inline_shell_keyed,
+    load_non_rust_exception_baseline_from_merge_base, load_scan_from_merge_base,
+    load_workflow_inline_shell_baseline_from_merge_base, relabel_baseline_keys_for_renames,
+    validate_non_rust_exception_baseline_ceiling,
+    validate_non_rust_exception_baseline_ceiling_with_renames,
+    validate_replacement_window_authorization, validate_scan_scope_ceiling,
     validate_workflow_inline_shell_baseline_ceiling,
 };
 use serde_json::{Value, json};
@@ -266,7 +267,10 @@ fn thirdparty_python_overlay_is_retired_into_owned_rust() {
 fn python_buck_generators_are_retired_with_the_wiring_successor_named() {
     let root = repo_root();
     let policy = load_policy(&root);
-    let paths = ["scripts/emit_rust_tests.py", "scripts/gen_first_party_buck.py"];
+    let paths = [
+        "scripts/emit_rust_tests.py",
+        "scripts/gen_first_party_buck.py",
+    ];
     let exceptions = policy["exceptions"].as_array().expect("exceptions array");
     let baseline = policy["non_rust_exception_baseline"]["codes"]
         ["rust_first_automation_unbaselined_non_rust_exception"]
@@ -291,7 +295,8 @@ fn python_buck_generators_are_retired_with_the_wiring_successor_named() {
     }
 
     assert!(
-        root.join("tools/oya-buck-test-wiring-app/src/lib.rs").is_file(),
+        root.join("tools/oya-buck-test-wiring-app/src/lib.rs")
+            .is_file(),
         "the rust_test wiring job must live in the owned-Rust ADR-0540 generator \
          //tools/oya-buck-test-wiring-app — retiring the Python emitter without it would drop a \
          live job, not a dead one"
@@ -405,11 +410,7 @@ fn retirement_event_transport_delegates_provider_tuple_to_rust_materializer_with
             "workflow provider-event env binding drifted for {key}"
         );
     }
-    let materialize = named_workflow_step(
-        &workflow_doc,
-        "test",
-        "Materialize generated faces",
-    );
+    let materialize = named_workflow_step(&workflow_doc, "test", "Materialize generated faces");
     let run = materialize
         .get("run")
         .and_then(YamlValue::as_str)
@@ -526,6 +527,11 @@ fn live_workflow_inline_shell_matches_frozen_baseline_green() {
 
     let mut findings =
         validate_workflow_inline_shell_baseline_ceiling(candidate_baseline, &protected_baseline);
+    findings.extend(validate_replacement_window_authorization(
+        candidate_baseline,
+        &protected_baseline,
+        &root,
+    ));
     findings.extend(evaluate_workflow_inline_shell_keyed(
         &observed,
         candidate_baseline,
@@ -1588,8 +1594,7 @@ fn weekly_smoke_consumes_the_installer_and_the_drift_adapter_is_retired() {
             .unwrap_or_else(|| panic!("weekly smoke must carry step {name}"))
     };
     assert!(
-        index_of("Install pinned buck2 (digest-verified)")
-            < index_of("Hermetic workspace build"),
+        index_of("Install pinned buck2 (digest-verified)") < index_of("Hermetic workspace build"),
         "the installer must run before the hermetic build"
     );
 }
@@ -1606,15 +1611,22 @@ fn window_baseline(version: u64, reason: &str, adr: &str, extra_keys: &[(&str, u
 }
 
 const VALID_ADR: &str = "docs/decisions/ADR-0716-cargo-merge-path-buck2-local-hermeticity.md";
+const NEXT_ADR: &str = "docs/decisions/ADR-0717-example-next-redesign.md";
 
 #[test]
 fn replacement_window_whitespace_reason_is_rejected() {
     let findings = validate_workflow_inline_shell_baseline_ceiling(
-        &window_baseline(2, "   ", VALID_ADR, &[]),
-        &window_baseline(1, "a protected baseline with a substantive reason string", VALID_ADR, &[]),
+        &window_baseline(2, "   ", NEXT_ADR, &[]),
+        &window_baseline(
+            1,
+            "a protected baseline with a substantive reason string",
+            VALID_ADR,
+            &[],
+        ),
     );
     assert!(
-        findings.iter().any(|f| f.code == "rust_first_automation_workflow_inline_shell_replacement_window_incomplete"),
+        findings.iter().any(|f| f.code
+            == "rust_first_automation_workflow_inline_shell_replacement_window_incomplete"),
         "a whitespace reason must fail the window; got {findings:#?}"
     );
 }
@@ -1627,7 +1639,8 @@ fn replacement_window_bogus_adr_is_rejected() {
         &window_baseline(1, reason, VALID_ADR, &[]),
     );
     assert!(
-        findings.iter().any(|f| f.code == "rust_first_automation_workflow_inline_shell_replacement_window_incomplete"),
+        findings.iter().any(|f| f.code
+            == "rust_first_automation_workflow_inline_shell_replacement_window_incomplete"),
         "a bogus ADR path must fail the window; got {findings:#?}"
     );
 }
@@ -1639,46 +1652,199 @@ fn replacement_window_same_version_stays_shrink_only() {
     let protected = window_baseline(1, reason, VALID_ADR, &[]);
     let findings = validate_workflow_inline_shell_baseline_ceiling(&candidate, &protected);
     assert!(
-        findings.iter().any(|f| f.code == "rust_first_automation_unbaselined_workflow_inline_shell"),
+        findings
+            .iter()
+            .any(|f| f.code == "rust_first_automation_unbaselined_workflow_inline_shell"),
         "a same-version window must NOT waive the shrink-only ceiling; got {findings:#?}"
     );
 }
 
 #[test]
-fn replacement_window_with_valid_metadata_admits_the_replacement() {
-    let reason = "a deliberate CI redesign with a substantive explanation of why the whole baseline changes";
+fn replacement_window_reusing_protected_adr_is_rejected() {
+    let reason =
+        "a deliberate CI redesign with a substantive explanation of why the whole baseline changes";
     let findings = validate_workflow_inline_shell_baseline_ceiling(
         &window_baseline(2, reason, VALID_ADR, &[("new.key::job::step", 1)]),
         &window_baseline(1, reason, VALID_ADR, &[]),
     );
-    assert!(findings.is_empty(), "a valid window must admit the replacement; got {findings:#?}");
+    assert!(
+        findings.iter().any(|f| f.code
+            == "rust_first_automation_workflow_inline_shell_replacement_window_incomplete"
+            && f.detail.contains("reusing the protected window's ADR")),
+        "reusing the consumed ADR must not admit another replacement; got {findings:#?}"
+    );
+}
+
+#[test]
+fn replacement_window_version_skip_is_rejected() {
+    let reason =
+        "a deliberate CI redesign with a substantive explanation of why the whole baseline changes";
+    let findings = validate_workflow_inline_shell_baseline_ceiling(
+        &window_baseline(3, reason, NEXT_ADR, &[("new.key::job::step", 1)]),
+        &window_baseline(1, reason, VALID_ADR, &[]),
+    );
+    assert!(
+        findings.iter().any(|f| f.code
+            == "rust_first_automation_workflow_inline_shell_replacement_window_incomplete"
+            && f.detail.contains("exactly 1")),
+        "skipping schema_version must not self-authorize; got {findings:#?}"
+    );
+}
+
+#[test]
+fn replacement_window_with_valid_metadata_admits_the_replacement() {
+    let reason =
+        "a deliberate CI redesign with a substantive explanation of why the whole baseline changes";
+    let findings = validate_workflow_inline_shell_baseline_ceiling(
+        &window_baseline(2, reason, NEXT_ADR, &[("new.key::job::step", 1)]),
+        &window_baseline(1, reason, VALID_ADR, &[]),
+    );
+    assert!(
+        findings.is_empty(),
+        "a valid window must admit the replacement; got {findings:#?}"
+    );
 }
 
 #[test]
 fn replacement_window_adr_must_exist_and_be_accepted() {
     let root = repo_root();
-    let policy_path = root
-        .join("ci/facade/automation-language-policy/rust-first-automation-policy.json");
-    let policy: Value = serde_json::from_str(
-        &fs::read_to_string(&policy_path).expect("read policy"),
-    )
-    .expect("parse policy");
+    let policy_path =
+        root.join("ci/facade/automation-language-policy/rust-first-automation-policy.json");
+    let policy: Value =
+        serde_json::from_str(&fs::read_to_string(&policy_path).expect("read policy"))
+            .expect("parse policy");
     let Some(window) = policy["workflow_inline_shell_baseline"].get("replacement_window") else {
         return; // no active window: shrink-only ceiling applies
     };
     let adr_rel = window["adr"].as_str().expect("window adr must be a string");
     let adr_path = root.join(adr_rel);
-    assert!(adr_path.is_file(), "the replacement window ADR must exist: {adr_rel}");
+    assert!(
+        adr_path.is_file(),
+        "the replacement window ADR must exist: {adr_rel}"
+    );
     let text = fs::read_to_string(&adr_path).expect("read ADR");
     assert!(
         text.contains("status: Accepted"),
         "the replacement window's ADR must be Accepted"
     );
-    let stem = adr_path.file_stem().and_then(|s| s.to_str()).unwrap_or_default();
+    let stem = adr_path
+        .file_stem()
+        .and_then(|s| s.to_str())
+        .unwrap_or_default();
     let number = stem.get(4..8).unwrap_or(stem);
     assert!(
         text.contains(&format!("id: ADR-{number}")),
         "the ADR frontmatter id must match its filename number"
+    );
+}
+
+fn init_policy_git_repo(root: &Path) {
+    run_git(root, ["init"]);
+    run_git(
+        root,
+        ["config", "user.email", "automation-policy@example.test"],
+    );
+    run_git(root, ["config", "user.name", "automation policy test"]);
+}
+
+fn write_accepted_adr(root: &Path, rel: &str, id: &str) {
+    let path = root.join(rel);
+    fs::create_dir_all(path.parent().expect("adr parent")).expect("create adr directory");
+    fs::write(
+        &path,
+        format!("---\nid: {id}\nstatus: Accepted\n---\n# {id}\n"),
+    )
+    .expect("write adr");
+}
+
+fn pin_origin_dev(root: &Path) {
+    run_git(root, ["add", "."]);
+    run_git(root, ["commit", "-m", "protected tree"]);
+    let protected_commit = run_git(root, ["rev-parse", "HEAD"]);
+    run_git(
+        root,
+        [
+            "update-ref",
+            "refs/remotes/origin/dev",
+            protected_commit.trim(),
+        ],
+    );
+}
+
+#[test]
+fn replacement_window_cannot_reuse_an_adr_already_on_the_merge_base() {
+    let temp = TestDir::new("replacement-window-old-adr");
+    let root = temp.path();
+    init_policy_git_repo(root);
+    fs::write(root.join("README"), "protected\n").expect("write readme");
+    write_accepted_adr(root, VALID_ADR, "ADR-0716");
+    pin_origin_dev(root);
+
+    let reason =
+        "a deliberate CI redesign with a substantive explanation of why the whole baseline changes";
+    let findings = validate_replacement_window_authorization(
+        &window_baseline(1, reason, VALID_ADR, &[("new.key::job::step", 1)]),
+        &json!({"codes": {"rust_first_automation_unbaselined_workflow_inline_shell": []}}),
+        root,
+    );
+    assert!(
+        findings.iter().any(|f| f.code
+            == "rust_first_automation_workflow_inline_shell_replacement_window_incomplete"
+            && f.detail
+                .contains("already exists on the protected merge-base")),
+        "an ADR already on origin/dev must not authorize a replacement; got {findings:#?}"
+    );
+}
+
+#[test]
+fn replacement_window_new_accepted_adr_authorizes_the_transition() {
+    let temp = TestDir::new("replacement-window-new-adr");
+    let root = temp.path();
+    init_policy_git_repo(root);
+    fs::write(root.join("README"), "protected\n").expect("write readme");
+    pin_origin_dev(root);
+    write_accepted_adr(root, VALID_ADR, "ADR-0716");
+
+    let reason =
+        "a deliberate CI redesign with a substantive explanation of why the whole baseline changes";
+    let findings = validate_replacement_window_authorization(
+        &window_baseline(1, reason, VALID_ADR, &[("new.key::job::step", 1)]),
+        &json!({"codes": {"rust_first_automation_unbaselined_workflow_inline_shell": []}}),
+        root,
+    );
+    assert!(
+        findings.is_empty(),
+        "a new Accepted ADR absent from origin/dev must authorize the transition; got {findings:#?}"
+    );
+}
+
+#[test]
+fn replacement_window_proposed_adr_is_rejected() {
+    let temp = TestDir::new("replacement-window-proposed-adr");
+    let root = temp.path();
+    init_policy_git_repo(root);
+    fs::write(root.join("README"), "protected\n").expect("write readme");
+    pin_origin_dev(root);
+    let path = root.join(VALID_ADR);
+    fs::create_dir_all(path.parent().expect("adr parent")).expect("create adr directory");
+    fs::write(
+        &path,
+        "---\nid: ADR-0716\nstatus: Proposed\n---\n# ADR-0716\n",
+    )
+    .expect("write proposed adr");
+
+    let reason =
+        "a deliberate CI redesign with a substantive explanation of why the whole baseline changes";
+    let findings = validate_replacement_window_authorization(
+        &window_baseline(1, reason, VALID_ADR, &[]),
+        &json!({"codes": {"rust_first_automation_unbaselined_workflow_inline_shell": []}}),
+        root,
+    );
+    assert!(
+        findings.iter().any(|f| f.code
+            == "rust_first_automation_workflow_inline_shell_replacement_window_incomplete"
+            && f.detail.contains("must be Accepted")),
+        "a Proposed ADR must not authorize a replacement; got {findings:#?}"
     );
 }
 
