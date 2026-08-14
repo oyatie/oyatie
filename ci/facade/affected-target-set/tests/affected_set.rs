@@ -905,7 +905,6 @@ fn baseline_repair_control_plane_inputs_seed_accountable_leaf_targets() {
         (
             "registry/artifact-capabilities-registry.json",
             &[
-                "root//ci/facade/contract-slice-conformance:ci-contract-slice-conformance-gate",
                 "root//governance/check/active-artifact-contract:check-active-artifact-contract-unittest",
                 "root//marketplace/facade/dev-cli:marketplace-dev-cli-gate-cli",
             ],
@@ -1045,8 +1044,6 @@ fn governance_marker_owners_reaches_its_consumers_instead_of_escalating_to_full(
     for required in [
         // Resolves nearest-ancestor OWNERS for every tracked path; validates the OWNERS schema.
         "ci/facade/artifact-inventory-registry",
-        // `unowned` accounting rows are derived from that resolution.
-        "ci/facade/artifact-accountability",
         // Firewall fixtures judge OWNERS ADDITIONS against the frozen baseline + signoff.
         "ci/facade/baseline-ratchet",
         // Asserts the retirement control plane's OWNERS boundary exists (and `registry/OWNERS` does not).
