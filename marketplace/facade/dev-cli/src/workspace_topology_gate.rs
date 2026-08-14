@@ -143,9 +143,42 @@ pub(crate) fn validate_workspace_topology_gate(
     // R1: flat top-level crates/ dir must not contain any Cargo.toml.
     check_r1_flat_crates_dir(&args.repo_root, &mut findings);
 
-    // Read workspace members from root Cargo.toml.
-    let workspace_manifest = args.repo_root.join("Cargo.toml");
-    let member_paths = read_workspace_member_paths(&workspace_manifest)?;
+    // R4 needs the RAW declared members (a literal member whose directory is absent is
+    // dropped entirely by cargo-faithful glob expansion, so it never reaches the
+    // resolved-member walk below). Check every literal (non-glob) declaration here;
+    // glob patterns are expanded by the scan and their phantom matches reported below.
+    let entries = oya_workspace_members_kernel::read_workspace_manifest_entries(&args.repo_root)
+        .map_err(|error| format!("workspace manifest entries: {error}"))?;
+    for declared in &entries.members {
+        if declared.contains('*') {
+            continue;
+        }
+        let manifest_path = args.repo_root.join(declared).join("Cargo.toml");
+        if !manifest_path.is_file() {
+            findings.push(WorkspaceTopologyFinding {
+                rule: WorkspaceTopologyRule::R4PhantomMember,
+                detail: format!(
+                    "member `{declared}` has no Cargo.toml at {}",
+                    manifest_path.display()
+                ),
+            });
+        }
+    }
+    // Cargo-faithful resolution: expand globs and require every unexcluded match to carry
+    // a manifest. Missing glob matches are R4 phantoms; the existing dirs feed R2/R3/R5-R7.
+    let scan = oya_workspace_members_kernel::scan_member_dirs(&args.repo_root)
+        .map_err(|error| format!("workspace members unresolved: {error}"))?;
+    for phantom in &scan.missing_manifests {
+        let manifest_path = args.repo_root.join(phantom).join("Cargo.toml");
+        findings.push(WorkspaceTopologyFinding {
+            rule: WorkspaceTopologyRule::R4PhantomMember,
+            detail: format!(
+                "member `{phantom}` has no Cargo.toml at {}",
+                manifest_path.display()
+            ),
+        });
+    }
+    let member_paths = scan.member_dirs;
 
     // Build member set (repo-relative paths) for orphan check (R5).
     let member_set: BTreeSet<String> = member_paths.iter().cloned().collect();
