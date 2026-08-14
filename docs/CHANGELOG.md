@@ -83,6 +83,27 @@ doc_status: published
   entering reconciler mode.
 - Refs #1957.
 
+## 2026-08-14 — Pre-push verifier wave-4 hardening (PR #1957 review)
+
+- The generator-source fingerprint now hashes each normalized repo-relative path together with
+  its contents, so a rename-only source move (e.g. `src/foo.rs` → `src/foo/mod.rs`) changes the
+  fingerprint and cannot keep accepting stale pinned generators.
+- The wiring declaration's `verifier` field is validated against the binary's embedded Buck
+  target (`//ci/facade/generated-artifact-freshness:oya-pre-push-verify-bin`); a renamed or
+  replacement target in the declaration fails closed instead of the reconciler reporting
+  convergence while installing a contradicting binary.
+- The hook dispatches on repository identity in a shared hooks dir: when the current repo has no
+  per-worktree generation but OTHER repositories' generations exist (a locally configured
+  org-managed `core.hooksPath` shared by several repos), it skips cleanly instead of blocking
+  foreign repos' pushes; a genuinely broken install of this repo still fails closed.
+- Deletion sentinels are detected independent of the repository object format: any all-zero
+  object ID (40 hex for SHA-1, 64 hex for SHA-256) counts as a deletion, so branch/tag deletions
+  skip verification in every supported format.
+- The hook is documented as an ADVISORY local layer: `git push --no-verify` bypasses it, and the
+  cloud-ci freshness gate behind `oya-ci-required` is the enforcement backstop that cannot be
+  bypassed locally (previous "no bypass by design" wording corrected).
+- Refs #1957.
+
 ## 2026-08-12 — Masterplan stale inline sequencing digest removed
 
 - Normalized the one `masterplan_v2.planning_entry_contract.no_dispatch_stop_conditions`

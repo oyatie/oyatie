@@ -143,7 +143,10 @@ excludes locally git-ignored workspace-glob candidates so an ignored scratch dir
 a false lock-missing finding. Every branch AND non-deletion tag push runs
 the read-only verify — tag objects are peeled to their commit so a tag introduced from a different
 commit is rejected exactly like a non-HEAD branch push — and a failing verify blocks the push with
-the tool's own stale list and remediation output. The hook carries no bypass by design
+the tool's own stale list and remediation output. This hook is an ADVISORY local layer (ADR-0548 D6
+automation-default): Git can bypass it with `git push --no-verify` (and with `--push-option`-based
+CI-only workflows), so the local check is never the enforcement boundary — the cloud-ci freshness
+gate behind `oya-ci-required` is, and it cannot be bypassed locally
 (`docs/AGENTS.md` § During-change discipline:
 hook failure means fix the underlying faces, not the hook); it fails closed when the pushed SHA
 differs from HEAD (the verify certifies the committed tree at HEAD only — push the checked-out branch,
