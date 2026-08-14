@@ -831,6 +831,12 @@ pub enum P2ParentReceipt {
 
 /// Materialize the active append-only census epoch. P2 is intentionally preserved verbatim;
 /// P3 is dormant until its parser and descriptor are promoted together.
+/// Path, relative to the repo root, of the non-Linux historical-P2-replay skip marker the
+/// generated-face materializer writes instead of attempting the byte-pinned replay. The
+/// snapshot tests on non-Linux require this marker so the skip is never silent.
+pub const NON_LINUX_P2_REPLAY_SKIP_MARKER: &str =
+    "ci/facade/scm-facts-snapshot/adr-census-parent-receipt.platform-skip.txt";
+
 pub fn emit_adr_census_epoch_receipt(
     repo_root: &Path,
     output: &Path,
