@@ -7572,40 +7572,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-cloud-os-cluster-mgmt-domain"
-version = "0.1.0"
-dependencies = [
- "os-kernel",
-]
-
-[[package]]
-name = "oya-cloud-os-kubernetes-domain"
-version = "0.1.0"
-dependencies = [
- "os-kernel",
- "os-runtime-cri-domain",
- "oya-cloud-os-secrets-domain",
-]
-
-[[package]]
-name = "oya-cloud-os-secrets-domain"
-version = "0.1.0"
-dependencies = [
- "os-kernel",
-]
-
-[[package]]
-name = "oya-cloud-os-trustd-domain"
-version = "0.1.0"
-dependencies = [
- "aws-lc-rs",
- "os-kernel",
- "rcgen",
- "time",
- "x509-parser",
-]
-
-[[package]]
 name = "oya-cloud-surface-domain"
 version = "0.1.0"
 dependencies = [

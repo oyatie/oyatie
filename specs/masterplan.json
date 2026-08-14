@@ -7410,7 +7410,6 @@
               "P-OWNED-STACK-OS"
             ],
             "source_anchors": [
-              "cloud/cloud-os",
               "os",
               "specs/capability-registry.json#meta_directories[os/]"
             ]
