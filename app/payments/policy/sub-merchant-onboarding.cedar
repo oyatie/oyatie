@@ -67,7 +67,15 @@ when {
     "reconciliation-worker",
     "fraud-handler",
     "webhook-receiver"
-  ]
+  ] &&
+  // Bind the restriction to the principal's tenant and require positive
+  // evidence that the triggering event was an authenticated PSP/check event;
+  // without these a compromised receiver could suspend merchants platform-wide.
+  principal has tenant_id &&
+  resource has tenant_id &&
+  principal.tenant_id == resource.tenant_id &&
+  resource has psp_event_authenticated &&
+  resource.psp_event_authenticated == true
 };
 
 // =============================================================================
@@ -146,7 +154,7 @@ when {
 
 forbid (
   principal,
-  action in [Action::"sub-merchant.onboard", Action::"sub-merchant.update"],
+  action in [Action::"sub-merchant.onboard", Action::"sub-merchant.update", Action::"sub-merchant.restrict"],
   resource
 )
 unless {

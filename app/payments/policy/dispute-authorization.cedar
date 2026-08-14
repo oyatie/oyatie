@@ -24,6 +24,7 @@ permit (
 )
 when {
   principal has svid_present && principal.svid_present == true &&
+  principal has svid_valid && principal.svid_valid == true &&
   resource has hmac_valid && resource.hmac_valid == true &&
   resource has webhook_age_seconds && resource.webhook_age_seconds <= 300
 };

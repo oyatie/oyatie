@@ -21,7 +21,7 @@
 
 permit (
   principal in TenantOperator::?p,
-  action in [Action::"refund.create", Action::"refund.cancel"],
+  action in [Action::"refund.create", Action::"refund.cancel", Action::"refund.read"],
   resource in Refund::?r
 )
 when {
@@ -80,7 +80,18 @@ when {
   principal has system_role &&
   principal.system_role == "reconciliation-worker" &&
   resource has reason_code &&
-  resource.reason_code == "auto-refund-double-charge-detected"
+  resource.reason_code == "auto-refund-double-charge-detected" &&
+  // Require the same positive validation facts as tenant refunds so omitted
+  // safety attributes cannot let an arbitrary or already-refunded amount
+  // through (the forbids below reject only explicitly-false values).
+  resource has original_charge_exists &&
+  resource.original_charge_exists == true &&
+  resource has original_charge_captured &&
+  resource.original_charge_captured == true &&
+  resource has refund_amount_valid &&
+  resource.refund_amount_valid == true &&
+  resource has within_refund_window &&
+  resource.within_refund_window == true
 };
 
 // =============================================================================

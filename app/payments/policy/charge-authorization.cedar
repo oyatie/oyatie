@@ -28,7 +28,8 @@ permit (
     Action::"charge.create",
     Action::"charge.authorize",
     Action::"charge.capture",
-    Action::"charge.void"
+    Action::"charge.void",
+    Action::"charge.read"
   ],
   resource in Charge::?c
 )
