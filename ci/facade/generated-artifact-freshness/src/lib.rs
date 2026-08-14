@@ -636,15 +636,16 @@ pub fn install_pre_push_verifier_tools(
 }
 
 /// Write the installed-verifier manifest (protocol version + pinned tool fingerprints + generator
-/// source fingerprint + the installed hook's own identity) next to the installed hook. The hook
-/// reads this at push time and fails closed with a reinstall requirement when the version, any
-/// pinned tool build, the generator source the tools were built from, or (at install time) the
-/// installed hook's identity is missing or stale.
+/// source fingerprint + the installed hook's own identity + the owning repository identity) next
+/// to the installed hook. The hook reads this at push time and fails closed with a reinstall
+/// requirement when the version, any pinned tool build, the generator source the tools were built
+/// from, or (at install time) the installed hook's identity is missing or stale.
 pub fn write_pre_push_verifier_manifest(
     hooks_dir: &Path,
     tools_dir: &Path,
     repo_root: &Path,
     hook_path: &Path,
+    repo_identity: &str,
 ) -> Result<(), FreshnessError> {
     let path = hooks_dir.join(PRE_PUSH_VERIFIER_MANIFEST_FILE);
     let tool_fingerprints = pinned_tool_fingerprints(tools_dir)?;
@@ -659,6 +660,10 @@ pub fn write_pre_push_verifier_manifest(
         "tool_fingerprints": tool_fingerprints,
         "generator_source_fingerprint": source_fingerprint,
         "hook_fingerprint": hook_fingerprint,
+        // Repository identity (FNV-1a of the canonical git common dir): stable across the linked
+        // worktrees of ONE clone, distinct across repositories — lets the shared-hooks dispatcher
+        // tell a sibling worktree's generation from a foreign repository's generation.
+        "repo_identity": repo_identity,
     });
     let text = serde_json::to_string_pretty(&manifest).map_err(|error| {
         FreshnessError::new(format!("serialize pre-push verifier manifest: {error}"))
@@ -737,6 +742,70 @@ pub fn any_generation_manifest_owns_hook(
         }
     }
     Ok(false)
+}
+
+/// How a (possibly shared) hooks dir relates to the CURRENT repository, judged by the
+/// `repo_identity` recorded in each per-worktree generation manifest. Lets the shared-hooks
+/// dispatcher distinguish a sibling worktree of this clone (must fail closed when this worktree's
+/// generation is missing) from a genuinely foreign repository (must skip cleanly).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum HooksDirGenerationState {
+    /// No oya generation dirs at all: this hooks dir was never reconciled for anything.
+    Empty,
+    /// A sibling generation manifest records THIS repository's identity: this repo IS wired from
+    /// another worktree, so a missing manifest for THIS worktree means reconcile, not skip.
+    ThisRepositoryWired,
+    /// Generation dirs exist but none belongs to this repository: a shared hooks dir serving other
+    /// repositories — the hook must skip foreign pushes cleanly (cloud CI remains their backstop).
+    ForeignRepositoriesOnly,
+}
+
+/// Classify the hooks dir against `repo_identity` by scanning every `oya-pre-push-generation-*`
+/// manifest. Malformed/unreadable sibling manifests are treated as non-matching (they never prove
+/// this repository is wired, so they cannot trigger the fail-closed branch).
+pub fn hooks_dir_generation_state(
+    hooks_dir: &Path,
+    repo_identity: &str,
+) -> Result<HooksDirGenerationState, FreshnessError> {
+    let entries = std::fs::read_dir(hooks_dir).map_err(|error| {
+        FreshnessError::new(format!("read hooks dir {}: {error}", hooks_dir.display()))
+    })?;
+    let mut saw_any_generation = false;
+    for entry in entries {
+        let entry = entry.map_err(|error| {
+            FreshnessError::new(format!(
+                "read hooks dir entry in {}: {error}",
+                hooks_dir.display()
+            ))
+        })?;
+        let name = entry.file_name();
+        let Some(name) = name.to_str() else {
+            continue;
+        };
+        if !name.starts_with(PRE_PUSH_GENERATION_DIR_PREFIX) {
+            continue;
+        }
+        saw_any_generation = true;
+        let manifest_path = entry.path().join(PRE_PUSH_VERIFIER_MANIFEST_FILE);
+        let Ok(text) = std::fs::read_to_string(&manifest_path) else {
+            continue;
+        };
+        let Ok(value) = serde_json::from_str::<serde_json::Value>(&text) else {
+            continue;
+        };
+        let recorded = value
+            .get("repo_identity")
+            .and_then(|value| value.as_str())
+            .unwrap_or_default();
+        if recorded == repo_identity {
+            return Ok(HooksDirGenerationState::ThisRepositoryWired);
+        }
+    }
+    Ok(if saw_any_generation {
+        HooksDirGenerationState::ForeignRepositoriesOnly
+    } else {
+        HooksDirGenerationState::Empty
+    })
 }
 
 /// Read and validate the repository's DECLARED pre-push verifier wiring state
@@ -5440,7 +5509,7 @@ mod pre_push_verifier_protocol_tests {
         std::fs::create_dir_all(&hooks).expect("create hooks dir");
         let tools = fixture_tools_dir(&root);
         let hook = fixture_hook(&hooks);
-        write_pre_push_verifier_manifest(&hooks, &tools, &root, &hook).expect("write");
+        write_pre_push_verifier_manifest(&hooks, &tools, &root, &hook, "test-repo").expect("write");
         let version = read_pre_push_verifier_manifest(&hooks, &tools, &root).expect("read");
         assert_eq!(version, PRE_PUSH_VERIFIER_PROTOCOL_VERSION);
     }
@@ -5484,7 +5553,7 @@ mod pre_push_verifier_protocol_tests {
         std::fs::create_dir_all(&hooks).expect("create hooks dir");
         let tools = fixture_tools_dir(&root);
         let hook = fixture_hook(&hooks);
-        write_pre_push_verifier_manifest(&hooks, &tools, &root, &hook).expect("write");
+        write_pre_push_verifier_manifest(&hooks, &tools, &root, &hook, "test-repo").expect("write");
         // Mutate one pinned tool after install: the manifest fingerprint must no longer match.
         std::fs::write(
             tools.join(PRE_PUSH_TOOL_PRODUCER),
@@ -5505,7 +5574,7 @@ mod pre_push_verifier_protocol_tests {
         std::fs::create_dir_all(&hooks).expect("create hooks dir");
         let tools = fixture_tools_dir(&root);
         let hook = fixture_hook(&hooks);
-        write_pre_push_verifier_manifest(&hooks, &tools, &root, &hook).expect("write");
+        write_pre_push_verifier_manifest(&hooks, &tools, &root, &hook, "test-repo").expect("write");
         // The generator source fingerprint is a data hash of the generator crate build inputs:
         // mutate a generator source file (no Buck label, no protocol integer change) and the
         // handshake must fail closed with a reinstall requirement.
@@ -5560,7 +5629,7 @@ mod pre_push_verifier_protocol_tests {
         std::fs::create_dir_all(&hooks).expect("create hooks dir");
         let tools = fixture_tools_dir(&root);
         let hook = fixture_hook(&hooks);
-        write_pre_push_verifier_manifest(&hooks, &tools, &root, &hook).expect("write");
+        write_pre_push_verifier_manifest(&hooks, &tools, &root, &hook, "test-repo").expect("write");
         assert!(manifest_owns_installed_hook(&hooks, &hook).expect("owned"));
         // Replacing the hook with another tool's bytes (manifest left behind) must revoke
         // ownership so a reinstall refuses to overwrite unrelated user hook state.
@@ -5812,7 +5881,8 @@ mod pre_push_verifier_protocol_tests {
         let generation_a = hooks.join(format!("{PRE_PUSH_GENERATION_DIR_PREFIX}aaaa"));
         std::fs::create_dir_all(&generation_a).expect("create gen A");
         let tools_a = fixture_tools_dir(&root);
-        write_pre_push_verifier_manifest(&generation_a, &tools_a, &root, &hook).expect("write A");
+        write_pre_push_verifier_manifest(&generation_a, &tools_a, &root, &hook, "test-repo")
+            .expect("write A");
         // Worktree B has NO manifest of its own yet. The shared hook must still be recognized as
         // ours (any sibling generation owns it), or B's reconcile would refuse to replace the
         // shared `pre-push` and deadlock the multi-worktree design.
@@ -5824,6 +5894,46 @@ mod pre_push_verifier_protocol_tests {
         assert!(
             !any_generation_manifest_owns_hook(&hooks, &hook)
                 .expect("not owned across generations")
+        );
+    }
+
+    #[test]
+    fn hooks_dir_generation_state_distinguishes_worktrees_from_foreign_repos() {
+        let root = temp_root("oya-pre-push-generation-state");
+        write_protocol_fixture(&root, PRE_PUSH_VERIFIER_PROTOCOL_VERSION, None);
+        let hooks = root.join("hooks");
+        std::fs::create_dir_all(&hooks).expect("create hooks dir");
+        let tools = fixture_tools_dir(&root);
+        let hook = fixture_hook(&hooks);
+        // No generations at all -> Empty (a broken install must fail closed, never skip).
+        assert_eq!(
+            hooks_dir_generation_state(&hooks, "repo-a").expect("state"),
+            HooksDirGenerationState::Empty
+        );
+        // A sibling worktree of the SAME clone records the same identity -> ThisRepositoryWired
+        // (a missing manifest for THIS worktree must fail closed with the reconcile requirement,
+        // not skip verification).
+        let gen_same = hooks.join(format!("{PRE_PUSH_GENERATION_DIR_PREFIX}aaaa"));
+        std::fs::create_dir_all(&gen_same).expect("create gen");
+        write_pre_push_verifier_manifest(&gen_same, &tools, &root, &hook, "repo-a")
+            .expect("write same-repo generation");
+        assert_eq!(
+            hooks_dir_generation_state(&hooks, "repo-a").expect("state"),
+            HooksDirGenerationState::ThisRepositoryWired
+        );
+        // A foreign repository's generation (different identity) -> for a THIRD repo the state is
+        // ForeignRepositoriesOnly (skip cleanly), while repo-a is still ThisRepositoryWired.
+        let gen_foreign = hooks.join(format!("{PRE_PUSH_GENERATION_DIR_PREFIX}bbbb"));
+        std::fs::create_dir_all(&gen_foreign).expect("create gen");
+        write_pre_push_verifier_manifest(&gen_foreign, &tools, &root, &hook, "repo-b")
+            .expect("write foreign generation");
+        assert_eq!(
+            hooks_dir_generation_state(&hooks, "repo-a").expect("state"),
+            HooksDirGenerationState::ThisRepositoryWired
+        );
+        assert_eq!(
+            hooks_dir_generation_state(&hooks, "repo-c").expect("state"),
+            HooksDirGenerationState::ForeignRepositoriesOnly
         );
     }
 

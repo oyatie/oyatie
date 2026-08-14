@@ -43,12 +43,13 @@ use std::path::{Path, PathBuf};
 use std::process::{Command, ExitCode};
 
 use ci_generated_artifact_freshness::{
-    FaceSettleMode, PRE_PUSH_GENERATION_DIR_PREFIX, PRE_PUSH_VERIFIER_MANIFEST_FILE,
-    PRE_PUSH_VERIFIER_PROTOCOL_VERSION, PRE_PUSH_VERIFIER_TOOLS_DIR,
-    any_generation_manifest_owns_hook, assert_committed_tree_clean, fnv1a64_hex,
-    install_pre_push_verifier_tools, read_pre_push_verifier_manifest,
-    read_pre_push_verifier_wiring, run_face_settle_with_pinned_tools,
-    verify_pre_push_verifier_protocol, write_pre_push_verifier_manifest,
+    FaceSettleMode, HooksDirGenerationState, PRE_PUSH_GENERATION_DIR_PREFIX,
+    PRE_PUSH_VERIFIER_MANIFEST_FILE, PRE_PUSH_VERIFIER_PROTOCOL_VERSION,
+    PRE_PUSH_VERIFIER_TOOLS_DIR, any_generation_manifest_owns_hook, assert_committed_tree_clean,
+    fnv1a64_hex, hooks_dir_generation_state, install_pre_push_verifier_tools,
+    read_pre_push_verifier_manifest, read_pre_push_verifier_wiring,
+    run_face_settle_with_pinned_tools, verify_pre_push_verifier_protocol,
+    write_pre_push_verifier_manifest,
 };
 
 /// True when `object_id` is an all-zero object ID — the deletion sentinel git passes on pre-push
@@ -110,21 +111,6 @@ fn run_hook() -> Result<ExitCode, String> {
         return Ok(ExitCode::SUCCESS);
     }
 
-    // The verify certifies the COMMITTED tree (HEAD) only. Every pushed non-deletion commit
-    // (branch head or tag-peeled commit) must equal HEAD, otherwise fail closed: a settled
-    // checkout must not let a stale `topic` commit pass just because a different branch is
-    // checked out — and a tag pushed from a different commit is equally uncertified.
-    let head = head_sha()?;
-    for sha in &pushed_commits {
-        if sha != &head {
-            return Err(format!(
-                "refusing to certify push of {sha}: the local face-settle --verify certifies \
-                 the committed tree at HEAD ({head}) only; push the checked-out branch, or use \
-                 a per-branch worktree whose HEAD is the branch you are pushing"
-            ));
-        }
-    }
-
     let root = repo_root()?;
     // The installed hook lives at <hooks-dir>/pre-push, so its own directory is the hooks dir.
     let exe = env::current_exe().map_err(|error| format!("resolve current executable: {error}"))?;
@@ -142,23 +128,43 @@ fn run_hook() -> Result<ExitCode, String> {
     ));
     let tools_dir = generation_dir.join(PRE_PUSH_VERIFIER_TOOLS_DIR);
 
-    // Repository-aware dispatch: the hooks dir may be SHARED across repositories (e.g. a locally
-    // configured org-managed `core.hooksPath` that several repos point at). When THIS repository
-    // has no generation here but OTHER repositories' generations exist, the installed `pre-push`
-    // is not this repo's verifier — skip cleanly so pushes from other repositories sharing the
-    // directory are not blocked by a repo-specific verifier (their cloud-ci freshness gate behind
-    // `oya-ci-required` remains the enforcement backstop). A genuinely broken install of THIS repo
-    // (no generations anywhere) still fails closed in the handshake below.
-    if !generation_dir
+    // Repository-aware dispatch BEFORE any HEAD certification: the hooks dir may be SHARED across
+    // repositories (e.g. a locally configured org-managed `core.hooksPath` that several repos
+    // point at). A foreign repository's push must never be judged by THIS repository's
+    // HEAD-equality rule (its `topic` ref legitimately differs from its own HEAD). When this
+    // repository has no generation here but the hooks dir serves other repositories' generations,
+    // skip cleanly — their cloud-ci freshness gate behind `oya-ci-required` remains the
+    // enforcement backstop. A sibling WORKTREE of this clone (same repo_identity) or an empty
+    // hooks dir must NOT skip: the missing-manifest handshake below fails closed with the
+    // reconcile requirement, preserving the documented fail-closed behavior.
+    let manifest_missing = !generation_dir
         .join(PRE_PUSH_VERIFIER_MANIFEST_FILE)
-        .exists()
-        && hooks_dir_has_other_generation(&hooks_dir, &generation_dir)?
+        .exists();
+    if manifest_missing
+        && hooks_dir_generation_state(&hooks_dir, &repo_identity(&root)?)
+            .map_err(|error| error.to_string())?
+            == HooksDirGenerationState::ForeignRepositoriesOnly
     {
         println!(
             "pre-push: this repository is not reconciled for the oya pre-push verifier (shared hooks dir {}); skipping — the cloud-ci freshness gate behind oya-ci-required remains the enforcement backstop",
             hooks_dir.display()
         );
         return Ok(ExitCode::SUCCESS);
+    }
+
+    // The verify certifies the COMMITTED tree (HEAD) only. Every pushed non-deletion commit
+    // (branch head or tag-peeled commit) must equal HEAD, otherwise fail closed: a settled
+    // checkout must not let a stale `topic` commit pass just because a different branch is
+    // checked out — and a tag pushed from a different commit is equally uncertified.
+    let head = head_sha()?;
+    for sha in &pushed_commits {
+        if sha != &head {
+            return Err(format!(
+                "refusing to certify push of {sha}: the local face-settle --verify certifies \
+                 the committed tree at HEAD ({head}) only; push the checked-out branch, or use \
+                 a per-branch worktree whose HEAD is the branch you are pushing"
+            ));
+        }
     }
 
     // Verify certifies the COMMITTED tree (HEAD) only. Assert cleanliness BEFORE the manifest
@@ -295,6 +301,17 @@ fn reconcile(args: &[String]) -> Result<String, String> {
 
     let exe = env::current_exe().map_err(|error| format!("resolve current executable: {error}"))?;
     let dest = hooks_dir.join("pre-push");
+    // Refuse a symlinked destination BEFORE copying: `std::fs::copy` follows a DANGLING destination
+    // symlink and would create or overwrite its target, corrupting an unrelated user file even
+    // though `dest.exists()` reports the link as absent. `symlink_metadata` sees the link itself.
+    if let Ok(metadata) = std::fs::symlink_metadata(&dest) {
+        if metadata.file_type().is_symlink() {
+            return Err(format!(
+                "refusing to overwrite {}: it is a symlink; remove it first and re-run reconcile (the oya verifier never writes through or replaces a user symlink)",
+                dest.display()
+            ));
+        }
+    }
     // Replacement permission is bound to the INSTALLED HOOK's identity, not the manifest's mere
     // existence: a manifest records the hook binary's fingerprint, so a manifest left behind after
     // the user swapped in another tool's hook cannot authorize an overwrite of unrelated user hook
@@ -340,8 +357,14 @@ fn reconcile(args: &[String]) -> Result<String, String> {
         std::fs::set_permissions(&dest, perms)
             .map_err(|error| format!("chmod {}: {error}", dest.display()))?;
     }
-    write_pre_push_verifier_manifest(&generation_dir, &tools_dir, &root, &dest)
-        .map_err(|error| error.to_string())?;
+    write_pre_push_verifier_manifest(
+        &generation_dir,
+        &tools_dir,
+        &root,
+        &dest,
+        &repo_identity(&root)?,
+    )
+    .map_err(|error| error.to_string())?;
 
     Ok(format!(
         "reconciled pinned pre-push verifier at {} (outside the checked-out tree) toward the declared wiring (tools/hooks/pre-push-verifier.wiring.json); pinned tools at {}; manifest protocol v{PRE_PUSH_VERIFIER_PROTOCOL_VERSION}",
@@ -359,22 +382,20 @@ fn pre_push_generation_key(repo_root: &Path) -> Result<String, String> {
     Ok(fnv1a64_hex(canonical.to_string_lossy().as_bytes()))
 }
 
-/// True when the hooks dir contains an oya per-worktree generation OTHER than `current` — i.e. the
-/// directory is a shared hooks location already serving another repository's verifier install.
-fn hooks_dir_has_other_generation(hooks_dir: &Path, current: &Path) -> Result<bool, String> {
-    let entries = std::fs::read_dir(hooks_dir)
-        .map_err(|error| format!("read hooks dir {}: {error}", hooks_dir.display()))?;
-    for entry in entries {
-        let entry = entry.map_err(|error| format!("read hooks dir entry: {error}"))?;
-        let name = entry.file_name();
-        let Some(name) = name.to_str() else {
-            continue;
-        };
-        if name.starts_with(PRE_PUSH_GENERATION_DIR_PREFIX) && entry.path() != current {
-            return Ok(true);
-        }
-    }
-    Ok(false)
+/// Repository identity (FNV-1a of the canonical git common dir): stable across the linked
+/// worktrees of ONE clone, distinct across repositories. The shared-hooks dispatcher uses it to
+/// tell a sibling worktree's generation (same identity, must fail closed when this worktree's
+/// generation is missing) from a foreign repository's generation (different identity, skip).
+fn repo_identity(repo_root: &Path) -> Result<String, String> {
+    let raw = git_capture(Some(repo_root), &["rev-parse", "--git-common-dir"])?;
+    let abs = if Path::new(&raw).is_absolute() {
+        PathBuf::from(&raw)
+    } else {
+        repo_root.join(&raw)
+    };
+    let canonical = std::fs::canonicalize(&abs)
+        .map_err(|error| format!("canonicalize git common dir {}: {error}", abs.display()))?;
+    Ok(fnv1a64_hex(canonical.to_string_lossy().as_bytes()))
 }
 
 /// Resolve the hooks dir, preserving a LOCAL or WORKTREE-scoped `core.hooksPath`. Refuses when the
@@ -693,28 +714,27 @@ mod tests {
     }
 
     #[test]
-    fn hooks_dir_has_other_generation_detects_shared_dirs() {
+    fn repo_identity_is_stable_within_a_clone() {
+        // The identity is derived from the canonical git common dir, so it must be stable across
+        // repeated calls in the same clone (and differ across repositories — covered by the lib
+        // hooks_dir_generation_state test).
         let base = std::env::temp_dir().join(format!(
-            "oya-pre-push-shared-hooks-{}-{}",
+            "oya-pre-push-repo-identity-{}-{}",
             std::process::id(),
             std::time::SystemTime::now()
                 .duration_since(std::time::UNIX_EPOCH)
                 .expect("clock after epoch")
                 .as_nanos(),
         ));
-        let hooks = base.join("hooks");
-        std::fs::create_dir_all(&hooks).expect("create hooks dir");
-        let own = hooks.join(format!("{PRE_PUSH_GENERATION_DIR_PREFIX}aaaa"));
-        let other = hooks.join(format!("{PRE_PUSH_GENERATION_DIR_PREFIX}bbbb"));
-        std::fs::create_dir_all(&other).expect("create other generation");
-        assert!(
-            hooks_dir_has_other_generation(&hooks, &own).expect("scan hooks dir"),
-            "another repo's generation must be detected as shared"
-        );
-        assert!(
-            !hooks_dir_has_other_generation(&hooks, &other).expect("scan hooks dir"),
-            "only-own generation is not shared"
-        );
+        let repo = base.join("repo");
+        std::fs::create_dir_all(&repo).expect("create repo");
+        if !run_git(&repo, &["init", "-q"]).status.success() {
+            let _ = std::fs::remove_dir_all(&base);
+            return;
+        }
+        let first = repo_identity(&repo).expect("identity");
+        let second = repo_identity(&repo).expect("identity");
+        assert_eq!(first, second, "identity must be stable within a clone");
         let _ = std::fs::remove_dir_all(&base);
     }
 }
