@@ -34,6 +34,7 @@ tokio = { workspace = true, features = ["sync"] }
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["rt", "rt-multi-thread", "macros", "time"] }
+futures = "0.3"
 # default-features=false drops the optional `cookies` feature (basic-cookies /
 # lalrpop codegen, no buck2 fixup). Tests use only the generic header/path/body
 # matchers, never httpmock's cookie matcher.
