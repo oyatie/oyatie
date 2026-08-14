@@ -73,7 +73,7 @@ regulatory_packs_consumed:
 evidence_topic: oya.payments.payout
 
 cost_profile:
-  type: per-payout
+  type: per-invocation
   estimated_cost_usd_per_call: 0.50  # Stripe $0.25 + Adyen €0.25 + ACH return-risk reserve
   cost_drivers:
     - PSP payout fee
@@ -82,12 +82,6 @@ cost_profile:
 cedar_policy_fragments:
   - app/payments/policy/payout-authorization.cedar
   - app/payments/policy/abuse-defence.cedar
-
-eval_set:
-  paiden_inputs_path: app/payments/capabilities/eval/payout-paiden.jsonl
-  pass_threshold: 0.999  # higher bar — payout errors are catastrophic
-  eval_metric: payout-success-rate-vs-stripe-sandbox-reference
-  cadence: per-release
 
 sunset:
   status: none

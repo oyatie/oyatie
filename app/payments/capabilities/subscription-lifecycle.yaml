@@ -60,7 +60,7 @@ regulatory_packs_consumed:
 evidence_topic: oya.payments.subscription
 
 cost_profile:
-  type: per-renewal
+  type: per-invocation
   estimated_cost_usd_per_call: 0.30
   cost_drivers:
     - PSP fee per renewal-charge (same as charge capability)

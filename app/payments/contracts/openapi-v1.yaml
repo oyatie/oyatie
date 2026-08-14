@@ -110,6 +110,8 @@ paths:
       operationId: getCharge
       summary: Get a charge
       tags: [charge]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
       responses:
         '200':
           description: Charge
@@ -131,6 +133,7 @@ paths:
       tags: [charge]
       parameters:
         - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/TenantId'
       requestBody:
         required: false
         content:
@@ -156,6 +159,7 @@ paths:
       tags: [charge]
       parameters:
         - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/TenantId'
       responses:
         '200':
           description: Charge voided
@@ -190,6 +194,7 @@ paths:
       summary: Get a refund
       tags: [refund]
       parameters:
+        - $ref: '#/components/parameters/TenantId'
         - in: path
           name: refund_id
           required: true
@@ -229,6 +234,7 @@ paths:
       summary: Get a payout
       tags: [payout]
       parameters:
+        - $ref: '#/components/parameters/TenantId'
         - in: path
           name: payout_id
           required: true
@@ -260,6 +266,8 @@ paths:
       summary: Submit dispute representment bundle
       tags: [dispute]
       parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/TenantId'
         - in: path
           name: dispute_id
           required: true
@@ -331,6 +339,8 @@ paths:
       operationId: receivePspWebhook
       summary: Receive a PSP webhook (HMAC-signed)
       tags: [charge]
+      security:
+        - pspSignature: []
       requestBody:
         required: true
         content:
@@ -403,6 +413,18 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
+    pspSignature:
+      type: apiKey
+      in: header
+      name: X-PSP-Signature
+      description: |
+        Provider webhook HMAC signature. Each PSP delivers its signature in a
+        provider-specific header (Stripe: `Stripe-Signature`; Adyen:
+        `X-Hmac-Signature`; Toss: `Toss-Signature`; KakaoPay / LINE Pay /
+        WeChat Pay / Alipay: provider signature header); the webhook handler
+        maps the provider header onto `X-PSP-Signature` and validates it
+        against the stored per-PSP HMAC secret with a 300s replay window
+        (policy/abuse-defence.cedar).
   parameters:
     IdempotencyKey:
       name: Idempotency-Key
@@ -438,7 +460,8 @@ components:
         amount_minor:
           type: integer
           format: int64
-          description: Amount in minor units (e.g. cents for USD)
+          minimum: 1
+          description: Amount in minor units (e.g. cents for USD). Must be a positive non-zero integer for every money-movement (charge / refund / payout); the equivalent positivity invariant is enforced at the protobuf and runtime boundary.
           example: 1099
         currency:
           type: string
@@ -493,6 +516,10 @@ components:
           type: string
           format: uuid
         amount: { $ref: '#/components/schemas/Money' }
+        sub_merchant_id:
+          type: string
+          format: uuid
+          description: Sub-merchant whose balance is paid out; required for sub-merchant payout flows and matched by Cedar against the principal's scope.
         scheduled_for:
           type: string
           format: date-time

@@ -9,14 +9,10 @@
 // @publisher-svid: spiffe://oyatie/payments/foundry-agent
 
 // =============================================================================
-// Default deny — every charge action is refused unless an explicit permit matches.
+// Default deny — Cedar's implicit default deny refuses every charge action
+// unless an explicit permit matches; no unconditional forbid is needed (a
+// universal forbid would deny even explicitly permitted actions).
 // =============================================================================
-
-forbid (
-  principal,
-  action,
-  resource
-);
 
 // =============================================================================
 // PERMIT 1 — tenant-operator creates charge for own tenant

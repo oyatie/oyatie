@@ -62,7 +62,7 @@ regulatory_packs_consumed:
 evidence_topic: oya.payments.refund
 
 cost_profile:
-  type: per-refund
+  type: per-invocation
   estimated_cost_usd_per_call: 0.005
   cost_drivers:
     - PSP fee (Stripe: $0 refund-fee but original-fee not refunded)

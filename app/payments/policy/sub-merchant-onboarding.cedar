@@ -10,14 +10,9 @@
 // @publisher-svid: spiffe://oyatie/payments/foundry-agent
 
 // =============================================================================
-// Default deny
+// Default deny — Cedar's implicit default deny; no unconditional forbid is
+// needed (a universal forbid would deny even explicitly permitted actions).
 // =============================================================================
-
-forbid (
-  principal,
-  action,
-  resource
-);
 
 // =============================================================================
 // PERMIT 1 — tenant onboards a sub-merchant

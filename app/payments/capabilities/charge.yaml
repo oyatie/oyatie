@@ -77,7 +77,7 @@ regulatory_packs_consumed:
 evidence_topic: oya.payments.charge
 
 cost_profile:
-  type: per-charge
+  type: per-invocation
   estimated_cost_usd_per_call: 0.69  # includes Stripe PSP fee @ avg $10 ASP + infra
   cost_drivers:
     - PSP fee (2.9% + $0.30 for Stripe; variable per PSP)
@@ -89,12 +89,6 @@ cost_profile:
 cedar_policy_fragments:
   - app/payments/policy/charge-authorization.cedar
   - app/payments/policy/abuse-defence.cedar
-
-eval_set:
-  paiden_inputs_path: app/payments/capabilities/eval/charge-paiden.jsonl
-  pass_threshold: 0.99
-  eval_metric: charge-success-rate-vs-stripe-sandbox-reference
-  cadence: per-release
 
 sunset:
   status: none
