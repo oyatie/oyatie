@@ -12,7 +12,7 @@ doc_status: published
 | `toolchains/cache/` | Execution platform with `remote_cache_enabled` + `allow_cache_uploads` (defaults false) |
 | `infra/ci/buckconfig/warm-cache-rw.buckconfig` | In-cluster writer overlay (dark while license false) |
 | `infra/ci/buckconfig/warm-cache-ro.buckconfig` | In-cluster reader overlay |
-| `specs/cache-endpoints.json` | Sole in-cluster NativeLink address + REAPI instance source; validated writer/reader profiles |
+| `specs/cache-endpoints.json` | Reviewed in-cluster NativeLink address + REAPI instance reference; hand-maintained consumers must match it |
 | `specs/cache-warmth-policy.json` | Per-class warmth / read / write |
 | `specs/cache-warm-license.json` | **Kill-switch** — `warm_reads_licensed: false` until GREEN canary |
 

@@ -694,7 +694,7 @@
       "prefix": "specs/agentic-operating-patterns.json"
     },
     {
-      "anchor": "ADR-0703 preserved ADR-0556 D1 pack-shaped cache policy: repository-specific NativeLink addresses and the REAPI instance live in DATA consumed by the cache-wiring resolver and conformance gate.",
+      "anchor": "ADR-0703 preserved ADR-0556 D1 pack-shaped cache policy: repository-specific NativeLink addresses and the REAPI instance live in reviewed reference DATA that the hand-maintained warm-cache overlays and NativeLink Service/NetworkPolicy bindings must match; the enforcing gate crate was retired (#1960).",
       "prefix": "specs/cache-endpoints.json"
     },
     {
