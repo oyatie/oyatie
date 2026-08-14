@@ -85,7 +85,7 @@ Preserve the bootstrap TLS Secret for diagnosis/forward repair; do not print or
 export it.
 
 The OIDC role payloads in `openbao-ci-identity-contract` bind audience
-`oya-openbao`, immutable repository/owner IDs, private visibility,
+`oya-openbao`, immutable repository/owner IDs, public visibility,
 self-hosted runners, exact `sub`/`workflow_ref`, and exact event/ref claims. JWTs are
 bounded to five minutes; issued client leaves are bounded to three hours.
 
