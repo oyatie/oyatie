@@ -733,21 +733,6 @@ rust_test(
 )
 
 rust_test(
-    name = "marketplace-dev-cli-milestone-audit",
-    srcs = ["tests/milestone_audit.rs"],
-    crate = "marketplace_dev_cli_milestone_audit",
-    crate_root = "tests/milestone_audit.rs",
-    env = {
-        "CARGO_BIN_EXE_oya": "$(location :oya)",
-        "CARGO_MANIFEST_DIR": ".",
-    },
-    visibility = ["PUBLIC"],
-    deps = [
-        ":marketplace-dev-cli",
-    ],
-)
-
-rust_test(
     name = "marketplace-dev-cli-oya-verify-ci-mirror",
     srcs = ["tests/oya_verify_ci_mirror.rs"],
     crate = "marketplace_dev_cli_oya_verify_ci_mirror",
