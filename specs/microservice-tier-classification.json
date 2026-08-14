@@ -13,7 +13,7 @@
     "enforced_by": "oya-cloud-ci-tier-field-coverage-app (born-blocking coverage + enum validity + no type-overload)"
   },
   "tier_distribution": {
-    "substrate": 55,
+    "substrate": 54,
     "product": 41,
     "service-cell": 0,
     "reserved": 0
