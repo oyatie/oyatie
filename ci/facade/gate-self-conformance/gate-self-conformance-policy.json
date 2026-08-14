@@ -6,9 +6,7 @@
     "gate_crate_prefix": "",
     "non_gate_crates": [
       "artifact-inventory-registry",
-      "crate-registration",
       "inventory-registry-drift",
-      "planning-projection",
       "scm-facts-snapshot"
     ],
     "bespoke_buck2_gate_crates": [

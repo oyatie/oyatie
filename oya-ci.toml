@@ -101,11 +101,6 @@ reason = "append-only audit chain — NEVER rewritten"
 
 [[vocab.carve_outs]]
 kind = "path_exact"
-value = "ci/facade/action-item-accounting/friction-ledger.jsonl"
-reason = "append-only local lane friction ledger (retargeted from deleted .omc/ultragoal/) — records historical defect text and is not a product/governance vocabulary source"
-
-[[vocab.carve_outs]]
-kind = "path_exact"
 value = "specs/integ-branch-envelopes.json"
 reason = "faithful judgment map that must name real filesystem paths under delete targets including retired-pipeline-brand directories (docs/foundry/, templates/foundry-supervisor/); embeds path strings as data, not live product vocabulary — same carve class as specs/microservice-tier-classification.json"
 
@@ -182,9 +177,6 @@ kind = "path_prefix"
 value = "docs/decisions/ADR-07"
 reason = "live apex ADRs ADR-0700..ADR-0709 restate archived member gists; forbidden stems appear only as historical quotations of retired brand/substrate names, not product vocabulary (same class as docs/audit/ and _legacy-foundry/ carve-outs)"
 
-[manifest]
-required_flags = ["version_workspace", "rust_version_workspace", "publish_false", "license", "lints_workspace", "lib_doctest_false"]
-
 [reachability]
 masterplan = "specs/masterplan.json"
 root_hub = "specs/root-hub-pointers.json"
@@ -210,16 +202,6 @@ governance_lanes = ["docs/governance-lanes/diataxis-doc-class.md", "docs/governa
 
 # Gate input contracts are DATA so public oya-ci adopters can point gates at their own repo
 # shapes without forking the engine. This default mirrors Oyatie's catalog row source.
-[slo_coverage]
-catalog_record_globs = ["registry/catalog/*.yaml"]
-
-# cloud-ci-catalog-liveness (PR-C3): the founder live-OR-explicitly-marked policy. Same portable
-# catalog input contract as [slo_coverage] (born pack-shaped, policy-as-data — no hardcoded oyatie
-# paths in the gate logic). The producer expands these globs, resolves the LIVE workspace crate-id
-# universe IN-PROCESS (no shell-out), and parses the explicit non-live marker per record.
-[catalog_liveness]
-catalog_record_globs = ["registry/catalog/*.yaml"]
-
 [ttl]
 
 [unit_class]
@@ -229,11 +211,6 @@ catalog_record_globs = ["registry/catalog/*.yaml"]
 # keep their own policy files. The gate-registration meta-test asserts convergence:
 # every ID here has bundled disposition DATA, and every configured gate has required
 # workflow authority via the homogeneous matrix, freshness job, or firewall producer path.
-[[gates.enabled]]
-id = "cloud-ci-total-accounting"
-input_kind = "producer-face"
-face = "total_accounting"
-
 [[gates.enabled]]
 id = "cloud-ci-cross-artifact-agreement"
 input_kind = "producer-face"
@@ -245,19 +222,9 @@ input_kind = "producer-face"
 face = "automation_ratchet"
 
 [[gates.enabled]]
-id = "cloud-ci-staleness-reaper"
-input_kind = "producer-face"
-face = "staleness"
-
-[[gates.enabled]]
 id = "cloud-ci-bnf-layer-suffix"
 input_kind = "producer-face"
 face = "bnf_layer_suffix"
-
-[[gates.enabled]]
-id = "cloud-ci-manifest-hygiene"
-input_kind = "producer-face"
-face = "manifest_hygiene"
 
 [[gates.enabled]]
 id = "cloud-ci-cargo-prefix"
@@ -273,11 +240,6 @@ face = "slo_coverage"
 id = "cloud-ci-license-policy"
 input_kind = "producer-face"
 face = "license_policy"
-
-[[gates.enabled]]
-id = "cloud-ci-catalog-liveness"
-input_kind = "producer-face"
-face = "catalog_liveness"
 
 [[gates.enabled]]
 id = "cloud-ci-workspace-glob-coverage"

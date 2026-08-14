@@ -7,7 +7,7 @@ pub mod app;
 pub mod client_session_state;
 pub mod design_system;
 pub mod render_envelope;
-#[cfg(any(feature = "ssr", test))]
+#[cfg(feature = "ssr")]
 pub mod server;
 pub mod shell_capability_registry;
 #[cfg(any(feature = "ssr", test))]

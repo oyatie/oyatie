@@ -9,8 +9,7 @@ use std::path::{Component, Path, PathBuf};
 use std::process::Command;
 
 use ci_slo_coverage::{
-    CODE_CATALOG_CENSUS_DROP_UNATTRIBUTED, Verdict, evaluate, evaluate_catalog_census,
-    evaluate_keyed,
+    CODE_CENSUS_DROP_UNATTRIBUTED, Verdict, evaluate, evaluate_corpus_census, evaluate_keyed,
 };
 use serde_json::Value;
 
@@ -23,11 +22,11 @@ const REQUIRED_SLO_LINKED_CLOUD_MANIFESTS: [&str; 6] = [
     "tenancy/manifest.json",
 ];
 
-/// FALSE-GREEN CENSUS PIN: the producer must be shown to have actually enumerated the catalog.
+/// FALSE-GREEN CENSUS PIN: the producer must be shown to have actually enumerated the corpus.
 /// A broken collector returns zero rows, finds zero violations, and would otherwise report a
 /// clean pass — so the observed row count is pinned by EQUALITY and any move must be re-frozen,
 /// with an attribution, in the change that caused it. The rule itself is
-/// [`ci_slo_coverage::evaluate_catalog_census`], which documents why equality and not a floor;
+/// [`ci_slo_coverage::evaluate_corpus_census`], which documents why equality and not a floor;
 /// the history that proves the point is below.
 ///
 /// THE HISTORY. This was `MIN_SLO_CATALOG_ROWS`, a floor, and it went stale three times in the
@@ -89,7 +88,7 @@ const REQUIRED_SLO_LINKED_CLOUD_MANIFESTS: [&str; 6] = [
 ///                                  producer is ci/facade/artifact-inventory-registry, which this
 ///                                  branch does not touch at all; the slo-coverage edits in this
 ///                                  branch are to the census RULE
-///                                  (`evaluate_catalog_census`), never to the walk.
+///                                  (`evaluate_corpus_census`), never to the walk.
 ///
 ///                                  WHY IT WAS MISSED until CI, recorded because the failure mode
 ///                                  outlived the number: `scm-facts.generated.json` is gitignored
@@ -115,7 +114,16 @@ const REQUIRED_SLO_LINKED_CLOUD_MANIFESTS: [&str; 6] = [
 ///   2026-08-11  762 -> pin 773     BASE MOVE from #1934: +4 ci-controller-* and +7 port-engine
 ///                                  W0-B catalog rows (face enumerated 773). Keep dual-home
 ///                                  oya/ci-controller until lock/baseline tip-free cleanup.
-const SLO_CATALOG_CENSUS: usize = 773;
+///   2026-08-14  773 -> pin 727     ADR-0718 retires the hand-maintained registry/catalog mirror
+///                                  and re-points the gate at the canonical OpenSLO corpus: the
+///                                  row universe is now every tracked *.openslo.yaml envelope
+///                                  (727 files, independently counted: find . -name '*.openslo.yaml'
+///                                  over the tracked tree), keyed by repo-relative path with the
+///                                  envelope's metadata.name as the declaration. The catalog's
+///                                  per-crate slo: scalars were a duplicate of this corpus — the
+///                                  enumeration collapse a catalog-only walk could no longer hide
+///                                  is exactly the false green this pin exists to prevent.
+const SLO_CORPUS_CENSUS: usize = 727;
 
 fn producer_command(root: &Path, producer_bin: Option<&str>) -> Result<Command, String> {
     if let Some(bin) = producer_bin {
@@ -144,8 +152,7 @@ fn repo_root() -> PathBuf {
 }
 
 fn run_producer_face(root: &Path, face: &str) -> Value {
-    let scm_facts = root
-        .join("ci/facade/artifact-inventory-registry/scm-facts.generated.json");
+    let scm_facts = root.join("ci/facade/artifact-inventory-registry/scm-facts.generated.json");
     let producer_bin = std::env::var("OYA_CI_PRODUCER_BIN").ok();
     let mut command = producer_command(root, producer_bin.as_deref()).expect("producer command");
 
@@ -483,20 +490,20 @@ fn producer_binary_env_is_required_for_hermetic_gate() {
 }
 
 #[test]
-fn slo_coverage_verdict_matches_the_live_catalog() {
+fn slo_coverage_verdict_matches_the_live_slo_corpus() {
     let root = repo_root();
     let face = run_producer_face(&root, "slo-coverage");
     let rows = face["rows"].as_array().expect("slo-coverage face rows");
-    if let Some(census) = evaluate_catalog_census(rows.len(), SLO_CATALOG_CENSUS) {
+    if let Some(census) = evaluate_corpus_census(rows.len(), SLO_CORPUS_CENSUS) {
         panic!("[{}] {}", census.code, census.detail);
     }
 
     // The pin AS COMMITTED, against the LIVE producer, still rejects the false green it exists
     // for. The assertion above is the control: the live corpus sits exactly at the pin, so this
     // failure is the rule biting and not a mis-set number.
-    let collapsed = evaluate_catalog_census(0, SLO_CATALOG_CENSUS)
+    let collapsed = evaluate_corpus_census(0, SLO_CORPUS_CENSUS)
         .expect("a zero-row enumeration must never read as coverage");
-    assert_eq!(collapsed.code, CODE_CATALOG_CENSUS_DROP_UNATTRIBUTED);
+    assert_eq!(collapsed.code, CODE_CENSUS_DROP_UNATTRIBUTED);
 
     let findings = evaluate_keyed(&face);
     let verdict = evaluate(&face).verdict;

@@ -9,7 +9,8 @@
 //! allowlisted tracked config/provenance paths are admitted; local state stays ignored.
 //!
 //! ## Posture: default-DENY (allowlist), complementing the scratch DENYLIST
-//! The existing `cloud-ci-total-accounting` `scratch_artifact` code is a DENYLIST: it catches
+//! The registry's `scratch_artifact` class (its admission gate retired with ADR-0718) is a
+//! DENYLIST: it catches
 //! KNOWN scratch shapes (`*.log`, `run-slice.sh`, …) by name. This gate is the complement — an
 //! ALLOWLIST: any tracked root file that matches NO allowlist rule fails, so a scratch shape that
 //! nobody has named yet is STILL born-blocking. The two layers compose into "impossible to commit
@@ -394,9 +395,11 @@ pub fn corpus_class_counts(policy: &Value, observed: &Value) -> BTreeMap<String,
             let Some(prefixes) = matchers.get("prefixes").and_then(Value::as_array) else {
                 continue;
             };
-            let prefix_ok = prefixes
-                .iter()
-                .any(|prefix| prefix.as_str().is_some_and(|prefix| path.starts_with(prefix)));
+            let prefix_ok = prefixes.iter().any(|prefix| {
+                prefix
+                    .as_str()
+                    .is_some_and(|prefix| path.starts_with(prefix))
+            });
             if !prefix_ok {
                 continue;
             }
@@ -1006,7 +1009,10 @@ spec:
                 "docs/decisions/ADR-0700-x.md",
             ]),
         );
-        assert!(findings.is_empty(), "frozen corpus must be green; got {findings:#?}");
+        assert!(
+            findings.is_empty(),
+            "frozen corpus must be green; got {findings:#?}"
+        );
     }
 
     #[test]
@@ -1041,14 +1047,9 @@ spec:
 
     #[test]
     fn corpus_budget_absent_block_fails_closed() {
-        let findings = evaluate_corpus_budget(
-            &json!({}),
-            &corpus_observed(&["evidence/a.json"]),
-        );
+        let findings = evaluate_corpus_budget(&json!({}), &corpus_observed(&["evidence/a.json"]));
         assert!(
-            findings
-                .iter()
-                .any(|f| f.code == "corpus_budget_malformed"),
+            findings.iter().any(|f| f.code == "corpus_budget_malformed"),
             "a policy without corpus_budget must fail closed, never disable the ratchets; got {findings:#?}"
         );
     }
@@ -1058,9 +1059,7 @@ spec:
         let policy = json!({ "corpus_budget": { "counts": { "evidence_files": 1 } } });
         let findings = evaluate_corpus_budget(&policy, &corpus_observed(&["evidence/a.json"]));
         assert!(
-            findings
-                .iter()
-                .any(|f| f.code == "corpus_budget_malformed"),
+            findings.iter().any(|f| f.code == "corpus_budget_malformed"),
             "a missing class count must fail closed as malformed; got {findings:#?}"
         );
     }

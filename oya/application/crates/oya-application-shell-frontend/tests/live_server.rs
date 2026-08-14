@@ -1,4 +1,4 @@
-#![cfg(unix)]
+#![cfg(all(unix, feature = "ssr"))]
 
 use std::{
     net::SocketAddr,

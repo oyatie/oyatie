@@ -6,6 +6,20 @@ doc_status: published
 
 # Changelog
 
+## 2026-08-14 — Registry/catalog bookkeeping retirement (ADR-0718)
+
+- Deleted the 17 gate crates whose corpus was the hand-maintained registry bookkeeping plus
+  `registry/catalog/`, `registry/milestone-audit/`, `registry/design-spec-maturity/`, the
+  friction-ledger merge driver, and the born-accounting pre-push check mode. Retired the
+  orphan `[manifest]` / `[catalog_liveness]` / `[slo_coverage]` schema sections and the four
+  disposition rows with them. Re-pointed the retained slo-coverage gate at the tracked
+  `*.openslo.yaml` corpus (census pin 773 → 727) and migrated the `fitness-*` crate facet
+  into `[package.metadata.oya-ci]`. Canonical docs touched: `oya-ci.toml`,
+  `docs/AGENTS.md`, `docs/ADR-INDEX.md`, `docs/machine-readable/decisions.json`,
+  `docs/oya-ci/gate-catalog.md`, `docs/oya-ci/config-reference.md`,
+  `specs/root-hub-pointers.json`, `specs/reachability-registry.json`,
+  `registry/generated-artifact-control-plane.json`, `registry/quality/lanes.yaml`.
+
 ## 2026-08-14 — Cargo merge path + slim PR paperwork (ADR-0716)
 
 - The required CI executes the Cargo workspace graph (`cargo fmt` differential, clippy,

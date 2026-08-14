@@ -17,12 +17,9 @@
 //!                                        [--enforcement-liveness-hooks-dir <path>]
 //!                                        [--fix-owners <dir>=<owner>]
 //!                                        [--fix-reachability <prefix>=<anchor>]
-//!                                        [--check-paths <path>...] [--check-diff <merge-base>]
 //!
-//! `--check-paths`/`--check-diff` is the AUTHOR-SIDE pre-push check (FRIC #1328): for each
-//! ADDED tracked file it reports reachable?/justified? and, if it would RED the
-//! `[cloud-ci-total-accounting]` firewall, the exact remediation — reusing the SAME resolvers +
-//! face-builder + firewall evaluator, and NEEDING NO materialized scm-facts face.
+//! ADR-0718 retired the born-accounting pre-push check mode together with the total-accounting
+//! gate it predicted; the retained local bridges are `--fix-owners` / `--fix-reachability`.
 //!
 //! With `--stdout` one generated face is written to stdout (used by the registry-drift gate
 //! to regenerate in a sandbox and byte-diff). Default writes all generated faces under
@@ -42,10 +39,10 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
 use ci_artifact_inventory_registry::{
-    CrosswalkInputs, DecisionCrosswalkRow, EnforcementInputs, EnforcementRow, GateInputs,
-    OwnersIntegrity, Policy, ProducerError, RepoInputs, adr_id_from_filename, allocate_next_adr_id,
-    build_decision_crosswalk, build_enforcement_inventory, build_gate_baseline, build_registry,
-    ENVELOPE_PREFIX_OWNERSHIP_SOURCE, ENVELOPES_RELPATH, fix_owners, fix_reachability,
+    CrosswalkInputs, DecisionCrosswalkRow, ENVELOPE_PREFIX_OWNERSHIP_SOURCE, ENVELOPES_RELPATH,
+    EnforcementInputs, EnforcementRow, GateInputs, OwnersIntegrity, Policy, ProducerError,
+    RepoInputs, adr_id_from_filename, allocate_next_adr_id, build_decision_crosswalk,
+    build_enforcement_inventory, build_gate_baseline, build_registry, fix_owners, fix_reachability,
     front_matter_field, load_envelope_prefix_allows, load_reachability_registry,
     registration_matches, resolve_owners, to_canonical_json,
 };
@@ -197,12 +194,6 @@ fn run() -> Result<(), CliError> {
     // The TRANSITIONAL registration bridges (ADR-0555; cli_surface_policy local bridge).
     let mut fix_owners_spec: Option<String> = None;
     let mut fix_reachability_spec: Option<String> = None;
-    // AUTHOR-SIDE pre-push check (FRIC #1328): "will these newly-added paths RED the
-    // [cloud-ci-total-accounting] firewall?" `--check-paths <path>...` names them explicitly;
-    // `--check-diff <merge-base>` derives added tracked files via `git diff --diff-filter=A`.
-    // Additive flags only — CI's default face-production path is untouched.
-    let mut check_paths: Option<Vec<String>> = None;
-    let mut check_diff_base: Option<String> = None;
 
     let mut i = 0;
     while i < args.len() {
@@ -249,19 +240,6 @@ fn run() -> Result<(), CliError> {
                 i += 1;
                 fix_reachability_spec = args.get(i).cloned();
             }
-            "--check-paths" => {
-                // Multi-value: consume following args until the next `--flag` or end.
-                let mut collected = Vec::new();
-                while i + 1 < args.len() && !args[i + 1].starts_with("--") {
-                    i += 1;
-                    collected.push(args[i].clone());
-                }
-                check_paths = Some(collected);
-            }
-            "--check-diff" => {
-                i += 1;
-                check_diff_base = args.get(i).cloned();
-            }
             "--stdout" => to_stdout = true,
             "--next-adr" => next_adr_mode = true,
             other => return Err(CliError::Io(format!("unknown argument {other}"))),
@@ -290,28 +268,6 @@ fn run() -> Result<(), CliError> {
         let cfg = load_policy_config(&repo_root, policy_root)?;
         let decisions_dir = repo_root.join(&cfg.justification.adr_dir);
         println!("{}", allocate_next_adr_id(&decisions_dir)?);
-        return Ok(());
-    }
-
-    // AUTHOR-SIDE pre-push check mode (FRIC #1328). It answers "will my new files RED the
-    // firewall?" BEFORE push, WITHOUT a materialized scm-facts face: the tracked-path universe
-    // is the added set itself, resolved with the SAME producer resolvers + face-builder + the
-    // firewall's own evaluator (drift-proof). No scm-facts load, no all-face derivation.
-    if check_paths.is_some() || check_diff_base.is_some() {
-        let cfg = load_policy_config(&repo_root, policy_root)?;
-        let policy = Policy::from_config(&cfg)?;
-        let mut paths: Vec<String> = check_paths.unwrap_or_default();
-        if let Some(base) = check_diff_base {
-            paths.extend(git_added_paths(&repo_root, &base)?);
-        }
-        paths.sort();
-        paths.dedup();
-        let verdicts = check_added_paths(&repo_root, &cfg, &policy, &paths)?;
-        if !report_check(&verdicts) {
-            // Distinct exit code (2) so a pre-push wrapper can gate on "would RED" without
-            // confusing it with a usage/IO error (exit 1).
-            std::process::exit(2);
-        }
         return Ok(());
     }
 
@@ -429,24 +385,16 @@ fn run() -> Result<(), CliError> {
     // the tracked Cargo.toml manifests. The gate's evaluate_keyed resolves the role carve-out-
     // aware and reuses oya_governance_predictable_naming_kernel::check.
     let bnf_layer_suffix = collect_bnf_layer_suffix(&repo_root, &inputs.tracked_paths, &cfg);
-    // The §2.5#7 manifest-hygiene gate input: per-crate Cargo.toml hygiene flags.
-    let manifest_hygiene = collect_manifest_hygiene(&repo_root, &inputs.tracked_paths, &cfg);
     // The ADR-0017 cargo-prefix gate input: every tracked first-party workspace member
     // candidate + package name. De-branded candidates stay visible but are advisory-scoped so
     // expanding the corpus cannot create new born-blocking `cargo_prefix_violation` debt.
     let cargo_prefix = collect_cargo_prefix(&repo_root, &inputs.tracked_paths, &cfg)?;
-    // The SLO coverage gate input: the config-declared catalog record globs expanded over the
-    // tracked-path universe. This makes the lane input contract portable DATA instead of an
-    // Oyatie-only hardcoded directory walk.
+    // The SLO coverage gate input: every tracked `*.openslo.yaml` envelope in the canonical
+    // per-service SLO corpus (ADR-0718 re-pointed the gate off the retired catalog mirror).
     let slo_coverage = collect_slo_coverage(&repo_root, &inputs.tracked_paths, &cfg)?;
     // The license-policy gate input: workspace package-license rows from resolved member
     // manifests. The producer owns all filesystem I/O; the gate remains pure and surface-all.
     let license_policy = collect_license_policy(&repo_root, &inputs.tracked_paths, &cfg)?;
-    // The catalog-liveness gate input: the config-declared catalog globs expanded over the
-    // tracked-path universe, each row tagged with whether its stem is a LIVE workspace crate-id
-    // (resolved IN-PROCESS via oya-workspace-members-kernel — no shell-out) and its explicit
-    // non-live marker (status:/non_claims). The gate enforces the founder live-OR-marked policy.
-    let catalog_liveness = collect_catalog_liveness(&repo_root, &inputs.tracked_paths, &cfg)?;
     // The ADR-0538 workspace-glob-coverage gate input: root member entries plus concrete
     // first-party crate-dir coverage against the canonical glob-aware workspace-member resolver.
     let workspace_glob_coverage =
@@ -463,15 +411,12 @@ fn run() -> Result<(), CliError> {
     };
     let build_baseline_face = |enforcement_liveness: &Value| -> Result<Value, CliError> {
         let gate_inputs = GateInputs {
-            total_accounting: &registry,
             cross_artifact: &crosswalk,
             automation_ratchet: &automation_matrix,
             bnf_layer_suffix: &bnf_layer_suffix,
-            manifest_hygiene: &manifest_hygiene,
             cargo_prefix: &cargo_prefix,
             slo_coverage: &slo_coverage,
             license_policy: &license_policy,
-            catalog_liveness: &catalog_liveness,
             workspace_glob_coverage: &workspace_glob_coverage,
             target_parity: &target_parity,
             enforcement_liveness,
@@ -487,11 +432,9 @@ fn run() -> Result<(), CliError> {
             "enforcement-inventory" => print!("{}", to_canonical_json(&enforcement)?),
             "ttl-policy" => print!("{}", to_canonical_json(&policy.ttl_policy_face())?),
             "bnf-layer-suffix" => print!("{}", to_canonical_json(&bnf_layer_suffix)?),
-            "manifest-hygiene" => print!("{}", to_canonical_json(&manifest_hygiene)?),
             "cargo-prefix" => print!("{}", to_canonical_json(&cargo_prefix)?),
             "slo-coverage" => print!("{}", to_canonical_json(&slo_coverage)?),
             "license-policy" => print!("{}", to_canonical_json(&license_policy)?),
-            "catalog-liveness" => print!("{}", to_canonical_json(&catalog_liveness)?),
             "workspace-glob-coverage" => print!("{}", to_canonical_json(&workspace_glob_coverage)?),
             "target-parity" => print!("{}", to_canonical_json(&target_parity)?),
             "enforcement-liveness" => {
@@ -1014,83 +957,52 @@ fn collect_license_policy(
     Ok(json!({ "rows": rows }))
 }
 
-/// Enumerate SLO catalog rows from the config-declared `[slo_coverage].catalog_record_globs`.
-/// This replaces the legacy dev-cli's implicit `registry/catalog` walk with a portable, closed-
-/// schema input contract. The current default still mirrors Oyatie's catalog source
-/// (`registry/catalog/*.yaml`), but adopters can point the same gate at their own catalog layout
-/// without forking the producer or evaluator.
+/// Enumerate the OpenSLO corpus rows for the slo-coverage gate (ADR-0718). The gate previously
+/// read the hand-maintained `registry/catalog/*.yaml` mirror — a per-crate duplicate of the
+/// canonical per-service SLO corpus. The retired catalog row's `slo:` scalar is replaced by the
+/// envelope's own declaration: every tracked `*.openslo.yaml` file is one row, keyed by its
+/// repo-relative path, carrying the file's `metadata.name` as the `slo` declaration (an envelope
+/// with no non-blank `metadata.name` is not a declaration). Tracked rows are always live — a
+/// tracked file IS the corpus — so the PR-C3 live-OR-marked composition is structurally
+/// satisfied (`is_live: true`, `marker: null` keeps the row shape the evaluator expects).
 fn collect_slo_coverage(
     repo_root: &Path,
     tracked_paths: &[String],
     cfg: &oya_ci_config_kernel::OyaCiConfig,
 ) -> Result<Value, CliError> {
-    // The slo-coverage gate composes the live-OR-marked predicate (PR-C3): a row with an SLO is
-    // not enough if the catalog record itself is silently stale. Resolve the live crate-id
-    // universe IN-PROCESS (no shell-out) so each row carries is_live + marker alongside slo.
-    let live = live_workspace_crate_ids(repo_root)?;
-    let mut records: Vec<(String, String, Option<String>, bool, Option<String>)> = Vec::new();
+    let mut records: Vec<(String, Option<String>)> = Vec::new();
     for path in tracked_paths {
         if is_path_excluded(path, cfg) {
             continue;
         }
-        if !cfg
-            .slo_coverage
-            .catalog_record_globs
-            .iter()
-            .any(|glob| path_glob_matches(path, glob))
-        {
+        if !path.ends_with(".openslo.yaml") {
             continue;
         }
-        let Some(crate_id) = file_stem(path) else {
-            continue;
-        };
         let contents = read_text(&repo_root.join(path));
-        let is_live = live.contains(&crate_id);
-        let marker = catalog_non_live_marker(&contents);
-        records.push((
-            crate_id,
-            path.clone(),
-            parse_catalog_slo(&contents),
-            is_live,
-            marker,
-        ));
+        records.push((path.clone(), openslo_envelope_name(&contents)));
     }
-    records.sort_by(|a, b| a.0.cmp(&b.0).then_with(|| a.1.cmp(&b.1)));
+    records.sort_by(|a, b| a.0.cmp(&b.0));
 
     let rows: Vec<Value> = records
         .into_iter()
-        .map(|(crate_id, source_path, slo, is_live, marker)| {
+        .map(|(source_path, slo)| {
             json!({
-                "crate_id": crate_id,
+                "crate_id": source_path,
                 "source_path": source_path,
                 "slo": slo,
-                "is_live": is_live,
-                "marker": marker,
+                "is_live": true,
+                "marker": null,
             })
         })
         .collect();
     Ok(json!({ "rows": rows }))
 }
 
-/// The explicit non-live `status:` markers the catalog-liveness gate accepts (the founder
-/// live-OR-explicitly-marked policy). A record whose stem is NOT a live workspace crate-id passes
-/// the gate ONLY if it carries one of these markers (or a `non_claims` no-crate declaration). These
-/// are the verbatim markers PR-C1/PR-C2 used to retire moved/never-built catalog rows:
-///   - `retired-compatibility-row-no-crate`  — a compatibility row whose crate was removed/moved;
-///   - `designed-ahead-row-no-crate`         — a row designed ahead of its (not-yet-built) crate;
-///   - `audit_doctrine_only`                 — a doctrine/audit-only row with no runtime crate;
-///   - `planned` / `aspirational`            — forward-looking rows with no crate yet.
-const NON_LIVE_STATUS_MARKERS: [&str; 5] = [
-    "retired-compatibility-row-no-crate",
-    "designed-ahead-row-no-crate",
-    "audit_doctrine_only",
-    "planned",
-    "aspirational",
-];
-
-/// Parse the top-level `status:` scalar from a catalog record (the same shallow top-level YAML
-/// scan as `parse_catalog_slo`). Returns the verbatim value (no marker classification here).
-fn parse_catalog_status(contents: &str) -> Option<String> {
+/// Line-scoped parse of an OpenSLO envelope's `metadata.name` — the declaration anchor every
+/// tracked SLO file must carry. `None` when the `metadata:` block has no non-blank `name:`, which
+/// the evaluator reports as `slo_missing_or_blank_slo` keyed by the file path.
+fn openslo_envelope_name(contents: &str) -> Option<String> {
+    let mut in_metadata = false;
     for line in contents.lines() {
         let trimmed = line.trim();
         if trimmed.is_empty() || trimmed.starts_with('#') {
@@ -1099,259 +1011,21 @@ fn parse_catalog_status(contents: &str) -> Option<String> {
         let Some((key, value)) = trimmed.split_once(':') else {
             continue;
         };
-        if key.trim() == "status" {
-            let v = value.trim();
-            if v.is_empty() {
-                return None;
-            }
-            return Some(v.to_owned());
-        }
-    }
-    None
-}
-
-/// Detect a `non_claims` block whose entries explicitly state no matching crate exists — the
-/// non-`status:` marker shape PR-C1/PR-C2 also used (e.g. "no matching crate exists in this
-/// checkout"). This keeps the gate from false-REDing legitimately-retired rows that declared the
-/// no-crate fact in prose rather than via `status:`. Scoped to entries that name the crate's
-/// absence so generic non_claims (e.g. "no measured SLO") never launder a stale row as marked.
-fn catalog_non_claims_declares_no_crate(contents: &str) -> bool {
-    let mut in_non_claims = false;
-    for line in contents.lines() {
-        let trimmed = line.trim();
-        if trimmed.starts_with("non_claims:") {
-            in_non_claims = true;
-            continue;
-        }
-        if in_non_claims {
-            // The block ends at the next top-level key (a non-indented, non-list line).
-            let indented = line.starts_with(' ') || line.starts_with('-') || line.starts_with('\t');
-            if !indented && !trimmed.is_empty() {
-                break;
-            }
-            let lower = trimmed.to_ascii_lowercase();
-            if (lower.contains("no matching crate") || lower.contains("no live crate"))
-                && (lower.contains("exist")
-                    || lower.contains("checkout")
-                    || lower.contains("crate"))
-            {
-                return true;
-            }
-        }
-    }
-    false
-}
-
-/// The explicit-non-live marker for a catalog record, or `None` if it carries none. The producer
-/// owns this classification (the single source of truth the gate reads): a non-live `status:`
-/// value wins; otherwise a `non_claims` no-crate declaration yields the synthetic
-/// `non-claims-no-crate` marker. A LIVE record needs no marker (the gate checks live OR marked).
-fn catalog_non_live_marker(contents: &str) -> Option<String> {
-    if let Some(status) = parse_catalog_status(contents) {
-        if NON_LIVE_STATUS_MARKERS.contains(&status.as_str()) {
-            return Some(status);
-        }
-    }
-    if catalog_non_claims_declares_no_crate(contents) {
-        return Some("non-claims-no-crate".to_owned());
-    }
-    None
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-struct LiveWorkspaceCrate {
-    crate_id: String,
-    member_path: String,
-}
-
-/// The LIVE workspace crate universe: the `[package].name` and member directory of every resolved
-/// workspace member. Scanned IN-PROCESS via `oya-workspace-members-kernel` (the same glob-aware
-/// oracle the cohesion gate + the workspace-glob/target-parity faces use) + a shallow Cargo.toml
-/// `[package].name` parse. Invalid matches remain blocking workspace-glob-coverage rows. NEVER a
-/// `cargo metadata`/`buck2` shell-out
-/// (all-CLI-retirement + hermeticity). The catalog crate_id (the file stem) is compared to package
-/// names, since de-brand path-as-namespace means the crate identity is `[package].name`, not the
-/// directory basename.
-fn live_workspace_crates(repo_root: &Path) -> Result<Vec<LiveWorkspaceCrate>, CliError> {
-    let member_dirs = scan_valid_member_dirs(repo_root, "catalog-liveness")?;
-    let mut rows = Vec::new();
-    for dir in member_dirs {
-        let manifest = repo_root.join(&dir).join("Cargo.toml");
-        if let Some(name) = parse_package_name(&read_text(&manifest)) {
-            rows.push(LiveWorkspaceCrate {
-                crate_id: name,
-                member_path: dir,
-            });
-        }
-    }
-    rows.sort_by(|a, b| {
-        a.crate_id
-            .cmp(&b.crate_id)
-            .then_with(|| a.member_path.cmp(&b.member_path))
-    });
-    Ok(rows)
-}
-
-fn live_workspace_crate_ids(repo_root: &Path) -> Result<BTreeSet<String>, CliError> {
-    Ok(live_workspace_crates(repo_root)?
-        .into_iter()
-        .map(|row| row.crate_id)
-        .collect())
-}
-
-/// Parse `traceability.source_crate` from a shallow catalog YAML row. This is deliberately scoped to
-/// the established registry/catalog row shape: a top-level `traceability:` block with indented
-/// `source_crate: <repo-relative Cargo.toml>`.
-fn parse_catalog_source_crate(contents: &str) -> Option<String> {
-    let mut in_traceability = false;
-    for line in contents.lines() {
-        let trimmed = line.trim();
-        if trimmed.starts_with("traceability:") {
-            in_traceability = true;
-            continue;
-        }
-        if in_traceability {
-            let indented = line.starts_with(' ') || line.starts_with('\t');
-            if !indented && !trimmed.is_empty() {
-                break;
-            }
-            let Some((key, value)) = trimmed.split_once(':') else {
-                continue;
-            };
-            if key.trim() == "source_crate" {
+        match key.trim() {
+            "metadata" => in_metadata = true,
+            "name" if in_metadata => {
                 let value = value.trim().trim_matches('"').trim_matches('\'');
                 if value.is_empty() {
                     return None;
                 }
                 return Some(value.to_owned());
             }
+            _ => {}
         }
     }
     None
 }
 
-fn clean_repo_relative_path(path: &str) -> &str {
-    path.trim()
-        .strip_prefix("./")
-        .unwrap_or(path.trim())
-        .strip_prefix('/')
-        .unwrap_or_else(|| path.trim().strip_prefix("./").unwrap_or(path.trim()))
-}
-
-fn repo_path_is_tracked_file(repo_root: &Path, tracked_paths: &BTreeSet<&str>, path: &str) -> bool {
-    let rel = clean_repo_relative_path(path);
-    tracked_paths.contains(rel) && repo_root.join(rel).is_file()
-}
-
-fn catalog_exemption_for_member(
-    member_path: &str,
-    cfg: &oya_ci_config_kernel::OyaCiConfig,
-) -> Option<Value> {
-    cfg.catalog_liveness
-        .workspace_member_exemptions
-        .iter()
-        .find(|exemption| path_glob_matches(member_path, &exemption.path_glob))
-        .map(|exemption| {
-            json!({
-                "path_glob": &exemption.path_glob,
-                "owner": &exemption.owner,
-                "reason": &exemption.reason,
-                "cutover": &exemption.cutover,
-            })
-        })
-}
-
-/// Enumerate catalog-liveness rows from the config-declared `[catalog_liveness]` policy. The face
-/// is bidirectional:
-///   - `rows`: catalog record -> live/marked/source-path facts;
-///   - `live_crates`: governed live workspace member -> catalog row/exemption facts.
-fn collect_catalog_liveness(
-    repo_root: &Path,
-    tracked_paths: &[String],
-    cfg: &oya_ci_config_kernel::OyaCiConfig,
-) -> Result<Value, CliError> {
-    let live = live_workspace_crates(repo_root)?;
-    let live_ids: BTreeSet<String> = live.iter().map(|row| row.crate_id.clone()).collect();
-    let tracked: BTreeSet<&str> = tracked_paths.iter().map(String::as_str).collect();
-    let mut records: Vec<(String, String, bool, Option<String>, Option<String>, bool)> = Vec::new();
-    for path in tracked_paths {
-        if is_path_excluded(path, cfg) {
-            continue;
-        }
-        if !cfg
-            .catalog_liveness
-            .catalog_record_globs
-            .iter()
-            .any(|glob| path_glob_matches(path, glob))
-        {
-            continue;
-        }
-        let Some(crate_id) = file_stem(path) else {
-            continue;
-        };
-        let contents = read_text(&repo_root.join(path));
-        let is_live = live_ids.contains(&crate_id);
-        let marker = catalog_non_live_marker(&contents);
-        let source_crate = parse_catalog_source_crate(&contents);
-        let source_crate_exists = source_crate
-            .as_deref()
-            .is_some_and(|source| repo_path_is_tracked_file(repo_root, &tracked, source));
-        records.push((
-            crate_id,
-            path.clone(),
-            is_live,
-            marker,
-            source_crate,
-            source_crate_exists,
-        ));
-    }
-    records.sort_by(|a, b| a.0.cmp(&b.0).then_with(|| a.1.cmp(&b.1)));
-    let catalog_ids: BTreeSet<String> = records.iter().map(|record| record.0.clone()).collect();
-
-    let rows: Vec<Value> = records
-        .into_iter()
-        .map(
-            |(crate_id, source_path, is_live, marker, source_crate, source_crate_exists)| {
-                json!({
-                    "crate_id": crate_id,
-                    "source_path": source_path,
-                    "is_live": is_live,
-                    "marker": marker,
-                    "source_crate": source_crate,
-                    "source_crate_exists": source_crate_exists,
-                })
-            },
-        )
-        .collect();
-
-    let mut live_rows = Vec::new();
-    for row in live {
-        let governed = cfg
-            .catalog_liveness
-            .workspace_member_globs
-            .iter()
-            .any(|glob| path_glob_matches(&row.member_path, glob));
-        if !governed {
-            continue;
-        }
-        let has_catalog_row = catalog_ids.contains(&row.crate_id);
-        let exemption = catalog_exemption_for_member(&row.member_path, cfg);
-        live_rows.push(json!({
-            "crate_id": row.crate_id,
-            "member_path": row.member_path,
-            "has_catalog_row": has_catalog_row,
-            "exemption": exemption,
-        }));
-    }
-
-    Ok(json!({ "rows": rows, "live_crates": live_rows }))
-}
-
-/// Enumerate ADR-0538 workspace-glob-coverage rows. Member-entry rows preserve the raw root
-/// `[workspace].members` entries; member-match rows expose unexcluded concrete matches without a
-/// manifest; crate-dir rows cover tracked first-party package manifests that are not the root
-/// manifest, not repo-policy-excluded, and not inside nested workspaces. Expansion and coverage
-/// come only from `oya-workspace-members-kernel`.
 fn collect_workspace_glob_coverage(
     repo_root: &Path,
     tracked_paths: &[String],
@@ -1726,33 +1400,6 @@ fn path_glob_matches(path: &str, glob: &str) -> bool {
     }
     false
 }
-
-fn file_stem(path: &str) -> Option<String> {
-    let name = path.rsplit('/').next().unwrap_or(path);
-    let (stem, _) = name.rsplit_once('.')?;
-    if stem.is_empty() {
-        None
-    } else {
-        Some(stem.to_owned())
-    }
-}
-
-fn parse_catalog_slo(contents: &str) -> Option<String> {
-    for line in contents.lines() {
-        let trimmed = line.trim();
-        if trimmed.is_empty() || trimmed.starts_with('#') {
-            continue;
-        }
-        let Some((key, value)) = trimmed.split_once(':') else {
-            continue;
-        };
-        if key.trim() == "slo" {
-            return Some(value.trim().to_owned());
-        }
-    }
-    None
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -2291,244 +1938,6 @@ value = "legacy-marker"
         fs::remove_dir_all(root).expect("remove temp repo");
     }
 
-    /// FRIC #1328 — the verdict a pre-push author-side check-mode invocation would print for
-    /// `path`, computed via `check_added_paths`. `find` panics if the path is absent.
-    fn check_verdict(root: &Path, path: &str) -> AddedPathVerdict {
-        let cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
-        let policy = Policy::from_config(&cfg).expect("policy from bundled default");
-        let paths = vec![path.to_owned()];
-        let mut verdicts =
-            check_added_paths(root, &cfg, &policy, &paths).expect("check added paths");
-        assert_eq!(verdicts.len(), 1, "one verdict per input path");
-        verdicts.pop().expect("verdict present")
-    }
-
-    #[test]
-    fn check_mode_added_unjustified_path_reports_code_and_remediation() {
-        // A newly ADDED code file that no ADR names ⇒ the firewall's `unjustified` code, keyed
-        // by the path — exactly the `[cloud-ci-total-accounting] unjustified regressions` class.
-        let root = unique_temp_repo();
-        fs::create_dir_all(root.join("docs/decisions")).expect("create decisions dir");
-
-        let path = "newsvc/src/lib.rs";
-        let verdict = check_verdict(&root, path);
-
-        assert_eq!(verdict.unit_class, "code");
-        assert!(verdict.justification.is_none(), "no ADR justifies it");
-        assert!(
-            verdict.blocking_codes.contains("unjustified"),
-            "unjustified must be reported, got {:?}",
-            verdict.blocking_codes
-        );
-
-        // The remediation names the EXACT path token + the ADR-0515 precedent.
-        let remediation = unjustified_remediation(path);
-        assert!(
-            remediation.contains(&format!("`{path}`")),
-            "names path token"
-        );
-        assert!(remediation.contains("ADR-0515"), "names ci/ gate precedent");
-        assert!(remediation.contains("docs/decisions/"), "names the corpus");
-
-        fs::remove_dir_all(root).expect("remove temp repo");
-    }
-
-    #[test]
-    fn check_mode_added_justified_path_reports_clean_of_unjustified() {
-        // The SAME path, once an ADR names its exact token, is no longer `unjustified` — the fix
-        // the remediation prescribes actually clears the code.
-        let root = unique_temp_repo();
-        let decisions = root.join("docs/decisions");
-        fs::create_dir_all(&decisions).expect("create decisions dir");
-
-        let path = "newsvc/src/lib.rs";
-        fs::write(
-            decisions.join("ADR-9997-newsvc.md"),
-            format!("The new service entrypoint is `{path}`.\n"),
-        )
-        .expect("write ADR");
-
-        let verdict = check_verdict(&root, path);
-
-        assert_eq!(verdict.justification.as_deref(), Some("ADR-9997"));
-        assert!(
-            !verdict.blocking_codes.contains("unjustified"),
-            "a justified path is not unjustified, got {:?}",
-            verdict.blocking_codes
-        );
-
-        fs::remove_dir_all(root).expect("remove temp repo");
-    }
-
-    /// The author-facing half of reached ⇒ justified: a path a live registry reaches is clean
-    /// with NO ADR naming it, and the report NAMES the reaching source instead of printing
-    /// `justified: NO` beside an OK verdict.
-    #[test]
-    fn check_mode_added_reached_path_is_justified_by_its_reaching_source() {
-        let root = unique_temp_repo();
-        fs::create_dir_all(root.join("docs/decisions")).expect("create decisions dir");
-        fs::create_dir_all(root.join("specs")).expect("create specs dir");
-        // A reviewed reachability registration — the only registry available in a temp repo with
-        // no cargo workspace. No ADR mentions the path.
-        fs::write(
-            root.join("specs/reachability-registry.json"),
-            r#"{"registered":[{"prefix":"newsvc/","anchor":"ADR-9998: the new service tree."}]}"#,
-        )
-        .expect("write registry");
-
-        let verdict = check_verdict(&root, "newsvc/src/lib.rs");
-
-        assert_eq!(verdict.reachable_from, vec!["reachability-registry"]);
-        assert_eq!(
-            verdict.justification.as_deref(),
-            Some("reached:reachability-registry"),
-            "the report must name the reaching source, not print NO"
-        );
-        assert!(
-            verdict.blocking_codes.is_empty(),
-            "a reached path REDs nothing, got {:?}",
-            verdict.blocking_codes
-        );
-
-        fs::remove_dir_all(root).expect("remove temp repo");
-    }
-
-    #[test]
-    fn check_mode_excluded_path_is_outside_the_accounting_universe() {
-        // A `third-party/` path never enters the scm-facts tracked universe ⇒ cannot RED the
-        // firewall, so the check must not flag it even without any ADR.
-        let root = unique_temp_repo();
-        fs::create_dir_all(root.join("docs/decisions")).expect("create decisions dir");
-
-        let verdict = check_verdict(&root, "third-party/vendored/lib.rs");
-
-        assert!(verdict.excluded, "path_excludes covers third-party/");
-        assert!(
-            verdict.blocking_codes.is_empty(),
-            "excluded paths carry no blocking codes, got {:?}",
-            verdict.blocking_codes
-        );
-
-        fs::remove_dir_all(root).expect("remove temp repo");
-    }
-
-    /// The AUTHOR-SIDE half of the OWNERS accounting floor. CI's path is covered by the
-    /// total-accounting gate's live-corpus test; this covers the pre-push check, which builds
-    /// its own `RepoInputs` and would silently miss the floor if the wiring were dropped.
-    ///
-    /// The failure mode being pinned is a false alarm, which is worse than useless here: an
-    /// author adding a valid `os/OWNERS` would be told to WOULD RED, would go hand-write a
-    /// reachability-registry row to "fix" it, and would land exactly the dead weight this
-    /// change deletes. The invalid file is the control — it must still be reported.
-    #[test]
-    fn check_mode_accounts_a_valid_owners_file_and_still_reds_an_invalid_one() {
-        let root = unique_temp_repo();
-        fs::create_dir_all(root.join("good")).expect("create good dir");
-        fs::create_dir_all(root.join("bad")).expect("create bad dir");
-        fs::write(root.join("good/OWNERS"), "cloud-ci-platform\n").expect("write valid");
-        fs::write(root.join("bad/OWNERS"), "# owner: TBD\n").expect("write invalid");
-
-        let cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
-        let policy = Policy::from_config(&cfg).expect("policy");
-        let paths = vec!["good/OWNERS".to_owned(), "bad/OWNERS".to_owned()];
-        let verdicts = check_added_paths(&root, &cfg, &policy, &paths).expect("check added paths");
-
-        let good = verdicts
-            .iter()
-            .find(|v| v.path == "good/OWNERS")
-            .expect("good verdict");
-        assert!(
-            good.blocking_codes.is_empty(),
-            "a schema-valid OWNERS file must not be reported as WOULD RED, got {:?}",
-            good.blocking_codes
-        );
-        // The printed columns must agree with the verdict, or the report says OK directly
-        // under "justified by NO · reachable via UNREACHABLE".
-        assert_eq!(good.justification.as_deref(), Some("owners-schema"));
-        assert_eq!(good.reachable_from, vec!["owners-schema".to_owned()]);
-
-        let bad = verdicts
-            .iter()
-            .find(|v| v.path == "bad/OWNERS")
-            .expect("bad verdict");
-        for code in ["unjustified", "unreachable"] {
-            assert!(
-                bad.blocking_codes.contains(code),
-                "a comment-only OWNERS file must still be reported as {code}, got {:?}",
-                bad.blocking_codes
-            );
-        }
-        assert_eq!(bad.justification, None);
-        assert!(bad.reachable_from.is_empty());
-
-        fs::remove_dir_all(root).expect("remove temp repo");
-    }
-
-    #[test]
-    fn check_mode_verdicts_equal_producer_firewall_verdicts() {
-        // PARITY: for the SAME inputs, check-mode's per-path blocking codes are byte-identical to
-        // running the producer face-builder + the firewall's own evaluator (minus `unowned`, which
-        // the pre-push partial set cannot soundly compute). This pins that no divergent verdict
-        // logic is ever introduced — the check reuses the shared functions, it does not re-derive.
-        let root = unique_temp_repo();
-        let decisions = root.join("docs/decisions");
-        fs::create_dir_all(&decisions).expect("create decisions dir");
-        let justified_path = "alpha/src/lib.rs";
-        fs::write(
-            decisions.join("ADR-9996-alpha.md"),
-            format!("The alpha crate is `{justified_path}`.\n"),
-        )
-        .expect("write ADR");
-
-        let cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
-        let policy = Policy::from_config(&cfg).expect("policy from bundled default");
-        let paths = vec![justified_path.to_owned(), "beta/src/lib.rs".to_owned()];
-
-        // Producer reference: the exact pipeline CI runs, over the same inputs.
-        let inputs = RepoInputs {
-            tracked_paths: paths.clone(),
-            owners: BTreeMap::new(),
-            justifications: resolve_justifications(&root, &paths, &cfg),
-            reachability: resolve_reachability(&root, &paths, &cfg).expect("reachability"),
-            dup_of: BTreeMap::new(),
-            valid_owners_files: resolve_owners(&root, &paths, &cfg).valid_files,
-        };
-        let registry = build_registry(&inputs, &policy).expect("build registry");
-        let mut producer: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
-        for finding in ci_artifact_accountability::evaluate_keyed(&registry) {
-            if finding.code == "unowned" {
-                continue;
-            }
-            producer
-                .entry(finding.key)
-                .or_default()
-                .insert(finding.code);
-        }
-
-        let verdicts = check_added_paths(&root, &cfg, &policy, &paths).expect("check added paths");
-        for verdict in &verdicts {
-            let expected = producer.get(&verdict.path).cloned().unwrap_or_default();
-            assert_eq!(
-                verdict.blocking_codes, expected,
-                "check-mode codes for {} must equal producer+firewall codes",
-                verdict.path
-            );
-        }
-        // And the substance held: beta is unjustified, alpha is not.
-        let beta = verdicts
-            .iter()
-            .find(|v| v.path == "beta/src/lib.rs")
-            .expect("beta");
-        let alpha = verdicts
-            .iter()
-            .find(|v| v.path == justified_path)
-            .expect("alpha");
-        assert!(beta.blocking_codes.contains("unjustified"));
-        assert!(!alpha.blocking_codes.contains("unjustified"));
-
-        fs::remove_dir_all(root).expect("remove temp repo");
-    }
-
     #[test]
     fn enforcement_inventory_flags_live_cli_authority_but_not_bridge_history() {
         let root = unique_temp_repo();
@@ -2902,52 +2311,49 @@ status: Accepted
     #[test]
     fn slo_coverage_preserves_duplicate_basenames_to_prevent_false_green() {
         let root = unique_temp_repo();
-        // A root workspace manifest is required: the slo-coverage face now composes the
-        // live-OR-marked predicate, which resolves workspace members in-process. An empty
-        // members array yields an empty live set (these `service` rows are not live crates).
-        fs::write(root.join("Cargo.toml"), "[workspace]\nmembers = []\n")
-            .expect("write root manifest");
-        let first = root.join("registry/catalog-a/service.yaml");
-        let second = root.join("registry/catalog-b/service.yaml");
+        let first = root.join("service-a/slos/availability.openslo.yaml");
+        let second = root.join("service-b/slos/availability.openslo.yaml");
         fs::create_dir_all(first.parent().expect("first parent")).expect("create first parent");
         fs::create_dir_all(second.parent().expect("second parent")).expect("create second parent");
-        // Both rows carry an explicit non-live marker so the composed liveness predicate does not
-        // fire here — this test isolates the duplicate-stem SLO behaviour.
         fs::write(
             &first,
-            "slo: preview-control-plane\nstatus: designed-ahead-row-no-crate\n",
+            "apiVersion: openslo/v1\nkind: SLO\nmetadata:\n  name: first-availability\n",
         )
-        .expect("write first catalog row");
+        .expect("write first openslo envelope");
         fs::write(
             &second,
-            "# deliberately missing slo\nstatus: designed-ahead-row-no-crate\n",
+            "# deliberately missing metadata.name\napiVersion: openslo/v1\nkind: SLO\n",
         )
-        .expect("write second catalog row");
+        .expect("write second openslo envelope");
 
-        let mut cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
-        cfg.slo_coverage.catalog_record_globs = vec![
-            "registry/catalog-a/*.yaml".to_owned(),
-            "registry/catalog-b/*.yaml".to_owned(),
-        ];
+        let cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
         let tracked_paths = vec![
-            "registry/catalog-a/service.yaml".to_owned(),
-            "registry/catalog-b/service.yaml".to_owned(),
+            "service-a/slos/availability.openslo.yaml".to_owned(),
+            "service-b/slos/availability.openslo.yaml".to_owned(),
         ];
 
         let face = collect_slo_coverage(&root, &tracked_paths, &cfg).expect("slo-coverage face");
         let rows = face["rows"].as_array().expect("rows");
-        assert_eq!(rows.len(), 2, "duplicate stems must not collapse rows");
-        assert_eq!(rows[0]["crate_id"], "service");
-        assert_eq!(rows[0]["source_path"], "registry/catalog-a/service.yaml");
-        assert_eq!(rows[1]["crate_id"], "service");
-        assert_eq!(rows[1]["source_path"], "registry/catalog-b/service.yaml");
+        assert_eq!(rows.len(), 2, "duplicate basenames must not collapse rows");
+        assert_eq!(
+            rows[0]["crate_id"], "service-a/slos/availability.openslo.yaml",
+            "the row key is the repo-relative path"
+        );
+        assert_eq!(rows[0]["slo"], "first-availability");
+        assert_eq!(
+            rows[1]["crate_id"],
+            "service-b/slos/availability.openslo.yaml"
+        );
+        assert!(rows[1]["slo"].is_null());
 
         let findings = ci_slo_coverage::evaluate_keyed(&face);
         assert!(
             findings.iter().any(|finding| {
-                finding.code == "slo_missing_or_blank_slo" && finding.key == "service"
+                finding.code == "slo_missing_or_blank_slo"
+                    && finding.key == "service-b/slos/availability.openslo.yaml"
             }),
-            "one duplicate row with a valid SLO must not hide the missing-SLO duplicate: {findings:?}"
+            "one duplicate row with a valid declaration must not hide the missing-declaration \
+             duplicate: {findings:?}"
         );
 
         fs::remove_dir_all(root).expect("remove temp repo");
@@ -2990,93 +2396,6 @@ status: Accepted
         assert!(
             findings.is_empty(),
             "de-branded advisory candidates must not become born-blocking cargo-prefix debt: {findings:?}"
-        );
-
-        fs::remove_dir_all(root).expect("remove temp repo");
-    }
-
-    #[test]
-    fn catalog_liveness_face_is_bidirectional_and_tracks_source_crate_paths() {
-        let root = unique_temp_repo();
-        fs::write(
-            root.join("Cargo.toml"),
-            "[workspace]\nmembers = [\"audit/ports/emission-api\", \"audit/ports/missing-row\", \"audit/ports/exempt-row\"]\n",
-        )
-        .expect("write root manifest");
-        for (dir, name) in [
-            ("audit/ports/emission-api", "audit-emission-api"),
-            ("audit/ports/missing-row", "audit-missing-row"),
-            ("audit/ports/exempt-row", "audit-exempt-row"),
-        ] {
-            let dir = root.join(dir);
-            fs::create_dir_all(&dir).expect("create member dir");
-            fs::write(
-                dir.join("Cargo.toml"),
-                format!("[package]\nname = \"{name}\"\n"),
-            )
-            .expect("write member manifest");
-        }
-        write_test_file(
-            &root,
-            "registry/catalog/audit-emission-api.yaml",
-            "traceability:\n  source_crate: crates/old-audit-emission-api/Cargo.toml\n",
-        );
-
-        let mut cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
-        cfg.catalog_liveness.workspace_member_exemptions =
-            vec![oya_ci_config_kernel::CatalogLivenessExemption {
-                path_glob: "audit/ports/exempt-row".to_owned(),
-                owner: "platform-governance".to_owned(),
-                reason: "temporary fixture exemption proves bounded exemptions are surfaced"
-                    .to_owned(),
-                cutover: "remove when fixture gains a catalog row".to_owned(),
-            }];
-        let tracked_paths = vec![
-            "Cargo.toml".to_owned(),
-            "audit/ports/emission-api/Cargo.toml".to_owned(),
-            "audit/ports/missing-row/Cargo.toml".to_owned(),
-            "audit/ports/exempt-row/Cargo.toml".to_owned(),
-            "registry/catalog/audit-emission-api.yaml".to_owned(),
-        ];
-
-        let face =
-            collect_catalog_liveness(&root, &tracked_paths, &cfg).expect("catalog-liveness face");
-        let rows = face["rows"].as_array().expect("rows");
-        assert_eq!(rows.len(), 1);
-        assert_eq!(rows[0]["crate_id"], "audit-emission-api");
-        assert_eq!(rows[0]["is_live"].as_bool(), Some(true));
-        assert_eq!(rows[0]["source_crate_exists"].as_bool(), Some(false));
-
-        let live_crates = face["live_crates"].as_array().expect("live_crates");
-        assert_eq!(live_crates.len(), 3);
-        assert!(live_crates.iter().any(|row| {
-            row["crate_id"] == "audit-emission-api"
-                && row["has_catalog_row"].as_bool() == Some(true)
-        }));
-        assert!(live_crates.iter().any(|row| {
-            row["crate_id"] == "audit-missing-row"
-                && row["has_catalog_row"].as_bool() == Some(false)
-                && row["exemption"].is_null()
-        }));
-        assert!(live_crates.iter().any(|row| {
-            row["crate_id"] == "audit-exempt-row"
-                && row["has_catalog_row"].as_bool() == Some(false)
-                && row["exemption"]["owner"] == "platform-governance"
-        }));
-
-        let findings = ci_service_catalog_parity::evaluate_keyed(&face);
-        assert!(findings.iter().any(|finding| {
-            finding.code == "catalog_record_source_crate_missing"
-                && finding.key == "audit-emission-api"
-        }));
-        assert!(findings.iter().any(|finding| {
-            finding.code == "catalog_live_crate_without_row" && finding.key == "audit-missing-row"
-        }));
-        assert!(
-            !findings
-                .iter()
-                .any(|finding| finding.key == "audit-exempt-row"),
-            "bounded exemption must suppress only its own missing-row finding: {findings:?}"
         );
 
         fs::remove_dir_all(root).expect("remove temp repo");
@@ -3648,145 +2967,6 @@ fn parse_package_license(contents: &str) -> Option<String> {
     None
 }
 
-/// Per-crate §2.5#7 manifest-hygiene flags parsed from a Cargo.toml.
-#[derive(Default)]
-struct ManifestFlags {
-    version_workspace: bool,
-    rust_version_workspace: bool,
-    publish_false: bool,
-    license: bool,
-    lints_workspace: bool,
-    has_lib: bool,
-    lib_doctest_false: bool,
-}
-
-/// Enumerate the first-party `oya-*` crates and emit their §2.5#7 manifest-hygiene flags (the
-/// gate's I/O). The gate's `evaluate_keyed` turns missing flags into Findings. Deterministic
-/// (BTreeMap, sorted) so committed==regenerated holds byte-for-byte. Scoped to `oya-*`.
-fn collect_manifest_hygiene(
-    repo_root: &Path,
-    tracked_paths: &[String],
-    cfg: &oya_ci_config_kernel::OyaCiConfig,
-) -> Value {
-    let prefix = cfg.naming.required_prefix.as_str();
-    let mut by_name: BTreeMap<String, ManifestFlags> = BTreeMap::new();
-    for path in tracked_paths {
-        if !path.ends_with("Cargo.toml") {
-            continue;
-        }
-        if is_path_excluded(path, cfg) {
-            continue;
-        }
-        let contents = read_text(&repo_root.join(path));
-        let Some(name) = parse_package_name(&contents) else {
-            continue;
-        };
-        if !name.starts_with(prefix) {
-            continue;
-        }
-        by_name.insert(name, parse_manifest_flags(&contents));
-    }
-    let rows: Vec<Value> = by_name
-        .into_iter()
-        .map(|(name, f)| {
-            json!({
-                "crate_name": name,
-                "has_version_workspace": f.version_workspace,
-                "has_rust_version_workspace": f.rust_version_workspace,
-                "has_publish_false": f.publish_false,
-                "has_license": f.license,
-                "has_lints_workspace": f.lints_workspace,
-                "has_lib": f.has_lib,
-                "has_lib_doctest_false": f.lib_doctest_false,
-            })
-        })
-        .collect();
-    json!({ "rows": rows })
-}
-
-/// Section-aware line-scan of a Cargo.toml for the §2.5#7 hygiene fields (no `toml` dependency —
-/// minimal-deps doctrine). Tracks the current table so `[package]` fields, `[lints] workspace`,
-/// and `[lib] doctest` are read in their own sections.
-fn parse_manifest_flags(contents: &str) -> ManifestFlags {
-    let mut f = ManifestFlags::default();
-    let mut section = "";
-    for raw in contents.lines() {
-        // Strip an end-of-line comment (Cargo.toml hygiene values carry no '#').
-        let line = raw.split('#').next().unwrap_or("").trim();
-        if line.is_empty() {
-            continue;
-        }
-        if let Some(rest) = line.strip_prefix('[') {
-            section = match rest.split(']').next().unwrap_or("").trim() {
-                "package" => "package",
-                "lints" => "lints",
-                "lib" => "lib",
-                _ => "other",
-            };
-            if section == "lib" {
-                f.has_lib = true;
-            }
-            continue;
-        }
-        match section {
-            "package" => {
-                if is_workspace_inherited(line, "version") {
-                    f.version_workspace = true;
-                }
-                if is_workspace_inherited(line, "rust-version") {
-                    f.rust_version_workspace = true;
-                }
-                if line.starts_with("publish") && line.contains('=') && line.contains("false") {
-                    f.publish_false = true;
-                }
-                if line.starts_with("license") && line.contains('=') {
-                    f.license = true;
-                }
-            }
-            "lints" => {
-                if line.starts_with("workspace") && line.contains('=') && line.contains("true") {
-                    f.lints_workspace = true;
-                }
-            }
-            "lib" => {
-                if line.starts_with("doctest") && line.contains('=') && line.contains("false") {
-                    f.lib_doctest_false = true;
-                }
-            }
-            _ => {}
-        }
-    }
-    f
-}
-
-/// True when `<key>` inherits the workspace: `<key>.workspace = true` or
-/// `<key> = { workspace = true }`. The exact-prefix check keeps `version` from matching
-/// `rust-version`.
-fn is_workspace_inherited(line: &str, key: &str) -> bool {
-    let dotted = format!("{key}.workspace");
-    if line.starts_with(&dotted) && line.contains("true") {
-        return true;
-    }
-    if let Some(rest) = line.strip_prefix(key) {
-        let rest = rest.trim_start();
-        if rest.starts_with('=') && rest.contains("workspace") && rest.contains("true") {
-            return true;
-        }
-    }
-    false
-}
-
-/// The HISTORICAL phantom-citation inventory (FRIC-1781430000): decision ids that governed
-/// surfaces cite TODAY with no decision file on disk, inventoried 2026-06-12 during the
-/// ADR-0397 reconstruction (audit register H-19). This is reviewed, shrink-only carve-out
-/// DATA — the same doctrine as the brand-residue carve-outs: exceptions live as DATA, never
-/// as evaluator branches. Each id is ledgered as its own friction-ledger row listing its
-/// citation sites; healing an id (minting the record at the number, or retargeting every
-/// citer) REMOVES it here. ADDING an id is forbidden — a new phantom citation is exactly
-/// the defect the `phantom_decision_citation` lane blocks (its baseline is frozen-empty;
-/// any non-grandfathered phantom edge is born-blocking). ADR-0397 itself is deliberately
-/// NOT in this list: it was healed by minting the record, which is what keeps this lane's
-/// live key set empty.
 const GRANDFATHERED_PHANTOM_DECISION_IDS: [&str; 62] = [
     "ADR-0000", "ADR-0012", "ADR-0033", "ADR-0037", "ADR-0041", "ADR-0050", "ADR-0086", "ADR-0088",
     "ADR-0125", "ADR-0126", "ADR-0127", "ADR-0224", "ADR-0231", "ADR-0232", "ADR-0247", "ADR-0322",
@@ -3795,7 +2975,7 @@ const GRANDFATHERED_PHANTOM_DECISION_IDS: [&str; 62] = [
     "ADR-0420", "ADR-0421", "ADR-0423", "ADR-0428", "ADR-0429", "ADR-0434", "ADR-0436", "ADR-0441",
     "ADR-0443", "ADR-0448", "ADR-0449", "ADR-0450", "ADR-0451", "ADR-0454", "ADR-0457", "ADR-0458",
     "ADR-0459", "ADR-0460", "ADR-0461", "ADR-0462", "ADR-0466", "ADR-0468", "ADR-0472", "ADR-0473",
-    "ADR-0474", "ADR-0475", "ADR-0477", "ADR-0483", "ADR-0484", "ADR-0488"
+    "ADR-0474", "ADR-0475", "ADR-0477", "ADR-0483", "ADR-0484", "ADR-0488",
 ];
 
 /// Every `ADR-NNNN` token in a text (exactly four digits, not followed by a fifth digit).
@@ -4673,7 +3853,9 @@ fn mentioned_path_index(body: &str) -> BTreeSet<&str> {
     path_like_tokens(body)
         .map(|token| {
             let token = token.trim_start_matches('/');
-            token.split_once('#').map_or(token, |(path, _fragment)| path)
+            token
+                .split_once('#')
+                .map_or(token, |(path, _fragment)| path)
         })
         .filter(|token| !token.is_empty())
         .collect()
@@ -4780,265 +3962,6 @@ fn resolve_justifications(
         }
     }
     map
-}
-
-/// One added path's pre-push verdict (FRIC #1328).
-struct AddedPathVerdict {
-    path: String,
-    unit_class: String,
-    /// Excluded by `[repo].path_excludes` ⇒ never enters the accounting universe.
-    excluded: bool,
-    /// The ADR id that justifies the path, or `None` ⇒ would be `unjustified`.
-    justification: Option<String>,
-    /// The registries that reach the path; empty ⇒ would be `unreachable`.
-    reachable_from: Vec<String>,
-    /// The firewall codes this NEW path would introduce as regressions. Owner-independent:
-    /// `unowned` is dropped (see [`check_added_paths`]).
-    blocking_codes: BTreeSet<String>,
-}
-
-/// Added tracked files between `merge_base` and `HEAD` (`git diff --diff-filter=A`). The
-/// author-side convenience input for `--check-diff`; the pre-push flow commits new files, then
-/// runs this. Fail-loud: an unknown/unfetched base is a hard error, never a silent empty set.
-fn git_added_paths(repo_root: &Path, merge_base: &str) -> Result<Vec<String>, CliError> {
-    let output = std::process::Command::new("git")
-        .arg("-C")
-        .arg(repo_root)
-        .args(["diff", "--name-only", "--diff-filter=A", merge_base, "HEAD"])
-        .output()
-        .map_err(|e| CliError::Io(format!("git diff (added paths): {e}")))?;
-    if !output.status.success() {
-        return Err(CliError::Io(format!(
-            "git diff --name-only --diff-filter=A {merge_base} HEAD failed (exit {:?}): {} — \
-             fetch the base ref or pass a reachable merge-base",
-            output.status.code(),
-            String::from_utf8_lossy(&output.stderr).trim()
-        )));
-    }
-    // `git diff --name-only` C-quotes the same pathnames `ls-files` does, so this is the SECOND
-    // ingestion boundary and takes the SAME decode — otherwise the author-side check silently
-    // disagrees with the full gate on exactly the paths that need it most.
-    String::from_utf8_lossy(&output.stdout)
-        .lines()
-        .map(str::trim)
-        .filter(|line| !line.is_empty())
-        .map(decode_tracked_path)
-        .collect()
-}
-
-/// Resolve the firewall verdict for a set of ADDED paths, reusing the EXACT producer
-/// resolvers + face-builder + the firewall's own evaluator — no reimplementation, no drift.
-///
-/// The added set IS the tracked-path universe here, so no materialized scm-facts face is
-/// needed (that is why authors miss the failure): `resolve_justifications` /
-/// `resolve_reachability` read the ADR corpus + registries straight from the working tree.
-/// A NEW path is never grandfathered by the merge-base baseline, so any per-row finding on it
-/// is guaranteed to be a regression — the check needs no baseline.
-///
-/// `unowned` is intentionally not reported: owner resolution is FULL-TREE (the granting up-tree
-/// `OWNERS` file is usually not in the added set), so it is not soundly computable from a
-/// partial set. The full gate owns ownership; this check covers justification + reachability
-/// (+ the path-only `scratch_artifact` / `no_ttl_class` classes).
-fn check_added_paths(
-    repo_root: &Path,
-    cfg: &oya_ci_config_kernel::OyaCiConfig,
-    policy: &Policy,
-    paths: &[String],
-) -> Result<Vec<AddedPathVerdict>, CliError> {
-    // Excluded paths never enter the scm-facts tracked universe; split them out with the SAME
-    // predicate the producer applies so the check matches CI's accounting boundary exactly.
-    let accounted: Vec<String> = paths
-        .iter()
-        .filter(|path| !is_path_excluded(path, cfg))
-        .cloned()
-        .collect();
-
-    let justifications = resolve_justifications(repo_root, &accounted, cfg);
-    let reachability = resolve_reachability(repo_root, &accounted, cfg)?;
-    // The OWNERS accounting floor is derived here too, or this author-side check would
-    // report WOULD RED for a newly-added valid OWNERS file that CI then passes — the exact
-    // false alarm that makes a pre-push check untrustworthy. Unlike OWNER resolution (which
-    // is full-tree and therefore unsound on a partial set, see the doc comment above), the
-    // per-file SCHEMA verdict is locally computable: the added OWNERS file is itself in the
-    // set and is read + parsed straight from the working tree. Only `valid_files` is taken;
-    // `by_path` stays empty so `unowned` remains out of scope exactly as before.
-    let valid_owners_files = resolve_owners(repo_root, &accounted, cfg).valid_files;
-
-    // Route the added rows through the producer's OWN face-builder and the firewall's OWN
-    // evaluator: the unjustified/unreachable/scratch/ttl verdicts are byte-identical to CI.
-    let inputs = RepoInputs {
-        tracked_paths: accounted,
-        owners: BTreeMap::new(),
-        justifications: justifications.clone(),
-        reachability: reachability.clone(),
-        dup_of: BTreeMap::new(),
-        valid_owners_files,
-    };
-    let registry = build_registry(&inputs, policy)?;
-    let mut codes_by_key: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
-    for finding in ci_artifact_accountability::evaluate_keyed(&registry) {
-        if finding.code == "unowned" {
-            continue;
-        }
-        codes_by_key
-            .entry(finding.key)
-            .or_default()
-            .insert(finding.code);
-    }
-
-    // Report the values off the BUILT ROWS, not off the raw resolver maps. The rows are what
-    // `evaluate_keyed` just judged, so the printed "justified by X · reachable via Y" columns
-    // and the WOULD-RED verdict cannot disagree — a row carrying a DERIVED accounting source
-    // (the OWNERS floor, or the reached ⇒ justified rule) would otherwise print "justified by
-    // NO · reachable via UNREACHABLE" directly above an `OK` line. Both columns must come from
-    // the row for that to hold: reading `justification_ref` back but re-reading the raw
-    // reachability map still lets an OWNERS-floor row print `UNREACHABLE` beside `OK`.
-    // Re-deriving either rule here instead would duplicate it and let the two copies drift;
-    // reading it back cannot. Paths with no row (excluded / unit_class ephemeral) fall back to
-    // the resolver maps and print their own lines anyway.
-    let mut row_accounting: BTreeMap<String, (Option<String>, Vec<String>)> = BTreeMap::new();
-    for row in registry["rows"].as_array().into_iter().flatten() {
-        let Some(path) = row["path"].as_str() else {
-            continue;
-        };
-        row_accounting.insert(
-            path.to_owned(),
-            (
-                row["justification_ref"].as_str().map(str::to_owned),
-                row["reachable_from"]
-                    .as_array()
-                    .map(|values| {
-                        values
-                            .iter()
-                            .filter_map(serde_json::Value::as_str)
-                            .map(str::to_owned)
-                            .collect()
-                    })
-                    .unwrap_or_default(),
-            ),
-        );
-    }
-
-    Ok(paths
-        .iter()
-        .map(|path| {
-            let excluded = is_path_excluded(path, cfg);
-            let (justification, reachable_from) = row_accounting.get(path).cloned().unwrap_or_else(
-                || {
-                    (
-                        justifications.get(path).cloned(),
-                        reachability.get(path).cloned().unwrap_or_default(),
-                    )
-                },
-            );
-            AddedPathVerdict {
-                unit_class: policy.classify(path).to_owned(),
-                justification,
-                reachable_from,
-                blocking_codes: if excluded {
-                    BTreeSet::new()
-                } else {
-                    codes_by_key.get(path).cloned().unwrap_or_default()
-                },
-                excluded,
-                path: path.clone(),
-            }
-        })
-        .collect())
-}
-
-/// The exact, actionable remediation for an `unjustified` added path (FRIC #1328). Since
-/// `build_registry` treats REACHED as justified, this code now fires only on a path that is
-/// ALSO unreachable — so registering reachability is the paved road and clears BOTH codes at
-/// once. Writing the path into ADR prose is the fallback for an artifact no live registry can
-/// reach. Extracted so the tests can pin the author-facing text.
-fn unjustified_remediation(path: &str) -> String {
-    format!(
-        "register `{path}` in a live reachability registry (masterplan / root-hub-pointers / \
-         DOC-CATALOG / the reviewed reachability-registry / an owned envelope_globs prefix in \
-         {ENVELOPES_RELPATH}), or land it under a workspace Cargo member — a reached path is \
-         justified by the registry that reaches it, so this clears `unreachable` too. In-domain \
-         paths under envelope prefixes need no per-file tip-free row. Only if NO live registry \
-         can reach it, add the exact path token `{path}` to the governing ADR under \
-         docs/decisions/ — precedent: ADR-0515 for ci/ gate surfaces, ADR-0251 for compliance \
-         artifacts"
-    )
-}
-
-/// Print the per-path pre-push report and return whether the added set is clean (no path would
-/// RED `[cloud-ci-total-accounting]`). Remediation is exact and actionable per code.
-fn report_check(verdicts: &[AddedPathVerdict]) -> bool {
-    let mut clean = true;
-    for verdict in verdicts {
-        if verdict.excluded {
-            println!(
-                "{}: OK — excluded by [repo].path_excludes; outside the accounting universe",
-                verdict.path
-            );
-            continue;
-        }
-        if verdict.unit_class == "ephemeral" {
-            println!(
-                "{}: OK — unit_class=ephemeral; carved out of the registry (no row, cannot RED)",
-                verdict.path
-            );
-            continue;
-        }
-        let reach = if verdict.reachable_from.is_empty() {
-            "UNREACHABLE".to_owned()
-        } else {
-            verdict.reachable_from.join(",")
-        };
-        let justified = verdict.justification.as_deref().unwrap_or("NO");
-        if verdict.blocking_codes.is_empty() {
-            println!(
-                "{}: OK — justified by {justified} · reachable via {reach}",
-                verdict.path
-            );
-            continue;
-        }
-        clean = false;
-        let codes: Vec<&str> = verdict.blocking_codes.iter().map(String::as_str).collect();
-        println!(
-            "{}: WOULD RED [cloud-ci-total-accounting] — {} (reachable via {reach} · justified: {justified})",
-            verdict.path,
-            codes.join(", ")
-        );
-        if verdict.blocking_codes.contains("unjustified") {
-            println!(
-                "    fix (unjustified): {}",
-                unjustified_remediation(&verdict.path)
-            );
-        }
-        if verdict.blocking_codes.contains("unreachable") {
-            println!(
-                "    fix (unreachable): register `{}` in a live reachability registry (masterplan / \
-                 root-hub-pointers / DOC-CATALOG / the reviewed reachability-registry), land it \
-                 under a workspace Cargo member, OR place it under an owned envelope_globs \
-                 prefix in {ENVELOPES_RELPATH} (in-domain — no per-file tip-free required)",
-                verdict.path
-            );
-        }
-        if verdict.blocking_codes.contains("scratch_artifact") {
-            println!(
-                "    fix (scratch_artifact): `{}` matches a build/test scratch shape \
-                 (unit-class-policy) — zero-tolerance, never grandfathered; relocate/rename it out \
-                 of the scratch class",
-                verdict.path
-            );
-        }
-    }
-    if clean {
-        println!(
-            "check: OK — {} added path(s); none would RED [cloud-ci-total-accounting]",
-            verdicts.len()
-        );
-    } else {
-        println!(
-            "check: WOULD RED — fix the paths above, then re-run --check-paths before pushing"
-        );
-    }
-    clean
 }
 
 fn read_text(path: &Path) -> String {

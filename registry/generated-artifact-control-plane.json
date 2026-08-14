@@ -437,20 +437,6 @@
       }
     },
     {
-      "artifact_id": "ci-friction-accounting-hand-shrunk-baseline",
-      "path": "ci/facade/action-item-accounting/friction-accounting-baseline.json",
-      "artifact_class": "hand-curated-ratchet",
-      "materialization_mode": "hand-curated-committed",
-      "merge_policy": "normal-source-merge",
-      "owner_team": "cloud-ci-platform",
-      "source_inputs": [
-        "human review of the friction ledger legacy debt at ADR-0544 gate go-live",
-        "ci/facade/action-item-accounting/friction-accounting-policy.json"
-      ],
-      "final_tree_validation": "HAND-CURATED-COMMITTED (not producer-regenerated): the reviewed, hand-shrunk shrink-only ratchet reference for the friction-ledger legacy debt set frozen at ADR-0544 gate go-live. The live-repo gate test asserts the MEASURED legacy set equals these keys EXACTLY (set equality). It MUST stay a committed git blob and MUST NOT be recomputed over the candidate tree — a candidate recompute would erase the hand-shrunk burn-down and re-launder aged-out debt. Declaring it with any de-commit materialization_mode is RED (hand_curated_ratchet_artifact_must_stay_committed).",
-      "public_product_contract": "A human-authored shrink-only debt baseline is governed by the control plane: it cannot be silently de-committed or recomputed, only reviewed-shrunk."
-    },
-    {
       "artifact_id": "ci-embedded-asset-hermeticity-hand-shrunk-baseline",
       "path": "ci/facade/embedded-asset-hermeticity/embedded-asset-hermeticity-baseline.json",
       "artifact_class": "hand-curated-ratchet",
