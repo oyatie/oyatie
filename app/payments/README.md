@@ -35,7 +35,7 @@ The `payments` µservice is the **shared hero-substrate** for every oyatie monet
 
 - **PRD** → [`PRD.md`](PRD.md) — 1612 lines; problem, personas, ≥40 user stories, NFRs, compliance impact.
 - **Architecture** → [`ARCHITECTURE.md`](ARCHITECTURE.md) — substrate layering, BC roster, Cedar gate roster, audit-event registry.
-- **Threat model** → [`threat-model.md`](threat-model.md) — STRIDE per data class (PII + PAN + PIN + payout).
+- **Threat model** → [`security/threat-model.md`](security/threat-model.md) — STRIDE per data class (PII + PAN + PIN + payout).
 - **Compliance** → [`compliance.md`](compliance.md) — per-pack control mapping (PCI / KR-FSS / EU-PSD2 / etc.).
 - **Phase plan** → [`PHASE-01-PAYMENTS-MVP.md`](PHASE-01-PAYMENTS-MVP.md) — MVP delivery sequence.
 - **Runbooks** → [`runbooks/`](runbooks/) — 8 operational playbooks.
