@@ -43,6 +43,16 @@ rust_binary(
     ],
 )
 
+rust_binary(
+    name = "oya-pre-push-verify-bin",
+    srcs = glob(["src/**/*.rs"]),
+    crate_root = "src/bin/oya-pre-push-verify.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-generated-artifact-freshness",
+    ],
+)
+
 rust_test(
     name = "ci-generated-artifact-freshness-unittest",
     srcs = glob(["src/**/*.rs"]),

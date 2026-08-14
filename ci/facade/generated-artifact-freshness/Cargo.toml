@@ -29,6 +29,10 @@ path = "src/bin/oya-cloud-ci-face-settle.rs"
 name = "oya-cloud-ci-materialize-generated-faces"
 path = "src/bin/oya-cloud-ci-materialize-generated-faces.rs"
 
+[[bin]]
+name = "oya-pre-push-verify"
+path = "src/bin/oya-pre-push-verify.rs"
+
 [dependencies]
 ci-cross-artifact-agreement = { path = "../cross-artifact-agreement" }
 ci-planning-projection = { path = "../planning-projection" }
