@@ -34,9 +34,10 @@ Enforced by: `ci/facade/baseline-ratchet` test `reorg_at_most_one_executable_mov
 |------|--------|
 | `intelligence-remainder-move-plan.json` | **LIVE** — G024 remainder rehome (78 crates under `oya/intelligence`); sole executable move-plan |
 | `ci-keystone-rename-map.json` | **rename SSOT** (not a move-plan) — gate_registration + disposition |
-| `nativelink-storage-move-plan.PARKED.json` | **PARKED** — CAS 3A; unpark after G039 + this live plan finished/parked |
 | `kernel-move-plan.BLOCKED.json` | **BLOCKED** — mechanical blockers; resolution design: [`kernel-unblock-design.md`](kernel-unblock-design.md) |
 | `ci-graph-additions.json` | Companion graph for historical keystone lockfile edges |
+
+> **Spent leaf (no live plan file):** R-CAS-3A NativeLink storage rehome (`infra/nativelink` → `storage/adapters/nativelink/`) is **executed and promoted** — #1563 merged 2026-08-05, promoted `010c132ec`; completion evidence `evidence/completion/oyatie-oso.5-packet.md` (criteria_met=false only because the promoted-SHA CI run was cancelled; re-verify is post-merge hygiene, not a move lane). Plan file deleted as spent in PR #1954.
 
 > **Spent leaf (no live plan file):** R-DUAL-CI-TIDE-MOVE (`oya/ci-tide` → `ci/tide/`) is applied in-tree; evidence `evidence/reorg/rr-dual-ci-tide-move-20260806.json`. Plan not kept LIVE because #1581 already holds the singleton for intelligence-remainder.
 >

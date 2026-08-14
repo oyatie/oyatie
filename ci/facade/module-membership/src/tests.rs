@@ -8,7 +8,7 @@ use serde_json::json;
 fn policy() -> Value {
     json!({
         "gate_id": GATE_ID,
-        "registry_path": "specs/capability-registry.json",
+        "registry_path": "governance/capability-registry.json",
         "scan_roots": ["cloud", "oya", "libs", "tools"],
         "meta_directories": ["kernel", "os", "base", "governance", "build", "app"],
         "allowed_top_level_dirs": [

@@ -3045,7 +3045,7 @@ fn adr_prose_frontmatter_status_agreement_is_advisory_clean_on_live_tree() {
 
 fn live_registry_policy_corpus(root: &Path) -> Value {
     serde_json::json!({
-        "registry": load_json(&root.join("specs/capability-registry.json")),
+        "registry": load_json(&root.join("governance/capability-registry.json")),
         "policies": {
             "module_membership": {
                 "path": "ci/facade/module-membership/capability-membership-policy.json",
@@ -3070,7 +3070,7 @@ fn live_registry_policy_corpus(root: &Path) -> Value {
 }
 
 /// Sub-check 2/3 born-advisory over the live tree: every capability root in
-/// specs/capability-registry.json is present in the three derived gate policies
+/// governance/capability-registry.json is present in the three derived gate policies
 /// (#1327 defect class (c): a registered capability root missing from a derived
 /// policy). Enforces no-regression vs the frozen baseline.
 #[test]

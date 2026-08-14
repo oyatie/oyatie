@@ -1,0 +1,139 @@
+# Canonical-base: specs/capabilities/canonical-tier-schema.json + eu-ai-act-risk-class-registry.json (SWEEP-I Slice 5 per ADR-0064)
+# T0-suggest capabilities — calendar µservice
+#
+# Autonomy Tier 0: "suggest only; human accepts/rejects". Calendar surfaces
+# here are safe-by-construction because their effect is a UI suggestion the
+# user can accept or ignore. No autonomous action; no data flow change.
+#
+# Per `/specs/agentic-tiers.json` v1.0 + ADR-0133 §"autonomy tiering".
+# Per ADR-0140 (retired per ADR-0145) Cedar policy enforcement.
+# Per EU AI Act Art. 50 transparency (AI-generated suggestions labelled).
+
+doc_class: AutonomyTierCatalog
+microservice: calendar
+tier: T0
+owner_team: axis-calendar + platform-runtime + council-privacy
+date: 2026-05-17
+review_cadence: per-capability-launch + quarterly
+
+capabilities:
+  - id: T0-cal-suggest-time
+    name: "Smart-time slot suggestion"
+    description: |
+      The user is composing a new event with N attendees; the assistant
+      ranks the next 5 available common slots based on the queried free/
+      busy windows. Suggestions are rendered as clickable chips; user
+      accepts (click) or ignores. No event is created without explicit
+      user "Save."
+    surface: compose-ui (REST POST /v1/assist/time-suggest)
+    triggers:
+      - user has selected ≥ 2 attendees in compose UI AND has not yet picked a start time
+      - user explicitly clicks "Suggest a time"
+    consent_basis:
+      personal_context: implicit-on-use (user is the requester; suggestions only consult queryable free/busy of own attendees)
+      professional_context: tenant-policy-basis (admin opted tenant in; per-user opt-out available)
+    data_class_processed: [BEHAVIORAL_TENANT_PRODUCT]
+    data_class_emitted: INTERNAL_ONLY (slot list + scoring rationale; no event content)
+    cross_tenant_consultation:
+      allowed: yes-when-cedar-admits
+      surface: free/busy projection only — NEVER raw event content
+      rule: oya-calendar-availability-resolver-domain enforces FreeBusyProjection minimum-necessary (PRD AC-02)
+    model:
+      primary: tenant-default-llm (platform-runtime managed) for slot ranking
+      fallback: rule-based heuristic (next-3-business-hours)
+      private_inference: tenant-DEK-wrapped prompt; no cross-tenant training
+    latency_budget_p99_ms: 300
+    audit_event: CalendarTimeSuggestionShown (per-suggestion; minimal payload — attendee count hash + slot list hash)
+    fallback_on_model_failure: silent skip — falls back to heuristic
+    risk_classification: minimal-risk (Annex III §3 NOT triggered — scheduling is not employment/HR decision-making per se; HR-scheduling overlay handled at T1)
+    user_label: "AI suggestion — click to accept" (Art. 50 transparency)
+
+  - id: T0-cal-suggest-title
+    name: "Event title suggestion (from attendees + context)"
+    description: |
+      Suggest an event title from the attendee list + any user-provided
+      hint text. Suggestion shown in compose; user can accept, ignore,
+      or write their own.
+    surface: compose-ui (REST POST /v1/assist/title-suggest)
+    triggers:
+      - user has selected ≥ 1 attendee AND title field is empty
+      - user explicitly requests "suggest title"
+    consent_basis:
+      personal_context: implicit-on-use
+      professional_context: tenant-policy-basis
+    data_class_processed: [PII_IDENTIFYING, BEHAVIORAL_TENANT_PRODUCT]
+    data_class_emitted: INTERNAL_ONLY (suggested title text)
+    model:
+      primary: tenant-default-llm
+      fallback: "Meeting with <attendee_count> attendees" template
+      private_inference: tenant-DEK-wrapped prompt; no cross-tenant training
+    latency_budget_p99_ms: 250
+    audit_event: CalendarTitleSuggestionShown
+    fallback_on_model_failure: silent skip
+    risk_classification: minimal-risk
+    user_label: "AI suggestion — Tab to accept"
+
+  - id: T0-cal-suggest-room
+    name: "Room/resource suggestion"
+    description: |
+      Suggest the best-fit room from the tenant's resource graph based on
+      attendee count, presence/absence of A-V equipment, and historical
+      preferences. Suggestion shown; user accepts or picks a different
+      room.
+    surface: compose-ui (REST POST /v1/assist/room-suggest)
+    triggers:
+      - user has selected attendees + time AND no room yet
+    consent_basis:
+      personal_context: not-applicable (rooms are tenant-resource scope)
+      professional_context: tenant-policy-basis
+    data_class_processed: [BEHAVIORAL_TENANT_PRODUCT]
+    data_class_emitted: INTERNAL_ONLY (room id list)
+    model:
+      primary: tenant-default-llm (consults resource graph + historical booking patterns)
+      fallback: largest-available-room heuristic
+      private_inference: tenant-DEK-wrapped prompt; no cross-tenant training
+    latency_budget_p99_ms: 200
+    audit_event: CalendarRoomSuggestionShown
+    fallback_on_model_failure: silent skip
+    risk_classification: minimal-risk
+    user_label: "AI suggestion — click to accept"
+
+  - id: T0-cal-suggest-agenda
+    name: "Meeting agenda suggestion"
+    description: |
+      Suggest a draft agenda for the event based on title + attendees +
+      any user-provided rough notes. Suggestion shown in description
+      field; user accepts, edits, or ignores.
+    surface: compose-ui (REST POST /v1/assist/agenda-suggest)
+    triggers:
+      - user explicitly clicks "Draft agenda"
+    consent_basis:
+      personal_context: implicit-on-use
+      professional_context: tenant-policy-basis
+    data_class_processed: [PII_IDENTIFYING, BEHAVIORAL_TENANT_PRODUCT]
+    data_class_emitted: INTERNAL_ONLY (draft agenda text)
+    model:
+      primary: tenant-default-llm
+      fallback: empty (no fallback — fail-silent)
+      private_inference: tenant-DEK-wrapped prompt; no cross-tenant training
+    latency_budget_p99_ms: 400
+    audit_event: CalendarAgendaSuggestionShown
+    fallback_on_model_failure: silent skip
+    risk_classification: minimal-risk
+    user_label: "AI suggestion — edit then accept"
+
+verification:
+  - All T0 suggestions emit a Cedar-evaluable principal/action/resource triple to `policy/tenant-scope.cedar` BEFORE model invocation.
+  - All T0 suggestions emit an audit-chain event (Ed25519-sealed; non-content payload only) on suggestion-shown + suggestion-accepted.
+  - All T0 suggestions are labelled per EU AI Act Art. 50 in the UI surface.
+  - All T0 suggestions respect dual-context isolation: Personal-context suggestions NEVER consult Professional-context data; Professional-context suggestions NEVER consult Personal-context data. Enforced at `oya-calendar-availability-resolver-domain` per PRD AC-07.
+  - T0 suggestions do NOT create, modify, or delete events without explicit user action.
+
+references:
+  - /specs/agentic-tiers.json — autonomy tier spec.
+  - ADR-0140 — Cedar policy enforcement substrate.
+  - ADR-0133 — autonomy tiering as industry-best-practice axis.
+  - EU AI Act Regulation (EU) 2024/1689 — Art. 50 transparency.
+  - microservices/calendar/PRD.md §FR-03 (free/busy substrate that powers T0-cal-suggest-time).
+  - microservices/calendar/policy/event-isolation.md — dual-context enforcement.
+  - microservices/mail/capabilities/T0-suggest.yaml — sibling reference.
