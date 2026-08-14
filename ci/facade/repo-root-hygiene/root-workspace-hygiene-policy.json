@@ -1,74 +1,323 @@
 {
-  "$comment": "ALLOWLIST-as-DATA for the root-workspace-hygiene gate (ADR-0600). The gate engine is UNIVERSAL: it reads this allowlist as DATA and runs on ANY repo. Oyatie's allowlist is just the pack below. POSTURE: default-DENY. Every TRACKED file at the repository ROOT (a tracked path that carries no '/' separator) MUST match an allowlist rule; ANY tracked root file that matches NO rule fails the gate (root_workspace_unallowlisted_file). This is the complement of the existing scratch DENYLIST (cloud-ci-total-accounting `scratch_artifact`, which catches KNOWN scratch shapes): the allowlist catches EVERY new root file, including scratch shapes nobody has named yet. The two layers compose — denylist = zero-tolerance on known scratch, allowlist = born-blocking on any unrecognized root file. Adding a NEW legitimate root file is a reviewed DATA edit here (never a scanner branch). Top-level DIRECTORIES are governed by `allowed_root_dirs` (a tracked path's first segment must be a permitted capability/meta dir). Rules are evaluated against the BASENAME of each tracked root file; the FIRST matching rule wins (order is significant only for diagnostics).",
+  "$comment": "ALLOWLIST-as-DATA for the root-workspace-hygiene gate (ADR-0600). The gate engine is UNIVERSAL: it reads this allowlist as DATA and runs on ANY repo. Oyatie's allowlist is just the pack below. POSTURE: default-DENY. Every TRACKED file at the repository ROOT (a tracked path that carries no '/' separator) MUST match an allowlist rule; ANY tracked root file that matches NO rule fails the gate (root_workspace_unallowlisted_file). This is the complement of the existing scratch DENYLIST (cloud-ci-total-accounting `scratch_artifact`, which catches KNOWN scratch shapes): the allowlist catches EVERY new root file, including scratch shapes nobody has named yet. The two layers compose \u2014 denylist = zero-tolerance on known scratch, allowlist = born-blocking on any unrecognized root file. Adding a NEW legitimate root file is a reviewed DATA edit here (never a scanner branch). Top-level DIRECTORIES are governed by `allowed_root_dirs` (a tracked path's first segment must be a permitted capability/meta dir). Rules are evaluated against the BASENAME of each tracked root file; the FIRST matching rule wins (order is significant only for diagnostics).",
   "gate_id": "cloud-ci-root-workspace-hygiene",
   "match_kinds": {
     "exact": "the tracked root file basename equals `value`",
     "suffix": "the tracked root file basename ends with `value` (e.g. an extension or a family like `.buckconfig`)",
-    "prefix": "the tracked root file basename starts with `value` (broad — matches any continuation)",
-    "prefix_dot": "the tracked root file basename equals `value` OR starts with `value` followed by `.` or `-` (tight family: README → README, README.md, README-internal.md but NOT READMEILY)"
+    "prefix": "the tracked root file basename starts with `value` (broad \u2014 matches any continuation)",
+    "prefix_dot": "the tracked root file basename equals `value` OR starts with `value` followed by `.` or `-` (tight family: README \u2192 README, README.md, README-internal.md but NOT READMEILY)"
   },
   "allowed_root_files": [
-    { "id": "cargo-manifest",        "kind": "exact",  "value": "Cargo.toml",          "reason": "workspace Cargo manifest" },
-    { "id": "cargo-lock",            "kind": "exact",  "value": "Cargo.lock",          "reason": "generated lockfile (kept tracked)" },
-    { "id": "buckconfig",            "kind": "prefix_dot", "value": ".buckconfig",     "reason": "buck2 config (.buckconfig, .buckconfig.local, …) but NOT notes.buckconfig" },
-    { "id": "buckroot",              "kind": "exact",  "value": ".buckroot",           "reason": "buck2 cell-root marker" },
-    { "id": "rust-toolchain",        "kind": "exact",  "value": "rust-toolchain.toml", "reason": "pinned Rust toolchain" },
-    { "id": "rust-project",          "kind": "exact",  "value": "rust-project.json",   "reason": "rust-analyzer project descriptor (if present)" },
-    { "id": "rustfmt",               "kind": "exact",  "value": "rustfmt.toml",        "reason": "rustfmt config" },
-    { "id": "reindeer",              "kind": "exact",  "value": "reindeer.toml",       "reason": "reindeer (buck2 third-party) config" },
-    { "id": "deny",                  "kind": "exact",  "value": "deny.toml",           "reason": "cargo-deny supply-chain policy" },
-    { "id": "readme",                "kind": "prefix_dot", "value": "README",          "reason": "README, README.md, README-internal.md — NOT READMEILY.txt" },
-    { "id": "license",               "kind": "prefix_dot", "value": "LICENSE",         "reason": "LICENSE, LICENSE.md, LICENSE-Apache-2.0 — NOT LICENSEKEY.txt (no separator)" },
-    { "id": "claude-md",             "kind": "exact",  "value": "CLAUDE.md",           "reason": "project agent-rules source (root authority)" },
-    { "id": "agents-md",             "kind": "exact",  "value": "AGENTS.md",           "reason": "agent operating contract pointer" },
-    { "id": "handoff-md",            "kind": "exact",  "value": "HANDOFF.md",          "reason": "founder-authorized thin fresh-session redirect; never a plan, backlog, or status authority" },
-    { "id": "owners",                "kind": "exact",  "value": "OWNERS",              "reason": "root-level ownership marker for root DATA files" },
-    { "id": "oya-deps-toml",         "kind": "exact",  "value": "oya-deps.toml",       "reason": "owned dependency automation config (DATA)" },
-    { "id": "oya-ci-toml",           "kind": "exact",  "value": "oya-ci.toml",         "reason": "oya-ci enforcement config (DATA)" },
-    { "id": "makefile",              "kind": "exact",  "value": "Makefile",            "reason": "developer convenience targets" },
-    { "id": "dockerfile-distroless", "kind": "exact",  "value": "Dockerfile.distroless", "reason": "release image build descriptor" },
-    { "id": "gitignore",             "kind": "exact",  "value": ".gitignore",          "reason": "git ignore policy" },
-    { "id": "gitattributes",         "kind": "exact",  "value": ".gitattributes",      "reason": "git attributes policy" },
-    { "id": "editorconfig",          "kind": "exact",  "value": ".editorconfig",       "reason": "editor config (if present)" }
+    {
+      "id": "cargo-manifest",
+      "kind": "exact",
+      "value": "Cargo.toml",
+      "reason": "workspace Cargo manifest"
+    },
+    {
+      "id": "cargo-lock",
+      "kind": "exact",
+      "value": "Cargo.lock",
+      "reason": "generated lockfile (kept tracked)"
+    },
+    {
+      "id": "buckconfig",
+      "kind": "prefix_dot",
+      "value": ".buckconfig",
+      "reason": "buck2 config (.buckconfig, .buckconfig.local, \u2026) but NOT notes.buckconfig"
+    },
+    {
+      "id": "buckroot",
+      "kind": "exact",
+      "value": ".buckroot",
+      "reason": "buck2 cell-root marker"
+    },
+    {
+      "id": "rust-toolchain",
+      "kind": "exact",
+      "value": "rust-toolchain.toml",
+      "reason": "pinned Rust toolchain"
+    },
+    {
+      "id": "rust-project",
+      "kind": "exact",
+      "value": "rust-project.json",
+      "reason": "rust-analyzer project descriptor (if present)"
+    },
+    {
+      "id": "rustfmt",
+      "kind": "exact",
+      "value": "rustfmt.toml",
+      "reason": "rustfmt config"
+    },
+    {
+      "id": "reindeer",
+      "kind": "exact",
+      "value": "reindeer.toml",
+      "reason": "reindeer (buck2 third-party) config"
+    },
+    {
+      "id": "deny",
+      "kind": "exact",
+      "value": "deny.toml",
+      "reason": "cargo-deny supply-chain policy"
+    },
+    {
+      "id": "readme",
+      "kind": "prefix_dot",
+      "value": "README",
+      "reason": "README, README.md, README-internal.md \u2014 NOT READMEILY.txt"
+    },
+    {
+      "id": "license",
+      "kind": "prefix_dot",
+      "value": "LICENSE",
+      "reason": "LICENSE, LICENSE.md, LICENSE-Apache-2.0 \u2014 NOT LICENSEKEY.txt (no separator)"
+    },
+    {
+      "id": "claude-md",
+      "kind": "exact",
+      "value": "CLAUDE.md",
+      "reason": "project agent-rules source (root authority)"
+    },
+    {
+      "id": "agents-md",
+      "kind": "exact",
+      "value": "AGENTS.md",
+      "reason": "agent operating contract pointer"
+    },
+    {
+      "id": "handoff-md",
+      "kind": "exact",
+      "value": "HANDOFF.md",
+      "reason": "founder-authorized thin fresh-session redirect; never a plan, backlog, or status authority"
+    },
+    {
+      "id": "owners",
+      "kind": "exact",
+      "value": "OWNERS",
+      "reason": "root-level ownership marker for root DATA files"
+    },
+    {
+      "id": "oya-deps-toml",
+      "kind": "exact",
+      "value": "oya-deps.toml",
+      "reason": "owned dependency automation config (DATA)"
+    },
+    {
+      "id": "oya-ci-toml",
+      "kind": "exact",
+      "value": "oya-ci.toml",
+      "reason": "oya-ci enforcement config (DATA)"
+    },
+    {
+      "id": "makefile",
+      "kind": "exact",
+      "value": "Makefile",
+      "reason": "developer convenience targets"
+    },
+    {
+      "id": "dockerfile-distroless",
+      "kind": "exact",
+      "value": "Dockerfile.distroless",
+      "reason": "release image build descriptor"
+    },
+    {
+      "id": "gitignore",
+      "kind": "exact",
+      "value": ".gitignore",
+      "reason": "git ignore policy"
+    },
+    {
+      "id": "gitattributes",
+      "kind": "exact",
+      "value": ".gitattributes",
+      "reason": "git attributes policy"
+    },
+    {
+      "id": "editorconfig",
+      "kind": "exact",
+      "value": ".editorconfig",
+      "reason": "editor config (if present)"
+    }
   ],
   "allowed_root_dirs": [
-    ".cargo", ".claude", ".codex", ".config", ".cursor", ".github", ".grok", ".omc",
-    "app", "audit", "base", "benchmarks", "billing", "build", "cell", "ci",
-    "cloud", "comms",
-    "compliance", "compute", "console", "contracts", "data", "docs",
-    "evidence", "flags", "gateway", "governance", "iac", "iam", "infra",
-    "intelligence", "k8s", "kernel", "libs", "marketplace", "messaging", "network",
-    "observability", "os", "oya", "packs", "plan", "policy", "registry", "scripts",
-    "secrets", "specs", "storage", "tasks", "templates", "tenancy",
-    "third-party", "toolchains", "tools", "workflow"
+    ".cargo",
+    ".claude",
+    ".codex",
+    ".config",
+    ".cursor",
+    ".github",
+    ".grok",
+    ".omc",
+    "app",
+    "audit",
+    "base",
+    "benchmarks",
+    "billing",
+    "build",
+    "cell",
+    "ci",
+    "cloud",
+    "comms",
+    "compliance",
+    "compute",
+    "console",
+    "contracts",
+    "data",
+    "docs",
+    "evidence",
+    "flags",
+    "gateway",
+    "governance",
+    "iac",
+    "iam",
+    "infra",
+    "intelligence",
+    "k8s",
+    "kernel",
+    "libs",
+    "marketplace",
+    "messaging",
+    "network",
+    "observability",
+    "os",
+    "oya",
+    "packs",
+    "plan",
+    "policy",
+    "registry",
+    "scripts",
+    "secrets",
+    "specs",
+    "storage",
+    "tasks",
+    "templates",
+    "tenancy",
+    "third-party",
+    "toolchains",
+    "tools",
+    "workflow"
   ],
   "restricted_tracked_roots": [
-    ".claude", ".codex", ".omc", ".omx"
+    ".claude",
+    ".codex",
+    ".omc",
+    ".omx"
   ],
   "allowed_tracked_paths": [
-    { "id": "claude-project-settings",       "kind": "exact", "value": ".claude/settings.json",                     "reason": "tracked project hook/config mirror; local settings/worktrees remain ignored" },
-    { "id": "codex-hooks",                   "kind": "exact", "value": ".codex/hooks.json",                         "reason": "tracked Codex hook config mirror" },
-    { "id": "claude-buck-package",          "kind": "exact", "value": ".claude/BUCK",                               "reason": "Buck package marker for reviewed .claude/settings.json hook-config corpus target; not runtime state" },
-    { "id": "claude-owners-marker",          "kind": "exact", "value": ".claude/OWNERS",                             "reason": "ownership marker for reviewed .claude hook-config corpus metadata; not runtime state" },
-    { "id": "codex-buck-package",           "kind": "exact", "value": ".codex/BUCK",                                "reason": "Buck package marker for reviewed .codex/hooks.json hook-config corpus target; not runtime state" },
-    { "id": "codex-owners-marker",           "kind": "exact", "value": ".codex/OWNERS",                              "reason": "ownership marker for reviewed .codex hook-config corpus metadata; not runtime state" },
-    { "id": "omc-ultragoal-owners",          "kind": "exact", "value": ".omc/ultragoal/OWNERS",                     "reason": "keep-with-sunset brand residue ownership marker (ADR-0709); do not expand .omc tracked set" },
-    { "id": "omc-ultragoal-preamble",        "kind": "exact", "value": ".omc/ultragoal/TEAMMATE-PREAMBLE.md",       "reason": "keep-with-sunset tombstone only — not live agent authority (ADR-0709)" },
-    { "id": "omc-ultragoal-friction-ledger", "kind": "exact", "value": ".omc/ultragoal/friction-ledger.jsonl",      "reason": "CI load-bearing friction ledger path (ADR-0544 policy); path stable until future rehome" },
-    { "id": "claude-workflows-readme", "kind": "exact", "value": ".claude/workflows/README.md", "reason": "reviewed agent-lane workflow harness README; not runtime state" },
-    { "id": "claude-workflows-auth-preflight", "kind": "exact", "value": ".claude/workflows/auth-preflight.mjs", "reason": "reviewed gh auth preflight for agent deliver/restack harness" },
-    { "id": "claude-workflows-deliver", "kind": "exact", "value": ".claude/workflows/deliver.js", "reason": "reviewed agent-lane deliver orchestration harness" },
-    { "id": "claude-workflows-merge-check", "kind": "exact", "value": ".claude/workflows/merge-check.mjs", "reason": "reviewed merge-check helper for agent deliver harness" },
-    { "id": "claude-workflows-preflight", "kind": "exact", "value": ".claude/workflows/preflight.mjs", "reason": "reviewed preflight helper for agent deliver harness" },
-    { "id": "claude-workflows-restack", "kind": "exact", "value": ".claude/workflows/restack.js", "reason": "reviewed restack helper for agent deliver harness" },
-    { "id": "omc-ultragoal-premise",         "kind": "exact", "value": ".omc/ultragoal/premise.txt",                "reason": "keep-with-sunset residual path slot; not live premise authority (ADR-0709)" }
+    {
+      "id": "claude-project-settings",
+      "kind": "exact",
+      "value": ".claude/settings.json",
+      "reason": "tracked project hook/config mirror; local settings/worktrees remain ignored"
+    },
+    {
+      "id": "codex-hooks",
+      "kind": "exact",
+      "value": ".codex/hooks.json",
+      "reason": "tracked Codex hook config mirror"
+    },
+    {
+      "id": "claude-buck-package",
+      "kind": "exact",
+      "value": ".claude/BUCK",
+      "reason": "Buck package marker for reviewed .claude/settings.json hook-config corpus target; not runtime state"
+    },
+    {
+      "id": "claude-owners-marker",
+      "kind": "exact",
+      "value": ".claude/OWNERS",
+      "reason": "ownership marker for reviewed .claude hook-config corpus metadata; not runtime state"
+    },
+    {
+      "id": "codex-buck-package",
+      "kind": "exact",
+      "value": ".codex/BUCK",
+      "reason": "Buck package marker for reviewed .codex/hooks.json hook-config corpus target; not runtime state"
+    },
+    {
+      "id": "codex-owners-marker",
+      "kind": "exact",
+      "value": ".codex/OWNERS",
+      "reason": "ownership marker for reviewed .codex hook-config corpus metadata; not runtime state"
+    },
+    {
+      "id": "omc-ultragoal-owners",
+      "kind": "exact",
+      "value": ".omc/ultragoal/OWNERS",
+      "reason": "keep-with-sunset brand residue ownership marker (ADR-0709); do not expand .omc tracked set"
+    },
+    {
+      "id": "omc-ultragoal-preamble",
+      "kind": "exact",
+      "value": ".omc/ultragoal/TEAMMATE-PREAMBLE.md",
+      "reason": "keep-with-sunset tombstone only \u2014 not live agent authority (ADR-0709)"
+    },
+    {
+      "id": "omc-ultragoal-friction-ledger",
+      "kind": "exact",
+      "value": ".omc/ultragoal/friction-ledger.jsonl",
+      "reason": "CI load-bearing friction ledger path (ADR-0544 policy); path stable until future rehome"
+    },
+    {
+      "id": "claude-workflows-readme",
+      "kind": "exact",
+      "value": ".claude/workflows/README.md",
+      "reason": "reviewed agent-lane workflow harness README; not runtime state"
+    },
+    {
+      "id": "claude-workflows-auth-preflight",
+      "kind": "exact",
+      "value": ".claude/workflows/auth-preflight.mjs",
+      "reason": "reviewed gh auth preflight for agent deliver/restack harness"
+    },
+    {
+      "id": "claude-workflows-deliver",
+      "kind": "exact",
+      "value": ".claude/workflows/deliver.js",
+      "reason": "reviewed agent-lane deliver orchestration harness"
+    },
+    {
+      "id": "claude-workflows-merge-check",
+      "kind": "exact",
+      "value": ".claude/workflows/merge-check.mjs",
+      "reason": "reviewed merge-check helper for agent deliver harness"
+    },
+    {
+      "id": "claude-workflows-preflight",
+      "kind": "exact",
+      "value": ".claude/workflows/preflight.mjs",
+      "reason": "reviewed preflight helper for agent deliver harness"
+    },
+    {
+      "id": "claude-workflows-restack",
+      "kind": "exact",
+      "value": ".claude/workflows/restack.js",
+      "reason": "reviewed restack helper for agent deliver harness"
+    },
+    {
+      "id": "omc-ultragoal-premise",
+      "kind": "exact",
+      "value": ".omc/ultragoal/premise.txt",
+      "reason": "keep-with-sunset residual path slot; not live premise authority (ADR-0709)"
+    }
   ],
   "product_contract": {
     "auto_fix": "Every finding carries a concrete remediation per offending path: relocate process scratch to `.omc/` (the gitignored scratch home) or `git rm` the file. A NEW legitimate root file is admitted by adding a reviewed allowlist rule here (a DATA edit), never a scanner change.",
     "portability": "The engine reads the allowlist + allowed-dir set as DATA. Another repository adopts the gate by replacing `allowed_root_files` / `allowed_root_dirs` with its own legitimate root surface; zero engine code changes.",
     "hermeticity": "Pure evaluator: the gate consumes the producer's git-ls-files snapshot (scm-facts) as DATA and a committed allowlist; no shell, no network, no clock, no rand, no filesystem access beyond declared inputs. Deterministic, buck2-built.",
-    "runtime_state_drift_control": "Agent/runtime roots are restricted tracked surfaces. `.claude` and `.codex` may carry reviewed shared hook config only; `.omc` may carry only the frozen keep-with-sunset ultragoal path set (OWNERS, tombstone preamble, friction ledger, premise slot) under ADR-0709 — not a live control plane; `.omx` is runtime state and has no tracked exceptions. Any new tracked path under those roots requires an explicit DATA allowlist rule, preventing silent drift and merge-conflict-prone state.",
+    "runtime_state_drift_control": "Agent/runtime roots are restricted tracked surfaces. `.claude` and `.codex` may carry reviewed shared hook config only; `.omc` may carry only the frozen keep-with-sunset ultragoal path set (OWNERS, tombstone preamble, friction ledger, premise slot) under ADR-0709 \u2014 not a live control plane; `.omx` is runtime state and has no tracked exceptions. Any new tracked path under those roots requires an explicit DATA allowlist rule, preventing silent drift and merge-conflict-prone state.",
     "relationship_to_scratch_denylist": "Complements (does not replace) cloud-ci-total-accounting `scratch_artifact`: the denylist is zero-tolerance on KNOWN scratch shapes; this allowlist is born-blocking on ANY unrecognized tracked root file (including unnamed scratch shapes), making committed root scratch structurally impossible."
   },
-  "schema_version": "1.0.0"
+  "schema_version": "1.1.0",
+  "corpus_budget": {
+    "$comment": "Shrink-only sprawl ratchet (anti-friction wave 3, ADR-0716 doctrine). Counts are frozen over the tracked-path inventory; a class growing past its frozen count is born-blocking with a one-in-one-out remediation. A deliberate budget raise is a reviewed DATA edit here, never a scanner change. Frozen on origin/dev 4a4f71a14 (pre-cleanup corpus), so the wave-2 deletions land as pure shrink.",
+    "counts": {
+      "evidence_files": 249,
+      "planning_files": 138,
+      "docs_markdown_files": 2692,
+      "live_adr_files": 16
+    }
+  }
 }
