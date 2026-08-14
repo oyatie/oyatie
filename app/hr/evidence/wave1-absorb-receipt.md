@@ -2,7 +2,7 @@
 
 | Field | Value |
 |-------|-------|
-| judgment | envelopes `8bcb65d08` — `oya/hr/` → `app/hr/`, `destination_integ=integ/hr` (OVERRULE 3d off shared `integ/app`, per `REORG-DRAIN.md`), `land_status=ready_for_integ_app`, `redesign=rewrite` |
+| judgment | envelopes `8bcb65d08` — `oya/hr/` → `app/hr/`, `destination_integ=integ/hr` (OVERRULE 3d off shared `integ/app`, per `REORG-DRAIN.md`), `land_status=ready_for_integ_hr`, `redesign=rewrite` |
 | lane | `integ/hr` envelope forever path `app/hr/**` |
 | source | `oya/hr/**` (left in place on origin/dev) |
 | forever | `app/hr/**` (40 files absorbed) |
