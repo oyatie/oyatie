@@ -43,10 +43,10 @@ use std::path::{Path, PathBuf};
 use std::process::{Command, ExitCode};
 
 use ci_generated_artifact_freshness::{
-    PRE_PUSH_VERIFIER_MANIFEST_FILE, PRE_PUSH_VERIFIER_PROTOCOL_VERSION,
-    PRE_PUSH_VERIFIER_TOOLS_DIR, FaceSettleMode, install_pre_push_verifier_tools,
-    read_pre_push_verifier_manifest, run_face_settle_with_pinned_tools,
-    verify_pre_push_verifier_protocol, write_pre_push_verifier_manifest,
+    FaceSettleMode, PRE_PUSH_VERIFIER_MANIFEST_FILE, PRE_PUSH_VERIFIER_PROTOCOL_VERSION,
+    PRE_PUSH_VERIFIER_TOOLS_DIR, install_pre_push_verifier_tools, read_pre_push_verifier_manifest,
+    run_face_settle_with_pinned_tools, verify_pre_push_verifier_protocol,
+    write_pre_push_verifier_manifest,
 };
 
 const ZERO_SHA: &str = "0000000000000000000000000000000000000000";
@@ -99,8 +99,7 @@ fn run_hook() -> Result<ExitCode, String> {
 
     let root = repo_root()?;
     // The installed hook lives at <hooks-dir>/pre-push, so its own directory is the hooks dir.
-    let exe = env::current_exe()
-        .map_err(|error| format!("resolve current executable: {error}"))?;
+    let exe = env::current_exe().map_err(|error| format!("resolve current executable: {error}"))?;
     let hooks_dir = exe
         .parent()
         .ok_or_else(|| "installed hook has no parent directory".to_owned())?
@@ -175,9 +174,7 @@ fn install(args: &[String]) -> Result<String, String> {
                 repo_root = Some(PathBuf::from(value));
             }
             "--help" | "-h" => {
-                return Err(
-                    "usage: oya-pre-push-verify install [--repo-root <path>]".to_owned(),
-                );
+                return Err("usage: oya-pre-push-verify install [--repo-root <path>]".to_owned());
             }
             other => {
                 return Err(format!(
@@ -199,17 +196,13 @@ fn install(args: &[String]) -> Result<String, String> {
     // run this repository's verifier for every repository owned by the user.
     let hooks_dir = resolve_hooks_dir(&root)?;
 
-    let exe = env::current_exe()
-        .map_err(|error| format!("resolve current executable: {error}"))?;
+    let exe = env::current_exe().map_err(|error| format!("resolve current executable: {error}"))?;
     let dest = hooks_dir.join("pre-push");
     // Allow REPLACING a prior oya installation (the manifest next to it marks it as ours): a
     // protocol bump builds a byte-different verifier, and refusing would block the very reinstall
     // the handshake demands. Refuse only a pre-push that is NOT marked as ours.
     let is_prior_oya_install = hooks_dir.join(PRE_PUSH_VERIFIER_MANIFEST_FILE).exists();
-    if dest.exists()
-        && !is_prior_oya_install
-        && !files_equal(&dest, &exe)?
-    {
+    if dest.exists() && !is_prior_oya_install && !files_equal(&dest, &exe)? {
         return Err(format!(
             "refusing to overwrite {}: an unrelated pre-push hook is installed there; move it aside or remove it first (the oya verifier never replaces unrelated user hook state)",
             dest.display()
@@ -258,7 +251,13 @@ fn install(args: &[String]) -> Result<String, String> {
 fn resolve_hooks_dir(repo_root: &Path) -> Result<PathBuf, String> {
     let local = git_capture_optional(
         Some(repo_root),
-        &["config", "--type=path", "--local", "--get", "core.hooksPath"],
+        &[
+            "config",
+            "--type=path",
+            "--local",
+            "--get",
+            "core.hooksPath",
+        ],
     )?;
     match local {
         Some(existing) if !existing.trim().is_empty() => {
@@ -325,9 +324,8 @@ fn canonicalize_or_ancestor(path: &Path) -> Result<PathBuf, String> {
             ));
         }
     }
-    let mut canonical = std::fs::canonicalize(&current).map_err(|error| {
-        format!("canonicalize {}: {error}", current.display())
-    })?;
+    let mut canonical = std::fs::canonicalize(&current)
+        .map_err(|error| format!("canonicalize {}: {error}", current.display()))?;
     // Re-apply the missing suffix, resolving `..` (and dropping `.`) against the canonical
     // ancestor so the final path contains no traversal components.
     for component in missing.iter().rev() {
@@ -365,10 +363,10 @@ fn inside_checked_out_tree(repo_root: &Path, git_common_dir: &Path, path: &Path)
 }
 
 fn files_equal(left: &Path, right: &Path) -> Result<bool, String> {
-    let left_bytes = std::fs::read(left)
-        .map_err(|error| format!("read {}: {error}", left.display()))?;
-    let right_bytes = std::fs::read(right)
-        .map_err(|error| format!("read {}: {error}", right.display()))?;
+    let left_bytes =
+        std::fs::read(left).map_err(|error| format!("read {}: {error}", left.display()))?;
+    let right_bytes =
+        std::fs::read(right).map_err(|error| format!("read {}: {error}", right.display()))?;
     Ok(left_bytes == right_bytes)
 }
 

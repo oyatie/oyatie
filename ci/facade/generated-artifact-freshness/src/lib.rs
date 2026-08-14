@@ -504,8 +504,7 @@ fn verify_committed_tree_with_determinism(
         let regenerated_faces = regenerate_faces_with_tools(repo_root, tools, None)?;
         return verify_committed_tree(repo_root, regenerated_faces);
     }
-    let (first_pass, second_pass) =
-        regenerate_faces_twice_with_tools(repo_root, tools, None)?;
+    let (first_pass, second_pass) = regenerate_faces_twice_with_tools(repo_root, tools, None)?;
     let determinism_findings = evaluate_face_determinism(&first_pass, &second_pass, &decommitted);
     let mut report = check_repo_with_regenerated_faces(repo_root, first_pass)?;
     report.findings.extend(determinism_findings);
@@ -531,7 +530,10 @@ fn pinned_face_tools(repo_root: &Path, tools_dir: &Path) -> Result<FaceTools, Fr
         ("emitter", &emitter),
         ("producer", &producer),
         ("masterplan generator", &masterplan_generator),
-        ("architecture graph generator", &architecture_graph_generator),
+        (
+            "architecture graph generator",
+            &architecture_graph_generator,
+        ),
     ] {
         if !path.is_file() {
             return Err(FreshnessError::new(format!(
@@ -566,7 +568,10 @@ pub fn install_pre_push_verifier_tools(
     for (name, src) in [
         (PRE_PUSH_TOOL_EMITTER, &tools.emitter),
         (PRE_PUSH_TOOL_PRODUCER, &tools.producer),
-        (PRE_PUSH_TOOL_MASTERPLAN_GENERATOR, &tools.masterplan_generator),
+        (
+            PRE_PUSH_TOOL_MASTERPLAN_GENERATOR,
+            &tools.masterplan_generator,
+        ),
         (
             PRE_PUSH_TOOL_ARCHITECTURE_GRAPH_GENERATOR,
             &tools.architecture_graph_generator,
@@ -602,9 +607,7 @@ pub fn write_pre_push_verifier_manifest(
         "generator_source_fingerprint": source_fingerprint,
     });
     let text = serde_json::to_string_pretty(&manifest).map_err(|error| {
-        FreshnessError::new(format!(
-            "serialize pre-push verifier manifest: {error}"
-        ))
+        FreshnessError::new(format!("serialize pre-push verifier manifest: {error}"))
     })?;
     std::fs::write(&path, format!("{text}\n")).map_err(|error| {
         FreshnessError::new(format!(
@@ -696,7 +699,9 @@ pub fn read_pre_push_verifier_manifest(
 /// keyed by the fixed install names. Binds the install manifest to the ACTUAL pinned builds so a
 /// replaced or partially-updated pinned tool makes the handshake fail closed with a reinstall
 /// requirement.
-fn pinned_tool_fingerprints(tools_dir: &Path) -> Result<serde_json::Map<String, serde_json::Value>, FreshnessError> {
+fn pinned_tool_fingerprints(
+    tools_dir: &Path,
+) -> Result<serde_json::Map<String, serde_json::Value>, FreshnessError> {
     let mut fingerprints = serde_json::Map::new();
     for name in [
         PRE_PUSH_TOOL_EMITTER,
@@ -737,10 +742,7 @@ fn generator_source_fingerprint(repo_root: &Path) -> Result<String, FreshnessErr
     let mut hash = String::new();
     for path in &paths {
         let bytes = std::fs::read(path).map_err(|error| {
-            FreshnessError::new(format!(
-                "read generator source {}: {error}",
-                path.display()
-            ))
+            FreshnessError::new(format!("read generator source {}: {error}", path.display()))
         })?;
         hash.push_str(&fnv1a64_hex(&bytes));
         hash.push('\n');
@@ -4989,8 +4991,11 @@ mod pre_push_verifier_protocol_tests {
         let tools = fixture_tools_dir(&root);
         write_pre_push_verifier_manifest(&hooks, &tools, &root).expect("write");
         // Mutate one pinned tool after install: the manifest fingerprint must no longer match.
-        std::fs::write(tools.join(PRE_PUSH_TOOL_PRODUCER), "replaced producer binary\n")
-            .expect("mutate tool");
+        std::fs::write(
+            tools.join(PRE_PUSH_TOOL_PRODUCER),
+            "replaced producer binary\n",
+        )
+        .expect("mutate tool");
         let error = read_pre_push_verifier_manifest(&hooks, &tools, &root).expect_err("tool drift");
         let text = error.to_string();
         assert!(text.contains(PRE_PUSH_TOOL_PRODUCER), "{text}");
