@@ -2781,6 +2781,7 @@ const GATE_BRAND_RESIDUE: &str = "cloud-ci-brand-residue";
 const GATE_TARGET_PARITY: &str = "cloud-ci-target-parity";
 const GATE_TOTAL_ACCOUNTING: &str = "cloud-ci-total-accounting";
 const GATE_TIER_DEP_ACYCLICITY: &str = "cloud-ci-tier-dependency-acyclicity";
+const GATE_MANIFEST_HYGIENE: &str = "cloud-ci-manifest-hygiene";
 
 /// The `forbidden_<stem>` code prefix (brand-residue): the stem is decoded by stripping it.
 const FORBIDDEN_CODE_PREFIX: &str = "forbidden_";
@@ -2905,6 +2906,15 @@ fn relabel_frozen_face(
             }
             GATE_TIER_DEP_ACYCLICITY => {
                 relabel_tier_dep_gate(codes, &ident_pairs, &candidate_paths);
+            }
+            GATE_MANIFEST_HYGIENE => {
+                // manifest-hygiene findings are keyed by MANIFEST PATH (the producer emits
+                // `manifest_path`; a rehomed destination and its retained legacy source share a
+                // package name, so a crate-name key would collapse path-distinct violations and
+                // let a baselined legacy finding mask a destination defect — review thread
+                // PRRT_kwDOSbSl2s6ZSiyy). Relabel frozen keys on the manifest FILE pairs under
+                // the exact-membership guards, like total-accounting's per-FILE codes.
+                relabel_existence_only_file_gate(codes, &file_pairs, &candidate_paths);
             }
             // Every other gate has a NON-path key space (crate names, ADR ids, edge ids over
             // non-moved idents, ...) and passes through UNTOUCHED.
@@ -5311,10 +5321,14 @@ mod tests {
 
     /// Non-path gate pass-through: a gate with a NON-path key space (crate names) is never
     /// touched by the relabel even when a manifest pair's old crate-dir-tail coincides.
+    /// `cloud-ci-crate-layer-suffix` keys findings by crate NAME (the BNF layer-suffix is a
+    /// name property), so it must pass through untouched — unlike manifest-hygiene, which is now
+    /// keyed by manifest_path and relabels (see
+    /// `relabel_manifest_hygiene_file_keys_on_manifest_move`).
     #[test]
     fn relabel_leaves_non_path_gate_untouched() {
-        let face = json!({"gates": {"cloud-ci-manifest-hygiene": {
-            "manifest_missing_license": {"mode": "baseline-block-on-new", "keys": ["oya-some-crate"]}
+        let face = json!({"gates": {"cloud-ci-crate-layer-suffix": {
+            "BNF_INVALID_LAYER_SUFFIX": {"mode": "baseline-block-on-new", "keys": ["oya-some-crate"]}
         }}});
         let frozen = FakeFrozen::new(&[]);
         let candidate = FakeCandidate::new(&["whatever"], &[]);
@@ -5329,6 +5343,42 @@ mod tests {
         )
         .unwrap();
         assert_eq!(out, face, "non-path gate must pass through untouched");
+    }
+
+    /// manifest-hygiene findings are keyed by MANIFEST PATH (thread PRRT_kwDOSbSl2s6ZSiyy), so a
+    /// manifest FILE move must relabel the frozen key old->new under the exact-membership guards
+    /// (P2 old absent / P3 new present), like total-accounting's per-FILE codes.
+    #[test]
+    fn relabel_manifest_hygiene_file_keys_on_manifest_move() {
+        let old = "oya/crm/crates/oya-procurement-source-to-pay-domain/Cargo.toml";
+        let new = "app/procurement/crates/oya-procurement-source-to-pay-domain/Cargo.toml";
+        let face = json!({"gates": {GATE_MANIFEST_HYGIENE: {
+            "manifest_missing_license": {"mode": "baseline-block-on-new", "keys": [old]}
+        }}});
+        let frozen = FakeFrozen::new(&[]);
+        let candidate = FakeCandidate::new(&[new], &[]);
+        let policy = VocabPolicy::bundled_default();
+        let out = relabel_frozen_face(
+            &face,
+            &manifest(&[(old, new)]),
+            &frozen,
+            MB,
+            &candidate,
+            &policy,
+        )
+        .unwrap();
+        let keys: BTreeSet<String> =
+            out["gates"][GATE_MANIFEST_HYGIENE]["manifest_missing_license"]["keys"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .filter_map(Value::as_str)
+                .map(str::to_owned)
+                .collect();
+        assert!(
+            keys.contains(new) && !keys.contains(old),
+            "manifest-hygiene file key relabeled on manifest move"
+        );
     }
 
     /// tier-dep crate-IDENT mapping (correction #3, inert today): the gate is not folded into the
