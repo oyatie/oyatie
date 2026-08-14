@@ -54,7 +54,7 @@ Workflow Studio product surface inverts P0 (human-ergonomic-first, no-code-first
 
 ## Wave 15-ZF doctrine refs — ADR-0346..ADR-0349
 
-Every agent MUST treat [ADR-0346](decisions/ADR-0346-oya-verify-must-run-full-ci-mirror.md), [ADR-0347](decisions/ADR-0347-governance-fitness-bulk-rename.md), [ADR-0348](decisions/ADR-0348-autosharding-auto-rebalance-dynamic-sharding.md), and [ADR-0349](decisions/ADR-0349-jenkins-argocd-self-hostable-ci-cd-substrate.md) as active operating-contract doctrine for their non-CI obligations until superseded or amended by a newer ADR. For CI/CD enforcement, [ADR-0515](decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md) is the current single-truth amendment: GitHub Actions + branch protection are the live runner/authority until explicit owned-runner cutover, the cloud-ci Rust gate apps produce the one protected `oya-ci-required` context, and ADR-0513/Prow/Jenkins/legacy `oya` CLI governance wording is superseded provenance or local-feedback evidence only. No GitHub Actions status/check outside `oya-ci-required` may be promoted as protected-branch authority.
+Every agent MUST treat [ADR-0346](decisions/ADR-0346-oya-verify-must-run-full-ci-mirror.md), [ADR-0347](decisions/ADR-0347-governance-fitness-bulk-rename.md), [ADR-0348](decisions/ADR-0348-autosharding-auto-rebalance-dynamic-sharding.md), and [ADR-0349](decisions/ADR-0349-jenkins-argocd-self-hostable-ci-cd-substrate.md) as active operating-contract doctrine for their non-CI obligations until superseded or amended by a newer ADR. For CI/CD enforcement, [ADR-0515](decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md) is the current single-truth amendment: GitHub Actions + branch protection are the live runner/authority until explicit owned-runner cutover, the cloud-ci Rust gate apps produce the one protected `oya-ci-required` context, and ADR-0513/Prow/Jenkins/legacy `oya` CLI governance wording is superseded provenance or local-feedback evidence only. [ADR-0716](decisions/ADR-0716-cargo-merge-path-buck2-local-hermeticity.md) makes the Cargo workspace graph the CI merge path; buck2 is local hermeticity plus a weekly non-blocking smoke. No GitHub Actions status/check outside `oya-ci-required` may be promoted as protected-branch authority.
 
 | ADR | Operating-contract binding | Enforced-by lanes agents MUST preserve |
 |---|---|---|
@@ -258,11 +258,11 @@ distillations is Oyatie, legal, or product authority.
 Before any change, every agent and every human MUST complete these items.
 
 1. **Identify the change class.** Feature / bugfix / refactor / migration / docs / chore / capability / plugin / runbook / ADR / pack-update. *Why:* a class-blind change misses class-specific validators. *Test:* PR body's `## Issue` section names the class.
-2. **Read the canonical authority for the change class.** Use the §"Canonical doc map" table. *Why:* one-paragraph orientation prevents the most common failure (acting on stale repo memory). *Test:* PR `## Traceability` cites the doc(s) read.
+2. **Read the canonical authority for the change class.** Use the §"Canonical doc map" table. *Why:* one-paragraph orientation prevents the most common failure (acting on stale repo memory). *Test:* PR `## Summary` cites the doc(s) read.
 3. **Confirm Data Use Boundary.** Every new field on a kernel struct MUST carry a `data_class` annotation. *Why:* cross-pillar flows that bypass `data_class` violate the cohesion principle. *Test:* `oya-governance-data-class` lane.
 4. **Confirm autonomy ceiling.** Capability bindings MUST declare T1 / T2 / T3 / T4 in the capability record. Tier uplift MUST land an accompanying Cedar policy + runtime gate. *Why:* config-flag tier uplift bypasses the audit chain. *Test:* `oya-governance-autonomy-ceiling` lane.
 5. **Confirm license posture.** New dependencies MUST clear the Buck2/cloud-ci supply-chain lane. AGPL / GPL / SSPL / BUSL / RSAL are not permitted in product code. *Why:* license drift is hard to undo. *Test:* supply-chain gate target exits 0.
-6. **Search MISTAKES-LEDGER for the failure-mode class.** *Why:* re-introducing a fixed defect is a regression. *Test:* PR `## Traceability` cites the relevant `MFL-NNNN` row OR a "no prior row" search note.
+6. **Search MISTAKES-LEDGER for the failure-mode class.** *Why:* re-introducing a fixed defect is a regression. *Test:* PR `## Summary` cites the relevant `MFL-NNNN` row OR a "no prior row" search note.
 7. **Identify the per-change-class reviewer agent.** *Why:* the target reviewer contract signs `## Code Review` at merge time; no signature, no merge once the trusted reviewer producer is live. *Test:* §"Per-change-class reviewer agents" table below; `F-PR5-06` tracks the current live-enforcement gap.
 8. **For cross-axis contract changes:** apply the cross-axis review label per [`../templates/checklists/cross-axis-contract-change.md`](../templates/checklists/cross-axis-contract-change.md) <!-- forward-reference: wave-1 -->; notify consumer-axis teams. *Why:* silent cross-axis changes break consumers. *Test:* PR label + `oya-governance-cross-axis-notify` lane.
 9. **For hook / harness / CLI changes:** run the harness self-test first. *Why:* a broken hook silently disables every downstream gate. *Test:* harness self-test command (per harness; see §"Per-agent appendices").
@@ -286,9 +286,9 @@ Each change class has a designated reviewer agent that runs proactively on the P
 | Capability publish | `capability-reviewer` |
 | Performance change | `perf-reviewer` |
 
-The reviewer-agent verdict is `APPROVE` or `REQUEST CHANGES`. The PR body's `## Code Review` section MUST contain the agent name, the verdict, and the resolved + deferred items. GH #983 adds a PR metadata preflight that refuses blocked/pending-review PR title or body markers and refuses merge-ready body validation without this section.
+The reviewer-agent verdict is `APPROVE` or `REQUEST CHANGES`. The PR body's `## Code Review` section MUST contain the agent name, the verdict, and the resolved + deferred items. CI no longer string-checks PR prose (ADR-0716); the review thread is the evidence.
 
-**REVIEW-ADMISSION-GAP-LIVE-BOUNDARY (F-PR5-06):** F-PR5-06 remains open. PR #964 merged with green `oya-ci-required`, empty `reviewDecision`, and only an owner `COMMENTED` review, so the GH #983 title/body packet is not a cloud-enforced review admission gate. It narrows PR metadata hygiene only; formal GitHub `reviewDecision`, reviewer-author separation, and branch-protection drift reconciliation remain tracked by `registry/fixuptasks.jsonl#F-PR5-06`.
+**REVIEW-ADMISSION-GAP-LIVE-BOUNDARY (F-PR5-06):** F-PR5-06 remains open: formal GitHub `reviewDecision`, reviewer-author separation, and branch-protection drift reconciliation remain tracked by `registry/fixuptasks.jsonl#F-PR5-06`. The retired PR metadata preflight does not close it (ADR-0716).
 
 ## During-change discipline
 
@@ -299,7 +299,7 @@ While the change is in flight, every agent and every human MUST observe these ru
 - **No new struct fields in kernel crates without `data_class`.** Pre-commit blocks; respect it.
 - **No quarantining flaky tests without a 14-day fix SLA.** Quarantine assigns the test to the `flaky/` lane; the SLA is tracked.
 - **No editing legacy retired paths.** If a path was retired in a consolidation event, do not recreate it.
-- **Buck2 for evidence.** Local editor loops are advisory; final evidence comes from targeted `buck2 test` / `buck2 build` plus cloud-ci gate packets per [`standards/testing.md`](standards/testing.md) <!-- forward-reference: wave-1 -->.
+- **Cargo for evidence.** Local editor loops are advisory; final evidence comes from `cargo fmt` / `cargo clippy` / `cargo test --workspace` plus the gate fleet, per [`standards/testing.md`](standards/testing.md) <!-- forward-reference: wave-1 -->. buck2 is local hermeticity only (ADR-0716).
 - **Portfolio/architecture coordinator / worker split.** The capability-neutral portfolio/architecture coordinator evaluates architecture, system design, completed and upcoming work, maturity gaps, documentation/procedure/process health, regressions, and work-item decomposition/prioritization. Dispatcher-assigned workers execute scoped implementation, review, verification, and PR evidence lanes in isolated worktrees. The coordinator MUST NOT become the default implementation worker unless explicitly assigned as that lane worker.
 - **Blockers become work.** A coordinator that finds a blocker MUST create/link a dispatcher-ready resolution card with source context, blocker class, acceptance criteria, verification path, suggested owner/profile, and dependency/conflict notes. Do not convert blockers into ad hoc coordinator implementation unless the coordinator is explicitly assigned as worker for that lane.
 - **Autonomous merge boundary.** Autonomous merge authority exists only when the PR is fully reviewed, review threads are resolved, the required `oya-ci-required` context is green, the branch has no merge conflict, and branch protection is satisfied. Green CI alone is insufficient.
@@ -312,10 +312,9 @@ governance and makes GitHub Actions + branch protection the live CI runner until
 explicit owned-runner cutover. An agent works on an isolated worktree branch and
 opens a pull request against `dev`, which enters the governance pipeline:
 the single protected `oya-ci-required` context + reviewer APPROVE gate merge
-readiness. GH #983 folds PR title/body hygiene into `oya-ci-required`, while
-F-PR5-06 still owns live review-admission closure. `oya gate` / `oya verify`
-output is optional local feedback or provenance only; it is never
-protected-branch CI authority.
+readiness. CI no longer string-checks PR prose (ADR-0716); F-PR5-06 still owns
+live review-admission closure. `oya gate` / `oya verify` output is optional
+local feedback or provenance only; it is never protected-branch CI authority.
 
 The fenced block below is the machine-readable agent surface. Human-facing terminal examples may live outside fences.
 
@@ -330,13 +329,11 @@ required_sequence:
   - commit and push on that lane
   - open a PR against dev               # enters the governance pipeline
   - fully reviewed, review threads resolved, no merge conflict, branch protection satisfied,
-    and single protected `oya-ci-required` context green; PR title/body hygiene flows
-    through `oya-ci-required`, while F-PR5-06 still owns live review-admission closure
-    and legacy CLI evidence remains optional/local only
+    and single protected `oya-ci-required` context green; F-PR5-06 still owns live
+    review-admission closure and legacy CLI evidence remains optional/local only
   - squash merge after review threads resolve
-  - post-merge product-completion packet: promoted SHA `oya-ci-required` green,
-    rollout verification, rollback note, observability check, browser UX/user-story evidence,
-    and release-governance/release-note impact (Release Please applies only when a live repo config/workflow exists)
+  - the merged PR and its green `oya-ci-required` checks are the record; no separate
+    post-merge product-completion packet (ADR-0716)
 coordinator_worker_split:
   coordinator: portfolio/architecture coordinator owns architecture, system design, maturity,
     regression audit, and work-item decomposition/prioritization
@@ -353,15 +350,14 @@ scaffold_protocol:
 
 ## PR shape
 
-Every PR uses [`templates/pull-request-template.md`](templates/pull-request-template.md) <!-- forward-reference: wave-1 -->. The template prescribes 5 traceability H2 sections plus the automated reviewer-agent `## Code Review` section. Target enforcement is `traceability-validator` plus the `oya-ci-required` PR metadata preflight:
+Every PR uses [`templates/pull-request-template.md`](templates/pull-request-template.md) <!-- forward-reference: wave-1 -->. Slim by design (ADR-0716): CI logs and the review thread are the evidence, so the template prescribes only:
 
-1. `## Issue` — `Closes #<n>` or `Refs #<n>`.
+1. `## Issue` — `Closes #<n>` or `Refs #<n>` + change class.
 2. `## Summary` — 1–3 bullets on what + why.
-3. `## Verification` — pass/fail line per check; reviewer-agent verdict pasted.
-4. `## Traceability` — catalog records touched, cross-axis contracts touched, ADRs cited.
-5. `## Evidence` — audit-chain emission ID; foundation-bypass (if any); per-pack regulator-watch impact (if any).
+3. `## Verification` — what you ran (cargo fmt / clippy / test or targeted equivalents) + the `oya-ci-required` check URL.
+4. `## Code Review` — reviewer-agent name, verdict, resolved + deferred items.
 
-The automated reviewer pipeline supplies `## Code Review` with the reviewer-agent name, verdict, and resolved + deferred items, and the metadata packet binds the PR title plus the reviewed PR body/traceability sections. The preflight rejects blocked/pending-review title/body markers and missing or negative review evidence before `oya-ci-required` can pass, without closing F-PR5-06's live review-producer gap.
+No other sections are required or checked by CI.
 
 ## Done-Definition checklist
 
@@ -374,25 +370,20 @@ Before declaring any change complete, every agent and every human MUST re-walk t
 - [ ] **D5** New capabilities (if any) ship: capability record, eval set (golden + adversarial + linguistic), autonomy tier, audit-chain topic, Cosign signing. *Test:* `oya-governance-capability-publish` lane.
 - [ ] **D6** New schemas (if any) carry `oyatie.data_class = "..."` per field. *Test:* `oya-governance-data-class` lane.
 - [ ] **D7** Applicable per-PR fitness lanes actually wired into `oya-ci-required` pass. Historical lane names in prose are not evidence that a producer is live. *Test:* the PR-head `oya-ci-required` job/packet inventory plus the change-class gate mapping.
-- [ ] **D8** Per-change-class reviewer agent ran; verdict captured in `## Code Review`. *Test:* `oya-ci-required` PR metadata preflight plus reviewer audit on PR; live review-admission closure remains F-PR5-06.
-- [ ] **D9** Targeted `buck2 test <target(s)>` passes. *Test:* command output pasted in `## Verification`.
-- [ ] **D10** Targeted `buck2 build <target(s)>` and relevant cloud-ci lint/static-analysis gate packets pass. *Test:* command output.
-- [ ] **D11** Buck2/cloud-ci supply-chain lane passes. *Test:* command output or required context evidence.
+- [ ] **D8** Per-change-class reviewer agent ran; verdict captured in `## Code Review`. *Test:* reviewer audit on PR; live review-admission closure remains F-PR5-06.
+- [ ] **D9** `cargo fmt --all --check` passes. *Test:* command output pasted in `## Verification`.
+- [ ] **D10** `cargo clippy --workspace --all-targets -- -D warnings` passes. *Test:* command output.
+- [ ] **D11** `cargo test --workspace` passes (gate fleet included; materialize faces first if a gate consumes them). buck2 build/test is local hermeticity only (ADR-0716). *Test:* command output or required context evidence.
 - [ ] **D12** Required cloud-ci/oya-ci context and Rust gate packets pass for the change class. *Test:* required
   status/evidence bundle. Legacy `oya` CLI output is historical/local advisory only and never a
   completion/merge authority.
 - [ ] **D13** Performance changes carry benchmark + ≥2 stress-scenario evidence. *Test:* `oya-governance-perf-evidence` lane.
 - [ ] **D14** Schema migrations ship up + down + dry-run + per-tenant + per-cell rollback. *Test:* `oya-governance-schema-migration` lane.
-- [ ] **D15** PR body has all 5 canonical traceability H2 sections plus automated `## Code Review`. *Test:* `traceability-validator` and the `oya-ci-required` PR metadata preflight.
-- [ ] **D16** Audit-chain emission `EVT-*` ID referenced in `## Evidence`. *Test:* `oya-governance-audit-emission` lane.
+- [ ] **D15** PR body has the 4 slim sections (`## Issue`, `## Summary`, `## Verification`, `## Code Review`). *Test:* reviewer audit on PR (ADR-0716; CI no longer string-checks prose).
+- [ ] **D16** Merge authority: the PR-head `oya-ci-required` context is green. *Test:* the check URL pasted in `## Verification`.
 - [ ] **D17** [`MISTAKES-LEDGER.md`](MISTAKES-LEDGER.md) <!-- forward-reference: wave-1 --> row added if this change is a mechanical prevention shipped for a prior failure. *Test:* `oya-governance-mistakes-ledger-cite` lane.
 - [ ] **D18** [`CHANGELOG.md`](CHANGELOG.md) <!-- forward-reference: wave-1 --> row added if this change touches a canonical doc. *Test:* `oya-governance-changelog-row` lane.
-- [ ] **D19** Post-merge product-completion packet recorded after squash merge:
-  promoted commit `oya-ci-required` status URL, rollout verification, rollback note,
-  observability/golden-signal check, browser UX/user-story evidence, and Release
-  Please/release-note impact. *Test:* PR comment or release evidence bundle linked
-  from `## Evidence`; see [`../templates/checklists/pre-merge.md`](../templates/checklists/pre-merge.md)
-  §"After merge".
+- [ ] **D19** The merged PR and its green `oya-ci-required` checks are the record (ADR-0716); no separate post-merge packet.
 
 If any box is unchecked, the change is not complete. Loop back; do not declare success.
 
@@ -434,7 +425,7 @@ The Claude Code harness loads `CLAUDE.md` at session start (memory-bootstrap con
 
 Always-loaded skills (project-level): `coding-standards`, `tdd-workflow`, `superpowers:test-driven-development`, `superpowers:verification-before-completion`, `superpowers:systematic-debugging`, `search-first`. Language and domain skills load from file context (`rust-*`, `frontend-*`, `postgres-patterns`, `healthcare-phi-compliance`).
 
-Active hooks — SSOT is [`.claude/settings.json`](../.claude/settings.json), which the `enforcement-liveness` face resolves against `tools/hooks/`; this list is a mirror, not an authority. PreToolUse/Bash: `main-checkout-guard.sh`, `local-authority-enforcer.sh`, `no-cargo-enforcer.sh`, `stale-tool-suggester.sh`. PreToolUse/Task: `pre-dispatch-guide.sh`. PostToolUse/Edit|MultiEdit|Write: `spec-version-pin-suggester.sh`, `adr-orphan-detect.sh`, `vacuous-green-gate-detect.sh`. PostToolUse/Bash|WebFetch|WebSearch: `injection-content-scanner.sh`. Stop: `stop-did-you-forget-suggester.sh`. There is no SessionStart hook, and no merge-review, pre-push, telemetry, loop-cancellation, or memory-bootstrap hook — the prior text named five behaviours and one file (`scripts/hooks/guard-pr-merge-review.mjs`), none of which existed in-tree.
+Active hooks — SSOT is [`.claude/settings.json`](../.claude/settings.json), which the `enforcement-liveness` face resolves against `tools/hooks/`; this list is a mirror, not an authority. PreToolUse/Bash: `main-checkout-guard.sh`, `local-authority-enforcer.sh`, `stale-tool-suggester.sh`. (The `no-cargo-enforcer.sh` hook is retired with ADR-0716: cargo is the merge path.) PreToolUse/Task: `pre-dispatch-guide.sh`. PostToolUse/Edit|MultiEdit|Write: `spec-version-pin-suggester.sh`, `adr-orphan-detect.sh`, `vacuous-green-gate-detect.sh`. PostToolUse/Bash|WebFetch|WebSearch: `injection-content-scanner.sh`. Stop: `stop-did-you-forget-suggester.sh`. There is no SessionStart hook, and no merge-review, pre-push, telemetry, loop-cancellation, or memory-bootstrap hook — the prior text named five behaviours and one file (`scripts/hooks/guard-pr-merge-review.mjs`), none of which existed in-tree.
 
 Legacy OMC magic-keyword routing remains compatibility-only while the plain-git/GitHub/cloud-ci closeout path finishes landing. It does not own forward repo-state closure; branch protection, cloud-ci required checks, and governance admission do. Jenkins/`oya` bridge contexts are transitional evidence only. The former harness standard [`standards/claude-code-harness.md`](standards/claude-code-harness.md) is a **retirement tombstone** (ADR-0619 / RR-HARNESS-0619) — not live procedure; use this contract + ADR-0515, and optionally the local `.grok/` mm-delivery kit (not merge authority).
 
@@ -448,7 +439,7 @@ Self-test: `npm --prefix /Users/home/.codex test` before relying on hook / harne
 
 The Codex CLI loads `AGENTS.md` at workspace creation, per the cross-tool AGENTS.md convention. Repo-root `AGENTS.md` is a Redirect-class file pointing to this contract.
 
-Build / test commands: targeted `buck2 build <target(s)>` and `buck2 test <target(s)>`; UI-only surfaces may also use `pnpm build`, `pnpm test`, and `pnpm lint` (Node 20) as local evidence when relevant.
+Build / test commands: `cargo fmt --all --check`, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo test --workspace` (the CI merge path per ADR-0716); buck2 build/test is local hermeticity only. UI-only surfaces may also use `pnpm build`, `pnpm test`, and `pnpm lint` (Node 20) as local evidence when relevant.
 
 Active integration: `.codex/skills/` holds project skills. Coordination follows §Sanctioned primitives; workspace setup is owned by the runtime and claim lifecycle, not by repo-local bootstrap scripts.
 

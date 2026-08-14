@@ -21,7 +21,7 @@ profile = 'oyatie'
 
 [repo]
 root_markers = ["specs/root-hub-pointers.json"]
-path_excludes = ["third-party/", "docs/audit/"]
+path_excludes = ["third-party/"]
 
 [naming]
 required_prefix = "oya-"
@@ -45,11 +45,6 @@ code = "forbidden_jenkins"
 [[vocab.forbidden_stems]]
 stem = "oya-vcs"
 code = "forbidden_oya-vcs"
-
-[[vocab.carve_outs]]
-kind = "path_prefix"
-value = "docs/audit/"
-reason = "historical audit working-plan archive — provenance-only, not production; forbidden-vocab terms are historical quotations from planning work"
 
 [[vocab.carve_outs]]
 kind = "path_prefix"

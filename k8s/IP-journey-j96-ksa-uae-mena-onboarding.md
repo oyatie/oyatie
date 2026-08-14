@@ -1,7 +1,7 @@
 ---
 doc_class: Implementation-Plan
 ip_id: IP-journey-j96-ksa-uae-mena-onboarding
-journey_ref: docs/user-journeys/j96-ksa-uae-mena-tenant-onboarding/
+journey_ref: RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2)
 status: draft
 date: 2026-05-20
 microservice: cloud-k8s
