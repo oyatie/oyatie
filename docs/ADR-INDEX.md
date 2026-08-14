@@ -50,6 +50,6 @@ doc_status: published
 
 ## Sources scanned
 
-- `decisions/` directory listing — 18 ADR files (sorted ascending)
+- `decisions/` directory listing — 19 ADR files (sorted ascending)
 - [`machine-readable/decisions.json`](machine-readable/decisions.json) — generated machine mirror
 - [`DOC-CATALOG.md`](DOC-CATALOG.md) — owner / cadence / dependent docs / validation checks
