@@ -249,6 +249,10 @@ spec:
       app: nativelink-cas
   template:
     metadata:
+      annotations:
+        # Forces the Recreate rollout whenever the startup-only NativeLink
+        # ConfigMap payload changes; conformance recomputes this digest.
+        oya.io/config-sha256: "96c6ec8d1bb3983f487acee2c6e92e15927a6a28e1fb0529b344cd6030e2391c"
       labels:
         app: nativelink-cas
     spec:
@@ -397,14 +401,18 @@ spec:
   policyTypes: [Ingress]
   ingress:
     - from:
-        - namespaceSelector: {}
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: arc-runners
           podSelector:
             matchLabels:
               oya.io/nativelink-cas-writer: "true"
       ports:
         - { protocol: TCP, port: 50051 }
     - from:
-        - namespaceSelector: {}
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: arc-runners
           podSelector:
             matchLabels:
               oya.io/nativelink-cas-reader: "true"

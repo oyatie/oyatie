@@ -28,13 +28,17 @@ use ci_build_cache_policy as app;
 use serde::Deserialize;
 use serde_json::{Value, json};
 use serde_yaml::Value as YamlValue;
+use sha2::{Digest, Sha256};
 
 const CANARY_WORKFLOW_PATH: &str = ".github/workflows/cache-integrity-canary.yml";
 const CANARY_SCHEDULE_WORKFLOW_PATH: &str = ".github/workflows/cache-integrity-canary-schedule.yml";
 const REQUIRED_WORKFLOW_PATH: &str = ".github/workflows/oya-ci-required.yml";
 const NATIVELINK_MANIFEST_PATH: &str = "storage/adapters/nativelink/nativelink-cas.k8s.yaml";
 const EXTERNAL_SECRETS_RUNBOOK_PATH: &str = "infra/external-secrets/RUNBOOK.md";
+const EXTERNAL_SECRET_STORE_PATH: &str =
+    "infra/external-secrets/clustersecretstore-openbao-oya.yaml";
 const RUNNER_NETWORK_POLICY_PATH: &str = "infra/arc/live-postgres-runner-network-policy.yaml";
+const RUNNER_VALUES_PATH: &str = "infra/arc/runner-scale-set-arm64-values.yaml";
 const COLD_REQUIRED_FLOOR: [&str; 4] = [
     "release-production-image",
     "integrity-canary",
@@ -47,11 +51,35 @@ fn repo_root() -> PathBuf {
     app::repo_root_from(&cwd).expect("failed to locate repo root from test current_dir")
 }
 
-fn validated_service_port(service: &YamlValue, role: &str) -> Result<u64, String> {
-    let port = service["spec"]["ports"][0]["port"]
+fn kubernetes_tcp_port(entry: &YamlValue, context: &str) -> Result<u64, String> {
+    if entry.get("endPort").is_some() {
+        return Err(format!(
+            "{context} must not widen a cache port with endPort"
+        ));
+    }
+    if let Some(protocol) = entry.get("protocol") {
+        match protocol.as_str() {
+            Some("TCP") => {}
+            Some(other) => {
+                return Err(format!("{context} protocol `{other}` is not TCP"));
+            }
+            None => {
+                return Err(format!("{context} protocol is not a string"));
+            }
+        }
+    }
+    entry["port"]
         .as_u64()
-        .ok_or_else(|| format!("{role} Service port is missing or non-numeric"))?;
-    let target_port = service["spec"]["ports"][0]["targetPort"]
+        .ok_or_else(|| format!("{context} port is missing or non-numeric"))
+}
+
+fn validated_service_port(service: &YamlValue, role: &str) -> Result<u64, String> {
+    let entry = service["spec"]["ports"]
+        .as_sequence()
+        .and_then(|ports| ports.first())
+        .ok_or_else(|| format!("{role} Service has no ports"))?;
+    let port = kubernetes_tcp_port(entry, &format!("{role} Service"))?;
+    let target_port = entry["targetPort"]
         .as_u64()
         .ok_or_else(|| format!("{role} Service targetPort is missing or non-numeric"))?;
     if target_port != port {
@@ -62,31 +90,742 @@ fn validated_service_port(service: &YamlValue, role: &str) -> Result<u64, String
     Ok(port)
 }
 
-fn role_ingress_ports(policy: &YamlValue, role: &str) -> Result<BTreeSet<u64>, String> {
+fn validate_service_exposure(service: &YamlValue, role: &str) -> Result<(), String> {
+    if !matches!(service["spec"]["type"].as_str(), None | Some("ClusterIP")) {
+        return Err(format!("{role} Service must remain cluster-internal"));
+    }
+    for field in [
+        "externalIPs",
+        "externalName",
+        "externalTrafficPolicy",
+        "loadBalancerClass",
+        "loadBalancerIP",
+    ] {
+        if service["spec"].get(field).is_some() {
+            return Err(format!(
+                "{role} Service must not declare external field `{field}`"
+            ));
+        }
+    }
+    let ports = service["spec"]["ports"]
+        .as_sequence()
+        .ok_or_else(|| format!("{role} Service has no ports"))?;
+    if ports.iter().any(|port| port.get("nodePort").is_some()) {
+        return Err(format!("{role} Service must not declare a nodePort"));
+    }
+    Ok(())
+}
+
+fn metadata_namespace<'a>(document: &'a YamlValue, context: &str) -> Result<&'a str, String> {
+    document["metadata"]["namespace"]
+        .as_str()
+        .ok_or_else(|| format!("{context} metadata.namespace is missing or non-string"))
+}
+
+fn validate_unique_kubernetes_identities(documents: &[YamlValue]) -> Result<(), String> {
+    let mut identities = BTreeSet::new();
+    for document in documents {
+        let kind = document["kind"]
+            .as_str()
+            .ok_or_else(|| "Kubernetes document kind is missing or non-string".to_string())?;
+        let name = document["metadata"]["name"]
+            .as_str()
+            .ok_or_else(|| format!("Kubernetes {kind} metadata.name is missing or non-string"))?;
+        let namespace = document["metadata"]["namespace"].as_str().unwrap_or("");
+        let identity = (kind.to_string(), namespace.to_string(), name.to_string());
+        if !identities.insert(identity.clone()) {
+            return Err(format!(
+                "duplicate Kubernetes identity `{}/{}/{}`",
+                identity.0, identity.1, identity.2
+            ));
+        }
+    }
+    Ok(())
+}
+
+fn common_service_namespace(services: &[(&str, &YamlValue)]) -> Result<String, String> {
+    let mut expected = None;
+    for (role, service) in services {
+        let namespace = metadata_namespace(service, &format!("{role} Service"))?;
+        match expected.as_deref() {
+            None => expected = Some(namespace.to_owned()),
+            Some(previous) if previous == namespace => {}
+            Some(previous) => {
+                return Err(format!(
+                    "{role} Service namespace `{namespace}` disagrees with `{previous}`"
+                ));
+            }
+        }
+    }
+    expected.ok_or_else(|| "no cache Services were supplied".to_string())
+}
+
+fn validate_service_selector(
+    service: &YamlValue,
+    deployment: &YamlValue,
+    role: &str,
+) -> Result<(), String> {
+    let selector = service["spec"]["selector"]
+        .as_mapping()
+        .ok_or_else(|| format!("{role} Service selector is missing or non-mapping"))?;
+    if selector.is_empty() {
+        return Err(format!("{role} Service selector is empty"));
+    }
+    let deployment_selector = deployment["spec"]["selector"]["matchLabels"]
+        .as_mapping()
+        .ok_or_else(|| {
+            "NativeLink Deployment selector.matchLabels is missing or non-mapping".to_string()
+        })?;
+    if selector != deployment_selector {
+        return Err(format!(
+            "{role} Service selector {selector:?} disagrees with Deployment selector \
+             {deployment_selector:?}"
+        ));
+    }
+    Ok(())
+}
+
+fn validate_workload_selectors(
+    deployment: &YamlValue,
+    ingress_policy: &YamlValue,
+) -> Result<(), String> {
+    let deployment_selector_spec = deployment["spec"]["selector"]
+        .as_mapping()
+        .ok_or_else(|| "NativeLink Deployment selector is missing or non-mapping".to_string())?;
+    if deployment_selector_spec.len() != 1 {
+        return Err("NativeLink Deployment selector must use only exact matchLabels".to_string());
+    }
+    let deployment_selector = deployment["spec"]["selector"]["matchLabels"]
+        .as_mapping()
+        .ok_or_else(|| {
+            "NativeLink Deployment selector.matchLabels is missing or non-mapping".to_string()
+        })?;
+    if deployment_selector.is_empty() {
+        return Err("NativeLink Deployment selector.matchLabels is empty".to_string());
+    }
+    let pod_labels = deployment["spec"]["template"]["metadata"]["labels"]
+        .as_mapping()
+        .ok_or_else(|| "NativeLink Deployment pod labels are missing or non-mapping".to_string())?;
+    for (key, value) in deployment_selector {
+        if pod_labels.get(key) != Some(value) {
+            return Err(format!(
+                "NativeLink Deployment selector {key:?}={value:?} does not match pod labels"
+            ));
+        }
+    }
+    let ingress_selector_spec = ingress_policy["spec"]["podSelector"]
+        .as_mapping()
+        .ok_or_else(|| {
+            "NativeLink ingress policy podSelector is missing or non-mapping".to_string()
+        })?;
+    if ingress_selector_spec.len() != 1 {
+        return Err(
+            "NativeLink ingress policy podSelector must use only exact matchLabels".to_string(),
+        );
+    }
+    let ingress_selector = ingress_policy["spec"]["podSelector"]["matchLabels"]
+        .as_mapping()
+        .ok_or_else(|| {
+            "NativeLink ingress policy podSelector.matchLabels is missing or non-mapping"
+                .to_string()
+        })?;
+    if ingress_selector != deployment_selector {
+        return Err(format!(
+            "NativeLink ingress target selector {ingress_selector:?} disagrees with Deployment \
+             selector {deployment_selector:?}"
+        ));
+    }
+    Ok(())
+}
+
+fn validate_deployment_topology(deployment: &YamlValue) -> Result<(), String> {
+    if deployment["spec"]["replicas"].as_u64() != Some(1) {
+        return Err("NativeLink Deployment must run exactly one replica".to_string());
+    }
+    if deployment["spec"]["strategy"]["type"].as_str() != Some("Recreate") {
+        return Err("NativeLink Deployment strategy must be `Recreate`".to_string());
+    }
+    Ok(())
+}
+
+fn validate_ops_health_binding(ops: &Value, deployment: &YamlValue) -> Result<(), String> {
+    if ops["listener"]["http"]["socket_address"].as_str() != Some("0.0.0.0:50061") {
+        return Err("NativeLink ops listener must bind `0.0.0.0:50061`".to_string());
+    }
+    let container = deployment["spec"]["template"]["spec"]["containers"]
+        .as_sequence()
+        .and_then(|containers| {
+            containers
+                .iter()
+                .find(|container| container["name"].as_str() == Some("nativelink"))
+        })
+        .ok_or_else(|| "NativeLink Deployment has no `nativelink` container".to_string())?;
+    let ops_port = container["ports"]
+        .as_sequence()
+        .and_then(|ports| {
+            ports
+                .iter()
+                .find(|port| port["name"].as_str() == Some("ops"))
+        })
+        .ok_or_else(|| "NativeLink container has no named `ops` port".to_string())?;
+    if ops_port["containerPort"].as_u64() != Some(50061)
+        || !matches!(
+            ops_port.get("protocol").and_then(YamlValue::as_str),
+            None | Some("TCP")
+        )
+    {
+        return Err("NativeLink container `ops` port must be TCP 50061".to_string());
+    }
+    for probe in ["readinessProbe", "livenessProbe"] {
+        let http_get = &container[probe]["httpGet"];
+        if http_get["port"].as_str() != Some("ops") || http_get["path"].as_str() != Some("/status")
+        {
+            return Err(format!(
+                "NativeLink {probe} must request `/status` on named port `ops`"
+            ));
+        }
+    }
+    Ok(())
+}
+
+fn validate_external_secret_store(
+    external_secret: &YamlValue,
+    cluster_store: &YamlValue,
+) -> Result<(), String> {
+    if cluster_store["kind"].as_str() != Some("ClusterSecretStore") {
+        return Err("OpenBao store document is not a ClusterSecretStore".to_string());
+    }
+    let store_name = cluster_store["metadata"]["name"]
+        .as_str()
+        .ok_or_else(|| "OpenBao ClusterSecretStore name is missing or non-string".to_string())?;
+    if external_secret["spec"]["secretStoreRef"]["kind"].as_str() != Some("ClusterSecretStore")
+        || external_secret["spec"]["secretStoreRef"]["name"].as_str() != Some(store_name)
+    {
+        return Err(format!(
+            "NativeLink ExternalSecret must reference ClusterSecretStore `{store_name}`"
+        ));
+    }
+    Ok(())
+}
+
+fn validate_network_policy_direction(
+    policy: &YamlValue,
+    expected: &str,
+    context: &str,
+) -> Result<(), String> {
+    let directions = policy["spec"]["policyTypes"]
+        .as_sequence()
+        .ok_or_else(|| format!("{context} policyTypes are missing or non-sequence"))?
+        .iter()
+        .map(|value| {
+            value
+                .as_str()
+                .ok_or_else(|| format!("{context} policyType is non-string"))
+        })
+        .collect::<Result<BTreeSet<_>, _>>()?;
+    if directions != BTreeSet::from([expected]) {
+        return Err(format!(
+            "{context} policyTypes {directions:?} must be exactly `{expected}`"
+        ));
+    }
+    Ok(())
+}
+
+fn validate_runner_role_labels(runner_values: &YamlValue, roles: &[&str]) -> Result<(), String> {
+    let labels = runner_values["template"]["metadata"]["labels"]
+        .as_mapping()
+        .ok_or_else(|| "runner template labels are missing or non-mapping".to_string())?;
+    if labels
+        .get(YamlValue::String("oya.io/ci-cell".to_string()))
+        .and_then(YamlValue::as_str)
+        != Some("general")
+    {
+        return Err("runner template must identify the `general` CI cell".to_string());
+    }
+    for role in roles {
+        let label = format!("oya.io/nativelink-cas-{role}");
+        if labels
+            .get(YamlValue::String(label.clone()))
+            .and_then(YamlValue::as_str)
+            != Some("true")
+        {
+            return Err(format!(
+                "runner template does not carry required cache role label `{label}`"
+            ));
+        }
+    }
+    Ok(())
+}
+
+fn validate_listener_tls(server: &Value, role: &str) -> Result<(), String> {
+    let expected_client_ca = match role {
+        "writer" => "/tls/ca-writer.crt",
+        "reader" => "/tls/ca-reader.crt",
+        _ => return Err(format!("unknown cache role `{role}`")),
+    };
+    let tls = server["listener"]["http"]["tls"]
+        .as_object()
+        .ok_or_else(|| format!("{role} listener TLS is missing or non-object"))?;
+    for (field, expected) in [
+        ("cert_file", "/tls/tls.crt"),
+        ("key_file", "/tls/tls.key"),
+        ("client_ca_file", expected_client_ca),
+    ] {
+        if tls.get(field).and_then(Value::as_str) != Some(expected) {
+            return Err(format!(
+                "{role} listener TLS `{field}` must be `{expected}`"
+            ));
+        }
+    }
+    Ok(())
+}
+
+fn validate_server_names(servers: &[Value]) -> Result<(), String> {
+    let names = servers
+        .iter()
+        .map(|server| {
+            server["name"]
+                .as_str()
+                .ok_or_else(|| "NativeLink server name is missing or non-string".to_string())
+        })
+        .collect::<Result<Vec<_>, _>>()?;
+    let unique = names.iter().copied().collect::<BTreeSet<_>>();
+    let expected = BTreeSet::from(["ops", "reader", "writer"]);
+    if names.len() != expected.len() || unique.len() != names.len() || unique != expected {
+        return Err(format!(
+            "NativeLink servers {names:?} must be exactly one each of {expected:?}"
+        ));
+    }
+    Ok(())
+}
+
+fn validate_cache_store_bindings(server: &Value, role: &str) -> Result<(), String> {
+    for (service, field, expected) in [
+        ("cas", "cas_store", "CAS_MAIN_STORE"),
+        ("bytestream", "cas_store", "CAS_MAIN_STORE"),
+        ("ac", "ac_store", "AC_MAIN_STORE"),
+    ] {
+        let instances = server["services"][service]
+            .as_array()
+            .ok_or_else(|| format!("{role} {service} instances are missing or non-array"))?;
+        if instances.is_empty() {
+            return Err(format!("{role} {service} instances are empty"));
+        }
+        for instance in instances {
+            if instance[field].as_str() != Some(expected) {
+                return Err(format!(
+                    "{role} {service} `{field}` must reference `{expected}`"
+                ));
+            }
+        }
+    }
+    Ok(())
+}
+
+fn validate_deployment_runtime_binding(
+    external_secret: &YamlValue,
+    deployment: &YamlValue,
+    service_namespace: &str,
+    role_ports: &[(&str, u64)],
+) -> Result<(), String> {
+    let external_secret_namespace =
+        metadata_namespace(external_secret, "NativeLink ExternalSecret")?;
+    let deployment_namespace = metadata_namespace(deployment, "NativeLink Deployment")?;
+    if external_secret_namespace != deployment_namespace {
+        return Err(format!(
+            "NativeLink ExternalSecret namespace `{external_secret_namespace}` disagrees with \
+             Deployment namespace `{deployment_namespace}`"
+        ));
+    }
+    if deployment_namespace != service_namespace {
+        return Err(format!(
+            "NativeLink Deployment namespace `{deployment_namespace}` disagrees with Service \
+             namespace `{service_namespace}`"
+        ));
+    }
+    let secret_name = external_secret["spec"]["target"]["name"]
+        .as_str()
+        .ok_or_else(|| {
+            "NativeLink ExternalSecret target name is missing or non-string".to_string()
+        })?;
+    if external_secret["spec"]["target"]["creationPolicy"].as_str() != Some("Owner") {
+        return Err("NativeLink ExternalSecret target creationPolicy must be `Owner`".to_string());
+    }
+    let external_data = external_secret["spec"]["data"]
+        .as_sequence()
+        .ok_or_else(|| "NativeLink ExternalSecret has no data mappings".to_string())?;
+    let secret_keys = external_data
+        .iter()
+        .map(|entry| {
+            entry["secretKey"].as_str().ok_or_else(|| {
+                "NativeLink ExternalSecret secretKey is missing or non-string".to_string()
+            })
+        })
+        .collect::<Result<BTreeSet<_>, _>>()?;
+    let required_secret_keys =
+        BTreeSet::from(["tls.crt", "tls.key", "ca-writer.crt", "ca-reader.crt"]);
+    if external_data.len() != required_secret_keys.len() || secret_keys != required_secret_keys {
+        return Err(format!(
+            "NativeLink ExternalSecret must have exactly one mapping for every TLS file \
+             {required_secret_keys:?}; observed {secret_keys:?}"
+        ));
+    }
+    for (secret_key, property) in [
+        ("tls.crt", "server-cert"),
+        ("tls.key", "server-key"),
+        ("ca-writer.crt", "writer-client-ca"),
+        ("ca-reader.crt", "reader-client-ca"),
+    ] {
+        let mapping = external_data
+            .iter()
+            .find(|entry| entry["secretKey"].as_str() == Some(secret_key))
+            .ok_or_else(|| format!("NativeLink ExternalSecret has no `{secret_key}` mapping"))?;
+        if mapping["remoteRef"]["key"].as_str() != Some("oya/ci/nativelink-cas-tls")
+            || mapping["remoteRef"]["property"].as_str() != Some(property)
+        {
+            return Err(format!(
+                "NativeLink ExternalSecret `{secret_key}` must map \
+                 `oya/ci/nativelink-cas-tls` property `{property}`"
+            ));
+        }
+    }
+    let volumes = deployment["spec"]["template"]["spec"]["volumes"]
+        .as_sequence()
+        .ok_or_else(|| "NativeLink Deployment has no volumes".to_string())?;
+    let tls_volume = volumes
+        .iter()
+        .find(|volume| volume["name"].as_str() == Some("tls"))
+        .ok_or_else(|| "NativeLink Deployment has no `tls` volume".to_string())?;
+    if tls_volume["secret"]["secretName"].as_str() != Some(secret_name) {
+        return Err(format!(
+            "NativeLink Deployment TLS volume does not reference ExternalSecret target \
+             `{secret_name}`"
+        ));
+    }
+    if tls_volume["secret"].get("items").is_some()
+        || tls_volume["secret"]["optional"].as_bool() == Some(true)
+    {
+        return Err(
+            "NativeLink Deployment TLS volume must project every required non-optional key"
+                .to_string(),
+        );
+    }
+
+    let containers = deployment["spec"]["template"]["spec"]["containers"]
+        .as_sequence()
+        .ok_or_else(|| "NativeLink Deployment has no containers".to_string())?;
+    let container = containers
+        .iter()
+        .find(|container| container["name"].as_str() == Some("nativelink"))
+        .ok_or_else(|| "NativeLink Deployment has no `nativelink` container".to_string())?;
+    let mounts = container["volumeMounts"]
+        .as_sequence()
+        .ok_or_else(|| "NativeLink container has no volume mounts".to_string())?;
+    let tls_mount = mounts
+        .iter()
+        .find(|mount| mount["name"].as_str() == Some("tls"))
+        .ok_or_else(|| "NativeLink container has no `tls` volume mount".to_string())?;
+    if tls_mount["mountPath"].as_str() != Some("/tls")
+        || tls_mount["readOnly"].as_bool() != Some(true)
+    {
+        return Err("NativeLink `tls` volume must be mounted read-only at `/tls`".to_string());
+    }
+    if tls_mount.get("subPath").is_some() || tls_mount.get("subPathExpr").is_some() {
+        return Err("NativeLink `tls` mount must project the complete Secret".to_string());
+    }
+
+    let declared_ports = container["ports"]
+        .as_sequence()
+        .ok_or_else(|| "NativeLink container has no declared ports".to_string())?
+        .iter()
+        .map(|entry| {
+            entry["containerPort"]
+                .as_u64()
+                .ok_or_else(|| "NativeLink containerPort is missing or non-numeric".to_string())
+        })
+        .collect::<Result<BTreeSet<_>, _>>()?;
+    for (role, port) in role_ports {
+        if !declared_ports.contains(port) {
+            return Err(format!(
+                "{role} Service target port {port} is not declared by the NativeLink container"
+            ));
+        }
+    }
+    Ok(())
+}
+
+fn validate_deployment_config_binding(
+    config_map: &YamlValue,
+    deployment: &YamlValue,
+) -> Result<(), String> {
+    let config_name = config_map["metadata"]["name"]
+        .as_str()
+        .ok_or_else(|| "NativeLink ConfigMap name is missing or non-string".to_string())?;
+    let config_namespace = metadata_namespace(config_map, "NativeLink ConfigMap")?;
+    let deployment_namespace = metadata_namespace(deployment, "NativeLink Deployment")?;
+    if config_namespace != deployment_namespace {
+        return Err(format!(
+            "NativeLink Deployment namespace `{deployment_namespace}` disagrees with ConfigMap \
+             namespace `{config_namespace}`"
+        ));
+    }
+    if config_map["data"]["cas.json"].as_str().is_none() {
+        return Err("NativeLink ConfigMap does not supply data.cas.json".to_string());
+    }
+
+    let volumes = deployment["spec"]["template"]["spec"]["volumes"]
+        .as_sequence()
+        .ok_or_else(|| "NativeLink Deployment has no volumes".to_string())?;
+    let config_volume = volumes
+        .iter()
+        .find(|volume| volume["name"].as_str() == Some("config"))
+        .ok_or_else(|| "NativeLink Deployment has no `config` volume".to_string())?;
+    if config_volume["configMap"]["name"].as_str() != Some(config_name) {
+        return Err(format!(
+            "NativeLink Deployment config volume does not reference ConfigMap `{config_name}`"
+        ));
+    }
+    if config_volume["configMap"].get("items").is_some() {
+        return Err(
+            "NativeLink Deployment config volume must not remap the `cas.json` key".to_string(),
+        );
+    }
+    if config_volume["configMap"]["optional"].as_bool() == Some(true) {
+        return Err("NativeLink Deployment config volume must not be optional".to_string());
+    }
+
+    let containers = deployment["spec"]["template"]["spec"]["containers"]
+        .as_sequence()
+        .ok_or_else(|| "NativeLink Deployment has no containers".to_string())?;
+    let container = containers
+        .iter()
+        .find(|container| container["name"].as_str() == Some("nativelink"))
+        .ok_or_else(|| "NativeLink Deployment has no `nativelink` container".to_string())?;
+    let args = container["args"]
+        .as_sequence()
+        .ok_or_else(|| "NativeLink container args are missing or non-sequence".to_string())?;
+    if args.as_slice() != [YamlValue::String("/etc/nativelink/cas.json".to_string())] {
+        return Err("NativeLink container must select only `/etc/nativelink/cas.json`".to_string());
+    }
+    let mounts = container["volumeMounts"]
+        .as_sequence()
+        .ok_or_else(|| "NativeLink container has no volume mounts".to_string())?;
+    let config_mount = mounts
+        .iter()
+        .find(|mount| mount["name"].as_str() == Some("config"))
+        .ok_or_else(|| "NativeLink container has no `config` volume mount".to_string())?;
+    if config_mount["mountPath"].as_str() != Some("/etc/nativelink")
+        || config_mount["readOnly"].as_bool() != Some(true)
+    {
+        return Err(
+            "NativeLink `config` volume must be mounted read-only at `/etc/nativelink`".to_string(),
+        );
+    }
+    if config_mount.get("subPath").is_some() || config_mount.get("subPathExpr").is_some() {
+        return Err("NativeLink `config` mount must project the complete ConfigMap".to_string());
+    }
+    Ok(())
+}
+
+fn validate_deployment_config_digest(
+    config_text: &str,
+    deployment: &YamlValue,
+) -> Result<(), String> {
+    let expected = format!("{:x}", Sha256::digest(config_text.as_bytes()));
+    let observed =
+        deployment["spec"]["template"]["metadata"]["annotations"]["oya.io/config-sha256"]
+            .as_str()
+            .ok_or_else(|| "NativeLink pod template lacks `oya.io/config-sha256`".to_string())?;
+    if observed != expected {
+        return Err(format!(
+            "NativeLink pod-template config digest `{observed}` disagrees with `{expected}`"
+        ));
+    }
+    Ok(())
+}
+
+fn validate_deployment_data_binding(
+    config: &Value,
+    pvc: &YamlValue,
+    deployment: &YamlValue,
+) -> Result<(), String> {
+    let pvc_name = pvc["metadata"]["name"]
+        .as_str()
+        .ok_or_else(|| "NativeLink PVC name is missing or non-string".to_string())?;
+    let pvc_namespace = metadata_namespace(pvc, "NativeLink PVC")?;
+    let deployment_namespace = metadata_namespace(deployment, "NativeLink Deployment")?;
+    if pvc_namespace != deployment_namespace {
+        return Err(format!(
+            "NativeLink PVC namespace `{pvc_namespace}` disagrees with Deployment namespace \
+             `{deployment_namespace}`"
+        ));
+    }
+    let access_modes = pvc["spec"]["accessModes"]
+        .as_sequence()
+        .ok_or_else(|| "NativeLink PVC accessModes are missing or non-sequence".to_string())?
+        .iter()
+        .map(|mode| {
+            mode.as_str()
+                .ok_or_else(|| "NativeLink PVC accessMode is non-string".to_string())
+        })
+        .collect::<Result<BTreeSet<_>, _>>()?;
+    if access_modes != BTreeSet::from(["ReadWriteOnce"]) {
+        return Err("NativeLink PVC must use exactly the ReadWriteOnce access mode".to_string());
+    }
+
+    let volumes = deployment["spec"]["template"]["spec"]["volumes"]
+        .as_sequence()
+        .ok_or_else(|| "NativeLink Deployment has no volumes".to_string())?;
+    let data_volumes = volumes
+        .iter()
+        .filter(|volume| volume["name"].as_str() == Some("data"))
+        .collect::<Vec<_>>();
+    if data_volumes.len() != 1 {
+        return Err("NativeLink Deployment must have exactly one `data` volume".to_string());
+    }
+    let data_volume = data_volumes[0];
+    if data_volume["persistentVolumeClaim"]["claimName"].as_str() != Some(pvc_name)
+        || data_volume["persistentVolumeClaim"]["readOnly"].as_bool() == Some(true)
+    {
+        return Err(format!(
+            "NativeLink Deployment data volume must mount writable PVC `{pvc_name}`"
+        ));
+    }
+
+    let container = deployment["spec"]["template"]["spec"]["containers"]
+        .as_sequence()
+        .and_then(|containers| {
+            containers
+                .iter()
+                .find(|container| container["name"].as_str() == Some("nativelink"))
+        })
+        .ok_or_else(|| "NativeLink Deployment has no `nativelink` container".to_string())?;
+    let mounts = container["volumeMounts"]
+        .as_sequence()
+        .ok_or_else(|| "NativeLink container has no volume mounts".to_string())?;
+    let data_mounts = mounts
+        .iter()
+        .filter(|mount| mount["name"].as_str() == Some("data"))
+        .collect::<Vec<_>>();
+    if data_mounts.len() != 1 {
+        return Err("NativeLink container must have exactly one `data` mount".to_string());
+    }
+    let data_mount = data_mounts[0];
+    if data_mount["mountPath"].as_str() != Some("/data")
+        || data_mount["readOnly"].as_bool() == Some(true)
+        || data_mount.get("subPath").is_some()
+        || data_mount.get("subPathExpr").is_some()
+    {
+        return Err(
+            "NativeLink `data` volume must be mounted writable at `/data` without a subPath"
+                .to_string(),
+        );
+    }
+
+    let stores = config["stores"]
+        .as_array()
+        .ok_or_else(|| "NativeLink stores are missing or non-array".to_string())?;
+    for (name, pointer, content_path, temp_path) in [
+        (
+            "CAS_MAIN_STORE",
+            "/verify/backend/fast_slow/slow/filesystem",
+            "/data/cas-content",
+            "/data/cas-tmp",
+        ),
+        (
+            "AC_MAIN_STORE",
+            "/fast_slow/slow/filesystem",
+            "/data/ac-content",
+            "/data/ac-tmp",
+        ),
+    ] {
+        let store = stores
+            .iter()
+            .find(|store| store["name"].as_str() == Some(name))
+            .ok_or_else(|| format!("NativeLink store `{name}` is missing"))?;
+        let filesystem = store
+            .pointer(pointer)
+            .ok_or_else(|| format!("NativeLink store `{name}` has no slow filesystem"))?;
+        if filesystem["content_path"].as_str() != Some(content_path)
+            || filesystem["temp_path"].as_str() != Some(temp_path)
+        {
+            return Err(format!(
+                "NativeLink store `{name}` must use `{content_path}` and `{temp_path}`"
+            ));
+        }
+    }
+    Ok(())
+}
+
+fn role_ingress_ports(
+    policy: &YamlValue,
+    role: &str,
+    expected_port: u64,
+    runner_namespace: &str,
+) -> Result<BTreeSet<u64>, String> {
     let label = format!("oya.io/nativelink-cas-{role}");
     let rules = policy["spec"]["ingress"]
         .as_sequence()
         .ok_or_else(|| "NativeLink ingress policy has no ingress rules".to_string())?;
     let mut ports = BTreeSet::new();
     for rule in rules {
-        let matches_role = rule["from"].as_sequence().is_some_and(|peers| {
-            peers.iter().any(|peer| {
-                peer["podSelector"]["matchLabels"][label.as_str()].as_str() == Some("true")
-            })
-        });
-        if !matches_role {
-            continue;
-        }
         let declared = rule["ports"]
             .as_sequence()
-            .ok_or_else(|| format!("{role} ingress rule has no ports"))?;
-        for port in declared {
-            ports.insert(
-                port["port"]
-                    .as_u64()
-                    .ok_or_else(|| format!("{role} ingress port is missing or non-numeric"))?,
-            );
+            .ok_or_else(|| "NativeLink ingress rule has no ports".to_string())?;
+        let declared_ports = declared
+            .iter()
+            .map(|port| kubernetes_tcp_port(port, "NativeLink ingress rule"))
+            .collect::<Result<BTreeSet<_>, _>>()?;
+        let peers = rule["from"]
+            .as_sequence()
+            .ok_or_else(|| "NativeLink ingress rule has no source peers".to_string())?;
+        let matches_role = peers.iter().any(|peer| {
+            peer["podSelector"]["matchLabels"][label.as_str()].as_str() == Some("true")
+        });
+        if !matches_role {
+            if declared_ports.contains(&expected_port) {
+                return Err(format!(
+                    "{role} ingress port {expected_port} is exposed to a non-role peer"
+                ));
+            }
+            continue;
         }
+        for peer in peers {
+            let pod_selector = peer["podSelector"]
+                .as_mapping()
+                .ok_or_else(|| format!("{role} ingress peer has no podSelector"))?;
+            let labels = peer["podSelector"]["matchLabels"]
+                .as_mapping()
+                .ok_or_else(|| format!("{role} ingress peer has no podSelector labels"))?;
+            if pod_selector.len() != 1
+                || labels.len() != 1
+                || peer["podSelector"]["matchLabels"][label.as_str()].as_str() != Some("true")
+            {
+                return Err(format!(
+                    "{role} ingress peer must use only the exclusive role label `{label}`"
+                ));
+            }
+            let namespace_selector = peer
+                .get("namespaceSelector")
+                .and_then(YamlValue::as_mapping)
+                .ok_or_else(|| format!("{role} ingress peer has no namespaceSelector"))?;
+            let namespace_labels = peer["namespaceSelector"]["matchLabels"]
+                .as_mapping()
+                .ok_or_else(|| {
+                    format!("{role} ingress peer has no namespaceSelector.matchLabels")
+                })?;
+            let selects_runner_namespace = namespace_selector.len() == 1
+                && namespace_labels.len() == 1
+                && peer["namespaceSelector"]["matchLabels"]["kubernetes.io/metadata.name"].as_str()
+                    == Some(runner_namespace);
+            if !selects_runner_namespace {
+                return Err(format!(
+                    "{role} ingress peer namespaceSelector does not admit runner namespace \
+                     `{runner_namespace}`"
+                ));
+            }
+        }
+        ports.extend(declared_ports);
     }
     if ports.is_empty() {
         Err(format!(
@@ -97,28 +836,169 @@ fn role_ingress_ports(policy: &YamlValue, role: &str) -> Result<BTreeSet<u64>, S
     }
 }
 
-fn namespace_egress_ports(policy: &YamlValue, namespace: &str) -> Result<BTreeSet<u64>, String> {
+fn validate_runner_egress_selector(policy: &YamlValue) -> Result<(), String> {
+    let selector = policy["spec"]["podSelector"]
+        .as_mapping()
+        .ok_or_else(|| "runner egress policy podSelector is missing or non-mapping".to_string())?;
+    let expressions = policy["spec"]["podSelector"]["matchExpressions"]
+        .as_sequence()
+        .ok_or_else(|| {
+            "runner egress policy podSelector.matchExpressions is missing or non-sequence"
+                .to_string()
+        })?;
+    if selector.len() != 1 || expressions.len() != 1 {
+        return Err(
+            "runner egress policy must select cells with one `oya.io/ci-cell` expression"
+                .to_string(),
+        );
+    }
+    let expression = &expressions[0];
+    if expression["key"].as_str() != Some("oya.io/ci-cell")
+        || expression["operator"].as_str() != Some("In")
+    {
+        return Err("runner egress policy must use `oya.io/ci-cell In (...)`".to_string());
+    }
+    let values = expression["values"]
+        .as_sequence()
+        .ok_or_else(|| "runner egress cell values are missing or non-sequence".to_string())?
+        .iter()
+        .map(|value| {
+            value
+                .as_str()
+                .ok_or_else(|| "runner egress cell value is non-string".to_string())
+        })
+        .collect::<Result<BTreeSet<_>, _>>()?;
+    let required = BTreeSet::from(["general", "live-postgres"]);
+    if !required.is_subset(&values) {
+        return Err(format!(
+            "runner egress cell values {values:?} are missing {required:?}"
+        ));
+    }
+    Ok(())
+}
+
+fn rule_grants_cache_port(rule: &YamlValue, cache_ports: &BTreeSet<u64>) -> bool {
+    let Some(ports) = rule["ports"].as_sequence() else {
+        return true;
+    };
+    if ports.is_empty() {
+        return true;
+    }
+    ports.iter().any(|entry| {
+        if !matches!(entry["protocol"].as_str(), None | Some("TCP")) {
+            return false;
+        }
+        let Some(start) = entry["port"].as_u64() else {
+            return true;
+        };
+        let end = entry["endPort"].as_u64().unwrap_or(start);
+        cache_ports
+            .iter()
+            .any(|port| *port >= start && *port <= end)
+    })
+}
+
+fn destination_may_include_namespace(peer: &YamlValue, namespace: &str) -> bool {
+    if let Some(selector) = peer["namespaceSelector"].as_mapping() {
+        let labels = peer["namespaceSelector"]["matchLabels"].as_mapping();
+        return selector.len() != 1
+            || labels.is_none_or(|labels| labels.len() != 1)
+            || peer["namespaceSelector"]["matchLabels"]["kubernetes.io/metadata.name"].as_str()
+                == Some(namespace);
+    }
+    if let Some(ip_block) = peer["ipBlock"].as_mapping() {
+        let excluded = peer["ipBlock"]["except"]
+            .as_sequence()
+            .map(|ranges| {
+                ranges
+                    .iter()
+                    .filter_map(YamlValue::as_str)
+                    .collect::<BTreeSet<_>>()
+            })
+            .unwrap_or_default();
+        let required_private_exclusions = BTreeSet::from([
+            "10.0.0.0/8",
+            "100.64.0.0/10",
+            "127.0.0.0/8",
+            "169.254.0.0/16",
+            "172.16.0.0/12",
+            "192.168.0.0/16",
+        ]);
+        return ip_block["cidr"].as_str() != Some("0.0.0.0/0")
+            || !required_private_exclusions.is_subset(&excluded);
+    }
+    peer.get("podSelector").is_none()
+}
+
+fn namespace_egress_ports(
+    policy: &YamlValue,
+    namespace: &str,
+    cache_ports: &BTreeSet<u64>,
+) -> Result<BTreeSet<u64>, String> {
     let rules = policy["spec"]["egress"]
         .as_sequence()
         .ok_or_else(|| "runner egress policy has no egress rules".to_string())?;
     let mut ports = BTreeSet::new();
     for rule in rules {
-        let matches_namespace = rule["to"].as_sequence().is_some_and(|peers| {
-            peers.iter().any(|peer| {
-                peer["namespaceSelector"]["matchLabels"]["kubernetes.io/metadata.name"].as_str()
-                    == Some(namespace)
-            })
+        let peers = rule["to"]
+            .as_sequence()
+            .ok_or_else(|| "runner egress rule has no destination peers".to_string())?;
+        if peers.is_empty() {
+            return Err("runner egress rule has no destination peers".to_string());
+        }
+        let matches_namespace = peers.iter().any(|peer| {
+            peer["namespaceSelector"]["matchLabels"]["kubernetes.io/metadata.name"].as_str()
+                == Some(namespace)
         });
         if !matches_namespace {
+            if peers
+                .iter()
+                .any(|peer| destination_may_include_namespace(peer, namespace))
+                && rule_grants_cache_port(rule, cache_ports)
+            {
+                return Err(format!(
+                    "runner egress grants cache ports to a destination outside `{namespace}`"
+                ));
+            }
             continue;
+        }
+        if peers.len() != 1 {
+            return Err(format!(
+                "runner egress rule for `{namespace}` must have exactly one destination"
+            ));
+        }
+        let peer = &peers[0];
+        let peer_fields = peer
+            .as_mapping()
+            .ok_or_else(|| format!("runner egress destination for `{namespace}` is non-mapping"))?;
+        let namespace_selector = peer["namespaceSelector"].as_mapping().ok_or_else(|| {
+            format!("runner egress destination for `{namespace}` has no namespaceSelector")
+        })?;
+        let namespace_labels = peer["namespaceSelector"]["matchLabels"]
+            .as_mapping()
+            .ok_or_else(|| {
+                format!(
+                    "runner egress destination for `{namespace}` has no namespaceSelector labels"
+                )
+            })?;
+        if peer_fields.len() != 1
+            || namespace_selector.len() != 1
+            || namespace_labels.len() != 1
+            || peer["namespaceSelector"]["matchLabels"]["kubernetes.io/metadata.name"].as_str()
+                != Some(namespace)
+        {
+            return Err(format!(
+                "runner egress destination must use only namespace `{namespace}`"
+            ));
         }
         let declared = rule["ports"]
             .as_sequence()
             .ok_or_else(|| format!("runner egress rule for `{namespace}` has no ports"))?;
         for port in declared {
-            ports.insert(port["port"].as_u64().ok_or_else(|| {
-                format!("runner egress port for `{namespace}` is missing or non-numeric")
-            })?);
+            ports.insert(kubernetes_tcp_port(
+                port,
+                &format!("runner egress rule for `{namespace}`"),
+            )?);
         }
     }
     if ports.is_empty() {
@@ -133,14 +1013,26 @@ fn namespace_egress_ports(policy: &YamlValue, namespace: &str) -> Result<BTreeSe
 fn validate_endpoint_network_policy_ports(
     ingress_policy: &YamlValue,
     runner_egress_policy: &YamlValue,
+    service_namespace: &str,
     role_ports: &[(&str, u64)],
 ) -> Result<(), String> {
+    validate_network_policy_direction(ingress_policy, "Ingress", "NativeLink ingress policy")?;
+    validate_network_policy_direction(runner_egress_policy, "Egress", "runner egress policy")?;
+    let ingress_namespace = metadata_namespace(ingress_policy, "NativeLink ingress policy")?;
+    if ingress_namespace != service_namespace {
+        return Err(format!(
+            "NativeLink ingress policy namespace `{ingress_namespace}` disagrees with Service \
+             namespace `{service_namespace}`"
+        ));
+    }
     let expected_egress = role_ports
         .iter()
         .map(|(_, port)| *port)
         .collect::<BTreeSet<_>>();
+    validate_runner_egress_selector(runner_egress_policy)?;
+    let runner_namespace = metadata_namespace(runner_egress_policy, "runner egress policy")?;
     for (role, port) in role_ports {
-        let actual = role_ingress_ports(ingress_policy, role)?;
+        let actual = role_ingress_ports(ingress_policy, role, *port, runner_namespace)?;
         let expected = BTreeSet::from([*port]);
         if actual != expected {
             return Err(format!(
@@ -148,10 +1040,11 @@ fn validate_endpoint_network_policy_ports(
             ));
         }
     }
-    let actual_egress = namespace_egress_ports(runner_egress_policy, "oya-ci")?;
-    if actual_egress != expected_egress {
+    let actual_egress =
+        namespace_egress_ports(runner_egress_policy, service_namespace, &expected_egress)?;
+    if !expected_egress.is_subset(&actual_egress) {
         return Err(format!(
-            "runner egress ports {actual_egress:?} disagree with endpoint ports \
+            "runner egress ports {actual_egress:?} are missing endpoint ports \
              {expected_egress:?}"
         ));
     }
@@ -993,6 +1886,8 @@ fn endpoint_data_matches_the_nativelink_services_and_instances() {
     let documents = serde_yaml::Deserializer::from_str(&manifest)
         .map(|document| YamlValue::deserialize(document).expect("parse NativeLink YAML document"))
         .collect::<Vec<_>>();
+    validate_unique_kubernetes_identities(&documents)
+        .expect("NativeLink manifest resource identities are unique");
 
     let config_map = documents
         .iter()
@@ -1005,13 +1900,72 @@ fn endpoint_data_matches_the_nativelink_services_and_instances() {
                     == Some("nativelink-cas-config")
         })
         .expect("NativeLink config ConfigMap");
+    let deployment = documents
+        .iter()
+        .find(|document| {
+            document.get("kind").and_then(YamlValue::as_str) == Some("Deployment")
+                && document
+                    .get("metadata")
+                    .and_then(|metadata| metadata.get("name"))
+                    .and_then(YamlValue::as_str)
+                    == Some("nativelink-cas")
+        })
+        .expect("NativeLink Deployment");
+    validate_deployment_topology(deployment)
+        .expect("NativeLink Deployment topology is singleton Recreate");
+    let external_secret = documents
+        .iter()
+        .find(|document| {
+            document.get("kind").and_then(YamlValue::as_str) == Some("ExternalSecret")
+                && document
+                    .get("metadata")
+                    .and_then(|metadata| metadata.get("name"))
+                    .and_then(YamlValue::as_str)
+                    == Some("nativelink-cas-tls")
+        })
+        .expect("NativeLink TLS ExternalSecret");
+    let pvc = documents
+        .iter()
+        .find(|document| {
+            document.get("kind").and_then(YamlValue::as_str) == Some("PersistentVolumeClaim")
+                && document
+                    .get("metadata")
+                    .and_then(|metadata| metadata.get("name"))
+                    .and_then(YamlValue::as_str)
+                    == Some("nativelink-cas-data")
+        })
+        .expect("NativeLink data PVC");
+    validate_deployment_config_binding(config_map, deployment)
+        .expect("Deployment consumes the validated NativeLink ConfigMap");
     let config_text = config_map
         .get("data")
         .and_then(|data| data.get("cas.json"))
         .and_then(YamlValue::as_str)
         .expect("NativeLink cas.json");
+    validate_deployment_config_digest(config_text, deployment)
+        .expect("NativeLink pod template rolls when cas.json changes");
     let config: Value = serde_json::from_str(config_text).expect("parse NativeLink cas.json");
+    validate_deployment_data_binding(&config, pvc, deployment)
+        .expect("NativeLink slow stores bind the durable data PVC");
     let servers = config["servers"].as_array().expect("NativeLink servers");
+    validate_server_names(servers).expect("NativeLink server names are unique and exact");
+    let ops = servers
+        .iter()
+        .find(|server| server["name"].as_str() == Some("ops"))
+        .expect("NativeLink ops server");
+    validate_ops_health_binding(ops, deployment)
+        .expect("NativeLink ops listener matches its container port and probes");
+    let ops_services = ops["services"]
+        .as_object()
+        .expect("NativeLink ops services")
+        .keys()
+        .map(String::as_str)
+        .collect::<BTreeSet<_>>();
+    assert_eq!(
+        ops_services,
+        BTreeSet::from(["admin", "health"]),
+        "plaintext ops listener must never expose cache services"
+    );
     let ingress_policy = documents
         .iter()
         .find(|document| {
@@ -1023,7 +1977,10 @@ fn endpoint_data_matches_the_nativelink_services_and_instances() {
                     == Some("nativelink-cas-ingress")
         })
         .expect("NativeLink ingress NetworkPolicy");
+    validate_workload_selectors(deployment, ingress_policy)
+        .expect("Deployment and ingress policy select the NativeLink workload");
     let mut role_ports = Vec::new();
+    let mut service_documents = Vec::new();
 
     for (role, endpoint, read_only) in [
         ("writer", endpoints.writer(), false),
@@ -1041,6 +1998,10 @@ fn endpoint_data_matches_the_nativelink_services_and_instances() {
                         == Some(service_name.as_str())
             })
             .unwrap_or_else(|| panic!("NativeLink {role} Service"));
+        service_documents.push((role, service));
+        validate_service_exposure(service, role).unwrap_or_else(|finding| panic!("{finding}"));
+        validate_service_selector(service, deployment, role)
+            .unwrap_or_else(|finding| panic!("{finding}"));
         let namespace = service["metadata"]["namespace"]
             .as_str()
             .expect("Service namespace");
@@ -1055,6 +2016,19 @@ fn endpoint_data_matches_the_nativelink_services_and_instances() {
             .iter()
             .find(|server| server["name"].as_str() == Some(role))
             .unwrap_or_else(|| panic!("NativeLink {role} server"));
+        validate_listener_tls(server, role).unwrap_or_else(|finding| panic!("{finding}"));
+        validate_cache_store_bindings(server, role).unwrap_or_else(|finding| panic!("{finding}"));
+        let cache_services = server["services"]
+            .as_object()
+            .unwrap_or_else(|| panic!("{role} services"))
+            .keys()
+            .map(String::as_str)
+            .collect::<BTreeSet<_>>();
+        assert_eq!(
+            cache_services,
+            BTreeSet::from(["ac", "bytestream", "capabilities", "cas"]),
+            "{role} must expose only the validated cache service set"
+        );
         assert_eq!(
             server["listener"]["http"]["socket_address"]
                 .as_str()
@@ -1073,12 +2047,46 @@ fn endpoint_data_matches_the_nativelink_services_and_instances() {
                 "{role} {service_kind} instance drifted from endpoint DATA"
             );
         }
-        assert_eq!(
-            server["services"]["ac"][0]["read_only"].as_bool(),
-            Some(read_only),
-            "{role} AC posture"
+        assert!(
+            server["services"]["ac"]
+                .as_array()
+                .expect("AC instances")
+                .iter()
+                .all(|instance| instance["read_only"].as_bool() == Some(read_only)),
+            "{role} AC posture drifted"
         );
     }
+    let service_namespace =
+        common_service_namespace(&service_documents).expect("common cache Service namespace");
+    let runner_values = std::fs::read_to_string(root.join(RUNNER_VALUES_PATH))
+        .expect("read runner scale-set values");
+    let runner_values: YamlValue =
+        serde_yaml::from_str(&runner_values).expect("parse runner scale-set values");
+    validate_runner_role_labels(&runner_values, &["writer", "reader"])
+        .expect("runner template carries both cache role labels");
+    let cluster_store = std::fs::read_to_string(root.join(EXTERNAL_SECRET_STORE_PATH))
+        .expect("read OpenBao ClusterSecretStore");
+    let cluster_stores = serde_yaml::Deserializer::from_str(&cluster_store)
+        .map(|document| {
+            YamlValue::deserialize(document).expect("parse OpenBao ClusterSecretStore document")
+        })
+        .collect::<Vec<_>>();
+    let cluster_store = cluster_stores
+        .iter()
+        .find(|document| {
+            document["kind"].as_str() == Some("ClusterSecretStore")
+                && document["metadata"]["name"].as_str() == Some("openbao-oya")
+        })
+        .expect("live openbao-oya ClusterSecretStore");
+    validate_external_secret_store(external_secret, cluster_store)
+        .expect("NativeLink ExternalSecret references the live OpenBao store");
+    validate_deployment_runtime_binding(
+        external_secret,
+        deployment,
+        &service_namespace,
+        &role_ports,
+    )
+    .expect("Deployment exposes cache ports and consumes the TLS Secret");
 
     let runner_policies = std::fs::read_to_string(root.join(RUNNER_NETWORK_POLICY_PATH))
         .expect("read runner NetworkPolicies");
@@ -1096,8 +2104,13 @@ fn endpoint_data_matches_the_nativelink_services_and_instances() {
                     == Some("ci-runners-egress-allowlist")
         })
         .expect("runner egress NetworkPolicy");
-    validate_endpoint_network_policy_ports(ingress_policy, runner_egress_policy, &role_ports)
-        .expect("NetworkPolicy ports match endpoint DATA");
+    validate_endpoint_network_policy_ports(
+        ingress_policy,
+        runner_egress_policy,
+        &service_namespace,
+        &role_ports,
+    )
+    .expect("NetworkPolicy namespace and ports match endpoint DATA");
 
     let runbook = std::fs::read_to_string(root.join(EXTERNAL_SECRETS_RUNBOOK_PATH))
         .expect("read external-secrets runbook");
@@ -1127,6 +2140,15 @@ fn endpoint_conformance_rejects_target_port_server_san_and_network_policy_drift(
             .unwrap_err()
             .contains("disagrees")
     );
+    let udp_service: YamlValue = serde_yaml::from_str(
+        "spec:\n  ports:\n    - protocol: UDP\n      port: 50051\n      targetPort: 50051\n",
+    )
+    .expect("parse UDP Service fixture");
+    assert!(
+        validated_service_port(&udp_service, "writer")
+            .unwrap_err()
+            .contains("is not TCP")
+    );
 
     let expected = [
         "DNS:writer.example.test".to_string(),
@@ -1146,15 +2168,24 @@ fn endpoint_conformance_rejects_target_port_server_san_and_network_policy_drift(
 
     let mut ingress_policy: YamlValue = serde_yaml::from_str(
         r#"
+metadata:
+  namespace: oya-ci
 spec:
+  policyTypes: [Ingress]
   ingress:
     - from:
-        - podSelector:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: arc-runners
+          podSelector:
             matchLabels:
               oya.io/nativelink-cas-writer: "true"
       ports: [{ protocol: TCP, port: 50051 }]
     - from:
-        - podSelector:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: arc-runners
+          podSelector:
             matchLabels:
               oya.io/nativelink-cas-reader: "true"
       ports: [{ protocol: TCP, port: 50052 }]
@@ -1163,7 +2194,15 @@ spec:
     .expect("parse ingress policy fixture");
     let mut runner_egress_policy: YamlValue = serde_yaml::from_str(
         r#"
+metadata:
+  namespace: arc-runners
 spec:
+  podSelector:
+    matchExpressions:
+      - key: oya.io/ci-cell
+        operator: In
+        values: [general, live-postgres, future-console]
+  policyTypes: [Egress]
   egress:
     - to:
         - namespaceSelector:
@@ -1172,12 +2211,109 @@ spec:
       ports:
         - { protocol: TCP, port: 50051 }
         - { protocol: TCP, port: 50052 }
+        - { protocol: TCP, port: 50053 }
 "#,
     )
     .expect("parse runner egress policy fixture");
     let role_ports = [("writer", 50051), ("reader", 50052)];
-    validate_endpoint_network_policy_ports(&ingress_policy, &runner_egress_policy, &role_ports)
-        .expect("matching NetworkPolicy fixture");
+    validate_endpoint_network_policy_ports(
+        &ingress_policy,
+        &runner_egress_policy,
+        "oya-ci",
+        &role_ports,
+    )
+    .expect("matching NetworkPolicy fixture with an additive future egress port");
+
+    ingress_policy["spec"]["policyTypes"][0] =
+        serde_yaml::to_value("Egress").expect("serialize stale ingress direction");
+    assert!(
+        validate_endpoint_network_policy_ports(
+            &ingress_policy,
+            &runner_egress_policy,
+            "oya-ci",
+            &role_ports,
+        )
+        .unwrap_err()
+        .contains("must be exactly `Ingress`")
+    );
+    ingress_policy["spec"]["policyTypes"][0] =
+        serde_yaml::to_value("Ingress").expect("serialize restored ingress direction");
+    runner_egress_policy["spec"]["policyTypes"][0] =
+        serde_yaml::to_value("Ingress").expect("serialize stale egress direction");
+    assert!(
+        validate_endpoint_network_policy_ports(
+            &ingress_policy,
+            &runner_egress_policy,
+            "oya-ci",
+            &role_ports,
+        )
+        .unwrap_err()
+        .contains("must be exactly `Egress`")
+    );
+    runner_egress_policy["spec"]["policyTypes"][0] =
+        serde_yaml::to_value("Egress").expect("serialize restored egress direction");
+
+    runner_egress_policy["spec"]["podSelector"]["matchExpressions"][0]["key"] =
+        serde_yaml::to_value("oya.io/ci-cel").expect("serialize stale runner selector");
+    assert!(
+        validate_endpoint_network_policy_ports(
+            &ingress_policy,
+            &runner_egress_policy,
+            "oya-ci",
+            &role_ports,
+        )
+        .unwrap_err()
+        .contains("oya.io/ci-cell")
+    );
+    runner_egress_policy["spec"]["podSelector"]["matchExpressions"][0]["key"] =
+        serde_yaml::to_value("oya.io/ci-cell").expect("serialize restored runner selector");
+    ingress_policy["spec"]["ingress"][0]["from"][0]["podSelector"]["matchLabels"]["oya.io/nativelink-cas-writer"] =
+        serde_yaml::to_value("false").expect("serialize non-role peer");
+    assert!(
+        validate_endpoint_network_policy_ports(
+            &ingress_policy,
+            &runner_egress_policy,
+            "oya-ci",
+            &role_ports,
+        )
+        .unwrap_err()
+        .contains("exposed to a non-role peer")
+    );
+    ingress_policy["spec"]["ingress"][0]["from"][0]["podSelector"]["matchLabels"]["oya.io/nativelink-cas-writer"] =
+        serde_yaml::to_value("true").expect("serialize restored role peer");
+    ingress_policy["spec"]["ingress"][0]["from"][0]["podSelector"]["matchExpressions"] =
+        serde_yaml::from_str("[{ key: oya.io/ci-cell, operator: In, values: [nonexistent] }]")
+            .expect("serialize stale role peer expression");
+    assert!(
+        validate_endpoint_network_policy_ports(
+            &ingress_policy,
+            &runner_egress_policy,
+            "oya-ci",
+            &role_ports,
+        )
+        .unwrap_err()
+        .contains("must use only the exclusive role label")
+    );
+    ingress_policy["spec"]["ingress"][0]["from"][0]["podSelector"]
+        .as_mapping_mut()
+        .expect("role podSelector mapping")
+        .remove(YamlValue::String("matchExpressions".to_string()));
+    ingress_policy["spec"]["ingress"][0]["ports"][0]["endPort"] =
+        serde_yaml::to_value(50052_u64).expect("serialize widened ingress range");
+    assert!(
+        validate_endpoint_network_policy_ports(
+            &ingress_policy,
+            &runner_egress_policy,
+            "oya-ci",
+            &role_ports,
+        )
+        .unwrap_err()
+        .contains("must not widen")
+    );
+    ingress_policy["spec"]["ingress"][0]["ports"][0]
+        .as_mapping_mut()
+        .expect("ingress port mapping")
+        .remove(YamlValue::String("endPort".to_string()));
 
     ingress_policy["spec"]["ingress"][0]["ports"][0]["port"] =
         serde_yaml::to_value(50050_u64).expect("serialize stale ingress port");
@@ -1185,6 +2321,7 @@ spec:
         validate_endpoint_network_policy_ports(
             &ingress_policy,
             &runner_egress_policy,
+            "oya-ci",
             &role_ports,
         )
         .unwrap_err()
@@ -1192,16 +2329,730 @@ spec:
     );
     ingress_policy["spec"]["ingress"][0]["ports"][0]["port"] =
         serde_yaml::to_value(50051_u64).expect("serialize restored ingress port");
-    runner_egress_policy["spec"]["egress"][0]["ports"][1]["port"] =
-        serde_yaml::to_value(50053_u64).expect("serialize stale egress port");
+    ingress_policy["spec"]["ingress"][0]["ports"][0]["protocol"] =
+        serde_yaml::to_value("UDP").expect("serialize stale ingress protocol");
     assert!(
         validate_endpoint_network_policy_ports(
             &ingress_policy,
             &runner_egress_policy,
+            "oya-ci",
+            &role_ports,
+        )
+        .unwrap_err()
+        .contains("is not TCP")
+    );
+    ingress_policy["spec"]["ingress"][0]["ports"][0]["protocol"] =
+        serde_yaml::to_value("TCP").expect("serialize restored ingress protocol");
+    ingress_policy["spec"]["ingress"][0]["from"][0]["namespaceSelector"] = YamlValue::Null;
+    assert!(
+        validate_endpoint_network_policy_ports(
+            &ingress_policy,
+            &runner_egress_policy,
+            "oya-ci",
+            &role_ports,
+        )
+        .unwrap_err()
+        .contains("has no namespaceSelector")
+    );
+    ingress_policy["spec"]["ingress"][0]["from"][0]["namespaceSelector"] =
+        serde_yaml::from_str("{}").expect("serialize all-namespaces selector");
+    assert!(
+        validate_endpoint_network_policy_ports(
+            &ingress_policy,
+            &runner_egress_policy,
+            "oya-ci",
+            &role_ports,
+        )
+        .unwrap_err()
+        .contains("has no namespaceSelector.matchLabels")
+    );
+    ingress_policy["spec"]["ingress"][0]["from"][0]["namespaceSelector"] =
+        serde_yaml::from_str("{ matchLabels: { kubernetes.io/metadata.name: arc-runners } }")
+            .expect("restore exact runner namespace selector");
+    ingress_policy["metadata"]["namespace"] =
+        serde_yaml::to_value("other").expect("serialize stale ingress namespace");
+    assert!(
+        validate_endpoint_network_policy_ports(
+            &ingress_policy,
+            &runner_egress_policy,
+            "oya-ci",
+            &role_ports,
+        )
+        .unwrap_err()
+        .contains("disagrees with Service namespace")
+    );
+    ingress_policy["metadata"]["namespace"] =
+        serde_yaml::to_value("oya-ci").expect("serialize restored ingress namespace");
+    runner_egress_policy["spec"]["egress"][0]["to"][0]["namespaceSelector"]["matchLabels"]["kubernetes.io/metadata.name"] =
+        serde_yaml::to_value("other").expect("serialize stale egress namespace");
+    assert!(
+        validate_endpoint_network_policy_ports(
+            &ingress_policy,
+            &runner_egress_policy,
+            "oya-ci",
+            &role_ports,
+        )
+        .unwrap_err()
+        .contains("no rule for namespace")
+    );
+    runner_egress_policy["spec"]["egress"][0]["to"][0]["namespaceSelector"]["matchLabels"]["kubernetes.io/metadata.name"] =
+        serde_yaml::to_value("oya-ci").expect("serialize restored egress namespace");
+    runner_egress_policy["spec"]["egress"][0]["to"]
+        .as_sequence_mut()
+        .expect("runner egress destinations")
+        .push(
+            serde_yaml::from_str("{ namespaceSelector: {} }")
+                .expect("serialize all-namespaces egress destination"),
+        );
+    assert!(
+        validate_endpoint_network_policy_ports(
+            &ingress_policy,
+            &runner_egress_policy,
+            "oya-ci",
+            &role_ports,
+        )
+        .unwrap_err()
+        .contains("exactly one destination")
+    );
+    runner_egress_policy["spec"]["egress"][0]["to"]
+        .as_sequence_mut()
+        .expect("runner egress destinations")
+        .pop();
+    runner_egress_policy["spec"]["egress"]
+        .as_sequence_mut()
+        .expect("runner egress rules")
+        .push(
+            serde_yaml::from_str(
+                r#"
+to:
+  - namespaceSelector: {}
+ports:
+  - { protocol: TCP, port: 50051 }
+"#,
+            )
+            .expect("serialize broad cache-port egress rule"),
+        );
+    assert!(
+        validate_endpoint_network_policy_ports(
+            &ingress_policy,
+            &runner_egress_policy,
+            "oya-ci",
+            &role_ports,
+        )
+        .unwrap_err()
+        .contains("destination outside `oya-ci`")
+    );
+    runner_egress_policy["spec"]["egress"]
+        .as_sequence_mut()
+        .expect("runner egress rules")
+        .pop();
+    runner_egress_policy["spec"]["egress"]
+        .as_sequence_mut()
+        .expect("runner egress rules")
+        .push(
+            serde_yaml::from_str(
+                r#"
+to: []
+ports:
+  - { protocol: TCP, port: 50051 }
+"#,
+            )
+            .expect("serialize empty-destination cache-port egress rule"),
+        );
+    assert!(
+        validate_endpoint_network_policy_ports(
+            &ingress_policy,
+            &runner_egress_policy,
+            "oya-ci",
+            &role_ports,
+        )
+        .unwrap_err()
+        .contains("no destination peers")
+    );
+    runner_egress_policy["spec"]["egress"]
+        .as_sequence_mut()
+        .expect("runner egress rules")
+        .pop();
+    runner_egress_policy["spec"]["egress"][0]["ports"][0]["protocol"] =
+        serde_yaml::to_value("UDP").expect("serialize stale egress protocol");
+    assert!(
+        validate_endpoint_network_policy_ports(
+            &ingress_policy,
+            &runner_egress_policy,
+            "oya-ci",
+            &role_ports,
+        )
+        .unwrap_err()
+        .contains("is not TCP")
+    );
+    runner_egress_policy["spec"]["egress"][0]["ports"][0]["protocol"] =
+        serde_yaml::to_value("TCP").expect("serialize restored egress protocol");
+    runner_egress_policy["spec"]["egress"][0]["ports"][1]["port"] =
+        serde_yaml::to_value(50054_u64).expect("serialize stale egress port");
+    assert!(
+        validate_endpoint_network_policy_ports(
+            &ingress_policy,
+            &runner_egress_policy,
+            "oya-ci",
             &role_ports,
         )
         .unwrap_err()
         .contains("runner egress ports")
+    );
+}
+
+#[test]
+fn endpoint_conformance_rejects_namespace_selector_config_and_tls_drift() {
+    let mut writer_service: YamlValue = serde_yaml::from_str(
+        r#"
+metadata: { namespace: oya-ci }
+spec:
+  selector: { app: nativelink-cas }
+  ports: [{ port: 50051, targetPort: 50051 }]
+"#,
+    )
+    .expect("parse writer Service fixture");
+    let mut reader_service: YamlValue = serde_yaml::from_str(
+        r#"
+metadata: { namespace: oya-ci }
+spec:
+  selector: { app: nativelink-cas }
+  ports: [{ port: 50052, targetPort: 50052 }]
+"#,
+    )
+    .expect("parse reader Service fixture");
+    let mut deployment: YamlValue = serde_yaml::from_str(
+        r#"
+metadata:
+  name: nativelink-cas
+  namespace: oya-ci
+spec:
+  replicas: 1
+  strategy: { type: Recreate }
+  selector:
+    matchLabels: { app: nativelink-cas }
+  template:
+    metadata:
+      labels: { app: nativelink-cas, additive: allowed }
+      annotations: { oya.io/config-sha256: fixture }
+    spec:
+      containers:
+        - name: nativelink
+          args: [/etc/nativelink/cas.json]
+          ports:
+            - { containerPort: 50051 }
+            - { containerPort: 50052 }
+            - { name: ops, containerPort: 50061 }
+          readinessProbe:
+            httpGet: { path: /status, port: ops }
+          livenessProbe:
+            httpGet: { path: /status, port: ops }
+          volumeMounts:
+            - { name: config, mountPath: /etc/nativelink, readOnly: true }
+            - { name: tls, mountPath: /tls, readOnly: true }
+            - { name: data, mountPath: /data }
+      volumes:
+        - name: config
+          configMap: { name: nativelink-cas-config }
+        - name: tls
+          secret: { secretName: nativelink-cas-tls }
+        - name: data
+          persistentVolumeClaim: { claimName: nativelink-cas-data }
+"#,
+    )
+    .expect("parse Deployment fixture");
+    let config_map: YamlValue = serde_yaml::from_str(
+        r#"
+metadata:
+  name: nativelink-cas-config
+  namespace: oya-ci
+data:
+  cas.json: "{}"
+"#,
+    )
+    .expect("parse ConfigMap fixture");
+    let fixture_config_text = config_map["data"]["cas.json"]
+        .as_str()
+        .expect("fixture cas.json");
+    deployment["spec"]["template"]["metadata"]["annotations"]["oya.io/config-sha256"] =
+        serde_yaml::to_value(format!(
+            "{:x}",
+            Sha256::digest(fixture_config_text.as_bytes())
+        ))
+        .expect("serialize fixture config digest");
+    let mut external_secret: YamlValue = serde_yaml::from_str(
+        r#"
+metadata:
+  namespace: oya-ci
+spec:
+  secretStoreRef: { name: openbao-oya, kind: ClusterSecretStore }
+  target: { name: nativelink-cas-tls, creationPolicy: Owner }
+  data:
+    - secretKey: tls.crt
+      remoteRef: { key: oya/ci/nativelink-cas-tls, property: server-cert }
+    - secretKey: tls.key
+      remoteRef: { key: oya/ci/nativelink-cas-tls, property: server-key }
+    - secretKey: ca-writer.crt
+      remoteRef: { key: oya/ci/nativelink-cas-tls, property: writer-client-ca }
+    - secretKey: ca-reader.crt
+      remoteRef: { key: oya/ci/nativelink-cas-tls, property: reader-client-ca }
+"#,
+    )
+    .expect("parse ExternalSecret fixture");
+    let mut ingress_target: YamlValue = serde_yaml::from_str(
+        r#"
+spec:
+  podSelector:
+    matchLabels: { app: nativelink-cas }
+"#,
+    )
+    .expect("parse ingress target fixture");
+    let mut runner_values: YamlValue = serde_yaml::from_str(
+        r#"
+template:
+  metadata:
+    labels:
+      oya.io/ci-cell: general
+      oya.io/nativelink-cas-writer: "true"
+      oya.io/nativelink-cas-reader: "true"
+"#,
+    )
+    .expect("parse runner values fixture");
+    let cluster_store: YamlValue = serde_yaml::from_str(
+        r#"
+kind: ClusterSecretStore
+metadata: { name: openbao-oya }
+"#,
+    )
+    .expect("parse ClusterSecretStore fixture");
+    let pvc: YamlValue = serde_yaml::from_str(
+        r#"
+metadata:
+  name: nativelink-cas-data
+  namespace: oya-ci
+spec:
+  accessModes: [ReadWriteOnce]
+"#,
+    )
+    .expect("parse PVC fixture");
+    let slow_store_config = json!({
+        "stores": [
+            {
+                "name": "CAS_MAIN_STORE",
+                "verify": {
+                    "backend": {
+                        "fast_slow": {
+                            "slow": {
+                                "filesystem": {
+                                    "content_path": "/data/cas-content",
+                                    "temp_path": "/data/cas-tmp"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "name": "AC_MAIN_STORE",
+                "fast_slow": {
+                    "slow": {
+                        "filesystem": {
+                            "content_path": "/data/ac-content",
+                            "temp_path": "/data/ac-tmp"
+                        }
+                    }
+                }
+            }
+        ]
+    });
+    let mut resource_documents = vec![
+        serde_yaml::from_str(
+            "kind: Service\nmetadata: { name: nativelink-cas-writer, namespace: oya-ci }\n",
+        )
+        .expect("parse unique writer Service identity"),
+        serde_yaml::from_str(
+            "kind: Service\nmetadata: { name: nativelink-cas-reader, namespace: oya-ci }\n",
+        )
+        .expect("parse unique reader Service identity"),
+    ];
+
+    assert_eq!(
+        common_service_namespace(&[("writer", &writer_service), ("reader", &reader_service),])
+            .expect("common Service namespace"),
+        "oya-ci"
+    );
+    validate_service_selector(&writer_service, &deployment, "writer")
+        .expect("writer selector matches pod labels");
+    validate_service_selector(&reader_service, &deployment, "reader")
+        .expect("reader selector matches pod labels");
+    validate_service_exposure(&writer_service, "writer")
+        .expect("writer Service is cluster-internal");
+    validate_service_exposure(&reader_service, "reader")
+        .expect("reader Service is cluster-internal");
+    validate_workload_selectors(&deployment, &ingress_target)
+        .expect("Deployment and ingress target selectors agree");
+    validate_runner_role_labels(&runner_values, &["writer", "reader"])
+        .expect("runner values carry both cache roles");
+    validate_deployment_topology(&deployment).expect("singleton Recreate Deployment fixture");
+    validate_external_secret_store(&external_secret, &cluster_store)
+        .expect("ExternalSecret references fixture store");
+    validate_deployment_config_binding(&config_map, &deployment)
+        .expect("Deployment consumes ConfigMap fixture");
+    validate_deployment_config_digest(fixture_config_text, &deployment)
+        .expect("Deployment carries fixture ConfigMap digest");
+    let role_ports = [("writer", 50051), ("reader", 50052)];
+    validate_deployment_runtime_binding(&external_secret, &deployment, "oya-ci", &role_ports)
+        .expect("Deployment exposes cache ports and mounts TLS fixture");
+    validate_deployment_data_binding(&slow_store_config, &pvc, &deployment)
+        .expect("Deployment mounts the durable data PVC fixture");
+    validate_unique_kubernetes_identities(&resource_documents)
+        .expect("resource identities are unique");
+    resource_documents.push(resource_documents[0].clone());
+    assert!(
+        validate_unique_kubernetes_identities(&resource_documents)
+            .unwrap_err()
+            .contains("duplicate Kubernetes identity")
+    );
+
+    deployment["spec"]["template"]["metadata"]["annotations"]["oya.io/config-sha256"] =
+        serde_yaml::to_value("stale").expect("serialize stale config digest");
+    assert!(
+        validate_deployment_config_digest(fixture_config_text, &deployment)
+            .unwrap_err()
+            .contains("disagrees")
+    );
+    deployment["spec"]["template"]["metadata"]["annotations"]["oya.io/config-sha256"] =
+        serde_yaml::to_value(format!(
+            "{:x}",
+            Sha256::digest(fixture_config_text.as_bytes())
+        ))
+        .expect("serialize restored config digest");
+
+    deployment["spec"]["template"]["spec"]["volumes"][2]["persistentVolumeClaim"]["claimName"] =
+        serde_yaml::to_value("missing-claim").expect("serialize stale PVC claim");
+    assert!(
+        validate_deployment_data_binding(&slow_store_config, &pvc, &deployment)
+            .unwrap_err()
+            .contains("nativelink-cas-data")
+    );
+    deployment["spec"]["template"]["spec"]["volumes"][2]["persistentVolumeClaim"]["claimName"] =
+        serde_yaml::to_value("nativelink-cas-data").expect("serialize restored PVC claim");
+    deployment["spec"]["template"]["spec"]["containers"][0]["volumeMounts"][2]["mountPath"] =
+        serde_yaml::to_value("/stale-data").expect("serialize stale data mount");
+    assert!(
+        validate_deployment_data_binding(&slow_store_config, &pvc, &deployment)
+            .unwrap_err()
+            .contains("mounted writable at `/data`")
+    );
+    deployment["spec"]["template"]["spec"]["containers"][0]["volumeMounts"][2]["mountPath"] =
+        serde_yaml::to_value("/data").expect("serialize restored data mount");
+
+    writer_service["spec"]["type"] =
+        serde_yaml::to_value("LoadBalancer").expect("serialize exposed Service type");
+    assert!(
+        validate_service_exposure(&writer_service, "writer")
+            .unwrap_err()
+            .contains("cluster-internal")
+    );
+    writer_service["spec"]
+        .as_mapping_mut()
+        .expect("writer Service spec")
+        .remove(YamlValue::String("type".to_string()));
+    writer_service["spec"]["externalIPs"] =
+        serde_yaml::from_str("[203.0.113.10]").expect("serialize external Service IP");
+    assert!(
+        validate_service_exposure(&writer_service, "writer")
+            .unwrap_err()
+            .contains("externalIPs")
+    );
+    writer_service["spec"]
+        .as_mapping_mut()
+        .expect("writer Service spec")
+        .remove(YamlValue::String("externalIPs".to_string()));
+
+    deployment["spec"]["replicas"] =
+        serde_yaml::to_value(0_u64).expect("serialize stale replica count");
+    assert!(
+        validate_deployment_topology(&deployment)
+            .unwrap_err()
+            .contains("exactly one replica")
+    );
+    deployment["spec"]["replicas"] =
+        serde_yaml::to_value(1_u64).expect("serialize restored replica count");
+    deployment["spec"]["strategy"]["type"] =
+        serde_yaml::to_value("RollingUpdate").expect("serialize stale Deployment strategy");
+    assert!(
+        validate_deployment_topology(&deployment)
+            .unwrap_err()
+            .contains("Recreate")
+    );
+    deployment["spec"]["strategy"]["type"] =
+        serde_yaml::to_value("Recreate").expect("serialize restored Deployment strategy");
+    external_secret["spec"]["secretStoreRef"]["name"] =
+        serde_yaml::to_value("stale-store").expect("serialize stale SecretStore reference");
+    assert!(
+        validate_external_secret_store(&external_secret, &cluster_store)
+            .unwrap_err()
+            .contains("openbao-oya")
+    );
+    external_secret["spec"]["secretStoreRef"]["name"] =
+        serde_yaml::to_value("openbao-oya").expect("serialize restored SecretStore reference");
+
+    runner_values["template"]["metadata"]["labels"]["oya.io/nativelink-cas-writer"] =
+        serde_yaml::to_value("false").expect("serialize stale runner writer label");
+    assert!(
+        validate_runner_role_labels(&runner_values, &["writer", "reader"])
+            .unwrap_err()
+            .contains("nativelink-cas-writer")
+    );
+
+    reader_service["metadata"]["namespace"] =
+        serde_yaml::to_value("other").expect("serialize stale Service namespace");
+    assert!(
+        common_service_namespace(&[("writer", &writer_service), ("reader", &reader_service),])
+            .unwrap_err()
+            .contains("disagrees")
+    );
+    reader_service["metadata"]["namespace"] =
+        serde_yaml::to_value("oya-ci").expect("serialize restored Service namespace");
+
+    writer_service["spec"]["selector"]["app"] =
+        serde_yaml::to_value("other").expect("serialize stale Service selector");
+    assert!(
+        validate_service_selector(&writer_service, &deployment, "writer")
+            .unwrap_err()
+            .contains("disagrees")
+    );
+    writer_service["spec"]["selector"]["app"] =
+        serde_yaml::to_value("nativelink-cas").expect("serialize restored Service selector");
+
+    deployment["spec"]["selector"]["matchLabels"]["tier"] =
+        serde_yaml::to_value("cas").expect("serialize stale Deployment selector");
+    assert!(
+        validate_workload_selectors(&deployment, &ingress_target)
+            .unwrap_err()
+            .contains("does not match pod labels")
+    );
+    deployment["spec"]["selector"]["matchLabels"]
+        .as_mapping_mut()
+        .expect("Deployment selector mapping")
+        .remove(YamlValue::String("tier".to_string()));
+    deployment["spec"]["selector"]["matchExpressions"] =
+        serde_yaml::from_str("[{ key: app, operator: In, values: [other-workload] }]")
+            .expect("serialize stale Deployment selector expression");
+    assert!(
+        validate_workload_selectors(&deployment, &ingress_target)
+            .unwrap_err()
+            .contains("only exact matchLabels")
+    );
+    deployment["spec"]["selector"]
+        .as_mapping_mut()
+        .expect("Deployment selector mapping")
+        .remove(YamlValue::String("matchExpressions".to_string()));
+    ingress_target["spec"]["podSelector"]["matchLabels"]["app"] =
+        serde_yaml::to_value("stale").expect("serialize stale ingress target");
+    assert!(
+        validate_workload_selectors(&deployment, &ingress_target)
+            .unwrap_err()
+            .contains("ingress target selector")
+    );
+    ingress_target["spec"]["podSelector"]["matchLabels"]["app"] =
+        serde_yaml::to_value("nativelink-cas").expect("serialize restored ingress target");
+
+    deployment["spec"]["template"]["spec"]["volumes"][0]["configMap"]["name"] =
+        serde_yaml::to_value("stale-config").expect("serialize stale ConfigMap reference");
+    assert!(
+        validate_deployment_config_binding(&config_map, &deployment)
+            .unwrap_err()
+            .contains("does not reference")
+    );
+    deployment["spec"]["template"]["spec"]["volumes"][0]["configMap"]["name"] =
+        serde_yaml::to_value("nativelink-cas-config")
+            .expect("serialize restored ConfigMap reference");
+    deployment["spec"]["template"]["spec"]["volumes"][0]["configMap"]["items"] =
+        serde_yaml::from_str("[{ key: cas.json, path: stale.json }]")
+            .expect("serialize stale ConfigMap path mapping");
+    assert!(
+        validate_deployment_config_binding(&config_map, &deployment)
+            .unwrap_err()
+            .contains("must not remap")
+    );
+    deployment["spec"]["template"]["spec"]["volumes"][0]["configMap"]
+        .as_mapping_mut()
+        .expect("ConfigMap volume mapping")
+        .remove(YamlValue::String("items".to_string()));
+    deployment["spec"]["template"]["spec"]["containers"][0]["volumeMounts"][0]["readOnly"] =
+        serde_yaml::to_value(false).expect("serialize writable config mount");
+    assert!(
+        validate_deployment_config_binding(&config_map, &deployment)
+            .unwrap_err()
+            .contains("mounted read-only")
+    );
+    deployment["spec"]["template"]["spec"]["containers"][0]["volumeMounts"][0]["readOnly"] =
+        serde_yaml::to_value(true).expect("serialize restored config mount");
+
+    external_secret["spec"]["data"][3]["secretKey"] =
+        serde_yaml::to_value("stale-reader-ca").expect("serialize stale ExternalSecret key");
+    assert!(
+        validate_deployment_runtime_binding(&external_secret, &deployment, "oya-ci", &role_ports)
+            .unwrap_err()
+            .contains("exactly one mapping")
+    );
+    external_secret["spec"]["data"][3]["secretKey"] =
+        serde_yaml::to_value("ca-reader.crt").expect("serialize restored ExternalSecret key");
+    let duplicate_mapping = external_secret["spec"]["data"][0].clone();
+    external_secret["spec"]["data"]
+        .as_sequence_mut()
+        .expect("ExternalSecret data mappings")
+        .push(duplicate_mapping);
+    assert!(
+        validate_deployment_runtime_binding(&external_secret, &deployment, "oya-ci", &role_ports)
+            .unwrap_err()
+            .contains("exactly one mapping")
+    );
+    external_secret["spec"]["data"]
+        .as_sequence_mut()
+        .expect("ExternalSecret data mappings")
+        .pop();
+    external_secret["spec"]["target"]["creationPolicy"] =
+        serde_yaml::to_value("Merge").expect("serialize stale Secret creation policy");
+    assert!(
+        validate_deployment_runtime_binding(&external_secret, &deployment, "oya-ci", &role_ports)
+            .unwrap_err()
+            .contains("creationPolicy must be `Owner`")
+    );
+    external_secret["spec"]["target"]["creationPolicy"] =
+        serde_yaml::to_value("Owner").expect("serialize restored Secret creation policy");
+    external_secret["spec"]["data"][2]["remoteRef"]["property"] =
+        serde_yaml::to_value("reader-client-ca").expect("serialize swapped writer CA property");
+    assert!(
+        validate_deployment_runtime_binding(&external_secret, &deployment, "oya-ci", &role_ports)
+            .unwrap_err()
+            .contains("writer-client-ca")
+    );
+    external_secret["spec"]["data"][2]["remoteRef"]["property"] =
+        serde_yaml::to_value("writer-client-ca").expect("serialize restored writer CA property");
+    external_secret["metadata"]["namespace"] =
+        serde_yaml::to_value("other").expect("serialize stale ExternalSecret namespace");
+    assert!(
+        validate_deployment_runtime_binding(&external_secret, &deployment, "oya-ci", &role_ports)
+            .unwrap_err()
+            .contains("disagrees with Deployment namespace")
+    );
+    external_secret["metadata"]["namespace"] =
+        serde_yaml::to_value("oya-ci").expect("serialize restored ExternalSecret namespace");
+    deployment["metadata"]["namespace"] =
+        serde_yaml::to_value("other").expect("serialize stale Deployment namespace");
+    external_secret["metadata"]["namespace"] =
+        serde_yaml::to_value("other").expect("serialize matching stale ExternalSecret namespace");
+    assert!(
+        validate_deployment_runtime_binding(&external_secret, &deployment, "oya-ci", &role_ports)
+            .unwrap_err()
+            .contains("disagrees with Service namespace")
+    );
+    deployment["metadata"]["namespace"] =
+        serde_yaml::to_value("oya-ci").expect("serialize restored Deployment namespace");
+    external_secret["metadata"]["namespace"] =
+        serde_yaml::to_value("oya-ci").expect("serialize restored ExternalSecret namespace");
+
+    deployment["spec"]["template"]["spec"]["volumes"][1]["secret"]["secretName"] =
+        serde_yaml::to_value("stale-tls").expect("serialize stale TLS Secret");
+    assert!(
+        validate_deployment_runtime_binding(&external_secret, &deployment, "oya-ci", &role_ports)
+            .unwrap_err()
+            .contains("does not reference")
+    );
+    deployment["spec"]["template"]["spec"]["volumes"][1]["secret"]["secretName"] =
+        serde_yaml::to_value("nativelink-cas-tls").expect("serialize restored TLS Secret");
+    deployment["spec"]["template"]["spec"]["containers"][0]["volumeMounts"][1]["mountPath"] =
+        serde_yaml::to_value("/tls-v2").expect("serialize stale TLS mount");
+    assert!(
+        validate_deployment_runtime_binding(&external_secret, &deployment, "oya-ci", &role_ports)
+            .unwrap_err()
+            .contains("mounted read-only at `/tls`")
+    );
+    deployment["spec"]["template"]["spec"]["containers"][0]["volumeMounts"][1]["mountPath"] =
+        serde_yaml::to_value("/tls").expect("serialize restored TLS mount");
+    deployment["spec"]["template"]["spec"]["containers"][0]["ports"][1]["containerPort"] =
+        serde_yaml::to_value(50054_u64).expect("serialize stale container port");
+    assert!(
+        validate_deployment_runtime_binding(&external_secret, &deployment, "oya-ci", &role_ports)
+            .unwrap_err()
+            .contains("is not declared")
+    );
+
+    let valid_writer = json!({
+        "listener": {
+            "http": {
+                "tls": {
+                    "cert_file": "/tls/tls.crt",
+                    "key_file": "/tls/tls.key",
+                    "client_ca_file": "/tls/ca-writer.crt"
+                }
+            }
+        },
+        "services": {
+            "cas": [{ "cas_store": "CAS_MAIN_STORE" }],
+            "bytestream": [{ "cas_store": "CAS_MAIN_STORE" }],
+            "ac": [{ "ac_store": "AC_MAIN_STORE" }]
+        }
+    });
+    let mut valid_ops = json!({
+        "listener": {
+            "http": { "socket_address": "0.0.0.0:50061" }
+        }
+    });
+    validate_ops_health_binding(&valid_ops, &deployment)
+        .expect("ops listener matches fixture probes");
+    valid_ops["listener"]["http"]["socket_address"] = Value::String("0.0.0.0:50062".to_string());
+    assert!(
+        validate_ops_health_binding(&valid_ops, &deployment)
+            .unwrap_err()
+            .contains("50061")
+    );
+    let mut server_names = vec![
+        json!({ "name": "writer" }),
+        json!({ "name": "reader" }),
+        json!({ "name": "ops" }),
+    ];
+    validate_server_names(&server_names).expect("unique server names");
+    server_names.push(json!({ "name": "writer" }));
+    assert!(
+        validate_server_names(&server_names)
+            .unwrap_err()
+            .contains("exactly one each")
+    );
+    validate_listener_tls(&valid_writer, "writer").expect("writer listener TLS");
+    validate_cache_store_bindings(&valid_writer, "writer")
+        .expect("writer service stores are bound");
+    let mut swapped_store = valid_writer.clone();
+    swapped_store["services"]["cas"][0]["cas_store"] = Value::String("AC_MAIN_STORE".to_string());
+    assert!(
+        validate_cache_store_bindings(&swapped_store, "writer")
+            .unwrap_err()
+            .contains("CAS_MAIN_STORE")
+    );
+    swapped_store = valid_writer.clone();
+    swapped_store["services"]["ac"][0]["ac_store"] = Value::String("CAS_MAIN_STORE".to_string());
+    assert!(
+        validate_cache_store_bindings(&swapped_store, "writer")
+            .unwrap_err()
+            .contains("AC_MAIN_STORE")
+    );
+    let mut swapped_ca = valid_writer.clone();
+    swapped_ca["listener"]["http"]["tls"]["client_ca_file"] =
+        Value::String("/tls/ca-reader.crt".to_string());
+    assert!(
+        validate_listener_tls(&swapped_ca, "writer")
+            .unwrap_err()
+            .contains("client_ca_file")
+    );
+    let mut missing_tls = valid_writer;
+    missing_tls["listener"]["http"]["tls"] = Value::Null;
+    assert!(
+        validate_listener_tls(&missing_tls, "writer")
+            .unwrap_err()
+            .contains("listener TLS")
     );
 }
 
