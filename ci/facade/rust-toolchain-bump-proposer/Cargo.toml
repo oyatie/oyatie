@@ -25,5 +25,12 @@ path = "src/main.rs"
 ci-dependency-automation = { path = "../dependency-automation" }
 ci-generated-artifact-freshness = { path = "../generated-artifact-freshness" }
 
+[dev-dependencies]
+proptest = "1.5"
+
+[[test]]
+name = "properties"
+path = "tests/properties/version_parser.rs"
+
 [lints]
 workspace = true

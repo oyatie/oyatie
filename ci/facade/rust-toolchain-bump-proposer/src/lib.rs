@@ -71,31 +71,86 @@ const ACTIVE_TEXT_PATHS: [&str; 8] = [
 /// row is rewritten on a bump; every other doc is rewritten only for `rust:` image refs.
 const DEPENDENCY_POLICY_DOC: &str = "docs/standards/dependency-policy.md";
 
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct ProposerError(pub String);
+/// Typed, matchable error surface for the reconciler API — a typed runner can branch on
+/// recoverable vs terminal outcomes without parsing display text. Wrapped causes are preserved
+/// (`source()` returns them for `Io`, `Freshness`, and `DependencyAutomation`).
+#[derive(Debug)]
+pub enum ProposerError {
+    /// The supplied latest-stable text is empty, non-numeric, or malformed.
+    VersionInvalid(String),
+    /// The supplied latest stable is OLDER than the pinned channel; the tree is never rewritten
+    /// backward.
+    VersionOlder { current: String, supplied: String },
+    /// No latest-stable value was supplied (no flag and no environment variable).
+    VersionUnavailable(String),
+    /// Filesystem read/write/metadata failure.
+    Io {
+        context: String,
+        source: std::io::Error,
+    },
+    /// The freshness drift evaluator failed to run.
+    Freshness(ci_generated_artifact_freshness::FreshnessError),
+    /// The ADR-0535 dependency-automation gate failed to run.
+    DependencyAutomation(ci_dependency_automation::GateError),
+    /// The tree is not drift-aligned after reconciliation (equal pin with stale surfaces, or
+    /// residual findings after an applied bump).
+    ResidualDrift(ResidualDrift),
+}
 
 impl std::fmt::Display for ProposerError {
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        formatter.write_str(&self.0)
+        match self {
+            ProposerError::VersionInvalid(message) | ProposerError::VersionUnavailable(message) => {
+                formatter.write_str(message)
+            }
+            ProposerError::VersionOlder { current, supplied } => write!(
+                formatter,
+                "supplied latest stable {supplied} is not newer than the pinned {current}; \
+                 refusing to rewrite the tree backward"
+            ),
+            ProposerError::Io { context, source } => {
+                write!(formatter, "{context}: {source}")
+            }
+            ProposerError::Freshness(error) => write!(formatter, "freshness: {error}"),
+            ProposerError::DependencyAutomation(error) => {
+                write!(formatter, "dependency-automation gate: {error}")
+            }
+            ProposerError::ResidualDrift(residual) => {
+                formatter.write_str("tree has residual drift after reconciliation:")?;
+                formatter.write_str(&render_residual(residual))
+            }
+        }
     }
 }
 
-impl std::error::Error for ProposerError {}
+impl std::error::Error for ProposerError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        match self {
+            ProposerError::Io { source, .. } => Some(source),
+            ProposerError::Freshness(error) => Some(error),
+            ProposerError::DependencyAutomation(error) => Some(error),
+            _ => None,
+        }
+    }
+}
 
 impl From<ci_generated_artifact_freshness::FreshnessError> for ProposerError {
     fn from(error: ci_generated_artifact_freshness::FreshnessError) -> Self {
-        Self(format!("freshness: {error}"))
+        ProposerError::Freshness(error)
     }
 }
 
 impl From<ci_dependency_automation::GateError> for ProposerError {
     fn from(error: ci_dependency_automation::GateError) -> Self {
-        Self(format!("dependency-automation gate: {error}"))
+        ProposerError::DependencyAutomation(error)
     }
 }
 
 fn io_error(context: &str, error: std::io::Error) -> ProposerError {
-    ProposerError(format!("{context}: {error}"))
+    ProposerError::Io {
+        context: context.to_owned(),
+        source: error,
+    }
 }
 
 /// Read the pinned toolchain channel via the freshness crate's canonical reader.
@@ -117,25 +172,25 @@ pub fn parse_stable_version(text: &str) -> Result<String, ProposerError> {
         .trim_start_matches('v')
         .trim();
     if trimmed.is_empty() {
-        return Err(ProposerError(
+        return Err(ProposerError::VersionInvalid(
             "latest stable version is empty; pass --latest-stable <v> or OYA_LATEST_STABLE_RUST"
                 .to_owned(),
         ));
     }
     if !trimmed.chars().all(|ch| ch.is_ascii_digit() || ch == '.') {
-        return Err(ProposerError(format!(
+        return Err(ProposerError::VersionInvalid(format!(
             "latest stable version {trimmed:?} must contain only digits and dots"
         )));
     }
     let parts: Vec<&str> = trimmed.split('.').collect();
     if !(2..=3).contains(&parts.len()) {
-        return Err(ProposerError(format!(
+        return Err(ProposerError::VersionInvalid(format!(
             "latest stable version {trimmed:?} must be a two- or three-part semver"
         )));
     }
     for part in &parts {
         if part.is_empty() || !part.chars().all(|ch| ch.is_ascii_digit()) {
-            return Err(ProposerError(format!(
+            return Err(ProposerError::VersionInvalid(format!(
                 "latest stable version {trimmed:?} has a non-numeric component"
             )));
         }
@@ -155,7 +210,7 @@ fn version_parts(version: &str) -> Result<Vec<u64>, ProposerError> {
         .split('.')
         .map(|part| {
             part.parse::<u64>().map_err(|_| {
-                ProposerError(format!(
+                ProposerError::VersionInvalid(format!(
                     "version component {part:?} in {version:?} is not numeric"
                 ))
             })
@@ -217,23 +272,87 @@ fn rewrite_toml_key(text: &str, key: &str, old: &str, new: &str) -> String {
     out
 }
 
-/// Rewrite the toolchain-pin keys the freshness evaluator checks in `manifest.json` /
-/// `supported-oses.json`: `"rust": "old"` (under `toolchain` / `lts_pins`) and
-/// `"rust_toolchain": "old-stable"`.
-fn rewrite_json_rust_pins(text: &str, old: &str, new: &str) -> String {
-    let mut out = text.replace(
-        &format!("\"rust_toolchain\": \"{old}-stable\""),
-        &format!("\"rust_toolchain\": \"{new}-stable\""),
-    );
-    out = out.replace(
-        &format!("\"rust_toolchain\": \"{old}\""),
-        &format!("\"rust_toolchain\": \"{new}\""),
-    );
-    out = out.replace(
-        &format!("\"rust\": \"{old}\""),
-        &format!("\"rust\": \"{new}\""),
-    );
+/// Rewrite one JSON object key's string value wherever the key appears, independent of the file's
+/// whitespace style: `"rust": "1.97.1"`, `"rust":"1.97.1"`, `"rust" :\t"1.97.1"`, and
+/// multi-line `"rust"\n  :\n  "1.97.1"` all rewrite. The value string literal is parsed like JSON
+/// (escapes respected) and only replaced when it equals `old`; the surrounding formatting and the
+/// rest of the file are preserved byte-for-byte, so a formatting round-trip never occurs.
+fn rewrite_json_pin_value(text: &str, key: &str, old: &str, new: &str) -> String {
+    if old.is_empty() || old == new {
+        return text.to_owned();
+    }
+    let key_needle = format!("\"{key}\"");
+    let mut out = String::with_capacity(text.len());
+    let mut rest = text;
+    while let Some(index) = rest.find(&key_needle) {
+        let bytes = rest.as_bytes();
+        let after_key = index + key_needle.len();
+        let mut pos = after_key;
+        while pos < bytes.len() && bytes[pos].is_ascii_whitespace() {
+            pos += 1;
+        }
+        let expect_colon = pos < bytes.len() && bytes[pos] == b':';
+        if expect_colon {
+            pos += 1;
+            while pos < bytes.len() && bytes[pos].is_ascii_whitespace() {
+                pos += 1;
+            }
+        }
+        if !expect_colon || pos >= bytes.len() || bytes[pos] != b'"' {
+            // Not a `"key": "..."` member — keep the key and keep scanning after it.
+            out.push_str(&rest[..after_key]);
+            rest = &rest[after_key..];
+            continue;
+        }
+        pos += 1;
+        let value_start = pos;
+        let mut value_end = pos;
+        let mut escaped = false;
+        while value_end < bytes.len() {
+            let byte = bytes[value_end];
+            if escaped {
+                escaped = false;
+            } else if byte == b'\\' {
+                escaped = true;
+            } else if byte == b'"' {
+                break;
+            }
+            value_end += 1;
+        }
+        if value_end >= bytes.len() {
+            // Unterminated string literal — keep the key and keep scanning.
+            out.push_str(&rest[..after_key]);
+            rest = &rest[after_key..];
+            continue;
+        }
+        if &rest[value_start..value_end] == old {
+            // Keep the key, colon, whitespace, and opening quote; swap only the value content.
+            out.push_str(&rest[..value_start]);
+            out.push_str(new);
+            rest = &rest[value_end..];
+        } else {
+            // Different value under the same key: keep the whole member and keep scanning.
+            out.push_str(&rest[..value_end + 1]);
+            rest = &rest[value_end + 1..];
+        }
+    }
+    out.push_str(rest);
     out
+}
+
+/// Rewrite the toolchain-pin keys the freshness evaluator checks in `manifest.json` /
+/// `supported-oses.json`: `toolchain.rust`, `lts_pins.rust` (key `"rust"`) and the root
+/// `rust_toolchain` key (value `old-stable`). Formatting-agnostic: any JSON whitespace around the
+/// colon is handled, so compact and pretty-printed manifests both update.
+fn rewrite_json_rust_pins(text: &str, old: &str, new: &str) -> String {
+    let mut out = rewrite_json_pin_value(
+        text,
+        "rust_toolchain",
+        &format!("{old}-stable"),
+        &format!("{new}-stable"),
+    );
+    out = rewrite_json_pin_value(&out, "rust_toolchain", old, new);
+    rewrite_json_pin_value(&out, "rust", old, new)
 }
 
 /// Rewrite `prefix+old` image refs to `prefix+new` where the character after `old` is not a digit
@@ -278,7 +397,9 @@ fn rewrite_docker_pins(text: &str, old: &str, new: &str) -> String {
 /// Rewrite workflow toolchain-pin lines only: `toolchain: old` (quoted or bare), `--toolchain old`,
 /// `rustup toolchain install old`, and `.rustup/toolchains/old-*` cache paths. Lines without a
 /// toolchain-pin marker are left byte-identical, so unrelated version tokens in workflow YAML
-/// (e.g. action version strings) are never touched.
+/// (e.g. action version strings) are never touched. Line endings are preserved exactly — `\r\n`
+/// (CRLF), `\n`, and a final unterminated line all survive a rewrite, so a workflow with no
+/// matching pin is byte-identical after planning/apply.
 fn rewrite_workflow_pins(text: &str, old: &str, new: &str) -> String {
     const PIN_MARKERS: [&str; 4] = [
         "toolchain:",
@@ -287,18 +408,27 @@ fn rewrite_workflow_pins(text: &str, old: &str, new: &str) -> String {
         ".rustup/toolchains/",
     ];
     let mut out = String::with_capacity(text.len());
-    for (index, line) in text.lines().enumerate() {
-        if index > 0 {
-            out.push('\n');
-        }
-        if PIN_MARKERS.iter().any(|marker| line.contains(marker)) {
-            out.push_str(&rewrite_version_boundary(line, old, new));
+    let mut rest = text;
+    while let Some(newline) = rest.find('\n') {
+        let line = &rest[..newline];
+        let (content, terminator) = if let Some(stripped) = line.strip_suffix('\r') {
+            (stripped, "\r\n")
         } else {
-            out.push_str(line);
+            (line, "\n")
+        };
+        if PIN_MARKERS.iter().any(|marker| content.contains(marker)) {
+            out.push_str(&rewrite_version_boundary(content, old, new));
+        } else {
+            out.push_str(content);
         }
+        out.push_str(terminator);
+        rest = &rest[newline + 1..];
     }
-    if text.ends_with('\n') {
-        out.push('\n');
+    // Final line without a trailing newline (or empty tail).
+    if PIN_MARKERS.iter().any(|marker| rest.contains(marker)) {
+        out.push_str(&rewrite_version_boundary(rest, old, new));
+    } else {
+        out.push_str(rest);
     }
     out
 }
@@ -417,8 +547,9 @@ fn candidate_paths(repo_root: &Path) -> Result<Vec<String>, ProposerError> {
         for path in entries {
             let rel = path
                 .strip_prefix(repo_root)
-                .map_err(|error| {
-                    ProposerError(format!("strip repo root from {}: {error}", path.display()))
+                .map_err(|error| ProposerError::Io {
+                    context: format!("strip repo root from {}", path.display()),
+                    source: std::io::Error::other(error),
                 })?
                 .to_string_lossy()
                 .replace('\\', "/");
@@ -570,11 +701,7 @@ pub fn reconcile(repo_root: &Path, latest: &str) -> Result<ReconcileReport, Prop
         if current == latest {
             let residual = verify_clean(repo_root)?;
             if !residual.is_clean() {
-                return Err(ProposerError(format!(
-                    "pinned {current} already equals latest stable {latest}, but the tree has \
-                     residual drift; refusing to report aligned:{}",
-                    render_residual(&residual)
-                )));
+                return Err(ProposerError::ResidualDrift(residual));
             }
             return Ok(ReconcileReport {
                 current,
@@ -583,20 +710,17 @@ pub fn reconcile(repo_root: &Path, latest: &str) -> Result<ReconcileReport, Prop
                 changed_files: Vec::new(),
             });
         }
-        return Err(ProposerError(format!(
-            "supplied latest stable {latest} is not newer than the pinned {current}; refusing to \
-             rewrite the tree backward"
-        )));
+        return Err(ProposerError::VersionOlder {
+            current,
+            supplied: latest,
+        });
     }
 
     let plan = plan_bump(repo_root, &current, &latest)?;
     apply_plan(repo_root, &plan)?;
     let residual = verify_clean(repo_root)?;
     if !residual.is_clean() {
-        return Err(ProposerError(format!(
-            "bump {current} -> {latest} applied but residual drift remains; failing closed:{}",
-            render_residual(&residual)
-        )));
+        return Err(ProposerError::ResidualDrift(residual));
     }
 
     Ok(ReconcileReport {
@@ -703,6 +827,56 @@ uses: some/action@v1.97.1
             rewritten.contains("uses: some/action@v1.97.1"),
             "action version strings are not toolchain pins and must not be rewritten"
         );
+    }
+
+    #[test]
+    fn workflow_rewrite_preserves_crlf_and_unterminated_lines() {
+        // CRLF checkout: a workflow with no matching pin must come back byte-identical.
+        let crlf = "name: x\r\non: push\r\njobs: {}\r\n";
+        assert_eq!(
+            rewrite_workflow_pins(crlf, "1.97.1", "1.98.0"),
+            crlf,
+            "a CRLF workflow without a matching pin must be byte-identical"
+        );
+        // A pin rewrite keeps CRLF terminators on every line.
+        let crlf_pin = "steps:\r\n  - run: echo\r\n    toolchain: \"1.97.1\"\r\n";
+        let rewritten = rewrite_workflow_pins(crlf_pin, "1.97.1", "1.98.0");
+        assert_eq!(
+            rewritten,
+            "steps:\r\n  - run: echo\r\n    toolchain: \"1.98.0\"\r\n"
+        );
+        // A final line without a terminator survives.
+        let no_trailing = "toolchain: \"1.97.1\"";
+        assert_eq!(
+            rewrite_workflow_pins(no_trailing, "1.97.1", "1.98.0"),
+            "toolchain: \"1.98.0\""
+        );
+        assert_eq!(
+            rewrite_workflow_pins("plain text", "1.97.1", "1.98.0"),
+            "plain text"
+        );
+    }
+
+    #[test]
+    fn json_manifest_rewrite_is_formatting_agnostic() {
+        // Compact formatting without spaces around the colon.
+        let compact = "{\"toolchain\":{\"rust\":\"1.97.1\"},\"rust_toolchain\":\"1.97.1-stable\",\"sdk_version\":\"1.97.1\"}";
+        let rewritten = rewrite_json_rust_pins(compact, "1.97.1", "1.98.0");
+        assert!(
+            rewritten.contains("\"rust\":\"1.98.0\""),
+            "compact member must rewrite: {rewritten}"
+        );
+        assert!(rewritten.contains("\"rust_toolchain\":\"1.98.0-stable\""));
+        assert!(
+            rewritten.contains("\"sdk_version\":\"1.97.1\""),
+            "unrelated fields stay"
+        );
+
+        // Whitespace variants around the colon.
+        let spaced = "{\n  \"toolchain\" :\n    { \"rust\"\t: \"1.97.1\" },\n  \"rust_toolchain\": \"1.97.1-stable\"\n}\n";
+        let rewritten2 = rewrite_json_rust_pins(spaced, "1.97.1", "1.98.0");
+        assert!(rewritten2.contains("\"rust\"\t: \"1.98.0\""));
+        assert!(rewritten2.contains("\"rust_toolchain\": \"1.98.0-stable\""));
     }
 
     #[test]
@@ -924,10 +1098,13 @@ uses: some/action@v1.97.1
         write(&root, "specs/oss-stewardship-registry.json", "{}\n");
 
         let error = reconcile(&root, "1.96.0").expect_err("older latest must fail closed");
-        assert!(
-            error.0.contains("not newer than the pinned"),
-            "unexpected error: {error}"
-        );
+        match error {
+            ProposerError::VersionOlder { current, supplied } => {
+                assert_eq!(current, "1.97.1");
+                assert_eq!(supplied, "1.96.0");
+            }
+            other => panic!("expected VersionOlder, got {other}"),
+        }
         // The tree must be untouched.
         assert!(read(&root, "rust-toolchain.toml").contains("1.97.1"));
 
@@ -961,10 +1138,15 @@ uses: some/action@v1.97.1
         write(&root, "specs/oss-stewardship-registry.json", "{}\n");
 
         let error = reconcile(&root, "1.98.0").expect_err("equal pin with drift must fail closed");
-        assert!(
-            error.0.contains("residual drift"),
-            "unexpected error: {error}"
-        );
+        match error {
+            ProposerError::ResidualDrift(residual) => {
+                assert!(
+                    !residual.is_clean(),
+                    "residual must carry the drift findings"
+                );
+            }
+            other => panic!("expected ResidualDrift, got {other}"),
+        }
 
         let _ = fs::remove_dir_all(&root);
     }

@@ -96,6 +96,13 @@ fn run(args: &Args) -> Result<u8, String> {
                 println!("bump available: {current} -> {latest}");
                 return Ok(1);
             }
+            if current != latest {
+                // A stale/cached value OLDER than the pin must fail closed, not read as "current".
+                return Err(format!(
+                    "supplied latest stable {latest} is older than the pinned {current}; refusing \
+                     to treat a stale release as current"
+                ));
+            }
             println!("up to date: pinned {current} is the latest stable {latest}");
             Ok(0)
         }
@@ -137,27 +144,29 @@ fn run(args: &Args) -> Result<u8, String> {
         Mode::Apply => {
             let report = reconcile(repo_root, &latest)
                 .map_err(|error| format!("reconcile {current} -> {latest}: {error}"))?;
-            match report.outcome {
-                ReconcileOutcome::Bumped => {
-                    println!(
-                        "reconciled {} -> {} across {} file(s)",
-                        report.current,
-                        report.latest,
-                        report.changed_files.len()
-                    );
-                    println!(
-                        "verified: freshness rust-toolchain drift evaluator GREEN; ADR-0535 dependency-automation gate GREEN"
-                    );
-                }
-                ReconcileOutcome::UpToDate => {
-                    println!(
-                        "up to date: pinned {} already equals latest stable {} and the tree is drift-clean",
-                        report.current, report.latest
-                    );
-                }
-            }
+            // In JSON mode the report is the ONLY stdout so the stream is a parseable document.
             if args.json {
                 println!("{}", render_report_json(&report));
+            } else {
+                match report.outcome {
+                    ReconcileOutcome::Bumped => {
+                        println!(
+                            "reconciled {} -> {} across {} file(s)",
+                            report.current,
+                            report.latest,
+                            report.changed_files.len()
+                        );
+                        println!(
+                            "verified: freshness rust-toolchain drift evaluator GREEN; ADR-0535 dependency-automation gate GREEN"
+                        );
+                    }
+                    ReconcileOutcome::UpToDate => {
+                        println!(
+                            "up to date: pinned {} already equals latest stable {} and the tree is drift-clean",
+                            report.current, report.latest
+                        );
+                    }
+                }
             }
             Ok(0)
         }

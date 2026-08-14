@@ -31,3 +31,15 @@ rust_test(
         "//ci/facade/generated-artifact-freshness:ci-generated-artifact-freshness",
     ],
 )
+
+rust_test(
+    name = "ci-rust-toolchain-bump-proposer-properties",
+    srcs = glob(["tests/properties/**/*.rs"]),
+    crate = "ci_rust_toolchain_bump_proposer_properties",
+    crate_root = "tests/properties/version_parser.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-rust-toolchain-bump-proposer",
+        "third-party//:proptest",
+    ],
+)
