@@ -7,9 +7,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::time::Instant;
 
-use check_openapi_rest_route_parity::{
-    RouteParityInputs, ValidationReport, Violation, validate,
-};
+use check_openapi_rest_route_parity::{RouteParityInputs, ValidationReport, Violation, validate};
 
 use crate::usage;
 
