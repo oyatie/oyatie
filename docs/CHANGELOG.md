@@ -102,6 +102,10 @@ doc_status: published
 - The hook is documented as an ADVISORY local layer: `git push --no-verify` bypasses it, and the
   cloud-ci freshness gate behind `oya-ci-required` is the enforcement backstop that cannot be
   bypassed locally (previous "no bypass by design" wording corrected).
+- The shared-hooks dispatcher runs BEFORE HEAD certification, each generation manifest records the
+  owning repository identity (canonical git common dir), and an unreconciled sibling WORKTREE of
+  the same clone still fails closed (only genuinely foreign repositories skip); reconcile refuses
+  a symlinked `pre-push` destination before copying.
 - Refs #1957.
 
 ## 2026-08-12 — Masterplan stale inline sequencing digest removed
