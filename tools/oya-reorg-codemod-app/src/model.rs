@@ -147,8 +147,20 @@ impl MovePlan {
             // the product brand and stays subject to both refusals, so moving a legacy
             // oya/<product> tree into app/<product> skips them ONLY when the new name keeps
             // the oya- product brand.
+            //
+            // The INVERSE of such a move (the `apply --revert` direction: the tuple is swapped
+            // so old_path is the app/<product>/ side and new_path is the legacy oya/<product>/
+            // home) must ALSO be accepted — rollback re-creates a deprecated-brand target by
+            // design. Recognize the inverse of a sanctioned app-product transition for crates
+            // here and for artifact co-moves below, so `apply --revert` keeps working.
             let product_brand_destination =
-                is_product_brand_destination(&m.new_path, &m.new_cargo_name);
+                is_product_brand_destination(&m.new_path, &m.new_cargo_name)
+                    || is_inverse_product_brand_destination(
+                        &m.old_path,
+                        &m.old_cargo_name,
+                        &m.new_path,
+                        &m.new_cargo_name,
+                    );
             if !product_brand_destination
                 && is_deprecated_brand_path_source(&m.old_path)
                 && is_deprecated_brand_path_target(&m.new_path)
@@ -227,8 +239,11 @@ impl MovePlan {
             // too — but only for the PRODUCT brand: an artifact whose file stem keeps
             // oya-<product>-* is exempt (mirrors the crate rule), while a cloud-* stem (or an
             // oya-* stem of another product) under app/ stays subject to this refusal. There is
-            // no blanket app/ artifact bypass.
+            // no blanket app/ artifact bypass. The INVERSE of a sanctioned app-product artifact
+            // transition (the `apply --revert` direction: app/<product>/ -> oya/<product>/) is
+            // equally accepted, mirroring the crate rule above.
             if !is_product_brand_artifact_destination(&a.new_path)
+                && !is_inverse_product_brand_artifact_destination(&a.old_path, &a.new_path)
                 && is_deprecated_brand_artifact_source(&a.old_path)
                 && is_deprecated_brand_artifact_target(&a.new_path)
             {
@@ -739,6 +754,34 @@ fn is_product_brand_destination(new_path: &str, new_cargo_name: &str) -> bool {
     new_cargo_name == prefix || new_cargo_name.starts_with(&format!("{prefix}-"))
 }
 
+/// True when a move is the INVERSE of a sanctioned app-product transition — the `apply
+/// --revert` direction. `MovePlan::inverse` swaps the tuple, so a sanctioned forward move
+/// (`oya/<product>/... -> app/<product>/...` keeping an `oya-<product>-*` name) becomes
+/// `app/<product>/... -> oya/<product>/...` with the SAME branded cargo names on both sides.
+/// The structural validator must accept that inverse so rollback re-creates the legacy
+/// deprecated-brand target by design. Anything else under a branded destination stays subject
+/// to the de-brand refusals.
+fn is_inverse_product_brand_destination(
+    old_path: &str,
+    old_cargo_name: &str,
+    new_path: &str,
+    new_cargo_name: &str,
+) -> bool {
+    let Some(product) = product_segment(old_path) else {
+        return false;
+    };
+    let prefix = format!("oya-{product}");
+    let old_keeps_brand = old_cargo_name == prefix || old_cargo_name.starts_with(&format!("{prefix}-"));
+    let new_keeps_brand = new_cargo_name == prefix || new_cargo_name.starts_with(&format!("{prefix}-"));
+    // The forward direction reads the product from the DESTINATION path; the inverse reads it
+    // from the SOURCE path (the app/<product>/ side) and requires the destination to be the
+    // same product's legacy branded home.
+    let legacy_home = format!("oya/{product}");
+    old_keeps_brand
+        && new_keeps_brand
+        && (new_path == legacy_home || new_path.starts_with(&format!("{legacy_home}/")))
+}
+
 /// True when an artifact targets the sanctioned brand-preserving composition ring: an
 /// `app/<product>/` destination whose FILE STEM keeps the PRODUCT brand (`oya-<product>-*`).
 /// Mirrors [`is_product_brand_destination`] for crates; a `cloud-*` stem (or an `oya-*` stem
@@ -752,6 +795,28 @@ fn is_product_brand_artifact_destination(new_path: &str) -> bool {
     };
     let prefix = format!("oya-{product}");
     stem == prefix || stem.starts_with(&format!("{prefix}-"))
+}
+
+/// True when an artifact move is the INVERSE of a sanctioned app-product artifact transition —
+/// the `apply --revert` direction. Mirrors [`is_inverse_product_brand_destination`] for crates:
+/// the source is the `app/<product>/` side and the destination is the same product's legacy
+/// branded home (`oya/<product>/`), with the `oya-<product>` stem kept on both sides.
+fn is_inverse_product_brand_artifact_destination(old_path: &str, new_path: &str) -> bool {
+    let Some(product) = product_segment(old_path) else {
+        return false;
+    };
+    let Some(stem) = artifact_file_stem(old_path) else {
+        return false;
+    };
+    let prefix = format!("oya-{product}");
+    let old_keeps_brand = stem == prefix || stem.starts_with(&format!("{prefix}-"));
+    let new_keeps_brand = artifact_file_stem(new_path).is_some_and(|stem| {
+        stem == prefix || stem.starts_with(&format!("{prefix}-"))
+    });
+    let legacy_home = format!("oya/{product}");
+    old_keeps_brand
+        && new_keeps_brand
+        && (new_path == legacy_home || new_path.starts_with(&format!("{legacy_home}/")))
 }
 
 /// The `<product>` segment of an `app/<product>/...` destination path, or `None` when the path
@@ -1372,6 +1437,92 @@ mod tests {
         };
         assert!(matching_product_artifact.validate().is_ok());
         assert!(matching_product_artifact.validate_debrand_targets().is_ok());
+    }
+
+    #[test]
+    fn validate_accepts_the_inverse_of_a_sanctioned_app_product_move() {
+        // REGRESSION (PR #1965 wave-2, comment 3783872051): `apply --revert` swaps the tuple
+        // (`MovePlan::inverse`) BEFORE validate() runs, so the inverse of a sanctioned
+        // app-product transition — app/<product>/ -> oya/<product>/ keeping the oya-<product>-*
+        // name — must validate even though its new_path is a deprecated-brand target. Rollback
+        // deliberately re-creates that legacy home; refusing it would break reversibility.
+        let forward = MovePlan {
+            capability: "hr".to_string(),
+            moves: vec![CrateMove {
+                old_path: "oya/hr/crates/oya-hr-employment-api".to_string(),
+                new_path: "app/hr/crates/oya-hr-employment-api".to_string(),
+                old_cargo_name: "oya-hr-employment-api".to_string(),
+                new_cargo_name: "oya-hr-employment-api".to_string(),
+            }],
+            artifacts: vec![],
+        };
+        assert!(forward.validate().is_ok(), "sanctioned forward validates");
+        let inverse = forward.inverse();
+        assert_eq!(inverse.moves[0].old_path, "app/hr/crates/oya-hr-employment-api");
+        assert_eq!(inverse.moves[0].new_path, "oya/hr/crates/oya-hr-employment-api");
+        assert!(
+            inverse.validate().is_ok(),
+            "the inverse of a sanctioned app-product move must validate (revertability)"
+        );
+
+        // A NON-sanctioned reverse — app/hr -> oya/payroll (a DIFFERENT product's home) — stays
+        // refused: the inverse exemption is product-scoped, not a blanket branded-home bypass.
+        let cross_product_inverse = MovePlan {
+            capability: "hr".to_string(),
+            moves: vec![CrateMove {
+                old_path: "app/hr/crates/oya-hr-employment-api".to_string(),
+                new_path: "oya/payroll/crates/oya-hr-employment-api".to_string(),
+                old_cargo_name: "oya-hr-employment-api".to_string(),
+                new_cargo_name: "oya-hr-employment-api".to_string(),
+            }],
+            artifacts: vec![],
+        };
+        assert!(matches!(
+            cross_product_inverse.validate(),
+            Err(CodemodError::DeprecatedBrandTarget { which, value })
+                if which == "new_path" && value == "oya/payroll/crates/oya-hr-employment-api"
+        ));
+    }
+
+    #[test]
+    fn validate_accepts_the_inverse_of_a_sanctioned_app_product_artifact_move() {
+        // REGRESSION (PR #1965 wave-2, comment 3783872051): the artifact loop had the same
+        // revert blocker — the inverse artifact (app/<product>/ -> oya/<product>/ keeping the
+        // oya-<product> stem) is a deliberate rollback and must validate.
+        let forward = MovePlan {
+            capability: "hr".to_string(),
+            moves: vec![],
+            artifacts: vec![ArtifactMove {
+                old_path: "oya/hr/slos/oya-hr-slo.openslo.yaml".to_string(),
+                new_path: "app/hr/oya-hr-slo.openslo.yaml".to_string(),
+            }],
+        };
+        assert!(forward.validate().is_ok(), "sanctioned artifact forward validates");
+        let inverse = forward.inverse();
+        assert_eq!(
+            inverse.artifacts[0].new_path,
+            "oya/hr/slos/oya-hr-slo.openslo.yaml"
+        );
+        assert!(
+            inverse.validate().is_ok(),
+            "the inverse of a sanctioned app-product artifact move must validate (revertability)"
+        );
+
+        // Cross-product artifact inverse stays refused (product-scoped exemption).
+        let cross_product_inverse = MovePlan {
+            capability: "hr".to_string(),
+            moves: vec![],
+            artifacts: vec![ArtifactMove {
+                old_path: "app/hr/oya-hr-slo.openslo.yaml".to_string(),
+                new_path: "oya/payroll/slos/oya-hr-slo.openslo.yaml".to_string(),
+            }],
+        };
+        assert!(matches!(
+            cross_product_inverse.validate(),
+            Err(CodemodError::DeprecatedBrandTarget { which, value })
+                if which == "artifact new_path"
+                    && value == "oya/payroll/slos/oya-hr-slo.openslo.yaml"
+        ));
     }
 
     #[test]
