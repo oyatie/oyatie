@@ -117,7 +117,7 @@ fn is_inside(target: &str, dir: &str) -> bool {
 }
 
 /// The repo-relative directory holding `rel` (empty at the repo root).
-fn parent_dir(rel: &str) -> String {
+pub(crate) fn parent_dir(rel: &str) -> String {
     match rel.rfind('/') {
         Some(idx) => rel[..idx].to_string(),
         None => String::new(),

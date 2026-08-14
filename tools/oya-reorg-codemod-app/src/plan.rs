@@ -36,7 +36,8 @@ use oya_workspace_members_kernel::{ResolveError, resolve_member_dirs_from_str};
 use crate::buck;
 use crate::cargo;
 use crate::model::{
-    dir_exists, rewrite_path_token, snake, CodemodError, CrateMove, Mapping, MovePlan,
+    dir_exists, rewrite_path_token, snake, CodemodError, CrateMove, EscapingPathLiteral, Mapping,
+    MovePlan,
 };
 use crate::rust_src;
 
@@ -584,7 +585,21 @@ fn validate_no_escaping_path_literals(
     plan: &MovePlan,
     all_files: &[String],
 ) -> Result<(), CodemodError> {
-    let mut literals = Vec::new();
+    // Every old->new target pair: crate moves AND artifact co-moves (a literal may point at
+    // either — e.g. the kuberos adapters embed `../../../out/*.elf` against workspace-root
+    // tracked build inputs that ride the workspace as artifact moves).
+    let all_targets: Vec<(&str, &str)> = plan
+        .moves
+        .iter()
+        .map(|m| (m.old_path.as_str(), m.new_path.as_str()))
+        .chain(
+            plan.artifacts
+                .iter()
+                .map(|a| (a.old_path.as_str(), a.new_path.as_str())),
+        )
+        .collect();
+
+    let mut blocking = Vec::new();
     for m in &plan.moves {
         let prefix = format!("{}/", m.old_path);
         for rel in all_files.iter().filter(|r| r.starts_with(&prefix)) {
@@ -592,17 +607,57 @@ fn validate_no_escaping_path_literals(
                 continue;
             }
             let text = read(&repo_root.join(rel), rel)?;
-            literals.extend(rust_src::scan_escaping_path_literals(
-                &text,
-                rel,
-                &m.old_path,
-            ));
+            for lit in rust_src::scan_escaping_path_literals(&text, rel, &m.old_path) {
+                // Fail-closed remains the DEFAULT. A literal is move-invariant ONLY when its
+                // pre-move resolution points INSIDE a co-moved target AND recomputing the
+                // literal from the crate's NEW directory resolves to exactly that target's
+                // NEW path. This is the "add their target to the move plan" escape the
+                // refusal message always offered, now implemented: the hop count to a
+                // workspace-root sibling survives a move ONLY when the workspace relocates
+                // as a unit (e.g. `crates/<crate>/src` -> `<face>/<crate>/src` keeps depth
+                // 3, and `../../../out/x.elf` stays `../../../out/x.elf`).
+                if !literal_meaning_preserved(m, rel, &lit, &all_targets) {
+                    blocking.push(lit);
+                }
+            }
         }
     }
-    if literals.is_empty() {
+    if blocking.is_empty() {
         return Ok(());
     }
-    Err(CodemodError::UnrewritablePathLiteral { literals })
+    Err(CodemodError::UnrewritablePathLiteral { literals: blocking })
+}
+
+/// True when the move preserves what `lit` means. Two move-invariant classes are accepted:
+/// (1) the target co-moves and the literal recomputed from the moved file's NEW location
+///     resolves to the target's NEW location (the kuberos `../../../out/*.elf` shape — the
+///     workspace relocates as a unit, the crate's workspace-root depth is preserved, and the
+///     embedded inputs ride the move as artifact co-moves);
+/// (2) the target does NOT move and the recomputed literal still resolves to it (a
+///     depth-preserving crate move with an untouched external target).
+/// Everything else stays fail-closed.
+fn literal_meaning_preserved(
+    m: &CrateMove,
+    file_rel: &str,
+    lit: &EscapingPathLiteral,
+    all_targets: &[(&str, &str)],
+) -> bool {
+    let Some(target) = lit.resolves_to.as_deref() else {
+        return false; // escaped the repo root: unresolvable stays refused
+    };
+    let new_file = format!("{}{}", m.new_path, &file_rel[m.old_path.len()..]);
+    let post = crate::model::join_rel(&crate::rust_src::parent_dir(&new_file), &lit.literal);
+    if let Some((old, new)) = all_targets
+        .iter()
+        .find(|(old, _)| target == *old || target.starts_with(&format!("{old}/")))
+    {
+        // The target co-moves: the literal survives ONLY if it recomputes to the new home.
+        let new_target = format!("{new}{}", &target[old.len()..]);
+        return post.as_deref() == Some(new_target.as_str());
+    }
+    // The target does not move: the literal survives ONLY if the depth change leaves its
+    // resolution untouched.
+    post.as_deref() == Some(target)
 }
 
 /// `<workspace_root>/Cargo.toml`, or `Cargo.toml` at the repo root.
@@ -1940,5 +1995,50 @@ version = \"0.1.0\"
         assert!(!outcome.cargo_lock_changed);
 
         let _ = std::fs::remove_dir_all(&root);
+    }
+
+    #[test]
+    fn kuberos_workspace_relocation_preserves_embedded_elf_literals() {
+        // The kernel-shape case: the workspace root relocates as a unit (cloud/cloud-kernel
+        // -> kernel/kuberos), the adapter crate keeps depth 3 from the workspace root
+        // (crates/<c>/src -> adapters/<c>/src), and the embedded ELF rides the move as an
+        // artifact co-move. The SAME literal then resolves to the target's NEW home.
+        let m = CrateMove {
+            old_path: "cloud/cloud-kernel/crates/c".to_owned(),
+            new_path: "kernel/kuberos/adapters/c".to_owned(),
+            old_cargo_name: "c".to_owned(),
+            new_cargo_name: "c".to_owned(),
+        };
+        let lit = EscapingPathLiteral {
+            file: "cloud/cloud-kernel/crates/c/src/lib.rs".to_owned(),
+            line: 1,
+            kind: "include_bytes!".to_owned(),
+            literal: "../../../out/x.elf".to_owned(),
+            resolves_to: Some("cloud/cloud-kernel/out/x.elf".to_owned()),
+        };
+        let targets: Vec<(&str, &str)> = vec![
+            (
+                "cloud/cloud-kernel/crates/c",
+                "kernel/kuberos/adapters/c",
+            ),
+            (
+                "cloud/cloud-kernel/out/x.elf",
+                "kernel/kuberos/out/x.elf",
+            ),
+        ];
+        assert!(
+            literal_meaning_preserved(&m, &lit.file, &lit, &targets),
+            "a workspace-root sibling embed that co-moves with the workspace must survive"
+        );
+        // The same move WITHOUT the artifact co-move leaves the literal pointing at a vacated
+        // path and must stay refused.
+        let no_artifact: Vec<(&str, &str)> = vec![(
+            "cloud/cloud-kernel/crates/c",
+            "kernel/kuberos/adapters/c",
+        )];
+        assert!(
+            !literal_meaning_preserved(&m, &lit.file, &lit, &no_artifact),
+            "an unmoved external target that the literal no longer resolves to stays refused"
+        );
     }
 }
