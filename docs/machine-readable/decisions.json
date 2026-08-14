@@ -242,7 +242,7 @@
       "path": "decisions/ADR-0718-registry-catalog-bookkeeping-retirement.md",
       "supersedes": [],
       "superseded_by": [],
-      "related": ["ADR-0555", "ADR-0544"]
+      "related": ["ADR-0515", "ADR-0551", "ADR-0562", "ADR-0563", "ADR-0717"]
     }
   ]
 }
