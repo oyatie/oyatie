@@ -566,7 +566,7 @@
       "prefix": "k8s/iac/kustomize/base/openbao-secret-references.yaml"
     },
     {
-      "anchor": "ADR-0512 + ADR-0562 (issue #1211, PR #1210): kernel/ is the sanctioned nested-workspace meta-dir (ADR-0512 carve-out; capability-registry meta-dir). Homes the rung-0 kuberos kernel and its dev-only QEMU real-boot harness — kernel/core/asterinas-boundary (black-box upstream pin + closed boot-ready marker set) and kernel/harness/asterinas-real-boot (fetch-verify + single-boot orchestration + receipts). Wave-1 shard-1 of the Asterinas canonical-kernel pivot.",
+      "anchor": "ADR-0512 + ADR-0562 (issue #1211, PR #1210): kernel/ is the sanctioned nested-workspace meta-dir (ADR-0512 carve-out; capability-registry meta-dir). Homes the rung-0 kuberos kernel and its dev-only QEMU real-boot harness — kernel/asterinas/core/asterinas-boundary (black-box upstream pin + closed boot-ready marker set) and kernel/asterinas/harness/asterinas-real-boot (fetch-verify + single-boot orchestration + receipts). Wave-1 shard-1 of the Asterinas canonical-kernel pivot.",
       "prefix": "kernel/"
     },
     {
