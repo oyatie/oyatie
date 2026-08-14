@@ -3034,14 +3034,14 @@
       "artifact_profile": "registry",
       "capability_overrides": {
         "enforcement": {
-          "lane_id": "ci-build-cache-policy-gate"
+          "lane_id": "retired (#1960): ci-build-cache-policy-gate"
         },
         "verification": {
-          "checker_crate": "ci/facade/build-cache-policy",
-          "command": "buck2 test //ci/facade/build-cache-policy:ci-build-cache-policy-gate"
+          "checker_crate": "retired (#1960): ci/facade/build-cache-policy gate crate (deleted from dev)",
+          "command": "python3 -m json.tool specs/cache-endpoints.json >/dev/null"
         },
         "validation": {
-          "validator": "The Rust cache-policy gate validates pack identity, active-profile resolution, endpoint grammar, distinct roles, overlay materialization, Service/listener/instance agreement, Service target ports, ingress/runner-egress NetworkPolicy ports, and server-certificate SAN preflight agreement."
+          "validator": "Declarative contract only since the Rust cache-policy gate was retired (#1960): endpoint grammar and distinct writer/reader roles are enforced by review, and the hand-maintained warm-cache buckconfig overlays plus the nativelink-cas.k8s.yaml Service/NetworkPolicy bindings must match the active profile."
         },
         "provenance": {
           "current_author": "GJC execution lane",

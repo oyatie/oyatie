@@ -251,7 +251,8 @@ spec:
     metadata:
       annotations:
         # Forces the Recreate rollout whenever the startup-only NativeLink
-        # ConfigMap payload changes; conformance recomputes this digest.
+        # ConfigMap payload changes. This is the sha256 of the cas.json block-scalar
+        # payload (de-indented, trailing newline); update it when that payload changes.
         oya.io/config-sha256: "96c6ec8d1bb3983f487acee2c6e92e15927a6a28e1fb0529b344cd6030e2391c"
       labels:
         app: nativelink-cas

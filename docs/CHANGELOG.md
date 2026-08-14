@@ -9,7 +9,9 @@ doc_status: published
 ## 2026-08-14 — NativeLink cache endpoint DATA and cold-boundary hardening
 
 - Added [`specs/cache-endpoints.json`](../specs/cache-endpoints.json) as the validated active
-  writer/reader address and REAPI instance source materialized into private Buck2 configuration.
+  writer/reader address and REAPI instance source that the hand-maintained
+  `infra/ci/buckconfig/warm-cache-{ro,rw}.buckconfig` overlays and the NativeLink
+  Service/NetworkPolicy bindings must match.
 - Updated the laptop CAS runbook to distinguish hand-managed lab preflight from the fleet profile,
   and bound the in-cluster endpoint DATA to the unremapped ConfigMap/Deployment path, Service
   namespace and container TCP ports, cluster-internal exposure, unique resource identities,

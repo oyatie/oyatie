@@ -32,9 +32,10 @@ Point `[buck2_re_client]` at:
 
 Materialize a mode-0600 `.buckconfig.local` from
 `~/oyatie-cas/tls/client-{writer,reader}.{crt,key}` and `ca.crt`. These lab overlays are
-hand-managed preflight and do not pass through the fleet endpoint profile or its `grpc://`
-materialization grammar. They mirror production identity hygiene only; identity never belongs in a
-committed overlay.
+hand-managed preflight; the in-cluster fleet overlays (`infra/ci/buckconfig/warm-cache-{ro,rw}.buckconfig`)
+are likewise hand-maintained buckconfig files that must stay consistent with the
+`specs/cache-endpoints.json` profiles. They mirror production identity hygiene only; identity never
+belongs in a committed overlay.
 
 ## Opt-in classes (policy already lists; license gates reads)
 
