@@ -116,9 +116,10 @@ resource "google_compute_security_policy" "payments_waf" {
 # ─── Serving backend (edge WAF attachment) ────────────────────────────────────
 # An unattached Cloud Armor policy inspects no traffic; the payments serving
 # backend must reference the policy so the SQLi/XSS/rate-limit/geo rules
-# actually evaluate payments traffic. The backend group is the payments edge
-# NEG/instance group wired to the external LB; wire the actual serving group
-# when the edge composition lands.
+# actually evaluate payments traffic. The backend group is a GCE_VM_IP_PORT
+# regional NEG (no serverless platform required) whose endpoints are registered
+# by the GKE NEG integration / edge operator once the payments Service is
+# exposed behind the external LB.
 
 resource "google_compute_backend_service" "payments_edge_backend" {
   name        = "payments-edge-backend"
@@ -139,9 +140,23 @@ resource "google_compute_backend_service" "payments_edge_backend" {
 resource "google_compute_region_network_endpoint_group" "payments_edge_neg" {
   name                  = "payments-edge-neg"
   region                = "us-east1"
-  network_endpoint_type = "SERVERLESS"
-  # NOTE: the serverless NEG is wired to the payments HTTPS load-balancer
-  # (Cloud Run / App Engine / serverless target) in the edge composition.
+  network_endpoint_type = "GCE_VM_IP_PORT"
+  # The payments workload VPC/subnet. The NEG endpoints (pod IP:port pairs) are
+  # registered by the GKE NEG integration / edge operator once the payments
+  # service is exposed; until then the backend service has zero endpoints and
+  # the WAF policy simply has no traffic to evaluate — it fails closed rather
+  # than pretending a SERVERLESS target exists.
+  network    = data.google_compute_network.payments_vpc.id
+  subnetwork = data.google_compute_subnetwork.payments_subnet.id
+}
+
+data "google_compute_network" "payments_vpc" {
+  name = "payments-vpc"
+}
+
+data "google_compute_subnetwork" "payments_subnet" {
+  name   = "payments-subnet"
+  region = "us-east1"
 }
 
 resource "google_compute_health_check" "payments_edge_health" {

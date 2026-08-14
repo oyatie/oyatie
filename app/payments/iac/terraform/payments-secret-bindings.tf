@@ -78,40 +78,25 @@ resource "kubernetes_manifest" "payments_webhook_hmac_secret" {
       data = [
         # Keys are relative to the store's KV-v2 mount (path="secret"); ESO
         # performs the mount/data translation itself, so no secret/data/ prefix.
+        # One entry per advertised provider (OpenAPI enum: stripe, adyen, toss,
+        # kakaopay, line-pay, wechat-pay, alipay) so every PSP callback can be
+        # HMAC-authenticated.
         { secretKey = "stripe_webhook_secret",  remoteRef = { key = "payments/webhook-hmac/stripe",  property = "secret" } },
         { secretKey = "adyen_webhook_hmac",     remoteRef = { key = "payments/webhook-hmac/adyen",   property = "hmac_key" } },
         { secretKey = "toss_webhook_secret",    remoteRef = { key = "payments/webhook-hmac/toss",    property = "secret" } },
-        { secretKey = "kakaopay_webhook_secret",remoteRef = { key = "payments/webhook-hmac/kakaopay",property = "secret" } }
+        { secretKey = "kakaopay_webhook_secret",remoteRef = { key = "payments/webhook-hmac/kakaopay",property = "secret" } },
+        { secretKey = "linepay_webhook_secret", remoteRef = { key = "payments/webhook-hmac/line-pay",property = "secret" } },
+        { secretKey = "wechatpay_webhook_secret",remoteRef = { key = "payments/webhook-hmac/wechat-pay",property = "secret" } },
+        { secretKey = "alipay_webhook_secret",  remoteRef = { key = "payments/webhook-hmac/alipay",  property = "secret" } }
       ]
     }
   }
 }
 
-# ─── TLS cert secret binding ─────────────────────────────────────────────────
-
-resource "kubernetes_manifest" "payments_tls_external_secret" {
-  manifest = {
-    apiVersion = "external-secrets.io/v1beta1"
-    kind       = "ExternalSecret"
-    metadata = {
-      name      = "payments-tls-external-secret"
-      namespace = "payments"
-    }
-    spec = {
-      refreshInterval = "1h"
-      secretStoreRef = {
-        name = "openbao-cluster-store"
-        kind = "ClusterSecretStore"
-      }
-      target = {
-        name           = "payments-tls-cert"
-        creationPolicy = "Owner"
-      }
-      data = [
-        { secretKey = "tls.crt", remoteRef = { key = "pki/cert/payments-tls", property = "certificate" } },
-        { secretKey = "tls.key", remoteRef = { key = "pki/cert/payments-tls", property = "private_key" } },
-        { secretKey = "ca.crt",  remoteRef = { key = "pki/cert/payments-tls", property = "issuing_ca" } }
-      ]
-    }
-  }
-}
+# ─── TLS cert ─────────────────────────────────────────────────────────────────
+# TLS material is NOT read through the KV-v2 openbao-cluster-store: the
+# certificates are issued by cert-manager into the `payments-pqc-hybrid-tls`
+# Secret (iac/pqc-cert.yaml, ClusterIssuer oyatie-tier-0-offline-rooted-ca),
+# which is the PKI-aware source of truth. An ExternalSecret pointing at
+# pki/cert/... through the KV store would resolve a doubled KV path and never
+# populate; removed rather than modeled against the wrong engine.

@@ -5,37 +5,17 @@
 
 # ─── Tenant PSP credentials (provider BYOK per ADR-0255 §D-4) ────────────────
 # Format: secret/<tenant_id>/payments/<psp>/<key_name>
-# The payments sidecar reads credentials for the specific (tenant, psp) pair
-# determined at request time. Wildcard on tenant_id is intentional — the
-# application is responsible for only reading its request's tenant.
-
-path "secret/data/+/payments/stripe/*" {
-  capabilities = ["read"]
-}
-
-path "secret/data/+/payments/adyen/*" {
-  capabilities = ["read"]
-}
-
-path "secret/data/+/payments/toss/*" {
-  capabilities = ["read"]
-}
-
-path "secret/data/+/payments/kakaopay/*" {
-  capabilities = ["read"]
-}
-
-path "secret/data/+/payments/line-pay/*" {
-  capabilities = ["read"]
-}
-
-path "secret/data/+/payments/wechat-pay/*" {
-  capabilities = ["read"]
-}
-
-path "secret/data/+/payments/alipay/*" {
-  capabilities = ["read"]
-}
+#
+# NO fleet-wide wildcard grants: a wildcard `secret/data/+/payments/*` would let
+# one shared token read every tenant's Stripe/Adyen/Toss/... credentials, and
+# the application-level "read only your request's tenant" check sits inside the
+# same trust boundary as the workload, so it cannot contain a compromise.
+# Instead, each tenant's sidecar receives a CHILD CREDENTIAL issued by the
+# secrets-management service, bound to a per-tenant policy granting read on
+# exactly `secret/data/<tenant_id>/payments/<psp>/*` for the tenant it serves
+# (ADR-0296 library-first issuance; per-tenant policies are generated at
+# issuance time, not checked in). The checked-in policy below therefore grants
+# NO cross-tenant PSP read.
 
 # ─── Platform-master account (oyatie-internal tenant only) ───────────────────
 path "secret/data/oyatie/payments/stripe/*" {
