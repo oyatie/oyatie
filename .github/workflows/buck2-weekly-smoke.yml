@@ -1,0 +1,32 @@
+# Weekly non-blocking honesty check for the local hermetic buck2 graph.
+# Not part of the merge path: merge authority is the `oya-ci-required` context.
+# A red run here means BUCK/reindeer wiring rotted relative to the Cargo workspace;
+# it is a signal to either fix the graph or retire buck2, never a merge blocker.
+#
+# Authority: docs/decisions/ADR-0716-cargo-merge-path-buck2-local-hermeticity.md
+
+name: buck2-weekly-smoke
+
+on:
+  schedule:
+    - cron: "17 3 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  buck2-weekly-smoke:
+    name: buck2-weekly-smoke (hermetic graph honesty)
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Install pinned buck2 (digest-verified)
+        run: infra/ci/install-buck2.sh
+      - name: Provision pinned Rust toolchain
+        run: rustup toolchain install && rustc --version
+      - name: Hermetic workspace build
+        run: buck2 build //...

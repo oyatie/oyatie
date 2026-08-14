@@ -85,10 +85,7 @@ const CLUSTER_POLICY_REQUIRED_LINES: &[(&str, &str)] = &[
         "modifyImagesWithDigest: true",
     ),
     ("verify-image-signatures-policy.yaml", "ghcr.io/oyatie/*"),
-    (
-        "verify-image-signatures-policy.yaml",
-        "owner: jason931225",
-    ),
+    ("verify-image-signatures-policy.yaml", "owner: jason931225"),
     ("verify-image-signatures-policy.yaml", "repo: oyatie"),
     (
         "verify-image-signatures-policy.yaml",
