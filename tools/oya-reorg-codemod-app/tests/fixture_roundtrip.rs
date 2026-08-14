@@ -697,6 +697,67 @@ fn app_product_move_keeps_the_oya_brand_while_capability_roots_stay_debranded() 
 }
 
 #[test]
+fn app_product_move_and_its_revert_round_trip_byte_identically() {
+    // REGRESSION (PR #1965 wave-2, comment 3783872051): `apply --revert` swaps the tuple
+    // (`MovePlan::inverse`) before apply_plan validates it, so the inverse of the sanctioned
+    // app/<product>/ move (app/hr/... -> oya/hr/... keeping oya-hr-*) previously tripped the
+    // de-brand refusal — rollback could never run. The inverse must validate and restore the
+    // legacy branded home byte-identically.
+    let root = tmp_root("app-revert");
+    w(
+        &root,
+        "Cargo.toml",
+        "[workspace]\nmembers = [\"oya/hr/crates/*\"]\nresolver = \"2\"\n",
+    );
+    w(
+        &root,
+        "oya/hr/crates/oya-hr-employment-api/Cargo.toml",
+        "[package]\nname = \"oya-hr-employment-api\"\nversion = \"0.1.0\"\nedition = \"2021\"\n",
+    );
+    w(
+        &root,
+        "oya/hr/crates/oya-hr-employment-api/src/lib.rs",
+        "pub fn employment() {}\n",
+    );
+    // A bystander keeps the `oya/hr/crates/*` glob non-empty (no glob prune on either leg),
+    // so the root manifest round-trips byte-identically through forward + revert.
+    w(
+        &root,
+        "oya/hr/crates/oya-hr-bystander/Cargo.toml",
+        "[package]\nname = \"oya-hr-bystander\"\nversion = \"0.1.0\"\nedition = \"2021\"\n",
+    );
+    w(&root, "oya/hr/crates/oya-hr-bystander/src/lib.rs", "pub fn b() {}\n");
+    let before = non_directory_entries(&snapshot_tree(&root));
+
+    let forward = MovePlan {
+        capability: "app-hr".to_owned(),
+        moves: vec![CrateMove {
+            old_path: "oya/hr/crates/oya-hr-employment-api".to_owned(),
+            new_path: "app/hr/crates/oya-hr-employment-api".to_owned(),
+            old_cargo_name: "oya-hr-employment-api".to_owned(),
+            new_cargo_name: "oya-hr-employment-api".to_owned(),
+        }],
+        artifacts: vec![],
+    };
+    apply_plan(&root, &forward, &ApplyOptions { use_git_mv: false })
+        .expect("the sanctioned app-product move applies");
+    assert!(root.join("app/hr/crates/oya-hr-employment-api/Cargo.toml").is_file());
+
+    // The REVERT direction: plan.inverse() swaps the tuple -> app/hr -> oya/hr with the same
+    // branded name. validate() must accept it (recognized inverse) so rollback actually runs.
+    apply_plan(&root, &forward.inverse(), &ApplyOptions { use_git_mv: false })
+        .expect("the inverse of a sanctioned app-product move must apply (revertability)");
+
+    let after = non_directory_entries(&snapshot_tree(&root));
+    assert_eq!(
+        after, before,
+        "revert must restore the legacy branded home byte-identically"
+    );
+    assert!(root.join("oya/hr/crates/oya-hr-employment-api/Cargo.toml").is_file());
+    let _ = std::fs::remove_dir_all(&root);
+}
+
+#[test]
 fn escaping_literal_with_depth_preserved_and_untouched_target_is_accepted() {
     let root = tmp_root("elf-embed-accepted");
     build_elf_embed_fixture(&root);
