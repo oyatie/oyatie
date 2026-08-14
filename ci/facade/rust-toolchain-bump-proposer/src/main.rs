@@ -1,14 +1,19 @@
-//! CLI wrapper for the ADR-0535 owned Rust toolchain bump proposer.
+//! Adapter binary for the ADR-0535 owned Rust toolchain reconciler.
 //!
-//! Pure planner by design: no network I/O, no subprocesses, no clock, no randomness. The latest
-//! stable version is supplied by the caller (`--latest-stable <v>` or `OYA_LATEST_STABLE_RUST`),
-//! so a scheduled workflow (or an operator) owns the network fetch to
-//! `https://static.rust-lang.org/dist/channel-rust-stable.toml` and hands the parsed version in.
+//! The capability's primary surface is the `reconcile` library API (desired state in, reconciled
+//! tree + report out). This binary is a thin adapter a scheduled workflow or the future typed
+//! cloud-ci runner invokes — the same shape as the other `oya-cloud-ci-*` automation binaries.
+//! It performs NO network I/O, NO subprocesses, NO clock, NO randomness: the latest stable
+//! version is supplied by the caller (`--latest-stable <v>` or `OYA_LATEST_STABLE_RUST`), so the
+//! scheduled fetch of `https://static.rust-lang.org/dist/channel-rust-stable.toml` lives in the
+//! workflow step and the parsed version is handed in.
 //!
 //! Exit codes:
-//! - `0` — up to date, or dry-run plan produced, or bump applied and verified clean;
+//! - `0` — up to date (and the tree is drift-clean), dry-run plan produced, or reconcile applied
+//!   and verified clean;
 //! - `1` — `--check` found a bump available (the scheduled guard's "act now" signal);
-//! - `2` — usage/validation error, or the applied bump left residual drift (fail closed).
+//! - `2` — usage/validation error, stale (older) latest supplied, or residual drift after an
+//!   equal-pin apply (fail closed).
 
 #![forbid(unsafe_code)]
 
@@ -17,8 +22,8 @@ use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
 use ci_rust_toolchain_bump_proposer::{
-    BumpPlan, apply_plan, current_pin, latest_is_newer, parse_stable_version, plan_bump,
-    verify_clean,
+    BumpPlan, ReconcileOutcome, ResidualDrift, current_pin, latest_is_newer, parse_stable_version,
+    plan_bump, reconcile, verify_clean,
 };
 
 const LATEST_STABLE_ENV: &str = "OYA_LATEST_STABLE_RUST";
@@ -35,6 +40,7 @@ struct Args {
     repo_root: PathBuf,
     latest_stable: Option<String>,
     mode: Mode,
+    json: bool,
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -82,56 +88,116 @@ fn run(args: &Args) -> Result<u8, String> {
     let latest = parse_stable_version(&latest_raw)
         .map_err(|error| format!("validate latest stable: {error}"))?;
 
-    if args.mode == Mode::Check {
-        let newer = latest_is_newer(&current, &latest)
-            .map_err(|error| format!("compare versions: {error}"))?;
-        if newer {
-            println!("bump available: {current} -> {latest}");
-            return Ok(1);
+    match args.mode {
+        Mode::Check => {
+            let newer = latest_is_newer(&current, &latest)
+                .map_err(|error| format!("compare versions: {error}"))?;
+            if newer {
+                println!("bump available: {current} -> {latest}");
+                return Ok(1);
+            }
+            println!("up to date: pinned {current} is the latest stable {latest}");
+            Ok(0)
         }
-        println!("up to date: pinned {current} is the latest stable {latest}");
-        return Ok(0);
-    }
-
-    if current == latest {
-        println!("no bump needed: pinned {current} already equals latest stable {latest}");
-        return Ok(0);
-    }
-
-    let plan = plan_bump(repo_root, &current, &latest)
-        .map_err(|error| format!("plan bump {current} -> {latest}: {error}"))?;
-    print_plan(&plan);
-
-    if args.mode == Mode::DryRun {
-        println!(
-            "dry-run: {} file(s) would change; rerun with --apply to mutate the tree",
-            plan.changed_count()
-        );
-        return Ok(0);
-    }
-
-    apply_plan(repo_root, &plan).map_err(|error| format!("apply bump: {error}"))?;
-    println!(
-        "applied {current} -> {latest} across {} file(s)",
-        plan.changed_count()
-    );
-
-    let residual = verify_clean(repo_root).map_err(|error| format!("verify bump: {error}"))?;
-    if residual.is_clean() {
-        println!(
-            "verified: freshness rust-toolchain drift evaluator GREEN; ADR-0535 dependency-automation gate GREEN"
-        );
-        Ok(0)
-    } else {
-        eprintln!("residual drift after bump (fail closed, refusing to call it done):");
-        for finding in &residual.drift_findings {
-            eprintln!("  drift: {finding}");
+        Mode::DryRun => {
+            if current == latest {
+                // An equal pin does not make a stale tree aligned: verify both validators before
+                // claiming no bump is needed.
+                let residual = verify_clean(repo_root)
+                    .map_err(|error| format!("verify tree alignment: {error}"))?;
+                if !residual.is_clean() {
+                    eprintln!(
+                        "pinned {current} equals latest stable {latest}, but the tree has residual drift:{}",
+                        render_residual(&residual)
+                    );
+                    return Ok(2);
+                }
+                println!(
+                    "no bump needed: pinned {current} already equals latest stable {latest} and the tree is drift-clean"
+                );
+                return Ok(0);
+            }
+            if !latest_is_newer(&current, &latest)
+                .map_err(|error| format!("compare versions: {error}"))?
+            {
+                return Err(format!(
+                    "supplied latest stable {latest} is not newer than the pinned {current}; \
+                     refusing to plan a backward rewrite"
+                ));
+            }
+            let plan = plan_bump(repo_root, &current, &latest)
+                .map_err(|error| format!("plan bump {current} -> {latest}: {error}"))?;
+            print_plan(&plan);
+            println!(
+                "dry-run: {} file(s) would change; rerun with --apply to reconcile the tree",
+                plan.changed_count()
+            );
+            Ok(0)
         }
-        for finding in &residual.gate_findings {
-            eprintln!("  gate: {finding}");
+        Mode::Apply => {
+            let report = reconcile(repo_root, &latest)
+                .map_err(|error| format!("reconcile {current} -> {latest}: {error}"))?;
+            match report.outcome {
+                ReconcileOutcome::Bumped => {
+                    println!(
+                        "reconciled {} -> {} across {} file(s)",
+                        report.current,
+                        report.latest,
+                        report.changed_files.len()
+                    );
+                    println!(
+                        "verified: freshness rust-toolchain drift evaluator GREEN; ADR-0535 dependency-automation gate GREEN"
+                    );
+                }
+                ReconcileOutcome::UpToDate => {
+                    println!(
+                        "up to date: pinned {} already equals latest stable {} and the tree is drift-clean",
+                        report.current, report.latest
+                    );
+                }
+            }
+            if args.json {
+                println!("{}", render_report_json(&report));
+            }
+            Ok(0)
         }
-        Ok(2)
     }
+}
+
+fn render_residual(residual: &ResidualDrift) -> String {
+    let mut out = String::new();
+    for finding in &residual.drift_findings {
+        out.push_str(&format!("\n  drift: {finding}"));
+    }
+    for finding in &residual.gate_findings {
+        out.push_str(&format!("\n  gate: {finding}"));
+    }
+    out
+}
+
+fn render_report_json(report: &ci_rust_toolchain_bump_proposer::ReconcileReport) -> String {
+    let outcome = match report.outcome {
+        ReconcileOutcome::UpToDate => "up-to-date",
+        ReconcileOutcome::Bumped => "bumped",
+    };
+    let changed: Vec<String> = report
+        .changed_files
+        .iter()
+        .map(|path| format!("\"{}\"", escape_json(path)))
+        .collect();
+    format!(
+        "{{\n  \"current\": \"{}\",\n  \"latest\": \"{}\",\n  \"outcome\": \"{outcome}\",\n  \"changed_files\": [{}]\n}}",
+        escape_json(&report.current),
+        escape_json(&report.latest),
+        changed.join(", ")
+    )
+}
+
+fn escape_json(value: &str) -> String {
+    value
+        .replace('\\', "\\\\")
+        .replace('"', "\\\"")
+        .replace('\n', "\\n")
 }
 
 fn print_plan(plan: &BumpPlan) {
@@ -146,6 +212,7 @@ fn parse_args(args: Vec<String>) -> ParseOutcome {
     let mut repo_root = PathBuf::from(".");
     let mut latest_stable = None;
     let mut mode = Mode::DryRun;
+    let mut json = false;
     let mut iter = args.into_iter();
     while let Some(arg) = iter.next() {
         match arg.as_str() {
@@ -169,6 +236,7 @@ fn parse_args(args: Vec<String>) -> ParseOutcome {
             "--apply" => mode = Mode::Apply,
             "--check" => mode = Mode::Check,
             "--dry-run" => mode = Mode::DryRun,
+            "--json" => json = true,
             "--help" | "-h" => return ParseOutcome::Help,
             other => {
                 return ParseOutcome::Error(format!(
@@ -182,15 +250,16 @@ fn parse_args(args: Vec<String>) -> ParseOutcome {
         repo_root,
         latest_stable,
         mode,
+        json,
     })
 }
 
 fn usage() -> String {
     format!(
-        "usage:\n  oya-cloud-ci-rust-toolchain-bump-proposer [--repo-root <path>] [--latest-stable <v>] [--dry-run|--apply|--check]\n\n\
+        "usage:\n  oya-cloud-ci-rust-toolchain-bump-proposer [--repo-root <path>] [--latest-stable <v>] [--dry-run|--apply|--check] [--json]\n\n\
          --latest-stable <v>   latest stable Rust release (or set {LATEST_STABLE_ENV}); the caller owns the network fetch\n\
          --dry-run             print the bump plan without touching disk (default)\n\
-         --apply               apply the plan, then verify against the drift evaluator and the ADR-0535 gate\n\
+         --apply               reconcile the tree to <v> (plan + apply + verify); with --json, emit the machine-readable report\n\
          --check               exit 1 when a bump is available, 0 when up to date (scheduled-guard signal)"
     )
 }
@@ -210,18 +279,27 @@ mod tests {
                 assert_eq!(args.mode, Mode::DryRun);
                 assert_eq!(args.repo_root, Path::new("."));
                 assert_eq!(args.latest_stable, None);
+                assert!(!args.json);
             }
             other => panic!("expected Run, got {other:?}"),
         }
     }
 
     #[test]
-    fn apply_and_check_modes_parse() {
-        match parse(&["--repo-root", "x", "--latest-stable", "1.98.0", "--apply"]) {
+    fn apply_check_and_json_modes_parse() {
+        match parse(&[
+            "--repo-root",
+            "x",
+            "--latest-stable",
+            "1.98.0",
+            "--apply",
+            "--json",
+        ]) {
             ParseOutcome::Run(args) => {
                 assert_eq!(args.mode, Mode::Apply);
                 assert_eq!(args.repo_root, Path::new("x"));
                 assert_eq!(args.latest_stable.as_deref(), Some("1.98.0"));
+                assert!(args.json);
             }
             other => panic!("expected Run, got {other:?}"),
         }
@@ -239,5 +317,10 @@ mod tests {
     #[test]
     fn help_parses() {
         assert!(matches!(parse(&["--help"]), ParseOutcome::Help));
+    }
+
+    #[test]
+    fn json_escaping_handles_quotes_and_backslashes() {
+        assert_eq!(escape_json("a\"b\\c"), "a\\\"b\\\\c");
     }
 }

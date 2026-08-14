@@ -1,26 +1,35 @@
-//! Owned Rust actuator for the ADR-0535 dependency-automation engine: proposes and
-//! deterministically applies a stable Rust toolchain pin bump across every drift surface the
-//! cloud-ci freshness gate enforces.
+//! Owned Rust reconciler for the ADR-0535 dependency-automation engine: reconciles the tree to a
+//! desired stable Rust toolchain pin across every drift surface the cloud-ci freshness gate
+//! enforces.
 //!
 //! Design contract (recorded in the PR body):
-//! - **Pure planner**: this binary performs NO network I/O. `std` has no HTTP client, and adding
-//!   `reqwest`/`std::net` would violate the dependency policy (no ad-hoc dependencies) and the
-//!   gate hermeticity scanner (which scans for exactly those tokens). The latest stable version
-//!   arrives as a flag or environment value (`--latest-stable <v>` / `OYA_LATEST_STABLE_RUST`);
-//!   the scheduled fetch belongs to the workflow step (curl to
-//!   `https://static.rust-lang.org/dist/channel-rust-stable.toml`).
-//! - **Deterministic editor**: rewrites are boundary-aware text surgery (comment- and
-//!   formatting-preserving; a `toml` round-trip would drop comments), applied to the same
-//!   candidate surface the drift evaluator walks.
-//! - **Self-verifying**: after applying, the proposer re-runs the freshness drift evaluator AND
-//!   the ADR-0535 dependency-automation gate against the tree and fails closed on residual
-//!   findings.
+//! - **Declarative reconciler, not a product CLI**: the primary surface is the [`reconcile`]
+//!   library API — desired state (latest stable) in, reconciled tree + report out, fail-closed on
+//!   residual drift. The binary is a thin adapter a scheduled workflow or the future typed
+//!   cloud-ci runner invokes, exactly like the other `oya-cloud-ci-*` automation binaries.
+//! - **Pure planner**: NO network I/O. `std` has no HTTP client, and adding `reqwest`/`std::net`
+//!   would violate the dependency policy (no ad-hoc dependencies) and the gate hermeticity scanner
+//!   (which scans for exactly those tokens). The latest stable version arrives as a flag or
+//!   environment value (`--latest-stable <v>` / `OYA_LATEST_STABLE_RUST`); the scheduled fetch
+//!   belongs to the workflow step (curl to `https://static.rust-lang.org/dist/channel-rust-stable.toml`).
+//! - **Pin-field surgical editor**: rewrites target the declared pin fields the evaluators
+//!   actually enforce (toolchain `channel`, `oya-deps` `pin`, `rust-version`, JSON toolchain
+//!   keys, Docker ARG/image pins, workflow `toolchain:` lines, `toolchains/` text) plus the
+//!   explicitly curated current-policy row in `docs/standards/dependency-policy.md`. Active docs
+//!   are rewritten ONLY for `rust:` image refs — never blanket version tokens, so dated
+//!   snapshots and URLs (e.g. `blog.rust-lang.org/.../Rust-1.97.1/`) are never corrupted.
+//! - **Self-verifying and downgrade-proof**: applying requires `latest > current` (a stale or
+//!   mis-parsed input fails closed instead of rewriting the tree backward), and an equal-pin
+//!   apply still runs both residual-drift validators so a partially updated tree is never
+//!   reported aligned.
 //! - **Zero new external dependencies**: only owned path crates (`ci-generated-artifact-freshness`
 //!   for `read_pinned_rust_toolchain` + `evaluate_rust_toolchain_drift`;
-//!   `ci-dependency-automation` for `evaluate_repo`).
+//!   `ci-dependency-automation` for `evaluate_repo`) plus the workspace `serde_json` for the
+//!   machine-readable reconciliation report.
 
 #![forbid(unsafe_code)]
 
+use std::fmt::{Display, Formatter};
 use std::fs;
 use std::path::{Path, PathBuf};
 
@@ -56,6 +65,11 @@ const ACTIVE_TEXT_PATHS: [&str; 8] = [
     "specs/oss-stewardship-registry.json",
     "toolchains/",
 ];
+
+/// The one managed-file doc whose toolchain row is a declared current-policy pin location
+/// (`oya-deps.toml` declares it `update = "sync-rust-pin"`). Its `| Rust toolchain | <v> stable |`
+/// row is rewritten on a bump; every other doc is rewritten only for `rust:` image refs.
+const DEPENDENCY_POLICY_DOC: &str = "docs/standards/dependency-policy.md";
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ProposerError(pub String);
@@ -165,8 +179,8 @@ pub fn latest_is_newer(current: &str, latest: &str) -> Result<bool, ProposerErro
 /// characters are neither digits nor dots, so `1.97.1` inside `1.97.10` or `11.97.1` is never
 /// corrupted, while `1.97.1-stable`, `rust:1.97.1-slim`, `"1.97.1"` and `1.97.1-` all rewrite.
 ///
-/// Pure text surgery on purpose: a `toml`/`serde_json` round-trip would drop comments and
-/// reformat the file, producing noisy bump diffs. Deterministic for a given input.
+/// Used for the `toolchains/` text surface (the freshness evaluator's `explicit_rust_versions`
+/// contract) and as the per-line primitive for workflow pin lines.
 pub fn rewrite_version_boundary(text: &str, old: &str, new: &str) -> String {
     if old.is_empty() || old == new {
         return text.to_owned();
@@ -192,6 +206,139 @@ pub fn rewrite_version_boundary(text: &str, old: &str, new: &str) -> String {
     }
     out.push_str(rest);
     out
+}
+
+/// Rewrite a TOML key's quoted value: `key = "old"` -> `key = "new"` (both the canonical spaced
+/// form and the compact `key="old"` form). Only the declared pin fields are targeted, never
+/// arbitrary version tokens elsewhere in the file.
+fn rewrite_toml_key(text: &str, key: &str, old: &str, new: &str) -> String {
+    let mut out = text.replace(&format!("{key} = \"{old}\""), &format!("{key} = \"{new}\""));
+    out = out.replace(&format!("{key}=\"{old}\""), &format!("{key}=\"{new}\""));
+    out
+}
+
+/// Rewrite the toolchain-pin keys the freshness evaluator checks in `manifest.json` /
+/// `supported-oses.json`: `"rust": "old"` (under `toolchain` / `lts_pins`) and
+/// `"rust_toolchain": "old-stable"`.
+fn rewrite_json_rust_pins(text: &str, old: &str, new: &str) -> String {
+    let mut out = text.replace(
+        &format!("\"rust_toolchain\": \"{old}-stable\""),
+        &format!("\"rust_toolchain\": \"{new}-stable\""),
+    );
+    out = out.replace(
+        &format!("\"rust_toolchain\": \"{old}\""),
+        &format!("\"rust_toolchain\": \"{new}\""),
+    );
+    out = out.replace(
+        &format!("\"rust\": \"{old}\""),
+        &format!("\"rust\": \"{new}\""),
+    );
+    out
+}
+
+/// Rewrite `prefix+old` image refs to `prefix+new` where the character after `old` is not a digit
+/// or dot (`rust:1.97.1-bookworm`, `rust:1.97.1-slim`, and `clux/muslrust:1.97.1-stable` which
+/// contains the `rust:1.97.1` substring). `rust:1.97.10` is never corrupted.
+fn rewrite_image_refs(text: &str, prefix: &str, old: &str, new: &str) -> String {
+    if old.is_empty() || old == new {
+        return text.to_owned();
+    }
+    let needle = format!("{prefix}{old}");
+    let mut out = String::with_capacity(text.len());
+    let mut rest = text;
+    while let Some(index) = rest.find(&needle) {
+        let after = index + needle.len();
+        let after_ok = after >= rest.len()
+            || !(rest.as_bytes()[after].is_ascii_digit() || rest.as_bytes()[after] == b'.');
+        if after_ok {
+            out.push_str(&rest[..index]);
+            out.push_str(&format!("{prefix}{new}"));
+            rest = &rest[after..];
+        } else {
+            let char_len = rest[index..].chars().next().map_or(1, char::len_utf8);
+            out.push_str(&rest[..index + char_len]);
+            rest = &rest[index + char_len..];
+        }
+    }
+    out.push_str(rest);
+    out
+}
+
+/// Rewrite the Docker pin surfaces the freshness evaluator checks: `ARG RUST_VERSION=old` and
+/// `rust:old` image refs (FROM lines and any other refs).
+fn rewrite_docker_pins(text: &str, old: &str, new: &str) -> String {
+    let mut out = text.replace(
+        &format!("ARG RUST_VERSION={old}"),
+        &format!("ARG RUST_VERSION={new}"),
+    );
+    out = rewrite_image_refs(&out, "rust:", old, new);
+    out
+}
+
+/// Rewrite workflow toolchain-pin lines only: `toolchain: old` (quoted or bare), `--toolchain old`,
+/// `rustup toolchain install old`, and `.rustup/toolchains/old-*` cache paths. Lines without a
+/// toolchain-pin marker are left byte-identical, so unrelated version tokens in workflow YAML
+/// (e.g. action version strings) are never touched.
+fn rewrite_workflow_pins(text: &str, old: &str, new: &str) -> String {
+    const PIN_MARKERS: [&str; 4] = [
+        "toolchain:",
+        "--toolchain",
+        "rustup toolchain",
+        ".rustup/toolchains/",
+    ];
+    let mut out = String::with_capacity(text.len());
+    for (index, line) in text.lines().enumerate() {
+        if index > 0 {
+            out.push('\n');
+        }
+        if PIN_MARKERS.iter().any(|marker| line.contains(marker)) {
+            out.push_str(&rewrite_version_boundary(line, old, new));
+        } else {
+            out.push_str(line);
+        }
+    }
+    if text.ends_with('\n') {
+        out.push('\n');
+    }
+    out
+}
+
+/// Rewrite the declared current-policy toolchain row in `docs/standards/dependency-policy.md`
+/// (`| Rust toolchain | <v> stable | ...`), which `oya-deps.toml` declares as a
+/// `sync-rust-pin` managed file.
+fn rewrite_dependency_policy_row(text: &str, old: &str, new: &str) -> String {
+    text.replace(
+        &format!("Rust toolchain | {old} stable"),
+        &format!("Rust toolchain | {new} stable"),
+    )
+}
+
+/// Dispatch the surgical rewrite for one candidate path. Every category targets exactly the pin
+/// fields the freshness drift evaluator (and the ADR-0535 gate) enforce; nothing else in a file
+/// is rewritten.
+fn rewrite_for_path(rel: &str, text: &str, old: &str, new: &str) -> String {
+    if rel == "rust-toolchain.toml" {
+        rewrite_toml_key(text, "channel", old, new)
+    } else if rel == "oya-deps.toml" {
+        rewrite_toml_key(text, "pin", old, new)
+    } else if rel == "Cargo.toml" || rel.ends_with("/Cargo.toml") {
+        rewrite_toml_key(text, "rust-version", old, new)
+    } else if rel.ends_with("manifest.json") || rel.ends_with("supported-oses.json") {
+        rewrite_json_rust_pins(text, old, new)
+    } else if is_dockerfile_path(rel) {
+        rewrite_docker_pins(text, old, new)
+    } else if rel.starts_with(".github/workflows/") {
+        rewrite_workflow_pins(text, old, new)
+    } else if rel.starts_with("toolchains/") {
+        rewrite_version_boundary(text, old, new)
+    } else if rel == DEPENDENCY_POLICY_DOC {
+        rewrite_dependency_policy_row(text, old, new)
+    } else if active_text_path(rel) {
+        // Curated: only `rust:` image refs — never blanket version tokens in documentation.
+        rewrite_image_refs(text, "rust:", old, new)
+    } else {
+        text.to_owned()
+    }
 }
 
 /// One file in a bump plan.
@@ -303,7 +450,7 @@ pub fn plan_bump(repo_root: &Path, old: &str, new: &str) -> Result<BumpPlan, Pro
     for rel in candidate_paths(repo_root)? {
         let text = fs::read_to_string(repo_root.join(&rel))
             .map_err(|error| io_error(&format!("read {rel}"), error))?;
-        let rewritten = rewrite_version_boundary(&text, old, new);
+        let rewritten = rewrite_for_path(&rel, &text, old, new);
         files.push(PlannedFile {
             path: rel,
             changed: rewritten != text,
@@ -323,7 +470,7 @@ pub fn apply_plan(repo_root: &Path, plan: &BumpPlan) -> Result<(), ProposerError
         let path = repo_root.join(&file.path);
         let text = fs::read_to_string(&path)
             .map_err(|error| io_error(&format!("read {}", file.path), error))?;
-        let rewritten = rewrite_version_boundary(&text, &plan.old, &plan.new);
+        let rewritten = rewrite_for_path(&file.path, &text, &plan.old, &plan.new);
         fs::write(&path, rewritten)
             .map_err(|error| io_error(&format!("write {}", file.path), error))?;
     }
@@ -344,9 +491,20 @@ impl ResidualDrift {
     }
 }
 
-/// Verify the tree against BOTH enforcement surfaces after a bump: the freshness rust-toolchain
-/// drift evaluator and the ADR-0535 dependency-automation gate. Fails closed: any finding is
-/// surfaced, never guessed around.
+fn render_residual(residual: &ResidualDrift) -> String {
+    let mut out = String::new();
+    for finding in &residual.drift_findings {
+        out.push_str(&format!("\n  drift: {finding}"));
+    }
+    for finding in &residual.gate_findings {
+        out.push_str(&format!("\n  gate: {finding}"));
+    }
+    out
+}
+
+/// Verify the tree against BOTH enforcement surfaces: the freshness rust-toolchain drift
+/// evaluator and the ADR-0535 dependency-automation gate. Fails closed: any finding is surfaced,
+/// never guessed around.
 pub fn verify_clean(repo_root: &Path) -> Result<ResidualDrift, ProposerError> {
     let drift = evaluate_rust_toolchain_drift(repo_root)?;
     let drift_findings = drift
@@ -364,6 +522,92 @@ pub fn verify_clean(repo_root: &Path) -> Result<ResidualDrift, ProposerError> {
     Ok(ResidualDrift {
         drift_findings,
         gate_findings,
+    })
+}
+
+/// Outcome of a reconciliation pass.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ReconcileOutcome {
+    /// The pinned channel already equals the desired latest stable AND the tree is drift-clean.
+    UpToDate,
+    /// The tree was rewritten to the desired pin and both validators certify it clean.
+    Bumped,
+}
+
+impl Display for ReconcileOutcome {
+    fn fmt(&self, formatter: &mut Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str(match self {
+            ReconcileOutcome::UpToDate => "up-to-date",
+            ReconcileOutcome::Bumped => "bumped",
+        })
+    }
+}
+
+/// Machine-readable reconciliation report — the declarative surface a scheduled workflow or the
+/// future typed cloud-ci runner consumes.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ReconcileReport {
+    pub current: String,
+    pub latest: String,
+    pub outcome: ReconcileOutcome,
+    pub changed_files: Vec<String>,
+}
+
+/// Reconcile the tree to the desired latest stable pin — the primary entry point of this
+/// capability.
+///
+/// - A `latest` that is OLDER than the pinned channel fails closed (never rewrites backward).
+/// - A `latest` EQUAL to the pinned channel still runs both residual-drift validators; a stale
+///   tree (partial prior update, or drift introduced by another change) is reported as an error,
+///   never as "up to date".
+/// - A newer `latest` plans, applies, then re-verifies with the freshness drift evaluator AND the
+///   ADR-0535 gate; residual drift after the rewrite fails closed.
+pub fn reconcile(repo_root: &Path, latest: &str) -> Result<ReconcileReport, ProposerError> {
+    let latest = parse_stable_version(latest)?;
+    let current = current_pin(repo_root)?;
+
+    if !latest_is_newer(&current, &latest)? {
+        if current == latest {
+            let residual = verify_clean(repo_root)?;
+            if !residual.is_clean() {
+                return Err(ProposerError(format!(
+                    "pinned {current} already equals latest stable {latest}, but the tree has \
+                     residual drift; refusing to report aligned:{}",
+                    render_residual(&residual)
+                )));
+            }
+            return Ok(ReconcileReport {
+                current,
+                latest,
+                outcome: ReconcileOutcome::UpToDate,
+                changed_files: Vec::new(),
+            });
+        }
+        return Err(ProposerError(format!(
+            "supplied latest stable {latest} is not newer than the pinned {current}; refusing to \
+             rewrite the tree backward"
+        )));
+    }
+
+    let plan = plan_bump(repo_root, &current, &latest)?;
+    apply_plan(repo_root, &plan)?;
+    let residual = verify_clean(repo_root)?;
+    if !residual.is_clean() {
+        return Err(ProposerError(format!(
+            "bump {current} -> {latest} applied but residual drift remains; failing closed:{}",
+            render_residual(&residual)
+        )));
+    }
+
+    Ok(ReconcileReport {
+        current,
+        latest,
+        outcome: ReconcileOutcome::Bumped,
+        changed_files: plan
+            .changed_paths()
+            .into_iter()
+            .map(str::to_owned)
+            .collect(),
     })
 }
 
@@ -391,39 +635,106 @@ mod tests {
     }
 
     #[test]
-    fn boundary_rewrite_updates_ci_surface_shapes() {
+    fn toml_key_rewrite_targets_declared_pin_fields_only() {
+        let toolchain = "[toolchain]\nchannel = \"1.97.1\"\nprofile = \"minimal\"\n";
+        assert_eq!(
+            rewrite_toml_key(toolchain, "channel", "1.97.1", "1.98.0"),
+            "[toolchain]\nchannel = \"1.98.0\"\nprofile = \"minimal\"\n"
+        );
+        // A non-pin value of the same shape must not be touched by a different key.
+        let deps = "[rust]\npin = \"1.97.1\"\n[other]\nchannel = \"not-a-version\"\n";
+        assert_eq!(
+            rewrite_toml_key(deps, "pin", "1.97.1", "1.98.0"),
+            "[rust]\npin = \"1.98.0\"\n[other]\nchannel = \"not-a-version\"\n"
+        );
+        // Compact form.
+        assert_eq!(
+            rewrite_toml_key(
+                "rust-version=\"1.97.1\"",
+                "rust-version",
+                "1.97.1",
+                "1.98.0"
+            ),
+            "rust-version=\"1.98.0\""
+        );
+    }
+
+    #[test]
+    fn json_manifest_rewrite_targets_toolchain_keys_only() {
+        let manifest = "{\n  \"toolchain\": { \"rust\": \"1.97.1\" },\n  \"rust_toolchain\": \"1.97.1-stable\",\n  \"sdk_version\": \"1.97.1\"\n}\n";
+        let rewritten = rewrite_json_rust_pins(manifest, "1.97.1", "1.98.0");
+        assert!(rewritten.contains("\"rust\": \"1.98.0\""));
+        assert!(rewritten.contains("\"rust_toolchain\": \"1.98.0-stable\""));
+        assert!(
+            rewritten.contains("\"sdk_version\": \"1.97.1\""),
+            "unrelated JSON fields must stay"
+        );
+    }
+
+    #[test]
+    fn docker_rewrite_targets_arg_and_image_refs_only() {
+        let docker =
+            "ARG RUST_VERSION=1.97.1\nFROM rust:1.97.1-bookworm AS builder\nRUN echo 1.97.1\n";
+        let rewritten = rewrite_docker_pins(docker, "1.97.1", "1.98.0");
+        assert!(rewritten.contains("ARG RUST_VERSION=1.98.0"));
+        assert!(rewritten.contains("FROM rust:1.98.0-bookworm AS builder"));
+        assert!(
+            rewritten.contains("RUN echo 1.97.1"),
+            "unrelated shell tokens must stay"
+        );
+    }
+
+    #[test]
+    fn workflow_rewrite_touches_only_pin_lines() {
         let workflow = r#"toolchain: "1.97.1"
       toolchain: 1.97.1
 rustup toolchain install 1.97.1
 --toolchain 1.97.1-$host
 ~/.rustup/toolchains/1.97.1-aarch64-apple-darwin/bin
+uses: some/action@v1.97.1
 "#;
-        let rewritten = rewrite_version_boundary(workflow, "1.97.1", "1.98.0");
+        let rewritten = rewrite_workflow_pins(workflow, "1.97.1", "1.98.0");
         assert!(rewritten.contains("toolchain: \"1.98.0\""));
         assert!(rewritten.contains("toolchain: 1.98.0"));
         assert!(rewritten.contains("rustup toolchain install 1.98.0"));
         assert!(rewritten.contains("--toolchain 1.98.0-$host"));
         assert!(rewritten.contains("~/.rustup/toolchains/1.98.0-aarch64-apple-darwin/bin"));
+        assert!(
+            rewritten.contains("uses: some/action@v1.97.1"),
+            "action version strings are not toolchain pins and must not be rewritten"
+        );
     }
 
     #[test]
-    fn boundary_rewrite_updates_toml_docker_and_manifest_shapes() {
-        let text = r#"[toolchain]
-channel = "1.97.1"
-[rust]
-pin = "1.97.1"
-ARG RUST_VERSION=1.97.1
-FROM rust:1.97.1-bookworm AS builder
-"toolchain": "1.97.1"
-"rust_toolchain": "1.97.1-stable"
-"#;
-        let rewritten = rewrite_version_boundary(text, "1.97.1", "1.98.0");
-        assert!(rewritten.contains("channel = \"1.98.0\""));
-        assert!(rewritten.contains("pin = \"1.98.0\""));
-        assert!(rewritten.contains("ARG RUST_VERSION=1.98.0"));
-        assert!(rewritten.contains("FROM rust:1.98.0-bookworm AS builder"));
-        assert!(rewritten.contains("\"toolchain\": \"1.98.0\""));
-        assert!(rewritten.contains("\"rust_toolchain\": \"1.98.0-stable\""));
+    fn active_text_rewrite_is_rust_image_refs_only_not_blanket_docs() {
+        // The reviewer-reported corruption case: a dated LTS snapshot row and a URL ending in
+        // Rust-1.97.1/ must survive a bump untouched, while rust: image refs in the same file
+        // follow the pin.
+        let doc = "| Rust toolchain | 1.97.1 | 2026-05-28 | https://blog.rust-lang.org/2026/05/28/Rust-1.97.1/ |\n\
+                   Build stage: `rust:1.97.1-slim-trixie`, `clux/muslrust:1.97.1-stable`\n";
+        let rewritten = rewrite_image_refs(doc, "rust:", "1.97.1", "1.98.0");
+        assert!(
+            rewritten.contains("Rust-1.97.1/"),
+            "URLs must not be rewritten"
+        );
+        assert!(
+            rewritten.contains("| Rust toolchain | 1.97.1 | 2026-05-28 |"),
+            "dated snapshot rows must not be rewritten"
+        );
+        assert!(rewritten.contains("rust:1.98.0-slim-trixie"));
+        assert!(rewritten.contains("clux/muslrust:1.98.0-stable"));
+    }
+
+    #[test]
+    fn dependency_policy_row_is_the_only_curated_doc_pin() {
+        let doc = "| Rust toolchain | 1.97.1 stable | Debian / distroless base | trixie / static-debian13 |\n\
+                   compatible with the current Rust 1.97.1 workspace pin (per §1.1).\n";
+        let rewritten = rewrite_dependency_policy_row(doc, "1.97.1", "1.98.0");
+        assert!(rewritten.contains("| Rust toolchain | 1.98.0 stable |"));
+        assert!(
+            rewritten.contains("current Rust 1.97.1 workspace pin"),
+            "prose beyond the declared row must stay"
+        );
     }
 
     #[test]
@@ -464,17 +775,24 @@ FROM rust:1.97.1-bookworm AS builder
         assert!(parse_stable_version("1.98.0.1").is_err());
     }
 
-    /// Full end-to-end fixture: a minimal repo shaped like the real tree (every surface the
-    /// evaluators walk), bumped 1.97.1 -> 1.98.0, then verified clean against BOTH the freshness
-    /// drift evaluator and the ADR-0535 gate.
-    #[test]
-    fn plan_apply_verify_on_fixture_tree_is_deterministic_and_clean() {
+    static COUNTER: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+
+    fn fixture_root() -> PathBuf {
+        let nonce = COUNTER.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
         let root = std::env::temp_dir().join(format!(
-            "oya-toolchain-bump-proposer-test-{}",
+            "oya-toolchain-bump-proposer-test-{}-{nonce}",
             std::process::id()
         ));
         let _ = fs::remove_dir_all(&root);
+        root
+    }
 
+    /// Full end-to-end fixture: a minimal repo shaped like the real tree (every surface the
+    /// evaluators walk), bumped 1.97.1 -> 1.98.0 via the reconciler, then certified clean against
+    /// BOTH the freshness drift evaluator and the ADR-0535 gate.
+    #[test]
+    fn reconcile_bumps_fixture_tree_deterministically_and_clean() {
+        let root = fixture_root();
         write(&root, "specs/root-hub-pointers.json", "{}\n");
         write(
             &root,
@@ -507,25 +825,30 @@ FROM rust:1.97.1-bookworm AS builder
             "tenancy/manifest.json",
             "{\n  \"toolchain\": { \"rust\": \"1.97.1\" },\n  \"rust_toolchain\": \"1.97.1-stable\"\n}\n",
         );
+        // A dated snapshot doc with a URL must survive the bump (regression for the review finding).
         write(
             &root,
-            "docs/standards/image-discipline.md",
-            "| Build stage | `rust:1.97.1-slim-trixie` | digest-pinned |\n",
+            "docs/standards/lts-versions-verified.md",
+            "| Rust toolchain | 1.97.1 | 2026-05-28 | https://blog.rust-lang.org/2026/05/28/Rust-1.97.1/ |\n\
+             Build stage: `rust:1.97.1-slim-trixie`\n",
+        );
+        write(
+            &root,
+            "docs/standards/dependency-policy.md",
+            "| Rust toolchain | 1.97.1 stable | Debian / distroless base | trixie |\n",
         );
         write(&root, "deny.toml", "[licenses]\n");
         write(&root, "specs/oss-stewardship-registry.json", "{}\n");
 
-        let plan = plan_bump(&root, "1.97.1", "1.98.0").expect("plan");
+        let report = reconcile(&root, "1.98.0").expect("reconcile");
+        assert_eq!(report.outcome, ReconcileOutcome::Bumped);
+        assert_eq!(report.current, "1.97.1");
+        assert_eq!(report.latest, "1.98.0");
         assert!(
-            plan.changed_count() >= 7,
-            "expected all surfaces planned, got {}: {:?}",
-            plan.changed_count(),
-            plan.changed_paths()
+            report.changed_files.len() >= 7,
+            "expected all pin surfaces reconciled, got {:?}",
+            report.changed_files
         );
-        // Deterministic: replanning the same tree yields the same plan.
-        assert_eq!(plan_bump(&root, "1.97.1", "1.98.0").expect("replan"), plan);
-
-        apply_plan(&root, &plan).expect("apply");
 
         assert_eq!(
             read(&root, "rust-toolchain.toml"),
@@ -544,19 +867,103 @@ FROM rust:1.97.1-bookworm AS builder
             read(&root, "tenancy/manifest.json").contains("\"rust_toolchain\": \"1.98.0-stable\"")
         );
         assert!(
-            read(&root, "docs/standards/image-discipline.md").contains("rust:1.98.0-slim-trixie")
+            read(&root, "docs/standards/lts-versions-verified.md")
+                .contains("rust:1.98.0-slim-trixie")
         );
-
-        // The bump must be idempotent: applying the same old->new again changes nothing.
-        let replan = plan_bump(&root, "1.97.1", "1.98.0").expect("replan after apply");
-        assert_eq!(replan.changed_count(), 0, "{:?}", replan.changed_paths());
+        // The dated row and URL stay intact.
+        assert!(read(&root, "docs/standards/lts-versions-verified.md").contains("Rust-1.97.1/"));
+        assert!(
+            read(&root, "docs/standards/lts-versions-verified.md")
+                .contains("| Rust toolchain | 1.97.1 | 2026-05-28 |")
+        );
+        // The declared dependency-policy row follows the pin.
+        assert!(
+            read(&root, "docs/standards/dependency-policy.md")
+                .contains("| Rust toolchain | 1.98.0 stable |")
+        );
 
         // The real evaluators must certify the tree clean.
         let residual = verify_clean(&root).expect("verify");
         assert!(
             residual.is_clean(),
-            "fixture tree must be clean after bump: {:#?}",
+            "fixture tree must be clean after reconcile: {:#?}",
             residual
+        );
+
+        // Idempotence: a second reconcile reports up-to-date.
+        let second = reconcile(&root, "1.98.0").expect("reconcile again");
+        assert_eq!(second.outcome, ReconcileOutcome::UpToDate);
+        assert!(second.changed_files.is_empty());
+
+        let _ = fs::remove_dir_all(&root);
+    }
+
+    #[test]
+    fn reconcile_rejects_older_version_fail_closed() {
+        let root = fixture_root();
+        write(&root, "specs/root-hub-pointers.json", "{}\n");
+        write(
+            &root,
+            "rust-toolchain.toml",
+            "[toolchain]\nchannel = \"1.97.1\"\n",
+        );
+        write(&root, "oya-deps.toml", &oya_deps_fixture("1.97.1"));
+        write(
+            &root,
+            "Cargo.toml",
+            "[workspace.package]\nrust-version = \"1.97.1\"\n",
+        );
+        write(&root, "Dockerfile.distroless", "ARG RUST_VERSION=1.97.1\n");
+        write(&root, "toolchains/BUCK", "# Rust 1.97.1 toolchain\n");
+        write(
+            &root,
+            "docs/standards/dependency-policy.md",
+            "| Rust toolchain | 1.97.1 stable |\n",
+        );
+        write(&root, "deny.toml", "[licenses]\n");
+        write(&root, "specs/oss-stewardship-registry.json", "{}\n");
+
+        let error = reconcile(&root, "1.96.0").expect_err("older latest must fail closed");
+        assert!(
+            error.0.contains("not newer than the pinned"),
+            "unexpected error: {error}"
+        );
+        // The tree must be untouched.
+        assert!(read(&root, "rust-toolchain.toml").contains("1.97.1"));
+
+        let _ = fs::remove_dir_all(&root);
+    }
+
+    #[test]
+    fn reconcile_equal_pin_with_stale_tree_fails_closed() {
+        let root = fixture_root();
+        write(&root, "specs/root-hub-pointers.json", "{}\n");
+        // Channel already at 1.98.0, but Cargo.toml rust-version was not updated (partial update).
+        write(
+            &root,
+            "rust-toolchain.toml",
+            "[toolchain]\nchannel = \"1.98.0\"\n",
+        );
+        write(&root, "oya-deps.toml", &oya_deps_fixture("1.98.0"));
+        write(
+            &root,
+            "Cargo.toml",
+            "[workspace.package]\nrust-version = \"1.97.1\"\n",
+        );
+        write(&root, "Dockerfile.distroless", "ARG RUST_VERSION=1.98.0\n");
+        write(&root, "toolchains/BUCK", "# Rust 1.98.0 toolchain\n");
+        write(
+            &root,
+            "docs/standards/dependency-policy.md",
+            "| Rust toolchain | 1.98.0 stable |\n",
+        );
+        write(&root, "deny.toml", "[licenses]\n");
+        write(&root, "specs/oss-stewardship-registry.json", "{}\n");
+
+        let error = reconcile(&root, "1.98.0").expect_err("equal pin with drift must fail closed");
+        assert!(
+            error.0.contains("residual drift"),
+            "unexpected error: {error}"
         );
 
         let _ = fs::remove_dir_all(&root);
