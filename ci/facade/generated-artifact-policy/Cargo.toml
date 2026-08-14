@@ -25,3 +25,7 @@ serde_json = { workspace = true }
 
 [lints]
 workspace = true
+
+[[bin]]
+name = "oya-cloud-ci-generated-output-diff-policy"
+path = "src/diff_policy.rs"

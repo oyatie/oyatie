@@ -1,7 +1,0 @@
-== status after parallel claims ==
-* codex-ip010-agent-a -- IP-010 demo: claim event ingest status symbol
-  | crates/oya-cloud-billing-application/src/lib.rs::CloudBillingEventIngestAppStatus (2026-05-14 14:01:10) [EXPIRED]
-* codex-ip010-agent-b -- IP-010 demo: claim meter unit record symbol
-  | crates/oya-cloud-billing-application/src/lib.rs::CloudBillingMeterUnitRecord (2026-05-14 14:01:10) [EXPIRED]
-
-2/30473 symbols locked

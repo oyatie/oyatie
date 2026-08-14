@@ -51,7 +51,7 @@
     {
       "gate": "affected-target-set",
       "class": "github_rest_adapter_boundary",
-      "reason": "Two owned GitHub REST adapters under affected-target-set share the (gate, hermetic_violation, reqwest) exception key and MUST share one row (rules.insert overwrites): (1) ADR-0554 D8 trusted-baseline consumer in oya-cloud-ci-build-health.rs (3 sites: client field, builder, Response type on get); (2) ADR-0711 hub-exclusivity live open-PR file-facts producer in oya-cloud-ci-hub-exclusivity.rs (2 sites: client field, builder). Both return bytes only — pure validators decide verdicts; any API/capability fault refuses reuse or FAILs closed; missing envelopes SKIP for hub-exclusivity. Ceiling 5 = exact observed count across both paths; no slack.",
+      "reason": "Two owned GitHub REST adapters under affected-target-set share the (gate, hermetic_violation, reqwest) exception key and MUST share one row (rules.insert overwrites): (1) ADR-0554 D8 trusted-baseline consumer in oya-cloud-ci-build-health.rs (3 sites: client field, builder, Response type on get); (2) ADR-0711 hub-exclusivity live open-PR file-facts producer in oya-cloud-ci-hub-exclusivity.rs (2 sites: client field, builder). Both return bytes only \u2014 pure validators decide verdicts; any API/capability fault refuses reuse or FAILs closed; missing envelopes SKIP for hub-exclusivity. Ceiling 5 = exact observed count across both paths; no slack.",
       "cutover_note": "Extract ONE shared ci/facade GitHub REST adapter crate (with scan.non_gate_crates) and delete this dual-path row when trusted-baseline, hub-exclusivity, and run-terminal-state all call it. Retire entirely when typed cloud-ci runner APIs own cross-run artifacts and concurrent open-PR file facts.",
       "fixuptask_id": "GH-1323-CUTOVER-TRUSTED-BASELINE-TYPED-ARTIFACT-API",
       "allowed_paths": [
@@ -59,48 +59,6 @@
         "ci/facade/affected-target-set/src/bin/oya-cloud-ci-hub-exclusivity.rs"
       ],
       "max_occurrences": 5,
-      "tokens": [
-        "reqwest"
-      ]
-    },
-    {
-      "gate": "build-cache-policy",
-      "class": "cache_controller_process_boundary",
-      "reason": "The cache-wiring binary is a controller adapter, not the cache-policy predicate: it starts the caller-selected Buck2 command, explicitly kills the matching isolated daemon before installing and after removing the mode-0600 cache overlay, and invokes the fixed curl client for the typed TLS 1.3 + HTTP/2 REAPI GetCapabilities probe. The three exact Command::new sites are the generic child spawn, the fixed Buck2 daemon kill, and the fixed cache-only capabilities probe. Verdicts remain in pure parsing and policy functions exercised by the gate; subprocess status and typed response validation fail closed. The exact count is closed so another process edge cannot appear without review.",
-      "cutover_note": "Retire the Buck2 subprocess sites when the typed cloud-ci runner/reconciler API owns daemon lifecycle and command execution; retire curl when the owned Rust HTTP/2 client can issue the REAPI probe without widening dependencies. The pure cache-policy library remains unchanged.",
-      "fixuptask_id": "GH-1549-CUTOVER-CACHE-CONTROLLER-TYPED-RUNNER",
-      "allowed_paths": [
-        "ci/facade/build-cache-policy/src/main.rs"
-      ],
-      "max_occurrences": 3,
-      "tokens": [
-        "Command::new"
-      ]
-    },
-    {
-      "gate": "build-cache-policy",
-      "class": "cas_reader_to_writer_denial_boundary",
-      "reason": "The commissioning controller opens one direct TCP socket to the fixed in-cluster writer endpoint and completes a TLS 1.3 handshake with the reader identity. It accepts only a typed peer client-auth rejection alert after client-flight I/O; DNS failure, timeout, EOF, server trust failure, or unrelated protocol alerts remain RED. This is negative authorization evidence, not a cache-admission verdict, and the exact one-line std::net import leaves no expansion slack.",
-      "cutover_note": "Retire this direct socket boundary when Cilium/Hubble identity telemetry or the owned workload-identity controller exposes the same reader-to-writer denial as a typed attested API receipt.",
-      "fixuptask_id": "GH-1551-CUTOVER-CAS-NETWORK-PROOF-API",
-      "allowed_paths": [
-        "ci/facade/build-cache-policy/src/main.rs"
-      ],
-      "max_occurrences": 1,
-      "tokens": [
-        "std::net"
-      ]
-    },
-    {
-      "gate": "build-cache-policy",
-      "class": "cas_workload_identity_exchange_boundary",
-      "reason": "The cache-wiring binary performs the narrow GitHub-OIDC-to-OpenBao exchange needed to mint an ephemeral writer or reader mTLS leaf. This network adapter is constrained in code to two exact role/mount/PKI-role/SPIFFE tuples, HTTPS OpenBao, a pinned public CA, sensitive token headers, three-hour leaves, and mode-0600 no-clobber output. It does not decide cache admission or licensing; pure policy and canary predicates retain those verdicts. Nine is the exact reqwest token count in this single source path (imports/type construction plus the three response decode chains), leaving no slack for an unreviewed network expansion.",
-      "cutover_note": "Retire this boundary when the owned workload-identity broker/controller issues the scoped CAS SVID and mounts it into ephemeral runners; then delete reqwest from build-cache-policy and keep only the pure cache-mode/canary logic.",
-      "fixuptask_id": "GH-1549-CUTOVER-CAS-IDENTITY-BROKER",
-      "allowed_paths": [
-        "ci/facade/build-cache-policy/src/main.rs"
-      ],
-      "max_occurrences": 9,
       "tokens": [
         "reqwest"
       ]
@@ -195,6 +153,21 @@
         "std::process::Command",
         "Command::new"
       ]
+    },
+    {
+      "gate": "automation-language-policy",
+      "class": "orchestrator_external_execution_boundary",
+      "reason": "The gate reads its own frozen policy from the immutable merge-base (origin/dev) via git show so a candidate PR cannot repoint the protected reference it is checked against; three Command::new sites span the protected-policy loader and rename detection, and one std::process::Command import. All verdicts are pure comparisons over the read bytes.",
+      "cutover_note": "When the protected baseline moves to a controller-materialized face, the git-show sites retire and this row shrinks to zero.",
+      "fixuptask_id": "GH-AUTOMATION-LANGUAGE-POLICY-TYPED-BASELINE",
+      "allowed_paths": [
+        "ci/facade/automation-language-policy/src/lib.rs"
+      ],
+      "max_occurrences": 4,
+      "tokens": [
+        "Command::new",
+        "std::process::Command"
+      ]
     }
   ],
   "policy_literal_exceptions": [
@@ -220,7 +193,7 @@
     "canonical-json": "This gate already ships an explicit --fix path; the policy reason remains as documentation for adopters that disable rewriting.",
     "contract-slice-conformance": "Contract-slice findings (missing required field, forbidden interpreter/CLI marker in a spec, enum/array/object-member violation, or a bad migration declaration) are repaired by the slice author editing the committed spec JSON or the contract-slice-policy DATA; there is no safe mechanical rewrite of a contract's meaning.",
     "core-dependency-isolation": "Kernel-purity ships a fixer for dependency declarations, but topology and semantic validation failures still require reviewed source changes.",
-    "corpus-index-coverage": "Closing a coverage finding means choosing where an artifact belongs in the build graph — which package should own it, or whether a new package should exist at all. An autofix could only stamp an extraction genrule onto whatever package happens to sit nearest, which is exactly the junk-drawer placement the capability-membership rules forbid; and for the unpackaged term there is no package to stamp anything onto.",
+    "corpus-index-coverage": "Closing a coverage finding means choosing where an artifact belongs in the build graph \u2014 which package should own it, or whether a new package should exist at all. An autofix could only stamp an extraction genrule onto whatever package happens to sit nearest, which is exactly the junk-drawer placement the capability-membership rules forbid; and for the unpackaged term there is no package to stamp anything onto.",
     "crate-catalog-coverage": "A catalog row's context, role, capability, plane, SLO tier, and data/operational classes are governance DECLARATIONS, not facts derivable from the crate; a gate that authored them would be fabricating ownership and data-classification metadata that later gates then treat as authoritative. For the move case the gate emits the exact `git mv registry/catalog/<old>.yaml registry/catalog/<new>.yaml` command in its finding, so remediation is one reviewed copy-paste rather than a silent rewrite.",
     "crate-layer-suffix": "Crate naming and layer placement are design decisions; an automatic rename would break imports, manifests, and ownership without review.",
     "crate-name-prefix": "Prefix violations are migration-sensitive naming decisions; remediation is a reviewed rename or neutral-profile policy change.",
@@ -259,6 +232,7 @@
     "supply-chain-audit": "Supply-chain findings require dependency upgrades, vendor review, or explicit security decisions.",
     "topology-manifest-contract": "Cell topology manifest contract findings require source-of-truth spec, fixture, root-hub, or ADR-scope decisions; the gate must not synthesize topology or residency evidence.",
     "workspace-member-coverage": "Workspace glob coverage findings require workspace membership or exclusion policy changes, not blind manifest edits.",
-    "reset-eligibility-policy": "Reset eligibility findings require new provider inventory, recovery proof, retention/legal decisions, and independent approvals; the gate must never fabricate evidence or authorize deletion."
+    "reset-eligibility-policy": "Reset eligibility findings require new provider inventory, recovery proof, retention/legal decisions, and independent approvals; the gate must never fabricate evidence or authorize deletion.",
+    "automation-language-policy": "Rust-first hygiene findings name the offending non-Rust bridge or inline-shell step; remediation is removing the bridge or reviewing a replacement-window baseline edit, which no auto-fix may invent."
   }
 }

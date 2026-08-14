@@ -1196,9 +1196,7 @@ mod tests {
         )
         .expect("test symbol fixture");
         std::fs::write(
-            root.join(
-                "docs/decisions/ADR-0700-ci-admission-live-apex.md",
-            ),
+            root.join("docs/decisions/ADR-0700-ci-admission-live-apex.md"),
             "# ADR-0515\n",
         )
         .expect("admission fixture");
