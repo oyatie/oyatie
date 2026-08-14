@@ -861,8 +861,14 @@ fn ensure_or_create_directory_chain(
             }
             Ok(_) => {}
             Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
-                std::fs::create_dir(&directory)
-                    .map_err(|error| format!("create {label} directory {component:?}: {error}"))?;
+                match std::fs::create_dir(&directory) {
+                    Ok(()) => {}
+                    // Tolerate a concurrent creator, matching the Unix mkdirat path.
+                    Err(error) if error.kind() == std::io::ErrorKind::AlreadyExists => {}
+                    Err(error) => {
+                        return Err(format!("create {label} directory {component:?}: {error}"));
+                    }
+                }
             }
             Err(error) => {
                 return Err(format!("inspect {label} directory {component:?}: {error}"));
@@ -2593,7 +2599,8 @@ mod tests {
     #[test]
     fn non_unix_writers_materialize_canonical_faces_through_the_real_boundary() {
         let root = std::env::temp_dir().join(format!(
-            "retirement-non-unix-writer-{}",
+            "retirement-non-unix-writer-{}-{}",
+            std::process::id(),
             NEXT_ATOMIC_WRITE_ID.fetch_add(1, Ordering::Relaxed)
         ));
         std::fs::create_dir(&root).expect("create non-unix writer repository");
@@ -2652,7 +2659,8 @@ mod tests {
     #[test]
     fn non_unix_writers_still_fail_closed_on_boundary_violations() {
         let root = std::env::temp_dir().join(format!(
-            "retirement-non-unix-boundary-{}",
+            "retirement-non-unix-boundary-{}-{}",
+            std::process::id(),
             NEXT_ATOMIC_WRITE_ID.fetch_add(1, Ordering::Relaxed)
         ));
         std::fs::create_dir(&root).expect("create non-unix boundary repository");
