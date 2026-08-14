@@ -32,7 +32,12 @@ resource "kubernetes_manifest" "openbao_cluster_store" {
               mountPath      = "kubernetes"
               role           = "external-secrets"
               serviceAccountRef = {
-                name = "external-secrets-sa"
+                # Matches the installed ESO bootstrap ServiceAccount
+                # (infra/external-secrets/*): name external-secrets in the
+                # external-secrets namespace — without the namespace the store
+                # cannot authenticate to OpenBao.
+                name      = "external-secrets"
+                namespace = "external-secrets"
               }
             }
           }

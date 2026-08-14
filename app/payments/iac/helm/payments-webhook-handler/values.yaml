@@ -11,6 +11,11 @@ webhookHandler:
   # 6 replicas: high-availability for inbound webhook storm (PSP recovery surge)
   # HPA scales up to 256 during webhook-storm per runbooks/psp-outage.md
 
+  # Webhook serving port: the gateway/network-policy contract routes PSP
+  # callbacks to this port (app/payments/iac/network-policy 8443 TCP/UDP).
+  service:
+    port: 8443
+
   runtimeClassName: kata-clh
 
   resources:

@@ -26,6 +26,8 @@ spec:
           image: "{{ .Values.webhookHandler.image.repository }}:{{ .Values.webhookHandler.image.tag }}"
           imagePullPolicy: {{ .Values.webhookHandler.image.pullPolicy }}
           ports:
+            - name: http
+              containerPort: {{ .Values.webhookHandler.service.port }}
             - name: metrics
               containerPort: {{ .Values.webhookHandler.metrics.port }}
           resources:
