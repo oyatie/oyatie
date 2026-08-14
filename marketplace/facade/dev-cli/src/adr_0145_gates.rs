@@ -74,10 +74,14 @@ fn list_microservice_subpaths(root: &Path, relative: &str) -> Vec<PathBuf> {
 fn service_dirs_from_roots(roots: &[PathBuf]) -> Vec<PathBuf> {
     let mut out = Vec::new();
     for root in roots {
-        let Ok(entries) = fs::read_dir(root) else { continue; };
+        let Ok(entries) = fs::read_dir(root) else {
+            continue;
+        };
         for entry in entries.flatten() {
             let p = entry.path();
-            if p.is_dir() { out.push(p); }
+            if p.is_dir() {
+                out.push(p);
+            }
         }
     }
     out
@@ -108,49 +112,47 @@ pub(crate) fn run_high_risk_auto_decision_refusal(args: Vec<String>) -> ExitCode
 
     let mut capabilities = Vec::new();
     for root in &roots {
-    for path in list_microservice_subpaths(root, "capabilities") {
-        let Ok(entries) = fs::read_dir(&path) else {
-            continue;
-        };
-        let microservice = microservice_name_for(&path).unwrap_or_default();
-        for entry in entries.flatten() {
-            let p = entry.path();
-            if p.extension().and_then(|e| e.to_str()) != Some("yaml") {
+        for path in list_microservice_subpaths(root, "capabilities") {
+            let Ok(entries) = fs::read_dir(&path) else {
                 continue;
-            }
-            if let Some(contents) = read_optional_string(&p) {
-                capabilities.push(high_risk_refusal_check::CapabilityDocument {
-                    path: p.to_string_lossy().to_string(),
-                    microservice: microservice.clone(),
-                    contents,
-                });
+            };
+            let microservice = microservice_name_for(&path).unwrap_or_default();
+            for entry in entries.flatten() {
+                let p = entry.path();
+                if p.extension().and_then(|e| e.to_str()) != Some("yaml") {
+                    continue;
+                }
+                if let Some(contents) = read_optional_string(&p) {
+                    capabilities.push(high_risk_refusal_check::CapabilityDocument {
+                        path: p.to_string_lossy().to_string(),
+                        microservice: microservice.clone(),
+                        contents,
+                    });
+                }
             }
         }
-    }
-
     }
     let mut cedar_fragments = Vec::new();
     for root in &roots {
-    for path in list_microservice_subpaths(root, "policy") {
-        let Ok(entries) = fs::read_dir(&path) else {
-            continue;
-        };
-        let microservice = microservice_name_for(&path).unwrap_or_default();
-        for entry in entries.flatten() {
-            let p = entry.path();
-            if p.extension().and_then(|e| e.to_str()) != Some("cedar") {
+        for path in list_microservice_subpaths(root, "policy") {
+            let Ok(entries) = fs::read_dir(&path) else {
                 continue;
-            }
-            if let Some(contents) = read_optional_string(&p) {
-                cedar_fragments.push(high_risk_refusal_check::CedarPolicyDocument {
-                    path: p.to_string_lossy().to_string(),
-                    microservice: microservice.clone(),
-                    contents,
-                });
+            };
+            let microservice = microservice_name_for(&path).unwrap_or_default();
+            for entry in entries.flatten() {
+                let p = entry.path();
+                if p.extension().and_then(|e| e.to_str()) != Some("cedar") {
+                    continue;
+                }
+                if let Some(contents) = read_optional_string(&p) {
+                    cedar_fragments.push(high_risk_refusal_check::CedarPolicyDocument {
+                        path: p.to_string_lossy().to_string(),
+                        microservice: microservice.clone(),
+                        contents,
+                    });
+                }
             }
         }
-    }
-
     }
     let (report, violations) =
         high_risk_refusal_check::audit_all_violations(capabilities, cedar_fragments);
@@ -191,18 +193,17 @@ pub(crate) fn run_slsa_l3_evidence_grounded(args: Vec<String>) -> ExitCode {
 
     let mut scorecards = Vec::new();
     for root in &roots {
-    for path in list_microservice_subpaths(root, "scorecards") {
-        let microservice = microservice_name_for(&path).unwrap_or_default();
-        let overrides = path.join("overrides.json");
-        if let Some(contents) = read_optional_string(&overrides) {
-            scorecards.push(slsa_check::ScorecardOverrideDocument {
-                path: overrides.to_string_lossy().to_string(),
-                microservice,
-                contents,
-            });
+        for path in list_microservice_subpaths(root, "scorecards") {
+            let microservice = microservice_name_for(&path).unwrap_or_default();
+            let overrides = path.join("overrides.json");
+            if let Some(contents) = read_optional_string(&overrides) {
+                scorecards.push(slsa_check::ScorecardOverrideDocument {
+                    path: overrides.to_string_lossy().to_string(),
+                    microservice,
+                    contents,
+                });
+            }
         }
-    }
-
     }
     let mut workflows = Vec::new();
     if let Ok(entries) = fs::read_dir(&workflows_dir) {

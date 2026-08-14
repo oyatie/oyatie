@@ -17,68 +17,32 @@ fn workflow() -> String {
         .expect("read required workflow")
 }
 
-fn affected_job(workflow: &str) -> &str {
-    let start = workflow
-        .find("  gate-affected-target-set:\n")
-        .expect("affected-set job exists");
-    let tail = &workflow[start..];
-    let end = tail[1..]
-        .find("\n  gate-")
-        .map_or(tail.len(), |offset| offset + 1);
-    &tail[..end]
-}
-
 #[test]
-fn actions_read_is_job_scoped_to_the_only_consumer() {
+fn affected_set_job_is_retired_and_hub_exclusivity_runs_in_the_test_job() {
     let workflow = workflow();
+    assert!(
+        !workflow.contains("  gate-affected-target-set:"),
+        "the affected-set lane is retired; cargo test --workspace is the affected set (ADR-0716)"
+    );
+    assert!(
+        !workflow.contains("--trusted-baseline"),
+        "the trusted-baseline artifact machinery is retired with the lane"
+    );
+    assert!(
+        workflow.contains("oya-cloud-ci-hub-exclusivity"),
+        "the hub-exclusivity producer must still be invoked by the merge path"
+    );
+    assert!(
+        workflow.contains("--live-open-prs"),
+        "hub-exclusivity must opt into live open-PR file facts (not fixture-only)"
+    );
+    assert!(
+        workflow.contains("pull-requests: read"),
+        "the invoking job needs pull-requests:read for open PR + files list REST"
+    );
     let header = workflow.split("\njobs:\n").next().expect("workflow header");
-    assert!(!header.contains("  actions: read"));
-
-    let job = affected_job(&workflow);
-    assert!(job.contains("    permissions:\n      contents: read\n      actions: read\n"));
-}
-
-#[test]
-fn hub_exclusivity_live_producer_is_invoked_on_binding_affected_set_step() {
-    let workflow = workflow();
-    let job = affected_job(&workflow);
     assert!(
-        job.contains("oya-cloud-ci-hub-exclusivity-bin"),
-        "binding step must build the hub-exclusivity producer binary"
+        !header.contains("  actions: read"),
+        "actions:read must not be workflow-scoped"
     );
-    assert!(
-        job.contains("--live-open-prs"),
-        "binding step must opt into live open-PR file facts (not fixture-only)"
-    );
-    assert!(
-        job.contains("pull-requests: read"),
-        "job needs pull-requests:read for open PR + files list REST"
-    );
-}
-
-#[test]
-fn exact_producer_is_the_sole_attempt_bound_publisher_and_cold_fallback_remains() {
-    let workflow = workflow();
-    let job = affected_job(&workflow);
-
-    assert_eq!(workflow.matches("name: build-health-baseline-").count(), 1);
-    assert_eq!(workflow.matches("name: test-health-baseline-").count(), 1);
-    for kind in ["build", "test"] {
-        let binding = format!(
-            "name: {kind}-health-baseline-${{{{ github.sha }}}}-${{{{ github.run_id }}}}-${{{{ github.run_attempt }}}}-gate-affected-target-set"
-        );
-        assert!(
-            job.contains(&binding),
-            "missing exact artifact binding {binding}"
-        );
-    }
-    assert_eq!(
-        job.matches("github.event_name == 'push' && github.ref == 'refs/heads/dev'")
-            .count(),
-        2
-    );
-    assert!(job.contains("--trusted-baseline"));
-    assert!(job.contains("git worktree add --quiet --detach"));
-    assert!(job.contains("buck2 build //... --keep-going"));
-    assert!(job.contains("buck2 test //... --keep-going"));
 }

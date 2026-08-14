@@ -25,7 +25,7 @@ const PROTECTED_BASE_REF: &str = "origin/dev";
 const POLICY_REPO_PATH: &str =
     "ci/facade/automation-language-policy/rust-first-automation-policy.json";
 
-pub const VIOLATION_CODES: [&str; 19] = [
+pub const VIOLATION_CODES: [&str; 20] = [
     "rust_first_automation_gate_id_mismatch",
     "rust_first_automation_exception_duplicate",
     "rust_first_automation_exception_missing_field",
@@ -65,6 +65,11 @@ pub const VIOLATION_CODES: [&str; 19] = [
     // Candidate policy must not narrow the merge-base scan surface to hide new debt while
     // shrinking its matching baseline.
     "rust_first_automation_scan_scope_narrowing",
+    // Reviewed-replacement window (ADR-0716): a deliberate CI redesign replaces the whole
+    // inline-shell baseline; the window must carry a +1 schema_version, a substantive reason,
+    // and a new Accepted ADR that is absent from the protected merge-base. Candidate-controlled
+    // version bumps that reuse an existing ADR cannot self-authorize.
+    "rust_first_automation_workflow_inline_shell_replacement_window_incomplete",
 ];
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -640,6 +645,45 @@ pub fn evaluate_workflow_inline_shell_keyed(
     findings
 }
 
+fn replacement_window_version(baseline: &Value) -> u64 {
+    baseline
+        .get("replacement_window")
+        .and_then(|window| window.get("schema_version"))
+        .and_then(Value::as_u64)
+        .unwrap_or(0)
+}
+
+fn replacement_window_adr(baseline: &Value) -> &str {
+    baseline
+        .get("replacement_window")
+        .and_then(|window| window.get("adr"))
+        .and_then(Value::as_str)
+        .unwrap_or_default()
+}
+
+fn replacement_adr_is_well_formed(adr: &str) -> bool {
+    adr.starts_with("docs/decisions/ADR-")
+        && adr.ends_with(".md")
+        && adr
+            .strip_prefix("docs/decisions/ADR-")
+            .and_then(|rest| rest.strip_suffix(".md"))
+            .is_some_and(|slug| {
+                slug.len() > 4
+                    && slug[..4].bytes().all(|b| b.is_ascii_digit())
+                    && slug[4..]
+                        .bytes()
+                        .all(|b| b.is_ascii_alphanumeric() || b == b'-')
+            })
+}
+
+fn replacement_window_finding(detail: impl Into<String>) -> Finding {
+    Finding::new(
+        "rust_first_automation_workflow_inline_shell_replacement_window_incomplete",
+        "replacement_window",
+        detail,
+    )
+}
+
 /// Enforce the immutable merge-base workflow baseline as an anti-expansion ceiling. A candidate
 /// may remove an accepted shell step or reduce its line count, but it may not add a baseline key
 /// or raise a line-count ceiling to waive newly introduced workflow shell debt.
@@ -648,6 +692,47 @@ pub fn validate_workflow_inline_shell_baseline_ceiling(
     protected_baseline: &Value,
 ) -> BTreeSet<Finding> {
     let mut findings = BTreeSet::new();
+    // ADR-0716 reviewed-replacement window: a deliberate CI redesign may replace the whole
+    // inline-shell baseline by declaring `replacement_window` with schema_version == protected + 1,
+    // a substantive reason, and a *new* well-formed ADR path (not the consumed protected ADR).
+    // Without the window the ceiling stays shrink-only (one-way door). JSON metadata alone still
+    // cannot self-authorize: [`validate_replacement_window_authorization`] requires the named ADR
+    // to exist, be Accepted, and be absent from the protected merge-base tree.
+    if candidate_baseline.get("replacement_window").is_some() {
+        let candidate_version = replacement_window_version(candidate_baseline);
+        let protected_version = replacement_window_version(protected_baseline);
+        if candidate_version > protected_version {
+            let reason = candidate_baseline
+                .get("replacement_window")
+                .and_then(|window| window.get("reason"))
+                .and_then(Value::as_str)
+                .unwrap_or_default();
+            let adr = replacement_window_adr(candidate_baseline);
+            let protected_adr = replacement_window_adr(protected_baseline);
+            if candidate_version != protected_version.saturating_add(1) {
+                findings.insert(replacement_window_finding(
+                    "a reviewed baseline replacement must bump schema_version by exactly 1; \
+                     arbitrary candidate-controlled jumps cannot self-authorize",
+                ));
+            }
+            if reason.trim().len() < 40 {
+                findings.insert(replacement_window_finding(
+                    "a reviewed baseline replacement must carry a substantive (>= 40 trimmed chars) reason",
+                ));
+            }
+            if !replacement_adr_is_well_formed(adr) {
+                findings.insert(replacement_window_finding(
+                    "the replacement window's adr must be a well-formed docs/decisions/ADR-NNNN-<topic>.md path",
+                ));
+            } else if !protected_adr.is_empty() && adr == protected_adr {
+                findings.insert(replacement_window_finding(
+                    "a replacement must name a new ADR; reusing the protected window's ADR cannot \
+                     self-authorize another bump",
+                ));
+            }
+            return findings;
+        }
+    }
     let candidate_entries = baseline_workflow_shell_entries(candidate_baseline, &mut findings);
     let protected_entries = baseline_workflow_shell_entries(protected_baseline, &mut findings);
 
@@ -673,6 +758,75 @@ pub fn validate_workflow_inline_shell_baseline_ceiling(
             }
             Some(_) => {}
         }
+    }
+
+    findings
+}
+
+/// Bind a replacement-window bump to an exact reviewed transition: the named ADR must exist in
+/// the candidate tree, be Accepted, match its filename id, and be absent from the protected
+/// merge-base. Reusing any ADR already on `origin/dev` (including the consumed window's ADR)
+/// cannot authorize a new baseline rewrite.
+pub fn validate_replacement_window_authorization(
+    candidate_baseline: &Value,
+    protected_baseline: &Value,
+    repo_root: &Path,
+) -> BTreeSet<Finding> {
+    let mut findings = BTreeSet::new();
+    if candidate_baseline.get("replacement_window").is_none() {
+        return findings;
+    }
+    let candidate_version = replacement_window_version(candidate_baseline);
+    let protected_version = replacement_window_version(protected_baseline);
+    if candidate_version <= protected_version {
+        return findings;
+    }
+    let adr = replacement_window_adr(candidate_baseline);
+    if !replacement_adr_is_well_formed(adr) {
+        return findings;
+    }
+
+    let adr_path = repo_root.join(adr);
+    match fs::read_to_string(&adr_path) {
+        Err(_) => {
+            findings.insert(replacement_window_finding(format!(
+                "the replacement window ADR must exist in this PR: {adr}"
+            )));
+        }
+        Ok(text) => {
+            if !text.contains("status: Accepted") {
+                findings.insert(replacement_window_finding(
+                    "the replacement window's ADR must be Accepted",
+                ));
+            }
+            let number = adr
+                .strip_prefix("docs/decisions/ADR-")
+                .and_then(|rest| rest.get(..4))
+                .unwrap_or_default();
+            if !text.contains(&format!("id: ADR-{number}")) {
+                findings.insert(replacement_window_finding(
+                    "the replacement window ADR frontmatter id must match its filename number",
+                ));
+            }
+        }
+    }
+
+    let source = GitCliFrozenPolicySource { repo_root };
+    match source.merge_base(PROTECTED_BASE_REF) {
+        Err(_) => {
+            findings.insert(replacement_window_finding(
+                "cannot admit a replacement window without a resolvable protected merge-base",
+            ));
+        }
+        Ok(merge_base) => match source.show_file(&merge_base, adr) {
+            Ok(_) => {
+                findings.insert(replacement_window_finding(
+                    "the named ADR already exists on the protected merge-base; a replacement must \
+                     introduce a new ADR in this PR",
+                ));
+            }
+            Err(_) => {}
+        },
     }
 
     findings
