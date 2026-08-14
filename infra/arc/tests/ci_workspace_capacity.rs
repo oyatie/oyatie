@@ -1249,7 +1249,7 @@ fn openbao_tls_and_github_identity_migration_is_exact_and_secret_free() {
         );
         assert_eq!(payload["bound_claims"]["repository_id"], "1236575706");
         assert_eq!(payload["bound_claims"]["repository_owner_id"], "56489493");
-        assert_eq!(payload["bound_claims"]["repository_visibility"], "private");
+        assert_eq!(payload["bound_claims"]["repository_visibility"], "public");
         assert_eq!(payload["bound_claims"]["runner_environment"], "self-hosted");
         assert_eq!(
             payload["bound_claims"]["sub"],
