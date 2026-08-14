@@ -1,8 +1,8 @@
 # Kernel unblock design — `kernel-move-plan.BLOCKED.json` resolution card
 
 **Class:** mixed (refactor → move) · **Capability span:** single (`kernel` meta dir, kuberos framekernel)
-**Authority re-queried:** ADR-0701 (live apex), ADR-0562 §8 Fork 2, ADR-0512 kernel carve-out, ADR-0611 (Proposed; kernel/ asterinas workspace landed on dev)
-**Status:** dispatcher-ready design; NOT executable until the three blockers below clear and the move-plan singleton is free.
+**Authority re-queried:** ADR-0701 (live apex), ADR-0562 §8 Fork 2, ADR-0512 kernel carve-out, ADR-0611 (Proposed; kernel/ asterinas workspace landed on dev), `specs/integ-branch-envelopes.json#W-cloud-leaf-cloud-kernel` judgment
+**Status:** planning-only / blocked — **NON-DISPATCHING**, explicitly subordinate to `/specs/masterplan.json#masterplan_v2`. The live `planning_entry_contract` is `state: open` with `binding_plan_approval_allowed: false` and `dispatch_allowed: false`, so no execution-wave dispatch may originate from this card until the §Pre-dispatch gates clear. NOT dispatcher-ready.
 **Suggested owner profile:** reorg worker with codemod (`tools/oya-reorg-codemod-app`) + nested-workspace expertise; platform-governance reviewer.
 
 ## Source context
@@ -50,6 +50,18 @@ kernel/
 - The ADR-0611 asterinas crates move `kernel/{core,harness}` → `kernel/asterinas/{core,harness}` in
   the SAME PR (a small intra-kernel move) so both workspaces have clean roots.
 
+**Authority-change prerequisite (envelope conflict):** the accepted
+`specs/integ-branch-envelopes.json#W-cloud-leaf-cloud-kernel` judgment (`judgment_status: done`,
+`land_status: ready_for_integ_kernel`) requires one rung-0 META workspace with the framekernel
+absorbed into `kernel/{core,harness}` and names that as the forever shape, including the
+`finops_unit_cost` challenge "one nested kernel workspace forever avoids duplicate CI graphs".
+This card's two-workspace topology (kuberos + asterinas) therefore **amends that judgment**; the
+toolchain/edition conflict above is the mechanical evidence for the amendment. The B1 split PR
+must land that envelope authority change (amendment/OVERRULE of `W-cloud-leaf-cloud-kernel` to the
+two-nested-workspace shape, with the five-field doctrine record) **before** this card can be
+dispatched — see §Pre-dispatch gates. This card neither silently overrules the envelope nor
+dispatches against it.
+
 **Acceptance criteria:** one nested workspace per rung; `cargo metadata` resolves in both; no
 cross-workspace path-deps between kuberos and asterinas (they are disjoint ladders).
 
@@ -63,7 +75,8 @@ Landed via PR #1523 (`fa1292c89 fix(reorg-codemod): make the oracle see the work
 migrating`). Re-verified at `origin/dev@4a4f71a14` by reading the source and dry-running the
 blocked plan: the workspace-dependency refusal no longer fires.
 
-**Remaining B2 action:** none (the codemod change is on trunk).
+**Remaining B2 action:** none (the codemod change is on trunk). B2 is NOT a blocker and no
+sequencing step dispatches a duplicate enhancement for it.
 
 ## Blocker B3 — 33 escaping include!/include_bytes!/include_str! literals
 
@@ -96,6 +109,7 @@ the kuberos move waits on it. Not on the baseline-burn critical path (21 rows vs
 
 ## Non-goals
 
-- No touching `os/` (separate lane, already dest-verified).
+- No touching `os/` (separate lane, already dest-verified); the four `cloud/cloud-os/*` crates
+  stay under `cloud/` until that lane.
 - No behavior change to the framekernel; the move is byte-preserving modulo paths.
 - No merge of the two nested workspaces into one (rejected: unresolvable toolchain/edition values).
