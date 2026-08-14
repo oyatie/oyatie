@@ -211,9 +211,8 @@ const CLOUD_SUBSTRATE_MANIFESTS: [&str; 21] = [
 /// Forever → transitional source still present on origin/dev until forever bytes land
 /// (#1659 kernel; #1926 os). Drop an entry when the transitional path is burned and the
 /// forever path is on trunk.
-const CLOUD_SUBSTRATE_MANIFEST_FALLBACKS: &[(&str, &str)] = &[
-    ("kernel/manifest.json", "cloud/cloud-kernel/manifest.json"),
-];
+const CLOUD_SUBSTRATE_MANIFEST_FALLBACKS: &[(&str, &str)] =
+    &[("kernel/manifest.json", "cloud/cloud-kernel/manifest.json")];
 
 fn cloud_manifest_paths(root: &Path) -> Vec<PathBuf> {
     let mut paths = Vec::new();
