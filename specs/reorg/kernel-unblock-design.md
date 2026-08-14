@@ -67,20 +67,22 @@ blocked plan: the workspace-dependency refusal no longer fires.
 
 ## Blocker B3 — 33 escaping include!/include_bytes!/include_str! literals
 
-**Class:** codemod behavior decision + pre-move refactor.
+**Class:** SPLIT and partially RESOLVED (2026-08-14 re-verify).
 
-The literals traverse up out of their own crate, and 6 name old crate directories outright; the
-`validate_no_escaping_path_literals` refusal gate (fail-closed, correct) blocks them all.
+**B3a — the 18 workspace-root ELF embeds: RESOLVED by codemod enhancement (PR #1965).**
+The refusal gate now accepts two move-invariant classes: depth-preserving moves with untouched
+targets, and targets that co-move with the workspace (the `../../../out/*.elf` shape — the
+kuberos workspace relocates as a unit and `out/` rides the move as artifact co-moves). Fixture +
+unit tests prove both; fail-closed otherwise.
 
-**Design decision (proposed), precedence from the ci-webhook-gateway lane (2026-08-14):** pre-move
-refactor relocates cross-crate include targets INTO their consuming crates (the tests-host
-`include!(…)` cases reference sibling crate sources — the included files become in-crate fixtures
-or move into the including crate), exactly like the cedar-policy restructure that unblocked the
-webhook-gateway move. The 12 freestanding user programs stay embedded via `include_bytes!` against
-the moved `out/` — re-pointed in the same PR.
-
-**Acceptance criteria:** zero `EscapingPathLiteral` refusals on dry-run; every remaining literal
-resolves inside its crate both pre- and post-move.
+**B3b — the 6 tests-host `include!` literals naming old sibling crate dirs: REMAINS, kernel-lane
+scoped.** They name the OLD directory outright, so no move preserves them; the pre-move fix must
+re-home the shared pure layout/signal/timekeep modules so the host harness (its own
+`[workspace]` root escaping the kernel's build-std config) can consume them without forking the
+single source of truth — a kernel-toolchain-harness refactor that requires the nightly
+`build-std` toolchain to verify (host harness + no_std crates must both still compile). Do NOT
+attempt blind. Sequencing: this slice runs in the kernel lane with toolchain verification, and
+the kuberos move waits on it. Not on the baseline-burn critical path (21 rows vs libs/oya).
 
 ## Sequencing
 
