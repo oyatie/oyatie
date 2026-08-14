@@ -43,11 +43,10 @@ fn discover_microservice_manifests() -> Result<Vec<PathBuf>, String> {
         if !root.exists() {
             continue;
         }
-        let entries = fs::read_dir(root)
-            .map_err(|error| format!("unable to read {root_str}/: {error}"))?;
+        let entries =
+            fs::read_dir(root).map_err(|error| format!("unable to read {root_str}/: {error}"))?;
         for entry in entries {
-            let entry =
-                entry.map_err(|error| format!("unable to walk {root_str}/: {error}"))?;
+            let entry = entry.map_err(|error| format!("unable to walk {root_str}/: {error}"))?;
             let path = entry.path();
             if !path.is_dir() {
                 continue;
@@ -132,10 +131,8 @@ pub(crate) fn validate_authz_tier_discipline_gate(
                     Ok(text) => text,
                     Err(_) => continue,
                 };
-                let report = check_authz_tier_discipline::scan_cedar(
-                    &cedar.display().to_string(),
-                    &body,
-                );
+                let report =
+                    check_authz_tier_discipline::scan_cedar(&cedar.display().to_string(), &body);
                 total_findings += report.findings.len();
                 cedar_files_scanned += 1;
             }

@@ -68,19 +68,18 @@ destination layout.
 
 ## Build & verify
 
-Hermetic buck2 graph — a clean checkout builds and tests with no setup script (see
-[`README.md`](README.md#build--verify)):
+Cargo workspace graph — the CI merge path (see [`README.md`](README.md#build--verify)):
 
 | Command | Purpose |
 |---|---|
-| `buck2 build //cloud/cloud-ci/...` | Primary build — scope the target pattern to your lane |
-| `buck2 test //cloud/cloud-ci/...` | Primary test — BUCK + reindeer wiring is part of done |
-| `cargo test` / `cargo clippy` | Supplementary local feedback only, never merge evidence |
-| `buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin` | Regenerate `*.generated.json` faces — never hand-edit |
+| `cargo fmt --all --check` | Format gate — same command CI runs |
+| `cargo clippy --workspace --all-targets -- -D warnings` | Lint gate — same command CI runs |
+| `cargo test --workspace` | Primary test — every workspace member, gate fleet included |
+| `buck2 build //...` / `buck2 test //...` | Local hermeticity only, never merge evidence (weekly CI smoke keeps the graph honest) |
+| `cargo run -p ci-generated-artifact-freshness --bin oya-cloud-ci-materialize-generated-faces -- --repo-root .` | Regenerate `*.generated.json` faces — never hand-edit |
 
-Toolchain: Rust pinned in [`rust-toolchain.toml`](rust-toolchain.toml); the sole sanctioned
-cargo production path is release-image builds. Local green ≠ merge green: merge authority is
-only the `oya-ci-required` context on the PR.
+Toolchain: Rust pinned in [`rust-toolchain.toml`](rust-toolchain.toml). Merge authority is
+only the `oya-ci-required` context on the PR (ADR-0716).
 
 ## Coding & testing standards
 
@@ -141,10 +140,7 @@ required_sequence:
   - single required status context oya-ci-required green (produced by the cloud-ci gate apps per ADR-0515)
   - fully reviewed, review threads resolved, no merge conflict, branch protection satisfied,
     and the required oya-ci-required context green; then squash merge
-  - post-merge product-completion packet recorded: promoted commit oya-ci-required green,
-    rollout verification, rollback note, observability check, browser/user-story evidence,
-    release-governance/release-note impact (Release Please applies only when a live repo config/workflow exists),
-    and agent-observation harvest outcome (cards created/linked or duplicates documented)
+  - the merged PR and its green checks are the record; no separate post-merge packet (ADR-0716)
 coordinator_worker_split:
   coordinator: portfolio/architecture coordinator evaluates architecture, system design,
     completed/upcoming work, maturity gaps, docs/procedure/process health, regressions,
@@ -156,7 +152,7 @@ coordinator_worker_split:
 blocker_policy: blockers become dispatcher-ready resolution cards with source context,
   blocker class, acceptance criteria, verification path, suggested owner/profile,
   and dependency/conflict notes unless the coordinator is explicitly assigned as worker
-generated_faces_policy: never add or modify any *.generated.json by hand; buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin materializes them and the diff-policy gate fails closed on hand edits
+generated_faces_policy: never add or modify any *.generated.json by hand; cargo run -p ci-generated-artifact-freshness --bin oya-cloud-ci-materialize-generated-faces -- --repo-root . materializes them and the diff-policy gate fails closed on hand edits
 scaffold_protocol:
   mechanism: per-agent isolated worktree plus admission-gate concurrent-safe-paths
   adr: docs/decisions/ADR-0701-monorepo-capability-live-apex.md
