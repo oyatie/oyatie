@@ -18,7 +18,7 @@
     "service-cell": 0,
     "reserved": 0
   },
-  "service_count": 96,
+  "service_count": 95,
   "services": {
     "audit/manifest.json": {
       "service": "audit",
