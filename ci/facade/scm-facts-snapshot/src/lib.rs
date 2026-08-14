@@ -1795,11 +1795,22 @@ fn finish_with_cleanup<T>(
 /// install` with the *worktree* as cwd, which is the only reason rustup resolves
 /// the historical pin rather than the outer checkout's — are assertable without
 /// spawning rustup.
+///
+/// `--profile default` is also load-bearing: the historical pin declares
+/// `profile = "minimal"` plus a `components` list, and a bare install resolves
+/// only that minimal profile + listed components. The Buck2 replay needs a full
+/// `rustc` toolchain (its `rustc_action` compiles third-party crates), and the
+/// observed failure mode is the opaque exit-3 with rustup reporting `'rustc' is
+/// not installed`. The default profile is a strict superset of the minimal
+/// profile and the pin's components, so the install stays complete whichever
+/// historical commit the epoch receipt points at.
 fn historical_p2_toolchain_command(historical_root: &Path) -> Command {
     let mut command = Command::new("rustup");
     command
         .arg("toolchain")
         .arg("install")
+        .arg("--profile")
+        .arg("default")
         .current_dir(historical_root);
     remove_outer_buck_process_state(&mut command);
     command
@@ -5868,13 +5879,23 @@ mod tests {
             .get_args()
             .map(|arg| arg.to_string_lossy().into_owned())
             .collect::<Vec<_>>();
-        assert_eq!(args, vec!["toolchain".to_owned(), "install".to_owned()]);
+        assert_eq!(
+            args,
+            vec![
+                "toolchain".to_owned(),
+                "install".to_owned(),
+                "--profile".to_owned(),
+                "default".to_owned(),
+            ]
+        );
 
-        // The load-bearing detail. `rustup toolchain install` with no argument
-        // resolves rust-toolchain.toml from the working directory, so the cwd
-        // being the historical worktree is the only reason the historical pin is
-        // installed rather than the outer checkout's. If this regresses, the
-        // symptom is the opaque exit-3 gate failure this routine exists to stop.
+        // The load-bearing details. `rustup toolchain install` with no channel
+        // argument resolves rust-toolchain.toml from the working directory, so the
+        // cwd being the historical worktree is the only reason the historical pin
+        // is installed rather than the outer checkout's; `--profile default`
+        // guarantees the full rustc toolchain the Buck2 replay compiles with. If
+        // either regresses, the symptom is the opaque exit-3 gate failure this
+        // routine exists to stop.
         assert_eq!(command.get_current_dir(), Some(worktree));
 
         // NOT asserted here: that outer Buck2 process state is stripped. The
