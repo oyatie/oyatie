@@ -18,15 +18,19 @@ doc_status: published
 - `buck2 run //ci/facade/generated-artifact-freshness:oya-pre-push-verify-bin -- install` now
   (a) PRESERVES a LOCAL `core.hooksPath` (installs into the already-configured hooks dir and
   never rewrites the configuration, so org-managed commit-msg/signing/security hooks keep working;
-  refuses a global/system-scoped shared hooks dir and a path inside the checked-out tree, and lets
-  a reinstall replace a prior oya installation), (b) pins the generator tool binaries (built once
-  from the install-time checkout) next to the verifier so the hook NEVER builds from the active
-  checkout's Buck graph — it executes only the prebuilt tools against the repo tree as DATA,
-  closing the checkout-controlled-code execution path — and (c) writes a protocol manifest bound
-  to the pinned tool builds and the generator source. The hook fails closed with an explicit
-  reinstall requirement when the manifest, the pinned tools, the generator source, or the
-  repository's tracked generated-face protocol is stale, and its verify path runs the same ADR-0595
-  determinism canary as the canonical freshness gate when non-PR-owned faces are present.
+  refuses a global/system-scoped shared hooks dir and a path inside the checked-out tree after
+  canonicalization, and lets a reinstall replace a prior oya installation atomically by
+  invalidating the old manifest before overwriting pinned tools), (b) pins the generator tool
+  binaries (built once from the install-time checkout) next to the verifier so the hook NEVER
+  builds from the active checkout's Buck graph — it executes only the prebuilt tools against the
+  repo tree as DATA, closing the checkout-controlled-code execution path — and (c) writes a
+  protocol manifest bound to the pinned tool builds and the generator source (parsed from the
+  exact constant declaration). The hook fails closed with an explicit reinstall requirement when
+  the manifest, the pinned tools, the generator source, or the repository's tracked generated-face
+  protocol is stale; its verify path runs the same ADR-0595 determinism canary as the canonical
+  freshness gate when non-PR-owned faces are present, and it excludes locally git-ignored
+  workspace-glob candidates so an ignored scratch directory cannot block pushes with a false
+  lock-missing finding.
 - Updated the face-settle protocol paragraph in
   [`docs/oya-ci/gate-catalog.md`](oya-ci/gate-catalog.md) and the Claude Code appendix hook list in
   [`docs/AGENTS.md`](AGENTS.md). The cloud-ci freshness gate behind `oya-ci-required` remains the

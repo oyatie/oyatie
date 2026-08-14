@@ -217,7 +217,12 @@ fn install(args: &[String]) -> Result<String, String> {
     }
 
     // Pin the generator tools FIRST (built from this trusted install checkout), then copy
-    // the verifier, then write the manifest last so a partial install fails closed.
+    // the verifier, then write the manifest LAST. To make a reinstall ATOMIC (wave-4): the
+    // old manifest is invalidated BEFORE any pinned tool is overwritten, so an interruption
+    // mid-generation leaves no valid manifest and the hook fails closed with a reinstall
+    // requirement instead of executing a mixed old/new tool set against a stale manifest.
+    let manifest_path = hooks_dir.join(PRE_PUSH_VERIFIER_MANIFEST_FILE);
+    let _ = std::fs::remove_file(&manifest_path);
     let tools_dir = hooks_dir.join(PRE_PUSH_VERIFIER_TOOLS_DIR);
     install_pre_push_verifier_tools(&root, &tools_dir).map_err(|error| error.to_string())?;
 
@@ -259,10 +264,18 @@ fn resolve_hooks_dir(repo_root: &Path) -> Result<PathBuf, String> {
         Some(existing) if !existing.trim().is_empty() => {
             let existing = PathBuf::from(existing.trim());
             let existing = absolutize(repo_root, &existing);
+            // Canonicalize so `..` components and symlinks resolve BEFORE the inside-checkout
+            // check: a lexical `starts_with` on an unnormalized path (e.g. `<repo>/.git/../tracked-hooks`)
+            // could otherwise be misclassified as git metadata and accepted, letting a checkout
+            // replace the installed hook. `canonicalize` fails if the directory does not exist
+            // yet; hooks dirs are created at install, so require a resolvable existing ancestor.
+            let existing = canonicalize_or_ancestor(&existing)?;
             let git_common_dir = resolve_git_common_dir(repo_root)?;
-            if inside_checked_out_tree(repo_root, &git_common_dir, &existing) {
+            let git_common_dir = canonicalize_or_ancestor(&git_common_dir)?;
+            let repo_root = canonicalize_or_ancestor(repo_root)?;
+            if inside_checked_out_tree(&repo_root, &git_common_dir, &existing) {
                 return Err(format!(
-                    "refusing to install: core.hooksPath ({}) points inside the checked-out tree; a branch-controlled hook would execute with your privileges — point it outside the worktree or unset it, then re-run install",
+                    "refusing to install: core.hooksPath ({}) resolves inside the checked-out tree; a branch-controlled hook would execute with your privileges — point it outside the worktree or unset it, then re-run install",
                     existing.display()
                 ));
             }
@@ -286,6 +299,50 @@ fn resolve_hooks_dir(repo_root: &Path) -> Result<PathBuf, String> {
             Ok(git_common_dir.join("hooks"))
         }
     }
+}
+
+/// Resolve `path` with `std::fs::canonicalize` when it exists; otherwise walk up to the nearest
+/// existing ancestor, canonicalize it, and re-append the missing suffix with `..`/`.` components
+/// normalized against the canonical ancestor. This fully normalizes `..` and symlinks so the
+/// inside-checked-out-tree classification is based on real directories, never lexical path text:
+/// e.g. `<repo>/.git/../tracked-hooks` becomes `<repo>/tracked-hooks`, which is correctly seen
+/// as checkout-controlled.
+fn canonicalize_or_ancestor(path: &Path) -> Result<PathBuf, String> {
+    let mut current = path.to_path_buf();
+    let mut missing: Vec<std::ffi::OsString> = Vec::new();
+    while !current.exists() {
+        let Some(name) = current.file_name() else {
+            return Err(format!(
+                "cannot canonicalize {}: no existing ancestor",
+                path.display()
+            ));
+        };
+        missing.push(name.to_os_string());
+        if !current.pop() {
+            return Err(format!(
+                "cannot canonicalize {}: no existing ancestor",
+                path.display()
+            ));
+        }
+    }
+    let mut canonical = std::fs::canonicalize(&current).map_err(|error| {
+        format!("canonicalize {}: {error}", current.display())
+    })?;
+    // Re-apply the missing suffix, resolving `..` (and dropping `.`) against the canonical
+    // ancestor so the final path contains no traversal components.
+    for component in missing.iter().rev() {
+        if component == ".." {
+            if !canonical.pop() {
+                return Err(format!(
+                    "cannot canonicalize {}: traversal above filesystem root",
+                    path.display()
+                ));
+            }
+        } else if component != "." {
+            canonical.push(component);
+        }
+    }
+    Ok(canonical)
 }
 
 fn resolve_git_common_dir(repo_root: &Path) -> Result<PathBuf, String> {
