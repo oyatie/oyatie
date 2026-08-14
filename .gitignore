@@ -32,7 +32,6 @@ docs/**/.omc/
 *.p12
 *.pfx
 *.kubeconfig
-
 # Generated Talos bootstrap outputs contain cluster CA private keys and API credentials.
 # Keep only reviewed patches/templates in git. Exact root anchors prevent generated recovery
 # artifacts from being swept into preservation branches while leaving nested declarative files
@@ -41,40 +40,31 @@ docs/**/.omc/
 /worker.yaml
 /talosconfig
 /secrets.yaml
-
 .grit
 /bominal/
-
 # Python bytecode (per shell-python audit 2026-05-15)
 __pycache__/
 *.pyc
-
 # Transient session-scoped audit logs
 .audit/
 evidence/oci-readiness/a1-capacity-retry.log
-
 # Atomic-write temp residue (write-then-rename crash debris).
 # Pattern catches *.json.tmp.<uuid> and *.tmp.<uuid> shapes outside ignored
 # runtime roots.
 **/*.json.tmp.*
-
 # Agent-spawned Claude Code worktrees (transient; each is a git worktree itself).
 # .claude/settings.json (project-scoped) and .claude/commands/ remain tracked.
 .claude/worktrees/
-
 # Session-scoped Claude hook overrides are local-only; tracked project wiring stays authoritative.
 .claude/settings.local.json
-
 # Transient test output
 test-results/
-
 # ADR-0516 fabric drive-loop OPERATIONAL (execution) plane — repo-adjacent
 # claim/heartbeat/run state per specs/fabric-drive-loop-state.json. Never
 # committed: the durable coordination plane (plan/fabric-loop/) is the only
 # PR-governed loop-state surface; this root is a local bridge store behind
 # ExecutionPlanePort until the oya-cloud-ci-loop-state-service cutover.
 /.oya-loop-state/
-
 # Generated outputs default to untracked. Public/productized generated
 # artifacts that must be committed are force-added intentionally and declared in
 # registry/generated-artifact-control-plane.json, where cloud-ci enforces owner,
@@ -92,7 +82,6 @@ test-results/
 **/*.pb.rs
 !**/generated/
 !**/generated/.gitkeep
-
 # FROZEN-REFERENCE RATCHET BASELINE — DE-COMMITTED (ADR-0616, supersedes ADR-0596/#828 hotfix).
 # The gate-baseline face is the firewall ratchet's frozen reference. It was kept TRACKED only
 # because the emitter read it as a committed git blob via `git show <merge-base>:<this-path>`, so
@@ -105,7 +94,6 @@ test-results/
 # not-tracked-in-git in registry/generated-artifact-control-plane.json and is covered by the broad
 # **/*.generated.json rule above — deliberately NOT negated (move-manifest and the other
 # de-commit-class faces share that same non-negation posture; none of them re-enter git via `!`).
-
 # ADR-0595/ADR-0597 de-commit class: the SIX cloud-ci faces below are pure derivations
 # (git ls-files x OWNERS x ADR front-matter x specs). They were the #1 merge-conflict /
 # merge-queue friction because every PR re-materialized multi-MB blobs. They are now DERIVED ON
@@ -133,7 +121,6 @@ test-results/
 # NOTE: gate-baseline.generated.json IS now in the de-commit class too (ADR-0616): the frozen
 # reference is regenerated from the merge-base source, so its committed-blob guard was inverted and
 # it is de-committed alongside these faces (covered by **/*.generated.json above, not negated).
-
 # ADR-0613 (continues the ADR-0595/0604 de-commit strangler): the two remaining controller-
 # materialized PROJECTION faces below were still committed merge surfaces. They are exactly the
 # projections a mis-invoked local materializer can silently corrupt (the motivating incident:
@@ -163,10 +150,8 @@ registry/graph/active-artifact-contract-edges.json
 # present-but-foreign/malformed body still collapses to identity (anti-laundering). The materializer
 # writes the manifest as step 1 before any relabel-read leg (audited: no CI leg runs the emitter
 # without a preceding materialize step).
-
 # buck2 build output
 /buck-out/
-
 # Repo-root build/test SCRATCH artifacts (prevention layer; the cloud-ci-root-workspace-hygiene
 # allowlist gate (ADR-0600) + the cloud-ci-total-accounting `scratch_artifact` frozen_empty code
 # are the blocking backstops per enforcement-layering: automation default + blocking backstop).
@@ -188,7 +173,6 @@ registry/graph/active-artifact-contract-edges.json
 /review-verdict.txt
 /slice*-*.log
 /slice*-*.txt
-
 # cloud-kernel QEMU/serial CONFORMANCE run output (build output, not evidence). The
 # crate-local cloud/cloud-kernel/.gitignore ignores top-level /out/*.log but NOT the
 # out/conformance/ subdir or the .txt report variants, which is how 50 conformance logs +
@@ -197,23 +181,18 @@ registry/graph/active-artifact-contract-edges.json
 # .gitignore; this only adds the run-output subtree.
 cloud/cloud-kernel/out/conformance/
 cloud/cloud-kernel/out/stress-summary.txt
-
 # Merge-base frozen-baseline snapshot (ADR-0551, FRIC-1781112000): a per-checkout derived
 # reference materialized by the scm-facts emitter from `git merge-base <base_ref> HEAD`.
 # It varies with the base branch position, so it can never be a committed face; CI
 # rematerializes it before gates consume it.
 ci/facade/baseline-ratchet/gate-baseline.merge-base.generated.json
-
 # History-volatile SCM facts snapshot (ADR-0552, FRIC-1781234047): per-path last-touch
 # revision ids + timestamps, rewritten by every squash-merge — a per-checkout derived input
 # materialized by the scm-facts emitter, so it can never be a committed face; CI
-# rematerializes it before gates consume it.
 ci/facade/scm-facts-snapshot/scm-volatile-facts.generated.json
 ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json
-
 # Dev-only Asterinas boot-harness receipts are regenerable run outputs (reference target/ logs); not committed.
 kernel/asterinas/harness/*/receipts/
-
 # Agent orchestration scratch. Workflow driver scripts (_workflow.js / _wf.js and
 # friends) are the MACHINERY that produces an audit, not the audit itself: they carry
 # machine-absolute paths, name no owner, and nothing in the build graph references them.
@@ -223,7 +202,6 @@ _workflow.js
 _wf.js
 _prewave*.js
 _ralplan_workflow.js
-
 # Machine-local buck2 config. MUST NEVER be committed.
 #
 # This is the ONLY mechanism that can wire the remote cache: buck2 resolves
@@ -235,31 +213,28 @@ _ralplan_workflow.js
 # build-cache-policy resolver and the /specs/cache-warm-license.json kill-switch
 # entirely, and would silently poison the integrity canary (whose cold build
 # depends on running with NO overlay at all).
-#
 # NOTE the deliberate asymmetry: `.buckconfig.d/` is NOT ignored. Committed
 # fragments there are the fail-closed way to ship real config, because a missing
 # `--config-file` path silently succeeds (`BUILD SUCCEEDED`, exit 0) whereas a
 # committed fragment is always read. Ignore the machine-local file; keep the
 # committed-fragment door open.
 /.buckconfig.local
-
 # Multi-model harness journals (local process kit only).
 # Retention: keep recent mm-runs for active drive/babysit debugging; prune older
 # run trees locally as needed. Never commit mm-runs (gitignored); no bulk purge
 # in product PRs — process-kit hygiene only.
 .grok/mm-runs/
 .grok/memory/
-
 # Swarm check-daemon outputs (orchestrator main-checkout only; workers read these).
 /err.txt
 /.check/
-
 # retired OMC residue (ADR-0711 Amendment B delete_permanently)
 .omc/
-
 # Swarm Delivery Law linked worktrees (ADR-0711); topology uses .worktrees/ not .claude/worktrees/
 .worktrees/
-
 # Stray agent worktrees accidentally created at the repo root (e.g. wt-1616); lanes belong under .worktrees/
 /wt-*/
-
+# Anti-friction wave (2026-08-14): local-only agent runtime state and transient dirs.
+/.beads/
+/.cursor/
+/infra/capi/_out/
