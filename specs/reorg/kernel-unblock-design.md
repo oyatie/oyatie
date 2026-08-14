@@ -12,10 +12,10 @@ kuberos framekernel (de-brand MOVE-11): `hal-kernel` → `kernel/ports/hal`, arc
 `kernel/adapters/{arch-aarch64,arch-x86-64}`, `frame-kernel`/`ksync-kernel`/`user-layout-kernel`/
 `app` → `kernel/core/*`, plus 13 nested test/user-program crates riding with their parents.
 It is fail-closed-blocked on mechanically proven defects (B1–B3). `cloud/cloud-kernel` holds
-**20** crate dirs (7 top-level + 13 riding) of the 24-crate `cloud/` frozen-baseline inventory
-(`ci/facade/module-membership/capability-membership-policy.json#legacy_root_freeze.crates` lists
-exactly 20 `cloud/cloud-kernel/*` rows + 4 `cloud/cloud-os/*` rows). The apparent twenty-first
-`Cargo.toml` is the workspace root, which has no freeze row. `cloud/` is therefore **not** zeroed
+**20** crate dirs (7 top-level + 13 riding) of the 24-crate `cloud/` inventory (the retired
+`legacy_root_freeze` — dropped with the module-membership gate by ADR-0718 — listed exactly
+20 `cloud/cloud-kernel/*` rows + 4 `cloud/cloud-os/*` rows). The apparent twenty-first
+`Cargo.toml` is the workspace root, not a crate. `cloud/` is therefore **not** zeroed
 by this card: the four `cloud/cloud-os/*` crates remain under `cloud/` until their own `os/` lane.
 
 ## Blocker B1 — destination workspace shape conflict
@@ -146,15 +146,13 @@ same PR. The move PR then performs the atomic kuberos transfer: it adds the
 pair to their `kernel/kuberos` destinations — again with the policy + test transition in the same
 PR, never silent.
 
-**B1g — retarget the Asterinas catalog, matrix, and pin paths during the re-anchor.** The
-re-anchor moves `kernel/{core,harness}` → `kernel/asterinas/{core,harness}`, but the following
-hand-maintained projections still point at the old tree and are NOT rewritten by the codemod
-(which rewrites Cargo/BUCK/Rust identifiers and `docs/decisions` anchors only, not arbitrary
-YAML/JSON fields):
-- `registry/catalog/kernel-asterinas-abi-matrix.yaml` (`traceability.source_crate` =
-  `kernel/core/asterinas-abi-matrix/Cargo.toml`);
-- `registry/catalog/kernel-asterinas-abi-probe.yaml` (`traceability.source_crate` =
-  `kernel/harness/asterinas-abi-probe/Cargo.toml`);
+**B1g — retarget the Asterinas matrix and pin paths during the re-anchor.** The re-anchor moves
+`kernel/{core,harness}` → `kernel/asterinas/{core,harness}`, but the following hand-maintained
+projections still point at the old tree and are NOT rewritten by the codemod (which rewrites
+Cargo/BUCK/Rust identifiers and `docs/decisions` anchors only, not arbitrary YAML/JSON fields).
+The former `registry/catalog/` bookkeeping — including the two asterinas catalog rows whose
+`traceability.source_crate` pointed at `kernel/{core,harness}` — was retired outright by ADR-0718,
+so there is no catalog left to retarget; only the in-tree matrix and pin artifacts below remain.
 - `kernel/core/asterinas-abi-matrix/matrix/abi-matrix-v0.1.0.json` (`$id`,
   `asterinas_pin.pin_manifest` = `kernel/core/asterinas-boundary/pins/...`, and
   `probe_harness.path` = `kernel/harness/asterinas-abi-probe`);
@@ -162,12 +160,10 @@ YAML/JSON fields):
   canonical `$id` = `https://docs.oyatie.com/kernel/core/asterinas-boundary/pins/asterinas-release-v0.17.2.json`
   (digest-embedded via `include_str!`, so the pin and the manifest cannot drift).
 
-Catalog-liveness deliberately tolerates missing `source_crate` paths for these
-`designed-ahead-row-no-crate` records, so the split can merge green while publishing dead
-traceability. The split PR must therefore retarget ALL of the above — including the pin artifact's
-own `$id`, not just the matrix pointer to it — to the `kernel/asterinas/...` destinations, and add
-a stale `kernel/{core,harness}` path check to the B1 acceptance criteria covering catalog, matrix,
-AND pin artifacts (no governed catalog/matrix/pin artifact may still reference the vacated tree).
+The split PR must retarget BOTH of the above — including the pin artifact's own `$id`, not just the
+matrix pointer to it — to the `kernel/asterinas/...` destinations, and add a stale
+`kernel/{core,harness}` path check to the B1 acceptance criteria covering the matrix AND pin
+artifacts (no governed matrix/pin artifact may still reference the vacated tree).
 
 **B1h — retarget owner-required coverage for the kuberos linker scripts (move PR).** After the
 move, `ci/facade/affected-target-set/affected-set-policy.json:21-24` still requires Buck ownership
@@ -189,7 +185,7 @@ root-artifact inventory, incl. the two-artifact asterinas root); the B1b atomic 
 transfer leaves no pre-created target and no transitional manifest; the B1c runtime paths
 (receipts, ISO/log, AND soak run dir) are rewritten and tested; the B1d linker paths are rewritten
 and both targets build for real; the B1e `.gitignore` transfers and retargets; the B1f lockfile
-corpus and test transition in their owning PRs; the B1g catalog, matrix, AND pin projections
+corpus and test transition in their owning PRs; the B1g matrix AND pin projections
 retarget to `kernel/asterinas/...` with a stale `kernel/{core,harness}` check; the B1h
 `require_owner_patterns` retargets to `kernel/kuberos/adapters/arch-{aarch64,x86-64}/linker.ld`
 with committed assertions; the envelope AND ADR-0704 apex authority change (§step 0) lands.
@@ -243,7 +239,8 @@ let production layout/signal/VFS/timekeep changes break the kernel while these h
 green). This is a kernel-toolchain-harness refactor that requires the nightly `build-std`
 toolchain to verify (host harness + no_std crates must both still compile). Do NOT attempt blind.
 Sequencing: this slice runs in the kernel lane with toolchain verification, and the kuberos move
-waits on it. Not on the baseline-burn critical path (20 rows vs libs/oya).
+waits on it. Not on the kuberos-move critical path (libs/oya is the larger migration; the
+20-row baseline burn is retired with ADR-0718).
 
 ## Sequencing
 
@@ -293,12 +290,11 @@ waits on it. Not on the baseline-burn critical path (20 rows vs libs/oya).
    explicit artifact rewrite/reprojection stage (manifest internals + tier-classification key) and
    a **stale-source-path check** (no governed artifact may still reference
    `cloud/cloud-kernel/`).
-5. **Burn the 20 `cloud/cloud-kernel/*` frozen-baseline rows in the same PR** (regenerate the
-   freeze with its declared producer
-   `//ci/facade/module-membership:oya-cloud-ci-capability-membership-app-bin -- --emit-legacy-freeze`,
-   never hand-edited); `cloud/cloud-kernel` then holds zero crate dirs. The four
-   `cloud/cloud-os/*` crates remain under `cloud/` and are NOT part of this burn — they belong to
-   the separate `os/` lane (thread-verified: `cloud/` is not zeroed by this card).
+5. **`cloud/cloud-kernel` ends at zero crate dirs in the same PR.** The `legacy_root_freeze`
+   baseline this step previously burned was retired with the module-membership gate by ADR-0718 —
+   no regeneration/burn step remains (nothing to hand-edit). The four `cloud/cloud-os/*` crates
+   remain under `cloud/` and are NOT part of this card — they belong to the separate `os/` lane
+   (thread-verified: `cloud/` is not zeroed by this card).
 
 ## Pre-dispatch gates
 
