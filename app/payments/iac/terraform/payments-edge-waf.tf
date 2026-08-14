@@ -164,7 +164,10 @@ resource "google_compute_health_check" "payments_edge_health" {
   check_interval_sec = 10
   timeout_sec        = 5
   https_health_check {
-    port         = 443
+    # Probe the port the NEG endpoints actually listen on: the payments
+    # Service/pods expose the application on 8443 (network-policy contract);
+    # probing 443 would mark every endpoint unhealthy.
+    port         = 8443
     request_path = "/healthz"
   }
 }

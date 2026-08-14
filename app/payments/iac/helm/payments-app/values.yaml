@@ -9,6 +9,13 @@ global:
   pciScope: true
 
 payments:
+  # Zero-crate product per ELEVATE #1451 verdict A (keep_deleted): the
+  # oya-payments-* binary cluster was intentionally deleted and no build
+  # producer exists, so the chart renders NO runtime by default. Flip this to
+  # true when a real implementation IP lands a build for the referenced image.
+  deployment:
+    enabled: false
+
   image:
     repository: registry.oyatie.dev/oya-payments-charge-app
     tag: "0.1.0"

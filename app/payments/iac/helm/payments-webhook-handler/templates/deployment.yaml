@@ -25,12 +25,54 @@ spec:
         - name: webhook-handler
           image: "{{ .Values.webhookHandler.image.repository }}:{{ .Values.webhookHandler.image.tag }}"
           imagePullPolicy: {{ .Values.webhookHandler.image.pullPolicy }}
+          env:
+            - name: OYA_PSP_WEBHOOK_HMAC_DIR
+              value: /etc/payments-webhook-hmac
+            - name: OYA_OPENBAO_ROLE
+              value: {{ .Values.webhookHandler.openbao.role | quote }}
+            - name: OYA_OPENBAO_SECRET_PATH
+              value: {{ .Values.webhookHandler.openbao.secretPath | quote }}
           ports:
             - name: http
               containerPort: {{ .Values.webhookHandler.service.port }}
             - name: metrics
               containerPort: {{ .Values.webhookHandler.metrics.port }}
+          volumeMounts:
+            # Per-PSP HMAC verification secrets materialized by terraform
+            # (payments-secret-bindings.tf payments_webhook_hmac_secret); one
+            # file per provider under this mount.
+            - name: webhook-hmac
+              mountPath: /etc/payments-webhook-hmac
+              readOnly: true
+            {{- if .Values.webhookHandler.openbao.enabled }}
+            - name: openbao-agent-config
+              mountPath: /etc/openbao-agent
+              readOnly: true
+            {{- end }}
           resources:
 {{ toYaml .Values.webhookHandler.resources | indent 12 }}
           securityContext:
 {{ toYaml .Values.webhookHandler.containerSecurityContext | indent 12 }}
+        {{- if .Values.webhookHandler.openbao.enabled }}
+        # ADR-0296 credential sidecar: refreshes webhook HMAC material from
+        # OpenBao with the handler's role and TTL.
+        - name: openbao-agent
+          image: "registry.oyatie.dev/openbao-agent:1.16.0"
+          args: ["agent", "-config=/etc/openbao-agent/openbao.hcl", "-log-level=error"]
+          env:
+            - name: OYA_OPENBAO_ROLE
+              value: {{ .Values.webhookHandler.openbao.role | quote }}
+          volumeMounts:
+            - name: openbao-agent-config
+              mountPath: /etc/openbao-agent
+              readOnly: true
+        {{- end }}
+      volumes:
+        - name: webhook-hmac
+          secret:
+            secretName: payments-webhook-hmac
+        {{- if .Values.webhookHandler.openbao.enabled }}
+        - name: openbao-agent-config
+          configMap:
+            name: payments-webhook-openbao-agent-config
+        {{- end }}

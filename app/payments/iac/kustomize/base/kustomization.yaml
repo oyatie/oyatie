@@ -28,6 +28,13 @@ helmCharts:
     valuesFile: ../../helm/payments-app/values.yaml
     releaseName: payments-app
     namespace: payments
+  # Dedicated inbound PSP webhook handler — the API gateway routes
+  # /v1/webhooks/{psp}/v1 callbacks here, so the base renders it too.
+  - name: payments-webhook-handler
+    version: 0.1.0
+    valuesFile: ../../helm/payments-webhook-handler/values.yaml
+    releaseName: payments-webhook-handler
+    namespace: payments
 
 commonLabels:
   app.kubernetes.io/part-of: oyatie-microservices

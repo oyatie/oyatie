@@ -1,4 +1,4 @@
-{{- if .Values.payments.dunningWorker.enabled }}
+{{- if and .Values.payments.deployment.enabled .Values.payments.dunningWorker.enabled }}
 apiVersion: batch/v1
 kind: CronJob
 metadata:
