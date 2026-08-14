@@ -209,7 +209,6 @@ const CLOUD_SUBSTRATE_MANIFESTS: [&str; 21] = [
 /// forever path is on trunk.
 const CLOUD_SUBSTRATE_MANIFEST_FALLBACKS: &[(&str, &str)] = &[
     ("kernel/manifest.json", "cloud/cloud-kernel/manifest.json"),
-    ("os/manifest.json", "cloud/cloud-os/manifest.json"),
 ];
 
 fn cloud_manifest_paths(root: &Path) -> Vec<PathBuf> {

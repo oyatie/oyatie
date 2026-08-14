@@ -7831,7 +7831,7 @@ mod tests {
                         "rung": 1,
                         "layer": "cloud-os",
                         "program_ids": ["P-OWNED-STACK-OS"],
-                        "source_anchors": ["cloud/cloud-os"]
+                        "source_anchors": ["os"]
                     },
                     {
                         "rung": 2,
