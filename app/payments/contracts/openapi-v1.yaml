@@ -339,8 +339,17 @@ paths:
       operationId: receivePspWebhook
       summary: Receive a PSP webhook (HMAC-signed)
       tags: [charge]
+      # Each PSP signs with its own header; the security requirement is an OR
+      # list so a callback carrying ANY advertised provider signature header is
+      # admitted to the HMAC validation stage (fail-closed: no header, no pass).
       security:
-        - pspSignature: []
+        - pspSignatureStripe: []
+        - pspSignatureAdyen: []
+        - pspSignatureToss: []
+        - pspSignatureKakaoPay: []
+        - pspSignatureLinePay: []
+        - pspSignatureWechatPay: []
+        - pspSignatureAlipay: []
       requestBody:
         required: true
         content:
@@ -413,17 +422,51 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
+    pspSignatureStripe:
+      type: apiKey
+      in: header
+      name: Stripe-Signature
+      description: Stripe webhook signature header (t=...,v1=...; signed with the stored per-PSP webhook secret).
+    pspSignatureAdyen:
+      type: apiKey
+      in: header
+      name: X-Hmac-Signature
+      description: Adyen webhook HMAC signature header (signed with the stored per-PSP HMAC key).
+    pspSignatureToss:
+      type: apiKey
+      in: header
+      name: Toss-Signature
+      description: Toss Payments webhook signature header (signed with the stored per-PSP webhook secret).
+    pspSignatureKakaoPay:
+      type: apiKey
+      in: header
+      name: KakaoPay-Signature
+      description: KakaoPay webhook signature header (signed with the stored per-PSP webhook secret).
+    pspSignatureLinePay:
+      type: apiKey
+      in: header
+      name: X-LINE-Signature
+      description: LINE Pay webhook signature header (signed with the stored per-PSP channel secret).
+    pspSignatureWechatPay:
+      type: apiKey
+      in: header
+      name: Wechatpay-Signature
+      description: WeChat Pay v3 signature header (Wechatpay-Timestamp/Wechatpay-Nonce + signature validated against the stored platform certificate).
+    pspSignatureAlipay:
+      type: apiKey
+      in: header
+      name: alipay-signature
+      description: Alipay async-notification signature (RSA2 signature validated against the stored Alipay public key).
     pspSignature:
       type: apiKey
       in: header
       name: X-PSP-Signature
       description: |
-        Provider webhook HMAC signature. Each PSP delivers its signature in a
-        provider-specific header (Stripe: `Stripe-Signature`; Adyen:
-        `X-Hmac-Signature`; Toss: `Toss-Signature`; KakaoPay / LINE Pay /
-        WeChat Pay / Alipay: provider signature header); the webhook handler
-        maps the provider header onto `X-PSP-Signature` and validates it
-        against the stored per-PSP HMAC secret with a 300s replay window
+        Canonical normalized webhook signature header. The webhook handler maps
+        each provider's own signature header (Stripe-Signature, X-Hmac-Signature,
+        Toss-Signature, KakaoPay-Signature, X-LINE-Signature,
+        Wechatpay-Signature, alipay-signature) onto X-PSP-Signature and validates
+        it against the stored per-PSP HMAC secret with a 300s replay window
         (policy/abuse-defence.cedar).
   parameters:
     IdempotencyKey:

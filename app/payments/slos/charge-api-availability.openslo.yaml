@@ -16,12 +16,15 @@ metadata:
 spec:
   service: payments
   description: |
-    Charge-API availability. A request is "good" when the REST surface returns
-    2xx or an explicitly recognized business-decline response (400 bad request,
-    409 idempotency-key conflict, 422 validation) within deadline. Authentication
-    (401), authorization (403), and rate-limit (429) responses are NOT counted as
-    good so auth/rate-limit regressions cannot report 100% availability.
-    Excludes 5xx (true server errors).
+    Charge-API availability. A request is "good" only when the REST surface
+    returns 2xx within deadline. Client errors are excluded from BOTH sides:
+    the unclassified status-code counter cannot distinguish a recognized
+    business decline from a server-generated 4xx during a deployment
+    regression, so counting any 4xx (including 400/409/422) as good would keep
+    availability at 100% while valid requests fail. A dedicated classified
+    business-outcome label can replace this once the service emits one.
+    Excludes 5xx (true server errors) and auth/rate-limit responses (401, 403,
+    429) from the numerator.
   indicator:
     metadata:
       name: payments-charge-api-success-ratio
@@ -33,7 +36,7 @@ spec:
             type: Prometheus
             spec:
               query: |
-                sum(rate(payments_charge_api_requests_total{status_code=~"2..|400|409|422"}[5m]))
+                sum(rate(payments_charge_api_requests_total{status_code=~"2.."}[5m]))
         total:
           metricSource:
             type: Prometheus

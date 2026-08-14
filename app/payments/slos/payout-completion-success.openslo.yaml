@@ -15,12 +15,15 @@ metadata:
 spec:
   service: payments
   description: |
-    Per-24h share of payouts eligible to complete within the measurement window
-    that complete successfully (cleared at bank) without failure. The denominator
-    includes payouts still in-flight (scheduled/initiated) so a PSP or clearing
-    outage that stalls the pending backlog cannot report 100% completion; it
-    excludes intentional kyc-revoked / sanctions-failures which are
-    correctness-correct outcomes.
+    Per-24h share of payouts that complete successfully (cleared at bank). The
+    denominator is the `scheduled` series, which records each payout exactly
+    once at schedule time — counting state-transition series (scheduled +
+    initiated + completed) would triple-count every healthy payout and drive
+    the ratio toward ~33% — while payouts still in-flight remain in the
+    denominator so a PSP or clearing outage that stalls the pending backlog
+    cannot report 100% completion. Intentional kyc-revoked / sanctions
+    failures are correctness-correct outcomes and are subtracted from the
+    denominator so they neither count against nor inflate the ratio.
   indicator:
     metadata:
       name: payments-payout-completion-success-ratio
@@ -38,7 +41,7 @@ spec:
             type: Prometheus
             spec:
               query: |
-                sum(rate(payments_payout_total{state=~"scheduled|initiated|completed|failed_insufficient_funds|failed_closed_account"}[24h]))
+                sum(rate(payments_payout_total{state="scheduled"}[24h])) - sum(rate(payments_payout_total{state="failed_kyc_revoked"}[24h])) - sum(rate(payments_payout_total{state="failed_sanctions"}[24h]))
   objectives:
     - target: 0.999
       displayName: "30d rolling payout-completion-success ≥ 99.9%"
