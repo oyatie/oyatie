@@ -38,6 +38,7 @@ sha2 = { workspace = true }
 
 [dev-dependencies]
 rcgen = { workspace = true }
+serde = { workspace = true }
 serde_yaml = { workspace = true }
 
 [lints]

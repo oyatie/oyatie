@@ -1,0 +1,20 @@
+{
+  "_comment": "NativeLink cache endpoint profiles (DATA, not engine policy). Each profile binds the Buck2 RE address, direct socket address, and REAPI instance name to one reviewed value set. Pinned grammar is grpc:// plus a DNS-LDH host (no IPv6 or trailing dot) and a canonical nonzero decimal u16 port; the socket form omits only the grpc:// prefix. The cache controller fails closed when either address grammar is invalid or the two forms disagree. Credentials and certificate material never belong here.",
+  "policy_id": "cache-endpoints",
+  "schema_version": "1.0.0",
+  "adr": "ADR-0700",
+  "active_profile": "oyatie",
+  "profiles": {
+    "oyatie": {
+      "instance_name": "main",
+      "writer": {
+        "re_address": "grpc://nativelink-cas-writer.oya-ci.svc.cluster.local:50051",
+        "socket_address": "nativelink-cas-writer.oya-ci.svc.cluster.local:50051"
+      },
+      "reader": {
+        "re_address": "grpc://nativelink-cas-reader.oya-ci.svc.cluster.local:50052",
+        "socket_address": "nativelink-cas-reader.oya-ci.svc.cluster.local:50052"
+      }
+    }
+  }
+}
