@@ -274,7 +274,7 @@
   "classification_rules": [
     {
       "id": "CR-capability-root",
-      "when": "path matches registered capability root from specs/capability-registry.json",
+      "when": "path matches registered capability root from governance/capability-registry.json",
       "kind": "capability-root",
       "integ": "integ/<capability>",
       "name_shape": "kinds.capability-root.name_shape"

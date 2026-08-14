@@ -1,7 +1,7 @@
 ---
 doc_class: Implementation-Plan
 ip_id: IP-journey-j91-us-msb-mtl-overlay
-journey_ref: docs/user-journeys/j91-us-state-money-transmitter-licensing/
+journey_ref: RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2)
 status: draft
 date: 2026-05-20
 microservice: cloud-k8s

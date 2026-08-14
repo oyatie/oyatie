@@ -1,7 +1,7 @@
 ---
 doc_class: Implementation-Plan
 ip_id: IP-journey-j92-br-lgpd-us-parent-dsar
-journey_ref: docs/user-journeys/j92-br-lgpd-dsar-with-us-parent/
+journey_ref: RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2)
 status: draft
 date: 2026-05-20
 microservice: cloud-k8s

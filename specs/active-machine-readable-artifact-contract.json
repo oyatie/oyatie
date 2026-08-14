@@ -10,8 +10,8 @@
     "status": "draft-sidecar",
     "owner_team": "council-architecture + axis-foundry",
     "supersedes_internal_history": [
-      "v1.0.0: type=object root rejected — couldn't overlay artifacts with non-object root shapes",
-      "v2.0.0: 600-line per-artifact embedded metadata rejected — non-scalable; capability_status object-wrapper bug; cedar/sql format mismatch"
+      "v1.0.0: type=object root rejected \u2014 couldn't overlay artifacts with non-object root shapes",
+      "v2.0.0: 600-line per-artifact embedded metadata rejected \u2014 non-scalable; capability_status object-wrapper bug; cedar/sql format mismatch"
     ],
     "user_directives_2026_05_13": [
       "Anything that can be automated should be automated",
