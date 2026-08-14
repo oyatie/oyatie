@@ -86,7 +86,7 @@ fn exclusions_keep_generated_faces_and_fixtures_out_of_scope() {
             file.path
         );
         assert!(
-            file.path.starts_with("specs/"),
+            file.path.starts_with("specs/") || file.path.starts_with("governance/"),
             "only governed roots are collected: {}",
             file.path
         );
