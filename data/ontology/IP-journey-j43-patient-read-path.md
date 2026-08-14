@@ -26,7 +26,7 @@ related_adrs:
   - ADR-0299
 companion_docs:
   - docs/standards/documentation-rigor.md
-  - docs/user-journeys/CATALOG-j126-j150-ecosystem.md
+  - RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2)
   - microservices/payments/PRD.md
   - microservices/identity/PRD.md
   - microservices/workflow-engine/PRD.md
@@ -53,8 +53,8 @@ Purpose: ontology owns patient-read-path so Yejin Park can hand off eight patien
 
 ## 1. Scope
 ontology must implement only the patient-read-path slice. It must not take over responsibilities owned by peer services.
-Journey directory: docs/user-journeys/j43-healthcare-nurse-patient-handoff.
-Shared schema: docs/user-journeys/j43-healthcare-nurse-patient-handoff/schemas/clinical-handoff-bundle.json.
+Journey directory: RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2)
+Shared schema: RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2)
 The slice is one PR-sized unit with a typed contract, tests, metrics, and rollback.
 ## 2. Public contract
 OpenAPI 3.2.0: ontology declares the fields it owns, the fields it reads, and the fields it forwards without mutation.
@@ -187,86 +187,86 @@ Failure 8: abuse signal challenge; ontology must return a typed failure, keep du
 Failure 9: identity recovery branch; ontology must return a typed failure, keep durable state, and publish Journey43PatientReadPathFailure9.
 Failure 10: data-residency conflict; ontology must return a typed failure, keep durable state, and publish Journey43PatientReadPathFailure10.
 ## 7. Verification plan
-Verification 1: run ontology/patient-read-path against account recovery and lockout; assert tenant scope, audit seal, metric cardinality, rollback id, and schema clinical-handoff-bundle.json.
-Verification 2: run ontology/patient-read-path against financial fraud dispute and chargeback; assert tenant scope, audit seal, metric cardinality, rollback id, and schema clinical-handoff-bundle.json.
-Verification 3: run ontology/patient-read-path against healthcare urgent care and EHR break-glass; assert tenant scope, audit seal, metric cardinality, rollback id, and schema clinical-handoff-bundle.json.
-Verification 4: run ontology/patient-read-path against non-native-language user; assert tenant scope, audit seal, metric cardinality, rollback id, and schema clinical-handoff-bundle.json.
-Verification 5: run ontology/patient-read-path against low-bandwidth and disaster-zone offline-first; assert tenant scope, audit seal, metric cardinality, rollback id, and schema clinical-handoff-bundle.json.
-Verification 6: run ontology/patient-read-path against service degradation during regional outage; assert tenant scope, audit seal, metric cardinality, rollback id, and schema clinical-handoff-bundle.json.
-Verification 7: run ontology/patient-read-path against account-hijack victim recovery; assert tenant scope, audit seal, metric cardinality, rollback id, and schema clinical-handoff-bundle.json.
-Verification 8: run ontology/patient-read-path against mistaken-action and unintended-mutation recovery; assert tenant scope, audit seal, metric cardinality, rollback id, and schema clinical-handoff-bundle.json.
-Verification 9: run ontology/patient-read-path against bot or delegated agent acting for a human; assert tenant scope, audit seal, metric cardinality, rollback id, and schema clinical-handoff-bundle.json.
-Verification 10: run ontology/patient-read-path against account recovery and lockout; assert tenant scope, audit seal, metric cardinality, rollback id, and schema clinical-handoff-bundle.json.
-Verification 11: run ontology/patient-read-path against financial fraud dispute and chargeback; assert tenant scope, audit seal, metric cardinality, rollback id, and schema clinical-handoff-bundle.json.
-Verification 12: run ontology/patient-read-path against healthcare urgent care and EHR break-glass; assert tenant scope, audit seal, metric cardinality, rollback id, and schema clinical-handoff-bundle.json.
-Verification 13: run ontology/patient-read-path against non-native-language user; assert tenant scope, audit seal, metric cardinality, rollback id, and schema clinical-handoff-bundle.json.
-Verification 14: run ontology/patient-read-path against low-bandwidth and disaster-zone offline-first; assert tenant scope, audit seal, metric cardinality, rollback id, and schema clinical-handoff-bundle.json.
-Verification 15: run ontology/patient-read-path against service degradation during regional outage; assert tenant scope, audit seal, metric cardinality, rollback id, and schema clinical-handoff-bundle.json.
-Verification 16: run ontology/patient-read-path against account-hijack victim recovery; assert tenant scope, audit seal, metric cardinality, rollback id, and schema clinical-handoff-bundle.json.
-Verification 17: run ontology/patient-read-path against mistaken-action and unintended-mutation recovery; assert tenant scope, audit seal, metric cardinality, rollback id, and schema clinical-handoff-bundle.json.
-Verification 18: run ontology/patient-read-path against bot or delegated agent acting for a human; assert tenant scope, audit seal, metric cardinality, rollback id, and schema clinical-handoff-bundle.json.
-Verification 19: run ontology/patient-read-path against account recovery and lockout; assert tenant scope, audit seal, metric cardinality, rollback id, and schema clinical-handoff-bundle.json.
-Verification 20: run ontology/patient-read-path against financial fraud dispute and chargeback; assert tenant scope, audit seal, metric cardinality, rollback id, and schema clinical-handoff-bundle.json.
-Verification 21: run ontology/patient-read-path against healthcare urgent care and EHR break-glass; assert tenant scope, audit seal, metric cardinality, rollback id, and schema clinical-handoff-bundle.json.
-Verification 22: run ontology/patient-read-path against non-native-language user; assert tenant scope, audit seal, metric cardinality, rollback id, and schema clinical-handoff-bundle.json.
-Verification 23: run ontology/patient-read-path against low-bandwidth and disaster-zone offline-first; assert tenant scope, audit seal, metric cardinality, rollback id, and schema clinical-handoff-bundle.json.
-Verification 24: run ontology/patient-read-path against service degradation during regional outage; assert tenant scope, audit seal, metric cardinality, rollback id, and schema clinical-handoff-bundle.json.
-Verification 25: run ontology/patient-read-path against account-hijack victim recovery; assert tenant scope, audit seal, metric cardinality, rollback id, and schema clinical-handoff-bundle.json.
-Verification 26: run ontology/patient-read-path against mistaken-action and unintended-mutation recovery; assert tenant scope, audit seal, metric cardinality, rollback id, and schema clinical-handoff-bundle.json.
-Verification 27: run ontology/patient-read-path against bot or delegated agent acting for a human; assert tenant scope, audit seal, metric cardinality, rollback id, and schema clinical-handoff-bundle.json.
-Verification 28: run ontology/patient-read-path against account recovery and lockout; assert tenant scope, audit seal, metric cardinality, rollback id, and schema clinical-handoff-bundle.json.
-Verification 29: run ontology/patient-read-path against financial fraud dispute and chargeback; assert tenant scope, audit seal, metric cardinality, rollback id, and schema clinical-handoff-bundle.json.
-Verification 30: run ontology/patient-read-path against healthcare urgent care and EHR break-glass; assert tenant scope, audit seal, metric cardinality, rollback id, and schema clinical-handoff-bundle.json.
-Verification 31: run ontology/patient-read-path against non-native-language user; assert tenant scope, audit seal, metric cardinality, rollback id, and schema clinical-handoff-bundle.json.
-Verification 32: run ontology/patient-read-path against low-bandwidth and disaster-zone offline-first; assert tenant scope, audit seal, metric cardinality, rollback id, and schema clinical-handoff-bundle.json.
-Verification 33: run ontology/patient-read-path against service degradation during regional outage; assert tenant scope, audit seal, metric cardinality, rollback id, and schema clinical-handoff-bundle.json.
-Verification 34: run ontology/patient-read-path against account-hijack victim recovery; assert tenant scope, audit seal, metric cardinality, rollback id, and schema clinical-handoff-bundle.json.
-Verification 35: run ontology/patient-read-path against mistaken-action and unintended-mutation recovery; assert tenant scope, audit seal, metric cardinality, rollback id, and schema clinical-handoff-bundle.json.
-Verification 36: run ontology/patient-read-path against bot or delegated agent acting for a human; assert tenant scope, audit seal, metric cardinality, rollback id, and schema clinical-handoff-bundle.json.
-Verification 37: run ontology/patient-read-path against account recovery and lockout; assert tenant scope, audit seal, metric cardinality, rollback id, and schema clinical-handoff-bundle.json.
-Verification 38: run ontology/patient-read-path against financial fraud dispute and chargeback; assert tenant scope, audit seal, metric cardinality, rollback id, and schema clinical-handoff-bundle.json.
-Verification 39: run ontology/patient-read-path against healthcare urgent care and EHR break-glass; assert tenant scope, audit seal, metric cardinality, rollback id, and schema clinical-handoff-bundle.json.
-Verification 40: run ontology/patient-read-path against non-native-language user; assert tenant scope, audit seal, metric cardinality, rollback id, and schema clinical-handoff-bundle.json.
-Verification 41: run ontology/patient-read-path against low-bandwidth and disaster-zone offline-first; assert tenant scope, audit seal, metric cardinality, rollback id, and schema clinical-handoff-bundle.json.
-Verification 42: run ontology/patient-read-path against service degradation during regional outage; assert tenant scope, audit seal, metric cardinality, rollback id, and schema clinical-handoff-bundle.json.
-Verification 43: run ontology/patient-read-path against account-hijack victim recovery; assert tenant scope, audit seal, metric cardinality, rollback id, and schema clinical-handoff-bundle.json.
-Verification 44: run ontology/patient-read-path against mistaken-action and unintended-mutation recovery; assert tenant scope, audit seal, metric cardinality, rollback id, and schema clinical-handoff-bundle.json.
-Verification 45: run ontology/patient-read-path against bot or delegated agent acting for a human; assert tenant scope, audit seal, metric cardinality, rollback id, and schema clinical-handoff-bundle.json.
-Verification 46: run ontology/patient-read-path against account recovery and lockout; assert tenant scope, audit seal, metric cardinality, rollback id, and schema clinical-handoff-bundle.json.
-Verification 47: run ontology/patient-read-path against financial fraud dispute and chargeback; assert tenant scope, audit seal, metric cardinality, rollback id, and schema clinical-handoff-bundle.json.
-Verification 48: run ontology/patient-read-path against healthcare urgent care and EHR break-glass; assert tenant scope, audit seal, metric cardinality, rollback id, and schema clinical-handoff-bundle.json.
-Verification 49: run ontology/patient-read-path against non-native-language user; assert tenant scope, audit seal, metric cardinality, rollback id, and schema clinical-handoff-bundle.json.
-Verification 50: run ontology/patient-read-path against low-bandwidth and disaster-zone offline-first; assert tenant scope, audit seal, metric cardinality, rollback id, and schema clinical-handoff-bundle.json.
-Verification 51: run ontology/patient-read-path against service degradation during regional outage; assert tenant scope, audit seal, metric cardinality, rollback id, and schema clinical-handoff-bundle.json.
-Verification 52: run ontology/patient-read-path against account-hijack victim recovery; assert tenant scope, audit seal, metric cardinality, rollback id, and schema clinical-handoff-bundle.json.
-Verification 53: run ontology/patient-read-path against mistaken-action and unintended-mutation recovery; assert tenant scope, audit seal, metric cardinality, rollback id, and schema clinical-handoff-bundle.json.
-Verification 54: run ontology/patient-read-path against bot or delegated agent acting for a human; assert tenant scope, audit seal, metric cardinality, rollback id, and schema clinical-handoff-bundle.json.
-Verification 55: run ontology/patient-read-path against account recovery and lockout; assert tenant scope, audit seal, metric cardinality, rollback id, and schema clinical-handoff-bundle.json.
-Verification 56: run ontology/patient-read-path against financial fraud dispute and chargeback; assert tenant scope, audit seal, metric cardinality, rollback id, and schema clinical-handoff-bundle.json.
-Verification 57: run ontology/patient-read-path against healthcare urgent care and EHR break-glass; assert tenant scope, audit seal, metric cardinality, rollback id, and schema clinical-handoff-bundle.json.
-Verification 58: run ontology/patient-read-path against non-native-language user; assert tenant scope, audit seal, metric cardinality, rollback id, and schema clinical-handoff-bundle.json.
-Verification 59: run ontology/patient-read-path against low-bandwidth and disaster-zone offline-first; assert tenant scope, audit seal, metric cardinality, rollback id, and schema clinical-handoff-bundle.json.
-Verification 60: run ontology/patient-read-path against service degradation during regional outage; assert tenant scope, audit seal, metric cardinality, rollback id, and schema clinical-handoff-bundle.json.
-Verification 61: run ontology/patient-read-path against account-hijack victim recovery; assert tenant scope, audit seal, metric cardinality, rollback id, and schema clinical-handoff-bundle.json.
-Verification 62: run ontology/patient-read-path against mistaken-action and unintended-mutation recovery; assert tenant scope, audit seal, metric cardinality, rollback id, and schema clinical-handoff-bundle.json.
-Verification 63: run ontology/patient-read-path against bot or delegated agent acting for a human; assert tenant scope, audit seal, metric cardinality, rollback id, and schema clinical-handoff-bundle.json.
-Verification 64: run ontology/patient-read-path against account recovery and lockout; assert tenant scope, audit seal, metric cardinality, rollback id, and schema clinical-handoff-bundle.json.
-Verification 65: run ontology/patient-read-path against financial fraud dispute and chargeback; assert tenant scope, audit seal, metric cardinality, rollback id, and schema clinical-handoff-bundle.json.
-Verification 66: run ontology/patient-read-path against healthcare urgent care and EHR break-glass; assert tenant scope, audit seal, metric cardinality, rollback id, and schema clinical-handoff-bundle.json.
-Verification 67: run ontology/patient-read-path against non-native-language user; assert tenant scope, audit seal, metric cardinality, rollback id, and schema clinical-handoff-bundle.json.
-Verification 68: run ontology/patient-read-path against low-bandwidth and disaster-zone offline-first; assert tenant scope, audit seal, metric cardinality, rollback id, and schema clinical-handoff-bundle.json.
-Verification 69: run ontology/patient-read-path against service degradation during regional outage; assert tenant scope, audit seal, metric cardinality, rollback id, and schema clinical-handoff-bundle.json.
-Verification 70: run ontology/patient-read-path against account-hijack victim recovery; assert tenant scope, audit seal, metric cardinality, rollback id, and schema clinical-handoff-bundle.json.
-Verification 71: run ontology/patient-read-path against mistaken-action and unintended-mutation recovery; assert tenant scope, audit seal, metric cardinality, rollback id, and schema clinical-handoff-bundle.json.
-Verification 72: run ontology/patient-read-path against bot or delegated agent acting for a human; assert tenant scope, audit seal, metric cardinality, rollback id, and schema clinical-handoff-bundle.json.
-Verification 73: run ontology/patient-read-path against account recovery and lockout; assert tenant scope, audit seal, metric cardinality, rollback id, and schema clinical-handoff-bundle.json.
-Verification 74: run ontology/patient-read-path against financial fraud dispute and chargeback; assert tenant scope, audit seal, metric cardinality, rollback id, and schema clinical-handoff-bundle.json.
-Verification 75: run ontology/patient-read-path against healthcare urgent care and EHR break-glass; assert tenant scope, audit seal, metric cardinality, rollback id, and schema clinical-handoff-bundle.json.
-Verification 76: run ontology/patient-read-path against non-native-language user; assert tenant scope, audit seal, metric cardinality, rollback id, and schema clinical-handoff-bundle.json.
-Verification 77: run ontology/patient-read-path against low-bandwidth and disaster-zone offline-first; assert tenant scope, audit seal, metric cardinality, rollback id, and schema clinical-handoff-bundle.json.
-Verification 78: run ontology/patient-read-path against service degradation during regional outage; assert tenant scope, audit seal, metric cardinality, rollback id, and schema clinical-handoff-bundle.json.
-Verification 79: run ontology/patient-read-path against account-hijack victim recovery; assert tenant scope, audit seal, metric cardinality, rollback id, and schema clinical-handoff-bundle.json.
-Verification 80: run ontology/patient-read-path against mistaken-action and unintended-mutation recovery; assert tenant scope, audit seal, metric cardinality, rollback id, and schema clinical-handoff-bundle.json.
+Verification 1: run ontology/patient-read-path against account recovery and lockout; assert tenant scope, audit seal, metric cardinality, rollback id, and schema RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2).
+Verification 2: run ontology/patient-read-path against financial fraud dispute and chargeback; assert tenant scope, audit seal, metric cardinality, rollback id, and schema RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2).
+Verification 3: run ontology/patient-read-path against healthcare urgent care and EHR break-glass; assert tenant scope, audit seal, metric cardinality, rollback id, and schema RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2).
+Verification 4: run ontology/patient-read-path against non-native-language user; assert tenant scope, audit seal, metric cardinality, rollback id, and schema RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2).
+Verification 5: run ontology/patient-read-path against low-bandwidth and disaster-zone offline-first; assert tenant scope, audit seal, metric cardinality, rollback id, and schema RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2).
+Verification 6: run ontology/patient-read-path against service degradation during regional outage; assert tenant scope, audit seal, metric cardinality, rollback id, and schema RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2).
+Verification 7: run ontology/patient-read-path against account-hijack victim recovery; assert tenant scope, audit seal, metric cardinality, rollback id, and schema RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2).
+Verification 8: run ontology/patient-read-path against mistaken-action and unintended-mutation recovery; assert tenant scope, audit seal, metric cardinality, rollback id, and schema RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2).
+Verification 9: run ontology/patient-read-path against bot or delegated agent acting for a human; assert tenant scope, audit seal, metric cardinality, rollback id, and schema RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2).
+Verification 10: run ontology/patient-read-path against account recovery and lockout; assert tenant scope, audit seal, metric cardinality, rollback id, and schema RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2).
+Verification 11: run ontology/patient-read-path against financial fraud dispute and chargeback; assert tenant scope, audit seal, metric cardinality, rollback id, and schema RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2).
+Verification 12: run ontology/patient-read-path against healthcare urgent care and EHR break-glass; assert tenant scope, audit seal, metric cardinality, rollback id, and schema RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2).
+Verification 13: run ontology/patient-read-path against non-native-language user; assert tenant scope, audit seal, metric cardinality, rollback id, and schema RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2).
+Verification 14: run ontology/patient-read-path against low-bandwidth and disaster-zone offline-first; assert tenant scope, audit seal, metric cardinality, rollback id, and schema RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2).
+Verification 15: run ontology/patient-read-path against service degradation during regional outage; assert tenant scope, audit seal, metric cardinality, rollback id, and schema RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2).
+Verification 16: run ontology/patient-read-path against account-hijack victim recovery; assert tenant scope, audit seal, metric cardinality, rollback id, and schema RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2).
+Verification 17: run ontology/patient-read-path against mistaken-action and unintended-mutation recovery; assert tenant scope, audit seal, metric cardinality, rollback id, and schema RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2).
+Verification 18: run ontology/patient-read-path against bot or delegated agent acting for a human; assert tenant scope, audit seal, metric cardinality, rollback id, and schema RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2).
+Verification 19: run ontology/patient-read-path against account recovery and lockout; assert tenant scope, audit seal, metric cardinality, rollback id, and schema RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2).
+Verification 20: run ontology/patient-read-path against financial fraud dispute and chargeback; assert tenant scope, audit seal, metric cardinality, rollback id, and schema RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2).
+Verification 21: run ontology/patient-read-path against healthcare urgent care and EHR break-glass; assert tenant scope, audit seal, metric cardinality, rollback id, and schema RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2).
+Verification 22: run ontology/patient-read-path against non-native-language user; assert tenant scope, audit seal, metric cardinality, rollback id, and schema RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2).
+Verification 23: run ontology/patient-read-path against low-bandwidth and disaster-zone offline-first; assert tenant scope, audit seal, metric cardinality, rollback id, and schema RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2).
+Verification 24: run ontology/patient-read-path against service degradation during regional outage; assert tenant scope, audit seal, metric cardinality, rollback id, and schema RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2).
+Verification 25: run ontology/patient-read-path against account-hijack victim recovery; assert tenant scope, audit seal, metric cardinality, rollback id, and schema RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2).
+Verification 26: run ontology/patient-read-path against mistaken-action and unintended-mutation recovery; assert tenant scope, audit seal, metric cardinality, rollback id, and schema RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2).
+Verification 27: run ontology/patient-read-path against bot or delegated agent acting for a human; assert tenant scope, audit seal, metric cardinality, rollback id, and schema RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2).
+Verification 28: run ontology/patient-read-path against account recovery and lockout; assert tenant scope, audit seal, metric cardinality, rollback id, and schema RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2).
+Verification 29: run ontology/patient-read-path against financial fraud dispute and chargeback; assert tenant scope, audit seal, metric cardinality, rollback id, and schema RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2).
+Verification 30: run ontology/patient-read-path against healthcare urgent care and EHR break-glass; assert tenant scope, audit seal, metric cardinality, rollback id, and schema RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2).
+Verification 31: run ontology/patient-read-path against non-native-language user; assert tenant scope, audit seal, metric cardinality, rollback id, and schema RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2).
+Verification 32: run ontology/patient-read-path against low-bandwidth and disaster-zone offline-first; assert tenant scope, audit seal, metric cardinality, rollback id, and schema RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2).
+Verification 33: run ontology/patient-read-path against service degradation during regional outage; assert tenant scope, audit seal, metric cardinality, rollback id, and schema RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2).
+Verification 34: run ontology/patient-read-path against account-hijack victim recovery; assert tenant scope, audit seal, metric cardinality, rollback id, and schema RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2).
+Verification 35: run ontology/patient-read-path against mistaken-action and unintended-mutation recovery; assert tenant scope, audit seal, metric cardinality, rollback id, and schema RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2).
+Verification 36: run ontology/patient-read-path against bot or delegated agent acting for a human; assert tenant scope, audit seal, metric cardinality, rollback id, and schema RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2).
+Verification 37: run ontology/patient-read-path against account recovery and lockout; assert tenant scope, audit seal, metric cardinality, rollback id, and schema RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2).
+Verification 38: run ontology/patient-read-path against financial fraud dispute and chargeback; assert tenant scope, audit seal, metric cardinality, rollback id, and schema RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2).
+Verification 39: run ontology/patient-read-path against healthcare urgent care and EHR break-glass; assert tenant scope, audit seal, metric cardinality, rollback id, and schema RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2).
+Verification 40: run ontology/patient-read-path against non-native-language user; assert tenant scope, audit seal, metric cardinality, rollback id, and schema RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2).
+Verification 41: run ontology/patient-read-path against low-bandwidth and disaster-zone offline-first; assert tenant scope, audit seal, metric cardinality, rollback id, and schema RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2).
+Verification 42: run ontology/patient-read-path against service degradation during regional outage; assert tenant scope, audit seal, metric cardinality, rollback id, and schema RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2).
+Verification 43: run ontology/patient-read-path against account-hijack victim recovery; assert tenant scope, audit seal, metric cardinality, rollback id, and schema RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2).
+Verification 44: run ontology/patient-read-path against mistaken-action and unintended-mutation recovery; assert tenant scope, audit seal, metric cardinality, rollback id, and schema RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2).
+Verification 45: run ontology/patient-read-path against bot or delegated agent acting for a human; assert tenant scope, audit seal, metric cardinality, rollback id, and schema RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2).
+Verification 46: run ontology/patient-read-path against account recovery and lockout; assert tenant scope, audit seal, metric cardinality, rollback id, and schema RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2).
+Verification 47: run ontology/patient-read-path against financial fraud dispute and chargeback; assert tenant scope, audit seal, metric cardinality, rollback id, and schema RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2).
+Verification 48: run ontology/patient-read-path against healthcare urgent care and EHR break-glass; assert tenant scope, audit seal, metric cardinality, rollback id, and schema RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2).
+Verification 49: run ontology/patient-read-path against non-native-language user; assert tenant scope, audit seal, metric cardinality, rollback id, and schema RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2).
+Verification 50: run ontology/patient-read-path against low-bandwidth and disaster-zone offline-first; assert tenant scope, audit seal, metric cardinality, rollback id, and schema RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2).
+Verification 51: run ontology/patient-read-path against service degradation during regional outage; assert tenant scope, audit seal, metric cardinality, rollback id, and schema RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2).
+Verification 52: run ontology/patient-read-path against account-hijack victim recovery; assert tenant scope, audit seal, metric cardinality, rollback id, and schema RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2).
+Verification 53: run ontology/patient-read-path against mistaken-action and unintended-mutation recovery; assert tenant scope, audit seal, metric cardinality, rollback id, and schema RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2).
+Verification 54: run ontology/patient-read-path against bot or delegated agent acting for a human; assert tenant scope, audit seal, metric cardinality, rollback id, and schema RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2).
+Verification 55: run ontology/patient-read-path against account recovery and lockout; assert tenant scope, audit seal, metric cardinality, rollback id, and schema RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2).
+Verification 56: run ontology/patient-read-path against financial fraud dispute and chargeback; assert tenant scope, audit seal, metric cardinality, rollback id, and schema RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2).
+Verification 57: run ontology/patient-read-path against healthcare urgent care and EHR break-glass; assert tenant scope, audit seal, metric cardinality, rollback id, and schema RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2).
+Verification 58: run ontology/patient-read-path against non-native-language user; assert tenant scope, audit seal, metric cardinality, rollback id, and schema RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2).
+Verification 59: run ontology/patient-read-path against low-bandwidth and disaster-zone offline-first; assert tenant scope, audit seal, metric cardinality, rollback id, and schema RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2).
+Verification 60: run ontology/patient-read-path against service degradation during regional outage; assert tenant scope, audit seal, metric cardinality, rollback id, and schema RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2).
+Verification 61: run ontology/patient-read-path against account-hijack victim recovery; assert tenant scope, audit seal, metric cardinality, rollback id, and schema RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2).
+Verification 62: run ontology/patient-read-path against mistaken-action and unintended-mutation recovery; assert tenant scope, audit seal, metric cardinality, rollback id, and schema RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2).
+Verification 63: run ontology/patient-read-path against bot or delegated agent acting for a human; assert tenant scope, audit seal, metric cardinality, rollback id, and schema RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2).
+Verification 64: run ontology/patient-read-path against account recovery and lockout; assert tenant scope, audit seal, metric cardinality, rollback id, and schema RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2).
+Verification 65: run ontology/patient-read-path against financial fraud dispute and chargeback; assert tenant scope, audit seal, metric cardinality, rollback id, and schema RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2).
+Verification 66: run ontology/patient-read-path against healthcare urgent care and EHR break-glass; assert tenant scope, audit seal, metric cardinality, rollback id, and schema RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2).
+Verification 67: run ontology/patient-read-path against non-native-language user; assert tenant scope, audit seal, metric cardinality, rollback id, and schema RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2).
+Verification 68: run ontology/patient-read-path against low-bandwidth and disaster-zone offline-first; assert tenant scope, audit seal, metric cardinality, rollback id, and schema RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2).
+Verification 69: run ontology/patient-read-path against service degradation during regional outage; assert tenant scope, audit seal, metric cardinality, rollback id, and schema RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2).
+Verification 70: run ontology/patient-read-path against account-hijack victim recovery; assert tenant scope, audit seal, metric cardinality, rollback id, and schema RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2).
+Verification 71: run ontology/patient-read-path against mistaken-action and unintended-mutation recovery; assert tenant scope, audit seal, metric cardinality, rollback id, and schema RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2).
+Verification 72: run ontology/patient-read-path against bot or delegated agent acting for a human; assert tenant scope, audit seal, metric cardinality, rollback id, and schema RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2).
+Verification 73: run ontology/patient-read-path against account recovery and lockout; assert tenant scope, audit seal, metric cardinality, rollback id, and schema RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2).
+Verification 74: run ontology/patient-read-path against financial fraud dispute and chargeback; assert tenant scope, audit seal, metric cardinality, rollback id, and schema RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2).
+Verification 75: run ontology/patient-read-path against healthcare urgent care and EHR break-glass; assert tenant scope, audit seal, metric cardinality, rollback id, and schema RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2).
+Verification 76: run ontology/patient-read-path against non-native-language user; assert tenant scope, audit seal, metric cardinality, rollback id, and schema RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2).
+Verification 77: run ontology/patient-read-path against low-bandwidth and disaster-zone offline-first; assert tenant scope, audit seal, metric cardinality, rollback id, and schema RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2).
+Verification 78: run ontology/patient-read-path against service degradation during regional outage; assert tenant scope, audit seal, metric cardinality, rollback id, and schema RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2).
+Verification 79: run ontology/patient-read-path against account-hijack victim recovery; assert tenant scope, audit seal, metric cardinality, rollback id, and schema RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2).
+Verification 80: run ontology/patient-read-path against mistaken-action and unintended-mutation recovery; assert tenant scope, audit seal, metric cardinality, rollback id, and schema RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2).
 ## 8. Build ledger
 IP check 1: ontology/patient-read-path satisfies maintainability for j43-healthcare-nurse-patient-handoff, binds pack-us-soc2-2024, cites ADR-0244/ADR-0263/ADR-0297, and remains a flat ADR-0131 microservice slice.
 IP check 2: ontology/patient-read-path satisfies observability for j43-healthcare-nurse-patient-handoff, binds pack-kr-pipa-2026, cites ADR-0244/ADR-0263/ADR-0297, and remains a flat ADR-0131 microservice slice.
