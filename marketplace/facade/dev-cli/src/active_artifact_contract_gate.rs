@@ -411,7 +411,7 @@ fn profile_defaults_path() -> PathBuf {
     }
     PathBuf::from(option_env!("CARGO_MANIFEST_DIR").unwrap_or("."))
         .ancestors()
-        .nth(4)
+        .nth(3)
         .unwrap_or_else(|| Path::new("."))
         .join(PROFILE_DEFAULTS_PATH)
 }
