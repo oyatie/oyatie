@@ -7,8 +7,8 @@
 # marked; same class as asterinas-real-boot bins), not a product CLI capability.
 # The rust_library is the sanctioned automation surface.
 
-_MATRIX = "//kernel/core/asterinas-abi-matrix:kernel-asterinas-abi-matrix"
-_BOUNDARY = "//kernel/core/asterinas-boundary:kernel-asterinas-boundary"
+_MATRIX = "//kernel/asterinas/core/asterinas-abi-matrix:kernel-asterinas-abi-matrix"
+_BOUNDARY = "//kernel/asterinas/core/asterinas-boundary:kernel-asterinas-boundary"
 _TP = ["third-party//:serde_json"]
 
 rust_library(
