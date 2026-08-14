@@ -25,12 +25,16 @@ use std::{
 };
 
 use ci_build_cache_policy as app;
+use serde::Deserialize;
 use serde_json::{Value, json};
 use serde_yaml::Value as YamlValue;
 
 const CANARY_WORKFLOW_PATH: &str = ".github/workflows/cache-integrity-canary.yml";
 const CANARY_SCHEDULE_WORKFLOW_PATH: &str = ".github/workflows/cache-integrity-canary-schedule.yml";
 const REQUIRED_WORKFLOW_PATH: &str = ".github/workflows/oya-ci-required.yml";
+const NATIVELINK_MANIFEST_PATH: &str = "storage/adapters/nativelink/nativelink-cas.k8s.yaml";
+const EXTERNAL_SECRETS_RUNBOOK_PATH: &str = "infra/external-secrets/RUNBOOK.md";
+const RUNNER_NETWORK_POLICY_PATH: &str = "infra/arc/live-postgres-runner-network-policy.yaml";
 const COLD_REQUIRED_FLOOR: [&str; 4] = [
     "release-production-image",
     "integrity-canary",
@@ -41,6 +45,66 @@ const COLD_REQUIRED_FLOOR: [&str; 4] = [
 fn repo_root() -> PathBuf {
     let cwd = std::env::current_dir().expect("current_dir");
     app::repo_root_from(&cwd).expect("failed to locate repo root from test current_dir")
+}
+
+fn validated_service_port(service: &YamlValue, role: &str) -> Result<u64, String> {
+    let port = service["spec"]["ports"][0]["port"]
+        .as_u64()
+        .ok_or_else(|| format!("{role} Service port is missing or non-numeric"))?;
+    let target_port = service["spec"]["ports"][0]["targetPort"]
+        .as_u64()
+        .ok_or_else(|| format!("{role} Service targetPort is missing or non-numeric"))?;
+    if target_port != port {
+        return Err(format!(
+            "{role} Service targetPort {target_port} disagrees with port {port}"
+        ));
+    }
+    Ok(port)
+}
+
+fn validate_server_san_preflight(
+    runbook: &str,
+    expected_sans: &HashSet<String>,
+) -> Result<(), String> {
+    let san_block = runbook
+        .split_once("cat >\"$tmp/server-sans.expected\" <<'EOF'\n")
+        .and_then(|(_, suffix)| suffix.split_once("\nEOF"))
+        .map(|(block, _)| block)
+        .ok_or_else(|| "exact server SAN preflight block is missing".to_string())?;
+    let actual_sans = san_block.lines().map(str::to_owned).collect::<HashSet<_>>();
+    if &actual_sans != expected_sans {
+        return Err(format!(
+            "server SAN preflight {actual_sans:?} disagrees with endpoint DATA {expected_sans:?}"
+        ));
+    }
+    Ok(())
+}
+
+fn endpoint_port(address: &str) -> Result<u64, String> {
+    address
+        .rsplit_once(':')
+        .and_then(|(_, port)| port.parse::<u64>().ok())
+        .ok_or_else(|| format!("validated endpoint address `{address}` has no numeric port"))
+}
+
+fn require_network_policy_port(
+    rule: &YamlValue,
+    expected_port: u64,
+    context: &str,
+) -> Result<(), String> {
+    let ports = rule["ports"]
+        .as_sequence()
+        .ok_or_else(|| format!("{context} has no ports"))?;
+    if ports
+        .iter()
+        .any(|entry| entry["port"].as_u64() == Some(expected_port))
+    {
+        Ok(())
+    } else {
+        Err(format!(
+            "{context} does not allow endpoint port {expected_port}"
+        ))
+    }
 }
 
 fn licensed_fixture() -> Value {
@@ -351,7 +415,7 @@ fn included_cache_pattern(raw_path: &str) -> Result<Option<&str>, String> {
     Ok(Some(pattern))
 }
 
-fn action_steps<'a>(doc: &'a YamlValue) -> Vec<(&'a str, &'a [YamlValue])> {
+fn action_steps(doc: &YamlValue) -> Vec<(&str, &[YamlValue])> {
     let mut scopes = Vec::new();
     if let Some(jobs) = doc.get("jobs").and_then(YamlValue::as_mapping) {
         for (job_name, job) in jobs {
@@ -751,10 +815,11 @@ fn kill_switch_flips_warm_classes_and_only_warm_classes() {
 #[test]
 fn overlays_parse_select_the_cache_platform_and_carry_no_identity() {
     let root = repo_root();
-    for (path, uploads, endpoint_marker) in [
-        (app::OVERLAY_RW_PATH, "true", "nativelink-cas-writer"),
-        (app::OVERLAY_RO_PATH, "false", "nativelink-cas-reader"),
-    ] {
+    let endpoints = app::load_endpoint_profile(&root).expect("load endpoint profile");
+    for mode in [app::CacheMode::WarmReadWrite, app::CacheMode::WarmReadOnly] {
+        let binding = app::cache_mode_binding(&endpoints, mode).expect("warm mode binding");
+        let path = binding.overlay_path;
+        let uploads = binding.allows_uploads.to_string();
         let text =
             std::fs::read_to_string(root.join(path)).unwrap_or_else(|e| panic!("read {path}: {e}"));
         let cfg = app::parse_buckconfig(&text);
@@ -777,7 +842,7 @@ fn overlays_parse_select_the_cache_platform_and_carry_no_identity() {
             .get("buck2")
             .and_then(|section| section.get("default_allow_cache_upload"))
             .map(String::as_str);
-        if uploads == "true" {
+        if binding.allows_uploads {
             assert_eq!(
                 default_upload,
                 Some("true"),
@@ -796,12 +861,13 @@ fn overlays_parse_select_the_cache_platform_and_carry_no_identity() {
             .unwrap_or_else(|| panic!("{path}: no [buck2_re_client]"));
         assert_eq!(re["tls"], "true", "{path}: keyed transport is TLS-only");
         for key in ["engine_address", "cas_address", "action_cache_address"] {
-            assert!(
-                re[key].contains(endpoint_marker),
-                "{path}: {key} must point at the {endpoint_marker} endpoint, got {}",
-                re[key]
+            assert_eq!(
+                re[key],
+                app::RE_ADDRESS_TOKEN,
+                "{path}: {key} must be materialized from endpoint DATA"
             );
         }
+        assert_eq!(re["instance_name"], app::INSTANCE_NAME_TOKEN, "{path}");
         assert!(
             !re.contains_key("tls_client_cert"),
             "{path}: the keyed identity must come from secret-mounted env at emit time, \
@@ -811,7 +877,235 @@ fn overlays_parse_select_the_cache_platform_and_carry_no_identity() {
             !text.contains("PRIVATE KEY") && !text.to_lowercase().contains("api-key"),
             "{path}: secret material in a checked-in overlay"
         );
+
+        let resolution = app::Resolution {
+            build_class: "fixture".to_string(),
+            mode,
+            reasons: Vec::new(),
+        };
+        let effective = app::effective_buckconfig(
+            &resolution,
+            &text,
+            Some(&endpoints),
+            Some("/run/secrets/cache-client.pem"),
+            Some("/run/secrets/cache-server-ca.pem"),
+        )
+        .expect("materialize endpoint DATA")
+        .expect("warm config");
+        let effective = app::parse_buckconfig(&effective);
+        let effective_re = &effective["buck2_re_client"];
+        for key in ["engine_address", "cas_address", "action_cache_address"] {
+            assert_eq!(
+                effective_re[key],
+                binding.endpoint.re_address(),
+                "{path}: {key}"
+            );
+        }
+        assert_eq!(
+            effective_re["instance_name"],
+            endpoints.instance_name(),
+            "{path}"
+        );
+        assert!(
+            effective_re
+                .values()
+                .all(|value| !value.contains("__CACHE_")),
+            "{path}: effective config retained a materialization token"
+        );
     }
+}
+
+#[test]
+fn endpoint_data_matches_the_nativelink_services_and_instances() {
+    let root = repo_root();
+    let endpoints = app::load_endpoint_profile(&root).expect("load endpoint profile");
+    let manifest = std::fs::read_to_string(root.join(NATIVELINK_MANIFEST_PATH))
+        .expect("read NativeLink manifest");
+    let documents = serde_yaml::Deserializer::from_str(&manifest)
+        .map(|document| YamlValue::deserialize(document).expect("parse NativeLink YAML document"))
+        .collect::<Vec<_>>();
+
+    let config_map = documents
+        .iter()
+        .find(|document| {
+            document.get("kind").and_then(YamlValue::as_str) == Some("ConfigMap")
+                && document
+                    .get("metadata")
+                    .and_then(|metadata| metadata.get("name"))
+                    .and_then(YamlValue::as_str)
+                    == Some("nativelink-cas-config")
+        })
+        .expect("NativeLink config ConfigMap");
+    let config_text = config_map
+        .get("data")
+        .and_then(|data| data.get("cas.json"))
+        .and_then(YamlValue::as_str)
+        .expect("NativeLink cas.json");
+    let config: Value = serde_json::from_str(config_text).expect("parse NativeLink cas.json");
+    let servers = config["servers"].as_array().expect("NativeLink servers");
+    let ingress_policy = documents
+        .iter()
+        .find(|document| {
+            document.get("kind").and_then(YamlValue::as_str) == Some("NetworkPolicy")
+                && document["metadata"]["name"].as_str() == Some("nativelink-cas-ingress")
+        })
+        .expect("NativeLink ingress NetworkPolicy");
+
+    for (role, endpoint, read_only) in [
+        ("writer", endpoints.writer(), false),
+        ("reader", endpoints.reader(), true),
+    ] {
+        let service_name = format!("nativelink-cas-{role}");
+        let service = documents
+            .iter()
+            .find(|document| {
+                document.get("kind").and_then(YamlValue::as_str) == Some("Service")
+                    && document
+                        .get("metadata")
+                        .and_then(|metadata| metadata.get("name"))
+                        .and_then(YamlValue::as_str)
+                        == Some(service_name.as_str())
+            })
+            .unwrap_or_else(|| panic!("NativeLink {role} Service"));
+        let namespace = service["metadata"]["namespace"]
+            .as_str()
+            .expect("Service namespace");
+        let port = validated_service_port(service, role).expect("validated Service port");
+        assert_eq!(
+            endpoint.socket_address(),
+            format!("{service_name}.{namespace}.svc.cluster.local:{port}")
+        );
+        let role_label = format!("oya.io/nativelink-cas-{role}");
+        let ingress_rule = ingress_policy["spec"]["ingress"]
+            .as_sequence()
+            .and_then(|rules| {
+                rules.iter().find(|rule| {
+                    rule["from"].as_sequence().is_some_and(|sources| {
+                        sources.iter().any(|source| {
+                            source["podSelector"]["matchLabels"][role_label.as_str()].as_str()
+                                == Some("true")
+                        })
+                    })
+                })
+            })
+            .unwrap_or_else(|| panic!("{role} ingress rule"));
+        require_network_policy_port(ingress_rule, port, &format!("{role} ingress rule"))
+            .expect("ingress port matches endpoint DATA");
+
+        let server = servers
+            .iter()
+            .find(|server| server["name"].as_str() == Some(role))
+            .unwrap_or_else(|| panic!("NativeLink {role} server"));
+        assert_eq!(
+            server["listener"]["http"]["socket_address"]
+                .as_str()
+                .expect("listener socket"),
+            format!("0.0.0.0:{port}")
+        );
+        for service_kind in ["cas", "ac", "capabilities", "bytestream"] {
+            let instances = server["services"][service_kind]
+                .as_array()
+                .unwrap_or_else(|| panic!("{role} {service_kind} instances"));
+            assert!(!instances.is_empty(), "{role} {service_kind} is empty");
+            assert!(
+                instances.iter().all(|instance| {
+                    instance["instance_name"].as_str() == Some(endpoints.instance_name())
+                }),
+                "{role} {service_kind} instance drifted from endpoint DATA"
+            );
+        }
+        assert_eq!(
+            server["services"]["ac"][0]["read_only"].as_bool(),
+            Some(read_only),
+            "{role} AC posture"
+        );
+    }
+
+    let runbook = std::fs::read_to_string(root.join(EXTERNAL_SECRETS_RUNBOOK_PATH))
+        .expect("read external-secrets runbook");
+    let expected_sans = [
+        endpoints.writer().socket_address(),
+        endpoints.reader().socket_address(),
+    ]
+    .map(|address| {
+        let (host, _) = address
+            .rsplit_once(':')
+            .expect("validated endpoint socket address");
+        format!("DNS:{host}")
+    })
+    .into_iter()
+    .collect::<HashSet<_>>();
+    validate_server_san_preflight(&runbook, &expected_sans)
+        .expect("server certificate SAN preflight matches endpoint DATA");
+
+    let runner_policy = std::fs::read_to_string(root.join(RUNNER_NETWORK_POLICY_PATH))
+        .expect("read runner NetworkPolicy");
+    let runner_policies = serde_yaml::Deserializer::from_str(&runner_policy)
+        .map(|document| YamlValue::deserialize(document).expect("parse runner NetworkPolicy"))
+        .collect::<Vec<_>>();
+    let runner_egress = runner_policies
+        .iter()
+        .find(|document| {
+            document["metadata"]["name"].as_str() == Some("ci-runners-egress-allowlist")
+        })
+        .expect("runner egress NetworkPolicy");
+    let oya_ci_rule = runner_egress["spec"]["egress"]
+        .as_sequence()
+        .and_then(|rules| {
+            rules.iter().find(|rule| {
+                rule["to"].as_sequence().is_some_and(|destinations| {
+                    destinations.iter().any(|destination| {
+                        destination["namespaceSelector"]["matchLabels"]
+                            ["kubernetes.io/metadata.name"]
+                            .as_str()
+                            == Some("oya-ci")
+                    })
+                })
+            })
+        })
+        .expect("runner egress rule for oya-ci");
+    for endpoint in [endpoints.writer(), endpoints.reader()] {
+        let port = endpoint_port(endpoint.socket_address()).expect("validated endpoint port");
+        require_network_policy_port(oya_ci_rule, port, "runner egress rule for oya-ci")
+            .expect("runner egress port matches endpoint DATA");
+    }
+}
+
+#[test]
+fn endpoint_conformance_rejects_target_port_and_server_san_drift() {
+    let service: YamlValue =
+        serde_yaml::from_str("spec:\n  ports:\n    - port: 50051\n      targetPort: 50052\n")
+            .expect("parse Service fixture");
+    assert!(
+        validated_service_port(&service, "writer")
+            .unwrap_err()
+            .contains("disagrees")
+    );
+
+    let expected = [
+        "DNS:writer.example.test".to_string(),
+        "DNS:reader.example.test".to_string(),
+    ]
+    .into_iter()
+    .collect::<HashSet<_>>();
+    let stale_runbook = "cat >\"$tmp/server-sans.expected\" <<'EOF'\n\
+                         DNS:writer.example.test\n\
+                         DNS:stale.example.test\n\
+                         EOF\n";
+    assert!(
+        validate_server_san_preflight(stale_runbook, &expected)
+            .unwrap_err()
+            .contains("disagrees")
+    );
+
+    let stale_policy: YamlValue =
+        serde_yaml::from_str("ports:\n  - protocol: TCP\n    port: 50051\n")
+            .expect("parse NetworkPolicy rule fixture");
+    assert!(
+        require_network_policy_port(&stale_policy, 50052, "stale policy")
+            .unwrap_err()
+            .contains("does not allow")
+    );
 }
 
 #[test]

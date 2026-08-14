@@ -71,6 +71,7 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         ":ci-build-cache-policy",
+        "third-party//:serde",
         "third-party//:serde_json",
         "third-party//:serde_yaml",
     ],

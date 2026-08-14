@@ -29,10 +29,10 @@
   default_allow_cache_upload = true
 
 [buck2_re_client]
-  engine_address = grpc://nativelink-cas-writer.oya-ci.svc.cluster.local:50051
-  cas_address = grpc://nativelink-cas-writer.oya-ci.svc.cluster.local:50051
-  action_cache_address = grpc://nativelink-cas-writer.oya-ci.svc.cluster.local:50051
-  instance_name = main
+  engine_address = __CACHE_RE_ADDRESS__
+  cas_address = __CACHE_RE_ADDRESS__
+  action_cache_address = __CACHE_RE_ADDRESS__
+  instance_name = __CACHE_INSTANCE_NAME__
   tls = true
 
 [oya_cache]

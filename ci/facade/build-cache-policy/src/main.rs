@@ -170,27 +170,46 @@ fn controlled_child(
             local.display()
         ));
     }
+    let (child_command, isolation) = controlled_buck2_command(command)?;
     if resolution.mode == app::CacheMode::Bypass {
-        return run_child(root, command).map(child_exit);
+        // RE configuration is fixed at daemon startup. Even a declared-cold
+        // child must start behind a successful kill: an earlier warm cleanup
+        // failure must never let a stale daemon participate while this run
+        // reports bypass.
+        kill_buck2(root, &isolation)?;
+        return run_child(root, &child_command).map(child_exit);
     }
 
-    let overlay_path = match resolution.mode {
-        app::CacheMode::WarmReadOnly => app::OVERLAY_RO_PATH,
-        app::CacheMode::WarmReadWrite => app::OVERLAY_RW_PATH,
-        app::CacheMode::Bypass => unreachable!(),
-    };
+    let endpoints = app::load_endpoint_profile(root)?;
+    let binding = app::cache_mode_binding(&endpoints, resolution.mode)
+        .ok_or_else(|| "warm mode has no cache binding".to_string())?;
+    let overlay_path = binding.overlay_path;
     let overlay = fs::read_to_string(root.join(overlay_path))
         .map_err(|error| format!("read {overlay_path}: {error}"))?;
     let cert = std::env::var(app::CLIENT_CERT_ENV).ok();
     let ca = std::env::var(app::TLS_CA_CERTS_ENV).ok();
-    let config = app::effective_buckconfig(resolution, &overlay, cert.as_deref(), ca.as_deref())?
-        .ok_or_else(|| "warm resolution produced no effective config".to_string())?;
+    let cert_path = cert
+        .as_deref()
+        .filter(|path| !path.trim().is_empty())
+        .ok_or_else(|| format!("warm mode requires {}", app::CLIENT_CERT_ENV))?;
+    let ca_path = ca
+        .as_deref()
+        .filter(|path| !path.trim().is_empty())
+        .ok_or_else(|| format!("warm mode requires {}", app::TLS_CA_CERTS_ENV))?;
+    validate_cache_identity_files(cert_path, ca_path)?;
+    let config = app::effective_buckconfig(
+        resolution,
+        &overlay,
+        Some(&endpoints),
+        cert.as_deref(),
+        ca.as_deref(),
+    )?
+    .ok_or_else(|| "warm resolution produced no effective config".to_string())?;
 
     // Buck2 reads RE client configuration only at daemon startup. The two kills
     // are the boundary: start the child after the private config exists, then
     // stop that daemon before deleting the config so a later cold child cannot
     // inherit warm state.
-    let (child_command, isolation) = controlled_buck2_command(command)?;
     kill_buck2(root, &isolation)?;
     let path = app::install_local_buckconfig(root, &config)?;
     let child = run_child(root, &child_command);
@@ -212,8 +231,63 @@ fn required_env(name: &str) -> Result<String, String> {
     std::env::var(name).map_err(|_| format!("required environment variable {name} is missing"))
 }
 
-const WRITER_ENDPOINT: &str = "nativelink-cas-writer.oya-ci.svc.cluster.local:50051";
-const READER_ENDPOINT: &str = "nativelink-cas-reader.oya-ci.svc.cluster.local:50052";
+fn apply_runtime_identity_availability(resolution: app::Resolution) -> app::Resolution {
+    let cert = std::env::var(app::CLIENT_CERT_ENV).ok();
+    let ca = std::env::var(app::TLS_CA_CERTS_ENV).ok();
+    let original_mode = resolution.mode;
+    let resolution =
+        app::require_usable_identity_or_bypass(resolution, cert.as_deref(), ca.as_deref());
+    if original_mode != resolution.mode
+        && let Some(reason) = resolution.reasons.last()
+    {
+        eprintln!("cache resolution: {reason}");
+    }
+    resolution
+}
+
+fn validate_cache_identity_files(client_path: &str, ca_path: &str) -> Result<(), String> {
+    use rustls::pki_types::{CertificateDer, PrivateKeyDer, pem::PemObject};
+
+    for (purpose, path) in [
+        ("cache client identity", client_path),
+        ("cache server CA", ca_path),
+    ] {
+        if let Some(reason) = app::identity_path_unusable(Some(path)) {
+            return Err(format!("{purpose} path `{path}` {reason}"));
+        }
+    }
+
+    let identity =
+        fs::read(client_path).map_err(|error| format!("read cache client identity: {error}"))?;
+    let certificates = CertificateDer::pem_slice_iter(&identity)
+        .collect::<Result<Vec<_>, _>>()
+        .map_err(|error| format!("parse cache client certificate chain: {error}"))?;
+    if certificates.is_empty() {
+        return Err("cache client identity contained no certificates".to_string());
+    }
+    let private_key = PrivateKeyDer::from_pem_slice(&identity)
+        .map_err(|error| format!("parse cache client private key: {error}"))?;
+
+    let ca = fs::read(ca_path).map_err(|error| format!("read cache server CA: {error}"))?;
+    let roots = CertificateDer::pem_slice_iter(&ca)
+        .collect::<Result<Vec<_>, _>>()
+        .map_err(|error| format!("parse cache server CA certificates: {error}"))?;
+    let mut root_store = rustls::RootCertStore::empty();
+    let (accepted, rejected) = root_store.add_parsable_certificates(roots);
+    if accepted == 0 || rejected != 0 {
+        return Err(format!(
+            "cache server CA set was not fully parseable ({accepted} accepted, {rejected} rejected)"
+        ));
+    }
+    rustls::ClientConfig::builder_with_protocol_versions(&[&rustls::version::TLS13])
+        .with_root_certificates(root_store)
+        .with_client_auth_cert(certificates, private_key)
+        .map_err(|error| {
+            format!("cache client certificate and private key do not match: {error}")
+        })?;
+    Ok(())
+}
+
 const CAPABILITIES_PATH: &str = "/build.bazel.remote.execution.v2.Capabilities/GetCapabilities";
 
 #[derive(Clone, PartialEq, Message)]
@@ -253,6 +327,24 @@ struct SemVer {
     patch: i32,
     #[prost(string, tag = "4")]
     prerelease: String,
+}
+
+fn capabilities_request(instance_name: &str) -> Vec<u8> {
+    GetCapabilitiesRequest {
+        instance_name: instance_name.to_string(),
+    }
+    .encode_to_vec()
+}
+
+fn endpoint_for_role<'a>(
+    endpoints: &'a app::CacheEndpointProfile,
+    role: &str,
+) -> Result<&'a str, String> {
+    match role {
+        "writer" => Ok(endpoints.writer().socket_address()),
+        "reader" => Ok(endpoints.reader().socket_address()),
+        other => Err(format!("unsupported identity boundary mode `{other}`")),
+    }
 }
 
 fn curl_metadata(stdout: &[u8]) -> Result<(&str, &str), String> {
@@ -648,7 +740,7 @@ fn read_client_auth_rejection(
     ))
 }
 
-fn require_reader_tls_rejected_by_writer() -> Result<String, String> {
+fn require_reader_tls_rejected_by_writer(writer_endpoint: &str) -> Result<String, String> {
     use rustls::pki_types::{CertificateDer, PrivateKeyDer, ServerName, pem::PemObject};
 
     let identity_pem = fs::read(required_env(app::CLIENT_CERT_ENV)?)
@@ -680,25 +772,25 @@ fn require_reader_tls_rejected_by_writer() -> Result<String, String> {
             .map_err(|error| format!("configure reader mTLS identity: {error}"))?;
     config.alpn_protocols = vec![b"h2".to_vec()];
 
-    let host = WRITER_ENDPOINT
+    let host = writer_endpoint
         .split_once(':')
         .map(|(host, _)| host)
         .ok_or_else(|| "writer endpoint missing port".to_string())?;
-    let addresses = WRITER_ENDPOINT
+    let addresses = writer_endpoint
         .to_socket_addrs()
-        .map_err(|error| format!("resolve {WRITER_ENDPOINT}: {error}"))?
+        .map_err(|error| format!("resolve {writer_endpoint}: {error}"))?
         .collect::<Vec<_>>();
     if addresses.is_empty() {
-        return Err(format!("resolve {WRITER_ENDPOINT}: no addresses"));
+        return Err(format!("resolve {writer_endpoint}: no addresses"));
     }
     let mut socket = addresses
         .iter()
         .find_map(|address| TcpStream::connect_timeout(address, Duration::from_secs(5)).ok())
-        .ok_or_else(|| format!("connect {WRITER_ENDPOINT}: all addresses failed"))?;
+        .ok_or_else(|| format!("connect {writer_endpoint}: all addresses failed"))?;
     socket
         .set_read_timeout(Some(Duration::from_secs(10)))
         .and_then(|()| socket.set_write_timeout(Some(Duration::from_secs(10))))
-        .map_err(|error| format!("set {WRITER_ENDPOINT} TLS timeout: {error}"))?;
+        .map_err(|error| format!("set {writer_endpoint} TLS timeout: {error}"))?;
     let server_name = ServerName::try_from(host.to_string())
         .map_err(|error| format!("invalid writer TLS server name: {error}"))?;
     let mut connection = rustls::ClientConnection::new(Arc::new(config), server_name)
@@ -706,7 +798,7 @@ fn require_reader_tls_rejected_by_writer() -> Result<String, String> {
     read_client_auth_rejection(&mut connection, &mut socket)
 }
 
-fn curl_capabilities(endpoint: &str) -> Result<(), String> {
+fn curl_capabilities(endpoint: &str, instance_name: &str) -> Result<(), String> {
     let client_pem = required_env(app::CLIENT_CERT_ENV)?;
     let ca_pem = required_env(app::TLS_CA_CERTS_ENV)?;
     let scratch = std::env::temp_dir().join(format!(
@@ -718,10 +810,7 @@ fn curl_capabilities(endpoint: &str) -> Result<(), String> {
     let request = scratch.join("request.grpc");
     let response = scratch.join("response.grpc");
     let headers = scratch.join("headers.txt");
-    let request_message = GetCapabilitiesRequest {
-        instance_name: "main".to_string(),
-    }
-    .encode_to_vec();
+    let request_message = capabilities_request(instance_name);
     fs::write(&request, grpc_message(&request_message)?)
         .map_err(|error| format!("write {}: {error}", request.display()))?;
 
@@ -807,15 +896,12 @@ fn curl_capabilities(endpoint: &str) -> Result<(), String> {
     }
 }
 
-fn prove_identity_boundary(mode: &str) -> Result<(), String> {
-    let positive_endpoint = match mode {
-        "writer" => WRITER_ENDPOINT,
-        "reader" => READER_ENDPOINT,
-        other => return Err(format!("unsupported identity boundary mode `{other}`")),
-    };
-    curl_capabilities(positive_endpoint)?;
+fn prove_identity_boundary(root: &Path, mode: &str) -> Result<(), String> {
+    let endpoints = app::load_endpoint_profile(root)?;
+    let positive_endpoint = endpoint_for_role(&endpoints, mode)?;
+    curl_capabilities(positive_endpoint, endpoints.instance_name())?;
     if mode == "reader" {
-        require_reader_tls_rejected_by_writer()?;
+        require_reader_tls_rejected_by_writer(endpoints.writer().socket_address())?;
     }
     Ok(())
 }
@@ -1043,18 +1129,21 @@ fn run(args: Vec<String>) -> Result<ExitCode, String> {
             let root = repo_root()?;
             let policy = app::load_policy(&root)?;
             let license = app::load_license(&root)?;
-            let resolution = app::resolve(&policy, &license, &build_class)?;
+            let policy_resolution = app::resolve(&policy, &license, &build_class)?;
+            if has_flag(rest, "--require-bypass")
+                && policy_resolution.mode != app::CacheMode::Bypass
+            {
+                return Err(format!(
+                    "--require-bypass: class `{build_class}` policy resolved `{}` — refusing",
+                    policy_resolution.mode
+                ));
+            }
+            let resolution = apply_runtime_identity_availability(policy_resolution);
             println!(
                 "{}",
                 serde_json::to_string_pretty(&resolution.to_json())
                     .map_err(|e| format!("serialize resolution: {e}"))?
             );
-            if has_flag(rest, "--require-bypass") && resolution.mode != app::CacheMode::Bypass {
-                return Err(format!(
-                    "--require-bypass: class `{build_class}` resolved `{}` — refusing",
-                    resolution.mode
-                ));
-            }
             Ok(ExitCode::SUCCESS)
         }
         "run" => {
@@ -1123,7 +1212,7 @@ fn run(args: Vec<String>) -> Result<ExitCode, String> {
             } else {
                 let build_class = flag_value(options, "--build-class")
                     .ok_or_else(|| "run requires --build-class or --warm-probe".to_string())?;
-                app::resolve(&policy, &license, &build_class)?
+                apply_runtime_identity_availability(app::resolve(&policy, &license, &build_class)?)
             };
             if let Some(path) = flag_value(options, "--mode-out") {
                 fs::write(&path, format!("{}\n", resolution.mode))
@@ -1142,7 +1231,7 @@ fn run(args: Vec<String>) -> Result<ExitCode, String> {
             let mode = workflow_mode
                 .as_deref()
                 .ok_or_else(|| "workflow identity requires reader or writer mode".to_string())?;
-            if let Err(error) = prove_identity_boundary(mode) {
+            if let Err(error) = prove_identity_boundary(&root, mode) {
                 let cleanup = remove_identity_files();
                 return Err(match cleanup {
                     Ok(()) => error,
@@ -1465,6 +1554,32 @@ mod tests {
     #[derive(Debug)]
     struct RejectEveryClientCertificate;
 
+    fn endpoint_profile_fixture() -> app::CacheEndpointProfile {
+        app::parse_endpoint_profile(
+            &json!({
+                "policy_id": "cache-endpoints",
+                "schema_version": "1.0.0",
+                "adr": "ADR-0703",
+                "active_profile": "oyatie",
+                "profiles": {
+                    "oyatie": {
+                        "instance_name": "fixture",
+                        "writer": {
+                            "re_address": "grpc://writer.example.test:50051",
+                            "socket_address": "writer.example.test:50051"
+                        },
+                        "reader": {
+                            "re_address": "grpc://reader.example.test:50052",
+                            "socket_address": "reader.example.test:50052"
+                        }
+                    }
+                }
+            }),
+            "oyatie",
+        )
+        .unwrap()
+    }
+
     impl rustls::server::danger::ClientCertVerifier for RejectEveryClientCertificate {
         fn root_hint_subjects(&self) -> &[rustls::DistinguishedName] {
             &[]
@@ -1645,15 +1760,16 @@ mod tests {
         assert_eq!(curl_metadata(b"2\n200").unwrap(), ("2", "200"));
         assert!(curl_metadata(b"1.1\n200\nextra").is_err());
 
-        let request = GetCapabilitiesRequest {
-            instance_name: "main".to_string(),
-        }
-        .encode_to_vec();
-        assert_eq!(request, [0x0a, 0x04, b'm', b'a', b'i', b'n']);
+        let request = capabilities_request("x");
+        assert_eq!(request, [0x0a, 0x01, b'x']);
         assert_eq!(
             grpc_message(&request).unwrap(),
-            [0, 0, 0, 0, 6, 0x0a, 4, b'm', b'a', b'i', b'n']
+            [0, 0, 0, 0, 3, 0x0a, 1, b'x']
         );
+        let endpoints = endpoint_profile_fixture();
+        let live_request = capabilities_request(endpoints.instance_name());
+        let decoded = GetCapabilitiesRequest::decode(live_request.as_slice()).unwrap();
+        assert_eq!(decoded.instance_name, endpoints.instance_name());
 
         let cache_only = ServerCapabilities {
             cache_capabilities: Some(CacheCapabilities {
@@ -1677,6 +1793,77 @@ mod tests {
         let mut execution_endpoint = cache_only;
         execution_endpoint.execution_capabilities = Some(ExecutionCapabilities {});
         assert!(validate_server_capabilities(&execution_endpoint.encode_to_vec()).is_err());
+    }
+
+    #[test]
+    fn workflow_modes_select_endpoints_from_validated_data() {
+        let endpoints = endpoint_profile_fixture();
+        assert_eq!(
+            endpoint_for_role(&endpoints, "writer").unwrap(),
+            endpoints.writer().socket_address()
+        );
+        assert_eq!(
+            endpoint_for_role(&endpoints, "reader").unwrap(),
+            endpoints.reader().socket_address()
+        );
+        assert!(endpoint_for_role(&endpoints, "lab-rw").is_err());
+    }
+
+    #[test]
+    fn cache_identity_files_require_parseable_cert_key_and_ca() {
+        let root = std::env::temp_dir().join(format!("oya-cache-identity-{}", std::process::id()));
+        let _ = fs::remove_dir_all(&root);
+        fs::create_dir_all(&root).unwrap();
+        let rcgen::CertifiedKey { cert, signing_key } =
+            rcgen::generate_simple_self_signed(vec!["cache-client".to_string()]).unwrap();
+        let identity_path = root.join("identity.pem");
+        let ca_path = root.join("ca.pem");
+        fs::write(
+            &identity_path,
+            format!("{}\n{}", cert.pem(), signing_key.serialize_pem()),
+        )
+        .unwrap();
+        fs::write(&ca_path, cert.pem()).unwrap();
+        validate_cache_identity_files(identity_path.to_str().unwrap(), ca_path.to_str().unwrap())
+            .unwrap();
+
+        let rcgen::CertifiedKey {
+            signing_key: other_key,
+            ..
+        } = rcgen::generate_simple_self_signed(vec!["other-client".to_string()]).unwrap();
+        fs::write(
+            &identity_path,
+            format!("{}\n{}", cert.pem(), other_key.serialize_pem()),
+        )
+        .unwrap();
+        assert!(
+            validate_cache_identity_files(
+                identity_path.to_str().unwrap(),
+                ca_path.to_str().unwrap(),
+            )
+            .unwrap_err()
+            .contains("do not match")
+        );
+
+        fs::write(&identity_path, cert.pem()).unwrap();
+        assert!(
+            validate_cache_identity_files(
+                identity_path.to_str().unwrap(),
+                ca_path.to_str().unwrap(),
+            )
+            .unwrap_err()
+            .contains("private key")
+        );
+        fs::write(&ca_path, b"").unwrap();
+        assert!(
+            validate_cache_identity_files(
+                identity_path.to_str().unwrap(),
+                ca_path.to_str().unwrap(),
+            )
+            .unwrap_err()
+            .contains("non-empty regular file")
+        );
+        fs::remove_dir_all(root).unwrap();
     }
 
     #[test]

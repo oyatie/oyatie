@@ -3054,6 +3054,32 @@
           "last_modified_at": "2026-08-09T00:00:00Z"
         }
       }
+    },
+    {
+      "artifact_id": "cache-endpoints",
+      "artifact_path": "/specs/cache-endpoints.json",
+      "artifact_format": "json",
+      "contract_version": "v3.0.0",
+      "owner_team": "cloud-ci-platform + council-architecture",
+      "purpose_short": "Fail-closed active NativeLink writer/reader addresses and REAPI instance DATA for private Buck2 cache configuration.",
+      "artifact_profile": "registry",
+      "capability_overrides": {
+        "enforcement": {
+          "lane_id": "ci-build-cache-policy-gate"
+        },
+        "verification": {
+          "checker_crate": "ci/facade/build-cache-policy",
+          "command": "buck2 test //ci/facade/build-cache-policy:ci-build-cache-policy-gate"
+        },
+        "validation": {
+          "validator": "The Rust cache-policy gate validates pack identity, active-profile resolution, endpoint grammar, distinct roles, overlay materialization, Service/listener/instance agreement, Service target ports, ingress/runner-egress NetworkPolicy ports, and server-certificate SAN preflight agreement."
+        },
+        "provenance": {
+          "current_author": "GJC execution lane",
+          "current_reviewed_by": "pending exact-head independent review",
+          "last_modified_at": "2026-08-14T00:00:00Z"
+        }
+      }
     }
   ],
   "purpose": "Auto-backfilled purpose for artifact-capabilities-registry.json"

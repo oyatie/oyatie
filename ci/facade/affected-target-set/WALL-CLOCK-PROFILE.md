@@ -93,9 +93,10 @@ crossed the owned node's ephemeral-storage eviction threshold on 2026-08-01
 (`oya-ci-required.yml:554-560`). The sanctioned route is a Buck2-aware remote action cache + CAS,
 and most of it already exists:
 
-- `infra/ci/buckconfig/warm-cache-ro.buckconfig` / `warm-cache-rw.buckconfig` carry complete
-  NativeLink wiring (grpc endpoints, `instance_name = main`, `tls = true`,
-  `remote_cache_enabled = true`, cache execution platform). Shipped dark.
+- `infra/ci/buckconfig/warm-cache-ro.buckconfig` / `warm-cache-rw.buckconfig` carry endpoint and
+  instance materialization tokens plus `tls = true`, `remote_cache_enabled = true`, and the cache
+  execution platform. The controller validates `specs/cache-endpoints.json` and fills those tokens
+  only in its private per-child config. Shipped dark.
 - `specs/cache-warm-license.json` ships `warm_reads_licensed: false`; ADR-0556 D2 is an IFF —
   warm-eligible class AND the most recent scheduled cold integrity-canary GREEN. The resolver
   refuses every warm mode until then. **This is a blocking precondition, not a footnote.**
@@ -169,7 +170,8 @@ throughout. This phase **produces** the cache-only proof the gate demands.
   cache-only proof at all, and the omission is invisible because it reads as a property of A1
   rather than a task. The CAS is cluster-internal: both Services are ClusterIP (no `spec.type`,
   `nativelink-cas.k8s.yaml:357-383`), there is no Ingress, LoadBalancer, NodePort or Gateway
-  anywhere under `storage/adapters/nativelink/` or `infra/ci/`, and the buckconfigs dial
+  anywhere under `storage/adapters/nativelink/` or `infra/ci/`, and the endpoint DATA materialized
+  into the private buckconfig dials
   `grpc://nativelink-cas-{writer,reader}.oya-ci.svc.cluster.local:{50051,50052}` — cluster DNS,
   which a GitHub-hosted runner cannot resolve or route. The canary is pinned to hosted amd64
   (`cache-integrity-canary.yml:98`, `runs-on: ubuntu-latest`) and is consumed via `workflow_call`,
@@ -242,14 +244,15 @@ Credentials (#1541), the Phase-A cache-only proof, and an **Accepted** activatio
   floor amendment: run the dev-push producer under a trusted warm-eligible class and leave PRs
   cold. That speeds the dev-push tier and leaves every PR-lane number in section 1 unchanged.
 - **B3.** **Issue and mount a cache identity for this lane.** `controlled_child` resolves its
-  overlay through `effective_buckconfig`, which **rejects every warm mode** when
-  `OYA_CACHE_TLS_CLIENT_CERT` is unset, empty or non-absolute
-  (`ci/facade/build-cache-policy/src/lib.rs:230-245`), and `gate-affected-target-set` grants only
-  `contents: read` / `actions: read` and mounts no secret (`oya-ci-required.yml:652-654`). Wiring
-  the resolver in without this step either fails the required job or leaves it in bypass — no
-  reuse either way. Fork PRs are handed no secret at all, so they must resolve to a declared
-  cold/bypass class rather than to a broken warm one. Mounting a secret into the **required** job is
-  activation, which is why this sits after the gate and not in Phase A.
+  overlay through `effective_buckconfig`. Before that emission,
+  `require_usable_identity_or_bypass` downgrades a standard lane to declared cold when its client
+  certificate or server CA path is absent, empty, relative, newline-bearing, or unreadable, and
+  logs the reason. Config emission still fails loudly on a missing CA, invalid path, malformed PEM,
+  or certificate/key mismatch. `gate-affected-target-set` grants only `contents: read` /
+  `actions: read` and mounts no secret (`oya-ci-required.yml:652-654`), so wiring the resolver
+  without this step produces no reuse. Fork PRs receive no secret and remain declared cold.
+  Mounting identity into the **required** job is activation, which is why this sits after the gate
+  and not in Phase A.
 - **B4.** Wire `gate-affected-target-set`'s build + test through `cache-wiring-bin` with its own
   build class (trusted-push for the dev-push producer, read-only untrusted-author for PRs, cold for
   forks). This is a `.github/workflows/oya-ci-required.yml` edit and is the piece that has never
@@ -257,8 +260,8 @@ Credentials (#1541), the Phase-A cache-only proof, and an **Accepted** activatio
 
   **PRECONDITION, not covered by B3 — reachability.** `gate-affected-target-set` is
   `runs-on: ubuntu-latest` (`oya-ci-required.yml:657`) while `cache-wiring-bin` dials
-  `nativelink-cas-{writer,reader}.oya-ci.svc.cluster.local:{50051,50052}`, hardcoded at
-  `ci/facade/build-cache-policy/src/main.rs:215-216`. A hosted runner cannot resolve or route those,
+  `nativelink-cas-{writer,reader}.oya-ci.svc.cluster.local:{50051,50052}` from the validated
+  `specs/cache-endpoints.json` profile. A hosted runner cannot resolve or route those,
   and per A2 external exposure is ruled out by the `nativelink-cas-ingress` `podSelector`, which no
   hosted runner can ever satisfy. B3 supplies a **certificate, not reachability** — so with B3 alone
   this lane resolves to bypass or fails outright. **No reuse either way.** This step therefore also
