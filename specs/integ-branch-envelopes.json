@@ -652,7 +652,7 @@
     "sole_owner_per_wave": true,
     "paths": [
       "specs/masterplan.json",
-      "specs/capability-registry.json",
+      "governance/capability-registry.json",
       "specs/root-hub-pointers.json",
       "docs/ADR-INDEX.md",
       "docs/DOC-CATALOG.md",
@@ -1198,7 +1198,7 @@
       "docs/harness/": "delete_permanently",
       "docs/implementation-plans/": "reorg_now",
       "specs/": "keep_forever",
-      "specs/capability-registry.json": "keep_forever",
+      "governance/capability-registry.json": "keep_forever",
       "specs/root-hub-pointers.json": "keep_forever",
       "specs/masterplan.json": "keep_forever",
       "specs/integ-branch-envelopes.json": "keep_forever",
@@ -1814,14 +1814,14 @@
         "destination": "specs/"
       },
       {
-        "path": "specs/capability-registry.json",
+        "path": "governance/capability-registry.json",
         "action": "keep_forever",
-        "greenfield_destination": "specs/capability-registry.json",
+        "greenfield_destination": "governance/capability-registry.json",
         "shape": "closed registry (eventual governance/ copy is same hub move later if desired; keep SSOT)",
         "redesign": "none",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `specs/capability-registry.json` → `specs/capability-registry.json` (closed registry (eventual governance/ copy is same hub move later if desired; keep SSOT)). Full 7-point judgment still pending before structural change.",
-        "destination": "specs/capability-registry.json"
+        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `governance/capability-registry.json` → `governance/capability-registry.json` (closed registry (eventual governance/ copy is same hub move later if desired; keep SSOT)). Full 7-point judgment still pending before structural change.",
+        "destination": "governance/capability-registry.json"
       },
       {
         "path": "specs/root-hub-pointers.json",
@@ -2466,7 +2466,7 @@
         "evidence": [
           "git ls-tree -r --name-only origin/dev -- oya/payments | wc -l → 102; Cargo.toml count → 0 (zero-crate)",
           "oya/payments/AUDIT-FINDINGS-2026-05-20.json present — scout 1f761030 classifies delete_permanently (closed receipt)",
-          "specs/capability-registry.json app_products.current_dirs includes oya/payments → forever app/payments/",
+          "governance/capability-registry.json app_products.current_dirs includes oya/payments → forever app/payments/",
           "billing/ is keep_forever registered capability (metering/tax) — NOT payments forever dest",
           "envelopes roots.payments forward_declared integ/payments → app/payments/** (1.14.0)",
           "scout seat-B packet 1f761030"
@@ -2512,7 +2512,7 @@
         "evidence": [
           "git ls-tree -r --name-only origin/dev -- oya/office | grep 'Cargo.toml$' | wc -l → 19",
           "flat layout oya/office/oya-office-{kernel,tenant-domain,authz-domain,storage-kernel,search-kernel,drive-*,format-*,doc/sheet/slide-domain,sheets-api,collab-*,web-app}",
-          "specs/capability-registry.json app_products.current_dirs includes oya/office → forever app/office/",
+          "governance/capability-registry.json app_products.current_dirs includes oya/office → forever app/office/",
           "envelopes roots.office forward_declared integ/office → app/office/** (1.14.0)",
           "scout seat-B packet 85736b89"
         ],
@@ -2557,7 +2557,7 @@
         "evidence": [
           "git ls-tree -r --name-only origin/dev -- oya/crm | wc -l → 136; crates: oya-crm-customer-engagement-domain, oya-crm-revenue-app, oya-procurement-source-to-pay-domain",
           "specs/microservices/procurement.json owns source-to-pay; crate misplaced under oya/crm/crates/",
-          "specs/capability-registry.json app_products.current_dirs includes oya/crm → forever app/crm/",
+          "governance/capability-registry.json app_products.current_dirs includes oya/crm → forever app/crm/",
           "envelopes roots.crm forward_declared integ/crm → app/crm/** (1.14.0)",
           "scout seat-B packet 72c00210"
         ],
@@ -2647,7 +2647,7 @@
           "crates: oya-itsm-{on-call-schedule,escalation-policy,incident-room,status-update,postmortem,service-management-service}",
           "catalog/: 13 oya-itsm-service-management-*.yaml stubs vs single umbrella crate — phantom service-management surface",
           "oya/incident-management: 134 files + oya-incident-management-sre-incident-command-app — PagerDuty-class overlap with ITSM incident crates",
-          "specs/capability-registry.json app_products.current_dirs includes oya/itsm → forever app/itsm/",
+          "governance/capability-registry.json app_products.current_dirs includes oya/itsm → forever app/itsm/",
           "envelopes roots.itsm forward_declared integ/itsm → app/itsm/** (1.14.0); NOT integ/oya",
           "scout seat-B packet 160229d2"
         ],
@@ -2702,7 +2702,7 @@
         "rationale": "OVERRULE delete_permanently→reorg_now. 1) 86-file zero-crate product scaffold (manifest/contracts/slos/runbooks/iac/catalog/cedar) under oya/calendar — same class as payments. 2) Brand oya/ nest vs ADR-0562 app product forever home. 3) Registered app_products.current_dirs includes oya/calendar; fixtures + cedar baselines live. 4) Must exist at app/calendar/; must not delete. 5) Fit: forward-declare integ/calendar → app/calendar/** (rule 3d). 6) rewrite-into-durable-shape on destination tip; source shrink only after absorb. 7) Forever: app/calendar/.",
         "evidence": [
           "git ls-tree -r 4bebc4766^ -- oya/calendar → 86 files; Cargo.toml count 0; manifest+contracts+slos+runbooks+iac present",
-          "specs/capability-registry.json app_products.current_dirs includes oya/calendar",
+          "governance/capability-registry.json app_products.current_dirs includes oya/calendar",
           "evidence/reorg/rr-oya-orphan-scaffold-batch1-20260806.json disposition=defer forever app/calendar",
           "peer payments row: identical zero-crate scaffold → reorg_now app/payments/",
           "scout 6544bb51 scaffold-vs-dump: calendar OVERRULE; governance KEEP delete"
