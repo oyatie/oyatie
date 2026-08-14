@@ -1,0 +1,49 @@
+# Canonical-base: specs/openslo/canonical-envelope-schema.json + canonical-burn-rate-alert-template.openslo.yaml (SWEEP-I Slice 4 per ADR-0064)
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: calendar-room-conflict-detection-correctness
+  displayName: "calendar: room conflict detection correctness (must be 100%)"
+  labels:
+    microservice: calendar
+    bc: room-booking
+    sli_class: correctness
+    tier: load-bearing-invariant
+    owner_team: axis-calendar
+    pack_scope: all
+    data_classes: BEHAVIORAL_TENANT_PRODUCT
+    compliance: [PRD-AC-09]
+spec:
+  description: |
+    Room conflict detection correctness SLO. A room-booking attempt that
+    would double-book a resource is "good" iff it is REFUSED with a
+    `ConflictDecision::DoubleBookingRefused` outcome AND no booking row
+    is written. Any case where a conflicting booking is written is a
+    catastrophic correctness failure of PRD AC-09. Target = 100%.
+  service: calendar
+  indicator:
+    metadata: {name: calendar-room-conflict-refusal-ratio}
+    spec:
+      ratioMetric:
+        counter: true
+        good:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: |
+                sum(rate(oya_calendar_room_double_booking_refused_total[5m]))
+        total:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: |
+                sum(rate(oya_calendar_room_double_booking_attempt_total[5m]))
+  timeWindow:
+    - duration: 30d
+      isRolling: true
+  budgetingMethod: Occurrences
+  objectives:
+    - target: 1.0
+      displayName: "100% double-booking refusal (no error budget; any leak is Sev-1)"
+  alertPolicies:
+    - alertPolicyRef: calendar-room-conflict-any-leak-page
