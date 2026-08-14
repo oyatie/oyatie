@@ -370,5 +370,9 @@
     "stop_state": "blocked-preplanning-authority-closure"
   },
   "claim_ceiling": "This dated consolidation snapshot, reconciled against live Git/GitHub on 2026-07-21, attests that PR #1340 merged to dev with successful oya-ci-required checks on its immutable final head and squash-merge commits and with GitHub APPROVED metadata. It does not attest a qualified-human approval, an Accepted founder choice, Phase-0 completion, Stage-1 PASS, binding plan approval, execution-wave dispatch, rollout, or product completion.",
-  "updated_at": "2026-07-21T01:25:13Z"
+  "updated_at": "2026-07-21T01:25:13Z",
+  "ratified_sequencing_digest": "sha256:e197ad33be5f3158db3dca797a58dd2f500c12ad2158e42ffa2fb934ebd51004",
+  "authorizes_execution_wave_dispatch": false,
+  "decision_ref_original": "evidence/goals/f1-node-forever-shape-sequencing-founder-ratification-20260810.json",
+  "decision_ref_note": "The original ratification record was retired in the anti-friction corpus cleanup (#1961); this consolidation record is the surviving durable reference documenting the Founder-proxy Round-4 F1 ratification (MPV2-0053..MPV2-0056 planning anchors)."
 }
