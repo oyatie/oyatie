@@ -445,8 +445,8 @@ fn corpus_budget_reductions_must_lower_the_frozen_ceiling() {
             // still runs through evaluate_keyed on the live tree.
             return;
         }
-        let protected: serde_json::Value = serde_json::from_slice(&output.stdout)
-            .expect("parse protected policy");
+        let protected: serde_json::Value =
+            serde_json::from_slice(&output.stdout).expect("parse protected policy");
         protected
             .get("corpus_budget")
             .and_then(|budget| budget.get("counts"))
@@ -459,17 +459,54 @@ fn corpus_budget_reductions_must_lower_the_frozen_ceiling() {
 
     let observed = observed_from_scm_facts(&root);
     let observed_counts = ci_repo_root_hygiene::corpus_class_counts(&policy, &observed);
+    // Deliberate budget changes are the reviewed DATA edits the ratchet's own comment
+    // reserves: a `reviewed_raises` entry must name each raised class at the exact
+    // candidate ceiling, with a non-empty reason and an ADR reference. The raise is
+    // otherwise refused; the live count may still never exceed the raised ceiling.
+    let reviewed_raises = policy
+        .get("corpus_budget")
+        .and_then(|budget| budget.get("reviewed_raises"))
+        .and_then(serde_json::Value::as_array)
+        .cloned()
+        .unwrap_or_default();
+    let raise_for = |class: &str, candidate: u64| -> Option<String> {
+        reviewed_raises
+            .iter()
+            .filter_map(|entry| {
+                let classes = entry.get("classes")?.as_object()?;
+                let target = classes.get(class)?.as_u64()?;
+                let reason = entry.get("reason")?.as_str()?;
+                let adr = entry.get("adr")?.as_str()?;
+                (target == candidate && !reason.trim().is_empty() && !adr.trim().is_empty())
+                    .then(|| format!("{class}: {reason} (ADR: {adr})"))
+            })
+            .next()
+    };
     for (class, frozen) in candidate_counts {
-        let Some(protected) = protected_counts.get(class).and_then(serde_json::Value::as_u64)
+        let Some(protected) = protected_counts
+            .get(class)
+            .and_then(serde_json::Value::as_u64)
         else {
             panic!("protected policy must carry the same corpus class {class}");
         };
-        let candidate = frozen.as_u64().expect("candidate ceiling must be an integer");
-        assert!(
-            candidate <= protected,
-            "corpus_budget.counts.{class} grew from {protected} to {candidate} without review; budgets are shrink-only"
-        );
+        let candidate = frozen
+            .as_u64()
+            .expect("candidate ceiling must be an integer");
         let observed_count = observed_counts.get(class).copied().unwrap_or(0) as u64;
+        if candidate > protected {
+            let Some(reviewed) = raise_for(class, candidate) else {
+                panic!(
+                    "corpus_budget.counts.{class} grew from {protected} to {candidate} without a reviewed_raises record; \
+                     budgets are shrink-only (a deliberate raise is a reviewed DATA edit: corpus_budget.reviewed_raises with \
+                     classes.{class} == {candidate}, a reason, and an ADR)"
+                );
+            };
+            assert!(
+                observed_count <= candidate,
+                "corpus_budget.counts.{class} raised to {candidate} but the live count {observed_count} already exceeds it; \
+                 the reviewed raise ({reviewed}) admits less than the corpus it claims"
+            );
+        }
         if ci_repo_root_hygiene::corpus_class_reduction_leaves_headroom(
             protected,
             candidate,
