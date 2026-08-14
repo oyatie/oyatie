@@ -19,7 +19,7 @@ rust_binary(
     crate_root = "src/main.rs",
     visibility = ["PUBLIC"],
     resources = [
-        "//specs:capability-registry.json",
+        "//governance:capability-registry.json",
         "//specs:substrate-dependency-dag.json",
         "//specs:substrate-dependency-dag.schema.json",
     ],
@@ -51,7 +51,7 @@ rust_test(
     crate_root = "tests/acyclicity.rs",
     visibility = ["PUBLIC"],
     resources = [
-        "//specs:capability-registry.json",
+        "//governance:capability-registry.json",
         "//specs:substrate-dependency-dag.json",
         "//specs:substrate-dependency-dag.schema.json",
     ],
