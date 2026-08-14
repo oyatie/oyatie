@@ -4,7 +4,6 @@ mod architecture_boundaries;
 mod board_masterplan_consistency;
 mod deployment_ops_contract;
 mod master_plan_completion_audit;
-mod milestone_audit;
 mod product_index;
 mod product_prd_json;
 // O7 (ADR-0360): content-addressed gate-result cache, wired into run-all behind
@@ -2147,9 +2146,6 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
         (Some("validate"), Some("deployment-ops-contract")) => {
             deployment_ops_contract::run(args.collect())
         }
-        // milestone-audit: machine-readable replacement for ad-hoc shell/Markdown
-        // milestone readiness reviews.
-        (Some("validate"), Some("milestone-audit")) => milestone_audit::run(args.collect()),
         // `gate validate architecture-boundaries` — Wave 2 B-2 replacement
         // for scripts/check-architecture-boundaries.sh.
         (Some("validate"), Some("architecture-boundaries")) => {
