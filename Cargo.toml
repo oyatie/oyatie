@@ -108,6 +108,12 @@ exclude = [
   # Cargo.lock sole-owner membership on #1934 (expires integ-os-cargo-lock-bridge).
   "kernel",
   "storage/adapters/nativelink",
+  # app/hr pre-drain copy of oya/hr (integ/hr absorb, PR #1677). The destination crates are the
+  # forever home, but the legacy oya/hr/crates copies remain the live root-workspace members until
+  # the integ/oya shrink-only drain deletes them (app/hr/REORG-DRAIN.md) — admitting both would
+  # duplicate package names. Explicit ADR-0538 disposition: excluded (never silently uncovered)
+  # until membership flips to app/*/crates/* on the drain.
+  "app/hr/crates",
 ]
 resolver = "2"
 
