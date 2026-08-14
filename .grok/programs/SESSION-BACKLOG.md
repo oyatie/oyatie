@@ -19,7 +19,6 @@
 | `programs/k8s-port/` | G001 / #1561 |
 | `bin/mm-drive status` | Live resolvable vs human_blocked |
 | beads `oyatie-7xf` | k8s W0-A |
-| kit `tasks/todo.md` | kit phases (secondary) |
 
 ---
 

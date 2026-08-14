@@ -165,4 +165,3 @@ Watch:
 | Monitor snapshot | `.grok/programs/cas-fabric/evidence/parallel-monitor-status.json` |
 | G039 diagnosis | `.grok/programs/cas-fabric/evidence/G039-DIAGNOSIS-1558.md` |
 | Program inherit | `.grok/programs/cas-fabric/PROGRAM.json` |
-| Kit checklist | `.grok/tasks/todo.md` |

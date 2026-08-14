@@ -150,7 +150,6 @@ Capture rollback and non-goals for the PR packet.
 | Workflow | What it does |
 |----------|----------------|
 | `lens-delivery-plan` | Contract → Plan → **orthogonal dual critics** → Synthesize (plan-only) |
-| `delivery-pipeline-improve` | Grok scanners for false-green discovery (legacy) |
 
 Run (Grok Build):
 
