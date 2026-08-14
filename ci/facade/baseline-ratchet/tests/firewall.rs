@@ -916,29 +916,29 @@ fn firewall_goes_red_on_a_synthetic_new_violation() {
     let signoff = SignOff::from_value(&load_json(&signoff_path(&root)));
 
     let mut current = baseline_keys_map(&proposed);
-    // Add a NEW unjustified path that is NOT in the frozen merge-base baseline.
+    // Add a NEW forbidden_foundry path that is NOT in the frozen merge-base baseline.
     current
-        .entry("cloud-ci-total-accounting".to_owned())
+        .entry("cloud-ci-brand-residue".to_owned())
         .or_default()
-        .entry("unjustified".to_owned())
+        .entry("forbidden_foundry".to_owned())
         .or_default()
-        .insert("SYNTHETIC/new-unjustified-file.rs".to_owned());
+        .insert("SYNTHETIC/new-forbidden_foundry-file.rs".to_owned());
 
     let report = evaluate_firewall(&frozen.baseline, &proposed, &current, &signoff);
     let unjust = report
         .codes
         .iter()
-        .find(|r| r.gate == "cloud-ci-total-accounting" && r.code == "unjustified")
-        .expect("unjustified code present");
+        .find(|r| r.gate == "cloud-ci-brand-residue" && r.code == "forbidden_foundry")
+        .expect("forbidden_foundry code present");
     assert!(
         unjust
             .regressions
-            .contains("SYNTHETIC/new-unjustified-file.rs"),
+            .contains("SYNTHETIC/new-forbidden_foundry-file.rs"),
         "the synthetic NEW file must show up as a regression"
     );
     assert!(
         unjust.fails(),
-        "a NEW unjustified file must FAIL the firewall"
+        "a NEW forbidden_foundry file must FAIL the firewall"
     );
     assert!(
         !report.is_green(),
