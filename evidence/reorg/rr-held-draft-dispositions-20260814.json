@@ -36,26 +36,53 @@
     "origin_dev": "4a4f71a14f7f865ecb186fa1be3ccc821bd1094c",
     "frozen_legacy_baseline": {
       "total": 346,
-      "by_root": { "cloud": 24, "libs": 130, "oya": 173, "tools": 19 }
+      "by_root": {
+        "cloud": 24,
+        "libs": 130,
+        "oya": 173,
+        "tools": 19
+      }
     },
     "frozen_unmapped_baseline_crates": 60,
     "pending_relocations": {
       "count": 4,
       "rows": [
-        { "from": "storage.absorbs_current_dirs[storage/imaging]", "disk": "storage/imaging EXISTS", "closeout": "Batch-5 storage move-plan (registry-only; 0-crate scaffold)" },
-        { "from": "observability.absorbs_current_dirs[observability/diagnostics]", "disk": "observability/diagnostics EXISTS", "closeout": "Batch-5 observability move-plan -> app/health-diagnostics" },
-        { "from": "compliance.absorbs_current_dirs[oya/governance]", "disk": "oya/governance EXISTS (0-crate)", "closeout": "Batch-5 compliance move-plan: decompose to governance/ + ci/gateway/cell + iac/" },
-        { "from": "comms.absorbs_current_dirs[comms/emergency]", "disk": "comms/emergency EXISTS", "closeout": "Batch-5 comms move-plan -> later flat emergency product" }
+        {
+          "from": "storage.absorbs_current_dirs[storage/imaging]",
+          "disk": "storage/imaging EXISTS",
+          "closeout": "Batch-5 storage move-plan (registry-only; 0-crate scaffold)"
+        },
+        {
+          "from": "observability.absorbs_current_dirs[observability/diagnostics]",
+          "disk": "observability/diagnostics EXISTS",
+          "closeout": "Batch-5 observability move-plan -> app/health-diagnostics"
+        },
+        {
+          "from": "compliance.absorbs_current_dirs[oya/governance]",
+          "disk": "oya/governance EXISTS (0-crate)",
+          "closeout": "Batch-5 compliance move-plan: decompose to governance/ + ci/gateway/cell + iac/"
+        },
+        {
+          "from": "comms.absorbs_current_dirs[comms/emergency]",
+          "disk": "comms/emergency EXISTS",
+          "closeout": "Batch-5 comms move-plan -> later flat emergency product"
+        }
       ]
     },
     "live_move_plans": {
-      "executable": ["specs/reorg/intelligence-remainder-move-plan.json (78 moves + 78 artifacts; oya/intelligence still holds 78 crate dirs at dev)"],
-      "parked": ["specs/reorg/nativelink-storage-move-plan.PARKED.json (CAS 3A; prereq G039 terminal + singleton free)"],
-      "blocked": ["specs/reorg/kernel-move-plan.BLOCKED.json (3 mechanical defects, dry-run proven)"]
+      "executable": [
+        "specs/reorg/intelligence-remainder-move-plan.json (78 moves + 78 artifacts; oya/intelligence still holds 78 crate dirs at dev)"
+      ],
+      "parked": [
+        "specs/reorg/nativelink-storage-move-plan.PARKED.json (CAS 3A; prereq G039 terminal + singleton free)"
+      ],
+      "blocked": [
+        "specs/reorg/kernel-move-plan.BLOCKED.json (3 mechanical defects, dry-run proven)"
+      ]
     },
     "g039_terminal": {
-      "state": "not-terminal-packet-recorded",
-      "facts": "#1558 merged a1bd1f14a; oya-ci-required SUCCESS on promoted SHA (completed 2026-08-05T11:50:47Z); R3 packet still DRAFT under .grok/programs/cas-fabric/evidence/. CAS 3A unpark remains gated until the packet is finalized and the move-plan singleton frees."
+      "state": "terminal-packet-closed",
+      "facts": "#1558 merged a1bd1f14a; oya-ci-required SUCCESS on promoted SHA (completed 2026-08-05T11:50:47Z); R3 packet finalized 2026-08-14 via .grok/bin/mm-packet --closed -> .grok/programs/cas-fabric/evidence/1558-post-merge-completion-packet.json (completion_packet_closed=true). CAS 3A unpark now gates only on the move-plan singleton freeing (PR #1956 merge)."
     }
   },
   "non_claims": [
