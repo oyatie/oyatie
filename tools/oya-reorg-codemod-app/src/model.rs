@@ -528,10 +528,13 @@ pub enum CodemodError {
     WorkspaceOrphan { path: String, workspace: String },
     /// Rust source under a moving crate carries `include!` / `include_bytes!` / `include_str!` /
     /// `#[path]` literals that resolve OUTSIDE the moving crate's own directory. A path move
-    /// changes both the crate's name and its HOP COUNT to any such target, so these literals
-    /// silently stop meaning what they meant — and NEITHER oracle can see it (`cargo metadata`
-    /// and `buck2 targets` both resolve the graph WITHOUT compiling, so a dangling `include!`
-    /// is invisible to them). Detect-and-refuse rather than rewrite: see `rust_src`.
+    /// can change both the crate's name and its HOP COUNT to any such target, so these
+    /// literals silently stop meaning what they meant — and NEITHER oracle can see it
+    /// (`cargo metadata` and `buck2 targets` both resolve the graph WITHOUT compiling, so a
+    /// dangling `include!` is invisible to them). Refuse by default; two move-invariant
+    /// classes are accepted (see `plan::literal_meaning_preserved`): a depth-preserving move
+    /// with an untouched target, and a target that co-moves with the workspace so the same
+    /// literal recomputes to its new home (the kuberos `../../../out/*.elf` shape).
     UnrewritablePathLiteral { literals: Vec<EscapingPathLiteral> },
 }
 

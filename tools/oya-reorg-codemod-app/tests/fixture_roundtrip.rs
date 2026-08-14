@@ -620,3 +620,89 @@ fn git_mv_path_preserves_history_in_a_real_git_repo() {
 
     let _ = std::fs::remove_dir_all(&root);
 }
+
+/// Build a kernel-shaped fixture: one crate embedding a workspace-root sibling binary via a
+/// hop-count-fixed literal, plus that binary as an artifact co-move (the kuberos `out/*.elf`
+/// shape). The move preserves the crate's workspace-root depth (`crates/<c> -> kern/adapters/<c>`),
+/// so `../../out/x.bin` stays the correct literal when `out/` rides the move.
+fn build_elf_embed_fixture(root: &Path) {
+    w(
+        root,
+        "Cargo.toml",
+        "[workspace]\nmembers = [\"crates/*\", \"kern/*\", \"kern/*/*\"]\nresolver = \"2\"\n",
+    );
+    w(
+        root,
+        "crates/oya-arch/Cargo.toml",
+        "[package]\nname = \"oya-arch\"\nversion = \"0.1.0\"\nedition = \"2021\"\n",
+    );
+    w(
+        root,
+        "crates/oya-arch/src/lib.rs",
+        "pub const IMAGE: &[u8] = include_bytes!(\"../../../out/x.bin\");\n",
+    );
+    w(root, "out/x.bin", "ELF-BYTES");
+    w(root, "out/stays.keep", "untouched");
+}
+
+fn elf_embed_plan(_with_artifact: bool) -> MovePlan {
+    // Depth-preserving move: crates/oya-arch/src -> kern/arch/src keeps ../../../ == repo
+    // root (both sit 3 segments below the root), so the untouched target out/x.bin is still
+    // hit by the same literal.
+    MovePlan {
+        capability: "kernel".to_owned(),
+        moves: vec![CrateMove {
+            old_path: "crates/oya-arch".to_owned(),
+            new_path: "kern/arch".to_owned(),
+            old_cargo_name: "oya-arch".to_owned(),
+            new_cargo_name: "kernel-arch".to_owned(),
+        }],
+        artifacts: vec![],
+    }
+}
+
+#[test]
+fn escaping_literal_with_depth_preserved_and_untouched_target_is_accepted() {
+    let root = tmp_root("elf-embed-accepted");
+    build_elf_embed_fixture(&root);
+    apply_plan(&root, &elf_embed_plan(true), &ApplyOptions { use_git_mv: false })
+        .expect("a depth-preserving move with an untouched target must be move-invariant");
+    let moved = r(&root, "kern/arch/src/lib.rs");
+    assert!(
+        moved.contains("include_bytes!(\"../../../out/x.bin\")"),
+        "the literal is hop-count-preserved: {moved}"
+    );
+    assert!(root.join("out/x.bin").is_file(), "target untouched");
+    let _ = std::fs::remove_dir_all(&root);
+}
+
+#[test]
+fn escaping_literal_with_shallower_depth_is_refused() {
+    let root = tmp_root("elf-embed-refused");
+    build_elf_embed_fixture(&root);
+    // Same crate content but moved one level DEEPER (kern/adapters/arch): ../../../ from
+    // kern/adapters/arch/src now resolves to kern/out/x.bin, not root/out/x.bin, so the
+    // untouched target is no longer hit -> refused.
+    let plan = MovePlan {
+        capability: "kernel".to_owned(),
+        moves: vec![CrateMove {
+            old_path: "crates/oya-arch".to_owned(),
+            new_path: "kern/adapters/arch".to_owned(),
+            old_cargo_name: "oya-arch".to_owned(),
+            new_cargo_name: "kernel-arch".to_owned(),
+        }],
+        artifacts: vec![],
+    };
+    let error = apply_plan(&root, &plan, &ApplyOptions { use_git_mv: false })
+        .expect_err("a depth change that breaks the literal must stay fail-closed");
+    let message = error.to_string();
+    assert!(
+        message.contains("resolve OUTSIDE that crate"),
+        "the refusal must name the escaping-literal class: {message}"
+    );
+    assert!(
+        message.contains("out/x.bin"),
+        "the refusal must name the unresolved target: {message}"
+    );
+    let _ = std::fs::remove_dir_all(&root);
+}
