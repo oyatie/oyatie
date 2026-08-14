@@ -322,9 +322,9 @@
       "frozen_from_commit": "ADR-0716 cargo-merge-path PR",
       "keys_by_file": {
         ".github/workflows/buck2-weekly-smoke.yml": 3,
-        ".github/workflows/oya-ci-required.yml": 12
+        ".github/workflows/oya-ci-required.yml": 15
       },
-      "keys_total": 15
+      "keys_total": 18
     },
     "replacement_window": {
       "schema_version": 1,
@@ -334,6 +334,10 @@
     "codes": {
       "rust_first_automation_unbaselined_workflow_inline_shell": [
         {
+          "key": ".github/workflows/buck2-weekly-smoke.yml::buck2-weekly-smoke::Hermetic workspace build",
+          "shell_lines": 1
+        },
+        {
           "key": ".github/workflows/buck2-weekly-smoke.yml::buck2-weekly-smoke::Install pinned buck2 (digest-verified)",
           "shell_lines": 1
         },
@@ -342,7 +346,15 @@
           "shell_lines": 1
         },
         {
-          "key": ".github/workflows/buck2-weekly-smoke.yml::buck2-weekly-smoke::Hermetic workspace build",
+          "key": ".github/workflows/oya-ci-required.yml::cross-platform-smoke::Cross-platform smoke tests",
+          "shell_lines": 1
+        },
+        {
+          "key": ".github/workflows/oya-ci-required.yml::cross-platform-smoke::Install pinned buck2 (digest-verified)",
+          "shell_lines": 1
+        },
+        {
+          "key": ".github/workflows/oya-ci-required.yml::cross-platform-smoke::Materialize generated faces",
           "shell_lines": 1
         },
         {
@@ -354,27 +366,15 @@
           "shell_lines": 1
         },
         {
-          "key": ".github/workflows/oya-ci-required.yml::test::Materialize generated faces",
-          "shell_lines": 1
-        },
-        {
-          "key": ".github/workflows/oya-ci-required.yml::test::Workspace tests",
-          "shell_lines": 1
+          "key": ".github/workflows/oya-ci-required.yml::live-postgres-adapters::Bootstrap roles and schemas (adapters)",
+          "shell_lines": 10
         },
         {
           "key": ".github/workflows/oya-ci-required.yml::live-postgres-adapters::Install postgresql-client",
           "shell_lines": 1
         },
         {
-          "key": ".github/workflows/oya-ci-required.yml::live-postgres-adapters::Bootstrap roles and schemas (adapters)",
-          "shell_lines": 10
-        },
-        {
           "key": ".github/workflows/oya-ci-required.yml::live-postgres-adapters::Live Postgres tests (adapters)",
-          "shell_lines": 1
-        },
-        {
-          "key": ".github/workflows/oya-ci-required.yml::live-postgres-facades::Install postgresql-client",
           "shell_lines": 1
         },
         {
@@ -382,15 +382,27 @@
           "shell_lines": 10
         },
         {
+          "key": ".github/workflows/oya-ci-required.yml::live-postgres-facades::Install postgresql-client",
+          "shell_lines": 1
+        },
+        {
           "key": ".github/workflows/oya-ci-required.yml::live-postgres-facades::Live Postgres tests (facades)",
           "shell_lines": 1
         },
         {
-          "key": ".github/workflows/oya-ci-required.yml::cross-platform-smoke::Cross-platform smoke tests",
+          "key": ".github/workflows/oya-ci-required.yml::oya-ci-required::Fan-in verdict",
           "shell_lines": 1
         },
         {
-          "key": ".github/workflows/oya-ci-required.yml::oya-ci-required::Fan-in verdict",
+          "key": ".github/workflows/oya-ci-required.yml::test::Install pinned buck2 (digest-verified)",
+          "shell_lines": 1
+        },
+        {
+          "key": ".github/workflows/oya-ci-required.yml::test::Materialize generated faces",
+          "shell_lines": 1
+        },
+        {
+          "key": ".github/workflows/oya-ci-required.yml::test::Workspace tests",
           "shell_lines": 1
         }
       ]

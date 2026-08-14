@@ -18,7 +18,7 @@ milestone: W0
 deliverables:
   - id: ADR-0716-D1
     description: "Rewrite the required CI as a cargo-graph workflow: lint (fmt + clippy), test (materialize faces + cargo test --workspace), two live-postgres lanes, a soft cross-platform smoke, and the zero-build fan-in. All job/step names are self-explanatory, debranded, and carry no ADR or PR numbers."
-    exit_criteria: "The workflow contains no buck2 steps outside the weekly smoke, no serial producer barrier, no affected-set baselines, and no artifact upload/download; swatinem/rust-cache with a shared key warms every lane. Warm PR wall clock is under 15 minutes (measured on two consecutive green runs), and the single protected oya-ci-required context is produced by the fan-in job only."
+    exit_criteria: "The workflow contains no buck2 build/test verdict steps (buck2 appears only as the face materializer's internal helper, installed digest-pinned), no serial producer barrier, no affected-set baselines, and no artifact upload/download; swatinem/rust-cache with a shared key warms every lane. Warm PR wall clock is under 15 minutes (measured on two consecutive green runs), and the single protected oya-ci-required context is produced by the fan-in job only."
     verified_by: "oya-ci-required"
   - id: ADR-0716-D2
     description: "Add buck2-weekly-smoke.yml: a scheduled, non-blocking buck2 build //... honesty check. Retire the cache-integrity canary workflows and the build-cache-policy gate crate; specs/cache-warm-license.json stays as the declarative warm-reads kill-switch at warm_reads_licensed=false."
@@ -67,7 +67,8 @@ remote cache, so buck2 in CI means full rebuilds per lane, while cargo has turnk
 
 1. **The Cargo workspace graph is the CI merge path.** The required workflow runs lint, test,
    live-postgres, and a soft cross-platform smoke, fanned in to the single protected
-   `oya-ci-required` context. No buck2 step, no producer artifact handoff, no affected-set
+   `oya-ci-required` context. No buck2 build/test verdict step (the face materializer keeps buck2 as an internal
+   helper via the digest-pinned installer), no producer artifact handoff, no affected-set
    baselines, no daily-red canary.
 2. **buck2 remains a local hermeticity tool**, kept honest by a weekly non-blocking
    `buck2 build //...` smoke. A red smoke means BUCK/reindeer wiring rotted and must be
