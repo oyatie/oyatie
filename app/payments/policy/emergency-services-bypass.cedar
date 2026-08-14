@@ -11,39 +11,14 @@
 // @publisher-svid: spiffe://oyatie/payments/foundry-agent
 
 // =============================================================================
-// PERMIT — emergency-services principal bypass of rate-limit gate
+// Rate-limit exemption — modeled in abuse-defence.cedar, not here
 // =============================================================================
 //
-// Emergency services marked with audience_type EMERGENCY_SERVICES_OPERATOR are
-// permitted to exceed the normal per-minute rate-limit. This ensures
-// 911/emergency-dispatch platforms can process charges during mass-casualty
-// surges (§3.2.5 rows 1 + 22).
-
-permit (
-  principal,
-  action in [
-    Action::"charge.create",
-    Action::"charge.capture",
-    Action::"payout.execute"
-  ],
-  resource
-)
-when {
-  principal has audience_type &&
-  principal.audience_type == "EMERGENCY_SERVICES_OPERATOR" &&
-  // A positively validated SVID is required so a principal that omits
-  // svid_present entirely (missing identity evidence) fails closed.
-  principal has svid_present &&
-  principal.svid_present == true &&
-  principal has svid_valid &&
-  principal.svid_valid == true
-}
-unless {
-  // Even emergency operators cannot bypass HMAC validation, and never on a
-  // tenant/resource they are not bound to.
-  (resource has hmac_valid && resource.hmac_valid == false) ||
-  (principal has tenant_id && resource has tenant_id && principal.tenant_id != resource.tenant_id)
-};
+// The emergency rate-limit exemption for §3.2.5 rows 1 + 22 lives as an
+// `unless` exception on the ANTI-BOT rate-limit forbid in abuse-defence.cedar
+// (validated SVID + emergency_surge_token + tenant binding). Cedar gives
+// forbids precedence over permits, so a competing permit here could never
+// override that forbid; the exception must be expressed in the forbid itself.
 
 // =============================================================================
 // PERMIT — emergency-services bypass of fraud-score gate
@@ -95,17 +70,23 @@ when {
 };
 
 // =============================================================================
-// PERMIT — mass-casualty surge: disable per-tenant rate-limit for emergency ops
+// PERMIT — mass-casualty surge: emergency payment actions for emergency ops
 // =============================================================================
 //
 // §3.2.5 row 22: mass-casualty surge may spike payment volume 10-100x normal.
-// Emergency operators declared as EMERGENCY_SERVICES_OPERATOR are exempt from
-// per-tenant rate-limit during surge events. Normal bot-score threshold applies
-// (bot_score > 95 still blocks — no bypass for that).
+// The permit enumerates the exact emergency PAYMENT actions (charge create/
+// capture and payout execute — the money-movement flows that must not stall)
+// and binds the principal to the resource's tenant when both carry a tenant,
+// so an unrelated read or administrative action cannot ride the surge token.
+// Normal bot-score threshold still applies (bot_score > 95 blocks).
 
 permit (
   principal,
-  action,
+  action in [
+    Action::"charge.create",
+    Action::"charge.capture",
+    Action::"payout.execute"
+  ],
   resource
 )
 when {
@@ -113,8 +94,12 @@ when {
   principal.audience_type == "EMERGENCY_SERVICES_OPERATOR" &&
   principal has emergency_surge_token &&
   principal.emergency_surge_token != "" &&
+  principal has svid_present &&
+  principal.svid_present == true &&
   principal has svid_valid &&
-  principal.svid_valid == true
+  principal.svid_valid == true &&
+  (!(principal has tenant_id && resource has tenant_id) ||
+    principal.tenant_id == resource.tenant_id)
 }
 unless {
   principal has bot_score &&

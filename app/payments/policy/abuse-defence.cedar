@@ -43,6 +43,47 @@ when {
   principal has request_rate_per_minute &&
   resource has rate_limit_per_minute &&
   principal.request_rate_per_minute > resource.rate_limit_per_minute
+}
+unless {
+  // Validated emergency-services operators are exempt from the ordinary
+  // per-minute rate limit during mass-casualty surges (§3.2.5 rows 1 + 22).
+  // Modeled as an exception to THIS forbid rather than as a competing permit:
+  // Cedar gives forbids precedence over permits, so a separate permit could
+  // never override this denial.
+  principal has audience_type &&
+  principal.audience_type == "EMERGENCY_SERVICES_OPERATOR" &&
+  principal has svid_present && principal.svid_present == true &&
+  principal has svid_valid && principal.svid_valid == true &&
+  principal has emergency_surge_token &&
+  principal.emergency_surge_token != "" &&
+  (!(principal has tenant_id && resource has tenant_id) ||
+    principal.tenant_id == resource.tenant_id)
+};
+
+// =============================================================================
+// PERMIT — authenticated production PSP webhook ingestion
+// =============================================================================
+//
+// A production PSP webhook (stripe/adyen/toss/kakaopay/line-pay/wechat-pay/
+// alipay) is ingested when the caller is provider-bound and the payload carries
+// positive HMAC + replay-window evidence. Without this permit Cedar's implicit
+// default deny would reject every production callback (the only matching permit
+// elsewhere is the sandbox CI scope); the replay/HMAC forbids below remain as
+// defense-in-depth.
+
+permit (
+  principal in WebhookCaller::?w,
+  action == Action::"webhook.receive",
+  resource in WebhookPayload::?p
+)
+when {
+  principal has provider &&
+  resource has provider &&
+  principal.provider == resource.provider &&
+  resource has hmac_valid &&
+  resource.hmac_valid == true &&
+  resource has webhook_age_seconds &&
+  resource.webhook_age_seconds <= 300
 };
 
 // =============================================================================
@@ -131,6 +172,13 @@ when {
 // =============================================================================
 // ANTI-SPOOF — step-up auth required for payout > $10k (per documentation-rigor §3.2.3)
 // =============================================================================
+//
+// Step-up is a USER action taken at payout SCHEDULING time, so the verified
+// evidence must travel on the payout RESOURCE (persisted when the tenant
+// completes passkey/webauthn step-up), not on the later payout-worker
+// principal — the worker identity never carries the user's step-up attribute,
+// and without resource-carried evidence every high-value execution would be
+// denied even after a valid step-up.
 
 forbid (
   principal,
@@ -140,8 +188,8 @@ forbid (
 when {
   resource has amount_minor &&
   resource.amount_minor > 1000000 &&
-  !(principal has step_up_auth_class &&
-    principal.step_up_auth_class in ["passkey", "webauthn"])
+  !(resource has step_up_auth_class &&
+    resource.step_up_auth_class in ["passkey", "webauthn"])
 };
 
 // =============================================================================
