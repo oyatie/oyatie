@@ -104,6 +104,13 @@ pub const PRE_PUSH_VERIFIER_TOOLS_DIR: &str = "oya-pre-push-tools";
 /// rather than an imperative one-off installer command.
 pub const PRE_PUSH_VERIFIER_WIRING_FILE: &str = "tools/hooks/pre-push-verifier.wiring.json";
 
+/// The Buck target this verifier binary is built from. The wiring declaration's `verifier` field
+/// must equal this exact label: a renamed or replacement target in the declaration is contract
+/// drift and must fail closed instead of the reconciler reporting convergence while installing a
+/// binary that contradicts the declared state.
+pub const PRE_PUSH_VERIFIER_TARGET: &str =
+    "//ci/facade/generated-artifact-freshness:oya-pre-push-verify-bin";
+
 /// Prefix of the per-worktree generation subdirectory under the (possibly shared) hooks dir. The
 /// reconciler keys each pinned-tool generation by canonical worktree root so linked worktrees never
 /// clobber each other's installation; the ownership check scans every sibling under this prefix so
@@ -764,6 +771,24 @@ pub fn read_pre_push_verifier_wiring(
             path.display()
         )));
     }
+    // The declared verifier target has a consumer: it must equal this binary's own Buck target, so
+    // a renamed or replacement target in the declaration cannot make the reconciler report
+    // convergence while installing a binary that contradicts the declared state.
+    let declared_target = value
+        .get("verifier")
+        .and_then(|value| value.as_str())
+        .ok_or_else(|| {
+            FreshnessError::new(format!(
+                "pre-push verifier wiring declaration {} lacks verifier — reconcile from a checkout matching the declaration",
+                path.display()
+            ))
+        })?;
+    if declared_target != PRE_PUSH_VERIFIER_TARGET {
+        return Err(FreshnessError::new(format!(
+            "pre-push verifier wiring declaration {} declares verifier {declared_target:?}; expected {PRE_PUSH_VERIFIER_TARGET:?} — reconcile from a checkout matching the declaration",
+            path.display()
+        )));
+    }
     let declared_protocol = value
         .get("protocol_version")
         .and_then(|value| value.as_u64())
@@ -1039,6 +1064,13 @@ fn generator_source_fingerprint(repo_root: &Path) -> Result<String, FreshnessErr
         let bytes = std::fs::read(path).map_err(|error| {
             FreshnessError::new(format!("read generator source {}: {error}", path.display()))
         })?;
+        // Hash the normalized repo-relative path AND the contents: a rename that leaves bytes
+        // unchanged (e.g. src/foo.rs -> src/foo/mod.rs, which changes file!() output and the
+        // build) must still change the fingerprint, so the installed hook cannot keep accepting
+        // stale pinned generators after a rename-only source move.
+        let relative = path.strip_prefix(repo_root).unwrap_or(path);
+        hash.push_str(&fnv1a64_hex(relative.to_string_lossy().as_bytes()));
+        hash.push('\n');
         hash.push_str(&fnv1a64_hex(&bytes));
         hash.push('\n');
     }
@@ -5628,6 +5660,26 @@ mod pre_push_verifier_protocol_tests {
     }
 
     #[test]
+    fn renamed_generator_source_changes_fingerprint() {
+        let root = temp_root("oya-pre-push-fingerprint-rename");
+        write_protocol_fixture(&root, PRE_PUSH_VERIFIER_PROTOCOL_VERSION, None);
+        init_git_and_add(&root);
+        let before = generator_source_fingerprint(&root).expect("fingerprint");
+        // A rename-only move (bytes unchanged) must change the fingerprint: file!() output and the
+        // build change even though a content-only digest would not, so the installed hook cannot
+        // keep accepting stale pinned generators after a rename-only source move.
+        let src = root.join("ci/facade/scm-facts-snapshot/src/mod.rs");
+        let renamed = root.join("ci/facade/scm-facts-snapshot/src/moved.rs");
+        std::fs::rename(&src, &renamed).expect("rename source");
+        run_git(&root, &["add", "-A"]).expect("track rename");
+        let after = generator_source_fingerprint(&root).expect("fingerprint");
+        assert_ne!(
+            before, after,
+            "rename-only source move must change the fingerprint"
+        );
+    }
+
+    #[test]
     fn reconcile_rejects_wiring_declaration_mismatch() {
         let root = temp_root("oya-pre-push-wiring-declaration");
         write_protocol_fixture(&root, PRE_PUSH_VERIFIER_PROTOCOL_VERSION, None);
@@ -5654,11 +5706,34 @@ mod pre_push_verifier_protocol_tests {
         .expect("write wiring");
         let error = read_pre_push_verifier_wiring(&root).expect_err("protocol mismatch");
         assert!(error.to_string().contains("protocol"), "{}", error);
+        // A declaration that renames the verifier target must fail closed (the declared target
+        // has a consumer: it must equal this binary's Buck target).
+        std::fs::write(
+            &wiring_path,
+            serde_json::json!({
+                "hook_name": "pre-push",
+                "verifier": "//ci/facade/generated-artifact-freshness:renamed-target",
+                "protocol_version": PRE_PUSH_VERIFIER_PROTOCOL_VERSION,
+                "pinned_tools": ["emitter", "producer", "masterplan-generator", "architecture-graph-generator"],
+                "generator_source_dirs": [
+                    "ci/facade/scm-facts-snapshot",
+                    "ci/facade/artifact-inventory-registry",
+                    "tools/oya-architecture-graph-generator-app",
+                    "marketplace/facade/dev-cli",
+                    "ci/facade/generated-artifact-freshness",
+                ],
+            })
+            .to_string(),
+        )
+        .expect("write wiring");
+        let error = read_pre_push_verifier_wiring(&root).expect_err("verifier target mismatch");
+        assert!(error.to_string().contains("verifier"), "{}", error);
         // A matching declaration passes.
         std::fs::write(
             &wiring_path,
             serde_json::json!({
                 "hook_name": "pre-push",
+                "verifier": PRE_PUSH_VERIFIER_TARGET,
                 "protocol_version": PRE_PUSH_VERIFIER_PROTOCOL_VERSION,
                 "pinned_tools": ["emitter", "producer", "masterplan-generator", "architecture-graph-generator"],
                 "generator_source_dirs": [
@@ -5685,6 +5760,7 @@ mod pre_push_verifier_protocol_tests {
             wiring_dir.join("pre-push-verifier.wiring.json"),
             serde_json::json!({
                 "hook_name": "pre-push",
+                "verifier": PRE_PUSH_VERIFIER_TARGET,
                 "protocol_version": PRE_PUSH_VERIFIER_PROTOCOL_VERSION,
                 "generator_source_dirs": [
                     "ci/facade/scm-facts-snapshot",
@@ -5712,6 +5788,7 @@ mod pre_push_verifier_protocol_tests {
             wiring_dir.join("pre-push-verifier.wiring.json"),
             serde_json::json!({
                 "hook_name": "pre-push",
+                "verifier": PRE_PUSH_VERIFIER_TARGET,
                 "protocol_version": PRE_PUSH_VERIFIER_PROTOCOL_VERSION,
                 "pinned_tools": ["emitter", "producer", "masterplan-generator", "architecture-graph-generator"],
             })
