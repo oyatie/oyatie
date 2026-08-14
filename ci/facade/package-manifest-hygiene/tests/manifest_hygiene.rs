@@ -51,8 +51,7 @@ fn producer_binary_env_is_required_for_hermetic_gate() {
 /// provided by `OYA_CI_PRODUCER_BIN`; missing env fails closed so tests cannot silently fall back to
 /// Cargo. The producer reads the materialized scm-facts face (a declared input); it never calls git.
 fn run_producer_face(root: &Path, face: &str) -> Value {
-    let scm_facts = root
-        .join("ci/facade/artifact-inventory-registry/scm-facts.generated.json");
+    let scm_facts = root.join("ci/facade/artifact-inventory-registry/scm-facts.generated.json");
     let producer_bin = std::env::var("OYA_CI_PRODUCER_BIN").ok();
     let bin = producer_binary(root, producer_bin.as_deref()).unwrap_or_else(|e| panic!("{e}"));
     let output = Command::new(bin)
@@ -145,11 +144,9 @@ fn resolve_nested_workspace_member_dirs(root: &Path) -> Vec<String> {
         if !nested_text.contains("[workspace]") {
             continue; // excluded for a different reason (no Cargo.toml / not a workspace root).
         }
-        let members = oya_workspace_members_kernel::resolve_member_dirs_from_str(
-            &nested_text,
-            &nested_root,
-        )
-        .expect("resolve nested workspace members");
+        let members =
+            oya_workspace_members_kernel::resolve_member_dirs_from_str(&nested_text, &nested_root)
+                .expect("resolve nested workspace members");
         dirs.extend(members.into_iter().map(|m| format!("{excluded}/{m}")));
     }
     dirs
