@@ -6,6 +6,18 @@ doc_status: published
 
 # Changelog
 
+## 2026-08-14 — Git pre-push hook automates the local face-settle --verify step
+
+- Added [`scripts/git-hooks/pre-push`](../scripts/git-hooks/pre-push): every branch push now
+  runs the canonical `oya-cloud-ci-face-settle --verify` check locally (read-only, blocking on
+  stale faces with the tool's remediation output; no bypass by design). Wired per clone with
+  `git config core.hooksPath scripts/git-hooks`.
+- Updated the face-settle protocol paragraph in
+  [`docs/oya-ci/gate-catalog.md`](oya-ci/gate-catalog.md) and the Claude Code appendix hook list in
+  [`docs/AGENTS.md`](AGENTS.md). The cloud-ci freshness gate behind `oya-ci-required` remains the
+  canonical enforcement backstop; the hook is the automation-default local check in front of it.
+- Refs #1955; bead `oyatie-zjob`.
+
 ## 2026-08-12 — Masterplan stale inline sequencing digest removed
 
 - Normalized the one `masterplan_v2.planning_entry_contract.no_dispatch_stop_conditions`
