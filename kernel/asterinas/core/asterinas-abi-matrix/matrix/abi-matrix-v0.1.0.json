@@ -1,6 +1,6 @@
 {
   "$schema": "https://docs.oyatie.com/schemas/asterinas-abi-matrix.v0.1.0.json",
-  "$id": "https://docs.oyatie.com/kernel/core/asterinas-abi-matrix/matrix/abi-matrix-v0.1.0.json",
+  "$id": "https://docs.oyatie.com/kernel/asterinas/core/asterinas-abi-matrix/matrix/abi-matrix-v0.1.0.json",
   "matrix_id": "asterinas-abi-matrix",
   "schema_version": "0.1.0",
   "status": "scaffold",
@@ -53,7 +53,7 @@
     "release_tag": "v0.17.2",
     "release_commit": "23adfdfd72b05cee8d232809caea81a4b33d3488",
     "boundary_crate": "kernel-asterinas-boundary",
-    "pin_manifest": "kernel/core/asterinas-boundary/pins/asterinas-release-v0.17.2.json",
+    "pin_manifest": "kernel/asterinas/core/asterinas-boundary/pins/asterinas-release-v0.17.2.json",
     "boot_iso_asset": "asterinas-nixos-0.17.2-x86_64.iso",
     "boot_iso_sha256": "bf6e161ecc8b8080b842a339cee5f55d18b93d99b1e39c7c07681ff3aca0090a"
   },
@@ -402,7 +402,7 @@
   },
   "probe_harness": {
     "crate": "kernel-asterinas-abi-probe",
-    "path": "kernel/harness/asterinas-abi-probe",
+    "path": "kernel/asterinas/harness/asterinas-abi-probe",
     "preferred_evidence_path": "qemu-tcg-against-pinned-iso",
     "live_hardware_required": false,
     "status": "skeleton",

@@ -21,7 +21,7 @@ use std::time::Duration;
 
 const DEFAULT_ISO_DEST: &str = "kernel/target/artifacts/asterinas-nixos-0.17.2-x86_64.iso";
 const DEFAULT_RECEIPT_DEST: &str =
-    "kernel/harness/asterinas-real-boot/receipts/fetch-verify-v0.17.2.json";
+    "kernel/asterinas/harness/asterinas-real-boot/receipts/fetch-verify-v0.17.2.json";
 
 fn main() -> ExitCode {
     match run() {

@@ -45,9 +45,10 @@ const DEFAULT_ISO: &str = "kernel/target/artifacts/asterinas-nixos-0.17.2-x86_64
 const DEFAULT_SERIAL_LOG: &str = "kernel/target/artifacts/boot-serial-v0.17.2.log";
 const DEFAULT_QEMU_STDERR: &str = "kernel/target/artifacts/boot-qemu-stderr-v0.17.2.log";
 const DEFAULT_EXCERPT: &str = "kernel/target/artifacts/boot-serial-v0.17.2.excerpt.txt";
-const DEFAULT_BOOT_RECEIPT: &str = "kernel/harness/asterinas-real-boot/receipts/boot-v0.17.2.json";
+const DEFAULT_BOOT_RECEIPT: &str =
+    "kernel/asterinas/harness/asterinas-real-boot/receipts/boot-v0.17.2.json";
 const DEFAULT_ENVELOPE_RECEIPT: &str =
-    "kernel/harness/asterinas-real-boot/receipts/envelope-v0.17.2.json";
+    "kernel/asterinas/harness/asterinas-real-boot/receipts/envelope-v0.17.2.json";
 const DEFAULT_GAP_REGISTER: &str = "specs/kuberos-asterinas-wave1-gap-register.json";
 
 fn main() -> ExitCode {
