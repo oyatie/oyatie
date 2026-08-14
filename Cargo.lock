@@ -9269,13 +9269,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-procurement-source-to-pay-domain"
-version = "0.1.0"
-dependencies = [
- "oya-data-boundary-kernel",
-]
-
-[[package]]
 name = "oya-production-planning-domain"
 version = "0.1.0"
 dependencies = [
