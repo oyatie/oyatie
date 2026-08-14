@@ -1004,18 +1004,20 @@ mod tests {
 
     fn read_repo_file(path: &str) -> String {
         // cargo test binaries run with CWD = package root; buck2 used repo-root CWD.
-        // Walk up from the crate manifest until the repo root marker is found, then
-        // resolve the repo-relative path against it.
-        let mut root = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+        // Walk up from the crate manifest (when cargo provides it) until the repo root
+        // marker is found, then resolve the repo-relative path against it. Buck2 does not
+        // define CARGO_MANIFEST_DIR, so fall back to the current directory (repo root under
+        // buck2, package root under cargo) rather than expanding a compile-time env!.
+        let anchor = option_env!("CARGO_MANIFEST_DIR")
+            .map(std::path::PathBuf::from)
+            .unwrap_or_else(|| std::env::current_dir().expect("current dir"));
+        let mut root = anchor.clone();
         loop {
             if root.join("specs/root-hub-pointers.json").is_file() {
                 break;
             }
             if !root.pop() {
-                panic!(
-                    "failed to locate repo root from {}",
-                    env!("CARGO_MANIFEST_DIR")
-                );
+                panic!("failed to locate repo root from {}", anchor.display());
             }
         }
         let full = root.join(path);

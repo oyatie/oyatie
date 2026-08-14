@@ -237,6 +237,15 @@
           "note": "Swarm Delivery Law (ADR-0711) Accepted 2026-08-10 on integ/specs; bound via planning_authority.bound_adrs; no new wave mint — envelope/Claim rollout continues as deliverables."
         },
         {
+          "id": "ADR-0716",
+          "lifecycle_state": "Accepted",
+          "planning_impact": true,
+          "sequencing_effect": "none",
+          "disposition_ref": "/specs/masterplan.json#planning_authority.bound_adrs",
+          "hold_state": "HOLD(Planning)",
+          "note": "Cargo is the CI merge path (ADR-0716) Accepted 2026-08-14; bound via planning_authority.bound_adrs; no new wave mint — the cargo workspace graph is the merge path and buck2 is local hermeticity plus a weekly smoke."
+        },
+        {
           "id": "ADR-0717",
           "lifecycle_state": "Accepted",
           "planning_impact": true,
