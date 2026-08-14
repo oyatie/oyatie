@@ -14,7 +14,7 @@ license = "Apache-2.0"
 # frozen unmapped baseline (enforce NO REGRESSION: no NEW unmapped crate, no NEW top-level dir); the
 # baseline burns DOWN as the strangler homes crates and the lint flips to BLOCKING at baseline 0.
 # Born pack-shaped: the closed capability set + per-crate mappings + frozen baseline are DATA in
-# specs/capability-registry.json; the gate identity + scan roots + closed top-level set are DATA in
+# governance/capability-registry.json; the gate identity + scan roots + closed top-level set are DATA in
 # capability-membership-policy.json. The Rust kernel hardcodes no oyatie path nor capability slug.
 # ADR-0083 Tier-3: production code carries no unwrap/expect/panic.
 
