@@ -43,10 +43,10 @@ use std::path::{Path, PathBuf};
 use std::process::{Command, ExitCode};
 
 use ci_generated_artifact_freshness::{
-    PRE_PUSH_VERIFIER_PROTOCOL_VERSION, PRE_PUSH_VERIFIER_TOOLS_DIR, FaceSettleMode,
-    install_pre_push_verifier_tools, read_pre_push_verifier_manifest,
-    run_face_settle_with_pinned_tools, verify_pre_push_verifier_protocol,
-    write_pre_push_verifier_manifest,
+    PRE_PUSH_VERIFIER_MANIFEST_FILE, PRE_PUSH_VERIFIER_PROTOCOL_VERSION,
+    PRE_PUSH_VERIFIER_TOOLS_DIR, FaceSettleMode, install_pre_push_verifier_tools,
+    read_pre_push_verifier_manifest, run_face_settle_with_pinned_tools,
+    verify_pre_push_verifier_protocol, write_pre_push_verifier_manifest,
 };
 
 const ZERO_SHA: &str = "0000000000000000000000000000000000000000";
@@ -105,15 +105,20 @@ fn run_hook() -> Result<ExitCode, String> {
         .parent()
         .ok_or_else(|| "installed hook has no parent directory".to_owned())?
         .to_path_buf();
+    let tools_dir = hooks_dir.join(PRE_PUSH_VERIFIER_TOOLS_DIR);
 
     // Protocol handshake (fail closed with explicit reinstall requirement): the install
-    // manifest must exist and match this binary's embedded protocol version.
-    let _ = read_pre_push_verifier_manifest(&hooks_dir).map_err(|error| error.to_string())?;
+    // manifest must exist, match this binary's embedded protocol version, bind to the
+    // pinned tool builds actually installed next to the hook, AND bind to the repository's
+    // generator source the pinned tools were built from — so a generator change (even one
+    // that leaves the Buck label and protocol integer untouched) fails closed instead of
+    // silently verifying with stale tools.
+    let _ = read_pre_push_verifier_manifest(&hooks_dir, &tools_dir, &root)
+        .map_err(|error| error.to_string())?;
     // ...and the repository must still declare exactly the faces this verifier covers.
     verify_pre_push_verifier_protocol(&root).map_err(|error| error.to_string())?;
 
     // Run the verify with the PINNED tools — never building from the active checkout.
-    let tools_dir = hooks_dir.join(PRE_PUSH_VERIFIER_TOOLS_DIR);
     let report = run_face_settle_with_pinned_tools(&root, FaceSettleMode::Verify, &tools_dir)
         .map_err(|error| format!("face-settle --verify failed: {error}"))?;
     println!("{}", report.message);
@@ -188,14 +193,23 @@ fn install(args: &[String]) -> Result<String, String> {
 
     // Preserve an existing configured hooks path (org-managed commit-msg/signing/security
     // hooks): install INTO that same directory and never rewrite core.hooksPath. Only when
-    // no path is configured do we fall back to git's default hooks dir, and we do NOT set
-    // core.hooksPath then either (git already resolves the default).
+    // no LOCAL path is configured do we fall back to git's default hooks dir, and we do NOT
+    // set core.hooksPath then either (git already resolves the default). A hooks path
+    // configured at global/system scope is refused: installing into a shared directory would
+    // run this repository's verifier for every repository owned by the user.
     let hooks_dir = resolve_hooks_dir(&root)?;
 
     let exe = env::current_exe()
         .map_err(|error| format!("resolve current executable: {error}"))?;
     let dest = hooks_dir.join("pre-push");
-    if dest.exists() && !files_equal(&dest, &exe)? {
+    // Allow REPLACING a prior oya installation (the manifest next to it marks it as ours): a
+    // protocol bump builds a byte-different verifier, and refusing would block the very reinstall
+    // the handshake demands. Refuse only a pre-push that is NOT marked as ours.
+    let is_prior_oya_install = hooks_dir.join(PRE_PUSH_VERIFIER_MANIFEST_FILE).exists();
+    if dest.exists()
+        && !is_prior_oya_install
+        && !files_equal(&dest, &exe)?
+    {
         return Err(format!(
             "refusing to overwrite {}: an unrelated pre-push hook is installed there; move it aside or remove it first (the oya verifier never replaces unrelated user hook state)",
             dest.display()
@@ -221,7 +235,8 @@ fn install(args: &[String]) -> Result<String, String> {
         std::fs::set_permissions(&dest, perms)
             .map_err(|error| format!("chmod {}: {error}", dest.display()))?;
     }
-    write_pre_push_verifier_manifest(&hooks_dir).map_err(|error| error.to_string())?;
+    write_pre_push_verifier_manifest(&hooks_dir, &tools_dir, &root)
+        .map_err(|error| error.to_string())?;
 
     Ok(format!(
         "installed pinned pre-push verifier at {} (outside the checked-out tree); pinned tools at {}; manifest protocol v{PRE_PUSH_VERIFIER_PROTOCOL_VERSION}",
@@ -230,13 +245,17 @@ fn install(args: &[String]) -> Result<String, String> {
     ))
 }
 
-/// Resolve the hooks dir, preserving an existing `core.hooksPath`. Refuses when the
-/// configured path points INSIDE the checked-out tree (a branch-controlled hook location).
-/// The git metadata dir (`.git/`) is never part of the checked-out tree, so a configured
-/// path inside it (e.g. an explicit `core.hooksPath` equal to git's default) is accepted.
+/// Resolve the hooks dir, preserving a LOCAL `core.hooksPath`. Refuses when the configured path
+/// points INSIDE the checked-out tree (a branch-controlled hook location) or comes from global/
+/// system scope (a shared directory that would run this verifier for every repo). The git
+/// metadata dir (`.git/`) is never part of the checked-out tree, so a configured path inside it
+/// (e.g. an explicit `core.hooksPath` equal to git's default) is accepted.
 fn resolve_hooks_dir(repo_root: &Path) -> Result<PathBuf, String> {
-    let configured = git_capture_optional(Some(repo_root), &["config", "--get", "core.hooksPath"])?;
-    match configured {
+    let local = git_capture_optional(
+        Some(repo_root),
+        &["config", "--type=path", "--local", "--get", "core.hooksPath"],
+    )?;
+    match local {
         Some(existing) if !existing.trim().is_empty() => {
             let existing = PathBuf::from(existing.trim());
             let existing = absolutize(repo_root, &existing);
@@ -250,7 +269,19 @@ fn resolve_hooks_dir(repo_root: &Path) -> Result<PathBuf, String> {
             Ok(existing)
         }
         _ => {
-            // No configured path: use git's default hooks dir and leave configuration alone.
+            // No LOCAL hooks path. A global/system one would be a shared directory — installing
+            // there would execute this repository's verifier for every repository the user owns.
+            let any_scope = git_capture_optional(
+                Some(repo_root),
+                &["config", "--type=path", "--get", "core.hooksPath"],
+            )?;
+            if let Some(existing) = any_scope.filter(|value| !value.trim().is_empty()) {
+                return Err(format!(
+                    "refusing to install: core.hooksPath is configured at global/system scope ({}) and points into a shared hooks directory; installing there would run this verifier for every repository you own — set it locally (git config --local core.hooksPath <dir>) or unset it, then re-run install",
+                    existing.trim()
+                ));
+            }
+            // No configured path anywhere: use git's default hooks dir and leave configuration alone.
             let git_common_dir = resolve_git_common_dir(repo_root)?;
             Ok(git_common_dir.join("hooks"))
         }

@@ -106,21 +106,25 @@ That local `--verify` step is automated by the repo git pre-push hook: the owned
 Per the repo stack invariant (automation deliverables are Rust, never shell), the hook logic lives in
 that binary — including branch detection, pushed-SHA gating, and the verify orchestration. Wire it
 once per clone with `buck2 run //ci/facade/generated-artifact-freshness:oya-pre-push-verify-bin -- install`:
-the installer (a) preserves an existing `core.hooksPath` — if one is configured (e.g. org-managed
-commit-msg/signing hooks) the verifier is installed into that same directory and the configuration is
-left untouched, otherwise it goes into git's default hooks dir with no configuration written — and
-(b) builds the generator tools ONCE from the install-time checkout and copies them into the hooks dir
-as PINNED binaries. At push time the hook executes only those prebuilt tools against the repo tree
-consumed as DATA; it never builds from the active checkout's Buck graph, so a malicious branch cannot
-make the hook run checkout-controlled code. A protocol manifest plus the repository's tracked
-generated-face control-plane form a handshake: when either is stale the hook fails closed with an
-explicit reinstall requirement. Every branch push runs the read-only verify, and a failing verify
-blocks the push with the tool's own stale list and remediation output. The hook carries no bypass by
-design (`docs/AGENTS.md` § During-change discipline: hook failure means fix the underlying faces, not
-the hook); it fails closed when the pushed SHA differs from HEAD (the verify certifies the committed
-tree at HEAD only — push the checked-out branch, or use a per-branch worktree), and it skips only when
-the push carries no face-relevant commit (tag push, branch deletion) — the cloud-ci freshness gate
-behind `oya-ci-required` still applies in those cases.
+the installer (a) preserves a LOCAL `core.hooksPath` — if one is configured repo-locally (e.g.
+org-managed commit-msg/signing hooks) the verifier is installed into that same directory and the
+configuration is left untouched, a global/system-scoped shared hooks dir and an in-tree path are
+refused, otherwise it goes into git's default hooks dir with no configuration written, and a prior oya
+installation can be replaced by a reinstall — and (b) builds the generator tools ONCE from the
+install-time checkout and copies them into the hooks dir as PINNED binaries. At push time the hook
+executes only those prebuilt tools against the repo tree consumed as DATA; it never builds from the
+active checkout's Buck graph, so a malicious branch cannot make the hook run checkout-controlled code.
+A protocol manifest bound to the pinned tool builds and the generator source, plus the repository's
+tracked generated-face control-plane, form the handshake: when any of them is stale the hook fails
+closed with an explicit reinstall requirement. The verify path runs the same ADR-0595 determinism
+canary as the canonical freshness gate when non-PR-owned faces are present. Every branch push runs
+the read-only verify, and a failing verify blocks the push with the tool's own stale list and
+remediation output. The hook carries no bypass by design (`docs/AGENTS.md` § During-change discipline:
+hook failure means fix the underlying faces, not the hook); it fails closed when the pushed SHA
+differs from HEAD (the verify certifies the committed tree at HEAD only — push the checked-out branch,
+or use a per-branch worktree), and it skips only when the push carries no face-relevant commit (tag
+push, branch deletion) — the cloud-ci freshness gate behind `oya-ci-required` still applies in those
+cases.
 
 `cloud-ci-friction-accounting` (ADR-0544) is a standalone born-blocking self-test, NOT a
 producer-face/raw-corpus gate routed through the central `gate-baseline.generated.json` firewall (the
