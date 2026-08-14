@@ -140,13 +140,16 @@ impl MovePlan {
                     });
                 }
             }
-            // The app/ composition ring is the ONE sanctioned brand-preserving destination:
-            // app/<product>/ crates keep their oya-<product>-* names (the product brand is
-            // legitimate; ADR-0562's de-brand rule governs CAPABILITY roots, not the tenant
-            // compositions that wire them). Moving a legacy oya/<product> tree into app/<product>
-            // therefore skips both brand refusals.
-            let app_destination = m.new_path.starts_with("app/");
-            if !app_destination
+            // app/<product>/ is the ONE sanctioned brand-preserving destination, and only for
+            // the PRODUCT brand: app/<product>/ crates keep their oya-<product>-* names (the
+            // product brand is legitimate; ADR-0562's de-brand rule governs CAPABILITY roots,
+            // not the tenant compositions that wire them). A cloud-* name under app/ is NOT
+            // the product brand and stays subject to both refusals, so moving a legacy
+            // oya/<product> tree into app/<product> skips them ONLY when the new name keeps
+            // the oya- product brand.
+            let product_brand_destination =
+                is_product_brand_destination(&m.new_path, &m.new_cargo_name);
+            if !product_brand_destination
                 && is_deprecated_brand_path_source(&m.old_path)
                 && is_deprecated_brand_path_target(&m.new_path)
             {
@@ -155,7 +158,7 @@ impl MovePlan {
                     value: m.new_path.clone(),
                 });
             }
-            if !app_destination
+            if !product_brand_destination
                 && is_deprecated_brand_name(&m.old_cargo_name)
                 && is_deprecated_brand_name(&m.new_cargo_name)
             {
@@ -263,10 +266,12 @@ impl MovePlan {
     /// reversible `apply --revert` path still uses the structural validator so rollback can move
     /// back to a legacy source shape.
     pub fn validate_debrand_targets(&self) -> Result<(), CodemodError> {
-        // app/<product>/ is the sanctioned brand-preserving destination: product compositions
-        // keep their oya-<product>-* crate names (the de-brand rule governs CAPABILITY roots).
+        // app/<product>/ is the sanctioned brand-preserving destination — but ONLY for the
+        // product brand: product compositions keep their oya-<product>-* crate names (the
+        // de-brand rule governs CAPABILITY roots). A cloud-* name under app/ is NOT the
+        // sanctioned product brand and stays subject to the gate below.
         for m in &self.moves {
-            if m.new_path.starts_with("app/") {
+            if is_product_brand_destination(&m.new_path, &m.new_cargo_name) {
                 continue;
             }
             if is_deprecated_brand_path_target(&m.new_path) {
@@ -708,6 +713,14 @@ pub fn is_normalized_rel_path(p: &str) -> bool {
 
 fn is_deprecated_brand_name(value: &str) -> bool {
     value.starts_with("oya-") || value.starts_with("cloud-")
+}
+
+/// True when a move targets the sanctioned brand-preserving composition ring: an `app/<product>/`
+/// destination whose crate keeps the PRODUCT brand (`oya-<product>-*`). This is the ONLY
+/// de-brand exemption (ADR-0562's rule governs CAPABILITY roots, not tenant compositions). Any
+/// other name under `app/` — including a `cloud-*` name — must still pass the de-brand gates.
+fn is_product_brand_destination(new_path: &str, new_cargo_name: &str) -> bool {
+    new_path.starts_with("app/") && new_cargo_name.starts_with("oya-")
 }
 
 fn is_deprecated_brand_path_source(path: &str) -> bool {
@@ -1171,6 +1184,48 @@ mod tests {
             Err(CodemodError::DeprecatedBrandTarget { which, value })
                 if which == "artifact new_path" && value == "registry/catalog/cloud-calendar-domain.yaml"
         ));
+    }
+
+    #[test]
+    fn validate_rejects_cloud_brand_under_app_destination_but_keeps_the_product_brand() {
+        // REGRESSION (PR #1965 re-review): the app/ exemption is the PRODUCT brand only.
+        // A cloud-* cargo name under app/ is not the sanctioned product brand and must be
+        // refused by BOTH validators — a `cloud/foo -> app/foo` plan with new_cargo_name
+        // "cloud-foo" previously passed both gates via the unconditional `continue`.
+        let cloud_under_app = MovePlan {
+            capability: "foo".to_string(),
+            moves: vec![CrateMove {
+                old_path: "cloud/foo".to_string(),
+                new_path: "app/foo".to_string(),
+                old_cargo_name: "oya-foo".to_string(),
+                new_cargo_name: "cloud-foo".to_string(),
+            }],
+            artifacts: vec![],
+        };
+        assert!(matches!(
+            cloud_under_app.validate(),
+            Err(CodemodError::DeprecatedBrandTarget { which, value })
+                if which == "new_cargo_name" && value == "cloud-foo"
+        ));
+        assert!(matches!(
+            cloud_under_app.validate_debrand_targets(),
+            Err(CodemodError::DeprecatedBrandTarget { which, value })
+                if which == "new_cargo_name" && value == "cloud-foo"
+        ));
+
+        // The sanctioned product-brand case still passes: app/<product>/ keeps oya-<product>-*.
+        let product_under_app = MovePlan {
+            capability: "hr".to_string(),
+            moves: vec![CrateMove {
+                old_path: "oya/hr/crates/oya-hr-employment-api".to_string(),
+                new_path: "app/hr/crates/oya-hr-employment-api".to_string(),
+                old_cargo_name: "oya-hr-employment-api".to_string(),
+                new_cargo_name: "oya-hr-employment-api".to_string(),
+            }],
+            artifacts: vec![],
+        };
+        assert!(product_under_app.validate().is_ok());
+        assert!(product_under_app.validate_debrand_targets().is_ok());
     }
 
     #[test]
