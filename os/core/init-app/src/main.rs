@@ -4363,7 +4363,15 @@ machine:
         let blob = b"pid1 http once stream blob";
         std::fs::create_dir_all(blob_path.parent().unwrap()).unwrap();
         std::fs::write(&blob_path, blob).unwrap();
-        let blob_last_modified = registryd_test_last_modified(&blob_path);
+        // The registryd source shape reports the file's ACCESS time as Last-Modified
+        // (registryd_multipath_fs_projects_source_access_time_as_last_modified). Pin a
+        // fixed source time and re-assert it before every serve so the assertions are
+        // deterministic on Linux runners (relatime bumps atime after the first read;
+        // macOS does not, which masked this).
+        let source_time = std::time::UNIX_EPOCH + std::time::Duration::from_secs(1_704_067_200);
+        registryd_test_set_file_time(&blob_path, source_time);
+        let blob_last_modified =
+            os_runtime_cri_domain::registryd_http_last_modified_value(source_time).unwrap();
 
         let mut state = State::new();
         let plan = ImageCacheRuntimePlan {
@@ -4389,6 +4397,7 @@ machine:
             "GET /v2/library/alpine/blobs/{blob_digest}?ns=docker.io HTTP/1.1\r\nHost: {}\r\nConnection: close\r\n\r\n",
             os_runtime_cri_domain::REGISTRYD_LISTEN_ADDRESS
         );
+        registryd_test_set_file_time(&blob_path, source_time);
         let mut stream = MemoryStream::new(request.into_bytes());
         assert!(
             pid1_registryd_serve_http_once(
@@ -4410,6 +4419,7 @@ machine:
             "GET /v2/library/alpine/blobs/{blob_digest}?ns=docker.io HTTP/1.1\r\nHost: {}\r\nIf-Match: *\r\nIf-Unmodified-Since: Sun, 06 Nov 1994 08:49:37 GMT\r\nConnection: close\r\n\r\n",
             os_runtime_cri_domain::REGISTRYD_LISTEN_ADDRESS
         );
+        registryd_test_set_file_time(&blob_path, source_time);
         let mut stream = MemoryStream::new(request.into_bytes());
         assert!(
             pid1_registryd_serve_http_once(
@@ -4426,6 +4436,7 @@ machine:
             "GET /v2/library/alpine/blobs/{blob_digest}?ns=docker.io HTTP/1.1\r\nHost: {}\r\nIf-Match: \"sha256:test\"\r\nIf-None-Match: *\r\nConnection: close\r\n\r\n",
             os_runtime_cri_domain::REGISTRYD_LISTEN_ADDRESS
         );
+        registryd_test_set_file_time(&blob_path, source_time);
         let mut stream = MemoryStream::new(request.into_bytes());
         assert!(
             pid1_registryd_serve_http_once(
@@ -4444,6 +4455,7 @@ machine:
             "GET /v2/library/alpine/blobs/{blob_digest}?ns=docker.io HTTP/1.1\r\nHost: {}\r\nIf-None-Match: *\r\nConnection: close\r\n\r\n",
             os_runtime_cri_domain::REGISTRYD_LISTEN_ADDRESS
         );
+        registryd_test_set_file_time(&blob_path, source_time);
         let mut stream = MemoryStream::new(request.into_bytes());
         assert!(
             pid1_registryd_serve_http_once(
@@ -4462,6 +4474,7 @@ machine:
             "GET /v2/library/alpine/blobs/{blob_digest}?ns=docker.io HTTP/1.1\r\nHost: {}\r\nIf-None-Match: \"sha256:test\"\r\nIf-Modified-Since: {blob_last_modified}\r\nConnection: close\r\n\r\n",
             os_runtime_cri_domain::REGISTRYD_LISTEN_ADDRESS
         );
+        registryd_test_set_file_time(&blob_path, source_time);
         let mut stream = MemoryStream::new(request.into_bytes());
         assert!(
             pid1_registryd_serve_http_once(
@@ -4478,6 +4491,7 @@ machine:
             "GET /v2/library/alpine/blobs/{blob_digest}?ns=docker.io HTTP/1.1\r\nHost: {}\r\nIf-Unmodified-Since: Sun, 06 Nov 1994 08:49:37 GMT\r\nConnection: close\r\n\r\n",
             os_runtime_cri_domain::REGISTRYD_LISTEN_ADDRESS
         );
+        registryd_test_set_file_time(&blob_path, source_time);
         let mut stream = MemoryStream::new(request.into_bytes());
         assert!(
             pid1_registryd_serve_http_once(
@@ -4496,6 +4510,7 @@ machine:
             "GET /v2/library/alpine/blobs/{blob_digest}?ns=docker.io HTTP/1.1\r\nHost: {}\r\nIf-Unmodified-Since: {blob_last_modified}\r\nConnection: close\r\n\r\n",
             os_runtime_cri_domain::REGISTRYD_LISTEN_ADDRESS
         );
+        registryd_test_set_file_time(&blob_path, source_time);
         let mut stream = MemoryStream::new(request.into_bytes());
         assert!(
             pid1_registryd_serve_http_once(
@@ -4512,6 +4527,7 @@ machine:
             "GET /v2/library/alpine/blobs/{blob_digest}?ns=docker.io HTTP/1.1\r\nHost: {}\r\nIf-Modified-Since: {blob_last_modified}\r\nConnection: close\r\n\r\n",
             os_runtime_cri_domain::REGISTRYD_LISTEN_ADDRESS
         );
+        registryd_test_set_file_time(&blob_path, source_time);
         let mut stream = MemoryStream::new(request.into_bytes());
         assert!(
             pid1_registryd_serve_http_once(
@@ -4530,6 +4546,7 @@ machine:
             "GET /v2/library/alpine/blobs/{blob_digest}?ns=docker.io HTTP/1.1\r\nHost: {}\r\nRange: bytes=5-12\r\nIf-Modified-Since: {blob_last_modified}\r\nConnection: close\r\n\r\n",
             os_runtime_cri_domain::REGISTRYD_LISTEN_ADDRESS
         );
+        registryd_test_set_file_time(&blob_path, source_time);
         let mut stream = MemoryStream::new(request.into_bytes());
         assert!(
             pid1_registryd_serve_http_once(
@@ -4545,6 +4562,7 @@ machine:
             "GET /v2/library/alpine/blobs/{blob_digest}?ns=docker.io HTTP/1.1\r\nHost: {}\r\nRange: bytes=5-12\r\nIf-Range: {blob_last_modified}\r\nConnection: close\r\n\r\n",
             os_runtime_cri_domain::REGISTRYD_LISTEN_ADDRESS
         );
+        registryd_test_set_file_time(&blob_path, source_time);
         let mut stream = MemoryStream::new(request.into_bytes());
         assert!(
             pid1_registryd_serve_http_once(
@@ -4565,6 +4583,7 @@ machine:
             "GET /v2/library/alpine/blobs/{blob_digest}?ns=docker.io HTTP/1.1\r\nHost: {}\r\nRange: bytes=5-12\r\nIf-Range: Sun, 06 Nov 1994 08:49:37 GMT\r\nConnection: close\r\n\r\n",
             os_runtime_cri_domain::REGISTRYD_LISTEN_ADDRESS
         );
+        registryd_test_set_file_time(&blob_path, source_time);
         let mut stream = MemoryStream::new(request.into_bytes());
         assert!(
             pid1_registryd_serve_http_once(
@@ -4581,6 +4600,7 @@ machine:
             "GET /v2/library/alpine/blobs/{blob_digest}?ns=docker.io HTTP/1.1\r\nHost: {}\r\nRange: bytes=5-12\r\nConnection: close\r\n\r\n",
             os_runtime_cri_domain::REGISTRYD_LISTEN_ADDRESS
         );
+        registryd_test_set_file_time(&blob_path, source_time);
         let mut stream = MemoryStream::new(request.into_bytes());
         assert!(
             pid1_registryd_serve_http_once(
@@ -4601,6 +4621,7 @@ machine:
             "GET /v2/library/alpine/blobs/{blob_digest}?ns=docker.io HTTP/1.1\r\nHost: {}\r\nRange: bytes=0-3,10-13\r\nConnection: close\r\n\r\n",
             os_runtime_cri_domain::REGISTRYD_LISTEN_ADDRESS
         );
+        registryd_test_set_file_time(&blob_path, source_time);
         let mut stream = MemoryStream::new(request.into_bytes());
         assert!(
             pid1_registryd_serve_http_once(
@@ -4644,6 +4665,7 @@ machine:
             "GET /v2/library/alpine/blobs/{blob_digest}?ns=docker.io HTTP/1.1\r\nHost: {}\r\nRange: bytes=-6\r\nConnection: close\r\n\r\n",
             os_runtime_cri_domain::REGISTRYD_LISTEN_ADDRESS
         );
+        registryd_test_set_file_time(&blob_path, source_time);
         let mut stream = MemoryStream::new(request.into_bytes());
         assert!(
             pid1_registryd_serve_http_once(
@@ -4666,6 +4688,7 @@ machine:
             "GET /v2/library/alpine/blobs/{blob_digest}?ns=docker.io HTTP/1.1\r\nHost: {}\r\nRange: bytes=-0\r\nConnection: close\r\n\r\n",
             os_runtime_cri_domain::REGISTRYD_LISTEN_ADDRESS
         );
+        registryd_test_set_file_time(&blob_path, source_time);
         let mut stream = MemoryStream::new(request.into_bytes());
         assert!(
             pid1_registryd_serve_http_once(
@@ -4687,6 +4710,7 @@ machine:
             "HEAD /v2/library/alpine/blobs/{blob_digest}?ns=docker.io HTTP/1.1\r\nHost: {}\r\nRange: bytes=5-12\r\nConnection: close\r\n\r\n",
             os_runtime_cri_domain::REGISTRYD_LISTEN_ADDRESS
         );
+        registryd_test_set_file_time(&blob_path, source_time);
         let mut stream = MemoryStream::new(request.into_bytes());
         assert!(
             pid1_registryd_serve_http_once(
@@ -4706,6 +4730,7 @@ machine:
             "GET /v2/library/alpine/blobs/{blob_digest}?ns=docker.io HTTP/1.1\r\nHost: {}\r\nRange: bytes=999-1000\r\nConnection: close\r\n\r\n",
             os_runtime_cri_domain::REGISTRYD_LISTEN_ADDRESS
         );
+        registryd_test_set_file_time(&blob_path, source_time);
         let mut stream = MemoryStream::new(request.into_bytes());
         assert!(
             pid1_registryd_serve_http_once(
@@ -4729,6 +4754,7 @@ machine:
             "HEAD /v2/library/alpine/blobs/{blob_digest}?ns=docker.io HTTP/1.1\r\nHost: {}\r\nRange: bytes=999-1000\r\nConnection: close\r\n\r\n",
             os_runtime_cri_domain::REGISTRYD_LISTEN_ADDRESS
         );
+        registryd_test_set_file_time(&blob_path, source_time);
         let mut stream = MemoryStream::new(request.into_bytes());
         assert!(
             pid1_registryd_serve_http_once(
@@ -4744,6 +4770,7 @@ machine:
             "GET /v2/library/alpine/blobs/{blob_digest}?ns=docker.io HTTP/1.1\r\nHost: {}\r\nRange: bytes=5-4\r\nConnection: close\r\n\r\n",
             os_runtime_cri_domain::REGISTRYD_LISTEN_ADDRESS
         );
+        registryd_test_set_file_time(&blob_path, source_time);
         let mut stream = MemoryStream::new(request.into_bytes());
         assert!(
             pid1_registryd_serve_http_once(
@@ -4763,6 +4790,7 @@ machine:
             "HEAD /v2/library/alpine/blobs/{blob_digest}?ns=docker.io HTTP/1.1\r\nHost: {}\r\nRange: bytes=5-4\r\nConnection: close\r\n\r\n",
             os_runtime_cri_domain::REGISTRYD_LISTEN_ADDRESS
         );
+        registryd_test_set_file_time(&blob_path, source_time);
         let mut stream = MemoryStream::new(request.into_bytes());
         assert!(
             pid1_registryd_serve_http_once(
@@ -6185,18 +6213,21 @@ machine:
             "GET {target} HTTP/1.1\r\nHost: {address}\r\nIf-Modified-Since: {blob_last_modified}\r\nConnection: close\r\n\r\n"
         );
         let response = registryd_loopback_roundtrip(address, &request);
+        registryd_test_set_file_time(&blob_path, source_time);
         assert_eq!(response.as_slice(), not_modified.as_bytes());
 
         let request = format!(
             "GET {target} HTTP/1.1\r\nHost: {address}\r\nRange: bytes=5-12\r\nIf-Modified-Since: {blob_last_modified}\r\nConnection: close\r\n\r\n"
         );
         let response = registryd_loopback_roundtrip(address, &request);
+        registryd_test_set_file_time(&blob_path, source_time);
         assert_eq!(response.as_slice(), not_modified.as_bytes());
 
         let request = format!(
             "GET {target} HTTP/1.1\r\nHost: {address}\r\nIf-Modified-Since: Sun, 06 Nov 1994 08:49:37 GMT\r\nConnection: close\r\n\r\n"
         );
         let response = registryd_loopback_roundtrip(address, &request);
+        registryd_test_set_file_time(&blob_path, source_time);
         let (headers, body) = registryd_response_header_body(&response);
         assert!(headers.starts_with("HTTP/1.1 200 OK\r\n"), "{headers}");
         assert!(
@@ -6285,18 +6316,21 @@ machine:
             "GET {target} HTTP/1.1\r\nHost: {address}\r\nIf-Modified-Since: {blob_last_modified}\r\nConnection: close\r\n\r\n"
         );
         let response = registryd_loopback_roundtrip(address, &request);
+        registryd_test_set_file_time(&blob_path, source_time);
         assert_eq!(response.as_slice(), not_modified.as_bytes());
 
         let request = format!(
             "GET {target} HTTP/1.1\r\nHost: {address}\r\nRange: bytes=5-12\r\nIf-Modified-Since: {blob_last_modified}\r\nConnection: close\r\n\r\n"
         );
         let response = registryd_loopback_roundtrip(address, &request);
+        registryd_test_set_file_time(&blob_path, source_time);
         assert_eq!(response.as_slice(), not_modified.as_bytes());
 
         let request = format!(
             "GET {target} HTTP/1.1\r\nHost: {address}\r\nIf-Modified-Since: Sun, 06 Nov 1994 08:49:37 GMT\r\nConnection: close\r\n\r\n"
         );
         let response = registryd_loopback_roundtrip(address, &request);
+        registryd_test_set_file_time(&blob_path, source_time);
         let (headers, body) = registryd_response_header_body(&response);
         assert!(headers.starts_with("HTTP/1.1 200 OK\r\n"), "{headers}");
         assert!(
@@ -6381,18 +6415,21 @@ machine:
             "GET {target} HTTP/1.1\r\nHost: {address}\r\nIf-None-Match: *\r\nConnection: close\r\n\r\n"
         );
         let response = registryd_loopback_roundtrip(address, &request);
+        registryd_test_set_file_time(&blob_path, source_time);
         assert_eq!(response.as_slice(), not_modified.as_bytes());
 
         let request = format!(
             "GET {target} HTTP/1.1\r\nHost: {address}\r\nRange: bytes=5-12\r\nIf-None-Match: *\r\nIf-Modified-Since: Sun, 06 Nov 1994 08:49:37 GMT\r\nConnection: close\r\n\r\n"
         );
         let response = registryd_loopback_roundtrip(address, &request);
+        registryd_test_set_file_time(&blob_path, source_time);
         assert_eq!(response.as_slice(), not_modified.as_bytes());
 
         let request = format!(
             "GET {target} HTTP/1.1\r\nHost: {address}\r\nIf-None-Match: \"sha256:test\"\r\nIf-Modified-Since: {blob_last_modified}\r\nConnection: close\r\n\r\n"
         );
         let response = registryd_loopback_roundtrip(address, &request);
+        registryd_test_set_file_time(&blob_path, source_time);
         let (headers, body) = registryd_response_header_body(&response);
         assert!(headers.starts_with("HTTP/1.1 200 OK\r\n"), "{headers}");
         assert!(
@@ -6481,18 +6518,21 @@ machine:
             "GET {target} HTTP/1.1\r\nHost: {address}\r\nIf-None-Match: *\r\nConnection: close\r\n\r\n"
         );
         let response = registryd_loopback_roundtrip(address, &request);
+        registryd_test_set_file_time(&blob_path, source_time);
         assert_eq!(response.as_slice(), not_modified.as_bytes());
 
         let request = format!(
             "GET {target} HTTP/1.1\r\nHost: {address}\r\nRange: bytes=5-12\r\nIf-None-Match: *\r\nIf-Modified-Since: Sun, 06 Nov 1994 08:49:37 GMT\r\nConnection: close\r\n\r\n"
         );
         let response = registryd_loopback_roundtrip(address, &request);
+        registryd_test_set_file_time(&blob_path, source_time);
         assert_eq!(response.as_slice(), not_modified.as_bytes());
 
         let request = format!(
             "GET {target} HTTP/1.1\r\nHost: {address}\r\nIf-None-Match: \"sha256:test\"\r\nIf-Modified-Since: {blob_last_modified}\r\nConnection: close\r\n\r\n"
         );
         let response = registryd_loopback_roundtrip(address, &request);
+        registryd_test_set_file_time(&blob_path, source_time);
         let (headers, body) = registryd_response_header_body(&response);
         assert!(headers.starts_with("HTTP/1.1 200 OK\r\n"), "{headers}");
         assert!(
@@ -6573,6 +6613,7 @@ machine:
             "GET {target} HTTP/1.1\r\nHost: {address}\r\nIf-Match: *\r\nIf-Unmodified-Since: Sun, 06 Nov 1994 08:49:37 GMT\r\nConnection: close\r\n\r\n"
         );
         let response = registryd_loopback_roundtrip(address, &request);
+        registryd_test_set_file_time(&blob_path, source_time);
         let (headers, body) = registryd_response_header_body(&response);
         assert!(headers.starts_with("HTTP/1.1 200 OK\r\n"), "{headers}");
         assert!(
@@ -6602,12 +6643,14 @@ machine:
             "GET {target} HTTP/1.1\r\nHost: {address}\r\nIf-Match: \"sha256:test\"\r\nIf-Unmodified-Since: {blob_last_modified}\r\nConnection: close\r\n\r\n"
         );
         let response = registryd_loopback_roundtrip(address, &request);
+        registryd_test_set_file_time(&blob_path, source_time);
         assert_eq!(response.as_slice(), precondition.as_bytes());
 
         let request = format!(
             "GET {target} HTTP/1.1\r\nHost: {address}\r\nIf-Match: \"sha256:test\"\r\nIf-None-Match: *\r\nConnection: close\r\n\r\n"
         );
         let response = registryd_loopback_roundtrip(address, &request);
+        registryd_test_set_file_time(&blob_path, source_time);
         assert_eq!(response.as_slice(), precondition.as_bytes());
 
         let served = server.stop().unwrap();
@@ -6672,6 +6715,7 @@ machine:
             "GET {target} HTTP/1.1\r\nHost: {address}\r\nIf-Match: *\r\nIf-Unmodified-Since: Sun, 06 Nov 1994 08:49:37 GMT\r\nConnection: close\r\n\r\n"
         );
         let response = registryd_loopback_roundtrip(address, &request);
+        registryd_test_set_file_time(&blob_path, source_time);
         let (headers, body) = registryd_response_header_body(&response);
         assert!(headers.starts_with("HTTP/1.1 200 OK\r\n"), "{headers}");
         assert!(
@@ -6701,12 +6745,14 @@ machine:
             "GET {target} HTTP/1.1\r\nHost: {address}\r\nIf-Match: \"sha256:test\"\r\nIf-Unmodified-Since: {blob_last_modified}\r\nConnection: close\r\n\r\n"
         );
         let response = registryd_loopback_roundtrip(address, &request);
+        registryd_test_set_file_time(&blob_path, source_time);
         assert_eq!(response.as_slice(), precondition.as_bytes());
 
         let request = format!(
             "GET {target} HTTP/1.1\r\nHost: {address}\r\nIf-Match: \"sha256:test\"\r\nIf-None-Match: *\r\nConnection: close\r\n\r\n"
         );
         let response = registryd_loopback_roundtrip(address, &request);
+        registryd_test_set_file_time(&blob_path, source_time);
         assert_eq!(response.as_slice(), precondition.as_bytes());
 
         let served = launcher.stop_registryd().unwrap();
@@ -6771,18 +6817,21 @@ machine:
             "GET {target} HTTP/1.1\r\nHost: {address}\r\nIf-Unmodified-Since: Sun, 06 Nov 1994 08:49:37 GMT\r\nConnection: close\r\n\r\n"
         );
         let response = registryd_loopback_roundtrip(address, &request);
+        registryd_test_set_file_time(&blob_path, source_time);
         assert_eq!(response.as_slice(), precondition.as_bytes());
 
         let request = format!(
             "GET {target} HTTP/1.1\r\nHost: {address}\r\nRange: bytes=5-12\r\nIf-Unmodified-Since: Sun, 06 Nov 1994 08:49:37 GMT\r\nConnection: close\r\n\r\n"
         );
         let response = registryd_loopback_roundtrip(address, &request);
+        registryd_test_set_file_time(&blob_path, source_time);
         assert_eq!(response.as_slice(), precondition.as_bytes());
 
         let request = format!(
             "GET {target} HTTP/1.1\r\nHost: {address}\r\nIf-Unmodified-Since: {blob_last_modified}\r\nConnection: close\r\n\r\n"
         );
         let response = registryd_loopback_roundtrip(address, &request);
+        registryd_test_set_file_time(&blob_path, source_time);
         let (headers, body) = registryd_response_header_body(&response);
         assert!(headers.starts_with("HTTP/1.1 200 OK\r\n"), "{headers}");
         assert!(
@@ -6871,18 +6920,21 @@ machine:
             "GET {target} HTTP/1.1\r\nHost: {address}\r\nIf-Unmodified-Since: Sun, 06 Nov 1994 08:49:37 GMT\r\nConnection: close\r\n\r\n"
         );
         let response = registryd_loopback_roundtrip(address, &request);
+        registryd_test_set_file_time(&blob_path, source_time);
         assert_eq!(response.as_slice(), precondition.as_bytes());
 
         let request = format!(
             "GET {target} HTTP/1.1\r\nHost: {address}\r\nRange: bytes=5-12\r\nIf-Unmodified-Since: Sun, 06 Nov 1994 08:49:37 GMT\r\nConnection: close\r\n\r\n"
         );
         let response = registryd_loopback_roundtrip(address, &request);
+        registryd_test_set_file_time(&blob_path, source_time);
         assert_eq!(response.as_slice(), precondition.as_bytes());
 
         let request = format!(
             "GET {target} HTTP/1.1\r\nHost: {address}\r\nIf-Unmodified-Since: {blob_last_modified}\r\nConnection: close\r\n\r\n"
         );
         let response = registryd_loopback_roundtrip(address, &request);
+        registryd_test_set_file_time(&blob_path, source_time);
         let (headers, body) = registryd_response_header_body(&response);
         assert!(headers.starts_with("HTTP/1.1 200 OK\r\n"), "{headers}");
         assert!(
