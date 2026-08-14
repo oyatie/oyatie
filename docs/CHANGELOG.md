@@ -45,6 +45,29 @@ doc_status: published
   canonical enforcement backstop; the hook is the automation-default local check in front of it.
 - Refs #1955; bead `oyatie-zjob`.
 
+## 2026-08-14 — Pre-push verifier wave-3 hardening (PR #1957 review)
+
+- The hook now verifies EVERY non-deletion branch AND tag push: tag objects are peeled to their
+  commit (`^{commit}`) so a tag pushed from a different commit is rejected exactly like a non-HEAD
+  branch push; only deletion-only pushes skip.
+- Install preserves a LOCAL or WORKTREE-scoped `core.hooksPath` (the `--worktree` scope, enabled by
+  `extensions.worktreeConfig`, is accepted as repository-owned; `git config --worktree` failing
+  cleanly when the extension is unset).
+- Linked worktrees keep per-worktree pinned-tool generations: tools + manifest live under a
+  worktree-keyed subdirectory of the (possibly shared) hooks dir, so worktrees at different
+  generator sources never clobber each other's sole installation.
+- Replacement permission is bound to the installed hook's identity: the manifest records the hook
+  binary's fingerprint, so a manifest left behind after another tool's hook replaced it cannot
+  authorize an overwrite.
+- The generator-source fingerprint covers the COMPLETE build inputs: each generator crate's
+  sources, `Cargo.toml`/Buck rules, the workspace `Cargo.toml`/`Cargo.lock`, and transitive
+  manifest-declared path dependencies outside the five crates; the manifest's `tool_fingerprints`
+  key set must EXACTLY equal the four required pinned tools.
+- The verify path re-asserts committed-tree cleanliness AFTER the generators run, closing the
+  TOCTOU window where a background editor/formatter could certify a mixture of HEAD and
+  post-checkout bytes.
+- Refs #1957.
+
 ## 2026-08-12 — Masterplan stale inline sequencing digest removed
 
 - Normalized the one `masterplan_v2.planning_entry_contract.no_dispatch_stop_conditions`
