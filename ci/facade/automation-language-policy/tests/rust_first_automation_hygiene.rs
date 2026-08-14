@@ -456,6 +456,41 @@ fn retirement_event_transport_delegates_provider_tuple_to_rust_materializer_with
 }
 
 #[test]
+fn pre_provision_sets_rustup_default_on_bash_before_buck2_materializer() {
+    let root = repo_root();
+    let workflow_path = root.join(".github/workflows/oya-ci-required.yml");
+    let workflow = fs::read_to_string(&workflow_path)
+        .unwrap_or_else(|e| panic!("read {}: {e}", workflow_path.display()));
+    let workflow_doc: YamlValue = serde_yaml::from_str(&workflow)
+        .unwrap_or_else(|e| panic!("parse {}: {e}", workflow_path.display()));
+
+    for job in ["test", "cross-platform-smoke"] {
+        let step = named_workflow_step(
+            &workflow_doc,
+            job,
+            "Pre-provision pinned toolchain components",
+        );
+        assert_eq!(
+            step.get("shell").and_then(YamlValue::as_str),
+            Some("bash"),
+            "{job} pre-provision must use bash so the Windows smoke matrix can run it"
+        );
+        let run = step
+            .get("run")
+            .and_then(YamlValue::as_str)
+            .unwrap_or_else(|| panic!("{job} pre-provision must be an inline run step"));
+        assert!(
+            run.contains("rustup toolchain install"),
+            "{job} must install the rust-toolchain.toml pin serially; got {run}"
+        );
+        assert!(
+            run.contains("rustup default"),
+            "{job} must set rustup default so buck2's sandboxed rustc does not race-install the runner leftover toolchain; got {run}"
+        );
+    }
+}
+
+#[test]
 fn lint_format_gate_is_differential_blocking_on_changed_files() {
     let root = repo_root();
     let workflow_path = root.join(".github/workflows/oya-ci-required.yml");

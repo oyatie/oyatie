@@ -105,13 +105,13 @@ jobs:
       - name: Install pinned buck2 (digest-verified)
         shell: bash
         run: infra/ci/install-buck2.sh
-      # buck2's builds need the full pinned toolchain (clippy/rustfmt components);
-      # rustup must finish before buck2 runs or its downloads race (known class).
+      # buck2's rustc_action sandboxes rustc without rust-toolchain.toml, so rustup
+      # falls back to the runner default and N parallel compiles race-download clippy
+      # (rename *.partial → ENOENT). Install the pin serially and set it as rustup
+      # default before any buck2 spawn.
       - name: Pre-provision pinned toolchain components
-        # Full default profile (rustc+cargo+std+clippy+rustfmt): the materializer's buck2
-        # build resolves the triple-named toolchain through rustup; pre-installing everything
-        # makes those rustup calls no-ops and avoids the concurrent-download race.
-        run: host=$(rustc -vV | awk '/^host/{print $2}') && rustup toolchain install 1.97.1-$host --profile default && rustup toolchain install --profile default && rustc --version
+        shell: bash
+        run: rustup toolchain install && rustup default "$(rustup show active-toolchain | awk '{print $1}')" && rustc --version
       # Materialize generated faces before tests: several gate crates consume them.
       - name: Materialize generated faces
         run: cargo run --locked -p ci-generated-artifact-freshness --bin oya-cloud-ci-materialize-generated-faces -- --repo-root . --github-event
@@ -274,10 +274,8 @@ jobs:
         shell: bash
         run: infra/ci/install-buck2.sh
       - name: Pre-provision pinned toolchain components
-        # Full default profile (rustc+cargo+std+clippy+rustfmt): the materializer's buck2
-        # build resolves the triple-named toolchain through rustup; pre-installing everything
-        # makes those rustup calls no-ops and avoids the concurrent-download race.
-        run: host=$(rustc -vV | awk '/^host/{print $2}') && rustup toolchain install 1.97.1-$host --profile default && rustup toolchain install --profile default && rustc --version
+        shell: bash
+        run: rustup toolchain install && rustup default "$(rustup show active-toolchain | awk '{print $1}')" && rustc --version
       - name: Materialize generated faces
         run: cargo run --locked -p ci-generated-artifact-freshness --bin oya-cloud-ci-materialize-generated-faces -- --repo-root . --github-event
       - name: Cross-platform smoke tests
