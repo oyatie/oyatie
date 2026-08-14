@@ -1,13 +1,17 @@
-# `cloud/` REORG-DRAIN status
+# `cloud/` REORG-DRAIN — non-authoritative pointer
 
-## Purged (migrated)
+> **Non-authoritative.** This file is a pointer only. The sole live plan authority for
+> repository state, sequencing, and outstanding work is
+> [`specs/masterplan.json`](specs/masterplan.json#masterplan_v2); agents and consumers must
+> resolve plan state there, not here. This document exists only to name the receipt and
+> disposition records that carry the details.
 
-- **`cloud/cloud-os/**`** — deleted 2026-08-11 after dest-verify on `os/`. Receipt: `cloud/evidence/purge-cloud-os-20260811.md`.
+## Records
 
-## Keep until rehome (unique / not migrated)
-
-- **`cloud/cloud-kernel/**`** — bare-metal kuberos workspace. Durable home `kernel/` (staged S4). `#1659` landed Asterinas ABI only — **not** a kuberos absorb. **BAN** delete until zero-crate residual (S5). See `evidence/reorg/rr-cloud-kernel-disposition-20260806.md`.
-
-## Associated cite debt
-
-Pointers to `cloud/cloud-os` in hubs/registry/CI/Cargo membership need sole-owner rewrite after this purge lands.
+- **Purge receipt (done):** `cloud/evidence/purge-cloud-os-20260811.md` — `cloud/cloud-os/**`
+  deleted 2026-08-11 after dest-verify on `os/`; see the receipt for resolved-vs-remaining debt.
+- **Kernel disposition (keep rule):** `cloud/cloud-kernel/manifest.json` +
+  [`../evidence/reorg/rr-cloud-kernel-disposition-20260806.md`](../evidence/reorg/rr-cloud-kernel-disposition-20260806.md)
+  — `cloud/cloud-kernel/**` holds unique
+  kuberos bytes; `#1659` was Asterinas ABI absorb only, not a kuberos absorb. Do not delete until
+  the zero-crate residual rehome tracked in the masterplan lands.

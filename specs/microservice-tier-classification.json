@@ -13,12 +13,12 @@
     "enforced_by": "oya-cloud-ci-tier-field-coverage-app (born-blocking coverage + enum validity + no type-overload)"
   },
   "tier_distribution": {
-    "substrate": 54,
+    "substrate": 55,
     "product": 41,
     "service-cell": 0,
     "reserved": 0
   },
-  "service_count": 95,
+  "service_count": 96,
   "services": {
     "audit/manifest.json": {
       "service": "audit",
@@ -1066,6 +1066,20 @@
           "ontology",
           "workflow-engine"
         ]
+      }
+    },
+    "os/manifest.json": {
+      "service": "os",
+      "manifest": "os/manifest.json",
+      "capability": null,
+      "tier": "substrate",
+      "tier_subtype": "substrate-infra",
+      "dr_tier": "T1",
+      "substrate_dag_position": {
+        "stratum": "forward-declared",
+        "depends_on": [],
+        "consumed_by_substrates": [],
+        "_note": "capability has no ADR-0280 §D-1 DAG node yet; forward-declared (Appendix C class)"
       }
     },
     "oya/payments/manifest.json": {

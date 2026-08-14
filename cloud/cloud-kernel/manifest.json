@@ -366,7 +366,7 @@
       "signed module policy once implemented by a separate reviewed change"
     ],
     "does_not_own": [
-      "Talos-style node OS assets under cloud/cloud-os/",
+      "Talos-style node OS assets under os/",
       "Kubernetes control-plane lifecycle under cloud/cloud-k8s/",
       "current Talos runtime files under infra/talos/"
     ],
