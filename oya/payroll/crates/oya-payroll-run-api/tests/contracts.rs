@@ -10,6 +10,14 @@ use oya_payroll_run_app::{
 };
 use serde_json::json;
 
+fn repo_root() -> std::path::PathBuf {
+    std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .ancestors()
+        .find(|candidate| candidate.join("specs/root-hub-pointers.json").is_file())
+        .expect("repo root")
+        .to_path_buf()
+}
+
 #[test]
 fn trial_close_request_uses_camel_case_and_stable_enums() {
     let request = trial_close_request();
@@ -84,8 +92,9 @@ fn error_envelope_has_consistent_shape() {
 
 #[test]
 fn openapi_contract_declares_auth_failures_for_money_mutations() {
-    let contract_text = std::fs::read_to_string("oya/payroll/contracts/openapi-v1.yaml")
-        .expect("read payroll OpenAPI contract");
+    let contract_text =
+        std::fs::read_to_string(repo_root().join("oya/payroll/contracts/openapi-v1.yaml"))
+            .expect("read payroll OpenAPI contract");
     let contract: serde_json::Value =
         serde_json::from_str(&contract_text).expect("parse payroll OpenAPI contract");
 

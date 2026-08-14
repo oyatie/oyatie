@@ -12,7 +12,6 @@
 //! - `[naming]` required-prefix / allowed-roles / check-family-prefix / backend-suffixes /
 //!   doctrinal-carve-outs (replaces the naming-kernel consts, §2.1).
 //! - `[vocab]` forbidden-stems + carve-outs (replaces the brand consts, §2.2).
-//! - `[manifest]` the §2.5#7 required-flag field-set (replaces `ManifestFlags`, §2.3).
 //! - `[reachability]` / `[justification]` / `[owners]` / `[enforcement]` source paths
 //!   (replaces the producer-embedded literals, §2.3).
 //! - `[ttl]` + `[unit_class]` (subsumes ttl-policy.json + unit-class-policy.json — already
@@ -130,18 +129,12 @@ pub struct OyaCiConfig {
     pub repo: RepoConfig,
     pub naming: NamingConfig,
     pub vocab: VocabConfig,
-    pub manifest: ManifestConfig,
     pub reachability: ReachabilityConfig,
     pub justification: JustificationConfig,
     pub owners: OwnersConfig,
     pub enforcement: EnforcementConfig,
-    pub slo_coverage: SloCoverageConfig,
-    /// `[catalog_liveness]` — the catalog-liveness gate input globs (the founder
-    /// live-OR-explicitly-marked policy). Skipped from serialization when it equals the default
-    /// so first-party canonical TOML (and thus `digest()`) is byte-identical to before this
-    /// section existed — same byte-identity rationale as `[output]`/`[cross_artifact]`.
-    #[serde(default, skip_serializing_if = "CatalogLivenessConfig::is_default")]
-    pub catalog_liveness: CatalogLivenessConfig,
+    /// `[ttl]` — the TTL budget table (carried as bundled JSON DATA; the section exists for
+    /// inline overrides only).
     pub ttl: TtlConfig,
     pub unit_class: UnitClassConfig,
     pub gates: GatesConfig,
@@ -178,8 +171,6 @@ struct OyaCiConfigShadow {
     #[serde(default)]
     vocab: Option<VocabConfig>,
     #[serde(default)]
-    manifest: Option<ManifestConfig>,
-    #[serde(default)]
     reachability: Option<ReachabilityConfig>,
     #[serde(default)]
     justification: Option<JustificationConfig>,
@@ -187,10 +178,6 @@ struct OyaCiConfigShadow {
     owners: Option<OwnersConfig>,
     #[serde(default)]
     enforcement: Option<EnforcementConfig>,
-    #[serde(default)]
-    slo_coverage: Option<SloCoverageConfig>,
-    #[serde(default)]
-    catalog_liveness: Option<CatalogLivenessConfig>,
     #[serde(default)]
     ttl: Option<TtlConfig>,
     #[serde(default)]
@@ -226,13 +213,10 @@ impl OyaCiConfig {
             repo: RepoConfig::default(),
             naming: NamingConfig::default(),
             vocab: VocabConfig::default(),
-            manifest: ManifestConfig::default(),
             reachability: ReachabilityConfig::default(),
             justification: JustificationConfig::default(),
             owners: OwnersConfig::default(),
             enforcement: EnforcementConfig::default(),
-            slo_coverage: SloCoverageConfig::default(),
-            catalog_liveness: CatalogLivenessConfig::default(),
             ttl: TtlConfig::default(),
             unit_class: UnitClassConfig::default(),
             gates: GatesConfig::default(),
@@ -252,13 +236,10 @@ impl OyaCiConfig {
             repo: RepoConfig::neutral(),
             naming: NamingConfig::neutral(),
             vocab: VocabConfig::neutral(),
-            manifest: ManifestConfig::neutral(),
             reachability: ReachabilityConfig::neutral(),
             justification: JustificationConfig::neutral(),
             owners: OwnersConfig::neutral(),
             enforcement: EnforcementConfig::neutral(),
-            slo_coverage: SloCoverageConfig::neutral(),
-            catalog_liveness: CatalogLivenessConfig::neutral(),
             ttl: TtlConfig::neutral(),
             unit_class: UnitClassConfig::neutral(),
             gates: GatesConfig::neutral(),
@@ -300,8 +281,46 @@ impl OyaCiConfig {
         text: &str,
         line_scope_mode: LegacyLineScope,
     ) -> Result<Self, ConfigError> {
-        let shadow: OyaCiConfigShadow =
-            toml::from_str(text).map_err(|e| ConfigError::Parse(e.to_string()))?;
+        let shadow: OyaCiConfigShadow = match line_scope_mode {
+            LegacyLineScope::Reject => {
+                toml::from_str(text).map_err(|e| ConfigError::Parse(e.to_string()))?
+            }
+            // ADR-0718: the frozen-reference compatibility path reads a HISTORICAL merge-base
+            // `oya-ci.toml` that still carries the retired sections whose consumers were the
+            // retired gates (`[manifest]`, `[slo_coverage]`, `[catalog_liveness]`) and the
+            // retired producer-face rows in `[[gates.enabled]]` (faces removed from `GateFace`).
+            // Those consumers are gone, so the current parser accepts-and-drops them. The strict
+            // candidate loader above keeps rejecting them fail-closed (the live schema).
+            LegacyLineScope::ExpandToAllStems => {
+                let mut value: toml::Value =
+                    toml::from_str(text).map_err(|e| ConfigError::Parse(e.to_string()))?;
+                if let Some(table) = value.as_table_mut() {
+                    for retired in ["manifest", "slo_coverage", "catalog_liveness"] {
+                        table.remove(retired);
+                    }
+                    if let Some(enabled) = table
+                        .get_mut("gates")
+                        .and_then(toml::Value::as_table_mut)
+                        .and_then(|gates| gates.get_mut("enabled"))
+                        .and_then(toml::Value::as_array_mut)
+                    {
+                        enabled.retain(|entry| {
+                            !matches!(
+                                entry.get("face").and_then(toml::Value::as_str),
+                                Some(
+                                    "total_accounting"
+                                        | "staleness"
+                                        | "manifest_hygiene"
+                                        | "catalog_liveness"
+                                )
+                            )
+                        });
+                    }
+                }
+                OyaCiConfigShadow::deserialize(value)
+                    .map_err(|e| ConfigError::Parse(e.to_string()))?
+            }
+        };
         // `extends` (the explicit base-to-extend) wins over `profile` when both are present.
         let profile = shadow.extends.unwrap_or(shadow.profile);
         let mut base = match profile {
@@ -318,9 +337,6 @@ impl OyaCiConfig {
         if let Some(v) = shadow.vocab {
             base.vocab = v;
         }
-        if let Some(v) = shadow.manifest {
-            base.manifest = v;
-        }
         if let Some(v) = shadow.reachability {
             base.reachability = v;
         }
@@ -332,12 +348,6 @@ impl OyaCiConfig {
         }
         if let Some(v) = shadow.enforcement {
             base.enforcement = v;
-        }
-        if let Some(v) = shadow.slo_coverage {
-            base.slo_coverage = v;
-        }
-        if let Some(v) = shadow.catalog_liveness {
-            base.catalog_liveness = v;
         }
         if let Some(v) = shadow.ttl {
             base.ttl = v;
@@ -658,15 +668,14 @@ fn default_vocab_carve_outs() -> Vec<VocabCarveOut> {
             "Palantir-Foundry is a competitor proper noun, not brand residue",
         ),
     ];
-    rows
-    .iter()
-    .map(|(kind, value, exempt_stems, reason)| VocabCarveOut {
-        kind: *kind,
-        value: (*value).to_owned(),
-        exempt_stems: exempt_stems.iter().map(|stem| (*stem).to_owned()).collect(),
-        reason: (*reason).to_owned(),
-    })
-    .collect()
+    rows.iter()
+        .map(|(kind, value, exempt_stems, reason)| VocabCarveOut {
+            kind: *kind,
+            value: (*value).to_owned(),
+            exempt_stems: exempt_stems.iter().map(|stem| (*stem).to_owned()).collect(),
+            reason: (*reason).to_owned(),
+        })
+        .collect()
 }
 
 impl Default for VocabConfig {
@@ -747,51 +756,6 @@ impl VocabConfig {
 enum LegacyLineScope {
     Reject,
     ExpandToAllStems,
-}
-
-// ---------------------------------------------------------------------------
-// [manifest]  (replaces the §2.5#7 ManifestFlags field-set, plan §2.3)
-// ---------------------------------------------------------------------------
-
-/// `[manifest]` — the rust-cargo per-crate Cargo.toml hygiene field-set (replaces the
-/// hardcoded `ManifestFlags` requirement set, §2.3).
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct ManifestConfig {
-    #[serde(default = "default_required_flags")]
-    pub required_flags: Vec<String>,
-}
-
-fn default_required_flags() -> Vec<String> {
-    [
-        "version_workspace",
-        "rust_version_workspace",
-        "publish_false",
-        "license",
-        "lints_workspace",
-        "lib_doctest_false",
-    ]
-    .iter()
-    .map(|s| (*s).to_owned())
-    .collect()
-}
-
-impl Default for ManifestConfig {
-    fn default() -> Self {
-        Self {
-            required_flags: default_required_flags(),
-        }
-    }
-}
-
-impl ManifestConfig {
-    /// The neutral profile's `[manifest]`: no required Cargo.toml hygiene flags (the manifest
-    /// gate is present-but-quiet for an adopter who has not declared a flag set). ADR-0533.
-    fn neutral() -> Self {
-        Self {
-            required_flags: Vec::new(),
-        }
-    }
 }
 
 // ---------------------------------------------------------------------------
@@ -996,138 +960,6 @@ impl EnforcementConfig {
 }
 
 // ---------------------------------------------------------------------------
-// [slo_coverage]  (portable input contract for cloud-ci-slo-coverage)
-// ---------------------------------------------------------------------------
-
-/// `[slo_coverage]` — declared catalog input globs for the SLO coverage gate.
-///
-/// The legacy dev-cli default was an implicit `registry/catalog` directory walk. The cloud-ci
-/// product boundary makes that repo shape DATA instead: adopters keep the same pure gate engine
-/// and point `catalog_record_globs` at their own catalog-row source. The producer expands these
-/// globs against the declared tracked-path universe; the gate itself remains I/O-free.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct SloCoverageConfig {
-    #[serde(default = "default_slo_catalog_record_globs")]
-    pub catalog_record_globs: Vec<String>,
-}
-
-fn default_slo_catalog_record_globs() -> Vec<String> {
-    vec!["registry/catalog/*.yaml".to_owned()]
-}
-
-impl Default for SloCoverageConfig {
-    fn default() -> Self {
-        Self {
-            catalog_record_globs: default_slo_catalog_record_globs(),
-        }
-    }
-}
-
-impl SloCoverageConfig {
-    /// The neutral profile's `[slo_coverage]`: NO catalog globs (the default
-    /// `registry/catalog/*.yaml` is an oyatie path literal; ADR-0533 item 1). An adopter points
-    /// the gate at their own catalog source; absent ⇒ the gate is present-but-quiet.
-    fn neutral() -> Self {
-        Self {
-            catalog_record_globs: Vec::new(),
-        }
-    }
-}
-
-// ---------------------------------------------------------------------------
-// [catalog_liveness]  (portable input contract for cloud-ci-catalog-liveness)
-// ---------------------------------------------------------------------------
-
-/// `[catalog_liveness]` — declared catalog input globs for the catalog-liveness gate.
-///
-/// The producer expands catalog record globs over the declared tracked-path universe, derives each
-/// row identity from the file stem, resolves the LIVE workspace crate-id universe in-process, and
-/// emits both directions of the contract:
-///   1. every catalog row is live OR explicitly marked non-live;
-///   2. every config-governed live workspace member has a catalog row OR an explicit exemption.
-///
-/// `workspace_member_globs` is intentionally policy data: Oyatie can phase roots into the catalog
-/// contract without hard-coding repository names in the evaluator, and adopters can point the same
-/// pure gate at their own catalog-governed member set.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct CatalogLivenessConfig {
-    #[serde(default = "default_catalog_liveness_record_globs")]
-    pub catalog_record_globs: Vec<String>,
-    #[serde(default = "default_catalog_liveness_workspace_member_globs")]
-    pub workspace_member_globs: Vec<String>,
-    #[serde(default)]
-    pub workspace_member_exemptions: Vec<CatalogLivenessExemption>,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct CatalogLivenessExemption {
-    /// Repo-relative member directory glob (exact, `dir/`, `dir/**`, or `**`).
-    pub path_glob: String,
-    /// Accountable owner for the exemption. Empty owners are invalid at evaluation time.
-    pub owner: String,
-    /// Why this live workspace package is outside the catalog-governed set today.
-    pub reason: String,
-    /// Expiry date or concrete cutover condition; exemptions must not be timeless.
-    pub cutover: String,
-}
-
-fn default_catalog_liveness_record_globs() -> Vec<String> {
-    vec!["registry/catalog/*.yaml".to_owned()]
-}
-
-fn default_catalog_liveness_workspace_member_globs() -> Vec<String> {
-    vec![
-        "audit/**".to_owned(),
-        "billing/**".to_owned(),
-        "cell/**".to_owned(),
-        "compliance/**".to_owned(),
-        "console/**".to_owned(),
-        "data/**".to_owned(),
-        "gateway/**".to_owned(),
-        "iac/**".to_owned(),
-        "k8s/**".to_owned(),
-        "marketplace/**".to_owned(),
-        "messaging/**".to_owned(),
-        "network/**".to_owned(),
-        "observability/**".to_owned(),
-        "storage/**".to_owned(),
-        "workflow/**".to_owned(),
-    ]
-}
-
-impl Default for CatalogLivenessConfig {
-    fn default() -> Self {
-        Self {
-            catalog_record_globs: default_catalog_liveness_record_globs(),
-            workspace_member_globs: default_catalog_liveness_workspace_member_globs(),
-            workspace_member_exemptions: Vec::new(),
-        }
-    }
-}
-
-impl CatalogLivenessConfig {
-    /// The neutral profile's `[catalog_liveness]`: NO catalog globs and NO governed member globs
-    /// (the defaults are Oyatie path literals; ADR-0533 item 1). An adopter points the gate at
-    /// their own catalog source and member set; absent ⇒ the gate is present-but-quiet.
-    fn neutral() -> Self {
-        Self {
-            catalog_record_globs: Vec::new(),
-            workspace_member_globs: Vec::new(),
-            workspace_member_exemptions: Vec::new(),
-        }
-    }
-
-    /// True iff this is the default `[catalog_liveness]` — used to SKIP serialization so
-    /// first-party canonical TOML (and `digest()`) stays byte-identical unless policy changes.
-    fn is_default(&self) -> bool {
-        *self == Self::default()
-    }
-}
-
-// ---------------------------------------------------------------------------
 // [ttl] / [unit_class]  (subsumes the already-DATA JSON tables, plan §3.1)
 // ---------------------------------------------------------------------------
 
@@ -1197,16 +1029,12 @@ pub enum GateInputKind {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum GateFace {
-    TotalAccounting,
     CrossArtifact,
     AutomationRatchet,
-    Staleness,
     BnfLayerSuffix,
-    ManifestHygiene,
     CargoPrefix,
     SloCoverage,
     LicensePolicy,
-    CatalogLiveness,
     WorkspaceGlobCoverage,
     TargetParity,
     EnforcementLiveness,
@@ -1254,11 +1082,6 @@ fn default_enabled_gates() -> Vec<GateSpec> {
     // serialization, so this order is for readability; the byte-output is order-independent).
     vec![
         GateSpec {
-            id: "cloud-ci-total-accounting".to_owned(),
-            input_kind: GateInputKind::ProducerFace,
-            face: Some(GateFace::TotalAccounting),
-        },
-        GateSpec {
             id: "cloud-ci-cross-artifact-agreement".to_owned(),
             input_kind: GateInputKind::ProducerFace,
             face: Some(GateFace::CrossArtifact),
@@ -1269,19 +1092,9 @@ fn default_enabled_gates() -> Vec<GateSpec> {
             face: Some(GateFace::AutomationRatchet),
         },
         GateSpec {
-            id: "cloud-ci-staleness-reaper".to_owned(),
-            input_kind: GateInputKind::ProducerFace,
-            face: Some(GateFace::Staleness),
-        },
-        GateSpec {
             id: "cloud-ci-bnf-layer-suffix".to_owned(),
             input_kind: GateInputKind::ProducerFace,
             face: Some(GateFace::BnfLayerSuffix),
-        },
-        GateSpec {
-            id: "cloud-ci-manifest-hygiene".to_owned(),
-            input_kind: GateInputKind::ProducerFace,
-            face: Some(GateFace::ManifestHygiene),
         },
         GateSpec {
             id: "cloud-ci-cargo-prefix".to_owned(),
@@ -1297,11 +1110,6 @@ fn default_enabled_gates() -> Vec<GateSpec> {
             id: "cloud-ci-license-policy".to_owned(),
             input_kind: GateInputKind::ProducerFace,
             face: Some(GateFace::LicensePolicy),
-        },
-        GateSpec {
-            id: "cloud-ci-catalog-liveness".to_owned(),
-            input_kind: GateInputKind::ProducerFace,
-            face: Some(GateFace::CatalogLiveness),
         },
         GateSpec {
             id: "cloud-ci-workspace-glob-coverage".to_owned(),
@@ -1510,26 +1318,12 @@ mod tests {
         let disp: serde_json::Value =
             serde_json::from_str(cfg.gates.disposition_json()).expect("disposition json");
         assert!(disp.get("gates").is_some());
-        assert_eq!(
-            cfg.slo_coverage.catalog_record_globs,
-            vec!["registry/catalog/*.yaml".to_owned()]
-        );
-        assert_eq!(
-            cfg.catalog_liveness.catalog_record_globs,
-            vec!["registry/catalog/*.yaml".to_owned()]
-        );
-        assert!(
-            cfg.catalog_liveness
-                .workspace_member_globs
-                .contains(&"audit/**".to_owned())
-        );
-        assert!(cfg.catalog_liveness.workspace_member_exemptions.is_empty());
     }
 
     #[test]
-    fn bundled_default_enables_all_fifteen_gates_with_input_kinds() {
+    fn bundled_default_enables_all_eleven_gates_with_input_kinds() {
         let cfg = OyaCiConfig::bundled_default();
-        assert_eq!(cfg.gates.enabled.len(), 15);
+        assert_eq!(cfg.gates.enabled.len(), 11);
         let brand = cfg
             .gates
             .enabled
@@ -1570,14 +1364,14 @@ mod tests {
             .expect("license-policy gate enabled");
         assert_eq!(license_policy.input_kind, GateInputKind::ProducerFace);
         assert_eq!(license_policy.face, Some(GateFace::LicensePolicy));
-        let catalog_liveness = cfg
+        let cross_artifact = cfg
             .gates
             .enabled
             .iter()
-            .find(|g| g.id == "cloud-ci-catalog-liveness")
-            .expect("catalog-liveness gate enabled");
-        assert_eq!(catalog_liveness.input_kind, GateInputKind::ProducerFace);
-        assert_eq!(catalog_liveness.face, Some(GateFace::CatalogLiveness));
+            .find(|g| g.id == "cloud-ci-cross-artifact-agreement")
+            .expect("cross-artifact gate enabled");
+        assert_eq!(cross_artifact.input_kind, GateInputKind::ProducerFace);
+        assert_eq!(cross_artifact.face, Some(GateFace::CrossArtifact));
         let workspace_glob_coverage = cfg
             .gates
             .enabled
@@ -1767,6 +1561,60 @@ doctrinal_carve_outs = []
         assert!(matches!(err, ConfigError::Parse(_)), "got {err:?}");
     }
 
+    /// ADR-0718: the retired `[manifest]` / `[slo_coverage]` / `[catalog_liveness]` sections and
+    /// the retired producer-face `[[gates.enabled]]` rows leave the LIVE closed schema
+    /// (fail-closed), but the frozen-reference compatibility path must still parse a historical
+    /// merge-base `oya-ci.toml` that carries them — it accepts and drops them so ADR-0616
+    /// merge-base regeneration keeps working after the schema change.
+    #[test]
+    fn retired_sections_are_rejected_live_but_dropped_on_the_frozen_reference_path() {
+        let retired = r#"
+[manifest]
+required_flags = ["version_workspace"]
+
+[slo_coverage]
+catalog_record_globs = ["registry/catalog/*.yaml"]
+
+[catalog_liveness]
+catalog_record_globs = ["registry/catalog/*.yaml"]
+
+[[gates.enabled]]
+id = "cloud-ci-cross-artifact-agreement"
+input_kind = "producer-face"
+face = "cross_artifact"
+
+[[gates.enabled]]
+id = "cloud-ci-total-accounting"
+input_kind = "producer-face"
+face = "total_accounting"
+
+[[gates.enabled]]
+id = "cloud-ci-staleness-reaper"
+input_kind = "producer-face"
+face = "staleness"
+
+[[gates.enabled]]
+id = "cloud-ci-manifest-hygiene"
+input_kind = "producer-face"
+face = "manifest_hygiene"
+
+[[gates.enabled]]
+id = "cloud-ci-catalog-liveness"
+input_kind = "producer-face"
+face = "catalog_liveness"
+"#;
+        // The live closed schema is fail-closed: each retired section/row is an unknown key/face.
+        assert!(OyaCiConfig::from_toml_str(retired).is_err());
+        // The frozen-reference path accepts-and-drops the retired constructs and keeps the live
+        // gate row (with its live face), so a merge-base config still regenerates over the
+        // surviving 11-gate fleet.
+        let cfg = OyaCiConfig::from_frozen_reference_toml_str(retired)
+            .expect("frozen-reference parser must tolerate retired sections");
+        let ids: Vec<&str> = cfg.gates.enabled.iter().map(|g| g.id.as_str()).collect();
+        assert_eq!(ids, vec!["cloud-ci-cross-artifact-agreement"]);
+        assert_eq!(cfg.gates.enabled[0].face, Some(GateFace::CrossArtifact));
+    }
+
     #[test]
     fn closed_schema_rejects_unknown_nested_key() {
         let toml = "[naming]\nrequired_prefix = \"oya-\"\nbogus_field = true\n";
@@ -1912,9 +1760,9 @@ id = "cloud-ci-brand-residue"
 input_kind = "raw-corpus-collector"
 
 [[gates.enabled]]
-id = "cloud-ci-total-accounting"
+id = "cloud-ci-cross-artifact-agreement"
 input_kind = "producer-face"
-face = "total_accounting"
+face = "cross_artifact"
 "#;
         let cfg = OyaCiConfig::from_toml_str(toml).expect("gate toml parses");
         assert_eq!(cfg.gates.enabled.len(), 2);
@@ -1923,7 +1771,7 @@ face = "total_accounting"
             GateInputKind::RawCorpusCollector
         );
         assert_eq!(cfg.gates.enabled[1].input_kind, GateInputKind::ProducerFace);
-        assert_eq!(cfg.gates.enabled[1].face, Some(GateFace::TotalAccounting));
+        assert_eq!(cfg.gates.enabled[1].face, Some(GateFace::CrossArtifact));
     }
 
     #[test]
@@ -1989,13 +1837,10 @@ face = "total_accounting"
         assert!(n.repo.path_excludes.is_empty());
         assert!(n.enforcement.governance_lanes.is_empty());
         assert_eq!(n.enforcement.governance_crate_substr, "");
-        assert!(n.slo_coverage.catalog_record_globs.is_empty());
-        assert!(n.catalog_liveness.catalog_record_globs.is_empty());
-        assert!(n.catalog_liveness.workspace_member_globs.is_empty());
-        assert!(n.catalog_liveness.workspace_member_exemptions.is_empty());
+
         assert!(n.cross_artifact.sources.is_empty());
         // gates present (engine still dispatches) but disposition is empty (quiet).
-        assert_eq!(n.gates.enabled.len(), 15, "gates present");
+        assert_eq!(n.gates.enabled.len(), 11, "gates present");
         let disp: serde_json::Value =
             serde_json::from_str(n.gates.disposition_json()).expect("neutral disposition json");
         assert_eq!(

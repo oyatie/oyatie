@@ -11,3 +11,6 @@ oya-governance-adr-shape-kernel = { path = "../../libs/oya-governance-adr-shape-
 
 [lints]
 workspace = true
+
+[package.metadata.oya-ci]
+capability = "fitness-adr-shape"

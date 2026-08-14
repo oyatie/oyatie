@@ -2,7 +2,7 @@
 # src/lib.rs strips the whole crate: off-feature there is no modeled key
 # material to reach. It has ZERO reverse dependencies today
 # (`buck2 uquery "rdeps(//..., :oya-cloud-os-secrets-domain)"` returns only itself); it is
-# kept because ci/facade/crate-catalog-coverage registers the crate.
+# kept for its workspace-member identity (crate-catalog-coverage retired with ADR-0718).
 # `no_production_buck_target_enables_the_model` asserts this target never grows
 # `features = ["modeled-crypto"]` — the one route to the model that restricting
 # the modeled target's `visibility` cannot express.

@@ -2948,12 +2948,6 @@ fn live_registry_policy_corpus(root: &Path) -> Value {
     serde_json::json!({
         "registry": load_json(&root.join("governance/capability-registry.json")),
         "policies": {
-            "module_membership": {
-                "path": "ci/facade/module-membership/capability-membership-policy.json",
-                "document": load_json(
-                    &root.join("ci/facade/module-membership/capability-membership-policy.json"),
-                ),
-            },
             "root_hygiene": {
                 "path": "ci/facade/repo-root-hygiene/root-workspace-hygiene-policy.json",
                 "document": load_json(

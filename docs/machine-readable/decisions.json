@@ -6,12 +6,12 @@
   },
   "_metadata": {
     "source": "docs/decisions",
-    "total_adrs": 18,
-    "numbering": "contiguous ADR-0700..ADR-0717 (gap-free)",
+    "total_adrs": 19,
+    "numbering": "contiguous ADR-0700..ADR-0718 (gap-free)",
     "gaps": [],
-    "next_adr": "ADR-0718",
+    "next_adr": "ADR-0719",
     "status_counts": {
-      "Accepted": 13,
+      "Accepted": 14,
       "Proposed": 5
     }
   },
@@ -231,6 +231,18 @@
       "supersedes": [],
       "superseded_by": [],
       "related": ["ADR-0711"]
+    },
+    {
+      "adr": "ADR-0718",
+      "number": 718,
+      "title": "Registry/catalog bookkeeping retirement",
+      "status": "Accepted",
+      "owner": "council-architecture",
+      "date": "2026-08-14",
+      "path": "decisions/ADR-0718-registry-catalog-bookkeeping-retirement.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0555", "ADR-0544"]
     }
   ]
 }

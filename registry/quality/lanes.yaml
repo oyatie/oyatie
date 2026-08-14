@@ -326,10 +326,10 @@ lanes:
     check_command: buck2 run //marketplace/facade/dev-cli:oya -- gate validate supply-chain
   - id: traceability-validator
     stage: per-pr
-    status: active
+    status: retired
     owner_team: council-architecture
     purpose: PR title/body are review-ready and template carries the 5 mandatory traceability H2 sections plus merge-time Code Review evidence
-    source: STANDARDS-AND-TEMPLATES.md
+    source: ADR-0716 retired the pr-traceability validator crate and its dev-cli dispatch arm; the lane target no longer exists, so the row is retired with it
     runtime_budget_seconds: 120
     check_command: buck2 run //marketplace/facade/dev-cli:oya -- gate validate pr-traceability
   - id: oya-governance-api-semver

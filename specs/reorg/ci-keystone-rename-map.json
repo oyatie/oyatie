@@ -45,22 +45,10 @@
       "new_cargo_name": "ci-canonical-json"
     },
     {
-      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-capability-membership-app",
-      "new_path": "ci/facade/module-membership",
-      "old_cargo_name": "oya-cloud-ci-capability-membership-app",
-      "new_cargo_name": "ci-module-membership"
-    },
-    {
       "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-cargo-prefix-app",
       "new_path": "ci/facade/crate-name-prefix",
       "old_cargo_name": "oya-cloud-ci-cargo-prefix-app",
       "new_cargo_name": "ci-crate-name-prefix"
-    },
-    {
-      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-catalog-liveness-app",
-      "new_path": "ci/facade/service-catalog-parity",
-      "old_cargo_name": "oya-cloud-ci-catalog-liveness-app",
-      "new_cargo_name": "ci-service-catalog-parity"
     },
     {
       "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-cedar-deploy-parity-app",
@@ -123,12 +111,6 @@
       "new_cargo_name": "ci-generated-artifact-freshness"
     },
     {
-      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-friction-accounting-app",
-      "new_path": "ci/facade/action-item-accounting",
-      "old_cargo_name": "oya-cloud-ci-friction-accounting-app",
-      "new_cargo_name": "ci-action-item-accounting"
-    },
-    {
       "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-gate-self-conformance-app",
       "new_path": "ci/facade/gate-self-conformance",
       "old_cargo_name": "oya-cloud-ci-gate-self-conformance-app",
@@ -139,12 +121,6 @@
       "new_path": "ci/facade/generated-artifact-policy",
       "old_cargo_name": "oya-cloud-ci-generated-artifact-control-plane-app",
       "new_cargo_name": "ci-generated-artifact-policy"
-    },
-    {
-      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-hyperscaler-parity-taxonomy-app",
-      "new_path": "ci/facade/parity-claim-evidence",
-      "old_cargo_name": "oya-cloud-ci-hyperscaler-parity-taxonomy-app",
-      "new_cargo_name": "ci-parity-claim-evidence"
     },
     {
       "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-kernel-purity-app",
@@ -159,12 +135,6 @@
       "new_cargo_name": "ci-license-policy"
     },
     {
-      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-manifest-hygiene-app",
-      "new_path": "ci/facade/package-manifest-hygiene",
-      "old_cargo_name": "oya-cloud-ci-manifest-hygiene-app",
-      "new_cargo_name": "ci-package-manifest-hygiene"
-    },
-    {
       "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-no-graphql-without-adr-app",
       "new_path": "ci/facade/graphql-usage-policy",
       "old_cargo_name": "oya-cloud-ci-no-graphql-without-adr-app",
@@ -177,22 +147,10 @@
       "new_cargo_name": "ci-operator-secret-rbac"
     },
     {
-      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-planned-maturity-app",
-      "new_path": "ci/facade/feature-maturity-policy",
-      "old_cargo_name": "oya-cloud-ci-planned-maturity-app",
-      "new_cargo_name": "ci-feature-maturity-policy"
-    },
-    {
       "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-port-placement-app",
       "new_path": "ci/facade/port-placement",
       "old_cargo_name": "oya-cloud-ci-port-placement-app",
       "new_cargo_name": "ci-port-placement"
-    },
-    {
-      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-register-crate-app",
-      "new_path": "ci/facade/crate-registration",
-      "old_cargo_name": "oya-cloud-ci-register-crate-app",
-      "new_cargo_name": "ci-crate-registration"
     },
     {
       "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-root-workspace-hygiene-app",
@@ -219,12 +177,6 @@
       "new_cargo_name": "ci-slo-coverage"
     },
     {
-      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-staleness-reaper-app",
-      "new_path": "ci/facade/stale-artifact-detection",
-      "old_cargo_name": "oya-cloud-ci-staleness-reaper-app",
-      "new_cargo_name": "ci-stale-artifact-detection"
-    },
-    {
       "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-substrate-dependency-dag-acyclicity-app",
       "new_path": "ci/facade/dependency-graph-acyclicity",
       "old_cargo_name": "oya-cloud-ci-substrate-dependency-dag-acyclicity-app",
@@ -249,18 +201,6 @@
       "new_cargo_name": "ci-layer-dependency-acyclicity"
     },
     {
-      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-tier-field-coverage-app",
-      "new_path": "ci/facade/service-tier-metadata",
-      "old_cargo_name": "oya-cloud-ci-tier-field-coverage-app",
-      "new_cargo_name": "ci-service-tier-metadata"
-    },
-    {
-      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-total-accounting-app",
-      "new_path": "ci/facade/artifact-accountability",
-      "old_cargo_name": "oya-cloud-ci-total-accounting-app",
-      "new_cargo_name": "ci-artifact-accountability"
-    },
-    {
       "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-workspace-glob-coverage-app",
       "new_path": "ci/facade/workspace-member-coverage",
       "old_cargo_name": "oya-cloud-ci-workspace-glob-coverage-app",
@@ -271,12 +211,6 @@
       "new_path": "ci/facade/inventory-registry-drift",
       "old_cargo_name": "registry-drift",
       "new_cargo_name": "ci-inventory-registry-drift"
-    },
-    {
-      "old_path": "cloud/cloud-ci/gates/oya-cloud-ci-cell-topology-manifest-contract-app",
-      "new_path": "ci/facade/topology-manifest-contract",
-      "old_cargo_name": "oya-cloud-ci-cell-topology-manifest-contract-app",
-      "new_cargo_name": "ci-topology-manifest-contract"
     }
   ],
   "artifacts": [

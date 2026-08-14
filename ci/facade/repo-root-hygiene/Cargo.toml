@@ -10,7 +10,8 @@ license = "Apache-2.0"
 # makes committed repo-root scratch structurally impossible. The legitimate root surface lives in
 # DATA (root-workspace-hygiene-policy.json): every TRACKED file at the repo ROOT must match an
 # allowlist rule, and every tracked top-level directory must be a permitted capability/meta home.
-# Complements the existing cloud-ci-total-accounting `scratch_artifact` DENYLIST (known scratch
+# Complements the registry's `scratch_artifact` DENYLIST (known scratch shapes; its admission
+# gate retired with ADR-0718, the class still drives the registry verdict)
 # shapes) with default-DENY coverage of ANY unrecognized root file. NET-NEW predicate: no pure
 # crate owned an allowlist-posture root-hygiene check. Emits one Finding per offending path with a
 # concrete relocate/`git rm` auto-fix remediation.

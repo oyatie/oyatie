@@ -268,9 +268,9 @@ mod tests {
         fn new() -> Self {
             Self {
                 manifest: GateManifest::new(
-                    "cloud-ci-manifest-hygiene",
+                    "cloud-ci-slo-coverage",
                     vec![
-                        GateCode::new("manifest_missing_license", RemediationTier::AutoFix),
+                        GateCode::new("slo_missing_or_blank_slo", RemediationTier::AutoFix),
                         GateCode::new(
                             "manifest_changes_runtime_semantics",
                             RemediationTier::Block {

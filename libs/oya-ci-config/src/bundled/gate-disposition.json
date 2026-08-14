@@ -1,138 +1,279 @@
 {
-  "_comment": "GO-LIVE disposition table (DATA, not code) for the Phase-0 firewall ratchet. Per (gate, code): the compare-MODE (baseline-block-on-new | advisory-until-infra), the infra_prereq that must land before an advisory code may flip to blocking, frozen_empty for codes whose baseline may NEVER be non-empty, and remediation — the exact registration edit (or the precise design decision needed) the firewall prints when the code FAILs, so an unaccounted artifact is never a bare flag (ADR-0555). The producer's build_gate_baseline reads this table to stamp each per-code object in gate-baseline.generated.json; the cloud-ci-firewall runner reads the stamped modes. Flipping advisory-until-infra -> baseline-block-on-new is a reviewed DATA edit here, NOT a code change (honors the carve-outs-are-DATA doctrine in all four gate lib docs); the ADR-0555 conversion flipped the exists-but-unaccounted codes (unowned, unreachable, no_ttl_class, untyped_staleness) to blocking with the pre-existing key sets grandfathered mechanically by the ADR-0551 merge-base frozen baseline (frozen-mode-wins arms the flip at the first merge-base advance after it merges; the sign-off door stays reserved for genuine growth exemptions). stale_over_budget_unreachable stays advisory BY DESIGN: its keys enter by TIME passing, not by PR action, so admission-blocking would blame PRs for age accrued on other clocks — its convergence surface is the staleness-reaper reconciler (report -> git mv -> _archive/), per ADR-0555. The cloud-ci-brand-residue gate (register #25) is the forbidden-vocab shrink-only ratchet: each forbidden_<stem> code is baseline-block-on-new and freezes the CURRENT per-(stem,file) residue, so the firewall blocks any NEW occurrence (foundry/forgejo/jenkins/oya-vcs) while the frozen residue ages out without churning history. Carve-outs are DATA in libs/oya-check-brand-residue forbidden_vocab.",
+  "_comment": "GO-LIVE disposition table (DATA, not code) for the Phase-0 firewall ratchet. Per (gate, code): the compare-MODE (baseline-block-on-new | advisory-until-infra), the infra_prereq that must land before an advisory code may flip to blocking, frozen_empty for codes whose baseline may NEVER be non-empty, and remediation \u2014 the exact registration edit (or the precise design decision needed) the firewall prints when the code FAILs, so an unaccounted artifact is never a bare flag (ADR-0555). The producer's build_gate_baseline reads this table to stamp each per-code object in gate-baseline.generated.json; the cloud-ci-firewall runner reads the stamped modes. Flipping advisory-until-infra -> baseline-block-on-new is a reviewed DATA edit here, NOT a code change (honors the carve-outs-are-DATA doctrine in all four gate lib docs); the ADR-0555 conversion flipped the exists-but-unaccounted codes (unowned, unreachable, no_ttl_class, untyped_staleness) to blocking with the pre-existing key sets grandfathered mechanically by the ADR-0551 merge-base frozen baseline (frozen-mode-wins arms the flip at the first merge-base advance after it merges; the sign-off door stays reserved for genuine growth exemptions). The cloud-ci-brand-residue gate (register #25) is the forbidden-vocab shrink-only ratchet: each forbidden_<stem> code is baseline-block-on-new and freezes the CURRENT per-(stem,file) residue, so the firewall blocks any NEW occurrence (foundry/forgejo/jenkins/oya-vcs) while the frozen residue ages out without churning history. Carve-outs are DATA in libs/oya-check-brand-residue forbidden_vocab.",
   "_provenance": {
-    "authority": "PHASE-0-FIREWALL-PLAN go-live readiness ratchet (ADR-0515 lineage); ADR-0555 advisory->blocking accounting conversion; door:one-way",
+    "authority": "PHASE-0-FIREWALL-PLAN go-live readiness ratchet (ADR-0515 lineage); ADR-0555 advisory->blocking accounting conversion; door:one-way; ADR-0718 retired total-accounting/staleness-reaper/manifest-hygiene/catalog-liveness disposition rows with their gates",
     "disposition_schema_version": 1
   },
   "_stub_gates": {
-    "_comment": "Gates relocated by the ci keystone move (ADR-0562/0563) that are NOT yet product-hardened. Recorded here as authoritative disposition DATA (sibling to the compare-mode `gates` table, read by neither the baseline producer nor the firewall runner) so a hollow/marker gate is never counted as a shipped PROD feature. Each entry is build-or-cut before promotion. Consumers key on `gates`; this meta-block is the honest record for reviewers and the maturity audit.",
-    "topology-manifest-contract": {
-      "status": "stub-pending-hardening",
-      "prod": false,
-      "reason": "CELL-001R cell-topology manifest-contract gate is a MARKER crate: ci/facade/topology-manifest-contract/src/lib.rs is a doc-only marker (hollow production library) and the executable validation contract is pinned solely by tests/cell_topology_manifest_contract.rs. It is wired through Buck2 + oya-ci-required, but its production surface is not hardened, so it must not be certified as a production gate until the contract is lifted into the library (build-or-cut per the move plan).",
-      "reference": "specs/reorg/ci-keystone-rename-map.json"
-    }
+    "_comment": "Gates relocated by the ci keystone move (ADR-0562/0563) that are NOT yet product-hardened. Recorded here as authoritative disposition DATA (sibling to the compare-mode `gates` table, read by neither the baseline producer nor the firewall runner) so a hollow/marker gate is never counted as a shipped PROD feature. Each entry is build-or-cut before promotion. Consumers key on `gates`; this meta-block is the honest record for reviewers and the maturity audit."
   },
   "gates": {
-    "cloud-ci-total-accounting": {
-      "unjustified": {"mode": "baseline-block-on-new", "remediation": "REACHED implies JUSTIFIED: the producer derives justification_ref from the registry that reaches the path (reached:<source>), because every reachability source is already a reviewed design act — so this code now fires ONLY on an artifact that is also `unreachable`, and reachability-registering it clears BOTH. Do that first: place the artifact under a workspace-member crate (auto-reachable via cargo-members), mention its exact path in specs/masterplan.json / specs/root-hub-pointers.json / docs/DOC-CATALOG.md, or add a reviewed entry to specs/reachability-registry.json naming WHY the tree is reached. ONLY if no live registry can reach the artifact, name it in a decision record under [justification].adr_dir (oya-ci.toml; today docs/decisions): the producer indexes each decision body ONCE into path-like tokens (split on whitespace and \" ` ( ) , ; [ ], then trimmed of leading : # * and one trailing .) and keeps the tokens that equal a tracked path, so add ONE line naming the path byte-exactly (precedent: ADR-0554 '### Deliverables (engine + pack files this ADR justifies)', one backticked path per bullet) — an abbreviated, globbed, or line-broken path matches nothing. A decision file justifies ITSELF by filename (ADR-NNNN-*.md). Neither route is a per-path exemption."},
-      "unaccounted": {"mode": "baseline-block-on-new"},
-      "unowned": {"mode": "baseline-block-on-new", "remediation": "NEW artifacts must be ownership-registered at creation (ADR-0555): add an OWNERS file in the artifact's directory (or nearest ancestor) naming the owning team. Deciding WHO owns it is a design act this gate cannot invent — decide the owner, then apply the edit (the producer's transitional `--fix-owners <dir>=<owner>` bridge writes the file and self-validates; cli_surface_policy: local bridge only, never merge authority). Ownership requires VALID content, not mere existence (ADR-0555 hardening, FRIC-1781400000): the OWNERS schema is one owner principal per line (lowercase alphanumeric + interior hyphens, 1..=63 chars), `#` comments and blank lines allowed, at least one principal required — an empty/comment-only/garbage OWNERS is NOT ownership and its subtree stays unowned (fail-closed, no fall-through to a broader ancestor); exact fix: rewrite the named OWNERS to the schema. One OWNERS file may cover at most [owners] max_paths_per_owners_file tracked paths (oya-ci.toml, bound sized above the live-corpus max with headroom); excess coverage stays unowned — exact fix: split the registration into narrower subtree OWNERS files."},
-      "unreachable": {"mode": "baseline-block-on-new", "remediation": "NEW artifacts must be reachability-registered at creation (ADR-0555): place the artifact under a workspace-member crate (auto-reachable via cargo-members), mention its exact path in specs/masterplan.json / specs/root-hub-pointers.json / docs/DOC-CATALOG.md, or add a reviewed entry to specs/reachability-registry.json naming WHY the tree is reached. Choosing the registry is a design act; the edit is mechanical (the producer's transitional `--fix-reachability <prefix>=<anchor>` bridge appends the registry entry and self-validates)."},
-      "no_ttl_class": {"mode": "baseline-block-on-new", "remediation": "every accounting row must carry a ttl_class (ADR-0555): a class without a TTL budget is unaccounted decay. Add the missing unit-class row to the TTL policy table (libs/oya-ci-config/src/bundled/ttl-policy.json)."},
-      "ci_inventory_registry_drift": {"mode": "baseline-block-on-new", "frozen_empty": true},
-      "scratch_artifact": {"mode": "baseline-block-on-new", "frozen_empty": true, "remediation": "A build/test SCRATCH artifact is tracked (unit_class `scratch` per the producer's unit-class-policy DATA table: repo-root *.log/*.tmp, run-slice.sh, retest-targets.txt, cloud-kernel/out/conformance/, etc.). This is a SHAPE-based, frozen_empty, zero-tolerance code — it is NEVER grandfathered and CANNOT be suppressed by registering owner/justification/reachability (founder directive: impossible to commit unjustified repo-root scratch). Exact fix: `git rm` the scratch artifact and add its pattern to .gitignore (the prevention layer). If a file matching a scratch shape is genuinely NOT scratch, the fix is to NOT name/place it like scratch (rename/relocate) or add a reviewed carve-out rule ABOVE the scratch rules in unit-class-policy.json — re-classifying scratch as a legitimate class is a DATA edit, never a per-path exemption."}
-    },
     "cloud-ci-cross-artifact-agreement": {
-      "generated_face_drift": {"mode": "baseline-block-on-new"},
-      "dual_decision_collision": {"mode": "baseline-block-on-new"},
-      "decision_id_mismatch": {"mode": "baseline-block-on-new", "frozen_empty": true},
-      "phantom_decision_citation": {"mode": "baseline-block-on-new", "frozen_empty": true, "remediation": "a governed surface cites a decision id with NO decision file on disk (the phantom-0397 shape, FRIC-1781430000): mint the record at the cited number (reconstruction, status Proposed, founder-ratification banner) or retarget the citation to the real decision; allocate NEW numbers only via the accounting-registry producer --next-adr; the pre-2026-06-12 phantom inventory is grandfathered shrink-only DATA in the producer (each id ledgered with its citation sites) and may never grow."},
-      "supersession_half_edge": {"mode": "baseline-block-on-new"},
-      "unpropagated_decision": {"mode": "baseline-block-on-new"},
-      "orphan_decision": {"mode": "baseline-block-on-new"},
-      "status_disagreement": {"mode": "baseline-block-on-new"},
-      "masterplan_not_sole_live_authority": {"mode": "baseline-block-on-new", "remediation": "/specs/masterplan.json#masterplan_v2 must be the only live plan authority; legacy plan, goal, roadmap, sequencing, closure, external-board, omc/omx/gjc, and harness-store surfaces must be dispositioned as absorbed, archived-with-provenance, or generated-projection with is_live_plan_authority=false."},
-      "masterplan_surface_disposition_incomplete": {"mode": "baseline-block-on-new", "remediation": "/specs/masterplan.json#masterplan_v2.surface_dispositions must cover every legacy plan/goal surface and harness store in the ingest set with disposition ∈ {absorbed, archived-with-provenance, generated-projection}, provenance, work_item_id_policy, absorbed_into=/specs/masterplan.json#masterplan_v2, and no live-id authority."},
-      "masterplan_work_item_id_collision": {"mode": "baseline-block-on-new", "remediation": "/specs/masterplan.json#masterplan_v2.work_items must use one collision-free MPV2-#### namespace; remove duplicate live ids and keep imported legacy card ids as provenance only."},
-      "masterplan_external_live_work_item_id": {"mode": "baseline-block-on-new", "remediation": "/specs/masterplan.json#masterplan_v2.work_items must not expose FD/IP/ADR/external-board/OMC/OMX/GJC ids as live work-item ids; assign an MPV2-#### id and carry source ids only as evidence/provenance fields."},
-      "masterplan_dependency_dag_invalid": {"mode": "baseline-block-on-new", "remediation": "/specs/masterplan.json#masterplan_v2.dependency_edges must use from=prerequisite/to=dependent semantics, point only at declared MPV2 work items, and remain acyclic."},
-      "masterplan_program_coverage_incomplete": {"mode": "baseline-block-on-new", "remediation": "/specs/masterplan.json#masterplan_v2.programs and program_coverage must cover every manifest-index microservice plus ontology, workflow-engine, workflow-studio, intelligence, owned-stack, reorg, AST code-graph, and fabric shards."},
-      "masterplan_sequencing_invalid": {"mode": "baseline-block-on-new", "remediation": "/specs/masterplan.json#masterplan_v2.sequencing must be zero-based, re-derived from masterplan_v2.dependency_edges, cover every MPV2 work item exactly once in both order and execution_waves, and preserve prerequisite-before-dependent ordering."},
-      "masterplan_execution_wave_dispatch_unratified": {"mode": "baseline-block-on-new", "remediation": "execution-wave dispatch is forbidden until /specs/masterplan.json#masterplan_v2.sequencing.founder_ratification records an explicit founder decision; pending ratification must keep execution_wave_dispatch state=blocked, blocked_reason=pending_founder_ratification, requires_founder_ratification=true, allowed_without_founder_ratification=false."},
-      "masterplan_projection_freshness_invalid": {"mode": "baseline-block-on-new", "remediation": "/specs/masterplan.json#masterplan_v2.projection_freshness must cover every non-canonical read_contract, every generated-projection surface, and every generated-artifact-control-plane projection sourced from specs/masterplan.json with source_of_truth=/specs/masterplan.json#masterplan_v2, freshness_gate=cloud-ci-cross-artifact-agreement/masterplan-v2-projection-freshness, no live plan/id authority, fail-closed drift policy, and evidence refs."},
-      "masterplan_plan_evidence_unrecorded": {"mode": "baseline-block-on-new", "remediation": "a masterplan work-item status claim (or evidence-attached external-board import) is not backed by RECORDED completion evidence: attach at least one recorded completion-evidence-class ref (merged commit git:<40-hex>, merged-PR / merged-commit / actions-run record under https://github.com/<owner>/<repo>/, or a tracked product-completion packet under evidence/) to every verified 'done' claim, repair evidence refs that dangle outside the committed scm-facts tracked_paths resolution universe, and never point evidence at a surface_dispositions row dispositioned absorbed or archived-with-provenance; demote unevidenced completion claims to claimed-done-unverified instead of deleting the claim."},
-      "masterplan_projection_stale": {"mode": "baseline-block-on-new", "remediation": "a derived/generated masterplan projection is stale or hand-edited: regenerate it mechanically from /specs/masterplan.json#masterplan_v2 (docs/MASTERPLAN.md must byte-match derive_masterplan_md_projection; plan/fabric-loop cards and flow-metrics passes are written ONLY through the oya-fabric-loop-state-app ports, keeping canonical wire bytes, contiguous 1-based pass_seq under pass-{seq:020}.json filenames, plan-DAG-resolvable card/program/depends_on refs, and evidence-backed completion statuses); never hand-edit projection bytes, and declare any new generated planning projection in registry/generated-artifact-control-plane.json plus masterplan_v2.projection_freshness before it lands on disk."},
-      "masterplan_read_contract_invalid": {"mode": "baseline-block-on-new", "remediation": "/specs/masterplan.json#masterplan_v2 read contracts, projection freshness rows, and explicit read-path references must treat archived-with-provenance surfaces as read_timing_class=provenance-archive only; stale plan, roadmap, closure, and harness paths cannot look live or on-demand."},
-      "masterplan_entry_surface_invalid": {"mode": "baseline-block-on-new", "remediation": "/specs/root-hub-pointers.json#agent_entry_surface_allowlist and /specs/masterplan.json#masterplan_v2.read_contracts must have exact entry-surface set equality, with agent audience, validator cloud-ci-cross-artifact-agreement/masterplan-v2-entry-surface, and no superseded/provenance entrypoint marked as entry-surface."}
+      "generated_face_drift": {
+        "mode": "baseline-block-on-new"
+      },
+      "dual_decision_collision": {
+        "mode": "baseline-block-on-new"
+      },
+      "decision_id_mismatch": {
+        "mode": "baseline-block-on-new",
+        "frozen_empty": true
+      },
+      "phantom_decision_citation": {
+        "mode": "baseline-block-on-new",
+        "frozen_empty": true,
+        "remediation": "a governed surface cites a decision id with NO decision file on disk (the phantom-0397 shape, FRIC-1781430000): mint the record at the cited number (reconstruction, status Proposed, founder-ratification banner) or retarget the citation to the real decision; allocate NEW numbers only via the accounting-registry producer --next-adr; the pre-2026-06-12 phantom inventory is grandfathered shrink-only DATA in the producer (each id ledgered with its citation sites) and may never grow."
+      },
+      "supersession_half_edge": {
+        "mode": "baseline-block-on-new"
+      },
+      "unpropagated_decision": {
+        "mode": "baseline-block-on-new"
+      },
+      "orphan_decision": {
+        "mode": "baseline-block-on-new"
+      },
+      "status_disagreement": {
+        "mode": "baseline-block-on-new"
+      },
+      "masterplan_not_sole_live_authority": {
+        "mode": "baseline-block-on-new",
+        "remediation": "/specs/masterplan.json#masterplan_v2 must be the only live plan authority; legacy plan, goal, roadmap, sequencing, closure, external-board, omc/omx/gjc, and harness-store surfaces must be dispositioned as absorbed, archived-with-provenance, or generated-projection with is_live_plan_authority=false."
+      },
+      "masterplan_surface_disposition_incomplete": {
+        "mode": "baseline-block-on-new",
+        "remediation": "/specs/masterplan.json#masterplan_v2.surface_dispositions must cover every legacy plan/goal surface and harness store in the ingest set with disposition \u2208 {absorbed, archived-with-provenance, generated-projection}, provenance, work_item_id_policy, absorbed_into=/specs/masterplan.json#masterplan_v2, and no live-id authority."
+      },
+      "masterplan_work_item_id_collision": {
+        "mode": "baseline-block-on-new",
+        "remediation": "/specs/masterplan.json#masterplan_v2.work_items must use one collision-free MPV2-#### namespace; remove duplicate live ids and keep imported legacy card ids as provenance only."
+      },
+      "masterplan_external_live_work_item_id": {
+        "mode": "baseline-block-on-new",
+        "remediation": "/specs/masterplan.json#masterplan_v2.work_items must not expose FD/IP/ADR/external-board/OMC/OMX/GJC ids as live work-item ids; assign an MPV2-#### id and carry source ids only as evidence/provenance fields."
+      },
+      "masterplan_dependency_dag_invalid": {
+        "mode": "baseline-block-on-new",
+        "remediation": "/specs/masterplan.json#masterplan_v2.dependency_edges must use from=prerequisite/to=dependent semantics, point only at declared MPV2 work items, and remain acyclic."
+      },
+      "masterplan_program_coverage_incomplete": {
+        "mode": "baseline-block-on-new",
+        "remediation": "/specs/masterplan.json#masterplan_v2.programs and program_coverage must cover every manifest-index microservice plus ontology, workflow-engine, workflow-studio, intelligence, owned-stack, reorg, AST code-graph, and fabric shards."
+      },
+      "masterplan_sequencing_invalid": {
+        "mode": "baseline-block-on-new",
+        "remediation": "/specs/masterplan.json#masterplan_v2.sequencing must be zero-based, re-derived from masterplan_v2.dependency_edges, cover every MPV2 work item exactly once in both order and execution_waves, and preserve prerequisite-before-dependent ordering."
+      },
+      "masterplan_execution_wave_dispatch_unratified": {
+        "mode": "baseline-block-on-new",
+        "remediation": "execution-wave dispatch is forbidden until /specs/masterplan.json#masterplan_v2.sequencing.founder_ratification records an explicit founder decision; pending ratification must keep execution_wave_dispatch state=blocked, blocked_reason=pending_founder_ratification, requires_founder_ratification=true, allowed_without_founder_ratification=false."
+      },
+      "masterplan_projection_freshness_invalid": {
+        "mode": "baseline-block-on-new",
+        "remediation": "/specs/masterplan.json#masterplan_v2.projection_freshness must cover every non-canonical read_contract, every generated-projection surface, and every generated-artifact-control-plane projection sourced from specs/masterplan.json with source_of_truth=/specs/masterplan.json#masterplan_v2, freshness_gate=cloud-ci-cross-artifact-agreement/masterplan-v2-projection-freshness, no live plan/id authority, fail-closed drift policy, and evidence refs."
+      },
+      "masterplan_plan_evidence_unrecorded": {
+        "mode": "baseline-block-on-new",
+        "remediation": "a masterplan work-item status claim (or evidence-attached external-board import) is not backed by RECORDED completion evidence: attach at least one recorded completion-evidence-class ref (merged commit git:<40-hex>, merged-PR / merged-commit / actions-run record under https://github.com/<owner>/<repo>/, or a tracked product-completion packet under evidence/) to every verified 'done' claim, repair evidence refs that dangle outside the committed scm-facts tracked_paths resolution universe, and never point evidence at a surface_dispositions row dispositioned absorbed or archived-with-provenance; demote unevidenced completion claims to claimed-done-unverified instead of deleting the claim."
+      },
+      "masterplan_projection_stale": {
+        "mode": "baseline-block-on-new",
+        "remediation": "a derived/generated masterplan projection is stale or hand-edited: regenerate it mechanically from /specs/masterplan.json#masterplan_v2 (docs/MASTERPLAN.md must byte-match derive_masterplan_md_projection; plan/fabric-loop cards and flow-metrics passes are written ONLY through the oya-fabric-loop-state-app ports, keeping canonical wire bytes, contiguous 1-based pass_seq under pass-{seq:020}.json filenames, plan-DAG-resolvable card/program/depends_on refs, and evidence-backed completion statuses); never hand-edit projection bytes, and declare any new generated planning projection in registry/generated-artifact-control-plane.json plus masterplan_v2.projection_freshness before it lands on disk."
+      },
+      "masterplan_read_contract_invalid": {
+        "mode": "baseline-block-on-new",
+        "remediation": "/specs/masterplan.json#masterplan_v2 read contracts, projection freshness rows, and explicit read-path references must treat archived-with-provenance surfaces as read_timing_class=provenance-archive only; stale plan, roadmap, closure, and harness paths cannot look live or on-demand."
+      },
+      "masterplan_entry_surface_invalid": {
+        "mode": "baseline-block-on-new",
+        "remediation": "/specs/root-hub-pointers.json#agent_entry_surface_allowlist and /specs/masterplan.json#masterplan_v2.read_contracts must have exact entry-surface set equality, with agent audience, validator cloud-ci-cross-artifact-agreement/masterplan-v2-entry-surface, and no superseded/provenance entrypoint marked as entry-surface."
+      }
     },
     "cloud-ci-automation-ratchet": {
-      "advisory_claiming_enforced": {"mode": "baseline-block-on-new", "remediation": "replace the advisory/unwired enforcement claim with a hermetic cloud-ci/Buck2 gate target, or downgrade/remove the claim if it is only planned/speculative; do not route merge authority through local CLI bridges."},
-      "missing_pre_merge_review_authority": {"mode": "baseline-block-on-new", "frozen_empty": true, "remediation": "wire a trusted server-side review admission producer (for example the future `oya-pr-review` status from a cloud-ci/GitHub App controller) and require it in the protected merge path, with durable evidence that the reviewer is distinct from the author. Until that producer is live, docs and backlog must name F-PR5-06 and must not claim local hooks or green `oya-ci-required` alone are review authority."},
-      "blocking_invariant_mapped_to_oya_cli": {"mode": "baseline-block-on-new", "remediation": "replace retired oya CLI authority (`oya gate`/`oya gen`/`oya verify`/oya-dev-cli/bin/oya) with the cloud-native API/Buck2/cloud-ci gate/controller of record, or mark the reference explicitly as bridge/history/local feedback; do not sign off new CLI authority without founder-approved retirement-debt admission."},
-      "ratchet_regression": {"mode": "baseline-block-on-new", "frozen_empty": true},
-      "enforceable_or_automatable_marked_human_judgment": {"mode": "baseline-block-on-new"},
-      "duplicate_row_id": {"mode": "baseline-block-on-new", "frozen_empty": true},
-      "unknown_classification": {"mode": "baseline-block-on-new"},
-      "missing_or_empty_required_field": {"mode": "baseline-block-on-new"}
-    },
-    "cloud-ci-staleness-reaper": {
-      "stale_over_budget_unreachable": {"mode": "advisory-until-infra", "infra_prereq": "staleness-reaper-archival-reconciler", "remediation": "time-driven decay (ADR-0555: advisory BY DESIGN, not an unaccounted-at-creation class): the artifact aged past its TTL budget while unreachable. Archive or re-anchor it (report -> git mv -> _archive/, second-verifier-gated, never rm); admission-blocking this code would blame PRs for age accrued on other clocks — the convergence surface is the staleness-reaper reconciler."},
-      "untyped_staleness": {"mode": "baseline-block-on-new", "remediation": "a row that cannot be aged is unaccounted decay (ADR-0555): type it by adding its unit-class to the TTL policy table (libs/oya-ci-config/src/bundled/ttl-policy.json) so staleness is decidable."},
-      "reap_without_report": {"mode": "baseline-block-on-new", "frozen_empty": true}
+      "advisory_claiming_enforced": {
+        "mode": "baseline-block-on-new",
+        "remediation": "replace the advisory/unwired enforcement claim with a hermetic cloud-ci/Buck2 gate target, or downgrade/remove the claim if it is only planned/speculative; do not route merge authority through local CLI bridges."
+      },
+      "missing_pre_merge_review_authority": {
+        "mode": "baseline-block-on-new",
+        "frozen_empty": true,
+        "remediation": "wire a trusted server-side review admission producer (for example the future `oya-pr-review` status from a cloud-ci/GitHub App controller) and require it in the protected merge path, with durable evidence that the reviewer is distinct from the author. Until that producer is live, docs and backlog must name F-PR5-06 and must not claim local hooks or green `oya-ci-required` alone are review authority."
+      },
+      "blocking_invariant_mapped_to_oya_cli": {
+        "mode": "baseline-block-on-new",
+        "remediation": "replace retired oya CLI authority (`oya gate`/`oya gen`/`oya verify`/oya-dev-cli/bin/oya) with the cloud-native API/Buck2/cloud-ci gate/controller of record, or mark the reference explicitly as bridge/history/local feedback; do not sign off new CLI authority without founder-approved retirement-debt admission."
+      },
+      "ratchet_regression": {
+        "mode": "baseline-block-on-new",
+        "frozen_empty": true
+      },
+      "enforceable_or_automatable_marked_human_judgment": {
+        "mode": "baseline-block-on-new"
+      },
+      "duplicate_row_id": {
+        "mode": "baseline-block-on-new",
+        "frozen_empty": true
+      },
+      "unknown_classification": {
+        "mode": "baseline-block-on-new"
+      },
+      "missing_or_empty_required_field": {
+        "mode": "baseline-block-on-new"
+      }
     },
     "cloud-ci-bnf-layer-suffix": {
-      "bnf_unknown_role": {"mode": "baseline-block-on-new"},
-      "bnf_role_mismatch": {"mode": "baseline-block-on-new"},
-      "bnf_missing_oya_prefix": {"mode": "baseline-block-on-new"},
-      "bnf_empty_after_prefix": {"mode": "baseline-block-on-new"},
-      "bnf_undeclared_role": {"mode": "baseline-block-on-new"},
-      "bnf_undeclared_context": {"mode": "baseline-block-on-new"},
-      "bnf_name_uppercase": {"mode": "baseline-block-on-new"}
-    },
-    "cloud-ci-manifest-hygiene": {
-      "manifest_missing_version_workspace": {"mode": "baseline-block-on-new"},
-      "manifest_missing_rust_version_workspace": {"mode": "baseline-block-on-new"},
-      "manifest_missing_publish_false": {"mode": "baseline-block-on-new"},
-      "manifest_missing_license": {"mode": "baseline-block-on-new"},
-      "manifest_missing_lints_workspace": {"mode": "baseline-block-on-new"},
-      "manifest_missing_lib_doctest_false": {"mode": "baseline-block-on-new"}
+      "bnf_unknown_role": {
+        "mode": "baseline-block-on-new"
+      },
+      "bnf_role_mismatch": {
+        "mode": "baseline-block-on-new"
+      },
+      "bnf_missing_oya_prefix": {
+        "mode": "baseline-block-on-new"
+      },
+      "bnf_empty_after_prefix": {
+        "mode": "baseline-block-on-new"
+      },
+      "bnf_undeclared_role": {
+        "mode": "baseline-block-on-new"
+      },
+      "bnf_undeclared_context": {
+        "mode": "baseline-block-on-new"
+      },
+      "bnf_name_uppercase": {
+        "mode": "baseline-block-on-new"
+      }
     },
     "cloud-ci-cargo-prefix": {
-      "cargo_prefix_violation": {"mode": "baseline-block-on-new"},
-      "cargo_prefix_name_path_mismatch": {"mode": "baseline-block-on-new"},
-      "cargo_prefix_unresolvable": {"mode": "baseline-block-on-new"}
+      "cargo_prefix_violation": {
+        "mode": "baseline-block-on-new"
+      },
+      "cargo_prefix_name_path_mismatch": {
+        "mode": "baseline-block-on-new"
+      },
+      "cargo_prefix_unresolvable": {
+        "mode": "baseline-block-on-new"
+      }
     },
     "cloud-ci-slo-coverage": {
-      "slo_missing_or_blank_slo": {"mode": "baseline-block-on-new", "frozen_empty": true},
-      "slo_empty_crate_id": {"mode": "baseline-block-on-new", "frozen_empty": true},
-      "slo_no_catalog_records": {"mode": "baseline-block-on-new", "frozen_empty": true},
-      "slo_row_no_live_crate_unmarked": {"mode": "baseline-block-on-new", "frozen_empty": true, "remediation": "an SLO catalog row names no live workspace crate and carries no explicit non-live marker (PR-C3 composed live-OR-marked predicate). A valid `slo:` does not excuse a silently-stale record: EITHER restore/rename the crate so its [package].name == the record stem, OR mark the record `status: retired-compatibility-row-no-crate` (or designed-ahead-row-no-crate / planned / aspirational)."}
+      "slo_missing_or_blank_slo": {
+        "mode": "baseline-block-on-new",
+        "frozen_empty": true
+      },
+      "slo_empty_crate_id": {
+        "mode": "baseline-block-on-new",
+        "frozen_empty": true
+      },
+      "slo_empty_corpus": {
+        "mode": "baseline-block-on-new",
+        "frozen_empty": true
+      },
+      "slo_row_no_live_crate_unmarked": {
+        "mode": "baseline-block-on-new",
+        "frozen_empty": true,
+        "remediation": "an SLO catalog row names no live workspace crate and carries no explicit non-live marker (PR-C3 composed live-OR-marked predicate). A valid `slo:` does not excuse a silently-stale record: EITHER restore/rename the crate so its [package].name == the record stem, OR mark the record `status: retired-compatibility-row-no-crate` (or designed-ahead-row-no-crate / planned / aspirational)."
+      }
     },
     "cloud-ci-license-policy": {
-      "license_policy_missing_license": {"mode": "baseline-block-on-new"},
-      "license_policy_unknown_license": {"mode": "baseline-block-on-new"},
-      "license_policy_forbidden_license": {"mode": "baseline-block-on-new"},
-      "license_policy_review_required": {"mode": "baseline-block-on-new"},
-      "license_policy_no_workspace_members": {"mode": "baseline-block-on-new", "frozen_empty": true}
-    },
-    "cloud-ci-catalog-liveness": {
-      "catalog_record_no_live_crate_unmarked": {"mode": "baseline-block-on-new", "frozen_empty": true, "remediation": "the catalog record names no live workspace crate and carries no explicit non-live marker. EITHER restore/rename the crate so its [package].name == the record stem (live), OR mark the record explicitly non-live: add `status: retired-compatibility-row-no-crate` (or `designed-ahead-row-no-crate` / `planned` / `aspirational`) per the founder live-OR-explicitly-marked policy. Silently-stale catalog rows are not admissible."},
-      "catalog_record_source_crate_missing": {"mode": "baseline-block-on-new", "frozen_empty": true, "remediation": "traceability.source_crate points at a path that is not tracked/live while the catalog row is not explicitly non-live. Repair the path to the live Cargo.toml or mark the catalog row historical/non-live."},
-      "catalog_live_crate_without_row": {"mode": "baseline-block-on-new", "frozen_empty": true, "remediation": "a config-governed live workspace crate has no registry/catalog row and no explicit exemption with owner, reason, and cutover. Add the catalog row or author a bounded exemption in [catalog_liveness].workspace_member_exemptions."},
-      "catalog_live_crate_empty_id": {"mode": "baseline-block-on-new", "frozen_empty": true, "remediation": "the producer emitted a governed live workspace crate with an empty crate_id. Fix the package manifest name."},
-      "catalog_live_crates_missing": {"mode": "baseline-block-on-new", "frozen_empty": true, "remediation": "the catalog-liveness face omitted the live_crates collection. Regenerate with the bidirectional producer; row-only faces are refused to prevent false-green reverse coverage."},
-      "catalog_record_empty_crate_id": {"mode": "baseline-block-on-new", "frozen_empty": true, "remediation": "a catalog record resolved to an empty crate_id (malformed file stem). Fix the record's path/stem so it derives a non-empty crate identity."},
-      "catalog_no_records": {"mode": "baseline-block-on-new", "frozen_empty": true, "remediation": "the catalog-liveness face enumerated ZERO records. Confirm [catalog_liveness].catalog_record_globs points at the catalog source; an empty corpus is RED to prevent a false-green."}
+      "license_policy_missing_license": {
+        "mode": "baseline-block-on-new"
+      },
+      "license_policy_unknown_license": {
+        "mode": "baseline-block-on-new"
+      },
+      "license_policy_forbidden_license": {
+        "mode": "baseline-block-on-new"
+      },
+      "license_policy_review_required": {
+        "mode": "baseline-block-on-new"
+      },
+      "license_policy_no_workspace_members": {
+        "mode": "baseline-block-on-new",
+        "frozen_empty": true
+      }
     },
     "cloud-ci-workspace-glob-coverage": {
-      "workspace_member_explicit_path": {"mode": "baseline-block-on-new", "frozen_empty": true},
-      "workspace_member_missing_manifest": {"mode": "baseline-block-on-new", "frozen_empty": true},
-      "crate_dir_not_covered": {"mode": "baseline-block-on-new"}
+      "workspace_member_explicit_path": {
+        "mode": "baseline-block-on-new",
+        "frozen_empty": true
+      },
+      "workspace_member_missing_manifest": {
+        "mode": "baseline-block-on-new",
+        "frozen_empty": true
+      },
+      "crate_dir_not_covered": {
+        "mode": "baseline-block-on-new"
+      }
     },
     "cloud-ci-target-parity": {
-      "member_missing_buck": {"mode": "baseline-block-on-new", "frozen_empty": true},
-      "member_test_code_without_rust_test_target": {"mode": "baseline-block-on-new"}
+      "member_missing_buck": {
+        "mode": "baseline-block-on-new",
+        "frozen_empty": true
+      },
+      "member_test_code_without_rust_test_target": {
+        "mode": "baseline-block-on-new"
+      }
     },
     "cloud-ci-enforcement-liveness": {
-      "malformed_enforcement_liveness_face": {"mode": "baseline-block-on-new", "frozen_empty": true, "remediation": "repair enforcement-liveness producer output so the top-level rows array is present and has the documented shape; land the correction through a governance PR"},
-      "malformed_enforcement_liveness_row": {"mode": "baseline-block-on-new", "frozen_empty": true, "remediation": "repair enforcement-liveness row fields so malformed producer output cannot pass as green; land the correction through a governance PR"},
-      "hook_unwired_without_stub_marker": {"mode": "baseline-block-on-new", "frozen_empty": true},
-      "hook_wiring_mirror_drift": {"mode": "baseline-block-on-new", "frozen_empty": true},
-      "wired_hook_missing_file": {"mode": "baseline-block-on-new", "frozen_empty": true}
+      "malformed_enforcement_liveness_face": {
+        "mode": "baseline-block-on-new",
+        "frozen_empty": true,
+        "remediation": "repair enforcement-liveness producer output so the top-level rows array is present and has the documented shape; land the correction through a governance PR"
+      },
+      "malformed_enforcement_liveness_row": {
+        "mode": "baseline-block-on-new",
+        "frozen_empty": true,
+        "remediation": "repair enforcement-liveness row fields so malformed producer output cannot pass as green; land the correction through a governance PR"
+      },
+      "hook_unwired_without_stub_marker": {
+        "mode": "baseline-block-on-new",
+        "frozen_empty": true
+      },
+      "hook_wiring_mirror_drift": {
+        "mode": "baseline-block-on-new",
+        "frozen_empty": true
+      },
+      "wired_hook_missing_file": {
+        "mode": "baseline-block-on-new",
+        "frozen_empty": true
+      }
     },
     "cloud-ci-brand-residue": {
-      "forbidden_retired_coordination_brand": {"mode": "baseline-block-on-new", "frozen_empty": true, "remediation": "remove the retired external coordination brand from the reported tracked pathname or raw blob; no archive, evidence, decision, binary, symlink, generated-face, or deny-list exception is permitted"},
-      "forbidden_foundry": {"mode": "baseline-block-on-new"},
-      "forbidden_forgejo": {"mode": "baseline-block-on-new"},
-      "forbidden_jenkins": {"mode": "baseline-block-on-new"},
-      "forbidden_oya-vcs": {"mode": "baseline-block-on-new"}
+      "forbidden_retired_coordination_brand": {
+        "mode": "baseline-block-on-new",
+        "frozen_empty": true,
+        "remediation": "remove the retired external coordination brand from the reported tracked pathname or raw blob; no archive, evidence, decision, binary, symlink, generated-face, or deny-list exception is permitted"
+      },
+      "forbidden_foundry": {
+        "mode": "baseline-block-on-new"
+      },
+      "forbidden_forgejo": {
+        "mode": "baseline-block-on-new"
+      },
+      "forbidden_jenkins": {
+        "mode": "baseline-block-on-new"
+      },
+      "forbidden_oya-vcs": {
+        "mode": "baseline-block-on-new"
+      }
     },
     "cloud-ci-freshness": {
-      "lock_missing_member_package": {"mode": "baseline-block-on-new", "frozen_empty": true},
-      "lock_stale_member_version": {"mode": "baseline-block-on-new", "frozen_empty": true},
-      "lock_orphan_path_package": {"mode": "baseline-block-on-new", "frozen_empty": true},
-      "generated_face_stale": {"mode": "baseline-block-on-new", "frozen_empty": true}
+      "lock_missing_member_package": {
+        "mode": "baseline-block-on-new",
+        "frozen_empty": true
+      },
+      "lock_stale_member_version": {
+        "mode": "baseline-block-on-new",
+        "frozen_empty": true
+      },
+      "lock_orphan_path_package": {
+        "mode": "baseline-block-on-new",
+        "frozen_empty": true
+      },
+      "generated_face_stale": {
+        "mode": "baseline-block-on-new",
+        "frozen_empty": true
+      }
     }
   }
 }

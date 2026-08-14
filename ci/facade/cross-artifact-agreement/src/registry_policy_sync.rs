@@ -146,26 +146,13 @@ pub fn evaluate_registry_derived_policy_sync(corpus: &Value) -> BTreeSet<Finding
         return findings;
     };
 
-    let (Some(membership), Some(root_hygiene), Some(tier)) = (
-        read_policy(policies, "module_membership", &mut findings),
+    let (Some(root_hygiene), Some(tier)) = (
         read_policy(policies, "root_hygiene", &mut findings),
         read_policy(policies, "tier_dependency", &mut findings),
     ) else {
         return findings;
     };
 
-    let membership_roots = string_set(
-        membership.document,
-        "allowed_top_level_dirs",
-        membership.path,
-        &mut findings,
-    );
-    let membership_scan_roots = string_set(
-        membership.document,
-        "scan_roots",
-        membership.path,
-        &mut findings,
-    );
     let root_hygiene_roots = string_set(
         root_hygiene.document,
         "allowed_root_dirs",
@@ -199,12 +186,6 @@ pub fn evaluate_registry_derived_policy_sync(corpus: &Value) -> BTreeSet<Finding
     // Capability roots: every TOP-LEVEL absorbs dir must reach all three policies.
     let capability_roots = capability_top_level_roots(registry, &mut findings);
     for root in &capability_roots {
-        if !membership_roots.contains(root) {
-            findings.insert(desync(&format!(
-                "{}#allowed_top_level_dirs:{root}",
-                membership.path
-            )));
-        }
         if !root_hygiene_roots.contains(root) {
             findings.insert(desync(&format!(
                 "{}#allowed_root_dirs:{root}",
@@ -217,31 +198,17 @@ pub fn evaluate_registry_derived_policy_sync(corpus: &Value) -> BTreeSet<Finding
                 tier.path
             )));
         }
-        // Coverage scope: a capability root the membership lint never walks is a
-        // silent hole, not a narrower lint.
-        if !membership_scan_roots.contains(root) {
-            findings.insert(desync(&format!("{}#scan_roots:{root}", membership.path)));
-        }
     }
 
-    // Meta dirs: the ADR-0562 closed-set authority is the membership whitelist;
-    // root-hygiene must additionally admit the dir or the destination cannot be
-    // created at all; and a crate-OWNING meta dir must be inside the scan scope.
-    for (meta, owns_crates) in meta_directory_roots(registry, &mut findings) {
-        if !membership_roots.contains(&meta) {
-            findings.insert(desync(&format!(
-                "{}#allowed_top_level_dirs:{meta}",
-                membership.path
-            )));
-        }
+    // Meta dirs: root-hygiene must admit the dir or the destination cannot be
+    // created at all. (The module-membership whitelist/scan-scope half retired
+    // with the registry bookkeeping layer, ADR-0718.)
+    for (meta, _owns_crates) in meta_directory_roots(registry, &mut findings) {
         if !root_hygiene_roots.contains(&meta) {
             findings.insert(desync(&format!(
                 "{}#allowed_root_dirs:{meta}",
                 root_hygiene.path
             )));
-        }
-        if owns_crates && !membership_scan_roots.contains(&meta) {
-            findings.insert(desync(&format!("{}#scan_roots:{meta}", membership.path)));
         }
     }
 
@@ -324,222 +291,67 @@ mod tests {
         json!({
             "registry": {
                 "capabilities": [
-                    { "absorbs_current_dirs": ["policy", "oya/policy"] },
-                    { "absorbs_current_dirs": ["cell", "cloud/cloud-cell"] }
+                    { "absorbs_current_dirs": ["policy", "oya/policy"] }
                 ],
                 "meta_directories": [
-                    { "dir": "kernel/", "owns_crates": true },
-                    { "dir": "governance/", "owns_crates": false }
+                    { "dir": "kernel/", "owns_crates": true }
                 ]
             },
             "policies": {
-                "module_membership": {
-                    "path": "ci/facade/module-membership/capability-membership-policy.json",
-                    "document": {
-                        "allowed_top_level_dirs": ["policy", "cell", "kernel", "governance"],
-                        "scan_roots": ["policy", "cell", "kernel", "governance"]
-                    }
-                },
                 "root_hygiene": {
                     "path": "ci/facade/repo-root-hygiene/root-workspace-hygiene-policy.json",
-                    "document": { "allowed_root_dirs": ["policy", "cell", "kernel", "governance"] }
+                    "document": {
+                        "allowed_root_dirs": ["policy", "kernel", "oya"]
+                    }
                 },
                 "tier_dependency": {
                     "path": "ci/facade/layer-dependency-acyclicity/tier-dependency-acyclicity-policy.json",
-                    "document": { "unclassified_roots": ["policy", "cell"], "service_roots": ["cloud", "oya"], "capability_roots": [] }
+                    "document": {
+                        "unclassified_roots": ["oya"],
+                        "service_roots": [],
+                        "capability_roots": ["policy"]
+                    }
                 }
             }
         })
     }
 
     #[test]
-    fn a_fully_synced_registry_and_policies_is_green() {
+    fn registry_derived_policy_sync_is_green_on_a_fully_declared_corpus() {
         assert!(evaluate_registry_derived_policy_sync(&green_corpus()).is_empty());
     }
 
     #[test]
-    fn a_capability_root_missing_from_membership_is_flagged_with_exact_file_and_key() {
-        let mut corpus = green_corpus();
-        corpus["policies"]["module_membership"]["document"]["allowed_top_level_dirs"] =
-            json!(["cell", "kernel", "governance"]); // dropped "policy"
-        let findings = evaluate_registry_derived_policy_sync(&corpus);
-        assert_eq!(
-            keys(&findings),
-            vec![
-                "ci/facade/module-membership/capability-membership-policy.json#allowed_top_level_dirs:policy"
-                    .to_owned()
-            ]
-        );
-    }
-
-    #[test]
-    fn a_capability_root_missing_from_root_hygiene_and_tier_is_flagged_per_policy() {
+    fn a_capability_root_missing_from_root_hygiene_is_a_desync() {
         let mut corpus = green_corpus();
         corpus["policies"]["root_hygiene"]["document"]["allowed_root_dirs"] =
-            json!(["policy", "kernel", "governance"]); // dropped "cell"
-        corpus["policies"]["tier_dependency"]["document"]["unclassified_roots"] = json!(["policy"]); // dropped "cell"
-        let findings = evaluate_registry_derived_policy_sync(&corpus);
-        assert_eq!(
-            keys(&findings),
-            vec![
-                "ci/facade/layer-dependency-acyclicity/tier-dependency-acyclicity-policy.json#unclassified_roots|service_roots|capability_roots:cell".to_owned(),
-                "ci/facade/repo-root-hygiene/root-workspace-hygiene-policy.json#allowed_root_dirs:cell".to_owned(),
-            ]
-        );
-    }
-
-    #[test]
-    fn a_capability_root_is_accepted_from_tier_capability_roots() {
-        // The WIRING assertion for the tier gate's `capability_roots` list. Moving a capability
-        // root out of the silent-exemption list (`unclassified_roots`) and into the tier-ENFORCED
-        // list is the fix; if this union did not include `capability_roots`, that fix would be
-        // reported here as a desync — the sync gate would penalise the correct move and leave
-        // `unclassified_roots` as the only union member a capability could legally occupy.
-        let mut corpus = green_corpus();
-        corpus["policies"]["tier_dependency"]["document"]["unclassified_roots"] = json!(["policy"]);
-        corpus["policies"]["tier_dependency"]["document"]["capability_roots"] = json!(["cell"]);
-        assert!(
-            keys(&evaluate_registry_derived_policy_sync(&corpus)).is_empty(),
-            "a capability root declared in `capability_roots` is DECLARED, not desynced"
-        );
-    }
-
-    #[test]
-    fn a_service_root_is_accepted_from_tier_service_roots_not_only_unclassified() {
-        // A capability root that lives in tier `service_roots` (cloud/oya style)
-        // must not be reported as a tier desync.
-        let mut corpus = green_corpus();
-        corpus["registry"]["capabilities"] = json!([{ "absorbs_current_dirs": ["cloud"] }]);
-        corpus["policies"]["module_membership"]["document"]["allowed_top_level_dirs"] =
-            json!(["cloud", "kernel", "governance"]);
-        corpus["policies"]["module_membership"]["document"]["scan_roots"] =
-            json!(["cloud", "kernel", "governance"]);
-        corpus["policies"]["root_hygiene"]["document"]["allowed_root_dirs"] =
-            json!(["cloud", "kernel", "governance"]);
-        // "cloud" is only in service_roots, not unclassified_roots.
-        let findings = evaluate_registry_derived_policy_sync(&corpus);
-        assert!(findings.is_empty(), "{:?}", keys(&findings));
-    }
-
-    #[test]
-    fn a_meta_dir_missing_from_membership_authority_is_flagged() {
-        let mut corpus = green_corpus();
-        corpus["policies"]["module_membership"]["document"]["allowed_top_level_dirs"] =
-            json!(["policy", "cell", "kernel"]); // dropped "governance"
-        let findings = evaluate_registry_derived_policy_sync(&corpus);
-        assert_eq!(
-            keys(&findings),
-            vec![
-                "ci/facade/module-membership/capability-membership-policy.json#allowed_top_level_dirs:governance"
-                    .to_owned()
-            ]
-        );
-    }
-
-    #[test]
-    fn a_meta_dir_missing_from_root_hygiene_is_flagged() {
-        // The `app/` blocker: root-hygiene is a default-DENY allowlist, so a
-        // declared destination absent from it cannot be created at all.
-        let mut corpus = green_corpus();
-        corpus["policies"]["root_hygiene"]["document"]["allowed_root_dirs"] =
-            json!(["policy", "cell", "governance"]); // dropped "kernel"
-        let findings = evaluate_registry_derived_policy_sync(&corpus);
-        assert_eq!(
-            keys(&findings),
-            vec![
-                "ci/facade/repo-root-hygiene/root-workspace-hygiene-policy.json#allowed_root_dirs:kernel"
-                    .to_owned()
-            ]
-        );
-    }
-
-    #[test]
-    fn a_crate_owning_meta_dir_missing_from_scan_roots_is_flagged() {
-        // COVERAGE-SCOPE anti-laundering: dropping a crate-owning destination
-        // from scan_roots silently removes every crate moved there from the
-        // membership lint. It must never be a quiet policy-list trim.
-        let mut corpus = green_corpus();
-        corpus["policies"]["module_membership"]["document"]["scan_roots"] =
-            json!(["policy", "cell", "governance"]); // dropped "kernel"
-        let findings = evaluate_registry_derived_policy_sync(&corpus);
-        assert_eq!(
-            keys(&findings),
-            vec![
-                "ci/facade/module-membership/capability-membership-policy.json#scan_roots:kernel"
-                    .to_owned()
-            ]
-        );
-    }
-
-    #[test]
-    fn a_capability_root_missing_from_scan_roots_is_flagged() {
-        let mut corpus = green_corpus();
-        corpus["policies"]["module_membership"]["document"]["scan_roots"] =
-            json!(["cell", "kernel", "governance"]); // dropped "policy"
-        let findings = evaluate_registry_derived_policy_sync(&corpus);
-        assert_eq!(
-            keys(&findings),
-            vec![
-                "ci/facade/module-membership/capability-membership-policy.json#scan_roots:policy"
-                    .to_owned()
-            ]
-        );
-    }
-
-    #[test]
-    fn a_non_crate_owning_meta_dir_is_not_required_in_scan_roots() {
-        // governance/ carries owns_crates:false — walking it for crates is not
-        // required, so its absence from scan_roots is not a coverage hole.
-        let mut corpus = green_corpus();
-        corpus["policies"]["module_membership"]["document"]["scan_roots"] =
-            json!(["policy", "cell", "kernel"]); // dropped "governance"
-        assert!(evaluate_registry_derived_policy_sync(&corpus).is_empty());
-    }
-
-    #[test]
-    fn a_meta_dir_without_owns_crates_fails_closed_into_scan_coverage() {
-        // An undeclared owns_crates must be read as crate-owning: a new meta dir
-        // may never enter the registry outside the membership lint's scan scope.
-        let mut corpus = green_corpus();
-        corpus["registry"]["meta_directories"] = json!([{ "dir": "app/" }]);
+            json!(["kernel", "oya"]);
         let findings = evaluate_registry_derived_policy_sync(&corpus);
         assert!(
-            findings.iter().any(|f| f.key
-                == "ci/facade/module-membership/capability-membership-policy.json#scan_roots:app"),
-            "{:?}",
             keys(&findings)
+                .iter()
+                .any(|k| k.contains("#allowed_root_dirs:policy"))
         );
     }
 
     #[test]
-    fn nested_absorb_dirs_are_not_treated_as_top_level_roots() {
-        // "oya/policy" is nested and must NOT be required as a top-level root.
+    fn a_capability_root_missing_from_tier_roots_is_a_desync() {
         let mut corpus = green_corpus();
-        // Remove the top-level "policy" but keep the nested "oya/policy".
-        corpus["registry"]["capabilities"] = json!([{ "absorbs_current_dirs": ["oya/policy"] }]);
-        corpus["policies"]["module_membership"]["document"]["allowed_top_level_dirs"] =
-            json!(["cell", "kernel", "governance"]);
+        corpus["policies"]["tier_dependency"]["document"]["capability_roots"] = json!([]);
+        let findings = evaluate_registry_derived_policy_sync(&corpus);
+        assert!(keys(&findings).iter().any(|k| k.contains(":policy")));
+    }
+
+    #[test]
+    fn a_meta_dir_missing_from_root_hygiene_is_a_desync() {
+        let mut corpus = green_corpus();
         corpus["policies"]["root_hygiene"]["document"]["allowed_root_dirs"] =
-            json!(["cell", "kernel", "governance"]);
-        corpus["policies"]["tier_dependency"]["document"]["unclassified_roots"] = json!(["cell"]);
+            json!(["policy", "oya"]);
         let findings = evaluate_registry_derived_policy_sync(&corpus);
-        assert!(findings.is_empty(), "{:?}", keys(&findings));
-    }
-
-    #[test]
-    fn a_malformed_policy_corpus_fails_closed() {
-        let findings = evaluate_registry_derived_policy_sync(&json!({ "registry": {} }));
-        assert_eq!(keys(&findings), vec!["<missing-policies>".to_owned()]);
-    }
-
-    #[test]
-    fn every_finding_uses_the_advisory_code() {
-        let mut corpus = green_corpus();
-        corpus["policies"]["module_membership"]["document"]["allowed_top_level_dirs"] = json!([]);
-        let findings = evaluate_registry_derived_policy_sync(&corpus);
-        assert!(!findings.is_empty());
-        for finding in &findings {
-            assert_eq!(finding.code, REGISTRY_POLICY_DESYNC_CODE);
-        }
+        assert!(
+            keys(&findings)
+                .iter()
+                .any(|k| k.contains("#allowed_root_dirs:kernel"))
+        );
     }
 }

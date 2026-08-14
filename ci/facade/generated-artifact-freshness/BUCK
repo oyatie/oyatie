@@ -6,7 +6,6 @@ rust_library(
     visibility = ["PUBLIC"],
     deps = [
         "//ci/facade/cross-artifact-agreement:ci-cross-artifact-agreement",
-        "//ci/facade/planning-projection:ci-planning-projection",
         "//libs/oya-workspace-members-kernel:oya-workspace-members-kernel",
         "third-party//:serde_json",
         "third-party//:toml",
@@ -51,7 +50,6 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         "//ci/facade/cross-artifact-agreement:ci-cross-artifact-agreement",
-        "//ci/facade/planning-projection:ci-planning-projection",
         "//libs/oya-workspace-members-kernel:oya-workspace-members-kernel",
         "third-party//:serde_json",
         "third-party//:toml",

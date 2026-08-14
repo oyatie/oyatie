@@ -71,7 +71,8 @@ fn authority_cohesion_rejects_retired_prescribed_authority() {
 
 #[test]
 fn preservation_quarantine_requires_off_machine_verified_restore_evidence() {
-    let contract = std::fs::read_to_string("docs/AGENTS.md").expect("read agent contract");
+    let contract =
+        std::fs::read_to_string(repo_root().join("docs/AGENTS.md")).expect("read agent contract");
     assert!(contract.contains(
         "encrypted quarantine stored\noff-machine or otherwise durably beyond the machine being wiped, with a verified ciphertext hash\nand a successful clean-room decrypt-and-restore traversal using externally recoverable identities;\nor documented and reviewed explicit intentional discard"
     ));
@@ -143,4 +144,14 @@ fn target(path: &str, contents: &str) -> RootHubPointerTarget {
         path: path.into(),
         contents: contents.into(),
     }
+}
+
+/// The repo root, resolved from the crate's own manifest location rather than the test process's
+/// working directory (cargo runs workspace tests with the package dir as cwd, not the repo root).
+fn repo_root() -> std::path::PathBuf {
+    std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .ancestors()
+        .find(|candidate| candidate.join("specs/root-hub-pointers.json").is_file())
+        .expect("repo root")
+        .to_path_buf()
 }
