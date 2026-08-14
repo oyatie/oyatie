@@ -1,15 +1,16 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
 use std::collections::BTreeSet;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
+use std::process::Command;
 use std::sync::atomic::{AtomicU64, Ordering};
 
 use ci_generated_artifact_freshness::{
     FACE_REMEDIATION_COMMAND, FACE_SETTLE_PROTOCOL, Finding, FindingCode, LockPackage,
-    MemberPackage, check_repo_with_regenerated_faces, evaluate_face_determinism,
-    evaluate_face_freshness, evaluate_lock_freshness, parse_lock_packages,
-    parse_member_package_manifest, read_decommitted_face_names, render_findings,
-    render_remediation,
+    MemberPackage, assert_committed_tree_clean, check_repo_with_regenerated_faces,
+    evaluate_face_determinism, evaluate_face_freshness, evaluate_lock_freshness,
+    parse_lock_packages, parse_member_package_manifest, read_decommitted_face_names,
+    read_member_packages, render_findings, render_remediation,
 };
 
 static COUNTER: AtomicU64 = AtomicU64::new(0);
@@ -27,6 +28,27 @@ fn fixture_root() -> PathBuf {
     let _ = std::fs::remove_dir_all(&root);
     std::fs::create_dir_all(&root).expect("create fixture root");
     root
+}
+
+fn git(root: &Path, args: &[&str]) {
+    let output = Command::new("git")
+        .args(args)
+        .current_dir(root)
+        .output()
+        .expect("run git");
+    assert!(
+        output.status.success(),
+        "git {args:?} failed\nstdout:\n{}\nstderr:\n{}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+}
+
+fn init_git(root: &Path) {
+    git(root, &["init"]);
+    git(root, &["config", "user.name", "Oyatie Test"]);
+    git(root, &["config", "user.email", "oyatie-test@example.com"]);
+    git(root, &["config", "commit.gpgsign", "false"]);
 }
 
 #[test]
@@ -455,6 +477,7 @@ fn rendered_findings_include_codes_keys_details_and_remediation() {
 #[test]
 fn repo_checker_combines_lock_and_face_findings() {
     let root = fixture_root();
+    init_git(&root);
     std::fs::create_dir_all(root.join("libs/oya-alpha-kernel")).expect("create member");
     std::fs::create_dir_all(root.join("ci/facade/artifact-inventory-registry"))
         .expect("create faces dir");
@@ -508,5 +531,78 @@ version = "0.1.0"
             FindingCode::LockStaleMemberVersion,
             FindingCode::GeneratedFaceStale,
         ])
+    );
+}
+
+#[test]
+fn read_member_packages_omits_locally_ignored_workspace_glob_candidates() {
+    let root = fixture_root();
+    init_git(&root);
+
+    std::fs::write(
+        root.join("Cargo.toml"),
+        r#"
+[workspace]
+members = ["*/core/*"]
+resolver = "2"
+
+[workspace.package]
+version = "0.1.0"
+"#,
+    )
+    .expect("write root manifest");
+    for (dir, name) in [
+        ("foo/core/real", "oya-real-kernel"),
+        ("foo/core/scratchpad", "oya-scratchpad-kernel"),
+    ] {
+        std::fs::create_dir_all(root.join(dir)).expect("create tracked member");
+        std::fs::write(
+            root.join(dir).join("Cargo.toml"),
+            format!("[package]\nname = \"{name}\"\nversion.workspace = true\n"),
+        )
+        .expect("write tracked member manifest");
+    }
+    std::fs::write(
+        root.join("Cargo.lock"),
+        r#"
+version = 4
+
+[[package]]
+name = "oya-real-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "oya-scratchpad-kernel"
+version = "0.1.0"
+"#,
+    )
+    .expect("write lock");
+    git(&root, &["add", "Cargo.toml", "Cargo.lock", "foo"]);
+    git(&root, &["commit", "-m", "seed tracked members"]);
+
+    std::fs::create_dir_all(root.join("foo/core/scratch")).expect("create ignored scratch");
+    std::fs::write(
+        root.join("foo/core/scratch/Cargo.toml"),
+        "[package]\nname = \"oya-scratch-kernel\"\nversion.workspace = true\n",
+    )
+    .expect("write ignored scratch manifest");
+    std::fs::write(root.join(".git/info/exclude"), "foo/core/scratch/\n")
+        .expect("exclude ignored scratch");
+
+    assert_committed_tree_clean(&root)
+        .expect("ignored scratch matching a workspace glob must not dirty the tree");
+
+    let members = read_member_packages(&root).expect("read members");
+    let names: BTreeSet<&str> = members.iter().map(|member| member.name.as_str()).collect();
+    assert_eq!(
+        names,
+        BTreeSet::from(["oya-real-kernel", "oya-scratchpad-kernel"])
+    );
+
+    let lock_text = std::fs::read_to_string(root.join("Cargo.lock")).expect("read lock");
+    let lock_packages = parse_lock_packages(&lock_text).expect("parse lock");
+    assert!(
+        evaluate_lock_freshness(&members, &lock_packages).is_empty(),
+        "ignored scratch must not produce a lock-missing finding"
     );
 }
