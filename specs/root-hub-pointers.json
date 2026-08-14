@@ -148,6 +148,12 @@
       "purpose": "PROPOSED — NON-AUTHORITATIVE DESIGN CONTEXT, NOT A RULE. F1 Admission package / F1(d) (MPV2-0056): ADR-0710 Accept/Reject blocked until D-8 evidence; MAY resolve as explicit Reject when hosted topology self-fails D-8 under a dated timebox; live admission law remains ADR-0701 carried gist until then. Does not Accept ADR-0710. Not implement authority while Proposed.",
       "target_path_after_md_retirement": "same"
     },
+    "adr_0716_cargo_merge_path": {
+      "current_path": "docs/decisions/ADR-0716-cargo-merge-path-buck2-local-hermeticity.md",
+      "kind": "decision",
+      "purpose": "Cargo is the CI merge path; buck2 is local hermeticity plus a weekly non-blocking smoke. Retires the cache-integrity canary trust chain, slims PR paperwork, debrands CI job/step names, and gives the rust-first automation ratchet a reviewed replacement window.",
+      "target_path_after_md_retirement": "same until ADR projection retirement"
+    },
     "adr_census_epoch_control_plane": {
       "current_path": "/registry/adr-census-epoch/control-plane.json",
       "kind": "registry",
