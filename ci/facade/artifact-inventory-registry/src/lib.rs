@@ -4,7 +4,8 @@
 //! path (the tracked-truth discipline; PHASE-0-FIREWALL-PLAN §5.1) — plus the three
 //! companion generated faces (`ttl-policy.generated.json`, `decision-crosswalk.generated.json`,
 //! `enforcement-inventory.generated.json`). The producer is the buck2 `rust_binary`
-//! that GATE-2 `cloud-ci-total-accounting` owns; it is NOT an `oya` CLI command
+//! that the accounting registry face owns (ADR-0718 retired the GATE-2 `cloud-ci-total-accounting`
+//! admission gate; the registry + ratchet survive); it is NOT an `oya` CLI command
 //! (register #20 — `oya gen`/`oya gate` authority is retired).
 //!
 //! ## Invariants (10-gates-registry §A.2)
@@ -716,14 +717,12 @@ pub const FIREWALL_TARGET: &str = "//ci/facade/baseline-ratchet:ci-baseline-ratc
 
 /// The live producer-face inputs the baseline is captured over. Each is the exact
 /// `Value` shape that the matching gate's `evaluate_keyed` consumes:
-/// - `total_accounting`: the accounting registry (`rows` with path/owner/justification/…)
 /// - `cross_artifact`: the decision crosswalk (`decisions`/`duplicate_ids`/`generated_face_axes`)
 /// - `automation_ratchet`: the automation matrix (`rows`) joined with the enforcement face
-/// - `slo_coverage`: the catalog SLO face (`rows` with crate_id/slo)
+/// - `slo_coverage`: the OpenSLO corpus face (`rows` with crate_id/slo)
 /// - `license_policy`: workspace package-license rows (`package_name`/`manifest_path`/`license`)
 /// - `enforcement_liveness`: tracked hook/wiring rows for the FRIC-012 liveness gate
 pub struct GateInputs<'a> {
-    pub total_accounting: &'a Value,
     pub cross_artifact: &'a Value,
     pub automation_ratchet: &'a Value,
     /// The §2.5#4 BNF layer-suffix gate input: `{"rows":[{"crate_name": "oya-..."}]}` —
@@ -731,35 +730,21 @@ pub struct GateInputs<'a> {
     /// manifests. The gate's `evaluate_keyed` resolves the role carve-out-aware and reuses
     /// `oya_governance_predictable_naming_kernel::check`. Empty in unit tests.
     pub bnf_layer_suffix: &'a Value,
-    /// The §2.5#7 manifest-hygiene gate input: `{"rows":[{"crate_name", "has_version_workspace",
-    /// "has_publish_false", "has_license", "has_rust_version_workspace", "has_lints_workspace",
-    /// "has_lib", "has_lib_doctest_false"}]}` — per-crate manifest flags the binary parses from
-    /// each first-party `oya-*` Cargo.toml. The gate's `evaluate_keyed` is a pure flag→Finding
-    /// policy. Empty in unit tests.
-    pub manifest_hygiene: &'a Value,
     /// The ADR-0017 cargo-prefix gate input: `{"rows":[{"member_path", "package_name"}]}` — the
     /// first-party `oya-*` workspace members the binary enumerates from the tracked Cargo.toml
     /// manifests (member-path = the dir holding the manifest; package_name = its `[package].name`).
     /// The gate's `evaluate_keyed` reuses `intelligence_cargo_prefix_domain::validate_cargo_prefix`
     /// per crate (surface-all). Empty in unit tests.
     pub cargo_prefix: &'a Value,
-    /// The SLO coverage gate input: `{"rows":[{"crate_id", "slo"}]}`. The producer expands the
-    /// config-declared `[slo_coverage].catalog_record_globs` against tracked paths, derives the
-    /// catalog identity from each file stem, and parses the top-level `slo:` value. The gate's
+    /// The SLO coverage gate input: `{"rows":[{"crate_id", "slo"}]}` — one row per tracked
+    /// `*.openslo.yaml` envelope (ADR-0718 re-pointed the gate off the retired catalog mirror):
+    /// `crate_id` is the repo-relative path, `slo` the envelope's `metadata.name`. The gate's
     /// `evaluate_keyed` reuses `oya_check_slo_coverage::validate_slo_coverage` per row.
     pub slo_coverage: &'a Value,
     /// The license-policy gate input: `{"rows":[{"package_name","manifest_path","license"}]}`.
     /// The producer resolves workspace members via `oya-workspace-members-kernel`, reads each
     /// member manifest, and the gate reuses `oya_check_license_policy::LicensePolicy` per row.
     pub license_policy: &'a Value,
-    /// The catalog-liveness gate input: `{"rows":[{"crate_id", "source_path", "is_live",
-    /// "marker"}]}`. The producer expands the config-declared `[catalog_liveness]
-    /// .catalog_record_globs` against tracked paths, derives the catalog identity from each file
-    /// stem, resolves whether that identity is a LIVE workspace crate-id IN-PROCESS (via
-    /// `oya-workspace-members-kernel` + each member's `[package].name` — NO shell-out), and parses
-    /// the explicit non-live marker (`status:` value / `non_claims` no-crate). The gate's
-    /// `evaluate_keyed` is pure live-OR-marked policy.
-    pub catalog_liveness: &'a Value,
     /// The ADR-0538 workspace-glob-coverage gate input:
     /// `{"rows":[{"member_entry","is_glob"},{"member_match","has_manifest"},
     /// {"crate_dir","covered","excluded"}]}`. The producer reads the root workspace entries and
@@ -796,11 +781,6 @@ fn producer_face_keys(
 ) -> BTreeMap<String, BTreeSet<String>> {
     use oya_ci_config_kernel::GateFace;
     match face {
-        GateFace::TotalAccounting => group_findings(
-            ci_artifact_accountability::evaluate_keyed(inputs.total_accounting)
-                .into_iter()
-                .map(|f| (f.code, f.key)),
-        ),
         GateFace::CrossArtifact => group_findings(
             ci_cross_artifact_agreement::evaluate_keyed(inputs.cross_artifact)
                 .into_iter()
@@ -811,23 +791,10 @@ fn producer_face_keys(
                 .into_iter()
                 .map(|f| (f.code, f.key)),
         ),
-        // Staleness keys are deliberately EMPTY in the committed baseline (ADR-0552,
-        // FRIC-1781234047): they derive from history-volatile aging data (last-touch
-        // timestamps), so freezing them in a committed face would re-create the
-        // squash-merge un-settle defect. The staleness gate ages registry rows from the
-        // untracked scm-volatile-facts snapshot at evaluation time; its blocking authority
-        // is its own gate lane, not the firewall ratchet. The disposition rows (modes)
-        // remain declared so a future flip is still a reviewed DATA edit.
-        GateFace::Staleness => BTreeMap::new(),
         // ADR-0533 items 1/2: route the PROFILE-RESOLVED `[naming]` config (oyatie default ==
         // today's consts, byte-identical; neutral == empty prefix, de-branded).
         GateFace::BnfLayerSuffix => group_findings(
             ci_crate_layer_suffix::evaluate_keyed_with(inputs.bnf_layer_suffix, naming)
-                .into_iter()
-                .map(|f| (f.code, f.key)),
-        ),
-        GateFace::ManifestHygiene => group_findings(
-            ci_package_manifest_hygiene::evaluate_keyed(inputs.manifest_hygiene)
                 .into_iter()
                 .map(|f| (f.code, f.key)),
         ),
@@ -845,11 +812,6 @@ fn producer_face_keys(
         ),
         GateFace::LicensePolicy => group_findings(
             ci_license_policy::evaluate_keyed(inputs.license_policy)
-                .into_iter()
-                .map(|f| (f.code, f.key)),
-        ),
-        GateFace::CatalogLiveness => group_findings(
-            ci_service_catalog_parity::evaluate_keyed(inputs.catalog_liveness)
                 .into_iter()
                 .map(|f| (f.code, f.key)),
         ),
@@ -1478,13 +1440,16 @@ pub fn load_envelope_prefix_allows(
     };
     let value: Value = serde_json::from_str(&text)
         .map_err(|e| ProducerError::Validation(format!("{}: parse: {e}", path.display())))?;
-    let roots = value.get("roots").and_then(Value::as_object).ok_or_else(|| {
-        ProducerError::Validation(format!(
-            "{}: missing object 'roots' (fail-loud: envelope prefix allow requires \
+    let roots = value
+        .get("roots")
+        .and_then(Value::as_object)
+        .ok_or_else(|| {
+            ProducerError::Validation(format!(
+                "{}: missing object 'roots' (fail-loud: envelope prefix allow requires \
              roots.*.envelope_globs)",
-            path.display()
-        ))
-    })?;
+                path.display()
+            ))
+        })?;
 
     let mut by_prefix: BTreeMap<String, String> = BTreeMap::new();
     for (root_id, root) in roots {
@@ -1768,7 +1733,11 @@ mod tests {
         assert_eq!(policy.classify("third-party/foo/lib.rs"), "vendor");
         assert_eq!(policy.classify("docs/foo.generated.json"), "generated");
         assert_eq!(policy.classify("specs/masterplan.json"), "spec");
-        assert_eq!(policy.classify("docs/adr-archive/ADR-0001-cohesion-thesis-one-product-flat-catalog.md"), "doc");
+        assert_eq!(
+            policy
+                .classify("docs/adr-archive/ADR-0001-cohesion-thesis-one-product-flat-catalog.md"),
+            "doc"
+        );
         assert_eq!(policy.classify("oya/x/src/lib.rs"), "code");
         assert_eq!(policy.classify("some/unknown/blob"), "husk");
     }
@@ -1843,27 +1812,12 @@ mod tests {
                 serde_json::json!(format!("reached:{source}")),
                 "{source} must justify the paths it reaches"
             );
-            let codes = ci_artifact_accountability::evaluate_keyed(&registry);
-            assert!(
-                !codes.iter().any(|f| f.code == "unjustified"
-                    && f.key == format!("oya/{source}/src/lib.rs")),
-                "a path reached by {source} must not be unjustified"
-            );
         }
 
-        // The floor: reached by NOTHING ⇒ no justification laundered in, BOTH codes raised.
+        // The floor: reached by NOTHING ⇒ no justification laundered in, the row verdict is RED.
         let unreached = row("oya/unreached/src/lib.rs");
         assert_eq!(unreached["justification_ref"], serde_json::Value::Null);
         assert_eq!(unreached["verdict"], "RED");
-        let codes: BTreeSet<String> = ci_artifact_accountability::evaluate_keyed(&registry)
-            .into_iter()
-            .filter(|f| f.key == "oya/unreached/src/lib.rs")
-            .map(|f| f.code)
-            .collect();
-        assert!(
-            codes.contains("unjustified") && codes.contains("unreachable"),
-            "an unregistered artifact must still raise BOTH codes, got {codes:?}"
-        );
     }
 
     /// The ADR corpus still wins when it names the path: the fallback never overwrites a real
@@ -1882,12 +1836,7 @@ mod tests {
 
     #[test]
     fn gate_baseline_freezes_current_keys_and_stamps_disposition() {
-        // total-accounting: one row with an unowned + unjustified + unreachable + no_ttl_class
-        // exhibit; cross-artifact: a dual id; the others empty.
-        let registry = serde_json::json!({"rows": [
-            {"path": "oya/x/lib.rs", "owner": null, "justification_ref": null,
-             "reachable_from": [], "ttl": {}}
-        ]});
+        // cross-artifact: a dual id; brand-residue: a live forbidden-stem key; the others empty.
         let crosswalk = serde_json::json!({"decisions": [], "duplicate_ids": ["ADR-0377"]});
         let automation = serde_json::json!({"rows": []});
         let empty_face = serde_json::json!({"rows": []});
@@ -1897,15 +1846,12 @@ mod tests {
             .or_default()
             .insert("docs/products/foundry/PRD.md".to_owned());
         let inputs = GateInputs {
-            total_accounting: &registry,
             cross_artifact: &crosswalk,
             automation_ratchet: &automation,
             bnf_layer_suffix: &empty_face,
-            manifest_hygiene: &empty_face,
             cargo_prefix: &empty_face,
             slo_coverage: &empty_face,
             license_policy: &empty_face,
-            catalog_liveness: &empty_face,
             workspace_glob_coverage: &empty_face,
             target_parity: &empty_face,
             enforcement_liveness: &empty_face,
@@ -1913,48 +1859,6 @@ mod tests {
         };
         let cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
         let baseline = build_gate_baseline(&cfg, &inputs, "fnv1a64:test").expect("baseline");
-        let ta = &baseline["gates"]["cloud-ci-total-accounting"];
-
-        // unjustified is baseline-block-on-new and freezes the live key (the row path).
-        assert_eq!(ta["unjustified"]["mode"], "baseline-block-on-new");
-        assert_eq!(ta["unjustified"]["keys"][0], "oya/x/lib.rs");
-        // ADR-0555 conversion: the exists-but-unaccounted codes are BLOCKING and still
-        // freeze the live keys (the pre-existing debt is grandfathered by the ADR-0551
-        // merge-base frozen baseline, not by an advisory mode). Each carries the exact
-        // registration remediation as DATA — never a bare flag.
-        assert_eq!(ta["unowned"]["mode"], "baseline-block-on-new");
-        assert_eq!(ta["unowned"]["keys"][0], "oya/x/lib.rs");
-        assert!(
-            ta["unowned"]["remediation"]
-                .as_str()
-                .is_some_and(|t| t.contains("OWNERS") && t.contains("design act")),
-            "unowned must stamp the exact ownership-registration remediation"
-        );
-        assert_eq!(ta["unreachable"]["mode"], "baseline-block-on-new");
-        assert!(
-            ta["unreachable"]["remediation"]
-                .as_str()
-                .is_some_and(|t| t.contains("specs/reachability-registry.json")),
-            "unreachable must stamp the exact reachability-registration remediation"
-        );
-        assert_eq!(ta["no_ttl_class"]["mode"], "baseline-block-on-new");
-        // stale_over_budget_unreachable stays advisory BY DESIGN (time-driven decay —
-        // its convergence surface is the reaper reconciler, not admission).
-        let sr = &baseline["gates"]["cloud-ci-staleness-reaper"];
-        assert_eq!(
-            sr["stale_over_budget_unreachable"]["mode"],
-            "advisory-until-infra"
-        );
-        assert_eq!(sr["untyped_staleness"]["mode"], "baseline-block-on-new");
-        // ci_inventory_registry_drift is frozen_empty: never accumulates a key even if one were present.
-        assert_eq!(ta["ci_inventory_registry_drift"]["frozen_empty"], true);
-        assert_eq!(
-            ta["ci_inventory_registry_drift"]["keys"]
-                .as_array()
-                .unwrap()
-                .len(),
-            0
-        );
 
         let xa = &baseline["gates"]["cloud-ci-cross-artifact-agreement"];
         assert_eq!(xa["dual_decision_collision"]["keys"][0], "ADR-0377");
@@ -1982,6 +1886,12 @@ mod tests {
                 .is_some_and(|t| t.contains("replace retired oya CLI authority")),
             "retired CLI authority findings must stamp the cloud-native replacement remediation"
         );
+
+        // slo-coverage (re-pointed at the OpenSLO corpus, ADR-0718): the empty-corpus code is
+        // frozen_empty — never accumulates a key even if one were present.
+        let sc = &baseline["gates"]["cloud-ci-slo-coverage"];
+        assert_eq!(sc["slo_empty_corpus"]["frozen_empty"], true);
+        assert_eq!(sc["slo_empty_corpus"]["keys"].as_array().unwrap().len(), 0);
     }
 
     #[test]
@@ -1992,15 +1902,12 @@ mod tests {
         let empty_face = serde_json::json!({"rows": []});
         let brand_residue: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
         let inputs = GateInputs {
-            total_accounting: &registry,
             cross_artifact: &crosswalk,
             automation_ratchet: &automation,
             bnf_layer_suffix: &empty_face,
-            manifest_hygiene: &empty_face,
             cargo_prefix: &empty_face,
             slo_coverage: &empty_face,
             license_policy: &empty_face,
-            catalog_liveness: &empty_face,
             workspace_glob_coverage: &empty_face,
             target_parity: &empty_face,
             enforcement_liveness: &empty_face,
@@ -2077,15 +1984,12 @@ mod tests {
         // carry the unprefixed crate but the neutral [naming] prefix is empty ⇒ no violation. ---
         let neutral_residue: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
         let neutral_inputs = GateInputs {
-            total_accounting: &registry,
             cross_artifact: &crosswalk,
             automation_ratchet: &automation,
             bnf_layer_suffix: &bnf_face,
-            manifest_hygiene: &empty_face,
             cargo_prefix: &cargo_face,
             slo_coverage: &empty_face,
             license_policy: &empty_face,
-            catalog_liveness: &empty_face,
             workspace_glob_coverage: &empty_face,
             target_parity: &empty_face,
             enforcement_liveness: &empty_face,
@@ -2138,15 +2042,12 @@ mod tests {
         // SAFETY PROPERTY: the SAME unprefixed/foundry corpus under the OYATIE profile DOES
         // surface the brand findings — oyatie behaviour is unchanged.
         let oyatie_inputs = GateInputs {
-            total_accounting: &registry,
             cross_artifact: &crosswalk,
             automation_ratchet: &automation,
             bnf_layer_suffix: &bnf_face,
-            manifest_hygiene: &empty_face,
             cargo_prefix: &cargo_face,
             slo_coverage: &empty_face,
             license_policy: &empty_face,
-            catalog_liveness: &empty_face,
             workspace_glob_coverage: &empty_face,
             target_parity: &empty_face,
             enforcement_liveness: &empty_face,
@@ -2199,7 +2100,8 @@ mod tests {
         let root = unique_temp_repo();
         std::fs::create_dir_all(root.join("docs/adr-archive")).expect("create dir");
         let cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
-        let scm = tracked(&["docs/adr-archive/ADR-0001-cohesion-thesis-one-product-flat-catalog.md"]);
+        let scm =
+            tracked(&["docs/adr-archive/ADR-0001-cohesion-thesis-one-product-flat-catalog.md"]);
         let message = fix_owners(&root, &cfg, &scm, "docs/adr-archive=council-architecture")
             .expect("fix applies");
         assert!(message.contains("1 tracked path(s)"), "{message}");
@@ -2271,7 +2173,8 @@ mod tests {
         let root = unique_temp_repo();
         std::fs::create_dir_all(root.join("docs/adr-archive")).expect("create dir");
         let cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
-        let scm = tracked(&["docs/adr-archive/ADR-0001-cohesion-thesis-one-product-flat-catalog.md"]);
+        let scm =
+            tracked(&["docs/adr-archive/ADR-0001-cohesion-thesis-one-product-flat-catalog.md"]);
 
         // A principal the resolver would reject must be refused BEFORE writing.
         for hostile in ["Team Evil", "EVIL", "evil!", "a@b.example", "-x"] {
@@ -2351,12 +2254,7 @@ mod tests {
         std::fs::write(root.join("bad/thing.rs"), "fn main() {}\n").expect("write covered");
 
         let cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
-        let paths = tracked(&[
-            "bad/OWNERS",
-            "bad/thing.rs",
-            "good/OWNERS",
-            "good/thing.rs",
-        ]);
+        let paths = tracked(&["bad/OWNERS", "bad/thing.rs", "good/OWNERS", "good/thing.rs"]);
         let resolution = resolve_owners(&root, &paths, &cfg);
         assert_eq!(
             resolution.valid_files,
@@ -2396,16 +2294,6 @@ mod tests {
             good["reachable_from"],
             serde_json::json!([OWNERS_SCHEMA_ANCHOR])
         );
-        let good_findings: BTreeSet<String> =
-            ci_artifact_accountability::evaluate_keyed(&registry)
-                .into_iter()
-                .filter(|f| f.key == "good/OWNERS")
-                .map(|f| f.code)
-                .collect();
-        assert!(
-            good_findings.is_empty(),
-            "a schema-valid OWNERS file must raise NO accounting violation, got {good_findings:?}"
-        );
 
         // RED: the invalid one is not laundered — it stays unjustified AND unreachable AND
         // unowned (invalid content poisons its own directory, ADR-0555 fail-closed).
@@ -2413,17 +2301,6 @@ mod tests {
         assert_eq!(bad["justification_ref"], Value::Null);
         assert_eq!(bad["reachable_from"], serde_json::json!([]));
         assert_eq!(bad["verdict"], "RED");
-        let bad_findings: BTreeSet<String> = ci_artifact_accountability::evaluate_keyed(&registry)
-            .into_iter()
-            .filter(|f| f.key == "bad/OWNERS")
-            .map(|f| f.code)
-            .collect();
-        for code in ["unjustified", "unreachable", "unowned"] {
-            assert!(
-                bad_findings.contains(code),
-                "a schema-INVALID OWNERS file must keep firing {code}, got {bad_findings:?}"
-            );
-        }
 
         // The floor NEVER reaches a non-OWNERS path, even one the valid file owns.
         let covered = row("good/thing.rs");
@@ -2442,14 +2319,8 @@ mod tests {
         let policy = Policy::from_bundled().expect("policy");
         let inputs = RepoInputs {
             tracked_paths: tracked(&["cloud/x/OWNERS"]),
-            owners: BTreeMap::from([(
-                "cloud/x/OWNERS".to_owned(),
-                "OWNERS:cloud/x".to_owned(),
-            )]),
-            justifications: BTreeMap::from([(
-                "cloud/x/OWNERS".to_owned(),
-                "ADR-0543".to_owned(),
-            )]),
+            owners: BTreeMap::from([("cloud/x/OWNERS".to_owned(), "OWNERS:cloud/x".to_owned())]),
+            justifications: BTreeMap::from([("cloud/x/OWNERS".to_owned(), "ADR-0543".to_owned())]),
             reachability: BTreeMap::from([(
                 "cloud/x/OWNERS".to_owned(),
                 vec!["cargo-members".to_owned()],
@@ -2699,7 +2570,11 @@ mod tests {
         assert!(allows.iter().any(|e| e.prefix == "iac/"));
         assert!(registration_matches(
             "compute/manifest.json",
-            &allows.iter().find(|e| e.prefix == "compute/").unwrap().prefix
+            &allows
+                .iter()
+                .find(|e| e.prefix == "compute/")
+                .unwrap()
+                .prefix
         ));
         assert!(registration_matches(
             "iac/governance/note.md",

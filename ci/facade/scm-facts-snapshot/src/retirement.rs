@@ -565,20 +565,29 @@ impl CanonicalRetirementFactsWriter {
     }
 }
 
-/// Non-Unix placeholder that preserves the public API while failing closed.
+/// Non-Unix fallback: the dirfd-only atomic replace is a Unix capability. Windows keeps the
+/// canonical BYTES contract (exact canonical serialization at the fixed ignored path, same
+/// ignore/untracked boundary checks) with a temp-file + rename write whose replace step is not
+/// atomic on Windows. These outputs are gitignored generated faces that only the Linux test legs
+/// consume, so the weaker replace window on the Windows smoke leg never touches a consumer.
 #[cfg(not(unix))]
-pub struct CanonicalRetirementFactsWriter;
+pub struct CanonicalRetirementFactsWriter {
+    facts_path: PathBuf,
+}
 
 #[cfg(not(unix))]
 impl CanonicalRetirementFactsWriter {
-    /// The descriptor-relative writer is unavailable on this platform.
-    pub fn open(_repo_root: &Path) -> Result<Self, String> {
-        Err("canonical retirement facts writer requires Unix dirfd support".to_owned())
+    /// Runs the same canonical-path + ignore/untracked boundary checks as the Unix writer.
+    pub fn open(repo_root: &Path) -> Result<Self, String> {
+        canonical_generated_facts_output_path(repo_root, Path::new(GENERATED_FACTS_PATH))?;
+        Ok(Self {
+            facts_path: repo_root.join(GENERATED_FACTS_PATH),
+        })
     }
 
-    /// The descriptor-relative writer is unavailable on this platform.
-    pub fn write(&self, _bytes: &[u8]) -> Result<(), String> {
-        Err("canonical retirement facts writer requires Unix dirfd support".to_owned())
+    /// Writes the canonical bytes via the portable non-atomic replace.
+    pub fn write(&self, bytes: &[u8]) -> Result<(), String> {
+        portable_replace_write(&self.facts_path, bytes)
     }
 }
 
@@ -590,6 +599,35 @@ impl CanonicalRetirementFactsWriter {
 #[cfg(unix)]
 pub fn write_canonical_retirement_facts(repo_root: &Path, bytes: &[u8]) -> Result<(), String> {
     CanonicalRetirementFactsWriter::open(repo_root)?.write(bytes)
+}
+
+/// Portable temp-file + rename write for the non-Unix fallback writers. Preserves the canonical
+/// byte contract; the final replace is remove-then-rename and therefore NOT atomic on Windows.
+/// Acceptable because these outputs are gitignored generated faces consumed only by Linux legs.
+#[cfg(not(unix))]
+fn portable_replace_write(final_path: &Path, bytes: &[u8]) -> Result<(), String> {
+    if let Some(parent) = final_path.parent() {
+        std::fs::create_dir_all(parent).map_err(|error| {
+            format!(
+                "create ignored generated parent {}: {error}",
+                parent.display()
+            )
+        })?;
+    }
+    let temporary_path = final_path.with_extension(format!("json.tmp-{}", std::process::id()));
+    std::fs::write(&temporary_path, bytes)
+        .map_err(|error| format!("write temporary {}: {error}", temporary_path.display()))?;
+    if final_path.exists() {
+        std::fs::remove_file(final_path)
+            .map_err(|error| format!("remove existing {}: {error}", final_path.display()))?;
+    }
+    std::fs::rename(&temporary_path, final_path).map_err(|error| {
+        format!(
+            "rename {} -> {}: {error}",
+            temporary_path.display(),
+            final_path.display()
+        )
+    })
 }
 
 #[cfg(not(unix))]
@@ -745,25 +783,31 @@ pub fn write_canonical_ignored_generated_file(
     CanonicalIgnoredGeneratedWriter::open(repo_root, relative_path)?.write(bytes)
 }
 
-/// Non-Unix placeholder that preserves the public API while failing closed.
-///
-/// Integration targets import this type on all platforms; Unix-only tests that
-/// exercise dirfd semantics stay behind `#[cfg(unix)]`. Without this stub,
-/// Windows soft-smoke fails at compile time with `unresolved import`.
+/// Non-Unix fallback: same contract as [`CanonicalRetirementFactsWriter`] — canonical bytes
+/// with the same path/ignore boundary checks, temp-file + rename replace (non-atomic on Windows).
 #[cfg(not(unix))]
 #[derive(Debug)]
-pub struct CanonicalIgnoredGeneratedWriter;
+pub struct CanonicalIgnoredGeneratedWriter {
+    final_path: PathBuf,
+}
 
 #[cfg(not(unix))]
 impl CanonicalIgnoredGeneratedWriter {
-    /// The descriptor-relative writer is unavailable on this platform.
-    pub fn open(_repo_root: &Path, _relative_path: &Path) -> Result<Self, String> {
-        Err("canonical ignored generated writer requires Unix dirfd support".to_owned())
+    /// Runs the same canonical-path + ignore/untracked boundary checks as the Unix writer.
+    pub fn open(repo_root: &Path, relative_path: &Path) -> Result<Self, String> {
+        let (parent_components, final_name) =
+            canonical_ignored_generated_path(repo_root, relative_path)?;
+        let mut final_path = repo_root.to_path_buf();
+        for component in parent_components {
+            final_path.push(component);
+        }
+        final_path.push(final_name);
+        Ok(Self { final_path })
     }
 
-    /// The descriptor-relative writer is unavailable on this platform.
-    pub fn write(&self, _bytes: &[u8]) -> Result<(), String> {
-        Err("canonical ignored generated writer requires Unix dirfd support".to_owned())
+    /// Writes the canonical bytes via the portable non-atomic replace.
+    pub fn write(&self, bytes: &[u8]) -> Result<(), String> {
+        portable_replace_write(&self.final_path, bytes)
     }
 }
 
@@ -2441,7 +2485,9 @@ mod tests {
     fn non_unix_canonical_ignored_generated_writer_fails_closed() {
         let err = CanonicalIgnoredGeneratedWriter::open(
             Path::new("."),
-            Path::new("ci/facade/artifact-inventory-registry/adr-census-epoch-receipt.generated.json"),
+            Path::new(
+                "ci/facade/artifact-inventory-registry/adr-census-epoch-receipt.generated.json",
+            ),
         )
         .expect_err("non-unix stub must fail closed");
         assert!(
@@ -2450,7 +2496,9 @@ mod tests {
         );
         let err = write_canonical_ignored_generated_file(
             Path::new("."),
-            Path::new("ci/facade/artifact-inventory-registry/adr-census-epoch-receipt.generated.json"),
+            Path::new(
+                "ci/facade/artifact-inventory-registry/adr-census-epoch-receipt.generated.json",
+            ),
             b"{}",
         )
         .expect_err("non-unix free function must fail closed");

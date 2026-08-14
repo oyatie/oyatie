@@ -46,21 +46,13 @@ use serde_json::Value;
 ///     source SSOTs (OWNERS/registry/ADR/catalog/reachability) to onboard a NEW crate. It is not a
 ///     gate lane and not a face-emitter — it is invoked ON DEMAND to register a crate, never in the
 ///     required fan-in (it would have nothing to assert and would mutate the tree under presubmit).
-///   - the planning-projection renderer: a pure library invoked by generated-artifact freshness to
-///     materialize the untracked board projection; it has no independent admission verdict.
-///
 /// This list is an escape hatch from the invariant, so it is itself gated: every entry must have
 /// NO `ci-<crate>-gate` Buck target, enforced by
 /// [`non_gate_exclusions_are_falsifiable_against_the_build_graph`]. A real gate cannot be silenced
-/// by appending its name here. Note these crates are NOT unrun: `//ci/...` in the required `buck2`
-/// job runs their `-unittest` targets, and planning-projection's library code additionally runs
-/// inside the bespoke `gate-generated-artifact-freshness` lane that depends on it.
+/// by appending its name here. Note these crates are NOT unrun: the required `cargo test
+/// --workspace` job (ADR-0716) executes their library code plus unit tests.
 const PRODUCER_CRATE: &str = "artifact-inventory-registry";
-const NON_GATE_CRATES: [&str; 3] = [
-    "artifact-inventory-registry",
-    "crate-registration",
-    "planning-projection",
-];
+const NON_GATE_CRATES: [&str; 1] = ["artifact-inventory-registry"];
 
 /// Walk up from the test's working directory to the repo root (the dir holding the canonical
 /// `specs/root-hub-pointers.json`). Mirrors the helper in `firewall.rs` so both meta-gates
@@ -141,7 +133,7 @@ fn bundled_gate_disposition_path(root: &Path) -> PathBuf {
 /// keyed on its OLD cargo/crate name (`oya-<gate_id>-app`). The committed move-plan
 /// (`specs/reorg/ci-keystone-rename-map.json`, ADR-0562/0563) is the SSOT for the ci keystone rename;
 /// the required-workflow matrix `crate:` value is this NEW dir. The de-brand renamed
-/// SEMANTICALLY (e.g. cloud-ci-total-accounting -> artifact-accountability), so there is no
+/// SEMANTICALLY (e.g. cloud-ci-bnf-layer-suffix -> crate-layer-suffix), so there is no
 /// textual prefix-strip from the gate id to the lane — the move-plan is the only authority.
 fn ci_move_new_dir(root: &Path, old_cargo_name: &str) -> Option<String> {
     let plan: Value = serde_json::from_str(&read_to_string(
@@ -995,7 +987,6 @@ fn assert_pr_template_authority(root: &Path, path: &Path) {
         "icm",
         "oya-tooling-agent-read",
         "cargo nextest",
-        "cargo clippy",
         "cargo deny",
         "oya verify",
         "oya gate validate",
@@ -1007,7 +998,7 @@ fn assert_pr_template_authority(root: &Path, path: &Path) {
         assert!(
             !text.contains(forbidden),
             "{} still carries retired local/CLI review instruction `{forbidden}`; \
-             use Buck2/cloud-ci, `oya-ci-required`, and reviewer evidence instead.",
+             use the ADR-0716 cargo merge path, `oya-ci-required`, and reviewer evidence instead.",
             path.display()
         );
     }
@@ -1058,8 +1049,9 @@ fn phase0_pre_merge_review_rows(root: &Path) -> Vec<Value> {
 /// shrink this array in the SAME PR. Each remaining entry is an open disposition question (move
 /// into the fleet, refactor to a library + Buck2 test, rewrite, or delete), NOT an accepted home.
 ///
-/// Nine siblings — the ADR-0109 `oya-governance-*-lifecycle-app` set — were replaced wholesale by
-/// the single parameterized `ci/facade/lifecycle-status` lane, which is why they are absent here.
+/// The ADR-0109 `oya-governance-*-app` set (ADR-0718 kept them as tools/) is identified by the
+/// `fitness-*` capability facet now carried in each crate's Cargo.toml package metadata after the
+/// crate-catalog retirement, which is why the discriminator reads the manifest, not the name.
 const GATE_CRATES_OUTSIDE_THE_FLEET: [&str; 8] = [
     "tools/oya-governance-adapter-with-no-importer-app",
     "tools/oya-governance-adr-shape-app",
@@ -1075,21 +1067,35 @@ const GATE_CRATES_OUTSIDE_THE_FLEET: [&str; 8] = [
 /// gate living outside its home.
 const NON_FLEET_CRATE_ROOTS: [&str; 1] = ["tools"];
 
-/// True when `<crate>`'s born-accounting catalog row declares a `fitness-*` capability — the facet
-/// every governance gate crate carries and no other `tools/` crate does.
+/// True when `<crate>`'s Cargo.toml package metadata declares a `fitness-*` capability — the facet
+/// every governance gate crate carries and no other `tools/` crate does. The facet previously lived
+/// in a hand-maintained `registry/catalog/<crate>.yaml` row; ADR-0718 retired that catalog and
+/// migrated the facet into `[package.metadata.oya-ci]`, so it now travels with the crate itself.
 fn declares_fitness_capability(root: &Path, crate_name: &str) -> bool {
-    let catalog = root.join(format!("registry/catalog/{crate_name}.yaml"));
-    let Ok(text) = fs::read_to_string(&catalog) else {
+    let manifest = root.join(format!("tools/{crate_name}/Cargo.toml"));
+    let Ok(text) = fs::read_to_string(&manifest) else {
         return false;
     };
-    text.lines().any(|line| {
-        line.split('#')
-            .next()
-            .unwrap_or("")
-            .trim()
-            .strip_prefix("capability:")
-            .is_some_and(|value| value.trim().starts_with("fitness-"))
-    })
+    let mut in_oya_ci_meta = false;
+    for line in text.lines() {
+        let trimmed = line.trim();
+        if let Some(section) = trimmed.strip_prefix('[') {
+            in_oya_ci_meta = section == "package.metadata.oya-ci]";
+            continue;
+        }
+        if in_oya_ci_meta {
+            if let Some(value) = trimmed
+                .strip_prefix("capability")
+                .and_then(|rest| rest.trim_start().strip_prefix('='))
+            {
+                let value = value.trim().trim_matches('"');
+                if value.starts_with("fitness-") {
+                    return true;
+                }
+            }
+        }
+    }
+    false
 }
 
 fn gate_crates_outside_the_fleet(root: &Path) -> Vec<String> {
@@ -1146,13 +1152,14 @@ fn no_new_gate_crate_is_born_outside_the_registered_gate_fleet() {
     );
 }
 
-/// The discriminator must key on the catalog facet, not on the crate name, or a rename defeats it.
+/// The discriminator must key on the package-metadata facet, not on the crate name, or a rename
+/// defeats it (and neither absence nor presence of the retired catalog may read as fitness).
 #[test]
-fn the_outside_fleet_discriminator_reads_the_catalog_facet_not_the_crate_name() {
+fn the_outside_fleet_discriminator_reads_the_package_metadata_facet_not_the_crate_name() {
     let root = repo_root();
     assert!(
         declares_fitness_capability(&root, "oya-governance-adr-shape-app"),
-        "a governance gate's catalog row declares a fitness-* capability"
+        "a governance gate's Cargo.toml [package.metadata.oya-ci] declares a fitness-* capability"
     );
     assert!(
         !declares_fitness_capability(&root, "oya-reorg-codemod-app"),
@@ -1160,7 +1167,7 @@ fn the_outside_fleet_discriminator_reads_the_catalog_facet_not_the_crate_name() 
     );
     assert!(
         !declares_fitness_capability(&root, "oya-governance-adr-status-lifecycle-app"),
-        "a crate with no catalog row at all is not a gate — absence must not read as fitness"
+        "a crate with no metadata facet at all is not a gate — absence must not read as fitness"
     );
 }
 

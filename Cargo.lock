@@ -1414,13 +1414,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ci-action-item-accounting"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
 name = "ci-affected-target-set"
 version = "0.1.0"
 dependencies = [
@@ -1430,17 +1423,9 @@ dependencies = [
 ]
 
 [[package]]
-name = "ci-artifact-accountability"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
 name = "ci-artifact-inventory-registry"
 version = "0.1.0"
 dependencies = [
- "ci-artifact-accountability",
  "ci-automation-coverage",
  "ci-build-target-parity",
  "ci-crate-layer-suffix",
@@ -1448,10 +1433,7 @@ dependencies = [
  "ci-cross-artifact-agreement",
  "ci-hook-wiring",
  "ci-license-policy",
- "ci-package-manifest-hygiene",
- "ci-service-catalog-parity",
  "ci-slo-coverage",
- "ci-stale-artifact-detection",
  "ci-workspace-member-coverage",
  "oya-check-brand-residue",
  "oya-ci-config-kernel",
@@ -1503,14 +1485,6 @@ dependencies = [
 name = "ci-canonical-json"
 version = "0.1.0"
 dependencies = [
- "serde_json",
-]
-
-[[package]]
-name = "ci-contract-slice-conformance"
-version = "0.1.0"
-dependencies = [
- "regex",
  "serde_json",
 ]
 
@@ -1579,27 +1553,12 @@ dependencies = [
 ]
 
 [[package]]
-name = "ci-corpus-index-coverage"
-version = "0.1.0"
-dependencies = [
- "oya-buck-syntax-kernel",
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "ci-crate-catalog-coverage"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
 name = "ci-crate-layer-suffix"
 version = "0.1.0"
 dependencies = [
  "oya-ci-config-kernel",
  "oya-governance-predictable-naming-kernel",
+ "oya-workspace-members-kernel",
  "serde_json",
 ]
 
@@ -1609,21 +1568,6 @@ version = "0.1.0"
 dependencies = [
  "intelligence-cargo-prefix-domain",
  "oya-ci-config-kernel",
- "serde_json",
-]
-
-[[package]]
-name = "ci-crate-registration"
-version = "0.1.0"
-dependencies = [
- "ci-artifact-accountability",
- "ci-artifact-inventory-registry",
- "ci-module-membership",
- "ci-service-catalog-parity",
- "ci-slo-coverage",
- "oya-ci-config-kernel",
- "oya-crate-registrar-app",
- "oya-crate-registrar-kernel",
  "serde_json",
 ]
 
@@ -1685,13 +1629,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ci-feature-maturity-policy"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
 name = "ci-gate-self-conformance"
 version = "0.1.0"
 dependencies = [
@@ -1703,7 +1640,6 @@ name = "ci-generated-artifact-freshness"
 version = "0.1.0"
 dependencies = [
  "ci-cross-artifact-agreement",
- "ci-planning-projection",
  "oya-workspace-members-kernel",
  "serde_json",
  "toml 0.8.23",
@@ -1759,40 +1695,11 @@ dependencies = [
 ]
 
 [[package]]
-name = "ci-lifecycle-status"
-version = "0.1.0"
-dependencies = [
- "oya-governance-lifecycle-kernel",
- "serde_json",
-]
-
-[[package]]
-name = "ci-module-membership"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
 name = "ci-operator-secret-rbac"
 version = "0.1.0"
 dependencies = [
  "serde_json",
  "serde_yaml",
-]
-
-[[package]]
-name = "ci-package-manifest-hygiene"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
-name = "ci-parity-claim-evidence"
-version = "0.1.0"
-dependencies = [
- "serde_json",
 ]
 
 [[package]]
@@ -1806,13 +1713,6 @@ dependencies = [
 [[package]]
 name = "ci-path-resolver-ports"
 version = "0.1.0"
-
-[[package]]
-name = "ci-planning-projection"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
 
 [[package]]
 name = "ci-policy-deploy-parity"
@@ -1868,13 +1768,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ci-scan-root-liveness"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
 name = "ci-scm-facts-snapshot"
 version = "0.1.0"
 dependencies = [
@@ -1893,31 +1786,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "ci-service-catalog-parity"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
-name = "ci-service-tier-metadata"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
 name = "ci-slo-coverage"
 version = "0.1.0"
 dependencies = [
  "oya-check-slo-coverage",
- "serde_json",
-]
-
-[[package]]
-name = "ci-stale-artifact-detection"
-version = "0.1.0"
-dependencies = [
  "serde_json",
 ]
 
@@ -1959,13 +1831,6 @@ name = "ci-tide-kernel"
 version = "0.1.0"
 dependencies = [
  "serde",
-]
-
-[[package]]
-name = "ci-topology-manifest-contract"
-version = "0.1.0"
-dependencies = [
- "serde_json",
 ]
 
 [[package]]
@@ -5162,6 +5027,7 @@ version = "0.1.0"
 dependencies = [
  "base64 0.22.1",
  "bytes",
+ "futures",
  "httpmock",
  "intelligence-kernel",
  "intelligence-rest",
@@ -7887,15 +7753,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-friction-ledger-merge-driver-app"
-version = "0.1.0"
-dependencies = [
- "ci-action-item-accounting",
- "ci-canonical-json",
- "serde_json",
-]
-
-[[package]]
 name = "oya-global-trade-compliance-domain"
 version = "0.1.0"
 dependencies = [
@@ -9859,6 +9716,7 @@ dependencies = [
 name = "oya-workspace-members-kernel"
 version = "0.1.0"
 dependencies = [
+ "serde_json",
  "toml 0.8.23",
 ]
 

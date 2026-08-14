@@ -34,3 +34,5 @@ rfc_2119_active: true
 - Reviewer: `<agent>` — verdict `<APPROVE|REQUEST CHANGES|PENDING>`
 - Resolved items: `<list>`
 - Deferred items: `<list with owners + follow-up issue refs>`
+
+Review admission is target/advisory only — not live cloud admission enforcement — until the trusted server-side/cloud-ci review producer lands (F-PR5-06; evidence: PR #964).

@@ -124,6 +124,10 @@ jobs:
       # Every workspace member, including the whole ci/facade gate fleet, runs here.
       - name: Workspace tests
         run: cargo test --locked --workspace
+      # The shell frontend's live-server test needs the ssr feature (the default build is
+      # the csr/WASM client); run it explicitly so it is not silently skipped.
+      - name: Shell frontend ssr tests
+        run: cargo test --locked -p oya-application-shell-frontend --features ssr --test live_server
       # kernel/ is a nested workspace (ADR-0512 carve-out) the root workspace excludes.
       - name: Kernel workspace tests
         run: cargo test --locked --manifest-path kernel/Cargo.toml
