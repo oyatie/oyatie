@@ -105,8 +105,11 @@ That local `--verify` step is automated by the repo git pre-push hook: the owned
 `oya-pre-push-verify` (buck2 target `//ci/facade/generated-artifact-freshness:oya-pre-push-verify-bin`).
 Per the repo stack invariant (automation deliverables are Rust, never shell), the hook logic lives in
 that binary — including branch/tag detection, pushed-SHA gating, and the verify orchestration. Wire it
-once per clone with `buck2 run //ci/facade/generated-artifact-freshness:oya-pre-push-verify-bin -- install`:
-the installer (a) preserves a LOCAL or worktree-scoped `core.hooksPath` (the `--worktree` scope,
+once per clone with `buck2 run //ci/facade/generated-artifact-freshness:oya-pre-push-verify-bin -- reconcile`:
+the reconciler converges the installed hook state toward the DECLARED wiring state in
+`tools/hooks/pre-push-verifier.wiring.json` (hook name, protocol version, pinned-tool set, generator
+source dirs) and fails closed when the binary disagrees with the declaration — hook wiring is
+declarative-state-driven, not an imperative one-off installer command. The reconciler (a) preserves a LOCAL or worktree-scoped `core.hooksPath` (the `--worktree` scope,
 enabled by `extensions.worktreeConfig`, is accepted as repository-owned like `--local`) — if one is
 configured (e.g. org-managed commit-msg/signing hooks) the verifier is installed into that same
 directory and the configuration is left untouched, a global/system-scoped shared hooks dir and an
@@ -126,6 +129,10 @@ COMPLETE generator build inputs — each generator crate's sources, its `Cargo.t
 workspace `Cargo.toml`/`Cargo.lock`, and the transitive manifest-declared path dependencies
 outside those crates — plus the repository's tracked generated-face control-plane, form the
 handshake: when any of them is stale the hook fails closed with an explicit reinstall requirement.
+Only TRACKED files participate in the generator-source fingerprint (enumerated via `git ls-files`),
+so a git-ignored scratch file under a generator `src/` tree cannot change it and block every push;
+the handshake reflects repository source, not local ignored state. The reconciler invocation is
+disambiguated from hook invocation, so a remote literally named `reconcile` still verifies pushes.
 Because linked worktrees share git's common-dir hooks directory, each worktree keeps its OWN
 pinned-tool generation + manifest under a worktree-keyed subdirectory, so worktrees checked out at
 different generator sources never clobber each other's installation. The verify path runs the same

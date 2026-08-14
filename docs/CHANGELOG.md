@@ -68,6 +68,21 @@ doc_status: published
   post-checkout bytes.
 - Refs #1957.
 
+## 2026-08-14 — Pre-push verifier wave-3 follow-up (PR #1957 review)
+
+- The generator-source fingerprint enumerates TRACKED files only (`git ls-files -z`; falls back to
+  a plain walk outside a git worktree), so a git-ignored scratch `.rs` under a generator `src/`
+  tree cannot change the fingerprint and block every push with a stale-source/reinstall error.
+- The `install` subcommand is replaced by `reconcile`: the verifier converges the installed hook
+  state toward the DECLARED wiring state in `tools/hooks/pre-push-verifier.wiring.json` (hook
+  name, protocol version, pinned-tool set, generator source dirs) and fails closed when the binary
+  disagrees with the declaration — declarative-state-driven wiring rather than a new imperative
+  installer CLI. All docs/error strings now say `-- reconcile`.
+- Hook invocation is disambiguated from the reconciler subcommand: a remote literally named
+  `reconcile` (Git invokes the hook as `pre-push <remote> <url>`) still verifies pushes instead of
+  entering reconciler mode.
+- Refs #1957.
+
 ## 2026-08-12 — Masterplan stale inline sequencing digest removed
 
 - Normalized the one `masterplan_v2.planning_entry_contract.no_dispatch_stop_conditions`
