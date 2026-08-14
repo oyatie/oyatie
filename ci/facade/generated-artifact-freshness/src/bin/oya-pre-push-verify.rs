@@ -32,7 +32,7 @@
 //! contribution can never replace the hook git executes):
 //!
 //! ```text
-//! buck2 run //ci/facade/generated-artifact-freshness:oya-pre-push-verify-bin -- install
+//! buck2 run //ci/facade/generated-artifact-freshness:oya-pre-push-verify-bin -- reconcile
 //! ```
 
 #![forbid(unsafe_code)]
@@ -45,7 +45,7 @@ use std::process::{Command, ExitCode};
 use ci_generated_artifact_freshness::{
     FaceSettleMode, PRE_PUSH_VERIFIER_MANIFEST_FILE, PRE_PUSH_VERIFIER_PROTOCOL_VERSION,
     PRE_PUSH_VERIFIER_TOOLS_DIR, fnv1a64_hex, install_pre_push_verifier_tools,
-    manifest_owns_installed_hook, read_pre_push_verifier_manifest,
+    manifest_owns_installed_hook, read_pre_push_verifier_manifest, read_pre_push_verifier_wiring,
     run_face_settle_with_pinned_tools, verify_pre_push_verifier_protocol,
     write_pre_push_verifier_manifest,
 };
@@ -54,14 +54,14 @@ const ZERO_SHA: &str = "0000000000000000000000000000000000000000";
 
 fn main() -> ExitCode {
     let args: Vec<String> = env::args().skip(1).collect();
-    if args.first().map(String::as_str) == Some("install") {
-        return match install(&args[1..]) {
+    if is_reconcile_invocation(&args) {
+        return match reconcile(&args[1..]) {
             Ok(message) => {
                 println!("{message}");
                 ExitCode::SUCCESS
             }
             Err(message) => {
-                eprintln!("pre-push install: {message}");
+                eprintln!("pre-push reconcile: {message}");
                 ExitCode::FAILURE
             }
         };
@@ -72,6 +72,26 @@ fn main() -> ExitCode {
             eprintln!("pre-push: {message}");
             ExitCode::FAILURE
         }
+    }
+}
+
+/// True only for an EXPLICIT reconciler invocation (`reconcile`, optionally with `--repo-root` or
+/// `--help`). Git invokes the pre-push hook as `pre-push <remote-name> <remote-url>`; when the
+/// remote is literally named `reconcile` the first argument is the remote name, not the
+/// subcommand, so the subcommand must not be guessed from argv[0] alone — a two-argument
+/// invocation whose second argument is not a recognized flag is a hook invocation, not the
+/// reconciler, and must not enter reconciler mode (which would reject the URL and permanently
+/// block pushes to that remote).
+fn is_reconcile_invocation(args: &[String]) -> bool {
+    if args.first().map(String::as_str) != Some("reconcile") {
+        return false;
+    }
+    match &args[1..] {
+        [] => true,
+        [flag] if flag == "--help" || flag == "-h" => true,
+        [flag, _value] if flag == "--repo-root" => true,
+        // `reconcile <url>`: a push to a remote literally named `reconcile`.
+        _ => false,
     }
 }
 
@@ -184,26 +204,29 @@ fn repo_root() -> Result<PathBuf, String> {
     )?))
 }
 
-/// Installer mode: pin the generator tools (built once from this checkout), copy this
-/// verifier into the git hooks dir (OUTSIDE the checked-out tree, preserving any existing
-/// `core.hooksPath`), and write the protocol manifest.
-fn install(args: &[String]) -> Result<String, String> {
+/// Reconciler mode: converge the INSTALLED hook state (pinned generator tools built once from this
+/// checkout, the verifier copy in the git hooks dir OUTSIDE the checked-out tree preserving any
+/// existing `core.hooksPath`, and the protocol manifest) toward the DECLARED wiring state in the
+/// repository (`tools/hooks/pre-push-verifier.wiring.json`). Declarative-state-driven and
+/// idempotent: the reconciler fails closed when the binary disagrees with the declaration (declared
+/// hook name, protocol, pinned tools, or generator source dirs drift) instead of installing stale.
+fn reconcile(args: &[String]) -> Result<String, String> {
     let mut repo_root: Option<PathBuf> = None;
     let mut iter = args.iter();
     while let Some(arg) = iter.next() {
         match arg.as_str() {
             "--repo-root" => {
                 let Some(value) = iter.next() else {
-                    return Err("install: --repo-root requires a path".to_owned());
+                    return Err("reconcile: --repo-root requires a path".to_owned());
                 };
                 repo_root = Some(PathBuf::from(value));
             }
             "--help" | "-h" => {
-                return Err("usage: oya-pre-push-verify install [--repo-root <path>]".to_owned());
+                return Err("usage: oya-pre-push-verify reconcile [--repo-root <path>]".to_owned());
             }
             other => {
                 return Err(format!(
-                    "install: unknown argument {other:?}; usage: oya-pre-push-verify install [--repo-root <path>]"
+                    "reconcile: unknown argument {other:?}; usage: oya-pre-push-verify reconcile [--repo-root <path>]"
                 ));
             }
         }
@@ -212,6 +235,10 @@ fn install(args: &[String]) -> Result<String, String> {
         Some(root) => root,
         None => repo_root()?,
     };
+
+    // The reconciler converges toward the repository's DECLARED wiring state and fails closed when
+    // this binary disagrees with it (declared hook name / protocol / pinned tools / source dirs).
+    read_pre_push_verifier_wiring(&root).map_err(|error| error.to_string())?;
 
     // Preserve an existing configured hooks path (org-managed commit-msg/signing/security
     // hooks): install INTO that same directory and never rewrite core.hooksPath. Only when
@@ -276,7 +303,7 @@ fn install(args: &[String]) -> Result<String, String> {
         .map_err(|error| error.to_string())?;
 
     Ok(format!(
-        "installed pinned pre-push verifier at {} (outside the checked-out tree); pinned tools at {}; manifest protocol v{PRE_PUSH_VERIFIER_PROTOCOL_VERSION}",
+        "reconciled pinned pre-push verifier at {} (outside the checked-out tree) toward the declared wiring (tools/hooks/pre-push-verifier.wiring.json); pinned tools at {}; manifest protocol v{PRE_PUSH_VERIFIER_PROTOCOL_VERSION}",
         dest.display(),
         tools_dir.display()
     ))

@@ -98,6 +98,12 @@ pub const PRE_PUSH_VERIFIER_MANIFEST_FILE: &str = "oya-pre-push-verify-manifest.
 /// prebuilt binaries at push time and never builds from the active checkout's Buck graph.
 pub const PRE_PUSH_VERIFIER_TOOLS_DIR: &str = "oya-pre-push-tools";
 
+/// Checked-in DECLARED hook-wiring state (`tools/hooks/pre-push-verifier.wiring.json`). The
+/// verifier's `reconcile` verb converges the installed hook state toward this declaration and
+/// fails closed when the binary disagrees with it, so hook wiring is declarative-state-driven
+/// rather than an imperative one-off installer command.
+pub const PRE_PUSH_VERIFIER_WIRING_FILE: &str = "tools/hooks/pre-push-verifier.wiring.json";
+
 const PRE_PUSH_TOOL_EMITTER: &str = "emitter";
 const PRE_PUSH_TOOL_PRODUCER: &str = "producer";
 const PRE_PUSH_TOOL_MASTERPLAN_GENERATOR: &str = "masterplan-generator";
@@ -110,6 +116,15 @@ const REQUIRED_PRE_PUSH_TOOLS: [&str; 4] = [
     PRE_PUSH_TOOL_PRODUCER,
     PRE_PUSH_TOOL_MASTERPLAN_GENERATOR,
     PRE_PUSH_TOOL_ARCHITECTURE_GRAPH_GENERATOR,
+];
+/// The generator crate roots the pinned tools are built from. Declared in the wiring state and
+/// used as the seed roots of the generator-source fingerprint.
+const GENERATOR_SOURCE_DIRS: [&str; 5] = [
+    "ci/facade/scm-facts-snapshot",
+    "ci/facade/artifact-inventory-registry",
+    "tools/oya-architecture-graph-generator-app",
+    "marketplace/facade/dev-cli",
+    "ci/facade/generated-artifact-freshness",
 ];
 const MOVE_MANIFEST_FACE: &str = "specs/reorg/move-manifest.generated.json";
 /// De-committed face: merge-base CONTENT of every `normal-source-merge` hand-curated-ratchet
@@ -555,7 +570,7 @@ fn pinned_face_tools(repo_root: &Path, tools_dir: &Path) -> Result<FaceTools, Fr
     ] {
         if !path.is_file() {
             return Err(FreshnessError::new(format!(
-                "pinned pre-push verifier tool `{label}` missing at {} — reinstall the hook (buck2 run //ci/facade/generated-artifact-freshness:oya-pre-push-verify-bin -- install)",
+                "pinned pre-push verifier tool `{label}` missing at {} — reinstall the hook (buck2 run //ci/facade/generated-artifact-freshness:oya-pre-push-verify-bin -- reconcile)",
                 path.display()
             )));
         }
@@ -676,6 +691,80 @@ pub fn manifest_owns_installed_hook(
     Ok(recorded == actual)
 }
 
+/// Read and validate the repository's DECLARED pre-push verifier wiring state
+/// (`tools/hooks/pre-push-verifier.wiring.json`). The `reconcile` verb converges the installed
+/// hook state toward this declaration and fails closed when the binary disagrees with it — the
+/// declared hook name, protocol version, pinned-tool set, and generator source dirs must exactly
+/// match this binary's embedded constants, so hook wiring stays declarative-state-driven and a
+/// stale binary cannot silently install against a newer declaration.
+pub fn read_pre_push_verifier_wiring(
+    repo_root: &Path,
+) -> Result<serde_json::Value, FreshnessError> {
+    let path = repo_root.join(PRE_PUSH_VERIFIER_WIRING_FILE);
+    let text = std::fs::read_to_string(&path).map_err(|error| {
+        FreshnessError::new(format!(
+            "pre-push verifier wiring declaration missing at {} ({error}) — the verifier reconciles toward the DECLARED wiring state in the repository",
+            path.display()
+        ))
+    })?;
+    let value: serde_json::Value = serde_json::from_str(&text).map_err(|error| {
+        FreshnessError::new(format!(
+            "parse pre-push verifier wiring declaration {}: {error}",
+            path.display()
+        ))
+    })?;
+    let hook_name = value
+        .get("hook_name")
+        .and_then(|value| value.as_str())
+        .unwrap_or_default();
+    if hook_name != "pre-push" {
+        return Err(FreshnessError::new(format!(
+            "pre-push verifier wiring declaration {} declares hook_name {hook_name:?}; expected \"pre-push\"",
+            path.display()
+        )));
+    }
+    let declared_protocol = value
+        .get("protocol_version")
+        .and_then(|value| value.as_u64())
+        .unwrap_or(0) as u32;
+    if declared_protocol != PRE_PUSH_VERIFIER_PROTOCOL_VERSION {
+        return Err(FreshnessError::new(format!(
+            "pre-push verifier wiring declaration {} declares protocol v{declared_protocol} but this binary embeds v{PRE_PUSH_VERIFIER_PROTOCOL_VERSION} — reconcile from a checkout matching the declaration",
+            path.display()
+        )));
+    }
+    let required_tools: BTreeSet<&str> = REQUIRED_PRE_PUSH_TOOLS.iter().copied().collect();
+    if let Some(declared_tools) = value.get("pinned_tools").and_then(|value| value.as_array()) {
+        let declared: BTreeSet<&str> = declared_tools
+            .iter()
+            .filter_map(|value| value.as_str())
+            .collect();
+        if declared != required_tools {
+            return Err(FreshnessError::new(format!(
+                "pre-push verifier wiring declaration {} pinned_tools do not exactly match the embedded tool set — reconcile from a checkout matching the declaration",
+                path.display()
+            )));
+        }
+    }
+    if let Some(declared_dirs) = value
+        .get("generator_source_dirs")
+        .and_then(|value| value.as_array())
+    {
+        let declared: BTreeSet<&str> = declared_dirs
+            .iter()
+            .filter_map(|value| value.as_str())
+            .collect();
+        let required: BTreeSet<&str> = GENERATOR_SOURCE_DIRS.iter().copied().collect();
+        if declared != required {
+            return Err(FreshnessError::new(format!(
+                "pre-push verifier wiring declaration {} generator_source_dirs do not exactly match the embedded source dirs — reconcile from a checkout matching the declaration",
+                path.display()
+            )));
+        }
+    }
+    Ok(value)
+}
+
 /// Read the installed-verifier manifest and require it to match the embedded protocol version AND
 /// the currently installed pinned tool builds AND the repository's current generator source.
 /// Returns the recorded version; fails closed (with an explicit reinstall requirement) when the
@@ -690,7 +779,7 @@ pub fn read_pre_push_verifier_manifest(
     let path = hooks_dir.join(PRE_PUSH_VERIFIER_MANIFEST_FILE);
     let text = std::fs::read_to_string(&path).map_err(|error| {
         FreshnessError::new(format!(
-            "pre-push verifier manifest missing at {} ({error}) — reinstall the hook (buck2 run //ci/facade/generated-artifact-freshness:oya-pre-push-verify-bin -- install)",
+            "pre-push verifier manifest missing at {} ({error}) — reinstall the hook (buck2 run //ci/facade/generated-artifact-freshness:oya-pre-push-verify-bin -- reconcile)",
             path.display()
         ))
     })?;
@@ -711,7 +800,7 @@ pub fn read_pre_push_verifier_manifest(
         })? as u32;
     if installed != PRE_PUSH_VERIFIER_PROTOCOL_VERSION {
         return Err(FreshnessError::new(format!(
-            "installed pre-push verifier protocol {installed} is out of date (repository requires {PRE_PUSH_VERIFIER_PROTOCOL_VERSION}) — reinstall the hook (buck2 run //ci/facade/generated-artifact-freshness:oya-pre-push-verify-bin -- install)"
+            "installed pre-push verifier protocol {installed} is out of date (repository requires {PRE_PUSH_VERIFIER_PROTOCOL_VERSION}) — reinstall the hook (buck2 run //ci/facade/generated-artifact-freshness:oya-pre-push-verify-bin -- reconcile)"
         )));
     }
     let recorded = value
@@ -728,7 +817,7 @@ pub fn read_pre_push_verifier_manifest(
     // pads with) entries cannot certify a replaced or missing pinned binary.
     if recorded.len() != REQUIRED_PRE_PUSH_TOOLS.len() {
         return Err(FreshnessError::new(format!(
-            "pre-push verifier manifest {} does not fingerprint every pinned tool (expected {} entries, found {}) — reinstall the hook (buck2 run //ci/facade/generated-artifact-freshness:oya-pre-push-verify-bin -- install)",
+            "pre-push verifier manifest {} does not fingerprint every pinned tool (expected {} entries, found {}) — reinstall the hook (buck2 run //ci/facade/generated-artifact-freshness:oya-pre-push-verify-bin -- reconcile)",
             path.display(),
             REQUIRED_PRE_PUSH_TOOLS.len(),
             recorded.len()
@@ -737,7 +826,7 @@ pub fn read_pre_push_verifier_manifest(
     for name in REQUIRED_PRE_PUSH_TOOLS {
         if !recorded.contains_key(name) {
             return Err(FreshnessError::new(format!(
-                "pre-push verifier manifest {} omits pinned tool `{name}` — reinstall the hook (buck2 run //ci/facade/generated-artifact-freshness:oya-pre-push-verify-bin -- install)",
+                "pre-push verifier manifest {} omits pinned tool `{name}` — reinstall the hook (buck2 run //ci/facade/generated-artifact-freshness:oya-pre-push-verify-bin -- reconcile)",
                 path.display()
             )));
         }
@@ -751,7 +840,7 @@ pub fn read_pre_push_verifier_manifest(
             .unwrap_or_default();
         if expected.is_empty() || actual.is_empty() || expected != actual {
             return Err(FreshnessError::new(format!(
-                "installed pre-push verifier tool `{name}` does not match the pinned build this hook was installed with — reinstall the hook (buck2 run //ci/facade/generated-artifact-freshness:oya-pre-push-verify-bin -- install)"
+                "installed pre-push verifier tool `{name}` does not match the pinned build this hook was installed with — reinstall the hook (buck2 run //ci/facade/generated-artifact-freshness:oya-pre-push-verify-bin -- reconcile)"
             )));
         }
     }
@@ -767,7 +856,7 @@ pub fn read_pre_push_verifier_manifest(
     let current_source = generator_source_fingerprint(repo_root)?;
     if recorded_source != current_source {
         return Err(FreshnessError::new(format!(
-            "repository generator source changed since this hook was installed (pinned tools would verify with stale generators) — reinstall the hook (buck2 run //ci/facade/generated-artifact-freshness:oya-pre-push-verify-bin -- install)"
+            "repository generator source changed since this hook was installed (pinned tools would verify with stale generators) — reinstall the hook (buck2 run //ci/facade/generated-artifact-freshness:oya-pre-push-verify-bin -- reconcile)"
         )));
     }
     Ok(installed)
@@ -803,50 +892,81 @@ fn pinned_tool_fingerprints(
 /// `Cargo.lock`, a Buck rule, or a path dependency outside these five directories — that leaves
 /// the Buck label and protocol integer untouched still makes the handshake fail closed with a
 /// reinstall requirement instead of silently verifying with stale pinned generators.
+///
+/// Only TRACKED files participate: the enumeration comes from `git ls-files` (falling back to a
+/// plain walk when the tree is not a git worktree, e.g. a test fixture), so a git-ignored scratch
+/// `.rs` under a generator `src/` tree cannot change the fingerprint and block every push with a
+/// stale-source/reinstall error — the handshake reflects repository source, not local ignored state.
 fn generator_source_fingerprint(repo_root: &Path) -> Result<String, FreshnessError> {
+    let tracked = tracked_files(repo_root)?;
     let mut paths: Vec<PathBuf> = Vec::new();
     let mut visited: BTreeSet<PathBuf> = BTreeSet::new();
-    let mut queue: Vec<PathBuf> = vec![
-        repo_root.join("ci/facade/scm-facts-snapshot"),
-        repo_root.join("ci/facade/artifact-inventory-registry"),
-        repo_root.join("tools/oya-architecture-graph-generator-app"),
-        repo_root.join("marketplace/facade/dev-cli"),
-        repo_root.join("ci/facade/generated-artifact-freshness"),
-        // Workspace-level manifests shape every pinned tool build.
-        repo_root.join("Cargo.toml"),
-        repo_root.join("Cargo.lock"),
-    ];
+    let mut queue: Vec<PathBuf> = GENERATOR_SOURCE_DIRS
+        .iter()
+        .map(|dir| repo_root.join(dir))
+        .collect();
+    // Workspace-level manifests shape every pinned tool build.
+    queue.push(repo_root.join("Cargo.toml"));
+    queue.push(repo_root.join("Cargo.lock"));
     while let Some(root) = queue.pop() {
-        let canonical = match std::fs::canonicalize(&root) {
-            Ok(canonical) => canonical,
-            // Absent in this tree (e.g. test fixtures without manifests): not an input to hash.
-            Err(_) => continue,
-        };
-        if !visited.insert(canonical.clone()) {
+        let root = lexically_normalize(&root);
+        if !visited.insert(root.clone()) {
             continue;
         }
-        if canonical.is_dir() {
-            collect_build_input_files(&canonical, &mut paths)?;
-        } else {
-            paths.push(canonical.clone());
-        }
-        // Follow manifest-declared path inputs of this root (crate dependencies, `[patch]`
-        // entries, workspace-level path deps, `[[bin]]`/`[[example]]` source paths) transitively.
-        let manifest_dir = if canonical.is_dir() {
-            canonical.clone()
-        } else {
-            canonical
-                .parent()
-                .map(Path::to_path_buf)
-                .unwrap_or_else(|| repo_root.to_path_buf())
-        };
-        for dep in path_dependency_roots(&manifest_dir)? {
-            if !visited.contains(&dep) {
-                queue.push(dep);
+        match &tracked {
+            Some(files) => {
+                // Tracked files under this root are repository build inputs; git-ignored scratch
+                // files are deliberately excluded.
+                for file in files {
+                    if file_under(file, &root) {
+                        paths.push(file.clone());
+                    }
+                }
+                // Follow manifest-declared path inputs of this root (crate dependencies, `[patch]`
+                // entries, workspace-level path deps, `[[bin]]`/`[[example]]` source paths)
+                // transitively — but only when the manifest itself is TRACKED. For a FILE root
+                // (the workspace `Cargo.toml`/`Cargo.lock`) the manifest lives in its parent dir.
+                let manifest_dir = if root.is_dir() {
+                    root.clone()
+                } else {
+                    root.parent()
+                        .map(Path::to_path_buf)
+                        .unwrap_or_else(|| repo_root.to_path_buf())
+                };
+                let manifest = manifest_dir.join("Cargo.toml");
+                if let Some(text) = tracked_manifest_text(files, &manifest)? {
+                    for dep in manifest_path_inputs_from_text(&text, &manifest_dir)? {
+                        if !visited.contains(&dep) {
+                            queue.push(dep);
+                        }
+                    }
+                }
+            }
+            None => {
+                // Not a git worktree (test fixture): fall back to a plain filesystem walk of the
+                // seed roots + their manifest-declared path inputs.
+                let manifest_dir = if root.is_dir() {
+                    root.clone()
+                } else {
+                    root.parent()
+                        .map(Path::to_path_buf)
+                        .unwrap_or_else(|| repo_root.to_path_buf())
+                };
+                if root.is_dir() {
+                    collect_build_input_files(&root, &mut paths)?;
+                } else if root.is_file() {
+                    paths.push(root.clone());
+                }
+                for dep in path_dependency_roots(&manifest_dir)? {
+                    if !visited.contains(&dep) {
+                        queue.push(dep);
+                    }
+                }
             }
         }
     }
     paths.sort();
+    paths.dedup();
     let mut hash = String::new();
     for path in &paths {
         let bytes = std::fs::read(path).map_err(|error| {
@@ -856,6 +976,92 @@ fn generator_source_fingerprint(repo_root: &Path) -> Result<String, FreshnessErr
         hash.push('\n');
     }
     Ok(hash)
+}
+
+/// The repository's TRACKED files (via `git ls-files -z`), absolutized against `repo_root`.
+/// Returns `Ok(None)` when the tree is not a git worktree so the caller can fall back.
+fn tracked_files(repo_root: &Path) -> Result<Option<Vec<PathBuf>>, FreshnessError> {
+    let mut command = Command::new("git");
+    command.args(["ls-files", "-z"]).current_dir(repo_root);
+    let output = command.output().map_err(|error| {
+        FreshnessError::new(format!(
+            "run git ls-files in {}: {error}",
+            repo_root.display()
+        ))
+    })?;
+    if !output.status.success() {
+        return Ok(None);
+    }
+    let mut files = Vec::new();
+    for chunk in output.stdout.split(|byte| *byte == 0) {
+        if chunk.is_empty() {
+            continue;
+        }
+        let relative = String::from_utf8_lossy(chunk);
+        files.push(repo_root.join(relative.as_ref()));
+    }
+    Ok(Some(files))
+}
+
+/// True when `file` is `root` itself (a file root such as the workspace `Cargo.toml`) or lies
+/// under `root` (a directory root). Path-component based, so a sibling like `foo/core/scratchpad`
+/// never matches the `foo/core/scratch` root.
+fn file_under(file: &Path, root: &Path) -> bool {
+    file == root || file.starts_with(root)
+}
+
+/// Lexically normalize a path, resolving `.` and `..` components without touching the filesystem,
+/// so prefix matching stays consistent between tracked files (clean repo-relative paths) and
+/// manifest-declared path inputs that contain `../` segments.
+fn lexically_normalize(path: &Path) -> PathBuf {
+    use std::path::Component;
+    let mut out = PathBuf::new();
+    for component in path.components() {
+        match component {
+            Component::ParentDir => {
+                out.pop();
+            }
+            Component::CurDir => {}
+            other => out.push(other.as_os_str()),
+        }
+    }
+    out
+}
+
+/// Read the manifest at `manifest` only when it is TRACKED (present in the `git ls-files` list);
+/// a git-ignored or absent manifest contributes no path inputs.
+fn tracked_manifest_text(
+    files: &[PathBuf],
+    manifest: &Path,
+) -> Result<Option<String>, FreshnessError> {
+    if !files.iter().any(|file| file == manifest) {
+        return Ok(None);
+    }
+    let text = std::fs::read_to_string(manifest).map_err(|error| {
+        FreshnessError::new(format!(
+            "read tracked manifest {}: {error}",
+            manifest.display()
+        ))
+    })?;
+    Ok(Some(text))
+}
+
+/// Manifest-declared path inputs parsed from manifest TEXT (resolved against `manifest_dir`).
+fn manifest_path_inputs_from_text(
+    text: &str,
+    manifest_dir: &Path,
+) -> Result<Vec<PathBuf>, FreshnessError> {
+    let value: toml::Value = match toml::from_str(text) {
+        Ok(value) => value,
+        Err(_) => return Ok(Vec::new()),
+    };
+    let mut roots = Vec::new();
+    if let Some(table) = value.as_table() {
+        manifest_path_inputs(manifest_dir, table, &mut roots);
+    }
+    roots.sort();
+    roots.dedup();
+    Ok(roots)
 }
 
 /// Collect the build-determining files under a crate root: every `.rs` source (including
@@ -974,7 +1180,7 @@ pub fn verify_pre_push_verifier_protocol(repo_root: &Path) -> Result<(), Freshne
     })?;
     if declared_version != PRE_PUSH_VERIFIER_PROTOCOL_VERSION {
         return Err(FreshnessError::new(format!(
-            "repository pre-push verifier protocol is now v{declared_version} but this installed hook was built for v{PRE_PUSH_VERIFIER_PROTOCOL_VERSION} — reinstall the hook (buck2 run //ci/facade/generated-artifact-freshness:oya-pre-push-verify-bin -- install)"
+            "repository pre-push verifier protocol is now v{declared_version} but this installed hook was built for v{PRE_PUSH_VERIFIER_PROTOCOL_VERSION} — reinstall the hook (buck2 run //ci/facade/generated-artifact-freshness:oya-pre-push-verify-bin -- reconcile)"
         )));
     }
 
@@ -1028,7 +1234,7 @@ pub fn verify_pre_push_verifier_protocol(repo_root: &Path) -> Result<(), Freshne
         .collect();
     if declared != embedded {
         return Err(FreshnessError::new(format!(
-            "repository generated-face protocol changed: installed verifier covers {embedded:?} but the repository now declares {declared:?} — reinstall the hook (buck2 run //ci/facade/generated-artifact-freshness:oya-pre-push-verify-bin -- install)"
+            "repository generated-face protocol changed: installed verifier covers {embedded:?} but the repository now declares {declared:?} — reinstall the hook (buck2 run //ci/facade/generated-artifact-freshness:oya-pre-push-verify-bin -- reconcile)"
         )));
     }
     Ok(())
@@ -5299,6 +5505,94 @@ mod pre_push_verifier_protocol_tests {
             after_dep, after_lock,
             "Cargo.lock change must change the fingerprint"
         );
+    }
+
+    /// Run a git command in `root`, asserting success.
+    fn run_git(root: &Path, args: &[&str]) -> Result<(), String> {
+        let output = std::process::Command::new("git")
+            .args(args)
+            .current_dir(root)
+            .output()
+            .map_err(|error| format!("run git {args:?}: {error}"))?;
+        if !output.status.success() {
+            return Err(format!(
+                "git {args:?} failed: {}",
+                String::from_utf8_lossy(&output.stderr)
+            ));
+        }
+        Ok(())
+    }
+
+    /// Turn the fixture root into a git worktree with every fixture file staged, so the
+    /// tracked-only generator-source fingerprint path can be exercised.
+    fn init_git_and_add(root: &Path) {
+        run_git(root, &["init", "-q"]).expect("git init");
+        run_git(root, &["add", "-A"]).expect("git add");
+    }
+
+    #[test]
+    fn untracked_scratch_source_does_not_change_fingerprint() {
+        let root = temp_root("oya-pre-push-fingerprint-tracked-only");
+        write_protocol_fixture(&root, PRE_PUSH_VERIFIER_PROTOCOL_VERSION, None);
+        init_git_and_add(&root);
+        let before = generator_source_fingerprint(&root).expect("fingerprint");
+        // A git-ignored scratch .rs under a generator src tree must NOT change the fingerprint:
+        // the stale-source handshake reflects repository (tracked) source, not local ignored state.
+        let scratch = root.join("ci/facade/scm-facts-snapshot/src/scratch.rs");
+        std::fs::write(&scratch, "// scratch\n").expect("write scratch");
+        let after_scratch = generator_source_fingerprint(&root).expect("fingerprint");
+        assert_eq!(
+            before, after_scratch,
+            "untracked scratch source must not change the fingerprint"
+        );
+        // Once TRACKED it becomes a repository build input and DOES change the fingerprint.
+        run_git(&root, &["add", "-A"]).expect("track scratch");
+        let after_tracked = generator_source_fingerprint(&root).expect("fingerprint");
+        assert_ne!(
+            before, after_tracked,
+            "tracked source change must change the fingerprint"
+        );
+    }
+
+    #[test]
+    fn reconcile_rejects_wiring_declaration_mismatch() {
+        let root = temp_root("oya-pre-push-wiring-declaration");
+        write_protocol_fixture(&root, PRE_PUSH_VERIFIER_PROTOCOL_VERSION, None);
+        // No declaration present: fail closed with a clear message.
+        let error = read_pre_push_verifier_wiring(&root).expect_err("missing wiring");
+        assert!(
+            error.to_string().contains("wiring declaration"),
+            "{}",
+            error
+        );
+        // A declaration with a mismatched protocol must fail closed.
+        let wiring_dir = root.join("tools/hooks");
+        std::fs::create_dir_all(&wiring_dir).expect("create wiring dir");
+        let wiring_path = wiring_dir.join("pre-push-verifier.wiring.json");
+        std::fs::write(
+            &wiring_path,
+            serde_json::json!({
+                "hook_name": "pre-push",
+                "protocol_version": PRE_PUSH_VERIFIER_PROTOCOL_VERSION + 99,
+                "pinned_tools": ["emitter", "producer", "masterplan-generator", "architecture-graph-generator"],
+            })
+            .to_string(),
+        )
+        .expect("write wiring");
+        let error = read_pre_push_verifier_wiring(&root).expect_err("protocol mismatch");
+        assert!(error.to_string().contains("protocol"), "{}", error);
+        // A matching declaration passes.
+        std::fs::write(
+            &wiring_path,
+            serde_json::json!({
+                "hook_name": "pre-push",
+                "protocol_version": PRE_PUSH_VERIFIER_PROTOCOL_VERSION,
+                "pinned_tools": ["emitter", "producer", "masterplan-generator", "architecture-graph-generator"],
+            })
+            .to_string(),
+        )
+        .expect("write wiring");
+        read_pre_push_verifier_wiring(&root).expect("matching wiring");
     }
 
     #[test]

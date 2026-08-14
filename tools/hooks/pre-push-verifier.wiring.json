@@ -1,0 +1,18 @@
+{
+  "hook_name": "pre-push",
+  "verifier": "//ci/facade/generated-artifact-freshness:oya-pre-push-verify-bin",
+  "protocol_version": 1,
+  "pinned_tools": [
+    "emitter",
+    "producer",
+    "masterplan-generator",
+    "architecture-graph-generator"
+  ],
+  "generator_source_dirs": [
+    "ci/facade/scm-facts-snapshot",
+    "ci/facade/artifact-inventory-registry",
+    "tools/oya-architecture-graph-generator-app",
+    "marketplace/facade/dev-cli",
+    "ci/facade/generated-artifact-freshness"
+  ]
+}
