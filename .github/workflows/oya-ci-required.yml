@@ -113,6 +113,19 @@ jobs:
       OYA_ADR_0182: ${{ github.workspace }}/docs/adr-archive/ADR-0182-api-gateway-north-south-vs-service-mesh-east-west-separation.md
       OYA_ADR_0246: ${{ github.workspace }}/docs/adr-archive/ADR-0246-policy-engine-substrate-promotion.md
       OYA_ADR_0258: ${{ github.workspace }}/docs/adr-archive/ADR-0258-api-versioning-model.md
+      # Reorg codemod binary (built in the producer step; inventory-registry-drift
+      # execs it via this env).
+      OYA_CI_CODEMOD_BIN: ${{ github.workspace }}/target/debug/oya-reorg-codemod
+      # Generated-artifact-policy gate inputs (buck2 $(location) env parity).
+      OYA_CI_GENERATED_ARTIFACT_MANIFEST: ${{ github.workspace }}/registry/generated-artifact-control-plane.json
+      OYA_CI_GENERATED_ARTIFACT_RATCHET_POLICY: ${{ github.workspace }}/ci/facade/baseline-ratchet/ratchet-policy.json
+      # Reset-eligibility-policy gate inputs (buck2 $(location) env parity).
+      OYA_RESET_POLICY: ${{ github.workspace }}/ci/facade/reset-eligibility-policy/reset-eligibility-policy.json
+      OYA_RESET_SCHEMA: ${{ github.workspace }}/specs/reset-eligibility.schema.json
+      OYA_RESET_ARTIFACT: ${{ github.workspace }}/registry/reset-eligibility/w0-d-20260801.json
+      OYA_ROOT_MARKER: ${{ github.workspace }}/specs/root-hub-pointers.json
+      # Cross-artifact-agreement idea-archive policy input (buck2 $(location) env parity).
+      OYA_IDEA_ARCHIVE_POLICY: ${{ github.workspace }}/specs/markdown-retirement-policy.json
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
@@ -143,10 +156,11 @@ jobs:
         run: cargo run --locked -p ci-generated-artifact-freshness --bin oya-cloud-ci-materialize-generated-faces -- --repo-root . --github-event
       # Shared accounting-registry producer for OYA_CI_PRODUCER_BIN and
       # OYA_CI_ENFORCEMENT_LIVENESS_PRODUCER, plus the sanctioned ADR-index
-      # producer binary (OYA_ADR_INDEX_PRODUCER_BIN). Step name is a frozen
-      # workflow_inline_shell baseline key — do not rename.
+      # producer binary (OYA_ADR_INDEX_PRODUCER_BIN) and the reorg codemod
+      # (OYA_CI_CODEMOD_BIN). Step name is a frozen workflow_inline_shell
+      # baseline key — do not rename.
       - name: Build enforcement-liveness producer
-        run: cargo build --locked -p ci-artifact-inventory-registry --bin oya-cloud-ci-accounting-registry-app && cargo build --locked -p marketplace-dev-cli --bin oya
+        run: cargo build --locked -p ci-artifact-inventory-registry --bin oya-cloud-ci-accounting-registry-app && cargo build --locked -p marketplace-dev-cli --bin oya && cargo build --locked -p oya-reorg-codemod-app
       # Every workspace member, including the whole ci/facade gate fleet, runs here.
       - name: Workspace tests
         run: cargo test --locked --workspace
