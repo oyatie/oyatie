@@ -44,7 +44,8 @@ use std::process::{Command, ExitCode};
 
 use ci_generated_artifact_freshness::{
     FaceSettleMode, PRE_PUSH_VERIFIER_MANIFEST_FILE, PRE_PUSH_VERIFIER_PROTOCOL_VERSION,
-    PRE_PUSH_VERIFIER_TOOLS_DIR, install_pre_push_verifier_tools, read_pre_push_verifier_manifest,
+    PRE_PUSH_VERIFIER_TOOLS_DIR, fnv1a64_hex, install_pre_push_verifier_tools,
+    manifest_owns_installed_hook, read_pre_push_verifier_manifest,
     run_face_settle_with_pinned_tools, verify_pre_push_verifier_protocol,
     write_pre_push_verifier_manifest,
 };
@@ -77,17 +78,18 @@ fn main() -> ExitCode {
 /// Hook mode: read the refs git passes on stdin, gate the push, and run the verify with
 /// the pinned tools installed alongside this binary.
 fn run_hook() -> Result<ExitCode, String> {
-    let pushed_shas = read_pushed_branch_shas()?;
-    if pushed_shas.is_empty() {
-        // Tag push or branch deletion: no face-relevant commit to verify.
+    let pushed_commits = read_pushed_face_commits()?;
+    if pushed_commits.is_empty() {
+        // Deletion-only push (branch or tag deletion): no face-relevant commit is introduced.
         return Ok(ExitCode::SUCCESS);
     }
 
-    // The verify certifies the COMMITTED tree (HEAD) only. Every pushed non-deletion
-    // local SHA must equal HEAD, otherwise fail closed: a settled checkout must not let
-    // a stale `topic` commit pass just because a different branch is checked out.
+    // The verify certifies the COMMITTED tree (HEAD) only. Every pushed non-deletion commit
+    // (branch head or tag-peeled commit) must equal HEAD, otherwise fail closed: a settled
+    // checkout must not let a stale `topic` commit pass just because a different branch is
+    // checked out — and a tag pushed from a different commit is equally uncertified.
     let head = head_sha()?;
-    for sha in &pushed_shas {
+    for sha in &pushed_commits {
         if sha != &head {
             return Err(format!(
                 "refusing to certify push of {sha}: the local face-settle --verify certifies \
@@ -104,7 +106,15 @@ fn run_hook() -> Result<ExitCode, String> {
         .parent()
         .ok_or_else(|| "installed hook has no parent directory".to_owned())?
         .to_path_buf();
-    let tools_dir = hooks_dir.join(PRE_PUSH_VERIFIER_TOOLS_DIR);
+    // Per-worktree generation: linked worktrees share git's common-dir hooks directory, so the
+    // pinned tools + manifest for THIS checkout live under a worktree-keyed subdirectory. Two
+    // worktrees at different generator sources can no longer clobber each other's sole
+    // generation; each push dispatches to the generation matching its own checkout.
+    let generation_dir = hooks_dir.join(format!(
+        "oya-pre-push-generation-{}",
+        pre_push_generation_key(&root)?
+    ));
+    let tools_dir = generation_dir.join(PRE_PUSH_VERIFIER_TOOLS_DIR);
 
     // Protocol handshake (fail closed with explicit reinstall requirement): the install
     // manifest must exist, match this binary's embedded protocol version, bind to the
@@ -112,7 +122,7 @@ fn run_hook() -> Result<ExitCode, String> {
     // generator source the pinned tools were built from — so a generator change (even one
     // that leaves the Buck label and protocol integer untouched) fails closed instead of
     // silently verifying with stale tools.
-    let _ = read_pre_push_verifier_manifest(&hooks_dir, &tools_dir, &root)
+    let _ = read_pre_push_verifier_manifest(&generation_dir, &tools_dir, &root)
         .map_err(|error| error.to_string())?;
     // ...and the repository must still declare exactly the faces this verifier covers.
     verify_pre_push_verifier_protocol(&root).map_err(|error| error.to_string())?;
@@ -128,11 +138,13 @@ fn run_hook() -> Result<ExitCode, String> {
     })
 }
 
-/// Parse git's pre-push stdin lines (`<local ref> <local sha> <remote ref> <remote sha>`)
-/// and return the local SHA of every branch push that is not a deletion.
-fn read_pushed_branch_shas() -> Result<Vec<String>, String> {
+/// Parse git's pre-push stdin lines (`<local ref> <local sha> <remote ref> <remote sha>`) and
+/// return the local COMMIT of every non-deletion branch or tag push. Tag objects are peeled to
+/// their commit (`^{commit}`) so the HEAD-equality certification applies to the commits a tag
+/// introduces — a tag-only push can no longer skip verification.
+fn read_pushed_face_commits() -> Result<Vec<String>, String> {
     let stdin = io::stdin();
-    let mut shas = Vec::new();
+    let mut commits = Vec::new();
     for line in stdin.lock().lines() {
         let line = line.map_err(|error| format!("read pre-push stdin: {error}"))?;
         let fields: Vec<&str> = line.split_whitespace().collect();
@@ -141,11 +153,24 @@ fn read_pushed_branch_shas() -> Result<Vec<String>, String> {
         }
         let local_sha = fields[1];
         let remote_ref = fields[2];
-        if remote_ref.starts_with("refs/heads/") && local_sha != ZERO_SHA {
-            shas.push(local_sha.to_owned());
+        let is_face_ref =
+            remote_ref.starts_with("refs/heads/") || remote_ref.starts_with("refs/tags/");
+        if is_face_ref && local_sha != ZERO_SHA {
+            if remote_ref.starts_with("refs/tags/") {
+                commits.push(peel_commit(local_sha)?);
+            } else {
+                commits.push(local_sha.to_owned());
+            }
         }
     }
-    Ok(shas)
+    Ok(commits)
+}
+
+/// Peel an annotated tag object to its commit so the HEAD-equality certification applies to the
+/// commit the tag introduces (lightweight tags already point at a commit).
+fn peel_commit(sha: &str) -> Result<String, String> {
+    let arg = format!("{sha}^{{commit}}");
+    git_capture(None, &["rev-parse", arg.as_str()])
 }
 
 fn head_sha() -> Result<String, String> {
@@ -195,13 +220,23 @@ fn install(args: &[String]) -> Result<String, String> {
     // configured at global/system scope is refused: installing into a shared directory would
     // run this repository's verifier for every repository owned by the user.
     let hooks_dir = resolve_hooks_dir(&root)?;
+    // Per-worktree generation: the pinned tools + manifest for THIS checkout live under a
+    // worktree-keyed subdirectory of the (possibly shared) hooks dir, so linked worktrees at
+    // different generator sources never replace each other's sole generation.
+    let generation_dir = hooks_dir.join(format!(
+        "oya-pre-push-generation-{}",
+        pre_push_generation_key(&root)?
+    ));
 
     let exe = env::current_exe().map_err(|error| format!("resolve current executable: {error}"))?;
     let dest = hooks_dir.join("pre-push");
-    // Allow REPLACING a prior oya installation (the manifest next to it marks it as ours): a
-    // protocol bump builds a byte-different verifier, and refusing would block the very reinstall
-    // the handshake demands. Refuse only a pre-push that is NOT marked as ours.
-    let is_prior_oya_install = hooks_dir.join(PRE_PUSH_VERIFIER_MANIFEST_FILE).exists();
+    // Replacement permission is bound to the INSTALLED HOOK's identity, not the manifest's mere
+    // existence: the manifest records the hook binary's fingerprint, so a manifest left behind
+    // after the user swapped in another tool's hook cannot authorize an overwrite of unrelated
+    // user hook state. A protocol bump builds a byte-different verifier, and the recorded
+    // fingerprint matches the CURRENT hook (our own binary), so reinstalls keep working.
+    let is_prior_oya_install =
+        manifest_owns_installed_hook(&generation_dir, &dest).unwrap_or(false);
     if dest.exists() && !is_prior_oya_install && !files_equal(&dest, &exe)? {
         return Err(format!(
             "refusing to overwrite {}: an unrelated pre-push hook is installed there; move it aside or remove it first (the oya verifier never replaces unrelated user hook state)",
@@ -214,13 +249,17 @@ fn install(args: &[String]) -> Result<String, String> {
     // old manifest is invalidated BEFORE any pinned tool is overwritten, so an interruption
     // mid-generation leaves no valid manifest and the hook fails closed with a reinstall
     // requirement instead of executing a mixed old/new tool set against a stale manifest.
-    let manifest_path = hooks_dir.join(PRE_PUSH_VERIFIER_MANIFEST_FILE);
+    let manifest_path = generation_dir.join(PRE_PUSH_VERIFIER_MANIFEST_FILE);
     let _ = std::fs::remove_file(&manifest_path);
-    let tools_dir = hooks_dir.join(PRE_PUSH_VERIFIER_TOOLS_DIR);
+    let tools_dir = generation_dir.join(PRE_PUSH_VERIFIER_TOOLS_DIR);
     install_pre_push_verifier_tools(&root, &tools_dir).map_err(|error| error.to_string())?;
 
-    std::fs::create_dir_all(&hooks_dir)
-        .map_err(|error| format!("create hooks dir {}: {error}", hooks_dir.display()))?;
+    std::fs::create_dir_all(&generation_dir).map_err(|error| {
+        format!(
+            "create generation dir {}: {error}",
+            generation_dir.display()
+        )
+    })?;
     std::fs::copy(&exe, &dest)
         .map_err(|error| format!("copy {} -> {}: {error}", exe.display(), dest.display()))?;
     #[cfg(unix)]
@@ -233,7 +272,7 @@ fn install(args: &[String]) -> Result<String, String> {
         std::fs::set_permissions(&dest, perms)
             .map_err(|error| format!("chmod {}: {error}", dest.display()))?;
     }
-    write_pre_push_verifier_manifest(&hooks_dir, &tools_dir, &root)
+    write_pre_push_verifier_manifest(&generation_dir, &tools_dir, &root, &dest)
         .map_err(|error| error.to_string())?;
 
     Ok(format!(
@@ -243,10 +282,19 @@ fn install(args: &[String]) -> Result<String, String> {
     ))
 }
 
-/// Resolve the hooks dir, preserving a LOCAL `core.hooksPath`. Refuses when the configured path
-/// points INSIDE the checked-out tree (a branch-controlled hook location) or comes from global/
-/// system scope (a shared directory that would run this verifier for every repo). The git
-/// metadata dir (`.git/`) is never part of the checked-out tree, so a configured path inside it
+/// Per-worktree generation key: FNV-1a of the canonical worktree root. Linked worktrees of one
+/// repository resolve to DIFFERENT canonical roots, so each worktree gets its own pinned-tool
+/// generation + manifest instead of all worktrees fighting over one shared mutable installation.
+fn pre_push_generation_key(repo_root: &Path) -> Result<String, String> {
+    let canonical = std::fs::canonicalize(repo_root)
+        .map_err(|error| format!("canonicalize repo root {}: {error}", repo_root.display()))?;
+    Ok(fnv1a64_hex(canonical.to_string_lossy().as_bytes()))
+}
+
+/// Resolve the hooks dir, preserving a LOCAL or WORKTREE-scoped `core.hooksPath`. Refuses when the
+/// configured path points INSIDE the checked-out tree (a branch-controlled hook location) or comes
+/// from global/system scope (a shared directory that would run this verifier for every repo). The
+/// git metadata dir (`.git/`) is never part of the checked-out tree, so a configured path inside it
 /// (e.g. an explicit `core.hooksPath` equal to git's default) is accepted.
 fn resolve_hooks_dir(repo_root: &Path) -> Result<PathBuf, String> {
     let local = git_capture_optional(
@@ -259,7 +307,22 @@ fn resolve_hooks_dir(repo_root: &Path) -> Result<PathBuf, String> {
             "core.hooksPath",
         ],
     )?;
-    match local {
+    // With `extensions.worktreeConfig` enabled, `core.hooksPath` can be configured with
+    // `git config --worktree`; Git honors that per-worktree value, so it is repository-owned just
+    // like `--local`. git_capture_optional returns None when the `--worktree` scope is unavailable
+    // (the extension is unset), in which case we fall through exactly as before.
+    let worktree = git_capture_optional(
+        Some(repo_root),
+        &[
+            "config",
+            "--type=path",
+            "--worktree",
+            "--get",
+            "core.hooksPath",
+        ],
+    )?;
+    let configured = local.or(worktree);
+    match configured {
         Some(existing) if !existing.trim().is_empty() => {
             let existing = PathBuf::from(existing.trim());
             let existing = absolutize(repo_root, &existing);
@@ -281,8 +344,9 @@ fn resolve_hooks_dir(repo_root: &Path) -> Result<PathBuf, String> {
             Ok(existing)
         }
         _ => {
-            // No LOCAL hooks path. A global/system one would be a shared directory — installing
-            // there would execute this repository's verifier for every repository the user owns.
+            // No LOCAL or WORKTREE hooks path. A global/system one would be a shared directory —
+            // installing there would execute this repository's verifier for every repository the
+            // user owns.
             let any_scope = git_capture_optional(
                 Some(repo_root),
                 &["config", "--type=path", "--get", "core.hooksPath"],
