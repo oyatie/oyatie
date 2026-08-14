@@ -85,11 +85,12 @@ exclude = [
   # `kernel` and `cloud/cloud-kernel` are their own workspaces (ADR-0512 carve-out) — excluded
   # because they are separate roots, not because a glob over-matched them.
   #
-  # `ci/facade/automation-language-policy`, `ci/facade/harness`, and `storage/adapters/nativelink`
-  # are directories the layer globs match that hold no [package] manifest
-  # (automation-language-policy is a buck2-only gate home; harness holds process-kit JSON
-  # mirrors only; nativelink is the dark NativeLink CAS/AC k8s declaration + OWNERS
+  # `ci/facade/harness` and `storage/adapters/nativelink` are directories the layer globs
+  # match that hold no [package] manifest (harness holds process-kit JSON mirrors only;
+  # nativelink is the dark NativeLink CAS/AC k8s declaration + OWNERS
   # seed rehomed by CAS Lane 3A / specs/reorg/nativelink-storage-move-plan.json).
+  # (ci/facade/automation-language-policy gained a Cargo manifest with ADR-0712 so the
+  # rust-first ratchet is enforced by the cargo merge path.)
   #
   # `governance/check/integ-envelope` is matched by `governance/check/*` but holds only
   # judgments/waivers DATA (no [package] manifest) — exclude so cargo/freshness resolve.
@@ -98,7 +99,6 @@ exclude = [
   # they existed solely because `<cap>/*/*` matched satellite directories, and the layer globs
   # above do not match them. That is the point of the change — a capability move no longer adds
   # an exclusion for satellite dirs outside the four faces.
-  "ci/facade/automation-language-policy",
   "ci/facade/harness",
   "cloud/cloud-kernel",
   "governance/check/integ-envelope",

@@ -1472,24 +1472,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "ci-automation-language-policy"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+ "serde_yaml",
+ "toml 0.8.23",
+]
+
+[[package]]
 name = "ci-baseline-ratchet"
 version = "0.1.0"
 dependencies = [
  "reqwest 0.13.4",
  "serde_json",
- "sha2",
-]
-
-[[package]]
-name = "ci-build-cache-policy"
-version = "0.1.0"
-dependencies = [
- "prost",
- "rcgen",
- "reqwest 0.13.4",
- "rustls",
- "serde_json",
- "serde_yaml",
  "sha2",
 ]
 

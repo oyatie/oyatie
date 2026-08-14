@@ -25,7 +25,7 @@ const PROTECTED_BASE_REF: &str = "origin/dev";
 const POLICY_REPO_PATH: &str =
     "ci/facade/automation-language-policy/rust-first-automation-policy.json";
 
-pub const VIOLATION_CODES: [&str; 19] = [
+pub const VIOLATION_CODES: [&str; 20] = [
     "rust_first_automation_gate_id_mismatch",
     "rust_first_automation_exception_duplicate",
     "rust_first_automation_exception_missing_field",
@@ -65,6 +65,10 @@ pub const VIOLATION_CODES: [&str; 19] = [
     // Candidate policy must not narrow the merge-base scan surface to hide new debt while
     // shrinking its matching baseline.
     "rust_first_automation_scan_scope_narrowing",
+    // Reviewed-replacement window (ADR-0716): a deliberate CI redesign replaces the whole
+    // inline-shell baseline; the window must carry a strictly higher schema_version plus a
+    // non-empty reason and ADR. The PR review is the admission control.
+    "rust_first_automation_workflow_inline_shell_replacement_window_incomplete",
 ];
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -648,6 +652,33 @@ pub fn validate_workflow_inline_shell_baseline_ceiling(
     protected_baseline: &Value,
 ) -> BTreeSet<Finding> {
     let mut findings = BTreeSet::new();
+    // ADR-0716 reviewed-replacement window: a deliberate CI redesign may replace the whole
+    // inline-shell baseline by declaring `replacement_window` with a strictly higher
+    // schema_version plus a non-empty reason and ADR. The PR review is the admission
+    // control; without the window the ceiling stays shrink-only (one-way door).
+    if let Some(window) = candidate_baseline.get("replacement_window") {
+        let candidate_version = window
+            .get("schema_version")
+            .and_then(Value::as_u64)
+            .unwrap_or(0);
+        let protected_version = protected_baseline
+            .get("replacement_window")
+            .and_then(|w| w.get("schema_version"))
+            .and_then(Value::as_u64)
+            .unwrap_or(0);
+        if candidate_version > protected_version {
+            let reason = window.get("reason").and_then(Value::as_str).unwrap_or_default();
+            let adr = window.get("adr").and_then(Value::as_str).unwrap_or_default();
+            if reason.is_empty() || adr.is_empty() {
+                findings.insert(Finding::new(
+                    "rust_first_automation_workflow_inline_shell_replacement_window_incomplete",
+                    "replacement_window",
+                    "a reviewed baseline replacement must carry a non-empty reason and adr",
+                ));
+            }
+            return findings;
+        }
+    }
     let candidate_entries = baseline_workflow_shell_entries(candidate_baseline, &mut findings);
     let protected_entries = baseline_workflow_shell_entries(protected_baseline, &mut findings);
 

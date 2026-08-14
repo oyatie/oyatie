@@ -407,40 +407,43 @@ fn retirement_event_transport_delegates_provider_tuple_to_rust_materializer_with
     }
     let materialize = named_workflow_step(
         &workflow_doc,
-        "producer-regen",
-        "Materialize cloud-ci generated faces",
+        "test",
+        "Materialize generated faces",
     );
     let run = materialize
         .get("run")
         .and_then(YamlValue::as_str)
-        .expect("producer materializer must be a Rust-owned run step");
+        .expect("materializer must be a Rust-owned run step");
     assert!(
-        run.contains("buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root . --github-event"),
+        run.contains("cargo run -p ci-generated-artifact-freshness --bin oya-cloud-ci-materialize-generated-faces -- --repo-root . --github-event"),
         "the one-line Rust materializer must own provider-tuple interpretation"
     );
     for forbidden in ["if [", "case ", "git ", "HEAD^", "rev-list", "cat-file"] {
         assert!(
             !run.contains(forbidden),
-            "producer shell must not own branching or git topology command {forbidden:?}"
+            "materializer shell must not own branching or git topology command {forbidden:?}"
         );
     }
 
-    let census_gate = named_workflow_step(&workflow_doc, "gate", "buck2 test ${{ matrix.crate }}");
-    let census_gate_run = census_gate
+    let workspace_tests = named_workflow_step(&workflow_doc, "test", "Workspace tests");
+    let workspace_tests_run = workspace_tests
         .get("run")
         .and_then(YamlValue::as_str)
-        .expect("scm-facts census receipt gate must be a Rust-owned run step");
+        .expect("the workspace test step must be a Rust-owned run step");
     assert!(
-        census_gate_run.contains(
-            "buck2 run //ci/facade/scm-facts-snapshot:adr-census-epoch-receipt-gate-bin -- --repo-root . --github-event"
-        ),
-        "the live scm-facts census receipt gate must retain provider-event identity"
+        workspace_tests_run.contains("cargo test --workspace"),
+        "the gate fleet, scm-facts census receipt included, must run under the cargo workspace tests"
+    );
+    assert!(
+        !workflow.contains("matrix.crate"),
+        "the buck2 gate matrix is retired; no buck2 test step may survive in the merge path"
     );
 
     for line in workflow.lines().filter(|line| {
         (line.contains("oya-cloud-ci-materialize-generated-faces-bin -- --repo-root .")
+            || line.contains("oya-cloud-ci-materialize-generated-faces -- --repo-root ."))
             && !line.contains("--help")
-            && !line.contains("historical_retirement_args"))
+            && !line.contains("historical_retirement_args")
             || line.contains("\"${freshness_bin}\" --repo-root .")
             || line.contains("\"${materializer_bin}\" --repo-root .")
     }) {
@@ -1537,40 +1540,57 @@ fn live_workflow_uses_do_not_reintroduce_setup_buck2_action() {
 }
 
 #[test]
-fn docs_graph_drift_consumes_the_installer_reported_buck2_path() {
+fn weekly_smoke_consumes_the_installer_and_the_drift_adapter_is_retired() {
     let root = repo_root();
-    let workflow_path = root.join(".github/workflows/docs-graph-drift.yml");
+    let drift_path = root.join(".github/workflows/docs-graph-drift.yml");
+    assert!(
+        !drift_path.exists(),
+        "the docs-graph-drift adapter is retired; generator golden tests run under cargo test --workspace"
+    );
+    let workflow_path = root.join(".github/workflows/buck2-weekly-smoke.yml");
     let workflow = fs::read_to_string(&workflow_path)
         .unwrap_or_else(|error| panic!("read {}: {error}", workflow_path.display()));
     let workflow_doc: YamlValue = serde_yaml::from_str(&workflow)
         .unwrap_or_else(|error| panic!("parse {}: {error}", workflow_path.display()));
-    let step = named_workflow_step(
+
+    let install = named_workflow_step(
         &workflow_doc,
-        "docs-graph-drift",
-        "Materialize de-committed inputs, build + test the generator",
+        "buck2-weekly-smoke",
+        "Install pinned buck2 (digest-verified)",
     );
-    let run = step
+    let run = install
         .get("run")
         .and_then(YamlValue::as_str)
-        .expect("docs graph drift materializer must be a run step");
-    let installer = run
-        .find("infra/ci/install-buck2.sh")
-        .expect("docs graph drift must invoke the repo-owned Buck2 installer");
-    let path_binding = run
-        .find(r#"PATH="$(tail -n1 "${GITHUB_PATH}"):${PATH}"; export PATH"#)
-        .expect("the same step must consume the installer's final GITHUB_PATH entry");
-
+        .expect("weekly smoke installer must be a run step");
     assert!(
-        installer < path_binding,
-        "the workflow must invoke the installer before consuming its reported path"
+        run.contains("infra/ci/install-buck2.sh"),
+        "the weekly smoke must invoke the repo-owned Buck2 installer"
+    );
+    let build = named_workflow_step(
+        &workflow_doc,
+        "buck2-weekly-smoke",
+        "Hermetic workspace build",
     );
     assert!(
-        !run.lines().any(|line| {
-            let line = line.trim_start();
-            (line.starts_with("PATH=") || line.starts_with("export PATH="))
-                && line.contains("/sha256-")
-        }),
-        "same-step Buck2 PATH binding must not duplicate a digest-qualified installer path"
+        build
+            .get("run")
+            .and_then(YamlValue::as_str)
+            .is_some_and(|run| run.contains("buck2 build //...")),
+        "the weekly smoke must build the full hermetic graph"
+    );
+    let steps = workflow_doc["jobs"]["buck2-weekly-smoke"]["steps"]
+        .as_sequence()
+        .expect("weekly smoke job steps must be a sequence");
+    let index_of = |name: &str| {
+        steps
+            .iter()
+            .position(|step| step["name"].as_str() == Some(name))
+            .unwrap_or_else(|| panic!("weekly smoke must carry step {name}"))
+    };
+    assert!(
+        index_of("Install pinned buck2 (digest-verified)")
+            < index_of("Hermetic workspace build"),
+        "the installer must run before the hermetic build"
     );
 }
 
