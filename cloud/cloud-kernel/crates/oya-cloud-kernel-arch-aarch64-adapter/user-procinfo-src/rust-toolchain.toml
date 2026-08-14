@@ -1,9 +1,0 @@
-# Match the kernel toolchain: we need `-Z build-std` (nightly-only) to
-# cross-compile `core` for the bare-metal aarch64 target, plus `rust-src` so the
-# sources are available, and `llvm-tools` for objcopy/readelf-style inspection.
-[toolchain]
-channel = "nightly-2026-02-28"
-components = ["rust-src", "rustfmt", "clippy", "llvm-tools"]
-targets = [
-    "aarch64-unknown-none-softfloat",
-]
