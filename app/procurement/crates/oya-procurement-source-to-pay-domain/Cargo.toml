@@ -1,8 +1,8 @@
 [package]
 name = "oya-procurement-source-to-pay-domain"
-edition.workspace = true
-version.workspace = true
-rust-version.workspace = true
+edition = "2024"
+version = "0.1.0"
+rust-version = "1.97.1"
 publish = false
 license = "Apache-2.0"
 
@@ -14,5 +14,25 @@ name = "oya_procurement_source_to_pay_domain"
 path = "src/lib.rs"
 doctest = false
 
-[lints]
-workspace = true
+[lints.rust]
+dead_code = "allow"
+unused_imports = "allow"
+
+[lints.clippy]
+unwrap_used = "allow"
+expect_used = "allow"
+panic = "allow"
+
+# Parked crate (integ/procurement absorb, PR #1672): this copy is EXCLUDED from the root
+# workspace until the integ/oya drain deletes the retained oya/crm source and app/*/crates/*
+# membership flips (app/procurement/REORG-DRAIN.md) — cargo forbids two workspace members with
+# the same package name while the legacy copy lives. Excluded manifests cannot resolve
+# `edition.workspace` / `version.workspace` / `rust-version.workspace` / `[lints] workspace`,
+# so the values the root workspace would otherwise supply are stated concretely here and this
+# manifest declares itself a nested workspace root: `cargo test --manifest-path
+# app/procurement/crates/oya-procurement-source-to-pay-domain/Cargo.toml --test source_to_pay`
+# (and `cargo test -p` run from inside this directory) both resolve. Mirror of the root
+# workspace baseline: edition 2024, version 0.1.0, rust-version 1.97.1, relaxed rust/clippy
+# lint baseline.
+[workspace]
+resolver = "2"
