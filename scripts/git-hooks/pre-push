@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+# scripts/git-hooks/pre-push — git-level automation layer in front of the CI backstop.
+#
+# Canonical protocol (docs/oya-ci/gate-catalog.md, FRIC-1781250000 / ADR-0552):
+# `oya-cloud-ci-face-settle --verify` is the REQUIRED last step before EVERY push.
+# It is read-only (never writes to the repository): against a working tree asserted
+# byte-identical to HEAD it regenerates the generated faces and runs the freshness
+# gate's own full check, exiting nonzero with the stale list and exact remediation.
+#
+# This hook runs that step for every branch push. It is the automation-default
+# LOCAL check (ADR-0548 D6) — the cloud-ci freshness gate behind `oya-ci-required`
+# remains the canonical enforcement backstop, never a substitute.
+#
+# Wire into a clone: `git config core.hooksPath scripts/git-hooks`.
+# No bypass path exists by design
+# (docs/AGENTS.md: no hook bypass — a failing hook means the underlying issue,
+# fix the faces, not the hook).
+set -u
+
+# 1. Only branch pushes trigger verification; tag pushes and branch deletions carry
+#    no face-relevant commit to verify.
+branch_push=0
+while read -r local_ref local_sha remote_ref remote_sha; do
+  case "$remote_ref" in
+    refs/heads/*)
+      case "$local_sha" in
+        0000000000000000000000000000000000000000) ;; # deletion: nothing to verify
+        *) branch_push=1 ;;
+      esac
+      ;;
+  esac
+done
+[ "$branch_push" -eq 1 ] || exit 0
+
+# 2. Local-bridge posture: without buck2 there is nothing to run locally; the CI
+#    freshness gate remains the merge backstop, so never block a push the local
+#    toolchain cannot judge.
+if ! command -v buck2 >/dev/null 2>&1; then
+  printf '%s\n' \
+    'pre-push: buck2 not found; skipping local face-settle --verify (the cloud-ci freshness gate in oya-ci-required still applies).'
+  exit 0
+fi
+
+root="$(git rev-parse --show-toplevel)" || exit 1
+cd "$root" || exit 1
+
+# 3. The verify itself. --verify is read-only and relays its own per-face stale
+#    list and exact remediation commands; this hook only frames them.
+buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-face-settle-bin \
+  -- --repo-root "$root" --verify
+status=$?
+if [ "$status" -ne 0 ]; then
+  printf '\n%s\n' \
+    'pre-push: face-settle --verify FAILED — push blocked.'
+  printf '%s\n' \
+    'Settle the faces (and/or the lock) with the commands printed above, per docs/oya-ci/gate-catalog.md; commit, then push again. Do not bypass the hook (docs/AGENTS.md).'
+fi
+exit "$status"
