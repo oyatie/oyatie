@@ -695,6 +695,13 @@
         "reason": "Bridge after #1643: sole lock writer moves to integ/build; expire on integ/build first lock-owning land.",
         "waiver_file": "governance/check/integ-envelope/waivers/integ-os-cargo-lock-bridge.yaml",
         "expires_at_or_wave": "wave-after-integ-build-first-land"
+      },
+      {
+        "branch": "integ/hr",
+        "hub": "governance/capability-registry.json",
+        "reason": "Membership-lint admission for app/hr (membership_lint_coverage.app_products.current_dirs += app/hr): gate-required for ci-module-membership (MEM-NEW-UNMAPPED-CRATE) on the absorb PR while the source stays live; registry itself remains sole-owned by the hub process.",
+        "waiver_file": "governance/check/integ-envelope/waivers/integ-hr-capability-registry-absorb.yaml",
+        "expires_at_or_wave": "wave-after-integ-hr-drain"
       }
     ],
     "_waiver_expiry_rule": "Every active_waivers row MUST carry expires_at_or_wave. Claim REFUSES a hub edit authorized only by a waiver whose expires_at_or_wave wave has already landed (or whose calendar expiry is past). Bootstrap waivers die at the named wave."
@@ -839,6 +846,12 @@
         "claiming_branch": "integ/specs",
         "reason": "Bootstrap residual: lifecycle-kernel consumer update coupled to specs/lifecycle-configs absorption on integ/specs.",
         "expires_at_or_wave": "wave-after-integ-specs-bootstrap-land"
+      },
+      {
+        "path_glob": "Cargo.toml",
+        "claiming_branch": "integ/hr",
+        "reason": "ADR-0538 workspace exclude for app/hr/crates on the absorb PR (gate-required for cloud-ci-workspace-glob-coverage: crate_dir_not_covered) while the legacy oya/hr copies remain members; membership flips to app/*/crates/* on the integ/oya drain.",
+        "expires_at_or_wave": "wave-after-integ-hr-drain"
       }
     ]
   },
