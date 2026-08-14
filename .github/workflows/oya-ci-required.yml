@@ -114,7 +114,7 @@ jobs:
         # `shell: bash` is load-bearing: the default shell on windows runners is
         # PowerShell, which cannot parse the `host=$(...)` bashism.
         shell: bash
-        run: host=$(rustc -vV | awk '/^host/{print $2}') && rustup component add clippy rustfmt --toolchain 1.97.1-$host && rustup component add clippy rustfmt --toolchain 1.97.1 && rustc --version
+        run: host=$(rustc -vV | awk '/^host/{print $2}') && rustup component add --toolchain 1.97.1-$host cargo clippy rustfmt rust-std rustc && rustup component add --toolchain 1.97.1 cargo clippy rustfmt rust-std rustc && rustup default 1.97.1 && rustc --version
       # Materialize generated faces before tests: several gate crates consume them.
       - name: Materialize generated faces
         run: cargo run --locked -p ci-generated-artifact-freshness --bin oya-cloud-ci-materialize-generated-faces -- --repo-root . --github-event
@@ -283,7 +283,7 @@ jobs:
         # `shell: bash` is load-bearing: the default shell on windows runners is
         # PowerShell, which cannot parse the `host=$(...)` bashism.
         shell: bash
-        run: host=$(rustc -vV | awk '/^host/{print $2}') && rustup component add clippy rustfmt --toolchain 1.97.1-$host && rustup component add clippy rustfmt --toolchain 1.97.1 && rustc --version
+        run: host=$(rustc -vV | awk '/^host/{print $2}') && rustup component add --toolchain 1.97.1-$host cargo clippy rustfmt rust-std rustc && rustup component add --toolchain 1.97.1 cargo clippy rustfmt rust-std rustc && rustup default 1.97.1 && rustc --version
       - name: Materialize generated faces
         run: cargo run --locked -p ci-generated-artifact-freshness --bin oya-cloud-ci-materialize-generated-faces -- --repo-root . --github-event
       - name: Cross-platform smoke tests
