@@ -3,85 +3,11 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use audit_file_adapter::FileAuditLedger;
-use check_pr_traceability::{
-    PrTraceabilityDocument, PrTraceabilityPolicy, validate_pr_traceability,
-};
 use oya_intelligence_bypass_domain::{
     AutonomyBreakGlassInput, AutonomyTier, BypassLedger, BypassLedgerRecord, FoundationBypassInput,
 };
 
 use crate::{current_epoch_days, parse_u32_field, parse_u64_field, usage};
-
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub(crate) struct PrTraceabilityValidateArgs {
-    pr_body_path: PathBuf,
-    pr_title: String,
-    require_code_review: bool,
-    forbid_code_review: bool,
-}
-
-pub(crate) fn parse_pr_traceability_validate_args(
-    args: Vec<String>,
-) -> Result<PrTraceabilityValidateArgs, String> {
-    let mut parsed = PrTraceabilityValidateArgs {
-        pr_body_path: PathBuf::from("docs/templates/pull-request-template.md"),
-        pr_title: String::new(),
-        require_code_review: true,
-        forbid_code_review: false,
-    };
-    let mut iter = args.into_iter();
-    while let Some(flag) = iter.next() {
-        match flag.as_str() {
-            "--pr-body" => {
-                let Some(path) = iter.next() else {
-                    return Err(usage());
-                };
-                parsed.pr_body_path = PathBuf::from(path);
-            }
-            "--pr-title" => {
-                let Some(title) = iter.next() else {
-                    return Err(usage());
-                };
-                parsed.pr_title = title;
-            }
-            "--require-code-review" => {
-                parsed.require_code_review = true;
-                parsed.forbid_code_review = false;
-            }
-            "--forbid-code-review" => {
-                parsed.forbid_code_review = true;
-                parsed.require_code_review = false;
-            }
-            _ => return Err(usage()),
-        }
-    }
-    Ok(parsed)
-}
-
-pub(crate) fn validate_pr_traceability_gate(
-    args: PrTraceabilityValidateArgs,
-) -> Result<(usize, bool), String> {
-    let body = fs::read_to_string(&args.pr_body_path).map_err(|error| {
-        format!(
-            "PR traceability body unreadable {}: {error}",
-            args.pr_body_path.display()
-        )
-    })?;
-    let document = PrTraceabilityDocument {
-        document_id: args.pr_body_path.display().to_string(),
-        title: args.pr_title,
-        body,
-    };
-    let report = validate_pr_traceability(
-        &document,
-        PrTraceabilityPolicy {
-            require_code_review: args.require_code_review,
-            forbid_code_review: args.forbid_code_review,
-        },
-    )
-    .map_err(|error| format!("PR traceability invalid: {error:?}"))?;
-    Ok((report.required_sections_checked, report.code_review_present))
-}
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct FoundationBypassValidateArgs {
