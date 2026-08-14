@@ -1,6 +1,6 @@
 ---
 doc_status: published
-id: ADR-0718
+id: ADR-0719
 title: "Cargo CI producer env parity: materialized-face and ADR-index producer env vars"
 status: Accepted
 planning_impact: true
@@ -16,17 +16,17 @@ depends_on: [ADR-0716]
 related: [ADR-0515]
 milestone: W0
 deliverables:
-  - id: ADR-0718-D1
+  - id: ADR-0719-D1
     description: "The new cargo workflow's test job must set the two env keys two fail-closed cross-artifact tests require: OYA_HISTORY_ONLY_RETIREMENT_FACTS (the materialized history-only retirement facts face path) and OYA_ADR_INDEX_PRODUCER_BIN (the sanctioned ADR-index producer binary). Both are job-level env, not run-step env."
     exit_criteria: "The test job env block declares both keys; the fail-closed cross-artifact tests resolve the materialized face and exec the producer binary without local overrides."
     verified_by: "cargo test --workspace with the CI env on the PR head"
-  - id: ADR-0718-D2
+  - id: ADR-0719-D2
     description: "The 'Build enforcement-liveness producer' step also builds the ADR-index producer binary (`cargo build --locked -p marketplace-dev-cli --bin oya`) so OYA_ADR_INDEX_PRODUCER_BIN resolves in the same step that already builds the accounting-registry producer."
     exit_criteria: "The step run builds both binaries; the automation-language-policy inline-shell baseline accepts the step's run-content change through a reviewed replacement window (schema_version +1, substantive reason, this ADR)."
     verified_by: "ci-automation-language-policy live-corpus tests on the PR head"
 ---
 
-# ADR-0718: Cargo CI producer env parity: materialized-face and ADR-index producer env vars
+# ADR-0719: Cargo CI producer env parity: materialized-face and ADR-index producer env vars
 
 ## Status
 

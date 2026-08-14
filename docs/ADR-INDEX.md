@@ -12,8 +12,8 @@ doc_status: published
 ## At-a-glance
 
 - **Total ADRs:** 19
-- **Numbering:** contiguous ADR-0700..ADR-0718 (gap-free)
-- **Next ADR number:** 0719
+- **Numbering:** ADR-0700..ADR-0719 (non-contiguous; gaps: 0718)
+- **Next ADR number:** 0720
 - **Status counts:** Accepted 14, Proposed 5
 - **Legacy retirement:** see [`ADR-LEGACY-REGRESSION-MAPPING.md`](ADR-LEGACY-REGRESSION-MAPPING.md).
 
@@ -39,14 +39,22 @@ doc_status: published
 | ADR-0715 | Proposed | F1 Admission package — ADR-0710 Accept/Reject blocked on D-8 | council-architecture | [`ADR-0715-f1-admission-adr-0710-d8-gate.md`](decisions/ADR-0715-f1-admission-adr-0710-d8-gate.md) |
 | ADR-0716 | Accepted | Cargo is the CI merge path; buck2 is local hermeticity plus a weekly smoke | council-architecture | [`ADR-0716-cargo-merge-path-buck2-local-hermeticity.md`](decisions/ADR-0716-cargo-merge-path-buck2-local-hermeticity.md) |
 | ADR-0717 | Accepted | Corpus-budget sprawl ratchet | council-architecture | [`ADR-0717-corpus-budget-shrink-only-ratchet.md`](decisions/ADR-0717-corpus-budget-shrink-only-ratchet.md) |
-| ADR-0718 | Accepted | Cargo CI producer env parity: materialized-face and ADR-index producer env vars | council-architecture | [`ADR-0718-cargo-ci-producer-env-parity.md`](decisions/ADR-0718-cargo-ci-producer-env-parity.md) |
+| ADR-0719 | Accepted | Cargo CI producer env parity: materialized-face and ADR-index producer env vars | council-architecture | [`ADR-0719-cargo-ci-producer-env-parity.md`](decisions/ADR-0719-cargo-ci-producer-env-parity.md) |
 
 ## Update protocol
 
 - Per-event + monthly per `doc.adr_index` row in [`DOC-CATALOG.md`](DOC-CATALOG.md).
-- New ADRs land via [`templates/adr-template.md`](templates/adr-template.md) and use the next available number (0719), unless an explicit reserved-number ADR is being filled.
+- New ADRs land via [`templates/adr-template.md`](templates/adr-template.md) and use the next available number (0720), unless an explicit reserved-number ADR is being filled.
 - Per-ADR amendments preserve the original ADR number; the amended ADR cites its original date and links to the amending PR.
 - Supersession is recorded in the per-ADR header and mirrored here on regeneration.
+
+## Deleted / unassigned ADR numbers
+
+The directory is intentionally non-contiguous. Every existing `docs/decisions/ADR-*.md` file is included in the table and machine-readable mirror; the following gaps are not counted as ADR files.
+
+| Number range | Reason |
+|---|---|
+| 0718 | Not represented by a `docs/decisions/ADR-*.md` file; reserved, deleted, or retired. |
 
 ## Sources scanned
 

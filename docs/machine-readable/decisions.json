@@ -7,9 +7,9 @@
   "_metadata": {
     "source": "docs/decisions",
     "total_adrs": 19,
-    "numbering": "contiguous ADR-0700..ADR-0718 (gap-free)",
-    "gaps": [],
-    "next_adr": "ADR-0719",
+    "numbering": "ADR-0700..ADR-0719 (non-contiguous; gaps: ADR-0718)",
+    "gaps": ["ADR-0718"],
+    "next_adr": "ADR-0720",
     "status_counts": {
       "Accepted": 14,
       "Proposed": 5
@@ -233,13 +233,13 @@
       "related": ["ADR-0711"]
     },
     {
-      "adr": "ADR-0718",
-      "number": 718,
+      "adr": "ADR-0719",
+      "number": 719,
       "title": "Cargo CI producer env parity: materialized-face and ADR-index producer env vars",
       "status": "Accepted",
       "owner": "council-architecture",
       "date": "2026-08-14",
-      "path": "decisions/ADR-0718-cargo-ci-producer-env-parity.md",
+      "path": "decisions/ADR-0719-cargo-ci-producer-env-parity.md",
       "supersedes": [],
       "superseded_by": [],
       "related": ["ADR-0515"]
