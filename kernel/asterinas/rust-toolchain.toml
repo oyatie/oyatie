@@ -1,0 +1,13 @@
+# ADR-0611 Asterinas nested-workspace toolchain pin (ADR-0512 carve-out).
+#
+# This file exists so the Asterinas workspace keeps the stable toolchain even
+# after the follow-up Kuberos move (specs/reorg/kernel-move-plan.BLOCKED.json)
+# installs its own nightly-2026-02-28 rust-toolchain.toml at kernel/. Rustup
+# resolves the CLOSEST rust-toolchain.toml walking up from the invocation
+# directory, so a closer stable pin here shadows the future parent nightly pin
+# for every command launched under kernel/asterinas/. The pin must match the
+# repo-root stable channel (docs/standards/code-style-rust.md §1).
+[toolchain]
+channel = "1.97.1"
+components = ["rustfmt", "clippy"]
+profile = "minimal"

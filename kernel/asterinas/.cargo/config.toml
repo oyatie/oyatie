@@ -1,0 +1,20 @@
+# ADR-0611 Asterinas nested-workspace cargo config override (ADR-0512 carve-out).
+#
+# The follow-up Kuberos move (specs/reorg/kernel-move-plan.BLOCKED.json) will
+# install kernel/.cargo/config.toml with a bare-metal default target
+# (aarch64-unknown-none-softfloat) plus [unstable] build-std, and a nightly
+# rust-toolchain.toml at kernel/. Cargo merges configuration by walking UP from
+# the invocation directory: this closer file (kernel/asterinas/.cargo/config.toml)
+# is found before the future kernel/.cargo/config.toml, so the values set here
+# take precedence for the stable host-side std harness crates.
+#
+# build.target: re-assert the host default so the std host crates (reqwest +
+# rustls) are NOT built for the parent's bare-metal target. "host-tuple" is the
+# documented Cargo value that substitutes the building machine's target triple.
+#
+# [unstable] build-std: intentionally NOT neutralized here — Cargo only honors
+# the `unstable` config table when nightly features are allowed, and the sibling
+# rust-toolchain.toml (same directory) pins the stable 1.97.1 channel, so the
+# future parent's build-std block is inert for this workspace by construction.
+[build]
+target = "host-tuple"
