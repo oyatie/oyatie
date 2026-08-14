@@ -287,10 +287,16 @@
       "root//ci/facade/cross-artifact-agreement:ci-cross-artifact-agreement-gate",
       "root//ci/facade/baseline-ratchet:ci-baseline-ratchet-gate"
     ],
-    "docs/**": [],
+    "docs/**": [
+      "root//ci/facade/repo-root-hygiene:ci-repo-root-hygiene-gate"
+    ],
     "evidence/reorg/**": [],
-    "**/*.md": [],
-    "**/*.mdx": [],
+    "**/*.md": [
+      "root//ci/facade/repo-root-hygiene:ci-repo-root-hygiene-gate"
+    ],
+    "**/*.mdx": [
+      "root//ci/facade/repo-root-hygiene:ci-repo-root-hygiene-gate"
+    ],
     "specs/reset-eligibility.schema.json": [
       "root//ci/facade/reset-eligibility-policy:ci-reset-eligibility-policy-gate"
     ],
@@ -324,10 +330,8 @@
   "_inert_selection_classes_note": "PREDICATE (1) of the selection-totality assertion: a NON-EMPTY diff that selects NO targets is a target-determination bug, never a pass \u2014 the lane would report success having built and tested NOTHING, i.e. green precisely BECAUSE it checked nothing. This list is the ONLY licence for that outcome: a diff consisting solely of these classes may legitimately select nothing. It used to name the docs/markdown classes; see `_docs_licence_revocation_note` for why that was a merge-authority hole and why they were removed. It is deliberately NOT derived from the `[]` entries in synthetic_dependencies, because those two statements differ \u2014 `synthetic_dependencies[X] = []` says 'X contributes no seed', this list says 'X may be the ENTIRE selection and still pass'. PR #1389 is the proof the split matters: `.github/**: []` was defensible as the first statement and a merge-authority hole as the second (a workflow-only PR resolved to NoGraphTargets and walked past the no-new-shell ratchet). With the split, adding a broad class to synthetic_dependencies as `[]` now FAILS RED naming the path instead of passing green; granting it an empty selection takes a second, single-purpose, reviewed line here. GROWING THIS LIST IS A MERGE-AUTHORITY CHANGE \u2014 an entry asserts the class can affect NO buck2 target whatsoever, and being wrong is silent. Absent field = empty = fail-closed (any non-empty diff that selects nothing is refused).",
   "_evidence_reorg_inert_note": "R-DUAL-0615: evidence/reorg/** is inventory/disposition evidence only; not a buck2 graph input. Markdown under it is covered by the restored **/*.md inert licence (PROCESS_TAX DELETE 2026-08-11); JSON remains synthetic [] + inert.",
   "_docs_licence_revocation_note": "SUPERSEDED 2026-08-11 by Fail-class law / audit 79f76050: docs/markdown classes AGAIN hold the empty-selection licence (see inert_selection_classes). The oyatie-1ld revocation was correct while equality-pinned census was a merge blocker; with that PROCESS_TAX deleted, restoring NoGraphTargets for docs-only is the tip-entitlement law (docs-only / re-freeze commits get no CI entitlement).",
+  "_corpus_budget_synthetic_note": "ADR-0717: docs/markdown classes seed the repo-root-hygiene gate as a synthetic dependency so a docs-only PR still executes the corpus-budget ratchet instead of resolving to NoGraphTargets. Because those classes now AFFECT a buck2 target, they lose their inert-selection licence (the inert list asserts a class can affect NO target).",
   "inert_selection_classes": [
-    "**/*.mdx",
-    "**/*.md",
-    "docs/**",
     "evidence/reorg/**"
   ],
   "default_base_ref": "origin/dev",
