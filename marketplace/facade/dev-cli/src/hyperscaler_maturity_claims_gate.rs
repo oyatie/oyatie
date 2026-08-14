@@ -365,34 +365,36 @@ fn validate_oya_ci_required_branch_protection(
 }
 
 fn validate_oya_ci_required_workflow(workflow: &str) -> Result<(), String> {
+    // ADR-0716 contract: the Cargo workspace graph is the merge path; buck2 is local
+    // hermeticity plus the soft cross-platform smoke's materializer helper. The fan-in
+    // verdict gates on lint, test, and both live-postgres lanes only (cross-platform is
+    // soft by design). Retired CLI/Jenkins authority stays forbidden.
     for expected in [
         "name: oya-ci-required",
         "fail-fast: false",
         "persist-credentials: false",
         "fetch-depth: 0",
-        "Install buck2",
-        "buck2 test //ci/...",
-        "gate-registration meta-test",
+        "Install pinned buck2 (digest-verified)",
+        "cargo test --locked --workspace",
         "generated-output-diff-policy",
-        "oya-ci-required: GREEN",
-        "oya-ci-required: RED",
+        "Fan-in verdict",
     ] {
         require_contains(workflow, expected, "oya-ci-required workflow contract")?;
     }
     require_contains(
         workflow,
-        "needs:\n      - gate",
-        "oya-ci-required fan-in must depend on the gate matrix",
+        "needs: [lint, test, live-postgres-adapters, live-postgres-facades, cross-platform-smoke]",
+        "oya-ci-required fan-in must depend on lint, test, and both live-postgres lanes",
     )?;
     require_contains(
         workflow,
-        "- buck2",
-        "oya-ci-required fan-in must include the Buck2 hermetic lane",
+        "Materialize generated faces",
+        "oya-ci-required workflow must materialize generated faces before gate consumption",
     )?;
     require_contains(
         workflow,
-        "Materialize cloud-ci generated faces",
-        "oya-ci-required workflow must materialize cloud-ci faces before gate consumption",
+        "cross-platform-smoke",
+        "oya-ci-required fan-in must include the soft cross-platform smoke lane",
     )?;
     for forbidden in [
         "cargo run -q -p oya-dev-cli",
@@ -402,11 +404,12 @@ fn validate_oya_ci_required_workflow(workflow: &str) -> Result<(), String> {
         "oya verify",
         "infra/ci/jenkins/pipeline-closure-contract.md",
         "Jenkinsfile",
+        "buck2 test //ci/...",
     ] {
         require_absent(
             workflow,
             forbidden,
-            "oya-ci-required workflow must not use retired CLI/Jenkins authority",
+            "oya-ci-required workflow must not use retired CLI/Jenkins/buck2-merge authority",
         )?;
     }
     Ok(())
