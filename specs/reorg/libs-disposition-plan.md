@@ -30,11 +30,11 @@ Confidence: HIGH (single consumer domain / charter-named) · MEDIUM (judgment, r
 | oya-shared-pdp-kernel (6) | iam, tenancy | `policy/` capability root (24th; Cedar PDP decision-plane kernel). Registry amendment: policy.absorbs gains `libs/oya-shared-pdp-kernel` pre-move; iam physical PDP crates stay iam-mapped per ADR-0615 double-map rule. This is the first real crate for the forward-declared policy root — creates `policy/` with OWNERS + face | move | MEDIUM (needs council review of the policy-root birth) |
 | oya-shared-olap-clickhouse-adapter (4) / oya-shared-olap-client-kernel (7) | data, intelligence | `data/` (OLAP storage engines = data charter) | move | HIGH |
 | oya-shared-scim-server-kernel (2) | iam | `iam/` (SCIM provisioning) | move | HIGH |
-| oya-shared-ulid-id-kernel (3) | iam, tenancy | tenancy/ (tenant-scoping primitive; below the ≥3 base/ bar) | move | MEDIUM |
+| oya-shared-ulid-id-kernel (3) | iam, tenancy | UNRESOLVED: cross-fleet identifier primitive (event/message/job/request IDs) — tenancy/ would force unrelated capabilities to depend on tenancy/ for identifiers (review 3781184398). base/ candidate once the ≥3-consumer + DAG admission contract is satisfied | move | MEDIUM |
 | oya-shared-resource-provider-contract-kernel (6) | tenancy | `tenancy/` | move | HIGH |
 | oya-shared-postgres-command-kernel (27) / oya-shared-postgres-command-adapter-sqlx (3) | comms, iam, tenancy (+ libs/oya) | `base/postgres-command/` (≥3 ✓; adapter rides with its kernel; strictly-below-all requires DAG entries for crate AND every consumer — else BLOCKED pending topology coverage) | move | HIGH (home), MEDIUM (admission evidence) |
 | oya-shared-platform-contracts-kernel (15) | iam, secrets, tenancy | `base/platform-contracts/` (≥3 ✓; the cross-capability contract vocabulary — strictly-below-all requires comparable DAG entries for the crate AND every consumer; the substrate DAG (ADR-0635) covers only 11 of 24 capabilities, so an absent node proves nothing — else the move is BLOCKED pending topology coverage) | move | HIGH (home), MEDIUM (admission evidence) |
-| oya-shared-protocol-parity-kernel (13) / oya-shared-protocol-transport-kernel (9) / oya-shared-protocol-transport-retry-app (0) / oya-shared-realtime-transport-kernel (1) | comms (+ libs/oya) | `comms/` (protocol transport = comms substrate) | move | HIGH |
+| oya-shared-protocol-parity-kernel (13) / oya-shared-protocol-transport-kernel (9) / oya-shared-protocol-transport-retry-app (0) / oya-shared-realtime-transport-kernel (1) | comms, community, intelligence (+ libs/oya) | base/ candidates (generic REST/AsyncAPI/proto parity + broker/gRPC transport — NOT comms-domain code; review 3781184400). parity-kernel meets the ≥3-capability census (comms/community/intelligence); the DAG admission contract applies | move | MEDIUM |
 | oya-shared-transactional-outbox-{kernel,adapter-sqlx,dispatch-app,poller-app,worker-app,runtime-tokio-app} (16 total) | comms, libs, oya | `messaging/` (outbox = messaging charter: idempotency/outbox/backpressure) | move | HIGH |
 | oya-shared-outbox-pattern-kernel (0) / oya-shared-outbox-broker-http-adapter (0) | — | `messaging/` with the outbox family; verify the 0-consumer pair isn't dead first | move/delete | MEDIUM |
 | oya-shared-audit-chain-client-kernel (0) / oya-shared-audit-event-kernel (3) / oya-shared-audit-digest-adapter-awslc (2) | iam (+ libs) | `audit/` | move | HIGH |
@@ -42,7 +42,7 @@ Confidence: HIGH (single consumer domain / charter-named) · MEDIUM (judgment, r
 | oya-shared-compliance-evidence-kernel (1) | libs | `compliance/` | move | HIGH |
 | oya-shared-email-comms-kernel (0) | — | `comms/` (email = comms charter) | move | HIGH |
 | oya-shared-presence-kernel (0) | — | `comms/` (presence = meet/messenger) | move | MEDIUM |
-| oya-shared-i18n-kernel (1) | libs | `console/` (shell UX/i18n per ADR-0206) | move | MEDIUM |
+| oya-shared-i18n-kernel (1) | libs | UNRESOLVED: cross-stack i18n substrate (ADR-0206: one Fluent source, adapters for Leptos/SwiftUI/Compose/GTK...) — console/ would force non-console surfaces to depend on the Leptos shell (review 3781184408). base/ candidate pending admission | move | MEDIUM |
 | oya-shared-oidc-client-kernel (1) | oya | `iam/` (OIDC identity) | move | HIGH |
 | oya-shared-webhook-delivery-kernel (0) | — | `messaging/` (SHARED outbound webhook delivery per ADR-0169 in `docs/decisions/ADR-0709-general-live-apex.md` — outbound delivery is the messaging charter; NOT the ci inbound GitHub receiver) | move | MEDIUM |
 | oya-shared-idempotency-key-kernel (0) | — | `messaging/` or gateway/ — decide with the outbox family | move | MEDIUM |
@@ -53,9 +53,9 @@ Confidence: HIGH (single consumer domain / charter-named) · MEDIUM (judgment, r
 | oya-shared-vector-store-kernel (0) | — | `intelligence/` (AI substrate) or delete — archaeology first | move/delete | LOW |
 | oya-shared-wasm-runtime-kernel (0) | — | `marketplace/` (plugin substrate, ADR-0036) or delete | move/delete | LOW |
 | oya-shared-backup-kernel (1) | libs | storage/ (backup = durable storage) or delete — archaeology | move/delete | LOW |
-| oya-shared-backbone-{grpc-generated-adapter,grpc-transport-adapter,proto-contracts-kernel,rest-runtime-adapter} (2 total consumers) | libs | gateway/ (cross-service transport SSOT) or delete (backbone was superseded by per-service runtime) — archaeology: who are the 2 consumers | move/delete | LOW |
+| oya-shared-backbone-{grpc-generated-adapter,grpc-transport-adapter,proto-contracts-kernel,rest-runtime-adapter} (2 total consumers) | libs | UNRESOLVED: the family combines comms messenger/mail with community/social contracts + runtime adapters — a multi-capability COMPOSITION, not gateway code (review 3781184410). delete/app-composition decision at execution (archaeology gate) | move/delete | LOW |
 | oya-shared-cursor-pagination-kernel (0) | — | gateway/ (API design primitive) or delete | move/delete | LOW |
-| oya-shared-{architecture,semver,supply-chain}-check-cli / oya-shared-bounded-contexts-check-cli (0 each) | — | `ci/facade/` (the gate fleet; CLI retirement applies) or delete if spent | move/delete | MEDIUM |
+| oya-shared-{architecture,semver,supply-chain}-check-cli / oya-shared-bounded-contexts-check-cli (0 each) | — | DELETE (not move): the four binaries are SCAFFOLD stubs whose commands print SCAFFOLD and return success — moving them preserves fake-green gates; the CLI retirement inventory classifies them retired (review 3781184405). Execution deletes with fan-out-zero proof | delete | HIGH |
 
 ## Base/ admission evidence (required per ADR-0562 §6 for the base/ rows)
 
