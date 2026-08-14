@@ -84,18 +84,8 @@ fn cmd_ready() -> ExitCode {
         eprintln!("port-engine-app: driver not ready");
         return ExitCode::from(1);
     }
-    let (
-        pin,
-        rust_ir,
-        frontend,
-        hash,
-        rulepack,
-        snapshot,
-        identity,
-        toolchain,
-        transform,
-        emit,
-    ) = driver::adapter_readiness();
+    let (pin, rust_ir, frontend, hash, rulepack, snapshot, identity, toolchain, transform, emit) =
+        driver::adapter_readiness();
     println!(
         "ready=true pin={pin} rust_ir={rust_ir} frontend_go={frontend} hash={hash} rulepack={rulepack} snapshot={snapshot} identity={identity} toolchain={toolchain} transform={transform} emit={emit}"
     );
@@ -243,9 +233,9 @@ fn cmd_admit_snapshot() -> ExitCode {
         Ok(admitted) => {
             println!(
                 "admit-snapshot=ok pin={} digest={} units={}",
-                admitted.pin,
-                admitted.snapshot_digest.0,
-                admitted.units().len()
+                admitted.pin(),
+                admitted.artifact_digest().0,
+                admitted.as_model().units().len()
             );
             ExitCode::SUCCESS
         }

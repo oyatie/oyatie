@@ -7,9 +7,9 @@
 use std::collections::BTreeMap;
 use std::fmt;
 
-use port_engine_api::{Digest, PortError, Receipt, ReceiptAxis, RegionId, RulePack, RECEIPT_AXES};
+use port_engine_api::{Digest, PortError, RECEIPT_AXES, Receipt, ReceiptAxis, RegionId, RulePack};
 use port_engine_hash::digest_str;
-use port_engine_kernel::{verify, Delta, Verdict, Verification};
+use port_engine_kernel::{Delta, Verdict, Verification, verify};
 use port_engine_rulepack::{LoadedRulePack, RulepackError};
 use port_engine_rust_ir::{EmptyRenderer, RustIr, SynQuoteRenderer};
 use port_engine_snapshot::AdmitError;
@@ -38,7 +38,7 @@ impl SixAxisReport {
     /// True when every scenario matched its expected verdict/delta class.
     #[must_use]
     pub fn all_expected(&self) -> bool {
-        self.scenarios.iter().all(|s| scenario_matches(s))
+        self.scenarios.iter().all(scenario_matches)
     }
 }
 
@@ -69,10 +69,8 @@ fn scenario_matches(s: &ScenarioResult) -> bool {
     }
 }
 
-/// Build a complete six-axis receipt. `snapshot_label` / `formatter` are hashed; engine /
-/// rulepack / toolchain digests are caller-supplied content identities.
-#[must_use]
-pub fn complete_receipt(
+/// Build a synthetic six-axis receipt for the local verification scenarios.
+fn scenario_receipt(
     pin: &str,
     snapshot_label: &str,
     formatter: &str,
@@ -120,8 +118,6 @@ pub fn emit_syn_tree(formatter: &str, src: &str) -> Result<BTreeMap<RegionId, Ve
 /// Typed refusal from the Slice 9 e2e harness.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum E2eError {
-    /// Fleet pin could not load.
-    Pin(String),
     /// Rulepack could not load.
     Rulepack(RulepackError),
     /// Snapshot admission refused.
@@ -140,7 +136,6 @@ pub enum E2eError {
 impl fmt::Display for E2eError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Pin(detail) => write!(f, "receipt e2e pin load failed: {detail}"),
             Self::Rulepack(err) => write!(f, "receipt e2e rulepack load failed: {err}"),
             Self::Admit(err) => write!(f, "receipt e2e snapshot admit failed: {err}"),
             Self::Port(err) => write!(f, "receipt e2e emit failed: {err}"),
@@ -156,7 +151,7 @@ impl std::error::Error for E2eError {}
 /// Run the four six-axis receipt scenarios and refuse if any expectation misses.
 ///
 /// # Errors
-/// [`E2eError`] on pin/rulepack/admit/emit failure or unexpected verdict.
+/// [`E2eError`] on rulepack/admit/emit failure or unexpected verdict.
 pub fn run_six_axis_e2e() -> Result<SixAxisReport, E2eError> {
     if receipt_axis_count() != 6 {
         return Err(E2eError::Unexpected {
@@ -165,9 +160,9 @@ pub fn run_six_axis_e2e() -> Result<SixAxisReport, E2eError> {
         });
     }
 
-    let pin = driver::fleet_pin().map_err(|err| E2eError::Pin(err.to_string()))?;
-    let pack = LoadedRulePack::load_embedded().map_err(E2eError::Rulepack)?;
     let admitted = driver::smoke_admit_snapshot().map_err(E2eError::Admit)?;
+    let pin = admitted.pin().to_owned();
+    let pack = LoadedRulePack::load_embedded().map_err(E2eError::Rulepack)?;
     let engine = driver::smoke_engine_digest();
     let toolchain = driver::smoke_toolchain_digest();
     let rulepack = pack.digest();
@@ -176,7 +171,7 @@ pub fn run_six_axis_e2e() -> Result<SixAxisReport, E2eError> {
     let empty_b = emit_empty_tree("fmt-empty-a").map_err(E2eError::Port)?;
     let syn = emit_syn_tree("fmt-syn-b", "pub fn stub() {}").map_err(E2eError::Port)?;
 
-    let receipt_empty = complete_receipt(
+    let receipt_empty = scenario_receipt(
         &pin,
         "snapshot-empty-stub-v0",
         "fmt-empty-a",
@@ -186,7 +181,7 @@ pub fn run_six_axis_e2e() -> Result<SixAxisReport, E2eError> {
     );
     let receipt_syn = Receipt {
         pin: pin.clone(),
-        snapshot_digest: admitted.snapshot_digest.clone(),
+        snapshot_digest: admitted.artifact_digest().clone(),
         engine_digest: engine.clone(),
         rulepack_digest: rulepack.clone(),
         toolchain_digest: toolchain.clone(),
@@ -194,7 +189,7 @@ pub fn run_six_axis_e2e() -> Result<SixAxisReport, E2eError> {
     };
     let receipt_incomplete = Receipt {
         pin: String::new(),
-        snapshot_digest: admitted.snapshot_digest.clone(),
+        snapshot_digest: admitted.artifact_digest().clone(),
         engine_digest: engine.clone(),
         rulepack_digest: rulepack.clone(),
         toolchain_digest: toolchain.clone(),
@@ -246,11 +241,11 @@ mod tests {
     }
 
     #[test]
-    fn complete_receipt_has_no_incomplete_axes() {
+    fn scenario_receipt_has_no_incomplete_axes() {
         let engine = digest_str("engine");
         let rulepack = digest_str("rulepack");
         let toolchain = digest_str("toolchain");
-        let r = complete_receipt("pin", "snap", "fmt", &engine, &rulepack, &toolchain);
+        let r = scenario_receipt("pin", "snap", "fmt", &engine, &rulepack, &toolchain);
         assert!(r.incomplete_axes().is_empty());
         assert!(r.engine_digest.0.starts_with("sha256:"));
         assert!(r.rulepack_digest.0.starts_with("sha256:"));
