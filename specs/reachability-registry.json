@@ -98,10 +98,6 @@
       "prefix": "ci/controller/"
     },
     {
-      "anchor": "ADR-0555 D3: CI gate evidence corpus for reviewed delivery-lane outcomes.",
-      "prefix": "ci/evidence/"
-    },
-    {
       "anchor": "ADR-0635 D5: named RED/GREEN mutation corpus consumed directly by the dependency-graph-acyclicity Buck gate test.",
       "prefix": "ci/facade/dependency-graph-acyclicity/tests/fixtures/graph-v2-cases.json"
     },
@@ -644,10 +640,6 @@
     {
       "anchor": "ADR-0632 hermetic input declaration: exact root BUCK file for the governed Oyatie manifest and internal Proto corpora consumed by the product-protocol gate.",
       "prefix": "oya/BUCK"
-    },
-    {
-      "anchor": "ADR-0248 REGCLOUD-001 planning-artifact registration: compliance-selective cell placement planning/spec artifact only; no product/cloud implementation authority.",
-      "prefix": "plan/compliance-selective-cell-placement-architecture.md"
     },
     {
       "anchor": "ADR-0516 Agentic Delivery Fabric drive-loop durable plane (specs/fabric-drive-loop-state.json#storage_planes): plan/fabric-loop/cards/ holds the per-card durable shard files written only through the oya-fabric-loop-state-app coordinator ports; new shard files are created per drive-loop pass, so the subtree is registered by prefix. Byte re-derivation of every file here is enforced by the masterplan projection-rederivation gate (cross-artifact-agreement, masterplan_projection_stale), whose sweep glob covers exactly this subtree; scope deliberately narrowed from plan/fabric-loop/ to the swept subtree per independent-review finding (ADR-0609 review, minor 2).",
