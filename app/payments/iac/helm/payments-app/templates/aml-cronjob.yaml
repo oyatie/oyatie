@@ -1,0 +1,24 @@
+{{- if .Values.payments.amlMonitoringWorker.enabled }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: payments-aml-monitoring-worker
+  labels:
+    app.kubernetes.io/name: payments-aml-monitoring-worker
+    app.kubernetes.io/part-of: oyatie-microservices
+    app.kubernetes.io/managed-by: Helm
+spec:
+  schedule: {{ .Values.payments.amlMonitoringWorker.schedule | quote }}
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          runtimeClassName: {{ .Values.payments.runtimeClassName }}
+          restartPolicy: OnFailure
+          securityContext:
+{{ toYaml .Values.payments.podSecurityContext | indent 12 }}
+          containers:
+            - name: aml-monitoring-worker
+              image: "{{ .Values.payments.amlMonitoringWorker.image.repository }}:{{ .Values.payments.amlMonitoringWorker.image.tag }}"
+              imagePullPolicy: IfNotPresent
+{{- end }}

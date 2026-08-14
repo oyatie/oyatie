@@ -41,7 +41,10 @@ spec:
     encoding: PKCS8
   dnsNames:
     - payments.oyatie.com
-    - payments.cell-${CELL_ID}.oyatie.com
+    # Cell-scoped SANs are covered by the wildcard below; a literal
+    # ${CELL_ID} is NOT substituted by cert-manager and would be an invalid
+    # DNS name that fails issuance for the whole certificate. Concrete cell
+    # hostnames are materialized at apply time (or via the wildcard).
     - "*.payments.oyatie.com"
   uris:
     - spiffe://oyatie.dev/ns/payments/sa/payments-app

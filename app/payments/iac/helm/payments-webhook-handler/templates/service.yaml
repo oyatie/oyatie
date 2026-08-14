@@ -10,6 +10,9 @@ spec:
   selector:
     app.kubernetes.io/name: {{ .Chart.Name }}
   ports:
+    - name: http
+      port: {{ .Values.webhookHandler.service.port }}
+      targetPort: {{ .Values.webhookHandler.service.port }}
     - name: metrics
       port: {{ .Values.webhookHandler.metrics.port }}
       targetPort: {{ .Values.webhookHandler.metrics.port }}

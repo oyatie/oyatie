@@ -1,0 +1,26 @@
+{{- if .Values.payments.dunningWorker.enabled }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: payments-dunning-worker
+  labels:
+    app.kubernetes.io/name: payments-dunning-worker
+    app.kubernetes.io/part-of: oyatie-microservices
+    app.kubernetes.io/managed-by: Helm
+spec:
+  schedule: {{ .Values.payments.dunningWorker.schedule | quote }}
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          runtimeClassName: {{ .Values.payments.runtimeClassName }}
+          restartPolicy: OnFailure
+          securityContext:
+{{ toYaml .Values.payments.podSecurityContext | indent 12 }}
+          containers:
+            - name: dunning-worker
+              image: "{{ .Values.payments.dunningWorker.image.repository }}:{{ .Values.payments.dunningWorker.image.tag }}"
+              imagePullPolicy: IfNotPresent
+              resources:
+{{ toYaml .Values.payments.dunningWorker.resources | indent 16 }}
+{{- end }}

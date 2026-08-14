@@ -88,17 +88,28 @@ spec:
 
   # ─── Egress ──────────────────────────────────────────────────────────────────
   egress:
-    # PSP APIs: Stripe, Adyen, Toss, LINE Pay — HTTPS (port 443) only
+    # PSP APIs: Stripe, Adyen, Toss, KakaoPay, LINE Pay, WeChat Pay, Alipay —
+    # HTTPS (port 443) only
     - toFQDNs:
         - matchName: "api.stripe.com"
         - matchName: "api.adyen.com"
         - matchName: "api.tosspayments.com"
+        - matchName: "kapi.kakao.com"
         - matchName: "api-pay.line.me"
         - matchName: "api.wechatpay.cn"
         - matchName: "openapi.alipay.com"
       toPorts:
         - ports:
             - port: "443"
+              protocol: TCP
+
+    # Payment event broker (contracts/asyncapi-v1.yaml): AMQP to the
+    # production broker at payments-events.oyatie.com:5671
+    - toFQDNs:
+        - matchName: "payments-events.oyatie.com"
+      toPorts:
+        - ports:
+            - port: "5671"
               protocol: TCP
 
     # OpenBao (secrets)

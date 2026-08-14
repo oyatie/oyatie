@@ -1,0 +1,26 @@
+{{- if .Values.payments.reconciliationWorker.enabled }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: payments-reconciliation-worker
+  labels:
+    app.kubernetes.io/name: payments-reconciliation-worker
+    app.kubernetes.io/part-of: oyatie-microservices
+    app.kubernetes.io/managed-by: Helm
+spec:
+  schedule: {{ .Values.payments.reconciliationWorker.schedule | quote }}
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          runtimeClassName: {{ .Values.payments.runtimeClassName }}
+          restartPolicy: OnFailure
+          securityContext:
+{{ toYaml .Values.payments.podSecurityContext | indent 12 }}
+          containers:
+            - name: reconciliation-worker
+              image: "{{ .Values.payments.reconciliationWorker.image.repository }}:{{ .Values.payments.reconciliationWorker.image.tag }}"
+              imagePullPolicy: IfNotPresent
+              resources:
+{{ toYaml .Values.payments.reconciliationWorker.resources | indent 16 }}
+{{- end }}
