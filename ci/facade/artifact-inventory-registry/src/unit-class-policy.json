@@ -41,6 +41,7 @@
 
     { "id": "spec-tree",                 "kind": "prefix",   "value": "specs/",                 "unit_class": "spec" },
     { "id": "spec-contracts",           "kind": "prefix",   "value": "contracts/",            "unit_class": "spec" },
+    { "id": "spec-governance-capability-registry", "kind": "exact", "value": "governance/capability-registry.json", "unit_class": "spec" },
 
     { "id": "doc-decisions",            "kind": "prefix",   "value": "docs/decisions/",       "unit_class": "doc" },
     { "id": "doc-tree",                 "kind": "prefix",   "value": "docs/",                 "unit_class": "doc" },
