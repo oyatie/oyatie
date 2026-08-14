@@ -95,9 +95,9 @@ pub(crate) fn parse_run_all_args(args: Vec<String>) -> Result<RunAllArgs, String
             "--ci-required" => parsed.ci_required = true,
             "--affected" => parsed.affected = true,
             "--base" => {
-                let ref_val = iter.next().ok_or_else(|| {
-                    "gate run-all: --base requires a <ref> argument".to_string()
-                })?;
+                let ref_val = iter
+                    .next()
+                    .ok_or_else(|| "gate run-all: --base requires a <ref> argument".to_string())?;
                 parsed.base = ref_val;
             }
             other => {
@@ -128,8 +128,7 @@ pub(crate) fn run_all_gates(args: RunAllArgs, usage: &str) -> ExitCode {
         match changed_files(repo_root, &args.base) {
             Ok(changed) => {
                 let changed_refs: Vec<&str> = changed.iter().map(String::as_str).collect();
-                let selected =
-                    oya_governance_gate_catalog_domain::lanes_for_changed(&changed_refs);
+                let selected = oya_governance_gate_catalog_domain::lanes_for_changed(&changed_refs);
                 println!(
                     "[gate run-all] affected mode: {}/{} lanes selected (base={})",
                     selected.len(),
@@ -523,9 +522,8 @@ mod tests {
 
     #[test]
     fn parse_args_affected_with_explicit_base() {
-        let parsed =
-            parse_run_all_args(vec!["--affected".into(), "--base".into(), "main".into()])
-                .expect("--affected --base main");
+        let parsed = parse_run_all_args(vec!["--affected".into(), "--base".into(), "main".into()])
+            .expect("--affected --base main");
         assert!(parsed.affected);
         assert_eq!(parsed.base, "main");
     }

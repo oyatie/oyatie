@@ -111,7 +111,7 @@ jobs:
         # Full default profile (rustc+cargo+std+clippy+rustfmt): the materializer's buck2
         # build resolves the triple-named toolchain through rustup; pre-installing everything
         # makes those rustup calls no-ops and avoids the concurrent-download race.
-        run: rustup toolchain install --profile default && rustc --version
+        run: host=$(rustc -vV | awk '/^host/{print $2}') && rustup toolchain install 1.97.1-$host --profile default && rustup toolchain install --profile default && rustc --version
       # Materialize generated faces before tests: several gate crates consume them.
       - name: Materialize generated faces
         run: cargo run --locked -p ci-generated-artifact-freshness --bin oya-cloud-ci-materialize-generated-faces -- --repo-root . --github-event
@@ -277,7 +277,7 @@ jobs:
         # Full default profile (rustc+cargo+std+clippy+rustfmt): the materializer's buck2
         # build resolves the triple-named toolchain through rustup; pre-installing everything
         # makes those rustup calls no-ops and avoids the concurrent-download race.
-        run: rustup toolchain install --profile default && rustc --version
+        run: host=$(rustc -vV | awk '/^host/{print $2}') && rustup toolchain install 1.97.1-$host --profile default && rustup toolchain install --profile default && rustc --version
       - name: Materialize generated faces
         run: cargo run --locked -p ci-generated-artifact-freshness --bin oya-cloud-ci-materialize-generated-faces -- --repo-root . --github-event
       - name: Cross-platform smoke tests

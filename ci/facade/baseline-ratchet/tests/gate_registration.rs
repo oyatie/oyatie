@@ -221,7 +221,9 @@ fn fan_in_block(workflow: &str) -> &str {
 }
 
 fn workflow_has_job(workflow: &str, job_name: &str) -> bool {
-    workflow.lines().any(|line| line == format!("  {job_name}:"))
+    workflow
+        .lines()
+        .any(|line| line == format!("  {job_name}:"))
 }
 
 fn workflow_job(workflow: &str, job_name: &str) -> String {
