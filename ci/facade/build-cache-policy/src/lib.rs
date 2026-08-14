@@ -807,7 +807,7 @@ pub fn assert_warm_cache_participation(
         "warm-ro" | "warm-rw" | "warm-read-only" | "warm-read-write"
     );
     if bypass_mode {
-        return assert_cold(record);
+        return assert_cache_bypass(record);
     }
     let mut findings = Vec::new();
     assert_record_success(record, "warm cache guard", &mut findings);
@@ -1074,7 +1074,10 @@ pub fn assert_writer_seed_record(record: &Value) -> Result<(), Vec<String>> {
 /// finding, not a zero — otherwise a buck2 upgrade that renames a field would
 /// silently turn the cold proof vacuous (assert-everything-absent == assert
 /// nothing).
-pub fn assert_cold(record: &Value) -> Result<(), Vec<String>> {
+fn assert_zero_cache_participation(
+    record: &Value,
+    require_local_work: bool,
+) -> Result<(), Vec<String>> {
     let mut findings = Vec::new();
     assert_record_success(record, "cold proof", &mut findings);
     assert_no_remote_execution(record, "cold proof", &mut findings);
@@ -1088,12 +1091,15 @@ pub fn assert_cold(record: &Value) -> Result<(), Vec<String>> {
                 .to_string(),
         ),
     }
-    match required_u64(record, "run_local_count", &mut findings) {
-        Some(value) if value > 0 => {}
-        Some(value) => findings.push(format!(
-            "cold violation: run_local_count={value} (expected >0)"
-        )),
-        None => {}
+    let local_actions = required_u64(record, "run_local_count", &mut findings);
+    if require_local_work {
+        match local_actions {
+            Some(value) if value > 0 => {}
+            Some(value) => findings.push(format!(
+                "cold violation: run_local_count={value} (expected >0)"
+            )),
+            None => {}
+        }
     }
     for key in [
         "run_action_cache_count",
@@ -1144,6 +1150,18 @@ pub fn assert_cold(record: &Value) -> Result<(), Vec<String>> {
     } else {
         Err(findings)
     }
+}
+
+/// Prove a declared bypass used no cache. A no-op Buck invocation may
+/// legitimately execute zero local actions, so this does not impose the
+/// integrity canary's separate from-empty requirement.
+fn assert_cache_bypass(record: &Value) -> Result<(), Vec<String>> {
+    assert_zero_cache_participation(record, false)
+}
+
+/// Prove a from-empty canary performed local work with zero cache participation.
+pub fn assert_cold(record: &Value) -> Result<(), Vec<String>> {
+    assert_zero_cache_participation(record, true)
 }
 
 fn hash_file(hasher: &mut Sha256, path: &Path) -> Result<(), String> {
@@ -2189,13 +2207,17 @@ mod tests {
     #[test]
     fn assert_warm_allows_explicit_bypass_mode() {
         let doc = record_fixture(0, 0, 0);
+        let mut record = invocation_record(&doc).unwrap().clone();
+        record["run_local_count"] = json!(0);
         assert!(
-            assert_warm_cache_participation(
-                invocation_record(&doc).unwrap(),
-                "gate-fleet-shared-graph",
-                "bypass"
-            )
-            .is_ok()
+            assert_warm_cache_participation(&record, "gate-fleet-shared-graph", "bypass").is_ok()
+        );
+        assert!(
+            assert_cold(&record)
+                .unwrap_err()
+                .iter()
+                .any(|finding| finding.contains("run_local_count=0")),
+            "the from-empty canary must retain its local-work requirement"
         );
     }
 

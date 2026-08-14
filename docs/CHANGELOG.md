@@ -11,11 +11,19 @@ doc_status: published
 - Added [`specs/cache-endpoints.json`](../specs/cache-endpoints.json) as the validated active
   writer/reader address and REAPI instance source materialized into private Buck2 configuration.
 - Updated the laptop CAS runbook to distinguish hand-managed lab preflight from the fleet profile,
-  and bound the in-cluster endpoint DATA to NativeLink Services, target ports, listeners,
-  NetworkPolicy ingress/egress, instances, and the server-certificate SAN preflight.
+  and bound the in-cluster endpoint DATA to the unremapped ConfigMap/Deployment path, Service
+  namespace and container TCP ports, cluster-internal exposure, unique resource identities,
+  checksum-triggered singleton Recreate rollout, Deployment/ingress/runner-cell selectors,
+  exact-shape role peers, singleton cache egress destinations and all-rule cache-port confinement,
+  role-exclusive ingress in the runner namespace, the live OpenBao ExternalSecret store and
+  singular key/property mappings plus Owner-created TLS Secret, the slow-store `/data` mount and
+  ReadWriteOnce PVC, bounded listener/service/probe surfaces and backing stores, role-specific
+  TLS/client CAs, exact NetworkPolicy directions, instances, and the server-certificate SAN
+  preflight.
 - Hardened declared-cold execution so a bypass child cannot inherit a stale warm Buck2 daemon and
-  its receipt must prove zero remote-cache participation. Warm licensing and required/fork authority
-  remain unchanged.
+  its receipt must prove zero remote-cache participation without rejecting a successful no-op; the
+  from-empty canary still requires local work. Warm licensing and required/fork authority remain
+  unchanged.
 
 ## 2026-08-12 — Masterplan stale inline sequencing digest removed
 
