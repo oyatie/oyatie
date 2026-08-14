@@ -26,6 +26,7 @@ doctest = false
 
 [dependencies]
 serde_json = { workspace = true }
+oya-buck-syntax-kernel = { path = "../../../libs/oya-buck-syntax-kernel" }
 
 [lints]
 workspace = true
