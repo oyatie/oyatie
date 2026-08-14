@@ -16,7 +16,7 @@
     "microservice": "procurement",
     "bounded_context": "source-to-pay",
     "crate_prefix": "oya-procurement-source-to-pay",
-    "primary_crate": "oya/crm/crates/oya-procurement-source-to-pay-domain",
+    "primary_crate": "app/procurement/crates/oya-procurement-source-to-pay-domain",
     "product_id": "procurement",
     "owning_axis": "axis-enterprise"
   },
@@ -115,7 +115,7 @@
     ]
   },
   "data_model": {
-    "primary_crate_ref": "oya/crm/crates/oya-procurement-source-to-pay-domain",
+    "primary_crate_ref": "app/procurement/crates/oya-procurement-source-to-pay-domain",
     "entities_ref": [
       {
         "entity": "Source",
