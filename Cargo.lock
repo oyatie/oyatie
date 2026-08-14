@@ -1643,6 +1643,7 @@ dependencies = [
 name = "ci-crypto-backend-policy"
 version = "0.1.0"
 dependencies = [
+ "oya-buck-syntax-kernel",
  "serde_json",
 ]
 
