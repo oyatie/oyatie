@@ -312,7 +312,7 @@
   },
   "schema_version": "1.2.0",
   "corpus_budget": {
-    "$comment": "Shrink-only sprawl ratchet (ADR-0717). Class match rules are DATA (prefixes + optional suffixes); ceilings are frozen counts over the tracked-path inventory. Growth past a frozen ceiling is born-blocking with a one-in-one-out remediation; a deliberate budget change is a reviewed DATA edit here. Ceilings are set to the POST-wave-2 corpus (the cleanup PR #1961 must land before this PR: a pre-cleanup tree exceeds these ceilings and fails closed on purpose).",
+    "$comment": "Shrink-only sprawl ratchet (ADR-0717). Class match rules are DATA (prefixes + optional suffixes); ceilings are frozen counts over the tracked-path inventory. Growth past a frozen ceiling is born-blocking with a one-in-one-out remediation; a deliberate budget change is a reviewed DATA edit here. Ceilings are set to the measured post-wave-2 dev corpus (origin/dev 35cc96f54): evidence 52, planning 11, docs md 1433, live ADRs 18 (ADR-0716 + ADR-0717 included).",
     "classes": {
       "evidence_files": {
         "prefixes": [
@@ -344,7 +344,7 @@
       }
     },
     "counts": {
-      "evidence_files": 51,
+      "evidence_files": 52,
       "planning_files": 11,
       "docs_markdown_files": 1433,
       "live_adr_files": 18
