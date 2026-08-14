@@ -60,6 +60,10 @@ when {
   principal.restricted == false &&
   resource has original_charge_exists &&
   resource.original_charge_exists == true &&
+  resource has original_charge_captured &&
+  resource.original_charge_captured == true &&
+  resource has refund_amount_valid &&
+  resource.refund_amount_valid == true &&
   resource has within_refund_window &&
   resource.within_refund_window == true
 };

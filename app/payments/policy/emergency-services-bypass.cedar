@@ -66,7 +66,21 @@ when {
   principal has svid_present &&
   principal.svid_present == true &&
   principal has svid_valid &&
-  principal.svid_valid == true
+  principal.svid_valid == true &&
+  // Retain the same positive screening evidence the ordinary payout-worker
+  // permit requires: the emergency exception lifts step-up, not the bank
+  // verification / cooling-period / sanctions / KYC controls.
+  principal has tenant_id &&
+  resource has tenant_id &&
+  principal.tenant_id == resource.tenant_id &&
+  resource has bank_account_state &&
+  resource.bank_account_state == "verified" &&
+  resource has cooling_period_elapsed &&
+  resource.cooling_period_elapsed == true &&
+  resource has recipient_sanctions_match &&
+  resource.recipient_sanctions_match == false &&
+  resource has kyc_revoked &&
+  resource.kyc_revoked == false
 };
 
 // =============================================================================

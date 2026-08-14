@@ -262,6 +262,20 @@ message CreateSubscriptionRequest {
   string idempotency_key = 5;
 }
 
+message CancelSubscriptionRequest {
+  string tenant_id = 1;
+  string subscription_id = 2;
+  string idempotency_key = 3;
+}
+
+message ChangeSubscriptionPlanRequest {
+  string tenant_id = 1;
+  string subscription_id = 2;
+  string price_id = 3;
+  bool proration = 4;
+  string idempotency_key = 5;
+}
+
 // =============================================================================
 // Sub-merchant
 // =============================================================================
@@ -318,6 +332,8 @@ service DisputeService {
 
 service SubscriptionService {
   rpc CreateSubscription(CreateSubscriptionRequest) returns (Subscription);
+  rpc CancelSubscription(CancelSubscriptionRequest) returns (Subscription);
+  rpc ChangeSubscriptionPlan(ChangeSubscriptionPlanRequest) returns (Subscription);
 }
 
 service SubMerchantService {

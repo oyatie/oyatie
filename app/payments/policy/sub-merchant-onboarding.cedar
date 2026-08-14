@@ -46,7 +46,11 @@ when {
   // No minor as beneficial-owner
   !(resource.beneficial_owner_age_class in ["under_13", "age_14_15", "age_16_17"]) &&
   resource has jurisdiction_allowed &&
-  resource.jurisdiction_allowed == true
+  resource.jurisdiction_allowed == true &&
+  // Positive sanctions evidence: screening must have completed and returned
+  // safe; omission would otherwise pass onboarding (and, worse, update).
+  resource has sanctions_match &&
+  resource.sanctions_match == false
 };
 
 // =============================================================================
@@ -121,12 +125,12 @@ when {
 };
 
 // =============================================================================
-// FORBID — sanctions hit
+// FORBID — sanctions hit (onboard AND update)
 // =============================================================================
 
 forbid (
   principal,
-  action == Action::"sub-merchant.onboard",
+  action in [Action::"sub-merchant.onboard", Action::"sub-merchant.update"],
   resource in SubMerchant::?s
 )
 when {

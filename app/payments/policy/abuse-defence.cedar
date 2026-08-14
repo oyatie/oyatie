@@ -179,6 +179,11 @@ when {
 // principal — the worker identity never carries the user's step-up attribute,
 // and without resource-carried evidence every high-value execution would be
 // denied even after a valid step-up.
+//
+// The `unless` admits the validated emergency-services exception (documented
+// in emergency-services-bypass.cedar): hospital/911 corridors process >$10k
+// invoices without interactive step-up. Cedar forbids override permits, so the
+// exception must live on this forbid, not on a competing permit.
 
 forbid (
   principal,
@@ -190,6 +195,14 @@ when {
   resource.amount_minor > 1000000 &&
   !(resource has step_up_auth_class &&
     resource.step_up_auth_class in ["passkey", "webauthn"])
+}
+unless {
+  principal has audience_type &&
+  principal.audience_type == "EMERGENCY_SERVICES_OPERATOR" &&
+  principal has svid_present &&
+  principal.svid_present == true &&
+  principal has svid_valid &&
+  principal.svid_valid == true
 };
 
 // =============================================================================
