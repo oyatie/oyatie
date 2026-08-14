@@ -14,12 +14,28 @@
   },
   "tier_distribution": {
     "substrate": 55,
-    "product": 41,
+    "product": 43,
     "service-cell": 0,
     "reserved": 0
   },
-  "service_count": 96,
+  "service_count": 98,
   "services": {
+    "app/calendar/manifest.json": {
+      "service": "app/calendar",
+      "manifest": "app/calendar/manifest.json",
+      "capability": null,
+      "tier": "product",
+      "tier_subtype": "product-consumer-calendar",
+      "dr_tier": "T0"
+    },
+    "app/payments/manifest.json": {
+      "service": "app/payments",
+      "manifest": "app/payments/manifest.json",
+      "capability": null,
+      "tier": "product",
+      "tier_subtype": "product-consumer",
+      "dr_tier": "T1"
+    },
     "audit/manifest.json": {
       "service": "audit",
       "manifest": "audit/manifest.json",

@@ -66,6 +66,10 @@
               "type": "string",
               "pattern": "^oya-[a-z][a-z0-9-]*$"
             }
+          },
+          "crate_status": {
+            "type": "string",
+            "description": "Lifecycle marker for a bounded-context crate list that is historical inventory only (e.g. a deleted crate cluster). Present only when crates no longer form a live compile surface; absent for live crates."
           }
         }
       }
@@ -928,6 +932,32 @@
         "north_south_only": {
           "type": "boolean",
           "description": "Reserved for the api-gateway µservice per ADR-0182. When true, this µservice owns north-south ingress and MUST NOT enroll the east-west mesh (cilium_l4 + ambient_ztunnel become advisory rather than enforced)."
+        }
+      }
+    },
+    "compile_surface": {
+      "description": "Declared compile surface of the microservice. Defaults to the live bounded-context crates; `zero_crate` admits a product whose crate cluster was intentionally deleted (e.g. ELEVATE #1451 verdict A keep_deleted) and whose metadata is specification + policy/IaC/SLO surfaces only.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status"
+      ],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "zero_crate"
+          ]
+        },
+        "deleted_crate_cluster_pr": {
+          "type": "integer",
+          "description": "PR that deleted the crate cluster, when status is zero_crate."
+        },
+        "note": {
+          "type": "string"
+        },
+        "judgment": {
+          "type": "string"
         }
       }
     },

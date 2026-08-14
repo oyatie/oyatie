@@ -190,94 +190,16 @@
   ],
   "ips": [
     {
-      "id": "IP-001",
-      "title": "oya-payments-charge-kernel",
-      "file": "app/payments/IP-001-payments-kernel-charge.md",
-      "acceptance_status": "accepted"
+      "id": "IP-ADR-0339-Shared-IaC-Modules",
+      "title": "Payments shared OpenTofu module adoption (ADR-0339)",
+      "file": "app/payments/IPs/IP-ADR-0339-Shared-IaC-Modules.md",
+      "acceptance_status": "proposed"
     },
     {
-      "id": "IP-002",
-      "title": "oya-payments-charge-domain",
-      "file": "app/payments/IP-002-payments-domain-charge.md",
-      "acceptance_status": "accepted"
-    },
-    {
-      "id": "IP-003",
-      "title": "oya-payments-charge-usecase",
-      "file": "app/payments/IP-003-payments-usecase-charge.md",
-      "acceptance_status": "accepted"
-    },
-    {
-      "id": "IP-004",
-      "title": "oya-payments-adapter-stripe",
-      "file": "app/payments/IP-004-payments-adapter-stripe.md",
-      "acceptance_status": "accepted"
-    },
-    {
-      "id": "IP-005",
-      "title": "oya-payments-refund-domain",
-      "file": "app/payments/IP-005-payments-domain-refund.md",
-      "acceptance_status": "accepted"
-    },
-    {
-      "id": "IP-006",
-      "title": "oya-payments-refund-usecase",
-      "file": "app/payments/IP-006-payments-usecase-refund.md",
-      "acceptance_status": "accepted"
-    },
-    {
-      "id": "IP-007",
-      "title": "oya-payments-payout-domain",
-      "file": "app/payments/IP-007-payments-domain-payout.md",
-      "acceptance_status": "accepted"
-    },
-    {
-      "id": "IP-008",
-      "title": "oya-payments-payout-usecase",
-      "file": "app/payments/IP-008-payments-usecase-payout.md",
-      "acceptance_status": "accepted"
-    },
-    {
-      "id": "IP-009",
-      "title": "oya-payments-dispute-domain",
-      "file": "app/payments/IP-009-payments-domain-dispute.md",
-      "acceptance_status": "accepted"
-    },
-    {
-      "id": "IP-010",
-      "title": "oya-payments-dispute-usecase",
-      "file": "app/payments/IP-010-payments-usecase-dispute.md",
-      "acceptance_status": "accepted"
-    },
-    {
-      "id": "IP-011",
-      "title": "oya-payments-subscription-domain",
-      "file": "app/payments/IP-011-payments-domain-subscription.md",
-      "acceptance_status": "accepted"
-    },
-    {
-      "id": "IP-012",
-      "title": "oya-payments-subscription-usecase",
-      "file": "app/payments/IP-012-payments-usecase-subscription.md",
-      "acceptance_status": "accepted"
-    },
-    {
-      "id": "IP-013",
-      "title": "oya-payments-kyc-kyb-domain",
-      "file": "app/payments/IP-013-payments-domain-sub-merchant.md",
-      "acceptance_status": "accepted"
-    },
-    {
-      "id": "IP-014",
-      "title": "oya-payments-kyc-kyb-usecase",
-      "file": "app/payments/IP-014-payments-usecase-sub-merchant.md",
-      "acceptance_status": "accepted"
-    },
-    {
-      "id": "IP-015",
-      "title": "oya-payments-charge-rest+grpc+app",
-      "file": "app/payments/IP-015-payments-rest-grpc-app.md",
-      "acceptance_status": "accepted"
+      "id": "IP-WAVE-15-ZD-sharding-automation",
+      "title": "Payments sharding automation stance (Wave 15-ZF-9 doctrine propagation)",
+      "file": "app/payments/IPs/IP-WAVE-15-ZD-sharding-automation.md",
+      "acceptance_status": "proposed"
     }
   ],
   "regulatory_packs": [
@@ -564,9 +486,6 @@
   "pod_runtime_tier_justification": "Tier 1 substrate-touching runtime: payments does not execute tenant-customer code, but it owns regulated tenant money-movement, PSP secrets, KYC/KYB, payout, settlement, and webhook state.",
   "pod_runtime_tier_surface_evidence": [
     "app/payments/manifest.json",
-    "app/payments/ARCHITECTURE.md",
-    "app/payments/IP-016-payments-settlement-domain.md",
-    "app/payments/IP-journey-j77-regulated-money-movement.md",
     "app/payments/slos/webhook-delivery-success.openslo.yaml"
   ],
   "tenant_version_pinning": {
