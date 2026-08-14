@@ -86,13 +86,22 @@ fn run_producer_face(root: &Path, face: &str) -> Value {
 /// silently dropping an eligible crate) a magic-number floor, or a bare non-empty check, could
 /// never catch. Self-adjusts through future de-brands: the census shrinks in lockstep with the
 /// face as crates lose the oya- prefix, so this stays valid without ever needing a bump.
+///
+/// KEYED BY MANIFEST PATH, not package name. A rehomed destination crate can share its package
+/// name with the retained legacy source (integ/procurement absorb, PR #1672); a name-keyed
+/// census would collapse both into one key and let the face's sorted-later legacy row mask the
+/// destination manifest, so the live-corpus test could pass without checking the newly tracked
+/// manifest. Path keys preserve identity: the census asserts the face carries EVERY manifest
+/// (root members + nested-workspace members + `app/<product>/crates/*` destinations + excluded
+/// retained-source crate dirs) exactly once, with its own flags.
 fn independent_oya_prefix_census(root: &Path) -> BTreeSet<String> {
     let prefix = NamingConfig::default().required_prefix;
     let mut member_dirs = oya_workspace_members_kernel::resolve_member_dirs(root)
         .expect("resolve_member_dirs must resolve the live workspace Cargo.toml");
     member_dirs.extend(resolve_nested_workspace_member_dirs(root));
     member_dirs.extend(resolve_app_destination_crate_dirs(root));
-    let mut names = BTreeSet::new();
+    member_dirs.extend(resolve_excluded_source_crate_dirs(root));
+    let mut manifests = BTreeSet::new();
     for dir in member_dirs {
         let manifest_path = root.join(&dir).join("Cargo.toml");
         let contents = std::fs::read_to_string(&manifest_path).unwrap_or_else(|e| {
@@ -109,10 +118,10 @@ fn independent_oya_prefix_census(root: &Path) -> BTreeSet<String> {
             )
         });
         if name.starts_with(&prefix) {
-            names.insert(name);
+            manifests.insert(format!("{dir}/Cargo.toml"));
         }
     }
-    names
+    manifests
 }
 
 /// Nested-workspace roots this repo carves out of the root workspace (`[workspace].exclude`
@@ -179,6 +188,35 @@ fn resolve_app_destination_crate_dirs(root: &Path) -> Vec<String> {
             let name = crate_dir.file_name().to_string_lossy().into_owned();
             let product_name = product.file_name().to_string_lossy().into_owned();
             dirs.push(format!("app/{product_name}/crates/{name}"));
+        }
+    }
+    dirs
+}
+
+/// Excluded tracked crate dirs that are NOT nested-workspace roots — retained legacy source
+/// copies parked under `[workspace].exclude` until their shrink-only drain (e.g.
+/// `oya/crm/crates/oya-procurement-source-to-pay-domain`, the integ/procurement source kept
+/// until integ/oya deletes it). They are real first-party oya-* manifests the PRODUCER's
+/// tracked-Cargo.toml scan includes (path_excludes does not cover them), but they are neither
+/// root members nor nested-workspace members, so the census must resolve them explicitly or it
+/// silently under-counts relative to the face — and with the face now keyed by manifest path the
+/// census MUST carry each such copy as its own key (a name-keyed census would collapse it into
+/// its same-named destination and mask the destination's flags). Discovered from the root
+/// manifest's OWN `exclude` list: an excluded entry whose directory holds a Cargo.toml that
+/// declares a `[package]` is a candidate crate dir; virtual workspace roots (`kernel/`,
+/// `cloud/cloud-kernel` — workspace tables but no `[package]`) are skipped here rather than
+/// failing the census's own parse, exactly as they are not crate manifests.
+fn resolve_excluded_source_crate_dirs(root: &Path) -> Vec<String> {
+    let root_manifest =
+        std::fs::read_to_string(root.join("Cargo.toml")).expect("read root Cargo.toml");
+    let mut dirs = Vec::new();
+    for excluded in root_workspace_excludes(&root_manifest) {
+        let manifest_path = root.join(&excluded).join("Cargo.toml");
+        let Ok(contents) = std::fs::read_to_string(&manifest_path) else {
+            continue; // not a crate dir (no manifest) — skipped, like the nested-workspace rule.
+        };
+        if independent_parse_package_name(&contents).is_some() {
+            dirs.push(excluded);
         }
     }
     dirs
@@ -260,18 +298,27 @@ fn manifest_hygiene_is_born_blocking_on_the_live_corpus() {
     let root = repo_root();
     let face = run_producer_face(&root, "manifest-hygiene");
     let rows = face["rows"].as_array().expect("manifest-hygiene face rows");
+    // Face is keyed by MANIFEST PATH (not package name): a rehomed destination crate shares its
+    // name with the retained legacy source, and a name-keyed comparison would collapse both and
+    // let the sorted-later legacy row mask the destination's flags (review thread 3783908720).
+    // Each row must carry its manifest_path; a missing one fails closed.
     let face_names: BTreeSet<String> = rows
         .iter()
-        .map(|r| r["crate_name"].as_str().expect("crate_name").to_owned())
+        .map(|r| {
+            r["manifest_path"]
+                .as_str()
+                .expect("manifest-hygiene row manifest_path")
+                .to_owned()
+        })
         .collect();
 
     // INDEPENDENT DYNAMIC CENSUS (not a hardcoded magnitude floor, and not a bare non-empty
-    // check): re-derive the live oya-* crate set via the canonical workspace-member resolver +
-    // a from-scratch parse, then assert EXACT set equality against the face. Self-adjusts
-    // through future de-brands (the census shrinks in lockstep with the face) while catching
-    // scan-root/glob/prefix/parse/truncation/exclusion regressions a magnitude floor cannot: a
-    // producer that silently drops even ONE eligible crate is caught as a set difference, not
-    // masked by "some debt survived."
+    // check): re-derive the live oya-* crate manifest set via the canonical workspace-member
+    // resolver + a from-scratch parse, then assert EXACT set equality against the face.
+    // Self-adjusts through future de-brands (the census shrinks in lockstep with the face) while
+    // catching scan-root/glob/prefix/parse/truncation/exclusion regressions a magnitude floor
+    // cannot: a producer that silently drops even ONE eligible manifest is caught as a set
+    // difference, not masked by "some debt survived."
     let census = independent_oya_prefix_census(&root);
     assert_census_matches(&face_names, &census);
 

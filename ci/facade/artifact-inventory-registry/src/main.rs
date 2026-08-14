@@ -3658,18 +3658,27 @@ struct ManifestFlags {
     lints_workspace: bool,
     has_lib: bool,
     lib_doctest_false: bool,
+    is_workspace_root: bool,
 }
 
 /// Enumerate the first-party `oya-*` crates and emit their §2.5#7 manifest-hygiene flags (the
 /// gate's I/O). The gate's `evaluate_keyed` turns missing flags into Findings. Deterministic
 /// (BTreeMap, sorted) so committed==regenerated holds byte-for-byte. Scoped to `oya-*`.
+///
+/// KEYED BY MANIFEST PATH, not package name: a rehomed destination crate can share its package
+/// name with the retained legacy source (integ/procurement absorb, PR #1672). A name-keyed map
+/// would let the sorted-later legacy manifest overwrite the destination's concrete
+/// `version`/`rust-version` and non-workspace lint flags, so the live-corpus test and
+/// oya-ci-required would pass without ever checking the newly tracked destination manifest.
+/// Path keys preserve identity: BOTH manifests appear with their own flags, and
+/// `is_workspace_root` lets the gate accept a workspace-root manifest's concrete values.
 fn collect_manifest_hygiene(
     repo_root: &Path,
     tracked_paths: &[String],
     cfg: &oya_ci_config_kernel::OyaCiConfig,
 ) -> Value {
     let prefix = cfg.naming.required_prefix.as_str();
-    let mut by_name: BTreeMap<String, ManifestFlags> = BTreeMap::new();
+    let mut by_path: BTreeMap<String, (String, ManifestFlags)> = BTreeMap::new();
     for path in tracked_paths {
         if !path.ends_with("Cargo.toml") {
             continue;
@@ -3684,18 +3693,20 @@ fn collect_manifest_hygiene(
         if !name.starts_with(prefix) {
             continue;
         }
-        by_name.insert(name, parse_manifest_flags(&contents));
+        by_path.insert(path.clone(), (name, parse_manifest_flags(&contents)));
     }
-    let rows: Vec<Value> = by_name
+    let rows: Vec<Value> = by_path
         .into_iter()
-        .map(|(name, f)| {
+        .map(|(manifest_path, (name, f))| {
             json!({
+                "manifest_path": manifest_path,
                 "crate_name": name,
                 "has_version_workspace": f.version_workspace,
                 "has_rust_version_workspace": f.rust_version_workspace,
                 "has_publish_false": f.publish_false,
                 "has_license": f.license,
                 "has_lints_workspace": f.lints_workspace,
+                "is_workspace_root": f.is_workspace_root,
                 "has_lib": f.has_lib,
                 "has_lib_doctest_false": f.lib_doctest_false,
             })
@@ -3709,6 +3720,11 @@ fn collect_manifest_hygiene(
 /// and `[lib] doctest` are read in their own sections.
 fn parse_manifest_flags(contents: &str) -> ManifestFlags {
     let mut f = ManifestFlags::default();
+    // A manifest declaring its own `[workspace]` table IS a workspace root: it cannot inherit
+    // `version`/`rust-version`/`[lints]` from a parent workspace, so concrete values there are
+    // the legitimate form (e.g. a parked nested-workspace-root destination crate). The gate
+    // skips the workspace-inheritance checks for such rows while enforcing every other field.
+    f.is_workspace_root = has_workspace_table(contents);
     let mut section = "";
     for raw in contents.lines() {
         // Strip an end-of-line comment (Cargo.toml hygiene values carry no '#').
