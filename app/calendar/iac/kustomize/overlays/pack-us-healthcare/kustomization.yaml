@@ -1,0 +1,46 @@
+# Canonical-base: microservices/governance/iac/kustomize/components/{namespace-restricted-profile,pack-overlay-canonical/<pack>} (SWEEP-I Slice 3 per ADR-0064)
+# Kustomize overlay — pack-us-healthcare (HIPAA appointment-data overlay).
+# Per ADR-0131 + ADR-0133 (11-pack-overlay program) + ADR-CAL-0001
+# (this overlay is THE pack that enables the SabreDAV CalDAV backend per
+# the ADR-CAL-0001 decision).
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: calendar
+
+resources:
+  - ../../base
+
+commonLabels:
+  oyatie.dev/pack: us-healthcare
+  oyatie.dev/data-residency: us-east-1
+  oyatie.dev/compliance: hipaa
+
+configMapGenerator:
+  - name: oya-calendar-pack-config
+    namespace: calendar
+    literals:
+      - PACK_REGION=us-healthcare
+      - DATA_RESIDENCY=us-east-1
+      - DEFAULT_LOCALE=en-US
+      - DEFAULT_TIMEZONE=America/New_York
+      - RETENTION_FLOOR_DAYS=2555    # HIPAA 7y appointment retention
+      - HIPAA_AUDIT_CHAIN=enabled
+      - HIPAA_BAA_REQUIRED=true
+      - PHI_DATA_CLASS_ENFORCEMENT=strict
+      - CALDAV_BACKEND=sabredav      # per ADR-CAL-0001 healthcare overlay
+
+patches:
+  - target: {kind: Deployment, name: oya-calendar-ics-import-export-app}
+    patch: |
+      - op: replace
+        path: /spec/template/spec/containers/0/env/2/value
+        value: us-healthcare
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value: {name: CALDAV_BACKEND_PREFERRED, value: sabredav}
+  - target: {kind: HorizontalPodAutoscaler, name: oya-calendar-event-store-app-hpa}
+    patch: |
+      - op: replace
+        path: /spec/maxReplicas
+        value: 80      # higher session ceiling for healthcare workloads
