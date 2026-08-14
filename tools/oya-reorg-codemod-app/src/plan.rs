@@ -600,25 +600,33 @@ fn validate_no_escaping_path_literals(
         .collect();
 
     let mut blocking = Vec::new();
-    for m in &plan.moves {
-        let prefix = format!("{}/", m.old_path);
-        for rel in all_files.iter().filter(|r| r.starts_with(&prefix)) {
-            if !rel.ends_with(".rs") {
-                continue;
-            }
-            let text = read(&repo_root.join(rel), rel)?;
-            for lit in rust_src::scan_escaping_path_literals(&text, rel, &m.old_path) {
-                // Fail-closed remains the DEFAULT. A literal is move-invariant ONLY when its
-                // pre-move resolution points INSIDE a co-moved target AND recomputing the
-                // literal from the crate's NEW directory resolves to exactly that target's
-                // NEW path. This is the "add their target to the move plan" escape the
-                // refusal message always offered, now implemented: the hop count to a
-                // workspace-root sibling survives a move ONLY when the workspace relocates
-                // as a unit (e.g. `crates/<crate>/src` -> `<face>/<crate>/src` keeps depth
-                // 3, and `../../../out/x.elf` stays `../../../out/x.elf`).
-                if !literal_meaning_preserved(m, rel, &lit, &all_targets) {
-                    blocking.push(lit);
-                }
+    // Step 7 relocates every file through its LONGEST matching source move (the engine moves
+    // longest-old_path-first so nested sources move safely), so each scanned file is associated
+    // with exactly the INNERMOST move whose source contains it. Scanning a nested file against
+    // an outer move too would recompute its new location from the WRONG destination (e.g.
+    // `oya/a/b/src/lib.rs` mapped through `oya/a -> x/y/z` as `x/y/z/b/src/lib.rs`) and could
+    // refuse a literal the real (inner) move actually preserves.
+    for rel in all_files.iter().filter(|r| r.ends_with(".rs")) {
+        let Some(m) = plan
+            .moves
+            .iter()
+            .filter(|m| rel.starts_with(&format!("{}/", m.old_path)))
+            .max_by_key(|m| m.old_path.split('/').count())
+        else {
+            continue; // not inside any moving crate
+        };
+        let text = read(&repo_root.join(rel), rel)?;
+        for lit in rust_src::scan_escaping_path_literals(&text, rel, &m.old_path) {
+            // Fail-closed remains the DEFAULT. A literal is move-invariant ONLY when its
+            // pre-move resolution points INSIDE a co-moved target AND recomputing the
+            // literal from the crate's NEW directory resolves to exactly that target's
+            // NEW path. This is the "add their target to the move plan" escape the
+            // refusal message always offered, now implemented: the hop count to a
+            // workspace-root sibling survives a move ONLY when the workspace relocates
+            // as a unit (e.g. `crates/<crate>/src` -> `<face>/<crate>/src` keeps depth
+            // 3, and `../../../out/x.elf` stays `../../../out/x.elf`).
+            if !literal_meaning_preserved(m, rel, &lit, &all_targets) {
+                blocking.push(lit);
             }
         }
     }
@@ -647,10 +655,7 @@ fn literal_meaning_preserved(
     };
     let new_file = format!("{}{}", m.new_path, &file_rel[m.old_path.len()..]);
     let post = crate::model::join_rel(&crate::rust_src::parent_dir(&new_file), &lit.literal);
-    if let Some((old, new)) = all_targets
-        .iter()
-        .find(|(old, _)| target == *old || target.starts_with(&format!("{old}/")))
-    {
+    if let Some((old, new)) = covering_target(all_targets, target) {
         // The target co-moves: the literal survives ONLY if it recomputes to the new home.
         let new_target = format!("{new}{}", &target[old.len()..]);
         return post.as_deref() == Some(new_target.as_str());
@@ -658,6 +663,24 @@ fn literal_meaning_preserved(
     // The target does not move: the literal survives ONLY if the depth change leaves its
     // resolution untouched.
     post.as_deref() == Some(target)
+}
+
+/// The target mapping whose OLD side is the LONGEST prefix of `target` — the engine's actual
+/// step-7 longest-source-first move semantics (a nested target rides the INNER move/artifact).
+/// A first-match scan depends on plan order and maps a nested target through an outer sibling
+/// (e.g. `oya/a` listed before `oya/a/b`, or a crate before its own nested artifact), whose
+/// computed post-move path differs from the target's real final path — silently accepting a
+/// dangling include. `MovePlan::validate` keeps old_paths unique across moves+artifacts, so the
+/// longest match is deterministic even when sources nest.
+fn covering_target<'a>(
+    all_targets: &'a [(&'a str, &'a str)],
+    target: &str,
+) -> Option<(&'a str, &'a str)> {
+    all_targets
+        .iter()
+        .filter(|(old, _)| target == *old || target.starts_with(&format!("{old}/")))
+        .max_by_key(|(old, _)| old.split('/').count())
+        .copied()
 }
 
 /// `<workspace_root>/Cargo.toml`, or `Cargo.toml` at the repo root.
@@ -2040,5 +2063,151 @@ version = \"0.1.0\"
             !literal_meaning_preserved(&m, &lit.file, &lit, &no_artifact),
             "an unmoved external target that the literal no longer resolves to stays refused"
         );
+    }
+
+    #[test]
+    fn literal_preflight_refuses_a_nested_target_mapped_through_the_outer_move() {
+        // REGRESSION (PR #1965 re-review, comment 3781306217): with `oya/a` listed BEFORE
+        // `oya/a/b`, a literal targeting a file under the INNER crate (`oya/a/b/foo`) was
+        // mapped through the OUTER move by the first-match lookup, so the preflight accepted a
+        // literal whose computed post-move path (`a/b/foo` via the outer `oya/a -> a` mapping)
+        // differs from the target's real final path (`y/foo` — step 7 moves longest-old_path-
+        // first). The longest-prefix lookup must map the co-moved target through the INNER move
+        // and refuse the dangling include.
+        let root = artifact_tmp_root("nested-target-refusal");
+        wf(
+            &root,
+            "Cargo.toml",
+            "[workspace]\nmembers = [\"oya/a\", \"oya/a/b\", \"oya/c\"]\nresolver = \"2\"\n",
+        );
+        wf(
+            &root,
+            "oya/a/Cargo.toml",
+            "[package]\nname = \"oya-a\"\nversion = \"0.1.0\"\nedition = \"2021\"\n",
+        );
+        wf(&root, "oya/a/src/lib.rs", "pub fn a() {}\n");
+        wf(
+            &root,
+            "oya/a/b/Cargo.toml",
+            "[package]\nname = \"oya-a-b\"\nversion = \"0.1.0\"\nedition = \"2021\"\n",
+        );
+        wf(&root, "oya/a/b/src/lib.rs", "pub fn b() {}\n");
+        wf(&root, "oya/a/b/foo", "FOO");
+        wf(
+            &root,
+            "oya/c/Cargo.toml",
+            "[package]\nname = \"oya-c\"\nversion = \"0.1.0\"\nedition = \"2021\"\n",
+        );
+        // A THIRD crate embeds a file inside the inner crate (2 hops up from oya/c/src lands
+        // at oya/, so the literal escapes its own crate and must be checked).
+        wf(
+            &root,
+            "oya/c/src/lib.rs",
+            "pub const B: &[u8] = include_bytes!(\"../../a/b/foo\");\n",
+        );
+
+        // Outer listed FIRST — the plan order that used to swallow the inner mapping.
+        let plan = MovePlan {
+            capability: "cap".to_string(),
+            moves: vec![
+                CrateMove {
+                    old_path: "oya/a".to_string(),
+                    new_path: "a".to_string(),
+                    old_cargo_name: "oya-a".to_string(),
+                    new_cargo_name: "x-a".to_string(),
+                },
+                CrateMove {
+                    old_path: "oya/a/b".to_string(),
+                    new_path: "y".to_string(),
+                    old_cargo_name: "oya-a-b".to_string(),
+                    new_cargo_name: "y-b".to_string(),
+                },
+                CrateMove {
+                    old_path: "oya/c".to_string(),
+                    new_path: "w".to_string(),
+                    old_cargo_name: "oya-c".to_string(),
+                    new_cargo_name: "w-c".to_string(),
+                },
+            ],
+            artifacts: vec![],
+        };
+
+        let error = apply_plan(&root, &plan, &ApplyOptions { use_git_mv: false })
+            .expect_err("a literal targeting a file the inner move relocates must refuse");
+        match error {
+            CodemodError::UnrewritablePathLiteral { ref literals } => {
+                assert_eq!(literals.len(), 1, "{literals:?}");
+                assert_eq!(literals[0].file, "oya/c/src/lib.rs");
+                assert_eq!(literals[0].literal, "../../a/b/foo");
+            }
+            other => panic!("expected UnrewritablePathLiteral, got {other:?}"),
+        }
+        assert!(root.join("oya/c/src/lib.rs").is_file(), "source untouched");
+        let _ = std::fs::remove_dir_all(&root);
+    }
+
+    #[test]
+    fn literal_preflight_uses_the_innermost_move_for_a_nested_source_file() {
+        // REGRESSION (PR #1965 re-review, comment 3781388889): a Rust file under the INNER of
+        // two nested source moves was scanned once per matching move. The OUTER scan recomputed
+        // its new location from the outer destination (`x/y/z/b/src/lib.rs` — the inner crate
+        // actually lands at `kern/seg/b/src/lib.rs`), whose depth made a literal the real
+        // (depth-preserving) inner move preserves look broken — refusing a valid plan. Each
+        // file must be scanned exactly once, against its INNERMOST move.
+        let root = artifact_tmp_root("innermost-scan");
+        wf(
+            &root,
+            "Cargo.toml",
+            "[workspace]\nmembers = [\"oya/a\", \"oya/a/b\"]\nresolver = \"2\"\n",
+        );
+        wf(
+            &root,
+            "oya/a/Cargo.toml",
+            "[package]\nname = \"oya-a\"\nversion = \"0.1.0\"\nedition = \"2021\"\n",
+        );
+        wf(&root, "oya/a/src/lib.rs", "pub fn a() {}\n");
+        wf(
+            &root,
+            "oya/a/b/Cargo.toml",
+            "[package]\nname = \"oya-a-b\"\nversion = \"0.1.0\"\nedition = \"2021\"\n",
+        );
+        // 4 hops up from oya/a/b/src is the repo root, so the literal resolves to the UNMOVED
+        // root.txt. The INNER move (oya/a/b -> kern/seg/b) is depth-preserving for this file
+        // (both land the file dir 4 segments deep), so `../../../../root.txt` still hits
+        // root.txt; the OUTER move (oya/a -> x/y/z) would relocate the file to x/y/z/b/src
+        // (5 deep), where the same literal resolves to x/root.txt instead — the false refusal.
+        wf(
+            &root,
+            "oya/a/b/src/lib.rs",
+            "pub const ROOT: &[u8] = include_bytes!(\"../../../../root.txt\");\n",
+        );
+        wf(&root, "root.txt", "ROOT");
+
+        let plan = MovePlan {
+            capability: "cap".to_string(),
+            moves: vec![
+                CrateMove {
+                    old_path: "oya/a".to_string(),
+                    new_path: "x/y/z".to_string(),
+                    old_cargo_name: "oya-a".to_string(),
+                    new_cargo_name: "x-y-z".to_string(),
+                },
+                CrateMove {
+                    old_path: "oya/a/b".to_string(),
+                    new_path: "kern/seg/b".to_string(),
+                    old_cargo_name: "oya-a-b".to_string(),
+                    new_cargo_name: "kern-seg-b".to_string(),
+                },
+            ],
+            artifacts: vec![],
+        };
+
+        let outcome = apply_plan(&root, &plan, &ApplyOptions { use_git_mv: false })
+            .expect("a literal the INNER move preserves must not be refused via the outer scan");
+        assert!(root.join("kern/seg/b/src/lib.rs").is_file());
+        assert!(root.join("x/y/z/src/lib.rs").is_file());
+        assert!(root.join("root.txt").is_file());
+        assert_eq!(outcome.dirs_moved.len(), 2);
+        let _ = std::fs::remove_dir_all(&root);
     }
 }
