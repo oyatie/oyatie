@@ -108,10 +108,11 @@ jobs:
       # buck2's builds need the full pinned toolchain (clippy/rustfmt components);
       # rustup must finish before buck2 runs or its downloads race (known class).
       - name: Pre-provision pinned toolchain components
+        shell: bash
         # Full default profile (rustc+cargo+std+clippy+rustfmt): the materializer's buck2
         # build resolves the triple-named toolchain through rustup; pre-installing everything
         # makes those rustup calls no-ops and avoids the concurrent-download race.
-        run: host=$(rustc -vV | awk '/^host/{print $2}') && rustup toolchain install 1.97.1-$host --profile default && rustup toolchain install --profile default && rustc --version
+        run: host=$(rustc -vV | awk '/^host/{print $2}') && for v in 1.97.1 1.96.0; do rustup component add --toolchain $v-$host cargo clippy rustfmt rust-std rustc; rustup component add --toolchain $v cargo clippy rustfmt rust-std rustc; done && rustup default 1.97.1 && rustc --version
       # Materialize generated faces before tests: several gate crates consume them.
       - name: Materialize generated faces
         run: cargo run --locked -p ci-generated-artifact-freshness --bin oya-cloud-ci-materialize-generated-faces -- --repo-root . --github-event
@@ -274,10 +275,11 @@ jobs:
         shell: bash
         run: infra/ci/install-buck2.sh
       - name: Pre-provision pinned toolchain components
+        shell: bash
         # Full default profile (rustc+cargo+std+clippy+rustfmt): the materializer's buck2
         # build resolves the triple-named toolchain through rustup; pre-installing everything
         # makes those rustup calls no-ops and avoids the concurrent-download race.
-        run: host=$(rustc -vV | awk '/^host/{print $2}') && rustup toolchain install 1.97.1-$host --profile default && rustup toolchain install --profile default && rustc --version
+        run: host=$(rustc -vV | awk '/^host/{print $2}') && for v in 1.97.1 1.96.0; do rustup component add --toolchain $v-$host cargo clippy rustfmt rust-std rustc; rustup component add --toolchain $v cargo clippy rustfmt rust-std rustc; done && rustup default 1.97.1 && rustc --version
       - name: Materialize generated faces
         run: cargo run --locked -p ci-generated-artifact-freshness --bin oya-cloud-ci-materialize-generated-faces -- --repo-root . --github-event
       - name: Cross-platform smoke tests
