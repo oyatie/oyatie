@@ -872,15 +872,14 @@ pub fn verify_pre_push_verifier_protocol(repo_root: &Path) -> Result<(), Freshne
 }
 
 /// Extract the `PRE_PUSH_VERIFIER_PROTOCOL_VERSION` value from the tracked freshness-gate source
-/// as DATA (a text parse; never executes checkout code). Fails closed when the declaration is
-/// absent or malformed.
-/// Extract the `PRE_PUSH_VERIFIER_PROTOCOL_VERSION` value from the tracked freshness-gate source
 /// as DATA (a text parse; never executes checkout code). Matches ONLY the actual constant
 /// declaration line (`pub const PRE_PUSH_VERIFIER_PROTOCOL_VERSION: u32 = N;`), so a comment or
-/// string that merely mentions the name can never shadow the real value. Fails closed when the
-/// declaration is absent or malformed.
+/// string that merely mentions the name can never shadow the real value. Two declaration lines
+/// fail closed — an untrusted checkout cannot prepend a stale `pub const` to keep an old hook
+/// green. Fails closed when the declaration is absent or malformed.
 fn parse_pre_push_verifier_protocol_version(lib_source: &str) -> Option<u32> {
     const DECLARATION_PREFIX: &str = "pub const PRE_PUSH_VERIFIER_PROTOCOL_VERSION: u32 = ";
+    let mut found = None;
     for line in lib_source.lines() {
         let trimmed = line.trim();
         let Some(rest) = trimmed.strip_prefix(DECLARATION_PREFIX) else {
@@ -889,9 +888,12 @@ fn parse_pre_push_verifier_protocol_version(lib_source: &str) -> Option<u32> {
         let Some(value) = rest.strip_suffix(';') else {
             continue;
         };
-        return value.trim().parse().ok();
+        let parsed = value.trim().parse().ok()?;
+        if found.replace(parsed).is_some() {
+            return None;
+        }
     }
-    None
+    found
 }
 
 pub fn materialize_generated_faces_with_buck2(repo_root: &Path) -> Result<(), FreshnessError> {
@@ -5052,5 +5054,29 @@ mod pre_push_verifier_protocol_tests {
         let text = error.to_string();
         assert!(text.contains("new-face.generated.json"), "{text}");
         assert!(text.contains("reinstall"), "{text}");
+    }
+
+    #[test]
+    fn comment_or_string_mention_does_not_shadow_the_pub_const_declaration() {
+        // Codex P2: an earlier comment/string containing the type annotation used to win via
+        // first-substring match and keep an installed v1 hook green against a real v2 declaration.
+        let source = concat!(
+            "/// declaration line (`pub const PRE_PUSH_VERIFIER_PROTOCOL_VERSION: u32 = N;`)\n",
+            "// PRE_PUSH_VERIFIER_PROTOCOL_VERSION: u32 = 1;\n",
+            "// pub const PRE_PUSH_VERIFIER_PROTOCOL_VERSION: u32 = 1;\n",
+            "const NOTE: &str = \"PRE_PUSH_VERIFIER_PROTOCOL_VERSION: u32 = 1;\";\n",
+            "format!(\"pub const PRE_PUSH_VERIFIER_PROTOCOL_VERSION: u32 = {n};\\n\");\n",
+            "pub const PRE_PUSH_VERIFIER_PROTOCOL_VERSION: u32 = 2;\n",
+        );
+        assert_eq!(parse_pre_push_verifier_protocol_version(source), Some(2));
+    }
+
+    #[test]
+    fn duplicate_pub_const_declaration_lines_fail_closed() {
+        let source = concat!(
+            "pub const PRE_PUSH_VERIFIER_PROTOCOL_VERSION: u32 = 1;\n",
+            "pub const PRE_PUSH_VERIFIER_PROTOCOL_VERSION: u32 = 2;\n",
+        );
+        assert_eq!(parse_pre_push_verifier_protocol_version(source), None);
     }
 }
