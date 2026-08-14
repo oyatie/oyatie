@@ -312,7 +312,7 @@
   },
   "schema_version": "1.2.0",
   "corpus_budget": {
-    "$comment": "Shrink-only sprawl ratchet (ADR-0717). Class match rules are DATA (prefixes + optional suffixes); ceilings are frozen counts over the tracked-path inventory. Growth past a frozen ceiling is born-blocking with a one-in-one-out remediation; a deliberate budget change is a reviewed DATA edit here. Ceilings were set to the measured post-wave-2 dev corpus (origin/dev 35cc96f54). REVIEWED RAISE 2026-08-14 (PR #1975, dev-unblock): docs_markdown_files 1433 -> 1435 (+ADR-0718 file, +docs/templates/pull-request-template.md edit) and live_adr_files 18 -> 19 (+ADR-0718-cargo-ci-producer-env-parity.md). The raise is the deliberate, reviewed admission of the env-parity ADR required to unblock dev CI (founder directive: unblock ci); no sprawl class grew beyond these two admissions.",
+    "$comment": "Shrink-only sprawl ratchet (ADR-0717). Class match rules are DATA (prefixes + optional suffixes); ceilings are frozen counts over the tracked-path inventory. Growth past a frozen ceiling is born-blocking with a one-in-one-out remediation; a deliberate budget change is a reviewed DATA edit here. Ceilings were set to the measured post-wave-2 dev corpus (origin/dev 35cc96f54). REVIEWED RAISE 2026-08-14 (PR #1975, dev-unblock): docs_markdown_files 1433 -> 1435 (+ADR-0719 file, +docs/templates/pull-request-template.md edit) and live_adr_files 18 -> 19 (+ADR-0719-cargo-ci-producer-env-parity.md). The raise is the deliberate, reviewed admission of the env-parity ADR required to unblock dev CI (founder directive: unblock ci); no sprawl class grew beyond these two admissions.",
     "classes": {
       "evidence_files": {
         "prefixes": [
@@ -356,8 +356,8 @@
           "docs_markdown_files": 1435,
           "live_adr_files": 19
         },
-        "reason": "PR #1975 dev-CI unblock: ADR-0718 (cargo CI producer env parity) is a new live ADR (+1 live_adr_files, +1 docs_markdown_files) and the reviewed pull-request-template edit adds +1 docs_markdown_files. Founder directive: unblock dev CI; this raise is the reviewed DATA edit the ratchet's comment reserves for deliberate budget changes.",
-        "adr": "docs/decisions/ADR-0718-cargo-ci-producer-env-parity.md",
+        "reason": "PR #1975 dev-CI unblock: ADR-0719 (cargo CI producer env parity) is a new live ADR (+1 live_adr_files, +1 docs_markdown_files) and the reviewed pull-request-template edit adds +1 docs_markdown_files. Founder directive: unblock dev CI; this raise is the reviewed DATA edit the ratchet's comment reserves for deliberate budget changes.",
+        "adr": "docs/decisions/ADR-0719-cargo-ci-producer-env-parity.md",
         "pr": "#1975"
       }
     ]

@@ -246,13 +246,13 @@
           "note": "corpus-budget shrink-only ratchet (ADR-0717) Accepted 2026-08-14; bound via planning_authority.bound_adrs; no new wave mint."
         },
         {
-          "id": "ADR-0718",
+          "id": "ADR-0719",
           "lifecycle_state": "Accepted",
           "planning_impact": true,
           "sequencing_effect": "none",
           "disposition_ref": "/specs/masterplan.json#planning_authority.bound_adrs",
           "hold_state": "HOLD(Planning)",
-          "note": "cargo CI producer env parity (ADR-0718) Accepted 2026-08-14; bound via planning_authority.bound_adrs; no new wave mint."
+          "note": "cargo CI producer env parity (ADR-0719) Accepted 2026-08-14; bound via planning_authority.bound_adrs; no new wave mint."
         }
       ],
       "evidence": "/evidence/consolidation/preplanning-authority-closure-20260713.json"
