@@ -51,7 +51,12 @@ use ci_generated_artifact_freshness::{
     verify_pre_push_verifier_protocol, write_pre_push_verifier_manifest,
 };
 
-const ZERO_SHA: &str = "0000000000000000000000000000000000000000";
+/// True when `object_id` is an all-zero object ID — the deletion sentinel git passes on pre-push
+/// stdin. The sentinel length is repository-object-format dependent (40 hex for SHA-1, 64 hex for
+/// SHA-256), so any all-zero object ID counts as a deletion.
+fn is_zero_object_id(object_id: &str) -> bool {
+    !object_id.is_empty() && object_id.bytes().all(|byte| byte == b'0')
+}
 
 fn main() -> ExitCode {
     let args: Vec<String> = env::args().skip(1).collect();
@@ -137,6 +142,25 @@ fn run_hook() -> Result<ExitCode, String> {
     ));
     let tools_dir = generation_dir.join(PRE_PUSH_VERIFIER_TOOLS_DIR);
 
+    // Repository-aware dispatch: the hooks dir may be SHARED across repositories (e.g. a locally
+    // configured org-managed `core.hooksPath` that several repos point at). When THIS repository
+    // has no generation here but OTHER repositories' generations exist, the installed `pre-push`
+    // is not this repo's verifier — skip cleanly so pushes from other repositories sharing the
+    // directory are not blocked by a repo-specific verifier (their cloud-ci freshness gate behind
+    // `oya-ci-required` remains the enforcement backstop). A genuinely broken install of THIS repo
+    // (no generations anywhere) still fails closed in the handshake below.
+    if !generation_dir
+        .join(PRE_PUSH_VERIFIER_MANIFEST_FILE)
+        .exists()
+        && hooks_dir_has_other_generation(&hooks_dir, &generation_dir)?
+    {
+        println!(
+            "pre-push: this repository is not reconciled for the oya pre-push verifier (shared hooks dir {}); skipping — the cloud-ci freshness gate behind oya-ci-required remains the enforcement backstop",
+            hooks_dir.display()
+        );
+        return Ok(ExitCode::SUCCESS);
+    }
+
     // Verify certifies the COMMITTED tree (HEAD) only. Assert cleanliness BEFORE the manifest
     // handshake so a dirty generator source fails with the tree-clean remediation ("commit or
     // remove these changes first") instead of a misleading "generator source changed — reinstall":
@@ -189,7 +213,7 @@ fn read_pushed_face_commits_from(mut reader: impl BufRead) -> Result<Vec<String>
         let remote_ref = fields[2];
         let is_face_ref =
             remote_ref.starts_with("refs/heads/") || remote_ref.starts_with("refs/tags/");
-        if is_face_ref && local_sha != ZERO_SHA {
+        if is_face_ref && !is_zero_object_id(local_sha) {
             if remote_ref.starts_with("refs/tags/") {
                 commits.push(peel_commit(local_sha)?);
             } else {
@@ -333,6 +357,24 @@ fn pre_push_generation_key(repo_root: &Path) -> Result<String, String> {
     let canonical = std::fs::canonicalize(repo_root)
         .map_err(|error| format!("canonicalize repo root {}: {error}", repo_root.display()))?;
     Ok(fnv1a64_hex(canonical.to_string_lossy().as_bytes()))
+}
+
+/// True when the hooks dir contains an oya per-worktree generation OTHER than `current` — i.e. the
+/// directory is a shared hooks location already serving another repository's verifier install.
+fn hooks_dir_has_other_generation(hooks_dir: &Path, current: &Path) -> Result<bool, String> {
+    let entries = std::fs::read_dir(hooks_dir)
+        .map_err(|error| format!("read hooks dir {}: {error}", hooks_dir.display()))?;
+    for entry in entries {
+        let entry = entry.map_err(|error| format!("read hooks dir entry: {error}"))?;
+        let name = entry.file_name();
+        let Some(name) = name.to_str() else {
+            continue;
+        };
+        if name.starts_with(PRE_PUSH_GENERATION_DIR_PREFIX) && entry.path() != current {
+            return Ok(true);
+        }
+    }
+    Ok(false)
 }
 
 /// Resolve the hooks dir, preserving a LOCAL or WORKTREE-scoped `core.hooksPath`. Refuses when the
@@ -631,6 +673,47 @@ mod tests {
             resolved,
             std::fs::canonicalize(&worktree_dir).expect("canonical worktree hooks dir"),
             "worktree-scoped core.hooksPath must win over local scope"
+        );
+        let _ = std::fs::remove_dir_all(&base);
+    }
+
+    #[test]
+    fn is_zero_object_id_detects_deletions_for_any_object_format() {
+        // SHA-1 repositories pass 40 zeroes; SHA-256 repositories pass 64. Both are deletions.
+        assert!(is_zero_object_id(
+            "0000000000000000000000000000000000000000"
+        ));
+        assert!(is_zero_object_id(
+            "0000000000000000000000000000000000000000000000000000000000000000"
+        ));
+        assert!(!is_zero_object_id(
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        ));
+        assert!(!is_zero_object_id(""));
+    }
+
+    #[test]
+    fn hooks_dir_has_other_generation_detects_shared_dirs() {
+        let base = std::env::temp_dir().join(format!(
+            "oya-pre-push-shared-hooks-{}-{}",
+            std::process::id(),
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .expect("clock after epoch")
+                .as_nanos(),
+        ));
+        let hooks = base.join("hooks");
+        std::fs::create_dir_all(&hooks).expect("create hooks dir");
+        let own = hooks.join(format!("{PRE_PUSH_GENERATION_DIR_PREFIX}aaaa"));
+        let other = hooks.join(format!("{PRE_PUSH_GENERATION_DIR_PREFIX}bbbb"));
+        std::fs::create_dir_all(&other).expect("create other generation");
+        assert!(
+            hooks_dir_has_other_generation(&hooks, &own).expect("scan hooks dir"),
+            "another repo's generation must be detected as shared"
+        );
+        assert!(
+            !hooks_dir_has_other_generation(&hooks, &other).expect("scan hooks dir"),
+            "only-own generation is not shared"
         );
         let _ = std::fs::remove_dir_all(&base);
     }
