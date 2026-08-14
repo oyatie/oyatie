@@ -123,7 +123,7 @@ fn controlled_buck2_command(command: &[String]) -> Result<(Vec<String>, String),
         != Some("buck2")
     {
         return Err(
-            "warm controller child must be `buck2` so its daemon boundary is explicit".to_string(),
+            "cache controller child must be `buck2` so its daemon boundary is explicit".to_string(),
         );
     }
     let mut child = command.to_vec();

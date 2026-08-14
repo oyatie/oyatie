@@ -12,7 +12,7 @@ doc_status: published
   writer/reader address and REAPI instance source materialized into private Buck2 configuration.
 - Updated the laptop CAS runbook to distinguish hand-managed lab preflight from the fleet profile,
   and bound the in-cluster endpoint DATA to NativeLink Services, target ports, listeners,
-  instances, ingress/runner-egress NetworkPolicies, and the server-certificate SAN preflight.
+  NetworkPolicy ingress/egress, instances, and the server-certificate SAN preflight.
 - Hardened declared-cold execution so a bypass child cannot inherit a stale warm Buck2 daemon and
   its receipt must prove zero remote-cache participation. Warm licensing and required/fork authority
   remain unchanged.
