@@ -3,10 +3,10 @@
 # Cargo workspace so its no_std / harness crates resolve independently. Placement is
 # sanctioned by specs/capability-registry.json (ADR-0562 CLOSED registry).
 members = [
-    "core/asterinas-boundary",
-    "core/asterinas-abi-matrix",
-    "harness/asterinas-real-boot",
-    "harness/asterinas-abi-probe",
+    "asterinas/core/asterinas-boundary",
+    "asterinas/core/asterinas-abi-matrix",
+    "asterinas/harness/asterinas-real-boot",
+    "asterinas/harness/asterinas-abi-probe",
 ]
 resolver = "2"
 

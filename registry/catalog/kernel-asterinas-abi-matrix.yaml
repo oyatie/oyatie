@@ -14,7 +14,7 @@ supply_chain: source-only
 # D5 capability publication (no eval-set / Cosign / autonomy-tier uplift in A1).
 status: designed-ahead-row-no-crate
 traceability:
-  source_crate: kernel/core/asterinas-abi-matrix/Cargo.toml
+  source_crate: kernel/asterinas/core/asterinas-abi-matrix/Cargo.toml
 non_claims:
   - A1 W0-entry scaffold only; embeds and validates a versioned ABI/kernel-service matrix artifact
   - crate lives in the ADR-0512 nested kernel workspace (not a root live member); row is inventory + SLO face only

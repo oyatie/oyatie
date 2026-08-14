@@ -86,7 +86,7 @@
     {
       "face": "harness",
       "subfold": "harness/",
-      "charter": "Integration-test-only crates carrying no production code. Admitted ONLY for the META directories whose runtime engines have no sold surface (kernel/, os/); landed precedent kernel/harness/asterinas-real-boot (ADR-0611) and os/harness/difftest-app (ADR-0562 §10.29). NOT a capability face: a capability keeps its tests beside the crate they exercise. Recorded here because the registry is closed and had been describing the tree inaccurately since ADR-0611 landed the first harness leaf."
+      "charter": "Integration-test-only crates carrying no production code. Admitted ONLY for the META directories whose runtime engines have no sold surface (kernel/, os/); landed precedent kernel/asterinas/harness/asterinas-real-boot (ADR-0611) and os/harness/difftest-app (ADR-0562 §10.29). NOT a capability face: a capability keeps its tests beside the crate they exercise. Recorded here because the registry is closed and had been describing the tree inaccurately since ADR-0611 landed the first harness leaf."
     }
   ],
   "capabilities": [
@@ -558,7 +558,7 @@
     },
     "meta_directory_absorbs": [
       {
-        "_comment": "kuberos kernel + sysroot floor (ADR-0512 carve-out). cloud-kernel is the single 2nd-level crate. The bare `kernel` root is the ADR-0611 landed destination (kernel/core/asterinas-boundary + kernel/harness/asterinas-real-boot live there today, in kernel/'s own excluded nested workspace); it is absorbed exactly like every other destination root so the crates that already sit at the destination map to meta:kernel/ once the root is scanned.",
+        "_comment": "kuberos kernel + sysroot floor (ADR-0512 carve-out). cloud-kernel is the single 2nd-level crate. The bare `kernel` root is the ADR-0611 landed destination (kernel/asterinas/core/asterinas-boundary + kernel/asterinas/harness/asterinas-real-boot live there today, in kernel/'s own excluded nested workspace); it is absorbed exactly like every other destination root so the crates that already sit at the destination map to meta:kernel/ once the root is scanned.",
         "meta_dir": "kernel/",
         "current_dirs": [
           "cloud/cloud-kernel",

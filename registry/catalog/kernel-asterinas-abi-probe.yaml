@@ -14,7 +14,7 @@ supply_chain: source-only
 # D5 capability publication (no eval-set / Cosign / autonomy-tier uplift in A1).
 status: designed-ahead-row-no-crate
 traceability:
-  source_crate: kernel/harness/asterinas-abi-probe/Cargo.toml
+  source_crate: kernel/asterinas/harness/asterinas-abi-probe/Cargo.toml
 non_claims:
   - harness scaffold only; builds a deterministic probe plan and emits stub outcomes
   - optional bin is local-bridge receipt emitter (CLI-retirement); library is the sanctioned surface
