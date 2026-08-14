@@ -14,10 +14,8 @@
 - **Standalone nested-workspace manifest (PR #1672):** destination `Cargo.toml` states concrete
   `edition`/`version`/`rust-version` + lint baseline and declares its own `[workspace]` root, so
   the parked crate stays addressable (`cargo test --manifest-path ...` from anywhere, `cargo
-  test -p` from inside the dir) while excluded from the root workspace. The retained `oya/crm`
-  source is the SOLE root workspace member until the drain — `cargo test --workspace` keeps
-  running the four `source_to_pay` tests through the ADR-0716 merge path (cargo forbids two
-  members with the same package name, so the destination stays excluded while the source lives).
+  test -p` from inside the dir) while excluded from the root workspace — cargo forbids two
+  workspace members with the same package name until the drain.
 
 ## Inventory (absorbed crates)
 

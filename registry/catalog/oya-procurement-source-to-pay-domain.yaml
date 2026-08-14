@@ -3,11 +3,13 @@ role: domain
 capability: source-to-pay
 plane: control
 slo: preview-control-plane
+status: retired-compatibility-row-no-crate
 data_classes_owned: [INTERNAL_ONLY, FINANCIAL]
 operational_classes_owned: []
 api_stability: preview
 security_review: unreviewed
 supply_chain: source-only
 non_claims:
-  - live crate is the retained oya/crm source (sole root workspace member) until the integ/oya shrink-only drain deletes it (app/procurement/REORG-DRAIN.md)
-  - the forever-home copy sits at app/procurement/crates/oya-procurement-source-to-pay-domain (integ/procurement, PR #1672) as an excluded nested-workspace root until the drain flips app/*/crates/* membership
+  - no live workspace crate exists in this checkout
+  - the crate was rehomed to app/procurement/crates/oya-procurement-source-to-pay-domain (integ/procurement, PR #1672) and is excluded from the root workspace until the integ/oya drain flips app/*/crates/* membership (app/procurement/REORG-DRAIN.md)
+  - retained only for catalog compatibility during the capability-first reorg truth-down
