@@ -104,32 +104,45 @@ local check (ADR-0548 D6) in front of it, never a substitute for it.
 That local `--verify` step is automated by the repo git pre-push hook: the owned Rust verifier
 `oya-pre-push-verify` (buck2 target `//ci/facade/generated-artifact-freshness:oya-pre-push-verify-bin`).
 Per the repo stack invariant (automation deliverables are Rust, never shell), the hook logic lives in
-that binary — including branch detection, pushed-SHA gating, and the verify orchestration. Wire it
+that binary — including branch/tag detection, pushed-SHA gating, and the verify orchestration. Wire it
 once per clone with `buck2 run //ci/facade/generated-artifact-freshness:oya-pre-push-verify-bin -- install`:
-the installer (a) preserves a LOCAL `core.hooksPath` — if one is configured repo-locally (e.g.
-org-managed commit-msg/signing hooks) the verifier is installed into that same directory and the
-configuration is left untouched, a global/system-scoped shared hooks dir and an in-tree path are
-refused (paths are canonicalized so `..`/symlink traversal cannot smuggle a checkout-controlled
-directory past the inside-checkout check), otherwise it goes into git's default hooks dir with no
-configuration written, and a prior oya installation can be replaced by a reinstall (the old manifest
-is invalidated before the pinned tools are overwritten, so an interrupted reinstall fails closed
-instead of running a mixed old/new tool set) — and (b) builds the generator tools ONCE from the
-install-time checkout and copies them into the hooks dir as PINNED binaries. At push time the hook
-executes only those prebuilt tools against the repo tree consumed as DATA; it never builds from the
-active checkout's Buck graph, so a malicious branch cannot make the hook run checkout-controlled code.
-A protocol manifest bound to the pinned tool builds and the generator source, plus the repository's
-tracked generated-face control-plane, form the handshake: when any of them is stale the hook fails
-closed with an explicit reinstall requirement. The verify path runs the same ADR-0595 determinism
-canary as the canonical freshness gate when non-PR-owned faces are present, and the member universe
+the installer (a) preserves a LOCAL or worktree-scoped `core.hooksPath` (the `--worktree` scope,
+enabled by `extensions.worktreeConfig`, is accepted as repository-owned like `--local`) — if one is
+configured (e.g. org-managed commit-msg/signing hooks) the verifier is installed into that same
+directory and the configuration is left untouched, a global/system-scoped shared hooks dir and an
+in-tree path are refused (paths are canonicalized so `..`/symlink traversal cannot smuggle a
+checkout-controlled directory past the inside-checkout check), otherwise it goes into git's default
+hooks dir with no configuration written, and a prior oya installation can be replaced by a reinstall
+only when the installed hook's recorded identity still matches — the manifest binds to the installed
+`pre-push` binary's own fingerprint, so a manifest left behind after another tool's hook replaced it
+cannot authorize an overwrite; the old manifest is invalidated before the pinned tools are
+overwritten, so an interrupted reinstall fails closed instead of running a mixed old/new tool set —
+and (b) builds the generator tools ONCE from the install-time checkout and copies them into the
+hooks dir as PINNED binaries. At push time the hook executes only those prebuilt tools against the
+repo tree consumed as DATA; it never builds from the active checkout's Buck graph, so a malicious
+branch cannot make the hook run checkout-controlled code.
+A protocol manifest bound to the pinned tool builds, the installed hook's identity, and the
+COMPLETE generator build inputs — each generator crate's sources, its `Cargo.toml`/Buck rules, the
+workspace `Cargo.toml`/`Cargo.lock`, and the transitive manifest-declared path dependencies
+outside those crates — plus the repository's tracked generated-face control-plane, form the
+handshake: when any of them is stale the hook fails closed with an explicit reinstall requirement.
+Because linked worktrees share git's common-dir hooks directory, each worktree keeps its OWN
+pinned-tool generation + manifest under a worktree-keyed subdirectory, so worktrees checked out at
+different generator sources never clobber each other's installation. The verify path runs the same
+ADR-0595 determinism canary as the canonical freshness gate when non-PR-owned faces are present,
+re-asserts full committed-tree cleanliness AFTER the generators run (so a background editor or
+formatter cannot certify a mixture of HEAD and post-checkout bytes), and the member universe
 excludes locally git-ignored workspace-glob candidates so an ignored scratch directory cannot produce
-a false lock-missing finding. Every branch push runs
-the read-only verify, and a failing verify blocks the push with the tool's own stale list and
-remediation output. The hook carries no bypass by design (`docs/AGENTS.md` § During-change discipline:
+a false lock-missing finding. Every branch AND non-deletion tag push runs
+the read-only verify — tag objects are peeled to their commit so a tag introduced from a different
+commit is rejected exactly like a non-HEAD branch push — and a failing verify blocks the push with
+the tool's own stale list and remediation output. The hook carries no bypass by design
+(`docs/AGENTS.md` § During-change discipline:
 hook failure means fix the underlying faces, not the hook); it fails closed when the pushed SHA
 differs from HEAD (the verify certifies the committed tree at HEAD only — push the checked-out branch,
-or use a per-branch worktree), and it skips only when the push carries no face-relevant commit (tag
-push, branch deletion) — the cloud-ci freshness gate behind `oya-ci-required` still applies in those
-cases.
+or use a per-branch worktree), and it skips only when the push introduces no face-relevant commit at
+all (deletion-only branch/tag pushes) — the cloud-ci freshness gate behind `oya-ci-required` still
+applies in those cases.
 
 `cloud-ci-friction-accounting` (ADR-0544) is a standalone born-blocking self-test, NOT a
 producer-face/raw-corpus gate routed through the central `gate-baseline.generated.json` firewall (the
