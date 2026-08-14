@@ -3,7 +3,6 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
-use oya_data_boundary_kernel::parse_data_class_label;
 use intelligence_api_semver_domain::validate_api_semver;
 use intelligence_openapi_domain::{
     OpenApiContractMirrorLocation, OpenApiContractMirrorReport, OpenApiDocument,
@@ -11,6 +10,7 @@ use intelligence_openapi_domain::{
     OpenApiSchemaParityReport, OpenApiSourceReport, validate_openapi_contract_mirror,
     validate_openapi_documents, validate_openapi_runtime_parity, validate_openapi_schema_parity,
 };
+use oya_data_boundary_kernel::parse_data_class_label;
 
 use crate::command_output::OutputFormat as DevCheckOutputFormat;
 use crate::{

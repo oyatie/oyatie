@@ -484,26 +484,6 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
                 }
             }
         }
-        (Some("validate"), Some("pr-traceability")) => {
-            match crate::parse_pr_traceability_validate_args(args.collect()) {
-                Ok(args) => match crate::validate_pr_traceability_gate(args) {
-                    Ok((sections, code_review_present)) => {
-                        println!(
-                            "PR traceability validation passed: {sections} required sections, code_review_present={code_review_present}"
-                        );
-                        ExitCode::SUCCESS
-                    }
-                    Err(message) => {
-                        eprintln!("PR traceability validation failed: {message}");
-                        ExitCode::FAILURE
-                    }
-                },
-                Err(message) => {
-                    eprintln!("{message}");
-                    ExitCode::from(2)
-                }
-            }
-        }
         (Some("validate"), Some("cargo-prefix")) => {
             match crate::parse_cargo_prefix_validate_args(args.collect()) {
                 Ok(args) => match crate::validate_cargo_prefix_gate(args) {
