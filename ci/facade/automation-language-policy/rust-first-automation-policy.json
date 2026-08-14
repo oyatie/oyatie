@@ -320,9 +320,9 @@
       "keys_total": 24
     },
     "replacement_window": {
-      "schema_version": 1,
-      "reason": "ADR-0716 moves the CI merge path from a 12-job buck2 workflow (no live remote cache, serial producer barrier, affected-set baselines) to a 6-job cargo workflow with shared build caching; the previous 51-key baseline described jobs that no longer exist, and the new job/step names are deliberately self-explanatory and debranded.",
-      "adr": "docs/decisions/ADR-0716-cargo-merge-path-buck2-local-hermeticity.md"
+      "schema_version": 2,
+      "reason": "ADR-0716 moves the CI merge path from a 12-job buck2 workflow (no live remote cache, serial producer barrier, affected-set baselines) to a 6-job cargo workflow with shared build caching; the previous 51-key baseline described jobs that no longer exist, and the new job/step names are deliberately self-explanatory and debranded. ADR-0717 extends the same window for cargo CI producer env parity: two fail-closed cross-artifact tests require the materialized history-only-retirement-facts face path (OYA_HISTORY_ONLY_RETIREMENT_FACTS) and the sanctioned ADR-index producer binary (OYA_ADR_INDEX_PRODUCER_BIN), which the producer step now also builds via `cargo build --locked -p marketplace-dev-cli --bin oya`; env-only additions plus one build-command extension in an existing step, shell-line count unchanged.",
+      "adr": "docs/decisions/ADR-0717-cargo-ci-producer-env-parity.md"
     },
     "codes": {
       "rust_first_automation_unbaselined_workflow_inline_shell": [
