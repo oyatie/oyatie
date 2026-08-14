@@ -9,7 +9,7 @@
 //!
 //! ## The four writers
 //! - [`capability_mapping`] — [`Edit::CapabilityMapping`](oya_crate_registrar_kernel::Edit::CapabilityMapping):
-//!   upsert `<crate_dir>` into the matching `globs` list of `specs/capability-registry.json`'s
+//!   upsert `<crate_dir>` into the matching `globs` list of `governance/capability-registry.json`'s
 //!   `membership_lint_coverage.absorbs_current_crate_globs` (closed-set validated — an unknown
 //!   capability/meta-dir slug is refused), re-serialized with the repo's canonical-JSON form so the
 //!   registry stays byte-stable.
@@ -56,7 +56,7 @@ use serde_json::Value;
 /// (`ci/facade/canonical-json/canonical-json-policy.json`, ADR-0546): "sort_keys=false because the
 /// defect is rewrite nondeterminism, not key-order ambiguity, and sorting would churn 1452 repo
 /// files and destroy intentional order on the agent entry surface". The file this writer edits —
-/// `specs/capability-registry.json` — is HAND-AUTHORED governance data whose key order is a design
+/// `governance/capability-registry.json` — is HAND-AUTHORED governance data whose key order is a design
 /// act, so a recursive sort here would silently reorder the whole registry on the next
 /// `register_crate` and hang that diff on whoever's PR happened to trigger it.
 ///
@@ -85,7 +85,7 @@ pub fn to_canonical_json(value: &Value) -> Result<String, WriterError> {
 /// yields a typed error, never a partial/silent write.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum WriterError {
-    /// The current `specs/capability-registry.json` could not be parsed as JSON.
+    /// The current `governance/capability-registry.json` could not be parsed as JSON.
     RegistryParse(String),
     /// The registry JSON did not have the expected
     /// `membership_lint_coverage.absorbs_current_crate_globs` array shape.
@@ -187,9 +187,9 @@ pub mod capability_mapping {
     use super::{Path, Value, WriterError, fs, to_canonical_json};
 
     /// The repo-relative path of the closed capability registry.
-    pub const REGISTRY_PATH: &str = "specs/capability-registry.json";
+    pub const REGISTRY_PATH: &str = "governance/capability-registry.json";
 
-    /// Compute the new `specs/capability-registry.json` content for upserting `crate_dir` into the
+    /// Compute the new `governance/capability-registry.json` content for upserting `crate_dir` into the
     /// `globs` list of the group whose `meta_dir` OR `capability` equals `slug`. PURE — no I/O.
     ///
     /// Idempotent upsert: if `crate_dir` is already in the matching group's `globs`, the returned
@@ -266,7 +266,7 @@ pub mod capability_mapping {
         *array = strings.into_iter().map(Value::String).collect();
     }
 
-    /// Apply the capability mapping to `specs/capability-registry.json` under `repo_root`. Reads the
+    /// Apply the capability mapping to `governance/capability-registry.json` under `repo_root`. Reads the
     /// registry, computes the upserted canonical content, and writes ONLY if the bytes changed.
     /// Returns `true` if the file was rewritten, `false` if it was already correct (idempotent).
     ///

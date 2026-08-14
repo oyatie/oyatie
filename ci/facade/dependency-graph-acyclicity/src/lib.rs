@@ -18,7 +18,7 @@ pub const DEFAULT_POLICY_PATH: &str =
     "ci/facade/dependency-graph-acyclicity/substrate-dependency-dag-policy.json";
 pub const CANONICAL_DAG_PATH: &str = "specs/substrate-dependency-dag.json";
 pub const CANONICAL_SCHEMA_PATH: &str = "specs/substrate-dependency-dag.schema.json";
-pub const CANONICAL_CAPABILITY_REGISTRY_PATH: &str = "specs/capability-registry.json";
+pub const CANONICAL_CAPABILITY_REGISTRY_PATH: &str = "governance/capability-registry.json";
 pub const GRAPH_KINDS: [&str; 5] = [
     "genesis",
     "new_cell_provisioning",
