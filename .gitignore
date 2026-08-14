@@ -132,6 +132,11 @@ test-results/
 #   docs/machine-readable/masterplan.generated.json  (covered by **/*.generated.json above; not negated)
 # product-graph.html is a .html (not *.generated.json), so it needs an explicit ignore line:
 docs/architecture/product-graph.html
+# Non-Linux materializer skip signal (ADR-0719-era P2 replay skip): written into the worktree by
+# the generated-face materializer on non-Linux platforms so the historical byte-pinned P2 replay
+# skip is never silent; a generated signal, not a tracked source — ignored so a successful local
+# regeneration never leaves an untracked file that can be accidentally staged.
+ci/facade/scm-facts-snapshot/adr-census-parent-receipt.platform-skip.txt
 # ADR-0621: active-artifact-contract graph edges are controller-materialized from
 # committed contract sources and must never be hand-merged as a readable authority face.
 registry/graph/active-artifact-contract-edges.json

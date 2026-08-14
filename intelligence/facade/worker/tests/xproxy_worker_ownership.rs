@@ -42,17 +42,19 @@ fn worker_ownership_map_keeps_hot_path_and_control_plane_separate() {
 
 fn manifest() -> String {
     // cargo test binaries run with CWD = package root (buck2 used repo-root CWD);
-    // anchor the repo-relative manifest path at the repo root marker.
-    let mut root = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+    // anchor the repo-relative manifest path at the repo root marker. Buck2 does not
+    // define CARGO_MANIFEST_DIR, so fall back to the current directory (repo root under
+    // buck2, package root under cargo) instead of a compile-time env!.
+    let anchor = option_env!("CARGO_MANIFEST_DIR")
+        .map(std::path::PathBuf::from)
+        .unwrap_or_else(|| std::env::current_dir().expect("current dir"));
+    let mut root = anchor.clone();
     loop {
         if root.join("specs/root-hub-pointers.json").is_file() {
             break;
         }
         if !root.pop() {
-            panic!(
-                "failed to locate repo root from {}",
-                env!("CARGO_MANIFEST_DIR")
-            );
+            panic!("failed to locate repo root from {}", anchor.display());
         }
     }
     std::fs::read_to_string(root.join("intelligence/k8s/cloud-intelligence.yaml"))
