@@ -1,7 +1,7 @@
 [workspace]
 # Nested-workspace carve-out (ADR-0512): kernel/ is rung-0, separate from the root
 # Cargo workspace so its no_std / harness crates resolve independently. Placement is
-# sanctioned by specs/capability-registry.json (ADR-0562 CLOSED registry).
+# sanctioned by governance/capability-registry.json (ADR-0562 CLOSED registry).
 members = [
     "core/asterinas-boundary",
     "core/asterinas-abi-matrix",
