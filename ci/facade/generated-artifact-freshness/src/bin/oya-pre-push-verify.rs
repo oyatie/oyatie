@@ -43,11 +43,12 @@ use std::path::{Path, PathBuf};
 use std::process::{Command, ExitCode};
 
 use ci_generated_artifact_freshness::{
-    FaceSettleMode, PRE_PUSH_VERIFIER_MANIFEST_FILE, PRE_PUSH_VERIFIER_PROTOCOL_VERSION,
-    PRE_PUSH_VERIFIER_TOOLS_DIR, fnv1a64_hex, install_pre_push_verifier_tools,
-    manifest_owns_installed_hook, read_pre_push_verifier_manifest, read_pre_push_verifier_wiring,
-    run_face_settle_with_pinned_tools, verify_pre_push_verifier_protocol,
-    write_pre_push_verifier_manifest,
+    FaceSettleMode, PRE_PUSH_GENERATION_DIR_PREFIX, PRE_PUSH_VERIFIER_MANIFEST_FILE,
+    PRE_PUSH_VERIFIER_PROTOCOL_VERSION, PRE_PUSH_VERIFIER_TOOLS_DIR,
+    any_generation_manifest_owns_hook, assert_committed_tree_clean, fnv1a64_hex,
+    install_pre_push_verifier_tools, read_pre_push_verifier_manifest,
+    read_pre_push_verifier_wiring, run_face_settle_with_pinned_tools,
+    verify_pre_push_verifier_protocol, write_pre_push_verifier_manifest,
 };
 
 const ZERO_SHA: &str = "0000000000000000000000000000000000000000";
@@ -131,10 +132,17 @@ fn run_hook() -> Result<ExitCode, String> {
     // worktrees at different generator sources can no longer clobber each other's sole
     // generation; each push dispatches to the generation matching its own checkout.
     let generation_dir = hooks_dir.join(format!(
-        "oya-pre-push-generation-{}",
+        "{PRE_PUSH_GENERATION_DIR_PREFIX}{}",
         pre_push_generation_key(&root)?
     ));
     let tools_dir = generation_dir.join(PRE_PUSH_VERIFIER_TOOLS_DIR);
+
+    // Verify certifies the COMMITTED tree (HEAD) only. Assert cleanliness BEFORE the manifest
+    // handshake so a dirty generator source fails with the tree-clean remediation ("commit or
+    // remove these changes first") instead of a misleading "generator source changed — reinstall":
+    // reinstalling pins tools built from the SAME dirty tree and still fails, whereas the real
+    // contract is that the working tree must match HEAD.
+    assert_committed_tree_clean(&root).map_err(|error| error.to_string())?;
 
     // Protocol handshake (fail closed with explicit reinstall requirement): the install
     // manifest must exist, match this binary's embedded protocol version, bind to the
@@ -163,9 +171,15 @@ fn run_hook() -> Result<ExitCode, String> {
 /// their commit (`^{commit}`) so the HEAD-equality certification applies to the commits a tag
 /// introduces — a tag-only push can no longer skip verification.
 fn read_pushed_face_commits() -> Result<Vec<String>, String> {
-    let stdin = io::stdin();
+    read_pushed_face_commits_from(io::stdin().lock())
+}
+
+/// Parse git's pre-push stdin lines and return the local COMMIT of every non-deletion branch or
+/// tag push (see [`read_pushed_face_commits`]); split out so the protocol surface is unit-testable
+/// with an injected reader.
+fn read_pushed_face_commits_from(mut reader: impl BufRead) -> Result<Vec<String>, String> {
     let mut commits = Vec::new();
-    for line in stdin.lock().lines() {
+    for line in reader.lines() {
         let line = line.map_err(|error| format!("read pre-push stdin: {error}"))?;
         let fields: Vec<&str> = line.split_whitespace().collect();
         if fields.len() != 4 {
@@ -251,19 +265,22 @@ fn reconcile(args: &[String]) -> Result<String, String> {
     // worktree-keyed subdirectory of the (possibly shared) hooks dir, so linked worktrees at
     // different generator sources never replace each other's sole generation.
     let generation_dir = hooks_dir.join(format!(
-        "oya-pre-push-generation-{}",
+        "{PRE_PUSH_GENERATION_DIR_PREFIX}{}",
         pre_push_generation_key(&root)?
     ));
 
     let exe = env::current_exe().map_err(|error| format!("resolve current executable: {error}"))?;
     let dest = hooks_dir.join("pre-push");
     // Replacement permission is bound to the INSTALLED HOOK's identity, not the manifest's mere
-    // existence: the manifest records the hook binary's fingerprint, so a manifest left behind
-    // after the user swapped in another tool's hook cannot authorize an overwrite of unrelated
-    // user hook state. A protocol bump builds a byte-different verifier, and the recorded
-    // fingerprint matches the CURRENT hook (our own binary), so reinstalls keep working.
+    // existence: a manifest records the hook binary's fingerprint, so a manifest left behind after
+    // the user swapped in another tool's hook cannot authorize an overwrite of unrelated user hook
+    // state. Linked worktrees share this hooks dir, so ownership is checked across EVERY
+    // per-worktree generation manifest — a second worktree reconciling over the first's shared
+    // `pre-push` must recognize it as our own verifier rather than refusing it as unrelated. A
+    // protocol bump builds a byte-different verifier, and the recorded fingerprint matches the
+    // CURRENT hook (our own binary), so reinstalls keep working.
     let is_prior_oya_install =
-        manifest_owns_installed_hook(&generation_dir, &dest).unwrap_or(false);
+        any_generation_manifest_owns_hook(&hooks_dir, &dest).unwrap_or(false);
     if dest.exists() && !is_prior_oya_install && !files_equal(&dest, &exe)? {
         return Err(format!(
             "refusing to overwrite {}: an unrelated pre-push hook is installed there; move it aside or remove it first (the oya verifier never replaces unrelated user hook state)",
@@ -348,7 +365,11 @@ fn resolve_hooks_dir(repo_root: &Path) -> Result<PathBuf, String> {
             "core.hooksPath",
         ],
     )?;
-    let configured = local.or(worktree);
+    // Git config precedence is system → global → local → worktree (later wins): when BOTH scopes
+    // are set, git executes hooks from the WORKTREE path, so we must install there too. Preferring
+    // `local` here would install into a directory git never reads, silently leaving every push
+    // unverified (a fail-open hole).
+    let configured = worktree.or(local);
     match configured {
         Some(existing) if !existing.trim().is_empty() => {
             let existing = PathBuf::from(existing.trim());
@@ -494,4 +515,123 @@ fn git_capture(cwd: Option<&Path>, args: &[&str]) -> Result<String, String> {
         ));
     }
     Ok(String::from_utf8_lossy(&output.stdout).trim().to_owned())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::io::Cursor;
+
+    fn run_git(root: &Path, args: &[&str]) -> std::process::Output {
+        Command::new("git")
+            .args(args)
+            .current_dir(root)
+            .output()
+            .expect("run git")
+    }
+
+    #[test]
+    fn is_reconcile_invocation_disambiguates_remote_named_reconcile() {
+        assert!(is_reconcile_invocation(&["reconcile".to_owned()]));
+        assert!(is_reconcile_invocation(&[
+            "reconcile".to_owned(),
+            "--repo-root".to_owned(),
+            ".".to_owned(),
+        ]));
+        assert!(is_reconcile_invocation(&[
+            "reconcile".to_owned(),
+            "--help".to_owned(),
+        ]));
+        // A push to a remote literally named `reconcile` is a HOOK invocation, never the reconciler:
+        // guessing the subcommand from argv[0] alone would reject the URL and block pushes forever.
+        assert!(!is_reconcile_invocation(&[
+            "reconcile".to_owned(),
+            "https://example.com/repo.git".to_owned(),
+        ]));
+        assert!(!is_reconcile_invocation(&["not-reconcile".to_owned()]));
+        assert!(!is_reconcile_invocation(&[]));
+    }
+
+    #[test]
+    fn pre_push_protocol_parses_branches_skips_deletions_and_non_face_refs() {
+        let input = concat!(
+            "refs/heads/topic aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa refs/heads/topic bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\n",
+            "refs/heads/topic 0000000000000000000000000000000000000000 refs/heads/topic bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\n",
+            "refs/tags/v1 0000000000000000000000000000000000000000 refs/tags/v1 0000000000000000000000000000000000000000\n",
+            "refs/notes/commits aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa refs/notes/commits bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\n",
+        );
+        let commits =
+            read_pushed_face_commits_from(Cursor::new(input.as_bytes())).expect("parse stdin");
+        assert_eq!(
+            commits,
+            vec!["aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa".to_owned()],
+            "only the non-deletion branch push is a face-relevant commit"
+        );
+    }
+
+    #[test]
+    fn pre_push_protocol_rejects_malformed_line() {
+        let input = "refs/heads/topic aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa refs/heads/topic\n";
+        let error = read_pushed_face_commits_from(Cursor::new(input.as_bytes()))
+            .expect_err("three fields must fail closed");
+        assert!(error.contains("malformed"), "{error}");
+    }
+
+    #[test]
+    fn resolve_hooks_dir_prefers_worktree_scope_over_local_scope() {
+        // Git config precedence is system → global → local → worktree (later wins). When both
+        // `--local` and `--worktree` set `core.hooksPath`, git executes hooks from the worktree
+        // path; the installer must target that same directory or the hook silently never runs.
+        let base = std::env::temp_dir().join(format!(
+            "oya-pre-push-hooks-precedence-{}-{}",
+            std::process::id(),
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .expect("clock after epoch")
+                .as_nanos(),
+        ));
+        let repo = base.join("repo");
+        std::fs::create_dir_all(&repo).expect("create repo");
+        if !run_git(&repo, &["init", "-q"]).status.success()
+            || !run_git(&repo, &["config", "extensions.worktreeConfig", "true"])
+                .status
+                .success()
+        {
+            // Worktree-scoped config unsupported on this git: nothing to assert, skip.
+            let _ = std::fs::remove_dir_all(&base);
+            return;
+        }
+        let local_dir = base.join("local-hooks");
+        let worktree_dir = base.join("worktree-hooks");
+        std::fs::create_dir_all(&local_dir).expect("create local hooks dir");
+        std::fs::create_dir_all(&worktree_dir).expect("create worktree hooks dir");
+        let set_local = run_git(
+            &repo,
+            &[
+                "config",
+                "--local",
+                "core.hooksPath",
+                local_dir.to_str().expect("local utf-8"),
+            ],
+        );
+        assert!(set_local.status.success(), "set local core.hooksPath");
+        let set_worktree = run_git(
+            &repo,
+            &[
+                "config",
+                "--worktree",
+                "core.hooksPath",
+                worktree_dir.to_str().expect("worktree utf-8"),
+            ],
+        );
+        assert!(set_worktree.status.success(), "set worktree core.hooksPath");
+
+        let resolved = resolve_hooks_dir(&repo).expect("resolve hooks dir");
+        assert_eq!(
+            resolved,
+            std::fs::canonicalize(&worktree_dir).expect("canonical worktree hooks dir"),
+            "worktree-scoped core.hooksPath must win over local scope"
+        );
+        let _ = std::fs::remove_dir_all(&base);
+    }
 }

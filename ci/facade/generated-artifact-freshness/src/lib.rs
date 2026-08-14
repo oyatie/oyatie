@@ -104,6 +104,12 @@ pub const PRE_PUSH_VERIFIER_TOOLS_DIR: &str = "oya-pre-push-tools";
 /// rather than an imperative one-off installer command.
 pub const PRE_PUSH_VERIFIER_WIRING_FILE: &str = "tools/hooks/pre-push-verifier.wiring.json";
 
+/// Prefix of the per-worktree generation subdirectory under the (possibly shared) hooks dir. The
+/// reconciler keys each pinned-tool generation by canonical worktree root so linked worktrees never
+/// clobber each other's installation; the ownership check scans every sibling under this prefix so
+/// a second worktree recognizes the first's shared `pre-push` as our own verifier.
+pub const PRE_PUSH_GENERATION_DIR_PREFIX: &str = "oya-pre-push-generation-";
+
 const PRE_PUSH_TOOL_EMITTER: &str = "emitter";
 const PRE_PUSH_TOOL_PRODUCER: &str = "producer";
 const PRE_PUSH_TOOL_MASTERPLAN_GENERATOR: &str = "masterplan-generator";
@@ -691,6 +697,41 @@ pub fn manifest_owns_installed_hook(
     Ok(recorded == actual)
 }
 
+/// True when ANY installed per-worktree generation manifest records a hook fingerprint equal to
+/// the CURRENT `hook_path` bytes — i.e. the installed `pre-push` is the oya verifier this
+/// repository installed from SOME worktree. Linked worktrees share git's common-dir hooks
+/// directory, so a second worktree reconciling over the shared `pre-push` must recognize the first
+/// worktree's install as our own (replacement permitted) rather than refusing it as unrelated user
+/// hook state. Each worktree keeps its own generation manifest, so ownership must be checked
+/// across every sibling `oya-pre-push-generation-*` manifest, not just this checkout's.
+pub fn any_generation_manifest_owns_hook(
+    hooks_dir: &Path,
+    hook_path: &Path,
+) -> Result<bool, FreshnessError> {
+    let entries = std::fs::read_dir(hooks_dir).map_err(|error| {
+        FreshnessError::new(format!("read hooks dir {}: {error}", hooks_dir.display()))
+    })?;
+    for entry in entries {
+        let entry = entry.map_err(|error| {
+            FreshnessError::new(format!(
+                "read hooks dir entry in {}: {error}",
+                hooks_dir.display()
+            ))
+        })?;
+        let name = entry.file_name();
+        let Some(name) = name.to_str() else {
+            continue;
+        };
+        if !name.starts_with(PRE_PUSH_GENERATION_DIR_PREFIX) {
+            continue;
+        }
+        if manifest_owns_installed_hook(&entry.path(), hook_path)? {
+            return Ok(true);
+        }
+    }
+    Ok(false)
+}
+
 /// Read and validate the repository's DECLARED pre-push verifier wiring state
 /// (`tools/hooks/pre-push-verifier.wiring.json`). The `reconcile` verb converges the installed
 /// hook state toward this declaration and fails closed when the binary disagrees with it — the
@@ -726,41 +767,61 @@ pub fn read_pre_push_verifier_wiring(
     let declared_protocol = value
         .get("protocol_version")
         .and_then(|value| value.as_u64())
-        .unwrap_or(0) as u32;
+        .unwrap_or(0);
+    let declared_protocol = u32::try_from(declared_protocol).map_err(|_| {
+        FreshnessError::new(format!(
+            "pre-push verifier wiring declaration {} declares out-of-range protocol_version {declared_protocol} — reconcile from a checkout matching the declaration",
+            path.display()
+        ))
+    })?;
     if declared_protocol != PRE_PUSH_VERIFIER_PROTOCOL_VERSION {
         return Err(FreshnessError::new(format!(
             "pre-push verifier wiring declaration {} declares protocol v{declared_protocol} but this binary embeds v{PRE_PUSH_VERIFIER_PROTOCOL_VERSION} — reconcile from a checkout matching the declaration",
             path.display()
         )));
     }
+    // The declared key set is part of the contract: a declaration that OMITS `pinned_tools` or
+    // `generator_source_dirs` (e.g. a future reshape that renames the key) must fail closed like
+    // any other disagreement, not silently validate a stale binary against a subset.
     let required_tools: BTreeSet<&str> = REQUIRED_PRE_PUSH_TOOLS.iter().copied().collect();
-    if let Some(declared_tools) = value.get("pinned_tools").and_then(|value| value.as_array()) {
-        let declared: BTreeSet<&str> = declared_tools
-            .iter()
-            .filter_map(|value| value.as_str())
-            .collect();
-        if declared != required_tools {
-            return Err(FreshnessError::new(format!(
-                "pre-push verifier wiring declaration {} pinned_tools do not exactly match the embedded tool set — reconcile from a checkout matching the declaration",
+    let declared_tools = value
+        .get("pinned_tools")
+        .and_then(|value| value.as_array())
+        .ok_or_else(|| {
+            FreshnessError::new(format!(
+                "pre-push verifier wiring declaration {} lacks pinned_tools — reconcile from a checkout matching the declaration",
                 path.display()
-            )));
-        }
+            ))
+        })?;
+    let declared: BTreeSet<&str> = declared_tools
+        .iter()
+        .filter_map(|value| value.as_str())
+        .collect();
+    if declared != required_tools {
+        return Err(FreshnessError::new(format!(
+            "pre-push verifier wiring declaration {} pinned_tools do not exactly match the embedded tool set — reconcile from a checkout matching the declaration",
+            path.display()
+        )));
     }
-    if let Some(declared_dirs) = value
+    let declared_dirs = value
         .get("generator_source_dirs")
         .and_then(|value| value.as_array())
-    {
-        let declared: BTreeSet<&str> = declared_dirs
-            .iter()
-            .filter_map(|value| value.as_str())
-            .collect();
-        let required: BTreeSet<&str> = GENERATOR_SOURCE_DIRS.iter().copied().collect();
-        if declared != required {
-            return Err(FreshnessError::new(format!(
-                "pre-push verifier wiring declaration {} generator_source_dirs do not exactly match the embedded source dirs — reconcile from a checkout matching the declaration",
+        .ok_or_else(|| {
+            FreshnessError::new(format!(
+                "pre-push verifier wiring declaration {} lacks generator_source_dirs — reconcile from a checkout matching the declaration",
                 path.display()
-            )));
-        }
+            ))
+        })?;
+    let declared: BTreeSet<&str> = declared_dirs
+        .iter()
+        .filter_map(|value| value.as_str())
+        .collect();
+    let required: BTreeSet<&str> = GENERATOR_SOURCE_DIRS.iter().copied().collect();
+    if declared != required {
+        return Err(FreshnessError::new(format!(
+            "pre-push verifier wiring declaration {} generator_source_dirs do not exactly match the embedded source dirs — reconcile from a checkout matching the declaration",
+            path.display()
+        )));
     }
     Ok(value)
 }
@@ -797,7 +858,13 @@ pub fn read_pre_push_verifier_manifest(
                 "pre-push verifier manifest {} lacks protocol_version",
                 path.display()
             ))
-        })? as u32;
+        })?;
+    let installed = u32::try_from(installed).map_err(|_| {
+        FreshnessError::new(format!(
+            "pre-push verifier manifest {} declares out-of-range protocol_version {installed}",
+            path.display()
+        ))
+    })?;
     if installed != PRE_PUSH_VERIFIER_PROTOCOL_VERSION {
         return Err(FreshnessError::new(format!(
             "installed pre-push verifier protocol {installed} is out of date (repository requires {PRE_PUSH_VERIFIER_PROTOCOL_VERSION}) — reinstall the hook (buck2 run //ci/facade/generated-artifact-freshness:oya-pre-push-verify-bin -- reconcile)"
@@ -1056,9 +1123,7 @@ fn manifest_path_inputs_from_text(
         Err(_) => return Ok(Vec::new()),
     };
     let mut roots = Vec::new();
-    if let Some(table) = value.as_table() {
-        manifest_path_inputs(manifest_dir, table, &mut roots);
-    }
+    manifest_path_inputs(manifest_dir, &value, &mut roots);
     roots.sort();
     roots.dedup();
     Ok(roots)
@@ -1100,22 +1165,32 @@ fn collect_build_input_files(dir: &Path, out: &mut Vec<PathBuf>) -> Result<(), F
 /// Every `path = "..."` value declared anywhere in a Cargo manifest (dependency specs, `[patch]`
 /// entries, workspace-level path deps, and `[[bin]]`/`[[example]]` source paths), resolved against
 /// `manifest_dir`. These are the manifest-declared build inputs OUTSIDE a crate's own `src/` tree.
-fn manifest_path_inputs(manifest_dir: &Path, table: &toml::Table, out: &mut Vec<PathBuf>) {
-    for (key, value) in table {
-        if key == "path" {
-            if let Some(text) = value.as_str() {
-                let raw = Path::new(text);
-                let abs = if raw.is_absolute() {
-                    raw.to_path_buf()
-                } else {
-                    manifest_dir.join(raw)
-                };
-                out.push(abs);
+/// Recurses through both nested tables and arrays-of-tables so `[[bin]]`/`[[example]]` `path` keys
+/// (which TOML represents as arrays, not tables) are collected like any other path value.
+fn manifest_path_inputs(manifest_dir: &Path, value: &toml::Value, out: &mut Vec<PathBuf>) {
+    match value {
+        toml::Value::Table(table) => {
+            for (key, value) in table {
+                if key == "path" {
+                    if let Some(text) = value.as_str() {
+                        let raw = Path::new(text);
+                        let abs = if raw.is_absolute() {
+                            raw.to_path_buf()
+                        } else {
+                            manifest_dir.join(raw)
+                        };
+                        out.push(abs);
+                    }
+                }
+                manifest_path_inputs(manifest_dir, value, out);
             }
         }
-        if let Some(child) = value.as_table() {
-            manifest_path_inputs(manifest_dir, child, out);
+        toml::Value::Array(items) => {
+            for item in items {
+                manifest_path_inputs(manifest_dir, item, out);
+            }
         }
+        _ => {}
     }
 }
 
@@ -1132,9 +1207,7 @@ fn path_dependency_roots(crate_root: &Path) -> Result<Vec<PathBuf>, FreshnessErr
         Err(_) => return Ok(Vec::new()),
     };
     let mut roots = Vec::new();
-    if let Some(table) = value.as_table() {
-        manifest_path_inputs(crate_root, table, &mut roots);
-    }
+    manifest_path_inputs(crate_root, &value, &mut roots);
     roots.sort();
     roots.dedup();
     Ok(roots)
@@ -5588,11 +5661,93 @@ mod pre_push_verifier_protocol_tests {
                 "hook_name": "pre-push",
                 "protocol_version": PRE_PUSH_VERIFIER_PROTOCOL_VERSION,
                 "pinned_tools": ["emitter", "producer", "masterplan-generator", "architecture-graph-generator"],
+                "generator_source_dirs": [
+                    "ci/facade/scm-facts-snapshot",
+                    "ci/facade/artifact-inventory-registry",
+                    "tools/oya-architecture-graph-generator-app",
+                    "marketplace/facade/dev-cli",
+                    "ci/facade/generated-artifact-freshness",
+                ],
             })
             .to_string(),
         )
         .expect("write wiring");
         read_pre_push_verifier_wiring(&root).expect("matching wiring");
+    }
+
+    #[test]
+    fn wiring_missing_pinned_tools_key_fails_closed() {
+        let root = temp_root("oya-pre-push-wiring-missing-tools");
+        write_protocol_fixture(&root, PRE_PUSH_VERIFIER_PROTOCOL_VERSION, None);
+        let wiring_dir = root.join("tools/hooks");
+        std::fs::create_dir_all(&wiring_dir).expect("create wiring dir");
+        std::fs::write(
+            wiring_dir.join("pre-push-verifier.wiring.json"),
+            serde_json::json!({
+                "hook_name": "pre-push",
+                "protocol_version": PRE_PUSH_VERIFIER_PROTOCOL_VERSION,
+                "generator_source_dirs": [
+                    "ci/facade/scm-facts-snapshot",
+                    "ci/facade/artifact-inventory-registry",
+                    "tools/oya-architecture-graph-generator-app",
+                    "marketplace/facade/dev-cli",
+                    "ci/facade/generated-artifact-freshness",
+                ],
+            })
+            .to_string(),
+        )
+        .expect("write wiring");
+        let error = read_pre_push_verifier_wiring(&root).expect_err("missing pinned_tools");
+        let text = error.to_string();
+        assert!(text.contains("pinned_tools"), "{text}");
+    }
+
+    #[test]
+    fn wiring_missing_source_dirs_key_fails_closed() {
+        let root = temp_root("oya-pre-push-wiring-missing-dirs");
+        write_protocol_fixture(&root, PRE_PUSH_VERIFIER_PROTOCOL_VERSION, None);
+        let wiring_dir = root.join("tools/hooks");
+        std::fs::create_dir_all(&wiring_dir).expect("create wiring dir");
+        std::fs::write(
+            wiring_dir.join("pre-push-verifier.wiring.json"),
+            serde_json::json!({
+                "hook_name": "pre-push",
+                "protocol_version": PRE_PUSH_VERIFIER_PROTOCOL_VERSION,
+                "pinned_tools": ["emitter", "producer", "masterplan-generator", "architecture-graph-generator"],
+            })
+            .to_string(),
+        )
+        .expect("write wiring");
+        let error =
+            read_pre_push_verifier_wiring(&root).expect_err("missing generator_source_dirs");
+        let text = error.to_string();
+        assert!(text.contains("generator_source_dirs"), "{text}");
+    }
+
+    #[test]
+    fn second_worktree_generation_recognizes_shared_hook_ownership() {
+        let root = temp_root("oya-pre-push-shared-hook-ownership");
+        write_protocol_fixture(&root, PRE_PUSH_VERIFIER_PROTOCOL_VERSION, None);
+        let hooks = root.join("hooks");
+        std::fs::create_dir_all(&hooks).expect("create hooks dir");
+        let hook = fixture_hook(&hooks);
+        // Worktree A installs: its generation manifest records the shared hook's identity.
+        let generation_a = hooks.join(format!("{PRE_PUSH_GENERATION_DIR_PREFIX}aaaa"));
+        std::fs::create_dir_all(&generation_a).expect("create gen A");
+        let tools_a = fixture_tools_dir(&root);
+        write_pre_push_verifier_manifest(&generation_a, &tools_a, &root, &hook).expect("write A");
+        // Worktree B has NO manifest of its own yet. The shared hook must still be recognized as
+        // ours (any sibling generation owns it), or B's reconcile would refuse to replace the
+        // shared `pre-push` and deadlock the multi-worktree design.
+        assert!(
+            any_generation_manifest_owns_hook(&hooks, &hook).expect("owned across generations")
+        );
+        // An unrelated tool's hook (manifest left behind) must still be refused.
+        std::fs::write(&hook, "unrelated tool hook bytes\n").expect("replace hook");
+        assert!(
+            !any_generation_manifest_owns_hook(&hooks, &hook)
+                .expect("not owned across generations")
+        );
     }
 
     #[test]
