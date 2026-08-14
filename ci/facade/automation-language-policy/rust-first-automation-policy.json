@@ -322,9 +322,9 @@
       "frozen_from_commit": "ADR-0716 cargo-merge-path PR",
       "keys_by_file": {
         ".github/workflows/buck2-weekly-smoke.yml": 3,
-        ".github/workflows/oya-ci-required.yml": 15
+        ".github/workflows/oya-ci-required.yml": 17
       },
-      "keys_total": 18
+      "keys_total": 20
     },
     "replacement_window": {
       "schema_version": 1,
@@ -355,6 +355,10 @@
         },
         {
           "key": ".github/workflows/oya-ci-required.yml::cross-platform-smoke::Materialize generated faces",
+          "shell_lines": 1
+        },
+        {
+          "key": ".github/workflows/oya-ci-required.yml::cross-platform-smoke::Pre-provision pinned toolchain components",
           "shell_lines": 1
         },
         {
@@ -399,6 +403,10 @@
         },
         {
           "key": ".github/workflows/oya-ci-required.yml::test::Materialize generated faces",
+          "shell_lines": 1
+        },
+        {
+          "key": ".github/workflows/oya-ci-required.yml::test::Pre-provision pinned toolchain components",
           "shell_lines": 1
         },
         {

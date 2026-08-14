@@ -89,6 +89,10 @@ jobs:
       # face tools; the digest-pinned installer is the bridge it has always used.
       - name: Install pinned buck2 (digest-verified)
         run: infra/ci/install-buck2.sh
+      # buck2's builds need the full pinned toolchain (clippy/rustfmt components);
+      # rustup must finish before buck2 runs or its downloads race (known class).
+      - name: Pre-provision pinned toolchain components
+        run: rustup toolchain install && rustc --version
       # Materialize generated faces before tests: several gate crates consume them.
       - name: Materialize generated faces
         run: cargo run -p ci-generated-artifact-freshness --bin oya-cloud-ci-materialize-generated-faces -- --repo-root . --github-event
@@ -227,6 +231,8 @@ jobs:
           shared-key: cargo-ci-${{ matrix.os }}
       - name: Install pinned buck2 (digest-verified)
         run: infra/ci/install-buck2.sh
+      - name: Pre-provision pinned toolchain components
+        run: rustup toolchain install && rustc --version
       - name: Materialize generated faces
         run: cargo run -p ci-generated-artifact-freshness --bin oya-cloud-ci-materialize-generated-faces -- --repo-root . --github-event
       - name: Cross-platform smoke tests
