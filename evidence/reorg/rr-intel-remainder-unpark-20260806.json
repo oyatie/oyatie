@@ -1,9 +1,0 @@
-{
-  "id": "REORG-INTEL-REMAINDER-UNPARK",
-  "class": "move",
-  "stage": "unpark_only",
-  "date": "2026-08-06",
-  "summary": "Unpark intelligence-remainder-move-plan as sole live executable move-plan after #1578 freed singleton (ci keystone is rename-map, not move-plan).",
-  "non_goals": ["no crate path moves in this PR", "no oya/intelligence edits"],
-  "follow_on": "slice execute PRs one path-disjoint leaf cluster at a time"
-}

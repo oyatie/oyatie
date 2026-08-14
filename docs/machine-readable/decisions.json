@@ -6,12 +6,12 @@
   },
   "_metadata": {
     "source": "docs/decisions",
-    "total_adrs": 17,
-    "numbering": "contiguous ADR-0700..ADR-0716 (gap-free)",
+    "total_adrs": 18,
+    "numbering": "contiguous ADR-0700..ADR-0717 (gap-free)",
     "gaps": [],
-    "next_adr": "ADR-0717",
+    "next_adr": "ADR-0718",
     "status_counts": {
-      "Accepted": 12,
+      "Accepted": 13,
       "Proposed": 5
     }
   },
@@ -219,6 +219,18 @@
       "supersedes": ["ADR-0560"],
       "superseded_by": [],
       "related": ["ADR-0515", "ADR-0532", "ADR-0613"]
+    },
+    {
+      "adr": "ADR-0717",
+      "number": 717,
+      "title": "Corpus-budget sprawl ratchet",
+      "status": "Accepted",
+      "owner": "council-architecture",
+      "date": "2026-08-14",
+      "path": "decisions/ADR-0717-corpus-budget-shrink-only-ratchet.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0711"]
     }
   ]
 }
