@@ -633,10 +633,12 @@ fn validate_no_escaping_path_literals(
         // (crate OR artifact). Scanning a nested file against an outer move too would recompute
         // its new location from the WRONG destination (e.g. `oya/a/b/src/lib.rs` mapped through
         // `oya/a -> x/y/z` as `x/y/z/b/src/lib.rs`) and could refuse a literal the real (inner)
-        // move actually preserves — or accept one the artifact relocation dangles.
+        // move actually preserves — or accept one the artifact relocation dangles. An artifact
+        // may name a SINGLE FILE (`rel == old`, supported by the artifact preflight + move
+        // step), so the match is exact-or-descendant, mirroring `covering_target`.
         let Some((old, new)) = all_sources
             .iter()
-            .filter(|(old, _)| rel.starts_with(&format!("{old}/")))
+            .filter(|(old, _)| rel == *old || rel.starts_with(&format!("{old}/")))
             .max_by_key(|(old, _)| old.split('/').count())
             .copied()
         else {
@@ -2337,6 +2339,66 @@ version = \"0.1.0\"
         }
         assert!(root.join("oya/a/src/lib.rs").is_file(), "source untouched");
         assert!(!root.join("p/q").exists(), "no partial move");
+        let _ = std::fs::remove_dir_all(&root);
+    }
+
+    #[test]
+    fn literal_preflight_matches_an_exact_file_artifact_in_the_source_lookup() {
+        // REGRESSION (PR #1965 wave-3, comment 3784300288): an ArtifactMove may name a SINGLE
+        // Rust file (`oya/a/src/lib.rs -> p/q/lib.rs`) — the artifact preflight and the move
+        // step support exact files, not just dirs. The source lookup matched only `old/`
+        // descendants, so `rel == old` was skipped: an artifact-only file move was never
+        // scanned, and a file nested in a crate was evaluated against the crate's INTERMEDIATE
+        // destination — accepting an include_bytes! that the file artifact's real destination
+        // dangles. The lookup must match exact-or-descendant, mirroring `covering_target`.
+        let root = artifact_tmp_root("artifact-owns-file");
+        wf(
+            &root,
+            "Cargo.toml",
+            "[workspace]\nmembers = [\"oya/a\"]\nresolver = \"2\"\n",
+        );
+        wf(
+            &root,
+            "oya/a/Cargo.toml",
+            "[package]\nname = \"oya-a\"\nversion = \"0.1.0\"\nedition = \"2021\"\n",
+        );
+        // The literal resolves to the UNMOVED repo-root out/x.elf from the crate's intermediate
+        // destination (x/y/src up 3 == repo root) — accepted by the old lookup — but the file
+        // artifact relocates the FILE itself to p/q/lib.rs, where `../../../` escapes the repo
+        // root. The exact-file artifact mapping must own the scan.
+        wf(
+            &root,
+            "oya/a/src/lib.rs",
+            "pub const ELF: &[u8] = include_bytes!(\"../../../out/x.elf\");\n",
+        );
+        wf(&root, "out/x.elf", "ELF-BYTES");
+
+        let plan = MovePlan {
+            capability: "cap".to_string(),
+            moves: vec![CrateMove {
+                old_path: "oya/a".to_string(),
+                new_path: "x/y".to_string(),
+                old_cargo_name: "oya-a".to_string(),
+                new_cargo_name: "x-a".to_string(),
+            }],
+            artifacts: vec![ArtifactMove {
+                old_path: "oya/a/src/lib.rs".to_string(),
+                new_path: "p/q/lib.rs".to_string(),
+            }],
+        };
+
+        let error = apply_plan(&root, &plan, &ApplyOptions { use_git_mv: false })
+            .expect_err("a literal the exact-file artifact relocation dangles must refuse");
+        match error {
+            CodemodError::UnrewritablePathLiteral { ref literals } => {
+                assert_eq!(literals.len(), 1, "{literals:?}");
+                assert_eq!(literals[0].file, "oya/a/src/lib.rs");
+                assert_eq!(literals[0].literal, "../../../out/x.elf");
+            }
+            other => panic!("expected UnrewritablePathLiteral, got {other:?}"),
+        }
+        assert!(root.join("oya/a/src/lib.rs").is_file(), "source untouched");
+        assert!(!root.join("p/q/lib.rs").exists(), "no partial move");
         let _ = std::fs::remove_dir_all(&root);
     }
 }
