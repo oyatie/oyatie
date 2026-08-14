@@ -18,4 +18,4 @@
 ## Elevate (out of envelope)
 
 1. **integ/oya** — shrink-only delete drained `oya/payments/**`.
-2. **integ/specs** — hub retarget `specs/capability-registry.json` app_products `oya/payments` → `app/payments`.
+2. **integ/specs** — hub retarget `governance/capability-registry.json` app_products `oya/payments` → `app/payments`.

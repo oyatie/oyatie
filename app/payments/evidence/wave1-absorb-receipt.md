@@ -14,4 +14,4 @@ Zero-crate product dump rewrite into `app/payments/` (NOT `billing/`). Slices 1�
 ## Elevate (out of envelope)
 
 1. **integ/oya** — delete drained `oya/payments/**` after this absorb receipt.
-2. **integ/specs** — hub retarget `specs/capability-registry.json` app_products `oya/payments` → `app/payments`.
+2. **integ/specs** — hub retarget `governance/capability-registry.json` app_products `oya/payments` → `app/payments`.

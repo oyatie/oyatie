@@ -29,4 +29,4 @@ Product does **not** need a compile surface today. Restoring 20 closed crates wo
 ## Elevate (residual, out of envelope)
 
 1. **integ/oya** — shrink-only delete drained `oya/payments/**` after verify (STOP further product shrink per orchestrator; do not deepen #1661 beyond verified absorbs).
-2. **integ/specs** — hub retarget `specs/capability-registry.json` app_products `oya/payments` → `app/payments`; optional judgment ledger tag `crate_disposition=keep_deleted_1451` when tip-free.
+2. **integ/specs** — hub retarget `governance/capability-registry.json` app_products `oya/payments` → `app/payments`; optional judgment ledger tag `crate_disposition=keep_deleted_1451` when tip-free.

@@ -35,7 +35,7 @@
 ## Remaining for shrink phase (`integ/oya`)
 
 - Delete absorbed `oya/payments/**` paths after verify (shrink-only rail).
-- Hub retargets (`specs/capability-registry.json` app_products) on tip-free `integ/specs`.
+- Hub retargets (`governance/capability-registry.json` app_products) on tip-free `integ/specs`.
 
 ## Out of envelope (do not touch from `integ/payments`)
 
