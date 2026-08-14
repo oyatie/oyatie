@@ -12,16 +12,28 @@
 //! deliverables to be owned Rust, so the hook logic lives here instead of a shell
 //! script; the installed artifact is the compiled binary, not a branch-controlled file.
 //!
-//! Install (writes OUTSIDE the checked-out tree, into the git common-dir hooks dir, so
-//! a contribution can never replace the hook git executes):
+//! Security posture (fail-closed on all three axes):
+//! 1. The hook NEVER builds from the active checkout's Buck graph. The generator tools
+//!    (emitter/producer/masterplan/architecture-graph) are built ONCE at install time
+//!    from the install-time checkout and copied into the hooks dir as PINNED binaries;
+//!    at push time the hook executes only those prebuilt tools against the repo tree
+//!    consumed as DATA. A malicious branch therefore cannot make the hook execute
+//!    checkout-controlled code.
+//! 2. Install PRESERVES an existing `core.hooksPath`: if one is configured (e.g.
+//!    organization-managed commit-msg/signing hooks) the verifier is installed into
+//!    that same directory and the configuration is left untouched; if none is set, the
+//!    verifier goes into git's default hooks dir and no configuration is written.
+//! 3. A protocol handshake fails closed with an explicit reinstall requirement: the
+//!    installed manifest must carry the embedded protocol version, and the repository's
+//!    tracked control-plane must still declare exactly the generated faces this
+//!    verifier covers — otherwise the hook refuses to run and demands a reinstall.
+//!
+//! Install (writes OUTSIDE the checked-out tree, into the git hooks dir, so a
+//! contribution can never replace the hook git executes):
 //!
 //! ```text
 //! buck2 run //ci/facade/generated-artifact-freshness:oya-pre-push-verify-bin -- install
 //! ```
-//!
-//! Every branch push then runs the read-only `--verify`; a failing verify blocks the
-//! push with the tool's own stale list and remediation output. No bypass path exists by
-//! design (`docs/AGENTS.md`: a failing hook means fix the faces, not the hook).
 
 #![forbid(unsafe_code)]
 
@@ -30,7 +42,12 @@ use std::io::{self, BufRead};
 use std::path::{Path, PathBuf};
 use std::process::{Command, ExitCode};
 
-use ci_generated_artifact_freshness::{run_face_settle_with_buck2, FaceSettleMode};
+use ci_generated_artifact_freshness::{
+    PRE_PUSH_VERIFIER_PROTOCOL_VERSION, PRE_PUSH_VERIFIER_TOOLS_DIR, FaceSettleMode,
+    install_pre_push_verifier_tools, read_pre_push_verifier_manifest,
+    run_face_settle_with_pinned_tools, verify_pre_push_verifier_protocol,
+    write_pre_push_verifier_manifest,
+};
 
 const ZERO_SHA: &str = "0000000000000000000000000000000000000000";
 
@@ -57,21 +74,12 @@ fn main() -> ExitCode {
     }
 }
 
-/// Hook mode: read the refs git passes on stdin, gate the push, and run the verify.
+/// Hook mode: read the refs git passes on stdin, gate the push, and run the verify with
+/// the pinned tools installed alongside this binary.
 fn run_hook() -> Result<ExitCode, String> {
     let pushed_shas = read_pushed_branch_shas()?;
     if pushed_shas.is_empty() {
         // Tag push or branch deletion: no face-relevant commit to verify.
-        return Ok(ExitCode::SUCCESS);
-    }
-
-    // Local-bridge posture: without buck2 there is nothing to run locally; the CI
-    // freshness gate remains the merge backstop, so never block a push the local
-    // toolchain cannot judge.
-    if !buck2_available() {
-        println!(
-            "pre-push: buck2 not found; skipping local face-settle --verify (the cloud-ci freshness gate in oya-ci-required still applies)."
-        );
         return Ok(ExitCode::SUCCESS);
     }
 
@@ -90,7 +98,23 @@ fn run_hook() -> Result<ExitCode, String> {
     }
 
     let root = repo_root()?;
-    let report = run_face_settle_with_buck2(&root, FaceSettleMode::Verify)
+    // The installed hook lives at <hooks-dir>/pre-push, so its own directory is the hooks dir.
+    let exe = env::current_exe()
+        .map_err(|error| format!("resolve current executable: {error}"))?;
+    let hooks_dir = exe
+        .parent()
+        .ok_or_else(|| "installed hook has no parent directory".to_owned())?
+        .to_path_buf();
+
+    // Protocol handshake (fail closed with explicit reinstall requirement): the install
+    // manifest must exist and match this binary's embedded protocol version.
+    let _ = read_pre_push_verifier_manifest(&hooks_dir).map_err(|error| error.to_string())?;
+    // ...and the repository must still declare exactly the faces this verifier covers.
+    verify_pre_push_verifier_protocol(&root).map_err(|error| error.to_string())?;
+
+    // Run the verify with the PINNED tools — never building from the active checkout.
+    let tools_dir = hooks_dir.join(PRE_PUSH_VERIFIER_TOOLS_DIR);
+    let report = run_face_settle_with_pinned_tools(&root, FaceSettleMode::Verify, &tools_dir)
         .map_err(|error| format!("face-settle --verify failed: {error}"))?;
     println!("{}", report.message);
     Ok(if report.is_success() {
@@ -120,24 +144,20 @@ fn read_pushed_branch_shas() -> Result<Vec<String>, String> {
     Ok(shas)
 }
 
-fn buck2_available() -> bool {
-    Command::new("buck2")
-        .arg("--version")
-        .output()
-        .is_ok()
-}
-
 fn head_sha() -> Result<String, String> {
     git_capture(None, &["rev-parse", "HEAD"])
 }
 
 fn repo_root() -> Result<PathBuf, String> {
-    Ok(PathBuf::from(git_capture(None, &["rev-parse", "--show-toplevel"])?))
+    Ok(PathBuf::from(git_capture(
+        None,
+        &["rev-parse", "--show-toplevel"],
+    )?))
 }
 
-/// Installer mode: copy this compiled binary into the git common-dir `hooks/` directory
-/// (OUTSIDE the checked-out tree) and point `core.hooksPath` at it. Git then executes a
-/// pinned verifier — never a branch-controlled file from whichever branch is checked out.
+/// Installer mode: pin the generator tools (built once from this checkout), copy this
+/// verifier into the git hooks dir (OUTSIDE the checked-out tree, preserving any existing
+/// `core.hooksPath`), and write the protocol manifest.
 fn install(args: &[String]) -> Result<String, String> {
     let mut repo_root: Option<PathBuf> = None;
     let mut iter = args.iter();
@@ -165,23 +185,30 @@ fn install(args: &[String]) -> Result<String, String> {
         Some(root) => root,
         None => repo_root()?,
     };
-    install_into_common_hooks_dir(&root)
-}
 
-fn install_into_common_hooks_dir(repo_root: &Path) -> Result<String, String> {
-    let common_dir_raw = git_capture(Some(repo_root), &["rev-parse", "--git-common-dir"])?;
-    let common_dir = if Path::new(&common_dir_raw).is_absolute() {
-        PathBuf::from(common_dir_raw)
-    } else {
-        repo_root.join(common_dir_raw)
-    };
-    let hooks_dir = common_dir.join("hooks");
-    std::fs::create_dir_all(&hooks_dir)
-        .map_err(|error| format!("create hooks dir {}: {error}", hooks_dir.display()))?;
+    // Preserve an existing configured hooks path (org-managed commit-msg/signing/security
+    // hooks): install INTO that same directory and never rewrite core.hooksPath. Only when
+    // no path is configured do we fall back to git's default hooks dir, and we do NOT set
+    // core.hooksPath then either (git already resolves the default).
+    let hooks_dir = resolve_hooks_dir(&root)?;
 
     let exe = env::current_exe()
         .map_err(|error| format!("resolve current executable: {error}"))?;
     let dest = hooks_dir.join("pre-push");
+    if dest.exists() && !files_equal(&dest, &exe)? {
+        return Err(format!(
+            "refusing to overwrite {}: an unrelated pre-push hook is installed there; move it aside or remove it first (the oya verifier never replaces unrelated user hook state)",
+            dest.display()
+        ));
+    }
+
+    // Pin the generator tools FIRST (built from this trusted install checkout), then copy
+    // the verifier, then write the manifest last so a partial install fails closed.
+    let tools_dir = hooks_dir.join(PRE_PUSH_VERIFIER_TOOLS_DIR);
+    install_pre_push_verifier_tools(&root, &tools_dir).map_err(|error| error.to_string())?;
+
+    std::fs::create_dir_all(&hooks_dir)
+        .map_err(|error| format!("create hooks dir {}: {error}", hooks_dir.display()))?;
     std::fs::copy(&exe, &dest)
         .map_err(|error| format!("copy {} -> {}: {error}", exe.display(), dest.display()))?;
     #[cfg(unix)]
@@ -194,22 +221,84 @@ fn install_into_common_hooks_dir(repo_root: &Path) -> Result<String, String> {
         std::fs::set_permissions(&dest, perms)
             .map_err(|error| format!("chmod {}: {error}", dest.display()))?;
     }
-
-    let hooks_dir_abs = std::fs::canonicalize(&hooks_dir)
-        .unwrap_or_else(|_| hooks_dir.clone());
-    let hooks_dir_str = hooks_dir_abs
-        .to_str()
-        .ok_or_else(|| "hooks dir is not valid UTF-8".to_owned())?;
-    git_run(
-        Some(repo_root),
-        &["config", "core.hooksPath", hooks_dir_str],
-    )?;
+    write_pre_push_verifier_manifest(&hooks_dir).map_err(|error| error.to_string())?;
 
     Ok(format!(
-        "installed pinned pre-push verifier at {} (outside the checked-out tree); core.hooksPath set to {}",
+        "installed pinned pre-push verifier at {} (outside the checked-out tree); pinned tools at {}; manifest protocol v{PRE_PUSH_VERIFIER_PROTOCOL_VERSION}",
         dest.display(),
-        hooks_dir_abs.display()
+        tools_dir.display()
     ))
+}
+
+/// Resolve the hooks dir, preserving an existing `core.hooksPath`. Refuses when the
+/// configured path points INSIDE the checked-out tree (a branch-controlled hook location).
+/// The git metadata dir (`.git/`) is never part of the checked-out tree, so a configured
+/// path inside it (e.g. an explicit `core.hooksPath` equal to git's default) is accepted.
+fn resolve_hooks_dir(repo_root: &Path) -> Result<PathBuf, String> {
+    let configured = git_capture_optional(Some(repo_root), &["config", "--get", "core.hooksPath"])?;
+    match configured {
+        Some(existing) if !existing.trim().is_empty() => {
+            let existing = PathBuf::from(existing.trim());
+            let existing = absolutize(repo_root, &existing);
+            let git_common_dir = resolve_git_common_dir(repo_root)?;
+            if inside_checked_out_tree(repo_root, &git_common_dir, &existing) {
+                return Err(format!(
+                    "refusing to install: core.hooksPath ({}) points inside the checked-out tree; a branch-controlled hook would execute with your privileges — point it outside the worktree or unset it, then re-run install",
+                    existing.display()
+                ));
+            }
+            Ok(existing)
+        }
+        _ => {
+            // No configured path: use git's default hooks dir and leave configuration alone.
+            let git_common_dir = resolve_git_common_dir(repo_root)?;
+            Ok(git_common_dir.join("hooks"))
+        }
+    }
+}
+
+fn resolve_git_common_dir(repo_root: &Path) -> Result<PathBuf, String> {
+    let raw = git_capture(Some(repo_root), &["rev-parse", "--git-common-dir"])?;
+    Ok(absolutize(repo_root, &Path::new(&raw)))
+}
+
+fn absolutize(repo_root: &Path, path: &Path) -> PathBuf {
+    if path.is_absolute() {
+        path.to_path_buf()
+    } else {
+        repo_root.join(path)
+    }
+}
+
+/// True when `path` lies under the worktree root but NOT under the git metadata dir — i.e.
+/// inside the tree git checks out, where a contribution could replace the hook file.
+fn inside_checked_out_tree(repo_root: &Path, git_common_dir: &Path, path: &Path) -> bool {
+    path.starts_with(repo_root) && !path.starts_with(git_common_dir)
+}
+
+fn files_equal(left: &Path, right: &Path) -> Result<bool, String> {
+    let left_bytes = std::fs::read(left)
+        .map_err(|error| format!("read {}: {error}", left.display()))?;
+    let right_bytes = std::fs::read(right)
+        .map_err(|error| format!("read {}: {error}", right.display()))?;
+    Ok(left_bytes == right_bytes)
+}
+
+fn git_capture_optional(cwd: Option<&Path>, args: &[&str]) -> Result<Option<String>, String> {
+    let mut command = Command::new("git");
+    command.args(args);
+    if let Some(cwd) = cwd {
+        command.current_dir(cwd);
+    }
+    let output = command
+        .output()
+        .map_err(|error| format!("run git {args:?}: {error}"))?;
+    if !output.status.success() {
+        // `git config --get <key>` exits 1 when the key is absent: treat as None.
+        return Ok(None);
+    }
+    let value = String::from_utf8_lossy(&output.stdout).trim().to_owned();
+    Ok(if value.is_empty() { None } else { Some(value) })
 }
 
 fn git_capture(cwd: Option<&Path>, args: &[&str]) -> Result<String, String> {
@@ -228,22 +317,4 @@ fn git_capture(cwd: Option<&Path>, args: &[&str]) -> Result<String, String> {
         ));
     }
     Ok(String::from_utf8_lossy(&output.stdout).trim().to_owned())
-}
-
-fn git_run(cwd: Option<&Path>, args: &[&str]) -> Result<(), String> {
-    let mut command = Command::new("git");
-    command.args(args);
-    if let Some(cwd) = cwd {
-        command.current_dir(cwd);
-    }
-    let output = command
-        .output()
-        .map_err(|error| format!("run git {args:?}: {error}"))?;
-    if !output.status.success() {
-        return Err(format!(
-            "git {args:?} failed: {}",
-            String::from_utf8_lossy(&output.stderr).trim()
-        ));
-    }
-    Ok(())
 }
