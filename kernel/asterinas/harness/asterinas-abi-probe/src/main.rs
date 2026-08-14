@@ -6,7 +6,9 @@
 //! product CLI capability surface — the library API is the sanctioned automation
 //! surface per CLI-retirement policy.
 
-use kernel_asterinas_abi_probe::{qemu_probe_coupling_note, run_scaffold, scaffold_summary_receipt};
+use kernel_asterinas_abi_probe::{
+    qemu_probe_coupling_note, run_scaffold, scaffold_summary_receipt,
+};
 
 fn main() {
     match run_scaffold() {

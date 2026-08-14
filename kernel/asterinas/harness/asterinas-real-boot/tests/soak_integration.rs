@@ -97,7 +97,10 @@ fn make_cfg() -> soak::SoakConfig {
         iteration_count: soak::ITERATION_COUNT,
         max_attempts: soak::MAX_SOAK_ATTEMPTS,
         per_boot_timeout_secs: soak::PER_BOOT_TIMEOUT_SECS,
-        allowed_markers: pin::BOOT_READY_MARKERS.iter().map(|m| m.to_string()).collect(),
+        allowed_markers: pin::BOOT_READY_MARKERS
+            .iter()
+            .map(|m| m.to_string())
+            .collect(),
     }
 }
 
@@ -157,10 +160,11 @@ fn clean_ten_of_ten_attempt_yields_soak_pass_with_referenced_attempt_and_no_gap(
         run_dir: run.0.clone(),
     };
 
-    let outcome = soak::run_soak_with_boot_runner(&cfg, &dests, |_cfg, attempt_id, iteration, dir| {
-        fixture_boot(attempt_id, iteration, dir, true)
-    })
-    .expect("soak runs");
+    let outcome =
+        soak::run_soak_with_boot_runner(&cfg, &dests, |_cfg, attempt_id, iteration, dir| {
+            fixture_boot(attempt_id, iteration, dir, true)
+        })
+        .expect("soak runs");
 
     // ---- SoakPass on the first attempt; exactly one attempt, no honest-fail gap.
     assert_eq!(outcome.verdict, "pass");
@@ -173,7 +177,10 @@ fn clean_ten_of_ten_attempt_yields_soak_pass_with_referenced_attempt_and_no_gap(
     assert_eq!(attempt.clean_boots, soak::ITERATION_COUNT);
     assert_eq!(attempt.boot_records.len(), soak::ITERATION_COUNT);
     // The 10 records are ordered iterations 1..=10, all clean, all owned by attempt-001.
-    assert!(soak::attempt_is_pass(&attempt.boot_records, soak::ITERATION_COUNT));
+    assert!(soak::attempt_is_pass(
+        &attempt.boot_records,
+        soak::ITERATION_COUNT
+    ));
 
     // ---- Digest self-consistency: every per-boot log reference's recorded sha256 equals a digest
     // INDEPENDENTLY recomputed from the on-disk fixture, and the harness re-verifies it from disk.
@@ -182,7 +189,10 @@ fn clean_ten_of_ten_attempt_yields_soak_pass_with_referenced_attempt_and_no_gap(
         assert!(r.clean);
         let path = PathBuf::from(&r.raw_serial_log_path);
         let independent = independent_sha256_hex(&path);
-        assert_eq!(r.raw_serial_log_sha256, independent, "recorded == on-disk bytes");
+        assert_eq!(
+            r.raw_serial_log_sha256, independent,
+            "recorded == on-disk bytes"
+        );
         harness::verify_serial_log_digest(&r.raw_serial_log_sha256, &path)
             .expect("recorded serial-log digest is self-consistent with the on-disk file");
     }
@@ -202,10 +212,16 @@ fn clean_ten_of_ten_attempt_yields_soak_pass_with_referenced_attempt_and_no_gap(
         "a passing soak emits no honest-fail gap-register"
     );
     // The aggregate references the ISO + attempt receipt by digest, never inlines log bytes.
-    assert_eq!(aggregate["iso_artifact"]["expected_sha256"], pin::BOOT_ISO_SHA256);
+    assert_eq!(
+        aggregate["iso_artifact"]["expected_sha256"],
+        pin::BOOT_ISO_SHA256
+    );
     let attempt_ref = &aggregate["soak_attempts"][0];
     assert_eq!(attempt_ref["verdict"], "pass");
-    assert_eq!(attempt_ref["attempt_receipt"]["sha256"], attempt.receipt_sha256);
+    assert_eq!(
+        attempt_ref["attempt_receipt"]["sha256"],
+        attempt.receipt_sha256
+    );
     // The receipt records the matched MARKER line as evidence, but never inlines the full log
     // body: a non-marker line from the fixture ("EDD information probe") must not appear.
     assert!(
@@ -237,11 +253,12 @@ fn failed_attempt_fails_without_cross_attempt_aggregation_then_later_clean_attem
     };
 
     // attempt-001 boot 4 is unclean; every other boot (incl. all of attempt-002) is clean.
-    let outcome = soak::run_soak_with_boot_runner(&cfg, &dests, |_cfg, attempt_id, iteration, dir| {
-        let clean = !(attempt_id == "attempt-001" && iteration == 4);
-        fixture_boot(attempt_id, iteration, dir, clean)
-    })
-    .expect("soak runs");
+    let outcome =
+        soak::run_soak_with_boot_runner(&cfg, &dests, |_cfg, attempt_id, iteration, dir| {
+            let clean = !(attempt_id == "attempt-001" && iteration == 4);
+            fixture_boot(attempt_id, iteration, dir, clean)
+        })
+        .expect("soak runs");
 
     // SoakPass via the later clean attempt; the failed attempt is preserved, not aggregated.
     assert_eq!(outcome.verdict, "pass");
@@ -254,17 +271,14 @@ fn failed_attempt_fails_without_cross_attempt_aggregation_then_later_clean_attem
     assert_eq!(failed.verdict, "fail");
     // Nine of ten boots are clean, but the attempt still FAILS...
     assert_eq!(failed.clean_boots, soak::ITERATION_COUNT - 1);
-    assert!(!soak::attempt_is_pass(&failed.boot_records, soak::ITERATION_COUNT));
+    assert!(!soak::attempt_is_pass(
+        &failed.boot_records,
+        soak::ITERATION_COUNT
+    ));
     // ...and its nine clean boots NEVER aggregate with attempt-002 to fake a pass.
     let mut cross_attempt = failed.boot_records.clone();
     cross_attempt.retain(|r| r.clean); // 9 clean boots from attempt-001
-    cross_attempt.extend(
-        outcome.attempts[1]
-            .boot_records
-            .iter()
-            .take(1)
-            .cloned(),
-    ); // + 1 clean boot from attempt-002
+    cross_attempt.extend(outcome.attempts[1].boot_records.iter().take(1).cloned()); // + 1 clean boot from attempt-002
     assert!(
         !soak::attempt_is_pass(&cross_attempt, soak::ITERATION_COUNT),
         "boots from two attempts must never combine into a passing attempt"
@@ -300,10 +314,11 @@ fn all_attempts_exhausted_emits_honest_fail_gap_without_simulated_evidence() {
     };
 
     // Every attempt has an unclean first boot -> no attempt reaches a clean 10/10.
-    let outcome = soak::run_soak_with_boot_runner(&cfg, &dests, |_cfg, attempt_id, iteration, dir| {
-        fixture_boot(attempt_id, iteration, dir, iteration != 1)
-    })
-    .expect("soak runs");
+    let outcome =
+        soak::run_soak_with_boot_runner(&cfg, &dests, |_cfg, attempt_id, iteration, dir| {
+            fixture_boot(attempt_id, iteration, dir, iteration != 1)
+        })
+        .expect("soak runs");
 
     assert_eq!(outcome.verdict, "fail");
     assert!(outcome.passing_attempt_id.is_none());
@@ -312,7 +327,10 @@ fn all_attempts_exhausted_emits_honest_fail_gap_without_simulated_evidence() {
     for a in &outcome.attempts {
         assert_eq!(a.verdict, "fail");
         assert_eq!(a.clean_boots, soak::ITERATION_COUNT - 1);
-        assert!(!soak::attempt_is_pass(&a.boot_records, soak::ITERATION_COUNT));
+        assert!(!soak::attempt_is_pass(
+            &a.boot_records,
+            soak::ITERATION_COUNT
+        ));
     }
 
     // Aggregate honest-fail: overall fail, no passing attempt, gap-register with the
@@ -352,10 +370,11 @@ fn mis_identified_boot_record_fails_closed_never_a_silent_pass() {
         run_dir: run.0.clone(),
     };
 
-    let err = soak::run_soak_with_boot_runner(&cfg, &dests, |_cfg, _attempt_id, _iteration, dir| {
-        fixture_boot("attempt-999", 1, dir, true)
-    })
-    .expect_err("a mis-identified boot record must fail closed, never yield a pass");
+    let err =
+        soak::run_soak_with_boot_runner(&cfg, &dests, |_cfg, _attempt_id, _iteration, dir| {
+            fixture_boot("attempt-999", 1, dir, true)
+        })
+        .expect_err("a mis-identified boot record must fail closed, never yield a pass");
     assert!(
         err.to_string().contains("mis-identified"),
         "the orchestrator rejects a record whose identity does not match the request, got: {err}"

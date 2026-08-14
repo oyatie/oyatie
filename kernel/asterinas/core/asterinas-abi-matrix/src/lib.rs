@@ -213,9 +213,11 @@ pub enum MatrixError {
 impl fmt::Display for MatrixError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Parse(m) | Self::Schema(m) | Self::PinDrift(m) | Self::Surface(m) | Self::Row(m) => {
-                f.write_str(m)
-            }
+            Self::Parse(m)
+            | Self::Schema(m)
+            | Self::PinDrift(m)
+            | Self::Surface(m)
+            | Self::Row(m) => f.write_str(m),
         }
     }
 }
@@ -464,8 +466,7 @@ pub fn validate_matrix(root: &Value) -> Result<(), MatrixError> {
         .get("snapshotter_posture")
         .and_then(|v| v.as_object())
         .ok_or_else(|| MatrixError::Schema("snapshotter_posture missing".into()))?;
-    if snap.get("asterinas_pools").and_then(|v| v.as_str()) != Some("native-snapshotter-first")
-    {
+    if snap.get("asterinas_pools").and_then(|v| v.as_str()) != Some("native-snapshotter-first") {
         return Err(MatrixError::Schema(
             "Asterinas pools must declare native-snapshotter-first".into(),
         ));
@@ -574,14 +575,20 @@ fn validate_probe_harness(obj: &serde_json::Map<String, Value>) -> Result<(), Ma
         .get("probe_harness")
         .and_then(|v| v.as_object())
         .ok_or_else(|| MatrixError::Schema("probe_harness missing".into()))?;
-    if harness.get("preferred_evidence_path").and_then(|v| v.as_str())
+    if harness
+        .get("preferred_evidence_path")
+        .and_then(|v| v.as_str())
         != Some("qemu-tcg-against-pinned-iso")
     {
         return Err(MatrixError::Schema(
             "probe_harness.preferred_evidence_path must be qemu-tcg-against-pinned-iso".into(),
         ));
     }
-    if harness.get("live_hardware_required").and_then(|v| v.as_bool()) != Some(false) {
+    if harness
+        .get("live_hardware_required")
+        .and_then(|v| v.as_bool())
+        != Some(false)
+    {
         return Err(MatrixError::Schema(
             "probe_harness.live_hardware_required must be false".into(),
         ));
@@ -668,7 +675,10 @@ fn validate_row_census_and_g5_triggers(
         }
         for row in rows {
             let id = row.get("id").and_then(|v| v.as_str()).unwrap_or_default();
-            let g5 = row.get("g5_trigger").and_then(|v| v.as_bool()).unwrap_or(false);
+            let g5 = row
+                .get("g5_trigger")
+                .and_then(|v| v.as_bool())
+                .unwrap_or(false);
             if REQUIRED_G5_TRIGGER_IDS.contains(&id) && !g5 {
                 return Err(MatrixError::Row(format!(
                     "row {id} is in the closed G5-trigger set and must declare g5_trigger=true"
@@ -684,9 +694,7 @@ fn validate_row_census_and_g5_triggers(
     Ok(())
 }
 
-fn validate_components_profiled(
-    obj: &serde_json::Map<String, Value>,
-) -> Result<(), MatrixError> {
+fn validate_components_profiled(obj: &serde_json::Map<String, Value>) -> Result<(), MatrixError> {
     let comps = obj
         .get("components_profiled")
         .and_then(|v| v.as_array())
@@ -802,9 +810,7 @@ fn validate_surface_rows(
         let sev = r
             .get("severity")
             .and_then(|v| v.as_str())
-            .ok_or_else(|| {
-                MatrixError::Row(format!("{surface}[{i}].severity must be string"))
-            })?;
+            .ok_or_else(|| MatrixError::Row(format!("{surface}[{i}].severity must be string")))?;
         Severity::parse(sev)?;
         let req = r
             .get("required_by_node_stack")
@@ -919,9 +925,7 @@ pub fn evaluate_g5(root: &Value) -> Result<G5Evaluation, MatrixError> {
     if !gap_row_ids.is_empty() {
         Ok(G5Evaluation::Fired { gap_row_ids })
     } else if !unknown_g5_row_ids.is_empty() {
-        Ok(G5Evaluation::PendingMeasurement {
-            unknown_g5_row_ids,
-        })
+        Ok(G5Evaluation::PendingMeasurement { unknown_g5_row_ids })
     } else {
         Ok(G5Evaluation::Clear)
     }
@@ -967,9 +971,10 @@ mod tests {
     fn scaffold_defaults_availability_to_unknown() {
         let root = parse_matrix().unwrap();
         let rows = all_rows(&root).unwrap();
-        assert!(rows
-            .iter()
-            .all(|r| r.available_on_asterinas_pin == Availability::Unknown));
+        assert!(
+            rows.iter()
+                .all(|r| r.available_on_asterinas_pin == Availability::Unknown)
+        );
     }
 
     #[test]
@@ -977,24 +982,25 @@ mod tests {
         let root = parse_matrix().unwrap();
         let rows = all_rows(&root).unwrap();
         assert!(rows.iter().any(|r| r.id == "nl-route" && r.g5_trigger));
-        assert!(rows
-            .iter()
-            .any(|r| r.id == "fs-cgroup-memory-current" && r.g5_trigger));
-        assert!(rows
-            .iter()
-            .any(|r| r.id == "mnt-overlayfs-whiteouts" && r.g5_trigger));
-        assert!(rows
-            .iter()
-            .any(|r| r.id == "nl-netfilter" && r.severity == Severity::Critical));
+        assert!(
+            rows.iter()
+                .any(|r| r.id == "fs-cgroup-memory-current" && r.g5_trigger)
+        );
+        assert!(
+            rows.iter()
+                .any(|r| r.id == "mnt-overlayfs-whiteouts" && r.g5_trigger)
+        );
+        assert!(
+            rows.iter()
+                .any(|r| r.id == "nl-netfilter" && r.severity == Severity::Critical)
+        );
     }
 
     #[test]
     fn unknown_availability_is_pending_not_clear() {
         let root = parse_matrix().unwrap();
         match evaluate_g5(&root).unwrap() {
-            G5Evaluation::PendingMeasurement {
-                unknown_g5_row_ids,
-            } => {
+            G5Evaluation::PendingMeasurement { unknown_g5_row_ids } => {
                 assert!(!unknown_g5_row_ids.is_empty());
             }
             other => panic!("expected PendingMeasurement on scaffold, got {other:?}"),
@@ -1032,10 +1038,7 @@ mod tests {
     fn pin_identity_matches_boundary() {
         let root = parse_matrix().unwrap();
         assert_eq!(root["asterinas_pin"]["release_tag"], pin::RELEASE_TAG);
-        assert_eq!(
-            root["asterinas_pin"]["boot_iso_asset"],
-            pin::BOOT_ISO_ASSET
-        );
+        assert_eq!(root["asterinas_pin"]["boot_iso_asset"], pin::BOOT_ISO_ASSET);
     }
 
     #[test]
@@ -1075,11 +1078,8 @@ mod tests {
     #[test]
     fn rejects_extra_linux_kvm_tier() {
         let mut root = parse_matrix().unwrap();
-        root["pool_matrix_notes"]["linux_kvm_pools"]["serve_tiers"] = serde_json::json!([
-            "private-kernel",
-            "private-kernel-attested",
-            "shared-kernel"
-        ]);
+        root["pool_matrix_notes"]["linux_kvm_pools"]["serve_tiers"] =
+            serde_json::json!(["private-kernel", "private-kernel-attested", "shared-kernel"]);
         let err = validate_matrix(&root).expect_err("extra linux kvm tier");
         assert!(
             err.to_string().contains("exactly")
@@ -1108,8 +1108,7 @@ mod tests {
     fn rejects_duplicate_row_ids() {
         let mut root = parse_matrix().unwrap();
         // Cross-surface id collision (mount row renamed to an existing netlink id).
-        root["surfaces"]["mount_semantics"]["rows"][0]["id"] =
-            Value::String("nl-route".into());
+        root["surfaces"]["mount_semantics"]["rows"][0]["id"] = Value::String("nl-route".into());
         let err = validate_matrix(&root).expect_err("duplicate id");
         assert!(
             err.to_string().contains("duplicate")
@@ -1138,9 +1137,7 @@ mod tests {
         let rows = root["surfaces"]["netlink"]["rows"].as_array_mut().unwrap();
         rows.retain(|r| r["id"] != "nl-netfilter");
         let err = validate_matrix(&root).expect_err("missing census row");
-        assert!(
-            err.to_string().contains("nl-netfilter") || err.to_string().contains("exactly")
-        );
+        assert!(err.to_string().contains("nl-netfilter") || err.to_string().contains("exactly"));
     }
 
     #[test]
@@ -1177,10 +1174,7 @@ mod tests {
     #[test]
     fn a1_scope_records_kernel_service_breadth() {
         let root = parse_matrix().unwrap();
-        assert_eq!(
-            root["a1_scope"]["kind"],
-            "abi_kernel_service_matrix"
-        );
+        assert_eq!(root["a1_scope"]["kind"], "abi_kernel_service_matrix");
         assert_eq!(
             root["a1_scope"]["pool_posture"]["linux_pools"],
             "primary_production_path"

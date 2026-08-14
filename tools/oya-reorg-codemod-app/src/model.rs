@@ -516,33 +516,68 @@ pub struct Mapping {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum CodemodError {
     EmptyPlan,
-    BadPath { which: String, path: String },
-    DuplicateKey { kind: String, value: String },
-    NestedTarget { inner: String, outer: String },
+    BadPath {
+        which: String,
+        path: String,
+    },
+    DuplicateKey {
+        kind: String,
+        value: String,
+    },
+    NestedTarget {
+        inner: String,
+        outer: String,
+    },
     /// A de-brand move target kept or introduced a deprecated leading `oya` / `cloud` brand.
-    DeprecatedBrandTarget { which: String, value: String },
+    DeprecatedBrandTarget {
+        which: String,
+        value: String,
+    },
     /// A relative `path=` dep could not be recomputed unambiguously (e.g. it points outside
     /// the repo root, or its target cannot be located post-move).
-    AmbiguousPathDep { manifest: String, dep: String, path: String },
+    AmbiguousPathDep {
+        manifest: String,
+        dep: String,
+        path: String,
+    },
     /// The move would re-home a crate onto a path that already exists in the tree.
-    TargetExists { path: String },
+    TargetExists {
+        path: String,
+    },
     /// A moved crate's source path does not exist.
-    SourceMissing { path: String },
+    SourceMissing {
+        path: String,
+    },
     /// An IO failure while reading/writing/moving.
-    Io { context: String, message: String },
+    Io {
+        context: String,
+        message: String,
+    },
     /// A `Cargo.toml`/`BUCK` could not be parsed.
-    Parse { path: String, message: String },
+    Parse {
+        path: String,
+        message: String,
+    },
     /// `cargo metadata` did not resolve in the dry-run sandbox (fail-closed).
-    CargoUnresolved { message: String },
+    CargoUnresolved {
+        message: String,
+    },
     /// `buck2 targets //...` did not resolve in the dry-run sandbox (fail-closed).
-    BuckUnresolved { message: String },
+    BuckUnresolved {
+        message: String,
+    },
     /// The owned Cargo.lock rename/canonicalize transform rejected the lockfile (e.g. a
     /// non-canonical block boundary) — fail-closed rather than corrupt the lock.
-    LockfileTransform { message: String },
+    LockfileTransform {
+        message: String,
+    },
     /// More than one committed `specs/reorg/*-move-plan.json` exists in the candidate tree (#65).
     /// A MOVE PR commits exactly one plan; >1 is a contributor error the manifest materialization
     /// must fail-closed on rather than silently first-winning an arbitrary one.
-    MultipleMovePlans { count: usize, paths: Vec<String> },
+    MultipleMovePlans {
+        count: usize,
+        paths: Vec<String>,
+    },
     /// The landed-plan probe's base ref did not resolve, so NO committed plan's landed-ness can be
     /// decided. This is an INPUT failure (shallow clone, force-pushed base, rewritten history, a
     /// fetch that never brought the ref) and is reported as itself.
@@ -552,11 +587,16 @@ pub enum CodemodError {
     /// the universal materializer — fail-closed on every CI leg and every local gate lane,
     /// repo-wide, under an error that named the wrong problem and pointed remediation at deleting
     /// plan files. Git uncertainty must degrade the landed-ness check LOCALLY, never wedge the repo.
-    MergeBaseUnresolved { base_ref: String },
+    MergeBaseUnresolved {
+        base_ref: String,
+    },
     /// A move's `new_path` contains another (or its own) move's `old_path` as a boundary-safe
     /// path-token substring — the ADR doc-anchor rewrite would re-match and grow on
     /// re-application (revert-then-reapply, or a mistaken double-apply).
-    AnchorRewriteNonIdempotent { new_path: String, old_path: String },
+    AnchorRewriteNonIdempotent {
+        new_path: String,
+        old_path: String,
+    },
     /// A move would relocate a crate from one Cargo WORKSPACE into a DIFFERENT one (e.g. out of
     /// the root workspace into the ADR-0512 `kernel` / `cloud/cloud-kernel` nested carve-out, or
     /// vice versa). Which workspace owns a crate decides its lockfile, its feature unification and
@@ -570,7 +610,10 @@ pub enum CodemodError {
     },
     /// A moved path is not claimed by ANY workspace after the move (every `[workspace]` ancestor
     /// excludes it), so no `cargo metadata` run could ever validate it.
-    WorkspaceOrphan { path: String, workspace: String },
+    WorkspaceOrphan {
+        path: String,
+        workspace: String,
+    },
     /// Rust source under a moving crate carries `include!` / `include_bytes!` / `include_str!` /
     /// `#[path]` literals that resolve OUTSIDE the moving crate's own directory. A path move
     /// can change both the crate's name and its HOP COUNT to any such target, so these
@@ -580,7 +623,9 @@ pub enum CodemodError {
     /// classes are accepted (see `plan::literal_meaning_preserved`): a depth-preserving move
     /// with an untouched target, and a target that co-moves with the workspace so the same
     /// literal recomputes to its new home (the kuberos `../../../out/*.elf` shape).
-    UnrewritablePathLiteral { literals: Vec<EscapingPathLiteral> },
+    UnrewritablePathLiteral {
+        literals: Vec<EscapingPathLiteral>,
+    },
 }
 
 /// A Rust-source path literal that a crate move would invalidate: it resolves outside the
@@ -615,7 +660,10 @@ impl fmt::Display for CodemodError {
         match self {
             CodemodError::EmptyPlan => write!(f, "move plan is empty"),
             CodemodError::BadPath { which, path } => {
-                write!(f, "{which} is not a normalized repo-relative path: {path:?}")
+                write!(
+                    f,
+                    "{which} is not a normalized repo-relative path: {path:?}"
+                )
             }
             CodemodError::DuplicateKey { kind, value } => {
                 write!(f, "duplicate {kind} in move plan: {value:?} (collision)")
@@ -648,7 +696,10 @@ impl fmt::Display for CodemodError {
                 write!(f, "cargo metadata did not resolve (fail-closed): {message}")
             }
             CodemodError::BuckUnresolved { message } => {
-                write!(f, "buck2 targets //... did not resolve (fail-closed): {message}")
+                write!(
+                    f,
+                    "buck2 targets //... did not resolve (fail-closed): {message}"
+                )
             }
             CodemodError::LockfileTransform { message } => {
                 write!(f, "Cargo.lock transform failed (fail-closed): {message}")
@@ -771,8 +822,10 @@ fn is_inverse_product_brand_destination(
         return false;
     };
     let prefix = format!("oya-{product}");
-    let old_keeps_brand = old_cargo_name == prefix || old_cargo_name.starts_with(&format!("{prefix}-"));
-    let new_keeps_brand = new_cargo_name == prefix || new_cargo_name.starts_with(&format!("{prefix}-"));
+    let old_keeps_brand =
+        old_cargo_name == prefix || old_cargo_name.starts_with(&format!("{prefix}-"));
+    let new_keeps_brand =
+        new_cargo_name == prefix || new_cargo_name.starts_with(&format!("{prefix}-"));
     // The forward direction reads the product from the DESTINATION path; the inverse reads it
     // from the SOURCE path (the app/<product>/ side) and requires the destination to be the
     // same product's legacy branded home.
@@ -810,9 +863,8 @@ fn is_inverse_product_brand_artifact_destination(old_path: &str, new_path: &str)
     };
     let prefix = format!("oya-{product}");
     let old_keeps_brand = stem == prefix || stem.starts_with(&format!("{prefix}-"));
-    let new_keeps_brand = artifact_file_stem(new_path).is_some_and(|stem| {
-        stem == prefix || stem.starts_with(&format!("{prefix}-"))
-    });
+    let new_keeps_brand = artifact_file_stem(new_path)
+        .is_some_and(|stem| stem == prefix || stem.starts_with(&format!("{prefix}-")));
     let legacy_home = format!("oya/{product}");
     old_keeps_brand
         && new_keeps_brand
@@ -858,7 +910,9 @@ fn is_deprecated_brand_artifact_target(path: &str) -> bool {
 }
 
 fn is_deprecated_brand_path_leaf(path: &str) -> bool {
-    path.rsplit('/').next().is_some_and(is_deprecated_brand_name)
+    path.rsplit('/')
+        .next()
+        .is_some_and(is_deprecated_brand_name)
 }
 
 fn is_deprecated_brand_file_stem(path: &str) -> bool {
@@ -1067,13 +1121,11 @@ mod tests {
     fn recompute_handles_moved_manifest_and_unmoved_target() {
         // manifest moves cloud/cloud-iam/crates/a -> iam/core/a; dep at ../b stays at
         // cloud/cloud-iam/crates/b (target did not move).
-        let new = recompute_rel_path_dep(
-            "cloud/cloud-iam/crates/a",
-            "iam/core/a",
-            "../b",
-            &|_old| None,
-        )
-        .unwrap();
+        let new =
+            recompute_rel_path_dep("cloud/cloud-iam/crates/a", "iam/core/a", "../b", &|_old| {
+                None
+            })
+            .unwrap();
         // iam/core/a has 3 segments -> 3 `..` to root, then down to the unmoved target.
         assert_eq!(new, "../../../cloud/cloud-iam/crates/b");
     }
@@ -1081,19 +1133,15 @@ mod tests {
     #[test]
     fn recompute_handles_both_manifest_and_target_moving() {
         // both a (manifest) and b (target) move into iam/core.
-        let new = recompute_rel_path_dep(
-            "cloud/cloud-iam/crates/a",
-            "iam/core/a",
-            "../b",
-            &|old| {
+        let new =
+            recompute_rel_path_dep("cloud/cloud-iam/crates/a", "iam/core/a", "../b", &|old| {
                 if old == "cloud/cloud-iam/crates/b" {
                     Some("iam/core/b".to_string())
                 } else {
                     None
                 }
-            },
-        )
-        .unwrap();
+            })
+            .unwrap();
         assert_eq!(new, "../b", "both moved into the same dir -> sibling again");
     }
 
@@ -1458,8 +1506,14 @@ mod tests {
         };
         assert!(forward.validate().is_ok(), "sanctioned forward validates");
         let inverse = forward.inverse();
-        assert_eq!(inverse.moves[0].old_path, "app/hr/crates/oya-hr-employment-api");
-        assert_eq!(inverse.moves[0].new_path, "oya/hr/crates/oya-hr-employment-api");
+        assert_eq!(
+            inverse.moves[0].old_path,
+            "app/hr/crates/oya-hr-employment-api"
+        );
+        assert_eq!(
+            inverse.moves[0].new_path,
+            "oya/hr/crates/oya-hr-employment-api"
+        );
         assert!(
             inverse.validate().is_ok(),
             "the inverse of a sanctioned app-product move must validate (revertability)"
@@ -1497,7 +1551,10 @@ mod tests {
                 new_path: "app/hr/oya-hr-slo.openslo.yaml".to_string(),
             }],
         };
-        assert!(forward.validate().is_ok(), "sanctioned artifact forward validates");
+        assert!(
+            forward.validate().is_ok(),
+            "sanctioned artifact forward validates"
+        );
         let inverse = forward.inverse();
         assert_eq!(
             inverse.artifacts[0].new_path,
@@ -1553,7 +1610,8 @@ mod tests {
         let plan = MovePlan {
             capability: "observability".to_string(),
             moves: vec![CrateMove {
-                old_path: "cloud/cloud-observability/crates/oya-cloud-observability-domain".to_string(),
+                old_path: "cloud/cloud-observability/crates/oya-cloud-observability-domain"
+                    .to_string(),
                 new_path: "observability/core/aggregate".to_string(),
                 old_cargo_name: "oya-cloud-observability-domain".to_string(),
                 new_cargo_name: "observability-core-aggregate".to_string(),
@@ -1574,11 +1632,13 @@ mod tests {
             pairs,
             vec![
                 (
-                    "cloud/cloud-observability/crates/oya-cloud-observability-domain/Cargo.toml".to_string(),
+                    "cloud/cloud-observability/crates/oya-cloud-observability-domain/Cargo.toml"
+                        .to_string(),
                     "observability/core/aggregate/Cargo.toml".to_string()
                 ),
                 (
-                    "cloud/cloud-observability/crates/oya-cloud-observability-domain/src/lib.rs".to_string(),
+                    "cloud/cloud-observability/crates/oya-cloud-observability-domain/src/lib.rs"
+                        .to_string(),
                     "observability/core/aggregate/src/lib.rs".to_string()
                 ),
             ],
@@ -1601,7 +1661,10 @@ mod tests {
             }],
             artifacts: vec![],
         };
-        assert!(plan.file_level_manifest(&[]).is_empty(), "no tracked => no pairs");
+        assert!(
+            plan.file_level_manifest(&[]).is_empty(),
+            "no tracked => no pairs"
+        );
         // Only the OLD path tracked (move did not land) => still empty (new descendants absent).
         assert!(
             plan.file_level_manifest(&["cloud/a/src/lib.rs".to_string()])
@@ -1616,7 +1679,8 @@ mod tests {
             capability: "observability".to_string(),
             moves: vec![
                 CrateMove {
-                    old_path: "cloud/cloud-observability/crates/oya-cloud-observability-domain".to_string(),
+                    old_path: "cloud/cloud-observability/crates/oya-cloud-observability-domain"
+                        .to_string(),
                     new_path: "observability/core/aggregate".to_string(),
                     old_cargo_name: "oya-cloud-observability-domain".to_string(),
                     new_cargo_name: "observability-core-aggregate".to_string(),
@@ -1624,7 +1688,8 @@ mod tests {
                 // a SECOND move whose new dir is NOT in the candidate tree (did not land) — its
                 // crate-DIR pair must NOT be emitted (mirrors the file-level candidate guard).
                 CrateMove {
-                    old_path: "cloud/cloud-observability/crates/oya-cloud-observability-ghost".to_string(),
+                    old_path: "cloud/cloud-observability/crates/oya-cloud-observability-ghost"
+                        .to_string(),
                     new_path: "observability/core/ghost".to_string(),
                     old_cargo_name: "oya-cloud-observability-ghost".to_string(),
                     new_cargo_name: "observability-core-ghost".to_string(),
@@ -1667,7 +1732,10 @@ mod tests {
             plan.crate_ident_pairs(),
             vec![
                 ("oya-cloud-iam-app".to_string(), "iam-app".to_string()),
-                ("oya-cloud-iam-domain".to_string(), "identity-domain".to_string()),
+                (
+                    "oya-cloud-iam-domain".to_string(),
+                    "identity-domain".to_string()
+                ),
             ],
             "sorted by old cargo name"
         );
@@ -1811,7 +1879,10 @@ mod tests {
                 new_path: "observability/observability/slos".to_string(),
             }],
         };
-        assert!(plan.validate().is_ok(), "a well-formed artifact plan validates");
+        assert!(
+            plan.validate().is_ok(),
+            "a well-formed artifact plan validates"
+        );
     }
 
     #[test]
@@ -1862,7 +1933,10 @@ mod tests {
         };
         let inv = plan.inverse();
         // every artifact side is swapped...
-        assert_eq!(inv.artifacts[0].old_path, "observability/observability/slos");
+        assert_eq!(
+            inv.artifacts[0].old_path,
+            "observability/observability/slos"
+        );
         assert_eq!(inv.artifacts[0].new_path, "oya/observability/slos");
         assert_eq!(
             inv.artifacts[1].old_path,
