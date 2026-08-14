@@ -14,7 +14,7 @@ fn policy() -> Value {
         "crate_root_globs": ["cloud/*/crates/oya-*"],
         "service_roots": ["cloud", "oya"],
         "capability_roots": [],
-        "capability_registry_path": "specs/capability-registry.json",
+        "capability_registry_path": "governance/capability-registry.json",
         "unclassified_roots": ["libs", "tools", "cloud/cloud-ci"],
         "stratum_rank_order": ["S0", "S1", "S2", "S3", "S4", "S5"],
         "min_expected_crates": 0

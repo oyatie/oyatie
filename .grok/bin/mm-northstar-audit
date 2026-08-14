@@ -121,7 +121,7 @@ def classify_path(rel: str) -> str:
 
 def dual_homes_from_registry(repo: Path) -> List[dict]:
     """Derive multi-home debt from capability-registry absorbs — do not hardcode caps."""
-    reg = load_json(repo / "specs/capability-registry.json") or {}
+    reg = load_json(repo / "governance/capability-registry.json") or {}
     caps = reg.get("capabilities") or []
     rows = []
     for c in caps:

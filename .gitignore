@@ -259,3 +259,7 @@ _ralplan_workflow.js
 
 # Swarm Delivery Law linked worktrees (ADR-0711); topology uses .worktrees/ not .claude/worktrees/
 .worktrees/
+
+# Stray agent worktrees accidentally created at the repo root (e.g. wt-1616); lanes belong under .worktrees/
+/wt-*/
+
