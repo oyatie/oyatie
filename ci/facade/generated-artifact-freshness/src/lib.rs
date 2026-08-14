@@ -874,15 +874,14 @@ pub fn verify_pre_push_verifier_protocol(repo_root: &Path) -> Result<(), Freshne
 }
 
 /// Extract the `PRE_PUSH_VERIFIER_PROTOCOL_VERSION` value from the tracked freshness-gate source
-/// as DATA (a text parse; never executes checkout code). Fails closed when the declaration is
-/// absent or malformed.
-/// Extract the `PRE_PUSH_VERIFIER_PROTOCOL_VERSION` value from the tracked freshness-gate source
 /// as DATA (a text parse; never executes checkout code). Matches ONLY the actual constant
 /// declaration line (`pub const PRE_PUSH_VERIFIER_PROTOCOL_VERSION: u32 = N;`), so a comment or
-/// string that merely mentions the name can never shadow the real value. Fails closed when the
-/// declaration is absent or malformed.
+/// string that merely mentions the name can never shadow the real value. Two declaration lines
+/// fail closed — an untrusted checkout cannot prepend a stale `pub const` to keep an old hook
+/// green. Fails closed when the declaration is absent or malformed.
 fn parse_pre_push_verifier_protocol_version(lib_source: &str) -> Option<u32> {
     const DECLARATION_PREFIX: &str = "pub const PRE_PUSH_VERIFIER_PROTOCOL_VERSION: u32 = ";
+    let mut found = None;
     for line in lib_source.lines() {
         let trimmed = line.trim();
         let Some(rest) = trimmed.strip_prefix(DECLARATION_PREFIX) else {
@@ -891,9 +890,12 @@ fn parse_pre_push_verifier_protocol_version(lib_source: &str) -> Option<u32> {
         let Some(value) = rest.strip_suffix(';') else {
             continue;
         };
-        return value.trim().parse().ok();
+        let parsed = value.trim().parse().ok()?;
+        if found.replace(parsed).is_some() {
+            return None;
+        }
     }
-    None
+    found
 }
 
 pub fn materialize_generated_faces_with_buck2(repo_root: &Path) -> Result<(), FreshnessError> {
@@ -1808,10 +1810,7 @@ pub fn read_member_packages(repo_root: &Path) -> Result<Vec<MemberPackage>, Fres
         // block every push with a false positive. `git ls-files --others --exclude-standard`
         // already omits ignored paths from the tree-clean assertion, so the member universe must
         // agree with that same view.
-        if ignored_candidates
-            .iter()
-            .any(|ignored| member_dir == *ignored || member_dir.starts_with(ignored))
-        {
+        if member_dir_is_locally_ignored(&member_dir, &ignored_candidates) {
             continue;
         }
         let manifest = read_to_string(&repo_root.join(&member_dir).join("Cargo.toml"))?;
@@ -1850,6 +1849,50 @@ fn ignored_workspace_member_candidates(
         }
     }
     Ok(ignored)
+}
+
+fn member_dir_is_locally_ignored(member_dir: &str, ignored_candidates: &BTreeSet<String>) -> bool {
+    ignored_candidates
+        .iter()
+        .any(|ignored| path_is_equal_or_under(member_dir, ignored))
+}
+
+/// Path-component prefix: `foo/core/scratch` matches itself and `foo/core/scratch/nested`,
+/// but not a sibling that merely shares a string prefix (`foo/core/scratchpad`).
+fn path_is_equal_or_under(path: &str, prefix: &str) -> bool {
+    path == prefix
+        || (path.len() > prefix.len()
+            && path.as_bytes().get(prefix.len()) == Some(&b'/')
+            && path.starts_with(prefix))
+}
+
+#[cfg(test)]
+mod ignored_workspace_member_tests {
+    use super::path_is_equal_or_under;
+
+    #[test]
+    fn exact_ignored_dir_matches() {
+        assert!(path_is_equal_or_under(
+            "foo/core/scratch",
+            "foo/core/scratch"
+        ));
+    }
+
+    #[test]
+    fn nested_dir_under_ignored_prefix_matches() {
+        assert!(path_is_equal_or_under(
+            "foo/core/scratch/nested",
+            "foo/core/scratch"
+        ));
+    }
+
+    #[test]
+    fn sibling_sharing_a_string_prefix_does_not_match() {
+        assert!(!path_is_equal_or_under(
+            "foo/core/scratchpad",
+            "foo/core/scratch"
+        ));
+    }
 }
 
 pub fn read_committed_generated_faces(
@@ -5057,5 +5100,29 @@ mod pre_push_verifier_protocol_tests {
         let text = error.to_string();
         assert!(text.contains("new-face.generated.json"), "{text}");
         assert!(text.contains("reinstall"), "{text}");
+    }
+
+    #[test]
+    fn comment_or_string_mention_does_not_shadow_the_pub_const_declaration() {
+        // Codex P2: an earlier comment/string containing the type annotation used to win via
+        // first-substring match and keep an installed v1 hook green against a real v2 declaration.
+        let source = concat!(
+            "/// declaration line (`pub const PRE_PUSH_VERIFIER_PROTOCOL_VERSION: u32 = N;`)\n",
+            "// PRE_PUSH_VERIFIER_PROTOCOL_VERSION: u32 = 1;\n",
+            "// pub const PRE_PUSH_VERIFIER_PROTOCOL_VERSION: u32 = 1;\n",
+            "const NOTE: &str = \"PRE_PUSH_VERIFIER_PROTOCOL_VERSION: u32 = 1;\";\n",
+            "format!(\"pub const PRE_PUSH_VERIFIER_PROTOCOL_VERSION: u32 = {n};\\n\");\n",
+            "pub const PRE_PUSH_VERIFIER_PROTOCOL_VERSION: u32 = 2;\n",
+        );
+        assert_eq!(parse_pre_push_verifier_protocol_version(source), Some(2));
+    }
+
+    #[test]
+    fn duplicate_pub_const_declaration_lines_fail_closed() {
+        let source = concat!(
+            "pub const PRE_PUSH_VERIFIER_PROTOCOL_VERSION: u32 = 1;\n",
+            "pub const PRE_PUSH_VERIFIER_PROTOCOL_VERSION: u32 = 2;\n",
+        );
+        assert_eq!(parse_pre_push_verifier_protocol_version(source), None);
     }
 }
