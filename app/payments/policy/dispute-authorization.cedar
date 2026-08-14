@@ -65,6 +65,7 @@ permit (
 )
 when {
   principal has svid_present && principal.svid_present == true &&
+  principal has svid_valid && principal.svid_valid == true &&
   principal has role && principal.role == "ops-fraud"
 };
 

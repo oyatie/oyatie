@@ -306,6 +306,53 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Subscription'
+  /v1/subscriptions/{subscription_id}:
+    parameters:
+      - in: path
+        name: subscription_id
+        required: true
+        schema: { type: string, format: uuid }
+    delete:
+      operationId: cancelSubscription
+      summary: Cancel a recurring subscription
+      tags: [subscription]
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/TenantId'
+      responses:
+        '200':
+          description: Subscription cancelled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'
+    patch:
+      operationId: changeSubscriptionPlan
+      summary: Upgrade or downgrade a subscription plan
+      tags: [subscription]
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/TenantId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [price_id]
+              properties:
+                price_id:
+                  type: string
+                proration:
+                  type: boolean
+                  default: true
+      responses:
+        '200':
+          description: Subscription plan changed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'
   /v1/sub-merchants:
     post:
       operationId: onboardSubMerchant
@@ -676,6 +723,10 @@ components:
         has_more: { type: boolean }
     DisputeEvidenceBundle:
       type: object
+      # At least one evidence field is required: an empty bundle carries nothing
+      # that can be sent for representment and must be rejected (mirror
+      # validation on the protobuf/runtime boundary).
+      minProperties: 1
       properties:
         product_description: { type: string }
         shipping_tracking_number: { type: string }

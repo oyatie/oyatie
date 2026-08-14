@@ -154,37 +154,37 @@
     {
       "name": "oya-payments-charge-api-availability",
       "target": "0.9995",
-      "sli": "sum(rate(payments_charge_total{outcome='captured'}[5m])) / sum(rate(payments_charge_total[5m]))",
+      "sli": "sum(rate(payments_charge_api_requests_total{status_code=~\"2..\"}[5m])) / sum(rate(payments_charge_api_requests_total[5m]))",
       "file": "app/payments/slos/charge-api-availability.openslo.yaml"
     },
     {
       "name": "oya-payments-charge-api-latency",
       "target": "0.99",
-      "sli": "histogram_quantile(0.99, sum(rate(payments_charge_latency_ms_bucket{le='2000'}[5m])) by (le))",
+      "sli": "sum(rate(payments_charge_latency_ms_bucket{le=\"500\"}[5m])) / sum(rate(payments_charge_latency_ms_count[5m]))",
       "file": "app/payments/slos/charge-api-latency.openslo.yaml"
     },
     {
       "name": "oya-payments-payout-completion-success",
       "target": "0.999",
-      "sli": "sum(rate(payments_payout_total{outcome='completed'}[24h])) / sum(rate(payments_payout_total[24h]))",
+      "sli": "sum(rate(payments_payout_total{state=\"completed\"}[24h])) / sum(rate(payments_payout_total{state=~\"completed|failed_insufficient_funds|failed_closed_account\"}[24h]))",
       "file": "app/payments/slos/payout-completion-success.openslo.yaml"
     },
     {
       "name": "oya-payments-dispute-response-latency",
       "target": "0.95",
-      "sli": "histogram_quantile(0.95, sum(rate(payments_dispute_response_latency_hours_bucket{le='48'}[7d])) by (le))",
+      "sli": "sum(rate(payments_dispute_evidence_submission_lag_seconds_bucket{le=\"86400\"}[5m])) / sum(rate(payments_dispute_evidence_submission_lag_seconds_count[5m]))",
       "file": "app/payments/slos/dispute-response-latency.openslo.yaml"
     },
     {
       "name": "oya-payments-refund-api-availability",
       "target": "0.9995",
-      "sli": "sum(rate(payments_refund_total{outcome='succeeded'}[5m])) / sum(rate(payments_refund_total[5m]))",
+      "sli": "sum(rate(payments_refund_api_requests_total{status_code=~\"2..\"}[5m])) / sum(rate(payments_refund_api_requests_total[5m]))",
       "file": "app/payments/slos/refund-api-availability.openslo.yaml"
     },
     {
       "name": "oya-payments-webhook-delivery-success",
-      "target": "0.999",
-      "sli": "sum(rate(payments_webhook_delivery_total{outcome='delivered'}[5m])) / sum(rate(payments_webhook_delivery_total[5m]))",
+      "target": "0.9999",
+      "sli": "sum(rate(payments_webhook_outbound_delivery_total{outcome=\"success_within_5min\"}[5m])) / sum(rate(payments_webhook_outbound_delivery_total[5m]))",
       "file": "app/payments/slos/webhook-delivery-success.openslo.yaml"
     }
   ],

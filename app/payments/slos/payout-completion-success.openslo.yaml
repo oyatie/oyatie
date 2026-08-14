@@ -15,15 +15,16 @@ metadata:
 spec:
   service: payments
   description: |
-    Per-24h share of payouts that complete successfully (cleared at bank). The
-    denominator is the `scheduled` series, which records each payout exactly
-    once at schedule time — counting state-transition series (scheduled +
-    initiated + completed) would triple-count every healthy payout and drive
-    the ratio toward ~33% — while payouts still in-flight remain in the
-    denominator so a PSP or clearing outage that stalls the pending backlog
-    cannot report 100% completion. Intentional kyc-revoked / sanctions
-    failures are correctness-correct outcomes and are subtracted from the
-    denominator so they neither count against nor inflate the ratio.
+    Share of payouts that complete successfully (cleared at bank) out of the
+    terminal-outcome cohort. Each payout reaches exactly ONE terminal state, so
+    the numerator and denominator describe the same payout cohort: the ratio
+    stays in [0,1] and cannot drift across the 24h boundary or exceed 100%.
+    Intentional kyc-revoked / sanctions failures are correctness-correct
+    outcomes and are deliberately OUTSIDE the measured cohort (they are not
+    completion failures). Payouts still in-flight (scheduled/initiated) are not
+    part of this completion cohort either; a stalled pending backlog is covered
+    by the availability numerator and queue signals rather than by a
+    cohort-mixing subtraction.
   indicator:
     metadata:
       name: payments-payout-completion-success-ratio
@@ -41,7 +42,7 @@ spec:
             type: Prometheus
             spec:
               query: |
-                sum(rate(payments_payout_total{state="scheduled"}[24h])) - sum(rate(payments_payout_total{state="failed_kyc_revoked"}[24h])) - sum(rate(payments_payout_total{state="failed_sanctions"}[24h]))
+                sum(rate(payments_payout_total{state=~"completed|failed_insufficient_funds|failed_closed_account"}[24h]))
   objectives:
     - target: 0.999
       displayName: "30d rolling payout-completion-success ≥ 99.9%"
