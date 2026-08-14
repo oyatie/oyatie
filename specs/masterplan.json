@@ -7400,7 +7400,7 @@
             "source_anchors": [
               "cloud/cloud-kernel",
               "kernel",
-              "specs/capability-registry.json#meta_directories[kernel/]"
+              "governance/capability-registry.json#meta_directories[kernel/]"
             ]
           },
           {
@@ -7411,7 +7411,7 @@
             ],
             "source_anchors": [
               "os",
-              "specs/capability-registry.json#meta_directories[os/]"
+              "governance/capability-registry.json#meta_directories[os/]"
             ]
           },
           {
