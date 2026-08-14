@@ -116,3 +116,8 @@ output "payments_crdb_regions" {
   value       = cockroach_cluster.payments.regions
   description = "Active regions for payments CRDB cluster"
 }
+
+output "payments_crdb_sql_host" {
+  value       = cockroach_cluster.payments.sql_dns
+  description = "SQL endpoint hostname for the managed payments CRDB cluster. Point the stable DNS alias admitted by the payments network policy (payments-crdb.oyatie.dev) at this hostname once, and store the same host in the payments/crdb DATABASE_URL secret."
+}

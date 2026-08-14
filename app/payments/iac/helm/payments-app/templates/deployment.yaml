@@ -1,3 +1,4 @@
+{{- if .Values.payments.deployment.enabled }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -26,6 +27,18 @@ spec:
         - name: app
           image: "{{ .Values.payments.image.repository }}:{{ .Values.payments.image.tag }}"
           imagePullPolicy: {{ .Values.payments.image.pullPolicy }}
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  # Materialized by terraform (payments-crdb.tf
+                  # payments_crdb_external_secret).
+                  name: payments-crdb-credentials
+                  key: url
+            - name: OYA_OPENBAO_ROLE
+              value: {{ .Values.payments.openbao.role | quote }}
+            - name: OYA_OPENBAO_SECRET_PATH
+              value: {{ .Values.payments.openbao.secretPath | quote }}
           ports:
             - name: http
               containerPort: {{ .Values.payments.service.port }}
@@ -47,3 +60,26 @@ spec:
 {{ toYaml .Values.payments.resources | indent 12 }}
           securityContext:
 {{ toYaml .Values.payments.containerSecurityContext | indent 12 }}
+        {{- if .Values.payments.openbao.enabled }}
+        # ADR-0296 library-first credential sidecar: fetches tenant PSP
+        # credentials from OpenBao with the declared role/path and TTL.
+        - name: openbao-agent
+          image: {{ .Values.payments.openbao.agent.image | quote }}
+          args: ["agent", "-config=/etc/openbao-agent/openbao.hcl", "-log-level=error"]
+          env:
+            - name: OYA_OPENBAO_ROLE
+              value: {{ .Values.payments.openbao.role | quote }}
+          volumeMounts:
+            - name: openbao-agent-config
+              mountPath: /etc/openbao-agent
+              readOnly: true
+        {{- end }}
+      volumes:
+        {{- if .Values.payments.openbao.enabled }}
+        - name: openbao-agent-config
+          configMap:
+            # OpenBao agent config for the payments role; supplied by the
+            # cluster bootstrap (per-cell OpenBao address + auth method).
+            name: payments-openbao-agent-config
+        {{- end }}
+{{- end }}

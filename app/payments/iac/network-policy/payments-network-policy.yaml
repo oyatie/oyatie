@@ -23,10 +23,14 @@ spec:
     # gRPC from internal µservices (cloud-billing, messenger, etc.). Paths are
     # rooted at the services declared by contracts/payments-v1.proto
     # (package oyatie.payments.v1): ChargeService, RefundService, PayoutService,
-    # DisputeService, SubscriptionService, SubMerchantService.
+    # DisputeService, SubscriptionService, SubMerchantService. Callers are
+    # selected by the label the product workloads actually carry
+    # (app.kubernetes.io/part-of: oyatie-microservices — the family label used
+    # by the payments chart and sibling product charts), not a fabricated
+    # microservice-family label that matches nothing.
     - fromEndpoints:
         - matchLabels:
-            oyatie/microservice-family: product
+            app.kubernetes.io/part-of: oyatie-microservices
       toPorts:
         - ports:
             - port: "8443"
@@ -125,16 +129,30 @@ spec:
     #
     # cockroach_cluster.payments (terraform/payments-crdb.tf) is a MANAGED
     # CockroachDB Cloud cluster, not an in-cluster Service, so a toEndpoints
-    # label match can never select it. Egress to the SQL endpoint must be
-    # FQDN-based; the concrete hostname is the provisioned cluster's SQL DNS
-    # name (stored in the DATABASE_URL secret). Until the cluster is
-    # provisioned, the FQDN below is the canonical placeholder operators
-    # replace with the actual `<cluster>.<random>.crdb.cloud.io` endpoint.
+    # label match can never select it; its randomized SQL hostname is computed
+    # at apply time and surfaced as the terraform output
+    # payments_crdb_sql_host. A STABLE DNS alias (CNAME) is created once by the
+    # operator pointing at that output (e.g. payments-crdb.oyatie.dev), and the
+    # policy admits the stable alias so the rule does not depend on a
+    # randomized, provision-time hostname. The DATABASE_URL secret stores the
+    # same host.
     - toFQDNs:
-        - matchName: "payments.crdb.cloud.oyatie.dev"
+        - matchName: "payments-crdb.oyatie.dev"
       toPorts:
         - ports:
             - port: "26257"
+              protocol: TCP
+
+    # Outbound tenant webhook deliveries (webhook-delivery-success SLO):
+    # tenant-configured subscriber endpoints are not admitted directly (arbitrary
+    # destinations); deliveries egress through the controlled webhook egress
+    # proxy, which applies per-destination allow-listing and retry policy.
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: webhook-egress-proxy
+      toPorts:
+        - ports:
+            - port: "8443"
               protocol: TCP
 
     # Policy-engine (Cedar evaluation fallback)

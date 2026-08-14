@@ -41,11 +41,13 @@ spec:
     encoding: PKCS8
   dnsNames:
     - payments.oyatie.com
-    # Cell-scoped SANs are covered by the wildcard below; a literal
-    # ${CELL_ID} is NOT substituted by cert-manager and would be an invalid
-    # DNS name that fails issuance for the whole certificate. Concrete cell
-    # hostnames are materialized at apply time (or via the wildcard).
-    - "*.payments.oyatie.com"
+    # Cell-specific SANs (payments.cell-<cell>.oyatie.com) are appended at
+    # apply time by the cell provisioning tooling: cert-manager substitutes no
+    # ${...} templates, a wildcard cannot span the cell hierarchy (a literal
+    # *.payments.oyatie.com would cover us1.payments.oyatie.com, NOT
+    # payments.cell-us1.oyatie.com), and the Istio Gateway host pattern
+    # payments.cell-*.oyatie.com is not a certificate SAN. Each cell's
+    # certificate materializes its own hostname(s) before apply.
   uris:
     - spiffe://oyatie.dev/ns/payments/sa/payments-app
   usages:
