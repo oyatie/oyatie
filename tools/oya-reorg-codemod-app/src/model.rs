@@ -836,35 +836,39 @@ fn is_inverse_product_brand_destination(
 }
 
 /// True when an artifact targets the sanctioned brand-preserving composition ring: an
-/// `app/<product>/` destination whose FILE STEM keeps the PRODUCT brand (`oya-<product>-*`).
-/// Mirrors [`is_product_brand_destination`] for crates; a `cloud-*` stem (or an `oya-*` stem
-/// of another product) under `app/` stays subject to the de-brand gates.
+/// `app/<product>/` destination whose artifact NAME keeps the PRODUCT brand
+/// (`oya-<product>-*`). The name is the file stem for recognized file artifacts
+/// (`.yaml`/`.yml`/`.json`) or the raw leaf for DIRECTORY artifacts (a dir has no suffix to
+/// strip) — both are supported artifact shapes. Mirrors [`is_product_brand_destination`] for
+/// crates; a `cloud-*` name (or an `oya-*` name of another product) under `app/` stays subject
+/// to the de-brand gates.
 fn is_product_brand_artifact_destination(new_path: &str) -> bool {
     let Some(product) = product_segment(new_path) else {
         return false;
     };
-    let Some(stem) = artifact_file_stem(new_path) else {
+    let Some(name) = artifact_leaf_or_stem(new_path) else {
         return false;
     };
     let prefix = format!("oya-{product}");
-    stem == prefix || stem.starts_with(&format!("{prefix}-"))
+    name == prefix || name.starts_with(&format!("{prefix}-"))
 }
 
 /// True when an artifact move is the INVERSE of a sanctioned app-product artifact transition —
 /// the `apply --revert` direction. Mirrors [`is_inverse_product_brand_destination`] for crates:
 /// the source is the `app/<product>/` side and the destination is the same product's legacy
-/// branded home (`oya/<product>/`), with the `oya-<product>` stem kept on both sides.
+/// branded home (`oya/<product>/`), with the `oya-<product>` name kept on both sides (file stem
+/// or directory leaf).
 fn is_inverse_product_brand_artifact_destination(old_path: &str, new_path: &str) -> bool {
     let Some(product) = product_segment(old_path) else {
         return false;
     };
-    let Some(stem) = artifact_file_stem(old_path) else {
+    let Some(name) = artifact_leaf_or_stem(old_path) else {
         return false;
     };
     let prefix = format!("oya-{product}");
-    let old_keeps_brand = stem == prefix || stem.starts_with(&format!("{prefix}-"));
-    let new_keeps_brand = artifact_file_stem(new_path)
-        .is_some_and(|stem| stem == prefix || stem.starts_with(&format!("{prefix}-")));
+    let old_keeps_brand = name == prefix || name.starts_with(&format!("{prefix}-"));
+    let new_keeps_brand = artifact_leaf_or_stem(new_path)
+        .is_some_and(|name| name == prefix || name.starts_with(&format!("{prefix}-")));
     let legacy_home = format!("oya/{product}");
     old_keeps_brand
         && new_keeps_brand
@@ -888,6 +892,15 @@ fn artifact_file_stem(path: &str) -> Option<&str> {
     leaf.strip_suffix(".yaml")
         .or_else(|| leaf.strip_suffix(".yml"))
         .or_else(|| leaf.strip_suffix(".json"))
+}
+
+/// The artifact NAME used for brand matching: the file stem for recognized file artifacts
+/// (`.yaml`/`.yml`/`.json`) or the raw leaf for DIRECTORY artifacts (a dir has no suffix to
+/// strip). Both are supported artifact shapes, and a dir leaf like `oya-hr-assets` must match
+/// the `oya-<product>` brand the same way a `oya-hr-assets.json` file stem does.
+fn artifact_leaf_or_stem(path: &str) -> Option<&str> {
+    let leaf = path.rsplit('/').next()?;
+    Some(artifact_file_stem(path).unwrap_or(leaf))
 }
 
 fn is_deprecated_brand_path_source(path: &str) -> bool {
@@ -1579,6 +1592,49 @@ mod tests {
             Err(CodemodError::DeprecatedBrandTarget { which, value })
                 if which == "artifact new_path"
                     && value == "oya/payroll/slos/oya-hr-slo.openslo.yaml"
+        ));
+    }
+
+    #[test]
+    fn validate_accepts_the_inverse_of_a_sanctioned_app_product_artifact_directory_move() {
+        // REGRESSION (PR #1965 wave-3, comment 3784300299): the sanctioned product artifact may
+        // be a DIRECTORY (e.g. `oya/hr/oya-hr-assets -> app/hr/oya-hr-assets`), which the
+        // artifact preflight and move step support. `artifact_file_stem` only strips
+        // .yaml/.yml/.json, so a dir leaf (`oya-hr-assets`) made the inverse predicate return
+        // false and the revert of a sanctioned dir-artifact move tripped the de-brand refusal.
+        // The brand must match on the raw leaf for directory artifacts.
+        let forward = MovePlan {
+            capability: "hr".to_string(),
+            moves: vec![],
+            artifacts: vec![ArtifactMove {
+                old_path: "oya/hr/oya-hr-assets".to_string(),
+                new_path: "app/hr/oya-hr-assets".to_string(),
+            }],
+        };
+        assert!(
+            forward.validate().is_ok(),
+            "sanctioned dir-artifact forward validates"
+        );
+        let inverse = forward.inverse();
+        assert_eq!(inverse.artifacts[0].new_path, "oya/hr/oya-hr-assets");
+        assert!(
+            inverse.validate().is_ok(),
+            "the inverse of a sanctioned app-product DIRECTORY artifact move must validate (revertability)"
+        );
+
+        // A directory artifact of ANOTHER product's brand stays refused on the reverse.
+        let cross_product_dir_inverse = MovePlan {
+            capability: "hr".to_string(),
+            moves: vec![],
+            artifacts: vec![ArtifactMove {
+                old_path: "app/hr/oya-hr-assets".to_string(),
+                new_path: "oya/payroll/oya-hr-assets".to_string(),
+            }],
+        };
+        assert!(matches!(
+            cross_product_dir_inverse.validate(),
+            Err(CodemodError::DeprecatedBrandTarget { which, value })
+                if which == "artifact new_path" && value == "oya/payroll/oya-hr-assets"
         ));
     }
 
