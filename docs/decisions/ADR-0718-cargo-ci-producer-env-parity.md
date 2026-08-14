@@ -26,7 +26,7 @@ deliverables:
     verified_by: "ci-automation-language-policy live-corpus tests on the PR head"
 ---
 
-# Cargo CI producer env parity
+# ADR-0718: Cargo CI producer env parity: materialized-face and ADR-index producer env vars
 
 ## Status
 
