@@ -12,7 +12,7 @@
 //! - `[naming]` required-prefix / allowed-roles / check-family-prefix / backend-suffixes /
 //!   doctrinal-carve-outs (replaces the naming-kernel consts, §2.1).
 //! - `[vocab]` forbidden-stems + carve-outs (replaces the brand consts, §2.2).
-//! //! - `[reachability]` / `[justification]` / `[owners]` / `[enforcement]` source paths
+//! - `[reachability]` / `[justification]` / `[owners]` / `[enforcement]` source paths
 //!   (replaces the producer-embedded literals, §2.3).
 //! - `[ttl]` + `[unit_class]` (subsumes ttl-policy.json + unit-class-policy.json — already
 //!   DATA, carried over VERBATIM so the 48k+ accounting keys reproduce byte-for-byte).
@@ -281,8 +281,46 @@ impl OyaCiConfig {
         text: &str,
         line_scope_mode: LegacyLineScope,
     ) -> Result<Self, ConfigError> {
-        let shadow: OyaCiConfigShadow =
-            toml::from_str(text).map_err(|e| ConfigError::Parse(e.to_string()))?;
+        let shadow: OyaCiConfigShadow = match line_scope_mode {
+            LegacyLineScope::Reject => {
+                toml::from_str(text).map_err(|e| ConfigError::Parse(e.to_string()))?
+            }
+            // ADR-0718: the frozen-reference compatibility path reads a HISTORICAL merge-base
+            // `oya-ci.toml` that still carries the retired sections whose consumers were the
+            // retired gates (`[manifest]`, `[slo_coverage]`, `[catalog_liveness]`) and the
+            // retired producer-face rows in `[[gates.enabled]]` (faces removed from `GateFace`).
+            // Those consumers are gone, so the current parser accepts-and-drops them. The strict
+            // candidate loader above keeps rejecting them fail-closed (the live schema).
+            LegacyLineScope::ExpandToAllStems => {
+                let mut value: toml::Value =
+                    toml::from_str(text).map_err(|e| ConfigError::Parse(e.to_string()))?;
+                if let Some(table) = value.as_table_mut() {
+                    for retired in ["manifest", "slo_coverage", "catalog_liveness"] {
+                        table.remove(retired);
+                    }
+                    if let Some(enabled) = table
+                        .get_mut("gates")
+                        .and_then(toml::Value::as_table_mut)
+                        .and_then(|gates| gates.get_mut("enabled"))
+                        .and_then(toml::Value::as_array_mut)
+                    {
+                        enabled.retain(|entry| {
+                            !matches!(
+                                entry.get("face").and_then(toml::Value::as_str),
+                                Some(
+                                    "total_accounting"
+                                        | "staleness"
+                                        | "manifest_hygiene"
+                                        | "catalog_liveness"
+                                )
+                            )
+                        });
+                    }
+                }
+                OyaCiConfigShadow::deserialize(value)
+                    .map_err(|e| ConfigError::Parse(e.to_string()))?
+            }
+        };
         // `extends` (the explicit base-to-extend) wins over `profile` when both are present.
         let profile = shadow.extends.unwrap_or(shadow.profile);
         let mut base = match profile {
@@ -1521,6 +1559,60 @@ doctrinal_carve_outs = []
     fn closed_schema_rejects_unknown_top_level_key() {
         let err = OyaCiConfig::from_toml_str("bogus_section = 1").unwrap_err();
         assert!(matches!(err, ConfigError::Parse(_)), "got {err:?}");
+    }
+
+    /// ADR-0718: the retired `[manifest]` / `[slo_coverage]` / `[catalog_liveness]` sections and
+    /// the retired producer-face `[[gates.enabled]]` rows leave the LIVE closed schema
+    /// (fail-closed), but the frozen-reference compatibility path must still parse a historical
+    /// merge-base `oya-ci.toml` that carries them — it accepts and drops them so ADR-0616
+    /// merge-base regeneration keeps working after the schema change.
+    #[test]
+    fn retired_sections_are_rejected_live_but_dropped_on_the_frozen_reference_path() {
+        let retired = r#"
+[manifest]
+required_flags = ["version_workspace"]
+
+[slo_coverage]
+catalog_record_globs = ["registry/catalog/*.yaml"]
+
+[catalog_liveness]
+catalog_record_globs = ["registry/catalog/*.yaml"]
+
+[[gates.enabled]]
+id = "cloud-ci-cross-artifact-agreement"
+input_kind = "producer-face"
+face = "cross_artifact"
+
+[[gates.enabled]]
+id = "cloud-ci-total-accounting"
+input_kind = "producer-face"
+face = "total_accounting"
+
+[[gates.enabled]]
+id = "cloud-ci-staleness-reaper"
+input_kind = "producer-face"
+face = "staleness"
+
+[[gates.enabled]]
+id = "cloud-ci-manifest-hygiene"
+input_kind = "producer-face"
+face = "manifest_hygiene"
+
+[[gates.enabled]]
+id = "cloud-ci-catalog-liveness"
+input_kind = "producer-face"
+face = "catalog_liveness"
+"#;
+        // The live closed schema is fail-closed: each retired section/row is an unknown key/face.
+        assert!(OyaCiConfig::from_toml_str(retired).is_err());
+        // The frozen-reference path accepts-and-drops the retired constructs and keeps the live
+        // gate row (with its live face), so a merge-base config still regenerates over the
+        // surviving 11-gate fleet.
+        let cfg = OyaCiConfig::from_frozen_reference_toml_str(retired)
+            .expect("frozen-reference parser must tolerate retired sections");
+        let ids: Vec<&str> = cfg.gates.enabled.iter().map(|g| g.id.as_str()).collect();
+        assert_eq!(ids, vec!["cloud-ci-cross-artifact-agreement"]);
+        assert_eq!(cfg.gates.enabled[0].face, Some(GateFace::CrossArtifact));
     }
 
     #[test]
