@@ -26,7 +26,7 @@
 
 permit (
   principal in TenantOperator::?p,
-  action == Action::"payout.schedule",
+  action in [Action::"payout.schedule", Action::"payout.read"],
   resource in Payout::?o
 )
 when {
@@ -94,9 +94,14 @@ when {
   resource.bank_account_state == "verified" &&
   resource has cooling_period_elapsed &&
   resource.cooling_period_elapsed == true &&
-  !(resource has recipient_sanctions_match &&
-    resource.recipient_sanctions_match == true) &&
-  !(resource has kyc_revoked && resource.kyc_revoked == true)
+  // Positive screening evidence: the attributes must be PRESENT and safe, so
+  // a payout whose sanctions/KYC screening produced no result fails closed
+  // (the forbids below reject only explicitly-true values, which would leave
+  // omitted evidence authorized).
+  resource has recipient_sanctions_match &&
+  resource.recipient_sanctions_match == false &&
+  resource has kyc_revoked &&
+  resource.kyc_revoked == false
 };
 
 // =============================================================================

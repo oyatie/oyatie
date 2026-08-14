@@ -221,6 +221,7 @@
     "app/payments/policy/refund-authorization.cedar",
     "app/payments/policy/sub-merchant-onboarding.cedar",
     "app/payments/policy/dispute-authorization.cedar",
+    "app/payments/policy/subscription-authorization.cedar",
     "app/payments/policy/abuse-defence.cedar",
     "app/payments/policy/emergency-services-bypass.cedar",
     "app/payments/policy/auditor-scope.cedar",

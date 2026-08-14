@@ -89,7 +89,9 @@ when {
   principal has audience_type &&
   principal.audience_type == "EMERGENCY_SERVICES_OPERATOR" &&
   principal has svid_present &&
-  principal.svid_present == true
+  principal.svid_present == true &&
+  principal has svid_valid &&
+  principal.svid_valid == true
 };
 
 // =============================================================================
