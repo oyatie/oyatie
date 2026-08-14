@@ -322,6 +322,10 @@
       "prefix": "governance/REORG-DRAIN.md"
     },
     {
+      "anchor": "ADR-0562 §2: the CLOSED capability registry policy-as-data — the single source of truth for the capability-first repo organization, reached by the ADR-0562 deterministic placement rule + the §6 membership lint (its named consumer) + ADR-0562 related_specs; landed at governance/ (its ADR-0562 §2 destined home) on 2026-08-14",
+      "prefix": "governance/capability-registry.json"
+    },
+    {
       "anchor": "ADR-0615 §2 Q13 + ADR-0555: cedar policy fragments absorbed under META governance/cedar/ (authority slice from oya/governance); non-crate DATA.",
       "prefix": "governance/cedar/"
     },
@@ -712,10 +716,6 @@
     {
       "anchor": "ADR-0556 D1: the cache-warmth classification policy-as-data — reached by its named consumers (interim CI quick-wins, the W3 NativeLink CAS vertical, the future cache-policy-conformance gate) and by ADR-0556 related_specs",
       "prefix": "specs/cache-warmth-policy.json"
-    },
-    {
-      "anchor": "ADR-0562 §2: the CLOSED capability registry policy-as-data — the single source of truth for the capability-first repo organization, reached by the ADR-0562 deterministic placement rule + the §6 membership lint (its named consumer) + ADR-0562 related_specs; held at specs/ until the governance/ top-level dir exists",
-      "prefix": "governance/capability-registry.json"
     },
     {
       "anchor": "ADR-0515 run-observability packet amendment: the canonical cloud-ci/oya-ci required-context status packet schema is the reviewed machine-readable contract consumed by the firewall run-observability validator and its fixture corpus.",

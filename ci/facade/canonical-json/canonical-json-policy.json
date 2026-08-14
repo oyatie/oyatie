@@ -12,7 +12,8 @@
     "utf8_bom": false
   },
   "governed_roots": [
-    "specs"
+    "specs",
+    "governance"
   ],
   "exclusions": {
     "_comment": "suffixes: *.generated.json faces are owned byte-verbatim by the freshness/registry-drift gates (single-owner; no double-gating). path_prefixes: specs/fixtures/* are INPUTS owned byte-/parse-verbatim by 5 other gate test suites (firewall, cross-artifact-agreement, staleness-reaper, total-accounting, automation-ratchet); reformatting them is a cross-gate-ownership violation. Expansion to docs/, oya/, cloud/ dashboards is a follow-up IP per governed root (fixer run + this DATA edit), shrink-only.",
