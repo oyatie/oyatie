@@ -7750,7 +7750,6 @@
           "ci/facade/cross-artifact-agreement/tests/cross_artifact_agreement.rs#masterplan_v2_projection_freshness_contract_is_green",
           "ci/facade/cross-artifact-agreement/src/lib.rs#evaluate_masterplan_v2_plan_evidence_drift",
           "ci/facade/cross-artifact-agreement/tests/cross_artifact_agreement.rs#masterplan_v2_plan_vs_evidence_drift_contract_is_green",
-          "evidence/goals/masterplan-gates-ci-wiring-20260702.json",
           "https://github.com/jason931225/oyatie/actions/runs/28592595372",
           "https://github.com/jason931225/oyatie/actions/runs/28594633232",
           "https://github.com/jason931225/oyatie/actions/runs/28596752891"
@@ -9332,14 +9331,15 @@
         "decision_status": "ratified",
         "approved_by": "founder-proxy-round-4",
         "recorded_at": "2026-08-10T00:00:00Z",
-        "decision_ref": "evidence/goals/f1-node-forever-shape-sequencing-founder-ratification-20260810.json",
+        "decision_ref": "evidence/consolidation/preplanning-authority-closure-20260713.json",
         "authorizes_execution_wave_dispatch": false,
         "ratification_scope": "sequencing-digest-and-f1-planning-anchors-only",
         "ratification_authority": "Founder-proxy Round-4 approval (2026-08-10) for F1 Proposed ADR planning anchors MPV2-0053..MPV2-0056 in masterplan_v2; adds MPV2-0053→MPV2-0055 dependency edge; does not grant implement authority for Proposed ADRs ADR-0712..ADR-0715 and does not authorize execution-wave dispatch. A separate founder (principal approved_by=founder) execution-dispatch ratification with authorizes_execution_wave_dispatch=true is required before execution_wave_dispatch.state may leave blocked (in addition to preplanning_authority_closure).",
         "ratified_sequencing_digest": "sha256:e197ad33be5f3158db3dca797a58dd2f500c12ad2158e42ffa2fb934ebd51004",
         "digest_recipe": "sha256 over canonical JSON (sorted keys, separators ',' ':') of {\"dependency_edges\": sorted [from, to] pairs, \"execution_waves\": wave work_item_ids arrays in wave order, \"work_item_order\": work_item_id strings in index order}",
         "invalidation_rule": "Any mutation of a masterplan_v2.dependency_edges from/to endpoint pair, sequencing.work_item_order, or sequencing.execution_waves work_item_ids changes the digest and voids this ratification; relationship labels and other edge metadata are outside this sequencing digest. A fresh re-derivation and founder-ratification record are required before further wave dispatch whenever a covered field changes.",
-        "required_before": "execution-wave-dispatch"
+        "required_before": "execution-wave-dispatch",
+        "decision_ref_note": "The original ratification record (evidence/goals/f1-node-forever-shape-sequencing-founder-ratification-20260810.json) was retired in the anti-friction corpus cleanup; evidence/consolidation/preplanning-authority-closure-20260713.json is the surviving durable reference documenting the founder-ratified preplanning/execution-dispatch authority."
       },
       "execution_wave_dispatch": {
         "requires_founder_ratification": true,
