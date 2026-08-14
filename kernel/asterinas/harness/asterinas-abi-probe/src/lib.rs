@@ -183,9 +183,7 @@ pub fn scaffold_summary_receipt(run: &ScaffoldRun) -> Value {
         .filter(|r| r["status"] == "stubbed")
         .count();
     let g5_json = match &run.g5 {
-        G5Evaluation::PendingMeasurement {
-            unknown_g5_row_ids,
-        } => serde_json::json!({
+        G5Evaluation::PendingMeasurement { unknown_g5_row_ids } => serde_json::json!({
             "status": "pending_measurement",
             "unknown_g5_row_ids": unknown_g5_row_ids,
             "note": "unknown does not fire G5 and must not serialize as clear; F1(a) remains blocked on measurement",
@@ -264,11 +262,12 @@ mod tests {
     fn scaffold_run_is_hermetic_and_stubbed() {
         let run = run_scaffold().expect("scaffold");
         assert!(!run.plan.items.is_empty());
-        assert!(run
-            .plan
-            .items
-            .iter()
-            .all(|i| i.status == ProbeItemStatus::Stubbed));
+        assert!(
+            run.plan
+                .items
+                .iter()
+                .all(|i| i.status == ProbeItemStatus::Stubbed)
+        );
         assert_eq!(run.plan.evidence_path, PREFERRED_EVIDENCE_PATH);
         assert!(!run.plan.live_hardware_required);
         assert_eq!(run.stub_receipts.len(), run.plan.items.len());
