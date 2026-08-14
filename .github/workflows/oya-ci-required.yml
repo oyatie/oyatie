@@ -93,6 +93,30 @@ jobs:
       # dev-cli `oya` binary (built by `cargo test --workspace` as the CARGO_BIN_EXE_oya
       # dependency of the dev-cli integration tests); backs the ADR-index producer live test.
       OYA_ADR_INDEX_PRODUCER_BIN: ${{ github.workspace }}/target/debug/oya
+      # Gate test corpus inputs — buck2 injected these via $(location); the cargo merge path
+      # (ADR-0716) must supply the repo-relative paths so the fail-closed live tests still run.
+      OYA_API_CONTRACT_SSOT: specs/api-contract-ssot-canonical.json
+      OYA_ENDPOINT_TRANSPORT_PROFILE: network/ports/transport-profile/endpoint-transport-profile.contract.json
+      OYA_MASTER_PLAN_SEQUENCING: specs/master-plan-sequencing.json
+      OYA_MICROSERVICE_MANIFEST_SCHEMA: specs/microservices/manifest-schema.json
+      OYA_PRODUCT_PROTOCOL_CONTRACT: specs/product-protocol-contract.json
+      OYA_PRODUCT_PROTOCOL_NEGATIVE_CASES: ci/facade/product-protocol-policy/fixtures/negative-cases.json
+      OYA_PRODUCT_PROTOCOL_POLICY: ci/facade/product-protocol-policy/product-protocol-policy.json
+      OYA_ROOT_HUB_POINTERS: specs/root-hub-pointers.json
+      OYA_ROOT_MARKER: specs/root-hub-pointers.json
+      OYA_ADR_0157: docs/adr-archive/ADR-0157-api-gateway-tier.md
+      OYA_ADR_0167: docs/adr-archive/ADR-0167-tenant-cli.md
+      OYA_ADR_0176: docs/adr-archive/ADR-0176-brownout-degradation-signal-api.md
+      OYA_ADR_0182: docs/adr-archive/ADR-0182-api-gateway-north-south-vs-service-mesh-east-west-separation.md
+      OYA_ADR_0246: docs/adr-archive/ADR-0246-policy-engine-substrate-promotion.md
+      OYA_ADR_0258: docs/adr-archive/ADR-0258-api-versioning-model.md
+      OYA_ADR_0632: docs/adr-archive/ADR-0632-product-protocol-and-owned-fabric-posture.md
+      OYA_CI_GENERATED_ARTIFACT_MANIFEST: registry/generated-artifact-control-plane.json
+      OYA_CI_GENERATED_ARTIFACT_RATCHET_POLICY: ci/facade/baseline-ratchet/ratchet-policy.json
+      OYA_IDEA_ARCHIVE_POLICY: specs/markdown-retirement-policy.json
+      OYA_RESET_ARTIFACT: registry/reset-eligibility/w0-d-20260801.json
+      OYA_RESET_POLICY: ci/facade/reset-eligibility-policy/reset-eligibility-policy.json
+      OYA_RESET_SCHEMA: specs/reset-eligibility.schema.json
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
