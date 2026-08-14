@@ -2,7 +2,7 @@
 
 > **Non-authoritative.** This file is a pointer only. The sole live plan authority for
 > repository state, sequencing, and outstanding work is
-> [`specs/masterplan.json`](specs/masterplan.json#masterplan_v2); agents and consumers must
+> [`specs/masterplan.json`](../specs/masterplan.json#masterplan_v2); agents and consumers must
 > resolve plan state there, not here. This document exists only to name the receipt and
 > disposition records that carry the details.
 
