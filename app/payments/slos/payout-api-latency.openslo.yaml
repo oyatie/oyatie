@@ -1,23 +1,28 @@
+# Canonical-base: specs/openslo/canonical-envelope-schema.json (per ADR-0064)
+# Authoring authority: ADR-0139 agentic SLO-gated promotion.
 apiVersion: openslo/v1
 kind: SLO
 metadata:
   name: oya-payments-payout-api-latency
-  namespace: payments
+  displayName: "payments: payout-API latency p99 ≤ 3000ms"
   labels:
-    oyatie/microservice: payments
-    oyatie/bc: payout
-    oyatie/slo-tier: tier-0-revenue-critical
-  annotations:
-    oyatie/adrs: "ADR-0130,ADR-0131"
-    oyatie/ip-ref: IP-008
+    microservice: payments
+    bounded_context: payout
+    sli_class: latency
+    tier: data-plane
+    plane: data
+    owner_team: axis-payments + ops-treasury
+    pack_scope: all
 spec:
+  service: payments
   description: |
     Payout API p99 latency ≤ 3000ms for SchedulePayout and InitiatePayout calls.
-    Excludes payout-completion-time (bank clearing lag is PSP-external).
-  service: oya-payments-payout
+    SLI is the share of payout-API requests that complete within 3000ms over a
+    5m rolling window. Excludes payout-completion-time (bank clearing lag is
+    PSP-external).
   indicator:
     metadata:
-      name: payout-api-latency-p99
+      name: payments-payout-api-latency-under-3000ms-ratio
     spec:
       ratioMetric:
         counter: true
@@ -25,21 +30,20 @@ spec:
           metricSource:
             type: Prometheus
             spec:
-              query: >
+              query: |
                 sum(rate(payments_payout_api_latency_ms_bucket{le="3000"}[5m]))
         total:
           metricSource:
             type: Prometheus
             spec:
-              query: sum(rate(payments_payout_api_latency_ms_count[5m]))
-  timeWindow:
-    - count: 28
-      unit: Day
-      isRolling: true
+              query: |
+                sum(rate(payments_payout_api_latency_ms_count[5m]))
   objectives:
-    - displayName: "Payout API p99 ≤ 3000ms (99.5% of requests)"
-      target: 0.995
-      targetPercent: 99.5
-  alertPolicies:
-    - name: oya-payments-payout-latency-fast-burn
+    - target: 0.995
+      displayName: "30d rolling payout-API p99 latency ≤ 3000ms"
+  timeWindow:
+    - duration: 30d
+      isRolling: true
   budgetingMethod: Occurrences
+  alertPolicies:
+    - alertPolicyRef: oya-canonical-burn-rate-multi-window

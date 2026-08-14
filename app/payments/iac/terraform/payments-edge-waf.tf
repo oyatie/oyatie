@@ -3,14 +3,8 @@
 # ADR-0243: every gate is a Cedar eval; WAF is the outermost defence layer
 # PCI DSS Req 6.4: web application firewall
 
-terraform {
-  required_providers {
-    google = {
-      source  = "hashicorp/google"
-      version = "~> 5.30"
-    }
-  }
-}
+# Provider requirements are consolidated in payments-crdb.tf (Terraform permits
+# exactly one required_providers block per module).
 
 # ─── Cloud Armor Security Policy (edge WAF) ───────────────────────────────────
 
@@ -116,6 +110,47 @@ resource "google_compute_security_policy" "payments_waf" {
       }
     }
     description = "Default allow (all other traffic passes to Cedar gate)"
+  }
+}
+
+# ─── Serving backend (edge WAF attachment) ────────────────────────────────────
+# An unattached Cloud Armor policy inspects no traffic; the payments serving
+# backend must reference the policy so the SQLi/XSS/rate-limit/geo rules
+# actually evaluate payments traffic. The backend group is the payments edge
+# NEG/instance group wired to the external LB; wire the actual serving group
+# when the edge composition lands.
+
+resource "google_compute_backend_service" "payments_edge_backend" {
+  name        = "payments-edge-backend"
+  description = "Payments µservice serving backend — carries the payments-edge-waf Cloud Armor policy (PCI Req 6.4)"
+
+  security_policy = google_compute_security_policy.payments_waf.id
+
+  port_name = "https"
+  protocol  = "HTTPS"
+
+  backend {
+    group = google_compute_region_network_endpoint_group.payments_edge_neg.id
+  }
+
+  health_checks = [google_compute_health_check.payments_edge_health.id]
+}
+
+resource "google_compute_region_network_endpoint_group" "payments_edge_neg" {
+  name                  = "payments-edge-neg"
+  region                = "us-east1"
+  network_endpoint_type = "SERVERLESS"
+  # NOTE: the serverless NEG is wired to the payments HTTPS load-balancer
+  # (Cloud Run / App Engine / serverless target) in the edge composition.
+}
+
+resource "google_compute_health_check" "payments_edge_health" {
+  name               = "payments-edge-health"
+  check_interval_sec = 10
+  timeout_sec        = 5
+  https_health_check {
+    port         = 443
+    request_path = "/healthz"
   }
 }
 

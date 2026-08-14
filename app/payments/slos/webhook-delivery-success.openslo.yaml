@@ -8,7 +8,7 @@ metadata:
     microservice: payments
     bounded_context: webhook-handler
     sli_class: correctness
-    tier: substrate-hero
+    tier: data-plane
     plane: data
     owner_team: axis-payments
     pack_scope: all

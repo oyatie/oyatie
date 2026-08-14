@@ -8,16 +8,19 @@ metadata:
     microservice: payments
     bounded_context: payout
     sli_class: correctness
-    tier: substrate-hero
+    tier: data-plane
     plane: data
     owner_team: axis-payments + ops-treasury
     pack_scope: all
 spec:
   service: payments
   description: |
-    Per-24h share of scheduled payouts that complete successfully (cleared at
-    bank) without failure (excludes intentional kyc-revoked / sanctions-failures
-    which are correctness-correct outcomes).
+    Per-24h share of payouts eligible to complete within the measurement window
+    that complete successfully (cleared at bank) without failure. The denominator
+    includes payouts still in-flight (scheduled/initiated) so a PSP or clearing
+    outage that stalls the pending backlog cannot report 100% completion; it
+    excludes intentional kyc-revoked / sanctions-failures which are
+    correctness-correct outcomes.
   indicator:
     metadata:
       name: payments-payout-completion-success-ratio
@@ -35,7 +38,7 @@ spec:
             type: Prometheus
             spec:
               query: |
-                sum(rate(payments_payout_total{state=~"completed|failed_insufficient_funds|failed_closed_account"}[24h]))
+                sum(rate(payments_payout_total{state=~"scheduled|initiated|completed|failed_insufficient_funds|failed_closed_account"}[24h]))
   objectives:
     - target: 0.999
       displayName: "30d rolling payout-completion-success ≥ 99.9%"

@@ -2,10 +2,13 @@
 apiVersion: openslo/v1
 kind: SLO
 metadata:
-  name: payments-autosharding-hot-split-latency
+  name: oya-payments-autosharding-hot-split-latency
   displayName: "payments autosharding HOT-SPLIT p99 latency"
   labels:
     microservice: payments
+    bounded_context: platform
+    tier: control-plane
+    plane: control
     doctrine_wave: wave-15-zf-15
     adr_0346: oya-verify-must-run-full-ci-mirror
     adr_0347: foundry-fitness-to-governance-bulk-rename
@@ -16,15 +19,15 @@ metadata:
     enforced_by: oya-governance-dynamic-sharding-threshold-coverage
   annotations:
     adr_refs: "ADR-0346, ADR-0347, ADR-0348, ADR-0349"
-    adr_0346_purpose: "oya verify --ci-required is the canonical local pre-push verifier and MUST locally mirror the full CI matrix."
+    adr_0346_purpose: "ADR-0346's retired oya verify --ci-required path is historical/provenance-only per ADR-0515; verification and merge authority live in the cloud-ci gate apps behind oya-ci-required."
     adr_0347_enforced_by: "oya-governance-lane-prefix-vocabulary"
     adr_0348_enforced_by: "oya-governance-dynamic-sharding-threshold-coverage; oya-governance-audit-chain-emit-on-automation-events"
     adr_0349_enforced_by: "oya-governance-jenkins-github-actions-parity"
 spec:
-  description: "ADR-0348 makes DYNAMIC SHARDING split hot shards when shard p99 latency exceeds SLO or utilization exceeds 80%; this SLO bounds payments hot-split latency and requires audit-chain emission under ADR-0348, governance lane vocabulary under ADR-0347, local CI mirror validation under ADR-0346, and Jenkins/GitHub Actions parity under ADR-0349."
+  description: "ADR-0348 makes DYNAMIC SHARDING split hot shards when shard p99 latency exceeds SLO or utilization exceeds 80%; this SLO bounds payments hot-split latency and requires audit-chain emission under ADR-0348 and governance lane vocabulary under ADR-0347."
   indicator:
     metadata:
-      name: payments-autosharding-hot-split-latency-indicator
+      name: oya-payments-autosharding-hot-split-latency-indicator
     spec:
       thresholdMetric:
         metricSource:
@@ -44,10 +47,13 @@ spec:
 apiVersion: openslo/v1
 kind: SLO
 metadata:
-  name: payments-autosharding-rebalance-migration-time
-  displayName: "payments AUTO-REBALANCE migration p99 duration"
+  name: oya-payments-autosharding-rebalance-migration-time-intra-region
+  displayName: "payments AUTO-REBALANCE intra-region migration p99 duration"
   labels:
     microservice: payments
+    bounded_context: platform
+    tier: control-plane
+    plane: control
     doctrine_wave: wave-15-zf-15
     adr_0346: oya-verify-must-run-full-ci-mirror
     adr_0347: foundry-fitness-to-governance-bulk-rename
@@ -55,29 +61,72 @@ metadata:
     adr_0349: jenkins-argocd-self-hostable-ci-cd-substrate
     automation_mode: auto_rebalance
     automation_event: tenant_migration
+    migration_distance: intra_region
     enforced_by: oya-governance-auto-rebalance-residency-honored
   annotations:
     adr_refs: "ADR-0346, ADR-0347, ADR-0348, ADR-0349"
     adr_0346_enforced_by: "oya-governance-oya-verify-ci-mirror-coverage; oya-governance-oya-verify-ci-step-exit-semantics; oya-governance-oya-submit-calls-verify"
     adr_0347_enforced_by: "oya-governance-no-foundry-fitness-residue; oya-governance-lane-prefix-vocabulary; oya-governance-rename-inventory-presence"
     adr_0348_enforced_by: "oya-governance-auto-rebalance-residency-honored; oya-governance-audit-chain-emit-on-automation-events; oya-governance-tenant-migration-reversibility"
-    adr_0349_purpose: "Jenkins augments rather than replaces GitHub Actions; ArgoCD is the canonical GitOps CD orchestrator."
+    adr_0349_purpose: "Jenkins wording is bridge/historical substrate per ADR-0515; ArgoCD remains a CD bridge adapter where separately authorized."
 spec:
-  description: "ADR-0348 makes AUTO-REBALANCE migrate tenants from hot cells to cooler cells while honoring residency and compliance packs; this SLO bounds payments rebalance migration time and requires observable, reversible, audit-chain-emitting automation enforced with ADR-0346, ADR-0347, and ADR-0349 governance lanes."
+  description: "ADR-0348 makes AUTO-REBALANCE migrate tenants from hot cells to cooler cells while honoring residency and compliance packs; this SLO bounds payments intra-region rebalance migration time (migration_distance=intra_region) and requires observable, reversible, audit-chain-emitting automation enforced with the ADR-0346/0347/0348 governance lanes."
   indicator:
     metadata:
-      name: payments-autosharding-rebalance-migration-time-indicator
+      name: oya-payments-autosharding-rebalance-migration-time-intra-region-indicator
     spec:
       thresholdMetric:
         metricSource:
           type: Prometheus
           spec:
-            query: 'histogram_quantile(0.99, sum(rate(oya_autosharding_rebalance_migration_duration_seconds_bucket{microservice="payments",automation_event="tenant_migration"}[5m])) by (le, migration_distance))'
+            query: 'histogram_quantile(0.99, sum(rate(oya_autosharding_rebalance_migration_duration_seconds_bucket{microservice="payments",automation_event="tenant_migration",migration_distance="intra_region"}[5m])) by (le))'
   objectives:
     - displayName: "99% of intra-region AUTO-REBALANCE migrations complete within 600s over 30d"
       target: 0.99
       op: lte
       value: 600
+  timeWindow:
+    - duration: 30d
+      isRolling: true
+  budgetingMethod: Occurrences
+---
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: oya-payments-autosharding-rebalance-migration-time-cross-region
+  displayName: "payments AUTO-REBALANCE cross-region migration p99 duration"
+  labels:
+    microservice: payments
+    bounded_context: platform
+    tier: control-plane
+    plane: control
+    doctrine_wave: wave-15-zf-15
+    adr_0346: oya-verify-must-run-full-ci-mirror
+    adr_0347: foundry-fitness-to-governance-bulk-rename
+    adr_0348: autosharding-auto-rebalance-dynamic-sharding
+    adr_0349: jenkins-argocd-self-hostable-ci-cd-substrate
+    automation_mode: auto_rebalance
+    automation_event: tenant_migration
+    migration_distance: cross_region
+    enforced_by: oya-governance-auto-rebalance-residency-honored
+  annotations:
+    adr_refs: "ADR-0346, ADR-0347, ADR-0348, ADR-0349"
+    adr_0346_enforced_by: "oya-governance-oya-verify-ci-mirror-coverage; oya-governance-oya-verify-ci-step-exit-semantics; oya-governance-oya-submit-calls-verify"
+    adr_0347_enforced_by: "oya-governance-no-foundry-fitness-residue; oya-governance-lane-prefix-vocabulary; oya-governance-rename-inventory-presence"
+    adr_0348_enforced_by: "oya-governance-auto-rebalance-residency-honored; oya-governance-audit-chain-emit-on-automation-events; oya-governance-tenant-migration-reversibility"
+    adr_0349_purpose: "Jenkins wording is bridge/historical substrate per ADR-0515; ArgoCD remains a CD bridge adapter where separately authorized."
+spec:
+  description: "ADR-0348 makes AUTO-REBALANCE migrate tenants from hot cells to cooler cells while honoring residency and compliance packs; this SLO bounds payments cross-region rebalance migration time (migration_distance=cross_region) and requires observable, reversible, audit-chain-emitting automation enforced with the ADR-0346/0347/0348 governance lanes."
+  indicator:
+    metadata:
+      name: oya-payments-autosharding-rebalance-migration-time-cross-region-indicator
+    spec:
+      thresholdMetric:
+        metricSource:
+          type: Prometheus
+          spec:
+            query: 'histogram_quantile(0.99, sum(rate(oya_autosharding_rebalance_migration_duration_seconds_bucket{microservice="payments",automation_event="tenant_migration",migration_distance="cross_region"}[5m])) by (le))'
+  objectives:
     - displayName: "99% of cross-region AUTO-REBALANCE migrations complete within 3600s over 30d"
       target: 0.99
       op: lte

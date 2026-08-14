@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Chart.Name }}
+  labels:
+    app.kubernetes.io/name: {{ .Chart.Name }}
+    app.kubernetes.io/part-of: oyatie-microservices
+  annotations:
+{{ toYaml .Values.payments.service.annotations | indent 4 }}
+spec:
+  type: {{ .Values.payments.service.type }}
+  selector:
+    app.kubernetes.io/name: {{ .Chart.Name }}
+  ports:
+    - name: https
+      port: {{ .Values.payments.service.port }}
+      targetPort: {{ .Values.payments.service.port }}
+    - name: metrics
+      port: {{ .Values.payments.service.metricsPort }}
+      targetPort: {{ .Values.payments.service.metricsPort }}

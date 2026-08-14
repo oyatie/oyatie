@@ -28,7 +28,7 @@
       "type": "table",
       "title": "PSP status snapshot",
       "gridPos": {"x": 6, "y": 0, "w": 18, "h": 8},
-      "targets": [{"expr": "sum by (psp) (rate(payments_charge_total[5m])) / on(psp) sum by (psp) (rate(payments_charge_total[5m]))", "refId": "A"}]
+      "targets": [{"expr": "sum by (psp) (rate(payments_charge_total{outcome=\"captured\"}[5m])) / on(psp) sum by (psp) (rate(payments_charge_total[5m]))", "refId": "A"}]
     },
     {
       "id": 10,

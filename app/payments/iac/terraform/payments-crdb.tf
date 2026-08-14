@@ -14,10 +14,18 @@ terraform {
       source  = "hashicorp/kubernetes"
       version = "~> 2.30"
     }
+    google = {
+      source  = "hashicorp/google"
+      version = "~> 5.30"
+    }
   }
   backend "gcs" {
     bucket = "oyatie-terraform-state"
-    prefix = "app/payments/crdb"
+    # Stable state prefix: the pre-existing remote state lives under
+    # microservices/payments/crdb; changing the prefix would select a new,
+    # empty remote state and re-create the cluster/db/user/ExternalSecret as
+    # unmanaged. Migrate atomically before ever switching the prefix.
+    prefix = "microservices/payments/crdb"
   }
 }
 
@@ -35,9 +43,9 @@ resource "cockroach_cluster" "payments" {
   }
 
   regions = [
-    { name = "us-east1",      node_count = 3 },
-    { name = "eu-west1",      node_count = 3 },
-    { name = "ap-northeast3", node_count = 3 },  # KR (Seoul)
+    { name = "us-east1",         node_count = 3 },
+    { name = "europe-west1",     node_count = 3 },
+    { name = "asia-northeast3",  node_count = 3 },  # KR (Seoul)
   ]
 
   # TrueTime-equivalent: CRDB global tables for settlement BC
@@ -87,7 +95,9 @@ resource "kubernetes_manifest" "payments_crdb_external_secret" {
       data = [{
         secretKey = "url"
         remoteRef = {
-          key      = "secret/data/payments/crdb"
+          # Key is relative to the store's configured KV-v2 mount (path="secret");
+          # ESO performs the mount/data translation itself, so no secret/data/ prefix.
+          key      = "payments/crdb"
           property = "url"
         }
       }]

@@ -3,14 +3,8 @@
 # ADR-0251: compliance pack overlays for KR, EU, CN cells
 # PCI DSS Req 7: access by need-to-know
 
-terraform {
-  required_providers {
-    kubernetes = {
-      source  = "hashicorp/kubernetes"
-      version = "~> 2.30"
-    }
-  }
-}
+# Provider requirements are consolidated in payments-crdb.tf (Terraform permits
+# exactly one required_providers block per module).
 
 # ─── ClusterSecretStore (OpenBao backend) ────────────────────────────────────
 
@@ -27,7 +21,10 @@ resource "kubernetes_manifest" "openbao_cluster_store" {
     spec = {
       provider = {
         vault = {
-          server  = "https://openbao.oyatie-secrets.svc.cluster.local:8200"
+          # Canonical deployed OpenBao listener: the oya-kms namespace Service
+          # exposes the TLS migration endpoint at port 8202 (see
+          # infra/kms/openbao-tls-migration.k8s.yaml).
+          server  = "https://openbao.oya-kms.svc:8202"
           path    = "secret"
           version = "v2"
           auth = {
@@ -39,7 +36,15 @@ resource "kubernetes_manifest" "openbao_cluster_store" {
               }
             }
           }
-          caBundle = "${base64encode(file(\"certs/openbao-ca.crt\"))}"
+          # Root CA comes from the installed ConfigMap (installed by the
+          # trusted bootstrap), mirroring infra/external-secrets/*. No CA file
+          # is vendored in-tree, so a file() reference would fail at load time.
+          caProvider = {
+            type      = "ConfigMap"
+            name      = "openbao-offline-root-ca"
+            key       = "ca.crt"
+            namespace = "external-secrets"
+          }
         }
       }
     }
@@ -71,10 +76,12 @@ resource "kubernetes_manifest" "payments_webhook_hmac_secret" {
         deletionPolicy    = "Retain"
       }
       data = [
-        { secretKey = "stripe_webhook_secret",  remoteRef = { key = "secret/data/payments/webhook-hmac/stripe",  property = "secret" } },
-        { secretKey = "adyen_webhook_hmac",     remoteRef = { key = "secret/data/payments/webhook-hmac/adyen",   property = "hmac_key" } },
-        { secretKey = "toss_webhook_secret",    remoteRef = { key = "secret/data/payments/webhook-hmac/toss",    property = "secret" } },
-        { secretKey = "kakaopay_webhook_secret",remoteRef = { key = "secret/data/payments/webhook-hmac/kakaopay",property = "secret" } }
+        # Keys are relative to the store's KV-v2 mount (path="secret"); ESO
+        # performs the mount/data translation itself, so no secret/data/ prefix.
+        { secretKey = "stripe_webhook_secret",  remoteRef = { key = "payments/webhook-hmac/stripe",  property = "secret" } },
+        { secretKey = "adyen_webhook_hmac",     remoteRef = { key = "payments/webhook-hmac/adyen",   property = "hmac_key" } },
+        { secretKey = "toss_webhook_secret",    remoteRef = { key = "payments/webhook-hmac/toss",    property = "secret" } },
+        { secretKey = "kakaopay_webhook_secret",remoteRef = { key = "payments/webhook-hmac/kakaopay",property = "secret" } }
       ]
     }
   }

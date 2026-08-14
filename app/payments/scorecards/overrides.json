@@ -15,7 +15,7 @@
       {
         "control": "OPS-05",
         "field": "evidence_suffix",
-        "value": "(6 dashboards: payments-overview, payout-latency, dispute-volume, fraud-signals, psp-routing, finops-cost-attribution)"
+        "value": "(6 dashboards: payments-overview, payout-latency, dispute-volume, psp-routing, settlement-reconciliation, subscription-health)"
       },
       {
         "control": "SEC-01",
@@ -40,7 +40,7 @@
       {
         "control": "COST-01",
         "field": "evidence_suffix",
-        "value": "cost-budget.md; finops-cost-attribution dashboard; OpenCost integration"
+        "value": "per-call cost profiles in app/payments/capabilities/*.yaml (charge/payout/refund/dispute/subscription); capacity model in manifest.json; OpenCost integration"
       }
     ]
   },

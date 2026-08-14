@@ -112,7 +112,7 @@
       "targets": [
         {
           "datasource": { "type": "prometheus", "uid": "${DS_MIMIR}" },
-          "expr": "rate(payments_subscription_cancelled_total[30d]) / avg_over_time(payments_subscription_active_total[30d])",
+          "expr": "sum(increase(payments_subscription_cancelled_total[30d])) / avg_over_time(payments_subscription_active_total[30d])",
           "legendFormat": "Churn rate"
         }
       ],

@@ -45,7 +45,7 @@ doc_status: published
 - User-facing impact: charges, refunds, payouts, subscription renewals, and dispute evidence may be delayed, duplicated, or blocked.
 - Operators see Grafana panel `psp-routing.json / Double Charge Detected burn rate` turn red before the primary alert resolves.
 - Loki signature `payments.double_charge_detected.incident_state=failed` appears with fields `incident_id`, `tenant_id`, `cell_id`, `decision_id`, `evidence_hash`.
-- Kubernetes events include `reason=PaymentsDoubleChargeDetectedDegraded` on deployment `payments-double-charge-detected-worker` or `payments-app`.
+- Kubernetes events include `reason=PaymentsDoubleChargeDetectedDegraded` on deployment `payments`.
 - Audit-chain shows missing or delayed `EVT_PAYMENTS_DOUBLE_CHARGE_DETECTED_INCIDENT` entries when queried with `oya audit-chain query --event-class EVT_PAYMENTS_DOUBLE_CHARGE_DETECTED_INCIDENT --since 30m`.
 - Metric pattern: `oya_payments_double_charge_detected_error_ratio` rises before `oya_payments_double_charge_detected_lag_seconds`; if lag rises first, suspect dependency saturation rather than local regression.
 - Metric pattern: `oya_payments_double_charge_detected_queue_depth` increases while pod CPU stays below 40 percent; suspect downstream refusal, replay backlog, or feature flag deadlock.
@@ -60,9 +60,9 @@ doc_status: published
 ## Diagnostic Steps
 1. Set incident variables: `export INCIDENT_ID=INC-payments-double-charge-detected-$(date -u +%Y%m%dT%H%M%SZ); export CELL=prod-us-east-1; export TENANT=synthetic-canary`.
 2. Confirm active alerts: `curl -s https://payments.internal.oyatie.dev/v1/payments/alerts?runbook=double-charge-detected | jq .alerts`.
-3. Check Kubernetes rollout: `kubectl -n payments rollout status deploy/payments-double-charge-detected-worker --timeout=60s`.
+3. Check Kubernetes rollout: `kubectl -n payments rollout status deploy/payments --timeout=60s`.
 4. List unhealthy pods: `kubectl -n payments get pods -l app=double-charge-detected -o wide`.
-5. Read structured logs: `kubectl -n payments logs deploy/payments-double-charge-detected-worker --since=30m | rg "payments.double_charge_detected.incident_state|PaymentsDoubleChargeDetectedCritical|EVT_PAYMENTS_DOUBLE_CHARGE_DETECTED_INCIDENT"`.
+5. Read structured logs: `kubectl -n payments logs deploy/payments --since=30m | rg "payments.double_charge_detected.incident_state|PaymentsDoubleChargeDetectedCritical|EVT_PAYMENTS_DOUBLE_CHARGE_DETECTED_INCIDENT"`.
 6. Query Loki directly: `logcli query '{namespace="payments",runbook="double-charge-detected"}' --since=30m --limit=200`.
 7. Check Prometheus error ratio: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=oya_payments_double_charge_detected_error_ratio{cell="prod-us-east-1"}'`.
 8. Check lag: `curl -G https://mimir.dev.oyatie.internal/prometheus/api/v1/query --data-urlencode 'query=oya_payments_double_charge_detected_lag_seconds{cell="prod-us-east-1"}'`.
@@ -78,7 +78,7 @@ doc_status: published
 18. Inspect config: `test -f app/payments/iac/kustomize/base/kustomization.yaml && sed -n '1,180p' app/payments/iac/kustomize/base/kustomization.yaml`.
 19. Inspect feature flags: `oya flags get oya.payments.double_charge_detected.incident_hold --cell $CELL --tenant $TENANT --output yaml`.
 20. Inspect circuit breaker: `oya ops breaker status payments-double-charge-detected-circuit-breaker --cell $CELL --tenant $TENANT`.
-21. Check recent deploy: `kubectl -n payments rollout history deploy/payments-double-charge-detected-worker | tail -20`.
+21. Check recent deploy: `kubectl -n payments rollout history deploy/payments | tail -20`.
 22. Check policy file: `test -f app/payments/policy/charge-authorization.cedar || find app/payments/policy -maxdepth 2 -type f | sort`.
 23. Check SLO files: `ls app/payments/slos/*.openslo.yaml | sort | rg "charge|double"`.
 24. Check catalog components: `find app/payments/catalog -maxdepth 1 -type f | sort | rg "charge|refund|dispute|payout|settlement|kyc|subscription|adapter"`.
@@ -112,14 +112,14 @@ Double Charge Detected incident decision tree
 2. Create bridge: `oya incident bridge create --incident $INCIDENT_ID --channel #inc-payments --severity sev2`.
 3. Freeze risky automation: `oya flags set oya.payments.double_charge_detected.incident_hold=true --cell $CELL --tenant $TENANT --reason $INCIDENT_ID`.
 4. Enable circuit breaker: `oya ops breaker open payments-double-charge-detected-circuit-breaker --cell $CELL --tenant $TENANT --ttl 30m --reason $INCIDENT_ID`.
-5. Reduce blast radius: `kubectl -n payments scale deploy/payments-double-charge-detected-worker --replicas=1`.
+5. Reduce blast radius: `kubectl -n payments scale deploy/payments --replicas=1`.
 6. Protect tenant boundary: `oya tenancy quarantine --tenant $TENANT --reason payments-double-charge-detected --ttl 60m`.
 7. Pause promotion: incident hold PR against `dev` (plain `git`; Jenkins + `oya gate run-all --ci-required` required).
 8. Drain queue safely: `oya ops payments double-charge-detected drain --cell $CELL --tenant $TENANT --max-items 500 --dry-run`.
 9. Execute bounded drain: `oya ops payments double-charge-detected drain --cell $CELL --tenant $TENANT --max-items 500 --confirm $INCIDENT_ID`.
 10. Replay missing audit events: `oya audit-chain replay --event-class EVT_PAYMENTS_DOUBLE_CHARGE_DETECTED_INCIDENT --incident $INCIDENT_ID --from evidence/incidents/$INCIDENT_ID.json`.
-11. Rollback last deploy if causal: `kubectl -n payments rollout undo deploy/payments-double-charge-detected-worker`.
-12. Raise HPA cap if saturation is proven: `kubectl -n payments patch hpa payments-double-charge-detected-worker --type merge -p '{"spec":{"maxReplicas":12}}'`.
+11. Rollback last deploy if causal: `kubectl -n payments rollout undo deploy/payments`.
+12. Raise HPA cap if saturation is proven: `kubectl -n payments scale deploy/payments --replicas=12`.
 13. Throttle hot tenant: `oya ops rate-limit set --tenant $TENANT --surface payments.double-charge-detected --rps 25 --ttl 30m`.
 14. Block abusive principal when relevant: `oya identity principal suspend --principal suspected-abuse --tenant $TENANT --reason $INCIDENT_ID`.
 15. Protect evidence: `oya evidence freeze --incident $INCIDENT_ID --paths app/payments/runbooks/double-charge-detected.md,evidence/incidents/$INCIDENT_ID.json`.
@@ -160,7 +160,7 @@ Double Charge Detected incident decision tree
 10. Rebuild validation CLI: `cargo check -p oya-dev-cli --all-targets`.
 11. Run targeted validation: `cargo run -p oya-dev-cli -- gate validate payments-policy --microservice payments`.
 12. Run policy validation: `cargo run -p oya-dev-cli -- gate validate payments-policy --microservice payments`.
-13. Deploy canary: `oya deploy canary --microservice payments --component payments-double-charge-detected-worker --cell $CELL --weight 1`.
+13. Deploy canary: `oya deploy canary --microservice payments --component payments --cell $CELL --weight 1`.
 14. Watch burn rate: `oya ops watch --metric oya_payments_double_charge_detected_error_ratio --threshold 0.005 --window 30m --cell $CELL`.
 15. Close circuit breaker: `oya ops breaker close payments-double-charge-detected-circuit-breaker --cell $CELL --tenant $TENANT --reason resolved-$INCIDENT_ID`.
 16. Unfreeze automation: `oya flags set oya.payments.double_charge_detected.incident_hold=false --cell $CELL --tenant $TENANT --reason resolved-$INCIDENT_ID`.
