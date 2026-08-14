@@ -278,7 +278,7 @@ fn independent_parse_package_name(contents: &str) -> Option<String> {
     None
 }
 
-/// Assert the face's enumerated crate-name set exactly equals the independent census, with a
+/// Assert the face's enumerated manifest-path set exactly equals the independent census, with a
 /// diagnostic naming exactly which keys are missing/extra on mismatch.
 fn assert_census_matches(face_names: &BTreeSet<String>, census: &BTreeSet<String>) {
     let missing_from_face: Vec<&String> = census.difference(face_names).collect();
@@ -456,6 +456,49 @@ fn independent_census_resolves_and_filters_a_small_fixture() {
     )
     .expect("write member manifest");
     let census = independent_oya_prefix_census(&root);
-    assert_eq!(census, ["oya-a-domain".to_string()].into_iter().collect());
+    assert_eq!(
+        census,
+        ["crates/oya-a-domain/Cargo.toml".to_string()]
+            .into_iter()
+            .collect()
+    );
+    let _ = std::fs::remove_dir_all(&root);
+}
+
+/// Codex P1 on PR #1672 (r3783908720): a destination `app/<product>/crates/<pkg>` copy that
+/// retains the same package name as its excluded legacy source must occupy TWO census keys.
+/// A name-keyed `BTreeSet` would collapse them into one and let the live-corpus equality
+/// pass without enumerating the newly tracked destination manifest.
+#[test]
+fn independent_census_keeps_same_named_destination_and_excluded_source() {
+    let root = census_tmp_root("dup-name");
+    std::fs::create_dir_all(root.join("app/prod/crates/oya-dup-domain")).expect("mkdir dest");
+    std::fs::create_dir_all(root.join("oya/crm/crates/oya-dup-domain")).expect("mkdir source");
+    std::fs::write(
+        root.join("Cargo.toml"),
+        "[workspace]\nmembers = []\nexclude = [\"oya/crm/crates/oya-dup-domain\"]\n",
+    )
+    .expect("write root manifest");
+    let package = "[package]\nname = \"oya-dup-domain\"\n";
+    std::fs::write(
+        root.join("app/prod/crates/oya-dup-domain/Cargo.toml"),
+        package,
+    )
+    .expect("write destination manifest");
+    std::fs::write(
+        root.join("oya/crm/crates/oya-dup-domain/Cargo.toml"),
+        package,
+    )
+    .expect("write retained source manifest");
+    let census = independent_oya_prefix_census(&root);
+    assert_eq!(
+        census,
+        [
+            "app/prod/crates/oya-dup-domain/Cargo.toml".to_string(),
+            "oya/crm/crates/oya-dup-domain/Cargo.toml".to_string(),
+        ]
+        .into_iter()
+        .collect()
+    );
     let _ = std::fs::remove_dir_all(&root);
 }
