@@ -1003,9 +1003,26 @@ mod tests {
     static ENV_LOCK: StdMutex<()> = StdMutex::new(());
 
     fn read_repo_file(path: &str) -> String {
-        std::fs::read_to_string(path).unwrap_or_else(|err| {
+        // cargo test binaries run with CWD = package root; buck2 used repo-root CWD.
+        // Walk up from the crate manifest until the repo root marker is found, then
+        // resolve the repo-relative path against it.
+        let mut root = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+        loop {
+            if root.join("specs/root-hub-pointers.json").is_file() {
+                break;
+            }
+            if !root.pop() {
+                panic!(
+                    "failed to locate repo root from {}",
+                    env!("CARGO_MANIFEST_DIR")
+                );
+            }
+        }
+        let full = root.join(path);
+        std::fs::read_to_string(&full).unwrap_or_else(|err| {
             panic!(
-                "failed to read {path} from {:?}: {err}",
+                "failed to read {} (resolved from {:?}): {err}",
+                full.display(),
                 std::env::current_dir()
             )
         })
