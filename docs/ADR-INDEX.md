@@ -11,10 +11,10 @@ doc_status: published
 
 ## At-a-glance
 
-- **Total ADRs:** 16
-- **Numbering:** contiguous ADR-0700..ADR-0715 (gap-free)
-- **Next ADR number:** 0716
-- **Status counts:** Accepted 11, Proposed 5
+- **Total ADRs:** 17
+- **Numbering:** contiguous ADR-0700..ADR-0716 (gap-free)
+- **Next ADR number:** 0717
+- **Status counts:** Accepted 12, Proposed 5
 - **Legacy retirement:** see [`ADR-LEGACY-REGRESSION-MAPPING.md`](ADR-LEGACY-REGRESSION-MAPPING.md).
 
 ## Full table (one row per ADR, sorted by ADR number)
@@ -37,16 +37,17 @@ doc_status: published
 | ADR-0713 | Proposed | Node Substrate Architecture — PID1 stub + restartable supervisor; severable Accept | council-architecture | [`ADR-0713-node-substrate-architecture.md`](decisions/ADR-0713-node-substrate-architecture.md) |
 | ADR-0714 | Proposed | Isolation-property RuntimeClass names with orthogonal placement axis | council-architecture | [`ADR-0714-isolation-property-runtime-tier-names.md`](decisions/ADR-0714-isolation-property-runtime-tier-names.md) |
 | ADR-0715 | Proposed | F1 Admission package — ADR-0710 Accept/Reject blocked on D-8 | council-architecture | [`ADR-0715-f1-admission-adr-0710-d8-gate.md`](decisions/ADR-0715-f1-admission-adr-0710-d8-gate.md) |
+| ADR-0716 | Accepted | Cargo is the CI merge path; buck2 is local hermeticity plus a weekly smoke | council-architecture | [`ADR-0716-cargo-merge-path-buck2-local-hermeticity.md`](decisions/ADR-0716-cargo-merge-path-buck2-local-hermeticity.md) |
 
 ## Update protocol
 
 - Per-event + monthly per `doc.adr_index` row in [`DOC-CATALOG.md`](DOC-CATALOG.md).
-- New ADRs land via [`templates/adr-template.md`](templates/adr-template.md) and use the next available number (0716), unless an explicit reserved-number ADR is being filled.
+- New ADRs land via [`templates/adr-template.md`](templates/adr-template.md) and use the next available number (0717), unless an explicit reserved-number ADR is being filled.
 - Per-ADR amendments preserve the original ADR number; the amended ADR cites its original date and links to the amending PR.
 - Supersession is recorded in the per-ADR header and mirrored here on regeneration.
 
 ## Sources scanned
 
-- `decisions/` directory listing — 16 ADR files (sorted ascending)
+- `decisions/` directory listing — 17 ADR files (sorted ascending)
 - [`machine-readable/decisions.json`](machine-readable/decisions.json) — generated machine mirror
 - [`DOC-CATALOG.md`](DOC-CATALOG.md) — owner / cadence / dependent docs / validation checks

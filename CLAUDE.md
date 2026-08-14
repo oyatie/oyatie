@@ -20,9 +20,10 @@ Oyatie governance (`docs/AGENTS.md` operating contract + authority chain + gover
 
 ## Shared root contract — single-sourced in AGENTS.md
 
-Project identity and hard invariants, build & verify commands (buck2-first; cargo is
-supplementary local feedback only), coding & testing standards, and the review lenses /
-hyperscale lenses / engineering bars are single-sourced in [`AGENTS.md`](AGENTS.md)
+Project identity and hard invariants, build & verify commands (cargo is the CI merge
+path per ADR-0716; buck2 is local hermeticity plus a weekly smoke), coding & testing
+standards, and the review lenses / hyperscale lenses / engineering bars are single-sourced
+in [`AGENTS.md`](AGENTS.md)
 (§§ *What Oyatie is*, *Build & verify*, *Coding & testing standards*,
 *Engineering principles & review lenses*). Read that file together with this one before any
 non-trivial decision, design, or merge — none of it is duplicated here.
@@ -55,10 +56,8 @@ required_workflow:
   - admission_gate: validate policy, evidence, and the single ADR-0515 `oya-ci-required` protected context
   - merge_queue: order and admit via ADR-0111 projected merge state owned by ADR-0515 cloud-ci/oya-ci-tide
   - completion_gate: reviewer-agent APPROVE plus cloud-ci green before auto-merge
-  - post_merge_product_gate: after squash merge, record promoted commit oya-ci-required green,
-      rollout verification, rollback note, observability check, browser/user-story evidence,
-      release-governance/release-note impact (Release Please applies only when a live repo config/workflow exists),
-      and agent-observation harvest outcome before product-complete
+  - post_merge_record: the merged PR and its green oya-ci-required checks are the record;
+    no separate product-completion packet (ADR-0716)
 
 current_substrate_adrs:
   - docs/decisions/ADR-0709-general-live-apex.md # folded into ADR-0515 cloud-ci/oya-ci Tide

@@ -94,7 +94,11 @@ pub(crate) fn parse_design_spec_maturity_claims_validate_args(
 ) -> Result<DesignSpecMaturityClaimsValidateArgs, String> {
     let mut parsed = DesignSpecMaturityClaimsValidateArgs {
         standard_path: PathBuf::from("specs/design-spec-maturity-claims.json"),
-        service_roots: vec![PathBuf::from("cloud"), PathBuf::from("oya"), PathBuf::from("microservices")],
+        service_roots: vec![
+            PathBuf::from("cloud"),
+            PathBuf::from("oya"),
+            PathBuf::from("microservices"),
+        ],
         deferred_surfaces_path: PathBuf::from(DEFAULT_DEFERRED_SURFACES),
         evidence_path: None,
     };
@@ -159,7 +163,9 @@ pub(crate) fn validate_design_spec_maturity_claims_gate(
         .map(|report| report.missing.len())
         .sum::<usize>();
     if let Some(evidence_path) = &args.evidence_path {
-        let roots_display = args.service_roots.iter()
+        let roots_display = args
+            .service_roots
+            .iter()
             .map(|p| p.display().to_string())
             .collect::<Vec<_>>()
             .join(",");

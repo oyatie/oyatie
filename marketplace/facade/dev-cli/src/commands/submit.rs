@@ -236,7 +236,9 @@ mod working_tree_tests {
     #[test]
     fn real_source_paths_are_not_sidecars() {
         assert!(!is_sidecar("crates/oya-dev-cli/src/commands/submit.rs"));
-        assert!(!is_sidecar("docs/adr-archive/ADR-0110-changeset-state-machine.md"));
+        assert!(!is_sidecar(
+            "docs/adr-archive/ADR-0110-changeset-state-machine.md"
+        ));
         assert!(!is_sidecar(".github/workflows/pr-tests.yml"));
     }
 
