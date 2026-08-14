@@ -68,7 +68,6 @@ check-placeholder-debt = { path = "../../../governance/check/placeholder-debt" }
 check-pre-push = { path = "../../../governance/check/pre-push" }
 ci-generated-artifact-freshness = { path = "../../../ci/facade/generated-artifact-freshness" }
 check-protection-context-match = { path = "../../../governance/check/protection-context-match" }
-check-pr-traceability = { path = "../../../governance/check/pr-traceability" }
 check-quality-lane = { path = "../../../governance/check/quality-lane" }
 check-raci-coverage = { path = "../../../governance/check/raci-coverage" }
 check-readme-coverage = { path = "../../../governance/check/readme-coverage" }
