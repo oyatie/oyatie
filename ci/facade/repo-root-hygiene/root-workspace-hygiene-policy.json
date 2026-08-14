@@ -310,14 +310,44 @@
     "runtime_state_drift_control": "Agent/runtime roots are restricted tracked surfaces. `.claude` and `.codex` may carry reviewed shared hook config only; `.omc` may carry only the frozen keep-with-sunset ultragoal path set (OWNERS, tombstone preamble, friction ledger, premise slot) under ADR-0709 \u2014 not a live control plane; `.omx` is runtime state and has no tracked exceptions. Any new tracked path under those roots requires an explicit DATA allowlist rule, preventing silent drift and merge-conflict-prone state.",
     "relationship_to_scratch_denylist": "Complements (does not replace) cloud-ci-total-accounting `scratch_artifact`: the denylist is zero-tolerance on KNOWN scratch shapes; this allowlist is born-blocking on ANY unrecognized tracked root file (including unnamed scratch shapes), making committed root scratch structurally impossible."
   },
-  "schema_version": "1.1.0",
+  "schema_version": "1.2.0",
   "corpus_budget": {
-    "$comment": "Shrink-only sprawl ratchet (anti-friction wave 3, ADR-0716 doctrine). Counts are frozen over the tracked-path inventory; a class growing past its frozen count is born-blocking with a one-in-one-out remediation. A deliberate budget raise is a reviewed DATA edit here, never a scanner change. Frozen on origin/dev 4a4f71a14 (pre-cleanup corpus), so the wave-2 deletions land as pure shrink.",
+    "$comment": "Shrink-only sprawl ratchet (ADR-0717). Class match rules are DATA (prefixes + optional suffixes); ceilings are frozen counts over the tracked-path inventory. Growth past a frozen ceiling is born-blocking with a one-in-one-out remediation; a deliberate budget change is a reviewed DATA edit here. Ceilings are set to the POST-wave-2 corpus (the cleanup PR #1961 must land before this PR: a pre-cleanup tree exceeds these ceilings and fails closed on purpose).",
+    "classes": {
+      "evidence_files": {
+        "prefixes": [
+          "evidence/"
+        ]
+      },
+      "planning_files": {
+        "prefixes": [
+          "tasks/",
+          "plan/",
+          "ci/evidence/"
+        ]
+      },
+      "docs_markdown_files": {
+        "prefixes": [
+          "docs/"
+        ],
+        "suffixes": [
+          ".md"
+        ]
+      },
+      "live_adr_files": {
+        "prefixes": [
+          "docs/decisions/ADR-"
+        ],
+        "suffixes": [
+          ".md"
+        ]
+      }
+    },
     "counts": {
-      "evidence_files": 249,
-      "planning_files": 138,
-      "docs_markdown_files": 2692,
-      "live_adr_files": 16
+      "evidence_files": 51,
+      "planning_files": 11,
+      "docs_markdown_files": 1433,
+      "live_adr_files": 18
     }
   }
 }

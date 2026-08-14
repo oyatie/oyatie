@@ -365,18 +365,21 @@ pub fn evaluate(policy: &Value, observed: &Value) -> Report {
     Report::from_findings(&evaluate_keyed(policy, observed))
 }
 
-/// Corpus-budget dimension (anti-friction wave 3, ADR-0716 doctrine): shrink-only counts over
-/// the tracked-path inventory for the four sprawl classes — evidence files, planning artifacts
-/// (tasks/ + plan/ + ci/evidence/), docs markdown, and live apex ADRs. Any class growing past its
-/// frozen `corpus_budget.counts` ceiling is born-blocking with a one-in-one-out remediation.
-/// A deliberate budget raise is a reviewed DATA edit of the policy (never a scanner change).
-pub fn evaluate_corpus_budget(policy: &Value, observed: &Value) -> BTreeSet<Finding> {
-    let mut findings = BTreeSet::new();
-    let Some(counts) = policy.get("corpus_budget").and_then(|budget| budget.get("counts")) else {
-        return findings;
+/// Corpus-budget dimension (ADR-0717): shrink-only counts over the tracked-path inventory for
+/// repo-specific sprawl classes. The class match rules live in DATA (`corpus_budget.classes`),
+/// each declaring `prefixes` and optional `suffixes`; the engine counts every row matching any
+/// prefix (and any suffix when declared). Growth past a frozen ceiling is born-blocking with a
+/// one-in-one-out remediation; a deliberate budget change is a reviewed DATA edit. An absent or
+/// malformed `corpus_budget` block fails closed — the ratchets are never silently disabled.
+pub fn corpus_class_counts(policy: &Value, observed: &Value) -> BTreeMap<String, usize> {
+    let mut counts = BTreeMap::new();
+    let Some(classes) = policy
+        .get("corpus_budget")
+        .and_then(|budget| budget.get("classes"))
+        .and_then(Value::as_object)
+    else {
+        return counts;
     };
-
-    let mut counters: BTreeMap<&str, usize> = BTreeMap::new();
     for row in observed
         .get("rows")
         .and_then(Value::as_array)
@@ -387,57 +390,91 @@ pub fn evaluate_corpus_budget(policy: &Value, observed: &Value) -> BTreeSet<Find
             continue;
         };
         let path = path.strip_prefix("./").unwrap_or(path);
-        if path.starts_with("evidence/") {
-            *counters.entry("evidence_files").or_default() += 1;
-        }
-        if path.starts_with("tasks/") || path.starts_with("plan/") || path.starts_with("ci/evidence/") {
-            *counters.entry("planning_files").or_default() += 1;
-        }
-        if path.starts_with("docs/") && path.ends_with(".md") {
-            *counters.entry("docs_markdown_files").or_default() += 1;
-        }
-        if path.starts_with("docs/decisions/ADR-") && path.ends_with(".md") {
-            *counters.entry("live_adr_files").or_default() += 1;
+        for (class, matchers) in classes {
+            let Some(prefixes) = matchers.get("prefixes").and_then(Value::as_array) else {
+                continue;
+            };
+            let prefix_ok = prefixes
+                .iter()
+                .any(|prefix| prefix.as_str().is_some_and(|prefix| path.starts_with(prefix)));
+            if !prefix_ok {
+                continue;
+            }
+            let suffix_ok = match matchers.get("suffixes").and_then(Value::as_array) {
+                None => true,
+                Some(suffixes) => suffixes
+                    .iter()
+                    .any(|suffix| suffix.as_str().is_some_and(|suffix| path.ends_with(suffix))),
+            };
+            if suffix_ok {
+                *counts.entry(class.clone()).or_default() += 1;
+            }
         }
     }
+    counts
+}
 
-    let classes: [(&str, &str, &str); 4] = [
-        (
-            "evidence_files",
-            "corpus_budget_evidence_files_grew",
-            "retire an evidence file in the same PR (one-in-one-out) or raise the reviewed corpus_budget counts",
-        ),
-        (
-            "planning_files",
-            "corpus_budget_planning_files_grew",
-            "complete-then-delete a planning file in the same PR or raise the reviewed corpus_budget counts",
-        ),
-        (
-            "docs_markdown_files",
-            "corpus_budget_docs_markdown_grew",
-            "retire a markdown doc in the same PR (markdown-retirement policy) or raise the reviewed corpus_budget counts",
-        ),
-        (
-            "live_adr_files",
-            "corpus_budget_live_adrs_grew",
-            "retire a live ADR to the archive in the same PR (one-in-one-out) or raise the reviewed corpus_budget counts",
-        ),
-    ];
-    for (class, code, remediation) in classes {
-        let observed_count = counters.get(class).copied().unwrap_or(0);
-        let Some(frozen_count) = counts.get(class).and_then(Value::as_u64) else {
+fn corpus_growth_code(class: &str) -> Option<&'static str> {
+    match class {
+        "evidence_files" => Some("corpus_budget_evidence_files_grew"),
+        "planning_files" => Some("corpus_budget_planning_files_grew"),
+        "docs_markdown_files" => Some("corpus_budget_docs_markdown_grew"),
+        "live_adr_files" => Some("corpus_budget_live_adrs_grew"),
+        _ => None,
+    }
+}
+
+pub fn evaluate_corpus_budget(policy: &Value, observed: &Value) -> BTreeSet<Finding> {
+    let mut findings = BTreeSet::new();
+    let Some(budget) = policy.get("corpus_budget") else {
+        findings.insert(Finding::new(
+            "corpus_budget_malformed",
+            "<corpus_budget>",
+            "corpus_budget must be present with classes + counts; its absence silently disables the sprawl ratchets",
+        ));
+        return findings;
+    };
+    let Some(counts) = budget.get("counts").and_then(Value::as_object) else {
+        findings.insert(Finding::new(
+            "corpus_budget_malformed",
+            "<corpus_budget>",
+            "corpus_budget.counts must be an object of class ceilings",
+        ));
+        return findings;
+    };
+    if budget.get("classes").and_then(Value::as_object).is_none() {
+        findings.insert(Finding::new(
+            "corpus_budget_malformed",
+            "<corpus_budget>",
+            "corpus_budget.classes must be an object of class match rules (prefixes + optional suffixes)",
+        ));
+        return findings;
+    }
+
+    let observed_counts = corpus_class_counts(policy, observed);
+    for (class, frozen) in counts {
+        let Some(frozen_count) = frozen.as_u64() else {
             findings.insert(Finding::new(
                 "corpus_budget_malformed",
                 "<corpus_budget>",
-                format!("corpus_budget.counts must carry a numeric {class}"),
+                format!("corpus_budget.counts.{class} must be a non-negative integer"),
             ));
             continue;
         };
+        let observed_count = observed_counts.get(class).copied().unwrap_or(0);
         if observed_count > frozen_count as usize {
+            let Some(code) = corpus_growth_code(class) else {
+                findings.insert(Finding::new(
+                    "corpus_budget_malformed",
+                    "<corpus_budget>",
+                    format!("unknown corpus class {class} has no growth code; declare one in corpus_growth_code"),
+                ));
+                continue;
+            };
             findings.insert(Finding::new(
                 code,
                 &format!("<{class}> {observed_count} > {frozen_count}"),
-                remediation,
+                "retire a file of this class in the same PR (one-in-one-out) or lower the reviewed corpus_budget ceiling",
             ));
         }
     }
@@ -552,6 +589,10 @@ mod tests {
     fn policy() -> Value {
         json!({
             "gate_id": GATE_ID,
+            "corpus_budget": {
+                "classes": {},
+                "counts": {}
+            },
             "allowed_root_files": [
                 { "id": "cargo-manifest", "kind": "exact",      "value": "Cargo.toml" },
                 { "id": "readme",         "kind": "prefix_dot", "value": "README" },
@@ -919,6 +960,12 @@ spec:
     fn corpus_policy() -> Value {
         json!({
             "corpus_budget": {
+                "classes": {
+                    "evidence_files": { "prefixes": ["evidence/"] },
+                    "planning_files": { "prefixes": ["tasks/", "plan/", "ci/evidence/"] },
+                    "docs_markdown_files": { "prefixes": ["docs/"], "suffixes": [".md"] },
+                    "live_adr_files": { "prefixes": ["docs/decisions/ADR-"], "suffixes": [".md"] }
+                },
                 "counts": {
                     "evidence_files": 2,
                     "planning_files": 1,
@@ -979,6 +1026,20 @@ spec:
     }
 
     #[test]
+    fn corpus_budget_absent_block_fails_closed() {
+        let findings = evaluate_corpus_budget(
+            &json!({}),
+            &corpus_observed(&["evidence/a.json"]),
+        );
+        assert!(
+            findings
+                .iter()
+                .any(|f| f.code == "corpus_budget_malformed"),
+            "a policy without corpus_budget must fail closed, never disable the ratchets; got {findings:#?}"
+        );
+    }
+
+    #[test]
     fn corpus_budget_missing_count_is_malformed() {
         let policy = json!({ "corpus_budget": { "counts": { "evidence_files": 1 } } });
         let findings = evaluate_corpus_budget(&policy, &corpus_observed(&["evidence/a.json"]));
@@ -1035,12 +1096,20 @@ spec:
             "allowed_root_dirs": [],
             "restricted_tracked_roots": [".claude"],
             "allowed_tracked_paths": [],
-            "corpus_budget": { "counts": {
-                "evidence_files": 0,
-                "planning_files": 0,
-                "docs_markdown_files": 0,
-                "live_adr_files": 0
-            } }
+            "corpus_budget": {
+                "classes": {
+                    "evidence_files": { "prefixes": ["evidence/"] },
+                    "planning_files": { "prefixes": ["tasks/", "plan/", "ci/evidence/"] },
+                    "docs_markdown_files": { "prefixes": ["docs/"], "suffixes": [".md"] },
+                    "live_adr_files": { "prefixes": ["docs/decisions/ADR-"], "suffixes": [".md"] }
+                },
+                "counts": {
+                    "evidence_files": 0,
+                    "planning_files": 0,
+                    "docs_markdown_files": 0,
+                    "live_adr_files": 0
+                }
+            }
         });
         let mut findings = evaluate_keyed(
             &bad,
