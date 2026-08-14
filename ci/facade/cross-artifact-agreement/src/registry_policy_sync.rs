@@ -2,7 +2,7 @@
 //! gate-policy sync.
 //!
 //! The #1327 defect class (c): a capability root registered in
-//! `specs/capability-registry.json` was missing from the hand-maintained derived
+//! `governance/capability-registry.json` was missing from the hand-maintained derived
 //! gate policies (`module-membership`, `root-hygiene`, `tier-dependency`). The
 //! registry is the closed authority (ADR-0562/0615) but the three policies drift
 //! by hand — nothing derives them from the registry — so a newly-registered

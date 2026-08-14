@@ -160,7 +160,7 @@ fn fixture_tagged(tag: &str) -> TmpRepo {
     let repo = TmpRepo {
         root: unique_root(tag),
     };
-    repo.write("specs/capability-registry.json", capability_registry());
+    repo.write("governance/capability-registry.json", capability_registry());
     repo.write("Cargo.toml", root_cargo_toml());
     repo.write("docs/adr-archive/ADR-0568-born-accounting-register-crate-registrar-kernel.md", stub_adr());
     repo.write("specs/reachability-registry.json", reachability_registry());
@@ -287,10 +287,10 @@ fn libs_crate_maps_capability_via_writer() {
         cap.changed,
         "the registry must be rewritten with the new mapping"
     );
-    assert_eq!(cap.path, "specs/capability-registry.json");
+    assert_eq!(cap.path, "governance/capability-registry.json");
 
     // The dir is now in the `build/` group's globs.
-    let registry = repo.read("specs/capability-registry.json");
+    let registry = repo.read("governance/capability-registry.json");
     assert!(
         registry.contains(libs_dir),
         "registry must list the new dir: {registry}"
@@ -585,7 +585,7 @@ fn honours_non_oyatie_oya_ci_toml() {
     );
     // Registry + root manifest (oyatie-neutral paths still used for the capability registry, which
     // is not config-driven — only reachability/justification/owners are exercised here).
-    repo.write("specs/capability-registry.json", capability_registry());
+    repo.write("governance/capability-registry.json", capability_registry());
     repo.write("Cargo.toml", root_cargo_toml());
     // The ADR corpus + reachability registry live at the CUSTOM config paths, NOT the oyatie ones.
     repo.write(
@@ -995,7 +995,7 @@ version = "0.1.0"
 fn membership_policy() -> &'static str {
     r#"{
   "gate_id": "cloud-ci-capability-membership",
-  "registry_path": "specs/capability-registry.json",
+  "registry_path": "governance/capability-registry.json",
   "scan_roots": ["cloud", "libs", "oya"],
   "allowed_top_level_dirs": ["cloud", "libs", "oya", "specs", "docs", "registry"],
   "min_expected_crates": 0
