@@ -223,7 +223,12 @@ impl MovePlan {
                     });
                 }
             }
-            if !a.new_path.starts_with("app/")
+            // app/<product>/ is the ONE sanctioned brand-preserving destination for ARTIFACTS
+            // too — but only for the PRODUCT brand: an artifact whose file stem keeps
+            // oya-<product>-* is exempt (mirrors the crate rule), while a cloud-* stem (or an
+            // oya-* stem of another product) under app/ stays subject to this refusal. There is
+            // no blanket app/ artifact bypass.
+            if !is_product_brand_artifact_destination(&a.new_path)
                 && is_deprecated_brand_artifact_source(&a.old_path)
                 && is_deprecated_brand_artifact_target(&a.new_path)
             {
@@ -288,7 +293,10 @@ impl MovePlan {
             }
         }
         for a in &self.artifacts {
-            if a.new_path.starts_with("app/") {
+            // Same product-aware artifact exemption as validate(): only the app/<product>/
+            // artifact whose stem keeps the oya-<product> brand rides the exemption; a cloud-*
+            // stem (or another product's oya-* stem) under app/ still fails the forward gate.
+            if is_product_brand_artifact_destination(&a.new_path) {
                 continue;
             }
             if is_deprecated_brand_artifact_target(&a.new_path) {
@@ -719,8 +727,50 @@ fn is_deprecated_brand_name(value: &str) -> bool {
 /// destination whose crate keeps the PRODUCT brand (`oya-<product>-*`). This is the ONLY
 /// de-brand exemption (ADR-0562's rule governs CAPABILITY roots, not tenant compositions). Any
 /// other name under `app/` — including a `cloud-*` name — must still pass the de-brand gates.
+///
+/// The product segment is read from the DESTINATION path itself (`app/<product>/...`), so a
+/// cross-product brand (e.g. `oya-payroll-domain` moved into `app/hr/`) is NOT exempt: the
+/// documented exception is specifically the `oya-<product>-*` name for the destination product.
 fn is_product_brand_destination(new_path: &str, new_cargo_name: &str) -> bool {
-    new_path.starts_with("app/") && new_cargo_name.starts_with("oya-")
+    let Some(product) = product_segment(new_path) else {
+        return false;
+    };
+    let prefix = format!("oya-{product}");
+    new_cargo_name == prefix || new_cargo_name.starts_with(&format!("{prefix}-"))
+}
+
+/// True when an artifact targets the sanctioned brand-preserving composition ring: an
+/// `app/<product>/` destination whose FILE STEM keeps the PRODUCT brand (`oya-<product>-*`).
+/// Mirrors [`is_product_brand_destination`] for crates; a `cloud-*` stem (or an `oya-*` stem
+/// of another product) under `app/` stays subject to the de-brand gates.
+fn is_product_brand_artifact_destination(new_path: &str) -> bool {
+    let Some(product) = product_segment(new_path) else {
+        return false;
+    };
+    let Some(stem) = artifact_file_stem(new_path) else {
+        return false;
+    };
+    let prefix = format!("oya-{product}");
+    stem == prefix || stem.starts_with(&format!("{prefix}-"))
+}
+
+/// The `<product>` segment of an `app/<product>/...` destination path, or `None` when the path
+/// is not under `app/` (or has no product segment). The segment is the first component after
+/// `app/`; a path exactly `app/<product>` (no trailing component) yields the product too.
+fn product_segment(path: &str) -> Option<&str> {
+    let rest = path.strip_prefix("app/")?;
+    let product = rest.split('/').next().unwrap_or("");
+    (!product.is_empty()).then_some(product)
+}
+
+/// The file STEM of an artifact path (the leaf with a `.yaml`/`.yml`/`.json` suffix removed),
+/// or `None` when the leaf carries no such suffix. Mirrors the stem rules
+/// [`is_deprecated_brand_file_stem`] applies.
+fn artifact_file_stem(path: &str) -> Option<&str> {
+    let leaf = path.rsplit('/').next()?;
+    leaf.strip_suffix(".yaml")
+        .or_else(|| leaf.strip_suffix(".yml"))
+        .or_else(|| leaf.strip_suffix(".json"))
 }
 
 fn is_deprecated_brand_path_source(path: &str) -> bool {
@@ -747,12 +797,7 @@ fn is_deprecated_brand_path_leaf(path: &str) -> bool {
 }
 
 fn is_deprecated_brand_file_stem(path: &str) -> bool {
-    path.rsplit('/').next().is_some_and(|leaf| {
-        leaf.strip_suffix(".yaml")
-            .or_else(|| leaf.strip_suffix(".yml"))
-            .or_else(|| leaf.strip_suffix(".json"))
-            .is_some_and(is_deprecated_brand_name)
-    })
+    artifact_file_stem(path).is_some_and(is_deprecated_brand_name)
 }
 
 /// A byte that continues an IDENTIFIER (crate-name segment): alphanumeric, `_`, or `-`. Used for
@@ -1226,6 +1271,107 @@ mod tests {
         };
         assert!(product_under_app.validate().is_ok());
         assert!(product_under_app.validate_debrand_targets().is_ok());
+    }
+
+    #[test]
+    fn validate_rejects_a_brand_of_a_different_product_under_app_destination() {
+        // REGRESSION (PR #1965 re-review, comment 3781452541): the app/ exemption is
+        // `oya-<product>-*` — the PRODUCT segment is read from the DESTINATION path, so a
+        // cross-product name (`oya-payroll-domain` moved into `app/hr/`) is NOT the sanctioned
+        // brand for that destination and must be refused by BOTH validators.
+        let cross_product = MovePlan {
+            capability: "hr".to_string(),
+            moves: vec![CrateMove {
+                old_path: "oya/payroll/crates/oya-payroll-domain".to_string(),
+                new_path: "app/hr/crates/oya-payroll-domain".to_string(),
+                old_cargo_name: "oya-payroll-domain".to_string(),
+                new_cargo_name: "oya-payroll-domain".to_string(),
+            }],
+            artifacts: vec![],
+        };
+        assert!(matches!(
+            cross_product.validate(),
+            Err(CodemodError::DeprecatedBrandTarget { which, value })
+                if which == "new_cargo_name" && value == "oya-payroll-domain"
+        ));
+        assert!(matches!(
+            cross_product.validate_debrand_targets(),
+            Err(CodemodError::DeprecatedBrandTarget { which, value })
+                if which == "new_cargo_name" && value == "oya-payroll-domain"
+        ));
+
+        // The DESTINATION product's own brand still passes: app/hr keeps oya-hr-*.
+        let matching_product = MovePlan {
+            capability: "hr".to_string(),
+            moves: vec![CrateMove {
+                old_path: "oya/payroll/crates/oya-hr-domain".to_string(),
+                new_path: "app/hr/crates/oya-hr-domain".to_string(),
+                old_cargo_name: "oya-payroll-domain".to_string(),
+                new_cargo_name: "oya-hr-domain".to_string(),
+            }],
+            artifacts: vec![],
+        };
+        assert!(matching_product.validate().is_ok());
+        assert!(matching_product.validate_debrand_targets().is_ok());
+    }
+
+    #[test]
+    fn validate_keeps_branded_artifacts_under_app_subject_to_the_debrand_gate() {
+        // REGRESSION (PR #1965 re-review, comment 3781452545): the artifact loops used a
+        // blanket `app/` bypass, so an artifact-only plan targeting app/hr/cloud-foo.json (or an
+        // oya-* artifact of another product) skipped the forward de-brand check even though the
+        // crate gate now rejects the same names. Only the app/<product>/ artifact whose FILE
+        // STEM keeps the oya-<product> brand rides the exemption.
+        let cloud_artifact_under_app = MovePlan {
+            capability: "hr".to_string(),
+            moves: vec![],
+            artifacts: vec![ArtifactMove {
+                old_path: "cloud/foo/cloud-foo.json".to_string(),
+                new_path: "app/hr/cloud-foo.json".to_string(),
+            }],
+        };
+        assert!(matches!(
+            cloud_artifact_under_app.validate(),
+            Err(CodemodError::DeprecatedBrandTarget { which, value })
+                if which == "artifact new_path" && value == "app/hr/cloud-foo.json"
+        ));
+        assert!(matches!(
+            cloud_artifact_under_app.validate_debrand_targets(),
+            Err(CodemodError::DeprecatedBrandTarget { which, value })
+                if which == "artifact new_path" && value == "app/hr/cloud-foo.json"
+        ));
+
+        // An oya-* artifact belonging to ANOTHER product is also not the destination brand.
+        let other_product_artifact = MovePlan {
+            capability: "hr".to_string(),
+            moves: vec![],
+            artifacts: vec![ArtifactMove {
+                old_path: "oya/payroll/slos/oya-payroll-slo.openslo.yaml".to_string(),
+                new_path: "app/hr/oya-payroll-slo.openslo.yaml".to_string(),
+            }],
+        };
+        assert!(matches!(
+            other_product_artifact.validate(),
+            Err(CodemodError::DeprecatedBrandTarget { which, .. })
+                if which == "artifact new_path"
+        ));
+        assert!(matches!(
+            other_product_artifact.validate_debrand_targets(),
+            Err(CodemodError::DeprecatedBrandTarget { which, .. })
+                if which == "artifact new_path"
+        ));
+
+        // The DESTINATION product's own artifact brand still passes (app/hr keeps oya-hr-*).
+        let matching_product_artifact = MovePlan {
+            capability: "hr".to_string(),
+            moves: vec![],
+            artifacts: vec![ArtifactMove {
+                old_path: "oya/hr/slos/oya-hr-slo.openslo.yaml".to_string(),
+                new_path: "app/hr/oya-hr-slo.openslo.yaml".to_string(),
+            }],
+        };
+        assert!(matching_product_artifact.validate().is_ok());
+        assert!(matching_product_artifact.validate_debrand_targets().is_ok());
     }
 
     #[test]
