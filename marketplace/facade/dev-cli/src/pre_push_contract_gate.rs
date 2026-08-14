@@ -20,9 +20,7 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use check_pre_push::{
-    PrePushContractEvidence, PrePushContractReport, validate_pre_push_contract,
-};
+use check_pre_push::{PrePushContractEvidence, PrePushContractReport, validate_pre_push_contract};
 
 const USAGE: &str = "oya gate validate pre-push-contract \
                      [--done-definition <path>] \
