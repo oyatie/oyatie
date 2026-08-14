@@ -1,53 +1,36 @@
 ---
-doc_status: published
+doc_class: Template
+template_id: TPL-PR
+status: Accepted
+purpose: |
+  Canonical PR body for every change. Slim by design (ADR-0716): issue, summary,
+  verification, reviewer verdict. CI logs and the review thread are the evidence;
+  no other sections are required or checked.
+canonical_authority: docs/templates/pull-request-template.md
+owner_team: platform-governance + council-architecture
+related:
+  - docs/AGENTS.md  # PR shape + Done-Definition
+rfc_2119_active: true
 ---
 
-# PR template
-
-> Per [`docs/STANDARDS-AND-TEMPLATES.md`](../STANDARDS-AND-TEMPLATES.md) §2, every PR uses this template. The traceability H2 sections plus automated reviewer-agent verdict are validated by the `oya-ci-required` PR metadata preflight; F-PR5-06 still owns trusted server-side/cloud-ci live review-producer closure, so this is not live cloud admission enforcement.
+<!-- Author-owned: fill the 4 sections below before review. Reviewer evidence is captured in `## Code Review`. -->
 
 ## Issue
-Closes #<n> (or Refs #<n> if not closing). One line.
+
+`Closes #<n>` (or `Refs #<n>` if not closing). Change class on the same line: `feature | bugfix | refactor | migration | docs | chore | capability | plugin | runbook | ADR | pack-update`.
 
 ## Summary
-- 1-3 bullet points on what changed.
-- Include the *why*; the diff already shows the *what*.
+
+- 1-3 bullets on **what + why**. The diff already shows the *what*; this section adds the *why*.
+- Cite the canonical authority read first per `docs/AGENTS.md §Pre-flight checklist` item 2.
 
 ## Verification
-- ☐ Targeted Buck2 tests: `buck2 test <target(s)>` (paste pass/fail excerpt)
-- ☐ Targeted Buck2 builds, if applicable: `buck2 build <target(s)>` (paste pass/fail excerpt)
-- ☐ Required cloud-ci context: `oya-ci-required` green on the PR head
-- ☐ Review/fix evidence packet completed in `## Evidence` for `oya-ci-required`, review threads, reviewer approval, and local-CLI non-authority
-- ☐ Worker completion gate: protected PR URL against `dev` exists; local diff or pushed branch alone is not completion evidence
-- ☐ Per-change-class Buck2/cloud-ci lane(s): `<list>`
-- ☐ Per-change-class reviewer agent run (paste verdict)
 
-## Traceability
-- Catalog records touched: `<list>`
-- Cross-axis contracts touched: `<list>` (per [DESIGN §10](../DESIGN.md))
-- ADRs cited: `<list>`
-
-## Evidence
-- Audit-chain emission: `<event-id>`
-- Foundation-bypass referenced (if any): `<bypass-id>`
-- Per-pack regulator-watch impact (if any): `<list>`
-- Review/fix evidence packet:
-  - `oya-ci-required` status: `<PASS|FAIL|PENDING>` — `<check/status URL>` — observed at `<timestamp>` on head `<sha>`
-  - Exact failing checks before fix: `<check names + failure URLs/log excerpts | none>`
-  - Exact fixed checks after fix: `<check names + fix commit(s) | none>`
-  - Review threads: `<resolved/unresolved counts + thread IDs or links>`; unresolved threads MUST be `0` before merge
-  - Reviewer approval state: `<APPROVE|REQUEST_CHANGES|PENDING>` by `<reviewer>` on approved head `<sha>` (MUST match PR head) — `<review URL>`
-  - Local CLI merge authority: `none`; local commands/hooks are advisory shift-left evidence only and are not protected-branch authority
-  - Generated faces: `<none touched | producer-materialized only>`; no hand edits to `*.generated.json`
-  - SEC-001 threat-model addendum: `<artifact/link | N/A with scope rationale>`
-- Post-merge product-completion packet (after squash merge):
-  - promoted SHA + `oya-ci-required` status URL
-  - rollout verification + rollback note
-  - observability check + browser UX/user-story evidence
-  - release-governance/release-note impact (Release Please only when repo config proves it)
+- `cargo fmt --all --check` / `cargo clippy` / `cargo test` (or targeted equivalents) — `<PASS|FAIL>` — `<excerpt>`
+- `oya-ci-required` PR context — `<PASS|PENDING>` — `<check URL>`
 
 ## Code Review
-- Reviewer agent: `<reviewer-agent>`
-- Verdict: <APPROVE | REQUEST CHANGES | PENDING — reviewer/evidence producer must replace before merge>
-- Resolved items: `<items-or-none>`
-- Deferred items: `<items-or-none>`
+
+- Reviewer: `<agent>` — verdict `<APPROVE|REQUEST CHANGES|PENDING>`
+- Resolved items: `<list>`
+- Deferred items: `<list with owners + follow-up issue refs>`

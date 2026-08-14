@@ -6,12 +6,12 @@
   },
   "_metadata": {
     "source": "docs/decisions",
-    "total_adrs": 16,
-    "numbering": "contiguous ADR-0700..ADR-0715 (gap-free)",
+    "total_adrs": 17,
+    "numbering": "contiguous ADR-0700..ADR-0716 (gap-free)",
     "gaps": [],
-    "next_adr": "ADR-0716",
+    "next_adr": "ADR-0717",
     "status_counts": {
-      "Accepted": 11,
+      "Accepted": 12,
       "Proposed": 5
     }
   },
@@ -207,6 +207,18 @@
       "supersedes": [],
       "superseded_by": [],
       "related": ["ADR-0701", "ADR-0710", "ADR-0338", "ADR-0379", "ADR-0714"]
+    },
+    {
+      "adr": "ADR-0716",
+      "number": 716,
+      "title": "Cargo is the CI merge path; buck2 is local hermeticity plus a weekly smoke",
+      "status": "Accepted",
+      "owner": "council-architecture",
+      "date": "2026-08-14",
+      "path": "decisions/ADR-0716-cargo-merge-path-buck2-local-hermeticity.md",
+      "supersedes": ["ADR-0560"],
+      "superseded_by": [],
+      "related": ["ADR-0515", "ADR-0532", "ADR-0613"]
     }
   ]
 }

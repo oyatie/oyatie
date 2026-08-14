@@ -929,7 +929,6 @@ fn baseline_repair_control_plane_inputs_seed_accountable_leaf_targets() {
             "specs/decision-rights.json",
             &[
                 "root//governance/check/codeowners-mirror:check-codeowners-mirror-unittest",
-                "root//governance/check/pr-traceability:check-pr-traceability-unittest",
                 "root//governance/check/raci-coverage:check-raci-coverage-unittest",
             ],
         ),
@@ -1160,9 +1159,7 @@ fn a_synthetic_declaration_is_additive_on_top_of_a_real_owner() {
                 "the real owner must still be seeded; got {seeds:?}"
             );
             assert!(
-                seeds
-                    .iter()
-                    .any(|s| s == "root//ci/facade/scanner:gate"),
+                seeds.iter().any(|s| s == "root//ci/facade/scanner:gate"),
                 "the declared scanner must ALSO be seeded; got {seeds:?}"
             );
         }
