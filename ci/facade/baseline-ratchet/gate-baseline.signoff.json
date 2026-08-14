@@ -33,17 +33,19 @@
         "authorized_by": "pending-founder-ratification (ci keystone move remediation; NOT ci-move-caused — pre-existing debt surfaced by a stale merge-base committed face)",
         "rationale": "Admit the six iam/adapters/pdp-cedar files (BUCK, Cargo.toml, cedar/platform-templates.cedar, cedar/platform.cedarschema, src/lib.rs, tests/cedar_pdp_conformance.rs) as unjustified. This is PRE-EXISTING debt unrelated to the cloud/cloud-ci -> ci/facade keystone move: iam/adapters/pdp-cedar is byte-identical between the merge-base (origin/dev@63905a1a6) and this branch (git diff = empty; the crate was rehomed in the already-merged PR #1184, not by this move). The files are reachable via cargo-members but ADR-0559 references only the crate DIR (iam/adapters/pdp-cedar), not the exact files, so a fresh producer run marks them unjustified. They read as ratchet GROWTH only because the merge-base COMMITTED gate-baseline face is stale (it classifies the dir as justified) — a stale-face false positive, not new debt from this PR. Same admitted-pre-existing class as the registry/stores/*.json and docs/standards/*.md entries. Firewall predicates byte-UNCHANGED. Founder ratification required; the durable fix is exact-path justification in ADR-0559 (a separate iam-scope PR) after which this entry is removed.",
         "adr": "ADR-0559 (cloud-iam Cedar PDP commissioning); pre-existing, out-of-scope for the ci keystone move"
+      },
+      {
+        "date": "2026-08-14",
+        "authorized_by": "pending-founder-ratification (ADR-0718 registry/catalog bookkeeping retirement)",
+        "rationale": "Admit ADR-0718 (Accepted) as unpropagated_decision. Every new Accepted ADR is born with in_spec=true/in_masterplan=false/in_roadmap=false — the same pattern as the existing unpropagated ADRs (ADR-0280/0392/0510/0515, ADR-0516..0535, ADR-0572, all admitted by prior signings). Propagation to masterplan/roadmap is the converge-and-wire step that happens after the ADR is accepted, not as part of the retirement PR. Firewall predicates byte-UNCHANGED.",
+        "adr": "ADR-0718"
       }
     ]
   },
   "_sign_off_additions": {
-    "cloud-ci-total-accounting": {
-      "unjustified": [
-        "docs/standards/image-discipline.md",
-        "docs/standards/security-review.md"
-      ],
-      "unreachable": [
-        ".github/workflows/oya-ci-required.yml"
+    "cloud-ci-cross-artifact-agreement": {
+      "unpropagated_decision": [
+        "ADR-0718"
       ]
     },
     "cloud-ci-brand-residue": {
@@ -360,6 +362,27 @@
         "registry/stores/design-store.json",
         "registry/stores/instructions-store.json",
         "registry/stores/registry-store.json"
+      ]
+    },
+    {
+      "date": "2026-08-14",
+      "retired_by": "ADR-0718 retirement (cloud-ci-total-accounting gate retired with registry/catalog bookkeeping)",
+      "rationale": "ADR-0718 retires the cloud-ci-total-accounting gate (artifact-accountability), so its unjustified sign-off additions exempt nothing and are inert. Retire them with the gate rather than leaving standing re-introduction tickets.",
+      "gate": "cloud-ci-total-accounting",
+      "code": "unjustified",
+      "keys": [
+        "docs/standards/image-discipline.md",
+        "docs/standards/security-review.md"
+      ]
+    },
+    {
+      "date": "2026-08-14",
+      "retired_by": "ADR-0718 retirement (cloud-ci-total-accounting gate retired with registry/catalog bookkeeping)",
+      "rationale": "ADR-0718 retires the cloud-ci-total-accounting gate (artifact-accountability), so its unreachable sign-off additions exempt nothing and are inert. Retire them with the gate rather than leaving standing re-introduction tickets.",
+      "gate": "cloud-ci-total-accounting",
+      "code": "unreachable",
+      "keys": [
+        ".github/workflows/oya-ci-required.yml"
       ]
     }
   ]
