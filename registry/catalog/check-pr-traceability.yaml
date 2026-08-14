@@ -2,9 +2,16 @@ context: foundry
 role: worker
 capability: check-pr-traceability
 plane: control
-slo: preview-control-plane
+slo: cataloged-no-runtime-claim
 data_classes_owned: [INTERNAL_ONLY]
 operational_classes_owned: []
 api_stability: preview
 security_review: unreviewed
 supply_chain: source-only
+# No live `libs/oya-check-pr-traceability` crate exists yet (the traceability-validator quality
+# lane names `gate validate pr-traceability`, whose runner is unwired — fixuptask F-NXM-GOVERNANCE
+# THEME-5). Catalog-liveness requires an explicit non-live marker while the crate is not a root
+# live member — inventory + SLO face only.
+status: designed-ahead-row-no-crate
+traceability:
+  source_crate: libs/oya-governance-pr-traceability-kernel/Cargo.toml
