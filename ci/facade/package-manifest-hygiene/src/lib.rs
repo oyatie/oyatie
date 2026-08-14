@@ -12,9 +12,10 @@
 //! touching the filesystem.
 //!
 //! ## Contract
-//! Input: `{"rows":[{"crate_name": "...", "has_version_workspace": bool, "has_publish_false":
-//! bool, "has_license": bool, "has_rust_version_workspace": bool, "has_lints_workspace": bool,
-//! "has_lib": bool, "has_lib_doctest_false": bool}]}`. `evaluate_keyed` emits one
+//! Input: `{"rows":[{"crate_name": "...", "manifest_path": "...", "has_version_workspace": bool,
+//! "has_publish_false": bool, "has_license": bool, "has_rust_version_workspace": bool,
+//! "has_lints_workspace": bool, "is_workspace_root": bool, "has_lib": bool,
+//! "has_lib_doctest_false": bool}]}`. `evaluate_keyed` emits one
 //! `Finding{code,key}` per missing field (`key` = crate name); `evaluate` is the bare-code
 //! projection. `baseline-block-on-new` freezes today's keys so only NEW debt blocks.
 //! ADR-0083 Tier-3: production code carries no unwrap/expect/panic.
@@ -115,10 +116,17 @@ pub fn evaluate_keyed(input: &Value) -> BTreeSet<Finding> {
             findings.insert(malformed_input(&format!("<malformed-row-{index}>")));
             continue;
         };
-        if !flag(row, "has_version_workspace") {
+        // A manifest that IS a workspace root (declares its own `[workspace]` table) legitimately
+        // carries concrete `version`/`rust-version` and a concrete `[lints]` table — it is the
+        // workspace it would otherwise inherit from (e.g. a parked nested-workspace-root
+        // destination crate whose retained legacy source shares its package name). For such a
+        // root the workspace-inheritance fields are not required; every other field stays
+        // enforced, and rows without the flag (all root-workspace members) behave unchanged.
+        let is_workspace_root = flag(row, "is_workspace_root");
+        if !is_workspace_root && !flag(row, "has_version_workspace") {
             findings.insert(Finding::new("manifest_missing_version_workspace", name));
         }
-        if !flag(row, "has_rust_version_workspace") {
+        if !is_workspace_root && !flag(row, "has_rust_version_workspace") {
             findings.insert(Finding::new(
                 "manifest_missing_rust_version_workspace",
                 name,
@@ -130,7 +138,7 @@ pub fn evaluate_keyed(input: &Value) -> BTreeSet<Finding> {
         if !flag(row, "has_license") {
             findings.insert(Finding::new("manifest_missing_license", name));
         }
-        if !flag(row, "has_lints_workspace") {
+        if !is_workspace_root && !flag(row, "has_lints_workspace") {
             findings.insert(Finding::new("manifest_missing_lints_workspace", name));
         }
         // doctest=false is only required when the crate declares a [lib] table.
@@ -224,6 +232,51 @@ mod tests {
             "bin-only crate must be green: {:?}",
             evaluate_keyed(&input)
         );
+    }
+
+    #[test]
+    fn workspace_root_concrete_fields_are_not_inheritance_violations() {
+        // A manifest declaring its own `[workspace]` table cannot inherit version/rust-version/
+        // [lints] from a parent workspace, so its CONCRETE values are the legitimate form; the
+        // gate must not flag them — while publish/license/doctest stay enforced.
+        let input = json!({ "rows": [{
+            "crate_name": "oya-procurement-source-to-pay-domain",
+            "has_version_workspace": false,
+            "has_rust_version_workspace": false,
+            "has_publish_false": true,
+            "has_license": true,
+            "has_lints_workspace": false,
+            "is_workspace_root": true,
+            "has_lib": true,
+            "has_lib_doctest_false": true,
+        }]});
+        assert!(
+            evaluate_keyed(&input).is_empty(),
+            "workspace-root concrete fields must not fire inheritance codes: {:?}",
+            evaluate_keyed(&input)
+        );
+    }
+
+    #[test]
+    fn workspace_root_still_enforces_publish_license_and_doctest() {
+        let input = json!({ "rows": [{
+            "crate_name": "oya-parked-domain",
+            "has_version_workspace": false,
+            "has_rust_version_workspace": false,
+            "has_publish_false": false,
+            "has_license": false,
+            "has_lints_workspace": false,
+            "is_workspace_root": true,
+            "has_lib": true,
+            "has_lib_doctest_false": false,
+        }]});
+        let codes: BTreeSet<String> = evaluate_keyed(&input).into_iter().map(|f| f.code).collect();
+        assert!(codes.contains("manifest_missing_publish_false"));
+        assert!(codes.contains("manifest_missing_license"));
+        assert!(codes.contains("manifest_missing_lib_doctest_false"));
+        assert!(!codes.contains("manifest_missing_version_workspace"));
+        assert!(!codes.contains("manifest_missing_rust_version_workspace"));
+        assert!(!codes.contains("manifest_missing_lints_workspace"));
     }
 
     #[test]
