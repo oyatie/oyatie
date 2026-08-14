@@ -217,8 +217,7 @@ pub(crate) use fd001_manifest_workspace_alignment_gate::{
 };
 pub(crate) use foundation_audit_gates::{
     parse_audit_chain_replay_validate_args, parse_foundation_bypass_validate_args,
-    parse_pr_traceability_validate_args, validate_audit_chain_replay_gate,
-    validate_foundation_bypass_gate, validate_pr_traceability_gate,
+    validate_audit_chain_replay_gate, validate_foundation_bypass_gate,
 };
 pub(crate) use foundry_capability_schema_gates::{
     parse_foundry_capability_schema_validate_args, validate_foundry_capability_schema_gate,
@@ -405,7 +404,7 @@ pub(crate) fn usage() -> String {
         + "\n       oya gate validate image-promotion [--promotion-dir <registry/release/image-promotions>]"
         + "\n       oya gate validate release-evidence-pack [--manifest <registry/release/evidence-packs.tsv>] [--compliance <docs/machine-readable/compliance.json>] [--require-records]"
         + "\n       oya gate validate typescript-workspace --lane <typecheck|test> [--repo-root <.>]"
-        + "\n       oya gate validate pr-traceability [--pr-title <title>] [--pr-body <docs/templates/pull-request-template.md>] [--require-code-review|--forbid-code-review]"
+
         + "\n       oya gate validate authority-cohesion [--docs-dir <docs>]"
         + "\n       oya gate validate cargo-prefix [--workspace <Cargo.toml>] [--prefix <oya->]"
         + "\n       oya gate validate claim-ceiling [--registry <registry/catalog>]"

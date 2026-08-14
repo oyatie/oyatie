@@ -89,7 +89,7 @@ exclude = [
   # match that hold no [package] manifest (harness holds process-kit JSON mirrors only;
   # nativelink is the dark NativeLink CAS/AC k8s declaration + OWNERS
   # seed rehomed by CAS Lane 3A / specs/reorg/nativelink-storage-move-plan.json).
-  # (ci/facade/automation-language-policy gained a Cargo manifest with ADR-0712 so the
+  # (ci/facade/automation-language-policy gained a Cargo manifest with ADR-0716 so the
   # rust-first ratchet is enforced by the cargo merge path.)
   #
   # `governance/check/integ-envelope` is matched by `governance/check/*` but holds only

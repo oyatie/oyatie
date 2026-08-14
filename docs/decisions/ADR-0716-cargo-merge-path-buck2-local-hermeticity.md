@@ -30,7 +30,7 @@ deliverables:
     verified_by: "oya-ci-required"
   - id: ADR-0716-D4
     description: "Reduce PR paperwork: slim the PR template to issue/summary/verification/reviewer-verdict, and remove the post-merge product-completion packet requirement from the operating contract."
-    exit_criteria: "The template has no required SLSA/SBOM/audit-emission/traceability fields; AGENTS.md and CLAUDE.md no longer require a post-merge packet; the local pr-traceability validator is retired with this change."
+    exit_criteria: "The template has no required SLSA/SBOM/audit-emission/traceability fields; AGENTS.md and CLAUDE.md no longer require a post-merge packet; the local pr-traceability validator and its dev-cli callers are retired with this change."
     verified_by: "oya-ci-required"
 ---
 
@@ -91,7 +91,7 @@ remote cache, so buck2 in CI means full rebuilds per lane, while cargo has turnk
 
 ## Consequences
 
-- **Positive:** one CI file (~230 lines, 6 jobs), wall clock dominated by one cached cargo
+- **Positive:** one CI file (~300 lines, 7 jobs), wall clock dominated by one cached cargo
   build, no quota-coupled artifact handoff, no daily-red noise, self-explanatory checks.
 - **Negative:** cargo-green no longer implies buck2-green; the weekly smoke is the only
   guard against BUCK-graph rot. Losing the affected-set ratchet means pre-existing build

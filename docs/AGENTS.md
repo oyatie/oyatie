@@ -286,9 +286,9 @@ Each change class has a designated reviewer agent that runs proactively on the P
 | Capability publish | `capability-reviewer` |
 | Performance change | `perf-reviewer` |
 
-The reviewer-agent verdict is `APPROVE` or `REQUEST CHANGES`. The PR body's `## Code Review` section MUST contain the agent name, the verdict, and the resolved + deferred items. GH #983 adds a PR metadata preflight that refuses blocked/pending-review PR title or body markers and refuses merge-ready body validation without this section.
+The reviewer-agent verdict is `APPROVE` or `REQUEST CHANGES`. The PR body's `## Code Review` section MUST contain the agent name, the verdict, and the resolved + deferred items. CI no longer string-checks PR prose (ADR-0716); the review thread is the evidence.
 
-**REVIEW-ADMISSION-GAP-LIVE-BOUNDARY (F-PR5-06):** F-PR5-06 remains open. PR #964 merged with green `oya-ci-required`, empty `reviewDecision`, and only an owner `COMMENTED` review, so the GH #983 title/body packet is not a cloud-enforced review admission gate. It narrows PR metadata hygiene only; formal GitHub `reviewDecision`, reviewer-author separation, and branch-protection drift reconciliation remain tracked by `registry/fixuptasks.jsonl#F-PR5-06`.
+**REVIEW-ADMISSION-GAP-LIVE-BOUNDARY (F-PR5-06):** F-PR5-06 remains open: formal GitHub `reviewDecision`, reviewer-author separation, and branch-protection drift reconciliation remain tracked by `registry/fixuptasks.jsonl#F-PR5-06`. The retired PR metadata preflight does not close it (ADR-0716).
 
 ## During-change discipline
 
@@ -312,10 +312,9 @@ governance and makes GitHub Actions + branch protection the live CI runner until
 explicit owned-runner cutover. An agent works on an isolated worktree branch and
 opens a pull request against `dev`, which enters the governance pipeline:
 the single protected `oya-ci-required` context + reviewer APPROVE gate merge
-readiness. GH #983 folds PR title/body hygiene into `oya-ci-required`, while
-F-PR5-06 still owns live review-admission closure. `oya gate` / `oya verify`
-output is optional local feedback or provenance only; it is never
-protected-branch CI authority.
+readiness. CI no longer string-checks PR prose (ADR-0716); F-PR5-06 still owns
+live review-admission closure. `oya gate` / `oya verify` output is optional
+local feedback or provenance only; it is never protected-branch CI authority.
 
 The fenced block below is the machine-readable agent surface. Human-facing terminal examples may live outside fences.
 
@@ -330,9 +329,8 @@ required_sequence:
   - commit and push on that lane
   - open a PR against dev               # enters the governance pipeline
   - fully reviewed, review threads resolved, no merge conflict, branch protection satisfied,
-    and single protected `oya-ci-required` context green; PR title/body hygiene flows
-    through `oya-ci-required`, while F-PR5-06 still owns live review-admission closure
-    and legacy CLI evidence remains optional/local only
+    and single protected `oya-ci-required` context green; F-PR5-06 still owns live
+    review-admission closure and legacy CLI evidence remains optional/local only
   - squash merge after review threads resolve
   - the merged PR and its green `oya-ci-required` checks are the record; no separate
     post-merge product-completion packet (ADR-0716)
@@ -372,7 +370,7 @@ Before declaring any change complete, every agent and every human MUST re-walk t
 - [ ] **D5** New capabilities (if any) ship: capability record, eval set (golden + adversarial + linguistic), autonomy tier, audit-chain topic, Cosign signing. *Test:* `oya-governance-capability-publish` lane.
 - [ ] **D6** New schemas (if any) carry `oyatie.data_class = "..."` per field. *Test:* `oya-governance-data-class` lane.
 - [ ] **D7** Applicable per-PR fitness lanes actually wired into `oya-ci-required` pass. Historical lane names in prose are not evidence that a producer is live. *Test:* the PR-head `oya-ci-required` job/packet inventory plus the change-class gate mapping.
-- [ ] **D8** Per-change-class reviewer agent ran; verdict captured in `## Code Review`. *Test:* `oya-ci-required` PR metadata preflight plus reviewer audit on PR; live review-admission closure remains F-PR5-06.
+- [ ] **D8** Per-change-class reviewer agent ran; verdict captured in `## Code Review`. *Test:* reviewer audit on PR; live review-admission closure remains F-PR5-06.
 - [ ] **D9** `cargo fmt --all --check` passes. *Test:* command output pasted in `## Verification`.
 - [ ] **D10** `cargo clippy --workspace --all-targets -- -D warnings` passes. *Test:* command output.
 - [ ] **D11** `cargo test --workspace` passes (gate fleet included; materialize faces first if a gate consumes them). buck2 build/test is local hermeticity only (ADR-0716). *Test:* command output or required context evidence.
@@ -427,7 +425,7 @@ The Claude Code harness loads `CLAUDE.md` at session start (memory-bootstrap con
 
 Always-loaded skills (project-level): `coding-standards`, `tdd-workflow`, `superpowers:test-driven-development`, `superpowers:verification-before-completion`, `superpowers:systematic-debugging`, `search-first`. Language and domain skills load from file context (`rust-*`, `frontend-*`, `postgres-patterns`, `healthcare-phi-compliance`).
 
-Active hooks — SSOT is [`.claude/settings.json`](../.claude/settings.json), which the `enforcement-liveness` face resolves against `tools/hooks/`; this list is a mirror, not an authority. PreToolUse/Bash: `main-checkout-guard.sh`, `local-authority-enforcer.sh`, `no-cargo-enforcer.sh`, `stale-tool-suggester.sh`. PreToolUse/Task: `pre-dispatch-guide.sh`. PostToolUse/Edit|MultiEdit|Write: `spec-version-pin-suggester.sh`, `adr-orphan-detect.sh`, `vacuous-green-gate-detect.sh`. PostToolUse/Bash|WebFetch|WebSearch: `injection-content-scanner.sh`. Stop: `stop-did-you-forget-suggester.sh`. There is no SessionStart hook, and no merge-review, pre-push, telemetry, loop-cancellation, or memory-bootstrap hook — the prior text named five behaviours and one file (`scripts/hooks/guard-pr-merge-review.mjs`), none of which existed in-tree.
+Active hooks — SSOT is [`.claude/settings.json`](../.claude/settings.json), which the `enforcement-liveness` face resolves against `tools/hooks/`; this list is a mirror, not an authority. PreToolUse/Bash: `main-checkout-guard.sh`, `local-authority-enforcer.sh`, `stale-tool-suggester.sh`. (The `no-cargo-enforcer.sh` hook is retired with ADR-0716: cargo is the merge path.) PreToolUse/Task: `pre-dispatch-guide.sh`. PostToolUse/Edit|MultiEdit|Write: `spec-version-pin-suggester.sh`, `adr-orphan-detect.sh`, `vacuous-green-gate-detect.sh`. PostToolUse/Bash|WebFetch|WebSearch: `injection-content-scanner.sh`. Stop: `stop-did-you-forget-suggester.sh`. There is no SessionStart hook, and no merge-review, pre-push, telemetry, loop-cancellation, or memory-bootstrap hook — the prior text named five behaviours and one file (`scripts/hooks/guard-pr-merge-review.mjs`), none of which existed in-tree.
 
 Legacy OMC magic-keyword routing remains compatibility-only while the plain-git/GitHub/cloud-ci closeout path finishes landing. It does not own forward repo-state closure; branch protection, cloud-ci required checks, and governance admission do. Jenkins/`oya` bridge contexts are transitional evidence only. The former harness standard [`standards/claude-code-harness.md`](standards/claude-code-harness.md) is a **retirement tombstone** (ADR-0619 / RR-HARNESS-0619) — not live procedure; use this contract + ADR-0515, and optionally the local `.grok/` mm-delivery kit (not merge authority).
 

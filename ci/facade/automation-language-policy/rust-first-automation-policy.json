@@ -103,12 +103,6 @@
       "status": "temporary_legacy_bridge"
     },
     {
-      "path": "tools/hooks/no-cargo-enforcer.sh",
-      "reason": "Local agent hook bridge retained only to block retired local authority while cloud-ci admission moves into Rust gates.",
-      "replacement": "Replace with Rust Buck2 cloud-ci admission gate and Kubernetes-native policy/controller enforcement.",
-      "status": "temporary_legacy_bridge"
-    },
-    {
       "path": "tools/hooks/pre-dispatch-guide.sh",
       "reason": "Local agent hook bridge retained only to block retired local authority while cloud-ci admission moves into Rust gates.",
       "replacement": "Replace with Rust Buck2 cloud-ci admission gate and Kubernetes-native policy/controller enforcement.",
@@ -149,7 +143,7 @@
   "non_rust_exception_baseline": {
     "_comment": "FROZEN review-visible baseline of TODAY's accepted temporary_legacy_bridge non-Rust automation exceptions (the exceptions[] allowlist). The file-extension scan permits a non-Rust file iff it has an exceptions[] entry (any-allowlisted-ok); this dimension additionally freezes that EXCEPTION SET shrink-only so a NEW .py/.sh bridge cannot be admitted by silently adding an allowlist row. A current exception NOT in this baseline is born-blocking (rust_first_automation_unbaselined_non_rust_exception) -- convert it to owned Rust (e.g. a contract-slice entry on //ci/facade/contract-slice-conformance) rather than shell/Python; a removed bridge must shrink this baseline in the SAME PR (rust_first_automation_non_rust_exception_baseline_stale). Folded INTO this policy (zero new tracked accounting rows); NOT producer-regenerated -- reviewed, hand-shrunk; anti-laundering is REVIEW-VISIBLE: growing the bridge set now requires an explicit reviewed baseline edit, not a routine-looking allowlist append.",
     "_provenance": {
-      "keys_total": 24,
+      "keys_total": 23,
       "policy": "shrink-only; growth requires a review-visible baseline edit, retirement must shrink in the same PR"
     },
     "codes": {
@@ -171,7 +165,6 @@
         "tools/hooks/injection-content-scanner.sh",
         "tools/hooks/local-authority-enforcer.sh",
         "tools/hooks/main-checkout-guard.sh",
-        "tools/hooks/no-cargo-enforcer.sh",
         "tools/hooks/pre-dispatch-guide.sh",
         "tools/hooks/spec-version-pin-suggester.sh",
         "tools/hooks/stale-tool-suggester.sh",
@@ -322,9 +315,9 @@
       "frozen_from_commit": "ADR-0716 cargo-merge-path PR",
       "keys_by_file": {
         ".github/workflows/buck2-weekly-smoke.yml": 3,
-        ".github/workflows/oya-ci-required.yml": 17
+        ".github/workflows/oya-ci-required.yml": 21
       },
-      "keys_total": 20
+      "keys_total": 24
     },
     "replacement_window": {
       "schema_version": 1,
@@ -398,7 +391,19 @@
           "shell_lines": 1
         },
         {
+          "key": ".github/workflows/oya-ci-required.yml::test::Build enforcement-liveness producer",
+          "shell_lines": 1
+        },
+        {
           "key": ".github/workflows/oya-ci-required.yml::test::Install pinned buck2 (digest-verified)",
+          "shell_lines": 1
+        },
+        {
+          "key": ".github/workflows/oya-ci-required.yml::test::Kernel workspace tests",
+          "shell_lines": 1
+        },
+        {
+          "key": ".github/workflows/oya-ci-required.yml::test::Live hub-exclusivity admission",
           "shell_lines": 1
         },
         {
@@ -407,6 +412,10 @@
         },
         {
           "key": ".github/workflows/oya-ci-required.yml::test::Pre-provision pinned toolchain components",
+          "shell_lines": 1
+        },
+        {
+          "key": ".github/workflows/oya-ci-required.yml::test::Reject non-deletion generated output edits",
           "shell_lines": 1
         },
         {

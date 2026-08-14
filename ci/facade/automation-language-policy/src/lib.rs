@@ -654,8 +654,11 @@ pub fn validate_workflow_inline_shell_baseline_ceiling(
     let mut findings = BTreeSet::new();
     // ADR-0716 reviewed-replacement window: a deliberate CI redesign may replace the whole
     // inline-shell baseline by declaring `replacement_window` with a strictly higher
-    // schema_version plus a non-empty reason and ADR. The PR review is the admission
-    // control; without the window the ceiling stays shrink-only (one-way door).
+    // schema_version plus a substantive reason and a well-formed ADR path. The PR review is
+    // the admission control; without the window the ceiling stays shrink-only (one-way door).
+    // The window does NOT self-authorize: the reason must be substantive (>= 40 trimmed
+    // chars), the ADR must name a docs/decisions/ADR-NNNN-<topic>.md record, and the live
+    // corpus test separately requires that ADR file to exist and be Accepted in the same PR.
     if let Some(window) = candidate_baseline.get("replacement_window") {
         let candidate_version = window
             .get("schema_version")
@@ -669,11 +672,28 @@ pub fn validate_workflow_inline_shell_baseline_ceiling(
         if candidate_version > protected_version {
             let reason = window.get("reason").and_then(Value::as_str).unwrap_or_default();
             let adr = window.get("adr").and_then(Value::as_str).unwrap_or_default();
-            if reason.is_empty() || adr.is_empty() {
+            let well_formed_adr = adr.starts_with("docs/decisions/ADR-")
+                && adr.ends_with(".md")
+                && adr
+                    .strip_prefix("docs/decisions/ADR-")
+                    .and_then(|rest| rest.strip_suffix(".md"))
+                    .is_some_and(|slug| {
+                        slug.len() > 4
+                            && slug[..4].bytes().all(|b| b.is_ascii_digit())
+                            && slug[4..].bytes().all(|b| b.is_ascii_alphanumeric() || b == b'-')
+                    });
+            if reason.trim().len() < 40 {
                 findings.insert(Finding::new(
                     "rust_first_automation_workflow_inline_shell_replacement_window_incomplete",
                     "replacement_window",
-                    "a reviewed baseline replacement must carry a non-empty reason and adr",
+                    "a reviewed baseline replacement must carry a substantive (>= 40 trimmed chars) reason",
+                ));
+            }
+            if !well_formed_adr {
+                findings.insert(Finding::new(
+                    "rust_first_automation_workflow_inline_shell_replacement_window_incomplete",
+                    "replacement_window",
+                    "the replacement window's adr must be a well-formed docs/decisions/ADR-NNNN-<topic>.md path",
                 ));
             }
             return findings;

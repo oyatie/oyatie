@@ -646,6 +646,24 @@ fn executed_buck2_test_patterns(workflow: &str) -> BTreeSet<String> {
 
 /// True iff a Buck2 target pattern executes the targets of repo-relative package `pkg`.
 /// `//ci/...` (and `//...`) recurse; `//ci/facade/x:tgt` names one package.
+/// ADR-0716: the Cargo merge path executes the whole workspace with `cargo test --workspace`;
+/// a fan-in-reachable executable line of that shape covers EVERY workspace-member gate crate.
+fn workspace_tests_executed(workflow: &str) -> bool {
+    workflow.lines().any(|line| {
+        let trimmed = line.trim();
+        if trimmed.starts_with('#')
+            || trimmed.contains("--keep-going")
+            || trimmed.contains("|| true")
+        {
+            return false;
+        }
+        let Some((_, args)) = trimmed.split_once("cargo test ") else {
+            return false;
+        };
+        args.split_whitespace().any(|token| token == "--workspace")
+    })
+}
+
 fn pattern_covers_package(pattern: &str, pkg: &str) -> bool {
     let body = pattern.strip_prefix("//").unwrap_or(pattern);
     match body.strip_suffix("...") {
@@ -1155,10 +1173,11 @@ fn every_gate_crate_is_registered_in_oya_ci_required_workflow() {
     // crate's package, from an executable (non-comment, non-`--keep-going`, non-`|| true`) line,
     // AND the crate's BUCK declares a test rule for that pattern to match.
     let executed = executed_buck2_test_patterns(&workflow);
+    let workspace_executed = workspace_tests_executed(&workflow);
     assert!(
-        !executed.is_empty(),
-        "no fan-in-reachable job in {} executes any `buck2 test <//pattern>` — the gate fleet has \
-         no binding execution at all",
+        !executed.is_empty() || workspace_executed,
+        "no fan-in-reachable job in {} executes any `buck2 test <//pattern>` or \
+         `cargo test --workspace` — the gate fleet has no binding execution at all",
         wf.display()
     );
 
@@ -1170,12 +1189,16 @@ fn every_gate_crate_is_registered_in_oya_ci_required_workflow() {
             continue;
         }
         let pkg = format!("ci/facade/{crate_dir}");
-        if !executed
+        let buck_covered = executed
             .iter()
-            .any(|pattern| pattern_covers_package(pattern, &pkg))
-        {
+            .any(|pattern| pattern_covers_package(pattern, &pkg));
+        if !buck_covered && !workspace_executed {
             uncovered.push(crate_dir.clone());
-        } else if !buck_declares_a_test_rule(&root.join(&pkg).join("BUCK")) {
+        } else if buck_covered && !workspace_executed
+            && !buck_declares_a_test_rule(&root.join(&pkg).join("BUCK"))
+        {
+            // The BUCK test-rule requirement applies to buck2-pattern coverage only; the
+            // Cargo merge path's workspace membership is enforced by workspace-member-coverage.
             no_test_rule.push(crate_dir.clone());
         }
     }

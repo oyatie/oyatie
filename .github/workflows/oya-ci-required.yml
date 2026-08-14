@@ -50,29 +50,37 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
+          # The format gate diffs against the base ref.
+          fetch-depth: 0
       - uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
         with:
           toolchain: "1.97.1"
           components: rustfmt, clippy
-      - uses: swatinem/rust-cache@v2
+      - uses: swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
         with:
           shared-key: cargo-ci-linux
       - name: Check formatting
-        # Advisory for now: the tree carries pre-existing rustfmt drift outside this
-        # change's blast radius; a repo-wide reformat lands as its own PR and then this
-        # step becomes blocking again.
-        continue-on-error: true
-        run: cargo fmt --all --check
+        # Blocking, but differential: only files this PR changed may introduce drift.
+        # The pre-existing repo-wide drift is retired by a dedicated reformat PR.
+        run: files="$(git diff --name-only "origin/${GITHUB_BASE_REF:-dev}...HEAD" -- '*.rs')" && { [ -z "$files" ] || rustfmt --check $files; }
       - name: Clippy, warnings denied
-        # Advisory for now: same rationale as the format step — pre-existing debt
-        # across the workspace; ratchet to blocking after the cleanup PR.
+        # Advisory until the repo-wide lint-debt cleanup PR lands, then blocking.
+        # The differential format gate above is the blocking new-debt guard today.
         continue-on-error: true
-        run: cargo clippy --workspace --all-targets -- -D warnings
+        run: cargo clippy --locked --workspace --all-targets -- -D warnings
 
   test:
     name: test (workspace + gates)
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
     timeout-minutes: 60
+    env:
+      OYA_CI_ENFORCEMENT_LIVENESS_PRODUCER: ${{ github.workspace }}/target/debug/oya-cloud-ci-accounting-registry-app
+      OYA_CI_ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS: ${{ github.workspace }}/.claude
+      OYA_CI_ENFORCEMENT_LIVENESS_CODEX_HOOKS: ${{ github.workspace }}/.codex
+      OYA_CI_ENFORCEMENT_LIVENESS_HOOKS_DIR: ${{ github.workspace }}/tools/hooks
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
@@ -82,12 +90,13 @@ jobs:
       - uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
         with:
           toolchain: "1.97.1"
-      - uses: swatinem/rust-cache@v2
+      - uses: swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
         with:
           shared-key: cargo-ci-linux
       # The face materializer shells out to buck2 internally to build its sibling
       # face tools; the digest-pinned installer is the bridge it has always used.
       - name: Install pinned buck2 (digest-verified)
+        shell: bash
         run: infra/ci/install-buck2.sh
       # buck2's builds need the full pinned toolchain (clippy/rustfmt components);
       # rustup must finish before buck2 runs or its downloads race (known class).
@@ -95,10 +104,30 @@ jobs:
         run: rustup toolchain install && rustc --version
       # Materialize generated faces before tests: several gate crates consume them.
       - name: Materialize generated faces
-        run: cargo run -p ci-generated-artifact-freshness --bin oya-cloud-ci-materialize-generated-faces -- --repo-root . --github-event
+        run: cargo run --locked -p ci-generated-artifact-freshness --bin oya-cloud-ci-materialize-generated-faces -- --repo-root . --github-event
+      # hook-wiring's live corpus test runs this producer; build it once, pass the path.
+      - name: Build enforcement-liveness producer
+        run: cargo build --locked -p ci-artifact-inventory-registry --bin oya-cloud-ci-accounting-registry-app
       # Every workspace member, including the whole ci/facade gate fleet, runs here.
       - name: Workspace tests
-        run: cargo test --workspace
+        run: cargo test --locked --workspace
+      # kernel/ is a nested workspace (ADR-0512 carve-out) the root workspace excludes.
+      - name: Kernel workspace tests
+        run: cargo test --locked --manifest-path kernel/Cargo.toml
+      # Live hub-exclusivity admission: rejects a second open PR touching a hub path
+      # declared under specs/integ-branch-envelopes.json#hubs.paths.
+      - name: Live hub-exclusivity admission
+        if: ${{ github.event_name == 'pull_request' }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: cargo run --locked -p ci-affected-target-set --bin oya-cloud-ci-hub-exclusivity -- --repo-root . --live-open-prs --repo "$GITHUB_REPOSITORY" --candidate-pr "${{ github.event.pull_request.number }}"
+      # Generated outputs are never contributor merge surfaces: reject non-deletion
+      # edits to tracked generated artifacts (diff streamed to the policy binary).
+      - name: Reject non-deletion generated output edits
+        if: ${{ github.event_name != 'push' }}
+        env:
+          BASE_REF: ${{ github.base_ref || 'dev' }}
+        run: git diff --find-renames --name-status "origin/${BASE_REF}...HEAD" | cargo run --locked -p ci-generated-artifact-policy --bin oya-cloud-ci-generated-output-diff-policy -- --manifest registry/generated-artifact-control-plane.json --repo-root .
 
   live-postgres-adapters:
     name: live-postgres-adapters (RLS / CDC / SCIM)
@@ -125,7 +154,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
         with:
           toolchain: "1.97.1"
-      - uses: swatinem/rust-cache@v2
+      - uses: swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
         with:
           shared-key: cargo-ci-linux
       - name: Install postgresql-client
@@ -156,7 +185,7 @@ jobs:
           OYA_BACKBONE_LIVE_POSTGRES: "1"
           OYA_BACKBONE_POSTGRES_URL: ${{ env.OYA_PG_ADMIN_URL }}
           OYA_BACKBONE_POSTGRES_APP_URL: ${{ env.OYA_PG_APP_URL }}
-        run: RUST_TEST_THREADS=1 cargo test -p oya-data-sql-adapter-sqlx -p oya-data-outbox-adapter-postgres -p tenancy-tenant-lifecycle-store-postgres -p identity-scim-store-postgres
+        run: RUST_TEST_THREADS=1 cargo test --locked -p oya-data-sql-adapter-sqlx -p oya-data-outbox-adapter-postgres -p tenancy-tenant-lifecycle-store-postgres -p identity-scim-store-postgres
 
   live-postgres-facades:
     name: live-postgres-facades (tenant lifecycle / SCIM)
@@ -183,7 +212,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
         with:
           toolchain: "1.97.1"
-      - uses: swatinem/rust-cache@v2
+      - uses: swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
         with:
           shared-key: cargo-ci-linux
       - name: Install postgresql-client
@@ -207,7 +236,7 @@ jobs:
         env:
           OYA_BACKBONE_LIVE_POSTGRES: "1"
           OYA_BACKBONE_POSTGRES_APP_URL: ${{ env.OYA_PG_APP_URL }}
-        run: RUST_TEST_THREADS=1 cargo test -p iam-identity-service -p tenancy-tenant-lifecycle-app
+        run: RUST_TEST_THREADS=1 cargo test --locked -p iam-identity-service -p tenancy-tenant-lifecycle-app
 
   cross-platform-smoke:
     name: cross-platform-smoke (${{ matrix.os }})
@@ -226,17 +255,18 @@ jobs:
       - uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
         with:
           toolchain: "1.97.1"
-      - uses: swatinem/rust-cache@v2
+      - uses: swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
         with:
           shared-key: cargo-ci-${{ matrix.os }}
       - name: Install pinned buck2 (digest-verified)
+        shell: bash
         run: infra/ci/install-buck2.sh
       - name: Pre-provision pinned toolchain components
         run: rustup toolchain install && rustc --version
       - name: Materialize generated faces
-        run: cargo run -p ci-generated-artifact-freshness --bin oya-cloud-ci-materialize-generated-faces -- --repo-root . --github-event
+        run: cargo run --locked -p ci-generated-artifact-freshness --bin oya-cloud-ci-materialize-generated-faces -- --repo-root . --github-event
       - name: Cross-platform smoke tests
-        run: cargo test -p ci-scm-facts-snapshot
+        run: cargo test --locked -p ci-scm-facts-snapshot
 
   # Fan-in: the single required context. Green IFF lint, test, and both live-postgres
   # lanes are green. The cross-platform lane is soft: its failure never blocks merge.
