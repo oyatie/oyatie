@@ -88,6 +88,11 @@ jobs:
       OYA_CI_ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS: ${{ github.workspace }}/.claude
       OYA_CI_ENFORCEMENT_LIVENESS_CODEX_HOOKS: ${{ github.workspace }}/.codex
       OYA_CI_ENFORCEMENT_LIVENESS_HOOKS_DIR: ${{ github.workspace }}/tools/hooks
+      # Controller-owned face the cross-artifact history-only retirement-facts live test reads.
+      OYA_HISTORY_ONLY_RETIREMENT_FACTS: ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json
+      # dev-cli `oya` binary (built by `cargo test --workspace` as the CARGO_BIN_EXE_oya
+      # dependency of the dev-cli integration tests); backs the ADR-index producer live test.
+      OYA_ADR_INDEX_PRODUCER_BIN: ${{ github.workspace }}/target/debug/oya
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
