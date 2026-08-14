@@ -295,6 +295,8 @@ fn regenerate_scm_facts(root: &Path, pass: u32) -> String {
                 "run",
                 "--quiet",
                 "-p",
+                "ci-scm-facts-snapshot",
+                "--bin",
                 "oya-cloud-ci-scm-facts-emitter-app",
                 "--",
                 "--repo-root",
