@@ -140,7 +140,14 @@ impl MovePlan {
                     });
                 }
             }
-            if is_deprecated_brand_path_source(&m.old_path)
+            // The app/ composition ring is the ONE sanctioned brand-preserving destination:
+            // app/<product>/ crates keep their oya-<product>-* names (the product brand is
+            // legitimate; ADR-0562's de-brand rule governs CAPABILITY roots, not the tenant
+            // compositions that wire them). Moving a legacy oya/<product> tree into app/<product>
+            // therefore skips both brand refusals.
+            let app_destination = m.new_path.starts_with("app/");
+            if !app_destination
+                && is_deprecated_brand_path_source(&m.old_path)
                 && is_deprecated_brand_path_target(&m.new_path)
             {
                 return Err(CodemodError::DeprecatedBrandTarget {
@@ -148,7 +155,8 @@ impl MovePlan {
                     value: m.new_path.clone(),
                 });
             }
-            if is_deprecated_brand_name(&m.old_cargo_name)
+            if !app_destination
+                && is_deprecated_brand_name(&m.old_cargo_name)
                 && is_deprecated_brand_name(&m.new_cargo_name)
             {
                 return Err(CodemodError::DeprecatedBrandTarget {
@@ -212,7 +220,8 @@ impl MovePlan {
                     });
                 }
             }
-            if is_deprecated_brand_artifact_source(&a.old_path)
+            if !a.new_path.starts_with("app/")
+                && is_deprecated_brand_artifact_source(&a.old_path)
                 && is_deprecated_brand_artifact_target(&a.new_path)
             {
                 return Err(CodemodError::DeprecatedBrandTarget {
@@ -254,7 +263,12 @@ impl MovePlan {
     /// reversible `apply --revert` path still uses the structural validator so rollback can move
     /// back to a legacy source shape.
     pub fn validate_debrand_targets(&self) -> Result<(), CodemodError> {
+        // app/<product>/ is the sanctioned brand-preserving destination: product compositions
+        // keep their oya-<product>-* crate names (the de-brand rule governs CAPABILITY roots).
         for m in &self.moves {
+            if m.new_path.starts_with("app/") {
+                continue;
+            }
             if is_deprecated_brand_path_target(&m.new_path) {
                 return Err(CodemodError::DeprecatedBrandTarget {
                     which: "new_path".to_string(),
@@ -269,6 +283,9 @@ impl MovePlan {
             }
         }
         for a in &self.artifacts {
+            if a.new_path.starts_with("app/") {
+                continue;
+            }
             if is_deprecated_brand_artifact_target(&a.new_path) {
                 return Err(CodemodError::DeprecatedBrandTarget {
                     which: "artifact new_path".to_string(),
