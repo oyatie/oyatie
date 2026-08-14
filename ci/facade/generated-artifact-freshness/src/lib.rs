@@ -874,13 +874,19 @@ pub fn verify_pre_push_verifier_protocol(repo_root: &Path) -> Result<(), Freshne
 /// Extract the `PRE_PUSH_VERIFIER_PROTOCOL_VERSION` value from the tracked freshness-gate source
 /// as DATA (a text parse; never executes checkout code). Fails closed when the declaration is
 /// absent or malformed.
+/// Extract the `PRE_PUSH_VERIFIER_PROTOCOL_VERSION` value from the tracked freshness-gate source
+/// as DATA (a text parse; never executes checkout code). Matches ONLY the actual constant
+/// declaration line (`pub const PRE_PUSH_VERIFIER_PROTOCOL_VERSION: u32 = N;`), so a comment or
+/// string that merely mentions the name can never shadow the real value. Fails closed when the
+/// declaration is absent or malformed.
 fn parse_pre_push_verifier_protocol_version(lib_source: &str) -> Option<u32> {
-    const MARKER: &str = "PRE_PUSH_VERIFIER_PROTOCOL_VERSION: u32 = ";
+    const DECLARATION_PREFIX: &str = "pub const PRE_PUSH_VERIFIER_PROTOCOL_VERSION: u32 = ";
     for line in lib_source.lines() {
-        let Some((_, after_marker)) = line.split_once(MARKER) else {
+        let trimmed = line.trim();
+        let Some(rest) = trimmed.strip_prefix(DECLARATION_PREFIX) else {
             continue;
         };
-        let Some((value, _)) = after_marker.split_once(';') else {
+        let Some(value) = rest.strip_suffix(';') else {
             continue;
         };
         return value.trim().parse().ok();
@@ -1788,10 +1794,24 @@ pub fn render_findings(findings: &[Finding]) -> String {
 
 pub fn read_member_packages(repo_root: &Path) -> Result<Vec<MemberPackage>, FreshnessError> {
     let workspace_version = read_workspace_version(repo_root)?;
+    let ignored_candidates = ignored_workspace_member_candidates(repo_root)?;
     let member_dirs = resolve_member_dirs(repo_root)
         .map_err(|error| FreshnessError::new(format!("resolve workspace members: {error}")))?;
     let mut members = Vec::with_capacity(member_dirs.len());
     for member_dir in member_dirs {
+        // A workspace glob is expanded from the FILESYSTEM, but a locally ignored directory that
+        // happens to match the glob (e.g. `foo/core/scratch` under `*/core/*` excluded via
+        // `.git/info/exclude`) must not be treated as a missing member: the committed HEAD (and a
+        // clean CI checkout) does not contain it, so reporting it as missing from Cargo.lock would
+        // block every push with a false positive. `git ls-files --others --exclude-standard`
+        // already omits ignored paths from the tree-clean assertion, so the member universe must
+        // agree with that same view.
+        if ignored_candidates
+            .iter()
+            .any(|ignored| member_dir == *ignored || member_dir.starts_with(ignored))
+        {
+            continue;
+        }
         let manifest = read_to_string(&repo_root.join(&member_dir).join("Cargo.toml"))?;
         members.push(parse_member_package_manifest(
             &member_dir,
@@ -1800,6 +1820,34 @@ pub fn read_member_packages(repo_root: &Path) -> Result<Vec<MemberPackage>, Fres
         )?);
     }
     Ok(members)
+}
+
+/// Directory prefixes of locally git-ignored untracked paths (`git ls-files --others --ignored
+/// --exclude-standard --directory`). Read as DATA; used only to keep the member universe
+/// consistent with the tree-clean assertion's standard exclusions.
+fn ignored_workspace_member_candidates(
+    repo_root: &Path,
+) -> Result<BTreeSet<String>, FreshnessError> {
+    let output = run_output(
+        Command::new("git")
+            .args([
+                "ls-files",
+                "--others",
+                "--ignored",
+                "--exclude-standard",
+                "--directory",
+            ])
+            .current_dir(repo_root),
+        "git list ignored workspace-member candidates",
+    )?;
+    let mut ignored = BTreeSet::new();
+    for line in output.lines() {
+        let path = line.trim().trim_end_matches('/');
+        if !path.is_empty() {
+            ignored.insert(path.to_owned());
+        }
+    }
+    Ok(ignored)
 }
 
 pub fn read_committed_generated_faces(
