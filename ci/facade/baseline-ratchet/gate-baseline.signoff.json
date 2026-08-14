@@ -52,20 +52,6 @@
         "registry/stores/instructions-store.json"
       ],
       "forbidden_foundry": [
-        "ci/facade/baseline-ratchet/gate-baseline.signoff.json",
-        "registry/stores/canon-id-crosswalk.json",
-        "registry/stores/instructions-store.json",
-        "registry/stores/registry-store.json"
-      ],
-      "forbidden_jenkins": [
-        "ci/facade/baseline-ratchet/gate-baseline.signoff.json",
-        "registry/stores/instructions-store.json",
-        "registry/stores/registry-store.json"
-      ],
-      "forbidden_oya-vcs": [
-        "ci/facade/baseline-ratchet/gate-baseline.signoff.json"
-      ],
-      "foundry": [
         "app/payments/IPs/IP-WAVE-15-ZD-sharding-automation.md",
         "app/payments/PRD.md",
         "app/payments/README.md",
@@ -84,9 +70,13 @@
         "app/payments/runbooks/auto-rebalance.md",
         "app/payments/runbooks/cold-merge.md",
         "app/payments/runbooks/hot-split.md",
-        "app/payments/slos/autosharding-events.openslo.yaml"
+        "app/payments/slos/autosharding-events.openslo.yaml",
+        "ci/facade/baseline-ratchet/gate-baseline.signoff.json",
+        "registry/stores/canon-id-crosswalk.json",
+        "registry/stores/instructions-store.json",
+        "registry/stores/registry-store.json"
       ],
-      "jenkins": [
+      "forbidden_jenkins": [
         "app/payments/IPs/IP-WAVE-15-ZD-sharding-automation.md",
         "app/payments/PRD.md",
         "app/payments/README.md",
@@ -109,7 +99,13 @@
         "app/payments/runbooks/psp-failover-cascade-execution.md",
         "app/payments/runbooks/psp-outage.md",
         "app/payments/runbooks/refund-mismatch.md",
-        "app/payments/slos/autosharding-events.openslo.yaml"
+        "app/payments/slos/autosharding-events.openslo.yaml",
+        "ci/facade/baseline-ratchet/gate-baseline.signoff.json",
+        "registry/stores/instructions-store.json",
+        "registry/stores/registry-store.json"
+      ],
+      "forbidden_oya-vcs": [
+        "ci/facade/baseline-ratchet/gate-baseline.signoff.json"
       ]
     }
   },
