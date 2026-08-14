@@ -1,0 +1,185 @@
+# Default values for oya-calendar Helm chart.
+# Per ADR-0131 (per-µservice flat layout) + ADR-0133 (LTS-pinned versions) +
+# ADR-CAL-0001 (CalDAV backend selection) + ADR-CAL-0002 (rrule-rs 0.13.x
+# engine) + ADR-CAL-0004 (tzdb refresh policy).
+#
+# Pack-specific overrides live in `iac/kustomize/overlays/pack-<region>/`.
+# All secrets via `${openbao:secret/calendar/<path>}` SecretReferences (per
+# CLAUDE.md user directive — no raw secrets in values.yaml).
+
+global:
+  microservice: calendar
+  ltsImageRegistry: registry.oyatie.dev
+  tenantId: "${TENANT_ID}"            # injected at deploy time per cell
+  packRegion: kr                       # overridden per pack overlay
+  observability:
+    metricsPort: 9090
+    tracingEndpoint: otel-collector.observability.svc.cluster.local:4317
+
+# ---- Per-BC workloads ----------------------------------------------------
+
+eventStore:
+  replicaCount: 3
+  image:
+    repository: registry.oyatie.dev/oya-calendar-event-store-app
+    tag: "1.0.0"                       # match Cargo.toml workspace version
+  resources:
+    requests: {cpu: 500m, memory: 512Mi}
+    limits:   {cpu: 2,    memory: 2Gi}
+  port: 9001
+  encryption:
+    tenantDekRef: "${openbao:secret/calendar/{tenant}/dek}"
+
+recurrenceEngine:
+  replicaCount: 2
+  image:
+    repository: registry.oyatie.dev/oya-calendar-recurrence-engine-app
+    tag: "1.0.0"
+  resources:
+    requests: {cpu: 250m, memory: 256Mi}
+    limits:   {cpu: 1,    memory: 512Mi}
+  port: 9002
+  recurrenceBoundHorizonYears: 5       # PRD AC-10 + ADR-CAL-0002
+
+availabilityResolver:
+  replicaCount: 3
+  image:
+    repository: registry.oyatie.dev/oya-calendar-availability-resolver-app
+    tag: "1.0.0"
+  resources:
+    requests: {cpu: 500m, memory: 512Mi}
+    limits:   {cpu: 2,    memory: 1Gi}
+  port: 9003
+  cache:
+    backend: valkey
+    valkeyAddr: oya-calendar-valkey:6379
+    ttlSeconds: 300
+
+roomBooking:
+  replicaCount: 2
+  image:
+    repository: registry.oyatie.dev/oya-calendar-room-booking-app
+    tag: "1.0.0"
+  resources:
+    requests: {cpu: 250m, memory: 256Mi}
+    limits:   {cpu: 1,    memory: 512Mi}
+  port: 9004
+
+invitationFlow:
+  replicaCount: 2
+  image:
+    repository: registry.oyatie.dev/oya-calendar-invitation-flow-app
+    tag: "1.0.0"
+  resources:
+    requests: {cpu: 250m, memory: 256Mi}
+    limits:   {cpu: 1,    memory: 512Mi}
+  port: 9005
+  mailBridgeEndpoint: oya-mail-outbound-smtp-app.mail.svc.cluster.local:9000
+
+icsImportExport:
+  replicaCount: 2
+  image:
+    repository: registry.oyatie.dev/oya-calendar-ics-import-export-app
+    tag: "1.0.0"
+  resources:
+    requests: {cpu: 500m, memory: 512Mi}
+    limits:   {cpu: 2,    memory: 1Gi}
+  port: 9006
+  maxIcsEventsPerFile: 100000
+  maxIcsFileSizeBytes: 104857600       # 100 MiB
+
+# ---- tzdb refresh worker (ADR-CAL-0004) ---------------------------------
+
+tzdbRefreshWorker:
+  enabled: true
+  image:
+    repository: registry.oyatie.dev/oya-calendar-tzdb-refresh-worker
+    tag: "1.0.0"
+  schedule: "0 */24 * * *"             # every 24h
+  ianaReleaseUrl: "https://data.iana.org/time-zones/releases/"
+  stalenessSloDays: 30                  # per slos/tzdb-staleness-bound.openslo.yaml
+  resources:
+    requests: {cpu: 100m, memory: 128Mi}
+    limits:   {cpu: 500m, memory: 256Mi}
+
+# ---- CalDAV backends (per ADR-CAL-0001) ---------------------------------
+
+radicale:
+  enabled: true                         # primary backend for all packs
+  image:
+    repository: registry.oyatie.dev/radicale
+    tag: "3.2.3"                       # LTS pinned per ADR-CAL-0001
+  storage:
+    backend: postgres
+    postgresAddr: oya-calendar-postgres:5432
+    postgresDbRef: "${openbao:secret/calendar/{tenant}/postgres}"
+  tls:
+    enabled: true
+    minVersion: "TLSv1.3"
+    certSecretRef: "${openbao:secret/calendar/{pack}/mta-tls}"
+  resources:
+    requests: {cpu: 250m, memory: 256Mi}
+    limits:   {cpu: 1,    memory: 512Mi}
+
+sabredav:
+  enabled: false                        # enabled only via pack-us-healthcare overlay
+  image:
+    repository: registry.oyatie.dev/sabredav
+    tag: "4.6.0"                       # LTS pinned per ADR-CAL-0001
+  phpFpm:
+    image: registry.oyatie.dev/php-fpm
+    tag: "8.3-alpine"
+  resources:
+    requests: {cpu: 500m, memory: 512Mi}
+    limits:   {cpu: 2,    memory: 1Gi}
+
+# ---- Underlying state stores --------------------------------------------
+
+postgres:
+  enabled: true
+  image:
+    repository: registry.oyatie.dev/cloudnative-pg
+    tag: "16.4.0"
+  rls:
+    perTenant: true                     # PRD: per-tenant RLS on event-store
+  ha:
+    syncReplicas: 1
+    streamingReplicas: 2
+  storage:
+    size: 200Gi
+  backup:
+    s3Ref: "${openbao:secret/calendar/{pack}/backup-s3}"
+
+valkey:
+  enabled: true
+  image:
+    repository: registry.oyatie.dev/valkey-cluster
+    tag: "7.4.0"
+  clusterMode: true
+  evictionPolicy: allkeys-lru           # availability cache (free/busy)
+  resources:
+    requests: {cpu: 250m, memory: 512Mi}
+    limits:   {cpu: 1,    memory: 1Gi}
+
+# ---- HPA + PDB + NetworkPolicy + ServiceMonitor + PrometheusRule -------
+
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 70
+
+podDisruptionBudget:
+  enabled: true
+  minAvailable: "50%"
+
+networkPolicy:
+  enabled: true
+  meshOnly: true
+
+serviceMonitor:
+  enabled: true
+  interval: 30s
+
+prometheusRule:
+  enabled: true

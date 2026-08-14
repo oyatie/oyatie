@@ -24,10 +24,10 @@
       "AGENTS.md#agent-instructions",
       "specs/root-hub-pointers.json#bespoke_cloud_toolchain_services",
       "specs/bespoke-cloud-toolchain-services.json",
-      "specs/capability-registry.json#capabilities.ci",
-      "specs/capability-registry.json#capabilities.workflow",
-      "specs/capability-registry.json#capabilities.iac",
-      "specs/capability-registry.json#capabilities.k8s",
+      "governance/capability-registry.json#capabilities.ci",
+      "governance/capability-registry.json#capabilities.workflow",
+      "governance/capability-registry.json#capabilities.iac",
+      "governance/capability-registry.json#capabilities.k8s",
       "registry/fixuptasks.jsonl"
     ],
     "research_artifacts": [
@@ -99,7 +99,7 @@
   "capability_home_map": [
     {
       "home": "ci",
-      "repo_authority": "specs/capability-registry.json#capabilities.ci",
+      "repo_authority": "governance/capability-registry.json#capabilities.ci",
       "owns": [
         "change admission",
         "pipeline admission",
@@ -118,7 +118,7 @@
     },
     {
       "home": "workflow",
-      "repo_authority": "specs/capability-registry.json#capabilities.workflow",
+      "repo_authority": "governance/capability-registry.json#capabilities.workflow",
       "owns": [
         "general DAG/spec engine",
         "event-driven composition",
@@ -133,7 +133,7 @@
     },
     {
       "home": "iac",
-      "repo_authority": "specs/capability-registry.json#capabilities.iac",
+      "repo_authority": "governance/capability-registry.json#capabilities.iac",
       "owns": [
         "desired/live drift observations",
         "declarative infrastructure state",
@@ -147,7 +147,7 @@
     },
     {
       "home": "k8s",
-      "repo_authority": "specs/capability-registry.json#capabilities.k8s",
+      "repo_authority": "governance/capability-registry.json#capabilities.k8s",
       "owns": [
         "Kubernetes API/controller parity",
         "managed control-plane facade",
@@ -161,7 +161,7 @@
     },
     {
       "home": "iam",
-      "repo_authority": "specs/capability-registry.json#capabilities.iam",
+      "repo_authority": "governance/capability-registry.json#capabilities.iam",
       "owns": [
         "principal resolution",
         "tenant-scoped workload identity",
@@ -175,7 +175,7 @@
     },
     {
       "home": "compliance",
-      "repo_authority": "specs/capability-registry.json#capabilities.compliance",
+      "repo_authority": "governance/capability-registry.json#capabilities.compliance",
       "owns": [
         "audit-pack generation",
         "regulatory evidence packs",
@@ -188,7 +188,7 @@
     },
     {
       "home": "console",
-      "repo_authority": "specs/capability-registry.json#capabilities.console",
+      "repo_authority": "governance/capability-registry.json#capabilities.console",
       "owns": [
         "tenant/operator UI shell",
         "API-first operational UX replacing local CLIs"

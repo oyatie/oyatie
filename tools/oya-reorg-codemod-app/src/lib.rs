@@ -11,7 +11,7 @@
 //!
 //! The unit of operation is a [`MovePlan`]: an explicit, total list of crate-move tuples
 //! `(old_path, new_path, old_cargo_name, new_cargo_name)`. The strangler derives one plan
-//! per capability from `specs/capability-registry.json`; this tool APPLIES a plan
+//! per capability from `governance/capability-registry.json`; this tool APPLIES a plan
 //! deterministically. Keeping the plan explicit means the per-crate FACE classification
 //! (which sub-fold a crate lands in) stays the strangler's decision and out of this engine,
 //! so the engine is a pure, testable transform.

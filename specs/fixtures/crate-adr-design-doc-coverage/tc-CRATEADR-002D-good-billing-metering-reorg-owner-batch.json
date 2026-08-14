@@ -62,7 +62,7 @@
     "candidate_authority": [
       "CRATEADR-004",
       "REORG-001 handoff",
-      "specs/capability-registry.json"
+      "governance/capability-registry.json"
     ],
     "rationale": "REORG-001 selected libs/oya-metering-pipeline-kernel as the next clean leaf capability move; do not add new root-libs authority until move target is decided."
   },
@@ -115,7 +115,7 @@
       "candidate_authority_from_source_artifact": [
         "CRATEADR-004",
         "REORG-001 handoff",
-        "specs/capability-registry.json"
+        "governance/capability-registry.json"
       ],
       "coverage_expectation": {
         "kind": "reorg-target",
@@ -123,7 +123,7 @@
         "authority_refs": [
           "specs/reorg/billing-move-plan.json",
           "docs/decisions/ADR-0701-monorepo-capability-live-apex.md",
-          "specs/capability-registry.json",
+          "governance/capability-registry.json",
           "registry/catalog/billing-metering-pipeline-kernel.yaml"
         ],
         "resolution_mode": "follow-up-required",

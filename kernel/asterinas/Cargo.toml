@@ -4,7 +4,7 @@
 # workspace so its no_std / harness crates resolve independently. The bare kernel/
 # root is intentionally left manifest-free so the follow-up Kuberos move can establish
 # the single workspace + toolchain at kernel/. Placement is sanctioned by
-# specs/capability-registry.json (ADR-0562 CLOSED registry).
+# governance/capability-registry.json (ADR-0562 CLOSED registry).
 members = [
     "core/asterinas-boundary",
     "core/asterinas-abi-matrix",
