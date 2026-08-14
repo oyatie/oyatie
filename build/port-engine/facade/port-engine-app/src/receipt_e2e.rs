@@ -69,10 +69,8 @@ fn scenario_matches(s: &ScenarioResult) -> bool {
     }
 }
 
-/// Build a complete six-axis receipt. `snapshot_label` / `formatter` are hashed; engine /
-/// rulepack / toolchain digests are caller-supplied content identities.
-#[must_use]
-pub fn complete_receipt(
+/// Build a synthetic six-axis receipt for the local verification scenarios.
+fn scenario_receipt(
     pin: &str,
     snapshot_label: &str,
     formatter: &str,
@@ -173,7 +171,7 @@ pub fn run_six_axis_e2e() -> Result<SixAxisReport, E2eError> {
     let empty_b = emit_empty_tree("fmt-empty-a").map_err(E2eError::Port)?;
     let syn = emit_syn_tree("fmt-syn-b", "pub fn stub() {}").map_err(E2eError::Port)?;
 
-    let receipt_empty = complete_receipt(
+    let receipt_empty = scenario_receipt(
         &pin,
         "snapshot-empty-stub-v0",
         "fmt-empty-a",
@@ -243,11 +241,11 @@ mod tests {
     }
 
     #[test]
-    fn complete_receipt_has_no_incomplete_axes() {
+    fn scenario_receipt_has_no_incomplete_axes() {
         let engine = digest_str("engine");
         let rulepack = digest_str("rulepack");
         let toolchain = digest_str("toolchain");
-        let r = complete_receipt("pin", "snap", "fmt", &engine, &rulepack, &toolchain);
+        let r = scenario_receipt("pin", "snap", "fmt", &engine, &rulepack, &toolchain);
         assert!(r.incomplete_axes().is_empty());
         assert!(r.engine_digest.0.starts_with("sha256:"));
         assert!(r.rulepack_digest.0.starts_with("sha256:"));

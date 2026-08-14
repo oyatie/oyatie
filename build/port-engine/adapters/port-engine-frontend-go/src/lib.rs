@@ -128,7 +128,7 @@ impl GoSourceModel {
         let mut producers = Vec::with_capacity(doc.packages.len());
         let mut seen = std::collections::BTreeSet::new();
         for pkg in doc.packages {
-            if pkg.unit_id.is_empty() {
+            if pkg.unit_id.is_empty() || pkg.unit_id.contains('\0') {
                 return Err(SnapshotError::Schema {
                     field: "packages.unit_id",
                 });
@@ -237,6 +237,19 @@ mod tests {
         let json = r#"{"language":"go","snapshot_digest":"d","packages":[{"unit_id":"x","producer":"bootstrap-go-packages-go-types"},{"unit_id":"x","producer":"bootstrap-go-packages-go-types"}]}"#;
         let err = GoSourceModel::decode_str(json).expect_err("duplicate unit must refuse");
         assert!(matches!(err, SnapshotError::DuplicateUnit { .. }));
+    }
+
+    #[test]
+    fn refuses_nul_in_unit_identity() {
+        let json = r#"{"language":"go","snapshot_digest":"d","packages":[{"unit_id":"x\u0000y","producer":"bootstrap-go-packages-go-types"}]}"#;
+        let err = GoSourceModel::decode_str(json)
+            .expect_err("NUL would make the semantic snapshot preimage ambiguous");
+        assert_eq!(
+            err,
+            SnapshotError::Schema {
+                field: "packages.unit_id",
+            }
+        );
     }
 
     /// ADR-0638 D3 architecture fence: library sources used by verify must not spawn `go`.
