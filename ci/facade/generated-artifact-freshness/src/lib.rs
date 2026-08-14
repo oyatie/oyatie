@@ -473,14 +473,45 @@ fn run_face_settle_with_tools(
             assert_non_face_tree_clean(repo_root)?;
         }
     }
-    let regenerated_faces = regenerate_faces_with_tools(repo_root, tools, None)?;
     match mode {
-        FaceSettleMode::Check => check_regenerated_faces(repo_root, regenerated_faces),
-        FaceSettleMode::Verify => verify_committed_tree(repo_root, regenerated_faces),
+        // Verify mirrors the canonical freshness gate exactly: when non-PR-owned (de-committed)
+        // faces are present, regenerate twice and enforce the ADR-0595 determinism canary before
+        // certifying the committed tree, so the hook is never weaker than the gate it fronts.
+        FaceSettleMode::Verify => verify_committed_tree_with_determinism(repo_root, tools),
+        FaceSettleMode::Check => {
+            let regenerated_faces = regenerate_faces_with_tools(repo_root, tools, None)?;
+            check_regenerated_faces(repo_root, regenerated_faces)
+        }
         FaceSettleMode::Settle | FaceSettleMode::SettleAndCommit => {
+            let regenerated_faces = regenerate_faces_with_tools(repo_root, tools, None)?;
             settle_regenerated_faces(repo_root, regenerated_faces, mode)
         }
     }
+}
+
+/// Run the face-settle Verify path with the same ADR-0595 determinism canary the canonical
+/// freshness gate runs: when non-PR-owned (de-committed) faces are present, the gate regenerates
+/// TWICE and requires byte stability, because `evaluate_face_freshness` skips byte parity for
+/// that class. The pre-push hook must not be weaker than the gate it fronts, so the pinned-tools
+/// Verify path delegates here whenever the control plane declares any de-committed face.
+fn verify_committed_tree_with_determinism(
+    repo_root: &Path,
+    tools: &FaceTools,
+) -> Result<FaceSettleReport, FreshnessError> {
+    assert_committed_tree_clean(repo_root)?;
+    let decommitted = read_decommitted_face_names(repo_root);
+    if decommitted.is_empty() {
+        let regenerated_faces = regenerate_faces_with_tools(repo_root, tools, None)?;
+        return verify_committed_tree(repo_root, regenerated_faces);
+    }
+    let (first_pass, second_pass) =
+        regenerate_faces_twice_with_tools(repo_root, tools, None)?;
+    let determinism_findings = evaluate_face_determinism(&first_pass, &second_pass, &decommitted);
+    let mut report = check_repo_with_regenerated_faces(repo_root, first_pass)?;
+    report.findings.extend(determinism_findings);
+    report.findings.sort();
+    report.findings.dedup();
+    Ok(verify_committed_report(report))
 }
 
 fn pinned_face_tools(repo_root: &Path, tools_dir: &Path) -> Result<FaceTools, FreshnessError> {
@@ -553,13 +584,22 @@ pub fn install_pre_push_verifier_tools(
     Ok(())
 }
 
-/// Write the installed-verifier manifest (protocol version) next to the installed hook. The hook
-/// reads this at push time and fails closed with a reinstall requirement when the version is
-/// missing or stale.
-pub fn write_pre_push_verifier_manifest(hooks_dir: &Path) -> Result<(), FreshnessError> {
+/// Write the installed-verifier manifest (protocol version + pinned tool fingerprints + generator
+/// source fingerprint) next to the installed hook. The hook reads this at push time and fails
+/// closed with a reinstall requirement when the version, any pinned tool build, or the generator
+/// source the tools were built from is missing or stale.
+pub fn write_pre_push_verifier_manifest(
+    hooks_dir: &Path,
+    tools_dir: &Path,
+    repo_root: &Path,
+) -> Result<(), FreshnessError> {
     let path = hooks_dir.join(PRE_PUSH_VERIFIER_MANIFEST_FILE);
+    let tool_fingerprints = pinned_tool_fingerprints(tools_dir)?;
+    let source_fingerprint = generator_source_fingerprint(repo_root)?;
     let manifest = serde_json::json!({
         "protocol_version": PRE_PUSH_VERIFIER_PROTOCOL_VERSION,
+        "tool_fingerprints": tool_fingerprints,
+        "generator_source_fingerprint": source_fingerprint,
     });
     let text = serde_json::to_string_pretty(&manifest).map_err(|error| {
         FreshnessError::new(format!(
@@ -574,10 +614,17 @@ pub fn write_pre_push_verifier_manifest(hooks_dir: &Path) -> Result<(), Freshnes
     })
 }
 
-/// Read the installed-verifier manifest and require it to match the embedded protocol version.
+/// Read the installed-verifier manifest and require it to match the embedded protocol version AND
+/// the currently installed pinned tool builds AND the repository's current generator source.
 /// Returns the recorded version; fails closed (with an explicit reinstall requirement) when the
-/// manifest is missing, malformed, or stale.
-pub fn read_pre_push_verifier_manifest(hooks_dir: &Path) -> Result<u32, FreshnessError> {
+/// manifest is missing, malformed, stale, bound to different pinned tool binaries than the ones
+/// installed next to the hook, or bound to generator source that the repository has since changed
+/// (a generator update that leaves the Buck label and protocol integer untouched is still caught).
+pub fn read_pre_push_verifier_manifest(
+    hooks_dir: &Path,
+    tools_dir: &Path,
+    repo_root: &Path,
+) -> Result<u32, FreshnessError> {
     let path = hooks_dir.join(PRE_PUSH_VERIFIER_MANIFEST_FILE);
     let text = std::fs::read_to_string(&path).map_err(|error| {
         FreshnessError::new(format!(
@@ -605,7 +652,137 @@ pub fn read_pre_push_verifier_manifest(hooks_dir: &Path) -> Result<u32, Freshnes
             "installed pre-push verifier protocol {installed} is out of date (repository requires {PRE_PUSH_VERIFIER_PROTOCOL_VERSION}) — reinstall the hook (buck2 run //ci/facade/generated-artifact-freshness:oya-pre-push-verify-bin -- install)"
         )));
     }
+    let recorded = value
+        .get("tool_fingerprints")
+        .and_then(|value| value.as_object())
+        .ok_or_else(|| {
+            FreshnessError::new(format!(
+                "pre-push verifier manifest {} lacks tool_fingerprints",
+                path.display()
+            ))
+        })?;
+    let current = pinned_tool_fingerprints(tools_dir)?;
+    for (name, expected) in recorded {
+        let expected = expected.as_str().unwrap_or_default();
+        let actual = current
+            .get(name.as_str())
+            .and_then(|value| value.as_str())
+            .unwrap_or_default();
+        if expected.is_empty() || actual.is_empty() || expected != actual {
+            return Err(FreshnessError::new(format!(
+                "installed pre-push verifier tool `{name}` does not match the pinned build this hook was installed with — reinstall the hook (buck2 run //ci/facade/generated-artifact-freshness:oya-pre-push-verify-bin -- install)"
+            )));
+        }
+    }
+    let recorded_source = value
+        .get("generator_source_fingerprint")
+        .and_then(|value| value.as_str())
+        .ok_or_else(|| {
+            FreshnessError::new(format!(
+                "pre-push verifier manifest {} lacks generator_source_fingerprint",
+                path.display()
+            ))
+        })?;
+    let current_source = generator_source_fingerprint(repo_root)?;
+    if recorded_source != current_source {
+        return Err(FreshnessError::new(format!(
+            "repository generator source changed since this hook was installed (pinned tools would verify with stale generators) — reinstall the hook (buck2 run //ci/facade/generated-artifact-freshness:oya-pre-push-verify-bin -- install)"
+        )));
+    }
     Ok(installed)
+}
+
+/// Content fingerprints of the pinned generator tool binaries (FNV-1a 64-bit over the file bytes),
+/// keyed by the fixed install names. Binds the install manifest to the ACTUAL pinned builds so a
+/// replaced or partially-updated pinned tool makes the handshake fail closed with a reinstall
+/// requirement.
+fn pinned_tool_fingerprints(tools_dir: &Path) -> Result<serde_json::Map<String, serde_json::Value>, FreshnessError> {
+    let mut fingerprints = serde_json::Map::new();
+    for name in [
+        PRE_PUSH_TOOL_EMITTER,
+        PRE_PUSH_TOOL_PRODUCER,
+        PRE_PUSH_TOOL_MASTERPLAN_GENERATOR,
+        PRE_PUSH_TOOL_ARCHITECTURE_GRAPH_GENERATOR,
+    ] {
+        let path = tools_dir.join(name);
+        let bytes = std::fs::read(&path).map_err(|error| {
+            FreshnessError::new(format!(
+                "read pinned pre-push verifier tool {}: {error}",
+                path.display()
+            ))
+        })?;
+        fingerprints.insert(name.to_owned(), serde_json::json!(fnv1a64_hex(&bytes)));
+    }
+    Ok(fingerprints)
+}
+
+/// Fingerprint of the tracked Rust source of the four generator crates the pinned tools are built
+/// from. Read strictly as DATA (never executed) at both install and push time, so a generator
+/// source change that leaves the Buck label and protocol integer untouched still makes the
+/// handshake fail closed with a reinstall requirement instead of silently verifying with stale
+/// pinned generators.
+fn generator_source_fingerprint(repo_root: &Path) -> Result<String, FreshnessError> {
+    let mut paths = Vec::new();
+    for dir in [
+        "ci/facade/scm-facts-snapshot/src",
+        "ci/facade/artifact-inventory-registry/src",
+        "tools/oya-architecture-graph-generator-app/src",
+        "marketplace/facade/dev-cli/src",
+        "ci/facade/generated-artifact-freshness/src",
+    ] {
+        let root = repo_root.join(dir);
+        collect_rs_files(&root, &mut paths)?;
+    }
+    paths.sort();
+    let mut hash = String::new();
+    for path in &paths {
+        let bytes = std::fs::read(path).map_err(|error| {
+            FreshnessError::new(format!(
+                "read generator source {}: {error}",
+                path.display()
+            ))
+        })?;
+        hash.push_str(&fnv1a64_hex(&bytes));
+        hash.push('\n');
+    }
+    Ok(hash)
+}
+
+fn collect_rs_files(dir: &Path, out: &mut Vec<PathBuf>) -> Result<(), FreshnessError> {
+    let entries = std::fs::read_dir(dir).map_err(|error| {
+        FreshnessError::new(format!(
+            "read generator source dir {}: {error}",
+            dir.display()
+        ))
+    })?;
+    for entry in entries {
+        let entry = entry.map_err(|error| {
+            FreshnessError::new(format!(
+                "read generator source entry in {}: {error}",
+                dir.display()
+            ))
+        })?;
+        let path = entry.path();
+        if path.is_dir() {
+            collect_rs_files(&path, out)?;
+        } else if path.extension().and_then(|ext| ext.to_str()) == Some("rs") {
+            out.push(path);
+        }
+    }
+    Ok(())
+}
+
+/// FNV-1a 64-bit content fingerprint, hex-encoded. Deterministic across platforms; used for
+/// change detection (not a security hash).
+fn fnv1a64_hex(bytes: &[u8]) -> String {
+    const OFFSET: u64 = 0xcbf29ce484222325;
+    const PRIME: u64 = 0x100000001b3;
+    let mut hash = OFFSET;
+    for byte in bytes {
+        hash ^= u64::from(*byte);
+        hash = hash.wrapping_mul(PRIME);
+    }
+    format!("{hash:016x}")
 }
 
 /// Fail closed when the repository's generated-face protocol differs from the one this verifier
@@ -1248,6 +1425,13 @@ pub fn verify_committed_tree(
     // tracked path in the working tree is byte-identical to HEAD, so this check IS the
     // freshness-gate check performed on a clean CI checkout of this commit.
     let report = check_repo_with_regenerated_faces(repo_root, regenerated_faces)?;
+    Ok(verify_committed_report(report))
+}
+
+/// Render a [`CheckReport`] into the face-settle verify report (message, stale faces, lock
+/// findings). Shared by the single-regeneration path and the determinism-canary path so both
+/// certify exactly the same verdict contract.
+fn verify_committed_report(report: CheckReport) -> FaceSettleReport {
     let stale_faces: Vec<String> = report
         .findings
         .iter()
@@ -1281,13 +1465,13 @@ pub fn verify_committed_tree(
             sections.join("\n")
         )
     };
-    Ok(FaceSettleReport {
+    FaceSettleReport {
         message,
         stale_faces,
         lock_findings,
         staged_faces: Vec::new(),
         committed: false,
-    })
+    }
 }
 
 pub fn settle_regenerated_faces(
@@ -1774,6 +1958,17 @@ fn regenerate_faces_twice_with_buck2_with_retirement(
     retirement: Option<&RetirementMaterializeArgs>,
 ) -> Result<(RegeneratedFaces, RegeneratedFaces), FreshnessError> {
     let tools = build_face_tools(repo_root)?;
+    regenerate_faces_twice_with_tools(repo_root, &tools, retirement)
+}
+
+/// Regenerate the faces TWICE with PREBUILT generator tools (no buck2 invocation). The
+/// pre-push hook's verify path uses this when non-PR-owned (de-committed) faces are present,
+/// mirroring the canonical freshness gate's ADR-0595 determinism canary.
+fn regenerate_faces_twice_with_tools(
+    repo_root: &Path,
+    tools: &FaceTools,
+    retirement: Option<&RetirementMaterializeArgs>,
+) -> Result<(RegeneratedFaces, RegeneratedFaces), FreshnessError> {
     let scm_facts = temporary_scm_facts_path()?;
     let cleanup = TempFileCleanup {
         path: scm_facts.clone(),
@@ -1782,9 +1977,9 @@ fn regenerate_faces_twice_with_buck2_with_retirement(
     let volatile_cleanup = TempFileCleanup {
         path: volatile_facts.clone(),
     };
-    emit_scm_facts(&tools, repo_root, &scm_facts, &volatile_facts)?;
-    let first = regenerate_all_faces(&tools, repo_root, &scm_facts, retirement)?;
-    let second = regenerate_all_faces(&tools, repo_root, &scm_facts, retirement)?;
+    emit_scm_facts(tools, repo_root, &scm_facts, &volatile_facts)?;
+    let first = regenerate_all_faces(tools, repo_root, &scm_facts, retirement)?;
+    let second = regenerate_all_faces(tools, repo_root, &scm_facts, retirement)?;
     drop(cleanup);
     drop(volatile_cleanup);
     Ok((first, second))
@@ -4634,6 +4829,22 @@ mod pre_push_verifier_protocol_tests {
         root
     }
 
+    /// Create a fake pinned-tools dir with the four fixed tool names so manifest round-trips and
+    /// stale-tool fingerprint checks have something concrete to fingerprint.
+    fn fixture_tools_dir(root: &Path) -> PathBuf {
+        let tools = root.join(PRE_PUSH_VERIFIER_TOOLS_DIR);
+        std::fs::create_dir_all(&tools).expect("create tools dir");
+        for name in [
+            PRE_PUSH_TOOL_EMITTER,
+            PRE_PUSH_TOOL_PRODUCER,
+            PRE_PUSH_TOOL_MASTERPLAN_GENERATOR,
+            PRE_PUSH_TOOL_ARCHITECTURE_GRAPH_GENERATOR,
+        ] {
+            std::fs::write(tools.join(name), format!("fake {name} binary\n")).expect("write tool");
+        }
+        tools
+    }
+
     fn write_protocol_fixture(root: &Path, protocol_version: u32, extra_face: Option<&str>) {
         let lib_dir = root.join("ci/facade/generated-artifact-freshness/src");
         std::fs::create_dir_all(&lib_dir).expect("create lib dir");
@@ -4642,6 +4853,19 @@ mod pre_push_verifier_protocol_tests {
             format!("pub const PRE_PUSH_VERIFIER_PROTOCOL_VERSION: u32 = {protocol_version};\n"),
         )
         .expect("write lib.rs");
+        // The generator-source fingerprint reads the five generator crate src dirs as data, so the
+        // fixture must materialize them for manifest round-trips that bind to the source.
+        for dir in [
+            "ci/facade/scm-facts-snapshot/src",
+            "ci/facade/artifact-inventory-registry/src",
+            "tools/oya-architecture-graph-generator-app/src",
+            "marketplace/facade/dev-cli/src",
+            "ci/facade/generated-artifact-freshness/src",
+        ] {
+            let src = root.join(dir);
+            std::fs::create_dir_all(&src).expect("create generator src dir");
+            std::fs::write(src.join("mod.rs"), "// fixture\n").expect("write generator mod");
+        }
         let mut artifacts: Vec<serde_json::Value> = GENERATED_FACE_PATHS
             .iter()
             .map(|path| {
@@ -4667,16 +4891,24 @@ mod pre_push_verifier_protocol_tests {
 
     #[test]
     fn write_then_read_manifest_matches_embedded_protocol() {
-        let hooks = temp_root("oya-pre-push-manifest-roundtrip");
-        write_pre_push_verifier_manifest(&hooks).expect("write");
-        let version = read_pre_push_verifier_manifest(&hooks).expect("read");
+        let root = temp_root("oya-pre-push-manifest-roundtrip");
+        write_protocol_fixture(&root, PRE_PUSH_VERIFIER_PROTOCOL_VERSION, None);
+        let hooks = root.join("hooks");
+        std::fs::create_dir_all(&hooks).expect("create hooks dir");
+        let tools = fixture_tools_dir(&root);
+        write_pre_push_verifier_manifest(&hooks, &tools, &root).expect("write");
+        let version = read_pre_push_verifier_manifest(&hooks, &tools, &root).expect("read");
         assert_eq!(version, PRE_PUSH_VERIFIER_PROTOCOL_VERSION);
     }
 
     #[test]
     fn missing_manifest_fails_closed_with_reinstall() {
-        let hooks = temp_root("oya-pre-push-manifest-missing");
-        let error = read_pre_push_verifier_manifest(&hooks).expect_err("missing");
+        let root = temp_root("oya-pre-push-manifest-missing");
+        write_protocol_fixture(&root, PRE_PUSH_VERIFIER_PROTOCOL_VERSION, None);
+        let hooks = root.join("hooks");
+        std::fs::create_dir_all(&hooks).expect("create hooks dir");
+        let tools = fixture_tools_dir(&root);
+        let error = read_pre_push_verifier_manifest(&hooks, &tools, &root).expect_err("missing");
         let text = error.to_string();
         assert!(text.contains("missing"), "{text}");
         assert!(text.contains("reinstall"), "{text}");
@@ -4684,15 +4916,59 @@ mod pre_push_verifier_protocol_tests {
 
     #[test]
     fn stale_manifest_fails_closed_with_reinstall() {
-        let hooks = temp_root("oya-pre-push-manifest-stale");
+        let root = temp_root("oya-pre-push-manifest-stale");
+        write_protocol_fixture(&root, PRE_PUSH_VERIFIER_PROTOCOL_VERSION, None);
+        let hooks = root.join("hooks");
+        std::fs::create_dir_all(&hooks).expect("create hooks dir");
+        let tools = fixture_tools_dir(&root);
         std::fs::write(
             hooks.join(PRE_PUSH_VERIFIER_MANIFEST_FILE),
             "{\n  \"protocol_version\": 0\n}\n",
         )
         .expect("write stale");
-        let error = read_pre_push_verifier_manifest(&hooks).expect_err("stale");
+        let error = read_pre_push_verifier_manifest(&hooks, &tools, &root).expect_err("stale");
         let text = error.to_string();
         assert!(text.contains("out of date"), "{text}");
+        assert!(text.contains("reinstall"), "{text}");
+    }
+
+    #[test]
+    fn changed_pinned_tool_fails_closed_with_reinstall() {
+        let root = temp_root("oya-pre-push-manifest-tool-drift");
+        write_protocol_fixture(&root, PRE_PUSH_VERIFIER_PROTOCOL_VERSION, None);
+        let hooks = root.join("hooks");
+        std::fs::create_dir_all(&hooks).expect("create hooks dir");
+        let tools = fixture_tools_dir(&root);
+        write_pre_push_verifier_manifest(&hooks, &tools, &root).expect("write");
+        // Mutate one pinned tool after install: the manifest fingerprint must no longer match.
+        std::fs::write(tools.join(PRE_PUSH_TOOL_PRODUCER), "replaced producer binary\n")
+            .expect("mutate tool");
+        let error = read_pre_push_verifier_manifest(&hooks, &tools, &root).expect_err("tool drift");
+        let text = error.to_string();
+        assert!(text.contains(PRE_PUSH_TOOL_PRODUCER), "{text}");
+        assert!(text.contains("reinstall"), "{text}");
+    }
+
+    #[test]
+    fn changed_generator_source_fails_closed_with_reinstall() {
+        let root = temp_root("oya-pre-push-manifest-source-drift");
+        write_protocol_fixture(&root, PRE_PUSH_VERIFIER_PROTOCOL_VERSION, None);
+        let hooks = root.join("hooks");
+        std::fs::create_dir_all(&hooks).expect("create hooks dir");
+        let tools = fixture_tools_dir(&root);
+        write_pre_push_verifier_manifest(&hooks, &tools, &root).expect("write");
+        // The generator source fingerprint is a data hash of the generator crate src dirs: mutate a
+        // generator source file (no Buck label, no protocol integer change) and the handshake must
+        // fail closed with a reinstall requirement.
+        std::fs::write(
+            root.join("ci/facade/artifact-inventory-registry/src/mod.rs"),
+            "// fixture changed\n",
+        )
+        .expect("mutate generator source");
+        let error =
+            read_pre_push_verifier_manifest(&hooks, &tools, &root).expect_err("source drift");
+        let text = error.to_string();
+        assert!(text.contains("generator source changed"), "{text}");
         assert!(text.contains("reinstall"), "{text}");
     }
 
