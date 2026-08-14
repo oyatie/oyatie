@@ -1,0 +1,13 @@
+# Hub waiver — capability-registry membership-lint admission on integ/hr
+# Fields: branch, hub, reason (specs/integ-branch-envelopes.json#hubs.waiver_row_fields)
+branch: integ/hr
+hub: governance/capability-registry.json
+reason: >-
+  Membership-lint admission for app/hr (membership_lint_coverage.app_products.current_dirs
+  += app/hr) on the integ/hr absorb PR (#1677): gate-required for ci-module-membership
+  (MEM-NEW-UNMAPPED-CRATE) while the legacy oya/hr copies stay live on origin/dev.
+  The registry path itself remains hub sole-owned; this waiver only authorizes the
+  app/hr admission row on the absorb wave, expiring at the integ/hr drain.
+wave: integ-hr-absorb-capability-registry-admission-20260814
+
+expires_at_or_wave: wave-after-integ-hr-drain
