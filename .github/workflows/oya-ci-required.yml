@@ -124,8 +124,10 @@ jobs:
       - name: Workspace tests
         run: cargo test --locked --workspace
       # kernel/ is a nested workspace (ADR-0512 carve-out) the root workspace excludes.
+      # The ADR-0611 asterinas workspace root lives at kernel/asterinas/ (PR #1962);
+      # the bare kernel/ root is intentionally manifest-free for the follow-up Kuberos move.
       - name: Kernel workspace tests
-        run: cargo test --locked --manifest-path kernel/Cargo.toml
+        run: cargo test --locked --manifest-path kernel/asterinas/Cargo.toml
       # Live hub-exclusivity admission: rejects a second open PR touching a hub path
       # declared under specs/integ-branch-envelopes.json#hubs.paths.
       - name: Live hub-exclusivity admission
