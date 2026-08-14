@@ -3037,8 +3037,8 @@
           "lane_id": "retired (#1960): ci-build-cache-policy-gate"
         },
         "verification": {
-          "checker_crate": "retired (#1960): ci/facade/build-cache-policy gate crate (deleted from dev)",
-          "command": "python3 -m json.tool specs/cache-endpoints.json >/dev/null"
+          "checker_crate": "ci/facade/canonical-json",
+          "command": "buck2 test //ci/facade/canonical-json:ci-canonical-json-gate"
         },
         "validation": {
           "validator": "Review-only reference DATA (no live gate since the Rust cache-policy gate was retired by #1960): endpoint grammar and distinct writer/reader roles are checked by review, and the hand-maintained warm-cache buckconfig overlays plus the nativelink-cas.k8s.yaml Service/NetworkPolicy bindings must match the reference profile in the same change."
