@@ -9,9 +9,9 @@
 use std::fmt;
 
 use port_engine_api::{Digest, SourceModel, UnitId};
-use port_engine_frontend_go::{GoSourceModel, SnapshotError, PRODUCER_BOOTSTRAP_GO};
+use port_engine_frontend_go::{GoSourceModel, PRODUCER_BOOTSTRAP_GO, SnapshotError};
 use port_engine_hash::digest_bytes;
-use port_engine_source_pin::{load_embedded, receipt_pin, PinError};
+use port_engine_source_pin::{PinError, load_embedded, receipt_pin};
 
 /// Embedded OOB bootstrap snapshot fixture (hermetic; not produced in-process).
 const FIXTURE_SNAPSHOT_JSON: &str = include_str!("fixture-snapshot-v0.json");
@@ -28,6 +28,13 @@ pub enum AdmitError {
     Snapshot(SnapshotError),
     /// Fleet pin could not load.
     Pin(PinError),
+    /// The two extractor passes did not produce byte-identical snapshots.
+    SnapshotMismatch {
+        /// SHA-256 digest of the first raw snapshot artifact.
+        first: Digest,
+        /// SHA-256 digest of the second raw snapshot artifact.
+        second: Digest,
+    },
     /// Claimed `snapshot_digest` does not match the stable preimage hash.
     DigestMismatch {
         /// Digest claimed in the artifact.
@@ -47,6 +54,11 @@ impl fmt::Display for AdmitError {
         match self {
             Self::Snapshot(err) => write!(f, "snapshot admit decode failed: {err}"),
             Self::Pin(err) => write!(f, "snapshot admit pin failed: {err}"),
+            Self::SnapshotMismatch { first, second } => write!(
+                f,
+                "snapshot extractor passes differ: first `{}`, second `{}`",
+                first.0, second.0
+            ),
             Self::DigestMismatch { claimed, computed } => write!(
                 f,
                 "snapshot admit digest mismatch: claimed `{claimed}`, computed `{computed}`"
@@ -65,23 +77,63 @@ impl std::error::Error for AdmitError {}
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct AdmittedSnapshot {
     /// Fleet pin (peeled commit) bound at admission.
-    pub pin: String,
-    /// Verified content digest (`sha256:<hex>` of the stable preimage).
-    pub snapshot_digest: Digest,
+    pin: String,
+    /// SHA-256 digest of the byte-identical raw snapshot artifact.
+    artifact_digest: Digest,
+    /// Verified semantic digest claimed inside the artifact.
+    model_digest: Digest,
     /// Decoded SourceModel (identity + order only).
-    pub model: GoSourceModel,
+    model: GoSourceModel,
 }
 
 impl AdmittedSnapshot {
+    /// Fleet pin bound during admission.
+    #[must_use]
+    pub fn pin(&self) -> &str {
+        &self.pin
+    }
+
+    /// Digest of the raw byte-identical artifact pair.
+    #[must_use]
+    pub fn artifact_digest(&self) -> &Digest {
+        &self.artifact_digest
+    }
+
+    /// Verified semantic digest claimed by the decoded model.
+    #[must_use]
+    pub fn model_digest(&self) -> &Digest {
+        &self.model_digest
+    }
+
     /// Borrow the underlying [`SourceModel`].
     #[must_use]
     pub fn as_model(&self) -> &dyn SourceModel {
-        &self.model
+        self
     }
 
     /// Unit ids in deterministic order.
     #[must_use]
     pub fn units(&self) -> Vec<UnitId> {
+        self.model.units()
+    }
+
+    /// Producer identity recorded for `unit`.
+    #[must_use]
+    pub fn producer_for(&self, unit: &UnitId) -> Option<&str> {
+        self.model.producer_for(unit)
+    }
+}
+
+impl SourceModel for AdmittedSnapshot {
+    fn language(&self) -> &str {
+        self.model.language()
+    }
+
+    fn snapshot_digest(&self) -> Digest {
+        self.artifact_digest.clone()
+    }
+
+    fn units(&self) -> Vec<UnitId> {
         self.model.units()
     }
 }
@@ -104,11 +156,25 @@ pub fn snapshot_preimage(language: &str, units_and_producers: &[(&str, &str)]) -
     out
 }
 
-/// Admit snapshot JSON bytes against the fleet pin.
+/// Admit two byte-identical snapshot artifacts against the fleet pin.
 ///
 /// # Errors
+/// [`AdmitError::SnapshotMismatch`] when the two extractor passes differ, or another
 /// [`AdmitError`] on decode, pin, language, or digest mismatch.
-pub fn admit_bytes(bytes: &[u8]) -> Result<AdmittedSnapshot, AdmitError> {
+pub fn admit_reproducible_pair(
+    first: &[u8],
+    second: &[u8],
+) -> Result<AdmittedSnapshot, AdmitError> {
+    if first != second {
+        return Err(AdmitError::SnapshotMismatch {
+            first: digest_bytes(first),
+            second: digest_bytes(second),
+        });
+    }
+    admit_one(first, digest_bytes(first))
+}
+
+fn admit_one(bytes: &[u8], artifact_digest: Digest) -> Result<AdmittedSnapshot, AdmitError> {
     let model = GoSourceModel::decode(bytes).map_err(AdmitError::Snapshot)?;
     if model.language() != "go" {
         return Err(AdmitError::Language {
@@ -121,7 +187,7 @@ pub fn admit_bytes(bytes: &[u8]) -> Result<AdmittedSnapshot, AdmitError> {
     for unit in &units {
         let producer = model
             .producer_for(unit)
-            .ok_or_else(|| AdmitError::Snapshot(SnapshotError::Schema {
+            .ok_or(AdmitError::Snapshot(SnapshotError::Schema {
                 field: "packages.producer",
             }))?
             .to_owned();
@@ -143,17 +209,23 @@ pub fn admit_bytes(bytes: &[u8]) -> Result<AdmittedSnapshot, AdmitError> {
     let pin = load_embedded().map_err(AdmitError::Pin)?;
     Ok(AdmittedSnapshot {
         pin: receipt_pin(&pin),
-        snapshot_digest: computed,
+        artifact_digest,
+        model_digest: computed,
         model,
     })
 }
 
 /// Admit the package-local OOB bootstrap fixture.
 ///
+/// The embedded fixture has one hermetic byte source, so pairing it with itself exercises normal
+/// admission without pretending that a second extractor execution occurred. External extractor
+/// output must enter through [`admit_reproducible_pair`] with two independently produced artifacts.
+///
 /// # Errors
 /// [`AdmitError`] on fixture defect.
 pub fn admit_embedded_fixture() -> Result<AdmittedSnapshot, AdmitError> {
-    admit_bytes(FIXTURE_SNAPSHOT_JSON.as_bytes())
+    let bytes = FIXTURE_SNAPSHOT_JSON.as_bytes();
+    admit_reproducible_pair(bytes, bytes)
 }
 
 #[cfg(test)]
@@ -168,14 +240,22 @@ mod tests {
     #[test]
     fn embedded_fixture_admits_and_binds_pin() {
         let admitted = admit_embedded_fixture().expect("fixture must admit");
-        assert!(!admitted.pin.is_empty());
+        assert!(!admitted.pin().is_empty());
         assert_eq!(
-            admitted.snapshot_digest.0,
+            admitted.model_digest().0,
             "sha256:b541cdee7bcb23984d8d56171e66f66fdbec027b40a06953105540d5915b33fb"
+        );
+        assert_eq!(
+            admitted.artifact_digest(),
+            &digest_bytes(FIXTURE_SNAPSHOT_JSON.as_bytes())
+        );
+        assert_eq!(
+            admitted.as_model().snapshot_digest(),
+            admitted.artifact_digest().clone()
         );
         assert_eq!(admitted.units().len(), 2);
         assert_eq!(
-            admitted.model.producer_for(&UnitId("example.com/a".into())),
+            admitted.producer_for(&UnitId("example.com/a".into())),
             Some(PRODUCER_BOOTSTRAP_GO)
         );
     }
@@ -189,8 +269,44 @@ mod tests {
     {"unit_id": "example.com/a", "producer": "bootstrap-go-packages-go-types"}
   ]
 }"#;
-        let err = admit_bytes(json.as_bytes()).expect_err("bad digest must refuse");
+        let bytes = json.as_bytes();
+        let err = admit_reproducible_pair(bytes, bytes).expect_err("bad digest must refuse");
         assert!(matches!(err, AdmitError::DigestMismatch { .. }));
+    }
+
+    #[test]
+    fn refuses_byte_drift_between_extractor_passes() {
+        let first = FIXTURE_SNAPSHOT_JSON.as_bytes();
+        let mut second = first.to_vec();
+        second.push(b'\n');
+
+        let err = admit_reproducible_pair(first, &second)
+            .expect_err("semantically equivalent snapshots with byte drift must refuse");
+        assert_eq!(
+            err,
+            AdmitError::SnapshotMismatch {
+                first: digest_bytes(first),
+                second: digest_bytes(&second),
+            }
+        );
+    }
+
+    #[test]
+    fn refuses_non_go_bootstrap_language() {
+        let json = r#"{
+  "language": "rust",
+  "snapshot_digest": "sha256:unused",
+  "packages": []
+}"#;
+        let bytes = json.as_bytes();
+        let err = admit_reproducible_pair(bytes, bytes)
+            .expect_err("bootstrap admission must refuse a non-Go language");
+        assert_eq!(
+            err,
+            AdmitError::Language {
+                actual: "rust".to_owned(),
+            }
+        );
     }
 
     #[test]

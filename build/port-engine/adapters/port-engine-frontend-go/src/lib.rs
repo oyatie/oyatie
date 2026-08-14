@@ -8,7 +8,7 @@
 
 use std::fmt;
 
-use port_engine_api::{Digest, SourceModel, UnitId};
+use port_engine_api::{Digest, UnitId};
 use serde::Deserialize;
 
 /// Canonical bootstrap extractor identity (ADR-0638 D3).
@@ -50,9 +50,14 @@ pub enum SnapshotError {
 impl fmt::Display for SnapshotError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Parse { detail } => write!(f, "source-model snapshot JSON parse failed: {detail}"),
+            Self::Parse { detail } => {
+                write!(f, "source-model snapshot JSON parse failed: {detail}")
+            }
             Self::Schema { field } => {
-                write!(f, "source-model snapshot schema missing or invalid: {field}")
+                write!(
+                    f,
+                    "source-model snapshot schema missing or invalid: {field}"
+                )
             }
             Self::UnknownProducer { actual } => write!(
                 f,
@@ -91,7 +96,7 @@ pub struct GoSourceModel {
 }
 
 impl GoSourceModel {
-    /// Decode snapshot JSON bytes into a [`SourceModel`].
+    /// Decode snapshot JSON bytes into an unadmitted Go model.
     ///
     /// # Errors
     /// [`SnapshotError`] on parse failure, schema violation, unknown producer, or duplicate unit.
@@ -107,13 +112,12 @@ impl GoSourceModel {
     /// # Errors
     /// [`SnapshotError`] on parse failure, schema violation, unknown producer, or duplicate unit.
     pub fn decode_str(json: &str) -> Result<Self, SnapshotError> {
-        let doc: SnapshotDocument = serde_json::from_str(json).map_err(|err| SnapshotError::Parse {
-            detail: err.to_string(),
-        })?;
+        let doc: SnapshotDocument =
+            serde_json::from_str(json).map_err(|err| SnapshotError::Parse {
+                detail: err.to_string(),
+            })?;
         if doc.language.is_empty() {
-            return Err(SnapshotError::Schema {
-                field: "language",
-            });
+            return Err(SnapshotError::Schema { field: "language" });
         }
         if doc.snapshot_digest.is_empty() {
             return Err(SnapshotError::Schema {
@@ -150,6 +154,24 @@ impl GoSourceModel {
         })
     }
 
+    /// Source-language slug claimed by the decoded snapshot.
+    #[must_use]
+    pub fn language(&self) -> &str {
+        &self.language
+    }
+
+    /// Semantic digest claimed by the decoded snapshot.
+    #[must_use]
+    pub fn snapshot_digest(&self) -> Digest {
+        self.snapshot_digest.clone()
+    }
+
+    /// Units in decoded snapshot order.
+    #[must_use]
+    pub fn units(&self) -> Vec<UnitId> {
+        self.units.clone()
+    }
+
     /// Producer identity for `unit`, if present in the snapshot map.
     #[must_use]
     pub fn producer_for(&self, unit: &UnitId) -> Option<&str> {
@@ -162,20 +184,6 @@ impl GoSourceModel {
 
 fn producers_at(model: &GoSourceModel, idx: usize) -> &str {
     &model.producers[idx]
-}
-
-impl SourceModel for GoSourceModel {
-    fn language(&self) -> &str {
-        &self.language
-    }
-
-    fn snapshot_digest(&self) -> Digest {
-        self.snapshot_digest.clone()
-    }
-
-    fn units(&self) -> Vec<UnitId> {
-        self.units.clone()
-    }
 }
 
 #[cfg(test)]
@@ -200,7 +208,10 @@ mod tests {
     fn decodes_ordered_units_and_producers() {
         let model = GoSourceModel::decode_str(FIXTURE).expect("fixture must decode");
         assert_eq!(model.language(), "go");
-        assert_eq!(model.snapshot_digest(), Digest("sha256:fixture-slice4".into()));
+        assert_eq!(
+            model.snapshot_digest(),
+            Digest("sha256:fixture-slice4".into())
+        );
         assert_eq!(
             model.units(),
             vec![
