@@ -6,6 +6,17 @@ doc_status: published
 
 # Changelog
 
+## 2026-08-14 — NativeLink cache endpoint DATA and cold-boundary hardening
+
+- Added [`specs/cache-endpoints.json`](../specs/cache-endpoints.json) as the validated active
+  writer/reader address and REAPI instance source materialized into private Buck2 configuration.
+- Updated the laptop CAS runbook to distinguish hand-managed lab preflight from the fleet profile,
+  and bound the in-cluster endpoint DATA to NativeLink Services, target ports, listeners,
+  instances, ingress/runner-egress NetworkPolicies, and the server-certificate SAN preflight.
+- Hardened declared-cold execution so a bypass child cannot inherit a stale warm Buck2 daemon and
+  its receipt must prove zero remote-cache participation. Warm licensing and required/fork authority
+  remain unchanged.
+
 ## 2026-08-12 — Masterplan stale inline sequencing digest removed
 
 - Normalized the one `masterplan_v2.planning_entry_contract.no_dispatch_stop_conditions`

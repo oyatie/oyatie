@@ -12,6 +12,7 @@ doc_status: published
 | `toolchains/cache/` | Execution platform with `remote_cache_enabled` + `allow_cache_uploads` (defaults false) |
 | `infra/ci/buckconfig/warm-cache-rw.buckconfig` | In-cluster writer overlay (dark while license false) |
 | `infra/ci/buckconfig/warm-cache-ro.buckconfig` | In-cluster reader overlay |
+| `specs/cache-endpoints.json` | Sole in-cluster NativeLink address + REAPI instance source; validated writer/reader profiles |
 | `specs/cache-warmth-policy.json` | Per-class warmth / read / write |
 | `specs/cache-warm-license.json` | **Kill-switch** — `warm_reads_licensed: false` until GREEN canary |
 
@@ -29,7 +30,11 @@ Point `[buck2_re_client]` at:
 - Local: `grpcs://127.0.0.1:50051` (writer) / `:50052` (reader)
 - After tunnel: `grpcs://cas-writer.lab.oyatie.dev` / `cas-reader.lab.oyatie.dev`
 
-Client mTLS: materialize mode-0600 `.buckconfig.local` from `~/oyatie-cas/tls/client-{writer,reader}.{crt,key}` + `ca.crt` — same resolver contract as the in-cluster overlays (identity never in the committed overlay).
+Materialize a mode-0600 `.buckconfig.local` from
+`~/oyatie-cas/tls/client-{writer,reader}.{crt,key}` and `ca.crt`. These lab overlays are
+hand-managed preflight and do not pass through the fleet endpoint profile or its `grpc://`
+materialization grammar. They mirror production identity hygiene only; identity never belongs in a
+committed overlay.
 
 ## Opt-in classes (policy already lists; license gates reads)
 

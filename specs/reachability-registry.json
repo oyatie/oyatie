@@ -706,6 +706,10 @@
       "prefix": "specs/agentic-operating-patterns.json"
     },
     {
+      "anchor": "ADR-0703 preserved ADR-0556 D1 pack-shaped cache policy: repository-specific NativeLink addresses and the REAPI instance live in DATA consumed by the cache-wiring resolver and conformance gate.",
+      "prefix": "specs/cache-endpoints.json"
+    },
+    {
       "anchor": "ADR-0560 D2 (executing ADR-0556 D2): the warm-license kill-switch DATA read by the cache-wiring resolver and pinned by its conformance gate; ships warm_reads_licensed=false until the first GREEN canary against a live substrate",
       "prefix": "specs/cache-warm-license.json"
     },
