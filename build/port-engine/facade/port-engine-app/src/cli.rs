@@ -235,7 +235,7 @@ fn cmd_admit_snapshot() -> ExitCode {
                 "admit-snapshot=ok pin={} digest={} units={}",
                 admitted.pin(),
                 admitted.artifact_digest().0,
-                admitted.units().len()
+                admitted.as_model().units().len()
             );
             ExitCode::SUCCESS
         }

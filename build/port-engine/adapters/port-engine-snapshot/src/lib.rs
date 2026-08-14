@@ -47,6 +47,13 @@ pub enum AdmitError {
         /// Language found on the artifact.
         actual: String,
     },
+    /// A producer is not authorized during bootstrap admission.
+    ProducerNotAuthorized {
+        /// Unit whose producer is premature.
+        unit: String,
+        /// Producer identity found on the artifact.
+        actual: String,
+    },
 }
 
 impl fmt::Display for AdmitError {
@@ -66,6 +73,11 @@ impl fmt::Display for AdmitError {
             Self::Language { actual } => write!(
                 f,
                 "snapshot admit language must be `go` for bootstrap admission, got `{actual}`"
+            ),
+            Self::ProducerNotAuthorized { unit, actual } => write!(
+                f,
+                "snapshot admit producer for unit `{unit}` must be `{PRODUCER_BOOTSTRAP_GO}` before \
+                 front-end equivalence, got `{actual}`"
             ),
         }
     }
@@ -111,12 +123,6 @@ impl AdmittedSnapshot {
         self
     }
 
-    /// Unit ids in deterministic order.
-    #[must_use]
-    pub fn units(&self) -> Vec<UnitId> {
-        self.model.units()
-    }
-
     /// Producer identity recorded for `unit`.
     #[must_use]
     pub fn producer_for(&self, unit: &UnitId) -> Option<&str> {
@@ -138,22 +144,27 @@ impl SourceModel for AdmittedSnapshot {
     }
 }
 
-/// Stable admission preimage: `language\\0` then each `unit_id\\0producer\\0` in model order.
+/// Stable admission preimage: length-prefixed language, then each length-prefixed unit and
+/// producer in model order.
 ///
-/// Chosen so the digest covers language + package→producer mapping without JSON canonicalization
-/// debates (ADR-0638: composed artifact + mapping + schema covered by `snapshot_digest`).
+/// Decimal byte lengths followed by `:` make the encoding injective even when a field contains a
+/// delimiter. The digest therefore covers language + package→producer mapping without relying on
+/// JSON canonicalization or cross-crate character restrictions.
 #[must_use]
 pub fn snapshot_preimage(language: &str, units_and_producers: &[(&str, &str)]) -> Vec<u8> {
     let mut out = Vec::new();
-    out.extend_from_slice(language.as_bytes());
-    out.push(0);
+    push_field(&mut out, language);
     for (unit, producer) in units_and_producers {
-        out.extend_from_slice(unit.as_bytes());
-        out.push(0);
-        out.extend_from_slice(producer.as_bytes());
-        out.push(0);
+        push_field(&mut out, unit);
+        push_field(&mut out, producer);
     }
     out
+}
+
+fn push_field(out: &mut Vec<u8>, value: &str) {
+    out.extend_from_slice(value.len().to_string().as_bytes());
+    out.push(b':');
+    out.extend_from_slice(value.as_bytes());
 }
 
 /// Admit two byte-identical snapshot artifacts against the fleet pin.
@@ -185,13 +196,19 @@ fn admit_one(bytes: &[u8], artifact_digest: Digest) -> Result<AdmittedSnapshot, 
     let units = model.units();
     let mut pairs: Vec<(String, String)> = Vec::with_capacity(units.len());
     for unit in &units {
-        let producer = model
-            .producer_for(unit)
-            .ok_or(AdmitError::Snapshot(SnapshotError::Schema {
-                field: "packages.producer",
-            }))?
-            .to_owned();
-        pairs.push((unit.0.clone(), producer));
+        let producer =
+            model
+                .producer_for(unit)
+                .ok_or(AdmitError::Snapshot(SnapshotError::Schema {
+                    field: "packages.producer",
+                }))?;
+        if producer != PRODUCER_BOOTSTRAP_GO {
+            return Err(AdmitError::ProducerNotAuthorized {
+                unit: unit.0.clone(),
+                actual: producer.to_owned(),
+            });
+        }
+        pairs.push((unit.0.clone(), producer.to_owned()));
     }
     let refs: Vec<(&str, &str)> = pairs
         .iter()
@@ -238,12 +255,21 @@ mod tests {
     }
 
     #[test]
+    fn semantic_preimage_is_injective_across_field_boundaries() {
+        let producer = PRODUCER_BOOTSTRAP_GO;
+        let embedded_delimiters = format!("x\0{producer}\0y");
+        let one_unit = snapshot_preimage("go", &[(embedded_delimiters.as_str(), producer)]);
+        let two_units = snapshot_preimage("go", &[("x", producer), ("y", producer)]);
+        assert_ne!(one_unit, two_units);
+    }
+
+    #[test]
     fn embedded_fixture_admits_and_binds_pin() {
         let admitted = admit_embedded_fixture().expect("fixture must admit");
         assert!(!admitted.pin().is_empty());
         assert_eq!(
             admitted.model_digest().0,
-            "sha256:b541cdee7bcb23984d8d56171e66f66fdbec027b40a06953105540d5915b33fb"
+            "sha256:5a3bca44537be2cc8d1cb909616b741e8e4e1d1b879dc231e40dfc56d75e3f7a"
         );
         assert_eq!(
             admitted.artifact_digest(),
@@ -253,7 +279,7 @@ mod tests {
             admitted.as_model().snapshot_digest(),
             admitted.artifact_digest().clone()
         );
-        assert_eq!(admitted.units().len(), 2);
+        assert_eq!(admitted.as_model().units().len(), 2);
         assert_eq!(
             admitted.producer_for(&UnitId("example.com/a".into())),
             Some(PRODUCER_BOOTSTRAP_GO)
@@ -305,6 +331,35 @@ mod tests {
             err,
             AdmitError::Language {
                 actual: "rust".to_owned(),
+            }
+        );
+    }
+
+    #[test]
+    fn refuses_owned_frontend_before_equivalence() {
+        let unit = "example.com/a";
+        let digest = digest_bytes(&snapshot_preimage(
+            "go",
+            &[(unit, port_engine_frontend_go::PRODUCER_OWNED_RUST)],
+        ));
+        let json = format!(
+            r#"{{
+  "language": "go",
+  "snapshot_digest": "{}",
+  "packages": [
+    {{"unit_id": "{unit}", "producer": "owned-rust-go-front-end"}}
+  ]
+}}"#,
+            digest.0
+        );
+        let bytes = json.as_bytes();
+        let err = admit_reproducible_pair(bytes, bytes)
+            .expect_err("owned front end needs the later equivalence authorization");
+        assert_eq!(
+            err,
+            AdmitError::ProducerNotAuthorized {
+                unit: unit.to_owned(),
+                actual: port_engine_frontend_go::PRODUCER_OWNED_RUST.to_owned(),
             }
         );
     }
