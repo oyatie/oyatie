@@ -27,7 +27,7 @@ rfc_2119_active: true
 
 ## Verification
 
-- `cargo fmt --check` / `cargo test` (or targeted equivalents) — `<PASS|FAIL>` — `<excerpt>`
+- `cargo fmt --check` / `cargo clippy` / `cargo test` (or targeted equivalents) — `<PASS|FAIL>` — `<excerpt>`
 - `oya-ci-required` PR context — `<PASS|PENDING>` — `<check URL>`
 
 ## Code Review

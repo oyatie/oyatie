@@ -6,6 +6,16 @@ doc_status: published
 
 # Changelog
 
+## 2026-08-14 — Cargo CI producer env parity (ADR-0719)
+
+- The cargo merge path (ADR-0716) supplies the two fail-closed cross-artifact
+  tests through the workflow env (`OYA_HISTORY_ONLY_RETIREMENT_FACTS` and
+  `OYA_ADR_INDEX_PRODUCER_BIN`); the "Build enforcement-liveness producer" step
+  also builds the ADR-index producer binary. The automation-language-policy
+  inline-shell ratchet records the run-content change through a reviewed
+  replacement window (this ADR). Canonical docs touched: `docs/decisions/ADR-0719-*`,
+  `docs/templates/pull-request-template.md`, `templates/pull-request-template.md`.
+
 ## 2026-08-14 — Cargo merge path + slim PR paperwork (ADR-0716)
 
 - The required CI executes the Cargo workspace graph (`cargo fmt` differential, clippy,

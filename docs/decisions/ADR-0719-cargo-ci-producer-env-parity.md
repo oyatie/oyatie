@@ -64,3 +64,93 @@ ADR absent from the protected merge-base).
 The two fail-closed cross-artifact tests run green under the exact CI env; the
 automation-language-policy ceiling stays enforced for every other workflow
 step. No digest, edge, or ordering data is touched.
+
+### Concrete file and crate changes
+
+| Path / Crate | Change type | BNF v4.1 name | Layer |
+|---|---|---|---|
+| `.github/workflows/oya-ci-required.yml` | update | — | — |
+| `docs/decisions/ADR-0719-cargo-ci-producer-env-parity.md` | create | — | — |
+
+No Rust crate or workspace member changes in this ADR: the two env keys are
+consumed by the already-live fail-closed cross-artifact tests
+(`ci/facade/cross-artifact-agreement` and the materialized-face consumers) and
+the ADR-index producer binary is built from the existing
+`marketplace/facade/dev-cli` crate. The only workflow content change is the
+"Build enforcement-liveness producer" step additionally building the
+`oya` binary (`cargo build --locked -p marketplace-dev-cli --bin oya`).
+
+### Integration via Workflow + Ontology
+
+Not applicable — this ADR changes CI producer environment wiring only; it does
+not emit or consume Workflow events, and it writes no Ontology Object or Link
+Types.
+
+### Positive
+- The two fail-closed cross-artifact tests run green under the exact CI env
+  without developer-local exports.
+- The automation-language-policy inline-shell ratchet stays shrink-only: the
+  run-content change lands through a reviewed replacement window, not a
+  silent workflow edit.
+
+### Negative
+- CI depends on a debug-profile binary path (`target/debug/oya`); a profile
+  or layout change would need a coordinated env-key update.
+- The producer step builds one additional binary on every test run.
+
+### Operational
+- No new CI lane; the `test (workspace + gates)` lane carries the two env keys
+  and the extended producer step.
+- ADR-0346 verification posture: the retired `./bin/oya verify --ci-required`
+  path is historical/provenance-only; required verification is the
+  `oya-ci-required` context and the Rust gate fleet.
+
+---
+
+## Clean Architecture Impact
+
+No crate, layer, or port boundary changes: this ADR only supplies two
+environment keys to the existing cargo test job and extends one workflow step's
+build. All six LEAN lanes are therefore "Not affected".
+
+| Lane | Impact | Action required |
+|---|---|---|
+| `dependency-direction` (LEAN-A1) | Not affected | none |
+| `cross-product-refusal` (LEAN-A2) | Not affected | none |
+| `port-location` | Not affected | none |
+| `layer-correctness` | Not affected | none |
+| `composition-root-only` | Not affected | none |
+| `sdk-kernel-only` | Not affected | none |
+
+No port traits are introduced by this decision.
+
+---
+
+## Alternatives Considered
+
+**Alternative 1 — Set the env keys as run-step env on each consuming step**
+- Description: declare the two keys inline on each step that needs them
+  instead of at job level.
+- Pros: scopes the keys to exactly the consuming steps.
+- Cons: duplicates the values across steps and makes the fail-closed tests
+  depend on per-step env propagation; a future step that needs the same keys
+  must remember to re-declare them.
+- Reason rejected: job-level env is the CI-native single declaration point and
+  matches how the other gate inputs (`OYA_*`) are already supplied.
+
+**Alternative 2 — Let the tests locate artifacts via buck2 `$(location)` only**
+- Description: keep the fail-closed tests buck2-only, as before ADR-0716.
+- Pros: no workflow env changes needed.
+- Cons: contradicts ADR-0716 (cargo workspace graph is the merge path) and
+  leaves the tests failing closed under `cargo test --workspace`.
+- Reason rejected: ADR-0716 made the Cargo graph the CI merge path; the env-key
+  bridge is the minimal way to keep the same fail-closed tests green there.
+
+---
+
+## References
+
+- ADR-0716: Cargo is the CI merge path; buck2 is local hermeticity plus weekly smoke
+- ADR-0515: single protected `oya-ci-required` context
+- Related oyatie ADRs: ADR-0716, ADR-0515
+- Issues: `Refs #1975`
