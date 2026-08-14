@@ -16,8 +16,8 @@
       "lockfile_path": "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-aarch64-adapter/tests-host/Cargo.lock"
     },
     {
-      "manifest_path": "kernel/Cargo.toml",
-      "lockfile_path": "kernel/Cargo.lock"
+      "manifest_path": "kernel/asterinas/Cargo.toml",
+      "lockfile_path": "kernel/asterinas/Cargo.lock"
     }
   ],
   "min_lockfiles": 4,

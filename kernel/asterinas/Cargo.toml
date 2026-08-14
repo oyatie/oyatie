@@ -1,0 +1,19 @@
+[workspace]
+# ADR-0611 Asterinas nested-workspace home (ADR-0512 carve-out): kernel/asterinas/ is
+# rung-0 for the asterinas boundary + harness crates, separate from the root Cargo
+# workspace so its no_std / harness crates resolve independently. The bare kernel/
+# root is intentionally left manifest-free so the follow-up Kuberos move can establish
+# the single workspace + toolchain at kernel/. Placement is sanctioned by
+# specs/capability-registry.json (ADR-0562 CLOSED registry).
+members = [
+    "core/asterinas-boundary",
+    "core/asterinas-abi-matrix",
+    "harness/asterinas-real-boot",
+    "harness/asterinas-abi-probe",
+]
+resolver = "2"
+
+[workspace.package]
+edition = "2024"
+version = "0.1.0"
+rust-version = "1.97.1"

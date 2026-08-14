@@ -567,7 +567,6 @@ dependencies = [
  "wasm-bindgen",
 ]
 
-
 [[package]]
 name = "kernel-asterinas-abi-matrix"
 version = "0.1.0"
