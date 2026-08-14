@@ -25,12 +25,14 @@ use std::{
 };
 
 use ci_build_cache_policy as app;
+use serde::Deserialize;
 use serde_json::{Value, json};
 use serde_yaml::Value as YamlValue;
 
 const CANARY_WORKFLOW_PATH: &str = ".github/workflows/cache-integrity-canary.yml";
 const CANARY_SCHEDULE_WORKFLOW_PATH: &str = ".github/workflows/cache-integrity-canary-schedule.yml";
 const REQUIRED_WORKFLOW_PATH: &str = ".github/workflows/oya-ci-required.yml";
+const NATIVELINK_MANIFEST_PATH: &str = "storage/adapters/nativelink/nativelink-cas.k8s.yaml";
 const COLD_REQUIRED_FLOOR: [&str; 4] = [
     "release-production-image",
     "integrity-canary",
@@ -351,7 +353,7 @@ fn included_cache_pattern(raw_path: &str) -> Result<Option<&str>, String> {
     Ok(Some(pattern))
 }
 
-fn action_steps<'a>(doc: &'a YamlValue) -> Vec<(&'a str, &'a [YamlValue])> {
+fn action_steps(doc: &YamlValue) -> Vec<(&str, &[YamlValue])> {
     let mut scopes = Vec::new();
     if let Some(jobs) = doc.get("jobs").and_then(YamlValue::as_mapping) {
         for (job_name, job) in jobs {
@@ -751,10 +753,11 @@ fn kill_switch_flips_warm_classes_and_only_warm_classes() {
 #[test]
 fn overlays_parse_select_the_cache_platform_and_carry_no_identity() {
     let root = repo_root();
-    for (path, uploads, endpoint_marker) in [
-        (app::OVERLAY_RW_PATH, "true", "nativelink-cas-writer"),
-        (app::OVERLAY_RO_PATH, "false", "nativelink-cas-reader"),
-    ] {
+    let endpoints = app::load_endpoint_profile(&root).expect("load endpoint profile");
+    for mode in [app::CacheMode::WarmReadWrite, app::CacheMode::WarmReadOnly] {
+        let binding = app::cache_mode_binding(&endpoints, mode).expect("warm mode binding");
+        let path = binding.overlay_path;
+        let uploads = binding.allows_uploads.to_string();
         let text =
             std::fs::read_to_string(root.join(path)).unwrap_or_else(|e| panic!("read {path}: {e}"));
         let cfg = app::parse_buckconfig(&text);
@@ -777,7 +780,7 @@ fn overlays_parse_select_the_cache_platform_and_carry_no_identity() {
             .get("buck2")
             .and_then(|section| section.get("default_allow_cache_upload"))
             .map(String::as_str);
-        if uploads == "true" {
+        if binding.allows_uploads {
             assert_eq!(
                 default_upload,
                 Some("true"),
@@ -796,12 +799,13 @@ fn overlays_parse_select_the_cache_platform_and_carry_no_identity() {
             .unwrap_or_else(|| panic!("{path}: no [buck2_re_client]"));
         assert_eq!(re["tls"], "true", "{path}: keyed transport is TLS-only");
         for key in ["engine_address", "cas_address", "action_cache_address"] {
-            assert!(
-                re[key].contains(endpoint_marker),
-                "{path}: {key} must point at the {endpoint_marker} endpoint, got {}",
-                re[key]
+            assert_eq!(
+                re[key],
+                app::RE_ADDRESS_TOKEN,
+                "{path}: {key} must be materialized from endpoint DATA"
             );
         }
+        assert_eq!(re["instance_name"], app::INSTANCE_NAME_TOKEN, "{path}");
         assert!(
             !re.contains_key("tls_client_cert"),
             "{path}: the keyed identity must come from secret-mounted env at emit time, \
@@ -810,6 +814,127 @@ fn overlays_parse_select_the_cache_platform_and_carry_no_identity() {
         assert!(
             !text.contains("PRIVATE KEY") && !text.to_lowercase().contains("api-key"),
             "{path}: secret material in a checked-in overlay"
+        );
+
+        let resolution = app::Resolution {
+            build_class: "fixture".to_string(),
+            mode,
+            reasons: Vec::new(),
+        };
+        let effective = app::effective_buckconfig(
+            &resolution,
+            &text,
+            Some(&endpoints),
+            Some("/run/secrets/cache-client.pem"),
+            Some("/run/secrets/cache-server-ca.pem"),
+        )
+        .expect("materialize endpoint DATA")
+        .expect("warm config");
+        let effective = app::parse_buckconfig(&effective);
+        let effective_re = &effective["buck2_re_client"];
+        for key in ["engine_address", "cas_address", "action_cache_address"] {
+            assert_eq!(
+                effective_re[key],
+                binding.endpoint.re_address(),
+                "{path}: {key}"
+            );
+        }
+        assert_eq!(
+            effective_re["instance_name"],
+            endpoints.instance_name(),
+            "{path}"
+        );
+        assert!(
+            effective_re
+                .values()
+                .all(|value| !value.contains("__CACHE_")),
+            "{path}: effective config retained a materialization token"
+        );
+    }
+}
+
+#[test]
+fn endpoint_data_matches_the_nativelink_services_and_instances() {
+    let root = repo_root();
+    let endpoints = app::load_endpoint_profile(&root).expect("load endpoint profile");
+    let manifest = std::fs::read_to_string(root.join(NATIVELINK_MANIFEST_PATH))
+        .expect("read NativeLink manifest");
+    let documents = serde_yaml::Deserializer::from_str(&manifest)
+        .map(|document| YamlValue::deserialize(document).expect("parse NativeLink YAML document"))
+        .collect::<Vec<_>>();
+
+    let config_map = documents
+        .iter()
+        .find(|document| {
+            document.get("kind").and_then(YamlValue::as_str) == Some("ConfigMap")
+                && document
+                    .get("metadata")
+                    .and_then(|metadata| metadata.get("name"))
+                    .and_then(YamlValue::as_str)
+                    == Some("nativelink-cas-config")
+        })
+        .expect("NativeLink config ConfigMap");
+    let config_text = config_map
+        .get("data")
+        .and_then(|data| data.get("cas.json"))
+        .and_then(YamlValue::as_str)
+        .expect("NativeLink cas.json");
+    let config: Value = serde_json::from_str(config_text).expect("parse NativeLink cas.json");
+    let servers = config["servers"].as_array().expect("NativeLink servers");
+
+    for (role, endpoint, read_only) in [
+        ("writer", endpoints.writer(), false),
+        ("reader", endpoints.reader(), true),
+    ] {
+        let service_name = format!("nativelink-cas-{role}");
+        let service = documents
+            .iter()
+            .find(|document| {
+                document.get("kind").and_then(YamlValue::as_str) == Some("Service")
+                    && document
+                        .get("metadata")
+                        .and_then(|metadata| metadata.get("name"))
+                        .and_then(YamlValue::as_str)
+                        == Some(service_name.as_str())
+            })
+            .unwrap_or_else(|| panic!("NativeLink {role} Service"));
+        let namespace = service["metadata"]["namespace"]
+            .as_str()
+            .expect("Service namespace");
+        let port = service["spec"]["ports"][0]["port"]
+            .as_u64()
+            .expect("Service port");
+        assert_eq!(
+            endpoint.socket_address(),
+            format!("{service_name}.{namespace}.svc.cluster.local:{port}")
+        );
+
+        let server = servers
+            .iter()
+            .find(|server| server["name"].as_str() == Some(role))
+            .unwrap_or_else(|| panic!("NativeLink {role} server"));
+        assert_eq!(
+            server["listener"]["http"]["socket_address"]
+                .as_str()
+                .expect("listener socket"),
+            format!("0.0.0.0:{port}")
+        );
+        for service_kind in ["cas", "ac", "capabilities", "bytestream"] {
+            let instances = server["services"][service_kind]
+                .as_array()
+                .unwrap_or_else(|| panic!("{role} {service_kind} instances"));
+            assert!(!instances.is_empty(), "{role} {service_kind} is empty");
+            assert!(
+                instances.iter().all(|instance| {
+                    instance["instance_name"].as_str() == Some(endpoints.instance_name())
+                }),
+                "{role} {service_kind} instance drifted from endpoint DATA"
+            );
+        }
+        assert_eq!(
+            server["services"]["ac"][0]["read_only"].as_bool(),
+            Some(read_only),
+            "{role} AC posture"
         );
     }
 }

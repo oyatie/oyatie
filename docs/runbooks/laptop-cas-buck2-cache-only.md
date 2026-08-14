@@ -29,7 +29,9 @@ Point `[buck2_re_client]` at:
 - Local: `grpcs://127.0.0.1:50051` (writer) / `:50052` (reader)
 - After tunnel: `grpcs://cas-writer.lab.oyatie.dev` / `cas-reader.lab.oyatie.dev`
 
-Client mTLS: materialize mode-0600 `.buckconfig.local` from `~/oyatie-cas/tls/client-{writer,reader}.{crt,key}` + `ca.crt` — same resolver contract as the in-cluster overlays (identity never in the committed overlay).
+These lab overlays are hand-managed preflight and do not pass through the fleet endpoint profile or
+its `grpc://` materialization grammar. Their mode-0600 client mTLS files mirror the production
+identity hygiene only; identity never belongs in a committed overlay.
 
 ## Opt-in classes (policy already lists; license gates reads)
 

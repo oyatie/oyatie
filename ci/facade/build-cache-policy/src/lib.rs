@@ -6,8 +6,10 @@
 //!   this crate re-decides nothing, it only enforces the policy fail-closed);
 //! - the canary-licensed kill-switch comes from `/specs/cache-warm-license.json`
 //!   (the mechanical carrier of the ADR-0556 D2 trust-invariant clause (b));
+//! - endpoint addresses and the REAPI instance come from `/specs/cache-endpoints.json`;
 //! - the opt-in overlays live under `infra/ci/buckconfig/`; the controller
-//!   materializes the selected effective config privately for one child daemon.
+//!   fills their endpoint tokens and materializes the selected effective config
+//!   privately for one child daemon.
 //!
 //! Fail-closed everywhere: unknown class -> bypass, unlicensed -> bypass, the
 //! canary class -> bypass unconditionally, warm emission without a keyed identity
@@ -27,6 +29,8 @@ use sha2::{Digest, Sha256};
 pub const POLICY_PATH: &str = "specs/cache-warmth-policy.json";
 /// Repo-relative path of the ADR-0560 warm-license kill-switch.
 pub const LICENSE_PATH: &str = "specs/cache-warm-license.json";
+/// Repo-relative endpoint and REAPI instance policy (single source).
+pub const ENDPOINTS_PATH: &str = "specs/cache-endpoints.json";
 /// Repo-relative path of the warm read+write overlay (writer endpoint).
 pub const OVERLAY_RW_PATH: &str = "infra/ci/buckconfig/warm-cache-rw.buckconfig";
 /// Repo-relative path of the warm read-only overlay (reader endpoint).
@@ -42,12 +46,84 @@ pub const OPENBAO_CA_ENV: &str = "OYA_OPENBAO_CA_CERT";
 /// Public CA that validates the NativeLink server certificate. This is not the
 /// OpenBao HTTPS CA and must never be derived from it.
 pub const CACHE_SERVER_CA_ENV: &str = "OYA_CACHE_TLS_SERVER_CA_CERT";
+/// Overlay token replaced from the validated endpoint profile before Buck2 starts.
+pub const RE_ADDRESS_TOKEN: &str = "__CACHE_RE_ADDRESS__";
+/// Overlay token replaced from the validated endpoint profile before Buck2 starts.
+pub const INSTANCE_NAME_TOKEN: &str = "__CACHE_INSTANCE_NAME__";
 /// Schema id of the structured per-lane cache-hit report artifact.
 pub const CACHE_HIT_REPORT_SCHEMA: &str = "oya-ci/cache-hit-report/v1";
 /// Schema id of the canary digest manifest artifact.
 pub const DIGEST_MANIFEST_SCHEMA: &str = "oya-ci/canary-digest-manifest/v1";
 /// Schema id of the canary verdict artifact.
 pub const CANARY_VERDICT_SCHEMA: &str = "oya-ci/canary-verdict/v1";
+
+/// One NativeLink listener in both Buck2 and direct-socket forms.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CacheEndpoint {
+    re_address: String,
+    socket_address: String,
+}
+
+/// Validated endpoint profile for one repository.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CacheEndpointProfile {
+    instance_name: String,
+    writer: CacheEndpoint,
+    reader: CacheEndpoint,
+}
+
+impl CacheEndpoint {
+    pub fn re_address(&self) -> &str {
+        &self.re_address
+    }
+
+    pub fn socket_address(&self) -> &str {
+        &self.socket_address
+    }
+}
+
+impl CacheEndpointProfile {
+    pub fn instance_name(&self) -> &str {
+        &self.instance_name
+    }
+
+    pub fn writer(&self) -> &CacheEndpoint {
+        &self.writer
+    }
+
+    pub fn reader(&self) -> &CacheEndpoint {
+        &self.reader
+    }
+}
+
+/// The single role binding for a warm mode: overlay, endpoint, and upload posture.
+#[derive(Debug, Clone, Copy)]
+pub struct CacheModeBinding<'a> {
+    pub overlay_path: &'static str,
+    pub endpoint: &'a CacheEndpoint,
+    pub allows_uploads: bool,
+}
+
+/// Resolve all role-specific cache wiring from one match so controller and
+/// conformance code cannot independently pair an overlay with the wrong listener.
+pub fn cache_mode_binding(
+    profile: &CacheEndpointProfile,
+    mode: CacheMode,
+) -> Option<CacheModeBinding<'_>> {
+    match mode {
+        CacheMode::Bypass => None,
+        CacheMode::WarmReadOnly => Some(CacheModeBinding {
+            overlay_path: OVERLAY_RO_PATH,
+            endpoint: &profile.reader,
+            allows_uploads: false,
+        }),
+        CacheMode::WarmReadWrite => Some(CacheModeBinding {
+            overlay_path: OVERLAY_RW_PATH,
+            endpoint: &profile.writer,
+            allows_uploads: true,
+        }),
+    }
+}
 
 /// The resolved cache posture for one build invocation.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -100,6 +176,154 @@ fn bool_field(value: &Value, key: &str) -> Result<bool, String> {
         .get(key)
         .and_then(Value::as_bool)
         .ok_or_else(|| format!("required boolean field `{key}` missing or non-boolean"))
+}
+
+fn required_string(value: &Value, key: &str) -> Result<String, String> {
+    value
+        .get(key)
+        .and_then(Value::as_str)
+        .filter(|value| !value.is_empty())
+        .map(str::to_owned)
+        .ok_or_else(|| format!("required string field `{key}` missing or empty"))
+}
+
+fn validate_socket_address(value: &str) -> Result<(), String> {
+    if value.chars().any(char::is_whitespace)
+        || value.contains(['/', '?', '#', '@'])
+        || value.matches(':').count() != 1
+    {
+        return Err(format!(
+            "cache socket address `{value}` must use host:decimal-port grammar"
+        ));
+    }
+    let (host, port_text) = value
+        .split_once(':')
+        .ok_or_else(|| format!("cache socket address `{value}` is missing a port"))?;
+    let valid_host = !host.is_empty()
+        && host.len() <= 253
+        && host.split('.').all(|label| {
+            !label.is_empty()
+                && label.len() <= 63
+                && label
+                    .bytes()
+                    .all(|byte| byte.is_ascii_alphanumeric() || byte == b'-')
+                && label
+                    .as_bytes()
+                    .first()
+                    .is_some_and(u8::is_ascii_alphanumeric)
+                && label
+                    .as_bytes()
+                    .last()
+                    .is_some_and(u8::is_ascii_alphanumeric)
+        });
+    if !valid_host {
+        return Err(format!(
+            "cache socket address `{value}` contains an invalid host"
+        ));
+    }
+    if port_text.is_empty() || !port_text.bytes().all(|byte| byte.is_ascii_digit()) {
+        return Err(format!(
+            "cache socket address `{value}` contains an invalid port"
+        ));
+    }
+    let port = port_text
+        .parse::<u16>()
+        .map_err(|_| format!("cache socket address `{value}` contains an invalid port"))?;
+    if port == 0 || port.to_string() != port_text {
+        return Err(format!(
+            "cache socket address `{value}` contains a non-canonical port"
+        ));
+    }
+    Ok(())
+}
+
+fn parse_endpoint(value: &Value, role: &str) -> Result<CacheEndpoint, String> {
+    if !value.is_object() {
+        return Err(format!(
+            "cache endpoint role `{role}` missing or non-object"
+        ));
+    }
+    let re_address = required_string(value, "re_address")?;
+    let socket_address = required_string(value, "socket_address")?;
+    validate_socket_address(&socket_address)?;
+    let re_socket = re_address.strip_prefix("grpc://").ok_or_else(|| {
+        format!("cache endpoint role `{role}` re_address must use grpc://host:port grammar")
+    })?;
+    validate_socket_address(re_socket)?;
+    if re_socket != socket_address {
+        return Err(format!(
+            "cache endpoint role `{role}` re_address and socket_address disagree"
+        ));
+    }
+    Ok(CacheEndpoint {
+        re_address,
+        socket_address,
+    })
+}
+
+/// Parse and validate one named profile from already-decoded endpoint policy DATA.
+pub fn parse_endpoint_profile(
+    policy: &Value,
+    profile_name: &str,
+) -> Result<CacheEndpointProfile, String> {
+    if policy.get("policy_id").and_then(Value::as_str) != Some("cache-endpoints") {
+        return Err("cache endpoint policy requires policy_id `cache-endpoints`".to_string());
+    }
+    if policy.get("schema_version").and_then(Value::as_str) != Some("1.0.0") {
+        return Err("cache endpoint policy requires schema_version `1.0.0`".to_string());
+    }
+    if policy.get("adr").and_then(Value::as_str) != Some("ADR-0700") {
+        return Err("cache endpoint policy requires adr `ADR-0700`".to_string());
+    }
+    let profile = policy
+        .get("profiles")
+        .and_then(|profiles| profiles.get(profile_name))
+        .filter(|profile| profile.is_object())
+        .ok_or_else(|| format!("cache endpoint profile `{profile_name}` missing or non-object"))?;
+    let instance_name = required_string(profile, "instance_name")?;
+    if instance_name.len() > 255
+        || instance_name.contains("__CACHE_")
+        || !instance_name
+            .bytes()
+            .all(|byte| byte.is_ascii_alphanumeric() || matches!(byte, b'.' | b'_' | b'/' | b'-'))
+    {
+        return Err(
+            "cache endpoint instance_name must be 1..=255 ASCII characters from \
+             [A-Za-z0-9._/-] and must not contain cache materialization tokens"
+                .to_string(),
+        );
+    }
+    let writer = profile
+        .get("writer")
+        .ok_or_else(|| "cache endpoint role `writer` missing".to_string())
+        .and_then(|value| parse_endpoint(value, "writer"))?;
+    let reader = profile
+        .get("reader")
+        .ok_or_else(|| "cache endpoint role `reader` missing".to_string())
+        .and_then(|value| parse_endpoint(value, "reader"))?;
+    if writer.socket_address == reader.socket_address {
+        return Err("cache endpoint writer and reader must be distinct listeners".to_string());
+    }
+    Ok(CacheEndpointProfile {
+        instance_name,
+        writer,
+        reader,
+    })
+}
+
+fn parse_active_endpoint_profile(policy: &Value) -> Result<CacheEndpointProfile, String> {
+    let active_profile = required_string(policy, "active_profile")?;
+    parse_endpoint_profile(policy, &active_profile)
+}
+
+/// Load and fail-closed validate one repository's NativeLink endpoint profile.
+pub fn load_endpoint_profile(root: &Path) -> Result<CacheEndpointProfile, String> {
+    let path = root.join(ENDPOINTS_PATH);
+    let text =
+        fs::read_to_string(&path).map_err(|error| format!("read {}: {error}", path.display()))?;
+    let policy: Value = serde_json::from_str(&text)
+        .map_err(|error| format!("parse {}: {error}", path.display()))?;
+    parse_active_endpoint_profile(&policy)
 }
 
 /// Load + structurally validate the warmth policy.
@@ -216,18 +440,73 @@ pub fn resolve(policy: &Value, license: &Value, build_class: &str) -> Result<Res
     })
 }
 
+/// Return the first fail-closed path-shape/readability reason for a mounted
+/// cache identity file, or `None` when the path is a usable regular file.
+pub fn identity_path_unusable(path: Option<&str>) -> Option<&'static str> {
+    let Some(path) = path.filter(|path| !path.trim().is_empty()) else {
+        return Some("absent");
+    };
+    if path.contains(['\n', '\r']) {
+        return Some("contains a newline");
+    }
+    let path = Path::new(path);
+    if !path.is_absolute() {
+        return Some("is not absolute");
+    }
+    let Ok(metadata) = fs::metadata(path) else {
+        return Some("is unreadable");
+    };
+    if !metadata.is_file() || metadata.len() == 0 {
+        return Some("is not a non-empty regular file");
+    }
+    if fs::File::open(path).is_err() {
+        return Some("is unreadable");
+    }
+    None
+}
+
+/// Downgrade a warm resolution to declared cold when its mounted identity path
+/// is absent, path-invalid, or unreadable. This check runs before the controller
+/// emits any Buck2 RE config. PEM/key parse or correspondence faults remain hard
+/// errors in the controller: only path availability is a cold fallback.
+pub fn require_usable_identity_or_bypass(
+    mut resolution: Resolution,
+    client_cert: Option<&str>,
+    tls_ca_certs: Option<&str>,
+) -> Resolution {
+    if resolution.mode == CacheMode::Bypass {
+        return resolution;
+    }
+    let client_finding = identity_path_unusable(client_cert);
+    let ca_finding = identity_path_unusable(tls_ca_certs);
+    if client_finding.is_some() || ca_finding.is_some() {
+        resolution.mode = CacheMode::Bypass;
+        resolution.reasons.push(format!(
+            "warm cache identity unavailable: client certificate {}; server CA {} — declared \
+             cold before Buck2 startup",
+            client_finding.unwrap_or("usable"),
+            ca_finding.unwrap_or("usable")
+        ));
+    }
+    resolution
+}
+
 /// Materialize the effective project configuration Buck2 actually reads at daemon
 /// startup. `--config*` is deliberately not emitted: Buck2 does not apply those
 /// flags to `buck2_re_client`, so doing so would produce an inert warm-cache claim.
 pub fn effective_buckconfig(
     resolution: &Resolution,
     overlay: &str,
+    endpoints: Option<&CacheEndpointProfile>,
     client_cert: Option<&str>,
     tls_ca_certs: Option<&str>,
 ) -> Result<Option<String>, String> {
     match resolution.mode {
         CacheMode::Bypass => Ok(None),
         CacheMode::WarmReadOnly | CacheMode::WarmReadWrite => {
+            let endpoints = endpoints.ok_or_else(|| {
+                "warm mode requires a validated cache endpoint profile".to_string()
+            })?;
             let cert = client_cert.filter(|c| !c.trim().is_empty()).ok_or_else(|| {
                 format!(
                     "warm mode `{}` requires the keyed mTLS client identity: set {CLIENT_CERT_ENV} \
@@ -236,30 +515,52 @@ pub fn effective_buckconfig(
                     resolution.mode
                 )
             })?;
-            if !Path::new(cert).is_absolute()
-                || tls_ca_certs
-                    .filter(|path| !path.trim().is_empty())
-                    .is_some_and(|path| !Path::new(path).is_absolute())
-            {
+            let ca = tls_ca_certs
+                .filter(|path| !path.trim().is_empty())
+                .ok_or_else(|| {
+                    format!(
+                        "warm mode `{}` requires the NativeLink server CA: set \
+                         {TLS_CA_CERTS_ENV} to its secret-mounted path",
+                        resolution.mode
+                    )
+                })?;
+            if !Path::new(cert).is_absolute() || !Path::new(ca).is_absolute() {
                 return Err("cache TLS certificate paths must be absolute".to_string());
             }
-            if [cert, tls_ca_certs.unwrap_or_default()]
-                .iter()
-                .any(|value| value.contains(['\n', '\r']))
-            {
+            if [cert, ca].iter().any(|value| value.contains(['\n', '\r'])) {
                 return Err("cache TLS paths must not contain newlines".to_string());
             }
-            if !overlay
-                .lines()
-                .any(|line| line.trim() == "[buck2_re_client]")
-            {
-                return Err("warm overlay missing [buck2_re_client] section".to_string());
+            if !overlay.contains(RE_ADDRESS_TOKEN) || !overlay.contains(INSTANCE_NAME_TOKEN) {
+                return Err(
+                    "warm overlay missing endpoint or instance materialization token".to_string(),
+                );
             }
             let mut identity = format!("[buck2_re_client]\n  tls_client_cert = {cert}\n");
-            if let Some(ca) = tls_ca_certs.filter(|c| !c.trim().is_empty()) {
-                identity.push_str(&format!("  tls_ca_certs = {ca}\n"));
+            identity.push_str(&format!("  tls_ca_certs = {ca}\n"));
+            let binding = cache_mode_binding(endpoints, resolution.mode)
+                .ok_or_else(|| "warm mode has no endpoint binding".to_string())?;
+            let mut offset = 0;
+            let mut config = None;
+            for line in overlay.split_inclusive('\n') {
+                if line.trim() == "[buck2_re_client]" {
+                    let end = offset + line.len();
+                    config = Some(format!(
+                        "{}{}{}",
+                        &overlay[..offset],
+                        identity,
+                        &overlay[end..]
+                    ));
+                    break;
+                }
+                offset += line.len();
             }
-            let config = overlay.replacen("[buck2_re_client]", &identity, 1);
+            let config = config
+                .ok_or_else(|| "warm overlay missing [buck2_re_client] section".to_string())?
+                .replace(RE_ADDRESS_TOKEN, &binding.endpoint.re_address)
+                .replace(INSTANCE_NAME_TOKEN, &endpoints.instance_name);
+            if config.contains("__CACHE_") {
+                return Err("warm config retains an unmaterialized cache token".to_string());
+            }
             Ok(Some(config))
         }
     }
@@ -1113,6 +1414,214 @@ mod tests {
         json!({ "warm_reads_licensed": licensed, "reason": "fixture" })
     }
 
+    fn endpoint_policy_fixture() -> Value {
+        json!({
+            "policy_id": "cache-endpoints",
+            "schema_version": "1.0.0",
+            "adr": "ADR-0700",
+            "active_profile": "oyatie",
+            "profiles": {
+                "oyatie": {
+                    "instance_name": "main",
+                    "writer": {
+                        "re_address": "grpc://writer.example.test:50051",
+                        "socket_address": "writer.example.test:50051"
+                    },
+                    "reader": {
+                        "re_address": "grpc://reader.example.test:50052",
+                        "socket_address": "reader.example.test:50052"
+                    }
+                }
+            }
+        })
+    }
+
+    fn endpoint_profile_fixture() -> CacheEndpointProfile {
+        parse_endpoint_profile(&endpoint_policy_fixture(), "oyatie").unwrap()
+    }
+
+    #[test]
+    fn endpoint_profile_accepts_matching_grpc_and_socket_addresses() {
+        let profile = parse_endpoint_profile(&endpoint_policy_fixture(), "oyatie").unwrap();
+        assert_eq!(profile.instance_name(), "main");
+        assert_eq!(
+            profile.writer().socket_address(),
+            "writer.example.test:50051"
+        );
+        assert_eq!(
+            profile.reader().re_address(),
+            "grpc://reader.example.test:50052"
+        );
+    }
+
+    #[test]
+    fn endpoint_profile_requires_both_roles() {
+        let mut policy = endpoint_policy_fixture();
+        policy["profiles"]["oyatie"]
+            .as_object_mut()
+            .unwrap()
+            .remove("reader");
+        assert!(
+            parse_endpoint_profile(&policy, "oyatie")
+                .unwrap_err()
+                .contains("role `reader` missing")
+        );
+    }
+
+    #[test]
+    fn endpoint_profile_rejects_invalid_address_grammar() {
+        let mut policy = endpoint_policy_fixture();
+        policy["profiles"]["oyatie"]["writer"]["socket_address"] =
+            json!("writer.example.test/path:50051");
+        assert!(
+            parse_endpoint_profile(&policy, "oyatie")
+                .unwrap_err()
+                .contains("host:decimal-port grammar")
+        );
+    }
+
+    #[test]
+    fn endpoint_profile_rejects_re_and_socket_mismatch() {
+        let mut policy = endpoint_policy_fixture();
+        policy["profiles"]["oyatie"]["writer"]["re_address"] =
+            json!("grpc://other.example.test:50051");
+        assert!(
+            parse_endpoint_profile(&policy, "oyatie")
+                .unwrap_err()
+                .contains("disagree")
+        );
+    }
+
+    #[test]
+    fn endpoint_profile_requires_distinct_writer_and_reader_listeners() {
+        let mut policy = endpoint_policy_fixture();
+        let writer = policy["profiles"]["oyatie"]["writer"].clone();
+        policy["profiles"]["oyatie"]["reader"] = writer;
+        assert!(
+            parse_endpoint_profile(&policy, "oyatie")
+                .unwrap_err()
+                .contains("distinct listeners")
+        );
+    }
+
+    #[test]
+    fn endpoint_profile_rejects_noncanonical_port_spelling() {
+        let mut policy = endpoint_policy_fixture();
+        policy["profiles"]["oyatie"]["reader"]["re_address"] =
+            json!("grpc://reader.example.test:050052");
+        policy["profiles"]["oyatie"]["reader"]["socket_address"] =
+            json!("reader.example.test:050052");
+        assert!(
+            parse_endpoint_profile(&policy, "oyatie")
+                .unwrap_err()
+                .contains("non-canonical port")
+        );
+    }
+
+    #[test]
+    fn endpoint_profile_rejects_empty_instance_name() {
+        let mut policy = endpoint_policy_fixture();
+        policy["profiles"]["oyatie"]["instance_name"] = json!("");
+        assert!(
+            parse_endpoint_profile(&policy, "oyatie")
+                .unwrap_err()
+                .contains("missing or empty")
+        );
+    }
+
+    #[test]
+    fn endpoint_profile_rejects_wrong_pack_identity() {
+        let mut policy = endpoint_policy_fixture();
+        policy["policy_id"] = json!("other");
+        assert!(
+            parse_endpoint_profile(&policy, "oyatie")
+                .unwrap_err()
+                .contains("policy_id")
+        );
+        let mut policy = endpoint_policy_fixture();
+        policy["adr"] = json!("ADR-0560");
+        assert!(
+            parse_endpoint_profile(&policy, "oyatie")
+                .unwrap_err()
+                .contains("ADR-0700")
+        );
+    }
+
+    #[test]
+    fn endpoint_policy_requires_a_resolvable_active_profile() {
+        let mut policy = endpoint_policy_fixture();
+        policy
+            .as_object_mut()
+            .expect("fixture object")
+            .remove("active_profile");
+        assert!(
+            parse_active_endpoint_profile(&policy)
+                .unwrap_err()
+                .contains("active_profile")
+        );
+
+        let mut policy = endpoint_policy_fixture();
+        policy["active_profile"] = json!("missing");
+        assert!(
+            parse_active_endpoint_profile(&policy)
+                .unwrap_err()
+                .contains("profile `missing`")
+        );
+    }
+
+    #[test]
+    fn endpoint_profile_rejects_every_schema_and_grammar_boundary() {
+        let mut cases = Vec::new();
+
+        let mut policy = endpoint_policy_fixture();
+        policy["schema_version"] = json!("2.0.0");
+        cases.push(("schema", policy, "schema_version"));
+
+        let mut policy = endpoint_policy_fixture();
+        policy["profiles"] = json!({});
+        cases.push(("missing profile", policy, "profile `oyatie` missing"));
+
+        let mut policy = endpoint_policy_fixture();
+        policy["profiles"]["oyatie"]["writer"] = json!("not-an-object");
+        cases.push(("non-object role", policy, "non-object"));
+
+        let mut policy = endpoint_policy_fixture();
+        policy["profiles"]["oyatie"]["instance_name"] = json!("bad instance");
+        cases.push(("whitespace instance", policy, "must be 1..=255"));
+
+        let mut policy = endpoint_policy_fixture();
+        policy["profiles"]["oyatie"]["instance_name"] = json!("__CACHE_RE_ADDRESS__");
+        cases.push(("token instance", policy, "materialization tokens"));
+
+        let mut policy = endpoint_policy_fixture();
+        policy["profiles"]["oyatie"]["writer"]["re_address"] = json!("grpc://bad_host:50051");
+        policy["profiles"]["oyatie"]["writer"]["socket_address"] = json!("bad_host:50051");
+        cases.push(("invalid host", policy, "invalid host"));
+
+        for (name, port, expected) in [
+            ("zero port", "0", "non-canonical port"),
+            ("non-decimal port", "abc", "invalid port"),
+            ("overflow port", "70000", "invalid port"),
+        ] {
+            let mut policy = endpoint_policy_fixture();
+            policy["profiles"]["oyatie"]["writer"]["re_address"] =
+                json!(format!("grpc://writer.example.test:{port}"));
+            policy["profiles"]["oyatie"]["writer"]["socket_address"] =
+                json!(format!("writer.example.test:{port}"));
+            cases.push((name, policy, expected));
+        }
+
+        let mut policy = endpoint_policy_fixture();
+        policy["profiles"]["oyatie"]["writer"]["re_address"] =
+            json!("https://writer.example.test:50051");
+        cases.push(("wrong scheme", policy, "must use grpc://"));
+
+        for (name, policy, expected) in cases {
+            let error = parse_endpoint_profile(&policy, "oyatie").unwrap_err();
+            assert!(error.contains(expected), "{name}: {error}");
+        }
+    }
+
     #[test]
     fn canary_class_always_bypasses_even_under_a_green_license() {
         let r = resolve(&policy_fixture(), &license(true), "integrity-canary").unwrap();
@@ -1173,6 +1682,53 @@ mod tests {
     }
 
     #[test]
+    fn unusable_identity_downgrades_warm_resolution_to_declared_cold() {
+        let warm = resolve(&policy_fixture(), &license(true), "dev-agentic-iteration").unwrap();
+        for (cert, ca) in [
+            (None, None),
+            (Some("relative.pem"), Some("/absolute/ca.pem")),
+            (Some("/bad\ncert.pem"), Some("/absolute/ca.pem")),
+            (Some("/does/not/exist.pem"), Some("/also/missing.pem")),
+        ] {
+            let resolution = require_usable_identity_or_bypass(warm.clone(), cert, ca);
+            assert_eq!(resolution.mode, CacheMode::Bypass);
+            assert!(resolution.reasons.last().unwrap().contains("declared cold"));
+        }
+    }
+
+    #[test]
+    fn nonempty_readable_identity_files_preserve_warm_resolution() {
+        let root =
+            std::env::temp_dir().join(format!("oya-cache-identity-path-{}", std::process::id()));
+        let _ = fs::remove_dir_all(&root);
+        fs::create_dir_all(&root).unwrap();
+        let cert = root.join("client.pem");
+        let ca = root.join("ca.pem");
+        fs::write(&cert, "certificate").unwrap();
+        fs::write(&ca, "certificate authority").unwrap();
+        let warm = resolve(&policy_fixture(), &license(true), "dev-agentic-iteration").unwrap();
+        let resolution = require_usable_identity_or_bypass(warm, cert.to_str(), ca.to_str());
+        assert_eq!(resolution.mode, CacheMode::WarmReadWrite);
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn empty_identity_file_downgrades_to_declared_cold() {
+        let root =
+            std::env::temp_dir().join(format!("oya-cache-empty-identity-{}", std::process::id()));
+        let _ = fs::remove_dir_all(&root);
+        fs::create_dir_all(&root).unwrap();
+        let cert = root.join("client.pem");
+        let ca = root.join("ca.pem");
+        fs::write(&cert, b"").unwrap();
+        fs::write(&ca, "certificate authority").unwrap();
+        let warm = resolve(&policy_fixture(), &license(true), "dev-agentic-iteration").unwrap();
+        let resolution = require_usable_identity_or_bypass(warm, cert.to_str(), ca.to_str());
+        assert_eq!(resolution.mode, CacheMode::Bypass);
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
     fn malformed_license_is_a_loud_error_not_a_grant() {
         let err = resolve(
             &policy_fixture(),
@@ -1186,35 +1742,95 @@ mod tests {
     #[test]
     fn bypass_materializes_no_local_config() {
         let r = resolve(&policy_fixture(), &license(false), "dev-agentic-iteration").unwrap();
-        assert_eq!(effective_buckconfig(&r, "", None, None).unwrap(), None);
+        let after_identity_check =
+            require_usable_identity_or_bypass(r.clone(), Some("relative"), None);
+        assert_eq!(after_identity_check.mode, CacheMode::Bypass);
+        assert_eq!(after_identity_check.reasons, r.reasons);
+        assert_eq!(
+            effective_buckconfig(&r, "", None, None, None).unwrap(),
+            None
+        );
     }
 
     #[test]
     fn warm_emission_without_a_keyed_identity_is_a_hard_error() {
         let r = resolve(&policy_fixture(), &license(true), "dev-agentic-iteration").unwrap();
-        let err = effective_buckconfig(&r, "", None, None).unwrap_err();
+        let endpoints = endpoint_profile_fixture();
+        let err = effective_buckconfig(&r, "", Some(&endpoints), None, None).unwrap_err();
         assert!(err.contains(CLIENT_CERT_ENV));
     }
 
     #[test]
     fn warm_identity_paths_must_be_absolute() {
         let r = resolve(&policy_fixture(), &license(true), "dev-agentic-iteration").unwrap();
+        let endpoints = endpoint_profile_fixture();
         let err = effective_buckconfig(
             &r,
-            "[buck2_re_client]\ntls = true\n",
+            "[buck2_re_client]\ncas_address = __CACHE_RE_ADDRESS__\ninstance_name = __CACHE_INSTANCE_NAME__\ntls = true\n",
+            Some(&endpoints),
             Some("relative/client.pem"),
-            None,
+            Some("/secrets/ca.pem"),
         )
         .unwrap_err();
         assert!(err.contains("absolute"));
     }
 
     #[test]
+    fn warm_emission_without_server_ca_is_a_hard_error() {
+        let r = resolve(&policy_fixture(), &license(true), "dev-agentic-iteration").unwrap();
+        let endpoints = endpoint_profile_fixture();
+        let err = effective_buckconfig(
+            &r,
+            "[buck2_re_client]\ncas_address = __CACHE_RE_ADDRESS__\ninstance_name = __CACHE_INSTANCE_NAME__\ntls = true\n",
+            Some(&endpoints),
+            Some("/secrets/client.pem"),
+            None,
+        )
+        .unwrap_err();
+        assert!(err.contains(TLS_CA_CERTS_ENV));
+    }
+
+    #[test]
+    fn warm_overlay_requires_both_materialization_tokens() {
+        let r = resolve(&policy_fixture(), &license(true), "dev-agentic-iteration").unwrap();
+        let endpoints = endpoint_profile_fixture();
+        for overlay in [
+            "[buck2_re_client]\ninstance_name = __CACHE_INSTANCE_NAME__\n",
+            "[buck2_re_client]\ncas_address = __CACHE_RE_ADDRESS__\n",
+        ] {
+            assert!(
+                effective_buckconfig(
+                    &r,
+                    overlay,
+                    Some(&endpoints),
+                    Some("/secrets/client.pem"),
+                    Some("/secrets/ca.pem"),
+                )
+                .unwrap_err()
+                .contains("materialization token")
+            );
+        }
+        assert!(
+            effective_buckconfig(
+                &r,
+                "[buck2_re_client]\ncas_address = __CACHE_RE_ADDRESS__\ninstance_name = __CACHE_INSTANCE_NAME__\nother = __CACHE_UNKNOWN__\n",
+                Some(&endpoints),
+                Some("/secrets/client.pem"),
+                Some("/secrets/ca.pem"),
+            )
+            .unwrap_err()
+            .contains("unmaterialized cache token")
+        );
+    }
+
+    #[test]
     fn warm_rw_effective_config_selects_the_rw_overlay_and_carries_the_identity() {
         let r = resolve(&policy_fixture(), &license(true), "dev-agentic-iteration").unwrap();
+        let endpoints = endpoint_profile_fixture();
         let config = effective_buckconfig(
             &r,
-            "[buck2_re_client]\ntls = true\n",
+            "[buck2_re_client]\ncas_address = __CACHE_RE_ADDRESS__\ninstance_name = __CACHE_INSTANCE_NAME__\ntls = true\n",
+            Some(&endpoints),
             Some("/secrets/writer.pem"),
             Some("/secrets/ca.pem"),
         )
@@ -1222,7 +1838,26 @@ mod tests {
         .expect("warm config");
         assert!(config.contains("tls_client_cert = /secrets/writer.pem"));
         assert!(config.contains("tls_ca_certs = /secrets/ca.pem"));
+        assert!(config.contains("cas_address = grpc://writer.example.test:50051"));
+        assert!(config.contains("instance_name = main"));
         assert!(!config.contains("--config"));
+    }
+
+    #[test]
+    fn effective_config_replaces_only_the_real_client_section_header() {
+        let r = resolve(&policy_fixture(), &license(true), "dev-agentic-iteration").unwrap();
+        let endpoints = endpoint_profile_fixture();
+        let config = effective_buckconfig(
+            &r,
+            "# [buck2_re_client] is documented here\n[buck2_re_client]\ncas_address = __CACHE_RE_ADDRESS__\ninstance_name = __CACHE_INSTANCE_NAME__\n",
+            Some(&endpoints),
+            Some("/secrets/writer.pem"),
+            Some("/secrets/ca.pem"),
+        )
+        .unwrap()
+        .expect("warm config");
+        assert!(config.starts_with("# [buck2_re_client] is documented here\n"));
+        assert_eq!(config.matches("tls_client_cert =").count(), 1);
     }
 
     #[test]
