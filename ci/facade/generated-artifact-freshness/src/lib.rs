@@ -1808,10 +1808,7 @@ pub fn read_member_packages(repo_root: &Path) -> Result<Vec<MemberPackage>, Fres
         // block every push with a false positive. `git ls-files --others --exclude-standard`
         // already omits ignored paths from the tree-clean assertion, so the member universe must
         // agree with that same view.
-        if ignored_candidates
-            .iter()
-            .any(|ignored| member_dir == *ignored || member_dir.starts_with(ignored))
-        {
+        if member_dir_is_locally_ignored(&member_dir, &ignored_candidates) {
             continue;
         }
         let manifest = read_to_string(&repo_root.join(&member_dir).join("Cargo.toml"))?;
@@ -1850,6 +1847,50 @@ fn ignored_workspace_member_candidates(
         }
     }
     Ok(ignored)
+}
+
+fn member_dir_is_locally_ignored(member_dir: &str, ignored_candidates: &BTreeSet<String>) -> bool {
+    ignored_candidates
+        .iter()
+        .any(|ignored| path_is_equal_or_under(member_dir, ignored))
+}
+
+/// Path-component prefix: `foo/core/scratch` matches itself and `foo/core/scratch/nested`,
+/// but not a sibling that merely shares a string prefix (`foo/core/scratchpad`).
+fn path_is_equal_or_under(path: &str, prefix: &str) -> bool {
+    path == prefix
+        || (path.len() > prefix.len()
+            && path.as_bytes().get(prefix.len()) == Some(&b'/')
+            && path.starts_with(prefix))
+}
+
+#[cfg(test)]
+mod ignored_workspace_member_tests {
+    use super::path_is_equal_or_under;
+
+    #[test]
+    fn exact_ignored_dir_matches() {
+        assert!(path_is_equal_or_under(
+            "foo/core/scratch",
+            "foo/core/scratch"
+        ));
+    }
+
+    #[test]
+    fn nested_dir_under_ignored_prefix_matches() {
+        assert!(path_is_equal_or_under(
+            "foo/core/scratch/nested",
+            "foo/core/scratch"
+        ));
+    }
+
+    #[test]
+    fn sibling_sharing_a_string_prefix_does_not_match() {
+        assert!(!path_is_equal_or_under(
+            "foo/core/scratchpad",
+            "foo/core/scratch"
+        ));
+    }
 }
 
 pub fn read_committed_generated_faces(
