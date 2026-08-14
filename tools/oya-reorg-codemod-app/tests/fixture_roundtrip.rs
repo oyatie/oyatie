@@ -662,6 +662,41 @@ fn elf_embed_plan(_with_artifact: bool) -> MovePlan {
 }
 
 #[test]
+fn app_product_move_keeps_the_oya_brand_while_capability_roots_stay_debranded() {
+    // app/<product>/ is the brand-preserving composition ring: oya-hr-* names move in unchanged.
+    let app_plan = MovePlan {
+        capability: "app-hr".to_owned(),
+        moves: vec![CrateMove {
+            old_path: "oya/hr/crates/oya-hr-employment-api".to_owned(),
+            new_path: "app/hr/crates/oya-hr-employment-api".to_owned(),
+            old_cargo_name: "oya-hr-employment-api".to_owned(),
+            new_cargo_name: "oya-hr-employment-api".to_owned(),
+        }],
+        artifacts: vec![],
+    };
+    oya_reorg_codemod_app::model::MovePlan::validate(&app_plan)
+        .expect("app/ destinations keep the product brand");
+    app_plan
+        .validate_debrand_targets()
+        .expect("app/ destinations keep the product brand in the forward gate too");
+    // A capability-root destination keeping the brand still refuses.
+    let bad_plan = MovePlan {
+        capability: "iam".to_owned(),
+        moves: vec![CrateMove {
+            old_path: "oya/identity/crates/oya-identity-app".to_owned(),
+            new_path: "iam/core/oya-identity-app".to_owned(),
+            old_cargo_name: "oya-identity-app".to_owned(),
+            new_cargo_name: "oya-identity-app".to_owned(),
+        }],
+        artifacts: vec![],
+    };
+    assert!(
+        bad_plan.validate_debrand_targets().is_err(),
+        "capability-root destinations must de-brand"
+    );
+}
+
+#[test]
 fn escaping_literal_with_depth_preserved_and_untouched_target_is_accepted() {
     let root = tmp_root("elf-embed-accepted");
     build_elf_embed_fixture(&root);
