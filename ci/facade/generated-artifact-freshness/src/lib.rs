@@ -613,6 +613,7 @@ fn materialize_generated_faces_with_tools(
         retirement,
         historical_dev_push,
     )?;
+    #[cfg(target_os = "linux")]
     emit_adr_census_epoch_receipt(
         &tools.emitter,
         repo_root,
@@ -621,6 +622,11 @@ fn materialize_generated_faces_with_tools(
             .join(ADR_CENSUS_EPOCH_RECEIPT_FACE),
         retirement,
     )?;
+    // The exact historical P2 replay is byte-pinned to a Linux-era toolchain and link
+    // environment; non-Linux materializations declare the skip explicitly instead of
+    // attempting a replay that cannot reproduce the fixed receipt.
+    #[cfg(not(target_os = "linux"))]
+    write_non_linux_p2_replay_skip_marker(repo_root)?;
     let mut command = Command::new(&tools.producer);
     command
         .args(["--repo-root"])
@@ -1585,11 +1591,16 @@ fn regenerate_all_faces(
     retirement: Option<&RetirementMaterializeArgs>,
 ) -> Result<RegeneratedFaces, FreshnessError> {
     let mut regenerated = regenerate_producer_faces(tools, repo_root, scm_facts)?;
+    #[cfg(target_os = "linux")]
     regenerated.push(regenerate_adr_census_epoch_receipt(
         &tools.emitter,
         repo_root,
         retirement,
     )?);
+    // Same non-Linux skip as the direct materialization path: the historical replay
+    // cannot reproduce the byte-pinned receipt off Linux, so declare the skip instead.
+    #[cfg(not(target_os = "linux"))]
+    write_non_linux_p2_replay_skip_marker(repo_root)?;
     regenerated.extend(regenerate_architecture_projection_faces(tools, repo_root)?);
     regenerated.push(regenerate_active_artifact_contract_graph(tools, repo_root)?);
     regenerated.sort_by(|left, right| left.0.cmp(&right.0));
@@ -1731,6 +1742,32 @@ fn verify_materialized_upload_outputs(
     Ok(())
 }
 
+/// Path, relative to the repo root, of the marker the generated-face materializer writes
+/// on non-Linux platforms instead of attempting the exact historical P2 replay (which is
+/// byte-pinned to a Linux-era toolchain and link environment). The scm-facts snapshot
+/// tests assert this marker on non-Linux so the skip is never silent.
+#[cfg(not(target_os = "linux"))]
+pub const NON_LINUX_P2_REPLAY_SKIP_MARKER: &str =
+    "ci/facade/scm-facts-snapshot/adr-census-parent-receipt.platform-skip.txt";
+
+/// Write the non-Linux historical-replay skip marker.
+#[cfg(not(target_os = "linux"))]
+fn write_non_linux_p2_replay_skip_marker(repo_root: &Path) -> Result<(), FreshnessError> {
+    let path = repo_root.join(NON_LINUX_P2_REPLAY_SKIP_MARKER);
+    if let Some(parent) = path.parent() {
+        std::fs::create_dir_all(parent).map_err(|error| {
+            FreshnessError::new(format!("create {}: {error}", parent.display()))
+        })?;
+    }
+    std::fs::write(
+        &path,
+        "exact historical P2 replay skipped on non-Linux: the historical receipt is byte-pinned to a \
+         Linux-era toolchain and link environment; the Linux test job materializes it, and the \
+         non-Linux smoke legs assert this marker so the skip is never silent.\n",
+    )
+    .map_err(|error| FreshnessError::new(format!("write {}: {error}", path.display())))
+}
+#[cfg(target_os = "linux")]
 fn regenerate_adr_census_epoch_receipt(
     emitter: &Path,
     repo_root: &Path,
@@ -1746,6 +1783,7 @@ fn regenerate_adr_census_epoch_receipt(
     Ok((ADR_CENSUS_EPOCH_RECEIPT_FACE.to_owned(), bytes))
 }
 
+#[cfg(target_os = "linux")]
 fn emit_adr_census_epoch_receipt(
     emitter: &Path,
     repo_root: &Path,
@@ -1757,6 +1795,7 @@ fn emit_adr_census_epoch_receipt(
     run_status(&mut command, "materialize ADR census epoch receipt")
 }
 
+#[cfg(target_os = "linux")]
 fn adr_census_epoch_receipt_command(
     emitter: &Path,
     repo_root: &Path,
@@ -2674,6 +2713,7 @@ fn temporary_product_graph_path() -> Result<PathBuf, FreshnessError> {
     exclusive_temporary_file("oya-ci-freshness-product-graph", ".html")
 }
 
+#[cfg(target_os = "linux")]
 fn temporary_adr_census_epoch_receipt_path() -> Result<PathBuf, FreshnessError> {
     exclusive_temporary_file(
         "oya-ci-freshness-adr-census-epoch-receipt",
@@ -3603,6 +3643,7 @@ mod materialize_generated_faces_tests {
     }
 
     #[test]
+    #[cfg(target_os = "linux")]
     fn census_epoch_receipt_command_forwards_only_explicit_retirement_transport() {
         let retirement = RetirementMaterializeArgs {
             control_plane_path: RETIREMENT_CONTROL_PLANE_PATH.to_owned(),
@@ -4129,9 +4170,17 @@ printf 'generated dashboard\n' > docs/architecture/product-graph.html
         let calls = std::fs::read_to_string(&log).expect("read call log");
         let codemod_pos = calls.find("codemod manifest").expect("codemod call");
         let emitter_pos = calls.find("emitter --repo-root").expect("emitter call");
+        #[cfg(target_os = "linux")]
         let census_pos = calls
             .find("--adr-census-epoch-receipt --adr-census-epoch-receipt-out")
             .expect("census epoch receipt call");
+        #[cfg(not(target_os = "linux"))]
+        {
+            // The exact historical P2 replay is Linux-pinned; non-Linux materialization
+            // declares the skip with the marker instead of invoking the epoch emitter.
+            assert!(calls.find("--adr-census-epoch-receipt").is_none());
+            assert!(root.join(NON_LINUX_P2_REPLAY_SKIP_MARKER).is_file());
+        }
         let producer_pos = calls.rfind("producer --repo-root").expect("producer call");
         let masterplan_pos = calls
             .find("masterplan gen masterplan --write")
@@ -4143,8 +4192,12 @@ printf 'generated dashboard\n' > docs/architecture/product-graph.html
             .find("masterplan gate validate active-artifact-contract --emit-graph-edges")
             .expect("active-artifact graph generator call");
         assert!(codemod_pos < emitter_pos);
+        #[cfg(target_os = "linux")]
         assert!(emitter_pos < census_pos);
+        #[cfg(target_os = "linux")]
         assert!(census_pos < producer_pos);
+        #[cfg(not(target_os = "linux"))]
+        assert!(emitter_pos < producer_pos);
         assert!(producer_pos < masterplan_pos);
         assert!(masterplan_pos < architecture_pos);
         assert!(architecture_pos < active_graph_pos);
@@ -4164,11 +4217,14 @@ printf 'generated dashboard\n' > docs/architecture/product-graph.html
             "--enforcement-liveness-claude-settings {}",
             root.join(ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS).display()
         )));
+        #[cfg(target_os = "linux")]
         assert_eq!(
             std::fs::read_to_string(root.join(FACES_DIR).join(ADR_CENSUS_EPOCH_RECEIPT_FACE))
                 .expect("census epoch receipt materialized"),
             "{\"fixed\":\"receipt\"}\n"
         );
+        #[cfg(not(target_os = "linux"))]
+        assert!(root.join(NON_LINUX_P2_REPLAY_SKIP_MARKER).is_file());
         assert_eq!(
             std::fs::read_to_string(root.join("docs/machine-readable/masterplan.generated.json"))
                 .expect("masterplan materialized"),

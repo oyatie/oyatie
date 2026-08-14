@@ -17,10 +17,10 @@ use ci_scm_facts_snapshot::retirement::{
     write_canonical_ignored_generated_file,
 };
 use ci_scm_facts_snapshot::{
-    ADR_CENSUS_PARENT_RECEIPT_PATH, P2ParentReceipt, command_status_with_captured_stderr,
-    command_status_with_timeout, discover_repo_root, dormant_p3_epoch_fingerprint,
-    emit_adr_census_epoch_receipt, emit_adr_census_epoch_receipt_for_event, load_vocab_policy,
-    output_path_resolver,
+    ADR_CENSUS_PARENT_RECEIPT_PATH, NON_LINUX_P2_REPLAY_SKIP_MARKER, P2ParentReceipt,
+    command_status_with_captured_stderr, command_status_with_timeout, discover_repo_root,
+    dormant_p3_epoch_fingerprint, emit_adr_census_epoch_receipt,
+    emit_adr_census_epoch_receipt_for_event, load_vocab_policy, output_path_resolver,
     retirement::{
         GENERATED_FACTS_PATH, RetirementMaterializationContext, emit_history_only_retirement_facts,
         historical_dev_push_context, visit_git_blobs, write_canonical_retirement_facts,
@@ -493,10 +493,8 @@ fn p3_identity_fixture(label: &str) -> PathBuf {
     write_fixture_file(
         &root,
         "docs/decisions/ADR-0700-ci-admission-live-apex.md",
-        &std::fs::read(source_root.join(
-            "docs/decisions/ADR-0700-ci-admission-live-apex.md",
-        ))
-        .expect("read selected ADR fixture"),
+        &std::fs::read(source_root.join("docs/decisions/ADR-0700-ci-admission-live-apex.md"))
+            .expect("read selected ADR fixture"),
     );
     write_fixture_file(&root, "docs/README.md", b"unselected documentation\n");
     write_fixture_file(
@@ -1187,6 +1185,7 @@ fn repository_discovery_finds_root_authority_pointer() {
 }
 
 #[test]
+#[cfg(target_os = "linux")]
 fn active_p2_epoch_emission_preserves_the_fixed_historical_receipt() {
     let output_root = temp_repo_root("active-p2-adr-census-epoch");
     let repo_root = discover_repo_root().expect("discover repository root");
@@ -1524,6 +1523,7 @@ fn synthetic_pr_p3_receipt_uses_evaluated_tree_while_subject_history_stays_point
 }
 
 #[test]
+#[cfg(target_os = "linux")]
 fn synthetic_pr_p3_to_p2_pointer_only_rollback_emits_the_fixed_receipt() {
     let root = p3_history_fixture("synthetic-pr-p3-to-p2-rollback");
     // The fixture is a bare-ish clone, so it carries no untracked face. Rolling back to P2 makes
@@ -1578,6 +1578,7 @@ fn synthetic_pr_p3_to_p2_pointer_only_rollback_emits_the_fixed_receipt() {
 /// receipt. Written as one test on ONE fixture so the green leg is the same emission as the two
 /// red ones, which is what makes them evidence rather than assertion.
 #[test]
+#[cfg(target_os = "linux")]
 fn active_p2_emission_consumes_the_out_of_graph_parent_receipt_and_never_skips() {
     let root = p3_history_fixture("p2-parent-receipt-contract");
     let output_root = temp_path("p2-parent-receipt-contract-out");
@@ -1823,8 +1824,7 @@ fn root_commit_p3_control_reaches_named_bootstrap_shape_failure() {
 #[test]
 fn dormant_p3_identity_rejects_a_unicode_direct_adr_path_after_raw_tree_parsing() {
     let root = p3_identity_fixture("unicode-direct-adr");
-    let source = root
-        .join("docs/decisions/ADR-0700-ci-admission-live-apex.md");
+    let source = root.join("docs/decisions/ADR-0700-ci-admission-live-apex.md");
     let unicode_path = "docs/decisions/ADR-0002-résumé.md";
     write_fixture_file(
         &root,
@@ -2070,11 +2070,10 @@ fn dormant_p3_identity_is_bounded_to_selected_inputs() {
 #[test]
 fn adr_0515_chronology_names_the_complete_live_amendment_and_epoch_gate_boundary() {
     let repo_root = discover_repo_root().expect("discover repository root");
-    let adr =
-        std::fs::read_to_string(repo_root.join(
-            "docs/decisions/ADR-0700-ci-admission-live-apex.md",
-        ))
-        .expect("read ADR-0700 live apex");
+    let adr = std::fs::read_to_string(
+        repo_root.join("docs/decisions/ADR-0700-ci-admission-live-apex.md"),
+    )
+    .expect("read ADR-0700 live apex");
     // Apex consolidates the ADR-0515 lineage; chronology is via supersedes, not amended_by.
     assert!(
         adr.contains("id: ADR-0700"),
@@ -2102,4 +2101,20 @@ fn adr_0515_chronology_names_the_complete_live_amendment_and_epoch_gate_boundary
             "ADR-0700 must retain the live epoch-gate boundary: {required_statement}"
         );
     }
+}
+
+/// On non-Linux the generated-face materializer cannot reproduce the byte-pinned
+/// historical P2 receipt, so it declares the skip with a marker file instead. This test
+/// requires the marker so the skip is never silent: a non-Linux run without it is a
+/// materialization defect, not an acceptable absence.
+#[cfg(not(target_os = "linux"))]
+#[test]
+fn non_linux_materializer_must_declare_the_p2_replay_skip() {
+    let root = discover_repo_root().expect("discover source repository root");
+    let marker = root.join(NON_LINUX_P2_REPLAY_SKIP_MARKER);
+    assert!(
+        marker.is_file(),
+        "the generated-face materializer must write {} on non-Linux so the historical P2 replay skip is never silent",
+        marker.display()
+    );
 }
