@@ -600,23 +600,40 @@ fn validate_no_escaping_path_literals(
         .collect();
 
     let mut blocking = Vec::new();
-    // Step 7 relocates every file through its LONGEST matching source move (the engine moves
-    // longest-old_path-first so nested sources move safely), so each scanned file is associated
-    // with exactly the INNERMOST move whose source contains it. Scanning a nested file against
-    // an outer move too would recompute its new location from the WRONG destination (e.g.
-    // `oya/a/b/src/lib.rs` mapped through `oya/a -> x/y/z` as `x/y/z/b/src/lib.rs`) and could
-    // refuse a literal the real (inner) move actually preserves.
+    // Every old->new SOURCE mapping a scanned file can ride: crate moves AND artifact moves.
+    // Step 7 relocates crate dirs longest-old_path-first, then step 8 relocates artifact
+    // co-moves (an artifact nested under a crate is sourced from its POST-crate-move location,
+    // `artifact_effective_source`). A .rs file under BOTH a crate and a nested artifact
+    // therefore ends at the ARTIFACT destination, so its final location must be recomputed from
+    // the LONGEST matching source mapping — crate-only would map it through the intermediate
+    // crate path and could accept a literal that dangles after step 8.
+    let all_sources: Vec<(&str, &str)> = plan
+        .moves
+        .iter()
+        .map(|m| (m.old_path.as_str(), m.new_path.as_str()))
+        .chain(
+            plan.artifacts
+                .iter()
+                .map(|a| (a.old_path.as_str(), a.new_path.as_str())),
+        )
+        .collect();
     for rel in all_files.iter().filter(|r| r.ends_with(".rs")) {
-        let Some(m) = plan
-            .moves
+        // The engine moves longest-old_path-first so nested sources move safely, so each
+        // scanned file is associated with exactly the INNERMOST move whose source contains it
+        // (crate OR artifact). Scanning a nested file against an outer move too would recompute
+        // its new location from the WRONG destination (e.g. `oya/a/b/src/lib.rs` mapped through
+        // `oya/a -> x/y/z` as `x/y/z/b/src/lib.rs`) and could refuse a literal the real (inner)
+        // move actually preserves — or accept one the artifact relocation dangles.
+        let Some((old, new)) = all_sources
             .iter()
-            .filter(|m| rel.starts_with(&format!("{}/", m.old_path)))
-            .max_by_key(|m| m.old_path.split('/').count())
+            .filter(|(old, _)| rel.starts_with(&format!("{old}/")))
+            .max_by_key(|(old, _)| old.split('/').count())
+            .copied()
         else {
-            continue; // not inside any moving crate
+            continue; // not inside any moving source
         };
         let text = read(&repo_root.join(rel), rel)?;
-        for lit in rust_src::scan_escaping_path_literals(&text, rel, &m.old_path) {
+        for lit in rust_src::scan_escaping_path_literals(&text, rel, old) {
             // Fail-closed remains the DEFAULT. A literal is move-invariant ONLY when its
             // pre-move resolution points INSIDE a co-moved target AND recomputing the
             // literal from the crate's NEW directory resolves to exactly that target's
@@ -625,7 +642,7 @@ fn validate_no_escaping_path_literals(
             // workspace-root sibling survives a move ONLY when the workspace relocates
             // as a unit (e.g. `crates/<crate>/src` -> `<face>/<crate>/src` keeps depth
             // 3, and `../../../out/x.elf` stays `../../../out/x.elf`).
-            if !literal_meaning_preserved(m, rel, &lit, &all_targets) {
+            if !literal_meaning_preserved(old, new, rel, &lit, &all_targets) {
                 blocking.push(lit);
             }
         }
@@ -644,8 +661,12 @@ fn validate_no_escaping_path_literals(
 /// (2) the target does NOT move and the recomputed literal still resolves to it (a
 ///     depth-preserving crate move with an untouched external target).
 /// Everything else stays fail-closed.
+///
+/// `old`/`new` are the source mapping that owns the scanned file (its INNERMOST move, crate OR
+/// artifact — see `validate_no_escaping_path_literals`), and `file_rel` must sit under `old`.
 fn literal_meaning_preserved(
-    m: &CrateMove,
+    old: &str,
+    new: &str,
     file_rel: &str,
     lit: &EscapingPathLiteral,
     all_targets: &[(&str, &str)],
@@ -653,7 +674,7 @@ fn literal_meaning_preserved(
     let Some(target) = lit.resolves_to.as_deref() else {
         return false; // escaped the repo root: unresolvable stays refused
     };
-    let new_file = format!("{}{}", m.new_path, &file_rel[m.old_path.len()..]);
+    let new_file = format!("{new}{}", &file_rel[old.len()..]);
     let post = crate::model::join_rel(&crate::rust_src::parent_dir(&new_file), &lit.literal);
     if let Some((old, new)) = covering_target(all_targets, target) {
         // The target co-moves: the literal survives ONLY if it recomputes to the new home.
@@ -2050,7 +2071,13 @@ version = \"0.1.0\"
             ),
         ];
         assert!(
-            literal_meaning_preserved(&m, &lit.file, &lit, &targets),
+            literal_meaning_preserved(
+                &m.old_path,
+                &m.new_path,
+                &lit.file,
+                &lit,
+                &targets
+            ),
             "a workspace-root sibling embed that co-moves with the workspace must survive"
         );
         // The same move WITHOUT the artifact co-move leaves the literal pointing at a vacated
@@ -2060,7 +2087,13 @@ version = \"0.1.0\"
             "kernel/kuberos/adapters/c",
         )];
         assert!(
-            !literal_meaning_preserved(&m, &lit.file, &lit, &no_artifact),
+            !literal_meaning_preserved(
+                &m.old_path,
+                &m.new_path,
+                &lit.file,
+                &lit,
+                &no_artifact
+            ),
             "an unmoved external target that the literal no longer resolves to stays refused"
         );
     }
@@ -2208,6 +2241,69 @@ version = \"0.1.0\"
         assert!(root.join("x/y/z/src/lib.rs").is_file());
         assert!(root.join("root.txt").is_file());
         assert_eq!(outcome.dirs_moved.len(), 2);
+        let _ = std::fs::remove_dir_all(&root);
+    }
+
+    #[test]
+    fn literal_preflight_accounts_for_a_nested_artifact_move_when_locating_source_files() {
+        // REGRESSION (PR #1965 wave-2, comment 3783872057): a .rs file under a moving crate
+        // that is ALSO contained by a nested artifact move ends at the ARTIFACT destination —
+        // step 7 relocates the crate dir, then step 8 relocates the artifact from its
+        // post-crate-move location. The source lookup used to consider crate moves only, so the
+        // file's final location was recomputed from the INTERMEDIATE crate path: a literal that
+        // resolves correctly from `x/y/src` (the crate destination) was accepted even though
+        // the artifact relocation actually dangles it (`p/q` is one hop shallower, so the same
+        // `../../../` escapes the repo root). The innermost mapping across crate AND artifact
+        // moves must own the scan.
+        let root = artifact_tmp_root("artifact-owns-rs");
+        wf(
+            &root,
+            "Cargo.toml",
+            "[workspace]\nmembers = [\"oya/a\"]\nresolver = \"2\"\n",
+        );
+        wf(
+            &root,
+            "oya/a/Cargo.toml",
+            "[package]\nname = \"oya-a\"\nversion = \"0.1.0\"\nedition = \"2021\"\n",
+        );
+        // The crate's src/ dir ALSO rides as an artifact move nested under the crate. The
+        // literal resolves to the UNMOVED repo-root out/x.elf from the INTERMEDIATE crate
+        // destination (x/y/src up 3 == repo root) — which is exactly why the old crate-only
+        // scan accepted it — but from the REAL artifact destination (p/q, up 3 escapes the
+        // repo root) it dangles.
+        wf(
+            &root,
+            "oya/a/src/lib.rs",
+            "pub const ELF: &[u8] = include_bytes!(\"../../../out/x.elf\");\n",
+        );
+        wf(&root, "out/x.elf", "ELF-BYTES");
+
+        let plan = MovePlan {
+            capability: "cap".to_string(),
+            moves: vec![CrateMove {
+                old_path: "oya/a".to_string(),
+                new_path: "x/y".to_string(),
+                old_cargo_name: "oya-a".to_string(),
+                new_cargo_name: "x-a".to_string(),
+            }],
+            artifacts: vec![ArtifactMove {
+                old_path: "oya/a/src".to_string(),
+                new_path: "p/q".to_string(),
+            }],
+        };
+
+        let error = apply_plan(&root, &plan, &ApplyOptions { use_git_mv: false })
+            .expect_err("a literal that dangles after the artifact relocation must refuse");
+        match error {
+            CodemodError::UnrewritablePathLiteral { ref literals } => {
+                assert_eq!(literals.len(), 1, "{literals:?}");
+                assert_eq!(literals[0].file, "oya/a/src/lib.rs");
+                assert_eq!(literals[0].literal, "../../../out/x.elf");
+            }
+            other => panic!("expected UnrewritablePathLiteral, got {other:?}"),
+        }
+        assert!(root.join("oya/a/src/lib.rs").is_file(), "source untouched");
+        assert!(!root.join("p/q").exists(), "no partial move");
         let _ = std::fs::remove_dir_all(&root);
     }
 }
