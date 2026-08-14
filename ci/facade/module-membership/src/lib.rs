@@ -183,7 +183,7 @@ pub fn collect(root: &Path, policy: &Value) -> Result<Value, CollectError> {
     let registry_path = policy
         .get("registry_path")
         .and_then(Value::as_str)
-        .unwrap_or("specs/capability-registry.json");
+        .unwrap_or("governance/capability-registry.json");
     let abs = root.join(registry_path);
     let text = fs::read_to_string(&abs)
         .map_err(|e| CollectError::Io(format!("read registry {registry_path}: {e}")))?;

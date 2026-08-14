@@ -1,0 +1,85 @@
+{{/*
+Mesh-only ingress for REST/CalDAV; egress to OpenBao + Postgres +
+Valkey + mail µservice (for invitation bridge) + IANA tzdb refresh URL
+(for ADR-CAL-0004 worker).
+*/}}
+{{- if $.Values.networkPolicy.enabled }}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: oya-calendar-default-deny
+  namespace: calendar
+spec:
+  podSelector: {}
+  policyTypes: [Ingress, Egress]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: oya-calendar-allow-mesh-ingress
+  namespace: calendar
+spec:
+  podSelector:
+    matchLabels: {microservice: calendar}
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels: {istio-injection: enabled}
+        - podSelector:
+            matchLabels: {app.kubernetes.io/component: gateway}
+      ports:
+        - {port: 9001, protocol: TCP}   # event-store
+        - {port: 9002, protocol: TCP}   # recurrence-engine
+        - {port: 9003, protocol: TCP}   # availability-resolver
+        - {port: 9004, protocol: TCP}   # room-booking
+        - {port: 9005, protocol: TCP}   # invitation-flow
+        - {port: 9006, protocol: TCP}   # ics-import-export (REST + CalDAV)
+        - {port: 9090, protocol: TCP}   # metrics
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: oya-calendar-allow-egress
+  namespace: calendar
+spec:
+  podSelector:
+    matchLabels: {microservice: calendar}
+  policyTypes: [Egress]
+  egress:
+    # OpenBao for secret reference resolution
+    - to:
+        - namespaceSelector:
+            matchLabels: {kubernetes.io/metadata.name: openbao}
+      ports: [{port: 8200, protocol: TCP}]
+    # Postgres for event-store
+    - to:
+        - podSelector:
+            matchLabels: {app.kubernetes.io/name: oya-calendar-postgres}
+      ports: [{port: 5432, protocol: TCP}]
+    # Valkey for availability-resolver cache
+    - to:
+        - podSelector:
+            matchLabels: {app.kubernetes.io/name: oya-calendar-valkey}
+      ports: [{port: 6379, protocol: TCP}]
+    # mail µservice for invitation bridge
+    - to:
+        - namespaceSelector:
+            matchLabels: {kubernetes.io/metadata.name: mail}
+      ports: [{port: 9000, protocol: TCP}]
+    # observability + Cedar policy + audit-chain + tenancy + ontology cross-µservice
+    - to:
+        - namespaceSelector:
+            matchLabels: {oyatie.dev/control-plane: "true"}
+      ports: [{port: 9000, protocol: TCP}, {port: 9090, protocol: TCP}, {port: 4317, protocol: TCP}]
+    # DNS
+    - to:
+        - namespaceSelector:
+            matchLabels: {kubernetes.io/metadata.name: kube-system}
+      ports: [{port: 53, protocol: UDP}, {port: 53, protocol: TCP}]
+    # IANA tzdb refresh (ADR-CAL-0004 worker) — egress to public internet 443 only
+    - to:
+        - ipBlock: {cidr: 0.0.0.0/0, except: [10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16]}
+      ports: [{port: 443, protocol: TCP}]
+{{- end }}

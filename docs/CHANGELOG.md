@@ -20,10 +20,18 @@ doc_status: published
   ReadWriteOnce PVC, bounded listener/service/probe surfaces and backing stores, role-specific
   TLS/client CAs, exact NetworkPolicy directions, instances, and the server-certificate SAN
   preflight.
-- Hardened declared-cold execution so a bypass child cannot inherit a stale warm Buck2 daemon and
-  its receipt must prove zero remote-cache participation without rejecting a successful no-op; the
-  from-empty canary still requires local work. Warm licensing and required/fork authority remain
-  unchanged.
+- Declared-cold conformance hardening (bypass child cannot inherit a stale warm Buck2 daemon; the
+  receipt must prove zero remote-cache participation) lived in the `ci/facade/build-cache-policy`
+  gate crate, which dev retired (#1960) together with the cache-integrity canary workflows — that
+  coverage no longer ships in-tree; warm licensing and required/fork authority remain unchanged.
+
+## 2026-08-14 — Cargo merge path + slim PR paperwork (ADR-0716)
+
+- The required CI executes the Cargo workspace graph (`cargo fmt` differential, clippy,
+  `cargo test --workspace`, live-postgres lanes, cross-platform smoke); buck2 becomes local
+  hermeticity plus a weekly non-blocking smoke. Canonical docs touched: `README.md`,
+  `AGENTS.md`, `CLAUDE.md`, `docs/AGENTS.md`, `templates/pull-request-template.md`,
+  `docs/templates/pull-request-template.md`, `.github/PULL_REQUEST_TEMPLATE.md`.
 
 ## 2026-08-12 — Masterplan stale inline sequencing digest removed
 

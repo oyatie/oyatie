@@ -1065,30 +1065,38 @@ fn retirement_workflow_transports_the_provider_tuple_once_and_all_candidate_rege
         assert_occurs_exactly_once(&workflow, key);
         assert_occurs_exactly_once(&workflow, binding);
     }
-    let producer = named_workflow_step(&workflow, "Materialize cloud-ci generated faces");
+    let test_job = workflow_job(&workflow, "test");
+    let producer = named_job_step(test_job, "Materialize generated faces");
     assert_occurs_exactly_once(producer, "--github-event");
-    for command in [
-        "buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root . --github-event",
-        "\"${freshness_bin}\" --repo-root . --github-event",
-        "\"${materializer_bin}\" --repo-root . --github-event",
-    ] {
-        assert!(
-            workflow.contains(command),
-            "missing event-bound candidate command {command:?}"
-        );
-    }
+    assert!(
+        producer.contains(
+            "cargo run --locked -p ci-generated-artifact-freshness --bin oya-cloud-ci-materialize-generated-faces -- --repo-root . --github-event"
+        ),
+        "the cargo materializer must own provider-tuple interpretation"
+    );
+    let workspace_tests = named_job_step(test_job, "Workspace tests");
+    assert!(
+        workspace_tests.contains("cargo test --locked --workspace"),
+        "the gate fleet, scm-facts census receipt included, must run under the cargo workspace tests"
+    );
+    assert_absent(
+        &workflow,
+        "matrix.crate",
+        "the buck2 gate matrix is retired; no buck2 test step may survive in the merge path",
+    );
     let candidate_materializer_lines = workflow
         .lines()
         .filter(|line| {
-            line.contains("oya-cloud-ci-materialize-generated-faces-bin -- --repo-root .")
+            (line.contains("oya-cloud-ci-materialize-generated-faces-bin -- --repo-root .")
+                || line.contains("oya-cloud-ci-materialize-generated-faces -- --repo-root ."))
                 && !line.contains("--help")
                 && !line.contains("historical_retirement_args")
         })
         .collect::<Vec<_>>();
     assert_eq!(
         candidate_materializer_lines.len(),
-        5,
-        "all live candidate materializer invocations must be enumerated"
+        2,
+        "test job and cross-platform smoke must both materialize faces; extra unbound invocations must be enumerated"
     );
     for line in candidate_materializer_lines {
         assert!(
@@ -1096,14 +1104,6 @@ fn retirement_workflow_transports_the_provider_tuple_once_and_all_candidate_rege
             "candidate materializer must be provider-event-bound: {line}"
         );
     }
-    let census_gate = named_workflow_step(&workflow, "buck2 test ${{ matrix.crate }}");
-    assert!(
-        census_gate.contains("if (\"${{ matrix.crate }}\" -eq \"scm-facts-snapshot\")")
-            && census_gate.contains(
-                "buck2 run //ci/facade/scm-facts-snapshot:adr-census-epoch-receipt-gate-bin -- --repo-root . --github-event"
-            ),
-        "the scm-facts matrix leg must independently validate the event-bound census receipt without adding a second workflow shell surface"
-    );
     for legacy_binding in [
         "EVENT_PROTECTED_SHA:",
         "EVENT_SUBJECT_SHA:",
@@ -1132,168 +1132,69 @@ fn retirement_workflow_transports_the_provider_tuple_once_and_all_candidate_rege
 fn broad_workflow_consumers_require_the_producer_artifact_and_keep_the_merge_base_historical() {
     let workflow = fs::read_to_string(repo_root().join(".github/workflows/oya-ci-required.yml"))
         .expect("read oya-ci-required workflow");
-    let download_commit = "actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c";
-    let producer = workflow_job(&workflow, "producer-regen");
-    let upload = named_job_step(producer, "Upload regenerated faces");
-    assert_occurs_exactly_once(upload, "name: generated-faces");
-    for path in [
-        "ci/facade/artifact-inventory-registry/*.generated.json",
-        "ci/facade/scm-facts-snapshot/scm-volatile-facts.generated.json",
-        "ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json",
-        "ci/facade/scm-facts-snapshot/adr-census-parent-receipt.generated.json",
-        "registry/graph/active-artifact-contract-edges.json",
-    ] {
-        assert_occurs_exactly_once(upload, path);
-    }
 
-    // THE INVARIANT: a broad consumer must HOLD the generated faces before it tests. That is
-    // unchanged. What changed (#1467) is that the three consumers no longer satisfy it the same
-    // way, so asserting one mechanism for all three would pin an architecture the repo has left.
-    //
-    //   `gate`      — a MERE READER. It never materializes, so it must RECEIVE the faces:
-    //                 `needs: producer-regen` plus the download, before its broad step.
-    //   `buck2` and `gate-affected-target-set` — SELF-MATERIALIZERS. Each runs the materializer
-    //                 with the same argv the producer runs, overwriting every downloaded byte, so
-    //                 the download was dead weight behind a serial barrier. #1467 removed both the
-    //                 download and the `needs:` edge, which is what makes these two lanes immune
-    //                 to an artifact-storage-quota outage.
-    //
-    // Both sides are pinned. A future edge re-added to a self-materializer, or a download dropped
-    // from the mere reader, fails here.
-    let download_step_name =
-        "Download regenerated faces (producer-regen artifact, ADR-0556 D5 QW-1)";
-    let materialize_step_name = "Materialize cloud-ci generated faces (out-of-graph boundary)";
-
-    let gate = workflow_job(&workflow, "gate");
-    assert_occurs_exactly_once(gate, "needs: producer-regen");
-    assert_occurs_exactly_once(gate, download_step_name);
-    let download = named_job_step(gate, download_step_name);
-    assert_occurs_exactly_once(download, download_commit);
-    assert_occurs_exactly_once(download, "name: generated-faces");
-    assert_occurs_exactly_once(download, "path: .");
-    assert!(
-        gate.find(download_step_name) < gate.find("buck2 test ${{ matrix.crate }}"),
-        "gate must download producer faces before its broad test"
+    // THE INVARIANT: a broad consumer must HOLD the generated faces before it tests.
+    // ADR-0716 retired producer-regen / artifact download; every remaining consumer
+    // self-materializes in-job. The affected-set historical merge-base lane retired
+    // with that job (`cargo test --workspace` is the affected set).
+    assert_absent(
+        &workflow,
+        "  producer-regen:",
+        "producer-regen is retired; consumers self-materialize instead of downloading faces",
+    );
+    assert_absent(
+        &workflow,
+        "Download regenerated faces",
+        "artifact hop is retired; downloading faces a job immediately overwrites is dead weight",
+    );
+    assert_absent(
+        &workflow,
+        "  gate-affected-target-set:",
+        "the affected-set lane is retired; cargo test --workspace is the affected set (ADR-0716)",
+    );
+    assert_absent(
+        &workflow,
+        "--historical-merge-base",
+        "historical merge-base materialization lived on the retired affected-set lane",
     );
 
+    let materialize_step_name = "Materialize generated faces";
+    let cargo_materializer = "cargo run --locked -p ci-generated-artifact-freshness --bin oya-cloud-ci-materialize-generated-faces -- --repo-root . --github-event";
     for (job_name, broad_step) in [
-        ("buck2", "buck2 build + test (//ci/..., hermetic — binding)"),
-        (
-            "gate-affected-target-set",
-            "Binding affected-set build + test (cone-binding; FULL tier = build-health ratchet)",
-        ),
+        ("test", "Workspace tests"),
+        ("cross-platform-smoke", "Cross-platform smoke tests"),
     ] {
         let job = workflow_job(&workflow, job_name);
-        assert_absent(
-            job,
-            "needs: producer-regen",
-            "this lane materializes its own faces; the edge only serialized it behind the \
-             producer and let a failed artifact upload skip it entirely",
-        );
-        assert_absent(
-            job,
-            download_step_name,
-            "downloading faces this job immediately overwrites is dead weight",
-        );
-        assert_occurs_exactly_once(job, materialize_step_name);
+        assert_occurs_exactly_once(job, &format!("- name: {materialize_step_name}"));
         assert!(
             job.find(materialize_step_name) < job.find(broad_step),
             "{job_name} must materialize the faces before its broad test"
         );
-    }
-
-    let affected = workflow_job(&workflow, "gate-affected-target-set");
-    let baseline = named_job_step(
-        affected,
-        "Materialize merge-base build + test baselines when affected-set needs FULL",
-    );
-    let help_status = "historical_help_status=0";
-    let help_probe = "historical_help=\"$(buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --help 2>&1)\" || historical_help_status=$?";
-    let help_status_guard = "(( historical_help_status == 0 || historical_help_status == 2 )) || { echo \"historical materializer capability probe failed: status=${historical_help_status}\"; exit 1; }";
-    let usage_guard = "grep -Fq \"usage: oya-cloud-ci-materialize-generated-faces\" <<<\"${historical_help}\" || { echo \"historical materializer capability probe returned no usage contract\"; exit 1; }";
-    let compatibility_mode = "historical_retirement_args=()";
-    let capability_guard =
-        "if grep -Fq -- \"--historical-merge-base <oid>\" <<<\"${historical_help}\"; then";
-    let historical_mode = "historical_retirement_args=(--historical-merge-base \"${merge_base}\")";
-    let materialize = "buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root . \"${historical_retirement_args[@]}\"";
-    let capability_presence = "(( ${#historical_retirement_args[@]} == 0 )) || [[ -f ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json && ! -L ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json ]] || { echo \"historical materializer capability emitted no regular retirement facts\"; exit 1; }";
-    let capability_parse = "(( ${#historical_retirement_args[@]} == 0 )) || jq -e 'type == \"object\" and (.receipts | type == \"array\") and (.scm_facts | type == \"object\")' ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json >/dev/null || { echo \"historical materializer capability emitted malformed retirement facts\"; exit 1; }";
-    let legacy_absence = "(( ${#historical_retirement_args[@]} != 0 )) || [[ ! -e ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json && ! -L ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json ]] || { echo \"legacy historical materializer unexpectedly emitted retirement facts\"; exit 1; }";
-    for contract in [
-        help_status,
-        help_probe,
-        help_status_guard,
-        usage_guard,
-        compatibility_mode,
-        capability_guard,
-        historical_mode,
-        materialize,
-        capability_presence,
-        capability_parse,
-        legacy_absence,
-    ] {
-        assert_eq!(
-            baseline
-                .lines()
-                .filter(|line| line.trim() == contract)
-                .count(),
-            1,
-            "{contract:?} must be an exact line exactly once in the producer step"
-        );
-    }
-    assert!(
-        baseline.find(help_status) < baseline.find(help_probe)
-            && baseline.find(help_probe) < baseline.find(help_status_guard)
-            && baseline.find(help_status_guard) < baseline.find(usage_guard)
-            && baseline.find(usage_guard) < baseline.find(compatibility_mode)
-            && baseline.find(compatibility_mode) < baseline.find(capability_guard)
-            && baseline.find(capability_guard) < baseline.find(historical_mode)
-            && baseline.find(historical_mode) < baseline.find(materialize)
-            && baseline.find(materialize) < baseline.find(capability_presence)
-            && baseline.find(capability_presence) < baseline.find(capability_parse)
-            && baseline.find(capability_parse) < baseline.find(legacy_absence),
-        "the merge-base materializer must dispatch from the historical executable's actual CLI capability, never from candidate-era path assumptions"
-    );
-    let materialize_line = baseline
-        .lines()
-        .find(|line| line.contains(materialize))
-        .expect("the merge-base materializer command must remain present");
-    assert!(
-        !materialize_line.contains("|| true")
-            && !baseline.contains(
-            "buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root . --historical-merge-base \"${merge_base}\""
-        ),
-        "capability probing must not swallow a materialization failure or invoke a candidate-only flag unconditionally"
-    );
-    for legacy_topology_shell in [
-        "git cat-file",
-        "git rev-list",
-        "git rev-parse",
-        "HEAD^1",
-        "read -r -a",
-        "set -- ${merge_base_parents}",
-        "merge_base_parents",
-        "merge_base_protected_base",
-        "--retirement-control-plane",
-        "--retirement-facts-out",
-        "--protected-base-commit",
-        "--evaluated-commit",
-        "--scm-event-name",
-        "--scm-event-ref",
-        "--scm-event-base-ref",
-        "--subject-commit",
-    ] {
+        let materialize = named_job_step(job, materialize_step_name);
         assert!(
-            !baseline.contains(legacy_topology_shell),
-            "historical materialization must delegate topology and event identity to Rust, not retain shell authority {legacy_topology_shell:?}"
+            materialize.contains(cargo_materializer),
+            "{job_name} materializer must be provider-event-bound"
         );
+        for legacy_topology_shell in [
+            "git cat-file",
+            "git rev-list",
+            "git rev-parse",
+            "HEAD^1",
+            "--retirement-control-plane",
+            "--retirement-facts-out",
+            "--protected-base-commit",
+            "--evaluated-commit",
+            "--scm-event-name",
+            "--scm-event-ref",
+            "--scm-event-base-ref",
+            "--subject-commit",
+        ] {
+            assert!(
+                !materialize.contains(legacy_topology_shell),
+                "materialization must delegate topology and event identity to Rust, not retain shell authority {legacy_topology_shell:?}"
+            );
+        }
     }
-    assert!(
-        !baseline.contains("accounting-faces")
-            && !baseline.contains("cp ci/facade")
-            && !baseline.contains("set -- ${merge_base_parents}"),
-        "the clean merge-base worktree must never receive candidate faces or split Git identity through shell globbing"
-    );
 }
 
 #[test]
@@ -3045,7 +2946,7 @@ fn adr_prose_frontmatter_status_agreement_is_advisory_clean_on_live_tree() {
 
 fn live_registry_policy_corpus(root: &Path) -> Value {
     serde_json::json!({
-        "registry": load_json(&root.join("specs/capability-registry.json")),
+        "registry": load_json(&root.join("governance/capability-registry.json")),
         "policies": {
             "module_membership": {
                 "path": "ci/facade/module-membership/capability-membership-policy.json",
@@ -3070,7 +2971,7 @@ fn live_registry_policy_corpus(root: &Path) -> Value {
 }
 
 /// Sub-check 2/3 born-advisory over the live tree: every capability root in
-/// specs/capability-registry.json is present in the three derived gate policies
+/// governance/capability-registry.json is present in the three derived gate policies
 /// (#1327 defect class (c): a registered capability root missing from a derived
 /// policy). Enforces no-regression vs the frozen baseline.
 #[test]

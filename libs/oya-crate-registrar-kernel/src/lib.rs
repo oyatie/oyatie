@@ -33,7 +33,7 @@ use std::collections::BTreeSet;
 
 /// The closed set of capabilities a new crate may be mapped to (fail-closed: anything outside
 /// this set is a [`ValidationError::UnknownCapability`]). This mirrors the meta-dirs /
-/// capabilities in `specs/capability-registry.json`; it is supplied as DATA on the request so the
+/// capabilities in `governance/capability-registry.json`; it is supplied as DATA on the request so the
 /// kernel stays repo-neutral (R0 pack-shape) — the consumer passes the closed set read from the
 /// registry. There is no built-in default: an empty closed set rejects every capability.
 pub type CapabilitySet = BTreeSet<String>;
