@@ -108,15 +108,16 @@ exclude = [
   # Cargo.lock sole-owner membership on #1934 (expires integ-os-cargo-lock-bridge).
   "kernel",
   "storage/adapters/nativelink",
-  # app/procurement destination copy + retained oya/crm source (integ/procurement absorb, PR
-  # #1672). The destination crates are the forever home, but they are EXCLUDED from the root
-  # workspace: app/<product>/crates/* membership only flips on the integ/oya shrink-only drain
-  # (app/procurement/REORG-DRAIN.md), and the legacy oya/crm source is retained (tracked, also
-  # excluded) until that drain performs the shrink-only delete — cargo forbids two workspace
-  # members with the same package name, and the drain-owned copy's Cargo.lock contract is not
-  # owned here. Explicit ADR-0538 disposition: excluded (never silently uncovered).
+  # app/procurement destination copy (integ/procurement absorb, PR #1672): the destination
+  # crates are the forever home, but they are EXCLUDED from the root workspace —
+  # app/<product>/crates/* membership only flips on the integ/oya shrink-only drain
+  # (app/procurement/REORG-DRAIN.md). The legacy oya/crm source is RETAINED AS THE SOLE ROOT
+  # MEMBER until that drain performs the shrink-only delete: it is the only procurement package
+  # the root workspace globs select, so `cargo test --workspace` keeps running the four
+  # source_to_pay tests through the ADR-0716 merge path (the nested app/ workspace is not
+  # traversed automatically — review thread PRRT_kwDOSbSl2s6ZT6h8). Cargo forbids two workspace
+  # members with the same package name, so the destination stays excluded while the source lives.
   "app/procurement/crates",
-  "oya/crm/crates/oya-procurement-source-to-pay-domain",
 ]
 resolver = "2"
 
