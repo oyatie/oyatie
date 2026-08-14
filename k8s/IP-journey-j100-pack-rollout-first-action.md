@@ -1,7 +1,7 @@
 ---
 doc_class: Implementation-Plan
 ip_id: IP-journey-j100-pack-rollout-first-action
-journey_ref: docs/user-journeys/j100-pack-rollout-from-tenant-onboarding-to-first-action/
+journey_ref: RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2)
 status: draft
 date: 2026-05-20
 microservice: cloud-k8s

@@ -233,16 +233,16 @@ fn inert_class_that_still_holds_a_licence_keeps_selecting_nothing_in_the_shipped
     );
 }
 
-// ── Docs/markdown inert again (PROCESS_TAX DELETE, audit 79f76050) ───────────────────────
+// ── Docs/markdown seed the corpus-budget gate (ADR-0717) ───────────────────────────────────
 //
-// oyatie-1ld / PR #1623 forced every `**/*.md` to seed the equality-pinned citation census so a
-// docs-only PR could not false-green past a red freeze. That premise died when hand
-// `files_scanned`/`citation_lines` equality was deleted as a merge blocker. Tip entitlement:
-// docs-only / re-freeze commits get no CI — restore NoGraphTargets.
+// A docs-only PR must execute the corpus-budget ratchet, so docs/** + **/*.md + **/*.mdx seed
+// the repo-root-hygiene gate as a synthetic dependency. Because those classes now AFFECT a buck2
+// target, they lose the inert empty-selection licence; a docs-only diff resolves Affected with
+// exactly the corpus gate seed, never NoGraphTargets.
 
-/// Docs-only / markdown-only diffs resolve NoGraphTargets on the shipped pack (Fail-class law).
+/// Docs-only / markdown-only diffs resolve Affected with the corpus gate seed (ADR-0717).
 #[test]
-fn a_markdown_only_diff_is_no_graph_targets_in_the_shipped_pack() {
+fn a_markdown_only_diff_seeds_the_corpus_budget_gate() {
     let p = Policy::from_json(&fs::read_to_string(shipped_pack_path()).expect("read shipped pack"))
         .expect("shipped pack parses");
     for path in [
@@ -259,17 +259,22 @@ fn a_markdown_only_diff_is_no_graph_targets_in_the_shipped_pack() {
         );
         assert_eq!(
             decision,
-            Decision::NoGraphTargets,
-            "`{path}` must be docs/markdown inert (PROCESS_TAX DELETE); got {decision:?}"
+            Decision::Affected {
+                seeds: vec![
+                    "root//ci/facade/repo-root-hygiene:ci-repo-root-hygiene-gate".to_string()
+                ]
+            },
+            "`{path}` must seed the corpus-budget gate (ADR-0717); got {decision:?}"
         );
     }
 }
 
-/// The three inert declarations stay aligned: each probe isolates one glob key.
+/// The three docs/markdown classes seed the corpus gate; the evidence/reorg class stays inert.
 #[test]
-fn the_docs_and_markdown_classes_are_uniformly_inert_in_the_shipped_pack() {
+fn the_docs_and_markdown_classes_seed_the_corpus_gate_in_the_shipped_pack() {
     let p = Policy::from_json(&fs::read_to_string(shipped_pack_path()).expect("read shipped pack"))
         .expect("shipped pack parses");
+    let gate = "root//ci/facade/repo-root-hygiene:ci-repo-root-hygiene-gate";
     for (path, pattern) in [
         ("README.md", "**/*.md"),
         ("web/x.mdx", "**/*.mdx"),
@@ -277,29 +282,27 @@ fn the_docs_and_markdown_classes_are_uniformly_inert_in_the_shipped_pack() {
     ] {
         assert_eq!(
             p.synthetic_dependencies.get(pattern).map(Vec::as_slice),
-            Some([].as_slice()),
-            "`{pattern}` must be synthetic [] (probe `{path}`)"
+            Some([gate.to_string()].as_slice()),
+            "`{pattern}` must seed the corpus-budget gate (probe `{path}`)"
         );
         assert!(
-            p.inert_selection_classes.iter().any(|c| c == pattern),
-            "`{pattern}` must hold the empty-selection licence; got {:?}",
+            !p.inert_selection_classes.iter().any(|c| c == pattern),
+            "`{pattern}` must NOT hold the empty-selection licence (it affects a target); got {:?}",
             p.inert_selection_classes
         );
     }
 }
 
-/// Docs/markdown classes MUST hold the empty-selection licence (tip entitlement / Fail-class law).
+/// The evidence/reorg class keeps its empty-selection licence; docs/markdown classes do not.
 #[test]
-fn shipped_pack_licenses_the_docs_and_markdown_classes_to_select_nothing() {
+fn shipped_pack_licenses_only_evidence_reorg_to_select_nothing() {
     let p = Policy::from_json(&fs::read_to_string(shipped_pack_path()).expect("read shipped pack"))
         .expect("shipped pack parses");
-    for required in ["docs/**", "**/*.md", "**/*.mdx"] {
-        assert!(
-            p.inert_selection_classes.iter().any(|c| c == required),
-            "`{required}` must be licensed inert; got {:?}",
-            p.inert_selection_classes
-        );
-    }
+    assert_eq!(
+        p.inert_selection_classes,
+        vec!["evidence/reorg/**".to_string()],
+        "only evidence/reorg may license an empty selection (ADR-0717)"
+    );
 }
 
 #[test]
@@ -929,7 +932,6 @@ fn baseline_repair_control_plane_inputs_seed_accountable_leaf_targets() {
             "specs/decision-rights.json",
             &[
                 "root//governance/check/codeowners-mirror:check-codeowners-mirror-unittest",
-                "root//governance/check/pr-traceability:check-pr-traceability-unittest",
                 "root//governance/check/raci-coverage:check-raci-coverage-unittest",
             ],
         ),
@@ -1160,9 +1162,7 @@ fn a_synthetic_declaration_is_additive_on_top_of_a_real_owner() {
                 "the real owner must still be seeded; got {seeds:?}"
             );
             assert!(
-                seeds
-                    .iter()
-                    .any(|s| s == "root//ci/facade/scanner:gate"),
+                seeds.iter().any(|s| s == "root//ci/facade/scanner:gate"),
                 "the declared scanner must ALSO be seeded; got {seeds:?}"
             );
         }

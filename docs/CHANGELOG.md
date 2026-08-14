@@ -6,6 +6,14 @@ doc_status: published
 
 # Changelog
 
+## 2026-08-14 — Cargo merge path + slim PR paperwork (ADR-0716)
+
+- The required CI executes the Cargo workspace graph (`cargo fmt` differential, clippy,
+  `cargo test --workspace`, live-postgres lanes, cross-platform smoke); buck2 becomes local
+  hermeticity plus a weekly non-blocking smoke. Canonical docs touched: `README.md`,
+  `AGENTS.md`, `CLAUDE.md`, `docs/AGENTS.md`, `templates/pull-request-template.md`,
+  `docs/templates/pull-request-template.md`, `.github/PULL_REQUEST_TEMPLATE.md`.
+
 ## 2026-08-14 — Git pre-push hook automates the local face-settle --verify step
 
 - Added the owned Rust verifier `oya-pre-push-verify`

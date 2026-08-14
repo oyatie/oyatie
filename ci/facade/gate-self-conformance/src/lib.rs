@@ -529,10 +529,30 @@ fn workflow_executes_recursive_gates_pattern(workflow: &str, gates_root_rel: &st
 /// result to be compared in the fan-in success chain. This function feeds the descriptive
 /// `workflow_registered` property; do not promote it to an admission check without adding that
 /// reachability restriction.
+/// True iff an executable workflow line runs `cargo test --workspace` (with or without
+/// `--locked`), which executes every workspace-member gate crate under the gates root. The
+/// Cargo merge path (ADR-0716) replaces the buck2 matrix as the registration surface.
+fn workflow_executes_workspace_tests(workflow: &str) -> bool {
+    workflow.lines().any(|line| {
+        let trimmed = line.trim();
+        if trimmed.starts_with('#')
+            || trimmed.contains("--keep-going")
+            || trimmed.contains("|| true")
+        {
+            return false;
+        }
+        let Some((_, args)) = trimmed.split_once("cargo test ") else {
+            return false;
+        };
+        args.split_whitespace().any(|token| token == "--workspace")
+    })
+}
+
 fn workflow_registers_gate(workflow: &str, name: &str, gates_root_rel: &str) -> bool {
     workflow_matrix_includes_crate(workflow, name)
         || workflow_invokes_buck_target(workflow, name, gates_root_rel)
         || workflow_executes_recursive_gates_pattern(workflow, gates_root_rel)
+        || workflow_executes_workspace_tests(workflow)
 }
 
 fn is_rust_test_source(path: &Path) -> bool {
