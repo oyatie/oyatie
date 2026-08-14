@@ -848,8 +848,8 @@ fn firewall_blocks_same_pr_baseline_regen_laundering() {
     let mut proposed_value = regenerate_baseline(&root);
     if let Some(keys) = proposed_value
         .get_mut("gates")
-        .and_then(|g| g.get_mut("cloud-ci-brand-residue"))
-        .and_then(|g| g.get_mut("forbidden_foundry"))
+        .and_then(|g| g.get_mut("cloud-ci-cross-artifact-agreement"))
+        .and_then(|g| g.get_mut("unpropagated_decision"))
         .and_then(|c| c.get_mut("keys"))
         .and_then(Value::as_array_mut)
     {
@@ -883,7 +883,7 @@ fn firewall_blocks_same_pr_baseline_regen_laundering() {
     let report = evaluate_firewall(&frozen.baseline, &proposed, &current, &empty_door);
     assert!(
         report.ratchet_growth.iter().any(|(_, code, key)| {
-            code == "forbidden_foundry" && key == "SYNTHETIC/laundered-in-same-pr.rs"
+            code == "unpropagated_decision" && key == "SYNTHETIC/laundered-in-same-pr.rs"
         }),
         "same-PR baseline regen must be ratchet growth vs the merge-base: {:?}",
         report.ratchet_growth
@@ -891,8 +891,10 @@ fn firewall_blocks_same_pr_baseline_regen_laundering() {
     let unjust = report
         .codes
         .iter()
-        .find(|r| r.gate == "cloud-ci-brand-residue" && r.code == "forbidden_foundry")
-        .expect("forbidden_foundry code present");
+        .find(|r| {
+            r.gate == "cloud-ci-cross-artifact-agreement" && r.code == "unpropagated_decision"
+        })
+        .expect("unpropagated_decision code present");
     assert!(
         unjust
             .regressions
@@ -916,29 +918,31 @@ fn firewall_goes_red_on_a_synthetic_new_violation() {
     let signoff = SignOff::from_value(&load_json(&signoff_path(&root)));
 
     let mut current = baseline_keys_map(&proposed);
-    // Add a NEW forbidden_foundry path that is NOT in the frozen merge-base baseline.
+    // Add a NEW unpropagated_decision path that is NOT in the frozen merge-base baseline.
     current
-        .entry("cloud-ci-brand-residue".to_owned())
+        .entry("cloud-ci-cross-artifact-agreement".to_owned())
         .or_default()
-        .entry("forbidden_foundry".to_owned())
+        .entry("unpropagated_decision".to_owned())
         .or_default()
-        .insert("SYNTHETIC/new-forbidden_foundry-file.rs".to_owned());
+        .insert("SYNTHETIC/new-unpropagated_decision-file.rs".to_owned());
 
     let report = evaluate_firewall(&frozen.baseline, &proposed, &current, &signoff);
     let unjust = report
         .codes
         .iter()
-        .find(|r| r.gate == "cloud-ci-brand-residue" && r.code == "forbidden_foundry")
-        .expect("forbidden_foundry code present");
+        .find(|r| {
+            r.gate == "cloud-ci-cross-artifact-agreement" && r.code == "unpropagated_decision"
+        })
+        .expect("unpropagated_decision code present");
     assert!(
         unjust
             .regressions
-            .contains("SYNTHETIC/new-forbidden_foundry-file.rs"),
+            .contains("SYNTHETIC/new-unpropagated_decision-file.rs"),
         "the synthetic NEW file must show up as a regression"
     );
     assert!(
         unjust.fails(),
-        "a NEW forbidden_foundry file must FAIL the firewall"
+        "a NEW unpropagated_decision file must FAIL the firewall"
     );
     assert!(
         !report.is_green(),
@@ -957,8 +961,8 @@ fn firewall_blocks_baseline_growth_without_signoff() {
     let mut proposed_value = regenerate_baseline(&root);
     if let Some(keys) = proposed_value
         .get_mut("gates")
-        .and_then(|g| g.get_mut("cloud-ci-brand-residue"))
-        .and_then(|g| g.get_mut("forbidden_foundry"))
+        .and_then(|g| g.get_mut("cloud-ci-cross-artifact-agreement"))
+        .and_then(|g| g.get_mut("unpropagated_decision"))
         .and_then(|c| c.get_mut("keys"))
         .and_then(Value::as_array_mut)
     {
@@ -973,7 +977,7 @@ fn firewall_blocks_baseline_growth_without_signoff() {
         report
             .ratchet_growth
             .iter()
-            .any(|(_, code, key)| code == "forbidden_foundry"
+            .any(|(_, code, key)| code == "unpropagated_decision"
                 && key == "SYNTHETIC/laundered-debt.rs"),
         "growing the baseline without sign-off must be a ratchet_regression"
     );
