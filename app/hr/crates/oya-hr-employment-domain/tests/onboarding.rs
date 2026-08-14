@@ -160,8 +160,8 @@ fn empty_checklist_returns_onboarding_items_required_error() {
         checklist: vec![],
     };
 
-    let err = evaluate_onboarding_readiness(input)
-        .expect_err("empty checklist must return an error");
+    let err =
+        evaluate_onboarding_readiness(input).expect_err("empty checklist must return an error");
 
     assert_eq!(err, HrDomainError::OnboardingItemsRequired);
 }
@@ -309,7 +309,8 @@ fn multiple_uncleared_mandatory_items_lists_all_blockers() {
     for item in &mut input.checklist {
         if matches!(
             item.kind,
-            OnboardingChecklistItemKind::RightToWorkI9 | OnboardingChecklistItemKind::BackgroundCheck
+            OnboardingChecklistItemKind::RightToWorkI9
+                | OnboardingChecklistItemKind::BackgroundCheck
         ) {
             item.is_cleared = false;
             item.evidence_ref = None;
