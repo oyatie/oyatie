@@ -127,11 +127,6 @@ jobs:
       # kernel/ is a nested workspace (ADR-0512 carve-out) the root workspace excludes.
       - name: Kernel workspace tests
         run: cargo test --locked --manifest-path kernel/Cargo.toml
-      # app/procurement's absorbed crate is a nested-workspace root (standalone manifest) that
-      # the root workspace excludes until the integ/oya drain — test it explicitly so the four
-      # source_to_pay tests stay on the required cargo merge path (PR #1672).
-      - name: Procurement workspace tests
-        run: cargo test --locked --manifest-path app/procurement/crates/oya-procurement-source-to-pay-domain/Cargo.toml
       # Live hub-exclusivity admission: rejects a second open PR touching a hub path
       # declared under specs/integ-branch-envelopes.json#hubs.paths.
       - name: Live hub-exclusivity admission
