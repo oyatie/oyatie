@@ -92,6 +92,7 @@ fn independent_oya_prefix_census(root: &Path) -> BTreeSet<String> {
     let mut member_dirs = oya_workspace_members_kernel::resolve_member_dirs(root)
         .expect("resolve_member_dirs must resolve the live workspace Cargo.toml");
     member_dirs.extend(resolve_nested_workspace_member_dirs(root));
+    member_dirs.extend(resolve_app_destination_crate_dirs(root));
     let mut names = BTreeSet::new();
     for dir in member_dirs {
         let manifest_path = root.join(&dir).join("Cargo.toml");
@@ -142,6 +143,44 @@ fn resolve_nested_workspace_member_dirs(root: &Path) -> Vec<String> {
         )
         .expect("resolve nested workspace members");
         dirs.extend(members.into_iter().map(|m| format!("{excluded}/{m}")));
+    }
+    dirs
+}
+
+/// ADR-0562 app-product destination crate dirs (`app/<product>/crates/<leaf>`, the forever home
+/// for absorbed products while the legacy oya/ source stays live or the root workspace keeps them
+/// excluded until the drain). These are REAL first-party oya-* manifests the PRODUCER's
+/// tracked-Cargo.toml scan legitimately enumerates, but they are NOT root-workspace members
+/// (ADR-0538: app/*/crates membership flips only on the integ/oya drain), so the census must
+/// resolve them explicitly or it silently under-counts relative to the face (the exact
+/// extra_in_face mismatch an absorb lands when the legacy source was already evicted). Discovered
+/// by a flat `app/*/crates/*` walk, not a hardcoded product list — self-adjusts as products
+/// absorb; a missing `app/` root is simply skipped (repo-portable). A crate dir whose Cargo.toml
+/// is unreadable or carries no `[package] name` is left to the census's own FAIL-CLOSED loop
+/// below (never a silent skip).
+fn resolve_app_destination_crate_dirs(root: &Path) -> Vec<String> {
+    let mut dirs = Vec::new();
+    let Ok(app_root) = std::fs::read_dir(root.join("app")) else {
+        return dirs; // no app/ destination tree in this checkout.
+    };
+    for product in app_root.filter_map(Result::ok) {
+        if !product.file_type().map(|t| t.is_dir()).unwrap_or(false) {
+            continue;
+        }
+        let Ok(crates_root) = std::fs::read_dir(product.path().join("crates")) else {
+            continue; // an app product with no destination crates yet.
+        };
+        for crate_dir in crates_root.filter_map(Result::ok) {
+            if !crate_dir.file_type().map(|t| t.is_dir()).unwrap_or(false) {
+                continue;
+            }
+            if !crate_dir.path().join("Cargo.toml").is_file() {
+                continue; // not a crate dir (no manifest) — skipped, like the nested-workspace rule.
+            }
+            let name = crate_dir.file_name().to_string_lossy().into_owned();
+            let product_name = product.file_name().to_string_lossy().into_owned();
+            dirs.push(format!("app/{product_name}/crates/{name}"));
+        }
     }
     dirs
 }

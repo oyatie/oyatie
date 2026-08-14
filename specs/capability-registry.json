@@ -526,6 +526,7 @@
         "oya/community",
         "oya/connect",
         "oya/contract-lifecycle-management",
+        "app/procurement",
         "oya/crm",
         "oya/design-collaboration",
         "oya/docs",
