@@ -700,13 +700,13 @@ pub fn verify_pre_push_verifier_protocol(repo_root: &Path) -> Result<(), Freshne
 fn parse_pre_push_verifier_protocol_version(lib_source: &str) -> Option<u32> {
     const MARKER: &str = "PRE_PUSH_VERIFIER_PROTOCOL_VERSION: u32 = ";
     for line in lib_source.lines() {
-        let Some(rest) = line.split_once(MARKER) else {
+        let Some((_, after_marker)) = line.split_once(MARKER) else {
             continue;
         };
-        let Some(rest) = rest.split_once(';') else {
+        let Some((value, _)) = after_marker.split_once(';') else {
             continue;
         };
-        return rest.0.trim().parse().ok();
+        return value.trim().parse().ok();
     }
     None
 }
@@ -4616,5 +4616,117 @@ printf '{{"gates":{{}}}}\n'
                 hooks_dir: root.join("tools/hooks"),
             },
         }
+    }
+}
+
+#[cfg(test)]
+mod pre_push_verifier_protocol_tests {
+    use super::*;
+
+    fn temp_root(label: &str) -> PathBuf {
+        let nanos = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .expect("system clock after epoch")
+            .as_nanos();
+        let root = std::env::temp_dir().join(format!("{label}-{}-{nanos}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&root);
+        std::fs::create_dir_all(&root).expect("create temp dir");
+        root
+    }
+
+    fn write_protocol_fixture(root: &Path, protocol_version: u32, extra_face: Option<&str>) {
+        let lib_dir = root.join("ci/facade/generated-artifact-freshness/src");
+        std::fs::create_dir_all(&lib_dir).expect("create lib dir");
+        std::fs::write(
+            lib_dir.join("lib.rs"),
+            format!("pub const PRE_PUSH_VERIFIER_PROTOCOL_VERSION: u32 = {protocol_version};\n"),
+        )
+        .expect("write lib.rs");
+        let mut artifacts: Vec<serde_json::Value> = GENERATED_FACE_PATHS
+            .iter()
+            .map(|path| {
+                serde_json::json!({
+                    "path": path,
+                    "materialization_mode": NOT_TRACKED_IN_GIT_MODE
+                })
+            })
+            .collect();
+        if let Some(path) = extra_face {
+            artifacts.push(serde_json::json!({
+                "path": path,
+                "materialization_mode": NOT_TRACKED_IN_GIT_MODE
+            }));
+        }
+        std::fs::create_dir_all(root.join("registry")).expect("create registry dir");
+        std::fs::write(
+            root.join(CONTROL_PLANE_MANIFEST),
+            serde_json::json!({ "artifacts": artifacts }).to_string(),
+        )
+        .expect("write control-plane");
+    }
+
+    #[test]
+    fn write_then_read_manifest_matches_embedded_protocol() {
+        let hooks = temp_root("oya-pre-push-manifest-roundtrip");
+        write_pre_push_verifier_manifest(&hooks).expect("write");
+        let version = read_pre_push_verifier_manifest(&hooks).expect("read");
+        assert_eq!(version, PRE_PUSH_VERIFIER_PROTOCOL_VERSION);
+    }
+
+    #[test]
+    fn missing_manifest_fails_closed_with_reinstall() {
+        let hooks = temp_root("oya-pre-push-manifest-missing");
+        let error = read_pre_push_verifier_manifest(&hooks).expect_err("missing");
+        let text = error.to_string();
+        assert!(text.contains("missing"), "{text}");
+        assert!(text.contains("reinstall"), "{text}");
+    }
+
+    #[test]
+    fn stale_manifest_fails_closed_with_reinstall() {
+        let hooks = temp_root("oya-pre-push-manifest-stale");
+        std::fs::write(
+            hooks.join(PRE_PUSH_VERIFIER_MANIFEST_FILE),
+            "{\n  \"protocol_version\": 0\n}\n",
+        )
+        .expect("write stale");
+        let error = read_pre_push_verifier_manifest(&hooks).expect_err("stale");
+        let text = error.to_string();
+        assert!(text.contains("out of date"), "{text}");
+        assert!(text.contains("reinstall"), "{text}");
+    }
+
+    #[test]
+    fn matching_fixture_protocol_is_accepted() {
+        let root = temp_root("oya-pre-push-protocol-match");
+        write_protocol_fixture(&root, PRE_PUSH_VERIFIER_PROTOCOL_VERSION, None);
+        verify_pre_push_verifier_protocol(&root).expect("matching protocol");
+    }
+
+    #[test]
+    fn bumped_lib_rs_protocol_fails_closed_with_reinstall() {
+        let root = temp_root("oya-pre-push-protocol-bump");
+        write_protocol_fixture(&root, PRE_PUSH_VERIFIER_PROTOCOL_VERSION + 1, None);
+        let error = verify_pre_push_verifier_protocol(&root).expect_err("version drift");
+        let text = error.to_string();
+        assert!(
+            text.contains(&format!("v{}", PRE_PUSH_VERIFIER_PROTOCOL_VERSION + 1)),
+            "{text}"
+        );
+        assert!(text.contains("reinstall"), "{text}");
+    }
+
+    #[test]
+    fn extra_declared_face_fails_closed_with_reinstall() {
+        let root = temp_root("oya-pre-push-protocol-extra-face");
+        write_protocol_fixture(
+            &root,
+            PRE_PUSH_VERIFIER_PROTOCOL_VERSION,
+            Some("ci/facade/artifact-inventory-registry/new-face.generated.json"),
+        );
+        let error = verify_pre_push_verifier_protocol(&root).expect_err("face drift");
+        let text = error.to_string();
+        assert!(text.contains("new-face.generated.json"), "{text}");
+        assert!(text.contains("reinstall"), "{text}");
     }
 }
