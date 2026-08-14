@@ -26,7 +26,7 @@ related_adrs:
   - ADR-0299
 companion_docs:
   - docs/standards/documentation-rigor.md
-  - docs/user-journeys/CATALOG-j126-j150-ecosystem.md
+  - RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2)
   - microservices/payments/PRD.md
   - microservices/identity/PRD.md
   - microservices/workflow-engine/PRD.md
@@ -53,8 +53,8 @@ Purpose: ontology owns patient-read-path so Yejin Park can hand off eight patien
 
 ## 1. Scope
 ontology must implement only the patient-read-path slice. It must not take over responsibilities owned by peer services.
-Journey directory: docs/user-journeys/j43-healthcare-nurse-patient-handoff.
-Shared schema: docs/user-journeys/j43-healthcare-nurse-patient-handoff/schemas/clinical-handoff-bundle.json.
+Journey directory: RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2)
+Shared schema: RETIRED-WITH-USER-JOURNEYS-CORPUS (ADR-0716 wave 2)
 The slice is one PR-sized unit with a typed contract, tests, metrics, and rollback.
 ## 2. Public contract
 OpenAPI 3.2.0: ontology declares the fields it owns, the fields it reads, and the fields it forwards without mutation.

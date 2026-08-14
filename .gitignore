@@ -237,5 +237,4 @@ _ralplan_workflow.js
 # Anti-friction wave (2026-08-14): local-only agent runtime state and transient dirs.
 /.beads/
 /.cursor/
-/docs/superpowers/
 /infra/capi/_out/

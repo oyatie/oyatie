@@ -1,0 +1,13 @@
+{
+  "pass_seq": 1,
+  "recorded_at_epoch_s": 1782989737,
+  "cards": [
+    {
+      "card_id": "MPV2-0000.C001",
+      "lane_id": "lane-fabric-a",
+      "cycle_time_s": 1862,
+      "review_latency_s": 1235,
+      "rework_count": 1
+    }
+  ]
+}

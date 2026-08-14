@@ -1,0 +1,13 @@
+{
+  "card_id": "MPV2-0000.C001",
+  "title": "Fabric drive-loop closed-loop increment: per-pass flow-metrics ledger (FlowMetricsPort + FsFlowMetricsStore + FlowMetricsService) and lane-runtime bridge drive commands",
+  "program_id": "P-FABRIC",
+  "depends_on": [],
+  "status": "done-verified",
+  "evidence_refs": [
+    "git:ee1773cc5a244f7a78715ab38d2676372dfb3e91",
+    "evidence/goals/fabric-loop-e2e-proof-run-20260702.json#stage_build",
+    "evidence/goals/fabric-loop-e2e-proof-run-20260702.json#stage_review",
+    "evidence/goals/fabric-loop-e2e-proof-run-20260702.json#stage_post_merge_product_completion_packet"
+  ]
+}
