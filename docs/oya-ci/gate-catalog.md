@@ -24,7 +24,7 @@ initial key set — the reviewed disposition flip later freezes it. Gates are co
 Each enabled gate declares HOW its current keys are sourced:
 
 - **`producer-face`** — the producer builds a face (a `Value`), and the gate's pure
-  `evaluate_keyed(&face)` produces the keys. Eleven gates use this; each binds one `face`.
+  `evaluate_keyed(&face)` produces the keys. Nine gates use this; each binds one `face`.
 - **`raw-corpus-collector`** — the keys arrive ALREADY GROUPED `code -> keys` from a raw-corpus
   census the binary runs over the tracked text files (NOT a face, NOT `evaluate_keyed`).
   `cloud-ci-brand-residue` uses this.
@@ -35,40 +35,38 @@ Each enabled gate declares HOW its current keys are sourced:
 
 ## Packs
 
-- **`core` (language-agnostic):** total-accounting, cross-artifact-agreement, automation-ratchet,
-  staleness-reaper (all `producer-face`); brand-residue (`raw-corpus-collector`). Collectors
-  operate on tracked text + the ADR/markdown corpus + git history — no language assumption.
-- **`rust-cargo`:** bnf-layer-suffix + manifest-hygiene (both `producer-face`). Collectors
-  enumerate `Cargo.toml`; consume the `[naming]` + `[manifest]` policy.
+- **`core` (language-agnostic):** cross-artifact-agreement + automation-ratchet (both
+  `producer-face`); brand-residue (`raw-corpus-collector`). Collectors operate on tracked text +
+  the ADR/markdown corpus — no language assumption.
+- **`rust-cargo`:** bnf-layer-suffix (`producer-face`). The collector enumerates `Cargo.toml` and
+  consumes the `[naming]` policy.
 - **`rust-cargo-workspace`:** cargo-prefix + workspace-glob-coverage + target-parity (all
   `producer-face`). Collectors enumerate workspace members, crate manifest directories, and
   Buck target parity. Freshness is the standalone `frozen-empty-meta` job for Cargo.lock member
   parity and generated-face byte parity.
 - **`agent-wiring`:** enforcement-liveness (`producer-face`). The collector compares tracked
   hook scripts against Claude and Codex project hook wiring.
-- **`catalog`:** slo-coverage (`producer-face`). The collector expands catalog record globs.
+- **`slo`:** slo-coverage (`producer-face`). The collector walks every tracked
+  `*.openslo.yaml` envelope in the canonical per-service SLO corpus (ADR-0718 re-pointed the gate
+  off the retired `registry/catalog/*.yaml` mirror).
 
 A non-Rust repo enables `core` only; oyatie enables `core + rust-cargo + rust-cargo-workspace +
-agent-wiring + catalog`.
+agent-wiring + slo`.
 
 ## The gates
 
 | Gate id | Pack | Input KIND (face) | Violation codes |
 |---|---|---|---|
-| `cloud-ci-total-accounting` | core | producer-face (`total_accounting`) | `unaccounted`, `unowned`, `unjustified`, `unreachable`, `no_ttl_class`, `registry_drift` (frozen-empty) |
 | `cloud-ci-cross-artifact-agreement` | core | producer-face (`cross_artifact`) | `generated_face_drift`, `dual_decision_collision`, `decision_id_mismatch` (frozen-empty), `phantom_decision_citation` (frozen-empty), `supersession_half_edge`, `unpropagated_decision`, `orphan_decision`, `status_disagreement` |
 | `cloud-ci-automation-ratchet` | core | producer-face (`automation_ratchet`) | `advisory_claiming_enforced`, `blocking_invariant_mapped_to_oya_cli`, `ratchet_regression` (frozen-empty), `enforceable_or_automatable_marked_human_judgment`, `duplicate_row_id` (frozen-empty), `unknown_classification`, `missing_or_empty_required_field` |
-| `cloud-ci-staleness-reaper` | core | producer-face (`staleness`) | `stale_over_budget_unreachable`, `untyped_staleness`, `reap_without_report` (frozen-empty) |
 | `cloud-ci-brand-residue` | core | raw-corpus-collector | one `forbidden_<stem>` code per configured `[vocab]` stem |
 | `cloud-ci-bnf-layer-suffix` | rust-cargo | producer-face (`bnf_layer_suffix`) | `bnf_unknown_role`, `bnf_role_mismatch`, `bnf_missing_oya_prefix`, `bnf_empty_after_prefix`, `bnf_undeclared_role`, `bnf_undeclared_context`, `bnf_name_uppercase` |
-| `cloud-ci-manifest-hygiene` | rust-cargo | producer-face (`manifest_hygiene`) | `manifest_missing_version_workspace`, `manifest_missing_rust_version_workspace`, `manifest_missing_publish_false`, `manifest_missing_license`, `manifest_missing_lints_workspace`, `manifest_missing_lib_doctest_false` |
 | `cloud-ci-cargo-prefix` | rust-cargo-workspace | producer-face (`cargo_prefix`) | `cargo_prefix_violation`, `cargo_prefix_name_path_mismatch`, `cargo_prefix_unresolvable` |
-| `cloud-ci-slo-coverage` | catalog | producer-face (`slo_coverage`) | `slo_missing_or_blank_slo`, `slo_empty_crate_id`, `slo_no_catalog_records` |
+| `cloud-ci-slo-coverage` | slo | producer-face (`slo_coverage`) | `slo_missing_or_blank_slo`, `slo_empty_crate_id`, `slo_empty_corpus` (frozen-empty), `slo_row_no_live_crate_unmarked` (frozen-empty) |
 | `cloud-ci-workspace-glob-coverage` | rust-cargo-workspace | producer-face (`workspace_glob_coverage`) | `workspace_member_explicit_path`, `crate_dir_not_covered` |
 | `cloud-ci-target-parity` | rust-cargo-workspace | producer-face (`target_parity`) | `member_missing_buck` (frozen-empty), `member_test_code_without_rust_test_target` |
 | `cloud-ci-enforcement-liveness` | agent-wiring | producer-face (`enforcement_liveness`) | `hook_unwired_without_stub_marker` (frozen-empty), `hook_wiring_mirror_drift` (frozen-empty), `wired_hook_missing_file` (frozen-empty) |
 | `cloud-ci-freshness` | rust-cargo-workspace | frozen-empty-meta | `lock_missing_member_package`, `lock_stale_member_version`, `lock_orphan_path_package`, `generated_face_stale` |
-| `cloud-ci-friction-accounting` | governance | standalone self-test (own committed baseline) | `friction_policy_gate_id_mismatch` (frozen-empty), `friction_missing_required_field`, `friction_unknown_status` (frozen-empty), `friction_no_disposition` (born-blocking-clean), `friction_closed_without_evidence`, `friction_accepted_risk_without_evidence`, `friction_duplicate_primary_row` (frozen-empty), `friction_orphan_update_row` |
 | `cloud-ci-canonical-json` | governance | standalone self-test (zero baseline) | `json_not_canonical` (born-blocking-empty), `json_parse_error` (born-blocking-empty), `json_duplicate_key` (born-blocking-empty) |
 | `cloud-ci-embedded-asset-hermeticity` | hermeticity | standalone self-test (own committed baseline) | `embedded_asset_unmapped_include` (born-blocking frozen-empty), `embedded_asset_policy_gate_id_mismatch` (frozen-empty); non-blocking skips: `skip_non_literal_argument`, `skip_absolute_literal`, `skip_build_output_path`, `skip_no_owning_target`, `skip_buck_unparseable` |
 | `cloud-ci-kernel-purity` | rust-cargo-workspace | standalone self-test (born-blocking, no baseline) | `KP-TRANSIENT-DEP-CARGO` (born-blocking-clean), `KP-TRANSIENT-DEP-BUCK` (born-blocking-clean), `KP-UNRESOLVED-PATH-DEP` (born-blocking-clean), `KP-STALE-EXCEPTION`, `KP-EMPTY-SCAN`, `KP-POLICY-GATE-ID-MISMATCH` |
@@ -100,16 +98,6 @@ with the per-face stale list / lock findings and the exact remediation commands
 content commit for the lock). The cloud-ci freshness gate (ADR-0539) remains the canonical
 enforcement backstop per the enforcement-layering doctrine; `--verify` is the automation-default
 local check (ADR-0548 D6) in front of it, never a substitute for it.
-
-`cloud-ci-friction-accounting` (ADR-0544) is a standalone born-blocking self-test, NOT a
-producer-face/raw-corpus gate routed through the central `gate-baseline.generated.json` firewall (the
-producer's `RawCorpusCollector` dispatch is hardwired to the single brand-residue collector). It runs
-as its `oya-cloud-ci-friction-accounting-app-gate` buck2 `rust_test` under the binding
-`buck2 test //cloud/cloud-ci/...` CI job (and a labeled per-crate matrix check), and owns its own
-reviewed shrink-only `friction-accounting-baseline.json` + ceilings (FRIC-1781112000 anti-laundering)
-rather than the central baseline. Same firewall *semantics* (frozen-empty + shrink-only legacy debt),
-local enforcement. All policy — the ledger path, the free-text status taxonomy, the evidence rules —
-is DATA in `friction-accounting-policy.json`, so the gate runs on any repo by repointing the policy.
 
 `cloud-ci-canonical-json` (ADR-0546) is a standalone born-blocking self-test, NOT a producer-face
 gate. It walks every tracked `*.json` under the policy's `governed_roots` (read-only filesystem),
@@ -212,7 +200,6 @@ DATA in `no-graphql-without-adr-policy.json` (R0), so the gate runs on any repo 
 
 ## Key shapes (what a `key` identifies)
 
-- total-accounting / staleness: the registry row `path`.
 - cross-artifact: a decision id; for `decision_id_mismatch`, the producer's
   `<file>:<filename-id>!=<front-matter-id>` entry; for `phantom_decision_citation`, the
   producer's `<cited-id>@<source-path>` citation edge — an `ADR-NNNN` cited from a governed
@@ -231,9 +218,10 @@ DATA in `no-graphql-without-adr-policy.json` (R0), so the gate runs on any repo 
 - automation-ratchet: a surface/row id.
 - brand-residue: the file path containing a stem (per-file, NOT per-line — stable under in-file
   edits; only fully cleaning a file shrinks the set).
-- bnf / manifest: the crate name.
+- bnf: the crate name.
 - cargo-prefix: the workspace member path.
-- slo-coverage: the catalog crate id.
+- slo-coverage: the repo-relative `*.openslo.yaml` path (the row key; the envelope's
+  `metadata.name` is the declaration).
 - workspace-glob-coverage: the raw member entry or crate manifest directory.
 - target-parity: the workspace member path.
 - enforcement-liveness: the hook path, or `<wiring_file>:<command_path>` for missing referenced
@@ -249,28 +237,21 @@ DATA in `no-graphql-without-adr-policy.json` (R0), so the gate runs on any repo 
 ## frozen-empty codes
 
 A `frozen_empty: true` disposition forces a code's baseline to be permanently empty regardless of
-current keys, so ANY occurrence is NEW debt the firewall blocks. `registry_drift` (under
-total-accounting), `ratchet_regression` + `duplicate_row_id` (under automation-ratchet),
-`reap_without_report` (under staleness), `member_missing_buck` (under target-parity), all
-`cloud-ci-enforcement-liveness` codes, all `cloud-ci-freshness` codes, and
-`friction_policy_gate_id_mismatch` + `friction_unknown_status` + `friction_duplicate_primary_row`
-(under friction-accounting) are frozen-empty meta codes — they cannot accumulate a baseline.
+current keys, so ANY occurrence is NEW debt the firewall blocks. `ratchet_regression` +
+`duplicate_row_id` (under automation-ratchet), `member_missing_buck` (under target-parity), the
+`slo_empty_corpus` + `slo_row_no_live_crate_unmarked` codes (under slo-coverage), all
+`cloud-ci-enforcement-liveness` codes, and all `cloud-ci-freshness` codes are frozen-empty meta
+codes — they cannot accumulate a baseline.
 
-## exists-but-unaccounted codes (ADR-0555 conversion)
+## Ownership + reachability registration (ADR-0555 → ADR-0718)
 
-`unowned`, `unreachable`, `no_ttl_class` (total-accounting) and `untyped_staleness`
-(staleness-reaper) are `baseline-block-on-new`: a NEW artifact that is not ownership-registered
-(nearest-ancestor `OWNERS`) and reachability-registered (workspace-member containment, an exact
-mention in masterplan/root-hub/DOC-CATALOG, or a reviewed `specs/reachability-registry.json`
-prefix) is **unmergeable** — the pre-conversion corpus debt is grandfathered mechanically by the
-ADR-0551 merge-base frozen baseline (shrink-only burn-down; zero growth without the sign-off
-door). A FAIL is never a bare flag: each code's disposition carries `remediation` DATA — the
-exact registration edit, or the precise design decision needed (who owns this? what points at
-this?) — stamped into `gate-baseline.generated.json` and printed by the firewall next to the
-offending keys. The producer's `--fix-owners <dir>=<owner>` / `--fix-reachability
-<prefix>=<anchor>` bridges apply a decided registration and self-validate (transitional local
-bridges per `cli_surface_policy` — the gate test is the merge authority; their successors are the
-ADR-0548 D3 reconcilers). The ONE deliberately-advisory survivor is
-`stale_over_budget_unreachable`: its keys enter by TIME passing, not by PR action, so
-admission-blocking would blame PRs for age accrued on other clocks — its convergence surface is
-the staleness-reaper archival reconciler, and `unreachable`-at-creation now starves its growth.
+The total-accounting and staleness-reaper admission gates are retired with ADR-0718 (their
+admission authority died with the hand-maintained catalog/milestone bookkeeping they guarded).
+The PRODUCER-side registration semantics survive: the registry face still computes owner
+(nearest-ancestor `OWNERS`), justification (a decision naming the exact path token), and
+reachability (workspace-member containment, an exact mention in masterplan/root-hub/DOC-CATALOG,
+or a reviewed `specs/reachability-registry.json` prefix) for every tracked path, and the
+registry-drift + baseline-ratchet gates consume the face. The producer's `--fix-owners
+<dir>=<owner>` / `--fix-reachability <prefix>=<anchor>` bridges apply a decided registration and
+self-validate (transitional local bridges per `cli_surface_policy`; their successors are the
+ADR-0548 D3 reconcilers).

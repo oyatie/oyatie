@@ -76,7 +76,6 @@ registry/fixuptasks.jsonl merge=fixup-ledger
 # preserved, a legitimate redact must be a single linearised commit on `dev`.
 # Registration is per-clone (see the crate README): actors without the `merge.friction-ledger`
 # git config get a normal conflict; cloud-ci gates remain the canonical backstop.
-ci/facade/action-item-accounting/friction-ledger.jsonl merge=friction-ledger
 
 # Force LF for Rust sources so include_bytes! / git-blob identity stays platform-stable.
 # Hosted windows-latest defaults to core.autocrlf=true; CRLF worktree + LF blobs broke

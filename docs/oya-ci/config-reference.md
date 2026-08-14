@@ -49,15 +49,6 @@ Frozen-reference regeneration retains a bounded v1 compatibility path: a histori
 without the field expands in memory to every forbidden stem, exactly reproducing v1's whole-line
 exception semantics without weakening candidate validation.
 
-## `[manifest]` — the rust-cargo manifest-hygiene field-set (declared for `cloud-ci-manifest-hygiene`)
-
-| Key | Default |
-|---|---|
-| `required_flags` | `version_workspace rust_version_workspace publish_false license lints_workspace lib_doctest_false` |
-
-(In the floor, the manifest gate evaluates the fixed field-set; this section declares it as the
-portable, documented policy. `lib_doctest_false` is required only when a crate has a `[lib]` table.)
-
 ## `[reachability]` / `[justification]` / `[owners]` / `[enforcement]` — source paths
 
 | Section.key | Default |
@@ -85,7 +76,7 @@ set `inline_json = """{ ... }"""` to override with a full inline JSON document.
 |---|---|
 | `id` | the gate id (matches its crate + its firewall baseline section) |
 | `input_kind` | how the gate's CURRENT keys are sourced — `producer-face`, `raw-corpus-collector`, or `frozen-empty-meta` (see [the gate catalog](./gate-catalog.md) §input KINDs) |
-| `face` | for `producer-face` gates only: which producer face it binds (`total_accounting` / `cross_artifact` / `automation_ratchet` / `staleness` / `bnf_layer_suffix` / `manifest_hygiene` / `cargo_prefix` / `slo_coverage` / `workspace_glob_coverage`) |
+| `face` | for `producer-face` gates only: which producer face it binds (`cross_artifact` / `automation_ratchet` / `bnf_layer_suffix` / `cargo_prefix` / `slo_coverage` / `license_policy` / `workspace_glob_coverage` / `target_parity` / `enforcement_liveness`) |
 
 `gates.disposition_json` (optional, `inline_json`-style) carries the per-(gate,code)
 `mode` / `infra_prereq` / `frozen_empty` disposition table; absent ⇒ the bundled table. A
