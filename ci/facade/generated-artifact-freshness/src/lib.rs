@@ -1866,35 +1866,6 @@ fn path_is_equal_or_under(path: &str, prefix: &str) -> bool {
             && path.starts_with(prefix))
 }
 
-#[cfg(test)]
-mod ignored_workspace_member_tests {
-    use super::path_is_equal_or_under;
-
-    #[test]
-    fn exact_ignored_dir_matches() {
-        assert!(path_is_equal_or_under(
-            "foo/core/scratch",
-            "foo/core/scratch"
-        ));
-    }
-
-    #[test]
-    fn nested_dir_under_ignored_prefix_matches() {
-        assert!(path_is_equal_or_under(
-            "foo/core/scratch/nested",
-            "foo/core/scratch"
-        ));
-    }
-
-    #[test]
-    fn sibling_sharing_a_string_prefix_does_not_match() {
-        assert!(!path_is_equal_or_under(
-            "foo/core/scratchpad",
-            "foo/core/scratch"
-        ));
-    }
-}
-
 pub fn read_committed_generated_faces(
     repo_root: &Path,
 ) -> Result<Vec<(String, String)>, FreshnessError> {
@@ -5124,5 +5095,34 @@ mod pre_push_verifier_protocol_tests {
             "pub const PRE_PUSH_VERIFIER_PROTOCOL_VERSION: u32 = 2;\n",
         );
         assert_eq!(parse_pre_push_verifier_protocol_version(source), None);
+    }
+}
+
+#[cfg(test)]
+mod ignored_workspace_member_tests {
+    use super::path_is_equal_or_under;
+
+    #[test]
+    fn exact_ignored_dir_matches() {
+        assert!(path_is_equal_or_under(
+            "foo/core/scratch",
+            "foo/core/scratch"
+        ));
+    }
+
+    #[test]
+    fn nested_dir_under_ignored_prefix_matches() {
+        assert!(path_is_equal_or_under(
+            "foo/core/scratch/nested",
+            "foo/core/scratch"
+        ));
+    }
+
+    #[test]
+    fn sibling_sharing_a_string_prefix_does_not_match() {
+        assert!(!path_is_equal_or_under(
+            "foo/core/scratchpad",
+            "foo/core/scratch"
+        ));
     }
 }
