@@ -478,10 +478,7 @@ fn two_scale_sets_are_structurally_bound_to_distinct_physical_filesystems() {
         general.hostname_pin.is_none(),
         "general dual-worker must not pin kubernetes.io/hostname"
     );
-    assert_eq!(
-        live.hostname_pin.as_deref(),
-        Some("oya-talos-worker-2")
-    );
+    assert_eq!(live.hostname_pin.as_deref(), Some("oya-talos-worker-2"));
 
     for runner in &runners {
         assert_eq!(runner.mount_path, "/home/runner/_work");
@@ -523,10 +520,7 @@ fn two_scale_sets_are_structurally_bound_to_distinct_physical_filesystems() {
         serde_json::from_str(&string_at(config_map, &["data", "config.json"]))
             .expect("parse local-path config.json");
     let mut path_nodes: PathNodes = BTreeMap::new();
-    for mapping in config["nodePathMap"]
-        .as_array()
-        .expect("nodePathMap")
-    {
+    for mapping in config["nodePathMap"].as_array().expect("nodePathMap") {
         let node = mapping["node"].as_str().expect("node string").to_owned();
         for path in mapping["paths"].as_array().expect("node paths") {
             let path = path.as_str().expect("node path string").to_owned();
@@ -841,10 +835,7 @@ fn capacity_evaluator_rejects_overcommit_shared_paths_and_missing_physical_bound
     ]);
     assert!(
         validate_capacity_contract(
-            &[
-                general(1, Some("oya-talos-worker-2"), false),
-                live(1)
-            ],
+            &[general(1, Some("oya-talos-worker-2"), false), live(1)],
             &dual_worker_paths,
             &live_only_on_worker_2,
             &single_node_fs
@@ -1222,13 +1213,11 @@ fn openbao_tls_and_github_identity_migration_is_exact_and_secret_free() {
             .unwrap()
             .contains("re-client")
     );
-    for (role, workflow, policy) in [
-        (
-            "github-cas-writer-dev-push.json",
-            "jason931225/oyatie/.github/workflows/oya-ci-required.yml@refs/heads/dev",
-            "ci-cas-writer",
-        ),
-    ] {
+    for (role, workflow, policy) in [(
+        "github-cas-writer-dev-push.json",
+        "jason931225/oyatie/.github/workflows/oya-ci-required.yml@refs/heads/dev",
+        "ci-cas-writer",
+    )] {
         let payload: serde_json::Value = serde_json::from_str(
             data.get(role)
                 .and_then(Value::as_str)
@@ -1238,10 +1227,7 @@ fn openbao_tls_and_github_identity_migration_is_exact_and_secret_free() {
         assert_eq!(payload["bound_audiences"][0], "oya-openbao");
         assert_eq!(payload["user_claim"], "workflow_ref");
         assert_eq!(payload["bound_claims"]["workflow_ref"], workflow);
-        assert_eq!(
-            payload["bound_claims"]["job_workflow_ref"],
-            workflow
-        );
+        assert_eq!(payload["bound_claims"]["job_workflow_ref"], workflow);
         assert_eq!(payload["bound_claims"]["repository_id"], "1236575706");
         assert_eq!(payload["bound_claims"]["repository_owner_id"], "56489493");
         assert_eq!(payload["bound_claims"]["repository_visibility"], "public");

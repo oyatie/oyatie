@@ -7,14 +7,12 @@ use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
 use check_adr_citation::{AdrCitationDocument, validate_adr_citations};
-use oya_check_brand_residue::{BrandResidueDocument, validate_brand_residue};
 use check_glossary_vocabulary::{
     GlossaryVocabularyWarning, GlossaryVocabularyWarningKind, GlossaryVocabularyWarningSource,
     IgnoredUppercaseWord, VocabularyDocument,
     validate_glossary_vocabulary_hygiene_with_baseline_and_ignored_words,
     validate_glossary_vocabulary_hygiene_with_ignored_words,
 };
-use oya_check_license_policy::LicensePolicy;
 use check_mobile_native::{
     MobileNativeDiscoveryMarker, MobileNativeManifest, MobileNativePolicy,
     MobileNativeProductRecord, validate_mobile_native,
@@ -29,6 +27,8 @@ use check_vendor_recency::{
 };
 use intelligence_api_semver_domain::validate_api_semver;
 use intelligence_cargo_prefix_domain::{CargoPrefixMember, validate_cargo_prefix};
+use oya_check_brand_residue::{BrandResidueDocument, validate_brand_residue};
+use oya_check_license_policy::LicensePolicy;
 
 mod active_artifact_contract_gate;
 mod adr_0145_gates;

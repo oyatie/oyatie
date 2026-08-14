@@ -60,9 +60,11 @@ jobs:
         with:
           shared-key: cargo-ci-linux
       - name: Check formatting
-        # Blocking, but differential: only files this PR changed may introduce drift.
-        # The pre-existing repo-wide drift is retired by a dedicated reformat PR.
-        run: files="$(git diff --name-only "origin/${GITHUB_BASE_REF:-dev}...HEAD" -- '*.rs')" && { [ -z "$files" ] || rustfmt --check $files; }
+        # Blocking and differential: only ACMR (added/copied/modified/renamed) *.rs
+        # files this PR changed. Deleted paths are not rustfmt inputs. skip_children
+        # keeps a crate-root path from re-checking untouched sibling modules that
+        # still carry pre-existing rustfmt debt. Repo-wide drift is a follow-up PR.
+        run: files="$(git diff --diff-filter=ACMR --name-only "origin/${GITHUB_BASE_REF:-dev}...HEAD" -- '*.rs')" && { [ -z "$files" ] || rustfmt --check --config skip_children=true -- $files; }
       - name: Clippy, warnings denied
         # Advisory until the repo-wide lint-debt cleanup PR lands, then blocking.
         # The differential format gate above is the blocking new-debt guard today.

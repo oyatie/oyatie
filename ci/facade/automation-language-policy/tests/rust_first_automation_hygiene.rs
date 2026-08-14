@@ -456,6 +456,38 @@ fn retirement_event_transport_delegates_provider_tuple_to_rust_materializer_with
 }
 
 #[test]
+fn lint_format_gate_is_differential_blocking_on_changed_files() {
+    let root = repo_root();
+    let workflow_path = root.join(".github/workflows/oya-ci-required.yml");
+    let workflow = fs::read_to_string(&workflow_path)
+        .unwrap_or_else(|e| panic!("read {}: {e}", workflow_path.display()));
+    let workflow_doc: YamlValue = serde_yaml::from_str(&workflow)
+        .unwrap_or_else(|e| panic!("parse {}: {e}", workflow_path.display()));
+
+    let fmt = named_workflow_step(&workflow_doc, "lint", "Check formatting");
+    assert!(
+        fmt.get("continue-on-error").is_none(),
+        "new rustfmt drift on changed files must fail the lint job"
+    );
+    let run = fmt
+        .get("run")
+        .and_then(YamlValue::as_str)
+        .expect("format gate must be an inline run step");
+    assert!(
+        run.contains("--diff-filter=ACMR"),
+        "deleted files are not rustfmt inputs; got {run}"
+    );
+    assert!(
+        run.contains("skip_children=true"),
+        "crate-root paths must not re-check untouched sibling modules; got {run}"
+    );
+    assert!(
+        run.contains("rustfmt --check"),
+        "format gate must invoke rustfmt --check; got {run}"
+    );
+}
+
+#[test]
 fn retirement_control_plane_has_a_dedicated_owners_boundary() {
     let root = repo_root();
     let control_plane_root = root.join("registry/history-only-retirement");

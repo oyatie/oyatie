@@ -144,8 +144,10 @@ fn bundled_gate_disposition_path(root: &Path) -> PathBuf {
 /// SEMANTICALLY (e.g. cloud-ci-total-accounting -> artifact-accountability), so there is no
 /// textual prefix-strip from the gate id to the lane — the move-plan is the only authority.
 fn ci_move_new_dir(root: &Path, old_cargo_name: &str) -> Option<String> {
-    let plan: Value =
-        serde_json::from_str(&read_to_string(&root.join("specs/reorg/ci-keystone-rename-map.json"))).ok()?;
+    let plan: Value = serde_json::from_str(&read_to_string(
+        &root.join("specs/reorg/ci-keystone-rename-map.json"),
+    ))
+    .ok()?;
     if let Some(moves) = plan.get("moves").and_then(Value::as_array) {
         for m in moves {
             if m.get("old_cargo_name").and_then(Value::as_str) == Some(old_cargo_name) {
@@ -323,8 +325,7 @@ const WINDOWS_RESOLVER_DIFFERENTIAL_TARGET: &str =
 /// Hosted-safe Buck2 hermetic test env for rustup home.
 /// Prefer runner `RUSTUP_HOME` (ARC `/opt/rust/rustup`); fall back to `~/.rustup` on
 /// GitHub-hosted images where the var is unset under `set -u`.
-const RUSTUP_HOME_BUCK2_TEST_ENV: &str =
-    "-- --env \"RUSTUP_HOME=${RUSTUP_HOME:-${HOME}/.rustup}\"";
+const RUSTUP_HOME_BUCK2_TEST_ENV: &str = "-- --env \"RUSTUP_HOME=${RUSTUP_HOME:-${HOME}/.rustup}\"";
 
 /// True when a command line forwards the owned/hosted-safe RUSTUP_HOME into Buck2's
 /// hermetic test executor. Rejects bare `${RUSTUP_HOME}` (unbound on public GHA under `set -u`).
@@ -358,9 +359,10 @@ fn workspace_resolver_differential_is_self_hosted_and_binding(workflow: &str) ->
             patterns.contains("//ci/...") && patterns.contains(WINDOWS_RESOLVER_DIFFERENTIAL_TARGET)
         })
         && differential_forwards_rustup
-        && !workflow.lines().map(str::trim).any(|line| {
-            line.starts_with("runs-on:") && line.contains("windows-latest")
-        })
+        && !workflow
+            .lines()
+            .map(str::trim)
+            .any(|line| line.starts_with("runs-on:") && line.contains("windows-latest"))
 }
 
 /// The fan-in's success CONDITIONAL — the `if [ … ] && [ … ]; then` line, with shell
@@ -407,9 +409,11 @@ fn live_postgres_job_uses_isolated_arc_cell(job: &str) -> bool {
     // W1: merge path is GitHub-hosted + service container (replaces oya-live-postgres-arm64
     // ARC sidecar as primary). Credentials prefer env defaults for hosted, with optional
     // /run/oya-ci-postgres/* file fallback when the ARC cell is used as overflow.
-    let on_hosted_with_service = job.lines().map(str::trim).any(|line| {
-        line.starts_with("runs-on:") && line.contains("ubuntu-latest")
-    }) && job.lines().any(|line| line.trim() == "services:")
+    let on_hosted_with_service = job
+        .lines()
+        .map(str::trim)
+        .any(|line| line.starts_with("runs-on:") && line.contains("ubuntu-latest"))
+        && job.lines().any(|line| line.trim() == "services:")
         && job.contains("postgres:")
         && job.contains("image: postgres:16");
     let on_arc_sidecar = job.contains("runs-on: oya-live-postgres-arm64")
@@ -782,8 +786,14 @@ jobs:
     // Pattern coverage semantics: recursive patterns recurse, exact patterns do not.
     assert!(pattern_covers_package("//ci/...", "ci/facade/x"));
     assert!(pattern_covers_package("//...", "ci/facade/x"));
-    assert!(pattern_covers_package("//ci/facade/x:ci-x-gate", "ci/facade/x"));
-    assert!(!pattern_covers_package("//ci/facade/x:ci-x-gate", "ci/facade/y"));
+    assert!(pattern_covers_package(
+        "//ci/facade/x:ci-x-gate",
+        "ci/facade/x"
+    ));
+    assert!(!pattern_covers_package(
+        "//ci/facade/x:ci-x-gate",
+        "ci/facade/y"
+    ));
     // Prefix matching must respect path segments: `//cider/...` must not cover `ci/facade/x`.
     assert!(!pattern_covers_package("//cider/...", "ci/facade/x"));
 
@@ -794,7 +804,9 @@ jobs:
         &root.join("ci/facade/baseline-ratchet/BUCK")
     ));
     assert!(!buck_declares_a_test_rule(&root.join("toolchains/BUCK")));
-    assert!(!buck_declares_a_test_rule(&root.join("does/not/exist/BUCK")));
+    assert!(!buck_declares_a_test_rule(
+        &root.join("does/not/exist/BUCK")
+    ));
 }
 
 /// RED proof for `fan_in_mentions_job`, and the reason this rework exists.
@@ -1194,7 +1206,8 @@ fn every_gate_crate_is_registered_in_oya_ci_required_workflow() {
             .any(|pattern| pattern_covers_package(pattern, &pkg));
         if !buck_covered && !workspace_executed {
             uncovered.push(crate_dir.clone());
-        } else if buck_covered && !workspace_executed
+        } else if buck_covered
+            && !workspace_executed
             && !buck_declares_a_test_rule(&root.join(&pkg).join("BUCK"))
         {
             // The BUCK test-rule requirement applies to buck2-pattern coverage only; the
@@ -1443,14 +1456,14 @@ fn oya_ci_configured_gates_have_disposition_and_required_workflow_authority() {
             // collapse (2026-08-01) removed those lines; the gates are now executed by
             // `buck2 test //ci/...` in the `buck2` lane. Asserting execution rather than a matrix
             // line is also what this check always MEANT by "required workflow authority".
-            "producer-face" => ci_move_new_dir(&root, &format!("oya-{gate_id}-app")).is_some_and(
-                |dir| {
+            "producer-face" => {
+                ci_move_new_dir(&root, &format!("oya-{gate_id}-app")).is_some_and(|dir| {
                     let pkg = format!("ci/facade/{dir}");
                     executed
                         .iter()
                         .any(|pattern| pattern_covers_package(pattern, &pkg))
-                },
-            ),
+                })
+            }
             "raw-corpus-collector" => {
                 workflow.contains("producer-regen") && workflow.contains("gate-baseline-ratchet")
             }
@@ -1658,16 +1671,18 @@ fn live_postgres_lanes_use_a_dedicated_ephemeral_arc_sidecar_cell() {
         .as_array()
         .expect("bootstrap rollback_json_patch must be an array");
     assert!(rollback.iter().any(|op| {
-        op["op"] == "replace"
-            && op["path"] == "/spec/source/targetRevision"
-            && op["value"] == "dev"
+        op["op"] == "replace" && op["path"] == "/spec/source/targetRevision" && op["value"] == "dev"
     }));
-    assert!(bootstrap["required_readback"]
-        .as_array()
-        .is_some_and(|items| items.len() >= 6));
-    assert!(bootstrap["rollback_readback"]
-        .as_array()
-        .is_some_and(|items| items.len() >= 4));
+    assert!(
+        bootstrap["required_readback"]
+            .as_array()
+            .is_some_and(|items| items.len() >= 6)
+    );
+    assert!(
+        bootstrap["rollback_readback"]
+            .as_array()
+            .is_some_and(|items| items.len() >= 4)
+    );
 }
 
 #[test]

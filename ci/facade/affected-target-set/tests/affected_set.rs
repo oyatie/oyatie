@@ -1159,9 +1159,7 @@ fn a_synthetic_declaration_is_additive_on_top_of_a_real_owner() {
                 "the real owner must still be seeded; got {seeds:?}"
             );
             assert!(
-                seeds
-                    .iter()
-                    .any(|s| s == "root//ci/facade/scanner:gate"),
+                seeds.iter().any(|s| s == "root//ci/facade/scanner:gate"),
                 "the declared scanner must ALSO be seeded; got {seeds:?}"
             );
         }
