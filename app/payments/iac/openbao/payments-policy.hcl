@@ -64,15 +64,3 @@ path "pki/cert/payments-tls" {
 path "secret/data/payments/ech-config" {
   capabilities = ["read"]
 }
-
-# ─── DENY: write/delete on any PSP credential path ───────────────────────────
-# Only the secrets-management service (separate principal) can write PSP creds.
-
-path "secret/data/+/payments/*" {
-  capabilities = ["deny"]
-  # Override: read above takes precedence per OpenBao policy evaluation order
-  # This deny applies to create/update/delete/list explicitly
-  denied_parameters {
-    "*" = []
-  }
-}

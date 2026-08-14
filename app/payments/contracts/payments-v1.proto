@@ -22,7 +22,9 @@ import "google/protobuf/empty.proto";
 // =============================================================================
 
 message Money {
-  // Amount in minor units (e.g. cents for USD)
+  // Amount in minor units (e.g. cents for USD). MUST be a positive non-zero
+  // integer for every money-movement (charge / refund / payout); validated at
+  // the runtime boundary (mirrors the OpenAPI minimum: 1).
   int64 amount_minor = 1;
   // ISO 4217 currency code
   string currency = 2;
@@ -80,7 +82,10 @@ message CreateChargeRequest {
   Money amount = 2;
   string payment_method_id = 3;
   string description = 4;
-  bool capture = 5;
+  // Presence-tracking so a generated gRPC client that omits `capture` cannot
+  // silently default to false while the REST contract defaults to true; the
+  // documented default (capture immediately) is applied server-side.
+  optional bool capture = 5;
   string sub_merchant_id = 6;
   string idempotency_key = 7;
   map<string, string> metadata = 8;
@@ -180,6 +185,9 @@ message SchedulePayoutRequest {
   Money amount = 3;
   google.protobuf.Timestamp scheduled_for = 4;
   string idempotency_key = 5;
+  // Sub-merchant whose balance is being paid out; required for sub-merchant
+  // payout flows and matched by Cedar against the principal's scope.
+  string sub_merchant_id = 6;
 }
 
 // =============================================================================
@@ -220,6 +228,7 @@ message SubmitDisputeEvidenceRequest {
   string tenant_id = 1;
   string dispute_id = 2;
   DisputeEvidenceBundle bundle = 3;
+  string idempotency_key = 4;
 }
 
 // =============================================================================

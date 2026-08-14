@@ -30,12 +30,19 @@ permit (
 )
 when {
   principal has audience_type &&
-  principal.audience_type == "EMERGENCY_SERVICES_OPERATOR"
+  principal.audience_type == "EMERGENCY_SERVICES_OPERATOR" &&
+  // A positively validated SVID is required so a principal that omits
+  // svid_present entirely (missing identity evidence) fails closed.
+  principal has svid_present &&
+  principal.svid_present == true &&
+  principal has svid_valid &&
+  principal.svid_valid == true
 }
 unless {
-  // Even emergency operators cannot bypass HMAC validation or SVID checks
+  // Even emergency operators cannot bypass HMAC validation, and never on a
+  // tenant/resource they are not bound to.
   (resource has hmac_valid && resource.hmac_valid == false) ||
-  (principal has svid_present && principal.svid_present == false)
+  (principal has tenant_id && resource has tenant_id && principal.tenant_id != resource.tenant_id)
 };
 
 // =============================================================================

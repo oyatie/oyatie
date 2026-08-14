@@ -52,13 +52,14 @@ regulatory_packs_consumed:
 evidence_topic: oya.payments.dispute
 
 cost_profile:
-  type: per-dispute
+  type: per-invocation
   estimated_cost_usd_per_call: 15.00  # PSP dispute-handling fee
   cost_drivers:
     - PSP dispute-handling fee (Stripe: $15; varies per PSP)
 
 cedar_policy_fragments:
   - app/payments/policy/abuse-defence.cedar
+  - app/payments/policy/dispute-authorization.cedar
 
 sunset:
   status: none

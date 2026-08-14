@@ -18,10 +18,15 @@ servers:
   production:
     host: payments-events.oyatie.com:5671
     protocol: amqp
-    description: AMQP over QUIC; per-tenant topic
+    description: AMQP over QUIC; per-tenant topic. mTLS with SPIFFE workload identity required (ADR-0295).
+    security:
+      - spiffeMtls: []
   sandbox:
     host: payments-events-sandbox.oyatie.com:5671
     protocol: amqp
+    description: Sandbox event broker (SPIFFE test SVIDs only).
+    security:
+      - spiffeMtls: []
 channels:
   payment-events:
     address: payment-events.{tenant_id}
@@ -58,6 +63,14 @@ operations:
     channel: { $ref: '#/channels/payment-events' }
     summary: Subscribe to per-tenant payment-events stream
 components:
+  securitySchemes:
+    spiffeMtls:
+      type: mutualTLS
+      description: |
+        mTLS with SPIFFE workload identity per ADR-0295 (TLS 1.3, SPIFFE SVID
+        on every cross-µservice call). Publishers and subscribers to the
+        tenant-scoped payment-events channel MUST present a valid SPIFFE SVID;
+        requests without one fail closed.
   messages:
     ChargeAuthorized:
       name: ChargeAuthorized

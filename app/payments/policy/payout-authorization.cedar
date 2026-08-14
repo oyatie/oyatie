@@ -10,14 +10,9 @@
 // @publisher-svid: spiffe://oyatie/payments/foundry-agent
 
 // =============================================================================
-// Default deny
+// Default deny — Cedar's implicit default deny; no unconditional forbid is
+// needed (a universal forbid would deny even explicitly permitted actions).
 // =============================================================================
-
-forbid (
-  principal,
-  action,
-  resource
-);
 
 // =============================================================================
 // PERMIT 1 — tenant-operator schedules payout for own tenant
@@ -70,6 +65,38 @@ when {
   resource.bank_account_state == "verified" &&
   resource has cooling_period_elapsed &&
   resource.cooling_period_elapsed == true
+};
+
+// =============================================================================
+// PERMIT 3 — payout worker executes an ordinary scheduled payout
+// =============================================================================
+//
+// Without this permit Cedar's implicit default deny leaves every scheduled
+// payout stuck: the fragment authorizes payout.schedule (permits 1-2) but the
+// worker must also be able to execute. Narrowly scoped to the payout worker
+// system principal, tenant-bound, and gated on the same controls the forbid
+// set enforces (verified bank account, cooling period elapsed, no sanctions
+// hit, KYC not revoked). The high-value dual-signoff forbid below still
+// applies for amounts > $10k.
+
+permit (
+  principal in SystemPrincipal::?s,
+  action == Action::"payout.execute",
+  resource in Payout::?o
+)
+when {
+  principal has system_role &&
+  principal.system_role == "payout-worker" &&
+  principal has tenant_id &&
+  resource has tenant_id &&
+  principal.tenant_id == resource.tenant_id &&
+  resource has bank_account_state &&
+  resource.bank_account_state == "verified" &&
+  resource has cooling_period_elapsed &&
+  resource.cooling_period_elapsed == true &&
+  !(resource has recipient_sanctions_match &&
+    resource.recipient_sanctions_match == true) &&
+  !(resource has kyc_revoked && resource.kyc_revoked == true)
 };
 
 // =============================================================================
