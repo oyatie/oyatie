@@ -24,6 +24,8 @@ serde_json = { workspace = true }
 
 [dev-dependencies]
 serde_json = { workspace = true }
+oya-ci-config-kernel = { path = "../../../libs/oya-ci-config" }
+oya-workspace-members-kernel = { path = "../../../libs/oya-workspace-members-kernel" }
 
 [lints]
 workspace = true
