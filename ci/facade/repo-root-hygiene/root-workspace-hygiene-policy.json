@@ -344,10 +344,18 @@
       }
     },
     "counts": {
-      "evidence_files": 52,
+      "evidence_files": 53,
       "planning_files": 11,
       "docs_markdown_files": 1433,
       "live_adr_files": 18
+    },
+    "reviewed_raises": {
+      "$comment": "ADR-0717 item 3: a deliberate budget change is a reviewed DATA edit. A class listed here with an exact from->to move sanctions that ONE raise in the live merge-base test (corpus_budget_reductions_must_lower_the_frozen_ceiling); any other growth is born-blocking shrink-only. Stale entries (from/to not matching the merge-base and candidate ceilings) fail closed.",
+      "evidence_files": {
+        "from": 52,
+        "to": 53,
+        "reason": "The F1 node-forever sequencing founder-ratification evidence (evidence/goals/f1-node-forever-shape-sequencing-founder-ratification-20260810.json) is the masterplan founder_ratification.decision_ref anchor; it is load-bearing, not sprawl."
+      }
     }
   }
 }
