@@ -234,20 +234,14 @@ fn configured_nested_lockfile_is_scanned_but_unconfigured_filesystem_noise_is_no
     let observed = collect(&repo.root, &policy).expect("collect declared lockfiles");
     let findings = evaluate_keyed(&policy, &observed);
     assert!(
-        findings
-            .iter()
-            .any(|finding| finding.code == "SCA-VULN"),
+        findings.iter().any(|finding| finding.code == "SCA-VULN"),
         "a vulnerable dependency present only in a configured nested lockfile must block"
     );
     assert!(
-        findings
-            .iter()
-            .any(|finding| finding.code == "SCA-VULN"
-                && finding.key == "RUSTSEC-2026-0185::nested/Cargo.lock/0.11.14"
-                && finding
-                    .detail
-                    .contains("lockfile `nested/Cargo.lock`")
-                    && finding.detail.contains("version `0.11.14`")),
+        findings.iter().any(|finding| finding.code == "SCA-VULN"
+            && finding.key == "RUSTSEC-2026-0185::nested/Cargo.lock/0.11.14"
+            && finding.detail.contains("lockfile `nested/Cargo.lock`")
+            && finding.detail.contains("version `0.11.14`")),
         "nested provenance must be explicit in finding key and detail"
     );
     assert!(
@@ -260,7 +254,9 @@ fn configured_nested_lockfile_is_scanned_but_unconfigured_filesystem_noise_is_no
     );
 
     assert_eq!(
-        observed["locked_by_source"].as_array().map(|rows| rows.len()),
+        observed["locked_by_source"]
+            .as_array()
+            .map(|rows| rows.len()),
         Some(2),
         "multi-lockfile provenance must retain one row per declared lockfile package"
     );

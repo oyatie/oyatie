@@ -290,9 +290,9 @@ fn red_repo_fixture_overloaded_tier_fails_from_disk() {
     let observed = collect_manifests(root, &policy).expect("collect red fixture");
     let findings = evaluate_keyed(&policy, &observed);
     assert!(
-        findings.iter().any(
-            |f| f.code == "TFC-TIER-TYPE-OVERLOAD" && f.key == "oya/legacy-svc/manifest.json"
-        ),
+        findings
+            .iter()
+            .any(|f| f.code == "TFC-TIER-TYPE-OVERLOAD" && f.key == "oya/legacy-svc/manifest.json"),
         "an overloaded tier (DR value) must fail from disk: {findings:#?}"
     );
     assert_eq!(evaluate(&policy, &observed).verdict, Verdict::Red);
