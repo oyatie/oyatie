@@ -7329,7 +7329,6 @@ dependencies = [
  "console_error_panic_hook",
  "leptos",
  "leptos_axum",
- "oya-application-shell-frontend",
  "oya-shared-oidc-client-kernel",
  "oya-shared-platform-contracts-kernel",
  "serde",
