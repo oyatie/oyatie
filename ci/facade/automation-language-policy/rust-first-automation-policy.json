@@ -193,7 +193,6 @@
         "-cli"
       ],
       "roots": [
-        "cloud",
         "os",
         "infra",
         "tools"
@@ -207,7 +206,7 @@
       "third-party/"
     ],
     "interpreter_command_authority": {
-      "_comment": "G006 inventory-first guard: Rust automation/gate source must not re-authorize retired Python/Node/MJS authority by spawning interpreter commands directly. The dead cloud/cloud-ci root is retained to avoid scan-scope-narrowing findings; retire it in a change whose subject is the shrink.",
+      "_comment": "G006 inventory-first guard: Rust automation/gate source must not re-authorize retired Python/Node/MJS authority by spawning interpreter commands directly. The cloud/cloud-ci root is burned with the founder's cloud/ deletion (c2ee2631a); the gate family now lives under ci/.",
       "enabled": true,
       "exclude_prefixes": [],
       "extensions": [
@@ -225,7 +224,6 @@
         ".py"
       ],
       "roots": [
-        "cloud/cloud-ci",
         "ci",
         "os",
         "libs",
@@ -248,7 +246,6 @@
       "infra",
       ".codex",
       ".github/workflows",
-      "cloud",
       "os",
       "oya",
       "audit",

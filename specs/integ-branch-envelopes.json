@@ -105,12 +105,6 @@
         "ci/**"
       ]
     },
-    "cloud": {
-      "branch": "integ/cloud",
-      "envelope_globs": [
-        "cloud/**"
-      ]
-    },
     "comms": {
       "branch": "integ/comms",
       "envelope_globs": [

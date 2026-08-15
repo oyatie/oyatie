@@ -54,8 +54,6 @@ rust_test(
         "OYA_ADR_0258": "$(location //docs/adr-archive:ADR-0258-api-versioning-model.md)",
     },
     resources = [
-        "//cloud:live-service-manifest-corpus",
-        "//cloud:proto-contract-corpus",
         "//contracts:proto-contract-corpus",
         "//docs/decisions:adr-corpus",
         "//oya:live-service-manifest-corpus",

@@ -10,7 +10,6 @@
   "flip_to_blocking_trigger": "Set enforcement to \"blocking\" when tier-dependency-acyclicity-baseline.json carries zero violations (the reorg strangler has fixed every substrate-inversion). Until then the gate reports baselined debt advisory-only and blocks ONLY on a NEW regression vs the frozen baseline.",
   "crate_root_globs": [
     "libs/oya-*",
-    "cloud/*/crates/oya-*",
     "ci/*/*",
     "oya/*/crates/oya-*",
     "oya/office/oya-*",
@@ -42,7 +41,6 @@
     "build/*/*/*"
   ],
   "service_roots": [
-    "cloud",
     "oya"
   ],
   "capability_registry_path": "governance/capability-registry.json",
