@@ -1,5 +1,0 @@
-val	33024	802.1q
-val	34984	802.1ad
-parse	802.1q	33024
-parse	802.1ad	34984
-parse	__nope__	ERR

@@ -35,7 +35,7 @@ doc_status: published
 13. ☐ Migration ledger entry (if ADR-0015 flat-crates phase PR)
 14. ☐ `Co-Authored-By:` footer present if agent-paired
 15. ☐ `Signed-off-by:` per signed-commits posture
-16. ☐ Bypass-reason logged (if `# review-bypass:` used; never for cross-axis / privacy / security / ADR / release-tag)
+16. ☐ No bypass marker is used; independent review remains mandatory.
 
 ## After merge
 
@@ -63,4 +63,4 @@ doc_status: published
 - Citing legacy ADR-#### — replace with new pack ADR-0001..0051 per [ADR-CONSOLIDATION-PLAN.md](../ADR-CONSOLIDATION-PLAN.md)
 
 ## Sources
-CLAUDE.md PR rules; `scripts/hooks/guard-pr-merge-review.mjs`; [RELEASE-MANAGEMENT.md](../RELEASE-MANAGEMENT.md); [standards/code-review.md](../standards/code-review.md).
+CLAUDE.md PR rules; [RELEASE-MANAGEMENT.md](../RELEASE-MANAGEMENT.md); [standards/code-review.md](../standards/code-review.md); `F-PR5-06`.

@@ -1,5 +1,5 @@
 {
-  "_comment": "The CLOSED capability registry (ADR-0562). The single machine-readable source of truth for the canonical capability set of the capability-first repo organization. Coarse / Conway-aligned: one capability per two-pizza ownership boundary. Seeded from ADR-0536's sixteen substrate domains + the verified current tree (cloud/ + oya/). A crate maps to EXACTLY ONE registered capability via the ADR-0562 deterministic placement rule; new top-level dirs outside this registry plus base/build/third-party/governance/kernel/os/app FAIL the membership lint. De-brand naming is realized via the ADR-0532/0533 profile mechanism; the names here are the de-branded canonical slugs (the flip is a later Phase-0 lane). This file is governance data; it now lives at its ADR-0562 §2 destined home governance/capability-registry.json (moved from specs/ 2026-08-14, the unblocked strangler item). DATA, not code: canonical-json governed, reachability-registered, council-architecture owned. CAPABILITY TIER FACETS (`tier` + `substrate_dag_position.stratum`, spelled exactly as in a service manifest.json per ADR-0245 tier-as-facet): a capability that carries them DECLARES its dependency tier here, beside its definition. cloud-ci-tier-dependency-acyclicity reads this and derives NOTHING — the tier was previously PROJECTED from each capability's absorbs_current_dirs, which resolved only while those service dirs still existed (a completed move orphaned the tier) and whose unanimity was computed over whichever services had not moved yet (migration ORDER decided the answer). An UNDECLARED capability is RED and non-baselineable in that gate the moment it enters capability_roots; there is deliberately no fallback, because a fallback covering for a missing declaration is how a silent exemption returns. NINE capabilities are deliberately undeclared, each needing a founder/architecture ruling rather than an invented value: marketplace SPANS tiers (product + substrate — the ADR-0562 \"a single engine spans tiers via its faces\" case, so it may need splitting rather than a tier); iam spans S1+S3 with three untiered absorbed services; storage, ci, billing and flags have only `forward-declared` evidence, which carries no ADR-0280 rank and so enforces nothing; policy, compute and messaging have no tier'd absorbed service at all. The fifteen declared values transcribe what every one of their absorbed services already unanimously declares.",
+  "_comment": "The CLOSED capability registry (ADR-0562). The single machine-readable source of truth for the canonical capability set of the capability-first repo organization. Coarse / Conway-aligned: one capability per two-pizza ownership boundary. Seeded from ADR-0536's sixteen substrate domains + the verified current tree (cloud/ + oya/). A crate maps to EXACTLY ONE registered capability via the ADR-0562 deterministic placement rule; new top-level dirs outside this registry plus base/build/third-party/governance/app FAIL the membership lint. De-brand naming is realized via the ADR-0532/0533 profile mechanism; the names here are the de-branded canonical slugs (the flip is a later Phase-0 lane). This file is governance data; it now lives at its ADR-0562 §2 destined home governance/capability-registry.json (moved from specs/ 2026-08-14, the unblocked strangler item). DATA, not code: canonical-json governed, reachability-registered, council-architecture owned. CAPABILITY TIER FACETS (`tier` + `substrate_dag_position.stratum`, spelled exactly as in a service manifest.json per ADR-0245 tier-as-facet): a capability that carries them DECLARES its dependency tier here, beside its definition. cloud-ci-tier-dependency-acyclicity reads this and derives NOTHING — the tier was previously PROJECTED from each capability's absorbs_current_dirs, which resolved only while those service dirs still existed (a completed move orphaned the tier) and whose unanimity was computed over whichever services had not moved yet (migration ORDER decided the answer). An UNDECLARED capability is RED and non-baselineable in that gate the moment it enters capability_roots; there is deliberately no fallback, because a fallback covering for a missing declaration is how a silent exemption returns. NINE capabilities are deliberately undeclared, each needing a founder/architecture ruling rather than an invented value: marketplace SPANS tiers (product + substrate — the ADR-0562 \"a single engine spans tiers via its faces\" case, so it may need splitting rather than a tier); iam spans S1+S3 with three untiered absorbed services; storage, ci, billing and flags have only `forward-declared` evidence, which carries no ADR-0280 rank and so enforces nothing; policy, compute and messaging have no tier'd absorbed service at all. The fifteen declared values transcribe what every one of their absorbed services already unanimously declares.",
   "schema_version": "1.1.0",
   "doctrine_adr": "ADR-0562",
   "amendment_adrs": [
@@ -15,20 +15,6 @@
     "current-tree:oya/"
   ],
   "meta_directories": [
-    {
-      "dir": "kernel/",
-      "rung": 0,
-      "off_runtime_ladder": false,
-      "charter": "kuberos no_std kernel + sysroot; the recursion floor. Its own excluded/nested workspace per the ADR-0512 kernel carve-out.",
-      "owns_crates": true
-    },
-    {
-      "dir": "os/",
-      "rung": 1,
-      "off_runtime_ladder": false,
-      "charter": "cloud-os node operating system (Talos-class). The node substrate the capability ladder runs on.",
-      "owns_crates": true
-    },
     {
       "dir": "base/",
       "rung": "below-all-capabilities",
@@ -82,11 +68,6 @@
       "face": "facade",
       "subfold": "facade/",
       "charter": "The multi-tenant surface we SELL (product face); depends on core/ ONLY through ports."
-    },
-    {
-      "face": "harness",
-      "subfold": "harness/",
-      "charter": "Integration-test-only crates carrying no production code. Admitted ONLY for the META directories whose runtime engines have no sold surface (kernel/, os/); landed precedent kernel/harness/asterinas-real-boot (ADR-0611) and os/harness/difftest-app (ADR-0562 §10.29). NOT a capability face: a capability keeps its tests beside the crate they exercise. Recorded here because the registry is closed and had been describing the tree inaccurately since ADR-0611 landed the first harness leaf."
     }
   ],
   "capabilities": [
@@ -556,24 +537,7 @@
         "oya/workplace-integration"
       ]
     },
-    "meta_directory_absorbs": [
-      {
-        "_comment": "kuberos kernel + sysroot floor (ADR-0512 carve-out). cloud-kernel is the single 2nd-level crate. The bare `kernel` root is the ADR-0611 landed destination (kernel/core/asterinas-boundary + kernel/harness/asterinas-real-boot live there today, in kernel/'s own excluded nested workspace); it is absorbed exactly like every other destination root so the crates that already sit at the destination map to meta:kernel/ once the root is scanned.",
-        "meta_dir": "kernel/",
-        "current_dirs": [
-          "cloud/cloud-kernel",
-          "kernel"
-        ]
-      },
-      {
-        "_comment": "cloud-os node OS (Talos-class), rung 1.",
-        "meta_dir": "os/",
-        "current_dirs": [
-          "cloud/cloud-os",
-          "os"
-        ]
-      }
-    ],
+    "meta_directory_absorbs": [],
     "absorbs_current_crate_globs": [
       {
         "_comment": "The dep-lint / check authority + the governance kernels + the corpus substrate. ADR-0562 §1 names 'the dep-lint authority' as a governance/ resident; owns_crates:false on the meta dir means it owns no CAPABILITY crates, not that governance/ hosts no governance-engine code (consistent with build/'s 'Owns zero capability crates' wording). The libs/oya-check-* and libs/oya-governance-* crates ARE the dep-lint authority; ADR-0580's governance/corpus/* crates (corpus-core, corpus-extract) are the Phase -1 live-AST corpus substrate physically homed under governance/ — also governance-engine code, not a capability crate. The membership-lint glob is a stem starts_with match, so governance/corpus/* covers both leaves.",

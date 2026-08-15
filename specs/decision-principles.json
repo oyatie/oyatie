@@ -51,7 +51,7 @@
     {
       "id": "DP-03-mechanical-prevention-over-process",
       "title": "Mechanical prevention over process",
-      "statement": "Recurring failures produce a CI lane, hook, validator, or schema check — not a checklist line.",
+      "statement": "Recurring failures produce authoritative CI, validator, schema, or runtime enforcement — not a checklist line. An optional local hook may accompany but never replace that backstop.",
       "binding": "load-bearing",
       "enforcement": {
         "mode": "mechanical",
@@ -147,7 +147,7 @@
     }
   ],
   "enforcement_modes": {
-    "mechanical": "A CI lane / hook / validator / fitness function refuses non-compliant changes at PR time or commit time. Programmatic, deterministic, replay-as-eval testable.",
+    "mechanical": "An authoritative CI lane, validator, fitness function, schema check, or runtime gate refuses non-compliant changes at PR time or runtime. Optional local hooks are shift-left adapters only and must name that backstop. Programmatic, deterministic, replay-as-eval testable.",
     "cultural": "No programmatic check today. Compliance via PR review + Done-Definition checklist. Candidate for future mechanization.",
     "mechanical-stub": "A lane exists by name but the implementation is a placeholder (6-line doc stub). Claim of enforcement is honest only after the stub is replaced. Tracked as a gap.",
     "deferred": "Enforcement depends on infrastructure not yet shipped (e.g., M02-P04 audit-chain substrate). Will become mechanical once the substrate lands."

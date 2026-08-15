@@ -81,13 +81,8 @@ jobs:
     env:
       # Same accounting-registry producer the Buck gate targets inject as
       # OYA_CI_PRODUCER_BIN (artifact-accountability and sibling live-corpus
-      # tests fail closed without it) and OYA_CI_ENFORCEMENT_LIVENESS_PRODUCER
-      # (hook-wiring). Built once below; both names point at that binary.
+      # tests fail closed without it). Built once below and shared by the live-corpus tests.
       OYA_CI_PRODUCER_BIN: ${{ github.workspace }}/target/debug/oya-cloud-ci-accounting-registry-app
-      OYA_CI_ENFORCEMENT_LIVENESS_PRODUCER: ${{ github.workspace }}/target/debug/oya-cloud-ci-accounting-registry-app
-      OYA_CI_ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS: ${{ github.workspace }}/.claude
-      OYA_CI_ENFORCEMENT_LIVENESS_CODEX_HOOKS: ${{ github.workspace }}/.codex
-      OYA_CI_ENFORCEMENT_LIVENESS_HOOKS_DIR: ${{ github.workspace }}/tools/hooks
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
@@ -116,9 +111,8 @@ jobs:
       # Materialize generated faces before tests: several gate crates consume them.
       - name: Materialize generated faces
         run: cargo run --locked -p ci-generated-artifact-freshness --bin oya-cloud-ci-materialize-generated-faces -- --repo-root . --github-event
-      # Shared accounting-registry producer for OYA_CI_PRODUCER_BIN and
-      # OYA_CI_ENFORCEMENT_LIVENESS_PRODUCER. Step name is a frozen
-      # workflow_inline_shell baseline key — do not rename.
+      # Shared accounting-registry producer for OYA_CI_PRODUCER_BIN. The historical step name is
+      # a frozen workflow_inline_shell baseline key; it does not denote a live liveness producer.
       - name: Build enforcement-liveness producer
         run: cargo build --locked -p ci-artifact-inventory-registry --bin oya-cloud-ci-accounting-registry-app
       # Every workspace member, including the whole ci/facade gate fleet, runs here.

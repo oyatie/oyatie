@@ -5,7 +5,8 @@
 ## First principles
 
 - `tools/` is a **debt zone** (NORTH-STAR-SHAPE): no new product surface.
-- Reorg here is often **rewrite** (process → `.grok/`) or **refactor** (gates → `ci/facade`), **not** a path bijection move-plan.
+- Reorg here is often **rewrite** (process → owned Rust under `ci/process-kit/`) or **refactor**
+  (gates → `ci/facade`), **not** a path bijection move-plan.
 - **Delete** only with consumer-absence proof (membership, registry, hooks, ADRs).
 
 ## Classes in use

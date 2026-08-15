@@ -100,13 +100,13 @@ Reconstructed from audit chain (ADR-0003) + on-call notes.
 
 | # | Action | Owner team | Type | Due | Tracking |
 |---|---|---|---|---|---|
-| 1 | Mechanical prevention (CI lane / hook / validator / runtime gate) per `docs/standards/prevention-doctrine.md` | <team> | mechanical | <date or wave-gate> | PR# / IP-NNN |
+| 1 | Authoritative mechanical prevention (blocking CI lane / validator / runtime gate; optional local hook only with that backstop) per `docs/standards/prevention-doctrine.md` | <team> | mechanical | <date or wave-gate> | PR# / IP-NNN |
 | 2 | Process improvement (training / runbook drill / on-call rota) | <team> | process | <date> | issue# |
 | 3 | Runbook update / new runbook authored | ops-sre-reliability | docs | <date> | runbook path |
 | 4 | `docs/MISTAKES-LEDGER.md` row (`MFL-NNNN`) | council-architecture | docs | <date> | MFL-NNNN |
 | 5 | `docs/RISK-REGISTER.md` row update | council-architecture | docs | <date> | RM-NN |
 
-> Prevention items **MUST** be mechanical (CI gate / hook / validator / test / config-as-code), not process-only. Sev-1 mechanical fix shipped within 30 days; Sev-2 within 60 days (per `docs/INCIDENT-MANAGEMENT.md §3.6`).
+> Prevention items **MUST** be authoritative mechanical enforcement (blocking CI gate / validator / runtime test / config-as-code), not process-only. An optional local hook alone does not qualify. Sev-1 mechanical fix ships within 30 days; Sev-2 within 60 days (per `docs/INCIDENT-MANAGEMENT.md §3.6`).
 
 ## 9. Trust portal
 

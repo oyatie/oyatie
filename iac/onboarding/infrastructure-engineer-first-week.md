@@ -55,7 +55,7 @@ Do not create throwaway module sets, trial tenants, or local-only module roots. 
 Before opening the PR, confirm the change is reviewable:
 
 ```bash
-git diff -- cloud/cloud-iac cloud/cloud-ci .github/workflows/oya-ci-required.yml infra/branch-protection tools/hooks scripts/hooks docs/checklists .codex/hooks.json
+git diff -- cloud/cloud-iac cloud/cloud-ci .github/workflows/oya-ci-required.yml infra/branch-protection tools/hooks scripts/hooks docs/checklists
 buck2 build //cloud/cloud-iac/...
 ```
 

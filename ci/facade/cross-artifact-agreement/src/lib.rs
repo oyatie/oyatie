@@ -418,19 +418,15 @@ const REQUIRED_PROGRAM_CLASSES: [&str; 8] = [
     "ast-code-graph",
     "fabric",
 ];
-const REQUIRED_OWNED_STACK_LAYERS: [&str; 6] = [
-    "cloud-kernel",
-    "cloud-os",
+const REQUIRED_OWNED_STACK_LAYERS: [&str; 4] = [
     "cloud-k8s",
     "cloud-services",
     "durability-plane",
     "governance-iam-console",
 ];
-/// The ADR-0537 §3 owned-stack ladder in fixed rung order: kuberos kernel →
-/// cloud-os → cloud-k8s → cloud services → oyatie products.
-const REQUIRED_OWNED_STACK_LADDER_RUNGS: [&str; 5] = [
-    "cloud-kernel",
-    "cloud-os",
+/// The owned-stack ladder in fixed rung order begins at the differentiated
+/// Kubernetes control plane; host OS and kernel implementations are inputs.
+const REQUIRED_OWNED_STACK_LADDER_RUNGS: [&str; 3] = [
     "cloud-k8s",
     "cloud-services",
     "products",
@@ -6121,16 +6117,16 @@ mod tests {
         let rungs = broken["masterplan_v2"]["program_coverage"]["owned_stack_ladder"]["rungs"]
             .as_array_mut()
             .unwrap();
-        rungs.retain(|rung| rung.get("layer").and_then(Value::as_str) != Some("cloud-os"));
+        rungs.retain(|rung| rung.get("layer").and_then(Value::as_str) != Some("cloud-services"));
         rungs[0]["program_ids"] = json!(["P-UNKNOWN"]);
         let findings = evaluate_masterplan_v2_program_coverage(&broken, &minimal_manifest_index());
         assert!(findings.contains(&Finding::new(
             "masterplan_program_coverage_incomplete",
-            "owned_stack_ladder:cloud-os"
+            "owned_stack_ladder:cloud-services"
         )));
         assert!(findings.contains(&Finding::new(
             "masterplan_program_coverage_incomplete",
-            "owned_stack_ladder:cloud-kernel@unknown-program:P-UNKNOWN"
+            "owned_stack_ladder:cloud-k8s@unknown-program:P-UNKNOWN"
         )));
         assert!(findings.contains(&Finding::new(
             "masterplan_program_coverage_incomplete",
@@ -7781,8 +7777,6 @@ mod tests {
             minimal_program("P-WORKFLOW-ENGINE", "workflow-engine"),
             minimal_program("P-WORKFLOW-STUDIO", "workflow-studio"),
             minimal_program("P-INTELLIGENCE", "intelligence"),
-            minimal_owned_stack_program("P-OWNED-STACK-KERNEL", "cloud-kernel"),
-            minimal_owned_stack_program("P-OWNED-STACK-OS", "cloud-os"),
             minimal_owned_stack_program("P-OWNED-STACK-K8S", "cloud-k8s"),
             minimal_owned_stack_program("P-OWNED-STACK-CLOUD", "cloud-services"),
             minimal_owned_stack_program("P-OWNED-STACK-DURABILITY", "durability-plane"),
@@ -7811,8 +7805,6 @@ mod tests {
                 "fabric"
             ],
             "required_owned_stack_layers": [
-                "cloud-kernel",
-                "cloud-os",
                 "cloud-k8s",
                 "cloud-services",
                 "durability-plane",
@@ -7823,24 +7815,12 @@ mod tests {
                 "rungs": [
                     {
                         "rung": 0,
-                        "layer": "cloud-kernel",
-                        "program_ids": ["P-OWNED-STACK-KERNEL"],
-                        "source_anchors": ["cloud/cloud-kernel"]
-                    },
-                    {
-                        "rung": 1,
-                        "layer": "cloud-os",
-                        "program_ids": ["P-OWNED-STACK-OS"],
-                        "source_anchors": ["cloud/cloud-os"]
-                    },
-                    {
-                        "rung": 2,
                         "layer": "cloud-k8s",
                         "program_ids": ["P-OWNED-STACK-K8S"],
                         "source_anchors": ["k8s"]
                     },
                     {
-                        "rung": 3,
+                        "rung": 1,
                         "layer": "cloud-services",
                         "program_ids": [
                             "P-OWNED-STACK-CLOUD",
@@ -7850,7 +7830,7 @@ mod tests {
                         "source_anchors": ["cloud"]
                     },
                     {
-                        "rung": 4,
+                        "rung": 2,
                         "layer": "products",
                         "program_ids": [
                             "P-ONTOLOGY",

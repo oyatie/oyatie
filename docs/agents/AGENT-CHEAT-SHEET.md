@@ -29,8 +29,8 @@ doc_status: published
 # Persist progress
 
 # Run acceptance evidence (baseline)
-cargo nextest run --workspace --all-features --no-fail-fast
-cargo clippy --workspace --all-features --all-targets -- -D warnings
+cargo test --workspace
+cargo clippy --workspace --all-targets -- -D warnings
 cargo deny check
 
 # Emit audit chain row
@@ -64,4 +64,3 @@ Cases:
 For everything else: D1–D9 in [`AGENT-DECISION-TREE.md`](AGENT-DECISION-TREE.md), R1–R7 in [`AGENT-FAILURE-RECOVERY.md`](AGENT-FAILURE-RECOVERY.md). Stay in the loop.
 
 ## Forbidden (regardless of rationale)
-

@@ -1,17 +1,18 @@
 # Agent Security Model
 
-CONFIG-PRIMARY security for the oyatie contributor environment. OS-enforced controls
-are the real gate; hooks are advisory/monitoring only.
+Runtime-managed security guidance for the Oyatie contributor environment. OS-enforced controls
+are the real gate; repository hooks are optional local adapters only. Oyatie does not track agent
+runtime configuration, so this document cannot claim a project-wide sandbox is active.
 
 ## Sandbox (OS-enforced, macOS Seatbelt)
 
-`sandbox.enabled = true` in `.claude/settings.json` activates macOS Seatbelt on every
-bash subprocess spawned by Claude Code. This is enforced by the OS — it cannot be
-bypassed by prompt injection or by modifying hook scripts.
+Operators using Claude Code should enable its macOS Seatbelt sandbox in managed or user-level
+settings. Repository-local `.claude/` is ignored and untracked; the project does not activate or
+verify that sandbox on the operator's behalf.
 
 ### Filesystem restrictions
 
-`denyRead` blocks credential paths at the OS level:
+A managed sandbox profile should deny credential paths at the OS level:
 
 ```
 ~/.ssh/**            ~/.aws/**           ~/.config/gcloud/**
@@ -20,8 +21,8 @@ bypassed by prompt injection or by modifying hook scripts.
 **/*.pfx             **/*.kubeconfig
 ```
 
-`denyWrite` (anti-clobber) — the repo-root `.env` is readable (legitimate awk reads
-for the GitHub token work), but write is blocked:
+The same managed profile should deny writes to environment files. These are recommended operator
+controls, not guarantees made by the repository:
 
 ```
 .env    **/.env    **/.env.*
@@ -29,7 +30,8 @@ for the GitHub token work), but write is blocked:
 
 ### Network allowlist
 
-Only the following domains are reachable from subprocesses:
+A managed profile should restrict subprocess egress to the domains needed for the build and source
+workflow, for example:
 
 ```
 localhost / 127.0.0.1 / *.local / *.internal
@@ -39,9 +41,9 @@ static.rust-lang.org / *.rust-lang.org
 api.anthropic.com / *.anthropic.com
 ```
 
-All other egress is blocked. This covers buck2/cargo/reindeer/git fetches and the
-local GitHub push (localhost:3000). `curl https://example.com` will fail — that is
-the intended behaviour.
+When that profile is installed, other egress should be blocked and a probe such as
+`curl https://example.com` should fail. The repository neither installs nor verifies this
+allowlist, so operators must not infer it from a clean checkout.
 
 Note: `sandbox.network` is a proxy/hostname allowlist, not TLS-inspected. Domain-fronting
 is a residual risk; the allowlist is the primary control.
@@ -57,13 +59,14 @@ inside the one command that needs them (e.g. the masked GitHub push reads the to
 
 ## Permissions
 
-`permissions.deny` in `.claude/settings.json` blocks Docker tool invocations (Docker
+`permissions.deny` in managed agent-runtime settings can block Docker tool invocations (Docker
 Inc. tooling is forbidden per ADR-0381) using the tool-family deny pattern, not
 arg-validation regex. It **also** denies `Read(...)` of credential paths (`~/.ssh/**`,
 `~/.aws/**`, `**/*.pem`, `**/*.kubeconfig`, `**/secrets/**`, …): the sandbox
 `filesystem.denyRead` covers only the **Bash** tool and its children, so without these
 `Read`-tool deny rules an agent could read those files via the `Read`/`Edit` tools. The
-two layers MERGE into the final boundary — both are required.
+two layers merge into the final boundary when a runtime supports both; neither is configured by
+this repository.
 
 > Scope note: project-scope `allowRead`/`allowedDomains` are merge-additive (loosenable by
 > user/local settings). For a hard guarantee, `denyRead` + `allowedDomains` +
@@ -74,14 +77,11 @@ two layers MERGE into the final boundary — both are required.
 `disableBypassPermissionsMode: "disable"` prevents `--dangerously-skip-permissions`
 from being used to circumvent the permission model.
 
-## Hooks (advisory/monitoring only)
+## Runtime adapters
 
-Hooks are **not** the security gate. They provide:
-
-- `no-cargo-enforcer.sh` (PreToolUse:Bash) — blocks `cargo build/test/clippy/run`
-  (Buck2 takeover); allows `cargo metadata/install/vendor`.
-- `injection-content-scanner.sh` (PostToolUse) — advisory OWASP LLM01 scanner;
-  always exits 0, never blocks.
+Repository-local hook adapters are retired and are **not** a security gate. Operators may install
+runtime-managed safeguards outside Git, but their presence or behavior is not asserted by this
+repository. Protected CI and runtime enforcement remain the project backstops.
 
 The `exfil-guard.sh` and `no-secret-leak.sh` regex hooks were removed in the
 2026-05-29 security redesign because regex-based PreToolUse hooks are bypassable
@@ -100,7 +100,9 @@ approval_policy = "on-request"     # agent asks before shell side-effects
 
 ## Configuration verification
 
-After changing agent security settings and restarting Claude Code, verify the sandbox is active with these manual checks (sandbox only takes effect after restart):
+After an operator installs or changes managed agent security settings and restarts the runtime,
+verify that specific external profile with manual checks such as these (the repository does not
+claim the results in advance):
 
 ```sh
 # 1. .env read works (GitHub token fetch must not be blocked)

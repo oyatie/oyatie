@@ -50,7 +50,7 @@ doc_status: published
 19. Reviewer-of-record from `owner_team` reviews and approves.
 20. For Tier 1 docs (PRD/DESIGN/SPEC/ROADMAP/ADR-INDEX/RISK-REGISTER/COMPLIANCE/SECURITY/PRIVACY/GTM/CONTRADICTION-LEDGER): a second council reviewer signs off.
 21. Per blast-radius class (see [DESIGN §3.0.5.3](DESIGN.md)), required reviewers per class are auto-pinged.
-22. Merge using `gh pr merge` per `guard-pr-merge-review.mjs` rules.
+22. Merge only after independent review evidence, required CI, and branch protection are satisfied.
 
 ## Stage 5: Publish
 

@@ -34,7 +34,7 @@ Each entry:
 - **Date**: when the mistake surfaced (not when prevention shipped)
 - **Mistake**: short description, no PII
 - **System gap**: what system / process / contract was missing
-- **Mechanical prevention**: the CI lane / hook / validator / fitness function name
+- **Mechanical prevention**: the authoritative CI lane / validator / fitness function / runtime gate; an optional hook may be listed only with its backstop
 - **Shipped on**: date prevention landed
 - **Link**: PR / ADR / runbook / incident postmortem
 

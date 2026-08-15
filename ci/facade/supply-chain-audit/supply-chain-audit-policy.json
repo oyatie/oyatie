@@ -8,19 +8,11 @@
       "lockfile_path": "Cargo.lock"
     },
     {
-      "manifest_path": "cloud/cloud-kernel/Cargo.toml",
-      "lockfile_path": "cloud/cloud-kernel/Cargo.lock"
-    },
-    {
-      "manifest_path": "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-aarch64-adapter/tests-host/Cargo.toml",
-      "lockfile_path": "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-aarch64-adapter/tests-host/Cargo.lock"
-    },
-    {
       "manifest_path": "kernel/Cargo.toml",
       "lockfile_path": "kernel/Cargo.lock"
     }
   ],
-  "min_lockfiles": 4,
+  "min_lockfiles": 2,
   "scm_facts_path": "ci/facade/artifact-inventory-registry/scm-facts.generated.json",
   "mirror_dir": "ci/facade/supply-chain-audit/advisory-mirror",
   "unmaintained_policy": "all",
@@ -46,7 +38,7 @@
     }
   ],
   "product_contract": {
-    "born_blocking": "Born-blocking: the exact workspace-owned lock projection from the materialized tracked-tree facts must equal lockfile_corpus, then every declared lock is matched against the advisory mirror. A fifth workspace lock or any affected security advisory/unmaintained crate in the root, kernel, cloud-kernel, or detached host-test lockfile blocks.",
+    "born_blocking": "Born-blocking: the exact workspace-owned lock projection from the materialized tracked-tree facts must equal lockfile_corpus, then every declared lock is matched against the advisory mirror. A new workspace lock or any affected security advisory/unmaintained crate in the root or kernel lockfile blocks.",
     "pack_shaped": "Neutral engine; repo-specific workspace/lockfile pairs, scm_facts_path, min_lockfiles, mirror_dir, and ignores are DATA here. Legacy adopters using one lockfile_path remain supported without multi-workspace projection.",
     "hermetic": "Pure Rust predicate: serde_json + toml + semver only (no rustsec/git2/libgit2, shell, network, clock, or recursive filesystem discovery). The separately materialized scm-facts tracked-path universe supplies totality; only tracked sibling manifests are parsed to identify explicit [workspace] owners. Declared paths are normalized repo-relative sibling pairs; symlinks, missing files, type errors, malformed manifests, zero-package locks, malformed package rows, projection mismatch, and policy underflow fail closed. The collected JSON schema remains locked/name/version + advisories + manifest.",
     "remediation_doctrine": "Upgrade the affected crate to a patched version, or — for an unmaintained dep with no maintained drop-in — add a time-boxed ignore[] entry with reason/pull_chain/remove_by."

@@ -30,10 +30,10 @@ Open the IP frontmatter `done-criteria:` and `acceptance-test-commands:`. These 
 For each command listed in the IP `acceptance-test-commands:` array, run it in the worktree. Default baseline (always-required, per [`docs/AGENTS.md`](../AGENTS.md) §Done-Definition D9–D12):
 
 ```
-cargo nextest run --workspace --all-features --no-fail-fast
-cargo clippy --workspace --all-features --all-targets -- -D warnings
+cargo test --workspace
+cargo clippy --workspace --all-targets -- -D warnings
 cargo deny check
-oya verify
+cargo fmt --all --check
 ```
 
 If the IP frontmatter adds lane-specific commands (e.g. `oya-governance-data-class`, `-image-discipline`), run those too.

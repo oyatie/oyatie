@@ -1919,14 +1919,19 @@ pub fn test_verdicts_to_report_value(verdicts: &BTreeMap<String, TestStatus>) ->
 /// PARAMETER, and the class root itself is skipped as a consequence of that parameter).
 /// Directories the consumer scan never descends into.
 ///
-/// `.claude` is tracked (it carries BUCK/OWNERS/settings.json) but also hosts the per-lane
-/// isolated worktrees the operating contract mandates. Those are full nested repo copies, so
-/// scanning them derives packages like `.claude/worktrees/agent-*/ci/facade/...` that no
-/// declaration will ever list, and the gate REDs on tens of thousands of files that are not
-/// this checkout. The direction is fail-closed, but a gate that REDs bogusly is how someone
-/// gets talked into weakening the scan — which is precisely how the reverted #1389 happened.
-const CONSUMER_SCAN_SKIP_DIRS: [&str; 5] =
-    [".git", ".claude", "buck-out", "target", "node_modules"];
+/// Agent runtime dot-directories are ignored machine-local overlays and can contain nested
+/// worktrees, caches, or editor state. They are never candidate-tree consumers, so walking them
+/// would derive packages that are not part of this checkout and create false affected cones.
+const CONSUMER_SCAN_SKIP_DIRS: [&str; 8] = [
+    ".git",
+    ".claude",
+    ".codex",
+    ".cursor",
+    ".grok",
+    "buck-out",
+    "target",
+    "node_modules",
+];
 
 /// One derived consumer of a whole-tree-scanner path class: the buck2 package that can produce a
 /// test verdict, and the file whose quote-anchored path literal put it there.

@@ -2,16 +2,16 @@
 
 Each gate is a thin, pure projection: the producer builds an input, the gate's `evaluate_keyed`
 turns it into a set of `Finding{code, key}`, and the firewall ratchets the per-(gate,code) keys
-against the FROZEN merge-base baseline — the `gate-baseline.generated.json` face as committed at
-`git merge-base <base_ref> HEAD` (ADR-0551; never the PR-local copy, which the settle protocol
-itself regenerates). FROZEN-POLICY-WINS (FRIC-1781280000): the policy facts that select that
+against the FROZEN merge-base baseline — the producer rederives `gate-baseline.generated.json`
+from the tree at `git merge-base <base_ref> HEAD` (ADR-0551; never from candidate-authored bytes).
+FROZEN-POLICY-WINS (FRIC-1781280000): the policy facts that select that
 frozen reference (`base_ref`, `face_path`) are themselves read from the merge-base tree against
 an out-of-band bootstrap ref, so a same-PR `ratchet-policy.json` repoint cannot affect the PR's
 own frozen reference; and a sign-off door entry whose key exists nowhere (frozen face, current,
 proposed) is flagged inert and must be retired (FRIC-1781280001). Per the founder
 automation-default directive (2026-06-12), the inert retirement ships as an auto-remediator:
-`buck2 run //cloud/cloud-ci/gates/oya-cloud-ci-firewall-app:oya-cloud-ci-firewall-signoff-fixer
--- --fix` derives and applies the retirement (reparse-and-refuse self-validation; audit record
+`cargo run -p ci-baseline-ratchet --bin oya-cloud-ci-firewall-signoff-fixer -- --fix` derives and
+applies the retirement (reparse-and-refuse self-validation; audit record
 appended to `_sign_off_retirements`), while the firewall gate's inert-door RED is the
 enforcement backstop whose failure detail prints that exact command. A NEW code class with live
 violations defaults to blocking in compare-mode (a code absent at the merge-base uses its
@@ -44,12 +44,10 @@ Each enabled gate declares HOW its current keys are sourced:
   `producer-face`). Collectors enumerate workspace members, crate manifest directories, and
   Buck target parity. Freshness is the standalone `frozen-empty-meta` job for Cargo.lock member
   parity and generated-face byte parity.
-- **`agent-wiring`:** enforcement-liveness (`producer-face`). The collector compares tracked
-  hook scripts against Claude and Codex project hook wiring.
 - **`catalog`:** slo-coverage (`producer-face`). The collector expands catalog record globs.
 
 A non-Rust repo enables `core` only; oyatie enables `core + rust-cargo + rust-cargo-workspace +
-agent-wiring + catalog`.
+catalog`.
 
 ## The gates
 
@@ -66,7 +64,6 @@ agent-wiring + catalog`.
 | `cloud-ci-slo-coverage` | catalog | producer-face (`slo_coverage`) | `slo_missing_or_blank_slo`, `slo_empty_crate_id`, `slo_no_catalog_records` |
 | `cloud-ci-workspace-glob-coverage` | rust-cargo-workspace | producer-face (`workspace_glob_coverage`) | `workspace_member_explicit_path`, `crate_dir_not_covered` |
 | `cloud-ci-target-parity` | rust-cargo-workspace | producer-face (`target_parity`) | `member_missing_buck` (frozen-empty), `member_test_code_without_rust_test_target` |
-| `cloud-ci-enforcement-liveness` | agent-wiring | producer-face (`enforcement_liveness`) | `hook_unwired_without_stub_marker` (frozen-empty), `hook_wiring_mirror_drift` (frozen-empty), `wired_hook_missing_file` (frozen-empty) |
 | `cloud-ci-freshness` | rust-cargo-workspace | frozen-empty-meta | `lock_missing_member_package`, `lock_stale_member_version`, `lock_orphan_path_package`, `generated_face_stale` |
 | `cloud-ci-friction-accounting` | governance | standalone self-test (own committed baseline) | `friction_policy_gate_id_mismatch` (frozen-empty), `friction_missing_required_field`, `friction_unknown_status` (frozen-empty), `friction_no_disposition` (born-blocking-clean), `friction_closed_without_evidence`, `friction_accepted_risk_without_evidence`, `friction_duplicate_primary_row` (frozen-empty), `friction_orphan_update_row` |
 | `cloud-ci-canonical-json` | governance | standalone self-test (zero baseline) | `json_not_canonical` (born-blocking-empty), `json_parse_error` (born-blocking-empty), `json_duplicate_key` (born-blocking-empty) |
@@ -74,38 +71,20 @@ agent-wiring + catalog`.
 | `cloud-ci-kernel-purity` | rust-cargo-workspace | standalone self-test (born-blocking, no baseline) | `KP-TRANSIENT-DEP-CARGO` (born-blocking-clean), `KP-TRANSIENT-DEP-BUCK` (born-blocking-clean), `KP-UNRESOLVED-PATH-DEP` (born-blocking-clean), `KP-STALE-EXCEPTION`, `KP-EMPTY-SCAN`, `KP-POLICY-GATE-ID-MISMATCH` |
 | `cloud-ci-no-graphql-without-adr` | governance | standalone self-test (candidate-tree, EMPTY frozen baseline) | `NGQL-FORBIDDEN-LIB` (born-blocking-empty), `NGQL-SCHEMA-FILE` (born-blocking-empty), `NGQL-LOCK-FORBIDDEN` (born-blocking-empty), `NGQL-EMPTY-SCAN`, `NGQL-POLICY-GATE-ID-MISMATCH`, `NGQL-POLICY-MALFORMED` |
 | `cloud-ci-authz-coverage` | rust-cargo-workspace | standalone self-test (born-blocking vs frozen baseline of known-unauthenticated surfaces) | `AC-UNAUTHENTICATED-CONTROL-PLANE` (issue #770 / AUTH-005; blocks only NEW unauthenticated axum control planes — mutating route or per-resource path with no router-level auth layer and no per-handler authz guard), `AC-STALE-BASELINE` (shrink-only self-clean), `AC-EMPTY-SCAN`, `AC-POLICY-GATE-ID-MISMATCH`, `AC-POLICY-MALFORMED` |
-| `cloud-ci-affected-set` | buck2-workspace | binding workspace-coverage lane (ADR-0554: merge-base diff → `owner()`/`rdeps()` cone on `pull_request`; full workspace on `merge_group`/`push`/`dispatch`) | lane verdict = the buck2 build+test result of the decided set; REFUSE on owner-required files with no owning target; escape-trigger classes and EVERY derivation failure escalate fail-closed to FULL (never skip); the PR FULL tier is a BUILD-HEALTH RATCHET (D6) — blocks build REGRESSIONS vs the merge-base, grandfathers pre-existing build debt (no flag-day) |
+| `cloud-ci-affected-set` | rust-cargo-workspace | merge-base change classifier and build-health evaluator; targeted Buck cones are optional local hermeticity feedback only | REFUSE on owner-required files with no owning target; escape-trigger classes and every derivation failure escalate fail-closed to FULL; the required `cargo test --workspace` run remains the merge-path executor |
 | `cloud-ci-supply-chain-audit` | rust-cargo-workspace | standalone self-test (born-blocking; proves the exact workspace-owned lockfile corpus from materialized SCM facts, then matches it against the vendored content-addressed RustSec advisory mirror) | `SCA-VULN` (security advisory affecting a locked crate, not ignored), `SCA-UNMAINTAINED` (unmaintained advisory affecting a locked crate, `unmaintained_policy=all`, not ignored), `SCA-STALE-IGNORE` (shrink-only self-clean of an ignore that suppresses nothing live), `SCA-LOCKFILE-UNDERFLOW` (declared corpus below `min_lockfiles`), `SCA-MIRROR-MALFORMED` (manifest `content_hash`/`advisory_count` desync — fail-closed), `SCA-MIRROR-UNDERFLOW` (mirror below `min_advisories` floor — fail-closed vs a vacuously-green truncated snapshot), `SCA-POLICY-GATE-ID-MISMATCH`, `SCA-POLICY-MALFORMED`. Corpus entries are normalized repo-relative `Cargo.toml`/sibling `Cargo.lock` pairs. From `scm_facts_path#tracked_paths`, a lock is workspace-owned exactly when its tracked sibling manifest declares `[workspace]`; that projection must equal policy, so a new workspace lock blocks until declared while member-local/orphan locks do not expand the corpus. The collector rejects symlinks, missing/type-error paths, duplicate or malformed declarations, zero-package locks, and malformed `[[package]]` name/version rows, and performs no recursive filesystem walk. The legacy single `lockfile_path` policy remains supported and the observed JSON shape is unchanged. Owned pure-Rust replacement for reverted #974 (`serde_json`+`toml`+`semver`; no recursive walk/`rustsec`/`git2`/`libgit2`/shell/network/clock). See ADR-0605. |
-| `cloud-ci-cloud-resource-contracts` | cloud-contracts | standalone self-test (born-blocking; policy + typed JSON corpus) | Rust/API-shaped replacement for the P0 Python cloud-resource validators. The gate evaluates `cloud-resource-contracts-policy.json` plus the six configured spec inputs, preserving claim-boundary, operation-contract, and enforceability-facet checks without invoking Python. Key codes are prefixed `cloud_resource_contract_*`, `cloud_operation_*`, and `cloud_enforceability_*`; use `//cloud/cloud-ci/gates/oya-cloud-ci-cloud-resource-contracts-app:oya-cloud-ci-cloud-resource-contracts-app-gate` as the merge-authority target. |
+| `cloud-ci-cloud-resource-contracts` | cloud-contracts | standalone Cargo-workspace self-test (born-blocking; policy + typed JSON corpus) | Rust/API-shaped replacement for the P0 Python cloud-resource validators. The gate evaluates `cloud-resource-contracts-policy.json` plus the six configured spec inputs, preserving claim-boundary, operation-contract, and enforceability-facet checks without invoking Python. Key codes are prefixed `cloud_resource_contract_*`, `cloud_operation_*`, and `cloud_enforceability_*`; the protected workspace test is the merge-path execution. |
 
-For `cloud-ci-freshness` generated-face remediation, `oya-cloud-ci-face-settle --settle --commit`
-enforces the content-first, faces-only settle protocol after the content commit lands.
-
-This paragraph is the CANONICAL settle+verify protocol statement (FRIC-1781250000,
-FRIC-1781234047/ADR-0552; other documents point here instead of restating it). The committed
-faces are a pure function of the tracked TREE state: history-derived volatile facts (per-path
-`last_touch_commit`, commit timestamps, the aging anchor) live in the UNTRACKED
-`scm-volatile-facts.generated.json` snapshot beside the emitter, never in a committed face —
-so neither a later commit, nor a squash-merge to the base branch (which rewrites every lane
-commit id), can un-settle settled faces. Commits that change face-relevant tree content
-(tracked-path set, ownership/justification/reachability sources, gate inputs) still un-settle
-them. The settle commit should therefore be the FINAL commit before push, and
-`oya-cloud-ci-face-settle --verify` is the REQUIRED last step before EVERY push, explicitly
-including pushes the worker believes are content-only. `--verify` is read-only (it never writes
-to the repository): against a working tree asserted byte-identical to the committed tree (HEAD),
-it regenerates the faces in memory/tempdir and runs the freshness gate's OWN full check —
-generated-face byte parity AND `Cargo.lock` member parity — and on any finding exits nonzero
-with the per-face stale list / lock findings and the exact remediation commands
-(`oya-cloud-ci-face-settle --settle --commit` for faces, `cargo metadata >/dev/null` plus a
-content commit for the lock). The cloud-ci freshness gate (ADR-0539) remains the canonical
-enforcement backstop per the enforcement-layering doctrine; `--verify` is the automation-default
-local check (ADR-0548 D6) in front of it, never a substitute for it.
+Generated faces are untracked derivations. Materialize them for local consumers with
+`cargo run -p ci-generated-artifact-freshness --bin oya-cloud-ci-materialize-generated-faces --
+--repo-root .`; never hand-edit or commit them. The protected workspace tests rederive candidate
+and merge-base faces and fail closed on nondeterminism, stale inputs, or `Cargo.lock` membership
+drift. No faces-only settle commit or retired local CLI is required.
 
 `cloud-ci-friction-accounting` (ADR-0544) is a standalone born-blocking self-test, NOT a
 producer-face/raw-corpus gate routed through the central `gate-baseline.generated.json` firewall (the
-producer's `RawCorpusCollector` dispatch is hardwired to the single brand-residue collector). It runs
-as its `oya-cloud-ci-friction-accounting-app-gate` buck2 `rust_test` under the binding
-`buck2 test //cloud/cloud-ci/...` CI job (and a labeled per-crate matrix check), and owns its own
+producer's `RawCorpusCollector` dispatch is hardwired to the single brand-residue collector). Its
+Cargo package runs under the protected `cargo test --workspace` job and owns its own
 reviewed shrink-only `friction-accounting-baseline.json` + ceilings (FRIC-1781112000 anti-laundering)
 rather than the central baseline. Same firewall *semantics* (frozen-empty + shrink-only legacy debt),
 local enforcement. All policy — the ledger path, the free-text status taxonomy, the evidence rules —
@@ -116,12 +95,12 @@ gate. It walks every tracked `*.json` under the policy's `governed_roots` (read-
 canonicalizes each committed file with a **self-contained lexical canonicalizer** (a hand-written
 lexer → CST → formatter, NOT `serde_json::to_string_pretty`, so the gate's output is independent of
 the `serde_json` `preserve_order`/`arbitrary_precision` feature union reindeer applies workspace-wide),
-and flags any file whose committed bytes differ from the canonical re-serialization. It runs as its
-`oya-cloud-ci-canonical-json-app-gate` buck2 `rust_test` under the binding `buck2 test
-//cloud/cloud-ci/...` CI job (and a labeled per-crate matrix check). The live corpus is GREEN at a
+and flags any file whose committed bytes differ from the canonical re-serialization. Its Cargo
+package runs under the protected `cargo test --workspace` job. The live corpus is GREEN at a
 **zero baseline** (all three codes born-blocking-empty), so any NEW non-canonical governed json fails
-closed; the `--fix` mode of the gate binary is the one-command fixer (local bridge feedback only — the
-gate test is the merge authority). The canonical form (`ensure_ascii=false` literal UTF-8, 2-space
+closed; the `--fix` mode of the gate binary is the one-command fixer (local bridge feedback only —
+the protected required context is merge authority). The canonical form (`ensure_ascii=false`
+literal UTF-8, 2-space
 indent, source key order, trailing newline) is chosen consistent with the faces serializer
 (`accounting-registry::to_canonical_json`); the `*.generated.json` faces and `specs/fixtures/` are
 excluded (single-owner: faces are owned byte-verbatim by freshness, fixtures by their consuming gates).
@@ -139,11 +118,11 @@ born-frozen-empty (the live corpus is hermetic after the webhook cedar-adapter p
 sites the conservative lexical parser cannot fully resolve are surfaced as non-blocking `skip_*`
 codes, baselined shrink-only with reviewed ceilings in `embedded-asset-hermeticity-baseline.json`
 (FRIC-1781112000 anti-laundering) — never silent, never verdict-flipping. Per the founder
-automation-default directive (2026-06-11), the gate ships an auto-remediator: `buck2 run
-//cloud/cloud-ci/gates/oya-cloud-ci-embedded-asset-hermeticity-app:oya-cloud-ci-embedded-asset-hermeticity-fixer
--- --fix` DERIVES and APPLIES the corrected `mapped_srcs` entry (or the cedar comprehension rewrite)
-for an unmapped asset — the default developer/agent path — while the `*-gate` rust_test is the
-enforcement backstop whose failure detail prints the exact `--fix` command. All policy (scan roots,
+automation-default directive (2026-06-11), the gate ships an auto-remediator: `cargo run -p
+ci-embedded-asset-hermeticity --bin oya-cloud-ci-embedded-asset-hermeticity-fixer -- --fix`
+DERIVES and APPLIES the corrected `mapped_srcs` entry (or the cedar comprehension rewrite)
+for an unmapped asset — the default developer/agent path — while the protected workspace test is
+the enforcement backstop whose failure detail prints the exact `--fix` command. All policy (scan roots,
 extension sets, build-output dirs) is DATA in `embedded-asset-hermeticity-policy.json`, so the gate
 runs on any repo by repointing the policy. Key shape: `embedded-asset-hermeticity` keys are
 `<target>::<crate-relative .rs>::<include literal>` for bound sites, or `<file>:<line>` for early
@@ -152,8 +131,8 @@ skips (non-literal / build-output / no-owning-target); `<policy>` for the gate-i
 producer-face gate. It enforces the clean-architecture cutover seam: a crate named `*-kernel` or
 `*-core` (the cutover-stable interface seam) — and every workspace-internal crate reachable through
 its path-dependency closure — must carry zero ADR-0510 transient-tech dependencies (kube, sqlx,
-rustls, the AWS SDKs, etcd). It runs as its `oya-cloud-ci-kernel-purity-app-gate` buck2 `rust_test`
-(plus a labeled per-crate matrix check). All kernel/core crates are pure today, so it ships
+rustls, the AWS SDKs, etcd). Its Cargo package runs under the protected workspace test. All
+kernel/core crates are pure today, so it ships
 born-blocking with NO baseline file: any new kernel-with-transient-dep fails closed on arrival.
 The kernel globs, the transient denylist, the per-crate exceptions, and the liveness floor are all
 DATA in `kernel-purity-policy.json` (R0), so the gate runs on any repo by repointing the policy.
@@ -178,7 +157,7 @@ edits, `cargo metadata` is run as a semantic revalidation gate; on failure ALL p
 restored — keyed by path with the FIRST pre-image winning, so a manifest edited twice rolls back
 to its ORIGINAL content (CRITICAL-A layer 2 rollback). A dep that IS used in source, is renamed,
 is a build-dep, is optional, or is feature-backed is a design action, printed with a
-reason-specific next step but never auto-applied. The buck2 `rust_test` gate is the blocking
+reason-specific next step but never auto-applied. The protected workspace test is the blocking
 backstop.
 
 `cloud-ci-no-graphql-without-adr` (ADR-0565) is likewise a standalone born-blocking self-test, NOT
@@ -191,8 +170,8 @@ ALLOWLISTED + VALIDATED authorizing (reversing) ADR, ANY of: a GraphQL execution
 ANY `Cargo.toml` in the tree (`async-graphql`, `juniper`, `graphql-parser`, `cynic`, `apollo-*`, …) —
 members AND non-members, resolving `[workspace.dependencies]` renames and `{ workspace = true }`
 inheritance; a forbidden GraphQL crate in the resolved `Cargo.lock` graph (`NGQL-LOCK-FORBIDDEN`, the
-transitive catch); or a `.graphql`/`.graphqls`/`.gql`/`.gqls`/`.sdl` schema file. It runs as its
-`oya-cloud-ci-no-graphql-without-adr-app-gate` buck2 `rust_test` (plus a labeled matrix check).
+transitive catch); or a `.graphql`/`.graphqls`/`.gql`/`.gqls`/`.sdl` schema file. Its Cargo package
+runs under the protected workspace test.
 CANDIDATE-TREE EVALUATION, NOT a frozen merge-base: the collector is a hermetic, read-only `fs` scan
 of EVERY `Cargo.toml` in the live tree + the `Cargo.lock` graph + a `.graphql`/`.graphqls`/`.gql`/
 `.gqls`/`.sdl` file walk (no `cargo`/`buck2` shell-out) — so the verdict is identical at PR-tier and
@@ -236,8 +215,6 @@ DATA in `no-graphql-without-adr-policy.json` (R0), so the gate runs on any repo 
 - slo-coverage: the catalog crate id.
 - workspace-glob-coverage: the raw member entry or crate manifest directory.
 - target-parity: the workspace member path.
-- enforcement-liveness: the hook path, or `<wiring_file>:<command_path>` for missing referenced
-  hook files.
 - freshness: the workspace member path, sourceless lock package name, or generated face filename.
 - friction-accounting: the friction `id` (per-friction, folded across its event-sourced append rows);
   `<policy>` for the gate-id-mismatch sentinel.
@@ -252,9 +229,13 @@ A `frozen_empty: true` disposition forces a code's baseline to be permanently em
 current keys, so ANY occurrence is NEW debt the firewall blocks. `registry_drift` (under
 total-accounting), `ratchet_regression` + `duplicate_row_id` (under automation-ratchet),
 `reap_without_report` (under staleness), `member_missing_buck` (under target-parity), all
-`cloud-ci-enforcement-liveness` codes, all `cloud-ci-freshness` codes, and
+`cloud-ci-freshness` codes, and
 `friction_policy_gate_id_mismatch` + `friction_unknown_status` + `friction_duplicate_primary_row`
 (under friction-accounting) are frozen-empty meta codes — they cannot accumulate a baseline.
+
+The repository hook-wiring gate was retired on 2026-08-15 with the tracked agent-runtime
+dot-directories. Its enum and frozen-empty disposition remain for one merge-base compatibility
+wave only; the gate is not enabled and reads no runtime configuration.
 
 ## exists-but-unaccounted codes (ADR-0555 conversion)
 
@@ -269,7 +250,7 @@ exact registration edit, or the precise design decision needed (who owns this? w
 this?) — stamped into `gate-baseline.generated.json` and printed by the firewall next to the
 offending keys. The producer's `--fix-owners <dir>=<owner>` / `--fix-reachability
 <prefix>=<anchor>` bridges apply a decided registration and self-validate (transitional local
-bridges per `cli_surface_policy` — the gate test is the merge authority; their successors are the
+bridges per `cli_surface_policy` — the protected required context is merge authority; their successors are the
 ADR-0548 D3 reconcilers). The ONE deliberately-advisory survivor is
 `stale_over_budget_unreachable`: its keys enter by TIME passing, not by PR action, so
 admission-blocking would blame PRs for age accrued on other clocks — its convergence surface is

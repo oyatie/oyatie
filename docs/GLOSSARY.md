@@ -525,7 +525,7 @@ Per ADR-0105 + ADR-0106 + ADR-0565: `oya-<context>-<role>[-<capability>]`. Canon
 | `Closes #N` | Will auto-close on merge |
 | `Blocks #N` | This blocks the linked issue |
 | `Blocked-by #N` | Cannot proceed until linked issue resolves |
-| `# review-bypass: <reason>` | Skips the agent review gate (per `guard-pr-merge-review.mjs`); always logged |
+| `# review-bypass: <reason>` | **Retired fictional token**; grants no authority and MUST NOT be used to bypass review |
 
 ### 12.4 PR sections (PR template)
 

@@ -19,7 +19,7 @@ Three local-dev tools are first-class — every engineer should use them:
 
 - **`bacon`** (Apache-2 / MIT) — background `cargo check` + `cargo clippy` + `cargo nextest` watcher. Run `bacon` in a side terminal during authoring; receive instant feedback on save. Project ships a `bacon.toml` with curated jobs (`check`, `clippy`, `test`, `nextest`, `doc`, `arch-boundary`).
 - **`cargo-machete`** (Apache-2 / MIT) — finds unused Cargo dependencies. Run `cargo machete` periodically (and at every dependency-add PR). Surfaces accidental adoption + supports the in-house preference + license-conscious posture by killing dead deps before they accumulate licenses.
-- **`cargo-nextest`** (Apache-2 / MIT) — fast, parallel test runner with sharding + flaky-quarantine integration. Canonical (per project memory + ADR-0024). NEVER use bare `cargo test`. Per [`oya verify`](../TOOLCHAIN.md) bundle.
+- **`cargo-nextest`** (Apache-2 / MIT) — optional fast local runner with sharding and flaky-quarantine integration. It never replaces the required `cargo test --workspace` merge-path evidence.
 - Naming: `snake_case` for functions/vars/modules; `UpperCamelCase` for types/traits; `SCREAMING_SNAKE_CASE` for consts
 - Error type: `thiserror`-derived per crate; never panic at API boundaries; `Result<T, E>` always; `?` propagation preferred over `match`
 - Async: `tokio` + structured concurrency; `JoinHandle`s explicitly awaited or detached with cancellation; never spawn-and-forget without supervision

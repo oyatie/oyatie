@@ -6,20 +6,20 @@
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
     "spec_id": "EXE-AGENTIC-OPERATING-PATTERNS",
-    "version": "1.1.1",
+    "version": "1.2.0",
     "status": "Accepted",
     "owner_team": "council-architecture",
     "created_at": "2026-08-10T00:00:00Z",
-    "updated_at": "2026-08-11T00:00:00Z",
+    "updated_at": "2026-08-15T00:00:00Z",
     "authority_adr": "docs/decisions/ADR-0711-swarm-delivery-law-integ-branch-topology.md#Amendment-C",
     "self_owner_branch": "integ/specs",
     "corpus": "ADR-0711 Amendment C operating-patterns catalog (archive distillation 000-136)",
     "corpus_entries": "000-136",
-    "prior_version": "1.1.0",
+    "prior_version": "1.1.1",
     "primary_consumers": [
-      ".grok/programs/delivery-fabric/evidence/PORTABLE-SWARM-CONTRACT.md",
+      "templates/portable-swarm-doctrine.md",
       "specs/integ-branch-envelopes.json",
-      ".claude/workflows/deliver.js Claim (advisory)"
+      "AGENTS.md and docs/AGENTS.md session-loaded contracts"
     ],
     "accepted_at": "2026-08-11T00:00:00Z",
     "acceptance_note": "Promoted Accepted on #1644 so Claim rename/classifier refusal criteria match ADR-0711 Amendment B/C + END-STATE-POLICY (Proposed carries no implement authority)."
@@ -44,7 +44,7 @@
     "swarm-delivery-law",
     "integ",
     "worktrees",
-    "no-slow-commands",
+    "resource-bounded-checks",
     "reorg-evaluate",
     "naming",
     "16-lens",
@@ -60,7 +60,7 @@
       "overturn_when": "A measured constant-work design removes replicated mass as the binding constraint.",
       "oyatie_apply": [
         "worktrees",
-        "no-slow-commands",
+        "resource-bounded-checks",
         "integ"
       ]
     },
@@ -189,13 +189,13 @@
     },
     {
       "id": "daemon-hotset-early-check",
-      "achieves": "Early buck2 [check] feedback on ≤hot_set_max integ stations without worker-lane builds or cargo revival.",
-      "origin": "16-lens northstar R9; founder 2026-05-29 no-cargo; false parallelism paid full CI per unit.",
-      "rule": "Run check-daemon on hot-set integ stations (≤ merge_windows.hot_set_max); main checkout remains orchestrator+daemon; LSP/rust-analyzer read-only ≠ build ≠ merge authority.",
-      "ensure": "envelopes#daemon_hotset + #merge_windows; process-kit harness under ci/facade/harness/daemon-hotset.v1.json on integ/ci; self-check cites hot_set_max.",
-      "overturn_when": "envelopes#merge_windows.hot_set_max changes same-wave OR blessed local type-check leaves buck2 [check] OR founder authorizes different warm-daemon topology.",
+      "achieves": "Early bounded feedback on ≤hot_set_max integ stations without turning a local daemon into merge authority.",
+      "origin": "16-lens northstar R9; false parallelism duplicated expensive checks, while ADR-0716 later made Cargo the protected executor.",
+      "rule": "An optional check daemon may coordinate advisory work on the hot set (≤ merge_windows.hot_set_max); workers remain free to run scoped Cargo checks in isolated lanes; local/LSP/daemon output is not merge authority.",
+      "ensure": "envelopes#daemon_hotset + #merge_windows; process-kit harness under ci/facade/harness/daemon-hotset.v1.json on integ/ci; ADR-0716 and the Cargo verification contract remain aligned.",
+      "overturn_when": "envelopes#merge_windows.hot_set_max changes same-wave OR a newer accepted ADR replaces the protected executor and daemon topology atomically.",
       "oyatie_apply": [
-        "no-slow-commands",
+        "resource-bounded-checks",
         "worktrees",
         "integ"
       ]
@@ -241,13 +241,13 @@
     },
     {
       "id": "second-build-path-shared-wd",
-      "achieves": "One blessed build path; no shared-WD stash/reset chaos.",
-      "origin": "Cargo revival + shared WD agent collisions.",
-      "rule": "Cargo/second-build-path revival; slow commands in lanes; shared WD stash/reset chaos; PID kill without identity.",
-      "ensure": "no-cargo-enforcer + toolguard; worktree-per-lane; check-daemon buck2 [check] only.",
-      "overturn_when": "Founder authorizes a different blessed local type-check with no second path.",
+      "achieves": "One protected admission path and no shared-worktree stash/reset chaos.",
+      "origin": "Competing local executors were mistaken for merge authority while shared working directories caused collisions.",
+      "rule": "Ban shared-WD mutation, stash/reset cleanup, unidentified PID kills, and any local check presented as protected admission. Cargo is the required merge executor; Buck2 remains optional local hermeticity.",
+      "ensure": "worktree-per-lane; ADR-0716; root/docs AGENTS Cargo verification; one protected oya-ci-required context.",
+      "overturn_when": "A newer accepted ADR replaces both the isolated-worktree model and the single protected executor with an equally fail-closed design.",
       "oyatie_apply": [
-        "no-slow-commands",
+        "merge-admission",
         "worktrees"
       ]
     },

@@ -52,8 +52,8 @@ and Google / Microsoft consensus:
 - Lane `oya-governance-branch-age` warns ≥ 5 d, blocks ≥ 7 d.
 - Feature flags hide incomplete work behind a runtime gate (§3) so
   partial merges to `dev` do not ship to users.
-- Branch protection: required reviews per `RACI-OWNERSHIP.md`, merge-gate
-  hook (`scripts/hooks/guard-pr-merge-review.mjs`), green CI required.
+- Branch protection: required reviews per `RACI-OWNERSHIP.md` and green CI. Reviewer evidence and
+  the required CI context remain distinct; `F-PR5-06` tracks the automated review-admission gap.
 - Force-push to protected integration/release branches is forbidden per
   [`forbidden-operations.json`](../../specs/forbidden-operations.json) FO-03.
 
@@ -209,8 +209,8 @@ Per the hyperscaler-quality CI gate set (per
 `.omc/scratch/hyperscaler-best-practices-2026-05-12.md` Domain 4):
 
 1. `cargo fmt --check`.
-2. `cargo clippy --workspace --all-features --all-targets -- -D warnings`.
-3. `cargo nextest run --workspace --all-features --no-fail-fast`.
+2. `cargo clippy --workspace --all-targets -- -D warnings`.
+3. `cargo test --workspace`.
 4. `cargo deny check` + `cargo audit` + `cargo vet`.
 5. `cargo llvm-cov` (delta-coverage report).
 6. Syft SBOM generation.

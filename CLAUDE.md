@@ -14,7 +14,7 @@ Manual Wave-B bootstrap note (prose only): agents enter the governance pipeline 
 
 ## Skill discovery doctrine (runtime-installed)
 
-Lifecycle skills, role prompts, and intent→skill mapping are provided by the installed agent runtime, not by a repo-vendored copy. Codex uses `~/.codex/skills` and `~/.codex/agents` (or explicitly checked-in `.codex/...` overlays when project scope is intentional). The retired `tools/agent-skills/` vendor tree must not be recreated; duplicated local copies create drift and violate the single-source runtime contract.
+Lifecycle skills, role prompts, and intent→skill mapping are provided by the installed agent runtime, not by a repo-vendored copy. Codex uses `~/.codex/skills` and `~/.codex/agents`; repository-local `.codex/` overlays are ignored and untracked. The retired `tools/agent-skills/` vendor tree must not be recreated; duplicated local copies create drift and violate the single-source runtime contract.
 
 Oyatie governance (`docs/AGENTS.md` operating contract + authority chain + governance pipeline + ADRs 0145+) remains the repository authority and overlays runtime skill guidance on conflict per `feedback_bominal_inheritance_precedence`. This file (root `CLAUDE.md`) remains the authoritative project-rules source.
 
@@ -35,9 +35,9 @@ INV-DOC-9: plan/chat-only doctrine is **not** survived. Binding short form + why
 [`docs/AGENTS.md`](docs/AGENTS.md); Amendment C catalog at
 [`specs/agentic-operating-patterns.json`](specs/agentic-operating-patterns.json).
 
-Per-dispatch ritual (Tier 2): [`.cursor/rules/swarm-agent-ritual.mdc`](.cursor/rules/swarm-agent-ritual.mdc)
-(short) and [`docs/checklists/swarm-agent-ritual.md`](docs/checklists/swarm-agent-ritual.md)
-(canonical long form; forever home may become `templates/checklists/`).
+Per-dispatch ritual (Tier 2): [`templates/checklists/swarm-agent-ritual.md`](templates/checklists/swarm-agent-ritual.md).
+Repository-local `.claude/`, `.codex/`, `.cursor/`, and `.grok/` directories are machine-local,
+ignored, and never instruction authority.
 
 <!-- agent-instructions:start -->
 coordination_surface: governance_pipeline
@@ -45,7 +45,7 @@ retirement_adr: docs/decisions/ADR-0701-monorepo-capability-live-apex.md
 retired_external_agent_coordination_tooling: true
 observability_substrate: cloud/cloud-observability/ (per ADR-0139 agentic SLO-gated promotion + ADR-0131/ADR-0512 pure-split colocation; SLO authoring at {oya,cloud}/<service>/slos/*.openslo.yaml mandatory before any service promotes past dev)
 cli_surface_policy: ALL CLI surfaces are retirement-marked per the founder directive of 2026-06-09; verification and merge authority live in the cloud-ci gate apps behind the single required context oya-ci-required, operations ride the console + API, and legacy oya-dev-cli invocations are local bridge feedback only, never merge authority; the tracked bin/oya PATH shim is retired
-owned_stack_policy: cloud-native K8s-native operation with the whole stack owned in Rust — kuberos kernel -> cloud-os -> cloud-k8s -> cloud services -> oyatie products (founder directive 2026-06-09); upstream k8s/Talos remain ADR-0510 transitional behind stable interfaces
+owned_stack_policy: cloud-native K8s-native operation with owned Rust beginning at the differentiated Kubernetes control plane and cloud services; host kernels and node operating systems are consumed deployment inputs, not hand-maintained product layers; port-engine output becomes authoritative only with a registered producer, rules, receipts, and output region
 microservice_layout_authority: ADR-0562 (Accepted 2026-07-10, amended by ADR-0615) capability-first repo organization + the closed capability registry (governance/capability-registry.json) is the layout authority — one top-level dir per registered capability with core/ports/adapters/facade faces, app/<product>/ for 2+-capability tenant compositions, and top-level meta dirs kernel/os/base/governance/build/third-party; this SUPERSEDES the prior {oya,cloud}/<service>/ + libs/ clause (ADR-0550 superseded in full; ADR-0512's layout clause scoped-superseded, its workspace/crate/Buck2 invariants retained). Historical: ADR-0131 as amended by ADR-0512/platform-readiness pure split ({oya,cloud}/<service>/ + libs/) was the prior authority; existing services stay put until each capability's strangler move lands, and legacy microservices/ remains removal-candidate
 no_grouping_policy: ADR-0132 — no new bundle/grouping µservices; every new µservice is single-concern + flat
 new_governance_lane_prefix: oya-governance-* (per ADR-0132); existing oya-governance-* lanes retained until each is renamed in its own migration IP

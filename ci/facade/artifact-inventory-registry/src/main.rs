@@ -12,9 +12,6 @@
 //!   oya-cloud-ci-accounting-registry-app [--repo-root <path>] [--out-dir <path>] [--stdout]
 //!                                        [--policy-root <path>]
 //!                                        [--scm-facts <path>]
-//!                                        [--enforcement-liveness-claude-settings <path>]
-//!                                        [--enforcement-liveness-codex-hooks <path>]
-//!                                        [--enforcement-liveness-hooks-dir <path>]
 //!                                        [--fix-owners <dir>=<owner>]
 //!                                        [--fix-reachability <prefix>=<anchor>]
 //!                                        [--check-paths <path>...] [--check-diff <merge-base>]
@@ -42,10 +39,10 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
 use ci_artifact_inventory_registry::{
-    CrosswalkInputs, DecisionCrosswalkRow, EnforcementInputs, EnforcementRow, GateInputs,
-    OwnersIntegrity, Policy, ProducerError, RepoInputs, adr_id_from_filename, allocate_next_adr_id,
-    build_decision_crosswalk, build_enforcement_inventory, build_gate_baseline, build_registry,
-    ENVELOPE_PREFIX_OWNERSHIP_SOURCE, ENVELOPES_RELPATH, fix_owners, fix_reachability,
+    CrosswalkInputs, DecisionCrosswalkRow, ENVELOPE_PREFIX_OWNERSHIP_SOURCE, ENVELOPES_RELPATH,
+    EnforcementInputs, EnforcementRow, GateInputs, OwnersIntegrity, Policy, ProducerError,
+    RepoInputs, adr_id_from_filename, allocate_next_adr_id, build_decision_crosswalk,
+    build_enforcement_inventory, build_gate_baseline, build_registry, fix_owners, fix_reachability,
     front_matter_field, load_envelope_prefix_allows, load_reachability_registry,
     registration_matches, resolve_owners, to_canonical_json,
 };
@@ -183,9 +180,6 @@ fn run() -> Result<(), CliError> {
     let mut policy_root: Option<PathBuf> = None;
     let mut out_dir: Option<PathBuf> = None;
     let mut scm_facts_path: Option<PathBuf> = None;
-    let mut enforcement_liveness_claude_settings: Option<PathBuf> = None;
-    let mut enforcement_liveness_codex_hooks: Option<PathBuf> = None;
-    let mut enforcement_liveness_hooks_dir: Option<PathBuf> = None;
     let mut to_stdout = false;
     // Allocator mode (FRIC-1781320000): print the next unallocated decision number derived
     // from the tree and exit. Lanes allocate ADR numbers by running this, never by
@@ -222,18 +216,6 @@ fn run() -> Result<(), CliError> {
             "--scm-facts" => {
                 i += 1;
                 scm_facts_path = args.get(i).map(PathBuf::from);
-            }
-            "--enforcement-liveness-claude-settings" => {
-                i += 1;
-                enforcement_liveness_claude_settings = args.get(i).map(PathBuf::from);
-            }
-            "--enforcement-liveness-codex-hooks" => {
-                i += 1;
-                enforcement_liveness_codex_hooks = args.get(i).map(PathBuf::from);
-            }
-            "--enforcement-liveness-hooks-dir" => {
-                i += 1;
-                enforcement_liveness_hooks_dir = args.get(i).map(PathBuf::from);
             }
             "--face" => {
                 i += 1;
@@ -452,16 +434,7 @@ fn run() -> Result<(), CliError> {
     let workspace_glob_coverage =
         collect_workspace_glob_coverage(&repo_root, &inputs.tracked_paths, &cfg)?;
     let target_parity = collect_target_parity(&repo_root, &inputs.tracked_paths, &cfg)?;
-    let collect_declared_enforcement_liveness = || -> Result<Value, CliError> {
-        let enforcement_liveness_corpus = EnforcementLivenessCorpus::from_args(
-            &inputs.tracked_paths,
-            enforcement_liveness_claude_settings.as_deref(),
-            enforcement_liveness_codex_hooks.as_deref(),
-            enforcement_liveness_hooks_dir.as_deref(),
-        )?;
-        collect_enforcement_liveness(&inputs.tracked_paths, &enforcement_liveness_corpus)
-    };
-    let build_baseline_face = |enforcement_liveness: &Value| -> Result<Value, CliError> {
+    let build_baseline_face = || -> Result<Value, CliError> {
         let gate_inputs = GateInputs {
             total_accounting: &registry,
             cross_artifact: &crosswalk,
@@ -474,7 +447,6 @@ fn run() -> Result<(), CliError> {
             catalog_liveness: &catalog_liveness,
             workspace_glob_coverage: &workspace_glob_coverage,
             target_parity: &target_parity,
-            enforcement_liveness,
             brand_residue: &brand_residue,
         };
         Ok(build_gate_baseline(&cfg, &gate_inputs, &config_digest)?)
@@ -494,13 +466,8 @@ fn run() -> Result<(), CliError> {
             "catalog-liveness" => print!("{}", to_canonical_json(&catalog_liveness)?),
             "workspace-glob-coverage" => print!("{}", to_canonical_json(&workspace_glob_coverage)?),
             "target-parity" => print!("{}", to_canonical_json(&target_parity)?),
-            "enforcement-liveness" => {
-                let enforcement_liveness = collect_declared_enforcement_liveness()?;
-                print!("{}", to_canonical_json(&enforcement_liveness)?);
-            }
             "baseline" => {
-                let enforcement_liveness = collect_declared_enforcement_liveness()?;
-                let baseline = build_baseline_face(&enforcement_liveness)?;
+                let baseline = build_baseline_face()?;
                 print!("{}", to_canonical_json(&baseline)?);
             }
             other => return Err(CliError::Io(format!("unknown --face {other}"))),
@@ -508,8 +475,7 @@ fn run() -> Result<(), CliError> {
         return Ok(());
     }
 
-    let enforcement_liveness = collect_declared_enforcement_liveness()?;
-    let baseline = build_baseline_face(&enforcement_liveness)?;
+    let baseline = build_baseline_face()?;
 
     write_face(
         &out_dir.join("accounting-registry.generated.json"),
@@ -526,10 +492,6 @@ fn run() -> Result<(), CliError> {
     write_face(
         &out_dir.join("enforcement-inventory.generated.json"),
         &enforcement,
-    )?;
-    write_face(
-        &out_dir.join("enforcement-liveness.generated.json"),
-        &enforcement_liveness,
     )?;
     write_face(&out_dir.join("gate-baseline.generated.json"), &baseline)?;
 
@@ -1466,181 +1428,6 @@ fn collect_target_parity(
     Ok(json!({ "rows": rows }))
 }
 
-const CLAUDE_WIRING_FILE: &str = ".claude/settings.json";
-const CODEX_WIRING_FILE: &str = ".codex/hooks.json";
-const HOOKS_DIR: &str = "tools/hooks";
-const COMPATIBILITY_STUB_MARKER: &str = "Compatibility stub only";
-
-#[derive(Debug)]
-struct EnforcementLivenessCorpus {
-    texts: BTreeMap<String, String>,
-}
-
-impl EnforcementLivenessCorpus {
-    fn from_args(
-        tracked_paths: &[String],
-        claude_settings: Option<&Path>,
-        codex_hooks: Option<&Path>,
-        hooks_dir: Option<&Path>,
-    ) -> Result<Self, CliError> {
-        match (claude_settings, codex_hooks, hooks_dir) {
-            (Some(claude_settings), Some(codex_hooks), Some(hooks_dir)) => {
-                Self::from_declared_paths(tracked_paths, claude_settings, codex_hooks, hooks_dir)
-            }
-            _ => Err(CliError::Io(
-                "--enforcement-liveness-claude-settings, \
-                 --enforcement-liveness-codex-hooks, and \
-                 --enforcement-liveness-hooks-dir are required when producing \
-                 enforcement-liveness or baseline faces"
-                    .to_owned(),
-            )),
-        }
-    }
-
-    fn from_declared_paths(
-        tracked_paths: &[String],
-        claude_settings: &Path,
-        codex_hooks: &Path,
-        hooks_dir: &Path,
-    ) -> Result<Self, CliError> {
-        if !hooks_dir.is_dir() {
-            return Err(CliError::Io(format!(
-                "{}: declared enforcement-liveness hooks corpus is not a directory",
-                hooks_dir.display()
-            )));
-        }
-
-        let mut texts = BTreeMap::new();
-        texts.insert(
-            CLAUDE_WIRING_FILE.to_owned(),
-            read_required_text(claude_settings, CLAUDE_WIRING_FILE)?,
-        );
-        texts.insert(
-            CODEX_WIRING_FILE.to_owned(),
-            read_required_text(codex_hooks, CODEX_WIRING_FILE)?,
-        );
-        for hook_path in tracked_paths
-            .iter()
-            .filter(|path| is_top_level_hook_script(path))
-        {
-            let Some(file_name) = hook_file_name(hook_path) else {
-                continue;
-            };
-            texts.insert(
-                hook_path.clone(),
-                read_required_text(
-                    &hooks_dir.join(file_name),
-                    &format!("declared enforcement-liveness input {hook_path}"),
-                )?,
-            );
-        }
-        Ok(Self { texts })
-    }
-
-    fn text(&self, logical_path: &str) -> Result<&str, CliError> {
-        self.texts
-            .get(logical_path)
-            .map(String::as_str)
-            .ok_or_else(|| {
-                CliError::Io(format!(
-                    "declared enforcement-liveness corpus missing logical path {logical_path}"
-                ))
-            })
-    }
-}
-
-fn collect_enforcement_liveness(
-    tracked_paths: &[String],
-    corpus: &EnforcementLivenessCorpus,
-) -> Result<Value, CliError> {
-    let tracked: BTreeSet<&str> = tracked_paths.iter().map(String::as_str).collect();
-    let claude_refs =
-        collect_hook_command_refs(CLAUDE_WIRING_FILE, corpus.text(CLAUDE_WIRING_FILE)?)?;
-    let codex_refs = collect_hook_command_refs(CODEX_WIRING_FILE, corpus.text(CODEX_WIRING_FILE)?)?;
-
-    let mut rows: Vec<Value> = Vec::new();
-    for hook_path in tracked_paths
-        .iter()
-        .filter(|path| is_top_level_hook_script(path))
-    {
-        let body = corpus.text(hook_path)?;
-        rows.push(json!({
-            "row_type": "hook",
-            "hook_path": hook_path,
-            "wired_in_claude": claude_refs.contains(hook_path),
-            "wired_in_codex": codex_refs.contains(hook_path),
-            "stub_marked": body.contains(COMPATIBILITY_STUB_MARKER),
-        }));
-    }
-
-    for (wiring_file, refs) in [
-        (CLAUDE_WIRING_FILE, claude_refs),
-        (CODEX_WIRING_FILE, codex_refs),
-    ] {
-        for command_path in refs {
-            rows.push(json!({
-                "row_type": "command_reference",
-                "wiring_file": wiring_file,
-                "command_path": command_path,
-                "target_exists": tracked.contains(command_path.as_str()),
-            }));
-        }
-    }
-
-    Ok(json!({ "rows": rows }))
-}
-
-fn is_top_level_hook_script(path: &str) -> bool {
-    let Some(name) = path.strip_prefix("tools/hooks/") else {
-        return false;
-    };
-    !name.contains('/') && name.ends_with(".sh")
-}
-
-fn hook_file_name(hook_path: &str) -> Option<&str> {
-    hook_path.strip_prefix(&format!("{HOOKS_DIR}/"))
-}
-
-fn collect_hook_command_refs(wiring_file: &str, text: &str) -> Result<BTreeSet<String>, CliError> {
-    let value = serde_json::from_str::<Value>(text)
-        .map_err(|e| CliError::Io(format!("{wiring_file}: parse hook wiring JSON: {e}")))?;
-    let mut refs = BTreeSet::new();
-    collect_command_values(&value, &mut refs);
-    Ok(refs)
-}
-
-fn collect_command_values(value: &Value, refs: &mut BTreeSet<String>) {
-    match value {
-        Value::Object(map) => {
-            for (key, nested) in map {
-                if key == "command"
-                    && let Some(command) = nested.as_str()
-                    && let Some(path) = normalize_hook_command(command)
-                {
-                    refs.insert(path);
-                }
-                collect_command_values(nested, refs);
-            }
-        }
-        Value::Array(items) => {
-            for item in items {
-                collect_command_values(item, refs);
-            }
-        }
-        _ => {}
-    }
-}
-
-fn normalize_hook_command(command: &str) -> Option<String> {
-    let first = command.trim().split_whitespace().next()?;
-    let path = first.strip_prefix("./").unwrap_or(first);
-    if is_top_level_hook_script(path) {
-        Some(path.to_owned())
-    } else {
-        None
-    }
-}
-
 fn member_has_test_code(repo_root: &Path, member_path: &str, tracked: &BTreeSet<&str>) -> bool {
     let tests_prefix = format!("{member_path}/tests/");
     if tracked.iter().any(|path| path.starts_with(&tests_prefix)) {
@@ -2091,132 +1878,6 @@ value = "legacy-marker"
             err.to_string().contains("tracked_paths[1]"),
             "error should identify malformed entry index, got: {err}"
         );
-    }
-
-    #[test]
-    fn enforcement_liveness_declared_corpus_prevents_stale_repo_root_false_green() {
-        let root = unique_temp_repo();
-        let tracked_paths = vec![
-            CLAUDE_WIRING_FILE.to_owned(),
-            CODEX_WIRING_FILE.to_owned(),
-            "tools/hooks/hermetic-check.sh".to_owned(),
-        ];
-
-        write_test_file(
-            &root,
-            CLAUDE_WIRING_FILE,
-            r#"{"hooks":{"PreToolUse":[{"hooks":[{"command":"./tools/hooks/hermetic-check.sh"}]}]}}"#,
-        );
-        write_test_file(
-            &root,
-            CODEX_WIRING_FILE,
-            r#"{"hooks":{"UserPromptSubmit":[{"command":"./tools/hooks/hermetic-check.sh"}]}}"#,
-        );
-        write_test_file(
-            &root,
-            "tools/hooks/hermetic-check.sh",
-            "#!/usr/bin/env bash\n# Compatibility stub only\n",
-        );
-
-        let declared_root = root.join("buck-declared-corpus");
-        let declared_claude = write_test_file(&declared_root, "settings.json", r#"{"hooks":{}}"#);
-        let declared_codex = write_test_file(&declared_root, "hooks.json", r#"{"hooks":{}}"#);
-        let declared_hooks_dir = declared_root.join("hooks");
-        write_test_file(
-            &declared_hooks_dir,
-            "hermetic-check.sh",
-            "#!/usr/bin/env bash\necho live hook\n",
-        );
-
-        let declared_corpus = EnforcementLivenessCorpus::from_declared_paths(
-            &tracked_paths,
-            &declared_claude,
-            &declared_codex,
-            &declared_hooks_dir,
-        )
-        .unwrap();
-        let declared_face = collect_enforcement_liveness(&tracked_paths, &declared_corpus).unwrap();
-        let hook_row = declared_face["rows"]
-            .as_array()
-            .expect("rows")
-            .iter()
-            .find(|row| row["hook_path"] == "tools/hooks/hermetic-check.sh")
-            .expect("hermetic hook row");
-        assert_eq!(hook_row["wired_in_claude"].as_bool(), Some(false));
-        assert_eq!(hook_row["wired_in_codex"].as_bool(), Some(false));
-        assert_eq!(hook_row["stub_marked"].as_bool(), Some(false));
-        assert_eq!(
-            ci_hook_wiring::evaluate(&declared_face).verdict,
-            ci_hook_wiring::Verdict::Red,
-            "declared Buck corpus, not stale repo-root content, must drive the face"
-        );
-
-        fs::remove_dir_all(root).expect("remove temp repo");
-    }
-
-    #[test]
-    fn enforcement_liveness_rejects_missing_declared_corpus_args() {
-        let tracked_paths = vec![
-            CLAUDE_WIRING_FILE.to_owned(),
-            CODEX_WIRING_FILE.to_owned(),
-            "tools/hooks/hermetic-check.sh".to_owned(),
-        ];
-
-        let error = EnforcementLivenessCorpus::from_args(&tracked_paths, None, None, None)
-            .unwrap_err()
-            .to_string();
-
-        assert!(
-            error.contains("--enforcement-liveness-claude-settings"),
-            "missing declared corpus error must name the claude-settings arg: {error}"
-        );
-        assert!(
-            error.contains("--enforcement-liveness-codex-hooks"),
-            "missing declared corpus error must name the codex-hooks arg: {error}"
-        );
-        assert!(
-            error.contains("--enforcement-liveness-hooks-dir"),
-            "missing declared corpus error must name the hooks-dir arg: {error}"
-        );
-        assert!(
-            error.contains("required"),
-            "missing declared corpus error must fail closed, not fall back: {error}"
-        );
-    }
-
-    #[test]
-    fn enforcement_liveness_declared_corpus_fails_on_missing_tracked_hook_input() {
-        let root = unique_temp_repo();
-        let tracked_paths = vec![
-            CLAUDE_WIRING_FILE.to_owned(),
-            CODEX_WIRING_FILE.to_owned(),
-            "tools/hooks/missing-from-declared-corpus.sh".to_owned(),
-        ];
-        let declared_root = root.join("buck-declared-corpus");
-        let declared_claude = write_test_file(&declared_root, "settings.json", r#"{"hooks":{}}"#);
-        let declared_codex = write_test_file(&declared_root, "hooks.json", r#"{"hooks":{}}"#);
-        let declared_hooks_dir = declared_root.join("hooks");
-        fs::create_dir_all(&declared_hooks_dir).expect("create declared hooks dir");
-
-        let error = EnforcementLivenessCorpus::from_declared_paths(
-            &tracked_paths,
-            &declared_claude,
-            &declared_codex,
-            &declared_hooks_dir,
-        )
-        .unwrap_err()
-        .to_string();
-
-        assert!(
-            error.contains("tools/hooks/missing-from-declared-corpus.sh"),
-            "missing declared hook path must be named in the error: {error}"
-        );
-        assert!(
-            error.contains("declared enforcement-liveness input"),
-            "missing input must fail as a declared corpus error: {error}"
-        );
-
-        fs::remove_dir_all(root).expect("remove temp repo");
     }
 
     #[test]
@@ -3795,7 +3456,7 @@ const GRANDFATHERED_PHANTOM_DECISION_IDS: [&str; 62] = [
     "ADR-0420", "ADR-0421", "ADR-0423", "ADR-0428", "ADR-0429", "ADR-0434", "ADR-0436", "ADR-0441",
     "ADR-0443", "ADR-0448", "ADR-0449", "ADR-0450", "ADR-0451", "ADR-0454", "ADR-0457", "ADR-0458",
     "ADR-0459", "ADR-0460", "ADR-0461", "ADR-0462", "ADR-0466", "ADR-0468", "ADR-0472", "ADR-0473",
-    "ADR-0474", "ADR-0475", "ADR-0477", "ADR-0483", "ADR-0484", "ADR-0488"
+    "ADR-0474", "ADR-0475", "ADR-0477", "ADR-0483", "ADR-0484", "ADR-0488",
 ];
 
 /// Every `ADR-NNNN` token in a text (exactly four digits, not followed by a fifth digit).
@@ -4673,7 +4334,9 @@ fn mentioned_path_index(body: &str) -> BTreeSet<&str> {
     path_like_tokens(body)
         .map(|token| {
             let token = token.trim_start_matches('/');
-            token.split_once('#').map_or(token, |(path, _fragment)| path)
+            token
+                .split_once('#')
+                .map_or(token, |(path, _fragment)| path)
         })
         .filter(|token| !token.is_empty())
         .collect()
@@ -4923,14 +4586,13 @@ fn check_added_paths(
         .iter()
         .map(|path| {
             let excluded = is_path_excluded(path, cfg);
-            let (justification, reachable_from) = row_accounting.get(path).cloned().unwrap_or_else(
-                || {
+            let (justification, reachable_from) =
+                row_accounting.get(path).cloned().unwrap_or_else(|| {
                     (
                         justifications.get(path).cloned(),
                         reachability.get(path).cloned().unwrap_or_default(),
                     )
-                },
-            );
+                });
             AddedPathVerdict {
                 unit_class: policy.classify(path).to_owned(),
                 justification,
@@ -5043,15 +4705,6 @@ fn report_check(verdicts: &[AddedPathVerdict]) -> bool {
 
 fn read_text(path: &Path) -> String {
     std::fs::read_to_string(path).unwrap_or_default()
-}
-
-fn read_required_text(path: &Path, label: &str) -> Result<String, CliError> {
-    std::fs::read_to_string(path).map_err(|e| {
-        CliError::Io(format!(
-            "{label}: read declared enforcement-liveness input {}: {e}",
-            path.display()
-        ))
-    })
 }
 
 /// Whether a tracked path is excluded by the config's `[repo].path_excludes` (the producer's

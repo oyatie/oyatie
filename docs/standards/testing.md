@@ -1,5 +1,5 @@
 ---
-purpose: "Canonical testing standard for the oyatie workspace. Defines the Test Pyramid 2.0 (unit / integration / contract / e2e / property / fuzz), mandates `cargo nextest run --workspace --all-features --no-fail-fast` as the evidence run."
+purpose: "Canonical testing standard for the oyatie workspace. Defines the Test Pyramid 2.0 (unit / integration / contract / e2e / property / fuzz) and mandates `cargo test --workspace` as the merge-path evidence run."
 doc_status: published
 ---
 
@@ -13,7 +13,7 @@ date: 2026-05-12
 purpose: |
   Canonical testing standard for the oyatie workspace. Defines the Test Pyramid 2.0
   (unit / integration / contract / e2e / property / fuzz), mandates
-  `cargo nextest run --workspace --all-features --no-fail-fast` as the evidence run,
+  `cargo test --workspace` as the merge-path evidence run,
   requires `proptest` / `quickcheck` for invariants, `cargo-mutants` for mutation
   testing on kernel/domain code, `cargo-fuzz` for unsafe and FFI surfaces, sets the
   `cargo-llvm-cov` coverage budget, and codifies the 14-day flaky-test SLA. Resolves
@@ -61,11 +61,11 @@ The hyperscaler consensus in 2025–2026 is an expanded pyramid:
 
 | Tier | Where it lives | Runner | Frequency |
 |---|---|---|---|
-| Unit | `#[cfg(test)] mod tests` in same file | `cargo nextest` | every PR |
-| Integration | `tests/` directory of each crate | `cargo nextest` | every PR |
-| Contract | `tests/contract/` per consumer/provider; `contracts/` schemas | `cargo nextest` + pact-style verifier | every PR |
-| E2E | `oya-intelligence-e2e-*` runtime | `cargo nextest` w/ env tag | merge-queue + nightly |
-| Property | `proptest` or `quickcheck` inside `tests/properties/` | `cargo nextest` | every PR (short config); nightly (long config) |
+| Unit | `#[cfg(test)] mod tests` in same file | `cargo test` | every PR |
+| Integration | `tests/` directory of each crate | `cargo test` | every PR |
+| Contract | `tests/contract/` per consumer/provider; `contracts/` schemas | `cargo test` + pact-style verifier | every PR |
+| E2E | `oya-intelligence-e2e-*` runtime | `cargo test` with explicit environment | merge-queue + nightly |
+| Property | `proptest` or `quickcheck` inside `tests/properties/` | `cargo test` | every PR (short config); nightly (long config) |
 | Fuzz | `fuzz/` per crate; `cargo-fuzz` | `cargo fuzz run` | nightly + on diff to unsafe surfaces |
 | Mutation | n/a | `cargo-mutants` | nightly on kernel/domain |
 
@@ -80,20 +80,19 @@ Per [`docs/AGENTS.md`](../AGENTS.md) D9, every PR's `## Verification`
 section MUST paste the output of:
 
 ```sh
-cargo nextest run --workspace --all-features --no-fail-fast
+cargo test --workspace
 ```
 
 Rules:
 
-1. `--no-fail-fast` is **mandatory** so the full failure surface is
-   captured in one run (hyperscaler convention; avoids whack-a-mole).
-2. `--all-features` ensures conditional code paths compile and are exercised.
-3. Local dev loop SHOULD use `bacon nextest` for fast feedback; the
-   evidence run is the canonical artifact (per AGENTS.md §During-change
-   discipline).
-4. The run MUST emit JUnit + JSON to `target/nextest/` for CI archival.
+1. The full workspace run is **mandatory** because it is the same executor and package graph used
+   by the protected `oya-ci-required` test job.
+2. Targeted package tests are useful worker feedback but never replace the full workspace run.
+3. `cargo nextest` / `bacon nextest` MAY be used as optional local accelerators; neither is merge
+   authority or required clean-checkout tooling.
+4. The protected CI run and its logs are the durable evidence record.
 
-`cargo-nextest` is the workspace standard test runner — parallel by default,
+`cargo-nextest` remains an optional local runner — parallel by default,
 fault-isolated per test, retries supported, slow-test detection. Source:
 [nextest book](https://nexte.st/).
 
@@ -208,16 +207,15 @@ Per [`forbidden-operations.json`](../../specs/forbidden-operations.json) FO-06:
 
 Per [`docs/AGENTS.md`](../AGENTS.md) Done-Definition:
 
-- **D9** — `cargo nextest run --workspace --all-features --no-fail-fast`
-  passes.
-- **D10** — `cargo clippy --workspace --all-features --all-targets --
+- **D9** — `cargo test --workspace` passes.
+- **D10** — `cargo clippy --workspace --all-targets --
   -D warnings` passes.
 - **D11** — `cargo deny check` passes.
 - **D13** — performance changes carry benchmark + ≥ 2 stress scenarios.
 
 This standard adds:
 
-- `oya-governance-test-evidence` — nextest evidence pasted in PR.
+- `oya-governance-test-evidence` — protected workspace Cargo evidence attached to the PR.
 - `oya-governance-fuzz-coverage` — fuzz harness mandatory where named.
 - `oya-governance-mutation-budget` — nightly mutation budget on
   kernel/domain.
@@ -226,7 +224,7 @@ This standard adds:
 ## 11. Anti-patterns
 
 1. **Disabling a test with `#[ignore]` without a `MISTAKES-LEDGER` row.**
-2. **Running `cargo test` instead of `cargo nextest` for evidence.**
+2. **Citing a targeted or alternate local runner instead of `cargo test --workspace` for merge-path evidence.**
 3. **Property test with low case-count to "save CI time"** — use the
    nightly long config instead, not a degraded PR config.
 4. **Adding `unsafe` without a fuzz harness.**

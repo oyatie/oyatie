@@ -44,16 +44,18 @@ INV-DOC-9: doctrine that exists only in a plan file or chat is **not** survived.
 
 - **achieves:** every agent runs the same start/end checklist without pasting the whole north-star plan.
 - **origin:** strategy and procedure were conflated; babysit-only regressions followed.
-- **rule:** every implement/audit/review/plan/scout/recon dispatch MUST run the Tier-2 ritual. In-repo short form: [`.cursor/rules/swarm-agent-ritual.mdc`](.cursor/rules/swarm-agent-ritual.mdc). Canonical long form (docs tip; forever home may become `templates/checklists/`): [`docs/checklists/swarm-agent-ritual.md`](docs/checklists/swarm-agent-ritual.md).
-- **ensure:** ritual file tracked under process_meta; receipts include role-scaled evidence.
+- **rule:** every implement/audit/review/plan/scout/recon dispatch MUST run the Tier-2 ritual. Canonical in-repo checklist: [`templates/checklists/swarm-agent-ritual.md`](templates/checklists/swarm-agent-ritual.md). Repository-local `.claude/`, `.codex/`, `.cursor/`, and `.grok/` runtime overlays are ignored and untracked; they are never authority surfaces.
+- **ensure:** the canonical checklist stays tracked under `templates/checklists/`; receipts include role-scaled evidence; the four local runtime roots remain ignored.
 - **overturn_when:** a recorded challenge shows the ritual blocks delivery AND a replacement ritual with five fields lands same-wave.
 
 ## What Oyatie is
 
 An owned, cloud-native, hyperscale platform built in Rust — a unified **delivery fabric**
 (SCM + CI + CD) plus the products that run on it; full identity in [`README.md`](README.md).
-Hard invariants every change respects: the whole stack is owned Rust — kuberos kernel → cloud-os →
-cloud-k8s → cloud services → oyatie products (founder directive 2026-06-09); automation
+Hard invariants every change respects: owned Rust starts at the differentiated Kubernetes control
+plane and cloud services; host kernels and node operating systems are consumed deployment inputs,
+not hand-maintained product layers. Mechanically maintained ports are emitted by port-engine
+producers only after source, rules, receipts, and output region are registered; automation
 deliverables are Rust, never shell/Python/Node (rust-first automation-hygiene gate); ALL CLI
 surfaces are retirement-marked — new capabilities ship as APIs + declarative state + reconcilers;
 nothing merges except a protected PR against `dev` behind the single required `oya-ci-required`

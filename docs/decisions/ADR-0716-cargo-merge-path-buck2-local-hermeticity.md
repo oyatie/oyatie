@@ -8,7 +8,7 @@ deciders: founder
 date: 2026-08-14
 door: two-way
 owner: council-architecture
-supersedes: [ADR-0560]
+supersedes: []
 superseded_by: []
 amends: [ADR-0700, ADR-0554, ADR-0556]
 amended_by: []
@@ -38,9 +38,10 @@ deliverables:
 
 ## Status
 
-**Accepted** (founder directive 2026-08-14). Supersedes ADR-0560's canary trust anchor and
-amends the CI-execution clauses of ADR-0700, the workspace-coverage mechanism of ADR-0554,
-and the cache-warm doctrine of ADR-0556.
+**Accepted** (founder directive 2026-08-14). Retires ADR-0560's canary-as-merge-trust
+premise without replacing that entire cache-deployment decision, whose declared successor
+remains ADR-0700. This ADR amends the CI-execution clauses of ADR-0700, the
+workspace-coverage mechanism of ADR-0554, and the cache-warm doctrine of ADR-0556.
 
 ## Context
 

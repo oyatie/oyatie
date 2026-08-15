@@ -11,10 +11,10 @@ doc_status: published
 ---
 
 1. ☐ **Workspace clean** — no untracked files surprise; `git status` matches expectations.
-2. ☐ **Affected-set tested** — relevant Buck2 build/test targets pass locally where feasible; the PR must still wait for `oya-ci-required`.
-3. ☐ **Format clean** — formatter evidence captured through the Buck2/cloud-ci lane or an equivalent project-approved local target.
-4. ☐ **Lint clean** — lint evidence captured through the Buck2/cloud-ci lane or an equivalent project-approved local target.
-5. ☐ **Architecture boundaries** — cloud-ci/oya-ci governance gate evidence is present in `oya-ci-required`; local dev-cli output is not accepted as authority.
+2. ☐ **Affected-set tested** — relevant targeted Cargo package tests pass locally where feasible; they do not replace the required workspace run.
+3. ☐ **Format clean** — `cargo fmt --all --check` passes.
+4. ☐ **Lint clean** — `cargo clippy --workspace --all-targets -- -D warnings` passes.
+5. ☐ **Workspace tests clean** — `cargo test --workspace` passes; protected `oya-ci-required` remains merge authority.
 6. ☐ **License gate** — `cargo deny check` passes; no new dependency without ledger entry.
 7. ☐ **Schema-class annotations** — every new struct field in a kernel crate has a `data_class` per [PRIVACY-PROGRAM §2.2.1](../PRIVACY-PROGRAM.md).
 8. ☐ **YAML date integrity** — every YAML date is quoted (per mistakes-and-fixes-ledger).

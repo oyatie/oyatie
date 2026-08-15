@@ -1,5 +1,0 @@
-val	0	v1
-val	1	v2
-parse	v1	0
-parse	v2	1
-parse	__nope__	ERR

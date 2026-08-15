@@ -92,15 +92,6 @@
       "root//libs/oya-governance-gate-catalog-domain:",
       "root//marketplace/facade/dev-cli:"
     ],
-    ".cursor/rules/**": [
-      "root//ci/facade/affected-target-set:",
-      "root//ci/facade/artifact-accountability:",
-      "root//ci/facade/artifact-inventory-registry:",
-      "root//ci/facade/baseline-ratchet:",
-      "root//ci/facade/inventory-registry-drift:",
-      "root//ci/facade/repo-root-hygiene:",
-      "root//ci/facade/scm-facts-snapshot:"
-    ],
     "Cargo.lock": [
       "root//ci/facade/affected-target-set:",
       "root//ci/facade/generated-artifact-freshness:",

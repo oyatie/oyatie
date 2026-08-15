@@ -161,30 +161,6 @@
       "related": ["ADR-0111", "ADR-0119", "ADR-0131", "ADR-0363", "ADR-0366", "ADR-0515", "ADR-0541", "ADR-0554", "ADR-0562"]
     },
     {
-      "adr": "ADR-0712",
-      "number": 712,
-      "title": "Node kernel + pool matrix — Linux primary; Asterinas soak until A1",
-      "status": "Proposed",
-      "owner": "council-architecture",
-      "date": "2026-08-10",
-      "path": "decisions/ADR-0712-node-kernel-pool-matrix.md",
-      "supersedes": [],
-      "superseded_by": [],
-      "related": ["ADR-0611", "ADR-0704", "ADR-0714"]
-    },
-    {
-      "adr": "ADR-0713",
-      "number": 713,
-      "title": "Node Substrate Architecture — PID1 stub + restartable supervisor; severable Accept",
-      "status": "Proposed",
-      "owner": "council-architecture",
-      "date": "2026-08-10",
-      "path": "decisions/ADR-0713-node-substrate-architecture.md",
-      "supersedes": [],
-      "superseded_by": [],
-      "related": ["ADR-0520", "ADR-0637", "ADR-0638", "ADR-0704", "ADR-0712"]
-    },
-    {
       "adr": "ADR-0714",
       "number": 714,
       "title": "Isolation-property RuntimeClass names with orthogonal placement axis",

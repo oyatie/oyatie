@@ -213,15 +213,35 @@ pub fn collect_observed_non_rust_automation(
     let mut rows = Vec::new();
     for scan_root in scan_roots {
         let absolute = repo_root.join(&scan_root);
-        if absolute.exists() {
-            visit_scan_root(
-                repo_root,
-                &absolute,
-                &exclude_prefixes,
-                &extensions,
-                &mut rows,
-            )?;
+        let metadata = match fs::symlink_metadata(&absolute) {
+            Ok(metadata) => metadata,
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => continue,
+            Err(error) => {
+                return Err(ScanError::Io(format!(
+                    "symlink_metadata scan root {}: {error}",
+                    absolute.display()
+                )))
+            }
+        };
+        if metadata.file_type().is_symlink() {
+            return Err(ScanError::Io(format!(
+                "automation scan root must not be a symlink: {}",
+                absolute.display()
+            )));
         }
+        if !metadata.is_dir() {
+            return Err(ScanError::Io(format!(
+                "automation scan root must be a directory: {}",
+                absolute.display()
+            )));
+        }
+        visit_scan_root(
+            repo_root,
+            &absolute,
+            &exclude_prefixes,
+            &extensions,
+            &mut rows,
+        )?;
     }
     rows.sort_by(|a, b| string_field(a, "path").cmp(&string_field(b, "path")));
     Ok(json!({ "rows": rows }))
@@ -1926,6 +1946,45 @@ pub fn evaluate(policy: &Value, observed: &Value) -> Report {
 mod tests {
     use super::*;
     use serde_json::json;
+
+    #[cfg(unix)]
+    #[test]
+    fn non_rust_automation_scan_rejects_a_symlink_root() {
+        let nonce = format!(
+            "{}-{}",
+            std::process::id(),
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .expect("clock after epoch")
+                .as_nanos()
+        );
+        let repo = std::env::temp_dir().join(format!("oya-automation-scan-repo-{nonce}"));
+        let outside = std::env::temp_dir().join(format!("oya-automation-scan-outside-{nonce}"));
+        std::fs::create_dir_all(&repo).expect("create synthetic repo");
+        std::fs::create_dir_all(&outside).expect("create outside runtime root");
+        std::fs::write(outside.join("local.sh"), "#!/bin/sh\n")
+            .expect("write outside automation");
+        std::os::unix::fs::symlink(&outside, repo.join(".codex"))
+            .expect("create ignored runtime symlink");
+        let policy = json!({
+            "scan": {
+                "roots": [".codex"],
+                "exclude_prefixes": [],
+                "non_rust_extensions": ["sh"]
+            }
+        });
+
+        let error = collect_observed_non_rust_automation(&repo, &policy)
+            .expect_err("a root symlink must fail closed before reading outside the worktree");
+
+        std::fs::remove_file(repo.join(".codex")).expect("remove synthetic symlink");
+        std::fs::remove_dir_all(&repo).expect("remove synthetic repo");
+        std::fs::remove_dir_all(&outside).expect("remove outside runtime root");
+        assert!(
+            error.to_string().contains("must not be a symlink"),
+            "unexpected error: {error}"
+        );
+    }
 
     #[test]
     fn shell_line_count_counts_commands_not_lines() {

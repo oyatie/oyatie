@@ -1,5 +1,5 @@
 {
-  "_comment": "cloud-ci-capability-membership gate policy (DATA, not code). Phase-0 capability-first reorg (ADR-0562 \u00a76, the anti-junk-drawer MEMBERSHIP lint \u2014 the closed-registry enforcement that makes capability-first safe). The CLOSED capability set + the per-crate mappings + the frozen-unmapped baseline are the single source of truth in governance/capability-registry.json; this policy holds only the gate identity, the registry pointer, the crate-scan roots, the closed meta-directory set, the closed-set top-level-dir whitelist, and the live-corpus crate floor. Born ADVISORY with a frozen baseline: the gate enforces NO REGRESSION (no NEW unmapped crate, no NEW top-level dir outside the closed set) and burns the unmapped baseline DOWN as the strangler homes crates; it flips to BLOCKING when the frozen baseline reaches 0. Born pack-shaped: an adopting repo repoints registry_path + scan_roots + meta_directories; the Rust kernel hardcodes no oyatie path nor any capability slug. SCAN COVERAGE IS DERIVED, NOT HAND-KEPT: `scan_roots` must carry every capability top-level root AND every registry meta directory with owns_crates=true (kernel/os/base/app) \u2014 the cross-artifact-agreement registry\u21c4derived-policy sync check re-derives that requirement from governance/capability-registry.json and REDs on any root dropped here, so a destination root can never fall out of lint coverage silently (a crate-owning root outside `scan_roots` is invisible to the membership lint, and the min_expected_crates floor is a broken-scan guard, NOT a coverage guard).",
+  "_comment": "cloud-ci-capability-membership gate policy (DATA, not code). Phase-0 capability-first reorg (ADR-0562 §6, the anti-junk-drawer MEMBERSHIP lint — the closed-registry enforcement that makes capability-first safe). The CLOSED capability set + the per-crate mappings + the frozen-unmapped baseline are the single source of truth in governance/capability-registry.json; this policy holds only the gate identity, the registry pointer, the crate-scan roots, the closed meta-directory set, the closed-set top-level-dir whitelist, and the live-corpus crate floor. Born ADVISORY with a frozen baseline: the gate enforces NO REGRESSION (no NEW unmapped crate, no NEW top-level dir outside the closed set) and burns the unmapped baseline DOWN as the strangler homes crates; it flips to BLOCKING when the frozen baseline reaches 0. Born pack-shaped: an adopting repo repoints registry_path + scan_roots + meta_directories; the Rust kernel hardcodes no oyatie path nor any capability slug. SCAN COVERAGE IS DERIVED, NOT HAND-KEPT: `scan_roots` must carry every capability top-level root AND every registry meta directory with owns_crates=true (kernel/os/base/app) — the cross-artifact-agreement registry⇄derived-policy sync check re-derives that requirement from governance/capability-registry.json and REDs on any root dropped here, so a destination root can never fall out of lint coverage silently (a crate-owning root outside `scan_roots` is invisible to the membership lint, and the min_expected_crates floor is a broken-scan guard, NOT a coverage guard).",
   "gate_id": "cloud-ci-capability-membership",
   "schema_version": "1.0.0",
   "doctrine_adrs": [
@@ -39,22 +39,16 @@
     "governance",
     "ci",
     "policy",
-    "kernel",
-    "os",
     "base",
     "app"
   ],
   "meta_directories": [
-    "kernel",
-    "os",
     "base",
     "governance",
     "build",
     "app"
   ],
   "allowed_top_level_dirs": [
-    "kernel",
-    "os",
     "base",
     "governance",
     "build",
@@ -127,7 +121,7 @@
   ],
   "min_expected_crates": 800,
   "legacy_root_freeze": {
-    "_comment": "STOP ACCRUAL (ADR-0562 \u00a76 strangler). The legacy source roots are FROZEN SHRINK-ONLY. Every crate dir that lived under a `frozen_roots` entry at the freeze commit is listed in `crates` and is tolerated forever; a crate dir under a frozen root that is NOT listed is a crate BORN into a root the reorg exists to empty, and fails MEM-NEW-LEGACY-ROOT-CRATE. Removing a name is burn-down and is always allowed \u2014 it is also REQUIRED: a listed dir that is no longer a crate fires MEM-STALE-LEGACY-ROOT-BASELINE, so the census shrinks in lockstep with the moves and slack cannot outlive the debt it was granted for (the same contract crate-catalog-coverage's `uncatalogued` carries). PRODUCER-EMITTED, NEVER HAND-TYPED: `buck2 run //ci/facade/module-membership:oya-cloud-ci-capability-membership-app-bin -- --repo-root . --emit-legacy-freeze` prints this whole block from the gate's OWN collect(), so the census can never drift from the corpus the gate actually walks; the producer REFUSES to grow the census without --allow-new, so a regen cannot launder a newly-born legacy-root crate into the tolerated set. `frozen_roots` is deliberately NOT spelled `roots`/`scan_roots`: it is not coverage-bearing (an emptied frozen root does not go vacuous, it goes maximally strict \u2014 every crate born there is new), so it is correctly outside cloud-ci-scan-root-liveness scope and carries no anti-narrowing debt when a drained root is finally retired.",
+    "_comment": "STOP ACCRUAL (ADR-0562 §6 strangler). The legacy source roots are FROZEN SHRINK-ONLY. Every crate dir that lived under a `frozen_roots` entry at the freeze commit is listed in `crates` and is tolerated forever; a crate dir under a frozen root that is NOT listed is a crate BORN into a root the reorg exists to empty, and fails MEM-NEW-LEGACY-ROOT-CRATE. Removing a name is burn-down and is always allowed — it is also REQUIRED: a listed dir that is no longer a crate fires MEM-STALE-LEGACY-ROOT-BASELINE, so the census shrinks in lockstep with the moves and slack cannot outlive the debt it was granted for (the same contract crate-catalog-coverage's `uncatalogued` carries). PRODUCER-EMITTED, NEVER HAND-TYPED: `buck2 run //ci/facade/module-membership:oya-cloud-ci-capability-membership-app-bin -- --repo-root . --emit-legacy-freeze` prints this whole block from the gate's OWN collect(), so the census can never drift from the corpus the gate actually walks; the producer REFUSES to grow the census without --allow-new, so a regen cannot launder a newly-born legacy-root crate into the tolerated set. `frozen_roots` is deliberately NOT spelled `roots`/`scan_roots`: it is not coverage-bearing (an emptied frozen root does not go vacuous, it goes maximally strict — every crate born there is new), so it is correctly outside cloud-ci-scan-root-liveness scope and carries no anti-narrowing debt when a drained root is finally retired.",
     "_provenance": {
       "frozen_at": "96da99d14c1ade9b4920cc99b3a4e2215e98f32b",
       "producer": "//ci/facade/module-membership:oya-cloud-ci-capability-membership-app-bin -- --emit-legacy-freeze",
@@ -140,30 +134,6 @@
       "tools"
     ],
     "crates": [
-      "cloud/cloud-kernel/crates/oya-cloud-kernel-app",
-      "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-aarch64-adapter",
-      "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-aarch64-adapter/tests-host",
-      "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-aarch64-adapter/user-procinfo-src",
-      "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-aarch64-adapter/user-smpdemo-src",
-      "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-x86-64-adapter",
-      "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-x86-64-adapter/fsbase-worker-src",
-      "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-x86-64-adapter/user-clock-src",
-      "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-x86-64-adapter/user-exec-src",
-      "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-x86-64-adapter/user-fsbase-src",
-      "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-x86-64-adapter/user-init-src",
-      "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-x86-64-adapter/user-procinfo-src",
-      "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-x86-64-adapter/user-signal-src",
-      "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-x86-64-adapter/user-smpdemo-src",
-      "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-x86-64-adapter/user-spawn-src",
-      "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-x86-64-adapter/user-src",
-      "cloud/cloud-kernel/crates/oya-cloud-kernel-frame-kernel",
-      "cloud/cloud-kernel/crates/oya-cloud-kernel-hal-kernel",
-      "cloud/cloud-kernel/crates/oya-cloud-kernel-ksync-kernel",
-      "cloud/cloud-kernel/crates/oya-cloud-kernel-user-layout-kernel",
-      "cloud/cloud-os/crates/oya-cloud-os-cluster-mgmt-domain",
-      "cloud/cloud-os/crates/oya-cloud-os-kubernetes-domain",
-      "cloud/cloud-os/crates/oya-cloud-os-secrets-domain",
-      "cloud/cloud-os/crates/oya-cloud-os-trustd-domain",
       "libs/oya-advisory-mirror-kernel",
       "libs/oya-buck-syntax-kernel",
       "libs/oya-cargo-lock-transform-kernel",

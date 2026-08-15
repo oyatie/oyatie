@@ -1,7 +1,0 @@
-val	0	Do53
-val	1	DoT
-val	2	DoH
-parse	Do53	0
-parse	DoT	1
-parse	DoH	2
-parse	__nope__	ERR

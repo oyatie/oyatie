@@ -13,6 +13,13 @@
       "reference": "specs/reorg/ci-keystone-rename-map.json"
     }
   },
+  "_retired_compatibility_gates": {
+    "_comment": "One-wave merge-base compatibility only. These gates are absent from candidate oya-ci.toml but remain readable while a candidate-built producer materializes a frozen baseline from the current origin/dev tree. Every non-comment key must also exist under gates and must remain absent from the candidate enabled-gate set. Remove the row after origin/dev advances past the retirement PR.",
+    "cloud-ci-enforcement-liveness": {
+      "status": "retired-frozen-reference-compatibility",
+      "reason": "repository-local Claude/Codex hook activation was retired with the four ignored runtime-overlay roots"
+    }
+  },
   "gates": {
     "cloud-ci-total-accounting": {
       "unjustified": {"mode": "baseline-block-on-new", "remediation": "REACHED implies JUSTIFIED: the producer derives justification_ref from the registry that reaches the path (reached:<source>), because every reachability source is already a reviewed design act — so this code now fires ONLY on an artifact that is also `unreachable`, and reachability-registering it clears BOTH. Do that first: place the artifact under a workspace-member crate (auto-reachable via cargo-members), mention its exact path in specs/masterplan.json / specs/root-hub-pointers.json / docs/DOC-CATALOG.md, or add a reviewed entry to specs/reachability-registry.json naming WHY the tree is reached. ONLY if no live registry can reach the artifact, name it in a decision record under [justification].adr_dir (oya-ci.toml; today docs/decisions): the producer indexes each decision body ONCE into path-like tokens (split on whitespace and \" ` ( ) , ; [ ], then trimmed of leading : # * and one trailing .) and keeps the tokens that equal a tracked path, so add ONE line naming the path byte-exactly (precedent: ADR-0554 '### Deliverables (engine + pack files this ADR justifies)', one backticked path per bullet) — an abbreviated, globbed, or line-broken path matches nothing. A decision file justifies ITSELF by filename (ADR-NNNN-*.md). Neither route is a per-path exemption."},

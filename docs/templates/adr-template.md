@@ -16,7 +16,7 @@ related:
 adrs_cited:
   - ADR-0056  # BNF v4.1 + layer enum
   - ADR-0057  # LEAN checks
-  - ADR-0346  # historical full CI mirror semantics; destination is Buck2/cloud-ci gate packets
+  - ADR-0346  # historical full CI mirror semantics; destination is the Cargo workspace merge path
 doc_status: published
 ---
 
@@ -121,7 +121,7 @@ and cite the integration point in the affected µservice's PRD.
 
 ### Operational
 - CI lane changes (new LEAN check, fitness lane flip from `--report-only` to BLOCKER).
-- ADR-0346 verification posture: the retired `./bin/oya verify --ci-required` path is historical/provenance-only; required verification is Buck2/cloud-ci gate packets and the `oya-ci-required` context.
+- ADR-0346 verification posture: the retired `./bin/oya verify --ci-required` path is historical/provenance-only; required verification is the Cargo workspace command set and the `oya-ci-required` context.
 
 ---
 
@@ -177,6 +177,6 @@ For each alternative:
 - oyatie memory: `feedback_<slug>.md` (override rationale)
 - ADR-0056 BNF v4.1 (naming authority)
 - ADR-0057 LEAN checks (cross-vertical enforcement)
-- ADR-0346 historical full CI mirror semantics; Buck2/cloud-ci destination authority
+- ADR-0346 historical full CI mirror semantics; Cargo/`oya-ci-required` destination authority
 - Related oyatie ADRs: list concrete ADR identifiers, or state `-`
 - Issues: `Refs #N`, `Closes #N`

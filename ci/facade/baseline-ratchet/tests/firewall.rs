@@ -23,14 +23,6 @@ use ci_baseline_ratchet::{
 };
 use serde_json::Value;
 
-const ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS_ENV: &str =
-    "OYA_CI_ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS";
-const ENFORCEMENT_LIVENESS_CODEX_HOOKS_ENV: &str = "OYA_CI_ENFORCEMENT_LIVENESS_CODEX_HOOKS";
-const ENFORCEMENT_LIVENESS_HOOKS_DIR_ENV: &str = "OYA_CI_ENFORCEMENT_LIVENESS_HOOKS_DIR";
-const ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS: &str = ".claude/settings.json";
-const ENFORCEMENT_LIVENESS_CODEX_HOOKS: &str = ".codex/hooks.json";
-const ENFORCEMENT_LIVENESS_HOOKS_DIR: &str = "tools/hooks";
-
 fn repo_root() -> PathBuf {
     let mut dir = std::env::current_dir().expect("current_dir");
     for _ in 0..16 {
@@ -170,7 +162,6 @@ fn regenerate_baseline(root: &Path) -> Value {
         .arg(root)
         .arg("--scm-facts")
         .arg(&scm_facts);
-    append_declared_enforcement_liveness_corpus_args(&mut command, root);
     let output = command
         .arg("--stdout")
         .arg("--face")
@@ -209,142 +200,6 @@ fn resolve_bin(root: &Path, bin: &str) -> PathBuf {
     } else {
         root.join(path)
     }
-}
-
-fn append_declared_enforcement_liveness_corpus_args(command: &mut Command, root: &Path) {
-    append_enforcement_liveness_corpus_paths(
-        command,
-        &declared_corpus_file(
-            root,
-            ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS_ENV,
-            ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS,
-            "settings.json",
-        ),
-        &declared_corpus_file(
-            root,
-            ENFORCEMENT_LIVENESS_CODEX_HOOKS_ENV,
-            ENFORCEMENT_LIVENESS_CODEX_HOOKS,
-            "hooks.json",
-        ),
-        &declared_corpus_path(
-            root,
-            ENFORCEMENT_LIVENESS_HOOKS_DIR_ENV,
-            ENFORCEMENT_LIVENESS_HOOKS_DIR,
-        ),
-    );
-}
-
-fn declared_corpus_file(
-    root: &Path,
-    env_key: &str,
-    fallback_rel: &str,
-    file_name: &str,
-) -> PathBuf {
-    let path = declared_corpus_path(root, env_key, fallback_rel);
-    if path.is_file() {
-        return path;
-    }
-    let nested = path.join(file_name);
-    if nested.is_file() {
-        return nested;
-    }
-    path
-}
-
-fn declared_corpus_path(root: &Path, env_key: &str, fallback_rel: &str) -> PathBuf {
-    declared_corpus_path_from_env(
-        root,
-        env_key,
-        fallback_rel,
-        std::env::var("OYA_CI_PRODUCER_BIN").is_ok(),
-        std::env::var(env_key).ok().as_deref(),
-    )
-}
-
-fn declared_corpus_path_from_env(
-    root: &Path,
-    env_key: &str,
-    fallback_rel: &str,
-    buck_backed_producer: bool,
-    env_value: Option<&str>,
-) -> PathBuf {
-    if let Some(value) = env_value {
-        return resolve_bin(root, value);
-    }
-    assert!(
-        !buck_backed_producer,
-        "FAIL-CLOSED: buck-backed firewall producer invocation is missing declared corpus env {env_key}"
-    );
-    root.join(fallback_rel)
-}
-
-fn append_enforcement_liveness_corpus_paths(
-    command: &mut Command,
-    claude_settings: &Path,
-    codex_hooks: &Path,
-    hooks_dir: &Path,
-) {
-    command
-        .arg("--enforcement-liveness-claude-settings")
-        .arg(claude_settings)
-        .arg("--enforcement-liveness-codex-hooks")
-        .arg(codex_hooks)
-        .arg("--enforcement-liveness-hooks-dir")
-        .arg(hooks_dir);
-}
-
-#[test]
-fn baseline_regeneration_declares_enforcement_liveness_corpus_args() {
-    let mut command = Command::new("/tmp/producer");
-    append_enforcement_liveness_corpus_paths(
-        &mut command,
-        Path::new("/repo/.claude/settings.json"),
-        Path::new("/repo/.codex/hooks.json"),
-        Path::new("/repo/tools/hooks"),
-    );
-
-    let args: Vec<String> = command
-        .get_args()
-        .map(|arg| arg.to_string_lossy().into_owned())
-        .collect();
-
-    assert!(args.windows(2).any(|pair| {
-        pair == [
-            "--enforcement-liveness-claude-settings",
-            "/repo/.claude/settings.json",
-        ]
-    }));
-    assert!(args.windows(2).any(|pair| {
-        pair == [
-            "--enforcement-liveness-codex-hooks",
-            "/repo/.codex/hooks.json",
-        ]
-    }));
-    assert!(
-        args.windows(2)
-            .any(|pair| { pair == ["--enforcement-liveness-hooks-dir", "/repo/tools/hooks",] })
-    );
-}
-
-#[test]
-fn buck_backed_firewall_requires_declared_corpus_env() {
-    let panic = std::panic::catch_unwind(|| {
-        declared_corpus_path_from_env(
-            Path::new("/repo"),
-            "MISSING_CORPUS_ENV",
-            "fallback",
-            true,
-            None,
-        );
-    })
-    .expect_err("buck-backed missing corpus env must fail closed");
-    let message = panic
-        .downcast_ref::<String>()
-        .map(String::as_str)
-        .or_else(|| panic.downcast_ref::<&str>().copied())
-        .unwrap_or("<non-string panic>");
-    assert!(message.contains("FAIL-CLOSED"));
-    assert!(message.contains("MISSING_CORPUS_ENV"));
 }
 
 fn fixture_dir(root: &Path) -> PathBuf {

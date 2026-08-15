@@ -1,8 +1,5 @@
 {
-  ".claude/": "ci",
-  ".cursor/": "ci",
   ".github/": "ci",
-  ".grok/": "ci",
   "app/": "app",
   "app/application/": "application",
   "app/calendar/": "calendar",

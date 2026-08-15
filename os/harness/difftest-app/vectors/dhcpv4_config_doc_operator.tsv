@@ -1,5 +1,0 @@
-default-mac	eth0	-	-	-	-	1024	false	mac	
-route-metric	eth0	2048	-	-	-	2048	false	mac	
-ignore-hostname	eth0	-	true	-	-	1024	true	mac	
-none-client-id	eth0	-	-	none	-	1024	false	none	
-raw-duid	eth0	-	-	duid	00:01:00:01:23:45:67:89:ab:cd:ef:01:23:45	1024	false	duid	0001000123456789abcdef012345

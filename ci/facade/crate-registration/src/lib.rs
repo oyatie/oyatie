@@ -86,9 +86,6 @@ const FACES_DIR: &str = "ci/facade/artifact-inventory-registry";
 
 /// The committed scm-facts snapshot face name (the emitter's `--out`, the producer's `--scm-facts`).
 const SCM_FACTS_FACE: &str = "scm-facts.generated.json";
-const ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS: &str = ".claude/settings.json";
-const ENFORCEMENT_LIVENESS_CODEX_HOOKS: &str = ".codex/hooks.json";
-const ENFORCEMENT_LIVENESS_HOOKS_DIR: &str = "tools/hooks";
 
 /// The repo-relative move-manifest the codemod's `manifest` subcommand emits and the emitter
 /// consumes (materialize.sh step 1 → step 2). A pure function of (committed plan + candidate tree).
@@ -97,18 +94,15 @@ const MOVE_MANIFEST_PATH: &str = "specs/reorg/move-manifest.generated.json";
 /// The buck2 targets the [`Buck2RegenAdapter`] builds (mirroring materialize.sh's single
 /// `buck2 build … --show-output`). Target-name match (`parse_show_output_path`) maps each to its
 /// built-binary path — the same shape the freshness gate's `build_face_tools` uses.
-const EMITTER_TARGET: &str =
-    "//ci/facade/scm-facts-snapshot:ci-scm-facts-snapshot";
-const PRODUCER_TARGET: &str = "//ci/facade/artifact-inventory-registry:oya-cloud-ci-accounting-registry-app-bin";
+const EMITTER_TARGET: &str = "//ci/facade/scm-facts-snapshot:ci-scm-facts-snapshot";
+const PRODUCER_TARGET: &str =
+    "//ci/facade/artifact-inventory-registry:oya-cloud-ci-accounting-registry-app-bin";
 const CODEMOD_TARGET: &str = "//tools/oya-reorg-codemod-app:oya-reorg-codemod";
-const ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS_TARGET: &str = "//.claude:settings-json";
-const ENFORCEMENT_LIVENESS_CODEX_HOOKS_TARGET: &str = "//.codex:hooks-json";
-const ENFORCEMENT_LIVENESS_HOOKS_DIR_TARGET: &str = "//tools/hooks:top-level-hook-scripts";
 
-/// The 6 producer faces the producer writes (and the byte-rediff re-renders), as
+/// The 5 producer faces the producer writes (and the byte-rediff re-renders), as
 /// `(file_name, --face name)`. The scm-facts snapshot is written by the emitter (re-rendered via a
 /// re-run emitter is overkill — the byte-rediff re-renders only the deterministic producer faces).
-const PRODUCER_FACES: [(&str, &str); 6] = [
+const PRODUCER_FACES: [(&str, &str); 5] = [
     ("accounting-registry.generated.json", "registry"),
     ("ttl-policy.generated.json", "ttl-policy"),
     ("decision-crosswalk.generated.json", "decision-crosswalk"),
@@ -116,25 +110,8 @@ const PRODUCER_FACES: [(&str, &str); 6] = [
         "enforcement-inventory.generated.json",
         "enforcement-inventory",
     ),
-    (
-        "enforcement-liveness.generated.json",
-        "enforcement-liveness",
-    ),
     ("gate-baseline.generated.json", "baseline"),
 ];
-
-fn append_enforcement_liveness_corpus_args(
-    command: &mut Command,
-    corpus: &EnforcementLivenessCorpusPaths,
-) {
-    command
-        .arg("--enforcement-liveness-claude-settings")
-        .arg(&corpus.claude_settings)
-        .arg("--enforcement-liveness-codex-hooks")
-        .arg(&corpus.codex_hooks)
-        .arg("--enforcement-liveness-hooks-dir")
-        .arg(&corpus.hooks_dir);
-}
 
 /// The human remediation command for a settle failure, mirroring the freshness gate's
 /// `FACE_REMEDIATION_COMMAND`.
@@ -715,7 +692,7 @@ impl RegenPort for Buck2RegenAdapter {
             "scm-facts emitter",
         )?;
 
-        // 3. producer: regenerate the 6 producer faces from the just-written scm-facts. The emitter
+        // 3. producer: regenerate the 5 producer faces from the just-written scm-facts. The emitter
         //    MUST have succeeded first — a missing scm-facts is a HARD producer error (main.rs:84);
         //    we never reach here on an emitter failure (step 2 propagates as RegenFailed).
         let mut producer_command = Command::new(&tools.producer);
@@ -724,10 +701,6 @@ impl RegenPort for Buck2RegenAdapter {
             .arg(repo_root)
             .args(["--scm-facts"])
             .arg(&scm_facts);
-        append_enforcement_liveness_corpus_args(
-            &mut producer_command,
-            &tools.enforcement_liveness_corpus,
-        );
         producer_command.current_dir(repo_root);
         run_settle_status(&mut producer_command, "accounting-registry producer")?;
 
@@ -743,7 +716,7 @@ impl RegenPort for Buck2RegenAdapter {
         // Re-build the tools (a warm buck2 cache makes the re-build a near-no-op) so the rediff
         // stands alone — it does NOT depend on `regenerate` having stashed the built binaries. The
         // scm-facts snapshot is the emitter's output (no per-face producer re-render), so the rediff
-        // covers only the 6 deterministic producer faces — exactly the faces a stale-tree mistake
+        // covers only the 5 deterministic producer faces — exactly the faces a stale-tree mistake
         // would corrupt. `write_face` and `--stdout` share `to_canonical_json`, so a match is exact.
         let tools = build_face_tools(repo_root)?;
         let scm_facts = repo_root.join(FACES_DIR).join(SCM_FACTS_FACE);
@@ -754,10 +727,6 @@ impl RegenPort for Buck2RegenAdapter {
                 .arg(repo_root)
                 .args(["--scm-facts"])
                 .arg(&scm_facts);
-            append_enforcement_liveness_corpus_args(
-                &mut command,
-                &tools.enforcement_liveness_corpus,
-            );
             command
                 .args(["--stdout", "--face", face_name])
                 .current_dir(repo_root);
@@ -791,7 +760,6 @@ impl RegenPort for Buck2RegenAdapter {
             .arg(repo_root)
             .args(["--scm-facts"])
             .arg(&scm_facts);
-        append_enforcement_liveness_corpus_args(&mut command, &tools.enforcement_liveness_corpus);
         command
             .args(["--stdout", "--face", face])
             .current_dir(repo_root);
@@ -809,14 +777,6 @@ struct FaceTools {
     codemod: std::path::PathBuf,
     emitter: std::path::PathBuf,
     producer: std::path::PathBuf,
-    enforcement_liveness_corpus: EnforcementLivenessCorpusPaths,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-struct EnforcementLivenessCorpusPaths {
-    claude_settings: std::path::PathBuf,
-    codex_hooks: std::path::PathBuf,
-    hooks_dir: std::path::PathBuf,
 }
 
 /// `buck2 build` the emitter, producer `-bin`, and codemod in ONE invocation with `--show-output`,
@@ -832,9 +792,6 @@ fn build_face_tools(repo_root: &Path) -> Result<FaceTools, RegisterError> {
             .arg(EMITTER_TARGET)
             .arg(PRODUCER_TARGET)
             .arg(CODEMOD_TARGET)
-            .arg(ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS_TARGET)
-            .arg(ENFORCEMENT_LIVENESS_CODEX_HOOKS_TARGET)
-            .arg(ENFORCEMENT_LIVENESS_HOOKS_DIR_TARGET)
             .arg("--show-output")
             .current_dir(repo_root),
         "buck2 build face tools",
@@ -842,12 +799,10 @@ fn build_face_tools(repo_root: &Path) -> Result<FaceTools, RegisterError> {
     let emitter = parse_show_output_path(repo_root, &output, EMITTER_TARGET)?;
     let producer = parse_show_output_path(repo_root, &output, PRODUCER_TARGET)?;
     let codemod = parse_show_output_path(repo_root, &output, CODEMOD_TARGET)?;
-    let enforcement_liveness_corpus = parse_enforcement_liveness_corpus_paths(repo_root, &output)?;
     Ok(FaceTools {
         codemod,
         emitter,
         producer,
-        enforcement_liveness_corpus,
     })
 }
 
@@ -874,34 +829,6 @@ fn parse_show_output_path(
     Err(RegisterError::RegenFailed(format!(
         "buck2 --show-output did not include {target}"
     )))
-}
-
-fn parse_enforcement_liveness_corpus_paths(
-    repo_root: &Path,
-    output: &str,
-) -> Result<EnforcementLivenessCorpusPaths, RegisterError> {
-    let claude_settings_output = parse_show_output_path(
-        repo_root,
-        output,
-        ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS_TARGET,
-    )?;
-    let codex_hooks_output =
-        parse_show_output_path(repo_root, output, ENFORCEMENT_LIVENESS_CODEX_HOOKS_TARGET)?;
-    let hooks_dir =
-        parse_show_output_path(repo_root, output, ENFORCEMENT_LIVENESS_HOOKS_DIR_TARGET)?;
-    Ok(EnforcementLivenessCorpusPaths {
-        claude_settings: buck_filegroup_file(claude_settings_output, "settings.json"),
-        codex_hooks: buck_filegroup_file(codex_hooks_output, "hooks.json"),
-        hooks_dir,
-    })
-}
-
-fn buck_filegroup_file(output: std::path::PathBuf, file_name: &str) -> std::path::PathBuf {
-    if output.is_file() {
-        output
-    } else {
-        output.join(file_name)
-    }
 }
 
 fn append_manifest_args(command: &mut Command, repo_root: &Path, out: &Path) {

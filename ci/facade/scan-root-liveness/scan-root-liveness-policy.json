@@ -1,5 +1,5 @@
 {
-  "_comment": "Scan-root liveness. Every COVERAGE-BEARING root a gate policy declares must resolve to a real path (or, for a glob, match at least one). A dead root means the gate scans less than it claims and reports GREEN over an empty set - and because the fleet's anti-narrowing ratchet forbids REMOVING a root, a reorg move that empties one leaves it permanently dead AND unremovable. Keys are the FULL JSON POINTER, not the leaf name: `roots` appears at three different nesting levels inside rust-first-automation-policy.json alone, so leaf-name keying would collapse distinct declarations and let one baselined entry silently tolerate another. Only coverage-bearing keys are in scope; vocabulary lists (exclude_prefixes, allowed_paths, forbidden_prefixes) are excluded because a dead entry there excludes or permits nothing. forward_declarations hold paths declared deliberately BEFORE they exist - flagging those would punish declaring a reorg destination ahead of the move - and a forward declaration whose path LANDS must be retired so it cannot become a permanent unaudited exemption. baselined_dead_roots is FROZEN and shrink-only.",
+  "_comment": "Scan-root liveness. Every COVERAGE-BEARING root a gate policy declares must resolve to a real path (or, for a glob, match at least one). A dead root means the gate scans less than it claims and reports GREEN over an empty set - and because the fleet's anti-narrowing ratchet forbids REMOVING a root, a reorg move that empties one leaves it permanently dead AND unremovable. Keys are the FULL JSON POINTER, not the leaf name: `roots` appears at three different nesting levels inside rust-first-automation-policy.json alone, so leaf-name keying would collapse distinct declarations and let one baselined entry silently tolerate another. Only coverage-bearing keys are in scope; vocabulary lists (exclude_prefixes, allowed_paths, forbidden_prefixes) are excluded because a dead entry there excludes or permits nothing. forward_declarations hold paths declared deliberately BEFORE they exist. optional_local_roots are ignored machine-local overlays: absence in a clean CI checkout is expected, but the scanner still covers them whenever they exist locally. retired_root_tombstones retain protected policy literals for deliberately deleted roots and fail if those roots reappear. baselined_dead_roots is FROZEN and shrink-only.",
   "gate_id": "cloud-ci-scan-root-liveness",
   "_provenance": {
     "coverage_bearing_keys": [
@@ -14,7 +14,8 @@
     "policy": "shrink-only; a NEW dead root fails, and a landed forward declaration must be retired",
     "_build_root_retired_2026_08_09": "The three `::build` forward declarations (dto-authz-trust, embedded-asset-hermeticity, authz-coverage) were RETIRED here because build/ landed its first crate \u2014 build/port-engine/core/port-engine-kernel, PR #1621 \u2014 which is verbatim the event their own reason strings named (`Created when build/ lands its first crate`). Retirement is a DELETION FROM THIS EXEMPTION MAP ONLY: `build` stays in all three policies' scan_roots arrays untouched, and now resolves, so it is a live audited root rather than an unaudited standing exemption. That is the whole point of forward_declarations being pinned by forward_declarations_are_all_still_absent: a declaration whose path arrives must stop being tolerated in the same change that makes it real. Sibling roots base/ and policy/ remain absent and remain declared; whoever lands their first crate owes the same one-line retirement. app/ was later retired in _app_root_retired_2026_08_11. NOT retired here: module-membership declared no `build` entry, so it had nothing to retire.",
     "_build_widening_measured_2026_08_09": "The widening is not free of consequence and was measured rather than assumed. embedded-asset-hermeticity now walks build/, and the new crate carries four include_str! sites (src/lib.rs:78 `lib.rs`, src/lib.rs:93 `../tests/seams.rs`, tests/neutrality.rs:42 `../src/lib.rs`, tests/neutrality.rs:48 `seams.rs`). All four resolve inside targets whose BUCK srcs already provide them \u2014 the library globs `src/**/*.rs` plus `tests/seams.rs`, and the neutrality test globs all three \u2014 so the gate stays green with no baseline movement. caller-supplied-authorization and endpoint-authorization-coverage now walk build/ too; the kernel exposes no DTO deserialization and no HTTP endpoint, so both are likewise zero-delta. Verified by running all three gates, not by reading the policies.",
-    "_app_root_retired_2026_08_11": "The four `::app` forward declarations (dto-authz-trust, embedded-asset-hermeticity, authz-coverage, module-membership) were RETIRED here because app/ landed its first tracked path \u2014 app/README.md on integ/app (PR #1668, OVERRULE 3d glue-only). Retirement is a DELETION FROM THIS EXEMPTION MAP ONLY: `app` stays in each policy's scan_roots arrays untouched, and now resolves, so it is a live audited root. README-only (zero crates) keeps hermeticity/authz widening zero-delta. Sibling roots base/ and policy/ remain absent and remain declared."
+    "_app_root_retired_2026_08_11": "The four `::app` forward declarations (dto-authz-trust, embedded-asset-hermeticity, authz-coverage, module-membership) were RETIRED here because app/ landed its first tracked path \u2014 app/README.md on integ/app (PR #1668, OVERRULE 3d glue-only). Retirement is a DELETION FROM THIS EXEMPTION MAP ONLY: `app` stays in each policy's scan_roots arrays untouched, and now resolves, so it is a live audited root. README-only (zero crates) keeps hermeticity/authz widening zero-delta. Sibling roots base/ and policy/ remain absent and remain declared.",
+    "_cloud_root_retired_2026_08_15": "Protected dev commit c2ee2631 deleted cloud/ without retiring its scan declarations or dependent shrink-only baselines. Exact-key retired_root_tombstones preserve the immutable anti-narrowing literals while turning any cloud/ resurrection into RED. This is distinct from optional local state: cloud/ is neither ignored nor allowed to appear silently."
   },
   "min_expected_roots": 150,
   "coverage_bearing_keys": [
@@ -68,8 +69,47 @@
       "reason": "Declared capability in the ADR-0562 closed registry with no directory yet; created when the policy-pack capability lands its first crate. This membership `scan_roots` forward declaration is SOUND and stays: scan_roots is pure coverage, so naming a not-yet-existing root costs nothing and the root is walked the moment it appears. Its tier-policy twin (`crate_root_globs::policy/*/*`) was RETIRED 2026-08-01 because the tier policy gives no such free ride: every crate_root_globs root must also appear in service_roots/capability_roots/unclassified_roots (pinned by every_governed_glob_root_is_declared_in_the_policy), and for a crate-less `policy` the only reachable option was `unclassified_roots`, a live SKIP-ALL-EDGES exemption that R6b correctly REDs. The forward declaration therefore structurally required a standing violation to exist, which is why it was baselined rather than fixed. Re-add the glob together with a real root declaration in the same change that lands policy/'s first crate \u2014 the ADR-0615 re-home of the nine iam-mapped Cedar/PDP crates, filed separately as a MOVE."
     }
   },
+  "optional_local_roots": {
+    "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/roots::.codex": {
+      "value": ".codex",
+      "reason": "Repository-local Codex runtime configuration is ignored and untracked. Retaining it as an optional scan root preserves Rust-first inspection whenever an operator creates local overlay files without claiming the directory exists in clean CI checkouts."
+    }
+  },
+  "retired_root_tombstones": {
+    "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/cli_package_authority/roots::cloud": {
+      "value": "cloud",
+      "reason": "Root retired by protected dev commit c2ee2631; declaration remains so any reintroduction is scanned and blocked as a resurrection."
+    },
+    "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/interpreter_command_authority/roots::cloud/cloud-ci": {
+      "value": "cloud/cloud-ci",
+      "reason": "Root retired by protected dev commit c2ee2631; prior dead-root debt becomes an explicit permanent-retirement invariant."
+    },
+    "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/roots::cloud": {
+      "value": "cloud",
+      "reason": "Root retired by protected dev commit c2ee2631; declaration remains so any reintroduction is scanned and blocked as a resurrection."
+    },
+    "ci/facade/caller-supplied-authorization/dto-authz-trust-policy.json::/scan_roots::cloud": {
+      "value": "cloud",
+      "reason": "Root retired by protected dev commit c2ee2631; declaration remains so any reintroduction is scanned and blocked as a resurrection."
+    },
+    "ci/facade/embedded-asset-hermeticity/embedded-asset-hermeticity-policy.json::/scan_roots::cloud": {
+      "value": "cloud",
+      "reason": "Root retired by protected dev commit c2ee2631; declaration remains so any reintroduction is scanned and blocked as a resurrection."
+    },
+    "ci/facade/endpoint-authorization-coverage/authz-coverage-policy.json::/scan_roots::cloud": {
+      "value": "cloud",
+      "reason": "Root retired by protected dev commit c2ee2631; declaration remains so any reintroduction is scanned and blocked as a resurrection."
+    },
+    "ci/facade/layer-dependency-acyclicity/tier-dependency-acyclicity-policy.json::/crate_root_globs::cloud/*/crates/oya-*": {
+      "value": "cloud/*/crates/oya-*",
+      "reason": "Root glob retired by protected dev commit c2ee2631; declaration remains so any matching crate resurrection is scanned and blocked."
+    },
+    "ci/facade/module-membership/capability-membership-policy.json::/scan_roots::cloud": {
+      "value": "cloud",
+      "reason": "Root retired by protected dev commit c2ee2631; declaration remains so any reintroduction is scanned and blocked as a resurrection."
+    }
+  },
   "baselined_dead_roots": [
-    "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/interpreter_command_authority/roots::cloud/cloud-ci",
     "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/roots::bin",
     "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/workflow_forbidden_uses/roots::.github/actions",
     "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/workflow_inline_shell/roots::.github/actions"

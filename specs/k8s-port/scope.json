@@ -30,7 +30,6 @@
   },
   "program_scope": {
     "consumers": [
-      "os/",
       "managed-k8s facade"
     ],
     "destination_capability": "k8s",

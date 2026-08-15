@@ -14,13 +14,15 @@ use toml::Value as TomlValue;
 
 use crate::{Finding, FindingCode, FreshnessError};
 
-const EXCLUDED_PREFIXES: [&str; 12] = [
+const EXCLUDED_PREFIXES: [&str; 14] = [
     ".git/",
     "buck-out/",
     "target/",
     "third-party/",
     ".claude/",
     ".codex/",
+    ".cursor/",
+    ".grok/",
     ".omc/",
     ".omx/",
     "node_modules/",
@@ -414,6 +416,21 @@ fn explicit_rust_versions(text: &str) -> BTreeSet<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn ignored_agent_runtime_overlays_are_not_toolchain_inputs() {
+        for path in [
+            ".claude/Cargo.toml",
+            ".codex/manifest.json",
+            ".cursor/Dockerfile",
+            ".grok/nested/Cargo.toml",
+        ] {
+            assert!(
+                excluded_path(path),
+                "machine-local overlay leaked into scan: {path}"
+            );
+        }
+    }
 
     #[test]
     fn ci_text_rejects_floating_stable_and_stale_rustup_pin() {

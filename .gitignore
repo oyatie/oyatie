@@ -1,5 +1,10 @@
 /target/
 **/target/
+# Machine-local agent/runtime configuration is never committed.
+/.claude/
+/.codex/
+/.cursor/
+/.grok/
 # Local agent/runtime state is durable outside git only. Do not commit runtime
 # plans, sessions, checkpoints, HUD state, logs, or verification scratch under
 # harness state dirs. Frozen keep-with-sunset brand residue (ADR-0709): only the
@@ -52,11 +57,6 @@ evidence/oci-readiness/a1-capacity-retry.log
 # Pattern catches *.json.tmp.<uuid> and *.tmp.<uuid> shapes outside ignored
 # runtime roots.
 **/*.json.tmp.*
-# Agent-spawned Claude Code worktrees (transient; each is a git worktree itself).
-# .claude/settings.json (project-scoped) and .claude/commands/ remain tracked.
-.claude/worktrees/
-# Session-scoped Claude hook overrides are local-only; tracked project wiring stays authoritative.
-.claude/settings.local.json
 # Transient test output
 test-results/
 # ADR-0516 fabric drive-loop OPERATIONAL (execution) plane — repo-adjacent
@@ -97,7 +97,8 @@ test-results/
 # ADR-0595/ADR-0597 de-commit class: the SIX cloud-ci faces below are pure derivations
 # (git ls-files x OWNERS x ADR front-matter x specs). They were the #1 merge-conflict /
 # merge-queue friction because every PR re-materialized multi-MB blobs. They are now DERIVED ON
-# DEMAND (buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin) and materialized out-of-graph for
+# DEMAND (`cargo run -p ci-generated-artifact-freshness --bin
+# oya-cloud-ci-materialize-generated-faces -- --repo-root .`) and materialized out-of-graph for
 # consumers, whose gates re-derive content from the candidate tree; the freshness gate validates
 # regenerate-success + regenerate-twice determinism instead of byte parity, and the control-plane
 # gate forbids re-tracking them (materialization_mode: not-tracked-in-git). They are already
@@ -106,7 +107,6 @@ test-results/
 #   ci/facade/artifact-inventory-registry/accounting-registry.generated.json
 #   ci/facade/artifact-inventory-registry/decision-crosswalk.generated.json
 #   ci/facade/artifact-inventory-registry/enforcement-inventory.generated.json
-#   ci/facade/artifact-inventory-registry/enforcement-liveness.generated.json
 #   ci/facade/artifact-inventory-registry/ttl-policy.generated.json
 #   ci/facade/artifact-inventory-registry/scm-facts.generated.json
 #   ci/facade/artifact-inventory-registry/adr-census-epoch-receipt.generated.json
@@ -132,6 +132,9 @@ test-results/
 #   docs/machine-readable/masterplan.generated.json  (covered by **/*.generated.json above; not negated)
 # product-graph.html is a .html (not *.generated.json), so it needs an explicit ignore line:
 docs/architecture/product-graph.html
+# Non-Linux materializer skip signal: generated locally because the historical byte-pinned P2
+# replay runs only on Linux. It is evidence of a platform skip, not tracked source.
+ci/facade/scm-facts-snapshot/adr-census-parent-receipt.platform-skip.txt
 # ADR-0621: active-artifact-contract graph edges are controller-materialized from
 # committed contract sources and must never be hand-merged as a readable authority face.
 registry/graph/active-artifact-contract-edges.json
@@ -219,22 +222,15 @@ _ralplan_workflow.js
 # committed fragment is always read. Ignore the machine-local file; keep the
 # committed-fragment door open.
 /.buckconfig.local
-# Multi-model harness journals (local process kit only).
-# Retention: keep recent mm-runs for active drive/babysit debugging; prune older
-# run trees locally as needed. Never commit mm-runs (gitignored); no bulk purge
-# in product PRs — process-kit hygiene only.
-.grok/mm-runs/
-.grok/memory/
 # Swarm check-daemon outputs (orchestrator main-checkout only; workers read these).
 /err.txt
 /.check/
 # retired OMC residue (ADR-0711 Amendment B delete_permanently)
 .omc/
-# Swarm Delivery Law linked worktrees (ADR-0711); topology uses .worktrees/ not .claude/worktrees/
+# Swarm Delivery Law linked worktrees (ADR-0711).
 .worktrees/
 # Stray agent worktrees accidentally created at the repo root (e.g. wt-1616); lanes belong under .worktrees/
 /wt-*/
 # Anti-friction wave (2026-08-14): local-only agent runtime state and transient dirs.
 /.beads/
-/.cursor/
 /infra/capi/_out/

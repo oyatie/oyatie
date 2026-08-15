@@ -11,7 +11,7 @@ owner: council-architecture
 supersedes: []
 superseded_by: []
 amends: [ADR-0700, ADR-0701]
-amended_by: []
+amended_by: ["2026-08-15 runtime-overlay OVERRULE (this ADR)"]
 depends_on: [ADR-0700, ADR-0701]
 related: [ADR-0111, ADR-0119, ADR-0131, ADR-0363, ADR-0366, ADR-0515, ADR-0541, ADR-0554, ADR-0562]
 milestone: W0
@@ -22,19 +22,19 @@ deliverables:
     verified_by: "oya-ci-required"
   - id: ADR-0711-D2
     description: "Worktree-per-agent isolation plus worker git allowlist (no stash/reset) and server-side integ reset after land."
-    exit_criteria: "PORTABLE-SWARM-CONTRACT.md carries Swarm Delivery Law; deliver.js Claim verifies envelope + merge-tree + hub exclusivity; Land upserts one PR per integ/<root> and documents server-side reset refspec; concurrent-safe exemptions match specs/integ-branch-envelopes.json#concurrent_safe_exemptions.paths (narrowed per-lane evidence — not whole evidence/**)."
-    verified_by: "oya-ci-required"
+    exit_criteria: "templates/portable-swarm-doctrine.md carries Swarm Delivery Law; protected pull-request admission verifies branch protection, conflicts, and required checks; independent review evidence remains distinct, with F-PR5-06 bounding the open server-side review-admission gap; concurrent-safe exemptions match specs/integ-branch-envelopes.json#concurrent_safe_exemptions.paths (narrowed per-lane evidence — not whole evidence/**)."
+    verified_by: "oya-ci-required plus independent review evidence; F-PR5-06 tracks live review admission"
   - id: ADR-0711-D3
     description: "Hyperscaler monorepo patterns + anti-patterns encoded as first-class Swarm Delivery Law (not agent-swarm lessons alone)."
-    exit_criteria: "ADR-0711 and PORTABLE-SWARM-CONTRACT.md each have a dedicated Hyperscaler monorepo patterns section; specs/integ-branch-envelopes.json carries matching notes citing ADR-0119/0131/0515/0541/0562/0700/0701."
+    exit_criteria: "ADR-0711 and templates/portable-swarm-doctrine.md each have a dedicated Hyperscaler monorepo patterns section; specs/integ-branch-envelopes.json carries matching notes citing ADR-0119/0131/0515/0541/0562/0700/0701."
     verified_by: "oya-ci-required"
   - id: ADR-0711-D4
-    description: "Amendment A — docs governability epic gate, buck2 [check] daemon (no cargo revival), comment doctrine, generated-files doctrine."
-    exit_criteria: "ADR-0711 Amendment A + PORTABLE-SWARM-CONTRACT Amendment A present; check-daemon invokes buck2 build //...[check] only under SWARM_ORCHESTRATOR=1 with zero cargo build/check/test/clippy invocations; docs-governance beads epic exists gated on integ/docs+integ/specs live."
+    description: "Amendment A — docs governability epic gate, merge-executor-aligned feedback, comment doctrine, generated-files doctrine."
+    exit_criteria: "ADR-0711 Amendment A + portable doctrine mirror present; any future tracked check daemon belongs under ci/process-kit and never in an agent-runtime dot-directory; docs-governance work remains gated on integ/docs+integ/specs live."
     verified_by: "oya-ci-required"
   - id: ADR-0711-D5
     description: "Amendment B — REORG NOW ternary layout map: every root/meaningful subdir is reorg_now|keep_forever|delete_permanently; freeze prefixes block NEW births only while moves execute; libs/cloud/oya/infra/toolchains/tools are NOT keep_forever."
-    exit_criteria: "ADR-0711 Amendment B + PORTABLE-SWARM-CONTRACT Amendment B present; envelopes reorg_debt_freeze rows carry action/destination/shape/rationale/redesign/judgment_status; evaluation_gate forbids git-mv-only; deliver.js Claim rejects births under freeze prefixes and rejects path changes without judgment_status=done."
+    exit_criteria: "ADR-0711 Amendment B + portable doctrine mirror present; envelopes reorg_debt_freeze rows carry action/destination/shape/rationale/redesign/judgment_status; evaluation refuses git-mv-only changes and review rejects births under freeze prefixes or path changes without judgment_status=done."
     verified_by: "oya-ci-required"
   - id: ADR-0711-D6
     description: "Amendment B Pattern-First + full 16-lens battery — establish specs/naming-taxonomy.json before renames; taxonomy REPLACES indefensible brand/ADR naming (does not encode it); judgments require lenses_applied=all-16 + challenges[] when keeping/replacing existing patterns; dual-emit merge-gate-context until founder protection flip."
@@ -42,15 +42,15 @@ deliverables:
     verified_by: "oya-ci-required"
   - id: ADR-0711-D7
     description: "Amendment C — 137-entry archive distillation synthesized as clustered operating-patterns catalog (KEEP/BAN), not 137 paraphrases; machine-readable specs/agentic-operating-patterns.json; distill notes that said keep name oya-ci-required are OVERRULED (forever name merge-admission-required)."
-    exit_criteria: "ADR-0711 Amendment C + PORTABLE-SWARM-CONTRACT Amendment C present; specs/agentic-operating-patterns.json carries KEEP/BAN clusters + oyatie_apply tags; explicit OVERRULE of oya-ci-required-as-forever-name."
+    exit_criteria: "ADR-0711 Amendment C + portable doctrine mirror present; specs/agentic-operating-patterns.json carries KEEP/BAN clusters + oyatie_apply tags; explicit OVERRULE of oya-ci-required-as-forever-name."
     verified_by: "oya-ci-required"
   - id: ADR-0711-D8
     description: "Amendment D — Anti-drift documentation doctrine (INV-DOC-1…9); enumerate ONLY in envelopes JSON; docs_touched/docs_action packet; same-wave colocation; versioned anti_drift_doctrine_version; merge_windows policy-as-data."
-    exit_criteria: "ADR-0711 Amendment D + PORTABLE Amendment D present; envelopes #anti_drift + #merge_windows; deliver.js Claim requires docs_touched/docs_action; drift-grep deferred to .grok/ Rust self-check (no tools/swarm birth on #1644)."
+    exit_criteria: "ADR-0711 Amendment D + portable doctrine mirror present; envelopes #anti_drift + #merge_windows; pull-request evidence records docs_touched/docs_action; tracked drift enforcement belongs under ci/facade or ci/process-kit, never an agent-runtime dot-directory."
     verified_by: "oya-ci-required"
   - id: ADR-0711-D10
     description: "Amendment E — adr-rename-overturn (forever ADR-NNNN-<topic> + indexes); rules-with-why on load-bearing MUST/KEEP/BAN; daemon_hotset + perimeter northstar as envelopes policy-as-data."
-    exit_criteria: "ADR-0711 Amendment E + PORTABLE Amendment E present; naming-taxonomy decision-record keep NNNN-topic; agentic-operating-patterns carry achieves/origin/ensure/overturn_when; envelopes #daemon_hotset + #perimeter binding."
+    exit_criteria: "ADR-0711 Amendment E + portable doctrine mirror present; naming-taxonomy decision-record keep NNNN-topic; agentic-operating-patterns carry achieves/origin/ensure/overturn_when; envelopes #daemon_hotset + #perimeter binding."
     verified_by: "oya-ci-required"
 ---
 # ADR-0711: Swarm Delivery Law — integration branch topology and command discipline
@@ -63,6 +63,26 @@ violated END-STATE-POLICY (Proposed carries no implement authority). Remaining r
 deliverable completion, not a status gate: Phase B hermetic CI envelope check under
 `oya-ci-required`, and Phase C (branch protection restricting `dev` PRs to `integ/*` +
 `hotfix/*`) which stays founder-paired and out of this ADR's acceptance criteria.
+
+### OVERRULE — repository-local agent runtime surfaces (2026-08-15)
+
+The founder-directed removal of `.claude/`, `.codex/`, `.cursor/`, and `.grok/` overturns this
+ADR's earlier assumption that a repo-local agent harness would implement Claim/Land, daemon, lens,
+or portable-doctrine behavior. The fence existed to make local coordination repeatable and to keep
+envelope checks close to the operator. In practice it created a second authority plane, coupled CI
+to editor/runtime configuration, and stranded binding doctrine in paths clean checkouts should not
+require.
+
+Replacement rule: agent-specific dot-directories are ignored machine-local overlays and MUST NOT be
+tracked authority or required build inputs. Session law lives in `AGENTS.md` plus `docs/AGENTS.md`;
+the runtime-neutral mirror lives in `templates/portable-swarm-doctrine.md`; machine sets live in
+`specs/integ-branch-envelopes.json`. Protected pull requests and `oya-ci-required` remain admission
+authority. Any future mechanical Claim or process-kit implementation MUST be owned Rust under
+`ci/facade/` or `ci/process-kit/` and must land with its own reviewed enforcement evidence.
+
+This is an explicit OVERRULE, not silent drift. It bumps
+`specs/integ-branch-envelopes.json#anti_drift.anti_drift_doctrine_version` to `1.2.0` and updates the
+session-loaded and portable surfaces in the same wave.
 
 ## Context
 
@@ -156,7 +176,8 @@ The branch name persists; the next wave reuses it. Divergence never exceeds one 
 | Worker lane | `.worktrees/lane-<bead>` | `impl/<bead>` | ephemeral; created from `origin/dev`, removed after assembly |
 
 Workers never edit the main checkout. Lanes are created explicitly from `origin/dev` (never from
-ambient HEAD). Replicated-state budget: lanes never build, so they never grow `target/`.
+ambient HEAD). Scoped Cargo/Buck2 checks may create lane-local build state; bound replicated mass,
+coordinate expensive full-workspace runs, and clean up the ephemeral lane after assembly.
 
 ### D-6 — Worker git command discipline
 
@@ -174,7 +195,8 @@ Destructive operations exist only inside versioned, reviewed scripts that the in
 (restack, server-side reset, worktree remove). Integrator uses cherry-pick (commit-producing,
 atomic) — still no stash/reset in its vocabulary.
 
-Enforcement shims (deferred `.grok/` Rust process-kit: git-shim, toolguard, check-daemon — **not** birthed under `tools/swarm/` on `#1644`)
+Enforcement components (future owned Rust under `ci/process-kit/`: git boundary, toolguard,
+check daemon — never agent-runtime dot-directory authority)
 are Phase A companions; this ADR is the law they enforce.
 
 ### D-7 — Special files and concurrent-safe exemptions
@@ -216,11 +238,11 @@ historical ADRs are provenance only.
 5. **Hermetic policy-as-data gates in one blocking CI context.** Merge authority is solely
    `oya-ci-required` (ADR-0700 restating ADR-0515). Checks consume declared SCM facts only —
    never ambient `git` probes inside hermetic evaluators.
-6. **Selective / affected testing doctrine.** Worker lanes do not require a full monorepo
-   rebuild. Binding CI uses the affected-set cone (ADR-0554 / ADR-0700 lineage). Workers read
-   orchestrator `err.txt`; they never run `cargo` / `buck2` locally. The orchestrator check
-   daemon (main checkout only) runs `buck2 build //...[check]` — cargo check is retired
-   (founder directive 2026-05-29; Amendment A-2).
+6. **Selective / affected feedback doctrine.** Worker lanes should use the smallest relevant Cargo
+   checks while implementing; the protected path still runs the Cargo workspace evidence required by
+   ADR-0716. Buck2 is optional local hermeticity evidence, never merge authority. A bounded
+   orchestrator daemon may coordinate expensive advisory checks, but it cannot prohibit a worker from
+   running the merge executor in its isolated worktree (Amendment A-2 OVERRULE, 2026-08-15).
 7. **Owner-colocated docs (g3doc / ADR-0541).** Co-change code + docs when editing a leaf.
    Central hubs (`docs/**` indexes, root `specs/**` hubs) are sole-owned by `integ/docs` or
    `integ/specs` (or hub-waivered) — not edited from every code PR.
@@ -244,16 +266,16 @@ historical ADRs are provenance only.
 - **Long-lived divergent topic branches** with date suffixes as durable names — integ names are
   durable; content is not (D-4).
 - **Editing hub files from every code PR** without sole-owner / in-diff waiver (D-2).
-- **Agents running `cargo` / `buck2` / other slow commands in worker lanes** — orchestrator check
-  daemon + affected CI only (D-5 / D-6; pattern 6). `cargo build|check|test|clippy|run|bench`
-  is retired repo-wide (Amendment A-2); workers also never invoke `buck2`.
+- **Unbounded duplicate full-workspace checks across parallel lanes** — use targeted Cargo feedback
+  during implementation, coordinate shared-resource-heavy runs, and reserve final authority for the
+  protected Cargo merge path. Local Cargo and Buck2 output are evidence, never self-approval.
 - **Inventing work / inventing lanes for empty verified space** — claim only labeled
   `implementable` beads; do not fabricate scope to keep agents busy.
 
 #### Swarm operating lessons (carried, still binding)
 
 Kept from Bun / Cursor swarm / Amendment C archive practice and already encoded in Claim/Land /
-PORTABLE-SWARM-CONTRACT: one implementer + adversarial reviewers; planner ≠ implementer;
+Portable doctrine: one implementer + adversarial reviewers; planner ≠ implementer;
 fix the process not the output; batch same-subsystem work into one lane; green CI is not
 authorization — re-verify at the moment of action; never delete a git lock without checking the
 owning process; automation stops at the edge of its authority; design cleanup/ownership for
@@ -264,7 +286,7 @@ Full clustered KEEP/BAN from the 137-entry Amendment C archive distillation: **A
 ### Amendment A (2026-08-10)
 
 Binding amendment to the Swarm Delivery Law. Full portable mirror:
-`.grok/programs/delivery-fabric/evidence/PORTABLE-SWARM-CONTRACT.md` § Amendment A.
+`templates/portable-swarm-doctrine.md` § Hyperscaler monorepo patterns first class.
 
 #### A-1 — Docs governability track (beads epic)
 
@@ -280,25 +302,26 @@ going live** (do not activate execution until both planes have landed trunk PRs)
 5. Contradiction detection via `docs/CONTRADICTION-LEDGER.md` discipline.
 6. Growth budget on root `docs/` / `specs/` with colocation preferred (ADR-0131 / ADR-0701).
 
-#### A-2 — Fast-feedback plane correction (no cargo revival)
+#### A-2 — Fast feedback follows the merge executor (OVERRULE 2026-08-15)
 
-`cargo check` is **retired** by founder directive 2026-05-29, codified in
-`tools/hooks/no-cargo-enforcer.sh`. The hook names `buck2 build //...[check]` as the
-type-check equivalent (`rustc --emit=metadata`).
+The 2026-05-29 no-Cargo worker rule and its `no-cargo-enforcer.sh` hook are **OVERRULED** by
+ADR-0716 and this runtime-overlay retirement. Cargo is the required merge-path executor; retaining a
+local toolguard that refuses it would make the operating contract impossible to satisfy.
 
-- **Check daemon** (orchestrator, main checkout, `SWARM_ORCHESTRATOR=1` only): runs
-  `buck2 build //...[check]` (or an explicit per-target list when configured), parses rustc
-  diagnostics from buck2 stderr/stdout, groups by crate then file, writes `err.txt` at the
-  main-checkout root and `.check/errors.json`. Single builder keeps the buck2 daemon +
-  `buck-out` warm.
-- **Worker lanes:** toolguard doctrine continues to deny **both** `cargo` and `buck2` (enforcement deferred to `.grok/` Rust process-kit).
-  Workers read `err.txt`; they never build.
-- **sccache:** considered and **rejected**. It is cargo/`RUSTC_WRAPPER`-world; adopting it
-  reintroduces a second build path + second cache layer (anti-cargo-culting / sprawl).
-- **Cross-worktree warmth:** investigate buck2-native local dir-cache keys in `.buckconfig`,
-  validated against facebook/buck2 upstream source before adoption — same key-verification
-  practice already used for `[buck2]` daemon keys in `.buckconfig`. Track as a bead; **do not
-  adopt unverified keys now**.
+- **achieves:** fast, reproducible feedback without creating a second admission authority or
+  serializing every worker behind one local daemon.
+- **origin:** the old Buck2-only rule tried to limit duplicate slow work, but later Cargo-based
+  protected admission made the hook and doctrine contradictory and routinely blocked required
+  verification.
+- **rule:** workers in isolated worktrees MAY run scoped Cargo checks during implementation and MUST
+  provide the Cargo evidence required by the operating contract. Buck2 remains optional local
+  hermeticity only. An orchestrator daemon may coordinate expensive advisory checks, but neither the
+  daemon nor local output is merge or review authority.
+- **ensure:** root and `docs/AGENTS.md`, ADR-0716, the portable doctrine, the daemon-hotset policy,
+  and `ci/process-kit` all state the same executor boundary; the retired Cargo-denial toolguard is
+  absent.
+- **overturn_when:** a newer accepted ADR replaces ADR-0716 with one protected executor and updates
+  every session-loaded, portable, machine-policy, and CI surface atomically.
 
 #### A-3 — Comment doctrine
 
@@ -307,7 +330,7 @@ type-check equivalent (`rustc --emit=metadata`).
 - Comments only for non-obvious intent, trade-offs, or constraints the code cannot convey.
 - Diff-only reviewers **reject narration comments**.
 
-Encode in review checklists (PORTABLE-SWARM-CONTRACT + dual-critic).
+Encode in review checklists (`templates/portable-swarm-doctrine.md` + adversarial review).
 
 #### A-4 — Generated-files doctrine (hyperscaler codegen)
 
@@ -333,7 +356,7 @@ admission.
 ### Amendment B (2026-08-10) — REORG NOW (ternary layout map)
 
 Binding amendment. **Reorg happens NOW** — classification is a move map, not a parking lot.
-Portable mirror: `.grok/programs/delivery-fabric/evidence/PORTABLE-SWARM-CONTRACT.md` § Amendment B.
+Portable mirror: `templates/portable-swarm-doctrine.md` § Amendment B repository shape.
 Policy-as-data: `specs/integ-branch-envelopes.json` → `reorg_debt_freeze`.
 
 #### B-0 — Greenfield question (placement law)
@@ -440,7 +463,7 @@ dual-emit legacy+forever merge contexts in-repo until founder flips protection i
 
 #### B-1c — Full 16-lens battery (new AND existing patterns)
 
-Authority pack: [`.grok/harness/lenses.v1.json`](../../.grok/harness/lenses.v1.json).
+Authority pack: [`docs/AGENTS.md`](../AGENTS.md) § Engineering principles & review lenses.
 **Never a subset.** Every judgment that keeps, replaces, or deletes an existing pattern/decision/
 architecture/design MUST run the full battery and record:
 
@@ -479,7 +502,9 @@ Patterns this amendment recommends overturning (mechanism may stay; brand/shape 
 
 Prefixes in `reorg_debt_freeze.prefixes` block **new path births** only while `reorg_now` /
 `delete_permanently` executes. They are not a durable home. `#1642` allow-new for cloud-os/libs
-was a one-shot drain — **never repeat**. `tools/swarm/**` one-shot birth on `#1644` was **aborted** (automation-language-policy merge-base ceiling). Process-kit lands later as Rust under `.grok/` (no `tools/` intermediate).
+was a one-shot drain — **never repeat**. `tools/swarm/**` one-shot birth on `#1644` was **aborted**
+(automation-language-policy merge-base ceiling). Any process-kit successor lands as owned Rust under
+`ci/process-kit/` with no agent-runtime or `tools/` intermediate.
 
 #### B-3 — Classification table (compact)
 
@@ -492,7 +517,7 @@ above only — dual-truth prose tables are a defect.
 
 #### B-4 — Claim enforcement + destination integ preference
 
-`deliver.js` Claim MUST:
+Any future mechanical Claim admission check MUST:
 
 1. Refuse **new path births** under freeze/vacated prefixes unless the bead marks
    `reorg-move-out` naming `destination`, **and**
@@ -509,7 +534,7 @@ First wave = evaluated decisions with evidence (`judgments_done` / `first_wave`)
 
 Binding amendment. Distilled from **all 137** archive entries (14 batch distillers,
 000–136) into the operating-patterns catalog. Encode **clusters**, not 137 paraphrases.
-Portable mirror: `.grok/programs/delivery-fabric/evidence/PORTABLE-SWARM-CONTRACT.md` § Amendment C.
+Portable mirror: `templates/portable-swarm-doctrine.md` § Amendment C operating patterns.
 Policy-as-data: `specs/agentic-operating-patterns.json`.
 
 These clusters reinforce (do not replace) D-1…D-9, Amendment A, and Amendment B.
@@ -535,7 +560,7 @@ These clusters reinforce (do not replace) D-1…D-9, Amendment A, and Amendment 
 |---|---|
 | **Invented work** | Inventing work into verified empty; activity theater; filler to fill quotas; observing = intervening. |
 | **Dual-truth** | Dual-home / dual-truth; carrying yesterday’s green as today’s proof; sticky prior `merge-admission` green across new HEAD. |
-| **Second build path / shared WD** | Cargo/second-build-path revival; slow commands in lanes; shared WD stash/reset chaos; PID kill without identity. |
+| **Competing admission / shared WD** | Any local executor presented as protected admission; unbounded duplicate full-workspace runs; shared WD stash/reset chaos; PID kill without identity. Cargo remains the ADR-0716 merge executor. |
 | **Brand / opaque / ADR-in-title names** | Leading `oya-*` / `cloud-*` / opaque / ADR-in-job-title durable names (Amendment B Pattern-First). |
 | **Silent blocked success** | Silent success on blocked inputs; rubber-stamp thread resolve; merge ego after green; scoreboards from observation density. |
 
@@ -553,7 +578,7 @@ Any distill note that said **keep the name `oya-ci-required`** is **OVERRULED**.
 ### Amendment D (2026-08-10) — Anti-drift documentation doctrine
 
 Binding amendment. Machine law + packet + same-wave colocation so docs cannot drift after change.
-Portable mirror: `.grok/programs/delivery-fabric/evidence/PORTABLE-SWARM-CONTRACT.md` § Amendment D.
+Portable mirror: `templates/portable-swarm-doctrine.md` § Amendment D doctrine survival.
 Policy-as-data: `specs/integ-branch-envelopes.json#anti_drift` (`anti_drift_doctrine_version`).
 
 #### INV-DOC-1…9 (RFC 2119)
@@ -592,13 +617,12 @@ Hot-set ≤4 and restack-once/window are encoded in
 
 #### Limitations
 
-Mechanical Claim packet parse + Claim↔diff bind (`docs_touched`/`paths` ↔
-`git diff --name-only`) are live in `deliver.js` ONLY — the `claim_packet.py` birth was
-aborted on #1644 (automation-language: Rust-first), and a blessed dirty-tree-refusing
-claim-push helper is deferred to the `.grok/` Rust process-kit; neither exists in-tree
-yet, so `deliver.js` is the sole live admission parse. Does not rewrite DOC-CATALOG corpus; does not
-authorize mass ADR renames. Drift-grep: deferred `.grok/` Rust self-check (interim: deliver.js Claim + PORTABLE review). Root-file content land of
-INV-DOC-9 short form is owned by `integ/ci` (`planes.process_meta`) — route ≠ content.
+No tracked pre-push Claim parser currently binds `docs_touched` or declared paths to
+`git diff --name-only`; repository-local workflow scripts were retired by the 2026-08-15
+OVERRULE. Until an owned Rust successor lands under `ci/facade/` or `ci/process-kit/`, reviewers
+verify that evidence against the pull-request diff. This does not rewrite the DOC-CATALOG corpus or
+authorize mass ADR renames. Root-file content for the INV-DOC-9 short form is owned by `integ/ci`
+(`planes.process_meta`) — route does not imply content ownership.
 
 ### Amendment E (2026-08-10) — adr-rename-overturn + rules-with-why + northstar pins
 
@@ -625,7 +649,7 @@ nav. Mass rename is blast-radius theater, not irreducible cleanup.
 Every load-bearing MUST / KEEP / BAN records **achieves**, **origin**, **rule**, **ensure**,
 **overturn_when**. Rules are hypotheses, not folklore. Encode in
 `specs/agentic-operating-patterns.json` (`rule_shape` + per-entry fields) and cite from this ADR /
-PORTABLE. Amend via challenge → OVERRULE → version bump (INV-DOC-8) — never silent drift.
+the portable doctrine. Amend via challenge → OVERRULE → version bump (INV-DOC-8) — never silent drift.
 
 #### E-3 — Daemon hot-set + advisory perimeter (northstar)
 
@@ -638,14 +662,14 @@ Policy-as-data SSOT (cite; do not dual-home max/channel lists in prose):
   (never main-checkout durable writes); `hotfix/*` requires founder ack or incident evidence
   (Phase B gate) — prose alone is not a trunk backdoor.
 
-Process-kit harness mirrors (`.grok/harness/daemon-hotset.v1.json`,
-`.grok/harness/perimeter.v1.json`) birth on the owning integ for `roots.grok` — doctrine SSOT stays
-envelopes. Prior `#1646` harness land was stripped as OOB; re-birth is tip-hygiene on that owner,
-not a second SSOT.
+Tracked daemon and perimeter policy remains in `specs/integ-branch-envelopes.json`, with the compact
+consumer face at `ci/facade/harness/daemon-hotset.v1.json`. Agent-runtime mirrors are prohibited;
+they would recreate a second SSOT.
 
 #### Limitations (Amendment E)
 
-Does not flip GitHub branch protection. Does not birth `.grok/` process-kit binaries on `#1644`.
+Does not flip GitHub branch protection. Does not birth process-kit binaries in agent-runtime
+dot-directories.
 Does not authorize `sweep-execute` naming moves before `#1644` land. Observation ≠ APPROVE.
 
 ## Consequences
@@ -667,7 +691,7 @@ Does not authorize `sweep-execute` naming moves before `#1644` land. Observation
 
 | Phase | What lands | Blocking? |
 |---|---|---|
-| A (this ADR) | ADR + envelope JSON + PORTABLE-SWARM-CONTRACT + deliver.js Claim/Land + shims | advisory |
+| A (this ADR) | ADR + envelope JSON + portable doctrine + session-loaded operating contract | advisory |
 | B | `governance/check/integ-envelope/` under `oya-ci-required` | blocking |
 | C | restrict `dev` PRs to `integ/*` + `hotfix/*` | founder-paired |
 
@@ -678,13 +702,16 @@ Does not authorize `sweep-execute` naming moves before `#1644` land. Observation
 - **Date-stamped / topic integ branches** — disposable names defeat reuse and tooling.
 - **Unit PRs to `dev`** — false parallelism; banned.
 - **Shared working directory + etiquette** — already failed; structural isolation required.
-- **Rewriting deliver.js** — standing constraint: extend, do not rewrite.
+- **Recreating a repo-local runtime harness** — rejected by the 2026-08-15 OVERRULE; any successor
+  is owned Rust in `ci/facade/` or `ci/process-kit/` and enters through ordinary protected review.
 - **`docs/<root>` / `specs/<root>` mirror trees for product artifacts** — fights ADR-0119/0131/0701
   colocation doctrine; hubs stay central, product specs stay owner-colocated.
-- **Full monorepo rebuild in every worker lane** — fights affected-set doctrine (ADR-0554) and
-  no-slow-commands rule; check daemon + CI cone only.
-- **Revive `cargo check` in the check daemon** — fights founder 2026-05-29 / no-cargo-enforcer;
-  blessed path is `buck2 build //...[check]` (Amendment A-2).
+- **Unbounded duplicate full-workspace runs in every worker lane** — targeted Cargo feedback is
+  allowed and required evidence remains the protected Cargo path; coordinate expensive repetitions
+  so replicated work stays bounded.
+- **Retain the no-Cargo worker toolguard** — rejected by the 2026-08-15 A-2 OVERRULE because it
+  blocks ADR-0716's required Cargo evidence. Resource contention is bounded through scoped checks
+  and coordination, not by disabling the merge executor.
 - **sccache as a second cache layer** — second build path + second cache = sprawl; rejected
   (Amendment A-2).
 - **Unverified buck2 dir-cache keys in `.buckconfig`** — adopt only after upstream source
@@ -702,8 +729,8 @@ Does not authorize `sweep-execute` naming moves before `#1644` land. Observation
 - Naming taxonomy: `specs/naming-taxonomy.json`
 - operating-patterns catalog: `specs/agentic-operating-patterns.json`
 - Policy: `specs/integ-branch-envelopes.json`
-- Portable rule text: `.grok/programs/delivery-fabric/evidence/PORTABLE-SWARM-CONTRACT.md`
-- Harness: `.claude/workflows/deliver.js` (Claim + Land)
+- Portable rule text: `templates/portable-swarm-doctrine.md`
+- Session-loaded contract: `AGENTS.md` and `docs/AGENTS.md`
 - Concurrent-safe registry: `registry/vcs/concurrent-safe-paths.yaml`
 - Operating contract: `docs/AGENTS.md` (worktree-per-lane; sole required merge-admission context)
 - Layout apex: ADR-0701 (capability-first; supersedes ADR-0562 / ADR-0131 as live law)

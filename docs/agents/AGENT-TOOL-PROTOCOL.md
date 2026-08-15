@@ -14,7 +14,6 @@ foundation: ADR-0053 (sanctioned primitives), ADR-0054 (scaffold-claim)
 related:
   - docs/agents/AGENT-ENTRY-POINT.md
   - docs/agents/AGENT-DECISION-TREE.md
-  - docs/standards/claude-code-harness.md  # retirement tombstone only (ADR-0619)
   - docs/standards/agent-instructions-discipline.md
   - docs/standards/git-workflow.md
   - docs/decisions/ADR-0700-ci-admission-live-apex.md

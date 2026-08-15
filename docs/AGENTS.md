@@ -34,7 +34,7 @@ authority_chain_declaration: |
   system / developer / user instructions
     > CLAUDE.md + docs/AGENTS.md (authoritative agent entry + operating contract until explicit /specs/agent-operating-contract.json PHASE-5 promotion evidence)
     > /specs/root-hub-pointers.json (redirect/index hub; pointer cohesion, not an override of CLAUDE/docs/AGENTS)
-    > installed agent-runtime skill and role catalog (for Codex: ~/.codex/skills + ~/.codex/agents; project .codex overlays only when intentionally checked in)
+    > installed agent-runtime skill and role catalog (for Codex: ~/.codex/skills + ~/.codex/agents; repository-local runtime overlays are ignored and untracked)
     > machine-readable specs and registries under /specs, /registry, /evidence, and /templates
     > docs/ authority files during markdown-retirement compatibility
     > external/upstream skill documentation (informational only; not vendored into this repo)
@@ -151,7 +151,7 @@ core [`templates/portable-swarm-doctrine.md`](../templates/portable-swarm-doctri
 
 - **achieves:** repo-agnostic Swarm core survives in Claude/Codex/Cursor global files without +N plans.
 - **origin:** doctrine that lived only in programme plans did not load for every-repo agents.
-- **rule:** single source [`templates/portable-swarm-doctrine.md`](../templates/portable-swarm-doctrine.md) (`portable_doctrine_version`); globals carry short form + pointer; new repos use [`templates/README-doctrine-pointer.md`](../templates/README-doctrine-pointer.md); repo slots stay in root contracts.
+- **rule:** single source [`templates/portable-swarm-doctrine.md`](../templates/portable-swarm-doctrine.md) (`portable_doctrine_version`); globals and new repositories carry a short pointer to that source; repo slots stay in root contracts.
 - **ensure:** version pin in the portable template; CHANGELOG row on bump; globals MUST NOT diverge from the short form.
 - **overturn_when:** challenge → OVERRULE bumps `portable_doctrine_version` with same-wave global sync.
 
@@ -175,8 +175,8 @@ core [`templates/portable-swarm-doctrine.md`](../templates/portable-swarm-doctri
 
 - **achieves:** every agent runs the same start/end checklist without pasting the whole north-star plan.
 - **origin:** strategy and procedure were conflated; babysit-only regressions followed.
-- **rule:** every implement/audit/review/plan/scout/recon dispatch MUST run the Tier-2 ritual: **A** Orient (one role + MUST-NOT; position diagram; premise check vs HEAD + bead + hindsight) → **B** Reasoning map (≥2 lenses; claim digraph tagged E/I/U; ≥1 real challenge) → **C** Doctrine (envelope-bounded; one writer; observation≠APPROVE; no `*-fast`; Claim `docs_touched`/`docs_action`; Cursor Automations advisory-only) → **D** Close (role-scaled receipt; flow delta; exit — no CI babysit). Use a **position diagram** for orientation and a **claim digraph** when ≥2 load-bearing claims depend on each other. Dispatch cards cite this section + role + lane mission — not the whole programme SSOT. Forever home is `/templates/checklists/swarm-agent-ritual.md` (landed; includes **Cursor Automations** subsection; `docs/checklists/` deleted — do **not** recreate); session-loaded copy rides process_meta `.cursor/rules/` on `integ/ci`.
-- **ensure:** this five-field rule present; orchestrator refuses babysit-only fleet (hard rule); receipts include role-scaled evidence; Automations subsection present in the forever checklist; reorg-move-out bead tracks the templates land.
+- **rule:** every implement/audit/review/plan/scout/recon dispatch MUST run the Tier-2 ritual: **A** Orient (one role + MUST-NOT; position diagram; premise check vs HEAD + bead + hindsight) → **B** Reasoning map (≥2 lenses; claim digraph tagged E/I/U; ≥1 real challenge) → **C** Doctrine (envelope-bounded; one writer; observation≠APPROVE; no `*-fast`; Claim `docs_touched`/`docs_action`; advisory accelerators never grant authority) → **D** Close (role-scaled receipt; flow delta; exit — no CI babysit). Use a **position diagram** for orientation and a **claim digraph** when ≥2 load-bearing claims depend on each other. Dispatch cards cite this section + role + lane mission — not the whole programme SSOT. Forever home is `/templates/checklists/swarm-agent-ritual.md`; `docs/checklists/` and repository-local runtime overlays are not instruction homes.
+- **ensure:** this five-field rule present; orchestrator refuses babysit-only fleet (hard rule); receipts include role-scaled evidence; the forever checklist remains tracked; `.claude/`, `.codex/`, `.cursor/`, and `.grok/` remain ignored and untracked.
 - **overturn_when:** a recorded challenge shows the ritual blocks delivery AND a replacement ritual with five fields lands same-wave.
 
 ## RFC-2119 normative-language statement
@@ -191,7 +191,7 @@ For any question, route to its authority. Click the link; do not duplicate inlin
 
 | Question | Authority |
 |---|---|
-| Intent→skill mapping, lifecycle phases, anti-rationalization, persona/skill/command orchestration | Installed agent-runtime skill catalog (Codex default: `~/.codex/skills`; project `.codex/skills` only when intentionally checked in) |
+| Intent→skill mapping, lifecycle phases, anti-rationalization, persona/skill/command orchestration | Installed agent-runtime skill catalog (Codex default: `~/.codex/skills`; project `.codex/skills` is ignored machine-local state) |
 | Universal skill catalog | Installed runtime skills, discovered by the active agent surface; no repo-vendored duplicate |
 | Reusable agent personas / roles | Installed runtime roles (Codex default: `~/.codex/agents`; set `agent_type` explicitly for OMX subagents) |
 | Project mission, decision rights, prohibited primitives, amendments | [`/specs/masterplan.json`](..//specs/masterplan.json), [`RACI-OWNERSHIP.md`](RACI-OWNERSHIP.md) |
@@ -213,8 +213,8 @@ For any question, route to its authority. Click the link; do not duplicate inlin
 | Release / incident / on-call | [`RELEASE-MANAGEMENT.md`](RELEASE-MANAGEMENT.md) <!-- forward-reference: wave-1 -->, [`INCIDENT-MANAGEMENT.md`](INCIDENT-MANAGEMENT.md) <!-- forward-reference: wave-1 -->, [`standards/on-call.md`](standards/on-call.md) <!-- forward-reference: wave-1 --> |
 | Glossary (canonical vocabulary) | [`GLOSSARY.md`](GLOSSARY.md) <!-- forward-reference: wave-1 --> |
 | Machine-readable mirrors of the catalog | [`machine-readable/`](machine-readable/) <!-- forward-reference: wave-1 --> |
-| Per-dispatch agent ritual (Tier 2 — diagram + digraph + doctrine) | This contract § Doctrine survival → Per-dispatch ritual; forever home `/templates/checklists/swarm-agent-ritual.md` (landed; Automations subsection); session rule under process_meta `.cursor/rules/` (`integ/ci`) |
-| Portable Swarm doctrine (repo-agnostic global core) | [`../templates/portable-swarm-doctrine.md`](../templates/portable-swarm-doctrine.md); new-repo pointer [`../templates/README-doctrine-pointer.md`](../templates/README-doctrine-pointer.md) |
+| Per-dispatch agent ritual (Tier 2 — diagram + digraph + doctrine) | This contract § Doctrine survival → Per-dispatch ritual; single in-repo copy `/templates/checklists/swarm-agent-ritual.md` |
+| Portable Swarm doctrine (repo-agnostic global core) | [`../templates/portable-swarm-doctrine.md`](../templates/portable-swarm-doctrine.md); new repositories cite this source directly |
 | ADR path shape overturn (no mass rename) | This contract § Doctrine survival → ADR path shape; ADR-0711 Amendment E-1 (cite; do not dual-home enumerations) |
 | Cloud provider + full ecosystem north-star | This contract § Doctrine survival → Cloud provider + full ecosystem; [`architecture/cloud-provider-full-ecosystem-north-star.md`](architecture/cloud-provider-full-ecosystem-north-star.md) |
 
@@ -265,7 +265,10 @@ Before any change, every agent and every human MUST complete these items.
 6. **Search MISTAKES-LEDGER for the failure-mode class.** *Why:* re-introducing a fixed defect is a regression. *Test:* PR `## Summary` cites the relevant `MFL-NNNN` row OR a "no prior row" search note.
 7. **Identify the per-change-class reviewer agent.** *Why:* the target reviewer contract signs `## Code Review` at merge time; no signature, no merge once the trusted reviewer producer is live. *Test:* §"Per-change-class reviewer agents" table below; `F-PR5-06` tracks the current live-enforcement gap.
 8. **For cross-axis contract changes:** apply the cross-axis review label per [`../templates/checklists/cross-axis-contract-change.md`](../templates/checklists/cross-axis-contract-change.md) <!-- forward-reference: wave-1 -->; notify consumer-axis teams. *Why:* silent cross-axis changes break consumers. *Test:* PR label + `oya-governance-cross-axis-notify` lane.
-9. **For hook / harness / CLI changes:** run the harness self-test first. *Why:* a broken hook silently disables every downstream gate. *Test:* harness self-test command (per harness; see §"Per-agent appendices").
+9. **For explicitly installed local hook / harness / legacy CLI adapters:** run the installed
+   adapter's self-test when it supplies one. *Why:* adapter breakage affects only the runtime that
+   opted into it; optional local adapters cannot disable protected CI. *Test:* installed-runtime
+   self-test evidence, or `N/A` when no adapter is installed (see §"Per-agent appendices").
 
 ## Per-change-class reviewer agents
 
@@ -288,7 +291,7 @@ Each change class has a designated reviewer agent that runs proactively on the P
 
 The reviewer-agent verdict is `APPROVE` or `REQUEST CHANGES`. The PR body's `## Code Review` section MUST contain the agent name, the verdict, and the resolved + deferred items. CI no longer string-checks PR prose (ADR-0716); the review thread is the evidence.
 
-**REVIEW-ADMISSION-GAP-LIVE-BOUNDARY (F-PR5-06):** F-PR5-06 remains open: formal GitHub `reviewDecision`, reviewer-author separation, and branch-protection drift reconciliation remain tracked by `registry/fixuptasks.jsonl#F-PR5-06`. The retired PR metadata preflight does not close it (ADR-0716).
+**REVIEW-ADMISSION-GAP-LIVE-BOUNDARY (F-PR5-06):** F-PR5-06 remains open: formal GitHub `reviewDecision`, reviewer-author separation, and branch-protection drift reconciliation remain tracked by `registry/fixuptasks.jsonl#F-PR5-06`. PR #964 is the concrete incident evidence: it merged with an empty `reviewDecision`. The retired PR metadata preflight and an agent-authored review receipt are not a cloud-enforced review admission gate (ADR-0716).
 
 ## During-change discipline
 
@@ -423,17 +426,20 @@ Each appendix is ≤40 lines. Per-agent harness deltas only — no rule duplicat
 
 The Claude Code harness loads `CLAUDE.md` at session start (memory-bootstrap convention). Repo-root `CLAUDE.md` is a Redirect-class file pointing to this contract.
 
-Always-loaded skills (project-level): `coding-standards`, `tdd-workflow`, `superpowers:test-driven-development`, `superpowers:verification-before-completion`, `superpowers:systematic-debugging`, `search-first`. Language and domain skills load from file context (`rust-*`, `frontend-*`, `postgres-patterns`, `healthcare-phi-compliance`).
+Installed runtimes may provide optional coding, testing, debugging, search, language, or domain skills. A clean project checkout neither installs nor guarantees any such catalog; session instructions declare what is actually available.
 
-Active hooks — SSOT is [`.claude/settings.json`](../.claude/settings.json), which the `enforcement-liveness` face resolves against `tools/hooks/`; this list is a mirror, not an authority. PreToolUse/Bash: `main-checkout-guard.sh`, `local-authority-enforcer.sh`, `stale-tool-suggester.sh`. (The `no-cargo-enforcer.sh` hook is retired with ADR-0716: cargo is the merge path.) PreToolUse/Task: `pre-dispatch-guide.sh`. PostToolUse/Edit|MultiEdit|Write: `spec-version-pin-suggester.sh`, `adr-orphan-detect.sh`, `vacuous-green-gate-detect.sh`. PostToolUse/Bash|WebFetch|WebSearch: `injection-content-scanner.sh`. Stop: `stop-did-you-forget-suggester.sh`. There is no SessionStart hook, and no merge-review, pre-push, telemetry, loop-cancellation, or memory-bootstrap hook — the prior text named five behaviours and one file (`scripts/hooks/guard-pr-merge-review.mjs`), none of which existed in-tree.
+Project runtime boundary — Oyatie does not track repository-local activation under `.claude/`,
+`.codex/`, `.cursor/`, or `.grok/`. Those roots are ignored machine-local state. The retired
+`tools/hooks/` adapter corpus must not be recreated; protected CI and runtime enforcement are the
+backstops.
 
-Legacy OMC magic-keyword routing remains compatibility-only while the plain-git/GitHub/cloud-ci closeout path finishes landing. It does not own forward repo-state closure; branch protection, cloud-ci required checks, and governance admission do. Jenkins/`oya` bridge contexts are transitional evidence only. The former harness standard [`standards/claude-code-harness.md`](standards/claude-code-harness.md) is a **retirement tombstone** (ADR-0619 / RR-HARNESS-0619) — not live procedure; use this contract + ADR-0515, and optionally the local `.grok/` mm-delivery kit (not merge authority).
+Legacy OMC magic-keyword routing remains compatibility-only while the plain-git/GitHub/cloud-ci closeout path finishes landing. It does not own forward repo-state closure; branch protection, cloud-ci required checks, and governance admission do. Jenkins/`oya` bridge contexts are transitional evidence only. The former harness standard was deleted after its retirement boundary moved here (ADR-0619 / RR-HARNESS-0619); use this contract + ADR-0515. Any machine-local harness kit is outside tracked repository authority.
 
 Cancellation: `/oh-my-claudecode:cancel` only after re-walking §"Done-Definition checklist."
 
 Boundary: do not edit `~/.claude/` from project sessions — user-machine state.
 
-Self-test: `npm --prefix /Users/home/.codex test` before relying on hook / harness changes.
+Self-test: use the installed runtime's own self-test before relying on machine-local hook or harness changes; the repository carries no runtime self-test under an agent dot-directory.
 
 ### Codex (OpenAI Codex CLI)
 
@@ -441,7 +447,7 @@ The Codex CLI loads `AGENTS.md` at workspace creation, per the cross-tool AGENTS
 
 Build / test commands: `cargo fmt --all --check`, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo test --workspace` (the CI merge path per ADR-0716); buck2 build/test is local hermeticity only. UI-only surfaces may also use `pnpm build`, `pnpm test`, and `pnpm lint` (Node 20) as local evidence when relevant.
 
-Active integration: `.codex/skills/` holds project skills. Coordination follows §Sanctioned primitives; workspace setup is owned by the runtime and claim lifecycle, not by repo-local bootstrap scripts.
+Active integration: skills come from the installed runtime; repository-local `.codex/skills/` is not tracked. Coordination follows §Sanctioned primitives; workspace setup is owned by the runtime and claim lifecycle, not by repo-local bootstrap scripts.
 
 Cancellation: terminate the Codex run; the orchestrator records the partial state for replay.
 
@@ -457,7 +463,7 @@ Cancellation: terminate the Gemini run; same orchestrator-replay semantics.
 
 ### Legacy OMC (oh-my-claudecode subagents) — compatibility / provenance only
 
-**Not live authority** (ADR-0619, ADR-0116). Do not open new work that depends on OMC/OMX/GJC/Hermes brands as coordination primitives. New agentic closeout routes through plain `git`, GitHub (interim) branch protection, cloud-ci/oya-ci required checks (`oya-ci-required` per ADR-0515), and reviewer governance evidence. Optional local multi-model delivery uses `.grok/` (mm-delivery) when present — process kit only, never merge authority.
+**Not live authority** (ADR-0619, ADR-0116). Do not open new work that depends on OMC/OMX/GJC/Hermes brands as coordination primitives. New agentic closeout routes through plain `git`, GitHub (interim) branch protection, cloud-ci/oya-ci required checks (`oya-ci-required` per ADR-0515), and reviewer governance evidence. Machine-local multi-model tooling may exist outside Git, but no `.grok/` content is tracked or authoritative.
 
 OMC subagents (when still running inside an existing Claude Code session) use `Skill` / `Agent` tool calls. Catalog names below are historical inventory for residual sessions, not a forward skill map.
 

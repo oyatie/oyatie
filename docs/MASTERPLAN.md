@@ -24,7 +24,7 @@ authority_chain_declaration: |
   system / developer / user instructions
     > /specs/root-hub-pointers.json
     > docs/AGENTS.md (operating contract until explicit /specs/agent-operating-contract.json PHASE-5 promotion evidence)
-    > installed agent-runtime skill and role catalog (for Codex: ~/.codex/skills + ~/.codex/agents; project .codex overlays only when intentionally checked in)
+    > installed agent-runtime skill and role catalog (for Codex: ~/.codex/skills + ~/.codex/agents; repository-local runtime overlays are ignored and untracked)
     > /specs/masterplan.json#masterplan_v2 (sole live plan authority and work-item ID namespace)
     > machine-readable specs and registries under /specs, /registry, /evidence, and /templates (supporting evidence/provenance only unless directly cited by masterplan v2)
     > external/upstream skill documentation (informational only; not vendored into this repo)

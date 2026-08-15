@@ -22,7 +22,7 @@ The active ledger uses a table. New rows append to `docs/MISTAKES-LEDGER.md §3 
 
 ```
 | ID | Date | Mistake (1 line) | System gap (1 line) | Mechanical prevention | Shipped on | Link |
-| MFL-NNNN | YYYY-MM-DD | <one line, no PII> | <what system/process/contract was missing> | <CI lane / hook / validator / fitness function name> | YYYY-MM-DD or `(target with <wave-gate>)` | <PR / ADR / runbook / postmortem link> |
+| MFL-NNNN | YYYY-MM-DD | <one line, no PII> | <what system/process/contract was missing> | <authoritative CI lane / validator / runtime gate; optional hook only with backstop> | YYYY-MM-DD or `(target with <wave-gate>)` | <PR / ADR / runbook / postmortem link> |
 ```
 
 ## Field contract
@@ -33,7 +33,7 @@ The active ledger uses a table. New rows append to `docs/MISTAKES-LEDGER.md §3 
 | `Date` | yes | `YYYY-MM-DD` | When the mistake **surfaced**, not when prevention shipped. |
 | `Mistake` | yes | ≤ 140 chars | No PII. No agent/human name. Describe the *failure mode*. |
 | `System gap` | yes | ≤ 140 chars | What system, process, or contract was missing. |
-| `Mechanical prevention` | **yes** | CI-lane name, hook script path, validator name, fitness function name | Process-only fixes are **REJECTED**. If you can only think of a process fix, escalate per `docs/standards/prevention-doctrine.md §6`. |
+| `Mechanical prevention` | **yes** | authoritative CI-lane, validator, fitness-function, schema-check, or runtime-gate name | Process-only fixes and optional-hook-only claims are **REJECTED**. If you can only think of either, escalate per `docs/standards/prevention-doctrine.md §6`. |
 | `Shipped on` | conditional | `YYYY-MM-DD` if shipped; `(target with <wave-gate>)` if future-prevention | Future-prevention rows are permitted with a target wave-gate; must be reviewed quarterly. |
 | `Link` | yes | PR# / ADR-NNNN / runbook path / postmortem path | At least one link. |
 
@@ -47,9 +47,10 @@ The active ledger uses a table. New rows append to `docs/MISTAKES-LEDGER.md §3 
   system_gap: |
     One-line description of the missing system / process / contract.
   mechanical_prevention:
-    kind: ci_lane | hook | validator | fitness_function | schema_check | runtime_gate
-    name: oya-governance-<lane> | scripts/hooks/<hook>.mjs | <validator-name>
-    enforced_at: pre-commit | pr-time | merge-gate | runtime
+    kind: ci_lane | validator | fitness_function | schema_check | runtime_gate
+    name: oya-governance-<lane> | <validator-name>
+    enforced_at: pr-time | merge-gate | runtime
+    optional_runtime_adapter: installed-outside-repository | null
   shipped_on: YYYY-MM-DD | "target:<wave-gate>"
   links:
     - kind: pr | adr | runbook | postmortem | issue
@@ -68,7 +69,7 @@ The active ledger uses a table. New rows append to `docs/MISTAKES-LEDGER.md §3 
 
 1. **One row per failure mode**, never bundle two distinct mistakes into one row.
 2. **No PII, no personal names** — root cause is *systems and processes*, not people (CONSTITUTION §Decision principles).
-3. **Mechanical prevention is mandatory** — if you cannot name a CI lane / hook / validator / runtime gate, file an escalation (`/templates/checklists/escalation-checklist.md`).
+3. **Mechanical prevention is mandatory** — if you cannot name authoritative CI / validator / runtime enforcement, file an escalation (`/templates/checklists/escalation-checklist.md`); an optional hook alone never qualifies.
 4. **Cite at least one link** — PR, ADR, runbook, or postmortem.
 5. **Quarterly council review** — patterns across rows (≥ 3 rows in the same cluster) trigger meta-prevention per `docs/standards/prevention-doctrine.md §6`.
 6. **PR cite rule** — PRs that ship a mechanical prevention for a prior failure **MUST** cite the new MFL row in `## Traceability` per D17 of `docs/AGENTS.md §Done-Definition checklist`.

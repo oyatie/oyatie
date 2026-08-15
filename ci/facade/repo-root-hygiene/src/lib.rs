@@ -613,11 +613,9 @@ mod tests {
                 { "id": "license",        "kind": "prefix_dot", "value": "LICENSE" },
                 { "id": "buckconfig",     "kind": "prefix_dot", "value": ".buckconfig" }
             ],
-            "allowed_root_dirs": [".claude", ".codex", ".omc", "ci", "cloud", "libs", "docs"],
-            "restricted_tracked_roots": [".claude", ".codex", ".omc", ".omx"],
+            "allowed_root_dirs": [".omc", "ci", "cloud", "libs", "docs"],
+            "restricted_tracked_roots": [".claude", ".codex", ".cursor", ".grok", ".omc", ".omx"],
             "allowed_tracked_paths": [
-                { "id": "claude-settings", "kind": "exact", "value": ".claude/settings.json" },
-                { "id": "codex-hooks", "kind": "exact", "value": ".codex/hooks.json" },
                 { "id": "omc-ultragoal-owners", "kind": "exact", "value": ".omc/ultragoal/OWNERS" }
             ]
         })
@@ -761,8 +759,6 @@ spec:
                 "README.md",
                 "LICENSE",
                 ".buckconfig",
-                ".claude/settings.json",
-                ".codex/hooks.json",
                 ".omc/ultragoal/OWNERS",
                 "ci/facade/x/src/lib.rs",
                 "libs/oya-foo/Cargo.toml",
@@ -855,6 +851,8 @@ spec:
             ".claude/worktrees/old-lane/marker",
             ".claude/settings.local.json",
             ".codex/.DS_Store",
+            ".cursor/rules/local.mdc",
+            ".grok/harness/local.json",
             ".omc/state/team/mailbox.json",
             ".omx/state/team/mailbox.json",
         ] {
@@ -869,20 +867,20 @@ spec:
     }
 
     #[test]
-    fn explicit_shared_agent_config_paths_are_green() {
-        let report = evaluate(
-            &policy(),
-            &observed(&[
-                ".claude/settings.json",
-                ".codex/hooks.json",
-                ".omc/ultragoal/OWNERS",
-            ]),
-        );
-        assert_eq!(
-            report.verdict,
-            Verdict::Green,
-            "explicit tracked config/provenance exceptions must remain green; got {report:#?}"
-        );
+    fn agent_dotdirs_have_no_tracked_exceptions() {
+        for path in [
+            ".claude/settings.json",
+            ".codex/hooks.json",
+            ".cursor/rules/project.mdc",
+            ".grok/harness/project.json",
+        ] {
+            let report = evaluate(&policy(), &observed(&[path]));
+            assert_eq!(
+                report.verdict,
+                Verdict::Red,
+                "tracked agent runtime path must stay forbidden: {path}; got {report:#?}"
+            );
+        }
     }
 
     #[test]
