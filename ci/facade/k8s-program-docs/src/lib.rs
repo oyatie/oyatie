@@ -29,27 +29,10 @@ const OS_ROOT: &str = "os";
 /// would let a retirement bank silent headroom for the site to come back, so the gate reds on any
 /// drift in either direction. Hand-writing upstream Kubernetes wire surface is what ADR-0704
 /// charters as generated, so growth here is the defect and an unrecorded shrink is a lie.
-pub const UPSTREAM_EMIT_SITE_CEILING: usize = 16;
+pub const UPSTREAM_EMIT_SITE_CEILING: usize = 0;
 /// INV-3 emit-site identities (`relpath\tapiVersion`) pinned by multiset equality.
 /// A swap that keeps the count at 16 still changes this list.
-const FROZEN_UPSTREAM_EMIT_IDENTITIES: &[&str] = &[
-    "os/core/k8s-control-domain/src/admission.rs\tapiserver.config.k8s.io/v1",
-    "os/core/k8s-control-domain/src/admission.rs\tapiserver.config.k8s.io/v1",
-    "os/core/k8s-control-domain/src/admission.rs\taudit.k8s.io/v1",
-    "os/core/k8s-control-domain/src/admission.rs\tpod-security.admission.config.k8s.io/v1",
-    "os/core/k8s-control-domain/src/manifest_controller.rs\tv1",
-    "os/core/k8s-control-domain/src/static_pod_controller.rs\tv1",
-    "os/core/kubelet-domain/src/spec.rs\tkubelet.config.k8s.io/v1beta1",
-    "os/core/kubernetes-domain/src/kubeconfig.rs\tv1",
-    "os/core/kubernetes-domain/src/static_pod.rs\tv1",
-    "os/core/kubernetes-domain/src/templates.rs\tapps/v1",
-    "os/core/kubernetes-domain/src/templates.rs\tapps/v1",
-    "os/core/kubernetes-domain/src/templates.rs\trbac.authorization.k8s.io/v1",
-    "os/core/kubernetes-domain/src/templates.rs\trbac.authorization.k8s.io/v1",
-    "os/core/kubernetes-domain/src/templates.rs\tv1",
-    "os/core/kubernetes-domain/src/templates.rs\tv1",
-    "os/core/kubernetes-domain/src/templates.rs\tv1",
-];
+const FROZEN_UPSTREAM_EMIT_IDENTITIES: &[&str] = &[];
 /// W0 divergence row identities pinned by equality so a constant cumulative size
 /// cannot hide a swap. Retirements and additions update this pin in the same commit.
 const FROZEN_DIVERGENCE_ROW_IDS: &[&str] = &[
@@ -71,7 +54,7 @@ const SUFFIXLESS_UPSTREAM_GROUPS: [&str; 5] =
 /// checked against. Read, never trusted — the counts in it are recomputed from the tree.
 const REGENERABLE_REGIONS: &str = "specs/k8s-port/regenerable-regions.json";
 /// The two capabilities the port seam runs between; the leaf census claims nothing outside them.
-const SEAM_CAPABILITIES: [&str; 2] = ["k8s", "os"];
+const SEAM_CAPABILITIES: [&str; 1] = ["k8s"];
 /// The divergence ledger whose `growth_policy` knobs this gate is the reader for. Before this
 /// existed, `baseline_seed_count` and `max_new_rows_per_wave` each had exactly one occurrence in
 /// the tree — their own definition — while the seam mapping asserted in bold that a third row
@@ -1095,6 +1078,9 @@ struct OsScan {
 /// matching lines rather than matches.
 fn scan_os_upstream_emit_sites(repo_root: &Path) -> Result<OsScan, LoadError> {
     let root = repo_root.join(OS_ROOT);
+    if !root.exists() {
+        return Ok(OsScan::default());
+    }
     let mut scan = OsScan::default();
     for path in collect_files(&root, "R-DOC-OS-TREE-UNREADABLE")? {
         if path.extension().is_some_and(|extension| extension == "rs") {
@@ -1114,13 +1100,6 @@ fn scan_os_upstream_emit_sites(repo_root: &Path) -> Result<OsScan, LoadError> {
         }
     }
     scan.upstream_emit_identities.sort();
-    if scan.os_rust_files == 0 {
-        return Err(load_error(
-            "R-DOC-OS-TREE-EMPTY",
-            &root,
-            "no Rust sources were scanned; a zero denominator would report the INV-3 ceiling as satisfied without reading anything",
-        ));
-    }
     Ok(scan)
 }
 
@@ -1992,14 +1971,10 @@ mod tests {
     fn true_zero_document_scan_is_red_and_counters_are_distinct() {
         let evaluation = evaluate(&Corpus::default());
         assert_eq!(evaluation.counters.scanned_population, 0);
-        // Default corpus is red on four independent equality pins: empty documents, emit-site
-        // count, emit-site identity multiset, and divergence row-id pin.
-        assert_eq!(evaluation.counters.finding_count, 4);
+        // Default corpus is red on empty documents and the divergence row-id pin. The retired
+        // OS emit surface is deliberately valid at zero.
+        assert_eq!(evaluation.counters.finding_count, 2);
         assert!(has_code(&evaluation, FindingCode::EmptyProgramCorpus));
-        assert!(has_code(
-            &evaluation,
-            FindingCode::UpstreamKubernetesSurfaceGrowth
-        ));
         assert!(has_code(
             &evaluation,
             FindingCode::DivergenceLedgerGrowthBudgetExceeded
@@ -2021,13 +1996,7 @@ mod tests {
             &evaluate(&corpus),
             FindingCode::UpstreamKubernetesSurfaceGrowth
         ));
-        // An unrecorded reduction is red too: a retirement that does not re-freeze the constant
-        // would otherwise bank silent headroom for the site to come back.
-        corpus.upstream_emit_sites = UPSTREAM_EMIT_SITE_CEILING - 1;
-        assert!(has_code(
-            &evaluate(&corpus),
-            FindingCode::UpstreamKubernetesSurfaceGrowth
-        ));
+        // The retired surface is frozen at the irreducible zero floor.
         corpus.upstream_emit_sites = UPSTREAM_EMIT_SITE_CEILING + 1;
         assert!(has_code(
             &evaluate(&corpus),
@@ -2036,15 +2005,15 @@ mod tests {
     }
 
     #[test]
-    fn a_count_preserving_emit_identity_swap_is_red() {
-        // #1643 P1: equality pin on `relpath\tapiVersion` multisets — size alone is not enough.
+    fn a_reintroduced_emit_identity_is_red() {
         let mut corpus = live_fixture();
         assert_eq!(
             corpus.upstream_emit_identities.len(),
             UPSTREAM_EMIT_SITE_CEILING
         );
-        corpus.upstream_emit_identities[0] =
-            "os/core/k8s-control-domain/src/admission.rs\tbatch/v1".to_owned();
+        corpus.upstream_emit_identities.push(
+            "os/core/k8s-control-domain/src/admission.rs\tbatch/v1".to_owned(),
+        );
         assert!(has_code(
             &evaluate(&corpus),
             FindingCode::UpstreamKubernetesSurfaceGrowth

@@ -1,9 +1,0 @@
-val	0	unknown
-val	1	init
-val	2	controlplane
-val	3	worker
-parse	unknown	0
-parse	init	1
-parse	controlplane	2
-parse	worker	3
-parse	__nope__	ERR

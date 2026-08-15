@@ -34,7 +34,6 @@ members = [
   # nothing as `oya/`, `libs/`, `tools/` and `cloud/` empty out.
   "libs/oya-*",
   "oya/*/crates/oya-*",
-  "cloud/cloud-os/crates/oya-*",
   "oya/office/oya-*",
   "tools/oya-*",
   "tools/*-app",
@@ -46,7 +45,6 @@ members = [
   "governance/corpus/*",
   "governance/check/*",
   "intelligence/testing/*",
-  "os/harness/*",
 
   # The owned deterministic port engine (ADR-0637 D1, archived; live via apex ADR-0704). This ONE
   # entry is the ADR-0538 exception that decision authorizes by name: `build/port-engine/` is a new
@@ -82,9 +80,6 @@ members = [
 exclude = [
   # Workspace carve-outs and non-crate directories the layer globs over-match.
   #
-  # `kernel` and `cloud/cloud-kernel` are their own workspaces (ADR-0512 carve-out) — excluded
-  # because they are separate roots, not because a glob over-matched them.
-  #
   # `ci/facade/harness` and `storage/adapters/nativelink` are directories the layer globs
   # match that hold no [package] manifest (harness holds process-kit JSON mirrors only;
   # nativelink is the dark NativeLink CAS/AC k8s declaration + OWNERS
@@ -100,13 +95,9 @@ exclude = [
   # above do not match them. That is the point of the change — a capability move no longer adds
   # an exclusion for satellite dirs outside the four faces.
   "ci/facade/harness",
-  "cloud/cloud-kernel",
   "governance/check/integ-envelope",
   # New on integ/governance tip; exclude until integ/build (root_manifests sole owner) absorbs Cargo.lock membership.
   "governance/check/apex-gist-integrity",
-  # os/harness/{attestation-relying-party,oci-executor-oracle} absorbed into
-  # Cargo.lock sole-owner membership on #1934 (expires integ-os-cargo-lock-bridge).
-  "kernel",
   "storage/adapters/nativelink",
 ]
 resolver = "2"

@@ -272,14 +272,6 @@
       ],
       "note": "Top-level capability root (ADR-0701). Governed under Swarm Delivery Law — ownership = path = integ scope (ADR-0711 D-9)."
     },
-    "kernel": {
-      "branch": "integ/kernel",
-      "envelope_globs": [
-        "kernel/**"
-      ],
-      "note": "Top-level owned-stack kernel root (ADR-0701). Forward-declared envelope hole close (northstar-envelope-holes).",
-      "forward_declared": true
-    },
     "learning-management": {
       "branch": "integ/learning-management",
       "envelope_globs": [
@@ -344,12 +336,6 @@
       ],
       "note": "Forward-declared multi-month PRODUCT rail (programme plan rule 3d). Forever path app/office/**; rehome from oya/office. Product subtree claims via integ/office — integ/app is composition glue only.",
       "forward_declared": true
-    },
-    "os": {
-      "branch": "integ/os",
-      "envelope_globs": [
-        "os/**"
-      ]
     },
     "oya": {
       "branch": "integ/oya",
@@ -1259,8 +1245,6 @@
       "console/": "keep_forever",
       "compliance/": "keep_forever",
       "comms/": "keep_forever",
-      "kernel/": "keep_forever",
-      "os/": "keep_forever",
       "build/": "keep_forever",
       "third-party/": "keep_forever",
       "registry/": "keep_forever",
@@ -2357,94 +2341,6 @@
         "judgment_status": "pending",
         "rationale": "PROVISIONAL reorg_now → `os/, kernel/, <capability>/, build/` shape `strangler source → durable meta/capability homes`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
         "destination": "os/, kernel/, <capability>/, build/"
-      },
-      {
-        "path": "cloud/cloud-os/",
-        "action": "reorg_now",
-        "greenfield_destination": "os/",
-        "destination": "os/",
-        "shape": "strangler residual burn into META os/{core,harness}/; delete dual-home under cloud/",
-        "redesign": "rewrite",
-        "judgment_status": "done",
-        "disposition": "rewrite-into-durable-shape",
-        "name_now": "cloud/cloud-os/",
-        "name_forever": "os/",
-        "kind": "meta-root",
-        "grammar_compliant": true,
-        "lenses_applied": "all-16",
-        "challenges": [
-          "cartesian_doubt: #1607 claims zero-crate residual — origin/dev still has 4 crates under cloud/cloud-os/crates/** (56 paths); challenge stands, judgment must not encode zero-crate fiction",
-          "chestertons_fence: MOVE-3 (#1416) already landed forever crates under os/{core,harness}/; cloud/cloud-os remains accidental dual-home + stale manifest, not a second OS authority",
-          "essentialism_yagni: one META os/ home; cloud/cloud-os path must not survive",
-          "contrarian: do not land #1607 agent/* trunk PR; harvest intent (manifest→os/, delete dual-home) onto integ/os + integ/cloud rails only",
-          "pragmatism: absorb missing forever pieces (os/manifest.json + any crate delta) on integ/os; delete drained cloud/cloud-os/** on integ/cloud — no hub retarget on this judgment tip",
-          "systems_thinking: dual crate trees (cloud oya-cloud-os-* vs os/core/*) already both_exist for cluster-mgmt/kubernetes/secrets/trustd — rewrite/merge, not git-mv-only",
-          "blast_radius_cell: path drain envelope-bounded to cloud/** + os/**; hubs (capability-registry/masterplan/reachability/Cargo.lock) wait tip-free integ/specs window",
-          "opportunity_cost: leaving dual-home guarantees further #1607-style wrong zero-crate claims and registry floor drift",
-          "zero_trust: fail closed on any Claim that treats agent/reorg-cloud-os-residual as admission-legal trunk head",
-          "red_team: partial delete of cloud/cloud-os without os/manifest absorb orphans microservice registry consumers",
-          "operability_day2: after burn, sole runtime/OS ownership is os/ — Day-2 debug starts there, never cloud/cloud-os",
-          "finops_unit_cost: dual compile graphs for same domains waste CI; one forever home",
-          "shared_nothing: os/ is the durable shared-nothing cell; cloud/ strangler is transitional only",
-          "constant_work: judgment-first then path drain — no reactive mega-move under hot #1644 hubs",
-          "socratic: question behind zero-crate claim is 'is strangler empty?' — measured answer is no; residual burn remains",
-          "outside_the_box: supersede #1607 after harvest; do not reopen agent/* for this residual"
-        ],
-        "rationale": "1) Hosts residual Talos-style OS domain crates + microservice manifest still under cloud/cloud-os (4 crates / 56 crate paths on origin/dev) while MOVE-3 forever copies live under os/core. 2) Dual-home strangler leftover written as brand-prefixed cloud nest — accidental vs ADR-0701 META os/. 3) Provide node-OS domain assets for owned stack. 4) OS capability must exist at os/; cloud/cloud-os must not. 5) Fit: META os/{core,harness}/ is the registered forever home; cloud/ is reorg_now strangler source. 6) rewrite-into-durable-shape: content-merge/absorb residual (manifest + crate deltas) into os/, then delete cloud/cloud-os/** — redesign=rewrite (not git-mv-only). 7) Forever: os/ (integ/os absorb + integ/cloud delete).",
-        "evidence": [
-          "git ls-tree -r --name-only origin/dev -- cloud/cloud-os/crates/ | wc -l → 56 (not zero-crate)",
-          "cloud/cloud-os/crates/{oya-cloud-os-cluster-mgmt-domain,oya-cloud-os-kubernetes-domain,oya-cloud-os-secrets-domain,oya-cloud-os-trustd-domain} dual-exist with os/core/{cluster-mgmt-domain,kubernetes-domain,secrets-domain,trustd-domain}",
-          "os/manifest.json absent on origin/dev; cloud/cloud-os/manifest.json still present (harvest target)",
-          "PR #1607 intent: burn residual into os/; head agent/* admission-forbidden — do not merge as land vehicle"
-        ],
-        "destination_integ": "integ/os",
-        "land_when": "Wave-2: integ/os absorbs forever residual (os/manifest.json + any missing crate bytes) coordinating one-writer with hot #1643; integ/cloud deletes drained cloud/cloud-os/**; hub retargets only on tip-free integ/specs — not this judgment commit",
-        "land_status": "ready_for_integ_os",
-        "shrink_source_integ": "integ/cloud"
-      },
-      {
-        "path": "cloud/cloud-kernel/",
-        "action": "reorg_now",
-        "greenfield_destination": "kernel/",
-        "destination": "kernel/",
-        "shape": "strangler framekernel absorb into META kernel/{core,harness}/; delete dual-home under cloud/",
-        "redesign": "rewrite",
-        "judgment_status": "done",
-        "disposition": "rewrite-into-durable-shape",
-        "name_now": "cloud/cloud-kernel/",
-        "name_forever": "kernel/",
-        "kind": "meta-root",
-        "grammar_compliant": true,
-        "lenses_applied": "all-16",
-        "challenges": [
-          "chestertons_fence: MOVE-3 dual-home put OS domain crates under os/ — os/core/kernel is os-kernel (Talos migration traits), NOT the kuberos framekernel; do not collapse cloud-kernel into os/",
-          "cartesian_doubt: kernel/ on origin/dev is only asterinas-boundary + asterinas-real-boot (15 paths) while cloud/cloud-kernel holds the full nested no_std framekernel workspace — incomplete strangler, not empty dest",
-          "essentialism_yagni: one rung-0 META kernel/ forever; cloud/cloud-kernel brand nest must not survive",
-          "contrarian: reject os/ as forever dest for framekernel despite os/core/kernel name collision — different package (os-kernel vs kuberos)",
-          "pragmatism: rewrite absorb cloud/cloud-kernel crates into kernel/{core,harness}/ on integ/kernel; delete source on integ/cloud; keep nested workspace / no_std carve-out semantics",
-          "systems_thinking: integ/kernel is forward-declared envelope; land must not orphan arch adapters / user-layout harnesses",
-          "blast_radius_cell: path work on integ/kernel + integ/cloud only; no hub edits on this tip",
-          "opportunity_cost: parking framekernel under cloud/ prolongs brand-prefix grammar banned by evaluation_gate",
-          "zero_trust: do not treat cloud/cloud-kernel Cargo.lock nested workspace as root-workspace authority",
-          "red_team: renaming into os/core/kernel would smash os-kernel traits crate and confuse Day-2 owners",
-          "operability_day2: bare-metal bring-up lives under kernel/; OS node domains stay under os/",
-          "finops_unit_cost: one nested kernel workspace forever avoids duplicate CI graphs",
-          "shared_nothing: kernel/ is rung-0 cell separate from os/ and root cargo workspace (ADR-0512 carve-out)",
-          "constant_work: judgment closes now; path absorb waits owning integs — no reactive mega-PR",
-          "socratic: is dual-home with os/ justified by MOVE-3? No — MOVE-3 fence protects OS domains, not framekernel placement",
-          "outside_the_box: HANDOFF founder dest for kuberos is kernel/ META; cloud/ path is transitional strangler only"
-        ],
-        "rationale": "1) Nested no_std kuberos framekernel (HAL/frame/arch adapters/ksync/user-layout) under cloud/cloud-kernel. 2) Brand-prefixed strangler dual-home vs incomplete kernel/ META (asterinas only today). 3) Provide rung-0 owned microkernel. 4) Framekernel must exist at kernel/; cloud/cloud-kernel must not; must not fold into os/ (os/core/kernel is different crate). 5) Fit: META kernel/{core,harness}/ per envelopes keep_forever shape + ADR-0701. 6) rewrite-into-durable-shape absorb into kernel/, delete cloud/cloud-kernel/** — redesign=rewrite. 7) Forever: kernel/ (integ/kernel absorb + integ/cloud delete).",
-        "evidence": [
-          "cloud/cloud-kernel/Cargo.toml: nested workspace members oya-cloud-kernel-{app,hal,frame,arch-*,ksync,user-layout}",
-          "kernel/ on origin/dev: only core/asterinas-boundary + harness/asterinas-real-boot (15 paths)",
-          "os/core/kernel Cargo.toml package name=os-kernel — Talos migration primitives, not framekernel",
-          "envelopes roots.kernel forward_declared integ/kernel → kernel/**; roots.os → os/**"
-        ],
-        "destination_integ": "integ/kernel",
-        "land_when": "After this judgment: integ/kernel absorbs framekernel into kernel/{core,harness}/ (rewrite); integ/cloud deletes drained cloud/cloud-kernel/**; do not route into os/; hub retargets on tip-free integ/specs only",
-        "land_status": "ready_for_integ_kernel",
-        "shrink_source_integ": "integ/cloud"
       },
       {
         "path": "oya/payments/",
@@ -4292,26 +4188,6 @@
         "destination": "comms/{core,ports,adapters,facade}/"
       },
       {
-        "path": "kernel/",
-        "action": "keep_forever",
-        "greenfield_destination": "kernel/{core,harness}/",
-        "shape": "META rung-0",
-        "redesign": "none",
-        "judgment_status": "pending",
-        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `kernel/` → `kernel/{core,harness}/` (META rung-0). Full 7-point judgment still pending before structural change.",
-        "destination": "kernel/{core,harness}/"
-      },
-      {
-        "path": "os/",
-        "action": "keep_forever",
-        "greenfield_destination": "os/{core,harness}/",
-        "shape": "META rung-1",
-        "redesign": "none",
-        "judgment_status": "pending",
-        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `os/` → `os/{core,harness}/` (META rung-1). Full 7-point judgment still pending before structural change.",
-        "destination": "os/{core,harness}/"
-      },
-      {
         "path": "build/",
         "action": "keep_forever",
         "greenfield_destination": "build/",
@@ -5238,26 +5114,6 @@
         "redesign": "rewrite",
         "destination_integ": "integ/docs",
         "status": "judged_destination_overturned_to_evidence_audits_not_audit_capability"
-      },
-      {
-        "id": "W-cloud-leaf-cloud-os",
-        "path": "cloud/cloud-os/",
-        "judgment_status": "done",
-        "action": "reorg_now",
-        "redesign": "rewrite",
-        "destination_integ": "integ/os",
-        "land_status": "ready_for_integ_os",
-        "status": "judgment_closed_on_integ_specs_wave1"
-      },
-      {
-        "id": "W-cloud-leaf-cloud-kernel",
-        "path": "cloud/cloud-kernel/",
-        "judgment_status": "done",
-        "action": "reorg_now",
-        "redesign": "rewrite",
-        "destination_integ": "integ/kernel",
-        "land_status": "ready_for_integ_kernel",
-        "status": "judgment_closed_on_integ_specs_wave1"
       },
       {
         "id": "W-oya-leaf-payments",

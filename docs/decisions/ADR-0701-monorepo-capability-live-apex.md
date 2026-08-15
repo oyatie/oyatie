@@ -37,6 +37,14 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ## Decision
 
+### 2026-08-15 node-substrate essentialism amendment
+
+- **achieves:** keep the owned-stack boundary at differentiated product value instead of preserving copied host inventory.
+- **origin:** consumer analysis found no production consumer of `kernel/` and only the IAM trust engine plus its value types consumed outside the 44-crate Talos-derived `os/` graph; the neutral port engine also has no registered OS producer today.
+- **rule:** `kernel/` and `os/` are retired as repository roots. Host kernels and node operating systems are consumed, pinned deployment inputs. The live IAM trust engine and its irreducible value types live under `iam/core/`. A future owned implementation starts from a current requirement and a registered deterministic producer; git history is recovery, never a keep-just-in-case reason.
+- **ensure:** the closed capability registry, integration envelopes, root workspace, scan policies, and masterplan reject reintroduction; no generated region may be claimed until its producer and receipt axes exist.
+- **overturn_when:** measured product requirements identify a host responsibility that cannot be met by a consumed input or deterministic generation, and the replacement ships its consumer, failure tests, ownership, and lifecycle in the same change.
+
 1. **This ADR is the live reading entry** for topic `monorepo_capability` under the end-state ADR policy.
 2. **Member ADRs listed in `supersedes`** are historical; normative gist is preserved below.
 3. **Contradictions** among members are resolved by later higher-number members and by

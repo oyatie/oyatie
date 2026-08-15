@@ -279,7 +279,7 @@ fn the_committed_policy_scans_every_crate_owning_destination_root() {
     let repo = new_temp_repo();
     let root = &repo.root;
     let policy = fixture_policy(root);
-    for meta in ["app", "base", "kernel", "os"] {
+    for meta in ["app", "base"] {
         write_file(
             root,
             &format!("{meta}/member/Cargo.toml"),
@@ -293,7 +293,7 @@ fn the_committed_policy_scans_every_crate_owning_destination_root() {
         .iter()
         .map(|c| c.as_str().unwrap_or_default().to_owned())
         .collect();
-    for meta in ["app", "base", "kernel", "os"] {
+    for meta in ["app", "base"] {
         assert!(
             collected.contains(&format!("{meta}/member")),
             "the committed scan_roots must walk the `{meta}/` destination; collected {collected:?}"

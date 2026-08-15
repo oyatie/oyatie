@@ -1,0 +1,29 @@
+[package]
+name = "os-trustd-domain"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+description = "Rust port of the Talos trustd subsystem: cluster CA, PKI, certificate issuance/signing, the SecurityService API, join-token verification, and node cert rotation."
+
+[features]
+# Deterministic *modeled* crypto stand-ins (`JoinToken::derive`). Non-default and
+# never enabled by any production target: a derived join token is fully
+# predictable from the cluster seed. Test builds get it via `cfg(test)`.
+modeled-crypto = []
+
+[lib]
+name = "os_trustd_domain"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+os-kernel = { path = "../node-platform-types" }
+aws-lc-rs = { workspace = true }
+rcgen = { workspace = true }
+time = { workspace = true }
+x509-parser = { workspace = true }
+
+[lints]
+workspace = true
