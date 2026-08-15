@@ -588,7 +588,11 @@
         },
         "verification": {
           "checker_crate": "//ci/facade/contract-slice-conformance:ci-contract-slice-conformance-gate",
-          "command": "buck2 test //ci/facade/contract-slice-conformance:ci-contract-slice-conformance-gate"
+          "command": "buck2 test //ci/facade/contract-slice-conformance:ci-contract-slice-conformance-gate",
+          "status": "planned",
+          "prerequisite_for_operational": [
+            "contract-slice-conformance gate retired with ADR-0718; re-wire to a surviving verifier before marking operational"
+          ]
         },
         "validation": {
           "validator": "JSON syntax plus pack/tier/regime/region and strictest-tier assertions"
@@ -2535,7 +2539,11 @@
         },
         "verification": {
           "checker_crate": "//ci/facade/contract-slice-conformance:ci-contract-slice-conformance-gate",
-          "command": "buck2 test //ci/facade/contract-slice-conformance:ci-contract-slice-conformance-gate"
+          "command": "buck2 test //ci/facade/contract-slice-conformance:ci-contract-slice-conformance-gate",
+          "status": "planned",
+          "prerequisite_for_operational": [
+            "contract-slice-conformance gate retired with ADR-0718; re-wire to a surviving verifier before marking operational"
+          ]
         },
         "validation": {
           "validator": "JSON syntax plus RESIDENCY-001 structural assertions for tiers, signatures, footprint, registries, matrix, and audit-event refs"
@@ -2567,7 +2575,11 @@
         },
         "verification": {
           "checker_crate": "//ci/facade/contract-slice-conformance:ci-contract-slice-conformance-gate",
-          "command": "buck2 test //ci/facade/contract-slice-conformance:ci-contract-slice-conformance-gate"
+          "command": "buck2 test //ci/facade/contract-slice-conformance:ci-contract-slice-conformance-gate",
+          "status": "planned",
+          "prerequisite_for_operational": [
+            "contract-slice-conformance gate retired with ADR-0718; re-wire to a surviving verifier before marking operational"
+          ]
         },
         "validation": {
           "validator": "JSON syntax plus wire-class, registry-class, payload, severity, and no-emitter-claim assertions"
@@ -2599,7 +2611,11 @@
         },
         "verification": {
           "checker_crate": "//ci/facade/contract-slice-conformance:ci-contract-slice-conformance-gate",
-          "command": "buck2 test //ci/facade/contract-slice-conformance:ci-contract-slice-conformance-gate"
+          "command": "buck2 test //ci/facade/contract-slice-conformance:ci-contract-slice-conformance-gate",
+          "status": "planned",
+          "prerequisite_for_operational": [
+            "contract-slice-conformance gate retired with ADR-0718; re-wire to a surviving verifier before marking operational"
+          ]
         },
         "validation": {
           "validator": "JSON syntax plus region-id/tier/cell-pattern/source-regime assertions"
@@ -2631,7 +2647,11 @@
         },
         "verification": {
           "checker_crate": "//ci/facade/contract-slice-conformance:ci-contract-slice-conformance-gate",
-          "command": "buck2 test //ci/facade/contract-slice-conformance:ci-contract-slice-conformance-gate"
+          "command": "buck2 test //ci/facade/contract-slice-conformance:ci-contract-slice-conformance-gate",
+          "status": "planned",
+          "prerequisite_for_operational": [
+            "contract-slice-conformance gate retired with ADR-0718; re-wire to a surviving verifier before marking operational"
+          ]
         },
         "validation": {
           "validator": "JSON syntax plus regime-id/tier/region/attestor cross-reference assertions"

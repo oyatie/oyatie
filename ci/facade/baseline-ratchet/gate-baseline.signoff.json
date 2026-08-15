@@ -36,7 +36,7 @@
       },
       {
         "date": "2026-08-14",
-        "authorized_by": "pending-founder-ratification (ADR-0718 registry/catalog bookkeeping retirement)",
+        "authorized_by": "founder (directive 2026-08-14, anti-friction wave 4; ADR-0718 frontmatter status Accepted, deciders founder)",
         "rationale": "Admit ADR-0718 (Accepted) as unpropagated_decision. Every new Accepted ADR is born with in_spec=true/in_masterplan=false/in_roadmap=false — the same pattern as the existing unpropagated ADRs (ADR-0280/0392/0510/0515, ADR-0516..0535, ADR-0572, all admitted by prior signings). Propagation to masterplan/roadmap is the converge-and-wire step that happens after the ADR is accepted, not as part of the retirement PR. Firewall predicates byte-UNCHANGED.",
         "adr": "ADR-0718"
       }
