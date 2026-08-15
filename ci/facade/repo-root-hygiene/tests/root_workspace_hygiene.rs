@@ -457,6 +457,13 @@ fn corpus_budget_reductions_must_lower_the_frozen_ceiling() {
         return; // this PR introduces the block; nothing to compare against yet
     };
 
+    let reviewed_raises = policy
+        .get("corpus_budget")
+        .and_then(|budget| budget.get("reviewed_raises"))
+        .and_then(serde_json::Value::as_object)
+        .cloned()
+        .unwrap_or_default();
+
     let observed = observed_from_scm_facts(&root);
     let observed_counts = ci_repo_root_hygiene::corpus_class_counts(&policy, &observed);
     for (class, frozen) in candidate_counts {
@@ -465,9 +472,21 @@ fn corpus_budget_reductions_must_lower_the_frozen_ceiling() {
             panic!("protected policy must carry the same corpus class {class}");
         };
         let candidate = frozen.as_u64().expect("candidate ceiling must be an integer");
+        // A deliberate ceiling RAISE is admitted only via a reviewed_raises entry naming the
+        // exact from -> to move (ADR-0717 item 3: "a deliberate budget change is a reviewed DATA
+        // edit"). Any other growth is shrink-only born-blocking, and a stale entry (from/to not
+        // matching the merge-base and candidate ceilings) fails closed.
+        let reviewed_raise = reviewed_raises
+            .get(class)
+            .and_then(serde_json::Value::as_object)
+            .is_some_and(|entry| {
+                entry.get("from").and_then(serde_json::Value::as_u64) == Some(protected)
+                    && entry.get("to").and_then(serde_json::Value::as_u64) == Some(candidate)
+            });
         assert!(
-            candidate <= protected,
-            "corpus_budget.counts.{class} grew from {protected} to {candidate} without review; budgets are shrink-only"
+            candidate <= protected || reviewed_raise,
+            "corpus_budget.counts.{class} grew from {protected} to {candidate} without a matching \
+             reviewed_raises entry; budgets are shrink-only unless a deliberate raise is recorded"
         );
         let observed_count = observed_counts.get(class).copied().unwrap_or(0) as u64;
         if ci_repo_root_hygiene::corpus_class_reduction_leaves_headroom(

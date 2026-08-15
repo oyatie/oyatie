@@ -348,6 +348,19 @@
       "planning_files": 11,
       "docs_markdown_files": 1434,
       "live_adr_files": 19
+    },
+    "reviewed_raises": {
+      "$comment": "ADR-0717 item 3: a deliberate budget change is a reviewed DATA edit. A class listed here with an exact from->to move sanctions that ONE raise in the live merge-base test (corpus_budget_reductions_must_lower_the_frozen_ceiling); any other growth is born-blocking shrink-only. Stale entries (from/to not matching the merge-base and candidate ceilings) fail closed.",
+      "docs_markdown_files": {
+        "from": 1433,
+        "to": 1434,
+        "reason": "ADR-0718 adds docs/decisions/ADR-0718-registry-catalog-bookkeeping-retirement.md (a docs markdown)."
+      },
+      "live_adr_files": {
+        "from": 18,
+        "to": 19,
+        "reason": "ADR-0718 adds docs/decisions/ADR-0718-registry-catalog-bookkeeping-retirement.md, a new live apex."
+      }
     }
   }
 }
