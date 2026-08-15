@@ -1915,7 +1915,7 @@ fn interpreter_command_authority_dimension_is_enabled_for_rust_automation_source
         .filter_map(Value::as_str)
         .collect();
     assert!(
-        roots.contains(&"ci") && roots.contains(&"libs") && roots.contains(&"tools"),
+        roots.contains(&"cloud/cloud-ci") && roots.contains(&"libs") && roots.contains(&"tools"),
         "Rust automation/gate source roots must be declared for interpreter-command authority scan; got {roots:?}"
     );
     let excluded: Vec<&str> = block["exclude_prefixes"]
@@ -1985,7 +1985,7 @@ fn cli_package_authority_dimension_is_enabled_for_infrastructure_roots() {
         .filter_map(Value::as_str)
         .collect();
     assert!(
-        roots.contains(&"os") && roots.contains(&"infra") && roots.contains(&"tools"),
+        roots.contains(&"cloud") && roots.contains(&"infra") && roots.contains(&"tools"),
         "infrastructure/cloud/tooling roots must be scanned for CLI-first package births; got {roots:?}"
     );
 }

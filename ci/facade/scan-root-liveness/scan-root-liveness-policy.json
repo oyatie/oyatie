@@ -69,9 +69,16 @@
     }
   },
   "baselined_dead_roots": [
-    "ci/facade/module-membership/capability-membership-policy.json::/scan_roots::cloud",
+    "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/cli_package_authority/roots::cloud",
+    "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/interpreter_command_authority/roots::cloud/cloud-ci",
     "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/roots::bin",
+    "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/roots::cloud",
     "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/workflow_forbidden_uses/roots::.github/actions",
-    "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/workflow_inline_shell/roots::.github/actions"
+    "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/workflow_inline_shell/roots::.github/actions",
+    "ci/facade/caller-supplied-authorization/dto-authz-trust-policy.json::/scan_roots::cloud",
+    "ci/facade/embedded-asset-hermeticity/embedded-asset-hermeticity-policy.json::/scan_roots::cloud",
+    "ci/facade/endpoint-authorization-coverage/authz-coverage-policy.json::/scan_roots::cloud",
+    "ci/facade/layer-dependency-acyclicity/tier-dependency-acyclicity-policy.json::/crate_root_globs::cloud/*/crates/oya-*",
+    "ci/facade/module-membership/capability-membership-policy.json::/scan_roots::cloud"
   ]
 }
