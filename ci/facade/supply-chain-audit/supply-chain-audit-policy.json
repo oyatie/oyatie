@@ -8,19 +8,11 @@
       "lockfile_path": "Cargo.lock"
     },
     {
-      "manifest_path": "cloud/cloud-kernel/Cargo.toml",
-      "lockfile_path": "cloud/cloud-kernel/Cargo.lock"
-    },
-    {
-      "manifest_path": "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-aarch64-adapter/tests-host/Cargo.toml",
-      "lockfile_path": "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-aarch64-adapter/tests-host/Cargo.lock"
-    },
-    {
       "manifest_path": "kernel/Cargo.toml",
       "lockfile_path": "kernel/Cargo.lock"
     }
   ],
-  "min_lockfiles": 4,
+  "min_lockfiles": 2,
   "scm_facts_path": "ci/facade/artifact-inventory-registry/scm-facts.generated.json",
   "mirror_dir": "ci/facade/supply-chain-audit/advisory-mirror",
   "unmaintained_policy": "all",

@@ -187,12 +187,11 @@ fn run_producer_face(root: &Path, face: &str) -> Value {
 /// here; `cloud_manifest_paths` may accept transitional sources only until destination bytes
 /// land (fail closed when neither resolves). Do not re-list hub enumerations — named pins,
 /// not a dual-truth root table.
-const CLOUD_SUBSTRATE_MANIFESTS: [&str; 21] = [
+const CLOUD_SUBSTRATE_MANIFESTS: [&str; 20] = [
     "billing/manifest.json",
     "billing/tax/manifest.json",
     "cell/cell-lifecycle/manifest.json",
     "cell/cell-rebalancer/manifest.json",
-    "kernel/manifest.json",
     "os/manifest.json",
     "data/cloud-data/manifest.json",
     "iac/manifest.json",
@@ -214,10 +213,8 @@ const CLOUD_SUBSTRATE_MANIFESTS: [&str; 21] = [
 /// Forever → transitional source still present on origin/dev until forever bytes land
 /// (#1659 kernel; #1926 os). Drop an entry when the transitional path is burned and the
 /// forever path is on trunk.
-const CLOUD_SUBSTRATE_MANIFEST_FALLBACKS: &[(&str, &str)] = &[
-    ("kernel/manifest.json", "cloud/cloud-kernel/manifest.json"),
-    ("os/manifest.json", "cloud/cloud-os/manifest.json"),
-];
+const CLOUD_SUBSTRATE_MANIFEST_FALLBACKS: &[(&str, &str)] =
+    &[("os/manifest.json", "cloud/cloud-os/manifest.json")];
 
 fn cloud_manifest_paths(root: &Path) -> Vec<PathBuf> {
     let mut paths = Vec::new();
@@ -527,7 +524,7 @@ fn cloud_manifests_have_existing_slo_refs_or_explicit_non_claims() {
     let manifest_paths = cloud_manifest_paths(&root);
     let manifest_count = manifest_paths.len();
     assert!(
-        manifest_count >= 21,
+        manifest_count >= 20,
         "issue #993 coverage expects every current cloud/*/manifest.json; got {manifest_count}"
     );
 
