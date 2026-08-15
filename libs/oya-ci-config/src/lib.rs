@@ -45,10 +45,10 @@ const BUNDLED_TTL_JSON: &str = include_str!("bundled/ttl-policy.json");
 /// The closed-schema version (ADR-0533 §Decision item 5): a published `$id`/`$schema` + a
 /// `schema_version` so the closed schema can evolve without silently breaking adopters. Bumped
 /// when a breaking schema change ships; additive (back-compatible) keys do NOT bump it.
-pub const SCHEMA_VERSION: u32 = 2;
+pub const SCHEMA_VERSION: u32 = 3;
 
 /// The published `$id` URL for the closed `oya-ci.toml` schema (ADR-0533 §Decision item 5).
-pub const SCHEMA_ID: &str = "https://oya-ci.dev/schema/oya-ci-config/v2";
+pub const SCHEMA_ID: &str = "https://oya-ci.dev/schema/oya-ci-config/v3";
 
 /// The JSON-Schema dialect the published schema is authored against (ADR-0533 item 5).
 pub const SCHEMA_DIALECT: &str = "https://json-schema.org/draft/2020-12/schema";
@@ -1967,8 +1967,8 @@ face = "cross_artifact"
     #[test]
     fn schema_version_and_id_are_published() {
         assert_eq!(OyaCiConfig::oyatie().schema_version(), SCHEMA_VERSION);
-        assert_eq!(SCHEMA_VERSION, 2);
-        assert!(SCHEMA_ID.ends_with("/v2"));
+        assert_eq!(SCHEMA_VERSION, 3);
+        assert!(SCHEMA_ID.ends_with("/v3"));
         assert!(SCHEMA_ID.starts_with("https://"));
         assert!(SCHEMA_DIALECT.contains("json-schema.org"));
     }

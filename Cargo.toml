@@ -34,7 +34,6 @@ members = [
   # nothing as `oya/`, `libs/`, `tools/` and `cloud/` empty out.
   "libs/oya-*",
   "oya/*/crates/oya-*",
-  "cloud/cloud-os/crates/oya-*",
   "oya/office/oya-*",
   "tools/oya-*",
   "tools/*-app",
@@ -100,7 +99,6 @@ exclude = [
   # above do not match them. That is the point of the change — a capability move no longer adds
   # an exclusion for satellite dirs outside the four faces.
   "ci/facade/harness",
-  "cloud/cloud-kernel",
   "governance/check/integ-envelope",
   # New on integ/governance tip; exclude until integ/build (root_manifests sole owner) absorbs Cargo.lock membership.
   "governance/check/apex-gist-integrity",

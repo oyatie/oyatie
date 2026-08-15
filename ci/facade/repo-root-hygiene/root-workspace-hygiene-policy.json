@@ -344,7 +344,7 @@
       }
     },
     "counts": {
-      "evidence_files": 53,
+      "evidence_files": 52,
       "planning_files": 11,
       "docs_markdown_files": 1434,
       "live_adr_files": 19
