@@ -1,7 +1,0 @@
-# Match the kernel toolchain (nightly-only `-Z build-std` + rust-src).
-[toolchain]
-channel = "nightly-2026-02-28"
-components = ["rust-src", "rustfmt", "clippy", "llvm-tools"]
-targets = [
-    "x86_64-unknown-none",
-]
