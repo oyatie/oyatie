@@ -32,7 +32,7 @@
   "measured": {
     "_comment": "FINDING ceilings below remain ENFORCED by EQUALITY in live_tree_findings_equal_the_frozen_ceilings (semantic ADR oracle: mismatch / dangling_path / rejected_authority / …). Absolute census fields files_scanned / citation_lines / adr_records are ADVISORY ONLY — NOT merge blockers (PROCESS_TAX DELETE, audit 79f76050 / Fail-class law 2026-08-11). Do NOT hand re-freeze them on the PR path; anti-vacuity is machine-derived (git ls-files ∩ scan predicate + vacuous-scan refuse + min_* floors). Historical remeasure essays below retained as provenance, not as a duty to update on every land.",
     "_process_tax_delete_2026_08_11": "Deleted hand equality pins on files_scanned/citation_lines/adr_records as merge blockers. Values may lag tip; that lag is not a CI fail. Semantic finding ceilings still require same-change re-freeze when findings move.",
-    "run_at": "2026-08-09T12:50Z",
+    "run_at": "2026-08-14T21:30Z",
     "adr_records": 460,
     "live_apexes": 12,
     "archived": 448,
@@ -40,8 +40,8 @@
     "rejected": 16,
     "citation_lines": 8996,
     "files_scanned": 16632,
-    "adr_citation_closure_mismatch": 252,
-    "adr_citation_dangling_path": 2293,
+    "adr_citation_closure_mismatch": 242,
+    "adr_citation_dangling_path": 2262,
     "adr_citation_rejected_authority": 6,
     "adr_duplicate_id": 0,
     "adr_closure_asymmetry": 29,
@@ -87,7 +87,8 @@
     "_integ_governance_restack_1926_remeasure_2026_08_11": "PR #1647 restack onto origin/dev@fa067201e (#1926 os absorb). Union of governance tip reclaim paths + os absorb scanned corpus. PROCESS_TAX: files_scanned/citation_lines are provenance only (equality DELETED as merge blockers); finding ceilings remain. Re-measure values below from live gate after merge.",
     "_integ_app_glue_remeasure_2026_08_11_pr1668": "PR #1668 integ/app OVERRULE 3d glue-only restack onto origin/dev@fa067201e after #1926/#1935. Kept origin/dev policy tip including _integ_os_remeasure_2026_08_11_pr1926_tip_0922c0ac (oyatie-o90 — never trust git merge of this file; files_scanned=16629 citation_lines=8999). This branch adds exactly one non-exempt scanned path — app/README.md — plus extensionless app/OWNERS (not scanned). Tracked scanned-add delta 1 equals observed 16629->16630. citation_lines held at 8999 and finding ceilings held (mismatch 252, dangling_path 2295, rejected_authority 3, asymmetry 29, unresolvable 8, ambiguous 2) — corpus growth from glue README add, not scan narrowing or finding repair. Same change also retires landed app/ forward_declarations and registers reachability for app/README.md while preserving #1935 oyatie-0s8 reachability entries.",
     "_integ_governance_restack_1668_remeasure_2026_08_11": "PR #1647 restack onto origin/dev@bb53208ae (#1668). PROCESS_TAX: census equality remains off merge path; finding ceilings re-asserted by live gate after merge.",
-    "_integ_docs_restack_remeasure_2026_08_11_pr1645_after_1646": "PR #1645 integ/docs restack onto origin/dev@9e086c122 after #1646 land. Kept origin/dev policy tip (oyatie-o90) then live-derived. adr_citation_dangling_path 2295 -> 2293. Other finding ceilings held. No Cargo.lock authorship on this lane."
+    "_integ_docs_restack_remeasure_2026_08_11_pr1645_after_1646": "PR #1645 integ/docs restack onto origin/dev@9e086c122 after #1646 land. Kept origin/dev policy tip (oyatie-o90) then live-derived. adr_citation_dangling_path 2295 -> 2293. Other finding ceilings held. No Cargo.lock authorship on this lane.",
+    "_cloud_delete_remeasure_2026_08_14": "Re-frozen on the founder's clean-slate dev push c2ee2631a (cloud/ deleted): corpus shrink by repair — mismatch 252 -> 242 and dangling_path 2293 -> 2262. The +1 asymmetry/+1 ambiguous were the ADR-0560 supersession asymmetry (ADR-0716 lists ADR-0560, ADR-0560 declared ADR-0700) — repaired at the root: ADR-0560 superseded_by -> [ADR-0716], ADR-0700's supersedes no longer claims ADR-0560; ceilings hold at 29/2. Shrink-only: nothing raised."
   },
   "product_contract": {
     "born_blocking": "Born BLOCKING and RED. Unlike a coverage ratchet there is no defensible ceiling here: a citation that resolves to the wrong apex is not debt to be burned down, it is a statement that is false today, and freezing a ceiling would licence the corpus to keep lying at its current rate. The gate reports every mismatch and fails until they are repaired.",
