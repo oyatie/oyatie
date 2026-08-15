@@ -1,7 +1,0 @@
-# Intentionally no Buck2 target yet.
-#
-# This arch backend needs the pinned-nightly build-std
-# aarch64-unknown-none-softfloat platform plus nested-workspace no_std third-party
-# deps. Exposing it as a placeholder Buck2 target before that platform/toolchain
-# exists makes direct builds fail while wildcard builds skip it, which is
-# false-green CI coverage. See //cloud/cloud-kernel:BUCK.
