@@ -10,6 +10,7 @@
   ],
   "registry_path": "governance/capability-registry.json",
   "scan_roots": [
+    "cloud",
     "oya",
     "libs",
     "tools",

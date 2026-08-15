@@ -69,6 +69,7 @@
     }
   },
   "baselined_dead_roots": [
+    "ci/facade/module-membership/capability-membership-policy.json::/scan_roots::cloud",
     "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/roots::bin",
     "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/workflow_forbidden_uses/roots::.github/actions",
     "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/workflow_inline_shell/roots::.github/actions"
