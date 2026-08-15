@@ -1001,26 +1001,40 @@ fn collect_slo_coverage(
 /// Line-scoped parse of an OpenSLO envelope's `metadata.name` — the declaration anchor every
 /// tracked SLO file must carry. `None` when the `metadata:` block has no non-blank `name:`, which
 /// the evaluator reports as `slo_missing_or_blank_slo` keyed by the file path.
+///
+/// Only the envelope-level `metadata:` block (the top-level key) is scanned: a nested
+/// `spec.indicator.name` or `spec.indicator.metadata.name` must never be mistaken for the
+/// envelope identity. The scan ends when a key at the `metadata:` block's own indentation (or
+/// shallower) closes the block.
 fn openslo_envelope_name(contents: &str) -> Option<String> {
-    let mut in_metadata = false;
+    let mut metadata_indent: Option<usize> = None;
     for line in contents.lines() {
         let trimmed = line.trim();
         if trimmed.is_empty() || trimmed.starts_with('#') {
             continue;
         }
+        let indent = line.len() - line.trim_start().len();
         let Some((key, value)) = trimmed.split_once(':') else {
             continue;
         };
-        match key.trim() {
-            "metadata" => in_metadata = true,
-            "name" if in_metadata => {
-                let value = value.trim().trim_matches('"').trim_matches('\'');
-                if value.is_empty() {
-                    return None;
+        let key = key.trim();
+        match metadata_indent {
+            // Outside the envelope metadata block: only a top-level `metadata:` opens it.
+            None => {
+                if indent == 0 && key == "metadata" {
+                    metadata_indent = Some(indent);
                 }
-                return Some(value.to_owned());
             }
-            _ => {}
+            // Inside the envelope metadata block: a sibling/parent key (indent <= the
+            // `metadata:` indent) closes it; a `name:` at a deeper indent is the declaration.
+            Some(meta_indent) => {
+                if indent <= meta_indent {
+                    metadata_indent = None;
+                } else if key == "name" {
+                    let value = value.trim().trim_matches('"').trim_matches('\'');
+                    return if value.is_empty() { None } else { Some(value.to_owned()) };
+                }
+            }
         }
     }
     None
@@ -2357,6 +2371,50 @@ status: Accepted
         );
 
         fs::remove_dir_all(root).expect("remove temp repo");
+    }
+
+    /// A nested `spec.indicator.metadata.name` (or `spec.indicator.name`) must never be
+    /// accepted as the envelope declaration when the envelope `metadata:` block omits its
+    /// own `name:` — otherwise the promotion gate falsely accepts a malformed envelope.
+    #[test]
+    fn openslo_envelope_name_ignores_nested_spec_names_after_metadata_block_closes() {
+        let nested_indicator_metadata = concat!(
+            "apiVersion: openslo/v1\n",
+            "kind: SLO\n",
+            "metadata:\n",
+            "  displayName: envelope without identity\n",
+            "spec:\n",
+            "  indicator:\n",
+            "    metadata:\n",
+            "      name: calendar-agenda-render-p95\n",
+        );
+        assert_eq!(
+            openslo_envelope_name(nested_indicator_metadata),
+            None,
+            "a nested spec.indicator.metadata.name is not the envelope declaration"
+        );
+
+        let nested_indicator_name = concat!(
+            "apiVersion: openslo/v1\n",
+            "kind: SLO\n",
+            "metadata:\n",
+            "  displayName: envelope without identity\n",
+            "spec:\n",
+            "  indicator:\n",
+            "    name: some-indicator\n",
+        );
+        assert_eq!(
+            openslo_envelope_name(nested_indicator_name),
+            None,
+            "a nested spec.indicator.name is not the envelope declaration"
+        );
+
+        let valid = "apiVersion: openslo/v1\nkind: SLO\nmetadata:\n  name: real-slo\n";
+        assert_eq!(
+            openslo_envelope_name(valid),
+            Some("real-slo".to_owned()),
+            "the envelope-level metadata.name is the declaration"
+        );
     }
     #[test]
     fn cargo_prefix_emits_debranded_candidate_as_advisory_coverage() {
