@@ -5162,6 +5162,7 @@ version = "0.1.0"
 dependencies = [
  "base64 0.22.1",
  "bytes",
+ "futures",
  "httpmock",
  "intelligence-kernel",
  "intelligence-rest",
@@ -7329,6 +7330,7 @@ dependencies = [
  "console_error_panic_hook",
  "leptos",
  "leptos_axum",
+ "oya-application-shell-frontend",
  "oya-shared-oidc-client-kernel",
  "oya-shared-platform-contracts-kernel",
  "serde",
