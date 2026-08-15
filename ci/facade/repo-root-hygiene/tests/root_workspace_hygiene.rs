@@ -445,8 +445,8 @@ fn corpus_budget_reductions_must_lower_the_frozen_ceiling() {
             // still runs through evaluate_keyed on the live tree.
             return;
         }
-        let protected: serde_json::Value = serde_json::from_slice(&output.stdout)
-            .expect("parse protected policy");
+        let protected: serde_json::Value =
+            serde_json::from_slice(&output.stdout).expect("parse protected policy");
         protected
             .get("corpus_budget")
             .and_then(|budget| budget.get("counts"))
@@ -467,11 +467,15 @@ fn corpus_budget_reductions_must_lower_the_frozen_ceiling() {
     let observed = observed_from_scm_facts(&root);
     let observed_counts = ci_repo_root_hygiene::corpus_class_counts(&policy, &observed);
     for (class, frozen) in candidate_counts {
-        let Some(protected) = protected_counts.get(class).and_then(serde_json::Value::as_u64)
+        let Some(protected) = protected_counts
+            .get(class)
+            .and_then(serde_json::Value::as_u64)
         else {
             panic!("protected policy must carry the same corpus class {class}");
         };
-        let candidate = frozen.as_u64().expect("candidate ceiling must be an integer");
+        let candidate = frozen
+            .as_u64()
+            .expect("candidate ceiling must be an integer");
         // A deliberate ceiling RAISE is admitted only via a reviewed_raises entry naming the
         // exact from -> to move (ADR-0717 item 3: "a deliberate budget change is a reviewed DATA
         // edit"). Any other growth is shrink-only born-blocking, and a stale entry (from/to not
