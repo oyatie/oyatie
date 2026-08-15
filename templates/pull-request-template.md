@@ -27,7 +27,7 @@ rfc_2119_active: true
 
 ## Verification
 
-- `cargo fmt --check` / `cargo clippy` / `cargo test` (or targeted equivalents) — `<PASS|FAIL>` — `<excerpt>`
+- `cargo fmt --check` / clippy (`--workspace --all-targets -- -D warnings`) / `cargo test` (or targeted equivalents); reviewer evidence rides the `oya-ci-required` context — `<PASS|FAIL>` — `<excerpt>`
 - `oya-ci-required` PR context — `<PASS|PENDING>` — `<check URL>`
 
 ## Code Review
@@ -35,3 +35,4 @@ rfc_2119_active: true
 - Reviewer: `<agent>` — verdict `<APPROVE|REQUEST CHANGES|PENDING>`
 - Resolved items: `<list>`
 - Deferred items: `<list with owners + follow-up issue refs>`
+- Review admission boundary: the trusted server-side/cloud-ci review producer (`F-PR5-06`) is **not live cloud admission enforcement** yet; the review thread plus the `oya-ci-required` context are the evidence until it is.
