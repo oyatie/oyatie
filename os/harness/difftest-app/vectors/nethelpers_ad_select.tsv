@@ -1,7 +1,0 @@
-val	0	stable
-val	1	bandwidth
-val	2	count
-parse	stable	0
-parse	bandwidth	1
-parse	count	2
-parse	__nope__	ERR

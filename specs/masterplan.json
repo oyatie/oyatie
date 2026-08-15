@@ -7166,50 +7166,6 @@
         ]
       },
       {
-        "id": "P-OWNED-STACK-KERNEL",
-        "program_class": "owned-stack",
-        "owned_stack_layer": "cloud-kernel",
-        "scope": "kuberos no_std kernel and sysroot recursion floor (kernel/, ADR-0512 carve-out workspace), ADR-0537 ladder rung 0 beneath cloud-os.",
-        "owner": "cloud-platform",
-        "hyperscaler_bar_exit_criteria": [
-          "Kernel and sysroot changes carry hermetic carve-out build/test evidence before any status advances.",
-          "Every kernel capability declares success/failure semantics with failure-injection coverage at the kernel boundary."
-        ],
-        "child_work_item_classes": [
-          "definition",
-          "kernel-capability",
-          "sysroot-contract",
-          "failure-injection"
-        ],
-        "evidence_requirements": [
-          "kernel carve-out build evidence",
-          "cloud-ci gate packet",
-          "review approval"
-        ]
-      },
-      {
-        "id": "P-OWNED-STACK-OS",
-        "program_class": "owned-stack",
-        "owned_stack_layer": "cloud-os",
-        "scope": "Talos-class cloud-os node operating system (os/), ADR-0537 ladder rung 1: the node substrate the capability ladder runs on, including the trust-chain/root-of-trust surfaces.",
-        "owner": "cloud-platform",
-        "hyperscaler_bar_exit_criteria": [
-          "Node OS image, boot, and trust-chain claims are backed by build/rollout evidence instead of narration.",
-          "Upstream Talos remains an ADR-0510 transitional implementation behind stable owned interfaces until cutover evidence is green."
-        ],
-        "child_work_item_classes": [
-          "definition",
-          "node-image",
-          "trust-chain-contract",
-          "failure-injection"
-        ],
-        "evidence_requirements": [
-          "node image build evidence",
-          "cloud-ci gate packet",
-          "review approval"
-        ]
-      },
-      {
         "id": "P-OWNED-STACK-K8S",
         "program_class": "owned-stack",
         "owned_stack_layer": "cloud-k8s",
@@ -7376,8 +7332,6 @@
         "fabric"
       ],
       "required_owned_stack_layers": [
-        "cloud-kernel",
-        "cloud-os",
         "cloud-k8s",
         "cloud-services",
         "durability-plane",
@@ -7389,34 +7343,10 @@
           "ADR-0536",
           "ADR-0537"
         ],
-        "ladder_statement": "kuberos kernel (kernel) -> cloud-os (os) -> cloud-k8s -> cloud services -> oyatie products (ADR-0537 §3; ADR-0510 transitional implementations stay behind stable owned interfaces).",
+        "ladder_statement": "Kubernetes control plane and node contracts are mechanically maintained under k8s/ through build/port-engine; host OS/kernel implementations are consumed deployment inputs, not hand-maintained product layers.",
         "rungs": [
           {
             "rung": 0,
-            "layer": "cloud-kernel",
-            "program_ids": [
-              "P-OWNED-STACK-KERNEL"
-            ],
-            "source_anchors": [
-              "cloud/cloud-kernel",
-              "kernel",
-              "governance/capability-registry.json#meta_directories[kernel/]"
-            ]
-          },
-          {
-            "rung": 1,
-            "layer": "cloud-os",
-            "program_ids": [
-              "P-OWNED-STACK-OS"
-            ],
-            "source_anchors": [
-              "cloud/cloud-os",
-              "os",
-              "governance/capability-registry.json#meta_directories[os/]"
-            ]
-          },
-          {
-            "rung": 2,
             "layer": "cloud-k8s",
             "program_ids": [
               "P-OWNED-STACK-K8S"
@@ -7427,7 +7357,7 @@
             ]
           },
           {
-            "rung": 3,
+            "rung": 1,
             "layer": "cloud-services",
             "program_ids": [
               "P-OWNED-STACK-CLOUD",
@@ -7440,7 +7370,7 @@
             ]
           },
           {
-            "rung": 4,
+            "rung": 2,
             "layer": "products",
             "program_ids": [
               "P-FD001-PRODUCT-SURFACES",
@@ -8613,32 +8543,6 @@
         "evidence_refs": []
       },
       {
-        "id": "MPV2-0053",
-        "title": "F1(a) Node kernel + pool matrix (Proposed ADR-0712; planning only — not implement authority)",
-        "status": "claimed-open",
-        "program": "P-OWNED-STACK-K8S",
-        "work_item_class": "definition",
-        "source_refs": [
-          "ADR-0712",
-          "ADR-0701",
-          "ADR-0704"
-        ],
-        "evidence_refs": []
-      },
-      {
-        "id": "MPV2-0054",
-        "title": "F1 Node Substrate Architecture (Proposed ADR-0713; planning only — not implement authority)",
-        "status": "claimed-open",
-        "program": "P-OWNED-STACK-K8S",
-        "work_item_class": "definition",
-        "source_refs": [
-          "ADR-0713",
-          "ADR-0701",
-          "ADR-0704"
-        ],
-        "evidence_refs": []
-      },
-      {
         "id": "MPV2-0055",
         "title": "F1(c) Isolation-property RuntimeClass names (Proposed ADR-0714; planning only — not implement authority)",
         "status": "claimed-open",
@@ -8657,9 +8561,7 @@
           "removal_transition": "blocking-allowlist-and-alias-deletion-in-next-contiguous-wave-or-fail-closed",
           "evaluator": "planning-contract-only while Proposed; blocking alias-lifetime evaluator MUST ship in the Accept-encode PR that introduces the alias (wired into oya-ci-required) — no live evaluator is claimed by this Proposed draft"
         },
-        "depends_on_work_items": [
-          "MPV2-0053"
-        ]
+        "depends_on_work_items": []
       },
       {
         "id": "MPV2-0056",
@@ -8901,11 +8803,6 @@
         "from": "MPV2-0051",
         "to": "MPV2-0052",
         "relationship": "k8s-port-w0-phase-ordering"
-      },
-      {
-        "from": "MPV2-0053",
-        "to": "MPV2-0055",
-        "relationship": "unblocks"
       }
     ],
     "sequencing": {
@@ -8920,8 +8817,8 @@
       "rederivation": {
         "rederived_at": "2026-08-11T05:00:00Z",
         "repo_head_at_derivation": "a226d807914b38b9e8ad2174afe01fe4ea98d363",
-        "work_item_count": 57,
-        "dependency_edge_count": 44,
+        "work_item_count": 55,
+        "dependency_edge_count": 43,
         "wave_count": 8,
         "wave_rule": "wave(n) = 0 when n has no prerequisite edges in masterplan_v2.dependency_edges; otherwise 1 + max(wave(prerequisite)) over all prerequisites of n; ties within a wave order lexicographically by work-item id, and work_item_order is the wave-major concatenation with contiguous zero-based indices",
         "inherited_orderings_ignored": [
@@ -8931,7 +8828,7 @@
           "specs/planning-closure-status-closure-ledger.json",
           ".omc/ultragoal/goals.json"
         ],
-        "note": "Includes F1 planning edge MPV2-0053→MPV2-0055 (ADR-0714 depends_on ADR-0712); W0 k8s-port edges otherwise preserved."
+        "note": "Retired speculative host kernel/OS work items MPV2-0053 and MPV2-0054; Kubernetes port ordering otherwise preserved."
       },
       "work_item_order": [
         {
@@ -9056,166 +8953,156 @@
         },
         {
           "index": 24,
-          "work_item_id": "MPV2-0053",
-          "derivation_basis": "no prerequisites in masterplan_v2.dependency_edges"
-        },
-        {
-          "index": 25,
-          "work_item_id": "MPV2-0054",
-          "derivation_basis": "no prerequisites in masterplan_v2.dependency_edges"
-        },
-        {
-          "index": 26,
           "work_item_id": "MPV2-0056",
           "derivation_basis": "no prerequisites in masterplan_v2.dependency_edges"
         },
         {
-          "index": 27,
+          "index": 25,
           "work_item_id": "MPV2-0002",
           "derivation_basis": "depends on MPV2-0001 in masterplan_v2.dependency_edges"
         },
         {
-          "index": 28,
+          "index": 26,
           "work_item_id": "MPV2-0003",
           "derivation_basis": "depends on MPV2-0001 in masterplan_v2.dependency_edges"
         },
         {
-          "index": 29,
+          "index": 27,
           "work_item_id": "MPV2-0005",
           "derivation_basis": "depends on MPV2-0001 in masterplan_v2.dependency_edges"
         },
         {
-          "index": 30,
+          "index": 28,
           "work_item_id": "MPV2-0006",
           "derivation_basis": "depends on MPV2-0001 in masterplan_v2.dependency_edges"
         },
         {
-          "index": 31,
+          "index": 29,
           "work_item_id": "MPV2-0008",
           "derivation_basis": "depends on MPV2-0009, MPV2-0010, MPV2-0011, MPV2-0012, MPV2-0013, MPV2-0014, MPV2-0015, MPV2-0016, MPV2-0017 in masterplan_v2.dependency_edges"
         },
         {
-          "index": 32,
+          "index": 30,
           "work_item_id": "MPV2-0018",
           "derivation_basis": "depends on MPV2-0019 in masterplan_v2.dependency_edges"
         },
         {
-          "index": 33,
+          "index": 31,
           "work_item_id": "MPV2-0020",
           "derivation_basis": "depends on MPV2-0021, MPV2-0022 in masterplan_v2.dependency_edges"
         },
         {
-          "index": 34,
+          "index": 32,
           "work_item_id": "MPV2-0029",
           "derivation_basis": "depends on MPV2-0028 in masterplan_v2.dependency_edges"
         },
         {
-          "index": 35,
+          "index": 33,
           "work_item_id": "MPV2-0030",
           "derivation_basis": "depends on MPV2-0028 in masterplan_v2.dependency_edges"
         },
         {
-          "index": 36,
+          "index": 34,
           "work_item_id": "MPV2-0031",
           "derivation_basis": "depends on MPV2-0028 in masterplan_v2.dependency_edges"
         },
         {
-          "index": 37,
+          "index": 35,
           "work_item_id": "MPV2-0032",
           "derivation_basis": "depends on MPV2-0028 in masterplan_v2.dependency_edges"
         },
         {
-          "index": 38,
+          "index": 36,
           "work_item_id": "MPV2-0033",
           "derivation_basis": "depends on MPV2-0034 in masterplan_v2.dependency_edges"
         },
         {
-          "index": 39,
+          "index": 37,
           "work_item_id": "MPV2-0035",
           "derivation_basis": "depends on MPV2-0034 in masterplan_v2.dependency_edges"
         },
         {
-          "index": 40,
+          "index": 38,
           "work_item_id": "MPV2-0037",
           "derivation_basis": "depends on MPV2-0036 in masterplan_v2.dependency_edges"
         },
         {
-          "index": 41,
+          "index": 39,
           "work_item_id": "MPV2-0042",
           "derivation_basis": "depends on MPV2-0041 in masterplan_v2.dependency_edges"
         },
         {
-          "index": 42,
+          "index": 40,
           "work_item_id": "MPV2-0046",
           "derivation_basis": "depends on MPV2-0045 in masterplan_v2.dependency_edges"
         },
         {
-          "index": 43,
+          "index": 41,
           "work_item_id": "MPV2-0055",
-          "derivation_basis": "depends on MPV2-0053 in masterplan_v2.dependency_edges"
+          "derivation_basis": "no prerequisites in masterplan_v2.dependency_edges"
         },
         {
-          "index": 44,
+          "index": 42,
           "work_item_id": "MPV2-0004",
           "derivation_basis": "depends on MPV2-0001, MPV2-0002, MPV2-0005, MPV2-0006 in masterplan_v2.dependency_edges"
         },
         {
-          "index": 45,
+          "index": 43,
           "work_item_id": "MPV2-0007",
           "derivation_basis": "depends on MPV2-0008, MPV2-0018, MPV2-0020 in masterplan_v2.dependency_edges"
         },
         {
-          "index": 46,
+          "index": 44,
           "work_item_id": "MPV2-0038",
           "derivation_basis": "depends on MPV2-0037 in masterplan_v2.dependency_edges"
         },
         {
-          "index": 47,
+          "index": 45,
           "work_item_id": "MPV2-0043",
           "derivation_basis": "depends on MPV2-0042 in masterplan_v2.dependency_edges"
         },
         {
-          "index": 48,
+          "index": 46,
           "work_item_id": "MPV2-0047",
           "derivation_basis": "depends on MPV2-0046 in masterplan_v2.dependency_edges"
         },
         {
-          "index": 49,
+          "index": 47,
           "work_item_id": "MPV2-0039",
           "derivation_basis": "depends on MPV2-0038 in masterplan_v2.dependency_edges"
         },
         {
-          "index": 50,
+          "index": 48,
           "work_item_id": "MPV2-0044",
           "derivation_basis": "depends on MPV2-0043 in masterplan_v2.dependency_edges"
         },
         {
-          "index": 51,
+          "index": 49,
           "work_item_id": "MPV2-0048",
           "derivation_basis": "depends on MPV2-0047 in masterplan_v2.dependency_edges"
         },
         {
-          "index": 52,
+          "index": 50,
           "work_item_id": "MPV2-0040",
           "derivation_basis": "depends on MPV2-0039 in masterplan_v2.dependency_edges"
         },
         {
-          "index": 53,
+          "index": 51,
           "work_item_id": "MPV2-0049",
           "derivation_basis": "depends on MPV2-0048 in masterplan_v2.dependency_edges"
         },
         {
-          "index": 54,
+          "index": 52,
           "work_item_id": "MPV2-0050",
           "derivation_basis": "depends on MPV2-0049 in masterplan_v2.dependency_edges"
         },
         {
-          "index": 55,
+          "index": 53,
           "work_item_id": "MPV2-0051",
           "derivation_basis": "depends on MPV2-0050 in masterplan_v2.dependency_edges"
         },
         {
-          "index": 56,
+          "index": 54,
           "work_item_id": "MPV2-0052",
           "derivation_basis": "depends on MPV2-0051 in masterplan_v2.dependency_edges"
         }
@@ -9248,8 +9135,6 @@
             "MPV2-0036",
             "MPV2-0041",
             "MPV2-0045",
-            "MPV2-0053",
-            "MPV2-0054",
             "MPV2-0056"
           ],
           "dispatch_state": "ratified-not-dispatched"
@@ -9330,13 +9215,13 @@
       "founder_ratification": {
         "decision_recorded": true,
         "decision_status": "ratified",
-        "approved_by": "founder-proxy-round-4",
-        "recorded_at": "2026-08-10T00:00:00Z",
+        "approved_by": "founder-directive-2026-08-15",
+        "recorded_at": "2026-08-15T00:00:00Z",
         "decision_ref": "evidence/goals/f1-node-forever-shape-sequencing-founder-ratification-20260810.json",
         "authorizes_execution_wave_dispatch": false,
-        "ratification_scope": "sequencing-digest-and-f1-planning-anchors-only",
-        "ratification_authority": "Founder-proxy Round-4 approval (2026-08-10) for F1 Proposed ADR planning anchors MPV2-0053..MPV2-0056 in masterplan_v2; adds MPV2-0053→MPV2-0055 dependency edge; does not grant implement authority for Proposed ADRs ADR-0712..ADR-0715 and does not authorize execution-wave dispatch. A separate founder (principal approved_by=founder) execution-dispatch ratification with authorizes_execution_wave_dispatch=true is required before execution_wave_dispatch.state may leave blocked (in addition to preplanning_authority_closure).",
-        "ratified_sequencing_digest": "sha256:e197ad33be5f3158db3dca797a58dd2f500c12ad2158e42ffa2fb934ebd51004",
+        "ratification_scope": "sequencing-digest-after-essentialist-node-substrate-retirement",
+        "ratification_authority": "Founder directive: evaluate reorg targets from first principles under YAGNI/Essentialism; do not preserve OS/kernel inventory for possible future use because git history is recovery.",
+        "ratified_sequencing_digest": "sha256:d3898d0edf8055c48189b351d356c8a6ad60be54793dd44f815f9c9ee46ff5bc",
         "digest_recipe": "sha256 over canonical JSON (sorted keys, separators ',' ':') of {\"dependency_edges\": sorted [from, to] pairs, \"execution_waves\": wave work_item_ids arrays in wave order, \"work_item_order\": work_item_id strings in index order}",
         "invalidation_rule": "Any mutation of a masterplan_v2.dependency_edges from/to endpoint pair, sequencing.work_item_order, or sequencing.execution_waves work_item_ids changes the digest and voids this ratification; relationship labels and other edge metadata are outside this sequencing digest. A fresh re-derivation and founder-ratification record are required before further wave dispatch whenever a covered field changes.",
         "required_before": "execution-wave-dispatch"
