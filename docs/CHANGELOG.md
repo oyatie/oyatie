@@ -6,6 +6,15 @@ doc_status: published
 
 # Changelog
 
+## 2026-08-15 — Agent runtime dot-directories retired
+
+- Removed tracked `.claude/`, `.codex/`, `.cursor/`, and `.grok/` trees and made all four
+  root-ignored machine-local overlays. Repo hooks remain optional local-runtime adapters; CI no
+  longer claims that their presence proves runtime wiring.
+- Restored the portable doctrine under `templates/` at version **1.2.0**, retargeted session-loaded
+  pointers, and recorded the same-wave ADR-0711 OVERRULE so local runtime configuration cannot
+  become project authority again.
+
 ## 2026-08-14 — Cargo merge path + slim PR paperwork (ADR-0716)
 
 - The required CI executes the Cargo workspace graph (`cargo fmt` differential, clippy,
@@ -57,10 +66,9 @@ doc_status: published
 
 ## 2026-08-11 — Portable doctrine + Automations ritual + ADR-rename overturn (docs)
 
-- Landed **portable Swarm doctrine** single source
-  [`templates/portable-swarm-doctrine.md`](../templates/portable-swarm-doctrine.md)
-  (`portable_doctrine_version` **1.0.0**) plus new-repo
-  [`templates/README-doctrine-pointer.md`](../templates/README-doctrine-pointer.md).
+- Landed **portable Swarm doctrine** single-source intent at
+  `templates/portable-swarm-doctrine.md` (`portable_doctrine_version` **1.0.0**) plus a claimed
+  new-repo pointer; the missing surfaces were restored/consolidated on 2026-08-15.
 - Added short **Cursor Automations** (advisory-only) subsection to
   [`templates/checklists/swarm-agent-ritual.md`](../templates/checklists/swarm-agent-ritual.md);
   do not recreate `docs/checklists/` dual-home.

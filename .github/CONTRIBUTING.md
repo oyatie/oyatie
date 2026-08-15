@@ -102,8 +102,8 @@ five author-owned H2 sections:
 
 The `## Code Review` section is reviewer evidence: the prefilled template
 carries a `PENDING` placeholder that the reviewer/evidence producer replaces
-before merge. Never author an `APPROVE` verdict for your own PR
-(`guard-pr-merge-review.mjs` refuses worker-authored verdicts).
+before merge. Never author an `APPROVE` verdict for your own PR; the operating
+contract forbids self-approval and `F-PR5-06` tracks trusted-producer enforcement.
 
 ## Reporting issues
 

@@ -37,6 +37,16 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ## Decision
 
+### 2026-08-15 host-substrate boundary amendment
+
+The port engine remains a neutral mechanism, not a reason to retain speculative output. Its
+current producer set does not include an OS or kernel producer. Hand-maintained Asterinas and
+Talos-derived repository trees are retired; Kubernetes remains the differentiated port target.
+Host kernel and OS artifacts are consumed and pinned outside the first-party source tree. Any
+future generated host region must land atomically with its registered producer, rule pack,
+source/toolchain pins, receipts, and failure tests. Earlier Asterinas and owned-host-kernel gists
+in this consolidated record are provenance only where they conflict with this amendment.
+
 1. **This ADR is the live reading entry** for topic `k8s_port` under the end-state ADR policy.
 2. **Member ADRs listed in `supersedes`** are historical; normative gist is preserved below.
 3. **Contradictions** among members are resolved by later higher-number members and by

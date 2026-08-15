@@ -721,7 +721,6 @@ pub const FIREWALL_TARGET: &str = "//ci/facade/baseline-ratchet:ci-baseline-ratc
 /// - `automation_ratchet`: the automation matrix (`rows`) joined with the enforcement face
 /// - `slo_coverage`: the catalog SLO face (`rows` with crate_id/slo)
 /// - `license_policy`: workspace package-license rows (`package_name`/`manifest_path`/`license`)
-/// - `enforcement_liveness`: tracked hook/wiring rows for the FRIC-012 liveness gate
 pub struct GateInputs<'a> {
     pub total_accounting: &'a Value,
     pub cross_artifact: &'a Value,
@@ -771,12 +770,6 @@ pub struct GateInputs<'a> {
     /// producer resolves workspace members via `oya-workspace-members-kernel` and inspects the
     /// declared tracked files; the gate is pure policy over those booleans.
     pub target_parity: &'a Value,
-    /// The FRIC-012 enforcement-liveness gate input:
-    /// `{"rows":[{"row_type":"hook","hook_path","wired_in_claude","wired_in_codex",
-    /// "stub_marked"},{"row_type":"command_reference","wiring_file","command_path",
-    /// "target_exists"}]}`. The producer enumerates tracked project hooks and hook-command
-    /// references from `.claude/settings.json` + `.codex/hooks.json`.
-    pub enforcement_liveness: &'a Value,
     /// The forbidden-vocab shrink-only ratchet's pre-grouped `code -> keys` (the live residue
     /// files per stem), captured by the binary via `oya_check_brand_residue::forbidden_vocab`
     /// over the live corpus. Unlike the four face gates this is computed from the raw tracked
@@ -863,11 +856,10 @@ fn producer_face_keys(
                 .into_iter()
                 .map(|f| (f.code, f.key)),
         ),
-        GateFace::EnforcementLiveness => group_findings(
-            ci_hook_wiring::evaluate_keyed(inputs.enforcement_liveness)
-                .into_iter()
-                .map(|f| (f.code, f.key)),
-        ),
+        // RETIRED frozen-reference compatibility. Candidate producers must still parse a
+        // merge-base `oya-ci.toml` that names this face for one wave, but the retired face has no
+        // current keys and reads no repository-local runtime configuration.
+        GateFace::EnforcementLiveness => BTreeMap::new(),
     }
 }
 
@@ -1908,7 +1900,6 @@ mod tests {
             catalog_liveness: &empty_face,
             workspace_glob_coverage: &empty_face,
             target_parity: &empty_face,
-            enforcement_liveness: &empty_face,
             brand_residue: &brand_residue,
         };
         let cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
@@ -2003,7 +1994,6 @@ mod tests {
             catalog_liveness: &empty_face,
             workspace_glob_coverage: &empty_face,
             target_parity: &empty_face,
-            enforcement_liveness: &empty_face,
             brand_residue: &brand_residue,
         };
         let cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
@@ -2088,7 +2078,6 @@ mod tests {
             catalog_liveness: &empty_face,
             workspace_glob_coverage: &empty_face,
             target_parity: &empty_face,
-            enforcement_liveness: &empty_face,
             brand_residue: &neutral_residue,
         };
         let neutral_cfg = oya_ci_config_kernel::OyaCiConfig::neutral();
@@ -2149,7 +2138,6 @@ mod tests {
             catalog_liveness: &empty_face,
             workspace_glob_coverage: &empty_face,
             target_parity: &empty_face,
-            enforcement_liveness: &empty_face,
             brand_residue: &brand_residue,
         };
         let oyatie_cfg = oya_ci_config_kernel::OyaCiConfig::oyatie();

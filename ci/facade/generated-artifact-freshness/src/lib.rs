@@ -27,9 +27,6 @@ const FACE_SETTLE_COMMIT_MESSAGE: &str = "chore: settle generated cloud-ci faces
 const FACES_DIR: &str = "ci/facade/artifact-inventory-registry";
 const SCM_FACTS_FACE: &str = "scm-facts.generated.json";
 const ADR_CENSUS_EPOCH_RECEIPT_FACE: &str = "adr-census-epoch-receipt.generated.json";
-const ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS: &str = ".claude/settings.json";
-const ENFORCEMENT_LIVENESS_CODEX_HOOKS: &str = ".codex/hooks.json";
-const ENFORCEMENT_LIVENESS_HOOKS_DIR: &str = "tools/hooks";
 /// The generated-artifact control-plane manifest. Faces whose `materialization_mode` is
 /// non-PR-owned are materialized by cloud-ci/controllers, not byte-compared against contributor
 /// branch copies.
@@ -54,13 +51,12 @@ const SCM_VOLATILE_FACTS_PATH: &str =
 /// PR-owned / face-settle generated paths. Controller-owned generated artifacts that must be
 /// materialized on protected branches, such as `product-graph.html`, intentionally stay out of
 /// this list so contributor PRs do not acquire a new generated merge surface.
-const GENERATED_FACE_PATHS: [&str; 7] = [
+const GENERATED_FACE_PATHS: [&str; 6] = [
     "ci/facade/artifact-inventory-registry/scm-facts.generated.json",
     "ci/facade/artifact-inventory-registry/accounting-registry.generated.json",
     "ci/facade/artifact-inventory-registry/ttl-policy.generated.json",
     "ci/facade/artifact-inventory-registry/decision-crosswalk.generated.json",
     "ci/facade/artifact-inventory-registry/enforcement-inventory.generated.json",
-    "ci/facade/artifact-inventory-registry/enforcement-liveness.generated.json",
     "ci/facade/artifact-inventory-registry/gate-baseline.generated.json",
 ];
 /// Controller-owned generated artifacts whose freshness is proven by regeneration/determinism,
@@ -79,9 +75,6 @@ const CODEMOD_TARGET: &str = "//tools/oya-reorg-codemod-app:oya-reorg-codemod";
 const ARCHITECTURE_GRAPH_GENERATOR_TARGET: &str =
     "//tools/oya-architecture-graph-generator-app:oya-architecture-graph-generator";
 const MASTERPLAN_GENERATOR_TARGET: &str = "//marketplace/facade/dev-cli:oya";
-const ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS_TARGET: &str = "//.claude:settings-json";
-const ENFORCEMENT_LIVENESS_CODEX_HOOKS_TARGET: &str = "//.codex:hooks-json";
-const ENFORCEMENT_LIVENESS_HOOKS_DIR_TARGET: &str = "//tools/hooks:top-level-hook-scripts";
 const MOVE_MANIFEST_FACE: &str = "specs/reorg/move-manifest.generated.json";
 /// De-committed face: merge-base CONTENT of every `normal-source-merge` hand-curated-ratchet
 /// artifact, keyed by declared path. Materialized from the SAME merge-base source worktree this
@@ -91,17 +84,13 @@ const MOVE_MANIFEST_FACE: &str = "specs/reorg/move-manifest.generated.json";
 /// without itself calling git (gate production code must stay hermetic).
 const RATCHET_MERGE_BASE_FACE: &str =
     "ci/facade/generated-artifact-policy/ratchet-merge-base.generated.json";
-const PRODUCER_FACES: [(&str, &str); 6] = [
+const PRODUCER_FACES: [(&str, &str); 5] = [
     ("accounting-registry.generated.json", "registry"),
     ("ttl-policy.generated.json", "ttl-policy"),
     ("decision-crosswalk.generated.json", "decision-crosswalk"),
     (
         "enforcement-inventory.generated.json",
         "enforcement-inventory",
-    ),
-    (
-        "enforcement-liveness.generated.json",
-        "enforcement-liveness",
     ),
     ("gate-baseline.generated.json", "baseline"),
 ];
@@ -613,6 +602,7 @@ fn materialize_generated_faces_with_tools(
         retirement,
         historical_dev_push,
     )?;
+    #[cfg(target_os = "linux")]
     emit_adr_census_epoch_receipt(
         &tools.emitter,
         repo_root,
@@ -621,13 +611,17 @@ fn materialize_generated_faces_with_tools(
             .join(ADR_CENSUS_EPOCH_RECEIPT_FACE),
         retirement,
     )?;
+    // The exact historical P2 replay is byte-pinned to a Linux-era toolchain and link
+    // environment; non-Linux materializations declare the skip explicitly instead of
+    // attempting a replay that cannot reproduce the fixed receipt.
+    #[cfg(not(target_os = "linux"))]
+    write_non_linux_p2_replay_skip_marker(repo_root)?;
     let mut command = Command::new(&tools.producer);
     command
         .args(["--repo-root"])
         .arg(repo_root)
         .args(["--scm-facts"])
         .arg(&scm_facts);
-    append_enforcement_liveness_corpus_args(&mut command, &tools.enforcement_liveness_corpus);
     command.current_dir(repo_root);
     run_status(&mut command, "materialize generated accounting faces")?;
     materialize_masterplan_projection(tools, repo_root)?;
@@ -1540,7 +1534,6 @@ fn regenerate_producer_faces(
             .arg(repo_root)
             .args(["--scm-facts"])
             .arg(scm_facts);
-        append_enforcement_liveness_corpus_args(&mut command, &tools.enforcement_liveness_corpus);
         command
             .args(["--stdout", "--face", face_name])
             .current_dir(repo_root);
@@ -1551,45 +1544,29 @@ fn regenerate_producer_faces(
     Ok(regenerated)
 }
 
-fn append_enforcement_liveness_corpus_args(
-    command: &mut Command,
-    corpus: &EnforcementLivenessCorpusPaths,
-) {
-    append_enforcement_liveness_corpus_paths(
-        command,
-        &corpus.claude_settings,
-        &corpus.codex_hooks,
-        &corpus.hooks_dir,
-    );
-}
-
-fn append_enforcement_liveness_corpus_paths(
-    command: &mut Command,
-    claude_settings: &Path,
-    codex_hooks: &Path,
-    hooks_dir: &Path,
-) {
-    command
-        .arg("--enforcement-liveness-claude-settings")
-        .arg(claude_settings)
-        .arg("--enforcement-liveness-codex-hooks")
-        .arg(codex_hooks)
-        .arg("--enforcement-liveness-hooks-dir")
-        .arg(hooks_dir);
-}
-
 fn regenerate_all_faces(
     tools: &FaceTools,
     repo_root: &Path,
     scm_facts: &Path,
-    retirement: Option<&RetirementMaterializeArgs>,
+    _retirement: Option<&RetirementMaterializeArgs>,
 ) -> Result<RegeneratedFaces, FreshnessError> {
     let mut regenerated = regenerate_producer_faces(tools, repo_root, scm_facts)?;
+    #[cfg(target_os = "linux")]
     regenerated.push(regenerate_adr_census_epoch_receipt(
         &tools.emitter,
         repo_root,
-        retirement,
+        _retirement,
     )?);
+    // Same non-Linux skip as the direct materialization path: the historical replay
+    // cannot reproduce the byte-pinned receipt off Linux, so declare the skip instead.
+    #[cfg(not(target_os = "linux"))]
+    {
+        write_non_linux_p2_replay_skip_marker(repo_root)?;
+        regenerated.push((
+            ADR_CENSUS_EPOCH_RECEIPT_FACE.to_owned(),
+            read_to_string(&repo_root.join(NON_LINUX_P2_REPLAY_SKIP_MARKER))?,
+        ));
+    }
     regenerated.extend(regenerate_architecture_projection_faces(tools, repo_root)?);
     regenerated.push(regenerate_active_artifact_contract_graph(tools, repo_root)?);
     regenerated.sort_by(|left, right| left.0.cmp(&right.0));
@@ -1731,6 +1708,42 @@ fn verify_materialized_upload_outputs(
     Ok(())
 }
 
+/// Path, relative to the repo root, of the marker the generated-face materializer writes
+/// on non-Linux platforms instead of attempting the exact historical P2 replay (which is
+/// byte-pinned to a Linux-era toolchain and link environment). The scm-facts snapshot
+/// tests assert this marker on non-Linux so the skip is never silent.
+#[cfg(not(target_os = "linux"))]
+pub const NON_LINUX_P2_REPLAY_SKIP_MARKER: &str =
+    "ci/facade/scm-facts-snapshot/adr-census-parent-receipt.platform-skip.txt";
+
+/// Write the non-Linux historical-replay skip marker.
+#[cfg(not(target_os = "linux"))]
+fn write_non_linux_p2_replay_skip_marker(repo_root: &Path) -> Result<(), FreshnessError> {
+    let path = repo_root.join(NON_LINUX_P2_REPLAY_SKIP_MARKER);
+    assert_non_symlink_parent_and_leaf(repo_root, &path)?;
+    let parent = path
+        .parent()
+        .ok_or_else(|| FreshnessError::new("non-Linux replay marker has no parent"))?;
+    std::fs::create_dir_all(parent)
+        .map_err(|error| FreshnessError::new(format!("create {}: {error}", parent.display())))?;
+    let staging = exclusive_temporary_path_in(parent, ".adr-census-parent-receipt", ".tmp")?;
+    let cleanup = TempFileCleanup {
+        path: staging.clone(),
+    };
+    std::fs::write(
+        &staging,
+        "exact historical P2 replay skipped on non-Linux: the historical receipt is byte-pinned to a \
+         Linux-era toolchain and link environment; the Linux test job materializes it, and the \
+         non-Linux smoke legs assert this marker so the skip is never silent.\n",
+    )
+    .map_err(|error| FreshnessError::new(format!("write {}: {error}", staging.display())))?;
+    assert_regular_non_symlink_file(&staging, "non-Linux replay marker staging output")?;
+    std::fs::rename(&staging, &path)
+        .map_err(|error| FreshnessError::new(format!("install {}: {error}", path.display())))?;
+    drop(cleanup);
+    Ok(())
+}
+#[cfg(target_os = "linux")]
 fn regenerate_adr_census_epoch_receipt(
     emitter: &Path,
     repo_root: &Path,
@@ -1746,6 +1759,7 @@ fn regenerate_adr_census_epoch_receipt(
     Ok((ADR_CENSUS_EPOCH_RECEIPT_FACE.to_owned(), bytes))
 }
 
+#[cfg(target_os = "linux")]
 fn emit_adr_census_epoch_receipt(
     emitter: &Path,
     repo_root: &Path,
@@ -1757,6 +1771,7 @@ fn emit_adr_census_epoch_receipt(
     run_status(&mut command, "materialize ADR census epoch receipt")
 }
 
+#[cfg(target_os = "linux")]
 fn adr_census_epoch_receipt_command(
     emitter: &Path,
     repo_root: &Path,
@@ -2007,7 +2022,6 @@ struct FaceTools {
     producer: PathBuf,
     masterplan_generator: PathBuf,
     architecture_graph_generator: PathBuf,
-    enforcement_liveness_corpus: EnforcementLivenessCorpusPaths,
 }
 
 struct MaterializerTools {
@@ -2016,14 +2030,6 @@ struct MaterializerTools {
     codemod: PathBuf,
     masterplan_generator: PathBuf,
     architecture_graph_generator: PathBuf,
-    enforcement_liveness_corpus: EnforcementLivenessCorpusPaths,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-struct EnforcementLivenessCorpusPaths {
-    claude_settings: PathBuf,
-    codex_hooks: PathBuf,
-    hooks_dir: PathBuf,
 }
 
 fn build_face_tools(repo_root: &Path) -> Result<FaceTools, FreshnessError> {
@@ -2034,9 +2040,6 @@ fn build_face_tools(repo_root: &Path) -> Result<FaceTools, FreshnessError> {
             .arg(PRODUCER_TARGET)
             .arg(MASTERPLAN_GENERATOR_TARGET)
             .arg(ARCHITECTURE_GRAPH_GENERATOR_TARGET)
-            .arg(ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS_TARGET)
-            .arg(ENFORCEMENT_LIVENESS_CODEX_HOOKS_TARGET)
-            .arg(ENFORCEMENT_LIVENESS_HOOKS_DIR_TARGET)
             .arg("--show-output")
             .current_dir(repo_root),
         "buck2 build freshness face tools",
@@ -2047,13 +2050,11 @@ fn build_face_tools(repo_root: &Path) -> Result<FaceTools, FreshnessError> {
         parse_show_output_path(repo_root, &output, MASTERPLAN_GENERATOR_TARGET)?;
     let architecture_graph_generator =
         parse_show_output_path(repo_root, &output, ARCHITECTURE_GRAPH_GENERATOR_TARGET)?;
-    let enforcement_liveness_corpus = parse_enforcement_liveness_corpus_paths(repo_root, &output)?;
     Ok(FaceTools {
         emitter,
         producer,
         masterplan_generator,
         architecture_graph_generator,
-        enforcement_liveness_corpus,
     })
 }
 
@@ -2076,9 +2077,6 @@ fn build_materializer_tools(repo_root: &Path) -> Result<MaterializerTools, Fresh
             .arg(CODEMOD_TARGET)
             .arg(MASTERPLAN_GENERATOR_TARGET)
             .arg(ARCHITECTURE_GRAPH_GENERATOR_TARGET)
-            .arg(ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS_TARGET)
-            .arg(ENFORCEMENT_LIVENESS_CODEX_HOOKS_TARGET)
-            .arg(ENFORCEMENT_LIVENESS_HOOKS_DIR_TARGET)
             .arg("--show-output")
             .current_dir(repo_root),
         "buck2 build generated-face materializer tools",
@@ -2090,14 +2088,12 @@ fn build_materializer_tools(repo_root: &Path) -> Result<MaterializerTools, Fresh
         parse_show_output_path(repo_root, &output, MASTERPLAN_GENERATOR_TARGET)?;
     let architecture_graph_generator =
         parse_show_output_path(repo_root, &output, ARCHITECTURE_GRAPH_GENERATOR_TARGET)?;
-    let enforcement_liveness_corpus = parse_enforcement_liveness_corpus_paths(repo_root, &output)?;
     Ok(MaterializerTools {
         emitter,
         producer,
         codemod,
         masterplan_generator,
         architecture_graph_generator,
-        enforcement_liveness_corpus,
     })
 }
 
@@ -2339,8 +2335,8 @@ fn write_regen_baseline(path: &Path, bytes: &str) -> Result<(), FreshnessError> 
 /// fallback (a de-committed frozen with a fallback would empty-frozen-deadlock — the #828 defect).
 ///
 /// Blob-INDEPENDENT: it runs the producer's `--face baseline`, which PRODUCES the baseline from
-/// source (merge-base scm-facts + `oya-ci.toml` + the tracked tree + the enforcement-liveness
-/// corpus) and never reads the (de-committed) `gate-baseline.generated.json`. Called TWICE by the
+/// source (merge-base scm-facts + `oya-ci.toml` + the tracked tree) and never reads the
+/// (de-committed) `gate-baseline.generated.json`. Called TWICE by the
 /// materializer over the same worktree for the determinism canary; the producer is deterministic,
 /// so both runs agree on the ratchet projection.
 fn regenerate_frozen_baseline_from_merge_base_source(
@@ -2369,20 +2365,15 @@ fn regenerate_frozen_baseline_from_merge_base_source(
         "emit merge-base scm-facts",
     )?;
 
-    // Run the producer rooted at the worktree with the mb tree's OWN enforcement-liveness corpus
-    // (faithful mb inputs), emitting the baseline face to stdout. Never reads the committed blob.
+    // Run the candidate producer against the merge-base tree and configuration, emitting the
+    // baseline face to stdout. The retired enforcement-liveness face resolves to frozen-empty
+    // compatibility without reading repository-local runtime configuration.
     let mut producer = Command::new(&tools.producer);
     producer
         .args(["--repo-root"])
         .arg(worktree)
         .args(["--scm-facts"])
         .arg(&mb_scm_facts);
-    append_enforcement_liveness_corpus_paths(
-        &mut producer,
-        &worktree.join(ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS),
-        &worktree.join(ENFORCEMENT_LIVENESS_CODEX_HOOKS),
-        &worktree.join(ENFORCEMENT_LIVENESS_HOOKS_DIR),
-    );
     producer
         .args(["--stdout", "--face", "baseline"])
         .current_dir(worktree);
@@ -2498,34 +2489,6 @@ fn parse_show_output_path(
     Err(FreshnessError::new(format!(
         "buck2 --show-output did not include {target}"
     )))
-}
-
-fn parse_enforcement_liveness_corpus_paths(
-    repo_root: &Path,
-    output: &str,
-) -> Result<EnforcementLivenessCorpusPaths, FreshnessError> {
-    let claude_settings_output = parse_show_output_path(
-        repo_root,
-        output,
-        ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS_TARGET,
-    )?;
-    let codex_hooks_output =
-        parse_show_output_path(repo_root, output, ENFORCEMENT_LIVENESS_CODEX_HOOKS_TARGET)?;
-    let hooks_dir =
-        parse_show_output_path(repo_root, output, ENFORCEMENT_LIVENESS_HOOKS_DIR_TARGET)?;
-    Ok(EnforcementLivenessCorpusPaths {
-        claude_settings: buck_filegroup_file(claude_settings_output, "settings.json"),
-        codex_hooks: buck_filegroup_file(codex_hooks_output, "hooks.json"),
-        hooks_dir,
-    })
-}
-
-fn buck_filegroup_file(output: PathBuf, file_name: &str) -> PathBuf {
-    if output.is_file() {
-        output
-    } else {
-        output.join(file_name)
-    }
 }
 
 fn read_workspace_version(repo_root: &Path) -> Result<String, FreshnessError> {
@@ -2674,6 +2637,7 @@ fn temporary_product_graph_path() -> Result<PathBuf, FreshnessError> {
     exclusive_temporary_file("oya-ci-freshness-product-graph", ".html")
 }
 
+#[cfg(target_os = "linux")]
 fn temporary_adr_census_epoch_receipt_path() -> Result<PathBuf, FreshnessError> {
     exclusive_temporary_file(
         "oya-ci-freshness-adr-census-epoch-receipt",
@@ -2851,11 +2815,6 @@ mod materialize_generated_faces_tests {
             codemod: PathBuf::from("/unused-codemod"),
             masterplan_generator: generator,
             architecture_graph_generator: PathBuf::from("/unused-architecture-generator"),
-            enforcement_liveness_corpus: EnforcementLivenessCorpusPaths {
-                claude_settings: root.join("unused-settings"),
-                codex_hooks: root.join("unused-hooks"),
-                hooks_dir: root.join("unused-hooks-dir"),
-            },
         }
     }
 
@@ -3020,11 +2979,6 @@ mod materialize_generated_faces_tests {
             producer: PathBuf::from("/unused-producer"),
             masterplan_generator: generator,
             architecture_graph_generator: PathBuf::from("/unused-architecture-generator"),
-            enforcement_liveness_corpus: EnforcementLivenessCorpusPaths {
-                claude_settings: root.join("unused-settings"),
-                codex_hooks: root.join("unused-hooks"),
-                hooks_dir: root.join("unused-hooks-dir"),
-            },
         };
 
         let first = vec![
@@ -3603,6 +3557,7 @@ mod materialize_generated_faces_tests {
     }
 
     #[test]
+    #[cfg(target_os = "linux")]
     fn census_epoch_receipt_command_forwards_only_explicit_retirement_transport() {
         let retirement = RetirementMaterializeArgs {
             control_plane_path: RETIREMENT_CONTROL_PLANE_PATH.to_owned(),
@@ -3678,74 +3633,6 @@ mod materialize_generated_faces_tests {
     }
 
     #[test]
-    fn producer_regeneration_commands_declare_enforcement_liveness_corpus() {
-        let mut command = Command::new("/tmp/producer");
-        let corpus = EnforcementLivenessCorpusPaths {
-            claude_settings: PathBuf::from("/buck/declared/settings-json/settings.json"),
-            codex_hooks: PathBuf::from("/buck/declared/hooks-json/hooks.json"),
-            hooks_dir: PathBuf::from("/buck/declared/top-level-hook-scripts"),
-        };
-        append_enforcement_liveness_corpus_args(&mut command, &corpus);
-
-        let args: Vec<String> = command
-            .get_args()
-            .map(|arg| arg.to_string_lossy().into_owned())
-            .collect();
-
-        assert!(args.windows(2).any(|pair| {
-            pair == [
-                "--enforcement-liveness-claude-settings",
-                "/buck/declared/settings-json/settings.json",
-            ]
-        }));
-        assert!(args.windows(2).any(|pair| {
-            pair == [
-                "--enforcement-liveness-codex-hooks",
-                "/buck/declared/hooks-json/hooks.json",
-            ]
-        }));
-        assert!(args.windows(2).any(|pair| {
-            pair == [
-                "--enforcement-liveness-hooks-dir",
-                "/buck/declared/top-level-hook-scripts",
-            ]
-        }));
-    }
-
-    #[test]
-    fn explicit_corpus_path_appender_preserves_paths() {
-        let mut command = Command::new("/tmp/producer");
-        append_enforcement_liveness_corpus_paths(
-            &mut command,
-            Path::new("/repo/.claude/settings.json"),
-            Path::new("/repo/.codex/hooks.json"),
-            Path::new("/repo/tools/hooks"),
-        );
-
-        let args: Vec<String> = command
-            .get_args()
-            .map(|arg| arg.to_string_lossy().into_owned())
-            .collect();
-
-        assert!(args.windows(2).any(|pair| {
-            pair == [
-                "--enforcement-liveness-claude-settings",
-                "/repo/.claude/settings.json",
-            ]
-        }));
-        assert!(args.windows(2).any(|pair| {
-            pair == [
-                "--enforcement-liveness-codex-hooks",
-                "/repo/.codex/hooks.json",
-            ]
-        }));
-        assert!(
-            args.windows(2)
-                .any(|pair| { pair == ["--enforcement-liveness-hooks-dir", "/repo/tools/hooks",] })
-        );
-    }
-
-    #[test]
     fn parse_show_output_path_resolves_materializer_targets() {
         let output = "\
 root//ci/facade/scm-facts-snapshot:ci-scm-facts-snapshot buck-out/v2/gen/emitter\n\
@@ -3753,9 +3640,6 @@ root//ci/facade/artifact-inventory-registry:oya-cloud-ci-accounting-registry-app
 root//tools/oya-reorg-codemod-app:oya-reorg-codemod buck-out/v2/gen/codemod\n\
 root//marketplace/facade/dev-cli:oya /tmp/oya\n\
 root//tools/oya-architecture-graph-generator-app:oya-architecture-graph-generator buck-out/v2/gen/architecture-graph\n\
-root//.claude:settings-json buck-out/v2/gen/.claude/__settings-json__/settings-json\n\
-root//.codex:hooks-json buck-out/v2/gen/.codex/__hooks-json__/hooks-json\n\
-root//tools/hooks:top-level-hook-scripts buck-out/v2/gen/tools/hooks/__top-level-hook-scripts__/top-level-hook-scripts\n\
 ";
 
         let emitter =
@@ -3781,24 +3665,6 @@ root//tools/hooks:top-level-hook-scripts buck-out/v2/gen/tools/hooks/__top-level
         assert_eq!(
             architecture_graph_generator,
             PathBuf::from("/repo/buck-out/v2/gen/architecture-graph")
-        );
-        let corpus =
-            parse_enforcement_liveness_corpus_paths(Path::new("/repo"), output).expect("corpus");
-        assert_eq!(
-            corpus.claude_settings,
-            PathBuf::from(
-                "/repo/buck-out/v2/gen/.claude/__settings-json__/settings-json/settings.json"
-            )
-        );
-        assert_eq!(
-            corpus.codex_hooks,
-            PathBuf::from("/repo/buck-out/v2/gen/.codex/__hooks-json__/hooks-json/hooks.json")
-        );
-        assert_eq!(
-            corpus.hooks_dir,
-            PathBuf::from(
-                "/repo/buck-out/v2/gen/tools/hooks/__top-level-hook-scripts__/top-level-hook-scripts"
-            )
         );
     }
 
@@ -3939,11 +3805,6 @@ printf 'fresh graph\n' > "$out"
             producer: PathBuf::from("/unused-producer"),
             masterplan_generator,
             architecture_graph_generator: generator,
-            enforcement_liveness_corpus: EnforcementLivenessCorpusPaths {
-                claude_settings: root.join("buck/declared/settings.json"),
-                codex_hooks: root.join("buck/declared/hooks.json"),
-                hooks_dir: root.join("buck/declared/hooks"),
-            },
         };
 
         let regenerated = regenerate_architecture_projection_faces(&tools, &root)
@@ -4111,11 +3972,6 @@ printf 'generated dashboard\n' > docs/architecture/product-graph.html
             codemod,
             masterplan_generator,
             architecture_graph_generator,
-            enforcement_liveness_corpus: EnforcementLivenessCorpusPaths {
-                claude_settings: root.join("buck/declared/settings.json"),
-                codex_hooks: root.join("buck/declared/hooks.json"),
-                hooks_dir: root.join("buck/declared/hooks"),
-            },
         };
 
         // ADR-0616 PR-1: the frozen-baseline regen cross-check materializes a merge-base worktree,
@@ -4129,9 +3985,17 @@ printf 'generated dashboard\n' > docs/architecture/product-graph.html
         let calls = std::fs::read_to_string(&log).expect("read call log");
         let codemod_pos = calls.find("codemod manifest").expect("codemod call");
         let emitter_pos = calls.find("emitter --repo-root").expect("emitter call");
+        #[cfg(target_os = "linux")]
         let census_pos = calls
             .find("--adr-census-epoch-receipt --adr-census-epoch-receipt-out")
             .expect("census epoch receipt call");
+        #[cfg(not(target_os = "linux"))]
+        {
+            // The exact historical P2 replay is Linux-pinned; non-Linux materialization
+            // declares the skip with the marker instead of invoking the epoch emitter.
+            assert!(calls.find("--adr-census-epoch-receipt").is_none());
+            assert!(root.join(NON_LINUX_P2_REPLAY_SKIP_MARKER).is_file());
+        }
         let producer_pos = calls.rfind("producer --repo-root").expect("producer call");
         let masterplan_pos = calls
             .find("masterplan gen masterplan --write")
@@ -4143,32 +4007,23 @@ printf 'generated dashboard\n' > docs/architecture/product-graph.html
             .find("masterplan gate validate active-artifact-contract --emit-graph-edges")
             .expect("active-artifact graph generator call");
         assert!(codemod_pos < emitter_pos);
+        #[cfg(target_os = "linux")]
         assert!(emitter_pos < census_pos);
+        #[cfg(target_os = "linux")]
         assert!(census_pos < producer_pos);
+        #[cfg(not(target_os = "linux"))]
+        assert!(emitter_pos < producer_pos);
         assert!(producer_pos < masterplan_pos);
         assert!(masterplan_pos < architecture_pos);
         assert!(architecture_pos < active_graph_pos);
-        assert!(calls.contains(&format!(
-            "--enforcement-liveness-claude-settings {}",
-            root.join("buck/declared/settings.json").display()
-        )));
-        assert!(calls.contains(&format!(
-            "--enforcement-liveness-codex-hooks {}",
-            root.join("buck/declared/hooks.json").display()
-        )));
-        assert!(calls.contains(&format!(
-            "--enforcement-liveness-hooks-dir {}",
-            root.join("buck/declared/hooks").display()
-        )));
-        assert!(!calls.contains(&format!(
-            "--enforcement-liveness-claude-settings {}",
-            root.join(ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS).display()
-        )));
+        #[cfg(target_os = "linux")]
         assert_eq!(
             std::fs::read_to_string(root.join(FACES_DIR).join(ADR_CENSUS_EPOCH_RECEIPT_FACE))
                 .expect("census epoch receipt materialized"),
             "{\"fixed\":\"receipt\"}\n"
         );
+        #[cfg(not(target_os = "linux"))]
+        assert!(root.join(NON_LINUX_P2_REPLAY_SKIP_MARKER).is_file());
         assert_eq!(
             std::fs::read_to_string(root.join("docs/machine-readable/masterplan.generated.json"))
                 .expect("masterplan materialized"),
@@ -4322,18 +4177,13 @@ printf '{{"gates":{{}}}}\n'
     /// Materializer tools with only the emitter + producer wired (the frozen-baseline regeneration
     /// uses only those two); every other tool is an unused placeholder.
     #[cfg(unix)]
-    fn regen_tools(root: &Path, emitter: PathBuf, producer: PathBuf) -> MaterializerTools {
+    fn regen_tools(_root: &Path, emitter: PathBuf, producer: PathBuf) -> MaterializerTools {
         MaterializerTools {
             emitter,
             producer,
             codemod: PathBuf::from("/unused-codemod"),
             masterplan_generator: PathBuf::from("/unused-masterplan"),
             architecture_graph_generator: PathBuf::from("/unused-architecture"),
-            enforcement_liveness_corpus: EnforcementLivenessCorpusPaths {
-                claude_settings: root.join(".claude/settings.json"),
-                codex_hooks: root.join(".codex/hooks.json"),
-                hooks_dir: root.join("tools/hooks"),
-            },
         }
     }
 }

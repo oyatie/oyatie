@@ -46,9 +46,7 @@
 # Measured on the canonical checkout: exit 3 / 0 targets / 45.8s before, exit 0 / 1851 targets
 # / 1.3s after. Scale: 55,902 BUCK files under these roots against 940 tracked in the repo.
 #
-# The four roots are exactly the in-repo worktree parents (`git worktree list`). `.claude` is
-# scoped to `worktrees` because `.claude/BUCK` defines a real `settings-json` filegroup; the
-# other three hold zero tracked files. No BUCK or .bzl references any of these paths.
-# CI is unaffected — runners get a clean checkout with none of these roots present.
+# Repository-local agent runtime roots are machine-local, gitignored, and contain no Buck
+# packages. Ignore them wholesale so local runtime state cannot perturb package discovery.
 [project]
-  ignore = .claude/worktrees, .worktrees, .gjc, .omx
+  ignore = .claude, .codex, .cursor, .grok, .worktrees, .gjc, .omx

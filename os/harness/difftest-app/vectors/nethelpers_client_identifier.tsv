@@ -1,7 +1,0 @@
-val	0	none
-val	1	mac
-val	2	duid
-parse	none	0
-parse	mac	1
-parse	duid	2
-parse	__nope__	ERR

@@ -1,1 +1,0 @@
-default-resolvers	resolverconfig	1.1.1.1,8.8.8.8	corp.example.com,example.com	configuration/resolverconfig	1.1.1.1,8.8.8.8	corp.example.com,example.com	configuration	source=configuration/resolverconfig;servers=1.1.1.1,8.8.8.8;search=corp.example.com,example.com;layer=configuration

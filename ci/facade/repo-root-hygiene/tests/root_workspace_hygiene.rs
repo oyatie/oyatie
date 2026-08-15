@@ -316,8 +316,8 @@ fn synthetic_tracked_root_log_is_born_blocking_red() {
     assert_eq!(evaluate(&policy, &observed).verdict, Verdict::Red);
 }
 
-/// RED FIXTURE: local agent runtime state under `.claude/.codex/.omc/.omx` must be born-blocking
-/// if it is ever forced into the tracked-path corpus. This prevents the four agent-state trees from
+/// RED FIXTURE: local agent runtime state under the restricted roots must be born-blocking
+/// if it is ever forced into the tracked-path corpus. This prevents agent-state trees from
 /// drifting into committed merge-conflict surfaces.
 #[test]
 fn synthetic_tracked_runtime_state_paths_are_born_blocking_red() {
@@ -342,6 +342,32 @@ fn synthetic_tracked_runtime_state_paths_are_born_blocking_red() {
         );
     }
     assert_eq!(evaluate(&policy, &observed).verdict, Verdict::Red);
+}
+
+#[test]
+fn agent_runtime_roots_are_ignored_and_absent_from_the_live_tracked_corpus() {
+    let root = repo_root();
+    let gitignore = fs::read_to_string(root.join(".gitignore")).expect("read root .gitignore");
+    let observed = observed_from_scm_facts(&root);
+    let tracked: Vec<&str> = observed["rows"]
+        .as_array()
+        .expect("scm rows")
+        .iter()
+        .filter_map(|row| row["path"].as_str())
+        .collect();
+
+    for runtime_root in [".claude", ".codex", ".cursor", ".grok"] {
+        let ignore_rule = format!("/{runtime_root}/");
+        assert!(
+            gitignore.lines().any(|line| line == ignore_rule),
+            "missing root-anchored ignore rule {ignore_rule}"
+        );
+        let prefix = format!("{runtime_root}/");
+        assert!(
+            tracked.iter().all(|path| !path.starts_with(&prefix)),
+            "{runtime_root} must have no tracked paths"
+        );
+    }
 }
 
 /// The exact root scratch this PR removes must each fail the live allowlist (regression guard:
@@ -445,8 +471,8 @@ fn corpus_budget_reductions_must_lower_the_frozen_ceiling() {
             // still runs through evaluate_keyed on the live tree.
             return;
         }
-        let protected: serde_json::Value = serde_json::from_slice(&output.stdout)
-            .expect("parse protected policy");
+        let protected: serde_json::Value =
+            serde_json::from_slice(&output.stdout).expect("parse protected policy");
         protected
             .get("corpus_budget")
             .and_then(|budget| budget.get("counts"))
@@ -457,17 +483,36 @@ fn corpus_budget_reductions_must_lower_the_frozen_ceiling() {
         return; // this PR introduces the block; nothing to compare against yet
     };
 
+    let reviewed_raises = policy
+        .get("corpus_budget")
+        .and_then(|budget| budget.get("reviewed_raises"))
+        .and_then(serde_json::Value::as_object)
+        .cloned()
+        .unwrap_or_default();
+
     let observed = observed_from_scm_facts(&root);
     let observed_counts = ci_repo_root_hygiene::corpus_class_counts(&policy, &observed);
     for (class, frozen) in candidate_counts {
-        let Some(protected) = protected_counts.get(class).and_then(serde_json::Value::as_u64)
+        let Some(protected) = protected_counts
+            .get(class)
+            .and_then(serde_json::Value::as_u64)
         else {
             panic!("protected policy must carry the same corpus class {class}");
         };
-        let candidate = frozen.as_u64().expect("candidate ceiling must be an integer");
+        let candidate = frozen
+            .as_u64()
+            .expect("candidate ceiling must be an integer");
+        let reviewed_raise = reviewed_raises
+            .get(class)
+            .and_then(serde_json::Value::as_object)
+            .is_some_and(|entry| {
+                entry.get("from").and_then(serde_json::Value::as_u64) == Some(protected)
+                    && entry.get("to").and_then(serde_json::Value::as_u64) == Some(candidate)
+            });
         assert!(
-            candidate <= protected,
-            "corpus_budget.counts.{class} grew from {protected} to {candidate} without review; budgets are shrink-only"
+            candidate <= protected || reviewed_raise,
+            "corpus_budget.counts.{class} grew from {protected} to {candidate} without a matching \
+             reviewed_raises entry; budgets are shrink-only unless a deliberate raise is recorded"
         );
         let observed_count = observed_counts.get(class).copied().unwrap_or(0) as u64;
         if ci_repo_root_hygiene::corpus_class_reduction_leaves_headroom(

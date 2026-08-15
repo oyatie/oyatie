@@ -22,11 +22,10 @@ planned_enforcement_ref: oya-governance-agent-instructions-fence
 enforcement_status:
   oya-governance-agent-instructions-fence: F-PENDING-AGENT-INSTRUCTIONS-FENCE (crate missing; tracked in registry/stub-audit/2026-05-17/missing-fitness-crates.json)
   oya-governance-dual-audience: F-PENDING-DUAL-AUDIENCE (crate missing)
-  oya-governance-banned-primitives: existing (via AGENTS.md + git-workflow.md; claude-code-harness.md is retired tombstone)
+  oya-governance-banned-primitives: existing (via AGENTS.md + git-workflow.md)
 meta_policy: ADR-0133 (chained-enforcement planning contract, pending)
 companion_docs:
   - docs/standards/doc-style.md
-  - docs/standards/claude-code-harness.md
   - docs/standards/git-workflow.md
   - docs/standards/multi-agent-tool-map.md
 related_adrs:

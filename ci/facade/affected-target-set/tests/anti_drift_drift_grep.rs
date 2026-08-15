@@ -10,12 +10,13 @@
 // ADR-0083 Tier-3: integration tests use unwrap/expect/panic to assert invariants.
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
+use std::collections::BTreeSet;
 use std::fs;
 use std::path::PathBuf;
 
 use ci_affected_target_set::anti_drift_drift_grep::{
-    CODE_PROSE_FREEZE_PATH_TABLE, CODE_PROSE_ROOT_ENUMERATION, GATE_ID, PROSE_MUST_CITE_POINTER,
-    SCANNED_SURFACES_POINTER, AntiDriftDriftGrepPolicy, ProseSurface, Verdict, evaluate,
+    AntiDriftDriftGrepPolicy, CODE_PROSE_FREEZE_PATH_TABLE, CODE_PROSE_ROOT_ENUMERATION, GATE_ID,
+    PROSE_MUST_CITE_POINTER, ProseSurface, SCANNED_SURFACES_POINTER, Verdict, evaluate,
     fixture_prose_must_cite, prose_must_cite_from_envelopes,
 };
 use serde_json::Value;
@@ -23,8 +24,7 @@ use serde_json::Value;
 const POLICY_PATH: &str = "ci/facade/affected-target-set/anti-drift-drift-grep-policy.json";
 const ENVELOPES_PATH: &str = "specs/integ-branch-envelopes.json";
 const ADR_PATH: &str = "docs/decisions/ADR-0711-swarm-delivery-law-integ-branch-topology.md";
-const PORTABLE_PATH: &str =
-    ".grok/programs/delivery-fabric/evidence/PORTABLE-SWARM-CONTRACT.md";
+const PORTABLE_PATH: &str = "templates/portable-swarm-doctrine.md";
 
 fn repo_root() -> PathBuf {
     let mut dir = std::env::current_dir().expect("current_dir");
@@ -40,7 +40,8 @@ fn repo_root() -> PathBuf {
 }
 
 fn load_policy(root: &PathBuf) -> AntiDriftDriftGrepPolicy {
-    let raw = fs::read_to_string(root.join(POLICY_PATH)).expect("read anti-drift-drift-grep policy");
+    let raw =
+        fs::read_to_string(root.join(POLICY_PATH)).expect("read anti-drift-drift-grep policy");
     let doc: Value = serde_json::from_str(&raw).expect("policy JSON");
     AntiDriftDriftGrepPolicy::from_json(&doc)
 }
@@ -52,7 +53,7 @@ fn shipped_policy_cites_pointers_and_gate_id() {
     assert_eq!(policy.gate_id, GATE_ID);
     assert_eq!(policy.prose_must_cite_authority, PROSE_MUST_CITE_POINTER);
     assert_eq!(policy.scanned_surfaces_authority, SCANNED_SURFACES_POINTER);
-    assert!(!policy.require_surfaces);
+    assert!(policy.require_surfaces);
 
     // Anti-drift: policy body must cite the pointer, not embed a cite-set array / #roots list.
     let raw = fs::read_to_string(root.join(POLICY_PATH)).expect("read");
@@ -138,16 +139,12 @@ SSOT: specs/integ-branch-envelopes.json#anti_drift.\n";
 }
 
 #[test]
-fn live_surfaces_bind_when_present() {
+fn live_required_surfaces_bind() {
     let root = repo_root();
     let envelopes = root.join(ENVELOPES_PATH);
     let adr = root.join(ADR_PATH);
-    if !envelopes.is_file() || !adr.is_file() {
-        eprintln!(
-            "skip live anti-drift bind: envelopes and/or ADR-0711 absent on tip (expected until integ/specs lands)"
-        );
-        return;
-    }
+    assert!(envelopes.is_file(), "required envelopes authority is missing");
+    assert!(adr.is_file(), "required ADR-0711 authority is missing");
 
     let env_raw = fs::read_to_string(&envelopes).expect("read envelopes");
     let env_doc: Value = serde_json::from_str(&env_raw).expect("envelopes JSON");
@@ -157,17 +154,25 @@ fn live_surfaces_bind_when_present() {
         "live {PROSE_MUST_CITE_POINTER} must be non-empty"
     );
 
+    let required_paths = env_doc["anti_drift"]["required_surfaces"]
+        .as_array()
+        .expect("anti_drift.required_surfaces array")
+        .iter()
+        .map(|value| value.as_str().expect("required surface string"))
+        .collect::<BTreeSet<_>>();
+    assert_eq!(
+        required_paths,
+        BTreeSet::from([ADR_PATH, PORTABLE_PATH]),
+        "INV-DOC-9 must require both surviving doctrine surfaces"
+    );
+
     let mut surfaces = Vec::new();
-    let adr_text = fs::read_to_string(&adr).expect("read ADR");
-    surfaces.push(ProseSurface {
-        path: ADR_PATH.to_owned(),
-        text: adr_text,
-    });
-    let portable = root.join(PORTABLE_PATH);
-    if portable.is_file() {
+    for rel in required_paths {
+        let path = root.join(rel);
+        assert!(path.is_file(), "required doctrine surface is missing: {rel}");
         surfaces.push(ProseSurface {
-            path: PORTABLE_PATH.to_owned(),
-            text: fs::read_to_string(&portable).expect("read PORTABLE"),
+            path: rel.to_owned(),
+            text: fs::read_to_string(&path).expect("read required doctrine surface"),
         });
     }
 

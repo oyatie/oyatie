@@ -1,5 +1,0 @@
-val	0	accept
-val	1	block
-parse	accept	0
-parse	block	1
-parse	__nope__	ERR

@@ -1,3 +1,0 @@
-version: v1alpha1
-machine: this-is-a-scalar-not-a-map
-  type: controlplane

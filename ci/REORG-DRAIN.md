@@ -4,9 +4,8 @@
 
 - Slice: absorb `oya/ci-controller/**` → `ci/controller/**` (kernel, adapters, app, iac).
   Crate rename: `oya_ci_controller_*` → `ci_controller_*`; workspace members added under `ci/controller/*`.
-- **Hyperscaler encode (process-kit forever home):** `.grok/process-kit/**` → `ci/process-kit/**` (`//ci/process-kit:…`);
+- **Hyperscaler encode (process-kit forever home):** retired agent-local process residue → `ci/process-kit/**` (`//ci/process-kit:…`);
   daemon-hotset + perimeter → `ci/facade/harness/**`. BAN agent-dotdirs as forever homes.
-  Ephemeral `.grok/mm-runs` / `.grok/memory` left in place (not forever policy).
 
 ## Next gaps (ordered)
 
@@ -17,11 +16,10 @@
 2. **Facade wiring** — register `ci/controller` in Buck graph + generated faces.
 3. **Shrink-only burn** — delete `oya/ci-controller/**` on `integ/oya` after verify.
 4. **Webhook gateway** — `oya/ci-webhook-gateway` rehome (separate slice).
-5. **Residual `.grok/` harness** (lenses, model-routing, drive, …) — judge forever
-   homes separately; do not mass-delete `.grok/` in the process-kit wave.
 
 ## Out of envelope
 
 - `oya/ci-controller/**` deletes — shrink-only on `integ/oya`.
 - `ci/facade/**` gate policy changes unless envelope-bounded.
-- Mass-delete of entire `.grok/` tree — banned this wave.
+- Agent-runtime dot-directories are ignored and untracked; do not recreate them as project
+  authority.

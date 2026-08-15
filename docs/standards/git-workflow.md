@@ -21,7 +21,6 @@ enforcement_status:
 meta_policy: ADR-0133 (chained-enforcement planning contract, pending)
 companion_docs:
   - docs/AGENTS.md
-  - docs/standards/claude-code-harness.md
   - docs/standards/agent-instructions-discipline.md
 related_adrs:
   - ADR-0053
@@ -42,10 +41,9 @@ harness plan paths (`.omc/plans/**` provenance only; ADR-0619).
 
 ## 1. The default surface
 
-Per [`docs/AGENTS.md`](../AGENTS.md) sanctioned-primitives guidance (the former
-[`claude-code-harness.md`](claude-code-harness.md) body is a **retirement
-tombstone** only), agent fences default to plain `git` / `gh` plus in-tree
-read/build tools:
+Per [`docs/AGENTS.md`](../AGENTS.md) sanctioned-primitives guidance, agent fences default to plain
+`git` / `gh` plus in-tree read/build tools. The former harness standard was deleted after its
+retirement boundary was absorbed into the operating contract:
 
 - plain `git` + `gh` for worktree, commit, push, and PR lifecycle;
 - `oya-tooling-agent-read` or equivalent in-tree composed read primitives when present.
@@ -111,7 +109,7 @@ Meta-policy: ADR-0133 (chained-enforcement planning contract, pending).
 | `git <cmd>` outside any fence (plain prose, human-facing) | **PASS** |
 | `gh <cmd>` — same rules as `git` | as above |
 | `git --no-verify <cmd>` | **FAIL** unconditionally (per forbidden-operations.json FO-02) |
-| `gh pr merge` without `## Code Review` section | **FAIL** (per `guard-pr-merge-review.mjs` hook) |
+| `gh pr merge` without independent review evidence | **FAIL** (operating contract; `F-PR5-06` tracks the automated-enforcement gap) |
 
 ## 5. Migration-candidate flow
 
@@ -151,7 +149,7 @@ These are **never** permitted, regardless of rationale:
 | `git push --force` to `main` | forbidden-operations.json FO-03 |
 | `git reset --hard` on someone else's work | forbidden-operations.json FO-03 |
 | `git --no-verify` (skip hooks) | forbidden-operations.json FO-02 |
-| `gh pr merge` without `## Code Review` | merge-gate hook |
+| `gh pr merge` without independent review evidence | operating contract; `F-PR5-06` automation gap |
 | `git config user.email` mutation | CLAUDE.md / AGENTS.md user-machine guard |
 | Editing `~/.claude/` or `~/.codex/` from a project session | user-machine boundary |
 | Force-push that destroys an in-flight reviewer-agent verdict | merge integrity |
@@ -195,14 +193,13 @@ scoped to the action.
    One rationale per operation class per session.
 4. **Cargo-culting `git push --force-with-lease`** to dodge the lane.
    Both `--force` and `--force-with-lease` are caught.
-5. **Bypassing the merge-gate hook** via `gh pr merge --admin` or web UI.
-   Admin merges require an ADR-tracked extension (named principal +
-   audit-emit on every invocation).
+5. **Bypassing branch protection or independent review** via `gh pr merge --admin` or web UI.
+   The operating contract forbids this; any future administrative exception requires an
+   ADR-tracked extension (named principal + audit emission on every invocation).
 
 ## 11. Sources scanned
 
 - [`docs/AGENTS.md`](../AGENTS.md) §Boundaries + §PR shape; [`docs/MASTERPLAN.md`](../MASTERPLAN.md) projection + [`/specs/masterplan.json`](../../specs/masterplan.json).
 - [`decision-principles.json`](../../specs/decision-principles.json) + [`forbidden-operations.json`](../../specs/forbidden-operations.json).
 - [ADR-0515](../decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md), [ADR-0619](../decisions/ADR-0619-zero-live-context-retirement-of-external-agent-harness-brand.md).
-- [`docs/standards/claude-code-harness.md`](claude-code-harness.md) (retirement tombstone only).
 - [Conventional Commits](https://www.conventionalcommits.org/) (advisory; not adopted verbatim).

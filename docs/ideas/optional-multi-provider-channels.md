@@ -17,8 +17,9 @@ multi-provider spend view is useful. **Not** worker-lane default execution.
 
 **Success:** truthful capability card + corrected routing copy. Using these tools remains
 optional (“if useful”), never required. Task `model:` slugs remain the default dispatch path
-(`.cursor/rules/model-routing.mdc`, `.grok/harness/model-routing.v1.json` — Amendment C /
-`specs/agentic-operating-patterns.json` for catalog cites).
+(installed runtime routing plus Amendment C /
+`specs/agentic-operating-patterns.json` for catalog cites; repository-local runtime overlays are
+ignored and untracked).
 
 ## Flag semantics (founder lock)
 
@@ -77,5 +78,5 @@ live plan under the Swarm Delivery Law programme (session plan path — not a tr
 - Not teaching workers madmax as routine
 - Not leaving madmax sessions writing the main checkout during probe
 - Not replacing Swarm Delivery Law with third-party orchestration brands
-- Not auto-wiring channels into `deliver.js` / CI / lane-shell
+- Not auto-wiring channels into a tracked delivery harness / CI / lane-shell
 - Not using `*-fast` model slugs

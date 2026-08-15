@@ -1,7 +1,7 @@
 _DEPS = [
     "//iam/core/identity-workload-svid-operator-kernel:iam-identity-workload-svid-operator-kernel",
     "//iam/core/identity-workload-svid-kernel:iam-identity-workload-svid-kernel",
-    "//os/core/trustd-domain:os-trustd-domain",
+    "//iam/core/node-trust-domain:os-trustd-domain",
     "third-party//:base64",
     "third-party//:futures",
     "third-party//:k8s-openapi",

@@ -5,7 +5,7 @@ doc_status: published
 
 # Oyatie — Commit Message Standard
 
-> **Owner:** `council-architecture`. Validator: `oya verify` pre-push hook + per-PR CI lane.
+> **Owner:** `council-architecture`. Validator: commit-policy tests in the Cargo workspace + protected per-PR CI.
 
 ## 1. Format (Conventional Commits)
 

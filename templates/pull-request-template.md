@@ -32,6 +32,8 @@ rfc_2119_active: true
 
 ## Code Review
 
+`F-PR5-06` boundary: reviewer evidence is not live cloud admission enforcement until a trusted server-side/cloud-ci producer is required by the protected merge path.
+
 - Reviewer: `<agent>` — verdict `<APPROVE|REQUEST CHANGES|PENDING>`
 - Resolved items: `<list>`
 - Deferred items: `<list with owners + follow-up issue refs>`

@@ -4,9 +4,8 @@
   "artifact": "kubernetes-upstream-pin",
   "fleet_basis": {
     "kubernetes_version": "1.36.1",
-    "preset_path": "infra/talos/installation-media/presets.yaml",
-    "preset_selector": "defaults.kubernetes_version",
-    "rationale": "The Talos installation-media default selects the Kubernetes minor operated by the fleet; the upstream tag resolves that minor to the immutable source commit below."
+    "selection_authority": "explicit-fleet-version",
+    "rationale": "The fleet version is explicit and independently pinned; it is not derived from a retired node-OS implementation tree."
   },
   "pin": {
     "annotated_tag_object": "5b824a493a7ca248b726b6ea09d53842b9b992c2",
@@ -35,7 +34,7 @@
   "pin_change_procedure": {
     "allowed_at": "approved wave boundaries only",
     "required_actions": [
-      "Confirm the Talos fleet preset Kubernetes minor before resolving a replacement tag.",
+      "Confirm the explicit fleet Kubernetes minor before resolving a replacement tag.",
       "Resolve and record both the annotated tag object and peeled commit with the resolution command.",
       "Update immutable source URLs to the resolved peeled commit.",
       "Regenerate the SourceModel snapshot and bind its new digest into the six-axis receipt before any regenerated output is accepted.",

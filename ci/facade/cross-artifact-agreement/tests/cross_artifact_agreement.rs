@@ -1864,7 +1864,7 @@ fn masterplan_v2_program_coverage_contract_is_green() {
         "program coverage must be exact set coverage over /specs/microservices/manifests-index.json at consolidation time"
     );
 
-    // The ADR-0537 owned-stack ladder must be covered rung-for-rung in order.
+    // The live owned-stack ladder must be covered rung-for-rung in order.
     let rung_layers: Vec<&str> = coverage["owned_stack_ladder"]["rungs"]
         .as_array()
         .expect("program_coverage.owned_stack_ladder.rungs must be an array")
@@ -1873,14 +1873,8 @@ fn masterplan_v2_program_coverage_contract_is_green() {
         .collect();
     assert_eq!(
         rung_layers,
-        [
-            "cloud-kernel",
-            "cloud-os",
-            "cloud-k8s",
-            "cloud-services",
-            "products"
-        ],
-        "owned-stack ladder coverage must enumerate every ADR-0537 rung in ladder order"
+        ["cloud-k8s", "cloud-services", "products"],
+        "owned-stack ladder coverage must enumerate every live rung in ladder order"
     );
 
     // Pillar and program shards the consolidation must explicitly carry.
@@ -1896,8 +1890,6 @@ fn masterplan_v2_program_coverage_contract_is_green() {
         "P-WORKFLOW-ENGINE",
         "P-WORKFLOW-STUDIO",
         "P-INTELLIGENCE",
-        "P-OWNED-STACK-KERNEL",
-        "P-OWNED-STACK-OS",
         "P-OWNED-STACK-K8S",
         "P-OWNED-STACK-CLOUD",
         "P-OWNED-STACK-DURABILITY",

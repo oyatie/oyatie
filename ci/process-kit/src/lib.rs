@@ -1,4 +1,4 @@
-//! Rust-first process-kit primitives (ADR-0711 / PORTABLE-SWARM-CONTRACT).
+//! Rust-first process-kit primitives (ADR-0711 / `templates/portable-swarm-doctrine.md`).
 //!
 //! Shell `tools/swarm/**` birth was aborted on #1644 (automation-language ceiling).
 //! Forever home: `ci/process-kit/**` under `roots.ci` → `integ/ci`
@@ -6,7 +6,6 @@
 
 pub mod claim_push;
 pub mod git_shim;
-pub mod toolguard;
 
 use std::env;
 use std::path::Path;
@@ -45,12 +44,12 @@ pub fn resolve_real_git() -> String {
     "git".to_string()
 }
 
-/// Orchestrator-only check-daemon admission.
+/// Orchestrator-only admission for the optional shared check daemon.
 pub fn require_orchestrator() -> Result<(), String> {
     match env::var("SWARM_ORCHESTRATOR") {
         Ok(v) if v == "1" => Ok(()),
         _ => Err(
-            "check-daemon: REFUSE — set SWARM_ORCHESTRATOR=1 (worker lanes forbidden)"
+            "check-daemon: REFUSE — set SWARM_ORCHESTRATOR=1 (worker Cargo checks remain allowed)"
                 .to_string(),
         ),
     }

@@ -691,7 +691,7 @@ fn settle_runs_regen_and_marks_faces_settled() {
         .faces_settled
         .expect("faces_settled must be Some after a settle run");
     assert!(settled.drift_clean, "the fake reported no drift");
-    // The 6 producer faces + the scm-facts snapshot were recorded as written (sorted).
+    // The 5 producer faces + the scm-facts snapshot were recorded as written (sorted).
     assert!(
         settled
             .faces_written
@@ -708,7 +708,7 @@ fn settle_runs_regen_and_marks_faces_settled() {
     );
     assert_eq!(
         settled.faces_written.len(),
-        7,
+        6,
         "{:?}",
         settled.faces_written
     );
@@ -1253,52 +1253,6 @@ fn self_validation_runs_after_faces_settle() {
         outcome.validation.is_some(),
         "self-validation ran after the settle"
     );
-}
-
-#[test]
-fn buck2_regen_adapter_parses_declared_enforcement_liveness_corpus_targets() {
-    let output = "\
-root//ci/facade/scm-facts-snapshot:oya-cloud-ci-scm-facts-emitter-app buck-out/v2/gen/emitter\n\
-root//ci/facade/artifact-inventory-registry:oya-cloud-ci-accounting-registry-app-bin buck-out/v2/gen/producer\n\
-root//tools/oya-reorg-codemod-app:oya-reorg-codemod buck-out/v2/gen/codemod\n\
-root//.claude:settings-json buck-out/v2/gen/.claude/__settings-json__/settings-json\n\
-root//.codex:hooks-json buck-out/v2/gen/.codex/__hooks-json__/hooks-json\n\
-root//tools/hooks:top-level-hook-scripts buck-out/v2/gen/tools/hooks/__top-level-hook-scripts__/top-level-hook-scripts\n\
-";
-
-    let corpus =
-        parse_enforcement_liveness_corpus_paths(Path::new("/repo"), output).expect("corpus paths");
-
-    assert_eq!(
-        corpus.claude_settings,
-        PathBuf::from(
-            "/repo/buck-out/v2/gen/.claude/__settings-json__/settings-json/settings.json"
-        )
-    );
-    assert_eq!(
-        corpus.codex_hooks,
-        PathBuf::from("/repo/buck-out/v2/gen/.codex/__hooks-json__/hooks-json/hooks.json")
-    );
-    assert_eq!(
-        corpus.hooks_dir,
-        PathBuf::from(
-            "/repo/buck-out/v2/gen/tools/hooks/__top-level-hook-scripts__/top-level-hook-scripts"
-        )
-    );
-
-    let mut command = Command::new("/tmp/producer");
-    append_enforcement_liveness_corpus_args(&mut command, &corpus);
-    let args: Vec<String> = command
-        .get_args()
-        .map(|arg| arg.to_string_lossy().into_owned())
-        .collect();
-
-    assert!(args.contains(&corpus.claude_settings.display().to_string()));
-    assert!(args.contains(&corpus.codex_hooks.display().to_string()));
-    assert!(args.contains(&corpus.hooks_dir.display().to_string()));
-    assert!(!args.contains(&"/repo/.claude/settings.json".to_owned()));
-    assert!(!args.contains(&"/repo/.codex/hooks.json".to_owned()));
-    assert!(!args.contains(&"/repo/tools/hooks".to_owned()));
 }
 
 #[test]

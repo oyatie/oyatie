@@ -1,7 +1,0 @@
-val	0	none
-val	1	active
-val	2	follow
-parse	none	0
-parse	active	1
-parse	follow	2
-parse	__nope__	ERR

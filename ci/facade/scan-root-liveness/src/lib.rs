@@ -22,7 +22,7 @@
 //!
 //! ## The distinction that makes this a real gate
 //!
-//! Not every declared path that is absent is a defect. Three classes:
+//! Not every declared path that is absent is a defect. Four classes:
 //!
 //! - COVERAGE-BEARING (`roots`, `scan_roots`, `crate_root_globs`, ...) — a dead entry
 //!   means the gate scans less than it claims. THIS is the defect.
@@ -32,6 +32,9 @@
 //!   lists `app`, `base` and `policy` as allowed homes so the reorg can land there
 //!   without a policy edit. Flagging those would punish exactly the good practice of
 //!   declaring a destination ahead of the move.
+//! - RETIRED TOMBSTONE — a protected scan term names a root that was deliberately
+//!   deleted. The literal remains to preserve the anti-narrowing ceiling, while this
+//!   gate turns reappearance into a blocking event instead of silently reviving it.
 //!
 //! A naive "every declared path must exist" check gets the third class wrong, which
 //! is why forward declarations are explicit DATA with a stated reason rather than a
@@ -55,12 +58,23 @@ pub const CODE_FORWARD_DECLARATION_LANDED: &str = "forward_declaration_landed";
 pub const CODE_UNREGISTERED_POLICY_FILE: &str = "unregistered_policy_file";
 /// The observed corpus is implausibly small — a collector bug must not read as clean.
 pub const CODE_IMPLAUSIBLE_CORPUS: &str = "scan_root_liveness_implausible_corpus";
+/// An optional-local allowance is malformed or no longer names a declared coverage root.
+pub const CODE_INVALID_OPTIONAL_LOCAL_ROOT: &str = "invalid_optional_local_root";
+/// A retired-root tombstone is malformed, overlaps another allowance, or no longer names a
+/// currently declared coverage root by its exact full key.
+pub const CODE_INVALID_RETIRED_ROOT_TOMBSTONE: &str = "invalid_retired_root_tombstone";
+/// A path/glob classified as deliberately retired resolves again. Reintroduction must be an
+/// explicit coverage-policy change, never an unnoticed directory birth.
+pub const CODE_RETIRED_ROOT_REAPPEARED: &str = "retired_scan_root_reappeared";
 
-pub const VIOLATION_CODES: [&str; 4] = [
+pub const VIOLATION_CODES: [&str; 7] = [
     CODE_DEAD_SCAN_ROOT,
     CODE_FORWARD_DECLARATION_LANDED,
     CODE_UNREGISTERED_POLICY_FILE,
     CODE_IMPLAUSIBLE_CORPUS,
+    CODE_INVALID_OPTIONAL_LOCAL_ROOT,
+    CODE_INVALID_RETIRED_ROOT_TOMBSTONE,
+    CODE_RETIRED_ROOT_REAPPEARED,
 ];
 
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
@@ -114,6 +128,12 @@ pub struct Policy {
     pub forward_declarations: BTreeMap<String, ForwardDeclaration>,
     /// Frozen, shrink-only debt: dead roots tolerated today.
     pub baselined_dead_roots: BTreeSet<String>,
+    /// Ignored machine-local roots that are intentionally absent in clean CI checkouts but remain
+    /// coverage-bearing whenever an operator creates them locally.
+    pub optional_local_roots: BTreeMap<String, ForwardDeclaration>,
+    /// Permanently deleted roots whose protected policy literals remain solely to preserve the
+    /// immutable anti-narrowing ceiling. Absence is required; reappearance fails closed.
+    pub retired_root_tombstones: BTreeMap<String, ForwardDeclaration>,
     /// False-green floor on the number of declared roots collected.
     pub min_expected_roots: usize,
 }
@@ -130,6 +150,7 @@ pub struct Report {
     pub findings: Vec<Finding>,
     pub roots_checked: usize,
     pub dead_tolerated: usize,
+    pub retired_tombstones: usize,
 }
 
 /// Key used for baselining and forward-declaration lookup. Includes the policy file
@@ -142,6 +163,46 @@ fn root_key(r: &DeclaredRoot) -> String {
 /// Evaluate root liveness. Pure: no I/O, no clock, no environment.
 pub fn evaluate(observed: &Observed, policy: &Policy) -> Report {
     let mut findings: Vec<Finding> = Vec::new();
+
+    let observed_by_key: BTreeMap<String, &DeclaredRoot> = observed
+        .roots
+        .iter()
+        .map(|root| (root_key(root), root))
+        .collect();
+    for (key, declaration) in &policy.optional_local_roots {
+        let matches_declared_root = observed_by_key
+            .get(key)
+            .is_some_and(|root| root.value == declaration.value);
+        if declaration.value.trim().is_empty()
+            || declaration.reason.trim().is_empty()
+            || !matches_declared_root
+        {
+            findings.push(Finding {
+                code: CODE_INVALID_OPTIONAL_LOCAL_ROOT.to_owned(),
+                subject: key.clone(),
+                detail: "optional_local_roots entries must uniquely name a currently declared coverage root by full key and carry non-empty value/reason; remove stale entries or repair the declaration".to_owned(),
+            });
+        }
+    }
+    for (key, declaration) in &policy.retired_root_tombstones {
+        let matches_declared_root = observed_by_key
+            .get(key)
+            .is_some_and(|root| root.value == declaration.value);
+        let overlaps_allowance = policy.forward_declarations.contains_key(key)
+            || policy.optional_local_roots.contains_key(key)
+            || policy.baselined_dead_roots.contains(key);
+        if declaration.value.trim().is_empty()
+            || declaration.reason.trim().is_empty()
+            || !matches_declared_root
+            || overlaps_allowance
+        {
+            findings.push(Finding {
+                code: CODE_INVALID_RETIRED_ROOT_TOMBSTONE.to_owned(),
+                subject: key.clone(),
+                detail: "retired_root_tombstones entries must uniquely name a currently declared coverage root by full key, carry non-empty value/reason, and not overlap forward/optional/baselined allowances".to_owned(),
+            });
+        }
+    }
 
     if observed.roots.len() < policy.min_expected_roots {
         findings.push(Finding {
@@ -159,7 +220,9 @@ pub fn evaluate(observed: &Observed, policy: &Policy) -> Report {
     // COMPLETENESS: a policy file declaring roots must be registered or exempt,
     // otherwise a newly-added gate silently escapes liveness checking.
     for file in &observed.policy_files_with_roots {
-        if policy.registered_policy_files.contains(file) || policy.exempt_policy_files.contains_key(file) {
+        if policy.registered_policy_files.contains(file)
+            || policy.exempt_policy_files.contains_key(file)
+        {
             continue;
         }
         findings.push(Finding {
@@ -175,10 +238,21 @@ pub fn evaluate(observed: &Observed, policy: &Policy) -> Report {
     }
 
     let mut dead_tolerated = 0usize;
+    let mut retired_tombstones = 0usize;
 
     for r in &observed.roots {
         let key = root_key(r);
         if r.resolves {
+            if policy.retired_root_tombstones.contains_key(&key) {
+                findings.push(Finding {
+                    code: CODE_RETIRED_ROOT_REAPPEARED.to_owned(),
+                    subject: key.clone(),
+                    detail: format!(
+                        "retired coverage root `{}` resolves again. Remove the tombstone only in an explicit reintroduction that reviews every declaring gate and its anti-narrowing boundary.",
+                        r.value
+                    ),
+                });
+            }
             // A forward declaration whose path now exists has done its job.
             if policy.forward_declarations.contains_key(&key) {
                 findings.push(Finding {
@@ -197,6 +271,13 @@ pub fn evaluate(observed: &Observed, policy: &Policy) -> Report {
         // Does not resolve.
         if policy.forward_declarations.contains_key(&key) {
             continue; // declared ahead of creation, with a stated reason
+        }
+        if policy.optional_local_roots.contains_key(&key) {
+            continue; // absent by default; still scanned whenever local runtime state exists
+        }
+        if policy.retired_root_tombstones.contains_key(&key) {
+            retired_tombstones += 1;
+            continue; // deliberate permanent absence; reappearance is checked above
         }
         if policy.baselined_dead_roots.contains(&key) {
             dead_tolerated += 1;
@@ -228,6 +309,7 @@ pub fn evaluate(observed: &Observed, policy: &Policy) -> Report {
         findings,
         roots_checked: observed.roots.len(),
         dead_tolerated,
+        retired_tombstones,
     }
 }
 
@@ -322,10 +404,97 @@ mod tests {
     fn baselined_dead_root_is_tolerated_and_counted() {
         let o = observed(vec![root("p.json", "roots", "bin", false)]);
         let mut p = policy(&["p.json"]);
-        p.baselined_dead_roots.insert("p.json::roots::bin".to_owned());
+        p.baselined_dead_roots
+            .insert("p.json::roots::bin".to_owned());
         let r = evaluate(&o, &p);
         assert_eq!(r.verdict, Verdict::Green);
         assert_eq!(r.dead_tolerated, 1);
+    }
+
+    #[test]
+    fn absent_optional_local_root_is_green_without_becoming_dead_root_debt() {
+        let o = observed(vec![root("p.json", "/scan/roots", ".codex", false)]);
+        let mut p = policy(&["p.json"]);
+        p.optional_local_roots.insert(
+            "p.json::/scan/roots::.codex".to_owned(),
+            ForwardDeclaration {
+                value: ".codex".to_owned(),
+                reason: "ignored machine-local runtime overlay".to_owned(),
+            },
+        );
+        let r = evaluate(&o, &p);
+        assert_eq!(r.verdict, Verdict::Green, "{:?}", r.findings);
+        assert_eq!(r.dead_tolerated, 0);
+    }
+
+    #[test]
+    fn stale_or_malformed_optional_local_root_is_red() {
+        let o = observed(vec![root("p.json", "/scan/roots", ".codex", false)]);
+        let mut p = policy(&["p.json"]);
+        p.optional_local_roots.insert(
+            "p.json::/scan/roots::.cursor".to_owned(),
+            ForwardDeclaration {
+                value: ".cursor".to_owned(),
+                reason: String::new(),
+            },
+        );
+        let r = evaluate(&o, &p);
+        assert_eq!(r.verdict, Verdict::Red);
+        assert!(
+            r.findings
+                .iter()
+                .any(|finding| finding.code == CODE_INVALID_OPTIONAL_LOCAL_ROOT)
+        );
+    }
+
+    #[test]
+    fn absent_retired_root_tombstone_is_green_and_reappearance_is_red() {
+        let key = "p.json::/scan/roots::cloud";
+        let mut p = policy(&["p.json"]);
+        p.retired_root_tombstones.insert(
+            key.to_owned(),
+            ForwardDeclaration {
+                value: "cloud".to_owned(),
+                reason: "root deliberately deleted".to_owned(),
+            },
+        );
+
+        let absent = evaluate(
+            &observed(vec![root("p.json", "/scan/roots", "cloud", false)]),
+            &p,
+        );
+        assert_eq!(absent.verdict, Verdict::Green, "{:?}", absent.findings);
+        assert_eq!(absent.retired_tombstones, 1);
+
+        let reappeared = evaluate(
+            &observed(vec![root("p.json", "/scan/roots", "cloud", true)]),
+            &p,
+        );
+        assert_eq!(reappeared.verdict, Verdict::Red);
+        assert!(reappeared
+            .findings
+            .iter()
+            .any(|finding| finding.code == CODE_RETIRED_ROOT_REAPPEARED));
+    }
+
+    #[test]
+    fn stale_or_overlapping_retired_root_tombstone_is_red() {
+        let o = observed(vec![root("p.json", "/scan/roots", "cloud", false)]);
+        let mut p = policy(&["p.json"]);
+        let key = "p.json::/scan/roots::cloud".to_owned();
+        p.retired_root_tombstones.insert(
+            key.clone(),
+            ForwardDeclaration {
+                value: "cloud".to_owned(),
+                reason: "root deliberately deleted".to_owned(),
+            },
+        );
+        p.baselined_dead_roots.insert(key);
+        let r = evaluate(&o, &p);
+        assert!(r
+            .findings
+            .iter()
+            .any(|finding| finding.code == CODE_INVALID_RETIRED_ROOT_TOMBSTONE));
     }
 
     /// COMPLETENESS: the property that stops THIS gate going vacuous. A new gate
@@ -342,8 +511,10 @@ mod tests {
     fn exempt_policy_file_with_reason_is_accepted() {
         let o = observed(vec![root("fixture.json", "roots", "nowhere", false)]);
         let mut p = policy(&[]);
-        p.exempt_policy_files
-            .insert("fixture.json".to_owned(), "test fixture, not a live gate".to_owned());
+        p.exempt_policy_files.insert(
+            "fixture.json".to_owned(),
+            "test fixture, not a live gate".to_owned(),
+        );
         // Exempt from COMPLETENESS, but its roots are still evaluated — exemption is
         // about registration, not about licensing dead roots.
         let r = evaluate(&o, &p);
@@ -360,7 +531,8 @@ mod tests {
             root("b.json", "roots", "gone", false),
         ]);
         let mut p = policy(&["a.json", "b.json"]);
-        p.baselined_dead_roots.insert("a.json::roots::gone".to_owned());
+        p.baselined_dead_roots
+            .insert("a.json::roots::gone".to_owned());
         let r = evaluate(&o, &p);
         assert_eq!(r.verdict, Verdict::Red);
         assert_eq!(r.findings.len(), 1);
@@ -394,6 +566,7 @@ mod tests {
             roots: vec![
                 root("p.json", "roots", "dead", false),
                 root("p.json", "roots", "landed", true),
+                root("p.json", "roots", "reappeared", true),
             ],
             policy_files_with_roots: ["p.json".to_owned(), "unregistered.json".to_owned()]
                 .into_iter()
@@ -408,11 +581,40 @@ mod tests {
                 reason: "x".to_owned(),
             },
         );
+        p.optional_local_roots.insert(
+            "p.json::roots::missing-optional".to_owned(),
+            ForwardDeclaration {
+                value: "missing-optional".to_owned(),
+                reason: "intentionally invalid aggregate reachability fixture".to_owned(),
+            },
+        );
+        p.retired_root_tombstones.insert(
+            "p.json::roots::reappeared".to_owned(),
+            ForwardDeclaration {
+                value: "reappeared".to_owned(),
+                reason: "intentionally reappeared aggregate reachability fixture".to_owned(),
+            },
+        );
+        p.retired_root_tombstones.insert(
+            "p.json::roots::missing-tombstone".to_owned(),
+            ForwardDeclaration {
+                value: "missing-tombstone".to_owned(),
+                reason: "intentionally invalid aggregate reachability fixture".to_owned(),
+            },
+        );
         let r = evaluate(&o, &p);
         for f in &r.findings {
-            assert!(VIOLATION_CODES.contains(&f.code.as_str()), "unregistered {}", f.code);
+            assert!(
+                VIOLATION_CODES.contains(&f.code.as_str()),
+                "unregistered {}",
+                f.code
+            );
         }
         let codes: BTreeSet<&str> = r.findings.iter().map(|f| f.code.as_str()).collect();
-        assert_eq!(codes.len(), VIOLATION_CODES.len(), "all codes reachable: {codes:?}");
+        assert_eq!(
+            codes.len(),
+            VIOLATION_CODES.len(),
+            "all codes reachable: {codes:?}"
+        );
     }
 }

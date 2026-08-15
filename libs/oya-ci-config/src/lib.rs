@@ -1314,11 +1314,6 @@ fn default_enabled_gates() -> Vec<GateSpec> {
             face: Some(GateFace::TargetParity),
         },
         GateSpec {
-            id: "cloud-ci-enforcement-liveness".to_owned(),
-            input_kind: GateInputKind::ProducerFace,
-            face: Some(GateFace::EnforcementLiveness),
-        },
-        GateSpec {
             id: "cloud-ci-freshness".to_owned(),
             input_kind: GateInputKind::FrozenEmptyMeta,
             face: None,
@@ -1527,9 +1522,9 @@ mod tests {
     }
 
     #[test]
-    fn bundled_default_enables_all_fifteen_gates_with_input_kinds() {
+    fn bundled_default_enables_all_fourteen_gates_with_input_kinds() {
         let cfg = OyaCiConfig::bundled_default();
-        assert_eq!(cfg.gates.enabled.len(), 15);
+        assert_eq!(cfg.gates.enabled.len(), 14);
         let brand = cfg
             .gates
             .enabled
@@ -1600,16 +1595,12 @@ mod tests {
             .expect("target-parity gate enabled");
         assert_eq!(target_parity.input_kind, GateInputKind::ProducerFace);
         assert_eq!(target_parity.face, Some(GateFace::TargetParity));
-        let enforcement_liveness = cfg
-            .gates
-            .enabled
-            .iter()
-            .find(|g| g.id == "cloud-ci-enforcement-liveness")
-            .expect("enforcement-liveness gate enabled");
-        assert_eq!(enforcement_liveness.input_kind, GateInputKind::ProducerFace);
-        assert_eq!(
-            enforcement_liveness.face,
-            Some(GateFace::EnforcementLiveness)
+        assert!(
+            cfg.gates
+                .enabled
+                .iter()
+                .all(|gate| gate.id != "cloud-ci-enforcement-liveness"),
+            "retired hook-wiring gate must not be enabled"
         );
         let freshness = cfg
             .gates
@@ -1671,6 +1662,9 @@ mod tests {
                 .is_some_and(|text| text.contains("--next-adr")),
             "the phantom remediation must name the allocator"
         );
+        // One-wave frozen-reference compatibility: a producer built from the candidate may still
+        // parse the merge-base configuration while regenerating its baseline. Keep this retired
+        // disposition until dev advances past the runtime-overlay deletion.
         let liveness_codes = disp
             .get("gates")
             .and_then(|gates| gates.get("cloud-ci-enforcement-liveness"))
@@ -1995,7 +1989,7 @@ face = "total_accounting"
         assert!(n.catalog_liveness.workspace_member_exemptions.is_empty());
         assert!(n.cross_artifact.sources.is_empty());
         // gates present (engine still dispatches) but disposition is empty (quiet).
-        assert_eq!(n.gates.enabled.len(), 15, "gates present");
+        assert_eq!(n.gates.enabled.len(), 14, "gates present");
         let disp: serde_json::Value =
             serde_json::from_str(n.gates.disposition_json()).expect("neutral disposition json");
         assert_eq!(

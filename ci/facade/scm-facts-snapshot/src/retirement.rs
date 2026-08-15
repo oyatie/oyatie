@@ -118,6 +118,8 @@ pub(crate) struct TreeEntry {
     path: String,
 }
 
+type BlobVisitor<'a> = dyn FnMut(&str, u64, &mut dyn Read) -> Result<(), String> + 'a;
+
 impl TreeEntry {
     fn is_regular_blob(&self) -> bool {
         self.mode == "100644" && self.kind == "blob"
@@ -137,11 +139,7 @@ pub(crate) trait RetirementObjectSource {
     /// Sources with an efficient streaming object protocol should override this. The
     /// default keeps test doubles and non-Git sources correct while preserving the
     /// bounded-memory contract for callers.
-    fn visit_blobs(
-        &self,
-        blob_oids: &[String],
-        visit: &mut dyn FnMut(&str, u64, &mut dyn Read) -> Result<(), String>,
-    ) -> Result<(), String> {
+    fn visit_blobs(&self, blob_oids: &[String], visit: &mut BlobVisitor<'_>) -> Result<(), String> {
         for blob_oid in blob_oids {
             let bytes = self.read_blob(blob_oid)?;
             let size = bytes.len() as u64;
@@ -188,7 +186,7 @@ impl GitCliRetirementObjectSource {
 pub fn visit_git_blobs(
     repo_root: &Path,
     blob_oids: &[String],
-    visit: &mut dyn FnMut(&str, u64, &mut dyn Read) -> Result<(), String>,
+    visit: &mut BlobVisitor<'_>,
 ) -> Result<(), String> {
     for blob_oid in blob_oids {
         validate_oid(blob_oid, "retirement blob")?;
@@ -238,7 +236,7 @@ pub fn visit_git_blobs(
                 stdout.read_exact(&mut byte).map_err(|error| {
                     format!("stream retirement blobs: read header for {blob_oid}: {error}")
                 })?;
-                if byte == [b'\n'] {
+                if byte == *b"\n" {
                     break;
                 }
                 if header.len() == CAT_FILE_HEADER_LIMIT {
@@ -276,7 +274,7 @@ pub fn visit_git_blobs(
             stdout.read_exact(&mut terminator).map_err(|error| {
                 format!("stream retirement blobs: read terminator for {blob_oid}: {error}")
             })?;
-            if terminator != [b'\n'] {
+            if terminator != *b"\n" {
                 return Err(format!(
                     "stream retirement blobs: missing body terminator for {blob_oid}"
                 ));
@@ -390,11 +388,7 @@ impl RetirementObjectSource for GitCliRetirementObjectSource {
         self.git(&["cat-file", "blob", blob_oid], "read retirement blob")
     }
 
-    fn visit_blobs(
-        &self,
-        blob_oids: &[String],
-        visit: &mut dyn FnMut(&str, u64, &mut dyn Read) -> Result<(), String>,
-    ) -> Result<(), String> {
+    fn visit_blobs(&self, blob_oids: &[String], visit: &mut BlobVisitor<'_>) -> Result<(), String> {
         visit_git_blobs(&self.repo_root, blob_oids, visit)
     }
 
@@ -565,20 +559,41 @@ impl CanonicalRetirementFactsWriter {
     }
 }
 
-/// Non-Unix placeholder that preserves the public API while failing closed.
+/// Non-Unix implementation that retains the canonical-path boundary re-validation
+/// but not the descriptor-relative TOCTOU hardening.
+///
+/// Windows std exposes no directory-handle semantics (no portable dirfd), so the
+/// fixed basename is reached through the re-validated pathname instead of an open
+/// directory descriptor. CI runners are ephemeral, so the pathname-race window
+/// between boundary re-validation and the atomic rename is not additionally
+/// hardened here.
 #[cfg(not(unix))]
-pub struct CanonicalRetirementFactsWriter;
+pub struct CanonicalRetirementFactsWriter {
+    directory: PathBuf,
+}
 
 #[cfg(not(unix))]
 impl CanonicalRetirementFactsWriter {
-    /// The descriptor-relative writer is unavailable on this platform.
-    pub fn open(_repo_root: &Path) -> Result<Self, String> {
-        Err("canonical retirement facts writer requires Unix dirfd support".to_owned())
+    /// Re-run the canonical retirement-facts boundary, then resolve the fixed parent.
+    pub fn open(repo_root: &Path) -> Result<Self, String> {
+        canonical_generated_facts_output_path(repo_root, Path::new(GENERATED_FACTS_PATH))?;
+        let directory = ensure_or_create_directory_chain(
+            repo_root,
+            &["ci", "facade", "scm-facts-snapshot"],
+            "retirement facts",
+        )?;
+        Ok(Self { directory })
     }
 
-    /// The descriptor-relative writer is unavailable on this platform.
-    pub fn write(&self, _bytes: &[u8]) -> Result<(), String> {
-        Err("canonical retirement facts writer requires Unix dirfd support".to_owned())
+    /// Atomically replace only the fixed canonical facts basename in its parent directory.
+    pub fn write(&self, bytes: &[u8]) -> Result<(), String> {
+        const FINAL_NAME: &str = "history-only-retirement-facts.generated.json";
+        atomic_replace_ignored_generated_file(
+            &self.directory,
+            FINAL_NAME,
+            ".retirement-facts",
+            bytes,
+        )
     }
 }
 
@@ -745,25 +760,41 @@ pub fn write_canonical_ignored_generated_file(
     CanonicalIgnoredGeneratedWriter::open(repo_root, relative_path)?.write(bytes)
 }
 
-/// Non-Unix placeholder that preserves the public API while failing closed.
+/// Non-Unix implementation that retains the canonical-path boundary re-validation
+/// but not the descriptor-relative TOCTOU hardening (Windows std has no
+/// directory-handle semantics; CI runners are ephemeral).
 ///
 /// Integration targets import this type on all platforms; Unix-only tests that
-/// exercise dirfd semantics stay behind `#[cfg(unix)]`. Without this stub,
-/// Windows soft-smoke fails at compile time with `unresolved import`.
+/// exercise dirfd semantics stay behind `#[cfg(unix)]`.
 #[cfg(not(unix))]
 #[derive(Debug)]
-pub struct CanonicalIgnoredGeneratedWriter;
+pub struct CanonicalIgnoredGeneratedWriter {
+    directory: PathBuf,
+    final_name: String,
+}
 
 #[cfg(not(unix))]
 impl CanonicalIgnoredGeneratedWriter {
-    /// The descriptor-relative writer is unavailable on this platform.
-    pub fn open(_repo_root: &Path, _relative_path: &Path) -> Result<Self, String> {
-        Err("canonical ignored generated writer requires Unix dirfd support".to_owned())
+    /// Re-run the ignored/untracked boundary, then resolve the canonical parent directory.
+    pub fn open(repo_root: &Path, relative_path: &Path) -> Result<Self, String> {
+        let (parent_components, final_name) =
+            canonical_ignored_generated_path(repo_root, relative_path)?;
+        let directory =
+            ensure_or_create_directory_chain(repo_root, &parent_components, "ignored generated")?;
+        Ok(Self {
+            directory,
+            final_name: final_name.to_owned(),
+        })
     }
 
-    /// The descriptor-relative writer is unavailable on this platform.
-    pub fn write(&self, _bytes: &[u8]) -> Result<(), String> {
-        Err("canonical ignored generated writer requires Unix dirfd support".to_owned())
+    /// Atomically replace the fixed canonical basename in its parent directory.
+    pub fn write(&self, bytes: &[u8]) -> Result<(), String> {
+        atomic_replace_ignored_generated_file(
+            &self.directory,
+            &self.final_name,
+            ".ignored-generated",
+            bytes,
+        )
     }
 }
 
@@ -801,7 +832,126 @@ fn atomic_replace_ignored_generated_file(
     result
 }
 
-#[cfg(unix)]
+/// Resolve (creating where absent) the canonical parent directory chain for the non-Unix
+/// writers, validating each existing component is a real, non-symlink directory.
+///
+/// Mirrors the Unix `open_or_create_directory_at` semantics with `std::fs`; the
+/// component-by-component walk keeps the same no-follow discipline as far as the
+/// pathname API allows.
+#[cfg(not(unix))]
+fn ensure_or_create_directory_chain(
+    repo_root: &Path,
+    parent_components: &[&str],
+    label: &str,
+) -> Result<PathBuf, String> {
+    let mut directory = repo_root.to_path_buf();
+    for component in parent_components {
+        directory.push(component);
+        match std::fs::symlink_metadata(&directory) {
+            Ok(metadata) if metadata.file_type().is_symlink() || !metadata.is_dir() => {
+                return Err(format!(
+                    "{label} directory {component:?} is not a real directory"
+                ));
+            }
+            Ok(_) => {}
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
+                match std::fs::create_dir(&directory) {
+                    Ok(()) => {}
+                    // Tolerate a concurrent creator, matching the Unix mkdirat path.
+                    Err(error) if error.kind() == std::io::ErrorKind::AlreadyExists => {}
+                    Err(error) => {
+                        return Err(format!("create {label} directory {component:?}: {error}"));
+                    }
+                }
+            }
+            Err(error) => {
+                return Err(format!("inspect {label} directory {component:?}: {error}"));
+            }
+        }
+    }
+    Ok(directory)
+}
+
+/// Non-Unix regular-or-absent probe for the fixed canonical basename.
+#[cfg(not(unix))]
+fn ensure_regular_or_absent(directory: &Path, name: &str) -> Result<(), String> {
+    match std::fs::symlink_metadata(directory.join(name)) {
+        Ok(metadata) if !metadata.file_type().is_file() => {
+            Err("retirement facts output must be a regular file".to_owned())
+        }
+        Ok(_) => Ok(()),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(()),
+        Err(error) => Err(format!("inspect retirement facts output: {error}")),
+    }
+}
+
+/// Non-Unix exclusive-creation of a temporary file in the canonical output directory.
+#[cfg(not(unix))]
+fn create_temporary_file_with_path(
+    directory: &Path,
+    prefix: &str,
+) -> Result<(PathBuf, std::fs::File), String> {
+    for _ in 0..32 {
+        let name = format!(
+            "{prefix}-{}-{}",
+            std::process::id(),
+            NEXT_ATOMIC_WRITE_ID.fetch_add(1, Ordering::Relaxed)
+        );
+        let path = directory.join(&name);
+        match std::fs::OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .open(&path)
+        {
+            Ok(file) => return Ok((path, file)),
+            Err(error) if error.kind() == std::io::ErrorKind::AlreadyExists => continue,
+            Err(error) => {
+                return Err(format!(
+                    "create temporary file with prefix {prefix:?}: {error}"
+                ));
+            }
+        }
+    }
+    Err(format!(
+        "exhausted temporary file names with prefix {prefix:?}"
+    ))
+}
+
+/// Non-Unix temp-file-in-same-directory + atomic-rename write for a canonical ignored face.
+///
+/// Retains the canonical-path boundary re-validation performed by the writers' `open`
+/// but not the descriptor-relative TOCTOU hardening of the Unix dirfd path: the temporary
+/// file and the final rename both address the re-validated directory pathname, and Windows
+/// std exposes no portable directory-handle fsync (a `File::sync_all` on a directory fails),
+/// so the directory itself is not synced. CI runners are ephemeral; the file contents are
+/// still fsynced before the rename so the final name never exposes partial bytes.
+#[cfg(not(unix))]
+fn atomic_replace_ignored_generated_file(
+    directory: &Path,
+    final_name: &str,
+    temporary_prefix: &str,
+    bytes: &[u8],
+) -> Result<(), String> {
+    ensure_regular_or_absent(directory, final_name)?;
+    let (temporary_path, mut temporary) =
+        create_temporary_file_with_path(directory, temporary_prefix)?;
+    let result = (|| {
+        temporary
+            .write_all(bytes)
+            .map_err(|error| format!("write ignored generated temporary file: {error}"))?;
+        temporary
+            .sync_all()
+            .map_err(|error| format!("sync ignored generated temporary file: {error}"))?;
+        drop(temporary);
+        std::fs::rename(&temporary_path, directory.join(final_name))
+            .map_err(|error| format!("replace ignored generated output: {error}"))
+    })();
+    if result.is_err() {
+        let _ = std::fs::remove_file(&temporary_path);
+    }
+    result
+}
+
 fn canonical_ignored_generated_path<'a>(
     repo_root: &Path,
     relative_path: &'a Path,
@@ -2425,7 +2575,7 @@ mod tests {
     use std::cell::RefCell;
 
     /// Windows soft-smoke regression: integration targets import this type on all
-    /// platforms. The non-unix stub must keep the name public (see GHA E0432 when
+    /// platforms. The non-unix writer must keep the name public (see GHA E0432 when
     /// only `#[cfg(unix)]` existed).
     #[test]
     fn canonical_ignored_generated_writer_is_public_on_all_platforms() {
@@ -2436,28 +2586,107 @@ mod tests {
         );
     }
 
+    /// The non-Unix writers are real implementations: after re-running the canonical
+    /// boundary they materialize the fixed basename via temp-file-in-same-directory +
+    /// atomic rename, and a second write atomically replaces it.
     #[cfg(not(unix))]
     #[test]
-    fn non_unix_canonical_ignored_generated_writer_fails_closed() {
-        let err = CanonicalIgnoredGeneratedWriter::open(
-            Path::new("."),
-            Path::new("ci/facade/artifact-inventory-registry/adr-census-epoch-receipt.generated.json"),
+    fn non_unix_writers_materialize_canonical_faces_through_the_real_boundary() {
+        let root = std::env::temp_dir().join(format!(
+            "retirement-non-unix-writer-{}-{}",
+            std::process::id(),
+            NEXT_ATOMIC_WRITE_ID.fetch_add(1, Ordering::Relaxed)
+        ));
+        std::fs::create_dir(&root).expect("create non-unix writer repository");
+        let status = Command::new("git")
+            .args(["init", "--quiet"])
+            .current_dir(&root)
+            .status()
+            .expect("run git init");
+        assert!(status.success(), "git init must succeed");
+        std::fs::write(
+            root.join(".gitignore"),
+            format!(
+                "/{GENERATED_FACTS_PATH}\n/ci/facade/artifact-inventory-registry/adr-census-epoch-receipt.generated.json\n"
+            ),
         )
-        .expect_err("non-unix stub must fail closed");
-        assert!(
-            err.contains("Unix dirfd"),
-            "unexpected non-unix stub error: {err}"
-        );
-        let err = write_canonical_ignored_generated_file(
-            Path::new("."),
-            Path::new("ci/facade/artifact-inventory-registry/adr-census-epoch-receipt.generated.json"),
-            b"{}",
+        .expect("write gitignore");
+
+        let writer = CanonicalRetirementFactsWriter::open(&root)
+            .expect("non-unix retirement facts writer must open after boundary re-validation");
+        writer
+            .write(b"{\"facts\":true}")
+            .expect("write retirement facts");
+        let facts = std::fs::read_to_string(root.join(GENERATED_FACTS_PATH))
+            .expect("read materialized retirement facts");
+        assert_eq!(facts, "{\"facts\":true}");
+        writer
+            .write(b"{\"facts\":false}")
+            .expect("replace retirement facts");
+        let facts = std::fs::read_to_string(root.join(GENERATED_FACTS_PATH))
+            .expect("read replaced retirement facts");
+        assert_eq!(facts, "{\"facts\":false}");
+
+        let ignored = CanonicalIgnoredGeneratedWriter::open(
+            &root,
+            Path::new(
+                "ci/facade/artifact-inventory-registry/adr-census-epoch-receipt.generated.json",
+            ),
         )
-        .expect_err("non-unix free function must fail closed");
+        .expect("non-unix ignored generated writer must open after boundary re-validation");
+        ignored
+            .write(b"{}")
+            .expect("write ignored generated receipt");
+        let receipt =
+            std::fs::read_to_string(root.join(
+                "ci/facade/artifact-inventory-registry/adr-census-epoch-receipt.generated.json",
+            ))
+            .expect("read materialized ignored generated receipt");
+        assert_eq!(receipt, "{}");
+
+        std::fs::remove_dir_all(&root).expect("remove non-unix writer repository");
+    }
+
+    /// The non-Unix path retains canonical-path re-validation: an un-ignored or tracked
+    /// output must still fail closed at `open`, before any write.
+    #[cfg(not(unix))]
+    #[test]
+    fn non_unix_writers_still_fail_closed_on_boundary_violations() {
+        let root = std::env::temp_dir().join(format!(
+            "retirement-non-unix-boundary-{}-{}",
+            std::process::id(),
+            NEXT_ATOMIC_WRITE_ID.fetch_add(1, Ordering::Relaxed)
+        ));
+        std::fs::create_dir(&root).expect("create non-unix boundary repository");
+        let status = Command::new("git")
+            .args(["init", "--quiet"])
+            .current_dir(&root)
+            .status()
+            .expect("run git init");
+        assert!(status.success(), "git init must succeed");
+
+        let error = CanonicalRetirementFactsWriter::open(&root)
+            .map(|_| ())
+            .expect_err("non-unix facts writer must re-validate the ignore boundary");
         assert!(
-            err.contains("Unix dirfd"),
-            "unexpected non-unix free-function error: {err}"
+            error.contains("must be ignored and untracked"),
+            "unexpected boundary error: {error}"
         );
+
+        let error = CanonicalIgnoredGeneratedWriter::open(
+            &root,
+            Path::new(
+                "ci/facade/artifact-inventory-registry/adr-census-epoch-receipt.generated.json",
+            ),
+        )
+        .map(|_| ())
+        .expect_err("non-unix ignored writer must re-validate the ignore boundary");
+        assert!(
+            error.contains("must be ignored and untracked"),
+            "unexpected boundary error: {error}"
+        );
+
+        std::fs::remove_dir_all(&root).expect("remove non-unix boundary repository");
     }
 
     #[cfg(unix)]

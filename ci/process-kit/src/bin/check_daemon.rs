@@ -1,7 +1,7 @@
 //! Orchestrator check-daemon stub (Rust-first).
 //!
-//! Full `buck2 build //...[check]` fan-out remains a follow-on once this crate
-//! is workspace-absorbed via integ/build. This binary encodes admission + refuses now.
+//! Optional bounded local-hermeticity fan-out remains a follow-on once this crate
+//! is workspace-absorbed via integ/build. Workers may independently run scoped Cargo checks.
 
 use oya_process_kit::git_shim::refuse_no_verify;
 use oya_process_kit::{detect_env_escapes, require_orchestrator};
@@ -27,7 +27,7 @@ fn main() -> ExitCode {
     }
     eprintln!(
         "check-daemon: OK (stub) — buck target //ci/process-kit:oya-process-kit-check-daemon; \
-         full //[check] fan-out pending integ/build membership"
+         optional bounded fan-out pending integ/build membership"
     );
     ExitCode::SUCCESS
 }

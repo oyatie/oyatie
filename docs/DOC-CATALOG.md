@@ -297,7 +297,7 @@ Markdown-retirement policy, masterplan v2, the protected-PR admission contract, 
 18. ☐ Open PR with `## Verification` section listing every check from §3.3 and its outcome.
 19. ☐ Reviewer-of-record from `owner_team` reviews and approves.
 20. ☐ For Tier 1 docs (PRD/DESIGN/SPEC/ROADMAP/ADR-INDEX/RISK-REGISTER/COMPLIANCE/SECURITY/PRIVACY/GTM): a second council reviewer signs off.
-21. ☐ Merge using `gh pr merge` per `guard-pr-merge-review.mjs` rules.
+21. ☐ Merge only after independent review evidence, required CI, and branch protection are satisfied.
 22. ☐ Post-merge: emit `EVT-DOC-UPDATED` audit-chain record.
 
 ### 3.5 Publish

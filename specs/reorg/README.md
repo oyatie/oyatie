@@ -1,6 +1,7 @@
 # `specs/reorg/` — move recipes (north-star reorg)
 
-**Not merge authority.** Doctrine: `.grok/programs/REORG-DOCTRINE.md` (when kit lands) / live ADR-0614 + capability ADRs on `origin/dev`.
+**Not merge authority.** Doctrine: live ADR-0614 + capability ADRs on `origin/dev`, with the
+runtime-neutral delivery mirror at `templates/portable-swarm-doctrine.md`.
 
 ## What belongs here
 
@@ -33,7 +34,7 @@ Enforced by: `ci/facade/baseline-ratchet` test `reorg_at_most_one_executable_mov
 | File | Status |
 |------|--------|
 | `intelligence-remainder-move-plan.json` | **LIVE** — G024 remainder rehome (78 crates under `oya/intelligence`); sole executable move-plan |
-| `ci-keystone-rename-map.json` | **rename SSOT** (not a move-plan) — gate_registration + disposition |
+| `ci-keystone-rename-map.json` | **executed rename record** (not a move-plan) — gate_registration + disposition consume rows for still-live gates; retired rows remain migration provenance |
 | `kernel-move-plan.BLOCKED.json` | **BLOCKED** — mechanical blockers |
 | `ci-graph-additions.json` | Companion graph for historical keystone lockfile edges |
 
@@ -45,10 +46,11 @@ Enforced by: `ci/facade/baseline-ratchet` test `reorg_at_most_one_executable_mov
 
 ## North-star / anti-debt
 
-See delivery-fabric `NORTH-STAR-SHAPE.md` when kit is on trunk. Short form:
+See the owning ADRs and `specs/integ-branch-envelopes.json#reorg_debt_freeze`. Short form:
 
 - Reorg targets (`cloud/`, `oya/`, `infra/`, …): **reduce only**
-- Process automation: **`.grok/`** (not new scripts under `infra/`)
+- Process automation: owned Rust under **`ci/process-kit/`** (not agent dot-directories or new
+  scripts under `infra/`)
 - No hand-edit of `*.generated.json`
 
 ## Human pointers

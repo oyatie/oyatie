@@ -6,15 +6,16 @@
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
     "spec_id": "EXE-INTEG-BRANCH-ENVELOPES",
-    "version": "1.16.24",
+    "version": "1.17.0",
     "status": "Accepted",
     "owner_team": "council-architecture",
     "created_at": "2026-08-10T00:00:00Z",
     "authority_adr": "docs/decisions/ADR-0711-swarm-delivery-law-integ-branch-topology.md",
     "self_owner_branch": "integ/specs",
-    "primary_consumer": "governance/check/integ-envelope + .claude/workflows/deliver.js Claim",
+    "primary_consumer": "governance/check/integ-envelope + ci/process-kit successor",
     "purpose": "Policy-as-data for envelope containment, hub sole-owner, adjunct claims, concurrent-safe exemptions, process-kit forever ci/process-kit (Rust-first; no tools/swarm birth on #1644; BAN agent-dotdirs forever homes), hyperscaler monorepo patterns, Amendment B ternary layout + Pattern-First taxonomy + 16-lens judgment (volatile judgments live under governance/check/integ-envelope/judgments/), Amendment C operating-patterns catalog, Amendment D anti-drift INV-DOC-1…9 + Claim↔diff bind, merge_windows, mechanical Claim packet, and process-meta / forward-declared roots under Swarm Delivery Law, daemon_hotset + perimeter northstar, rules-with-why / adr-rename-overturn.",
-    "prior_version": "1.16.20"
+    "prior_version": "1.16.24",
+    "updated_at": "2026-08-15T00:00:00Z"
   },
   "admission": {
     "trunk": "dev",
@@ -212,14 +213,6 @@
         "governance/**"
       ]
     },
-    "grok": {
-      "branch": "integ/ci",
-      "envelope_globs": [
-        ".grok/**"
-      ],
-      "note": "Residual agent-dotdir envelope for ephemeral / transitional .grok/ surfaces (mm-runs, memory, non-forever harness). Founder OVERRULE: BAN agent-dotdirs as forever homes — Rust process-kit forever is ci/process-kit/** (Buck //ci/process-kit:…); daemon-hotset + perimeter forever are ci/facade/harness/** under roots.ci. Do not birth new forever policy under .grok/.",
-      "forward_declared": true
-    },
     "hr": {
       "branch": "integ/hr",
       "envelope_globs": [
@@ -271,14 +264,6 @@
         "k8s/**"
       ],
       "note": "Top-level capability root (ADR-0701). Governed under Swarm Delivery Law — ownership = path = integ scope (ADR-0711 D-9)."
-    },
-    "kernel": {
-      "branch": "integ/kernel",
-      "envelope_globs": [
-        "kernel/**"
-      ],
-      "note": "Top-level owned-stack kernel root (ADR-0701). Forward-declared envelope hole close (northstar-envelope-holes).",
-      "forward_declared": true
     },
     "learning-management": {
       "branch": "integ/learning-management",
@@ -344,12 +329,6 @@
       ],
       "note": "Forward-declared multi-month PRODUCT rail (programme plan rule 3d). Forever path app/office/**; rehome from oya/office. Product subtree claims via integ/office — integ/app is composition glue only.",
       "forward_declared": true
-    },
-    "os": {
-      "branch": "integ/os",
-      "envelope_globs": [
-        "os/**"
-      ]
     },
     "oya": {
       "branch": "integ/oya",
@@ -476,7 +455,7 @@
       "envelope_globs": [
         "tools/**"
       ],
-      "note": "Transitional root under Amendment B reorg-target debt freeze. #1644 does NOT birth tools/swarm/** (automation-language merge-base ceiling); process kit deferred to .grok/ Rust-first. tools/ remains shrink-only — further births require an explicit reorg-move-out bead."
+      "note": "Transitional root under Amendment B reorg-target debt freeze. #1644 does NOT birth tools/swarm/** (automation-language merge-base ceiling); Rust process kit lives under ci/process-kit/. tools/ remains shrink-only — further births require an explicit reorg-move-out bead."
     },
     "translate": {
       "branch": "integ/translate",
@@ -600,7 +579,7 @@
       "owner_decision": {
         "forever_owner": "integ/docs",
         "rejected_alternative": "orphan templates/** or forever adjunct from integ/specs",
-        "why": "Chesterton: judgments already named integ/docs; forever adjunct is oxymoron; process_meta rejection of docs-plane expansion applies to root entry hubs (AGENTS/CLAUDE/.cursor), not to the templates plane hub."
+        "why": "Chesterton: judgments already named integ/docs; forever adjunct is oxymoron; process_meta rejection of docs-plane expansion applies to root entry hubs (AGENTS/CLAUDE), not to the templates plane hub."
       }
     },
     "specs": {
@@ -613,19 +592,17 @@
       "branch": "integ/ci",
       "envelope_globs": [
         ".github/**",
-        ".claude/**",
-        ".cursor/**",
         "AGENTS.md",
         "CLAUDE.md",
         "README.md",
         "HANDOFF.md"
       ],
-      "note": "PROCESS_META — PROCESS_KIT + root operating-contract entry hubs (ADR-0700; markdown-retirement survival set). Forever owner integ/ci (not integ/docs): docs plane stays docs/** (apex docs/AGENTS.md); root AGENTS/CLAUDE/README/HANDOFF and .cursor/** are session entry / editor kit peers of .github/.claude — adjuncts expire, so do not park forever ownership on integ/docs. HANDOFF.md is the founder thin fresh-session redirect (keep_forever at root; no path move). Bootstrap wave may still adjunct-claim from integ/specs. Closes root-ops-contract-route / northstar-envelope-holes for these paths.",
+      "note": "PROCESS_META — tracked process kit + root operating-contract entry hubs (ADR-0700; markdown-retirement survival set). Forever owner integ/ci (not integ/docs): docs plane stays docs/** (apex docs/AGENTS.md); root AGENTS/CLAUDE/README/HANDOFF and .github are tracked peers. Repository-local agent runtime dot-directories are ignored and untracked. HANDOFF.md is the founder thin fresh-session redirect (keep_forever at root; no path move).",
       "forward_declared_owner": "integ/ci",
       "owner_decision": {
         "forever_owner": "integ/ci",
         "rejected_alternative": "integ/docs adjunct or docs-plane glob expansion",
-        "why": "Chesterton: process_meta already owns PROCESS_KIT peers; forever adjunct is oxymoron; expanding docs beyond docs/** conflates PLANE hub with root entry hubs. HANDOFF stays root thin redirect (markdown-retirement survival), not a docs/** plane citizen. Content land of root file doctrine is a follow-on lane after this route exists."
+        "why": "Chesterton: process_meta owns tracked PROCESS_KIT peers; ignored runtime dot-directories are not ownership surfaces. Expanding docs beyond docs/** conflates PLANE hub with root entry hubs. HANDOFF stays a root thin redirect."
       }
     },
     "root_manifests": {
@@ -715,18 +692,6 @@
     ],
     "active": [
       {
-        "path_glob": ".claude/workflows/**",
-        "claiming_branch": "integ/specs",
-        "reason": "deliver.js Claim/Land harness is the primary consumer of envelopes; co-land with policy-as-data on integ/specs.",
-        "expires_at_or_wave": "wave-after-integ-tools-first-land"
-      },
-      {
-        "path_glob": ".grok/programs/delivery-fabric/evidence/PORTABLE-SWARM-CONTRACT.md",
-        "claiming_branch": "integ/specs",
-        "reason": "Portable Swarm Contract is per-program contract evidence for the delivery-fabric program and travels with the law bootstrap (not a concurrent-safe exemption — a shared mutable file stays contested; fix-1644-codex).",
-        "expires_at_or_wave": "wave-after-integ-tools-first-land"
-      },
-      {
         "path_glob": "docs/decisions/ADR-0711-swarm-delivery-law-integ-branch-topology.md",
         "claiming_branch": "integ/specs",
         "reason": "Single PR preference: ADR-0711 co-lands with envelopes self-owner rather than splitting integ/docs for this bootstrap wave.",
@@ -753,7 +718,7 @@
       {
         "path_glob": ".gitignore",
         "claiming_branch": "integ/specs",
-        "reason": "Ignore .check/ daemon machine output (orchestrator check surface; process kit deferred to .grok/).",
+        "reason": "Ignore .check/ daemon machine output (orchestrator check surface; process kit lives under ci/process-kit/).",
         "expires_at_or_wave": "wave-after-integ-tools-first-land"
       },
       {
@@ -785,12 +750,6 @@
         "claiming_branch": "integ/specs",
         "reason": "Exclude non-crate governance/check/integ-envelope from workspace members glob so freshness can resolve (ADR-0538 carve-out).",
         "expires_at_or_wave": "wave-after-integ-envelope-gate"
-      },
-      {
-        "path_glob": ".grok/harness/model-routing.v1.json",
-        "claiming_branch": "integ/specs",
-        "reason": "Bootstrap: model-routing harness pin co-lands with Swarm Delivery Law optional-channel doctrine (advisory channels ≠ merge authority).",
-        "expires_at_or_wave": "wave-after-integ-specs-bootstrap-land"
       },
       {
         "path_glob": ".omc/ultragoal/**",
@@ -854,14 +813,12 @@
     ],
     "mechanical": {
       "rule": "Agent summary first token MUST be exactly CLAIM or REFUSE. Substring /^CLAIM/ is NOT sufficient (CLAIMED/not CLAIM = REFUSE). CLAIM requires docs_touched + docs_action; docs_action=n/a requires docs_action_why.",
-      "parsers": [
-        ".claude/workflows/deliver.js#parseClaimPacket"
-      ],
-      "push_check": "deferred: ci/process-kit claim-push (Rust-first); until then Land uses deliver.js merge-tree preflight only"
+      "parsers": [],
+      "push_check": "manual reviewer evidence until ci/process-kit claim-push completes the full envelope check; its current receipt-shape stub is not promotion authority"
     },
     "encoded_in": [
-      ".claude/workflows/deliver.js#Claim",
-      ".claude/workflows/deliver.js"
+      "specs/integ-branch-envelopes.json#claim_phase",
+      "ci/process-kit/src/claim_push.rs (partial successor; not full authority)"
     ]
   },
   "concurrent_safe_exemptions": {
@@ -903,7 +860,7 @@
       "commit --no-verify/-n",
       "push --no-verify"
     ],
-    "enforcement": "deferred: ci/process-kit git-shim / toolguard (Rust-first); doctrine in PORTABLE-SWARM-CONTRACT + ADR-0711 D-9; no shell birth under tools/ on #1644"
+    "enforcement": "deferred: ci/process-kit git-shim (Rust-first); the Cargo-denial toolguard is retired by ADR-0711 A-2/ADR-0716; doctrine in templates/portable-swarm-doctrine.md + ADR-0711 D-9; no shell birth under tools/ on #1644"
   },
   "worktree_topology": {
     "main_checkout": "orchestrator + check-daemon only (durable writes)",
@@ -917,7 +874,7 @@
   },
   "hyperscaler_monorepo_patterns": {
     "authority": "docs/decisions/ADR-0711-swarm-delivery-law-integ-branch-topology.md#D-9",
-    "portable_contract": ".grok/programs/delivery-fabric/evidence/PORTABLE-SWARM-CONTRACT.md#Hyperscaler-monorepo-patterns-first-class",
+    "portable_contract": "templates/portable-swarm-doctrine.md#hyperscaler-monorepo-patterns-first-class",
     "note": "First-class hyperscaler / clean-architecture monorepo rules — not agent-swarm folklore alone. Envelopes, hubs, and worker discipline must stay consistent with these patterns.",
     "cites": [
       "ADR-0119 (flat cross-cutting specs/ hub; product colocation via ADR-0131 amendment)",
@@ -935,7 +892,7 @@
       "central_docs_specs_are_cross_cutting_hubs_only_prefer_owner_colocation",
       "trunk_based_scoped_parallel_lanes_serialize_only_at_trunk_and_hub_contention",
       "hermetic_policy_as_data_gates_under_single_merge_admission_required",
-      "selective_affected_testing_no_full_monorepo_rebuild_in_worker_lanes",
+      "targeted_worker_feedback_with_protected_full_workspace_cargo_evidence",
       "owner_colocated_docs_g3doc_hubs_sole_owned_by_integ_docs_or_integ_specs",
       "concurrent_safe_paths_registry_for_true_concurrent_writers",
       "small_frequent_lands_squash_to_trunk_server_side_integ_reset",
@@ -947,7 +904,7 @@
       "shared_working_directory_for_parallel_agents",
       "long_lived_divergent_topic_branches_with_date_suffix_durable_names",
       "editing_hub_files_from_every_code_pr_without_sole_owner_or_waiver",
-      "agents_running_cargo_buck2_slow_commands_in_worker_lanes",
+      "unbounded_duplicate_full_workspace_checks_across_worker_lanes",
       "inventing_work_or_lanes_for_empty_verified_space",
       "birthing_new_paths_under_reorg_now_or_delete_prefixes",
       "treating_libs_cloud_oya_infra_toolchains_tools_as_keep_forever",
@@ -961,14 +918,14 @@
   "agentic_operating_patterns": {
     "authority": "docs/decisions/ADR-0711-swarm-delivery-law-integ-branch-topology.md#Amendment-C",
     "patterns_ref": "specs/agentic-operating-patterns.json",
-    "portable_contract": ".grok/programs/delivery-fabric/evidence/PORTABLE-SWARM-CONTRACT.md#Amendment-C",
+    "portable_contract": "templates/portable-swarm-doctrine.md#amendment-c-operating-patterns",
     "note": "Clustered KEEP/BAN from 137 Amendment C archive entries; Amendment E requires achieves/origin/rule/ensure/overturn_when on each load-bearing entry. Forever merge-gate name is merge-admission-required — distill notes that said keep oya-ci-required are OVERRULED. adr-rename-overturn: ADR paths stay ADR-NNNN-<topic>.",
-    "patterns_version": "1.1.0",
+    "patterns_version": "1.2.0",
     "rule_shape_ref": "specs/agentic-operating-patterns.json#rule_shape"
   },
   "naming": {
     "taxonomy_ref": "specs/naming-taxonomy.json",
-    "lens_battery_ref": ".grok/harness/lenses.v1.json",
+    "lens_battery_ref": "specs/decision-principles.json",
     "authority_adr": "docs/decisions/ADR-0711-swarm-delivery-law-integ-branch-topology.md#Amendment-B-Pattern-First",
     "pattern_first": true,
     "judgment_template": {
@@ -1084,7 +1041,7 @@
   },
   "reorg_debt_freeze": {
     "authority": "docs/decisions/ADR-0711-swarm-delivery-law-integ-branch-topology.md#Amendment-B",
-    "portable_contract": ".grok/programs/delivery-fabric/evidence/PORTABLE-SWARM-CONTRACT.md#Amendment-B",
+    "portable_contract": "templates/portable-swarm-doctrine.md#amendment-b-repository-shape",
     "status": "binding",
     "urgency": "NOW",
     "greenfield_question": "If we were greenfield and wanted an ideal hyperscaler monorepo clean-architecture shape, where would this belong and in what shape? That answer IS placement law.",
@@ -1259,8 +1216,6 @@
       "console/": "keep_forever",
       "compliance/": "keep_forever",
       "comms/": "keep_forever",
-      "kernel/": "keep_forever",
-      "os/": "keep_forever",
       "build/": "keep_forever",
       "third-party/": "keep_forever",
       "registry/": "keep_forever",
@@ -1270,9 +1225,9 @@
       "scripts/": "reorg_now",
       "tasks/": "reorg_now",
       "benchmarks/": "reorg_now",
-      ".grok/": "keep_forever",
-      ".claude/": "keep_forever",
-      ".codex/": "keep_forever",
+      ".grok/": "delete_permanently",
+      ".claude/": "delete_permanently",
+      ".codex/": "delete_permanently",
       ".github/": "keep_forever",
       ".cargo/": "keep_forever",
       ".config/": "keep_forever",
@@ -1281,7 +1236,7 @@
       ".omx/": "delete_permanently",
       ".gjc/": "delete_permanently",
       ".agents/": "delete_permanently",
-      ".cursor/": "keep_forever",
+      ".cursor/": "delete_permanently",
       "buck-out/": "delete_permanently",
       "target/": "delete_permanently",
       "wt-1616/": "delete_permanently",
@@ -1759,7 +1714,7 @@
         "redesign": "delete",
         "judgment_status": "done",
         "disposition": "delete-permanently",
-        "rationale": "1) Single report docs/harness/feature-currency-2026-05.md — backlog #71 changelog-currency for Claude/Codex features; scopes .claude/.codex/tools/hooks. No gate consumer. 2) Point-in-time inventory prose; harness standard already retirement tombstone. 3) Currency tracking for retired coordination brands — not north-star product. 4) Should not exist; live harness guidance is docs/AGENTS.md appendices + runtime skills. 5) Antipattern: documenting/expanding retired harness surface. 6) delete-permanently. 7) Greenfield: no docs/harness/; process notes in .grok evidence if needed.",
+        "rationale": "1) Single report docs/harness/feature-currency-2026-05.md — backlog #71 changelog-currency for Claude/Codex features; scopes retired agent overlays and tools/hooks. No gate consumer. 2) Point-in-time inventory prose; harness standard already retirement tombstone. 3) Currency tracking for retired coordination brands — not north-star product. 4) Should not exist; live harness guidance is docs/AGENTS.md appendices + runtime skills. 5) Antipattern: documenting/expanding retired harness surface. 6) delete-permanently. 7) Greenfield: no docs/harness/; reviewed evidence belongs under evidence/.",
         "evidence": [
           "docs/AGENTS.md Claude appendix: harness standard is retirement tombstone ADR-0619/0709",
           "file self-describes backlog #71 scope limited to harness dirs",
@@ -2357,94 +2312,6 @@
         "judgment_status": "pending",
         "rationale": "PROVISIONAL reorg_now → `os/, kernel/, <capability>/, build/` shape `strangler source → durable meta/capability homes`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
         "destination": "os/, kernel/, <capability>/, build/"
-      },
-      {
-        "path": "cloud/cloud-os/",
-        "action": "reorg_now",
-        "greenfield_destination": "os/",
-        "destination": "os/",
-        "shape": "strangler residual burn into META os/{core,harness}/; delete dual-home under cloud/",
-        "redesign": "rewrite",
-        "judgment_status": "done",
-        "disposition": "rewrite-into-durable-shape",
-        "name_now": "cloud/cloud-os/",
-        "name_forever": "os/",
-        "kind": "meta-root",
-        "grammar_compliant": true,
-        "lenses_applied": "all-16",
-        "challenges": [
-          "cartesian_doubt: #1607 claims zero-crate residual — origin/dev still has 4 crates under cloud/cloud-os/crates/** (56 paths); challenge stands, judgment must not encode zero-crate fiction",
-          "chestertons_fence: MOVE-3 (#1416) already landed forever crates under os/{core,harness}/; cloud/cloud-os remains accidental dual-home + stale manifest, not a second OS authority",
-          "essentialism_yagni: one META os/ home; cloud/cloud-os path must not survive",
-          "contrarian: do not land #1607 agent/* trunk PR; harvest intent (manifest→os/, delete dual-home) onto integ/os + integ/cloud rails only",
-          "pragmatism: absorb missing forever pieces (os/manifest.json + any crate delta) on integ/os; delete drained cloud/cloud-os/** on integ/cloud — no hub retarget on this judgment tip",
-          "systems_thinking: dual crate trees (cloud oya-cloud-os-* vs os/core/*) already both_exist for cluster-mgmt/kubernetes/secrets/trustd — rewrite/merge, not git-mv-only",
-          "blast_radius_cell: path drain envelope-bounded to cloud/** + os/**; hubs (capability-registry/masterplan/reachability/Cargo.lock) wait tip-free integ/specs window",
-          "opportunity_cost: leaving dual-home guarantees further #1607-style wrong zero-crate claims and registry floor drift",
-          "zero_trust: fail closed on any Claim that treats agent/reorg-cloud-os-residual as admission-legal trunk head",
-          "red_team: partial delete of cloud/cloud-os without os/manifest absorb orphans microservice registry consumers",
-          "operability_day2: after burn, sole runtime/OS ownership is os/ — Day-2 debug starts there, never cloud/cloud-os",
-          "finops_unit_cost: dual compile graphs for same domains waste CI; one forever home",
-          "shared_nothing: os/ is the durable shared-nothing cell; cloud/ strangler is transitional only",
-          "constant_work: judgment-first then path drain — no reactive mega-move under hot #1644 hubs",
-          "socratic: question behind zero-crate claim is 'is strangler empty?' — measured answer is no; residual burn remains",
-          "outside_the_box: supersede #1607 after harvest; do not reopen agent/* for this residual"
-        ],
-        "rationale": "1) Hosts residual Talos-style OS domain crates + microservice manifest still under cloud/cloud-os (4 crates / 56 crate paths on origin/dev) while MOVE-3 forever copies live under os/core. 2) Dual-home strangler leftover written as brand-prefixed cloud nest — accidental vs ADR-0701 META os/. 3) Provide node-OS domain assets for owned stack. 4) OS capability must exist at os/; cloud/cloud-os must not. 5) Fit: META os/{core,harness}/ is the registered forever home; cloud/ is reorg_now strangler source. 6) rewrite-into-durable-shape: content-merge/absorb residual (manifest + crate deltas) into os/, then delete cloud/cloud-os/** — redesign=rewrite (not git-mv-only). 7) Forever: os/ (integ/os absorb + integ/cloud delete).",
-        "evidence": [
-          "git ls-tree -r --name-only origin/dev -- cloud/cloud-os/crates/ | wc -l → 56 (not zero-crate)",
-          "cloud/cloud-os/crates/{oya-cloud-os-cluster-mgmt-domain,oya-cloud-os-kubernetes-domain,oya-cloud-os-secrets-domain,oya-cloud-os-trustd-domain} dual-exist with os/core/{cluster-mgmt-domain,kubernetes-domain,secrets-domain,trustd-domain}",
-          "os/manifest.json absent on origin/dev; cloud/cloud-os/manifest.json still present (harvest target)",
-          "PR #1607 intent: burn residual into os/; head agent/* admission-forbidden — do not merge as land vehicle"
-        ],
-        "destination_integ": "integ/os",
-        "land_when": "Wave-2: integ/os absorbs forever residual (os/manifest.json + any missing crate bytes) coordinating one-writer with hot #1643; integ/cloud deletes drained cloud/cloud-os/**; hub retargets only on tip-free integ/specs — not this judgment commit",
-        "land_status": "ready_for_integ_os",
-        "shrink_source_integ": "integ/cloud"
-      },
-      {
-        "path": "cloud/cloud-kernel/",
-        "action": "reorg_now",
-        "greenfield_destination": "kernel/",
-        "destination": "kernel/",
-        "shape": "strangler framekernel absorb into META kernel/{core,harness}/; delete dual-home under cloud/",
-        "redesign": "rewrite",
-        "judgment_status": "done",
-        "disposition": "rewrite-into-durable-shape",
-        "name_now": "cloud/cloud-kernel/",
-        "name_forever": "kernel/",
-        "kind": "meta-root",
-        "grammar_compliant": true,
-        "lenses_applied": "all-16",
-        "challenges": [
-          "chestertons_fence: MOVE-3 dual-home put OS domain crates under os/ — os/core/kernel is os-kernel (Talos migration traits), NOT the kuberos framekernel; do not collapse cloud-kernel into os/",
-          "cartesian_doubt: kernel/ on origin/dev is only asterinas-boundary + asterinas-real-boot (15 paths) while cloud/cloud-kernel holds the full nested no_std framekernel workspace — incomplete strangler, not empty dest",
-          "essentialism_yagni: one rung-0 META kernel/ forever; cloud/cloud-kernel brand nest must not survive",
-          "contrarian: reject os/ as forever dest for framekernel despite os/core/kernel name collision — different package (os-kernel vs kuberos)",
-          "pragmatism: rewrite absorb cloud/cloud-kernel crates into kernel/{core,harness}/ on integ/kernel; delete source on integ/cloud; keep nested workspace / no_std carve-out semantics",
-          "systems_thinking: integ/kernel is forward-declared envelope; land must not orphan arch adapters / user-layout harnesses",
-          "blast_radius_cell: path work on integ/kernel + integ/cloud only; no hub edits on this tip",
-          "opportunity_cost: parking framekernel under cloud/ prolongs brand-prefix grammar banned by evaluation_gate",
-          "zero_trust: do not treat cloud/cloud-kernel Cargo.lock nested workspace as root-workspace authority",
-          "red_team: renaming into os/core/kernel would smash os-kernel traits crate and confuse Day-2 owners",
-          "operability_day2: bare-metal bring-up lives under kernel/; OS node domains stay under os/",
-          "finops_unit_cost: one nested kernel workspace forever avoids duplicate CI graphs",
-          "shared_nothing: kernel/ is rung-0 cell separate from os/ and root cargo workspace (ADR-0512 carve-out)",
-          "constant_work: judgment closes now; path absorb waits owning integs — no reactive mega-PR",
-          "socratic: is dual-home with os/ justified by MOVE-3? No — MOVE-3 fence protects OS domains, not framekernel placement",
-          "outside_the_box: HANDOFF founder dest for kuberos is kernel/ META; cloud/ path is transitional strangler only"
-        ],
-        "rationale": "1) Nested no_std kuberos framekernel (HAL/frame/arch adapters/ksync/user-layout) under cloud/cloud-kernel. 2) Brand-prefixed strangler dual-home vs incomplete kernel/ META (asterinas only today). 3) Provide rung-0 owned microkernel. 4) Framekernel must exist at kernel/; cloud/cloud-kernel must not; must not fold into os/ (os/core/kernel is different crate). 5) Fit: META kernel/{core,harness}/ per envelopes keep_forever shape + ADR-0701. 6) rewrite-into-durable-shape absorb into kernel/, delete cloud/cloud-kernel/** — redesign=rewrite. 7) Forever: kernel/ (integ/kernel absorb + integ/cloud delete).",
-        "evidence": [
-          "cloud/cloud-kernel/Cargo.toml: nested workspace members oya-cloud-kernel-{app,hal,frame,arch-*,ksync,user-layout}",
-          "kernel/ on origin/dev: only core/asterinas-boundary + harness/asterinas-real-boot (15 paths)",
-          "os/core/kernel Cargo.toml package name=os-kernel — Talos migration primitives, not framekernel",
-          "envelopes roots.kernel forward_declared integ/kernel → kernel/**; roots.os → os/**"
-        ],
-        "destination_integ": "integ/kernel",
-        "land_when": "After this judgment: integ/kernel absorbs framekernel into kernel/{core,harness}/ (rewrite); integ/cloud deletes drained cloud/cloud-kernel/**; do not route into os/; hub retargets on tip-free integ/specs only",
-        "land_status": "ready_for_integ_kernel",
-        "shrink_source_integ": "integ/cloud"
       },
       {
         "path": "oya/payments/",
@@ -3824,12 +3691,12 @@
       {
         "path": "infra/",
         "action": "reorg_now",
-        "greenfield_destination": "build/, ci/, .grok/, iac/",
+        "greenfield_destination": "build/, ci/, iac/",
         "shape": "split by concern; no infra junk-drawer",
         "redesign": "rewrite",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL reorg_now → `build/, ci/, .grok/, iac/` shape `split by concern; no infra junk-drawer`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
-        "destination": "build/, ci/, .grok/, iac/"
+        "rationale": "PROVISIONAL reorg_now → `build/, ci/, iac/` shape `split by concern; no infra junk-drawer`. Judgment pending; redesign default `rewrite` (not git-mv-only).",
+        "destination": "build/, ci/, iac/"
       },
       {
         "path": "toolchains/",
@@ -3879,12 +3746,12 @@
       {
         "path": "tools/",
         "action": "reorg_now",
-        "greenfield_destination": ".grok/ + ci/facade/ + delete remainder",
+        "greenfield_destination": "ci/process-kit/ + ci/facade/ + delete remainder",
         "shape": "process kit never homes under tools/; shrink-only after child drains",
         "redesign": "rewrite",
         "judgment_status": "done",
-        "rationale": "1) Residual tools tree + swarm one-shot. 2) Transitional process-kit root under freeze. 3) Temporary home for swarm shims. 4) Must vacate. 5) Antipattern: tools as durable process plane. 6) rewrite leaves to .grok/ + ci/facade + delete. 7) Forever: no tools/ root.",
-        "destination": ".grok/ + ci/facade/ + delete remainder",
+        "rationale": "1) Residual tools tree + swarm one-shot. 2) Transitional process-kit root under freeze. 3) Temporary home for swarm shims. 4) Must vacate. 5) Antipattern: tools as durable process plane. 6) rewrite leaves to ci/process-kit/ + ci/facade + delete. 7) Forever: no tools/ root.",
+        "destination": "ci/process-kit/ + ci/facade/ + delete remainder",
         "disposition": "rewrite-into-durable-shape",
         "name_now": "tools/",
         "name_forever": "(none — process kit under ci/process-kit; gates under ci/facade)",
@@ -3895,24 +3762,24 @@
           "chestertons_fence: tools/ historically held agent kits — Amendment B freezes births; content must leave",
           "cartesian_doubt: DISPOSITION.md keeps pointer SSOT; swarm leaf is the live one-shot exception",
           "essentialism_yagni: no tools/ forever root in greenfield",
-          "pragmatism: swarm→.grok/; governance apps→ci/facade or delete; then vacate tools/",
-          "systems_thinking: envelopes still list process-kit .grok/ cites — schedule cite rewrite with port",
+          "pragmatism: swarm process→ci/process-kit/; governance apps→ci/facade or delete; then vacate tools/",
+          "systems_thinking: process-kit citations converge on tracked ci/process-kit/",
           "blast_radius_cell: tools/** under freeze; lands split by leaf owner",
           "opportunity_cost: keeping tools/ invites more one-shot exceptions",
           "contrarian: REJECT scout silence on tools root — parent must close with swarm leaf",
           "zero_trust: no new tools/* unit roots without reorg-move-out",
-          "red_team: worktree-only .grok/ process-kit copies masquerading as main forever home",
+          "red_team: ignored runtime overlays must not masquerade as the process-kit forever home",
           "operability_day2: operators find process kit under ci/process-kit/, not tools/",
           "finops_unit_cost: one process-kit tree",
-          "shared_nothing: .grok/ owns swarm process; ci/facade owns gates",
+          "shared_nothing: ci/process-kit owns process components; ci/facade owns gates",
           "constant_work: judgment now; path port after #1644",
-          "socratic: why would greenfield keep tools/ when .grok/ is process kit?",
-          "outside_the_box: absorb scout 0b9a2531 .grok/ process-kit→.grok/ as binding leaf",
-          "destination_owns_reorg_now: parent tools/ is shrink-only coordinator — absorb owned by child destination_integ rows (.grok/→integ/ci, ci/facade→integ/ci)",
+          "socratic: why would greenfield keep tools/ when ci/process-kit is the owned destination?",
+          "outside_the_box: absorb process mechanics directly into owned Rust instead of another runtime overlay",
+          "destination_owns_reorg_now: parent tools/ is shrink-only coordinator — child destinations are owned by integ/ci",
           "shrink_only: integ/tools deletes remainder after leaf absorbs; REJECT integ/specs as absorb owner for tools/ parent"
         ],
         "evidence": [
-          "scout 0b9a2531 tools/swarm→.grok/",
+          "scout 0b9a2531 tools/swarm process-kit inventory",
           "tools/DISPOSITION.md",
           "#1644 aborted tools/swarm birth (automation-language ceiling)"
         ],
@@ -3924,33 +3791,33 @@
       {
         "path": "tools/swarm/",
         "action": "reorg_now",
-        "greenfield_destination": ".grok/",
-        "destination": ".grok/",
-        "shape": "never birth shell under tools/; process kit → .grok/ Rust-first",
+        "greenfield_destination": "ci/process-kit/",
+        "destination": "ci/process-kit/",
+        "shape": "never birth shell under tools/; process kit → ci/process-kit/ Rust-first",
         "redesign": "rewrite",
         "judgment_status": "done",
         "disposition": "delete_permanently",
         "name_now": "tools/swarm/",
-        "name_forever": ".grok/",
+        "name_forever": "ci/process-kit/",
         "kind": "process-kit",
         "grammar_compliant": true,
         "lenses_applied": "inherit-root",
         "challenges": [
           "chestertons_fence: prior #1644 one-shot birth plan collided with automation-language merge-base ceiling",
           "cartesian_doubt: tools/swarm absent on main — do not introduce shell/Python under tools/",
-          "pragmatism: Claim mechanical already lives in deliver.js#parseClaimPacket — no tip dependency on tools/swarm",
+          "pragmatism: no tracked Claim parser exists; protected PR admission remains authoritative",
           "systems_thinking: envelopes/ADR/PORTABLE cites retargeted off tools/swarm same wave",
           "contrarian: REJECT keep tools/swarm as convenience exception — tip exceptions vs ceiling are forbidden"
         ],
-        "rationale": "1) Swarm process shims were planned as tools/swarm one-shot. 2) automation-language-policy blocks new shell/Python under tools/ vs merge-base. 3) Claim/Land mechanical already in deliver.js. 4) Forever home is .grok/ Rust-first. 5) Antipattern: tools/ as process kit root. 6) delete_permanently — never birth tools/swarm on tip. 7) Forever: .grok/.",
+        "rationale": "1) Swarm process shims were planned as tools/swarm one-shot. 2) automation-language-policy blocks new shell/Python under tools/ vs merge-base. 3) Repo-local Claim/Land scripts were retired; protected PR admission remains authoritative. 4) Forever home for owned process mechanics is ci/process-kit/ Rust-first. 5) Antipattern: tools/ or an agent runtime overlay as process-kit root. 6) delete_permanently — never birth tools/swarm on tip. 7) Forever: ci/process-kit/.",
         "evidence": [
           "automation-language-policy non_rust_exception_baseline ceiling (immutable merge-base)",
-          "deliver.js#parseClaimPacket owns Claim mechanical on #1644"
+          "ADR-0711 2026-08-15 runtime-overlay OVERRULE"
         ],
         "destination_integ": "integ/ci",
         "land_when": "No tools/swarm birth on #1644. Encoded: integ/ci owns ci/process-kit/** + ci/facade/harness/**; tools/ stays shrink-only.",
         "land_status": "absorb_on_integ_ci_then_shrink_integ_tools",
-        "wave": "W-tools-swarm-to-grok",
+        "wave": "W-tools-swarm-to-process-kit",
         "shrink_source_integ": "integ/tools",
         "forever_name": "(never; ci/process-kit instead)"
       },
@@ -4292,26 +4159,6 @@
         "destination": "comms/{core,ports,adapters,facade}/"
       },
       {
-        "path": "kernel/",
-        "action": "keep_forever",
-        "greenfield_destination": "kernel/{core,harness}/",
-        "shape": "META rung-0",
-        "redesign": "none",
-        "judgment_status": "pending",
-        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `kernel/` → `kernel/{core,harness}/` (META rung-0). Full 7-point judgment still pending before structural change.",
-        "destination": "kernel/{core,harness}/"
-      },
-      {
-        "path": "os/",
-        "action": "keep_forever",
-        "greenfield_destination": "os/{core,harness}/",
-        "shape": "META rung-1",
-        "redesign": "none",
-        "judgment_status": "pending",
-        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `os/` → `os/{core,harness}/` (META rung-1). Full 7-point judgment still pending before structural change.",
-        "destination": "os/{core,harness}/"
-      },
-      {
         "path": "build/",
         "action": "keep_forever",
         "greenfield_destination": "build/",
@@ -4650,33 +4497,48 @@
       },
       {
         "path": ".grok/",
-        "action": "keep_forever",
-        "greenfield_destination": ".grok/",
-        "shape": "PROCESS_KIT: mm-delivery / swarm process (thin; not product)",
-        "redesign": "none",
-        "judgment_status": "pending",
-        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `.grok/` → `.grok/` (PROCESS_KIT: mm-delivery / swarm process (thin; not product)). Full 7-point judgment still pending before structural change.",
-        "destination": ".grok/"
+        "action": "delete_permanently",
+        "greenfield_destination": "ci/process-kit/ + templates/",
+        "shape": "machine-local runtime only; no tracked agent dot-directory",
+        "redesign": "delete",
+        "judgment_status": "done",
+        "disposition": "delete-permanently",
+        "rationale": "1) Mixed runtime state, process scripts, and point-in-time evidence under a tool-specific dot-directory. 2) Duplicated durable process-kit and doctrine surfaces now owned by ci/process-kit, ci/facade/harness, specs, and templates. 3) It previously accelerated local orchestration. 4) Runtime state may exist locally but must not be tracked or authoritative. 5) Tracking it creates tool coupling, merge conflicts, and doctrine drift. 6) Delete and root-ignore. 7) Forever homes: Rust process automation under ci/process-kit and portable doctrine under templates/.",
+        "evidence": [
+          "founder directive 2026-08-15: ignore and delete repository .grok/",
+          "ci/process-kit/README.md bans agent dot-directories as forever homes"
+        ],
+        "destination": "ci/process-kit/ + templates/"
       },
       {
         "path": ".claude/",
-        "action": "keep_forever",
-        "greenfield_destination": ".claude/",
-        "shape": "PROCESS_KIT: deliver.js + settings",
-        "redesign": "none",
-        "judgment_status": "pending",
-        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `.claude/` → `.claude/` (PROCESS_KIT: deliver.js + settings). Full 7-point judgment still pending before structural change.",
-        "destination": ".claude/"
+        "action": "delete_permanently",
+        "greenfield_destination": "ci/process-kit/ + installed runtime",
+        "shape": "machine-local runtime only; no tracked agent dot-directory",
+        "redesign": "delete",
+        "judgment_status": "done",
+        "disposition": "delete-permanently",
+        "rationale": "1) Project runtime settings plus a JavaScript delivery harness. 2) Runtime activation is machine-local; durable process automation belongs in owned Rust under ci/process-kit. 3) It previously loaded project hooks and local delivery helpers. 4) Local runtimes may recreate ignored state, but Git must not track it. 5) A tracked tool-specific runtime root creates false liveness and bypasses the Rust-first process home. 6) Delete and root-ignore. 7) Forever home: ci/process-kit plus installed runtime state outside Git.",
+        "evidence": [
+          "founder directive 2026-08-15: ignore and delete repository .claude/",
+          "ci/process-kit/README.md names ci/process-kit as the forever process home"
+        ],
+        "destination": "ci/process-kit/ + installed runtime"
       },
       {
         "path": ".codex/",
-        "action": "keep_forever",
-        "greenfield_destination": ".codex/",
-        "shape": "PROCESS_KIT: project skills overlay",
-        "redesign": "none",
-        "judgment_status": "pending",
-        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `.codex/` → `.codex/` (PROCESS_KIT: project skills overlay). Full 7-point judgment still pending before structural change.",
-        "destination": ".codex/"
+        "action": "delete_permanently",
+        "greenfield_destination": "installed runtime",
+        "shape": "machine-local runtime only; no tracked agent dot-directory",
+        "redesign": "delete",
+        "judgment_status": "done",
+        "disposition": "delete-permanently",
+        "rationale": "1) Project hook/runtime overlay. 2) Skills and roles are installed runtime concerns, while repository law stays in AGENTS.md and canonical specs. 3) It previously mirrored hook wiring. 4) Local runtime state may exist but must not be tracked. 5) Tracking it duplicates runtime configuration and creates false enforcement claims. 6) Delete and root-ignore. 7) Forever home: installed runtime outside Git.",
+        "evidence": [
+          "founder directive 2026-08-15: ignore and delete repository .codex/",
+          "CLAUDE.md runtime-installed skill doctrine"
+        ],
+        "destination": "installed runtime"
       },
       {
         "path": ".github/",
@@ -4726,7 +4588,7 @@
         "redesign": "delete",
         "judgment_status": "done",
         "disposition": "delete-permanently",
-        "rationale": "1) Tracked ultragoal residue (OWNERS/preamble/friction/premise) claiming SUNSET under ADR-0709; not a control plane. Callers: historical IP prose + entry-surface denylist only. 2) Brand-residue docs, not clean-arch product code; dual with live .grok process kit. 3) Was keeping path-stable OMC slots — north star forbids OMC/OMX as coordination. 4) Must not exist as tracked authority. 5) Antipattern: retired harness brand as instruction surface. 6) delete-permanently (already landed on #1644 tip). 7) Greenfield: zero .omc/ tracked surface; process kit = .grok/ + bd.",
+        "rationale": "1) Tracked ultragoal residue (OWNERS/preamble/friction/premise) claiming SUNSET under ADR-0709; not a control plane. Callers: historical IP prose + entry-surface denylist only. 2) Brand-residue docs, not clean-arch product code. 3) Was keeping path-stable OMC slots — north star forbids OMC/OMX as coordination. 4) Must not exist as tracked authority. 5) Antipattern: retired harness brand as instruction surface. 6) delete-permanently (already landed on #1644 tip). 7) Greenfield: zero .omc/ tracked surface; owned process mechanics live under ci/process-kit/.",
         "evidence": [
           "git show pre-delete .omc/ultragoal/premise.txt SUNSET text",
           "specs/root-hub-pointers.json agent_entry_surface_allowlist superseded .omc/**",
@@ -4766,13 +4628,18 @@
       },
       {
         "path": ".cursor/",
-        "action": "keep_forever",
-        "greenfield_destination": ".cursor/",
-        "shape": "PROCESS_KIT: editor agents/rules (thin)",
-        "redesign": "none",
-        "judgment_status": "pending",
-        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `.cursor/` → `.cursor/` (PROCESS_KIT: editor agents/rules (thin)). Full 7-point judgment still pending before structural change.",
-        "destination": ".cursor/"
+        "action": "delete_permanently",
+        "greenfield_destination": "templates/checklists/ + installed runtime",
+        "shape": "machine-local editor/runtime only; no tracked agent dot-directory",
+        "redesign": "delete",
+        "judgment_status": "done",
+        "disposition": "delete-permanently",
+        "rationale": "1) Editor-specific rule overlays and ownership marker. 2) The canonical ritual already lives under templates/checklists and repository doctrine under AGENTS.md. 3) It previously injected a short session copy. 4) Local editor state may exist but must not become a second authority. 5) Tracking it violates single-source doctrine survival. 6) Delete and root-ignore. 7) Forever home: templates/checklists plus installed runtime state outside Git.",
+        "evidence": [
+          "founder directive 2026-08-15: ignore and delete repository .cursor/",
+          "templates/checklists/swarm-agent-ritual.md canonical copy"
+        ],
+        "destination": "templates/checklists/ + installed runtime"
       },
       {
         "path": "buck-out/",
@@ -5240,26 +5107,6 @@
         "status": "judged_destination_overturned_to_evidence_audits_not_audit_capability"
       },
       {
-        "id": "W-cloud-leaf-cloud-os",
-        "path": "cloud/cloud-os/",
-        "judgment_status": "done",
-        "action": "reorg_now",
-        "redesign": "rewrite",
-        "destination_integ": "integ/os",
-        "land_status": "ready_for_integ_os",
-        "status": "judgment_closed_on_integ_specs_wave1"
-      },
-      {
-        "id": "W-cloud-leaf-cloud-kernel",
-        "path": "cloud/cloud-kernel/",
-        "judgment_status": "done",
-        "action": "reorg_now",
-        "redesign": "rewrite",
-        "destination_integ": "integ/kernel",
-        "land_status": "ready_for_integ_kernel",
-        "status": "judgment_closed_on_integ_specs_wave1"
-      },
-      {
         "id": "W-oya-leaf-payments",
         "path": "oya/payments/",
         "judgment_status": "done",
@@ -5425,7 +5272,7 @@
         "status": "judgment_closed_scripts_leaves_rewrite_to_ci_rust_then_delete"
       },
       {
-        "id": "W-tools-swarm-to-grok",
+        "id": "W-tools-swarm-to-process-kit",
         "path": "tools/swarm/",
         "judgment_status": "done",
         "action": "reorg_now",
@@ -5433,8 +5280,8 @@
         "destination_integ": "integ/ci",
         "land_status": "absorb_on_integ_ci_then_shrink_integ_tools",
         "shrink_source_integ": "integ/tools",
-        "status": "judgment_closed_tools_swarm_to_grok",
-        "note": "absorb owner integ/ci via roots.ci (ci/process-kit/** + ci/facade/harness/**); residual roots.grok for ephemeral .grok/**; integ/specs is envelopes hub only — not forever-path absorb owner (#1644 automation-language abort)",
+        "status": "judgment_closed_tools_swarm_to_process_kit",
+        "note": "absorb owner integ/ci via roots.ci (ci/process-kit/** + ci/facade/harness/**); agent runtime dot-directories are local-only; integ/specs is envelopes hub only — not forever-path absorb owner (#1644 automation-language abort)",
         "two_phase_note": "Aborted: do not birth tools/swarm. Birth Rust process-kit under ci/process-kit on integ/ci (done encode).",
         "disposition": "delete_permanently"
       },
@@ -6114,7 +5961,7 @@
           "destination_integ": "integ/ci",
           "forever": "ci/process-kit/**",
           "shrink_source_integ": "integ/tools",
-          "envelope_root": "roots.grok"
+          "envelope_root": "roots.ci"
         }
       },
       "root_survival": {
@@ -6129,7 +5976,7 @@
       }
     },
     "claim_exemption_marker": "reorg-move-out",
-    "claim_exemption_rule": "New path births under no_new_births_while_reorg_prefixes are refused by deliver.js Claim unless the claimed bead title or body contains reorg-move-out naming the greenfield_destination. Prefer landing moves on the destination integ/<root>.",
+    "claim_exemption_rule": "New path births under no_new_births_while_reorg_prefixes are refused by the envelope reviewer unless the claimed bead title or body contains reorg-move-out naming the greenfield_destination. Prefer landing moves on the destination integ/<root>.",
     "one_shot_exceptions": [],
     "historical_never_repeat": [
       {
@@ -6138,7 +5985,7 @@
       }
     ],
     "enforcement": [
-      "deliver.js Claim",
+      "governance/check/integ-envelope + reviewer Claim evidence",
       "human/reviewer refuse of births under freeze prefixes without reorg-move-out bead"
     ],
     "version": "2.1.2",
@@ -6188,7 +6035,7 @@
       ],
       "rule": "Path changes require judgment_status=done with rationale+redesign. Renames require name_now/name_forever + taxonomy kind. Root keep/replace requires lenses_applied=all-16 and non-empty challenges[]; leaf inherits (northstar-lens-scope). Taxonomy replaces indefensible naming; does not encode it. Birth gate is unit_root_birth only.",
       "lens_battery": {
-        "authority": ".grok/harness/lenses.v1.json",
+        "authority": "specs/decision-principles.json",
         "required": "all-16",
         "fields": [
           "lenses_applied",
@@ -6299,7 +6146,7 @@
         "additive_files_under_existing_tracked_unit",
         "test_fixtures_inside_existing_crate"
       ],
-      "claim_check": "deliver.js Claim: for each git diff --diff-filter=A path under freeze prefixes, compute whether it introduces a new unit-root directory absent on origin/dev; REFUSE only those unit-root births without one_shot_exception or reorg-move-out bead."
+      "claim_check": "Envelope review: for each git diff --diff-filter=A path under freeze prefixes, compute whether it introduces a new unit-root directory absent on origin/dev; REFUSE only those unit-root births without one_shot_exception or reorg-move-out bead."
     },
     "transitional_roots_shrink_only": {
       "rule": "Transitional roots oya, libs, cloud, tools (integ/oya, integ/libs, integ/cloud, integ/tools) are shrink-only after judgment_status=done on child reorg_now rows — allowed: delete paths, REORG-DRAIN status notes; banned: cite-rewrite, hygiene, absorb/rewrite on source tip for reorg_now rows. OVERRULES programme rule 3d dump-phase hygiene on transitional tips.",
@@ -6465,9 +6312,13 @@
     "one_shot_exceptions_note": "#1644 aborted tools/swarm/** one-shot birth: automation-language-policy forbids new non-Rust under tools/ vs immutable merge-base ceiling. Process kit forever home: ci/process-kit (Rust)."
   },
   "anti_drift": {
-    "anti_drift_doctrine_version": "1.1.0",
+    "anti_drift_doctrine_version": "1.2.0",
     "authority": "docs/decisions/ADR-0711-swarm-delivery-law-integ-branch-topology.md#Amendment-D",
-    "portable_contract": ".grok/programs/delivery-fabric/evidence/PORTABLE-SWARM-CONTRACT.md#Amendment-D",
+    "portable_contract": "templates/portable-swarm-doctrine.md#amendment-d-doctrine-survival",
+    "required_surfaces": [
+      "docs/decisions/ADR-0711-swarm-delivery-law-integ-branch-topology.md",
+      "templates/portable-swarm-doctrine.md"
+    ],
     "enumeration_ssot": "specs/integ-branch-envelopes.json#roots",
     "doc_packet_required_fields": [
       "docs_touched",
@@ -6500,9 +6351,9 @@
       "INV-DOC-8",
       "INV-DOC-9"
     ],
-    "drift_grep": "deferred: .grok/ self-check (Rust-first); interim: deliver.js Claim + manual PORTABLE drift review",
+    "drift_grep": "governance/check/integ-envelope plus manual portable-doctrine review until ci/process-kit ships the full Rust claim checker",
     "limitations": [
-      "Mechanical Claim packet parse + Claim↔diff bind (docs_touched/paths ↔ git diff --name-only) live in deliver.js + claim_packet.py; claim-push refuses dirty porcelain",
+      "Full mechanical Claim packet parse + Claim↔diff bind remains incomplete in ci/process-kit; reviewer evidence is required until the Rust successor lands",
       "Does not rewrite DOC-CATALOG corpus",
       "Does not authorize mass ADR renames",
       "INV-DOC-9 root-file content land owned by integ/ci via planes.process_meta (route ≠ content)",
@@ -6520,18 +6371,18 @@
         "n/a"
       ],
       "docs_action_why_required_when": "n/a",
-      "parser": ".claude/workflows/deliver.js#parseClaimPacket",
-      "deliver_gate": ".claude/workflows/deliver.js#parseClaimPacket",
+      "parser": "manual-review-until-ci/process-kit-claim-mechanical",
+      "deliver_gate": "governance/check/integ-envelope + reviewer evidence",
       "diff_bind": {
         "rule": "docs_touched paths (when docs_action != n/a) and optional paths inventory MUST appear in git diff --name-only BASE...HEAD",
-        "parser": ".claude/workflows/deliver.js#parseClaimPacket(bindDiff:true)",
-        "deliver_gate": ".claude/workflows/deliver.js#parseClaimPacket(bindDiff:true)"
+        "parser": "manual-review-until-ci/process-kit-claim-mechanical",
+        "deliver_gate": "governance/check/integ-envelope + reviewer evidence"
       }
     }
   },
   "merge_windows": {
     "authority": "docs/decisions/ADR-0711-swarm-delivery-law-integ-branch-topology.md#Amendment-D",
-    "portable_contract": ".grok/programs/delivery-fabric/evidence/PORTABLE-SWARM-CONTRACT.md#merge_windows",
+    "portable_contract": "templates/portable-swarm-doctrine.md#merge-windows",
     "status": "binding",
     "hot_set_max": 4,
     "rule": "At most hot_set_max concurrent restackable integ tips. Parked integs MAY prep/judge but MUST NOT restack until admitted to the hot set. Plan-only window policy is dual-truth — this block is SSOT.",
@@ -6551,19 +6402,19 @@
   },
   "daemon_hotset": {
     "authority": "docs/decisions/ADR-0711-swarm-delivery-law-integ-branch-topology.md#Amendment-E",
-    "portable_contract": ".grok/programs/delivery-fabric/evidence/PORTABLE-SWARM-CONTRACT.md#Northstar-daemon-hotset--advisory-perimeter",
+    "portable_contract": "templates/portable-swarm-doctrine.md#northstar-daemon-hotset-and-advisory-perimeter",
     "status": "binding",
     "process_kit_mirror": "ci/facade/harness/daemon-hotset.v1.json",
     "process_kit_owner": "roots.ci → integ/ci (forever: ci/process-kit + ci/facade/harness; BAN agent-dotdirs as forever homes)",
-    "achieves": "Early buck2 [check] feedback on at most hot_set_max restackable integ stations without worker-lane builds or cargo revival.",
-    "origin": "16-lens northstar R9 (northstar-daemon-hotset); founder 2026-05-29 no-cargo; ADR-0711 A-2.",
+    "achieves": "Early bounded advisory feedback on at most hot_set_max restackable integ stations without turning local output into merge authority.",
+    "origin": "16-lens northstar R9 (northstar-daemon-hotset); ADR-0711 A-2 OVERRULE and ADR-0716 establish Cargo as the protected executor while preserving bounded local work.",
     "rule": {
       "hot_set_max": 4,
       "cite_hot_set_max": "specs/integ-branch-envelopes.json#merge_windows.hot_set_max",
       "stations": ".worktrees/integ-<root> (durable integ stations only)",
-      "main_checkout": "orchestrator + check-daemon still allowed; remains the default warm buck2 home",
-      "worker_lanes": "FORBIDDEN — toolguard denies cargo/buck2; workers read err.txt only",
-      "builder": "buck2 build --keep-going //...[check] (or SWARM_CHECK_TARGETS); never cargo",
+      "main_checkout": "orchestrator + optional check-daemon allowed; remains a possible warm Buck2 home but carries no merge authority",
+      "worker_lanes": "Workers MAY run scoped Cargo merge-path checks and optional Buck2 hermeticity checks in their isolated worktrees",
+      "builder": "Optional bounded Buck2 local-hermeticity fan-out; Cargo workspace evidence remains required by ADR-0716",
       "orchestrator_env": "SWARM_ORCHESTRATOR=1 required",
       "station_env": "SWARM_CANDIDATE_ROOT=<abs path to .worktrees/integ-*> selects the station tree",
       "cap_enforcement": "check-daemon-hotset REFUSEs when station count > hot_set_max"
@@ -6575,32 +6426,33 @@
       ],
       "forbidden": [
         "treating LSP diagnostics as merge authority",
-        "invoking cargo check/build/test/clippy via LSP code actions in worker lanes",
-        "equating rust-analyzer with check-daemon or oya-ci-required"
+        "equating editor or local diagnostics with oya-ci-required",
+        "presenting check-daemon output as reviewer approval"
       ],
-      "note": "LSP read-only ≠ build. Blessed type-check remains buck2 [check] via check-daemon / check-daemon-hotset."
+      "note": "LSP read-only, local Cargo, Buck2, and daemon observations remain distinct from protected merge authority."
     },
     "ensure": [
       "specs/integ-branch-envelopes.json#daemon_hotset is SSOT for doctrine",
       "cite merge_windows.hot_set_max (do not re-state a second max)",
       "process-kit harness mirror lives under ci/facade/harness/ on integ/ci",
-      "LSP read-only ≠ buck2 [check] ≠ oya-ci-required"
+      "LSP/local Cargo/Buck2/daemon output ≠ oya-ci-required merge authority"
     ],
     "overturn_when": [
       "envelopes#merge_windows.hot_set_max changes (update this file same-wave)",
-      "buck2 [check] retired or replaced as blessed local type-check",
+      "ADR-0716 protected executor or the optional daemon topology changes",
       "founder authorizes a different warm-daemon topology"
     ],
     "forbidden": [
       "hot_set_gt_max",
       "daemon_on_lane_worktrees",
-      "cargo_check_revival",
+      "local_check_as_merge_authority",
+      "unbounded_duplicate_full_workspace_checks",
       "lsp_as_merge_authority"
     ]
   },
   "perimeter": {
     "authority": "docs/decisions/ADR-0711-swarm-delivery-law-integ-branch-topology.md#Amendment-E",
-    "portable_contract": ".grok/programs/delivery-fabric/evidence/PORTABLE-SWARM-CONTRACT.md#Northstar-daemon-hotset--advisory-perimeter",
+    "portable_contract": "templates/portable-swarm-doctrine.md#northstar-daemon-hotset-and-advisory-perimeter",
     "status": "binding",
     "process_kit_mirror": "ci/facade/harness/perimeter.v1.json",
     "process_kit_owner": "roots.ci → integ/ci (forever: ci/process-kit + ci/facade/harness; BAN agent-dotdirs as forever homes)",

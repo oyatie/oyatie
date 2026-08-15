@@ -139,10 +139,11 @@ fn bundled_gate_disposition_path(root: &Path) -> PathBuf {
 
 /// Resolve the NEW de-branded `ci/facade/<dir>` directory a moved gate crate now lives in,
 /// keyed on its OLD cargo/crate name (`oya-<gate_id>-app`). The committed move-plan
-/// (`specs/reorg/ci-keystone-rename-map.json`, ADR-0562/0563) is the SSOT for the ci keystone rename;
-/// the required-workflow matrix `crate:` value is this NEW dir. The de-brand renamed
+/// (`specs/reorg/ci-keystone-rename-map.json`, ADR-0562/0563) is the executed record for the ci
+/// keystone rename; callers use rows only for gates that remain configured. The required-workflow
+/// matrix `crate:` value is this NEW dir. The de-brand renamed
 /// SEMANTICALLY (e.g. cloud-ci-total-accounting -> artifact-accountability), so there is no
-/// textual prefix-strip from the gate id to the lane — the move-plan is the only authority.
+/// textual prefix-strip from the gate id to the lane — the executed record is the rename authority.
 fn ci_move_new_dir(root: &Path, old_cargo_name: &str) -> Option<String> {
     let plan: Value = serde_json::from_str(&read_to_string(
         &root.join("specs/reorg/ci-keystone-rename-map.json"),
@@ -994,9 +995,6 @@ fn assert_pr_template_authority(root: &Path, path: &Path) {
         "grit",
         "icm",
         "oya-tooling-agent-read",
-        "cargo nextest",
-        "cargo clippy",
-        "cargo deny",
         "oya verify",
         "oya gate validate",
         "guard-pr-merge-review.mjs",
@@ -1007,7 +1005,7 @@ fn assert_pr_template_authority(root: &Path, path: &Path) {
         assert!(
             !text.contains(forbidden),
             "{} still carries retired local/CLI review instruction `{forbidden}`; \
-             use Buck2/cloud-ci, `oya-ci-required`, and reviewer evidence instead.",
+             use Cargo/cloud-ci, `oya-ci-required`, and reviewer evidence instead.",
             path.display()
         );
     }
@@ -1448,6 +1446,19 @@ fn oya_ci_configured_gates_have_disposition_and_required_workflow_authority() {
         .map(|(gate_id, _)| gate_id.clone())
         .collect();
     let disposition_ids: BTreeSet<String> = disposition_gates.keys().cloned().collect();
+    let retired_compatibility_ids: BTreeSet<String> = disposition
+        .get("_retired_compatibility_gates")
+        .and_then(Value::as_object)
+        .unwrap_or_else(|| {
+            panic!(
+                "{} must contain _retired_compatibility_gates object",
+                disposition_path.display()
+            )
+        })
+        .keys()
+        .filter(|key| !key.starts_with('_'))
+        .cloned()
+        .collect();
 
     let missing_disposition: Vec<String> = configured_ids
         .difference(&disposition_ids)
@@ -1457,12 +1468,15 @@ fn oya_ci_configured_gates_have_disposition_and_required_workflow_authority() {
         .difference(&configured_ids)
         .cloned()
         .collect();
+    let extra_disposition_ids: BTreeSet<String> = extra_disposition.iter().cloned().collect();
     assert!(
-        missing_disposition.is_empty() && extra_disposition.is_empty(),
-        "oya-ci.toml [[gates.enabled]] and bundled gate-disposition.json must converge exactly; \
-         missing disposition for {:?}, extra disposition rows {:?}",
+        missing_disposition.is_empty() && extra_disposition_ids == retired_compatibility_ids,
+        "oya-ci.toml [[gates.enabled]] and bundled gate-disposition.json must converge except for \
+         explicitly retired one-wave merge-base compatibility rows; missing disposition for {:?}, \
+         extra disposition rows {:?}, declared compatibility rows {:?}",
         missing_disposition,
-        extra_disposition
+        extra_disposition,
+        retired_compatibility_ids
     );
 
     let mut missing_workflow_authority = Vec::new();
@@ -1871,7 +1885,7 @@ fn affected_set_long_step_telemetry_wraps_long_running_phases() {
 /// Retiring an ADR-mandated lane is a governance act, not a way to get green — so these lanes are
 /// deliberately left `status: active` and the breakage is recorded here where the required fan-in
 /// can see it, instead of being flipped to `planned`.
-const KNOWN_UNRESOLVABLE_LANE_TARGETS: [(&str, &str); 2] = [
+const KNOWN_UNRESOLVABLE_LANE_TARGETS: [(&str, &str); 3] = [
     (
         "cargo-package:oya-vcs-merge-queue-fix-loop-app",
         "Lane `oya-governance-merge-queue-staging-ref-gc` names a package that no longer exists \
@@ -1885,6 +1899,14 @@ const KNOWN_UNRESOLVABLE_LANE_TARGETS: [(&str, &str); 2] = [
          deleted. There is no Rust replacement: none of the four names is a `gate validate` \
          dispatch arm either, so these lanes enforce nothing. Repair is an owned-Rust port, which \
          is a governance decision, not a registry edit.",
+    ),
+    (
+        "gate-lane:pr-traceability",
+        "Lane `traceability-validator` names a dev-cli dispatch arm that does not exist. The pure \
+         oya-governance-pr-traceability-kernel remains in-tree, but no trusted PR-metadata adapter \
+         invokes it and all CLI surfaces are retirement-marked. Repair requires a cloud-ci review \
+         admission producer with real PR inputs, or an explicit owning governance retirement; a \
+         placeholder CLI arm would be a false-green.",
     ),
 ];
 
@@ -2206,108 +2228,39 @@ fn every_active_quality_lane_resolves_to_a_real_target() {
 }
 
 // ===========================================================================
-// (d) OPERATING-CONTRACT HOOK MIRROR.
+// (d) OPERATING-CONTRACT LOCAL-RUNTIME BOUNDARY.
 //
-// Same defect class as (c), one artifact over: `docs/AGENTS.md` — the operating
-// contract agents are told to read first — carried an "Active hooks" line that
-// named FIVE behaviours and one file, `scripts/hooks/guard-pr-merge-review.mjs`,
-// and not one of them existed. The `enforcement-liveness` face already resolves
-// `.claude/settings.json` -> `tools/hooks/`, but nothing ever resolved the PROSE
-// mirror, so the contract described an enforcement posture the repo never had.
-//
-// A mirror that can drift is the defect; equality against the SSOT is the fix.
+// Repository-local agent runtime dot-directories are ignored and untracked. The
+// contract must not claim that optional tools/hooks scripts are active merely
+// because they exist in the tree.
 // ===========================================================================
 
 fn agents_contract_path(root: &Path) -> PathBuf {
     root.join("docs/AGENTS.md")
 }
 
-fn claude_hook_wiring_path(root: &Path) -> PathBuf {
-    root.join(".claude/settings.json")
-}
-
-/// The `Active hooks` line of the Claude Code appendix — the mirror under test.
-fn active_hooks_claim(contract: &str) -> &str {
-    contract
-        .lines()
-        .find(|line| line.starts_with("Active hooks"))
-        .unwrap_or("")
-}
-
-/// Every `<name>.sh` token in `text`, by basename. Deliberately shape-agnostic: it reads the same
-/// out of a JSON `"command"` value and out of a backticked markdown span, so the two sides are
-/// comparable without either format being parsed.
-fn hook_script_basenames(text: &str) -> BTreeSet<String> {
-    let mut names = BTreeSet::new();
-    for (index, _) in text.match_indices(".sh") {
-        let head = &text[..index];
-        let start = head
-            .rfind(|c: char| !(c.is_ascii_alphanumeric() || c == '-' || c == '_'))
-            .map_or(0, |i| i + 1);
-        if start < head.len() {
-            names.insert(format!("{}.sh", &head[start..]));
-        }
-    }
-    names
-}
-
-/// The probe must be falsifiable before its equality result is load-bearing.
 #[test]
-fn the_hook_mirror_probe_is_falsifiable_on_known_controls() {
+fn the_operating_contract_declares_local_only_agent_runtime() {
     let root = repo_root();
-
-    assert_eq!(
-        hook_script_basenames(
-            r#"{ "command": "tools/hooks/no-cargo-enforcer.sh" } and `adr-orphan-detect.sh`"#
-        ),
-        BTreeSet::from([
-            "adr-orphan-detect.sh".to_owned(),
-            "no-cargo-enforcer.sh".to_owned(),
-        ]),
-        "the extractor must read a JSON command value and a markdown span identically"
-    );
-    assert!(hook_script_basenames("no hooks named here").is_empty());
-
     let contract = read_to_string(&agents_contract_path(&root));
-    let claim = active_hooks_claim(&contract);
     assert!(
-        !claim.is_empty(),
-        "the Claude Code appendix must still carry an `Active hooks` line; if it was renamed this \
-         gate went blind and the mirror is unguarded again"
+        contract.contains("Project hook boundary")
+            && contract.contains("inert unless an installed runtime")
+            && contract.contains("ignored machine-local state"),
+        "docs/AGENTS.md must declare the local-only hook/runtime boundary"
     );
     assert!(
-        !hook_script_basenames(claim).is_empty(),
-        "known-positive control: the claim line must name at least one hook script"
-    );
-}
-
-/// The durable half: the contract's hook list must equal the wiring, in both directions. A name in
-/// the doc that is not wired is the original defect (a hook readers believe runs and does not); a
-/// wired hook missing from the doc is the same drift facing the other way.
-#[test]
-fn the_operating_contract_hook_list_equals_the_claude_wiring() {
-    let root = repo_root();
-    let claimed = hook_script_basenames(active_hooks_claim(&read_to_string(
-        &agents_contract_path(&root),
-    )));
-    let wired = hook_script_basenames(&read_to_string(&claude_hook_wiring_path(&root)));
-
-    let unwired: Vec<&String> = claimed.difference(&wired).collect();
-    let undocumented: Vec<&String> = wired.difference(&claimed).collect();
-
-    assert!(
-        unwired.is_empty() && undocumented.is_empty(),
-        "docs/AGENTS.md `Active hooks` has drifted from .claude/settings.json.\n\
-         claimed-but-not-wired: {unwired:?}\n\
-         wired-but-not-claimed: {undocumented:?}\n\
-         The wiring file is the SSOT; the contract line is a mirror. Naming a hook the harness \
-         never loads tells every agent an enforcement runs that does not."
+        !contract
+            .lines()
+            .any(|line| line.starts_with("Active hooks")),
+        "the contract must not claim repo-local active hooks"
     );
 
-    for name in &wired {
+    let gitignore = read_to_string(&root.join(".gitignore"));
+    for rule in ["/.claude/", "/.codex/", "/.cursor/", "/.grok/"] {
         assert!(
-            root.join("tools/hooks").join(name).is_file(),
-            "{name} is wired in .claude/settings.json but tools/hooks/{name} does not exist"
+            gitignore.lines().any(|line| line == rule),
+            "missing local-runtime ignore rule {rule}"
         );
     }
 }

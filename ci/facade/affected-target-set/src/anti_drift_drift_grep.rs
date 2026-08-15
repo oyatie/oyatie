@@ -307,7 +307,12 @@ pub fn evaluate(
         floor
             .iter()
             .copied()
-            .filter(|p| cite_authority.pointers.iter().any(|a| a == p || a.ends_with(p)))
+            .filter(|p| {
+                cite_authority
+                    .pointers
+                    .iter()
+                    .any(|a| a == p || a.ends_with(p))
+            })
             .collect()
     };
 
@@ -398,10 +403,7 @@ Cite specs/integ-branch-envelopes.json#roots #hubs.paths reorg_debt_freeze.rows.
         let report = evaluate(
             &policy(),
             &fixture_prose_must_cite(),
-            &[surface(
-                ".grok/programs/delivery-fabric/evidence/PORTABLE-SWARM-CONTRACT.md",
-                text,
-            )],
+            &[surface("templates/portable-swarm-doctrine.md", text)],
         );
         assert_eq!(report.verdict, Verdict::Refuse);
         assert!(
@@ -456,10 +458,7 @@ Authority: specs/integ-branch-envelopes.json#anti_drift.\n";
         let report = evaluate(
             &policy(),
             &fixture_prose_must_cite(),
-            &[surface(
-                ".grok/programs/delivery-fabric/evidence/PORTABLE-SWARM-CONTRACT.md",
-                text,
-            )],
+            &[surface("templates/portable-swarm-doctrine.md", text)],
         );
         assert_eq!(report.verdict, Verdict::Green, "{:?}", report.findings);
     }

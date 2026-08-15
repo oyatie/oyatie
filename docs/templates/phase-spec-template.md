@@ -30,7 +30,7 @@ status: Proposed | Active | Complete
 entry_gate: |
   Exact condition that must be true before this phase begins.
   Name the prior phase and its exit criterion, or "none" for P01.
-  Example: "M03/P00 complete; oya-tenancy-kernel ships; targeted Buck2/cloud-ci gates are green."
+  Example: "M03/P00 complete; oya-tenancy-kernel ships; targeted Cargo checks and protected CI are green."
 exit_gate: |
   Exact condition that declares this phase complete.
 depends_on:
@@ -93,32 +93,30 @@ Ordered list. Each IP is an executable plan file under this phase directory.
 All gates must pass before `exit_gate` is declared. Each row is a runnable
 command + expected exit code.
 
-### Buck2 / cloud-ci gates (exit 0 required)
+### Cargo merge-path gates (exit 0 required)
 
 ```bash
-buck2 build <touched-build-targets>                 # exit 0
-buck2 test <targeted-test-targets>                  # exit 0; 0 failures
-buck2 test <cloud-ci-static-analysis-targets>       # exit 0
-buck2 test <supply-chain-cloud-ci-target>           # exit 0
-buck2 test <docs-or-api-contract-targets>           # exit 0
+cargo fmt --all --check                             # exit 0
+cargo clippy --workspace --all-targets -- -D warnings # exit 0
+cargo test --workspace                              # exit 0; 0 failures
 ```
 
 ### Fitness lane gates
 
 ```bash
-buck2 test <cloud-ci-lean-a1-target>          # LEAN-A1: layer ordering
-buck2 test <cloud-ci-lean-a2-target>          # LEAN-A2: cross-vertical refusal
-buck2 test <cloud-ci-lean-a3-target>          # LEAN-A3: BC boundary
-buck2 test <cloud-ci-lean-a4-target>          # LEAN-A4: naming conformance
+cargo test -p <gate-package> <lean-a1-test>   # LEAN-A1: layer ordering
+cargo test -p <gate-package> <lean-a2-test>   # LEAN-A2: cross-vertical refusal
+cargo test -p <gate-package> <lean-a3-test>   # LEAN-A3: BC boundary
+cargo test -p <gate-package> <lean-a4-test>   # LEAN-A4: naming conformance
 ```
 
 ### Workflow + Ontology integration gates
 
 ```bash
 # Verify typed events registered in Workflow
-buck2 test <cloud-ci-workflow-event-registry-target>
+cargo test -p <workflow-event-registry-package>
 # Verify Ontology object types registered
-buck2 test <cloud-ci-ontology-type-registry-target>
+cargo test -p <ontology-type-registry-package>
 ```
 
 ---
@@ -157,12 +155,12 @@ pub trait <ServiceTrait>: Send + Sync {
 
 | Lane | Command | Expected |
 |---|---|---|
-| `dependency-direction` | `buck2 test <cloud-ci-lean-a1-target>` | exit 0 |
-| `cross-product-refusal` | `buck2 test <cloud-ci-lean-a2-target>` | exit 0 |
-| `port-location` | `buck2 test <cloud-ci-port-location-target>` | exit 0 |
-| `layer-correctness` | `buck2 test <cloud-ci-layer-correctness-target>` | exit 0 |
-| `statelessness` | `buck2 test <cloud-ci-statelessness-target>` | exit 0 |
-| `shardability` | `buck2 test <cloud-ci-shardability-target>` | exit 0 |
+| `dependency-direction` | `cargo test -p <gate-package> <dependency-direction-test>` | exit 0 |
+| `cross-product-refusal` | `cargo test -p <gate-package> <cross-product-refusal-test>` | exit 0 |
+| `port-location` | `cargo test -p <gate-package> <port-location-test>` | exit 0 |
+| `layer-correctness` | `cargo test -p <gate-package> <layer-correctness-test>` | exit 0 |
+| `statelessness` | `cargo test -p <gate-package> <statelessness-test>` | exit 0 |
+| `shardability` | `cargo test -p <gate-package> <shardability-test>` | exit 0 |
 
 ### New BCs registered in this phase
 

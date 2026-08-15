@@ -19,8 +19,8 @@ This catalog is divided into seven kinds of artifact:
 |---|---|---|
 | **Templates** | Author starting a new artifact (PR, ADR, capability, runbook, …) | `docs/templates/<artifact>.md` (or `.yaml`) |
 | **Checklists** | Author finishing or gating an artifact | `templates/checklists/<task>.md` |
-| **Hooks** | Claude Code / Codex / Gemini agent harnesses + git hooks | `.claude/hooks/`, `.git/hooks/`, `scripts/hooks/` |
-| **Skills** | Agents at runtime (slash commands) | Installed runtime catalogs (Codex: `~/.codex/skills`; project `.claude/skills/<id>/SKILL.md` / `.codex/skills/` when checked in); optional local `.grok/` mm-delivery kit. `.omc/skills/` is retired residual, not live authority (ADR-0619). |
+| **Runtime adapters** | Optional operator-local early feedback; never merge authority | Installed outside the repository by the active runtime |
+| **Skills** | Agents at runtime (slash commands) | Installed runtime catalogs (Codex: `~/.codex/skills`); repository agent dot-directories are ignored machine-local overlays. `.omc/skills/` is retired residual, not live authority (ADR-0619). |
 | **Tools (CLIs)** | Humans + agents at runtime | `oya <persona> <subcommand>` per the persona-split CLI in [TOOLCHAIN §3](TOOLCHAIN.md) |
 | **Standardized guidance** | Anyone authoring (style / pattern / norm) | `docs/standards/<topic>.md` |
 | **Requirements + Specs** | Per-product or per-axis surface contracts | `products/<product>/PRD.md` + `contracts/openapi/**/*.yaml` |
@@ -55,8 +55,8 @@ The whole catalog is mirrored at `machine-readable/standards.json` for agent con
 
 | Checklist | Path | Trigger | Owner | Validator |
 |---|---|---|---|---|
-| Pre-push | [`../templates/checklists/pre-push.md`](../templates/checklists/pre-push.md) | Before `git push` | Author | `oya verify` |
-| Pre-merge | [`../templates/checklists/pre-merge.md`](../templates/checklists/pre-merge.md) | Before `gh pr merge` | Author + reviewer | `oya gate validate` |
+| Pre-push | [`../templates/checklists/pre-push.md`](../templates/checklists/pre-push.md) | Before `git push` | Author | Cargo workspace command set |
+| Pre-merge | [`../templates/checklists/pre-merge.md`](../templates/checklists/pre-merge.md) | Before `gh pr merge` | Author + reviewer | independent review + `oya-ci-required` |
 | Wave-gate passing | [`../templates/checklists/wave-gate.md`](../templates/checklists/wave-gate.md) | At wave boundary | Wave-tactical team | `wave-gate-readiness` (per ADR-0040) |
 | Vertical onboarding | [`../templates/checklists/vertical-onboarding.md`](../templates/checklists/vertical-onboarding.md) | New vertical Preview | Vertical team | per-vertical PRD §11 + COMPLIANCE-MATRIX |
 | Regional-pack onboarding | [`../templates/checklists/regional-pack-onboarding.md`](../templates/checklists/regional-pack-onboarding.md) | New regional pack | `regional-packs` team | `regional-pack-validator` |
@@ -76,50 +76,20 @@ The whole catalog is mirrored at `machine-readable/standards.json` for agent con
 
 ---
 
-## 4. Hooks index
+## 4. Runtime adapter boundary
 
-Hooks are mechanical gates fired by harnesses or git. Defined under `.claude/hooks/`, `.git/hooks/`, `scripts/hooks/`. Key hooks:
-
-| Hook | Event | Purpose | Path |
-|---|---|---|---|
-| `pre-commit-license` | git pre-commit | Refuses commits that add an external dep without a license-ledger entry | `scripts/hooks/pre-commit-license.sh` |
-| `pre-commit-arch-boundary` | git pre-commit | Refuses commits that violate ADR-0015 dep direction (kernel←domain←app←api/worker/adapter←runtime) | `oya gate validate architecture-boundaries` |
-| `pre-commit-data-class-annotation` | git pre-commit | Refuses commits that add a struct field without a `data_class` annotation when the file is in a kernel crate | `scripts/hooks/pre-commit-data-class.sh` |
-| `pre-commit-yaml-date-quoted` | git pre-commit | Refuses unquoted YAML dates (per mistakes-and-fixes-ledger) | `scripts/hooks/pre-commit-yaml-date.sh` |
-| `pre-commit-forward-ref` | git pre-commit | Refuses markdown links to paths not yet on origin/main (per Issue #1433) | `scripts/hooks/pre-commit-forward-ref.sh` |
-| `pre-push` | git pre-push | Runs `oya verify` (cargo fmt --check, cargo clippy, cargo nextest, oya gate validate, arch-boundary) | `.git/hooks/pre-push` |
-| `pre-tool-use-foundry-evidence` | Claude Code PreToolUse | Stamps every Foundry capability invocation with an evidence-emission event before tool runs | `.claude/hooks/pre-tool-use-foundry-evidence.sh` |
-| `post-tool-use-cohesion-fitness` | Claude Code PostToolUse | Runs cross-axis contract drift detection after edits | `.claude/hooks/post-tool-use-cohesion.sh` |
-| `session-start-doc-context` | Claude Code SessionStart | Loads consolidated docs into agent context | `.claude/hooks/session-start-doc-context.sh` |
-| `user-prompt-submit-skill-routing` | Claude Code UserPromptSubmit | Routes magic-keyword prompts to the right skill | `.claude/hooks/user-prompt-submit-skill-routing.sh` |
-| `stop-validation` | Claude Code Stop | Verifies no leftover incomplete tasks before yielding | `.claude/hooks/stop-validation.sh` |
-| `pr-merge-review-guard` | gh CLI PreToolUse | Refuses `gh pr merge` without `## Code Review` H2 with reviewer-agent verdict | `scripts/hooks/guard-pr-merge-review.mjs` (existing) |
-| `audit-emission-on-capability-invoke` | runtime | Every capability invocation emits an audit-chain record per ADR-0003 | `crates/oya-intelligence-evidence-*` |
-| `cohesion-fitness-on-pr` | CI | Runs `oya-governance-cohesion` on every PR | `.github/workflows/cohesion-fitness.yml` |
-| `license-fitness-on-pr` | CI | Runs `cargo deny licenses` + Trivy `--scanners license` + custom container scan | `.github/workflows/license-fitness.yml` |
+Oyatie does not track repository-local runtime or Git-hook activation. Operators may install
+runtime-managed early-feedback adapters outside Git, but their presence and behavior are not
+repository claims. Protected merge authority remains review admission plus `oya-ci-required`.
 
 ---
 
 ## 5. Skills index (slash-command surface)
 
-Skills are agent-invocable workflows. Under `.claude/skills/<id>/SKILL.md`. Aliases for human use under `oya <persona>`.
-
-| Skill | Path | Purpose | Persona-CLI alias |
-|---|---|---|---|
-| `oya-dev-check` | `.claude/skills/oya-dev-check/SKILL.md` | Run pre-push checks | `oya verify` |
-| `oya-adr-author` | `.claude/skills/oya-adr-author/SKILL.md` | Draft a new ADR with all required sections | `oya catalog adr new` |
-| `oya-adr-promote` | `.claude/skills/oya-adr-promote/SKILL.md` | Promote a Proposed → Accepted ADR with shipped-evidence verification | `oya catalog adr promote` |
-| `oya-intelligence-capability-author` | `.claude/skills/oya-intelligence-capability-author/SKILL.md` | Scaffold a new capability YAML + eval set + adapter | `oya agent capability new` |
-| `oya-regional-pack-author` | `.claude/skills/oya-regional-pack-author/SKILL.md` | Scaffold a new regional pack with all 14 sections | `oya pack new` |
-| `oya-vertical-onboard` | `.claude/skills/oya-vertical-onboard/SKILL.md` | Onboard a new vertical end-to-end | (orchestrates several) |
-| `oya-runbook-author` | `.claude/skills/oya-runbook-author/SKILL.md` | Scaffold a new runbook | `oya ops runbook new` |
-| `oya-postmortem-extractor` | `.claude/skills/oya-postmortem-extractor/SKILL.md` | Extract postmortem from incident-management timeline | `oya ops incident postmortem` |
-| `oya-glossary-extractor` | `.claude/skills/oya-glossary-extractor/SKILL.md` | Find new domain terms in PRs and propose GLOSSARY rows | (auto on PR) |
-| `oya-rustdoc-fixer` | `.claude/skills/oya-rustdoc-fixer/SKILL.md` | Propose rustdoc fixes when CI flags missing/stale doc comments | (auto on PR) |
-| `oya-translation-drafter` | `.claude/skills/oya-translation-drafter/SKILL.md` | Draft per-pack translations | `oya pack translate` |
-| `oya-cohesion-fitness-fix` | `.claude/skills/oya-cohesion-fitness-fix/SKILL.md` | Propose fixes for cohesion-fitness violations | (auto on PR) |
-| `oya-evidence-pack-regenerator` | `.claude/skills/oya-evidence-pack-regenerator/SKILL.md` | Regenerate per-regulator evidence pack | `oya admin compliance regenerate` |
-| `oya-dsr-cascade-runner` | `.claude/skills/oya-dsr-cascade-runner/SKILL.md` | Execute a DSR cascade end-to-end | `oya admin privacy dsr` |
+Skills are discovered from the active agent runtime's installed catalog. Repository-local
+`.claude/`, `.codex/`, `.cursor/`, and `.grok/` overlays are ignored machine-local state, so this
+repository does not inventory or promise runtime-specific skill IDs. The portable project-facing
+contract is [`templates/portable-swarm-doctrine.md`](../templates/portable-swarm-doctrine.md).
 
 ---
 
@@ -204,8 +174,8 @@ This doc is the catalog OF the catalogs. The other catalogs are:
 | Standards | `standards/` (planned per §7) | every cross-cutting standard |
 | Templates | [templates/](templates/) | every artifact template |
 | Checklists | [templates/checklists/](../templates/checklists/) | every common task |
-| Skills | installed runtime + project `.claude/skills/` / `.codex/skills/` + optional `.grok/` (mm-delivery); not `.omc/skills/` | every agent skill |
-| Hooks | `.claude/hooks/` + `.git/hooks/` + `scripts/hooks/` | every gate |
+| Skills | installed runtime catalogs; repository agent dot-directories are ignored and untracked; not `.omc/skills/` | every agent skill |
+| Runtime adapters | installed outside this repository | optional early feedback; never protected merge authority |
 
 ---
 
@@ -215,9 +185,9 @@ When you start a new piece of work:
 1. Read this doc (or its machine-readable mirror)
 2. Find the matching template; copy it
 3. Find the matching checklist; do every step
-4. If you hit a hook block, fix it (don't `--no-verify`)
+4. If an installed runtime adapter blocks, fix the underlying issue; do not bypass it
 5. Output the artifact in the canonical location with the canonical structure
-6. The `oya verify` and CI lanes will validate
+6. The Cargo workspace checks and protected CI lanes will validate
 
 This is the *contract*: zero bespoke artifacts. Standardization-first.
 
@@ -227,5 +197,5 @@ This is the *contract*: zero bespoke artifacts. Standardization-first.
 
 - [DOC-CATALOG.md](DOC-CATALOG.md), [TOOLCHAIN.md](TOOLCHAIN.md), [DOCUMENTATION.md](DOCUMENTATION.md)
 - ADR-0015 (repo structure), ADR-0050 (governance umbrella), ADR-0001 (deprecation), ADR-0040 (per-endpoint deprecation telemetry), ADR-0040 (launch readiness)
-- CLAUDE.md (project memory), `.claude/skills/`, `.claude/hooks/`, `.github/workflows/`, `scripts/hooks/`
+- CLAUDE.md (project memory), installed runtime catalogs, and `.github/workflows/`
 - All consolidated docs at `docs/`

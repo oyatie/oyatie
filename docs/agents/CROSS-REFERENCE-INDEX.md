@@ -29,7 +29,7 @@ doc_status: published
 | Path | Doc-class | Purpose | Owner (RACI) | Lifecycle (DOC-CATALOG) | Enforced-by lane | Last-verified | Cross-refs (cited by) |
 |---|---|---|---|---|---|---|---|
 | `docs/CONSTITUTION.md` | Constitution | Mission, decision rights, prohibitions, amendments | Founder + council-architecture | Tier 0; amend-only-by-Founder | `oya-governance-authority-cohesion` | 2026-05-12 | AGENTS, README, MASTERPLAN, every ADR |
-| `docs/AGENTS.md` | Operating-Contract | Pre-flight + during-change + done-definition (D1–D18) | council-architecture | Tier 1; amend-by-PR | `traceability-validator`, `guard-pr-merge-review.mjs` | 2026-05-12 | CONSTITUTION, README, every agent-kickoff file |
+| `docs/AGENTS.md` | Operating-Contract | Pre-flight + during-change + done-definition (D1–D18) | council-architecture | Tier 1; amend-by-PR | `traceability-validator`; independent review evidence (`F-PR5-06` enforcement gap) | 2026-05-12 | CONSTITUTION, README, every agent-kickoff file |
 | `docs/README.md` | Redirect | Bootstrap routing | axis-foundry | Tier 1; thin (≤25 lines) | `oya-governance-redirect-thinness` | 2026-05-12 | CONSTITUTION |
 | `docs/DESIGN.md` | Design | Architecture, planes, cross-axis contracts | council-architecture | Tier 1 | `oya-governance-cohesion` | 2026-05-12 | AGENTS, MASTERPLAN, every architectural ADR |
 | `docs/SPEC.md` | Specification | Surface enumeration (capabilities, APIs, events, indexes, ad slots) | council-architecture | Tier 1 | `oya-governance-spec-surface` | 2026-05-12 | DESIGN, PRD |
@@ -51,7 +51,7 @@ doc_status: published
 | `docs/decisions/ADR-*.md` | ADR | Architectural decisions | per-ADR-owner | Tier 2 | `oya-governance-adr-shape` | per-ADR | DESIGN, IPs, MASTERPLAN |
 | `docs/standards/*.md` (lifted) | Standard | Cross-cutting norm | per-standard-owner | Tier 2 | the lane named in each standard's frontmatter | 2026-05-12 | AGENTS, IPs |
 | `docs/templates/*.md\|yaml\|json` (lifted) | Template | Canonical doc/record shape | axis-foundry + per-template-owner | Tier 2 | `oya-governance-<class>-shape` | 2026-05-12 | every PR |
-| `templates/checklists/*.md` (lifted) | Checklist | Per-class verification | axis-foundry + per-checklist-owner | Tier 2 | `guard-pr-merge-review.mjs` + per-lane | 2026-05-12 | every PR |
+| `templates/checklists/*.md` (lifted) | Checklist | Per-class verification | axis-foundry + per-checklist-owner | Tier 2 | independent reviewer evidence + per-lane CI | 2026-05-12 | every PR |
 | `docs/products/<axis>/` | Per-axis PRD | Per-axis product spec | per-axis lead | Tier 2 | `oya-governance-prd-coverage` | per-axis | PRD, DESIGN |
 | `docs/teams/` | Team charter | Per-team norms | per-team lead | Tier 2 | `oya-governance-team-charter` | per-team | RACI |
 | `docs/regional-packs/` | Regional pack | Per-region adaptations | regional-packs lead | Tier 2 | `oya-governance-regional-pack` | per-region | ADR-0010 |

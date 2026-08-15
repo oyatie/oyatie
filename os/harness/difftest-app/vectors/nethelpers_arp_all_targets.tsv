@@ -1,5 +1,0 @@
-val	0	any
-val	1	all
-parse	any	0
-parse	all	1
-parse	__nope__	ERR

@@ -1177,7 +1177,6 @@ uncited-acronym	BEFORE	docs/architecture/wave-3-g-synthesis-adjudication-2026-05
 uncited-acronym	BEFORE	docs/checklists/agent-kickoff-checklist.md
 uncited-acronym	BEFORE	docs/checklists/escalation-checklist.md
 uncited-acronym	BEFORE	docs/prds/foundry.md
-uncited-acronym	BEFORE	docs/standards/claude-code-harness.md
 uncited-acronym	BEFORE	docs/standards/documentation-rigor.md
 uncited-acronym	BEFORE	docs/standards/git-workflow.md
 uncited-acronym	BEFORE	docs/standards/idempotency-keys-canonical.md
@@ -4966,7 +4965,6 @@ uncited-acronym	ICM	docs/checklists/escalation-checklist.md
 uncited-acronym	ICM	docs/plans/rename-plan-2026-05-12.md
 uncited-acronym	ICM	docs/prds/foundry.md
 uncited-acronym	ICM	docs/release/branch-pipeline/agent-roles-spec.md
-uncited-acronym	ICM	docs/standards/claude-code-harness.md
 uncited-acronym	ICM	docs/standards/multi-agent-tool-map.md
 uncited-acronym	ICM	docs/templates/INDEX.md
 uncited-acronym	ICM	docs/templates/impl-plan-template.md
@@ -5883,7 +5881,6 @@ uncited-acronym	MASTERPLAN	docs/quality/ai-slop-defense/impossible-to-fail-envir
 uncited-acronym	MASTERPLAN	docs/release/branch-pipeline/INDEX.md
 uncited-acronym	MASTERPLAN	docs/standards/agent-instructions-discipline.md
 uncited-acronym	MASTERPLAN	docs/standards/ci-lanes.md
-uncited-acronym	MASTERPLAN	docs/standards/claude-code-harness.md
 uncited-acronym	MASTERPLAN	docs/standards/dependency-policy.md
 uncited-acronym	MASTERPLAN	docs/standards/git-workflow.md
 uncited-acronym	MASTERPLAN	docs/standards/image-discipline.md
@@ -6495,7 +6492,6 @@ uncited-acronym	OMC	docs/AGENTS.md
 uncited-acronym	OMC	docs/README.md
 uncited-acronym	OMC	docs/standards/INDEX.md
 uncited-acronym	OMC	docs/standards/agent-instructions-discipline.md
-uncited-acronym	OMC	docs/standards/claude-code-harness.md
 uncited-acronym	OMC	docs/standards/multi-agent-tool-map.md
 uncited-acronym	ON	docs/architecture/wave-3-g-synthesis-adjudication-2026-05-21.md
 uncited-acronym	ON	docs/checklists/escalation-checklist.md

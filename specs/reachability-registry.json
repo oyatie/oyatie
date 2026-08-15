@@ -2,22 +2,6 @@
   "_comment": "Reviewed reachability registrations (ADR-0555). Each entry registers a tree (dir prefix ending '/') or an exact path as reached, and MUST carry an anchor naming WHY. Registration is a review-visible design act \u2014 the ADR-0551 trust class (same as ratchet-policy.json) \u2014 never a silent exemption. Hand-edited (or via the transitional --fix-reachability bridge); the producer fails LOUD on a malformed entry.",
   "registered": [
     {
-      "anchor": "ADR-0600: Buck package marker for the reviewed .claude/settings.json enforcement-liveness corpus target.",
-      "prefix": ".claude/BUCK"
-    },
-    {
-      "anchor": "ADR-0515 + ADR-0701 governance pipeline: reviewed agent-lane deliver/restack/preflight harness under .claude/workflows/ (local bridge feedback only; merge authority remains oya-ci-required).",
-      "prefix": ".claude/workflows/"
-    },
-    {
-      "anchor": "ADR-0600: Buck package marker for the reviewed .codex/hooks.json enforcement-liveness corpus target.",
-      "prefix": ".codex/BUCK"
-    },
-    {
-      "anchor": "ADR-0515 governance pipeline: reviewed Cursor model-routing and agent-ritual policy for cloud-ci delivery lanes.",
-      "prefix": ".cursor/rules/"
-    },
-    {
       "anchor": "ADR-0600 addendum 2026-07-02: GitHub community-health code of conduct (tool-mandated GitHub special file under the .github meta home).",
       "prefix": ".github/CODE_OF_CONDUCT.md"
     },
@@ -40,10 +24,6 @@
     {
       "anchor": "Forever merge-admission workflow filename + dual-emit public status string merge-admission-required (workflow_call-only body until quiet cutover); protection context flip remains PAUSE-AND-PAIR (ADR-0515).",
       "prefix": ".github/workflows/merge-admission-required.yml"
-    },
-    {
-      "anchor": "mm-kit land (PR #1575): tracked multi-model delivery harness under .grok/ (bins, harness schemas, roles, workflows, program doctrine). Process tooling only \u2014 not merge authority; admission remains reviewer APPROVE + oya-ci-required (ADR-0515). Runtime journals (.grok/mm-runs/, .grok/memory/) stay gitignored. Ownership seed .grok/OWNERS (cloud-ci-platform).",
-      "prefix": ".grok/"
     },
     {
       "anchor": "ADR-0562 \u00a7 app/<product>/ tenant compositions + OVERRULE 3d: integ/app owns composition-glue routing only (app/README.md). Product forever homes land on integ/<product>, not this rail.",
@@ -794,8 +774,12 @@
       "prefix": "storage/drive/manifest.json"
     },
     {
-      "anchor": "INV-DOC-9 / docs AGENTS operating contract: forever home for the per-dispatch Tier-2 swarm agent ritual checklist (CHK-SWARM-RITUAL); session rules under .cursor/rules MUST cite this path. Brand-free process meta \u2014 not merge authority.",
+      "anchor": "INV-DOC-9 / docs AGENTS operating contract: forever home for the per-dispatch Tier-2 swarm agent ritual checklist (CHK-SWARM-RITUAL). Brand-free process meta \u2014 not merge authority.",
       "prefix": "templates/checklists/swarm-agent-ritual.md"
+    },
+    {
+      "anchor": "ADR-0711 runtime-overlay OVERRULE + INV-DOC-9: runtime-neutral survival mirror for delivery doctrine after repository agent dot-directories were retired.",
+      "prefix": "templates/portable-swarm-doctrine.md"
     },
     {
       "anchor": "ADR-0541: Buck package marker for the tenancy capability residual corpus target. This package keeps the capability's rehomed service docs, manifests, contracts and OpenSLO YAML inside the Buck2 corpus graph after the capability-first rehome; without it those files leave buck2-packaged space entirely (measured across nine roots: 996 YAML files, unpackaged 1069 -> 75).",
@@ -812,10 +796,6 @@
     {
       "anchor": "PR #1582 tools/* reorg disposition (north-star): human-facing summary of rewrite/refactor/delete classes for the tools debt zone; SSOT machine form evidence/reorg/rr-tools-disposition-20260806.json. Process/docs only \u2014 not merge authority. Ownership seed tools/OWNERS (cloud-ci-platform).",
       "prefix": "tools/DISPOSITION.md"
-    },
-    {
-      "anchor": "ADR-0600: Buck package marker for the reviewed tools/hooks enforcement-liveness script corpus target.",
-      "prefix": "tools/hooks/BUCK"
     },
     {
       "anchor": "ADR-0508 Phase-1 reference metadata: tools/opensk-vendored/README.md records the OpenSK upstream/license/deferred subtree command and does not claim vendored source or firmware build readiness.",

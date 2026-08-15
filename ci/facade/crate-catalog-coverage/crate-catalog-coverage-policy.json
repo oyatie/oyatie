@@ -3,14 +3,14 @@
   "gate_id": "cloud-ci-crate-catalog-coverage",
   "_provenance": {
     "frozen_at": "the first commit of ci/facade/crate-catalog-coverage",
-    "uncatalogued_total": "196",
+    "uncatalogued_total": "171",
     "policy": "shrink-only; a new or moved crate must carry its catalog row in the same change",
     "pr1934_fix_forward": "Catalogued live ci-controller-* / port-engine W0-B / os-harness absorb crates. Kept oya-ci-controller-* in uncatalogued baseline (legacy dual-home under oya/ci-controller/crates).",
-    "pr1646_absorb_complete": "Dropped oya-ci-controller-* from uncatalogued baseline after dual-home delete; live ci-controller-* are catalogued. Lock orphans pruned same change."
+    "pr1646_absorb_complete": "Dropped oya-ci-controller-* from uncatalogued baseline after dual-home delete; live ci-controller-* are catalogued. Lock orphans pruned same change.",
+    "cloud_root_retirement_cleanup_2026_08_15": "Removed the twenty stale arch/cloud-kernel/user baseline names left by the preceding cloud-directory deletion, plus ci-hook-wiring retired with repository-local hook activation."
   },
   "min_expected_crates": 800,
   "uncatalogued": [
-    "arch-aarch64-layout-tests",
     "ci-action-item-accounting",
     "ci-affected-target-set",
     "ci-artifact-accountability",
@@ -37,7 +37,6 @@
     "ci-generated-artifact-freshness",
     "ci-generated-artifact-policy",
     "ci-graphql-usage-policy",
-    "ci-hook-wiring",
     "ci-inventory-registry-drift",
     "ci-layer-dependency-acyclicity",
     "ci-license-policy",
@@ -73,7 +72,6 @@
     "corpus-extract",
     "fixup-ledger-merge-driver-app",
     "flags-evaluation-domain",
-    "fsbase-worker-x86_64",
     "iam-cloud-pdp-app",
     "iam-cloud-pdp-bundle-file",
     "iam-cloud-pdp-kernel",
@@ -144,13 +142,6 @@
     "oya-ci-config-kernel",
     "oya-ci-gate-contract",
     "oya-ci-materializer-kernel",
-    "oya-cloud-kernel-app",
-    "oya-cloud-kernel-arch-aarch64-adapter",
-    "oya-cloud-kernel-arch-x86-64-adapter",
-    "oya-cloud-kernel-frame-kernel",
-    "oya-cloud-kernel-hal-kernel",
-    "oya-cloud-kernel-ksync-kernel",
-    "oya-cloud-kernel-user-layout-kernel",
     "oya-crate-registrar-app",
     "oya-crate-registrar-kernel",
     "oya-data-outbox-adapter-postgres",
@@ -190,17 +181,6 @@
     "secrets-kms-operator-k8s",
     "secrets-kms-operator-kernel",
     "tenancy-tenant-lifecycle-domain",
-    "tenancy-tenant-lifecycle-usecase",
-    "user-clock-x86_64",
-    "user-exec-x86_64",
-    "user-fsbase-x86_64",
-    "user-hello-x86_64",
-    "user-init-x86_64",
-    "user-procinfo",
-    "user-procinfo-x86_64",
-    "user-signal-x86_64",
-    "user-smpdemo",
-    "user-smpdemo-x86_64",
-    "user-spawn-x86_64"
+    "tenancy-tenant-lifecycle-usecase"
   ]
 }

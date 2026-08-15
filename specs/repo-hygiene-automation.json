@@ -3,11 +3,11 @@
   "$id": "https://docs.oyatie.com/specs/repo-hygiene-automation.json",
   "spec_id": "P00-REPO-HYGIENE-AUTOMATION",
   "status": "p00_active_automation_contract",
-  "updated_at": "2026-06-04T14:08:00Z",
+  "updated_at": "2026-08-15T00:00:00Z",
   "purpose": "Automate git, branch, repository, disk/workspace, Kubernetes workload, and documentation-sprawl hygiene for the temporary GitHub lane-unlocker and native SCM/CI/CD cutover prep.",
   "local_static_only": true,
   "live_mutation_performed": false,
-  "buck2_authority": true,
+  "buck2_authority": false,
   "github_bridge_temporary": true,
   "native_scm_requires_github_adapter": true,
   "domains": [
@@ -236,22 +236,23 @@
     "docs_sprawl_fully_removed": false
   },
   "active_context_drift_scan": {
-    "required_interim_context": "github-lane-unlocker-required",
+    "required_interim_context": "oya-ci-required",
     "native_cutover_context": "oya-ci-required",
     "required_tool_examples": [
       "git worktree add",
       "gh pr create --base dev",
-      "buck2 build //:repo-hygiene-automation-check",
-      "infra/ci/buck2-affected-gate.sh github-mirror/dev HEAD"
+      "cargo fmt --all --check",
+      "cargo clippy --workspace --all-targets -- -D warnings",
+      "cargo test --workspace"
     ],
     "forbidden_active_doc_phrases": [
-      "cloud-ci/oya-ci required context + reviewer APPROVE gate merge readiness",
-      "cloud-ci/oya-ci required context is merge authority",
+      "github-lane-unlocker-required",
+      "Buck2 is merge authority",
       "GitHub Actions is retired",
       "legacy_ci_server CI + oya gate run-all",
       "legacy_self_hosted_git_forge required-checks/auto-merge is the substrate target",
       "manual oya-ci-required success statuses to merge bridge PRs",
-      "infra/ci/buck2-affected-gate.sh origin/dev HEAD"
+      "Buck2 remains the build/test/check authority"
     ],
     "scan_scope": [
       "AGENTS.md",
@@ -267,11 +268,11 @@
     "forbidden_active_doc_phrase_source": "Exact retired-substrate deny strings are constants in scripts/ci/assert-repo-hygiene-automation.rs so this active spec does not reintroduce tombstoned names."
   },
   "automation_language_policy": {
-    "new_parallel_fanout_automation": "rust_buck2_first",
+    "new_parallel_fanout_automation": "rust_cargo_workspace_first",
     "new_python_or_shell_gate_surface": "deny_unless_explicit_bootstrap_exception",
     "legacy_python_shell_migration_backlog": true,
-    "cargo_projection": "local_advisory_per_tool_manifest_without_root_workspace_edit_until_generated_consolidation",
-    "rationale": "Buck2 remains the build/test/check authority; Rust tools reduce ad-hoc script drift and make fanout contracts easier to test under Buck2."
+    "cargo_projection": "required_root_workspace_merge_path",
+    "rationale": "Cargo is the required build/test/check merge path; Rust tools reduce ad-hoc script drift and remain exercised by cargo test --workspace. Buck2 is optional local hermeticity feedback only."
   },
   "shared_surface_mitigation": {
     "decision": "Keep canonical root docs and GitHub workflow pointer-thin; route detail to vertical-owned shards and generated_consolidation outputs so parallel lanes do not repeatedly edit the same shared files.",

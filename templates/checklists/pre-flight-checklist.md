@@ -26,9 +26,11 @@ related:
 - [ ] **P4** Confirm autonomy ceiling. Capability bindings declare T1/T2/T3/T4. *Lane:* `oya-governance-autonomy-ceiling`.
 - [ ] **P5** Confirm license posture. *Command:* `cargo deny check`.
 - [ ] **P6** Search `docs/MISTAKES-LEDGER.md` for the failure-mode class. *Verification:* PR `## Traceability` cites the `MFL-NNNN` row OR a "no prior row" note.
-- [ ] **P7** Identify the per-change-class reviewer agent (per `docs/AGENTS.md §Per-change-class reviewer agents`). *Lane:* `guard-pr-merge-review.mjs`.
+- [ ] **P7** Identify the per-change-class reviewer agent (per `docs/AGENTS.md §Per-change-class reviewer agents`). *Verification:* independent reviewer evidence; `F-PR5-06` tracks the trusted-producer enforcement gap.
 - [ ] **P8** For cross-axis contract changes: apply cross-axis review label + notify consumer-axis teams. *Lane:* `oya-governance-cross-axis-notify`. Use `/templates/checklists/cross-axis-contract-change-checklist.md`.
-- [ ] **P9** For hook / harness / CLI changes: run the harness self-test first. *Command:* `npm --prefix /Users/home/.codex test` (per harness).
+- [ ] **P9** For an explicitly installed local hook / harness / legacy CLI adapter: run its own
+  self-test when supplied. *Verification:* installed-runtime evidence, or `N/A` when no adapter is
+  installed; optional local adapters cannot disable protected CI.
 
 ## Per-change-class additions
 

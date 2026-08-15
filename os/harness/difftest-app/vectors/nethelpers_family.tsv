@@ -1,5 +1,0 @@
-val	2	inet4
-val	10	inet6
-parse	inet4	2
-parse	inet6	10
-parse	__nope__	ERR

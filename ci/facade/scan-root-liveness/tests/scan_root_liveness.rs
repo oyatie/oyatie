@@ -13,6 +13,7 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
 use std::collections::{BTreeMap, BTreeSet};
+use std::fs;
 use std::path::{Path, PathBuf};
 
 use ci_scan_root_liveness::{
@@ -79,6 +80,34 @@ fn load_policy(root: &Path) -> (Policy, Vec<String>) {
             .expect("baselined_dead_roots")
             .iter()
             .map(|v| v.as_str().expect("string").to_owned())
+            .collect(),
+        optional_local_roots: doc["optional_local_roots"]
+            .as_object()
+            .expect("optional_local_roots")
+            .iter()
+            .map(|(key, value)| {
+                (
+                    key.clone(),
+                    ForwardDeclaration {
+                        value: value["value"].as_str().unwrap_or_default().to_owned(),
+                        reason: value["reason"].as_str().unwrap_or_default().to_owned(),
+                    },
+                )
+            })
+            .collect(),
+        retired_root_tombstones: doc["retired_root_tombstones"]
+            .as_object()
+            .expect("retired_root_tombstones")
+            .iter()
+            .map(|(key, value)| {
+                (
+                    key.clone(),
+                    ForwardDeclaration {
+                        value: value["value"].as_str().unwrap_or_default().to_owned(),
+                        reason: value["reason"].as_str().unwrap_or_default().to_owned(),
+                    },
+                )
+            })
             .collect(),
         min_expected_roots: doc["min_expected_roots"].as_u64().expect("floor") as usize,
     };
@@ -256,10 +285,11 @@ fn live_corpus_is_green_against_the_frozen_policy() {
             .join("\n")
     );
     eprintln!(
-        "{GATE_ID}: GREEN — {} declared roots across {} policy files; {} dead tolerated, {} forward",
+        "{GATE_ID}: GREEN — {} declared roots across {} policy files; {} dead tolerated, {} retired tombstones, {} forward",
         report.roots_checked,
         observed.policy_files_with_roots.len(),
         report.dead_tolerated,
+        report.retired_tombstones,
         policy.forward_declarations.len()
     );
 }
@@ -318,6 +348,84 @@ fn baselined_dead_roots_are_all_still_dead() {
 }
 
 #[test]
+fn optional_local_roots_are_declared_ignored_and_not_dead_root_debt() {
+    let root = repo_root();
+    let (policy, keys) = load_policy(&root);
+    let observed = collect(&root, &keys);
+    let declared: BTreeSet<String> = observed
+        .roots
+        .iter()
+        .map(|r| format!("{}::{}::{}", r.policy_file, r.key, r.value))
+        .collect();
+    let ignore = fs::read_to_string(root.join(".gitignore")).expect("read .gitignore");
+    let expected = BTreeSet::from([
+        "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/roots::.codex"
+            .to_owned(),
+    ]);
+    assert_eq!(
+        policy.optional_local_roots.keys().cloned().collect::<BTreeSet<_>>(),
+        expected,
+        "optional-local scope is frozen to the sole reviewed machine-local root"
+    );
+
+    for (key, optional) in &policy.optional_local_roots {
+        assert!(
+            declared.contains(key),
+            "optional local root `{key}` is no longer declared by a registered policy"
+        );
+        assert!(
+            !policy.baselined_dead_roots.contains(key),
+            "optional local root `{key}` must not also consume frozen dead-root debt"
+        );
+        assert!(
+            !optional.reason.trim().is_empty(),
+            "optional local root `{key}` needs a review-visible reason"
+        );
+        assert!(
+            ignore
+                .lines()
+                .any(|line| line == format!("/{}/", optional.value)),
+            "optional local root `{}` must have a root-anchored ignore rule",
+            optional.value
+        );
+    }
+}
+
+#[test]
+fn retired_root_tombstones_are_exact_declared_absences() {
+    let root = repo_root();
+    let (policy, keys) = load_policy(&root);
+    let observed = collect(&root, &keys);
+    let declared: BTreeMap<String, &DeclaredRoot> = observed
+        .roots
+        .iter()
+        .map(|item| {
+            (
+                format!("{}::{}::{}", item.policy_file, item.key, item.value),
+                item,
+            )
+        })
+        .collect();
+
+    assert_eq!(
+        policy.retired_root_tombstones.len(),
+        8,
+        "the cloud retirement has eight exact protected scan declarations"
+    );
+    for (key, tombstone) in &policy.retired_root_tombstones {
+        let item = declared
+            .get(key)
+            .unwrap_or_else(|| panic!("retired tombstone no longer names a declared root: {key}"));
+        assert_eq!(item.value, tombstone.value, "tombstone value drift: {key}");
+        assert!(!item.resolves, "retired root reappeared: {key}");
+        assert!(!tombstone.reason.trim().is_empty(), "missing reason: {key}");
+        assert!(!policy.forward_declarations.contains_key(key));
+        assert!(!policy.optional_local_roots.contains_key(key));
+        assert!(!policy.baselined_dead_roots.contains(key));
+    }
+}
+
+#[test]
 fn forward_declarations_are_all_still_absent() {
     let root = repo_root();
     let (policy, keys) = load_policy(&root);
@@ -333,9 +441,9 @@ fn forward_declarations_are_all_still_absent() {
                 key, fwd.value
             ),
             Some(_) => {}
-            None => panic!(
-                "forward declaration `{key}` is no longer declared in any policy; retire it"
-            ),
+            None => {
+                panic!("forward declaration `{key}` is no longer declared in any policy; retire it")
+            }
         }
     }
 }

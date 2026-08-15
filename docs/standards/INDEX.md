@@ -51,7 +51,6 @@ that informed it where one exists.
 | [`security-review.md`](security-review.md) | OWASP + cargo-deny/audit/vet + Sigstore + SBOM + threat-modeling + data-class boundary + autonomy ceiling | `oya-governance-supply-chain`, `-security-review` | Tier 2 |
 | [`on-call.md`](on-call.md) | Rotation cadence + runbook discipline + escalation + blameless postmortem trigger + SLO-burn-rate alerting | `oya-governance-runbook-index-resolves`, `-error-budget-gate` | Tier 2 |
 | [`multi-agent-tool-map.md`](multi-agent-tool-map.md) | Claude Code / Codex / Gemini tool-name mapping + sanctioned tools per agent; OMC columns historical/compatibility-only (ADR-0619) | `oya-governance-tool-map-cohesion` | Tier 2 |
-| [`claude-code-harness.md`](claude-code-harness.md) | **RETIRED tombstone** — former Claude Code / external-harness brand standard; live ops via AGENTS.md + ADR-0515 + optional `.grok/` mm-delivery | n/a (retired) | Tier 4 |
 | [`observability.md`](observability.md) | OpenTelemetry mandatory + tracing/metrics/logs + `EVT-*` audit-chain emission + structured logging schema + Prometheus 3.11+ + exemplars | `oya-governance-otel-emit`, `-audit-emission` | Tier 2 |
 | [`release-management.md`](release-management.md) | Trunk-based + canary + feature flags + progressive delivery + SLO-burn-rate auto-rollback + Sigstore-signed releases | `oya-governance-flag-debt`, `-supply-chain`, `-error-budget-gate` | Tier 2 |
 | [`dependency-policy.md`](dependency-policy.md) | LTS pinning + license posture + cargo-vet + cargo-deny + owned oya-deps automation + provider-SDK ProviderAdapter trait | `oya-governance-lts-dependency`, `-cargo-vet`, `-license` | Tier 2 |
@@ -73,7 +72,6 @@ that satisfies it.
 | `standards/error-handling.md` | AGENTS.md §During-change discipline | `error-handling.md` |
 | `standards/testing.md` | AGENTS.md §During-change discipline | `testing.md` |
 | `standards/on-call.md` | AGENTS.md canonical doc map | `on-call.md` |
-| `standards/claude-code-harness.md` | AGENTS.md §Per-agent appendices (Claude Code) — **retired path**; tombstone only (ADR-0619) | `claude-code-harness.md` (no live authority) |
 | `standards/multi-agent-tool-map.md` | AGENTS.md §Per-agent appendices (Gemini) | `multi-agent-tool-map.md` |
 | `standards/prevention-doctrine.md` | forbidden-operations.json (anti-overlap, separate standard; not in this batch) | deferred — see §Out-of-scope |
 

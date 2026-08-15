@@ -9,7 +9,7 @@ purpose: |
   Re-walk at the loop-cancellation boundary per `docs/AGENTS.md §Long-running
   loop rule`.
 lift_target: oyatie/templates/checklists/done-definition.md
-enforcing_fitness_lane: guard-pr-merge-review.mjs + per-lane CI status
+enforcing_fitness_lane: independent reviewer evidence + required CI status
 owner_team: axis-foundry + council-architecture
 related:
   - docs/AGENTS.md
@@ -34,11 +34,11 @@ related:
 - [ ] **D5** New capabilities (if any) ship record + eval set + autonomy tier + audit topic + Cosign signing. *Lane:* `oya-governance-capability-publish`.
 - [ ] **D6** New schemas carry `data_class` per field. *Lane:* `oya-governance-data-class`.
 - [ ] **D7** Per-PR fitness lanes pass: `oya-governance-{license, data-class, cohesion, glossary, adr-citation, brand-residue, bypass, flat-crates, runbook-index-resolves, doc-catalog}`. *Verification:* CI status check.
-- [ ] **D8** Reviewer agent ran; verdict in `## Code Review`. *Lane:* `guard-pr-merge-review.mjs`.
-- [ ] **D9** `cargo nextest run --workspace --all-features --no-fail-fast` passes. *Verification:* output in `## Verification`.
-- [ ] **D10** `cargo clippy --workspace --all-features --all-targets -- -D warnings` passes. *Verification:* output.
+- [ ] **D8** Reviewer agent ran; verdict in `## Code Review`. *Verification:* independent review evidence; `F-PR5-06` tracks trusted-producer enforcement.
+- [ ] **D9** `cargo test --workspace` passes. *Verification:* output in `## Verification`.
+- [ ] **D10** `cargo clippy --workspace --all-targets -- -D warnings` passes. *Verification:* output.
 - [ ] **D11** `cargo deny check` passes. *Verification:* output.
-- [ ] **D12** `oya verify` passes. *Verification:* output.
+- [ ] **D12** `cargo fmt --all --check` passes. *Verification:* output.
 - [ ] **D13** Performance changes carry benchmark + ≥2 stress scenarios. *Lane:* `oya-governance-perf-evidence`.
 - [ ] **D14** Schema migrations ship up + down + dry-run + per-tenant + per-cell rollback. *Lane:* `oya-governance-schema-migration`.
 - [ ] **D15** PR has 5 canonical H2s; `## Code Review` at merge. *Lane:* `traceability-validator`.
@@ -73,7 +73,7 @@ related:
 
 ### docs
 - [ ] `docs/DOC-CATALOG.md` trigger event named in PR `## Issue`. *Lane:* `oya-governance-doc-catalog`.
-- [ ] `doc-style-reviewer` agent verdict captured. *Lane:* `guard-pr-merge-review.mjs`.
+- [ ] `doc-style-reviewer` agent verdict captured. *Verification:* independent reviewer evidence.
 
 ### chore
 - [ ] No production behavior change. *(advisory)*

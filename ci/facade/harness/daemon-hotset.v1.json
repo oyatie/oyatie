@@ -1,20 +1,20 @@
 {
-  "version": "1.0.0",
+  "version": "1.1.0",
   "id": "northstar-daemon-hotset",
   "status": "binding",
   "authority": "ADR-0711 Amendment A-2 + D-5; specs/integ-branch-envelopes.json#merge_windows",
-  "portable_contract": ".grok/programs/delivery-fabric/evidence/PORTABLE-SWARM-CONTRACT.md",
+  "portable_contract": "templates/portable-swarm-doctrine.md#northstar-daemon-hotset-and-advisory-perimeter",
   "script": "//ci/process-kit:oya-process-kit-check-daemon",
   "daemon": "ci/process-kit/src/bin/check_daemon.rs",
-  "achieves": "Early buck2 [check] feedback on at most hot_set_max restackable integ stations without worker-lane builds or cargo revival.",
-  "origin": "16-lens northstar R9 (northstar-daemon-hotset); founder 2026-05-29 no-cargo; ADR-0711 A-2.",
+  "achieves": "Early bounded advisory feedback on at most hot_set_max restackable integ stations without turning local output into merge authority.",
+  "origin": "16-lens northstar R9 (northstar-daemon-hotset); ADR-0711 A-2 OVERRULE and ADR-0716 establish Cargo as the protected executor while preserving bounded local work.",
   "rule": {
     "hot_set_max": 4,
     "cite_hot_set_max": "specs/integ-branch-envelopes.json#merge_windows.hot_set_max",
     "stations": ".worktrees/integ-<root> (durable integ stations only)",
-    "main_checkout": "orchestrator + check-daemon still allowed; remains the default warm buck2 home",
-    "worker_lanes": "FORBIDDEN \u2014 toolguard denies cargo/buck2; workers read err.txt only",
-    "builder": "buck2 build --keep-going //...[check] (or SWARM_CHECK_TARGETS); never cargo",
+    "main_checkout": "orchestrator + optional check-daemon allowed; remains a possible warm Buck2 home but carries no merge authority",
+    "worker_lanes": "Workers MAY run scoped Cargo merge-path checks and optional Buck2 hermeticity checks in their isolated worktrees",
+    "builder": "Optional bounded Buck2 local-hermeticity fan-out; Cargo workspace evidence remains required by ADR-0716",
     "orchestrator_env": "SWARM_ORCHESTRATOR=1 required",
     "station_env": "SWARM_CANDIDATE_ROOT=<abs path to .worktrees/integ-*> selects the station tree",
     "cap_enforcement": "check-daemon-hotset REFUSEs when station count > hot_set_max"
@@ -26,27 +26,28 @@
     ],
     "forbidden": [
       "treating LSP diagnostics as merge authority",
-      "invoking cargo check/build/test/clippy via LSP code actions in worker lanes",
-      "equating rust-analyzer with check-daemon or oya-ci-required"
+      "equating editor or local diagnostics with oya-ci-required",
+      "presenting check-daemon output as reviewer approval"
     ],
-    "note": "LSP read-only \u2260 build. Blessed type-check remains buck2 [check] via check-daemon / check-daemon-hotset."
+    "note": "LSP read-only, local Cargo, Buck2, and daemon observations remain distinct from protected merge authority."
   },
   "ensure": [
     "ci/process-kit lib refuses SWARM_BLESSED_PUSH inherit + GIT_REAL retarget",
-    "ci/process-kit git_shim refuse_no_verify + toolguard worker deny",
+    "ci/process-kit git_shim refuses no-verify while worker Cargo checks remain allowed",
     "ci/process-kit check-daemon stub requires SWARM_ORCHESTRATOR=1",
-    "buck2 test //ci/process-kit:oya-process-kit-unittest",
+    "cargo test --workspace is protected-path evidence; buck2 test //ci/process-kit:oya-process-kit-unittest is optional local hermeticity",
     "integ/build workspace membership before claiming live hot-set"
   ],
   "overturn_when": [
     "envelopes#merge_windows.hot_set_max changes (update this file same-wave)",
-    "buck2 [check] retired or replaced as blessed local type-check",
+    "ADR-0716 protected executor or the optional daemon topology changes",
     "founder authorizes a different warm-daemon topology"
   ],
   "forbidden": [
     "hot_set_gt_max",
     "daemon_on_lane_worktrees",
-    "cargo_check_revival",
+    "local_check_as_merge_authority",
+    "unbounded_duplicate_full_workspace_checks",
     "lsp_as_merge_authority"
   ]
 }

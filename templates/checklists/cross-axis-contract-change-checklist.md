@@ -37,7 +37,7 @@ related:
 
 ## Approval (blast-radius reviewers per `docs/DESIGN.md §3.0.5.3`)
 
-- [ ] **X8** **All affected consumer-axis teams** approve the PR. *Lane:* `guard-pr-merge-review.mjs` (cross-axis review verdict).
+- [ ] **X8** **All affected consumer-axis teams** approve the PR. *Verification:* recorded cross-axis review verdicts; `F-PR5-06` tracks trusted-producer enforcement.
 - [ ] **X9** **council-architecture** approves (R+A for new cross-axis contract per `docs/RACI-OWNERSHIP.md §2`).
 - [ ] **X10** If data-class impact: **council-privacy** approves.
 - [ ] **X11** If regulatory impact: **ops-compliance** approves.

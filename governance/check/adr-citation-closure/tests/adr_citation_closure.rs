@@ -148,11 +148,9 @@ fn exempt(relative: &str, prefixes: &[String]) -> bool {
 /// Is any DIRECTORY component of `relative` one the scan has always excluded?
 ///
 /// The working-tree walk skipped dot-directories and the build/vendor roots. Moving the census onto
-/// `git ls-files` must not silently widen it: `.grok/`, `.claude/` and friends are TRACKED, and
-/// they hold agent programs and captured evidence transcripts that quote ADR paths as historical
-/// record rather than asserting them as doctrine. Scanning them added 3576 dangling-path findings
-/// against files no one may repair — the transcript of a past run is not a citation surface, and
-/// rewriting it would falsify the record it exists to preserve.
+/// `git ls-files` must not silently widen that component rule. Repository-local runtime overlays are
+/// now ignored and untracked, while other tracked dot-directories remain machine/process state rather
+/// than live citation surfaces.
 ///
 /// The dot rule applies to DIRECTORY components only, exactly as the previous walk applied it — a
 /// dotfile at a scanned location is still scanned.
@@ -514,9 +512,8 @@ fn exempt_prefixes_match_on_a_path_boundary_not_a_substring() {
 }
 
 // The dot-directory rule the working-tree walk always had, preserved across the move to
-// `git ls-files`. Tracked agent-state trees (`.grok/`, `.claude/`) hold captured transcripts that
-// quote ADR paths as historical record; scanning them added 3576 findings against files nobody may
-// repair, because rewriting a transcript falsifies the record it exists to preserve.
+// `git ls-files`. Repository-local agent overlays are ignored/untracked; other tracked dot-state is
+// still outside the live citation corpus.
 #[test]
 fn tracked_dot_directories_and_build_roots_stay_out_of_the_scan() {
     assert!(in_excluded_dir(".grok/programs/plan.md"));

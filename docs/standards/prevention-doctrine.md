@@ -14,14 +14,14 @@ doc_status: published
 
 When work goes wrong — bug shipped, incident fired, contract drift, audit miss, brand residue — the response is not "fix the immediate symptom." The response is to **fix the system that allowed the failure**.
 
-Concretely: every mistake that surfaces produces a **mechanical prevention** (CI gate / pre-commit / pre-push hook / fitness function / runtime check / config-as-code) that makes the failure mode structurally impossible. The mechanical prevention is checked into the repo; the per-incident postmortem cites it; the [`MISTAKES-LEDGER.md`](../MISTAKES-LEDGER.md) records it.
+Concretely: every mistake that surfaces produces an **authoritative mechanical prevention** (blocking CI gate / fitness function / runtime check / config-as-code) that makes the failure mode structurally impossible. An optional local hook may provide earlier feedback, but it cannot satisfy this requirement without the CI/runtime backstop. The prevention is checked into the repo; the per-incident postmortem cites it; the [`MISTAKES-LEDGER.md`](../MISTAKES-LEDGER.md) records it.
 
 ## 2. Process-only fixes are anti-pattern
 
 | Anti-pattern (process-only) | Pattern (mechanical) |
 |---|---|
 | "We'll remember to verify X next time" | CI lane fails if X not verified |
-| "Add it to the team's checklist" | Pre-push hook fails if checklist item not satisfied |
+| "Add it to the team's checklist" | Protected CI validator fails if the required state is absent; an optional local adapter may suggest the fix earlier |
 | "Train on the new procedure" | Validator emits error if procedure not followed |
 | "Reviewer should catch it" | Per-change-class reviewer agent + per-PR fitness function |
 | "Document the pattern" | Schema validation enforces the pattern |
@@ -41,8 +41,7 @@ Per [INCIDENT-MANAGEMENT.md §3.6](../INCIDENT-MANAGEMENT.md):
 
 | Surface | Examples |
 |---|---|
-| Git hooks (pre-commit / pre-push) | `scripts/hooks/pre-commit-license.sh`, `scripts/hooks/pre-commit-arch-boundary.sh`, `.git/hooks/pre-push` |
-| Claude Code / Codex / Gemini hooks | `.claude/hooks/pre-tool-use-foundry-evidence.sh`, `.claude/hooks/post-tool-use-cohesion.sh` |
+| Optional runtime-managed adapters | Installed outside the repository; never merge authority |
 | CI lanes (`.github/workflows/`) | per-PR + nightly per [RELEASE-MANAGEMENT.md §2](../RELEASE-MANAGEMENT.md) |
 | Foundry fitness functions | `oya-governance-{license, data-class, cohesion, doc-catalog, slo-coverage, blast-radius, glossary, adr-citation, ...}` |
 | Schema validators | proto / OpenAPI / AsyncAPI / capability-record / catalog-record / regional-pack |

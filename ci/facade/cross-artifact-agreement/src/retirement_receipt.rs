@@ -2984,7 +2984,7 @@ mod tests {
                 })
             })
             .collect::<Vec<_>>();
-        let mut context = if state == "prepared-new" {
+        let context = if state == "prepared-new" {
             protected_scm_context()
         } else {
             protected_scm_context_with_preparation(ADR_0388_PREPARATION_PATH, BLOB)
@@ -3620,7 +3620,7 @@ mod tests {
             PREPARATION_PATH,
             PREPARATION_BLOB,
         );
-        let mut corpus = json!({
+        let corpus = json!({
             "receipts": [{"receipt_path": CLOSURE_PATH, "receipt": closure}],
             "scm_facts": {
                 "retirement_receipt_coverage": {
@@ -3851,7 +3851,7 @@ mod tests {
             "baseline_commit_oid":OLD,
             "baseline_tree_oid":OLD_TREE,
         }]);
-        let mut corpus = json!({"receipts":[{"receipt_path":RECEIPT_PATH,"receipt":receipt}],"scm_facts":{"retirement_receipt_coverage":{"protected_base_ref":"origin/dev","protected_receipt_paths":[RECEIPT_PATH],"candidate_receipt_paths":[RECEIPT_PATH],"carried_receipt_paths":[RECEIPT_PATH],"new_receipt_paths":[],"scopes":[{"scope_ref":"ADR-0363","scope_type":"amended-agentic-vcs-retirement","selectors":[selector],"required_retired_paths":[".omc/legacy-a.md"]}],"required_retired_paths":[".omc/legacy-a.md"]},"retirement_receipt_object_facts":[fact],"protected_scm_context":context,"retirement_control_plane_context":retirement_control_plane_context(true)}});
+        let corpus = json!({"receipts":[{"receipt_path":RECEIPT_PATH,"receipt":receipt}],"scm_facts":{"retirement_receipt_coverage":{"protected_base_ref":"origin/dev","protected_receipt_paths":[RECEIPT_PATH],"candidate_receipt_paths":[RECEIPT_PATH],"carried_receipt_paths":[RECEIPT_PATH],"new_receipt_paths":[],"scopes":[{"scope_ref":"ADR-0363","scope_type":"amended-agentic-vcs-retirement","selectors":[selector],"required_retired_paths":[".omc/legacy-a.md"]}],"required_retired_paths":[".omc/legacy-a.md"]},"retirement_receipt_object_facts":[fact],"protected_scm_context":context,"retirement_control_plane_context":retirement_control_plane_context(true)}});
         let corpus_findings = evaluate_history_only_retirement_receipts(&corpus);
         assert!(corpus_findings.is_empty(), "{corpus_findings:?}");
         let mut candidate_predecessor = corpus.clone();

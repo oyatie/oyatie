@@ -42,19 +42,15 @@ fn faces_dir(root: &Path) -> PathBuf {
 
 /// The PR-owned committed generated faces and the `--face` name that regenerates each.
 /// registry-drift byte-parity extends across the registry + ttl-policy + the GATE-1
-/// decision-crosswalk + the GATE-4 enforcement-inventory/enforcement-liveness faces.
+/// decision-crosswalk + the enforcement-inventory face.
 /// A PR-local hand-edit to any one fails this gate.
-const BYTE_PARITY_FACES: [(&str, &str); 5] = [
+const BYTE_PARITY_FACES: [(&str, &str); 4] = [
     ("accounting-registry.generated.json", "registry"),
     ("ttl-policy.generated.json", "ttl-policy"),
     ("decision-crosswalk.generated.json", "decision-crosswalk"),
     (
         "enforcement-inventory.generated.json",
         "enforcement-inventory",
-    ),
-    (
-        "enforcement-liveness.generated.json",
-        "enforcement-liveness",
     ),
 ];
 
@@ -66,13 +62,6 @@ const BYTE_PARITY_FACES: [(&str, &str); 5] = [
 const CONTROLLER_OWNED_FACES: [(&str, &str); 1] = [("gate-baseline.generated.json", "baseline")];
 
 const SCM_FACTS_FACE: &str = "scm-facts.generated.json";
-const ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS_ENV: &str =
-    "OYA_CI_ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS";
-const ENFORCEMENT_LIVENESS_CODEX_HOOKS_ENV: &str = "OYA_CI_ENFORCEMENT_LIVENESS_CODEX_HOOKS";
-const ENFORCEMENT_LIVENESS_HOOKS_DIR_ENV: &str = "OYA_CI_ENFORCEMENT_LIVENESS_HOOKS_DIR";
-const ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS: &str = ".claude/settings.json";
-const ENFORCEMENT_LIVENESS_CODEX_HOOKS: &str = ".codex/hooks.json";
-const ENFORCEMENT_LIVENESS_HOOKS_DIR: &str = "tools/hooks";
 
 /// Run the producer to regenerate a single face to stdout. The producer binary must be
 /// provided by `OYA_CI_PRODUCER_BIN`; missing env fails closed so hermetic gates cannot silently
@@ -87,7 +76,6 @@ fn regenerate_face(root: &Path, face: &str) -> String {
         .arg(root)
         .args(["--scm-facts"])
         .arg(&scm_facts);
-    append_declared_enforcement_liveness_corpus_args(&mut command, root);
     let output = command
         .args(["--stdout", "--face", face])
         .current_dir(root)
@@ -115,88 +103,6 @@ fn producer_binary_env_is_required_for_hermetic_gate() {
     let err = producer_binary(Path::new("/repo"), None)
         .expect_err("missing OYA_CI_PRODUCER_BIN must fail closed");
     assert!(err.contains("OYA_CI_PRODUCER_BIN"));
-}
-
-fn append_declared_enforcement_liveness_corpus_args(command: &mut Command, root: &Path) {
-    append_enforcement_liveness_corpus_paths(
-        command,
-        &declared_corpus_file(
-            root,
-            ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS_ENV,
-            ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS,
-            "settings.json",
-        ),
-        &declared_corpus_file(
-            root,
-            ENFORCEMENT_LIVENESS_CODEX_HOOKS_ENV,
-            ENFORCEMENT_LIVENESS_CODEX_HOOKS,
-            "hooks.json",
-        ),
-        &declared_corpus_path(
-            root,
-            ENFORCEMENT_LIVENESS_HOOKS_DIR_ENV,
-            ENFORCEMENT_LIVENESS_HOOKS_DIR,
-        ),
-    );
-}
-
-fn declared_corpus_file(
-    root: &Path,
-    env_key: &str,
-    fallback_rel: &str,
-    file_name: &str,
-) -> PathBuf {
-    let path = declared_corpus_path(root, env_key, fallback_rel);
-    if path.is_file() {
-        return path;
-    }
-    let nested = path.join(file_name);
-    if nested.is_file() {
-        return nested;
-    }
-    path
-}
-
-fn declared_corpus_path(root: &Path, env_key: &str, fallback_rel: &str) -> PathBuf {
-    declared_corpus_path_from_env(
-        root,
-        env_key,
-        fallback_rel,
-        std::env::var("OYA_CI_PRODUCER_BIN").is_ok(),
-        std::env::var(env_key).ok().as_deref(),
-    )
-}
-
-fn declared_corpus_path_from_env(
-    root: &Path,
-    env_key: &str,
-    fallback_rel: &str,
-    buck_backed_producer: bool,
-    env_value: Option<&str>,
-) -> PathBuf {
-    if let Some(value) = env_value {
-        return resolve_bin(root, value);
-    }
-    assert!(
-        !buck_backed_producer,
-        "FAIL-CLOSED: buck-backed registry-drift producer invocation is missing declared corpus env {env_key}"
-    );
-    root.join(fallback_rel)
-}
-
-fn append_enforcement_liveness_corpus_paths(
-    command: &mut Command,
-    claude_settings: &Path,
-    codex_hooks: &Path,
-    hooks_dir: &Path,
-) {
-    command
-        .arg("--enforcement-liveness-claude-settings")
-        .arg(claude_settings)
-        .arg("--enforcement-liveness-codex-hooks")
-        .arg(codex_hooks)
-        .arg("--enforcement-liveness-hooks-dir")
-        .arg(hooks_dir);
 }
 
 fn append_manifest_args(command: &mut Command, root: &Path, out: &Path) {
@@ -326,60 +232,6 @@ fn cargo() -> String {
 fn resolve_bin(root: &Path, bin: &str) -> PathBuf {
     let p = PathBuf::from(bin);
     if p.is_absolute() { p } else { root.join(p) }
-}
-
-#[test]
-fn producer_regeneration_declares_enforcement_liveness_corpus_args() {
-    let mut command = Command::new("/tmp/producer");
-    append_enforcement_liveness_corpus_paths(
-        &mut command,
-        Path::new("/repo/.claude/settings.json"),
-        Path::new("/repo/.codex/hooks.json"),
-        Path::new("/repo/tools/hooks"),
-    );
-
-    let args: Vec<String> = command
-        .get_args()
-        .map(|arg| arg.to_string_lossy().into_owned())
-        .collect();
-
-    assert!(args.windows(2).any(|pair| {
-        pair == [
-            "--enforcement-liveness-claude-settings",
-            "/repo/.claude/settings.json",
-        ]
-    }));
-    assert!(args.windows(2).any(|pair| {
-        pair == [
-            "--enforcement-liveness-codex-hooks",
-            "/repo/.codex/hooks.json",
-        ]
-    }));
-    assert!(
-        args.windows(2)
-            .any(|pair| { pair == ["--enforcement-liveness-hooks-dir", "/repo/tools/hooks",] })
-    );
-}
-
-#[test]
-fn buck_backed_registry_drift_requires_declared_corpus_env() {
-    let panic = std::panic::catch_unwind(|| {
-        declared_corpus_path_from_env(
-            Path::new("/repo"),
-            "MISSING_CORPUS_ENV",
-            "fallback",
-            true,
-            None,
-        );
-    })
-    .expect_err("buck-backed missing corpus env must fail closed");
-    let message = panic
-        .downcast_ref::<String>()
-        .map(String::as_str)
-        .or_else(|| panic.downcast_ref::<&str>().copied())
-        .unwrap_or("<non-string panic>");
-    assert!(message.contains("FAIL-CLOSED"));
-    assert!(message.contains("MISSING_CORPUS_ENV"));
 }
 
 /// Regenerate each PR-owned face in-memory (sandbox) and assert it byte-matches the committed

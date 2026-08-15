@@ -1,5 +1,5 @@
 {
-  "_comment": "cloud-ci-anti-drift-drift-grep policy (DATA). Root/hub/freeze enumerations live ONLY at specs/integ-branch-envelopes.json — this pack cites JSON pointers and MUST NOT re-list. Producer supplies ADR-0711 + PORTABLE prose as DATA; the Rust evaluator REFUSEs dual-truth enumerations (INV-DOC-2). Born under ci/facade/affected-target-set to avoid Cargo.lock hub churn + registry/catalog adjunct (new package would require both).",
+  "_comment": "cloud-ci-anti-drift-drift-grep policy (DATA). Root/hub/freeze enumerations live ONLY at specs/integ-branch-envelopes.json — this pack cites JSON pointers and MUST NOT re-list. Producer supplies ADR-0711 + templates/portable-swarm-doctrine.md as DATA; the Rust evaluator REFUSEs dual-truth enumerations (INV-DOC-2). Born under ci/facade/affected-target-set to avoid Cargo.lock hub churn + registry/catalog adjunct (new package would require both).",
   "gate_id": "cloud-ci-anti-drift-drift-grep",
   "schema_version": "1.0.0",
   "doctrine_adrs": [
@@ -9,10 +9,10 @@
   ],
   "prose_must_cite_authority": "specs/integ-branch-envelopes.json#anti_drift.prose_must_cite_not_enumerate",
   "scanned_surfaces_authority": "specs/integ-branch-envelopes.json#anti_drift",
-  "require_surfaces": false,
+  "require_surfaces": true,
   "product_contract": {
     "fail_closed": "Pointer mismatch, gate_id mismatch, malformed cite list, forbidden prose enumeration, or missing required cite on an in-scope Swarm surface => Verdict::Refuse.",
     "born_pack_shaped": "Required cite pointers are never hardcoded as an authority fork; load from envelopes #anti_drift.prose_must_cite_not_enumerate when present. Forbidden patterns are mechanical detectors (not a re-list of roots/hubs).",
-    "scope": "Only ADR-0711 / PORTABLE surfaces that carry Amendment D / INV-DOC-2 markers are evaluated. Absent surfaces on a parked tip are not a silent dual-truth green for fixtures — fixtures bind independently; live bind skips when files absent (require_surfaces=false)."
+    "scope": "ADR-0711 and the machine-declared portable-doctrine surface both carry Amendment D / INV-DOC-2 markers and are required. A missing authority surface fails closed."
   }
 }

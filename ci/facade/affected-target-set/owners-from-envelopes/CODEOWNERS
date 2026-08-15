@@ -18,7 +18,6 @@ cell/ @teams/cell
 data/ @teams/data
 docs/ @teams/docs
 libs/ @teams/libs
-.grok/ @teams/ci
 OWNERS @teams/build
 audit/ @teams/audit
 build/ @teams/build
@@ -31,8 +30,6 @@ LICENSE @teams/build
 app/hr/ @teams/hr
 kernel/ @teams/kernel
 policy/ @teams/policy
-.claude/ @teams/ci
-.cursor/ @teams/ci
 .github/ @teams/ci
 Makefile @teams/build
 app/crm/ @teams/crm

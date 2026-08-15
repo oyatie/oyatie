@@ -38,13 +38,12 @@ pub fn denies_no_verify(args: &[&str]) -> bool {
     false
 }
 
-/// Fail-closed refuse for mutating git with hook bypass.
+/// Fail-closed refusal for verification bypass on mutating git commands.
 pub fn refuse_no_verify(args: &[&str]) -> Result<(), String> {
     let verb = args.first().copied().unwrap_or("");
     if is_mutating_git_verb(verb) && denies_no_verify(&args[1..]) {
         return Err(
-            "git-shim: REFUSE — --no-verify/-n denied (guardrails; hooks are load-bearing)"
-                .to_string(),
+            "git-shim: REFUSE — --no-verify/-n denied by the operating contract".to_string(),
         );
     }
     Ok(())

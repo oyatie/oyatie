@@ -20,7 +20,6 @@ canonical_authority: /specs/decision-principles.json + /specs/forbidden-operatio
 planned_enforcement_ref: oya-governance-tool-map-cohesion
 companion_docs:
   - docs/AGENTS.md
-  - docs/standards/claude-code-harness.md
   - docs/standards/agent-instructions-discipline.md
 related_adrs:
   - ADR-0053
@@ -35,8 +34,8 @@ related_adrs:
 > are **not** live coordination authority. Columns and sections that mention
 > OMC are retained as historical/compatibility mapping only. Live operating
 > contract: [`docs/AGENTS.md`](../AGENTS.md). Merge admission: [ADR-0515](../decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md).
-> Optional local multi-model delivery kit: `.grok/` (mm-delivery; not merge
-> authority). The former [`claude-code-harness.md`](claude-code-harness.md) is a retirement tombstone.
+> Machine-local multi-model tooling is ignored and never merge or instruction authority. The
+> former harness standard was deleted after this boundary moved into the operating contract.
 
 ## Doctrinal authority — [decision-principles.json](../../specs/decision-principles.json) + [forbidden-operations.json](../../specs/forbidden-operations.json)
 
@@ -109,7 +108,7 @@ per-harness sanctioned set in each agent appendix matches this table.
 
 | Harness | Build | Test | Lint | Source |
 |---|---|---|---|---|
-| Codex CLI | `cargo build` | `cargo nextest run --workspace --all-features --no-fail-fast` | `cargo clippy --all-features --all-targets -- -D warnings` | AGENTS.md §Codex appendix |
+| Codex CLI | `cargo build` | `cargo test --workspace` | `cargo clippy --workspace --all-targets -- -D warnings` | AGENTS.md §Codex appendix |
 | Gemini CLI | same as Codex | same as Codex | same as Codex | AGENTS.md §Gemini appendix |
 | OMC subagents | inherits Claude Code | inherits Claude Code | inherits Claude Code | AGENTS.md §OMC appendix |
 
@@ -122,10 +121,10 @@ When one agent hands off to another:
 
 ### 5.1 Claude Code → residual OMC subagent (compatibility only)
 
-**Not a forward pattern.** Prefer plain git worktrees + protected PR, or
-optional `.grok/` mm-delivery dual-critic stages. Residual OMC Skill/Task
-delegation may still appear in old sessions; do not invent new OMC-owned
-state under `.omc/` as shared authority.
+**Not a forward pattern.** Prefer plain git worktrees + protected PR. Operator-installed
+multi-model tooling may assist locally but is never shared repository authority. Residual OMC
+Skill/Task delegation may still appear in old sessions; do not invent new OMC-owned state under
+`.omc/` as shared authority.
 
 ### 5.2 Claude Code → Codex / Gemini
 
@@ -133,8 +132,8 @@ Forward patterns:
 
 1. **Isolated worktrees + PR**: each runtime works on its own branch; share
    via git, not external harness state.
-2. **Optional `.grok/` mm-delivery kit**: multi-model roles and dual-critic
-   stages when the operator kit is present (not merge authority).
+2. **Optional operator-installed multi-model tooling**: local roles and dual-critic stages whose
+   evidence returns through PR diffs/reviews (not merge authority).
 3. **Process-based tmux / parallel CLI**: launch Codex or Gemini in a
    separate process; hand off via PR diffs or tracked evidence paths under
    `/evidence` / PR body — not `.omc/state/`.
@@ -153,15 +152,14 @@ session inheritance is not assumed.
 | Surface | Shared across runtimes? | Notes |
 |---|---|---|
 | `/specs`, `/registry`, `/evidence`, `/templates` | YES | Live machine-readable authority |
-| `.grok/` mm-delivery kit (when present) | Operator-local | Process kit only; not merge authority; not required for contribution |
+| Ignored agent runtime overlays | NO | Machine-local only; never shared instruction or merge authority |
 | `.omc/state/`, `.omc/plans/`, `.omx/`, `.gjc/` | NO (provenance) | Gitignored residual; do not treat as shared authority (ADR-0619) |
 | Claude Code skill / hook state | NO | Lives under `~/.claude/`; not portable |
-| Codex `.codex/skills/` | YES (repo-local when checked in) | Codex-specific tooling |
+| Codex installed skill state | NO | Runtime-installed outside the repository; ignored repo-local state is not shared |
 | Gemini per-session config | NO | Gemini-specific |
 
-Cross-runtime sharing rule: **shared truth is git + machine-readable
-specs/evidence**; optional local kits (`.grok/`) and residual harness dirs
-are not admission or plan authority.
+Cross-runtime sharing rule: **shared truth is git + machine-readable specs/evidence**; ignored local
+runtime overlays and residual harness directories are not admission or plan authority.
 
 ## 7. MCP server interop
 
@@ -201,5 +199,4 @@ subagent catalog names are historical inventory only.
 - [OpenAI Codex CLI docs](https://github.com/openai/codex).
 - [Gemini CLI](https://github.com/google-gemini/gemini-cli).
 - [`docs/AGENTS.md`](../AGENTS.md) §Per-agent appendices (Codex, Gemini; OMC legacy only).
-- [`docs/standards/claude-code-harness.md`](claude-code-harness.md) (retirement tombstone).
 - [ADR-0515](../decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md), [ADR-0619](../decisions/ADR-0619-zero-live-context-retirement-of-external-agent-harness-brand.md).

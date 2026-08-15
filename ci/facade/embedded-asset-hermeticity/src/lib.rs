@@ -2242,7 +2242,6 @@ rust_library(name = "t", srcs = [], crate_root = ROOT + "/src/lib.rs", mapped_sr
 
     #[test]
     fn comprehension_rewrite_refuses_non_library_targets() {
-        let buck = "rust_binary(\n    name = \"b\",\n    srcs = glob([\"src/**/*.rs\"]),\n    crate_root = \"src/main.rs\",\n)\n";
         let rem = Remediation {
             buck_path: "p/BUCK".to_owned(),
             target: "b".to_owned(),
