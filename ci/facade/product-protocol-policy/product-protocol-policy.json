@@ -84,7 +84,6 @@
       "audit",
       "billing",
       "cell",
-      "cloud",
       "comms",
       "compliance",
       "console",
@@ -104,7 +103,7 @@
       "tenancy",
       "workflow"
     ],
-    "expected_total": 96,
+    "expected_total": 94,
     "expected_live_v1_total": 58,
     "canonical_schema_version": "1.0",
     "reviewed_legacy_service_manifests": [
