@@ -1032,7 +1032,11 @@ fn openslo_envelope_name(contents: &str) -> Option<String> {
                     metadata_indent = None;
                 } else if key == "name" {
                     let value = value.trim().trim_matches('"').trim_matches('\'');
-                    return if value.is_empty() { None } else { Some(value.to_owned()) };
+                    return if value.is_empty() {
+                        None
+                    } else {
+                        Some(value.to_owned())
+                    };
                 }
             }
         }
