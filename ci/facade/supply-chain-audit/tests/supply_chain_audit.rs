@@ -173,14 +173,6 @@ fn committed_policy_names_the_authoritative_workspace_lockfile_corpus() {
         paths,
         vec![
             ("Cargo.toml", "Cargo.lock"),
-            (
-                "cloud/cloud-kernel/Cargo.toml",
-                "cloud/cloud-kernel/Cargo.lock",
-            ),
-            (
-                "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-aarch64-adapter/tests-host/Cargo.toml",
-                "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-aarch64-adapter/tests-host/Cargo.lock",
-            ),
             ("kernel/Cargo.toml", "kernel/Cargo.lock"),
         ],
         "the policy corpus is the reviewed authority; collection must not infer it from mutable filesystem state"

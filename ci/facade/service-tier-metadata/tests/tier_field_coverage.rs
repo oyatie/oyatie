@@ -283,7 +283,7 @@ fn red_repo_fixture_overloaded_tier_fails_from_disk() {
     // `tier: T1` overloads the dependency class with a DR/reliability value (the V3 anti-pattern).
     write_file(
         root,
-        "cloud/legacy-svc/manifest.json",
+        "oya/legacy-svc/manifest.json",
         "{\n  \"microservice\": \"legacy-svc\",\n  \"tier\": \"T1\",\n  \"tier_subtype\": \"substrate-infra\",\n  \"dr_tier\": \"T1\"\n}\n",
     );
     let policy = fixture_policy();
@@ -291,7 +291,7 @@ fn red_repo_fixture_overloaded_tier_fails_from_disk() {
     let findings = evaluate_keyed(&policy, &observed);
     assert!(
         findings.iter().any(
-            |f| f.code == "TFC-TIER-TYPE-OVERLOAD" && f.key == "cloud/legacy-svc/manifest.json"
+            |f| f.code == "TFC-TIER-TYPE-OVERLOAD" && f.key == "oya/legacy-svc/manifest.json"
         ),
         "an overloaded tier (DR value) must fail from disk: {findings:#?}"
     );
@@ -324,7 +324,7 @@ fn red_repo_fixture_substrate_without_dag_position_fails_from_disk() {
     let root = &repo.root;
     write_file(
         root,
-        "cloud/cell/manifest.json",
+        "cell/manifest.json",
         "{\n  \"microservice\": \"cell\",\n  \"tier\": \"substrate\",\n  \"tier_subtype\": \"substrate-infra\",\n  \"dr_tier\": \"T1\"\n}\n",
     );
     let policy = fixture_policy();
