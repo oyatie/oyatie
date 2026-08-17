@@ -2447,6 +2447,7 @@ fn adr_0624_is_explicitly_nonbinding_and_preserves_preplanning_hold() {
 /// - the fully-evidenced CLOSED transition: both flags true plus a
 ///   `closure_evidence` chain whose refs resolve to durable, parseable `evidence/**`
 ///   records that the pure evaluator accepts.
+///
 /// Anything else is a hard failure. The live tree stays green only in the open
 /// hold; a live closed planning contract panics here until a trusted
 /// exact-pull-request/head review-admission packet is supplied.
@@ -3106,9 +3107,7 @@ fn disk_adr_records_for_relation_guards(root: &Path) -> Vec<AdrDecisionRecord> {
 }
 
 fn front_matter_field_value(contents: &str, field: &str) -> Option<String> {
-    let Some(rest) = contents.strip_prefix("---\n") else {
-        return None;
-    };
+    let rest = contents.strip_prefix("---\n")?;
     let end = rest.find("\n---")?;
     let frontmatter = &rest[..end];
     frontmatter.lines().find_map(|line| {
