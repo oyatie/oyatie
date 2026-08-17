@@ -211,9 +211,9 @@ fn face_settle_does_not_stage_controller_owned_baseline() {
             .any(|path| path.ends_with("gate-baseline.generated.json"))
     );
     assert_eq!(
-        std::fs::read_to_string(root.join(
-            "ci/facade/artifact-inventory-registry/gate-baseline.generated.json"
-        ))
+        std::fs::read_to_string(
+            root.join("ci/facade/artifact-inventory-registry/gate-baseline.generated.json")
+        )
         .expect("read baseline"),
         "old face\n"
     );

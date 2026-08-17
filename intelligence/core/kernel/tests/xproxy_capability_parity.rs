@@ -310,7 +310,10 @@ fn reference_draft_targets_map_source_ideas_to_existing_xproxy_rows() {
         .iter()
         .map(|target| target.capability_id.as_str())
         .collect();
-    assert!(target_ids.len() >= 8, "expected multiple mapped target rows");
+    assert!(
+        target_ids.len() >= 8,
+        "expected multiple mapped target rows"
+    );
     for capability_id in target_ids {
         assert!(
             expected_ids.contains(capability_id),
@@ -321,7 +324,10 @@ fn reference_draft_targets_map_source_ideas_to_existing_xproxy_rows() {
     for target in &targets.targets {
         assert!(!target.extracted_feature_groups.is_empty());
         assert!(
-            target.target_tests.iter().all(|test| test.contains("xproxy")),
+            target
+                .target_tests
+                .iter()
+                .all(|test| test.contains("xproxy")),
             "{} target tests must remain tied to XPROXY parity",
             target.capability_id
         );
@@ -344,8 +350,8 @@ fn reference_draft_targets_keep_source_repo_names_only_in_provenance_urls() {
         match value {
             Value::String(s) => {
                 let lower = s.to_lowercase();
-                let allowed_source_url = path.starts_with("/source_provenance/")
-                    && path.ends_with("/source_url");
+                let allowed_source_url =
+                    path.starts_with("/source_provenance/") && path.ends_with("/source_url");
                 if forbidden.iter().any(|term| lower.contains(term)) && !allowed_source_url {
                     violations.push(format!("{path}: {s}"));
                 }

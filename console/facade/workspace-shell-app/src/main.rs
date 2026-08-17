@@ -5,11 +5,11 @@
 use std::net::SocketAddr;
 use std::sync::Arc;
 
-use oya_http_runtime_hyper_adapter::ServerConfig;
 use console_workspace_shell_app::{
-    build_chain, build_dev_catalog, build_router, ConfiguredBearerAuthenticator,
-    PrincipalAuthenticator,
+    ConfiguredBearerAuthenticator, PrincipalAuthenticator, build_chain, build_dev_catalog,
+    build_router,
 };
+use oya_http_runtime_hyper_adapter::ServerConfig;
 
 #[tokio::main(flavor = "multi_thread")]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -34,8 +34,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
              all protected routes will answer 401 (fail-closed)"
         );
     }
-    let authenticator: Arc<dyn PrincipalAuthenticator> =
-        Arc::new(ConfiguredBearerAuthenticator::new(admin_token, "ops-workspace-admin"));
+    let authenticator: Arc<dyn PrincipalAuthenticator> = Arc::new(
+        ConfiguredBearerAuthenticator::new(admin_token, "ops-workspace-admin"),
+    );
     let chain = Arc::new(build_chain(authenticator));
 
     eprintln!(

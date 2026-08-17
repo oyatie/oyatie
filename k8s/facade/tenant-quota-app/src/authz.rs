@@ -86,9 +86,9 @@ pub struct CallerCredential {
 /// (2) the constant-time bearer compare, and (3) the PDP authorization decision.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct VerifiedPrincipal {
-    principal_id: String,  // data_class: INTERNAL_ONLY — private: see note above
-    tenant_id: String,     // data_class: INTERNAL_ONLY — private: see note above
-    scopes: Vec<String>,   // data_class: INTERNAL_ONLY — private: see note above
+    principal_id: String, // data_class: INTERNAL_ONLY — private: see note above
+    tenant_id: String,    // data_class: INTERNAL_ONLY — private: see note above
+    scopes: Vec<String>,  // data_class: INTERNAL_ONLY — private: see note above
 }
 
 impl VerifiedPrincipal {
@@ -253,17 +253,14 @@ fn build_workload_principal(
 /// quota authorizer PORT. The router REFUSES to serve without one configured
 /// (no default-allow fallback) — see [`crate::AppState`].
 pub struct QuotaAuthzProvider {
-    verifier: Arc<dyn PrincipalVerifier>,   // data_class: INTERNAL_ONLY
-    authorizer: Arc<dyn QuotaAuthorizer>,   // data_class: INTERNAL_ONLY
+    verifier: Arc<dyn PrincipalVerifier>, // data_class: INTERNAL_ONLY
+    authorizer: Arc<dyn QuotaAuthorizer>, // data_class: INTERNAL_ONLY
 }
 
 impl QuotaAuthzProvider {
     /// Assemble the provider from a principal verifier and a quota authorizer.
     #[must_use]
-    pub fn new(
-        verifier: Arc<dyn PrincipalVerifier>,
-        authorizer: Arc<dyn QuotaAuthorizer>,
-    ) -> Self {
+    pub fn new(verifier: Arc<dyn PrincipalVerifier>, authorizer: Arc<dyn QuotaAuthorizer>) -> Self {
         Self {
             verifier,
             authorizer,
@@ -355,10 +352,10 @@ pub fn constant_time_eq(a: &[u8], b: &[u8]) -> bool {
 /// bearer secret or bound identity so a provider that cannot prove a credential
 /// root can never authenticate a caller.
 pub struct ConfiguredBearerPrincipalVerifier {
-    bearer_secret: String,       // data_class: SECRET
-    bound_principal_id: String,  // data_class: INTERNAL_ONLY
-    bound_tenant_id: String,     // data_class: INTERNAL_ONLY
-    bound_scopes: Vec<String>,   // data_class: INTERNAL_ONLY
+    bearer_secret: String,      // data_class: SECRET
+    bound_principal_id: String, // data_class: INTERNAL_ONLY
+    bound_tenant_id: String,    // data_class: INTERNAL_ONLY
+    bound_scopes: Vec<String>,  // data_class: INTERNAL_ONLY
 }
 
 impl ConfiguredBearerPrincipalVerifier {
@@ -474,15 +471,16 @@ mod tests {
 
     #[test]
     fn bearer_verifier_rejects_wrong_and_missing() {
-        let v =
-            ConfiguredBearerPrincipalVerifier::new("s3cr3t", "op", "t", vec![]).unwrap();
+        let v = ConfiguredBearerPrincipalVerifier::new("s3cr3t", "op", "t", vec![]).unwrap();
         assert_eq!(
             v.verify_principal(&cred("nope")).err(),
             Some(PrincipalVerificationError::InvalidCredential)
         );
         assert_eq!(
-            v.verify_principal(&CallerCredential { authorization: None })
-                .err(),
+            v.verify_principal(&CallerCredential {
+                authorization: None
+            })
+            .err(),
             Some(PrincipalVerificationError::MissingCredential)
         );
     }
@@ -490,14 +488,15 @@ mod tests {
     #[test]
     fn cedar_authorizer_allows_same_tenant_admin_and_denies_cross_tenant() {
         let authz = CedarQuotaAuthorizer::new_with_default_policies().unwrap();
-        let admin = VerifiedPrincipal::new_for_test(
-            "wl_admin",
-            "ten_acme",
-            vec!["quota:write".to_owned()],
-        );
+        let admin =
+            VerifiedPrincipal::new_for_test("wl_admin", "ten_acme", vec!["quota:write".to_owned()]);
         let own = TenantId::new("ten_acme").unwrap();
         let other = TenantId::new("ten_globex").unwrap();
-        assert!(authz.ensure_authorized(&admin, QuotaAction::Write, &own).is_ok());
+        assert!(
+            authz
+                .ensure_authorized(&admin, QuotaAction::Write, &own)
+                .is_ok()
+        );
         assert_eq!(
             authz.ensure_authorized(&admin, QuotaAction::Write, &other),
             Err(QuotaAuthorizationError::Denied)
@@ -520,9 +519,8 @@ mod tests {
 
     #[test]
     fn provider_maps_pdp_fault_to_refused() {
-        let verifier = Arc::new(
-            ConfiguredBearerPrincipalVerifier::new("s", "op", "t", vec![]).unwrap(),
-        );
+        let verifier =
+            Arc::new(ConfiguredBearerPrincipalVerifier::new("s", "op", "t", vec![]).unwrap());
         let provider = QuotaAuthzProvider::new(verifier, Arc::new(FaultAuthorizer));
         let p = VerifiedPrincipal::new_for_test("op", "t", vec![]);
         let tid = TenantId::new("ten_acme").unwrap();

@@ -144,8 +144,8 @@ pub const SLO_BREACH_SPAN_NAME: &str = "slo.breach.evaluate";
 /// SLO identity and target objective.
 #[derive(Clone, Debug)]
 pub struct SloObjective {
-    pub name: String,  // data_class: INTERNAL_ONLY
-    pub target: f64,   // data_class: INTERNAL_ONLY
+    pub name: String, // data_class: INTERNAL_ONLY
+    pub target: f64,  // data_class: INTERNAL_ONLY
 }
 
 /// Burn-rate inputs driving the alert evaluation.
@@ -177,9 +177,9 @@ impl AlertDecision {
 /// Combined input value object for one SLO-breach trace observation.
 #[derive(Clone, Debug)]
 pub struct SloBreachTraceContext {
-    pub objective: SloObjective,   // data_class: INTERNAL_ONLY
-    pub burn_rate: AlertBurnRate,  // data_class: INTERNAL_ONLY
-    pub decision: AlertDecision,   // data_class: INTERNAL_ONLY
+    pub objective: SloObjective,  // data_class: INTERNAL_ONLY
+    pub burn_rate: AlertBurnRate, // data_class: INTERNAL_ONLY
+    pub decision: AlertDecision,  // data_class: INTERNAL_ONLY
 }
 
 /// App-facing port for emitting a single SLO-breach trace span.
@@ -200,12 +200,12 @@ impl SloBreachTraceObserver for TracingSloBreachTraceObserver {
     fn observe(&self, ctx: &SloBreachTraceContext) {
         let span = tracing::info_span!(
             SLO_BREACH_SPAN_NAME,
-            "slo.name"                  = tracing::field::Empty,
-            "slo.objective"             = tracing::field::Empty,
+            "slo.name" = tracing::field::Empty,
+            "slo.objective" = tracing::field::Empty,
             "slo.error_budget.consumed" = tracing::field::Empty,
-            "slo.burn_rate.short"       = tracing::field::Empty,
-            "slo.burn_rate.long"        = tracing::field::Empty,
-            "slo.alert.decision"        = tracing::field::Empty,
+            "slo.burn_rate.short" = tracing::field::Empty,
+            "slo.burn_rate.long" = tracing::field::Empty,
+            "slo.alert.decision" = tracing::field::Empty,
         );
         let entered = span.entered();
         entered.record(slo_fields::SLO_NAME, ctx.objective.name.as_str());

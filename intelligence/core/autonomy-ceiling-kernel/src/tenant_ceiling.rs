@@ -181,7 +181,12 @@ mod tests {
         ];
         let verdict = resolve_batch(&requests, &c);
         assert_eq!(verdict.results.len(), 3);
-        assert!(verdict.results.iter().all(|v| *v == TenantCeilingVerdict::Permitted));
+        assert!(
+            verdict
+                .results
+                .iter()
+                .all(|v| *v == TenantCeilingVerdict::Permitted)
+        );
         assert_eq!(verdict.most_restrictive_clamp, None);
     }
 
@@ -204,18 +209,26 @@ mod tests {
         let verdict = resolve_batch(&requests, &c);
         assert_eq!(verdict.results.len(), 4);
         assert_eq!(verdict.results[0], TenantCeilingVerdict::Permitted);
-        assert_eq!(verdict.results[1], TenantCeilingVerdict::Clamped(AutonomyTier::T2Suggest));
+        assert_eq!(
+            verdict.results[1],
+            TenantCeilingVerdict::Clamped(AutonomyTier::T2Suggest)
+        );
         assert_eq!(verdict.results[2], TenantCeilingVerdict::Permitted);
-        assert_eq!(verdict.results[3], TenantCeilingVerdict::Clamped(AutonomyTier::T3PropAct));
+        assert_eq!(
+            verdict.results[3],
+            TenantCeilingVerdict::Clamped(AutonomyTier::T3PropAct)
+        );
         // Most restrictive clamp is T2 (T2 < T3)
-        assert_eq!(verdict.most_restrictive_clamp, Some(AutonomyTier::T2Suggest));
+        assert_eq!(
+            verdict.most_restrictive_clamp,
+            Some(AutonomyTier::T2Suggest)
+        );
     }
 
     #[test]
     fn batch_surface_override_raises_ceiling_item_becomes_permitted() {
         // Without the override, T4 would be clamped. With it, it's Permitted.
-        let c = TenantCeiling::default()
-            .with_surface("elevated", AutonomyTier::T4Actuate);
+        let c = TenantCeiling::default().with_surface("elevated", AutonomyTier::T4Actuate);
         let requests = vec![
             // Permitted via surface override
             ("elevated".to_string(), AutonomyTier::T4Actuate),
@@ -224,22 +237,27 @@ mod tests {
         ];
         let verdict = resolve_batch(&requests, &c);
         assert_eq!(verdict.results[0], TenantCeilingVerdict::Permitted);
-        assert_eq!(verdict.results[1], TenantCeilingVerdict::Clamped(AutonomyTier::T3PropAct));
+        assert_eq!(
+            verdict.results[1],
+            TenantCeilingVerdict::Clamped(AutonomyTier::T3PropAct)
+        );
         // Aggregate reflects only the clamped item
-        assert_eq!(verdict.most_restrictive_clamp, Some(AutonomyTier::T3PropAct));
+        assert_eq!(
+            verdict.most_restrictive_clamp,
+            Some(AutonomyTier::T3PropAct)
+        );
     }
 
     #[test]
     fn batch_aggregate_is_order_independent() {
         // Same items in different order → same most_restrictive_clamp
-        let c = TenantCeiling::default()
-            .with_surface("low", AutonomyTier::T1Read);
+        let c = TenantCeiling::default().with_surface("low", AutonomyTier::T1Read);
         let requests_a = vec![
             ("default-surface".to_string(), AutonomyTier::T4Actuate), // clamped to T3
             ("low".to_string(), AutonomyTier::T4Actuate),             // clamped to T1
         ];
         let requests_b = vec![
-            ("low".to_string(), AutonomyTier::T4Actuate),             // clamped to T1
+            ("low".to_string(), AutonomyTier::T4Actuate), // clamped to T1
             ("default-surface".to_string(), AutonomyTier::T4Actuate), // clamped to T3
         ];
         let verdict_a = resolve_batch(&requests_a, &c);
@@ -256,8 +274,16 @@ mod tests {
             ("s2".to_string(), AutonomyTier::T4Actuate),
         ];
         let verdict = resolve_batch(&requests, &c);
-        assert!(verdict.results.iter().all(|v| *v == TenantCeilingVerdict::Clamped(AutonomyTier::T3PropAct)));
-        assert_eq!(verdict.most_restrictive_clamp, Some(AutonomyTier::T3PropAct));
+        assert!(
+            verdict
+                .results
+                .iter()
+                .all(|v| *v == TenantCeilingVerdict::Clamped(AutonomyTier::T3PropAct))
+        );
+        assert_eq!(
+            verdict.most_restrictive_clamp,
+            Some(AutonomyTier::T3PropAct)
+        );
     }
 
     #[test]
@@ -275,7 +301,10 @@ mod tests {
     #[test]
     fn default_ceiling_permits_t1() {
         let c = TenantCeiling::default();
-        assert_eq!(resolve(AutonomyTier::T1Read, "write", &c), TenantCeilingVerdict::Permitted);
+        assert_eq!(
+            resolve(AutonomyTier::T1Read, "write", &c),
+            TenantCeilingVerdict::Permitted
+        );
     }
 
     #[test]

@@ -1478,13 +1478,16 @@ pub fn load_envelope_prefix_allows(
     };
     let value: Value = serde_json::from_str(&text)
         .map_err(|e| ProducerError::Validation(format!("{}: parse: {e}", path.display())))?;
-    let roots = value.get("roots").and_then(Value::as_object).ok_or_else(|| {
-        ProducerError::Validation(format!(
-            "{}: missing object 'roots' (fail-loud: envelope prefix allow requires \
+    let roots = value
+        .get("roots")
+        .and_then(Value::as_object)
+        .ok_or_else(|| {
+            ProducerError::Validation(format!(
+                "{}: missing object 'roots' (fail-loud: envelope prefix allow requires \
              roots.*.envelope_globs)",
-            path.display()
-        ))
-    })?;
+                path.display()
+            ))
+        })?;
 
     let mut by_prefix: BTreeMap<String, String> = BTreeMap::new();
     for (root_id, root) in roots {
@@ -1768,7 +1771,11 @@ mod tests {
         assert_eq!(policy.classify("third-party/foo/lib.rs"), "vendor");
         assert_eq!(policy.classify("docs/foo.generated.json"), "generated");
         assert_eq!(policy.classify("specs/masterplan.json"), "spec");
-        assert_eq!(policy.classify("docs/adr-archive/ADR-0001-cohesion-thesis-one-product-flat-catalog.md"), "doc");
+        assert_eq!(
+            policy
+                .classify("docs/adr-archive/ADR-0001-cohesion-thesis-one-product-flat-catalog.md"),
+            "doc"
+        );
         assert_eq!(policy.classify("oya/x/src/lib.rs"), "code");
         assert_eq!(policy.classify("some/unknown/blob"), "husk");
     }
@@ -2199,7 +2206,8 @@ mod tests {
         let root = unique_temp_repo();
         std::fs::create_dir_all(root.join("docs/adr-archive")).expect("create dir");
         let cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
-        let scm = tracked(&["docs/adr-archive/ADR-0001-cohesion-thesis-one-product-flat-catalog.md"]);
+        let scm =
+            tracked(&["docs/adr-archive/ADR-0001-cohesion-thesis-one-product-flat-catalog.md"]);
         let message = fix_owners(&root, &cfg, &scm, "docs/adr-archive=council-architecture")
             .expect("fix applies");
         assert!(message.contains("1 tracked path(s)"), "{message}");
@@ -2271,7 +2279,8 @@ mod tests {
         let root = unique_temp_repo();
         std::fs::create_dir_all(root.join("docs/adr-archive")).expect("create dir");
         let cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
-        let scm = tracked(&["docs/adr-archive/ADR-0001-cohesion-thesis-one-product-flat-catalog.md"]);
+        let scm =
+            tracked(&["docs/adr-archive/ADR-0001-cohesion-thesis-one-product-flat-catalog.md"]);
 
         // A principal the resolver would reject must be refused BEFORE writing.
         for hostile in ["Team Evil", "EVIL", "evil!", "a@b.example", "-x"] {
@@ -2351,12 +2360,7 @@ mod tests {
         std::fs::write(root.join("bad/thing.rs"), "fn main() {}\n").expect("write covered");
 
         let cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
-        let paths = tracked(&[
-            "bad/OWNERS",
-            "bad/thing.rs",
-            "good/OWNERS",
-            "good/thing.rs",
-        ]);
+        let paths = tracked(&["bad/OWNERS", "bad/thing.rs", "good/OWNERS", "good/thing.rs"]);
         let resolution = resolve_owners(&root, &paths, &cfg);
         assert_eq!(
             resolution.valid_files,
@@ -2396,12 +2400,11 @@ mod tests {
             good["reachable_from"],
             serde_json::json!([OWNERS_SCHEMA_ANCHOR])
         );
-        let good_findings: BTreeSet<String> =
-            ci_artifact_accountability::evaluate_keyed(&registry)
-                .into_iter()
-                .filter(|f| f.key == "good/OWNERS")
-                .map(|f| f.code)
-                .collect();
+        let good_findings: BTreeSet<String> = ci_artifact_accountability::evaluate_keyed(&registry)
+            .into_iter()
+            .filter(|f| f.key == "good/OWNERS")
+            .map(|f| f.code)
+            .collect();
         assert!(
             good_findings.is_empty(),
             "a schema-valid OWNERS file must raise NO accounting violation, got {good_findings:?}"
@@ -2442,14 +2445,8 @@ mod tests {
         let policy = Policy::from_bundled().expect("policy");
         let inputs = RepoInputs {
             tracked_paths: tracked(&["cloud/x/OWNERS"]),
-            owners: BTreeMap::from([(
-                "cloud/x/OWNERS".to_owned(),
-                "OWNERS:cloud/x".to_owned(),
-            )]),
-            justifications: BTreeMap::from([(
-                "cloud/x/OWNERS".to_owned(),
-                "ADR-0543".to_owned(),
-            )]),
+            owners: BTreeMap::from([("cloud/x/OWNERS".to_owned(), "OWNERS:cloud/x".to_owned())]),
+            justifications: BTreeMap::from([("cloud/x/OWNERS".to_owned(), "ADR-0543".to_owned())]),
             reachability: BTreeMap::from([(
                 "cloud/x/OWNERS".to_owned(),
                 vec!["cargo-members".to_owned()],
@@ -2699,7 +2696,11 @@ mod tests {
         assert!(allows.iter().any(|e| e.prefix == "iac/"));
         assert!(registration_matches(
             "compute/manifest.json",
-            &allows.iter().find(|e| e.prefix == "compute/").unwrap().prefix
+            &allows
+                .iter()
+                .find(|e| e.prefix == "compute/")
+                .unwrap()
+                .prefix
         ));
         assert!(registration_matches(
             "iac/governance/note.md",

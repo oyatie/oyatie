@@ -39,11 +39,7 @@ fn loop_recovery_patterns_gate_accepts_repo_inventory() {
     // nextest + shell-shebang); hermetic buck2 lanes without nextest execute 2
     // (supply-chain + shell-shebang; the nextest check degrades gracefully).
     let stdout = String::from_utf8_lossy(&output.stdout);
-    assert!(
-        stdout.contains("score-card commands"),
-        "stdout={}",
-        stdout
-    );
+    assert!(stdout.contains("score-card commands"), "stdout={}", stdout);
 }
 
 #[test]

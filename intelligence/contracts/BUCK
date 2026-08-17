@@ -1,3 +1,10 @@
+# Committed OpenAPI contract consumed as a DECLARED resource by the intelligence-app
+# conformance tests, so Buck and the Cargo merge path (ADR-0716) read the same bytes.
+export_file(
+    name = "cloud-intelligence.openapi.yaml",
+    visibility = ["PUBLIC"],
+)
+
 rust_test(
     name = "xproxy-contract-parity-test",
     srcs = glob(["tests/**/*.rs", "*.yaml", "*.proto"]),

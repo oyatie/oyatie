@@ -453,7 +453,7 @@ mod tests {
     use super::{
         ConfiguredBearerDsrPrincipalVerifier, DsrAuthzProviderConfigError, DsrCallerCredential,
         DsrCascadeAuthorizationError, DsrCascadeAuthorizer, DsrCascadeAuthzProvider,
-        DsrCascadeResource, DsrCascadePrincipalVerifier, DsrPrincipalVerificationError,
+        DsrCascadePrincipalVerifier, DsrCascadeResource, DsrPrincipalVerificationError,
         VerifiedDsrPrincipal, constant_time_eq,
     };
     use std::sync::Arc;
@@ -463,8 +463,11 @@ mod tests {
     /// Build the reference verifier, panicking on a config error without
     /// requiring the (secret-bearing) verifier type to implement `Debug`.
     fn verifier() -> ConfiguredBearerDsrPrincipalVerifier {
-        match ConfiguredBearerDsrPrincipalVerifier::new(SECRET, "privacy-officer:kr", "ten_privacy_kr")
-        {
+        match ConfiguredBearerDsrPrincipalVerifier::new(
+            SECRET,
+            "privacy-officer:kr",
+            "ten_privacy_kr",
+        ) {
             Ok(verifier) => verifier,
             Err(error) => panic!("verifier construction failed: {error}"),
         }

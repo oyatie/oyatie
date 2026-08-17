@@ -227,8 +227,14 @@ mod tests {
             .render_rust_ir(&ir)
             .expect("syn/quote path must succeed");
         let text = String::from_utf8(out[&RegionId("root".into())].clone()).expect("utf-8");
-        assert!(text.contains("stub"), "rendered bytes must carry fn name: {text}");
-        assert!(text.contains("fn"), "rendered bytes must carry fn keyword: {text}");
+        assert!(
+            text.contains("stub"),
+            "rendered bytes must carry fn name: {text}"
+        );
+        assert!(
+            text.contains("fn"),
+            "rendered bytes must carry fn keyword: {text}"
+        );
     }
 
     #[test]

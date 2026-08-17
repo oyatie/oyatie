@@ -14,9 +14,9 @@
 use crate::reconcile::{
     Controller, Input, Output, ReconcileContext, ReconcileError, ReconcileResult,
 };
-use os_kernel::{Error, MachineType, ResourceId, Result};
 use os_cosi_domain::resource::ResourceKind;
 use os_cosi_domain::{Metadata, Resource};
+use os_kernel::{Error, MachineType, ResourceId, Result};
 
 /// Where a machine config was acquired from. Mirrors Talos config sources.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

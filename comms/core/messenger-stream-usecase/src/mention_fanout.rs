@@ -59,7 +59,9 @@ pub fn derive_mention_fanout(
         .body
         .split_ascii_whitespace()
         .filter_map(|token| token.strip_prefix('@'))
-        .map(|raw| raw.trim_end_matches(|c: char| !c.is_alphanumeric() && c != ':' && c != '_' && c != '-'))
+        .map(|raw| {
+            raw.trim_end_matches(|c: char| !c.is_alphanumeric() && c != ':' && c != '_' && c != '-')
+        })
         .filter(|ref_str| !ref_str.is_empty())
         .filter(|&ref_str| member_set.contains(ref_str))
         .filter(|&ref_str| ref_str != input.author_ref)
@@ -143,7 +145,11 @@ mod tests {
         let members = ["user:alice", "user:bob"];
         let fanout = derive_mention_fanout(
             &ctx,
-            input("user:alice", "@user:outsider please join @user:bob", &members),
+            input(
+                "user:alice",
+                "@user:outsider please join @user:bob",
+                &members,
+            ),
         )
         .unwrap();
         // user:outsider is not a member — must be dropped
@@ -203,11 +209,8 @@ mod tests {
             audit_correlation_id: "audit".into(),
         };
         let members = ["user:alice", "user:bob"];
-        let err = derive_mention_fanout(
-            &bad_ctx,
-            input("user:alice", "@user:bob hello", &members),
-        )
-        .unwrap_err();
+        let err = derive_mention_fanout(&bad_ctx, input("user:alice", "@user:bob hello", &members))
+            .unwrap_err();
         assert_eq!(
             err,
             MessengerUsecaseError::Api(MessengerApiError::MissingIdempotencyKey)
@@ -218,11 +221,8 @@ mod tests {
     fn principal_mismatch_rejected() {
         let ctx = work_ctx("user:alice");
         let members = ["user:alice", "user:bob"];
-        let err = derive_mention_fanout(
-            &ctx,
-            input("user:mallory", "@user:bob hello", &members),
-        )
-        .unwrap_err();
+        let err = derive_mention_fanout(&ctx, input("user:mallory", "@user:bob hello", &members))
+            .unwrap_err();
         assert_eq!(err, MessengerUsecaseError::PrincipalMismatch);
     }
 
@@ -231,17 +231,13 @@ mod tests {
         let ctx = work_ctx("user:alice");
         let members = ["user:alice", "user:carol", "user:bob"];
         // Mention bob before carol in body
-        let fanout1 = derive_mention_fanout(
-            &ctx,
-            input("user:alice", "@user:bob @user:carol", &members),
-        )
-        .unwrap();
+        let fanout1 =
+            derive_mention_fanout(&ctx, input("user:alice", "@user:bob @user:carol", &members))
+                .unwrap();
         // Mention carol before bob in body
-        let fanout2 = derive_mention_fanout(
-            &ctx,
-            input("user:alice", "@user:carol @user:bob", &members),
-        )
-        .unwrap();
+        let fanout2 =
+            derive_mention_fanout(&ctx, input("user:alice", "@user:carol @user:bob", &members))
+                .unwrap();
         assert_eq!(fanout1.targets, fanout2.targets);
         assert_eq!(fanout1.targets, vec!["user:bob", "user:carol"]);
     }

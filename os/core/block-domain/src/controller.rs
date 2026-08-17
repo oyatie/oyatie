@@ -353,9 +353,10 @@ fn upsert_user_volume_configs(
     active_machine_config: &os_machine_config_domain::Config,
     existing_outputs: &mut ExistingVolumeOutputs,
 ) -> ReconcileResult {
-    let docs = os_machine_config_domain::user_volume_configs(active_machine_config).map_err(|err| {
-        ControllerError::Failed(format!("invalid user volume config document: {err}"))
-    })?;
+    let docs =
+        os_machine_config_domain::user_volume_configs(active_machine_config).map_err(|err| {
+            ControllerError::Failed(format!("invalid user volume config document: {err}"))
+        })?;
 
     for doc in docs {
         let volume = user_volume_config(&doc).map_err(block_error_to_controller)?;
@@ -377,9 +378,10 @@ fn upsert_raw_volume_configs(
     active_machine_config: &os_machine_config_domain::Config,
     existing_outputs: &mut ExistingVolumeOutputs,
 ) -> ReconcileResult {
-    let docs = os_machine_config_domain::raw_volume_configs(active_machine_config).map_err(|err| {
-        ControllerError::Failed(format!("invalid raw volume config document: {err}"))
-    })?;
+    let docs =
+        os_machine_config_domain::raw_volume_configs(active_machine_config).map_err(|err| {
+            ControllerError::Failed(format!("invalid raw volume config document: {err}"))
+        })?;
 
     for doc in docs {
         let volume = raw_volume_config(&doc).map_err(block_error_to_controller)?;
@@ -394,10 +396,9 @@ fn upsert_existing_volume_configs(
     active_machine_config: &os_machine_config_domain::Config,
     existing_outputs: &mut ExistingVolumeOutputs,
 ) -> ReconcileResult {
-    let docs =
-        os_machine_config_domain::existing_volume_configs(active_machine_config).map_err(|err| {
-            ControllerError::Failed(format!("invalid existing volume config document: {err}"))
-        })?;
+    let docs = os_machine_config_domain::existing_volume_configs(active_machine_config).map_err(
+        |err| ControllerError::Failed(format!("invalid existing volume config document: {err}")),
+    )?;
 
     for doc in docs {
         let volume = existing_volume_config(&doc).map_err(block_error_to_controller)?;
@@ -419,10 +420,9 @@ fn upsert_external_volume_configs(
     active_machine_config: &os_machine_config_domain::Config,
     existing_outputs: &mut ExistingVolumeOutputs,
 ) -> ReconcileResult {
-    let docs =
-        os_machine_config_domain::external_volume_configs(active_machine_config).map_err(|err| {
-            ControllerError::Failed(format!("invalid external volume config document: {err}"))
-        })?;
+    let docs = os_machine_config_domain::external_volume_configs(active_machine_config).map_err(
+        |err| ControllerError::Failed(format!("invalid external volume config document: {err}")),
+    )?;
 
     for doc in docs {
         let volume = external_volume_config(&doc).map_err(block_error_to_controller)?;
@@ -444,9 +444,10 @@ fn upsert_swap_volume_configs(
     active_machine_config: &os_machine_config_domain::Config,
     existing_outputs: &mut ExistingVolumeOutputs,
 ) -> ReconcileResult {
-    let docs = os_machine_config_domain::swap_volume_configs(active_machine_config).map_err(|err| {
-        ControllerError::Failed(format!("invalid swap volume config document: {err}"))
-    })?;
+    let docs =
+        os_machine_config_domain::swap_volume_configs(active_machine_config).map_err(|err| {
+            ControllerError::Failed(format!("invalid swap volume config document: {err}"))
+        })?;
 
     for doc in docs {
         let volume = swap_volume_config(&doc).map_err(block_error_to_controller)?;
@@ -1368,8 +1369,8 @@ mod tests {
         mount::volume_mount_request_key,
         volume::volume_config_key,
     };
-    use os_kernel::ResourceId;
     use os_cosi_domain::{Input, InputKind, Metadata, Output, Resource, ResourceKind, Runtime};
+    use os_kernel::ResourceId;
 
     #[test]
     fn volume_config_controller_projects_default_meta_state_configs_without_machine_config() {

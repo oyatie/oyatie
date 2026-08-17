@@ -70,13 +70,15 @@ const LIST_USERS_SQL: &str = "SELECT payload_json FROM identity_scim.identity_sc
 const GET_USER_SQL: &str = "SELECT payload_json FROM identity_scim.identity_scim_users WHERE tenant_id = $1 AND scim_id = $2";
 const FIND_USER_BY_NAME_SQL: &str = "SELECT payload_json FROM identity_scim.identity_scim_users WHERE tenant_id = $1 AND user_name = $2";
 const UPSERT_USER_SQL: &str = "INSERT INTO identity_scim.identity_scim_users (tenant_id, scim_id, user_name, external_id, active, payload_json, schema_version, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, now()) ON CONFLICT (tenant_id, scim_id) DO UPDATE SET user_name = EXCLUDED.user_name, external_id = EXCLUDED.external_id, active = EXCLUDED.active, payload_json = EXCLUDED.payload_json, schema_version = EXCLUDED.schema_version, updated_at = now()";
-const DELETE_USER_SQL: &str = "DELETE FROM identity_scim.identity_scim_users WHERE tenant_id = $1 AND scim_id = $2";
+const DELETE_USER_SQL: &str =
+    "DELETE FROM identity_scim.identity_scim_users WHERE tenant_id = $1 AND scim_id = $2";
 
 // --- Group statements (tenant-scoped) --------------------------------------
 const LIST_GROUPS_SQL: &str = "SELECT payload_json FROM identity_scim.identity_scim_groups WHERE tenant_id = $1 ORDER BY scim_id ASC";
 const GET_GROUP_SQL: &str = "SELECT payload_json FROM identity_scim.identity_scim_groups WHERE tenant_id = $1 AND scim_id = $2";
 const UPSERT_GROUP_SQL: &str = "INSERT INTO identity_scim.identity_scim_groups (tenant_id, scim_id, display_name, payload_json, schema_version, updated_at) VALUES ($1, $2, $3, $4, $5, now()) ON CONFLICT (tenant_id, scim_id) DO UPDATE SET display_name = EXCLUDED.display_name, payload_json = EXCLUDED.payload_json, schema_version = EXCLUDED.schema_version, updated_at = now()";
-const DELETE_GROUP_SQL: &str = "DELETE FROM identity_scim.identity_scim_groups WHERE tenant_id = $1 AND scim_id = $2";
+const DELETE_GROUP_SQL: &str =
+    "DELETE FROM identity_scim.identity_scim_groups WHERE tenant_id = $1 AND scim_id = $2";
 
 /// Errors specific to constructing the durable adapter (connection-time).
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -825,8 +827,7 @@ mod tests {
         let migration = include_str!("../migrations/0001_identity_scim_store.sql");
         let mut from_migration = force_rls_tables(migration);
         from_migration.sort();
-        let mut governed: Vec<String> =
-            GOVERNED_TABLES.iter().map(|t| (*t).to_owned()).collect();
+        let mut governed: Vec<String> = GOVERNED_TABLES.iter().map(|t| (*t).to_owned()).collect();
         governed.sort();
         assert_eq!(
             governed, from_migration,

@@ -19,8 +19,7 @@ use ci_service_tier_metadata::{
 };
 use serde_json::Value;
 
-const DEFAULT_POLICY: &str =
-    "ci/facade/service-tier-metadata/tier-field-coverage-policy.json";
+const DEFAULT_POLICY: &str = "ci/facade/service-tier-metadata/tier-field-coverage-policy.json";
 
 struct Args {
     repo_root: PathBuf,

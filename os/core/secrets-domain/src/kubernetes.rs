@@ -15,9 +15,9 @@
 use crate::bundle::{CaKind, CertUsage, Certificate, KeyPair, SecretsBundle, Subject};
 use crate::certsans::{CertSans, San};
 use crate::rotation::{CertState, RenewalPolicy, evaluate};
-use std::collections::BTreeMap;
 use os_kernel::Role;
 use os_kernel::error::{Error, Result};
+use std::collections::BTreeMap;
 
 /// Default TTL for Kubernetes control-plane leaf certificates (1 year), the
 /// value Talos uses for generated control-plane PKI.

@@ -170,8 +170,7 @@ mod tests {
     use crate::classifier::ResponseClass;
 
     fn pool(keys: &[&str]) -> KeyPool {
-        KeyPool::new(keys.iter().map(|s| s.to_string()).collect())
-            .with_jitter_max(30)
+        KeyPool::new(keys.iter().map(|s| s.to_string()).collect()).with_jitter_max(30)
     }
 
     #[test]
@@ -224,7 +223,10 @@ mod tests {
         p.record_result(0, ResponseClass::TransientRateLimit, now, 0);
         p.record_result(0, ResponseClass::TransientRateLimit, now, 0);
         match p.key_status(0) {
-            KeyStatus::Cooling { until_epoch_secs, failure_count } => {
+            KeyStatus::Cooling {
+                until_epoch_secs,
+                failure_count,
+            } => {
                 // cooldown = now + 60 + jitter(0) = now + 60
                 assert_eq!(*until_epoch_secs, now + 60);
                 assert_eq!(*failure_count, 3);
@@ -242,7 +244,9 @@ mod tests {
         p.record_result(0, ResponseClass::TransientServer, now, 0);
         p.record_result(0, ResponseClass::TransientServer, now, 29);
         match p.key_status(0) {
-            KeyStatus::Cooling { until_epoch_secs, .. } => {
+            KeyStatus::Cooling {
+                until_epoch_secs, ..
+            } => {
                 // cooldown = now + 60 + 29 = now + 89 (max jitter capped at jitter_max - 1 = 29)
                 assert_eq!(*until_epoch_secs, now + 89);
                 // Must be in [now+60, now+90)

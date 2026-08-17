@@ -119,7 +119,14 @@ async fn lease_drop_without_complete_releases_seat() {
     let agent = AgentId::new("agent-drop").unwrap();
     let now = Instant::now();
 
-    let lease = SubscriptionPool::lease(&pool_ref, &TenantId::new("t-concurrent").unwrap(), &agent, &gate, now).expect("first lease");
+    let lease = SubscriptionPool::lease(
+        &pool_ref,
+        &TenantId::new("t-concurrent").unwrap(),
+        &agent,
+        &gate,
+        now,
+    )
+    .expect("first lease");
     let seat = lease.seat_id().clone();
     drop(lease); // Drop without complete — should release.
 
@@ -134,7 +141,13 @@ async fn lease_drop_without_complete_releases_seat() {
 
     // Verify seat was returned without penalty: leasing again at `now` must succeed
     // because Released applies no cooldown/blacklist to the seat.
-    let result = SubscriptionPool::lease(&pool_ref, &TenantId::new("t-concurrent").unwrap(), &agent, &gate, now);
+    let result = SubscriptionPool::lease(
+        &pool_ref,
+        &TenantId::new("t-concurrent").unwrap(),
+        &agent,
+        &gate,
+        now,
+    );
     assert!(
         result.is_ok(),
         "seat must be leasable again after drop-without-complete (Released = no penalty)"
@@ -150,7 +163,14 @@ fn lease_complete_records_outcome() {
     let agent = AgentId::new("agent-outcome").unwrap();
     let now = Instant::now();
 
-    let lease = SubscriptionPool::lease(&pool_ref, &TenantId::new("t-concurrent").unwrap(), &agent, &gate, now).unwrap();
+    let lease = SubscriptionPool::lease(
+        &pool_ref,
+        &TenantId::new("t-concurrent").unwrap(),
+        &agent,
+        &gate,
+        now,
+    )
+    .unwrap();
     let sid = lease.seat_id().clone();
     lease.complete(SeatOutcome::RateLimited429, now).unwrap();
 
@@ -162,9 +182,14 @@ fn lease_complete_records_outcome() {
 
     // Try leasing again; if cooldown, it picks the other seat.
     let gate2 = AllowAll;
-    let lease2 =
-        SubscriptionPool::lease(&pool_ref, &TenantId::new("t-concurrent").unwrap(), &agent, &gate2, now)
-            .unwrap();
+    let lease2 = SubscriptionPool::lease(
+        &pool_ref,
+        &TenantId::new("t-concurrent").unwrap(),
+        &agent,
+        &gate2,
+        now,
+    )
+    .unwrap();
     assert_ne!(
         lease2.seat_id(),
         &sid,

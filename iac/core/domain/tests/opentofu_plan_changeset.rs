@@ -43,7 +43,10 @@ fn resource_change_action_all_variants_accepted() {
     let create = change("module.vpc.aws_vpc.main", ResourceChangeAction::Create);
     let update = change("module.vpc.aws_subnet.public", ResourceChangeAction::Update);
     let delete = change("module.vpc.aws_subnet.old", ResourceChangeAction::Delete);
-    let replace = change("module.vpc.aws_security_group.legacy", ResourceChangeAction::Replace);
+    let replace = change(
+        "module.vpc.aws_security_group.legacy",
+        ResourceChangeAction::Replace,
+    );
     let no_op = change("module.vpc.aws_vpc.existing", ResourceChangeAction::NoOp);
 
     assert_eq!(create.action(), ResourceChangeAction::Create);
@@ -97,8 +100,11 @@ fn resource_change_rejects_whitespace_only_address() {
 #[test]
 fn resource_change_rejects_address_with_embedded_newline() {
     assert_eq!(
-        ResourceChange::new("module.vpc.aws_vpc.main\ninjected", ResourceChangeAction::Create)
-            .unwrap_err(),
+        ResourceChange::new(
+            "module.vpc.aws_vpc.main\ninjected",
+            ResourceChangeAction::Create
+        )
+        .unwrap_err(),
         CloudIacError::InvalidResourceAddress
     );
 }
@@ -228,7 +234,10 @@ fn has_destructive_changes_false_when_only_create_update_no_op() {
         vec![
             change("module.vpc.aws_vpc.main", ResourceChangeAction::Create),
             change("module.vpc.aws_subnet.public", ResourceChangeAction::Update),
-            change("module.vpc.aws_route_table.main", ResourceChangeAction::NoOp),
+            change(
+                "module.vpc.aws_route_table.main",
+                ResourceChangeAction::NoOp,
+            ),
         ],
     );
     assert!(!cs.has_destructive_changes());
@@ -349,7 +358,10 @@ fn summarize_derives_clone_copy_debug_eq() {
 fn plan_changeset_summarize_is_deterministic() {
     let changes = vec![
         change("module.vpc.aws_vpc.main", ResourceChangeAction::Create),
-        change("module.dns.aws_route53_zone.primary", ResourceChangeAction::Update),
+        change(
+            "module.dns.aws_route53_zone.primary",
+            ResourceChangeAction::Update,
+        ),
         change("module.kms.aws_kms_key.old", ResourceChangeAction::Delete),
         change(
             "module.iam.aws_iam_role.compute",
@@ -359,14 +371,11 @@ fn plan_changeset_summarize_is_deterministic() {
     ];
     let cs1 = PlanChangeset::new("plan-determinism-001", changes.clone())
         .expect("valid changeset for determinism check 1");
-    let cs2 =
-        PlanChangeset::new("plan-determinism-001", changes).expect("valid changeset for determinism check 2");
+    let cs2 = PlanChangeset::new("plan-determinism-001", changes)
+        .expect("valid changeset for determinism check 2");
 
     assert_eq!(cs1.summarize(), cs2.summarize());
-    assert_eq!(
-        cs1.has_destructive_changes(),
-        cs2.has_destructive_changes()
-    );
+    assert_eq!(cs1.has_destructive_changes(), cs2.has_destructive_changes());
 }
 
 // ---------------------------------------------------------------------------

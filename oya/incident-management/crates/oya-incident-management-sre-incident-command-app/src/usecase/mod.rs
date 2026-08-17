@@ -1,6 +1,4 @@
-use crate::domain::{
-    IncidentManagementCommand, IncidentManagementEvent, TenantId, UsecaseActor,
-};
+use crate::domain::{IncidentManagementCommand, IncidentManagementEvent, TenantId, UsecaseActor};
 use crate::error::{Result, ServiceError};
 use serde::{Deserialize, Serialize};
 
@@ -100,7 +98,10 @@ where
     pub fn dispatch_page(&self, envelope: CommandEnvelope) -> Result<CommandReceipt> {
         ensure_command(
             &envelope,
-            matches!(envelope.command, IncidentManagementCommand::DispatchPage { .. }),
+            matches!(
+                envelope.command,
+                IncidentManagementCommand::DispatchPage { .. }
+            ),
             "DispatchPage",
         )?;
         self.handle(envelope)
@@ -143,13 +144,20 @@ where
     }
 }
 
-fn ensure_command(envelope: &CommandEnvelope, matches_expected: bool, expected: &str) -> Result<()> {
+fn ensure_command(
+    envelope: &CommandEnvelope,
+    matches_expected: bool,
+    expected: &str,
+) -> Result<()> {
     if matches_expected {
         Ok(())
     } else {
         Err(ServiceError::validation(
             "command",
-            format!("expected {expected}, got {:?}", envelope.command.capability()),
+            format!(
+                "expected {expected}, got {:?}",
+                envelope.command.capability()
+            ),
         ))
     }
 }

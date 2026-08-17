@@ -40,9 +40,7 @@ fn test_happy_path_balance_projection() {
 
     // Financial DataClass assertions
     assert_eq!(
-        proj.payroll_period
-            .data_class
-            .compatibility_data_class(),
+        proj.payroll_period.data_class.compatibility_data_class(),
         DataClass::Financial
     );
     assert_eq!(
@@ -58,9 +56,7 @@ fn test_happy_path_balance_projection() {
         DataClass::Financial
     );
     assert_eq!(
-        proj.forfeited_units
-            .data_class
-            .compatibility_data_class(),
+        proj.forfeited_units.data_class.compatibility_data_class(),
         DataClass::Financial
     );
 }
@@ -360,13 +356,42 @@ fn test_all_financial_output_fields_carry_financial_data_class() {
 
     // Every unit field must be classified FINANCIAL per the data-boundary contract
     for (name, dc) in [
-        ("prior_accrued_units", proj.prior_accrued_units.data_class.compatibility_data_class()),
-        ("accrual_units", proj.accrual_units.data_class.compatibility_data_class()),
-        ("deduction_units", proj.deduction_units.data_class.compatibility_data_class()),
-        ("resulting_balance_units", proj.resulting_balance_units.data_class.compatibility_data_class()),
-        ("carried_over_units", proj.carried_over_units.data_class.compatibility_data_class()),
-        ("forfeited_units", proj.forfeited_units.data_class.compatibility_data_class()),
-        ("carry_over_cap_units", proj.carry_over_cap_units.data_class.compatibility_data_class()),
+        (
+            "prior_accrued_units",
+            proj.prior_accrued_units
+                .data_class
+                .compatibility_data_class(),
+        ),
+        (
+            "accrual_units",
+            proj.accrual_units.data_class.compatibility_data_class(),
+        ),
+        (
+            "deduction_units",
+            proj.deduction_units.data_class.compatibility_data_class(),
+        ),
+        (
+            "resulting_balance_units",
+            proj.resulting_balance_units
+                .data_class
+                .compatibility_data_class(),
+        ),
+        (
+            "carried_over_units",
+            proj.carried_over_units
+                .data_class
+                .compatibility_data_class(),
+        ),
+        (
+            "forfeited_units",
+            proj.forfeited_units.data_class.compatibility_data_class(),
+        ),
+        (
+            "carry_over_cap_units",
+            proj.carry_over_cap_units
+                .data_class
+                .compatibility_data_class(),
+        ),
     ] {
         assert_eq!(dc, DataClass::Financial, "field {name} must be FINANCIAL");
     }

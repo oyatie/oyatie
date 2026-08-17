@@ -20,8 +20,8 @@
 use crate::adv::Adv;
 use crate::key::MetaKey;
 use crate::value::MetaValue;
-use std::fmt::Write as _;
 use os_kernel::{Error, Result};
+use std::fmt::Write as _;
 
 /// A single META record in its JSON transport form.
 #[derive(Debug, Clone, PartialEq, Eq)]

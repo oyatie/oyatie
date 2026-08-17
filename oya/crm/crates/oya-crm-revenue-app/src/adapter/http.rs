@@ -21,31 +21,72 @@
 //!   * install `DefaultBodyLimit`, and
 //!   * refuse to boot without a [`crate::authz::CrmAuthzProvider`] configured.
 
-use crate::authz::{authorize_crm_command, AuthorizedCrmContext, CallerCredential, CrmAction, CrmAuthzProvider};
+use crate::authz::{
+    AuthorizedCrmContext, CallerCredential, CrmAction, CrmAuthzProvider, authorize_crm_command,
+};
 use crate::domain::Capability;
 use crate::error::{Result, ServiceError};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
-pub struct HttpRoute { pub method: &'static str, pub path: &'static str, pub capability: &'static str, pub idempotent: bool }
+pub struct HttpRoute {
+    pub method: &'static str,
+    pub path: &'static str,
+    pub capability: &'static str,
+    pub idempotent: bool,
+}
 /// REST request DTO. NOTE: `tenant_id` and `principal_id` are non-authoritative
 /// caller-supplied fields (see module docs / ADR-0603). They are structurally
 /// never read by the gate; they never authorize and never select the resource
 /// tenant (the verified tenant is the sole scope).
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-pub struct HttpRequest { pub tenant_id: String, pub principal_id: String, pub request_id: String, pub idempotency_key: String, pub body: serde_json::Value }
+pub struct HttpRequest {
+    pub tenant_id: String,
+    pub principal_id: String,
+    pub request_id: String,
+    pub idempotency_key: String,
+    pub body: serde_json::Value,
+}
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-pub struct HttpResponse { pub status: u16, pub body: serde_json::Value }
+pub struct HttpResponse {
+    pub status: u16,
+    pub body: serde_json::Value,
+}
 
 pub struct HttpHandler;
 impl HttpHandler {
     pub fn routes() -> Vec<HttpRoute> {
         vec![
-            HttpRoute { method: "POST", path: "/v1/crm/account-masters:sync", capability: "account-master", idempotent: true },
-            HttpRoute { method: "POST", path: "/v1/crm/opportunities:advance", capability: "opportunity", idempotent: true },
-            HttpRoute { method: "POST", path: "/v1/crm/quotes:approve", capability: "quote", idempotent: true },
-            HttpRoute { method: "POST", path: "/v1/crm/campaigns:launch", capability: "campaign", idempotent: true },
-            HttpRoute { method: "POST", path: "/v1/crm/service-cases:route", capability: "service-case", idempotent: true },
+            HttpRoute {
+                method: "POST",
+                path: "/v1/crm/account-masters:sync",
+                capability: "account-master",
+                idempotent: true,
+            },
+            HttpRoute {
+                method: "POST",
+                path: "/v1/crm/opportunities:advance",
+                capability: "opportunity",
+                idempotent: true,
+            },
+            HttpRoute {
+                method: "POST",
+                path: "/v1/crm/quotes:approve",
+                capability: "quote",
+                idempotent: true,
+            },
+            HttpRoute {
+                method: "POST",
+                path: "/v1/crm/campaigns:launch",
+                capability: "campaign",
+                idempotent: true,
+            },
+            HttpRoute {
+                method: "POST",
+                path: "/v1/crm/service-cases:route",
+                capability: "service-case",
+                idempotent: true,
+            },
         ]
     }
 
@@ -67,7 +108,12 @@ impl HttpHandler {
     /// `Unauthenticated`/`Forbidden` on a failed gate; `ContractStub` once
     /// authorized (the business handler is intentionally scaffolded until the
     /// impl packet lands).
-    pub fn handle(provider: &CrmAuthzProvider, credential: &CallerCredential, capability: Capability, request: HttpRequest) -> Result<HttpResponse> {
+    pub fn handle(
+        provider: &CrmAuthzProvider,
+        credential: &CallerCredential,
+        capability: Capability,
+        request: HttpRequest,
+    ) -> Result<HttpResponse> {
         let scope = Self::resolve_scope(provider, credential, capability, &request)?;
         // The resource tenant is the VERIFIED tenant from the gate — the forged
         // body tenant (`request.tenant_id`) is never honored. Business logic
@@ -83,13 +129,29 @@ impl HttpHandler {
     ///
     /// # Errors
     /// `Unauthenticated`/`Forbidden` on a failed gate.
-    pub fn resolve_scope(provider: &CrmAuthzProvider, credential: &CallerCredential, capability: Capability, _request: &HttpRequest) -> Result<AuthorizedCrmContext> {
-        authorize_crm_command(provider, credential, CrmAction(capability)).map_err(ServiceError::from)
+    pub fn resolve_scope(
+        provider: &CrmAuthzProvider,
+        credential: &CallerCredential,
+        capability: Capability,
+        _request: &HttpRequest,
+    ) -> Result<AuthorizedCrmContext> {
+        authorize_crm_command(provider, credential, CrmAction(capability))
+            .map_err(ServiceError::from)
     }
 }
 
 pub fn validate_routes(routes: &[HttpRoute]) -> Result<()> {
-    if routes.len() < 5 { return Err(ServiceError::validation("http_routes", "scaffold requires at least five REST routes")); }
-    if routes.iter().any(|route| !route.path.starts_with("/v1/")) { return Err(ServiceError::validation("http_routes", "all REST routes must be versioned under /v1")); }
+    if routes.len() < 5 {
+        return Err(ServiceError::validation(
+            "http_routes",
+            "scaffold requires at least five REST routes",
+        ));
+    }
+    if routes.iter().any(|route| !route.path.starts_with("/v1/")) {
+        return Err(ServiceError::validation(
+            "http_routes",
+            "all REST routes must be versioned under /v1",
+        ));
+    }
     Ok(())
 }

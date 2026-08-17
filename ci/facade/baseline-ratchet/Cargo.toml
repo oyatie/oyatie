@@ -42,6 +42,8 @@ sha2 = { workspace = true }
 reqwest = { workspace = true }
 
 [dev-dependencies]
+ci-generated-artifact-freshness = { path = "../generated-artifact-freshness" }
+ci-path-resolver-adapters = { path = "../../adapters/path-resolver" }
 serde_json = { workspace = true }
 sha2 = { workspace = true }
 

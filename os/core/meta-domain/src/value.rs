@@ -1,7 +1,7 @@
 //! The value half of a META key/value pair.
 
-use std::fmt::Write as _;
 use os_kernel::{Error, Result};
+use std::fmt::Write as _;
 
 /// The maximum byte length of a single ADV1 value.
 ///

@@ -113,11 +113,7 @@ pub fn insert_dict_entry(
 /// Remove element `index` from a list literal, including exactly one adjacent comma (the
 /// element's own trailing comma when present, else the PREVIOUS element's comma for a last
 /// element) and the surrounding line whitespace when the element sits on its own line.
-pub fn remove_list_element(
-    text: &str,
-    list: &ListExpr,
-    index: usize,
-) -> Result<String, EditError> {
+pub fn remove_list_element(text: &str, list: &ListExpr, index: usize) -> Result<String, EditError> {
     let Some(element) = list.elements.get(index) else {
         return Err(err(format!(
             "list element index {index} out of range ({} elements)",
@@ -140,7 +136,9 @@ pub fn remove_list_element(
     // neighbors untouched — e.g. a trailing comment stays).
     let bytes = text.as_bytes();
     let line_start = text[..start].rfind('\n').map(|p| p + 1).unwrap_or(0);
-    let leading_is_ws = text[line_start..start].chars().all(|c| c == ' ' || c == '\t');
+    let leading_is_ws = text[line_start..start]
+        .chars()
+        .all(|c| c == ' ' || c == '\t');
     let mut line_end = end;
     while line_end < bytes.len() && (bytes[line_end] == b' ' || bytes[line_end] == b'\t') {
         line_end += 1;

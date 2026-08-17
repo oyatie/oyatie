@@ -171,10 +171,7 @@ pub fn move_lockfile(
 fn canonicalize(content: &str, additions: &GraphAdditions) -> Result<String> {
     let trimmed = content.trim_end();
     let mut records = trimmed.split("\n\n");
-    let header = records
-        .next()
-        .context("lockfile is empty")?
-        .to_owned();
+    let header = records.next().context("lockfile is empty")?.to_owned();
 
     let mut keyed: Vec<(String, String)> = Vec::new();
     // add_dependencies target name -> number of [[package]] blocks it matched.
@@ -204,7 +201,9 @@ fn canonicalize(content: &str, additions: &GraphAdditions) -> Result<String> {
     // >1 = an ambiguous multi-version name the tool must not guess an edge into. Fail-closed.
     for target in additions.add_dependencies.keys() {
         match target_block_count.get(target).copied().unwrap_or(0) {
-            0 => anyhow::bail!("add_dependencies target {target:?} is not a package in the lockfile"),
+            0 => {
+                anyhow::bail!("add_dependencies target {target:?} is not a package in the lockfile")
+            }
             1 => {}
             n => anyhow::bail!(
                 "add_dependencies target {target:?} is ambiguous — matches {n} version blocks; \
@@ -317,7 +316,10 @@ fn process_block(block: &str, extra: Option<&[String]>) -> Result<String> {
         .context("malformed dependencies array: no closing ]")?;
     let close = open + 1 + rel_close;
 
-    let mut dep_lines: Vec<String> = lines[open + 1..close].iter().map(|s| (*s).to_owned()).collect();
+    let mut dep_lines: Vec<String> = lines[open + 1..close]
+        .iter()
+        .map(|s| (*s).to_owned())
+        .collect();
     dep_lines.extend(extra.iter().map(|d| format!(" \"{d}\",")));
     dep_lines.sort_by(|a, b| dep_line_key(a).as_bytes().cmp(dep_line_key(b).as_bytes()));
     // A dependency array is a set: an injected edge that already exists must not duplicate
@@ -432,7 +434,8 @@ checksum = "abc123"
     /// Row 4: quoted form works (toml_edit always emits quoted strings)
     #[test]
     fn test_quoted_form() {
-        let content = "[[package]]\nname = \"oya-intelligence-evidence-kernel\"\nversion = \"0.1.0\"\n";
+        let content =
+            "[[package]]\nname = \"oya-intelligence-evidence-kernel\"\nversion = \"0.1.0\"\n";
         let m = map(&[(
             "oya-intelligence-evidence-kernel",
             "oya-intelligence-evidence-domain",
@@ -639,8 +642,7 @@ checksum = \"abc123\"
     /// rather than injecting the edge into every version.
     #[test]
     fn test_add_dependencies_ambiguous_target_fails_closed() {
-        let input =
-            "# h\nversion = 4\n\n[[package]]\nname = \"dup\"\nversion = \"0.1.0\"\n\n[[package]]\nname = \"dup\"\nversion = \"0.2.0\"\n";
+        let input = "# h\nversion = 4\n\n[[package]]\nname = \"dup\"\nversion = \"0.1.0\"\n\n[[package]]\nname = \"dup\"\nversion = \"0.2.0\"\n";
         let mut add = HashMap::new();
         add.insert("dup".to_owned(), vec!["x".to_owned()]);
         let additions = GraphAdditions {
@@ -664,7 +666,10 @@ checksum = \"abc123\"
             add_dependencies: HashMap::new(),
         };
         let err = move_lockfile(input, &HashMap::new(), &additions).unwrap_err();
-        assert!(err.to_string().contains("already exists"), "unexpected: {err}");
+        assert!(
+            err.to_string().contains("already exists"),
+            "unexpected: {err}"
+        );
     }
 
     /// `add_dependencies` targeting a package that does not exist fails closed.
@@ -687,8 +692,7 @@ checksum = \"abc123\"
     /// An injected edge that already exists in the target array is not duplicated.
     #[test]
     fn test_add_dependencies_dedups_existing_edge() {
-        let input =
-            "# h\nversion = 4\n\n[[package]]\nname = \"a\"\nversion = \"0.1.0\"\ndependencies = [\n \"serde\",\n]\n";
+        let input = "# h\nversion = 4\n\n[[package]]\nname = \"a\"\nversion = \"0.1.0\"\ndependencies = [\n \"serde\",\n]\n";
         let mut add = HashMap::new();
         add.insert("a".to_owned(), vec!["serde".to_owned(), "beta".to_owned()]);
         let additions = GraphAdditions {
@@ -697,8 +701,7 @@ checksum = \"abc123\"
         };
         let out = move_lockfile(input, &HashMap::new(), &additions).unwrap();
         // "serde" appears once, "beta" added, sorted.
-        let expected =
-            "# h\nversion = 4\n\n[[package]]\nname = \"a\"\nversion = \"0.1.0\"\ndependencies = [\n \"beta\",\n \"serde\",\n]\n";
+        let expected = "# h\nversion = 4\n\n[[package]]\nname = \"a\"\nversion = \"0.1.0\"\ndependencies = [\n \"beta\",\n \"serde\",\n]\n";
         assert_eq!(out, expected);
     }
 
@@ -740,8 +743,7 @@ version = \"0.1.0\"
     /// An empty rename map with a new member still canonicalizes + registers.
     #[test]
     fn test_move_lockfile_register_only() {
-        let input =
-            "# h\nversion = 4\n\n[[package]]\nname = \"b\"\nversion = \"0.1.0\"\n";
+        let input = "# h\nversion = 4\n\n[[package]]\nname = \"b\"\nversion = \"0.1.0\"\n";
         let additions = GraphAdditions {
             new_members: vec![NewMember {
                 name: "a".to_owned(),
@@ -752,8 +754,7 @@ version = \"0.1.0\"
         };
         let out = move_lockfile(input, &HashMap::new(), &additions).unwrap();
         // "a" sorts before "b".
-        let expected =
-            "# h\nversion = 4\n\n[[package]]\nname = \"a\"\nversion = \"0.1.0\"\n\n[[package]]\nname = \"b\"\nversion = \"0.1.0\"\n";
+        let expected = "# h\nversion = 4\n\n[[package]]\nname = \"a\"\nversion = \"0.1.0\"\n\n[[package]]\nname = \"b\"\nversion = \"0.1.0\"\n";
         assert_eq!(out, expected);
     }
 }

@@ -627,10 +627,10 @@ fn sorted_unique(mut values: Vec<String>) -> Vec<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::collections::BTreeSet;
     use workflow_trigger_orchestrator_rest::{
         TriggerOrchestratorRestResponseBody, WorkflowTriggerOrchestratorApi,
     };
-    use std::collections::BTreeSet;
 
     #[test]
     fn sdk_constants_defaults_and_source_labels_are_contract_bound() {

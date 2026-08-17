@@ -5,8 +5,8 @@
 //! a future gRPC server must execute.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
-use comms_messenger_stream_app::{MessengerAppError, MessengerWritePlan, plan_send_message};
 use comms_messenger_stream_api::{AuthorizedMessengerContext, SendMessageRequest};
+use comms_messenger_stream_app::{MessengerAppError, MessengerWritePlan, plan_send_message};
 use oya_shared_postgres_command_kernel::TenantSqlContext;
 use oya_shared_protocol_transport_kernel::GrpcUnaryPlan;
 

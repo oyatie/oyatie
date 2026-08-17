@@ -33,7 +33,9 @@ use crate::clock::{ClockError, ClockSource, HlcTimestamp};
 /// engine failures into [`DataSqlError::Adapter`].
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum DataSqlError {
-    MissingField { field: &'static str },
+    MissingField {
+        field: &'static str,
+    },
     /// Tenant-scoped sessions are structurally forbidden against the
     /// bootstrap metastore: tenant data never lives there (ADR-0537 step 6).
     TenantScopeForbiddenInBootstrapMetastore,
@@ -116,9 +118,9 @@ pub enum SessionScope {
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct SessionDescriptor {
-    pub store: DataStore,             // data_class: INTERNAL_ONLY
-    pub scope: SessionScope,          // data_class: INTERNAL_ONLY
-    pub application_name: String,     // data_class: INTERNAL_ONLY
+    pub store: DataStore,         // data_class: INTERNAL_ONLY
+    pub scope: SessionScope,      // data_class: INTERNAL_ONLY
+    pub application_name: String, // data_class: INTERNAL_ONLY
 }
 
 impl SessionDescriptor {
@@ -295,9 +297,9 @@ impl WriteBatch {
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct CommitReceipt {
-    pub store: DataStore,                // data_class: INTERNAL_ONLY
-    pub commit_timestamp: HlcTimestamp,  // data_class: INTERNAL_ONLY
-    pub statement_names: Vec<String>,    // data_class: INTERNAL_ONLY
+    pub store: DataStore,               // data_class: INTERNAL_ONLY
+    pub commit_timestamp: HlcTimestamp, // data_class: INTERNAL_ONLY
+    pub statement_names: Vec<String>,   // data_class: INTERNAL_ONLY
 }
 
 /// Column-named result rows with surface-all width validation.
@@ -522,7 +524,9 @@ mod tests {
             DataSqlError::EmptyWriteBatch
         );
         assert_eq!(
-            WriteBatch::new(vec![statement()]).unwrap().statement_names(),
+            WriteBatch::new(vec![statement()])
+                .unwrap()
+                .statement_names(),
             vec!["insert_tenant_row"]
         );
     }
@@ -562,9 +566,7 @@ mod tests {
                 consistency
             );
         }
-        assert!(
-            serde_json::from_str::<ReadConsistency>(r#"{"level":"dirty_read"}"#).is_err()
-        );
+        assert!(serde_json::from_str::<ReadConsistency>(r#"{"level":"dirty_read"}"#).is_err());
     }
 
     #[test]
@@ -632,8 +634,8 @@ mod tests {
     fn errors_render_human_readable_diagnostics() {
         let rendered = DataSqlError::TenantScopeForbiddenInBootstrapMetastore.to_string();
         assert!(rendered.contains("bootstrap metastore"));
-        let rendered = DataSqlError::from(ClockError::LogicalOverflow { wall_nanos: 5 })
-            .to_string();
+        let rendered =
+            DataSqlError::from(ClockError::LogicalOverflow { wall_nanos: 5 }).to_string();
         assert!(rendered.contains("clock error"));
     }
 }

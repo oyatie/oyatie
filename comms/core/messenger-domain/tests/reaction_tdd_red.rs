@@ -78,7 +78,10 @@ fn schema_version_is_pinned_at_1() {
 fn empty_message_id_returns_invalid_message_id() {
     let mut i = valid_input();
     i.message_id = String::new();
-    assert_eq!(MessageReaction::new(i), Err(ReactionError::InvalidMessageId));
+    assert_eq!(
+        MessageReaction::new(i),
+        Err(ReactionError::InvalidMessageId)
+    );
 }
 
 /// Whitespace-only `message_id` must return `InvalidMessageId`.
@@ -86,7 +89,10 @@ fn empty_message_id_returns_invalid_message_id() {
 fn whitespace_message_id_returns_invalid_message_id() {
     let mut i = valid_input();
     i.message_id = "   ".into();
-    assert_eq!(MessageReaction::new(i), Err(ReactionError::InvalidMessageId));
+    assert_eq!(
+        MessageReaction::new(i),
+        Err(ReactionError::InvalidMessageId)
+    );
 }
 
 /// Empty `channel_id` must return `InvalidChannelId`.
@@ -94,7 +100,10 @@ fn whitespace_message_id_returns_invalid_message_id() {
 fn empty_channel_id_returns_invalid_channel_id() {
     let mut i = valid_input();
     i.channel_id = String::new();
-    assert_eq!(MessageReaction::new(i), Err(ReactionError::InvalidChannelId));
+    assert_eq!(
+        MessageReaction::new(i),
+        Err(ReactionError::InvalidChannelId)
+    );
 }
 
 /// Empty `tenant_id` must return `InvalidTenantId`.

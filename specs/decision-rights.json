@@ -6,14 +6,14 @@
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
     "spec_id": "EXE-DECISION-RIGHTS",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "status": "Accepted",
     "owner_team": "council-architecture",
     "created_at": "2026-05-15T00:00:00Z",
     "supersedes": "docs/CONSTITUTION.md#decision-rights",
     "primary_consumer": "agentic_flow + PR review",
     "applies_to": "every change touching a named decision class",
-    "purpose": "Canonical decision-class table. Used by PR-traceability gate to verify changes cite their decision class and by RACI lane to verify per-team responsibility allocation."
+    "purpose": "Canonical decision-class table. Used by PR review to identify decision ownership and by RACI lanes to verify per-team responsibility allocation."
   },
   "decision_classes": [
     {
@@ -107,10 +107,6 @@
   "enforcement": {
     "mode": "cultural + mechanical-partial",
     "mechanical_components": [
-      {
-        "lane": "check-pr-traceability",
-        "verifies": "PR body cites a decision_class id from this spec"
-      },
       {
         "lane": "check-raci-coverage",
         "verifies": "per-team RACI allocation in docs/RACI-OWNERSHIP.md is consistent with decision_classes here"

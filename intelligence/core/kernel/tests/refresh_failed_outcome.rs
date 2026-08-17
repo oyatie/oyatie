@@ -132,12 +132,16 @@ fn refresh_failed_cooldown_reason_is_transient_failure() {
     // Immediately after: not eligible.
     let gate = AllowAll;
     let agent = AgentId::new("agent-rf4").unwrap();
-    assert!(pool.select(&TenantId::new("t-rf4").unwrap(), &agent, &gate, now).is_err());
+    assert!(
+        pool.select(&TenantId::new("t-rf4").unwrap(), &agent, &gate, now)
+            .is_err()
+    );
 
     // After cooldown (61s): eligible again.
     let after = now + Duration::from_secs(61);
     assert!(
-        pool.select(&TenantId::new("t-rf4").unwrap(), &agent, &gate, after).is_ok(),
+        pool.select(&TenantId::new("t-rf4").unwrap(), &agent, &gate, after)
+            .is_ok(),
         "seat should recover after cooldown elapses"
     );
 }

@@ -7,7 +7,7 @@
 //! - `OYA_BACKBONE_LIVE_POSTGRES`   = 1|true|yes|on
 //! - `OYA_BACKBONE_POSTGRES_URL`    = SETUP superuser/owner URL (DDL + grants)
 //! - `OYA_BACKBONE_POSTGRES_APP_URL`= APP runtime URL (NON-superuser,
-//!                                    NON-BYPASSRLS role; the adapter's role)
+//!   NON-BYPASSRLS role; the adapter's role)
 //!
 //! What they prove against a real database:
 //! 1. RLS cross-tenant denial — tenant A cannot read or overwrite tenant B's
@@ -17,12 +17,10 @@
 //! 3. Per-tenant userName uniqueness round-trip + tenant-scoped CRUD.
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
-use oya_shared_postgres_command_kernel::{SET_LOCAL_TENANT_SQL, split_migration_statements};
-use oya_shared_scim_server_kernel::{
-    Group, GroupStore, Meta, ScimId, TenantId, User, UserStore,
-};
-use sqlx::{PgPool, Row, postgres::PgPoolOptions};
 use identity_scim_store_postgres::{PgScimGroupStore, PgScimUserStore, SCHEMA_NAME, USERS_TABLE};
+use oya_shared_postgres_command_kernel::{SET_LOCAL_TENANT_SQL, split_migration_statements};
+use oya_shared_scim_server_kernel::{Group, GroupStore, Meta, ScimId, TenantId, User, UserStore};
+use sqlx::{PgPool, Row, postgres::PgPoolOptions};
 
 const ENABLE_ENV: &str = "OYA_BACKBONE_LIVE_POSTGRES";
 const SETUP_URL_ENV: &str = "OYA_BACKBONE_POSTGRES_URL";
@@ -32,7 +30,12 @@ const GROUPS_TABLE: &str = "identity_scim.identity_scim_groups";
 
 fn enabled() -> bool {
     std::env::var(ENABLE_ENV)
-        .map(|v| matches!(v.trim().to_ascii_lowercase().as_str(), "1" | "true" | "yes" | "on"))
+        .map(|v| {
+            matches!(
+                v.trim().to_ascii_lowercase().as_str(),
+                "1" | "true" | "yes" | "on"
+            )
+        })
         .unwrap_or(false)
 }
 
@@ -304,8 +307,14 @@ async fn live_rls_unset_guc_denies_all_access() {
     let user_store = PgScimUserStore::from_pool(app.clone());
     let group_store = PgScimGroupStore::from_pool(app.clone());
     let gamma = TenantId("gamma".to_owned());
-    user_store.put(&user("u-g", "ugamma"), &gamma).await.unwrap();
-    group_store.put(&group("g-g", "ggamma"), &gamma).await.unwrap();
+    user_store
+        .put(&user("u-g", "ugamma"), &gamma)
+        .await
+        .unwrap();
+    group_store
+        .put(&group("g-g", "ggamma"), &gamma)
+        .await
+        .unwrap();
 
     // With NO per-tx GUC set, the RESTRICTIVE require_tenant_guc policy hard-
     // denies access: current_setting('oyatie.tenant_id', true) is NULL, so the

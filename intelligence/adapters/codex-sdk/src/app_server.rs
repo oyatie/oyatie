@@ -13,7 +13,7 @@ use std::time::Duration;
 use std::ffi::OsString;
 
 use serde::{Deserialize, Serialize};
-use serde_json::{json, Map, Value};
+use serde_json::{Map, Value, json};
 
 use crate::error::{CodexError, Result};
 
@@ -586,10 +586,10 @@ impl AppServerClient {
     /// Close the app-server process and fail outstanding requests.
     pub fn close(&self) {
         self.inner.closed.store(true, Ordering::SeqCst);
-        if let Ok(mut process) = self.inner.process.lock() {
-            if let Some(process) = process.take() {
-                shutdown_process(process);
-            }
+        if let Ok(mut process) = self.inner.process.lock()
+            && let Some(process) = process.take()
+        {
+            shutdown_process(process);
         }
         fail_pending(&self.inner.pending);
         self.inner.router.fail_all();
@@ -1276,10 +1276,11 @@ impl AppTurnResult {
             .get("durationMs")
             .and_then(Value::as_i64)
             .or(self.duration_ms);
-        if completed && self.items.is_empty() {
-            if let Some(items) = turn.get("items").and_then(Value::as_array) {
-                self.items = items.clone();
-            }
+        if completed
+            && self.items.is_empty()
+            && let Some(items) = turn.get("items").and_then(Value::as_array)
+        {
+            self.items = items.clone();
         }
     }
 }
@@ -1494,12 +1495,10 @@ fn replay_notifications(
 }
 
 fn recv_notification(rx: &NotificationReceiver) -> Result<Notification> {
-    let item = rx
-        .lock()
+    rx.lock()
         .map_err(|_| CodexError::Protocol("app-server notification lock poisoned".to_string()))?
         .recv()
-        .map_err(|_| CodexError::TransportClosed)?;
-    item
+        .map_err(|_| CodexError::TransportClosed)?
 }
 
 fn default_server_request_handler(method: &str, _params: Option<Value>) -> Result<Value> {
@@ -1619,7 +1618,7 @@ fn final_response_from_items(items: &[Value]) -> Option<String> {
         })
         .or_else(|| {
             items.iter().rev().find_map(|item| {
-                let has_no_phase = item.get("phase").map_or(true, Value::is_null);
+                let has_no_phase = item.get("phase").is_none_or(Value::is_null);
                 if is_agent_message(item) && has_no_phase {
                     item.get("text")
                         .and_then(Value::as_str)
@@ -1732,10 +1731,10 @@ fn handle_app_server_line(
                 "app-server response {id} missing result or error: {value}"
             )))
         };
-        if let Ok(mut pending) = pending.lock() {
-            if let Some(waiter) = pending.remove(&id) {
-                let _ = waiter.send(response);
-            }
+        if let Ok(mut pending) = pending.lock()
+            && let Some(waiter) = pending.remove(&id)
+        {
+            let _ = waiter.send(response);
         }
         return Ok(());
     }

@@ -1,8 +1,8 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
 use billing_accounting_journal::{
-    AccountingDomainError, JournalLineInput, PeriodState, idempotency_body_fingerprint, post_journal,
-    scoped_idempotency_key,
+    AccountingDomainError, JournalLineInput, PeriodState, idempotency_body_fingerprint,
+    post_journal, scoped_idempotency_key,
 };
 
 mod support;

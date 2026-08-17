@@ -163,7 +163,7 @@ struct KvReadOuter {
 
 #[derive(Deserialize)]
 struct KvSecretData {
-    api_key: Option<String>,           // data_class: SECRET
+    api_key: Option<String>,            // data_class: SECRET
     oauth_access_token: Option<String>, // data_class: SECRET
 }
 
@@ -306,8 +306,8 @@ impl OpenBaoKvAdapter {
     /// Parse the KV-v2 JSON body and extract the credential field.
     /// Returns the raw credential string — callers MUST NOT log it.
     fn parse_credential(body: &[u8]) -> Result<String, OpenBaoKvError> {
-        let parsed: KvReadResponse = serde_json::from_slice(body)
-            .map_err(|e| OpenBaoKvError::Decode(e.to_string()))?;
+        let parsed: KvReadResponse =
+            serde_json::from_slice(body).map_err(|e| OpenBaoKvError::Decode(e.to_string()))?;
         let cred = parsed
             .data
             .data
@@ -388,6 +388,7 @@ mod tests {
 
     use std::convert::Infallible;
     use std::net::SocketAddr;
+    use std::sync::{Arc, Mutex};
 
     use http_body_util::Full;
     use hyper::body::Bytes;
@@ -400,6 +401,9 @@ mod tests {
     use oya_intelligence_credential_resolver_domain::{
         CredentialAudience, CredentialProvider, SecretReference,
     };
+
+    type CapturedRequest = (String, Option<String>);
+    type CapturedRequestSlot = Arc<Mutex<Option<CapturedRequest>>>;
 
     // -----------------------------------------------------------------------
     // In-process mock server helpers
@@ -437,9 +441,7 @@ mod tests {
     }
 
     fn json_ok_api_key(key: &str) -> Response<Full<Bytes>> {
-        let body = format!(
-            r#"{{"data":{{"data":{{"api_key":"{key}"}}}}}}"#
-        );
+        let body = format!(r#"{{"data":{{"data":{{"api_key":"{key}"}}}}}}"#);
         Response::builder()
             .status(200)
             .header("content-type", "application/json")
@@ -448,9 +450,7 @@ mod tests {
     }
 
     fn json_ok_oauth_token(token: &str) -> Response<Full<Bytes>> {
-        let body = format!(
-            r#"{{"data":{{"data":{{"oauth_access_token":"{token}"}}}}}}"#
-        );
+        let body = format!(r#"{{"data":{{"data":{{"oauth_access_token":"{token}"}}}}}}"#);
         Response::builder()
             .status(200)
             .header("content-type", "application/json")
@@ -506,8 +506,7 @@ mod tests {
 
     #[test]
     fn parse_credential_prefers_api_key_when_both_present() {
-        let body =
-            br#"{"data":{"data":{"api_key":"sk-pref","oauth_access_token":"ya29.second"}}}"#;
+        let body = br#"{"data":{"data":{"api_key":"sk-pref","oauth_access_token":"ya29.second"}}}"#;
         let cred = OpenBaoKvAdapter::parse_credential(body).unwrap();
         assert_eq!(cred, "sk-pref");
     }
@@ -538,9 +537,7 @@ mod tests {
     #[test]
     fn seat_path_strips_openbao_prefix() {
         assert_eq!(
-            OpenBaoKvAdapter::seat_path(
-                "openbao://secret/ten_a/intelligence/provider/openai"
-            ),
+            OpenBaoKvAdapter::seat_path("openbao://secret/ten_a/intelligence/provider/openai"),
             "secret/ten_a/intelligence/provider/openai"
         );
     }
@@ -576,7 +573,9 @@ mod tests {
         let adapter = make_adapter(&format!("http://{addr}"));
         let mut adapter = adapter;
 
-        let handle = adapter.issue_handle(valid_request()).expect("handle issued");
+        let handle = adapter
+            .issue_handle(valid_request())
+            .expect("handle issued");
 
         assert_eq!(handle.bound_tenant(), "ten_a");
         assert_eq!(handle.bound_provider(), CredentialProvider::OpenAi);
@@ -589,11 +588,12 @@ mod tests {
 
     #[tokio::test(flavor = "multi_thread")]
     async fn happy_path_oauth_token_issues_handle() {
-        let addr =
-            start_mock_server(|_req| async { json_ok_oauth_token("ya29.live-oauth") }).await;
+        let addr = start_mock_server(|_req| async { json_ok_oauth_token("ya29.live-oauth") }).await;
         let mut adapter = make_adapter(&format!("http://{addr}"));
 
-        let handle = adapter.issue_handle(valid_request()).expect("handle issued");
+        let handle = adapter
+            .issue_handle(valid_request())
+            .expect("handle issued");
 
         assert_eq!(handle.bound_tenant(), "ten_a");
         let debug = format!("{handle:?}");
@@ -602,10 +602,7 @@ mod tests {
 
     #[tokio::test(flavor = "multi_thread")]
     async fn request_sends_correct_path_and_vault_token_header() {
-        use std::sync::{Arc, Mutex};
-
-        let captured: Arc<Mutex<Option<(String, Option<String>)>>> =
-            Arc::new(Mutex::new(None));
+        let captured: CapturedRequestSlot = Arc::new(Mutex::new(None));
         let captured_clone = captured.clone();
 
         let addr = start_mock_server(move |req| {
@@ -624,7 +621,9 @@ mod tests {
         .await;
 
         let mut adapter = make_adapter(&format!("http://{addr}"));
-        adapter.issue_handle(valid_request()).expect("handle issued");
+        adapter
+            .issue_handle(valid_request())
+            .expect("handle issued");
 
         let (path, token) = captured.lock().unwrap().take().unwrap();
         assert_eq!(
@@ -639,7 +638,9 @@ mod tests {
         let addr = start_mock_server(|_req| async { status_response(401) }).await;
         let mut adapter = make_adapter(&format!("http://{addr}"));
 
-        let failure = adapter.issue_handle(valid_request()).expect_err("401 → failure");
+        let failure = adapter
+            .issue_handle(valid_request())
+            .expect_err("401 → failure");
         assert_eq!(failure.reason, "openbao:token-expired");
         assert_eq!(failure.evidence_ref, EVIDENCE_REF);
     }
@@ -649,7 +650,9 @@ mod tests {
         let addr = start_mock_server(|_req| async { status_response(403) }).await;
         let mut adapter = make_adapter(&format!("http://{addr}"));
 
-        let failure = adapter.issue_handle(valid_request()).expect_err("403 → failure");
+        let failure = adapter
+            .issue_handle(valid_request())
+            .expect_err("403 → failure");
         assert_eq!(failure.reason, "openbao:forbidden");
     }
 
@@ -658,7 +661,9 @@ mod tests {
         let addr = start_mock_server(|_req| async { status_response(404) }).await;
         let mut adapter = make_adapter(&format!("http://{addr}"));
 
-        let failure = adapter.issue_handle(valid_request()).expect_err("404 → failure");
+        let failure = adapter
+            .issue_handle(valid_request())
+            .expect_err("404 → failure");
         assert_eq!(failure.reason, "openbao:secret-not-found");
     }
 
@@ -667,7 +672,9 @@ mod tests {
         let addr = start_mock_server(|_req| async { status_response(503) }).await;
         let mut adapter = make_adapter(&format!("http://{addr}"));
 
-        let failure = adapter.issue_handle(valid_request()).expect_err("503 → failure");
+        let failure = adapter
+            .issue_handle(valid_request())
+            .expect_err("503 → failure");
         assert_eq!(failure.reason, "openbao:vault-sealed");
     }
 
@@ -676,7 +683,9 @@ mod tests {
         let addr = start_mock_server(|_req| async { status_response(500) }).await;
         let mut adapter = make_adapter(&format!("http://{addr}"));
 
-        let failure = adapter.issue_handle(valid_request()).expect_err("500 → failure");
+        let failure = adapter
+            .issue_handle(valid_request())
+            .expect_err("500 → failure");
         assert_eq!(failure.reason, "openbao:unexpected-status");
     }
 
@@ -692,7 +701,9 @@ mod tests {
         .await;
         let mut adapter = make_adapter(&format!("http://{addr}"));
 
-        let failure = adapter.issue_handle(valid_request()).expect_err("bad json → failure");
+        let failure = adapter
+            .issue_handle(valid_request())
+            .expect_err("bad json → failure");
         assert_eq!(failure.reason, "openbao:decode-error");
     }
 

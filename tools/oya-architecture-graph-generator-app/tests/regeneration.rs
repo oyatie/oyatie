@@ -1,14 +1,21 @@
 //! Repo-local regeneration proofs (always on, no external golden required):
-//!   1. Rendering from the committed template + SSOT + controller-materialized
-//!      masterplan is deterministic (render twice -> identical bytes). The
-//!      de-committed `product-graph.html` is no longer a git-tracked golden.
+//!   1. Rendering from the committed template + SSOT + controller-owned
+//!      masterplan projection is deterministic (render twice -> identical
+//!      bytes). The de-committed `product-graph.html` is no longer a git-tracked
+//!      golden.
 //!   2. The baked `const GRAPH = {...};` literal parses as JSON and carries the
 //!      five dashboard keys in order.
 
-use std::path::PathBuf;
+use std::ffi::OsStr;
+use std::fs;
+use std::path::{Path, PathBuf};
 
 use oya_architecture_graph_generator_app::render;
 use serde_json::Value;
+
+mod support;
+
+use support::{resolve_masterplan_input, resolve_masterplan_input_with};
 
 fn repo_root() -> PathBuf {
     std::env::current_dir()
@@ -24,12 +31,153 @@ fn repo_root() -> PathBuf {
 
 fn render_dashboard() -> String {
     let root = repo_root();
+    let masterplan = resolve_masterplan_input(&root).expect("masterplan input resolves");
     render(
         &root.join("docs/machine-readable/architecture-graph.json"),
-        &root.join("docs/machine-readable/masterplan.generated.json"),
+        masterplan.path(),
         &root.join("docs/architecture/product-graph.template.html"),
     )
     .expect("render succeeds")
+}
+
+fn fixture_repo() -> tempfile::TempDir {
+    let root = tempfile::tempdir().expect("fixture root");
+    let decisions = root.path().join("docs/decisions");
+    fs::create_dir_all(&decisions).expect("decisions dir");
+    fs::write(
+        decisions.join("ADR-0001-test.md"),
+        r#"---
+status: Accepted
+planning_impact: true
+milestone: M-TEST
+depends_on: []
+deliverables:
+  - id: ADR-0001-D1
+    description: deterministic fixture
+    exit_criteria: fixture renders
+    verified_by: cargo test
+---
+# Fixture
+"#,
+    )
+    .expect("write planning ADR fixture");
+    root
+}
+
+fn valid_projection_bytes(root: &Path) -> String {
+    ci_generated_artifact_freshness::render_masterplan_projection_from_decisions(
+        &root.join("docs/decisions"),
+    )
+    .expect("fixture projection renders")
+    .1
+}
+
+#[test]
+fn absent_controller_face_materializes_only_a_temporary_projection() {
+    let root = fixture_repo();
+    let canonical = root
+        .path()
+        .join("docs/machine-readable/masterplan.generated.json");
+
+    let input = resolve_masterplan_input_with(root.path(), None).expect("fallback materializes");
+
+    assert!(input.is_temporary());
+    assert!(input.path().is_file());
+    assert!(!input.path().starts_with(root.path()));
+    assert!(
+        !canonical.exists(),
+        "fallback must not write the repository"
+    );
+}
+
+#[test]
+fn declared_resource_has_precedence_over_an_existing_controller_face() {
+    let root = fixture_repo();
+    let canonical = root
+        .path()
+        .join("docs/machine-readable/masterplan.generated.json");
+    fs::create_dir_all(canonical.parent().expect("canonical parent")).expect("create parent");
+    fs::write(&canonical, valid_projection_bytes(root.path())).expect("write canonical face");
+    let declared = root.path().join("buck-resource/masterplan.generated.json");
+    fs::create_dir_all(declared.parent().expect("declared parent")).expect("create resource dir");
+    fs::write(&declared, valid_projection_bytes(root.path())).expect("write declared face");
+
+    let input = resolve_masterplan_input_with(root.path(), Some(declared.as_os_str()))
+        .expect("declared resource resolves");
+
+    assert_eq!(input.path(), declared);
+    assert!(!input.is_temporary());
+}
+
+#[test]
+fn declared_or_existing_malformed_inputs_fail_closed_without_fallback() {
+    let root = fixture_repo();
+    let missing = root.path().join("buck-resource/missing.generated.json");
+    let missing_error = resolve_masterplan_input_with(root.path(), Some(missing.as_os_str()))
+        .expect_err("missing declared input must fail");
+    assert!(missing_error.contains("unavailable"), "{missing_error}");
+
+    let declared = root.path().join("buck-resource/malformed.generated.json");
+    fs::create_dir_all(declared.parent().expect("declared parent")).expect("create resource dir");
+    fs::write(&declared, "{").expect("write malformed declared face");
+    let declared_error = resolve_masterplan_input_with(root.path(), Some(declared.as_os_str()))
+        .expect_err("malformed declared input must fail");
+    assert!(declared_error.contains("parse masterplan projection"));
+
+    fs::write(&declared, "{}").expect("write wrong-shape declared face");
+    let shape_error = resolve_masterplan_input_with(root.path(), Some(declared.as_os_str()))
+        .expect_err("wrong-shape declared input must fail");
+    assert!(shape_error.contains("validate masterplan projection"));
+
+    let directory = root.path().join("buck-resource/not-a-file");
+    fs::create_dir_all(&directory).expect("create declared directory");
+    let directory_error = resolve_masterplan_input_with(root.path(), Some(directory.as_os_str()))
+        .expect_err("declared directory must fail");
+    assert!(directory_error.contains("regular non-symlink file"));
+
+    let canonical = root
+        .path()
+        .join("docs/machine-readable/masterplan.generated.json");
+    fs::create_dir_all(canonical.parent().expect("canonical parent")).expect("create parent");
+    fs::write(&canonical, "{").expect("write malformed canonical face");
+    let canonical_error = resolve_masterplan_input_with(root.path(), None)
+        .expect_err("malformed existing face must fail");
+    assert!(canonical_error.contains("parse masterplan projection"));
+    assert_eq!(fs::read_to_string(canonical).expect("read face"), "{");
+
+    let empty_error = resolve_masterplan_input_with(root.path(), Some(OsStr::new("")))
+        .expect_err("empty binding must fail");
+    assert!(empty_error.contains("must not be empty"));
+}
+
+#[cfg(unix)]
+#[test]
+fn declared_symlink_input_fails_closed() {
+    use std::os::unix::fs::symlink;
+
+    let root = fixture_repo();
+    let target = root.path().join("buck-resource/target.generated.json");
+    fs::create_dir_all(target.parent().expect("target parent")).expect("create resource dir");
+    fs::write(&target, valid_projection_bytes(root.path())).expect("write target face");
+    let declared = root.path().join("buck-resource/symlink.generated.json");
+    symlink(&target, &declared).expect("create declared symlink");
+
+    let error = resolve_masterplan_input_with(root.path(), Some(declared.as_os_str()))
+        .expect_err("declared symlink must fail");
+    assert!(error.contains("regular non-symlink file"));
+}
+
+#[test]
+fn temporary_projection_is_byte_deterministic() {
+    let root = fixture_repo();
+    let first = resolve_masterplan_input_with(root.path(), None).expect("first materialization");
+    let second = resolve_masterplan_input_with(root.path(), None).expect("second materialization");
+
+    assert_ne!(first.path(), second.path());
+    assert_eq!(
+        fs::read(first.path()).expect("read first"),
+        fs::read(second.path()).expect("read second")
+    );
 }
 
 #[test]

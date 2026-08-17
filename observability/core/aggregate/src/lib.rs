@@ -12,14 +12,14 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use audit_chain_domain::{AuditChain, AuditEvent, Plane};
-use iam_cloud_domain::IamRoleId;
 use cell_region::{CellId, RegionCode};
 use compute_resource::{CloudResourceError, ResourceId};
+use iam_cloud_domain::IamRoleId;
+use network_residency::{ResidencyClass, residency_class_allows_home_region_label};
+use observability_domain::{TelemetryLogExposure, log_exposure_for_classification};
 use oya_data_boundary_kernel::{
     Classified, DataClass, DataClassification, OperationalDataClass, PrivacyDataClass, Purpose,
 };
-use observability_domain::{TelemetryLogExposure, log_exposure_for_classification};
-use network_residency::{ResidencyClass, residency_class_allows_home_region_label};
 
 const OBSERVABILITY_SCHEMA_VERSION: u32 = 1;
 const AUDIT_RECORD_SCHEMA_VERSION: u32 = 1;
@@ -423,12 +423,12 @@ pub struct AuditReadResult {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct AuditReadSummary {
-    pub total: u64,                                    // data_class: INTERNAL_ONLY
-    pub per_topic: BTreeMap<CloudAuditTopic, u64>,     // data_class: INTERNAL_ONLY
-    pub earliest_epoch_seconds: Option<u64>,           // data_class: INTERNAL_ONLY
-    pub latest_epoch_seconds: Option<u64>,             // data_class: INTERNAL_ONLY
-    pub chain_complete: bool,                          // data_class: INTERNAL_ONLY
-    pub high_watermark_sequence: Option<u64>,          // data_class: INTERNAL_ONLY
+    pub total: u64,                                // data_class: INTERNAL_ONLY
+    pub per_topic: BTreeMap<CloudAuditTopic, u64>, // data_class: INTERNAL_ONLY
+    pub earliest_epoch_seconds: Option<u64>,       // data_class: INTERNAL_ONLY
+    pub latest_epoch_seconds: Option<u64>,         // data_class: INTERNAL_ONLY
+    pub chain_complete: bool,                      // data_class: INTERNAL_ONLY
+    pub high_watermark_sequence: Option<u64>,      // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -1240,7 +1240,11 @@ impl CloudObservabilityCatalog {
         let mut per_topic: BTreeMap<CloudAuditTopic, u64> = BTreeMap::new();
         let mut earliest: Option<u64> = None;
         let mut latest: Option<u64> = None;
-        for record in self.audit_records.values().filter(|r| normalized.matches(r)) {
+        for record in self
+            .audit_records
+            .values()
+            .filter(|r| normalized.matches(r))
+        {
             total += 1;
             *per_topic.entry(record.topic.value).or_insert(0) += 1;
             let ts = record.occurred_at_epoch_seconds.value;
@@ -1639,10 +1643,10 @@ fn is_ascii_token_with_slash(value: &str) -> bool {
 #[cfg(test)]
 mod tests {
     use audit_chain_domain::Plane;
-    use oya_data_boundary_kernel::{OperationalDataClass, Purpose};
     use network_residency::{
         PerPackResidency, PerPackResidencyCreate, RegulatorOverlay, RegulatorOverlayCreate,
     };
+    use oya_data_boundary_kernel::{OperationalDataClass, Purpose};
 
     use super::*;
 
@@ -2200,10 +2204,7 @@ mod tests {
 
         assert_eq!(summary.total, 3);
         assert_eq!(summary.per_topic.values().sum::<u64>(), 3);
-        assert_eq!(
-            summary.per_topic[&CloudAuditTopic::CloudResourceCreated],
-            1
-        );
+        assert_eq!(summary.per_topic[&CloudAuditTopic::CloudResourceCreated], 1);
         assert_eq!(summary.per_topic[&CloudAuditTopic::CloudIamPolicy], 1);
         assert_eq!(summary.per_topic[&CloudAuditTopic::CloudKmsUse], 1);
         assert_eq!(summary.earliest_epoch_seconds, Some(1_000));
@@ -2239,11 +2240,17 @@ mod tests {
 
         assert_eq!(summary.total, 2);
         assert_eq!(summary.per_topic.values().sum::<u64>(), 2);
-        assert!(!summary.per_topic.contains_key(&CloudAuditTopic::CloudKmsUse));
-        assert!(summary
-            .per_topic
-            .keys()
-            .all(|t| t.is_control_plane_mutation()));
+        assert!(
+            !summary
+                .per_topic
+                .contains_key(&CloudAuditTopic::CloudKmsUse)
+        );
+        assert!(
+            summary
+                .per_topic
+                .keys()
+                .all(|t| t.is_control_plane_mutation())
+        );
         assert_eq!(summary.earliest_epoch_seconds, Some(1_000));
         assert_eq!(summary.latest_epoch_seconds, Some(1_010));
     }

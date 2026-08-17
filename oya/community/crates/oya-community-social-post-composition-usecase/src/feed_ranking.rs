@@ -21,7 +21,7 @@
 /// - Monotonically non-increasing in `age_secs` at fixed engagement.
 /// - Bounded: `0 ≤ score ≤ 96_400`.
 /// - Saturating arithmetic throughout; no panics on overflow.
-use crate::{SocialUsecaseError, AuthorizedSocialContext};
+use crate::{AuthorizedSocialContext, SocialUsecaseError};
 
 /// Recency weight constant: one day in seconds.
 /// A post created exactly `now` contributes the full RECENCY_WEIGHT to its score.
@@ -141,7 +141,10 @@ mod tests {
         assert!(score(&low, now) <= score(&mid, now));
         assert!(score(&mid, now) <= score(&high, now));
         // Capped engagement should equal ENGAGEMENT_CAP contribution
-        assert_eq!(score(&capped, now), score(&make_post("p", created_at, ENGAGEMENT_CAP), now));
+        assert_eq!(
+            score(&capped, now),
+            score(&make_post("p", created_at, ENGAGEMENT_CAP), now)
+        );
     }
 
     #[test]
@@ -149,9 +152,9 @@ mod tests {
         let now = 1_000_000u64;
         let engagement = 200;
 
-        let fresh = make_post("p", now - 60, engagement);        // 1 minute old
-        let hour_old = make_post("p", now - 3600, engagement);   // 1 hour old
-        let day_old = make_post("p", now - 86_400, engagement);  // exactly 1 day old
+        let fresh = make_post("p", now - 60, engagement); // 1 minute old
+        let hour_old = make_post("p", now - 3600, engagement); // 1 hour old
+        let day_old = make_post("p", now - 86_400, engagement); // exactly 1 day old
         let ancient = make_post("p", now - 200_000, engagement); // older than RECENCY_WEIGHT
 
         assert!(score(&fresh, now) >= score(&hour_old, now));
@@ -170,7 +173,7 @@ mod tests {
         let posts = vec![
             make_post("old-low", now - 50_000, 10),    // low score
             make_post("fresh-high", now - 100, 9_000), // high score
-            make_post("mid", now - 10_000, 500),        // mid score
+            make_post("mid", now - 10_000, 500),       // mid score
         ];
         let result = rank_feed(&ctx, &posts, now).unwrap();
         assert_eq!(result.len(), 3);
@@ -205,7 +208,7 @@ mod tests {
         let now = 1_000_000u64;
         let ctx = personal_ctx();
         let posts = vec![
-            make_post("", now - 100, 50),     // empty post_id — excluded
+            make_post("", now - 100, 50), // empty post_id — excluded
             make_post("valid", now - 100, 50),
         ];
         let result = rank_feed(&ctx, &posts, now).unwrap();
@@ -243,6 +246,9 @@ mod tests {
         ];
         let first = rank_feed(&ctx, &posts, now).unwrap();
         let second = rank_feed(&ctx, &posts, now).unwrap();
-        assert_eq!(first, second, "repeated ranking of identical input must be byte-identical");
+        assert_eq!(
+            first, second,
+            "repeated ranking of identical input must be byte-identical"
+        );
     }
 }

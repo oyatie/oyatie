@@ -139,7 +139,11 @@ impl<S: SecretStorePort + Send + Sync> SessionDriver for CliSessionDriver<S> {
         })
     }
 
-    fn inject_message(&self, _session: &SpawnedSession, _msg: &[u8]) -> Result<(), SupervisorError> {
+    fn inject_message(
+        &self,
+        _session: &SpawnedSession,
+        _msg: &[u8],
+    ) -> Result<(), SupervisorError> {
         // Implementation for injecting subsequent messages into a live session
         Ok(())
     }

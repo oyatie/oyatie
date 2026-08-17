@@ -98,7 +98,7 @@ Map lane → standard → resolution:
 |---|---|---|
 | `oya-governance-data-class` | [`standards/data-class.md`](../standards/data-class.md) | Add `oyatie.data_class = "..."` to every new kernel field. |
 | `oya-governance-banned-primitives` | [`standards/agent-instructions-discipline.md`](../standards/agent-instructions-discipline.md) | Move raw `git`/`gh` outside agent-instructions fence OR justify via Directive 12. |
-| `oya-governance-adr-citation` | [`standards/doc-style.md`](../standards/doc-style.md) | Cite the governing ADR by ID in PR body `## Traceability`. |
+| `oya-governance-adr-citation` | [`standards/doc-style.md`](../standards/doc-style.md) | Cite the governing ADR by ID in PR body `## Summary`. |
 | `oya-governance-doc-freshness` | CHK-DOCFRESH | Update stale doc in this same PR. |
 | `oya-governance-cohesion` / `-glossary` / `-bypass` | [`standards/doc-style.md`](../standards/doc-style.md), [`standards/agent-instructions-discipline.md`](../standards/agent-instructions-discipline.md) | Apply the named correction. |
 | `oya-governance-lts-dependency` | [`standards/dependency-policy.md`](../standards/dependency-policy.md) | Pin to current LTS or add ADR-tracked exception. |

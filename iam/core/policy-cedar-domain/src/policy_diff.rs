@@ -112,9 +112,7 @@ impl ImpactReport {
             RuleDelta::RuleAdded(r) => r.effect == PolicyEffect::Allow,
             RuleDelta::RemovedDeny(_) => true,
             RuleDelta::BroadenedAllow { .. } => true,
-            RuleDelta::EffectFlipped { next_rule, .. } => {
-                next_rule.effect == PolicyEffect::Allow
-            }
+            RuleDelta::EffectFlipped { next_rule, .. } => next_rule.effect == PolicyEffect::Allow,
             _ => false,
         })
     }
@@ -147,17 +145,11 @@ pub fn diff_policy_versions(prev: &PolicyVersion, next: &PolicyVersion) -> Impac
     use std::collections::{BTreeMap, BTreeSet};
 
     // Index prev and next rules by their full identity key.
-    let prev_map: BTreeMap<RuleKey, &PolicyRuleInput> = prev
-        .rules
-        .iter()
-        .map(|r| (RuleKey::from(r), r))
-        .collect();
+    let prev_map: BTreeMap<RuleKey, &PolicyRuleInput> =
+        prev.rules.iter().map(|r| (RuleKey::from(r), r)).collect();
 
-    let next_map: BTreeMap<RuleKey, &PolicyRuleInput> = next
-        .rules
-        .iter()
-        .map(|r| (RuleKey::from(r), r))
-        .collect();
+    let next_map: BTreeMap<RuleKey, &PolicyRuleInput> =
+        next.rules.iter().map(|r| (RuleKey::from(r), r)).collect();
 
     let mut deltas: Vec<RuleDelta> = Vec::new();
 
@@ -215,8 +207,7 @@ pub fn diff_policy_versions(prev: &PolicyVersion, next: &PolicyVersion) -> Impac
                     .resource_prefix
                     .starts_with(&next_rule.resource_prefix);
 
-            let prefix_narrowed = next_rule.resource_prefix.len()
-                > prev_rule.resource_prefix.len()
+            let prefix_narrowed = next_rule.resource_prefix.len() > prev_rule.resource_prefix.len()
                 && next_rule
                     .resource_prefix
                     .starts_with(&prev_rule.resource_prefix);
@@ -322,10 +313,7 @@ impl<'de> Deserialize<'de> for PolicyRuleInput {
                 formatter.write_str("struct PolicyRuleInput")
             }
 
-            fn visit_map<V: MapAccess<'de>>(
-                self,
-                mut map: V,
-            ) -> Result<PolicyRuleInput, V::Error> {
+            fn visit_map<V: MapAccess<'de>>(self, mut map: V) -> Result<PolicyRuleInput, V::Error> {
                 let mut effect = None;
                 let mut principal_role = None;
                 let mut action = None;
@@ -356,12 +344,10 @@ impl<'de> Deserialize<'de> for PolicyRuleInput {
                 }
 
                 Ok(PolicyRuleInput {
-                    effect: effect
-                        .ok_or_else(|| de::Error::missing_field("effect"))?,
+                    effect: effect.ok_or_else(|| de::Error::missing_field("effect"))?,
                     principal_role: principal_role
                         .ok_or_else(|| de::Error::missing_field("principal_role"))?,
-                    action: action
-                        .ok_or_else(|| de::Error::missing_field("action"))?,
+                    action: action.ok_or_else(|| de::Error::missing_field("action"))?,
                     resource_prefix: resource_prefix
                         .ok_or_else(|| de::Error::missing_field("resource_prefix"))?,
                     required_attribute,
@@ -642,7 +628,12 @@ mod tests {
         );
         let next = pv(
             "1.1.0",
-            vec![allow_rule_attr("subscriber", "content.read", "content:", None)],
+            vec![allow_rule_attr(
+                "subscriber",
+                "content.read",
+                "content:",
+                None,
+            )],
         );
 
         let report = diff_policy_versions(&prev, &next);

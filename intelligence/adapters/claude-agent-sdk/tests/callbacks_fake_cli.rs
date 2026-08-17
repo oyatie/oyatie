@@ -2,11 +2,11 @@
 mod support;
 use support::{expect_json_line, fake_cli, write_json_line};
 
+use futures::StreamExt;
 use intelligence_claude_agent_sdk::{
     ClaudeAgentOptions, ClaudeSDKClient, ElicitationMode, ElicitationResult, HookInput,
     HookSpecificOutput, Message, PermissionResult, SyncHookJsonOutput, query,
 };
-use futures::StreamExt;
 use serde_json::json;
 use tokio::time::{Duration, timeout};
 
@@ -292,16 +292,13 @@ async fn client_registers_and_handles_hook_callbacks() {
             write_json_line(&mut w, &json!({"type":"control_response","response":{"subtype":"success","request_id":init["request_id"],"response":{}}})).await;
             write_json_line(&mut w, &json!({"type":"control_request","request_id":"hook_req","request":{"subtype":"hook_callback","callback_id":callback_id,"input":{"hook_event_name":"PreToolUse","session_id":"s","transcript_path":"/tmp/transcript.jsonl","cwd":"/workspace","tool_name":"Bash","tool_input":{"command":"pwd"},"tool_use_id":"toolu_hook"},"tool_use_id":"toolu_hook"}})).await;
             // Drain until we get the hook control_response (user messages may arrive first)
-            let mut hook_response = None;
-            loop {
+            let hook_response = loop {
                 let inbound = expect_json_line(&mut r).await;
                 if inbound["type"] == "user" {
                     continue;
                 }
-                hook_response = Some(inbound);
-                break;
-            }
-            let hook_response = hook_response.unwrap();
+                break inbound;
+            };
             assert_eq!(hook_response["response"]["response"]["hookSpecificOutput"]["additionalContext"], "checked");
             // consume any remaining user message
             let user = expect_json_line(&mut r).await;

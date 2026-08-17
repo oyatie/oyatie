@@ -23,12 +23,14 @@ rust_binary(
 
 _TEST_DEPS = [
     ":oya-architecture-graph-generator-app",
+    "//ci/facade/generated-artifact-freshness:ci-generated-artifact-freshness",
     "third-party//:serde_json",
+    "third-party//:tempfile",
 ]
 
 rust_test(
     name = "oya-architecture-graph-generator-regeneration-test",
-    srcs = ["tests/regeneration.rs"],
+    srcs = ["tests/regeneration.rs", "tests/support/mod.rs"],
     crate = "oya_architecture_graph_generator_regeneration_test",
     crate_root = "tests/regeneration.rs",
     visibility = ["PUBLIC"],
@@ -37,7 +39,7 @@ rust_test(
 
 rust_test(
     name = "oya-architecture-graph-generator-golden-test",
-    srcs = ["tests/golden.rs"],
+    srcs = ["tests/golden.rs", "tests/support/mod.rs"],
     crate = "oya_architecture_graph_generator_golden_test",
     crate_root = "tests/golden.rs",
     visibility = ["PUBLIC"],

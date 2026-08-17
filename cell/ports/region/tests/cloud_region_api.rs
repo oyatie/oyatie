@@ -2,15 +2,15 @@
 // `.expect_err()` / `.unwrap_err()` to assert invariants — Tier 3 exemption.
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
+use cell_region::{
+    AzState, CellCapacity, CellUtilization, CloudAzCreate, CloudCellCreate, CloudCellState,
+    CloudRegionCatalog, CloudRegionCreate, RegionState, TenantDensityClass,
+};
 use cell_region_api::{
     CLOUD_AZ_LIST_SURFACE, CLOUD_REGION_LIST_SURFACE, CloudAzListApiRequest,
     CloudRegionApiAuthorization, CloudRegionApiBoundaryContext, CloudRegionApiError,
     CloudRegionApiPrincipal, CloudRegionListApiRequest, CloudRegionListApiStatus,
     list_cloud_azs_from_api, list_cloud_regions_from_api,
-};
-use cell_region::{
-    AzState, CellCapacity, CellUtilization, CloudAzCreate, CloudCellCreate, CloudCellState,
-    CloudRegionCatalog, CloudRegionCreate, RegionState, TenantDensityClass,
 };
 use network_residency::ResidencyClass;
 

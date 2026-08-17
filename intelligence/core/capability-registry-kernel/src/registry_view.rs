@@ -60,7 +60,10 @@ pub fn partition_views(
         }
     }
 
-    RegistryViews { discoverable, invocable }
+    RegistryViews {
+        discoverable,
+        invocable,
+    }
 }
 
 #[cfg(test)]

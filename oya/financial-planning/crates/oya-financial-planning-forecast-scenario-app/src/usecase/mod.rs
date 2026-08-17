@@ -144,13 +144,20 @@ where
     }
 }
 
-fn ensure_command(envelope: &CommandEnvelope, matches_expected: bool, expected: &str) -> Result<()> {
+fn ensure_command(
+    envelope: &CommandEnvelope,
+    matches_expected: bool,
+    expected: &str,
+) -> Result<()> {
     if matches_expected {
         Ok(())
     } else {
         Err(ServiceError::validation(
             "command",
-            format!("expected {expected}, got {:?}", envelope.command.capability()),
+            format!(
+                "expected {expected}, got {:?}",
+                envelope.command.capability()
+            ),
         ))
     }
 }
@@ -159,7 +166,8 @@ fn event_for(envelope: &CommandEnvelope) -> FinancialPlanningEvent {
     let tenant_id = envelope.context.actor.tenant_id.clone();
     match &envelope.command {
         FinancialPlanningCommand::OpenForecastVersion {
-            forecast_version_id, ..
+            forecast_version_id,
+            ..
         } => FinancialPlanningEvent::ForecastVersionOpened {
             forecast_version_id: forecast_version_id.clone(),
             tenant_id,

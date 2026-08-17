@@ -296,10 +296,10 @@ impl CloudComputeVmCreateIdempotencyLedger {
         key: CloudComputeVmIdempotencyLedgerKey,
         entry: CloudComputeVmCreateLedgerEntry,
     ) {
-        if self.entries.len() >= self.max_entries {
-            if let Some(evicted) = self.entries.keys().next().cloned() {
-                self.entries.remove(&evicted);
-            }
+        if self.entries.len() >= self.max_entries
+            && let Some(evicted) = self.entries.keys().next().cloned()
+        {
+            self.entries.remove(&evicted);
         }
         self.entries.insert(key, entry);
     }

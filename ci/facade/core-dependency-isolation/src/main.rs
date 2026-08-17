@@ -16,12 +16,12 @@ use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
 use ci_core_dependency_isolation::{
-    Verdict, apply_fixes, collect_kernel_deps, evaluate, evaluate_keyed, plan_fixes, render_findings,
+    Verdict, apply_fixes, collect_kernel_deps, evaluate, evaluate_keyed, plan_fixes,
+    render_findings,
 };
 use serde_json::Value;
 
-const DEFAULT_POLICY: &str =
-    "ci/facade/core-dependency-isolation/kernel-purity-policy.json";
+const DEFAULT_POLICY: &str = "ci/facade/core-dependency-isolation/kernel-purity-policy.json";
 
 struct Args {
     repo_root: PathBuf,
@@ -111,13 +111,17 @@ fn parse_args(args: Vec<String>) -> ParseOutcome {
         match arg.as_str() {
             "--repo-root" => {
                 let Some(value) = iter.next() else {
-                    return ParseOutcome::Error("kernel-purity: --repo-root requires a path".to_owned());
+                    return ParseOutcome::Error(
+                        "kernel-purity: --repo-root requires a path".to_owned(),
+                    );
                 };
                 repo_root = PathBuf::from(value);
             }
             "--policy" => {
                 let Some(value) = iter.next() else {
-                    return ParseOutcome::Error("kernel-purity: --policy requires a path".to_owned());
+                    return ParseOutcome::Error(
+                        "kernel-purity: --policy requires a path".to_owned(),
+                    );
                 };
                 policy = Some(PathBuf::from(value));
             }

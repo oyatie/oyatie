@@ -7,8 +7,8 @@
 //! [`BootstrapOrchestrator`].
 
 use crate::ClusterError;
-use std::collections::BTreeMap;
 use os_kernel::machine_type::MachineType;
+use std::collections::BTreeMap;
 
 /// Phases of bringing a cluster from "nodes provisioned" to "etcd bootstrapped".
 ///

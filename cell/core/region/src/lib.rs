@@ -11,11 +11,11 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use cell_routing::{CellBinding, CellBindingCreate, CellError, CellRouter, CellTier};
-use oya_data_boundary_kernel::{Classified, DataClass};
 use network_residency::{
     RegionRef, RegionRefCreate, ResidencyClass, ResidencyError, infer_region_jurisdiction_label,
     residency_class_allows_home_region_label,
 };
+use oya_data_boundary_kernel::{Classified, DataClass};
 
 const CLOUD_REGION_SCHEMA_VERSION: u32 = 1;
 const CLOUD_AZ_SCHEMA_VERSION: u32 = 1;

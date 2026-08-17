@@ -1698,10 +1698,10 @@ impl CloudDcopsCatalog {
         if self.bms_readings.contains(&key) {
             return false;
         }
-        if self.bms_readings.len() >= self.bms_reading_retention_limit {
-            if let Some(evicted) = self.bms_readings.iter().next().cloned() {
-                self.bms_readings.remove(&evicted);
-            }
+        if self.bms_readings.len() >= self.bms_reading_retention_limit
+            && let Some(evicted) = self.bms_readings.iter().next().cloned()
+        {
+            self.bms_readings.remove(&evicted);
         }
         self.bms_readings.insert(key)
     }

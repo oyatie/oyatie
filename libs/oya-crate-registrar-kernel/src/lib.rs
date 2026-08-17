@@ -623,7 +623,11 @@ mod tests {
             faces_settled: true,
         };
         let second = plan_register_crate(&req, &after, &caps()).unwrap();
-        assert!(second.is_empty(), "second plan must be empty: {:?}", second.edits);
+        assert!(
+            second.is_empty(),
+            "second plan must be empty: {:?}",
+            second.edits
+        );
     }
 
     // GREEN: a partial snapshot yields ONLY the missing edits (diff, not full re-write).
@@ -685,8 +689,10 @@ mod tests {
     #[test]
     fn verbatim_paths_are_enumerated_literally() {
         let mut req = base_request();
-        req.extra_governed_paths =
-            vec![format!("{DIR}/src/plan.rs"), format!("{DIR}/src/validate.rs")];
+        req.extra_governed_paths = vec![
+            format!("{DIR}/src/plan.rs"),
+            format!("{DIR}/src/validate.rs"),
+        ];
         let plan = plan_register_crate(&req, &CurrentState::default(), &caps()).unwrap();
         let append = plan
             .edits
@@ -744,7 +750,12 @@ mod tests {
         let mut req = base_request();
         req.owning_adr = "0568".to_owned();
         let err = plan_register_crate(&req, &CurrentState::default(), &caps()).unwrap_err();
-        assert_eq!(err, ValidationError::InvalidAdrId { adr: "0568".to_owned() });
+        assert_eq!(
+            err,
+            ValidationError::InvalidAdrId {
+                adr: "0568".to_owned()
+            }
+        );
     }
 
     // RED: an empty crate dir is rejected.
@@ -819,7 +830,10 @@ mod tests {
                 _ => None,
             })
             .collect();
-        assert_eq!(reach, vec!["specs/fixtures/register-crate/case.json".to_owned()]);
+        assert_eq!(
+            reach,
+            vec!["specs/fixtures/register-crate/case.json".to_owned()]
+        );
     }
 
     // GREEN: role→suffix + BUCK rule mapping is exhaustive and correct.
@@ -874,14 +888,22 @@ mod tests {
             ..CurrentState::default()
         };
         let plan = plan_register_crate(&req, &current, &caps()).unwrap();
-        assert!(!plan.is_empty(), "plan must not be empty when a SSOT entry is missing");
+        assert!(
+            !plan.is_empty(),
+            "plan must not be empty when a SSOT entry is missing"
+        );
         assert_eq!(
             plan.edits.last(),
             Some(&Edit::FacesSettle),
             "FacesSettle must be the last edit even when faces_settled=true in the snapshot"
         );
         // Exactly: CapabilityMapping + FacesSettle.
-        assert_eq!(plan.edits.len(), 2, "expected CapabilityMapping + FacesSettle, got {:?}", plan.edits);
+        assert_eq!(
+            plan.edits.len(),
+            2,
+            "expected CapabilityMapping + FacesSettle, got {:?}",
+            plan.edits
+        );
         assert_eq!(
             plan.edits[0],
             Edit::CapabilityMapping {

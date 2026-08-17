@@ -51,9 +51,7 @@ fn fixtures_dir() -> PathBuf {
     for _ in 0..16 {
         for cand in [
             dir.join("tests/fixtures"),
-            dir.join(
-                "ci/facade/layer-dependency-acyclicity/tests/fixtures",
-            ),
+            dir.join("ci/facade/layer-dependency-acyclicity/tests/fixtures"),
         ] {
             if cand.is_dir() {
                 return cand;
@@ -86,7 +84,10 @@ fn live_tree_is_green_zero_regressions() {
             .collect::<Vec<_>>()
             .join("\n")
     );
-    assert_eq!(report.regressions, 0, "born-advisory: zero regressions at birth");
+    assert_eq!(
+        report.regressions, 0,
+        "born-advisory: zero regressions at birth"
+    );
     assert!(
         report.crates_checked > 700,
         "the scan must cover the real corpus (got {})",
@@ -186,8 +187,8 @@ fn red_fixture_substrate_to_product_fails_closed() {
     // Evaluate the synthetic RED corpus against an EMPTY baseline → the wrong-tier edge is a
     // regression and the gate fails closed.
     let empty_baseline = serde_json::json!({ "gate_id": GATE_ID, "violations": [] });
-    let observed = load_json(&fixtures_dir_root(), "red-substrate-to-product.json")
-        .expect("load RED fixture");
+    let observed =
+        load_json(&fixtures_dir_root(), "red-substrate-to-product.json").expect("load RED fixture");
     let report = evaluate(&policy, &empty_baseline, &observed);
     assert_eq!(
         report.verdict,
@@ -216,11 +217,19 @@ fn burn_down_fixture_stays_green() {
             }
         ]
     });
-    let observed = load_json(&fixtures_dir_root(), "burn-down.json").expect("load burn-down fixture");
+    let observed =
+        load_json(&fixtures_dir_root(), "burn-down.json").expect("load burn-down fixture");
     let report = evaluate(&policy, &baseline, &observed);
-    assert_eq!(report.verdict, Verdict::Green, "burning down a baselined violation is allowed");
+    assert_eq!(
+        report.verdict,
+        Verdict::Green,
+        "burning down a baselined violation is allowed"
+    );
     assert_eq!(report.regressions, 0);
-    assert_eq!(report.burned_down, 1, "the fixed baselined edge counts as burned down");
+    assert_eq!(
+        report.burned_down, 1,
+        "the fixed baselined edge counts as burned down"
+    );
 }
 
 #[test]
@@ -277,7 +286,10 @@ fn baseline_with_all_subjects_present_is_not_stale() {
     let observed = load_json(&fixtures_dir_root(), "burn-down.json").expect("load fixture corpus");
     let report = evaluate(&policy, &baseline, &observed);
     assert!(
-        !report.findings.iter().any(|f| f.code == "TDA-STALE-BASELINE"),
+        !report
+            .findings
+            .iter()
+            .any(|f| f.code == "TDA-STALE-BASELINE"),
         "all baseline subjects present -> no phantom rows: {:?}",
         report.findings
     );
@@ -452,8 +464,16 @@ fn every_governed_glob_root_is_declared_in_the_policy() {
         .as_array()
         .expect("service_roots")
         .iter()
-        .chain(policy["capability_roots"].as_array().expect("capability_roots"))
-        .chain(policy["unclassified_roots"].as_array().expect("unclassified_roots"))
+        .chain(
+            policy["capability_roots"]
+                .as_array()
+                .expect("capability_roots"),
+        )
+        .chain(
+            policy["unclassified_roots"]
+                .as_array()
+                .expect("unclassified_roots"),
+        )
         .map(|v| v.as_str().expect("root is a string"))
         .collect();
 

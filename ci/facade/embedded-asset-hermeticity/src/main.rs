@@ -63,7 +63,9 @@ fn main() -> ExitCode {
     let root = match repo_root.or_else(discover_repo_root) {
         Some(r) => r,
         None => {
-            eprintln!("error: could not locate repo root (pass --repo-root); expected an ancestor with specs/root-hub-pointers.json");
+            eprintln!(
+                "error: could not locate repo root (pass --repo-root); expected an ancestor with specs/root-hub-pointers.json"
+            );
             return ExitCode::from(2);
         }
     };
@@ -92,21 +94,21 @@ fn main() -> ExitCode {
 
     let unmapped: Vec<&Value> = observed["sites"]
         .as_array()
-        .map(|sites| {
-            sites
-                .iter()
-                .filter(|s| s["status"] == "unmapped")
-                .collect()
-        })
+        .map(|sites| sites.iter().filter(|s| s["status"] == "unmapped").collect())
         .unwrap_or_default();
 
     if unmapped.is_empty() {
         let findings = evaluate_keyed(&policy, &observed);
         let blocking = findings
             .iter()
-            .filter(|f| f.code == "embedded_asset_unmapped_include" || f.code == "embedded_asset_policy_gate_id_mismatch")
+            .filter(|f| {
+                f.code == "embedded_asset_unmapped_include"
+                    || f.code == "embedded_asset_policy_gate_id_mismatch"
+            })
             .count();
-        println!("embedded-asset hermeticity: 0 unmapped includes ({blocking} blocking findings). Repo is hermetic.");
+        println!(
+            "embedded-asset hermeticity: 0 unmapped includes ({blocking} blocking findings). Repo is hermetic."
+        );
         return ExitCode::SUCCESS;
     }
 
@@ -128,15 +130,12 @@ fn main() -> ExitCode {
             };
             let still_unmapped: Vec<&Value> = observed2["sites"]
                 .as_array()
-                .map(|sites| {
-                    sites
-                        .iter()
-                        .filter(|s| s["status"] == "unmapped")
-                        .collect()
-                })
+                .map(|sites| sites.iter().filter(|s| s["status"] == "unmapped").collect())
                 .unwrap_or_default();
             if still_unmapped.is_empty() {
-                println!("embedded-asset --fix: repo is now hermetic (all unmapped includes resolved).");
+                println!(
+                    "embedded-asset --fix: repo is now hermetic (all unmapped includes resolved)."
+                );
                 ExitCode::SUCCESS
             } else {
                 println!(
@@ -147,7 +146,9 @@ fn main() -> ExitCode {
                 for s in &still_unmapped {
                     println!("  - {} :: {}", s["key"], s["detail"]);
                 }
-                println!("Re-run --check to see the full report, or fix the remaining targets by hand.");
+                println!(
+                    "Re-run --check to see the full report, or fix the remaining targets by hand."
+                );
                 ExitCode::FAILURE
             }
         }
@@ -222,7 +223,9 @@ fn apply_fixes(root: &Path, remediations: &[Remediation]) -> ExitCode {
             }
         }
     }
-    println!("\nembedded-asset --fix: {applied} BUCK file(s) patched, {manual} need manual handling.");
+    println!(
+        "\nembedded-asset --fix: {applied} BUCK file(s) patched, {manual} need manual handling."
+    );
     if manual == 0 {
         ExitCode::SUCCESS
     } else {

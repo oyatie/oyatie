@@ -31,9 +31,7 @@ fn repo_root() -> PathBuf {
 }
 
 fn live_policy() -> Value {
-    let path = repo_root().join(
-        "ci/facade/action-item-accounting/friction-accounting-policy.json",
-    );
+    let path = repo_root().join("ci/facade/action-item-accounting/friction-accounting-policy.json");
     let text =
         std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()));
     serde_json::from_str(&text).unwrap_or_else(|e| panic!("parse {}: {e}", path.display()))
@@ -97,11 +95,19 @@ fn incident_1_two_lanes_authored_primaries_red_under_union_green_under_driver() 
     let base = join(&[&primary("FRIC-A", "2026-06-10", "base friction")]);
     let lane_1 = format!(
         "{base}{}",
-        join(&[&primary("FRIC-NEW", "2026-06-11", "lane one logged it first")])
+        join(&[&primary(
+            "FRIC-NEW",
+            "2026-06-11",
+            "lane one logged it first"
+        )])
     );
     let lane_2 = format!(
         "{base}{}",
-        join(&[&primary("FRIC-NEW", "2026-06-12", "lane two logged it again")])
+        join(&[&primary(
+            "FRIC-NEW",
+            "2026-06-12",
+            "lane two logged it again"
+        )])
     );
 
     // RED: the naive union keeps both primaries and the REAL gate fold fails closed — the exact
@@ -138,11 +144,19 @@ fn incident_1_conversion_is_side_symmetric_modulo_append_order() {
     let base = join(&[&primary("FRIC-A", "2026-06-10", "base friction")]);
     let lane_1 = format!(
         "{base}{}",
-        join(&[&primary("FRIC-NEW", "2026-06-11", "lane one logged it first")])
+        join(&[&primary(
+            "FRIC-NEW",
+            "2026-06-11",
+            "lane one logged it first"
+        )])
     );
     let lane_2 = format!(
         "{base}{}",
-        join(&[&primary("FRIC-NEW", "2026-06-12", "lane two logged it again")])
+        join(&[&primary(
+            "FRIC-NEW",
+            "2026-06-12",
+            "lane two logged it again"
+        )])
     );
     let ab = merge_ledgers(&base, &lane_1, &lane_2).expect("merge(a,b)");
     let ba = merge_ledgers(&base, &lane_2, &lane_1).expect("merge(b,a)");
@@ -219,7 +233,10 @@ fn incident_3_exact_line_dedup_red_logical_dedup_green() {
     // GREEN: parsed-JSON identity collapses the twins to one canonical row.
     let green = merge_ledgers(&base, &ours, &theirs).expect("driver merges");
     let codes = gate_codes(&policy, &green);
-    assert!(codes.is_empty(), "twins collapse to one accounted row: {codes:?}\n{green}");
+    assert!(
+        codes.is_empty(),
+        "twins collapse to one accounted row: {codes:?}\n{green}"
+    );
     let rows = parse_ledger("green", &green).expect("reparses");
     assert_eq!(
         rows.iter().filter(|row| row.id() == "FRIC-TWIN").count(),
@@ -254,7 +271,10 @@ fn merged_output_is_idempotent_and_a_canonical_fixed_point() {
     assert_eq!(merge_ledgers(&base, &out, &base).expect("ff"), out);
     // Canonical fixed point: every line is one JSON object and the document re-merges to itself
     // byte-identically, so a driver-merged ledger never produces serialization churn again.
-    assert!(out.lines().all(|line| line.starts_with('{') && line.ends_with('}')));
+    assert!(
+        out.lines()
+            .all(|line| line.starts_with('{') && line.ends_with('}'))
+    );
 }
 
 #[test]
@@ -313,5 +333,8 @@ fn live_ledger_is_modeled_and_canonicalization_preserves_the_gate_verdict() {
     );
 
     // And the canonical form is a fixed point on the live corpus too.
-    assert_eq!(merge_ledgers(&merged, &merged, &merged).expect("again"), merged);
+    assert_eq!(
+        merge_ledgers(&merged, &merged, &merged).expect("again"),
+        merged
+    );
 }

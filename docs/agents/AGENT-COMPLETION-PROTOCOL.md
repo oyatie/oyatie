@@ -40,7 +40,10 @@ If the IP frontmatter adds lane-specific commands (e.g. `oya-governance-data-cla
 
 ## C3 — Paste output evidence
 
-Capture exit code + last 20 lines (or full output if shorter) into a local `evidence.txt` in your worktree. The PR template `## Verification` section consumes this. The `traceability-validator` lane refuses PRs without per-check pass/fail lines.
+Capture exit code + last 20 lines (or full output if shorter) into a local
+`evidence.txt` in your worktree. The PR template `## Verification` section
+consumes this, and the independent reviewer checks that the evidence is
+specific to the exact PR head.
 
 
 
@@ -57,7 +60,7 @@ The IP `audit-chain-event:` field names the event ID and payload schema. Emit vi
 oya-tooling-agent-read audit-emit --event <EVT-id> --payload '<json>'
 ```
 
-Capture the returned emission ID — this goes into PR body `## Evidence` and is referenced by `oya-governance-audit-emission` lane (D16).
+Capture the returned emission ID — this goes into PR body `## Verification` when required and is referenced by `oya-governance-audit-emission` lane (D16).
 
 ## C6 — Update inventory ledger (if applicable)
 

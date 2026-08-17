@@ -857,11 +857,10 @@ impl<U: UserStore, G: GroupStore, I: IdGen> ScimServer for ReferenceScimServer<U
         now_unix: i64,
     ) -> Pin<Box<dyn Future<Output = Result<User, ScimError>> + Send + 'a>> {
         Box::pin(async move {
-            let existing = self
-                .users
-                .get(tenant, id)
-                .await
-                .ok_or_else(|| ScimError::new(404, None, format!("user '{}' not found", id.0)))?;
+            let existing =
+                self.users.get(tenant, id).await.ok_or_else(|| {
+                    ScimError::new(404, None, format!("user '{}' not found", id.0))
+                })?;
             // Uniqueness only enforced if userName actually changed.
             if input.user_name != existing.user_name
                 && self
@@ -906,11 +905,10 @@ impl<U: UserStore, G: GroupStore, I: IdGen> ScimServer for ReferenceScimServer<U
         now_unix: i64,
     ) -> Pin<Box<dyn Future<Output = Result<User, ScimError>> + Send + 'a>> {
         Box::pin(async move {
-            let mut user = self
-                .users
-                .get(tenant, id)
-                .await
-                .ok_or_else(|| ScimError::new(404, None, format!("user '{}' not found", id.0)))?;
+            let mut user =
+                self.users.get(tenant, id).await.ok_or_else(|| {
+                    ScimError::new(404, None, format!("user '{}' not found", id.0))
+                })?;
             for o in &op.operations {
                 apply_patch_user(&mut user, o)?;
             }
@@ -1007,11 +1005,10 @@ impl<U: UserStore, G: GroupStore, I: IdGen> ScimServer for ReferenceScimServer<U
         now_unix: i64,
     ) -> Pin<Box<dyn Future<Output = Result<Group, ScimError>> + Send + 'a>> {
         Box::pin(async move {
-            let mut group = self
-                .groups
-                .get(tenant, id)
-                .await
-                .ok_or_else(|| ScimError::new(404, None, format!("group '{}' not found", id.0)))?;
+            let mut group =
+                self.groups.get(tenant, id).await.ok_or_else(|| {
+                    ScimError::new(404, None, format!("group '{}' not found", id.0))
+                })?;
             for o in &op.operations {
                 apply_patch_group(&mut group, o)?;
             }

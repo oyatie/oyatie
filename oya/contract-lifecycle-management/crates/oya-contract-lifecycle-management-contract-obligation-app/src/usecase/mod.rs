@@ -122,7 +122,10 @@ where
     pub fn route_approval(&self, envelope: CommandEnvelope) -> Result<CommandReceipt> {
         ensure_command(
             &envelope,
-            matches!(envelope.command, ContractLifecycleCommand::RouteApproval { .. }),
+            matches!(
+                envelope.command,
+                ContractLifecycleCommand::RouteApproval { .. }
+            ),
             "RouteApproval",
         )?;
         self.handle(envelope)
@@ -141,13 +144,20 @@ where
     }
 }
 
-fn ensure_command(envelope: &CommandEnvelope, matches_expected: bool, expected: &str) -> Result<()> {
+fn ensure_command(
+    envelope: &CommandEnvelope,
+    matches_expected: bool,
+    expected: &str,
+) -> Result<()> {
     if matches_expected {
         Ok(())
     } else {
         Err(ServiceError::validation(
             "command",
-            format!("expected {expected}, got {:?}", envelope.command.capability()),
+            format!(
+                "expected {expected}, got {:?}",
+                envelope.command.capability()
+            ),
         ))
     }
 }

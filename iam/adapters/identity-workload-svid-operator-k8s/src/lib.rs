@@ -32,13 +32,13 @@ use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
 use futures::StreamExt;
-use kube::{
-    api::{Api, Patch, PatchParams},
-    runtime::{controller::Action as ControllerAction, watcher, Controller},
-    Client,
-};
-use k8s_openapi::api::core::v1::Secret;
 use k8s_openapi::ByteString;
+use k8s_openapi::api::core::v1::Secret;
+use kube::{
+    Client,
+    api::{Api, Patch, PatchParams},
+    runtime::{Controller, controller::Action as ControllerAction, watcher},
+};
 use serde_json::json;
 use tracing::{error, info, warn};
 
@@ -46,15 +46,15 @@ use base64::Engine as _;
 
 use iam_identity_workload_svid_kernel::SpiffeId;
 use iam_identity_workload_svid_operator_kernel::{
-    reconcile, Action, Clock, DesiredState, ObservedState, ObservedSvidSecret,
+    Action, Clock, DesiredState, ObservedState, ObservedSvidSecret, reconcile,
 };
 
+use os_trustd_domain::JoinToken;
 use os_trustd_domain::ca::CertificateAuthority;
 use os_trustd_domain::der;
 use os_trustd_domain::service::SecurityService;
 use os_trustd_domain::signer::EcdsaP256Signer;
 use os_trustd_domain::x509::KeyPair;
-use os_trustd_domain::JoinToken;
 
 /// ADR-0510 boundary marker constant: the owned destination is cloud-k8s.
 pub const ADR_0510_TRANSIENT_KUBE_ADAPTER: &str =
@@ -359,7 +359,9 @@ impl std::error::Error for ProjectError {}
 /// # Errors
 /// [`ProjectError`] when the leaf PEM is missing or malformed (treated as
 /// fail-closed: the controller re-issues rather than trusting a broken Secret).
-pub fn observed_secret_from_leaf_pem(tls_crt_pem: &str) -> Result<ObservedSvidSecret, ProjectError> {
+pub fn observed_secret_from_leaf_pem(
+    tls_crt_pem: &str,
+) -> Result<ObservedSvidSecret, ProjectError> {
     use x509_parser::pem::Pem;
     use x509_parser::prelude::FromDer;
 
@@ -519,8 +521,8 @@ where
                     .map(|ByteString(bytes)| String::from_utf8_lossy(bytes).into_owned());
                 match pem {
                     Some(pem) => {
-                        let observed = observed_secret_from_leaf_pem(&pem)
-                            .map_err(ReconcileError::Project)?;
+                        let observed =
+                            observed_secret_from_leaf_pem(&pem).map_err(ReconcileError::Project)?;
                         Ok(ObservedState {
                             secret: Some(observed),
                         })

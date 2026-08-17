@@ -332,10 +332,10 @@ impl CloudComputeK8sCreateIdempotencyLedger {
         key: CloudComputeK8sIdempotencyLedgerKey,
         entry: CloudComputeK8sCreateLedgerEntry,
     ) {
-        if self.entries.len() >= self.max_entries {
-            if let Some(evicted) = self.entries.keys().next().cloned() {
-                self.entries.remove(&evicted);
-            }
+        if self.entries.len() >= self.max_entries
+            && let Some(evicted) = self.entries.keys().next().cloned()
+        {
+            self.entries.remove(&evicted);
         }
         self.entries.insert(key, entry);
     }
@@ -1518,10 +1518,10 @@ impl CloudComputeK8sDeleteIdempotencyLedger {
         key: CloudComputeK8sIdempotencyLedgerKey,
         entry: CloudComputeK8sDeleteLedgerEntry,
     ) {
-        if self.entries.len() >= self.max_entries {
-            if let Some(evicted) = self.entries.keys().next().cloned() {
-                self.entries.remove(&evicted);
-            }
+        if self.entries.len() >= self.max_entries
+            && let Some(evicted) = self.entries.keys().next().cloned()
+        {
+            self.entries.remove(&evicted);
         }
         self.entries.insert(key, entry);
     }

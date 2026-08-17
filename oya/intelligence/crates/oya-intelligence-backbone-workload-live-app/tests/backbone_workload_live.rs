@@ -2,6 +2,18 @@
 
 use std::{collections::BTreeMap, env, time::Duration};
 
+use comms_mail_mailbox_api::{
+    AuthorizedMailContext, DmarcApiAction, DmarcApiPolicy, DmarcCheckRequest, MailApiContext,
+    MailApiEnvelope, SubmitMessageRequest, message_sent_event_envelope,
+};
+use comms_mail_mailbox_postgres::{PersistMailMessageRecord, build_mail_message_write_batch};
+use comms_mail_mailbox_usecase::submit_message;
+use comms_messenger_stream_api::{
+    AuthorizedMessengerContext, MessengerApiContext, MessengerApiEnvelope, SendMessageRequest,
+    message_posted_event_envelope,
+};
+use comms_messenger_stream_postgres::{PersistMessageRecord, build_message_write_batch};
+use comms_messenger_stream_usecase::send_message;
 use oya_community_post_store_adapter_postgres::{
     PersistCommunityModerationRecord, PersistCommunityPostRecord, PersistCommunityVoteRecord,
     build_moderation_write_batch, build_post_write_batch as build_community_post_write_batch,
@@ -22,22 +34,6 @@ use oya_community_social_post_composition_api::{
     post_published_event_envelope,
 };
 use oya_community_social_post_composition_usecase::{compose_post, plan_story_purge};
-use comms_mail_mailbox_postgres::{
-    PersistMailMessageRecord, build_mail_message_write_batch,
-};
-use comms_mail_mailbox_api::{
-    AuthorizedMailContext, DmarcApiAction, DmarcApiPolicy, DmarcCheckRequest, MailApiContext,
-    MailApiEnvelope, SubmitMessageRequest, message_sent_event_envelope,
-};
-use comms_mail_mailbox_usecase::submit_message;
-use comms_messenger_stream_postgres::{
-    PersistMessageRecord, build_message_write_batch,
-};
-use comms_messenger_stream_api::{
-    AuthorizedMessengerContext, MessengerApiContext, MessengerApiEnvelope, SendMessageRequest,
-    message_posted_event_envelope,
-};
-use comms_messenger_stream_usecase::send_message;
 use oya_shared_postgres_command_adapter_sqlx::{
     SqlxPostgresBatchExecutor, SqlxPostgresCommandError, SqlxPostgresConnectionConfig,
 };

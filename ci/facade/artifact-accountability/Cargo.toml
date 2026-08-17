@@ -21,6 +21,7 @@ doctest = false
 serde_json = { workspace = true }
 
 [dev-dependencies]
+ci-path-resolver-adapters = { path = "../../adapters/path-resolver" }
 serde_json = { workspace = true }
 
 [lints]

@@ -6,7 +6,7 @@ use std::collections::BTreeMap;
 
 use toml_edit::{DocumentMut, Item, Table, Value};
 
-use crate::model::{recompute_rel_path_dep, snake, CodemodError, CrateMove};
+use crate::model::{CodemodError, CrateMove, recompute_rel_path_dep, snake};
 
 /// The dependency table keys Cargo recognizes (workspace + target-cfg tables are handled by
 /// the recursive walk in [`rewrite_dependencies_in_manifest`]).
@@ -138,9 +138,7 @@ fn rewrite_dep_tables_recursive(
     }
     // Recurse into `[target.<cfg>]` sub-tables (which themselves hold dep tables). Avoid
     // recursing into the dep tables we just handled or into `[package]`/`[workspace]` etc.
-    if !inside_target
-        && let Some(target) = table.get_mut("target").and_then(Item::as_table_mut)
-    {
+    if !inside_target && let Some(target) = table.get_mut("target").and_then(Item::as_table_mut) {
         // Collect cfg sub-table keys to iterate without aliasing.
         let cfg_keys: Vec<String> = target
             .iter()
@@ -247,23 +245,15 @@ fn rewrite_one_dep_table(
     //
     // An entry carrying an explicit `package` is EXCLUDED: Phase 1b already renamed its real
     // crate name, and its key is a binding identifier rather than a crate name.
-    let is_aliased = |k: &str| {
-        dep_table
-            .get(k)
-            .and_then(dep_package_field_ref)
-            .is_some()
-    };
+    let is_aliased = |k: &str| dep_table.get(k).and_then(dep_package_field_ref).is_some();
     let needs_rename = dep_keys.iter().any(|k| {
         !is_aliased(k)
             && name_to_move
                 .get(k.as_str())
                 .is_some_and(|cm| cm.new_cargo_name != *k)
     });
-    let aliased: std::collections::BTreeSet<String> = dep_keys
-        .iter()
-        .filter(|k| is_aliased(k))
-        .cloned()
-        .collect();
+    let aliased: std::collections::BTreeSet<String> =
+        dep_keys.iter().filter(|k| is_aliased(k)).cloned().collect();
     if needs_rename {
         // Drain every dep entry (preserving its value/decor) in declaration order.
         let mut drained: Vec<(String, Item)> = Vec::with_capacity(dep_keys.len());
@@ -417,12 +407,18 @@ pub fn rewrite_root_workspace_members(
 /// workspace root as far as cargo's upward search is concerned. Member crates instead carry
 /// `workspace = true` INSIDE `[package]`/`[dependencies]` entries, which never creates a
 /// top-level `workspace` table — so this does not mistake a member for a root.
-pub fn manifest_declares_workspace(manifest_text: &str, rel_path: &str) -> Result<bool, CodemodError> {
+pub fn manifest_declares_workspace(
+    manifest_text: &str,
+    rel_path: &str,
+) -> Result<bool, CodemodError> {
     Ok(parse(manifest_text, rel_path)?.get("workspace").is_some())
 }
 
 /// The `exclude` entries of a workspace manifest (empty when it declares none).
-pub fn workspace_excludes(manifest_text: &str, rel_path: &str) -> Result<Vec<String>, CodemodError> {
+pub fn workspace_excludes(
+    manifest_text: &str,
+    rel_path: &str,
+) -> Result<Vec<String>, CodemodError> {
     let doc = parse(manifest_text, rel_path)?;
     Ok(doc
         .get("workspace")
@@ -438,10 +434,11 @@ pub fn workspace_excludes(manifest_text: &str, rel_path: &str) -> Result<Vec<Str
 }
 
 fn parse(text: &str, rel_path: &str) -> Result<DocumentMut, CodemodError> {
-    text.parse::<DocumentMut>().map_err(|e| CodemodError::Parse {
-        path: rel_path.to_string(),
-        message: e.to_string(),
-    })
+    text.parse::<DocumentMut>()
+        .map_err(|e| CodemodError::Parse {
+            path: rel_path.to_string(),
+            message: e.to_string(),
+        })
 }
 
 #[cfg(test)]
@@ -690,7 +687,10 @@ hal = { package = "oya-hal", path = "../oya-hal" }
         )
         .unwrap();
         assert!(changed);
-        assert!(out.contains(r#"package = "kernel-hal""#), "package renamed: {out}");
+        assert!(
+            out.contains(r#"package = "kernel-hal""#),
+            "package renamed: {out}"
+        );
         assert!(out.contains("hal = {"), "alias key preserved: {out}");
         assert!(
             !out.contains("kernel-hal = {"),
@@ -734,14 +734,8 @@ resolver = "2"
     fn root_members_prunes_a_now_empty_glob() {
         // A move empties crates/ -> the crates/* glob would make cargo error; prune it.
         let text = "[workspace]\nmembers = [\"crates/*\", \"libs/*\", \"cap/core/cap-core\"]\n";
-        let (out, changed) = rewrite_root_workspace_members(
-            text,
-            &[],
-            &["crates/*".to_string()],
-            &[],
-            &[],
-        )
-        .unwrap();
+        let (out, changed) =
+            rewrite_root_workspace_members(text, &[], &["crates/*".to_string()], &[], &[]).unwrap();
         assert!(changed);
         assert!(!out.contains("crates/*"), "empty glob pruned: {out}");
         assert!(out.contains("libs/*"));

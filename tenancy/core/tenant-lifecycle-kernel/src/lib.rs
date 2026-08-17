@@ -80,6 +80,10 @@ impl fmt::Display for StoreError {
 
 impl std::error::Error for StoreError {}
 
+/// Async ordered tenant-scan result returned by [`TenantLifecycleStore`].
+pub type TenantScanFuture<'a> =
+    Pin<Box<dyn Future<Output = Result<Vec<(String, Tenant)>, StoreError>> + Send + 'a>>;
+
 /// The lifecycle control plane's storage port: ordered keyed records with
 /// point get/put/remove and an ordered range scan (the owned oya-data
 /// shape). Async (the durable backend performs real I/O) but IO-free at this
@@ -116,7 +120,7 @@ pub trait TenantLifecycleStore {
         prefix: &'a str,
         start_at: Option<&'a str>,
         limit: u32,
-    ) -> Pin<Box<dyn Future<Output = Result<Vec<(String, Tenant)>, StoreError>> + Send + 'a>>;
+    ) -> TenantScanFuture<'a>;
 
     // S-B: tenant_id (RLS scope) is threaded through the idempotency + operation
     // ledger methods below so the durable sqlx adapter can set the per-transaction

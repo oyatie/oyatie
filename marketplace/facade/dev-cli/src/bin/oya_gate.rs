@@ -49,41 +49,45 @@ fn main() -> ExitCode {
     let remaining: Vec<String> = rest.into_iter().skip(skip).collect();
 
     match lane {
-        "architecture-boundaries" => {
-            architecture_boundaries::run(remaining)
-        }
+        "architecture-boundaries" => architecture_boundaries::run(remaining),
         "workspace-topology" => {
             match workspace_topology_gate::parse_workspace_topology_validate_args(remaining) {
-                Ok(parsed) => match workspace_topology_gate::validate_workspace_topology_gate(parsed) {
-                    Ok(report) => {
-                        for finding in &report.findings {
-                            eprintln!(
-                                "workspace-topology {}: {}",
-                                finding.rule.as_str(),
-                                finding.detail
+                Ok(parsed) => {
+                    match workspace_topology_gate::validate_workspace_topology_gate(parsed) {
+                        Ok(report) => {
+                            for finding in &report.findings {
+                                eprintln!(
+                                    "workspace-topology {}: {}",
+                                    finding.rule.as_str(),
+                                    finding.detail
+                                );
+                            }
+                            let count = report.findings.len();
+                            println!(
+                                "workspace-topology scan: {} members scanned, {} findings ({})",
+                                report.members_scanned,
+                                count,
+                                if report.enforced {
+                                    "enforce"
+                                } else {
+                                    "report-only"
+                                }
                             );
+                            if report.enforced && count > 0 {
+                                eprintln!(
+                                    "workspace-topology validation failed: {count} topology violations"
+                                );
+                                ExitCode::FAILURE
+                            } else {
+                                ExitCode::SUCCESS
+                            }
                         }
-                        let count = report.findings.len();
-                        println!(
-                            "workspace-topology scan: {} members scanned, {} findings ({})",
-                            report.members_scanned,
-                            count,
-                            if report.enforced { "enforce" } else { "report-only" }
-                        );
-                        if report.enforced && count > 0 {
-                            eprintln!(
-                                "workspace-topology validation failed: {count} topology violations"
-                            );
+                        Err(message) => {
+                            eprintln!("workspace-topology validation failed: {message}");
                             ExitCode::FAILURE
-                        } else {
-                            ExitCode::SUCCESS
                         }
                     }
-                    Err(message) => {
-                        eprintln!("workspace-topology validation failed: {message}");
-                        ExitCode::FAILURE
-                    }
-                },
+                }
                 Err(message) => {
                     eprintln!("{message}");
                     ExitCode::from(2)

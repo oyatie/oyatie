@@ -9,12 +9,12 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use cell_region::RegionCode;
-use compute_resource::ResourceId;
-use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 use billing_metering::{
     AxisId, Meter, MeterEvent, MeterEventCreate, MeterUnit, MeteringError, PlaneTag,
 };
+use cell_region::RegionCode;
+use compute_resource::ResourceId;
+use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 
 const BILLING_ACCOUNT_SCHEMA_VERSION: u32 = 1;
 const CLOUD_BILLING_EVENT_SCHEMA_VERSION: u32 = 1;
@@ -197,14 +197,14 @@ pub struct Invoice {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CreditNoteCreate {
-    pub invoice_id: String,        // data_class: INTERNAL_ONLY
-    pub line_item_id: String,      // data_class: INTERNAL_ONLY
-    pub resource_id: String,       // data_class: INTERNAL_ONLY
-    pub description: String,       // data_class: INTERNAL_ONLY
-    pub units: Vec<MeterUnit>,     // data_class: INTERNAL_ONLY
-    pub credit_minor_units: u64,   // data_class: INTERNAL_ONLY
-    pub currency: String,          // data_class: INTERNAL_ONLY
-    pub data_class: DataClass,     // data_class: INTERNAL_ONLY
+    pub invoice_id: String,      // data_class: INTERNAL_ONLY
+    pub line_item_id: String,    // data_class: INTERNAL_ONLY
+    pub resource_id: String,     // data_class: INTERNAL_ONLY
+    pub description: String,     // data_class: INTERNAL_ONLY
+    pub units: Vec<MeterUnit>,   // data_class: INTERNAL_ONLY
+    pub credit_minor_units: u64, // data_class: INTERNAL_ONLY
+    pub currency: String,        // data_class: INTERNAL_ONLY
+    pub data_class: DataClass,   // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -944,7 +944,10 @@ impl CloudBillingLedger {
             .invoices_by_id
             .get_mut(&invoice_id)
             .expect("checked above");
-        let new_subtotal = invoice.subtotal.value.checked_sub(input.credit_minor_units)?;
+        let new_subtotal = invoice
+            .subtotal
+            .value
+            .checked_sub(input.credit_minor_units)?;
         invoice.line_items.value.push(line_item);
         invoice.subtotal = internal(new_subtotal);
         Ok(self.invoices_by_id.get(&invoice_id).expect("just modified"))
@@ -1518,7 +1521,11 @@ mod tests {
         ledger
             .transition_invoice(&id, InvoiceState::Paid)
             .expect("Issued -> Paid first");
-        for target in [InvoiceState::Issued, InvoiceState::Overdue, InvoiceState::Void] {
+        for target in [
+            InvoiceState::Issued,
+            InvoiceState::Overdue,
+            InvoiceState::Void,
+        ] {
             let err = ledger
                 .transition_invoice(&id, target)
                 .expect_err("Paid is terminal");
@@ -1538,7 +1545,11 @@ mod tests {
         ledger
             .transition_invoice(&id, InvoiceState::Void)
             .expect("Issued -> Void first");
-        for target in [InvoiceState::Issued, InvoiceState::Paid, InvoiceState::Overdue] {
+        for target in [
+            InvoiceState::Issued,
+            InvoiceState::Paid,
+            InvoiceState::Overdue,
+        ] {
             let err = ledger
                 .transition_invoice(&id, target)
                 .expect_err("Void is terminal");
@@ -1599,10 +1610,12 @@ mod tests {
             .expect("valid credit note reduces subtotal");
         assert_eq!(inv.subtotal.value.minor_units, 90_000);
         assert_eq!(inv.line_items.value.len(), 2);
-        assert!(inv.line_items.value[1]
-            .description
-            .value
-            .starts_with("[CREDIT] "));
+        assert!(
+            inv.line_items.value[1]
+                .description
+                .value
+                .starts_with("[CREDIT] ")
+        );
     }
 
     #[test]

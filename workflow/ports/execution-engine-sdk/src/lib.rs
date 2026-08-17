@@ -602,9 +602,7 @@ fn validate_step(step: &ExecutionEngineSdkStepDescriptor) -> Result<(), Executio
             "workflow-execution-sdk:step-attempt-invalid",
         ));
     }
-    if workflow_execution_engine_rest::StepExecutionStatus::from_wire(&step.step_status)
-        .is_none()
-    {
+    if workflow_execution_engine_rest::StepExecutionStatus::from_wire(&step.step_status).is_none() {
         return Err(invalid_request(
             "workflow-execution-sdk:unknown-step-status",
         ));

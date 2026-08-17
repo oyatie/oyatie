@@ -21,7 +21,15 @@ doctest = false
 name = "oya-cloud-ci-accounting-registry-app"
 path = "src/main.rs"
 
+# Cargo-only test-resource adapter. This is not a production or admission CLI: it supplies the
+# same emitter -> declared snapshot -> producer ordering that the required workflow materializer
+# owns when `cargo test --workspace` is run without workflow pre-steps.
+[[bin]]
+name = "oya-cloud-ci-cargo-test-producer-adapter"
+path = "src/bin/oya-cloud-ci-cargo-test-producer-adapter.rs"
+
 [dependencies]
+ci-path-resolver-adapters = { path = "../../adapters/path-resolver" }
 serde = { workspace = true }
 serde_json = { workspace = true }
 oya-ci-config-kernel = { path = "../../../libs/oya-ci-config" }

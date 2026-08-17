@@ -884,10 +884,7 @@ mod tests {
     #[test]
     fn rls_probe_failure_is_fail_closed_probe_failed() {
         let mapped = rls_probe_failed(sqlx::Error::RowNotFound);
-        assert!(matches!(
-            mapped,
-            RlsEnforceabilityError::ProbeFailed { .. }
-        ));
+        assert!(matches!(mapped, RlsEnforceabilityError::ProbeFailed { .. }));
     }
 
     #[test]

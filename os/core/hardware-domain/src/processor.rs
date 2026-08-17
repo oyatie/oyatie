@@ -131,9 +131,10 @@ impl Processor {
 fn wide_count(s: &Structure, byte_off: usize, word_off: usize) -> u16 {
     let narrow = s.byte(byte_off).unwrap_or(0);
     if narrow == 0xff
-        && let Some(w) = s.word(word_off) {
-            return w;
-        }
+        && let Some(w) = s.word(word_off)
+    {
+        return w;
+    }
     narrow as u16
 }
 

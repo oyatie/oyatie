@@ -10,7 +10,7 @@ use std::path::PathBuf;
 use std::process::ExitCode;
 
 use ci_canonical_json::{
-    POLICY_PATH, collect_observed, evaluate, fix_observed, load_policy, render_findings, Verdict,
+    POLICY_PATH, Verdict, collect_observed, evaluate, fix_observed, load_policy, render_findings,
 };
 
 struct Args {
@@ -20,7 +20,8 @@ struct Args {
     dry_run: bool,
 }
 
-const USAGE: &str = "usage: oya-cloud-ci-canonical-json [--repo-root <path>] [--policy <path>] [--fix [--dry-run]]";
+const USAGE: &str =
+    "usage: oya-cloud-ci-canonical-json [--repo-root <path>] [--policy <path>] [--fix [--dry-run]]";
 
 fn main() -> ExitCode {
     let args = match parse_args(std::env::args().skip(1).collect()) {
@@ -55,11 +56,18 @@ fn main() -> ExitCode {
     if args.fix {
         match fix_observed(&args.repo_root, &policy, &observed, args.dry_run) {
             Ok(report) => {
-                let verb = if args.dry_run { "would rewrite" } else { "rewrote" };
+                let verb = if args.dry_run {
+                    "would rewrite"
+                } else {
+                    "rewrote"
+                };
                 if report.fixed.is_empty() {
                     println!("canonical-json fixer: no files needed rewriting");
                 } else {
-                    println!("canonical-json fixer {verb} {} file(s):", report.fixed.len());
+                    println!(
+                        "canonical-json fixer {verb} {} file(s):",
+                        report.fixed.len()
+                    );
                     for path in &report.fixed {
                         println!("  {path}");
                     }

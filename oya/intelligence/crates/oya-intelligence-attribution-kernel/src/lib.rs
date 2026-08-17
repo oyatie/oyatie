@@ -56,15 +56,15 @@ pub struct AttributionClaim {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct AttributionRequest {
-    pub tenant_id: String,                    // data_class: INTERNAL_ONLY
-    pub output_ref: String,                   // data_class: INTERNAL_ONLY
-    pub audience: AttributionAudience,        // data_class: INTERNAL_ONLY
-    pub policy_evidence_ref: String,          // data_class: INTERNAL_ONLY
-    pub trace_context_ref: String,            // data_class: INTERNAL_ONLY
-    pub max_citations: usize,                 // data_class: INTERNAL_ONLY
-    pub max_citations_per_claim: usize,       // data_class: INTERNAL_ONLY
-    pub sources: Vec<AttributionSource>,      // data_class: INTERNAL_ONLY
-    pub claims: Vec<AttributionClaim>,        // data_class: INTERNAL_ONLY
+    pub tenant_id: String,               // data_class: INTERNAL_ONLY
+    pub output_ref: String,              // data_class: INTERNAL_ONLY
+    pub audience: AttributionAudience,   // data_class: INTERNAL_ONLY
+    pub policy_evidence_ref: String,     // data_class: INTERNAL_ONLY
+    pub trace_context_ref: String,       // data_class: INTERNAL_ONLY
+    pub max_citations: usize,            // data_class: INTERNAL_ONLY
+    pub max_citations_per_claim: usize,  // data_class: INTERNAL_ONLY
+    pub sources: Vec<AttributionSource>, // data_class: INTERNAL_ONLY
+    pub claims: Vec<AttributionClaim>,   // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
@@ -187,7 +187,9 @@ fn invalid_input_reasons(request: &AttributionRequest) -> Vec<String> {
     if request.max_citations == 0 || request.max_citations > MAX_CITATIONS {
         reasons.push(format!("max citations must be 1..={MAX_CITATIONS}"));
     }
-    if request.max_citations_per_claim == 0 || request.max_citations_per_claim > request.max_citations {
+    if request.max_citations_per_claim == 0
+        || request.max_citations_per_claim > request.max_citations
+    {
         reasons.push(format!(
             "max citations per claim must be 1..=max_citations ({})",
             request.max_citations

@@ -7,8 +7,10 @@ use std::{
     time::{Duration, Instant},
 };
 
-use intelligence_claude_agent_sdk::{ClaudeAgentOptions, Message, UserMessage, startup, startup_with_timeout};
 use futures::{StreamExt, stream};
+use intelligence_claude_agent_sdk::{
+    ClaudeAgentOptions, Message, UserMessage, startup, startup_with_timeout,
+};
 use serde_json::json;
 
 #[tokio::test]
@@ -53,7 +55,9 @@ async fn startup_prewarms_before_prompt_and_streams_once_ready() {
 
     // startup() must have already received the init response before returning,
     // so the oneshot must be receivable without blocking.
-    init_done_rx.await.expect("init response was not sent before startup() returned");
+    init_done_rx
+        .await
+        .expect("init response was not sent before startup() returned");
 
     let mut stream = warm.query("hello").unwrap();
     let first = stream.next().await.unwrap().unwrap();
@@ -172,7 +176,7 @@ async fn warm_query_close_closes_stdin_without_prompt() {
 #[tokio::test]
 async fn startup_honors_initialize_timeout() {
     let options = ClaudeAgentOptions::builder()
-        .spawn_claude_code_process(fake_cli(|mut r, mut w, _| async move {
+        .spawn_claude_code_process(fake_cli(|mut r, w, _| async move {
             // Read the init line but never respond — simulates a hung CLI.
             let _init = expect_json_line(&mut r).await;
             // Hold the task open until the SDK drops us.

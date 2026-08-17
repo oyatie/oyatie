@@ -33,7 +33,7 @@ The whole catalog is mirrored at `machine-readable/standards.json` for agent con
 
 | Template | Path | Used when | Required sections | Validator |
 |---|---|---|---|---|
-| Pull request | [`templates/pull-request-template.md`](templates/pull-request-template.md) | Every PR | Issue / Summary / Verification / Traceability / Evidence plus automated `## Code Review` verdict | `traceability-validator` + `oya-pr-review` CI lanes |
+| Pull request | [`templates/pull-request-template.md`](templates/pull-request-template.md) | Every PR | Issue / Summary / Verification / `## Code Review` | Local validator retired; merge contract requires `oya-ci-required` plus independent reviewer approval (`F-PR5-06` bounds cloud enforcement) |
 | ADR | [`templates/adr-template.md`](templates/adr-template.md) | New decision | Status / Supersedes / Superseded-by / Context / Decision / Consequences / Alternatives / Open-questions / References | `adr-template-coverage` CI lane |
 | Capability record | [`templates/capability-record-template.yaml`](templates/capability-record-template.yaml) | Foundry capability publish | id / namespace / inputs / outputs / autonomy_tier / data_classes / evidence_topic / regulatory_packs / cost_profile / sunset | `capability-schema-validator` |
 | Catalog record (per crate) | [`templates/catalog-record-template.yaml`](templates/catalog-record-template.yaml) | Every flat-crate | name (=package) / role / context / plane / contracts_consumed / contracts_exposed / regulatory_packs_consumed / lifecycle.state / traceability.github_issue / allowed_dependency_edges | `oya catalog validate` |
@@ -93,7 +93,6 @@ Hooks are mechanical gates fired by harnesses or git. Defined under `.claude/hoo
 | `session-start-doc-context` | Claude Code SessionStart | Loads consolidated docs into agent context | `.claude/hooks/session-start-doc-context.sh` |
 | `user-prompt-submit-skill-routing` | Claude Code UserPromptSubmit | Routes magic-keyword prompts to the right skill | `.claude/hooks/user-prompt-submit-skill-routing.sh` |
 | `stop-validation` | Claude Code Stop | Verifies no leftover incomplete tasks before yielding | `.claude/hooks/stop-validation.sh` |
-| `pr-merge-review-guard` | gh CLI PreToolUse | Refuses `gh pr merge` without `## Code Review` H2 with reviewer-agent verdict | `scripts/hooks/guard-pr-merge-review.mjs` (existing) |
 | `audit-emission-on-capability-invoke` | runtime | Every capability invocation emits an audit-chain record per ADR-0003 | `crates/oya-intelligence-evidence-*` |
 | `cohesion-fitness-on-pr` | CI | Runs `oya-governance-cohesion` on every PR | `.github/workflows/cohesion-fitness.yml` |
 | `license-fitness-on-pr` | CI | Runs `cargo deny licenses` + Trivy `--scanners license` + custom container scan | `.github/workflows/license-fitness.yml` |

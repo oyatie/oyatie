@@ -7,8 +7,8 @@
 use std::path::PathBuf;
 use std::process::ExitCode;
 
-use ci_facade_core_layering::{collect, evaluate_keyed, DECLARED_CODES};
-use serde_json::{json, Value};
+use ci_facade_core_layering::{DECLARED_CODES, collect, evaluate_keyed};
+use serde_json::{Value, json};
 
 const POLICY: &str = include_str!("../facade-core-layering-policy.json");
 

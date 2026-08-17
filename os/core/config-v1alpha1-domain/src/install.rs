@@ -140,17 +140,19 @@ impl Validator for EncryptionConfig {
         }
         for key in &self.keys {
             if let EncryptionKey::Static { passphrase, .. } = key
-                && passphrase.is_empty() {
-                    report.push(ValidationError::missing(
-                        "machine.systemDiskEncryption.keys[].static.passphrase",
-                    ));
-                }
+                && passphrase.is_empty()
+            {
+                report.push(ValidationError::missing(
+                    "machine.systemDiskEncryption.keys[].static.passphrase",
+                ));
+            }
             if let EncryptionKey::Kms { endpoint, .. } = key
-                && endpoint.is_empty() {
-                    report.push(ValidationError::missing(
-                        "machine.systemDiskEncryption.keys[].kms.endpoint",
-                    ));
-                }
+                && endpoint.is_empty()
+            {
+                report.push(ValidationError::missing(
+                    "machine.systemDiskEncryption.keys[].kms.endpoint",
+                ));
+            }
         }
     }
 }

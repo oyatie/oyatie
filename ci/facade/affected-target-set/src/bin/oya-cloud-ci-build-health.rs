@@ -200,18 +200,18 @@ fn trusted_baseline_exit(raw: &[String]) -> u8 {
     // was any record a machine could query, which is why a dead capability survived unnoticed for
     // the whole life of the owned fleet. `--out-dir` is validated inside `reuse_trusted_baselines`,
     // so re-reading it here without validation is only ever used as a directory to write into.
-    if let Some(out_dir) = flag_value(raw, "--out-dir") {
-        if let Err(error) = report_reuse_outcome(
+    if let Some(out_dir) = flag_value(raw, "--out-dir")
+        && let Err(error) = report_reuse_outcome(
             Path::new(out_dir),
             flag_value(raw, "--merge-base").unwrap_or("<unparsed>"),
             state,
             &why,
-        ) {
-            cleanup_baseline_outputs(Path::new(out_dir));
-            state = BaselineReuseState::Refused;
-            why = format!("outcome telemetry could not be persisted: {error}");
-            println!("::error title=Trusted-baseline telemetry failed::{why}");
-        }
+        )
+    {
+        cleanup_baseline_outputs(Path::new(out_dir));
+        state = BaselineReuseState::Refused;
+        why = format!("outcome telemetry could not be persisted: {error}");
+        println!("::error title=Trusted-baseline telemetry failed::{why}");
     }
 
     match state {

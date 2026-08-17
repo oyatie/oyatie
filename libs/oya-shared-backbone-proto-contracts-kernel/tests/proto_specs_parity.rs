@@ -61,10 +61,7 @@ fn crate_local_protos_match_canonical_specs_proto() {
             .unwrap_or_else(|e| panic!("crate-local proto missing: {local}: {e}"));
         let canonical_path = root.join(canonical);
         let canonical_bytes = std::fs::read(&canonical_path).unwrap_or_else(|e| {
-            panic!(
-                "canonical proto missing: {}: {e}",
-                canonical_path.display()
-            )
+            panic!("canonical proto missing: {}: {e}", canonical_path.display())
         });
         if local_bytes != canonical_bytes {
             mismatches.push(format!("{local} != {canonical}"));

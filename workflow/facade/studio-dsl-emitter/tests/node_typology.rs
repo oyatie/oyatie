@@ -46,11 +46,7 @@ fn cond_edge(from: &str, to: &str, condition: &str) -> WorkflowSpecEdge {
     WorkflowSpecEdge::new(from, to, Some(condition.to_string()))
 }
 
-fn spec(
-    def_id: &str,
-    nodes: Vec<WorkflowSpecNode>,
-    edges: Vec<WorkflowSpecEdge>,
-) -> WorkflowSpec {
+fn spec(def_id: &str, nodes: Vec<WorkflowSpecNode>, edges: Vec<WorkflowSpecEdge>) -> WorkflowSpec {
     WorkflowSpec::new("ten_acme", def_id, "1.0.0", nodes, edges)
 }
 
@@ -65,10 +61,7 @@ fn branch_node_single_unconditional_edge_is_rejected() {
     // wfn_branch -> wfn_end (unconditional, only one outgoing edge)
     let s = spec(
         "wfd_branch_single_uncond",
-        vec![
-            branch_node("wfn_branch"),
-            transform_node("wfn_end", "End"),
-        ],
+        vec![branch_node("wfn_branch"), transform_node("wfn_end", "End")],
         vec![edge("wfn_branch", "wfn_end")],
     );
     assert_eq!(
@@ -197,10 +190,7 @@ fn join_node_single_inbound_edge_is_rejected() {
     // Linear: wfn_start -> wfn_join, wfn_join has exactly 1 inbound edge.
     let s = spec(
         "wfd_join_single_inbound",
-        vec![
-            http_node("wfn_start", "Start"),
-            join_node("wfn_join"),
-        ],
+        vec![http_node("wfn_start", "Start"), join_node("wfn_join")],
         vec![edge("wfn_start", "wfn_join")],
     );
     assert_eq!(
@@ -218,11 +208,7 @@ fn join_node_zero_inbound_edges_is_rejected() {
     // wfn_join has no incoming edges (in-degree 0).
     // It is therefore an entry node. It has no outgoing edges (it IS terminal).
     // JoinNodeRequiresMultipleInbound fires (before MissingTerminalNode is relevant).
-    let s = spec(
-        "wfd_join_zero_inbound",
-        vec![join_node("wfn_join")],
-        vec![],
-    );
+    let s = spec("wfd_join_zero_inbound", vec![join_node("wfn_join")], vec![]);
     assert_eq!(
         s.validate(),
         Err(WorkflowSpecEmitError::JoinNodeRequiresMultipleInbound(
@@ -243,10 +229,7 @@ fn join_node_multiple_inbound_edges_passes() {
             http_node("wfn_b", "B"),
             join_node("wfn_join"),
         ],
-        vec![
-            edge("wfn_a", "wfn_join"),
-            edge("wfn_b", "wfn_join"),
-        ],
+        vec![edge("wfn_a", "wfn_join"), edge("wfn_b", "wfn_join")],
     );
     assert_eq!(
         s.validate(),
@@ -268,10 +251,7 @@ fn join_node_first_sorted_offender_reported() {
             join_node("wfn_j1"),
             join_node("wfn_j2"),
         ],
-        vec![
-            edge("wfn_a", "wfn_j1"),
-            edge("wfn_b", "wfn_j2"),
-        ],
+        vec![edge("wfn_a", "wfn_j1"), edge("wfn_b", "wfn_j2")],
     );
     assert_eq!(
         s.validate(),
@@ -533,10 +513,7 @@ fn node_typology_fires_after_ambiguous_default_edge() {
             transform_node("wfn_x", "X"),
             transform_node("wfn_y", "Y"),
         ],
-        vec![
-            edge("wfn_branch", "wfn_x"),
-            edge("wfn_branch", "wfn_y"),
-        ],
+        vec![edge("wfn_branch", "wfn_x"), edge("wfn_branch", "wfn_y")],
     );
     assert_eq!(
         s.validate(),
@@ -592,10 +569,7 @@ fn node_typology_fires_after_unreachable_node() {
             join_node("wfn_j1"),
             transform_node("wfn_cycle_a", "CycleA"),
         ],
-        vec![
-            edge("wfn_cycle_a", "wfn_j1"),
-            edge("wfn_j1", "wfn_cycle_a"),
-        ],
+        vec![edge("wfn_cycle_a", "wfn_j1"), edge("wfn_j1", "wfn_cycle_a")],
     );
     assert!(
         matches!(s.validate(), Err(WorkflowSpecEmitError::UnreachableNode(_))),
@@ -609,8 +583,7 @@ fn node_typology_fires_after_unreachable_node() {
 
 #[test]
 fn branch_node_requires_conditional_edges_has_human_readable_display() {
-    let err =
-        WorkflowSpecEmitError::BranchNodeRequiresConditionalEdges("wfn_branch".to_string());
+    let err = WorkflowSpecEmitError::BranchNodeRequiresConditionalEdges("wfn_branch".to_string());
     let msg = format!("{err}");
     assert!(
         msg.contains("wfn_branch"),
@@ -620,8 +593,7 @@ fn branch_node_requires_conditional_edges_has_human_readable_display() {
 
 #[test]
 fn join_node_requires_multiple_inbound_has_human_readable_display() {
-    let err =
-        WorkflowSpecEmitError::JoinNodeRequiresMultipleInbound("wfn_join".to_string());
+    let err = WorkflowSpecEmitError::JoinNodeRequiresMultipleInbound("wfn_join".to_string());
     let msg = format!("{err}");
     assert!(
         msg.contains("wfn_join"),
@@ -647,8 +619,14 @@ fn branch_node_requires_conditional_edges_partial_eq() {
     let a = WorkflowSpecEmitError::BranchNodeRequiresConditionalEdges("wfn_x".to_string());
     let b = WorkflowSpecEmitError::BranchNodeRequiresConditionalEdges("wfn_x".to_string());
     let c = WorkflowSpecEmitError::BranchNodeRequiresConditionalEdges("wfn_y".to_string());
-    assert_eq!(a, b, "same-id BranchNodeRequiresConditionalEdges must be equal");
-    assert_ne!(a, c, "different-id BranchNodeRequiresConditionalEdges must differ");
+    assert_eq!(
+        a, b,
+        "same-id BranchNodeRequiresConditionalEdges must be equal"
+    );
+    assert_ne!(
+        a, c,
+        "different-id BranchNodeRequiresConditionalEdges must differ"
+    );
 }
 
 #[test]
@@ -656,8 +634,14 @@ fn join_node_requires_multiple_inbound_partial_eq() {
     let a = WorkflowSpecEmitError::JoinNodeRequiresMultipleInbound("wfn_j".to_string());
     let b = WorkflowSpecEmitError::JoinNodeRequiresMultipleInbound("wfn_j".to_string());
     let c = WorkflowSpecEmitError::JoinNodeRequiresMultipleInbound("wfn_k".to_string());
-    assert_eq!(a, b, "same-id JoinNodeRequiresMultipleInbound must be equal");
-    assert_ne!(a, c, "different-id JoinNodeRequiresMultipleInbound must differ");
+    assert_eq!(
+        a, b,
+        "same-id JoinNodeRequiresMultipleInbound must be equal"
+    );
+    assert_ne!(
+        a, c,
+        "different-id JoinNodeRequiresMultipleInbound must differ"
+    );
 }
 
 #[test]

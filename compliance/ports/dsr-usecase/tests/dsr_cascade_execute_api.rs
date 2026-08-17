@@ -6,16 +6,17 @@ use std::sync::Arc;
 
 use compliance_dsr_usecase::authz::{
     ConfiguredBearerDsrPrincipalVerifier, DsrCallerCredential, DsrCascadeAuthorizationError,
-    DsrCascadeAuthorizer, DsrCascadeAuthzProvider, DsrCascadeResource, DsrPrincipalVerificationError,
-    DsrCascadePrincipalVerifier, VerifiedDsrPrincipal,
+    DsrCascadeAuthorizer, DsrCascadeAuthzProvider, DsrCascadePrincipalVerifier, DsrCascadeResource,
+    DsrPrincipalVerificationError, VerifiedDsrPrincipal,
 };
 use compliance_dsr_usecase::{
-    PLATFORM_DSR_CASCADE_EXECUTE_SURFACE, PLATFORM_DSR_OPENAPI_CONTRACT, PlatformDsrApiAuthorization,
-    PlatformDsrApiError, PlatformDsrApiPrincipal, PlatformDsrCascadeBoundaryContext,
-    PlatformDsrCascadeDirectory, PlatformDsrCascadeExecuteApiRequest,
-    PlatformDsrCascadeExecuteApiStatus, PlatformDsrCascadeExecuteIdempotencyLedger,
-    PlatformDsrCascadeExecuteRequest, PlatformDsrCascadeMetadata, PlatformDsrCascadeTargetRequest,
-    PlatformDsrCompletionRecord, execute_dsr_cascade_from_api,
+    PLATFORM_DSR_CASCADE_EXECUTE_SURFACE, PLATFORM_DSR_OPENAPI_CONTRACT,
+    PlatformDsrApiAuthorization, PlatformDsrApiError, PlatformDsrApiPrincipal,
+    PlatformDsrCascadeBoundaryContext, PlatformDsrCascadeDirectory,
+    PlatformDsrCascadeExecuteApiRequest, PlatformDsrCascadeExecuteApiStatus,
+    PlatformDsrCascadeExecuteIdempotencyLedger, PlatformDsrCascadeExecuteRequest,
+    PlatformDsrCascadeMetadata, PlatformDsrCascadeTargetRequest, PlatformDsrCompletionRecord,
+    execute_dsr_cascade_from_api,
 };
 
 const DSR_ID: &str = "dsr_001";
@@ -29,8 +30,9 @@ const BEARER_SECRET: &str = "dsr-break-glass";
 /// no public constructor for `VerifiedDsrPrincipal`, so this is the ONLY way an
 /// external crate can obtain one — proving the type is unforgeable.
 fn verified_principal() -> VerifiedDsrPrincipal {
-    let verifier = ConfiguredBearerDsrPrincipalVerifier::new(BEARER_SECRET, PRINCIPAL_ID, TENANT_ID)
-        .expect("verifier construction");
+    let verifier =
+        ConfiguredBearerDsrPrincipalVerifier::new(BEARER_SECRET, PRINCIPAL_ID, TENANT_ID)
+            .expect("verifier construction");
     verifier
         .verify_principal(&DsrCallerCredential {
             authorization: Some(format!("Bearer {BEARER_SECRET}")),
@@ -98,8 +100,9 @@ impl DsrCascadeAuthorizer for TargetBindingAssertingAuthorizer {
 }
 
 fn provider_with(authorizer: Arc<dyn DsrCascadeAuthorizer>) -> DsrCascadeAuthzProvider {
-    let verifier = ConfiguredBearerDsrPrincipalVerifier::new(BEARER_SECRET, PRINCIPAL_ID, TENANT_ID)
-        .expect("verifier construction");
+    let verifier =
+        ConfiguredBearerDsrPrincipalVerifier::new(BEARER_SECRET, PRINCIPAL_ID, TENANT_ID)
+            .expect("verifier construction");
     DsrCascadeAuthzProvider::new(Arc::new(verifier), authorizer)
 }
 

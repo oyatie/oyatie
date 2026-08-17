@@ -177,7 +177,9 @@ pub fn collect(root: &Path, policy: &Value) -> Result<Value, CollectError> {
     crates.sort();
     crates.dedup();
 
-    let ignored: BTreeSet<String> = string_array(policy, "ignored_top_level_dirs").into_iter().collect();
+    let ignored: BTreeSet<String> = string_array(policy, "ignored_top_level_dirs")
+        .into_iter()
+        .collect();
     let top_level_dirs = collect_top_level_dirs(root, &ignored)?;
 
     let registry_path = policy
@@ -203,14 +205,19 @@ pub fn collect(root: &Path, policy: &Value) -> Result<Value, CollectError> {
 /// Recursively collect repo-relative crate dirs (a `Cargo.toml` with a `[package]` section) under
 /// `dir`. A missing scan root is not an error (repo-portable). `[package]` detection mirrors cargo:
 /// a manifest with `[package]` is a crate; a `[workspace]`-only manifest is a virtual workspace.
-fn collect_crate_dirs(dir: &Path, repo_root: &Path, out: &mut Vec<String>) -> Result<(), CollectError> {
+fn collect_crate_dirs(
+    dir: &Path,
+    repo_root: &Path,
+    out: &mut Vec<String>,
+) -> Result<(), CollectError> {
     let entries = match fs::read_dir(dir) {
         Ok(entries) => entries,
         Err(ref e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(()),
         Err(e) => return Err(CollectError::Io(format!("read dir {}: {e}", dir.display()))),
     };
     for entry in entries {
-        let entry = entry.map_err(|e| CollectError::Io(format!("entry in {}: {e}", dir.display())))?;
+        let entry =
+            entry.map_err(|e| CollectError::Io(format!("entry in {}: {e}", dir.display())))?;
         let path = entry.path();
         let file_type = entry
             .file_type()
@@ -223,9 +230,7 @@ fn collect_crate_dirs(dir: &Path, repo_root: &Path, out: &mut Vec<String>) -> Re
             collect_crate_dirs(&path, repo_root, out)?;
         } else if path.file_name().and_then(|n| n.to_str()) == Some("Cargo.toml") {
             let is_crate = manifest_declares_package(&path)?;
-            if is_crate
-                && let Some(parent) = path.parent()
-            {
+            if is_crate && let Some(parent) = path.parent() {
                 let rel = parent
                     .strip_prefix(repo_root)
                     .map(|p| p.to_string_lossy().replace('\\', "/"))
@@ -251,7 +256,10 @@ fn manifest_declares_package(manifest: &Path) -> Result<bool, CollectError> {
 /// The repo's source top-level directory set (for the closed-set check). Skips hidden dirs (`.git`,
 /// `.omc`, ...) and any `ignored` build-artifact dir (`buck-out`, `target`, ... — DATA from the
 /// policy `ignored_top_level_dirs`), so generated/untracked dirs never trip the closed-set rule.
-fn collect_top_level_dirs(root: &Path, ignored: &BTreeSet<String>) -> Result<Vec<String>, CollectError> {
+fn collect_top_level_dirs(
+    root: &Path,
+    ignored: &BTreeSet<String>,
+) -> Result<Vec<String>, CollectError> {
     let mut dirs = Vec::new();
     let entries = fs::read_dir(root)
         .map_err(|e| CollectError::Io(format!("read repo root {}: {e}", root.display())))?;
@@ -283,7 +291,12 @@ fn string_array(value: &Value, key: &str) -> Vec<String> {
     value
         .get(key)
         .and_then(Value::as_array)
-        .map(|arr| arr.iter().filter_map(Value::as_str).map(str::to_owned).collect())
+        .map(|arr| {
+            arr.iter()
+                .filter_map(Value::as_str)
+                .map(str::to_owned)
+                .collect()
+        })
         .unwrap_or_default()
 }
 
@@ -348,7 +361,8 @@ pub fn parse_mapping(registry: &Value) -> Result<Mapping, String> {
         .get("membership_lint_coverage")
         .and_then(Value::as_object)
         .ok_or_else(|| {
-            "registry `membership_lint_coverage` must be present (the membership-lint extension)".to_owned()
+            "registry `membership_lint_coverage` must be present (the membership-lint extension)"
+                .to_owned()
         })?;
 
     // app_products → app/
@@ -363,7 +377,10 @@ pub fn parse_mapping(registry: &Value) -> Result<Mapping, String> {
     }
 
     // meta_directory_absorbs → kernel/, os/, ...
-    if let Some(arr) = coverage.get("meta_directory_absorbs").and_then(Value::as_array) {
+    if let Some(arr) = coverage
+        .get("meta_directory_absorbs")
+        .and_then(Value::as_array)
+    {
         for entry in arr {
             let meta = entry
                 .get("meta_dir")
@@ -376,14 +393,19 @@ pub fn parse_mapping(registry: &Value) -> Result<Mapping, String> {
     }
 
     // absorbs_current_crate_globs → capability or meta
-    if let Some(arr) = coverage.get("absorbs_current_crate_globs").and_then(Value::as_array) {
+    if let Some(arr) = coverage
+        .get("absorbs_current_crate_globs")
+        .and_then(Value::as_array)
+    {
         for entry in arr {
             let home = if let Some(cap) = entry.get("capability").and_then(Value::as_str) {
                 format!("capability:{cap}")
             } else if let Some(meta) = entry.get("meta_dir").and_then(Value::as_str) {
                 format!("meta:{meta}")
             } else {
-                return Err("an absorbs_current_crate_globs entry lacks `capability`/`meta_dir`".to_owned());
+                return Err(
+                    "an absorbs_current_crate_globs entry lacks `capability`/`meta_dir`".to_owned(),
+                );
             };
             for g in string_array(entry, "globs") {
                 globs.push((g, home.clone()));
@@ -395,11 +417,18 @@ pub fn parse_mapping(registry: &Value) -> Result<Mapping, String> {
         .get("frozen_unmapped_baseline")
         .and_then(|b| b.get("crates"))
         .and_then(Value::as_array)
-        .map(|arr| arr.iter().filter_map(Value::as_str).map(str::to_owned).collect())
+        .map(|arr| {
+            arr.iter()
+                .filter_map(Value::as_str)
+                .map(str::to_owned)
+                .collect()
+        })
         .unwrap_or_default();
 
     if dir_prefixes.is_empty() {
-        return Err("registry produced zero dir→home mappings (capabilities/coverage empty?)".to_owned());
+        return Err(
+            "registry produced zero dir→home mappings (capabilities/coverage empty?)".to_owned(),
+        );
     }
 
     Ok(Mapping {
@@ -544,7 +573,9 @@ pub fn evaluate_keyed(policy: &Value, observed: &Value) -> BTreeSet<Finding> {
     }
 
     // 2. Closed top-level-dir set: no NEW top-level dir outside allowed_top_level_dirs.
-    let allowed: BTreeSet<String> = string_array(policy, "allowed_top_level_dirs").into_iter().collect();
+    let allowed: BTreeSet<String> = string_array(policy, "allowed_top_level_dirs")
+        .into_iter()
+        .collect();
     for dir in string_array(observed, "top_level_dirs") {
         if !allowed.contains(&dir) {
             findings.insert(Finding::new(
@@ -661,7 +692,9 @@ fn evaluate_base_admission(
     crates: &[String],
     findings: &mut BTreeSet<Finding>,
 ) {
-    let facts = observed.get("base_admission_facts").and_then(Value::as_object);
+    let facts = observed
+        .get("base_admission_facts")
+        .and_then(Value::as_object);
     for crate_dir in crates {
         if !(crate_dir == "base" || crate_dir.starts_with("base/")) {
             continue;
@@ -698,7 +731,10 @@ fn evaluate_base_admission(
 #[must_use]
 pub fn evaluate(policy: &Value, observed: &Value) -> Report {
     let findings = evaluate_keyed(policy, observed);
-    let violations = findings.iter().map(|f| f.code.clone()).collect::<BTreeSet<_>>();
+    let violations = findings
+        .iter()
+        .map(|f| f.code.clone())
+        .collect::<BTreeSet<_>>();
 
     let registry = observed.get("registry").cloned().unwrap_or(Value::Null);
     let crates: Vec<String> = string_array(observed, "crates");

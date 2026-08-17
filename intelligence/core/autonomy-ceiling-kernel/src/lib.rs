@@ -8,7 +8,9 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 pub mod tenant_ceiling;
-pub use tenant_ceiling::{BatchCeilingVerdict, TenantCeiling, TenantCeilingVerdict, resolve, resolve_batch};
+pub use tenant_ceiling::{
+    BatchCeilingVerdict, TenantCeiling, TenantCeilingVerdict, resolve, resolve_batch,
+};
 
 use std::fmt;
 

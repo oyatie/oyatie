@@ -10,8 +10,8 @@ pub use identity_employment_classification::{
 
 pub mod credential_revocation;
 pub use credential_revocation::{
-    CredentialStatus, RevocationError, RevocationLedger, RevocationReason,
-    UnknownRevocationReason, token_fingerprint,
+    CredentialStatus, RevocationError, RevocationLedger, RevocationReason, UnknownRevocationReason,
+    token_fingerprint,
 };
 
 use std::fmt;

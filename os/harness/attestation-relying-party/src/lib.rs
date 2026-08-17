@@ -358,9 +358,7 @@ mod tests {
     fn outage_collateral_is_unknown_never_pass() {
         let v = StubRelyingPartyVerifier::default();
         let evidence = GuestEvidence::scaffold_collector(TeeType::Tdx, 64);
-        let r = v
-            .verify(&evidence, CollateralStatus::Unavailable)
-            .unwrap();
+        let r = v.verify(&evidence, CollateralStatus::Unavailable).unwrap();
         assert_eq!(r.verdict(), AttestationVerdict::Unknown);
     }
 
@@ -377,9 +375,11 @@ mod tests {
     #[test]
     fn cedar_keys_are_closed_and_stable() {
         assert_eq!(CEDAR_CONTEXT_KEYS.len(), 7);
-        assert!(CEDAR_CONTEXT_KEYS
-            .iter()
-            .all(|k| k.starts_with("context.attestation.")));
+        assert!(
+            CEDAR_CONTEXT_KEYS
+                .iter()
+                .all(|k| k.starts_with("context.attestation."))
+        );
     }
 
     #[test]

@@ -321,17 +321,11 @@ mod tests {
                 ENV_BUNDLE_PATH.to_owned(),
                 "/etc/pdp/bundle.json".to_owned(),
             ),
-            (
-                ENV_BUNDLE_TRUST_DIR.to_owned(),
-                "/etc/pdp/trust".to_owned(),
-            ),
+            (ENV_BUNDLE_TRUST_DIR.to_owned(), "/etc/pdp/trust".to_owned()),
             (ENV_REST_ADDR.to_owned(), "127.0.0.1:9090".to_owned()),
             (ENV_GRPC_ADDR.to_owned(), "127.0.0.1:9091".to_owned()),
             (ENV_DECISION_CACHE_CAPACITY.to_owned(), "128".to_owned()),
-            (
-                ENV_MTLS_CERT_DIR.to_owned(),
-                "/var/run/pdp/svid".to_owned(),
-            ),
+            (ENV_MTLS_CERT_DIR.to_owned(), "/var/run/pdp/svid".to_owned()),
         ])
     }
 
@@ -342,10 +336,7 @@ mod tests {
                 ENV_BUNDLE_PATH.to_owned(),
                 "/etc/pdp/bundle.json".to_owned(),
             ),
-            (
-                ENV_BUNDLE_TRUST_DIR.to_owned(),
-                "/etc/pdp/trust".to_owned(),
-            ),
+            (ENV_BUNDLE_TRUST_DIR.to_owned(), "/etc/pdp/trust".to_owned()),
         ])
     }
 
@@ -411,7 +402,10 @@ mod tests {
     fn mtls_cert_dir_resolves_present_and_defaults() {
         // Present: the env value flows through verbatim.
         let mut vars = required_vars();
-        vars.insert(ENV_MTLS_CERT_DIR.to_owned(), "/custom/svid/mount".to_owned());
+        vars.insert(
+            ENV_MTLS_CERT_DIR.to_owned(),
+            "/custom/svid/mount".to_owned(),
+        );
         let config = PdpConfig::from_lookup(&vars).unwrap();
         assert_eq!(config.mtls_cert_dir, "/custom/svid/mount");
 

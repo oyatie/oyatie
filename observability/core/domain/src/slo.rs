@@ -64,7 +64,10 @@ impl SLOObjective {
                 reason: "target_ratio must be in (0.0, 1.0]",
             });
         }
-        Ok(Self { target_ratio, window_secs })
+        Ok(Self {
+            target_ratio,
+            window_secs,
+        })
     }
 
     /// Return the target reliability ratio.
@@ -251,7 +254,10 @@ pub mod budget {
         ///
         /// # data_class: INTERNAL_ONLY
         pub const fn new(good_events: u64, bad_events: u64) -> Self {
-            Self { good_events, bad_events }
+            Self {
+                good_events,
+                bad_events,
+            }
         }
 
         /// Total event count (`good + bad`), saturating at `u64::MAX`.
@@ -581,7 +587,10 @@ mod tests {
         let err = InvalidSLOObjective {
             reason: "target_ratio must be in (0.0, 1.0]",
         };
-        assert!(err.to_string().contains("target_ratio must be in (0.0, 1.0]"));
+        assert!(
+            err.to_string()
+                .contains("target_ratio must be in (0.0, 1.0]")
+        );
     }
 
     // --- slo_fields constants ---
@@ -589,7 +598,10 @@ mod tests {
     #[test]
     fn slo_fields_wire_values_are_stable() {
         assert_eq!(slo_fields::SLO_NAME, "oyatie.slo.name");
-        assert_eq!(slo_fields::SLO_OBJECTIVE_RATIO, "oyatie.slo.objective_ratio");
+        assert_eq!(
+            slo_fields::SLO_OBJECTIVE_RATIO,
+            "oyatie.slo.objective_ratio"
+        );
         assert_eq!(
             slo_fields::ERROR_BUDGET_REMAINING,
             "oyatie.slo.error_budget_remaining"
@@ -601,10 +613,7 @@ mod tests {
 
     #[test]
     fn classify_both_windows_above_page_threshold_returns_page() {
-        assert_eq!(
-            classify_burn_rate(0.03, 15.0, 15.0),
-            AlertDecision::Page
-        );
+        assert_eq!(classify_burn_rate(0.03, 15.0, 15.0), AlertDecision::Page);
     }
 
     #[test]
@@ -630,43 +639,28 @@ mod tests {
 
     #[test]
     fn classify_both_windows_above_ticket_threshold_returns_ticket() {
-        assert_eq!(
-            classify_burn_rate(0.06, 7.0, 7.0),
-            AlertDecision::Ticket
-        );
+        assert_eq!(classify_burn_rate(0.06, 7.0, 7.0), AlertDecision::Ticket);
     }
 
     #[test]
     fn classify_ticket_budget_not_consumed_enough_returns_none() {
         // consumed=0.04 < TICKET_BUDGET_CONSUMED_MIN (0.05)
-        assert_eq!(
-            classify_burn_rate(0.04, 7.0, 7.0),
-            AlertDecision::None
-        );
+        assert_eq!(classify_burn_rate(0.04, 7.0, 7.0), AlertDecision::None);
     }
 
     #[test]
     fn classify_below_all_thresholds_returns_none() {
-        assert_eq!(
-            classify_burn_rate(0.50, 1.0, 1.0),
-            AlertDecision::None
-        );
+        assert_eq!(classify_burn_rate(0.50, 1.0, 1.0), AlertDecision::None);
     }
 
     #[test]
     fn classify_page_wins_over_ticket_when_both_conditions_met() {
         // exceeds both page and ticket budget minimums; page check fires first
-        assert_eq!(
-            classify_burn_rate(0.10, 15.0, 15.0),
-            AlertDecision::Page
-        );
+        assert_eq!(classify_burn_rate(0.10, 15.0, 15.0), AlertDecision::Page);
     }
 
     #[test]
     fn classify_exact_page_boundary_returns_page() {
-        assert_eq!(
-            classify_burn_rate(0.02, 14.4, 14.4),
-            AlertDecision::Page
-        );
+        assert_eq!(classify_burn_rate(0.02, 14.4, 14.4), AlertDecision::Page);
     }
 }

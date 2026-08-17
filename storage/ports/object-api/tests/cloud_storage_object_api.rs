@@ -2,24 +2,23 @@
 // `.expect_err()` / `.unwrap_err()` to assert invariants — Tier 3 exemption.
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
+use network_residency::ResidencyClass;
+use oya_data_boundary_kernel::DataClass;
 use storage_domain::{
     BucketCreate, BucketState, BucketTier, CloudStorageCatalog, CloudStorageError, EncryptionMode,
     ObjectLockMode, ObjectLockPolicy, ReplicationPolicyCreate, StorageRepo,
 };
 use storage_object_api::{
     CLOUD_STORAGE_OBJECT_GET_SURFACE, CLOUD_STORAGE_OBJECT_PUT_SURFACE,
-    CloudStorageObjectApiAuthorization, CloudStorageObjectApiError,
-    CloudStorageObjectApiErrorCode, CloudStorageObjectApiPrincipal,
-    CloudStorageObjectEncryptionBindingRequest, CloudStorageObjectGetApiRequest,
-    CloudStorageObjectGetApiStatus, CloudStorageObjectMutationBoundaryContext,
-    CloudStorageObjectPutApiRequest, CloudStorageObjectPutApiStatus,
-    CloudStorageObjectPutIdempotencyEntry, CloudStorageObjectPutIdempotencyLedger,
-    CloudStorageObjectPutRequest, CloudStorageObjectReadBoundaryContext,
-    CloudStorageObjectReplayOutcome, get_cloud_storage_object_from_api,
-    put_cloud_storage_object_from_api,
+    CloudStorageObjectApiAuthorization, CloudStorageObjectApiError, CloudStorageObjectApiErrorCode,
+    CloudStorageObjectApiPrincipal, CloudStorageObjectEncryptionBindingRequest,
+    CloudStorageObjectGetApiRequest, CloudStorageObjectGetApiStatus,
+    CloudStorageObjectMutationBoundaryContext, CloudStorageObjectPutApiRequest,
+    CloudStorageObjectPutApiStatus, CloudStorageObjectPutIdempotencyEntry,
+    CloudStorageObjectPutIdempotencyLedger, CloudStorageObjectPutRequest,
+    CloudStorageObjectReadBoundaryContext, CloudStorageObjectReplayOutcome,
+    get_cloud_storage_object_from_api, put_cloud_storage_object_from_api,
 };
-use oya_data_boundary_kernel::DataClass;
-use network_residency::ResidencyClass;
 
 const BUCKET_ID: &str = "oya:cloud:region-home:ten_alpha:bucket:tenant-assets";
 const OBJECT_KEY: &str = "workspace/report.pdf";
@@ -503,10 +502,20 @@ fn composite_key_isolates_principal_scope() {
 
     // peek for each principal returns their own entry.
     let alpha_entry = ledger
-        .peek("ten_alpha", "sp_alpha", CLOUD_STORAGE_OBJECT_PUT_SURFACE, "idem-shared-key")
+        .peek(
+            "ten_alpha",
+            "sp_alpha",
+            CLOUD_STORAGE_OBJECT_PUT_SURFACE,
+            "idem-shared-key",
+        )
         .expect("sp_alpha peek returns Some");
     let beta_entry = ledger
-        .peek("ten_alpha", "sp_beta", CLOUD_STORAGE_OBJECT_PUT_SURFACE, "idem-shared-key")
+        .peek(
+            "ten_alpha",
+            "sp_beta",
+            CLOUD_STORAGE_OBJECT_PUT_SURFACE,
+            "idem-shared-key",
+        )
         .expect("sp_beta peek returns Some");
 
     assert!(matches!(
@@ -547,7 +556,11 @@ fn shred_proof_ref_change_yields_idempotency_key_reused_conflict() {
         },
         "shred_proof_ref must be part of the fingerprint canonical form"
     );
-    assert_eq!(catalog.objects().count(), 1, "catalog unchanged on conflict");
+    assert_eq!(
+        catalog.objects().count(),
+        1,
+        "catalog unchanged on conflict"
+    );
 }
 
 /// `IdempotencyKeyReused` maps to HTTP 422 and the canonical error code string
@@ -609,7 +622,12 @@ fn peek_entry_fields_match_recorded_put_response_exactly() {
         idempotency_key,
         outcome,
     } = ledger
-        .peek("ten_alpha", "sp_storage", CLOUD_STORAGE_OBJECT_PUT_SURFACE, "idem-peek-exact")
+        .peek(
+            "ten_alpha",
+            "sp_storage",
+            CLOUD_STORAGE_OBJECT_PUT_SURFACE,
+            "idem-peek-exact",
+        )
         .expect("peek returns Some after successful PUT");
 
     assert_eq!(
@@ -671,7 +689,12 @@ fn multiple_independent_keys_on_same_ledger_do_not_interfere() {
 
     // peek for key-B is still independently accessible.
     let b_entry = ledger
-        .peek("ten_alpha", "sp_storage", CLOUD_STORAGE_OBJECT_PUT_SURFACE, "idem-multi-b")
+        .peek(
+            "ten_alpha",
+            "sp_storage",
+            CLOUD_STORAGE_OBJECT_PUT_SURFACE,
+            "idem-multi-b",
+        )
         .expect("key-B peek is still present after key-A replay");
     assert!(matches!(
         b_entry.outcome,

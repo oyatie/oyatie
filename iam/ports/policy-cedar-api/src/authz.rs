@@ -350,9 +350,9 @@ pub fn constant_time_eq(a: &[u8], b: &[u8]) -> bool {
 /// a credential root can never authenticate a caller (mirrors the cloud-pdp
 /// boot-refusal doctrine).
 pub struct ConfiguredBearerPrincipalVerifier {
-    bearer_secret: String,            // data_class: SECRET
-    bound_principal_id: String,       // data_class: INTERNAL_ONLY
-    bound_tenant_id: String,          // data_class: INTERNAL_ONLY
+    bearer_secret: String,      // data_class: SECRET
+    bound_principal_id: String, // data_class: INTERNAL_ONLY
+    bound_tenant_id: String,    // data_class: INTERNAL_ONLY
 }
 
 impl ConfiguredBearerPrincipalVerifier {

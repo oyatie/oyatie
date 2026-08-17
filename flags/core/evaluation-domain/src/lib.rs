@@ -21,10 +21,10 @@ pub mod engine;
 pub mod model;
 pub mod port;
 
-pub use engine::{evaluate, EvalErrorCode, Evaluation, Reason};
+pub use engine::{EvalErrorCode, Evaluation, Reason, evaluate};
 pub use model::{
     AttrValue, Condition, EvaluationContext, Flag, FlagKey, FlagValue, Operand, Operator, Rollout,
-    Rule, RuleOutcome, Variant, VariantKey, TOTAL_BASIS_POINTS,
+    Rule, RuleOutcome, TOTAL_BASIS_POINTS, Variant, VariantKey,
 };
 pub use port::{FlagSource, FlagSourceError};
 
@@ -35,8 +35,14 @@ mod tests {
 
     fn bool_variants() -> Vec<Variant> {
         vec![
-            Variant { key: "on".into(), value: FlagValue::Bool(true) },
-            Variant { key: "off".into(), value: FlagValue::Bool(false) },
+            Variant {
+                key: "on".into(),
+                value: FlagValue::Bool(true),
+            },
+            Variant {
+                key: "off".into(),
+                value: FlagValue::Bool(false),
+            },
         ]
     }
 
@@ -83,14 +89,14 @@ mod tests {
             outcome: RuleOutcome::Fixed("on".into()),
         }];
 
-        let matching = EvaluationContext::for_key("u1")
-            .with_attr("tenant", AttrValue::Str("acme".into()));
+        let matching =
+            EvaluationContext::for_key("u1").with_attr("tenant", AttrValue::Str("acme".into()));
         let ev = evaluate(&flag, &matching);
         assert_eq!(ev.variant, "on");
         assert_eq!(ev.reason, Reason::TargetingMatch);
 
-        let non_matching = EvaluationContext::for_key("u1")
-            .with_attr("tenant", AttrValue::Str("other".into()));
+        let non_matching =
+            EvaluationContext::for_key("u1").with_attr("tenant", AttrValue::Str("other".into()));
         let ev2 = evaluate(&flag, &non_matching);
         assert_eq!(ev2.variant, "off");
         assert_eq!(ev2.reason, Reason::Default);
@@ -108,7 +114,8 @@ mod tests {
             }],
             outcome: RuleOutcome::Fixed("on".into()),
         }];
-        let ctx = EvaluationContext::for_key("u1").with_attr("ring", AttrValue::Str("canary".into()));
+        let ctx =
+            EvaluationContext::for_key("u1").with_attr("ring", AttrValue::Str("canary".into()));
         assert_eq!(evaluate(&flag, &ctx).variant, "on");
         let ctx2 = EvaluationContext::for_key("u1").with_attr("ring", AttrValue::Str("ga".into()));
         assert_eq!(evaluate(&flag, &ctx2).variant, "off");
@@ -117,7 +124,10 @@ mod tests {
     #[test]
     fn first_matching_rule_wins() {
         let mut flag = base_flag();
-        flag.variants.push(Variant { key: "maybe".into(), value: FlagValue::Bool(true) });
+        flag.variants.push(Variant {
+            key: "maybe".into(),
+            value: FlagValue::Bool(true),
+        });
         flag.rules = vec![
             Rule {
                 id: "r1".into(),
@@ -167,7 +177,10 @@ mod tests {
             }
         }
         let ratio = f64::from(on) / f64::from(n);
-        assert!((0.45..=0.55).contains(&ratio), "rollout split skewed: {ratio}");
+        assert!(
+            (0.45..=0.55).contains(&ratio),
+            "rollout split skewed: {ratio}"
+        );
     }
 
     #[test]
@@ -190,7 +203,10 @@ mod tests {
             }
         }
         let on_ratio = f64::from(on) / f64::from(on + off);
-        assert!((0.07..=0.13).contains(&on_ratio), "expected ~10% on, got {on_ratio}");
+        assert!(
+            (0.07..=0.13).contains(&on_ratio),
+            "expected ~10% on, got {on_ratio}"
+        );
     }
 
     #[test]
@@ -242,7 +258,10 @@ mod tests {
         let flag = Flag {
             key: "ui.theme".into(),
             enabled: true,
-            variants: vec![Variant { key: "v".into(), value: FlagValue::Object(attrs.clone()) }],
+            variants: vec![Variant {
+                key: "v".into(),
+                value: FlagValue::Object(attrs.clone()),
+            }],
             rules: vec![],
             default_rollout: None,
             default_variant: "v".into(),

@@ -107,7 +107,7 @@ fn producer_binary(root: &Path, producer_bin: Option<&str>) -> Result<PathBuf, S
             "FAIL-CLOSED: missing OYA_CI_PRODUCER_BIN; Cargo fallback is forbidden".to_owned(),
         );
     };
-    Ok(resolve_bin(root, bin))
+    ci_path_resolver_adapters::resolve_cargo_test_binary(root, std::ffi::OsStr::new(bin))
 }
 
 #[test]
@@ -324,8 +324,8 @@ fn cargo() -> String {
 /// `$(exe ...)` yields a path relative to the test CWD (the project root) under buck2; make it
 /// absolute against the resolved repo root so the test can exec it.
 fn resolve_bin(root: &Path, bin: &str) -> PathBuf {
-    let p = PathBuf::from(bin);
-    if p.is_absolute() { p } else { root.join(p) }
+    ci_path_resolver_adapters::resolve_cargo_test_binary(root, std::ffi::OsStr::new(bin))
+        .unwrap_or_else(|error| panic!("invalid declared binary binding {bin:?}: {error}"))
 }
 
 #[test]

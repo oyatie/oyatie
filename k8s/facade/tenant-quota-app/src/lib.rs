@@ -42,9 +42,9 @@ use serde::{Deserialize, Serialize};
 pub mod authz;
 
 pub use authz::{
-    AuthzProviderConfigError, CallerCredential, CedarQuotaAuthorizer, ConfiguredBearerPrincipalVerifier,
-    PrincipalVerificationError, PrincipalVerifier, QuotaAction, QuotaAuthorizationError,
-    QuotaAuthorizer, QuotaAuthzProvider, VerifiedPrincipal,
+    AuthzProviderConfigError, CallerCredential, CedarQuotaAuthorizer,
+    ConfiguredBearerPrincipalVerifier, PrincipalVerificationError, PrincipalVerifier, QuotaAction,
+    QuotaAuthorizationError, QuotaAuthorizer, QuotaAuthzProvider, VerifiedPrincipal,
 };
 
 pub use k8s_tenant_quota_api::{

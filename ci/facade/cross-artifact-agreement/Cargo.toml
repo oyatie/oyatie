@@ -30,6 +30,7 @@ oya-check-adr-index = { path = "../../../libs/oya-check-adr-index" }
 oya-governance-adr-shape-kernel = { path = "../../../libs/oya-governance-adr-shape-kernel" }
 
 [dev-dependencies]
+ci-path-resolver-adapters = { path = "../../adapters/path-resolver" }
 serde_json = { workspace = true }
 tempfile = { workspace = true }
 oya-check-adr-index = { path = "../../../libs/oya-check-adr-index" }

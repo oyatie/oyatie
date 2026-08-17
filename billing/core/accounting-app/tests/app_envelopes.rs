@@ -1,8 +1,6 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
-use billing_accounting_app::{
-    plan_vat_workflow, post_journal_with_audit, record_payroll_posting,
-};
+use billing_accounting_app::{plan_vat_workflow, post_journal_with_audit, record_payroll_posting};
 use billing_accounting_journal::{
     JournalLineInput, JournalPostInput, Jurisdiction, PayrollPostingInput, PeriodState,
     VatDeadlineInput, VatWorkflowStep,

@@ -191,7 +191,10 @@ impl Hlc {
                 max_offset_nanos: self.max_offset_nanos,
             });
         }
-        let new_wall = self.wall_nanos.max(remote.wall_nanos).max(physical_now_nanos);
+        let new_wall = self
+            .wall_nanos
+            .max(remote.wall_nanos)
+            .max(physical_now_nanos);
         let logical = if new_wall == self.wall_nanos && new_wall == remote.wall_nanos {
             self.logical.max(remote.logical).checked_add(1)
         } else if new_wall == self.wall_nanos {
@@ -261,9 +264,8 @@ mod tests {
         let ts = HlcTimestamp::new(42, 7);
         let json = serde_json::to_string(&ts).unwrap();
         assert_eq!(serde_json::from_str::<HlcTimestamp>(&json).unwrap(), ts);
-        let err = serde_json::from_str::<HlcTimestamp>(
-            r#"{"wall_nanos":42,"logical":7,"surprise":1}"#,
-        );
+        let err =
+            serde_json::from_str::<HlcTimestamp>(r#"{"wall_nanos":42,"logical":7,"surprise":1}"#);
         assert!(err.is_err());
     }
 
@@ -379,8 +381,7 @@ mod tests {
 
     #[test]
     fn fixed_clock_source_returns_pinned_bound() {
-        let bound =
-            ClockBound::new(HlcTimestamp::new(1, 0), HlcTimestamp::new(2, 0)).unwrap();
+        let bound = ClockBound::new(HlcTimestamp::new(1, 0), HlcTimestamp::new(2, 0)).unwrap();
         let mut source = FixedClockSource::new(bound);
         assert_eq!(source.now_bound().unwrap(), bound);
         assert_eq!(source.now_bound().unwrap(), bound);

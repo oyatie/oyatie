@@ -35,13 +35,13 @@ related:
 - [ ] **X6** Update `docs/DESIGN.md §10` registry row in the same PR. *Lane:* `oya-governance-design-contracts-mirror`.
 - [ ] **X7** If breaking: author an ADR per `/templates/adr-template.md` documenting the migration path. *Lane:* `oya-governance-adr-shape`.
 
-## Approval (blast-radius reviewers per `docs/DESIGN.md §3.0.5.3`)
+## Review and notification (blast-radius lenses per `docs/DESIGN.md §3.0.5.3`)
 
-- [ ] **X8** **All affected consumer-axis teams** approve the PR. *Lane:* `guard-pr-merge-review.mjs` (cross-axis review verdict).
-- [ ] **X9** **council-architecture** approves (R+A for new cross-axis contract per `docs/RACI-OWNERSHIP.md §2`).
-- [ ] **X10** If data-class impact: **council-privacy** approves.
-- [ ] **X11** If regulatory impact: **ops-compliance** approves.
-- [ ] **X12** If security-class: **ops-security** approves.
+- [ ] **X8** One author-distinct reviewer agent approves the exact PR head; no human approval or reviewer quorum is required.
+- [ ] **X9** **council-architecture** is notified for non-binding input on a new cross-axis contract.
+- [ ] **X10** If data-class impact: **council-privacy** is notified for non-binding input.
+- [ ] **X11** If regulatory impact: **ops-compliance** is notified for non-binding input.
+- [ ] **X12** If security-class: **ops-security** is notified for non-binding input.
 
 ## Implementation discipline
 

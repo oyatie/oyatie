@@ -65,7 +65,10 @@ pub struct EvaluationContext {
 impl EvaluationContext {
     /// Construct a context for a targeting key with no attributes.
     pub fn for_key(targeting_key: impl Into<String>) -> Self {
-        Self { targeting_key: targeting_key.into(), attributes: BTreeMap::new() }
+        Self {
+            targeting_key: targeting_key.into(),
+            attributes: BTreeMap::new(),
+        }
     }
 
     /// Builder-style attribute insertion.

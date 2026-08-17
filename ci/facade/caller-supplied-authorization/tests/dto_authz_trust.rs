@@ -37,8 +37,7 @@ fn repo_root() -> PathBuf {
     panic!("failed to locate repo root from test current_dir");
 }
 
-const POLICY_REL: &str =
-    "ci/facade/caller-supplied-authorization/dto-authz-trust-policy.json";
+const POLICY_REL: &str = "ci/facade/caller-supplied-authorization/dto-authz-trust-policy.json";
 
 fn load_committed_policy(root: &Path) -> Value {
     let path = root.join(POLICY_REL);
@@ -137,6 +136,70 @@ fn baseline_is_nonempty_and_covers_a_known_instance() {
         assert!(
             baseline.iter().any(|k| k.starts_with(expected_prefix)),
             "expected confirmed instance with prefix `{expected_prefix}` in the frozen baseline"
+        );
+    }
+}
+
+/// `publish_handler` is a split-decision false positive, not frozen authz debt: its private
+/// router-only path reaches the required PDP through `enforce_publish_authz` before any mutation.
+/// Keep the exact audited body in the curated allowlist so a later `--allow-new` run cannot quietly
+/// re-grandfather it as unresolved caller-supplied authorization trust.
+#[test]
+fn pdp_dominated_publish_handler_is_curated_not_frozen() {
+    const PREFIX: &str = "iam/ports/policy-cedar-api/src/rest/mod.rs#publish_handler:";
+    const AUDITED_KEY: &str = "iam/ports/policy-cedar-api/src/rest/mod.rs#publish_handler:5bc02232";
+
+    let root = repo_root();
+    let policy = load_committed_policy(&root);
+    let frozen = policy
+        .get("frozen_dto_authz_trust_instances")
+        .and_then(Value::as_array)
+        .expect("frozen baseline array");
+    assert!(
+        frozen
+            .iter()
+            .filter_map(Value::as_str)
+            .all(|key| !key.starts_with(PREFIX)),
+        "the PDP-dominated publish handler must never return to the frozen debt baseline"
+    );
+
+    let curated = policy
+        .get("split_decision_allowlist")
+        .and_then(Value::as_array)
+        .expect("curated split-decision array");
+    let matching = curated
+        .iter()
+        .filter(|entry| {
+            entry
+                .get("key")
+                .and_then(Value::as_str)
+                .is_some_and(|key| key.starts_with(PREFIX))
+        })
+        .collect::<Vec<_>>();
+    assert_eq!(
+        matching.len(),
+        1,
+        "publish_handler must have one exact, non-launderable split-decision audit entry"
+    );
+    assert_eq!(
+        matching[0].get("key").and_then(Value::as_str),
+        Some(AUDITED_KEY),
+        "a body-hash change requires a fresh call-graph audit"
+    );
+
+    let justification = matching[0]
+        .get("justification")
+        .and_then(Value::as_str)
+        .expect("split-decision justification");
+    for required_proof in [
+        "enforce_publish_authz",
+        "ensure_authorized",
+        "before mutation",
+        "cannot convert a PDP deny into allow",
+    ] {
+        assert!(
+            justification.contains(required_proof),
+            "publish_handler justification must preserve proof token {required_proof:?}"
         );
     }
 }

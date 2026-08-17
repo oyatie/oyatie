@@ -11,7 +11,7 @@
 
 use std::collections::BTreeSet;
 use std::fs;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use ci_affected_target_set::hub_exclusivity::{
     CODE_MULTI_OWN_HUB, GATE_ID, HUBS_PATHS_POINTER, HubAuthority, HubExclusivityPolicy,
@@ -36,7 +36,7 @@ fn repo_root() -> PathBuf {
     panic!("failed to locate repo root (dir holding {POLICY_PATH})");
 }
 
-fn load_policy(root: &PathBuf) -> HubExclusivityPolicy {
+fn load_policy(root: &Path) -> HubExclusivityPolicy {
     let raw = fs::read_to_string(root.join(POLICY_PATH)).expect("read hub-exclusivity policy");
     let doc: Value = serde_json::from_str(&raw).expect("policy JSON");
     HubExclusivityPolicy::from_json(&doc)
@@ -141,23 +141,20 @@ fn live_envelopes_hubs_paths_bind_when_present() {
 #[test]
 fn producer_fixture_multi_own_refuses_via_evaluate_from_producer_docs() {
     let root = repo_root();
-    let policy_doc: Value = serde_json::from_str(
-        &fs::read_to_string(root.join(POLICY_PATH)).expect("policy"),
-    )
-    .expect("policy json");
+    let policy_doc: Value =
+        serde_json::from_str(&fs::read_to_string(root.join(POLICY_PATH)).expect("policy"))
+            .expect("policy json");
     let envelopes_doc: Value = serde_json::from_str(
-        &fs::read_to_string(
-            root.join("ci/facade/affected-target-set/tests/fixtures/hub_exclusivity/envelopes-synthetic.json"),
-        )
+        &fs::read_to_string(root.join(
+            "ci/facade/affected-target-set/tests/fixtures/hub_exclusivity/envelopes-synthetic.json",
+        ))
         .expect("synthetic envelopes"),
     )
     .expect("envelopes json");
     let open_prs_doc: Value = serde_json::from_str(
-        &fs::read_to_string(
-            root.join(
-                "ci/facade/affected-target-set/tests/fixtures/hub_exclusivity/open-prs-multi-own.json",
-            ),
-        )
+        &fs::read_to_string(root.join(
+            "ci/facade/affected-target-set/tests/fixtures/hub_exclusivity/open-prs-multi-own.json",
+        ))
         .expect("open prs fixture"),
     )
     .expect("open prs json");
@@ -178,23 +175,20 @@ fn producer_fixture_multi_own_refuses_via_evaluate_from_producer_docs() {
 #[test]
 fn producer_fixture_sole_owner_is_green() {
     let root = repo_root();
-    let policy_doc: Value = serde_json::from_str(
-        &fs::read_to_string(root.join(POLICY_PATH)).expect("policy"),
-    )
-    .expect("policy json");
+    let policy_doc: Value =
+        serde_json::from_str(&fs::read_to_string(root.join(POLICY_PATH)).expect("policy"))
+            .expect("policy json");
     let envelopes_doc: Value = serde_json::from_str(
-        &fs::read_to_string(
-            root.join("ci/facade/affected-target-set/tests/fixtures/hub_exclusivity/envelopes-synthetic.json"),
-        )
+        &fs::read_to_string(root.join(
+            "ci/facade/affected-target-set/tests/fixtures/hub_exclusivity/envelopes-synthetic.json",
+        ))
         .expect("synthetic envelopes"),
     )
     .expect("envelopes json");
     let open_prs_doc: Value = serde_json::from_str(
-        &fs::read_to_string(
-            root.join(
-                "ci/facade/affected-target-set/tests/fixtures/hub_exclusivity/open-prs-sole-owner.json",
-            ),
-        )
+        &fs::read_to_string(root.join(
+            "ci/facade/affected-target-set/tests/fixtures/hub_exclusivity/open-prs-sole-owner.json",
+        ))
         .expect("open prs fixture"),
     )
     .expect("open prs json");

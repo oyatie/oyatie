@@ -9,8 +9,8 @@
 
 use crate::error::ApiError;
 use crate::request::Method;
-use std::collections::BTreeMap;
 use os_kernel::role::{Role, RoleSet};
+use std::collections::BTreeMap;
 
 /// The access level a method requires from the caller's role set.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

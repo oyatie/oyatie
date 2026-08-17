@@ -141,7 +141,6 @@ pub struct OpenPrFact {
     pub files: BTreeSet<String>,
 }
 
-
 /// Default on-disk policy pack path (relative to repo root).
 pub const DEFAULT_POLICY_RELPATH: &str =
     "ci/facade/affected-target-set/hub-exclusivity-policy.json";
@@ -165,16 +164,13 @@ pub fn open_pr_facts_from_json(value: &Value) -> Result<Vec<OpenPrFact>, Finding
     })?;
     let mut out = Vec::with_capacity(arr.len());
     for (idx, entry) in arr.iter().enumerate() {
-        let number = entry
-            .get("number")
-            .and_then(Value::as_u64)
-            .ok_or_else(|| {
-                Finding::new(
-                    CODE_OPEN_PR_FACTS_MALFORMED,
-                    format!("open_prs[{idx}].number"),
-                    "each open PR fact requires a numeric `number`",
-                )
-            })?;
+        let number = entry.get("number").and_then(Value::as_u64).ok_or_else(|| {
+            Finding::new(
+                CODE_OPEN_PR_FACTS_MALFORMED,
+                format!("open_prs[{idx}].number"),
+                "each open PR fact requires a numeric `number`",
+            )
+        })?;
         let head_ref_name = entry
             .get("head_ref_name")
             .and_then(Value::as_str)
@@ -272,15 +268,13 @@ pub fn evaluate_from_producer_docs(
 
 /// Extract `#hubs.paths` from an envelopes document. Fail-closed on missing/non-array.
 pub fn hubs_paths_from_envelopes(doc: &Value) -> Result<HubAuthority, Finding> {
-    let paths_value = doc
-        .pointer("/hubs/paths")
-        .ok_or_else(|| {
-            Finding::new(
-                CODE_HUBS_PATHS_MALFORMED,
-                HUBS_PATHS_POINTER,
-                "envelopes document missing /hubs/paths — refuse rather than invent hubs",
-            )
-        })?;
+    let paths_value = doc.pointer("/hubs/paths").ok_or_else(|| {
+        Finding::new(
+            CODE_HUBS_PATHS_MALFORMED,
+            HUBS_PATHS_POINTER,
+            "envelopes document missing /hubs/paths — refuse rather than invent hubs",
+        )
+    })?;
     let arr = paths_value.as_array().ok_or_else(|| {
         Finding::new(
             CODE_HUBS_PATHS_MALFORMED,
@@ -318,10 +312,7 @@ pub fn evaluate(
         findings.insert(Finding::new(
             CODE_POLICY_GATE_ID_MISMATCH,
             "gate_id",
-            format!(
-                "policy gate_id {:?} must equal {GATE_ID}",
-                policy.gate_id
-            ),
+            format!("policy gate_id {:?} must equal {GATE_ID}", policy.gate_id),
         ));
     }
 
@@ -464,8 +455,7 @@ mod tests {
         assert_eq!(scoped.verdict, Verdict::Green);
         assert_eq!(deferred.len(), 1);
         // Implicated candidate still refuses.
-        let (scoped_owner, deferred_owner) =
-            filter_findings_for_candidate(report, Some(1643));
+        let (scoped_owner, deferred_owner) = filter_findings_for_candidate(report, Some(1643));
         assert_eq!(scoped_owner.verdict, Verdict::Refuse);
         assert!(deferred_owner.is_empty());
     }

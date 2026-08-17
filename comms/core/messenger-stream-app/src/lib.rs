@@ -5,13 +5,11 @@
 //! broker publish, gateway routing, or async runtime work.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
-use comms_messenger_stream_postgres::{
-    PersistMessageRecord, build_message_write_batch,
-};
 use comms_messenger_stream_api::{
     AuthorizedMessengerContext, MessageReceipt, MessengerApiEnvelope, SendMessageRequest,
     message_posted_event_envelope,
 };
+use comms_messenger_stream_postgres::{PersistMessageRecord, build_message_write_batch};
 use comms_messenger_stream_usecase::{MessengerUsecaseError, send_message};
 use oya_shared_postgres_command_kernel::{
     PostgresPoolConfig, SqlCommandError, SqlExecutionPlan, SqlWriteBatch, TenantSqlContext,

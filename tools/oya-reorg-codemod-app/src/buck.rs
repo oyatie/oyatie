@@ -14,7 +14,7 @@
 
 use std::collections::BTreeMap;
 
-use crate::model::{snake, CrateMove};
+use crate::model::{CrateMove, snake};
 
 /// Rewrite a MOVED crate's own `BUCK`: its `name = "..."`, `crate = "..."`,
 /// `crate_root = "..."` (path stays relative so it is move-invariant), and any
@@ -103,9 +103,7 @@ fn rewrite_rust_test_stanzas(
     let mut out = String::with_capacity(text.len());
     let mut i = 0usize;
     while i < bytes.len() {
-        if text[i..].starts_with(IDENT)
-            && (i == 0 || !is_ident_char(bytes[i - 1]))
-        {
+        if text[i..].starts_with(IDENT) && (i == 0 || !is_ident_char(bytes[i - 1])) {
             // Skip optional whitespace between `rust_test` and `(` (the `rust_test (` space form).
             let mut j = i + IDENT.len();
             while j < bytes.len() && (bytes[j] == b' ' || bytes[j] == b'\t') {
@@ -257,8 +255,7 @@ fn replace_source_path_literal(haystack: &mut String, old_path: &str, new_path: 
         {
             let after = i + old_path.len();
             // followed by a path boundary: `/` (descendant) or the closing `"` (the whole value).
-            let boundary_ok =
-                after < bytes.len() && (bytes[after] == b'/' || bytes[after] == b'"');
+            let boundary_ok = after < bytes.len() && (bytes[after] == b'/' || bytes[after] == b'"');
             if boundary_ok {
                 result.push_str(new_path);
                 i = after;
@@ -637,7 +634,10 @@ rust_binary(
         let (out, changed) = rewrite_buck_labels(text, &by_old);
         assert!(changed);
         assert!(out.contains("//x/a:a2"));
-        assert!(out.contains("//cloud/ab:ab"), "sibling label preserved: {out}");
+        assert!(
+            out.contains("//cloud/ab:ab"),
+            "sibling label preserved: {out}"
+        );
     }
 
     #[test]
@@ -646,7 +646,10 @@ rust_binary(
         let text = r#"deps = [":oya-iam-app", ":oya-iam"]"#;
         let m = cm("c/x", "y/x", "oya-iam", "iam");
         let (out, _changed) = rewrite_moved_buck(text, &m);
-        assert!(out.contains(":oya-iam-app"), "longer sibling preserved: {out}");
+        assert!(
+            out.contains(":oya-iam-app"),
+            "longer sibling preserved: {out}"
+        );
         assert!(out.contains(":iam\""));
     }
 
@@ -829,22 +832,49 @@ rust_test(
         // Library's own name/crate renamed (exact pass, unchanged behavior). snake(`oya-x`)=`oya_x`,
         // snake(`new-x`)=`new_x`, so lib `name "oya-x"` -> `new-x`, `crate "oya_x"` -> `new_x`.
         assert!(out.contains("name = \"new-x\""), "{out}");
-        assert!(out.contains("crate = \"new_x\""), "lib crate is the new snake ident: {out}");
+        assert!(
+            out.contains("crate = \"new_x\""),
+            "lib crate is the new snake ident: {out}"
+        );
 
         // Library's own `-unittest` test: longest kebab prefix `oya-x` == moving -> `new-x-unittest`.
-        assert!(out.contains("name = \"new-x-unittest\""), "lib unittest name renamed: {out}");
+        assert!(
+            out.contains("name = \"new-x-unittest\""),
+            "lib unittest name renamed: {out}"
+        );
         // Its `crate = "oya_x_tests"`: longest snake prefix `oya_x` == moving -> `new_x_tests`.
-        assert!(out.contains("crate = \"new_x_tests\""), "lib unittest crate renamed: {out}");
+        assert!(
+            out.contains("crate = \"new_x_tests\""),
+            "lib unittest crate renamed: {out}"
+        );
 
         // THE B1 FIX: the binary `-bin` and its `-bin-unittest` test are UNCHANGED.
-        assert!(out.contains("name = \"oya-x-bin\""), "binary name preserved: {out}");
-        assert!(out.contains("name = \"oya-x-bin-unittest\""), "B1: bin-unittest name NOT clobbered: {out}");
-        assert!(out.contains("crate = \"oya_x_bin_tests\""), "B1: bin-unittest crate NOT clobbered: {out}");
+        assert!(
+            out.contains("name = \"oya-x-bin\""),
+            "binary name preserved: {out}"
+        );
+        assert!(
+            out.contains("name = \"oya-x-bin-unittest\""),
+            "B1: bin-unittest name NOT clobbered: {out}"
+        );
+        assert!(
+            out.contains("crate = \"oya_x_bin_tests\""),
+            "B1: bin-unittest crate NOT clobbered: {out}"
+        );
         // The clobbered shape that the un-fixed code produced must NOT appear.
-        assert!(!out.contains("new-x-bin-unittest"), "B1: no front-clobbered name: {out}");
-        assert!(!out.contains("new_x_bin_tests"), "B1: no front-clobbered crate: {out}");
+        assert!(
+            !out.contains("new-x-bin-unittest"),
+            "B1: no front-clobbered name: {out}"
+        );
+        assert!(
+            !out.contains("new_x_bin_tests"),
+            "B1: no front-clobbered crate: {out}"
+        );
         // The self-dep `:oya-x` IS rewritten (exact label), but `:oya-x-bin` is not present here.
-        assert!(out.contains("deps = [\":new-x\"]"), "self-dep rewritten: {out}");
+        assert!(
+            out.contains("deps = [\":new-x\"]"),
+            "self-dep rewritten: {out}"
+        );
 
         // Inverse round-trips byte-identically, including the untouched `-bin-unittest`.
         let inv = cm("cap/core/new-x", "cloud/c/oya-x", "new-x", "oya-x");
@@ -885,16 +915,28 @@ rust_binary(
         // crate_root (a path) is move-invariant and never a crate-name field.
         assert!(fwd.contains("crate_root = \"src/lib.rs\""), "{fwd}");
         // the `-bin` sibling is a SEPARATE crate (its own move) — whole-value match leaves it.
-        assert!(fwd.contains("name = \"oya-x-bin\""), "bin sibling name preserved: {fwd}");
-        assert!(fwd.contains("crate = \"oya_x_bin\""), "bin sibling crate preserved: {fwd}");
+        assert!(
+            fwd.contains("name = \"oya-x-bin\""),
+            "bin sibling name preserved: {fwd}"
+        );
+        assert!(
+            fwd.contains("crate = \"oya_x_bin\""),
+            "bin sibling crate preserved: {fwd}"
+        );
         // self-dep on the moved lib IS rewritten.
-        assert!(fwd.contains("deps = [\":iam\"]"), "self-dep rewritten: {fwd}");
+        assert!(
+            fwd.contains("deps = [\":iam\"]"),
+            "self-dep rewritten: {fwd}"
+        );
 
         // THE FIX: the inverse restores the bytes EXACTLY — in particular `crate = "oya_x"` (snake),
         // NOT `crate = "oya-x"` (the kebab clobber the un-fixed code produced).
         let inv = cm("iam/core/iam", "cloud/c/oya-x", "iam", "oya-x");
         let (round, _c) = rewrite_moved_buck(&fwd, &inv);
-        assert_eq!(round, text, "single-token destination must round-trip byte-identically");
+        assert_eq!(
+            round, text,
+            "single-token destination must round-trip byte-identically"
+        );
     }
 
     /// MED-2 / LOW: a longer macro whose name merely ends in `rust_test` (e.g. `custom_rust_test(`)
@@ -917,8 +959,14 @@ custom_rust_test(
         assert!(out.contains("name = \"new\""), "{out}");
         // The custom_rust_test interior is NOT a rust_test stanza -> its name/crate are left as-is
         // (the prefixed pass never runs on it; the exact pass does not whole-token match either).
-        assert!(out.contains("name = \"oya-x-foo\""), "custom macro name not prefix-rewritten: {out}");
-        assert!(out.contains("crate = \"oya_x_foo\""), "custom macro crate not prefix-rewritten: {out}");
+        assert!(
+            out.contains("name = \"oya-x-foo\""),
+            "custom macro name not prefix-rewritten: {out}"
+        );
+        assert!(
+            out.contains("crate = \"oya_x_foo\""),
+            "custom macro crate not prefix-rewritten: {out}"
+        );
     }
 
     /// #63 (non-`//` sandbox source-path literals): a BUCK may reference a moved crate's sources
@@ -980,7 +1028,10 @@ custom_rust_test(
             "mapped_srcs key label rewritten by label pass: {out}"
         );
         // No stale old path anywhere.
-        assert!(!out.contains("cloud/cloud-iac/crates/oya-x"), "no stale old path: {out}");
+        assert!(
+            !out.contains("cloud/cloud-iac/crates/oya-x"),
+            "no stale old path: {out}"
+        );
 
         // Inverse round-trips byte-identically.
         let inv = cm(
@@ -992,7 +1043,10 @@ custom_rust_test(
         let mut by_new: BTreeMap<&str, &CrateMove> = BTreeMap::new();
         by_new.insert("iac/facade/app", &inv);
         let (round, _c) = rewrite_buck_labels(&out, &by_new);
-        assert_eq!(round, text, "inverse must round-trip the source-path literals byte-identically");
+        assert_eq!(
+            round, text,
+            "inverse must round-trip the source-path literals byte-identically"
+        );
     }
 
     /// #63 boundary safety: a sibling dir whose name SHARES the moved crate's path as a non-`/`
@@ -1012,11 +1066,20 @@ custom_rust_test(
         let (out, changed) = rewrite_buck_labels(text, &by_old);
         assert!(changed, "the cloud/a source literal IS rewritten");
         // cloud/a -> x/core/a (descendant boundary on `/`).
-        assert!(out.contains("\"x/core/a/src/lib.rs\""), "moved src rewritten: {out}");
+        assert!(
+            out.contains("\"x/core/a/src/lib.rs\""),
+            "moved src rewritten: {out}"
+        );
         // cloud/a-extra is a DIFFERENT dir (boundary char is `-`, not `/`) -> untouched.
-        assert!(out.contains("\"cloud/a-extra/src/lib.rs\""), "sibling dir preserved: {out}");
+        assert!(
+            out.contains("\"cloud/a-extra/src/lib.rs\""),
+            "sibling dir preserved: {out}"
+        );
         // the relative crate_root is package-relative, never a repo-rooted moved-dir literal.
-        assert!(out.contains("crate_root = \"src/lib.rs\""), "relative root invariant: {out}");
+        assert!(
+            out.contains("crate_root = \"src/lib.rs\""),
+            "relative root invariant: {out}"
+        );
     }
 
     /// #63 / #769 review (MED-1): the source-path-literal rewrite is deliberately FIELD-AGNOSTIC —
@@ -1059,8 +1122,14 @@ genrule(
             "genrule srcs path under moved dir rewritten: {out}"
         );
         // A path NOT under the moved dir is left untouched.
-        assert!(out.contains("\"cloud/other/keep.json\""), "unrelated path preserved: {out}");
-        assert!(!out.contains("cloud/cloud-iac/crates/oya-x"), "no stale old path: {out}");
+        assert!(
+            out.contains("\"cloud/other/keep.json\""),
+            "unrelated path preserved: {out}"
+        );
+        assert!(
+            !out.contains("cloud/cloud-iac/crates/oya-x"),
+            "no stale old path: {out}"
+        );
 
         // The move round-trips byte-identically through the inverse.
         let inv = cm(
@@ -1072,7 +1141,10 @@ genrule(
         let mut by_new: BTreeMap<&str, &CrateMove> = BTreeMap::new();
         by_new.insert("iac/adapters/gen", &inv);
         let (round, _c) = rewrite_buck_labels(&out, &by_new);
-        assert_eq!(round, text, "field-agnostic rewrite round-trips byte-identically");
+        assert_eq!(
+            round, text,
+            "field-agnostic rewrite round-trips byte-identically"
+        );
     }
 
     /// MED-1: field-key anchoring. A `rust_test` with a quoted value matching the moving crate's
@@ -1099,7 +1171,13 @@ rust_test(
         assert!(out.contains("name = \"new-unittest\""), "{out}");
         assert!(out.contains("crate = \"new\""), "{out}");
         // The env value and the bare-quoted dep entry are NOT rewritten by the prefix pass.
-        assert!(out.contains("\"FIXTURE\": \"oya-x-thing\""), "env value untouched: {out}");
-        assert!(out.contains("\"//some/where:oya-x-helper\""), "dep entry untouched by prefix pass: {out}");
+        assert!(
+            out.contains("\"FIXTURE\": \"oya-x-thing\""),
+            "env value untouched: {out}"
+        );
+        assert!(
+            out.contains("\"//some/where:oya-x-helper\""),
+            "dep entry untouched by prefix pass: {out}"
+        );
     }
 }

@@ -36,7 +36,7 @@ use oya_workspace_members_kernel::{ResolveError, resolve_member_dirs_from_str};
 use crate::buck;
 use crate::cargo;
 use crate::model::{
-    dir_exists, rewrite_path_token, snake, CodemodError, CrateMove, Mapping, MovePlan,
+    CodemodError, CrateMove, Mapping, MovePlan, dir_exists, rewrite_path_token, snake,
 };
 use crate::rust_src;
 
@@ -129,9 +129,8 @@ pub fn apply_plan(
     validate_workspace_ownership(repo_root, plan)?;
 
     // resolve_target: OLD repo-relative crate dir -> NEW dir (identity if unmoved).
-    let resolve_target = |old: &str| -> Option<String> {
-        by_old_path.get(old).map(|cm| cm.new_path.clone())
-    };
+    let resolve_target =
+        |old: &str| -> Option<String> { by_old_path.get(old).map(|cm| cm.new_path.clone()) };
 
     // ident_renames for rust sources: old snake -> new snake.
     let ident_renames: BTreeMap<String, String> = plan
@@ -190,10 +189,17 @@ pub fn apply_plan(
 
     // --- Step 7: the directory moves (longest old_path first so nested dirs move safely). ---
     let mut ordered: Vec<&CrateMove> = plan.moves.iter().collect();
-    ordered.sort_by(|a, b| b.old_path.len().cmp(&a.old_path.len()).then(a.old_path.cmp(&b.old_path)));
+    ordered.sort_by(|a, b| {
+        b.old_path
+            .len()
+            .cmp(&a.old_path.len())
+            .then(a.old_path.cmp(&b.old_path))
+    });
     for m in ordered {
         move_dir(repo_root, &m.old_path, &m.new_path, opts)?;
-        outcome.dirs_moved.push((m.old_path.clone(), m.new_path.clone()));
+        outcome
+            .dirs_moved
+            .push((m.old_path.clone(), m.new_path.clone()));
     }
 
     // --- Step 8: NON-crate artifact moves (SLOs, catalog records). Content-preserving wholesale
@@ -216,7 +222,9 @@ pub fn apply_plan(
     for a in ordered_artifacts {
         let effective_src = artifact_effective_source(a, &by_old_path);
         move_dir(repo_root, &effective_src, &a.new_path, opts)?;
-        outcome.dirs_moved.push((a.old_path.clone(), a.new_path.clone()));
+        outcome
+            .dirs_moved
+            .push((a.old_path.clone(), a.new_path.clone()));
     }
     outcome.dirs_moved.sort();
 
@@ -247,7 +255,9 @@ fn rewrite_one_cargo_toml(
     }
 
     // (b) Rewrite dependency keys + recompute relative path-deps (the move-fatal class).
-    let this_moved_to = by_old_path.get(manifest_dir.as_str()).map(|cm| cm.new_path.clone());
+    let this_moved_to = by_old_path
+        .get(manifest_dir.as_str())
+        .map(|cm| cm.new_path.clone());
     let (dep_rewritten, dep_changed) = cargo::rewrite_dependencies_in_manifest(
         &current,
         rel,
@@ -619,7 +629,9 @@ fn rebase_under(base: &str, path: &str) -> String {
     if base.is_empty() {
         return path.to_string();
     }
-    path.strip_prefix(&format!("{base}/")).unwrap_or(path).to_string()
+    path.strip_prefix(&format!("{base}/"))
+        .unwrap_or(path)
+        .to_string()
 }
 
 /// Validate root workspace membership before the codemod performs any writes.
@@ -655,14 +667,17 @@ fn workspace_member_resolution_error(error: ResolveError) -> CodemodError {
 /// the new dir does not exist on disk yet, we test the glob shape (not the Cargo.toml
 /// presence rule, which the post-move tree satisfies by construction).
 fn pattern_set_covers(root_manifest_text: &str, new_dir: &str) -> bool {
-    let entries = match oya_workspace_members_kernel::workspace_manifest_entries_from_str(
-        root_manifest_text,
-    ) {
-        Ok(e) => e,
-        Err(_) => return false,
-    };
+    let entries =
+        match oya_workspace_members_kernel::workspace_manifest_entries_from_str(root_manifest_text)
+        {
+            Ok(e) => e,
+            Err(_) => return false,
+        };
     let segments: Vec<&str> = new_dir.split('/').collect();
-    entries.members.iter().any(|pat| glob_matches(pat, &segments))
+    entries
+        .members
+        .iter()
+        .any(|pat| glob_matches(pat, &segments))
 }
 
 /// Match a `members` glob pattern (slash-separated, `*`-wildcard components) against a path's
@@ -845,10 +860,7 @@ fn walk_repo_files(repo_root: &Path) -> Result<Vec<String>, CodemodError> {
             context: format!("read_dir {}", dir.display()),
             message: e.to_string(),
         })?;
-        let mut children: Vec<PathBuf> = entries
-            .flatten()
-            .map(|e| e.path())
-            .collect();
+        let mut children: Vec<PathBuf> = entries.flatten().map(|e| e.path()).collect();
         children.sort();
         for path in children {
             let name = path.file_name().and_then(|s| s.to_str()).unwrap_or("");
@@ -990,7 +1002,10 @@ mod tests {
     #[test]
     fn glob_matches_mirrors_kernel_semantics() {
         assert!(glob_matches("libs/oya-*", &["libs", "oya-kernel"]));
-        assert!(glob_matches("cloud/*/crates/oya-*", &["cloud", "cloud-iam", "crates", "oya-x"]));
+        assert!(glob_matches(
+            "cloud/*/crates/oya-*",
+            &["cloud", "cloud-iam", "crates", "oya-x"]
+        ));
         assert!(!glob_matches("libs/oya-*", &["libs", "group", "oya-x"]));
         assert!(!glob_matches("iam/core/*", &["iam", "core"]));
         assert!(glob_matches("iam/core/*", &["iam", "core", "domain"]));
@@ -1126,7 +1141,10 @@ members = ["libs/oya-*", "cloud/*/crates/oya-*", "iam/*/*"]
             "no ADR dir/citation ⇒ nothing rewritten: {:?}",
             outcome.docs_rewritten
         );
-        assert!(root.join("intelligence/core/catalog-domain/Cargo.toml").is_file());
+        assert!(
+            root.join("intelligence/core/catalog-domain/Cargo.toml")
+                .is_file()
+        );
 
         let _ = std::fs::remove_dir_all(&root);
     }
@@ -1188,8 +1206,7 @@ members = ["libs/oya-*", "cloud/*/crates/oya-*", "iam/*/*"]
 
         let adr = std::fs::read_to_string(root.join("docs/decisions/ADR-0001-graphql.md")).unwrap();
         assert_eq!(
-            adr,
-            "See `capB/src/lib.rs` and also `capA/src/lib.rs`.\n",
+            adr, "See `capB/src/lib.rs` and also `capA/src/lib.rs`.\n",
             "the nested crate's citation must resolve to its OWN new_path, not get swallowed by \
              the shorter sibling old_path processed out of order: {adr}"
         );
@@ -1264,7 +1281,11 @@ members = ["libs/oya-*", "cloud/*/crates/oya-*", "iam/*/*"]
             "kernel/core/oya-kernel-hal/Cargo.toml",
             "[package]\nname = \"oya-kernel-hal\"\nversion = \"0.1.0\"\nedition = \"2021\"\n",
         );
-        wf(root, "kernel/core/oya-kernel-hal/src/lib.rs", "pub fn hal() {}\n");
+        wf(
+            root,
+            "kernel/core/oya-kernel-hal/src/lib.rs",
+            "pub fn hal() {}\n",
+        );
     }
 
     /// D1: `cloud/cloud-kernel/crates/X` -> `kernel/adapters/X` crosses from the cloud-kernel
@@ -1300,10 +1321,14 @@ members = ["libs/oya-*", "cloud/*/crates/oya-*", "iam/*/*"]
         }
         // Fail-closed BEFORE any mutation.
         assert!(
-            root.join("cloud/cloud-kernel/crates/oya-cloud-kernel-hal-kernel/Cargo.toml").is_file(),
+            root.join("cloud/cloud-kernel/crates/oya-cloud-kernel-hal-kernel/Cargo.toml")
+                .is_file(),
             "source must be untouched"
         );
-        assert!(!root.join("kernel/adapters/hal").exists(), "no partial move");
+        assert!(
+            !root.join("kernel/adapters/hal").exists(),
+            "no partial move"
+        );
         let _ = std::fs::remove_dir_all(&root);
     }
 
@@ -1398,7 +1423,10 @@ members = ["libs/oya-*", "cloud/*/crates/oya-*", "iam/*/*"]
             }
             other => panic!("expected UnrewritablePathLiteral, got {other:?}"),
         }
-        assert!(root.join("crates/oya-a/src/lib.rs").is_file(), "source untouched");
+        assert!(
+            root.join("crates/oya-a/src/lib.rs").is_file(),
+            "source untouched"
+        );
         assert!(!root.join("demo/core/a").exists(), "no partial move");
         let _ = std::fs::remove_dir_all(&root);
     }
@@ -1532,19 +1560,23 @@ members = ["libs/oya-*", "cloud/*/crates/oya-*", "iam/*/*"]
         let outcome = apply_plan(&root, &plan, &ApplyOptions { use_git_mv: false }).unwrap();
 
         // (1) the DIR artifact moved wholesale: NEW descendants present, OLD dir gone.
-        assert!(root
-            .join("observability/observability/slos/api-availability.openslo.yaml")
-            .is_file());
-        assert!(root
-            .join("observability/observability/slos/api-latency.openslo.yaml")
-            .is_file());
+        assert!(
+            root.join("observability/observability/slos/api-availability.openslo.yaml")
+                .is_file()
+        );
+        assert!(
+            root.join("observability/observability/slos/api-latency.openslo.yaml")
+                .is_file()
+        );
         assert!(!root.join("oya/observability/slos").exists());
         // (2) the FILE artifact moved (content preserved, no in-file rewrite).
         let cat = root.join("registry/catalog/observability-domain.yaml");
         assert!(cat.is_file());
-        assert!(!root
-            .join("registry/catalog/oya-observability-domain.yaml")
-            .exists());
+        assert!(
+            !root
+                .join("registry/catalog/oya-observability-domain.yaml")
+                .exists()
+        );
         assert_eq!(
             std::fs::read_to_string(&cat).unwrap(),
             "crate_id: oya-observability-domain\n",
@@ -1555,12 +1587,10 @@ members = ["libs/oya-*", "cloud/*/crates/oya-*", "iam/*/*"]
         // (4) CANARY: artifacts appear in dirs_moved (so total-accounting / the manifest see them).
         //     This FAILS if step-8 is removed (artifacts would be absent from dirs_moved).
         assert!(
-            outcome
-                .dirs_moved
-                .contains(&(
-                    "oya/observability/slos".to_string(),
-                    "observability/observability/slos".to_string()
-                )),
+            outcome.dirs_moved.contains(&(
+                "oya/observability/slos".to_string(),
+                "observability/observability/slos".to_string()
+            )),
             "step-8 must record the dir artifact in dirs_moved: {:?}",
             outcome.dirs_moved
         );
@@ -1631,7 +1661,11 @@ members = ["libs/oya-*", "cloud/*/crates/oya-*", "iam/*/*"]
             "crates/oya-svid-kernel/Cargo.toml",
             "[package]\nname = \"oya-svid-kernel\"\nversion = \"0.1.0\"\nedition = \"2021\"\n",
         );
-        wf(&root, "crates/oya-svid-kernel/src/lib.rs", "pub fn f() {}\n");
+        wf(
+            &root,
+            "crates/oya-svid-kernel/src/lib.rs",
+            "pub fn f() {}\n",
+        );
         // The SLO lives INSIDE the crate dir — exactly the iam svid-kernel scenario.
         wf(
             &root,
@@ -1650,8 +1684,7 @@ members = ["libs/oya-*", "cloud/*/crates/oya-*", "iam/*/*"]
             // old_path is nested under the crate dir — step 7 will carry it to the new crate
             // location before step 8 runs.  The codemod must resolve the effective source.
             artifacts: vec![ArtifactMove {
-                old_path: "crates/oya-svid-kernel/slos/svid-availability.openslo.yaml"
-                    .to_string(),
+                old_path: "crates/oya-svid-kernel/slos/svid-availability.openslo.yaml".to_string(),
                 new_path: "iam/observability/slos/svid-kernel/svid-availability.openslo.yaml"
                     .to_string(),
             }],
@@ -1744,8 +1777,9 @@ members = ["libs/oya-*", "cloud/*/crates/oya-*", "iam/*/*"]
             }],
         };
 
-        let outcome = apply_plan(&root, &plan, &ApplyOptions { use_git_mv: false })
-            .expect("apply must succeed when an artifact nests under the inner of two moving crates");
+        let outcome = apply_plan(&root, &plan, &ApplyOptions { use_git_mv: false }).expect(
+            "apply must succeed when an artifact nests under the inner of two moving crates",
+        );
 
         // Both crates landed.
         assert!(root.join("cap/core/a/Cargo.toml").is_file());
@@ -1782,9 +1816,10 @@ members = ["libs/oya-*", "cloud/*/crates/oya-*", "iam/*/*"]
         assert!(root.join("observability/core/domain/Cargo.toml").is_file());
         // ...but the artifacts did NOT (no artifact step fired).
         assert!(root.join("oya/observability/slos").is_dir());
-        assert!(root
-            .join("registry/catalog/oya-observability-domain.yaml")
-            .is_file());
+        assert!(
+            root.join("registry/catalog/oya-observability-domain.yaml")
+                .is_file()
+        );
         // dirs_moved carries the crate ONLY.
         assert_eq!(
             outcome.dirs_moved,
@@ -1882,15 +1917,22 @@ version = \"0.1.0\"
         let root = artifact_tmp_root("lock");
         lock_move_fixture(&root);
 
-        let outcome = apply_plan(&root, &lock_move_plan(), &ApplyOptions { use_git_mv: false })
-            .expect("apply must succeed and relocate the lock entry");
+        let outcome = apply_plan(
+            &root,
+            &lock_move_plan(),
+            &ApplyOptions { use_git_mv: false },
+        )
+        .expect("apply must succeed and relocate the lock entry");
 
         // The crate dir moved (sanity).
         assert!(root.join("widget/core/widget/Cargo.toml").is_file());
         // LOAD-BEARING: the Cargo.lock package entry was relocated BYTE-IDENTICALLY to cargo's
         // canonical output — renamed + re-sorted, with NO cargo invoked.
         let got = std::fs::read_to_string(root.join("Cargo.lock")).unwrap();
-        assert_eq!(got, EXPECTED_LOCK, "lock entry must relocate byte-identically");
+        assert_eq!(
+            got, EXPECTED_LOCK,
+            "lock entry must relocate byte-identically"
+        );
         assert!(
             outcome.cargo_lock_changed,
             "the outcome must report the lockfile change"
@@ -1911,7 +1953,10 @@ version = \"0.1.0\"
 
         // Reversibility-by-construction: --revert restores the original lockfile byte-for-byte.
         let got = std::fs::read_to_string(root.join("Cargo.lock")).unwrap();
-        assert_eq!(got, INPUT_LOCK, "inverse must restore the lock byte-identically");
+        assert_eq!(
+            got, INPUT_LOCK,
+            "inverse must restore the lock byte-identically"
+        );
         assert!(inverse.cargo_lock_changed);
 
         let _ = std::fs::remove_dir_all(&root);
@@ -1934,9 +1979,17 @@ version = \"0.1.0\"
         );
         wf(&root, "oya/widget/src/lib.rs", "pub fn w() {}\n");
 
-        let outcome = apply_plan(&root, &lock_move_plan(), &ApplyOptions { use_git_mv: false }).unwrap();
+        let outcome = apply_plan(
+            &root,
+            &lock_move_plan(),
+            &ApplyOptions { use_git_mv: false },
+        )
+        .unwrap();
 
-        assert!(!root.join("Cargo.lock").exists(), "no lockfile must be created");
+        assert!(
+            !root.join("Cargo.lock").exists(),
+            "no lockfile must be created"
+        );
         assert!(!outcome.cargo_lock_changed);
 
         let _ = std::fs::remove_dir_all(&root);

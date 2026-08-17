@@ -23,6 +23,9 @@ use serde_json::{Value, json};
 use crate::usage;
 
 const PROFILE_DEFAULTS_PATH: &str = "specs/artifact-profile-defaults.json";
+/// Declared binding for [`PROFILE_DEFAULTS_PATH`]; Buck sets it with `$(location ...)` and Cargo
+/// from `.cargo/config.toml`, so neither path depends on the process working directory.
+const PROFILE_DEFAULTS_BINDING: &str = "OYA_ARTIFACT_PROFILE_DEFAULTS";
 
 type CapabilityMap = BTreeMap<CapabilityKind, CapabilityDeclaration>;
 type ProfileDefaults = BTreeMap<String, CapabilityMap>;
@@ -404,16 +407,22 @@ fn validate_profile_default_capabilities(
     Ok(())
 }
 
+/// Resolve the committed profile-defaults face.
+///
+/// Prefers the DECLARED binding, which Buck sets with `$(location ...)` and Cargo sets from
+/// `.cargo/config.toml`, then falls back to the repo-relative path for a CLI invoked from the
+/// repository root.
+///
+/// The previous fallback counted `CARGO_MANIFEST_DIR.ancestors().nth(4)`, but this package sits
+/// three levels down (`marketplace/facade/dev-cli`), so the count overshot the repository root
+/// and resolved to a path OUTSIDE the checkout entirely. Under `cargo test` the cwd is the
+/// package directory, so the fast path missed and every caller got that escaped path. Naming the
+/// resource removes the positional guess rather than re-tuning the hop count.
 fn profile_defaults_path() -> PathBuf {
-    let relative = PathBuf::from(PROFILE_DEFAULTS_PATH);
-    if relative.exists() {
-        return relative;
+    if let Some(declared) = std::env::var_os(PROFILE_DEFAULTS_BINDING) {
+        return PathBuf::from(declared);
     }
-    PathBuf::from(option_env!("CARGO_MANIFEST_DIR").unwrap_or("."))
-        .ancestors()
-        .nth(4)
-        .unwrap_or_else(|| Path::new("."))
-        .join(PROFILE_DEFAULTS_PATH)
+    PathBuf::from(PROFILE_DEFAULTS_PATH)
 }
 
 fn parse_declared_capabilities(value: &Value) -> Result<CapabilityMap, String> {

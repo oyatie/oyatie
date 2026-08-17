@@ -82,9 +82,11 @@ impl Metal {
     /// discovered values explicitly.
     pub fn with_url_values(mut self, values: &UrlVariableValues) -> Result<Self, UrlPopulateError> {
         if let Some(config) = self.config.as_deref()
-            && config != CONFIG_NONE && config != METAL_ISO_LABEL {
-                self.config = Some(populate_url(config, values)?);
-            }
+            && config != CONFIG_NONE
+            && config != METAL_ISO_LABEL
+        {
+            self.config = Some(populate_url(config, values)?);
+        }
 
         Ok(self)
     }

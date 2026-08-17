@@ -124,6 +124,9 @@ mod tests {
             opened_epoch_seconds: 1,
             closed_epoch_seconds: None,
         };
-        assert_eq!(validate_room(&bad), Err("incident_room_commander_role_unique"));
+        assert_eq!(
+            validate_room(&bad),
+            Err("incident_room_commander_role_unique")
+        );
     }
 }

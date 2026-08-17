@@ -288,8 +288,7 @@ pub fn community_apply_action_generated_write_plan(
 
 fn messenger_context(
     value: i32,
-) -> Result<comms_messenger_stream_api::MessengerApiContext, GeneratedBackboneGrpcAdapterError>
-{
+) -> Result<comms_messenger_stream_api::MessengerApiContext, GeneratedBackboneGrpcAdapterError> {
     if value == messenger::v1::MessengerContextKind::Personal as i32 {
         Ok(comms_messenger_stream_api::MessengerApiContext::Personal)
     } else if value == messenger::v1::MessengerContextKind::Work as i32 {

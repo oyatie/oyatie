@@ -16,8 +16,8 @@ use network_domain::{
     CloudNetworkCatalog, CloudNetworkError, IpProtocol, NetworkRepo, RouteCreate, RouteNextHopKind,
     RouteTableCreate, RuleDirection, SecurityGroupCreate, SecurityRule, VpcCreate, VpcState,
 };
-use oya_data_boundary_kernel::DataClass;
 use network_residency::ResidencyClass;
+use oya_data_boundary_kernel::DataClass;
 
 const PUBLIC_ZONE_ID: &str = "oya:cloud:region-home:ten_alpha:dns-zone:example-com";
 const PRIVATE_ZONE_ID: &str = "oya:cloud:region-home:ten_alpha:dns-zone:internal-example";

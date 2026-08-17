@@ -19,7 +19,7 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use crate::model::{CodemodError, MovePlan};
-use crate::plan::{apply_plan, ApplyOptions};
+use crate::plan::{ApplyOptions, apply_plan};
 
 /// A captured green snapshot: the stdout of `cargo metadata` and `buck2 targets //...`. These
 /// are the rollback oracle (the resolvable-baseline the tree returns to).
@@ -87,7 +87,11 @@ pub fn dry_run(
             cargo_detail: format!("apply failed: {error}"),
             buck_ok: None,
             buck_detail: String::new(),
-            shadow_dir: if keep_shadow { Some(shadow.clone()) } else { None },
+            shadow_dir: if keep_shadow {
+                Some(shadow.clone())
+            } else {
+                None
+            },
         };
         if !keep_shadow {
             let _ = std::fs::remove_dir_all(&shadow);
@@ -111,7 +115,11 @@ pub fn dry_run(
         cargo_detail,
         buck_ok,
         buck_detail,
-        shadow_dir: if keep_shadow { Some(shadow.clone()) } else { None },
+        shadow_dir: if keep_shadow {
+            Some(shadow.clone())
+        } else {
+            None
+        },
     };
     if !keep_shadow {
         let _ = std::fs::remove_dir_all(&shadow);
@@ -144,7 +152,12 @@ fn verify_owning_workspaces(shadow: &Path, plan: &MovePlan) -> (bool, String) {
                 .or_default()
                 .push(m.new_path.clone()),
             Ok(None) => {}
-            Err(error) => return (false, format!("owning-workspace resolution failed: {error}")),
+            Err(error) => {
+                return (
+                    false,
+                    format!("owning-workspace resolution failed: {error}"),
+                );
+            }
         }
     }
 
@@ -219,7 +232,14 @@ fn run_buck_targets(root: &Path) -> (bool, String) {
 /// Copy `repo_root` into a fresh temp dir, skipping VCS/build-output/vendored trees so the
 /// shadow is cheap and the resolution checks run on first-party graph shape only.
 fn make_shadow(repo_root: &Path) -> Result<PathBuf, CodemodError> {
-    const SKIP: [&str; 6] = [".git", "target", "node_modules", "buck-out", ".buckd", "vendor"];
+    const SKIP: [&str; 6] = [
+        ".git",
+        "target",
+        "node_modules",
+        "buck-out",
+        ".buckd",
+        "vendor",
+    ];
     let unique = format!(
         "oya-reorg-shadow-{}-{}",
         std::process::id(),
@@ -343,7 +363,11 @@ mod tests {
         make_cargo_fixture(&root);
         let snap = capture_snapshot(&root, false);
         // cargo is present in this environment; metadata must resolve the 2-crate workspace.
-        assert!(snap.cargo_ok, "cargo metadata failed: {}", snap.cargo_metadata);
+        assert!(
+            snap.cargo_ok,
+            "cargo metadata failed: {}",
+            snap.cargo_metadata
+        );
         assert!(snap.cargo_metadata.contains("oya-a"));
         assert!(snap.cargo_metadata.contains("oya-b"));
         let _ = std::fs::remove_dir_all(&root);

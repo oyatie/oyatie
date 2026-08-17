@@ -10,6 +10,14 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use serde_json::Value;
 
+mod masterplan;
+
+pub use masterplan::{
+    MasterplanProjection, MilestoneGroup, PlanningAdr, PlanningDeliverable, ProjectedAdr,
+    ProjectedDeliverable, frontmatter_list, frontmatter_scalar, parse_planning_impact_adr,
+    read_frontmatter, render_masterplan_projection,
+};
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 struct BoardIssue {
     deliverable_id: String,

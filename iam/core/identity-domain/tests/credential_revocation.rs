@@ -2,12 +2,12 @@
 // `.expect_err()` / `.unwrap_err()` to assert invariants — Tier 3 exemption.
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
-use oya_data_boundary_kernel::Purpose;
 use iam_identity_domain::{
     CredentialRequest, CredentialRequestKind, CredentialStatus, Principal, RevocationError,
     RevocationLedger, RevocationReason, UnknownRevocationReason, issue_credential, issue_token,
     token_fingerprint,
 };
+use oya_data_boundary_kernel::Purpose;
 
 // ── RevocationReason wire round-trip (edge case 9) ───────────────────────────
 
@@ -15,8 +15,7 @@ use iam_identity_domain::{
 fn revocation_reason_wire_round_trip_via_public_re_export() {
     for variant in RevocationReason::ALL {
         let wire = variant.as_str();
-        let parsed =
-            RevocationReason::from_wire(wire).expect("all wire strings must round-trip");
+        let parsed = RevocationReason::from_wire(wire).expect("all wire strings must round-trip");
         assert_eq!(parsed, variant);
     }
 }
@@ -57,7 +56,10 @@ fn token_path_full_deny_precedence_proof() {
     .expect("valid token");
 
     let fp = token_fingerprint(&token);
-    assert!(fp.starts_with("tok1:"), "fingerprint must have tok1: prefix");
+    assert!(
+        fp.starts_with("tok1:"),
+        "fingerprint must have tok1: prefix"
+    );
 
     let mut ledger = RevocationLedger::new("ten_alpha").unwrap();
 
@@ -80,12 +82,18 @@ fn token_path_full_deny_precedence_proof() {
 
     // Revoked + now < expires_at -> Revoked (deny-precedence, edge case 3)
     let status = ledger.evaluate_token(&token, 1_500).unwrap();
-    assert_eq!(status, CredentialStatus::Revoked(RevocationReason::Compromised));
+    assert_eq!(
+        status,
+        CredentialStatus::Revoked(RevocationReason::Compromised)
+    );
     assert!(!status.is_valid(), "revoked credential must not be valid");
 
     // Revoked + now >= expires_at -> Revoked (revocation outranks expiry, edge case 4)
     let status = ledger.evaluate_token(&token, 2_000).unwrap();
-    assert_eq!(status, CredentialStatus::Revoked(RevocationReason::Compromised));
+    assert_eq!(
+        status,
+        CredentialStatus::Revoked(RevocationReason::Compromised)
+    );
     assert!(!status.is_valid());
 }
 
@@ -105,7 +113,10 @@ fn token_fingerprint_is_deterministic_and_tok1_prefixed() {
     let fp2 = token_fingerprint(&token);
     assert_eq!(fp1, fp2, "must be deterministic");
     assert!(fp1.starts_with("tok1:"));
-    assert!(!fp1.starts_with("sts1:"), "tok1: must be distinct from sts1:");
+    assert!(
+        !fp1.starts_with("sts1:"),
+        "tok1: must be distinct from sts1:"
+    );
 }
 
 // ── StsCredential path: full deny-precedence proof ───────────────────────────
@@ -128,7 +139,10 @@ fn sts_path_revoked_but_live_reports_revoked_and_is_valid_false() {
     // STS credential issued at t=1000, TTL=900, expires at t=1900
     let cred = make_sts("ten_alpha", 1_000, 900);
     let fp = cred.token_fingerprint.value.clone();
-    assert!(fp.starts_with("sts1:"), "STS fingerprint must have sts1: prefix");
+    assert!(
+        fp.starts_with("sts1:"),
+        "STS fingerprint must have sts1: prefix"
+    );
 
     let mut ledger = RevocationLedger::new("ten_alpha").unwrap();
     ledger
@@ -201,7 +215,9 @@ fn cross_tenant_sts_is_tenant_mismatch_fail_closed() {
 fn ledger_same_reason_revoke_is_idempotent() {
     // edge case 6
     let mut ledger = RevocationLedger::new("ten_alpha").unwrap();
-    ledger.revoke("fp_abc", RevocationReason::Superseded).unwrap();
+    ledger
+        .revoke("fp_abc", RevocationReason::Superseded)
+        .unwrap();
     ledger
         .revoke("fp_abc", RevocationReason::Superseded)
         .expect("same-reason re-revoke must succeed");

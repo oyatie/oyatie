@@ -19,8 +19,7 @@ use ci_crypto_backend_policy::{
 };
 use serde_json::Value;
 
-const DEFAULT_POLICY: &str =
-    "ci/facade/crypto-backend-policy/crypto-backend-purity-policy.json";
+const DEFAULT_POLICY: &str = "ci/facade/crypto-backend-policy/crypto-backend-purity-policy.json";
 
 struct Args {
     repo_root: PathBuf,

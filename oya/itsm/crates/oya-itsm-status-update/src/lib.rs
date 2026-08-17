@@ -6,7 +6,11 @@
 use serde::{Deserialize, Serialize};
 
 pub const BOUNDED_CONTEXT: &str = "status-update";
-pub const COUNTERPARTS: &[&str] = &["Atlassian Statuspage", "FireHydrant Statuspage", "Opsgenie Status"];
+pub const COUNTERPARTS: &[&str] = &[
+    "Atlassian Statuspage",
+    "FireHydrant Statuspage",
+    "Opsgenie Status",
+];
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum StatusStage {

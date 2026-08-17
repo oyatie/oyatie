@@ -344,10 +344,10 @@ fn generated_buck_blocks(text: &str) -> Vec<&str> {
         if start.is_none() && trimmed.ends_with('(') && !trimmed.starts_with('#') {
             start = Some(offset);
         }
-        if trimmed == ")" {
-            if let Some(byte_start) = start.take() {
-                blocks.push(&text[byte_start..offset + line.len()]);
-            }
+        if trimmed == ")"
+            && let Some(byte_start) = start.take()
+        {
+            blocks.push(&text[byte_start..offset + line.len()]);
         }
         offset += line.len();
     }
@@ -372,16 +372,16 @@ fn crate_names_implied_by_target(target: &str, block: &str) -> BTreeSet<String> 
         insert_crate_name_spellings(&mut names, &crate_name);
     }
     for line in block.lines() {
-        if line.contains("\"CARGO_PKG_NAME\"") {
-            if let Some(crate_name) = quoted_strings(line).into_iter().last() {
-                insert_crate_name_spellings(&mut names, &crate_name);
-            }
+        if line.contains("\"CARGO_PKG_NAME\"")
+            && let Some(crate_name) = quoted_strings(line).into_iter().last()
+        {
+            insert_crate_name_spellings(&mut names, &crate_name);
         }
     }
-    if let Some((name, _version)) = target.rsplit_once('-') {
-        if target_belongs_to_crate(target, name) {
-            names.insert(name.to_owned());
-        }
+    if let Some((name, _version)) = target.rsplit_once('-')
+        && target_belongs_to_crate(target, name)
+    {
+        names.insert(name.to_owned());
     }
     names
 }

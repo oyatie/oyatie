@@ -739,8 +739,7 @@ mod tests {
 
     #[test]
     fn failure_reason_serde_uses_snake_case() {
-        let json =
-            serde_json::to_string(&FailureReason::DatastoreBindTimeout).expect("serialize");
+        let json = serde_json::to_string(&FailureReason::DatastoreBindTimeout).expect("serialize");
         assert_eq!(json, "\"datastore_bind_timeout\"");
 
         let back: FailureReason =
@@ -812,9 +811,7 @@ mod tests {
     #[test]
     fn drain_phase_linear_progression_legal() {
         assert!(DrainPhase::EvictingPods.can_proceed_to(DrainPhase::AwaitingPodTermination));
-        assert!(
-            DrainPhase::AwaitingPodTermination.can_proceed_to(DrainPhase::FinalizingDeletion)
-        );
+        assert!(DrainPhase::AwaitingPodTermination.can_proceed_to(DrainPhase::FinalizingDeletion));
     }
 
     #[test]

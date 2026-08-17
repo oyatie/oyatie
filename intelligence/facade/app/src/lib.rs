@@ -1002,13 +1002,31 @@ mod tests {
 
     static ENV_LOCK: StdMutex<()> = StdMutex::new(());
 
-    fn read_repo_file(path: &str) -> String {
-        std::fs::read_to_string(path).unwrap_or_else(|err| {
-            panic!(
-                "failed to read {path} from {:?}: {err}",
-                std::env::current_dir()
-            )
-        })
+    /// Read a repository fixture through its DECLARED binding.
+    ///
+    /// These reads used a bare repo-relative path resolved against the process working
+    /// directory. Buck runs the action from the sandbox root so that happened to work, but
+    /// `cargo test` runs each binary from its own package directory, so every one of them
+    /// resolved to `intelligence/facade/app/intelligence/...` and failed. The Cargo merge path
+    /// (ADR-0716) is the authority, so the fixture has to be named rather than guessed.
+    ///
+    /// Each name is bound to an absolute path by Buck via `$(location ...)` and by Cargo via a
+    /// non-forcing `relative = true` entry in `.cargo/config.toml`. No process cwd, no
+    /// workstation absolute path, and no upward scanning — an unbound or non-regular resource
+    /// fails closed rather than silently reading the wrong bytes.
+    fn read_declared_fixture(name: &str) -> String {
+        let path = std::env::var_os(name)
+            .map(std::path::PathBuf::from)
+            .unwrap_or_else(|| panic!("FAIL-CLOSED: declared fixture binding {name} is unset"));
+        let metadata = std::fs::symlink_metadata(&path)
+            .unwrap_or_else(|err| panic!("FAIL-CLOSED: inspect {name}={}: {err}", path.display()));
+        assert!(
+            !metadata.file_type().is_symlink() && metadata.is_file(),
+            "FAIL-CLOSED: {name}={} must be a regular non-symlink file",
+            path.display()
+        );
+        std::fs::read_to_string(&path)
+            .unwrap_or_else(|err| panic!("FAIL-CLOSED: read {name}={}: {err}", path.display()))
     }
 
     struct EnvOverride {
@@ -1397,8 +1415,7 @@ mod tests {
 
     #[test]
     fn helm_template_declares_all_boot_required_env_vars() {
-        let deployment_template =
-            read_repo_file("intelligence/iac/k8s/helm/templates/deployment.yaml");
+        let deployment_template = read_declared_fixture("OYA_INTELLIGENCE_HELM_DEPLOYMENT");
         for expected in [
             "OYA_CLOUD_INTEL_LISTEN_ADDR",
             "OYA_CLOUD_INTEL_TENANT_ID",
@@ -1424,10 +1441,9 @@ mod tests {
 
     #[test]
     fn core_boundaries_use_owned_secret_provider_port_not_transient_adapter_names() {
-        let app_source = read_repo_file("intelligence/facade/app/src/lib.rs");
-        let rest_source = read_repo_file("intelligence/adapters/rest/src/lib.rs");
-        let deployment_template =
-            read_repo_file("intelligence/iac/k8s/helm/templates/deployment.yaml");
+        let app_source = read_declared_fixture("OYA_INTELLIGENCE_APP_SOURCE");
+        let rest_source = read_declared_fixture("OYA_INTELLIGENCE_REST_SOURCE");
+        let deployment_template = read_declared_fixture("OYA_INTELLIGENCE_HELM_DEPLOYMENT");
 
         assert!(
             app_source.contains("SecretProvider") && rest_source.contains("SecretProvider"),
@@ -1454,10 +1470,8 @@ mod tests {
 
     #[test]
     fn probe_paths_are_consistent_between_helm_and_openapi() {
-        let deployment_template =
-            read_repo_file("intelligence/iac/k8s/helm/templates/deployment.yaml");
-        let openapi_contract =
-            read_repo_file("intelligence/contracts/cloud-intelligence.openapi.yaml");
+        let deployment_template = read_declared_fixture("OYA_INTELLIGENCE_HELM_DEPLOYMENT");
+        let openapi_contract = read_declared_fixture("OYA_INTELLIGENCE_OPENAPI_CONTRACT");
         for path in ["/healthz", "/livez", "/readyz"] {
             assert!(
                 deployment_template.contains(&format!("path: {path}"))
@@ -1473,8 +1487,7 @@ mod tests {
 
     #[test]
     fn tenant_subscription_openapi_matches_runtime_registration_semantics() {
-        let openapi_contract =
-            read_repo_file("intelligence/contracts/cloud-intelligence.openapi.yaml");
+        let openapi_contract = read_declared_fixture("OYA_INTELLIGENCE_OPENAPI_CONTRACT");
         let operation_start = openapi_contract
             .find("  /admin/v1/tenants/{tenant_id}/providers/{provider}/subscriptions:\n")
             .expect("tenant subscription admin path missing from OpenAPI");
@@ -1518,7 +1531,7 @@ mod tests {
     #[test]
     fn external_secret_exposes_handles_not_raw_provider_credentials() {
         let external_secret_template =
-            read_repo_file("intelligence/iac/k8s/helm/templates/externalsecret.yaml");
+            read_declared_fixture("OYA_INTELLIGENCE_HELM_EXTERNALSECRET");
         for forbidden in [
             "anthropic_refresh_token",
             "openai_api_key",

@@ -71,13 +71,8 @@ async fn main() -> ExitCode {
         }
     };
 
-    let runtime = KubeSvidOperatorRuntime::new(
-        client,
-        config.desired,
-        backend,
-        SystemClock,
-        config.backoff,
-    );
+    let runtime =
+        KubeSvidOperatorRuntime::new(client, config.desired, backend, SystemClock, config.backoff);
     runtime.run().await;
     ExitCode::SUCCESS
 }

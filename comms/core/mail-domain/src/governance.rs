@@ -274,7 +274,7 @@ pub fn organizational_domain(domain: &str) -> &str {
         let dot_pos = domain
             .char_indices()
             .filter(|&(_, c)| c == '.')
-            .nth(dot_count - 2)   // 0-indexed: skip the first (dot_count-2) dots
+            .nth(dot_count - 2) // 0-indexed: skip the first (dot_count-2) dots
             .map(|(i, _)| i)
             .unwrap();
         &domain[dot_pos + 1..]
@@ -306,8 +306,11 @@ impl DmarcVerdict {
         ne(&domain_ref)?;
         ne(&evidence_ref)?;
 
-        let spf_aligned =
-            domains_aligned(&spf.authenticated_domain, &spf.from_domain, record.spf_alignment);
+        let spf_aligned = domains_aligned(
+            &spf.authenticated_domain,
+            &spf.from_domain,
+            record.spf_alignment,
+        );
         let dkim_aligned = dkim
             .as_ref()
             .map(|d| domains_aligned(&d.d_tag, &d.from_domain, record.dkim_alignment))

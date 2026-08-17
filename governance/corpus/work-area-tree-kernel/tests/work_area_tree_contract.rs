@@ -17,11 +17,8 @@ fn node_identity_names_work_area_hash_node_hash_and_source_locator() {
     let work_area_hash = WorkAreaHash::from_bytes(digest(1));
     let node_hash = NodeContentHash::from_bytes(digest(2));
     let span = SourceSpan::new(10, 42).expect("valid span");
-    let locator = NodeLocator::new(
-        "docs/decisions/ADR-0700-ci-admission-live-apex.md",
-        span,
-    )
-    .expect("valid locator");
+    let locator = NodeLocator::new("docs/decisions/ADR-0700-ci-admission-live-apex.md", span)
+        .expect("valid locator");
 
     let node_id = WorkAreaNodeId::new(work_area_hash, node_hash, locator.clone());
     let duplicate_content_at_different_locator = WorkAreaNodeId::new(

@@ -6,12 +6,12 @@
 //! Exercises `OntologyEngine::register_link_instance` across all cardinality variants,
 //! the unknown-link-type rejection, and idempotent re-insert behaviour.
 
-use oya_data_boundary_kernel::{DataClass, PrivacyDataClass};
 use data_ontology_kernel::{
     EntityTypeDefinition, EntityTypeId, EntityTypePropertyDefinition, LinkCardinality,
     LinkInstanceOutcome, LinkTypeDefinition, LinkTypeId, OntologyEngine, OntologyEngineError,
     PropertyTier,
 };
+use oya_data_boundary_kernel::{DataClass, PrivacyDataClass};
 
 // ---------------------------------------------------------------------------
 // Shared helpers
@@ -40,8 +40,12 @@ fn entity(tenant: &str, id: &str) -> EntityTypeDefinition {
 /// Returns `(engine, link_type_id)`.
 fn engine_with_link_type(cardinality: LinkCardinality) -> (OntologyEngine, LinkTypeId) {
     let mut engine = OntologyEngine::default();
-    engine.register_entity_type(entity("ten_t", "ety_from")).unwrap();
-    engine.register_entity_type(entity("ten_t", "ety_to")).unwrap();
+    engine
+        .register_entity_type(entity("ten_t", "ety_from"))
+        .unwrap();
+    engine
+        .register_entity_type(entity("ten_t", "ety_to"))
+        .unwrap();
     let link_id = engine
         .register_link_type(
             LinkTypeDefinition::new(

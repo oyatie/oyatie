@@ -6,7 +6,7 @@
 //! OpenBao read, no SMTP delivery.
 
 use crate::dkim_canonicalization::{
-    canonicalize_body, canonicalize_header, DkimCanonicalizationAlgorithm, RawHeader,
+    DkimCanonicalizationAlgorithm, RawHeader, canonicalize_body, canonicalize_header,
 };
 use crate::sending_domain_authentication::{DkimSigningAlgorithm, NON_CLAIM};
 
@@ -118,7 +118,12 @@ pub fn build_dkim_signing_input(
             .rev()
             .find(|h| h.name.to_ascii_lowercase() == name_lower);
         let single: Vec<RawHeader> = found
-            .map(|h| vec![RawHeader { name: h.name.clone(), value: h.value.clone() }])
+            .map(|h| {
+                vec![RawHeader {
+                    name: h.name.clone(),
+                    value: h.value.clone(),
+                }]
+            })
             .unwrap_or_default();
         let canonical = canonicalize_header(&single, request.header_canonicalization);
         // Strip the trailing \r\n for inclusion in the signed-headers list;
@@ -153,8 +158,7 @@ pub fn build_dkim_signing_input(
         name: "DKIM-Signature".to_string(),
         value: dkim_stub[16..].to_string(), // strip "DKIM-Signature:" prefix
     };
-    let stub_canonical =
-        canonicalize_header(&[stub_raw], request.header_canonicalization);
+    let stub_canonical = canonicalize_header(&[stub_raw], request.header_canonicalization);
     canonical_signed_headers.push(stub_canonical.trim_end_matches("\r\n").to_string());
 
     // The signing_input is the concatenation of all canonical header strings
@@ -217,7 +221,11 @@ mod tests {
     #[test]
     fn signing_input_contains_v1_tag() {
         let mat = build_dkim_signing_input(base_request()).unwrap();
-        assert!(mat.signing_input.contains("v=1"), "missing v=1 in: {}", mat.signing_input);
+        assert!(
+            mat.signing_input.contains("v=1"),
+            "missing v=1 in: {}",
+            mat.signing_input
+        );
     }
 
     #[test]

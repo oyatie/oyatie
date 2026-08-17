@@ -812,7 +812,9 @@ fn talos_001_substrate_slice_is_enforced() {
     // Dropping ADR-0378 from the local vfkit/Talos smoke surface's source_adrs
     // must violate the per-member conditional must_contain assertion.
     let mut corpus = live_corpus(&root, &policy);
-    let matrix = corpus.get_mut(spec).unwrap()["matrix"].as_array_mut().unwrap();
+    let matrix = corpus.get_mut(spec).unwrap()["matrix"]
+        .as_array_mut()
+        .unwrap();
     let row = matrix
         .iter_mut()
         .find(|row| row["id"] == "local_vfkit_talos_smoke")
@@ -833,7 +835,9 @@ fn talos_001_substrate_slice_is_enforced() {
     // the per-member must_contain assertion — every path TALOS-001 claims to validate stays
     // pinned, so silently narrowing the matrix's source-path boundary is caught.
     let mut corpus = live_corpus(&root, &policy);
-    let matrix = corpus.get_mut(spec).unwrap()["matrix"].as_array_mut().unwrap();
+    let matrix = corpus.get_mut(spec).unwrap()["matrix"]
+        .as_array_mut()
+        .unwrap();
     let row = matrix
         .iter_mut()
         .find(|row| row["id"] == "local_vfkit_talos_smoke")
@@ -872,7 +876,9 @@ fn talos_001_substrate_slice_is_enforced() {
 
     // A duplicate matrix id (same id twice) must violate cardinality uniqueness.
     let mut corpus = live_corpus(&root, &policy);
-    let matrix = corpus.get_mut(spec).unwrap()["matrix"].as_array_mut().unwrap();
+    let matrix = corpus.get_mut(spec).unwrap()["matrix"]
+        .as_array_mut()
+        .unwrap();
     let dup = matrix[0].clone();
     matrix.push(dup);
     let report = evaluate_configured(&policy, &corpus);

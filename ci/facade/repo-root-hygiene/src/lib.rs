@@ -394,9 +394,11 @@ pub fn corpus_class_counts(policy: &Value, observed: &Value) -> BTreeMap<String,
             let Some(prefixes) = matchers.get("prefixes").and_then(Value::as_array) else {
                 continue;
             };
-            let prefix_ok = prefixes
-                .iter()
-                .any(|prefix| prefix.as_str().is_some_and(|prefix| path.starts_with(prefix)));
+            let prefix_ok = prefixes.iter().any(|prefix| {
+                prefix
+                    .as_str()
+                    .is_some_and(|prefix| path.starts_with(prefix))
+            });
             if !prefix_ok {
                 continue;
             }
@@ -495,6 +497,38 @@ pub fn corpus_class_reduction_leaves_headroom(
     observed_count < protected_ceiling && candidate_ceiling > observed_count
 }
 
+/// Return whether a ceiling increase has an exact, attributed policy record.
+///
+/// This is the machine-checkable DATA half of ADR-0717's reviewed-raise contract. It does not
+/// claim that an external reviewer approved the change: review authority remains separate. A
+/// record matches only one transition when its `from` and `to` values equal the protected and
+/// candidate ceilings and its `reason` is non-empty.
+pub fn corpus_class_raise_matches_reviewed_record(
+    candidate_policy: &Value,
+    class: &str,
+    protected_ceiling: u64,
+    candidate_ceiling: u64,
+) -> bool {
+    if candidate_ceiling <= protected_ceiling {
+        return false;
+    }
+    let Some(record) = candidate_policy
+        .get("corpus_budget")
+        .and_then(|budget| budget.get("reviewed_raises"))
+        .and_then(|raises| raises.get(class))
+    else {
+        return false;
+    };
+    let reason_is_attributed = record
+        .get("reason")
+        .and_then(Value::as_str)
+        .is_some_and(|reason| !reason.trim().is_empty());
+
+    record.get("from").and_then(Value::as_u64) == Some(protected_ceiling)
+        && record.get("to").and_then(Value::as_u64) == Some(candidate_ceiling)
+        && reason_is_attributed
+}
+
 /// Extract YAML mapping key paths without retaining or inspecting scalar values.
 ///
 /// Generated Talos machine configurations are YAML mappings whose credential-bearing topology is
@@ -581,16 +615,15 @@ pub fn evaluate_talos_machine_config_documents<'a>(
 ) -> BTreeSet<Finding> {
     documents
         .into_iter()
-        .filter_map(|(path, document)| {
-            has_generated_talos_machine_config_topology(document).then(|| {
-                Finding::new(
-                    "credential_bearing_talos_machine_config",
-                    path,
-                    format!(
-                        "tracked document `{path}` contains sensitive generated Talos machine-config credential topology. AUTO-FIX: remove it from git and regenerate outside the repository; retain only reviewed value-free patches/templates. Diagnostic output is value-redacted."
-                    ),
-                )
-            })
+        .filter(|(_, document)| has_generated_talos_machine_config_topology(document))
+        .map(|(path, _)| {
+            Finding::new(
+                "credential_bearing_talos_machine_config",
+                path,
+                format!(
+                    "tracked document `{path}` contains sensitive generated Talos machine-config credential topology. AUTO-FIX: remove it from git and regenerate outside the repository; retain only reviewed value-free patches/templates. Diagnostic output is value-redacted."
+                ),
+            )
         })
         .collect()
 }
@@ -1006,7 +1039,10 @@ spec:
                 "docs/decisions/ADR-0700-x.md",
             ]),
         );
-        assert!(findings.is_empty(), "frozen corpus must be green; got {findings:#?}");
+        assert!(
+            findings.is_empty(),
+            "frozen corpus must be green; got {findings:#?}"
+        );
     }
 
     #[test]
@@ -1041,14 +1077,9 @@ spec:
 
     #[test]
     fn corpus_budget_absent_block_fails_closed() {
-        let findings = evaluate_corpus_budget(
-            &json!({}),
-            &corpus_observed(&["evidence/a.json"]),
-        );
+        let findings = evaluate_corpus_budget(&json!({}), &corpus_observed(&["evidence/a.json"]));
         assert!(
-            findings
-                .iter()
-                .any(|f| f.code == "corpus_budget_malformed"),
+            findings.iter().any(|f| f.code == "corpus_budget_malformed"),
             "a policy without corpus_budget must fail closed, never disable the ratchets; got {findings:#?}"
         );
     }
@@ -1058,9 +1089,7 @@ spec:
         let policy = json!({ "corpus_budget": { "counts": { "evidence_files": 1 } } });
         let findings = evaluate_corpus_budget(&policy, &corpus_observed(&["evidence/a.json"]));
         assert!(
-            findings
-                .iter()
-                .any(|f| f.code == "corpus_budget_malformed"),
+            findings.iter().any(|f| f.code == "corpus_budget_malformed"),
             "a missing class count must fail closed as malformed; got {findings:#?}"
         );
     }
@@ -1078,6 +1107,74 @@ spec:
         // Lowering 249 → 245 while the live count is 240 still lets five files grow back.
         assert!(corpus_class_reduction_leaves_headroom(249, 245, 240));
         assert!(!corpus_class_reduction_leaves_headroom(249, 240, 240));
+    }
+
+    #[test]
+    fn corpus_budget_exact_attributed_raise_record_matches() {
+        let policy = json!({
+            "corpus_budget": {
+                "reviewed_raises": {
+                    "docs_markdown_files": {
+                        "from": 1433,
+                        "to": 1434,
+                        "reason": "docs/decisions/ADR-0717-corpus-budget-shrink-only-ratchet.md is the accepted ratchet authority"
+                    }
+                }
+            }
+        });
+
+        assert!(corpus_class_raise_matches_reviewed_record(
+            &policy,
+            "docs_markdown_files",
+            1433,
+            1434,
+        ));
+    }
+
+    #[test]
+    fn corpus_budget_raise_record_mismatch_or_missing_attribution_is_red() {
+        for record in [
+            json!({ "from": 1432, "to": 1434, "reason": "wrong source ceiling" }),
+            json!({ "from": 1433, "to": 1435, "reason": "wrong candidate ceiling" }),
+            json!({ "from": 1433, "to": 1434, "reason": "   " }),
+            json!({ "from": 1433, "to": 1434 }),
+        ] {
+            let policy = json!({
+                "corpus_budget": {
+                    "reviewed_raises": { "docs_markdown_files": record }
+                }
+            });
+            assert!(
+                !corpus_class_raise_matches_reviewed_record(
+                    &policy,
+                    "docs_markdown_files",
+                    1433,
+                    1434,
+                ),
+                "only an exact from/to record with non-empty attribution may match"
+            );
+        }
+
+        let stale_policy = json!({
+            "corpus_budget": {
+                "reviewed_raises": {
+                    "docs_markdown_files": {
+                        "from": 1433,
+                        "to": 1434,
+                        "reason": "already-consumed transition"
+                    }
+                }
+            }
+        });
+        assert!(
+            !corpus_class_raise_matches_reviewed_record(
+                &stale_policy,
+                "docs_markdown_files",
+                1434,
+                1435,
+            ),
+            "a prior exact record must not authorize a later ceiling increase"
+        );
     }
 
     #[test]

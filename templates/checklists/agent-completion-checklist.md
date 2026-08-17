@@ -61,7 +61,7 @@ Confirm:
 - (If capability publish) `oya.foundry.capability.invoked` topic registered.
 - (If runbook author) `oya.ops.runbook.invoked` topic resolvable.
 
-Paste the `EVT-*` IDs into PR `## Evidence`. *Lane:* `oya-governance-audit-emission`.
+Paste the `EVT-*` IDs into PR `## Verification` when required. *Lane:* `oya-governance-audit-emission`.
 
 ## C5. Grit done
 

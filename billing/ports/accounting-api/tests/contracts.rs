@@ -4,9 +4,7 @@ use billing_accounting_api::{
     ApiErrorEnvelope, JournalLineRequest, JournalPostRequest, JurisdictionDto,
     PayrollPostingRequest, PeriodStateDto, VatDeadlineRequest,
 };
-use billing_accounting_app::{
-    plan_vat_workflow, post_journal_with_audit, record_payroll_posting,
-};
+use billing_accounting_app::{plan_vat_workflow, post_journal_with_audit, record_payroll_posting};
 use serde_json::json;
 
 #[test]

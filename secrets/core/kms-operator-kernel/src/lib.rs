@@ -105,18 +105,13 @@ pub enum ReadConsistency {
     Ambiguous,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "state", content = "reason", rename_all = "snake_case")]
 pub enum ObservedHealth {
+    #[default]
     Healthy,
     Ambiguous(String),
     Compromised(String),
-}
-
-impl Default for ObservedHealth {
-    fn default() -> Self {
-        Self::Healthy
-    }
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]

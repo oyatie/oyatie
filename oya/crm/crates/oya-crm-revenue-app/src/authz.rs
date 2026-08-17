@@ -127,21 +127,31 @@ impl VerifiedPrincipal {
     /// Mint a verified principal. **`pub(crate)` only** — callers outside this
     /// crate cannot call this; they must go through a [`PrincipalVerifier`].
     pub(crate) fn new(principal_id: impl Into<String>, tenant_id: impl Into<String>) -> Self {
-        Self { principal_id: principal_id.into(), tenant_id: tenant_id.into() }
+        Self {
+            principal_id: principal_id.into(),
+            tenant_id: tenant_id.into(),
+        }
     }
 
     /// The authoritative principal id bound from the verified credential.
     #[must_use]
-    pub fn principal_id(&self) -> &str { &self.principal_id }
+    pub fn principal_id(&self) -> &str {
+        &self.principal_id
+    }
 
     /// The authoritative tenant the principal acts within.
     #[must_use]
-    pub fn tenant_id(&self) -> &str { &self.tenant_id }
+    pub fn tenant_id(&self) -> &str {
+        &self.tenant_id
+    }
 
     /// Test-only constructor that mints a token without a real credential.
     /// Only available inside this crate under `#[cfg(test)]`.
     #[cfg(test)]
-    pub(crate) fn new_for_test(principal_id: impl Into<String>, tenant_id: impl Into<String>) -> Self {
+    pub(crate) fn new_for_test(
+        principal_id: impl Into<String>,
+        tenant_id: impl Into<String>,
+    ) -> Self {
         Self::new(principal_id, tenant_id)
     }
 }
@@ -215,7 +225,10 @@ pub trait PrincipalVerifier: Send + Sync {
     /// # Errors
     /// [`PrincipalVerificationError`] when no credential is presented or it does
     /// not verify (fail-closed: the caller MUST treat this as 401).
-    fn verify_principal(&self, credential: &CallerCredential) -> Result<VerifiedPrincipal, PrincipalVerificationError>;
+    fn verify_principal(
+        &self,
+        credential: &CallerCredential,
+    ) -> Result<VerifiedPrincipal, PrincipalVerificationError>;
 }
 
 /// PORT: decide whether `principal` may perform the CRM action on `resource`.
@@ -241,22 +254,32 @@ pub trait CrmAuthorizer: Send + Sync {
     /// [`CrmAuthorizationError`] on an explicit deny or any PDP fault (timeout,
     /// network, unavailability — all MUST be `Refused`; fail-closed: the caller
     /// maps this to HTTP 403).
-    fn ensure_authorized(&self, principal: &VerifiedPrincipal, resource: &CrmResource) -> Result<(), CrmAuthorizationError>;
+    fn ensure_authorized(
+        &self,
+        principal: &VerifiedPrincipal,
+        resource: &CrmResource,
+    ) -> Result<(), CrmAuthorizationError>;
 }
 
 /// The authz provider the adapters depend on: a principal verifier PORT plus a
 /// CRM authorizer PORT. A mutation REFUSES to proceed without one configured
 /// (no default-allow fallback): see [`authorize_crm_command`].
 pub struct CrmAuthzProvider {
-    verifier: std::sync::Arc<dyn PrincipalVerifier>,    // data_class: INTERNAL_ONLY
-    authorizer: std::sync::Arc<dyn CrmAuthorizer>,      // data_class: INTERNAL_ONLY
+    verifier: std::sync::Arc<dyn PrincipalVerifier>, // data_class: INTERNAL_ONLY
+    authorizer: std::sync::Arc<dyn CrmAuthorizer>,   // data_class: INTERNAL_ONLY
 }
 
 impl CrmAuthzProvider {
     /// Assemble the provider from a principal verifier and a CRM authorizer.
     #[must_use]
-    pub fn new(verifier: std::sync::Arc<dyn PrincipalVerifier>, authorizer: std::sync::Arc<dyn CrmAuthorizer>) -> Self {
-        Self { verifier, authorizer }
+    pub fn new(
+        verifier: std::sync::Arc<dyn PrincipalVerifier>,
+        authorizer: std::sync::Arc<dyn CrmAuthorizer>,
+    ) -> Self {
+        Self {
+            verifier,
+            authorizer,
+        }
     }
 
     /// Verify the caller principal. Returns the authoritative identity or a
@@ -264,7 +287,10 @@ impl CrmAuthzProvider {
     ///
     /// # Errors
     /// [`PrincipalVerificationError`] — caller maps to HTTP 401.
-    pub fn verify_principal(&self, credential: &CallerCredential) -> Result<VerifiedPrincipal, PrincipalVerificationError> {
+    pub fn verify_principal(
+        &self,
+        credential: &CallerCredential,
+    ) -> Result<VerifiedPrincipal, PrincipalVerificationError> {
         self.verifier.verify_principal(credential)
     }
 
@@ -273,7 +299,11 @@ impl CrmAuthzProvider {
     ///
     /// # Errors
     /// [`CrmAuthorizationError`] — caller maps to HTTP 403.
-    pub fn ensure_authorized(&self, principal: &VerifiedPrincipal, resource: &CrmResource) -> Result<(), CrmAuthorizationError> {
+    pub fn ensure_authorized(
+        &self,
+        principal: &VerifiedPrincipal,
+        resource: &CrmResource,
+    ) -> Result<(), CrmAuthorizationError> {
         self.authorizer.ensure_authorized(principal, resource)
     }
 }
@@ -301,20 +331,28 @@ pub struct AuthorizedCrmContext {
 impl AuthorizedCrmContext {
     /// The verified principal that passed the gate.
     #[must_use]
-    pub fn principal(&self) -> &VerifiedPrincipal { &self.principal }
+    pub fn principal(&self) -> &VerifiedPrincipal {
+        &self.principal
+    }
 
     /// The authorized CRM action (from server-side route metadata).
     #[must_use]
-    pub fn action(&self) -> CrmAction { self.action }
+    pub fn action(&self) -> CrmAction {
+        self.action
+    }
 
     /// The VERIFIED tenant — the ONLY legitimate resource/scope tenant. Adapters
     /// MUST bind the resource tenant from this, never from the request body.
     #[must_use]
-    pub fn tenant_id(&self) -> &str { self.principal.tenant_id() }
+    pub fn tenant_id(&self) -> &str {
+        self.principal.tenant_id()
+    }
 
     /// The VERIFIED principal id — the ONLY legitimate actor identity.
     #[must_use]
-    pub fn principal_id(&self) -> &str { self.principal.principal_id() }
+    pub fn principal_id(&self) -> &str {
+        self.principal.principal_id()
+    }
 }
 
 /// Drive the full fail-closed gate for one CRM mutation: verify the caller
@@ -338,7 +376,10 @@ pub fn authorize_crm_command(
         .verify_principal(credential)
         .map_err(CrmGateError::Unauthenticated)?;
 
-    let resource = CrmResource { action, target_tenant_id: principal.tenant_id().to_string() };
+    let resource = CrmResource {
+        action,
+        target_tenant_id: principal.tenant_id().to_string(),
+    };
     provider
         .ensure_authorized(&principal, &resource)
         .map_err(CrmGateError::Unauthorized)?;
@@ -374,8 +415,12 @@ impl From<CrmGateError> for crate::error::ServiceError {
     /// principal" distinction) so probing cannot fingerprint the failure mode.
     fn from(error: CrmGateError) -> Self {
         match error {
-            CrmGateError::Unauthenticated(_) => crate::error::ServiceError::unauthenticated("authorization", "unauthenticated"),
-            CrmGateError::Unauthorized(_) => crate::error::ServiceError::forbidden("authorization", "forbidden"),
+            CrmGateError::Unauthenticated(_) => {
+                crate::error::ServiceError::unauthenticated("authorization", "unauthenticated")
+            }
+            CrmGateError::Unauthorized(_) => {
+                crate::error::ServiceError::forbidden("authorization", "forbidden")
+            }
         }
     }
 }
@@ -438,12 +483,19 @@ impl ConfiguredBearerPrincipalVerifier {
         if bound_principal_id.trim().is_empty() || bound_tenant_id.trim().is_empty() {
             return Err(AuthzProviderConfigError::EmptyBoundIdentity);
         }
-        Ok(Self { bearer_secret, bound_principal_id, bound_tenant_id })
+        Ok(Self {
+            bearer_secret,
+            bound_principal_id,
+            bound_tenant_id,
+        })
     }
 }
 
 impl PrincipalVerifier for ConfiguredBearerPrincipalVerifier {
-    fn verify_principal(&self, credential: &CallerCredential) -> Result<VerifiedPrincipal, PrincipalVerificationError> {
+    fn verify_principal(
+        &self,
+        credential: &CallerCredential,
+    ) -> Result<VerifiedPrincipal, PrincipalVerificationError> {
         let Some(authorization) = credential.authorization.as_deref() else {
             return Err(PrincipalVerificationError::MissingCredential);
         };
@@ -453,7 +505,10 @@ impl PrincipalVerifier for ConfiguredBearerPrincipalVerifier {
         if !constant_time_eq(presented.as_bytes(), self.bearer_secret.as_bytes()) {
             return Err(PrincipalVerificationError::InvalidCredential);
         }
-        Ok(VerifiedPrincipal::new(self.bound_principal_id.clone(), self.bound_tenant_id.clone()))
+        Ok(VerifiedPrincipal::new(
+            self.bound_principal_id.clone(),
+            self.bound_tenant_id.clone(),
+        ))
     }
 }
 
@@ -471,7 +526,9 @@ impl std::fmt::Display for AuthzProviderConfigError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::EmptyBearerSecret => write!(f, "authz provider bearer secret must be non-empty"),
-            Self::EmptyBoundIdentity => write!(f, "authz provider bound principal/tenant must be non-empty"),
+            Self::EmptyBoundIdentity => {
+                write!(f, "authz provider bound principal/tenant must be non-empty")
+            }
         }
     }
 }
@@ -485,42 +542,77 @@ mod tests {
     /// A PDP adapter that always grants — for the GREEN path only.
     struct AllowAuthorizer;
     impl CrmAuthorizer for AllowAuthorizer {
-        fn ensure_authorized(&self, _p: &VerifiedPrincipal, _r: &CrmResource) -> Result<(), CrmAuthorizationError> { Ok(()) }
+        fn ensure_authorized(
+            &self,
+            _p: &VerifiedPrincipal,
+            _r: &CrmResource,
+        ) -> Result<(), CrmAuthorizationError> {
+            Ok(())
+        }
     }
 
     /// A PDP adapter that always denies.
     struct DenyAuthorizer;
     impl CrmAuthorizer for DenyAuthorizer {
-        fn ensure_authorized(&self, _p: &VerifiedPrincipal, _r: &CrmResource) -> Result<(), CrmAuthorizationError> { Err(CrmAuthorizationError::Denied) }
+        fn ensure_authorized(
+            &self,
+            _p: &VerifiedPrincipal,
+            _r: &CrmResource,
+        ) -> Result<(), CrmAuthorizationError> {
+            Err(CrmAuthorizationError::Denied)
+        }
     }
 
     /// A PDP adapter that faults (must be treated as deny / 403).
     struct FaultAuthorizer;
     impl CrmAuthorizer for FaultAuthorizer {
-        fn ensure_authorized(&self, _p: &VerifiedPrincipal, _r: &CrmResource) -> Result<(), CrmAuthorizationError> { Err(CrmAuthorizationError::Refused) }
+        fn ensure_authorized(
+            &self,
+            _p: &VerifiedPrincipal,
+            _r: &CrmResource,
+        ) -> Result<(), CrmAuthorizationError> {
+            Err(CrmAuthorizationError::Refused)
+        }
     }
 
     fn bearer_provider(authorizer: std::sync::Arc<dyn CrmAuthorizer>) -> CrmAuthzProvider {
-        let verifier = ConfiguredBearerPrincipalVerifier::new("s3cr3t-bearer-token", "svc-crm-op", "tenant-alpha").expect("verifier builds");
+        let verifier = ConfiguredBearerPrincipalVerifier::new(
+            "s3cr3t-bearer-token",
+            "svc-crm-op",
+            "tenant-alpha",
+        )
+        .expect("verifier builds");
         CrmAuthzProvider::new(std::sync::Arc::new(verifier), authorizer)
     }
 
     fn credential(auth: Option<&str>) -> CallerCredential {
-        CallerCredential { authorization: auth.map(str::to_string) }
+        CallerCredential {
+            authorization: auth.map(str::to_string),
+        }
     }
 
     // RED: forged identity (no/invalid credential) is rejected 401, never reaches PDP.
     #[test]
     fn forged_request_without_credential_is_401() {
         let provider = bearer_provider(std::sync::Arc::new(AllowAuthorizer));
-        let err = authorize_crm_command(&provider, &credential(None), CrmAction(Capability::AccountMaster)).unwrap_err();
+        let err = authorize_crm_command(
+            &provider,
+            &credential(None),
+            CrmAction(Capability::AccountMaster),
+        )
+        .unwrap_err();
         assert_eq!(err.http_status(), 401);
     }
 
     #[test]
     fn forged_request_with_bad_bearer_is_401() {
         let provider = bearer_provider(std::sync::Arc::new(AllowAuthorizer));
-        let err = authorize_crm_command(&provider, &credential(Some("Bearer wrong-token")), CrmAction(Capability::Opportunity)).unwrap_err();
+        let err = authorize_crm_command(
+            &provider,
+            &credential(Some("Bearer wrong-token")),
+            CrmAction(Capability::Opportunity),
+        )
+        .unwrap_err();
         assert_eq!(err.http_status(), 401);
     }
 
@@ -530,14 +622,23 @@ mod tests {
     fn resource_tenant_is_always_the_verified_tenant() {
         struct CaptureAuthorizer(std::sync::Mutex<Option<String>>);
         impl CrmAuthorizer for CaptureAuthorizer {
-            fn ensure_authorized(&self, _p: &VerifiedPrincipal, r: &CrmResource) -> Result<(), CrmAuthorizationError> {
+            fn ensure_authorized(
+                &self,
+                _p: &VerifiedPrincipal,
+                r: &CrmResource,
+            ) -> Result<(), CrmAuthorizationError> {
                 *self.0.lock().unwrap() = Some(r.target_tenant_id.clone());
                 Ok(())
             }
         }
         let capture = std::sync::Arc::new(CaptureAuthorizer(std::sync::Mutex::new(None)));
         let provider = bearer_provider(capture.clone());
-        let ctx = authorize_crm_command(&provider, &credential(Some("Bearer s3cr3t-bearer-token")), CrmAction(Capability::Quote)).expect("authorized");
+        let ctx = authorize_crm_command(
+            &provider,
+            &credential(Some("Bearer s3cr3t-bearer-token")),
+            CrmAction(Capability::Quote),
+        )
+        .expect("authorized");
         assert_eq!(capture.0.lock().unwrap().as_deref(), Some("tenant-alpha"));
         // The returned context's tenant is the verified tenant — the only legitimate scope.
         assert_eq!(ctx.tenant_id(), "tenant-alpha");
@@ -547,7 +648,12 @@ mod tests {
     #[test]
     fn pdp_deny_is_403() {
         let provider = bearer_provider(std::sync::Arc::new(DenyAuthorizer));
-        let err = authorize_crm_command(&provider, &credential(Some("Bearer s3cr3t-bearer-token")), CrmAction(Capability::Campaign)).unwrap_err();
+        let err = authorize_crm_command(
+            &provider,
+            &credential(Some("Bearer s3cr3t-bearer-token")),
+            CrmAction(Capability::Campaign),
+        )
+        .unwrap_err();
         assert_eq!(err.http_status(), 403);
     }
 
@@ -555,7 +661,12 @@ mod tests {
     #[test]
     fn pdp_fault_is_403_fail_closed() {
         let provider = bearer_provider(std::sync::Arc::new(FaultAuthorizer));
-        let err = authorize_crm_command(&provider, &credential(Some("Bearer s3cr3t-bearer-token")), CrmAction(Capability::ServiceCase)).unwrap_err();
+        let err = authorize_crm_command(
+            &provider,
+            &credential(Some("Bearer s3cr3t-bearer-token")),
+            CrmAction(Capability::ServiceCase),
+        )
+        .unwrap_err();
         assert_eq!(err.http_status(), 403);
     }
 
@@ -563,7 +674,12 @@ mod tests {
     #[test]
     fn properly_authorized_request_succeeds_on_verified_tenant() {
         let provider = bearer_provider(std::sync::Arc::new(AllowAuthorizer));
-        let ctx = authorize_crm_command(&provider, &credential(Some("Bearer s3cr3t-bearer-token")), CrmAction(Capability::AccountMaster)).expect("authorized");
+        let ctx = authorize_crm_command(
+            &provider,
+            &credential(Some("Bearer s3cr3t-bearer-token")),
+            CrmAction(Capability::AccountMaster),
+        )
+        .expect("authorized");
         assert_eq!(ctx.tenant_id(), "tenant-alpha");
         // The bound identity comes from the verifier, NOT any caller-supplied value.
         assert_eq!(ctx.principal_id(), "svc-crm-op");
@@ -582,8 +698,10 @@ mod tests {
     #[test]
     fn gate_error_maps_to_distinct_service_error_kinds() {
         use crate::error::ServiceErrorKind;
-        let unauth: crate::error::ServiceError = CrmGateError::Unauthenticated(PrincipalVerificationError::MissingCredential).into();
-        let forbid: crate::error::ServiceError = CrmGateError::Unauthorized(CrmAuthorizationError::Denied).into();
+        let unauth: crate::error::ServiceError =
+            CrmGateError::Unauthenticated(PrincipalVerificationError::MissingCredential).into();
+        let forbid: crate::error::ServiceError =
+            CrmGateError::Unauthorized(CrmAuthorizationError::Denied).into();
         assert_eq!(unauth.kind(), ServiceErrorKind::Unauthenticated);
         assert_eq!(unauth.http_status(), 401);
         assert_eq!(forbid.kind(), ServiceErrorKind::Forbidden);
@@ -594,14 +712,26 @@ mod tests {
     fn verifier_refuses_empty_secret() {
         // ConfiguredBearerPrincipalVerifier holds a SECRET and deliberately has
         // no Debug impl, so match on the Err rather than `unwrap_err`.
-        assert!(matches!(ConfiguredBearerPrincipalVerifier::new("", "p", "t"), Err(AuthzProviderConfigError::EmptyBearerSecret)));
-        assert!(matches!(ConfiguredBearerPrincipalVerifier::new("s", "", "t"), Err(AuthzProviderConfigError::EmptyBoundIdentity)));
+        assert!(matches!(
+            ConfiguredBearerPrincipalVerifier::new("", "p", "t"),
+            Err(AuthzProviderConfigError::EmptyBearerSecret)
+        ));
+        assert!(matches!(
+            ConfiguredBearerPrincipalVerifier::new("s", "", "t"),
+            Err(AuthzProviderConfigError::EmptyBoundIdentity)
+        ));
     }
 
     #[test]
     fn action_id_maps_capability() {
-        assert_eq!(CrmAction(Capability::AccountMaster).action_id(), "crm.account-master.mutate");
-        assert_eq!(CrmAction(Capability::ServiceCase).action_id(), "crm.service-case.mutate");
+        assert_eq!(
+            CrmAction(Capability::AccountMaster).action_id(),
+            "crm.account-master.mutate"
+        );
+        assert_eq!(
+            CrmAction(Capability::ServiceCase).action_id(),
+            "crm.service-case.mutate"
+        );
     }
 
     #[test]

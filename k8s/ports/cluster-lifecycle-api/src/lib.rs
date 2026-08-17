@@ -2,9 +2,7 @@
 #![forbid(unsafe_code)]
 
 use core::fmt;
-use k8s_cluster_lifecycle_kernel::{
-    DesiredTier, LifecycleRequest, LifecycleValidationError,
-};
+use k8s_cluster_lifecycle_kernel::{DesiredTier, LifecycleRequest, LifecycleValidationError};
 use k8s_control_plane_host_api::{
     ClusterRef, ControlPlaneProvisioning, ControlPlaneRef, ControlPlaneTier, DatastoreClass,
     ProvisionRequest as ControlPlaneProvisionRequest, ProvisioningError,
@@ -14,9 +12,7 @@ use k8s_tenant_quota_api::{
 };
 use serde::{Deserialize, Serialize};
 
-pub use k8s_cluster_lifecycle_kernel::{
-    ClusterResourceRequest, DesiredTier as LifecycleTier,
-};
+pub use k8s_cluster_lifecycle_kernel::{ClusterResourceRequest, DesiredTier as LifecycleTier};
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct LifecycleProvisioningResult {
@@ -174,10 +170,8 @@ mod tests {
         fn provision<'b>(
             &'b self,
             _request: &'b ControlPlaneProvisionRequest,
-        ) -> k8s_control_plane_host_api::BoxFuture<
-            'b,
-            Result<ControlPlaneRef, ProvisioningError>,
-        > {
+        ) -> k8s_control_plane_host_api::BoxFuture<'b, Result<ControlPlaneRef, ProvisioningError>>
+        {
             Box::pin(async move {
                 self.calls.fetch_add(1, Ordering::SeqCst);
                 self.result.clone()
@@ -188,18 +182,14 @@ mod tests {
             _control_plane_ref: &'b ControlPlaneRef,
         ) -> k8s_control_plane_host_api::BoxFuture<
             'b,
-            Result<
-                k8s_control_plane_host_api::ControlPlaneStatusReport,
-                ProvisioningError,
-            >,
+            Result<k8s_control_plane_host_api::ControlPlaneStatusReport, ProvisioningError>,
         > {
             Box::pin(async move { Err(ProvisioningError::backend("unused")) })
         }
         fn teardown<'b>(
             &'b self,
             _control_plane_ref: &'b ControlPlaneRef,
-        ) -> k8s_control_plane_host_api::BoxFuture<'b, Result<(), ProvisioningError>>
-        {
+        ) -> k8s_control_plane_host_api::BoxFuture<'b, Result<(), ProvisioningError>> {
             Box::pin(async move { Ok(()) })
         }
     }

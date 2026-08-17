@@ -7,10 +7,7 @@
 /// Returns a `Vec<(name, value)>` suitable for injection on proxy calls.
 /// SECURITY: The returned vector contains the raw key; callers must not log it.
 pub fn openai_auth_headers(api_key: &str) -> Vec<(String, String)> {
-    vec![(
-        "authorization".to_owned(),
-        format!("Bearer {api_key}"),
-    )]
+    vec![("authorization".to_owned(), format!("Bearer {api_key}"))]
 }
 
 #[cfg(test)]

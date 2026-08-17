@@ -1,8 +1,8 @@
-use os_kernel::address::NodeAddress;
 use os_k8s_control_domain::static_pod_controller::STATIC_POD_PATH as CONTROL_STATIC_POD_PATH;
 use os_k8s_control_domain::{
     ComponentSpec, ControlPlaneComponent, InMemoryFileSink, StaticPodController,
 };
+use os_kernel::address::NodeAddress;
 use os_kubelet_domain::{
     KubeletConfig, KubeletSpec, Nodename, config::DEFAULT_RUNTIME_ENDPOINT,
     spec::STATIC_POD_PATH as KUBELET_STATIC_POD_PATH,

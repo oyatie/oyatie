@@ -5,6 +5,10 @@
 use std::collections::BTreeSet;
 
 use billing_domain::Money;
+use billing_finops::{
+    AxisBudgetCreate, CloudFinopsLedger, CostAllocationCreate, FinopsPeriod, RateCardLineCreate,
+    STABLE_GROSS_MARGIN_TARGET_BPS, UnitRate,
+};
 use billing_finops_api::authz::{
     CallerCredential, ConfiguredBearerPrincipalVerifier, FinopsReportAuthorizationError,
     FinopsReportAuthorizer, FinopsReportResource, FinopsReportScope, PrincipalVerifier,
@@ -18,14 +22,8 @@ use billing_finops_api::{
     CloudFinopsReportGenerateRequest, PLATFORM_AGGREGATE_TENANT_ID,
     generate_cloud_finops_report_from_api,
 };
-use billing_finops::{
-    AxisBudgetCreate, CloudFinopsLedger, CostAllocationCreate, FinopsPeriod, RateCardLineCreate,
-    STABLE_GROSS_MARGIN_TARGET_BPS, UnitRate,
-};
+use billing_metering::{AxisId, MeterEvent, MeterEventCreate, MeterUnit, MeterUnitKind, PlaneTag};
 use oya_data_boundary_kernel::DataClass;
-use billing_metering::{
-    AxisId, MeterEvent, MeterEventCreate, MeterUnit, MeterUnitKind, PlaneTag,
-};
 
 const REPORT_ID: &str = "finr_kr_month";
 const TENANT: &str = "ten_alpha";
@@ -437,7 +435,10 @@ fn finops_report_api_denies_verified_cross_tenant_report_even_when_pdp_would_all
         }
     );
     assert_eq!(error.finops_report_status_code(), 403);
-    assert!(idempotency.is_empty(), "denied request must not mutate ledger");
+    assert!(
+        idempotency.is_empty(),
+        "denied request must not mutate ledger"
+    );
 }
 
 /// VERIFIED PRINCIPAL SUBSTITUTION → 403. Same tenant, different principal id
@@ -495,7 +496,10 @@ fn finops_report_api_maps_pdp_deny_to_403() {
         }
     );
     assert_eq!(error.finops_report_status_code(), 403);
-    assert!(idempotency.is_empty(), "PDP-denied request must not mutate ledger");
+    assert!(
+        idempotency.is_empty(),
+        "PDP-denied request must not mutate ledger"
+    );
 }
 
 /// PDP-REFUSE (fault / unavailable) → 403 (fail-closed, not fail-open).
@@ -604,8 +608,7 @@ fn finops_report_api_separates_missing_authentication_from_denied_authorization(
     let verified = verified_principal(PRINCIPAL, TENANT);
 
     // Missing principal id in the request → 401 authentication failure.
-    let mut unauthenticated =
-        create_request("req-finops-report-authn", "idem_finops_report_authn");
+    let mut unauthenticated = create_request("req-finops-report-authn", "idem_finops_report_authn");
     unauthenticated.principal.principal_id = " ".to_string();
     let authn_error = generate_cloud_finops_report_from_api(
         &verified,

@@ -1426,7 +1426,7 @@ mod drive_object_contract_tests {
             DriveVersionPointer::new(object_id.clone(), 3, "storage-rev-3").expect("valid version");
         assert_eq!(version.version_number(), 3);
 
-        assert!(DriveLifecycleState::Trashed.is_visible_to_default_lists() == false);
+        assert!(!DriveLifecycleState::Trashed.is_visible_to_default_lists());
 
         let quota = DriveQuotaImpact::new(
             TenantId::new("tenant-alpha").expect("valid tenant id"),

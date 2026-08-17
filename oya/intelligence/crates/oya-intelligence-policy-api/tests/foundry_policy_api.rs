@@ -3,14 +3,13 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
 use oya_intelligence_policy_api::{
-    publish_foundry_policy_autonomy_ceiling_from_api, FoundryPolicyApiAuthorization,
-    FoundryPolicyApiError, FoundryPolicyApiPrincipal, FoundryPolicyAutonomyBoundaryContext,
-    FoundryPolicyAutonomyCeilingDirectory, FoundryPolicyAutonomyCeilingPublishApiRequest,
-    FoundryPolicyAutonomyCeilingPublishApiStatus,
+    FOUNDRY_POLICY_AUTONOMY_CEILING_PUBLISH_SURFACE, FOUNDRY_POLICY_OPENAPI_CONTRACT,
+    FoundryPolicyApiAuthorization, FoundryPolicyApiError, FoundryPolicyApiPrincipal,
+    FoundryPolicyAutonomyBoundaryContext, FoundryPolicyAutonomyCeilingDirectory,
+    FoundryPolicyAutonomyCeilingPublishApiRequest, FoundryPolicyAutonomyCeilingPublishApiStatus,
     FoundryPolicyAutonomyCeilingPublishIdempotencyLedger,
     FoundryPolicyAutonomyCeilingPublishRequest, FoundryPolicyAutonomyCeilingRecord,
-    FoundryPolicyAutonomyMetadata, FOUNDRY_POLICY_AUTONOMY_CEILING_PUBLISH_SURFACE,
-    FOUNDRY_POLICY_OPENAPI_CONTRACT,
+    FoundryPolicyAutonomyMetadata, publish_foundry_policy_autonomy_ceiling_from_api,
 };
 
 #[test]
@@ -247,10 +246,14 @@ fn stable_error_response_shape_uses_request_id_and_field_details() {
 
 #[test]
 fn public_response_structs_keep_contract_names_stable() {
-    assert!(std::any::type_name::<FoundryPolicyAutonomyCeilingRecord>()
-        .contains("FoundryPolicyAutonomyCeilingRecord"));
-    assert!(std::any::type_name::<FoundryPolicyAutonomyMetadata>()
-        .contains("FoundryPolicyAutonomyMetadata"));
+    assert!(
+        std::any::type_name::<FoundryPolicyAutonomyCeilingRecord>()
+            .contains("FoundryPolicyAutonomyCeilingRecord")
+    );
+    assert!(
+        std::any::type_name::<FoundryPolicyAutonomyMetadata>()
+            .contains("FoundryPolicyAutonomyMetadata")
+    );
 }
 
 fn api_request(idempotency_key: &str) -> FoundryPolicyAutonomyCeilingPublishApiRequest {

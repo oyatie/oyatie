@@ -94,11 +94,7 @@ fn producer_binary(root: &Path, value: Option<&str>) -> Result<PathBuf, String> 
             "FAIL-CLOSED: missing OYA_CI_PRODUCER_BIN; Cargo fallback is forbidden".to_owned(),
         );
     };
-    Ok(if Path::new(bin).is_absolute() {
-        PathBuf::from(bin)
-    } else {
-        root.join(bin)
-    })
+    ci_path_resolver_adapters::resolve_cargo_test_binary(root, std::ffi::OsStr::new(bin))
 }
 
 fn materialized_scm_facts(root: &Path) -> PathBuf {

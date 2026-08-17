@@ -167,9 +167,8 @@ fn regression_read_to_delivered_returns_illegal_transition_error() {
     let ctx = work_ctx("user:alice");
     let s = read_state("user:alice");
 
-    let err =
-        acknowledge_delivery(&ctx, &s, "user:alice", DeliveryStatus::Delivered, "k-new")
-            .unwrap_err();
+    let err = acknowledge_delivery(&ctx, &s, "user:alice", DeliveryStatus::Delivered, "k-new")
+        .unwrap_err();
 
     assert_eq!(
         err,
@@ -207,9 +206,14 @@ fn same_status_with_new_key_is_non_forward_transition_and_rejected() {
         last_idempotency_key: "k1".into(),
     };
 
-    let err =
-        acknowledge_delivery(&ctx, &s, "user:alice", DeliveryStatus::Delivered, "k-different")
-            .unwrap_err();
+    let err = acknowledge_delivery(
+        &ctx,
+        &s,
+        "user:alice",
+        DeliveryStatus::Delivered,
+        "k-different",
+    )
+    .unwrap_err();
 
     assert_eq!(
         err,
@@ -236,9 +240,8 @@ fn missing_idempotency_key_in_context_maps_to_api_error() {
     };
     let s0 = initial_state("user:alice");
 
-    let err =
-        acknowledge_delivery(&bad_ctx, &s0, "user:alice", DeliveryStatus::Delivered, "k1")
-            .unwrap_err();
+    let err = acknowledge_delivery(&bad_ctx, &s0, "user:alice", DeliveryStatus::Delivered, "k1")
+        .unwrap_err();
 
     assert_eq!(
         err,
@@ -258,9 +261,8 @@ fn missing_policy_decision_in_context_maps_to_api_error() {
     };
     let s0 = initial_state("user:alice");
 
-    let err =
-        acknowledge_delivery(&bad_ctx, &s0, "user:alice", DeliveryStatus::Delivered, "k1")
-            .unwrap_err();
+    let err = acknowledge_delivery(&bad_ctx, &s0, "user:alice", DeliveryStatus::Delivered, "k1")
+        .unwrap_err();
 
     assert_eq!(
         err,
@@ -280,9 +282,8 @@ fn wrong_scope_prefix_for_context_kind_maps_to_api_error() {
     };
     let s0 = initial_state("user:alice");
 
-    let err =
-        acknowledge_delivery(&bad_ctx, &s0, "user:alice", DeliveryStatus::Delivered, "k1")
-            .unwrap_err();
+    let err = acknowledge_delivery(&bad_ctx, &s0, "user:alice", DeliveryStatus::Delivered, "k1")
+        .unwrap_err();
 
     assert_eq!(
         err,

@@ -44,22 +44,45 @@ impl std::fmt::Display for PlanError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             PlanError::MissingGenerator { artifact_id } => {
-                write!(f, "artifact {artifact_id:?} is not-tracked-in-git but has no generator block")
+                write!(
+                    f,
+                    "artifact {artifact_id:?} is not-tracked-in-git but has no generator block"
+                )
             }
-            PlanError::UnregisteredRunner { artifact_id, runner_id } => {
-                write!(f, "artifact {artifact_id:?} uses unregistered runner {runner_id:?}")
+            PlanError::UnregisteredRunner {
+                artifact_id,
+                runner_id,
+            } => {
+                write!(
+                    f,
+                    "artifact {artifact_id:?} uses unregistered runner {runner_id:?}"
+                )
             }
-            PlanError::NonCanonicalTarget { artifact_id, runner_id, target, expected_prefix } => {
-                write!(f, "artifact {artifact_id:?}: runner {runner_id:?} target {target:?} must start with {expected_prefix:?}")
+            PlanError::NonCanonicalTarget {
+                artifact_id,
+                runner_id,
+                target,
+                expected_prefix,
+            } => {
+                write!(
+                    f,
+                    "artifact {artifact_id:?}: runner {runner_id:?} target {target:?} must start with {expected_prefix:?}"
+                )
             }
             PlanError::ShellRunnerForbidden => {
-                write!(f, "runner_registry contains a 'shell' runner, which is forbidden (ADR-0523 / ADR-0596)")
+                write!(
+                    f,
+                    "runner_registry contains a 'shell' runner, which is forbidden (ADR-0523 / ADR-0596)"
+                )
             }
             PlanError::CyclicDependency { cycle } => {
                 write!(f, "cyclic dependency in input_contract: {:?}", cycle)
             }
             PlanError::UnreconstructableDecommitArtifact { artifact_id } => {
-                write!(f, "not-tracked-in-git artifact {artifact_id:?} uses controller-materialized output_mode with no reconstructable alternative")
+                write!(
+                    f,
+                    "not-tracked-in-git artifact {artifact_id:?} uses controller-materialized output_mode with no reconstructable alternative"
+                )
             }
             PlanError::DuplicateArtifactId { artifact_id } => {
                 write!(f, "duplicate artifact_id: {artifact_id:?}")
@@ -87,9 +110,8 @@ pub enum MaterializeScope {
 impl MaterializeScope {
     fn target_paths(&self) -> &BTreeSet<String> {
         match self {
-            MaterializeScope::Consume { target_paths } | MaterializeScope::DeterminismCanary { target_paths } => {
-                target_paths
-            }
+            MaterializeScope::Consume { target_paths }
+            | MaterializeScope::DeterminismCanary { target_paths } => target_paths,
         }
     }
 
@@ -167,7 +189,10 @@ fn validate_generator(
         })?;
 
     // Check that the target starts with the canonical prefix.
-    if !genr.generator_target.starts_with(&entry.canonical_target_prefix) {
+    if !genr
+        .generator_target
+        .starts_with(&entry.canonical_target_prefix)
+    {
         return Err(PlanError::NonCanonicalTarget {
             artifact_id: artifact.artifact_id.clone(),
             runner_id: genr.runner.clone(),
@@ -178,12 +203,12 @@ fn validate_generator(
 
     // A de-commit-class artifact with controller-materialized output has no
     // fallback regeneration path — it would be unreconstructable.
-    if artifact.is_not_tracked_in_git() {
-        if let crate::model::OutputMode::ControllerMaterialized = genr.output_mode {
-            return Err(PlanError::UnreconstructableDecommitArtifact {
-                artifact_id: artifact.artifact_id.clone(),
-            });
-        }
+    if artifact.is_not_tracked_in_git()
+        && let crate::model::OutputMode::ControllerMaterialized = genr.output_mode
+    {
+        return Err(PlanError::UnreconstructableDecommitArtifact {
+            artifact_id: artifact.artifact_id.clone(),
+        });
     }
 
     Ok(())
@@ -217,10 +242,10 @@ fn resolve_dependency_edges<'a>(
         let mut dep_set = BTreeSet::new();
         if let Some(genr) = &artifact.generator {
             for token in &genr.input_contract {
-                if let Some(&dep_id) = token_to_id.get(token.as_str()) {
-                    if dep_id != id {
-                        dep_set.insert(dep_id);
-                    }
+                if let Some(&dep_id) = token_to_id.get(token.as_str())
+                    && dep_id != id
+                {
+                    dep_set.insert(dep_id);
                 }
             }
         }
@@ -237,9 +262,7 @@ fn resolve_dependency_edges<'a>(
 /// delegated to `resolve_dependency_edges()` so closure and ordering share semantics.
 ///
 /// Returns Err on a cycle.
-fn topological_order(
-    artifacts: &[&GeneratedArtifact],
-) -> Result<Vec<ArtifactId>, PlanError> {
+fn topological_order(artifacts: &[&GeneratedArtifact]) -> Result<Vec<ArtifactId>, PlanError> {
     // Build adjacency: artifact_id -> set of artifact_ids it depends on.
     let deps = resolve_dependency_edges(artifacts);
 
@@ -430,10 +453,10 @@ pub fn plan(
 
     let mut steps = Vec::with_capacity(order.len());
     for id in &order {
-        if let Some(&artifact) = artifact_by_id.get(id.as_str()) {
-            if artifact.generator.is_some() {
-                steps.push(build_step(artifact, &scope)?);
-            }
+        if let Some(&artifact) = artifact_by_id.get(id.as_str())
+            && artifact.generator.is_some()
+        {
+            steps.push(build_step(artifact, &scope)?);
         }
     }
 
@@ -503,9 +526,13 @@ mod tests {
     #[test]
     fn plan_topological_order_from_input_contract() {
         let manifest = two_artifact_manifest();
-        let plan = plan(&manifest, MaterializeScope::Consume {
-            target_paths: BTreeSet::new(),
-        }).unwrap();
+        let plan = plan(
+            &manifest,
+            MaterializeScope::Consume {
+                target_paths: BTreeSet::new(),
+            },
+        )
+        .unwrap();
         // scm-facts must come before registry-face because registry's input_contract
         // references "emit-scm-facts" (scm-facts' operation_id).
         let ids: Vec<&str> = plan.steps.iter().map(|s| s.artifact_id.as_str()).collect();
@@ -517,12 +544,19 @@ mod tests {
     #[test]
     fn plan_canary_multiplicity() {
         let manifest = two_artifact_manifest();
-        let plan = plan(&manifest, MaterializeScope::DeterminismCanary {
-            target_paths: BTreeSet::new(),
-        }).unwrap();
+        let plan = plan(
+            &manifest,
+            MaterializeScope::DeterminismCanary {
+                target_paths: BTreeSet::new(),
+            },
+        )
+        .unwrap();
         // Both artifacts are not-tracked-in-git, so both should have multiplicity=2.
         for step in &plan.steps {
-            assert_eq!(step.multiplicity, 2, "canary: all de-commit steps multiplicity=2");
+            assert_eq!(
+                step.multiplicity, 2,
+                "canary: all de-commit steps multiplicity=2"
+            );
         }
     }
 
@@ -546,7 +580,13 @@ mod tests {
           }]
         }"#;
         let manifest = ControlPlane::from_json(json).unwrap();
-        let err = plan(&manifest, MaterializeScope::Consume { target_paths: BTreeSet::new() }).unwrap_err();
+        let err = plan(
+            &manifest,
+            MaterializeScope::Consume {
+                target_paths: BTreeSet::new(),
+            },
+        )
+        .unwrap_err();
         assert!(matches!(err, PlanError::UnregisteredRunner { .. }));
     }
 
@@ -560,7 +600,13 @@ mod tests {
           "artifacts": []
         }"#;
         let manifest = ControlPlane::from_json(json).unwrap();
-        let err = plan(&manifest, MaterializeScope::Consume { target_paths: BTreeSet::new() }).unwrap_err();
+        let err = plan(
+            &manifest,
+            MaterializeScope::Consume {
+                target_paths: BTreeSet::new(),
+            },
+        )
+        .unwrap_err();
         assert_eq!(err, PlanError::ShellRunnerForbidden);
     }
 
@@ -584,7 +630,13 @@ mod tests {
           }]
         }"#;
         let manifest = ControlPlane::from_json(json).unwrap();
-        let err = plan(&manifest, MaterializeScope::Consume { target_paths: BTreeSet::new() }).unwrap_err();
+        let err = plan(
+            &manifest,
+            MaterializeScope::Consume {
+                target_paths: BTreeSet::new(),
+            },
+        )
+        .unwrap_err();
         assert!(matches!(err, PlanError::NonCanonicalTarget { .. }));
     }
 
@@ -623,7 +675,13 @@ mod tests {
           ]
         }"#;
         let manifest = ControlPlane::from_json(json).unwrap();
-        let err = plan(&manifest, MaterializeScope::Consume { target_paths: BTreeSet::new() }).unwrap_err();
+        let err = plan(
+            &manifest,
+            MaterializeScope::Consume {
+                target_paths: BTreeSet::new(),
+            },
+        )
+        .unwrap_err();
         assert!(matches!(err, PlanError::CyclicDependency { .. }));
     }
 }

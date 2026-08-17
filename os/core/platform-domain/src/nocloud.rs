@@ -97,10 +97,9 @@ impl NoCloud {
         for option in serial.split(';') {
             if let Some((key, value)) = option.split_once('=') {
                 match key {
-                    "ds"
-                        if value == DS_NETWORK => {
-                            network_source = true;
-                        }
+                    "ds" if value == DS_NETWORK => {
+                        network_source = true;
+                    }
                     "s" if value.starts_with("http") => {
                         let mut base = String::from(value);
 

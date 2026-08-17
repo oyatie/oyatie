@@ -9,11 +9,11 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use crate::filesystem::FilesystemType;
 use crate::{BlockError, Result};
-use os_kernel::ResourceId;
 use os_cosi_domain::{
     AnyResource, Labels, Metadata, Phase as CosiPhase, Resource, ResourceKind, State, StoreError,
     StoreResult,
 };
+use os_kernel::ResourceId;
 
 /// Talos block resources live in the COSI `runtime` namespace.
 ///

@@ -53,6 +53,7 @@ rust_library(
         "//governance/check/placeholder-debt:check-placeholder-debt",
         "//governance/check/pre-push:check-pre-push",
         "//ci/facade/generated-artifact-freshness:ci-generated-artifact-freshness",
+        "//ci/facade/planning-projection:ci-planning-projection",
         "//governance/check/protection-context-match:check-protection-context-match",
         "//governance/check/quality-lane:check-quality-lane",
         "//governance/check/raci-coverage:check-raci-coverage",

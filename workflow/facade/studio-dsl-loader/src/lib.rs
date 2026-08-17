@@ -4,9 +4,7 @@
 //! and returns a deterministic canonical representation for storage/diffing.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
-use workflow_studio_dsl_emitter::{
-    WorkflowSpec, WorkflowSpecEmitError, emit_canonical_json,
-};
+use workflow_studio_dsl_emitter::{WorkflowSpec, WorkflowSpecEmitError, emit_canonical_json};
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct LoadedWorkflowSpec {

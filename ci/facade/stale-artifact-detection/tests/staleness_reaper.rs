@@ -29,11 +29,7 @@ fn producer_binary(root: &Path, producer_bin: Option<&str>) -> Result<PathBuf, S
             "FAIL-CLOSED: missing OYA_CI_PRODUCER_BIN; Cargo fallback is forbidden".to_owned(),
         );
     };
-    Ok(if Path::new(bin).is_absolute() {
-        PathBuf::from(bin)
-    } else {
-        root.join(bin)
-    })
+    ci_path_resolver_adapters::resolve_cargo_test_binary(root, std::ffi::OsStr::new(bin))
 }
 
 #[test]
@@ -212,8 +208,7 @@ fn gate3_is_born_blocking_on_the_live_corpus() {
 /// provided by `OYA_CI_PRODUCER_BIN`; missing env fails closed so tests cannot silently fall back to
 /// Cargo. The producer reads the materialized scm-facts face (a declared input); it never calls git.
 fn run_producer_face(root: &Path, face: &str) -> Value {
-    let scm_facts = root
-        .join("ci/facade/artifact-inventory-registry/scm-facts.generated.json");
+    let scm_facts = root.join("ci/facade/artifact-inventory-registry/scm-facts.generated.json");
     let producer_bin = std::env::var("OYA_CI_PRODUCER_BIN").ok();
     let bin = producer_binary(root, producer_bin.as_deref()).unwrap_or_else(|e| panic!("{e}"));
     let output = Command::new(bin)
@@ -258,9 +253,7 @@ fn volatile_commit_author_timestamps(volatile: &Value) -> BTreeMap<String, u64> 
 /// FAIL-CLOSED: a missing snapshot is a hard failure naming the exact materialization
 /// command — the gate must never silently age rows from nothing.
 fn volatile_facts_value(root: &Path) -> Value {
-    let path = root.join(
-        "ci/facade/scm-facts-snapshot/scm-volatile-facts.generated.json",
-    );
+    let path = root.join("ci/facade/scm-facts-snapshot/scm-volatile-facts.generated.json");
     let text = fs::read_to_string(&path).unwrap_or_else(|e| {
         panic!(
             "FAIL-CLOSED: scm-volatile-facts snapshot missing at {} ({e}). History-derived \

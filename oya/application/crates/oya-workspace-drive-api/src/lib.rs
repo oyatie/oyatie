@@ -10,8 +10,8 @@ use std::collections::BTreeMap;
 
 use oya_data_boundary_kernel::parse_data_class_label;
 use storage_drive_domain::{
-    workspace_drive_data_class_from_legacy, DriveError, DriveObject, DriveObjectCreate, DriveRole,
-    PermissionGrant, PermissionSet,
+    DriveError, DriveObject, DriveObjectCreate, DriveRole, PermissionGrant, PermissionSet,
+    workspace_drive_data_class_from_legacy,
 };
 
 pub const WORKSPACE_DRIVE_PUT_SURFACE: &str = "workspace.drive.put";

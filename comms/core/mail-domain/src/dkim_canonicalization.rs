@@ -66,10 +66,7 @@ pub fn canonicalize_header(
 ///
 /// An empty body (or all-whitespace body after processing) becomes a single
 /// `\r\n` for both relaxed and simple modes.  No I/O; pure byte transformation.
-pub fn canonicalize_body(
-    body: &[u8],
-    algorithm: DkimCanonicalizationAlgorithm,
-) -> Vec<u8> {
+pub fn canonicalize_body(body: &[u8], algorithm: DkimCanonicalizationAlgorithm) -> Vec<u8> {
     match algorithm {
         DkimCanonicalizationAlgorithm::Relaxed => canonicalize_body_relaxed(body),
         DkimCanonicalizationAlgorithm::Simple => canonicalize_body_simple(body),
@@ -99,7 +96,11 @@ fn canonicalize_body_relaxed(body: &[u8]) -> Vec<u8> {
         .collect();
 
     // Remove trailing empty lines.
-    while canonical.last().map(|l: &Vec<u8>| l.is_empty()).unwrap_or(false) {
+    while canonical
+        .last()
+        .map(|l: &Vec<u8>| l.is_empty())
+        .unwrap_or(false)
+    {
         canonical.pop();
     }
 
@@ -126,7 +127,11 @@ fn canonicalize_body_simple(body: &[u8]) -> Vec<u8> {
 
     // Remove trailing blank lines.
     let mut lines = lines;
-    while lines.last().map(|l: &Vec<u8>| l.is_empty()).unwrap_or(false) {
+    while lines
+        .last()
+        .map(|l: &Vec<u8>| l.is_empty())
+        .unwrap_or(false)
+    {
         lines.pop();
     }
 
@@ -270,7 +275,10 @@ mod tests {
 
     #[test]
     fn multiple_headers_canonicalized_in_order() {
-        let headers = vec![rh("From", " alice@example.com"), rh("To", " bob@example.com")];
+        let headers = vec![
+            rh("From", " alice@example.com"),
+            rh("To", " bob@example.com"),
+        ];
         let result = canonicalize_header(&headers, DkimCanonicalizationAlgorithm::Relaxed);
         assert_eq!(result, "from:alice@example.com\r\nto:bob@example.com\r\n");
     }
