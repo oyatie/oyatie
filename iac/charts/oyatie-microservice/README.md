@@ -16,12 +16,39 @@ Measured on `origin/dev` @ `77835a1b3`, across 81 per-service charts:
 78 of the 81 `configmap.yaml` files were byte-identical. These are already
 parameterised Helm templates — they were copied per service rather than shared.
 
+## How a service uses this chart
+
+A service supplies **only** `values.yaml`. It carries no `Chart.yaml` and no
+`templates/`:
+
+    helm template <name> iac/charts/oyatie-microservice \
+      -f <service>/iac/k8s/helm/values.yaml
+
+71 of 81 services were collapsed onto this chart after render comparison proved
+their output identical. 11 keep their own chart because their rendered output
+genuinely differs; they are frozen in
+`ci/facade/helm-chart-shape/bespoke-charts.json` and the split is enforced
+shrink-only — a new service must use the shared chart, and reconciling a bespoke
+one means deleting its entry in the same change.
+
+**This changes the invocation contract.** Anything that previously pointed at a
+per-service chart directory must now point at this chart and pass the service's
+values file. Note the ArgoCD ApplicationSets were ALREADY broken before this
+change — all four `chartPath` values referenced `microservices/…`, a tree
+deprecated months ago and absent from `dev`, and those manifests self-annotate
+`non-claim: "static-promotion-manifest-only-no-live-sync"`. They are left
+untouched here rather than silently repointed, because correcting them is a
+deploy-enablement decision, not a refactor.
+
 ## What is shared, and what is deliberately not
 
-Shared here: `configmap.yaml`, `service.yaml`, `deployment.yaml`.
+Shared here: `configmap.yaml`, `service.yaml`, `deployment.yaml`, and
+`cedar.yaml` — but Cedar only as a **renderer**, never as shared policy.
 
-**`cedar.yaml` is NOT shared, and must never be.** It carries each service's
-authorization policy. Render-equivalence testing found that sharing one Cedar
+**Cedar POLICY is never shared**, though the ConfigMap wrapper now is. Each
+service's policy text lives in its own `values.yaml` under `cedar.policy`, and
+the shared template renders it with `tpl` so existing `{{ .Values… }}`
+references still resolve — preserving each service's authored semantics exactly. Render-equivalence testing found that sharing one Cedar
 template would have replaced deliberate fail-closed default-deny policies with
 a blanket `permit(principal, action, resource)` for 24 services. `app/calendar`
 is the clearest case: it ships *no* permit statements on purpose, and its own

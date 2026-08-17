@@ -112,3 +112,48 @@ fn no_chart_ships_an_unrenderable_file_under_templates() {
     );
     println!("checked {} charts", charts.len());
 }
+
+/// The shared-chart arrangement must not silently regress.
+///
+/// 71 services were collapsed onto `iac/charts/oyatie-microservice` after render comparison proved
+/// their output identical. 11 keep their own chart because their output genuinely differs. This
+/// freezes that split shrink-only: a NEW service must use the shared chart, and reconciling a
+/// bespoke one means deleting its entry in the same change.
+#[test]
+fn no_service_reintroduces_its_own_copy_of_the_shared_chart() {
+    let root = repo_root();
+    let frozen = ci_helm_chart_shape::bespoke_charts(
+        &std::fs::read_to_string(root.join("ci/facade/helm-chart-shape/bespoke-charts.json"))
+            .expect("frozen bespoke list is readable"),
+    );
+    let live: Vec<String> = chart_dirs(&root)
+        .iter()
+        .filter_map(|c| {
+            let rel = c.strip_prefix(&root).ok()?.to_string_lossy().to_string();
+            rel.strip_suffix("/iac/k8s/helm").map(str::to_string)
+        })
+        .collect();
+    let added: Vec<&String> = live.iter().filter(|c| !frozen.contains(c)).collect();
+    assert!(
+        added.is_empty(),
+        "these services carry their own Helm chart but are not in the frozen list:\n{}\n\n\
+         Render from iac/charts/oyatie-microservice with a values.yaml instead. If the output \
+         genuinely differs, add the service to bespoke-charts.json with the render diff as \
+         justification.",
+        added
+            .iter()
+            .map(|c| format!("  {c}"))
+            .collect::<Vec<_>>()
+            .join("\n")
+    );
+    let gone: Vec<&String> = frozen.iter().filter(|c| !live.contains(c)).collect();
+    assert!(
+        gone.is_empty(),
+        "these are listed as bespoke but no longer carry a chart — delete them from \
+         bespoke-charts.json in this change so the list never overstates the remaining split:\n{}",
+        gone.iter()
+            .map(|c| format!("  {c}"))
+            .collect::<Vec<_>>()
+            .join("\n")
+    );
+}
