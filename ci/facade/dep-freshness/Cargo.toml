@@ -26,5 +26,8 @@ oya-dep-freshness-kernel = { path = "../../../build/dep-freshness/core/oya-dep-f
 serde_json = { workspace = true }
 toml = { workspace = true }
 
+[dev-dependencies]
+oya-dep-freshness-kernel = { path = "../../../build/dep-freshness/core/oya-dep-freshness-kernel" }
+
 [lints]
 workspace = true

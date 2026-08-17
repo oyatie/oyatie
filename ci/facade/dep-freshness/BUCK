@@ -36,3 +36,17 @@ rust_test(
         "third-party//:toml",
     ],
 )
+
+rust_test(
+    name = "ci-dep-freshness-live-report",
+    srcs = glob(["tests/**/*.rs", "mirror/**/*.json"]),
+    crate = "ci_dep_freshness_live_report",
+    crate_root = "tests/live_report.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-dep-freshness",
+        "//build/dep-freshness/core/oya-dep-freshness-kernel:oya-dep-freshness-kernel",
+        "third-party//:serde_json",
+        "third-party//:toml",
+    ],
+)
