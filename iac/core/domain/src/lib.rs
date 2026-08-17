@@ -25,6 +25,14 @@
 
 #![forbid(unsafe_code)]
 
+pub mod bootstrap;
+
+pub use bootstrap::{
+    BootstrapComposition, BootstrapEndpointIntent, BootstrapIntent, BootstrapIntentError,
+    BootstrapLifecycle, BootstrapLogicalPlacement, BootstrapPredecessorDisposition,
+    BootstrapResourceIntent, BootstrapResourceKind, BootstrapRollbackPolicy, BootstrapTargetRole,
+};
+
 use std::collections::BTreeMap;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
