@@ -1616,9 +1616,13 @@ name = "ci-crate-name-prefix"
 version = "0.1.0"
 dependencies = [
  "ci-path-resolver-adapters",
+ "ci-scm-facts-snapshot",
  "intelligence-cargo-prefix-domain",
  "oya-ci-config-kernel",
+ "oya-workspace-members-kernel",
  "serde_json",
+ "tempfile",
+ "toml 0.8.23",
 ]
 
 [[package]]
