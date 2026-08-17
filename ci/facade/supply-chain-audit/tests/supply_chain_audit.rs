@@ -173,17 +173,14 @@ fn committed_policy_names_the_authoritative_workspace_lockfile_corpus() {
         paths,
         vec![
             ("Cargo.toml", "Cargo.lock"),
-            (
-                "cloud/cloud-kernel/Cargo.toml",
-                "cloud/cloud-kernel/Cargo.lock",
-            ),
-            (
-                "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-aarch64-adapter/tests-host/Cargo.toml",
-                "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-aarch64-adapter/tests-host/Cargo.lock",
-            ),
             ("kernel/Cargo.toml", "kernel/Cargo.lock"),
         ],
         "the policy corpus is the reviewed authority; collection must not infer it from mutable filesystem state"
+    );
+    assert_eq!(
+        policy.get("min_lockfiles").and_then(Value::as_u64),
+        Some(2),
+        "the shrink floor must exactly match the two reviewed live workspace lockfiles"
     );
 
     let observed = collect(&root, &policy).expect("collect committed corpus");
@@ -338,25 +335,30 @@ fn newly_tracked_workspace_lockfile_must_be_declared_in_policy() {
     let repo = TempRepo::new("undeclared-workspace-lockfile");
     repo.write("Cargo.toml", "[workspace]\n");
     repo.write("Cargo.lock", MINIMAL_LOCK);
-    repo.write("fifth/Cargo.toml", "[workspace]\n");
-    repo.write("fifth/Cargo.lock", MINIMAL_LOCK);
+    repo.write("kernel/Cargo.toml", "[workspace]\n");
+    repo.write("kernel/Cargo.lock", MINIMAL_LOCK);
+    repo.write("third/Cargo.toml", "[workspace]\n");
+    repo.write("third/Cargo.lock", MINIMAL_LOCK);
     repo.write_mirror(&[]);
     let policy = repo.policy_with_tracked_paths(
         json!([
-            { "manifest_path": "Cargo.toml", "lockfile_path": "Cargo.lock" }
+            { "manifest_path": "Cargo.toml", "lockfile_path": "Cargo.lock" },
+            { "manifest_path": "kernel/Cargo.toml", "lockfile_path": "kernel/Cargo.lock" }
         ]),
         &[
             "Cargo.lock",
             "Cargo.toml",
-            "fifth/Cargo.lock",
-            "fifth/Cargo.toml",
+            "kernel/Cargo.lock",
+            "kernel/Cargo.toml",
+            "third/Cargo.lock",
+            "third/Cargo.toml",
         ],
     );
 
     let error = collect(&repo.root, &policy)
-        .expect_err("a tracked fifth workspace lock must fail until policy declares it");
+        .expect_err("a tracked third workspace lock must fail until policy declares it");
     assert!(
-        error.to_string().contains("fifth/Cargo.lock")
+        error.to_string().contains("third/Cargo.lock")
             && error.to_string().contains("undeclared workspace-owned"),
         "totality error must name the undeclared workspace lock: {error}"
     );
