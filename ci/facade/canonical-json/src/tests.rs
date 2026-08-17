@@ -146,7 +146,10 @@ fn newline_is_live_policy_data() {
         canonicalize(input, &crlf).unwrap(),
         "{\r\n  \"a\": [\r\n    1\r\n  ]\r\n}\r\n"
     );
-    assert!(!is_canonical(input, &crlf).unwrap(), "LF input is non-canonical under a crlf policy");
+    assert!(
+        !is_canonical(input, &crlf).unwrap(),
+        "LF input is non-canonical under a crlf policy"
+    );
     // Idempotent under crlf too.
     let once = canonicalize(input, &crlf).unwrap();
     assert_eq!(canonicalize(&once, &crlf).unwrap(), once);
@@ -162,8 +165,14 @@ fn utf8_bom_is_live_policy_data() {
     };
     let no_bom_input = "{\n  \"a\": 1\n}\n";
     let out = canonicalize(no_bom_input, &bom).unwrap();
-    assert!(out.starts_with('\u{feff}'), "utf8_bom policy must prepend a BOM");
-    assert!(!is_canonical(no_bom_input, &bom).unwrap(), "BOM-less file is non-canonical under a bom policy");
+    assert!(
+        out.starts_with('\u{feff}'),
+        "utf8_bom policy must prepend a BOM"
+    );
+    assert!(
+        !is_canonical(no_bom_input, &bom).unwrap(),
+        "BOM-less file is non-canonical under a bom policy"
+    );
     // And it is a fixed point: feeding the BOM'd output back yields the same bytes.
     assert_eq!(canonicalize(&out, &bom).unwrap(), out);
 }
@@ -191,7 +200,10 @@ fn collect_matches_json_extension_case_insensitively() {
     let observed = collect_observed(&dir, &policy_literal()).unwrap();
     let paths: Vec<&str> = observed.files.iter().map(|f| f.path.as_str()).collect();
     assert!(paths.contains(&"specs/lower.json"));
-    assert!(paths.contains(&"specs/UPPER.JSON"), "uppercase .JSON must not evade governance");
+    assert!(
+        paths.contains(&"specs/UPPER.JSON"),
+        "uppercase .JSON must not evade governance"
+    );
     let _ = std::fs::remove_dir_all(&dir);
 }
 
@@ -274,7 +286,9 @@ fn nan_and_infinity_are_parse_errors() {
         "json_parse_error"
     );
     assert_eq!(
-        canonicalize("[Infinity]", &literal_form()).unwrap_err().code(),
+        canonicalize("[Infinity]", &literal_form())
+            .unwrap_err()
+            .code(),
         "json_parse_error"
     );
 }
@@ -394,21 +408,28 @@ fn evaluate_flags_non_canonical_keyed_by_path() {
         files: vec![obs("specs/drift.json", Some("{\"a\":1}"))],
     };
     let findings = evaluate_keyed(&policy_literal(), &observed);
-    assert!(findings
-        .iter()
-        .any(|f| f.code == "json_not_canonical" && f.key == "specs/drift.json"));
+    assert!(
+        findings
+            .iter()
+            .any(|f| f.code == "json_not_canonical" && f.key == "specs/drift.json")
+    );
 }
 
 #[test]
 fn evaluate_flags_escaped_unicode_as_non_canonical() {
     // The exact FRIC-1781130000 defect, surfaced by the gate.
     let observed = Observed {
-        files: vec![obs("specs/root-hub-pointers.json", Some("{\n  \"s\": \"\\u2192\"\n}\n"))],
+        files: vec![obs(
+            "specs/root-hub-pointers.json",
+            Some("{\n  \"s\": \"\\u2192\"\n}\n"),
+        )],
     };
     let findings = evaluate_keyed(&policy_literal(), &observed);
-    assert!(findings
-        .iter()
-        .any(|f| f.code == "json_not_canonical" && f.key == "specs/root-hub-pointers.json"));
+    assert!(
+        findings
+            .iter()
+            .any(|f| f.code == "json_not_canonical" && f.key == "specs/root-hub-pointers.json")
+    );
 }
 
 #[test]
@@ -417,9 +438,11 @@ fn evaluate_flags_non_utf8_as_parse_error() {
         files: vec![obs("specs/bin.json", None)],
     };
     let findings = evaluate_keyed(&policy_literal(), &observed);
-    assert!(findings
-        .iter()
-        .any(|f| f.code == "json_parse_error" && f.key == "specs/bin.json"));
+    assert!(
+        findings
+            .iter()
+            .any(|f| f.code == "json_parse_error" && f.key == "specs/bin.json")
+    );
 }
 
 #[test]
@@ -428,9 +451,11 @@ fn evaluate_flags_duplicate_key() {
         files: vec![obs("specs/dup.json", Some("{\"a\":1,\"a\":2}"))],
     };
     let findings = evaluate_keyed(&policy_literal(), &observed);
-    assert!(findings
-        .iter()
-        .any(|f| f.code == "json_duplicate_key" && f.key == "specs/dup.json"));
+    assert!(
+        findings
+            .iter()
+            .any(|f| f.code == "json_duplicate_key" && f.key == "specs/dup.json")
+    );
 }
 
 #[test]
@@ -438,17 +463,24 @@ fn violation_codes_const_covers_every_emitted_code() {
     let declared: BTreeSet<&str> = VIOLATION_CODES.into_iter().collect();
     let observed = Observed {
         files: vec![
-            obs("specs/a.json", Some("{\"a\":1}")),        // not_canonical
+            obs("specs/a.json", Some("{\"a\":1}")), // not_canonical
             obs("specs/b.json", Some("{\"a\":1,\"a\":2}")), // duplicate_key
-            obs("specs/c.json", None),                      // parse_error (non-utf8)
+            obs("specs/c.json", None),              // parse_error (non-utf8)
         ],
     };
     let findings = evaluate_keyed(&policy_literal(), &observed);
     let emitted: BTreeSet<&str> = findings.iter().map(|f| f.code.as_str()).collect();
     for code in &emitted {
-        assert!(declared.contains(code), "emitted `{code}` not in VIOLATION_CODES");
+        assert!(
+            declared.contains(code),
+            "emitted `{code}` not in VIOLATION_CODES"
+        );
     }
-    assert_eq!(emitted.len(), 3, "expected all three codes exercised: {emitted:?}");
+    assert_eq!(
+        emitted.len(),
+        3,
+        "expected all three codes exercised: {emitted:?}"
+    );
 }
 
 #[test]
@@ -459,7 +491,10 @@ fn fixer_no_op_agrees_with_gate_green() {
     std::fs::create_dir_all(dir.join("specs")).unwrap();
     std::fs::write(dir.join("specs/good.json"), "{\n  \"a\": 1\n}\n").unwrap();
     let observed = collect_observed(&dir, &policy_literal()).unwrap();
-    assert_eq!(evaluate(&policy_literal(), &observed).verdict, Verdict::Green);
+    assert_eq!(
+        evaluate(&policy_literal(), &observed).verdict,
+        Verdict::Green
+    );
     let fix = fix_observed(&dir, &policy_literal(), &observed, true).unwrap();
     assert!(fix.fixed.is_empty(), "no files should need fixing");
     assert!(fix.is_clean());
@@ -519,14 +554,22 @@ fn non_canonical_fixture_fix_makes_the_gate_green() {
     let policy = policy_literal();
 
     let before = collect_observed(&dir, &policy).unwrap();
-    assert_eq!(evaluate(&policy, &before).verdict, Verdict::Red, "gate is RED before fix");
+    assert_eq!(
+        evaluate(&policy, &before).verdict,
+        Verdict::Red,
+        "gate is RED before fix"
+    );
 
     let fix = fix_observed(&dir, &policy, &before, false).unwrap();
     assert_eq!(fix.fixed, vec!["specs/x.json".to_owned()]);
     assert!(fix.is_clean());
 
     let after = collect_observed(&dir, &policy).unwrap();
-    assert_eq!(evaluate(&policy, &after).verdict, Verdict::Green, "gate is GREEN after --fix");
+    assert_eq!(
+        evaluate(&policy, &after).verdict,
+        Verdict::Green,
+        "gate is GREEN after --fix"
+    );
     let _ = std::fs::remove_dir_all(&dir);
 }
 
@@ -547,7 +590,10 @@ fn settle_style_canonical_file_fix_is_a_no_op() {
     let observed = collect_observed(&dir, &policy).unwrap();
     assert_eq!(evaluate(&policy, &observed).verdict, Verdict::Green);
     let fix = fix_observed(&dir, &policy, &observed, false).unwrap();
-    assert!(fix.fixed.is_empty(), "settle-canonical file must be a fixer no-op (no rewrite loop)");
+    assert!(
+        fix.fixed.is_empty(),
+        "settle-canonical file must be a fixer no-op (no rewrite loop)"
+    );
     assert_eq!(
         std::fs::read_to_string(dir.join("specs/face-like.json")).unwrap(),
         settle_form,
@@ -565,11 +611,12 @@ fn gate_failure_output_prints_the_exact_runnable_fix_command() {
     };
     let report = evaluate(&policy_literal(), &observed);
     let rendered = render_findings(&report.findings);
-    assert!(rendered.contains("--fix"), "must print the --fix command: {rendered}");
     assert!(
-        rendered.contains(
-            "//ci/facade/canonical-json:oya-cloud-ci-canonical-json-bin"
-        ),
+        rendered.contains("--fix"),
+        "must print the --fix command: {rendered}"
+    );
+    assert!(
+        rendered.contains("//ci/facade/canonical-json:oya-cloud-ci-canonical-json-bin"),
         "must reference the REAL buck2 binary target: {rendered}"
     );
 }
@@ -587,7 +634,10 @@ fn fixer_refuses_duplicate_keys_without_rewriting() {
     assert_eq!(fix.refused.len(), 1);
     assert_eq!(fix.refused[0].0, "specs/dup.json");
     // The file is untouched — the fixer never silently dropped a member.
-    assert_eq!(std::fs::read_to_string(dir.join("specs/dup.json")).unwrap(), original);
+    assert_eq!(
+        std::fs::read_to_string(dir.join("specs/dup.json")).unwrap(),
+        original
+    );
     let _ = std::fs::remove_dir_all(&dir);
 }
 
@@ -605,19 +655,29 @@ fn fixer_refuses_signed_hex_escape_without_rewriting() {
     let observed = collect_observed(&dir, &policy_literal()).unwrap();
     let findings = evaluate_keyed(&policy_literal(), &observed);
     assert!(
-        findings.iter().any(|f| f.code == "json_parse_error" && f.key == "specs/sign.json"),
+        findings
+            .iter()
+            .any(|f| f.code == "json_parse_error" && f.key == "specs/sign.json"),
         "signed hex escape must be a parse error: {findings:#?}"
     );
     assert!(
-        !findings.iter().any(|f| f.code == "json_not_canonical" && f.key == "specs/sign.json"),
+        !findings
+            .iter()
+            .any(|f| f.code == "json_not_canonical" && f.key == "specs/sign.json"),
         "a strictly-invalid escape must never classify as fixable drift: {findings:#?}"
     );
     let fix = fix_observed(&dir, &policy_literal(), &observed, false).unwrap();
-    assert!(fix.fixed.is_empty(), "the fixer must not rewrite an invalid escape");
+    assert!(
+        fix.fixed.is_empty(),
+        "the fixer must not rewrite an invalid escape"
+    );
     assert!(!fix.is_clean());
     assert_eq!(fix.refused.len(), 1);
     assert_eq!(fix.refused[0].0, "specs/sign.json");
     // The file is byte-unchanged — the fixer never laundered invalid JSON into valid JSON.
-    assert_eq!(std::fs::read_to_string(dir.join("specs/sign.json")).unwrap(), original);
+    assert_eq!(
+        std::fs::read_to_string(dir.join("specs/sign.json")).unwrap(),
+        original
+    );
     let _ = std::fs::remove_dir_all(&dir);
 }

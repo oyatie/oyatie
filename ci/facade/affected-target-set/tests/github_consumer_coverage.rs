@@ -63,8 +63,7 @@ fn repo_root() -> PathBuf {
 
 fn shipped_policy(root: &Path) -> Policy {
     let path = root.join("ci/facade/affected-target-set/affected-set-policy.json");
-    let raw = fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("read {}: {e}", path.display()));
+    let raw = fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()));
     Policy::from_json(&raw).expect("shipped affected-set policy must parse")
 }
 
@@ -133,7 +132,9 @@ fn a_markdown_file_under_github_is_not_shadowed_by_the_md_declaration() {
     let root = repo_root();
     let policy = shipped_policy(&root);
     let plan = plan_changes(
-        &[Change::Present(".github/ISSUE_TEMPLATE/bug_report.md".to_owned())],
+        &[Change::Present(
+            ".github/ISSUE_TEMPLATE/bug_report.md".to_owned(),
+        )],
         &policy,
     );
     let Decision::Affected { seeds } = resolve(&plan, &BTreeMap::new(), &policy) else {
@@ -249,7 +250,10 @@ impl Drop for TestDir {
 #[test]
 fn an_undeclared_new_consumer_is_detected() {
     let dir = TestDir::new("red");
-    dir.write("ci/facade/newcomer/BUCK", "rust_test(\n    name = \"newcomer-gate\",\n)\n");
+    dir.write(
+        "ci/facade/newcomer/BUCK",
+        "rust_test(\n    name = \"newcomer-gate\",\n)\n",
+    );
     dir.write(
         "ci/facade/newcomer/tests/newcomer.rs",
         "fn main() { let _ = root.join(\".github/workflows/oya-ci-required.yml\"); }\n",
@@ -276,23 +280,35 @@ fn non_consumers_are_not_surfaced() {
     // 1. Data-only package (no `rust_test`): `specs/` and `registry/` are full of `.github`
     //    strings and cannot produce a green verdict, so they are not consumers.
     dir.write("specs/BUCK", "export_file(\n    name = \"spec\",\n)\n");
-    dir.write("specs/thing.json", "{ \"workflow\": \".github/workflows/x.yml\" }\n");
+    dir.write(
+        "specs/thing.json",
+        "{ \"workflow\": \".github/workflows/x.yml\" }\n",
+    );
 
     // 2. Prose mention: a doc comment / JSON `_comment` names the path without quote-anchoring
     //    it, so it is not a path literal the package resolves.
-    dir.write("ci/facade/prose/BUCK", "rust_test(\n    name = \"prose\",\n)\n");
+    dir.write(
+        "ci/facade/prose/BUCK",
+        "rust_test(\n    name = \"prose\",\n)\n",
+    );
     dir.write(
         "ci/facade/prose/src/lib.rs",
         "//! Replaces the inline shell in `.github/workflows/oya-ci-required.yml`.\n",
     );
 
     // 3. No enclosing buildfile: not a buck2 package at all, so it has no target to seed.
-    dir.write("evidence/report.json", "{ \"path\": \".github/workflows/x.yml\" }\n");
+    dir.write(
+        "evidence/report.json",
+        "{ \"path\": \".github/workflows/x.yml\" }\n",
+    );
 
     // 4. `.github` itself is the SUBJECT of the declaration, never a consumer of it — not even
     //    when it carries its own rust_test-bearing buildfile.
     dir.write(".github/BUCK", "rust_test(\n    name = \"self\",\n)\n");
-    dir.write(".github/tooling/config.json", "{ \"self\": \".github/workflows/x.yml\" }\n");
+    dir.write(
+        ".github/tooling/config.json",
+        "{ \"self\": \".github/workflows/x.yml\" }\n",
+    );
 
     assert_eq!(
         scan_path_literal_consumers(dir.path(), GITHUB_CLASS_DIR).expect("scan fixture tree"),

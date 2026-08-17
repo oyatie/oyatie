@@ -196,7 +196,7 @@ impl PlatformAdminAuthorizer for ConfiguredPlatformAdminAuthorizer {
 /// PORT. The router REFUSES to serve without one configured (no default-allow).
 #[derive(Clone)]
 pub struct ControlPlaneAuthzProvider {
-    verifier: Arc<dyn PrincipalVerifier>,        // data_class: INTERNAL_ONLY
+    verifier: Arc<dyn PrincipalVerifier>, // data_class: INTERNAL_ONLY
     authorizer: Arc<dyn PlatformAdminAuthorizer>, // data_class: INTERNAL_ONLY
 }
 
@@ -391,8 +391,13 @@ mod tests {
             "ten_platform",
             vec![PLATFORM_OPERATOR_SCOPE.to_owned()],
         );
-        let tenant = VerifiedPrincipal::new_for_test("t", "ten_acme", vec!["other:scope".to_owned()]);
-        assert!(authz.ensure_authorized(&operator, ControlPlaneAction::Provision).is_ok());
+        let tenant =
+            VerifiedPrincipal::new_for_test("t", "ten_acme", vec!["other:scope".to_owned()]);
+        assert!(
+            authz
+                .ensure_authorized(&operator, ControlPlaneAction::Provision)
+                .is_ok()
+        );
         assert_eq!(
             authz.ensure_authorized(&tenant, ControlPlaneAction::Provision),
             Err(ControlPlaneAuthorizationError::Denied)
@@ -401,14 +406,14 @@ mod tests {
 
     #[test]
     fn provider_verifies_then_authorizes() {
-        let provider = ControlPlaneAuthzProvider::from_bearer_secret(
-            "s3cr3t",
-            "op",
-            "ten_platform",
-        )
-        .unwrap();
+        let provider =
+            ControlPlaneAuthzProvider::from_bearer_secret("s3cr3t", "op", "ten_platform").unwrap();
         let principal = provider.verify_principal(&cred("s3cr3t")).unwrap();
-        assert!(provider.ensure_authorized(&principal, ControlPlaneAction::Teardown).is_ok());
+        assert!(
+            provider
+                .ensure_authorized(&principal, ControlPlaneAction::Teardown)
+                .is_ok()
+        );
         assert_eq!(
             provider.verify_principal(&cred("nope")).err(),
             Some(PrincipalVerificationError::InvalidCredential)

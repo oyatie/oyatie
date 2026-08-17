@@ -91,7 +91,6 @@ where
 /// `leptos_axum::handle_server_fns` would publish an unauthenticated wildcard POST control plane
 /// backed by an empty registry. Re-adding it requires a fail-closed authz layer (verified
 /// principal + server-side PDP `decide()`) landed in the same change as the first server function.
-#[must_use]
 pub fn router() -> Router {
     router_for_package_root(PathBuf::from(SITE_ROOT).join("pkg"))
 }
@@ -100,7 +99,6 @@ pub fn router() -> Router {
 ///
 /// The host uses [`router`] in production. This constructor keeps filesystem-confinement
 /// coverage independent from the developer's local `target/site` contents.
-#[must_use]
 pub fn router_for_package_root(package_root: PathBuf) -> Router {
     // Streaming SSR spawns through `any_spawner`, so the native Tokio executor must be installed
     // before the renderer is constructed. Re-initialization is a no-op, hence the discarded result.

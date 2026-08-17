@@ -16,16 +16,18 @@ pub mod spf_alignment;
 pub mod thread_grouping;
 pub mod thread_state;
 pub use dkim_canonicalization::{
-    canonicalize_body, canonicalize_header, DkimCanonicalizationAlgorithm, RawHeader,
+    DkimCanonicalizationAlgorithm, RawHeader, canonicalize_body, canonicalize_header,
 };
 pub use dkim_signing_input::{
-    build_dkim_signing_input, DkimSigningInputError, DkimSigningInputMaterial,
-    DkimSigningInputRequest,
+    DkimSigningInputError, DkimSigningInputMaterial, DkimSigningInputRequest,
+    build_dkim_signing_input,
 };
 pub use governance::*;
 pub use sending_domain_authentication::*;
-pub use spf_alignment::{evaluate_spf_alignment, SpfAlignmentMode, SpfAlignmentVerdict};
-pub use thread_grouping::{group_into_thread, ThreadAssignment, ThreadTransitionError, transition_thread_status};
+pub use spf_alignment::{SpfAlignmentMode, SpfAlignmentVerdict, evaluate_spf_alignment};
+pub use thread_grouping::{
+    ThreadAssignment, ThreadTransitionError, group_into_thread, transition_thread_status,
+};
 pub use thread_state::{MailboxKind, ThreadStatus};
 
 use oya_data_boundary_kernel::{Classified, DataClass, DataClassification, PrivacyDataClass};

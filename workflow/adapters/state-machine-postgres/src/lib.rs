@@ -7,9 +7,7 @@
 //! runtime behavior.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
-pub use workflow_state_machine_kernel::{
-    StateCheckpoint, StepStatus, WorkflowRunStatus,
-};
+pub use workflow_state_machine_kernel::{StateCheckpoint, StepStatus, WorkflowRunStatus};
 pub use workflow_state_machine_usecase::{
     StateCheckpointAppendFailure, StateCheckpointStoreFailure, StateCheckpointStorePort,
 };

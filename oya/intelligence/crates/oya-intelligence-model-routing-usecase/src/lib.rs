@@ -48,11 +48,11 @@ pub enum ModelRoutingUsecaseDenialKind {
 /// during the catalog walk. Carries no credential fields or provider secrets.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CandidateDenial {
-    pub provider: ModelProvider,                  // data_class: PUBLIC
-    pub model_id: String,                         // data_class: INTERNAL_ONLY
-    pub priority: u16,                            // data_class: INTERNAL_ONLY
-    pub reasons: BTreeSet<RouteDenialReason>,     // data_class: INTERNAL_ONLY
-    pub evidence_refs: Vec<String>,               // data_class: INTERNAL_ONLY
+    pub provider: ModelProvider,              // data_class: PUBLIC
+    pub model_id: String,                     // data_class: INTERNAL_ONLY
+    pub priority: u16,                        // data_class: INTERNAL_ONLY
+    pub reasons: BTreeSet<RouteDenialReason>, // data_class: INTERNAL_ONLY
+    pub evidence_refs: Vec<String>,           // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -808,9 +808,11 @@ mod tests {
         // exactly one candidate was tried and denied before the selected one
         assert_eq!(receipt.candidate_denials.len(), 1);
         assert_eq!(receipt.candidate_denials[0].model_id, "gpt-embedding");
-        assert!(receipt.candidate_denials[0]
-            .reasons
-            .contains(&RouteDenialReason::CapabilityUnavailable));
+        assert!(
+            receipt.candidate_denials[0]
+                .reasons
+                .contains(&RouteDenialReason::CapabilityUnavailable)
+        );
     }
 
     #[test]
@@ -836,9 +838,11 @@ mod tests {
         // Terminal failure: no candidates were accepted, so denial trail has at most 0
         // entries (the first domain call returned Invalid before any Allow/Deny walk)
         assert!(receipt.candidate_denials.is_empty());
-        assert!(receipt
-            .evidence_refs
-            .contains(&"validation:external-sensitive-data".to_owned()));
+        assert!(
+            receipt
+                .evidence_refs
+                .contains(&"validation:external-sensitive-data".to_owned())
+        );
     }
 
     #[test]
@@ -917,15 +921,21 @@ mod tests {
         assert_eq!(receipt.candidate_denials[1].priority, 2);
         assert_eq!(receipt.candidate_denials[2].priority, 3);
 
-        assert!(receipt.candidate_denials[0]
-            .reasons
-            .contains(&RouteDenialReason::CapabilityUnavailable));
-        assert!(receipt.candidate_denials[1]
-            .reasons
-            .contains(&RouteDenialReason::CredentialModeUnavailable));
-        assert!(receipt.candidate_denials[2]
-            .reasons
-            .contains(&RouteDenialReason::TenantNotAllowed));
+        assert!(
+            receipt.candidate_denials[0]
+                .reasons
+                .contains(&RouteDenialReason::CapabilityUnavailable)
+        );
+        assert!(
+            receipt.candidate_denials[1]
+                .reasons
+                .contains(&RouteDenialReason::CredentialModeUnavailable)
+        );
+        assert!(
+            receipt.candidate_denials[2]
+                .reasons
+                .contains(&RouteDenialReason::TenantNotAllowed)
+        );
 
         // Metadata-only invariant: no secrets or raw content in debug repr
         let debug = format!("{receipt:?}");

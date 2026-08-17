@@ -150,7 +150,10 @@ impl std::fmt::Display for WriterError {
                 )
             }
             WriterError::MissingCatalogField(field) => {
-                write!(f, "catalog field is required and must not be empty: {field}")
+                write!(
+                    f,
+                    "catalog field is required and must not be empty: {field}"
+                )
             }
             WriterError::InvalidCatalogField(field) => {
                 write!(
@@ -201,8 +204,8 @@ pub mod capability_mapping {
     /// [`WriterError::RegistryParse`]/[`RegistryShape`](WriterError::RegistryShape)/
     /// [`UnknownCapability`](WriterError::UnknownCapability)/[`Serialize`](WriterError::Serialize).
     pub fn compute(current: &str, crate_dir: &str, slug: &str) -> Result<String, WriterError> {
-        let mut root: Value = serde_json::from_str(current)
-            .map_err(|e| WriterError::RegistryParse(e.to_string()))?;
+        let mut root: Value =
+            serde_json::from_str(current).map_err(|e| WriterError::RegistryParse(e.to_string()))?;
 
         let groups = root
             .get_mut("membership_lint_coverage")
@@ -230,9 +233,7 @@ pub mod capability_mapping {
                 })?;
             // Upsert: insert only if absent, then keep the list sorted + deduped so the output is
             // canonical regardless of insertion order (byte-stable re-apply).
-            let already = globs
-                .iter()
-                .any(|g| g.as_str() == Some(crate_dir));
+            let already = globs.iter().any(|g| g.as_str() == Some(crate_dir));
             if !already {
                 globs.push(Value::String(crate_dir.to_owned()));
             }
@@ -280,7 +281,8 @@ pub mod capability_mapping {
         if next == current {
             return Ok(false);
         }
-        fs::write(&abs, &next).map_err(|e| WriterError::Io(format!("write {REGISTRY_PATH}: {e}")))?;
+        fs::write(&abs, &next)
+            .map_err(|e| WriterError::Io(format!("write {REGISTRY_PATH}: {e}")))?;
         Ok(true)
     }
 }
@@ -372,7 +374,8 @@ pub mod adr_governed_paths {
 
         match locate_section(current) {
             Some(section) => {
-                let mut out = String::with_capacity(current.len() + block_body.len() + fenced.len());
+                let mut out =
+                    String::with_capacity(current.len() + block_body.len() + fenced.len());
                 match section.fence {
                     Some((open_start, close_end)) => {
                         // Rewrite the existing fenced block in place; preserve everything outside it
@@ -466,9 +469,9 @@ pub mod adr_governed_paths {
             let line_start = offset;
             let line_end = offset + line.len();
             offset = line_end;
-            let content = line.strip_suffix('\n').map_or(line, |l| {
-                l.strip_suffix('\r').unwrap_or(l)
-            });
+            let content = line
+                .strip_suffix('\n')
+                .map_or(line, |l| l.strip_suffix('\r').unwrap_or(l));
 
             if heading_line_end.is_none() {
                 if is_governed_heading(content) {

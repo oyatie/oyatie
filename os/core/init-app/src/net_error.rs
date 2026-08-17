@@ -178,5 +178,4 @@ mod tests {
         // i32::abs would overflow; fail closed to -1 (unexpected) instead.
         assert_eq!(net_errno("netlink request failed: errno -2147483648"), -1);
     }
-
 }

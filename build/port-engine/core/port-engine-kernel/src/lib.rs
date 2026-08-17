@@ -142,13 +142,11 @@ const SEAM_TEST_SOURCE: &str = include_str!("../tests/seams.rs");
 /// name itself), so the list cannot silently miss a compound no entry anticipated. Enumerating
 /// compounds instead is exactly how the earlier draft of this list let two of them through.
 pub const FORBIDDEN_CORPUS_TOKENS: [&[u8]; 5] = [
-    &[b'k', b'u', b'b', b'e'],
-    &[b'k', b'8', b's'],
-    &[
-        b'a', b'p', b'i', b'm', b'a', b'c', b'h', b'i', b'n', b'e', b'r', b'y',
-    ],
-    &[b'e', b't', b'c', b'd'],
-    &[b't', b'a', b'l', b'o', b's'],
+    &[107, 117, 98, 101],
+    &[107, 56, 115],
+    &[97, 112, 105, 109, 97, 99, 104, 105, 110, 101, 114, 121],
+    &[101, 116, 99, 100],
+    &[116, 97, 108, 111, 115],
 ];
 
 /// Keywords whose grammar productions could place compiled kernel code in a file the neutrality
@@ -170,10 +168,8 @@ pub const FORBIDDEN_CORPUS_TOKENS: [&[u8]; 5] = [
 /// The second needle is the bare identifier, so it also catches the path-qualified call. Prose and
 /// longer identifiers are untouched by the boundary rule: `model`, `modular` and `include_str!`
 /// are all longer identifiers, and the last of them is what this scan is built on.
-pub const UNSCANNED_CODE_KEYWORDS: [&[u8]; 2] = [
-    &[b'm', b'o', b'd'],
-    &[b'i', b'n', b'c', b'l', b'u', b'd', b'e'],
-];
+pub const UNSCANNED_CODE_KEYWORDS: [&[u8]; 2] =
+    [&[109, 111, 100], &[105, 110, 99, 108, 117, 100, 101]];
 
 const fn lowercase_ascii(byte: u8) -> u8 {
     if byte.is_ascii_uppercase() {

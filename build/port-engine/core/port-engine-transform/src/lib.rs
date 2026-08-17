@@ -130,18 +130,18 @@ pub fn apply(
     let mut sources: Vec<(String, String)> = Vec::with_capacity(plan.steps.len());
 
     for step in &plan.steps {
-        let construction = constructions
-            .construction(&step.rule)
-            .ok_or_else(|| TransformError::MissingSemantics {
+        let construction = constructions.construction(&step.rule).ok_or_else(|| {
+            TransformError::MissingSemantics {
                 rule: step.rule.0.clone(),
                 field: "construction",
-            })?;
-        let precondition = constructions
-            .precondition(&step.rule)
-            .ok_or_else(|| TransformError::MissingSemantics {
+            }
+        })?;
+        let precondition = constructions.precondition(&step.rule).ok_or_else(|| {
+            TransformError::MissingSemantics {
                 rule: step.rule.0.clone(),
                 field: "precondition",
-            })?;
+            }
+        })?;
 
         check_precondition(precondition, &step.unit, &step.rule, &model_units)?;
 
@@ -268,7 +268,10 @@ mod tests {
     fn apply_builds_one_region_per_plan_step() {
         let table = Table {
             map: BTreeMap::from([
-                ("identity", (CONSTRUCTION_PASS_THROUGH, PRECONDITION_UNIT_PRESENT)),
+                (
+                    "identity",
+                    (CONSTRUCTION_PASS_THROUGH, PRECONDITION_UNIT_PRESENT),
+                ),
                 (
                     "canary_empty_unit",
                     (CONSTRUCTION_EMPTY_CANARY, PRECONDITION_UNIT_PRESENT),
@@ -289,7 +292,10 @@ mod tests {
     #[test]
     fn refuses_unknown_construction() {
         let table = Table {
-            map: BTreeMap::from([("identity", ("not_a_real_construction", PRECONDITION_UNIT_PRESENT))]),
+            map: BTreeMap::from([(
+                "identity",
+                ("not_a_real_construction", PRECONDITION_UNIT_PRESENT),
+            )]),
         };
         let model = Model {
             units: vec![UnitId("example.com/a".into())],
@@ -311,7 +317,10 @@ mod tests {
     #[test]
     fn refuses_missing_unit_precondition() {
         let table = Table {
-            map: BTreeMap::from([("identity", (CONSTRUCTION_PASS_THROUGH, PRECONDITION_UNIT_PRESENT))]),
+            map: BTreeMap::from([(
+                "identity",
+                (CONSTRUCTION_PASS_THROUGH, PRECONDITION_UNIT_PRESENT),
+            )]),
         };
         let model = Model { units: vec![] };
         let plan = TransformPlan {

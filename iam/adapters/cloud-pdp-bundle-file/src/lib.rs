@@ -285,7 +285,7 @@ mod tests {
     /// TEST-SIDE signer only. Production private-key custody is a deferred
     /// founder-gated slice; this slice ships verify-against-trusted-public-keys
     /// + this test signer for fixtures. Reuses the OWNED aws-lc-rs Ed25519
-    /// signer (ADR-0506, ring-free).
+    ///   signer (ADR-0506, ring-free).
     fn unique(tag: &str) -> String {
         static SEQ: AtomicU64 = AtomicU64::new(0);
         format!(
@@ -304,10 +304,7 @@ mod tests {
             // A non-empty overlay proves the per-tenant field round-trips
             // through the CLOSED schema (deny_unknown_fields) and the
             // version-token re-validation path unchanged.
-            tenant_policies: BTreeMap::from([(
-                "acme".to_owned(),
-                "// acme overlay\n".to_owned(),
-            )]),
+            tenant_policies: BTreeMap::from([("acme".to_owned(), "// acme overlay\n".to_owned())]),
             templates: vec![TemplateSrc {
                 template_id: "pbac-resource-read-grant".to_owned(),
                 src: "template".to_owned(),
@@ -383,7 +380,11 @@ mod tests {
         let store = FilePolicyBundleStore::new(&bundle_path, &trust);
         let loaded = store.load().expect("signed bundle loads");
         assert_eq!(loaded, seed_bundle());
-        assert!(store.describe().contains(&bundle_path.display().to_string()));
+        assert!(
+            store
+                .describe()
+                .contains(&bundle_path.display().to_string())
+        );
         assert!(store.describe().contains(&trust.display().to_string()));
     }
 
@@ -576,8 +577,7 @@ mod tests {
     fn missing_bundle_file_is_unavailable_not_a_default() {
         let signer = Ed25519ChainSigner::generate("psk-1").unwrap();
         let trust = trust_dir_for("missing-bundle", &[("psk-1", &signer)]);
-        let store =
-            FilePolicyBundleStore::new("/nonexistent/oya-pdp/bundle.json", &trust);
+        let store = FilePolicyBundleStore::new("/nonexistent/oya-pdp/bundle.json", &trust);
         let err = store.load().unwrap_err();
         assert!(matches!(err, BundleStoreError::Unavailable { .. }), "{err}");
     }

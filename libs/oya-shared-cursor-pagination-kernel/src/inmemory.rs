@@ -5,8 +5,8 @@
 //! that need deterministic, I/O-free cursor pagination in tests.
 
 use crate::{
-    cursor::{scope_hash, CursorPayload},
     Cursor, CursorPaginationKernel, Page, PageSize, PaginationError,
+    cursor::{CursorPayload, scope_hash},
 };
 
 /// Pure in-memory reference implementation of [`CursorPaginationKernel`].
@@ -79,12 +79,7 @@ where
             .collect();
 
         let size = page_size.get() as usize;
-        let page_items: Vec<T> = filtered
-            .iter()
-            .skip(offset)
-            .take(size)
-            .cloned()
-            .collect();
+        let page_items: Vec<T> = filtered.iter().skip(offset).take(size).cloned().collect();
 
         let next_offset = offset + page_items.len();
         let has_more = next_offset < filtered.len();
@@ -223,7 +218,8 @@ mod tests {
 
         // Cursor value must be opaque base64-URL (no padding, URL-safe chars only).
         assert!(
-            c.0.chars().all(|ch| ch.is_ascii_alphanumeric() || ch == '-' || ch == '_'),
+            c.0.chars()
+                .all(|ch| ch.is_ascii_alphanumeric() || ch == '-' || ch == '_'),
             "cursor contains non-base64url characters: {:?}",
             c.0
         );

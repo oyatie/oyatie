@@ -12,10 +12,10 @@
 use crate::reconcile::{
     Controller, Input, Output, ReconcileContext, ReconcileError, ReconcileResult,
 };
-use std::collections::BTreeMap;
-use os_kernel::{Error, ResourceId, Result};
 use os_cosi_domain::resource::ResourceKind;
 use os_cosi_domain::{Metadata, Resource};
+use os_kernel::{Error, ResourceId, Result};
+use std::collections::BTreeMap;
 
 /// Which kernel pseudo-filesystem a parameter targets.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

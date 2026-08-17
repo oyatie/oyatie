@@ -103,10 +103,10 @@ fn validate_pointer_values(
     pointer_count: &mut usize,
 ) -> Result<(), RootHubPointerError> {
     for (key, child) in value {
-        if let Some(pointer) = child.as_str().filter(|_| is_reachability_pointer_key(key)) {
-            if validate_pointer_value(pointer, target_by_path)? {
-                *pointer_count += 1;
-            }
+        if let Some(pointer) = child.as_str().filter(|_| is_reachability_pointer_key(key))
+            && validate_pointer_value(pointer, target_by_path)?
+        {
+            *pointer_count += 1;
         }
 
         match child {

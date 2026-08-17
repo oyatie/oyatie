@@ -19,5 +19,8 @@ doctest = false
 
 [dependencies]
 
+[dev-dependencies]
+ci-path-resolver-adapters = { path = "../../adapters/path-resolver" }
+
 [lints]
 workspace = true

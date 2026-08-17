@@ -146,17 +146,12 @@ fn target(path: &str, contents: &str) -> RootHubPointerTarget {
     }
 }
 
-/// Walk up to the repo root. `env!("CARGO_MANIFEST_DIR")` is deliberately NOT used — it does not
-/// exist under buck2, which is the binding build here (same approach as the sibling gates).
+/// Resolve repository doctrine from the package's compile-time location, independent of the test
+/// process working directory used by Cargo.
 fn repo_root() -> std::path::PathBuf {
-    let mut dir = std::env::current_dir().expect("current_dir");
-    for _ in 0..16 {
-        if dir.join("specs/root-hub-pointers.json").is_file() {
-            return dir;
-        }
-        if !dir.pop() {
-            break;
-        }
-    }
-    panic!("failed to locate repo root from test current_dir");
+    std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .ancestors()
+        .find(|candidate| candidate.join("specs/root-hub-pointers.json").is_file())
+        .expect("repo root")
+        .to_path_buf()
 }

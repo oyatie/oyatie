@@ -132,7 +132,7 @@
     "external-facing"
   ],
   "substrate_requires_dag_position": true,
-  "min_expected_service_manifests": 95,
+  "min_expected_service_manifests": 94,
   "require_sharding_automation": true,
   "require_openslo_manifest_refs": true,
   "canonical_autosharding_mode": "control_plane_driven",

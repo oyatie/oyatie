@@ -8,13 +8,13 @@ use intelligence_autonomy_ceiling_domain::CeilingPolicy;
 use intelligence_cli_session_driver::CliSessionDriver;
 use intelligence_jsonl_supervisor_adapter::{JsonlInboxStore, JsonlOutboxSink};
 use intelligence_settings_template_adapter::{MultiProviderRenderer, TemplateStore};
-use oya_intelligence_supervisor_app::SupervisorApp;
 use intelligence_supervisor_kernel::{
     AccountId, AccountSnapshotProvider, AuditChainPort, ProviderFamily, RendererMode,
     SupervisorAccount, SupervisorConfig, SupervisorError, SupervisorEvent, UsageWindowPort,
     UsageWindowSnapshot,
 };
 use intelligence_supervisor_security_adapter::CedarAutonomyCeilingAdapter;
+use oya_intelligence_supervisor_app::SupervisorApp;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {

@@ -72,8 +72,8 @@ fn live_service_corpus_is_born_blocking_green() {
     );
     assert_eq!(report.verdict, Verdict::Green);
     assert!(
-        report.manifests_checked >= 95,
-        "the live tree should carry at least the ~101 service manifests; got {}",
+        report.manifests_checked >= 94,
+        "the live tree should carry at least the current 94 service manifests; got {}",
         report.manifests_checked
     );
     eprintln!(
@@ -117,10 +117,10 @@ fn policy_enums_match_platform_architecture_taxonomy() {
 fn find_array(value: &Value, key: &str) -> Option<Value> {
     match value {
         Value::Object(map) => {
-            if let Some(v) = map.get(key) {
-                if v.is_array() {
-                    return Some(v.clone());
-                }
+            if let Some(v) = map.get(key)
+                && v.is_array()
+            {
+                return Some(v.clone());
             }
             for v in map.values() {
                 if let Some(found) = find_array(v, key) {

@@ -10,8 +10,8 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use cell_region::{AzCode, CellId, RegionCode};
-use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 use network_residency::{ResidencyClass, residency_class_allows_home_region_label};
+use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 
 const RESOURCE_SCHEMA_VERSION: u32 = 1;
 const RESOURCE_ID_PREFIX_OWNER: &str = "oya";
@@ -1003,8 +1003,7 @@ mod tests {
                 let via_predicate = from.can_transition_to(to);
                 let via_graph = nexts.contains(&to);
                 assert_eq!(
-                    via_predicate,
-                    via_graph,
+                    via_predicate, via_graph,
                     "allowed_next({from:?}) and can_transition_to({from:?}, {to:?}) disagree: \
                      predicate={via_predicate}, graph={via_graph}"
                 );

@@ -5,7 +5,8 @@ use intelligence_claude_agent_sdk::{
 use serde_json::{json, to_value};
 
 #[test]
-fn control_request_envelope_serializes_current_wire_shape() -> intelligence_claude_agent_sdk::Result<()> {
+fn control_request_envelope_serializes_current_wire_shape()
+-> intelligence_claude_agent_sdk::Result<()> {
     let request = SDKControlRequest::new("req-1", json!({"subtype": "mcp_status"}));
 
     assert_eq!(

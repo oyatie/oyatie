@@ -1,9 +1,7 @@
 //! Decrypt-only key-version rotation (ADR-0536 D-8: version rotation, never
 //! re-encryption; rejected anti-pattern: re-encrypt-on-rotate).
 
-use secrets_kms_enclave::{
-    DekId, EnclaveError, KekId, KekMaterial, KekVersion, KekVersionChain,
-};
+use secrets_kms_enclave::{DekId, EnclaveError, KekId, KekMaterial, KekVersion, KekVersionChain};
 
 fn chain(kek_id: &str) -> KekVersionChain {
     KekVersionChain::new(
@@ -28,8 +26,9 @@ fn rotation_advances_version_and_retires_previous() {
 #[test]
 fn old_ciphertext_decrypts_after_rotation_without_reencryption() {
     let mut versions = chain("kek/ten_alpha");
-    let (dek_v1, wrapped_v1) =
-        versions.generate_dek(DekId::new("dek/obj_1").unwrap()).expect("generate dek");
+    let (dek_v1, wrapped_v1) = versions
+        .generate_dek(DekId::new("dek/obj_1").unwrap())
+        .expect("generate dek");
     let payload = b"wrapped before rotation";
     let blob = dek_v1.seal(b"ctx", payload).expect("seal");
     let wrapped_bytes_before = wrapped_v1.encode();
@@ -40,7 +39,9 @@ fn old_ciphertext_decrypts_after_rotation_without_reencryption() {
     // The wrapped DEK bytes are untouched (never re-encrypted) and still
     // unwrap through the retired v1 material.
     assert_eq!(wrapped_v1.encode(), wrapped_bytes_before);
-    let recovered = versions.unwrap_dek(&wrapped_v1).expect("unwrap via retired version");
+    let recovered = versions
+        .unwrap_dek(&wrapped_v1)
+        .expect("unwrap via retired version");
     let plaintext = recovered.open(b"ctx", &blob).expect("open");
     assert_eq!(plaintext.as_slice(), payload);
 }
@@ -49,7 +50,9 @@ fn old_ciphertext_decrypts_after_rotation_without_reencryption() {
 fn new_wraps_carry_current_version_only() {
     let mut versions = chain("kek/ten_alpha");
     versions.rotate().expect("rotate");
-    let (_, wrapped) = versions.generate_dek(DekId::new("dek/obj_2").unwrap()).expect("dek");
+    let (_, wrapped) = versions
+        .generate_dek(DekId::new("dek/obj_2").unwrap())
+        .expect("dek");
     assert_eq!(wrapped.kek_version(), 2);
 }
 
@@ -60,8 +63,9 @@ fn unknown_version_fails_closed() {
     let mut rotated_ahead = chain("kek/ten_alpha");
     rotated_ahead.rotate().expect("rotate to v2");
     rotated_ahead.rotate().expect("rotate to v3");
-    let (_, wrapped_v3) =
-        rotated_ahead.generate_dek(DekId::new("dek/obj_1").unwrap()).expect("dek");
+    let (_, wrapped_v3) = rotated_ahead
+        .generate_dek(DekId::new("dek/obj_1").unwrap())
+        .expect("dek");
 
     let stale = chain("kek/ten_alpha");
     assert!(matches!(
@@ -83,7 +87,9 @@ fn unknown_version_fails_closed() {
 fn cross_kek_unwrap_rejected_before_crypto() {
     let alpha = chain("kek/ten_alpha");
     let beta = chain("kek/ten_beta");
-    let (_, wrapped) = alpha.generate_dek(DekId::new("dek/obj_1").unwrap()).expect("dek");
+    let (_, wrapped) = alpha
+        .generate_dek(DekId::new("dek/obj_1").unwrap())
+        .expect("dek");
     assert!(matches!(
         beta.unwrap_dek(&wrapped),
         Err(EnclaveError::KeyBindingMismatch { .. })

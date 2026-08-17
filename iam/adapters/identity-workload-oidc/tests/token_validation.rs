@@ -6,10 +6,10 @@
 //! a genuine token validates into an active principal and that a token signed
 //! by a different (untrusted) key is rejected.
 
-use base64::Engine as _;
-use base64::engine::general_purpose::URL_SAFE_NO_PAD;
 use aws_lc_rs::rand::SystemRandom;
 use aws_lc_rs::signature::{ECDSA_P256_SHA256_FIXED_SIGNING, EcdsaKeyPair, KeyPair};
+use base64::Engine as _;
+use base64::engine::general_purpose::URL_SAFE_NO_PAD;
 
 use iam_identity_workload_domain::WorkloadState;
 use iam_identity_workload_oidc::{
@@ -25,8 +25,8 @@ fn mint(claims_json: &str, kid: &str) -> (String, Jwk) {
     let rng = SystemRandom::new();
     let pkcs8 =
         EcdsaKeyPair::generate_pkcs8(&ECDSA_P256_SHA256_FIXED_SIGNING, &rng).expect("pkcs8");
-    let key = EcdsaKeyPair::from_pkcs8(&ECDSA_P256_SHA256_FIXED_SIGNING, pkcs8.as_ref())
-        .expect("key");
+    let key =
+        EcdsaKeyPair::from_pkcs8(&ECDSA_P256_SHA256_FIXED_SIGNING, pkcs8.as_ref()).expect("key");
     let public = key.public_key().as_ref();
     let (x, y) = (&public[1..33], &public[33..65]);
 

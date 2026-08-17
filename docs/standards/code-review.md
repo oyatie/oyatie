@@ -7,9 +7,9 @@ doc_status: published
 
 > **Status:** Draft v0.1 — 2026-05-09.
 > **Owner:** `council-architecture`.
-> **Companion:** CLAUDE.md / docs/AGENTS.md Code Review rules. The historical
-> `scripts/hooks/guard-pr-merge-review.mjs` reference is advisory only; it is not
-> live cloud admission authority. `F-PR5-06` tracks the trusted server-side/cloud-ci review producer gap for `oya-pr-review`.
+> **Companion:** CLAUDE.md / docs/AGENTS.md Code Review rules. `F-PR5-06`
+> tracks the trusted server-side/cloud-ci review-producer gap; it does not
+> waive the repository contract for one author-distinct reviewer approval.
 
 ## 1. Per-change-class reviewer agent
 
@@ -30,19 +30,18 @@ Every PR auto-classifies into change classes (per [DESIGN §3.0.5.3](../DESIGN.m
 
 ## 2. Mandatory PR sections
 
-Per CLAUDE.md (5 H2s):
+Per CLAUDE.md (four H2s):
 - `## Issue` — what + Refs/Closes/Blocks
-- `## Summary` — what changed (1-3 sentences)
+- `## Summary` — what changed, why, and the canonical authority
 - `## Verification` — what was tested + outcome
-- `## Traceability` — flat-crates targets touched + cross-axis contract impact
-- `## Evidence` — links to CI runs, eval-set output, audit-chain emission
+- `## Code Review` — author-distinct reviewer verdict and dispositions
 
-Target requirement for merge-ready PRs: `## Code Review` — supplied by the
-automated reviewer-agent verdict and bound to the reviewed PR title plus the
-reviewed PR body/traceability sections. Author-only drafts may omit it only when
-running the traceability gate with the explicit author policy. Today this is
-target/advisory evidence; it becomes merge authority only when a trusted
-server-side/cloud-ci review producer is live and required (`F-PR5-06`).
+The reviewer verdict binds the exact PR head. One author-distinct reviewer-agent
+APPROVE is sufficient; no human approval or reviewer quorum is required. Green
+CI is separate evidence and never substitutes for approval. `F-PR5-06` records
+the gap between this repository contract and current cloud enforcement.
+Until a trusted server-side/cloud-ci review producer closes that gap,
+repository-local hooks are advisory only and cannot attest approval.
 
 ## 2.1 Merge-hold preflight packet (GH #902)
 
@@ -70,12 +69,11 @@ If a PR merged too early, workers preserve WIP and create a fresh branch from
 current `dev` for the follow-up instead of pushing to the already-merged PR
 branch.
 
-## 2.2 Review/fix evidence packet
+## 2.2 Merge-readiness evidence
 
-Every merge-ready PR MUST carry a review/fix evidence packet in `## Evidence`.
-The packet is a durable record, not a new local gate: protected-branch merge
-authority remains the single `oya-ci-required` status plus the trusted review
-producer boundary tracked by `F-PR5-06`.
+The protected PR, formal review, review threads, and required checks are the
+durable merge-readiness record. ADR-0716 requires no separate review/fix or
+post-merge product-completion packet.
 
 Worker-completed implementation cards are not complete from a local diff, local
 test output, or pushed branch alone. Completion evidence MUST name a protected
@@ -83,7 +81,7 @@ PR against `dev`, current-head `oya-ci-required` evidence, independent reviewer
 approval evidence, and zero unresolved review threads before downstream cards
 unblock.
 
-The packet records all facts below on the same PR head SHA:
+The existing PR records all facts below on the same head SHA:
 
 - isolated worktree/branch, pushed commit SHA, and PR target `dev`;
 - `oya-ci-required` status, check/status URL, and observation timestamp;
@@ -107,13 +105,13 @@ The packet records all facts below on the same PR head SHA:
 
 | Change class | Required reviewers | Mandatory checks |
 |---|---|---|
-| Rust code | rust-reviewer + 1 human peer | clippy clean; nextest pass; bench gate if perf-tagged |
-| Cross-axis contract | each affected axis team + council co-sign | semver-diff + cohesion-fitness |
-| Privacy / data-class | council-privacy | data-class annotation + DSR-cascade test |
-| Security | ops-security | threat-model update if needed |
-| Migration | database-reviewer | rollback path + dry-run + ≥ 2 prior version backward-read |
-| ADR | crew-adr-promotion | template adherence + supersession back-link |
-| Brand-rename batch | per-batch owner | per-batch checklist completion |
+| Rust code | one author-distinct rust-reviewer agent | clippy clean; workspace tests pass; bench gate if perf-tagged |
+| Cross-axis contract | one author-distinct reviewer agent applying the cross-axis lens | semver-diff + cohesion-fitness; affected teams notified |
+| Privacy / data-class | one privacy-reviewer agent | data-class annotation + DSR-cascade test |
+| Security | one security-reviewer agent | threat-model update if needed |
+| Migration | one database-reviewer agent | rollback path + dry-run + ≥ 2 prior version backward-read |
+| ADR | one architecture/doc reviewer agent | template adherence + supersession back-link |
+| Brand-rename batch | one author-distinct reviewer agent | per-batch checklist completion |
 
 ## 4. Verdict format
 
@@ -129,22 +127,13 @@ The packet records all facts below on the same PR head SHA:
 **Outstanding concerns:** ...
 ```
 
-Multiple reviewers: one block per reviewer agent.
+One author-distinct reviewer block is sufficient.
 
-## 5. Bypass
+## 5. No review bypass
 
-When the server-side reviewer gate is live, any intentional skip must be a
-cloud-recorded bypass packet, not a shell-only or local-hook convention.
-Historical examples such as `# review-bypass: <reason>` are local/advisory
-prose until `F-PR5-06` closes.
-
-Every bypass:
-- Recorded by the trusted review-admission producer once live
-- Emitted as `EVT-CODE-REVIEW-BYPASS` audit event
-- Quarterly review by council
-- Excessive bypass per-team triggers escalation
-
-Never bypass for: cross-axis contract changes; privacy / data-class changes; security changes; ADR changes; release tags.
+Merge readiness always requires one author-distinct reviewer-agent APPROVE on
+the exact PR head. Local comments, self-attestation, green CI, human override,
+or a quorum packet do not replace that approval.
 
 ## 6. Async review SLA
 
@@ -158,7 +147,7 @@ Never bypass for: cross-axis contract changes; privacy / data-class changes; sec
 - Self-approving in same active context — never (per project memory)
 - Reviewer-shopping for laxer reviewer — never
 - Bundling unrelated changes — never (one PR per concern)
-- Skipping `## Verification` section — fails traceability CI
+- Skipping `## Verification` section — leaves the reviewer without execution evidence
 
 ## 8. Sources
-CLAUDE.md "Code Review", `scripts/hooks/guard-pr-merge-review.mjs`, [DESIGN.md §3.0.5](../DESIGN.md), ADR-0007, ADR-0019, ADR-0050.
+CLAUDE.md "Code Review", [DESIGN.md §3.0.5](../DESIGN.md), ADR-0007, ADR-0019, ADR-0050, ADR-0716.

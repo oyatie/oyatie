@@ -28,7 +28,12 @@ intelligence-cargo-prefix-domain = { path = "../../../intelligence/core/cargo-pr
 oya-ci-config-kernel = { path = "../../../libs/oya-ci-config" }
 
 [dev-dependencies]
+ci-path-resolver-adapters = { path = "../../adapters/path-resolver" }
+ci-scm-facts-snapshot = { path = "../scm-facts-snapshot" }
+oya-workspace-members-kernel = { path = "../../../libs/oya-workspace-members-kernel" }
 serde_json = { workspace = true }
+tempfile = { workspace = true }
+toml = { workspace = true }
 
 [lints]
 workspace = true

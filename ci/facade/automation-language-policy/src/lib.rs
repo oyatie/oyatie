@@ -818,15 +818,14 @@ pub fn validate_replacement_window_authorization(
                 "cannot admit a replacement window without a resolvable protected merge-base",
             ));
         }
-        Ok(merge_base) => match source.show_file(&merge_base, adr) {
-            Ok(_) => {
+        Ok(merge_base) => {
+            if source.show_file(&merge_base, adr).is_ok() {
                 findings.insert(replacement_window_finding(
                     "the named ADR already exists on the protected merge-base; a replacement must \
                      introduce a new ADR in this PR",
                 ));
             }
-            Err(_) => {}
-        },
+        }
     }
 
     findings
@@ -1819,35 +1818,35 @@ fn exception_map(policy: &Value, findings: &mut BTreeSet<Finding>) -> BTreeMap<S
         let replacement = required_nonblank(exception, "replacement", path, findings);
         let status = required_nonblank(exception, "status", path, findings);
 
-        if let Some(replacement) = replacement {
-            if !replacement_is_cloud_native_rust_contract(replacement) {
-                findings.insert(Finding::new(
-                    "rust_first_automation_exception_missing_replacement_contract",
-                    path,
-                    "replacement must name a Rust plus Buck2/cloud/Kubernetes/GitOps/controller path",
-                ));
-            }
+        if let Some(replacement) = replacement
+            && !replacement_is_cloud_native_rust_contract(replacement)
+        {
+            findings.insert(Finding::new(
+                "rust_first_automation_exception_missing_replacement_contract",
+                path,
+                "replacement must name a Rust plus Buck2/cloud/Kubernetes/GitOps/controller path",
+            ));
         }
-        if let Some(reason) = reason {
-            if reason.len() < 24 {
-                findings.insert(Finding::new(
-                    "rust_first_automation_exception_missing_field",
-                    path,
-                    "exception reason is too short to justify a non-Rust automation surface",
-                ));
-            }
+        if let Some(reason) = reason
+            && reason.len() < 24
+        {
+            findings.insert(Finding::new(
+                "rust_first_automation_exception_missing_field",
+                path,
+                "exception reason is too short to justify a non-Rust automation surface",
+            ));
         }
-        if let Some(status) = status {
-            if !matches!(
+        if let Some(status) = status
+            && !matches!(
                 status,
                 "temporary_legacy_bridge" | "portable_declarative_bridge"
-            ) {
-                findings.insert(Finding::new(
-                    "rust_first_automation_exception_missing_field",
-                    path,
-                    "status must be temporary_legacy_bridge or portable_declarative_bridge",
-                ));
-            }
+            )
+        {
+            findings.insert(Finding::new(
+                "rust_first_automation_exception_missing_field",
+                path,
+                "status must be temporary_legacy_bridge or portable_declarative_bridge",
+            ));
         }
 
         exceptions.insert(path.to_owned(), exception.clone());

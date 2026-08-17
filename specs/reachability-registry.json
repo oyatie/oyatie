@@ -2,6 +2,10 @@
   "_comment": "Reviewed reachability registrations (ADR-0555). Each entry registers a tree (dir prefix ending '/') or an exact path as reached, and MUST carry an anchor naming WHY. Registration is a review-visible design act — the ADR-0551 trust class (same as ratchet-policy.json) — never a silent exemption. Hand-edited (or via the transitional --fix-reachability bridge); the producer fails LOUD on a malformed entry.",
   "registered": [
     {
+      "anchor": "ADR-0545 embedded-asset hermeticity: Buck package marker exporting .cargo/config.toml, the Cargo half of the Buck/Cargo resource bijection that the cross-artifact-agreement, product-protocol-policy, reset-eligibility-policy and hook-wiring gate targets read through include_str!. Those targets reference it as //.cargo:config.toml, so the marker must exist for their declared inputs to resolve.",
+      "prefix": ".cargo/BUCK"
+    },
+    {
       "anchor": "ADR-0600: Buck package marker for the reviewed .claude/settings.json enforcement-liveness corpus target.",
       "prefix": ".claude/BUCK"
     },

@@ -639,7 +639,7 @@ fn remove_line_range(lines: &[&str], start: usize, end: usize) -> String {
 fn format_dependencies(dependencies: &[String]) -> String {
     let mut output = String::from("dependencies = [\n");
     for dependency in dependencies {
-        output.push_str(" ");
+        output.push(' ');
         output.push_str(&toml_basic_string(dependency));
         output.push_str(",\n");
     }

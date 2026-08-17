@@ -359,8 +359,11 @@ fn physical_now_nanos() -> Result<u64, DataSqlError> {
     let elapsed = SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .map_err(|error| DataSqlError::Adapter(format!("system clock before epoch: {error}")))?;
-    u64::try_from(elapsed.as_nanos())
-        .map_err(|_| DataSqlError::Clock(ClockError::LogicalOverflow { wall_nanos: u64::MAX }))
+    u64::try_from(elapsed.as_nanos()).map_err(|_| {
+        DataSqlError::Clock(ClockError::LogicalOverflow {
+            wall_nanos: u64::MAX,
+        })
+    })
 }
 
 fn sqlx_error(error: sqlx::Error) -> DataSqlError {
@@ -392,12 +395,11 @@ pub struct LiveRlsCrossTenantReport {
 /// `current_role_bypassrls` in oya-data-outbox-adapter-postgres; `rolsuper`
 /// implies bypass even when `rolbypassrls` is false.
 async fn app_role_lacks_bypassrls(pool: &PgPool) -> Result<bool, DataSqlError> {
-    let row = sqlx::query(
-        "SELECT rolsuper, rolbypassrls FROM pg_roles WHERE rolname = current_user",
-    )
-    .fetch_one(pool)
-    .await
-    .map_err(sqlx_error)?;
+    let row =
+        sqlx::query("SELECT rolsuper, rolbypassrls FROM pg_roles WHERE rolname = current_user")
+            .fetch_one(pool)
+            .await
+            .map_err(sqlx_error)?;
     let rolsuper: bool = row.try_get("rolsuper").map_err(sqlx_error)?;
     let rolbypassrls: bool = row.try_get("rolbypassrls").map_err(sqlx_error)?;
     Ok(!rolsuper && !rolbypassrls)
@@ -411,11 +413,10 @@ pub async fn run_live_rls_cross_tenant_probe()
     if env::var(LIVE_DATA_POSTGRES_ENABLE_ENV).is_err() {
         return Ok(None);
     }
-    let admin_url = env::var(LIVE_DATA_POSTGRES_ADMIN_URL_ENV).map_err(|_| {
-        DataSqlError::MissingField {
+    let admin_url =
+        env::var(LIVE_DATA_POSTGRES_ADMIN_URL_ENV).map_err(|_| DataSqlError::MissingField {
             field: LIVE_DATA_POSTGRES_ADMIN_URL_ENV,
-        }
-    })?;
+        })?;
     let app_url =
         env::var(LIVE_DATA_POSTGRES_APP_URL_ENV).map_err(|_| DataSqlError::MissingField {
             field: LIVE_DATA_POSTGRES_APP_URL_ENV,
@@ -442,8 +443,7 @@ pub async fn run_live_rls_cross_tenant_probe()
     // The application role goes through the owned port only.
     let pool_config = PostgresPoolConfig::for_microservice("data-live-probe", 4)
         .map_err(|error| DataSqlError::Adapter(format!("pool config: {error:?}")))?;
-    let client =
-        SqlxDataClient::connect(&SqlxDataClientConfig::new(app_url, pool_config)?).await?;
+    let client = SqlxDataClient::connect(&SqlxDataClientConfig::new(app_url, pool_config)?).await?;
 
     // Non-vacuity: capture whether the app role could bypass RLS BEFORE any
     // assertion depends on RLS holding.
@@ -536,23 +536,17 @@ mod tests {
     #[test]
     fn config_requires_url_and_honors_tls_discipline() {
         assert!(SqlxDataClientConfig::new(" ", pool_config()).is_err());
-        let err = SqlxDataClientConfig::new(
-            "postgres://localhost/db?sslmode=disable",
-            pool_config(),
-        )
-        .unwrap_err();
+        let err =
+            SqlxDataClientConfig::new("postgres://localhost/db?sslmode=disable", pool_config())
+                .unwrap_err();
         assert!(matches!(err, DataSqlError::Adapter(_)));
         SqlxDataClientConfig::new("postgres://localhost/db", pool_config()).unwrap();
     }
 
     #[test]
     fn statement_shape_guard_rejects_multi_statement_sql() {
-        let statement = Statement::new(
-            "two_statements",
-            "SELECT 1; DROP TABLE tenants",
-            vec![],
-        )
-        .unwrap();
+        let statement =
+            Statement::new("two_statements", "SELECT 1; DROP TABLE tenants", vec![]).unwrap();
         assert!(check_statement_shape(&statement).is_err());
     }
 
@@ -568,15 +562,11 @@ mod tests {
         let aligned = Statement::new(
             "insert_row",
             "INSERT INTO t (a, b) VALUES ($1, $2)",
-            vec![
-                SqlValue::Text("one".to_owned()),
-                SqlValue::Int64(2),
-            ],
+            vec![SqlValue::Text("one".to_owned()), SqlValue::Int64(2)],
         )
         .unwrap();
         check_statement_shape(&aligned).unwrap();
-        let trailing_semicolon =
-            Statement::new("read", "SELECT a FROM t;", vec![]).unwrap();
+        let trailing_semicolon = Statement::new("read", "SELECT a FROM t;", vec![]).unwrap();
         check_statement_shape(&trailing_semicolon).unwrap();
     }
 
@@ -592,7 +582,8 @@ mod tests {
     // context") outside a tokio runtime — the assertions themselves are sync.
     #[tokio::test]
     async fn session_open_enforces_kernel_descriptor_invariants() {
-        let client = SqlxDataClient::from_pool(PgPool::connect_lazy("postgres://localhost/x").unwrap());
+        let client =
+            SqlxDataClient::from_pool(PgPool::connect_lazy("postgres://localhost/x").unwrap());
         let invalid = SessionDescriptor {
             store: DataStore::BootstrapMetastore,
             scope: SessionScope::Tenant {
@@ -606,16 +597,14 @@ mod tests {
             DataSqlError::TenantScopeForbiddenInBootstrapMetastore
         );
         let valid = SessionDescriptor::tenant_data("acme", "cell-001", "oyatie-data").unwrap();
-        assert_eq!(
-            client.open_session(&valid).unwrap().descriptor(),
-            &valid
-        );
+        assert_eq!(client.open_session(&valid).unwrap().descriptor(), &valid);
     }
 
     // tokio::test for the same connect_lazy runtime requirement as above.
     #[tokio::test]
     async fn commit_stamps_strictly_increase() {
-        let client = SqlxDataClient::from_pool(PgPool::connect_lazy("postgres://localhost/x").unwrap());
+        let client =
+            SqlxDataClient::from_pool(PgPool::connect_lazy("postgres://localhost/x").unwrap());
         let first = client.stamp_commit().unwrap();
         let second = client.stamp_commit().unwrap();
         assert!(second > first);

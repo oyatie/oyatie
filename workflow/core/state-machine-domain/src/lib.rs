@@ -164,9 +164,10 @@ impl BatchDomainTransitionDecision {
     pub fn expect_applied(self) -> BatchDomainTransitionReceipt {
         match self {
             Self::Applied(receipt) => receipt,
-            Self::Denied { batch_index, denial } => panic!(
-                "expected applied batch, got denial at index {batch_index}: {denial:?}"
-            ),
+            Self::Denied {
+                batch_index,
+                denial,
+            } => panic!("expected applied batch, got denial at index {batch_index}: {denial:?}"),
         }
     }
 
@@ -175,7 +176,10 @@ impl BatchDomainTransitionDecision {
             Self::Applied(receipt) => {
                 panic!("expected denied batch, got applied: {receipt:?}")
             }
-            Self::Denied { batch_index, denial } => (batch_index, denial),
+            Self::Denied {
+                batch_index,
+                denial,
+            } => (batch_index, denial),
         }
     }
 }
@@ -238,9 +242,9 @@ pub fn evaluate_domain_transition_batch(
                 last_origin = receipt.origin;
             }
             DomainTransitionDecision::Denied(mut denial) => {
-                denial.audit_refs.push(format!(
-                    "workflow-state-machine-domain:batch-index:{index}"
-                ));
+                denial
+                    .audit_refs
+                    .push(format!("workflow-state-machine-domain:batch-index:{index}"));
                 denial.audit_refs = sorted_unique(denial.audit_refs);
                 return BatchDomainTransitionDecision::Denied {
                     batch_index: index,
@@ -251,8 +255,8 @@ pub fn evaluate_domain_transition_batch(
     }
 
     // All elements applied successfully.
-    let final_checkpoint = current_checkpoint
-        .expect("at least one element was processed so checkpoint is Some");
+    let final_checkpoint =
+        current_checkpoint.expect("at least one element was processed so checkpoint is Some");
     BatchDomainTransitionDecision::Applied(BatchDomainTransitionReceipt {
         checkpoint: final_checkpoint,
         origin: last_origin,
@@ -684,11 +688,26 @@ mod tests {
         let mut sorted = receipt.audit_refs.clone();
         sorted.sort();
         sorted.dedup();
-        assert_eq!(receipt.audit_refs, sorted, "audit_refs must be sorted-unique");
+        assert_eq!(
+            receipt.audit_refs, sorted,
+            "audit_refs must be sorted-unique"
+        );
         // policy/spec/replay refs appear (from each step)
-        assert!(receipt.audit_refs.contains(&"cedar://workflow/state-machine/allow".to_owned()));
-        assert!(receipt.audit_refs.contains(&"spec-integrity:workflow:v1".to_owned()));
-        assert!(receipt.audit_refs.contains(&"replay-epoch:domain:1".to_owned()));
+        assert!(
+            receipt
+                .audit_refs
+                .contains(&"cedar://workflow/state-machine/allow".to_owned())
+        );
+        assert!(
+            receipt
+                .audit_refs
+                .contains(&"spec-integrity:workflow:v1".to_owned())
+        );
+        assert!(
+            receipt
+                .audit_refs
+                .contains(&"replay-epoch:domain:1".to_owned())
+        );
     }
 
     // Acceptance criterion 2: batch whose 3rd element fails scope returns Denied at
@@ -711,7 +730,9 @@ mod tests {
         assert_eq!(index, 2);
         assert_eq!(denial.kind, DomainTransitionDenialKind::ScopeMismatch);
         assert!(
-            denial.audit_refs.contains(&"workflow-state-machine-domain:batch-index:2".to_owned()),
+            denial
+                .audit_refs
+                .contains(&"workflow-state-machine-domain:batch-index:2".to_owned()),
             "batch-index audit_ref must be present; got: {:?}",
             denial.audit_refs
         );
@@ -733,9 +754,7 @@ mod tests {
             .checkpoint;
 
         // Now try to apply a step_started on the terminal checkpoint.
-        let requests = vec![
-            make_request(step_started(5, 1)),
-        ];
+        let requests = vec![make_request(step_started(5, 1))];
         let result = evaluate_domain_transition_batch(Some(terminal_cp), requests);
         let (index, denial) = result.expect_denied();
 
@@ -746,7 +765,9 @@ mod tests {
             Some(TransitionDenialReason::TerminalStateRefusesEvent)
         );
         assert!(
-            denial.audit_refs.contains(&"workflow-state-machine-domain:batch-index:0".to_owned()),
+            denial
+                .audit_refs
+                .contains(&"workflow-state-machine-domain:batch-index:0".to_owned()),
             "batch-index:0 must be present; got: {:?}",
             denial.audit_refs
         );

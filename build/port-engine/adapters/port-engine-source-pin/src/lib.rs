@@ -57,10 +57,9 @@ impl fmt::Display for PinError {
         match self {
             Self::Parse { detail } => write!(f, "upstream pin JSON parse failed: {detail}"),
             Self::Schema { field } => write!(f, "upstream pin schema missing or invalid: {field}"),
-            Self::LicenseMismatch { actual } => write!(
-                f,
-                "upstream pin license must be Apache-2.0, got `{actual}`"
-            ),
+            Self::LicenseMismatch { actual } => {
+                write!(f, "upstream pin license must be Apache-2.0, got `{actual}`")
+            }
         }
     }
 }
@@ -114,9 +113,7 @@ pub fn load_from_str(json: &str) -> Result<UpstreamPin, PinError> {
         });
     }
     if pin.tag.is_empty() {
-        return Err(PinError::Schema {
-            field: "pin.tag",
-        });
+        return Err(PinError::Schema { field: "pin.tag" });
     }
     if pin.source_license != "Apache-2.0" {
         return Err(PinError::LicenseMismatch {

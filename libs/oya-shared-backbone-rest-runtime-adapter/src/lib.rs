@@ -636,10 +636,10 @@ pub fn build_backbone_rest_router_with_state(
             // Probe routes (health/ready) are exempt; all write and contract-only routes require
             // a bearer token even when the chain is empty_middleware_chain() (test dispatch).
             // Full PDP decision lives in BackboneAuthzMiddleware for the serve_* path.
-            if route.handler_kind != RuntimeRouteHandlerKind::Probe {
-                if let Err(resp) = verify_principal(&request) {
-                    return resp;
-                }
+            if route.handler_kind != RuntimeRouteHandlerKind::Probe
+                && let Err(resp) = verify_principal(&request)
+            {
+                return resp;
             }
             dispatch_runtime_route(route, &route_dependencies, &route_state, &request)
         });

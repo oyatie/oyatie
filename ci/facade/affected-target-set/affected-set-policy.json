@@ -161,7 +161,6 @@
       "root//ci/facade/inventory-registry-drift:ci-inventory-registry-drift-gate",
       "root//ci/facade/scm-facts-snapshot:ci-scm-facts-snapshot-gate",
       "root//governance/check/codeowners-mirror:check-codeowners-mirror-unittest",
-      "root//governance/check/pr-traceability:check-pr-traceability-unittest",
       "root//governance/check/raci-coverage:check-raci-coverage-unittest"
     ],
     "specs/forbidden-operations.json": [

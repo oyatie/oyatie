@@ -112,7 +112,8 @@ fn parse_args(mut argv: std::env::Args) -> Result<Args, String> {
 }
 
 fn read_json(path: &Path) -> Result<Value, String> {
-    let raw = fs::read_to_string(path).map_err(|e| format!("cannot read `{}`: {e}", path.display()))?;
+    let raw =
+        fs::read_to_string(path).map_err(|e| format!("cannot read `{}`: {e}", path.display()))?;
     serde_json::from_str(&raw).map_err(|e| format!("cannot parse `{}`: {e}", path.display()))
 }
 
@@ -257,16 +258,19 @@ fn fetch_open_pr_file_facts(api: &GitHubApi, repo: &str) -> Result<Value, String
 }
 
 fn resolve_repo(args: &Args) -> Result<String, String> {
-    if let Some(r) = args.repo.as_deref().map(str::trim).filter(|s| !s.is_empty()) {
+    if let Some(r) = args
+        .repo
+        .as_deref()
+        .map(str::trim)
+        .filter(|s| !s.is_empty())
+    {
         return Ok(r.to_owned());
     }
     match std::env::var("GITHUB_REPOSITORY") {
         Ok(r) if !r.trim().is_empty() => Ok(r),
-        _ => Err(
-            "live mode requires --repo owner/name or GITHUB_REPOSITORY \
+        _ => Err("live mode requires --repo owner/name or GITHUB_REPOSITORY \
              (or pass --open-prs-fixture for hermetic runs)"
-                .to_owned(),
-        ),
+            .to_owned()),
     }
 }
 
@@ -468,7 +472,8 @@ mod tests {
             repo: Some("owner/name".to_owned()),
             candidate_pr: None,
         };
-        let err = load_open_pr_facts(&args).expect_err("missing fixture must not fall through to live");
+        let err =
+            load_open_pr_facts(&args).expect_err("missing fixture must not fall through to live");
         assert_eq!(err, ExitCode::from(2));
     }
 }

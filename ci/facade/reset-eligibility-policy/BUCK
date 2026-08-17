@@ -31,9 +31,19 @@ rust_test(
 
 rust_test(
     name = "ci-reset-eligibility-policy-gate",
-    srcs = glob(["tests/**/*.rs", "**/*.json"]),
+    # The JSON corpus stays a plain glob: nothing includes it through a relative literal, so it
+    # does not need the repo-shaped depth the Rust sources below do.
+    srcs = glob(["**/*.json"]),
     crate = "ci_reset_eligibility_policy_gate",
-    crate_root = "tests/reset_eligibility.rs",
+    crate_root = "ci/facade/reset-eligibility-policy/tests/reset_eligibility.rs",
+    # ADR-0545: see the cross-artifact-agreement gate — the sibling cargo_resource_contract test
+    # asserts the include_str! bijection, so every Rust source keeps its repo-relative depth.
+    mapped_srcs = {
+        "BUCK": "ci/facade/reset-eligibility-policy/BUCK",
+        "//.cargo:config.toml": ".cargo/config.toml",
+        "tests/reset_eligibility.rs": "ci/facade/reset-eligibility-policy/tests/reset_eligibility.rs",
+        "tests/cargo_resource_contract.rs": "ci/facade/reset-eligibility-policy/tests/cargo_resource_contract.rs",
+    },
     env = {
         "OYA_RESET_POLICY": "$(location :reset-eligibility-policy.json)",
         "OYA_RESET_SCHEMA": "$(location //specs:reset-eligibility.schema.json)",

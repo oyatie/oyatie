@@ -300,7 +300,11 @@ impl RevocationLedger {
         if token.tenant_id != self.tenant_id {
             return Err(RevocationError::TenantMismatch);
         }
-        Ok(self.verdict(&token_fingerprint(token), token.expires_at_epoch_seconds, now_epoch_seconds))
+        Ok(self.verdict(
+            &token_fingerprint(token),
+            token.expires_at_epoch_seconds,
+            now_epoch_seconds,
+        ))
     }
 
     /// Evaluate an [`StsCredential`] against this ledger at `now_epoch_seconds`.
@@ -337,7 +341,12 @@ impl RevocationLedger {
     /// Order (deny-overrides): revoked wins over expired, expired wins over
     /// active. This is the single source of the deny-precedence ordering shared
     /// by [`Self::evaluate_token`] and [`Self::evaluate_sts`].
-    fn verdict(&self, fingerprint: &str, expires_at: u64, now_epoch_seconds: u64) -> CredentialStatus {
+    fn verdict(
+        &self,
+        fingerprint: &str,
+        expires_at: u64,
+        now_epoch_seconds: u64,
+    ) -> CredentialStatus {
         if let Some(reason) = self.reason_for(fingerprint) {
             return CredentialStatus::Revoked(reason);
         }
@@ -369,8 +378,14 @@ pub fn token_fingerprint(token: &Token) -> String {
     feed(&mut state, token.tenant_id.as_bytes());
     feed(&mut state, token.user_id.as_bytes());
     feed(&mut state, token.purpose.pascal_label().as_bytes());
-    feed(&mut state, token.issued_at_epoch_seconds.to_string().as_bytes());
-    feed(&mut state, token.expires_at_epoch_seconds.to_string().as_bytes());
+    feed(
+        &mut state,
+        token.issued_at_epoch_seconds.to_string().as_bytes(),
+    );
+    feed(
+        &mut state,
+        token.expires_at_epoch_seconds.to_string().as_bytes(),
+    );
     format!("tok1:{state:016x}")
 }
 
@@ -427,8 +442,7 @@ mod tests {
 
     #[test]
     fn revocation_reason_from_wire_rejects_unknown_value() {
-        let err =
-            RevocationReason::from_wire("nope").expect_err("unknown string must be rejected");
+        let err = RevocationReason::from_wire("nope").expect_err("unknown string must be rejected");
         assert_eq!(err.0, "nope");
         let msg = err.to_string();
         assert!(msg.contains("unknown revocation reason"));
@@ -586,7 +600,10 @@ mod tests {
             ledger.revoke("   ", RevocationReason::Compromised),
             Err(RevocationError::EmptyFingerprint)
         );
-        assert!(ledger.is_empty(), "ledger must remain empty after failed revokes");
+        assert!(
+            ledger.is_empty(),
+            "ledger must remain empty after failed revokes"
+        );
     }
 
     // ── token_fingerprint (edge case 10) ───────────────────────────────────
@@ -605,7 +622,10 @@ mod tests {
         let fp1 = token_fingerprint(&token);
         let fp2 = token_fingerprint(&token);
         assert_eq!(fp1, fp2, "fingerprint must be deterministic");
-        assert!(fp1.starts_with("tok1:"), "must have tok1: prefix, got {fp1}");
+        assert!(
+            fp1.starts_with("tok1:"),
+            "must have tok1: prefix, got {fp1}"
+        );
     }
 
     #[test]
@@ -620,7 +640,10 @@ mod tests {
         )
         .expect("valid token");
         let fp = token_fingerprint(&token);
-        assert!(!fp.starts_with("sts1:"), "tok1: must be distinct from sts1:");
+        assert!(
+            !fp.starts_with("sts1:"),
+            "tok1: must be distinct from sts1:"
+        );
     }
 
     // ── evaluate_token — full deny-precedence (edge cases 1–5) ─────────────
@@ -671,7 +694,10 @@ mod tests {
         let status = ledger
             .evaluate_token(&token, token.expires_at_epoch_seconds - 1)
             .unwrap();
-        assert_eq!(status, CredentialStatus::Revoked(RevocationReason::Compromised));
+        assert_eq!(
+            status,
+            CredentialStatus::Revoked(RevocationReason::Compromised)
+        );
         assert!(!status.is_valid());
     }
 
@@ -681,7 +707,9 @@ mod tests {
         let token = make_token("ten_alpha", 1_000, 900);
         let fp = token_fingerprint(&token);
         let mut ledger = RevocationLedger::new("ten_alpha").unwrap();
-        ledger.revoke(fp, RevocationReason::PolicyViolation).unwrap();
+        ledger
+            .revoke(fp, RevocationReason::PolicyViolation)
+            .unwrap();
         let status = ledger
             .evaluate_token(&token, token.expires_at_epoch_seconds + 100)
             .unwrap();
@@ -750,7 +778,10 @@ mod tests {
         let status = ledger
             .evaluate_sts(&cred, cred.expires_at_epoch_seconds.value - 1)
             .unwrap();
-        assert_eq!(status, CredentialStatus::Revoked(RevocationReason::Superseded));
+        assert_eq!(
+            status,
+            CredentialStatus::Revoked(RevocationReason::Superseded)
+        );
         assert!(!status.is_valid());
     }
 

@@ -175,9 +175,7 @@ impl EventSink for ClickHouseEventSink {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use intelligence_kernel::{
-        AgentId, EventStatus, Provider, SeatId, TenantId as KernelTenantId,
-    };
+    use intelligence_kernel::{AgentId, EventStatus, Provider, SeatId, TenantId as KernelTenantId};
 
     fn test_config() -> ClickHouseConfig {
         ClickHouseConfig {

@@ -4,9 +4,7 @@
 //! retired inline `sudo rm -rf` blocks removed, a positive free-disk floor, and that the
 //! threshold/INFRA-RED predicate DISCRIMINATES (below-floor ⇒ INFRA-RED; at/above-floor ⇒ ok).
 
-use ci_runner_disk_reclaim::{
-    GIB, POLICY_REL_PATH, ReclaimReport, parse_profile, repo_root_from,
-};
+use ci_runner_disk_reclaim::{GIB, POLICY_REL_PATH, ReclaimReport, parse_profile, repo_root_from};
 
 /// Locate the committed policy by walking up to the repo root (works under both buck2 — cwd =
 /// project root — and cargo — cwd = crate dir — without `CARGO_MANIFEST_DIR`).

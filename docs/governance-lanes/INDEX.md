@@ -34,7 +34,7 @@ Runtime tier:
 | audit-emission | existing | STANDARD/audit-chain | oya-governance-audit-emission-kernel | tools/oya-governance-audit-emission | `cargo run -p oya-governance-audit-emission` | 700 | BLOCKER |
 | schema-migration | existing | STANDARD/schema-migration | oya-governance-schema-migration-kernel | tools/oya-governance-schema-migration | `cargo run -p oya-governance-schema-migration` | 200 | BLOCKER |
 | perf-evidence | existing | STANDARD/perf-evidence | oya-governance-perf-evidence-kernel | tools/oya-governance-perf-evidence | `cargo run -p oya-governance-perf-evidence` | 300 | HIGH |
-| traceability-validator | existing | STANDARD/traceability-chain | oya-governance-traceability-kernel | tools/oya-governance-traceability-validator | `cargo run -p oya-governance-traceability-validator` | 1500 | BLOCKER |
+| traceability-validator | retired | ADR-0716 D4 | retired | retired | retired; no CI invocation | 0 | retired |
 | redirect-thinness | existing | STANDARD/redirect-shape | oya-governance-redirect-thinness-kernel | tools/oya-governance-redirect-thinness | `cargo run -p oya-governance-redirect-thinness` | 200 | MED |
 | cross-axis-notify | existing | STANDARD/cross-axis-notify | oya-governance-cross-axis-notify-kernel | tools/oya-governance-cross-axis-notify | `cargo run -p oya-governance-cross-axis-notify` | 250 | HIGH |
 | capability-publish | existing | STANDARD/capability-map | oya-intelligence-capability-kernel | tools/oya-governance-capability-publish | `cargo run -p oya-governance-capability-publish` | 400 | HIGH |

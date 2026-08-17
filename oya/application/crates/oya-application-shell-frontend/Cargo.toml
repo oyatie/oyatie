@@ -32,14 +32,16 @@ serde = { workspace = true }
 serde_json = { workspace = true }
 axum = { workspace = true, optional = true }
 any_spawner = { workspace = true, optional = true }
-tokio = { workspace = true, features = ["fs", "io-util", "sync"], optional = true }
+tokio = { workspace = true, features = ["fs", "sync"], optional = true }
 wasm-bindgen = { version = "=0.2.121", optional = true }
 
-# Integration tests compile this lib without `cfg(test)`, so `#[cfg(feature = "ssr")]`
-# modules stay off under default `csr`. Depend on self with `ssr` so `cargo test`
-# (including `--workspace`) builds the native Axum host the live-server tests need.
+# Integration tests compile this library without `cfg(test)`, so the server
+# modules remain disabled under the default `csr` feature. Enable the crate's
+# explicit `ssr` contract for its test target without broadening production
+# defaults, and add only the Tokio I/O capability used by the live server.
 [dev-dependencies]
 oya-application-shell-frontend = { path = ".", default-features = false, features = ["ssr"] }
+tokio = { workspace = true, features = ["io-util"] }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 leptos_axum = { workspace = true }

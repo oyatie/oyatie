@@ -4,8 +4,8 @@
 //! document carries an `apiVersion` + `kind` header, validates itself in
 //! isolation, and declares whether it is a singleton.
 
-use std::fmt;
 use os_kernel::error::Result;
+use std::fmt;
 
 /// The `apiVersion` used by every modern typed machinery config document.
 pub const API_VERSION: &str = "v1alpha1";

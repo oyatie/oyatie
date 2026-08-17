@@ -105,7 +105,9 @@ fn main() -> ExitCode {
         Ok(()) => ExitCode::SUCCESS,
         // The merge succeeded but could not be installed. `%A` still carries every side, so this
         // is an ordinary conflict a human can resolve, not a reason to abandon the merge.
-        Err(err) => conflict(&format!("merged cleanly but could not replace the lockfile: {err}")),
+        Err(err) => conflict(&format!(
+            "merged cleanly but could not replace the lockfile: {err}"
+        )),
     }
 }
 
