@@ -6,7 +6,7 @@ doc_status: published
 
 > **When:** Before `gh pr merge`. After all CI lanes green + reviewer-agent verdict.
 > **Owner:** PR author + reviewer.
-> **Validator:** protected PR status `oya-ci-required` + reviewer-agent verdict. Local hook output is advisory evidence only.
+> **Validator:** protected PR status `oya-ci-required` + one author-distinct independent reviewer-agent exact-head/plan verdict. Local hook output is advisory evidence only.
 
 ---
 
@@ -20,14 +20,9 @@ doc_status: published
 4. ☐ `## Traceability` lists flat-crates targets touched + cross-axis contract impact
 5. ☐ `## Evidence` links to CI runs + eval-set output (if governed capability) + audit-chain emission record, and includes the review/fix evidence packet: exact failing/fixed checks, review-thread resolution, reviewer approval state, local-CLI non-authority, and generated-face no-hand-edit status
 6. ☐ Dogfood tenant invariant evidence is present when a cloud/product boundary changes: tenant identity, tenancy boundary, policy/RBAC, residency/isolation, audit/evidence, and lifecycle remain first-class contract surfaces consumed through APIs/controllers/GitOps/admission/policy/frontends, with no privileged product shortcut into cloud internals.
-7. ☐ Reviewer-agent verdict added as `## Code Review` H2 (lead-only — never as worker), with APPROVE bound to the current PR head and all review threads resolved
-7a. ☐ **Land admission (F-PR5-06 / observation≠APPROVE):** hot-set auto-merge REQUIRES reviewer≠author APPROVE **or** a recorded programme Land packet — even when GH `required_approving_review_count` is null. TIP-GREEN + threads-resolved alone is observation, never APPROVE. Babysit MUST NOT enable squash auto-merge without that gate.
-8. ☐ Per-blast-radius reviewers approved per [DESIGN §3.0.5.3](../DESIGN.md):
-   - cross-axis-contract → all affected axis teams
-   - flat-crates-move → merge-queue serialization on root Cargo.toml
-   - data-class-impact → privacy-governance
-   - regulatory-impact → ops-compliance
-   - security-class → ops-security
+7. ☐ One author-distinct independent reviewer-agent verdict added as `## Code Review` H2 (never authored by the implementation worker), with `APPROVE` bound to the current PR head and applicable plan digest and all findings/threads resolved. Human approval and reviewer quorum are not required; any other or missing verdict blocks.
+7a. ☐ **Land admission (F-PR5-06 / observation≠APPROVE):** auto-merge REQUIRES that trusted exact-subject reviewer-agent `APPROVE`, even when GH `required_approving_review_count` is null. TIP-GREEN + threads-resolved alone is observation. A candidate-authored Land packet cannot replace review authority.
+8. ☐ The one reviewer agent is policy-eligible for the union of all detected blast-radius profiles per [DESIGN §3.0.5.3](../DESIGN.md). If no single agent covers the union, stop; do not assemble a quorum.
 9. ☐ Glossary alignment per `oya-governance-glossary` — no new domain term without GLOSSARY entry
 10. ☐ ADR cited where applicable (only new pack ADR-0001..0051, plus future pack ADRs after their files exist; legacy ADR-#### forbidden in active text)
 11. ☐ Brand check — canonical `Oyatie` usage preserved; deprecated aliases and tautological rebrand statements rejected (per ADR-0017 / MFL-0011)
@@ -35,7 +30,7 @@ doc_status: published
 13. ☐ Migration ledger entry (if ADR-0015 flat-crates phase PR)
 14. ☐ `Co-Authored-By:` footer present if agent-paired
 15. ☐ `Signed-off-by:` per signed-commits posture
-16. ☐ Bypass-reason logged (if `# review-bypass:` used; never for cross-axis / privacy / security / ADR / release-tag)
+16. ☐ No review-bypass marker is present; one author-distinct independent-agent `APPROVE` is always required.
 
 ## After merge
 

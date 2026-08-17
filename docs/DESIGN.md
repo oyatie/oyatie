@@ -162,7 +162,7 @@ Every cell above maps to one or more flat-crates targets. Cross-cell contracts a
 | Merge queue | Only one PR at a time may modify root `Cargo.toml [workspace.members]`; per ADR-0015 §3 PM-3 mitigation |
 | Auto-rebase on conflict | Merge queue auto-rebases; agent retries with updated base |
 | Auto-labeling | Foundry capability `pr.label.suggest` runs on PR open; suggests change-class labels (cross-axis, cross-plane, regulatory, brand-rename, …) |
-| Auto-review bot | Foundry capability `pr.review.draft` drafts review comments per change-class reviewer agent (`rust-reviewer`, `typescript-reviewer`, `database-reviewer`, `security-reviewer`); human approves the verdict per CLAUDE.md `## Code Review` rules |
+| Auto-review agent | Foundry capability `pr.review.draft` supplies one author-distinct independent reviewer agent eligible for every implicated change-class profile; its exact-head/plan `APPROVE` is sufficient, with no human approval or reviewer quorum |
 | Auto-changelog | Per-merge changelog row appended; per-release notes drafted from merged PRs |
 | Auto-issue triage | New issues auto-labeled per repo's 5-label triage vocabulary (per `docs/agents/triage-labels.md`); auto-routed to owning team |
 | Auto-flaky-quarantine | Tests failing intermittently auto-quarantined to a separate lane until fixed |
@@ -176,6 +176,9 @@ Every cell above maps to one or more flat-crates targets. Cross-cell contracts a
 #### 3.0.5.3 Blast-radius containment (the cohesion-side guarantee)
 
 Every agent + automation invocation declares its blast radius. The CI pipeline enforces it.
+One author-distinct independent reviewer agent may cover the complete union of implicated
+blast-radius profiles. One exact-head/plan `APPROVE` is sufficient; human approval and reviewer
+quorum are not required. If no single agent is policy-eligible for that union, review blocks.
 
 | Blast-radius class | Containment guarantee | Examples |
 |---|---|---|
@@ -188,7 +191,7 @@ Every agent + automation invocation declares its blast radius. The CI pipeline e
 | `regulatory-impact` | Touches a regulator-bound surface | requires `ops-compliance` review |
 | `data-class-impact` | Changes a `data_class` annotation | requires `council-privacy` review |
 
-The classification is auto-detected by `oya-governance-blast-radius` from the diff and emitted as a PR label. The PR-merge-review gate (per `scripts/hooks/guard-pr-merge-review.mjs`) verifies the right reviewers approved per blast class.
+The classification is auto-detected by `oya-governance-blast-radius` from the diff and emitted as a PR label. The review-admission gate verifies that the one author-distinct reviewer agent is eligible for every implicated blast class and issued `APPROVE` for the exact current subject.
 
 #### 3.0.5.4 Foundry capabilities for the pipeline
 
@@ -271,7 +274,7 @@ Foundry is axis 3 of the six, but it is also the *substrate* for the other five.
 
 - **SaaS axis** ships workflows authored *by* agents, not just *executed* by agents.
 - **Vertical axis** ships regulatory-pack adoption with agent-driven evidence collection (HIPAA controls, KISA controls, MFDS controls — all become agent procedures).
-- **Foundry's own foundry surfaces** ship repoctl/catalog/CI lanes that are agent-extended (every ADR drafted by agent and human-reviewed; every catalog record written by agent and validated by human; every plugin manifest signed-off by an agent + human pair).
+- **Foundry's own foundry surfaces** ship repoctl/catalog/CI lanes that are agent-extended (every ADR and catalog/plugin change is authored, then reviewed by one author-distinct eligible agent; human review and reviewer quorum are not required).
 - **Cloud axis** ships its control plane *operated by* agents (provisioning, IAM publish, region register, capacity rebalance — all agent-mediated under autonomy ceiling).
 - **Search axis** ships its index lifecycle (crawl scheduling, ranker tuning, freshness decisions) *operated by* agents.
 - **Ads axis** ships smart-bidding ML loops *operated by* agents under explicit privacy gates.

@@ -6,6 +6,18 @@ doc_status: published
 
 # Changelog
 
+## 2026-08-17 — Single independent-agent review authority (ADR-0711 Amendment F)
+
+- One author-distinct independent reviewer agent's exact-head/plan `APPROVE` is sufficient for
+  planning, dispatch, and merge. Human approval and reviewer quorum are retired; eligible
+  `User`, `Bot`, and `Organization` accounts are equivalent.
+- The trusted review packet still proves identity separation, eligibility/freshness, and exact
+  subject binding. Required CI, resolved findings/threads, conflict freedom, branch protection,
+  and existing planning-closure evidence remain independent fail-closed predicates.
+- Canonical surfaces updated: root agent contracts, `docs/AGENTS.md`, ADR-0711, the operating
+  patterns catalog, portable doctrine, `docs/DESIGN.md`, masterplan ratification/closure policy,
+  pre-merge/cross-axis checklists, and the cross-artifact evaluator plus fixtures/tests.
+
 ## 2026-08-14 — Cargo merge path + slim PR paperwork (ADR-0716)
 
 - The required CI executes the Cargo workspace graph (`cargo fmt` differential, clippy,

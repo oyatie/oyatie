@@ -3,7 +3,7 @@ doc_class: Checklist
 checklist_id: CHK-XAXIS
 status: pending approval
 purpose: |
-  Cross-axis contract change cascade. Walked before any change that modifies a row in `docs/DESIGN.md §10` (cross-axis contract registry) or any file under `contracts/`. Extends existing `templates/checklists/cross-axis-contract-change.md` (preserved).
+  Cross-axis contract change cascade. Walked before any change that modifies a row in `docs/DESIGN.md §10` (cross-axis contract registry) or any file under `contracts/`. Extends existing `templates/checklists/cross-axis-contract-change.md` (preserved). One author-distinct reviewer agent covers the full profile union; no human or reviewer quorum is required.
 lift_target: oyatie/templates/checklists/cross-axis-contract-change.md
 extends: templates/checklists/cross-axis-contract-change.md
 enforcing_fitness_lane: oya-governance-cross-axis-notify
@@ -16,7 +16,7 @@ related:
 
 # Cross-Axis Contract Change Checklist
 
-> A cross-axis contract is any API / event / schema row in `docs/DESIGN.md §10` or any file under `contracts/`. A silent cross-axis change breaks consumers. This checklist enforces explicit notification + consumer-axis approval.
+> A cross-axis contract is any API / event / schema row in `docs/DESIGN.md §10` or any file under `contracts/`. A silent cross-axis change breaks consumers. This checklist enforces explicit notification plus one eligible author-distinct independent-agent `APPROVE`.
 
 ## Pre-flight
 
@@ -31,17 +31,17 @@ related:
 
 ## Notification
 
-- [ ] **X5** Notify every consumer-axis team via PR review request. *Lane:* `oya-governance-cross-axis-notify`. (Auto-emit to per-axis Slack channels via Foundry capability `pr.cross-axis.notify`.)
+- [ ] **X5** Notify every consumer-axis team for findings/context; notification is not an approval quorum. *Lane:* `oya-governance-cross-axis-notify`. (Auto-emit through the governed notification capability.)
 - [ ] **X6** Update `docs/DESIGN.md §10` registry row in the same PR. *Lane:* `oya-governance-design-contracts-mirror`.
 - [ ] **X7** If breaking: author an ADR per `/templates/adr-template.md` documenting the migration path. *Lane:* `oya-governance-adr-shape`.
 
-## Approval (blast-radius reviewers per `docs/DESIGN.md §3.0.5.3`)
+## Approval (one reviewer agent per `docs/DESIGN.md §3.0.5.3`)
 
-- [ ] **X8** **All affected consumer-axis teams** approve the PR. *Lane:* `guard-pr-merge-review.mjs` (cross-axis review verdict).
-- [ ] **X9** **council-architecture** approves (R+A for new cross-axis contract per `docs/RACI-OWNERSHIP.md §2`).
-- [ ] **X10** If data-class impact: **council-privacy** approves.
-- [ ] **X11** If regulatory impact: **ops-compliance** approves.
-- [ ] **X12** If security-class: **ops-security** approves.
+- [ ] **X8** One author-distinct independent reviewer agent issues `APPROVE` for the exact current head and applicable plan digest. Human approval and reviewer quorum are not required; any other or missing verdict blocks.
+- [ ] **X9** The trusted eligibility policy covers the cross-axis + architecture profiles for the full consumer union.
+- [ ] **X10** If data-class impact: the same reviewer is eligible for the privacy profile.
+- [ ] **X11** If regulatory impact: the same reviewer is eligible for the compliance profile.
+- [ ] **X12** If security-class: the same reviewer is eligible for the security profile. If one agent cannot cover the full profile union, halt instead of assembling a quorum.
 
 ## Implementation discipline
 
@@ -60,7 +60,7 @@ related:
 
 ## Stop conditions
 
-- Any consumer-axis team declines without an alternative path → halt; council-architecture mediates.
+- Any unresolved consumer-axis finding or decline without an alternative path → halt; review cannot approve over an unresolved finding.
 - Schema-migration rollback not validated → halt; route to schema-migration checklist.
 - Audit-chain emission fails → halt; do not merge.
 

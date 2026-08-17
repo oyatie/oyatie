@@ -36,8 +36,17 @@ INV-DOC-9: plan/chat-only doctrine is **not** survived. Binding short form + why
 [`specs/agentic-operating-patterns.json`](specs/agentic-operating-patterns.json).
 
 Per-dispatch ritual (Tier 2): [`.cursor/rules/swarm-agent-ritual.mdc`](.cursor/rules/swarm-agent-ritual.mdc)
-(short) and [`docs/checklists/swarm-agent-ritual.md`](docs/checklists/swarm-agent-ritual.md)
-(canonical long form; forever home may become `templates/checklists/`).
+(short) and [`templates/checklists/swarm-agent-ritual.md`](templates/checklists/swarm-agent-ritual.md)
+(canonical long form).
+
+Autonomous review authority: one author-distinct independent reviewer agent's explicit
+`APPROVE`, bound to the exact current PR head and applicable plan digest, is sufficient for
+planning, dispatch, and merge. Eligible `User`, `Bot`, and `Organization` accounts are equivalent;
+human approval and reviewer quorum are not required. Any other/missing/stale verdict blocks.
+CI, conflict freedom, resolved findings/threads, policy eligibility/freshness, branch protection,
+and operation-specific technical gates remain separate fail-closed predicates; the E2 train still
+requires the current recovery train, OpenBao Gate 4, and a fresh live census. Rules-with-why:
+[`AGENTS.md`](AGENTS.md#one-independent-agent-approve-is-sufficient).
 
 <!-- agent-instructions:start -->
 coordination_surface: governance_pipeline
@@ -55,7 +64,9 @@ required_workflow:
   - layer_2_entry: pull request against dev enters the governance pipeline
   - admission_gate: validate policy, evidence, and the single ADR-0515 `oya-ci-required` protected context
   - merge_queue: order and admit via ADR-0111 projected merge state owned by ADR-0515 cloud-ci/oya-ci-tide
-  - completion_gate: reviewer-agent APPROVE plus cloud-ci green before auto-merge
+  - completion_gate: one author-distinct independent reviewer-agent APPROVE bound to the exact
+    current head and applicable plan digest plus cloud-ci green before auto-merge; no human
+    approval or reviewer quorum required; any other or stale verdict blocks
   - post_merge_record: the merged PR and its green oya-ci-required checks are the record;
     no separate product-completion packet (ADR-0716)
 

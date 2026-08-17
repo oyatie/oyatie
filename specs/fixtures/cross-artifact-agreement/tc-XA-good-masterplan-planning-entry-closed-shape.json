@@ -2,7 +2,7 @@
   "fixture_id": "TC-XA-GOOD-masterplan-planning-entry-closed",
   "expected_verdict": "GREEN",
   "expected_violations": [],
-  "description": "Shape-only planning-closure template. GREEN here means only that candidate-controlled sequencing structure is internally consistent; it is never closure admission. The separate content evaluator requires exact authority-receipt identities and content pins, a live gate receipt whose full go_live_sha equals the clean interval audit to_anchor, and an externally supplied ci/controller/kernel/ReviewAdmissionPacket bound by the trusted caller to the exact closure pull request and head. Candidate-authored approval refs, principals, and proof booleans are never authority. Until a trusted server-side review-packet producer is connected, the live blocking gate rejects every closed candidate. Planning closure leaves actual execution-wave dispatch blocked and empty; dispatch is a separate later protected transition. The historical nonclosure receipt remains immutable, and refs under .gjc/**, .omc/**, or .omx/** remain inadmissible.",
+  "description": "Shape-only planning-closure template. GREEN here means only that candidate-controlled sequencing structure is internally consistent; it is never closure admission. The separate content evaluator requires exact authority-receipt identities and content pins, a live gate receipt whose full go_live_sha equals the clean interval audit to_anchor, and one externally supplied plan-bound independent-agent review packet bound by the trusted caller to the exact closure pull request, head, and authorized plan digest. The author-distinct eligible reviewer agent may use a User, Bot, or Organization account; no human approval or quorum is required. Candidate-authored approval refs, principals, and proof booleans are never authority. Until a trusted server-side review-packet producer is connected, the live blocking gate rejects every closed candidate. Planning closure leaves actual execution-wave dispatch blocked and empty; dispatch is a separate later protected transition. The historical nonclosure receipt remains immutable, and refs under .gjc/**, .omc/**, or .omx/** remain inadmissible.",
   "decisions": [
     {
       "id": "ADR-0516",
@@ -193,9 +193,12 @@
         "t3b_gate_liveness_ref": "evidence/goals/north-star-completion-t3b-gate-liveness-receipt-20260812.json",
         "t3b_interval_audit_ref": "evidence/goals/north-star-completion-t3b-interval-audit-20260812.json",
         "dispatched_waves_at_transition": [],
-        "qualified_human_closure_approval": {
-          "review_admission_contract": "ci/controller/kernel/ReviewAdmissionPacket",
-          "trusted_packet_required": true
+        "independent_agent_closure_approval": {
+          "review_admission_contract": "ci/facade/cross-artifact-agreement/PlanBoundIndependentAgentReviewPacket",
+          "trusted_packet_required": true,
+          "approval_rule": "single-author-distinct-independent-agent",
+          "human_approval_required": false,
+          "quorum_required": false
         }
       }
     },

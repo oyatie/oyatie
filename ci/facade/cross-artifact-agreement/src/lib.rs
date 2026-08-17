@@ -1959,6 +1959,7 @@ pub fn evaluate_masterplan_v2_sequencing(masterplan: &Value) -> BTreeSet<Finding
     evaluate_execution_wave_dispatch(
         sequencing.get("execution_wave_dispatch"),
         sequencing.get("founder_ratification"),
+        sequencing.get("autonomous_execution_authority"),
         sequencing.get("execution_waves"),
         founder_ratified,
         preplanning_hold_open,
@@ -2793,7 +2794,7 @@ fn evaluate_open_preplanning_entry_contract(
 /// both authority flags are explicitly true AND a `closure_evidence` object carries the
 /// durable proof chain (the authority-hold-lift receipt, the execution-authorization
 /// record, the target-debt gate-liveness receipt, the authorization-to-gate interval
-/// audit, a fresh no-dispatch snapshot, and an explicit qualified-human/founder
+/// audit, a fresh no-dispatch snapshot, and an explicit independent-agent
 /// closure approval). Anything less keeps emitting
 /// `masterplan_execution_wave_dispatch_unratified` findings — closed-without-proof is
 /// indistinguishable from an unlawful bypass.
@@ -2855,10 +2856,12 @@ const T2_EXECUTION_AUTHORIZATION_T1_RECEIPT: &str =
 /// historical boundary; a clean audit of any other interval is not closure evidence.
 const T2_EXECUTION_AUTHORIZATION_ANCHOR_SHA: &str = "fecc126ebe7ded4949c8ac26b59b8a1e6bcb371c";
 
-/// Existing trusted-controller packet contract. Repository-authored closure metadata can
-/// declare that this packet is required, but only a caller that observed the exact PR/head
-/// through the trusted controller may supply the packet itself.
-const REVIEW_ADMISSION_PACKET_CONTRACT: &str = "ci/controller/kernel/ReviewAdmissionPacket";
+/// Closure-specific trusted-controller packet contract. It carries the existing
+/// review-admission fields plus the authorized plan digest. Repository-authored closure
+/// metadata can declare that this packet is required, but only a caller that observed the
+/// exact PR/head and plan through the trusted controller may supply the packet itself.
+const REVIEW_ADMISSION_PACKET_CONTRACT: &str =
+    "ci/facade/cross-artifact-agreement/PlanBoundIndependentAgentReviewPacket";
 
 /// The exact gate whose liveness the closure transition depends on. The
 /// target-debt gate-liveness receipt must name this target (identity binding),
@@ -2939,12 +2942,12 @@ fn evaluate_planning_entry_closure_evidence_shape(
     // cannot assert a reviewer, verdict, or evidence ref: the exact PR/head-bound packet is
     // injected separately into evaluate_planning_entry_closure_evidence.
     let Some(approval) = evidence
-        .get("qualified_human_closure_approval")
+        .get("independent_agent_closure_approval")
         .and_then(Value::as_object)
     else {
         findings.insert(Finding::new(
             "masterplan_execution_wave_dispatch_unratified",
-            &format!("{PLANNING_ENTRY_CLOSURE_EVIDENCE_KEY}.qualified_human_closure_approval"),
+            &format!("{PLANNING_ENTRY_CLOSURE_EVIDENCE_KEY}.independent_agent_closure_approval"),
         ));
         return;
     };
@@ -2956,7 +2959,7 @@ fn evaluate_planning_entry_closure_evidence_shape(
         findings.insert(Finding::new(
             "masterplan_execution_wave_dispatch_unratified",
             &format!(
-                "{PLANNING_ENTRY_CLOSURE_EVIDENCE_KEY}.qualified_human_closure_approval.review_admission_contract"
+                "{PLANNING_ENTRY_CLOSURE_EVIDENCE_KEY}.independent_agent_closure_approval.review_admission_contract"
             ),
         ));
     }
@@ -2968,13 +2971,35 @@ fn evaluate_planning_entry_closure_evidence_shape(
         findings.insert(Finding::new(
             "masterplan_execution_wave_dispatch_unratified",
             &format!(
-                "{PLANNING_ENTRY_CLOSURE_EVIDENCE_KEY}.qualified_human_closure_approval.trusted_packet_required"
+                "{PLANNING_ENTRY_CLOSURE_EVIDENCE_KEY}.independent_agent_closure_approval.trusted_packet_required"
             ),
         ));
+    }
+    for (field, expected) in [
+        (
+            "approval_rule",
+            Some("single-author-distinct-independent-agent"),
+        ),
+        ("human_approval_required", None),
+        ("quorum_required", None),
+    ] {
+        let valid = match expected {
+            Some(expected) => approval.get(field).and_then(Value::as_str) == Some(expected),
+            None => approval.get(field).and_then(Value::as_bool) == Some(false),
+        };
+        if !valid {
+            findings.insert(Finding::new(
+                "masterplan_execution_wave_dispatch_unratified",
+                &format!(
+                    "{PLANNING_ENTRY_CLOSURE_EVIDENCE_KEY}.independent_agent_closure_approval.{field}"
+                ),
+            ));
+        }
     }
     if [
         "approved_by",
         "qualified_human_approval_proven",
+        "reviewer_count",
         "approval_ref",
     ]
     .iter()
@@ -2983,7 +3008,7 @@ fn evaluate_planning_entry_closure_evidence_shape(
         findings.insert(Finding::new(
             "masterplan_execution_wave_dispatch_unratified",
             &format!(
-                "{PLANNING_ENTRY_CLOSURE_EVIDENCE_KEY}.qualified_human_closure_approval.candidate_authored_authority"
+                "{PLANNING_ENTRY_CLOSURE_EVIDENCE_KEY}.independent_agent_closure_approval.candidate_authored_authority"
             ),
         ));
     }
@@ -3004,9 +3029,9 @@ fn evaluate_planning_entry_closure_evidence_shape(
 ///   `status: clean`, `audit_range.from_anchor` equal to
 ///   [`T2_EXECUTION_AUTHORIZATION_ANCHOR_SHA`] with a declared `to_anchor`) must be
 ///   content-valid and bound to THIS transition, not merely present-and-parseable;
-/// - an externally supplied [`REVIEW_ADMISSION_PACKET_CONTRACT`] value must be bound to
-///   the exact PR/head observed by the trusted caller. Repository-authored approval refs,
-///   booleans, and principals are never closure authority.
+/// - one externally supplied [`REVIEW_ADMISSION_PACKET_CONTRACT`] value must be bound to
+///   the exact PR/head and authorized plan digest observed by the trusted caller.
+///   Repository-authored approval refs, booleans, and principals are never closure authority.
 ///
 /// The caller owns resolving `closure_evidence.*_ref` paths to the supplied parsed
 /// documents; keeping file I/O outside this function preserves the pure evaluator
@@ -3170,6 +3195,7 @@ pub fn evaluate_planning_entry_closure_evidence(
         trusted_review_admission_packet,
         expected_closure_pr_number,
         expected_closure_head_sha,
+        non_empty_field(authorization_basis, "approved_plan_sha256").unwrap_or(""),
         &mut findings,
     );
 
@@ -3275,14 +3301,16 @@ fn is_sha256_hex(value: &str) -> bool {
 ///
 /// Trust comes from how the caller obtained this value, not from any repository field.
 /// This function validates the packet's complete serialized contract and binds it to the
-/// exact CI-observed closure PR/head supplied separately by that caller.
+/// exact CI-observed closure PR/head and authorized plan digest supplied separately by that
+/// caller.
 fn evaluate_trusted_closure_review_admission(
     packet: Option<&Value>,
     expected_pr_number: u64,
     expected_head_sha: &str,
+    expected_plan_sha256: &str,
     findings: &mut BTreeSet<Finding>,
 ) {
-    const PREFIX: &str = "qualified_human_closure_approval.trusted_review_admission_packet";
+    const PREFIX: &str = "independent_agent_closure_approval.trusted_review_admission_packet";
     let Some(packet) = packet.and_then(Value::as_object) else {
         insert_closure_finding(findings, PREFIX);
         return;
@@ -3291,7 +3319,7 @@ fn evaluate_trusted_closure_review_admission(
     if expected_pr_number == 0 {
         insert_closure_finding(
             findings,
-            "qualified_human_closure_approval.trusted_context.pr_number",
+            "independent_agent_closure_approval.trusted_context.pr_number",
         );
     }
     if packet.get("pr_number").and_then(Value::as_u64) != Some(expected_pr_number) {
@@ -3301,11 +3329,20 @@ fn evaluate_trusted_closure_review_admission(
     if !is_commit_sha_hex(expected_head_sha) {
         insert_closure_finding(
             findings,
-            "qualified_human_closure_approval.trusted_context.head_sha",
+            "independent_agent_closure_approval.trusted_context.head_sha",
         );
     }
     if packet.get("head_sha").and_then(Value::as_str) != Some(expected_head_sha) {
         insert_closure_finding(findings, &format!("{PREFIX}.head_sha"));
+    }
+    if !is_sha256_hex(expected_plan_sha256) {
+        insert_closure_finding(
+            findings,
+            "independent_agent_closure_approval.trusted_context.plan_sha256",
+        );
+    }
+    if packet.get("plan_sha256").and_then(Value::as_str) != Some(expected_plan_sha256) {
+        insert_closure_finding(findings, &format!("{PREFIX}.plan_sha256"));
     }
 
     let author = review_principal_identity(packet.get("author"));
@@ -3313,14 +3350,13 @@ fn evaluate_trusted_closure_review_admission(
     if author.is_none() {
         insert_closure_finding(findings, &format!("{PREFIX}.author"));
     }
-    if reviewer.is_none_or(|(_, account_type, _)| account_type != "User") {
+    if reviewer.is_none() {
         insert_closure_finding(findings, &format!("{PREFIX}.reviewer"));
     }
-    if author.zip(reviewer).is_some_and(
-        |((author_id, author_type, _), (reviewer_id, reviewer_type, _))| {
-            author_id == reviewer_id && author_type == reviewer_type
-        },
-    ) {
+    if author
+        .zip(reviewer)
+        .is_some_and(|((author_id, _, _), (reviewer_id, _, _))| author_id == reviewer_id)
+    {
         insert_closure_finding(findings, &format!("{PREFIX}.reviewer_separation"));
     }
 
@@ -3456,6 +3492,7 @@ fn preplanning_entry_shared_fields_valid(
 fn evaluate_execution_wave_dispatch(
     execution_wave_dispatch: Option<&Value>,
     founder_ratification: Option<&Value>,
+    autonomous_execution_authority: Option<&Value>,
     execution_waves: Option<&Value>,
     founder_ratified: bool,
     preplanning_hold_open: bool,
@@ -3546,10 +3583,53 @@ fn evaluate_execution_wave_dispatch(
         .and_then(|ratification| non_empty_field(ratification, "approved_by"))
         .unwrap_or("");
     let dispatch_authorizing_principal_ok = approved_by.eq_ignore_ascii_case("founder");
+    let required_nonwaiver_examples = const_set(&[
+        "current recovery train complete",
+        "OpenBao Gate 4 complete",
+        "fresh read-only provider census",
+    ]);
+    let autonomous_execution_authorized = autonomous_execution_authority.is_some_and(|authority| {
+        let nonwaiver_examples = str_set(authority, "explicit_nonwaiver_examples");
+        authority.get("decision_recorded").and_then(Value::as_bool) == Some(true)
+            && non_empty_field(authority, "decision_status") == Some("authorized")
+            && non_empty_field(authority, "approved_by")
+                .is_some_and(|approved_by| approved_by.eq_ignore_ascii_case("founder"))
+            && non_empty_field(authority, "recorded_at").is_some()
+            && non_empty_field(authority, "decision_ref").is_some()
+            && authority
+                .get("authorizes_execution_wave_dispatch_after_evidence_closure")
+                .and_then(Value::as_bool)
+                == Some(true)
+            && authority
+                .get("additional_human_approval_required")
+                .and_then(Value::as_bool)
+                == Some(false)
+            && authority.get("quorum_required").and_then(Value::as_bool) == Some(false)
+            && non_empty_field(authority, "review_rule")
+                == Some("single-author-distinct-independent-agent-approve")
+            && non_empty_field(authority, "required_protected_context") == Some("oya-ci-required")
+            && authority
+                .get("operation_specific_preconditions_waived")
+                .and_then(Value::as_bool)
+                == Some(false)
+            && required_nonwaiver_examples.is_subset(&nonwaiver_examples)
+            && non_empty_string_array(authority.get("preserved_independent_predicates"))
+            && non_empty_field(authority, "applies_to_ratified_sequencing_digest")
+                == founder_ratification.and_then(|ratification| {
+                    non_empty_field(ratification, "ratified_sequencing_digest")
+                })
+    });
+    if autonomous_execution_authority.is_some() && !autonomous_execution_authorized {
+        findings.insert(Finding::new(
+            "masterplan_execution_wave_dispatch_unratified",
+            "masterplan_v2.sequencing.autonomous_execution_authority",
+        ));
+    }
+    let legacy_founder_dispatch_authorized =
+        authorizes_dispatch == Some(true) && dispatch_authorizing_principal_ok;
     let dispatch_authorized = founder_ratified
         && requires_dispatch_authorizing == Some(true)
-        && authorizes_dispatch == Some(true)
-        && dispatch_authorizing_principal_ok;
+        && (legacy_founder_dispatch_authorized || autonomous_execution_authorized);
 
     if !founder_ratified && (!dispatch_blocked || !dispatched_waves_empty) {
         findings.insert(Finding::new(
@@ -3588,10 +3668,10 @@ fn evaluate_execution_wave_dispatch(
                 "masterplan_v2.sequencing.execution_wave_dispatch.requires_dispatch_authorizing_ratification",
             ));
         }
-        if authorizes_dispatch != Some(true) {
+        if !legacy_founder_dispatch_authorized && !autonomous_execution_authorized {
             findings.insert(Finding::new(
                 "masterplan_execution_wave_dispatch_unratified",
-                "masterplan_v2.sequencing.founder_ratification.authorizes_execution_wave_dispatch",
+                "masterplan_v2.sequencing.execution_wave_dispatch.authorizing_authority",
             ));
         }
         // Dispatch-authorizing ratification must be the founder principal, not a proxy
@@ -6439,9 +6519,12 @@ mod tests {
                 "t3b_gate_liveness_ref": "evidence/goals/north-star-completion-t3b-gate-liveness-receipt-20260812.json",
                 "t3b_interval_audit_ref": "evidence/goals/north-star-completion-t3b-interval-audit-20260812.json",
                 "dispatched_waves_at_transition": [],
-                "qualified_human_closure_approval": {
-                    "review_admission_contract": "ci/controller/kernel/ReviewAdmissionPacket",
-                    "trusted_packet_required": true
+                "independent_agent_closure_approval": {
+                    "review_admission_contract": "ci/facade/cross-artifact-agreement/PlanBoundIndependentAgentReviewPacket",
+                    "trusted_packet_required": true,
+                    "approval_rule": "single-author-distinct-independent-agent",
+                    "human_approval_required": false,
+                    "quorum_required": false
                 }
             }
         })
@@ -6890,43 +6973,60 @@ mod tests {
     }
 
     #[test]
-    fn masterplan_v2_sequencing_rejects_closed_contract_without_qualified_human_approval() {
+    fn masterplan_v2_sequencing_rejects_closed_contract_without_independent_agent_approval() {
         let mut missing = minimal_closed_sequenced_masterplan();
         missing["masterplan_v2"]["planning_entry_contract"]["closure_evidence"]
             .as_object_mut()
             .expect("closure_evidence must be an object")
-            .remove("qualified_human_closure_approval");
+            .remove("independent_agent_closure_approval");
         let findings = evaluate_masterplan_v2_sequencing(&missing);
         assert!(findings.contains(&Finding::new(
             "masterplan_execution_wave_dispatch_unratified",
-            "masterplan_v2.planning_entry_contract.closure_evidence.qualified_human_closure_approval"
+            "masterplan_v2.planning_entry_contract.closure_evidence.independent_agent_closure_approval"
         )));
 
         let mut wrong_contract = minimal_closed_sequenced_masterplan();
-        wrong_contract["masterplan_v2"]["planning_entry_contract"]["closure_evidence"]["qualified_human_closure_approval"]
+        wrong_contract["masterplan_v2"]["planning_entry_contract"]["closure_evidence"]["independent_agent_closure_approval"]
             ["review_admission_contract"] = json!("candidate-authored-review-record");
         let findings = evaluate_masterplan_v2_sequencing(&wrong_contract);
         assert!(findings.contains(&Finding::new(
             "masterplan_execution_wave_dispatch_unratified",
-            "masterplan_v2.planning_entry_contract.closure_evidence.qualified_human_closure_approval.review_admission_contract"
+            "masterplan_v2.planning_entry_contract.closure_evidence.independent_agent_closure_approval.review_admission_contract"
         )));
 
         let mut unproven = minimal_closed_sequenced_masterplan();
-        unproven["masterplan_v2"]["planning_entry_contract"]["closure_evidence"]["qualified_human_closure_approval"]
+        unproven["masterplan_v2"]["planning_entry_contract"]["closure_evidence"]["independent_agent_closure_approval"]
             ["trusted_packet_required"] = json!(false);
         let findings = evaluate_masterplan_v2_sequencing(&unproven);
         assert!(findings.contains(&Finding::new(
             "masterplan_execution_wave_dispatch_unratified",
-            "masterplan_v2.planning_entry_contract.closure_evidence.qualified_human_closure_approval.trusted_packet_required"
+            "masterplan_v2.planning_entry_contract.closure_evidence.independent_agent_closure_approval.trusted_packet_required"
         )));
 
+        for (field, value) in [
+            ("approval_rule", json!("quorum")),
+            ("human_approval_required", json!(true)),
+            ("quorum_required", json!(true)),
+        ] {
+            let mut invalid_rule = minimal_closed_sequenced_masterplan();
+            invalid_rule["masterplan_v2"]["planning_entry_contract"]["closure_evidence"]["independent_agent_closure_approval"]
+                [field] = value;
+            let findings = evaluate_masterplan_v2_sequencing(&invalid_rule);
+            assert!(findings.contains(&Finding::new(
+                "masterplan_execution_wave_dispatch_unratified",
+                &format!(
+                    "masterplan_v2.planning_entry_contract.closure_evidence.independent_agent_closure_approval.{field}"
+                )
+            )));
+        }
+
         let mut candidate_authority = minimal_closed_sequenced_masterplan();
-        candidate_authority["masterplan_v2"]["planning_entry_contract"]["closure_evidence"]["qualified_human_closure_approval"]
+        candidate_authority["masterplan_v2"]["planning_entry_contract"]["closure_evidence"]["independent_agent_closure_approval"]
             ["approval_ref"] = json!("evidence/goals/candidate-authored-approval.json");
         let findings = evaluate_masterplan_v2_sequencing(&candidate_authority);
         assert!(findings.contains(&Finding::new(
             "masterplan_execution_wave_dispatch_unratified",
-            "masterplan_v2.planning_entry_contract.closure_evidence.qualified_human_closure_approval.candidate_authored_authority"
+            "masterplan_v2.planning_entry_contract.closure_evidence.independent_agent_closure_approval.candidate_authored_authority"
         )));
     }
 
@@ -6990,6 +7090,7 @@ mod tests {
         json!({
             "pr_number": 1944,
             "head_sha": "0123456789abcdef0123456789abcdef01234567",
+            "plan_sha256": "95132e4e2ef165667223117a026e3c3d5856a45250b4a7101b7cefef5ddd6ab1",
             "author": {
                 "id": 1001,
                 "account_type": "User",
@@ -7187,13 +7288,13 @@ mod tests {
             format!("{KEY}.t3b_interval_audit.record_class"),
             format!("{KEY}.t3b_interval_audit.status"),
             format!(
-                "{KEY}.qualified_human_closure_approval.trusted_review_admission_packet.pr_number"
+                "{KEY}.independent_agent_closure_approval.trusted_review_admission_packet.pr_number"
             ),
             format!(
-                "{KEY}.qualified_human_closure_approval.trusted_review_admission_packet.author"
+                "{KEY}.independent_agent_closure_approval.trusted_review_admission_packet.author"
             ),
             format!(
-                "{KEY}.qualified_human_closure_approval.trusted_review_admission_packet.reviewer"
+                "{KEY}.independent_agent_closure_approval.trusted_review_admission_packet.reviewer"
             ),
         ] {
             assert!(
@@ -7235,21 +7336,38 @@ mod tests {
             &format!("{KEY}.t3b_interval_audit.status")
         )));
 
-        // A bot packet cannot satisfy the qualified-human reviewer boundary even when
-        // every other controller field is well formed.
-        let mut bot_approval = valid_closure_approval_record();
-        bot_approval["reviewer"]["account_type"] = json!("Bot");
+        // Account type is not a proxy for reviewer trust. A trusted packet may name
+        // an eligible User, Bot, or Organization agent; identity separation and the
+        // policy receipt remain mandatory for every account type.
+        for account_type in ["User", "Bot", "Organization"] {
+            let mut approval = valid_closure_approval_record();
+            approval["reviewer"]["account_type"] = json!(account_type);
+            let findings = closure_evidence_findings(
+                &valid_t1_hold_lift_receipt(),
+                &valid_t2_execution_authorization(),
+                &valid_t3b_gate_liveness_receipt(),
+                &valid_t3b_interval_audit(),
+                &approval,
+            );
+            assert!(
+                findings.is_empty(),
+                "eligible {account_type} agent packet must be accepted: {findings:?}"
+            );
+        }
+
+        let mut unsupported = valid_closure_approval_record();
+        unsupported["reviewer"]["account_type"] = json!("Mannequin");
         let findings = closure_evidence_findings(
             &valid_t1_hold_lift_receipt(),
             &valid_t2_execution_authorization(),
             &valid_t3b_gate_liveness_receipt(),
             &valid_t3b_interval_audit(),
-            &bot_approval,
+            &unsupported,
         );
         assert!(findings.contains(&Finding::new(
             "masterplan_execution_wave_dispatch_unratified",
             &format!(
-                "{KEY}.qualified_human_closure_approval.trusted_review_admission_packet.reviewer"
+                "{KEY}.independent_agent_closure_approval.trusted_review_admission_packet.reviewer"
             )
         )));
     }
@@ -7344,7 +7462,7 @@ mod tests {
 
     #[test]
     fn planning_entry_closure_evidence_requires_trusted_exact_head_review_packet() {
-        const PREFIX: &str = "masterplan_v2.planning_entry_contract.closure_evidence.qualified_human_closure_approval";
+        const PREFIX: &str = "masterplan_v2.planning_entry_contract.closure_evidence.independent_agent_closure_approval";
         let no_packet = evaluate_planning_entry_closure_evidence(
             &minimal_closed_sequenced_masterplan(),
             &valid_t1_hold_lift_receipt(),
@@ -7376,6 +7494,21 @@ mod tests {
                 &format!("{PREFIX}.trusted_review_admission_packet.{field}")
             )));
         }
+
+        let mut wrong_plan = valid_closure_approval_record();
+        wrong_plan["plan_sha256"] =
+            json!("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+        let findings = closure_evidence_findings(
+            &valid_t1_hold_lift_receipt(),
+            &valid_t2_execution_authorization(),
+            &valid_t3b_gate_liveness_receipt(),
+            &valid_t3b_interval_audit(),
+            &wrong_plan,
+        );
+        assert!(findings.contains(&Finding::new(
+            "masterplan_execution_wave_dispatch_unratified",
+            &format!("{PREFIX}.trusted_review_admission_packet.plan_sha256")
+        )));
 
         let mut same_principal = valid_closure_approval_record();
         same_principal["reviewer"] = same_principal["author"].clone();
@@ -7410,6 +7543,27 @@ mod tests {
                 "masterplan_execution_wave_dispatch_unratified",
                 &format!("{PREFIX}.trusted_review_admission_packet.{field}")
             )));
+        }
+
+        // APPROVE has one canonical serialized value. A request for changes,
+        // comment, dismissal, case-variant, or empty verdict must all fail closed.
+        for verdict in ["changes_requested", "commented", "dismissed", "APPROVE", ""] {
+            let mut nonapproval = valid_closure_approval_record();
+            nonapproval["verdict"] = json!(verdict);
+            let findings = closure_evidence_findings(
+                &valid_t1_hold_lift_receipt(),
+                &valid_t2_execution_authorization(),
+                &valid_t3b_gate_liveness_receipt(),
+                &valid_t3b_interval_audit(),
+                &nonapproval,
+            );
+            assert!(
+                findings.contains(&Finding::new(
+                    "masterplan_execution_wave_dispatch_unratified",
+                    &format!("{PREFIX}.trusted_review_admission_packet.verdict")
+                )),
+                "verdict={verdict:?} must fail closed"
+            );
         }
     }
 
@@ -7528,6 +7682,86 @@ mod tests {
             findings.is_empty(),
             "a recorded founder ratification with fail-closed dispatch flags must be green: {findings:?}"
         );
+    }
+
+    #[test]
+    fn masterplan_v2_sequencing_validates_autonomous_execution_authority() {
+        let mut authorized = minimal_sequenced_masterplan(
+            json!({
+                "decision_recorded": true,
+                "decision_status": "ratified",
+                "approved_by": "founder-proxy-round-4",
+                "authorizes_execution_wave_dispatch": false,
+                "recorded_at": "2026-08-10T00:00:00Z",
+                "decision_ref": "evidence/goals/masterplan-v2-sequencing-founder-ratification-20260702.json",
+                "ratified_sequencing_digest": "sha256:b8e44b41bef2dcdea05deec44a22905ac24154494ae229f43aacd2fe078e731d"
+            }),
+            json!({
+                "requires_founder_ratification": true,
+                "allowed_without_founder_ratification": false,
+                "requires_preplanning_authority_closure": true,
+                "allowed_without_preplanning_authority_closure": false,
+                "requires_dispatch_authorizing_ratification": true,
+                "preplanning_authority_closure_ref": "evidence/consolidation/preplanning-authority-closure-20260713.json",
+                "state": DISPATCH_BLOCKED_STATE,
+                "blocked_reason": "preplanning_authority_closure",
+                "dispatched_waves": []
+            }),
+        );
+        authorized["masterplan_v2"]["sequencing"]["autonomous_execution_authority"] = json!({
+            "decision_recorded": true,
+            "decision_status": "authorized",
+            "approved_by": "founder",
+            "recorded_at": "2026-08-17T00:00:00Z",
+            "decision_ref": "/specs/masterplan.json#masterplan_v2.sequencing.autonomous_execution_authority",
+            "authorizes_execution_wave_dispatch_after_evidence_closure": true,
+            "additional_human_approval_required": false,
+            "quorum_required": false,
+            "review_rule": "single-author-distinct-independent-agent-approve",
+            "required_protected_context": "oya-ci-required",
+            "operation_specific_preconditions_waived": false,
+            "explicit_nonwaiver_examples": [
+                "current recovery train complete",
+                "OpenBao Gate 4 complete",
+                "fresh read-only provider census"
+            ],
+            "preserved_independent_predicates": ["preplanning closure evidence complete"],
+            "applies_to_ratified_sequencing_digest": "sha256:b8e44b41bef2dcdea05deec44a22905ac24154494ae229f43aacd2fe078e731d"
+        });
+
+        let findings = evaluate_masterplan_v2_sequencing(&authorized);
+        assert!(
+            findings.is_empty(),
+            "the durable founder directive must coexist with a blocked, evidence-gated dispatch: {findings:?}"
+        );
+
+        for (pointer, invalid_value) in [
+            ("/additional_human_approval_required", json!(true)),
+            ("/quorum_required", json!(true)),
+            ("/review_rule", json!("quorum")),
+            ("/required_protected_context", json!("unprotected-context")),
+            ("/operation_specific_preconditions_waived", json!(true)),
+            ("/explicit_nonwaiver_examples", json!([])),
+            ("/preserved_independent_predicates", json!([])),
+            (
+                "/applies_to_ratified_sequencing_digest",
+                json!("sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
+            ),
+        ] {
+            let mut invalid = authorized.clone();
+            *invalid["masterplan_v2"]["sequencing"]["autonomous_execution_authority"]
+                .pointer_mut(pointer)
+                .expect("autonomous authority helper must carry every required field") =
+                invalid_value;
+            let findings = evaluate_masterplan_v2_sequencing(&invalid);
+            assert!(
+                findings.contains(&Finding::new(
+                    "masterplan_execution_wave_dispatch_unratified",
+                    "masterplan_v2.sequencing.autonomous_execution_authority"
+                )),
+                "invalid autonomous authority at {pointer} must fail closed: {findings:?}"
+            );
+        }
     }
 
     #[test]

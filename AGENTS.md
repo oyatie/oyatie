@@ -29,8 +29,16 @@ INV-DOC-9: doctrine that exists only in a plan file or chat is **not** survived.
 - **achieves:** preserve merge integrity and blast-radius discipline.
 - **origin:** logs/CI green / chat observation treated as APPROVE; roles collapsed.
 - **rule:** observation (logs/CI/reviews) ≠ merge APPROVE authority; orchestrate ≠ implement ≠ babysit.
-- **ensure:** reviewer APPROVE + green `oya-ci-required` remain distinct; coordinator/worker split below.
+- **ensure:** one author-distinct reviewer-agent APPROVE + green `oya-ci-required` remain distinct; coordinator/worker split below.
 - **overturn_when:** a recorded OVERRULE replaces the admission model with an equally fail-closed alternative.
+
+### One independent-agent APPROVE is sufficient
+
+- **achieves:** autonomous delivery retains an adversarial review boundary without a human or reviewer-quorum bottleneck.
+- **origin:** qualified-human and quorum requirements blocked otherwise complete autonomous work and treated account type as a proxy for trust.
+- **rule:** one author-distinct independent reviewer agent's explicit `APPROVE`, bound to the exact current PR head and applicable plan digest, is the complete review authority for planning, dispatch, and merge. Eligible `User`, `Bot`, and `Organization` accounts are equivalent. Human approval and reviewer quorum are not required. Any other verdict, no verdict, stale binding, unresolved finding/thread, or ineligible reviewer blocks.
+- **ensure:** trusted review-admission packet proves author separation, exact PR/head/plan binding, policy eligibility, and freshness; required CI, conflict freedom, resolved findings, branch protection, and operation-specific technical gates remain independent predicates. For the E2 provisioning train, this expressly preserves the current-recovery-train, OpenBao Gate 4, and fresh live-census conditions.
+- **overturn_when:** a recorded challenge proves single-agent review unsafe or unavailable AND a replacement review rule with these five fields lands same-wave.
 
 ### Survival rule itself (INV-DOC-9)
 
@@ -44,7 +52,7 @@ INV-DOC-9: doctrine that exists only in a plan file or chat is **not** survived.
 
 - **achieves:** every agent runs the same start/end checklist without pasting the whole north-star plan.
 - **origin:** strategy and procedure were conflated; babysit-only regressions followed.
-- **rule:** every implement/audit/review/plan/scout/recon dispatch MUST run the Tier-2 ritual. In-repo short form: [`.cursor/rules/swarm-agent-ritual.mdc`](.cursor/rules/swarm-agent-ritual.mdc). Canonical long form (docs tip; forever home may become `templates/checklists/`): [`docs/checklists/swarm-agent-ritual.md`](docs/checklists/swarm-agent-ritual.md).
+- **rule:** every implement/audit/review/plan/scout/recon dispatch MUST run the Tier-2 ritual. In-repo short form: [`.cursor/rules/swarm-agent-ritual.mdc`](.cursor/rules/swarm-agent-ritual.mdc). Canonical long form: [`templates/checklists/swarm-agent-ritual.md`](templates/checklists/swarm-agent-ritual.md).
 - **ensure:** ritual file tracked under process_meta; receipts include role-scaled evidence.
 - **overturn_when:** a recorded challenge shows the ritual blocks delivery AND a replacement ritual with five fields lands same-wave.
 
@@ -78,8 +86,9 @@ Cargo workspace graph — the CI merge path (see [`README.md`](README.md#build--
 | `buck2 build //...` / `buck2 test //...` | Local hermeticity only, never merge evidence (weekly CI smoke keeps the graph honest) |
 | `cargo run -p ci-generated-artifact-freshness --bin oya-cloud-ci-materialize-generated-faces -- --repo-root .` | Regenerate `*.generated.json` faces — never hand-edit |
 
-Toolchain: Rust pinned in [`rust-toolchain.toml`](rust-toolchain.toml). Merge authority is
-only the `oya-ci-required` context on the PR (ADR-0716).
+Toolchain: Rust pinned in [`rust-toolchain.toml`](rust-toolchain.toml). Protected CI authority is
+only the `oya-ci-required` context on the PR (ADR-0716); author-distinct reviewer-agent `APPROVE`
+is a separate predicate.
 
 ## Coding & testing standards
 
@@ -138,7 +147,9 @@ required_sequence:
   - SSH-signed commit and push on that lane
   - open a PR against dev               # enters the governance pipeline
   - single required status context oya-ci-required green (produced by the cloud-ci gate apps per ADR-0515)
-  - fully reviewed, review threads resolved, no merge conflict, branch protection satisfied,
+  - one author-distinct independent reviewer agent APPROVE bound to the exact current head
+    and applicable plan digest; no human approval or reviewer quorum required
+  - all findings and review threads resolved, no merge conflict, branch protection satisfied,
     and the required oya-ci-required context green; then squash merge
   - the merged PR and its green checks are the record; no separate post-merge packet (ADR-0716)
 coordinator_worker_split:

@@ -20,7 +20,7 @@ doc_status: published
 ## Validation
 - Per-step evidence captured
 - Per-step audit-chain emission per ADR-0003
-- Owner team sign-off
+- One author-distinct independent reviewer agent eligible for the complete implicated profile union issues exact-head/plan `APPROVE`; human approval and reviewer quorum are not required; any other or missing verdict blocks
 
 ## Sources
 [`STANDARDS-AND-TEMPLATES.md`](../STANDARDS-AND-TEMPLATES.md), [`DOC-CATALOG.md`](../DOC-CATALOG.md), [`MISTAKES-LEDGER.md`](../MISTAKES-LEDGER.md).
