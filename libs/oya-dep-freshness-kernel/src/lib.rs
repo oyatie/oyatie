@@ -391,13 +391,13 @@ mod tests {
         let mut waivers = Waivers::new();
         waivers.insert(
             ("c".into(), "DEP-FRESHNESS-STALE".into()),
-            "accepted by axis-foundry".into(),
+            "accepted by cloud-ci-platform".into(),
         );
-        let owners = BTreeMap::from([("c".to_string(), "axis-foundry".to_string())]);
+        let owners = BTreeMap::from([("c".to_string(), "cloud-ci-platform".to_string())]);
         let findings = evaluate(&mirror, &declared, 90, "2026-08-17", &owners, &waivers);
         assert_eq!(findings.len(), 1, "the finding survives the waiver");
         assert!(findings[0].waived);
-        assert_eq!(findings[0].owner_team.as_deref(), Some("axis-foundry"));
+        assert_eq!(findings[0].owner_team.as_deref(), Some("cloud-ci-platform"));
     }
 
     #[test]
