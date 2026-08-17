@@ -1871,7 +1871,7 @@ fn affected_set_long_step_telemetry_wraps_long_running_phases() {
 /// Retiring an ADR-mandated lane is a governance act, not a way to get green — so these lanes are
 /// deliberately left `status: active` and the breakage is recorded here where the required fan-in
 /// can see it, instead of being flipped to `planned`.
-const KNOWN_UNRESOLVABLE_LANE_TARGETS: [(&str, &str); 3] = [
+const KNOWN_UNRESOLVABLE_LANE_TARGETS: [(&str, &str); 2] = [
     (
         "cargo-package:oya-vcs-merge-queue-fix-loop-app",
         "Lane `oya-governance-merge-queue-staging-ref-gc` names a package that no longer exists \
@@ -1885,14 +1885,6 @@ const KNOWN_UNRESOLVABLE_LANE_TARGETS: [(&str, &str); 3] = [
          deleted. There is no Rust replacement: none of the four names is a `gate validate` \
          dispatch arm either, so these lanes enforce nothing. Repair is an owned-Rust port, which \
          is a governance decision, not a registry edit.",
-    ),
-    (
-        "gate-lane:pr-traceability",
-        "Lane `traceability-validator` names `gate validate pr-traceability`, which has no \
-         dispatch arm in marketplace/facade/dev-cli/src/commands/gate/mod.rs. The \
-         oya-governance-pr-traceability-kernel is a pure validator over caller-supplied booleans \
-         (pr_title/pr_body are never parsed), so wiring a runner needs PR-context plumbing flagged \
-         in fixuptask F-NXM-GOVERNANCE THEME-5; repair is a governance decision, not a registry edit.",
     ),
 ];
 

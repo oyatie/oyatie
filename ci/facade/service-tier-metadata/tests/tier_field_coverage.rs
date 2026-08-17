@@ -194,9 +194,14 @@ fn fixture_policy() -> Value {
 fn green_repo_fixture_passes_from_disk() {
     let repo = new_temp_repo();
     let root = &repo.root;
+    // Retargeted from `cloud/cloud-iam/...`: this PR removes `cloud` from governed_service_roots,
+    // so a fixture written there is collected by nothing and the `== 2` floor below fails. The
+    // live capability-first home carries identical facets (substrate / substrate-identity / T1)
+    // and is already in specs/microservice-tier-classification.json, so the exhibit is unchanged.
+    // Do NOT instead relax the count assertion — it is this fixture's only anti-vacuity floor.
     write_file(
         root,
-        "cloud/cloud-iam/manifest.json",
+        "iam/cloud-iam/manifest.json",
         r#"{
   "microservice": "cloud-iam",
   "tier": "substrate",
