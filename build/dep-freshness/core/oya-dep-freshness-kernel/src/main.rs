@@ -106,6 +106,18 @@ fn run(args: &Args) -> Result<usize, String> {
         ));
     }
     let releases = distill(&inputs);
+    if releases.is_empty() {
+        // The check above proves files were FOUND; this proves they were USABLE. Point the producer
+        // at non-index text — unconverted cargo `.cache` entries, say, which are NUL-delimited with
+        // an etag header rather than NDJSON — and `inputs` is non-empty while `distill` yields
+        // nothing. Without this, that writes a syntactically valid mirror describing no crates.
+        return Err(format!(
+            "{} input files under {} yielded no usable release records; refusing to write an \
+             empty mirror (are these canonical newline-delimited index files?)",
+            inputs.len(),
+            args.index_dir.display()
+        ));
+    }
     let manifest = format!(
         "{{\n  \"schema\": \"{}\",\n  \"source\": {{\n    \"index\": \"index.crates.io\",\n    \
          \"snapshot_date\": \"{}\"\n  }},\n  \"content_hash\": \"{}\",\n  \"crate_count\": {}\n}}\n",
@@ -143,8 +155,17 @@ fn read_index_dir(dir: &Path) -> io::Result<Vec<(String, String)>> {
         for entry in fs::read_dir(&current)? {
             let entry = entry?;
             let path = entry.path();
+            let hidden = path
+                .file_name()
+                .and_then(|n| n.to_str())
+                .is_some_and(|n| n.starts_with('.'));
             if entry.file_type()?.is_dir() {
-                stack.push(path);
+                // Skip hidden directories BEFORE descending. The documented input is a local
+                // checkout, and an ordinary git clone carries `.git`; filtering only file names
+                // would walk into it and try to read binary pack objects as UTF-8, failing the run.
+                if !hidden {
+                    stack.push(path);
+                }
                 continue;
             }
             // The index has no config file at leaf level, but a checkout may carry `config.json`

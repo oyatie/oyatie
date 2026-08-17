@@ -14,7 +14,9 @@ use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 use std::{env, fs};
 
-use ci_dep_freshness::{Policy, mirror, owner_index, snapshot_date, stale_entries};
+use ci_dep_freshness::{
+    Policy, manifest as parse_manifest, mirror, owner_index, stale_entries, verify,
+};
 
 const STEWARDSHIP_REGISTRY: &str = "specs/oss-stewardship-registry.json";
 const DEPS_POLICY: &str = "oya-deps.toml";
@@ -61,10 +63,11 @@ fn read(root: &Path, relative: &str) -> Result<String, String> {
 
 fn report(root: &Path, json: bool) -> Result<(), String> {
     let policy = Policy::from_toml(&read(root, DEPS_POLICY)?).map_err(|e| e.to_string())?;
-    let manifest = read(root, &policy.manifest)?;
-    let as_of = snapshot_date(&manifest)
-        .ok_or("mirror manifest has no source.snapshot_date; cannot date the corpus")?;
+    let manifest = parse_manifest(&read(root, &policy.manifest)?)?;
+    let as_of = manifest.snapshot_date.clone();
     let releases = mirror(&read(root, &policy.mirror)?)?;
+    // Trust neither file until they agree with each other.
+    verify(&releases, &manifest)?;
     // The registry is optional enrichment; its absence must not fail the report.
     let owners = read(root, STEWARDSHIP_REGISTRY)
         .map(|text| owner_index(&text))

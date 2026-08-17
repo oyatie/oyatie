@@ -106,8 +106,16 @@ pub fn distill(index_files: &[(String, String)]) -> Vec<CrateRelease> {
     out
 }
 
+/// The highest usable version, and — INDEPENDENTLY — the most recent publication date.
+///
+/// These are two different questions and must not share an answer. A crate that cut `2.0.0` in 2024
+/// and then a `1.9.1` maintenance release on the older supported major in 2026 has a highest version
+/// from 2024 and a latest release from 2026. Reporting the highest version's date as
+/// `last_release_date` would call that crate two years quiet while it was actively maintained — a
+/// false STALE on exactly the maintenance pattern the signal is supposed to respect.
 fn newest_stable(name: &str, text: &str) -> Option<CrateRelease> {
-    let mut best: Option<(Version, String, String)> = None;
+    let mut best_version: Option<(Version, String)> = None;
+    let mut latest_date: Option<String> = None;
     for line in text.lines() {
         let line = line.trim();
         if line.is_empty() {
@@ -129,14 +137,22 @@ fn newest_stable(name: &str, text: &str) -> Option<CrateRelease> {
             continue;
         };
         let date = pubtime.split('T').next().unwrap_or(pubtime).to_string();
-        if best.as_ref().is_none_or(|(seen, _, _)| version > *seen) {
-            best = Some((version, raw.to_string(), date));
+        if best_version
+            .as_ref()
+            .is_none_or(|(seen, _)| version > *seen)
+        {
+            best_version = Some((version, raw.to_string()));
+        }
+        // ISO `YYYY-MM-DD` is lexicographically ordered, so a string max is a date max.
+        if latest_date.as_ref().is_none_or(|seen| date > *seen) {
+            latest_date = Some(date);
         }
     }
-    best.map(|(_, raw, date)| CrateRelease {
+    let (_, raw) = best_version?;
+    Some(CrateRelease {
         name: name.to_string(),
         latest_stable: raw,
-        last_release_date: date,
+        last_release_date: latest_date?,
     })
 }
 
@@ -252,7 +268,20 @@ fn days_from_civil(date: &str) -> Option<i64> {
     let year: i64 = parts.next()?.parse().ok()?;
     let month: i64 = parts.next()?.parse().ok()?;
     let day: i64 = parts.next()?.parse().ok()?;
-    if !(1..=12).contains(&month) || !(1..=31).contains(&day) {
+    if parts.next().is_some() || !(1..=12).contains(&month) || day < 1 {
+        return None;
+    }
+    // Reject impossible days rather than letting the civil-days algorithm normalise them. It
+    // happily converts 2026-02-31 into 2026-03-03, so a typo in a committed snapshot_date would
+    // silently shift every staleness computation instead of failing.
+    let leap = (year % 4 == 0 && year % 100 != 0) || year % 400 == 0;
+    let days_in_month = match month {
+        1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
+        4 | 6 | 9 | 11 => 30,
+        _ if leap => 29,
+        _ => 28,
+    };
+    if day > days_in_month {
         return None;
     }
     let year = if month <= 2 { year - 1 } else { year };
@@ -301,7 +330,39 @@ mod tests {
         let got = distill(&[("c".into(), text)]);
         // 1.10.0 > 1.9.0 numerically; a string sort would wrongly choose 1.9.0.
         assert_eq!(got[0].latest_stable, "1.10.0");
-        assert_eq!(got[0].last_release_date, "2021-01-01");
+    }
+
+    #[test]
+    fn the_latest_release_date_is_independent_of_the_highest_version() {
+        // The maintenance-release pattern: a crate cuts 2.0.0, then later ships 1.9.1 on the older
+        // supported major. Its highest version is old; the project is not. Reporting the highest
+        // version's publication date as `last_release_date` would call this crate years quiet while
+        // it was actively maintained — a false STALE on exactly the pattern the signal must respect.
+        let text = [
+            line("2.0.0", "2024-01-01T00:00:00Z", false),
+            line("1.9.1", "2026-06-01T00:00:00Z", false),
+        ]
+        .join("\n");
+        let got = distill(&[("c".into(), text)]);
+        assert_eq!(
+            got[0].latest_stable, "2.0.0",
+            "highest version is still 2.0.0"
+        );
+        assert_eq!(
+            got[0].last_release_date, "2026-06-01",
+            "but the crate last published in 2026, not 2024"
+        );
+    }
+
+    #[test]
+    fn impossible_calendar_dates_are_rejected_rather_than_normalised() {
+        // days_from_civil happily turns 2026-02-31 into 2026-03-03, so a typo in a committed
+        // snapshot_date would silently shift every staleness computation instead of failing.
+        assert_eq!(days_between("2026-02-31", "2026-03-01"), None);
+        assert_eq!(days_between("2025-04-31", "2025-05-01"), None);
+        assert_eq!(days_between("2025-02-29", "2025-03-01"), None); // 2025 is not a leap year
+        assert!(days_between("2024-02-29", "2024-03-01").is_some()); // 2024 is
+        assert_eq!(days_between("2026-01-32", "2026-02-01"), None);
     }
 
     #[test]

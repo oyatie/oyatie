@@ -17,7 +17,9 @@
 
 use std::collections::BTreeMap;
 
-use oya_dep_freshness_kernel::{CrateRelease, DeclaredDependency, Waivers, evaluate};
+use oya_dep_freshness_kernel::{
+    CrateRelease, DeclaredDependency, FRESHNESS_SCHEMA, Waivers, canonical_hash, evaluate,
+};
 
 /// The `[freshness]` policy, read as DATA from `oya-deps.toml`.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -95,6 +97,71 @@ pub fn snapshot_date(manifest_json: &str) -> Option<String> {
         .get("snapshot_date")?
         .as_str()
         .map(str::to_string)
+}
+
+/// The manifest fields that describe the mirror, so the mirror can be checked against them.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Manifest {
+    pub schema: String,
+    pub snapshot_date: String,
+    pub content_hash: String,
+    pub crate_count: usize,
+}
+
+/// Parse the mirror manifest. Every field is required — a manifest missing the fields that make
+/// verification possible is not a weaker manifest, it is an unusable one.
+pub fn manifest(manifest_json: &str) -> Result<Manifest, String> {
+    let doc: serde_json::Value =
+        serde_json::from_str(manifest_json).map_err(|e| format!("manifest is not JSON: {e}"))?;
+    let string = |ptr: &str| -> Result<String, String> {
+        doc.pointer(ptr)
+            .and_then(serde_json::Value::as_str)
+            .map(str::to_string)
+            .ok_or_else(|| format!("manifest is missing {ptr}"))
+    };
+    Ok(Manifest {
+        schema: string("/schema")?,
+        snapshot_date: string("/source/snapshot_date")?,
+        content_hash: string("/content_hash")?,
+        crate_count: usize::try_from(
+            doc.pointer("/crate_count")
+                .and_then(serde_json::Value::as_u64)
+                .ok_or("manifest is missing /crate_count")?,
+        )
+        .map_err(|e| format!("crate_count is not a usize: {e}"))?,
+    })
+}
+
+/// The mirror must be the artifact its manifest describes.
+///
+/// Without this, the gate reads only `snapshot_date` and ignores everything else the producer
+/// recorded. Replacing `freshness.json` with `[]` while leaving the manifest untouched would then
+/// report a perfectly clean corpus — a silent fail-open, and the exact failure mode this pipeline
+/// exists to prevent. Schema, count and content hash are all checked, so truncation, partial
+/// regeneration, and hand-editing are each caught.
+pub fn verify(releases: &[CrateRelease], manifest: &Manifest) -> Result<(), String> {
+    if manifest.schema != FRESHNESS_SCHEMA {
+        return Err(format!(
+            "mirror schema mismatch: manifest says {:?}, this gate implements {FRESHNESS_SCHEMA:?}",
+            manifest.schema
+        ));
+    }
+    if releases.len() != manifest.crate_count {
+        return Err(format!(
+            "mirror holds {} crates but its manifest claims {}; the two were not produced together",
+            releases.len(),
+            manifest.crate_count
+        ));
+    }
+    let actual = canonical_hash(releases);
+    if actual != manifest.content_hash {
+        return Err(format!(
+            "mirror content hash {actual} does not match the manifest's {}; freshness.json has \
+             been edited or regenerated separately from its manifest",
+            manifest.content_hash
+        ));
+    }
+    Ok(())
 }
 
 /// Parse the committed mirror.
@@ -267,6 +334,61 @@ enforcement = "advisory"
         assert!(owner_index("{ not json").is_empty());
         let index = owner_index(r#"{"entries":[{"dep_name":"a","owner_team":"axis-x"}]}"#);
         assert_eq!(index.get("a").map(String::as_str), Some("axis-x"));
+    }
+
+    fn one_release() -> Vec<CrateRelease> {
+        vec![CrateRelease {
+            name: "c".into(),
+            latest_stable: "1.0.0".into(),
+            last_release_date: "2020-01-01".into(),
+        }]
+    }
+
+    fn good_manifest(releases: &[CrateRelease]) -> Manifest {
+        Manifest {
+            schema: FRESHNESS_SCHEMA.to_string(),
+            snapshot_date: "2026-08-17".into(),
+            content_hash: canonical_hash(releases),
+            crate_count: releases.len(),
+        }
+    }
+
+    #[test]
+    fn a_truncated_mirror_is_caught_rather_than_read_as_a_clean_corpus() {
+        // The fail-open this exists to stop: replace freshness.json with [] and leave the manifest
+        // alone. Without verification the gate reports zero stale dependencies and looks green.
+        let m = good_manifest(&one_release());
+        let err = verify(&[], &m).expect_err("an empty mirror must not verify");
+        assert!(err.contains("manifest claims"), "{err}");
+    }
+
+    #[test]
+    fn a_hand_edited_mirror_is_caught_by_the_content_hash() {
+        let mut edited = one_release();
+        let m = good_manifest(&edited);
+        edited[0].last_release_date = "2026-08-01".into(); // same count, different bytes
+        let err = verify(&edited, &m).expect_err("edited content must not verify");
+        assert!(err.contains("content hash"), "{err}");
+    }
+
+    #[test]
+    fn a_manifest_from_another_schema_is_refused() {
+        let releases = one_release();
+        let mut m = good_manifest(&releases);
+        m.schema = "oya-dep-freshness/v99".into();
+        assert!(verify(&releases, &m).is_err());
+    }
+
+    #[test]
+    fn a_matching_pair_verifies() {
+        let releases = one_release();
+        assert!(verify(&releases, &good_manifest(&releases)).is_ok());
+    }
+
+    #[test]
+    fn a_manifest_missing_a_verification_field_is_unusable_not_merely_weaker() {
+        assert!(manifest(r#"{"schema":"x","source":{"snapshot_date":"2026-08-17"}}"#).is_err());
+        assert!(manifest("{ not json").is_err());
     }
 
     #[test]

@@ -1,0 +1,47 @@
+# Advisory dependency-freshness report (oyatie-gr1n).
+#
+# The reviewer's point on #2100 was correct: a gate that is built but never executed is not a
+# gate. This runs the reporter on every pull request so the STALE tail is visible in the run log
+# rather than only reachable by hand.
+#
+# ADVISORY BY CONTRACT, and deliberately not part of `oya-ci-required`. Staleness is TIME-driven:
+# it advances with the calendar with no repository change, so a blocking form would red the
+# required context on whichever unrelated PR happened to be open that day. On the 2026-08-17
+# corpus it selects 27 of 75 direct dependencies. `oya-deps.toml` declares
+# `enforcement = "advisory"`, and the reporter refuses to run under any other declared mode.
+#
+# The reporter still exits non-zero if it cannot READ its inputs — that means "the gate did not
+# run", never "the corpus is clean" — so a genuinely broken mirror surfaces here as a failure.
+name: dep-freshness-report
+
+on:
+  pull_request:
+  push:
+    branches: [dev]
+
+permissions:
+  contents: read
+
+jobs:
+  report:
+    name: dependency freshness (advisory)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Report stale direct dependencies
+        run: |
+          cargo run --locked -q -p ci-dep-freshness \
+            --bin oya-ci-dep-freshness-report -- --repo-root . | tee /tmp/freshness.txt
+
+      - name: Summarise
+        if: always()
+        run: |
+          {
+            echo '### Dependency freshness (advisory)'
+            echo
+            echo '```'
+            cat /tmp/freshness.txt 2>/dev/null || echo 'reporter did not produce output'
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
