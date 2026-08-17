@@ -352,9 +352,9 @@ fn message_fingerprint(message: &OutboundMessage) -> u64 {
 }
 
 /// Shared deliverability invariant check used by every real
-/// adapter. Centralizing it here means DKIM/SPF/DMARC + suppression
-/// + rate-ceiling + idempotency rules are uniform across SES,
-/// Postal, Mailgun, and SMTP.
+/// adapter. Centralizing it here makes DKIM/SPF/DMARC, suppression,
+/// rate-ceiling, and idempotency rules uniform across SES, Postal,
+/// Mailgun, and SMTP.
 ///
 /// # Parameters
 /// - `recent_send_count` — number of sends already recorded in the
@@ -412,14 +412,14 @@ pub fn enforce_deliverability_invariants(
     }
     // ST2: idempotency-key conflict detection.
     let fp = message_fingerprint(message);
-    if let Some(&prior_fp) = prior_fingerprints.get(&message.idempotency_key) {
-        if prior_fp != fp {
-            return Err(EmailCommsError::IdempotencyConflict {
-                key: message.idempotency_key.clone(),
-            });
-        }
-        // Identical re-send: collapse to success (fall through).
+    if let Some(&prior_fp) = prior_fingerprints.get(&message.idempotency_key)
+        && prior_fp != fp
+    {
+        return Err(EmailCommsError::IdempotencyConflict {
+            key: message.idempotency_key.clone(),
+        });
     }
+    // A missing or identical prior send falls through to success.
     for rcpt in &message.to {
         if suppressed.contains(rcpt) {
             return Err(EmailCommsError::RecipientSuppressed(rcpt.clone()));
