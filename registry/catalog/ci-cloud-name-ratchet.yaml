@@ -1,0 +1,17 @@
+context: shared
+role: kernel
+capability: cloud-ci-cloud-name-ratchet
+plane: control
+slo: preview-control-plane
+data_classes_owned: [INTERNAL_ONLY]
+operational_classes_owned: []
+api_stability: preview
+security_review: unreviewed
+supply_chain: source-only
+traceability:
+  changeset: CS-CLOUD-NAME-RATCHET-001
+  source_crate: ci/facade/cloud-name-ratchet/Cargo.toml
+non_claims:
+  - owns its baseline as committed JSON and adds no code to the controller-owned firewall face
+  - name-anchored only; it does not police prose, where cloud-native and cloud-provider are
+    ordinary technical English
