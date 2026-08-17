@@ -1740,6 +1740,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "ci-helm-chart-shape"
+version = "0.1.0"
+
+[[package]]
 name = "ci-hook-wiring"
 version = "0.1.0"
 dependencies = [

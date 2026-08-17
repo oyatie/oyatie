@@ -1,0 +1,17 @@
+rust_library(
+    name = "ci-helm-chart-shape",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "ci_helm_chart_shape",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+rust_test(
+    name = "ci-helm-chart-shape-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "ci_helm_chart_shape",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

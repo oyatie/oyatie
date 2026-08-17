@@ -62,4 +62,20 @@ one was a defect:
   dependencies (loki, tempo from grafana.github.io), so it cannot be rendered
   offline. Counting that as a failure would be dishonest — nothing is broken.
 
-Current state: **80 render, 1 skipped, 0 failing.**
+Current state: **80 render, 1 skipped, 0 failing** — measured locally with helm.
+
+## Why there is no `helm template` CI job
+
+A render job would be the stronger check, but it needs the `helm` binary and
+therefore inline shell in workflow YAML — which this repository retires on a
+shrink-only ratchet (`rust_first_automation_unbaselined_workflow_inline_shell`:
+"productize it as a Rust/Buck2 step"). There is also no precedent for invoking
+helm in CI at all. Adding it would have meant adding the debt class the repo is
+actively removing.
+
+`ci/facade/helm-chart-shape` is the productized floor instead: pure Rust, no
+shell, running inside the required `cargo test --workspace` job. It catches a
+non-manifest file under `templates/` — the class that actually broke
+`intelligence`. It does **not** catch template syntax errors, missing required
+values, or unvendored dependencies; a full render would. That remaining coverage
+needs a Rust renderer and is not claimed here.
