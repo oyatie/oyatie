@@ -285,7 +285,7 @@ mod tests {
     /// TEST-SIDE signer only. Production private-key custody is a deferred
     /// founder-gated slice; this slice ships verify-against-trusted-public-keys
     /// + this test signer for fixtures. Reuses the OWNED aws-lc-rs Ed25519
-    /// signer (ADR-0506, ring-free).
+    ///   signer (ADR-0506, ring-free).
     fn unique(tag: &str) -> String {
         static SEQ: AtomicU64 = AtomicU64::new(0);
         format!(

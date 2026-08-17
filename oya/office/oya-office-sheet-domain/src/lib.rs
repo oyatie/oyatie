@@ -895,7 +895,7 @@ mod tests {
         .expect("edit");
 
         assert!(
-            edit.validate_for_workbook(&model, &[protected.clone()])
+            edit.validate_for_workbook(&model, std::slice::from_ref(&protected))
                 .is_ok()
         );
         assert!(denied.validate_for_workbook(&model, &[protected]).is_err());

@@ -886,10 +886,10 @@ fn collect_bnf_layer_suffix(
         if is_path_excluded(path, cfg) {
             continue;
         }
-        if let Some(name) = parse_package_name(&read_text(&repo_root.join(path))) {
-            if name.starts_with(prefix) {
-                names.insert(name);
-            }
+        if let Some(name) = parse_package_name(&read_text(&repo_root.join(path)))
+            && name.starts_with(prefix)
+        {
+            names.insert(name);
         }
     }
     let rows: Vec<Value> = names
@@ -1014,6 +1014,8 @@ fn collect_license_policy(
     Ok(json!({ "rows": rows }))
 }
 
+type SloCoverageRecord = (String, String, Option<String>, bool, Option<String>);
+
 /// Enumerate SLO catalog rows from the config-declared `[slo_coverage].catalog_record_globs`.
 /// This replaces the legacy dev-cli's implicit `registry/catalog` walk with a portable, closed-
 /// schema input contract. The current default still mirrors Oyatie's catalog source
@@ -1028,7 +1030,7 @@ fn collect_slo_coverage(
     // not enough if the catalog record itself is silently stale. Resolve the live crate-id
     // universe IN-PROCESS (no shell-out) so each row carries is_live + marker alongside slo.
     let live = live_workspace_crate_ids(repo_root)?;
-    let mut records: Vec<(String, String, Option<String>, bool, Option<String>)> = Vec::new();
+    let mut records: Vec<SloCoverageRecord> = Vec::new();
     for path in tracked_paths {
         if is_path_excluded(path, cfg) {
             continue;
@@ -1147,10 +1149,10 @@ fn catalog_non_claims_declares_no_crate(contents: &str) -> bool {
 /// value wins; otherwise a `non_claims` no-crate declaration yields the synthetic
 /// `non-claims-no-crate` marker. A LIVE record needs no marker (the gate checks live OR marked).
 fn catalog_non_live_marker(contents: &str) -> Option<String> {
-    if let Some(status) = parse_catalog_status(contents) {
-        if NON_LIVE_STATUS_MARKERS.contains(&status.as_str()) {
-            return Some(status);
-        }
+    if let Some(status) = parse_catalog_status(contents)
+        && NON_LIVE_STATUS_MARKERS.contains(&status.as_str())
+    {
+        return Some(status);
     }
     if catalog_non_claims_declares_no_crate(contents) {
         return Some("non-claims-no-crate".to_owned());
@@ -1261,6 +1263,8 @@ fn catalog_exemption_for_member(
         })
 }
 
+type CatalogLivenessRecord = (String, String, bool, Option<String>, Option<String>, bool);
+
 /// Enumerate catalog-liveness rows from the config-declared `[catalog_liveness]` policy. The face
 /// is bidirectional:
 ///   - `rows`: catalog record -> live/marked/source-path facts;
@@ -1273,7 +1277,7 @@ fn collect_catalog_liveness(
     let live = live_workspace_crates(repo_root)?;
     let live_ids: BTreeSet<String> = live.iter().map(|row| row.crate_id.clone()).collect();
     let tracked: BTreeSet<&str> = tracked_paths.iter().map(String::as_str).collect();
-    let mut records: Vec<(String, String, bool, Option<String>, Option<String>, bool)> = Vec::new();
+    let mut records: Vec<CatalogLivenessRecord> = Vec::new();
     for path in tracked_paths {
         if is_path_excluded(path, cfg) {
             continue;
@@ -1632,7 +1636,7 @@ fn collect_command_values(value: &Value, refs: &mut BTreeSet<String>) {
 }
 
 fn normalize_hook_command(command: &str) -> Option<String> {
-    let first = command.trim().split_whitespace().next()?;
+    let first = command.split_whitespace().next()?;
     let path = first.strip_prefix("./").unwrap_or(first);
     if is_top_level_hook_script(path) {
         Some(path.to_owned())
@@ -3609,14 +3613,13 @@ fn parse_package_name(contents: &str) -> Option<String> {
             in_package = trimmed == "[package]";
             continue;
         }
-        if in_package {
-            if let Some(rest) = trimmed.strip_prefix("name") {
-                if let Some(rest) = rest.trim_start().strip_prefix('=') {
-                    let value = rest.trim().trim_matches('"');
-                    if !value.is_empty() {
-                        return Some(value.to_owned());
-                    }
-                }
+        if in_package
+            && let Some(rest) = trimmed.strip_prefix("name")
+            && let Some(rest) = rest.trim_start().strip_prefix('=')
+        {
+            let value = rest.trim().trim_matches('"');
+            if !value.is_empty() {
+                return Some(value.to_owned());
             }
         }
     }
@@ -3748,10 +3751,10 @@ fn parse_manifest_flags(contents: &str) -> ManifestFlags {
                     f.lints_workspace = true;
                 }
             }
-            "lib" => {
-                if line.starts_with("doctest") && line.contains('=') && line.contains("false") {
-                    f.lib_doctest_false = true;
-                }
+            "lib"
+                if line.starts_with("doctest") && line.contains('=') && line.contains("false") =>
+            {
+                f.lib_doctest_false = true;
             }
             _ => {}
         }
@@ -4706,14 +4709,6 @@ fn read_cargo_member_prefixes(repo_root: &Path) -> Result<Vec<String>, CliError>
         .collect())
 }
 
-/// Justification: a path traces to a decision if an ADR mentions it (front-matter
-/// `affected_surfaces` / body refs) or it lives under a decision-owned tree. Resolved
-/// from the real ADR corpus.
-///
-/// Built as a single pass over the ADR corpus (NOT O(paths x ADRs)): each ADR body is
-/// tokenized once into the repo-relative path-like tokens it references, populating a
-/// `token -> first ADR id` index. Per-path lookup is then an O(1) map hit.
-
 /// Live decisions dir plus the historical ADR archive (when present).
 /// Archive is outside the P3 direct-child census root but still supplies
 /// path-justification tokens and known decision ids for phantom resolution.
@@ -4726,6 +4721,13 @@ fn adr_corpus_dirs(repo_root: &Path, cfg: &oya_ci_config_kernel::OyaCiConfig) ->
     dirs
 }
 
+/// Justification: a path traces to a decision if an ADR mentions it (front-matter
+/// `affected_surfaces` / body refs) or it lives under a decision-owned tree. Resolved
+/// from the real ADR corpus.
+///
+/// Built as a single pass over the ADR corpus (NOT O(paths x ADRs)): each ADR body is
+/// tokenized once into the repo-relative path-like tokens it references, populating a
+/// `token -> first ADR id` index. Per-path lookup is then an O(1) map hit.
 fn resolve_justifications(
     repo_root: &Path,
     paths: &[String],
