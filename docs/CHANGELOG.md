@@ -6,6 +6,13 @@ doc_status: published
 
 # Changelog
 
+## 2026-08-17 — Cargo test-resource parity and retired cloud corpus
+
+- Mirrored the product-protocol and reset-eligibility Buck committed-file resources into
+  portable, non-forcing Cargo bindings, with code-owned parity regressions.
+- Removed the deleted `cloud/` root's two stale product-protocol manifest projections and
+  re-froze the measured corpus from 96 to 94 without changing the remaining governed roots.
+
 ## 2026-08-17 — ADR-0716 PR-traceability retirement completed
 
 - Removed the stale active `traceability-validator` row, its exact CI-lane

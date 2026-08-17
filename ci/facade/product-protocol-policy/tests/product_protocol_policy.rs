@@ -19,13 +19,26 @@ fn text(variable: &str) -> String {
 }
 
 fn declared_path(variable: &str) -> PathBuf {
-    std::env::var_os(variable)
+    declared_path_value(variable, std::env::var_os(variable))
+}
+
+fn declared_path_value(variable: &str, value: Option<std::ffi::OsString>) -> PathBuf {
+    value
         .map(PathBuf::from)
         .unwrap_or_else(|| panic!("Buck must declare {variable} with $(location)"))
 }
 
 fn policy() -> Value {
     json(&declared_path("OYA_PRODUCT_PROTOCOL_POLICY"))
+}
+
+#[test]
+fn missing_declared_resource_remains_fail_closed_outside_build_graph_contract() {
+    let failure = std::panic::catch_unwind(|| declared_path_value("OYA_REQUIRED_RESOURCE", None));
+    assert!(
+        failure.is_err(),
+        "a missing declared resource must not fall back to the source checkout"
+    );
 }
 
 fn artifacts() -> BTreeMap<String, Value> {
@@ -1423,6 +1436,68 @@ fn internal_proto_contract_content_mutations_fail_closed() {
         )
         .is_empty(),
         "the canonical internal gRPC profile must remain accepted"
+    );
+}
+
+#[test]
+fn retired_cloud_corpus_has_exact_accounting_and_cannot_revive_silently() {
+    let root = repo_root();
+    let policy = policy();
+    let expected_roots = BTreeSet::from([
+        "audit".to_owned(),
+        "billing".to_owned(),
+        "cell".to_owned(),
+        "comms".to_owned(),
+        "compliance".to_owned(),
+        "console".to_owned(),
+        "data".to_owned(),
+        "flags".to_owned(),
+        "gateway".to_owned(),
+        "iac".to_owned(),
+        "iam".to_owned(),
+        "intelligence".to_owned(),
+        "k8s".to_owned(),
+        "marketplace".to_owned(),
+        "network".to_owned(),
+        "observability".to_owned(),
+        "oya".to_owned(),
+        "secrets".to_owned(),
+        "storage".to_owned(),
+        "tenancy".to_owned(),
+        "workflow".to_owned(),
+    ]);
+    assert_eq!(
+        string_set(&policy, "/manifest_inventory/governed_roots"),
+        expected_roots,
+        "the retired cloud root must leave every other governed root unchanged"
+    );
+    assert_eq!(
+        policy["manifest_inventory"]["expected_total"], 94,
+        "retiring the two cloud manifests must move the exact corpus total 96 -> 94"
+    );
+    let retirement = policy["manifest_inventory"]["_comment"]
+        .as_str()
+        .expect("manifest retirement attribution");
+    for retired in [
+        "cloud/cloud-kernel/manifest.json",
+        "cloud/cloud-os/manifest.json",
+    ] {
+        assert!(
+            retirement.contains(retired),
+            "retirement accounting must attribute {retired}"
+        );
+    }
+
+    let projection = json(&root.join("specs/microservice-tier-classification.json"));
+    assert_eq!(projection["service_count"], 94);
+    assert_eq!(projection["tier_distribution"]["substrate"], 53);
+    assert!(
+        projection["services"]
+            .as_object()
+            .expect("tier projection services")
+            .keys()
+            .all(|path| !path.starts_with("cloud/")),
+        "the read-only tier projection must not retain retired cloud manifests"
     );
 }
 

@@ -44,3 +44,28 @@ OYA_CI_CODEMOD_BIN = "cargo-test-binary:oya-reorg-codemod"
 OYA_CI_ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS = { value = ".claude", relative = true }
 OYA_CI_ENFORCEMENT_LIVENESS_CODEX_HOOKS = { value = ".codex", relative = true }
 OYA_CI_ENFORCEMENT_LIVENESS_HOOKS_DIR = { value = "tools/hooks", relative = true }
+
+# Committed-file resources declared by the product-protocol Buck test. Cargo resolves each
+# repo-relative value against this repository's `.cargo/config.toml`; explicit CI/Buck values win.
+OYA_API_CONTRACT_SSOT = { value = "specs/api-contract-ssot-canonical.json", relative = true, force = false }
+OYA_ENDPOINT_TRANSPORT_PROFILE = { value = "network/ports/transport-profile/endpoint-transport-profile.contract.json", relative = true, force = false }
+OYA_MASTER_PLAN_SEQUENCING = { value = "specs/master-plan-sequencing.json", relative = true, force = false }
+OYA_MICROSERVICE_MANIFEST_SCHEMA = { value = "specs/microservices/manifest-schema.json", relative = true, force = false }
+OYA_PRODUCT_PROTOCOL_CONTRACT = { value = "specs/product-protocol-contract.json", relative = true, force = false }
+OYA_PRODUCT_PROTOCOL_NEGATIVE_CASES = { value = "ci/facade/product-protocol-policy/fixtures/negative-cases.json", relative = true, force = false }
+OYA_PRODUCT_PROTOCOL_POLICY = { value = "ci/facade/product-protocol-policy/product-protocol-policy.json", relative = true, force = false }
+OYA_ROOT_HUB_POINTERS = { value = "specs/root-hub-pointers.json", relative = true, force = false }
+OYA_ADR_0632 = { value = "docs/adr-archive/ADR-0632-product-protocol-and-owned-fabric-posture.md", relative = true, force = false }
+OYA_ADR_0157 = { value = "docs/adr-archive/ADR-0157-api-gateway-tier.md", relative = true, force = false }
+OYA_ADR_0167 = { value = "docs/adr-archive/ADR-0167-tenant-cli.md", relative = true, force = false }
+OYA_ADR_0176 = { value = "docs/adr-archive/ADR-0176-brownout-degradation-signal-api.md", relative = true, force = false }
+OYA_ADR_0182 = { value = "docs/adr-archive/ADR-0182-api-gateway-north-south-vs-service-mesh-east-west-separation.md", relative = true, force = false }
+OYA_ADR_0246 = { value = "docs/adr-archive/ADR-0246-policy-engine-substrate-promotion.md", relative = true, force = false }
+OYA_ADR_0258 = { value = "docs/adr-archive/ADR-0258-api-versioning-model.md", relative = true, force = false }
+
+# Committed-file resources declared by the reset-eligibility Buck test. Binary and
+# history-generated resources intentionally do not belong to this adapter.
+OYA_RESET_POLICY = { value = "ci/facade/reset-eligibility-policy/reset-eligibility-policy.json", relative = true, force = false }
+OYA_RESET_SCHEMA = { value = "specs/reset-eligibility.schema.json", relative = true, force = false }
+OYA_RESET_ARTIFACT = { value = "registry/reset-eligibility/w0-d-20260801.json", relative = true, force = false }
+OYA_ROOT_MARKER = { value = "specs/root-hub-pointers.json", relative = true, force = false }
