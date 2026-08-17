@@ -40,9 +40,28 @@ fn worker_ownership_map_keeps_hot_path_and_control_plane_separate() {
     );
 }
 
+/// Read the committed worker manifest through its DECLARED binding.
+///
+/// This was a bare repo-relative path resolved against the process working directory. Buck runs
+/// the action from the sandbox root so it resolved there, but `cargo test` runs from the package
+/// directory and the read missed entirely. The Cargo merge path (ADR-0716) is the authority, so
+/// the manifest is named rather than guessed: Buck binds it with `$(location ...)` and Cargo
+/// with a non-forcing `relative = true` entry in `.cargo/config.toml`. An unbound or non-regular
+/// resource fails closed instead of silently reading the wrong bytes.
 fn manifest() -> String {
-    std::fs::read_to_string("intelligence/k8s/cloud-intelligence.yaml")
-        .expect("read cloud-intelligence manifest")
+    const BINDING: &str = "OYA_INTELLIGENCE_K8S_MANIFEST";
+    let path = std::env::var_os(BINDING)
+        .map(std::path::PathBuf::from)
+        .unwrap_or_else(|| panic!("FAIL-CLOSED: declared manifest binding {BINDING} is unset"));
+    let metadata = std::fs::symlink_metadata(&path)
+        .unwrap_or_else(|err| panic!("FAIL-CLOSED: inspect {BINDING}={}: {err}", path.display()));
+    assert!(
+        !metadata.file_type().is_symlink() && metadata.is_file(),
+        "FAIL-CLOSED: {BINDING}={} must be a regular non-symlink file",
+        path.display()
+    );
+    std::fs::read_to_string(&path)
+        .unwrap_or_else(|err| panic!("FAIL-CLOSED: read {BINDING}={}: {err}", path.display()))
 }
 
 fn assert_manifest_contains(manifest: &str, needle: &str) {

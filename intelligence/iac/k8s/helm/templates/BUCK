@@ -1,0 +1,12 @@
+# Committed Helm manifests consumed as DECLARED resources by the intelligence-app conformance
+# tests. Exporting them keeps the Buck action and the Cargo merge path (ADR-0716) bound to the
+# same bytes instead of resolving a bare repo-relative path against the process cwd.
+export_file(
+    name = "deployment.yaml",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "externalsecret.yaml",
+    visibility = ["PUBLIC"],
+)

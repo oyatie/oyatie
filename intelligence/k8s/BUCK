@@ -1,0 +1,6 @@
+# Committed k8s manifests consumed as DECLARED resources by the intelligence worker ownership
+# test, so Buck and the Cargo merge path (ADR-0716) read the same bytes.
+export_file(
+    name = "cloud-intelligence.yaml",
+    visibility = ["PUBLIC"],
+)

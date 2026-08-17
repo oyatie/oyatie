@@ -1,0 +1,6 @@
+# Committed payroll contract consumed as a DECLARED resource by the run-api contract test, so
+# Buck and the Cargo merge path (ADR-0716) read the same bytes.
+export_file(
+    name = "openapi-v1.yaml",
+    visibility = ["PUBLIC"],
+)

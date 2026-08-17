@@ -72,3 +72,21 @@ OYA_RESET_POLICY = { value = "ci/facade/reset-eligibility-policy/reset-eligibili
 OYA_RESET_SCHEMA = { value = "specs/reset-eligibility.schema.json", relative = true, force = false }
 OYA_RESET_ARTIFACT = { value = "registry/reset-eligibility/w0-d-20260801.json", relative = true, force = false }
 OYA_ROOT_MARKER = { value = "specs/root-hub-pointers.json", relative = true, force = false }
+
+# Committed-file resources declared by the intelligence-app Buck test. These reads used bare
+# repo-relative paths resolved against the process cwd, which only lands correctly under Buck's
+# sandbox root; `cargo test` runs each binary from its own package directory, so every one of
+# them missed. Naming the resource removes the guess on both paths.
+OYA_INTELLIGENCE_HELM_DEPLOYMENT = { value = "intelligence/iac/k8s/helm/templates/deployment.yaml", relative = true, force = false }
+OYA_INTELLIGENCE_HELM_EXTERNALSECRET = { value = "intelligence/iac/k8s/helm/templates/externalsecret.yaml", relative = true, force = false }
+OYA_INTELLIGENCE_APP_SOURCE = { value = "intelligence/facade/app/src/lib.rs", relative = true, force = false }
+OYA_INTELLIGENCE_REST_SOURCE = { value = "intelligence/adapters/rest/src/lib.rs", relative = true, force = false }
+OYA_INTELLIGENCE_OPENAPI_CONTRACT = { value = "intelligence/contracts/cloud-intelligence.openapi.yaml", relative = true, force = false }
+OYA_INTELLIGENCE_K8S_MANIFEST = { value = "intelligence/k8s/cloud-intelligence.yaml", relative = true, force = false }
+
+# Committed contract declared by the payroll run-api test (same cwd-relative defect).
+OYA_PAYROLL_OPENAPI_CONTRACT = { value = "oya/payroll/contracts/openapi-v1.yaml", relative = true, force = false }
+
+# Committed face declared by the marketplace dev-cli active-artifact-contract gate. Its previous
+# fallback counted parent directories and overshot the repository root entirely.
+OYA_ARTIFACT_PROFILE_DEFAULTS = { value = "specs/artifact-profile-defaults.json", relative = true, force = false }
