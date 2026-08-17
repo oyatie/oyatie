@@ -21,7 +21,7 @@ fn critical_signals_block_quarantine_and_require_secondary_and_manual_review() {
     assert!(decision.quarantined);
     assert!(decision.secondary_agentic_review_required);
     assert_eq!(decision.manual_review, ManualReviewState::Required);
-    assert!(decision.tenant_may_override == false);
+    assert!(!decision.tenant_may_override);
     assert!(decision.signals_to_tenant_policy);
 }
 
@@ -71,7 +71,7 @@ fn normal_path_never_stores_raw_payload_and_guardrail_uses_encrypted_handle() {
 
 #[test]
 fn tenant_overlay_may_tighten_but_not_downgrade_data_classes_or_expand_access() {
-    let taxonomy = CentralDataClassTaxonomy::default();
+    let taxonomy = CentralDataClassTaxonomy;
 
     let tightened = TenantDataClassOverlay::new(
         "tenant-a",
