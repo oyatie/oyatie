@@ -1,0 +1,9 @@
+{
+  "$schema": "../contracts/operational-evidence-pointer.schema.json",
+  "artifact_class": "internal_operational_receipt",
+  "digest_algorithm": "sha256",
+  "content_digest": "e79783993aea1ab7dbd9f559c08c91f38529151f6f80916cc3424e4c608e174e",
+  "custody_boundary": "private_operational_evidence",
+  "remote_readback": "verified",
+  "claim_ceiling": "persistence_and_remote_readback_only"
+}
