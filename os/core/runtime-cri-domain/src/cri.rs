@@ -24,17 +24,17 @@ use crate::{
         image_cache_config_key,
     },
 };
-use std::{
-    collections::{BTreeMap, HashMap},
-    fmt,
+use os_cosi_domain::{
+    Controller, ControllerError, Event, EventKind, Input, Metadata, Output, ReconcileContext,
+    ReconcileResult, Resource, ResourceKind, Spec, State,
 };
 use os_kernel::{
     ResourceId,
     error::{Error, Result},
 };
-use os_cosi_domain::{
-    Controller, ControllerError, Event, EventKind, Input, Metadata, Output, ReconcileContext,
-    ReconcileResult, Resource, ResourceKind, Spec, State,
+use std::{
+    collections::{BTreeMap, HashMap},
+    fmt,
 };
 
 /// Talos CRI resource namespace.

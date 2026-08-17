@@ -270,7 +270,10 @@ mod tests {
             repo_relative("os/core/machine-config-domain", "././testdata/x.yaml"),
             "os/core/machine-config-domain/testdata/x.yaml"
         );
-        assert_eq!(repo_relative("registry", "./adr/x.yaml"), "registry/adr/x.yaml");
+        assert_eq!(
+            repo_relative("registry", "./adr/x.yaml"),
+            "registry/adr/x.yaml"
+        );
         assert_eq!(repo_relative("", "./x.yaml"), "x.yaml");
         assert_eq!(repo_relative("specs/", "x.yaml"), "specs/x.yaml");
         // Already-normalized input is a fixed point, so double normalization is harmless.
@@ -343,14 +346,20 @@ mod tests {
 
     #[test]
     fn path_valued_scalars_emit_a_refs_edge() {
-        let facts = extract("a.yaml", "spec: docs/adr-archive/ADR-0541-corpus-liveness-graph.md\n");
+        let facts = extract(
+            "a.yaml",
+            "spec: docs/adr-archive/ADR-0541-corpus-liveness-graph.md\n",
+        );
         let refs: Vec<&Edge> = facts
             .edges
             .iter()
             .filter(|e| e.kind == EdgeKind::Refs)
             .collect();
         assert_eq!(refs.len(), 1);
-        assert_eq!(refs[0].dst, NodeId::file("docs/adr-archive/ADR-0541-corpus-liveness-graph.md"));
+        assert_eq!(
+            refs[0].dst,
+            NodeId::file("docs/adr-archive/ADR-0541-corpus-liveness-graph.md")
+        );
     }
 
     #[test]

@@ -7,8 +7,10 @@ use std::{
     time::{Duration, Instant},
 };
 
-use intelligence_claude_agent_sdk::{ClaudeAgentOptions, Message, UserMessage, startup, startup_with_timeout};
 use futures::{StreamExt, stream};
+use intelligence_claude_agent_sdk::{
+    ClaudeAgentOptions, Message, UserMessage, startup, startup_with_timeout,
+};
 use serde_json::json;
 
 #[tokio::test]
@@ -53,7 +55,9 @@ async fn startup_prewarms_before_prompt_and_streams_once_ready() {
 
     // startup() must have already received the init response before returning,
     // so the oneshot must be receivable without blocking.
-    init_done_rx.await.expect("init response was not sent before startup() returned");
+    init_done_rx
+        .await
+        .expect("init response was not sent before startup() returned");
 
     let mut stream = warm.query("hello").unwrap();
     let first = stream.next().await.unwrap().unwrap();

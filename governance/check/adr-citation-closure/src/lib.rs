@@ -339,7 +339,11 @@ pub fn parse_supersession(
             // two-space); they sit under unrelated keys, so `active` is None for them and
             // the match below still ignores them exactly as before. What changes is only
             // that a supersession edge written that way is now SEEN.
-            if raw.len() > trimmed.len() { trimmed.strip_prefix("- ") } else { None }
+            if raw.len() > trimmed.len() {
+                trimmed.strip_prefix("- ")
+            } else {
+                None
+            }
         };
         if let Some(item) = indented_item {
             // A block-list item belongs to whichever list key opened it, and to nothing otherwise.
@@ -370,7 +374,9 @@ pub fn parse_supersession(
             }
             "supersedes" => {
                 if supersedes.is_some() {
-                    return Err(FrontmatterError(format!("{path}: duplicate supersedes key")));
+                    return Err(FrontmatterError(format!(
+                        "{path}: duplicate supersedes key"
+                    )));
                 }
                 supersedes = Some(ids_in(value));
                 active = Some("supersedes");
@@ -738,7 +744,10 @@ pub fn evaluate(records: &[AdrRecord], citations: &[CitationLine], policy: &Poli
             Resolution::Ambiguous(apexes) => findings.push(Finding {
                 code: CODE_AMBIGUOUS_CLOSURE.to_owned(),
                 subject: record.id.clone(),
-                detail: format!("closure reaches {} distinct apexes: {apexes:?}", apexes.len()),
+                detail: format!(
+                    "closure reaches {} distinct apexes: {apexes:?}",
+                    apexes.len()
+                ),
                 blocking: false,
             }),
             other => findings.push(Finding {
@@ -877,7 +886,8 @@ mod tests {
     // superseded_by and the record read as having no successor at all.
     #[test]
     fn a_four_space_supersession_list_is_parsed() {
-        let doc = "---\nstatus: Superseded\nsuperseded_by:\n    - ADR-0700\n    - ADR-0701\n---\nbody\n";
+        let doc =
+            "---\nstatus: Superseded\nsuperseded_by:\n    - ADR-0700\n    - ADR-0701\n---\nbody\n";
         let parsed = parse_supersession("ADR-0001", "docs/adr-archive/ADR-0001-x.md", false, doc)
             .expect("parses");
         assert_eq!(
@@ -910,7 +920,11 @@ mod tests {
         let line = "historical: [ADR-0111](docs/adr-archive/ADR-0111-x.md); current rule is \
                     [ADR-0709](docs/decisions/ADR-0709-general-live-apex.md)";
         let (cited, context) = scan_line(line);
-        assert_eq!(cited, vec!["ADR-0709".to_owned()], "only the decisions/ path is a citation");
+        assert_eq!(
+            cited,
+            vec!["ADR-0709".to_owned()],
+            "only the decisions/ path is a citation"
+        );
         assert!(
             !context.contains(&"ADR-0111".to_owned()),
             "an archive link states the ADR is historical; it is not evidence about the apex"
@@ -1012,7 +1026,10 @@ mod tests {
 
     #[test]
     fn a_supersession_cycle_does_not_hang() {
-        let records = vec![archived("ADR-0001", &["ADR-0002"]), archived("ADR-0002", &["ADR-0001"])];
+        let records = vec![
+            archived("ADR-0001", &["ADR-0002"]),
+            archived("ADR-0002", &["ADR-0001"]),
+        ];
         assert_eq!(Oracle::new(&records).resolve("ADR-0001"), Resolution::Cycle);
     }
 
@@ -1028,7 +1045,10 @@ mod tests {
         // sentence still names the ADR it is about.
         let bad = cite("docs/x.md", &["ADR-0709"], &["ADR-0349"], false);
         let verdict = evaluate(&chain(), &[good, bad], &permissive());
-        assert!(verdict.failed(), "the injected bad citation must fail closed");
+        assert!(
+            verdict.failed(),
+            "the injected bad citation must fail closed"
+        );
         assert_eq!(verdict.count(CODE_CITATION_MISMATCH), 1);
     }
 
@@ -1331,9 +1351,13 @@ mod tests {
 
     #[test]
     fn short_form_and_prose_wrapped_ids_parse() {
-        let record =
-            parse_supersession("ADR-0500", "p", false, "---\nsuperseded_by: [ADR-335, ADR-562]\n---\n")
-                .unwrap();
+        let record = parse_supersession(
+            "ADR-0500",
+            "p",
+            false,
+            "---\nsuperseded_by: [ADR-335, ADR-562]\n---\n",
+        )
+        .unwrap();
         assert_eq!(record.superseded_by, ["ADR-0335", "ADR-0562"]);
 
         let partial = parse_supersession(
@@ -1358,17 +1382,26 @@ mod tests {
     #[test]
     fn empty_tilde_and_prose_values_parse_as_no_edge() {
         for value in ["[]", "~", "none"] {
-            let record =
-                parse_supersession("ADR-0500", "p", false, &format!("---\nsuperseded_by: {value}\n---\n"))
-                    .unwrap();
+            let record = parse_supersession(
+                "ADR-0500",
+                "p",
+                false,
+                &format!("---\nsuperseded_by: {value}\n---\n"),
+            )
+            .unwrap();
             assert!(record.superseded_by.is_empty(), "{value}");
         }
     }
 
     #[test]
     fn a_self_edge_is_dropped_rather_than_looped_on() {
-        let record =
-            parse_supersession("ADR-0255", "p", false, "---\nsuperseded_by: [ADR-0255]\n---\n").unwrap();
+        let record = parse_supersession(
+            "ADR-0255",
+            "p",
+            false,
+            "---\nsuperseded_by: [ADR-0255]\n---\n",
+        )
+        .unwrap();
         assert!(record.superseded_by.is_empty());
     }
 
@@ -1397,7 +1430,8 @@ mod tests {
 
     #[test]
     fn scan_line_reads_relative_links_as_paths_and_link_text_as_context() {
-        let (cited, context) = scan_line("[ADR-0346](decisions/ADR-0700-ci-admission-live-apex.md)");
+        let (cited, context) =
+            scan_line("[ADR-0346](decisions/ADR-0700-ci-admission-live-apex.md)");
         assert_eq!(cited, ["ADR-0700"]);
         assert_eq!(context, ["ADR-0346"]);
     }
@@ -1521,7 +1555,10 @@ mod tests {
 
         let verdict = evaluate(&[apex_record, shadow], &[], &permissive());
         assert_eq!(verdict.count(CODE_DUPLICATE_ID), 1);
-        assert!(verdict.failed(), "a duplicate id must fail closed, not be silently resolved");
+        assert!(
+            verdict.failed(),
+            "a duplicate id must fail closed, not be silently resolved"
+        );
     }
 
     // FINDING 8. One cumulative `seen` set across sibling branches made a DAG look like a cycle:
@@ -1543,7 +1580,10 @@ mod tests {
         );
 
         // A genuine loop must still be a loop.
-        let looped = vec![archived("ADR-0010", &["ADR-0011"]), archived("ADR-0011", &["ADR-0010"])];
+        let looped = vec![
+            archived("ADR-0010", &["ADR-0011"]),
+            archived("ADR-0011", &["ADR-0010"]),
+        ];
         assert_eq!(Oracle::new(&looped).resolve("ADR-0010"), Resolution::Cycle);
     }
 

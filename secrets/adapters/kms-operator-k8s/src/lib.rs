@@ -20,6 +20,8 @@ use kube::{
     core::{DynamicObject, GroupVersionKind},
     runtime::{Controller, controller::Action as ControllerAction, watcher},
 };
+use network_residency::ResidencyClass;
+use oya_data_boundary_kernel::DataClass;
 use secrets_kms_domain::{
     CloudKmsDirectory, CloudKmsError, HsmValidation as DomainHsmValidation, KeyDestructionReceipt,
     KeyDestructionRequest, KeyRingQuarantineRequest, KeyVersionDemotionRequest, KmsDecryptRequest,
@@ -32,8 +34,6 @@ use secrets_kms_operator_kernel::{
     KeyVersionState, ObservedHealth, ObservedKeyRing, ObservedKeyVersion, ObservedSealingRoot,
     ObservedState, ReadConsistency, ResidencyMode, SealingRoot, reconcile,
 };
-use oya_data_boundary_kernel::DataClass;
-use network_residency::ResidencyClass;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value, json};
 use tracing::{error, info, warn};

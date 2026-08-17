@@ -289,9 +289,6 @@ mod tests {
         assert!(matches!(err, Error::EmptyPath { .. }));
     }
 
-
-
-
     #[test]
     fn line_numbers_are_one_indexed() {
         let r = check(&[node(

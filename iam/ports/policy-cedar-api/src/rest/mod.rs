@@ -61,10 +61,10 @@ use crate::authz::{
 };
 use crate::{
     CedarPolicyApiAuthorization, CedarPolicyApiBoundaryContext, CedarPolicyApiPrincipal,
-    CedarPolicyPublishApiRequest, CedarPolicyPublishIdempotencyLedger,
-    CedarPolicyPublishRequest, CedarPolicyRecord, CedarPolicyPublishMetadata,
-    CedarPolicyPublishSuccessResponse, CedarPolicyRequiredAttribute, CedarPolicyRuleRef,
-    CedarPolicyScopeRef, publish_cedar_policy_from_api,
+    CedarPolicyPublishApiRequest, CedarPolicyPublishIdempotencyLedger, CedarPolicyPublishMetadata,
+    CedarPolicyPublishRequest, CedarPolicyPublishSuccessResponse, CedarPolicyRecord,
+    CedarPolicyRequiredAttribute, CedarPolicyRuleRef, CedarPolicyScopeRef,
+    publish_cedar_policy_from_api,
 };
 
 // ==========================================================================
@@ -90,9 +90,9 @@ pub const PUBLISH_ROUTE: &str = "/policies/{policy_id}/versions/{version}";
 /// default-allow fallback — AUTH-005 fail-closed boot doctrine; task #124 /
 /// ADR-0572).
 pub struct CedarPolicyRestState {
-    policies: Mutex<PolicySet>,                              // data_class: INTERNAL_ONLY
+    policies: Mutex<PolicySet>, // data_class: INTERNAL_ONLY
     idempotency: Mutex<CedarPolicyPublishIdempotencyLedger>, // data_class: INTERNAL_ONLY
-    authz: CedarPolicyAuthzProvider,                         // data_class: INTERNAL_ONLY
+    authz: CedarPolicyAuthzProvider, // data_class: INTERNAL_ONLY
 }
 
 impl CedarPolicyRestState {
@@ -141,10 +141,10 @@ pub struct RequiredAttributeDto {
 /// JSON DTO for a single policy rule in the request body.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct PolicyRuleDto {
-    pub effect: String,          // data_class: INTERNAL_ONLY
-    pub principal_role: String,  // data_class: INTERNAL_ONLY
-    pub action: String,          // data_class: INTERNAL_ONLY
-    pub resource_prefix: String, // data_class: INTERNAL_ONLY
+    pub effect: String,                                   // data_class: INTERNAL_ONLY
+    pub principal_role: String,                           // data_class: INTERNAL_ONLY
+    pub action: String,                                   // data_class: INTERNAL_ONLY
+    pub resource_prefix: String,                          // data_class: INTERNAL_ONLY
     pub required_attribute: Option<RequiredAttributeDto>, // data_class: INTERNAL_ONLY
 }
 
@@ -158,17 +158,17 @@ pub struct PolicyScopeDto {
 /// JSON request body for `POST /policies/{policy_id}/versions/{version}`.
 #[derive(Clone, Debug, Deserialize)]
 pub struct PublishRequestBody {
-    pub policy_id: String,           // data_class: INTERNAL_ONLY
-    pub version: String,             // data_class: INTERNAL_ONLY
-    pub scope: PolicyScopeDto,       // data_class: INTERNAL_ONLY
-    pub supersedes: Option<String>,  // data_class: INTERNAL_ONLY
-    pub rules: Vec<PolicyRuleDto>,   // data_class: INTERNAL_ONLY
+    pub policy_id: String,          // data_class: INTERNAL_ONLY
+    pub version: String,            // data_class: INTERNAL_ONLY
+    pub scope: PolicyScopeDto,      // data_class: INTERNAL_ONLY
+    pub supersedes: Option<String>, // data_class: INTERNAL_ONLY
+    pub rules: Vec<PolicyRuleDto>,  // data_class: INTERNAL_ONLY
 }
 
 /// JSON success response body for `201 Created`.
 #[derive(Clone, Debug, Serialize)]
 pub struct PublishSuccessResponse {
-    pub data: PolicyRecordDto,       // data_class: INTERNAL_ONLY
+    pub data: PolicyRecordDto,        // data_class: INTERNAL_ONLY
     pub metadata: PublishMetadataDto, // data_class: INTERNAL_ONLY
 }
 
@@ -201,12 +201,12 @@ pub struct ErrorDetailDto {
 /// JSON error envelope for 4xx responses.
 #[derive(Clone, Debug, Serialize)]
 pub struct ErrorBodyDto {
-    pub code: String,                          // data_class: INTERNAL_ONLY
-    pub message: String,                       // data_class: INTERNAL_ONLY
-    pub message_localized: Option<String>,     // data_class: INTERNAL_ONLY
-    pub request_id: String,                    // data_class: INTERNAL_ONLY
-    pub details: Vec<ErrorDetailDto>,          // data_class: INTERNAL_ONLY
-    pub retry_after_seconds: Option<u64>,      // data_class: INTERNAL_ONLY
+    pub code: String,                      // data_class: INTERNAL_ONLY
+    pub message: String,                   // data_class: INTERNAL_ONLY
+    pub message_localized: Option<String>, // data_class: INTERNAL_ONLY
+    pub request_id: String,                // data_class: INTERNAL_ONLY
+    pub details: Vec<ErrorDetailDto>,      // data_class: INTERNAL_ONLY
+    pub retry_after_seconds: Option<u64>,  // data_class: INTERNAL_ONLY
 }
 
 /// Wrapper around the error body (mirrors the typed `CedarPolicyPublishApiErrorResponse`).
@@ -272,7 +272,9 @@ pub fn build_router(state: SharedCedarPolicyRestState) -> Router {
         // Explicit tight body limit for this control plane (64 KiB). Do not
         // rely on the host's DefaultBodyLimit; set it explicitly so the limit
         // is enforced regardless of how the router is embedded.
-        .layer(axum::extract::DefaultBodyLimit::max(PUBLISH_BODY_LIMIT_BYTES))
+        .layer(axum::extract::DefaultBodyLimit::max(
+            PUBLISH_BODY_LIMIT_BYTES,
+        ))
         .with_state(state)
 }
 
@@ -427,23 +429,15 @@ async fn publish_handler(
         Ok(success) => {
             tracing::Span::current().record("cedar.policy.publish.status_code", 201u16);
             tracing::Span::current().record("cedar.policy.publish.idempotent_replay", false);
-            (
-                StatusCode::CREATED,
-                Json(success_to_dto(success)),
-            )
-                .into_response()
+            (StatusCode::CREATED, Json(success_to_dto(success))).into_response()
         }
         Err(err) => {
             let status_code = err.cedar_policy_publish_status_code();
             tracing::Span::current().record("cedar.policy.publish.status_code", status_code);
             let error_response = err.error_response(request_id);
-            let http_status = StatusCode::from_u16(status_code)
-                .unwrap_or(StatusCode::INTERNAL_SERVER_ERROR);
-            (
-                http_status,
-                Json(error_response_to_dto(error_response)),
-            )
-                .into_response()
+            let http_status =
+                StatusCode::from_u16(status_code).unwrap_or(StatusCode::INTERNAL_SERVER_ERROR);
+            (http_status, Json(error_response_to_dto(error_response))).into_response()
         }
     }
 }
@@ -495,7 +489,10 @@ fn enforce_publish_authz(
     // x-principal-id is required: absent/empty means the caller did not assert
     // an identity, which this control plane does not allow.
     if claimed_principal_id.is_empty() {
-        return Err(authorization_denied_response(request_id, "principal_id_missing"));
+        return Err(authorization_denied_response(
+            request_id,
+            "principal_id_missing",
+        ));
     }
     if claimed_principal_id != verified.principal_id() {
         return Err(authorization_denied_response(request_id, "principal_id"));
@@ -506,7 +503,10 @@ fn enforce_publish_authz(
     if !claimed_principal_tenant_id.is_empty()
         && claimed_principal_tenant_id != verified.tenant_id()
     {
-        return Err(authorization_denied_response(request_id, "principal_tenant"));
+        return Err(authorization_denied_response(
+            request_id,
+            "principal_tenant",
+        ));
     }
 
     // (2) Reject unrecognised scope kinds BEFORE the PDP so the domain
@@ -724,10 +724,12 @@ fn dto_to_rule_ref(dto: PolicyRuleDto) -> CedarPolicyRuleRef {
         principal_role: dto.principal_role,
         action: dto.action,
         resource_prefix: dto.resource_prefix,
-        required_attribute: dto.required_attribute.map(|a| CedarPolicyRequiredAttribute {
-            key: a.key,
-            value: a.value,
-        }),
+        required_attribute: dto
+            .required_attribute
+            .map(|a| CedarPolicyRequiredAttribute {
+                key: a.key,
+                value: a.value,
+            }),
     }
 }
 
@@ -778,9 +780,7 @@ fn rule_ref_to_dto(rule: CedarPolicyRuleRef) -> PolicyRuleDto {
 }
 
 /// Convert a typed error response to the JSON error DTO.
-fn error_response_to_dto(
-    resp: crate::CedarPolicyPublishApiErrorResponse,
-) -> ErrorResponseDto {
+fn error_response_to_dto(resp: crate::CedarPolicyPublishApiErrorResponse) -> ErrorResponseDto {
     ErrorResponseDto {
         error: ErrorBodyDto {
             code: resp.error.code,

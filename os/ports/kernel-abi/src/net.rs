@@ -416,7 +416,9 @@ impl KernelNet for InMemoryKernelNet {
             origin,
         };
         let mut routes = self.routes.borrow_mut();
-        if routes.iter().any(|existing| ipv4_route_fib_key(existing) == ipv4_route_fib_key(&route))
+        if routes
+            .iter()
+            .any(|existing| ipv4_route_fib_key(existing) == ipv4_route_fib_key(&route))
         {
             return Err(already_exists("route", iface, "already installed"));
         }

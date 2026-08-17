@@ -42,10 +42,10 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
 use ci_artifact_inventory_registry::{
-    CrosswalkInputs, DecisionCrosswalkRow, EnforcementInputs, EnforcementRow, GateInputs,
-    OwnersIntegrity, Policy, ProducerError, RepoInputs, adr_id_from_filename, allocate_next_adr_id,
-    build_decision_crosswalk, build_enforcement_inventory, build_gate_baseline, build_registry,
-    ENVELOPE_PREFIX_OWNERSHIP_SOURCE, ENVELOPES_RELPATH, fix_owners, fix_reachability,
+    CrosswalkInputs, DecisionCrosswalkRow, ENVELOPE_PREFIX_OWNERSHIP_SOURCE, ENVELOPES_RELPATH,
+    EnforcementInputs, EnforcementRow, GateInputs, OwnersIntegrity, Policy, ProducerError,
+    RepoInputs, adr_id_from_filename, allocate_next_adr_id, build_decision_crosswalk,
+    build_enforcement_inventory, build_gate_baseline, build_registry, fix_owners, fix_reachability,
     front_matter_field, load_envelope_prefix_allows, load_reachability_registry,
     registration_matches, resolve_owners, to_canonical_json,
 };
@@ -3795,7 +3795,7 @@ const GRANDFATHERED_PHANTOM_DECISION_IDS: [&str; 62] = [
     "ADR-0420", "ADR-0421", "ADR-0423", "ADR-0428", "ADR-0429", "ADR-0434", "ADR-0436", "ADR-0441",
     "ADR-0443", "ADR-0448", "ADR-0449", "ADR-0450", "ADR-0451", "ADR-0454", "ADR-0457", "ADR-0458",
     "ADR-0459", "ADR-0460", "ADR-0461", "ADR-0462", "ADR-0466", "ADR-0468", "ADR-0472", "ADR-0473",
-    "ADR-0474", "ADR-0475", "ADR-0477", "ADR-0483", "ADR-0484", "ADR-0488"
+    "ADR-0474", "ADR-0475", "ADR-0477", "ADR-0483", "ADR-0484", "ADR-0488",
 ];
 
 /// Every `ADR-NNNN` token in a text (exactly four digits, not followed by a fifth digit).
@@ -4673,7 +4673,9 @@ fn mentioned_path_index(body: &str) -> BTreeSet<&str> {
     path_like_tokens(body)
         .map(|token| {
             let token = token.trim_start_matches('/');
-            token.split_once('#').map_or(token, |(path, _fragment)| path)
+            token
+                .split_once('#')
+                .map_or(token, |(path, _fragment)| path)
         })
         .filter(|token| !token.is_empty())
         .collect()
@@ -4923,14 +4925,13 @@ fn check_added_paths(
         .iter()
         .map(|path| {
             let excluded = is_path_excluded(path, cfg);
-            let (justification, reachable_from) = row_accounting.get(path).cloned().unwrap_or_else(
-                || {
+            let (justification, reachable_from) =
+                row_accounting.get(path).cloned().unwrap_or_else(|| {
                     (
                         justifications.get(path).cloned(),
                         reachability.get(path).cloned().unwrap_or_default(),
                     )
-                },
-            );
+                });
             AddedPathVerdict {
                 unit_class: policy.classify(path).to_owned(),
                 justification,

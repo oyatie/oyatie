@@ -394,9 +394,11 @@ pub fn corpus_class_counts(policy: &Value, observed: &Value) -> BTreeMap<String,
             let Some(prefixes) = matchers.get("prefixes").and_then(Value::as_array) else {
                 continue;
             };
-            let prefix_ok = prefixes
-                .iter()
-                .any(|prefix| prefix.as_str().is_some_and(|prefix| path.starts_with(prefix)));
+            let prefix_ok = prefixes.iter().any(|prefix| {
+                prefix
+                    .as_str()
+                    .is_some_and(|prefix| path.starts_with(prefix))
+            });
             if !prefix_ok {
                 continue;
             }
@@ -1006,7 +1008,10 @@ spec:
                 "docs/decisions/ADR-0700-x.md",
             ]),
         );
-        assert!(findings.is_empty(), "frozen corpus must be green; got {findings:#?}");
+        assert!(
+            findings.is_empty(),
+            "frozen corpus must be green; got {findings:#?}"
+        );
     }
 
     #[test]
@@ -1041,14 +1046,9 @@ spec:
 
     #[test]
     fn corpus_budget_absent_block_fails_closed() {
-        let findings = evaluate_corpus_budget(
-            &json!({}),
-            &corpus_observed(&["evidence/a.json"]),
-        );
+        let findings = evaluate_corpus_budget(&json!({}), &corpus_observed(&["evidence/a.json"]));
         assert!(
-            findings
-                .iter()
-                .any(|f| f.code == "corpus_budget_malformed"),
+            findings.iter().any(|f| f.code == "corpus_budget_malformed"),
             "a policy without corpus_budget must fail closed, never disable the ratchets; got {findings:#?}"
         );
     }
@@ -1058,9 +1058,7 @@ spec:
         let policy = json!({ "corpus_budget": { "counts": { "evidence_files": 1 } } });
         let findings = evaluate_corpus_budget(&policy, &corpus_observed(&["evidence/a.json"]));
         assert!(
-            findings
-                .iter()
-                .any(|f| f.code == "corpus_budget_malformed"),
+            findings.iter().any(|f| f.code == "corpus_budget_malformed"),
             "a missing class count must fail closed as malformed; got {findings:#?}"
         );
     }

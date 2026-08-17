@@ -138,6 +138,9 @@ mod tests {
             action_items: vec![],
             published_epoch_seconds: None,
         };
-        assert_eq!(validate_postmortem(&bad), Err("postmortem_timeline_monotonic"));
+        assert_eq!(
+            validate_postmortem(&bad),
+            Err("postmortem_timeline_monotonic")
+        );
     }
 }

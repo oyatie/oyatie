@@ -2,11 +2,11 @@
 mod support;
 use support::{expect_json_line, fake_cli, write_json_line};
 
+use futures::StreamExt;
 use intelligence_claude_agent_sdk::{
     ClaudeAgentOptions, ClaudeSDKClient, ElicitationMode, ElicitationResult, HookInput,
     HookSpecificOutput, Message, PermissionResult, SyncHookJsonOutput, query,
 };
-use futures::StreamExt;
 use serde_json::json;
 use tokio::time::{Duration, timeout};
 

@@ -15,11 +15,10 @@ use crate::config::MachineConfigDocument;
 use crate::reconcile::{
     Controller, Input, Output, ReconcileContext, ReconcileError, ReconcileResult,
 };
-use std::collections::{BTreeMap, BTreeSet};
-use os_kernel::Result as CoreResult;
-use os_kernel::{NodeAddress, ResourceId};
 use os_cosi_domain::resource::ResourceKind;
 use os_cosi_domain::{Metadata, Resource};
+use os_kernel::Result as CoreResult;
+use os_kernel::{NodeAddress, ResourceId};
 use os_machine_config_domain::yaml::Yaml;
 use os_machine_config_domain::{
     DhcpOptions, DhcpV4ClientIdentifier, DhcpV6ClientIdentifier, LinkFields, LinkRouteConfig,
@@ -33,6 +32,7 @@ use os_network_domain::{
     OperatorSpec, ResolverSpec, RouteProtocol, RouteSpec, RouteTable, Scope, VlanProtocol,
     merge_addresses, merge_hostname, merge_links, merge_operators, merge_routes, vlan_link_name,
 };
+use std::collections::{BTreeMap, BTreeSet};
 
 const NETWORK_NS: &str = "network";
 const NETWORK_CONFIG_NS: &str = "network-config";
@@ -2094,10 +2094,12 @@ fn static_route_spec(route: &LinkRouteConfig, link_name: &str) -> CoreResult<Rou
     };
     let mut normalized_family = None;
     if let Some(address) = destination
-        && prefix_len == 0 && address.is_unspecified() {
-            normalized_family = Some(address_family(address));
-            destination = None;
-        }
+        && prefix_len == 0
+        && address.is_unspecified()
+    {
+        normalized_family = Some(address_family(address));
+        destination = None;
+    }
     let gateway = if route.gateway.trim().is_empty() {
         None
     } else {
@@ -2105,10 +2107,11 @@ fn static_route_spec(route: &LinkRouteConfig, link_name: &str) -> CoreResult<Rou
     };
     let mut gateway = gateway;
     if let Some(address) = gateway
-        && address.is_unspecified() {
-            normalized_family = Some(address_family(address));
-            gateway = None;
-        }
+        && address.is_unspecified()
+    {
+        normalized_family = Some(address_family(address));
+        gateway = None;
+    }
     let source = if route.source.trim().is_empty() {
         None
     } else {
@@ -2116,10 +2119,11 @@ fn static_route_spec(route: &LinkRouteConfig, link_name: &str) -> CoreResult<Rou
     };
     let mut source = source;
     if let Some(address) = source
-        && address.is_unspecified() {
-            normalized_family = Some(address_family(address));
-            source = None;
-        }
+        && address.is_unspecified()
+    {
+        normalized_family = Some(address_family(address));
+        source = None;
+    }
     let family = match (destination, gateway, source, normalized_family) {
         (Some(address), _, _, _) => address_family(address),
         (None, Some(address), _, _) => address_family(address),
@@ -2916,9 +2920,9 @@ fn route_protocol_as_str(protocol: RouteProtocol) -> &'static str {
 mod tests {
     use super::*;
     use crate::runtime::ControllerRuntime;
+    use os_cosi_domain::State;
     use std::cell::RefCell;
     use std::rc::Rc;
-    use os_cosi_domain::State;
 
     fn v4(s: &str) -> NodeAddress {
         NodeAddress::parse_v4(s).unwrap()

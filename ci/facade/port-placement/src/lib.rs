@@ -127,8 +127,8 @@ struct TraitDef {
 pub fn collect_port_traits(root: &Path, policy: &Value) -> Result<Value, CollectError> {
     let forbidden_dirs = forbidden_layer_dirs(policy);
     let forbidden_suffixes = forbidden_crate_name_suffixes(policy);
-    let member_dirs =
-        resolve_member_dirs(root).map_err(|error| CollectError::ResolveMembers(error.to_string()))?;
+    let member_dirs = resolve_member_dirs(root)
+        .map_err(|error| CollectError::ResolveMembers(error.to_string()))?;
 
     let member_count = member_dirs.len();
     let mut members = Vec::new();
@@ -321,7 +321,10 @@ fn pub_trait_name(line: &str) -> Option<String> {
         return None;
     }
     // Skip an optional `unsafe` modifier.
-    let rest = rest.strip_prefix("unsafe").map(str::trim_start).unwrap_or(rest);
+    let rest = rest
+        .strip_prefix("unsafe")
+        .map(str::trim_start)
+        .unwrap_or(rest);
     // The keyword must be exactly `trait` followed by whitespace.
     let rest = rest.strip_prefix("trait")?;
     if !rest.starts_with(|c: char| c.is_whitespace()) {
@@ -482,7 +485,9 @@ fn parse_suffixes(policy: &Value) -> Result<Vec<String>, String> {
 
 /// True iff a trait name matches any port-name suffix.
 fn trait_is_port(name: &str, suffixes: &[String]) -> bool {
-    suffixes.iter().any(|suffix| name.ends_with(suffix.as_str()))
+    suffixes
+        .iter()
+        .any(|suffix| name.ends_with(suffix.as_str()))
 }
 
 /// Pure evaluator. `policy` is DATA (`port-placement-policy.json`); `baseline` is the frozen
@@ -841,10 +846,14 @@ mod tests {
         assert!(
             findings
                 .iter()
-                .any(|f| f.code == "PP-PORT-IN-ADAPTER" && f.key == "iam/adapters/foo-inmemory:FooStore"),
+                .any(|f| f.code == "PP-PORT-IN-ADAPTER"
+                    && f.key == "iam/adapters/foo-inmemory:FooStore"),
             "a port-named trait in an adapter must be flagged: {findings:#?}"
         );
-        assert_eq!(evaluate(&policy(), &empty_baseline(), &observed).verdict, Verdict::Red);
+        assert_eq!(
+            evaluate(&policy(), &empty_baseline(), &observed).verdict,
+            Verdict::Red
+        );
     }
 
     #[test]
@@ -855,7 +864,10 @@ mod tests {
             "iam/adapters/foo-adapter",
             &[
                 ("WorkloadAuthorizer", "iam/adapters/foo-adapter/src/lib.rs"),
-                ("ClaudeProcessSpawner", "iam/adapters/foo-adapter/src/lib.rs"),
+                (
+                    "ClaudeProcessSpawner",
+                    "iam/adapters/foo-adapter/src/lib.rs",
+                ),
                 ("SvidIssuanceBackend", "iam/adapters/foo-adapter/src/lib.rs"),
             ],
         );
@@ -864,7 +876,10 @@ mod tests {
             findings.is_empty(),
             "behavioral adapter traits must NOT be flagged: {findings:#?}"
         );
-        assert_eq!(evaluate(&policy(), &empty_baseline(), &observed).verdict, Verdict::Green);
+        assert_eq!(
+            evaluate(&policy(), &empty_baseline(), &observed).verdict,
+            Verdict::Green
+        );
     }
 
     #[test]
@@ -896,14 +911,16 @@ mod tests {
             !findings.iter().any(|f| f.code == "PP-PORT-IN-ADAPTER"),
             "a baselined existing violation must not be RED: {findings:#?}"
         );
-        assert_eq!(evaluate(&policy(), &baseline, &observed).verdict, Verdict::Green);
+        assert_eq!(
+            evaluate(&policy(), &baseline, &observed).verdict,
+            Verdict::Green
+        );
     }
 
     #[test]
     fn new_violation_beyond_baseline_is_red() {
         // Baseline freezes FooStore; a NEW BarRepository in the same adapter is RED.
-        let baseline =
-            json!([{ "member_path": "iam/adapters/foo-inmemory", "trait": "FooStore" }]);
+        let baseline = json!([{ "member_path": "iam/adapters/foo-inmemory", "trait": "FooStore" }]);
         let observed = observed_adapter(
             "foo-inmemory",
             "iam/adapters/foo-inmemory",
@@ -924,19 +941,23 @@ mod tests {
                 .any(|f| f.key == "iam/adapters/foo-inmemory:FooStore"),
             "the baselined trait must stay green: {findings:#?}"
         );
-        assert_eq!(evaluate(&policy(), &baseline, &observed).verdict, Verdict::Red);
+        assert_eq!(
+            evaluate(&policy(), &baseline, &observed).verdict,
+            Verdict::Red
+        );
     }
 
     #[test]
     fn relocated_baseline_entry_becomes_stale() {
         // Baseline freezes FooStore but the adapter no longer defines it -> PP-STALE-BASELINE.
-        let baseline =
-            json!([{ "member_path": "iam/adapters/foo-inmemory", "trait": "FooStore" }]);
+        let baseline = json!([{ "member_path": "iam/adapters/foo-inmemory", "trait": "FooStore" }]);
         let observed = json!({ "member_crates_found": 1000, "members": [] });
         let findings = evaluate_keyed(&policy(), &baseline, &observed);
         assert!(
-            findings.iter().any(|f| f.code == "PP-STALE-BASELINE"
-                && f.key == "iam/adapters/foo-inmemory:FooStore"),
+            findings
+                .iter()
+                .any(|f| f.code == "PP-STALE-BASELINE"
+                    && f.key == "iam/adapters/foo-inmemory:FooStore"),
             "a relocated baseline entry must become PP-STALE-BASELINE: {findings:#?}"
         );
     }
@@ -982,7 +1003,11 @@ mod tests {
             &empty_baseline(),
             &json!({ "member_crates_found": 1000, "members": [] }),
         );
-        assert!(findings.iter().any(|f| f.code == "PP-POLICY-GATE-ID-MISMATCH"));
+        assert!(
+            findings
+                .iter()
+                .any(|f| f.code == "PP-POLICY-GATE-ID-MISMATCH")
+        );
     }
 
     #[test]
@@ -1032,12 +1057,18 @@ mod tests {
 
     #[test]
     fn forbidden_layer_segment_is_whole_segment_not_substring() {
-        assert!(path_in_forbidden_layer("iam/adapters/foo", &["adapters".to_owned()]));
+        assert!(path_in_forbidden_layer(
+            "iam/adapters/foo",
+            &["adapters".to_owned()]
+        ));
         assert!(!path_in_forbidden_layer(
             "iam/my-adapters-helper/foo",
             &["adapters".to_owned()]
         ));
-        assert!(!path_in_forbidden_layer("iam/core/foo", &["adapters".to_owned()]));
+        assert!(!path_in_forbidden_layer(
+            "iam/core/foo",
+            &["adapters".to_owned()]
+        ));
     }
 
     #[test]
@@ -1080,7 +1111,10 @@ mod tests {
                     == "oya/payroll/crates/oya-payroll-run-storage-adapter-inmemory:PayrollRunStoragePort"),
             "adapter-named crate outside adapters/ must be flagged: {findings:#?}"
         );
-        assert_eq!(evaluate(&policy, &empty_baseline(), &observed).verdict, Verdict::Red);
+        assert_eq!(
+            evaluate(&policy, &empty_baseline(), &observed).verdict,
+            Verdict::Red
+        );
     }
 
     #[test]
@@ -1126,7 +1160,10 @@ mod tests {
             !findings.iter().any(|f| f.code == "PP-PORT-IN-ADAPTER"),
             "behavioral *Port traits must NOT be flagged when `Port` is not in suffix set: {findings:#?}"
         );
-        assert_eq!(evaluate(&policy(), &empty_baseline(), &observed).verdict, Verdict::Green);
+        assert_eq!(
+            evaluate(&policy(), &empty_baseline(), &observed).verdict,
+            Verdict::Green
+        );
     }
 
     // --- FIX 3: member_path key prevents same-tail collision masking ---
@@ -1138,8 +1175,7 @@ mod tests {
         // (payments/adapters/rest:PaymentStore). The new one must surface as RED even though
         // both crates share the tail `rest`. Under the old crate_tail key they would collide;
         // under the member_path key they are distinct.
-        let baseline =
-            json!([{ "member_path": "intelligence/adapters/rest", "trait": "SecretProviderStore" }]);
+        let baseline = json!([{ "member_path": "intelligence/adapters/rest", "trait": "SecretProviderStore" }]);
         let observed = json!({
             "member_crates_found": 1000,
             "members": [
@@ -1167,11 +1203,13 @@ mod tests {
         );
         // The NEW violation in the sibling `rest` crate must be RED.
         assert!(
-            findings
-                .iter()
-                .any(|f| f.code == "PP-PORT-IN-ADAPTER" && f.key == "payments/adapters/rest:PaymentStore"),
+            findings.iter().any(|f| f.code == "PP-PORT-IN-ADAPTER"
+                && f.key == "payments/adapters/rest:PaymentStore"),
             "a NEW violation in a same-tail sibling crate must be RED: {findings:#?}"
         );
-        assert_eq!(evaluate(&policy(), &baseline, &observed).verdict, Verdict::Red);
+        assert_eq!(
+            evaluate(&policy(), &baseline, &observed).verdict,
+            Verdict::Red
+        );
     }
 }

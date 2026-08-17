@@ -1130,5 +1130,4 @@ mod tests {
         // Package-local fixture (not docs/adr-archive) so Buck hermetic srcs include it.
         include_str!("../fixtures/adr-0354-d7-external-example.txt").to_string()
     }
-
 }

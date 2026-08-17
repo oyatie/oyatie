@@ -106,13 +106,11 @@ pub const MODE_ADVISORY_UNTIL_INFRA: &str = "advisory-until-infra";
 
 /// Repo-relative path of the sign-off door file — the SINGLE owner of this path: the gate
 /// test and the signoff fixer both consume it from here.
-pub const SIGNOFF_PATH: &str =
-    "ci/facade/baseline-ratchet/gate-baseline.signoff.json";
+pub const SIGNOFF_PATH: &str = "ci/facade/baseline-ratchet/gate-baseline.signoff.json";
 
 /// Repo-relative path of the committed ratchet policy (candidate copy; the FROZEN copy at
 /// the merge-base is what selects the frozen reference — FRIC-1781280000).
-pub const RATCHET_POLICY_PATH: &str =
-    "ci/facade/baseline-ratchet/ratchet-policy.json";
+pub const RATCHET_POLICY_PATH: &str = "ci/facade/baseline-ratchet/ratchet-policy.json";
 
 /// Repo-relative path of the untracked merge-base frozen-baseline snapshot.
 pub const FROZEN_SNAPSHOT_PATH: &str =
@@ -859,7 +857,10 @@ mod tests {
         let reports = compare(&relabelled, &cur, &SignOff::default());
         let unjust = reports.iter().find(|r| r.code == "unjustified").unwrap();
         assert!(unjust.regressions.is_empty(), "a pure move is not new debt");
-        assert!(unjust.fixed.is_empty(), "a pure move is not burn-down either");
+        assert!(
+            unjust.fixed.is_empty(),
+            "a pure move is not burn-down either"
+        );
         assert_eq!(unjust.tolerated.len(), 2);
         assert!(!unjust.fails());
     }
@@ -1085,7 +1086,9 @@ mod tests {
         })).unwrap();
         let growth = ratchet_growth(&frozen, &proposed, &SignOff::default());
         assert!(
-            growth.iter().any(|(_, c, _)| c == "ci_inventory_registry_drift"),
+            growth
+                .iter()
+                .any(|(_, c, _)| c == "ci_inventory_registry_drift"),
             "frozen_empty codes can never accumulate a baseline"
         );
     }
@@ -1529,8 +1532,7 @@ mod tests {
         // A provenance lifted from a DIFFERENT merge-base (tamper / stale snapshot) is rejected:
         // the firewall cannot recompute the tree, so it binds provenance to THIS merge_base.
         let mut value = frozen_value();
-        value["provenance"]["merge_base"] =
-            json!("cccccccccccccccccccccccccccccccccccccccc");
+        value["provenance"]["merge_base"] = json!("cccccccccccccccccccccccccccccccccccccccc");
         let err = FrozenBaseline::from_value(&value).unwrap_err();
         assert!(err.contains("disagrees"), "{err}");
     }

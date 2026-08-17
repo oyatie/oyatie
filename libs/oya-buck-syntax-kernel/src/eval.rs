@@ -42,7 +42,10 @@ impl Env {
 
     /// Build an env from caller-supplied slices (for consumers that already carry their own
     /// var lists; keeps migrated signatures behavior-identical).
-    pub fn from_slices(string_vars: &[(String, String)], glob_vars: &[(String, Vec<String>)]) -> Self {
+    pub fn from_slices(
+        string_vars: &[(String, String)],
+        glob_vars: &[(String, Vec<String>)],
+    ) -> Self {
         Env {
             string_vars: string_vars.iter().cloned().collect(),
             glob_vars: glob_vars.iter().cloned().collect(),

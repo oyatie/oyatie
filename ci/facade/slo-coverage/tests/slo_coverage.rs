@@ -144,8 +144,7 @@ fn repo_root() -> PathBuf {
 }
 
 fn run_producer_face(root: &Path, face: &str) -> Value {
-    let scm_facts = root
-        .join("ci/facade/artifact-inventory-registry/scm-facts.generated.json");
+    let scm_facts = root.join("ci/facade/artifact-inventory-registry/scm-facts.generated.json");
     let producer_bin = std::env::var("OYA_CI_PRODUCER_BIN").ok();
     let mut command = producer_command(root, producer_bin.as_deref()).expect("producer command");
 

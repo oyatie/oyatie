@@ -15,12 +15,12 @@ use network_lb::{
     CloudNetworkLbCreateApiRequest, CloudNetworkLbCreateApiStatus,
     CloudNetworkLbCreateIdempotencyLedger, CloudNetworkLbCreateRequest,
     CloudNetworkLbListenerCreateRequest, CloudNetworkLbMtlsConfigCreateRequest,
-    CloudNetworkLbSubnetRef, CloudNetworkLbTargetGroupCreateRequest, ConfiguredBearerPrincipalVerifier,
-    LbCreateAuthorizationError, LbCreateAuthorizer, LbCreateResource, VerifiedPrincipal,
-    create_cloud_network_load_balancer_from_api,
+    CloudNetworkLbSubnetRef, CloudNetworkLbTargetGroupCreateRequest,
+    ConfiguredBearerPrincipalVerifier, LbCreateAuthorizationError, LbCreateAuthorizer,
+    LbCreateResource, VerifiedPrincipal, create_cloud_network_load_balancer_from_api,
 };
-use oya_data_boundary_kernel::DataClass;
 use network_residency::ResidencyClass;
+use oya_data_boundary_kernel::DataClass;
 
 const VPC_ID: &str = "oya:cloud:region-home:ten_alpha:vpc:prod";
 const SUBNET_ID: &str = "oya:cloud:region-home:ten_alpha:subnet:prod-a";

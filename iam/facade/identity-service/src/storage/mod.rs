@@ -86,7 +86,13 @@ impl From<RepositoryError> for SeedError {
 /// workload ids, or an unknown lifecycle state.
 pub fn seed_from_json(
     document: &str,
-) -> Result<(InMemoryWorkloadPrincipalRepository, InMemoryRevocationDenylist), SeedError> {
+) -> Result<
+    (
+        InMemoryWorkloadPrincipalRepository,
+        InMemoryRevocationDenylist,
+    ),
+    SeedError,
+> {
     let seeds: Vec<SeedPrincipal> =
         serde_json::from_str(document).map_err(|e| SeedError::Malformed(e.to_string()))?;
     let mut repository = InMemoryWorkloadPrincipalRepository::new();
@@ -150,7 +156,10 @@ mod tests {
     #[test]
     fn seeds_all_lifecycle_states() {
         let (repo, denylist) = seed_from_json(SEED).expect("seed");
-        assert_eq!(load(&repo, "wl_secrets_sync").state(), WorkloadState::Active);
+        assert_eq!(
+            load(&repo, "wl_secrets_sync").state(),
+            WorkloadState::Active
+        );
         assert!(load(&repo, "wl_secrets_sync").has_scope("cloud.kms.decrypt"));
         assert_eq!(load(&repo, "wl_paused").state(), WorkloadState::Suspended);
         assert_eq!(load(&repo, "wl_gone").state(), WorkloadState::Retired);

@@ -187,7 +187,10 @@ fn load_subjects(path: Option<&str>) -> Result<SubjectCounts, String> {
 /// One line per non-green lane, then the verdict. This is what an operator reads instead of
 /// opening the Actions UI.
 fn print_report(state: &RunTerminalState) {
-    println!("{LOG}: candidate {} (run {})", state.candidate_sha, state.run_id);
+    println!(
+        "{LOG}: candidate {} (run {})",
+        state.candidate_sha, state.run_id
+    );
     println!("{LOG}: tally {:?}", state.tally());
     for lane in &state.lanes {
         if lane.state.is_green() {

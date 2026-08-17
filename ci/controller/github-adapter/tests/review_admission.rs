@@ -10,13 +10,13 @@ use std::{
     time::{Duration, Instant},
 };
 
-use httpmock::Mock;
-use httpmock::prelude::*;
 use ci_controller_github_adapter::GitHubCommitStatusPoster;
 use ci_controller_kernel::{
     CommitState, CommitStatusPoster, GitHubAccountType, GitHubPrincipal, KernelError,
     ReviewAdmissionPolicy, ReviewAdmissionProducer, ReviewVerdict,
 };
+use httpmock::Mock;
+use httpmock::prelude::*;
 use serde_json::json;
 
 const PR_NUMBER: u64 = 42;

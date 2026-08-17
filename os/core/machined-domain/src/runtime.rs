@@ -5,8 +5,8 @@
 //! the trait the sequencer queries to decide which sequences and phases are
 //! valid, and to read machine identity (control-plane vs worker).
 
-use std::str::FromStr;
 use os_kernel::{Error as CoreError, MachineType};
+use std::str::FromStr;
 
 /// The platform/runtime mode the machine is executing in.
 ///

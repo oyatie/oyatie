@@ -25,11 +25,8 @@ const BREAK_GLASS_SCOPE: &str = "quota:platform:write";
 async fn main() {
     tracing_subscriber::fmt()
         .with_env_filter(
-            tracing_subscriber::EnvFilter::from_default_env().add_directive(
-                "k8s_tenant_quota=info"
-                    .parse()
-                    .expect("valid directive"),
-            ),
+            tracing_subscriber::EnvFilter::from_default_env()
+                .add_directive("k8s_tenant_quota=info".parse().expect("valid directive")),
         )
         .json()
         .init();

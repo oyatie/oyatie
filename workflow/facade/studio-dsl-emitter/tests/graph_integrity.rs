@@ -237,7 +237,10 @@ fn emit_rejects_duplicate_edge_condition_spec() {
     );
     let result = emit_canonical_json(&spec);
     assert!(
-        matches!(result, Err(WorkflowSpecEmitError::DuplicateEdgeCondition(_))),
+        matches!(
+            result,
+            Err(WorkflowSpecEmitError::DuplicateEdgeCondition(_))
+        ),
         "emit_canonical_json must return DuplicateEdgeCondition for duplicate-condition siblings, got {result:?}",
     );
 }

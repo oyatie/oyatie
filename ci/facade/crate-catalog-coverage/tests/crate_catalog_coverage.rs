@@ -156,9 +156,12 @@ fn red_fixture_uncatalogued_crate_fails_closed() {
     // A synthetic crate with no row and no baseline entry MUST fail. This is the
     // proof the gate can fail at all — the difference between a gate and a decoration.
     let observed = Observed {
-        crates: [("synthetic-uncatalogued-crate".to_owned(), "x/Cargo.toml".to_owned())]
-            .into_iter()
-            .collect(),
+        crates: [(
+            "synthetic-uncatalogued-crate".to_owned(),
+            "x/Cargo.toml".to_owned(),
+        )]
+        .into_iter()
+        .collect(),
         catalog_rows: BTreeSet::new(),
     };
     let baseline = Baseline {

@@ -83,9 +83,9 @@ pub enum Stmt {
 impl Stmt {
     pub fn span(&self) -> Span {
         match self {
-            Stmt::Assign { span, .. }
-            | Stmt::IndexAssign { span, .. }
-            | Stmt::Opaque { span } => *span,
+            Stmt::Assign { span, .. } | Stmt::IndexAssign { span, .. } | Stmt::Opaque { span } => {
+                *span
+            }
             Stmt::Call(call) => call.span,
         }
     }
@@ -371,10 +371,7 @@ impl<'t> Parser<'t> {
 
     fn error(&self, message: impl Into<String>) -> ParseError {
         ParseError {
-            offset: self
-                .peek()
-                .map(|t| t.span.start)
-                .unwrap_or(self.text_len),
+            offset: self.peek().map(|t| t.span.start).unwrap_or(self.text_len),
             message: message.into(),
         }
     }
@@ -422,7 +419,10 @@ impl<'t> Parser<'t> {
                     self.pos += 2; // NAME [
                     let key = self.parse_expr()?;
                     if matches!(self.peek().map(|t| &t.kind), Some(TokenKind::Punct(']')))
-                        && matches!(self.peek_at(1).map(|t| &t.kind), Some(TokenKind::Punct('=')))
+                        && matches!(
+                            self.peek_at(1).map(|t| &t.kind),
+                            Some(TokenKind::Punct('='))
+                        )
                     {
                         self.pos += 2; // ] =
                         let value = self.parse_expr()?;
@@ -534,7 +534,10 @@ impl<'t> Parser<'t> {
             // kwarg: IDENT '=' (not '==' — the lexer emits Op("==") so a bare '=' is unambiguous).
             let arg_start = token.span.start;
             let (name, name_span) = if let TokenKind::Ident(kw) = &token.kind {
-                if matches!(self.peek_at(1).map(|t| &t.kind), Some(TokenKind::Punct('='))) {
+                if matches!(
+                    self.peek_at(1).map(|t| &t.kind),
+                    Some(TokenKind::Punct('='))
+                ) {
                     let kw = kw.clone();
                     let kw_span = token.span;
                     self.pos += 2;
@@ -675,7 +678,10 @@ impl<'t> Parser<'t> {
             }
             TokenKind::Ident(name) => {
                 let name = name.clone();
-                if matches!(self.peek_at(1).map(|t| &t.kind), Some(TokenKind::Punct('('))) {
+                if matches!(
+                    self.peek_at(1).map(|t| &t.kind),
+                    Some(TokenKind::Punct('('))
+                ) {
                     let call = self.parse_call(name, span, depth)?;
                     let call_span = call.span;
                     return Ok(ExprNode {

@@ -43,7 +43,9 @@ impl XorShift {
 fn kek_wrap_unwrap_round_trip_preserves_dek_crypto() {
     let sealing_root = root("cell-1-root");
     let original = kek("kek/ten_alpha", 1);
-    let (dek, wrapped_dek) = original.generate_dek(DekId::new("dek/obj_1").unwrap()).unwrap();
+    let (dek, wrapped_dek) = original
+        .generate_dek(DekId::new("dek/obj_1").unwrap())
+        .unwrap();
 
     let token = sealing_root.wrap_kek(&original).unwrap();
     let recovered = sealing_root.unwrap_kek(&token).unwrap();
@@ -79,7 +81,9 @@ fn token_encode_decode_round_trip() {
 #[test]
 fn wrapped_dek_encode_decode_round_trip() {
     let material = kek("kek/ten_alpha", 2);
-    let (_, wrapped) = material.generate_dek(DekId::new("dek/obj_7").unwrap()).unwrap();
+    let (_, wrapped) = material
+        .generate_dek(DekId::new("dek/obj_7").unwrap())
+        .unwrap();
     let decoded = WrappedDek::decode(&wrapped.encode()).unwrap();
     assert_eq!(decoded, wrapped);
     assert!(material.unwrap_dek(&decoded).is_ok());
@@ -90,7 +94,9 @@ fn property_sweep_payload_round_trips() {
     // Property: for arbitrary payload sizes and AADs, seal∘open = identity
     // and any AAD mismatch is rejected.
     let material = kek("kek/ten_prop", 1);
-    let (dek, _) = material.generate_dek(DekId::new("dek/prop").unwrap()).unwrap();
+    let (dek, _) = material
+        .generate_dek(DekId::new("dek/prop").unwrap())
+        .unwrap();
     let mut rng = XorShift(0x9e37_79b9_7f4a_7c15);
     for round in 0..64 {
         let payload_len = (rng.next_u64() % 1024) as usize;
@@ -104,7 +110,10 @@ fn property_sweep_payload_round_trips() {
         let mut wrong_aad = aad.clone();
         wrong_aad.push(0x01);
         assert!(
-            matches!(dek.open(&wrong_aad, &blob), Err(EnclaveError::CryptoRejected)),
+            matches!(
+                dek.open(&wrong_aad, &blob),
+                Err(EnclaveError::CryptoRejected)
+            ),
             "aad mismatch must reject (round {round})"
         );
     }
@@ -148,7 +157,10 @@ fn wrong_root_rejects_by_binding_then_crypto() {
 
     // Same id, different key material: rejected by AEAD.
     let impostor = root("cell-a-root");
-    assert!(matches!(impostor.unwrap_kek(&token), Err(EnclaveError::CryptoRejected)));
+    assert!(matches!(
+        impostor.unwrap_kek(&token),
+        Err(EnclaveError::CryptoRejected)
+    ));
 }
 
 #[test]
@@ -156,7 +168,9 @@ fn wrong_kek_and_wrong_version_reject_dek_unwrap() {
     let kek_alpha = kek("kek/ten_alpha", 1);
     let kek_beta = kek("kek/ten_beta", 1);
     let kek_alpha_v2 = kek("kek/ten_alpha", 2);
-    let (_, wrapped) = kek_alpha.generate_dek(DekId::new("dek/obj_1").unwrap()).unwrap();
+    let (_, wrapped) = kek_alpha
+        .generate_dek(DekId::new("dek/obj_1").unwrap())
+        .unwrap();
 
     assert!(matches!(
         kek_beta.unwrap_dek(&wrapped),
@@ -196,16 +210,27 @@ fn strict_decode_rejects_malformed_inputs() {
     // Trailing bytes rejected.
     let mut trailing = valid.clone();
     trailing.push(0x00);
-    assert_eq!(WrappedKekToken::decode(&trailing), Err(TokenError::TrailingBytes));
+    assert_eq!(
+        WrappedKekToken::decode(&trailing),
+        Err(TokenError::TrailingBytes)
+    );
 
     // Wrong kind: a wrapped-DEK decoded as a KEK token.
-    let (_, wrapped_dek) = material.generate_dek(DekId::new("dek/obj_1").unwrap()).unwrap();
-    assert_eq!(WrappedKekToken::decode(&wrapped_dek.encode()), Err(TokenError::WrongKind));
+    let (_, wrapped_dek) = material
+        .generate_dek(DekId::new("dek/obj_1").unwrap())
+        .unwrap();
+    assert_eq!(
+        WrappedKekToken::decode(&wrapped_dek.encode()),
+        Err(TokenError::WrongKind)
+    );
 
     // Bad magic.
     let mut bad_magic = valid;
     bad_magic[0] = b'X';
-    assert_eq!(WrappedKekToken::decode(&bad_magic), Err(TokenError::BadMagic));
+    assert_eq!(
+        WrappedKekToken::decode(&bad_magic),
+        Err(TokenError::BadMagic)
+    );
 
     // Empty input.
     assert_eq!(WrappedKekToken::decode(&[]), Err(TokenError::Truncated));

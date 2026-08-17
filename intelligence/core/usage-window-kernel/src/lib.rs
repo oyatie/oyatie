@@ -117,7 +117,11 @@ impl UsageEnforcement {
         let used = window.tokens_in.saturating_add(window.tokens_out);
 
         // Burn rate: integer tokens/sec; 0 when elapsed == 0 (division guard).
-        let burn_rate = if elapsed_secs == 0 { 0u64 } else { used / elapsed_secs };
+        let burn_rate = if elapsed_secs == 0 {
+            0u64
+        } else {
+            used / elapsed_secs
+        };
 
         // Zero-burn branch
         if burn_rate == 0 {
@@ -130,12 +134,11 @@ impl UsageEnforcement {
 
         // Compute thresholds using u128 to avoid intermediate overflow.
         let budget_u128 = budget_tokens as u128;
-        let limit_tokens = ((budget_u128 * window.usage_limit_pct as u128) / 100)
-            .min(budget_u128) as u64;
-        let reserve_floor_tokens = ((budget_u128
-            * (100u128 - window.reserve_remaining_pct.min(100) as u128))
-            / 100)
-            .min(budget_u128) as u64;
+        let limit_tokens =
+            ((budget_u128 * window.usage_limit_pct as u128) / 100).min(budget_u128) as u64;
+        let reserve_floor_tokens =
+            ((budget_u128 * (100u128 - window.reserve_remaining_pct.min(100) as u128)) / 100)
+                .min(budget_u128) as u64;
 
         // Already-breached check (either threshold).
         if used >= limit_tokens || used >= reserve_floor_tokens {

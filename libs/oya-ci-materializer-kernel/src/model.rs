@@ -168,11 +168,11 @@ impl GeneratedArtifact {
 
     /// Returns the generator block, or an error if absent.
     pub fn require_generator(&self) -> Result<&Generator, crate::plan::PlanError> {
-        self.generator.as_ref().ok_or_else(|| {
-            crate::plan::PlanError::MissingGenerator {
+        self.generator
+            .as_ref()
+            .ok_or_else(|| crate::plan::PlanError::MissingGenerator {
                 artifact_id: self.artifact_id.clone(),
-            }
-        })
+            })
     }
 }
 
@@ -208,7 +208,9 @@ impl ControlPlane {
 
     /// Find the runner registry entry for a given runner_id.
     pub fn find_runner(&self, runner_id: &str) -> Option<&RunnerRegistryEntry> {
-        self.runner_registry.iter().find(|r| r.runner_id == runner_id)
+        self.runner_registry
+            .iter()
+            .find(|r| r.runner_id == runner_id)
     }
 
     /// Return all artifact ids in de-commit-class, sorted.

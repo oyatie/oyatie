@@ -941,7 +941,10 @@ mod tests {
         // Honest wave packages more YAML; unpackaged 75 -> 34. Advisory surfaces slack; gate stays
         // green (PROCESS_TAX — hand re-freeze is not a merge blocker).
         let verdict = evaluate(&observed, 34, &wave25);
-        assert!(!verdict.failed(), "honest unpackaged drop must not merge-block");
+        assert!(
+            !verdict.failed(),
+            "honest unpackaged drop must not merge-block"
+        );
         assert!(
             verdict
                 .findings

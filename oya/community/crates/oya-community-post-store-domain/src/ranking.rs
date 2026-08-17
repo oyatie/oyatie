@@ -24,7 +24,6 @@
 /// ## rank_posts
 /// Orders by `hot_score` descending; stable ascending `post_id` tiebreak.
 /// Excludes entries with empty post_id.
-
 use crate::{VoteKind, VoteLedger};
 
 /// Recency weight constant: one day in seconds.
@@ -53,8 +52,11 @@ impl VoteLedger {
     /// - Maximal when up == down for a fixed total.
     /// - Symmetric: swapping up/down gives the same score.
     pub fn controversy_score(&self) -> u64 {
-        let (up, down) =
-            self.receipts.value.iter().fold((0u64, 0u64), |(u, d), r| match r.kind {
+        let (up, down) = self
+            .receipts
+            .value
+            .iter()
+            .fold((0u64, 0u64), |(u, d), r| match r.kind {
                 VoteKind::Up => (u.saturating_add(1), d),
                 VoteKind::Down => (u, d.saturating_add(1)),
             });
@@ -251,7 +253,11 @@ mod tests {
         ];
 
         let result = rank_posts(&entries, now);
-        assert_eq!(result, vec!["aaa", "mmm", "zzz"], "stable tiebreak must be ascending post_id");
+        assert_eq!(
+            result,
+            vec!["aaa", "mmm", "zzz"],
+            "stable tiebreak must be ascending post_id"
+        );
     }
 
     // ── 9: rank_posts excludes empty post_id ──────────────────────────────────
@@ -269,7 +275,11 @@ mod tests {
         ];
 
         let result = rank_posts(&entries, now);
-        assert_eq!(result, vec!["valid"], "empty/blank post_id must be excluded");
+        assert_eq!(
+            result,
+            vec!["valid"],
+            "empty/blank post_id must be excluded"
+        );
     }
 
     // ── 10: rank_posts higher hot_score wins ──────────────────────────────────
@@ -326,6 +336,9 @@ mod tests {
 
         let first = rank_posts(&entries, now);
         let second = rank_posts(&entries, now);
-        assert_eq!(first, second, "repeated ranking of identical input must be identical");
+        assert_eq!(
+            first, second,
+            "repeated ranking of identical input must be identical"
+        );
     }
 }

@@ -88,9 +88,10 @@ fn records(body: &str) -> Vec<&str> {
     let mut lines: Vec<&str> = body.split('\n').collect();
     // Drop the single trailing empty element produced by the trailing LF.
     if let Some(last) = lines.last()
-        && last.is_empty() {
-            lines.pop();
-        }
+        && last.is_empty()
+    {
+        lines.pop();
+    }
     lines
 }
 
@@ -103,7 +104,7 @@ fn records(body: &str) -> Vec<&str> {
 /// member iff it equals the canonical OU of one of the roles in `all()`.
 fn role_all_includes(role_string: &str) -> bool {
     let all = RoleSet::all();
-    
+
     all.iter().any(|r: Role| r.as_ou() == role_string)
 }
 
@@ -1336,7 +1337,9 @@ fn option_u64_fingerprint(value: Option<u64>) -> String {
 fn size_limit_fingerprint(value: Option<os_machine_config_domain::SizeLimit>) -> String {
     match value {
         Some(os_machine_config_domain::SizeLimit::Absolute(bytes)) => bytes.to_string(),
-        Some(os_machine_config_domain::SizeLimit::RelativePercent(percent)) => format!("{percent}%"),
+        Some(os_machine_config_domain::SizeLimit::RelativePercent(percent)) => {
+            format!("{percent}%")
+        }
         Some(os_machine_config_domain::SizeLimit::NegativeBytes(bytes)) => format!("-{bytes}"),
         Some(os_machine_config_domain::SizeLimit::NegativeRelativePercent(percent)) => {
             format!("-{percent}%")
@@ -1576,8 +1579,9 @@ fn vip_operator_config_tsv() {
         );
 
         let config = vip_operator_config(cols[1], cols[2], cols[3]);
-        let actual = os_controllers_domain::network::machine_config_operator_specs_fingerprint(&config)
-            .unwrap_or_else(|error| format!("error={error}"));
+        let actual =
+            os_controllers_domain::network::machine_config_operator_specs_fingerprint(&config)
+                .unwrap_or_else(|error| format!("error={error}"));
         assert_eq!(
             actual, cols[4],
             "VIP operator projection mismatch for case {}",

@@ -442,7 +442,9 @@ pub fn action_for_template(template: &str) -> Option<MoneyMutationAction> {
     match template {
         crate::PAYROLL_TRIAL_CLOSE_PATH => Some(MoneyMutationAction::TrialClose),
         crate::PAYROLL_ACCOUNTING_JOURNAL_DRAFT_PATH => Some(MoneyMutationAction::JournalDraft),
-        crate::PAYROLL_HR_LEAVE_IMPACT_INTAKE_PATH => Some(MoneyMutationAction::HrLeaveImpactIntake),
+        crate::PAYROLL_HR_LEAVE_IMPACT_INTAKE_PATH => {
+            Some(MoneyMutationAction::HrLeaveImpactIntake)
+        }
         _ => None,
     }
 }

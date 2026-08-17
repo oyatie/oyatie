@@ -896,8 +896,7 @@ fn assert_public_protocol_reconciliation(adr_id: &str, document: &str, heading: 
             .lines()
             .any(|line| line.strip_prefix("status:").is_some_and(|status| {
                 let status = status.trim().trim_matches(['\'', '"']);
-                status.eq_ignore_ascii_case("accepted")
-                    || status.eq_ignore_ascii_case("superseded")
+                status.eq_ignore_ascii_case("accepted") || status.eq_ignore_ascii_case("superseded")
             })),
         "{adr_id} must remain Accepted or Superseded"
     );
@@ -999,50 +998,51 @@ fn live_adr_authority_reconciliation_is_green() {
         .map(|status| status.as_str().expect("accepted status"))
         .collect::<BTreeSet<_>>();
     for corpus_rel in ["docs/decisions", "docs/adr-archive"] {
-    let corpus_dir = root.join(corpus_rel);
-    if !corpus_dir.is_dir() {
-        continue;
-    }
-    for entry in fs::read_dir(&corpus_dir).unwrap_or_else(|e| panic!("read {corpus_rel}: {e}")) {
-        let path = entry.expect("ADR entry").path();
-        let file_name = path
-            .file_name()
-            .and_then(|value| value.to_str())
-            .unwrap_or("");
-        if path.extension().and_then(|value| value.to_str()) != Some("md")
-            || file_name.len() < 9
-            || !file_name.as_bytes()[4..8].iter().all(u8::is_ascii_digit)
-            || file_name.as_bytes()[8] != b'-'
-        {
+        let corpus_dir = root.join(corpus_rel);
+        if !corpus_dir.is_dir() {
             continue;
         }
-        let document = fs::read_to_string(&path)
-            .unwrap_or_else(|error| panic!("read {}: {error}", path.display()));
-        if document.starts_with("---\n") {
-            let metadata = frontmatter(&document);
-            let status_line = metadata
-                .lines()
-                .find(|line| line.starts_with("status:"))
+        for entry in fs::read_dir(&corpus_dir).unwrap_or_else(|e| panic!("read {corpus_rel}: {e}"))
+        {
+            let path = entry.expect("ADR entry").path();
+            let file_name = path
+                .file_name()
+                .and_then(|value| value.to_str())
                 .unwrap_or("");
-            let status_ok = accepted_status(metadata, &accepted_statuses)
-                || status_line.to_ascii_lowercase().contains("superseded");
-            if status_ok {
-                accepted_documents.insert(
-                    metadata
-                        .lines()
-                        .find_map(|line| line.strip_prefix("id:").map(str::trim))
-                        .unwrap_or(&file_name[..8])
-                        .to_owned(),
-                    document,
-                );
+            if path.extension().and_then(|value| value.to_str()) != Some("md")
+                || file_name.len() < 9
+                || !file_name.as_bytes()[4..8].iter().all(u8::is_ascii_digit)
+                || file_name.as_bytes()[8] != b'-'
+            {
+                continue;
             }
-        } else {
-            let lifecycle_prefix = document.lines().take(40).collect::<Vec<_>>().join(" ");
-            if lifecycle_prefix.to_ascii_lowercase().contains("accepted") {
-                accepted_documents.insert(file_name[..8].to_owned(), document);
+            let document = fs::read_to_string(&path)
+                .unwrap_or_else(|error| panic!("read {}: {error}", path.display()));
+            if document.starts_with("---\n") {
+                let metadata = frontmatter(&document);
+                let status_line = metadata
+                    .lines()
+                    .find(|line| line.starts_with("status:"))
+                    .unwrap_or("");
+                let status_ok = accepted_status(metadata, &accepted_statuses)
+                    || status_line.to_ascii_lowercase().contains("superseded");
+                if status_ok {
+                    accepted_documents.insert(
+                        metadata
+                            .lines()
+                            .find_map(|line| line.strip_prefix("id:").map(str::trim))
+                            .unwrap_or(&file_name[..8])
+                            .to_owned(),
+                        document,
+                    );
+                }
+            } else {
+                let lifecycle_prefix = document.lines().take(40).collect::<Vec<_>>().join(" ");
+                if lifecycle_prefix.to_ascii_lowercase().contains("accepted") {
+                    accepted_documents.insert(file_name[..8].to_owned(), document);
+                }
             }
         }
-    }
     }
     assert!(
         !accepted_documents.is_empty(),
@@ -1050,9 +1050,11 @@ fn live_adr_authority_reconciliation_is_green() {
     );
 
     for id in &declared {
-        let document = accepted_documents
-            .get(*id)
-            .unwrap_or_else(|| panic!("reconciled ADR {id} must exist under live or archive corpus with an allowed status"));
+        let document = accepted_documents.get(*id).unwrap_or_else(|| {
+            panic!(
+                "reconciled ADR {id} must exist under live or archive corpus with an allowed status"
+            )
+        });
         assert_public_protocol_reconciliation(id, document, heading);
         assert!(
             frontmatter(document)
@@ -1085,9 +1087,9 @@ fn live_adr_authority_reconciliation_is_green() {
         .map(|document| frontmatter(document))
         .expect("ADR-0565 must exist under live or archive corpus");
     for id in zero_graphql_layer_adrs {
-        let amended = accepted_documents
-            .get(id)
-            .unwrap_or_else(|| panic!("zero-GraphQL layer ADR {id} must exist under live or archive corpus"));
+        let amended = accepted_documents.get(id).unwrap_or_else(|| {
+            panic!("zero-GraphQL layer ADR {id} must exist under live or archive corpus")
+        });
         let amended_frontmatter = frontmatter(amended);
         for amendment in ["ADR-0565", "ADR-0632"] {
             assert!(
@@ -1111,13 +1113,12 @@ fn live_adr_authority_reconciliation_is_green() {
         // members are scanned for declared-authority reconciliation only;
         // their historical wording must not fail this lane after disposition.
         let is_accepted = frontmatter(document).lines().any(|line| {
-            line.strip_prefix("status:")
-                .is_some_and(|status| {
-                    status
-                        .trim()
-                        .trim_matches(['\'', '"'])
-                        .eq_ignore_ascii_case("accepted")
-                })
+            line.strip_prefix("status:").is_some_and(|status| {
+                status
+                    .trim()
+                    .trim_matches(['\'', '"'])
+                    .eq_ignore_ascii_case("accepted")
+            })
         });
         if !is_accepted {
             continue;

@@ -1080,8 +1080,7 @@ mod tests {
     fn mwmb_both_windows_hot_fires_fast_and_slow_alert() {
         // 5 % error rate = 50x burn on a 99.9 % SLO => exceeds both 14x and 6x
         let hot = window_with_error_rate(10_000, 50_000);
-        let result =
-            assess_multiwindow_burn(hot, hot, SloBurnProfile::default()).unwrap();
+        let result = assess_multiwindow_burn(hot, hot, SloBurnProfile::default()).unwrap();
         assert!(
             result.fast_burn_alert,
             "fast_burn_alert must fire when both windows are hot"
@@ -1098,8 +1097,7 @@ mod tests {
     fn mwmb_only_short_window_hot_suppresses_alert() {
         let hot = window_with_error_rate(10_000, 50_000); // 50x burn
         let healthy = window_with_error_rate(10_000, 100); // ~0.1x burn (well under threshold)
-        let result =
-            assess_multiwindow_burn(hot, healthy, SloBurnProfile::default()).unwrap();
+        let result = assess_multiwindow_burn(hot, healthy, SloBurnProfile::default()).unwrap();
         assert!(
             !result.fast_burn_alert,
             "fast_burn_alert must be suppressed when only short window is hot"
@@ -1116,8 +1114,7 @@ mod tests {
     fn mwmb_only_long_window_hot_suppresses_alert() {
         let healthy = window_with_error_rate(10_000, 100); // ~0.1x burn
         let hot = window_with_error_rate(10_000, 50_000); // 50x burn
-        let result =
-            assess_multiwindow_burn(healthy, hot, SloBurnProfile::default()).unwrap();
+        let result = assess_multiwindow_burn(healthy, hot, SloBurnProfile::default()).unwrap();
         assert!(
             !result.fast_burn_alert,
             "fast_burn_alert must be suppressed when only long window is hot"
@@ -1135,8 +1132,7 @@ mod tests {
             total_events: 0,
             success_events: 0,
         };
-        let result =
-            assess_multiwindow_burn(zero, zero, SloBurnProfile::default()).unwrap();
+        let result = assess_multiwindow_burn(zero, zero, SloBurnProfile::default()).unwrap();
         assert!(
             !result.fast_burn_alert,
             "fast_burn_alert must not fire on zero traffic"
@@ -1182,8 +1178,7 @@ mod tests {
             total_events: 6_000,
             success_events: 5_994, // 0.1% error => ~1x burn on 99.9% SLO
         };
-        let result =
-            assess_multiwindow_burn(short, long, SloBurnProfile::default()).unwrap();
+        let result = assess_multiwindow_burn(short, long, SloBurnProfile::default()).unwrap();
         // short window is hot
         assert!(result.short_window.fast_burn_alert);
         // long window is not hot

@@ -107,9 +107,7 @@ pub fn roll_up_savings(
         0u16
     } else {
         // (savings * 10_000) / spend, saturating at u16::MAX then capped at 10_000.
-        let bps = estimated_savings_micros
-            .saturating_mul(10_000)
-            / total_baseline_spend_micros;
+        let bps = estimated_savings_micros.saturating_mul(10_000) / total_baseline_spend_micros;
         if bps >= 10_000 {
             10_000u16
         } else {
@@ -128,7 +126,9 @@ pub fn roll_up_savings(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{CostReport, Recommendation, RecommendationKind, RecommendationState, ReportPeriod};
+    use crate::{
+        CostReport, Recommendation, RecommendationKind, RecommendationState, ReportPeriod,
+    };
 
     fn report(id: &str, spend: u128) -> CostReport {
         CostReport {
@@ -170,25 +170,69 @@ mod tests {
     fn mixed_states_only_counts_active_and_applied() {
         let reps = vec![report("r1", 1_000_000)];
         let recs = vec![
-            rec("d1", RecommendationKind::RightsizeInstance, Some("r1"), 100_000, RecommendationState::Draft),
-            rec("d2", RecommendationKind::RightsizeInstance, Some("r1"), 200_000, RecommendationState::Dismissed),
-            rec("a1", RecommendationKind::RightsizeInstance, Some("r1"), 50_000, RecommendationState::Active),
-            rec("a2", RecommendationKind::StorageTier, Some("r1"), 30_000, RecommendationState::Applied),
+            rec(
+                "d1",
+                RecommendationKind::RightsizeInstance,
+                Some("r1"),
+                100_000,
+                RecommendationState::Draft,
+            ),
+            rec(
+                "d2",
+                RecommendationKind::RightsizeInstance,
+                Some("r1"),
+                200_000,
+                RecommendationState::Dismissed,
+            ),
+            rec(
+                "a1",
+                RecommendationKind::RightsizeInstance,
+                Some("r1"),
+                50_000,
+                RecommendationState::Active,
+            ),
+            rec(
+                "a2",
+                RecommendationKind::StorageTier,
+                Some("r1"),
+                30_000,
+                RecommendationState::Applied,
+            ),
         ];
         let result = roll_up_savings(&recs, &reps).unwrap();
         // Only a1 + a2 contribute
         assert_eq!(result.estimated_savings_micros, 80_000);
-        assert_eq!(*result.counts_by_kind.get(&RecommendationKind::RightsizeInstance).unwrap(), 1);
-        assert_eq!(*result.counts_by_kind.get(&RecommendationKind::StorageTier).unwrap(), 1);
-        assert!(!result.counts_by_kind.contains_key(&RecommendationKind::SpotCommit));
+        assert_eq!(
+            *result
+                .counts_by_kind
+                .get(&RecommendationKind::RightsizeInstance)
+                .unwrap(),
+            1
+        );
+        assert_eq!(
+            *result
+                .counts_by_kind
+                .get(&RecommendationKind::StorageTier)
+                .unwrap(),
+            1
+        );
+        assert!(
+            !result
+                .counts_by_kind
+                .contains_key(&RecommendationKind::SpotCommit)
+        );
     }
 
     // (c) missing baseline -> error
     #[test]
     fn missing_baseline_report_returns_error() {
-        let recs = vec![
-            rec("a1", RecommendationKind::RightsizeInstance, Some("missing-id"), 50_000, RecommendationState::Active),
-        ];
+        let recs = vec![rec(
+            "a1",
+            RecommendationKind::RightsizeInstance,
+            Some("missing-id"),
+            50_000,
+            RecommendationState::Active,
+        )];
         let result = roll_up_savings(&recs, &[]);
         assert!(matches!(
             result,
@@ -200,9 +244,13 @@ mod tests {
     #[test]
     fn coverage_bps_saturates_at_ten_thousand() {
         let reps = vec![report("r1", 1_000)];
-        let recs = vec![
-            rec("a1", RecommendationKind::RightsizeInstance, Some("r1"), 5_000, RecommendationState::Active),
-        ];
+        let recs = vec![rec(
+            "a1",
+            RecommendationKind::RightsizeInstance,
+            Some("r1"),
+            5_000,
+            RecommendationState::Active,
+        )];
         let result = roll_up_savings(&recs, &reps).unwrap();
         assert_eq!(result.coverage_bps, 10_000);
     }
@@ -212,18 +260,70 @@ mod tests {
     fn per_kind_counts_are_correct() {
         let reps = vec![report("r1", 10_000_000)];
         let recs = vec![
-            rec("r1", RecommendationKind::RightsizeInstance, Some("r1"), 100_000, RecommendationState::Active),
-            rec("r2", RecommendationKind::RightsizeInstance, Some("r1"), 100_000, RecommendationState::Applied),
-            rec("r3", RecommendationKind::SpotCommit, Some("r1"), 50_000, RecommendationState::Active),
-            rec("r4", RecommendationKind::ReservedCapacityPurchase, Some("r1"), 75_000, RecommendationState::Active),
-            rec("r5", RecommendationKind::UnusedResourceCleanup, None, 20_000, RecommendationState::Draft),
+            rec(
+                "r1",
+                RecommendationKind::RightsizeInstance,
+                Some("r1"),
+                100_000,
+                RecommendationState::Active,
+            ),
+            rec(
+                "r2",
+                RecommendationKind::RightsizeInstance,
+                Some("r1"),
+                100_000,
+                RecommendationState::Applied,
+            ),
+            rec(
+                "r3",
+                RecommendationKind::SpotCommit,
+                Some("r1"),
+                50_000,
+                RecommendationState::Active,
+            ),
+            rec(
+                "r4",
+                RecommendationKind::ReservedCapacityPurchase,
+                Some("r1"),
+                75_000,
+                RecommendationState::Active,
+            ),
+            rec(
+                "r5",
+                RecommendationKind::UnusedResourceCleanup,
+                None,
+                20_000,
+                RecommendationState::Draft,
+            ),
         ];
         let result = roll_up_savings(&recs, &reps).unwrap();
-        assert_eq!(*result.counts_by_kind.get(&RecommendationKind::RightsizeInstance).unwrap(), 2);
-        assert_eq!(*result.counts_by_kind.get(&RecommendationKind::SpotCommit).unwrap(), 1);
-        assert_eq!(*result.counts_by_kind.get(&RecommendationKind::ReservedCapacityPurchase).unwrap(), 1);
+        assert_eq!(
+            *result
+                .counts_by_kind
+                .get(&RecommendationKind::RightsizeInstance)
+                .unwrap(),
+            2
+        );
+        assert_eq!(
+            *result
+                .counts_by_kind
+                .get(&RecommendationKind::SpotCommit)
+                .unwrap(),
+            1
+        );
+        assert_eq!(
+            *result
+                .counts_by_kind
+                .get(&RecommendationKind::ReservedCapacityPurchase)
+                .unwrap(),
+            1
+        );
         // Draft UnusedResourceCleanup should not appear
-        assert!(!result.counts_by_kind.contains_key(&RecommendationKind::UnusedResourceCleanup));
+        assert!(
+            !result
+                .counts_by_kind
+                .contains_key(&RecommendationKind::UnusedResourceCleanup)
+        );
         // Total savings: 100_000 + 100_000 + 50_000 + 75_000 = 325_000
         assert_eq!(result.estimated_savings_micros, 325_000);
     }
@@ -232,9 +332,13 @@ mod tests {
     #[test]
     fn zero_baseline_spend_yields_zero_bps() {
         let reps = vec![report("r1", 0)];
-        let recs = vec![
-            rec("a1", RecommendationKind::RightsizeInstance, Some("r1"), 1_000, RecommendationState::Active),
-        ];
+        let recs = vec![rec(
+            "a1",
+            RecommendationKind::RightsizeInstance,
+            Some("r1"),
+            1_000,
+            RecommendationState::Active,
+        )];
         let result = roll_up_savings(&recs, &reps).unwrap();
         assert_eq!(result.coverage_bps, 0);
     }
@@ -242,14 +346,24 @@ mod tests {
     // Extra: recommendation without baseline_report_id contributes savings but not spend
     #[test]
     fn active_rec_without_baseline_contributes_savings_not_spend() {
-        let recs = vec![
-            rec("a1", RecommendationKind::StorageTier, None, 999_999, RecommendationState::Active),
-        ];
+        let recs = vec![rec(
+            "a1",
+            RecommendationKind::StorageTier,
+            None,
+            999_999,
+            RecommendationState::Active,
+        )];
         let result = roll_up_savings(&recs, &[]).unwrap();
         assert_eq!(result.estimated_savings_micros, 999_999);
         // No baseline spend => coverage_bps = 0
         assert_eq!(result.coverage_bps, 0);
-        assert_eq!(*result.counts_by_kind.get(&RecommendationKind::StorageTier).unwrap(), 1);
+        assert_eq!(
+            *result
+                .counts_by_kind
+                .get(&RecommendationKind::StorageTier)
+                .unwrap(),
+            1
+        );
     }
 
     // Extra: error message is non-empty

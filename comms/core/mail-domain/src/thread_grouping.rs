@@ -177,7 +177,9 @@ fn normalize_subject(value: &str) -> String {
         }
         // Re-trim the *original* casing at same offset, then continue.
         let offset = s.len() - lower.len() + stripped.len();
-        s = s[s.len() - lower.len()..][..stripped.len()].trim_start().to_string();
+        s = s[s.len() - lower.len()..][..stripped.len()]
+            .trim_start()
+            .to_string();
         let _ = offset; // unused after rewrite below — see corrected logic
     }
     // Redo with a cleaner loop that works on the lowercased copy throughout.
@@ -348,10 +350,7 @@ mod tests {
 
     #[test]
     fn empty_in_reply_to_falls_through_to_references() {
-        let headers = [
-            ("In-Reply-To", "  "),
-            ("References", "<ref@x>"),
-        ];
+        let headers = [("In-Reply-To", "  "), ("References", "<ref@x>")];
         assert_eq!(
             group_into_thread(&headers),
             ThreadAssignment::ExistingThread("ref@x".into())

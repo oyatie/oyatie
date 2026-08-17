@@ -812,7 +812,13 @@ impl SubscriptionPool {
             let mut pool = pool_ref
                 .lock()
                 .map_err(|_| SubscriptionPoolError::NoEligibleSeat)?;
-            let sid = pool.select_excluding_leased(principal_tenant, agent_id, gate, now, estimated_units)?;
+            let sid = pool.select_excluding_leased(
+                principal_tenant,
+                agent_id,
+                gate,
+                now,
+                estimated_units,
+            )?;
             pool.reserve_lease(&sid, estimated_units)?;
             sid
         };
@@ -935,7 +941,14 @@ impl SubscriptionPool {
         now: Instant,
         estimated_units: u64,
     ) -> Result<SeatId, SubscriptionPoolError> {
-        self.select_candidate(principal_tenant, agent_id, gate, now, estimated_units, false)
+        self.select_candidate(
+            principal_tenant,
+            agent_id,
+            gate,
+            now,
+            estimated_units,
+            false,
+        )
     }
 
     fn select_candidate(
@@ -1539,16 +1552,15 @@ mod tests {
                 .expect("add seat");
         }
 
-        let first =
-            SubscriptionPool::lease_with_estimate(
-                &pool,
-                &tenant("tenant-a"),
-                &agent("agent-a"),
-                &AllowGate,
-                now,
-                90,
-            )
-            .expect("first lease");
+        let first = SubscriptionPool::lease_with_estimate(
+            &pool,
+            &tenant("tenant-a"),
+            &agent("agent-a"),
+            &AllowGate,
+            now,
+            90,
+        )
+        .expect("first lease");
         assert_eq!(first.seat_id(), &seat("seat-a"));
         assert_eq!(
             pool.lock()
@@ -1557,16 +1569,15 @@ mod tests {
             Some(90)
         );
 
-        let second =
-            SubscriptionPool::lease_with_estimate(
-                &pool,
-                &tenant("tenant-a"),
-                &agent("agent-b"),
-                &AllowGate,
-                now,
-                90,
-            )
-            .expect("second lease");
+        let second = SubscriptionPool::lease_with_estimate(
+            &pool,
+            &tenant("tenant-a"),
+            &agent("agent-b"),
+            &AllowGate,
+            now,
+            90,
+        )
+        .expect("second lease");
         assert_eq!(second.seat_id(), &seat("seat-b"));
 
         first
@@ -1618,16 +1629,15 @@ mod tests {
             .expect("add seat");
 
         assert!(pool.lock().expect("pool lock").has_eligible_seat(now));
-        let lease =
-            SubscriptionPool::lease_with_estimate(
-                &pool,
-                &tenant("tenant-a"),
-                &agent("agent-a"),
-                &AllowGate,
-                now,
-                10,
-            )
-            .expect("lease after reset");
+        let lease = SubscriptionPool::lease_with_estimate(
+            &pool,
+            &tenant("tenant-a"),
+            &agent("agent-a"),
+            &AllowGate,
+            now,
+            10,
+        )
+        .expect("lease after reset");
         lease
             .complete_with_usage(SeatOutcome::Ok, now, 10)
             .expect("complete after reset");
@@ -1638,7 +1648,13 @@ mod tests {
             Some(10)
         );
         assert_eq!(
-            locked.select_with_estimate(&tenant("tenant-a"), &agent("agent-a"), &AllowGate, now, 91),
+            locked.select_with_estimate(
+                &tenant("tenant-a"),
+                &agent("agent-a"),
+                &AllowGate,
+                now,
+                91
+            ),
             Err(SubscriptionPoolError::NoEligibleSeat)
         );
     }

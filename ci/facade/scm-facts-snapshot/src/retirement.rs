@@ -2441,7 +2441,9 @@ mod tests {
     fn non_unix_canonical_ignored_generated_writer_fails_closed() {
         let err = CanonicalIgnoredGeneratedWriter::open(
             Path::new("."),
-            Path::new("ci/facade/artifact-inventory-registry/adr-census-epoch-receipt.generated.json"),
+            Path::new(
+                "ci/facade/artifact-inventory-registry/adr-census-epoch-receipt.generated.json",
+            ),
         )
         .expect_err("non-unix stub must fail closed");
         assert!(
@@ -2450,7 +2452,9 @@ mod tests {
         );
         let err = write_canonical_ignored_generated_file(
             Path::new("."),
-            Path::new("ci/facade/artifact-inventory-registry/adr-census-epoch-receipt.generated.json"),
+            Path::new(
+                "ci/facade/artifact-inventory-registry/adr-census-epoch-receipt.generated.json",
+            ),
             b"{}",
         )
         .expect_err("non-unix free function must fail closed");

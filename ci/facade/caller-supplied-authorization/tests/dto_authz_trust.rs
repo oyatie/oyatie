@@ -37,8 +37,7 @@ fn repo_root() -> PathBuf {
     panic!("failed to locate repo root from test current_dir");
 }
 
-const POLICY_REL: &str =
-    "ci/facade/caller-supplied-authorization/dto-authz-trust-policy.json";
+const POLICY_REL: &str = "ci/facade/caller-supplied-authorization/dto-authz-trust-policy.json";
 
 fn load_committed_policy(root: &Path) -> Value {
     let path = root.join(POLICY_REL);

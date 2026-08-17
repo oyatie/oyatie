@@ -14,8 +14,8 @@ use std::fs;
 use std::path::PathBuf;
 
 use ci_affected_target_set::anti_drift_drift_grep::{
-    CODE_PROSE_FREEZE_PATH_TABLE, CODE_PROSE_ROOT_ENUMERATION, GATE_ID, PROSE_MUST_CITE_POINTER,
-    SCANNED_SURFACES_POINTER, AntiDriftDriftGrepPolicy, ProseSurface, Verdict, evaluate,
+    AntiDriftDriftGrepPolicy, CODE_PROSE_FREEZE_PATH_TABLE, CODE_PROSE_ROOT_ENUMERATION, GATE_ID,
+    PROSE_MUST_CITE_POINTER, ProseSurface, SCANNED_SURFACES_POINTER, Verdict, evaluate,
     fixture_prose_must_cite, prose_must_cite_from_envelopes,
 };
 use serde_json::Value;
@@ -23,8 +23,7 @@ use serde_json::Value;
 const POLICY_PATH: &str = "ci/facade/affected-target-set/anti-drift-drift-grep-policy.json";
 const ENVELOPES_PATH: &str = "specs/integ-branch-envelopes.json";
 const ADR_PATH: &str = "docs/decisions/ADR-0711-swarm-delivery-law-integ-branch-topology.md";
-const PORTABLE_PATH: &str =
-    ".grok/programs/delivery-fabric/evidence/PORTABLE-SWARM-CONTRACT.md";
+const PORTABLE_PATH: &str = ".grok/programs/delivery-fabric/evidence/PORTABLE-SWARM-CONTRACT.md";
 
 fn repo_root() -> PathBuf {
     let mut dir = std::env::current_dir().expect("current_dir");
@@ -40,7 +39,8 @@ fn repo_root() -> PathBuf {
 }
 
 fn load_policy(root: &PathBuf) -> AntiDriftDriftGrepPolicy {
-    let raw = fs::read_to_string(root.join(POLICY_PATH)).expect("read anti-drift-drift-grep policy");
+    let raw =
+        fs::read_to_string(root.join(POLICY_PATH)).expect("read anti-drift-drift-grep policy");
     let doc: Value = serde_json::from_str(&raw).expect("policy JSON");
     AntiDriftDriftGrepPolicy::from_json(&doc)
 }

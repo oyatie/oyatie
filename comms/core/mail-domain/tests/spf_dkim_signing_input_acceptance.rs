@@ -18,7 +18,7 @@
 
 #[cfg(test)]
 mod spf_alignment_edge_cases {
-    use comms_mail_domain::{evaluate_spf_alignment, SpfAlignmentMode, SpfAlignmentVerdict};
+    use comms_mail_domain::{SpfAlignmentMode, SpfAlignmentVerdict, evaluate_spf_alignment};
 
     /// RFC 7208 §2.6: a null sender (empty envelope-from domain, as used in
     /// SMTP bounce messages "MAIL FROM:<>") must NOT be treated as aligned with
@@ -116,10 +116,15 @@ mod spf_alignment_edge_cases {
 
 #[cfg(test)]
 mod dkim_canonicalization_coverage {
-    use comms_mail_domain::{canonicalize_body, canonicalize_header, DkimCanonicalizationAlgorithm, RawHeader};
+    use comms_mail_domain::{
+        DkimCanonicalizationAlgorithm, RawHeader, canonicalize_body, canonicalize_header,
+    };
 
     fn rh(name: &str, value: &str) -> RawHeader {
-        RawHeader { name: name.into(), value: value.into() }
+        RawHeader {
+            name: name.into(),
+            value: value.into(),
+        }
     }
 
     // --- RFC 6376 §3.4.1 relaxed header: multiple headers with same name ---
@@ -135,8 +140,7 @@ mod dkim_canonicalization_coverage {
         ];
         let result = canonicalize_header(&headers, DkimCanonicalizationAlgorithm::Relaxed);
         assert_eq!(
-            result,
-            "received:from a.example.com\r\nreceived:from b.example.com\r\n",
+            result, "received:from a.example.com\r\nreceived:from b.example.com\r\n",
             "both Received headers must appear in relaxed canonical form"
         );
     }
@@ -150,15 +154,11 @@ mod dkim_canonicalization_coverage {
     /// its own CRLF appended if the first one already added CRLF.
     #[test]
     fn simple_two_headers_each_ends_with_crlf() {
-        let headers = vec![
-            rh("From", " alice@example.com"),
-            rh("Subject", " Q4 close"),
-        ];
+        let headers = vec![rh("From", " alice@example.com"), rh("Subject", " Q4 close")];
         let result = canonicalize_header(&headers, DkimCanonicalizationAlgorithm::Simple);
         // Each header must have its own CRLF terminator.
         assert_eq!(
-            result,
-            "From: alice@example.com\r\nSubject: Q4 close\r\n",
+            result, "From: alice@example.com\r\nSubject: Q4 close\r\n",
             "simple canonicalization must append CRLF to each header individually"
         );
     }
@@ -168,15 +168,11 @@ mod dkim_canonicalization_coverage {
     /// its own CRLF.
     #[test]
     fn simple_header_value_already_crlf_terminated_does_not_double_crlf() {
-        let headers = vec![
-            rh("From", " alice@example.com\r\n"),
-            rh("Subject", " test"),
-        ];
+        let headers = vec![rh("From", " alice@example.com\r\n"), rh("Subject", " test")];
         let result = canonicalize_header(&headers, DkimCanonicalizationAlgorithm::Simple);
         // "From: alice@example.com\r\n" already has CRLF; Subject must still get one.
         assert_eq!(
-            result,
-            "From: alice@example.com\r\nSubject: test\r\n",
+            result, "From: alice@example.com\r\nSubject: test\r\n",
             "pre-terminated header must not have double CRLF; subsequent header must still have its own CRLF"
         );
     }
@@ -193,8 +189,7 @@ mod dkim_canonicalization_coverage {
         let result = canonicalize_body(body, DkimCanonicalizationAlgorithm::Relaxed);
         // Middle "   " stripped to "" → empty line preserved; trailing single CRLF.
         assert_eq!(
-            result,
-            b"foo\r\n\r\nbar\r\n" as &[u8],
+            result, b"foo\r\n\r\nbar\r\n" as &[u8],
             "whitespace-only middle line must become an empty line (not removed)"
         );
     }
@@ -207,7 +202,7 @@ mod dkim_canonicalization_coverage {
     #[test]
     fn relaxed_body_bare_lf_input_equivalent_to_crlf() {
         let bare_lf = b"foo   \nbar\n" as &[u8];
-        let crlf    = b"foo   \r\nbar\r\n" as &[u8];
+        let crlf = b"foo   \r\nbar\r\n" as &[u8];
         let result_bare = canonicalize_body(bare_lf, DkimCanonicalizationAlgorithm::Relaxed);
         let result_crlf = canonicalize_body(crlf, DkimCanonicalizationAlgorithm::Relaxed);
         assert_eq!(
@@ -224,8 +219,7 @@ mod dkim_canonicalization_coverage {
     fn simple_body_bare_lf_input_produces_crlf_output() {
         let result = canonicalize_body(b"hello\n", DkimCanonicalizationAlgorithm::Simple);
         assert_eq!(
-            result,
-            b"hello\r\n" as &[u8],
+            result, b"hello\r\n" as &[u8],
             "simple body with bare-LF must produce CRLF-terminated output"
         );
     }
@@ -259,19 +253,25 @@ mod dkim_canonicalization_coverage {
 
 #[cfg(test)]
 mod dkim_signing_input_builder_acceptance {
-    use comms_mail_domain::{
-        build_dkim_signing_input, DkimCanonicalizationAlgorithm, DkimSigningInputError,
-        DkimSigningInputRequest,
-    };
-    use comms_mail_domain::sending_domain_authentication::DkimSigningAlgorithm;
     use comms_mail_domain::dkim_canonicalization::RawHeader;
+    use comms_mail_domain::sending_domain_authentication::DkimSigningAlgorithm;
+    use comms_mail_domain::{
+        DkimCanonicalizationAlgorithm, DkimSigningInputError, DkimSigningInputRequest,
+        build_dkim_signing_input,
+    };
 
     fn base_request() -> DkimSigningInputRequest {
         DkimSigningInputRequest {
             signed_headers: vec!["From".into(), "Subject".into()],
             headers: vec![
-                RawHeader { name: "From".into(),    value: " alice@example.com".into() },
-                RawHeader { name: "Subject".into(), value: " Q4 close".into() },
+                RawHeader {
+                    name: "From".into(),
+                    value: " alice@example.com".into(),
+                },
+                RawHeader {
+                    name: "Subject".into(),
+                    value: " Q4 close".into(),
+                },
             ],
             body: b"Hello world".to_vec(),
             selector: "sel2026a".into(),
@@ -359,7 +359,7 @@ mod dkim_signing_input_builder_acceptance {
     fn c_tag_reflects_simple_simple_canonicalization() {
         let mut req = base_request();
         req.header_canonicalization = DkimCanonicalizationAlgorithm::Simple;
-        req.body_canonicalization   = DkimCanonicalizationAlgorithm::Simple;
+        req.body_canonicalization = DkimCanonicalizationAlgorithm::Simple;
         let mat = build_dkim_signing_input(req).unwrap();
         assert!(
             mat.signing_input.contains("c=simple/simple"),
@@ -373,7 +373,7 @@ mod dkim_signing_input_builder_acceptance {
     fn c_tag_reflects_relaxed_relaxed_canonicalization() {
         let mut req = base_request();
         req.header_canonicalization = DkimCanonicalizationAlgorithm::Relaxed;
-        req.body_canonicalization   = DkimCanonicalizationAlgorithm::Relaxed;
+        req.body_canonicalization = DkimCanonicalizationAlgorithm::Relaxed;
         let mat = build_dkim_signing_input(req).unwrap();
         assert!(
             mat.signing_input.contains("c=relaxed/relaxed"),
@@ -392,8 +392,14 @@ mod dkim_signing_input_builder_acceptance {
         let req = DkimSigningInputRequest {
             signed_headers: vec!["Received".into()],
             headers: vec![
-                RawHeader { name: "Received".into(), value: " from a.example.com".into() },
-                RawHeader { name: "Received".into(), value: " from b.example.com".into() },
+                RawHeader {
+                    name: "Received".into(),
+                    value: " from a.example.com".into(),
+                },
+                RawHeader {
+                    name: "Received".into(),
+                    value: " from b.example.com".into(),
+                },
             ],
             body: b"body".to_vec(),
             selector: "sel".into(),
@@ -426,9 +432,10 @@ mod dkim_signing_input_builder_acceptance {
     fn missing_header_in_message_does_not_cause_error() {
         let req = DkimSigningInputRequest {
             signed_headers: vec!["From".into(), "X-Nonexistent".into()],
-            headers: vec![
-                RawHeader { name: "From".into(), value: " alice@example.com".into() },
-            ],
+            headers: vec![RawHeader {
+                name: "From".into(),
+                value: " alice@example.com".into(),
+            }],
             body: b"body".to_vec(),
             selector: "sel".into(),
             signing_domain: "example.com".into(),

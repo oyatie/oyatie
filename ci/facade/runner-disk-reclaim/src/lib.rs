@@ -368,8 +368,7 @@ pub fn run_reclaim(
 
 /// The committed policy's repo-relative path (single source of truth for both the gate test and
 /// the binary's default).
-pub const POLICY_REL_PATH: &str =
-    "ci/facade/runner-disk-reclaim/runner-disk-reclaim-policy.json";
+pub const POLICY_REL_PATH: &str = "ci/facade/runner-disk-reclaim/runner-disk-reclaim-policy.json";
 
 /// Walk up from `start` to the repo root (the dir holding `specs/root-hub-pointers.json`). Mirrors
 /// the cache-wiring gate's root discovery so the live-corpus test works under both buck2 (cwd =

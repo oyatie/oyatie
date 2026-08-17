@@ -300,16 +300,17 @@ impl OperatorSpec {
         }
 
         if self.uses_hostname()
-            && let Some(h) = &result.hostname {
-                // A lease hostname may be an FQDN; split into host/domain.
-                let spec = match h.split_once('.') {
-                    Some((host, domain)) => {
-                        HostnameSpec::with_domain(host, domain, ConfigLayer::Operator)?
-                    }
-                    None => HostnameSpec::new(h.clone(), ConfigLayer::Operator)?,
-                };
-                out.hostname = Some(spec);
-            }
+            && let Some(h) = &result.hostname
+        {
+            // A lease hostname may be an FQDN; split into host/domain.
+            let spec = match h.split_once('.') {
+                Some((host, domain)) => {
+                    HostnameSpec::with_domain(host, domain, ConfigLayer::Operator)?
+                }
+                None => HostnameSpec::new(h.clone(), ConfigLayer::Operator)?,
+            };
+            out.hostname = Some(spec);
+        }
 
         if !result.dns_servers.is_empty() {
             let mut res = ResolverSpec::new(result.dns_servers.clone(), ConfigLayer::Operator)?;

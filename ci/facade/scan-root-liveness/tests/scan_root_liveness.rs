@@ -333,9 +333,9 @@ fn forward_declarations_are_all_still_absent() {
                 key, fwd.value
             ),
             Some(_) => {}
-            None => panic!(
-                "forward declaration `{key}` is no longer declared in any policy; retire it"
-            ),
+            None => {
+                panic!("forward declaration `{key}` is no longer declared in any policy; retire it")
+            }
         }
     }
 }

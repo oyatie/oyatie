@@ -32,8 +32,11 @@ fn cache_key(dek: &str) -> DekCacheKey {
 }
 
 fn fresh_dek(dek: &str) -> secrets_kms_enclave::DekMaterial {
-    let kek = KekMaterial::generate(KekId::new("kek/ten_alpha").expect("id"), KekVersion::INITIAL)
-        .expect("kek");
+    let kek = KekMaterial::generate(
+        KekId::new("kek/ten_alpha").expect("id"),
+        KekVersion::INITIAL,
+    )
+    .expect("kek");
     let (material, _) = kek.generate_dek(DekId::new(dek).expect("id")).expect("dek");
     material
 }
@@ -97,7 +100,10 @@ fn red_control_plane_down_past_ttl_fails_closed() {
         .get_or_fetch(&key, || Err(ControlPlaneUnavailable))
         .expect_err("expired entry must not serve");
     match err {
-        DekCacheError::ControlPlaneUnavailable { expired_at_epoch_millis, .. } => {
+        DekCacheError::ControlPlaneUnavailable {
+            expired_at_epoch_millis,
+            ..
+        } => {
             assert_eq!(expired_at_epoch_millis, Some(1_000 + TTL_MS));
         }
     }
@@ -107,7 +113,10 @@ fn red_control_plane_down_past_ttl_fails_closed() {
         .get_or_fetch(&key, || Err(ControlPlaneUnavailable))
         .expect_err("still failing closed");
     match err {
-        DekCacheError::ControlPlaneUnavailable { expired_at_epoch_millis, .. } => {
+        DekCacheError::ControlPlaneUnavailable {
+            expired_at_epoch_millis,
+            ..
+        } => {
             assert_eq!(expired_at_epoch_millis, None);
         }
     }
@@ -120,15 +129,22 @@ fn recovery_after_outage_refreshes_the_window() {
     let mut dek_cache = cache(&clock);
     let key = cache_key("dek/obj_1");
 
-    dek_cache.get_or_fetch(&key, || Ok(fresh_dek("dek/obj_1"))).expect("warm");
+    dek_cache
+        .get_or_fetch(&key, || Ok(fresh_dek("dek/obj_1")))
+        .expect("warm");
 
     // Outage past TTL.
     clock.0.set(TTL_MS + 1);
-    assert!(dek_cache.get_or_fetch(&key, || Err(ControlPlaneUnavailable)).is_err());
+    assert!(
+        dek_cache
+            .get_or_fetch(&key, || Err(ControlPlaneUnavailable))
+            .is_err()
+    );
 
     // Control plane recovers: refresh re-arms a full window.
-    let (_, source) =
-        dek_cache.get_or_fetch(&key, || Ok(fresh_dek("dek/obj_1"))).expect("recovered");
+    let (_, source) = dek_cache
+        .get_or_fetch(&key, || Ok(fresh_dek("dek/obj_1")))
+        .expect("recovered");
     assert_eq!(source, FetchSource::ControlPlane);
 
     clock.0.set(TTL_MS + 1 + TTL_MS - 1);
@@ -149,7 +165,9 @@ fn cardinality_cap_evicts_oldest_inserted() {
 
     for (at, dek) in [(0u64, "dek/obj_1"), (10, "dek/obj_2"), (20, "dek/obj_3")] {
         clock.0.set(at);
-        dek_cache.get_or_fetch(&cache_key(dek), || Ok(fresh_dek(dek))).expect("insert");
+        dek_cache
+            .get_or_fetch(&cache_key(dek), || Ok(fresh_dek(dek)))
+            .expect("insert");
     }
     assert_eq!(dek_cache.len(), 2);
 
@@ -179,7 +197,9 @@ fn distinct_kek_versions_are_distinct_cache_entries() {
         ..cache_key("dek/obj_1")
     };
 
-    dek_cache.get_or_fetch(&v1_key, || Ok(fresh_dek("dek/obj_1"))).expect("v1");
+    dek_cache
+        .get_or_fetch(&v1_key, || Ok(fresh_dek("dek/obj_1")))
+        .expect("v1");
     // Same DEK id under a different KEK version is a MISS, not a hit.
     let err = dek_cache
         .get_or_fetch(&v2_key, || Err(ControlPlaneUnavailable))

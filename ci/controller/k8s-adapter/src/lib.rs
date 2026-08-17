@@ -34,6 +34,10 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 #![forbid(unsafe_code)]
 
+use ci_controller_kernel::{
+    CommitState, GATE_CONTEXT, GateRunSpec, JobCondition, JobConditionType, JobHandle,
+    JobObservation, JobSpawner, KernelError, PodReason, Result as KernelResult,
+};
 use k8s_openapi::{
     api::{
         batch::v1::{Job, JobSpec},
@@ -44,10 +48,6 @@ use k8s_openapi::{
 use kube::{
     Api, Client,
     api::{ListParams, PostParams},
-};
-use ci_controller_kernel::{
-    CommitState, GATE_CONTEXT, GateRunSpec, JobCondition, JobConditionType, JobHandle,
-    JobObservation, JobSpawner, KernelError, PodReason, Result as KernelResult,
 };
 use std::collections::BTreeMap;
 

@@ -484,7 +484,8 @@ pub fn classify_run(
                                 .collect()
                         })
                         .unwrap_or_default();
-                    let subjects_observed = str_field(job, "name").and_then(|n| subjects.get(n).copied());
+                    let subjects_observed =
+                        str_field(job, "name").and_then(|n| subjects.get(n).copied());
                     classify_lane(
                         job,
                         &annotations,
@@ -579,7 +580,10 @@ mod tests {
 
     #[test]
     fn a_repeat_no_verdict_escalates_from_retry_to_fix_infra() {
-        let j = job("failure", json!([step("stuck", "in_progress", Value::Null)]));
+        let j = job(
+            "failure",
+            json!([step("stuck", "in_progress", Value::Null)]),
+        );
         assert_eq!(
             classify_lane(&j, &[], 2, None, None).next_action,
             NextAction::FixInfra
@@ -605,7 +609,10 @@ mod tests {
     /// Zero observed subjects is RED, never a quiet pass.
     #[test]
     fn zero_subjects_is_verified_empty_and_not_green() {
-        let j = job("success", json!([step("ok", "completed", json!("success"))]));
+        let j = job(
+            "success",
+            json!([step("ok", "completed", json!("success"))]),
+        );
         let v = classify_lane(&j, &[], 1, None, Some(0));
         assert_eq!(v.state, TerminalState::VerifiedEmpty);
         assert_eq!(v.next_action, NextAction::NeedsHuman);
@@ -614,7 +621,10 @@ mod tests {
 
     #[test]
     fn a_success_with_subjects_is_a_plain_pass() {
-        let j = job("success", json!([step("ok", "completed", json!("success"))]));
+        let j = job(
+            "success",
+            json!([step("ok", "completed", json!("success"))]),
+        );
         assert_eq!(
             classify_lane(&j, &[], 1, None, Some(12)).state,
             TerminalState::Pass

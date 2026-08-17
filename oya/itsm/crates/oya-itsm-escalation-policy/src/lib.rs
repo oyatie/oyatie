@@ -90,7 +90,10 @@ mod tests {
             loop_after_steps: false,
             stop_after_minutes: 30,
         };
-        assert_eq!(validate_policy(&bad), Err("escalation_policy_has_at_least_one_step"));
+        assert_eq!(
+            validate_policy(&bad),
+            Err("escalation_policy_has_at_least_one_step")
+        );
     }
 
     #[test]
@@ -102,7 +105,10 @@ mod tests {
             loop_after_steps: false,
             stop_after_minutes: 30,
         };
-        assert_eq!(validate_policy(&bad), Err("escalation_step_ordered_monotonically"));
+        assert_eq!(
+            validate_policy(&bad),
+            Err("escalation_step_ordered_monotonically")
+        );
     }
 
     #[test]

@@ -18,7 +18,6 @@ use std::fmt;
 /// ADR-0192 hard ceiling for the embedded-tier pgvector path.
 pub const PGVECTOR_HARD_CEILING_VECTORS: u64 = 10_000_000;
 
-
 /// Engine backend currently serving a collection.
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum VectorBackend {
@@ -280,8 +279,6 @@ mod tests {
         .unwrap_err();
         assert!(matches!(err, Error::DuplicateRecord { .. }));
     }
-
-
 
     #[test]
     fn vector_backend_label_round_trips() {

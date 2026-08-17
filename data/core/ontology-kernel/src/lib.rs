@@ -1300,9 +1300,7 @@ mod backbone_tests {
     fn link_type_with_dangling_to_endpoint_rejected() {
         let mut engine = OntologyEngine::default();
         // Register only the "from" entity type; "to" is missing.
-        engine
-            .register_entity_type(patient_type())
-            .unwrap();
+        engine.register_entity_type(patient_type()).unwrap();
         let link = LinkTypeDefinition::new(
             "ten_clinic",
             LinkTypeId::new("lty_missing_to").unwrap(),
@@ -1634,11 +1632,19 @@ mod schema_evolution_tests {
         PrivacyDataClass::try_from(DataClass::PiiIdentifying).unwrap()
     }
 
-    fn prop(name: &str, tier: PropertyTier, data_class: PrivacyDataClass, required: bool) -> EntityTypePropertyDefinition {
+    fn prop(
+        name: &str,
+        tier: PropertyTier,
+        data_class: PrivacyDataClass,
+        required: bool,
+    ) -> EntityTypePropertyDefinition {
         EntityTypePropertyDefinition::new(name, tier, data_class, required).unwrap()
     }
 
-    fn base_def(revision: u32, extra_props: Vec<EntityTypePropertyDefinition>) -> EntityTypeDefinition {
+    fn base_def(
+        revision: u32,
+        extra_props: Vec<EntityTypePropertyDefinition>,
+    ) -> EntityTypeDefinition {
         let mut props = vec![prop("name", PropertyTier::Scalar, internal(), true)];
         props.extend(extra_props);
         EntityTypeDefinition::new(
@@ -1716,7 +1722,10 @@ mod schema_evolution_tests {
 
     #[test]
     fn property_removal_rejected() {
-        let prior = base_def(1, vec![prop("code", PropertyTier::Scalar, internal(), true)]);
+        let prior = base_def(
+            1,
+            vec![prop("code", PropertyTier::Scalar, internal(), true)],
+        );
         // candidate drops "code".
         let candidate = base_def(2, vec![]);
         assert_eq!(

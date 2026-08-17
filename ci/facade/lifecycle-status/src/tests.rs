@@ -20,9 +20,7 @@ fn lanes(names: &[&str]) -> Vec<String> {
 
 /// Build observations. Each entry is `(lane, artifacts, violations)`; an artifact count of `None`
 /// means the lane failed discovery.
-fn seen(
-    pairs: &[(&str, Option<usize>, &[(&str, usize)])],
-) -> BTreeMap<String, LaneObservation> {
+fn seen(pairs: &[(&str, Option<usize>, &[(&str, usize)])]) -> BTreeMap<String, LaneObservation> {
     pairs
         .iter()
         .map(|(lane, artifacts, kinds)| {
@@ -49,7 +47,11 @@ fn parses_the_committed_policy_shape() {
     );
     assert_eq!(parsed.configs_dir, "specs/lifecycle-configs");
     assert_eq!(parsed.baseline["adr-status"]["missing_supersession"], 3);
-    assert_eq!(parsed.baseline.len(), 1, "`_`-prefixed keys are prose, not lanes");
+    assert_eq!(
+        parsed.baseline.len(),
+        1,
+        "`_`-prefixed keys are prose, not lanes"
+    );
     assert_eq!(parsed.known_broken_lanes.len(), 1);
     assert!(parsed.known_broken_lanes["plan-status"].contains("delete the config"));
 }
@@ -62,7 +64,10 @@ fn a_prose_only_ledger_lists_no_lane_and_leaves_every_floor_armed() {
     // prose NOT being read as a lane, because a listed lane is the only thing that suppresses
     // LaneDiscoveryFailed and LaneDiscoveredNothing. Asserted at the parse+compare seam rather
     // than trusting the two halves separately.
-    let shipped = policy_with("{}", r#"{"_comment":"EMPTY, and the emptiness is the enforcement."}"#);
+    let shipped = policy_with(
+        "{}",
+        r#"{"_comment":"EMPTY, and the emptiness is the enforcement."}"#,
+    );
     assert!(
         shipped.known_broken_lanes.is_empty(),
         "prose must not be admitted as a standing excuse: {:?}",
@@ -103,7 +108,10 @@ fn a_zero_baseline_row_is_rejected_rather_than_silently_accepted() {
 
 #[test]
 fn a_broken_lane_entry_without_a_stated_resolution_is_rejected() {
-    for entry in [r#"{"defect":"root gone"}"#, r#"{"defect":"root gone","resolution":"  "}"#] {
+    for entry in [
+        r#"{"defect":"root gone"}"#,
+        r#"{"defect":"root gone","resolution":"  "}"#,
+    ] {
         let error = parse_policy(&format!(
             r#"{{"configs_dir":"d","frozen_violation_baseline":{{}},"known_broken_lanes":{{"l":{entry}}}}}"#
         ))

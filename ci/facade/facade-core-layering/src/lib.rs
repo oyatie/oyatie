@@ -23,7 +23,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::Path;
 
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 
 pub const CODE_DIRECT_DEP: &str = "facade_core_direct_dep";
 pub const CODE_NO_PORTS: &str = "facade_core_no_ports_layer";
@@ -63,7 +63,9 @@ impl std::fmt::Display for ScanError {
 fn absolute_labels(buildfile: &str) -> Vec<(String, String, String)> {
     let mut out = Vec::new();
     for raw in string_literals(buildfile) {
-        let body = raw.strip_prefix("root//").or_else(|| raw.strip_prefix("//"));
+        let body = raw
+            .strip_prefix("root//")
+            .or_else(|| raw.strip_prefix("//"));
         let Some(body) = body else { continue };
         let Some((path, _target)) = body.split_once(':') else {
             continue;
@@ -129,7 +131,8 @@ fn dir_names(path: &Path) -> Result<Vec<String>, ScanError> {
         Err(e) => return Err(ScanError::Io(format!("read_dir {}: {e}", path.display()))),
     };
     for entry in entries {
-        let entry = entry.map_err(|e| ScanError::Io(format!("entry in {}: {e}", path.display())))?;
+        let entry =
+            entry.map_err(|e| ScanError::Io(format!("entry in {}: {e}", path.display())))?;
         if entry.path().is_dir() {
             out.push(entry.file_name().to_string_lossy().into_owned());
         }
@@ -252,8 +255,10 @@ pub fn evaluate_keyed(policy: &Value, observed: &Value) -> BTreeSet<Finding> {
         })
         .collect();
 
-    let mut seen: BTreeMap<&str, BTreeSet<String>> =
-        DECLARED_CODES.iter().map(|c| (*c, BTreeSet::new())).collect();
+    let mut seen: BTreeMap<&str, BTreeSet<String>> = DECLARED_CODES
+        .iter()
+        .map(|c| (*c, BTreeSet::new()))
+        .collect();
 
     for row in observed
         .get("violations")
@@ -381,7 +386,10 @@ mod tests {
         let rows = observed["violations"].as_array().unwrap();
         assert_eq!(rows.len(), 1, "{observed:#?}");
         assert!(
-            rows[0]["key"].as_str().unwrap().starts_with("<unresolved-package>:"),
+            rows[0]["key"]
+                .as_str()
+                .unwrap()
+                .starts_with("<unresolved-package>:"),
             "{rows:#?}"
         );
         let _ = fs::remove_dir_all(&dir);

@@ -291,10 +291,8 @@ where
         let root = std::path::Path::new("/home/user"); // Placeholder
 
         // ADR-0100 Bridge: renderer expects ProviderAccount
-        let mut domain_acc = intelligence_account_domain::ProviderAccount::new(
-            acc.id.clone(),
-            acc.provider_family,
-        );
+        let mut domain_acc =
+            intelligence_account_domain::ProviderAccount::new(acc.id.clone(), acc.provider_family);
         domain_acc.state = acc.state.clone();
 
         let report = self

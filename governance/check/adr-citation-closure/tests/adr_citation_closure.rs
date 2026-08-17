@@ -161,7 +161,10 @@ fn in_excluded_dir(relative: &str) -> bool {
     components.pop(); // the filename itself is not subject to the directory rules
     components.iter().any(|component| {
         component.starts_with('.')
-            || matches!(*component, "buck-out" | "target" | "node_modules" | "vendor")
+            || matches!(
+                *component,
+                "buck-out" | "target" | "node_modules" | "vendor"
+            )
     })
 }
 
@@ -217,7 +220,9 @@ fn observe(root: &Path, config: &Config) -> Result<Observed, String> {
         let metadata = std::fs::metadata(&path)
             .map_err(|e| format!("metadata {relative} failed: {e} (tracked but unreadable)"))?;
         if !metadata.is_file() {
-            return Err(format!("{relative} is tracked with a scanned extension but is not a file"));
+            return Err(format!(
+                "{relative} is tracked with a scanned extension but is not a file"
+            ));
         }
         if metadata.len() > MAX_SCANNED_BYTES {
             return Err(format!(
@@ -374,7 +379,8 @@ fn live_tree_findings_equal_the_frozen_ceilings() {
         let observed_count = count(code);
         let frozen = ceiling(key);
         assert_eq!(
-            observed_count, frozen,
+            observed_count,
+            frozen,
             "{code}: observed {observed_count}, frozen ceiling {frozen}. Above it, a new finding was \
              introduced and must be repaired rather than admitted. Below it, findings were repaired \
              and `measured.{key}` must be lowered to {observed_count} in the SAME change so the \
@@ -429,8 +435,8 @@ fn a_new_bad_citation_against_the_live_corpus_is_caught() {
         .count(CODE_CITATION_MISMATCH);
     let mut with_defect = observed.citations.clone();
     with_defect.push(injected);
-    let after = evaluate(&observed.records, &with_defect, &config.policy)
-        .count(CODE_CITATION_MISMATCH);
+    let after =
+        evaluate(&observed.records, &with_defect, &config.policy).count(CODE_CITATION_MISMATCH);
     assert_eq!(
         after,
         before + 1,
@@ -489,7 +495,10 @@ fn the_rejected_authority_rule_fires_on_the_real_instance() {
 #[test]
 fn a_short_form_filename_yields_the_same_id_as_its_padded_spelling() {
     assert_eq!(adr_id("ADR-335-governance.md").as_deref(), Some("ADR-0335"));
-    assert_eq!(adr_id("ADR-0335-governance.md").as_deref(), Some("ADR-0335"));
+    assert_eq!(
+        adr_id("ADR-0335-governance.md").as_deref(),
+        Some("ADR-0335")
+    );
     assert_eq!(adr_id("ADR-7-early.md").as_deref(), Some("ADR-0007"));
     assert_eq!(adr_id("ADR-12345-overlong.md"), None);
     assert_eq!(adr_id("ADR-none.md"), None);
@@ -623,7 +632,6 @@ fn a_document_declaring_itself_an_operating_contract_is_a_declared_surface() {
          and re-measure BOTH numbers it moves — the citation_lines census (an authority surface \
          contributes lines whose `cited` is empty) and adr_citation_rejected_authority — in the \
          SAME change.",
-        config.authority_surface_marker,
-        observed.undeclared_surfaces
+        config.authority_surface_marker, observed.undeclared_surfaces
     );
 }

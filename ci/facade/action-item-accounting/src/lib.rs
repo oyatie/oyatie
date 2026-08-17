@@ -100,7 +100,10 @@ impl std::fmt::Display for CollectError {
             }
             CollectError::Io(message) => write!(f, "friction ledger io: {message}"),
             CollectError::Parse { line, message } => {
-                write!(f, "friction ledger line {line} is not valid JSON: {message}")
+                write!(
+                    f,
+                    "friction ledger line {line} is not valid JSON: {message}"
+                )
             }
         }
     }
@@ -360,7 +363,10 @@ pub fn evaluate_keyed(policy: &Value, observed: &Value) -> BTreeSet<Finding> {
             findings.insert(Finding::new(
                 "friction_duplicate_primary_row",
                 id,
-                format!("{} primary rows share id `{id}`; updates append, primaries do not", state.primary_count),
+                format!(
+                    "{} primary rows share id `{id}`; updates append, primaries do not",
+                    state.primary_count
+                ),
             ));
         }
 
@@ -470,14 +476,23 @@ mod tests {
 
     #[test]
     fn empty_ledger_is_green() {
-        assert_eq!(evaluate(&policy(), &observed(vec![])).verdict, Verdict::Green);
+        assert_eq!(
+            evaluate(&policy(), &observed(vec![])).verdict,
+            Verdict::Green
+        );
     }
 
     #[test]
     fn appending_a_well_formed_row_never_fails_the_gate() {
         // The ratchet must never punish logging: a brand-new valid open friction is green.
-        let findings = evaluate_keyed(&policy(), &observed(vec![primary("FRIC-NEW", "queued-G11")]));
-        assert!(findings.is_empty(), "logging a valid friction must not block: {findings:#?}");
+        let findings = evaluate_keyed(
+            &policy(),
+            &observed(vec![primary("FRIC-NEW", "queued-G11")]),
+        );
+        assert!(
+            findings.is_empty(),
+            "logging a valid friction must not block: {findings:#?}"
+        );
     }
 
     #[test]
@@ -486,9 +501,11 @@ mod tests {
             &policy(),
             &observed(vec![primary("FRIC-X", "totally-made-up-status")]),
         );
-        assert!(findings.iter().any(|f| {
-            f.code == "friction_unknown_status" && f.key == "FRIC-X"
-        }));
+        assert!(
+            findings
+                .iter()
+                .any(|f| { f.code == "friction_unknown_status" && f.key == "FRIC-X" })
+        );
     }
 
     #[test]
@@ -496,21 +513,27 @@ mod tests {
         let mut row = primary("FRIC-ND", "open");
         row["enforcement_fix"] = json!("   ");
         let findings = evaluate_keyed(&policy(), &observed(vec![row]));
-        assert!(findings.iter().any(|f| {
-            f.code == "friction_no_disposition" && f.key == "FRIC-ND"
-        }));
+        assert!(
+            findings
+                .iter()
+                .any(|f| { f.code == "friction_no_disposition" && f.key == "FRIC-ND" })
+        );
         // The blank required field is ALSO a schema violation.
-        assert!(findings.iter().any(|f| {
-            f.code == "friction_missing_required_field" && f.key == "FRIC-ND"
-        }));
+        assert!(
+            findings
+                .iter()
+                .any(|f| { f.code == "friction_missing_required_field" && f.key == "FRIC-ND" })
+        );
     }
 
     #[test]
     fn terminal_status_without_evidence_fails_closed() {
         let findings = evaluate_keyed(&policy(), &observed(vec![primary("FRIC-T", "RESOLVED")]));
-        assert!(findings.iter().any(|f| {
-            f.code == "friction_closed_without_evidence" && f.key == "FRIC-T"
-        }));
+        assert!(
+            findings
+                .iter()
+                .any(|f| { f.code == "friction_closed_without_evidence" && f.key == "FRIC-T" })
+        );
     }
 
     #[test]
@@ -518,7 +541,10 @@ mod tests {
         let mut row = primary("FRIC-T2", "RESOLVED-fully");
         row["evidence"] = json!("PR #669 merged @ 16f2e3b54: enforcement-liveness gate");
         let findings = evaluate_keyed(&policy(), &observed(vec![row]));
-        assert!(findings.is_empty(), "terminal+evidence must be green: {findings:#?}");
+        assert!(
+            findings.is_empty(),
+            "terminal+evidence must be green: {findings:#?}"
+        );
     }
 
     #[test]
@@ -537,7 +563,10 @@ mod tests {
         let mut row = primary("FRIC-AR2", "interim-accepted");
         row["evidence"] = json!("founder-held 2026-06-10; leader-side transition pending");
         let findings = evaluate_keyed(&policy(), &observed(vec![row]));
-        assert!(findings.is_empty(), "accepted-risk+evidence must be green: {findings:#?}");
+        assert!(
+            findings.is_empty(),
+            "accepted-risk+evidence must be green: {findings:#?}"
+        );
     }
 
     #[test]
@@ -547,9 +576,10 @@ mod tests {
             &policy(),
             &observed(vec![primary("FRIC-D", "open"), primary("FRIC-D", "open")]),
         );
-        assert!(dup.iter().any(|f| {
-            f.code == "friction_duplicate_primary_row" && f.key == "FRIC-D"
-        }));
+        assert!(
+            dup.iter()
+                .any(|f| { f.code == "friction_duplicate_primary_row" && f.key == "FRIC-D" })
+        );
 
         // A primary + an append (update row) sharing an id is LEGITIMATE event-sourcing.
         let append = json!({
@@ -563,7 +593,9 @@ mod tests {
             &observed(vec![primary("FRIC-D2", "open"), append]),
         );
         assert!(
-            !folded.iter().any(|f| f.code == "friction_duplicate_primary_row"),
+            !folded
+                .iter()
+                .any(|f| f.code == "friction_duplicate_primary_row"),
             "an append must not count as a duplicate primary: {folded:#?}"
         );
     }
@@ -581,7 +613,11 @@ mod tests {
         });
         let findings = evaluate_keyed(&policy(), &observed(vec![orphan]));
         let mine: Vec<_> = findings.iter().filter(|f| f.key == "FRIC-ORPHAN").collect();
-        assert_eq!(mine.len(), 1, "orphan emits exactly one finding: {findings:#?}");
+        assert_eq!(
+            mine.len(),
+            1,
+            "orphan emits exactly one finding: {findings:#?}"
+        );
         assert_eq!(mine[0].code, "friction_orphan_update_row");
     }
 
@@ -599,7 +635,9 @@ mod tests {
             &observed(vec![primary("FRIC-REAL", "open"), append]),
         );
         assert!(
-            !findings.iter().any(|f| f.code == "friction_orphan_update_row"),
+            !findings
+                .iter()
+                .any(|f| f.code == "friction_orphan_update_row"),
             "primary+updates must not be an orphan: {findings:#?}"
         );
     }
@@ -617,7 +655,9 @@ mod tests {
             &observed(vec![primary("FRIC-U", "open"), append_no_evidence]),
         );
         assert!(
-            findings.iter().any(|f| f.code == "friction_closed_without_evidence" && f.key == "FRIC-U"),
+            findings
+                .iter()
+                .any(|f| f.code == "friction_closed_without_evidence" && f.key == "FRIC-U"),
             "update closing a friction must require evidence: {findings:#?}"
         );
 
@@ -632,7 +672,10 @@ mod tests {
             &policy(),
             &observed(vec![primary("FRIC-U2", "open"), append_with_evidence]),
         );
-        assert!(green.is_empty(), "closed-with-evidence via update must be green: {green:#?}");
+        assert!(
+            green.is_empty(),
+            "closed-with-evidence via update must be green: {green:#?}"
+        );
     }
 
     #[test]
@@ -640,7 +683,11 @@ mod tests {
         let mut bad = policy();
         bad["gate_id"] = json!("cloud-ci-wrong");
         let findings = evaluate_keyed(&bad, &observed(vec![]));
-        assert!(findings.iter().any(|f| f.code == "friction_policy_gate_id_mismatch"));
+        assert!(
+            findings
+                .iter()
+                .any(|f| f.code == "friction_policy_gate_id_mismatch")
+        );
     }
 
     #[test]

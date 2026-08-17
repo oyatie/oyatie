@@ -1000,14 +1000,14 @@ impl SignalAwaitStatus {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct SignalAwaitReceipt {
-    pub status: SignalAwaitStatus,      // data_class: INTERNAL_ONLY
-    pub tenant_id: String,              // data_class: INTERNAL_ONLY
-    pub run_id: String,                 // data_class: INTERNAL_ONLY
-    pub step_id: String,                // data_class: INTERNAL_ONLY
-    pub signal_name: String,            // data_class: INTERNAL_ONLY
-    pub timer_armed: bool,              // data_class: INTERNAL_ONLY
+    pub status: SignalAwaitStatus,           // data_class: INTERNAL_ONLY
+    pub tenant_id: String,                   // data_class: INTERNAL_ONLY
+    pub run_id: String,                      // data_class: INTERNAL_ONLY
+    pub step_id: String,                     // data_class: INTERNAL_ONLY
+    pub signal_name: String,                 // data_class: INTERNAL_ONLY
+    pub timer_armed: bool,                   // data_class: INTERNAL_ONLY
     pub audit_events: Vec<SignalAuditEvent>, // data_class: INTERNAL_ONLY
-    pub evidence_refs: Vec<String>,     // data_class: INTERNAL_ONLY
+    pub evidence_refs: Vec<String>,          // data_class: INTERNAL_ONLY
 }
 
 // ── WF-ENG-2: SignalDeliver ──────────────────────────────────────────────────
@@ -1116,12 +1116,9 @@ struct SignalTimeoutIntent {
 
 #[derive(Default, Debug)]
 pub struct SignalAwaitUsecase {
-    await_receipts:
-        BTreeMap<String, (SignalAwaitIntent, SignalAwaitReceipt)>,
-    deliver_receipts:
-        BTreeMap<String, (SignalDeliverIntent, SignalDeliverReceipt)>,
-    timeout_receipts:
-        BTreeMap<String, (SignalTimeoutIntent, SignalTimeoutReceipt)>,
+    await_receipts: BTreeMap<String, (SignalAwaitIntent, SignalAwaitReceipt)>,
+    deliver_receipts: BTreeMap<String, (SignalDeliverIntent, SignalDeliverReceipt)>,
+    timeout_receipts: BTreeMap<String, (SignalTimeoutIntent, SignalTimeoutReceipt)>,
 }
 
 impl SignalAwaitUsecase {
@@ -1253,16 +1250,13 @@ impl SignalAwaitUsecase {
         }
 
         // 3. Load await record
-        let record = match store.load_await_record(
-            &input.tenant_id,
-            &input.run_id,
-            &input.signal_name,
-        ) {
-            Ok(r) => r,
-            Err(error) => {
-                return signal_deliver_store_error_receipt(&input, error);
-            }
-        };
+        let record =
+            match store.load_await_record(&input.tenant_id, &input.run_id, &input.signal_name) {
+                Ok(r) => r,
+                Err(error) => {
+                    return signal_deliver_store_error_receipt(&input, error);
+                }
+            };
 
         // 4. No active await → Unmatched (typed receipt, no store write)
         if record.as_ref().is_none_or(|r| r.delivered) {
@@ -1292,9 +1286,12 @@ impl SignalAwaitUsecase {
 
         // 5. Resume via store
         let evidence_ref = "workflow-signal-usecase:resume-step";
-        if let Err(error) =
-            store.resume_step_on_signal(&input.tenant_id, &input.run_id, &input.signal_name, evidence_ref)
-        {
+        if let Err(error) = store.resume_step_on_signal(
+            &input.tenant_id,
+            &input.run_id,
+            &input.signal_name,
+            evidence_ref,
+        ) {
             return signal_deliver_store_error_receipt(&input, error);
         }
 
@@ -1353,16 +1350,13 @@ impl SignalAwaitUsecase {
         }
 
         // 3. Load await record
-        let record = match store.load_await_record(
-            &input.tenant_id,
-            &input.run_id,
-            &input.signal_name,
-        ) {
-            Ok(r) => r,
-            Err(error) => {
-                return signal_timeout_store_error_receipt(&input, error);
-            }
-        };
+        let record =
+            match store.load_await_record(&input.tenant_id, &input.run_id, &input.signal_name) {
+                Ok(r) => r,
+                Err(error) => {
+                    return signal_timeout_store_error_receipt(&input, error);
+                }
+            };
 
         // 4. Already delivered → AlreadyDelivered (deterministic no-op, cached)
         if record.as_ref().is_some_and(|r| r.delivered) || record.is_none() {
@@ -2383,8 +2377,8 @@ mod tests {
     struct FakeSignalStore {
         suspended: Vec<(String, String, String, String)>, // (tenant, run, step, signal)
         records: std::collections::BTreeMap<String, SignalAwaitRecord>, // key = "tenant:run:signal"
-        resumed: Vec<(String, String, String)>,            // (tenant, run, signal)
-        timed_out: Vec<(String, String, String)>,          // (tenant, run, signal)
+        resumed: Vec<(String, String, String)>,           // (tenant, run, signal)
+        timed_out: Vec<(String, String, String)>,         // (tenant, run, signal)
         load_failure: bool,
         suspend_failure: bool,
         resume_failure: bool,
@@ -2466,9 +2460,9 @@ mod tests {
                 run_id.to_owned(),
                 signal_name.to_owned(),
             ));
-            if let Some(record) = self
-                .records
-                .get_mut(&Self::record_key(tenant_id, run_id, signal_name))
+            if let Some(record) =
+                self.records
+                    .get_mut(&Self::record_key(tenant_id, run_id, signal_name))
             {
                 record.delivered = true;
             }
@@ -2547,7 +2541,10 @@ mod tests {
         assert!(!r.timer_armed);
         assert_eq!(store.suspended.len(), 1);
         assert_eq!(store.suspended[0].3, "signal:human-approval:1");
-        assert!(r.evidence_refs.contains(&"workflow-signal-usecase:awaiting".to_owned()));
+        assert!(
+            r.evidence_refs
+                .contains(&"workflow-signal-usecase:awaiting".to_owned())
+        );
         assert_eq!(uc.cached_await_count(), 1);
     }
 
@@ -2595,7 +2592,11 @@ mod tests {
 
         assert_eq!(r.status, SignalAwaitStatus::InvalidInput);
         assert!(store.suspended.is_empty());
-        assert_eq!(uc.cached_await_count(), 0, "invalid input must not be cached");
+        assert_eq!(
+            uc.cached_await_count(),
+            0,
+            "invalid input must not be cached"
+        );
     }
 
     // WF-ENG-1: await with timeout timer arms the timer
@@ -2637,7 +2638,10 @@ mod tests {
 
         assert_eq!(r.status, SignalDeliverStatus::Delivered);
         assert_eq!(store.resumed.len(), 1);
-        assert!(r.evidence_refs.contains(&"workflow-signal-usecase:delivered".to_owned()));
+        assert!(
+            r.evidence_refs
+                .contains(&"workflow-signal-usecase:delivered".to_owned())
+        );
     }
 
     // WF-ENG-2: re-deliver same signal (same idempotency key) is idempotent
@@ -2665,7 +2669,10 @@ mod tests {
 
         assert_eq!(r.status, SignalDeliverStatus::Unmatched);
         assert!(store.resumed.is_empty());
-        assert!(r.evidence_refs.contains(&"workflow-signal-usecase:unmatched".to_owned()));
+        assert!(
+            r.evidence_refs
+                .contains(&"workflow-signal-usecase:unmatched".to_owned())
+        );
     }
 
     // WF-ENG-3 table: timeout-before-delivery → TimedOut + audit event
@@ -2682,14 +2689,19 @@ mod tests {
 
         assert_eq!(r.status, SignalTimeoutStatus::TimedOut);
         assert_eq!(store.timed_out.len(), 1);
-        assert!(r.evidence_refs.contains(&"workflow-signal-usecase:timed-out".to_owned()));
-        assert!(r
-            .evidence_refs
-            .contains(&"workflow-signal-usecase:reference-epoch:500".to_owned()));
-        assert!(r
-            .audit_events
-            .iter()
-            .any(|e| e.kind == SignalAuditEventKind::SignalTimedOut));
+        assert!(
+            r.evidence_refs
+                .contains(&"workflow-signal-usecase:timed-out".to_owned())
+        );
+        assert!(
+            r.evidence_refs
+                .contains(&"workflow-signal-usecase:reference-epoch:500".to_owned())
+        );
+        assert!(
+            r.audit_events
+                .iter()
+                .any(|e| e.kind == SignalAuditEventKind::SignalTimedOut)
+        );
     }
 
     // WF-ENG-3 table: delivery-before-timeout → AlreadyDelivered
@@ -2705,10 +2717,14 @@ mod tests {
         let r = uc.timeout_signal(&mut store, signal_timeout_input());
 
         assert_eq!(r.status, SignalTimeoutStatus::AlreadyDelivered);
-        assert!(store.timed_out.is_empty(), "timeout store must not be called after delivery");
-        assert!(r
-            .evidence_refs
-            .contains(&"workflow-signal-usecase:already-delivered".to_owned()));
+        assert!(
+            store.timed_out.is_empty(),
+            "timeout store must not be called after delivery"
+        );
+        assert!(
+            r.evidence_refs
+                .contains(&"workflow-signal-usecase:already-delivered".to_owned())
+        );
     }
 
     // WF-ENG-3: crate performs zero IO — all three paths pass with in-memory fakes

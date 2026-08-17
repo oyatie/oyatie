@@ -18,12 +18,12 @@
 //!    refunds; only Void blocks credit notes per the spec).
 
 use billing_domain::{
-    BillingAccount, BillingAccountCreate, BillingAccountState, BillingPeriod,
-    CloudBillingError, CloudBillingLedger, CreditNoteCreate, InvoiceGenerate,
-    InvoiceLineItemCreate, InvoiceState, Money, TaxInvoiceFormat,
+    BillingAccount, BillingAccountCreate, BillingAccountState, BillingPeriod, CloudBillingError,
+    CloudBillingLedger, CreditNoteCreate, InvoiceGenerate, InvoiceLineItemCreate, InvoiceState,
+    Money, TaxInvoiceFormat,
 };
-use oya_data_boundary_kernel::DataClass;
 use billing_metering::{MeterUnit, MeterUnitKind};
+use oya_data_boundary_kernel::DataClass;
 
 // ---------------------------------------------------------------------------
 // Shared fixtures (mirror the in-crate helpers exactly so tests are
@@ -31,8 +31,10 @@ use billing_metering::{MeterUnit, MeterUnitKind};
 // ---------------------------------------------------------------------------
 
 fn units() -> Vec<MeterUnit> {
-    vec![MeterUnit::new(MeterUnitKind::ResourceSecond, 3_600_000_000)
-        .expect("unit fixture is valid")]
+    vec![
+        MeterUnit::new(MeterUnitKind::ResourceSecond, 3_600_000_000)
+            .expect("unit fixture is valid"),
+    ]
 }
 
 fn account_create() -> BillingAccountCreate {
@@ -66,8 +68,7 @@ fn invoice_generate() -> InvoiceGenerate {
         billing_account_id: "ba_ten_alpha".to_string(),
         tenant_id: "ten_alpha".to_string(),
         regional_pack: "oya-pack-electronic-tax".to_string(),
-        period: BillingPeriod::new(1_700_000_000, 1_700_086_400)
-            .expect("period fixture valid"),
+        period: BillingPeriod::new(1_700_000_000, 1_700_086_400).expect("period fixture valid"),
         line_items: vec![invoice_line_item()],
         subtotal: Money::new("OYC", 100_000).expect("money fixture valid"),
         tax: Money::new("OYC", 10_000).expect("money fixture valid"),
@@ -127,8 +128,7 @@ fn get_invoice_returns_some_for_known_id() {
 #[test]
 fn get_invoice_returns_none_for_unknown_id() {
     let ledger = CloudBillingLedger::default();
-    let unknown = billing_domain::InvoiceId::new("inv_unknown_999")
-        .expect("id fixture valid");
+    let unknown = billing_domain::InvoiceId::new("inv_unknown_999").expect("id fixture valid");
     assert!(
         ledger.get_invoice(&unknown).is_none(),
         "unknown invoice id returns None"

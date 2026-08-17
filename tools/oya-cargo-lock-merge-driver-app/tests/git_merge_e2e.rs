@@ -83,7 +83,13 @@ fn read_lock(repo: &Path) -> String {
 
 /// A repo with `base` committed on `main` and on `theirs`, the driver registered with
 /// `placeholders`, and `Cargo.lock` bound to it. Returns the repo root.
-fn repo_with_driver(label: &str, placeholders: &str, base: &str, ours: &str, theirs: &str) -> PathBuf {
+fn repo_with_driver(
+    label: &str,
+    placeholders: &str,
+    base: &str,
+    ours: &str,
+    theirs: &str,
+) -> PathBuf {
     let nanos = match SystemTime::now().duration_since(UNIX_EPOCH) {
         Ok(duration) => duration.as_nanos(),
         Err(_) => 0,
@@ -161,7 +167,10 @@ fn four_placeholder_registration_does_not_lose_theirs() {
         "1.0.2",
         "theirs-only",
     ] {
-        assert!(merged.contains(needle), "merged tree lost {needle:?}:\n{merged}");
+        assert!(
+            merged.contains(needle),
+            "merged tree lost {needle:?}:\n{merged}"
+        );
     }
     // The second backstop: even a human who blindly `git add`s cannot build, because the
     // conflicted document does not parse as TOML.

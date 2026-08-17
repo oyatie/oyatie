@@ -346,7 +346,10 @@ fn convert_second_primary(row: &Row) -> Result<Row, MergeError> {
     let canon = canonical_row(&value.to_string()).map_err(|err| {
         MergeError::new(
             MergeErrorKind::Validate,
-            format!("second-author conversion for id `{}` produced non-canonicalizable bytes: {err}", row.id),
+            format!(
+                "second-author conversion for id `{}` produced non-canonicalizable bytes: {err}",
+                row.id
+            ),
         )
     })?;
     Ok(Row {
@@ -588,7 +591,11 @@ mod tests {
         let out = merge(&[&a], &[&a, &x], &[&a, &y]).expect("merges");
         let rows = parse_ledger("out", &out).expect("reparses");
         let ids: Vec<&str> = rows.iter().map(Row::id).collect();
-        assert_eq!(ids, vec!["FRIC-A", "FRIC-X", "FRIC-Y"], "base order then ours then theirs");
+        assert_eq!(
+            ids,
+            vec!["FRIC-A", "FRIC-X", "FRIC-Y"],
+            "base order then ours then theirs"
+        );
     }
 
     #[test]
@@ -596,7 +603,10 @@ mod tests {
         let a = primary("FRIC-A", "2026-06-10", "base friction");
         let second = primary("FRIC-A", "2026-06-12", "second author re-logged it");
         let out = merge(&[&a], &[&a], &[&a, &second]).expect("merges");
-        assert_eq!(kinds_for(&out, "FRIC-A"), vec![RowKind::Primary, RowKind::Update]);
+        assert_eq!(
+            kinds_for(&out, "FRIC-A"),
+            vec![RowKind::Primary, RowKind::Update]
+        );
         assert!(
             out.contains("\"status_update\": \"open\""),
             "converted row carries the second primary's status as status_update: {out}"
@@ -630,7 +640,10 @@ mod tests {
         let mut ba_lines: Vec<&str> = ba.lines().collect();
         ab_lines.sort_unstable();
         ba_lines.sort_unstable();
-        assert_eq!(ab_lines, ba_lines, "merge(a,b) == merge(b,a) modulo append order");
+        assert_eq!(
+            ab_lines, ba_lines,
+            "merge(a,b) == merge(b,a) modulo append order"
+        );
     }
 
     #[test]
@@ -641,7 +654,11 @@ mod tests {
         let theirs_bytes = "{\"seen_at\": \"2026-06-12\", \"id\": \"FRIC-T\", \"enforcement_fix\": \"f\", \"status\": \"open\", \"friction\": \"dash \u{2014} here\"}";
         assert_ne!(ours_bytes, theirs_bytes, "the twins are byte-divergent");
         let out = merge(&[&a], &[&a, ours_bytes], &[&a, theirs_bytes]).expect("merges");
-        assert_eq!(kinds_for(&out, "FRIC-T"), vec![RowKind::Primary], "exactly one copy survives");
+        assert_eq!(
+            kinds_for(&out, "FRIC-T"),
+            vec![RowKind::Primary],
+            "exactly one copy survives"
+        );
     }
 
     #[test]
@@ -657,7 +674,10 @@ mod tests {
         );
         // Identical logical updates on both sides dedup to one.
         let out = merge(&[&a], &[&a, &u1], &[&a, &u1]).expect("merges");
-        assert_eq!(kinds_for(&out, "FRIC-A"), vec![RowKind::Primary, RowKind::Update]);
+        assert_eq!(
+            kinds_for(&out, "FRIC-A"),
+            vec![RowKind::Primary, RowKind::Update]
+        );
     }
 
     #[test]
@@ -673,20 +693,20 @@ mod tests {
     fn unmodeled_shapes_fail_closed() {
         let a = primary("FRIC-A", "2026-06-10", "base friction");
         for bad in [
-            "[1, 2, 3]",                                                       // non-object
-            "{\"seen_at\": \"2026-06-12\", \"status\": \"open\"}",             // no id, no kind
-            "{\"id\": \"X\", \"friction\": \"f\"}",                            // friction without status
+            "[1, 2, 3]",                                           // non-object
+            "{\"seen_at\": \"2026-06-12\", \"status\": \"open\"}", // no id, no kind
+            "{\"id\": \"X\", \"friction\": \"f\"}",                // friction without status
             "{\"id\": \"X\", \"friction\": \"f\", \"status\": \"open\", \"status_update\": \"x\"}", // both kinds
-            "{\"id\": \"  \", \"status_update\": \"x\"}",                      // blank id
-            "{\"id\": \"X\", \"id\": \"Y\", \"status_update\": \"x\"}",        // duplicate key
+            "{\"id\": \"  \", \"status_update\": \"x\"}", // blank id
+            "{\"id\": \"X\", \"id\": \"Y\", \"status_update\": \"x\"}", // duplicate key
             "not json at all",
             // The gate-fold divergence zone (ADR-0544 is_primary counts blank strings): every row
             // where the driver's kind could differ from the gate's fold is refused, not guessed.
             "{\"id\": \"X\", \"friction\": \" \", \"status\": \"open\", \"status_update\": \"y\"}",
-            "{\"id\": \"X\", \"friction\": 123, \"status_update\": \"y\"}",   // non-string friction key
-            "{\"id\": \"X\", \"friction\": \"f\", \"status\": \"  \"}",       // blank status
+            "{\"id\": \"X\", \"friction\": 123, \"status_update\": \"y\"}", // non-string friction key
+            "{\"id\": \"X\", \"friction\": \"f\", \"status\": \"  \"}",     // blank status
             "{\"id\": \"X\", \"friction\": \"f\", \"status\": \"open\", \"status_update\": \"\"}", // blank update KEY on a primary
-            "{\"id\": 42, \"status_update\": \"y\"}",                          // non-string id
+            "{\"id\": 42, \"status_update\": \"y\"}", // non-string id
         ] {
             let err = merge(&[&a], &[&a, bad], &[&a]).expect_err(bad);
             assert_eq!(err.kind(), MergeErrorKind::Parse, "{bad}");
@@ -700,7 +720,10 @@ mod tests {
         let a = primary("FRIC-A", "2026-06-10", "base friction");
         let mixed = "{\"id\": \"FRIC-A\", \"seen_at\": \"2026-06-11\", \"status_update\": \"escalated\", \"status\": \"open\"}";
         let out = merge(&[&a], &[&a, mixed], &[&a]).expect("modeled update merges");
-        assert_eq!(kinds_for(&out, "FRIC-A"), vec![RowKind::Primary, RowKind::Update]);
+        assert_eq!(
+            kinds_for(&out, "FRIC-A"),
+            vec![RowKind::Primary, RowKind::Update]
+        );
     }
 
     #[test]
@@ -732,7 +755,10 @@ mod tests {
         assert_eq!(again, out, "merge(out,out,out) == out");
         let rows = parse_ledger("out", &out).expect("reparses");
         assert_eq!(render(&rows), out, "render(parse(out)) == out");
-        assert!(out.lines().all(|line| line.starts_with('{')), "every line is one JSON object");
+        assert!(
+            out.lines().all(|line| line.starts_with('{')),
+            "every line is one JSON object"
+        );
     }
 
     #[test]
@@ -756,6 +782,10 @@ mod tests {
             .find(|row| row.kind == RowKind::Update)
             .expect("conversion happened");
         assert_eq!(non_blank(&converted.value, "status_update"), Some("queued"));
-        assert_eq!(non_blank(&converted.value, "evidence"), None, "no fabricated evidence");
+        assert_eq!(
+            non_blank(&converted.value, "evidence"),
+            None,
+            "no fabricated evidence"
+        );
     }
 }

@@ -7,14 +7,10 @@ use std::sync::Arc;
 use bytes::Bytes;
 use futures_core::Stream;
 use futures_util::StreamExt as _;
-use intelligence_gemini_adapter::{
-    GeminiAdapterError, GeminiApiKeyAdapter, GeminiProxyRequest,
-};
+use intelligence_gemini_adapter::{GeminiAdapterError, GeminiApiKeyAdapter, GeminiProxyRequest};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
-async fn one_shot_http_server(
-    response: &'static str,
-) -> (String, tokio::task::JoinHandle<String>) {
+async fn one_shot_http_server(response: &'static str) -> (String, tokio::task::JoinHandle<String>) {
     let listener = tokio::net::TcpListener::bind("127.0.0.1:0")
         .await
         .expect("bind fake provider");
@@ -57,7 +53,10 @@ async fn gemini_generate_content_injects_api_key_header_and_strips_caller_creden
     .await;
     let adapter = GeminiApiKeyAdapter::with_base_url(Arc::new(reqwest::Client::new()), base_url);
     let mut headers = BTreeMap::new();
-    headers.insert("authorization".to_string(), "Bearer caller-token".to_string());
+    headers.insert(
+        "authorization".to_string(),
+        "Bearer caller-token".to_string(),
+    );
     headers.insert(
         "x-goog-api-key".to_string(),
         "caller-controlled-key".to_string(),
@@ -135,9 +134,7 @@ async fn gemini_stream_generate_content_uses_alt_sse_and_keeps_raw_stream_bytes(
 
     let request = upstream_request.await.expect("fake provider request");
     assert!(
-        request.starts_with(
-            "POST /v1beta/models/gemini-2.5-flash:streamGenerateContent?alt=sse "
-        ),
+        request.starts_with("POST /v1beta/models/gemini-2.5-flash:streamGenerateContent?alt=sse "),
         "unexpected request path:\n{request}"
     );
     assert_header(&request, "x-goog-api-key", "provider-api-key");
@@ -177,9 +174,8 @@ async fn gemini_rate_limit_error_preserves_retry_after_seconds() {
 
 #[tokio::test]
 async fn xproxy_wire_001_gemini_adapter_translates_openai_chat_request_and_response_at_adapter_boundary()
-{
-    let upstream_body =
-        r#"{"candidates":[{"content":{"role":"model","parts":[{"text":"ok"}]}}],"usageMetadata":{"promptTokenCount":2,"candidatesTokenCount":3}}"#;
+ {
+    let upstream_body = r#"{"candidates":[{"content":{"role":"model","parts":[{"text":"ok"}]}}],"usageMetadata":{"promptTokenCount":2,"candidatesTokenCount":3}}"#;
     let (base_url, upstream_request) = one_shot_http_server(Box::leak(
         format!(
             "HTTP/1.1 200 OK\r\n\
@@ -197,11 +193,7 @@ async fn xproxy_wire_001_gemini_adapter_translates_openai_chat_request_and_respo
     let request_body = br#"{"model":"gemini:gemini-2.5-flash","messages":[{"role":"system","content":"Be brief"},{"role":"user","content":"hello"}]}"#;
 
     let response = adapter
-        .proxy_openai_chat(
-            "provider-api-key",
-            request_body.to_vec(),
-            BTreeMap::new(),
-        )
+        .proxy_openai_chat("provider-api-key", request_body.to_vec(), BTreeMap::new())
         .await
         .expect("adapter owns OpenAI-to-Gemini translation");
 
@@ -227,9 +219,8 @@ async fn xproxy_wire_001_gemini_adapter_translates_openai_chat_request_and_respo
 
 #[tokio::test]
 async fn xproxy_wire_001_gemini_adapter_translates_anthropic_messages_request_and_response_at_adapter_boundary()
-{
-    let upstream_body =
-        r#"{"candidates":[{"content":{"role":"model","parts":[{"text":"pong"}]}}],"usageMetadata":{"promptTokenCount":4,"candidatesTokenCount":6}}"#;
+ {
+    let upstream_body = r#"{"candidates":[{"content":{"role":"model","parts":[{"text":"pong"}]}}],"usageMetadata":{"promptTokenCount":4,"candidatesTokenCount":6}}"#;
     let (base_url, upstream_request) = one_shot_http_server(Box::leak(
         format!(
             "HTTP/1.1 200 OK\r\n\
@@ -247,11 +238,7 @@ async fn xproxy_wire_001_gemini_adapter_translates_anthropic_messages_request_an
     let request_body = br#"{"model":"gemini-2.5-pro","system":"Be exact","max_tokens":64,"messages":[{"role":"user","content":"ping"}]}"#;
 
     let response = adapter
-        .proxy_anthropic_messages(
-            "provider-api-key",
-            request_body.to_vec(),
-            BTreeMap::new(),
-        )
+        .proxy_anthropic_messages("provider-api-key", request_body.to_vec(), BTreeMap::new())
         .await
         .expect("adapter owns Anthropic-to-Gemini translation");
 
@@ -259,9 +246,15 @@ async fn xproxy_wire_001_gemini_adapter_translates_anthropic_messages_request_an
     let response_json: serde_json::Value =
         serde_json::from_slice(&response.body).expect("Anthropic-compatible response");
     assert_eq!(response_json["type"], "message");
-    assert_eq!(response_json["content"][0]["text"], serde_json::json!("pong"));
+    assert_eq!(
+        response_json["content"][0]["text"],
+        serde_json::json!("pong")
+    );
     assert_eq!(response_json["usage"]["input_tokens"], serde_json::json!(4));
-    assert_eq!(response_json["usage"]["output_tokens"], serde_json::json!(6));
+    assert_eq!(
+        response_json["usage"]["output_tokens"],
+        serde_json::json!(6)
+    );
 
     let request = upstream_request.await.expect("fake provider request");
     assert!(

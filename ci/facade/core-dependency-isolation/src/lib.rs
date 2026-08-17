@@ -66,7 +66,9 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::Path;
 
-use oya_buck_syntax_kernel::{Env, Expr, PreImageRegistry, Stmt, call_strings, guarded_rewrite, remove_list_element};
+use oya_buck_syntax_kernel::{
+    Env, Expr, PreImageRegistry, Stmt, call_strings, guarded_rewrite, remove_list_element,
+};
 use oya_workspace_members_kernel::resolve_member_dirs;
 use serde_json::{Value, json};
 
@@ -207,7 +209,8 @@ fn build_closure(
     let mut visited: BTreeSet<String> = BTreeSet::new();
     let mut out: Vec<Value> = Vec::new();
     // Stack of (crate-name, via-chain-to-this-crate).
-    let mut stack: Vec<(String, Vec<String>)> = vec![(start.name.clone(), vec![start.name.clone()])];
+    let mut stack: Vec<(String, Vec<String>)> =
+        vec![(start.name.clone(), vec![start.name.clone()])];
     while let Some((name, via)) = stack.pop() {
         if !visited.insert(name.clone()) {
             continue;
@@ -226,7 +229,9 @@ fn build_closure(
             .map(|dep| {
                 let rename_key = manifest.cargo_dep_rename_keys.get(dep.as_str());
                 let used = dep_used_in_src(dep, &manifest.src_referenced_idents)
-                    || rename_key.map_or(false, |k| dep_used_in_src(k, &manifest.src_referenced_idents));
+                    || rename_key.map_or(false, |k| {
+                        dep_used_in_src(k, &manifest.src_referenced_idents)
+                    });
                 (dep.clone(), used)
             })
             .collect();
@@ -353,7 +358,10 @@ fn parse_member_manifest(root: &Path, member_dir: &str) -> Result<CrateManifest,
 /// comment counts as used), which is the SAFE direction: it only ever marks a dep as "live" (not
 /// auto-fixable), never wrongly auto-removes a used dep. `build.rs` is scanned because that is the
 /// only legitimate usage site for a build-dependency; missing files are fine (returns nothing).
-fn scan_src_referenced_idents(root: &Path, member_dir: &str) -> Result<BTreeSet<String>, CollectError> {
+fn scan_src_referenced_idents(
+    root: &Path,
+    member_dir: &str,
+) -> Result<BTreeSet<String>, CollectError> {
     let member_root = root.join(member_dir);
     let mut idents = BTreeSet::new();
     collect_rs_idents(&member_root.join("src"), &mut idents)?;
@@ -429,19 +437,43 @@ fn collect_cargo_deps(
     optional_names: &mut BTreeSet<String>,
 ) {
     if let Some(table) = document.get("dependencies").and_then(toml::Value::as_table) {
-        collect_dep_table(table, member_dir, external, path_dirs, rename_keys, optional_names);
+        collect_dep_table(
+            table,
+            member_dir,
+            external,
+            path_dirs,
+            rename_keys,
+            optional_names,
+        );
     }
     if let Some(table) = document
         .get("build-dependencies")
         .and_then(toml::Value::as_table)
     {
-        collect_dep_table(table, member_dir, external, path_dirs, rename_keys, optional_names);
+        collect_dep_table(
+            table,
+            member_dir,
+            external,
+            path_dirs,
+            rename_keys,
+            optional_names,
+        );
         record_build_dep_names(table, build_dep_names);
     }
     if let Some(targets) = document.get("target").and_then(toml::Value::as_table) {
         for target_cfg in targets.values() {
-            if let Some(table) = target_cfg.get("dependencies").and_then(toml::Value::as_table) {
-                collect_dep_table(table, member_dir, external, path_dirs, rename_keys, optional_names);
+            if let Some(table) = target_cfg
+                .get("dependencies")
+                .and_then(toml::Value::as_table)
+            {
+                collect_dep_table(
+                    table,
+                    member_dir,
+                    external,
+                    path_dirs,
+                    rename_keys,
+                    optional_names,
+                );
             }
             // `[target.'cfg(..)'.build-dependencies]` — a legal, rare placement that must also be
             // scanned so a transient build-dep behind a cfg cannot false-green.
@@ -449,7 +481,14 @@ fn collect_cargo_deps(
                 .get("build-dependencies")
                 .and_then(toml::Value::as_table)
             {
-                collect_dep_table(table, member_dir, external, path_dirs, rename_keys, optional_names);
+                collect_dep_table(
+                    table,
+                    member_dir,
+                    external,
+                    path_dirs,
+                    rename_keys,
+                    optional_names,
+                );
                 record_build_dep_names(table, build_dep_names);
             }
         }
@@ -467,10 +506,7 @@ fn collect_cargo_deps(
 /// rename keys so that H1 (`["kube/client"]`), H2 (`["kube?/client"]`), H3 (`["kube"]` bare),
 /// and H4 (any dep table section) are all caught. Scans ALL dep tables across the document so a
 /// dep declared only in `[target.'cfg(unix)'.dependencies]` is covered.
-fn collect_features_referenced_deps(
-    document: &toml::Value,
-    feature_backed: &mut BTreeSet<String>,
-) {
+fn collect_features_referenced_deps(document: &toml::Value, feature_backed: &mut BTreeSet<String>) {
     // Step 1: collect ALL known dep names and rename keys from ALL dep tables (every section).
     let mut all_dep_keys: BTreeSet<String> = BTreeSet::new();
     let section_names = ["dependencies", "build-dependencies", "dev-dependencies"];
@@ -493,7 +529,9 @@ fn collect_features_referenced_deps(
                     for (dep_key, spec) in table {
                         all_dep_keys.insert(dep_key.clone());
                         if let Some(spec_table) = spec.as_table() {
-                            if let Some(pkg) = spec_table.get("package").and_then(toml::Value::as_str) {
+                            if let Some(pkg) =
+                                spec_table.get("package").and_then(toml::Value::as_str)
+                            {
                                 all_dep_keys.insert(pkg.to_owned());
                             }
                         }
@@ -525,7 +563,10 @@ fn collect_features_referenced_deps(
                         let without_dep_prefix = s.strip_prefix("dep:").unwrap_or(s);
                         // Take the part before any `/` (sub-feature path), THEN strip the
                         // optional-activation `?` suffix (e.g. `kube?/client` → `kube?` → `kube`).
-                        let lead = without_dep_prefix.split('/').next().unwrap_or(without_dep_prefix);
+                        let lead = without_dep_prefix
+                            .split('/')
+                            .next()
+                            .unwrap_or(without_dep_prefix);
                         let token = lead.trim_end_matches('?').trim();
                         if !token.is_empty() && all_dep_keys.contains(token) {
                             feature_referenced.insert(token.to_owned());
@@ -657,7 +698,12 @@ fn parse_buck_external_deps(
     let text = match fs::read_to_string(&buck_path) {
         Ok(text) => text,
         Err(ref e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(BTreeSet::new()),
-        Err(e) => return Err(CollectError::Io(format!("read {}: {e}", buck_path.display()))),
+        Err(e) => {
+            return Err(CollectError::Io(format!(
+                "read {}: {e}",
+                buck_path.display()
+            )));
+        }
     };
     Ok(extract_buck_library_thirdparty_deps(&text))
 }
@@ -750,11 +796,9 @@ pub fn extract_buck_library_thirdparty_deps(text: &str) -> BTreeSet<String> {
         let opaque_span = match stmt {
             Stmt::Opaque { span } => Some(*span),
             Stmt::Assign { value, span, .. } if value.has_opaque() => Some(*span),
-            Stmt::IndexAssign { key, value, span, .. }
-                if key.has_opaque() || value.has_opaque() =>
-            {
-                Some(*span)
-            }
+            Stmt::IndexAssign {
+                key, value, span, ..
+            } if key.has_opaque() || value.has_opaque() => Some(*span),
             _ => None,
         };
         let Some(span) = opaque_span else { continue };
@@ -877,16 +921,17 @@ fn parse_deny_rules(policy: &Value) -> Result<Vec<DenyRule>, String> {
             .and_then(Value::as_str)
             .ok_or_else(|| format!("policy deny[{i}]: missing or non-string `dep` key"))?
             .to_owned();
-        let match_val = rule
-            .get("match")
-            .and_then(Value::as_str)
-            .ok_or_else(|| format!("policy deny[{i}] (dep={dep:?}): missing or non-string `match` key"))?;
+        let match_val = rule.get("match").and_then(Value::as_str).ok_or_else(|| {
+            format!("policy deny[{i}] (dep={dep:?}): missing or non-string `match` key")
+        })?;
         let prefix = match match_val {
             "exact" => false,
             "prefix" => true,
-            other => return Err(format!(
-                "policy deny[{i}] (dep={dep:?}): unknown `match` value {other:?}; must be \"exact\" or \"prefix\""
-            )),
+            other => {
+                return Err(format!(
+                    "policy deny[{i}] (dep={dep:?}): unknown `match` value {other:?}; must be \"exact\" or \"prefix\""
+                ));
+            }
         };
         out.push(DenyRule { dep, prefix });
     }
@@ -915,7 +960,11 @@ fn parse_exceptions(policy: &Value) -> Result<Vec<Exception>, String> {
         let dep = value
             .get("dep")
             .and_then(Value::as_str)
-            .ok_or_else(|| format!("policy exceptions[{i}] (crate={crate_name:?}): missing or non-string `dep` key"))?
+            .ok_or_else(|| {
+                format!(
+                    "policy exceptions[{i}] (crate={crate_name:?}): missing or non-string `dep` key"
+                )
+            })?
             .to_owned();
         out.push(Exception { crate_name, dep });
     }
@@ -1106,7 +1155,10 @@ fn evaluate_dep_list(
     let Some(deps) = deps.and_then(Value::as_array) else {
         return;
     };
-    let member_path = node.get("member_path").and_then(Value::as_str).unwrap_or("");
+    let member_path = node
+        .get("member_path")
+        .and_then(Value::as_str)
+        .unwrap_or("");
     for dep in deps {
         let Some(dep) = dep.as_str() else {
             continue;
@@ -1208,7 +1260,11 @@ fn evaluate_dep_list(
                 "kernel `{kernel_name}` depends on transient `{dep}` in {source_label}; the {dep} adapter is discarded at owned-stack cutover (ADR-0510) — the kernel must stay cutover-stable (ADR-0547)"
             );
             let action = if auto_fixable {
-                let manifest = if is_buck { "BUCK (rust_library deps)" } else { "Cargo.toml" };
+                let manifest = if is_buck {
+                    "BUCK (rust_library deps)"
+                } else {
+                    "Cargo.toml"
+                };
                 format!(
                     "AUTO-FIXABLE: `{dep}` is declared in {member_path} but unreferenced in its src — run the gate with --fix to remove the dead dependency edge from {manifest} (BUCK edits ride the oya-buck-syntax-kernel fixer harness, ADR-0549), or delete the `{dep}` line manually"
                 )
@@ -1221,7 +1277,11 @@ fn evaluate_dep_list(
                 "kernel `{kernel_name}` reaches transient `{dep}` in {source_label} via {via} (node `{node_name}`); a kernel must not absorb a transient-carrying crate into its path-dep closure (ADR-0547)"
             );
             let action = if auto_fixable {
-                let manifest = if is_buck { "BUCK (rust_library deps)" } else { "Cargo.toml" };
+                let manifest = if is_buck {
+                    "BUCK (rust_library deps)"
+                } else {
+                    "Cargo.toml"
+                };
                 format!(
                     "AUTO-FIXABLE: `{dep}` is declared in {member_path} (closure node `{node_name}`) but unreferenced in its src — run --fix to remove the dead dependency edge from {manifest}, or delete the `{dep}` line manually"
                 )
@@ -1359,7 +1419,9 @@ fn cargo_metadata_validator(root: &Path) -> Result<(), String> {
     {
         Ok(output) if output.status.success() => Ok(()),
         Ok(output) => Err(String::from_utf8_lossy(&output.stderr).trim().to_owned()),
-        Err(spawn_error) => Err(format!("cargo metadata could not be spawned: {spawn_error}")),
+        Err(spawn_error) => Err(format!(
+            "cargo metadata could not be spawned: {spawn_error}"
+        )),
     }
 }
 
@@ -1420,11 +1482,19 @@ where
             Ok(pre) => {
                 if remove_cargo_dep_line(&cargo_path, &fix.dep)? {
                     registry.record(&cargo_path.to_string_lossy(), &pre);
-                    applied.push(format!("{}/Cargo.toml: removed `{}`", fix.member_path, fix.dep));
+                    applied.push(format!(
+                        "{}/Cargo.toml: removed `{}`",
+                        fix.member_path, fix.dep
+                    ));
                 }
             }
             Err(ref e) if e.kind() == std::io::ErrorKind::NotFound => {}
-            Err(e) => return Err(CollectError::Io(format!("read {}: {e}", cargo_path.display()))),
+            Err(e) => {
+                return Err(CollectError::Io(format!(
+                    "read {}: {e}",
+                    cargo_path.display()
+                )));
+            }
         }
         // BUCK lane (ADR-0549): remove the dead `third-party//:<dep>` rust_library edge via the
         // sound parser + write-through harness. The remover refuses (no write) on any shape it
@@ -1438,7 +1508,12 @@ where
                 }
             }
             Err(ref e) if e.kind() == std::io::ErrorKind::NotFound => {}
-            Err(e) => return Err(CollectError::Io(format!("read {}: {e}", buck_path.display()))),
+            Err(e) => {
+                return Err(CollectError::Io(format!(
+                    "read {}: {e}",
+                    buck_path.display()
+                )));
+            }
         }
     }
 
@@ -1495,7 +1570,8 @@ fn remove_cargo_dep_line(path: &Path, dep: &str) -> Result<bool, CollectError> {
         if text.ends_with('\n') {
             out.push('\n');
         }
-        fs::write(path, out).map_err(|e| CollectError::Io(format!("write {}: {e}", path.display())))?;
+        fs::write(path, out)
+            .map_err(|e| CollectError::Io(format!("write {}: {e}", path.display())))?;
     }
     Ok(removed)
 }
@@ -1599,7 +1675,9 @@ fn remove_buck_dep_edges_text(text: &str, dep: &str) -> Option<String> {
             if call.func != "rust_library" {
                 continue;
             }
-            let Some(deps_arg) = call.kwarg("deps") else { continue };
+            let Some(deps_arg) = call.kwarg("deps") else {
+                continue;
+            };
             match &deps_arg.value.expr {
                 Expr::List(list) => {
                     let index = list.elements.iter().position(
@@ -1665,7 +1743,8 @@ fn contains_dep_token(text: &str, label: &str) -> bool {
 /// a bare FAIL — every finding prints its `next_action`.
 pub fn render_findings(findings: &BTreeSet<Finding>) -> String {
     if findings.is_empty() {
-        return "kernel-purity gate passed: all kernel/core crates are transient-dep-free".to_owned();
+        return "kernel-purity gate passed: all kernel/core crates are transient-dep-free"
+            .to_owned();
     }
     let auto: Vec<&Finding> = findings.iter().filter(|f| f.auto_fixable).collect();
     let manual: Vec<&Finding> = findings.iter().filter(|f| !f.auto_fixable).collect();
@@ -1856,7 +1935,11 @@ mod tests {
     #[test]
     fn dead_transient_dep_is_auto_fixable() {
         // kube declared but NOT used in src -> auto-fixable.
-        let obs = observed(vec![kernel_with_usage("oya-bad-kernel", &["serde", "kube"], &["serde"])]);
+        let obs = observed(vec![kernel_with_usage(
+            "oya-bad-kernel",
+            &["serde", "kube"],
+            &["serde"],
+        )]);
         let findings = evaluate_keyed(&policy(), &obs);
         let kube = findings
             .iter()
@@ -1873,13 +1956,20 @@ mod tests {
     #[test]
     fn used_transient_dep_is_a_design_action_not_auto_fixable() {
         // kube IS used in src -> NOT auto-fixable; the action names moving code to an adapter.
-        let obs = observed(vec![kernel_with_usage("oya-bad-kernel", &["kube"], &["kube"])]);
+        let obs = observed(vec![kernel_with_usage(
+            "oya-bad-kernel",
+            &["kube"],
+            &["kube"],
+        )]);
         let findings = evaluate_keyed(&policy(), &obs);
         let kube = findings
             .iter()
             .find(|f| f.key.ends_with(":kube"))
             .expect("kube finding");
-        assert!(!kube.auto_fixable, "used dep must not be auto-fixable: {kube:?}");
+        assert!(
+            !kube.auto_fixable,
+            "used dep must not be auto-fixable: {kube:?}"
+        );
         assert!(kube.next_action.contains("DESIGN ACTION"));
         assert!(
             kube.next_action.contains("oya-bad-adapter"),
@@ -1960,7 +2050,9 @@ mod tests {
         assert!(is_removable_dep_table("dependencies"));
         assert!(is_removable_dep_table("build-dependencies"));
         assert!(is_removable_dep_table("target.'cfg(unix)'.dependencies"));
-        assert!(is_removable_dep_table("target.'cfg(unix)'.build-dependencies"));
+        assert!(is_removable_dep_table(
+            "target.'cfg(unix)'.build-dependencies"
+        ));
         assert!(!is_removable_dep_table("dev-dependencies"));
         assert!(!is_removable_dep_table("features"));
         assert!(!is_removable_dep_table("dependencies.kube")); // sub-section header
@@ -1969,8 +2061,14 @@ mod tests {
 
     #[test]
     fn section_header_parses_table_names() {
-        assert_eq!(section_header("[dependencies]").as_deref(), Some("dependencies"));
-        assert_eq!(section_header("  [dev-dependencies]  ").as_deref(), Some("dev-dependencies"));
+        assert_eq!(
+            section_header("[dependencies]").as_deref(),
+            Some("dependencies")
+        );
+        assert_eq!(
+            section_header("  [dev-dependencies]  ").as_deref(),
+            Some("dev-dependencies")
+        );
         assert_eq!(section_header("kube = \"1\""), None);
     }
 
@@ -1995,10 +2093,13 @@ mod tests {
             }]
         });
         let findings = evaluate_keyed(&policy(), &obs);
-        assert!(findings.iter().any(|f| {
-            f.code == "KP-UNRESOLVED-PATH-DEP"
-                && f.key == "oya-foo-kernel:oya-foo-kernel:vendor/out-of-workspace-crate"
-        }), "unresolved path dep must be RED: {findings:#?}");
+        assert!(
+            findings.iter().any(|f| {
+                f.code == "KP-UNRESOLVED-PATH-DEP"
+                    && f.key == "oya-foo-kernel:oya-foo-kernel:vendor/out-of-workspace-crate"
+            }),
+            "unresolved path dep must be RED: {findings:#?}"
+        );
         assert_eq!(evaluate(&policy(), &obs).verdict, Verdict::Red);
     }
 
@@ -2026,7 +2127,11 @@ mod tests {
 
     #[test]
     fn kube_dep_in_cargo_fails_closed() {
-        let obs = observed(vec![kernel("oya-bad-kernel", &["serde", "kube"], &["serde"])]);
+        let obs = observed(vec![kernel(
+            "oya-bad-kernel",
+            &["serde", "kube"],
+            &["serde"],
+        )]);
         let findings = evaluate_keyed(&policy(), &obs);
         assert!(findings.iter().any(|f| {
             f.code == "KP-TRANSIENT-DEP-CARGO" && f.key == "oya-bad-kernel:oya-bad-kernel:kube"
@@ -2038,14 +2143,21 @@ mod tests {
     fn kube_runtime_matches_hyphen_prefix() {
         let obs = observed(vec![kernel("oya-bad-kernel", &["kube-runtime"], &[])]);
         let findings = evaluate_keyed(&policy(), &obs);
-        assert!(findings.iter().any(|f| f.code == "KP-TRANSIENT-DEP-CARGO"
-            && f.key.ends_with(":kube-runtime")));
+        assert!(
+            findings
+                .iter()
+                .any(|f| f.code == "KP-TRANSIENT-DEP-CARGO" && f.key.ends_with(":kube-runtime"))
+        );
     }
 
     #[test]
     fn kuberos_is_not_denied_by_kube_prefix() {
         // The kube/kuberos trap: `kube` exact + `kube-` hyphen-prefix must NOT match `kuberos`.
-        let obs = observed(vec![kernel("oya-cloud-kernel-frame-kernel", &["kuberos"], &[])]);
+        let obs = observed(vec![kernel(
+            "oya-cloud-kernel-frame-kernel",
+            &["kuberos"],
+            &[],
+        )]);
         assert!(
             evaluate_keyed(&policy(), &obs).is_empty(),
             "kuberos must not be matched by the kube rules"
@@ -2073,11 +2185,17 @@ mod tests {
 
     #[test]
     fn sqlx_only_in_buck_fails_closed_with_buck_code() {
-        let obs = observed(vec![kernel("oya-bad-kernel", &["serde"], &["serde", "sqlx"])]);
+        let obs = observed(vec![kernel(
+            "oya-bad-kernel",
+            &["serde"],
+            &["serde", "sqlx"],
+        )]);
         let findings = evaluate_keyed(&policy(), &obs);
-        assert!(findings.iter().any(|f| {
-            f.code == "KP-TRANSIENT-DEP-BUCK" && f.key.ends_with(":sqlx")
-        }));
+        assert!(
+            findings
+                .iter()
+                .any(|f| { f.code == "KP-TRANSIENT-DEP-BUCK" && f.key.ends_with(":sqlx") })
+        );
         assert!(
             !findings.iter().any(|f| f.code == "KP-TRANSIENT-DEP-CARGO"),
             "sqlx is only in BUCK here, so no CARGO finding"
@@ -2112,11 +2230,15 @@ mod tests {
             }]
         });
         let findings = evaluate_keyed(&policy(), &obs);
-        assert!(findings.iter().any(|f| {
-            f.code == "KP-TRANSIENT-DEP-CARGO"
-                && f.key == "oya-foo-kernel:oya-data-sql-adapter-sqlx:sqlx"
-                && f.detail.contains("oya-foo-kernel -> oya-data-sql-adapter-sqlx")
-        }), "closure leak must be RED keyed via the chain: {findings:#?}");
+        assert!(
+            findings.iter().any(|f| {
+                f.code == "KP-TRANSIENT-DEP-CARGO"
+                    && f.key == "oya-foo-kernel:oya-data-sql-adapter-sqlx:sqlx"
+                    && f.detail
+                        .contains("oya-foo-kernel -> oya-data-sql-adapter-sqlx")
+            }),
+            "closure leak must be RED keyed via the chain: {findings:#?}"
+        );
         assert_eq!(evaluate(&policy(), &obs).verdict, Verdict::Red);
     }
 
@@ -2142,9 +2264,11 @@ mod tests {
         // Kernel is clean — the exception matches nothing.
         let obs = observed(vec![kernel("oya-bad-kernel", &["serde"], &[])]);
         let findings = evaluate_keyed(&p, &obs);
-        assert!(findings.iter().any(|f| {
-            f.code == "KP-STALE-EXCEPTION" && f.key == "oya-bad-kernel:kube"
-        }));
+        assert!(
+            findings
+                .iter()
+                .any(|f| { f.code == "KP-STALE-EXCEPTION" && f.key == "oya-bad-kernel:kube" })
+        );
     }
 
     #[test]
@@ -2260,13 +2384,19 @@ rust_test(
         for code in &emitted {
             assert!(declared.contains(code), "undeclared code {code}");
         }
-        assert!(emitted.len() >= 6, "expected broad coverage, got {emitted:?}");
+        assert!(
+            emitted.len() >= 6,
+            "expected broad coverage, got {emitted:?}"
+        );
 
         // KP-POLICY-MALFORMED is emitted on a bad deny rule.
         let mut bad_policy = policy();
         bad_policy["deny"] = json!([{"dep": "kube", "match": "typo"}]);
         let mf = evaluate_keyed(&bad_policy, &obs);
-        assert!(mf.iter().any(|f| f.code == "KP-POLICY-MALFORMED"), "malformed policy must emit KP-POLICY-MALFORMED: {mf:?}");
+        assert!(
+            mf.iter().any(|f| f.code == "KP-POLICY-MALFORMED"),
+            "malformed policy must emit KP-POLICY-MALFORMED: {mf:?}"
+        );
     }
 
     // --------------------------------------------------------------------------
@@ -2297,10 +2427,22 @@ rust_test(
             }]
         });
         let findings = evaluate_keyed(&policy(), &obs);
-        let f = findings.iter().find(|f| f.key.ends_with(":kube")).expect("kube finding");
-        assert!(!f.auto_fixable, "feature-backed optional dep must NOT be auto-fixable: {f:?}");
-        assert!(f.next_action.contains("DESIGN ACTION"), "must be a design action: {f:?}");
-        assert!(plan_fixes(&policy(), &obs).is_empty(), "plan_fixes must produce nothing for feature-backed dep");
+        let f = findings
+            .iter()
+            .find(|f| f.key.ends_with(":kube"))
+            .expect("kube finding");
+        assert!(
+            !f.auto_fixable,
+            "feature-backed optional dep must NOT be auto-fixable: {f:?}"
+        );
+        assert!(
+            f.next_action.contains("DESIGN ACTION"),
+            "must be a design action: {f:?}"
+        );
+        assert!(
+            plan_fixes(&policy(), &obs).is_empty(),
+            "plan_fixes must produce nothing for feature-backed dep"
+        );
     }
 
     // --------------------------------------------------------------------------
@@ -2335,12 +2477,18 @@ rust_test(
             }]
         });
         let findings = evaluate_keyed(&policy(), &obs);
-        let f = findings.iter().find(|f| f.key.ends_with(":kube")).expect("kube finding");
+        let f = findings
+            .iter()
+            .find(|f| f.key.ends_with(":kube"))
+            .expect("kube finding");
         assert!(
             !f.auto_fixable,
             "an optional dep must NEVER be auto-fixable even with zero own-manifest [features] mentions: {f:?}"
         );
-        assert!(f.next_action.contains("DESIGN ACTION"), "must be a design action: {f:?}");
+        assert!(
+            f.next_action.contains("DESIGN ACTION"),
+            "must be a design action: {f:?}"
+        );
         assert!(
             f.next_action.contains("implicit"),
             "remediation must explain the implicit-feature export: {f:?}"
@@ -2388,7 +2536,8 @@ rust_test(
         // value `third-party//:kube`. The line-bounded stripper of the pre-kernel scanner reset
         // string state at the newline and saw only the truncated token `k` — the dep `kube` was
         // invisible to the detect lane. The shared kernel cooks the continuation, closing the gap.
-        let buck = "rust_library(\n    name = \"x\",\n    deps = [\"third-party//:k\\\nube\"],\n)\n";
+        let buck =
+            "rust_library(\n    name = \"x\",\n    deps = [\"third-party//:k\\\nube\"],\n)\n";
         let deps = extract_buck_library_thirdparty_deps(buck);
         assert!(
             deps.contains("kube"),
@@ -2405,14 +2554,16 @@ rust_test(
         // Reviewer BLOCKER closure: buck2-valid wrappers that take the target call out of
         // statement position must not hide its deps from the detect lane.
         // (a) assignment-wrapped: X = rust_library(...)
-        let assigned = "X = rust_library(\n    name = \"x\",\n    deps = [\"third-party//:kube\"],\n)\n";
+        let assigned =
+            "X = rust_library(\n    name = \"x\",\n    deps = [\"third-party//:kube\"],\n)\n";
         assert!(
             extract_buck_library_thirdparty_deps(assigned).contains("kube"),
             "assignment-wrapped target must be detected"
         );
         // (b) expression-statement wrapped: [rust_library(...)] — an opaque statement whose
         // span mentions rust_library( is raw-scanned (over-approximation).
-        let listed = "[rust_library(\n    name = \"x\",\n    deps = [\"third-party//:kube\"],\n)]\n";
+        let listed =
+            "[rust_library(\n    name = \"x\",\n    deps = [\"third-party//:kube\"],\n)]\n";
         assert!(
             extract_buck_library_thirdparty_deps(listed).contains("kube"),
             "expression-statement-wrapped target must be detected"
@@ -2438,7 +2589,8 @@ rust_test(
         );
         // (b) unmodeled-primary ternary: `-1` consumes the whole line as expression-level Opaque,
         // so the trailing-token demotion never fires.
-        let neg_ternary = "X = -1 if c else rust_library(name = \"x\", deps = [\"third-party//:kube\"])\n";
+        let neg_ternary =
+            "X = -1 if c else rust_library(name = \"x\", deps = [\"third-party//:kube\"])\n";
         assert!(
             extract_buck_library_thirdparty_deps(neg_ternary).contains("kube"),
             "unmodeled-primary ternary must be detected"
@@ -2452,7 +2604,8 @@ rust_test(
         );
         // (d) opaque argument of a DIFFERENT call at statement position: the wrapping call's
         // name must not exempt its opaque content from the raw scan.
-        let wrapped_arg = "helper([rust_library(name = \"x\", deps = [\"third-party//:kube\"])][0])\n";
+        let wrapped_arg =
+            "helper([rust_library(name = \"x\", deps = [\"third-party//:kube\"])][0])\n";
         assert!(
             extract_buck_library_thirdparty_deps(wrapped_arg).contains("kube"),
             "opaque argument of a non-rust_library call must be detected"
@@ -2466,14 +2619,22 @@ rust_test(
         // `kube` — an escape spelling must not hide a denylisted transient dep.
         let hex = "rust_library(\n    name = \"x\",\n    deps = [\"third-party//:k\\x75be\"],\n)\n";
         let deps = extract_buck_library_thirdparty_deps(hex);
-        assert!(deps.contains("kube"), "\\x75 spelling must cook to kube: {deps:?}");
-        assert!(!deps.contains("k"), "the truncated raw token must not be reported: {deps:?}");
-        let octal = "rust_library(\n    name = \"x\",\n    deps = [\"third-party//:k\\165be\"],\n)\n";
+        assert!(
+            deps.contains("kube"),
+            "\\x75 spelling must cook to kube: {deps:?}"
+        );
+        assert!(
+            !deps.contains("k"),
+            "the truncated raw token must not be reported: {deps:?}"
+        );
+        let octal =
+            "rust_library(\n    name = \"x\",\n    deps = [\"third-party//:k\\165be\"],\n)\n";
         assert!(
             extract_buck_library_thirdparty_deps(octal).contains("kube"),
             "octal spelling must cook to kube"
         );
-        let uni = "rust_library(\n    name = \"x\",\n    deps = [\"third-party//:k\\u0075be\"],\n)\n";
+        let uni =
+            "rust_library(\n    name = \"x\",\n    deps = [\"third-party//:k\\u0075be\"],\n)\n";
         assert!(
             extract_buck_library_thirdparty_deps(uni).contains("kube"),
             "\\u spelling must cook to kube"
@@ -2487,7 +2648,10 @@ rust_test(
         // (buck2 itself rejects such a file, so this is a defensive posture, not a live shape.)
         let bad = "rust_library(\n    name = \"x\",\n    deps = [\"third-party//:serde\\q\"],\n)\n";
         let deps = extract_buck_library_thirdparty_deps(bad);
-        assert!(deps.contains("serde"), "raw-scan fallback must still surface the dep: {deps:?}");
+        assert!(
+            deps.contains("serde"),
+            "raw-scan fallback must still surface the dep: {deps:?}"
+        );
     }
 
     #[test]
@@ -2498,10 +2662,16 @@ rust_test(
         let buck = "rust_library(\n    name = \"x\",\n    deps = [\n        \"third-party//:k\\x75be\",\n        \"third-party//:serde\",\n    ],\n)\n";
         match remove_buck_dep_edges_text(buck, "kube") {
             Some(out) => {
-                assert!(!out.contains("k\\x75be"), "escape-spelled element removed: {out}");
+                assert!(
+                    !out.contains("k\\x75be"),
+                    "escape-spelled element removed: {out}"
+                );
                 assert!(out.contains("third-party//:serde"), "no collateral: {out}");
                 let after = extract_buck_library_thirdparty_deps(&out);
-                assert!(!after.contains("kube"), "kube edge gone after reparse: {after:?}");
+                assert!(
+                    !after.contains("kube"),
+                    "kube edge gone after reparse: {after:?}"
+                );
                 assert!(after.contains("serde"), "serde survives reparse: {after:?}");
             }
             None => {
@@ -2519,7 +2689,10 @@ rust_test(
             "rust_library(**KW)\n",
         );
         let deps = extract_buck_library_thirdparty_deps(buck);
-        assert!(deps.contains("kube"), "splat-routed dep must surface: {deps:?}");
+        assert!(
+            deps.contains("kube"),
+            "splat-routed dep must surface: {deps:?}"
+        );
     }
 
     #[test]
@@ -2530,7 +2703,10 @@ rust_test(
             "my_lib(\n    name = \"x\",\n    deps = [\"third-party//:kube\"],\n)\n",
         );
         let deps = extract_buck_library_thirdparty_deps(buck);
-        assert!(deps.contains("kube"), "load-aliased target's dep must surface: {deps:?}");
+        assert!(
+            deps.contains("kube"),
+            "load-aliased target's dep must surface: {deps:?}"
+        );
     }
 
     #[test]
@@ -2540,7 +2716,10 @@ rust_test(
         let buck = "rust_library(\n    name = \"x\",\n    # TODO: maybe add third-party//:kube one day\n    deps = [\"third-party//:serde\"],\n)\n";
         let deps = extract_buck_library_thirdparty_deps(buck);
         assert!(deps.contains("serde"), "{deps:?}");
-        assert!(!deps.contains("kube"), "a comment mention must not be a dep: {deps:?}");
+        assert!(
+            !deps.contains("kube"),
+            "a comment mention must not be a dep: {deps:?}"
+        );
     }
 
     // --------------------------------------------------------------------------
@@ -2570,8 +2749,14 @@ rust_test(
             }]
         });
         let findings = evaluate_keyed(&policy(), &obs);
-        let f = findings.iter().find(|f| f.key.ends_with(":kube")).expect("kube finding");
-        assert!(!f.auto_fixable, "renamed dep must NOT be auto-fixable: {f:?}");
+        let f = findings
+            .iter()
+            .find(|f| f.key.ends_with(":kube"))
+            .expect("kube finding");
+        assert!(
+            !f.auto_fixable,
+            "renamed dep must NOT be auto-fixable: {f:?}"
+        );
         assert!(plan_fixes(&policy(), &obs).is_empty());
     }
 
@@ -2604,8 +2789,10 @@ rust_test(
         p["deny"] = json!([{"dep_name": "kube", "match": "exact"}]); // wrong field name
         let obs = observed(vec![kernel("oya-bad-kernel", &["kube"], &[])]);
         let findings = evaluate_keyed(&p, &obs);
-        assert!(findings.iter().any(|f| f.code == "KP-POLICY-MALFORMED"),
-            "missing dep key must emit KP-POLICY-MALFORMED: {findings:?}");
+        assert!(
+            findings.iter().any(|f| f.code == "KP-POLICY-MALFORMED"),
+            "missing dep key must emit KP-POLICY-MALFORMED: {findings:?}"
+        );
     }
 
     // --------------------------------------------------------------------------
@@ -2751,16 +2938,28 @@ k8s = ["dep:kube"]
         );
         // Detector: fail-closed — the unparseable text is raw-scanned, kube still surfaces.
         let deps = extract_buck_library_thirdparty_deps(buck);
-        assert!(deps.contains("kube"), "H6: detector must over-approximate, never hide: {deps:?}");
+        assert!(
+            deps.contains("kube"),
+            "H6: detector must over-approximate, never hide: {deps:?}"
+        );
         // Remover: refusal — Ok(false), file byte-identical.
         let tmp_path = std::env::temp_dir().join("h6_test_buck_file.BUCK");
         std::fs::write(&tmp_path, buck).unwrap();
         let original = std::fs::read(&tmp_path).unwrap();
         let result = remove_buck_dep_line(&tmp_path, "kube");
-        assert!(result.is_ok(), "H6: remove_buck_dep_line must not error: {result:?}");
-        assert!(!result.unwrap(), "H6: remove_buck_dep_line must refuse unsound input");
+        assert!(
+            result.is_ok(),
+            "H6: remove_buck_dep_line must not error: {result:?}"
+        );
+        assert!(
+            !result.unwrap(),
+            "H6: remove_buck_dep_line must refuse unsound input"
+        );
         let after = std::fs::read(&tmp_path).unwrap();
-        assert_eq!(original, after, "H6: file must be byte-identical after refusal");
+        assert_eq!(
+            original, after,
+            "H6: file must be byte-identical after refusal"
+        );
         let _ = std::fs::remove_file(&tmp_path);
     }
 
@@ -2808,11 +3007,23 @@ k8s = ["dep:kube"]
         // deps via a variable / select(): the label is present but not a plain list element —
         // the remover must refuse rather than guess.
         let via_var = "DEPS = [\"third-party//:kube\"]\nrust_library(\n    name = \"x\",\n    deps = DEPS,\n)\n";
-        assert_eq!(remove_buck_dep_edges_text(via_var, "kube"), None, "var-carried dep must refuse");
+        assert_eq!(
+            remove_buck_dep_edges_text(via_var, "kube"),
+            None,
+            "var-carried dep must refuse"
+        );
         let via_select = "rust_library(\n    name = \"x\",\n    deps = select({\"cfg\": [\"third-party//:kube\"]}),\n)\n";
-        assert_eq!(remove_buck_dep_edges_text(via_select, "kube"), None, "select-carried dep must refuse");
+        assert_eq!(
+            remove_buck_dep_edges_text(via_select, "kube"),
+            None,
+            "select-carried dep must refuse"
+        );
         let absent = "rust_library(\n    name = \"x\",\n    deps = [\"third-party//:serde\"],\n)\n";
-        assert_eq!(remove_buck_dep_edges_text(absent, "kube"), None, "absent dep is a no-op refusal");
+        assert_eq!(
+            remove_buck_dep_edges_text(absent, "kube"),
+            None,
+            "absent dep is a no-op refusal"
+        );
     }
 
     #[test]
@@ -2820,12 +3031,24 @@ k8s = ["dep:kube"]
         // `kube` must be removable even when `kube-runtime` sits in the same list: the residual
         // check is token-boundary exact, so the longer sibling neither matches nor false-refuses.
         let buck = "rust_library(\n    name = \"x\",\n    deps = [\n        \"third-party//:kube\",\n        \"third-party//:kube-runtime\",\n    ],\n)\n";
-        let out = remove_buck_dep_edges_text(buck, "kube").expect("kube removal must not be blocked by kube-runtime");
-        assert!(!contains_dep_token(&out, "third-party//:kube"), "kube gone: {out}");
-        assert!(out.contains("third-party//:kube-runtime"), "kube-runtime survives: {out}");
+        let out = remove_buck_dep_edges_text(buck, "kube")
+            .expect("kube removal must not be blocked by kube-runtime");
+        assert!(
+            !contains_dep_token(&out, "third-party//:kube"),
+            "kube gone: {out}"
+        );
+        assert!(
+            out.contains("third-party//:kube-runtime"),
+            "kube-runtime survives: {out}"
+        );
         // And removing a dep that is ONLY present as a longer sibling refuses (absent token).
-        let only_runtime = "rust_library(\n    name = \"x\",\n    deps = [\"third-party//:kube-runtime\"],\n)\n";
-        assert_eq!(remove_buck_dep_edges_text(only_runtime, "kube"), None, "prefix sibling alone is not the dep");
+        let only_runtime =
+            "rust_library(\n    name = \"x\",\n    deps = [\"third-party//:kube-runtime\"],\n)\n";
+        assert_eq!(
+            remove_buck_dep_edges_text(only_runtime, "kube"),
+            None,
+            "prefix sibling alone is not the dep"
+        );
     }
 
     // --------------------------------------------------------------------------
@@ -2839,7 +3062,10 @@ k8s = ["dep:kube"]
         // rust_test must yield only the library dep.
         let buck = "rust_library(\n    name = \"x\",\n    deps = [\n        \"third-party//:serde\",\n    ],\n    )\n";
         let deps = extract_buck_library_thirdparty_deps(buck);
-        assert!(deps.contains("serde"), "indented-close block parses: {deps:?}");
+        assert!(
+            deps.contains("serde"),
+            "indented-close block parses: {deps:?}"
+        );
         let buck2 = "rust_library(\n    name = \"x\",\n    deps = [\"third-party//:serde\"],\n    )\nrust_test(\n    name = \"y\",\n    deps = [\"third-party//:kube\"],\n)\n";
         let deps2 = extract_buck_library_thirdparty_deps(buck2);
         assert!(deps2.contains("serde"), "library dep extracted: {deps2:?}");

@@ -16,8 +16,8 @@ use crate::image::{Image, ImageRef, ImageState};
 use crate::namespace::Namespace;
 use crate::oci_spec::OciSpec;
 use crate::task::{Signal, Task};
-use std::collections::HashMap;
 use os_kernel::error::{Error, Result};
+use std::collections::HashMap;
 
 /// The outcome of running a container to completion via [`ContainerdClient::run`].
 #[derive(Debug, Clone, PartialEq, Eq)]

@@ -330,7 +330,11 @@ mod tests {
     #[test]
     fn live_row_with_slo_is_green_under_composed_predicate() {
         let input = live_rows(&[("compute-domain", Some("preview-control-plane"), true, None)]);
-        assert!(evaluate_keyed(&input).is_empty(), "got {:?}", evaluate_keyed(&input));
+        assert!(
+            evaluate_keyed(&input).is_empty(),
+            "got {:?}",
+            evaluate_keyed(&input)
+        );
         assert_eq!(evaluate(&input).verdict, Verdict::Green);
     }
 

@@ -187,7 +187,9 @@ fn is_valid_sunset(s: &str) -> bool {
 }
 
 fn parse_digits_u32(digits: &[u8]) -> u32 {
-    digits.iter().fold(0u32, |acc, &d| acc * 10 + (d - b'0') as u32)
+    digits
+        .iter()
+        .fold(0u32, |acc, &d| acc * 10 + (d - b'0') as u32)
 }
 
 fn days_in_month(year: u32, month: u32) -> u32 {

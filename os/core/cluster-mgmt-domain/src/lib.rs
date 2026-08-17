@@ -565,7 +565,10 @@ mod tests {
 
         // (source file, item signature)
         let required: [(&str, &str); 7] = [
-            (include_str!("gen.rs"), "pub fn derive(seed: &str) -> Self {"),
+            (
+                include_str!("gen.rs"),
+                "pub fn derive(seed: &str) -> Self {",
+            ),
             (
                 include_str!("gen.rs"),
                 "fn derive(cluster: &str, kind: &str) -> Self {",
@@ -612,7 +615,10 @@ mod tests {
                     .find(|l| !l.trim().is_empty())
                     .is_some_and(|l| l.trim_start().starts_with(GATE))
             });
-            assert!(gated, "`{signature}` must be immediately preceded by {GATE}");
+            assert!(
+                gated,
+                "`{signature}` must be immediately preceded by {GATE}"
+            );
         }
     }
 

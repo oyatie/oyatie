@@ -138,8 +138,7 @@ use serde_json::{Value, json};
 pub const GATE_ID: &str = "cloud-ci-authz-coverage";
 
 /// The remediation doctrine pointer every finding carries.
-pub const REMEDIATION_DOCTRINE: &str =
-    "intelligence/adapters/rest/src/lib.rs (admin_tenant_allowed + PDP gate.decide + constant_time_eq) \
+pub const REMEDIATION_DOCTRINE: &str = "intelligence/adapters/rest/src/lib.rs (admin_tenant_allowed + PDP gate.decide + constant_time_eq) \
      and tenancy/facade/tenant-lifecycle-app/src/lib.rs (authenticate_caller + authorize() per route)";
 
 /// The blocking + structural violation codes, in canonical order.
@@ -208,9 +207,7 @@ pub fn collect_surfaces(root: &Path, policy: &Value) -> Result<Value, CollectErr
             Ok(text) => text,
             Err(e) => return Err(CollectError::Io(format!("read {rel_path}: {e}"))),
         };
-        for surface in
-            extract_surfaces(rel_path, &text, &auth_layer_idents, &authz_guard_idents)
-        {
+        for surface in extract_surfaces(rel_path, &text, &auth_layer_idents, &authz_guard_idents) {
             surfaces.push(surface);
         }
     }
@@ -224,8 +221,15 @@ pub fn collect_surfaces(root: &Path, policy: &Value) -> Result<Value, CollectErr
 
 fn surface_sort_key(surface: &Value) -> (String, u64) {
     (
-        surface.get("file").and_then(Value::as_str).unwrap_or("").to_owned(),
-        surface.get("router_line").and_then(Value::as_u64).unwrap_or(0),
+        surface
+            .get("file")
+            .and_then(Value::as_str)
+            .unwrap_or("")
+            .to_owned(),
+        surface
+            .get("router_line")
+            .and_then(Value::as_u64)
+            .unwrap_or(0),
     )
 }
 
@@ -292,9 +296,9 @@ impl MethodClass {
     /// The label string emitted for the route's `method` observation field.
     fn label(&self) -> &str {
         match self {
-            MethodClass::Mutating(s) | MethodClass::NonMutating(s) | MethodClass::Unclassified(s) => {
-                s
-            }
+            MethodClass::Mutating(s)
+            | MethodClass::NonMutating(s)
+            | MethodClass::Unclassified(s) => s,
         }
     }
     /// The discriminant string emitted for the route's `method_class` observation field.
@@ -718,7 +722,11 @@ fn subrouter_arg_display(marker: &str, args_masked: &str, args_text: &str) -> St
     } else {
         args_text.trim().to_owned()
     };
-    let normalized: String = snippet.chars().filter(|c| !c.is_whitespace()).take(64).collect();
+    let normalized: String = snippet
+        .chars()
+        .filter(|c| !c.is_whitespace())
+        .take(64)
+        .collect();
     let op = marker.trim_start_matches('.').trim_end_matches('(');
     if normalized.is_empty() {
         format!("{op}(<empty>)")
@@ -744,7 +752,10 @@ fn cfg_test_spans(text: &str) -> Vec<(usize, usize)> {
     while let Some(rel) = text[from..].find("#[cfg(") {
         let at = from + rel;
         // Read the attribute up to its closing `]`; require a `test` token within it.
-        let attr_end = text[at..].find(']').map(|i| at + i + 1).unwrap_or(text.len());
+        let attr_end = text[at..]
+            .find(']')
+            .map(|i| at + i + 1)
+            .unwrap_or(text.len());
         let attr = &text[at..attr_end];
         if attr_contains_test_token(attr) {
             if let Some(body) = brace_body(text, attr_end) {
@@ -836,7 +847,8 @@ fn classify_route_call(
     // ---- Owned-kernel grammar: `.route(HttpMethod::X | METHOD_CONST, path, handler)` --------------
     if let Some(verb) = owned_verb {
         let method = classify_http_method_verb(&verb);
-        let (path, path_raw, handler) = owned_kernel_path_handler(args_masked, args_text, str_consts);
+        let (path, path_raw, handler) =
+            owned_kernel_path_handler(args_masked, args_text, str_consts);
         return Some(Route {
             path,
             path_raw,
@@ -861,7 +873,8 @@ fn classify_route_call(
     let arg1_is_ref_expr = arg1_trim.starts_with('&');
     // The disambiguator: arg2 (after the first comma) is a recognized method-router. A real axum
     // route always has one; a domain `route(x)`/`route()` does not.
-    let (arg2_class, arg2_handler) = classify_method_router(rest_masked.unwrap_or(""), method_bindings);
+    let (arg2_class, arg2_handler) =
+        classify_method_router(rest_masked.unwrap_or(""), method_bindings);
     let arg2_is_method_router =
         !arg2_class.is_unclassified() || method_router_call_shaped(rest_masked.unwrap_or(""));
 
@@ -936,7 +949,11 @@ fn owned_kernel_path_handler(
 ) -> (Option<String>, String, String) {
     let (_, rest_masked) = split_top_level_comma(args_masked);
     let Some(rest_m) = rest_masked else {
-        return (None, "<owned-kernel-missing-path>".to_owned(), String::new());
+        return (
+            None,
+            "<owned-kernel-missing-path>".to_owned(),
+            String::new(),
+        );
     };
     let rest_t = split_top_level_comma(args_text).1.unwrap_or("");
     let (path_arg_m, after_path_m) = split_top_level_comma(rest_m);
@@ -1085,7 +1102,14 @@ fn resolve_path_arg(
         .filter(|c| !c.is_whitespace())
         .take(48)
         .collect();
-    (None, if raw.is_empty() { "<empty-path-arg>".to_owned() } else { raw })
+    (
+        None,
+        if raw.is_empty() {
+            "<empty-path-arg>".to_owned()
+        } else {
+            raw
+        },
+    )
 }
 
 /// Read a `"..."` string literal at the start of `text` (which must begin with `"`); return its
@@ -1143,7 +1167,10 @@ fn classify_method_router(
     let mutmeth = ["post", "put", "patch", "delete"];
     for m in nonmut {
         if let Some(rest) = strip_call(trimmed, m) {
-            return (MethodClass::NonMutating(m.to_owned()), read_path_ident(rest));
+            return (
+                MethodClass::NonMutating(m.to_owned()),
+                read_path_ident(rest),
+            );
         }
     }
     for m in mutmeth {
@@ -1153,7 +1180,10 @@ fn classify_method_router(
     }
     if let Some(rest) = strip_call(trimmed, "any") {
         // `any` accepts every verb, writes included.
-        return (MethodClass::Mutating("any".to_owned()), read_path_ident(rest));
+        return (
+            MethodClass::Mutating("any".to_owned()),
+            read_path_ident(rest),
+        );
     }
     // 3) a bare ident — a `let m = METHOD(h);` MethodRouter variable. Resolve via the binding map.
     let ident = read_path_ident(trimmed);
@@ -1164,10 +1194,16 @@ fn classify_method_router(
             return (bound.class.clone(), bound.handler.clone());
         }
         // Unresolvable variable -> fail closed.
-        return (MethodClass::Unclassified(format!("var:{ident}")), String::new());
+        return (
+            MethodClass::Unclassified(format!("var:{ident}")),
+            String::new(),
+        );
     }
     // 4) anything else -> fail closed.
-    (MethodClass::Unclassified("<unrecognized>".to_owned()), String::new())
+    (
+        MethodClass::Unclassified("<unrecognized>".to_owned()),
+        String::new(),
+    )
 }
 
 /// Collect `const NAME: HttpMethod = HttpMethod::X;` declarations into a `NAME -> verb` map, so an
@@ -1188,12 +1224,16 @@ fn collect_method_consts(masked: &str) -> std::collections::BTreeMap<String, Str
                 continue;
             }
             let decl = &masked[at + kw.len()..];
-            let Some(colon) = decl.find(':') else { continue };
+            let Some(colon) = decl.find(':') else {
+                continue;
+            };
             let name = decl[..colon].trim().trim_start_matches("mut ").trim();
             if name.is_empty() || !name.chars().all(is_ident_char) {
                 continue;
             }
-            let Some(eq) = decl[colon..].find('=') else { continue };
+            let Some(eq) = decl[colon..].find('=') else {
+                continue;
+            };
             let init_start = colon + eq + 1;
             let semi = decl[init_start..]
                 .find(';')
@@ -1357,10 +1397,7 @@ fn split_top_level_comma(args: &str) -> (&str, Option<&str>) {
 /// file into a `NAME -> value` map for const-path resolution (B1). Only string-literal initializers
 /// are captured; a `const NAME: &str = other_const;` (no literal) is intentionally NOT captured, so
 /// it resolves to fail-closed `None` at the route site.
-fn collect_str_consts(
-    masked: &str,
-    text: &str,
-) -> std::collections::BTreeMap<String, String> {
+fn collect_str_consts(masked: &str, text: &str) -> std::collections::BTreeMap<String, String> {
     let mut out = std::collections::BTreeMap::new();
     for kw in ["const ", "static "] {
         let mut from = 0usize;
@@ -1375,7 +1412,9 @@ fn collect_str_consts(
             // Read NAME up to `:` (structure from masked; the name is an ident, mask-safe).
             let after_kw = at + kw.len();
             let decl_masked = &masked[after_kw..];
-            let Some(colon) = decl_masked.find(':') else { continue };
+            let Some(colon) = decl_masked.find(':') else {
+                continue;
+            };
             let name = decl_masked[..colon].trim();
             // `static mut` / generics make the name non-simple — require a plain ident.
             let name = name.trim_start_matches("mut ").trim();
@@ -1384,7 +1423,9 @@ fn collect_str_consts(
             }
             // Find the `=` (masked) then the first string literal before the terminating `;`. The
             // initializer VALUE is read from the ORIGINAL text at the aligned offset.
-            let Some(eq) = decl_masked[colon..].find('=') else { continue };
+            let Some(eq) = decl_masked[colon..].find('=') else {
+                continue;
+            };
             let init_start = after_kw + colon + eq + 1;
             let semi = masked[init_start..]
                 .find(';')
@@ -1412,7 +1453,8 @@ fn collect_str_consts(
 /// only ever make a binding RESOLVABLE; an unresolved binding still fails closed.
 fn collect_method_bindings(text: &str) -> std::collections::BTreeMap<String, MethodBinding> {
     let mut out = std::collections::BTreeMap::new();
-    let empty: std::collections::BTreeMap<String, MethodBinding> = std::collections::BTreeMap::new();
+    let empty: std::collections::BTreeMap<String, MethodBinding> =
+        std::collections::BTreeMap::new();
     let mut from = 0usize;
     while let Some(rel) = text[from..].find("let ") {
         let at = from + rel;
@@ -1431,7 +1473,10 @@ fn collect_method_bindings(text: &str) -> std::collections::BTreeMap<String, Met
             continue;
         }
         let init_start = eq + 1;
-        let semi = decl[init_start..].find(';').map(|i| init_start + i).unwrap_or(decl.len());
+        let semi = decl[init_start..]
+            .find(';')
+            .map(|i| init_start + i)
+            .unwrap_or(decl.len());
         let init = decl[init_start..semi].trim();
         let (class, handler) = classify_method_router(init, &empty);
         // Only record a binding the RHS classified as a real method-router shape; an Unclassified RHS
@@ -1576,7 +1621,9 @@ fn body_invokes_guard(body: &str, guard: &str) -> bool {
         if before_ok && after_ok {
             // Skip whitespace; the next non-space byte must be `(` for a call.
             let mut j = after;
-            while j < hb.len() && (hb[j] == b' ' || hb[j] == b'\t' || hb[j] == b'\n' || hb[j] == b'\r') {
+            while j < hb.len()
+                && (hb[j] == b' ' || hb[j] == b'\t' || hb[j] == b'\n' || hb[j] == b'\r')
+            {
                 j += 1;
             }
             if j < hb.len() && hb[j] == b'(' {
@@ -1611,7 +1658,10 @@ fn chain_has_auth_layer(chain: &str, auth_layer_idents: &[String]) -> bool {
             // BLOCKER-4: whole-token match so a layer named `RequireAuthMetricsRecorder` does NOT
             // satisfy the `RequireAuth` auth-layer ident (substring false-cover). The ident must
             // appear as a complete identifier token.
-            if auth_layer_idents.iter().any(|ident| contains_ident_token(arg, ident.as_str())) {
+            if auth_layer_idents
+                .iter()
+                .any(|ident| contains_ident_token(arg, ident.as_str()))
+            {
                 return true;
             }
             from = open;
@@ -1679,7 +1729,10 @@ fn has_guard_rec(
                 // BLOCKER-5: whole-token + call-shape match so a body that only references
                 // `unauthorized_response()` does NOT satisfy the `authorize` guard ident (substring
                 // false-cover). A plain-ident guard must appear as a complete token followed by `(`.
-                if guard_idents.iter().any(|g| body_invokes_guard(&code, g.as_str())) {
+                if guard_idents
+                    .iter()
+                    .any(|g| body_invokes_guard(&code, g.as_str()))
+                {
                     return true;
                 }
                 // No direct guard: follow up to one local delegate this body calls. Delegate calls
@@ -1705,10 +1758,7 @@ fn handler_impl_has_guard_rec(
     depth: usize,
     seen: &mut BTreeSet<String>,
 ) -> bool {
-    if handler.is_empty()
-        || guard_idents.is_empty()
-        || !seen.insert(format!("impl:{handler}"))
-    {
+    if handler.is_empty() || guard_idents.is_empty() || !seen.insert(format!("impl:{handler}")) {
         return false;
     }
 
@@ -1725,7 +1775,10 @@ fn handler_impl_has_guard_rec(
         if before_ok && after_ok && prefix.contains("impl") && prefix.contains("Handler") {
             if let Some(body) = brace_body(text, after_name) {
                 let code = code_only(body);
-                if guard_idents.iter().any(|g| body_invokes_guard(&code, g.as_str())) {
+                if guard_idents
+                    .iter()
+                    .any(|g| body_invokes_guard(&code, g.as_str()))
+                {
                     return true;
                 }
                 if depth > 0 {
@@ -1767,7 +1820,9 @@ fn delegate_calls_in(body: &str, own: &str) -> Vec<String> {
             }
             // optional whitespace then `(`
             let mut j = i;
-            while j < bytes.len() && (bytes[j] == b' ' || bytes[j] == b'\n' || bytes[j] == b'\t' || bytes[j] == b'\r') {
+            while j < bytes.len()
+                && (bytes[j] == b' ' || bytes[j] == b'\n' || bytes[j] == b'\t' || bytes[j] == b'\r')
+            {
                 j += 1;
             }
             if j < bytes.len() && bytes[j] == b'(' {
@@ -1793,8 +1848,24 @@ fn delegate_calls_in(body: &str, own: &str) -> Vec<String> {
 fn is_keyword(ident: &str) -> bool {
     matches!(
         ident,
-        "if" | "while" | "for" | "match" | "loop" | "return" | "let" | "fn" | "async"
-            | "await" | "move" | "in" | "as" | "ref" | "mut" | "Some" | "Ok" | "Err" | "None"
+        "if" | "while"
+            | "for"
+            | "match"
+            | "loop"
+            | "return"
+            | "let"
+            | "fn"
+            | "async"
+            | "await"
+            | "move"
+            | "in"
+            | "as"
+            | "ref"
+            | "mut"
+            | "Some"
+            | "Ok"
+            | "Err"
+            | "None"
     )
 }
 
@@ -2010,14 +2081,15 @@ fn path_exempt(path: &str, exempt_substrings: &[String]) -> bool {
         let mut from = 0usize;
         let path_b = path.as_bytes();
         while from < path.len() {
-            let Some(rel) = path[from..].find(sub) else { break };
+            let Some(rel) = path[from..].find(sub) else {
+                break;
+            };
             let at = from + rel;
             // Preceded by '/' or start-of-string.
             let before_ok = at == 0 || path_b.get(at - 1) == Some(&b'/');
             // Followed by '/', '?', end-of-string, or '}' (end of path param like {version}).
             let after = at + sub.len();
-            let after_ok = after >= path.len()
-                || matches!(path_b[after], b'/' | b'?' | b'}');
+            let after_ok = after >= path.len() || matches!(path_b[after], b'/' | b'?' | b'}');
             if before_ok && after_ok {
                 return true;
             }
@@ -2041,7 +2113,12 @@ fn has_path_param(path: &str) -> bool {
 /// method-router and tagged `surface:` for a structurally-unclassified route call. Composition
 /// `unresolved_subrouters` are appended so a merge/nest fail-closed finding keys stably. Handler
 /// names are excluded so a handler rename keeps the key stable.
-fn surface_signature_key(file: &str, scope: &str, routes: &[Value], subrouters: &[Value]) -> String {
+fn surface_signature_key(
+    file: &str,
+    scope: &str,
+    routes: &[Value],
+    subrouters: &[Value],
+) -> String {
     let mut tuples: Vec<String> = routes
         .iter()
         .map(|r| {
@@ -2073,7 +2150,11 @@ fn surface_signature_key(file: &str, scope: &str, routes: &[Value], subrouters: 
         }
     }
     tuples.sort();
-    let scope = if scope.is_empty() { "<file-scope>" } else { scope };
+    let scope = if scope.is_empty() {
+        "<file-scope>"
+    } else {
+        scope
+    };
     format!("{file}#{scope}::router[{}]", tuples.join("; "))
 }
 
@@ -2103,7 +2184,11 @@ pub fn evaluate_keyed(policy: &Value, observed: &Value) -> BTreeSet<Finding> {
     // recognition vocabulary; an empty/absent one would mark every surface unauthenticated, but a
     // MISSING (null/non-array) list signals a corrupt policy — fail closed loudly rather than
     // silently flag the whole repo.
-    if policy.get("authz_guard_idents").and_then(Value::as_array).is_none() {
+    if policy
+        .get("authz_guard_idents")
+        .and_then(Value::as_array)
+        .is_none()
+    {
         findings.insert(Finding::new(
             "AC-POLICY-MALFORMED",
             POLICY_KEY,
@@ -2121,8 +2206,9 @@ pub fn evaluate_keyed(policy: &Value, observed: &Value) -> BTreeSet<Finding> {
     }
 
     let exempt_substrings = string_list(policy, "exempt_path_substrings");
-    let frozen_baseline: BTreeSet<String> =
-        string_list(policy, "frozen_unauthenticated_surfaces").into_iter().collect();
+    let frozen_baseline: BTreeSet<String> = string_list(policy, "frozen_unauthenticated_surfaces")
+        .into_iter()
+        .collect();
 
     let min_expected = policy
         .get("min_expected_surfaces")
@@ -2160,10 +2246,20 @@ pub fn evaluate_keyed(policy: &Value, observed: &Value) -> BTreeSet<Finding> {
         let Some(file) = surface.get("file").and_then(Value::as_str) else {
             continue;
         };
-        let router_line = surface.get("router_line").and_then(Value::as_u64).unwrap_or(0);
+        let router_line = surface
+            .get("router_line")
+            .and_then(Value::as_u64)
+            .unwrap_or(0);
         let scope = surface.get("scope").and_then(Value::as_str).unwrap_or("");
-        let routes = surface.get("routes").and_then(Value::as_array).cloned().unwrap_or_default();
-        let has_auth_layer = surface.get("has_auth_layer").and_then(Value::as_bool).unwrap_or(false);
+        let routes = surface
+            .get("routes")
+            .and_then(Value::as_array)
+            .cloned()
+            .unwrap_or_default();
+        let has_auth_layer = surface
+            .get("has_auth_layer")
+            .and_then(Value::as_bool)
+            .unwrap_or(false);
         let handler_authz = surface.get("handler_authz").and_then(Value::as_object);
         let subrouters = surface
             .get("unresolved_subrouters")
@@ -2181,7 +2277,10 @@ pub fn evaluate_keyed(policy: &Value, observed: &Value) -> BTreeSet<Finding> {
         // (label, path-display, handler) of every uncovered control-plane route.
         let mut uncovered_handlers: Vec<(String, String, String)> = Vec::new();
         for route in &routes {
-            let class = route.get("method_class").and_then(Value::as_str).unwrap_or("");
+            let class = route
+                .get("method_class")
+                .and_then(Value::as_str)
+                .unwrap_or("");
             let method = route.get("method").and_then(Value::as_str).unwrap_or("");
             let handler = route.get("handler").and_then(Value::as_str).unwrap_or("");
             let path_opt = route.get("path").and_then(Value::as_str);
@@ -2291,7 +2390,11 @@ pub fn evaluate_keyed(policy: &Value, observed: &Value) -> BTreeSet<Finding> {
                 "AC-UNRESOLVED-SUBROUTER",
                 format!(
                     "UNRESOLVED sub-router composition (fail-closed): the router scope `{scope}` at {file}:{router_line} composes a sub-router via `.merge(...)`/`.nest(...)`/`.nest_service(...)` the gate could not resolve to a router it scanned-and-cleared (a call into another crate/module, a function-returned router, or a macro) — so its routes' authz coverage is unknown. The gate does not assume merged/nested content is covered. Resolve the sub-router inline in a scanned scope, or add a router-level auth layer covering the whole scope, and ensure its mutating routes carry fail-closed authz — see {REMEDIATION_DOCTRINE}. Unresolved composition(s): [{subrouter_list}].{}",
-                    if holes.is_empty() { String::new() } else { format!(" Uncovered direct route(s): [{holes}].") }
+                    if holes.is_empty() {
+                        String::new()
+                    } else {
+                        format!(" Uncovered direct route(s): [{holes}].")
+                    }
                 ),
             )
         } else if has_unclassified_surface {
@@ -2396,8 +2499,9 @@ pub fn shrink_only_baseline(
     observed: &Value,
     allow_new: bool,
 ) -> (Vec<String>, Vec<String>) {
-    let prior: BTreeSet<String> =
-        string_list(policy, "frozen_unauthenticated_surfaces").into_iter().collect();
+    let prior: BTreeSet<String> = string_list(policy, "frozen_unauthenticated_surfaces")
+        .into_iter()
+        .collect();
     let live = live_surface_keys(policy, observed);
 
     let new_keys: BTreeSet<String> = live.difference(&prior).cloned().collect();
@@ -2415,7 +2519,10 @@ pub fn render_findings(findings: &BTreeSet<Finding>) -> String {
     }
     let mut out = String::from("authz-coverage gate failed (issue #770 / AUTH-005 class):\n");
     for finding in findings {
-        out.push_str(&format!("    - {} {}\n        {}\n", finding.code, finding.key, finding.detail));
+        out.push_str(&format!(
+            "    - {} {}\n        {}\n",
+            finding.code, finding.key, finding.detail
+        ));
     }
     out
 }
@@ -2524,15 +2631,23 @@ mod tests {
         let observed = observe(RED_FIXTURE);
         let findings = evaluate_keyed(&policy(), &observed);
         assert!(
-            findings.iter().any(|f| f.code == "AC-UNAUTHENTICATED-CONTROL-PLANE"),
+            findings
+                .iter()
+                .any(|f| f.code == "AC-UNAUTHENTICATED-CONTROL-PLANE"),
             "an unauthenticated POST/DELETE router must produce AC-UNAUTHENTICATED-CONTROL-PLANE: {findings:?}"
         );
         let finding = findings
             .iter()
             .find(|f| f.code == "AC-UNAUTHENTICATED-CONTROL-PLANE")
             .unwrap();
-        assert!(finding.detail.contains("DELETE /things/{id}"), "names the delete hole: {finding:?}");
-        assert!(finding.detail.contains("POST /things"), "names the post hole: {finding:?}");
+        assert!(
+            finding.detail.contains("DELETE /things/{id}"),
+            "names the delete hole: {finding:?}"
+        );
+        assert!(
+            finding.detail.contains("POST /things"),
+            "names the post hole: {finding:?}"
+        );
         assert!(
             finding.detail.contains("intelligence/adapters/rest"),
             "remediation must point at the doctrine: {finding:?}"
@@ -2558,11 +2673,15 @@ mod tests {
         // the per-handler guards (require_data_plane_bearer / admin_tenant_allowed).
         let surface = observed["surfaces"].as_array().unwrap().first().unwrap();
         assert_eq!(
-            surface["has_auth_layer"], Value::from(false),
+            surface["has_auth_layer"],
+            Value::from(false),
             "DefaultBodyLimit is not an auth layer"
         );
         let findings = evaluate_keyed(&policy(), &observed);
-        assert!(findings.is_empty(), "per-handler guards cover the surface: {findings:?}");
+        assert!(
+            findings.is_empty(),
+            "per-handler guards cover the surface: {findings:?}"
+        );
     }
 
     #[test]
@@ -2578,7 +2697,10 @@ mod tests {
         let observed = observe(text);
         // It has no mutating route at all ⇒ never a control plane.
         let findings = evaluate_keyed(&policy(), &observed);
-        assert!(findings.is_empty(), "a read-only health router is not a control plane: {findings:?}");
+        assert!(
+            findings.is_empty(),
+            "a read-only health router is not a control plane: {findings:?}"
+        );
     }
 
     #[test]
@@ -2594,9 +2716,16 @@ mod tests {
         "#;
         let observed = observe(text);
         let surface = observed["surfaces"].as_array().unwrap().first().unwrap();
-        assert_eq!(surface["has_auth_layer"], Value::from(true), "RequireAuth is an auth layer");
+        assert_eq!(
+            surface["has_auth_layer"],
+            Value::from(true),
+            "RequireAuth is an auth layer"
+        );
         let findings = evaluate_keyed(&policy(), &observed);
-        assert!(findings.is_empty(), "a router-level auth layer covers all routes: {findings:?}");
+        assert!(
+            findings.is_empty(),
+            "a router-level auth layer covers all routes: {findings:?}"
+        );
     }
 
     #[test]
@@ -2615,9 +2744,16 @@ mod tests {
             .into_iter()
             .filter(|f| f.code == "AC-UNAUTHENTICATED-CONTROL-PLANE")
             .collect();
-        assert_eq!(blocked.len(), 1, "an un-baselined unauthenticated surface blocks: {blocked:?}");
+        assert_eq!(
+            blocked.len(),
+            1,
+            "an un-baselined unauthenticated surface blocks: {blocked:?}"
+        );
         let key = blocked[0].key.clone();
-        assert_eq!(key, "fixture.rs#r::router[post /a]", "signature key is line-independent + scope-keyed: {key}");
+        assert_eq!(
+            key, "fixture.rs#r::router[post /a]",
+            "signature key is line-independent + scope-keyed: {key}"
+        );
 
         // With the key frozen ⇒ accepted (no block), no stale-baseline (it is live).
         let mut p = policy();
@@ -2636,7 +2772,9 @@ mod tests {
         p["frozen_unauthenticated_surfaces"] = json!(["some/old/file.rs::router@10"]);
         let findings = evaluate_keyed(&p, &observed);
         assert!(
-            findings.iter().any(|f| f.code == "AC-STALE-BASELINE" && f.key == "some/old/file.rs::router@10"),
+            findings
+                .iter()
+                .any(|f| f.code == "AC-STALE-BASELINE" && f.key == "some/old/file.rs::router@10"),
             "a baseline key with no live finding must self-clean: {findings:?}"
         );
     }
@@ -2659,7 +2797,11 @@ mod tests {
         p["gate_id"] = Value::from("wrong-id");
         let observed = observe(GREEN_PER_HANDLER);
         let findings = evaluate_keyed(&p, &observed);
-        assert!(findings.iter().any(|f| f.code == "AC-POLICY-GATE-ID-MISMATCH"));
+        assert!(
+            findings
+                .iter()
+                .any(|f| f.code == "AC-POLICY-GATE-ID-MISMATCH")
+        );
     }
 
     #[test]
@@ -2692,7 +2834,10 @@ mod tests {
         let routes = surface["routes"].as_array().unwrap();
         assert_eq!(routes.len(), 1, "one route parsed: {routes:?}");
         assert_eq!(routes[0]["method"], "post");
-        assert_eq!(routes[0]["handler"], "register_tenant", "turbofish stripped");
+        assert_eq!(
+            routes[0]["handler"], "register_tenant",
+            "turbofish stripped"
+        );
         assert_eq!(routes[0]["path"], "/v1/tenants/{id}/suspend");
         // Handler calls authorize ⇒ covered ⇒ green.
         assert!(evaluate_keyed(&policy(), &observed).is_empty());
@@ -2716,7 +2861,9 @@ mod tests {
 
     fn has_code(text: &str, code: &str) -> bool {
         let observed = observe(text);
-        evaluate_keyed(&policy(), &observed).iter().any(|f| f.code == code)
+        evaluate_keyed(&policy(), &observed)
+            .iter()
+            .any(|f| f.code == code)
     }
 
     fn is_green(text: &str) -> BTreeSet<Finding> {
@@ -2747,7 +2894,10 @@ mod tests {
         // The resolved path appears in the route observation (proving const substitution).
         let observed = observe(RED_B1_CONST_PATH);
         let route = &observed["surfaces"][0]["routes"][0];
-        assert_eq!(route["path"], "/tenants/{id}", "const NUKE substituted to its value");
+        assert_eq!(
+            route["path"], "/tenants/{id}",
+            "const NUKE substituted to its value"
+        );
         assert_eq!(route["method"], "delete");
     }
 
@@ -2813,7 +2963,10 @@ mod tests {
         );
         // The binding resolved the method to `delete` (mutating), not unclassified.
         let observed = observe(RED_B2_METHOD_VAR);
-        assert_eq!(observed["surfaces"][0]["routes"][0]["method_class"], "mutating");
+        assert_eq!(
+            observed["surfaces"][0]["routes"][0]["method_class"],
+            "mutating"
+        );
     }
 
     // RED: a TRULY unresolvable method-router variable (bound to a non-method-router expression) ⇒
@@ -2856,8 +3009,14 @@ mod tests {
             is_green(RED_B2_ON_FILTER)
         );
         let observed = observe(RED_B2_ON_FILTER);
-        assert_eq!(observed["surfaces"][0]["routes"][0]["method_class"], "mutating");
-        assert_eq!(observed["surfaces"][0]["routes"][0]["handler"], "delete_thing");
+        assert_eq!(
+            observed["surfaces"][0]["routes"][0]["method_class"],
+            "mutating"
+        );
+        assert_eq!(
+            observed["surfaces"][0]["routes"][0]["handler"],
+            "delete_thing"
+        );
     }
 
     // GREEN: on(MethodFilter::GET, h) is non-mutating ⇒ not a control plane.
@@ -2918,7 +3077,10 @@ mod tests {
     #[test]
     fn b3_comment_only_guard_fails_closed() {
         assert!(
-            has_code(RED_B3_COMMENT_ONLY_GUARD, "AC-UNAUTHENTICATED-CONTROL-PLANE"),
+            has_code(
+                RED_B3_COMMENT_ONLY_GUARD,
+                "AC-UNAUTHENTICATED-CONTROL-PLANE"
+            ),
             "a guard ident only in a comment/string must NOT false-cover (must be RED): {:?}",
             is_green(RED_B3_COMMENT_ONLY_GUARD)
         );
@@ -2962,7 +3124,10 @@ mod tests {
             .into_iter()
             .find(|f| f.code == "AC-UNAUTHENTICATED-CONTROL-PLANE")
             .map(|f| f.key);
-        assert_eq!(k1, k2, "the signature key must not depend on the router's line number");
+        assert_eq!(
+            k1, k2,
+            "the signature key must not depend on the router's line number"
+        );
         assert_eq!(k1.as_deref(), Some("fixture.rs#r::router[post /a]"));
     }
 
@@ -3030,7 +3195,10 @@ mod tests {
     #[test]
     fn s3_route_after_with_state_is_red() {
         assert!(
-            has_code(RED_S3_ROUTE_AFTER_WITH_STATE, "AC-UNAUTHENTICATED-CONTROL-PLANE"),
+            has_code(
+                RED_S3_ROUTE_AFTER_WITH_STATE,
+                "AC-UNAUTHENTICATED-CONTROL-PLANE"
+            ),
             "an unauthenticated DELETE declared AFTER .with_state(...) must be RED: {:?}",
             is_green(RED_S3_ROUTE_AFTER_WITH_STATE)
         );
@@ -3039,7 +3207,10 @@ mod tests {
             .into_iter()
             .find(|f| f.code == "AC-UNAUTHENTICATED-CONTROL-PLANE")
             .unwrap();
-        assert!(f.detail.contains("DELETE /tenants/{id}"), "the post-with_state DELETE is seen: {f:?}");
+        assert!(
+            f.detail.contains("DELETE /tenants/{id}"),
+            "the post-with_state DELETE is seen: {f:?}"
+        );
     }
 
     // ---- BLOCKER-4: auth-layer whole-token match (no substring false-cover) -------------------------
@@ -3059,13 +3230,17 @@ mod tests {
     #[test]
     fn s4_auth_layer_substring_does_not_false_cover() {
         assert!(
-            has_code(RED_S4_AUTH_LAYER_SUBSTRING, "AC-UNAUTHENTICATED-CONTROL-PLANE"),
+            has_code(
+                RED_S4_AUTH_LAYER_SUBSTRING,
+                "AC-UNAUTHENTICATED-CONTROL-PLANE"
+            ),
             "RequireAuthMetricsRecorder must NOT satisfy the RequireAuth auth-layer ident: {:?}",
             is_green(RED_S4_AUTH_LAYER_SUBSTRING)
         );
         let observed = observe(RED_S4_AUTH_LAYER_SUBSTRING);
         assert_eq!(
-            observed["surfaces"][0]["has_auth_layer"], Value::from(false),
+            observed["surfaces"][0]["has_auth_layer"],
+            Value::from(false),
             "the substring layer is not an auth layer"
         );
     }
@@ -3191,7 +3366,9 @@ mod tests {
     fn unclassified_method_macro_fails_closed() {
         let findings = is_green(RED_UNCLASSIFIED_METHOD_MACRO);
         assert!(
-            findings.iter().any(|f| SURFACE_FINDING_CODES.contains(&f.code.as_str())),
+            findings
+                .iter()
+                .any(|f| SURFACE_FINDING_CODES.contains(&f.code.as_str())),
             "a string-path route with a macro method-router must fail closed: {findings:?}"
         );
     }
@@ -3207,7 +3384,10 @@ mod tests {
     #[test]
     fn unclassified_surface_truncated_fails_closed() {
         assert!(
-            has_code(RED_UNCLASSIFIED_SURFACE_TRUNCATED, "AC-UNCLASSIFIED-SURFACE"),
+            has_code(
+                RED_UNCLASSIFIED_SURFACE_TRUNCATED,
+                "AC-UNCLASSIFIED-SURFACE"
+            ),
             "an unbounded/truncated .route( must fail closed AC-UNCLASSIFIED-SURFACE: {:?}",
             is_green(RED_UNCLASSIFIED_SURFACE_TRUNCATED)
         );
@@ -3231,8 +3411,14 @@ mod tests {
             is_green(RED_OWNED_KERNEL_POST)
         );
         let observed = observe(RED_OWNED_KERNEL_POST);
-        assert_eq!(observed["surfaces"][0]["routes"][0]["method_class"], "mutating");
-        assert_eq!(observed["surfaces"][0]["routes"][0]["path"], "/admin/v1/provision");
+        assert_eq!(
+            observed["surfaces"][0]["routes"][0]["method_class"],
+            "mutating"
+        );
+        assert_eq!(
+            observed["surfaces"][0]["routes"][0]["path"],
+            "/admin/v1/provision"
+        );
     }
 
     // GREEN: an owned-kernel GET-only router is a read, not a control plane.
@@ -3294,8 +3480,7 @@ mod tests {
     fn owned_kernel_handler_to_sync_typed_handler_impl_is_green_when_impl_calls_guard() {
         let observed = observe(GREEN_OWNED_KERNEL_HANDLER_TO_SYNC_TYPED_HANDLER);
         assert_eq!(
-            observed["surfaces"][0]["routes"][0]["handler"],
-            "PolicyAdmissionHandler",
+            observed["surfaces"][0]["routes"][0]["handler"], "PolicyAdmissionHandler",
             "handler_to_sync(HandlerStruct) must resolve to the typed handler struct"
         );
         assert!(
@@ -3347,7 +3532,10 @@ mod tests {
     #[test]
     fn owned_kernel_const_method_post_is_red() {
         assert!(
-            has_code(RED_OWNED_KERNEL_CONST_METHOD, "AC-UNAUTHENTICATED-CONTROL-PLANE"),
+            has_code(
+                RED_OWNED_KERNEL_CONST_METHOD,
+                "AC-UNAUTHENTICATED-CONTROL-PLANE"
+            ),
             "a const-method (= HttpMethod::Post) owned-kernel route must resolve + be RED: {:?}",
             is_green(RED_OWNED_KERNEL_CONST_METHOD)
         );
@@ -3458,17 +3646,34 @@ mod tests {
         p["frozen_unauthenticated_surfaces"] = json!([fixed_key, live_key]);
 
         let (next, new_keys) = shrink_only_baseline(&p, &observed, false);
-        assert_eq!(next, vec![live_key.to_owned()], "fixed dropped, live kept, new refused: {next:?}");
-        assert!(new_keys.is_empty(), "no NEW key here (live_key was already baselined): {new_keys:?}");
+        assert_eq!(
+            next,
+            vec![live_key.to_owned()],
+            "fixed dropped, live kept, new refused: {next:?}"
+        );
+        assert!(
+            new_keys.is_empty(),
+            "no NEW key here (live_key was already baselined): {new_keys:?}"
+        );
 
         // Now a baseline that does NOT contain the live key ⇒ it is a NEW key, refused unless allowed.
         let mut p2 = policy();
         p2["frozen_unauthenticated_surfaces"] = json!([fixed_key]);
         let (next2, new2) = shrink_only_baseline(&p2, &observed, false);
-        assert!(next2.is_empty(), "without --allow-new a new key is NOT absorbed: {next2:?}");
-        assert_eq!(new2, vec![live_key.to_owned()], "the new key is reported: {new2:?}");
+        assert!(
+            next2.is_empty(),
+            "without --allow-new a new key is NOT absorbed: {next2:?}"
+        );
+        assert_eq!(
+            new2,
+            vec![live_key.to_owned()],
+            "the new key is reported: {new2:?}"
+        );
         let (next3, _) = shrink_only_baseline(&p2, &observed, true);
-        assert_eq!(next3, vec![live_key.to_owned()], "with --allow-new the new key is absorbed: {next3:?}");
+        assert_eq!(
+            next3,
+            vec![live_key.to_owned()],
+            "with --allow-new the new key is absorbed: {next3:?}"
+        );
     }
-
 }

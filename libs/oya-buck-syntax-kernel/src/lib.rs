@@ -44,7 +44,9 @@ pub mod harness;
 pub mod lexer;
 pub mod parser;
 
-pub use edit::{EditError, insert_at, insert_dict_entry, insert_kwarg, remove_list_element, replace_span};
+pub use edit::{
+    EditError, insert_at, insert_dict_entry, insert_kwarg, remove_list_element, replace_span,
+};
 pub use eval::{
     Env, call_strings, dict_values, eval_string, eval_string_with, expr_strings, find_target,
     glob_match, resolve_dict_var,
@@ -107,11 +109,16 @@ mod tests {
     fn backslash_newline_continuation_inside_string_cooks_to_joined_value() {
         // FRIC-1781230000 (#693 LOW-2 detect gap): a dep split across a backslash-newline
         // continuation must cook to the JOINED value so the detect lane sees `kube`, not `k`.
-        let buck = "rust_library(\n    name = \"x\",\n    deps = [\"third-party//:k\\\nube\"],\n)\n";
+        let buck =
+            "rust_library(\n    name = \"x\",\n    deps = [\"third-party//:k\\\nube\"],\n)\n";
         let doc = must_parse(buck);
         let call = calls(&doc)[0];
         let deps = thirdparty_tokens(call);
-        assert_eq!(deps, vec!["kube".to_owned()], "continuation must not hide the dep: {deps:?}");
+        assert_eq!(
+            deps,
+            vec!["kube".to_owned()],
+            "continuation must not hide the dep: {deps:?}"
+        );
     }
 
     #[test]
@@ -129,7 +136,10 @@ mod tests {
         );
         let doc = must_parse(buck);
         let deps = thirdparty_tokens(calls(&doc)[0]);
-        assert!(deps.contains(&"kube".to_owned()), "dep after escaped quote: {deps:?}");
+        assert!(
+            deps.contains(&"kube".to_owned()),
+            "dep after escaped quote: {deps:?}"
+        );
     }
 
     #[test]
@@ -149,7 +159,10 @@ mod tests {
         let deps = thirdparty_tokens(call);
         assert!(deps.contains(&"kube".to_owned()), "H5: {deps:?}");
         let kube_pos = buck.find("third-party//:kube").unwrap();
-        assert!(call.span.end > kube_pos, "call span must extend past the dep");
+        assert!(
+            call.span.end > kube_pos,
+            "call span must extend past the dep"
+        );
     }
 
     #[test]
@@ -168,7 +181,10 @@ mod tests {
             "    deps = [\"third-party//:kube\"],\n",
             "    # no matching close\n",
         );
-        assert!(parse(buck).is_err(), "unterminated call must be a parse error");
+        assert!(
+            parse(buck).is_err(),
+            "unterminated call must be a parse error"
+        );
     }
 
     #[test]
@@ -187,7 +203,11 @@ mod tests {
         let cs = calls(&doc);
         assert_eq!(cs.len(), 1, "exactly one real call");
         let deps = thirdparty_tokens(cs[0]);
-        assert_eq!(deps, vec!["serde".to_owned()], "comment dep must not be extracted: {deps:?}");
+        assert_eq!(
+            deps,
+            vec!["serde".to_owned()],
+            "comment dep must not be extracted: {deps:?}"
+        );
     }
 
     #[test]
@@ -226,7 +246,10 @@ mod tests {
         let corrupt = "rust_library(\n    name = \"x\",\n    deps = [],,\n)\n";
         assert!(parse(corrupt).is_err(), "double comma must fail to parse");
         let corrupt2 = "rust_library(\n    name = \"x\",\n    deps = [\"a\",, \"b\"],\n)\n";
-        assert!(parse(corrupt2).is_err(), "list double comma must fail to parse");
+        assert!(
+            parse(corrupt2).is_err(),
+            "list double comma must fail to parse"
+        );
     }
 
     #[test]
@@ -236,7 +259,9 @@ mod tests {
         // \NNN to the same value so a denylisted dep cannot hide by escape spelling.
         let hex = "deps = [\"third-party//:k\\x75be\"]\n";
         let doc_hex = must_parse(hex);
-        let Stmt::Assign { value, .. } = &doc_hex.stmts[0] else { panic!("assign") };
+        let Stmt::Assign { value, .. } = &doc_hex.stmts[0] else {
+            panic!("assign")
+        };
         assert_eq!(
             expr_strings_of(value),
             vec!["third-party//:kube".to_owned()],
@@ -244,16 +269,32 @@ mod tests {
         );
         let uni = "deps = [\"third-party//:k\\u0075be\"]\n";
         let doc_uni = must_parse(uni);
-        let Stmt::Assign { value, .. } = &doc_uni.stmts[0] else { panic!("assign") };
-        assert_eq!(expr_strings_of(value), vec!["third-party//:kube".to_owned()]);
+        let Stmt::Assign { value, .. } = &doc_uni.stmts[0] else {
+            panic!("assign")
+        };
+        assert_eq!(
+            expr_strings_of(value),
+            vec!["third-party//:kube".to_owned()]
+        );
         let big = "deps = [\"third-party//:k\\U00000075be\"]\n";
         let doc_big = must_parse(big);
-        let Stmt::Assign { value, .. } = &doc_big.stmts[0] else { panic!("assign") };
-        assert_eq!(expr_strings_of(value), vec!["third-party//:kube".to_owned()]);
+        let Stmt::Assign { value, .. } = &doc_big.stmts[0] else {
+            panic!("assign")
+        };
+        assert_eq!(
+            expr_strings_of(value),
+            vec!["third-party//:kube".to_owned()]
+        );
         let octal = "deps = [\"third-party//:k\\165be\"]\n";
         let doc_octal = must_parse(octal);
-        let Stmt::Assign { value, .. } = &doc_octal.stmts[0] else { panic!("assign") };
-        assert_eq!(expr_strings_of(value), vec!["third-party//:kube".to_owned()], "octal \\165 is `u`");
+        let Stmt::Assign { value, .. } = &doc_octal.stmts[0] else {
+            panic!("assign")
+        };
+        assert_eq!(
+            expr_strings_of(value),
+            vec!["third-party//:kube".to_owned()],
+            "octal \\165 is `u`"
+        );
         // Standard single-char escapes cook to their control characters.
         let std_esc = "X = \"a\\ab\\bf\\fv\\v\"\n";
         let doc_std = must_parse(std_esc);
@@ -266,21 +307,32 @@ mod tests {
         let nul = "X = \"a\\0b\"\n";
         let doc_nul = must_parse(nul);
         let env_nul = Env::from_doc(&doc_nul);
-        assert_eq!(env_nul.string_vars.get("X").map(String::as_str), Some("a\0b"));
+        assert_eq!(
+            env_nul.string_vars.get("X").map(String::as_str),
+            Some("a\0b")
+        );
     }
 
     #[test]
     fn unimplemented_escape_classes_are_hard_lex_errors() {
         // Fail-closed: any escape class the lexer does not implement must refuse, never keep
         // the character verbatim (the silent mis-cook the review F1 proved against buck2).
-        for bad in ["X = \"a\\qb\"\n", "X = \"a\\x7\"\n", "X = \"a\\u12\"\n", "X = \"\\ud800\"\n"] {
+        for bad in [
+            "X = \"a\\qb\"\n",
+            "X = \"a\\x7\"\n",
+            "X = \"a\\u12\"\n",
+            "X = \"\\ud800\"\n",
+        ] {
             assert!(parse(bad).is_err(), "must refuse to guess: {bad}");
         }
         // Raw strings still keep backslashes verbatim (no cooking, no refusal).
         let raw = "PAT = r\"a\\qb\"\n";
         let doc = must_parse(raw);
         let env = Env::from_doc(&doc);
-        assert_eq!(env.string_vars.get("PAT").map(String::as_str), Some("a\\qb"));
+        assert_eq!(
+            env.string_vars.get("PAT").map(String::as_str),
+            Some("a\\qb")
+        );
     }
 
     #[test]
@@ -288,8 +340,14 @@ mod tests {
         let buck = "DOC = \"\"\"multi\nline ) [ } text\"\"\"\nPAT = r\"a\\d+\"\nrust_library(\n    name = \"x\",\n)\n";
         let doc = must_parse(buck);
         let env = Env::from_doc(&doc);
-        assert_eq!(env.string_vars.get("DOC").map(String::as_str), Some("multi\nline ) [ } text"));
-        assert_eq!(env.string_vars.get("PAT").map(String::as_str), Some("a\\d+"));
+        assert_eq!(
+            env.string_vars.get("DOC").map(String::as_str),
+            Some("multi\nline ) [ } text")
+        );
+        assert_eq!(
+            env.string_vars.get("PAT").map(String::as_str),
+            Some("a\\d+")
+        );
         assert_eq!(calls(&doc).len(), 1);
     }
 
@@ -303,7 +361,10 @@ mod tests {
         let buck = "rust_library(\n    name = \"x\",\n    mapped_srcs = {\"a\": \"b\"},\n)\n";
         let doc = must_parse(buck);
         let call = calls(&doc)[0];
-        assert!(call.kwarg("srcs").is_none(), "srcs must not match mapped_srcs");
+        assert!(
+            call.kwarg("srcs").is_none(),
+            "srcs must not match mapped_srcs"
+        );
         assert!(call.kwarg("mapped_srcs").is_some());
     }
 
@@ -324,12 +385,16 @@ mod tests {
         let doc = must_parse(buck);
         let env = Env::from_doc(&doc);
         let target = find_target(&doc, None, "adapter", &env).expect("bind adapter");
-        assert_eq!(target.func, "rust_library", "must bind the real target, not the decoy");
+        assert_eq!(
+            target.func, "rust_library",
+            "must bind the real target, not the decoy"
+        );
     }
 
     #[test]
     fn concat_name_binding_resolves_through_string_vars() {
-        let buck = "ROOT = \"svc\"\nrust_library(\n    name = ROOT + \"-lib\",\n    srcs = [],\n)\n";
+        let buck =
+            "ROOT = \"svc\"\nrust_library(\n    name = ROOT + \"-lib\",\n    srcs = [],\n)\n";
         let doc = must_parse(buck);
         let env = Env::from_doc(&doc);
         assert!(find_target(&doc, Some(&["rust_library"]), "svc-lib", &env).is_some());
@@ -346,9 +411,13 @@ mod tests {
             thirdparty_tokens(call).contains(&"kube".to_owned()),
             "select() strings are visible"
         );
-        let with_conditional = "rust_library(\n    name = \"x\",\n    deps = [\"a\"] if True else [\"b\"],\n)\n";
+        let with_conditional =
+            "rust_library(\n    name = \"x\",\n    deps = [\"a\"] if True else [\"b\"],\n)\n";
         let doc2 = must_parse(with_conditional);
-        assert!(calls(&doc2)[0].has_opaque(), "conditional dep value must flag opaque");
+        assert!(
+            calls(&doc2)[0].has_opaque(),
+            "conditional dep value must flag opaque"
+        );
     }
 
     #[test]
@@ -398,8 +467,7 @@ mod tests {
 
         fn assert_parses(label: &str, expr: String) {
             let buck = format!("X = {expr}\n");
-            parse(&buck)
-                .unwrap_or_else(|err| panic!("{label}: expected parse success, got {err}"));
+            parse(&buck).unwrap_or_else(|err| panic!("{label}: expected parse success, got {err}"));
         }
 
         fn assert_depth_capped(label: &str, expr: String) {
@@ -427,9 +495,16 @@ mod tests {
             "rust_library(\n    name = \"adapter\",\n    srcs = [],\n    mapped_srcs = MAPPED,\n)\n",
         );
         let doc = must_parse(buck);
-        assert!(doc.stmts.iter().any(|s| matches!(s, Stmt::IndexAssign { base, .. } if base == "MAPPED")));
+        assert!(
+            doc.stmts
+                .iter()
+                .any(|s| matches!(s, Stmt::IndexAssign { base, .. } if base == "MAPPED"))
+        );
         let env = Env::from_doc(&doc);
-        assert_eq!(env.string_vars.get("ROOT").map(String::as_str), Some("cloud/ci/adapter"));
+        assert_eq!(
+            env.string_vars.get("ROOT").map(String::as_str),
+            Some("cloud/ci/adapter")
+        );
         assert_eq!(
             env.glob_vars.get("SRCS"),
             Some(&vec!["src/**/*.rs".to_owned(), "**/*.cedar".to_owned()])
@@ -462,7 +537,9 @@ mod tests {
         let files = vec!["src/lib.rs".to_owned()];
         let values = resolve_dict_var(&doc, "ADAPTER_MAPPED_SRCS", &env, &files);
         assert!(
-            values.iter().any(|v| v == "cloud/ci/adapter/policy/x.cedar"),
+            values
+                .iter()
+                .any(|v| v == "cloud/ci/adapter/policy/x.cedar"),
             "explicit mapped value must resolve: {values:?}"
         );
         assert!(
@@ -515,7 +592,11 @@ mod tests {
             Stmt::Assign { value, .. } => Some(value),
             _ => None,
         });
-        assert_eq!(eval_string(x.unwrap(), &env), None, "unknown var must refuse, not guess");
+        assert_eq!(
+            eval_string(x.unwrap(), &env),
+            None,
+            "unknown var must refuse, not guess"
+        );
     }
 
     // =====================================================================
@@ -535,10 +616,16 @@ mod tests {
             "mapped_srcs = {\n        \"//q:asset.cedar\": \"q/asset.cedar\",\n    }",
         )
         .expect("insert");
-        assert!(patched.contains("\"src/lib.rs\","), "separating comma added: {patched}");
+        assert!(
+            patched.contains("\"src/lib.rs\","),
+            "separating comma added: {patched}"
+        );
         assert!(!patched.contains(",,"), "no double comma: {patched}");
         let redoc = must_parse(&patched);
-        assert!(calls(&redoc)[0].kwarg("mapped_srcs").is_some(), "kwarg visible after reparse");
+        assert!(
+            calls(&redoc)[0].kwarg("mapped_srcs").is_some(),
+            "kwarg visible after reparse"
+        );
     }
 
     #[test]
@@ -548,13 +635,23 @@ mod tests {
         let buck = "rust_library(\n    name = \"lib\",\n    srcs = [],\n    crate_root = \"src/lib.rs\",\n    deps = [],  # trailing comment\n)\n";
         let doc = must_parse(buck);
         let call = calls(&doc)[0];
-        let patched = insert_kwarg(buck, call, "mapped_srcs = {\n        \"//q:a.cedar\": \"q/a.cedar\",\n    }")
-            .expect("comment-bearing block must now be editable");
+        let patched = insert_kwarg(
+            buck,
+            call,
+            "mapped_srcs = {\n        \"//q:a.cedar\": \"q/a.cedar\",\n    }",
+        )
+        .expect("comment-bearing block must now be editable");
         assert!(!patched.contains(",,"), "no double comma: {patched}");
-        assert!(patched.contains("# trailing comment"), "comment preserved: {patched}");
+        assert!(
+            patched.contains("# trailing comment"),
+            "comment preserved: {patched}"
+        );
         let redoc = must_parse(&patched);
         let recall = calls(&redoc)[0];
-        assert!(recall.kwarg("mapped_srcs").is_some(), "kwarg present after reparse: {patched}");
+        assert!(
+            recall.kwarg("mapped_srcs").is_some(),
+            "kwarg present after reparse: {patched}"
+        );
         assert!(recall.kwarg("deps").is_some(), "deps survives: {patched}");
     }
 
@@ -566,7 +663,10 @@ mod tests {
         let doc = must_parse(buck);
         let call = calls(&doc)[0];
         let patched = insert_kwarg(buck, call, "visibility = [\"PUBLIC\"]").expect("insert");
-        assert!(patched.contains("deps = [],  # note"), "comma before the comment: {patched}");
+        assert!(
+            patched.contains("deps = [],  # note"),
+            "comma before the comment: {patched}"
+        );
         must_parse(&patched);
     }
 
@@ -580,10 +680,14 @@ mod tests {
         };
         let patched = insert_dict_entry(buck, dict, "//y:new", "y/new").expect("insert");
         assert!(patched.contains("\"//y:new\": \"y/new\","), "{patched}");
-        assert!(patched.contains("\"//x:k\": \"x/k\""), "existing entry intact: {patched}");
+        assert!(
+            patched.contains("\"//x:k\": \"x/k\""),
+            "existing entry intact: {patched}"
+        );
         must_parse(&patched);
 
-        let comp = "rust_library(\n    name = \"a\",\n    mapped_srcs = {src: src for src in SRCS},\n)\n";
+        let comp =
+            "rust_library(\n    name = \"a\",\n    mapped_srcs = {src: src for src in SRCS},\n)\n";
         let comp_doc = must_parse(comp);
         let comp_call = calls(&comp_doc)[0];
         let Expr::Dict(comp_dict) = &comp_call.kwarg("mapped_srcs").unwrap().value.expr else {
@@ -606,11 +710,15 @@ mod tests {
         // Middle element.
         let removed = remove_list_element(buck, list, 1).expect("remove middle");
         assert!(!removed.contains("kube"), "{removed}");
-        assert!(removed.contains("serde") && removed.contains("toml"), "{removed}");
+        assert!(
+            removed.contains("serde") && removed.contains("toml"),
+            "{removed}"
+        );
         must_parse(&removed);
 
         // Last element without trailing comma.
-        let last = "rust_library(\n    name = \"x\",\n    deps = [\"a\", \"third-party//:kube\"],\n)\n";
+        let last =
+            "rust_library(\n    name = \"x\",\n    deps = [\"a\", \"third-party//:kube\"],\n)\n";
         let last_doc = must_parse(last);
         let Expr::List(last_list) = &calls(&last_doc)[0].kwarg("deps").unwrap().value.expr else {
             panic!("list expected");
@@ -662,8 +770,16 @@ mod tests {
         let refusal = guarded_rewrite("p/BUCK", pre, corrupt, &mut registry, |_, _| Ok(()))
             .expect_err("corrupt rewrite must be refused");
         assert_eq!(refusal.pre_image, pre, "pre-image returned verbatim");
-        assert!(refusal.reason.contains("structurally corrupt"), "{}", refusal.reason);
-        assert_eq!(registry.get("p/BUCK"), Some(pre), "registry holds the pre-image");
+        assert!(
+            refusal.reason.contains("structurally corrupt"),
+            "{}",
+            refusal.reason
+        );
+        assert_eq!(
+            registry.get("p/BUCK"),
+            Some(pre),
+            "registry holds the pre-image"
+        );
     }
 
     #[test]
@@ -678,13 +794,18 @@ mod tests {
         })
         .expect_err("semantic failure must refuse");
         assert_eq!(refusal.pre_image, pre);
-        assert!(refusal.reason.contains("dangling") || refusal.reason.contains("dep:kube"), "{}", refusal.reason);
+        assert!(
+            refusal.reason.contains("dangling") || refusal.reason.contains("dep:kube"),
+            "{}",
+            refusal.reason
+        );
     }
 
     #[test]
     fn harness_passes_a_sound_rewrite_through_with_hook_visibility() {
         let pre = "rust_library(\n    name = \"x\",\n    deps = [\"third-party//:kube\", \"third-party//:serde\"],\n)\n";
-        let candidate = "rust_library(\n    name = \"x\",\n    deps = [\"third-party//:serde\"],\n)\n";
+        let candidate =
+            "rust_library(\n    name = \"x\",\n    deps = [\"third-party//:serde\"],\n)\n";
         let mut registry = PreImageRegistry::new();
         let out = guarded_rewrite("p/BUCK", pre, candidate, &mut registry, |doc, _| {
             // The hook sees the PARSED candidate: assert the dep is gone and the target intact.
@@ -716,9 +837,17 @@ mod tests {
         registry.record("b/Cargo.toml", "ORIGINAL-B");
         registry.record("a/Cargo.toml", "ORIGINAL-A");
         registry.record("b/Cargo.toml", "INTERMEDIATE-B (one edit applied)");
-        assert_eq!(registry.get("b/Cargo.toml"), Some("ORIGINAL-B"), "first image wins");
+        assert_eq!(
+            registry.get("b/Cargo.toml"),
+            Some("ORIGINAL-B"),
+            "first image wins"
+        );
         let order: Vec<&str> = registry.images().map(|(path, _)| path).collect();
-        assert_eq!(order, vec!["a/Cargo.toml", "b/Cargo.toml"], "rollback order is deterministic");
+        assert_eq!(
+            order,
+            vec!["a/Cargo.toml", "b/Cargo.toml"],
+            "rollback order is deterministic"
+        );
         assert_eq!(registry.len(), 2);
     }
 
@@ -766,7 +895,11 @@ mod tests {
             }
         });
         seen.sort();
-        assert_eq!(seen, vec!["nested", "plain", "wrapped"], "every wrapping shape enumerated");
+        assert_eq!(
+            seen,
+            vec!["nested", "plain", "wrapped"],
+            "every wrapping shape enumerated"
+        );
     }
 
     // =====================================================================
@@ -783,7 +916,12 @@ mod tests {
         assert_eq!(&buck[call.close_paren..call.close_paren + 1], ")");
         let deps = call.kwarg("deps").unwrap();
         assert_eq!(deps.value.span.slice(buck), "[\"third-party//:serde\"]");
-        let Expr::List(list) = &deps.value.expr else { panic!("list") };
-        assert_eq!(list.elements[0].value.span.slice(buck), "\"third-party//:serde\"");
+        let Expr::List(list) = &deps.value.expr else {
+            panic!("list")
+        };
+        assert_eq!(
+            list.elements[0].value.span.slice(buck),
+            "\"third-party//:serde\""
+        );
     }
 }

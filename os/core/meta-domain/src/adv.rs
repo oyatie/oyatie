@@ -22,8 +22,8 @@
 
 use crate::key::MetaKey;
 use crate::value::MetaValue;
-use std::collections::BTreeMap;
 use os_kernel::{Error, Result};
+use std::collections::BTreeMap;
 
 /// Magic identifying the ADV1 format: ASCII `"ADV1"`.
 pub const ADV1_MAGIC: [u8; 4] = *b"ADV1";

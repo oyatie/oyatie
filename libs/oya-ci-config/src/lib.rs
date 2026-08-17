@@ -658,15 +658,14 @@ fn default_vocab_carve_outs() -> Vec<VocabCarveOut> {
             "Palantir-Foundry is a competitor proper noun, not brand residue",
         ),
     ];
-    rows
-    .iter()
-    .map(|(kind, value, exempt_stems, reason)| VocabCarveOut {
-        kind: *kind,
-        value: (*value).to_owned(),
-        exempt_stems: exempt_stems.iter().map(|stem| (*stem).to_owned()).collect(),
-        reason: (*reason).to_owned(),
-    })
-    .collect()
+    rows.iter()
+        .map(|(kind, value, exempt_stems, reason)| VocabCarveOut {
+            kind: *kind,
+            value: (*value).to_owned(),
+            exempt_stems: exempt_stems.iter().map(|stem| (*stem).to_owned()).collect(),
+            reason: (*reason).to_owned(),
+        })
+        .collect()
 }
 
 impl Default for VocabConfig {

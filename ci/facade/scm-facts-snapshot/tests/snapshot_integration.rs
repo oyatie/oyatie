@@ -493,10 +493,8 @@ fn p3_identity_fixture(label: &str) -> PathBuf {
     write_fixture_file(
         &root,
         "docs/decisions/ADR-0700-ci-admission-live-apex.md",
-        &std::fs::read(source_root.join(
-            "docs/decisions/ADR-0700-ci-admission-live-apex.md",
-        ))
-        .expect("read selected ADR fixture"),
+        &std::fs::read(source_root.join("docs/decisions/ADR-0700-ci-admission-live-apex.md"))
+            .expect("read selected ADR fixture"),
     );
     write_fixture_file(&root, "docs/README.md", b"unselected documentation\n");
     write_fixture_file(
@@ -1823,8 +1821,7 @@ fn root_commit_p3_control_reaches_named_bootstrap_shape_failure() {
 #[test]
 fn dormant_p3_identity_rejects_a_unicode_direct_adr_path_after_raw_tree_parsing() {
     let root = p3_identity_fixture("unicode-direct-adr");
-    let source = root
-        .join("docs/decisions/ADR-0700-ci-admission-live-apex.md");
+    let source = root.join("docs/decisions/ADR-0700-ci-admission-live-apex.md");
     let unicode_path = "docs/decisions/ADR-0002-résumé.md";
     write_fixture_file(
         &root,
@@ -2070,11 +2067,10 @@ fn dormant_p3_identity_is_bounded_to_selected_inputs() {
 #[test]
 fn adr_0515_chronology_names_the_complete_live_amendment_and_epoch_gate_boundary() {
     let repo_root = discover_repo_root().expect("discover repository root");
-    let adr =
-        std::fs::read_to_string(repo_root.join(
-            "docs/decisions/ADR-0700-ci-admission-live-apex.md",
-        ))
-        .expect("read ADR-0700 live apex");
+    let adr = std::fs::read_to_string(
+        repo_root.join("docs/decisions/ADR-0700-ci-admission-live-apex.md"),
+    )
+    .expect("read ADR-0700 live apex");
     // Apex consolidates the ADR-0515 lineage; chronology is via supersedes, not amended_by.
     assert!(
         adr.contains("id: ADR-0700"),

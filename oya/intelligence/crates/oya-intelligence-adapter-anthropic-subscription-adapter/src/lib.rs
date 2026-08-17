@@ -50,10 +50,10 @@ pub use token_state::{
     classify_oauth_error,
 };
 
+use intelligence_account_domain::SecretReference;
 use intelligence_account_kernel::{
     AuthError, AuthMode, AuthToken, ProviderAuthPort, ProviderFamily,
 };
-use intelligence_account_domain::SecretReference;
 
 // ── AnthropicOAuthAdapter ────────────────────────────────────────────────────
 

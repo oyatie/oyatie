@@ -307,7 +307,12 @@ pub fn evaluate(
         floor
             .iter()
             .copied()
-            .filter(|p| cite_authority.pointers.iter().any(|a| a == p || a.ends_with(p)))
+            .filter(|p| {
+                cite_authority
+                    .pointers
+                    .iter()
+                    .any(|a| a == p || a.ends_with(p))
+            })
             .collect()
     };
 

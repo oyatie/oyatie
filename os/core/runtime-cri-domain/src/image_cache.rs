@@ -21,12 +21,12 @@ use os_block_domain::{
     VolumeMountStatusResource, VolumePhase, VolumeStatus, VolumeStatusResource,
     mount::{volume_mount_request_key, volume_mount_status_id, volume_mount_status_key},
 };
-use os_kernel::ResourceId;
 use os_cosi_domain::{
     Controller as CosiController, ControllerError, Event, EventKind, Input, Metadata, Output,
     ReconcileContext, ReconcileResult, Resource, ResourceKind, Spec, State, StoreError,
     StoreResult,
 };
+use os_kernel::ResourceId;
 
 use crate::cri::{MACHINE_CONFIG_ACTIVE_ID, MACHINE_CONFIG_NAMESPACE, MACHINE_CONFIG_TYPE};
 
@@ -5462,16 +5462,16 @@ fn join_unix_path(parent: &str, child: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::{
-        env, fs,
-        path::{Path, PathBuf},
-        time::{Duration, SystemTime, UNIX_EPOCH},
-    };
     use os_block_domain::{
         VolumeConfig, VolumeMountStatusResource, VolumeMountStatusSpec, VolumePhase, VolumeStatus,
         mount::volume_mount_request_key,
     };
     use os_cosi_domain::Phase as CosiPhase;
+    use std::{
+        env, fs,
+        path::{Path, PathBuf},
+        time::{Duration, SystemTime, UNIX_EPOCH},
+    };
 
     fn volume(id: &str, phase: VolumePhase) -> VolumeStatus {
         let mut status = VolumeStatus::new(VolumeConfig::partition(id, id, 1));

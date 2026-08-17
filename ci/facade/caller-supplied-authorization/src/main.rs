@@ -26,8 +26,7 @@ use ci_caller_supplied_authorization::{
 };
 use serde_json::Value;
 
-const DEFAULT_POLICY: &str =
-    "ci/facade/caller-supplied-authorization/dto-authz-trust-policy.json";
+const DEFAULT_POLICY: &str = "ci/facade/caller-supplied-authorization/dto-authz-trust-policy.json";
 
 struct Args {
     repo_root: PathBuf,
@@ -88,7 +87,11 @@ fn run(args: &Args) -> Result<ExitCode, String> {
             "dto-authz-trust --write: regenerated frozen_dto_authz_trust_instances with {} key(s) in {} (shrink-only{})",
             keys.len(),
             path.display(),
-            if args.allow_new { "; --allow-new: NEW keys absorbed" } else { "" }
+            if args.allow_new {
+                "; --allow-new: NEW keys absorbed"
+            } else {
+                ""
+            }
         );
         for key in &keys {
             println!("  - {key}");
@@ -99,7 +102,9 @@ fn run(args: &Args) -> Result<ExitCode, String> {
                 println!("  + {key}");
             }
         }
-        println!("Review the diff and commit; the gate is now GREEN against the regenerated baseline.");
+        println!(
+            "Review the diff and commit; the gate is now GREEN against the regenerated baseline."
+        );
         let policy = load_policy(&args.repo_root, args.policy.as_deref())?;
         return Ok(report(&policy, &observed));
     }

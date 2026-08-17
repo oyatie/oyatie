@@ -1,8 +1,6 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
-use billing_accounting_app::{
-    plan_vat_workflow, post_journal_with_audit, record_payroll_posting,
-};
+use billing_accounting_app::{plan_vat_workflow, post_journal_with_audit, record_payroll_posting};
 use billing_accounting_journal::{
     AccountingJournalStoragePort, AccountingStorageError, AccountingStoredRecordKind,
     JournalLineInput, JournalPostInput, Jurisdiction, PayrollPostingInput, PeriodState,
@@ -198,7 +196,11 @@ fn accounting_storage_same_logical_key_changed_body_is_rejected() {
         AccountingStorageError::IdempotencyKeyBodyMismatch {
             key: first.idempotency_key.clone(),
             stored: first.body_fingerprint.clone(),
-            candidate: changed_outcome.audit_envelope.body_fingerprint.value.clone(),
+            candidate: changed_outcome
+                .audit_envelope
+                .body_fingerprint
+                .value
+                .clone(),
         }
     );
     assert_eq!(
