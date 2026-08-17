@@ -717,9 +717,18 @@ async fn lifecycle_pdp_fault_audit_detail_is_distinct_from_policy_deny() {
 
     // --- fault case: FaultingLifecycleAuthorizer ---
     let mut repo_fault = InMemoryWorkloadPrincipalRepository::new();
-    provision(&mut repo_fault, "ten_acme", "wl_secrets_sync", "cap.cloud.kms")
-        .expect("provision");
-    activate(&mut repo_fault, &WorkloadId::new("wl_secrets_sync").unwrap()).expect("activate");
+    provision(
+        &mut repo_fault,
+        "ten_acme",
+        "wl_secrets_sync",
+        "cap.cloud.kms",
+    )
+    .expect("provision");
+    activate(
+        &mut repo_fault,
+        &WorkloadId::new("wl_secrets_sync").unwrap(),
+    )
+    .expect("activate");
     let audit_fault = InMemoryAuditSink::new();
     let state_fault: SharedState<_, _, _, _> = Arc::new(WorkloadAuthzState::with_clock(
         repo_fault,
@@ -755,8 +764,13 @@ async fn lifecycle_pdp_fault_audit_detail_is_distinct_from_policy_deny() {
 
     // --- policy-deny case: cross-tenant caller forces SameTenantLifecycleAuthorizer to deny ---
     let mut repo_deny = InMemoryWorkloadPrincipalRepository::new();
-    provision(&mut repo_deny, "ten_acme", "wl_secrets_sync", "cap.cloud.kms")
-        .expect("provision");
+    provision(
+        &mut repo_deny,
+        "ten_acme",
+        "wl_secrets_sync",
+        "cap.cloud.kms",
+    )
+    .expect("provision");
     activate(&mut repo_deny, &WorkloadId::new("wl_secrets_sync").unwrap()).expect("activate");
     let audit_deny = InMemoryAuditSink::new();
     let deny_verifier = Arc::new(BearerCallerVerifier::new(
@@ -1021,7 +1035,11 @@ async fn token_decision_surfaces_no_bearer_are_401() {
         }),
     )
     .await;
-    assert_eq!(status, StatusCode::UNAUTHORIZED, "with-token requires a caller");
+    assert_eq!(
+        status,
+        StatusCode::UNAUTHORIZED,
+        "with-token requires a caller"
+    );
 
     let state = provisioned_state(minted.jwk.clone());
     let (status, _) = post_json(
@@ -1036,9 +1054,17 @@ async fn token_decision_surfaces_no_bearer_are_401() {
     assert_eq!(status, StatusCode::UNAUTHORIZED, "batch requires a caller");
 
     let state = provisioned_state(minted.jwk.clone());
-    let (status, _) =
-        post_json(build_router(state), "/tokens/validate", json!({ "token": minted.token })).await;
-    assert_eq!(status, StatusCode::UNAUTHORIZED, "validate requires a caller");
+    let (status, _) = post_json(
+        build_router(state),
+        "/tokens/validate",
+        json!({ "token": minted.token }),
+    )
+    .await;
+    assert_eq!(
+        status,
+        StatusCode::UNAUTHORIZED,
+        "validate requires a caller"
+    );
 }
 
 /// CROSS-TENANT on /authorize-with-token: a verified `ten_acme` caller presenting

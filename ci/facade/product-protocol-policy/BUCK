@@ -33,9 +33,16 @@ rust_test(
 
 rust_test(
     name = "ci-product-protocol-policy-gate",
-    srcs = glob(["tests/**/*.rs"]),
     crate = "ci_product_protocol_policy_gate",
-    crate_root = "tests/product_protocol_policy.rs",
+    crate_root = "ci/facade/product-protocol-policy/tests/product_protocol_policy.rs",
+    # ADR-0545: see the cross-artifact-agreement gate — the sibling cargo_resource_contract test
+    # asserts the include_str! bijection, so every source here keeps its repo-relative depth.
+    mapped_srcs = {
+        "BUCK": "ci/facade/product-protocol-policy/BUCK",
+        "//.cargo:config.toml": ".cargo/config.toml",
+        "tests/product_protocol_policy.rs": "ci/facade/product-protocol-policy/tests/product_protocol_policy.rs",
+        "tests/cargo_resource_contract.rs": "ci/facade/product-protocol-policy/tests/cargo_resource_contract.rs",
+    },
     env = {
         "OYA_API_CONTRACT_SSOT": "$(location //specs:api-contract-ssot-canonical.json)",
         "OYA_ENDPOINT_TRANSPORT_PROFILE": "$(location //network/ports/transport-profile:endpoint-transport-profile.contract.json)",
@@ -54,8 +61,6 @@ rust_test(
         "OYA_ADR_0258": "$(location //docs/adr-archive:ADR-0258-api-versioning-model.md)",
     },
     resources = [
-        "//cloud:live-service-manifest-corpus",
-        "//cloud:proto-contract-corpus",
         "//contracts:proto-contract-corpus",
         "//docs/decisions:adr-corpus",
         "//oya:live-service-manifest-corpus",

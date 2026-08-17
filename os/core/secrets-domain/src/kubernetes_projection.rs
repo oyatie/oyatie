@@ -199,9 +199,9 @@ mod tests {
     use crate::ModelPemSecretMaterialEncoder;
     use crate::bundle::hex;
     use crate::certsans::CertSans;
-    use std::collections::BTreeSet;
     use os_kernel::NodeAddress;
     use os_kernel::error::{Error, Result};
+    use std::collections::BTreeSet;
 
     fn bundle() -> SecretsBundle {
         SecretsBundle::generate("projection-cluster", 1000).unwrap()

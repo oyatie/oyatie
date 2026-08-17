@@ -172,8 +172,12 @@ pub trait ContactStore {
 pub trait DirectoryGrantStore {
     type Error;
 
-    fn put_grant(&self, grant_id: &str, source_tenant: &str, target_tenant: &str)
-    -> Result<(), Self::Error>;
+    fn put_grant(
+        &self,
+        grant_id: &str,
+        source_tenant: &str,
+        target_tenant: &str,
+    ) -> Result<(), Self::Error>;
 }
 
 #[cfg(test)]

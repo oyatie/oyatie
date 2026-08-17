@@ -25,9 +25,15 @@ rust_test(
 # compatibility stubs are explicitly marked, and all wired hook command paths exist.
 rust_test(
     name = "ci-hook-wiring-gate",
-    srcs = glob(["tests/**/*.rs"]),
     crate = "ci_hook_wiring_corpus",
-    crate_root = "tests/enforcement_liveness.rs",
+    crate_root = "ci/facade/hook-wiring/tests/enforcement_liveness.rs",
+    # ADR-0545: see the cross-artifact-agreement gate — the include_str! bijection assertion only
+    # resolves when the test source sits at its true repo-relative depth.
+    mapped_srcs = {
+        "BUCK": "ci/facade/hook-wiring/BUCK",
+        "//.cargo:config.toml": ".cargo/config.toml",
+        "tests/enforcement_liveness.rs": "ci/facade/hook-wiring/tests/enforcement_liveness.rs",
+    },
     run_env = {
         "OYA_CI_ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS": "$(location //.claude:settings-json)",
         "OYA_CI_ENFORCEMENT_LIVENESS_CODEX_HOOKS": "$(location //.codex:hooks-json)",
@@ -37,6 +43,7 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         ":ci-hook-wiring",
+        "//ci/adapters/path-resolver:ci-path-resolver-adapters",
         "third-party//:serde_json",
     ],
 )

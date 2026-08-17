@@ -55,10 +55,10 @@ pub fn validate_policy(policy: &EscalationPolicy) -> Result<(), &'static str> {
     }
     let mut prev: Option<u8> = None;
     for step in policy.steps.iter() {
-        if let Some(prev_idx) = prev {
-            if step.step_index <= prev_idx {
-                return Err("escalation_step_ordered_monotonically");
-            }
+        if let Some(prev_idx) = prev
+            && step.step_index <= prev_idx
+        {
+            return Err("escalation_step_ordered_monotonically");
         }
         prev = Some(step.step_index);
     }
@@ -90,7 +90,10 @@ mod tests {
             loop_after_steps: false,
             stop_after_minutes: 30,
         };
-        assert_eq!(validate_policy(&bad), Err("escalation_policy_has_at_least_one_step"));
+        assert_eq!(
+            validate_policy(&bad),
+            Err("escalation_policy_has_at_least_one_step")
+        );
     }
 
     #[test]
@@ -102,7 +105,10 @@ mod tests {
             loop_after_steps: false,
             stop_after_minutes: 30,
         };
-        assert_eq!(validate_policy(&bad), Err("escalation_step_ordered_monotonically"));
+        assert_eq!(
+            validate_policy(&bad),
+            Err("escalation_step_ordered_monotonically")
+        );
     }
 
     #[test]

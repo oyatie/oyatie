@@ -17,7 +17,8 @@ use ci_generated_artifact_policy::generated_output_diff_policy_violations_with_r
 /// (ci-gate-self-conformance forbids subprocess/network/clock/randomness primitives in gate
 /// production code) — the materializer owns the one sanctioned git boundary (a merge-base
 /// worktree checkout) and this gate only reads the resulting plain JSON file.
-const RATCHET_MERGE_BASE_FACE: &str = "ci/facade/generated-artifact-policy/ratchet-merge-base.generated.json";
+const RATCHET_MERGE_BASE_FACE: &str =
+    "ci/facade/generated-artifact-policy/ratchet-merge-base.generated.json";
 
 fn main() -> ExitCode {
     match run() {
@@ -66,12 +67,13 @@ fn run() -> Result<(), ExitCode> {
     let ratchet_contents = collect_ratchet_contents(&args, &manifest);
     let move_plan_pairs = read_move_manifest_crate_dirs(&args.repo_root);
 
-    let (manifest_findings, violations) = generated_output_diff_policy_violations_with_ratchet_context(
-        &manifest,
-        &diff_name_status,
-        &ratchet_contents,
-        &move_plan_pairs,
-    );
+    let (manifest_findings, violations) =
+        generated_output_diff_policy_violations_with_ratchet_context(
+            &manifest,
+            &diff_name_status,
+            &ratchet_contents,
+            &move_plan_pairs,
+        );
     if !manifest_findings.is_empty() {
         eprintln!("generated-output-diff-policy: manifest is not policy-valid:");
         for finding in manifest_findings {

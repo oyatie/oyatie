@@ -80,7 +80,9 @@ pub enum EmitError {
 impl fmt::Display for EmitError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::MissingCanary => write!(f, "canary emit: no `{CANARY_RULE_SUFFIX}` region in tree"),
+            Self::MissingCanary => {
+                write!(f, "canary emit: no `{CANARY_RULE_SUFFIX}` region in tree")
+            }
             Self::AmbiguousCanary { count } => write!(
                 f,
                 "canary emit: expected exactly one canary region, found {count}"
@@ -105,9 +107,7 @@ impl std::error::Error for EmitError {}
 ///
 /// # Errors
 /// [`EmitError::MissingCanary`] or [`EmitError::AmbiguousCanary`].
-pub fn select_canary(
-    emitted: &BTreeMap<RegionId, Vec<u8>>,
-) -> Result<CanaryArtifact, EmitError> {
+pub fn select_canary(emitted: &BTreeMap<RegionId, Vec<u8>>) -> Result<CanaryArtifact, EmitError> {
     let mut matches: Vec<(&RegionId, &Vec<u8>)> = emitted
         .iter()
         .filter(|(id, _)| id.0.ends_with(CANARY_RULE_SUFFIX))
@@ -167,13 +167,12 @@ pub fn validate_canary_out_dir(out_dir: &Path) -> Result<(), EmitError> {
     }
     // Refuse any k8s corpus path component (W0-B bulk emit hard stop).
     for component in out_dir.components() {
-        if let std::path::Component::Normal(name) = component {
-            if name == "k8s" {
-                return Err(EmitError::PathRefused {
-                    detail: "refusing materialize under `k8s/` (bulk corpus forbidden in W0-B)"
-                        .into(),
-                });
-            }
+        if let std::path::Component::Normal(name) = component
+            && name == "k8s"
+        {
+            return Err(EmitError::PathRefused {
+                detail: "refusing materialize under `k8s/` (bulk corpus forbidden in W0-B)".into(),
+            });
         }
     }
     let Some(base) = out_dir.file_name().and_then(|s| s.to_str()) else {
@@ -277,14 +276,8 @@ mod tests {
             Err(EmitError::MissingCanary)
         ));
         let mut two = BTreeMap::new();
-        two.insert(
-            RegionId("a__canary_empty_unit".into()),
-            b"a".to_vec(),
-        );
-        two.insert(
-            RegionId("b__canary_empty_unit".into()),
-            b"b".to_vec(),
-        );
+        two.insert(RegionId("a__canary_empty_unit".into()), b"a".to_vec());
+        two.insert(RegionId("b__canary_empty_unit".into()), b"b".to_vec());
         assert!(matches!(
             select_canary(&two),
             Err(EmitError::AmbiguousCanary { count: 2 })
@@ -310,7 +303,8 @@ mod tests {
             .duration_since(UNIX_EPOCH)
             .expect("time")
             .as_nanos();
-        let root = std::env::temp_dir().join(format!("pe-canary-{nanos}"))
+        let root = std::env::temp_dir()
+            .join(format!("pe-canary-{nanos}"))
             .join(CANARY_OUT_DIRNAME);
         let artifact = CanaryArtifact {
             region: RegionId("example_com_b__canary_empty_unit".into()),
@@ -318,7 +312,10 @@ mod tests {
             digest: golden_canary_digest(),
         };
         let dest = materialize_canary_roundtrip(&root, &artifact).expect("materialize+roundtrip");
-        assert_eq!(dest.file_name().and_then(|s| s.to_str()), Some(CANARY_FILENAME));
+        assert_eq!(
+            dest.file_name().and_then(|s| s.to_str()),
+            Some(CANARY_FILENAME)
+        );
         let written = fs::read(&dest).expect("read back");
         assert_eq!(written, golden_canary_bytes());
         let _ = fs::remove_dir_all(root.parent().expect("parent"));

@@ -313,12 +313,15 @@ impl AclRole {
     /// Returns true when this role allows the Drive action.
     #[must_use]
     pub const fn allows_drive_action(self, action: DriveAction) -> bool {
-        match (self, action) {
-            (_, DriveAction::Read) => true,
-            (Self::Editor | Self::Owner, DriveAction::Write | DriveAction::Export) => true,
-            (Self::Owner, DriveAction::Share | DriveAction::Delete) => true,
-            _ => false,
-        }
+        matches!(
+            (self, action),
+            (_, DriveAction::Read)
+                | (
+                    Self::Editor | Self::Owner,
+                    DriveAction::Write | DriveAction::Export
+                )
+                | (Self::Owner, DriveAction::Share | DriveAction::Delete)
+        )
     }
 }
 

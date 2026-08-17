@@ -18,31 +18,64 @@
 //! the transport (NOT the message body), refuse to consume without a
 //! [`crate::authz::CrmAuthzProvider`], and run the gate before dispatch.
 
-use crate::authz::{authorize_crm_command, AuthorizedCrmContext, CallerCredential, CrmAction, CrmAuthzProvider};
+use crate::authz::{
+    AuthorizedCrmContext, CallerCredential, CrmAction, CrmAuthzProvider, authorize_crm_command,
+};
 use crate::domain::Capability;
 use crate::error::{Result, ServiceError};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
-pub struct AsyncApiChannel { pub channel: &'static str, pub direction: ChannelDirection, pub message: &'static str }
+pub struct AsyncApiChannel {
+    pub channel: &'static str,
+    pub direction: ChannelDirection,
+    pub message: &'static str,
+}
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "kebab-case")]
-pub enum ChannelDirection { Publish, Subscribe }
+pub enum ChannelDirection {
+    Publish,
+    Subscribe,
+}
 /// AsyncAPI message DTO. NOTE: `tenant_id` is non-authoritative
 /// producer-supplied data (see module docs / ADR-0603); it is structurally never
 /// read by the gate and never selects the resource tenant.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-pub struct AsyncApiMessage { pub tenant_id: String, pub message_type: String, pub payload_json: serde_json::Value }
+pub struct AsyncApiMessage {
+    pub tenant_id: String,
+    pub message_type: String,
+    pub payload_json: serde_json::Value,
+}
 
 pub struct AsyncApiHandler;
 impl AsyncApiHandler {
     pub fn channels() -> Vec<AsyncApiChannel> {
         vec![
-            AsyncApiChannel { channel: "crm.command.accepted.v1", direction: ChannelDirection::Publish, message: "CommandAccepted" },
-            AsyncApiChannel { channel: "crm.reconciliation.queued.v1", direction: ChannelDirection::Publish, message: "ReconciliationQueued" },
-            AsyncApiChannel { channel: "crm.governance.hold-applied.v1", direction: ChannelDirection::Publish, message: "GovernanceHoldApplied" },
-            AsyncApiChannel { channel: "crm.customer.changed.v1", direction: ChannelDirection::Subscribe, message: "CustomerChanged" },
-            AsyncApiChannel { channel: "crm.finance.approval-changed.v1", direction: ChannelDirection::Subscribe, message: "FinanceApprovalChanged" },
+            AsyncApiChannel {
+                channel: "crm.command.accepted.v1",
+                direction: ChannelDirection::Publish,
+                message: "CommandAccepted",
+            },
+            AsyncApiChannel {
+                channel: "crm.reconciliation.queued.v1",
+                direction: ChannelDirection::Publish,
+                message: "ReconciliationQueued",
+            },
+            AsyncApiChannel {
+                channel: "crm.governance.hold-applied.v1",
+                direction: ChannelDirection::Publish,
+                message: "GovernanceHoldApplied",
+            },
+            AsyncApiChannel {
+                channel: "crm.customer.changed.v1",
+                direction: ChannelDirection::Subscribe,
+                message: "CustomerChanged",
+            },
+            AsyncApiChannel {
+                channel: "crm.finance.approval-changed.v1",
+                direction: ChannelDirection::Subscribe,
+                message: "FinanceApprovalChanged",
+            },
         ]
     }
 
@@ -61,7 +94,12 @@ impl AsyncApiHandler {
     /// # Errors
     /// `Unauthenticated`/`Forbidden` on a failed gate; `ContractStub` once
     /// authorized.
-    pub fn handle(provider: &CrmAuthzProvider, credential: &CallerCredential, capability: Capability, message: AsyncApiMessage) -> Result<()> {
+    pub fn handle(
+        provider: &CrmAuthzProvider,
+        credential: &CallerCredential,
+        capability: Capability,
+        message: AsyncApiMessage,
+    ) -> Result<()> {
         let scope = Self::resolve_scope(provider, credential, capability, &message)?;
         let _ = scope.tenant_id();
         Err(ServiceError::contract_stub("asyncapi"))
@@ -73,13 +111,30 @@ impl AsyncApiHandler {
     ///
     /// # Errors
     /// `Unauthenticated`/`Forbidden` on a failed gate.
-    pub fn resolve_scope(provider: &CrmAuthzProvider, credential: &CallerCredential, capability: Capability, _message: &AsyncApiMessage) -> Result<AuthorizedCrmContext> {
-        authorize_crm_command(provider, credential, CrmAction(capability)).map_err(ServiceError::from)
+    pub fn resolve_scope(
+        provider: &CrmAuthzProvider,
+        credential: &CallerCredential,
+        capability: Capability,
+        _message: &AsyncApiMessage,
+    ) -> Result<AuthorizedCrmContext> {
+        authorize_crm_command(provider, credential, CrmAction(capability))
+            .map_err(ServiceError::from)
     }
 }
 
 pub fn validate_channels(channels: &[AsyncApiChannel]) -> Result<()> {
-    let has_publish = channels.iter().any(|channel| channel.direction == ChannelDirection::Publish);
-    let has_subscribe = channels.iter().any(|channel| channel.direction == ChannelDirection::Subscribe);
-    if has_publish && has_subscribe { Ok(()) } else { Err(ServiceError::validation("asyncapi_channels", "scaffold must include publish and subscribe channels")) }
+    let has_publish = channels
+        .iter()
+        .any(|channel| channel.direction == ChannelDirection::Publish);
+    let has_subscribe = channels
+        .iter()
+        .any(|channel| channel.direction == ChannelDirection::Subscribe);
+    if has_publish && has_subscribe {
+        Ok(())
+    } else {
+        Err(ServiceError::validation(
+            "asyncapi_channels",
+            "scaffold must include publish and subscribe channels",
+        ))
+    }
 }

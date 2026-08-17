@@ -71,7 +71,10 @@ fn wedge_fixture() -> Value {
 }
 
 /// Pull one real job out of a fixture and classify it exactly as the adapter would.
-fn classify_job_from(payload: &Value, job_id: u64) -> ci_baseline_ratchet::run_terminal_state::LaneVerdict {
+fn classify_job_from(
+    payload: &Value,
+    job_id: u64,
+) -> ci_baseline_ratchet::run_terminal_state::LaneVerdict {
     let run = payload.get("run").expect("run");
     let attempt = run.get("run_attempt").and_then(Value::as_u64).unwrap_or(1);
     let created = run.get("created_at").and_then(Value::as_str);

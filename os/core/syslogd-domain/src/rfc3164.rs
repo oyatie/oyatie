@@ -130,13 +130,14 @@ fn take_tag(input: &str) -> (Option<String>, Option<String>, &str) {
 
     // Extract optional "[pid]" suffix.
     if let Some(open) = head.find('[')
-        && head.ends_with(']') {
-            let tag = &head[..open];
-            let pid = &head[open + 1..head.len() - 1];
-            if !pid.is_empty() && pid.bytes().all(|c| c.is_ascii_digit()) {
-                return (Some(tag.to_string()), Some(pid.to_string()), message);
-            }
+        && head.ends_with(']')
+    {
+        let tag = &head[..open];
+        let pid = &head[open + 1..head.len() - 1];
+        if !pid.is_empty() && pid.bytes().all(|c| c.is_ascii_digit()) {
+            return (Some(tag.to_string()), Some(pid.to_string()), message);
         }
+    }
     (Some(head.to_string()), None, message)
 }
 

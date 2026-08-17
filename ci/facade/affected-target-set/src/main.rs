@@ -24,8 +24,8 @@ use std::thread;
 use std::time::{Duration, Instant};
 
 use ci_affected_target_set::{
-    BASELINE_PROVENANCE_FILENAME, BASELINE_REUSE_OUTCOME_FILENAME, Decision, GATE_ID,
-    GatePhaseOutcome, PathClass, Plan, Policy, affected_set_operator_artifact,
+    BASELINE_PROVENANCE_FILENAME, BASELINE_REUSE_OUTCOME_FILENAME, BaselineArtifactContext,
+    Decision, GATE_ID, GatePhaseOutcome, PathClass, Plan, Policy, affected_set_operator_artifact,
     buck2_test_invocation, build_health_verdict, failing_targets, failing_test_targets,
     long_step_telemetry_line, merge_base_diff_args, parse_build_report, parse_name_status_z,
     parse_test_verdicts, plan_changes, resolve, test_verdicts_to_report_value,
@@ -557,9 +557,11 @@ fn maybe_write_decision_artifact(
         context.mode,
         &context.resolved_base_ref,
         &context.resolved_head_ref,
-        context.baseline_report_present,
-        context.baseline_provenance.as_ref(),
-        context.baseline_reuse_outcome.as_ref(),
+        BaselineArtifactContext::new(
+            context.baseline_report_present,
+            context.baseline_provenance.as_ref(),
+            context.baseline_reuse_outcome.as_ref(),
+        ),
         decision,
         phases,
     );

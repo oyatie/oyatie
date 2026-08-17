@@ -71,7 +71,9 @@ impl oya_ci_webhook_gateway_kernel::CommitStatusPoster for NoopStatusPoster {
 struct FailingStatusPoster;
 impl oya_ci_webhook_gateway_kernel::CommitStatusPoster for FailingStatusPoster {
     fn post(&self, _: &GitHubStatusRequest) -> Result<()> {
-        Err(KernelError::DownstreamTransport("github unreachable".into()))
+        Err(KernelError::DownstreamTransport(
+            "github unreachable".into(),
+        ))
     }
 }
 
@@ -220,8 +222,9 @@ async fn replay_delivery_returns_200_and_status_not_posted_twice() {
         "replay delivery must return 200 OK (idempotent ack)"
     );
 
-    let replay_body =
-        axum::body::to_bytes(replay_response.into_body(), usize::MAX).await.unwrap();
+    let replay_body = axum::body::to_bytes(replay_response.into_body(), usize::MAX)
+        .await
+        .unwrap();
     assert_eq!(
         replay_body.as_ref(),
         b"duplicate delivery, already accepted",

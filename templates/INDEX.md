@@ -24,7 +24,7 @@ related:
 
 | ID | File | Purpose (1-line) | Lift target | Owner (per `docs/RACI-OWNERSHIP.md`) | Enforcing fitness lane |
 |---|---|---|---|---|---|
-| TPL-PR | `pull-request-template.md` | 5-section PR body + `oya-ci-required` verification + reviewer evidence (`F-PR5-06` bounded until trusted producer is live). | `docs/templates/pull-request-template.md` | `platform-governance` + `council-architecture` | `oya-governance-pr-shape` (`traceability-validator`) |
+| TPL-PR | `pull-request-template.md` | Four-section PR body + `oya-ci-required` verification + independent reviewer evidence (`F-PR5-06` bounded until trusted producer is live). | `docs/templates/pull-request-template.md` | `platform-governance` + `council-architecture` | Local validator retired; merge contract requires `oya-ci-required` plus reviewer approval |
 | TPL-ADR | `adr-template.md` | Architecture Decision Record with autogen-friendly frontmatter. | `docs/templates/adr-template.md` | `crew-adr-promotion` | `oya-governance-adr-shape` |
 | TPL-IP | `implementation-plan-template.md` | Per-IP plan under `milestones/M*/phases/P*/`. | `docs/templates/implementation-plan-template.md` | `council-architecture` (cross-axis) | `oya-governance-plan-hierarchy` |
 | TPL-PHASE | `phase-index-template.md` | Phase INDEX (≤50 lines). | `docs/templates/phase-index-template.md` | `council-architecture` | `oya-governance-plan-hierarchy` |
@@ -41,7 +41,7 @@ related:
 
 | ID | File | Purpose | Lift target | Owner | Verification path |
 |---|---|---|---|---|---|
-| CHK-DONE | `done-definition-checklist.md` | Extends `docs/AGENTS.md` D1-D19 with per-change-class variants. | `templates/checklists/done-definition.md` | `platform-governance` + `council-architecture` | `oya-ci-required` + per-lane CI status |
+| CHK-DONE | `done-definition-checklist.md` | Extends `docs/AGENTS.md` D1-D18 with per-change-class variants. | `templates/checklists/done-definition.md` | `platform-governance` + `council-architecture` | `oya-ci-required` + per-lane CI status |
 | CHK-PRE | `pre-flight-checklist.md` | Per-change-class preconditions. | `templates/checklists/pre-flight.md` | `council-architecture` | `oya-governance-pr-shape` |
 | CHK-PHASE | `per-phase-completion-checklist.md` | Phase-internal verification. | `templates/checklists/per-phase-completion.md` | `council-architecture` | `oya-governance-plan-hierarchy` |
 | CHK-IP | `per-implementation-plan-checklist.md` | IP-internal verification. | `templates/checklists/per-implementation-plan.md` | `council-architecture` | `oya-governance-plan-hierarchy` |

@@ -10,9 +10,8 @@
 //! iam/facade/cloud-pdp-app/tests/main_boot_closure.rs.
 
 use iam_identity_workload_svid_operator_k8s::{
-    observed_secret_from_leaf_pem, run_reconcile_once, secret_manifest, SvidIssuanceBackend,
-    SvidSecretMaterial, TrustdEcdsaIssuanceBackend, CA_CRT_KEY, TLS_CRT_KEY, TLS_KEY_KEY,
-    TLS_SECRET_TYPE,
+    CA_CRT_KEY, SvidIssuanceBackend, SvidSecretMaterial, TLS_CRT_KEY, TLS_KEY_KEY, TLS_SECRET_TYPE,
+    TrustdEcdsaIssuanceBackend, observed_secret_from_leaf_pem, run_reconcile_once, secret_manifest,
 };
 use iam_identity_workload_svid_operator_kernel::{Action, Clock, DesiredState, ObservedState};
 
@@ -44,8 +43,13 @@ fn desired() -> DesiredState {
 }
 
 fn backend() -> TrustdEcdsaIssuanceBackend {
-    TrustdEcdsaIssuanceBackend::bootstrap("oyatie-cell-7-pdp-svid-ca", JOIN_TOKEN, 1_000, 10_000_000)
-        .expect("CA bootstrap")
+    TrustdEcdsaIssuanceBackend::bootstrap(
+        "oyatie-cell-7-pdp-svid-ca",
+        JOIN_TOKEN,
+        1_000,
+        10_000_000,
+    )
+    .expect("CA bootstrap")
 }
 
 /// Extract the single CERTIFICATE block DER from a PEM string.
@@ -104,7 +108,10 @@ fn produced_secret_leaf_verifies_against_produced_ca() {
         matches!(gn, x509_parser::extensions::GeneralName::URI(uri)
             if *uri == "spiffe://oyatie.cell-7/platform/cloud-iam-pdp")
     });
-    assert!(has_spiffe_uri, "leaf must carry the PDP platform SVID URI SAN");
+    assert!(
+        has_spiffe_uri,
+        "leaf must carry the PDP platform SVID URI SAN"
+    );
 }
 
 /// A leaf forged from a DIFFERENT CA must NOT verify under this Secret's `ca.crt`
@@ -164,9 +171,13 @@ fn reconcile_once_issues_on_cold_start_and_noops_when_fresh() {
     let mut be = backend();
 
     // Cold start → Issue + produce material.
-    let (report, material) =
-        run_reconcile_once(&ObservedState::absent(), &want, &mut be, &FixedClock { now: 2_000 })
-            .expect("issue cycle");
+    let (report, material) = run_reconcile_once(
+        &ObservedState::absent(),
+        &want,
+        &mut be,
+        &FixedClock { now: 2_000 },
+    )
+    .expect("issue cycle");
     assert!(matches!(report.action, Action::Issue { .. }));
     assert!(report.mutated);
     let material = material.expect("issue produces material");

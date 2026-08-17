@@ -243,8 +243,8 @@ fn origin_without_scheme(endpoint_origin: &str) -> &str {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use secrets_kms_domain::{KmsOperation, KmsPurpose};
     use oya_data_boundary_kernel::DataClass;
+    use secrets_kms_domain::{KmsOperation, KmsPurpose};
 
     fn adapter() -> OpenBaoKmsAdapter {
         OpenBaoKmsAdapter::new("https://kms.oyatie.com", "transit", "object-key")

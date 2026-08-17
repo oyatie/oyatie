@@ -215,9 +215,7 @@ impl ChangeStreamSource for RecordingChangeStream {
             .take(limit)
             .cloned()
             .collect();
-        let resume_from = records
-            .last()
-            .map_or(checkpoint, |record| record.position);
+        let resume_from = records.last().map_or(checkpoint, |record| record.position);
         let batch = ChangeBatch {
             records,
             resume_from,

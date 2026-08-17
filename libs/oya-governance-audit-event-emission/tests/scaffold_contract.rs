@@ -1,5 +1,5 @@
 use std::fs;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use oya_governance_audit_event_emission::{
     ENFORCED_RULE, EnforcementStatus, FindingKind, RULE_ID, enforce_audit_event_emission,
@@ -15,7 +15,7 @@ fn temp_repo(name: &str) -> PathBuf {
     root
 }
 
-fn write(root: &PathBuf, relative: &str, content: &str) {
+fn write(root: &Path, relative: &str, content: &str) {
     let path = root.join(relative);
     fs::create_dir_all(path.parent().expect("parent dir")).expect("create parent dir");
     fs::write(path, content).expect("write fixture");

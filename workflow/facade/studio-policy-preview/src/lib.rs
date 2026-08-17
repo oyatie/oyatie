@@ -10,10 +10,8 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use workflow_studio_dsl_emitter::{
-    WorkflowSpec, WorkflowSpecEmitError, WorkflowSpecNodeKind,
-};
 use serde::{Deserialize, Serialize};
+use workflow_studio_dsl_emitter::{WorkflowSpec, WorkflowSpecEmitError, WorkflowSpecNodeKind};
 
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 #[serde(rename_all = "snake_case")]
@@ -791,7 +789,10 @@ mod tests {
         let report = report_with_findings(WorkflowPolicyPreviewDecision::AllowPreview, vec![]);
         let rollup = report.rollup();
 
-        assert_eq!(rollup.derived_decision, WorkflowPolicyPreviewDecision::AllowPreview);
+        assert_eq!(
+            rollup.derived_decision,
+            WorkflowPolicyPreviewDecision::AllowPreview
+        );
         assert_eq!(rollup.info_count, 0);
         assert_eq!(rollup.warning_count, 0);
         assert_eq!(rollup.blocker_count, 0);
@@ -802,111 +803,206 @@ mod tests {
     #[test]
     fn rollup_info_only_findings_gives_allow_preview() {
         let findings = vec![
-            make_finding(WorkflowPolicyFindingKind::BlastRadiusDisclosure, WorkflowPolicyFindingSeverity::Info),
-            make_finding(WorkflowPolicyFindingKind::CapabilityRequiresPolicyPreview, WorkflowPolicyFindingSeverity::Info),
+            make_finding(
+                WorkflowPolicyFindingKind::BlastRadiusDisclosure,
+                WorkflowPolicyFindingSeverity::Info,
+            ),
+            make_finding(
+                WorkflowPolicyFindingKind::CapabilityRequiresPolicyPreview,
+                WorkflowPolicyFindingSeverity::Info,
+            ),
         ];
         let report = report_with_findings(WorkflowPolicyPreviewDecision::AllowPreview, findings);
         let rollup = report.rollup();
 
-        assert_eq!(rollup.derived_decision, WorkflowPolicyPreviewDecision::AllowPreview);
+        assert_eq!(
+            rollup.derived_decision,
+            WorkflowPolicyPreviewDecision::AllowPreview
+        );
         assert_eq!(rollup.info_count, 2);
         assert_eq!(rollup.warning_count, 0);
         assert_eq!(rollup.blocker_count, 0);
-        assert_eq!(rollup.highest_severity, Some(WorkflowPolicyFindingSeverity::Info));
+        assert_eq!(
+            rollup.highest_severity,
+            Some(WorkflowPolicyFindingSeverity::Info)
+        );
         assert!(rollup.blocking_finding_kinds.is_empty());
     }
 
     #[test]
     fn rollup_warning_only_findings_gives_requires_human_review() {
         let findings = vec![
-            make_finding(WorkflowPolicyFindingKind::LlmDraftRequiresHumanReview, WorkflowPolicyFindingSeverity::Warning),
-            make_finding(WorkflowPolicyFindingKind::HighRiskActivationRequiresHumanReview, WorkflowPolicyFindingSeverity::Warning),
+            make_finding(
+                WorkflowPolicyFindingKind::LlmDraftRequiresHumanReview,
+                WorkflowPolicyFindingSeverity::Warning,
+            ),
+            make_finding(
+                WorkflowPolicyFindingKind::HighRiskActivationRequiresHumanReview,
+                WorkflowPolicyFindingSeverity::Warning,
+            ),
         ];
-        let report = report_with_findings(WorkflowPolicyPreviewDecision::RequiresHumanReview, findings);
+        let report =
+            report_with_findings(WorkflowPolicyPreviewDecision::RequiresHumanReview, findings);
         let rollup = report.rollup();
 
-        assert_eq!(rollup.derived_decision, WorkflowPolicyPreviewDecision::RequiresHumanReview);
+        assert_eq!(
+            rollup.derived_decision,
+            WorkflowPolicyPreviewDecision::RequiresHumanReview
+        );
         assert_eq!(rollup.info_count, 0);
         assert_eq!(rollup.warning_count, 2);
         assert_eq!(rollup.blocker_count, 0);
-        assert_eq!(rollup.highest_severity, Some(WorkflowPolicyFindingSeverity::Warning));
+        assert_eq!(
+            rollup.highest_severity,
+            Some(WorkflowPolicyFindingSeverity::Warning)
+        );
         assert!(rollup.blocking_finding_kinds.is_empty());
     }
 
     #[test]
     fn rollup_blocker_findings_gives_blocked_with_blocking_kinds() {
         let findings = vec![
-            make_finding(WorkflowPolicyFindingKind::MissingNodePolicyBinding, WorkflowPolicyFindingSeverity::Blocker),
-            make_finding(WorkflowPolicyFindingKind::SensitiveExternalOutputBlocked, WorkflowPolicyFindingSeverity::Blocker),
+            make_finding(
+                WorkflowPolicyFindingKind::MissingNodePolicyBinding,
+                WorkflowPolicyFindingSeverity::Blocker,
+            ),
+            make_finding(
+                WorkflowPolicyFindingKind::SensitiveExternalOutputBlocked,
+                WorkflowPolicyFindingSeverity::Blocker,
+            ),
             // duplicate kind — must appear only once in blocking_finding_kinds
-            make_finding(WorkflowPolicyFindingKind::MissingNodePolicyBinding, WorkflowPolicyFindingSeverity::Blocker),
+            make_finding(
+                WorkflowPolicyFindingKind::MissingNodePolicyBinding,
+                WorkflowPolicyFindingSeverity::Blocker,
+            ),
         ];
         let report = report_with_findings(WorkflowPolicyPreviewDecision::Blocked, findings);
         let rollup = report.rollup();
 
-        assert_eq!(rollup.derived_decision, WorkflowPolicyPreviewDecision::Blocked);
+        assert_eq!(
+            rollup.derived_decision,
+            WorkflowPolicyPreviewDecision::Blocked
+        );
         assert_eq!(rollup.blocker_count, 3);
-        assert_eq!(rollup.highest_severity, Some(WorkflowPolicyFindingSeverity::Blocker));
+        assert_eq!(
+            rollup.highest_severity,
+            Some(WorkflowPolicyFindingSeverity::Blocker)
+        );
         // deduplicated
         assert_eq!(rollup.blocking_finding_kinds.len(), 2);
-        assert!(rollup.blocking_finding_kinds.contains(&WorkflowPolicyFindingKind::MissingNodePolicyBinding));
-        assert!(rollup.blocking_finding_kinds.contains(&WorkflowPolicyFindingKind::SensitiveExternalOutputBlocked));
+        assert!(
+            rollup
+                .blocking_finding_kinds
+                .contains(&WorkflowPolicyFindingKind::MissingNodePolicyBinding)
+        );
+        assert!(
+            rollup
+                .blocking_finding_kinds
+                .contains(&WorkflowPolicyFindingKind::SensitiveExternalOutputBlocked)
+        );
     }
 
     #[test]
     fn rollup_blocking_finding_kinds_is_deterministically_ordered_no_duplicates() {
         // Build in reverse-natural-ord order to confirm BTreeSet sorts them
         let findings = vec![
-            make_finding(WorkflowPolicyFindingKind::SpecInvalid, WorkflowPolicyFindingSeverity::Blocker),
-            make_finding(WorkflowPolicyFindingKind::DuplicateNodePolicyBinding, WorkflowPolicyFindingSeverity::Blocker),
-            make_finding(WorkflowPolicyFindingKind::MissingNodePolicyBinding, WorkflowPolicyFindingSeverity::Blocker),
-            make_finding(WorkflowPolicyFindingKind::SpecInvalid, WorkflowPolicyFindingSeverity::Blocker),
+            make_finding(
+                WorkflowPolicyFindingKind::SpecInvalid,
+                WorkflowPolicyFindingSeverity::Blocker,
+            ),
+            make_finding(
+                WorkflowPolicyFindingKind::DuplicateNodePolicyBinding,
+                WorkflowPolicyFindingSeverity::Blocker,
+            ),
+            make_finding(
+                WorkflowPolicyFindingKind::MissingNodePolicyBinding,
+                WorkflowPolicyFindingSeverity::Blocker,
+            ),
+            make_finding(
+                WorkflowPolicyFindingKind::SpecInvalid,
+                WorkflowPolicyFindingSeverity::Blocker,
+            ),
         ];
         let report = report_with_findings(WorkflowPolicyPreviewDecision::Blocked, findings);
         let rollup = report.rollup();
 
         // No duplicates
         let deduped: std::collections::BTreeSet<_> = rollup.blocking_finding_kinds.iter().collect();
-        assert_eq!(deduped.len(), rollup.blocking_finding_kinds.len(), "blocking_finding_kinds must have no duplicates");
+        assert_eq!(
+            deduped.len(),
+            rollup.blocking_finding_kinds.len(),
+            "blocking_finding_kinds must have no duplicates"
+        );
 
         // Deterministically sorted (ascending natural order = BTreeSet order)
         let mut sorted = rollup.blocking_finding_kinds.clone();
         sorted.sort();
-        assert_eq!(rollup.blocking_finding_kinds, sorted, "blocking_finding_kinds must be sorted");
+        assert_eq!(
+            rollup.blocking_finding_kinds, sorted,
+            "blocking_finding_kinds must be sorted"
+        );
     }
 
     #[test]
     fn rollup_mixed_info_and_warning_gives_requires_human_review() {
         let findings = vec![
-            make_finding(WorkflowPolicyFindingKind::BlastRadiusDisclosure, WorkflowPolicyFindingSeverity::Info),
-            make_finding(WorkflowPolicyFindingKind::UnsafeCapabilityRequiresHumanReview, WorkflowPolicyFindingSeverity::Warning),
+            make_finding(
+                WorkflowPolicyFindingKind::BlastRadiusDisclosure,
+                WorkflowPolicyFindingSeverity::Info,
+            ),
+            make_finding(
+                WorkflowPolicyFindingKind::UnsafeCapabilityRequiresHumanReview,
+                WorkflowPolicyFindingSeverity::Warning,
+            ),
         ];
-        let report = report_with_findings(WorkflowPolicyPreviewDecision::RequiresHumanReview, findings);
+        let report =
+            report_with_findings(WorkflowPolicyPreviewDecision::RequiresHumanReview, findings);
         let rollup = report.rollup();
 
-        assert_eq!(rollup.derived_decision, WorkflowPolicyPreviewDecision::RequiresHumanReview);
+        assert_eq!(
+            rollup.derived_decision,
+            WorkflowPolicyPreviewDecision::RequiresHumanReview
+        );
         assert_eq!(rollup.info_count, 1);
         assert_eq!(rollup.warning_count, 1);
         assert_eq!(rollup.blocker_count, 0);
-        assert_eq!(rollup.highest_severity, Some(WorkflowPolicyFindingSeverity::Warning));
+        assert_eq!(
+            rollup.highest_severity,
+            Some(WorkflowPolicyFindingSeverity::Warning)
+        );
         assert!(rollup.blocking_finding_kinds.is_empty());
     }
 
     #[test]
     fn rollup_mixed_warning_and_blocker_gives_blocked() {
         let findings = vec![
-            make_finding(WorkflowPolicyFindingKind::LlmDraftRequiresHumanReview, WorkflowPolicyFindingSeverity::Warning),
-            make_finding(WorkflowPolicyFindingKind::MissingPolicyReference, WorkflowPolicyFindingSeverity::Blocker),
+            make_finding(
+                WorkflowPolicyFindingKind::LlmDraftRequiresHumanReview,
+                WorkflowPolicyFindingSeverity::Warning,
+            ),
+            make_finding(
+                WorkflowPolicyFindingKind::MissingPolicyReference,
+                WorkflowPolicyFindingSeverity::Blocker,
+            ),
         ];
         let report = report_with_findings(WorkflowPolicyPreviewDecision::Blocked, findings);
         let rollup = report.rollup();
 
-        assert_eq!(rollup.derived_decision, WorkflowPolicyPreviewDecision::Blocked);
+        assert_eq!(
+            rollup.derived_decision,
+            WorkflowPolicyPreviewDecision::Blocked
+        );
         assert_eq!(rollup.info_count, 0);
         assert_eq!(rollup.warning_count, 1);
         assert_eq!(rollup.blocker_count, 1);
-        assert_eq!(rollup.highest_severity, Some(WorkflowPolicyFindingSeverity::Blocker));
-        assert_eq!(rollup.blocking_finding_kinds, vec![WorkflowPolicyFindingKind::MissingPolicyReference]);
+        assert_eq!(
+            rollup.highest_severity,
+            Some(WorkflowPolicyFindingSeverity::Blocker)
+        );
+        assert_eq!(
+            rollup.blocking_finding_kinds,
+            vec![WorkflowPolicyFindingKind::MissingPolicyReference]
+        );
     }
 
     #[test]
@@ -930,9 +1026,14 @@ mod tests {
         let report = preview_workflow_policy(&input);
         let rollup = report.rollup();
 
-        assert_eq!(rollup.derived_decision, report.decision,
-            "rollup.derived_decision must match report.decision");
-        assert_eq!(report.decision, WorkflowPolicyPreviewDecision::RequiresHumanReview);
+        assert_eq!(
+            rollup.derived_decision, report.decision,
+            "rollup.derived_decision must match report.decision"
+        );
+        assert_eq!(
+            report.decision,
+            WorkflowPolicyPreviewDecision::RequiresHumanReview
+        );
     }
 
     #[test]
@@ -952,9 +1053,14 @@ mod tests {
         let report = preview_workflow_policy(&input);
         let rollup = report.rollup();
 
-        assert_eq!(rollup.derived_decision, report.decision,
-            "rollup.derived_decision must match report.decision");
-        assert_eq!(report.decision, WorkflowPolicyPreviewDecision::RequiresHumanReview);
+        assert_eq!(
+            rollup.derived_decision, report.decision,
+            "rollup.derived_decision must match report.decision"
+        );
+        assert_eq!(
+            report.decision,
+            WorkflowPolicyPreviewDecision::RequiresHumanReview
+        );
         assert!(rollup.warning_count > 0);
         assert_eq!(rollup.blocker_count, 0);
     }
@@ -975,8 +1081,10 @@ mod tests {
         let rollup = report.rollup();
 
         assert_eq!(report.decision, WorkflowPolicyPreviewDecision::Blocked);
-        assert_eq!(rollup.derived_decision, report.decision,
-            "rollup.derived_decision must match report.decision");
+        assert_eq!(
+            rollup.derived_decision, report.decision,
+            "rollup.derived_decision must match report.decision"
+        );
         assert!(rollup.blocker_count > 0);
         assert!(!rollup.blocking_finding_kinds.is_empty());
     }
@@ -988,7 +1096,11 @@ mod tests {
             WorkflowAuthoringOrigin::HumanAuthored,
             WorkflowPublishTransition::SaveDraft,
             false,
-            vec![binding("wfn_start"), binding("wfn_prepare"), binding("wfn_review")],
+            vec![
+                binding("wfn_start"),
+                binding("wfn_prepare"),
+                binding("wfn_review"),
+            ],
             vec![],
         );
 
@@ -996,8 +1108,10 @@ mod tests {
         let rollup = report.rollup();
 
         assert_eq!(report.decision, WorkflowPolicyPreviewDecision::AllowPreview);
-        assert_eq!(rollup.derived_decision, report.decision,
-            "rollup.derived_decision must match report.decision");
+        assert_eq!(
+            rollup.derived_decision, report.decision,
+            "rollup.derived_decision must match report.decision"
+        );
         assert_eq!(rollup.blocker_count, 0);
         assert_eq!(rollup.warning_count, 0);
         assert!(rollup.info_count > 0); // at least BlastRadiusDisclosure

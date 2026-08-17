@@ -18,9 +18,8 @@ fn os_kernel_abi_catalog_is_in_data_class_scan_set_when_present() -> Result<(), 
         ));
     }
 
-    let source_crate = parse_catalog_source_crate(&catalog_contents).ok_or_else(|| {
-        "os-kernel-abi.yaml must declare traceability.source_crate".to_string()
-    })?;
+    let source_crate = parse_catalog_source_crate(&catalog_contents)
+        .ok_or_else(|| "os-kernel-abi.yaml must declare traceability.source_crate".to_string())?;
     let member_path = source_crate
         .strip_suffix("/Cargo.toml")
         .unwrap_or(source_crate.as_str())
@@ -103,8 +102,12 @@ fn repo_root() -> Result<PathBuf, String> {
 }
 
 fn read_package_name(manifest_path: &PathBuf) -> Result<String, String> {
-    let manifest = fs::read_to_string(manifest_path)
-        .map_err(|error| format!("package manifest unreadable {}: {error}", manifest_path.display()))?;
+    let manifest = fs::read_to_string(manifest_path).map_err(|error| {
+        format!(
+            "package manifest unreadable {}: {error}",
+            manifest_path.display()
+        )
+    })?;
     let mut in_package_section = false;
     for line in manifest.lines() {
         let trimmed = line.trim();

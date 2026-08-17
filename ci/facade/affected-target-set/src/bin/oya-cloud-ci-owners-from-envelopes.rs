@@ -58,8 +58,7 @@ fn parse_args(mut argv: std::env::Args) -> Result<Args, String> {
     if write == check {
         return Err("exactly one of --write or --check is required".into());
     }
-    let envelopes_path =
-        envelopes_path.unwrap_or_else(|| repo_root.join(ENVELOPES_RELPATH));
+    let envelopes_path = envelopes_path.unwrap_or_else(|| repo_root.join(ENVELOPES_RELPATH));
     Ok(Args {
         repo_root,
         envelopes_path,

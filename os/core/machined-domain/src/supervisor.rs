@@ -9,12 +9,12 @@
 use crate::error::{MachinedError, Result};
 use crate::events::{EventKind, EventStream};
 use crate::service::{ConditionEnv, Service, ServiceState};
-use std::collections::HashMap;
 use os_kernel::MachineType;
 use os_runtime_cri_domain::{
     REGISTRYD_SERVICE_ID, RegistrydContentResponse, RegistrydHealthProbe, RegistrydRuntimeService,
     RegistrydServiceError, RegistrydServiceManager, RegistrydState,
 };
+use std::collections::HashMap;
 
 /// The boundary to the real process runtime (containerd / exec).
 ///
@@ -663,16 +663,16 @@ impl RegistrydServiceManager for SupervisorRegistrydServiceManager<'_> {
 mod tests {
     use super::*;
     use crate::service::ServiceCondition;
+    use os_runtime_cri_domain::{
+        ImageCacheConfig, ImageCacheCopyStatus, ImageCacheRuntimePlan, ImageCacheStatus,
+        REGISTRYD_SERVICE_ID, RegistrydAction, RegistrydRuntimeAdapter,
+        RegistrydServiceExecutionStatus, RegistrydState,
+    };
     use std::{
         collections::HashSet,
         fs,
         path::PathBuf,
         time::{SystemTime, UNIX_EPOCH},
-    };
-    use os_runtime_cri_domain::{
-        ImageCacheConfig, ImageCacheCopyStatus, ImageCacheRuntimePlan, ImageCacheStatus,
-        REGISTRYD_SERVICE_ID, RegistrydAction, RegistrydRuntimeAdapter,
-        RegistrydServiceExecutionStatus, RegistrydState,
     };
 
     /// A launcher that succeeds (and reports healthy) for everything except an

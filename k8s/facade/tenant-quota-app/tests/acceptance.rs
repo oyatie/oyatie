@@ -319,7 +319,10 @@ async fn get_quota_cross_tenant_returns_403() {
     // A tenant-admin bound to ten_acme reading ten_globex is cross-tenant: the
     // Cedar PDP denies it (tenant isolation) => 403, even though the bearer is
     // valid (authenticated but not authorized).
-    let app = build_router(make_store_with_quota("ten_globex"), tenant_admin_authz("ten_acme"));
+    let app = build_router(
+        make_store_with_quota("ten_globex"),
+        tenant_admin_authz("ten_acme"),
+    );
     let resp = app
         .oneshot(
             Request::builder()

@@ -1,8 +1,8 @@
 //! Integration scaffold: RP verifier never claims hardware PASS.
 
 use os_attestation_relying_party::{
-    confidential_platform_extension_note, AttestationVerdict, CollateralStatus, GuestEvidence,
-    RelyingPartyVerifier, StubRelyingPartyVerifier, TeeType, CEDAR_CONTEXT_KEYS,
+    AttestationVerdict, CEDAR_CONTEXT_KEYS, CollateralStatus, GuestEvidence, RelyingPartyVerifier,
+    StubRelyingPartyVerifier, TeeType, confidential_platform_extension_note,
 };
 
 #[test]

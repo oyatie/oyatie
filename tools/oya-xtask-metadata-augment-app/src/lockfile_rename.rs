@@ -5,7 +5,7 @@
 /// module is the thin I/O layer: it loads the rename-map TSV + graph-additions JSON from disk,
 /// invokes the kernel, and writes the result back (or prints it).
 use anyhow::{Context, Result};
-use oya_cargo_lock_transform_kernel::{move_lockfile, rewrite_lockfile, GraphAdditions, NewMember};
+use oya_cargo_lock_transform_kernel::{GraphAdditions, NewMember, move_lockfile, rewrite_lockfile};
 use std::collections::HashMap;
 
 /// Load a rename-map TSV (`old<TAB>new` per line) into a map. `reverse` swaps direction.
@@ -142,7 +142,9 @@ fn load_graph_additions(path: &str) -> Result<GraphAdditions> {
             let package = item
                 .get("package")
                 .and_then(|v| v.as_str())
-                .with_context(|| format!("add_dependencies[{i}]: missing string field \"package\""))?
+                .with_context(|| {
+                    format!("add_dependencies[{i}]: missing string field \"package\"")
+                })?
                 .to_owned();
             let add = json_str_array(
                 item.get("add")

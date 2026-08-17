@@ -181,7 +181,7 @@ impl TeamsConnector {
             .entry(ctx.tenant_id().as_str().to_owned())
             .or_default();
         if entity_kinds.is_empty() {
-            return queue.drain(..).collect();
+            return std::mem::take(queue);
         }
 
         let mut matched = VecDeque::new();

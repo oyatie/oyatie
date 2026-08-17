@@ -14,9 +14,9 @@
 //! 2. ed25519 verify raw body bytes.
 //! 3. Cedar authz gate.
 //! 4. `route_github_event` → `CiTriggerEvent`.
-//! 4.5. Replay guard: check + record the delivery key (after verify+authz+route, before Step 5).
-//!      A replay within the TTL short-circuits with a benign 200 idempotent ack.
-//! 5. GitHub `post_all` queued statuses (CI system dispatches asynchronously via oya-ci).
+//! 5. Replay guard: check + record the delivery key after verify, authz, and routing.
+//!    A replay within the TTL short-circuits with a benign 200 idempotent ack.
+//! 6. GitHub `post_all` queued statuses (CI system dispatches asynchronously via oya-ci).
 //!
 //! ## ADR-0083 Tier-3
 //!
@@ -47,16 +47,16 @@ use tracing::{info, warn};
 /// router state is `Clone + Send + Sync`.
 #[derive(Clone)]
 pub struct AppState {
-    pub verifier: Arc<dyn SignatureVerifier + Send + Sync>,      // data_class: INTERNAL_ONLY
-    pub authz: Arc<dyn WebhookAuthzGate + Send + Sync>,          // data_class: INTERNAL_ONLY
+    pub verifier: Arc<dyn SignatureVerifier + Send + Sync>, // data_class: INTERNAL_ONLY
+    pub authz: Arc<dyn WebhookAuthzGate + Send + Sync>,     // data_class: INTERNAL_ONLY
     pub status_poster: Arc<dyn CommitStatusPoster + Send + Sync>, // data_class: INTERNAL_ONLY
-    pub target_branch: String,                                    // data_class: INTERNAL_ONLY
-    pub github_owner: String,                                     // data_class: INTERNAL_ONLY
-    pub github_repo: String,                                      // data_class: INTERNAL_ONLY
+    pub target_branch: String,                              // data_class: INTERNAL_ONLY
+    pub github_owner: String,                               // data_class: INTERNAL_ONLY
+    pub github_repo: String,                                // data_class: INTERNAL_ONLY
     /// Delivery-replay / dedup guard.  Shared across all handler instances via
     /// `Arc<Mutex<_>>`.  The `Mutex` provides interior mutability so the guard
     /// can live behind the `Clone`-able, `Send + Sync` `AppState`.
-    pub delivery_guard: Arc<Mutex<DeliveryGuard>>,                // data_class: INTERNAL_ONLY
+    pub delivery_guard: Arc<Mutex<DeliveryGuard>>, // data_class: INTERNAL_ONLY
 }
 
 /// Build the axum [`Router`] with all routes and shared state.
@@ -189,13 +189,19 @@ async fn handle_github_webhook(
     );
 
     let verdict = {
-        let mut guard = state.delivery_guard.lock().unwrap_or_else(|e| e.into_inner());
+        let mut guard = state
+            .delivery_guard
+            .lock()
+            .unwrap_or_else(|e| e.into_inner());
         guard.prune(now_ms);
         guard.record_and_check(delivery_key, now_ms)
     };
 
     if matches!(verdict, Verdict::Replay) {
-        info!(delivery_id, "duplicate delivery, already accepted (idempotent ack)");
+        info!(
+            delivery_id,
+            "duplicate delivery, already accepted (idempotent ack)"
+        );
         return (StatusCode::OK, "duplicate delivery, already accepted").into_response();
     }
 

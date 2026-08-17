@@ -45,10 +45,10 @@
 //! ## Violation codes (the contract — literal strings the gate emits)
 //! - `embedded_asset_policy_gate_id_mismatch` — policy `gate_id` != [`GATE_ID`].
 //! - `embedded_asset_unmapped_include`        — a resolved include-relative sandbox path is NOT among
-//!                                              the owning target's `srcs`/`mapped_srcs` destinations.
+//!   the owning target's `srcs`/`mapped_srcs` destinations.
 //! - `embedded_asset_no_target`               — a `.rs` with an include site has no bindable BUCK target.
 //! - `embedded_asset_unparseable_skip`        — the include literal or the owning target's
-//!                                              `srcs`/`mapped_srcs` is not statically resolvable.
+//!   `srcs`/`mapped_srcs` is not statically resolvable.
 //!
 //! ADR-0083 Tier-3: production code carries no unwrap/expect/panic; `#![forbid(unsafe_code)]`.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
@@ -916,10 +916,10 @@ pub fn collect_observed(root: &Path, policy: &Value) -> Result<Value, CollectErr
         // skipped instead of resolved.
         let crate_prefix = format!("{crate_dir_rel}/");
         for t in &mut targets {
-            if let Some(root) = &t.crate_root {
-                if let Some(stripped) = root.strip_prefix(&crate_prefix) {
-                    t.crate_root = Some(stripped.to_owned());
-                }
+            if let Some(root) = &t.crate_root
+                && let Some(stripped) = root.strip_prefix(&crate_prefix)
+            {
+                t.crate_root = Some(stripped.to_owned());
             }
         }
 
@@ -1103,10 +1103,10 @@ fn covering_targets(
 
 fn globs_via_crate_root(t: &BuckTarget, rs_in_crate: &str, _crate_files: &[String]) -> bool {
     // A library whose crate_root is src/lib.rs implicitly owns src/**.rs in the common layout.
-    if let Some(root) = &t.crate_root {
-        if let Some(dir) = root.rsplit_once('/').map(|(d, _)| d) {
-            return rs_in_crate.starts_with(&format!("{dir}/"));
-        }
+    if let Some(root) = &t.crate_root
+        && let Some(dir) = root.rsplit_once('/').map(|(d, _)| d)
+    {
+        return rs_in_crate.starts_with(&format!("{dir}/"));
     }
     false
 }
@@ -1191,10 +1191,10 @@ fn walk_all(base: &Path, dir: &Path, out: &mut Vec<String>) -> Result<(), Collec
             .map_err(|e| CollectError::Io(format!("file_type {}: {e}", path.display())))?;
         if file_type.is_dir() {
             walk_all(base, &path, out)?;
-        } else if file_type.is_file() {
-            if let Ok(rel) = path.strip_prefix(base) {
-                out.push(rel.to_string_lossy().replace('\\', "/"));
-            }
+        } else if file_type.is_file()
+            && let Ok(rel) = path.strip_prefix(base)
+        {
+            out.push(rel.to_string_lossy().replace('\\', "/"));
         }
     }
     Ok(())
@@ -1210,10 +1210,7 @@ fn nearest_buck_dir(root: &Path, rs_abs: &Path) -> Option<PathBuf> {
         if dir == root {
             return None;
         }
-        match dir.parent() {
-            Some(p) => dir = p,
-            None => return None,
-        }
+        dir = dir.parent()?;
     }
 }
 
@@ -2242,7 +2239,6 @@ rust_library(name = "t", srcs = [], crate_root = ROOT + "/src/lib.rs", mapped_sr
 
     #[test]
     fn comprehension_rewrite_refuses_non_library_targets() {
-        let buck = "rust_binary(\n    name = \"b\",\n    srcs = glob([\"src/**/*.rs\"]),\n    crate_root = \"src/main.rs\",\n)\n";
         let rem = Remediation {
             buck_path: "p/BUCK".to_owned(),
             target: "b".to_owned(),

@@ -4,9 +4,9 @@ use intelligence_translation_kernel::{
     AnthropicMessageRequest, GeminiGenerateContentRequest, OpenAiChatRequest,
     anthropic_messages_to_gemini_generate_content, anthropic_messages_to_openai_chat,
     gemini_generate_content_response_to_anthropic_message_response,
-    gemini_generate_content_response_to_openai_chat_response, gemini_generate_content_to_openai_chat,
-    openai_chat_to_anthropic_messages, openai_chat_to_gemini_generate_content,
-    openai_sse_delta_to_anthropic_event,
+    gemini_generate_content_response_to_openai_chat_response,
+    gemini_generate_content_to_openai_chat, openai_chat_to_anthropic_messages,
+    openai_chat_to_gemini_generate_content, openai_sse_delta_to_anthropic_event,
 };
 
 #[test]
@@ -117,10 +117,7 @@ fn anthropic_messages_to_gemini_generate_content_maps_assistant_to_model_role() 
     assert_eq!(translated.model, "gemini-2.5-pro");
     assert_eq!(translated.contents[0].role, "user");
     assert_eq!(translated.contents[1].role, "model");
-    assert_eq!(
-        translated.telemetry_safe_summary,
-        "contents=2;system=true"
-    );
+    assert_eq!(translated.telemetry_safe_summary, "contents=2;system=true");
 }
 
 #[test]

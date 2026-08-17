@@ -37,18 +37,18 @@ pub enum ThreadState {
 /// Input record for constructing a `ThreadLifecycle` (plain fields, no `Classified`).
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ThreadLifecycleCreate {
-    pub thread_id: String,           // data_class: INTERNAL_ONLY
-    pub tenant_id: String,           // data_class: INTERNAL_ONLY
-    pub initial_state: ThreadState,  // data_class: INTERNAL_ONLY
+    pub thread_id: String,          // data_class: INTERNAL_ONLY
+    pub tenant_id: String,          // data_class: INTERNAL_ONLY
+    pub initial_state: ThreadState, // data_class: INTERNAL_ONLY
 }
 
 /// Canonical thread-lifecycle record.  All fields are `Classified` per
 /// ADR-0083 data-boundary tagging.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ThreadLifecycle {
-    pub thread_id: Classified<String>,       // data_class: INTERNAL_ONLY
-    pub tenant_id: Classified<String>,       // data_class: INTERNAL_ONLY
-    pub state:     Classified<ThreadState>,  // data_class: INTERNAL_ONLY
+    pub thread_id: Classified<String>,  // data_class: INTERNAL_ONLY
+    pub tenant_id: Classified<String>,  // data_class: INTERNAL_ONLY
+    pub state: Classified<ThreadState>, // data_class: INTERNAL_ONLY
 }
 
 impl ThreadLifecycle {
@@ -63,7 +63,7 @@ impl ThreadLifecycle {
         Ok(Self {
             thread_id: internal(input.thread_id),
             tenant_id: internal(input.tenant_id),
-            state:     internal(input.initial_state),
+            state: internal(input.initial_state),
         })
     }
 
@@ -82,10 +82,7 @@ impl ThreadLifecycle {
                 next,
                 ThreadState::Open | ThreadState::Resolved | ThreadState::Archived
             ),
-            ThreadState::Resolved => matches!(
-                next,
-                ThreadState::Open | ThreadState::Archived
-            ),
+            ThreadState::Resolved => matches!(next, ThreadState::Open | ThreadState::Archived),
             // Archived is terminal — no outbound transitions
             ThreadState::Archived => false,
         };
@@ -95,7 +92,7 @@ impl ThreadLifecycle {
         Ok(Self {
             thread_id: internal(self.thread_id.value.clone()),
             tenant_id: internal(self.tenant_id.value.clone()),
-            state:     internal(next),
+            state: internal(next),
         })
     }
 }
@@ -114,11 +111,11 @@ pub enum ThreadSubscriptionMode {
 /// Input record for constructing a `ThreadSubscription`.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ThreadSubscriptionCreate {
-    pub thread_id:          String,          // data_class: INTERNAL_ONLY
-    pub tenant_id:          String,          // data_class: INTERNAL_ONLY
-    pub participant_ref:    String,          // data_class: PII_IDENTIFYING
+    pub thread_id: String,                   // data_class: INTERNAL_ONLY
+    pub tenant_id: String,                   // data_class: INTERNAL_ONLY
+    pub participant_ref: String,             // data_class: PII_IDENTIFYING
     pub participant_pillar: OwnershipPillar, // data_class: INTERNAL_ONLY
-    pub thread_pillar:      OwnershipPillar, // data_class: INTERNAL_ONLY
+    pub thread_pillar: OwnershipPillar,      // data_class: INTERNAL_ONLY
 }
 
 /// Canonical thread-subscription record with follow/mute invariants.
@@ -129,12 +126,12 @@ pub struct ThreadSubscriptionCreate {
 /// `PresenceState::CrossPillarPresenceDenied` guard in `governance.rs`.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ThreadSubscription {
-    pub thread_id:          Classified<String>,                    // data_class: INTERNAL_ONLY
-    pub tenant_id:          Classified<String>,                    // data_class: INTERNAL_ONLY
-    pub participant_ref:    Classified<String>,                    // data_class: PII_IDENTIFYING
-    pub participant_pillar: Classified<OwnershipPillar>,           // data_class: INTERNAL_ONLY
-    pub thread_pillar:      Classified<OwnershipPillar>,           // data_class: INTERNAL_ONLY
-    pub mode:               Classified<ThreadSubscriptionMode>,    // data_class: INTERNAL_ONLY
+    pub thread_id: Classified<String>, // data_class: INTERNAL_ONLY
+    pub tenant_id: Classified<String>, // data_class: INTERNAL_ONLY
+    pub participant_ref: Classified<String>, // data_class: PII_IDENTIFYING
+    pub participant_pillar: Classified<OwnershipPillar>, // data_class: INTERNAL_ONLY
+    pub thread_pillar: Classified<OwnershipPillar>, // data_class: INTERNAL_ONLY
+    pub mode: Classified<ThreadSubscriptionMode>, // data_class: INTERNAL_ONLY
 }
 
 impl ThreadSubscription {
@@ -148,20 +145,23 @@ impl ThreadSubscription {
     pub fn new(input: ThreadSubscriptionCreate) -> Result<Self, ChatError> {
         thread_lifecycle_validate_non_empty(&input.thread_id, ChatError::InvalidThreadId)?;
         thread_lifecycle_validate_non_empty(&input.tenant_id, ChatError::InvalidTenantId)?;
-        thread_lifecycle_validate_non_empty(&input.participant_ref, ChatError::InvalidParticipantRef)?;
+        thread_lifecycle_validate_non_empty(
+            &input.participant_ref,
+            ChatError::InvalidParticipantRef,
+        )?;
         if input.participant_pillar != input.thread_pillar {
             return Err(ChatError::CrossPillarSubscriptionDenied);
         }
         Ok(Self {
-            thread_id:          internal(input.thread_id),
-            tenant_id:          internal(input.tenant_id),
-            participant_ref:    Classified::new(
+            thread_id: internal(input.thread_id),
+            tenant_id: internal(input.tenant_id),
+            participant_ref: Classified::new(
                 input.participant_ref,
                 PrivacyDataClass::pii_identifying(),
             ),
             participant_pillar: internal(input.participant_pillar),
-            thread_pillar:      internal(input.thread_pillar),
-            mode:               internal(ThreadSubscriptionMode::Follow),
+            thread_pillar: internal(input.thread_pillar),
+            mode: internal(ThreadSubscriptionMode::Follow),
         })
     }
 
@@ -178,15 +178,15 @@ impl ThreadSubscription {
     /// Return a copy of this subscription with the given mode applied.
     pub fn with_mode(&self, mode: ThreadSubscriptionMode) -> Self {
         Self {
-            thread_id:          internal(self.thread_id.value.clone()),
-            tenant_id:          internal(self.tenant_id.value.clone()),
-            participant_ref:    Classified::new(
+            thread_id: internal(self.thread_id.value.clone()),
+            tenant_id: internal(self.tenant_id.value.clone()),
+            participant_ref: Classified::new(
                 self.participant_ref.value.clone(),
                 PrivacyDataClass::pii_identifying(),
             ),
             participant_pillar: internal(self.participant_pillar.value),
-            thread_pillar:      internal(self.thread_pillar.value),
-            mode:               internal(mode),
+            thread_pillar: internal(self.thread_pillar.value),
+            mode: internal(mode),
         }
     }
 }
@@ -239,22 +239,22 @@ mod tests {
 
     fn work_sub() -> ThreadSubscription {
         ThreadSubscription::new(ThreadSubscriptionCreate {
-            thread_id:          "thread-1".into(),
-            tenant_id:          "tenant-1".into(),
-            participant_ref:    "user:alice@example.com".into(),
+            thread_id: "thread-1".into(),
+            tenant_id: "tenant-1".into(),
+            participant_ref: "user:alice@example.com".into(),
             participant_pillar: OwnershipPillar::Work,
-            thread_pillar:      OwnershipPillar::Work,
+            thread_pillar: OwnershipPillar::Work,
         })
         .unwrap()
     }
 
     fn personal_sub() -> ThreadSubscription {
         ThreadSubscription::new(ThreadSubscriptionCreate {
-            thread_id:          "thread-2".into(),
-            tenant_id:          "tenant-2".into(),
-            participant_ref:    "user:bob@personal.com".into(),
+            thread_id: "thread-2".into(),
+            tenant_id: "tenant-2".into(),
+            participant_ref: "user:bob@personal.com".into(),
             participant_pillar: OwnershipPillar::Personal,
-            thread_pillar:      OwnershipPillar::Personal,
+            thread_pillar: OwnershipPillar::Personal,
         })
         .unwrap()
     }
@@ -454,11 +454,11 @@ mod tests {
     fn cross_pillar_work_on_personal_denied() {
         assert_eq!(
             ThreadSubscription::new(ThreadSubscriptionCreate {
-                thread_id:          "thread-1".into(),
-                tenant_id:          "tenant-1".into(),
-                participant_ref:    "user:alice@example.com".into(),
+                thread_id: "thread-1".into(),
+                tenant_id: "tenant-1".into(),
+                participant_ref: "user:alice@example.com".into(),
                 participant_pillar: OwnershipPillar::Work,
-                thread_pillar:      OwnershipPillar::Personal,
+                thread_pillar: OwnershipPillar::Personal,
             }),
             Err(ChatError::CrossPillarSubscriptionDenied)
         );
@@ -468,11 +468,11 @@ mod tests {
     fn cross_pillar_personal_on_work_denied() {
         assert_eq!(
             ThreadSubscription::new(ThreadSubscriptionCreate {
-                thread_id:          "thread-1".into(),
-                tenant_id:          "tenant-1".into(),
-                participant_ref:    "user:bob@personal.com".into(),
+                thread_id: "thread-1".into(),
+                tenant_id: "tenant-1".into(),
+                participant_ref: "user:bob@personal.com".into(),
                 participant_pillar: OwnershipPillar::Personal,
-                thread_pillar:      OwnershipPillar::Work,
+                thread_pillar: OwnershipPillar::Work,
             }),
             Err(ChatError::CrossPillarSubscriptionDenied)
         );
@@ -494,11 +494,11 @@ mod tests {
     fn invalid_thread_id_rejected() {
         assert_eq!(
             ThreadSubscription::new(ThreadSubscriptionCreate {
-                thread_id:          String::new(),
-                tenant_id:          "tenant-1".into(),
-                participant_ref:    "user:alice@example.com".into(),
+                thread_id: String::new(),
+                tenant_id: "tenant-1".into(),
+                participant_ref: "user:alice@example.com".into(),
                 participant_pillar: OwnershipPillar::Work,
-                thread_pillar:      OwnershipPillar::Work,
+                thread_pillar: OwnershipPillar::Work,
             }),
             Err(ChatError::InvalidThreadId)
         );
@@ -508,11 +508,11 @@ mod tests {
     fn invalid_participant_ref_rejected() {
         assert_eq!(
             ThreadSubscription::new(ThreadSubscriptionCreate {
-                thread_id:          "thread-1".into(),
-                tenant_id:          "tenant-1".into(),
-                participant_ref:    "  ".into(),
+                thread_id: "thread-1".into(),
+                tenant_id: "tenant-1".into(),
+                participant_ref: "  ".into(),
                 participant_pillar: OwnershipPillar::Work,
-                thread_pillar:      OwnershipPillar::Work,
+                thread_pillar: OwnershipPillar::Work,
             }),
             Err(ChatError::InvalidParticipantRef)
         );

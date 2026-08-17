@@ -100,9 +100,9 @@ pub struct RequestDimensions(pub BTreeMap<String, String>); // data_class: TENAN
 /// silent (no-silent-caps doctrine).
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct CardinalityCaps {
-    pub max_dimensions: usize,      // data_class: INTERNAL_ONLY
-    pub max_key_bytes: usize,       // data_class: INTERNAL_ONLY
-    pub max_value_bytes: usize,     // data_class: INTERNAL_ONLY
+    pub max_dimensions: usize,  // data_class: INTERNAL_ONLY
+    pub max_key_bytes: usize,   // data_class: INTERNAL_ONLY
+    pub max_value_bytes: usize, // data_class: INTERNAL_ONLY
 }
 
 impl Default for CardinalityCaps {
@@ -302,12 +302,18 @@ where
             .extensions()
             .get::<RouteTemplate>()
             .map_or_else(|| UNMATCHED_ROUTE_LABEL.to_owned(), |r| r.0.clone());
-        let tenant_id = request.extensions().get::<TenantContext>().map(|t| t.0.clone());
+        let tenant_id = request
+            .extensions()
+            .get::<TenantContext>()
+            .map(|t| t.0.clone());
         let principal = request
             .extensions()
             .get::<PrincipalContext>()
             .map(|p| p.0.clone());
-        let trace_id = request.extensions().get::<TraceContext>().map(|t| t.0.clone());
+        let trace_id = request
+            .extensions()
+            .get::<TraceContext>()
+            .map(|t| t.0.clone());
         let raw_dimensions = request
             .extensions()
             .get::<RequestDimensions>()
@@ -329,18 +335,20 @@ where
                 // Derive RED counters from this same outcome. Telemetry
                 // failures never fail the request — they are recorded on
                 // the wide event for the collector to alert on.
-                let red_derivation_failed = RequestTelemetryBinding::new(
-                    &config.context,
-                    operation_id.clone(),
-                )
-                .and_then(|binding| {
-                    RequestTelemetryOutcome::new(binding, tenant_label, status_code, sli_success)
-                })
-                .and_then(|outcome| config.metrics.record_request_outcome(&outcome))
-                .is_err();
+                let red_derivation_failed =
+                    RequestTelemetryBinding::new(&config.context, operation_id.clone())
+                        .and_then(|binding| {
+                            RequestTelemetryOutcome::new(
+                                binding,
+                                tenant_label,
+                                status_code,
+                                sli_success,
+                            )
+                        })
+                        .and_then(|outcome| config.metrics.record_request_outcome(&outcome))
+                        .is_err();
 
-                let (dimensions, cardinality_truncated) =
-                    config.caps.apply(raw_dimensions);
+                let (dimensions, cardinality_truncated) = config.caps.apply(raw_dimensions);
                 config.sink.emit(WideEvent {
                     service: config.context.microservice().to_owned(),
                     route_template,
@@ -488,7 +496,10 @@ mod tests {
             sink.clone(),
         );
         let mut service = layer.layer(StaticHandler { status });
-        let mut request = Request::builder().uri("/ignored/raw/path").body(()).unwrap();
+        let mut request = Request::builder()
+            .uri("/ignored/raw/path")
+            .body(())
+            .unwrap();
         decorate(&mut request);
         let response = block_on(service.call(request)).expect("infallible");
         assert_eq!(response.status().as_u16(), status);
@@ -500,7 +511,8 @@ mod tests {
         let (metrics, sink) = run_one(200, |req| {
             req.extensions_mut()
                 .insert(RouteTemplate("/users/{user_id}".into()));
-            req.extensions_mut().insert(TenantContext("ten_acme".into()));
+            req.extensions_mut()
+                .insert(TenantContext("ten_acme".into()));
             req.extensions_mut()
                 .insert(PrincipalContext("wl_console".into()));
             req.extensions_mut().insert(TraceContext("tr-1".into()));

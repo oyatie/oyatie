@@ -50,12 +50,12 @@
 
 use crate::error::{MachinedError, Result};
 use crate::supervisor::{ServiceLauncher, Supervisor, SupervisorRegistrydServiceManager};
-use std::collections::BTreeMap;
 use os_kernel::MachineType;
 use os_runtime_cri_domain::{
     ImageCacheRuntimePlan, RegistrydAction, RegistrydRuntimeAdapter,
     RegistrydServiceExecutionStatus,
 };
+use std::collections::BTreeMap;
 
 // ---------------------------------------------------------------------------
 // Platform value types (dep-free models of the syscall arguments).

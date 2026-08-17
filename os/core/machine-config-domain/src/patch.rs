@@ -8,8 +8,8 @@
 //! JSON-pointer-addressable tree ([`Value`]) rather than a full YAML/JSON
 //! parser. It is enough to model and unit-test the patch semantics faithfully.
 
-use std::collections::BTreeMap;
 use os_kernel::error::{Error, Result};
+use std::collections::BTreeMap;
 
 /// A minimal JSON-like document value, addressable by RFC6901 JSON pointer.
 #[derive(Debug, Clone, PartialEq)]

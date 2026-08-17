@@ -76,7 +76,7 @@ pub use manifest::{
     select_move_plan,
 };
 pub use model::{
-    move_manifest_value, CodemodError, CrateMove, Mapping, MappingRow, MovePlan,
-    REORG_MOVE_MANIFEST_SCHEMA,
+    CodemodError, CrateMove, Mapping, MappingRow, MovePlan, REORG_MOVE_MANIFEST_SCHEMA,
+    move_manifest_value,
 };
-pub use plan::{apply_plan, ApplyOptions, ApplyOutcome};
+pub use plan::{ApplyOptions, ApplyOutcome, apply_plan};

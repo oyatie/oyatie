@@ -1433,6 +1433,7 @@ dependencies = [
 name = "ci-artifact-accountability"
 version = "0.1.0"
 dependencies = [
+ "ci-path-resolver-adapters",
  "serde_json",
 ]
 
@@ -1449,6 +1450,7 @@ dependencies = [
  "ci-hook-wiring",
  "ci-license-policy",
  "ci-package-manifest-hygiene",
+ "ci-path-resolver-adapters",
  "ci-service-catalog-parity",
  "ci-slo-coverage",
  "ci-stale-artifact-detection",
@@ -1464,6 +1466,7 @@ dependencies = [
 name = "ci-automation-coverage"
 version = "0.1.0"
 dependencies = [
+ "ci-path-resolver-adapters",
  "serde_json",
 ]
 
@@ -1480,6 +1483,8 @@ dependencies = [
 name = "ci-baseline-ratchet"
 version = "0.1.0"
 dependencies = [
+ "ci-generated-artifact-freshness",
+ "ci-path-resolver-adapters",
  "reqwest 0.13.4",
  "serde_json",
  "sha2",
@@ -1489,6 +1494,7 @@ dependencies = [
 name = "ci-build-target-parity"
 version = "0.1.0"
 dependencies = [
+ "ci-path-resolver-adapters",
  "serde_json",
 ]
 
@@ -1598,8 +1604,10 @@ dependencies = [
 name = "ci-crate-layer-suffix"
 version = "0.1.0"
 dependencies = [
+ "ci-path-resolver-adapters",
  "oya-ci-config-kernel",
  "oya-governance-predictable-naming-kernel",
+ "oya-workspace-members-kernel",
  "serde_json",
 ]
 
@@ -1607,9 +1615,14 @@ dependencies = [
 name = "ci-crate-name-prefix"
 version = "0.1.0"
 dependencies = [
+ "ci-path-resolver-adapters",
+ "ci-scm-facts-snapshot",
  "intelligence-cargo-prefix-domain",
  "oya-ci-config-kernel",
+ "oya-workspace-members-kernel",
  "serde_json",
+ "tempfile",
+ "toml 0.8.23",
 ]
 
 [[package]]
@@ -1631,6 +1644,7 @@ dependencies = [
 name = "ci-cross-artifact-agreement"
 version = "0.1.0"
 dependencies = [
+ "ci-path-resolver-adapters",
  "oya-check-adr-index",
  "oya-governance-adr-shape-kernel",
  "serde",
@@ -1729,12 +1743,16 @@ dependencies = [
 name = "ci-hook-wiring"
 version = "0.1.0"
 dependencies = [
+ "ci-path-resolver-adapters",
  "serde_json",
 ]
 
 [[package]]
 name = "ci-inventory-registry-drift"
 version = "0.1.0"
+dependencies = [
+ "ci-path-resolver-adapters",
+]
 
 [[package]]
 name = "ci-k8s-program-docs"
@@ -1754,6 +1772,7 @@ dependencies = [
 name = "ci-license-policy"
 version = "0.1.0"
 dependencies = [
+ "ci-path-resolver-adapters",
  "oya-check-license-policy",
  "serde_json",
 ]
@@ -1785,6 +1804,9 @@ dependencies = [
 name = "ci-package-manifest-hygiene"
 version = "0.1.0"
 dependencies = [
+ "ci-path-resolver-adapters",
+ "oya-ci-config-kernel",
+ "oya-workspace-members-kernel",
  "serde_json",
 ]
 
@@ -1840,7 +1862,9 @@ dependencies = [
 name = "ci-repo-root-hygiene"
 version = "0.1.0"
 dependencies = [
+ "ci-scm-facts-snapshot",
  "serde_json",
+ "tempfile",
 ]
 
 [[package]]
@@ -1905,6 +1929,7 @@ dependencies = [
 name = "ci-service-catalog-parity"
 version = "0.1.0"
 dependencies = [
+ "ci-path-resolver-adapters",
  "serde_json",
 ]
 
@@ -1919,6 +1944,7 @@ dependencies = [
 name = "ci-slo-coverage"
 version = "0.1.0"
 dependencies = [
+ "ci-path-resolver-adapters",
  "oya-check-slo-coverage",
  "serde_json",
 ]
@@ -1927,6 +1953,7 @@ dependencies = [
 name = "ci-stale-artifact-detection"
 version = "0.1.0"
 dependencies = [
+ "ci-path-resolver-adapters",
  "serde_json",
 ]
 
@@ -1934,9 +1961,11 @@ dependencies = [
 name = "ci-supply-chain-audit"
 version = "0.1.0"
 dependencies = [
+ "ci-scm-facts-snapshot",
  "oya-advisory-mirror-kernel",
  "semver",
  "serde_json",
+ "tempfile",
  "toml 0.8.23",
 ]
 
@@ -1981,6 +2010,7 @@ dependencies = [
 name = "ci-workspace-member-coverage"
 version = "0.1.0"
 dependencies = [
+ "ci-path-resolver-adapters",
  "serde_json",
 ]
 
@@ -5171,6 +5201,7 @@ version = "0.1.0"
 dependencies = [
  "base64 0.22.1",
  "bytes",
+ "futures",
  "httpmock",
  "intelligence-kernel",
  "intelligence-rest",
@@ -6419,6 +6450,7 @@ dependencies = [
  "check-vendor-recency",
  "check-wasm-runtime-discipline",
  "ci-generated-artifact-freshness",
+ "ci-planning-projection",
  "intelligence-api-semver-domain",
  "intelligence-cargo-prefix-domain",
  "intelligence-catalog-domain",
@@ -7338,6 +7370,7 @@ dependencies = [
  "console_error_panic_hook",
  "leptos",
  "leptos_axum",
+ "oya-application-shell-frontend",
  "oya-shared-oidc-client-kernel",
  "oya-shared-platform-contracts-kernel",
  "serde",
@@ -7352,7 +7385,9 @@ dependencies = [
 name = "oya-architecture-graph-generator-app"
 version = "0.1.0"
 dependencies = [
+ "ci-generated-artifact-freshness",
  "serde_json",
+ "tempfile",
 ]
 
 [[package]]
@@ -7570,40 +7605,6 @@ version = "0.1.0"
 dependencies = [
  "serde",
  "serde_json",
-]
-
-[[package]]
-name = "oya-cloud-os-cluster-mgmt-domain"
-version = "0.1.0"
-dependencies = [
- "os-kernel",
-]
-
-[[package]]
-name = "oya-cloud-os-kubernetes-domain"
-version = "0.1.0"
-dependencies = [
- "os-kernel",
- "os-runtime-cri-domain",
- "oya-cloud-os-secrets-domain",
-]
-
-[[package]]
-name = "oya-cloud-os-secrets-domain"
-version = "0.1.0"
-dependencies = [
- "os-kernel",
-]
-
-[[package]]
-name = "oya-cloud-os-trustd-domain"
-version = "0.1.0"
-dependencies = [
- "aws-lc-rs",
- "os-kernel",
- "rcgen",
- "time",
- "x509-parser",
 ]
 
 [[package]]
@@ -9868,6 +9869,7 @@ dependencies = [
 name = "oya-workspace-members-kernel"
 version = "0.1.0"
 dependencies = [
+ "serde_json",
  "toml 0.8.23",
 ]
 

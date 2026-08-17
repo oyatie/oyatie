@@ -1199,10 +1199,10 @@ impl CloudComputeCatalog {
         invocation_id: InvocationId,
         receipt: FunctionInvocationReceipt,
     ) {
-        if self.invocations.len() >= self.invocation_retention_limit {
-            if let Some(evicted) = self.invocations.keys().next().cloned() {
-                self.invocations.remove(&evicted);
-            }
+        if self.invocations.len() >= self.invocation_retention_limit
+            && let Some(evicted) = self.invocations.keys().next().cloned()
+        {
+            self.invocations.remove(&evicted);
         }
         self.invocations.insert(invocation_id, receipt);
     }

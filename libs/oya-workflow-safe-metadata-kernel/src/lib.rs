@@ -41,10 +41,7 @@ fn contains_secret_assignment(lower: &str) -> bool {
                     }
                     // `secret://...` URI scheme only when `secret` is the whole
                     // scheme at index 0 (not an embedded `*_secret:/...`).
-                    if i == 0
-                        && j + 2 < bytes.len()
-                        && bytes[j + 1] == b'/'
-                        && bytes[j + 2] == b'/'
+                    if i == 0 && j + 2 < bytes.len() && bytes[j + 1] == b'/' && bytes[j + 2] == b'/'
                     {
                         i += 1;
                         continue;
@@ -103,8 +100,12 @@ mod tests {
         assert!(contains_raw_secret_material(
             "-----BEGIN CERTIFICATE-----\nMIID..."
         ));
-        assert!(contains_raw_secret_material("-----END RSA PRIVATE KEY-----"));
-        assert!(contains_raw_secret_material("begin pkcs8 encrypted private key"));
+        assert!(contains_raw_secret_material(
+            "-----END RSA PRIVATE KEY-----"
+        ));
+        assert!(contains_raw_secret_material(
+            "begin pkcs8 encrypted private key"
+        ));
     }
 
     #[test]
@@ -114,15 +115,23 @@ mod tests {
 
     #[test]
     fn rejects_safe_metadata_negatives() {
-        assert!(!contains_raw_secret_material("openbao://vault/kv/data/tenant/workflow/ref-001"));
-        assert!(!contains_raw_secret_material("workflow-trigger-app:cloud-substrate-ref-required"));
+        assert!(!contains_raw_secret_material(
+            "openbao://vault/kv/data/tenant/workflow/ref-001"
+        ));
+        assert!(!contains_raw_secret_material(
+            "workflow-trigger-app:cloud-substrate-ref-required"
+        ));
         assert!(!contains_raw_secret_material("ten_acme/workflow/run-001"));
         assert!(!contains_raw_secret_material("sk-ref-001"));
         assert!(!contains_raw_secret_material("bearer-token-ref"));
-        assert!(!contains_raw_secret_material("authorization-policy-bundle-v3"));
+        assert!(!contains_raw_secret_material(
+            "authorization-policy-bundle-v3"
+        ));
         assert!(!contains_raw_secret_material("api_key_ref=not-a-needle"));
         // Valid OpenBao credential reference used by execution-engine-app.
-        assert!(!contains_raw_secret_material("openbao:secret:workflow-execution"));
+        assert!(!contains_raw_secret_material(
+            "openbao:secret:workflow-execution"
+        ));
         // Canonical secret-scheme URI used by secrets lease lifecycle.
         assert!(!contains_raw_secret_material("secret://ten_alpha/db-creds"));
     }
