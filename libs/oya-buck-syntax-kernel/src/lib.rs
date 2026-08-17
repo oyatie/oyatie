@@ -886,12 +886,11 @@ mod tests {
         let doc = must_parse(buck);
         let mut seen: Vec<String> = Vec::new();
         doc.visit_calls(&mut |call| {
-            if call.func == "rust_library" {
-                if let Some(arg) = call.kwarg("name") {
-                    if let Expr::Str(name) = &arg.value.expr {
-                        seen.push(name.clone());
-                    }
-                }
+            if call.func == "rust_library"
+                && let Some(arg) = call.kwarg("name")
+                && let Expr::Str(name) = &arg.value.expr
+            {
+                seen.push(name.clone());
             }
         });
         seen.sort();
