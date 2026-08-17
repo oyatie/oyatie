@@ -312,6 +312,34 @@
       }
     },
     {
+      "artifact_id": "bootstrap-intent-schema",
+      "artifact_path": "/cell/contracts/bootstrap-intent.schema.json",
+      "artifact_format": "json",
+      "contract_version": "v3.0.0",
+      "owner_team": "platform-cell + ops-sre-reliability + council-security",
+      "purpose_short": "Provider-neutral schema for one authorized, resumable, receipt-driven bootstrap request across Genesis/DR, development, management, and serving cell targets.",
+      "artifact_profile": "schema",
+      "capability_overrides": {
+        "enforcement": {
+          "lane_id": "cell-genesis-bootstrap-contract"
+        },
+        "validation": {
+          "validator": "Draft 2020-12 metaschema conformance was independently observed for this change; the owned Rust gate for provider-neutral vocabulary, phase DAG, target protection, image qualification, and receipt bindings is planned and not implemented"
+        },
+        "autogen": {
+          "generator": "not-applicable; schema is source-authored"
+        },
+        "selfheal": {
+          "healer": "manual-with-review until the owned Rust cell bootstrap contract gate lands"
+        },
+        "provenance": {
+          "current_author": "codex",
+          "current_reviewed_by": "pending code-review",
+          "last_modified_at": "2026-08-16T00:00:00Z"
+        }
+      }
+    },
+    {
       "artifact_id": "bounded-contexts-registry",
       "artifact_path": "/registry/bounded-contexts.json",
       "artifact_format": "json",
@@ -1424,6 +1452,90 @@
       }
     },
     {
+      "artifact_id": "genesis-seed-recovery-runbook",
+      "artifact_path": "/cell/runbooks/recover-genesis-seed.json",
+      "artifact_format": "json",
+      "contract_version": "v3.0.0",
+      "owner_team": "platform-cell + ops-sre-reliability + council-security",
+      "purpose_short": "Source-authored adopt-only Genesis/DR recovery template bound to BootstrapIntent, explicit phase receipts, fault injection, and quiescence.",
+      "artifact_profile": "template",
+      "capability_overrides": {
+        "enforcement": {
+          "lane_id": "cell-genesis-bootstrap-contract"
+        },
+        "validation": {
+          "validator": "Schema-instance conformance was independently observed for this change; the owned Rust gate for exact phase order, authority separation, safety invariants, SLOs, failure modes, and fault injection is planned and not implemented"
+        },
+        "autogen": {
+          "generator": "not-applicable; recovery template is source-authored"
+        },
+        "selfheal": {
+          "healer": "manual-with-review until the owned Rust bootstrap reconciler and contract gate land"
+        },
+        "provenance": {
+          "current_author": "codex",
+          "current_reviewed_by": "pending code-review",
+          "last_modified_at": "2026-08-16T00:00:00Z"
+        }
+      }
+    },
+    {
+      "artifact_id": "genesis-seed-recovery-runbook-schema",
+      "artifact_path": "/cell/contracts/genesis-seed-recovery-runbook.schema.json",
+      "artifact_format": "json",
+      "contract_version": "v3.0.0",
+      "owner_team": "platform-cell + ops-sre-reliability + council-security",
+      "purpose_short": "Closed Draft 2020-12 schema for the adopt-only Genesis/DR recovery template and its ordered bootstrap, verification, failure, and reference contracts.",
+      "artifact_profile": "schema",
+      "capability_overrides": {
+        "enforcement": {
+          "lane_id": "cell-genesis-bootstrap-contract"
+        },
+        "validation": {
+          "validator": "Draft 2020-12 metaschema conformance was independently observed for this change; the owned Rust gate for exact operations, ports, phase ordering, authorization, trust, image supply, SLOs, and fault-injection contracts is planned and not implemented"
+        },
+        "autogen": {
+          "generator": "not-applicable; schema is source-authored"
+        },
+        "selfheal": {
+          "healer": "manual-with-review until the owned Rust cell bootstrap contract gate lands"
+        },
+        "provenance": {
+          "current_author": "codex",
+          "current_reviewed_by": "pending code-review",
+          "last_modified_at": "2026-08-16T00:00:00Z"
+        }
+      }
+    },
+    {
+      "artifact_id": "genesis-seed-state-receipt-schema",
+      "artifact_path": "/cell/contracts/genesis-seed-state-receipt.schema.json",
+      "artifact_format": "json",
+      "contract_version": "v3.0.0",
+      "owner_team": "platform-cell + ops-sre-reliability + council-security",
+      "purpose_short": "Closed Draft 2020-12 schema for redacted, immutable, freshness-bounded Genesis/DR seed observation and recovery-artifact receipts.",
+      "artifact_profile": "schema",
+      "capability_overrides": {
+        "enforcement": {
+          "lane_id": "cell-genesis-bootstrap-contract"
+        },
+        "validation": {
+          "validator": "Draft 2020-12 metaschema and private instance conformance were independently observed for this change; the owned Rust gate for freshness, redaction, binding integrity, artifact parentage, and secret scanning is planned and not implemented"
+        },
+        "autogen": {
+          "generator": "not-applicable; schema is source-authored"
+        },
+        "selfheal": {
+          "healer": "manual-with-review until the owned Rust receipt collector and conformance gate land"
+        },
+        "provenance": {
+          "current_author": "codex",
+          "current_reviewed_by": "pending code-review",
+          "last_modified_at": "2026-08-16T00:00:00Z"
+        }
+      }
+    },
+    {
       "artifact_id": "gitops-vcs-replacement",
       "artifact_path": "/specs/gitops-vcs-replacement.json",
       "artifact_format": "json",
@@ -2053,6 +2165,62 @@
         "provenance": {
           "current_author": "claude-opus-4-7 + jason931225",
           "last_modified_at": "2026-05-13T00:00:00Z"
+        }
+      }
+    },
+    {
+      "artifact_id": "operational-evidence-pointer-schema",
+      "artifact_path": "/cell/contracts/operational-evidence-pointer.schema.json",
+      "artifact_format": "json",
+      "contract_version": "v3.0.0",
+      "owner_team": "platform-cell + ops-sre-reliability + council-security",
+      "purpose_short": "Closed schema for public content-addressed pointers proving only private operational-evidence persistence and verified remote readback.",
+      "artifact_profile": "schema",
+      "capability_overrides": {
+        "enforcement": {
+          "lane_id": "cell-operational-evidence-publication-boundary"
+        },
+        "validation": {
+          "validator": "Draft 2020-12 metaschema conformance was independently observed for this change; the owned Rust gate for closed fields, digest-to-filename binding, and disclosure rejection is planned and not implemented"
+        },
+        "autogen": {
+          "generator": "not-applicable; schema is source-authored"
+        },
+        "selfheal": {
+          "healer": "manual-with-review until the owned Rust publication-boundary gate lands"
+        },
+        "provenance": {
+          "current_author": "codex",
+          "current_reviewed_by": "pending code-review",
+          "last_modified_at": "2026-08-16T00:00:00Z"
+        }
+      }
+    },
+    {
+      "artifact_id": "operational-receipt-persistence-pointer",
+      "artifact_path": "/cell/attestations/sha256-e79783993aea1ab7dbd9f559c08c91f38529151f6f80916cc3424e4c608e174e.json",
+      "artifact_format": "json",
+      "contract_version": "v3.0.0",
+      "owner_team": "platform-cell + ops-sre-reliability + council-security",
+      "purpose_short": "Data-minimized public pointer to one privately custodied operational receipt; proves only persistence and verified remote readback.",
+      "artifact_profile": "evidence-bundle",
+      "capability_overrides": {
+        "enforcement": {
+          "lane_id": "cell-operational-evidence-publication-boundary"
+        },
+        "validation": {
+          "validator": "Schema-instance conformance was independently observed for this change; the owned Rust gate for content-addressed filename binding, claim ceiling, and forbidden metadata is planned and not implemented"
+        },
+        "autogen": {
+          "generator": "not-applicable; source-authored from independently verified private readback evidence"
+        },
+        "selfheal": {
+          "healer": "not-applicable; changed evidence emits a new digest-addressed pointer rather than mutating this one"
+        },
+        "provenance": {
+          "current_author": "codex",
+          "current_reviewed_by": "pending code-review",
+          "last_modified_at": "2026-08-16T00:00:00Z"
         }
       }
     },
