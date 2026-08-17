@@ -23,3 +23,14 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = ["third-party//:serde_json"],
 )
+
+rust_test(
+    name = "ci-cloud-name-ratchet-gate",
+    srcs = glob(["tests/**/*.rs", "**/*.json"]),
+    crate = "ci_cloud_name_ratchet_live",
+    crate_root = "tests/live_ratchet.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-cloud-name-ratchet","third-party//:serde_json"
+    ],
+)
