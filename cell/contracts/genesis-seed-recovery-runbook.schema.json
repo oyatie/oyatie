@@ -1,0 +1,2096 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.com/schemas/genesis-seed-recovery-runbook.schema.json",
+  "title": "GenesisSeedRecoveryRunbook",
+  "description": "Fail-closed machine-readable runbook for observing, reconciling, and recovering a Genesis/DR seed through one provider-neutral bootstrap state machine.",
+  "version": "1.0.0",
+  "_meta": {
+    "doc_class": "Machine-Readable-Schema",
+    "status": "source-authored",
+    "purpose": "Define one resumable bootstrap and recovery contract without turning provider identifiers, shell procedures, or unimplemented components into domain authority.",
+    "binding_authority": "/specs/substrate-dependency-dag.json#dependency_units[id=cell.genesis]",
+    "enforcement_status": "JSON Schema validation is required; the owned Rust reconciler and transition-receipt gate are not implemented.",
+    "versioning_policy": "Incompatible changes to intent, phase, receipt, safety, or rollback semantics require a major version.",
+    "engineering_rigor": {
+      "maintainability": "Stable phase and failure identifiers separate policy from adapters and implementation.",
+      "observability": "Each transition declares required evidence, success, failure, and receipt semantics.",
+      "scalability": "The same intent and port model applies to one seed or many independent cells without shared runtime membership.",
+      "performance": "Bootstrap work is bounded and asynchronous; it is never in a serving request path.",
+      "optimization": "Reconciliation resumes at the first incomplete phase and rejects blind recreation.",
+      "code_quality": "Closed schemas, independent review, fault injection, and explicit nonclaims are mandatory."
+    }
+  },
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schema_version",
+    "runbook_id",
+    "revision",
+    "title",
+    "status",
+    "role",
+    "execution_model",
+    "scope",
+    "single_bootstrap_contract",
+    "safety_rules",
+    "prerequisites",
+    "recovery_modes",
+    "workflow",
+    "verification",
+    "fault_injection",
+    "completion",
+    "failure_modes",
+    "references"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "const": "../contracts/genesis-seed-recovery-runbook.schema.json",
+      "oyatie.data_class": "PUBLIC"
+    },
+    "schema_version": {
+      "type": "string",
+      "const": "1.0.0",
+      "oyatie.data_class": "PUBLIC"
+    },
+    "runbook_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]{2,95}$",
+      "oyatie.data_class": "PUBLIC"
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 1,
+      "oyatie.data_class": "PUBLIC"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 8,
+      "maxLength": 160,
+      "oyatie.data_class": "PUBLIC"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "specified_not_implemented",
+        "preflight_only",
+        "qualified",
+        "retired"
+      ],
+      "oyatie.data_class": "PUBLIC"
+    },
+    "role": {
+      "type": "string",
+      "const": "genesis_dr",
+      "oyatie.data_class": "PUBLIC"
+    },
+    "execution_model": {
+      "$ref": "#/$defs/executionModel",
+      "oyatie.data_class": "INTERNAL_ONLY"
+    },
+    "scope": {
+      "$ref": "#/$defs/scope",
+      "oyatie.data_class": "INTERNAL_ONLY"
+    },
+    "single_bootstrap_contract": {
+      "$ref": "#/$defs/singleBootstrapContract",
+      "oyatie.data_class": "INTERNAL_ONLY"
+    },
+    "safety_rules": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 32,
+      "items": {
+        "$ref": "#/$defs/rule"
+      },
+      "oyatie.data_class": "INTERNAL_ONLY"
+    },
+    "prerequisites": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 32,
+      "items": {
+        "$ref": "#/$defs/prerequisite"
+      },
+      "oyatie.data_class": "INTERNAL_ONLY"
+    },
+    "recovery_modes": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 8,
+      "items": {
+        "$ref": "#/$defs/recoveryMode"
+      },
+      "oyatie.data_class": "INTERNAL_ONLY"
+    },
+    "workflow": {
+      "type": "array",
+      "minItems": 13,
+      "maxItems": 13,
+      "prefixItems": [
+        {
+          "allOf": [
+            {
+              "$ref": "#/$defs/workflowStep"
+            },
+            {
+              "properties": {
+                "sequence": {
+                  "const": 1,
+                  "oyatie.data_class": "INTERNAL_ONLY"
+                },
+                "phase_id": {
+                  "const": "validate_intent",
+                  "oyatie.data_class": "INTERNAL_ONLY"
+                },
+                "action_class": {
+                  "const": "read_only",
+                  "oyatie.data_class": "INTERNAL_ONLY"
+                },
+                "approval_gate": {
+                  "const": "none",
+                  "oyatie.data_class": "INTERNAL_ONLY"
+                }
+              },
+              "required": [
+                "sequence",
+                "phase_id",
+                "action_class",
+                "approval_gate"
+              ]
+            }
+          ]
+        },
+        {
+          "allOf": [
+            {
+              "$ref": "#/$defs/workflowStep"
+            },
+            {
+              "properties": {
+                "sequence": {
+                  "const": 2,
+                  "oyatie.data_class": "INTERNAL_ONLY"
+                },
+                "phase_id": {
+                  "const": "resolve_placement",
+                  "oyatie.data_class": "INTERNAL_ONLY"
+                },
+                "action_class": {
+                  "const": "read_only",
+                  "oyatie.data_class": "INTERNAL_ONLY"
+                },
+                "approval_gate": {
+                  "const": "none",
+                  "oyatie.data_class": "INTERNAL_ONLY"
+                }
+              },
+              "required": [
+                "sequence",
+                "phase_id",
+                "action_class",
+                "approval_gate"
+              ]
+            }
+          ]
+        },
+        {
+          "allOf": [
+            {
+              "$ref": "#/$defs/workflowStep"
+            },
+            {
+              "properties": {
+                "sequence": {
+                  "const": 3,
+                  "oyatie.data_class": "INTERNAL_ONLY"
+                },
+                "phase_id": {
+                  "const": "adopt_substrate",
+                  "oyatie.data_class": "INTERNAL_ONLY"
+                },
+                "action_class": {
+                  "const": "read_only",
+                  "oyatie.data_class": "INTERNAL_ONLY"
+                },
+                "approval_gate": {
+                  "const": "plan_digest",
+                  "oyatie.data_class": "INTERNAL_ONLY"
+                }
+              },
+              "required": [
+                "sequence",
+                "phase_id",
+                "action_class",
+                "approval_gate"
+              ]
+            }
+          ]
+        },
+        {
+          "allOf": [
+            {
+              "$ref": "#/$defs/workflowStep"
+            },
+            {
+              "properties": {
+                "sequence": {
+                  "const": 4,
+                  "oyatie.data_class": "INTERNAL_ONLY"
+                },
+                "phase_id": {
+                  "const": "resolve_image",
+                  "oyatie.data_class": "INTERNAL_ONLY"
+                },
+                "action_class": {
+                  "const": "read_only",
+                  "oyatie.data_class": "INTERNAL_ONLY"
+                },
+                "approval_gate": {
+                  "const": "plan_digest",
+                  "oyatie.data_class": "INTERNAL_ONLY"
+                }
+              },
+              "required": [
+                "sequence",
+                "phase_id",
+                "action_class",
+                "approval_gate"
+              ]
+            }
+          ]
+        },
+        {
+          "allOf": [
+            {
+              "$ref": "#/$defs/workflowStep"
+            },
+            {
+              "properties": {
+                "sequence": {
+                  "const": 5,
+                  "oyatie.data_class": "INTERNAL_ONLY"
+                },
+                "phase_id": {
+                  "const": "configure_node_os",
+                  "oyatie.data_class": "INTERNAL_ONLY"
+                },
+                "action_class": {
+                  "const": "controlled_mutation",
+                  "oyatie.data_class": "INTERNAL_ONLY"
+                },
+                "approval_gate": {
+                  "const": "plan_digest",
+                  "oyatie.data_class": "INTERNAL_ONLY"
+                }
+              },
+              "required": [
+                "sequence",
+                "phase_id",
+                "action_class",
+                "approval_gate"
+              ]
+            }
+          ]
+        },
+        {
+          "allOf": [
+            {
+              "$ref": "#/$defs/workflowStep"
+            },
+            {
+              "properties": {
+                "sequence": {
+                  "const": 6,
+                  "oyatie.data_class": "INTERNAL_ONLY"
+                },
+                "phase_id": {
+                  "const": "bootstrap_cluster",
+                  "oyatie.data_class": "INTERNAL_ONLY"
+                },
+                "action_class": {
+                  "const": "controlled_mutation",
+                  "oyatie.data_class": "INTERNAL_ONLY"
+                },
+                "approval_gate": {
+                  "const": "plan_digest",
+                  "oyatie.data_class": "INTERNAL_ONLY"
+                }
+              },
+              "required": [
+                "sequence",
+                "phase_id",
+                "action_class",
+                "approval_gate"
+              ]
+            }
+          ]
+        },
+        {
+          "allOf": [
+            {
+              "$ref": "#/$defs/workflowStep"
+            },
+            {
+              "properties": {
+                "sequence": {
+                  "const": 7,
+                  "oyatie.data_class": "INTERNAL_ONLY"
+                },
+                "phase_id": {
+                  "const": "establish_network",
+                  "oyatie.data_class": "INTERNAL_ONLY"
+                },
+                "action_class": {
+                  "const": "controlled_mutation",
+                  "oyatie.data_class": "INTERNAL_ONLY"
+                },
+                "approval_gate": {
+                  "const": "plan_digest",
+                  "oyatie.data_class": "INTERNAL_ONLY"
+                }
+              },
+              "required": [
+                "sequence",
+                "phase_id",
+                "action_class",
+                "approval_gate"
+              ]
+            }
+          ]
+        },
+        {
+          "allOf": [
+            {
+              "$ref": "#/$defs/workflowStep"
+            },
+            {
+              "properties": {
+                "sequence": {
+                  "const": 8,
+                  "oyatie.data_class": "INTERNAL_ONLY"
+                },
+                "phase_id": {
+                  "const": "prepare_durable_storage",
+                  "oyatie.data_class": "INTERNAL_ONLY"
+                },
+                "action_class": {
+                  "const": "controlled_mutation",
+                  "oyatie.data_class": "INTERNAL_ONLY"
+                },
+                "approval_gate": {
+                  "const": "plan_digest",
+                  "oyatie.data_class": "INTERNAL_ONLY"
+                }
+              },
+              "required": [
+                "sequence",
+                "phase_id",
+                "action_class",
+                "approval_gate"
+              ]
+            }
+          ]
+        },
+        {
+          "allOf": [
+            {
+              "$ref": "#/$defs/workflowStep"
+            },
+            {
+              "properties": {
+                "sequence": {
+                  "const": 9,
+                  "oyatie.data_class": "INTERNAL_ONLY"
+                },
+                "phase_id": {
+                  "const": "establish_secret_authority",
+                  "oyatie.data_class": "INTERNAL_ONLY"
+                },
+                "action_class": {
+                  "const": "controlled_mutation",
+                  "oyatie.data_class": "INTERNAL_ONLY"
+                },
+                "approval_gate": {
+                  "const": "custody_ceremony",
+                  "oyatie.data_class": "INTERNAL_ONLY"
+                }
+              },
+              "required": [
+                "sequence",
+                "phase_id",
+                "action_class",
+                "approval_gate"
+              ]
+            }
+          ]
+        },
+        {
+          "allOf": [
+            {
+              "$ref": "#/$defs/workflowStep"
+            },
+            {
+              "properties": {
+                "sequence": {
+                  "const": 10,
+                  "oyatie.data_class": "INTERNAL_ONLY"
+                },
+                "phase_id": {
+                  "const": "enable_observability",
+                  "oyatie.data_class": "INTERNAL_ONLY"
+                },
+                "action_class": {
+                  "const": "controlled_mutation",
+                  "oyatie.data_class": "INTERNAL_ONLY"
+                },
+                "approval_gate": {
+                  "const": "plan_digest",
+                  "oyatie.data_class": "INTERNAL_ONLY"
+                }
+              },
+              "required": [
+                "sequence",
+                "phase_id",
+                "action_class",
+                "approval_gate"
+              ]
+            }
+          ]
+        },
+        {
+          "allOf": [
+            {
+              "$ref": "#/$defs/workflowStep"
+            },
+            {
+              "properties": {
+                "sequence": {
+                  "const": 11,
+                  "oyatie.data_class": "INTERNAL_ONLY"
+                },
+                "phase_id": {
+                  "const": "enroll_cell",
+                  "oyatie.data_class": "INTERNAL_ONLY"
+                },
+                "action_class": {
+                  "const": "controlled_mutation",
+                  "oyatie.data_class": "INTERNAL_ONLY"
+                },
+                "approval_gate": {
+                  "const": "plan_digest",
+                  "oyatie.data_class": "INTERNAL_ONLY"
+                }
+              },
+              "required": [
+                "sequence",
+                "phase_id",
+                "action_class",
+                "approval_gate"
+              ]
+            }
+          ]
+        },
+        {
+          "allOf": [
+            {
+              "$ref": "#/$defs/workflowStep"
+            },
+            {
+              "properties": {
+                "sequence": {
+                  "const": 12,
+                  "oyatie.data_class": "INTERNAL_ONLY"
+                },
+                "phase_id": {
+                  "const": "verify_static_stability",
+                  "oyatie.data_class": "INTERNAL_ONLY"
+                },
+                "action_class": {
+                  "const": "verification",
+                  "oyatie.data_class": "INTERNAL_ONLY"
+                },
+                "approval_gate": {
+                  "const": "outage_window",
+                  "oyatie.data_class": "INTERNAL_ONLY"
+                }
+              },
+              "required": [
+                "sequence",
+                "phase_id",
+                "action_class",
+                "approval_gate"
+              ]
+            }
+          ]
+        },
+        {
+          "allOf": [
+            {
+              "$ref": "#/$defs/workflowStep"
+            },
+            {
+              "properties": {
+                "sequence": {
+                  "const": 13,
+                  "oyatie.data_class": "INTERNAL_ONLY"
+                },
+                "phase_id": {
+                  "const": "quiesce_genesis",
+                  "oyatie.data_class": "INTERNAL_ONLY"
+                },
+                "action_class": {
+                  "const": "quiesce",
+                  "oyatie.data_class": "INTERNAL_ONLY"
+                },
+                "approval_gate": {
+                  "const": "none",
+                  "oyatie.data_class": "INTERNAL_ONLY"
+                }
+              },
+              "required": [
+                "sequence",
+                "phase_id",
+                "action_class",
+                "approval_gate"
+              ]
+            }
+          ]
+        }
+      ],
+      "items": false,
+      "oyatie.data_class": "INTERNAL_ONLY"
+    },
+    "verification": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 48,
+      "items": {
+        "$ref": "#/$defs/verificationCheck"
+      },
+      "oyatie.data_class": "INTERNAL_ONLY"
+    },
+    "fault_injection": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 24,
+      "items": {
+        "$ref": "#/$defs/faultInjection"
+      },
+      "oyatie.data_class": "INTERNAL_ONLY"
+    },
+    "completion": {
+      "$ref": "#/$defs/completion",
+      "oyatie.data_class": "INTERNAL_ONLY"
+    },
+    "failure_modes": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 32,
+      "items": {
+        "$ref": "#/$defs/failureMode"
+      },
+      "oyatie.data_class": "INTERNAL_ONLY"
+    },
+    "references": {
+      "$ref": "#/$defs/references",
+      "oyatie.data_class": "INTERNAL_ONLY"
+    }
+  },
+  "$defs": {
+    "executionModel": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "canonical_surface",
+        "implementation_language",
+        "implementation_state",
+        "requires_single_request",
+        "requires_idempotency",
+        "requires_resume",
+        "requires_receipts",
+        "allowed_operations"
+      ],
+      "properties": {
+        "canonical_surface": {
+          "type": "string",
+          "const": "api_declarative_state_reconciler",
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "implementation_language": {
+          "type": "string",
+          "const": "rust",
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "implementation_state": {
+          "type": "string",
+          "enum": [
+            "not_implemented",
+            "simulation_only",
+            "canary",
+            "qualified"
+          ],
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "requires_single_request": {
+          "type": "boolean",
+          "const": true,
+          "oyatie.data_class": "PUBLIC"
+        },
+        "requires_idempotency": {
+          "type": "boolean",
+          "const": true,
+          "oyatie.data_class": "PUBLIC"
+        },
+        "requires_resume": {
+          "type": "boolean",
+          "const": true,
+          "oyatie.data_class": "PUBLIC"
+        },
+        "requires_receipts": {
+          "type": "boolean",
+          "const": true,
+          "oyatie.data_class": "PUBLIC"
+        },
+        "allowed_operations": {
+          "type": "array",
+          "const": [
+            "plan",
+            "reconcile",
+            "resume",
+            "verify",
+            "rollback",
+            "quiesce"
+          ],
+          "oyatie.data_class": "PUBLIC"
+        }
+      }
+    },
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "in_scope",
+        "out_of_scope",
+        "protected_resources"
+      ],
+      "properties": {
+        "in_scope": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 5,
+            "maxLength": 240
+          },
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "out_of_scope": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 5,
+            "maxLength": 240
+          },
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "protected_resources": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 5,
+            "maxLength": 240
+          },
+          "oyatie.data_class": "INTERNAL_ONLY"
+        }
+      }
+    },
+    "singleBootstrapContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "intent_name",
+        "intent_version",
+        "intent_schema_ref",
+        "operation_class_id",
+        "target_lifecycle",
+        "provider_neutral",
+        "provider_details_in_bindings_only",
+        "credential_handles_only",
+        "ports",
+        "bootstrap_authority",
+        "authorization_contract",
+        "root_trust_boundary",
+        "image_supply_contract",
+        "phases",
+        "transition_receipts",
+        "rerun_semantics"
+      ],
+      "properties": {
+        "intent_name": {
+          "type": "string",
+          "const": "BootstrapIntent",
+          "oyatie.data_class": "PUBLIC"
+        },
+        "intent_version": {
+          "type": "string",
+          "const": "v1",
+          "oyatie.data_class": "PUBLIC"
+        },
+        "intent_schema_ref": {
+          "type": "string",
+          "const": "../contracts/bootstrap-intent.schema.json",
+          "oyatie.data_class": "PUBLIC"
+        },
+        "operation_class_id": {
+          "type": "string",
+          "const": "genesis-dr-adopt-recovery-v1",
+          "oyatie.data_class": "PUBLIC"
+        },
+        "target_lifecycle": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "strategy",
+            "ownership"
+          ],
+          "properties": {
+            "strategy": {
+              "type": "string",
+              "const": "must_adopt",
+              "oyatie.data_class": "INTERNAL_ONLY"
+            },
+            "ownership": {
+              "type": "string",
+              "const": "adopted_protected",
+              "oyatie.data_class": "INTERNAL_ONLY"
+            }
+          },
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "provider_neutral": {
+          "type": "boolean",
+          "const": true,
+          "oyatie.data_class": "PUBLIC"
+        },
+        "provider_details_in_bindings_only": {
+          "type": "boolean",
+          "const": true,
+          "oyatie.data_class": "PUBLIC"
+        },
+        "credential_handles_only": {
+          "type": "boolean",
+          "const": true,
+          "oyatie.data_class": "PUBLIC"
+        },
+        "ports": {
+          "type": "array",
+          "const": [
+            "compute",
+            "network",
+            "storage",
+            "image",
+            "node_os_lifecycle",
+            "identity",
+            "key",
+            "cluster_lifecycle",
+            "secret_authority",
+            "configuration_projection",
+            "module_delivery",
+            "mesh_attachment",
+            "receipt_store",
+            "telemetry"
+          ],
+          "oyatie.data_class": "PUBLIC"
+        },
+        "bootstrap_authority": {
+          "$ref": "#/$defs/bootstrapAuthority",
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "authorization_contract": {
+          "$ref": "#/$defs/authorizationContract",
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "root_trust_boundary": {
+          "$ref": "#/$defs/rootTrustBoundary",
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "image_supply_contract": {
+          "$ref": "#/$defs/imageSupplyContract",
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "phases": {
+          "type": "array",
+          "minItems": 13,
+          "maxItems": 13,
+          "prefixItems": [
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/bootstrapPhase"
+                },
+                {
+                  "properties": {
+                    "phase_id": {
+                      "const": "validate_intent",
+                      "oyatie.data_class": "INTERNAL_ONLY"
+                    },
+                    "depends_on": {
+                      "const": [],
+                      "oyatie.data_class": "INTERNAL_ONLY"
+                    },
+                    "reconcile_mode": {
+                      "const": "validate",
+                      "oyatie.data_class": "INTERNAL_ONLY"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/bootstrapPhase"
+                },
+                {
+                  "properties": {
+                    "phase_id": {
+                      "const": "resolve_placement",
+                      "oyatie.data_class": "INTERNAL_ONLY"
+                    },
+                    "depends_on": {
+                      "const": [
+                        "validate_intent"
+                      ],
+                      "oyatie.data_class": "INTERNAL_ONLY"
+                    },
+                    "reconcile_mode": {
+                      "const": "resolve",
+                      "oyatie.data_class": "INTERNAL_ONLY"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/bootstrapPhase"
+                },
+                {
+                  "properties": {
+                    "phase_id": {
+                      "const": "adopt_substrate",
+                      "oyatie.data_class": "INTERNAL_ONLY"
+                    },
+                    "depends_on": {
+                      "const": [
+                        "resolve_placement"
+                      ],
+                      "oyatie.data_class": "INTERNAL_ONLY"
+                    },
+                    "reconcile_mode": {
+                      "const": "adopt",
+                      "oyatie.data_class": "INTERNAL_ONLY"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/bootstrapPhase"
+                },
+                {
+                  "properties": {
+                    "phase_id": {
+                      "const": "resolve_image",
+                      "oyatie.data_class": "INTERNAL_ONLY"
+                    },
+                    "depends_on": {
+                      "const": [
+                        "adopt_substrate"
+                      ],
+                      "oyatie.data_class": "INTERNAL_ONLY"
+                    },
+                    "reconcile_mode": {
+                      "const": "resolve",
+                      "oyatie.data_class": "INTERNAL_ONLY"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/bootstrapPhase"
+                },
+                {
+                  "properties": {
+                    "phase_id": {
+                      "const": "configure_node_os",
+                      "oyatie.data_class": "INTERNAL_ONLY"
+                    },
+                    "depends_on": {
+                      "const": [
+                        "resolve_image"
+                      ],
+                      "oyatie.data_class": "INTERNAL_ONLY"
+                    },
+                    "reconcile_mode": {
+                      "const": "ensure",
+                      "oyatie.data_class": "INTERNAL_ONLY"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/bootstrapPhase"
+                },
+                {
+                  "properties": {
+                    "phase_id": {
+                      "const": "bootstrap_cluster",
+                      "oyatie.data_class": "INTERNAL_ONLY"
+                    },
+                    "depends_on": {
+                      "const": [
+                        "configure_node_os"
+                      ],
+                      "oyatie.data_class": "INTERNAL_ONLY"
+                    },
+                    "reconcile_mode": {
+                      "const": "ensure",
+                      "oyatie.data_class": "INTERNAL_ONLY"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/bootstrapPhase"
+                },
+                {
+                  "properties": {
+                    "phase_id": {
+                      "const": "establish_network",
+                      "oyatie.data_class": "INTERNAL_ONLY"
+                    },
+                    "depends_on": {
+                      "const": [
+                        "bootstrap_cluster"
+                      ],
+                      "oyatie.data_class": "INTERNAL_ONLY"
+                    },
+                    "reconcile_mode": {
+                      "const": "ensure",
+                      "oyatie.data_class": "INTERNAL_ONLY"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/bootstrapPhase"
+                },
+                {
+                  "properties": {
+                    "phase_id": {
+                      "const": "prepare_durable_storage",
+                      "oyatie.data_class": "INTERNAL_ONLY"
+                    },
+                    "depends_on": {
+                      "const": [
+                        "establish_network"
+                      ],
+                      "oyatie.data_class": "INTERNAL_ONLY"
+                    },
+                    "reconcile_mode": {
+                      "const": "ensure",
+                      "oyatie.data_class": "INTERNAL_ONLY"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/bootstrapPhase"
+                },
+                {
+                  "properties": {
+                    "phase_id": {
+                      "const": "establish_secret_authority",
+                      "oyatie.data_class": "INTERNAL_ONLY"
+                    },
+                    "depends_on": {
+                      "const": [
+                        "prepare_durable_storage"
+                      ],
+                      "oyatie.data_class": "INTERNAL_ONLY"
+                    },
+                    "reconcile_mode": {
+                      "const": "ensure",
+                      "oyatie.data_class": "INTERNAL_ONLY"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/bootstrapPhase"
+                },
+                {
+                  "properties": {
+                    "phase_id": {
+                      "const": "enable_observability",
+                      "oyatie.data_class": "INTERNAL_ONLY"
+                    },
+                    "depends_on": {
+                      "const": [
+                        "establish_secret_authority"
+                      ],
+                      "oyatie.data_class": "INTERNAL_ONLY"
+                    },
+                    "reconcile_mode": {
+                      "const": "ensure",
+                      "oyatie.data_class": "INTERNAL_ONLY"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/bootstrapPhase"
+                },
+                {
+                  "properties": {
+                    "phase_id": {
+                      "const": "enroll_cell",
+                      "oyatie.data_class": "INTERNAL_ONLY"
+                    },
+                    "depends_on": {
+                      "const": [
+                        "enable_observability"
+                      ],
+                      "oyatie.data_class": "INTERNAL_ONLY"
+                    },
+                    "reconcile_mode": {
+                      "const": "ensure",
+                      "oyatie.data_class": "INTERNAL_ONLY"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/bootstrapPhase"
+                },
+                {
+                  "properties": {
+                    "phase_id": {
+                      "const": "verify_static_stability",
+                      "oyatie.data_class": "INTERNAL_ONLY"
+                    },
+                    "depends_on": {
+                      "const": [
+                        "enroll_cell"
+                      ],
+                      "oyatie.data_class": "INTERNAL_ONLY"
+                    },
+                    "reconcile_mode": {
+                      "const": "verify",
+                      "oyatie.data_class": "INTERNAL_ONLY"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/bootstrapPhase"
+                },
+                {
+                  "properties": {
+                    "phase_id": {
+                      "const": "quiesce_genesis",
+                      "oyatie.data_class": "INTERNAL_ONLY"
+                    },
+                    "depends_on": {
+                      "const": [
+                        "verify_static_stability"
+                      ],
+                      "oyatie.data_class": "INTERNAL_ONLY"
+                    },
+                    "reconcile_mode": {
+                      "const": "quiesce",
+                      "oyatie.data_class": "INTERNAL_ONLY"
+                    }
+                  }
+                }
+              ]
+            }
+          ],
+          "items": false,
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "transition_receipts": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "immutable",
+            "content_addressed",
+            "redacted",
+            "required_before_next_phase"
+          ],
+          "properties": {
+            "immutable": {
+              "type": "boolean",
+              "const": true,
+              "oyatie.data_class": "INTERNAL_ONLY"
+            },
+            "content_addressed": {
+              "type": "boolean",
+              "const": true,
+              "oyatie.data_class": "INTERNAL_ONLY"
+            },
+            "redacted": {
+              "type": "boolean",
+              "const": true,
+              "oyatie.data_class": "INTERNAL_ONLY"
+            },
+            "required_before_next_phase": {
+              "type": "boolean",
+              "const": true,
+              "oyatie.data_class": "INTERNAL_ONLY"
+            }
+          },
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "rerun_semantics": {
+          "type": "string",
+          "const": "observe_then_resume_first_incomplete_transition_never_blindly_recreate",
+          "oyatie.data_class": "PUBLIC"
+        }
+      }
+    },
+    "bootstrapAuthority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "external_executor",
+        "instance_identity",
+        "downstream_authority"
+      ],
+      "properties": {
+        "external_executor": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "implementation_language",
+            "artifact_signed",
+            "execution_location",
+            "identity_mode",
+            "receipt_location",
+            "scope"
+          ],
+          "properties": {
+            "implementation_language": {
+              "type": "string",
+              "const": "rust",
+              "oyatie.data_class": "PUBLIC"
+            },
+            "artifact_signed": {
+              "type": "boolean",
+              "const": true,
+              "oyatie.data_class": "INTERNAL_ONLY"
+            },
+            "execution_location": {
+              "type": "string",
+              "const": "outside_target",
+              "oyatie.data_class": "INTERNAL_ONLY"
+            },
+            "identity_mode": {
+              "type": "string",
+              "const": "short_lived_or_federated",
+              "oyatie.data_class": "INTERNAL_ONLY"
+            },
+            "receipt_location": {
+              "type": "string",
+              "const": "off_target",
+              "oyatie.data_class": "INTERNAL_ONLY"
+            },
+            "scope": {
+              "type": "string",
+              "const": "adopt_existing_substrate_and_establish_node_identity",
+              "oyatie.data_class": "INTERNAL_ONLY"
+            }
+          },
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "instance_identity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scope",
+            "may_create_substrate",
+            "may_manage_root_key",
+            "may_issue_downstream_credentials"
+          ],
+          "properties": {
+            "scope": {
+              "type": "string",
+              "const": "external_kms_auto_unseal_only",
+              "oyatie.data_class": "INTERNAL_ONLY"
+            },
+            "may_create_substrate": {
+              "type": "boolean",
+              "const": false,
+              "oyatie.data_class": "INTERNAL_ONLY"
+            },
+            "may_manage_root_key": {
+              "type": "boolean",
+              "const": false,
+              "oyatie.data_class": "INTERNAL_ONLY"
+            },
+            "may_issue_downstream_credentials": {
+              "type": "boolean",
+              "const": false,
+              "oyatie.data_class": "INTERNAL_ONLY"
+            }
+          },
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "downstream_authority": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "source",
+            "credential_mode",
+            "scope",
+            "runtime_dependency_forbidden"
+          ],
+          "properties": {
+            "source": {
+              "type": "string",
+              "const": "secret_authority",
+              "oyatie.data_class": "INTERNAL_ONLY"
+            },
+            "credential_mode": {
+              "type": "string",
+              "const": "short_lived_one_time_revocable",
+              "oyatie.data_class": "INTERNAL_ONLY"
+            },
+            "scope": {
+              "type": "string",
+              "const": "approved_cell_bootstrap_or_mesh_enrollment",
+              "oyatie.data_class": "INTERNAL_ONLY"
+            },
+            "runtime_dependency_forbidden": {
+              "type": "boolean",
+              "const": true,
+              "oyatie.data_class": "INTERNAL_ONLY"
+            }
+          },
+          "oyatie.data_class": "INTERNAL_ONLY"
+        }
+      }
+    },
+    "authorizationContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "decision_source",
+        "decision_receipt_required",
+        "principal_reference",
+        "purpose",
+        "credential_source",
+        "credential_value_storage",
+        "maximum_ttl_seconds",
+        "one_time",
+        "revocable",
+        "fail_closed"
+      ],
+      "properties": {
+        "decision_source": {
+          "type": "string",
+          "const": "owned_policy_decision_point",
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "decision_receipt_required": {
+          "type": "boolean",
+          "const": true,
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "principal_reference": {
+          "type": "string",
+          "const": "opaque_subject_reference",
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "purpose": {
+          "type": "string",
+          "const": "genesis_reconcile_or_cell_enrollment",
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "credential_source": {
+          "type": "string",
+          "const": "secret_authority",
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "credential_value_storage": {
+          "type": "string",
+          "const": "handle_only",
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "maximum_ttl_seconds": {
+          "type": "integer",
+          "const": 600,
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "one_time": {
+          "type": "boolean",
+          "const": true,
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "revocable": {
+          "type": "boolean",
+          "const": true,
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "fail_closed": {
+          "type": "boolean",
+          "const": true,
+          "oyatie.data_class": "INTERNAL_ONLY"
+        }
+      }
+    },
+    "rootTrustBoundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "external_kms_role",
+        "secret_authority_role",
+        "external_kms_forbidden_secret_classes",
+        "recovery_custody",
+        "root_key_management_separation"
+      ],
+      "properties": {
+        "external_kms_role": {
+          "type": "string",
+          "const": "auto_unseal_only",
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "secret_authority_role": {
+          "type": "string",
+          "const": "operational_secret_and_key_authority",
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "external_kms_forbidden_secret_classes": {
+          "type": "array",
+          "const": [
+            "node_cluster_secrets",
+            "bootstrap_pki",
+            "source_control_credentials",
+            "provider_credentials",
+            "cell_bootstrap_tokens",
+            "mesh_credentials",
+            "workload_signing_keys"
+          ],
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "recovery_custody": {
+          "type": "string",
+          "const": "independent_external_quorum",
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "root_key_management_separation": {
+          "type": "boolean",
+          "const": true,
+          "oyatie.data_class": "INTERNAL_ONLY"
+        }
+      }
+    },
+    "imageSupplyContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "image_class_revision_required",
+        "manifest_digest_required",
+        "signature_required",
+        "sbom_required",
+        "provenance_required",
+        "extension_set_digest_required",
+        "qualified_architectures",
+        "unqualified_architectures",
+        "distribution_modes",
+        "resolve_before_mutation"
+      ],
+      "properties": {
+        "image_class_revision_required": {
+          "type": "boolean",
+          "const": true,
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "manifest_digest_required": {
+          "type": "boolean",
+          "const": true,
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "signature_required": {
+          "type": "boolean",
+          "const": true,
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "sbom_required": {
+          "type": "boolean",
+          "const": true,
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "provenance_required": {
+          "type": "boolean",
+          "const": true,
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "extension_set_digest_required": {
+          "type": "boolean",
+          "const": true,
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "qualified_architectures": {
+          "type": "array",
+          "const": [
+            "amd64",
+            "arm64"
+          ],
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "unqualified_architectures": {
+          "type": "array",
+          "const": [
+            "riscv64"
+          ],
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "distribution_modes": {
+          "type": "array",
+          "const": [
+            "content_addressed_regional_mirror",
+            "signed_airgap_bundle"
+          ],
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "resolve_before_mutation": {
+          "type": "boolean",
+          "const": true,
+          "oyatie.data_class": "INTERNAL_ONLY"
+        }
+      }
+    },
+    "bootstrapPhase": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "phase_id",
+        "depends_on",
+        "reconcile_mode",
+        "success",
+        "failure",
+        "rollback"
+      ],
+      "properties": {
+        "phase_id": {
+          "type": "string",
+          "enum": [
+            "validate_intent",
+            "resolve_placement",
+            "adopt_substrate",
+            "resolve_image",
+            "configure_node_os",
+            "bootstrap_cluster",
+            "establish_network",
+            "prepare_durable_storage",
+            "establish_secret_authority",
+            "enable_observability",
+            "enroll_cell",
+            "verify_static_stability",
+            "quiesce_genesis"
+          ],
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "depends_on": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]+$"
+          },
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "reconcile_mode": {
+          "type": "string",
+          "enum": [
+            "validate",
+            "resolve",
+            "adopt",
+            "ensure",
+            "verify",
+            "quiesce"
+          ],
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "success": {
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 400,
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "failure": {
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 400,
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "rollback": {
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 500,
+          "oyatie.data_class": "INTERNAL_ONLY"
+        }
+      }
+    },
+    "rule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "rule_id",
+        "achieves",
+        "origin",
+        "rule",
+        "ensure",
+        "overturn_when"
+      ],
+      "properties": {
+        "rule_id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]+$",
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "achieves": {
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 400,
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "origin": {
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 400,
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "rule": {
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 600,
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "ensure": {
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 500,
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "overturn_when": {
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 500,
+          "oyatie.data_class": "INTERNAL_ONLY"
+        }
+      }
+    },
+    "prerequisite": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "required_evidence",
+        "on_absence"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9.-]+$",
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "required_evidence": {
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 500,
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "on_absence": {
+          "type": "string",
+          "enum": [
+            "stop",
+            "degrade_read_only",
+            "human_approval"
+          ],
+          "oyatie.data_class": "INTERNAL_ONLY"
+        }
+      }
+    },
+    "recoveryMode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode",
+        "when",
+        "allowed",
+        "forbidden",
+        "success"
+      ],
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": [
+            "revalidate",
+            "repair_in_place",
+            "restore_state",
+            "reconstitute_software"
+          ],
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "when": {
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 400,
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "allowed": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 5,
+            "maxLength": 300
+          },
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "forbidden": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 5,
+            "maxLength": 300
+          },
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "success": {
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 500,
+          "oyatie.data_class": "INTERNAL_ONLY"
+        }
+      }
+    },
+    "workflowStep": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sequence",
+        "phase_id",
+        "action_class",
+        "approval_gate",
+        "receipt_required"
+      ],
+      "properties": {
+        "sequence": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 13,
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "phase_id": {
+          "type": "string",
+          "enum": [
+            "validate_intent",
+            "resolve_placement",
+            "adopt_substrate",
+            "resolve_image",
+            "configure_node_os",
+            "bootstrap_cluster",
+            "establish_network",
+            "prepare_durable_storage",
+            "establish_secret_authority",
+            "enable_observability",
+            "enroll_cell",
+            "verify_static_stability",
+            "quiesce_genesis"
+          ],
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "action_class": {
+          "type": "string",
+          "enum": [
+            "read_only",
+            "controlled_mutation",
+            "verification",
+            "quiesce"
+          ],
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "approval_gate": {
+          "type": "string",
+          "enum": [
+            "none",
+            "plan_digest",
+            "custody_ceremony",
+            "outage_window"
+          ],
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "receipt_required": {
+          "type": "boolean",
+          "const": true,
+          "oyatie.data_class": "INTERNAL_ONLY"
+        }
+      }
+    },
+    "verificationCheck": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "check_id",
+        "source",
+        "success",
+        "failure",
+        "slo_objective"
+      ],
+      "properties": {
+        "check_id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9.-]+$",
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "source": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 160,
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "success": {
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 500,
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "failure": {
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 500,
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "slo_objective": {
+          "$ref": "#/$defs/sloObjective",
+          "oyatie.data_class": "INTERNAL_ONLY"
+        }
+      }
+    },
+    "sloObjective": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "metric",
+        "comparator",
+        "target",
+        "unit",
+        "window_seconds"
+      ],
+      "properties": {
+        "metric": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_.-]+$",
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "comparator": {
+          "type": "string",
+          "enum": [
+            "eq",
+            "gte",
+            "lte"
+          ],
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "target": {
+          "type": "number",
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "unit": {
+          "type": "string",
+          "enum": [
+            "boolean",
+            "count",
+            "ratio",
+            "seconds",
+            "bytes"
+          ],
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "window_seconds": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 604800,
+          "oyatie.data_class": "INTERNAL_ONLY"
+        }
+      }
+    },
+    "faultInjection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "fault_id",
+        "injection",
+        "expected_behavior",
+        "recovery",
+        "safety_boundary"
+      ],
+      "properties": {
+        "fault_id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]+$",
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "injection": {
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 400,
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "expected_behavior": {
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 500,
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "recovery": {
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 500,
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "safety_boundary": {
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 500,
+          "oyatie.data_class": "INTERNAL_ONLY"
+        }
+      }
+    },
+    "completion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "success",
+        "failure",
+        "nonclaims"
+      ],
+      "properties": {
+        "success": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 500
+          },
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "failure": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 500
+          },
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "nonclaims": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 500
+          },
+          "oyatie.data_class": "INTERNAL_ONLY"
+        }
+      }
+    },
+    "failureMode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "detection",
+        "containment",
+        "recovery"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]+$",
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "detection": {
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 500,
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "containment": {
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 500,
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "recovery": {
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 600,
+          "oyatie.data_class": "INTERNAL_ONLY"
+        }
+      }
+    },
+    "references": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "owning_bead",
+        "intent_schema_ref",
+        "receipt_schema_ref",
+        "accepted_authority_refs",
+        "non_authoritative_design_refs"
+      ],
+      "properties": {
+        "owning_bead": {
+          "type": "string",
+          "pattern": "^oyatie-[a-z0-9]+(\\.[0-9]+)+$",
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "intent_schema_ref": {
+          "type": "string",
+          "const": "../contracts/bootstrap-intent.schema.json",
+          "oyatie.data_class": "PUBLIC"
+        },
+        "receipt_schema_ref": {
+          "type": "string",
+          "const": "../contracts/genesis-seed-state-receipt.schema.json",
+          "oyatie.data_class": "PUBLIC"
+        },
+        "accepted_authority_refs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 16,
+          "items": {
+            "type": "string",
+            "pattern": "^/"
+          },
+          "oyatie.data_class": "PUBLIC"
+        },
+        "non_authoritative_design_refs": {
+          "type": "array",
+          "maxItems": 16,
+          "items": {
+            "type": "string",
+            "pattern": "^/"
+          },
+          "oyatie.data_class": "PUBLIC"
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "execution_model": {
+            "properties": {
+              "implementation_state": {
+                "const": "not_implemented",
+                "oyatie.data_class": "INTERNAL_ONLY"
+              }
+            },
+            "required": [
+              "implementation_state"
+            ],
+            "oyatie.data_class": "INTERNAL_ONLY"
+          }
+        },
+        "required": [
+          "execution_model"
+        ]
+      },
+      "then": {
+        "properties": {
+          "status": {
+            "const": "specified_not_implemented",
+            "oyatie.data_class": "PUBLIC"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "qualified",
+            "oyatie.data_class": "PUBLIC"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "execution_model": {
+            "properties": {
+              "implementation_state": {
+                "const": "qualified",
+                "oyatie.data_class": "INTERNAL_ONLY"
+              }
+            },
+            "required": [
+              "implementation_state"
+            ],
+            "oyatie.data_class": "INTERNAL_ONLY"
+          }
+        }
+      }
+    }
+  ]
+}
