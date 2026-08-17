@@ -1,0 +1,106 @@
+rust_library(
+    name = "ci-dep-freshness",
+    srcs = glob(["src/**/*.rs", "**/*.json", "**/*.toml"]),
+    crate = "ci_dep_freshness",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        
+        "third-party//:serde",
+        "third-party//:serde_json",
+        "third-party//:sha2",
+        "third-party//:toml",
+    ],
+)
+
+rust_binary(
+    name = "oya-ci-dep-freshness-report",
+    srcs = glob(["src/**/*.rs", "**/*.json", "**/*.toml"]),
+    crate_root = "src/main.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-dep-freshness",
+        
+        "third-party//:serde",
+        "third-party//:serde_json",
+        "third-party//:sha2",
+        "third-party//:toml",
+    ],
+)
+
+rust_test(
+    name = "ci-dep-freshness-unittest",
+    srcs = glob(["src/**/*.rs", "**/*.json", "**/*.toml"]),
+    crate = "ci_dep_freshness",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        
+        "third-party//:serde",
+        "third-party//:serde_json",
+        "third-party//:sha2",
+        "third-party//:toml",
+    ],
+)
+
+rust_test(
+    name = "ci-dep-freshness-live-report",
+    srcs = glob(["tests/**/*.rs", "mirror/**/*.json"]),
+    crate = "ci_dep_freshness_live_report",
+    crate_root = "tests/live_report.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-dep-freshness",
+        
+        "third-party//:serde",
+        "third-party//:serde_json",
+        "third-party//:sha2",
+        "third-party//:toml",
+    ],
+)
+
+rust_test(
+    name = "ci-dep-freshness-gate",
+    srcs = glob(["tests/**/*.rs", "**/*.json"]),
+    crate = "ci_dep_freshness_live",
+    crate_root = "tests/live_report.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-dep-freshness",
+        
+        "third-party//:serde",
+        "third-party//:serde_json",
+        "third-party//:sha2",
+        "third-party//:toml",
+    
+    ],
+)
+
+rust_binary(
+    name = "dep-freshness-producer",
+    srcs = glob(["src/**/*.rs"]),
+    crate_root = "src/bin/dep-freshness-producer.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-dep-freshness",
+        "third-party//:serde",
+        "third-party//:serde_json",
+        "third-party//:sha2",
+        "third-party//:toml",
+    ],
+)
+
+rust_test(
+    name = "ci-dep-freshness-kernel-corpus",
+    srcs = glob(["tests/**/*.rs", "tests/**/*.ndjson", "mirror/**/*.json"]),
+    crate = "ci_dep_freshness_kernel_corpus",
+    crate_root = "tests/live_corpus.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-dep-freshness",
+        "third-party//:serde",
+        "third-party//:serde_json",
+        "third-party//:sha2",
+        "third-party//:toml",
+    ],
+)
