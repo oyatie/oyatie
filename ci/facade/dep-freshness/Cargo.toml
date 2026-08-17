@@ -22,7 +22,7 @@ name = "oya-ci-dep-freshness-report"
 path = "src/main.rs"
 
 [dependencies]
-oya-dep-freshness-kernel = { path = "../../../libs/oya-dep-freshness-kernel" }
+oya-dep-freshness-kernel = { path = "../../../build/dep-freshness/core/oya-dep-freshness-kernel" }
 serde_json = { workspace = true }
 toml = { workspace = true }
 
