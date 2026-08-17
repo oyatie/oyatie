@@ -11,7 +11,7 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
 use std::fs;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use ci_affected_target_set::anti_drift_drift_grep::{
     AntiDriftDriftGrepPolicy, CODE_PROSE_FREEZE_PATH_TABLE, CODE_PROSE_ROOT_ENUMERATION, GATE_ID,
@@ -38,7 +38,7 @@ fn repo_root() -> PathBuf {
     panic!("failed to locate repo root (dir holding {POLICY_PATH})");
 }
 
-fn load_policy(root: &PathBuf) -> AntiDriftDriftGrepPolicy {
+fn load_policy(root: &Path) -> AntiDriftDriftGrepPolicy {
     let raw =
         fs::read_to_string(root.join(POLICY_PATH)).expect("read anti-drift-drift-grep policy");
     let doc: Value = serde_json::from_str(&raw).expect("policy JSON");

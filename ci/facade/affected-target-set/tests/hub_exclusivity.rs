@@ -11,7 +11,7 @@
 
 use std::collections::BTreeSet;
 use std::fs;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use ci_affected_target_set::hub_exclusivity::{
     CODE_MULTI_OWN_HUB, GATE_ID, HUBS_PATHS_POINTER, HubAuthority, HubExclusivityPolicy,
@@ -36,7 +36,7 @@ fn repo_root() -> PathBuf {
     panic!("failed to locate repo root (dir holding {POLICY_PATH})");
 }
 
-fn load_policy(root: &PathBuf) -> HubExclusivityPolicy {
+fn load_policy(root: &Path) -> HubExclusivityPolicy {
     let raw = fs::read_to_string(root.join(POLICY_PATH)).expect("read hub-exclusivity policy");
     let doc: Value = serde_json::from_str(&raw).expect("policy JSON");
     HubExclusivityPolicy::from_json(&doc)
