@@ -10,6 +10,9 @@ use futures_util::StreamExt as _;
 use intelligence_gemini_adapter::{GeminiAdapterError, GeminiApiKeyAdapter, GeminiProxyRequest};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
+type ProviderStream = Pin<Box<dyn Stream<Item = Result<Bytes, reqwest::Error>> + Send + 'static>>;
+type ProviderStreamResponse = (u16, BTreeMap<String, String>, ProviderStream);
+
 async fn one_shot_http_server(response: &'static str) -> (String, tokio::task::JoinHandle<String>) {
     let listener = tokio::net::TcpListener::bind("127.0.0.1:0")
         .await
@@ -104,11 +107,7 @@ async fn gemini_stream_generate_content_uses_alt_sse_and_keeps_raw_stream_bytes(
     .await;
     let adapter = GeminiApiKeyAdapter::with_base_url(Arc::new(reqwest::Client::new()), base_url);
 
-    let (status, _headers, stream): (
-        u16,
-        BTreeMap<String, String>,
-        Pin<Box<dyn Stream<Item = Result<Bytes, reqwest::Error>> + Send + 'static>>,
-    ) = adapter
+    let (status, _headers, stream): ProviderStreamResponse = adapter
         .proxy_stream_generate_content(
             "provider-api-key",
             "gemini-2.5-flash",
