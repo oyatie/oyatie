@@ -11,9 +11,9 @@ doc_status: published
 ---
 
 1. ☐ **Workspace clean** — no untracked files surprise; `git status` matches expectations.
-2. ☐ **Affected-set tested** — relevant Buck2 build/test targets pass locally where feasible; the PR must still wait for `oya-ci-required`.
-3. ☐ **Format clean** — formatter evidence captured through the Buck2/cloud-ci lane or an equivalent project-approved local target.
-4. ☐ **Lint clean** — lint evidence captured through the Buck2/cloud-ci lane or an equivalent project-approved local target.
+2. ☐ **Local hermeticity checked when relevant** — Buck2 targets pass locally where feasible; the PR must still wait for `oya-ci-required`.
+3. ☐ **Format clean** — `cargo fmt --all --check` passes.
+4. ☐ **Lint clean** — `cargo clippy --workspace --all-targets -- -D warnings` passes.
 5. ☐ **Architecture boundaries** — cloud-ci/oya-ci governance gate evidence is present in `oya-ci-required`; local dev-cli output is not accepted as authority.
 6. ☐ **License gate** — `cargo deny check` passes; no new dependency without ledger entry.
 7. ☐ **Schema-class annotations** — every new struct field in a kernel crate has a `data_class` per [PRIVACY-PROGRAM §2.2.1](../PRIVACY-PROGRAM.md).
@@ -22,7 +22,7 @@ doc_status: published
 10. ☐ **Catalog record up-to-date** — if a crate added/role-changed, `registry/catalog/<crate>.yaml` exists + matches `[package] name`.
 11. ☐ **Capability record up-to-date** — if a governed capability added/changed, `registry/capability-templates/<id>.yaml` updated; eval-set passes.
 12. ☐ **Audit-chain emission** — if the change touches a regulated capability, emission is wired (per ADR-0003).
-13. ☐ **PR body shape ready** — 5 H2 sections per CLAUDE.md (`## Issue / Summary / Verification / Traceability / Evidence`).
+13. ☐ **PR body shape ready** — four H2 sections per CLAUDE.md (`## Issue / Summary / Verification / Code Review`).
 14. ☐ **Branch protection** — pushing to a feature branch (never directly to `main` or `release/*`).
 15. ☐ **Sensitive files** — no `.env`, no API key, no PHI/PII/PCI fixture; `git diff --name-only` reviewed.
 16. ☐ **Cohesion-fitness preview** — if change touches a DESIGN §10 cross-axis contract row, the cross-axis label is set + reviewers from each affected axis pinged.

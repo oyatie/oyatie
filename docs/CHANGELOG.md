@@ -6,6 +6,17 @@ doc_status: published
 
 # Changelog
 
+## 2026-08-17 — ADR-0716 PR-traceability retirement completed
+
+- Removed the stale active `traceability-validator` row, its exact CI-lane
+  mirror, and the phantom run-all command binding left after ADR-0716 deleted
+  the validator and dispatcher.
+- Aligned current contributor, PR-template, checklist, decision-rights, and
+  lane-catalog surfaces with the four-section PR body, independent reviewer
+  approval, and protected `oya-ci-required` context.
+- Added a fail-closed registration test that rejects active, planned, or
+  catalog-only revival of the retired local validator.
+
 ## 2026-08-17 — Hook mirror and review-admission boundary corrected
 
 - Removed the retired Cargo-blocking hook from the active-hook mirror and aligned the

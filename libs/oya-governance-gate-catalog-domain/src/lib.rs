@@ -64,7 +64,6 @@ pub const AGGREGATED_VALIDATE_LANES: &[&str] = &[
     "no-grouping",
     "api-semver",
     "supply-chain",
-    "pr-traceability",
     "cargo-prefix",
     "pre-push-contract",
     "freshness",
@@ -672,7 +671,6 @@ pub const LANE_INPUT_GLOBS: &[(&str, LaneInputs)] = &[
     ("retired-vocabulary", LaneInputs::Global),
     ("placeholder-debt", LaneInputs::Global),
     // ── PR / changeset / release ─────────────────────────────────────────────
-    ("pr-traceability", LaneInputs::Global),
     (
         "changeset-state-monotonicity",
         LaneInputs::Globs(&["registry/vcs/changeset-event-log.json"]),
