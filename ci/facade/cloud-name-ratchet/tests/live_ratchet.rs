@@ -1,9 +1,9 @@
 //! Three shapes, mirroring `ci/facade/crate-catalog-coverage`:
-//!   1. GREEN     — today's corpus matches the frozen baseline.
-//!   2. RED FIXTURE — a synthetic new `cloud-` name MUST fail. A gate only ever observed passing
-//!                    is not evidence of anything.
-//!   3. FIDELITY  — every frozen entry is still genuinely present, so the baseline is neither
-//!                  stale nor over-broad.
+//! 1. GREEN — today's corpus matches the frozen baseline.
+//! 2. RED FIXTURE — a synthetic new `cloud-` name MUST fail. A gate only ever observed passing is
+//!    not evidence of anything.
+//! 3. FIDELITY — every frozen entry is still genuinely present, so the baseline is neither stale
+//!    nor over-broad.
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 
 use std::collections::BTreeSet;
