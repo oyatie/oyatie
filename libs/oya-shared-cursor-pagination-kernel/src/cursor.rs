@@ -12,8 +12,7 @@ const ALPHABET: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwx
 #[must_use]
 pub fn encode(bytes: &[u8]) -> String {
     let mut out = Vec::with_capacity((bytes.len() * 4).div_ceil(3));
-    let mut iter = bytes.chunks(3);
-    while let Some(chunk) = iter.next() {
+    for chunk in bytes.chunks(3) {
         let b0 = chunk[0] as u32;
         let b1 = if chunk.len() > 1 { chunk[1] as u32 } else { 0 };
         let b2 = if chunk.len() > 2 { chunk[2] as u32 } else { 0 };
