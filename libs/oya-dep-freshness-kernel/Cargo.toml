@@ -1,0 +1,30 @@
+[package]
+name = "oya-dep-freshness-kernel"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[package.metadata.oya]
+bounded_context = "dep-freshness"
+kind = "shared"
+layer = "kernel"
+purpose = "Pure I/O-free distiller for crates.io sparse-index records into normalized CrateRelease facts, plus the two independent freshness signals (BEHIND / STALE) computed off them and a deterministic content hash over the distilled set. Owned, hermetic core of the ADR-0535 dependency-freshness pipeline: the network-bearing producer feeds raw index text in, the hermetic gate consumes the vendored snapshot out. Exists because RustSec unmaintained coverage is voluntary and lagging — it has never filed for serde_yaml, whose newest release is 0.9.34+deprecated from 2024-03-25. Reuses serde/serde_json/sha2 only, adding ZERO new crates to Cargo.lock."
+
+[lib]
+name = "oya_dep_freshness_kernel"
+path = "src/lib.rs"
+doctest = false
+
+[[bin]]
+name = "oya-dep-freshness-producer"
+path = "src/main.rs"
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+sha2 = { workspace = true }
+
+[lints]
+workspace = true

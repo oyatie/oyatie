@@ -1,0 +1,38 @@
+rust_library(
+    name = "ci-dep-freshness",
+    srcs = glob(["src/**/*.rs", "**/*.json", "**/*.toml"]),
+    crate = "ci_dep_freshness",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-dep-freshness-kernel:oya-dep-freshness-kernel",
+        "third-party//:serde_json",
+        "third-party//:toml",
+    ],
+)
+
+rust_binary(
+    name = "oya-ci-dep-freshness-report",
+    srcs = glob(["src/**/*.rs", "**/*.json", "**/*.toml"]),
+    crate_root = "src/main.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-dep-freshness",
+        "//libs/oya-dep-freshness-kernel:oya-dep-freshness-kernel",
+        "third-party//:serde_json",
+        "third-party//:toml",
+    ],
+)
+
+rust_test(
+    name = "ci-dep-freshness-unittest",
+    srcs = glob(["src/**/*.rs", "**/*.json", "**/*.toml"]),
+    crate = "ci_dep_freshness",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-dep-freshness-kernel:oya-dep-freshness-kernel",
+        "third-party//:serde_json",
+        "third-party//:toml",
+    ],
+)

@@ -1,0 +1,52 @@
+rust_library(
+    name = "oya-dep-freshness-kernel",
+    srcs = glob(["src/**/*.rs", "**/*.json", "**/*.toml", "**/*.ndjson", "**/*.txt"]),
+    crate = "oya_dep_freshness_kernel",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde",
+        "third-party//:serde_json",
+        "third-party//:sha2",
+    ],
+)
+
+rust_binary(
+    name = "oya-dep-freshness-producer",
+    srcs = glob(["src/**/*.rs", "**/*.json", "**/*.toml", "**/*.ndjson", "**/*.txt"]),
+    crate_root = "src/main.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-dep-freshness-kernel",
+        "third-party//:serde",
+        "third-party//:serde_json",
+        "third-party//:sha2",
+    ],
+)
+
+rust_test(
+    name = "oya-dep-freshness-kernel-unittest",
+    srcs = glob(["src/**/*.rs", "**/*.json", "**/*.toml", "**/*.ndjson", "**/*.txt"]),
+    crate = "oya_dep_freshness_kernel",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde",
+        "third-party//:serde_json",
+        "third-party//:sha2",
+    ],
+)
+
+rust_test(
+    name = "oya-dep-freshness-kernel-live-corpus",
+    srcs = glob(["tests/**/*.rs", "tests/**/*.ndjson"]),
+    crate = "oya_dep_freshness_kernel_live_corpus",
+    crate_root = "tests/live_corpus.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-dep-freshness-kernel",
+        "third-party//:serde",
+        "third-party//:serde_json",
+        "third-party//:sha2",
+    ],
+)
