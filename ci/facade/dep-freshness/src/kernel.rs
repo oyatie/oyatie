@@ -1,26 +1,7 @@
-//! Dependency freshness kernel.
+//! Pure, I/O-free distiller for crates.io sparse-index records, and the two freshness signals.
 //!
-//! Pure, I/O-free distiller for crates.io sparse-index records into normalized [`CrateRelease`]
-//! facts, plus the two independent freshness signals computed off them. The network-bearing
-//! producer feeds raw index text in; the hermetic gate consumes the vendored snapshot out. Same
-//! shape as `oya-advisory-mirror-kernel`, and for the same reason: the gate must stay
-//! buck2-cacheable, deterministic, and network-free at gate time.
-//!
-//! WHY THIS EXISTS (oyatie-gr1n). `deny.toml` already sets `advisories.unmaintained =
-//! "workspace"` and the advisory mirror models `informational: unmaintained` correctly — but
-//! RustSec has never filed an unmaintained advisory for `serde_yaml`, and zero workspace-declared
-//! dependencies carry one. That gate is not broken; it is blind by construction, because RustSec
-//! coverage is voluntary and lagging. Time-since-last-release is a LEADING indicator that needs no
-//! third party to file anything: `serde_yaml`'s newest release is `0.9.34+deprecated`, published
-//! 2024-03-25, and nothing in the pipeline noticed.
-//!
-//! TWO SIGNALS, NEVER MERGED. [`Signal::Behind`] (a newer stable exists) and [`Signal::Stale`] (no
-//! release within the window) are different failures with different remedies, so they carry
-//! distinct codes and must not share a threshold or a waiver. A crate can be perfectly current and
-//! still abandoned — `serde_yaml` is exactly that: it is NOT behind, because `0.9.34+deprecated`
-//! IS the latest version. Any tool that only answers "is a newer version available?" reports it up
-//! to date forever, which is precisely why Dependabot and Renovate would not have caught this.
-#![forbid(unsafe_code)]
+//! Moved here from a separate `ci/core` crate: a facade must not depend directly on its own
+//! capability's core, and every other gate in `ci/facade` is a single crate.
 
 use std::collections::BTreeMap;
 

@@ -17,7 +17,15 @@
 
 use std::collections::BTreeMap;
 
-use oya_dep_freshness_kernel::{
+/// The pure distiller and signal kernel.
+///
+/// Kept INSIDE this crate rather than as a separate `ci/core/*` crate. Every other gate in
+/// `ci/facade` is a single crate, and a facade depending directly on its own capability's core
+/// bypasses ports — which the `facade_core_direct_dep` rule correctly rejected. One crate is also
+/// simply less to register: it removes a catalog row, a BUCK file, an OWNERS file and a lock entry.
+pub mod kernel;
+
+use kernel::{
     CrateRelease, DeclaredDependency, FRESHNESS_SCHEMA, Waivers, canonical_hash, evaluate,
 };
 
@@ -213,7 +221,7 @@ pub fn stale_entries(
     )
     .into_iter()
     .filter_map(|finding| match finding.signal {
-        oya_dep_freshness_kernel::Signal::Stale {
+        kernel::Signal::Stale {
             last_release_date,
             days_since_release,
         } => {

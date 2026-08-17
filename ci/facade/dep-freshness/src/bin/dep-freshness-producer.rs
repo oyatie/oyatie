@@ -1,4 +1,4 @@
-//! `oya-dep-freshness-producer` (data-gen, OPERATIONAL — not the hermetic gate).
+//! `dep-freshness-producer` (data-gen, OPERATIONAL — not the hermetic gate).
 //!
 //! Reads a local checkout of crates.io sparse-index files and distills them into the vendored
 //! snapshot the hermetic freshness gate consumes:
@@ -18,14 +18,14 @@
 //! this format; convert them before use rather than pointing this at the cache.
 //!
 //! Usage:
-//!   oya-dep-freshness-producer --index-dir <dir> --snapshot-date <iso-date> --out-dir <dir>
+//!   dep-freshness-producer --index-dir <dir> --snapshot-date <iso-date> --out-dir <dir>
 #![forbid(unsafe_code)]
 
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 use std::{fs, io};
 
-use oya_dep_freshness_kernel::{FRESHNESS_SCHEMA, canonical_hash, distill};
+use ci_dep_freshness::kernel::{FRESHNESS_SCHEMA, canonical_hash, distill};
 
 struct Args {
     index_dir: PathBuf,
@@ -34,7 +34,7 @@ struct Args {
 }
 
 fn usage() -> String {
-    "usage: oya-dep-freshness-producer --index-dir <dir> --snapshot-date <YYYY-MM-DD> \
+    "usage: dep-freshness-producer --index-dir <dir> --snapshot-date <YYYY-MM-DD> \
      --out-dir <dir>"
         .to_string()
 }
@@ -77,7 +77,7 @@ fn parse_args(args: Vec<String>) -> Result<Option<Args>, String> {
     let snapshot_date = snapshot_date.ok_or("missing --snapshot-date")?;
     // Validated here rather than trusted: a malformed date would silently make every staleness
     // computation in the gate return None, which reads as "nothing is stale".
-    if oya_dep_freshness_kernel::days_between(&snapshot_date, &snapshot_date).is_none() {
+    if ci_dep_freshness::kernel::days_between(&snapshot_date, &snapshot_date).is_none() {
         return Err(format!(
             "--snapshot-date {snapshot_date} is not a YYYY-MM-DD calendar date"
         ));

@@ -92,7 +92,7 @@ fn every_mirror_entry_has_a_usable_release_date() {
     // would read as "not stale". Assert every committed date is well formed.
     for release in &releases {
         assert!(
-            oya_dep_freshness_kernel::days_between(&release.last_release_date, "2026-08-17")
+            ci_dep_freshness::kernel::days_between(&release.last_release_date, "2026-08-17")
                 .is_some(),
             "{} has an unparseable last_release_date {:?}",
             release.name,

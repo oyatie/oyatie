@@ -1,6 +1,6 @@
 context: shared
 role: kernel
-capability: cloud-ci-dep-freshness
+capability: ci-dep-freshness
 plane: control
 slo: preview-control-plane
 data_classes_owned: [INTERNAL_ONLY]

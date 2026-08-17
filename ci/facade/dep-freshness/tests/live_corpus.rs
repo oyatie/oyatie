@@ -12,7 +12,7 @@
 
 use std::collections::BTreeMap;
 
-use oya_dep_freshness_kernel::{DeclaredDependency, Waivers, distill, evaluate};
+use ci_dep_freshness::kernel::{DeclaredDependency, Waivers, distill, evaluate};
 
 /// The day the incident was reported, so this test never depends on a clock.
 const AS_OF: &str = "2026-08-17";
