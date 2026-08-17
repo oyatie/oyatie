@@ -155,7 +155,7 @@ fn root_workspace_excludes(manifest_text: &str) -> Vec<String> {
         if !in_exclude {
             if line.trim_start().starts_with("exclude") && line.contains('[') {
                 in_exclude = true;
-                if let Some(after) = line.splitn(2, '[').nth(1) {
+                if let Some((_, after)) = line.split_once('[') {
                     body.push_str(after);
                     body.push('\n');
                     if after.contains(']') {
@@ -173,7 +173,8 @@ fn root_workspace_excludes(manifest_text: &str) -> Vec<String> {
     }
     body.split('"')
         .enumerate()
-        .filter_map(|(i, seg)| (i % 2 == 1).then(|| seg.to_owned()))
+        .filter(|(i, _)| i % 2 == 1)
+        .map(|(_, seg)| seg.to_owned())
         .collect()
 }
 
