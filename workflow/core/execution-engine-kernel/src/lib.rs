@@ -404,23 +404,25 @@ pub struct StepObservationEnvelope {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct StepObservationEnvelopeInput<'a> {
-    pub resource_id: &'a str,                // data_class: INTERNAL_ONLY
-    pub tenant_id: &'a str,                  // data_class: INTERNAL_ONLY
-    pub cell_id: &'a str,                    // data_class: INTERNAL_ONLY
-    pub region: &'a str,                     // data_class: INTERNAL_ONLY
-    pub data_class: &'a str,                 // data_class: INTERNAL_ONLY
-    pub policy_domain: &'a str,              // data_class: INTERNAL_ONLY
-    pub owner_ref: &'a str,                  // data_class: INTERNAL_ONLY
-    pub generation: u64,                     // data_class: INTERNAL_ONLY
-    pub observed_generation: u64,            // data_class: INTERNAL_ONLY
-    pub status_condition_refs: Vec<String>,  // data_class: INTERNAL_ONLY
-    pub audit_chain_ref: &'a str,             // data_class: INTERNAL_ONLY
-    pub created_at_epoch_seconds: u64,        // data_class: INTERNAL_ONLY
-    pub updated_at_epoch_seconds: u64,        // data_class: INTERNAL_ONLY
+    pub resource_id: &'a str,               // data_class: INTERNAL_ONLY
+    pub tenant_id: &'a str,                 // data_class: INTERNAL_ONLY
+    pub cell_id: &'a str,                   // data_class: INTERNAL_ONLY
+    pub region: &'a str,                    // data_class: INTERNAL_ONLY
+    pub data_class: &'a str,                // data_class: INTERNAL_ONLY
+    pub policy_domain: &'a str,             // data_class: INTERNAL_ONLY
+    pub owner_ref: &'a str,                 // data_class: INTERNAL_ONLY
+    pub generation: u64,                    // data_class: INTERNAL_ONLY
+    pub observed_generation: u64,           // data_class: INTERNAL_ONLY
+    pub status_condition_refs: Vec<String>, // data_class: INTERNAL_ONLY
+    pub audit_chain_ref: &'a str,           // data_class: INTERNAL_ONLY
+    pub created_at_epoch_seconds: u64,      // data_class: INTERNAL_ONLY
+    pub updated_at_epoch_seconds: u64,      // data_class: INTERNAL_ONLY
 }
 
 impl StepObservationEnvelope {
-    pub fn new(input: StepObservationEnvelopeInput<'_>) -> Result<Self, ExecutionEngineKernelError> {
+    pub fn new(
+        input: StepObservationEnvelopeInput<'_>,
+    ) -> Result<Self, ExecutionEngineKernelError> {
         let StepObservationEnvelopeInput {
             resource_id,
             tenant_id,
@@ -492,19 +494,19 @@ pub struct StepObservation {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct StepObservationInput<'a> {
-    pub envelope: StepObservationEnvelope,       // data_class: INTERNAL_ONLY
-    pub run_id: &'a str,                         // data_class: INTERNAL_ONLY
-    pub step_id: &'a str,                        // data_class: INTERNAL_ONLY
-    pub step_index: u32,                         // data_class: INTERNAL_ONLY
-    pub attempt: u32,                            // data_class: INTERNAL_ONLY
-    pub observed_at_epoch_seconds: u64,          // data_class: INTERNAL_ONLY
-    pub stale_after_epoch_seconds: u64,           // data_class: INTERNAL_ONLY
-    pub status: StepExecutionStatus,             // data_class: PUBLIC
-    pub kind: StepObservationKind,               // data_class: PUBLIC
-    pub severity: StepObservationSeverity,       // data_class: PUBLIC
-    pub condition_ref: &'a str,                  // data_class: INTERNAL_ONLY
-    pub adapter_status_ref: Option<&'a str>,      // data_class: INTERNAL_ONLY
-    pub evidence_refs: Vec<String>,              // data_class: INTERNAL_ONLY
+    pub envelope: StepObservationEnvelope, // data_class: INTERNAL_ONLY
+    pub run_id: &'a str,                   // data_class: INTERNAL_ONLY
+    pub step_id: &'a str,                  // data_class: INTERNAL_ONLY
+    pub step_index: u32,                   // data_class: INTERNAL_ONLY
+    pub attempt: u32,                      // data_class: INTERNAL_ONLY
+    pub observed_at_epoch_seconds: u64,    // data_class: INTERNAL_ONLY
+    pub stale_after_epoch_seconds: u64,    // data_class: INTERNAL_ONLY
+    pub status: StepExecutionStatus,       // data_class: PUBLIC
+    pub kind: StepObservationKind,         // data_class: PUBLIC
+    pub severity: StepObservationSeverity, // data_class: PUBLIC
+    pub condition_ref: &'a str,            // data_class: INTERNAL_ONLY
+    pub adapter_status_ref: Option<&'a str>, // data_class: INTERNAL_ONLY
+    pub evidence_refs: Vec<String>,        // data_class: INTERNAL_ONLY
 }
 
 impl StepObservation {

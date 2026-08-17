@@ -291,10 +291,10 @@ pub struct ReconcileCycleReport {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ReconcileCycleFailure {
-    pub planned_actions: usize,         // data_class: INTERNAL_ONLY
-    pub executed_actions: usize,        // data_class: INTERNAL_ONLY
+    pub planned_actions: usize,              // data_class: INTERNAL_ONLY
+    pub executed_actions: usize,             // data_class: INTERNAL_ONLY
     pub wide_event: Box<ReconcileWideEvent>, // data_class: INTERNAL_ONLY
-    pub error: AdapterError,            // data_class: INTERNAL_ONLY
+    pub error: AdapterError,                 // data_class: INTERNAL_ONLY
 }
 
 pub fn run_reconcile_cycle<P, A, C>(

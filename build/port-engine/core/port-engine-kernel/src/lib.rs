@@ -168,10 +168,8 @@ pub const FORBIDDEN_CORPUS_TOKENS: [&[u8]; 5] = [
 /// The second needle is the bare identifier, so it also catches the path-qualified call. Prose and
 /// longer identifiers are untouched by the boundary rule: `model`, `modular` and `include_str!`
 /// are all longer identifiers, and the last of them is what this scan is built on.
-pub const UNSCANNED_CODE_KEYWORDS: [&[u8]; 2] = [
-    &[109, 111, 100],
-    &[105, 110, 99, 108, 117, 100, 101],
-];
+pub const UNSCANNED_CODE_KEYWORDS: [&[u8]; 2] =
+    [&[109, 111, 100], &[105, 110, 99, 108, 117, 100, 101]];
 
 const fn lowercase_ascii(byte: u8) -> u8 {
     if byte.is_ascii_uppercase() {

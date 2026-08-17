@@ -876,10 +876,7 @@ impl<'t> Parser<'t> {
                             self.pos += 1;
                             // Anything between the iter ident and `}` (an `if` clause, a
                             // method call) makes the comprehension unresolvable.
-                            if matches!(
-                                self.peek().map(|t| &t.kind),
-                                Some(TokenKind::Punct('}'))
-                            ) {
+                            if matches!(self.peek().map(|t| &t.kind), Some(TokenKind::Punct('}'))) {
                                 Some(iter_name)
                             } else {
                                 self.consume_opaque_until_terminator()?;

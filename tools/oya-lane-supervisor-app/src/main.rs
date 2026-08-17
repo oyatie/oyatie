@@ -110,18 +110,16 @@ fn run() -> Result<ExitCode> {
             expected_soft,
             log,
             ledger,
-        } => dispatch(
-            DispatchCommand {
-                brief: &brief,
-                worktree: &worktree,
-                branch: &branch,
-                base: &base,
-                expected_hard: &expected_hard,
-                expected_soft: &expected_soft,
-                log: log.as_deref(),
-                ledger: &ledger,
-            },
-        ),
+        } => dispatch(DispatchCommand {
+            brief: &brief,
+            worktree: &worktree,
+            branch: &branch,
+            base: &base,
+            expected_hard: &expected_hard,
+            expected_soft: &expected_soft,
+            log: log.as_deref(),
+            ledger: &ledger,
+        }),
         Commands::Reap {
             ledger,
             stall_minutes,

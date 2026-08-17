@@ -1687,12 +1687,9 @@ pub fn select_partial_negative_baseline(
             && receipt.merge_base == validator_base_sha =>
         {
             let PartialNegativeReceipt {
-                observed_failures,
-                ..
+                observed_failures, ..
             } = *receipt;
-            PartialNegativeSelection::Negative(PartialNegativeFailures {
-                observed_failures,
-            })
+            PartialNegativeSelection::Negative(PartialNegativeFailures { observed_failures })
         }
         _ => PartialNegativeSelection::Cold,
     }

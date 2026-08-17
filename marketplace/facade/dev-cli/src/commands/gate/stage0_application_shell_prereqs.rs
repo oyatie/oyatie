@@ -89,10 +89,7 @@ pub(crate) fn validate_stage0_prereqs_gate(
     })
 }
 
-fn check_repo(
-    root: &Path,
-    metadata_json_override: Option<&str>,
-) -> RepoCheckResult {
+fn check_repo(root: &Path, metadata_json_override: Option<&str>) -> RepoCheckResult {
     let mut errors: Vec<String> = Vec::new();
     for rel_path in REQUIRED_PATHS {
         if !root.join(rel_path).exists() {

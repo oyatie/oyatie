@@ -898,43 +898,41 @@ fn classify_route_call(
     // verb) and whose arg2 is a path-shaped literal/const is an owned-kernel route with an unknown
     // method → fail-closed UNCLASSIFIED-METHOD (not dropped — a `const M = HttpMethod::Post` aliased
     // through a non-`HttpMethod`-typed const must never silently vanish).
-    if arg1_is_path_ident
-        && let Some(rest_m) = rest_masked
-    {
-            let (arg2_m, after2) = split_top_level_comma(rest_m);
-            let arg2_t = split_top_level_comma(args_text).1.unwrap_or("");
-            let (arg2_path_t, _) = split_top_level_comma(arg2_t);
-            let arg2_is_path = {
-                let a = arg2_m.trim();
-                a.starts_with('"')
-                    || raw_string_open(a.as_bytes(), 0).is_some()
-                    || (!a.is_empty() && a.chars().all(|c| is_ident_char(c) || c == ':'))
-            };
-            if after2.is_some() && arg2_is_path {
-                let (path, path_raw) = resolve_path_arg(arg2_m, arg2_path_t, str_consts);
-                let handler = after2.map(handler_ident_of).unwrap_or_default();
-                return Some(Route {
-                    path,
-                    path_raw,
-                    method: MethodClass::Unclassified(format!("method-ident:{arg1_trim}")),
-                    handler,
-                    surface_unclassified: false,
-                });
-            }
-            // Fail-CLOSED: 3-arg owned-kernel-shaped call where arg2 is NOT a path-shaped
-            // literal/ident (e.g. `route.path` — a field access containing `.`). We know there
-            // ARE 3 args (after2.is_some()) and arg1 is a bare ident, so this is structurally a
-            // `.route(method, <non-literal-path>, handler)` call the engine cannot fully classify.
-            // Return AC-UNCLASSIFIED-SURFACE rather than dropping (which would be fail-open).
-            if after2.is_some() {
-                return Some(Route {
-                    path: None,
-                    path_raw: format!("<unclassified-field-path:{}>", arg2_m.trim()),
-                    method: MethodClass::Unclassified(format!("method-ident:{arg1_trim}")),
-                    handler: after2.map(handler_ident_of).unwrap_or_default(),
-                    surface_unclassified: true,
-                });
-            }
+    if arg1_is_path_ident && let Some(rest_m) = rest_masked {
+        let (arg2_m, after2) = split_top_level_comma(rest_m);
+        let arg2_t = split_top_level_comma(args_text).1.unwrap_or("");
+        let (arg2_path_t, _) = split_top_level_comma(arg2_t);
+        let arg2_is_path = {
+            let a = arg2_m.trim();
+            a.starts_with('"')
+                || raw_string_open(a.as_bytes(), 0).is_some()
+                || (!a.is_empty() && a.chars().all(|c| is_ident_char(c) || c == ':'))
+        };
+        if after2.is_some() && arg2_is_path {
+            let (path, path_raw) = resolve_path_arg(arg2_m, arg2_path_t, str_consts);
+            let handler = after2.map(handler_ident_of).unwrap_or_default();
+            return Some(Route {
+                path,
+                path_raw,
+                method: MethodClass::Unclassified(format!("method-ident:{arg1_trim}")),
+                handler,
+                surface_unclassified: false,
+            });
+        }
+        // Fail-CLOSED: 3-arg owned-kernel-shaped call where arg2 is NOT a path-shaped
+        // literal/ident (e.g. `route.path` — a field access containing `.`). We know there
+        // ARE 3 args (after2.is_some()) and arg1 is a bare ident, so this is structurally a
+        // `.route(method, <non-literal-path>, handler)` call the engine cannot fully classify.
+        // Return AC-UNCLASSIFIED-SURFACE rather than dropping (which would be fail-open).
+        if after2.is_some() {
+            return Some(Route {
+                path: None,
+                path_raw: format!("<unclassified-field-path:{}>", arg2_m.trim()),
+                method: MethodClass::Unclassified(format!("method-ident:{arg1_trim}")),
+                handler: after2.map(handler_ident_of).unwrap_or_default(),
+                surface_unclassified: true,
+            });
+        }
     }
 
     // A literal/HttpMethod-shaped arg1 was absent AND arg2 is not a method-router ⇒ this `.route(` is
@@ -1028,9 +1026,7 @@ fn handler_ident_of(arg: &str) -> String {
         let before_ok = at == 0 || !is_ident_byte(trimmed.as_bytes()[at - 1]);
         let after_name = at + wrapper.len();
         let after = &trimmed[after_name..];
-        if before_ok
-            && let Some(open_rel) = after.find('(')
-        {
+        if before_ok && let Some(open_rel) = after.find('(') {
             let inner = &after[open_rel + 1..];
             let (first_arg, _) = split_top_level_comma(inner);
             let inner_ident = read_path_ident(first_arg);
@@ -1724,29 +1720,29 @@ fn has_guard_rec(
             && after_ok
             && let Some(body) = brace_body(text, after_name)
         {
-                // B3 FIX: the guard probe runs on a CODE-ONLY view of the body — comments and
-                // string/char literals elided — so a `// TODO: authorize()` comment or a
-                // `"authorize"` string literal can NEVER false-cover a handler that does no real
-                // authz. The guard ident must appear in genuine code.
-                let code = code_only(body);
-                // BLOCKER-5: whole-token + call-shape match so a body that only references
-                // `unauthorized_response()` does NOT satisfy the `authorize` guard ident (substring
-                // false-cover). A plain-ident guard must appear as a complete token followed by `(`.
-                if guard_idents
-                    .iter()
-                    .any(|g| body_invokes_guard(&code, g.as_str()))
-                {
-                    return true;
-                }
-                // No direct guard: follow up to one local delegate this body calls. Delegate calls
-                // are read from the same code-only view (a name in a comment/string is not a call).
-                if depth > 0 {
-                    for delegate in delegate_calls_in(&code, handler) {
-                        if has_guard_rec(text, &delegate, guard_idents, depth - 1, seen) {
-                            return true;
-                        }
+            // B3 FIX: the guard probe runs on a CODE-ONLY view of the body — comments and
+            // string/char literals elided — so a `// TODO: authorize()` comment or a
+            // `"authorize"` string literal can NEVER false-cover a handler that does no real
+            // authz. The guard ident must appear in genuine code.
+            let code = code_only(body);
+            // BLOCKER-5: whole-token + call-shape match so a body that only references
+            // `unauthorized_response()` does NOT satisfy the `authorize` guard ident (substring
+            // false-cover). A plain-ident guard must appear as a complete token followed by `(`.
+            if guard_idents
+                .iter()
+                .any(|g| body_invokes_guard(&code, g.as_str()))
+            {
+                return true;
+            }
+            // No direct guard: follow up to one local delegate this body calls. Delegate calls
+            // are read from the same code-only view (a name in a comment/string is not a call).
+            if depth > 0 {
+                for delegate in delegate_calls_in(&code, handler) {
+                    if has_guard_rec(text, &delegate, guard_idents, depth - 1, seen) {
+                        return true;
                     }
                 }
+            }
         }
         from = at + needle.len();
     }
@@ -1780,28 +1776,28 @@ fn handler_impl_has_guard_rec(
             && prefix.contains("Handler")
             && let Some(body) = brace_body(text, after_name)
         {
-                let code = code_only(body);
-                if guard_idents
-                    .iter()
-                    .any(|g| body_invokes_guard(&code, g.as_str()))
-                {
-                    return true;
-                }
-                if depth > 0 {
-                    for delegate in delegate_calls_in(&code, handler) {
-                        if has_guard_rec(text, &delegate, guard_idents, depth - 1, seen)
-                            || handler_impl_has_guard_rec(
-                                text,
-                                &delegate,
-                                guard_idents,
-                                depth - 1,
-                                seen,
-                            )
-                        {
-                            return true;
-                        }
+            let code = code_only(body);
+            if guard_idents
+                .iter()
+                .any(|g| body_invokes_guard(&code, g.as_str()))
+            {
+                return true;
+            }
+            if depth > 0 {
+                for delegate in delegate_calls_in(&code, handler) {
+                    if has_guard_rec(text, &delegate, guard_idents, depth - 1, seen)
+                        || handler_impl_has_guard_rec(
+                            text,
+                            &delegate,
+                            guard_idents,
+                            depth - 1,
+                            seen,
+                        )
+                    {
+                        return true;
                     }
                 }
+            }
         }
         from = at + needle.len();
     }

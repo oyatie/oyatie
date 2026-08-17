@@ -1105,7 +1105,11 @@ mod tests {
         records.push(proposed);
 
         let cited_as_path = cite("CLAUDE.md", &["ADR-0710"], &[], true);
-        let verdict = evaluate(&records, std::slice::from_ref(&cited_as_path), &permissive());
+        let verdict = evaluate(
+            &records,
+            std::slice::from_ref(&cited_as_path),
+            &permissive(),
+        );
         assert_eq!(verdict.count(CODE_REJECTED_AUTHORITY), 1);
         assert!(verdict.failed());
         assert_eq!(

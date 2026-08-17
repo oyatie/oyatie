@@ -1495,8 +1495,7 @@ fn replay_notifications(
 }
 
 fn recv_notification(rx: &NotificationReceiver) -> Result<Notification> {
-    rx
-        .lock()
+    rx.lock()
         .map_err(|_| CodexError::Protocol("app-server notification lock poisoned".to_string()))?
         .recv()
         .map_err(|_| CodexError::TransportClosed)?

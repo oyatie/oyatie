@@ -125,8 +125,7 @@ impl TreeEntry {
 }
 
 /// Streaming visitor for one bounded Git blob body.
-pub type BlobVisitor<'a> =
-    dyn FnMut(&str, u64, &mut dyn Read) -> Result<(), String> + 'a;
+pub type BlobVisitor<'a> = dyn FnMut(&str, u64, &mut dyn Read) -> Result<(), String> + 'a;
 
 pub(crate) trait RetirementObjectSource {
     fn resolve_commit(&self, revision: &str) -> Result<String, String>;
@@ -141,11 +140,7 @@ pub(crate) trait RetirementObjectSource {
     /// Sources with an efficient streaming object protocol should override this. The
     /// default keeps test doubles and non-Git sources correct while preserving the
     /// bounded-memory contract for callers.
-    fn visit_blobs(
-        &self,
-        blob_oids: &[String],
-        visit: &mut BlobVisitor<'_>,
-    ) -> Result<(), String> {
+    fn visit_blobs(&self, blob_oids: &[String], visit: &mut BlobVisitor<'_>) -> Result<(), String> {
         for blob_oid in blob_oids {
             let bytes = self.read_blob(blob_oid)?;
             let size = bytes.len() as u64;
@@ -394,11 +389,7 @@ impl RetirementObjectSource for GitCliRetirementObjectSource {
         self.git(&["cat-file", "blob", blob_oid], "read retirement blob")
     }
 
-    fn visit_blobs(
-        &self,
-        blob_oids: &[String],
-        visit: &mut BlobVisitor<'_>,
-    ) -> Result<(), String> {
+    fn visit_blobs(&self, blob_oids: &[String], visit: &mut BlobVisitor<'_>) -> Result<(), String> {
         visit_git_blobs(&self.repo_root, blob_oids, visit)
     }
 
