@@ -675,6 +675,25 @@ struct StickyBinding {
     expires_at: Instant,
 }
 
+/// Sticky-session constraints for a quota-aware seat lease.
+#[derive(Clone, Copy, Debug)]
+pub struct StickyLeaseSpec<'a> {
+    sticky_key: &'a str,
+    ttl: Duration,
+    estimated_units: u64,
+}
+
+impl<'a> StickyLeaseSpec<'a> {
+    /// Bind a privacy-preserving sticky key to its lifetime and quota estimate.
+    pub const fn new(sticky_key: &'a str, ttl: Duration, estimated_units: u64) -> Self {
+        Self {
+            sticky_key,
+            ttl,
+            estimated_units,
+        }
+    }
+}
+
 impl SubscriptionPool {
     pub fn new(tenant_id: TenantId, provider: Provider, strategy: SelectionStrategy) -> Self {
         Self {
@@ -811,9 +830,7 @@ impl SubscriptionPool {
         agent_id: &AgentId,
         gate: &dyn AuthzGate,
         now: Instant,
-        sticky_key: &str,
-        ttl: Duration,
-        estimated_units: u64,
+        spec: StickyLeaseSpec<'_>,
     ) -> Result<SeatLease, SubscriptionPoolError> {
         let seat_id = {
             let mut pool = pool_ref
@@ -823,24 +840,30 @@ impl SubscriptionPool {
 
             let sticky_seat = pool
                 .sticky_bindings
-                .get(sticky_key)
+                .get(spec.sticky_key)
                 .filter(|binding| binding.expires_at > now)
                 .map(|binding| binding.seat_id.clone())
                 .filter(|seat_id| {
-                    pool.is_selectable(seat_id, now, estimated_units, true)
+                    pool.is_selectable(seat_id, now, spec.estimated_units, true)
                         && pool.authz_allows(principal_tenant, agent_id, gate).is_ok()
                 });
 
             let sid = match sticky_seat {
                 Some(seat_id) => seat_id,
-                None => pool.select_excluding_leased(principal_tenant, agent_id, gate, now, estimated_units)?,
+                None => pool.select_excluding_leased(
+                    principal_tenant,
+                    agent_id,
+                    gate,
+                    now,
+                    spec.estimated_units,
+                )?,
             };
-            pool.reserve_lease(&sid, estimated_units)?;
+            pool.reserve_lease(&sid, spec.estimated_units)?;
             pool.sticky_bindings.insert(
-                sticky_key.to_string(),
+                spec.sticky_key.to_string(),
                 StickyBinding {
                     seat_id: sid.clone(),
-                    expires_at: now + ttl,
+                    expires_at: now + spec.ttl,
                 },
             );
             sid
@@ -849,7 +872,7 @@ impl SubscriptionPool {
             seat_id,
             pool: Arc::clone(pool_ref),
             completed: false,
-            reserved_units: estimated_units,
+            reserved_units: spec.estimated_units,
         })
     }
 
