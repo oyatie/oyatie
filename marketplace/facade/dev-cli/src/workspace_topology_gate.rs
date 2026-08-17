@@ -157,7 +157,9 @@ pub(crate) fn validate_workspace_topology_gate(
     let entries = oya_workspace_members_kernel::read_workspace_manifest_entries(&args.repo_root)
         .map_err(|error| format!("workspace-topology: workspace manifest unresolved: {error}"))?;
     for pattern in &entries.members {
-        if pattern.contains('*') || oya_workspace_members_kernel::is_excluded(pattern, &entries.exclude) {
+        if pattern.contains('*')
+            || oya_workspace_members_kernel::is_excluded(pattern, &entries.exclude)
+        {
             continue;
         }
         let manifest_path = args.repo_root.join(pattern).join("Cargo.toml");

@@ -1017,12 +1017,9 @@ mod tests {
     fn read_declared_fixture(name: &str) -> String {
         let path = std::env::var_os(name)
             .map(std::path::PathBuf::from)
-            .unwrap_or_else(|| {
-                panic!("FAIL-CLOSED: declared fixture binding {name} is unset")
-            });
-        let metadata = std::fs::symlink_metadata(&path).unwrap_or_else(|err| {
-            panic!("FAIL-CLOSED: inspect {name}={}: {err}", path.display())
-        });
+            .unwrap_or_else(|| panic!("FAIL-CLOSED: declared fixture binding {name} is unset"));
+        let metadata = std::fs::symlink_metadata(&path)
+            .unwrap_or_else(|err| panic!("FAIL-CLOSED: inspect {name}={}: {err}", path.display()));
         assert!(
             !metadata.file_type().is_symlink() && metadata.is_file(),
             "FAIL-CLOSED: {name}={} must be a regular non-symlink file",
@@ -1418,8 +1415,7 @@ mod tests {
 
     #[test]
     fn helm_template_declares_all_boot_required_env_vars() {
-        let deployment_template =
-            read_declared_fixture("OYA_INTELLIGENCE_HELM_DEPLOYMENT");
+        let deployment_template = read_declared_fixture("OYA_INTELLIGENCE_HELM_DEPLOYMENT");
         for expected in [
             "OYA_CLOUD_INTEL_LISTEN_ADDR",
             "OYA_CLOUD_INTEL_TENANT_ID",
@@ -1447,8 +1443,7 @@ mod tests {
     fn core_boundaries_use_owned_secret_provider_port_not_transient_adapter_names() {
         let app_source = read_declared_fixture("OYA_INTELLIGENCE_APP_SOURCE");
         let rest_source = read_declared_fixture("OYA_INTELLIGENCE_REST_SOURCE");
-        let deployment_template =
-            read_declared_fixture("OYA_INTELLIGENCE_HELM_DEPLOYMENT");
+        let deployment_template = read_declared_fixture("OYA_INTELLIGENCE_HELM_DEPLOYMENT");
 
         assert!(
             app_source.contains("SecretProvider") && rest_source.contains("SecretProvider"),
@@ -1475,10 +1470,8 @@ mod tests {
 
     #[test]
     fn probe_paths_are_consistent_between_helm_and_openapi() {
-        let deployment_template =
-            read_declared_fixture("OYA_INTELLIGENCE_HELM_DEPLOYMENT");
-        let openapi_contract =
-            read_declared_fixture("OYA_INTELLIGENCE_OPENAPI_CONTRACT");
+        let deployment_template = read_declared_fixture("OYA_INTELLIGENCE_HELM_DEPLOYMENT");
+        let openapi_contract = read_declared_fixture("OYA_INTELLIGENCE_OPENAPI_CONTRACT");
         for path in ["/healthz", "/livez", "/readyz"] {
             assert!(
                 deployment_template.contains(&format!("path: {path}"))
@@ -1494,8 +1487,7 @@ mod tests {
 
     #[test]
     fn tenant_subscription_openapi_matches_runtime_registration_semantics() {
-        let openapi_contract =
-            read_declared_fixture("OYA_INTELLIGENCE_OPENAPI_CONTRACT");
+        let openapi_contract = read_declared_fixture("OYA_INTELLIGENCE_OPENAPI_CONTRACT");
         let operation_start = openapi_contract
             .find("  /admin/v1/tenants/{tenant_id}/providers/{provider}/subscriptions:\n")
             .expect("tenant subscription admin path missing from OpenAPI");

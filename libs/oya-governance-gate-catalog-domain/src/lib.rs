@@ -418,7 +418,8 @@ pub const LANE_INPUT_GLOBS: &[(&str, LaneInputs)] = &[
     (
         "architecture-boundaries",
         LaneInputs::Globs(&[
-            "docs/decisions/**", "docs/adr-archive/**",
+            "docs/decisions/**",
+            "docs/adr-archive/**",
             "crates/**",
             "microservices/**",
             "specs/**",
@@ -426,7 +427,12 @@ pub const LANE_INPUT_GLOBS: &[(&str, LaneInputs)] = &[
     ),
     (
         "adr-citation",
-        LaneInputs::Globs(&["docs/decisions/**", "docs/adr-archive/**", "crates/**", "microservices/**"]),
+        LaneInputs::Globs(&[
+            "docs/decisions/**",
+            "docs/adr-archive/**",
+            "crates/**",
+            "microservices/**",
+        ]),
     ),
     (
         "adr-supersession-consistency",
@@ -579,11 +585,21 @@ pub const LANE_INPUT_GLOBS: &[(&str, LaneInputs)] = &[
     // ── Microservice / hyperscaler patterns ──────────────────────────────────
     (
         "hyperscaler-arch-invariants",
-        LaneInputs::Globs(&["crates/**", "microservices/**", "docs/decisions/**", "docs/adr-archive/**"]),
+        LaneInputs::Globs(&[
+            "crates/**",
+            "microservices/**",
+            "docs/decisions/**",
+            "docs/adr-archive/**",
+        ]),
     ),
     (
         "hyperscaler-maturity-claims",
-        LaneInputs::Globs(&["crates/**", "microservices/**", "docs/decisions/**", "docs/adr-archive/**"]),
+        LaneInputs::Globs(&[
+            "crates/**",
+            "microservices/**",
+            "docs/decisions/**",
+            "docs/adr-archive/**",
+        ]),
     ),
     (
         "platform-substrate-defaults",
@@ -644,11 +660,21 @@ pub const LANE_INPUT_GLOBS: &[(&str, LaneInputs)] = &[
     ),
     (
         "authority-cohesion",
-        LaneInputs::Globs(&["docs/decisions/**", "docs/adr-archive/**", "crates/**", "microservices/**"]),
+        LaneInputs::Globs(&[
+            "docs/decisions/**",
+            "docs/adr-archive/**",
+            "crates/**",
+            "microservices/**",
+        ]),
     ),
     (
         "claim-ceiling",
-        LaneInputs::Globs(&["crates/**", "microservices/**", "docs/decisions/**", "docs/adr-archive/**"]),
+        LaneInputs::Globs(&[
+            "crates/**",
+            "microservices/**",
+            "docs/decisions/**",
+            "docs/adr-archive/**",
+        ]),
     ),
     (
         "codeview-read-surface",

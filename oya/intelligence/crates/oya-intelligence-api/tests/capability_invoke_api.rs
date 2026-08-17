@@ -844,7 +844,11 @@ fn passing_eval_set(capability_id: &str) -> EvalSetInput {
         eval_case("case-cohort-gamma", "lang-gamma1", None),
     ];
     for (case_id, locale, kind) in [
-        ("adv-prompt", "lang-alpha1", AdversarialKind::PromptInjection),
+        (
+            "adv-prompt",
+            "lang-alpha1",
+            AdversarialKind::PromptInjection,
+        ),
         (
             "adv-class",
             "lang-beta1",
