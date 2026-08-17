@@ -103,18 +103,12 @@ pub fn roll_up_savings(
     // Sum baseline spend from all uniquely referenced reports.
     let total_baseline_spend_micros: u128 = referenced_report_ids.values().copied().sum();
 
-    let coverage_bps = if total_baseline_spend_micros == 0 {
-        0u16
-    } else {
-        // (savings * 10_000) / spend, saturating at u16::MAX then capped at 10_000.
-        let bps = estimated_savings_micros.saturating_mul(10_000) / total_baseline_spend_micros;
-        if bps >= 10_000 {
-            10_000u16
-        } else {
-            // Safe: bps < 10_000 < u16::MAX
-            bps as u16
-        }
-    };
+    // (savings * 10_000) / spend, with a zero-spend result of zero and a 10_000-bps cap.
+    let coverage_bps = estimated_savings_micros
+        .saturating_mul(10_000)
+        .checked_div(total_baseline_spend_micros)
+        .unwrap_or(0)
+        .min(10_000) as u16;
 
     Ok(SavingsPortfolio {
         estimated_savings_micros,
