@@ -11,7 +11,11 @@ use ci_cross_artifact_agreement::{MASTERPLAN_MD_PATH, derive_masterplan_md_proje
 use ci_planning_projection::render_board_sync_projection;
 use oya_workspace_members_kernel::resolve_member_dirs;
 
+mod masterplan_source;
 mod rust_toolchain_drift;
+pub use masterplan_source::{
+    read_planning_impact_adrs, render_masterplan_projection_from_decisions,
+};
 pub use rust_toolchain_drift::{evaluate_rust_toolchain_drift, read_pinned_rust_toolchain};
 
 pub const LOCK_REMEDIATION_COMMAND: &str = "cargo metadata >/dev/null";

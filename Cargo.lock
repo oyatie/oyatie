@@ -6437,6 +6437,7 @@ dependencies = [
  "check-vendor-recency",
  "check-wasm-runtime-discipline",
  "ci-generated-artifact-freshness",
+ "ci-planning-projection",
  "intelligence-api-semver-domain",
  "intelligence-cargo-prefix-domain",
  "intelligence-catalog-domain",
@@ -7371,7 +7372,9 @@ dependencies = [
 name = "oya-architecture-graph-generator-app"
 version = "0.1.0"
 dependencies = [
+ "ci-generated-artifact-freshness",
  "serde_json",
+ "tempfile",
 ]
 
 [[package]]
