@@ -8,8 +8,8 @@
 use std::collections::BTreeMap;
 
 use comms_meet_api::{
-    AuthorizedMeetContext, CloseSessionRequest, JoinSessionRequest, MeetApiError,
-    MeetSessionStore, OpenRoomRequest, meet_room_opened_event_envelope,
+    AuthorizedMeetContext, CloseSessionRequest, JoinSessionRequest, MeetApiError, MeetSessionStore,
+    OpenRoomRequest, meet_room_opened_event_envelope,
 };
 use comms_meet_domain::MeetSession;
 use comms_meet_usecase::{MeetUsecaseError, close_session, join_session, open_room};
@@ -150,5 +150,8 @@ fn cross_tenant_load_is_isolated() {
             joined_at_epoch_seconds: 1_700_000_030,
         },
     );
-    assert_eq!(res, Err(MeetUsecaseError::Api(MeetApiError::SessionNotFound)));
+    assert_eq!(
+        res,
+        Err(MeetUsecaseError::Api(MeetApiError::SessionNotFound))
+    );
 }

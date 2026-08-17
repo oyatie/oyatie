@@ -938,12 +938,12 @@ mod tests {
         plan: WorkflowEventBusSdkCommandPlan,
     ) -> WorkflowEventBusWorkerJobBody {
         match plan.rest_request.body {
-            workflow_event_bus_sdk::WorkflowEventBusRestRequestBody::Publish(
-                request,
-            ) => WorkflowEventBusWorkerJobBody::Publish(request),
-            workflow_event_bus_sdk::WorkflowEventBusRestRequestBody::Delivery(
-                request,
-            ) => WorkflowEventBusWorkerJobBody::Delivery(request),
+            workflow_event_bus_sdk::WorkflowEventBusRestRequestBody::Publish(request) => {
+                WorkflowEventBusWorkerJobBody::Publish(request)
+            }
+            workflow_event_bus_sdk::WorkflowEventBusRestRequestBody::Delivery(request) => {
+                WorkflowEventBusWorkerJobBody::Delivery(request)
+            }
         }
     }
 

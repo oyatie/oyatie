@@ -243,7 +243,7 @@ fn mapping_field<'a>(value: &'a serde_yaml::Value, field: &str) -> Option<&'a se
     let serde_yaml::Value::Mapping(map) = value else {
         return None;
     };
-    map.get(&serde_yaml::Value::String(field.to_string()))
+    map.get(serde_yaml::Value::String(field.to_string()))
 }
 
 fn mapping_string_field(value: &serde_yaml::Value, field: &str) -> Option<String> {

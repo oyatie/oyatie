@@ -140,7 +140,12 @@ fn cross_tenant_pool_rejects_select_for_foreign_tenant_principal() {
 
     let now = Instant::now();
     assert_eq!(
-        pool.select(&tenant("t-acme"), &agent("agent-evil-1"), &AlwaysForbid, now),
+        pool.select(
+            &tenant("t-acme"),
+            &agent("agent-evil-1"),
+            &AlwaysForbid,
+            now
+        ),
         Err(SubscriptionPoolError::ForbiddenByPolicy)
     );
 }

@@ -3,11 +3,11 @@ use data_cloud_domain::{
     EngineShape, ManagedDataEngine, ManagedDataState, PostgresExtension, PostgresShape,
     ReplicationMode, SchemaMigrationPolicy,
 };
-use oya_data_boundary_kernel::DataClass;
 use network_residency::{
     PerPackResidency, PerPackResidencyCreate, RegulatorOverlay, RegulatorOverlayCreate,
     ResidencyClass,
 };
+use oya_data_boundary_kernel::DataClass;
 
 const TENANT: &str = "ten_acme";
 const REGION: &str = "region-alpha1";

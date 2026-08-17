@@ -47,13 +47,13 @@ pub struct MessageReactionCreate {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct MessageReaction {
-    pub message_id: Classified<String>,     // data_class: INTERNAL_ONLY
-    pub channel_id: Classified<String>,     // data_class: INTERNAL_ONLY
-    pub tenant_id: Classified<String>,      // data_class: INTERNAL_ONLY
-    pub actor_ref: Classified<String>,      // data_class: PII_IDENTIFYING
-    pub emoji: Classified<String>,          // data_class: INTERNAL_ONLY
-    pub created_at: Classified<u64>,        // data_class: INTERNAL_ONLY
-    pub schema_version: Classified<u32>,    // data_class: INTERNAL_ONLY
+    pub message_id: Classified<String>,  // data_class: INTERNAL_ONLY
+    pub channel_id: Classified<String>,  // data_class: INTERNAL_ONLY
+    pub tenant_id: Classified<String>,   // data_class: INTERNAL_ONLY
+    pub actor_ref: Classified<String>,   // data_class: PII_IDENTIFYING
+    pub emoji: Classified<String>,       // data_class: INTERNAL_ONLY
+    pub created_at: Classified<u64>,     // data_class: INTERNAL_ONLY
+    pub schema_version: Classified<u32>, // data_class: INTERNAL_ONLY
 }
 
 impl MessageReaction {

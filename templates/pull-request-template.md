@@ -14,7 +14,8 @@ related:
 rfc_2119_active: true
 ---
 
-<!-- Author-owned: fill the 4 sections below before review. Reviewer evidence is captured in `## Code Review`. -->
+<!-- Author-owned: fill the 4 sections below before review. Reviewer evidence is captured in `## Code Review`.
+Reviewer evidence is not live cloud admission enforcement until F-PR5-06 closes through a trusted server-side/cloud-ci producer. -->
 
 ## Issue
 
@@ -27,7 +28,7 @@ rfc_2119_active: true
 
 ## Verification
 
-- `cargo fmt --check` / `cargo clippy` / `cargo test` (or targeted equivalents) — `<PASS|FAIL>` — `<excerpt>`
+- Local verification evidence — `<PASS|FAIL>` — `<commands and excerpt>`
 - `oya-ci-required` PR context — `<PASS|PENDING>` — `<check URL>`
 
 ## Code Review

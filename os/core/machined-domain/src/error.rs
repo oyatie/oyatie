@@ -1,7 +1,7 @@
 //! Crate-local error type for `talos-machined`.
 
-use std::fmt;
 use os_kernel::Error as CoreError;
+use std::fmt;
 
 /// Result alias used throughout this crate.
 pub type Result<T> = std::result::Result<T, MachinedError>;

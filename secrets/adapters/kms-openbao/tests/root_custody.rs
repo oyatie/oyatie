@@ -5,16 +5,18 @@
 //! validation) + the restart-survivability property: the same custodied
 //! material ingested at two different boots yields interchangeable roots.
 
-use base64::engine::general_purpose::STANDARD as BASE64_STANDARD;
 use base64::Engine as _;
+use base64::engine::general_purpose::STANDARD as BASE64_STANDARD;
+use secrets_kms_enclave::{KekId, KekMaterial, KekVersion, RootProvenance, SealingRootId};
 use secrets_kms_openbao::root_custody::{OpenBaoRootCustody, RootCustodyError};
-use secrets_kms_enclave::{
-    KekId, KekMaterial, KekVersion, RootProvenance, SealingRootId,
-};
 
 fn custody() -> OpenBaoRootCustody {
-    OpenBaoRootCustody::new("https://bao.cell-1.internal:8200", "transit", "cell-1-sealing-root")
-        .expect("custody config")
+    OpenBaoRootCustody::new(
+        "https://bao.cell-1.internal:8200",
+        "transit",
+        "cell-1-sealing-root",
+    )
+    .expect("custody config")
 }
 
 fn root_id() -> SealingRootId {
@@ -23,7 +25,9 @@ fn root_id() -> SealingRootId {
 
 /// Deterministic 32-byte fixture material (test-only; never a real root).
 fn fixture_material() -> Vec<u8> {
-    (0u8..32).map(|i| i.wrapping_mul(7).wrapping_add(13)).collect()
+    (0u8..32)
+        .map(|i| i.wrapping_mul(7).wrapping_add(13))
+        .collect()
 }
 
 #[test]
@@ -34,8 +38,16 @@ fn provision_command_shape() {
     assert_eq!(command.namespace, None);
     assert!(command.body_canonical.contains("type=aes256-gcm96"));
     assert!(command.body_canonical.contains("exportable=true"));
-    assert!(command.body_canonical.contains("allow_plaintext_backup=false"));
-    assert!(command.body_canonical.contains("ceremony_evidence_ref=ceremony://2026-06-10/run-1"));
+    assert!(
+        command
+            .body_canonical
+            .contains("allow_plaintext_backup=false")
+    );
+    assert!(
+        command
+            .body_canonical
+            .contains("ceremony_evidence_ref=ceremony://2026-06-10/run-1")
+    );
     assert_eq!(
         command.audit_evidence_ref,
         "openbao-root-custody://bao.cell-1.internal:8200/transit/cell-1-sealing-root/provision"
@@ -46,7 +58,10 @@ fn provision_command_shape() {
 fn fetch_command_shape_carries_no_material() {
     let command = custody().fetch_root_export_command();
     assert_eq!(command.method, "GET");
-    assert_eq!(command.path, "/v1/transit/export/encryption-key/cell-1-sealing-root/1");
+    assert_eq!(
+        command.path,
+        "/v1/transit/export/encryption-key/cell-1-sealing-root/1"
+    );
     assert!(command.body_canonical.is_empty());
     assert_eq!(
         command.audit_evidence_ref,
@@ -80,8 +95,11 @@ fn ingest_round_trip_restart_survivability() {
         .ingest_exported_root(root_id(), exported, CEREMONY_REF)
         .expect("boot 2 ingest");
 
-    let kek = KekMaterial::generate(KekId::new("kek/ten_alpha").expect("id"), KekVersion::INITIAL)
-        .expect("kek");
+    let kek = KekMaterial::generate(
+        KekId::new("kek/ten_alpha").expect("id"),
+        KekVersion::INITIAL,
+    )
+    .expect("kek");
     let token = boot_one_root.wrap_kek(&kek).expect("wrap at boot 1");
     let recovered = boot_two_root.unwrap_kek(&token).expect("unwrap at boot 2");
     assert_eq!(recovered.kek_id().value(), "kek/ten_alpha");
@@ -121,7 +139,11 @@ fn ingest_carries_typed_transitional_provenance() {
 #[test]
 fn ingest_tolerates_surrounding_whitespace() {
     let exported = format!("\n{}\n", BASE64_STANDARD.encode(fixture_material()));
-    assert!(custody().ingest_exported_root(root_id(), exported, CEREMONY_REF).is_ok());
+    assert!(
+        custody()
+            .ingest_exported_root(root_id(), exported, CEREMONY_REF)
+            .is_ok()
+    );
 }
 
 #[test]

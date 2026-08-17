@@ -95,11 +95,11 @@ $ oya-tooling-agent-read run-evidence <demo-cmd>              # expect: <capture
 ## Done criteria
 
 - [ ] All `grit_claim_symbols` claimed → work → `grit done` (no orphan claims).
-- [ ] `docs/AGENTS.md §Done-Definition checklist` D1-D18 walked for merge readiness; D19 post-merge closeout owner/packet slot identified (see `/templates/checklists/done-definition-checklist.md`).
+- [ ] `docs/AGENTS.md §Done-Definition checklist` D1-D18 walked for merge readiness.
 - [ ] All acceptance commands PASS; outputs captured in PR `## Verification`.
-- [ ] Dependency additions cleared `cargo deny check` and named in PR `## Traceability`.
+- [ ] Dependency additions cleared `cargo deny check` and are named in PR `## Summary`.
 - [ ] `icm store -t context-<project> -c "<icm-store-payload>" -i high` emitted (see §Icm-store-payload).
-- [ ] Audit-chain `EVT-<topic>` emitted; ID pasted in PR `## Evidence`.
+- [ ] Audit-chain `EVT-<topic>` emitted; ID pasted in PR `## Verification` when required.
 - [ ] Phase INDEX `§Implementation Plans` row updated to `merged`.
 
 ## Rollback procedure

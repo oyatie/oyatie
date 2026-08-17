@@ -163,7 +163,8 @@ fn parse_args(raw: Vec<String>) -> Result<Option<Args>, String> {
 }
 
 fn next_value(iter: &mut impl Iterator<Item = String>, flag: &str) -> Result<String, String> {
-    iter.next().ok_or_else(|| format!("{flag} requires a value"))
+    iter.next()
+        .ok_or_else(|| format!("{flag} requires a value"))
 }
 
 fn usage() -> String {

@@ -76,7 +76,10 @@ mod tests {
     fn salt_changes_bucket() {
         let a = bucket_basis_points("flag.x", "exp-1", "user-42");
         let b = bucket_basis_points("flag.x", "exp-2", "user-42");
-        assert_ne!(a, b, "distinct salts should decorrelate the same subject on the same flag");
+        assert_ne!(
+            a, b,
+            "distinct salts should decorrelate the same subject on the same flag"
+        );
     }
 
     #[test]
@@ -99,7 +102,10 @@ mod tests {
             }
         }
         let ratio = f64::from(below) / f64::from(n);
-        assert!((0.45..=0.55).contains(&ratio), "skewed distribution: {ratio}");
+        assert!(
+            (0.45..=0.55).contains(&ratio),
+            "skewed distribution: {ratio}"
+        );
     }
 
     #[test]

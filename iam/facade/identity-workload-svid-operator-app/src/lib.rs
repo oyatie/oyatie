@@ -74,10 +74,7 @@ pub enum OperatorStartupConfigError {
 impl fmt::Display for OperatorStartupConfigError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::MissingCellId => write!(
-                f,
-                "{ENV_CELL_ID} must be set to a non-empty cell id"
-            ),
+            Self::MissingCellId => write!(f, "{ENV_CELL_ID} must be set to a non-empty cell id"),
             Self::MalformedCellId(value) => write!(
                 f,
                 "{ENV_CELL_ID} value {value:?} is malformed (no whitespace/control/'/' allowed)"

@@ -14,7 +14,11 @@ pub struct AdapterRegistry {
 
 impl AdapterRegistry {
     pub fn scaffolded() -> Self {
-        Self { http_routes: http::HttpHandler::routes(), grpc_methods: grpc::GrpcHandler::methods(), asyncapi_channels: asyncapi::AsyncApiHandler::channels() }
+        Self {
+            http_routes: http::HttpHandler::routes(),
+            grpc_methods: grpc::GrpcHandler::methods(),
+            asyncapi_channels: asyncapi::AsyncApiHandler::channels(),
+        }
     }
 
     pub fn validate(&self) -> Result<()> {
@@ -27,4 +31,8 @@ impl AdapterRegistry {
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "kebab-case")]
-pub enum AdapterSurface { HttpRest, Grpc, AsyncApi }
+pub enum AdapterSurface {
+    HttpRest,
+    Grpc,
+    AsyncApi,
+}

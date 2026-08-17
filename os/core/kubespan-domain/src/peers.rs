@@ -192,9 +192,10 @@ impl PeerStatusController {
         if let Some(ep) = report.endpoint {
             // Count an endpoint rotation only between two known endpoints.
             if let Some(old) = prev_endpoint
-                && old != ep {
-                    status.endpoint_rotations += 1;
-                }
+                && old != ep
+            {
+                status.endpoint_rotations += 1;
+            }
             status.endpoint = Some(ep);
         }
 

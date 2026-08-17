@@ -10,9 +10,9 @@
 //! in-memory implementation for tests.
 
 use crate::circular_buffer::CircularBuffer;
+use os_kernel::error::{Error, Result};
 use std::collections::HashMap;
 use std::fmt::{self, Write as _};
-use os_kernel::error::{Error, Result};
 
 /// Default per-service retained log capacity in bytes (Talos default is 64 KiB).
 pub const DEFAULT_SERVICE_LOG_BYTES: usize = 64 * 1024;
@@ -322,9 +322,10 @@ impl MemoryWriter {
 impl ByteWriter for MemoryWriter {
     fn write_bytes(&mut self, bytes: &[u8]) -> Result<()> {
         if let Some(n) = self.fail_after
-            && self.writes >= n {
-                return Err(Error::Other("byte writer broken".into()));
-            }
+            && self.writes >= n
+        {
+            return Err(Error::Other("byte writer broken".into()));
+        }
         self.writes += 1;
         self.buf.extend_from_slice(bytes);
         Ok(())
@@ -460,9 +461,10 @@ impl LogSink for MultiSink {
         let mut first_err = None;
         for sink in &mut self.sinks {
             if let Err(e) = sink.write_line(service, line)
-                && first_err.is_none() {
-                    first_err = Some(e);
-                }
+                && first_err.is_none()
+            {
+                first_err = Some(e);
+            }
         }
         match first_err {
             Some(e) => Err(e),
@@ -474,9 +476,10 @@ impl LogSink for MultiSink {
         let mut first_err = None;
         for sink in &mut self.sinks {
             if let Err(e) = sink.flush()
-                && first_err.is_none() {
-                    first_err = Some(e);
-                }
+                && first_err.is_none()
+            {
+                first_err = Some(e);
+            }
         }
         match first_err {
             Some(e) => Err(e),

@@ -13,9 +13,9 @@
 
 use crate::container::Config;
 use crate::yaml::{self, Yaml};
-use std::collections::{BTreeMap, BTreeSet};
 use os_kernel::error::{Error, Result};
 use os_kernel::{validate_disk_locator_bool_expression, validate_volume_locator_bool_expression};
+use std::collections::{BTreeMap, BTreeSet};
 
 /// Canonical Talos system-volume document kind.
 pub const VOLUME_CONFIG_KIND: &str = "VolumeConfig";

@@ -352,9 +352,9 @@ fn message_fingerprint(message: &OutboundMessage) -> u64 {
 }
 
 /// Shared deliverability invariant check used by every real
-/// adapter. Centralizing it here means DKIM/SPF/DMARC + suppression
-/// + rate-ceiling + idempotency rules are uniform across SES,
-/// Postal, Mailgun, and SMTP.
+/// adapter. Centralizing it here makes DKIM/SPF/DMARC, suppression,
+/// rate-ceiling, and idempotency rules uniform across SES, Postal,
+/// Mailgun, and SMTP.
 ///
 /// # Parameters
 /// - `recent_send_count` — number of sends already recorded in the
@@ -412,14 +412,14 @@ pub fn enforce_deliverability_invariants(
     }
     // ST2: idempotency-key conflict detection.
     let fp = message_fingerprint(message);
-    if let Some(&prior_fp) = prior_fingerprints.get(&message.idempotency_key) {
-        if prior_fp != fp {
-            return Err(EmailCommsError::IdempotencyConflict {
-                key: message.idempotency_key.clone(),
-            });
-        }
-        // Identical re-send: collapse to success (fall through).
+    if let Some(&prior_fp) = prior_fingerprints.get(&message.idempotency_key)
+        && prior_fp != fp
+    {
+        return Err(EmailCommsError::IdempotencyConflict {
+            key: message.idempotency_key.clone(),
+        });
     }
+    // A missing or identical prior send falls through to success.
     for rcpt in &message.to {
         if suppressed.contains(rcpt) {
             return Err(EmailCommsError::RecipientSuppressed(rcpt.clone()));
@@ -681,9 +681,7 @@ fn domains_align(from_domain: &str, auth_domain: &str, mode: DmarcAlignmentMode)
     let auth_lc = auth_domain.to_ascii_lowercase();
     match mode {
         DmarcAlignmentMode::Strict => from_lc == auth_lc,
-        DmarcAlignmentMode::Relaxed => {
-            org_domain(&from_lc) == org_domain(&auth_lc)
-        }
+        DmarcAlignmentMode::Relaxed => org_domain(&from_lc) == org_domain(&auth_lc),
     }
 }
 
@@ -704,8 +702,16 @@ fn domains_align(from_domain: &str, auth_domain: &str, mode: DmarcAlignmentMode)
 /// - `dmarc.disposition` — `verdict.disposition.to_string()`
 #[must_use]
 pub fn evaluate_inbound_dmarc(input: &DmarcAlignmentInput) -> DmarcEvalVerdict {
-    let spf_aligned = domains_align(&input.from_domain, &input.spf_result_domain, input.alignment_mode);
-    let dkim_aligned = domains_align(&input.from_domain, &input.dkim_result_domain, input.alignment_mode);
+    let spf_aligned = domains_align(
+        &input.from_domain,
+        &input.spf_result_domain,
+        input.alignment_mode,
+    );
+    let dkim_aligned = domains_align(
+        &input.from_domain,
+        &input.dkim_result_domain,
+        input.alignment_mode,
+    );
     let aligned = spf_aligned || dkim_aligned;
 
     let disposition = if aligned {
@@ -718,7 +724,12 @@ pub fn evaluate_inbound_dmarc(input: &DmarcAlignmentInput) -> DmarcEvalVerdict {
         }
     };
 
-    DmarcEvalVerdict { aligned, spf_aligned, dkim_aligned, disposition }
+    DmarcEvalVerdict {
+        aligned,
+        spf_aligned,
+        dkim_aligned,
+        disposition,
+    }
 }
 
 // ---------- Real adapter shells (no Noop fallback) ----------
@@ -907,7 +918,8 @@ mod tests {
         let mut b = good_binding();
         b.dkim.selector = String::new();
         let m = good_message();
-        let err = enforce_deliverability_invariants(&b, &m, &[], true, 0, 0, &HashMap::new()).unwrap_err();
+        let err = enforce_deliverability_invariants(&b, &m, &[], true, 0, 0, &HashMap::new())
+            .unwrap_err();
         match err {
             EmailCommsError::DkimBindingMissing(t) => assert_eq!(t.0, "acme"),
             other => panic!("expected DkimBindingMissing, got {other:?}"),
@@ -919,7 +931,8 @@ mod tests {
         let mut b = good_binding();
         b.spf_authorized = false;
         let m = good_message();
-        let err = enforce_deliverability_invariants(&b, &m, &[], true, 0, 0, &HashMap::new()).unwrap_err();
+        let err = enforce_deliverability_invariants(&b, &m, &[], true, 0, 0, &HashMap::new())
+            .unwrap_err();
         match err {
             EmailCommsError::SpfNotAuthorized(t) => assert_eq!(t.0, "acme"),
             other => panic!("expected SpfNotAuthorized, got {other:?}"),
@@ -931,7 +944,8 @@ mod tests {
         let mut b = good_binding();
         b.dmarc_policy = DmarcPolicy::None;
         let m = good_message();
-        let err = enforce_deliverability_invariants(&b, &m, &[], true, 0, 0, &HashMap::new()).unwrap_err();
+        let err = enforce_deliverability_invariants(&b, &m, &[], true, 0, 0, &HashMap::new())
+            .unwrap_err();
         match err {
             EmailCommsError::DmarcPolicyForbidden { policy, .. } => {
                 assert_eq!(policy, DmarcPolicy::None);
@@ -953,7 +967,8 @@ mod tests {
         let b = good_binding();
         let m = good_message();
         let supp = vec![EmailAddress::try_new("user@example.com").unwrap()];
-        let err = enforce_deliverability_invariants(&b, &m, &supp, true, 0, 0, &HashMap::new()).unwrap_err();
+        let err = enforce_deliverability_invariants(&b, &m, &supp, true, 0, 0, &HashMap::new())
+            .unwrap_err();
         match err {
             EmailCommsError::RecipientSuppressed(addr) => {
                 assert_eq!(addr.as_str(), "user@example.com");
@@ -967,7 +982,8 @@ mod tests {
         let b = good_binding();
         let mut m = good_message();
         m.from = EmailAddress::try_new("no-reply@wrong.com").unwrap();
-        let err = enforce_deliverability_invariants(&b, &m, &[], true, 0, 0, &HashMap::new()).unwrap_err();
+        let err = enforce_deliverability_invariants(&b, &m, &[], true, 0, 0, &HashMap::new())
+            .unwrap_err();
         match err {
             EmailCommsError::InvalidAddress(_) => {}
             other => panic!("expected InvalidAddress, got {other:?}"),
@@ -980,14 +996,16 @@ mod tests {
         let mut m = good_message();
         m.to.clear();
         assert_eq!(
-            enforce_deliverability_invariants(&b, &m, &[], true, 0, 0, &HashMap::new()).unwrap_err(),
+            enforce_deliverability_invariants(&b, &m, &[], true, 0, 0, &HashMap::new())
+                .unwrap_err(),
             EmailCommsError::NoRecipients
         );
         let mut m2 = good_message();
         m2.subject = String::new();
         m2.html_body = String::new();
         assert_eq!(
-            enforce_deliverability_invariants(&b, &m2, &[], true, 0, 0, &HashMap::new()).unwrap_err(),
+            enforce_deliverability_invariants(&b, &m2, &[], true, 0, 0, &HashMap::new())
+                .unwrap_err(),
             EmailCommsError::EmptyMessage
         );
     }
@@ -1050,8 +1068,7 @@ mod tests {
         let b = good_binding();
         let m = good_message();
         // Even an absurdly large count must be accepted when ceiling == 0.
-        enforce_deliverability_invariants(&b, &m, &[], true, 999_999, 0, &HashMap::new())
-            .unwrap();
+        enforce_deliverability_invariants(&b, &m, &[], true, 999_999, 0, &HashMap::new()).unwrap();
     }
 
     // ---- ST2: idempotency-key conflict detection ----
@@ -1087,8 +1104,7 @@ mod tests {
         let mut m2 = good_message();
         m2.subject = "A completely different subject".into();
 
-        let err =
-            enforce_deliverability_invariants(&b, &m2, &[], true, 0, 0, &priors).unwrap_err();
+        let err = enforce_deliverability_invariants(&b, &m2, &[], true, 0, 0, &priors).unwrap_err();
         match err {
             EmailCommsError::IdempotencyConflict { key } => {
                 assert_eq!(key, m.idempotency_key);
@@ -1106,9 +1122,8 @@ mod tests {
         // ceiling (100) not a hardcoded constant.
         let b = good_binding();
         let m = good_message();
-        let err =
-            enforce_deliverability_invariants(&b, &m, &[], true, 15, 10, &HashMap::new())
-                .unwrap_err();
+        let err = enforce_deliverability_invariants(&b, &m, &[], true, 15, 10, &HashMap::new())
+            .unwrap_err();
         match err {
             EmailCommsError::RateCeilingExceeded { tenant, per_minute } => {
                 assert_eq!(tenant.0, "acme");
@@ -1124,9 +1139,8 @@ mod tests {
         // not a hardcoded constant from a previous test.
         let b = good_binding();
         let m = good_message();
-        let err =
-            enforce_deliverability_invariants(&b, &m, &[], true, 100, 100, &HashMap::new())
-                .unwrap_err();
+        let err = enforce_deliverability_invariants(&b, &m, &[], true, 100, 100, &HashMap::new())
+            .unwrap_err();
         match err {
             EmailCommsError::RateCeilingExceeded { per_minute, .. } => {
                 assert_eq!(per_minute, 100);
@@ -1150,7 +1164,9 @@ mod tests {
             enforce_deliverability_invariants(&b, &m, &[], true, 10, 10, &priors).unwrap_err();
         match err {
             EmailCommsError::RateCeilingExceeded { .. } => {}
-            other => panic!("expected RateCeilingExceeded before IdempotencyConflict, got {other:?}"),
+            other => {
+                panic!("expected RateCeilingExceeded before IdempotencyConflict, got {other:?}")
+            }
         }
     }
 
@@ -1163,9 +1179,8 @@ mod tests {
         let second = EmailAddress::try_new("other@example.com").unwrap();
         m.to.push(second.clone());
         let supp = vec![second.clone()];
-        let err =
-            enforce_deliverability_invariants(&b, &m, &supp, true, 0, 0, &HashMap::new())
-                .unwrap_err();
+        let err = enforce_deliverability_invariants(&b, &m, &supp, true, 0, 0, &HashMap::new())
+            .unwrap_err();
         match err {
             EmailCommsError::RecipientSuppressed(addr) => {
                 assert_eq!(addr.as_str(), "other@example.com");
@@ -1189,8 +1204,7 @@ mod tests {
         let mut m2 = good_message();
         m2.html_body = "<p>completely different content</p>".into();
 
-        let err =
-            enforce_deliverability_invariants(&b, &m2, &[], true, 0, 0, &priors).unwrap_err();
+        let err = enforce_deliverability_invariants(&b, &m2, &[], true, 0, 0, &priors).unwrap_err();
         match err {
             EmailCommsError::IdempotencyConflict { key } => {
                 assert_eq!(key, m.idempotency_key);
@@ -1212,8 +1226,7 @@ mod tests {
         let mut m2 = good_message();
         m2.to = vec![EmailAddress::try_new("different@example.com").unwrap()];
 
-        let err =
-            enforce_deliverability_invariants(&b, &m2, &[], true, 0, 0, &priors).unwrap_err();
+        let err = enforce_deliverability_invariants(&b, &m2, &[], true, 0, 0, &priors).unwrap_err();
         match err {
             EmailCommsError::IdempotencyConflict { key } => {
                 assert_eq!(key, m.idempotency_key);
@@ -1247,8 +1260,9 @@ mod tests {
         let mut m2 = good_message();
         m2.to = vec![rcpt_b.clone(), rcpt_a.clone()];
 
-        enforce_deliverability_invariants(&b, &m2, &[], true, 0, 0, &priors)
-            .expect("identical re-send with reordered recipients must collapse to Ok, not conflict");
+        enforce_deliverability_invariants(&b, &m2, &[], true, 0, 0, &priors).expect(
+            "identical re-send with reordered recipients must collapse to Ok, not conflict",
+        );
     }
 
     #[test]
@@ -1266,24 +1280,42 @@ mod tests {
     #[test]
     fn classify_enhanced_5xx_is_hard() {
         use super::{BounceCategory, classify_bounce_enhanced};
-        assert_eq!(classify_bounce_enhanced("5.1.1"), Some(BounceCategory::Hard));
-        assert_eq!(classify_bounce_enhanced("5.0.0"), Some(BounceCategory::Hard));
-        assert_eq!(classify_bounce_enhanced("5.7.1"), Some(BounceCategory::Hard));
+        assert_eq!(
+            classify_bounce_enhanced("5.1.1"),
+            Some(BounceCategory::Hard)
+        );
+        assert_eq!(
+            classify_bounce_enhanced("5.0.0"),
+            Some(BounceCategory::Hard)
+        );
+        assert_eq!(
+            classify_bounce_enhanced("5.7.1"),
+            Some(BounceCategory::Hard)
+        );
     }
 
     /// RFC 3463 class 4 enhanced codes (excluding 4.2.1) map to Transient.
     #[test]
     fn classify_enhanced_4xx_is_transient() {
         use super::{BounceCategory, classify_bounce_enhanced};
-        assert_eq!(classify_bounce_enhanced("4.2.2"), Some(BounceCategory::Transient));
-        assert_eq!(classify_bounce_enhanced("4.4.7"), Some(BounceCategory::Transient));
+        assert_eq!(
+            classify_bounce_enhanced("4.2.2"),
+            Some(BounceCategory::Transient)
+        );
+        assert_eq!(
+            classify_bounce_enhanced("4.4.7"),
+            Some(BounceCategory::Transient)
+        );
     }
 
     /// RFC 3463 4.2.1 ("mailbox disabled, not accepting messages") maps to Soft.
     #[test]
     fn classify_enhanced_421_soft() {
         use super::{BounceCategory, classify_bounce_enhanced};
-        assert_eq!(classify_bounce_enhanced("4.2.1"), Some(BounceCategory::Soft));
+        assert_eq!(
+            classify_bounce_enhanced("4.2.1"),
+            Some(BounceCategory::Soft)
+        );
     }
 
     /// Malformed or out-of-class enhanced status codes return None.
@@ -1455,7 +1487,11 @@ mod tests {
     #[test]
     fn dmarc_spf_only_aligned_pass() {
         let v = evaluate_inbound_dmarc(&dmarc_input(
-            "example.com", "example.com", "", DmarcAlignmentMode::Relaxed, DmarcPolicy::Reject,
+            "example.com",
+            "example.com",
+            "",
+            DmarcAlignmentMode::Relaxed,
+            DmarcPolicy::Reject,
         ));
         assert!(v.spf_aligned);
         assert!(!v.dkim_aligned);
@@ -1466,7 +1502,11 @@ mod tests {
     #[test]
     fn dmarc_dkim_only_aligned_pass() {
         let v = evaluate_inbound_dmarc(&dmarc_input(
-            "example.com", "", "example.com", DmarcAlignmentMode::Relaxed, DmarcPolicy::Reject,
+            "example.com",
+            "",
+            "example.com",
+            DmarcAlignmentMode::Relaxed,
+            DmarcPolicy::Reject,
         ));
         assert!(!v.spf_aligned);
         assert!(v.dkim_aligned);
@@ -1477,7 +1517,11 @@ mod tests {
     #[test]
     fn dmarc_both_fail_none_policy_accept() {
         let v = evaluate_inbound_dmarc(&dmarc_input(
-            "example.com", "other.com", "other.com", DmarcAlignmentMode::Relaxed, DmarcPolicy::None,
+            "example.com",
+            "other.com",
+            "other.com",
+            DmarcAlignmentMode::Relaxed,
+            DmarcPolicy::None,
         ));
         assert!(!v.aligned);
         assert_eq!(v.disposition, DmarcDisposition::Accept);
@@ -1486,7 +1530,11 @@ mod tests {
     #[test]
     fn dmarc_both_fail_quarantine_policy() {
         let v = evaluate_inbound_dmarc(&dmarc_input(
-            "example.com", "other.com", "other.com", DmarcAlignmentMode::Relaxed, DmarcPolicy::Quarantine,
+            "example.com",
+            "other.com",
+            "other.com",
+            DmarcAlignmentMode::Relaxed,
+            DmarcPolicy::Quarantine,
         ));
         assert!(!v.aligned);
         assert_eq!(v.disposition, DmarcDisposition::Quarantine);
@@ -1495,7 +1543,11 @@ mod tests {
     #[test]
     fn dmarc_both_fail_reject_policy() {
         let v = evaluate_inbound_dmarc(&dmarc_input(
-            "example.com", "other.com", "other.com", DmarcAlignmentMode::Relaxed, DmarcPolicy::Reject,
+            "example.com",
+            "other.com",
+            "other.com",
+            DmarcAlignmentMode::Relaxed,
+            DmarcPolicy::Reject,
         ));
         assert!(!v.aligned);
         assert_eq!(v.disposition, DmarcDisposition::Reject);
@@ -1504,7 +1556,11 @@ mod tests {
     #[test]
     fn dmarc_strict_subdomain_fails() {
         let v = evaluate_inbound_dmarc(&dmarc_input(
-            "example.com", "sub.example.com", "", DmarcAlignmentMode::Strict, DmarcPolicy::Reject,
+            "example.com",
+            "sub.example.com",
+            "",
+            DmarcAlignmentMode::Strict,
+            DmarcPolicy::Reject,
         ));
         assert!(!v.spf_aligned);
         assert!(!v.aligned);
@@ -1514,7 +1570,11 @@ mod tests {
     #[test]
     fn dmarc_relaxed_subdomain_passes() {
         let v = evaluate_inbound_dmarc(&dmarc_input(
-            "example.com", "sub.example.com", "", DmarcAlignmentMode::Relaxed, DmarcPolicy::Reject,
+            "example.com",
+            "sub.example.com",
+            "",
+            DmarcAlignmentMode::Relaxed,
+            DmarcPolicy::Reject,
         ));
         assert!(v.spf_aligned);
         assert!(v.aligned);
@@ -1524,7 +1584,11 @@ mod tests {
     #[test]
     fn dmarc_relaxed_cross_org_fails() {
         let v = evaluate_inbound_dmarc(&dmarc_input(
-            "example.com", "other.com", "", DmarcAlignmentMode::Relaxed, DmarcPolicy::Reject,
+            "example.com",
+            "other.com",
+            "",
+            DmarcAlignmentMode::Relaxed,
+            DmarcPolicy::Reject,
         ));
         assert!(!v.spf_aligned);
         assert!(!v.aligned);
@@ -1534,7 +1598,11 @@ mod tests {
     #[test]
     fn dmarc_both_aligned_pass() {
         let v = evaluate_inbound_dmarc(&dmarc_input(
-            "example.com", "example.com", "example.com", DmarcAlignmentMode::Relaxed, DmarcPolicy::Reject,
+            "example.com",
+            "example.com",
+            "example.com",
+            DmarcAlignmentMode::Relaxed,
+            DmarcPolicy::Reject,
         ));
         assert!(v.spf_aligned);
         assert!(v.dkim_aligned);
@@ -1545,7 +1613,11 @@ mod tests {
     #[test]
     fn dmarc_case_insensitive_alignment() {
         let v = evaluate_inbound_dmarc(&dmarc_input(
-            "Example.COM", "example.com", "EXAMPLE.COM", DmarcAlignmentMode::Strict, DmarcPolicy::Reject,
+            "Example.COM",
+            "example.com",
+            "EXAMPLE.COM",
+            DmarcAlignmentMode::Strict,
+            DmarcPolicy::Reject,
         ));
         assert!(v.spf_aligned);
         assert!(v.dkim_aligned);
@@ -1556,7 +1628,11 @@ mod tests {
     #[test]
     fn dmarc_empty_spf_domain_not_aligned() {
         let v = evaluate_inbound_dmarc(&dmarc_input(
-            "example.com", "", "", DmarcAlignmentMode::Relaxed, DmarcPolicy::None,
+            "example.com",
+            "",
+            "",
+            DmarcAlignmentMode::Relaxed,
+            DmarcPolicy::None,
         ));
         assert!(!v.spf_aligned);
         assert!(!v.dkim_aligned);
@@ -1567,7 +1643,11 @@ mod tests {
     #[test]
     fn dmarc_none_policy_pass_is_accept() {
         let v = evaluate_inbound_dmarc(&dmarc_input(
-            "example.com", "example.com", "", DmarcAlignmentMode::Relaxed, DmarcPolicy::None,
+            "example.com",
+            "example.com",
+            "",
+            DmarcAlignmentMode::Relaxed,
+            DmarcPolicy::None,
         ));
         assert!(v.aligned);
         assert_eq!(v.disposition, DmarcDisposition::Accept);

@@ -137,10 +137,7 @@ mod authz {
 
     impl AuthzMiddleware {
         #[must_use]
-        pub fn new(
-            authenticator: Arc<dyn PrincipalAuthenticator>,
-            public: Vec<String>,
-        ) -> Self {
+        pub fn new(authenticator: Arc<dyn PrincipalAuthenticator>, public: Vec<String>) -> Self {
             Self {
                 authenticator,
                 public,
@@ -314,9 +311,6 @@ pub use authz::{
     AuthzMiddleware, ConfiguredBearerAuthenticator, PrincipalAuthenticator, VerifiedPrincipal,
 };
 
-use oya_http_middleware_kernel::MiddlewareChain;
-use oya_http_router_kernel::{HttpMethod, Router, RouterError};
-use oya_http_runtime_hyper_adapter::{HttpRequest, HttpResponse, SyncHandler};
 use console_workspace_shell_kernel::{
     InMemorySurfaceCatalog, SurfaceCatalogPort, SurfaceState, VisibilityTier,
 };
@@ -326,6 +320,9 @@ use console_workspace_shell_rest::{
 use console_workspace_shell_usecase::{
     ListAllSurfacesUseCase, ListLiveSurfacesUseCase, ShellHealthUseCase,
 };
+use oya_http_middleware_kernel::MiddlewareChain;
+use oya_http_router_kernel::{HttpMethod, Router, RouterError};
+use oya_http_runtime_hyper_adapter::{HttpRequest, HttpResponse, SyncHandler};
 
 /// Shared catalog state. Wrapped in `RwLock` so handlers can clone-snapshot
 /// without mutating shared state. Per-cell composition swaps this for a

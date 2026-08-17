@@ -229,9 +229,10 @@ impl WireguardPeerSpec {
     /// Validate the peer config for use in a device spec.
     pub fn validate(&self) -> Result<()> {
         if let Some((_, port)) = self.endpoint
-            && port == 0 {
-                return Err(Error::invalid("peer endpoint port must be non-zero"));
-            }
+            && port == 0
+        {
+            return Err(Error::invalid("peer endpoint port must be non-zero"));
+        }
         Ok(())
     }
 }

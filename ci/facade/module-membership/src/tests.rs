@@ -72,7 +72,10 @@ fn every_crate_mapped_passes() {
         vec!["cloud", "oya", "libs", "tools", "specs", "docs"],
     );
     let findings = evaluate_keyed(&policy(), &obs);
-    assert!(findings.is_empty(), "all-mapped corpus must pass: {findings:#?}");
+    assert!(
+        findings.is_empty(),
+        "all-mapped corpus must pass: {findings:#?}"
+    );
     let report = evaluate(&policy(), &obs);
     assert_eq!(report.verdict, Verdict::Green);
     assert_eq!(report.mapped_to_home, 6);
@@ -233,7 +236,10 @@ fn base_crate_with_three_consumers_below_all_passes() {
 
 #[test]
 fn empty_scan_below_floor_fails() {
-    let obs = observed(vec![], vec!["cloud", "oya", "libs", "tools", "specs", "docs"]);
+    let obs = observed(
+        vec![],
+        vec!["cloud", "oya", "libs", "tools", "specs", "docs"],
+    );
     let c = codes(&evaluate_keyed(&policy(), &obs));
     assert!(c.contains("MEM-EMPTY-SCAN"), "{c:?}");
 }
@@ -243,7 +249,10 @@ fn wrong_gate_id_fails_closed() {
     let mut p = policy();
     p["gate_id"] = json!("not-the-gate");
     let obs = observed(
-        vec!["cloud/cloud-iam/crates/oya-cloud-iam-kernel", "libs/oya-shared-idempotency-key-kernel"],
+        vec![
+            "cloud/cloud-iam/crates/oya-cloud-iam-kernel",
+            "libs/oya-shared-idempotency-key-kernel",
+        ],
         vec!["cloud", "oya", "libs", "tools", "specs", "docs"],
     );
     let c = codes(&evaluate_keyed(&p, &obs));
@@ -393,7 +402,11 @@ fn every_freeze_code_is_registered() {
     );
     let findings = evaluate_keyed(&p, &obs);
     for f in &findings {
-        assert!(VIOLATION_CODES.contains(&f.code.as_str()), "unregistered {}", f.code);
+        assert!(
+            VIOLATION_CODES.contains(&f.code.as_str()),
+            "unregistered {}",
+            f.code
+        );
     }
     let c = codes(&findings);
     assert!(c.contains("MEM-NEW-LEGACY-ROOT-CRATE"), "{c:?}");

@@ -33,9 +33,7 @@ use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use ci_graphql_usage_policy::{
-    Verdict, collect_graphql_artifacts, evaluate, evaluate_keyed,
-};
+use ci_graphql_usage_policy::{Verdict, collect_graphql_artifacts, evaluate, evaluate_keyed};
 use serde_json::Value;
 
 /// Walk up from the test's working directory to the repo root (the dir holding the canonical

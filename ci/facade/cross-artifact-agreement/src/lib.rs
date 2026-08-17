@@ -2989,6 +2989,55 @@ fn evaluate_planning_entry_closure_evidence_shape(
     }
 }
 
+/// Parsed records referenced by a CLOSED planning-entry contract.
+#[derive(Clone, Copy, Debug)]
+pub struct PlanningEntryClosureDocuments<'a> {
+    t1_hold_lift_receipt: &'a Value,
+    t2_execution_authorization: &'a Value,
+    t3b_gate_liveness_receipt: &'a Value,
+    t3b_interval_audit: &'a Value,
+}
+
+impl<'a> PlanningEntryClosureDocuments<'a> {
+    /// Group the four independently validated planning-closure records.
+    pub const fn new(
+        t1_hold_lift_receipt: &'a Value,
+        t2_execution_authorization: &'a Value,
+        t3b_gate_liveness_receipt: &'a Value,
+        t3b_interval_audit: &'a Value,
+    ) -> Self {
+        Self {
+            t1_hold_lift_receipt,
+            t2_execution_authorization,
+            t3b_gate_liveness_receipt,
+            t3b_interval_audit,
+        }
+    }
+}
+
+/// Trusted, caller-observed review identity bound to the closure candidate.
+#[derive(Clone, Copy, Debug)]
+pub struct TrustedClosureReviewContext<'a> {
+    expected_pr_number: u64,
+    expected_head_sha: &'a str,
+    admission_packet: Option<&'a Value>,
+}
+
+impl<'a> TrustedClosureReviewContext<'a> {
+    /// Bind a review-admission packet to the exact PR and head under evaluation.
+    pub const fn new(
+        expected_pr_number: u64,
+        expected_head_sha: &'a str,
+        admission_packet: Option<&'a Value>,
+    ) -> Self {
+        Self {
+            expected_pr_number,
+            expected_head_sha,
+            admission_packet,
+        }
+    }
+}
+
 /// Verify the parsed closure-evidence documents behind a CLOSED planning-entry
 /// contract — EVERY referenced record, not just the hold-lift and authorization
 /// documents:
@@ -3013,15 +3062,17 @@ fn evaluate_planning_entry_closure_evidence_shape(
 /// boundary, mirroring [`evaluate_masterplan_v2_ratification_digest`].
 pub fn evaluate_planning_entry_closure_evidence(
     masterplan: &Value,
-    t1_hold_lift_receipt: &Value,
-    t2_execution_authorization: &Value,
-    t3b_gate_liveness_receipt: &Value,
-    t3b_interval_audit: &Value,
-    expected_closure_pr_number: u64,
-    expected_closure_head_sha: &str,
-    trusted_review_admission_packet: Option<&Value>,
+    documents: PlanningEntryClosureDocuments<'_>,
+    trusted_review: TrustedClosureReviewContext<'_>,
 ) -> BTreeSet<Finding> {
     let mut findings = BTreeSet::new();
+
+    let PlanningEntryClosureDocuments {
+        t1_hold_lift_receipt,
+        t2_execution_authorization,
+        t3b_gate_liveness_receipt,
+        t3b_interval_audit,
+    } = documents;
 
     let contract = masterplan
         .get("masterplan_v2")
@@ -3167,9 +3218,9 @@ pub fn evaluate_planning_entry_closure_evidence(
         ));
     }
     evaluate_trusted_closure_review_admission(
-        trusted_review_admission_packet,
-        expected_closure_pr_number,
-        expected_closure_head_sha,
+        trusted_review.admission_packet,
+        trusted_review.expected_pr_number,
+        trusted_review.expected_head_sha,
         &mut findings,
     );
 
@@ -3624,8 +3675,7 @@ fn validate_authorized_dispatched_waves(
         .filter_map(|wave| wave.get("wave_index").and_then(Value::as_u64))
         .collect();
     // Dependency-safe prefix: empty OK; otherwise exact contiguous [0, 1, …, n-1].
-    let mut expected = 0u64;
-    for wave in dispatched {
+    for (expected, wave) in dispatched.iter().enumerate() {
         let Some(index) = wave.as_u64() else {
             findings.insert(Finding::new(
                 "masterplan_execution_wave_dispatch_unratified",
@@ -3633,14 +3683,13 @@ fn validate_authorized_dispatched_waves(
             ));
             return;
         };
-        if index != expected || !known_indices.contains(&index) {
+        if u64::try_from(expected) != Ok(index) || !known_indices.contains(&index) {
             findings.insert(Finding::new(
                 "masterplan_execution_wave_dispatch_unratified",
                 "masterplan_v2.sequencing.execution_wave_dispatch.dispatched_waves",
             ));
             return;
         }
-        expected += 1;
     }
 }
 
@@ -3712,23 +3761,23 @@ fn evaluate_decision_timeboxes_with_clock(
         // one valid source cannot hide an invalid governance clock (e.g. local 2026-08-01
         // + global 2026-99-99 must not silently prefer local and suppress expiry).
         let mut clocks_ok = true;
-        if let Some(local) = local_as_of {
-            if !is_yyyy_mm_dd(local) {
-                clocks_ok = false;
-                findings.insert(Finding::new(
-                    "masterplan_evidence_state_invalid",
-                    &format!("{id}@decision_timebox.as_of_utc_date"),
-                ));
-            }
+        if let Some(local) = local_as_of
+            && !is_yyyy_mm_dd(local)
+        {
+            clocks_ok = false;
+            findings.insert(Finding::new(
+                "masterplan_evidence_state_invalid",
+                &format!("{id}@decision_timebox.as_of_utc_date"),
+            ));
         }
-        if let Some(global) = fallback_as_of_utc_date {
-            if !is_yyyy_mm_dd(global) {
-                clocks_ok = false;
-                findings.insert(Finding::new(
-                    "masterplan_evidence_state_invalid",
-                    "masterplan_v2.governance_evaluation_clock.utc_date",
-                ));
-            }
+        if let Some(global) = fallback_as_of_utc_date
+            && !is_yyyy_mm_dd(global)
+        {
+            clocks_ok = false;
+            findings.insert(Finding::new(
+                "masterplan_evidence_state_invalid",
+                "masterplan_v2.governance_evaluation_clock.utc_date",
+            ));
         }
         if !clocks_ok {
             continue;
@@ -7026,13 +7075,12 @@ mod tests {
     ) -> BTreeSet<Finding> {
         evaluate_planning_entry_closure_evidence(
             &minimal_closed_sequenced_masterplan(),
-            t1,
-            t2,
-            t3b_gate_liveness,
-            t3b_interval_audit,
-            1944,
-            "0123456789abcdef0123456789abcdef01234567",
-            Some(approval),
+            PlanningEntryClosureDocuments::new(t1, t2, t3b_gate_liveness, t3b_interval_audit),
+            TrustedClosureReviewContext::new(
+                1944,
+                "0123456789abcdef0123456789abcdef01234567",
+                Some(approval),
+            ),
         )
     }
 
@@ -7347,13 +7395,17 @@ mod tests {
         const PREFIX: &str = "masterplan_v2.planning_entry_contract.closure_evidence.qualified_human_closure_approval";
         let no_packet = evaluate_planning_entry_closure_evidence(
             &minimal_closed_sequenced_masterplan(),
-            &valid_t1_hold_lift_receipt(),
-            &valid_t2_execution_authorization(),
-            &valid_t3b_gate_liveness_receipt(),
-            &valid_t3b_interval_audit(),
-            1944,
-            "0123456789abcdef0123456789abcdef01234567",
-            None,
+            PlanningEntryClosureDocuments::new(
+                &valid_t1_hold_lift_receipt(),
+                &valid_t2_execution_authorization(),
+                &valid_t3b_gate_liveness_receipt(),
+                &valid_t3b_interval_audit(),
+            ),
+            TrustedClosureReviewContext::new(
+                1944,
+                "0123456789abcdef0123456789abcdef01234567",
+                None,
+            ),
         );
         assert!(no_packet.contains(&Finding::new(
             "masterplan_execution_wave_dispatch_unratified",

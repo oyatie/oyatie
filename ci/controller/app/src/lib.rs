@@ -46,12 +46,6 @@ use axum::{
     response::{IntoResponse, Response},
     routing::{get, post},
 };
-use k8s_openapi::api::{batch::v1::Job, core::v1::Pod};
-use kube::{
-    Api, Client, Error as KubeError,
-    api::{ListParams, Patch, PatchParams},
-    runtime::{Controller, controller::Action, watcher},
-};
 use ci_controller_k8s_adapter::{
     ANNOT_CI_BASE_REF, ANNOT_CI_STATUS_POSTED, LABEL_CI_DELIVERY_ID, LABEL_CI_HEAD_SHA,
     LABEL_CI_PR_NUMBER, observe_job,
@@ -61,6 +55,12 @@ use ci_controller_kernel::{
     GateRunObservabilityPhase, GateRunSpec, JobHandle, JobSpawner, ReconcileDecision,
     build_gate_run_k8s_projection, build_gate_run_observability_packet, gate_run_status_url,
     map_job_to_status, observability_phase_for_decision,
+};
+use k8s_openapi::api::{batch::v1::Job, core::v1::Pod};
+use kube::{
+    Api, Client, Error as KubeError,
+    api::{ListParams, Patch, PatchParams},
+    runtime::{Controller, controller::Action, watcher},
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;

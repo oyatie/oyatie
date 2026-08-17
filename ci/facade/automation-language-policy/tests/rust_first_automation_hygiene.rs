@@ -2221,13 +2221,13 @@ impl Drop for HolderProcessGuard {
             let _ = installer.kill();
             let _ = installer.wait();
         }
-        if let Some(worker_pid) = self.worker_pid {
-            if !process_exits_within(worker_pid, Duration::from_secs(5)) {
-                let _ = Command::new("/bin/kill")
-                    .args(["-KILL", &worker_pid.to_string()])
-                    .output();
-                let _ = process_exits_within(worker_pid, Duration::from_secs(5));
-            }
+        if let Some(worker_pid) = self.worker_pid
+            && !process_exits_within(worker_pid, Duration::from_secs(5))
+        {
+            let _ = Command::new("/bin/kill")
+                .args(["-KILL", &worker_pid.to_string()])
+                .output();
+            let _ = process_exits_within(worker_pid, Duration::from_secs(5));
         }
     }
 }
@@ -2418,11 +2418,10 @@ fn buck2_installer_retries_cache_hits_and_digest_mismatches_fail_closed() {
         .output()
         .expect("run retry fixture");
     assert_success(output);
-    assert_eq!(
-        fs::read_to_string(&args_log)
+    assert!(
+        !fs::read_to_string(&args_log)
             .expect("read curl args")
-            .contains("--retry-delay"),
-        false
+            .contains("--retry-delay")
     );
     let args = fs::read_to_string(&args_log).expect("read curl args");
     for required in [

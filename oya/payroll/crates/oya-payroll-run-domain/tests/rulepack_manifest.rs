@@ -169,7 +169,8 @@ fn statutory_rulepack_manifest_rejects_invalid_source_row_provenance() {
     );
 
     let mut whitespace_source = valid_manifest();
-    whitespace_source.sources[0].official_url = "https://www.irs.gov/publications/p15 bad".to_owned();
+    whitespace_source.sources[0].official_url =
+        "https://www.irs.gov/publications/p15 bad".to_owned();
     assert_eq!(
         build_statutory_rulepack_manifest(whitespace_source),
         Err(PayrollDomainError::InvalidRulepackSourceUrl)

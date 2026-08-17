@@ -1,13 +1,11 @@
 //! App-layer write orchestration for mail mailbox-store submissions.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
-use comms_mail_mailbox_postgres::{
-    PersistMailMessageRecord, build_mail_message_write_batch,
-};
 use comms_mail_mailbox_api::{
     AuthorizedMailContext, DmarcApiAction, MailApiEnvelope, SubmissionReceipt,
     SubmitMessageRequest, message_sent_event_envelope,
 };
+use comms_mail_mailbox_postgres::{PersistMailMessageRecord, build_mail_message_write_batch};
 use comms_mail_mailbox_usecase::{MailUsecaseError, submit_message};
 use oya_shared_postgres_command_kernel::{
     PostgresPoolConfig, SqlCommandError, SqlExecutionPlan, SqlWriteBatch, TenantSqlContext,

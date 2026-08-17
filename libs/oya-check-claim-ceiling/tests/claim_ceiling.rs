@@ -2,8 +2,8 @@
 // `.expect_err()` / `.unwrap_err()` to assert invariants — Tier 3 exemption.
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
-use oya_check_claim_ceiling::{ClaimCeilingError, FoundationClaimCeiling};
 use intelligence_catalog_domain::{CatalogIndex, CatalogRecordInput};
+use oya_check_claim_ceiling::{ClaimCeilingError, FoundationClaimCeiling};
 
 #[test]
 fn foundation_claim_ceiling_accepts_preview_source_only_records() {

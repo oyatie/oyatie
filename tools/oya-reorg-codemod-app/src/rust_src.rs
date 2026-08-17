@@ -34,7 +34,7 @@
 
 use std::collections::BTreeMap;
 
-use crate::model::{join_rel, EscapingPathLiteral};
+use crate::model::{EscapingPathLiteral, join_rel};
 
 /// The path-literal carriers a crate move can invalidate. Each is matched as a literal prefix
 /// followed (after optional whitespace) by a plain double-quoted string.
@@ -297,7 +297,10 @@ include!("helper.rs");
             "cloud/cloud-kernel/crates/oya-cloud-kernel-user-layout-kernel/tests-buck/lib.rs",
             "cloud/cloud-kernel/crates/oya-cloud-kernel-user-layout-kernel",
         );
-        assert!(found.is_empty(), "self-contained literals must not fire: {found:?}");
+        assert!(
+            found.is_empty(),
+            "self-contained literals must not fire: {found:?}"
+        );
     }
 
     #[test]
@@ -319,7 +322,10 @@ include!("helper.rs");
     fn out_dir_concat_include_is_not_reported() {
         let src = "include!(concat!(env!(\"OUT_DIR\"), \"/generated.rs\"));\n";
         let found = scan_escaping_path_literals(src, "a/b/src/lib.rs", "a/b");
-        assert!(found.is_empty(), "OUT_DIR includes are move-invariant: {found:?}");
+        assert!(
+            found.is_empty(),
+            "OUT_DIR includes are move-invariant: {found:?}"
+        );
     }
 
     #[test]

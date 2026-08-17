@@ -218,7 +218,7 @@ impl SsrShellPerformanceObservation {
         Self::new(
             ssr_render_p50_millis,
             ssr_render_p95_millis,
-            shell_html.as_bytes().len(),
+            shell_html.len(),
             selective_islands,
         )
     }

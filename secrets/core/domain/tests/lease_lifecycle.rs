@@ -7,11 +7,11 @@
 
 use std::collections::BTreeMap;
 
-use secrets_domain::{
-    DynamicLease, LeaseError, LeaseId, LeasePolicy, LeaseState, RevocationReason,
-    MAX_LEASE_LIFETIME_SECONDS, MAX_LEASE_TTL_SECONDS, MIN_LEASE_TTL_SECONDS,
-};
 use oya_shared_platform_contracts_kernel::identity::{Principal, PrincipalKind, PrincipalState};
+use secrets_domain::{
+    DynamicLease, LeaseError, LeaseId, LeasePolicy, LeaseState, MAX_LEASE_LIFETIME_SECONDS,
+    MAX_LEASE_TTL_SECONDS, MIN_LEASE_TTL_SECONDS, RevocationReason,
+};
 
 const T0: u64 = 1_750_000_000;
 const TTL: u64 = 300;
@@ -61,20 +61,38 @@ fn red_non_workload_principals_rejected() {
     let mut human = workload_principal();
     human.kind = PrincipalKind::Human;
     assert_eq!(
-        DynamicLease::issue(LeaseId::new("lease/x").unwrap(), "secret://s", &human, policy(), T0),
-        Err(LeaseError::PrincipalNotWorkload { kind: PrincipalKind::Human })
+        DynamicLease::issue(
+            LeaseId::new("lease/x").unwrap(),
+            "secret://s",
+            &human,
+            policy(),
+            T0
+        ),
+        Err(LeaseError::PrincipalNotWorkload {
+            kind: PrincipalKind::Human
+        })
     );
     let mut federated = workload_principal();
     federated.kind = PrincipalKind::FederatedExternal;
     assert!(matches!(
-        DynamicLease::issue(LeaseId::new("lease/x").unwrap(), "secret://s", &federated, policy(), T0),
+        DynamicLease::issue(
+            LeaseId::new("lease/x").unwrap(),
+            "secret://s",
+            &federated,
+            policy(),
+            T0
+        ),
         Err(LeaseError::PrincipalNotWorkload { .. })
     ));
 }
 
 #[test]
 fn red_non_active_principals_fail_closed() {
-    for state in [PrincipalState::Pending, PrincipalState::Suspended, PrincipalState::Deprovisioned] {
+    for state in [
+        PrincipalState::Pending,
+        PrincipalState::Suspended,
+        PrincipalState::Deprovisioned,
+    ] {
         let mut principal = workload_principal();
         principal.state = state;
         assert_eq!(
@@ -112,7 +130,9 @@ fn red_expiry_bound_is_inclusive_and_fails_closed() {
     assert_eq!(issued.state(T0 + TTL), LeaseState::Expired);
     assert_eq!(
         issued.assert_live(T0 + TTL),
-        Err(LeaseError::Expired { at_epoch_seconds: T0 + TTL })
+        Err(LeaseError::Expired {
+            at_epoch_seconds: T0 + TTL
+        })
     );
 }
 
@@ -130,7 +150,9 @@ fn red_expired_lease_cannot_renew() {
     let mut expired = lease();
     assert_eq!(
         expired.renew(T0 + TTL),
-        Err(LeaseError::Expired { at_epoch_seconds: T0 + TTL })
+        Err(LeaseError::Expired {
+            at_epoch_seconds: T0 + TTL
+        })
     );
     assert_eq!(expired.state(T0 + TTL), LeaseState::Expired);
 }
@@ -165,12 +187,18 @@ fn red_absolute_lifetime_ceiling_clamps_and_terminates() {
     assert_eq!(capped.renew(T0 + 250).expect("renew 1"), T0 + 550);
     assert_eq!(capped.renew(T0 + 500).expect("renew 2"), T0 + 800);
     let clamped = capped.renew(T0 + 750).expect("clamped renew");
-    assert_eq!(clamped, T0 + LIFETIME, "expiry clamps to the absolute ceiling");
+    assert_eq!(
+        clamped,
+        T0 + LIFETIME,
+        "expiry clamps to the absolute ceiling"
+    );
 
     // At the ceiling, further renewal is meaningless: fail closed.
     assert_eq!(
         capped.renew(T0 + LIFETIME - 10),
-        Err(LeaseError::MaxLifetimeReached { absolute_expiry_epoch_seconds: T0 + LIFETIME })
+        Err(LeaseError::MaxLifetimeReached {
+            absolute_expiry_epoch_seconds: T0 + LIFETIME
+        })
     );
 
     // And the lease dies on schedule regardless of remaining budget.
@@ -191,17 +219,25 @@ fn revocation_emits_caep_event_exactly_once_and_dominates() {
     assert_eq!(event.revoked_at_epoch_seconds, T0 + 5);
 
     // Idempotent: no duplicate signal, first timestamp wins.
-    assert!(revoked.revoke(T0 + 50, RevocationReason::Administrative).is_none());
+    assert!(
+        revoked
+            .revoke(T0 + 50, RevocationReason::Administrative)
+            .is_none()
+    );
     assert_eq!(
         revoked.assert_live(T0 + 60),
-        Err(LeaseError::Revoked { at_epoch_seconds: T0 + 5 })
+        Err(LeaseError::Revoked {
+            at_epoch_seconds: T0 + 5
+        })
     );
 
     // Dominates expiry and blocks renewal.
     assert_eq!(revoked.state(T0 + TTL + 1), LeaseState::Revoked);
     assert_eq!(
         revoked.renew(T0 + 10),
-        Err(LeaseError::Revoked { at_epoch_seconds: T0 + 5 })
+        Err(LeaseError::Revoked {
+            at_epoch_seconds: T0 + 5
+        })
     );
 }
 
@@ -209,31 +245,52 @@ fn revocation_emits_caep_event_exactly_once_and_dominates() {
 fn debug_redacts_principal_and_secret_reference() {
     let issued = lease();
     let rendered = format!("{issued:?}");
-    assert!(!rendered.contains("wl-api-7f3a"), "principal_id must be redacted: {rendered}");
-    assert!(!rendered.contains("db-creds"), "secret_reference must be redacted: {rendered}");
+    assert!(
+        !rendered.contains("wl-api-7f3a"),
+        "principal_id must be redacted: {rendered}"
+    );
+    assert!(
+        !rendered.contains("db-creds"),
+        "secret_reference must be redacted: {rendered}"
+    );
     assert!(rendered.contains("[REDACTED]"));
-    assert!(rendered.contains("lease/abc123"), "lease id stays visible for correlation");
+    assert!(
+        rendered.contains("lease/abc123"),
+        "lease id stays visible for correlation"
+    );
 }
 
 #[test]
 fn red_validation_gates() {
     let principal = workload_principal();
     assert_eq!(
-        DynamicLease::issue(LeaseId::new("lease/x").unwrap(), " ", &principal, policy(), T0),
+        DynamicLease::issue(
+            LeaseId::new("lease/x").unwrap(),
+            " ",
+            &principal,
+            policy(),
+            T0
+        ),
         Err(LeaseError::InvalidSecretReference)
     );
     assert_eq!(
         LeasePolicy::new(MIN_LEASE_TTL_SECONDS - 1, 0, LIFETIME),
-        Err(LeaseError::TtlOutOfBounds { requested_seconds: MIN_LEASE_TTL_SECONDS - 1 })
+        Err(LeaseError::TtlOutOfBounds {
+            requested_seconds: MIN_LEASE_TTL_SECONDS - 1
+        })
     );
     assert_eq!(
         LeasePolicy::new(MAX_LEASE_TTL_SECONDS + 1, 0, MAX_LEASE_LIFETIME_SECONDS),
-        Err(LeaseError::TtlOutOfBounds { requested_seconds: MAX_LEASE_TTL_SECONDS + 1 })
+        Err(LeaseError::TtlOutOfBounds {
+            requested_seconds: MAX_LEASE_TTL_SECONDS + 1
+        })
     );
     // Lifetime below the TTL or above the platform ceiling: rejected.
     assert_eq!(
         LeasePolicy::new(TTL, 0, TTL - 1),
-        Err(LeaseError::LifetimeOutOfBounds { requested_seconds: TTL - 1 })
+        Err(LeaseError::LifetimeOutOfBounds {
+            requested_seconds: TTL - 1
+        })
     );
     assert_eq!(
         LeasePolicy::new(TTL, 0, MAX_LEASE_LIFETIME_SECONDS + 1),

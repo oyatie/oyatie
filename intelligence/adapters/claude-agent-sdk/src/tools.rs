@@ -1274,7 +1274,7 @@ pub enum AgentOutput {
         total_duration_ms: u64,
         #[serde(rename = "totalTokens")]
         total_tokens: u64,
-        usage: AgentUsage,
+        usage: Box<AgentUsage>,
         prompt: String,
         #[serde(flatten)]
         extra: Map<String, Value>,

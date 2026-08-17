@@ -9,7 +9,7 @@ use oya_shared_audit_digest_adapter_awslc::{
 };
 use oya_shared_audit_event_kernel::{
     AUDIT_PAYLOAD_SCHEMA_VERSION, AuditCloudEvent, AuditLogPayload, AuditStatus, AuditStream,
-    AuthenticationInfo, AuthorizationInfo, Digester, DigestChainError, GENESIS_PREV_LINK_DIGEST,
+    AuthenticationInfo, AuthorizationInfo, DigestChainError, Digester, GENESIS_PREV_LINK_DIGEST,
     RequestMetadata, link_digest_hex, seal_link, verify_chain,
 };
 

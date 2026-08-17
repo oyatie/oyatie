@@ -32,7 +32,9 @@ pub fn matches_golden(receipt: &Receipt) -> bool {
 
 /// Content digest of an emitted region tree (sorted region id + bytes).
 #[must_use]
-pub fn emit_tree_digest(emitted: &std::collections::BTreeMap<port_engine_api::RegionId, Vec<u8>>) -> port_engine_api::Digest {
+pub fn emit_tree_digest(
+    emitted: &std::collections::BTreeMap<port_engine_api::RegionId, Vec<u8>>,
+) -> port_engine_api::Digest {
     let mut preimage = Vec::new();
     for (region, bytes) in emitted {
         preimage.extend_from_slice(region.0.as_bytes());

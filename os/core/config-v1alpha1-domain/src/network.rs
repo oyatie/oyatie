@@ -101,12 +101,14 @@ impl DhcpOptions {
 impl Validator for DhcpOptions {
     fn validate_into(&self, _mode: ValidationMode, report: &mut ValidationReport) {
         if !self.duid_v6.is_empty()
-            && (!self.duid_v6.len().is_multiple_of(2) || !self.duid_v6.bytes().all(|b| b.is_ascii_hexdigit())) {
-                report.push(ValidationError::invalid(
-                    "machine.network.interfaces[].dhcpOptions.duidv6",
-                    "must be an even-length hexadecimal string",
-                ));
-            }
+            && (!self.duid_v6.len().is_multiple_of(2)
+                || !self.duid_v6.bytes().all(|b| b.is_ascii_hexdigit()))
+        {
+            report.push(ValidationError::invalid(
+                "machine.network.interfaces[].dhcpOptions.duidv6",
+                "must be an even-length hexadecimal string",
+            ));
+        }
     }
 }
 
@@ -268,12 +270,13 @@ impl Validator for Device {
         // job of this check; routes/vlans recurse below.
         self.dhcp_options.validate_into(mode, report);
         if let Some(bond) = &self.bond
-            && bond.interfaces.len() < 2 {
-                report.push(ValidationError::invalid(
-                    "machine.network.interfaces[].bond.interfaces",
-                    "a bond requires at least two member interfaces",
-                ));
-            }
+            && bond.interfaces.len() < 2
+        {
+            report.push(ValidationError::invalid(
+                "machine.network.interfaces[].bond.interfaces",
+                "a bond requires at least two member interfaces",
+            ));
+        }
         for r in &self.routes {
             r.validate_into(mode, report);
         }

@@ -21,10 +21,10 @@ use tokio::net::TcpListener;
 use intelligence_account_domain::{
     SecretMaterial, SecretReference, SecretStoreError, SecretStorePort,
 };
+use intelligence_account_kernel::{AuthError, ProviderAuthPort};
 use oya_intelligence_adapter_openai_subscription_adapter::{
     KeyPool, KeyStatus, OpenAiApiKeyPoolAdapter,
 };
-use intelligence_account_kernel::{AuthError, ProviderAuthPort};
 
 // ── Shared secret store ──────────────────────────────────────────────────────
 
@@ -42,15 +42,34 @@ impl TestStore {
 }
 
 impl SecretStorePort for TestStore {
-    fn put(&mut self, sref: &SecretReference, material: SecretMaterial) -> Result<(), SecretStoreError> {
-        self.0.lock().unwrap().insert(sref.clone(), material.expose_for_provider_call().to_vec());
+    fn put(
+        &mut self,
+        sref: &SecretReference,
+        material: SecretMaterial,
+    ) -> Result<(), SecretStoreError> {
+        self.0
+            .lock()
+            .unwrap()
+            .insert(sref.clone(), material.expose_for_provider_call().to_vec());
         Ok(())
     }
     fn get(&self, sref: &SecretReference) -> Result<SecretMaterial, SecretStoreError> {
-        self.0.lock().unwrap().get(sref).map(|v| SecretMaterial::new(v.clone())).ok_or(SecretStoreError::NotFound)
+        self.0
+            .lock()
+            .unwrap()
+            .get(sref)
+            .map(|v| SecretMaterial::new(v.clone()))
+            .ok_or(SecretStoreError::NotFound)
     }
-    fn rotate(&mut self, sref: &SecretReference, new_material: SecretMaterial) -> Result<(), SecretStoreError> {
-        self.0.lock().unwrap().insert(sref.clone(), new_material.expose_for_provider_call().to_vec());
+    fn rotate(
+        &mut self,
+        sref: &SecretReference,
+        new_material: SecretMaterial,
+    ) -> Result<(), SecretStoreError> {
+        self.0.lock().unwrap().insert(
+            sref.clone(),
+            new_material.expose_for_provider_call().to_vec(),
+        );
         Ok(())
     }
     fn delete(&mut self, sref: &SecretReference) -> Result<(), SecretStoreError> {
@@ -144,8 +163,15 @@ async fn mock_server_receives_bearer_header_not_x_api_key() {
     let auth_val = hdrs.iter().find(|(k, _)| k == "authorization").unwrap();
 
     // Should be Bearer, not x-api-key
-    assert!(auth_val.1.starts_with("Bearer "), "header must use Bearer scheme: {}", auth_val.1);
-    assert!(!hdrs.iter().any(|(k, _)| k == "x-api-key"), "must not use x-api-key");
+    assert!(
+        auth_val.1.starts_with("Bearer "),
+        "header must use Bearer scheme: {}",
+        auth_val.1
+    );
+    assert!(
+        !hdrs.iter().any(|(k, _)| k == "x-api-key"),
+        "must not use x-api-key"
+    );
 
     // Simulate the HTTP call using hyper with those headers
     let http_client = Arc::new(
@@ -161,7 +187,9 @@ async fn mock_server_receives_bearer_header_not_x_api_key() {
         req_builder = req_builder.header(k.as_str(), v.as_str());
     }
     let req = req_builder
-        .body(Full::new(Bytes::from(r#"{"model":"gpt-4o","messages":[]}"#)))
+        .body(Full::new(Bytes::from(
+            r#"{"model":"gpt-4o","messages":[]}"#,
+        )))
         .unwrap();
 
     let resp = http_client.request(req).await.unwrap();
@@ -169,8 +197,14 @@ async fn mock_server_receives_bearer_header_not_x_api_key() {
 
     // Verify the server saw Bearer header
     let auth_received = received_auth.lock().unwrap().clone();
-    assert!(auth_received.starts_with("Bearer "), "server received: {auth_received}");
-    assert!(auth_received.contains("sk-test-key-abc"), "server must receive actual key material: {auth_received}");
+    assert!(
+        auth_received.starts_with("Bearer "),
+        "server received: {auth_received}"
+    );
+    assert!(
+        auth_received.contains("sk-test-key-abc"),
+        "server must receive actual key material: {auth_received}"
+    );
 }
 
 #[tokio::test]

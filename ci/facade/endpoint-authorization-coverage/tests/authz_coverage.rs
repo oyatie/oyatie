@@ -103,22 +103,39 @@ fn reference_surfaces_are_recognized_as_covered() {
     // unauthenticated finding (its admin handlers call admin_tenant_allowed; its data-plane POST
     // calls require_data_plane_bearer).
     let rest_observed = surfaces.iter().any(|s| {
-        s.get("file").and_then(Value::as_str).map(|f| f.contains("intelligence/adapters/rest/src/lib.rs")) == Some(true)
+        s.get("file")
+            .and_then(Value::as_str)
+            .map(|f| f.contains("intelligence/adapters/rest/src/lib.rs"))
+            == Some(true)
     });
-    assert!(rest_observed, "intelligence/adapters/rest router surface must be observed");
+    assert!(
+        rest_observed,
+        "intelligence/adapters/rest router surface must be observed"
+    );
 
     // The tenancy lifecycle surface MUST be observed (its authorize() per route covers it).
     let tenancy_observed = surfaces.iter().any(|s| {
-        s.get("file").and_then(Value::as_str).map(|f| f.contains("tenancy/facade/tenant-lifecycle-app/src/lib.rs")) == Some(true)
+        s.get("file")
+            .and_then(Value::as_str)
+            .map(|f| f.contains("tenancy/facade/tenant-lifecycle-app/src/lib.rs"))
+            == Some(true)
     });
-    assert!(tenancy_observed, "tenancy tenant-lifecycle router surface must be observed");
+    assert!(
+        tenancy_observed,
+        "tenancy tenant-lifecycle router surface must be observed"
+    );
 
     // Neither reference surface may be in the frozen baseline (they are GREEN by authz, not by
     // exemption) nor produce a live finding.
     let baseline: Vec<String> = policy
         .get("frozen_unauthenticated_surfaces")
         .and_then(Value::as_array)
-        .map(|a| a.iter().filter_map(Value::as_str).map(str::to_owned).collect())
+        .map(|a| {
+            a.iter()
+                .filter_map(Value::as_str)
+                .map(str::to_owned)
+                .collect()
+        })
         .unwrap_or_default();
     for ref_file in [
         "intelligence/adapters/rest/src/lib.rs",
@@ -176,7 +193,10 @@ fn red_on_synthetic_unauthenticated_router() {
         hit.key,
         "synthetic/unauth.rs#build_router::router[delete /things/{id}; get /healthz; post /things]"
     );
-    assert!(hit.detail.contains("intelligence/adapters/rest"), "remediation points at the doctrine");
+    assert!(
+        hit.detail.contains("intelligence/adapters/rest"),
+        "remediation points at the doctrine"
+    );
     assert_eq!(evaluate(&policy, &observed).verdict, Verdict::Red);
 }
 
@@ -419,28 +439,54 @@ fn second_pass_discovery_bypasses_fail_closed_end_to_end() {
     let observed = collect_surfaces(&base, &policy).expect("collect temp fixtures");
     let findings = evaluate_keyed(&policy, &observed);
     let red = |needle: &str, code: &str| {
-        findings.iter().any(|f| f.code == code && f.key.contains(needle))
+        findings
+            .iter()
+            .any(|f| f.code == code && f.key.contains(needle))
     };
 
-    assert!(red("s1_default.rs", "AC-UNAUTHENTICATED-CONTROL-PLANE"),
-        "BLOCKER-1 Router::default() bypass must be RED: {}", render_findings(&findings));
-    assert!(red("s1_param.rs", "AC-UNAUTHENTICATED-CONTROL-PLANE"),
-        "BLOCKER-2 Router-parameter helper bypass must be RED: {}", render_findings(&findings));
-    assert!(red("s3_after_state.rs", "AC-UNAUTHENTICATED-CONTROL-PLANE"),
-        "BLOCKER-3 route-after-with_state bypass must be RED: {}", render_findings(&findings));
-    assert!(red("s4_layer_substring.rs", "AC-UNAUTHENTICATED-CONTROL-PLANE"),
-        "BLOCKER-4 auth-layer substring must NOT false-cover (must be RED): {}", render_findings(&findings));
-    assert!(red("s5_guard_substring.rs", "AC-UNAUTHENTICATED-CONTROL-PLANE"),
-        "BLOCKER-5 guard substring must NOT false-cover (must be RED): {}", render_findings(&findings));
-    assert!(red("comp_merge.rs", "AC-UNRESOLVED-SUBROUTER"),
-        "unresolved .merge() composition must fail closed: {}", render_findings(&findings));
-    assert!(red("owned_post.rs", "AC-UNAUTHENTICATED-CONTROL-PLANE"),
-        "owned-kernel POST with no guard must be RED: {}", render_findings(&findings));
+    assert!(
+        red("s1_default.rs", "AC-UNAUTHENTICATED-CONTROL-PLANE"),
+        "BLOCKER-1 Router::default() bypass must be RED: {}",
+        render_findings(&findings)
+    );
+    assert!(
+        red("s1_param.rs", "AC-UNAUTHENTICATED-CONTROL-PLANE"),
+        "BLOCKER-2 Router-parameter helper bypass must be RED: {}",
+        render_findings(&findings)
+    );
+    assert!(
+        red("s3_after_state.rs", "AC-UNAUTHENTICATED-CONTROL-PLANE"),
+        "BLOCKER-3 route-after-with_state bypass must be RED: {}",
+        render_findings(&findings)
+    );
+    assert!(
+        red("s4_layer_substring.rs", "AC-UNAUTHENTICATED-CONTROL-PLANE"),
+        "BLOCKER-4 auth-layer substring must NOT false-cover (must be RED): {}",
+        render_findings(&findings)
+    );
+    assert!(
+        red("s5_guard_substring.rs", "AC-UNAUTHENTICATED-CONTROL-PLANE"),
+        "BLOCKER-5 guard substring must NOT false-cover (must be RED): {}",
+        render_findings(&findings)
+    );
+    assert!(
+        red("comp_merge.rs", "AC-UNRESOLVED-SUBROUTER"),
+        "unresolved .merge() composition must fail closed: {}",
+        render_findings(&findings)
+    );
+    assert!(
+        red("owned_post.rs", "AC-UNAUTHENTICATED-CONTROL-PLANE"),
+        "owned-kernel POST with no guard must be RED: {}",
+        render_findings(&findings)
+    );
 
     // MAJOR fix: 3-arg field-path call must fail-CLOSED as AC-UNCLASSIFIED-SURFACE.
-    assert!(red("major_field_path.rs", "AC-UNCLASSIFIED-SURFACE"),
+    assert!(
+        red("major_field_path.rs", "AC-UNCLASSIFIED-SURFACE"),
         "MAJOR fix: .route(method_var, field.path, handler) must fail-CLOSED AC-UNCLASSIFIED-SURFACE \
-         not silently drop: {}", render_findings(&findings));
+         not silently drop: {}",
+        render_findings(&findings)
+    );
 
     // GREEN: neither covered router in green_covered.rs may produce any finding.
     assert!(
@@ -504,8 +550,16 @@ fn widened_scan_root_bites_new_unauth_surface_end_to_end() {
         .map(str::to_owned)
         .collect();
     for added in [
-        "audit", "cell", "compliance", "compute", "data", "network", "observability", "secrets",
-        "storage", "workflow",
+        "audit",
+        "cell",
+        "compliance",
+        "compute",
+        "data",
+        "network",
+        "observability",
+        "secrets",
+        "storage",
+        "workflow",
     ] {
         assert!(
             widened.iter().any(|r| r == added),
@@ -530,7 +584,15 @@ fn widened_scan_root_bites_new_unauth_surface_end_to_end() {
     // unscanned — the gate was GREEN. This is the fail-open the widening closes.
     let mut prewiden = policy.clone();
     prewiden["scan_roots"] = json!([
-        "billing", "cloud", "console", "iac", "iam", "intelligence", "k8s", "libs", "oya",
+        "billing",
+        "cloud",
+        "console",
+        "iac",
+        "iam",
+        "intelligence",
+        "k8s",
+        "libs",
+        "oya",
         "tenancy"
     ]);
     let observed_pre = collect_surfaces(&base, &prewiden).expect("collect pre-widen fixtures");
@@ -544,4 +606,3 @@ fn widened_scan_root_bites_new_unauth_surface_end_to_end() {
 
     let _ = fs::remove_dir_all(&base);
 }
-

@@ -6,6 +6,43 @@ doc_status: published
 
 # Changelog
 
+## 2026-08-17 — Canonical JSON fixed point restored
+
+- Ran the owned canonical-JSON fixer over the three drifted active specs, restoring literal
+  UTF-8 and trailing-newline policy without changing their parsed JSON values.
+
+## 2026-08-17 — Cargo test-resource parity and retired cloud corpus
+
+- Mirrored the product-protocol and reset-eligibility Buck committed-file resources into
+  portable, non-forcing Cargo bindings, with code-owned parity regressions.
+- Removed the deleted `cloud/` root's two stale product-protocol manifest projections and
+  re-froze the measured corpus from 96 to 94 without changing the remaining governed roots.
+
+## 2026-08-17 — ADR-0716 PR-traceability retirement completed
+
+- Removed the stale active `traceability-validator` row, its exact CI-lane
+  mirror, and the phantom run-all command binding left after ADR-0716 deleted
+  the validator and dispatcher.
+- Aligned current contributor, PR-template, checklist, decision-rights, and
+  lane-catalog surfaces with the four-section PR body, independent reviewer
+  approval, and protected `oya-ci-required` context.
+- Added a fail-closed registration test that rejects active, planned, or
+  catalog-only revival of the retired local validator.
+
+## 2026-08-17 — Hook mirror and review-admission boundary corrected
+
+- Removed the retired Cargo-blocking hook from the active-hook mirror and aligned the
+  security guide with ADR-0716's Cargo merge path.
+- Recorded PR #964 as the concrete evidence that repository-local reviewer evidence is
+  not yet a cloud-enforced admission gate while F-PR5-06 remains open.
+
+## 2026-08-17 — Supersession closure and citation ceiling repair
+
+- Corrected the archived cache decision's successor to the accepted Cargo merge-path
+  authority and removed the conflicting successor claim from the older admission apex.
+- Re-froze the citation-closure mismatch and dangling-path ceilings downward to the
+  independently measured live values; no finding ceiling was raised.
+
 ## 2026-08-14 — Cargo merge path + slim PR paperwork (ADR-0716)
 
 - The required CI executes the Cargo workspace graph (`cargo fmt` differential, clippy,

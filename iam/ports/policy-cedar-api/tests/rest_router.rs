@@ -241,9 +241,7 @@ async fn post_publish_with_overrides(
         }
     }
 
-    let request = builder
-        .body(Body::from(body.to_string()))
-        .expect("request");
+    let request = builder.body(Body::from(body.to_string())).expect("request");
     let response = router.oneshot(request).await.expect("response");
     let status = response.status();
     let bytes = response
@@ -326,8 +324,7 @@ async fn publish_path_body_policy_id_mismatch_returns_400() {
     let mut body = valid_body(POLICY_ID, VERSION);
     body["policy_id"] = json!("pol_other");
 
-    let (status, resp_body) =
-        post_publish(fresh_router(), POLICY_ID, VERSION, body).await;
+    let (status, resp_body) = post_publish(fresh_router(), POLICY_ID, VERSION, body).await;
 
     assert_eq!(status, StatusCode::BAD_REQUEST);
     assert_eq!(
@@ -351,10 +348,7 @@ async fn publish_authorization_denied_returns_403() {
     .await;
 
     assert_eq!(status, StatusCode::FORBIDDEN);
-    assert_eq!(
-        resp_body["error"]["code"],
-        "CEDAR_POLICY_PUBLISH_FORBIDDEN"
-    );
+    assert_eq!(resp_body["error"]["code"], "CEDAR_POLICY_PUBLISH_FORBIDDEN");
 }
 
 #[tokio::test]
@@ -402,8 +396,7 @@ async fn publish_reused_idempotency_key_with_changed_body_returns_422() {
     let mut changed_body = valid_body(POLICY_ID, VERSION);
     changed_body["rules"][0]["action"] = json!("tenant.settings.read");
 
-    let (status2, resp_body) =
-        post_publish(router, POLICY_ID, VERSION, changed_body).await;
+    let (status2, resp_body) = post_publish(router, POLICY_ID, VERSION, changed_body).await;
 
     assert_eq!(status2, StatusCode::UNPROCESSABLE_ENTITY);
     assert_eq!(
@@ -417,8 +410,7 @@ async fn publish_invalid_scope_kind_returns_400() {
     let mut body = valid_body(POLICY_ID, VERSION);
     body["scope"]["kind"] = json!("workspace");
 
-    let (status, resp_body) =
-        post_publish(fresh_router(), POLICY_ID, VERSION, body).await;
+    let (status, resp_body) = post_publish(fresh_router(), POLICY_ID, VERSION, body).await;
 
     assert_eq!(status, StatusCode::BAD_REQUEST);
     assert_eq!(
@@ -453,10 +445,7 @@ async fn publish_missing_request_id_header_returns_400() {
     .await;
 
     assert_eq!(status, StatusCode::BAD_REQUEST);
-    assert_eq!(
-        resp_body["error"]["code"],
-        "CEDAR_POLICY_REQUEST_ID_EMPTY"
-    );
+    assert_eq!(resp_body["error"]["code"], "CEDAR_POLICY_REQUEST_ID_EMPTY");
 }
 
 // ── AUTH-005 security tests (task #124 / ADR-0572) ─────────────────────────────
@@ -553,10 +542,7 @@ async fn publish_verified_principal_acting_as_other_tenant_returns_403() {
     .await;
 
     assert_eq!(status, StatusCode::FORBIDDEN);
-    assert_eq!(
-        resp_body["error"]["code"],
-        "CEDAR_POLICY_PUBLISH_FORBIDDEN"
-    );
+    assert_eq!(resp_body["error"]["code"], "CEDAR_POLICY_PUBLISH_FORBIDDEN");
 }
 
 #[tokio::test]
@@ -567,14 +553,10 @@ async fn cross_tenant_publish_attempt_is_denied_by_pdp() {
     let mut body = valid_body(POLICY_ID, VERSION);
     body["scope"] = json!({ "kind": "tenant", "tenant_id": "ten_victim" });
 
-    let (status, resp_body) =
-        post_publish(fresh_router(), POLICY_ID, VERSION, body).await;
+    let (status, resp_body) = post_publish(fresh_router(), POLICY_ID, VERSION, body).await;
 
     assert_eq!(status, StatusCode::FORBIDDEN);
-    assert_eq!(
-        resp_body["error"]["code"],
-        "CEDAR_POLICY_PUBLISH_FORBIDDEN"
-    );
+    assert_eq!(resp_body["error"]["code"], "CEDAR_POLICY_PUBLISH_FORBIDDEN");
 }
 
 #[tokio::test]
@@ -591,70 +573,65 @@ async fn publish_authenticated_but_pdp_denies_returns_403() {
     .await;
 
     assert_eq!(status, StatusCode::FORBIDDEN);
+    assert_eq!(resp_body["error"]["code"], "CEDAR_POLICY_PUBLISH_FORBIDDEN");
+}
+
+#[tokio::test]
+async fn forged_authorization_headers_do_not_affect_recorded_principal() {
+    // Audit-evidence integrity: a caller who presents a valid bearer but forges
+    // x-authorization-principal-id / x-authorization-tenant-id to claim a
+    // different identity must NOT have that forged identity recorded. The
+    // metadata in the 201 response must always reflect the VERIFIED principal,
+    // not the caller-supplied headers.
+    let (status, body) = post_publish_with_overrides(
+        fresh_router(),
+        POLICY_ID,
+        VERSION,
+        valid_body(POLICY_ID, VERSION),
+        &[
+            ("x-authorization-principal-id", "usr_forged_attacker"),
+            ("x-authorization-tenant-id", "ten_forged"),
+        ],
+    )
+    .await;
+
     assert_eq!(
-        resp_body["error"]["code"],
-        "CEDAR_POLICY_PUBLISH_FORBIDDEN"
+        status,
+        StatusCode::CREATED,
+        "a valid bearer with forged authz headers should still publish (bearer is the gate)"
+    );
+    // The recorded principal_id MUST be the verified identity, not the forged header.
+    assert_eq!(
+        body["metadata"]["principal_id"], PRINCIPAL_ID,
+        "metadata.principal_id must be derived from the verified credential, not x-authorization-principal-id"
+    );
+    assert_eq!(
+        body["metadata"]["operator_tenant_id"], TENANT_ID,
+        "metadata.operator_tenant_id must be derived from the verified credential, not x-authorization-tenant-id"
     );
 }
 
-	#[tokio::test]
-	async fn forged_authorization_headers_do_not_affect_recorded_principal() {
-	    // Audit-evidence integrity: a caller who presents a valid bearer but forges
-	    // x-authorization-principal-id / x-authorization-tenant-id to claim a
-	    // different identity must NOT have that forged identity recorded. The
-	    // metadata in the 201 response must always reflect the VERIFIED principal,
-	    // not the caller-supplied headers.
-	    let (status, body) = post_publish_with_overrides(
-	        fresh_router(),
-	        POLICY_ID,
-	        VERSION,
-	        valid_body(POLICY_ID, VERSION),
-	        &[
-	            ("x-authorization-principal-id", "usr_forged_attacker"),
-	            ("x-authorization-tenant-id", "ten_forged"),
-	        ],
-	    )
-	    .await;
+#[tokio::test]
+async fn absent_principal_id_header_returns_403() {
+    // x-principal-id is required by this control plane's header contract.
+    // Absent (empty) x-principal-id → 403: the bearer verified but the caller
+    // did not assert a principal id for cross-checking.
+    let (status, resp_body) = post_publish_with_overrides(
+        fresh_router(),
+        POLICY_ID,
+        VERSION,
+        valid_body(POLICY_ID, VERSION),
+        &[("x-principal-id", "")],
+    )
+    .await;
 
-	    assert_eq!(
-	        status,
-	        StatusCode::CREATED,
-	        "a valid bearer with forged authz headers should still publish (bearer is the gate)"
-	    );
-	    // The recorded principal_id MUST be the verified identity, not the forged header.
-	    assert_eq!(
-	        body["metadata"]["principal_id"],
-	        PRINCIPAL_ID,
-	        "metadata.principal_id must be derived from the verified credential, not x-authorization-principal-id"
-	    );
-	    assert_eq!(
-	        body["metadata"]["operator_tenant_id"],
-	        TENANT_ID,
-	        "metadata.operator_tenant_id must be derived from the verified credential, not x-authorization-tenant-id"
-	    );
-	}
-
-	#[tokio::test]
-	async fn absent_principal_id_header_returns_403() {
-	    // x-principal-id is required by this control plane's header contract.
-	    // Absent (empty) x-principal-id → 403: the bearer verified but the caller
-	    // did not assert a principal id for cross-checking.
-	    let (status, resp_body) = post_publish_with_overrides(
-	        fresh_router(),
-	        POLICY_ID,
-	        VERSION,
-	        valid_body(POLICY_ID, VERSION),
-	        &[("x-principal-id", "")],
-	    )
-	    .await;
-
-	    assert_eq!(
-	        status,
-	        StatusCode::FORBIDDEN,
-	        "absent x-principal-id must be 403 (header is required by this control plane)"
-	    );
-	    assert_eq!(resp_body["error"]["code"], "CEDAR_POLICY_PUBLISH_FORBIDDEN");
-	}
+    assert_eq!(
+        status,
+        StatusCode::FORBIDDEN,
+        "absent x-principal-id must be 403 (header is required by this control plane)"
+    );
+    assert_eq!(resp_body["error"]["code"], "CEDAR_POLICY_PUBLISH_FORBIDDEN");
+}
 
 // ── CRITICAL escalation RED test (task #124 / ADR-0572) ──────────────────────
 //

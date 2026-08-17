@@ -232,7 +232,9 @@ mod tests {
         unauth.policy_decision_ref = String::new();
         assert_eq!(
             add_contact(&unauth, &book, contact_req()),
-            Err(ContactUsecaseError::Api(ContactApiError::MissingPolicyDecision))
+            Err(ContactUsecaseError::Api(
+                ContactApiError::MissingPolicyDecision
+            ))
         );
     }
 

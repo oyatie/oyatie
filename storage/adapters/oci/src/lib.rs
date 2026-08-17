@@ -437,11 +437,11 @@ const fn encryption_label(mode: EncryptionMode) -> &'static str {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use oya_data_boundary_kernel::DataClass;
     use storage_domain::{
         CloudStorageError, ResidencyClass, StorageProviderBlockCreateVolumeRequest,
         VolumePerformance,
     };
-    use oya_data_boundary_kernel::DataClass;
 
     const NAMESPACE: &str = "axdotp9iv3ua";
     const BUCKET: &str = "oyatie-audit-cold-backup";

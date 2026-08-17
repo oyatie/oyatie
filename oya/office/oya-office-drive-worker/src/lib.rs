@@ -239,9 +239,11 @@ mod tests {
                 .iter()
                 .any(|signal| signal.metric_name() == "oya_office_drive_index_lag_seconds")
         );
-        assert!(signals
-            .iter()
-            .any(|signal| signal.metric_name() == "oya_office_drive_poison_file_rate_per_minute"));
+        assert!(
+            signals.iter().any(
+                |signal| signal.metric_name() == "oya_office_drive_poison_file_rate_per_minute"
+            )
+        );
         assert_eq!(
             super::DriveWorkerScalingContract::production_baseline().max_replicas(),
             50

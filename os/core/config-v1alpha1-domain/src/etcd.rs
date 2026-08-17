@@ -75,12 +75,13 @@ impl Validator for EtcdConfig {
             }
         }
         if let Some(q) = self.quota_backend_bytes
-            && q <= 0 {
-                report.push(ValidationError::invalid(
-                    "cluster.etcd.quotaBackendBytes",
-                    "must be positive",
-                ));
-            }
+            && q <= 0
+        {
+            report.push(ValidationError::invalid(
+                "cluster.etcd.quotaBackendBytes",
+                "must be positive",
+            ));
+        }
     }
 }
 

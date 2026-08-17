@@ -8,8 +8,8 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use oya_data_boundary_kernel::{
-    is_hard_denied_classification, parse_data_class_label, parse_purpose_pascal_label,
-    ConsentScope, PrivacyDataClass, Purpose,
+    ConsentScope, PrivacyDataClass, Purpose, is_hard_denied_classification, parse_data_class_label,
+    parse_purpose_pascal_label,
 };
 
 const FOUNDRY_RAG_RETRIEVE_SCHEMA_VERSION: u32 = 1;
@@ -589,7 +589,10 @@ impl FoundryRagRetrieveApiError {
                     "principal `{principal_tenant_id}/{principal_id}` did not match authorization `{authorization_tenant_id}/{authorization_principal_id}`"
                 ),
             }],
-            Self::AuthorizationSurfaceDenied { decision_id, surface } => {
+            Self::AuthorizationSurfaceDenied {
+                decision_id,
+                surface,
+            } => {
                 vec![FoundryRagRetrieveApiErrorDetail {
                     field: "authorization.allowed_surfaces".to_string(),
                     issue: format!("decision `{decision_id}` did not allow `{surface}`"),
@@ -607,13 +610,19 @@ impl FoundryRagRetrieveApiError {
                 field: "data_class".to_string(),
                 issue: format!("`{data_class}` is not a privacy-program data class"),
             }],
-            Self::DataClassHardDenied { purpose, data_class } => {
+            Self::DataClassHardDenied {
+                purpose,
+                data_class,
+            } => {
                 vec![FoundryRagRetrieveApiErrorDetail {
                     field: "allowed_data_classes".to_string(),
                     issue: format!("`{data_class}` is hard-denied for `{purpose}`"),
                 }]
             }
-            Self::MissingConsentReceipt { purpose, data_class } => {
+            Self::MissingConsentReceipt {
+                purpose,
+                data_class,
+            } => {
                 vec![FoundryRagRetrieveApiErrorDetail {
                     field: "consent_receipts".to_string(),
                     issue: format!("`{data_class}` needs a consent receipt for `{purpose}`"),
