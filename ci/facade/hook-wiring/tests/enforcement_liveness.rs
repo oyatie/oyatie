@@ -7,6 +7,7 @@ use std::collections::BTreeSet;
 use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
 use std::process::Command;
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use ci_hook_wiring::{Verdict, evaluate, evaluate_keyed};
@@ -19,6 +20,7 @@ const HOOKS_DIR_ENV: &str = "OYA_CI_ENFORCEMENT_LIVENESS_HOOKS_DIR";
 const BUCK: &str = include_str!("../BUCK");
 const CARGO_CONFIG: &str = include_str!("../../../../.cargo/config.toml");
 const CARGO_PRODUCER_BINDING: &str = "cargo-test-binary:oya-cloud-ci-accounting-registry-app";
+static TEMP_SEQUENCE: AtomicU64 = AtomicU64::new(0);
 
 struct DeclaredCorpus {
     claude_settings: PathBuf,
@@ -167,14 +169,7 @@ fn declared_dir(env: &str) -> PathBuf {
 }
 
 fn synthetic_declared_corpus() -> (PathBuf, DeclaredCorpus) {
-    let nonce = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .expect("system time before unix epoch")
-        .as_nanos();
-    let root = std::env::temp_dir().join(format!(
-        "oya-enforcement-liveness-declared-corpus-{}-{nonce}",
-        std::process::id()
-    ));
+    let root = unique_temp_path("oya-enforcement-liveness-declared-corpus");
     let hooks_dir = root.join("hooks");
     std::fs::create_dir_all(&hooks_dir).expect("create synthetic hooks dir");
 
@@ -207,14 +202,7 @@ fn synthetic_declared_corpus() -> (PathBuf, DeclaredCorpus) {
 }
 
 fn write_enforcement_scm_facts(tracked_paths: Vec<String>) -> (PathBuf, PathBuf) {
-    let nonce = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .expect("system time before unix epoch")
-        .as_nanos();
-    let dir = std::env::temp_dir().join(format!(
-        "oya-enforcement-liveness-scm-facts-{}-{nonce}",
-        std::process::id()
-    ));
+    let dir = unique_temp_path("oya-enforcement-liveness-scm-facts");
     std::fs::create_dir_all(&dir).expect("create temp scm facts dir");
     let path = dir.join("scm-facts.json");
     std::fs::write(
@@ -228,6 +216,15 @@ fn write_enforcement_scm_facts(tracked_paths: Vec<String>) -> (PathBuf, PathBuf)
     )
     .expect("write current enforcement scm facts");
     (dir, path)
+}
+
+fn unique_temp_path(label: &str) -> PathBuf {
+    let nonce = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .expect("system time before unix epoch")
+        .as_nanos();
+    let sequence = TEMP_SEQUENCE.fetch_add(1, Ordering::Relaxed);
+    std::env::temp_dir().join(format!("{label}-{}-{nonce}-{sequence}", std::process::id()))
 }
 
 fn current_enforcement_tracked_paths(corpus: &DeclaredCorpus) -> Vec<String> {
