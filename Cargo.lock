@@ -1739,6 +1739,7 @@ dependencies = [
 name = "ci-hook-wiring"
 version = "0.1.0"
 dependencies = [
+ "ci-path-resolver-adapters",
  "serde_json",
 ]
 

@@ -37,6 +37,7 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         ":ci-hook-wiring",
+        "//ci/adapters/path-resolver:ci-path-resolver-adapters",
         "third-party//:serde_json",
     ],
 )
