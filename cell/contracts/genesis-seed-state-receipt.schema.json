@@ -1,0 +1,939 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.com/schemas/genesis-seed-state-receipt.schema.json",
+  "title": "GenesisSeedStateReceipt",
+  "description": "Fail-closed, time-bounded observation of a Genesis/DR seed. A receipt records what was observed without granting mutation authority or asserting current health after its freshness window.",
+  "version": "1.0.0",
+  "_meta": {
+    "doc_class": "Machine-Readable-Schema",
+    "status": "source-authored",
+    "purpose": "Make Genesis/DR seed observations portable, redacted, reviewable, and incapable of silently becoming live-state authority.",
+    "binding_authority": "/specs/substrate-dependency-dag.json#dependency_units[id=cell.genesis]",
+    "related_contracts": [
+      "/specs/root-of-trust-ceremony-contract.json",
+      "/specs/deployment-ops-contract.json"
+    ],
+    "enforcement_status": "JSON Schema validation is required; a dedicated Rust collector and freshness gate are not implemented.",
+    "versioning_policy": "Additive changes remain in major version 1; removing, renaming, or weakening a required field requires a major version.",
+    "deprecation_policy": "A receipt is immutable. Supersession creates a new receipt and references the predecessor; it never edits observed facts in place.",
+    "engineering_rigor": {
+      "maintainability": "Closed fields, immutable instances, and explicit supersession prevent ambiguous edits.",
+      "observability": "Every observation carries time, source class, result, and freshness.",
+      "scalability": "Receipts are per seed and append-only; no global mutable singleton is required.",
+      "performance": "Validation is bounded by the size limits in this schema and is outside serving paths.",
+      "optimization": "Only normalized facts and digests are retained; raw provider and secret-bearing payloads are excluded.",
+      "code_quality": "Syntax, schema-instance, secret-scan, and independent-review gates are required before publication."
+    }
+  },
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schema_version",
+    "receipt_id",
+    "logical_seed_id",
+    "role",
+    "captured_at",
+    "fresh_until",
+    "freshness_state",
+    "source_commit",
+    "claim_ceiling",
+    "provider_binding",
+    "bootstrap_automation",
+    "observations",
+    "recovery_artifacts",
+    "gate_status",
+    "failure_modes",
+    "redaction",
+    "integrity",
+    "references"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "const": "../contracts/genesis-seed-state-receipt.schema.json",
+      "description": "Repository-relative schema reference used by offline validators.",
+      "oyatie.data_class": "PUBLIC"
+    },
+    "schema_version": {
+      "type": "string",
+      "const": "1.0.0",
+      "description": "Version of this receipt contract.",
+      "oyatie.data_class": "PUBLIC"
+    },
+    "receipt_id": {
+      "type": "string",
+      "pattern": "^genesis-seed-[a-z0-9-]+-[0-9]{8}t[0-9]{6}z$",
+      "description": "Immutable receipt identity containing logical seed and UTC capture time.",
+      "oyatie.data_class": "INTERNAL_ONLY"
+    },
+    "logical_seed_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]{2,63}$",
+      "description": "Provider-neutral logical identity for the Genesis/DR seed.",
+      "oyatie.data_class": "INTERNAL_ONLY"
+    },
+    "role": {
+      "type": "string",
+      "const": "genesis_dr",
+      "description": "The seed is a normally quiescent Genesis/DR authority, not fleet management or a serving cell.",
+      "oyatie.data_class": "PUBLIC"
+    },
+    "captured_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "UTC time at which the final observation in this receipt was captured.",
+      "oyatie.data_class": "INTERNAL_ONLY"
+    },
+    "fresh_until": {
+      "type": "string",
+      "format": "date-time",
+      "description": "UTC time after which the receipt cannot support a current-state claim without re-observation.",
+      "oyatie.data_class": "INTERNAL_ONLY"
+    },
+    "freshness_state": {
+      "type": "string",
+      "enum": [
+        "current",
+        "refresh_required",
+        "expired"
+      ],
+      "$comment": "A semantic validator must compare current time, captured_at, observed_at, and fresh_until; JSON Schema alone cannot evaluate wall-clock freshness.",
+      "description": "Whether the observation may be used as current state.",
+      "oyatie.data_class": "INTERNAL_ONLY"
+    },
+    "source_commit": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$",
+      "description": "Repository commit against which the observation was interpreted.",
+      "oyatie.data_class": "INTERNAL_ONLY"
+    },
+    "supersedes_receipt_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Prior immutable receipt replaced by this one, or null for the first receipt.",
+      "oyatie.data_class": "INTERNAL_ONLY"
+    },
+    "claim_ceiling": {
+      "$ref": "#/$defs/claimCeiling",
+      "oyatie.data_class": "INTERNAL_ONLY"
+    },
+    "provider_binding": {
+      "$ref": "#/$defs/providerBinding",
+      "oyatie.data_class": "INTERNAL_ONLY"
+    },
+    "bootstrap_automation": {
+      "$ref": "#/$defs/bootstrapAutomation",
+      "oyatie.data_class": "INTERNAL_ONLY"
+    },
+    "observations": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 32,
+      "description": "Normalized component observations with no raw provider response or credential material.",
+      "items": {
+        "$ref": "#/$defs/observation"
+      },
+      "oyatie.data_class": "INTERNAL_ONLY"
+    },
+    "recovery_artifacts": {
+      "type": "array",
+      "maxItems": 16,
+      "description": "Digest-only recovery artifact inventory; storage paths and decryption material are excluded.",
+      "items": {
+        "$ref": "#/$defs/recoveryArtifact"
+      },
+      "oyatie.data_class": "INTERNAL_ONLY"
+    },
+    "gate_status": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 32,
+      "description": "Ordered readiness gates and their observed status.",
+      "items": {
+        "$ref": "#/$defs/gate"
+      },
+      "oyatie.data_class": "INTERNAL_ONLY"
+    },
+    "failure_modes": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 32,
+      "description": "Named failure conditions that invalidate completion or require recovery.",
+      "items": {
+        "$ref": "#/$defs/failureMode"
+      },
+      "oyatie.data_class": "INTERNAL_ONLY"
+    },
+    "redaction": {
+      "$ref": "#/$defs/redaction",
+      "oyatie.data_class": "INTERNAL_ONLY"
+    },
+    "integrity": {
+      "$ref": "#/$defs/integrity",
+      "oyatie.data_class": "INTERNAL_ONLY"
+    },
+    "references": {
+      "$ref": "#/$defs/references",
+      "oyatie.data_class": "INTERNAL_ONLY"
+    }
+  },
+  "$defs": {
+    "claimCeiling": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "observation_only",
+        "mutation_authority",
+        "completion_claim",
+        "can_claim",
+        "cannot_claim"
+      ],
+      "properties": {
+        "observation_only": {
+          "type": "boolean",
+          "const": true,
+          "description": "The artifact records observations only.",
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "mutation_authority": {
+          "type": "boolean",
+          "const": false,
+          "description": "The receipt never authorizes a provider, cluster, identity, or secret mutation.",
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "completion_claim": {
+          "type": "boolean",
+          "const": false,
+          "description": "A seed cannot be declared complete by this partial receipt.",
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "can_claim": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 32,
+          "items": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 300
+          },
+          "description": "Bounded claims directly supported by the observation window.",
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "cannot_claim": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 32,
+          "items": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 300
+          },
+          "description": "Claims explicitly withheld because evidence or implementation is absent.",
+          "oyatie.data_class": "INTERNAL_ONLY"
+        }
+      }
+    },
+    "providerBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "binding_ref",
+        "substrate_class",
+        "adapter_evidence_state",
+        "adapter_receipt_sha256",
+        "placement_scope",
+        "resource_class",
+        "architecture",
+        "virtualization_class",
+        "protected_from_termination"
+      ],
+      "properties": {
+        "binding_ref": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]{2,127}$",
+          "description": "Opaque adapter-owned reference that does not expose a provider identifier.",
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "substrate_class": {
+          "type": "string",
+          "enum": [
+            "public_cloud",
+            "owned_cloud",
+            "virtualization",
+            "bare_metal"
+          ],
+          "description": "Provider-neutral substrate class; the concrete adapter and provider remain in adapter-owned evidence.",
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "adapter_evidence_state": {
+          "type": "string",
+          "enum": [
+            "digest_bound",
+            "observed_unpersisted",
+            "absent"
+          ],
+          "description": "Whether an adapter-owned provider receipt is cryptographically bound without embedding provider data here.",
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "adapter_receipt_sha256": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[0-9a-f]{64}$",
+          "description": "Digest of the redacted adapter-owned receipt when persisted, otherwise null.",
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "placement_scope": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]{1,63}$",
+          "description": "Provider-neutral jurisdiction or logical placement scope.",
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "resource_class": {
+          "type": "string",
+          "pattern": "^[a-z0-9-]+$",
+          "description": "Normalized resource class rather than a provider SKU.",
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "architecture": {
+          "type": "string",
+          "enum": [
+            "arm64",
+            "amd64",
+            "riscv64"
+          ],
+          "description": "Observed processor architecture.",
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "virtualization_class": {
+          "type": "string",
+          "enum": [
+            "virtual_machine",
+            "bare_metal",
+            "nested_virtualization"
+          ],
+          "description": "Observed execution substrate; a node OS metal platform mode does not imply physical bare metal.",
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "protected_from_termination": {
+          "type": "boolean",
+          "const": true,
+          "description": "The operator contract forbids terminating the protected seed instance.",
+          "oyatie.data_class": "INTERNAL_ONLY"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "adapter_evidence_state": {
+                "const": "digest_bound",
+                "oyatie.data_class": "INTERNAL_ONLY"
+              }
+            },
+            "required": [
+              "adapter_evidence_state"
+            ]
+          },
+          "then": {
+            "properties": {
+              "adapter_receipt_sha256": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$",
+                "oyatie.data_class": "INTERNAL_ONLY"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "adapter_receipt_sha256": {
+                "type": "null",
+                "oyatie.data_class": "INTERNAL_ONLY"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "bootstrapAutomation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contract_ref",
+        "template_revision",
+        "template_sha256",
+        "implementation_state",
+        "execution_mode",
+        "operation",
+        "result",
+        "last_completed_phase",
+        "resume_from_phase",
+        "idempotency_test",
+        "resume_test",
+        "receipt_chain"
+      ],
+      "properties": {
+        "contract_ref": {
+          "type": "string",
+          "const": "../runbooks/recover-genesis-seed.json",
+          "description": "Machine-readable single-bootstrap and recovery contract interpreted for this receipt.",
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "template_revision": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^v[0-9]+$",
+          "description": "Version of the provider-neutral BootstrapIntent, or null before a template exists.",
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "template_sha256": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[0-9a-f]{64}$",
+          "description": "Digest of the exact BootstrapIntent instance, or null before materialization.",
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "implementation_state": {
+          "type": "string",
+          "enum": [
+            "not_implemented",
+            "simulation_only",
+            "canary",
+            "qualified"
+          ],
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "execution_mode": {
+          "type": "string",
+          "enum": [
+            "none",
+            "adopt",
+            "reconcile",
+            "recover",
+            "quiesce"
+          ],
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "operation": {
+          "type": "string",
+          "enum": [
+            "none",
+            "plan",
+            "reconcile",
+            "resume",
+            "verify",
+            "rollback",
+            "quiesce"
+          ],
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "result": {
+          "type": "string",
+          "enum": [
+            "not_observed",
+            "not_implemented",
+            "pass",
+            "fail",
+            "blocked"
+          ],
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "last_completed_phase": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[a-z][a-z0-9_]+$",
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "resume_from_phase": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[a-z][a-z0-9_]+$",
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "idempotency_test": {
+          "type": "string",
+          "enum": [
+            "not_run",
+            "pass",
+            "fail"
+          ],
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "resume_test": {
+          "type": "string",
+          "enum": [
+            "not_run",
+            "pass",
+            "fail"
+          ],
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "receipt_chain": {
+          "type": "string",
+          "enum": [
+            "absent",
+            "partial",
+            "complete"
+          ],
+          "oyatie.data_class": "INTERNAL_ONLY"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "implementation_state": {
+                "const": "not_implemented",
+                "oyatie.data_class": "INTERNAL_ONLY"
+              }
+            },
+            "required": [
+              "implementation_state"
+            ]
+          },
+          "then": {
+            "properties": {
+              "template_revision": {
+                "type": "null",
+                "oyatie.data_class": "INTERNAL_ONLY"
+              },
+              "template_sha256": {
+                "type": "null",
+                "oyatie.data_class": "INTERNAL_ONLY"
+              },
+              "execution_mode": {
+                "const": "none",
+                "oyatie.data_class": "INTERNAL_ONLY"
+              },
+              "operation": {
+                "const": "none",
+                "oyatie.data_class": "INTERNAL_ONLY"
+              },
+              "result": {
+                "const": "not_implemented",
+                "oyatie.data_class": "INTERNAL_ONLY"
+              },
+              "last_completed_phase": {
+                "type": "null",
+                "oyatie.data_class": "INTERNAL_ONLY"
+              },
+              "resume_from_phase": {
+                "type": "null",
+                "oyatie.data_class": "INTERNAL_ONLY"
+              },
+              "idempotency_test": {
+                "const": "not_run",
+                "oyatie.data_class": "INTERNAL_ONLY"
+              },
+              "resume_test": {
+                "const": "not_run",
+                "oyatie.data_class": "INTERNAL_ONLY"
+              },
+              "receipt_chain": {
+                "const": "absent",
+                "oyatie.data_class": "INTERNAL_ONLY"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "component",
+        "state",
+        "observed_at",
+        "source_class",
+        "summary"
+      ],
+      "properties": {
+        "component": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9.-]+$",
+          "description": "Stable component identity.",
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "state": {
+          "type": "string",
+          "enum": [
+            "healthy",
+            "ready",
+            "absent",
+            "partial",
+            "blocked",
+            "unknown",
+            "protected"
+          ],
+          "description": "Normalized state during the observation window.",
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "observed_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "UTC observation time.",
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "source_class": {
+          "type": "string",
+          "enum": [
+            "provider_read",
+            "talos_api",
+            "kubernetes_api",
+            "network_probe",
+            "artifact_digest",
+            "repository_audit"
+          ],
+          "description": "Class of read-only source used.",
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "version": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 80,
+          "description": "Observed version where applicable.",
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 500,
+          "description": "Redacted factual result without raw output.",
+          "oyatie.data_class": "INTERNAL_ONLY"
+        }
+      }
+    },
+    "recoveryArtifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "artifact_id",
+        "kind",
+        "sha256",
+        "size_bytes",
+        "encrypted",
+        "off_seed",
+        "readback_verified",
+        "parent_artifact_id"
+      ],
+      "properties": {
+        "artifact_id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]+$",
+          "description": "Non-location-bearing artifact identifier.",
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "encrypted_recovery_bundle",
+            "etcd_snapshot",
+            "configuration_digest",
+            "render_digest"
+          ],
+          "description": "Recovery artifact class.",
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$",
+          "description": "SHA-256 digest of the exact artifact bytes.",
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "size_bytes": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Exact byte length used with the digest to detect truncation.",
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "encrypted": {
+          "type": "boolean",
+          "description": "Whether the artifact is protected by an outer encryption envelope.",
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "off_seed": {
+          "type": "boolean",
+          "description": "Whether a copy was observed outside the seed failure domain.",
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "readback_verified": {
+          "type": "boolean",
+          "description": "Whether a readback digest matched the recorded digest.",
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "parent_artifact_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[a-z][a-z0-9-]+$",
+          "description": "Encrypted parent artifact that contains this payload, or null for a top-level artifact.",
+          "oyatie.data_class": "INTERNAL_ONLY"
+        }
+      }
+    },
+    "gate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "gate_id",
+        "state",
+        "summary"
+      ],
+      "properties": {
+        "gate_id": {
+          "type": "string",
+          "pattern": "^[a-z0-9.-]+$",
+          "description": "Stable readiness gate identity.",
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "state": {
+          "type": "string",
+          "enum": [
+            "pass",
+            "fail",
+            "blocked",
+            "not_started"
+          ],
+          "description": "Gate result at capture time.",
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 400,
+          "description": "Reason for the gate state.",
+          "oyatie.data_class": "INTERNAL_ONLY"
+        }
+      }
+    },
+    "failureMode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "detection",
+        "required_response"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]+$",
+          "description": "Stable failure-mode identifier.",
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "detection": {
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 400,
+          "description": "Observable condition that identifies the failure.",
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "required_response": {
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 500,
+          "description": "Fail-closed operator or controller response.",
+          "oyatie.data_class": "INTERNAL_ONLY"
+        }
+      }
+    },
+    "redaction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "secret_values_excluded",
+        "provider_identifiers_excluded",
+        "network_addresses_excluded",
+        "excluded_classes"
+      ],
+      "properties": {
+        "secret_values_excluded": {
+          "type": "boolean",
+          "const": true,
+          "description": "No secret value may appear in a receipt.",
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "provider_identifiers_excluded": {
+          "type": "boolean",
+          "const": true,
+          "description": "Raw provider identifiers are excluded in favor of opaque binding references.",
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "network_addresses_excluded": {
+          "type": "boolean",
+          "const": true,
+          "description": "IP addresses, CIDRs, and network resource identifiers are excluded.",
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "excluded_classes": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "credentials",
+              "private_keys",
+              "tokens",
+              "certificates",
+              "machine_configs",
+              "kubeconfigs",
+              "recovery_shares",
+              "provider_responses",
+              "signed_urls",
+              "local_custody_paths",
+              "raw_logs"
+            ]
+          },
+          "description": "Closed list of sensitive data classes omitted from the receipt.",
+          "oyatie.data_class": "INTERNAL_ONLY"
+        }
+      }
+    },
+    "integrity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_validated",
+        "secret_scan",
+        "independent_review",
+        "signed_commit",
+        "publication_boundary",
+        "digest_binding",
+        "remote_readback"
+      ],
+      "properties": {
+        "schema_validated": {
+          "type": "boolean",
+          "description": "Whether the instance passed this schema.",
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "secret_scan": {
+          "type": "string",
+          "enum": [
+            "pass",
+            "pending",
+            "fail"
+          ],
+          "description": "Result of scanning the published artifact set for forbidden material.",
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "independent_review": {
+          "type": "string",
+          "enum": [
+            "approved",
+            "pending",
+            "changes_requested"
+          ],
+          "description": "Independent review state; observation is not approval.",
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "signed_commit": {
+          "type": "string",
+          "enum": [
+            "verified",
+            "pending",
+            "invalid"
+          ],
+          "description": "Remote commit signature state.",
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "publication_boundary": {
+          "type": "string",
+          "const": "private_operational_evidence",
+          "description": "The operational receipt is stored only in a verified private evidence boundary, never the public source repository.",
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "digest_binding": {
+          "type": "string",
+          "enum": [
+            "pending",
+            "content_addressed_remote_path",
+            "signed_commit",
+            "both"
+          ],
+          "description": "Independent immutability mechanism used for this receipt.",
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "remote_readback": {
+          "type": "string",
+          "enum": [
+            "pending",
+            "pass",
+            "fail"
+          ],
+          "description": "Whether independently fetched remote bytes matched the content-addressed receipt digest.",
+          "oyatie.data_class": "INTERNAL_ONLY"
+        }
+      }
+    },
+    "references": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "owning_bead",
+        "parent_gate",
+        "accepted_authority_refs",
+        "non_authoritative_design_refs",
+        "runbook_ref"
+      ],
+      "properties": {
+        "owning_bead": {
+          "type": "string",
+          "pattern": "^oyatie-[a-z0-9]+(\\.[0-9]+)+$",
+          "description": "Beads work item that owns publication of this receipt.",
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "parent_gate": {
+          "type": "string",
+          "pattern": "^oyatie-[a-z0-9]+(\\.[0-9]+)*$",
+          "description": "Parent ordered gate that consumes this receipt.",
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "accepted_authority_refs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 16,
+          "items": {
+            "type": "string",
+            "pattern": "^/"
+          },
+          "description": "Repository-absolute accepted authority pointers used to interpret the receipt.",
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "non_authoritative_design_refs": {
+          "type": "array",
+          "maxItems": 16,
+          "items": {
+            "type": "string",
+            "pattern": "^/"
+          },
+          "description": "Design or transitional context that cannot override accepted authority or current user direction.",
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "runbook_ref": {
+          "type": "string",
+          "const": "../runbooks/recover-genesis-seed.json",
+          "description": "Recovery runbook paired with this receipt.",
+          "oyatie.data_class": "INTERNAL_ONLY"
+        }
+      }
+    }
+  }
+}
