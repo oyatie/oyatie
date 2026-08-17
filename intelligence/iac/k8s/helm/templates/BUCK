@@ -10,3 +10,13 @@ export_file(
     name = "externalsecret.yaml",
     visibility = ["PUBLIC"],
 )
+
+# Index this package's YAML into the corpus liveness graph (ADR-0541). Declaring the BUCK file
+# above made this a package that OWNS YAML, so it owes the corpus an extraction target; without
+# it the corpus-index-coverage ratchet counts a new unindexed YAML owner.
+genrule(
+    name = "corpus-yaml-facts",
+    srcs = glob(["**/*.yaml", "**/*.yml"]),
+    out = "yaml-facts.json",
+    cmd = "$(exe //governance/corpus/extract:yaml-facts) --target root//intelligence/iac/k8s/helm/templates:corpus-yaml-facts --prefix intelligence/iac/k8s/helm/templates --out $OUT $SRCS",
+)
