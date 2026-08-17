@@ -418,7 +418,7 @@ pub const LANE_INPUT_GLOBS: &[(&str, LaneInputs)] = &[
     (
         "architecture-boundaries",
         LaneInputs::Globs(&[
-            "docs/decisions/**",
+            "docs/decisions/**", "docs/adr-archive/**",
             "crates/**",
             "microservices/**",
             "specs/**",
@@ -426,19 +426,19 @@ pub const LANE_INPUT_GLOBS: &[(&str, LaneInputs)] = &[
     ),
     (
         "adr-citation",
-        LaneInputs::Globs(&["docs/decisions/**", "crates/**", "microservices/**"]),
+        LaneInputs::Globs(&["docs/decisions/**", "docs/adr-archive/**", "crates/**", "microservices/**"]),
     ),
     (
         "adr-supersession-consistency",
-        LaneInputs::Globs(&["docs/decisions/**"]),
+        LaneInputs::Globs(&["docs/decisions/**", "docs/adr-archive/**"]),
     ),
     (
         "adr-planning-completeness",
-        LaneInputs::Globs(&["docs/decisions/**", "specs/**"]),
+        LaneInputs::Globs(&["docs/decisions/**", "docs/adr-archive/**", "specs/**"]),
     ),
     (
         "masterplan-drift",
-        LaneInputs::Globs(&["docs/decisions/**", "specs/**"]),
+        LaneInputs::Globs(&["docs/decisions/**", "docs/adr-archive/**", "specs/**"]),
     ),
     // ── Supply-chain / licensing ─────────────────────────────────────────────
     ("supply-chain", LaneInputs::Global),
@@ -579,11 +579,11 @@ pub const LANE_INPUT_GLOBS: &[(&str, LaneInputs)] = &[
     // ── Microservice / hyperscaler patterns ──────────────────────────────────
     (
         "hyperscaler-arch-invariants",
-        LaneInputs::Globs(&["crates/**", "microservices/**", "docs/decisions/**"]),
+        LaneInputs::Globs(&["crates/**", "microservices/**", "docs/decisions/**", "docs/adr-archive/**"]),
     ),
     (
         "hyperscaler-maturity-claims",
-        LaneInputs::Globs(&["crates/**", "microservices/**", "docs/decisions/**"]),
+        LaneInputs::Globs(&["crates/**", "microservices/**", "docs/decisions/**", "docs/adr-archive/**"]),
     ),
     (
         "platform-substrate-defaults",
@@ -644,11 +644,11 @@ pub const LANE_INPUT_GLOBS: &[(&str, LaneInputs)] = &[
     ),
     (
         "authority-cohesion",
-        LaneInputs::Globs(&["docs/decisions/**", "crates/**", "microservices/**"]),
+        LaneInputs::Globs(&["docs/decisions/**", "docs/adr-archive/**", "crates/**", "microservices/**"]),
     ),
     (
         "claim-ceiling",
-        LaneInputs::Globs(&["crates/**", "microservices/**", "docs/decisions/**"]),
+        LaneInputs::Globs(&["crates/**", "microservices/**", "docs/decisions/**", "docs/adr-archive/**"]),
     ),
     (
         "codeview-read-surface",
@@ -700,7 +700,7 @@ pub const LANE_INPUT_GLOBS: &[(&str, LaneInputs)] = &[
     ("stage0-prereqs", LaneInputs::Global),
     (
         "master-plan-completion",
-        LaneInputs::Globs(&["docs/decisions/**", "specs/**"]),
+        LaneInputs::Globs(&["docs/decisions/**", "docs/adr-archive/**", "specs/**"]),
     ),
     (
         "product-index",
