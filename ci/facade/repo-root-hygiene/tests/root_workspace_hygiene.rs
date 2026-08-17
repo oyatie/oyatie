@@ -18,7 +18,8 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use ci_repo_root_hygiene::{
-    Verdict, corpus_class_counts, evaluate, evaluate_keyed, evaluate_talos_machine_config_documents,
+    Verdict, corpus_class_counts, corpus_class_raise_matches_reviewed_record, evaluate,
+    evaluate_keyed, evaluate_talos_machine_config_documents,
 };
 use serde_json::{Value, json};
 
@@ -419,7 +420,9 @@ fn live_policy_findings_carry_concrete_remediation() {
 /// breaking shrink-only. This live test loads the protected policy from the
 /// merge-base (origin/dev) and fails when the tree has shrunk below the protected
 /// ceiling while the candidate ceiling still sits above the live count (including
-/// partial drops). Absent a protected corpus_budget block (this PR is the first to
+/// partial drops). A deliberate increase must equal the live count and carry an
+/// exact, attributed candidate DATA record; that record is not external review
+/// approval. Absent a protected corpus_budget block (this PR is the first to
 /// introduce it), the check is a no-op.
 #[test]
 fn corpus_budget_reductions_must_lower_the_frozen_ceiling() {
@@ -470,11 +473,17 @@ fn corpus_budget_reductions_must_lower_the_frozen_ceiling() {
         let candidate = frozen
             .as_u64()
             .expect("candidate ceiling must be an integer");
-        assert!(
-            candidate <= protected,
-            "corpus_budget.counts.{class} grew from {protected} to {candidate} without review; budgets are shrink-only"
-        );
         let observed_count = observed_counts.get(class).copied().unwrap_or(0) as u64;
+        if candidate > protected {
+            assert!(
+                corpus_class_raise_matches_reviewed_record(&policy, class, protected, candidate,),
+                "corpus_budget.counts.{class} grew from {protected} to {candidate} without an exact, attributed corpus_budget.reviewed_raises.{class} DATA record"
+            );
+            assert_eq!(
+                candidate, observed_count,
+                "candidate corpus raise for {class} must equal the live count; pre-allocating growth headroom is forbidden"
+            );
+        }
         if ci_repo_root_hygiene::corpus_class_reduction_leaves_headroom(
             protected,
             candidate,

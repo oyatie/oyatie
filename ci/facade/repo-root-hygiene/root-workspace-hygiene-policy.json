@@ -312,7 +312,7 @@
   },
   "schema_version": "1.2.0",
   "corpus_budget": {
-    "$comment": "Shrink-only sprawl ratchet (ADR-0717). Class match rules are DATA (prefixes + optional suffixes); ceilings are frozen counts over the tracked-path inventory. Growth past a frozen ceiling is born-blocking with a one-in-one-out remediation; a deliberate budget change is a reviewed DATA edit here. Ceilings are set to the measured post-wave-2 dev corpus (origin/dev 35cc96f54): evidence 52, planning 11, docs md 1433, live ADRs 18 (ADR-0716 + ADR-0717 included).",
+    "$comment": "Shrink-only sprawl ratchet (ADR-0717). Class match rules are DATA (prefixes + optional suffixes); ceilings are frozen counts over the tracked-path inventory. Growth past a frozen ceiling is born-blocking with a one-in-one-out remediation; a deliberate budget change is an exact attributed DATA edit here plus separate review. The post-wave-2 tree origin/dev@35cc96f54 measured evidence 52, planning 11, docs md 1433, and live ADRs 17. Later load-bearing additions are recorded as exact from->to reviewed_raises; current ceilings include evidence 53 and the owning ADR-0717 ratchet authority at docs md 1434/live ADRs 18.",
     "classes": {
       "evidence_files": {
         "prefixes": [
@@ -346,7 +346,7 @@
     "counts": {
       "evidence_files": 53,
       "planning_files": 11,
-      "docs_markdown_files": 1433,
+      "docs_markdown_files": 1434,
       "live_adr_files": 18
     },
     "reviewed_raises": {
@@ -355,6 +355,11 @@
         "from": 52,
         "to": 53,
         "reason": "The F1 node-forever sequencing founder-ratification evidence (evidence/goals/f1-node-forever-shape-sequencing-founder-ratification-20260810.json) is the masterplan founder_ratification.decision_ref anchor; it is load-bearing, not sprawl."
+      },
+      "docs_markdown_files": {
+        "from": 1433,
+        "to": 1434,
+        "reason": "The frozen tree origin/dev@35cc96f54 contains 1433 docs Markdown files. Commit b7db529f7029cb03b17fb2e761ce794c9a136ffd then added docs/decisions/ADR-0717-corpus-budget-shrink-only-ratchet.md as the Accepted owning authority for this ratchet; it is the sole docs Markdown path added between that frozen tree and prerequisite tip 539de02fb7a3efce061b3e95381ae1783a0b3b84, so deleting it would discard load-bearing doctrine rather than retire duplication."
       }
     }
   }
