@@ -20,6 +20,15 @@ use network_domain::SecurityGroupId;
 use network_residency::{ResidencyClass, residency_class_allows_home_region_label};
 use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 
+pub mod vm_reconciliation;
+
+pub use vm_reconciliation::{
+    VmActionKind, VmApplyAuthorization, VmIntent, VmIntentError, VmLifecycleIntent,
+    VmObservedLifecycle, VmObservedState, VmPlacement, VmProviderBindingRef, VmReceipt,
+    VmReconcileAction, VmReconcileError, VmReconcilePlan, VmReconciliationPort, VmResourceEnvelope,
+    VmTargetRole, VmVerification,
+};
+
 const COMPUTE_SCHEMA_VERSION: u32 = 1;
 pub const MAX_FUNCTION_COLD_START_BUDGET_MS: u32 = 1_000;
 const DEFAULT_FUNCTION_INVOCATION_RETENTION_LIMIT: usize = 1024;

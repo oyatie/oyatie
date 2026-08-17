@@ -13,6 +13,7 @@ cell-region = { path = "../../../cell/core/region" }
 compute-resource = { path = "../resource" }
 oya-data-boundary-kernel = { path = "../../../libs/oya-data-boundary-kernel" }
 network-residency = { path = "../../../network/core/residency" }
+sha2 = { version = "0.10", default-features = false }
 
 [lib]
 name = "compute_domain"

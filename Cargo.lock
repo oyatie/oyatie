@@ -2377,6 +2377,7 @@ dependencies = [
  "network-domain",
  "network-residency",
  "oya-data-boundary-kernel",
+ "sha2",
 ]
 
 [[package]]
@@ -4077,6 +4078,9 @@ dependencies = [
 [[package]]
 name = "iac-domain"
 version = "0.1.0"
+dependencies = [
+ "sha2",
+]
 
 [[package]]
 name = "iac-infrastructure"

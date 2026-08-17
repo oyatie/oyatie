@@ -7,6 +7,7 @@ publish = false
 license = "Apache-2.0"
 
 [dependencies]
+sha2 = { version = "0.10", default-features = false }
 
 [lib]
 name = "iac_domain"
