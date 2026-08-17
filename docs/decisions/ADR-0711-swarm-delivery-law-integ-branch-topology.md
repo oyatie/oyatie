@@ -22,19 +22,19 @@ deliverables:
     verified_by: "oya-ci-required"
   - id: ADR-0711-D2
     description: "Worktree-per-agent isolation plus worker git allowlist (no stash/reset) and server-side integ reset after land."
-    exit_criteria: "PORTABLE-SWARM-CONTRACT.md carries Swarm Delivery Law; deliver.js Claim verifies envelope + merge-tree + hub exclusivity; Land upserts one PR per integ/<root> and documents server-side reset refspec; concurrent-safe exemptions match specs/integ-branch-envelopes.json#concurrent_safe_exemptions.paths (narrowed per-lane evidence — not whole evidence/**)."
+    exit_criteria: "templates/portable-swarm-doctrine.md carries Swarm Delivery Law; deliver.js Claim verifies envelope + merge-tree + hub exclusivity; Land upserts one PR per integ/<root> and documents server-side reset refspec; concurrent-safe exemptions match specs/integ-branch-envelopes.json#concurrent_safe_exemptions.paths (narrowed per-lane evidence — not whole evidence/**)."
     verified_by: "oya-ci-required"
   - id: ADR-0711-D3
     description: "Hyperscaler monorepo patterns + anti-patterns encoded as first-class Swarm Delivery Law (not agent-swarm lessons alone)."
-    exit_criteria: "ADR-0711 and PORTABLE-SWARM-CONTRACT.md each have a dedicated Hyperscaler monorepo patterns section; specs/integ-branch-envelopes.json carries matching notes citing ADR-0119/0131/0515/0541/0562/0700/0701."
+    exit_criteria: "ADR-0711 and templates/portable-swarm-doctrine.md each have a dedicated Hyperscaler monorepo patterns section; specs/integ-branch-envelopes.json carries matching notes citing ADR-0119/0131/0515/0541/0562/0700/0701."
     verified_by: "oya-ci-required"
   - id: ADR-0711-D4
     description: "Amendment A — docs governability epic gate, buck2 [check] daemon (no cargo revival), comment doctrine, generated-files doctrine."
-    exit_criteria: "ADR-0711 Amendment A + PORTABLE-SWARM-CONTRACT Amendment A present; check-daemon invokes buck2 build //...[check] only under SWARM_ORCHESTRATOR=1 with zero cargo build/check/test/clippy invocations; docs-governance beads epic exists gated on integ/docs+integ/specs live."
+    exit_criteria: "ADR-0711 Amendment A + portable doctrine Amendment A present; check-daemon invokes buck2 build //...[check] only under SWARM_ORCHESTRATOR=1 with zero cargo build/check/test/clippy invocations; docs-governance beads epic exists gated on integ/docs+integ/specs live."
     verified_by: "oya-ci-required"
   - id: ADR-0711-D5
     description: "Amendment B — REORG NOW ternary layout map: every root/meaningful subdir is reorg_now|keep_forever|delete_permanently; freeze prefixes block NEW births only while moves execute; libs/cloud/oya/infra/toolchains/tools are NOT keep_forever."
-    exit_criteria: "ADR-0711 Amendment B + PORTABLE-SWARM-CONTRACT Amendment B present; envelopes reorg_debt_freeze rows carry action/destination/shape/rationale/redesign/judgment_status; evaluation_gate forbids git-mv-only; deliver.js Claim rejects births under freeze prefixes and rejects path changes without judgment_status=done."
+    exit_criteria: "ADR-0711 Amendment B + portable doctrine Amendment B present; envelopes reorg_debt_freeze rows carry action/destination/shape/rationale/redesign/judgment_status; evaluation_gate forbids git-mv-only; deliver.js Claim rejects births under freeze prefixes and rejects path changes without judgment_status=done."
     verified_by: "oya-ci-required"
   - id: ADR-0711-D6
     description: "Amendment B Pattern-First + full 16-lens battery — establish specs/naming-taxonomy.json before renames; taxonomy REPLACES indefensible brand/ADR naming (does not encode it); judgments require lenses_applied=all-16 + challenges[] when keeping/replacing existing patterns; dual-emit merge-gate-context until founder protection flip."
@@ -42,7 +42,7 @@ deliverables:
     verified_by: "oya-ci-required"
   - id: ADR-0711-D7
     description: "Amendment C — 137-entry archive distillation synthesized as clustered operating-patterns catalog (KEEP/BAN), not 137 paraphrases; machine-readable specs/agentic-operating-patterns.json; distill notes that said keep name oya-ci-required are OVERRULED (forever name merge-admission-required)."
-    exit_criteria: "ADR-0711 Amendment C + PORTABLE-SWARM-CONTRACT Amendment C present; specs/agentic-operating-patterns.json carries KEEP/BAN clusters + oyatie_apply tags; explicit OVERRULE of oya-ci-required-as-forever-name."
+    exit_criteria: "ADR-0711 Amendment C + portable doctrine Amendment C present; specs/agentic-operating-patterns.json carries KEEP/BAN clusters + oyatie_apply tags; explicit OVERRULE of oya-ci-required-as-forever-name."
     verified_by: "oya-ci-required"
   - id: ADR-0711-D8
     description: "Amendment D — Anti-drift documentation doctrine (INV-DOC-1…9); enumerate ONLY in envelopes JSON; docs_touched/docs_action packet; same-wave colocation; versioned anti_drift_doctrine_version; merge_windows policy-as-data."
@@ -51,6 +51,10 @@ deliverables:
   - id: ADR-0711-D10
     description: "Amendment E — adr-rename-overturn (forever ADR-NNNN-<topic> + indexes); rules-with-why on load-bearing MUST/KEEP/BAN; daemon_hotset + perimeter northstar as envelopes policy-as-data."
     exit_criteria: "ADR-0711 Amendment E + PORTABLE Amendment E present; naming-taxonomy decision-record keep NNNN-topic; agentic-operating-patterns carry achieves/origin/ensure/overturn_when; envelopes #daemon_hotset + #perimeter binding."
+    verified_by: "oya-ci-required"
+  - id: ADR-0711-D11
+    description: "Amendment F — one author-distinct independent reviewer-agent APPROVE is sufficient; human approval and reviewer quorum are retired without weakening the remaining admission predicates."
+    exit_criteria: "Session-loaded contracts + PORTABLE + operating-pattern catalog encode the same fail-closed single-agent rule; the cross-artifact evaluator accepts eligible User/Bot/Organization reviewer accounts and binds the trusted packet to the exact PR, head, and plan digest; CI, conflict, thread resolution, policy freshness, and branch protection remain independent."
     verified_by: "oya-ci-required"
 ---
 # ADR-0711: Swarm Delivery Law — integration branch topology and command discipline
@@ -253,7 +257,8 @@ historical ADRs are provenance only.
 #### Swarm operating lessons (carried, still binding)
 
 Kept from Bun / Cursor swarm / Amendment C archive practice and already encoded in Claim/Land /
-PORTABLE-SWARM-CONTRACT: one implementer + adversarial reviewers; planner ≠ implementer;
+PORTABLE-SWARM-CONTRACT: one implementer + one author-distinct adversarial reviewer agent;
+additional reviewers are optional and never form a required quorum; planner ≠ implementer;
 fix the process not the output; batch same-subsystem work into one lane; green CI is not
 authorization — re-verify at the moment of action; never delete a git lock without checking the
 owning process; automation stops at the edge of its authority; design cleanup/ownership for
@@ -264,7 +269,7 @@ Full clustered KEEP/BAN from the 137-entry Amendment C archive distillation: **A
 ### Amendment A (2026-08-10)
 
 Binding amendment to the Swarm Delivery Law. Full portable mirror:
-`.grok/programs/delivery-fabric/evidence/PORTABLE-SWARM-CONTRACT.md` § Amendment A.
+`templates/portable-swarm-doctrine.md` § Amendment A.
 
 #### A-1 — Docs governability track (beads epic)
 
@@ -307,7 +312,7 @@ type-check equivalent (`rustc --emit=metadata`).
 - Comments only for non-obvious intent, trade-offs, or constraints the code cannot convey.
 - Diff-only reviewers **reject narration comments**.
 
-Encode in review checklists (PORTABLE-SWARM-CONTRACT + dual-critic).
+Encode in review checklists (PORTABLE-SWARM-CONTRACT + one independent adversarial reviewer).
 
 #### A-4 — Generated-files doctrine (hyperscaler codegen)
 
@@ -333,7 +338,7 @@ admission.
 ### Amendment B (2026-08-10) — REORG NOW (ternary layout map)
 
 Binding amendment. **Reorg happens NOW** — classification is a move map, not a parking lot.
-Portable mirror: `.grok/programs/delivery-fabric/evidence/PORTABLE-SWARM-CONTRACT.md` § Amendment B.
+Portable mirror: `templates/portable-swarm-doctrine.md` § Amendment B.
 Policy-as-data: `specs/integ-branch-envelopes.json` → `reorg_debt_freeze`.
 
 #### B-0 — Greenfield question (placement law)
@@ -509,7 +514,7 @@ First wave = evaluated decisions with evidence (`judgments_done` / `first_wave`)
 
 Binding amendment. Distilled from **all 137** archive entries (14 batch distillers,
 000–136) into the operating-patterns catalog. Encode **clusters**, not 137 paraphrases.
-Portable mirror: `.grok/programs/delivery-fabric/evidence/PORTABLE-SWARM-CONTRACT.md` § Amendment C.
+Portable mirror: `templates/portable-swarm-doctrine.md` § Amendment C.
 Policy-as-data: `specs/agentic-operating-patterns.json`.
 
 These clusters reinforce (do not replace) D-1…D-9, Amendment A, and Amendment B.
@@ -523,7 +528,7 @@ These clusters reinforce (do not replace) D-1…D-9, Amendment A, and Amendment 
 | **Verified-empty / honest halt** | Verified-empty, honest undecided, and precise halt are **completed ops** — record them; do not invent work to fill silence. |
 | **Evidence-before-done / receipt WAL** | Evidence chain > narrative: HEAD-keyed receipts; multi-signal done (CI + review + mergeState + live surface); **new HEAD → new evidence**; invalid receipts quarantine, never durable memory. |
 | **Fail-closed blockers** | Missing inputs/identity → fail closed; blockers named by gate with next action; silence only when proven idle. |
-| **Subsystem batch + role separation** | Batch same-subsystem work into one lane; one implementer + adversarial reviewers; planner ≠ implementer; two pedals — accelerate on owner-hook, brake on verified empty. |
+| **Subsystem batch + role separation** | Batch same-subsystem work into one lane; one implementer + one author-distinct adversarial reviewer agent; additional reviewers optional; planner ≠ implementer; two pedals — accelerate on owner-hook, brake on verified empty. |
 | **Git-lock pid check** | On `index.lock` / shared-object contention: check owning pid, retry idempotent — **never** blind-delete the lock. |
 | **Green ≠ go** | Green is admission to the *next* gate, not departure; same-author APPROVE banned; conversation/authority lines are brakes; re-verify at the moment of action. |
 | **Live smoke** | Public/live smoke after deploy; build ≠ publish; wrapper noise ≠ artifact fail; post-merge observation until live surface is actually green. |
@@ -553,7 +558,7 @@ Any distill note that said **keep the name `oya-ci-required`** is **OVERRULED**.
 ### Amendment D (2026-08-10) — Anti-drift documentation doctrine
 
 Binding amendment. Machine law + packet + same-wave colocation so docs cannot drift after change.
-Portable mirror: `.grok/programs/delivery-fabric/evidence/PORTABLE-SWARM-CONTRACT.md` § Amendment D.
+Portable mirror: `templates/portable-swarm-doctrine.md` § Amendment D.
 Policy-as-data: `specs/integ-branch-envelopes.json#anti_drift` (`anti_drift_doctrine_version`).
 
 #### INV-DOC-1…9 (RFC 2119)
@@ -648,6 +653,41 @@ not a second SSOT.
 Does not flip GitHub branch protection. Does not birth `.grok/` process-kit binaries on `#1644`.
 Does not authorize `sweep-execute` naming moves before `#1644` land. Observation ≠ APPROVE.
 
+### Amendment F (2026-08-17) — single independent-agent review authority
+
+This amendment records the founder's fully autonomous execution directive and explicitly
+OVERRULES qualified-human review and reviewer-quorum requirements for planning, dispatch, and
+merge. It does not collapse review into observation and does not weaken any non-review admission
+predicate.
+
+| Field | Content |
+|---|---|
+| **achieves** | Fully autonomous delivery with an author-distinct adversarial review boundary and no human/quorum bottleneck |
+| **origin** | Qualified-human and multi-reviewer rules stalled work even when one eligible independent agent had reviewed the exact candidate; account type was incorrectly used as a proxy for trust |
+| **rule** | One author-distinct independent reviewer agent's explicit `APPROVE`, bound to the exact current PR head and applicable plan digest, is sufficient review authority. Eligible `User`, `Bot`, and `Organization` accounts are equivalent. Human approval and reviewer quorum are not required. Any other/missing verdict blocks. |
+| **ensure** | Trusted review packet binds PR, head, plan digest, author/reviewer immutable identities, eligibility policy, and freshness; all findings/threads resolve; CI, conflict freedom, branch protection, and operation-specific technical gates remain independent predicates |
+| **overturn_when** | A recorded challenge demonstrates a repeatable safety failure or inability to obtain an independent reviewer AND a replacement rule with all five fields lands same-wave |
+
+One reviewer agent may apply multiple specialist and blast-radius lenses. A change touching several
+classes still requires only one approval, provided the trusted eligibility policy admits that agent
+for the complete union of implicated profiles; otherwise review blocks. Additional reviewers are
+optional information, never a quorum requirement. Green CI, logs, or a forge-level review summary
+remain observations until the trusted exact-subject packet carries `APPROVE`.
+
+The cross-artifact closed-state evaluator enforces this rule with
+`PlanBoundIndependentAgentReviewPacket`. It accepts all three supported forge account types while
+continuing to reject self-review, unsupported principals, stale/revoked policy, wrong PR/head/plan,
+and any verdict other than `APPROVE`.
+
+#### Limitations (Amendment F)
+
+This amendment does not retroactively turn the historical PR #1340 observation into a trusted
+review packet, does not fabricate deleted or missing T1/T2/T3b/interval evidence, does not set
+`planning_entry_contract.dispatch_allowed=true`, and does not bypass required CI, conflicts,
+thread resolution, policy eligibility/freshness, branch protection, or technical predecessor
+conditions. In particular, it does not waive the E2 train's current-recovery-train, OpenBao Gate 4,
+or fresh live-census conditions.
+
 ## Consequences
 
 ### Positive
@@ -667,7 +707,7 @@ Does not authorize `sweep-execute` naming moves before `#1644` land. Observation
 
 | Phase | What lands | Blocking? |
 |---|---|---|
-| A (this ADR) | ADR + envelope JSON + PORTABLE-SWARM-CONTRACT + deliver.js Claim/Land + shims | advisory |
+| A (this ADR) | ADR + envelope JSON + portable doctrine + deliver.js Claim/Land + shims | advisory |
 | B | `governance/check/integ-envelope/` under `oya-ci-required` | blocking |
 | C | restrict `dev` PRs to `integ/*` + `hotfix/*` | founder-paired |
 
@@ -702,7 +742,7 @@ Does not authorize `sweep-execute` naming moves before `#1644` land. Observation
 - Naming taxonomy: `specs/naming-taxonomy.json`
 - operating-patterns catalog: `specs/agentic-operating-patterns.json`
 - Policy: `specs/integ-branch-envelopes.json`
-- Portable rule text: `.grok/programs/delivery-fabric/evidence/PORTABLE-SWARM-CONTRACT.md`
+- Portable rule text: `templates/portable-swarm-doctrine.md`
 - Harness: `.claude/workflows/deliver.js` (Claim + Land)
 - Concurrent-safe registry: `registry/vcs/concurrent-safe-paths.yaml`
 - Operating contract: `docs/AGENTS.md` (worktree-per-lane; sole required merge-admission context)

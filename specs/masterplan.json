@@ -4,10 +4,10 @@
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
     "spec_id": "EXE-MASTERPLAN",
-    "version": "2.0.0",
+    "version": "2.0.1",
     "status": "implemented-masterplan-json-live-hierarchy-index",
     "created_at": "2026-05-14T06:53:11Z",
-    "updated_at": "2026-08-10T00:00:00Z",
+    "updated_at": "2026-08-17T00:00:00Z",
     "owner_team": "founder",
     "current_machine_readable_authority": "/specs/masterplan.json",
     "human_compatibility_projection": "docs/MASTERPLAN.md",
@@ -9335,11 +9335,42 @@
         "decision_ref": "evidence/goals/f1-node-forever-shape-sequencing-founder-ratification-20260810.json",
         "authorizes_execution_wave_dispatch": false,
         "ratification_scope": "sequencing-digest-and-f1-planning-anchors-only",
-        "ratification_authority": "Founder-proxy Round-4 approval (2026-08-10) for F1 Proposed ADR planning anchors MPV2-0053..MPV2-0056 in masterplan_v2; adds MPV2-0053→MPV2-0055 dependency edge; does not grant implement authority for Proposed ADRs ADR-0712..ADR-0715 and does not authorize execution-wave dispatch. A separate founder (principal approved_by=founder) execution-dispatch ratification with authorizes_execution_wave_dispatch=true is required before execution_wave_dispatch.state may leave blocked (in addition to preplanning_authority_closure).",
+        "ratification_authority": "Historical Founder-proxy Round-4 approval (2026-08-10) for F1 Proposed ADR planning anchors MPV2-0053..MPV2-0056 in masterplan_v2; adds MPV2-0053→MPV2-0055 dependency edge; does not grant implement authority for Proposed ADRs ADR-0712..ADR-0715 and did not itself authorize execution-wave dispatch. The later 2026-08-17 founder directive is recorded separately at masterplan_v2.sequencing.autonomous_execution_authority; it removes any additional human/quorum dispatch-approval requirement while preserving evidence closure and every other admission predicate.",
         "ratified_sequencing_digest": "sha256:e197ad33be5f3158db3dca797a58dd2f500c12ad2158e42ffa2fb934ebd51004",
         "digest_recipe": "sha256 over canonical JSON (sorted keys, separators ',' ':') of {\"dependency_edges\": sorted [from, to] pairs, \"execution_waves\": wave work_item_ids arrays in wave order, \"work_item_order\": work_item_id strings in index order}",
         "invalidation_rule": "Any mutation of a masterplan_v2.dependency_edges from/to endpoint pair, sequencing.work_item_order, or sequencing.execution_waves work_item_ids changes the digest and voids this ratification; relationship labels and other edge metadata are outside this sequencing digest. A fresh re-derivation and founder-ratification record are required before further wave dispatch whenever a covered field changes.",
         "required_before": "execution-wave-dispatch"
+      },
+      "autonomous_execution_authority": {
+        "decision_recorded": true,
+        "decision_status": "authorized",
+        "approved_by": "founder",
+        "recorded_at": "2026-08-17T00:00:00Z",
+        "decision_ref": "/specs/masterplan.json#masterplan_v2.sequencing.autonomous_execution_authority",
+        "authority_scope": "fully-autonomous-agentic-planning-dispatch-review-and-merge",
+        "authorizes_execution_wave_dispatch_after_evidence_closure": true,
+        "additional_human_approval_required": false,
+        "quorum_required": false,
+        "review_rule": "single-author-distinct-independent-agent-approve",
+        "required_protected_context": "oya-ci-required",
+        "operation_specific_preconditions_waived": false,
+        "explicit_nonwaiver_examples": [
+          "current recovery train complete",
+          "OpenBao Gate 4 complete",
+          "fresh read-only provider census"
+        ],
+        "applies_to_ratified_sequencing_digest": "sha256:e197ad33be5f3158db3dca797a58dd2f500c12ad2158e42ffa2fb934ebd51004",
+        "preserved_independent_predicates": [
+          "trusted review-admission packet bound to the exact current PR, head, and authorized plan digest",
+          "reviewer eligibility and freshness",
+          "author and reviewer identity separation",
+          "resolved review findings and threads",
+          "required protected CI context green",
+          "conflict freedom",
+          "branch protection satisfied",
+          "preplanning closure evidence complete"
+        ],
+        "claim_ceiling": "This directive removes human-review and reviewer-quorum gates. It does not synthesize or replace the missing T1 hold-lift, T2 execution-authorization, T3b gate-liveness, interval-audit, protected-head review packet, CI, conflict, branch-protection, technical-predecessor, OpenBao Gate 4, or fresh live-census evidence; dispatch remains blocked until those independent predicates are actually satisfied."
       },
       "execution_wave_dispatch": {
         "requires_founder_ratification": true,
@@ -9352,7 +9383,7 @@
         "ratification_ref": "/specs/masterplan.json#masterplan_v2.sequencing.founder_ratification",
         "preplanning_authority_closure_ref": "evidence/consolidation/preplanning-authority-closure-20260713.json",
         "dispatched_waves": [],
-        "note": "Current founder_ratification re-binds the sequencing digest after F1 planning anchors and explicitly sets authorizes_execution_wave_dispatch=false. Closing the pre-planning hold alone MUST NOT unblock waves; a separate founder execution-dispatch ratification is required. No wave has dispatched."
+        "note": "The historical founder_ratification re-binds the sequencing digest after F1 planning anchors and explicitly records that its own scope did not authorize dispatch. The 2026-08-17 autonomous_execution_authority removes any additional human/quorum approval step, but it does not replace pre-planning closure or other admission evidence. No wave has dispatched."
       }
     },
     "planning_entry_contract": {
@@ -9496,7 +9527,7 @@
         "the live sequencing digest differs from masterplan_v2.sequencing.founder_ratification.ratified_sequencing_digest or from the digest recorded in the durable evidence record at masterplan_v2.sequencing.founder_ratification.decision_ref, without a fresh founder ratification record (mechanism: evaluate_masterplan_v2_ratification_digest; no inline digest literal is authoritative here)",
         "any dispatched_waves entry exists before all prior conditions close"
       ],
-      "closure_rule": "The closed-state evaluator is installed and can validate a fully evidenced closed planning-entry contract. Actual transition to state=closed, binding_plan_approval_allowed=true, and dispatch_allowed=true remains blocked until a trusted server-side qualified-human protected-review producer binds the real closure candidate, head, and reviewer facts; candidate-authored metadata is not trust. Until that producer binds those facts, the exact terminal state is blocked-preplanning-authority-closure, not ready or complete.",
+      "closure_rule": "The closed-state evaluator is installed and can validate a fully evidenced closed planning-entry contract. One author-distinct independent reviewer agent APPROVE is sufficient; human approval and reviewer quorum are not required. The trusted server-side review producer must bind an eligible, fresh User/Bot/Organization reviewer to the exact closure candidate PR, current head, and authorized plan digest; any verdict other than APPROVE, candidate-authored authority, stale/missing packet, unresolved finding/thread, red CI, conflict, unsatisfied branch protection, or unmet operation-specific technical gate blocks. Actual transition to state=closed, binding_plan_approval_allowed=true, and dispatch_allowed=true remains blocked until that review packet and the existing T1/T2/T3b/interval evidence chain are present. E2 execution additionally remains subject to the current recovery train, OpenBao Gate 4, and a fresh live census. Until then the exact terminal state is blocked-preplanning-authority-closure, not ready or complete.",
       "authority_resolution_record": {
         "state": "founder-choices-resolved-hold-still-open",
         "resolved_at": "2026-08-01T00:00:00Z",

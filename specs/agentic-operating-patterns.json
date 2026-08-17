@@ -6,23 +6,24 @@
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
     "spec_id": "EXE-AGENTIC-OPERATING-PATTERNS",
-    "version": "1.1.1",
+    "version": "1.2.0",
     "status": "Accepted",
     "owner_team": "council-architecture",
     "created_at": "2026-08-10T00:00:00Z",
-    "updated_at": "2026-08-11T00:00:00Z",
+    "updated_at": "2026-08-17T00:00:00Z",
     "authority_adr": "docs/decisions/ADR-0711-swarm-delivery-law-integ-branch-topology.md#Amendment-C",
     "self_owner_branch": "integ/specs",
     "corpus": "ADR-0711 Amendment C operating-patterns catalog (archive distillation 000-136)",
     "corpus_entries": "000-136",
-    "prior_version": "1.1.0",
+    "prior_version": "1.1.1",
     "primary_consumers": [
-      ".grok/programs/delivery-fabric/evidence/PORTABLE-SWARM-CONTRACT.md",
+      "templates/portable-swarm-doctrine.md",
       "specs/integ-branch-envelopes.json",
-      ".claude/workflows/deliver.js Claim (advisory)"
+      "ci/facade/cross-artifact-agreement"
     ],
     "accepted_at": "2026-08-11T00:00:00Z",
-    "acceptance_note": "Promoted Accepted on #1644 so Claim rename/classifier refusal criteria match ADR-0711 Amendment B/C + END-STATE-POLICY (Proposed carries no implement authority)."
+    "acceptance_note": "Promoted Accepted on #1644 so Claim rename/classifier refusal criteria match ADR-0711 Amendment B/C + END-STATE-POLICY (Proposed carries no implement authority).",
+    "amendment_note": "Version 1.2.0 records ADR-0711 Amendment F: one author-distinct independent reviewer-agent APPROVE is sufficient; human approval and reviewer quorum are retired while exact-subject and non-review predicates remain fail-closed."
   },
   "rule_shape": {
     "required_fields": [
@@ -69,11 +70,24 @@
       "achieves": "Automation and babysit cannot mint merge/APPROVE authority from density of observation.",
       "origin": "Observation packets and green CI were treated as land license.",
       "rule": "Dense observation does not grant intervene/APPROVE/own rights; automation stops at authority edge.",
-      "ensure": "Claim/Land refuse observation-as-APPROVE; dual-critic + oya-ci-required remain admission predicates.",
+      "ensure": "Admission refuses observation-as-APPROVE; one author-distinct exact-subject reviewer-agent APPROVE + oya-ci-required remain independent predicates.",
       "overturn_when": "A new admission predicate is dual-emitted and founder-flipped with explicit OVERRULE receipt.",
       "oyatie_apply": [
         "swarm-delivery-law",
         "16-lens"
+      ]
+    },
+    {
+      "id": "single-independent-agent-approval",
+      "achieves": "Autonomous planning, dispatch, and merge retain adversarial review without a human or reviewer-quorum bottleneck.",
+      "origin": "Qualified-human and quorum rules blocked otherwise complete autonomous work and treated forge account type as a proxy for trust.",
+      "rule": "One author-distinct independent reviewer agent's explicit APPROVE bound to the exact current PR head and applicable plan digest is sufficient; User, Bot, and Organization accounts are equivalent when eligible; human approval and reviewer quorum are not required; any other or missing verdict blocks.",
+      "ensure": "Trusted packet proves exact PR/head/plan, immutable author/reviewer separation, eligibility and freshness; findings/threads, CI, conflicts, branch protection, and operation-specific technical gates remain independent. For E2, current-recovery-train, OpenBao Gate 4, and fresh live-census conditions remain mandatory.",
+      "overturn_when": "A recorded challenge proves single-agent review unsafe or unavailable and a replacement review rule with all five fields lands same-wave.",
+      "oyatie_apply": [
+        "merge-admission",
+        "swarm-delivery-law",
+        "integ"
       ]
     },
     {
@@ -117,8 +131,8 @@
       "id": "subsystem-batch-role-separation",
       "achieves": "One writer queue per subsystem; planner ≠ implementer; adversarial review.",
       "origin": "Same-subsystem thrash across many tips; self-approve loops.",
-      "rule": "Batch same-subsystem work into one lane; planner ≠ implementer; one implementer + adversarial reviewers; accelerate on owner-hook, brake on verified empty.",
-      "ensure": "Envelope sole-owner + role tags on dispatches; critic separate from implementer.",
+      "rule": "Batch same-subsystem work into one lane; planner ≠ implementer; one implementer + one author-distinct adversarial reviewer agent; additional reviewers optional; accelerate on owner-hook, brake on verified empty.",
+      "ensure": "Envelope sole-owner + role tags on dispatches; one critic is separate from the implementer and binds APPROVE to the exact subject.",
       "overturn_when": "A different role topology is OVERRULEd with measured blast-radius evidence.",
       "oyatie_apply": [
         "swarm-delivery-law",
@@ -143,7 +157,7 @@
       "achieves": "Green admits the next gate only; same-author APPROVE banned.",
       "origin": "Merge ego after green; observation density as scoreboard.",
       "rule": "Green admits the next gate only, not departure; same-author APPROVE banned; re-verify at moment of action.",
-      "ensure": "Branch protection + Tide author≠reviewer floor; Land re-checks tip.",
+      "ensure": "Branch protection + trusted author≠reviewer exact-subject packet; merge admission re-checks tip.",
       "overturn_when": "A stronger multi-party admission model replaces current predicates with dual-emit evidence.",
       "oyatie_apply": [
         "merge-admission",
@@ -268,7 +282,7 @@
       "achieves": "Blocked inputs cannot report success; observation density ≠ scoreboard.",
       "origin": "Rubber-stamp thread resolve and merge ego after green.",
       "rule": "Silent success on blocked inputs; rubber-stamp thread resolve; merge ego after green; observation-density scoreboards.",
-      "ensure": "Fail-closed Claim + Tide author≠reviewer; window receipts.",
+      "ensure": "Fail-closed admission + trusted author≠reviewer exact-subject packet; window receipts.",
       "overturn_when": "Admission predicates change with explicit OVERRULE and ensure path.",
       "oyatie_apply": [
         "swarm-delivery-law",

@@ -2380,6 +2380,66 @@ fn masterplan_v2_sequencing_is_zero_based_and_founder_ratification_recorded() {
 }
 
 #[test]
+fn autonomous_execution_authority_removes_only_human_and_quorum_review_gates() {
+    let root = repo_root();
+    let masterplan = load_json(&root.join("specs/masterplan.json"));
+    let findings = evaluate_masterplan_v2_sequencing(&masterplan);
+    assert!(
+        findings.is_empty(),
+        "the autonomous authority must be structurally valid without opening dispatch: {findings:?}"
+    );
+
+    let sequencing = &masterplan["masterplan_v2"]["sequencing"];
+    let authority = &sequencing["autonomous_execution_authority"];
+    assert_eq!(
+        authority["additional_human_approval_required"].as_bool(),
+        Some(false)
+    );
+    assert_eq!(authority["quorum_required"].as_bool(), Some(false));
+    assert_eq!(
+        authority["operation_specific_preconditions_waived"].as_bool(),
+        Some(false)
+    );
+    assert_eq!(
+        authority["required_protected_context"].as_str(),
+        Some("oya-ci-required")
+    );
+
+    let nonwaiver_examples: BTreeSet<&str> = authority["explicit_nonwaiver_examples"]
+        .as_array()
+        .expect("autonomous authority must enumerate its technical non-waivers")
+        .iter()
+        .filter_map(Value::as_str)
+        .collect();
+    for required in [
+        "current recovery train complete",
+        "OpenBao Gate 4 complete",
+        "fresh read-only provider census",
+    ] {
+        assert!(
+            nonwaiver_examples.contains(required),
+            "autonomous review authority must not waive {required}"
+        );
+    }
+
+    assert_eq!(
+        masterplan["masterplan_v2"]["planning_entry_contract"]["dispatch_allowed"].as_bool(),
+        Some(false),
+        "missing T1/T2/T3b/interval evidence keeps global dispatch false"
+    );
+    assert_eq!(
+        sequencing["execution_wave_dispatch"]["state"].as_str(),
+        Some("blocked")
+    );
+    assert!(
+        sequencing["execution_wave_dispatch"]["dispatched_waves"]
+            .as_array()
+            .is_some_and(Vec::is_empty),
+        "no wave may be synthesized by the autonomous-review amendment"
+    );
+}
+
+#[test]
 fn adr_0624_is_explicitly_nonbinding_and_preserves_preplanning_hold() {
     let root = repo_root();
     let masterplan = load_json(&root.join("specs/masterplan.json"));

@@ -195,10 +195,12 @@
         "t3b_gate_liveness_ref": "evidence/goals/north-star-completion-t3b-gate-liveness-receipt-20260812.json",
         "t3b_interval_audit_ref": "evidence/goals/north-star-completion-t3b-interval-audit-20260812.json",
         "dispatched_waves_at_transition": [],
-        "qualified_human_closure_approval": {
-          "approved_by": "founder",
-          "qualified_human_approval_proven": true,
-          "approval_ref": "evidence/goals/north-star-completion-t4-closure-approval-20260812.json"
+        "independent_agent_closure_approval": {
+          "review_admission_contract": "ci/facade/cross-artifact-agreement/PlanBoundIndependentAgentReviewPacket",
+          "trusted_packet_required": true,
+          "approval_rule": "single-author-distinct-independent-agent",
+          "human_approval_required": false,
+          "quorum_required": false
         }
       }
     },

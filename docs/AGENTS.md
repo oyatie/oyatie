@@ -5,11 +5,9 @@ length_cap: 500
 authority_tier: 2
 excludes:
 - path: /specs/root-hub-pointers.json
-  reason: Machine-readable entry-point registry; this contract is discovered through
-    it.
+  reason: Machine-readable entry-point registry; this contract is discovered through it.
 - path: /specs/master-plan-sequencing.json
-  reason: Historical sequencing sidecar; after masterplan v2 it is provenance-only and
-    not a live plan authority.
+  reason: Historical sequencing sidecar; after masterplan v2 it is provenance-only and not a live plan authority.
 - path: /specs/markdown-retirement-policy.json
   reason: Markdown lifecycle and root-hub survival policy; cited and not duplicated
     fully.
@@ -67,7 +65,7 @@ Every agent MUST treat [ADR-0346](decisions/ADR-0346-oya-verify-must-run-full-ci
 
 The deleted `/specs/multispectrum-review.json` evidence-file convention is retired with the external coordination / Oya VCS / Jenkins-adapter admission path (ADR-0116, ADR-0363, ADR-0515; see commit `fd06b0ad2`). Agents MUST NOT emit new `evidence/multispectrum/*.json` files or treat that deleted spec as a live gate.
 
-The review practice survives: run independent reviewer-agent passes and preserve concrete review evidence in the PR's `## Code Review` / quality-gate artifacts. Multi-lens review remains encouraged for high-risk work, but it is expressed through reviewer agents, cloud-ci/oya-ci gate packets, and typed quality-gate evidence — not through standalone multispectrum evidence files.
+The review practice survives: one author-distinct independent reviewer agent's explicit `APPROVE`, bound to the exact current PR head and applicable plan digest, is sufficient review authority. Human approval and reviewer quorum are not required; additional reviewer passes remain optional. Preserve concrete review evidence in the PR's `## Code Review` / quality-gate artifacts. Multi-lens review remains encouraged for high-risk work, but it is expressed through the reviewer agent, cloud-ci/oya-ci gate packets, and typed quality-gate evidence — not through standalone multispectrum evidence files.
 
 Before changing this repo, read `/specs/root-hub-pointers.json` first, then this contract. The retired Constitution concept is redistributed through the root hub, master-plan specs, RACI ownership, and sanctioned-primitive specs.
 
@@ -123,8 +121,16 @@ INV-DOC-9: doctrine that exists only in a plan file or chat is **not** survived.
 - **achieves:** preserve merge integrity and blast-radius discipline.
 - **origin:** logs/CI green / chat observation treated as APPROVE; roles collapsed.
 - **rule:** observation (logs/CI/reviews) ≠ merge APPROVE authority; orchestrate ≠ implement ≠ babysit.
-- **ensure:** reviewer APPROVE + green `merge-admission-required` (retired brand `oya-ci-required` until PAUSE-AND-PAIR) remain distinct; coordinator/worker split in this contract.
+- **ensure:** one author-distinct reviewer-agent APPROVE + green `merge-admission-required` (retired brand `oya-ci-required` until PAUSE-AND-PAIR) remain distinct; coordinator/worker split in this contract.
 - **overturn_when:** a recorded OVERRULE replaces the admission model with an equally fail-closed alternative.
+
+### One independent-agent APPROVE is sufficient
+
+- **achieves:** autonomous delivery retains an adversarial review boundary without a human or reviewer-quorum bottleneck.
+- **origin:** qualified-human and quorum requirements blocked otherwise complete autonomous work and treated account type as a proxy for trust.
+- **rule:** one author-distinct independent reviewer agent's explicit `APPROVE`, bound to the exact current PR head and applicable plan digest, is the complete review authority for planning, dispatch, and merge. Eligible `User`, `Bot`, and `Organization` accounts are equivalent. Human approval and reviewer quorum are not required. Any other verdict, no verdict, stale binding, unresolved finding/thread, or ineligible reviewer blocks.
+- **ensure:** a trusted review-admission packet proves author separation, exact PR/head/plan binding, policy eligibility, and freshness; required CI, conflict freedom, resolved findings, branch protection, and operation-specific technical gates remain independent predicates. For E2 provisioning, the current recovery train, OpenBao Gate 4, and a fresh live census remain mandatory.
+- **overturn_when:** a recorded challenge proves single-agent review unsafe or unavailable AND a replacement review rule with five fields lands same-wave.
 
 ### Merge admission + domain green (Phase0)
 
@@ -263,13 +269,13 @@ Before any change, every agent and every human MUST complete these items.
 4. **Confirm autonomy ceiling.** Capability bindings MUST declare T1 / T2 / T3 / T4 in the capability record. Tier uplift MUST land an accompanying Cedar policy + runtime gate. *Why:* config-flag tier uplift bypasses the audit chain. *Test:* `oya-governance-autonomy-ceiling` lane.
 5. **Confirm license posture.** New dependencies MUST clear the Buck2/cloud-ci supply-chain lane. AGPL / GPL / SSPL / BUSL / RSAL are not permitted in product code. *Why:* license drift is hard to undo. *Test:* supply-chain gate target exits 0.
 6. **Search MISTAKES-LEDGER for the failure-mode class.** *Why:* re-introducing a fixed defect is a regression. *Test:* PR `## Summary` cites the relevant `MFL-NNNN` row OR a "no prior row" search note.
-7. **Identify the per-change-class reviewer agent.** *Why:* the target reviewer contract signs `## Code Review` at merge time; no signature, no merge once the trusted reviewer producer is live. *Test:* §"Per-change-class reviewer agents" table below; `F-PR5-06` tracks the current live-enforcement gap.
+7. **Identify the author-distinct per-change-class reviewer agent.** *Why:* one eligible agent signs `## Code Review` at merge time; no exact-head `APPROVE`, no merge once the trusted reviewer producer is live. Human approval and reviewer quorum are not required. *Test:* §"Per-change-class reviewer agents" table below; `F-PR5-06` tracks the current live-enforcement gap.
 8. **For cross-axis contract changes:** apply the cross-axis review label per [`../templates/checklists/cross-axis-contract-change.md`](../templates/checklists/cross-axis-contract-change.md) <!-- forward-reference: wave-1 -->; notify consumer-axis teams. *Why:* silent cross-axis changes break consumers. *Test:* PR label + `oya-governance-cross-axis-notify` lane.
 9. **For hook / harness / CLI changes:** run the harness self-test first. *Why:* a broken hook silently disables every downstream gate. *Test:* harness self-test command (per harness; see §"Per-agent appendices").
 
 ## Per-change-class reviewer agents
 
-Each change class has a designated reviewer agent that runs proactively on the PR and signs `## Code Review` at merge time.
+Each change class has a designated reviewer-agent profile. One author-distinct independent agent eligible for every profile implicated by the diff runs proactively on the PR and signs `## Code Review` at merge time. A multi-class change still needs only one eligible agent, not one approver per class; if no single agent is eligible for the full union, the PR blocks instead of assembling a quorum.
 
 | Change class | Reviewer agent |
 |---|---|
@@ -286,9 +292,9 @@ Each change class has a designated reviewer agent that runs proactively on the P
 | Capability publish | `capability-reviewer` |
 | Performance change | `perf-reviewer` |
 
-The reviewer-agent verdict is `APPROVE` or `REQUEST CHANGES`. The PR body's `## Code Review` section MUST contain the agent name, the verdict, and the resolved + deferred items. CI no longer string-checks PR prose (ADR-0716); the review thread is the evidence.
+The reviewer-agent verdict is `APPROVE` or `REQUEST CHANGES`. Only `APPROVE` authorizes the review predicate; any other or missing verdict blocks. The PR body's `## Code Review` section MUST contain the agent name, exact reviewed head/plan digest, verdict, and resolved + deferred items. CI no longer string-checks PR prose (ADR-0716); the trusted review packet and thread are the evidence.
 
-**REVIEW-ADMISSION-GAP-LIVE-BOUNDARY (F-PR5-06):** F-PR5-06 remains open: formal GitHub `reviewDecision`, reviewer-author separation, and branch-protection drift reconciliation remain tracked by `registry/fixuptasks.jsonl#F-PR5-06`. The retired PR metadata preflight does not close it (ADR-0716).
+**REVIEW-ADMISSION-GAP-LIVE-BOUNDARY (F-PR5-06):** F-PR5-06 remains open: trusted exact-head/plan packet production, reviewer-author separation, reviewer eligibility/freshness, and branch-protection drift reconciliation remain tracked by `registry/fixuptasks.jsonl#F-PR5-06`. Account type is neutral (`User`/`Bot`/`Organization`); a GitHub `reviewDecision` observation alone does not close the gap. The retired PR metadata preflight does not close it (ADR-0716).
 
 ## During-change discipline
 
@@ -302,7 +308,7 @@ While the change is in flight, every agent and every human MUST observe these ru
 - **Cargo for evidence.** Local editor loops are advisory; final evidence comes from `cargo fmt` / `cargo clippy` / `cargo test --workspace` plus the gate fleet, per [`standards/testing.md`](standards/testing.md) <!-- forward-reference: wave-1 -->. buck2 is local hermeticity only (ADR-0716).
 - **Portfolio/architecture coordinator / worker split.** The capability-neutral portfolio/architecture coordinator evaluates architecture, system design, completed and upcoming work, maturity gaps, documentation/procedure/process health, regressions, and work-item decomposition/prioritization. Dispatcher-assigned workers execute scoped implementation, review, verification, and PR evidence lanes in isolated worktrees. The coordinator MUST NOT become the default implementation worker unless explicitly assigned as that lane worker.
 - **Blockers become work.** A coordinator that finds a blocker MUST create/link a dispatcher-ready resolution card with source context, blocker class, acceptance criteria, verification path, suggested owner/profile, and dependency/conflict notes. Do not convert blockers into ad hoc coordinator implementation unless the coordinator is explicitly assigned as worker for that lane.
-- **Autonomous merge boundary.** Autonomous merge authority exists only when the PR is fully reviewed, review threads are resolved, the required `oya-ci-required` context is green, the branch has no merge conflict, and branch protection is satisfied. Green CI alone is insufficient.
+- **Autonomous merge boundary.** Autonomous merge authority exists only when one author-distinct eligible reviewer agent has issued `APPROVE` for the exact current head and applicable plan digest, all findings and review threads are resolved, the required `oya-ci-required` context is green, the branch has no merge conflict, and branch protection is satisfied. Human approval and reviewer quorum are not required. Green CI alone is insufficient.
 
 ## Sanctioned primitives
 
@@ -311,7 +317,7 @@ substrate; do not reintroduce an agentic VCS wrapper. ADR-0515 retires CLI
 governance and makes GitHub Actions + branch protection the live CI runner until
 explicit owned-runner cutover. An agent works on an isolated worktree branch and
 opens a pull request against `dev`, which enters the governance pipeline:
-the single protected `oya-ci-required` context + reviewer APPROVE gate merge
+the single protected `oya-ci-required` context + one author-distinct independent reviewer-agent `APPROVE` gate merge
 readiness. CI no longer string-checks PR prose (ADR-0716); F-PR5-06 still owns
 live review-admission closure. `oya gate` / `oya verify` output is optional
 local feedback or provenance only; it is never protected-branch CI authority.
@@ -328,7 +334,9 @@ required_sequence:
   - isolated worktree branch per agent lane (scaffold-managed; one lane = one worktree)
   - commit and push on that lane
   - open a PR against dev               # enters the governance pipeline
-  - fully reviewed, review threads resolved, no merge conflict, branch protection satisfied,
+  - one author-distinct independent reviewer agent APPROVE bound to the exact current head
+    and applicable plan digest; no human approval or reviewer quorum required
+  - all review findings and threads resolved, no merge conflict, branch protection satisfied,
     and single protected `oya-ci-required` context green; F-PR5-06 still owns live
     review-admission closure and legacy CLI evidence remains optional/local only
   - squash merge after review threads resolve
@@ -355,7 +363,7 @@ Every PR uses [`templates/pull-request-template.md`](templates/pull-request-temp
 1. `## Issue` — `Closes #<n>` or `Refs #<n>` + change class.
 2. `## Summary` — 1–3 bullets on what + why.
 3. `## Verification` — what you ran (cargo fmt / clippy / test or targeted equivalents) + the `oya-ci-required` check URL.
-4. `## Code Review` — reviewer-agent name, verdict, resolved + deferred items.
+4. `## Code Review` — reviewer-agent identity, exact reviewed head/plan digest, verdict, resolved + deferred items.
 
 No other sections are required or checked by CI.
 
@@ -370,7 +378,7 @@ Before declaring any change complete, every agent and every human MUST re-walk t
 - [ ] **D5** New capabilities (if any) ship: capability record, eval set (golden + adversarial + linguistic), autonomy tier, audit-chain topic, Cosign signing. *Test:* `oya-governance-capability-publish` lane.
 - [ ] **D6** New schemas (if any) carry `oyatie.data_class = "..."` per field. *Test:* `oya-governance-data-class` lane.
 - [ ] **D7** Applicable per-PR fitness lanes actually wired into `oya-ci-required` pass. Historical lane names in prose are not evidence that a producer is live. *Test:* the PR-head `oya-ci-required` job/packet inventory plus the change-class gate mapping.
-- [ ] **D8** Per-change-class reviewer agent ran; verdict captured in `## Code Review`. *Test:* reviewer audit on PR; live review-admission closure remains F-PR5-06.
+- [ ] **D8** One author-distinct reviewer agent eligible for all implicated change classes ran; exact-head/plan `APPROVE` captured in `## Code Review`. Human approval and quorum are not required; any other verdict blocks. *Test:* trusted review packet on PR; live review-admission closure remains F-PR5-06.
 - [ ] **D9** `cargo fmt --all --check` passes. *Test:* command output pasted in `## Verification`.
 - [ ] **D10** `cargo clippy --workspace --all-targets -- -D warnings` passes. *Test:* command output.
 - [ ] **D11** `cargo test --workspace` passes (gate fleet included; materialize faces first if a gate consumes them). buck2 build/test is local hermeticity only (ADR-0716). *Test:* command output or required context evidence.
@@ -380,7 +388,7 @@ Before declaring any change complete, every agent and every human MUST re-walk t
 - [ ] **D13** Performance changes carry benchmark + ≥2 stress-scenario evidence. *Test:* `oya-governance-perf-evidence` lane.
 - [ ] **D14** Schema migrations ship up + down + dry-run + per-tenant + per-cell rollback. *Test:* `oya-governance-schema-migration` lane.
 - [ ] **D15** PR body has the 4 slim sections (`## Issue`, `## Summary`, `## Verification`, `## Code Review`). *Test:* reviewer audit on PR (ADR-0716; CI no longer string-checks prose).
-- [ ] **D16** Merge authority: the PR-head `oya-ci-required` context is green. *Test:* the check URL pasted in `## Verification`.
+- [ ] **D16** Merge admission: the PR-head `oya-ci-required` context is green independently of D8 review authority. *Test:* the check URL pasted in `## Verification`.
 - [ ] **D17** [`MISTAKES-LEDGER.md`](MISTAKES-LEDGER.md) <!-- forward-reference: wave-1 --> row added if this change is a mechanical prevention shipped for a prior failure. *Test:* `oya-governance-mistakes-ledger-cite` lane.
 - [ ] **D18** [`CHANGELOG.md`](CHANGELOG.md) <!-- forward-reference: wave-1 --> row added if this change touches a canonical doc. *Test:* `oya-governance-changelog-row` lane.
 - [ ] **D19** The merged PR and its green `oya-ci-required` checks are the record (ADR-0716); no separate post-merge packet.
@@ -484,6 +492,7 @@ The full machine-readable list is in this file's front-matter `excludes:` block.
 
 ## Sources scanned
 
+- 2026-08-17 — founder autonomous-execution directive: one author-distinct independent reviewer-agent exact-head/plan `APPROVE` is sufficient; no human approval or reviewer quorum; non-review admission predicates stay independent; bead `oyatie-ueo.7`; ADR-0711 Amendment F.
 - 2026-08-11 — cloud provider + full ecosystem north-star survival (INV-DOC-9): binding five-field rule + architecture pointer; EU/SECA as aligned reference; BAN personal-data UX theater; bead `oyatie-dxz` docs-governance.
 - 2026-08-11 — portable Swarm doctrine pointer + adr-rename-overturn challenge + Automations ritual cite; bead `oyatie-dxz` docs-governance; no mass ADR rename.
 - 2026-08-10 — anti-branding: remove external brand/archive URL citations from § Bounded delivery and per-agent appendices; cite Amendment C operating-patterns catalog / reflection corpus (`specs/agentic-operating-patterns.json`); bead `oyatie-dxz.5`.
