@@ -38,6 +38,8 @@ const HISTORY_ONLY_FACTS_ENV: &str = "OYA_HISTORY_ONLY_RETIREMENT_FACTS";
 const HISTORY_ONLY_FACTS_PATH: &str =
     "ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json";
 const SCM_FACTS_EMITTER_ENV: &str = "OYA_CI_EMITTER_BIN";
+const RETIRED_MASTERPLAN_GATES_CI_WIRING_EVIDENCE: &str =
+    "evidence/goals/masterplan-gates-ci-wiring-20260702.json";
 
 /// Walk up to the repo root (the dir holding specs/root-hub-pointers.json), matching the
 /// existing kernel-test convention.
@@ -2026,6 +2028,35 @@ fn masterplan_plan_evidence_crosscheck_gate_is_green_on_live_tree() {
         .get("tracked_paths")
         .cloned()
         .expect("committed scm-facts face must carry tracked_paths");
+
+    // Commit 35cc96f54 retired the packet while preserving Git history and the immutable run
+    // records. Pin both sides of that boundary: neither the deleted packet nor a live-plan
+    // reference to it may be revived. Historical ADR prose may continue to cite the old path.
+    assert!(
+        tracked_paths.as_array().is_some_and(|paths| {
+            paths
+                .iter()
+                .all(|path| path.as_str() != Some(RETIRED_MASTERPLAN_GATES_CI_WIRING_EVIDENCE))
+        }),
+        "retired masterplan gate-wiring evidence packet must stay absent from the tracked tree"
+    );
+    let gate_suite = masterplan["masterplan_v2"]["work_items"]
+        .as_array()
+        .and_then(|items| {
+            items
+                .iter()
+                .find(|item| item["id"].as_str() == Some("MPV2-0004"))
+        })
+        .expect("masterplan v2 must retain MPV2-0004");
+    assert!(
+        gate_suite["evidence_refs"]
+            .as_array()
+            .is_some_and(|refs| refs.iter().all(|evidence_ref| {
+                evidence_ref.as_str() != Some(RETIRED_MASTERPLAN_GATES_CI_WIRING_EVIDENCE)
+            })),
+        "MPV2-0004 must not revive its retired local evidence-packet reference"
+    );
+
     let corpus = serde_json::json!({ "tracked_paths": tracked_paths });
 
     let findings = evaluate_masterplan_plan_evidence_crosscheck(&masterplan, &corpus);

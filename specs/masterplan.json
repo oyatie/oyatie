@@ -7750,7 +7750,6 @@
           "ci/facade/cross-artifact-agreement/tests/cross_artifact_agreement.rs#masterplan_v2_projection_freshness_contract_is_green",
           "ci/facade/cross-artifact-agreement/src/lib.rs#evaluate_masterplan_v2_plan_evidence_drift",
           "ci/facade/cross-artifact-agreement/tests/cross_artifact_agreement.rs#masterplan_v2_plan_vs_evidence_drift_contract_is_green",
-          "evidence/goals/masterplan-gates-ci-wiring-20260702.json",
           "https://github.com/jason931225/oyatie/actions/runs/28592595372",
           "https://github.com/jason931225/oyatie/actions/runs/28594633232",
           "https://github.com/jason931225/oyatie/actions/runs/28596752891"
