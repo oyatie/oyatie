@@ -264,7 +264,7 @@ impl ArchitectureMap {
         // which are small graphs (hundreds of nodes at most).
         for root in self.nodes.keys() {
             // Only enter the DFS if root has outgoing DependsOn edges.
-            if adj.get(root).map_or(true, |s| s.is_empty()) {
+            if adj.get(root).is_none_or(|s| s.is_empty()) {
                 continue;
             }
 

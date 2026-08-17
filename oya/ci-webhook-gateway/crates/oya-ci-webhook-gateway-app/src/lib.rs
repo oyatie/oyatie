@@ -14,9 +14,9 @@
 //! 2. ed25519 verify raw body bytes.
 //! 3. Cedar authz gate.
 //! 4. `route_github_event` → `CiTriggerEvent`.
-//! 4.5. Replay guard: check + record the delivery key (after verify+authz+route, before Step 5).
-//!      A replay within the TTL short-circuits with a benign 200 idempotent ack.
-//! 5. GitHub `post_all` queued statuses (CI system dispatches asynchronously via oya-ci).
+//! 5. Replay guard: check + record the delivery key after verify, authz, and routing.
+//!    A replay within the TTL short-circuits with a benign 200 idempotent ack.
+//! 6. GitHub `post_all` queued statuses (CI system dispatches asynchronously via oya-ci).
 //!
 //! ## ADR-0083 Tier-3
 //!

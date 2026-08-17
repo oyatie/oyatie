@@ -322,7 +322,7 @@ fn sub2_candidate_denials_are_metadata_only_no_secrets_or_provider_payloads() {
     let denial = &receipt.candidate_denials[0];
     assert_eq!(denial.provider, ModelProvider::OpenAi);
     assert!(!denial.model_id.is_empty());
-    assert!(denial.priority > 0 || denial.priority == 0); // just confirms field exists
+    assert_eq!(denial.priority, 1);
 }
 
 /// An empty catalog (no profiles) produces Denied with empty candidate_denials

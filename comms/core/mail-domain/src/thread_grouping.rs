@@ -58,23 +58,23 @@ impl std::fmt::Display for ThreadTransitionError {
 /// 1. `In-Reply-To` — first `<…>` message-id token.
 /// 2. `References`  — last `<…>` message-id token.
 /// 3. `Subject`     — strip Re:/Fwd:/FW: prefixes (case-insensitive, repeated),
-///                    collapse whitespace, ASCII-lowercase.
+///    collapse whitespace, ASCII-lowercase.
 pub fn group_into_thread(headers: &[(&str, &str)]) -> ThreadAssignment {
     // --- 1. In-Reply-To ---
     for (name, value) in headers {
-        if name.eq_ignore_ascii_case("In-Reply-To") {
-            if let Some(mid) = first_message_id(value) {
-                return ThreadAssignment::ExistingThread(mid);
-            }
+        if name.eq_ignore_ascii_case("In-Reply-To")
+            && let Some(mid) = first_message_id(value)
+        {
+            return ThreadAssignment::ExistingThread(mid);
         }
     }
 
     // --- 2. References ---
     for (name, value) in headers {
-        if name.eq_ignore_ascii_case("References") {
-            if let Some(mid) = last_message_id(value) {
-                return ThreadAssignment::ExistingThread(mid);
-            }
+        if name.eq_ignore_ascii_case("References")
+            && let Some(mid) = last_message_id(value)
+        {
+            return ThreadAssignment::ExistingThread(mid);
         }
     }
 

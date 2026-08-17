@@ -360,7 +360,6 @@ pub fn collect(repo_root: &Path, policy: &Value) -> Result<Value, CollectError> 
         .map(|row| row.as_provenance_record())
         .collect::<Vec<_>>();
 
-    let mut locked = locked;
     locked.sort_by_key(locked_sort_key);
     locked.dedup_by_key(|row| (row.name.clone(), row.version.clone()));
     let locked = locked

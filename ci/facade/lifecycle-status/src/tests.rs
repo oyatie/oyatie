@@ -3,6 +3,8 @@
 
 use super::*;
 
+type SeenFixture<'a> = (&'a str, Option<usize>, &'a [(&'a str, usize)]);
+
 fn policy(baseline_json: &str) -> Policy {
     policy_with(baseline_json, "{}")
 }
@@ -20,7 +22,7 @@ fn lanes(names: &[&str]) -> Vec<String> {
 
 /// Build observations. Each entry is `(lane, artifacts, violations)`; an artifact count of `None`
 /// means the lane failed discovery.
-fn seen(pairs: &[(&str, Option<usize>, &[(&str, usize)])]) -> BTreeMap<String, LaneObservation> {
+fn seen(pairs: &[SeenFixture<'_>]) -> BTreeMap<String, LaneObservation> {
     pairs
         .iter()
         .map(|(lane, artifacts, kinds)| {

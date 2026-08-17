@@ -194,10 +194,10 @@ fn committed_policy_names_the_authoritative_workspace_lockfile_corpus() {
         .map(String::as_str)
         .collect::<Vec<_>>();
     assert!(
-        keys.iter().any(|value| *value == "locked")
-            && keys.iter().any(|value| *value == "locked_by_source")
-            && keys.iter().any(|value| *value == "advisories")
-            && keys.iter().any(|value| *value == "manifest"),
+        keys.contains(&"locked")
+            && keys.contains(&"locked_by_source")
+            && keys.contains(&"advisories")
+            && keys.contains(&"manifest"),
         "multi-lockfile collection must preserve the public observed JSON shape"
     );
     assert!(

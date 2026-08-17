@@ -1808,7 +1808,7 @@ fn await_fingerprint(input: &SignalAwaitInput) -> String {
 }
 
 fn deliver_fingerprint(input: &SignalDeliverInput) -> String {
-    vec![
+    [
         canonical_entry("request_id", &input.request_id),
         canonical_entry("trace_ref", &input.trace_ref),
         canonical_entry("tenant_id", &input.tenant_id),
@@ -1819,7 +1819,7 @@ fn deliver_fingerprint(input: &SignalDeliverInput) -> String {
 }
 
 fn timeout_fingerprint(input: &SignalTimeoutInput) -> String {
-    vec![
+    [
         canonical_entry("request_id", &input.request_id),
         canonical_entry("trace_ref", &input.trace_ref),
         canonical_entry("tenant_id", &input.tenant_id),

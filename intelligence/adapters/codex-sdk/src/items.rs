@@ -179,7 +179,7 @@ pub enum ThreadItem {
     Reasoning(ReasoningItem),
     CommandExecution(CommandExecutionItem),
     FileChange(FileChangeItem),
-    McpToolCall(McpToolCallItem),
+    McpToolCall(Box<McpToolCallItem>),
     WebSearch(WebSearchItem),
     TodoList(TodoListItem),
     Error(ErrorItem),
@@ -214,6 +214,7 @@ impl<'de> Deserialize<'de> for ThreadItem {
                 .map(Self::FileChange)
                 .map_err(de::Error::custom),
             "mcp_tool_call" => serde_json::from_value(value)
+                .map(Box::new)
                 .map(Self::McpToolCall)
                 .map_err(de::Error::custom),
             "web_search" => serde_json::from_value(value)

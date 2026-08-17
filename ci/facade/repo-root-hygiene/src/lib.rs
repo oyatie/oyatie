@@ -583,16 +583,15 @@ pub fn evaluate_talos_machine_config_documents<'a>(
 ) -> BTreeSet<Finding> {
     documents
         .into_iter()
-        .filter_map(|(path, document)| {
-            has_generated_talos_machine_config_topology(document).then(|| {
-                Finding::new(
-                    "credential_bearing_talos_machine_config",
-                    path,
-                    format!(
-                        "tracked document `{path}` contains sensitive generated Talos machine-config credential topology. AUTO-FIX: remove it from git and regenerate outside the repository; retain only reviewed value-free patches/templates. Diagnostic output is value-redacted."
-                    ),
-                )
-            })
+        .filter(|(_, document)| has_generated_talos_machine_config_topology(document))
+        .map(|(path, _)| {
+            Finding::new(
+                "credential_bearing_talos_machine_config",
+                path,
+                format!(
+                    "tracked document `{path}` contains sensitive generated Talos machine-config credential topology. AUTO-FIX: remove it from git and regenerate outside the repository; retain only reviewed value-free patches/templates. Diagnostic output is value-redacted."
+                ),
+            )
         })
         .collect()
 }

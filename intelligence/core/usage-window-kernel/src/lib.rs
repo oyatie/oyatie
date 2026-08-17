@@ -117,11 +117,7 @@ impl UsageEnforcement {
         let used = window.tokens_in.saturating_add(window.tokens_out);
 
         // Burn rate: integer tokens/sec; 0 when elapsed == 0 (division guard).
-        let burn_rate = if elapsed_secs == 0 {
-            0u64
-        } else {
-            used / elapsed_secs
-        };
+        let burn_rate = used.checked_div(elapsed_secs).unwrap_or(0);
 
         // Zero-burn branch
         if burn_rate == 0 {

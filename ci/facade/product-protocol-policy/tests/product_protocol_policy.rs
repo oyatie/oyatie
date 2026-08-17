@@ -456,15 +456,15 @@ fn manifest_protocol_findings(manifest_path: &Path, manifest: &Value) -> Vec<Str
                     if normalized_key.contains("flatbuffer") {
                         *saw_flatbuffers = true;
                     }
-                    if normalized_key.contains("grpc") {
-                        if let Some(text) = child.as_str() {
-                            let text = text.to_ascii_lowercase();
-                            if text.contains("http/3") || text.contains("http3") {
-                                findings.push(format!(
-                                    "{} {child_path} routes gRPC over HTTP/3 instead of HTTP/2",
-                                    manifest_path.display()
-                                ));
-                            }
+                    if normalized_key.contains("grpc")
+                        && let Some(text) = child.as_str()
+                    {
+                        let text = text.to_ascii_lowercase();
+                        if text.contains("http/3") || text.contains("http3") {
+                            findings.push(format!(
+                                "{} {child_path} routes gRPC over HTTP/3 instead of HTTP/2",
+                                manifest_path.display()
+                            ));
                         }
                     }
                     walk(manifest_path, &child_path, child, findings, saw_flatbuffers);

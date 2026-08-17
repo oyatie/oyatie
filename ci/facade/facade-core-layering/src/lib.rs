@@ -112,12 +112,11 @@ fn cargo_package_name(manifest: &str) -> Option<String> {
             in_package = t == "[package]";
             continue;
         }
-        if in_package {
-            if let Some((k, v)) = t.split_once('=') {
-                if k.trim() == "name" {
-                    return Some(v.trim().trim_matches('"').to_owned());
-                }
-            }
+        if in_package
+            && let Some((k, v)) = t.split_once('=')
+            && k.trim() == "name"
+        {
+            return Some(v.trim().trim_matches('"').to_owned());
         }
     }
     None

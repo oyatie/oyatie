@@ -179,7 +179,7 @@ fn is_valid_sunset(s: &str) -> bool {
     let year: u32 = parse_digits_u32(year_bytes);
     let month: u32 = parse_digits_u32(month_bytes);
     let day: u32 = parse_digits_u32(day_bytes);
-    if month < 1 || month > 12 {
+    if !(1..=12).contains(&month) {
         return false;
     }
     let max_day = days_in_month(year, month);
@@ -208,7 +208,7 @@ fn days_in_month(year: u32, month: u32) -> u32 {
 }
 
 fn is_leap_year(year: u32) -> bool {
-    (year % 4 == 0 && year % 100 != 0) || year % 400 == 0
+    (year.is_multiple_of(4) && !year.is_multiple_of(100)) || year.is_multiple_of(400)
 }
 
 fn version_suffix_major(path: &str) -> Option<u64> {

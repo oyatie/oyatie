@@ -388,6 +388,7 @@ mod tests {
 
     use std::convert::Infallible;
     use std::net::SocketAddr;
+    use std::sync::{Arc, Mutex};
 
     use http_body_util::Full;
     use hyper::body::Bytes;
@@ -400,6 +401,9 @@ mod tests {
     use oya_intelligence_credential_resolver_domain::{
         CredentialAudience, CredentialProvider, SecretReference,
     };
+
+    type CapturedRequest = (String, Option<String>);
+    type CapturedRequestSlot = Arc<Mutex<Option<CapturedRequest>>>;
 
     // -----------------------------------------------------------------------
     // In-process mock server helpers
@@ -598,9 +602,7 @@ mod tests {
 
     #[tokio::test(flavor = "multi_thread")]
     async fn request_sends_correct_path_and_vault_token_header() {
-        use std::sync::{Arc, Mutex};
-
-        let captured: Arc<Mutex<Option<(String, Option<String>)>>> = Arc::new(Mutex::new(None));
+        let captured: CapturedRequestSlot = Arc::new(Mutex::new(None));
         let captured_clone = captured.clone();
 
         let addr = start_mock_server(move |req| {

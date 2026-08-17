@@ -103,10 +103,10 @@ pub fn is_valid_owner_principal(s: &str) -> bool {
 
 /// Principal for an envelope entry: `integ/<name>` tail (self-explanatory).
 pub fn principal_for_branch(envelope_id: &str, branch: &str) -> String {
-    if let Some(tail) = branch.strip_prefix("integ/") {
-        if is_valid_owner_principal(tail) {
-            return tail.to_owned();
-        }
+    if let Some(tail) = branch.strip_prefix("integ/")
+        && is_valid_owner_principal(tail)
+    {
+        return tail.to_owned();
     }
     envelope_id.replace('_', "-")
 }

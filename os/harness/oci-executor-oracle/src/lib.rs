@@ -346,8 +346,6 @@ fn postcondition_held_for_class(security: &SecurityPostconditions, class: &str) 
     }
 }
 
-/// FNV-1a 64-bit (local; no crate dep) for hermetic digests / fixture receipts.
-
 fn sha256_hex(data: &[u8]) -> String {
     let mut hasher = Sha256::new();
     hasher.update(data);

@@ -76,10 +76,10 @@ pub fn validate_postmortem(pm: &Postmortem) -> Result<(), &'static str> {
     }
     let mut prev: Option<i64> = None;
     for entry in &pm.timeline {
-        if let Some(p) = prev {
-            if entry.epoch_seconds < p {
-                return Err("postmortem_timeline_monotonic");
-            }
+        if let Some(p) = prev
+            && entry.epoch_seconds < p
+        {
+            return Err("postmortem_timeline_monotonic");
         }
         prev = Some(entry.epoch_seconds);
     }

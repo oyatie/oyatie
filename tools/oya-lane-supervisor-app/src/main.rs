@@ -4,7 +4,7 @@ use anyhow::{Context, Result, anyhow, bail};
 use chrono::Utc;
 use clap::{Parser, Subcommand};
 use oya_lane_supervisor_app::{
-    Clock, LaneObservation, PrPresence, ReapOptions, WaitFile, derive_lane_id,
+    Clock, DispatchRowInput, LaneObservation, PrPresence, ReapOptions, WaitFile, derive_lane_id,
     dispatch_registration_row, dispatch_row, event_row_for_decision, is_unhealthy_reap_decision,
     iso8601_from_unix_seconds, parse_jsonl, prompt_from_brief_pointer, render_jsonl_row,
     summarize_lanes, terminal_status_requires_failed_reap, unix_seconds_from_datetime,
@@ -111,14 +111,16 @@ fn run() -> Result<ExitCode> {
             log,
             ledger,
         } => dispatch(
-            &brief,
-            &worktree,
-            &branch,
-            &base,
-            &expected_hard,
-            &expected_soft,
-            log.as_deref(),
-            &ledger,
+            DispatchCommand {
+                brief: &brief,
+                worktree: &worktree,
+                branch: &branch,
+                base: &base,
+                expected_hard: &expected_hard,
+                expected_soft: &expected_soft,
+                log: log.as_deref(),
+                ledger: &ledger,
+            },
         ),
         Commands::Reap {
             ledger,
@@ -136,16 +138,28 @@ fn run() -> Result<ExitCode> {
     }
 }
 
-fn dispatch(
-    brief: &Path,
-    worktree: &Path,
-    branch: &str,
-    base: &str,
-    expected_hard: &[String],
-    expected_soft: &[String],
-    log: Option<&Path>,
-    ledger: &Path,
-) -> Result<ExitCode> {
+struct DispatchCommand<'a> {
+    brief: &'a Path,
+    worktree: &'a Path,
+    branch: &'a str,
+    base: &'a str,
+    expected_hard: &'a [String],
+    expected_soft: &'a [String],
+    log: Option<&'a Path>,
+    ledger: &'a Path,
+}
+
+fn dispatch(command: DispatchCommand<'_>) -> Result<ExitCode> {
+    let DispatchCommand {
+        brief,
+        worktree,
+        branch,
+        base,
+        expected_hard,
+        expected_soft,
+        log,
+        ledger,
+    } = command;
     let repo_root = std::env::current_dir().context("failed to resolve current directory")?;
     let brief = resolve_brief_path(brief, &repo_root)?;
     let log_path = match log {
@@ -162,20 +176,20 @@ fn dispatch(
     ensure_parent_dir(ledger)?;
     let brief_display = brief.to_string_lossy();
     let lane_id = derive_lane_id(branch, &brief_display);
-    let registration_row = dispatch_registration_row(
-        &lane_id,
-        &brief_display,
-        &worktree.to_string_lossy(),
+    let registration_row = dispatch_registration_row(DispatchRowInput {
+        lane_id: &lane_id,
+        brief: &brief_display,
+        worktree: &worktree.to_string_lossy(),
         branch,
         base,
-        expected_hard,
-        expected_soft,
-        &log_path.to_string_lossy(),
-        &wait_file.to_string_lossy(),
-        &start_file.to_string_lossy(),
-        &run_id,
-        started_at.clone(),
-    );
+        expected_hard_surfaces: expected_hard,
+        expected_soft_surfaces: expected_soft,
+        log: &log_path.to_string_lossy(),
+        wait_file: &wait_file.to_string_lossy(),
+        start_file: &start_file.to_string_lossy(),
+        run_id: &run_id,
+        at: started_at.clone(),
+    });
     append_row(ledger, &registration_row)?;
 
     let executable = std::env::current_exe().context("failed to resolve current executable")?;
@@ -209,19 +223,21 @@ fn dispatch(
 
     let pid = child.id();
     let row = dispatch_row(
-        &lane_id,
-        &brief_display,
-        &worktree.to_string_lossy(),
-        branch,
-        base,
-        expected_hard,
-        expected_soft,
-        &log_path.to_string_lossy(),
-        &wait_file.to_string_lossy(),
-        &start_file.to_string_lossy(),
-        &run_id,
+        DispatchRowInput {
+            lane_id: &lane_id,
+            brief: &brief_display,
+            worktree: &worktree.to_string_lossy(),
+            branch,
+            base,
+            expected_hard_surfaces: expected_hard,
+            expected_soft_surfaces: expected_soft,
+            log: &log_path.to_string_lossy(),
+            wait_file: &wait_file.to_string_lossy(),
+            start_file: &start_file.to_string_lossy(),
+            run_id: &run_id,
+            at: started_at,
+        },
         pid,
-        started_at,
     );
     if let Err(err) = append_row(ledger, &row) {
         terminate_child(&mut child);
@@ -276,10 +292,7 @@ fn reap(ledger: &Path, stall_minutes: i64) -> Result<ExitCode> {
             iso8601_from_unix_seconds(clock.now_unix_seconds())?,
         ) {
             append_row(ledger, &row)?;
-            let status = match row.status() {
-                Some(status) => status,
-                None => "unknown-status",
-            };
+            let status = row.status().unwrap_or("unknown-status");
             println!("{} -> {}", lane.lane_id, status);
             appended = appended.saturating_add(1);
         }
@@ -319,14 +332,8 @@ fn status(ledger: &Path, output_json: bool) -> Result<ExitCode> {
         );
     } else {
         for lane in summaries.values() {
-            let branch = match lane.branch.as_deref() {
-                Some(branch) => branch,
-                None => "-",
-            };
-            let log = match lane.log.as_deref() {
-                Some(log) => log,
-                None => "-",
-            };
+            let branch = lane.branch.as_deref().unwrap_or("-");
+            let log = lane.log.as_deref().unwrap_or("-");
             println!("{}\t{}\t{}\t{}", lane.lane_id, lane.status, branch, log);
         }
     }
@@ -375,10 +382,7 @@ fn internal_run_worker(
         .status()
         .context("failed to run codex exec lane worker")?;
 
-    let code = match status.code() {
-        Some(code) => code,
-        None => 125,
-    };
+    let code = status.code().unwrap_or(125);
     write_wait_file(wait_file, run_id, i64::from(code))?;
     if code == 0 {
         Ok(ExitCode::SUCCESS)
@@ -496,10 +500,10 @@ fn read_wait_file(path: &Path, expected_run_id: Option<&str>) -> Result<Option<i
         .with_context(|| format!("failed to read wait file {}", path.display()))?;
     let wait: WaitFile = serde_json::from_str(&content)
         .with_context(|| format!("failed to parse wait file {}", path.display()))?;
-    if let Some(expected_run_id) = expected_run_id {
-        if wait.run_id.as_deref() != Some(expected_run_id) {
-            return Ok(None);
-        }
+    if let Some(expected_run_id) = expected_run_id
+        && wait.run_id.as_deref() != Some(expected_run_id)
+    {
+        return Ok(None);
     }
     Ok(Some(wait.exit_status))
 }
@@ -610,11 +614,11 @@ fn detach_command(command: &mut Command) {
 }
 
 fn ensure_parent_dir(path: &Path) -> Result<()> {
-    if let Some(parent) = path.parent() {
-        if !parent.as_os_str().is_empty() {
-            std::fs::create_dir_all(parent)
-                .with_context(|| format!("failed to create {}", parent.display()))?;
-        }
+    if let Some(parent) = path.parent()
+        && !parent.as_os_str().is_empty()
+    {
+        std::fs::create_dir_all(parent)
+            .with_context(|| format!("failed to create {}", parent.display()))?;
     }
     Ok(())
 }
@@ -688,16 +692,16 @@ mod tests {
         fs::create_dir(&ledger).expect("ledger path should be an unwritable directory");
         let log = root.join("lane.log");
 
-        let result = dispatch(
-            &root.join("BRIEF.md"),
-            &root.join("worktree"),
-            "agent/test-lane",
-            "origin/dev",
-            &[],
-            &[],
-            Some(&log),
-            &ledger,
-        );
+        let result = dispatch(DispatchCommand {
+            brief: &root.join("BRIEF.md"),
+            worktree: &root.join("worktree"),
+            branch: "agent/test-lane",
+            base: "origin/dev",
+            expected_hard: &[],
+            expected_soft: &[],
+            log: Some(&log),
+            ledger: &ledger,
+        });
 
         assert!(result.is_err());
         assert!(!log.exists());

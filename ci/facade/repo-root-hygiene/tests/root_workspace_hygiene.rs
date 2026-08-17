@@ -239,7 +239,7 @@ fn live_tracked_root_tree_is_allowlist_clean_green() {
     // corpus ceilings are advisory — the wave-2 cleanup PR may land after this one, so the
     // pre-cleanup tree legitimately exceeds the post-cleanup ceilings until then. Every PR after
     // the merge is bound by the ceilings (protected block present -> findings are blocking).
-    let protected_has_budget = Command::new("git")
+    let protected_policy_available = Command::new("git")
         .args([
             "show",
             "origin/dev:ci/facade/repo-root-hygiene/root-workspace-hygiene-policy.json",
@@ -247,23 +247,24 @@ fn live_tracked_root_tree_is_allowlist_clean_green() {
         .current_dir(&root)
         .output()
         .map(|out| out.status.success())
-        .unwrap_or(false)
-        .then(|| {
-            let protected: serde_json::Value = serde_json::from_slice(
-                &Command::new("git")
-                    .args([
-                        "show",
-                        "origin/dev:ci/facade/repo-root-hygiene/root-workspace-hygiene-policy.json",
-                    ])
-                    .current_dir(&root)
-                    .output()
-                    .expect("git show protected policy")
-                    .stdout,
-            )
-            .expect("parse protected policy");
-            protected.get("corpus_budget").is_some()
-        })
         .unwrap_or(false);
+    let protected_has_budget = if protected_policy_available {
+        let protected: serde_json::Value = serde_json::from_slice(
+            &Command::new("git")
+                .args([
+                    "show",
+                    "origin/dev:ci/facade/repo-root-hygiene/root-workspace-hygiene-policy.json",
+                ])
+                .current_dir(&root)
+                .output()
+                .expect("git show protected policy")
+                .stdout,
+        )
+        .expect("parse protected policy");
+        protected.get("corpus_budget").is_some()
+    } else {
+        false
+    };
     if !protected_has_budget {
         findings.retain(|finding| !finding.code.starts_with("corpus_budget_"));
     }

@@ -28,6 +28,7 @@
 //! - a per-resource path param (`{id}`/`{tenant_id}`/...) on a mutating method, or
 //! - any route the engine cannot fully classify (unresolved path, unclassified method-router,
 //!   structurally-unclassifiable call, or an unresolved `.merge`/`.nest` sub-router — all fail-closed).
+//!
 //! `/healthz`-style unauthenticated reads are exempt via an explicit DATA allowlist
 //! (`exempt_path_substrings` in `authz-coverage-policy.json`) — never code.
 //!
@@ -40,6 +41,7 @@
 //!   resolved to the `impl Handler for HandlerStruct { fn call(...) { ... } }` body — an
 //!   `admin_tenant_allowed`-style guard, the tenancy `authorize(...)` pattern, a PDP `decide(...)`
 //!   port call, or a bearer/peer authentication guard, all named in policy `authz_guard_idents`.
+//!
 //! A mutating handler that derives no caller identity → the surface is UNAUTHENTICATED.
 //!
 //! ## Conservative in the SAFE direction
@@ -211,7 +213,7 @@ pub fn collect_surfaces(root: &Path, policy: &Value) -> Result<Value, CollectErr
             surfaces.push(surface);
         }
     }
-    surfaces.sort_by(|a, b| surface_sort_key(a).cmp(&surface_sort_key(b)));
+    surfaces.sort_by_key(surface_sort_key);
 
     Ok(json!({
         "surfaces_found": surfaces.len(),
@@ -263,10 +265,10 @@ fn collect_rs_files(
                 continue;
             }
             collect_rs_files(root, &path, excluded_dirs, out)?;
-        } else if path.extension().and_then(|ext| ext.to_str()) == Some("rs") {
-            if let Ok(rel) = path.strip_prefix(root) {
-                out.push(rel.to_string_lossy().replace('\\', "/"));
-            }
+        } else if path.extension().and_then(|ext| ext.to_str()) == Some("rs")
+            && let Ok(rel) = path.strip_prefix(root)
+        {
+            out.push(rel.to_string_lossy().replace('\\', "/"));
         }
     }
     Ok(())
@@ -757,11 +759,11 @@ fn cfg_test_spans(text: &str) -> Vec<(usize, usize)> {
             .map(|i| at + i + 1)
             .unwrap_or(text.len());
         let attr = &text[at..attr_end];
-        if attr_contains_test_token(attr) {
-            if let Some(body) = brace_body(text, attr_end) {
-                let body_start = body.as_ptr() as usize - text.as_ptr() as usize;
-                spans.push((at, body_start + body.len()));
-            }
+        if attr_contains_test_token(attr)
+            && let Some(body) = brace_body(text, attr_end)
+        {
+            let body_start = body.as_ptr() as usize - text.as_ptr() as usize;
+            spans.push((at, body_start + body.len()));
         }
         from = attr_end;
     }
@@ -896,8 +898,9 @@ fn classify_route_call(
     // verb) and whose arg2 is a path-shaped literal/const is an owned-kernel route with an unknown
     // method → fail-closed UNCLASSIFIED-METHOD (not dropped — a `const M = HttpMethod::Post` aliased
     // through a non-`HttpMethod`-typed const must never silently vanish).
-    if arg1_is_path_ident {
-        if let Some(rest_m) = rest_masked {
+    if arg1_is_path_ident
+        && let Some(rest_m) = rest_masked
+    {
             let (arg2_m, after2) = split_top_level_comma(rest_m);
             let arg2_t = split_top_level_comma(args_text).1.unwrap_or("");
             let (arg2_path_t, _) = split_top_level_comma(arg2_t);
@@ -932,7 +935,6 @@ fn classify_route_call(
                     surface_unclassified: true,
                 });
             }
-        }
     }
 
     // A literal/HttpMethod-shaped arg1 was absent AND arg2 is not a method-router ⇒ this `.route(` is
@@ -985,12 +987,11 @@ fn strip_http_method_prefix(arg: &str) -> Option<String> {
     let at = arg.find(needle)?;
     // Must be a whole-segment `HttpMethod` (preceded by start, `:`, or non-ident).
     let before = arg.as_bytes().get(at.wrapping_sub(1)).copied();
-    if at != 0 {
-        if let Some(b) = before {
-            if is_ident_byte(b) {
-                return None;
-            }
-        }
+    if at != 0
+        && let Some(b) = before
+        && is_ident_byte(b)
+    {
+        return None;
     }
     let verb = read_path_ident(&arg[at + needle.len()..]);
     // The whole arg must be JUST the verb expression (no trailing call/args), else it is not a bare
@@ -1027,14 +1028,14 @@ fn handler_ident_of(arg: &str) -> String {
         let before_ok = at == 0 || !is_ident_byte(trimmed.as_bytes()[at - 1]);
         let after_name = at + wrapper.len();
         let after = &trimmed[after_name..];
-        if before_ok {
-            if let Some(open_rel) = after.find('(') {
-                let inner = &after[open_rel + 1..];
-                let (first_arg, _) = split_top_level_comma(inner);
-                let inner_ident = read_path_ident(first_arg);
-                if !inner_ident.is_empty() {
-                    return inner_ident;
-                }
+        if before_ok
+            && let Some(open_rel) = after.find('(')
+        {
+            let inner = &after[open_rel + 1..];
+            let (first_arg, _) = split_top_level_comma(inner);
+            let inner_ident = read_path_ident(first_arg);
+            if !inner_ident.is_empty() {
+                return inner_ident;
             }
         }
     }
@@ -1254,10 +1255,10 @@ fn strip_call<'a>(text: &'a str, ident: &str) -> Option<&'a str> {
     let t = text.trim_start();
     let rest = t.strip_prefix(ident)?;
     // The char right after the ident must not be an ident char (so `on` != `onfoo`).
-    if let Some(c) = rest.chars().next() {
-        if is_ident_char(c) {
-            return None;
-        }
+    if let Some(c) = rest.chars().next()
+        && is_ident_char(c)
+    {
+        return None;
     }
     let rest = rest.trim_start();
     rest.strip_prefix('(')
@@ -1719,8 +1720,10 @@ fn has_guard_rec(
         let before_ok = at == 0 || !is_ident_byte(bytes[at - 1]);
         let after_name = at + needle.len();
         let after_ok = after_name >= bytes.len() || !is_ident_byte(bytes[after_name]);
-        if before_ok && after_ok {
-            if let Some(body) = brace_body(text, after_name) {
+        if before_ok
+            && after_ok
+            && let Some(body) = brace_body(text, after_name)
+        {
                 // B3 FIX: the guard probe runs on a CODE-ONLY view of the body — comments and
                 // string/char literals elided — so a `// TODO: authorize()` comment or a
                 // `"authorize"` string literal can NEVER false-cover a handler that does no real
@@ -1744,7 +1747,6 @@ fn has_guard_rec(
                         }
                     }
                 }
-            }
         }
         from = at + needle.len();
     }
@@ -1772,8 +1774,12 @@ fn handler_impl_has_guard_rec(
         let before_ok = !is_ident_byte(bytes[at]);
         let after_name = at + needle.len();
         let after_ok = after_name >= bytes.len() || !is_ident_byte(bytes[after_name]);
-        if before_ok && after_ok && prefix.contains("impl") && prefix.contains("Handler") {
-            if let Some(body) = brace_body(text, after_name) {
+        if before_ok
+            && after_ok
+            && prefix.contains("impl")
+            && prefix.contains("Handler")
+            && let Some(body) = brace_body(text, after_name)
+        {
                 let code = code_only(body);
                 if guard_idents
                     .iter()
@@ -1796,7 +1802,6 @@ fn handler_impl_has_guard_rec(
                         }
                     }
                 }
-            }
         }
         from = at + needle.len();
     }

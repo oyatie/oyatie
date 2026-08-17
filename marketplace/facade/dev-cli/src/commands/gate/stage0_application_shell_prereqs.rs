@@ -24,6 +24,9 @@ const EXPECTED_APP_RUST_VERSION: &str = "1.97.1";
 const APP_PACKAGE_NAME: &str = "oya-application-app";
 const APP_WORKSPACE_MEMBER: &str = "crates/oya-application-app";
 
+type PackageToolchainMetadata = (String, String);
+type RepoCheckResult = Result<(Vec<String>, Option<PackageToolchainMetadata>), String>;
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct Stage0PrereqsValidateArgs {
     pub repo_root: PathBuf,
@@ -89,7 +92,7 @@ pub(crate) fn validate_stage0_prereqs_gate(
 fn check_repo(
     root: &Path,
     metadata_json_override: Option<&str>,
-) -> Result<(Vec<String>, Option<(String, String)>), String> {
+) -> RepoCheckResult {
     let mut errors: Vec<String> = Vec::new();
     for rel_path in REQUIRED_PATHS {
         if !root.join(rel_path).exists() {

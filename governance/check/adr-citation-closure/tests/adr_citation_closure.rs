@@ -359,12 +359,12 @@ fn live_tree_findings_equal_the_frozen_ceilings() {
         count(CODE_VACUOUS_SCAN),
         0,
         "the walk collapsed — its zero findings are not evidence\n{}",
-        report(&observed, &verdict)
+        report(observed, verdict)
     );
     assert!(
         observed.files_scanned > 0,
         "census walk saw zero files — refuse vacuous green\n{}",
-        report(&observed, &verdict)
+        report(observed, verdict)
     );
 
     for (code, key) in [
@@ -385,7 +385,7 @@ fn live_tree_findings_equal_the_frozen_ceilings() {
              introduced and must be repaired rather than admitted. Below it, findings were repaired \
              and `measured.{key}` must be lowered to {observed_count} in the SAME change so the \
              ratchet keeps biting.\n{}",
-            report(&observed, &verdict)
+            report(observed, verdict)
         );
     }
 }

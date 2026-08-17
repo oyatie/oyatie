@@ -55,10 +55,10 @@ pub fn validate_policy(policy: &EscalationPolicy) -> Result<(), &'static str> {
     }
     let mut prev: Option<u8> = None;
     for step in policy.steps.iter() {
-        if let Some(prev_idx) = prev {
-            if step.step_index <= prev_idx {
-                return Err("escalation_step_ordered_monotonically");
-            }
+        if let Some(prev_idx) = prev
+            && step.step_index <= prev_idx
+        {
+            return Err("escalation_step_ordered_monotonically");
         }
         prev = Some(step.step_index);
     }

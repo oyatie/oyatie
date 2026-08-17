@@ -20,6 +20,7 @@
 //!      committed move-plan and whose regenerate-twice determinism (registry-drift) binds it to
 //!      the codemod's deterministic output; a hand-forged pair is RED before the firewall consumes
 //!      the snapshot.
+//!
 //! On top of those, the resolver is FAIL-CLOSED: a manifest-declared name absent from BOTH sides
 //! of history, or ambiguously present on both, is a HARD ERROR — never a fallback to an empty,
 //! candidate, or bootstrap reference (that empty-reference fallback is the exact laundering vector
@@ -378,14 +379,14 @@ impl PathResolver for ManifestPathResolver {
     ) -> Result<MergeBaseName, String> {
         if matches!(id, PathId::RatchetPolicy) {
             let seed = canonical_current(id);
-            if let Some(mapped) = self.bijection.old_to_new(seed) {
-                if mapped != seed {
-                    return Err(format!(
-                        "move-manifest treats RatchetPolicy canonical current seed {seed:?} as \
-                         an OLD key and repoints it to {mapped:?}; manifest new-seed must equal \
-                         canonical_current, fail-closed"
-                    ));
-                }
+            if let Some(mapped) = self.bijection.old_to_new(seed)
+                && mapped != seed
+            {
+                return Err(format!(
+                    "move-manifest treats RatchetPolicy canonical current seed {seed:?} as \
+                     an OLD key and repoints it to {mapped:?}; manifest new-seed must equal \
+                     canonical_current, fail-closed"
+                ));
             }
         }
         let candidate = self.candidate(id);

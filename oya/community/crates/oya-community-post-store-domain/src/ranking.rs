@@ -1,29 +1,30 @@
-/// Deterministic integer-only Reddit-style hot/controversy ranking kernel.
-///
-/// # Score formulas
-///
-/// All arithmetic is integer-only (no floats) to guarantee identical results
-/// across platforms and compiler versions.
-///
-/// ## hot_score
-/// ```text
-/// RECENCY_WEIGHT  = 86_400   (seconds in one day; mirrors feed_ranking.rs model)
-///
-/// age_secs      = now.saturating_sub(created_at)
-/// recency_term  = RECENCY_WEIGHT.saturating_sub(age_secs.min(RECENCY_WEIGHT))
-/// hot_score     = tally().saturating_add(recency_term as i64)
-/// ```
-///
-/// ## controversy_score
-/// ```text
-/// up    = count of Up receipts
-/// down  = count of Down receipts
-/// score = min(up, down).saturating_mul(up.saturating_add(down))
-/// ```
-///
-/// ## rank_posts
-/// Orders by `hot_score` descending; stable ascending `post_id` tiebreak.
-/// Excludes entries with empty post_id.
+//! Deterministic integer-only Reddit-style hot/controversy ranking kernel.
+//!
+//! # Score formulas
+//!
+//! All arithmetic is integer-only (no floats) to guarantee identical results
+//! across platforms and compiler versions.
+//!
+//! ## hot_score
+//! ```text
+//! RECENCY_WEIGHT  = 86_400   (seconds in one day; mirrors feed_ranking.rs model)
+//!
+//! age_secs      = now.saturating_sub(created_at)
+//! recency_term  = RECENCY_WEIGHT.saturating_sub(age_secs.min(RECENCY_WEIGHT))
+//! hot_score     = tally().saturating_add(recency_term as i64)
+//! ```
+//!
+//! ## controversy_score
+//! ```text
+//! up    = count of Up receipts
+//! down  = count of Down receipts
+//! score = min(up, down).saturating_mul(up.saturating_add(down))
+//! ```
+//!
+//! ## rank_posts
+//! Orders by `hot_score` descending; stable ascending `post_id` tiebreak.
+//! Excludes entries with empty post_id.
+
 use crate::{VoteKind, VoteLedger};
 
 /// Recency weight constant: one day in seconds.

@@ -224,10 +224,10 @@ fn run(raw: &[String]) -> Result<(), String> {
     // The fan-in classifies the run it is itself running inside, so its own lane is always
     // in-progress and would otherwise be reported `blocked`. Drop it: it has no verdict to give
     // about the candidate.
-    if let Some(name) = exclude.as_deref() {
-        if let Some(jobs) = payload.get_mut("jobs").and_then(Value::as_array_mut) {
-            jobs.retain(|j| j.get("name").and_then(Value::as_str) != Some(name));
-        }
+    if let Some(name) = exclude.as_deref()
+        && let Some(jobs) = payload.get_mut("jobs").and_then(Value::as_array_mut)
+    {
+        jobs.retain(|j| j.get("name").and_then(Value::as_str) != Some(name));
     }
 
     let state = classify_run(&payload, &observed_at, &subjects);

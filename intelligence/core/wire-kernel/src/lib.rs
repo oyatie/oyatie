@@ -122,10 +122,10 @@ pub fn apply_thinking_policy(
     policy: &ThinkingPolicy,
     mut payload: serde_json::Value,
 ) -> serde_json::Value {
-    if matches!(policy, ThinkingPolicy::ProviderCompatibleDefault) {
-        if let Some(object) = payload.as_object_mut() {
-            object.remove("thinking");
-        }
+    if matches!(policy, ThinkingPolicy::ProviderCompatibleDefault)
+        && let Some(object) = payload.as_object_mut()
+    {
+        object.remove("thinking");
     }
     payload
 }

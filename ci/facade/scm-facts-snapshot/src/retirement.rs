@@ -124,6 +124,10 @@ impl TreeEntry {
     }
 }
 
+/// Streaming visitor for one bounded Git blob body.
+pub type BlobVisitor<'a> =
+    dyn FnMut(&str, u64, &mut dyn Read) -> Result<(), String> + 'a;
+
 pub(crate) trait RetirementObjectSource {
     fn resolve_commit(&self, revision: &str) -> Result<String, String>;
     fn tree_for_commit(&self, commit_oid: &str) -> Result<String, String>;
@@ -140,7 +144,7 @@ pub(crate) trait RetirementObjectSource {
     fn visit_blobs(
         &self,
         blob_oids: &[String],
-        visit: &mut dyn FnMut(&str, u64, &mut dyn Read) -> Result<(), String>,
+        visit: &mut BlobVisitor<'_>,
     ) -> Result<(), String> {
         for blob_oid in blob_oids {
             let bytes = self.read_blob(blob_oid)?;
@@ -188,7 +192,7 @@ impl GitCliRetirementObjectSource {
 pub fn visit_git_blobs(
     repo_root: &Path,
     blob_oids: &[String],
-    visit: &mut dyn FnMut(&str, u64, &mut dyn Read) -> Result<(), String>,
+    visit: &mut BlobVisitor<'_>,
 ) -> Result<(), String> {
     for blob_oid in blob_oids {
         validate_oid(blob_oid, "retirement blob")?;
@@ -238,7 +242,7 @@ pub fn visit_git_blobs(
                 stdout.read_exact(&mut byte).map_err(|error| {
                     format!("stream retirement blobs: read header for {blob_oid}: {error}")
                 })?;
-                if byte == [b'\n'] {
+                if byte == *b"\n" {
                     break;
                 }
                 if header.len() == CAT_FILE_HEADER_LIMIT {
@@ -276,7 +280,7 @@ pub fn visit_git_blobs(
             stdout.read_exact(&mut terminator).map_err(|error| {
                 format!("stream retirement blobs: read terminator for {blob_oid}: {error}")
             })?;
-            if terminator != [b'\n'] {
+            if terminator != *b"\n" {
                 return Err(format!(
                     "stream retirement blobs: missing body terminator for {blob_oid}"
                 ));
@@ -393,7 +397,7 @@ impl RetirementObjectSource for GitCliRetirementObjectSource {
     fn visit_blobs(
         &self,
         blob_oids: &[String],
-        visit: &mut dyn FnMut(&str, u64, &mut dyn Read) -> Result<(), String>,
+        visit: &mut BlobVisitor<'_>,
     ) -> Result<(), String> {
         visit_git_blobs(&self.repo_root, blob_oids, visit)
     }

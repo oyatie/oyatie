@@ -168,16 +168,16 @@ fn collect_from(
         Value::Object(map) => {
             for (k, v) in map {
                 let ptr = format!("{pointer}/{k}");
-                if coverage_keys.iter().any(|c| c == k) {
-                    if let Some(arr) = v.as_array() {
-                        for entry in arr.iter().filter_map(Value::as_str) {
-                            out.push(DeclaredRoot {
-                                policy_file: file.to_owned(),
-                                key: ptr.clone(),
-                                value: entry.to_owned(),
-                                resolves: resolves(root, entry),
-                            });
-                        }
+                if coverage_keys.iter().any(|c| c == k)
+                    && let Some(arr) = v.as_array()
+                {
+                    for entry in arr.iter().filter_map(Value::as_str) {
+                        out.push(DeclaredRoot {
+                            policy_file: file.to_owned(),
+                            key: ptr.clone(),
+                            value: entry.to_owned(),
+                            resolves: resolves(root, entry),
+                        });
                     }
                 }
                 collect_from(v, &ptr, file, coverage_keys, root, out);

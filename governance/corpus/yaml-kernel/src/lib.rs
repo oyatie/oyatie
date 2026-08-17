@@ -181,14 +181,14 @@ fn walk(
                 dst: entry_id.clone(),
             });
 
-            if let Scalar::String(value) = scalar {
-                if let Some(target) = repo_path_reference(value) {
-                    edges.push(Edge {
-                        kind: EdgeKind::Refs,
-                        src: entry_id,
-                        dst: NodeId::file(target),
-                    });
-                }
+            if let Scalar::String(value) = scalar
+                && let Some(target) = repo_path_reference(value)
+            {
+                edges.push(Edge {
+                    kind: EdgeKind::Refs,
+                    src: entry_id,
+                    dst: NodeId::file(target),
+                });
             }
         }
         // Alias/Tagged/Representation/BadValue carry no addressable scalar leaf for v1. They are not

@@ -357,18 +357,18 @@ fn decide_with_context(
                 command_position = false;
                 continue;
             };
-            if let Some(alias_script) = &invocation.alias_script {
-                if depth < MAX_NESTED_COMMAND_DEPTH {
-                    let nested_decision = decide_with_context(
-                        alias_script,
-                        invocation.repo_context.clone(),
-                        canonical_checkout,
-                        &pending_git_env,
-                        depth.saturating_add(1),
-                    );
-                    if matches!(nested_decision, Decision::Deny { .. }) {
-                        return nested_decision;
-                    }
+            if let Some(alias_script) = &invocation.alias_script
+                && depth < MAX_NESTED_COMMAND_DEPTH
+            {
+                let nested_decision = decide_with_context(
+                    alias_script,
+                    invocation.repo_context.clone(),
+                    canonical_checkout,
+                    &pending_git_env,
+                    depth.saturating_add(1),
+                );
+                if matches!(nested_decision, Decision::Deny { .. }) {
+                    return nested_decision;
                 }
             }
             // Fail closed when the subcommand token still carries an unresolved
@@ -461,18 +461,17 @@ fn decide_with_context(
         // carrying a canonical-targeted mutating git op fails closed.
         if !command_never_executes_arguments(word)
             && let Some(remainder) = unmodelled_wrapper_remainder(&tokens, index)
+            && depth < MAX_NESTED_COMMAND_DEPTH
         {
-            if depth < MAX_NESTED_COMMAND_DEPTH {
-                let nested_decision = decide_with_context(
-                    &remainder,
-                    current_cwd.clone(),
-                    canonical_checkout,
-                    &pending_git_env,
-                    depth.saturating_add(1),
-                );
-                if matches!(nested_decision, Decision::Deny { .. }) {
-                    return nested_decision;
-                }
+            let nested_decision = decide_with_context(
+                &remainder,
+                current_cwd.clone(),
+                canonical_checkout,
+                &pending_git_env,
+                depth.saturating_add(1),
+            );
+            if matches!(nested_decision, Decision::Deny { .. }) {
+                return nested_decision;
             }
         }
         command_position = false;
@@ -927,7 +926,7 @@ fn checkout_from_git_dir(option_cwd: &CwdState, raw_path: &str) -> CwdState {
 }
 
 fn checkout_from_resolved_git_dir(git_dir: &CwdState) -> CwdState {
-    let Some(path) = known_cwd(&git_dir) else {
+    let Some(path) = known_cwd(git_dir) else {
         return CwdState::Unknown;
     };
     if path.file_name() == Some(Path::new(".git").as_os_str()) {
@@ -1296,7 +1295,6 @@ fn exec_short_option_cluster(word: &str) -> Option<&str> {
 /// `$(prog)` / backticks are preserved verbatim so legitimate commands never
 /// mis-expand (review #685 r5; founder directive 2026-06-10).
 fn normalize_static_expansions(command: &str) -> String {
-    let bindings = collect_same_line_bindings(command);
     // A same-line non-default `IFS=` reassignment makes unquoted expansions
     // word-SPLIT on attacker-chosen characters (`IFS=x; y=resetx; git … $y`
     // splits `resetx`→`reset`; `IFS=x; p=<canon>x; git -C $p`), defeating a
@@ -1586,12 +1584,12 @@ fn collect_function_defs(command: &str) -> Vec<(String, String)> {
     let mut i = 0;
     while i < bytes.len() {
         // Find a `{` that opens a function body and walk back to the name.
-        if bytes[i] == b'{' {
-            if let Some((name, body, end)) = try_capture_function(command, i) {
-                defs.push((name, body));
-                i = end;
-                continue;
-            }
+        if bytes[i] == b'{'
+            && let Some((name, body, end)) = try_capture_function(command, i)
+        {
+            defs.push((name, body));
+            i = end;
+            continue;
         }
         i += 1;
     }
@@ -1666,7 +1664,7 @@ fn substitute_positionals(body: &str, args: &[String]) -> String {
             Some('{') => {
                 chars.next();
                 let mut inner = String::new();
-                while let Some((_, c)) = chars.next() {
+                for (_, c) in chars.by_ref() {
                     if c == '}' {
                         break;
                     }
@@ -1903,10 +1901,10 @@ fn collect_array_bindings(command: &str) -> Vec<(String, Vec<String>)> {
                         {
                             value = Some(v.clone());
                             j += 1;
-                        } else if let Some(v) = arg.strip_prefix("<<<") {
-                            if !v.is_empty() {
-                                value = Some(v.to_owned());
-                            }
+                        } else if let Some(v) = arg.strip_prefix("<<<")
+                            && !v.is_empty()
+                        {
+                            value = Some(v.to_owned());
                         }
                         j += 1;
                     }
@@ -2124,7 +2122,7 @@ fn expand_with_bindings(
             '$' if chars.peek().is_some_and(|(_, c)| *c == '{') => {
                 chars.next();
                 let mut inner = String::new();
-                while let Some((_, c)) = chars.next() {
+                for (_, c) in chars.by_ref() {
                     if c == '}' {
                         break;
                     }
@@ -2914,9 +2912,7 @@ fn strip_redirection_fd(word: &str) -> &str {
 }
 
 fn parse_env_assignment(word: &str) -> Option<(&str, &str)> {
-    let Some((name, _value)) = word.split_once('=') else {
-        return None;
-    };
+    let (name, _value) = word.split_once('=')?;
     if name.is_empty()
         || !name
             .chars()

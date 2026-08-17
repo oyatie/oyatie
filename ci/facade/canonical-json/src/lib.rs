@@ -44,9 +44,9 @@
 //! ## Violation codes (the contract — literal strings the gate emits)
 //! - `json_not_canonical`  — committed bytes != `canonicalize(bytes)` (the FRIC drift class; fixable).
 //! - `json_parse_error`    — not valid JSON under the canonical grammar (incl. lone surrogates,
-//!                           NaN/Infinity, leading-zero numbers, trailing data).
+//!   NaN/Infinity, leading-zero numbers, trailing data).
 //! - `json_duplicate_key`  — an object has two members with the same key (canonical form is undefined;
-//!                           the fixer refuses rather than silently drop one).
+//!   the fixer refuses rather than silently drop one).
 //!
 //! ADR-0083 Tier-3: production code carries no unwrap/expect/panic; `#![forbid(unsafe_code)]`.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
@@ -879,12 +879,12 @@ fn walk_json(dir: &Path, repo_root: &Path, out: &mut BTreeSet<String>) -> Result
             .extension()
             .and_then(|ext| ext.to_str())
             .is_some_and(|ext| ext.eq_ignore_ascii_case("json"));
-        if is_regular_file && is_json {
-            if let Ok(rel) = path.strip_prefix(repo_root) {
-                if let Some(rel_str) = rel.to_str() {
-                    out.insert(rel_str.replace('\\', "/"));
-                }
-            }
+        if is_regular_file
+            && is_json
+            && let Ok(rel) = path.strip_prefix(repo_root)
+            && let Some(rel_str) = rel.to_str()
+        {
+            out.insert(rel_str.replace('\\', "/"));
         }
     }
     Ok(())

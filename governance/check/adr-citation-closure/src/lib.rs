@@ -1038,7 +1038,7 @@ mod tests {
     #[test]
     fn a_new_bad_citation_fails_the_gate() {
         let good = cite("docs/x.md", &["ADR-0700"], &["ADR-0349"], false);
-        let clean = evaluate(&chain(), &[good.clone()], &permissive());
+        let clean = evaluate(&chain(), std::slice::from_ref(&good), &permissive());
         assert!(!clean.failed(), "control corpus must be green: {clean:?}");
 
         // Inject exactly the measured defect: the path was rewritten to the wrong apex while the
@@ -1105,7 +1105,7 @@ mod tests {
         records.push(proposed);
 
         let cited_as_path = cite("CLAUDE.md", &["ADR-0710"], &[], true);
-        let verdict = evaluate(&records, &[cited_as_path.clone()], &permissive());
+        let verdict = evaluate(&records, std::slice::from_ref(&cited_as_path), &permissive());
         assert_eq!(verdict.count(CODE_REJECTED_AUTHORITY), 1);
         assert!(verdict.failed());
         assert_eq!(
@@ -1146,7 +1146,7 @@ mod tests {
         rejected.status = "Rejected".to_owned();
         records.push(rejected);
         let line = cite("CLAUDE.md", &[], &["ADR-0111"], true);
-        let verdict = evaluate(&records, &[line.clone()], &permissive());
+        let verdict = evaluate(&records, std::slice::from_ref(&line), &permissive());
         assert_eq!(verdict.count(CODE_REJECTED_AUTHORITY), 1);
         assert!(verdict.failed());
 
@@ -1235,7 +1235,7 @@ mod tests {
         let line = cite("docs/x.md", &["ADR-0709"], &["ADR-0349"], false);
 
         // Control: with the oracle intact this shape is red for the RIGHT reason.
-        let intact = evaluate(&chain(), &[line.clone()], &policy);
+        let intact = evaluate(&chain(), std::slice::from_ref(&line), &policy);
         assert_eq!(intact.count(CODE_VACUOUS_SCAN), 0);
         assert_eq!(intact.count(CODE_CITATION_MISMATCH), 1);
 

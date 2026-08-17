@@ -606,14 +606,14 @@ where
     if let Some(bound_tenant) =
         matched_tenant_bound_operator(headers, &state.tenant_bound_operator_tokens)
     {
-        if let Some(requested) = tenant_axis_header(headers) {
-            if requested != bound_tenant {
-                return Err(err(
-                    StatusCode::FORBIDDEN,
-                    "PERMISSION_DENIED",
-                    "tenant-bound credential does not match x-oya-tenant selection",
-                ));
-            }
+        if let Some(requested) = tenant_axis_header(headers)
+            && requested != bound_tenant
+        {
+            return Err(err(
+                StatusCode::FORBIDDEN,
+                "PERMISSION_DENIED",
+                "tenant-bound credential does not match x-oya-tenant selection",
+            ));
         }
 
         return Ok(CallerIdentity {
@@ -1249,11 +1249,11 @@ pub fn build_inmemory_router_with_authorizer_and_tenant_bound_operator_tokens(
 ///     the adapter refuses to serve), OR
 ///   - the connected role is not a member of the `tenancy_lifecycle_runtime`
 ///     policy-subject role (policies would not apply; deny-all outage).
-///   The caller MUST refuse to serve — there is NO fallback to in-memory.
-///   Note: the guard is necessary but not sufficient for full tenant isolation;
-///   full isolation additionally requires that `tenancy_lifecycle_runtime`
-///   exists provisioned with NOBYPASSRLS (deferred `0000_runtime_role.sql`,
-///   mirroring oya-data-outbox-adapter-postgres).
+///     The caller MUST refuse to serve — there is NO fallback to in-memory.
+///     Note: the guard is necessary but not sufficient for full tenant isolation;
+///     full isolation additionally requires that `tenancy_lifecycle_runtime`
+///     exists provisioned with NOBYPASSRLS (deferred `0000_runtime_role.sql`,
+///     mirroring oya-data-outbox-adapter-postgres).
 /// - [`BootError::Authz`] if the embedded tenancy authz bundle fails to compile
 ///   or strict-validate (no default-allow).
 pub async fn build_postgres_router(
@@ -1628,22 +1628,22 @@ fn validate_credentials(
         return Err(BootError::NoCredentialConfigured);
     }
 
-    if let (Some(admin), Some(operator)) = (platform_admin_token, tenant_operator_token) {
-        if constant_time_eq(admin.as_bytes(), operator.as_bytes()) {
-            return Err(BootError::AmbiguousCredential);
-        }
+    if let (Some(admin), Some(operator)) = (platform_admin_token, tenant_operator_token)
+        && constant_time_eq(admin.as_bytes(), operator.as_bytes())
+    {
+        return Err(BootError::AmbiguousCredential);
     }
 
     for (tenant, token) in tenant_bound_operator_tokens {
-        if let Some(admin) = platform_admin_token {
-            if constant_time_eq(token.as_bytes(), admin.as_bytes()) {
-                return Err(BootError::AmbiguousCredential);
-            }
+        if let Some(admin) = platform_admin_token
+            && constant_time_eq(token.as_bytes(), admin.as_bytes())
+        {
+            return Err(BootError::AmbiguousCredential);
         }
-        if let Some(operator) = tenant_operator_token {
-            if constant_time_eq(token.as_bytes(), operator.as_bytes()) {
-                return Err(BootError::AmbiguousCredential);
-            }
+        if let Some(operator) = tenant_operator_token
+            && constant_time_eq(token.as_bytes(), operator.as_bytes())
+        {
+            return Err(BootError::AmbiguousCredential);
         }
 
         // ponytail: boot-only env-sized list; O(n^2) avoids a token-index

@@ -367,7 +367,7 @@ async fn publish_handler(
         &verified,
         &body,
     ) {
-        return response;
+        return *response;
     }
 
     // Use the VERIFIED identity for principal binding and audit fields.
@@ -422,8 +422,8 @@ async fn publish_handler(
 
     match publish_cedar_policy_from_api(
         &verified,
-        &mut *policies_guard,
-        &mut *idempotency_guard,
+        &mut policies_guard,
+        &mut idempotency_guard,
         api_request,
     ) {
         Ok(success) => {
@@ -462,8 +462,7 @@ async fn publish_handler(
 ///    tenant-scoped resource owned by the caller (which would silently
 ///    authorize tenant-admins for platform-wide authz-policy control).
 ///
-/// Returns `Ok(())` on success, or `Err(Response)` (403) on any failure.
-#[allow(clippy::too_many_arguments)]
+/// Returns `Ok(())` on success, or a boxed refusal response on any failure.
 fn enforce_publish_authz(
     state: &CedarPolicyRestState,
     headers: &HeaderMap,
@@ -472,7 +471,7 @@ fn enforce_publish_authz(
     operator_tenant_id: &str,
     verified: &VerifiedPrincipal,
     body: &PublishRequestBody,
-) -> Result<(), Response> {
+) -> Result<(), Box<Response>> {
     // (1) Cross-check — the verified identity is authoritative.
     //
     // Header contract for this control plane:
@@ -554,7 +553,7 @@ fn publish_resource(
     request_id: &str,
     policy_id: &str,
     body: &PublishRequestBody,
-) -> Result<PublishResource, Response> {
+) -> Result<PublishResource, Box<Response>> {
     match body.scope.kind.as_str() {
         "tenant" => {
             let tenant_id = body
@@ -605,13 +604,16 @@ fn principal_verification_response(
 }
 
 /// Map a [`PublishAuthorizationError`] to an HTTP 403 response (fail-closed).
-fn publish_authorization_response(request_id: &str, _err: &PublishAuthorizationError) -> Response {
+fn publish_authorization_response(
+    request_id: &str,
+    _err: &PublishAuthorizationError,
+) -> Box<Response> {
     authorization_denied_response(request_id, "pdp_decision")
 }
 
 /// Build an HTTP 403 response for an authorization denial (fail-closed). The
 /// `axis` identifies which check denied without leaking decision internals.
-fn authorization_denied_response(request_id: &str, axis: &str) -> Response {
+fn authorization_denied_response(request_id: &str, axis: &str) -> Box<Response> {
     tracing::Span::current().record("cedar.policy.publish.status_code", 403u16);
     let body = ErrorResponseDto {
         error: ErrorBodyDto {
@@ -627,13 +629,13 @@ fn authorization_denied_response(request_id: &str, axis: &str) -> Response {
             retry_after_seconds: None,
         },
     };
-    (StatusCode::FORBIDDEN, Json(body)).into_response()
+    Box::new((StatusCode::FORBIDDEN, Json(body)).into_response())
 }
 
 /// Build an HTTP 400 response for a tenant-scoped publish with no `tenant_id`.
 /// Defaulting to the verified tenant would hide a caller mistake and present
 /// the wrong resource to the PDP; reject explicitly as a bad request instead.
-fn missing_scope_tenant_response(request_id: &str) -> Response {
+fn missing_scope_tenant_response(request_id: &str) -> Box<Response> {
     tracing::Span::current().record("cedar.policy.publish.status_code", 400u16);
     let body = ErrorResponseDto {
         error: ErrorBodyDto {
@@ -648,13 +650,13 @@ fn missing_scope_tenant_response(request_id: &str) -> Response {
             retry_after_seconds: None,
         },
     };
-    (StatusCode::BAD_REQUEST, Json(body)).into_response()
+    Box::new((StatusCode::BAD_REQUEST, Json(body)).into_response())
 }
 
 /// Build an HTTP 400 response for an unrecognised scope kind. The router layer
 /// rejects unrecognised scope kinds BEFORE the PDP decision so the caller sees
 /// a typed 400 (bad request) rather than a 403 from the PDP.
-fn invalid_scope_kind_response(request_id: &str, kind: &str) -> Response {
+fn invalid_scope_kind_response(request_id: &str, kind: &str) -> Box<Response> {
     tracing::Span::current().record("cedar.policy.publish.status_code", 400u16);
     let body = ErrorResponseDto {
         error: ErrorBodyDto {
@@ -669,7 +671,7 @@ fn invalid_scope_kind_response(request_id: &str, kind: &str) -> Response {
             retry_after_seconds: None,
         },
     };
-    (StatusCode::BAD_REQUEST, Json(body)).into_response()
+    Box::new((StatusCode::BAD_REQUEST, Json(body)).into_response())
 }
 
 // ==========================================================================

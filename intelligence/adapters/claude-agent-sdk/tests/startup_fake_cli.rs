@@ -176,7 +176,7 @@ async fn warm_query_close_closes_stdin_without_prompt() {
 #[tokio::test]
 async fn startup_honors_initialize_timeout() {
     let options = ClaudeAgentOptions::builder()
-        .spawn_claude_code_process(fake_cli(|mut r, mut w, _| async move {
+        .spawn_claude_code_process(fake_cli(|mut r, w, _| async move {
             // Read the init line but never respond — simulates a hung CLI.
             let _init = expect_json_line(&mut r).await;
             // Hold the task open until the SDK drops us.

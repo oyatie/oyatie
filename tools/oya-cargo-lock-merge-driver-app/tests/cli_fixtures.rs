@@ -12,10 +12,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 fn driver_bin() -> PathBuf {
     match std::env::var("OYA_CARGO_LOCK_MERGE_DRIVER") {
         Ok(path) => PathBuf::from(path),
-        Err(err) => {
-            assert!(false, "missing OYA_CARGO_LOCK_MERGE_DRIVER: {err}");
-            PathBuf::from("missing-oya-cargo-lock-merge-driver")
-        }
+        Err(err) => panic!("missing OYA_CARGO_LOCK_MERGE_DRIVER: {err}"),
     }
 }
 
@@ -31,26 +28,20 @@ fn unique_dir(label: &str) -> PathBuf {
     ));
     match std::fs::create_dir_all(&dir) {
         Ok(()) => dir,
-        Err(err) => {
-            assert!(false, "failed to create temp dir {}: {err}", dir.display());
-            dir
-        }
+        Err(err) => panic!("failed to create temp dir {}: {err}", dir.display()),
     }
 }
 
 fn write_file(path: &Path, contents: &str) {
     if let Err(err) = std::fs::write(path, contents) {
-        assert!(false, "failed to write {}: {err}", path.display());
+        panic!("failed to write {}: {err}", path.display());
     }
 }
 
 fn read_file(path: &Path) -> String {
     match std::fs::read_to_string(path) {
         Ok(contents) => contents,
-        Err(err) => {
-            assert!(false, "failed to read {}: {err}", path.display());
-            String::new()
-        }
+        Err(err) => panic!("failed to read {}: {err}", path.display()),
     }
 }
 

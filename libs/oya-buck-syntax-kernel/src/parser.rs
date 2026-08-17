@@ -574,24 +574,23 @@ impl<'t> Parser<'t> {
             });
             // After an argument: `)` ends, comma already consumed; anything else is a shape we
             // cannot soundly attribute — consume balanced into an opaque tail argument.
-            if comma.is_none() {
-                if let Some(token) = self.peek() {
-                    if !matches!(token.kind, TokenKind::Punct(')')) {
-                        let tail = self.consume_opaque_until_terminator()?;
-                        let tail_comma = self.eat_comma();
-                        if let Some(tail_span) = tail {
-                            args.push(Arg {
-                                name: None,
-                                name_span: None,
-                                value: ExprNode {
-                                    expr: Expr::Opaque,
-                                    span: tail_span,
-                                },
-                                span: tail_span,
-                                comma: tail_comma,
-                            });
-                        }
-                    }
+            if comma.is_none()
+                && let Some(token) = self.peek()
+                && !matches!(token.kind, TokenKind::Punct(')'))
+            {
+                let tail = self.consume_opaque_until_terminator()?;
+                let tail_comma = self.eat_comma();
+                if let Some(tail_span) = tail {
+                    args.push(Arg {
+                        name: None,
+                        name_span: None,
+                        value: ExprNode {
+                            expr: Expr::Opaque,
+                            span: tail_span,
+                        },
+                        span: tail_span,
+                        comma: tail_comma,
+                    });
                 }
             }
         }
@@ -791,19 +790,19 @@ impl<'t> Parser<'t> {
             elements.push(ListElement { value, comma });
             if comma.is_none() {
                 // Next must be `]`; anything else is an unmodeled tail — consume it opaquely.
-                if let Some(token) = self.peek() {
-                    if !matches!(token.kind, TokenKind::Punct(']')) {
-                        let tail = self.consume_opaque_until_terminator()?;
-                        let tail_comma = self.eat_comma();
-                        if let Some(tail_span) = tail {
-                            elements.push(ListElement {
-                                value: ExprNode {
-                                    expr: Expr::Opaque,
-                                    span: tail_span,
-                                },
-                                comma: tail_comma,
-                            });
-                        }
+                if let Some(token) = self.peek()
+                    && !matches!(token.kind, TokenKind::Punct(']'))
+                {
+                    let tail = self.consume_opaque_until_terminator()?;
+                    let tail_comma = self.eat_comma();
+                    if let Some(tail_span) = tail {
+                        elements.push(ListElement {
+                            value: ExprNode {
+                                expr: Expr::Opaque,
+                                span: tail_span,
+                            },
+                            comma: tail_comma,
+                        });
                     }
                 }
             }
@@ -855,54 +854,54 @@ impl<'t> Parser<'t> {
                 kind: TokenKind::Ident(kw),
                 ..
             }) = self.peek()
+                && kw == "for"
+                && entries.is_empty()
             {
-                if kw == "for" && entries.is_empty() {
+                self.pos += 1;
+                let var = match self.bump() {
+                    Some(Token {
+                        kind: TokenKind::Ident(v),
+                        ..
+                    }) => v.clone(),
+                    _ => String::new(),
+                };
+                let iter = if matches!(
+                    self.peek().map(|t| &t.kind),
+                    Some(TokenKind::Ident(kw2)) if kw2 == "in"
+                ) {
                     self.pos += 1;
-                    let var = match self.bump() {
-                        Some(Token {
-                            kind: TokenKind::Ident(v),
-                            ..
-                        }) => v.clone(),
-                        _ => String::new(),
-                    };
-                    let iter = if matches!(
-                        self.peek().map(|t| &t.kind),
-                        Some(TokenKind::Ident(kw2)) if kw2 == "in"
-                    ) {
-                        self.pos += 1;
-                        match self.peek().map(|t| &t.kind) {
-                            Some(TokenKind::Ident(iter_name)) => {
-                                let iter_name = iter_name.clone();
-                                self.pos += 1;
-                                // Anything between the iter ident and `}` (an `if` clause, a
-                                // method call) makes the comprehension unresolvable.
-                                if matches!(
-                                    self.peek().map(|t| &t.kind),
-                                    Some(TokenKind::Punct('}'))
-                                ) {
-                                    Some(iter_name)
-                                } else {
-                                    self.consume_opaque_until_terminator()?;
-                                    None
-                                }
-                            }
-                            _ => {
+                    match self.peek().map(|t| &t.kind) {
+                        Some(TokenKind::Ident(iter_name)) => {
+                            let iter_name = iter_name.clone();
+                            self.pos += 1;
+                            // Anything between the iter ident and `}` (an `if` clause, a
+                            // method call) makes the comprehension unresolvable.
+                            if matches!(
+                                self.peek().map(|t| &t.kind),
+                                Some(TokenKind::Punct('}'))
+                            ) {
+                                Some(iter_name)
+                            } else {
                                 self.consume_opaque_until_terminator()?;
                                 None
                             }
                         }
-                    } else {
-                        self.consume_opaque_until_terminator()?;
-                        None
-                    };
-                    comprehension = Some(DictComp {
-                        key: Box::new(key),
-                        value: Box::new(value),
-                        var,
-                        iter,
-                    });
-                    continue;
-                }
+                        _ => {
+                            self.consume_opaque_until_terminator()?;
+                            None
+                        }
+                    }
+                } else {
+                    self.consume_opaque_until_terminator()?;
+                    None
+                };
+                comprehension = Some(DictComp {
+                    key: Box::new(key),
+                    value: Box::new(value),
+                    var,
+                    iter,
+                });
+                continue;
             }
             let comma = if let Some(Token {
                 kind: TokenKind::Punct(','),
@@ -922,13 +921,12 @@ impl<'t> Parser<'t> {
                 span,
                 comma,
             });
-            if comma.is_none() {
-                if let Some(token) = self.peek() {
-                    if !matches!(token.kind, TokenKind::Punct('}')) {
-                        self.consume_opaque_until_terminator()?;
-                        self.eat_comma();
-                    }
-                }
+            if comma.is_none()
+                && let Some(token) = self.peek()
+                && !matches!(token.kind, TokenKind::Punct('}'))
+            {
+                self.consume_opaque_until_terminator()?;
+                self.eat_comma();
             }
         }
     }

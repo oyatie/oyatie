@@ -236,7 +236,9 @@ fn normalize_ipv4_route_destination(
 
 /// The FIB identity Linux uses for duplicate detection under
 /// `NLM_F_CREATE | NLM_F_EXCL` — origin is provenance, not part of the key.
-fn ipv4_route_fib_key(route: &FakeRoute) -> (&str, Option<[u8; 4]>, u8, Option<[u8; 4]>, u32) {
+type Ipv4RouteFibKey<'a> = (&'a str, Option<[u8; 4]>, u8, Option<[u8; 4]>, u32);
+
+fn ipv4_route_fib_key(route: &FakeRoute) -> Ipv4RouteFibKey<'_> {
     (
         route.iface.as_str(),
         normalize_ipv4_route_destination(route.destination, route.prefix_len),

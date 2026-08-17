@@ -167,13 +167,12 @@ pub fn validate_canary_out_dir(out_dir: &Path) -> Result<(), EmitError> {
     }
     // Refuse any k8s corpus path component (W0-B bulk emit hard stop).
     for component in out_dir.components() {
-        if let std::path::Component::Normal(name) = component {
-            if name == "k8s" {
-                return Err(EmitError::PathRefused {
-                    detail: "refusing materialize under `k8s/` (bulk corpus forbidden in W0-B)"
-                        .into(),
-                });
-            }
+        if let std::path::Component::Normal(name) = component
+            && name == "k8s"
+        {
+            return Err(EmitError::PathRefused {
+                detail: "refusing materialize under `k8s/` (bulk corpus forbidden in W0-B)".into(),
+            });
         }
     }
     let Some(base) = out_dir.file_name().and_then(|s| s.to_str()) else {

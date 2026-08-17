@@ -3144,6 +3144,13 @@ fn relabel_tier_dep_gate(
     let _ = (codes, ident_pairs);
 }
 
+struct FrozenSnapshotContext<'a> {
+    bootstrap_ref: &'a str,
+    merge_base: &'a str,
+    regen_face: Option<&'a Value>,
+    provenance: Value,
+}
+
 /// Resolve the FROZEN reference under frozen-policy-wins (FRIC-1781280000) + ADR-0616
 /// regenerate-from-merge-base-source:
 ///
@@ -3174,16 +3181,19 @@ fn resolve_merge_base_baseline_snapshot<S, C>(
     source: &S,
     resolver: &dyn PathResolver,
     candidate_policy: &RatchetPolicy,
-    bootstrap_ref: &str,
-    merge_base: &str,
-    regen_face: Option<&Value>,
+    context: FrozenSnapshotContext<'_>,
     relabel: Option<&RelabelInputs<'_, C>>,
-    provenance: Value,
 ) -> Result<serde_json::Value, String>
 where
     S: FrozenRefSource,
     C: CandidateSource,
 {
+    let FrozenSnapshotContext {
+        bootstrap_ref,
+        merge_base,
+        regen_face,
+        provenance,
+    } = context;
     // MOVE-AWARE MERGE-BASE NAME (keystone unblock). The frozen ratchet policy is read AT the
     // merge-base under the name it bore THERE: the pre-move OLD name during the move PR, the NEW
     // name once the move is in merge-base history (straddle). The resolver is PRESENCE-VERIFIED in
@@ -3449,11 +3459,13 @@ fn emit_merge_base_baseline(
         &source,
         resolver,
         &candidate_policy,
-        bootstrap_ref,
-        &merge_base,
-        Some(&regen_face),
+        FrozenSnapshotContext {
+            bootstrap_ref,
+            merge_base: &merge_base,
+            regen_face: Some(&regen_face),
+            provenance,
+        },
         Some(&relabel),
-        provenance,
     )?;
 
     let out = repo_root.join(&candidate_policy.out_path);
@@ -4135,11 +4147,13 @@ mod tests {
             source,
             resolver,
             candidate_policy,
-            bootstrap_ref,
-            &merge_base,
-            regen_face,
+            FrozenSnapshotContext {
+                bootstrap_ref,
+                merge_base: &merge_base,
+                regen_face,
+                provenance: test_provenance(&merge_base),
+            },
             relabel,
-            test_provenance(&merge_base),
         )
     }
 

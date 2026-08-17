@@ -113,10 +113,9 @@ fn collect(root: &Path) -> Observed {
         if let Some(stem) = path
             .strip_prefix(&format!("{CATALOG_DIR}/"))
             .and_then(|p| p.strip_suffix(".yaml"))
+            && !stem.contains('/')
         {
-            if !stem.contains('/') {
-                catalog_rows.insert(stem.to_owned());
-            }
+            catalog_rows.insert(stem.to_owned());
         }
     }
     Observed {

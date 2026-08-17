@@ -720,23 +720,23 @@ pub fn forbidden_package_deps(contents: &str, forbidden_prefix: &str) -> Vec<Str
         }
         match section {
             DepSection::Table => {
-                if let Some(package) = dependency_key(trimmed) {
-                    if package.starts_with(forbidden_prefix) {
-                        hits.push(package);
-                    }
+                if let Some(package) = dependency_key(trimmed)
+                    && package.starts_with(forbidden_prefix)
+                {
+                    hits.push(package);
                 }
                 // Rename evasion: `local = { package = "k8s-foo", path = "…" }`.
-                if let Some(package) = package_rename_value(trimmed) {
-                    if package.starts_with(forbidden_prefix) {
-                        hits.push(package);
-                    }
+                if let Some(package) = package_rename_value(trimmed)
+                    && package.starts_with(forbidden_prefix)
+                {
+                    hits.push(package);
                 }
             }
             DepSection::NamedPackage => {
-                if let Some(package) = package_rename_value(trimmed) {
-                    if package.starts_with(forbidden_prefix) {
-                        hits.push(package);
-                    }
+                if let Some(package) = package_rename_value(trimmed)
+                    && package.starts_with(forbidden_prefix)
+                {
+                    hits.push(package);
                 }
             }
             DepSection::Inactive => {}
@@ -784,9 +784,7 @@ fn classify_dependency_header(inner: &str) -> Option<Option<String>> {
     if lower == "patch" || lower.starts_with("patch.") {
         return Some(None);
     }
-    let Some(index) = lower.rfind("dependencies") else {
-        return None;
-    };
+    let index = lower.rfind("dependencies")?;
     let after = &inner[index + "dependencies".len()..];
     if after.is_empty() {
         return Some(None);

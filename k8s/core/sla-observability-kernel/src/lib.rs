@@ -440,19 +440,13 @@ pub fn summarize_fleet_sla(summaries: &[SlaSummary]) -> Result<FleetSlaSummary, 
             .saturating_add(u128::from(s.availability.target_basis_points).saturating_mul(total));
     }
 
-    let aggregate_observed_basis_points = if weighted_total == 0 {
-        0u16
-    } else {
-        let bps = (weighted_healthy * 10_000) / weighted_total;
-        u16::try_from(bps).unwrap_or(10_000)
-    };
+    let aggregate_observed_basis_points = (weighted_healthy * 10_000)
+        .checked_div(weighted_total)
+        .map_or(0, |bps| u16::try_from(bps).unwrap_or(10_000));
 
-    let aggregate_target_basis_points = if weighted_total == 0 {
-        0u16
-    } else {
-        let bps = weighted_target_sum / weighted_total;
-        u16::try_from(bps).unwrap_or(10_000)
-    };
+    let aggregate_target_basis_points = weighted_target_sum
+        .checked_div(weighted_total)
+        .map_or(0, |bps| u16::try_from(bps).unwrap_or(10_000));
 
     Ok(FleetSlaSummary {
         cluster_count: summaries.len(),
@@ -1166,7 +1160,7 @@ mod tests {
             1_000,
             None,
         );
-        let rollup = summarize_fleet_sla(&[s.clone()]).unwrap();
+        let rollup = summarize_fleet_sla(std::slice::from_ref(&s)).unwrap();
         assert_eq!(rollup.cluster_count, 1);
         assert_eq!(rollup.available_count, 1);
         assert_eq!(rollup.degraded_count, 0);

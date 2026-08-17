@@ -371,7 +371,8 @@ pub fn derive_faces(
     if ordered.windows(2).any(|pair| pair[0].path == pair[1].path) {
         return Err(declaration_error("owned corpus contains duplicate paths"));
     }
-    let face_count = ordered.len() / shard_size + usize::from(ordered.len() % shard_size != 0);
+    let face_count =
+        ordered.len() / shard_size + usize::from(!ordered.len().is_multiple_of(shard_size));
     if face_count > 10_000 {
         return Err(declaration_error(
             "fixed sharding would exceed the four-digit ordinal grammar",

@@ -427,10 +427,10 @@ fn self_validate(
             if output_canons.contains(row.canon.as_str()) {
                 continue;
             }
-            if let Some(into) = converted_sources.get(row.canon.as_str()) {
-                if output_canons.contains(into) {
-                    continue;
-                }
+            if let Some(into) = converted_sources.get(row.canon.as_str())
+                && output_canons.contains(into)
+            {
+                continue;
             }
             return Err(MergeError::new(
                 MergeErrorKind::Validate,
@@ -445,7 +445,7 @@ fn self_validate(
     let mut allowed = orphan_update_ids(base);
     allowed.extend(orphan_update_ids(ours));
     allowed.extend(orphan_update_ids(theirs));
-    for id in orphan_update_ids(&output).difference(&allowed) {
+    if let Some(id) = orphan_update_ids(&output).difference(&allowed).next() {
         return Err(MergeError::new(
             MergeErrorKind::Validate,
             format!("self-validation: merged output introduces orphan update rows for id `{id}`"),

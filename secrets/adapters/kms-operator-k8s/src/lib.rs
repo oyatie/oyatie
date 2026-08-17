@@ -293,7 +293,7 @@ pub struct ReconcileCycleReport {
 pub struct ReconcileCycleFailure {
     pub planned_actions: usize,         // data_class: INTERNAL_ONLY
     pub executed_actions: usize,        // data_class: INTERNAL_ONLY
-    pub wide_event: ReconcileWideEvent, // data_class: INTERNAL_ONLY
+    pub wide_event: Box<ReconcileWideEvent>, // data_class: INTERNAL_ONLY
     pub error: AdapterError,            // data_class: INTERNAL_ONLY
 }
 
@@ -636,13 +636,13 @@ fn reconcile_failure(
     ReconcileCycleFailure {
         planned_actions,
         executed_actions,
-        wide_event: ReconcileWideEvent {
+        wide_event: Box::new(ReconcileWideEvent {
             event_name: "cloud_kms_operator_reconcile".to_owned(),
             status: "failed".to_owned(),
             action_count: planned_actions,
             executed_count: executed_actions,
             error_class: Some(error_class.to_owned()),
-        },
+        }),
         error,
     }
 }
@@ -669,10 +669,7 @@ pub struct ExponentialBackoff {
 
 impl ExponentialBackoff {
     pub fn delay_seconds(&self, attempt: u32) -> u64 {
-        let multiplier = match 1_u64.checked_shl(attempt) {
-            Some(value) => value,
-            None => u64::MAX,
-        };
+        let multiplier = 1_u64.checked_shl(attempt).unwrap_or(u64::MAX);
         self.base_seconds
             .saturating_mul(multiplier)
             .min(self.max_seconds)
@@ -833,10 +830,10 @@ impl PersistentCloudKmsDirectory {
     }
 
     fn persist(&self) -> Result<(), AdapterError> {
-        if let Some(parent) = self.path.parent() {
-            if !parent.as_os_str().is_empty() {
-                fs::create_dir_all(parent).map_err(persistence_error)?;
-            }
+        if let Some(parent) = self.path.parent()
+            && !parent.as_os_str().is_empty()
+        {
+            fs::create_dir_all(parent).map_err(persistence_error)?;
         }
         let encoded = PersistentCloudKmsDirectorySnapshot::from_directory(&self.directory)?
             .to_json()
@@ -1948,13 +1945,13 @@ fn key_version_status_value(version: &ObservedKeyVersion) -> Value {
         "createdAtEpochSeconds": version.created_at_epoch_seconds,
         "activatedAtEpochSeconds": version.activated_at_epoch_seconds
     });
-    if let Some(decrypt_only_since) = version.decrypt_only_since_epoch_seconds {
-        if let Value::Object(fields) = &mut value {
-            fields.insert(
-                "decryptOnlySinceEpochSeconds".to_owned(),
-                Value::from(decrypt_only_since),
-            );
-        }
+    if let Some(decrypt_only_since) = version.decrypt_only_since_epoch_seconds
+        && let Value::Object(fields) = &mut value
+    {
+        fields.insert(
+            "decryptOnlySinceEpochSeconds".to_owned(),
+            Value::from(decrypt_only_since),
+        );
     }
     value
 }

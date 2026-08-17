@@ -204,14 +204,13 @@ fn crate_tail(member_dir: &str) -> String {
 fn collect_pub_traits(root: &Path, member_dir: &str) -> Result<Vec<TraitDef>, CollectError> {
     let src_dir = root.join(member_dir).join("src");
     let mut out: BTreeSet<TraitDef> = BTreeSet::new();
-    collect_traits_in_dir(&src_dir, root, member_dir, &mut out)?;
+    collect_traits_in_dir(&src_dir, root, &mut out)?;
     Ok(out.into_iter().collect())
 }
 
 fn collect_traits_in_dir(
     dir: &Path,
     root: &Path,
-    member_dir: &str,
     out: &mut BTreeSet<TraitDef>,
 ) -> Result<(), CollectError> {
     let entries = match fs::read_dir(dir) {
@@ -227,7 +226,7 @@ fn collect_traits_in_dir(
             .file_type()
             .map_err(|e| CollectError::Io(format!("file_type {}: {e}", path.display())))?;
         if file_type.is_dir() {
-            collect_traits_in_dir(&path, root, member_dir, out)?;
+            collect_traits_in_dir(&path, root, out)?;
         } else if path.extension().and_then(|ext| ext.to_str()) == Some("rs") {
             let text = fs::read_to_string(&path)
                 .map_err(|e| CollectError::Io(format!("read {}: {e}", path.display())))?;
@@ -689,11 +688,11 @@ fn baseline_array(baseline: &Value) -> Option<&Value> {
 /// -> `iam/core/<x-stem>` is the canonical destination shape (capability stem + `/core/`).
 fn suggested_core_crate(member_path: &str) -> String {
     let segments: Vec<&str> = member_path.split('/').collect();
-    if let Some(pos) = segments.iter().position(|s| *s == "adapters") {
-        if pos > 0 {
-            let capability = segments[..pos].join("/");
-            return format!("{capability}/core/<port-crate>");
-        }
+    if let Some(pos) = segments.iter().position(|s| *s == "adapters")
+        && pos > 0
+    {
+        let capability = segments[..pos].join("/");
+        return format!("{capability}/core/<port-crate>");
     }
     "the capability's core/ports crate".to_owned()
 }

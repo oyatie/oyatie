@@ -35,15 +35,14 @@
 //! - `friction_missing_required_field`         — a PRIMARY row omits/blanks a required field.
 //! - `friction_unknown_status`                 — a friction's effective status maps to no taxonomy class.
 //! - `friction_no_disposition`                 — a friction declares no non-blank `enforcement_fix`
-//!                                               and is not in the accepted-risk class.
+//!   and is not in the accepted-risk class.
 //! - `friction_closed_without_evidence`        — a terminal-class friction cites no evidence.
 //! - `friction_accepted_risk_without_evidence` — an accepted-risk friction cites no evidence.
 //! - `friction_duplicate_primary_row`          — two PRIMARY rows share one `id` (appends are legitimate).
 //! - `friction_orphan_update_row`              — a friction id has ONLY update-shaped rows and no
-//!                                               anchoring PRIMARY record. Without a primary the
-//!                                               schema/required-field/disposition checks cannot
-//!                                               bind, so an update-only row would otherwise evade
-//!                                               every check and be silently unaccounted.
+//!   anchoring PRIMARY record. Without a primary the schema/required-field/disposition checks
+//!   cannot bind, so an update-only row would otherwise evade every check and be silently
+//!   unaccounted.
 //!
 //! ADR-0083 Tier-3: production code carries no unwrap/expect/panic; `#![forbid(unsafe_code)]`.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]

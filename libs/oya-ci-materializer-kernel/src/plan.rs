@@ -203,12 +203,12 @@ fn validate_generator(
 
     // A de-commit-class artifact with controller-materialized output has no
     // fallback regeneration path — it would be unreconstructable.
-    if artifact.is_not_tracked_in_git() {
-        if let crate::model::OutputMode::ControllerMaterialized = genr.output_mode {
-            return Err(PlanError::UnreconstructableDecommitArtifact {
-                artifact_id: artifact.artifact_id.clone(),
-            });
-        }
+    if artifact.is_not_tracked_in_git()
+        && let crate::model::OutputMode::ControllerMaterialized = genr.output_mode
+    {
+        return Err(PlanError::UnreconstructableDecommitArtifact {
+            artifact_id: artifact.artifact_id.clone(),
+        });
     }
 
     Ok(())
@@ -242,10 +242,10 @@ fn resolve_dependency_edges<'a>(
         let mut dep_set = BTreeSet::new();
         if let Some(genr) = &artifact.generator {
             for token in &genr.input_contract {
-                if let Some(&dep_id) = token_to_id.get(token.as_str()) {
-                    if dep_id != id {
-                        dep_set.insert(dep_id);
-                    }
+                if let Some(&dep_id) = token_to_id.get(token.as_str())
+                    && dep_id != id
+                {
+                    dep_set.insert(dep_id);
                 }
             }
         }
@@ -453,10 +453,10 @@ pub fn plan(
 
     let mut steps = Vec::with_capacity(order.len());
     for id in &order {
-        if let Some(&artifact) = artifact_by_id.get(id.as_str()) {
-            if artifact.generator.is_some() {
-                steps.push(build_step(artifact, &scope)?);
-            }
+        if let Some(&artifact) = artifact_by_id.get(id.as_str())
+            && artifact.generator.is_some()
+        {
+            steps.push(build_step(artifact, &scope)?);
         }
     }
 

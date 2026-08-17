@@ -97,11 +97,11 @@ pub fn evaluate(flag: &Flag, context: &EvaluationContext) -> Evaluation {
     }
 
     // 3. Default rollout (progressive delivery to the unruled population).
-    if let Some(rollout) = &flag.default_rollout {
-        if let RolloutAssignment::Variant(variant) = assign_rollout(flag, rollout, context) {
-            return resolve(flag, &variant, Reason::Split, first_variant);
-        }
-        // else: fall through to default variant.
+    // An unallocated assignment falls through to the default variant.
+    if let Some(rollout) = &flag.default_rollout
+        && let RolloutAssignment::Variant(variant) = assign_rollout(flag, rollout, context)
+    {
+        return resolve(flag, &variant, Reason::Split, first_variant);
     }
 
     // 4. Default variant.

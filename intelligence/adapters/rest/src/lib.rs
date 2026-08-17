@@ -1791,17 +1791,17 @@ impl AdminPrincipalAuthenticator for ConfiguredBearerAdminAuthenticator {
 fn require_data_plane_ingress_authz(
     state: &AppState,
     headers: &HeaderMap,
-) -> Result<VerifiedIngressPrincipal, Response> {
+) -> Result<VerifiedIngressPrincipal, Box<Response>> {
     // (1) AUTHN — unforgeable verified principal. A self-attested header cannot
     // reach the `Some` branch (the authenticator ignores them).
     let Some(principal) = state.ingress_authenticator.verify(headers) else {
-        return Err(openai_error_response(
+        return Err(Box::new(openai_error_response(
             StatusCode::UNAUTHORIZED,
             "authentication_error",
             "missing_or_invalid_ingress_bearer",
             "data-plane routes require a valid ingress bearer token",
             None,
-        ));
+        )));
     };
 
     // (2) AUTHZ — intra-tenant gate check, scoped to the VERIFIED principal
@@ -1828,7 +1828,7 @@ fn require_data_plane_ingress_authz(
         .or_else(|| AgentId::new(format!("ingress:{}", principal.tenant().as_str())).ok());
     let Some(agent) = agent else {
         // Could not construct any principal label => fail-closed 403.
-        return Err(forbidden_ingress_response());
+        return Err(Box::new(forbidden_ingress_response()));
     };
     let request = AuthzRequest {
         principal_tenant: principal.tenant(),
@@ -1838,7 +1838,7 @@ fn require_data_plane_ingress_authz(
         resource_provider: Provider::Anthropic,
     };
     if state.gate.decide(&request) == AuthzDecision::Forbid {
-        return Err(forbidden_ingress_response());
+        return Err(Box::new(forbidden_ingress_response()));
     }
     Ok(principal)
 }
@@ -1874,23 +1874,23 @@ fn require_admin_authz(
     state: &AppState,
     headers: &HeaderMap,
     path_tenant: &str,
-) -> Result<VerifiedAdminPrincipal, Response> {
+) -> Result<VerifiedAdminPrincipal, Box<Response>> {
     // (1) AUTHN — unforgeable verified admin principal. A self-attested header
     // cannot reach the `Some` branch (the authenticator ignores them).
     let Some(principal) = state.admin_authenticator.verify(headers) else {
-        return Err(StatusCode::UNAUTHORIZED.into_response());
+        return Err(Box::new(StatusCode::UNAUTHORIZED.into_response()));
     };
     // (2) TENANT ISOLATION (blast-radius guard) — the verified admin may only
     // administer its own tenant. Deny-wins for any cross-tenant request.
     if principal.tenant().as_str() != path_tenant {
-        return Err(StatusCode::FORBIDDEN.into_response());
+        return Err(Box::new(StatusCode::FORBIDDEN.into_response()));
     }
     // (3) AUTHZ — authoritative + auditable realm decision via the in-process gate.
     // `RefreshToken` maps to the Cedar AdminRealm/RefreshKeyPool action; a Forbid or
     // any gate fault is fail-closed 403. `resource_tenant == principal.tenant()` is
     // sound: step (2) already proved the path tenant equals the verified tenant.
     let Ok(agent) = AgentId::new(format!("admin:{}", principal.tenant().as_str())) else {
-        return Err(StatusCode::FORBIDDEN.into_response());
+        return Err(Box::new(StatusCode::FORBIDDEN.into_response()));
     };
     let request = AuthzRequest {
         principal_tenant: principal.tenant(),
@@ -1900,12 +1900,12 @@ fn require_admin_authz(
         resource_provider: Provider::Anthropic,
     };
     if state.gate.decide(&request) == AuthzDecision::Forbid {
-        return Err(StatusCode::FORBIDDEN.into_response());
+        return Err(Box::new(StatusCode::FORBIDDEN.into_response()));
     }
     Ok(principal)
 }
 
-fn guard_in_transit_payload(body: &[u8]) -> Result<(), Response> {
+fn guard_in_transit_payload(body: &[u8]) -> Result<(), Box<Response>> {
     let body = String::from_utf8_lossy(body);
     let lower = body.to_ascii_lowercase();
     let safety_class = if [
@@ -1947,7 +1947,7 @@ fn guard_in_transit_payload(body: &[u8]) -> Result<(), Response> {
     };
 
     match safety_class {
-        Some(safety_class) => Err(safety_guardrail_response(safety_class)),
+        Some(safety_class) => Err(Box::new(safety_guardrail_response(safety_class))),
         None => Ok(()),
     }
 }
@@ -2184,10 +2184,10 @@ async fn handle_proxy(
 ) -> Response {
     let principal = match require_data_plane_ingress_authz(&state, &headers) {
         Ok(principal) => principal,
-        Err(response) => return response,
+        Err(response) => return *response,
     };
     if let Err(response) = guard_in_transit_payload(&body) {
-        return response;
+        return *response;
     }
     let route_decision = match route_decision_for_body(ProtocolShape::AnthropicMessages, &body) {
         Ok(decision) => decision,
@@ -2703,18 +2703,18 @@ fn openai_route_missing_agent_response() -> Response {
     )
 }
 
-fn parse_agent_header_for_openai(headers: &HeaderMap) -> Result<AgentId, Response> {
+fn parse_agent_header_for_openai(headers: &HeaderMap) -> Result<AgentId, Box<Response>> {
     let Some(agent_id_str) = headers.get("x-agent-id").and_then(|v| v.to_str().ok()) else {
-        return Err(openai_route_missing_agent_response());
+        return Err(Box::new(openai_route_missing_agent_response()));
     };
     AgentId::new(agent_id_str.to_string()).map_err(|_| {
-        openai_error_response(
+        Box::new(openai_error_response(
             StatusCode::BAD_REQUEST,
             "invalid_request_error",
             "invalid_agent_id",
             "invalid x-agent-id header",
             None,
-        )
+        ))
     })
 }
 
@@ -2739,7 +2739,7 @@ async fn handle_legacy_complete(
     headers: HeaderMap,
 ) -> Response {
     if let Err(response) = require_data_plane_ingress_authz(&state, &headers) {
-        return response;
+        return *response;
     }
     let payload = OpenAiCompatibleErrorBody {
         error: OpenAiCompatibleError {
@@ -2767,10 +2767,10 @@ async fn handle_openai_compatible_proxy(
 ) -> Response {
     let principal = match require_data_plane_ingress_authz(&state, &headers) {
         Ok(principal) => principal,
-        Err(response) => return response,
+        Err(response) => return *response,
     };
     if let Err(response) = guard_in_transit_payload(&body) {
-        return response;
+        return *response;
     }
     let route_decision = match route_decision_for_body(ProtocolShape::OpenAiChatCompletions, &body)
     {
@@ -2801,7 +2801,7 @@ async fn handle_openai_compatible_proxy(
 
     let agent_id = match parse_agent_header_for_openai(&headers) {
         Ok(agent_id) => agent_id,
-        Err(response) => return response,
+        Err(response) => return *response,
     };
     let lease_context =
         match acquire_provider_lease(&state, Provider::Codex, principal.tenant(), &agent_id) {
@@ -3149,7 +3149,7 @@ async fn handle_gemini_openai_chat_proxy(
     }
     let agent_id = match parse_agent_header_for_openai(&headers) {
         Ok(agent_id) => agent_id,
-        Err(response) => return response,
+        Err(response) => return *response,
     };
     handle_gemini_adapter_proxy(
         state,
@@ -3414,10 +3414,10 @@ async fn handle_count_tokens(
     // Non-leasing endpoint: still fail-closed authn, principal deliberately unused.
     let _principal = match require_data_plane_ingress_authz(&state, &headers) {
         Ok(principal) => principal,
-        Err(response) => return response,
+        Err(response) => return *response,
     };
     if let Err(response) = guard_in_transit_payload(&body) {
-        return response;
+        return *response;
     }
     let payload = match serde_json::from_slice::<serde_json::Value>(&body) {
         Ok(payload) => payload,
@@ -3435,7 +3435,7 @@ async fn handle_models(State(state): State<Arc<AppState>>, headers: HeaderMap) -
     // Non-leasing endpoint: still fail-closed authn, principal deliberately unused.
     let _principal = match require_data_plane_ingress_authz(&state, &headers) {
         Ok(principal) => principal,
-        Err(response) => return response,
+        Err(response) => return *response,
     };
     Json(ModelInventoryResponse {
         object: "list",
@@ -3564,7 +3564,7 @@ async fn handle_admin_guardrails(
     headers: HeaderMap,
 ) -> Response {
     if let Err(response) = require_admin_authz(&state, &headers, state.tenant_id.as_str()) {
-        return response;
+        return *response;
     }
     Json(serde_json::json!({
         "profiles": [{
@@ -3608,7 +3608,7 @@ async fn handle_admin_agent_runtimes(
     headers: HeaderMap,
 ) -> Response {
     if let Err(response) = require_admin_authz(&state, &headers, state.tenant_id.as_str()) {
-        return response;
+        return *response;
     }
     let tenant_id = state.tenant_id.as_str();
     Json(serde_json::json!({
@@ -3654,7 +3654,7 @@ async fn handle_admin_agent_schedules(
     headers: HeaderMap,
 ) -> Response {
     if let Err(response) = require_admin_authz(&state, &headers, state.tenant_id.as_str()) {
-        return response;
+        return *response;
     }
     let tenant_id = state.tenant_id.as_str();
     let schedule_ref = format!("schedule-ref://{tenant_id}/nightly-drift-check");
@@ -3691,7 +3691,7 @@ async fn handle_admin_parity_canaries(
     headers: HeaderMap,
 ) -> Response {
     if let Err(response) = require_admin_authz(&state, &headers, state.tenant_id.as_str()) {
-        return response;
+        return *response;
     }
     let tenant_id = state.tenant_id.as_str();
     Json(serde_json::json!({
@@ -3732,7 +3732,7 @@ async fn handle_admin_guardrail_escalations(
     headers: HeaderMap,
 ) -> Response {
     if let Err(response) = require_admin_authz(&state, &headers, state.tenant_id.as_str()) {
-        return response;
+        return *response;
     }
     Json(serde_json::json!({
         "escalations": [{
@@ -3754,7 +3754,7 @@ async fn handle_admin_evidence_retention(
     headers: HeaderMap,
 ) -> Response {
     if let Err(response) = require_admin_authz(&state, &headers, state.tenant_id.as_str()) {
-        return response;
+        return *response;
     }
     Json(serde_json::json!({
         "profiles": [{
@@ -3784,7 +3784,7 @@ async fn handle_admin_redaction_profiles(
     headers: HeaderMap,
 ) -> Response {
     if let Err(response) = require_admin_authz(&state, &headers, state.tenant_id.as_str()) {
-        return response;
+        return *response;
     }
     Json(serde_json::json!({
         "profiles": [{
@@ -3840,7 +3840,7 @@ async fn handle_admin_pool_status(
     headers: HeaderMap,
 ) -> Response {
     if let Err(response) = require_admin_authz(&state, &headers, &tenant_id_raw) {
-        return response;
+        return *response;
     }
     let tenant_id = match TenantId::new(tenant_id_raw) {
         Ok(tenant_id) => tenant_id,
@@ -3868,7 +3868,7 @@ async fn handle_admin_register_subscription(
     // untrusted body is deserialized. The `Bytes` extractor takes the raw body so
     // no `serde` work happens on an unauthenticated request.
     if let Err(response) = require_admin_authz(&state, &headers, &tenant_id_raw) {
-        return response;
+        return *response;
     }
     if !has_valid_idempotency_key(&headers) {
         return (

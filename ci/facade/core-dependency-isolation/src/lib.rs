@@ -38,6 +38,7 @@
 //! - **Not safely derivable**: a denylisted dep that IS used in the kernel's source requires moving
 //!   the using code into a sibling `*-adapter` crate — a design act, never auto-applied. The gate
 //!   still prints the best next action (which adapter to move to, when inferable), never a bare FAIL.
+//!
 //! Every finding therefore carries `auto_fixable` + `next_action`; see [`Finding`].
 //!
 //! ## Ratchet semantics
@@ -229,9 +230,8 @@ fn build_closure(
             .map(|dep| {
                 let rename_key = manifest.cargo_dep_rename_keys.get(dep.as_str());
                 let used = dep_used_in_src(dep, &manifest.src_referenced_idents)
-                    || rename_key.map_or(false, |k| {
-                        dep_used_in_src(k, &manifest.src_referenced_idents)
-                    });
+                    || rename_key
+                        .is_some_and(|k| dep_used_in_src(k, &manifest.src_referenced_idents));
                 (dep.clone(), used)
             })
             .collect();
@@ -514,10 +514,10 @@ fn collect_features_referenced_deps(document: &toml::Value, feature_backed: &mut
         if let Some(table) = document.get(sec).and_then(toml::Value::as_table) {
             for (dep_key, spec) in table {
                 all_dep_keys.insert(dep_key.clone());
-                if let Some(spec_table) = spec.as_table() {
-                    if let Some(pkg) = spec_table.get("package").and_then(toml::Value::as_str) {
-                        all_dep_keys.insert(pkg.to_owned());
-                    }
+                if let Some(spec_table) = spec.as_table()
+                    && let Some(pkg) = spec_table.get("package").and_then(toml::Value::as_str)
+                {
+                    all_dep_keys.insert(pkg.to_owned());
                 }
             }
         }
@@ -528,12 +528,11 @@ fn collect_features_referenced_deps(document: &toml::Value, feature_backed: &mut
                 if let Some(table) = target_val.get(sec).and_then(toml::Value::as_table) {
                     for (dep_key, spec) in table {
                         all_dep_keys.insert(dep_key.clone());
-                        if let Some(spec_table) = spec.as_table() {
-                            if let Some(pkg) =
+                        if let Some(spec_table) = spec.as_table()
+                            && let Some(pkg) =
                                 spec_table.get("package").and_then(toml::Value::as_str)
-                            {
-                                all_dep_keys.insert(pkg.to_owned());
-                            }
+                        {
+                            all_dep_keys.insert(pkg.to_owned());
                         }
                     }
                 }
@@ -1620,6 +1619,7 @@ fn is_dep_decl_line(line: &str, dep: &str) -> bool {
 ///   reference, `select(...)`, or any unmodeled shape);
 /// - the post-edit harness validation fails (reparse, dep gone from every rust_library,
 ///   NO collateral dep removed, top-level statement count unchanged).
+///
 /// `rust_test`/`rust_binary` deps are never touched (test edges are out of detect scope).
 fn remove_buck_dep_line(path: &Path, dep: &str) -> Result<bool, CollectError> {
     let text = match fs::read_to_string(path) {
@@ -1684,10 +1684,7 @@ fn remove_buck_dep_edges_text(text: &str, dep: &str) -> Option<String> {
                         |element| matches!(&element.value.expr, Expr::Str(s) if s == &label),
                     );
                     if let Some(index) = index {
-                        found = remove_list_element(&current, list, index).ok();
-                        if found.is_none() {
-                            return None;
-                        }
+                        found = Some(remove_list_element(&current, list, index).ok()?);
                         break;
                     }
                     // The dep may hide in an unmodeled element shape: refuse if the label

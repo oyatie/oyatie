@@ -117,10 +117,10 @@ fn policy_enums_match_platform_architecture_taxonomy() {
 fn find_array(value: &Value, key: &str) -> Option<Value> {
     match value {
         Value::Object(map) => {
-            if let Some(v) = map.get(key) {
-                if v.is_array() {
-                    return Some(v.clone());
-                }
+            if let Some(v) = map.get(key)
+                && v.is_array()
+            {
+                return Some(v.clone());
             }
             for v in map.values() {
                 if let Some(found) = find_array(v, key) {
