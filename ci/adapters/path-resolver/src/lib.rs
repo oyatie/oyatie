@@ -28,7 +28,8 @@
 #![forbid(unsafe_code)]
 
 use std::collections::BTreeMap;
-use std::path::Path;
+use std::ffi::OsStr;
+use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use ci_path_resolver_ports::{
@@ -43,6 +44,59 @@ pub const MOVE_MANIFEST_SCHEMA: &str = "oya-ci/reorg-move-manifest/v1";
 /// anchor — a well-known config location, injected once, NOT a movable gate self-location). The
 /// face is not-tracked-in-git (ADR-0614); CI materializes it before any relabel-read leg.
 pub const MOVE_MANIFEST_PATH: &str = "specs/reorg/move-manifest.generated.json";
+
+/// Logical resource prefix used by committed Cargo config for binaries that Cargo builds into
+/// the active target/profile directory. The committed value carries no checkout or target path;
+/// [`resolve_cargo_test_binary`] derives that runtime detail from the calling executable.
+pub const CARGO_TEST_BINARY_PREFIX: &str = "cargo-test-binary:";
+
+/// Resolve an externally supplied absolute/Buck-relative binary binding or a Cargo logical test
+/// resource. Cargo tests live under `<profile>/deps`, while directly launched Cargo binaries live
+/// in `<profile>`; deriving from `current_exe` covers either shape, custom `CARGO_TARGET_DIR`,
+/// target triples, and non-default profiles without committed machine-specific paths.
+pub fn resolve_cargo_test_binary(repo_root: &Path, value: &OsStr) -> Result<PathBuf, String> {
+    let executable = std::env::current_exe()
+        .map_err(|error| format!("resolve current Cargo executable: {error}"))?;
+    resolve_cargo_test_binary_from_executable(repo_root, value, &executable)
+}
+
+/// Deterministic/testable form of [`resolve_cargo_test_binary`] with the process executable
+/// supplied explicitly.
+pub fn resolve_cargo_test_binary_from_executable(
+    repo_root: &Path,
+    value: &OsStr,
+    executable: &Path,
+) -> Result<PathBuf, String> {
+    let declared = PathBuf::from(value);
+    if declared.is_absolute() {
+        return Ok(declared);
+    }
+
+    let Some(value) = value.to_str() else {
+        return Ok(repo_root.join(declared));
+    };
+    let Some(name) = value.strip_prefix(CARGO_TEST_BINARY_PREFIX) else {
+        return Ok(repo_root.join(declared));
+    };
+    if name.is_empty() || name == "." || name == ".." || name.contains('/') || name.contains('\\') {
+        return Err(format!("invalid Cargo test binary resource name {name:?}"));
+    }
+
+    let executable_dir = executable
+        .parent()
+        .ok_or_else(|| format!("executable {} has no parent", executable.display()))?;
+    let profile_dir = if executable_dir.file_name() == Some(OsStr::new("deps")) {
+        executable_dir.parent().ok_or_else(|| {
+            format!(
+                "Cargo deps directory {} has no profile parent",
+                executable_dir.display()
+            )
+        })?
+    } else {
+        executable_dir
+    };
+    Ok(profile_dir.join(format!("{name}{}", std::env::consts::EXE_SUFFIX)))
+}
 
 // ---------------------------------------------------------------------------
 // ManifestBijection
@@ -775,5 +829,58 @@ mod tests {
         );
 
         let _ = std::fs::remove_dir_all(&root);
+    }
+
+    #[test]
+    fn cargo_test_binary_binding_derives_custom_target_profile_at_runtime() {
+        let executable =
+            Path::new("/fresh/custom-target/aarch64-unknown-linux-gnu/debug/deps/gate-abc");
+        let expected = Path::new("/fresh/custom-target/aarch64-unknown-linux-gnu/debug")
+            .join(format!("producer{}", std::env::consts::EXE_SUFFIX));
+        assert_eq!(
+            resolve_cargo_test_binary_from_executable(
+                Path::new("/different/checkout"),
+                OsStr::new("cargo-test-binary:producer"),
+                executable,
+            ),
+            Ok(expected)
+        );
+    }
+
+    #[test]
+    fn cargo_test_binary_binding_preserves_external_and_rejects_traversal() {
+        let executable = Path::new("/custom-target/debug/deps/gate-abc");
+        assert_eq!(
+            resolve_cargo_test_binary_from_executable(
+                Path::new("/repo"),
+                OsStr::new("buck-out/producer"),
+                executable,
+            ),
+            Ok(PathBuf::from("/repo/buck-out/producer"))
+        );
+        assert_eq!(
+            resolve_cargo_test_binary_from_executable(
+                Path::new("/repo"),
+                OsStr::new("/declared/producer"),
+                executable,
+            ),
+            Ok(PathBuf::from("/declared/producer"))
+        );
+        for invalid in [
+            "cargo-test-binary:",
+            "cargo-test-binary:../producer",
+            "cargo-test-binary:dir/producer",
+            "cargo-test-binary:dir\\producer",
+        ] {
+            assert!(
+                resolve_cargo_test_binary_from_executable(
+                    Path::new("/repo"),
+                    OsStr::new(invalid),
+                    executable,
+                )
+                .is_err(),
+                "binding {invalid:?} must fail closed"
+            );
+        }
     }
 }

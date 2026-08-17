@@ -119,15 +119,15 @@ const SLO_CATALOG_CENSUS: usize = 773;
 
 fn producer_command(root: &Path, producer_bin: Option<&str>) -> Result<Command, String> {
     if let Some(bin) = producer_bin {
-        let bin = if Path::new(bin).is_absolute() {
-            PathBuf::from(bin)
-        } else {
-            root.join(bin)
-        };
+        let bin = resolve_producer_binary(root, bin)?;
         Ok(Command::new(bin))
     } else {
         Err("OYA_CI_PRODUCER_BIN is required for hermetic Buck2 gate execution".to_owned())
     }
+}
+
+fn resolve_producer_binary(root: &Path, value: &str) -> Result<PathBuf, String> {
+    ci_path_resolver_adapters::resolve_cargo_test_binary(root, std::ffi::OsStr::new(value))
 }
 
 fn repo_root() -> PathBuf {

@@ -60,6 +60,7 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         ":ci-cross-artifact-agreement",
+        "//ci/adapters/path-resolver:ci-path-resolver-adapters",
         "//ci/facade/artifact-inventory-registry:ci-artifact-inventory-registry",
         "//libs/oya-governance-adr-shape-kernel:oya-governance-adr-shape-kernel",
         "//specs:markdown-retirement-policy.json",

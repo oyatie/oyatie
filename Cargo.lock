@@ -1433,6 +1433,7 @@ dependencies = [
 name = "ci-artifact-accountability"
 version = "0.1.0"
 dependencies = [
+ "ci-path-resolver-adapters",
  "serde_json",
 ]
 
@@ -1449,6 +1450,7 @@ dependencies = [
  "ci-hook-wiring",
  "ci-license-policy",
  "ci-package-manifest-hygiene",
+ "ci-path-resolver-adapters",
  "ci-service-catalog-parity",
  "ci-slo-coverage",
  "ci-stale-artifact-detection",
@@ -1464,6 +1466,7 @@ dependencies = [
 name = "ci-automation-coverage"
 version = "0.1.0"
 dependencies = [
+ "ci-path-resolver-adapters",
  "serde_json",
 ]
 
@@ -1480,6 +1483,8 @@ dependencies = [
 name = "ci-baseline-ratchet"
 version = "0.1.0"
 dependencies = [
+ "ci-generated-artifact-freshness",
+ "ci-path-resolver-adapters",
  "reqwest 0.13.4",
  "serde_json",
  "sha2",
@@ -1489,6 +1494,7 @@ dependencies = [
 name = "ci-build-target-parity"
 version = "0.1.0"
 dependencies = [
+ "ci-path-resolver-adapters",
  "serde_json",
 ]
 
@@ -1598,6 +1604,7 @@ dependencies = [
 name = "ci-crate-layer-suffix"
 version = "0.1.0"
 dependencies = [
+ "ci-path-resolver-adapters",
  "oya-ci-config-kernel",
  "oya-governance-predictable-naming-kernel",
  "oya-workspace-members-kernel",
@@ -1608,6 +1615,7 @@ dependencies = [
 name = "ci-crate-name-prefix"
 version = "0.1.0"
 dependencies = [
+ "ci-path-resolver-adapters",
  "intelligence-cargo-prefix-domain",
  "oya-ci-config-kernel",
  "serde_json",
@@ -1632,6 +1640,7 @@ dependencies = [
 name = "ci-cross-artifact-agreement"
 version = "0.1.0"
 dependencies = [
+ "ci-path-resolver-adapters",
  "oya-check-adr-index",
  "oya-governance-adr-shape-kernel",
  "serde",
@@ -1736,6 +1745,9 @@ dependencies = [
 [[package]]
 name = "ci-inventory-registry-drift"
 version = "0.1.0"
+dependencies = [
+ "ci-path-resolver-adapters",
+]
 
 [[package]]
 name = "ci-k8s-program-docs"
@@ -1755,6 +1767,7 @@ dependencies = [
 name = "ci-license-policy"
 version = "0.1.0"
 dependencies = [
+ "ci-path-resolver-adapters",
  "oya-check-license-policy",
  "serde_json",
 ]
@@ -1786,6 +1799,7 @@ dependencies = [
 name = "ci-package-manifest-hygiene"
 version = "0.1.0"
 dependencies = [
+ "ci-path-resolver-adapters",
  "oya-ci-config-kernel",
  "oya-workspace-members-kernel",
  "serde_json",
@@ -1843,7 +1857,9 @@ dependencies = [
 name = "ci-repo-root-hygiene"
 version = "0.1.0"
 dependencies = [
+ "ci-scm-facts-snapshot",
  "serde_json",
+ "tempfile",
 ]
 
 [[package]]
@@ -1899,6 +1915,7 @@ dependencies = [
 name = "ci-service-catalog-parity"
 version = "0.1.0"
 dependencies = [
+ "ci-path-resolver-adapters",
  "serde_json",
 ]
 
@@ -1913,6 +1930,7 @@ dependencies = [
 name = "ci-slo-coverage"
 version = "0.1.0"
 dependencies = [
+ "ci-path-resolver-adapters",
  "oya-check-slo-coverage",
  "serde_json",
 ]
@@ -1921,6 +1939,7 @@ dependencies = [
 name = "ci-stale-artifact-detection"
 version = "0.1.0"
 dependencies = [
+ "ci-path-resolver-adapters",
  "serde_json",
 ]
 
@@ -1975,6 +1994,7 @@ dependencies = [
 name = "ci-workspace-member-coverage"
 version = "0.1.0"
 dependencies = [
+ "ci-path-resolver-adapters",
  "serde_json",
 ]
 

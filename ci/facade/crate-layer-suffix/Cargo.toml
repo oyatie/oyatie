@@ -30,6 +30,7 @@ oya-governance-predictable-naming-kernel = { path = "../../../libs/oya-governanc
 oya-ci-config-kernel = { path = "../../../libs/oya-ci-config" }
 
 [dev-dependencies]
+ci-path-resolver-adapters = { path = "../../adapters/path-resolver" }
 oya-workspace-members-kernel = { path = "../../../libs/oya-workspace-members-kernel" }
 serde_json = { workspace = true }
 

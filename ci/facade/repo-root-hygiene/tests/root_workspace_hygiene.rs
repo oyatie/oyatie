@@ -7,15 +7,16 @@
 //   2. proves a synthetic tracked `foo.log` injected at the repo ROOT is born-blocking RED
 //      (RED/GREEN evidence — the gate is non-inert).
 //
-// HERMETIC: the test reads the MATERIALIZED scm-facts face from the source tree (no git, no
-// network). scm-facts is the ADR-0604 de-commit class (NOT tracked in git): the CI producer-regen
-// job materializes it and every gate matrix leg downloads it before `cargo test`, so the repo-root
-// walk reaches it on disk. ADR-0083 Tier-3: integration tests use unwrap/expect/panic.
+// HERMETIC: the test reads the workflow-materialized scm-facts face when declared. In a direct
+// Cargo workspace test it invokes the exact Cargo-built Rust emitter into temporary storage (no
+// tracked generated face, network, or ambient binary). ADR-0083 Tier-3: integration tests use
+// unwrap/expect/panic.
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
+use std::sync::OnceLock;
 
 use ci_repo_root_hygiene::{
     Verdict, corpus_class_counts, corpus_class_raise_matches_reviewed_record, evaluate,
@@ -178,39 +179,12 @@ fn unquote_git_path(raw: &str) -> String {
 /// The materialized tracked-path face this gate reads. ADR-0604 de-commit class: NOT tracked in
 /// git, so in ANY clean worktree it is simply absent.
 const SCM_FACTS_REL: &str = "ci/facade/artifact-inventory-registry/scm-facts.generated.json";
-
-/// The exact command that materializes it locally — the same binary the CI "Materialize cloud-ci
-/// generated faces" step runs, minus `--github-event` (which only reads `GITHUB_EVENT_PATH`).
-const MATERIALIZE_CMD: &str = "buck2 run \
-     //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin \
-     -- --repo-root .";
-
-/// Resolve the scm-facts face, or fail with an ACTIONABLE message.
-///
-/// Before this, a clean worktree got `read <abs path>: No such file or directory (os error 2)`.
-/// That is a true statement and useless advice: the face is generated, its producer is not
-/// discoverable from the path, and an author checking their change against this gate had no way
-/// to know the gate was not evaluating anything. A gate that cannot be run locally gives no local
-/// signal, which is how a change reaches CI unchecked.
-fn require_scm_facts(root: &Path) -> PathBuf {
-    let path = root.join(SCM_FACTS_REL);
-    assert!(
-        path.is_file(),
-        "{SCM_FACTS_REL} is missing — this gate reads the materialized tracked-path face, which \
-         is generated (ADR-0604 de-commit class) and therefore absent in a clean worktree.\n\
-         \n\
-         Materialize it, then re-run this gate:\n\
-         \n    {MATERIALIZE_CMD}\n\
-         \n\
-         In CI this is the \"Materialize cloud-ci generated faces\" step; the faces are then \
-         uploaded as the `generated-faces` artifact and downloaded by every gate leg."
-    );
-    path
-}
+const CARGO_TEST_SCM_FACTS_EMITTER_ENV: &str = "OYA_CI_CARGO_TEST_SCM_FACTS_EMITTER_BIN";
+static CARGO_SCM_FACTS: OnceLock<Value> = OnceLock::new();
 
 /// Build the `{ "rows": [{"path": ...}] }` observed inventory from the materialized scm-facts face.
 fn observed_from_scm_facts(root: &Path) -> Value {
-    let scm = load_json(&require_scm_facts(root));
+    let scm = load_scm_facts(root);
     let paths = scm["tracked_paths"]
         .as_array()
         .expect("scm-facts.generated.json must carry a tracked_paths array");
@@ -220,6 +194,51 @@ fn observed_from_scm_facts(root: &Path) -> Value {
         .map(|p| json!({ "path": unquote_git_path(p) }))
         .collect();
     json!({ "rows": rows })
+}
+
+/// Read the workflow-declared face when present. A direct Cargo workspace test has no workflow
+/// pre-step, so it invokes the exact Cargo-built Rust emitter into temporary storage and parses
+/// that equivalent input. The generated face is never written into the checkout.
+fn load_scm_facts(root: &Path) -> Value {
+    let declared = root.join(SCM_FACTS_REL);
+    if declared.is_file() {
+        return load_json(&declared);
+    }
+    CARGO_SCM_FACTS
+        .get_or_init(|| {
+            materialize_temporary_scm_facts(root)
+                .unwrap_or_else(|error| panic!("FAIL-CLOSED: {error}"))
+        })
+        .clone()
+}
+
+fn materialize_temporary_scm_facts(root: &Path) -> Result<Value, String> {
+    // The Cargo config binding is the out-of-graph capability signal. Buck does not expose it,
+    // so a missing workflow-declared face inside a Buck action stays RED and cannot call Git.
+    std::env::var_os(CARGO_TEST_SCM_FACTS_EMITTER_ENV)
+        .filter(|value| !value.is_empty())
+        .ok_or_else(|| format!("missing required {CARGO_TEST_SCM_FACTS_EMITTER_ENV}"))?;
+
+    let temporary = tempfile::tempdir()
+        .map_err(|error| format!("create temporary SCM facts directory: {error}"))?;
+    let stable = temporary.path().join("scm-facts.generated.json");
+    let volatile = temporary.path().join("scm-volatile-facts.generated.json");
+    ci_scm_facts_snapshot::emit_candidate_scm_facts_out_of_graph(root, &stable, &volatile)?;
+    let metadata = fs::symlink_metadata(&stable).map_err(|error| {
+        format!(
+            "inspect materialized SCM facts {}: {error}",
+            stable.display()
+        )
+    })?;
+    if metadata.file_type().is_symlink() || !metadata.is_file() {
+        return Err(format!(
+            "materialized SCM facts must be a regular non-symlink file: {}",
+            stable.display()
+        ));
+    }
+    let text = fs::read_to_string(&stable)
+        .map_err(|error| format!("read {}: {error}", stable.display()))?;
+    serde_json::from_str(&text).map_err(|error| format!("parse {}: {error}", stable.display()))
 }
 
 #[test]

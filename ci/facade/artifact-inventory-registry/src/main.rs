@@ -1761,6 +1761,7 @@ fn parse_catalog_slo(contents: &str) -> Option<String> {
 mod tests {
     use super::*;
     use std::fs;
+    use std::process::Command;
     use std::sync::atomic::{AtomicU64, Ordering};
     use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -1969,20 +1970,53 @@ mod tests {
     }
 
     fn load_live_test_scm_facts(root: &Path) -> ScmFacts {
-        let face = root.join("ci/facade/artifact-inventory-registry/scm-facts.generated.json");
-        // Same class as the repo-root-hygiene / generated-artifact-policy gates: this face is the
-        // ADR-0604 de-commit class, so it is absent in ANY clean worktree and this live-corpus
-        // test cannot run. "run the producer-regen/materialization boundary" named no command,
-        // which left an author with a red gate and nothing to do about it.
+        let declared = root.join("ci/facade/artifact-inventory-registry/scm-facts.generated.json");
+        if declared.is_file() {
+            return load_scm_facts(&declared).expect("declared scm-facts face loads");
+        }
+
+        // ADR-0604 deliberately de-committed this face. The required workflow materializes it
+        // before Cargo, while a direct workspace test receives the exact Rust emitter as a Cargo
+        // test resource. Keep that boundary intact: this test never derives Git facts itself and
+        // never writes a generated face into the checkout.
+        let emitter = required_cargo_test_binary(root, "OYA_CI_CARGO_TEST_SCM_FACTS_EMITTER_BIN");
+
+        let temporary = unique_temp_repo();
+        let stable = temporary.join("scm-facts.generated.json");
+        let volatile = temporary.join("scm-volatile-facts.generated.json");
+        let output = Command::new(&emitter)
+            .arg("--repo-root")
+            .arg(root)
+            .arg("--out")
+            .arg(&stable)
+            .arg("--volatile-out")
+            .arg(&volatile)
+            .output()
+            .unwrap_or_else(|error| panic!("run SCM facts emitter {}: {error}", emitter.display()));
         assert!(
-            face.is_file(),
-            "missing materialized scm-facts face at {}.\n\nIt is generated (ADR-0604 de-commit \
-             class), not tracked in git. Materialize it, then re-run:\n\n    buck2 run \
-             //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin \
-             -- --repo-root .\n",
-            face.display()
+            output.status.success(),
+            "SCM facts emitter failed: {}",
+            String::from_utf8_lossy(&output.stderr)
         );
-        load_scm_facts(&face).expect("materialized scm-facts face loads")
+        let facts = load_scm_facts(&stable).expect("Cargo-materialized scm-facts face loads");
+        fs::remove_dir_all(temporary).expect("remove temporary SCM facts");
+        facts
+    }
+
+    fn required_cargo_test_binary(root: &Path, variable: &str) -> PathBuf {
+        let value = std::env::var_os(variable)
+            .filter(|value| !value.is_empty())
+            .unwrap_or_else(|| panic!("missing Cargo-bound {variable}"));
+        let path = ci_path_resolver_adapters::resolve_cargo_test_binary(root, &value)
+            .unwrap_or_else(|error| panic!("resolve {variable}: {error}"));
+        let metadata = fs::symlink_metadata(&path)
+            .unwrap_or_else(|error| panic!("inspect {variable} {}: {error}", path.display()));
+        assert!(
+            metadata.is_file() && !metadata.file_type().is_symlink(),
+            "{variable} must resolve to a regular non-symlink file: {}",
+            path.display()
+        );
+        path
     }
 
     #[test]

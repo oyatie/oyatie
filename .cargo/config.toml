@@ -20,3 +20,27 @@
 # (`clang: error: invalid linker name in argument '-fuse-ld=mold'`) — a hermeticity defect that
 # a warm dev tree (mold pre-installed) silently masks. Portable-by-default fixes the clean-
 # checkout build; opt-in keeps the fast local link path for those who provision mold.
+
+# Cargo-native test resources for the inventory-backed gate fleet (ADR-0716).
+#
+# Buck binds the accounting producer as a declared test resource. Cargo has no stable
+# cross-package `CARGO_BIN_EXE_*` propagation, so the package-local integration target builds the
+# inventory binaries and this repository config names them as logical Cargo test resources. At
+# runtime the test plumbing resolves each `cargo-test-binary:` name beside its own executable;
+# this remains correct for a fresh clone, target triples, and any `CARGO_TARGET_DIR` without
+# committing a machine- or worktree-specific path. The adapter materializes a missing SCM snapshot
+# through the existing Rust emitter, then delegates to the unchanged producer. It is not an
+# admission or operator CLI.
+#
+# `force` deliberately stays false (Cargo's default). CI's explicit, materializer-backed
+# OYA_CI_PRODUCER_BIN therefore wins, while a plain `cargo test --workspace` receives the adapter.
+[env]
+OYA_CI_PRODUCER_BIN = "cargo-test-binary:oya-cloud-ci-cargo-test-producer-adapter"
+OYA_CI_CARGO_TEST_PRODUCER_BIN = "cargo-test-binary:oya-cloud-ci-accounting-registry-app"
+OYA_CI_CARGO_TEST_SCM_FACTS_EMITTER_BIN = "cargo-test-binary:oya-cloud-ci-scm-facts-emitter-app"
+OYA_CI_CARGO_TEST_REORG_CODEMOD_BIN = "cargo-test-binary:oya-reorg-codemod"
+OYA_CI_EMITTER_BIN = "cargo-test-binary:oya-cloud-ci-scm-facts-emitter-app"
+OYA_CI_CODEMOD_BIN = "cargo-test-binary:oya-reorg-codemod"
+OYA_CI_ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS = { value = ".claude", relative = true }
+OYA_CI_ENFORCEMENT_LIVENESS_CODEX_HOOKS = { value = ".codex", relative = true }
+OYA_CI_ENFORCEMENT_LIVENESS_HOOKS_DIR = { value = "tools/hooks", relative = true }

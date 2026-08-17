@@ -682,22 +682,10 @@ fn run() -> Result<(), String> {
         return Ok(());
     }
 
-    let source = GitCliScmFactsSource::new(repo_root.clone());
-    let emission = emit_scm_facts(&source)?;
-
-    // Build the faces as serde_json Values with BTreeMap-backed maps so the on-disk key order
-    // is the canonical sorted order, then serialize through the producer's exact canonicalizer
-    // (to_string_pretty + trailing newline). The stable face is the committed merge surface;
-    // the volatile snapshot is untracked + gitignored (ADR-0552) and never byte-compared.
-    let text = to_canonical_json(&emission.value).map_err(|e| format!("serialize: {e}"))?;
-    std::fs::write(&out, &text).map_err(|e| format!("{}: {e}", out.display()))?;
-    let volatile_text =
-        to_canonical_json(&emission.volatile).map_err(|e| format!("serialize volatile: {e}"))?;
-    std::fs::write(&volatile_out, &volatile_text)
-        .map_err(|e| format!("{}: {e}", volatile_out.display()))?;
+    let tracked_paths_len = emit_candidate_scm_facts_out_of_graph(&repo_root, &out, &volatile_out)?;
     eprintln!(
         "oya-cloud-ci-scm-facts-emitter-app: {} tracked paths -> {} (volatile facts -> {})",
-        emission.tracked_paths_len,
+        tracked_paths_len,
         out.display(),
         volatile_out.display()
     );
@@ -803,6 +791,32 @@ fn run() -> Result<(), String> {
         );
     }
     Ok(())
+}
+
+/// Emit the stable and volatile candidate SCM faces through the canonical Git boundary.
+///
+/// This is public so Cargo-native integration tests can consume the exact Rust emitter without
+/// requiring a prebuilt CLI path. Callers must remain outside the Buck action graph and write only
+/// to declared or temporary outputs; workflow materialization remains the production owner.
+pub fn emit_candidate_scm_facts_out_of_graph(
+    repo_root: &Path,
+    out: &Path,
+    volatile_out: &Path,
+) -> Result<usize, String> {
+    let source = GitCliScmFactsSource::new(repo_root.to_path_buf());
+    let emission = emit_scm_facts(&source)?;
+
+    // Build the faces as serde_json Values with BTreeMap-backed maps so the on-disk key order
+    // is the canonical sorted order, then serialize through the producer's exact canonicalizer
+    // (to_string_pretty + trailing newline). The stable face is the committed merge surface;
+    // the volatile snapshot is untracked + gitignored (ADR-0552) and never byte-compared.
+    let text = to_canonical_json(&emission.value).map_err(|error| format!("serialize: {error}"))?;
+    std::fs::write(out, &text).map_err(|error| format!("{}: {error}", out.display()))?;
+    let volatile_text = to_canonical_json(&emission.volatile)
+        .map_err(|error| format!("serialize volatile: {error}"))?;
+    std::fs::write(volatile_out, &volatile_text)
+        .map_err(|error| format!("{}: {error}", volatile_out.display()))?;
+    Ok(emission.tracked_paths_len)
 }
 
 /// Where an active-P2 emission is allowed to get the exact historical parent receipt bytes.
