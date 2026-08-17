@@ -263,13 +263,58 @@ pub fn rewrite_version_boundary(text: &str, old: &str, new: &str) -> String {
     out
 }
 
-/// Rewrite a TOML key's quoted value: `key = "old"` -> `key = "new"` (both the canonical spaced
-/// form and the compact `key="old"` form). Only the declared pin fields are targeted, never
-/// arbitrary version tokens elsewhere in the file.
+/// Rewrite a TOML key's quoted value wherever the key is assigned, independent of the file's
+/// whitespace and quote style: `key = "old"`, `key="old"`, `key  =  "old"`, `key = \'old\'` and any
+/// indented variant all rewrite.
+///
+/// This previously did two literal `replace` calls against the canonical spaced form and the
+/// compact form. Every other VALID TOML spelling — single quotes, extra spaces around `=` — was
+/// silently left unchanged, so reconciliation would update the sibling files, fail only in
+/// post-verification, and leave a PARTIALLY bumped checkout behind.
+///
+/// The quote character is preserved, the value is replaced only when it equals `old`, and the
+/// surrounding bytes are untouched, so no formatting round-trip occurs. Only the declared pin
+/// fields are targeted, never arbitrary version tokens elsewhere in the file.
 fn rewrite_toml_key(text: &str, key: &str, old: &str, new: &str) -> String {
-    let mut out = text.replace(&format!("{key} = \"{old}\""), &format!("{key} = \"{new}\""));
-    out = out.replace(&format!("{key}=\"{old}\""), &format!("{key}=\"{new}\""));
+    if old.is_empty() || old == new {
+        return text.to_owned();
+    }
+    let mut out = String::with_capacity(text.len());
+    for (index, line) in text.split_inclusive('\n').enumerate() {
+        let _ = index;
+        match rewritten_toml_line(line, key, old, new) {
+            Some(replaced) => out.push_str(&replaced),
+            None => out.push_str(line),
+        }
+    }
     out
+}
+
+/// Rewrite one `key = "value"` assignment line, or return `None` when the line is not this key\'s
+/// assignment or the value does not equal `old`.
+fn rewritten_toml_line(line: &str, key: &str, old: &str, new: &str) -> Option<String> {
+    let indent_len = line.len() - line.trim_start().len();
+    let (indent, rest) = line.split_at(indent_len);
+    let rest = rest.strip_prefix(key)?;
+    // Reject a longer key that merely starts with `key` (e.g. `channel-override`).
+    let after_key = rest.trim_start();
+    let equals_gap = &rest[..rest.len() - after_key.len()];
+    let value_part = after_key.strip_prefix('=')?;
+    let value_trimmed = value_part.trim_start();
+    let value_gap = &value_part[..value_part.len() - value_trimmed.len()];
+    let quote = value_trimmed
+        .chars()
+        .next()
+        .filter(|c| *c == '"' || *c == '\'')?;
+    let body = &value_trimmed[quote.len_utf8()..];
+    let end = body.find(quote)?;
+    if &body[..end] != old {
+        return None;
+    }
+    let tail = &body[end + quote.len_utf8()..];
+    Some(format!(
+        "{indent}{key}{equals_gap}={value_gap}{quote}{new}{quote}{tail}"
+    ))
 }
 
 /// Rewrite one JSON object key's string value wherever the key appears, independent of the file's
@@ -737,6 +782,49 @@ pub fn reconcile(repo_root: &Path, latest: &str) -> Result<ReconcileReport, Prop
 
 #[cfg(test)]
 mod tests {
+
+    /// Reviewer finding: only the two canonical spellings were rewritten, so any other VALID
+    /// TOML formatting left the pin behind and produced a partially bumped checkout.
+    #[test]
+    fn rewrite_toml_key_handles_every_valid_pin_spelling() {
+        for (input, expected) in [
+            ("channel = \"1.97.1\"\n", "channel = \"1.98.0\"\n"),
+            ("channel=\"1.97.1\"\n", "channel=\"1.98.0\"\n"),
+            ("channel  =  \"1.97.1\"\n", "channel  =  \"1.98.0\"\n"),
+            ("channel = \'1.97.1\'\n", "channel = \'1.98.0\'\n"),
+            ("  channel = \"1.97.1\"\n", "  channel = \"1.98.0\"\n"),
+            (
+                "channel = \"1.97.1\" # pinned\n",
+                "channel = \"1.98.0\" # pinned\n",
+            ),
+        ] {
+            assert_eq!(
+                rewrite_toml_key(input, "channel", "1.97.1", "1.98.0"),
+                expected,
+                "spelling not rewritten: {input:?}"
+            );
+        }
+    }
+
+    /// A key that merely PREFIXES another key must not be rewritten, and a non-matching value
+    /// must be left alone.
+    #[test]
+    fn rewrite_toml_key_does_not_touch_lookalike_keys_or_other_values() {
+        assert_eq!(
+            rewrite_toml_key(
+                "channel-override = \"1.97.1\"\n",
+                "channel",
+                "1.97.1",
+                "1.98.0"
+            ),
+            "channel-override = \"1.97.1\"\n"
+        );
+        assert_eq!(
+            rewrite_toml_key("channel = \"1.90.0\"\n", "channel", "1.97.1", "1.98.0"),
+            "channel = \"1.90.0\"\n"
+        );
+    }
+
     use super::*;
 
     fn write(root: &Path, rel: &str, content: &str) {

@@ -28,11 +28,22 @@ use ci_rust_toolchain_bump_proposer::{
 
 const LATEST_STABLE_ENV: &str = "OYA_LATEST_STABLE_RUST";
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum Mode {
     DryRun,
     Apply,
     Check,
+}
+
+impl Mode {
+    /// The CLI flag that selects this mode, for exact conflict diagnostics.
+    fn flag(self) -> &'static str {
+        match self {
+            Mode::DryRun => "--dry-run",
+            Mode::Apply => "--apply",
+            Mode::Check => "--check",
+        }
+    }
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -103,7 +114,21 @@ fn run(args: &Args) -> Result<u8, String> {
                      to treat a stale release as current"
                 ));
             }
-            println!("up to date: pinned {current} is the latest stable {latest}");
+            // An equal pin does not make a stale tree aligned. --check exit 0 is documented as
+            // "drift-clean", and a scheduled guard consumes it, so it must run the same
+            // verification --dry-run does rather than reporting success on the channel alone.
+            let residual = verify_clean(repo_root)
+                .map_err(|error| format!("verify tree alignment: {error}"))?;
+            if !residual.is_clean() {
+                eprintln!(
+                    "pinned {current} equals latest stable {latest}, but the tree has residual drift:{}",
+                    render_residual(&residual)
+                );
+                return Ok(2);
+            }
+            println!(
+                "up to date: pinned {current} is the latest stable {latest} and the tree is drift-clean"
+            );
             Ok(0)
         }
         Mode::DryRun => {
@@ -220,7 +245,7 @@ fn print_plan(plan: &BumpPlan) {
 fn parse_args(args: Vec<String>) -> ParseOutcome {
     let mut repo_root = PathBuf::from(".");
     let mut latest_stable = None;
-    let mut mode = Mode::DryRun;
+    let mut explicit_mode: Option<Mode> = None;
     let mut json = false;
     let mut iter = args.into_iter();
     while let Some(arg) = iter.next() {
@@ -242,9 +267,27 @@ fn parse_args(args: Vec<String>) -> ParseOutcome {
                 };
                 latest_stable = Some(value);
             }
-            "--apply" => mode = Mode::Apply,
-            "--check" => mode = Mode::Check,
-            "--dry-run" => mode = Mode::DryRun,
+            // The usage advertises these as mutually exclusive. Letting the last flag win makes
+            // destructive behaviour depend on argument order, so a wrapper's --check plus a
+            // caller's --apply would silently mutate the repository.
+            "--apply" | "--check" | "--dry-run" => {
+                let requested = match arg.as_str() {
+                    "--apply" => Mode::Apply,
+                    "--check" => Mode::Check,
+                    _ => Mode::DryRun,
+                };
+                if let Some(existing) = explicit_mode {
+                    if existing != requested {
+                        return ParseOutcome::Error(format!(
+                            "rust-toolchain-bump-proposer: --apply, --check and --dry-run are \
+                             mutually exclusive; got both {} and {arg}; {}",
+                            existing.flag(),
+                            usage()
+                        ));
+                    }
+                }
+                explicit_mode = Some(requested);
+            }
             "--json" => json = true,
             "--help" | "-h" => return ParseOutcome::Help,
             other => {
@@ -255,6 +298,7 @@ fn parse_args(args: Vec<String>) -> ParseOutcome {
             }
         }
     }
+    let mode = explicit_mode.unwrap_or(Mode::DryRun);
     ParseOutcome::Run(Args {
         repo_root,
         latest_stable,
