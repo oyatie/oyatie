@@ -118,7 +118,7 @@ const REQUIRED_SLO_LINKED_CLOUD_MANIFESTS: [&str; 6] = [
 ///   2026-08-17  773 -> pin 769     RETIREMENT: remove the four deleted-crate catalog rows
 ///                                  oya-cloud-os-{cluster-mgmt,kubernetes,secrets,trustd}-domain;
 ///                                  the same producer now enumerates exactly four fewer rows.
-const SLO_CATALOG_CENSUS: usize = 769;
+const SLO_CATALOG_CENSUS: usize = 770;
 
 fn producer_command(root: &Path, producer_bin: Option<&str>) -> Result<Command, String> {
     if let Some(bin) = producer_bin {
