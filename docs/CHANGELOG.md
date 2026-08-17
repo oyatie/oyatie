@@ -6,6 +6,11 @@ doc_status: published
 
 # Changelog
 
+## 2026-08-17 — Canonical JSON fixed point restored
+
+- Ran the owned canonical-JSON fixer over the three drifted active specs, restoring literal
+  UTF-8 and trailing-newline policy without changing their parsed JSON values.
+
 ## 2026-08-17 — Cargo test-resource parity and retired cloud corpus
 
 - Mirrored the product-protocol and reset-eligibility Buck committed-file resources into
