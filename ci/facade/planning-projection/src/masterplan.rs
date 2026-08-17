@@ -509,7 +509,7 @@ deliverables:
                 exit_criteria: "green".to_owned(),
                 verified_by: "cargo test".to_owned(),
             }],
-            path: format!("docs/decisions/{id}-test.md"),
+            path: format!("fixtures/adr-planning/{id}-test.md"),
         }
     }
 
@@ -519,7 +519,7 @@ deliverables:
         let parsed = parse_planning_adr(
             frontmatter,
             "ADR-0002".to_owned(),
-            "docs/decisions/ADR-0002-test.md".to_owned(),
+            "fixtures/adr-planning/ADR-0002-test.md".to_owned(),
         );
         assert_eq!(parsed.milestone, "M-TEST");
         assert_eq!(parsed.depends_on, ["ADR-0001"]);
