@@ -43,10 +43,23 @@ to render without a real signed digest):
   `data-analytics`, `iam-cloud-iam`, `iam-identity`, `intelligence`,
   `observability`, `oya-ci-webhook-gateway`, `oya-community`, `secrets-kms`.
 
-## Known defects this surfaced
+## What the render gate surfaced, and what came of it
 
-- `intelligence` keeps a **`BUCK` file inside `templates/`**. Helm renders
-  everything under `templates/`, so it is parsed as a manifest and fails. No CI
-  job renders any chart, which is why this was never caught.
-- `observability` declares chart dependencies that are not vendored.
-- `iam-cloud-iam` needs a second digest (`svidOperator.image.digest`).
+Introducing `helm-render-smoke` found four charts that would not render. Only
+one was a defect:
+
+- **`intelligence` kept a `BUCK` file inside `templates/`** — a real bug. Helm
+  renders everything under `templates/`, so a Buck build file was parsed as a
+  manifest and the chart could not render at all. The BUCK file itself is
+  deliberate: it `export_file()`s `deployment.yaml`/`externalsecret.yaml` as
+  declared resources so the Buck action and the ADR-0716 Cargo merge path bind
+  the same bytes, and it carries the ADR-0541 corpus target. Fixed with a
+  `.helmignore` so the wiring stays and Helm stops reading it.
+- **`iam-cloud-iam` and `secrets-kms` were not broken.** They declare a second
+  image (`svidOperator`, `operator`) and, in one case, a required `cellId` with
+  no default. The gate was supplying only `image.digest`. Fixed in the gate.
+- **`observability` is skipped, not failed.** Its `Chart.yaml` declares remote
+  dependencies (loki, tempo from grafana.github.io), so it cannot be rendered
+  offline. Counting that as a failure would be dishonest — nothing is broken.
+
+Current state: **80 render, 1 skipped, 0 failing.**
