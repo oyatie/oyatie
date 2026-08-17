@@ -10,9 +10,12 @@ use std::process::{Command, Output};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 fn driver_bin() -> PathBuf {
-    match std::env::var("OYA_CARGO_LOCK_MERGE_DRIVER") {
-        Ok(path) => PathBuf::from(path),
-        Err(err) => panic!("missing OYA_CARGO_LOCK_MERGE_DRIVER: {err}"),
+    if let Ok(path) = std::env::var("OYA_CARGO_LOCK_MERGE_DRIVER") {
+        return PathBuf::from(path);
+    }
+    match option_env!("CARGO_BIN_EXE_oya-cargo-lock-merge-driver") {
+        Some(path) => PathBuf::from(path),
+        None => panic!("missing OYA_CARGO_LOCK_MERGE_DRIVER"),
     }
 }
 

@@ -17,9 +17,13 @@ use std::time::{SystemTime, UNIX_EPOCH};
 /// the project-relative `buck-out/...` path `$(location)` hands over would simply not resolve
 /// there, and git would report a driver it could not execute rather than the behaviour under test.
 fn driver_bin() -> PathBuf {
-    let raw = match std::env::var("OYA_CARGO_LOCK_MERGE_DRIVER") {
-        Ok(path) => PathBuf::from(path),
-        Err(err) => panic!("missing OYA_CARGO_LOCK_MERGE_DRIVER: {err}"),
+    let raw = if let Ok(path) = std::env::var("OYA_CARGO_LOCK_MERGE_DRIVER") {
+        PathBuf::from(path)
+    } else {
+        match option_env!("CARGO_BIN_EXE_oya-cargo-lock-merge-driver") {
+            Some(path) => PathBuf::from(path),
+            None => panic!("missing OYA_CARGO_LOCK_MERGE_DRIVER"),
+        }
     };
     match std::fs::canonicalize(&raw) {
         Ok(absolute) => absolute,
