@@ -6,7 +6,9 @@
 mod idea_archive_transition;
 
 use std::collections::{BTreeMap, BTreeSet};
+use std::ffi::OsStr;
 use std::fs;
+use std::io::ErrorKind;
 use std::path::{Component, Path, PathBuf};
 use std::process::Command;
 use std::sync::OnceLock;
@@ -27,6 +29,15 @@ use ci_cross_artifact_agreement::{
 };
 use serde_json::Value;
 use sha2::{Digest, Sha256};
+
+const BUCK: &str = include_str!("../BUCK");
+const CARGO_CONFIG: &str = include_str!("../../../../.cargo/config.toml");
+const ADR_INDEX_PRODUCER_ENV: &str = "OYA_ADR_INDEX_PRODUCER_BIN";
+const ADR_INDEX_CARGO_BINDING: &str = "cargo-test-binary:oya";
+const HISTORY_ONLY_FACTS_ENV: &str = "OYA_HISTORY_ONLY_RETIREMENT_FACTS";
+const HISTORY_ONLY_FACTS_PATH: &str =
+    "ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json";
+const SCM_FACTS_EMITTER_ENV: &str = "OYA_CI_EMITTER_BIN";
 
 /// Walk up to the repo root (the dir holding specs/root-hub-pointers.json), matching the
 /// existing kernel-test convention.
@@ -52,8 +63,73 @@ fn producer_binary(root: &Path, producer_bin: Option<&str>) -> Result<PathBuf, S
     ci_path_resolver_adapters::resolve_cargo_test_binary(root, std::ffi::OsStr::new(bin))
 }
 
+fn required_declared_binary(root: &Path, variable: &str) -> Result<PathBuf, String> {
+    let value = std::env::var_os(variable)
+        .filter(|value| !value.is_empty())
+        .ok_or_else(|| format!("FAIL-CLOSED: missing required {variable}"))?;
+    resolve_declared_binary(root, variable, &value)
+}
+
+fn resolve_declared_binary(root: &Path, variable: &str, value: &OsStr) -> Result<PathBuf, String> {
+    let path = ci_path_resolver_adapters::resolve_cargo_test_binary(root, value)?;
+    let metadata = fs::symlink_metadata(&path)
+        .map_err(|error| format!("inspect {variable} {}: {error}", path.display()))?;
+    if metadata.file_type().is_symlink() || !metadata.is_file() {
+        return Err(format!(
+            "{variable} must bind a regular non-symlink file, got {}",
+            path.display()
+        ));
+    }
+    Ok(path)
+}
+
+fn assert_cargo_buck_generated_resource_parity() {
+    assert!(
+        BUCK.contains(
+            "\"OYA_ADR_INDEX_PRODUCER_BIN\": \"$(exe //marketplace/facade/dev-cli:oya)\""
+        ),
+        "Buck must retain the sanctioned ADR-index producer binding"
+    );
+    let cargo_adr = format!(
+        "{ADR_INDEX_PRODUCER_ENV} = {{ value = \"{ADR_INDEX_CARGO_BINDING}\", force = false }}"
+    );
+    assert!(
+        CARGO_CONFIG.lines().any(|line| line == cargo_adr),
+        "Cargo must mirror the ADR-index producer with a portable logical binary"
+    );
+
+    let buck_history = format!("\"{HISTORY_ONLY_FACTS_ENV}\": \"{HISTORY_ONLY_FACTS_PATH}\"");
+    assert!(
+        BUCK.contains(&buck_history),
+        "Buck must bind the exact canonical history-only facts token"
+    );
+    let cargo_history = format!(
+        "{HISTORY_ONLY_FACTS_ENV} = {{ value = \"{HISTORY_ONLY_FACTS_PATH}\", force = false }}"
+    );
+    assert!(
+        CARGO_CONFIG.lines().any(|line| line == cargo_history),
+        "Cargo must export the same plain repo-relative token without config-relative rewriting"
+    );
+    assert!(
+        CARGO_CONFIG.lines().all(|line| {
+            !line.starts_with(&format!("{HISTORY_ONLY_FACTS_ENV} ="))
+                || !line.contains("relative = true")
+        }),
+        "the canonical history-only token must not be rewritten to an absolute Cargo path"
+    );
+    assert!(
+        CARGO_CONFIG.lines().any(|line| {
+            line == format!(
+                "{SCM_FACTS_EMITTER_ENV} = \"cargo-test-binary:oya-cloud-ci-scm-facts-emitter-app\""
+            )
+        }),
+        "clean Cargo fallback must use the existing owned Rust SCM facts emitter"
+    );
+}
+
 #[test]
 fn producer_binary_env_is_required_for_hermetic_gate() {
+    assert_cargo_buck_generated_resource_parity();
     let err = producer_binary(Path::new("/repo"), None)
         .expect_err("missing OYA_CI_PRODUCER_BIN must fail closed");
     assert!(err.contains("OYA_CI_PRODUCER_BIN"));
@@ -66,6 +142,138 @@ fn fixture_dir() -> PathBuf {
 fn load_json(path: &PathBuf) -> Value {
     let text = fs::read_to_string(path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()));
     serde_json::from_str(&text).unwrap_or_else(|e| panic!("parse {}: {e}", path.display()))
+}
+
+fn run_checked(command: &mut Command, label: &str) -> Result<Vec<u8>, String> {
+    let output = command
+        .output()
+        .map_err(|error| format!("{label}: {error}"))?;
+    if !output.status.success() {
+        return Err(format!(
+            "{label} failed with status {:?}: stdout={} stderr={}",
+            output.status.code(),
+            String::from_utf8_lossy(&output.stdout),
+            String::from_utf8_lossy(&output.stderr)
+        ));
+    }
+    Ok(output.stdout)
+}
+
+fn exact_head_oid(root: &Path) -> Result<String, String> {
+    let output = run_checked(
+        Command::new("git")
+            .arg("-C")
+            .arg(root)
+            .args(["rev-parse", "--verify", "HEAD^{commit}"]),
+        "resolve exact test HEAD",
+    )?;
+    let oid = String::from_utf8(output)
+        .map_err(|error| format!("exact test HEAD is not UTF-8: {error}"))?
+        .trim()
+        .to_owned();
+    if oid.len() != 40 || !oid.bytes().all(|byte| byte.is_ascii_hexdigit()) {
+        return Err(format!(
+            "exact test HEAD is not a canonical SHA-1 OID: {oid:?}"
+        ));
+    }
+    Ok(oid)
+}
+
+fn read_regular_non_symlink(path: &Path, label: &str) -> Result<Vec<u8>, String> {
+    let metadata = fs::symlink_metadata(path)
+        .map_err(|error| format!("inspect {label} {}: {error}", path.display()))?;
+    if metadata.file_type().is_symlink() || !metadata.is_file() {
+        return Err(format!(
+            "{label} must be a regular non-symlink file, got {}",
+            path.display()
+        ));
+    }
+    fs::read(path).map_err(|error| format!("read {label} {}: {error}", path.display()))
+}
+
+fn materialize_history_only_facts_in_temporary_clone(root: &Path) -> Result<Vec<u8>, String> {
+    let emitter = required_declared_binary(root, SCM_FACTS_EMITTER_ENV)?;
+    let head = exact_head_oid(root)?;
+    let storage = tempfile::tempdir()
+        .map_err(|error| format!("create history-only materializer storage: {error}"))?;
+    let clone = storage.path().join("repo");
+
+    run_checked(
+        Command::new("git")
+            .args(["clone", "--quiet", "--shared", "--no-checkout"])
+            .arg(root)
+            .arg(&clone),
+        "create temporary shared history-only materializer clone",
+    )?;
+    run_checked(
+        Command::new("git")
+            .arg("-C")
+            .arg(&clone)
+            .args(["sparse-checkout", "init", "--no-cone"]),
+        "initialize temporary history-only sparse checkout",
+    )?;
+    run_checked(
+        Command::new("git").arg("-C").arg(&clone).args([
+            "sparse-checkout",
+            "set",
+            "--no-cone",
+            ".gitignore",
+        ]),
+        "bind temporary history-only checkout ignore policy",
+    )?;
+    run_checked(
+        Command::new("git")
+            .arg("-C")
+            .arg(&clone)
+            .args(["checkout", "--quiet", "--detach", &head]),
+        "checkout exact history-only materializer HEAD",
+    )?;
+    for parent in [
+        "ci/facade/artifact-inventory-registry",
+        "ci/facade/scm-facts-snapshot",
+    ] {
+        fs::create_dir_all(clone.join(parent)).map_err(|error| {
+            format!("create temporary history-only output parent {parent}: {error}")
+        })?;
+    }
+
+    run_checked(
+        Command::new(emitter)
+            .args(["--repo-root"])
+            .arg(&clone)
+            .args(["--historical-dev-push", &head]),
+        "run owned Rust history-only facts materializer in temporary storage",
+    )?;
+    read_regular_non_symlink(
+        &clone.join(HISTORY_ONLY_FACTS_PATH),
+        "temporarily materialized history-only facts",
+    )
+}
+
+fn read_or_materialize_history_only_facts(
+    root: &Path,
+    declared: &str,
+    materialize_missing: impl FnOnce() -> Result<Vec<u8>, String>,
+) -> Result<Vec<u8>, String> {
+    if declared != HISTORY_ONLY_FACTS_PATH {
+        return Err(format!(
+            "{HISTORY_ONLY_FACTS_ENV} must equal the exact canonical repo-relative token {HISTORY_ONLY_FACTS_PATH:?}, got {declared:?}"
+        ));
+    }
+    let path = root.join(declared);
+    match fs::symlink_metadata(&path) {
+        Ok(metadata) => {
+            if metadata.file_type().is_symlink() || !metadata.is_file() {
+                return Err(format!(
+                    "declared history-only facts must be a regular non-symlink file, got {}",
+                    path.display()
+                ));
+            }
+            fs::read(&path).map_err(|error| format!("read declared {}: {error}", path.display()))
+        }
+        Err(error) if error.kind() == ErrorKind::NotFound => materialize_missing(),
+        Err(error) => Err(format!("inspect declared {}: {error}", path.display())),
+    }
 }
 
 fn named_workflow_step<'a>(workflow: &'a str, name: &str) -> &'a str {
@@ -1196,17 +1404,15 @@ fn broad_workflow_consumers_require_the_producer_artifact_and_keep_the_merge_bas
 #[test]
 fn live_history_only_retirement_facts_are_bound_to_the_controller_control_plane() {
     let root = repo_root();
-    let relative_path = std::env::var("OYA_HISTORY_ONLY_RETIREMENT_FACTS")
-        .expect("FAIL-CLOSED: OYA_HISTORY_ONLY_RETIREMENT_FACTS must name the materialized face");
-    assert_eq!(
-        relative_path, "ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json",
-        "history-only retirement facts must use the canonical controller-owned path"
-    );
-    let facts_path = root.join(&relative_path);
-    let facts_bytes = fs::read(&facts_path)
-        .unwrap_or_else(|error| panic!("read materialized {}: {error}", facts_path.display()));
+    let relative_path = std::env::var(HISTORY_ONLY_FACTS_ENV).unwrap_or_else(|error| {
+        panic!("FAIL-CLOSED: {HISTORY_ONLY_FACTS_ENV} must name the materialized face: {error}")
+    });
+    let facts_bytes = read_or_materialize_history_only_facts(&root, &relative_path, || {
+        materialize_history_only_facts_in_temporary_clone(&root)
+    })
+    .unwrap_or_else(|error| panic!("load controller-owned history-only facts: {error}"));
     let facts: Value = serde_json::from_slice(&facts_bytes)
-        .unwrap_or_else(|error| panic!("parse materialized {}: {error}", facts_path.display()));
+        .unwrap_or_else(|error| panic!("parse controller-owned history-only facts: {error}"));
     let control_plane_path = root.join("registry/history-only-retirement/control-plane.json");
     let control_plane_bytes = fs::read(&control_plane_path)
         .unwrap_or_else(|error| panic!("read {}: {error}", control_plane_path.display()));
@@ -1237,6 +1443,63 @@ fn live_history_only_retirement_facts_are_bound_to_the_controller_control_plane(
             .is_empty(),
         "dormant live facts must not project a closure"
     );
+}
+
+#[test]
+fn declared_history_only_input_is_never_replaced_or_path_rewritten() {
+    let root = tempfile::tempdir().expect("create history-only declared-input fixture");
+    let path = root.path().join(HISTORY_ONLY_FACTS_PATH);
+    fs::create_dir_all(path.parent().expect("history-only facts parent"))
+        .expect("create history-only facts parent");
+    fs::write(&path, b"{malformed-existing-face")
+        .expect("write malformed declared history-only face");
+
+    let fallback_called = std::cell::Cell::new(false);
+    let bytes =
+        read_or_materialize_history_only_facts(root.path(), HISTORY_ONLY_FACTS_PATH, || {
+            fallback_called.set(true);
+            Ok(br#"{"silently":"replaced"}"#.to_vec())
+        })
+        .expect("existing regular face must be returned verbatim");
+    assert!(!fallback_called.get());
+    assert_eq!(bytes, b"{malformed-existing-face");
+    assert!(
+        serde_json::from_slice::<Value>(&bytes).is_err(),
+        "malformed declared bytes must remain malformed rather than being laundered"
+    );
+
+    let wrong_token = read_or_materialize_history_only_facts(
+        root.path(),
+        "./ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json",
+        || Ok(Vec::new()),
+    )
+    .expect_err("noncanonical token must fail closed");
+    assert!(wrong_token.contains("exact canonical repo-relative token"));
+
+    fs::remove_file(&path).expect("remove malformed face fixture");
+    fs::create_dir(&path).expect("create non-file face fixture");
+    let non_file =
+        read_or_materialize_history_only_facts(root.path(), HISTORY_ONLY_FACTS_PATH, || {
+            Ok(Vec::new())
+        })
+        .expect_err("non-file declared face must fail closed");
+    assert!(non_file.contains("regular non-symlink file"));
+
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::symlink;
+
+        fs::remove_dir(&path).expect("remove non-file face fixture");
+        let target = root.path().join("poisoned-history-only-face");
+        fs::write(&target, b"{}").expect("write symlink target fixture");
+        symlink(&target, &path).expect("create history-only face symlink fixture");
+        let linked =
+            read_or_materialize_history_only_facts(root.path(), HISTORY_ONLY_FACTS_PATH, || {
+                Ok(Vec::new())
+            })
+            .expect_err("symlink declared face must fail closed");
+        assert!(linked.contains("regular non-symlink file"));
+    }
 }
 
 fn expected_violations(fixture: &Value) -> BTreeSet<String> {
@@ -3033,31 +3296,30 @@ fn source_derived_adr_records(root: &Path) -> Vec<AdrDecisionRecord> {
     static RECORDS: OnceLock<Vec<AdrDecisionRecord>> = OnceLock::new();
     RECORDS
         .get_or_init(|| {
-            let producer = std::env::var("OYA_ADR_INDEX_PRODUCER_BIN")
-                .expect("Buck2 must provide the sanctioned ADR-index producer binary");
+            let producer = required_declared_binary(root, ADR_INDEX_PRODUCER_ENV)
+                .unwrap_or_else(|error| panic!("{error}"));
             let temp = tempfile::tempdir().expect("create ADR-index projection tempdir");
             let index = temp.path().join("ADR-INDEX.md");
             let machine = temp.path().join("decisions.json");
-            let output =
-                Command::new(producer_binary(root, Some(&producer)).expect("ADR producer path"))
-                    .current_dir(root)
-                    .args([
-                        "doc",
-                        "adr-index",
-                        "--decisions-dir",
-                        root.join("docs/decisions")
-                            .to_str()
-                            .expect("UTF-8 decisions path"),
-                        "--index",
-                        index.to_str().expect("UTF-8 index path"),
-                        "--machine",
-                        machine.to_str().expect("UTF-8 machine path"),
-                        "--write",
-                        "--format",
-                        "json",
-                    ])
-                    .output()
-                    .expect("run sanctioned ADR-index producer");
+            let output = Command::new(producer)
+                .current_dir(root)
+                .args([
+                    "doc",
+                    "adr-index",
+                    "--decisions-dir",
+                    root.join("docs/decisions")
+                        .to_str()
+                        .expect("UTF-8 decisions path"),
+                    "--index",
+                    index.to_str().expect("UTF-8 index path"),
+                    "--machine",
+                    machine.to_str().expect("UTF-8 machine path"),
+                    "--write",
+                    "--format",
+                    "json",
+                ])
+                .output()
+                .expect("run sanctioned ADR-index producer");
             assert!(
                 output.status.success(),
                 "ADR-index producer failed: stdout={} stderr={}",
