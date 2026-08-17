@@ -1600,6 +1600,7 @@ version = "0.1.0"
 dependencies = [
  "oya-ci-config-kernel",
  "oya-governance-predictable-naming-kernel",
+ "oya-workspace-members-kernel",
  "serde_json",
 ]
 
@@ -1785,6 +1786,8 @@ dependencies = [
 name = "ci-package-manifest-hygiene"
 version = "0.1.0"
 dependencies = [
+ "oya-ci-config-kernel",
+ "oya-workspace-members-kernel",
  "serde_json",
 ]
 
