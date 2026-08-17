@@ -1948,9 +1948,11 @@ dependencies = [
 name = "ci-supply-chain-audit"
 version = "0.1.0"
 dependencies = [
+ "ci-scm-facts-snapshot",
  "oya-advisory-mirror-kernel",
  "semver",
  "serde_json",
+ "tempfile",
  "toml 0.8.23",
 ]
 

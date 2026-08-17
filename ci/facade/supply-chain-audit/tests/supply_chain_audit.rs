@@ -10,10 +10,17 @@
 //!   3. UNMAINTAINED: an unmaintained fixture absent from ignore => SCA-UNMAINTAINED; present => clean.
 //!   4. MIRROR INTEGRITY: a tampered manifest content_hash => SCA-MIRROR-MALFORMED.
 //!
-//! Pure filesystem; no network, no clock. ADR-0083 Tier-3: integration tests use unwrap/expect/panic.
+//! Synthetic cases are pure filesystem. Live Cargo tests use the official out-of-graph Rust SCM
+//! emitter through its library seam when the workflow-declared face is absent; it performs only
+//! read-only Git queries and writes the resulting faces under ignored `target/` RAII temporary
+//! storage. No network, Git mutation, or write to the declared generated-face path. ADR-0083
+//! Tier-3: integration tests use unwrap/expect/panic.
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
-use std::path::{Path, PathBuf};
+use std::ffi::OsStr;
+use std::fs;
+use std::io::ErrorKind;
+use std::path::{Component, Path, PathBuf};
 
 use ci_supply_chain_audit::{
     GATE_ID, collect, configured_lockfiles, evaluate_keyed, render_findings,
@@ -43,6 +50,231 @@ fn policy_path(root: &Path) -> PathBuf {
 fn load_policy(root: &Path) -> Value {
     let text = std::fs::read_to_string(policy_path(root)).expect("read committed policy");
     serde_json::from_str(&text).expect("parse committed policy")
+}
+
+const CARGO_TEST_SCM_FACTS_EMITTER_ENV: &str = "OYA_CI_CARGO_TEST_SCM_FACTS_EMITTER_BIN";
+const ABSENT_TEST_SCM_FACTS_PATH: &str =
+    "ci/facade/artifact-inventory-registry/cargo-test-only-absent-scm-facts.json";
+
+struct PreparedLivePolicy {
+    policy: Value,
+    temporary: Option<TemporaryScmFacts>,
+}
+
+struct TemporaryScmFacts {
+    directory: tempfile::TempDir,
+    stable: PathBuf,
+    volatile: PathBuf,
+}
+
+impl TemporaryScmFacts {
+    fn materialize(root: &Path) -> Result<Self, String> {
+        let scratch = root.join("target");
+        match fs::symlink_metadata(&scratch) {
+            Ok(_) => {}
+            Err(error) if error.kind() == ErrorKind::NotFound => match fs::create_dir(&scratch) {
+                Ok(()) => {}
+                Err(error) if error.kind() == ErrorKind::AlreadyExists => {}
+                Err(error) => {
+                    return Err(format!(
+                        "create Cargo test scratch root {}: {error}",
+                        scratch.display()
+                    ));
+                }
+            },
+            Err(error) => {
+                return Err(format!(
+                    "inspect Cargo test scratch root {}: {error}",
+                    scratch.display()
+                ));
+            }
+        }
+        let scratch_metadata = fs::symlink_metadata(&scratch).map_err(|error| {
+            format!(
+                "reinspect Cargo test scratch root {}: {error}",
+                scratch.display()
+            )
+        })?;
+        if scratch_metadata.file_type().is_symlink() || !scratch_metadata.is_dir() {
+            return Err(format!(
+                "Cargo test scratch root must be a regular non-symlink directory: {}",
+                scratch.display()
+            ));
+        }
+
+        let directory = tempfile::Builder::new()
+            .prefix("oya-ci-supply-chain-scm-")
+            .tempdir_in(&scratch)
+            .map_err(|error| {
+                format!(
+                    "create temporary SCM facts directory under {}: {error}",
+                    scratch.display()
+                )
+            })?;
+        let stable = directory.path().join("scm-facts.generated.json");
+        let volatile = directory.path().join("scm-volatile-facts.generated.json");
+        ci_scm_facts_snapshot::emit_candidate_scm_facts_out_of_graph(root, &stable, &volatile)?;
+        require_regular_non_symlink(&stable, "temporary stable SCM facts")?;
+        require_regular_non_symlink(&volatile, "temporary volatile SCM facts")?;
+        Ok(Self {
+            directory,
+            stable,
+            volatile,
+        })
+    }
+}
+
+fn require_regular_non_symlink(path: &Path, label: &str) -> Result<(), String> {
+    let metadata = fs::symlink_metadata(path)
+        .map_err(|error| format!("inspect {label} {}: {error}", path.display()))?;
+    if metadata.file_type().is_symlink() || !metadata.is_file() {
+        return Err(format!(
+            "{label} must be a regular non-symlink file: {}",
+            path.display()
+        ));
+    }
+    Ok(())
+}
+
+enum DeclaredInputState {
+    Present,
+    Absent,
+}
+
+fn inspect_declared_input(root: &Path, relative: &Path) -> Result<DeclaredInputState, String> {
+    let components = relative.components().collect::<Vec<_>>();
+    let mut current = root.to_path_buf();
+    for (index, component) in components.iter().enumerate() {
+        let Component::Normal(component) = component else {
+            return Err(format!(
+                "declared SCM facts path must be normalized and repo-relative: {}",
+                relative.display()
+            ));
+        };
+        current.push(component);
+        let is_last = index + 1 == components.len();
+        match fs::symlink_metadata(&current) {
+            Ok(metadata) if !is_last && metadata.file_type().is_symlink() => {
+                return Err(format!(
+                    "declared SCM facts path contains symlink component {}",
+                    current.display()
+                ));
+            }
+            Ok(metadata) if !is_last && !metadata.is_dir() => {
+                return Err(format!(
+                    "declared SCM facts parent is not a directory: {}",
+                    current.display()
+                ));
+            }
+            Ok(_) if is_last => return Ok(DeclaredInputState::Present),
+            Ok(_) => {}
+            Err(error) if error.kind() == ErrorKind::NotFound && is_last => {
+                return Ok(DeclaredInputState::Absent);
+            }
+            Err(error) if error.kind() == ErrorKind::NotFound => {
+                return Err(format!(
+                    "declared SCM facts parent is absent: {}",
+                    current.display()
+                ));
+            }
+            Err(error) => {
+                return Err(format!(
+                    "inspect declared SCM facts path {}: {error}",
+                    current.display()
+                ));
+            }
+        }
+    }
+    Err("declared SCM facts path has no components".to_owned())
+}
+
+fn repo_relative_path(root: &Path, path: &Path) -> Result<String, String> {
+    let relative = path.strip_prefix(root).map_err(|error| {
+        format!(
+            "temporary SCM facts {} escaped repo root {}: {error}",
+            path.display(),
+            root.display()
+        )
+    })?;
+    let mut components = Vec::new();
+    for component in relative.components() {
+        let Component::Normal(component) = component else {
+            return Err(format!(
+                "temporary SCM facts path is not normalized: {}",
+                relative.display()
+            ));
+        };
+        let component = component.to_str().ok_or_else(|| {
+            format!(
+                "temporary SCM facts path is not UTF-8: {}",
+                relative.display()
+            )
+        })?;
+        components.push(component);
+    }
+    if components.is_empty() {
+        return Err("temporary SCM facts path is empty".to_owned());
+    }
+    Ok(components.join("/"))
+}
+
+fn prepare_policy_scm_facts(
+    root: &Path,
+    mut policy: Value,
+    cargo_emitter_binding: Option<&OsStr>,
+) -> Result<PreparedLivePolicy, String> {
+    configured_lockfiles(&policy)
+        .map_err(|error| format!("validate policy before resolving SCM facts: {error}"))?;
+    let declared_relative = policy
+        .get("scm_facts_path")
+        .and_then(Value::as_str)
+        .ok_or("validated structured policy lost scm_facts_path")?;
+    let declared_relative = Path::new(declared_relative);
+    if matches!(
+        inspect_declared_input(root, declared_relative)?,
+        DeclaredInputState::Present
+    ) {
+        return Ok(PreparedLivePolicy {
+            policy,
+            temporary: None,
+        });
+    }
+
+    cargo_emitter_binding
+        .filter(|binding| !binding.is_empty())
+        .ok_or_else(|| {
+            format!(
+                "declared SCM facts are absent and Cargo capability {CARGO_TEST_SCM_FACTS_EMITTER_ENV} is missing"
+            )
+        })?;
+
+    let temporary = TemporaryScmFacts::materialize(root)?;
+    let temporary_relative = repo_relative_path(root, &temporary.stable)?;
+    policy
+        .as_object_mut()
+        .ok_or("validated policy is not an object")?
+        .insert(
+            "scm_facts_path".to_owned(),
+            Value::String(temporary_relative),
+        );
+    Ok(PreparedLivePolicy {
+        policy,
+        temporary: Some(temporary),
+    })
+}
+
+fn prepare_committed_policy(root: &Path) -> PreparedLivePolicy {
+    let cargo_binding = std::env::var_os(CARGO_TEST_SCM_FACTS_EMITTER_ENV);
+    prepare_policy_scm_facts(root, load_policy(root), cargo_binding.as_deref())
+        .unwrap_or_else(|error| panic!("FAIL-CLOSED: prepare committed SCM facts: {error}"))
+}
+
+fn with_scm_facts_path(mut policy: Value, path: &str) -> Value {
+    policy
+        .as_object_mut()
+        .expect("committed policy object")
+        .insert("scm_facts_path".to_owned(), Value::String(path.to_owned()));
+    policy
 }
 
 const MINIMAL_LOCK: &str = "version = 4\n\n[[package]]\nname = \"serde\"\nversion = \"1.0.0\"\n";
@@ -142,15 +374,16 @@ impl Drop for TempRepo {
 #[test]
 fn live_corpus_is_born_blocking_green() {
     let root = repo_root();
-    let policy = load_policy(&root);
+    let prepared = prepare_committed_policy(&root);
+    let policy = &prepared.policy;
     assert_eq!(
         policy.get("gate_id").and_then(Value::as_str),
         Some(GATE_ID),
         "committed policy gate_id must be {GATE_ID}"
     );
 
-    let observed = collect(&root, &policy).expect("collect live lock + mirror");
-    let findings = evaluate_keyed(&policy, &observed);
+    let observed = collect(&root, policy).expect("collect live lock + mirror");
+    let findings = evaluate_keyed(policy, &observed);
     assert!(
         findings.is_empty(),
         "the supply-chain-audit gate must be born-blocking GREEN on the live corpus (quinn fixed; \
@@ -162,8 +395,9 @@ fn live_corpus_is_born_blocking_green() {
 #[test]
 fn committed_policy_names_the_authoritative_workspace_lockfile_corpus() {
     let root = repo_root();
-    let policy = load_policy(&root);
-    let configured = configured_lockfiles(&policy).expect("parse committed lockfile corpus");
+    let prepared = prepare_committed_policy(&root);
+    let policy = &prepared.policy;
+    let configured = configured_lockfiles(policy).expect("parse committed lockfile corpus");
     let paths = configured
         .iter()
         .map(|source| (source.manifest_path.as_str(), source.lockfile_path.as_str()))
@@ -183,7 +417,7 @@ fn committed_policy_names_the_authoritative_workspace_lockfile_corpus() {
         "the shrink floor must exactly match the two reviewed live workspace lockfiles"
     );
 
-    let observed = collect(&root, &policy).expect("collect committed corpus");
+    let observed = collect(&root, policy).expect("collect committed corpus");
     let keys = observed
         .as_object()
         .expect("observed graph object")
@@ -208,6 +442,102 @@ fn committed_policy_names_the_authoritative_workspace_lockfile_corpus() {
             })
         }),
         "locked records must remain exactly {{name, version}}; provenance must not silently break consumers"
+    );
+}
+
+#[test]
+fn cargo_fallback_materializes_deterministic_temporary_scm_facts_and_cleans_up() {
+    let root = repo_root();
+    let canonical = root.join(
+        load_policy(&root)["scm_facts_path"]
+            .as_str()
+            .expect("committed SCM facts path"),
+    );
+    let canonical_before = fs::read(&canonical).ok();
+    let policy = with_scm_facts_path(load_policy(&root), ABSENT_TEST_SCM_FACTS_PATH);
+    let binding = OsStr::new("cargo-test-binary:oya-cloud-ci-scm-facts-emitter-app");
+
+    let first = prepare_policy_scm_facts(&root, policy.clone(), Some(binding))
+        .expect("materialize first temporary SCM facts");
+    let second = prepare_policy_scm_facts(&root, policy, Some(binding))
+        .expect("materialize second temporary SCM facts");
+    let first_temporary = first.temporary.as_ref().expect("first Cargo fallback");
+    let second_temporary = second.temporary.as_ref().expect("second Cargo fallback");
+    assert_ne!(
+        first_temporary.directory.path(),
+        second_temporary.directory.path()
+    );
+    assert_eq!(
+        fs::read(&first_temporary.stable).expect("read first stable SCM facts"),
+        fs::read(&second_temporary.stable).expect("read second stable SCM facts"),
+        "stable source-derived SCM facts must be deterministic"
+    );
+    assert_eq!(
+        fs::read(&first_temporary.volatile).expect("read first volatile SCM facts"),
+        fs::read(&second_temporary.volatile).expect("read second volatile SCM facts"),
+        "volatile source-derived SCM facts must be deterministic at one repository state"
+    );
+    collect(&root, &first.policy).expect("temporary SCM facts must be consumable by the gate");
+
+    let first_directory = first_temporary.directory.path().to_path_buf();
+    let second_directory = second_temporary.directory.path().to_path_buf();
+    drop(first);
+    drop(second);
+    assert!(
+        !first_directory.exists(),
+        "first temporary directory leaked"
+    );
+    assert!(
+        !second_directory.exists(),
+        "second temporary directory leaked"
+    );
+    assert_eq!(
+        fs::read(&canonical).ok(),
+        canonical_before,
+        "Cargo fallback must not create or rewrite the declared CI/Buck face"
+    );
+}
+
+#[test]
+fn existing_malformed_declared_scm_facts_precedes_cargo_fallback_and_stays_red() {
+    let root = repo_root();
+    let malformed_declared = "ci/facade/supply-chain-audit/supply-chain-audit-policy.json";
+    let policy = with_scm_facts_path(load_policy(&root), malformed_declared);
+    let prepared = prepare_policy_scm_facts(
+        &root,
+        policy,
+        Some(OsStr::new(
+            "cargo-test-binary:oya-cloud-ci-scm-facts-emitter-app",
+        )),
+    )
+    .expect("existing declared input is selected before Cargo fallback");
+    assert!(
+        prepared.temporary.is_none(),
+        "an existing declared CI/Buck input must never be replaced"
+    );
+    assert_eq!(
+        prepared.policy["scm_facts_path"],
+        Value::String(malformed_declared.to_owned())
+    );
+    let error = collect(&root, &prepared.policy)
+        .expect_err("malformed existing declared SCM facts must fail closed");
+    assert!(
+        error.to_string().contains("unsupported scm-facts schema")
+            || error.to_string().contains("missing string schema"),
+        "unexpected malformed declared-input error: {error}"
+    );
+}
+
+#[test]
+fn absent_declared_scm_facts_without_cargo_capability_stays_red() {
+    let root = repo_root();
+    let policy = with_scm_facts_path(load_policy(&root), ABSENT_TEST_SCM_FACTS_PATH);
+    let error = prepare_policy_scm_facts(&root, policy, None)
+        .err()
+        .expect("Buck-like context without declared input or Cargo signal must fail closed");
+    assert!(
+        error.contains(CARGO_TEST_SCM_FACTS_EMITTER_ENV),
+        "unexpected missing capability error: {error}"
     );
 }
 
