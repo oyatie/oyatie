@@ -132,3 +132,33 @@ mod tests {
         );
     }
 }
+
+/// Services still carrying their own chart, parsed from the frozen list.
+#[must_use]
+pub fn bespoke_charts(json: &str) -> Vec<String> {
+    json.lines()
+        .skip_while(|l| !l.contains("\"bespoke_charts\""))
+        .skip(1)
+        .take_while(|l| !l.trim_start().starts_with(']'))
+        .filter_map(|l| {
+            let t = l.trim().trim_end_matches(',');
+            t.strip_prefix('"')?.strip_suffix('"').map(str::to_string)
+        })
+        .collect()
+}
+
+#[cfg(test)]
+mod bespoke_tests {
+    use super::*;
+
+    #[test]
+    fn the_frozen_bespoke_list_parses() {
+        let json = "{\n  \"bespoke_charts\": [\n    \"a/b\",\n    \"c\"\n  ]\n}";
+        assert_eq!(bespoke_charts(json), ["a/b", "c"]);
+    }
+
+    #[test]
+    fn an_empty_list_parses_as_empty_not_as_everything() {
+        assert!(bespoke_charts("{\n  \"bespoke_charts\": [\n  ]\n}").is_empty());
+    }
+}
