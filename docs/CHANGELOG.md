@@ -6,6 +6,13 @@ doc_status: published
 
 # Changelog
 
+## 2026-08-17 — Supersession closure and citation ceiling repair
+
+- Corrected the archived cache decision's successor to the accepted Cargo merge-path
+  authority and removed the conflicting successor claim from the older admission apex.
+- Re-froze the citation-closure mismatch and dangling-path ceilings downward to the
+  independently measured live values; no finding ceiling was raised.
+
 ## 2026-08-14 — Cargo merge path + slim PR paperwork (ADR-0716)
 
 - The required CI executes the Cargo workspace graph (`cargo fmt` differential, clippy,
