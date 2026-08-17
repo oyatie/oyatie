@@ -53,7 +53,6 @@ fn producer_binary_env_is_required_for_gate() {
 /// Run the producer to emit a single face to stdout from the materialized scm-facts snapshot.
 /// The test deliberately does not run the scm-facts emitter: that binary is the single ambient-git
 /// boundary and must run before gate tests, not inside this `rust_test`.
-
 fn run_producer_face(root: &Path, face: &str) -> Value {
     let scm_facts = materialized_scm_facts(root);
     assert!(
