@@ -50,3 +50,18 @@ rust_test(
         "third-party//:toml",
     ],
 )
+
+rust_test(
+    name = "ci-dep-freshness-gate",
+    srcs = glob(["tests/**/*.rs", "**/*.json"]),
+    crate = "ci_dep_freshness_live",
+    crate_root = "tests/live_report.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-dep-freshness",
+        "//ci/core/dep-freshness-kernel:oya-dep-freshness-kernel",
+        "third-party//:serde_json",
+        "third-party//:toml",
+    
+    ],
+)
