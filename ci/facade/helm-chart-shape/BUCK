@@ -15,3 +15,14 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [],
 )
+
+rust_test(
+    name = "ci-helm-chart-shape-gate",
+    srcs = glob(["tests/**/*.rs", "**/*.json"]),
+    crate = "ci_helm_chart_shape_live",
+    crate_root = "tests/live_charts.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-helm-chart-shape",
+    ],
+)
