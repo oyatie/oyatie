@@ -7,6 +7,11 @@
 //! The gate REQUIRES the baseline to shrink in the same change as the rename, so the frozen file
 //! never overstates the remaining debt. Regenerating is the intended, encouraged direction; the
 //! gate fails on growth, not on shrink.
+//!
+//! `"_bootstrap": true` is emitted because the INTRODUCING change has no merge-base copy to
+//! compare against. Once this file exists on the protected branch the gate reads the merge-base
+//! copy instead, and the marker is inert — that is what stops a later PR regenerating its own
+//! baseline to launder new debt into it.
 #![forbid(unsafe_code)]
 
 use std::collections::BTreeSet;
@@ -41,7 +46,7 @@ fn main() -> ExitCode {
          overstates the remaining debt. NOTE: the oya-cloud-ci-* names are LIVE merge machinery \
          (the required test job binds oya-cloud-ci-accounting-registry-app via \
          OYA_CI_PRODUCER_BIN) — renaming one means moving that binding in the same change.\",\n  \
-         \"count\": {},\n  \"cloud_prefixed_names\": [\n{}\n  ]\n}}",
+         \"_bootstrap\": true,\n  \"count\": {},\n  \"cloud_prefixed_names\": [\n{}\n  ]\n}}",
         names.len(),
         rows.join(",\n")
     );
