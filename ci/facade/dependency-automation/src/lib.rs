@@ -175,6 +175,7 @@ fn validate_closed_schema(config: &Value, findings: &mut BTreeSet<Finding>) {
             "rust",
             "supply_chain",
             "managed_file",
+            "freshness",
         ],
         findings,
     );
@@ -217,6 +218,26 @@ fn validate_closed_schema(config: &Value, findings: &mut BTreeSet<Finding>) {
             "audit_policy",
             "stewardship_registry",
             "bot_gate",
+        ],
+        findings,
+    );
+
+    // Crate-dependency freshness (oyatie-gr1n): the sibling of the `[rust]` toolchain pin above.
+    // `oya-deps.toml` is a CLOSED schema by design, so a new section must be declared here before
+    // it may appear in the file — the gate refused this section until this entry existed, which is
+    // the contract working as intended.
+    check_table(
+        config,
+        &["freshness"],
+        [
+            "mirror",
+            "manifest",
+            "producer",
+            "kernel",
+            "stale_after_days",
+            "enforcement",
+            "blocking_exception",
+            "signals",
         ],
         findings,
     );

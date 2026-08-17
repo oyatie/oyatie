@@ -1662,6 +1662,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "ci-dep-freshness"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "sha2",
+ "toml 0.8.23",
+]
+
+[[package]]
 name = "ci-dependency-automation"
 version = "0.1.0"
 dependencies = [
