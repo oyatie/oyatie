@@ -1,0 +1,77 @@
+# Advisory Helm render smoke.
+#
+# WHY THIS EXISTS: nothing in this repository has ever rendered a chart. There are
+# 81 microservice charts (~1,500 files) and five workflows, none of which runs
+# `helm template`. That is how `intelligence` came to keep a BUCK file inside
+# `templates/` — Helm renders everything under `templates/`, so a Buck build file is
+# parsed as a Kubernetes manifest and the chart cannot render at all.
+#
+# WHY ADVISORY, NOT REQUIRED: four charts are broken today (see below). Wiring a
+# blocking render into `oya-ci-required` would red the required context on every
+# unrelated PR from the moment it merged. This reports instead, exactly as the
+# required `lint` job runs clippy under `continue-on-error` and blocks only on
+# changed-file rustfmt. Promote this to blocking once the four are fixed and the
+# count below is zero — the job prints the number, so the promotion criterion is
+# observable rather than a matter of opinion.
+#
+# KNOWN FAILURES AT INTRODUCTION (2026-08-17, origin/dev 77835a1b3):
+#   intelligence   — BUCK file inside templates/
+#   observability  — declares chart dependencies that are not vendored
+#   iam-cloud-iam  — needs a second digest (svidOperator.image.digest)
+#   secrets-kms    — see job output
+name: helm-render-smoke
+
+on:
+  pull_request:
+  push:
+    branches: [dev]
+
+permissions:
+  contents: read
+
+jobs:
+  render:
+    name: helm render (advisory)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.16.3
+
+      - name: Render every chart
+        id: render
+        continue-on-error: true
+        env:
+          # The ADR-0181 guard refuses to render without a real signed digest, and
+          # values.yaml ships `digest: ""` because release automation injects it.
+          # A fixture digest is therefore required to exercise the templates at all;
+          # it never leaves this job and is not a promotion artifact.
+          FIXTURE_DIGEST: sha256:1111111111111111111111111111111111111111111111111111111111111111
+        run: |
+          set -uo pipefail
+          ok=0; fail=0; failed=""
+          while IFS= read -r chart; do
+            dir=$(dirname "$chart")
+            # strip the leading './' that find(1) emits: a release name may not start with '.'
+            name=$(printf '%s' "${dir#./}" | sed 's|/iac/k8s/helm||; s|/|-|g')
+            if helm template "$name" "$dir" --set image.digest="$FIXTURE_DIGEST" >/dev/null 2>"/tmp/$name.err"; then
+              ok=$((ok+1))
+            else
+              fail=$((fail+1)); failed="$failed $name"
+              printf '::warning title=helm render failed::%s\n' "$dir"
+              sed -n '1,3p' "/tmp/$name.err" | sed 's/^/    /'
+            fi
+          done < <(find . -path ./target -prune -o -name Chart.yaml -path '*/iac/k8s/helm/*' -print | sort)
+          printf '\nrendered ok: %s\nfailed: %s\n' "$ok" "$fail"
+          printf 'failing charts:%s\n' "$failed"
+          printf 'fail_count=%s\n' "$fail" >> "$GITHUB_OUTPUT"
+
+      - name: Report
+        run: |
+          echo "Advisory only — this job never blocks a merge."
+          echo "Charts failing to render: ${{ steps.render.outputs.fail_count }}"
+          echo "Promote to a required context once this reaches 0."
