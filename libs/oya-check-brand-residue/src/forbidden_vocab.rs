@@ -163,6 +163,12 @@ pub const CARVE_OUT_RULES: &[CarveOutRule] = &[
         reason: "the deny-list patterns themselves are not residue",
     },
     CarveOutRule {
+        kind: CarveOutKind::PathExact,
+        value: "ci/facade/cloud-name-ratchet/cloud-name-baseline.json",
+        exempt_stems: &[],
+        reason: "the frozen cloud-/oya- rename baseline ENUMERATES the identifiers still to be renamed; some of those identifiers contain a forbidden stem, so listing them is the census, not residue (same rationale as oya-check-brand-residue's own source). A file that names the debt is not the debt.",
+    },
+    CarveOutRule {
         kind: CarveOutKind::PathPrefix,
         value: "libs/oya-ci-config/",
         exempt_stems: &[],

@@ -46,6 +46,29 @@ pub const CARVE_OUTS: &[&str] = &[
 /// only the hyphen let `secrets/cloud_new_service` — or a Cargo package named `oya_cloud_thing` —
 /// walk straight past a blocking gate by changing one character.
 #[must_use]
+/// Does this name segment begin with a deprecated brand-namespace prefix?
+///
+/// BOTH `cloud-` and `oya-` are shrink-to-zero targets. They are the same kind of debt — a brand
+/// baked into an identifier — and de-branding is already 64% complete: of 1,759 packages, 1,129
+/// carry neither prefix. The `crate-name-prefix` gate was built for this, scoring de-branded rows
+/// as advisory rather than as violations, so dropping a prefix is the supported direction rather
+/// than something CI resists.
+#[must_use]
+pub fn is_deprecated_prefixed_name(segment: &str) -> bool {
+    is_cloud_prefixed_name(segment) || is_oya_prefixed_name(segment)
+}
+
+/// `oya-` / `oya_` prefixed identifiers.
+///
+/// The bare word `oya` is not a prefix, and `oyatie-` is the ORGANISATION rather than the retired
+/// crate prefix — `oyatie-cloud-provider` must not match here, or the ratchet would demand a rename
+/// of the company's own name.
+#[must_use]
+pub fn is_oya_prefixed_name(segment: &str) -> bool {
+    let lower = segment.to_ascii_lowercase();
+    strip_either(&lower, "oya").is_some_and(|rest| !rest.is_empty())
+}
+
 pub fn is_cloud_prefixed_name(segment: &str) -> bool {
     let lower = segment.to_ascii_lowercase();
     let stem = strip_either(&lower, "oya").unwrap_or(&lower);
@@ -112,7 +135,7 @@ pub fn findings(path: &str, contents: &str) -> BTreeSet<String> {
             prefix.push('/');
         }
         prefix.push_str(segment);
-        if is_cloud_prefixed_name(segment) {
+        if is_deprecated_prefixed_name(segment) {
             found.insert(format!("dir:{prefix}"));
             break;
         }
@@ -122,14 +145,14 @@ pub fn findings(path: &str, contents: &str) -> BTreeSet<String> {
     // green — which is precisely how this gate's OWN row introduced the debt it exists to prevent.
     if path.starts_with("registry/catalog/") && path.ends_with(".yaml") {
         for capability in contents.lines().filter_map(declared_capability) {
-            if is_cloud_prefixed_name(capability) {
+            if is_deprecated_prefixed_name(capability) {
                 found.insert(format!("name:{path}:{capability}"));
             }
         }
     }
     if matches!(path.rsplit('/').next(), Some("Cargo.toml" | "Chart.yaml")) {
         for name in contents.lines().filter_map(declared_name) {
-            if is_cloud_prefixed_name(name) {
+            if is_deprecated_prefixed_name(name) {
                 // Keyed by MANIFEST PATH as well as identifier. A bare `name:<id>` key collapsed
                 // in the BTreeSet whenever a second manifest declared an already-baselined name,
                 // so adding another Cargo or Helm artifact called `oya-cloud-iam` produced no
@@ -258,11 +281,12 @@ mod tests {
         assert!(!findings("x/Chart.yaml", "name: oya-cloud-iam\n").is_empty());
         // The same text in a source file is not a declared identifier.
         assert!(findings("src/lib.rs", "name = \"oya-cloud-kms\"").is_empty());
-        // Prose in a manifest is not a name assignment.
+        // Prose in a manifest is not a name assignment. The control name must itself be
+        // de-branded: `oya-audit` became a rename target when `oya-` joined the ratchet.
         assert!(
             findings(
                 "x/Cargo.toml",
-                "# cloud-native note\nname = \"oya-audit\"\n"
+                "# cloud-native note\nname = \"audit-chain\"\n"
             )
             .is_empty()
         );
@@ -298,5 +322,38 @@ mod tests {
             parse_baseline(r#"{"cloud_prefixed_names":["dir:x"]}"#),
             BTreeSet::from(["dir:x".to_string()])
         );
+    }
+}
+
+#[cfg(test)]
+mod oya_prefix_tests {
+    use super::*;
+
+    #[test]
+    fn oya_prefixed_identifiers_are_flagged() {
+        assert!(is_oya_prefixed_name("oya-audit-chain"));
+        assert!(is_oya_prefixed_name("oya_workspace_meet_api"));
+        assert!(is_deprecated_prefixed_name("oya-cloud-kms"));
+    }
+
+    #[test]
+    fn the_organisation_name_is_not_the_retired_crate_prefix() {
+        // `oyatie-cloud-provider` is a real capability context. Matching it would demand a rename
+        // of the company's own name, which is not what de-branding means.
+        assert!(!is_oya_prefixed_name("oyatie-cloud-provider"));
+        assert!(!is_oya_prefixed_name("oyatie"));
+        assert!(!is_oya_prefixed_name("oya"));
+        assert!(findings("iac/iac/oyatie-cloud-provider/x.yaml", "").is_empty());
+    }
+
+    #[test]
+    fn already_debranded_names_stay_clean() {
+        for n in [
+            "ci-dep-freshness",
+            "audit-chain-emission-kernel",
+            "port-engine-kernel",
+        ] {
+            assert!(!is_deprecated_prefixed_name(n), "{n} must not be flagged");
+        }
     }
 }
