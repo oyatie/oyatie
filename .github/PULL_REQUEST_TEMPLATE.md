@@ -1,6 +1,8 @@
 <!--
 Canonical authority: docs/templates/pull-request-template.md. Keep it short: CI logs and the
 review thread are the evidence. No other sections are required or checked.
+Reviewer evidence is not live cloud admission enforcement until F-PR5-06 closes through a
+trusted server-side/cloud-ci producer.
 -->
 
 ## Issue
@@ -14,7 +16,7 @@ review thread are the evidence. No other sections are required or checked.
 
 ## Verification
 
-- `cargo fmt --all --check` / `cargo clippy` / `cargo test` (or targeted equivalents) — `<PASS|FAIL>` — `<excerpt>`
+- Local verification evidence — `<PASS|FAIL>` — `<commands and excerpt>`
 - `oya-ci-required` PR context — `<PASS|PENDING>` — `<check URL>`
 
 ## Code Review

@@ -6,6 +6,13 @@ doc_status: published
 
 # Changelog
 
+## 2026-08-17 — Hook mirror and review-admission boundary corrected
+
+- Removed the retired Cargo-blocking hook from the active-hook mirror and aligned the
+  security guide with ADR-0716's Cargo merge path.
+- Recorded PR #964 as the concrete evidence that repository-local reviewer evidence is
+  not yet a cloud-enforced admission gate while F-PR5-06 remains open.
+
 ## 2026-08-17 — Supersession closure and citation ceiling repair
 
 - Corrected the archived cache decision's successor to the accepted Cargo merge-path
