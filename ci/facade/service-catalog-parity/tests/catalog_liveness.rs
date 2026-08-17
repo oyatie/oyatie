@@ -25,6 +25,22 @@ fn repo_root() -> PathBuf {
     panic!("failed to locate repo root from test current_dir");
 }
 
+#[test]
+fn retired_cloud_os_domain_catalog_rows_do_not_return() {
+    let root = repo_root();
+    for relative in [
+        "registry/catalog/oya-cloud-os-cluster-mgmt-domain.yaml",
+        "registry/catalog/oya-cloud-os-kubernetes-domain.yaml",
+        "registry/catalog/oya-cloud-os-secrets-domain.yaml",
+        "registry/catalog/oya-cloud-os-trustd-domain.yaml",
+    ] {
+        assert!(
+            !root.join(relative).exists(),
+            "deleted cloud-os domain catalog identity must not be revived or laundered with a non-live marker: {relative}"
+        );
+    }
+}
+
 fn producer_binary(root: &Path, producer_bin: Option<&str>) -> Result<PathBuf, String> {
     let Some(bin) = producer_bin else {
         return Err(
