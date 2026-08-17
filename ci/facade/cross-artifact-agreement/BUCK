@@ -37,9 +37,20 @@ rust_test(
 # :cross-artifact-agreement identity.)
 rust_test(
     name = "ci-cross-artifact-agreement-gate",
-    srcs = glob(["tests/**/*.rs"]),
     crate = "ci_cross_artifact_agreement_corpus",
-    crate_root = "tests/cross_artifact_agreement.rs",
+    crate_root = "ci/facade/cross-artifact-agreement/tests/cross_artifact_agreement.rs",
+    # ADR-0545 embedded-asset hermeticity: this gate reads `../BUCK` and
+    # `../../../../.cargo/config.toml` through include_str! to assert the Buck/Cargo resource
+    # bijection. Those literals resolve relative to the including file, so they only land on the
+    # right bytes when the source sits at its true repo-relative depth. Shape the action's source
+    # root like the repo root — a plain `tests/**` srcs glob puts the source at `tests/...`, from
+    # which the four-level ascent escapes the sandbox and the build fails outright.
+    mapped_srcs = {
+        "BUCK": "ci/facade/cross-artifact-agreement/BUCK",
+        "//.cargo:config.toml": ".cargo/config.toml",
+        "tests/cross_artifact_agreement.rs": "ci/facade/cross-artifact-agreement/tests/cross_artifact_agreement.rs",
+        "tests/idea_archive_transition/mod.rs": "ci/facade/cross-artifact-agreement/tests/idea_archive_transition/mod.rs",
+    },
     # HERMETIC: the test execs buck2-BUILT producer binaries (no `env!("CARGO")`, no `cargo
     # run`). `$(exe ...)` makes buck2 build each producer and substitute its sandbox path here;
     # the accounting producer reads the committed scm-facts face — no action calls git — while
