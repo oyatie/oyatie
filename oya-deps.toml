@@ -76,7 +76,7 @@ reason = "Human policy row remains aligned with the machine policy."
 mirror = "ci/facade/dep-freshness/mirror/freshness.json"
 manifest = "ci/facade/dep-freshness/mirror/freshness-manifest.json"
 producer = "oya-dep-freshness-producer"
-kernel = "build/dep-freshness/core/oya-dep-freshness-kernel"
+kernel = "ci/core/dep-freshness-kernel"
 
 # THRESHOLD IS DATA, not a constant in code, so it can be tuned without a code
 # review. 90 days is the starting window; on the 2026-08-17 corpus it selects

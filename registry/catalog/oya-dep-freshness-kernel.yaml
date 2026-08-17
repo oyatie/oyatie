@@ -1,0 +1,16 @@
+context: shared
+role: kernel
+capability: dep-freshness-kernel
+plane: control
+slo: cataloged-no-runtime-claim
+data_classes_owned: [INTERNAL_ONLY]
+operational_classes_owned: []
+api_stability: preview
+security_review: unreviewed
+supply_chain: source-only
+traceability:
+  changeset: CS-DEP-FRESHNESS-001
+  source_crate: ci/core/dep-freshness-kernel/Cargo.toml
+non_claims:
+  - pure distiller and signal kernel only; it performs no I/O and reaches no network
+  - the committed mirror is a point-in-time snapshot, not a live feed
