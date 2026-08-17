@@ -36,6 +36,472 @@ config:
 cedar:
   enabled: true
   policyConfigMapName: oya-cloud-k8s-cedar
+  # Per-service authorization policy. DATA, never a shared template.
+  policy: |
+    // Deployed Cedar mirrors the authored PBAC policy directories for this capability.
+    // Broad tenant-class-only permits are forbidden by the cedar-deploy-parity gate.
+
+    // Source: policy/auditor-scope.cedar
+    permit (
+      principal in Auditor::?a,
+      action in [Action::"get", Action::"list", Action::"watch", Action::"read_logs"],
+      resource in KubernetesResource::?r
+    )
+    when {
+      principal has tenant_scope &&
+      principal has engagement_window_start &&
+      principal has engagement_window_end &&
+      resource has namespace &&
+      resource.namespace like "tenant-*" &&
+      principal.tenant_scope.contains(substring(resource.namespace, 7, 23)) &&
+      context.request_ts >= principal.engagement_window_start &&
+      context.request_ts <= principal.engagement_window_end
+    };
+
+    permit (
+      principal in Auditor::?a,
+      action in [Action::"get", Action::"list"],
+      resource in KubernetesResource::?r
+    )
+    when {
+      principal has engagement_window_start &&
+      principal has engagement_window_end &&
+      context.request_ts >= principal.engagement_window_start &&
+      context.request_ts <= principal.engagement_window_end &&
+      resource has kind &&
+      (
+        resource.kind == "Node" ||
+        resource.kind == "Namespace" ||
+        resource.kind == "ClusterPolicy" ||
+        resource.kind == "PeerAuthentication" ||
+        resource.kind == "StorageClass" ||
+        resource.kind == "ClusterRole" ||
+        resource.kind == "ClusterRoleBinding"
+      )
+    };
+
+    permit (
+      principal in Auditor::?a,
+      action == Action::"read_audit_log",
+      resource in AuditRecord::?r
+    )
+    when {
+      principal has tenant_scope &&
+      resource has tenant_id &&
+      principal.tenant_scope.contains(resource.tenant_id) &&
+      principal has engagement_window_start &&
+      principal has engagement_window_end &&
+      context.request_ts >= principal.engagement_window_start &&
+      context.request_ts <= principal.engagement_window_end
+    };
+
+    forbid (
+      principal in Auditor::?a,
+      action in [Action::"create", Action::"update", Action::"patch", Action::"delete", Action::"exec"],
+      resource
+    );
+
+    forbid (
+      principal in Auditor::?a,
+      action,
+      resource
+    )
+    when {
+      resource has data_class &&
+      resource.data_class == "SECRET"
+    };
+
+    forbid (
+      principal in Auditor::?a,
+      action,
+      resource
+    )
+    unless {
+      principal has engagement_window_start &&
+      principal has engagement_window_end &&
+      context.request_ts >= principal.engagement_window_start &&
+      context.request_ts <= principal.engagement_window_end
+    };
+
+    forbid (
+      principal in Auditor::?a,
+      action,
+      resource in KubernetesResource::?r
+    )
+    when {
+      principal has tenant_scope &&
+      resource has namespace &&
+      resource.namespace like "tenant-*" &&
+      !principal.tenant_scope.contains(substring(resource.namespace, 7, 23))
+    };
+
+    // Source: policy/ci-scope.cedar
+    permit (
+      principal == Service::"oya-ci",
+      action in [Action::"get", Action::"list", Action::"watch"],
+      resource in KubernetesResource::?r
+    )
+    when {
+      resource has kind &&
+      (
+        resource.kind == "Pod" ||
+        resource.kind == "Node" ||
+        resource.kind == "Namespace" ||
+        resource.kind == "Service" ||
+        resource.kind == "NetworkPolicy" ||
+        resource.kind == "AuthorizationPolicy" ||
+        resource.kind == "PeerAuthentication" ||
+        resource.kind == "ClusterPolicy" ||
+        resource.kind == "StorageClass" ||
+        resource.kind == "PersistentVolume" ||
+        resource.kind == "PersistentVolumeClaim" ||
+        resource.kind == "Deployment" ||
+        resource.kind == "StatefulSet" ||
+        resource.kind == "DaemonSet" ||
+        resource.kind == "ConfigMap" ||
+        resource.kind == "ServiceAccount"
+      )
+    };
+
+    permit (
+      principal == Service::"oya-ci",
+      action in [Action::"create", Action::"update", Action::"patch", Action::"delete"],
+      resource in KubernetesResource::?r
+    )
+    when {
+      resource has namespace &&
+      resource.namespace == "oya-ci"
+    };
+
+    permit (
+      principal == Service::"oya-ci",
+      action == Action::"create",
+      resource in KubernetesResource::?r
+    )
+    when {
+      resource has dry_run &&
+      resource.dry_run == true
+    };
+
+    forbid (
+      principal == Service::"oya-ci",
+      action in [Action::"exec", Action::"attach", Action::"portforward"],
+      resource
+    );
+
+    forbid (
+      principal == Service::"oya-ci",
+      action,
+      resource
+    )
+    when {
+      resource has data_class &&
+      resource.data_class == "SECRET"
+    };
+
+    forbid (
+      principal == Service::"oya-ci",
+      action == Action::"read_logs",
+      resource in KubernetesResource::?r
+    )
+    when {
+      resource has namespace &&
+      resource.namespace like "tenant-*"
+    };
+
+    forbid (
+      principal == Service::"oya-ci",
+      action in [Action::"create", Action::"update", Action::"patch", Action::"delete"],
+      resource in KubernetesResource::?r
+    )
+    when {
+      resource has namespace &&
+      resource.namespace != "oya-ci" &&
+      (
+        resource.namespace like "kube-*" ||
+        resource.namespace like "istio-*" ||
+        resource.namespace like "cilium-*" ||
+        resource.namespace like "cosign-*" ||
+        resource.namespace like "cloud-k8s-*" ||
+        resource.namespace like "oya-*" ||
+        resource.namespace like "tenant-*"
+      )
+    };
+
+    // Source: policy/public-read.cedar
+    permit (
+      principal == Anonymous::"public",
+      action == Action::"get",
+      resource in HttpEndpoint::?e
+    )
+    when {
+      resource has path &&
+      (resource.path == "/health" || resource.path == "/ready" || resource.path == "/metrics-public")
+    };
+
+    permit (
+      principal == Anonymous::"public",
+      action == Action::"get",
+      resource in HttpEndpoint::?e
+    )
+    when {
+      resource has path &&
+      resource.path == "/cluster-version"
+    };
+
+    forbid (
+      principal == Anonymous::"public",
+      action,
+      resource in KubernetesResource::?r
+    )
+    when {
+      resource has namespace &&
+      resource.namespace like "tenant-*"
+    };
+
+    forbid (
+      principal == Anonymous::"public",
+      action,
+      resource in KubernetesResource::?r
+    )
+    when {
+      resource has namespace &&
+      (
+        resource.namespace like "kube-*" ||
+        resource.namespace like "istio-*" ||
+        resource.namespace like "cilium-*" ||
+        resource.namespace like "cosign-*" ||
+        resource.namespace like "cloud-k8s-*" ||
+        resource.namespace like "oya-*"
+      )
+    };
+
+    forbid (
+      principal == Anonymous::"public",
+      action in [Action::"create", Action::"update", Action::"patch", Action::"delete", Action::"exec"],
+      resource
+    );
+
+    // Source: policy/tenant-scope.cedar
+    permit (
+      principal in TenantOperator::?p,
+      action in [
+        Action::"get",
+        Action::"list",
+        Action::"watch",
+        Action::"create",
+        Action::"update",
+        Action::"patch",
+        Action::"delete"
+      ],
+      resource in KubernetesResource::?r
+    )
+    when {
+      principal has tenant_id &&
+      resource has namespace &&
+      resource.namespace == ("tenant-" + principal.tenant_id)
+    };
+
+    permit (
+      principal in TenantOperator::?p,
+      action in [Action::"get", Action::"list", Action::"watch"],
+      resource in KubernetesResource::?r
+    )
+    when {
+      principal has tenant_id &&
+      resource has namespace &&
+      resource.namespace == ("tenant-" + principal.tenant_id) &&
+      resource has kind &&
+      (resource.kind == "NetworkPolicy" || resource.kind == "AuthorizationPolicy")
+    };
+
+    forbid (
+      principal in TenantOperator::?p,
+      action,
+      resource in KubernetesResource::?r
+    )
+    when {
+      principal has tenant_id &&
+      resource has namespace &&
+      resource.namespace != ("tenant-" + principal.tenant_id)
+    };
+
+    forbid (
+      principal in TenantOperator::?p,
+      action == Action::"exec",
+      resource in KubernetesResource::?r
+    )
+    when {
+      resource has tier &&
+      resource.tier == "production"
+    };
+
+    forbid (
+      principal in TenantOperator::?p,
+      action,
+      resource in KubernetesResource::?r
+    )
+    when {
+      resource has namespace &&
+      (
+        resource.namespace like "kube-*" ||
+        resource.namespace like "istio-*" ||
+        resource.namespace like "cilium-*" ||
+        resource.namespace like "cosign-*" ||
+        resource.namespace like "cloud-k8s-*" ||
+        resource.namespace like "oya-*"
+      )
+    };
+
+    forbid (
+      principal,
+      action,
+      resource in KubernetesResource::?r
+    )
+    when {
+      resource has kind &&
+      resource.kind == "EtcdEndpoint"
+    };
+
+    forbid (
+      principal in TenantOperator::?p,
+      action,
+      resource in KubernetesResource::?r
+    )
+    when {
+      resource has kind &&
+      resource.kind == "KubeletEndpoint"
+    };
+
+    forbid (
+      principal,
+      action,
+      resource
+    )
+    when {
+      resource has data_class &&
+      resource.data_class == "SECRET"
+    };
+
+    // Source: cedar/policies.cedar
+    permit(
+      principal == ServicePrincipal::"oyatie.control-plane.cell-orchestrator",
+      action in [Action::"ComputeAutoshardingPlacement", Action::"ExecuteAutoRebalance", Action::"ExecuteDynamicSharding"],
+      resource is ShardingAutomation
+    ) when {
+      resource.microservice == "cloud-k8s" &&
+      context.doctrine.adr_0348 == true &&
+      context.autosharding_mode == "control_plane_driven" &&
+      context.honors_residency == true &&
+      context.compliance_pack_check_result == "pass" &&
+      context.residency_check_result == "pass" &&
+      context.audit_chain_emit == true
+    };
+
+    forbid(
+      principal == ServicePrincipal::"oyatie.control-plane.cell-orchestrator",
+      action in [Action::"ExecuteAutoRebalance", Action::"ExecuteDynamicSharding"],
+      resource is ShardingAutomation
+    ) when {
+      resource.microservice == "cloud-k8s" &&
+      (
+        context.honors_residency == false ||
+        context.compliance_pack_check_result != "pass" ||
+        context.residency_check_result != "pass" ||
+        context.audit_chain_emit != true
+      )
+    };
+
+    forbid(
+      principal == ServicePrincipal::"oyatie.control-plane.cell-orchestrator",
+      action == Action::"MigrateTenantCrossJurisdiction",
+      resource is TenantMigration
+    ) unless {
+      resource.microservice == "cloud-k8s" &&
+      context.cedar_permit_id != "" &&
+      context.cross_jurisdiction_permit_id != "" &&
+      context.audit_chain_emit == true
+    };
+
+    permit(
+      principal == ServicePrincipal::"oyatie.pipeline.ci",
+      action == Action::"RunCiMirror",
+      resource is ServiceCiSurface
+    ) when {
+      resource.microservice == "cloud-k8s" &&
+      context.doctrine.adr_0346 == true &&
+      context.oya_verify_ci_required == true &&
+      context.steps.cargo_fmt_all_check == true &&
+      context.steps.cargo_check_workspace_all_targets == true &&
+      context.steps.cargo_clippy_workspace_all_targets_d_warnings == true &&
+      context.steps.cargo_nextest_workspace_no_fail_fast == true &&
+      context.steps.oya_gate_run_all_ci_required == true &&
+      context.step_exit_semantics == "block_on_exit_0_each_step" &&
+      context.exit_code_contract in [0, 1, 2]
+    };
+
+    permit(
+      principal == ServicePrincipal::"oyatie.pipeline.ci",
+      action == Action::"RunSelfHostedCi",
+      resource is ServiceCiSurface
+    ) when {
+      resource.microservice == "cloud-k8s" &&
+      context.doctrine.adr_0349 == true &&
+      context.github_actions_parity_ok == true &&
+      context.jcasc_declared == true &&
+      context.lane_prefix in ["oya-governance", "oya-check"] &&
+      context.audit_chain_emit == true
+    };
+
+    forbid(
+      principal == ServicePrincipal::"oyatie.pipeline.ci",
+      action in [Action::"RunCiMirror", Action::"RunSelfHostedCi"],
+      resource is ServiceCiSurface
+    ) when {
+      resource.microservice == "cloud-k8s" &&
+      (
+        context.github_actions_parity_ok == false ||
+        context.jcasc_declared == false ||
+        context.lane_id.matches("^oya-governance-.*$")
+      )
+    };
+
+    permit(
+      principal == ServicePrincipal::"oyatie.argocd.gitops",
+      action == Action::"SyncApplication",
+      resource is GitOpsApplication
+    ) when {
+      resource.microservice == "cloud-k8s" &&
+      context.doctrine.adr_0349 == true &&
+      context.cosign_signature_verified == true &&
+      context.tenant_namespace_isolated == true &&
+      context.cedar_policy_gate_granted == true &&
+      context.audit_chain_emit == true
+    };
+
+    forbid(
+      principal == ServicePrincipal::"oyatie.argocd.gitops",
+      action == Action::"SyncApplication",
+      resource is GitOpsApplication
+    ) when {
+      resource.microservice == "cloud-k8s" &&
+      (
+        context.cosign_signature_verified == false ||
+        context.tenant_namespace_isolated == false ||
+        context.audit_chain_emit != true
+      )
+    };
+
+    forbid(
+      principal,
+      action == Action::"AuthorGovernanceLane",
+      resource is ServiceCiSurface
+    ) when {
+      resource.microservice == "cloud-k8s" &&
+      context.doctrine.adr_0347 == true &&
+      context.lane_id.matches("^oya-governance-.*$") &&
+      context.historical_reference != true
+    };
 
 otel:
   enabled: true

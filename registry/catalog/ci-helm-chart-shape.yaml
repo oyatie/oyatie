@@ -1,0 +1,17 @@
+context: shared
+role: kernel
+capability: ci-helm-chart-shape
+plane: control
+slo: preview-control-plane
+data_classes_owned: [INTERNAL_ONLY]
+operational_classes_owned: []
+api_stability: preview
+security_review: unreviewed
+supply_chain: source-only
+traceability:
+  changeset: CS-HELM-CHART-SHAPE-001
+  source_crate: ci/facade/helm-chart-shape/Cargo.toml
+non_claims:
+  - shape floor only; it does not render charts and cannot catch template syntax errors,
+    missing required values, or unvendored chart dependencies
+  - pure Rust with no helm binary and no shell, so it adds no workflow inline-shell debt

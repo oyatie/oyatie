@@ -1,0 +1,21 @@
+{{- if and .Values.cedar.enabled .Values.cedar.policy }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.cedar.policyConfigMapName | quote }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.microservice.id | quote }}
+    oyatie.com/policy-engine: cedar
+    oyatie.com/adr-0246: policy-engine-substrate
+data:
+  {{- /*
+    The policy is PER-SERVICE DATA, never a shared template. Render-equivalence testing showed
+    that one shared Cedar template would replace deliberate fail-closed default-deny policies with
+    a blanket permit across 24 services — app/calendar ships no permit statements on purpose, and
+    cites the cedar-deploy-parity gate (ADR-0608) forbidding an over-broad tenant-class permit.
+    `tpl` re-renders the service's own policy text so existing `{{ .Values… }}` references still
+    resolve, preserving each service's authored semantics byte-for-byte.
+  */}}
+  policies.cedar: |
+{{ tpl .Values.cedar.policy . | indent 4 }}
+{{- end }}
