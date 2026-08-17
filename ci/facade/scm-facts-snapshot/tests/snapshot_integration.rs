@@ -733,7 +733,7 @@ fn git_blob_batch_fails_closed_and_recovers_after_each_error() {
     );
     assert_git_blob_batch_recovers(&root, &blob_oid, b"exact body");
 
-    let visitor = visit_git_blobs(&root, &[blob_oid.clone()], &mut |_, _, _| {
+    let visitor = visit_git_blobs(&root, std::slice::from_ref(&blob_oid), &mut |_, _, _| {
         Err("visitor rejected body".to_owned())
     })
     .expect_err("visitor error must propagate");
