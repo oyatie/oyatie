@@ -27,8 +27,6 @@ ci-path-resolver-adapters = { path = "../../adapters/path-resolver" }
 oya-ci-config-kernel = { path = "../../../libs/oya-ci-config" }
 oya-workspace-members-kernel = { path = "../../../libs/oya-workspace-members-kernel" }
 serde_json = { workspace = true }
-oya-ci-config-kernel = { path = "../../../libs/oya-ci-config" }
-oya-workspace-members-kernel = { path = "../../../libs/oya-workspace-members-kernel" }
 
 [lints]
 workspace = true
