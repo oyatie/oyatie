@@ -57,9 +57,55 @@ fn census(root: &Path) -> BTreeSet<String> {
     out
 }
 
+const BASELINE_REPO_PATH: &str = "ci/facade/cloud-name-ratchet/cloud-name-baseline.json";
+const PROTECTED_BASE_REF: &str = "origin/dev";
+
+/// The frozen baseline as it stands on the PROTECTED MERGE-BASE, not in this checkout.
+///
+/// Reading the working-tree copy made the ratchet optional: a change could add a forbidden
+/// `cloud-` name AND add the same key to the baseline, and both the growth and burn-down
+/// comparisons would see identical sets and pass. That is the same baseline-laundering failure
+/// already recorded at `ci/facade/action-item-accounting/friction-ledger.jsonl:67`, and it is why
+/// the sibling automation-language gate loads its baseline from the merge-base and deliberately
+/// ignores the candidate's copy: a new tolerated key can only become accepted once a DISTINCT
+/// protected-base change carries it forward.
+///
+/// Bootstrap exception: on the change that introduces this gate the file does not yet exist at
+/// the merge-base. That single case falls back to the working-tree copy and REQUIRES an explicit
+/// `"_bootstrap": true` marker, so the carve-out is declared rather than implicit — and it expires
+/// by construction, because the file exists at the merge-base for every change afterwards.
 fn baseline() -> BTreeSet<String> {
-    let path = repo_root().join("ci/facade/cloud-name-ratchet/cloud-name-baseline.json");
-    parse_baseline(&std::fs::read_to_string(&path).expect("frozen baseline is readable"))
+    let root = repo_root();
+    if let Some(frozen) = frozen_baseline_from_merge_base(&root) {
+        return parse_baseline(&frozen);
+    }
+    let path = root.join(BASELINE_REPO_PATH);
+    let text = std::fs::read_to_string(&path).expect("frozen baseline is readable");
+    assert!(
+        text.contains("\"_bootstrap\": true"),
+        "the baseline is absent from the protected merge-base, so this is the introducing change; \
+         it must carry an explicit \"_bootstrap\": true marker. Any later change must compare \
+         against the merge-base copy instead of its own."
+    );
+    parse_baseline(&text)
+}
+
+/// `git show <merge-base>:<baseline>` — `None` when the file does not exist there yet.
+fn frozen_baseline_from_merge_base(root: &Path) -> Option<String> {
+    let merge_base = std::process::Command::new("git")
+        .args(["merge-base", PROTECTED_BASE_REF, "HEAD"])
+        .current_dir(root)
+        .output()
+        .ok()
+        .filter(|out| out.status.success())?;
+    let merge_base = String::from_utf8(merge_base.stdout).ok()?.trim().to_owned();
+    let shown = std::process::Command::new("git")
+        .args(["show", &format!("{merge_base}:{BASELINE_REPO_PATH}")])
+        .current_dir(root)
+        .output()
+        .ok()
+        .filter(|out| out.status.success())?;
+    String::from_utf8(shown.stdout).ok()
 }
 
 #[test]
@@ -114,14 +160,21 @@ fn red_fixture_a_new_cloud_name_fails_closed() {
 #[test]
 fn the_baseline_is_not_empty_and_is_shaped_as_expected() {
     let base = baseline();
-    assert!(
-        base.len() > 100,
-        "the frozen baseline looks truncated: {} entries",
-        base.len()
-    );
+    // NO minimum size. The bootstrap-era `> 100` floor would have failed `cargo test --workspace`
+    // the moment legitimate renames took the baseline below 100 — permanently blocking the very
+    // burn-down this ratchet exists to drive, and blocking zero outright. Shape is what must hold
+    // at every size, including empty.
     assert!(
         base.iter()
             .all(|k| k.starts_with("dir:") || k.starts_with("name:")),
         "every key must name its rename unit"
+    );
+    assert!(
+        base.iter().all(|k| !k.trim().is_empty() && k.trim() == k),
+        "keys must be exact, untrimmed tokens"
+    );
+    assert!(
+        base.iter().all(|k| k.split(':').count() >= 2),
+        "every key must carry its kind and its subject"
     );
 }

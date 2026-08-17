@@ -7,7 +7,7 @@
 //! does. Same shrink-only semantics, no governance blocker, and zero blast radius on the firewall.
 //!
 //! ## Why the rule is name-anchored, not a prose stem
-//! A bare `cloud` substring occurs in 4,418 files — more than the entire `foundry` residue — and
+//! A bare `cloud` substring occurs in 4,418 files — more than any other retired brand stem — and
 //! most of it is legitimate: `cloud-provider` (1,880 occurrences), `cloud-native` (282), and
 //! `oyatie-cloud-provider` is a real capability context. Freezing that would create thousands of
 //! tolerated keys that mostly SHOULD NOT shrink, which is noise, not a ratchet. Anchoring on
@@ -40,27 +40,60 @@ pub const CARVE_OUTS: &[&str] = &[
 ];
 
 /// Does this single name segment begin with the deprecated `cloud-` namespace prefix?
+///
+/// BOTH separators are forbidden. The accepted naming grammar rejects a leading `cloud-` and a
+/// leading `cloud_` alike (ADR-0711), and the same holds for the `oya-`/`oya_` wrapper. Matching
+/// only the hyphen let `secrets/cloud_new_service` — or a Cargo package named `oya_cloud_thing` —
+/// walk straight past a blocking gate by changing one character.
 #[must_use]
 pub fn is_cloud_prefixed_name(segment: &str) -> bool {
     let lower = segment.to_ascii_lowercase();
-    let stem = lower.strip_prefix("oya-").unwrap_or(&lower);
-    let Some(rest) = stem.strip_prefix("cloud-").filter(|rest| !rest.is_empty()) else {
+    let stem = strip_either(&lower, "oya").unwrap_or(&lower);
+    let Some(rest) = strip_either(stem, "cloud").filter(|rest| !rest.is_empty()) else {
         return false;
     };
-    !LEGITIMATE_CLOUD_COMPOUNDS
-        .iter()
-        .any(|word| rest == *word || rest.starts_with(&format!("{word}-")))
+    !LEGITIMATE_CLOUD_COMPOUNDS.iter().any(|word| {
+        rest == *word
+            || rest.starts_with(&format!("{word}-"))
+            || rest.starts_with(&format!("{word}_"))
+    })
 }
 
-/// Extract a declared identifier from `name = "x"` (Cargo) or `name: x` (Helm).
+/// Strip `<word>-` or `<word>_`, so one separator cannot dodge the other.
+fn strip_either<'a>(value: &'a str, word: &str) -> Option<&'a str> {
+    value
+        .strip_prefix(&format!("{word}-"))
+        .or_else(|| value.strip_prefix(&format!("{word}_")))
+}
+
+/// Extract a declared identifier from `name = "x"` / `package.name = "x"` (Cargo) or
+/// `name: x` (Helm).
+///
+/// Cargo accepts the dotted-table spelling `package.name = "cloud-new-service"`, which is a
+/// perfectly valid manifest; recognizing only a bare leading `name` let such a member declare a
+/// deprecated identifier with no finding at all. `names = [...]` and similar longer keys must
+/// still NOT match, so the key is compared exactly rather than by prefix.
 #[must_use]
 pub fn declared_name(line: &str) -> Option<&str> {
-    let rest = line.trim().strip_prefix("name")?.trim_start();
-    let rest = rest
-        .strip_prefix('=')
-        .or_else(|| rest.strip_prefix(':'))?
-        .trim();
-    Some(rest.trim_matches(['"', '\''].as_slice()))
+    let trimmed = line.trim();
+    let (key, value) = trimmed
+        .split_once('=')
+        .or_else(|| trimmed.split_once(':'))?;
+    let key = key.trim();
+    if key != "name" && key != "package.name" {
+        return None;
+    }
+    Some(value.trim().trim_matches(['"', '\''].as_slice()))
+}
+
+/// Extract a durable capability identifier from a catalog row's `capability: <id>` line.
+#[must_use]
+pub fn declared_capability(line: &str) -> Option<&str> {
+    let (key, value) = line.trim().split_once(':')?;
+    if key.trim() != "capability" {
+        return None;
+    }
+    Some(value.trim().trim_matches(['"', '\''].as_slice()))
 }
 
 /// Every deprecated `cloud-` identifier this document contributes.
@@ -84,10 +117,24 @@ pub fn findings(path: &str, contents: &str) -> BTreeSet<String> {
             break;
         }
     }
+    // Capability identifiers in the crate catalog are durable names too. The ratchet scanned only
+    // paths plus Cargo/Helm declarations, so a catalog row could mint `cloud-ci-<thing>` and stay
+    // green — which is precisely how this gate's OWN row introduced the debt it exists to prevent.
+    if path.starts_with("registry/catalog/") && path.ends_with(".yaml") {
+        for capability in contents.lines().filter_map(declared_capability) {
+            if is_cloud_prefixed_name(capability) {
+                found.insert(format!("name:{path}:{capability}"));
+            }
+        }
+    }
     if matches!(path.rsplit('/').next(), Some("Cargo.toml" | "Chart.yaml")) {
         for name in contents.lines().filter_map(declared_name) {
             if is_cloud_prefixed_name(name) {
-                found.insert(format!("name:{name}"));
+                // Keyed by MANIFEST PATH as well as identifier. A bare `name:<id>` key collapsed
+                // in the BTreeSet whenever a second manifest declared an already-baselined name,
+                // so adding another Cargo or Helm artifact called `oya-cloud-iam` produced no
+                // addition and passed the blocking ratchet without any baseline edit.
+                found.insert(format!("name:{path}:{name}"));
             }
         }
     }
@@ -130,6 +177,57 @@ pub fn parse_baseline(json: &str) -> BTreeSet<String> {
 
 #[cfg(test)]
 mod tests {
+
+    /// Reviewer finding: only `cloud-` was recognized, so one separator change walked past a
+    /// blocking gate. The grammar forbids both leading forms (ADR-0711).
+    #[test]
+    fn underscore_variants_are_forbidden_too() {
+        assert!(is_cloud_prefixed_name("cloud_new_service"));
+        assert!(is_cloud_prefixed_name("oya_cloud_thing"));
+        assert!(is_cloud_prefixed_name("oya-cloud_thing"));
+        // legitimate technical compounds stay allowed on BOTH separators
+        assert!(!is_cloud_prefixed_name("cloud_native"));
+        assert!(!is_cloud_prefixed_name("cloud-provider"));
+    }
+
+    /// Reviewer finding: `package.name = "..."` is a valid Cargo spelling that produced no
+    /// finding, while a longer key such as `names = [...]` must still not match.
+    #[test]
+    fn dotted_cargo_package_names_are_parsed_and_lookalikes_are_not() {
+        assert_eq!(
+            declared_name("package.name = \"cloud-new-service\""),
+            Some("cloud-new-service")
+        );
+        assert_eq!(declared_name("name = \"cloud-x\""), Some("cloud-x"));
+        assert_eq!(declared_name("name: cloud-x"), Some("cloud-x"));
+        assert_eq!(declared_name("names = [\"cloud-x\"]"), None);
+        assert_eq!(declared_name("nameserver = \"cloud-x\""), None);
+    }
+
+    /// Reviewer finding: a bare `name:<id>` key collapsed in the set, so a SECOND manifest
+    /// declaring an already-baselined name produced no addition.
+    #[test]
+    fn the_same_declared_name_in_two_manifests_is_two_keys() {
+        let first = findings("a/Cargo.toml", "name = \"oya-cloud-iam\"\n");
+        let second = findings("b/Chart.yaml", "name: oya-cloud-iam\n");
+        assert_ne!(first, second);
+        assert_eq!(first.len(), 1);
+        assert_eq!(second.len(), 1);
+    }
+
+    /// Reviewer finding: catalog capability identifiers were never scanned, which is how this
+    /// gate's own row minted `cloud-ci-cloud-name-ratchet` while staying green.
+    #[test]
+    fn crate_catalog_capability_identifiers_are_scanned() {
+        let found = findings("registry/catalog/x.yaml", "capability: cloud-ci-thing\n");
+        assert!(found.contains("name:registry/catalog/x.yaml:cloud-ci-thing"));
+        let neutral = findings(
+            "registry/catalog/y.yaml",
+            "capability: ci-name-prefix-ratchet\n",
+        );
+        assert!(neutral.is_empty());
+    }
+
     use super::*;
 
     #[test]
