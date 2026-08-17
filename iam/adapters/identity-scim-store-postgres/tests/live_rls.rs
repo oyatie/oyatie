@@ -7,7 +7,7 @@
 //! - `OYA_BACKBONE_LIVE_POSTGRES`   = 1|true|yes|on
 //! - `OYA_BACKBONE_POSTGRES_URL`    = SETUP superuser/owner URL (DDL + grants)
 //! - `OYA_BACKBONE_POSTGRES_APP_URL`= APP runtime URL (NON-superuser,
-//!                                    NON-BYPASSRLS role; the adapter's role)
+//!   NON-BYPASSRLS role; the adapter's role)
 //!
 //! What they prove against a real database:
 //! 1. RLS cross-tenant denial — tenant A cannot read or overwrite tenant B's
