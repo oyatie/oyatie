@@ -29,8 +29,8 @@ pub struct RetirementMaterializationContext<'a> {
 /// tuple.  The evaluated object must be the checkout HEAD; pull requests select only their
 /// exact second-parent subject, while push and merge-group select their evaluated object.
 pub(super) fn census_revision_from_event(
-    pub(crate) repo_root: &Path,
-    pub(crate) context: &RetirementMaterializationContext<'_>,
+    repo_root: &Path,
+    context: &RetirementMaterializationContext<'_>,
 ) -> Result<String, String> {
     let source = GitCliRetirementObjectSource::new(repo_root.to_path_buf());
     for (label, requested) in [
@@ -87,7 +87,7 @@ pub fn historical_dev_push_context(
     historical_dev_push_context_from_source(&source, expected_head)
 }
 
-pub fn historical_dev_push_context_from_source(
+fn historical_dev_push_context_from_source(
     source: &impl RetirementObjectSource,
     expected_head: &str,
 ) -> Result<Option<(String, String)>, String> {

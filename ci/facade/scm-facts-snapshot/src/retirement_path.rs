@@ -3,6 +3,9 @@
 use std::path::Path;
 use std::process::Command;
 
+#[cfg(unix)]
+use rustix::fd::OwnedFd;
+
 use super::GENERATED_FACTS_PATH;
 
 pub(crate) fn canonical_ignored_generated_path<'a>(
@@ -77,19 +80,6 @@ pub(crate) fn canonical_ignored_generated_path<'a>(
         ));
     }
     Ok((parents.to_vec(), final_name))
-}
-
-#[cfg(unix)]
-pub(crate) fn write_all(file: &OwnedFd, mut bytes: &[u8]) -> Result<(), String> {
-    while !bytes.is_empty() {
-        let written = rustix::io::write(file, bytes)
-            .map_err(|error| format!("write retirement facts temporary file: {error}"))?;
-        if written == 0 {
-            return Err("write retirement facts temporary file made no progress".to_owned());
-        }
-        bytes = &bytes[written..];
-    }
-    Ok(())
 }
 
 pub(crate) fn canonical_generated_facts_output_path(
