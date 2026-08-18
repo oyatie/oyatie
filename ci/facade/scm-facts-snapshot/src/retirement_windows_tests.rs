@@ -1,13 +1,12 @@
-//! Windows retirement-facts writer tests.
-
-use std::path::{Path, PathBuf};
-use std::process::Command;
-use std::sync::atomic::Ordering;
+//! Windows writer regressions for the canonical ignored generated faces.
 
 use super::{
     CanonicalIgnoredGeneratedWriter, CanonicalRetirementFactsWriter, GENERATED_FACTS_PATH,
     NEXT_ATOMIC_WRITE_ID,
 };
+use std::path::{Path, PathBuf};
+use std::process::Command;
+use std::sync::atomic::Ordering;
 
 const WINDOWS_IGNORED_RECEIPT: &str =
     "ci/facade/artifact-inventory-registry/adr-census-epoch-receipt.generated.json";
@@ -86,9 +85,8 @@ fn windows_writers_materialize_ignored_untracked_faces() {
         b"{\"facts\":false}"
     );
 
-    let ignored =
-        CanonicalIgnoredGeneratedWriter::open(&root, Path::new(WINDOWS_IGNORED_RECEIPT))
-            .expect("windows ignored generated writer must open");
+    let ignored = CanonicalIgnoredGeneratedWriter::open(&root, Path::new(WINDOWS_IGNORED_RECEIPT))
+        .expect("windows ignored generated writer must open");
     ignored
         .write(b"{}")
         .expect("write ignored generated receipt");
@@ -133,10 +131,9 @@ fn windows_writers_reject_symlink_or_junction_parent() {
         "unexpected junction error: {error}"
     );
 
-    let error =
-        CanonicalIgnoredGeneratedWriter::open(&root, Path::new(WINDOWS_IGNORED_RECEIPT))
-            .map(|_| ())
-            .expect_err("junction parent must be rejected for ignored writer");
+    let error = CanonicalIgnoredGeneratedWriter::open(&root, Path::new(WINDOWS_IGNORED_RECEIPT))
+        .map(|_| ())
+        .expect_err("junction parent must be rejected for ignored writer");
     assert!(
         error.contains("is not a real directory"),
         "unexpected ignored-writer junction error: {error}"
@@ -158,10 +155,9 @@ fn windows_writers_reject_non_ignored_or_tracked_path() {
         "unexpected retirement boundary error: {error}"
     );
 
-    let error =
-        CanonicalIgnoredGeneratedWriter::open(&root, Path::new(WINDOWS_IGNORED_RECEIPT))
-            .map(|_| ())
-            .expect_err("missing ignore must fail closed for ignored writer");
+    let error = CanonicalIgnoredGeneratedWriter::open(&root, Path::new(WINDOWS_IGNORED_RECEIPT))
+        .map(|_| ())
+        .expect_err("missing ignore must fail closed for ignored writer");
     assert!(
         error.contains("must be ignored and untracked"),
         "unexpected ignored boundary error: {error}"
@@ -170,8 +166,7 @@ fn windows_writers_reject_non_ignored_or_tracked_path() {
     write_windows_ignore(&root);
     std::fs::create_dir_all(root.join("ci/facade/artifact-inventory-registry"))
         .expect("create receipt parent");
-    std::fs::write(root.join(WINDOWS_IGNORED_RECEIPT), b"tracked")
-        .expect("write tracked receipt");
+    std::fs::write(root.join(WINDOWS_IGNORED_RECEIPT), b"tracked").expect("write tracked receipt");
     let add = Command::new("git")
         .args(["add", "-f", "--", WINDOWS_IGNORED_RECEIPT])
         .current_dir(&root)
@@ -179,10 +174,9 @@ fn windows_writers_reject_non_ignored_or_tracked_path() {
         .expect("git add tracked receipt");
     assert!(add.success(), "git add -f must succeed");
 
-    let error =
-        CanonicalIgnoredGeneratedWriter::open(&root, Path::new(WINDOWS_IGNORED_RECEIPT))
-            .map(|_| ())
-            .expect_err("tracked ignored path must fail closed");
+    let error = CanonicalIgnoredGeneratedWriter::open(&root, Path::new(WINDOWS_IGNORED_RECEIPT))
+        .map(|_| ())
+        .expect_err("tracked ignored path must fail closed");
     assert!(
         error.contains("must be untracked"),
         "unexpected tracked-path error: {error}"
