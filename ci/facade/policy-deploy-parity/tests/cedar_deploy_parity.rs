@@ -80,21 +80,24 @@ data:
     };
 {{- end }}
 "#;
+// GH #987 disarm targets. Paths follow the policy to wherever it lives: the shared-chart
+// cutover moved most of these from templates/cedar.yaml into the service's values.yaml.
+// The POLICY is what this test is about, not the file that happens to hold it.
 const GH_987_CLOUD_PATHS: [&str; 14] = [
-    "cell/cell-lifecycle/iac/k8s/helm/templates/cedar.yaml",
-    "cell/cell-rebalancer/iac/k8s/helm/templates/cedar.yaml",
-    "billing/tax/iac/k8s/helm/templates/cedar.yaml",
-    "billing/iac/k8s/helm/templates/cedar.yaml",
-    "data/cloud-data/iac/k8s/helm/templates/cedar.yaml",
-    "iac/iac/k8s/helm/templates/cedar.yaml",
+    "cell/cell-lifecycle/iac/k8s/helm/values.yaml",
+    "cell/cell-rebalancer/iac/k8s/helm/values.yaml",
+    "billing/tax/iac/k8s/helm/values.yaml",
+    "billing/iac/k8s/helm/values.yaml",
+    "data/cloud-data/iac/k8s/helm/values.yaml",
+    "iac/iac/k8s/helm/values.yaml",
     "iam/cloud-iam/iac/k8s/helm/templates/cedar.yaml",
-    "k8s/iac/k8s/helm/templates/cedar.yaml",
+    "k8s/iac/k8s/helm/values.yaml",
     "secrets/kms/iac/k8s/helm/templates/cedar.yaml",
-    "network/dns/iac/k8s/helm/templates/cedar.yaml",
-    "network/iac/k8s/helm/templates/cedar.yaml",
-    "secrets/iac/k8s/helm/templates/cedar.yaml",
-    "storage/iac/k8s/helm/templates/cedar.yaml",
-    "tenancy/iac/k8s/helm/templates/cedar.yaml",
+    "network/dns/iac/k8s/helm/values.yaml",
+    "network/iac/k8s/helm/values.yaml",
+    "secrets/iac/k8s/helm/values.yaml",
+    "storage/iac/k8s/helm/values.yaml",
+    "tenancy/iac/k8s/helm/values.yaml",
 ];
 
 const AUTHZ_004_DEAD_CONFIGMAP_PATHS: [&str; 1] =
