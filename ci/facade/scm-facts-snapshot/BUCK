@@ -69,7 +69,7 @@ rust_library(
         # code). Acyclic: the ratchet lib depends only on serde_json.
         "//ci/facade/baseline-ratchet:ci-baseline-ratchet",
         # Rename-aware path-keyed baseline relabel (task #64): the P4 content-subset guard reuses
-        # the brand-residue census SSOT under the Life VocabPolicy from oya-ci.toml (config kernel),
+        # the brand-residue census SSOT under the LIVE VocabPolicy from oya-ci.toml (config kernel),
         # so carve-outs + case-folding are byte-identical to the producer's collect_brand_residue.
         "//libs/oya-check-brand-residue:oya-check-brand-residue",
         "//libs/oya-ci-config:oya-ci-config-kernel",

@@ -4,8 +4,6 @@ use ci_artifact_inventory_registry::to_canonical_json;
 use std::cell::RefCell;
 use std::collections::{BTreeMap, BTreeSet};
 
-use ci_artifact_inventory_registry::to_canonical_json;
-
 use super::{
     ADR_0363_CLOSURE_ID, ADR_0363_CLOSURE_PATH, ADR_0363_EVIDENCE_SET_ID, ADR_0363_PREPARATION_ID,
     ADR_0363_PREPARATION_PATH, ADR_0388_CLOSURE_ID, ADR_0388_CLOSURE_PATH,
