@@ -417,28 +417,58 @@ fn expect_string(
 /// config that names a working one, which is the failure mode worth closing: the declaration is
 /// the only evidence the guard exists, so an unchecked declaration is no evidence at all.
 fn validate_declared_paths(root: &Path, config: &Value, findings: &mut BTreeSet<Finding>) {
+    // `freshness.kernel` belongs here for the same reason as the rest: it is a path-valued
+    // declaration naming an executable freshness artifact, so omitting it left exactly the
+    // stale-path failure this validator exists to close open on another file.
     const DECLARED_PATHS: &[(&str, &str)] = &[
         ("rust", "drift_guard"),
         ("supply_chain", "license_policy"),
         ("supply_chain", "stewardship_registry"),
         ("freshness", "mirror"),
         ("freshness", "manifest"),
+        ("freshness", "kernel"),
     ];
     for (table, key) in DECLARED_PATHS {
-        let Some(value) = config
-            .get(table)
-            .and_then(|t| t.get(key))
-            .and_then(Value::as_str)
-        else {
+        let location = format!("{CONFIG_PATH}:{table}.{key}");
+        // Absence is a FINDING, not a skip. Continuing here meant deleting the key — or giving it
+        // a non-string value — silently disabled the check, and no closed-schema or policy rule
+        // requires any of these keys, so the gate could report green with nothing declared at all.
+        let Some(raw) = config.get(table).and_then(|t| t.get(key)) else {
+            findings.insert(Finding::new(
+                "DEP-AUTO-MISSING-KEY",
+                location,
+                format!("{table}.{key} is required; the declaration is the only evidence the referenced artifact exists"),
+            ));
             continue;
         };
-        if !root.join(value).exists() {
+        let Some(value) = raw.as_str() else {
+            findings.insert(Finding::new(
+                "DEP-AUTO-MISSING-KEY",
+                location,
+                format!("{table}.{key} must be a string path"),
+            ));
+            continue;
+        };
+        // Same containment rule the sibling managed_file validator already applies. Without it,
+        // `root.join(value)` on an absolute path discards `root` entirely, so declaring
+        // `/etc/passwd` — or a `..` path that happens to exist on the runner — satisfied the
+        // existence check using state outside the candidate tree.
+        if value.starts_with('/') || value.contains("..") {
+            findings.insert(Finding::new(
+                "DEP-AUTO-BAD-DECLARED-PATH",
+                location,
+                format!("declares {value}; declared paths must be repo-relative and must not contain '..'"),
+            ));
+            continue;
+        }
+        // `is_file`, not `exists`: a directory is not the executable artifact being declared.
+        if !root.join(value).is_file() {
             findings.insert(Finding::new(
                 "DEP-AUTO-DECLARED-PATH-MISSING",
-                format!("{CONFIG_PATH}:{table}.{key}"),
+                location,
                 format!(
-                    "declares {value}, which does not exist; a declaration is the only evidence \
-                     the referenced artifact is real"
+                    "declares {value}, which is not a file in this tree; a declaration is the \
+                     only evidence the referenced artifact is real"
                 ),
             ));
         }
