@@ -1,11 +1,11 @@
 //! Input-fact projection, path snapshots, and equivalence index.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::io::Read;
 
 use serde_json::{Value, json};
 
-use super::{ExpectedInput, RetirementObjectSource, TreeEntry, require_regular, sha256_digest};
+use super::{ControlPlaneEntry, ExpectedInput, RetirementObjectSource, TreeEntry, require_regular, sha256_digest};
 
 pub(crate) fn input_fact(
     source: &impl RetirementObjectSource,
