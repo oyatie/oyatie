@@ -569,7 +569,82 @@
       "items": {
         "$ref": "#/$defs/verificationCheck"
       },
-      "oyatie.data_class": "INTERNAL_ONLY"
+      "oyatie.data_class": "INTERNAL_ONLY",
+      "$comment": "minItems:1 alone let a replacement runbook delete every substantive check but one arbitrary schema-shaped entry and still validate — dropping static-stability, idempotency, resume and quiescence testing while keeping a qualified status. The allOf below pins the canonical set by check_id; maxItems still leaves room for additions, so this constrains the floor without freezing the ceiling.",
+      "allOf": [
+        {
+          "contains": {
+            "properties": {
+              "check_id": {
+                "const": "provider.binding-integrity"
+              }
+            },
+            "required": [
+              "check_id"
+            ]
+          }
+        },
+        {
+          "contains": {
+            "properties": {
+              "check_id": {
+                "const": "recovery.readback"
+              }
+            },
+            "required": [
+              "check_id"
+            ]
+          }
+        },
+        {
+          "contains": {
+            "properties": {
+              "check_id": {
+                "const": "bootstrap.idempotency"
+              }
+            },
+            "required": [
+              "check_id"
+            ]
+          }
+        },
+        {
+          "contains": {
+            "properties": {
+              "check_id": {
+                "const": "bootstrap.resume"
+              }
+            },
+            "required": [
+              "check_id"
+            ]
+          }
+        },
+        {
+          "contains": {
+            "properties": {
+              "check_id": {
+                "const": "cell.static-stability"
+              }
+            },
+            "required": [
+              "check_id"
+            ]
+          }
+        },
+        {
+          "contains": {
+            "properties": {
+              "check_id": {
+                "const": "genesis.quiescence"
+              }
+            },
+            "required": [
+              "check_id"
+            ]
+          }
+        }
+      ]
     },
     "fault_injection": {
       "type": "array",
@@ -578,7 +653,58 @@
       "items": {
         "$ref": "#/$defs/faultInjection"
       },
-      "oyatie.data_class": "INTERNAL_ONLY"
+      "oyatie.data_class": "INTERNAL_ONLY",
+      "$comment": "Same floor for fault injection: recovery-artifact corruption and a Genesis outage are the two faults this runbook exists to survive, and interrupt/stale-observation cover resume and idempotency.",
+      "allOf": [
+        {
+          "contains": {
+            "properties": {
+              "fault_id": {
+                "const": "interrupt-after-adapter-adoption"
+              }
+            },
+            "required": [
+              "fault_id"
+            ]
+          }
+        },
+        {
+          "contains": {
+            "properties": {
+              "fault_id": {
+                "const": "stale-observation-before-apply"
+              }
+            },
+            "required": [
+              "fault_id"
+            ]
+          }
+        },
+        {
+          "contains": {
+            "properties": {
+              "fault_id": {
+                "const": "recovery-artifact-corruption"
+              }
+            },
+            "required": [
+              "fault_id"
+            ]
+          }
+        },
+        {
+          "contains": {
+            "properties": {
+              "fault_id": {
+                "const": "genesis-outage"
+              }
+            },
+            "required": [
+              "fault_id"
+            ]
+          }
+        }
+      ]
     },
     "completion": {
       "$ref": "#/$defs/completion",
@@ -2088,6 +2214,39 @@
               "implementation_state"
             ],
             "oyatie.data_class": "INTERNAL_ONLY"
+          }
+        }
+      }
+    },
+    {
+      "$comment": "The reverse of the status->implementation_state rule. Without it a runbook could advertise execution_model.implementation_state `qualified` while its public status stayed `specified_not_implemented`, `preflight_only` or `retired`, so a catalog selecting by implementation state and an operator selecting by status reached opposite conclusions about the same runbook. `retired` stays permitted: withdrawing a genuinely qualified runbook is a legitimate end state.",
+      "if": {
+        "properties": {
+          "execution_model": {
+            "properties": {
+              "implementation_state": {
+                "const": "qualified",
+                "oyatie.data_class": "INTERNAL_ONLY"
+              }
+            },
+            "required": [
+              "implementation_state"
+            ],
+            "oyatie.data_class": "INTERNAL_ONLY"
+          }
+        },
+        "required": [
+          "execution_model"
+        ]
+      },
+      "then": {
+        "properties": {
+          "status": {
+            "enum": [
+              "qualified",
+              "retired"
+            ],
+            "oyatie.data_class": "PUBLIC"
           }
         }
       }

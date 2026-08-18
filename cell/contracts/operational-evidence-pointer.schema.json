@@ -42,7 +42,12 @@
     },
     "remote_readback": {
       "type": "string",
-      "const": "verified",
+      "enum": [
+        "verified",
+        "failed",
+        "not_attempted"
+      ],
+      "description": "OBSERVED outcome of the remote readback. Pinning this to `const: \"verified\"` made the field carry no information: every conforming pointer asserted success, a failed or skipped readback was unrepresentable, and the claim could be manufactured by anyone able to author a conforming file. NOTE the residual gap — an enum makes the outcome falsifiable but still self-reported. Binding it to independently authenticable evidence (verifier identity plus a signed verification-receipt digest, keeping object location private) requires the signer and validator tracked in `_meta.enforcement_status`; consumers MUST NOT treat this field as proof until then.",
       "oyatie.data_class": "PUBLIC"
     },
     "claim_ceiling": {
@@ -57,6 +62,6 @@
     "status": "source-authored",
     "purpose": "Publish a content digest and remote-readback fact without publishing operational receipt metadata or location.",
     "binding_authority": "/specs/active-machine-readable-artifact-contract.json",
-    "enforcement_status": "JSON Schema validation is required; digest-to-filename binding awaits an owned Rust validator."
+    "enforcement_status": "NOT YET ENFORCED. No validator in this repository checks any instance against this schema, so `$schema` here is a declaration of intent rather than a constraint. Three bindings await the owned Rust validator: (1) instance-against-schema validation, (2) digest-to-filename binding, (3) authentication of `remote_readback` against a signed verification receipt. Until (3) lands the readback outcome is self-reported and is not evidence."
   }
 }

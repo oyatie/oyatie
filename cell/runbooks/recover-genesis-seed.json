@@ -227,8 +227,8 @@
           "prepare_durable_storage"
         ],
         "reconcile_mode": "ensure",
-        "success": "Persistent OpenBao uses integrated Raft, TLS, external auto-unseal, independent custody, audited non-root administration, and verified restore.",
-        "failure": "Initialization ambiguity, excessive identity rights, seal failure, plaintext, missing custody, audit loss, or restore failure stops enrollment.",
+        "success": "Persistent OpenBao uses integrated Raft, TLS, external auto-unseal backed by a per-tenant per-cell HSM partition using FIPS 140-3 validated modules, independent custody, audited non-root administration, and verified restore.",
+        "failure": "Initialization ambiguity, excessive identity rights, seal failure, plaintext, missing custody, custody outside a per-tenant per-cell HSM partition, unseal material held in non-FIPS-140-3 modules, audit loss, or restore failure stops enrollment.",
         "rollback": "Before initialization remove the workload and identity grant; after initialization isolate and preserve key, data, audit, and snapshots without wiping."
       },
       {
@@ -827,7 +827,8 @@
       "/specs/substrate-dependency-dag.json#dependency_units[id=cell.genesis]",
       "/specs/masterplan.json#masterplan_v2",
       "/specs/active-machine-readable-artifact-contract.json",
-      "/specs/artifact-profile-defaults.json"
+      "/specs/artifact-profile-defaults.json",
+      "/docs/decisions/ADR-0702-identity-authz-live-apex.md"
     ],
     "non_authoritative_design_refs": [
       "/specs/root-of-trust-ceremony-contract.json"
