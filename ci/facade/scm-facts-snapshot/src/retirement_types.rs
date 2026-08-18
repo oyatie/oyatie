@@ -100,7 +100,7 @@ pub(crate) struct TreeEntry {
 }
 
 impl TreeEntry {
-    fn is_regular_blob(&self) -> bool {
+    pub(crate) fn is_regular_blob(&self) -> bool {
         self.mode == "100644" && self.kind == "blob"
     }
 }
@@ -132,4 +132,3 @@ pub(crate) trait RetirementObjectSource {
     }
     fn commits_touching_path(&self, commit_oid: &str, path: &str) -> Result<Vec<String>, String>;
 }
-
