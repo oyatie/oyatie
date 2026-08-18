@@ -10,20 +10,47 @@ use data_analytics_api::{
 use data_analytics_usecase::UseCaseError;
 use oya_shared_olap_client_kernel::KernelError;
 
+/// The runtime constants must equal the paths the CATALOG declares, not a second copy of
+/// them written here. Hard-coding the expected strings made this test vacuous against the
+/// defect it exists to catch: retargeting `data/analytics/catalog/contracts.json` without a
+/// matching constant change left the test green while the constants pointed at the old
+/// location. Reading the catalog is what makes a retarget fail here.
 #[test]
-fn analytics_api_contract_runtime_constants_are_covered() {
-    assert_eq!(
+fn analytics_api_contract_runtime_constants_match_the_catalog() {
+    let catalog_path = repo_root().join("data/analytics/catalog/contracts.json");
+    let catalog = std::fs::read_to_string(&catalog_path)
+        .unwrap_or_else(|e| panic!("read {}: {e}", catalog_path.display()));
+
+    // Dependency-free extraction of every `"path": "..."` value: this crate's test target must
+    // not grow a JSON dependency to assert a handful of strings.
+    let declared: Vec<String> = catalog
+        .split("\"path\"")
+        .skip(1)
+        .filter_map(|rest| {
+            let rest = rest.trim_start().strip_prefix(':')?.trim_start();
+            let rest = rest.strip_prefix('"')?;
+            rest.find('"').map(|end| rest[..end].to_owned())
+        })
+        .collect();
+    assert!(
+        !declared.is_empty(),
+        "catalog {} declared no contract paths — a vacuous pass is the failure this test \
+         exists to prevent",
+        catalog_path.display()
+    );
+
+    for constant in [
         ANALYTICS_OPENAPI_CONTRACT,
-        "data/analytics/contracts/openapi-v1.yaml"
-    );
-    assert_eq!(
         ANALYTICS_ASYNCAPI_CONTRACT,
-        "data/analytics/contracts/asyncapi-v1.yaml"
-    );
-    assert_eq!(
         ANALYTICS_PROTO_CONTRACT,
-        "data/analytics/contracts/analytics.proto"
-    );
+    ] {
+        assert!(
+            declared.iter().any(|path| path == constant),
+            "runtime constant {constant:?} is not declared by {}; the catalog declares \
+             {declared:?}. Retarget the constant and the catalog together.",
+            catalog_path.display()
+        );
+    }
 }
 
 /// Walk up from a start dir to the repo root (buck2-safe; avoid sole reliance on
