@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "language": "go",
-  "snapshot_digest": "sha256:7e41c8ee9fb0b6c66072ebee1f5845a3ca912ff3960ad5064918dd985b24a862",
+  "snapshot_digest": "sha256:30f22efac958523526f2bf92cf32e1a930936a92cb48681c70543546b01f3acc",
   "packages": [
     {
       "unit_id": "oyatie.example/portengine-fixture/basic",
@@ -45,7 +45,10 @@
           "type": "string",
           "flags": [
             "exported"
-          ]
+          ],
+          "attrs": {
+            "value": "\"anonymous\""
+          }
         },
         {
           "kind": "var",
@@ -93,7 +96,10 @@
           "type": "int",
           "flags": [
             "exported"
-          ]
+          ],
+          "attrs": {
+            "value": "3"
+          }
         },
         {
           "kind": "func",

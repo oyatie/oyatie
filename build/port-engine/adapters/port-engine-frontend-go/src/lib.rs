@@ -6,7 +6,7 @@
 //! binary from library sources used by verify.
 #![forbid(unsafe_code)]
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 use std::fmt;
 
 use port_engine_api::{Declaration, Digest, UnitId};
@@ -47,7 +47,13 @@ pub const KNOWN_MEMBER_KINDS: &[&str] = &["field", "method", "param", "result"];
 /// The closed flag vocabulary. Same argument as [`KNOWN_DECLARATION_KINDS`]: a flag the engine
 /// does not know is a flag nothing will ever select on, and accepting it would let a misspelled
 /// `exported` silently unexport a declaration.
-pub const KNOWN_FLAGS: &[&str] = &["embedded", "exported", "variadic"];
+pub const KNOWN_FLAGS: &[&str] = &["embedded", "exported", "pointer_receiver", "variadic"];
+
+/// The closed attribute-key vocabulary, closed for the same reason as the flags.
+pub const KNOWN_ATTR_KEYS: &[&str] = &[ATTR_VALUE];
+
+/// Attribute key holding a constant's value, spelled as source.
+pub const ATTR_VALUE: &str = "value";
 
 /// Fail-closed readiness gate. `true` once Slice 4 snapshot decode is present.
 pub const fn w0_ready() -> bool {
@@ -87,6 +93,13 @@ pub enum SnapshotError {
         /// Unit the declaration belongs to.
         unit_id: String,
         /// Kind string found.
+        actual: String,
+    },
+    /// Attribute key is outside the closed vocabulary.
+    UnknownAttr {
+        /// Unit the declaration belongs to.
+        unit_id: String,
+        /// Attribute key found.
         actual: String,
     },
     /// Flag is outside the closed flag vocabulary.
@@ -142,6 +155,10 @@ impl fmt::Display for SnapshotError {
                 f,
                 "source-model snapshot unit `{unit_id}` carries unknown flag `{actual}`"
             ),
+            Self::UnknownAttr { unit_id, actual } => write!(
+                f,
+                "source-model snapshot unit `{unit_id}` carries unknown attribute `{actual}`"
+            ),
             Self::DuplicateDeclaration { unit_id, name } => write!(
                 f,
                 "source-model snapshot unit `{unit_id}` declares `{name}` more than once in one \
@@ -187,6 +204,8 @@ struct DeclarationEntry {
     type_ref: String,
     #[serde(default)]
     flags: Vec<String>,
+    #[serde(default)]
+    attrs: BTreeMap<String, String>,
     #[serde(default)]
     children: Vec<DeclarationEntry>,
 }
@@ -382,11 +401,23 @@ fn convert_level(
             flags.insert(flag.clone());
         }
 
+        let mut attrs = BTreeMap::new();
+        for (key, value) in &entry.attrs {
+            if !KNOWN_ATTR_KEYS.contains(&key.as_str()) {
+                return Err(SnapshotError::UnknownAttr {
+                    unit_id: unit_id.to_owned(),
+                    actual: key.clone(),
+                });
+            }
+            attrs.insert(key.clone(), value.clone());
+        }
+
         out.push(Declaration {
             kind: entry.kind.clone(),
             name: entry.name.clone(),
             type_ref: entry.type_ref.clone(),
             flags,
+            attrs,
             children: convert_level(unit_id, &entry.children, KNOWN_MEMBER_KINDS)?,
         });
     }

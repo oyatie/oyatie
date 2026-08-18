@@ -248,6 +248,53 @@ pub fn smoke_pipeline() -> Result<PipelineReport, PipelineError> {
     })
 }
 
+/// Port the hermetic Go corpus: admit v1 snapshot → plan → transform → emit → six-axis receipt.
+///
+/// This is the same pipeline as [`smoke_pipeline`], over the declaration-carrying snapshot and the
+/// declaration-level go→rust pack rather than the unit-level canary pack. The difference in the
+/// output is the difference between the engine before and after this lane: empty functions named
+/// after units, versus Rust items that correspond to Go declarations.
+///
+/// # Errors
+/// [`PipelineError`] on any stage refusal — notably a declaration no rule captures and no policy
+/// defers, which refuses here rather than quietly emitting less than the corpus contains.
+pub fn port_go_pipeline() -> Result<PipelineReport, PipelineError> {
+    let admitted = admit_embedded_fixture_v1().map_err(PipelineError::Admit)?;
+    let pin = admitted.pin().to_owned();
+    let pack = LoadedRulePack::load_embedded_go_rust().map_err(PipelineError::Rulepack)?;
+    let plan = port_engine_kernel::plan(admitted.as_model(), &pack).map_err(PipelineError::Plan)?;
+    let ir = apply(&plan, &pack, admitted.as_model()).map_err(PipelineError::Transform)?;
+
+    let formatter_label = "fmt-port-go-v1";
+    let renderer = SynQuoteRenderer::new(formatter_label);
+    let emitted = renderer.render_rust_ir(&ir).map_err(PipelineError::Emit)?;
+
+    let receipt = Receipt {
+        pin,
+        snapshot_digest: admitted.artifact_digest().clone(),
+        engine_digest: engine_digest(),
+        rulepack_digest: pack.digest(),
+        toolchain_digest: toolchain_digest(),
+        formatter_digest: digest_str(formatter_label),
+    };
+    if !receipt.incomplete_axes().is_empty() {
+        return Err(PipelineError::Emit(port_engine_api::PortError::Render {
+            detail: format!(
+                "port-go receipt incomplete axes: {:?}",
+                receipt.incomplete_axes()
+            ),
+        }));
+    }
+
+    Ok(PipelineReport {
+        plan_steps: plan.steps.len(),
+        emit_regions: emitted.len(),
+        emit_digest: emit_tree_digest(&emitted),
+        emitted,
+        receipt,
+    })
+}
+
 /// Transform + syn emit (Slice 12 `render` entrypoint).
 ///
 /// # Errors

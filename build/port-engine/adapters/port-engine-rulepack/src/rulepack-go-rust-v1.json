@@ -1,0 +1,167 @@
+{
+  "_comment": [
+    "Neutral go->rust rule pack v1. Package-local mirror of the forever home",
+    "specs/port-rules/lang/go-rust/**; the engine reads only what is here.",
+    "",
+    "Rule order in `rules` IS the transform order, and `precedence` must agree with it — the",
+    "loader refuses a pack where the two disagree rather than silently obeying one of them.",
+    "",
+    "`applies` lists each unit's rules in that same ascending order, which the kernel enforces.",
+    "",
+    "type_map_overrides: one source type does not always take one target type. `string` becomes an",
+    "owned String where a value is stored — a struct field, a parameter, a return — and CANNOT be",
+    "one in a constant, because a Rust const must be known at compile time and String is",
+    "heap-allocated. `&'static str` is what a Go string constant actually is. Recording that here",
+    "rather than branching on it in the transform keeps the decision reviewable and versioned."
+  ],
+  "pair": {
+    "source": "go",
+    "target": "rust"
+  },
+  "type_map": {
+    "bool": "bool",
+    "float64": "f64",
+    "int": "i64",
+    "string": "String"
+  },
+  "type_map_overrides": {
+    "rust_const": {
+      "string": "&'static str"
+    }
+  },
+  "deferred_kinds": [
+    {
+      "kind": "var",
+      "reason": "A package-level var is a MUTABLE global. Rust's `static` is immutable, so emitting one would silently drop the mutability the declaration exists for; `static mut` is unsafe and `OnceLock`/`Mutex` each pick a synchronization policy the source never stated. Choosing among those is a rule decision, not a default. See docs/programs/k8s-port/census/ownership-escape.md and concurrency.md."
+    }
+  ],
+  "rules": [
+    {
+      "id": "go_const",
+      "version": "1",
+      "precondition": "unit_present",
+      "captures": ["const"],
+      "construction": "rust_const",
+      "precedence": 0,
+      "conflict": "refuse",
+      "required_diagnostics": [],
+      "proof_obligations": [],
+      "selecting_fixtures": [
+        {
+          "id": "go-const-selects-basic",
+          "unit": "oyatie.example/portengine-fixture/basic",
+          "selects": true
+        },
+        {
+          "id": "go-const-does-not-select-shapes",
+          "unit": "oyatie.example/portengine-fixture/shapes",
+          "selects": false
+        }
+      ]
+    },
+    {
+      "id": "go_alias",
+      "version": "1",
+      "precondition": "unit_present",
+      "captures": ["alias"],
+      "construction": "rust_type_alias",
+      "precedence": 1,
+      "conflict": "refuse",
+      "required_diagnostics": [],
+      "proof_obligations": [],
+      "selecting_fixtures": [
+        {
+          "id": "go-alias-selects-basic",
+          "unit": "oyatie.example/portengine-fixture/basic",
+          "selects": true
+        }
+      ]
+    },
+    {
+      "id": "go_defined_type",
+      "version": "1",
+      "precondition": "unit_present",
+      "captures": ["named"],
+      "construction": "rust_newtype",
+      "precedence": 2,
+      "conflict": "refuse",
+      "required_diagnostics": [],
+      "proof_obligations": [],
+      "selecting_fixtures": [
+        {
+          "id": "go-defined-type-selects-basic",
+          "unit": "oyatie.example/portengine-fixture/basic",
+          "selects": true
+        }
+      ]
+    },
+    {
+      "id": "go_struct",
+      "version": "1",
+      "precondition": "unit_present",
+      "captures": ["struct"],
+      "construction": "rust_struct",
+      "precedence": 3,
+      "conflict": "refuse",
+      "required_diagnostics": [],
+      "proof_obligations": [],
+      "selecting_fixtures": [
+        {
+          "id": "go-struct-selects-shapes",
+          "unit": "oyatie.example/portengine-fixture/shapes",
+          "selects": true
+        },
+        {
+          "id": "go-struct-does-not-select-basic",
+          "unit": "oyatie.example/portengine-fixture/basic",
+          "selects": false
+        }
+      ]
+    },
+    {
+      "id": "go_interface",
+      "version": "1",
+      "precondition": "unit_present",
+      "captures": ["interface"],
+      "construction": "rust_trait",
+      "precedence": 4,
+      "conflict": "refuse",
+      "required_diagnostics": [],
+      "proof_obligations": [],
+      "selecting_fixtures": [
+        {
+          "id": "go-interface-selects-shapes",
+          "unit": "oyatie.example/portengine-fixture/shapes",
+          "selects": true
+        }
+      ]
+    },
+    {
+      "id": "go_func",
+      "version": "1",
+      "precondition": "unit_present",
+      "captures": ["func"],
+      "construction": "rust_fn",
+      "precedence": 5,
+      "conflict": "refuse",
+      "required_diagnostics": [],
+      "proof_obligations": [],
+      "selecting_fixtures": [
+        {
+          "id": "go-func-selects-basic",
+          "unit": "oyatie.example/portengine-fixture/basic",
+          "selects": true
+        }
+      ]
+    }
+  ],
+  "applies": {
+    "oyatie.example/portengine-fixture/basic": [
+      "go_const",
+      "go_alias",
+      "go_defined_type",
+      "go_func"
+    ],
+    "oyatie.example/portengine-fixture/shapes": ["go_struct", "go_interface"]
+  }
+}
