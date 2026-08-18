@@ -16,14 +16,14 @@
 
 use std::fmt;
 
-use base64::engine::general_purpose::STANDARD as BASE64_STANDARD;
 use base64::Engine as _;
+use base64::engine::general_purpose::STANDARD as BASE64_STANDARD;
 use secrets_kms_enclave::{EnclaveError, EnclaveRoot, RootProvenance, SealingRootId};
 use zeroize::Zeroize;
 
 use crate::{
-    canonical_body, origin_without_scheme, validate_endpoint, validate_path_segment,
-    OpenBaoKmsAdapterConfigError,
+    OpenBaoKmsAdapterConfigError, canonical_body, origin_without_scheme, validate_endpoint,
+    validate_path_segment,
 };
 
 /// Errors from root-custody command building and material ingestion.
@@ -50,7 +50,10 @@ impl fmt::Display for RootCustodyError {
                 f.write_str("root custody: exported material is not valid base64")
             }
             Self::MaterialWrongLength { got } => {
-                write!(f, "root custody: exported material is {got} bytes, expected 32")
+                write!(
+                    f,
+                    "root custody: exported material is {got} bytes, expected 32"
+                )
             }
             Self::Enclave(err) => write!(f, "root custody: enclave refused material: {err}"),
         }
@@ -79,10 +82,10 @@ pub struct OpenBaoCustodyCommand {
 /// mount + key. One custodian per cell sealing root.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct OpenBaoRootCustody {
-    endpoint_origin: String,       // data_class: INTERNAL_ONLY
-    transit_mount: String,         // data_class: INTERNAL_ONLY
-    key_name: String,              // data_class: INTERNAL_ONLY
-    namespace: Option<String>,     // data_class: INTERNAL_ONLY
+    endpoint_origin: String,   // data_class: INTERNAL_ONLY
+    transit_mount: String,     // data_class: INTERNAL_ONLY
+    key_name: String,          // data_class: INTERNAL_ONLY
+    namespace: Option<String>, // data_class: INTERNAL_ONLY
 }
 
 impl OpenBaoRootCustody {
@@ -103,14 +106,25 @@ impl OpenBaoRootCustody {
         .map_err(RootCustodyError::Config)?;
         validate_path_segment(&key_name, OpenBaoKmsAdapterConfigError::InvalidKeyName)
             .map_err(RootCustodyError::Config)?;
-        Ok(Self { endpoint_origin, transit_mount, key_name, namespace: None })
+        Ok(Self {
+            endpoint_origin,
+            transit_mount,
+            key_name,
+            namespace: None,
+        })
     }
 
     /// Scope commands to an OpenBao namespace.
-    pub fn with_namespace(mut self, namespace: impl Into<String>) -> Result<Self, RootCustodyError> {
+    pub fn with_namespace(
+        mut self,
+        namespace: impl Into<String>,
+    ) -> Result<Self, RootCustodyError> {
         let namespace = namespace.into();
-        validate_path_segment(&namespace, OpenBaoKmsAdapterConfigError::InvalidTransitMount)
-            .map_err(RootCustodyError::Config)?;
+        validate_path_segment(
+            &namespace,
+            OpenBaoKmsAdapterConfigError::InvalidTransitMount,
+        )
+        .map_err(RootCustodyError::Config)?;
         self.namespace = Some(namespace);
         Ok(self)
     }

@@ -173,7 +173,14 @@ mod tests {
     fn enqueue_rejects_hide_without_evidence() {
         let mut q = ModerationQueue::new();
         assert_eq!(
-            enqueue(&mut q, &ctx("k1"), "post:1".into(), ModerationVerb::Hide, "", 1),
+            enqueue(
+                &mut q,
+                &ctx("k1"),
+                "post:1".into(),
+                ModerationVerb::Hide,
+                "",
+                1
+            ),
             Err(CommunityUsecaseError::Domain(
                 CommunityError::ModerationNeedsEvidence
             ))
@@ -185,7 +192,14 @@ mod tests {
     fn enqueue_rejects_remove_without_evidence() {
         let mut q = ModerationQueue::new();
         assert_eq!(
-            enqueue(&mut q, &ctx("k1"), "post:1".into(), ModerationVerb::Remove, "", 0),
+            enqueue(
+                &mut q,
+                &ctx("k1"),
+                "post:1".into(),
+                ModerationVerb::Remove,
+                "",
+                0
+            ),
             Err(CommunityUsecaseError::Domain(
                 CommunityError::ModerationNeedsEvidence
             ))
@@ -195,7 +209,15 @@ mod tests {
     #[test]
     fn enqueue_allow_succeeds_without_evidence() {
         let mut q = ModerationQueue::new();
-        enqueue(&mut q, &ctx("k1"), "post:1".into(), ModerationVerb::Allow, "", 0).unwrap();
+        enqueue(
+            &mut q,
+            &ctx("k1"),
+            "post:1".into(),
+            ModerationVerb::Allow,
+            "",
+            0,
+        )
+        .unwrap();
         assert_eq!(drain_ordered(&q).len(), 1);
     }
 
@@ -204,10 +226,33 @@ mod tests {
     #[test]
     fn drain_ordered_remove_before_hide_before_allow() {
         let mut q = ModerationQueue::new();
-        enqueue(&mut q, &ctx("k-allow"), "post:a".into(), ModerationVerb::Allow, "", 0).unwrap();
-        enqueue(&mut q, &ctx("k-hide"), "post:b".into(), ModerationVerb::Hide, "ev", 1).unwrap();
-        enqueue(&mut q, &ctx("k-remove"), "post:c".into(), ModerationVerb::Remove, "ev", 1)
-            .unwrap();
+        enqueue(
+            &mut q,
+            &ctx("k-allow"),
+            "post:a".into(),
+            ModerationVerb::Allow,
+            "",
+            0,
+        )
+        .unwrap();
+        enqueue(
+            &mut q,
+            &ctx("k-hide"),
+            "post:b".into(),
+            ModerationVerb::Hide,
+            "ev",
+            1,
+        )
+        .unwrap();
+        enqueue(
+            &mut q,
+            &ctx("k-remove"),
+            "post:c".into(),
+            ModerationVerb::Remove,
+            "ev",
+            1,
+        )
+        .unwrap();
 
         let ordered = drain_ordered(&q);
         assert_eq!(ordered[0].severity, QueueSeverity::Remove);
@@ -219,9 +264,33 @@ mod tests {
     fn drain_ordered_stable_tiebreak_on_equal_severity() {
         let mut q = ModerationQueue::new();
         // Same verb/evidence/report_count — tiebreak on idempotency_key ascending.
-        enqueue(&mut q, &ctx("k-zzz"), "post:z".into(), ModerationVerb::Hide, "ev", 5).unwrap();
-        enqueue(&mut q, &ctx("k-aaa"), "post:a".into(), ModerationVerb::Hide, "ev", 5).unwrap();
-        enqueue(&mut q, &ctx("k-mmm"), "post:m".into(), ModerationVerb::Hide, "ev", 5).unwrap();
+        enqueue(
+            &mut q,
+            &ctx("k-zzz"),
+            "post:z".into(),
+            ModerationVerb::Hide,
+            "ev",
+            5,
+        )
+        .unwrap();
+        enqueue(
+            &mut q,
+            &ctx("k-aaa"),
+            "post:a".into(),
+            ModerationVerb::Hide,
+            "ev",
+            5,
+        )
+        .unwrap();
+        enqueue(
+            &mut q,
+            &ctx("k-mmm"),
+            "post:m".into(),
+            ModerationVerb::Hide,
+            "ev",
+            5,
+        )
+        .unwrap();
 
         let ordered = drain_ordered(&q);
         assert_eq!(ordered[0].idempotency_key, "k-aaa");
@@ -239,7 +308,15 @@ mod tests {
             policy_decision_ref: "pdp-ref".into(),
             audit_correlation_id: "audit-xyz".into(),
         };
-        enqueue(&mut q, &c, "post:1".into(), ModerationVerb::Remove, "evidence", 3).unwrap();
+        enqueue(
+            &mut q,
+            &c,
+            "post:1".into(),
+            ModerationVerb::Remove,
+            "evidence",
+            3,
+        )
+        .unwrap();
 
         let entry = next_case(&q).unwrap();
         assert_eq!(entry.idempotency_key, "idem-42");
@@ -264,9 +341,25 @@ mod tests {
     #[test]
     fn enqueue_duplicate_idempotency_key_is_noop() {
         let mut q = ModerationQueue::new();
-        enqueue(&mut q, &ctx("k1"), "post:1".into(), ModerationVerb::Remove, "ev", 1).unwrap();
+        enqueue(
+            &mut q,
+            &ctx("k1"),
+            "post:1".into(),
+            ModerationVerb::Remove,
+            "ev",
+            1,
+        )
+        .unwrap();
         // Second call with same idempotency_key must be a no-op.
-        enqueue(&mut q, &ctx("k1"), "post:2".into(), ModerationVerb::Remove, "ev", 99).unwrap();
+        enqueue(
+            &mut q,
+            &ctx("k1"),
+            "post:2".into(),
+            ModerationVerb::Remove,
+            "ev",
+            99,
+        )
+        .unwrap();
 
         let ordered = drain_ordered(&q);
         assert_eq!(ordered.len(), 1, "duplicate must not be inserted");
@@ -285,7 +378,14 @@ mod tests {
         };
         let mut q = ModerationQueue::new();
         assert!(matches!(
-            enqueue(&mut q, &bad_ctx, "post:1".into(), ModerationVerb::Allow, "", 0),
+            enqueue(
+                &mut q,
+                &bad_ctx,
+                "post:1".into(),
+                ModerationVerb::Allow,
+                "",
+                0
+            ),
             Err(CommunityUsecaseError::Api(_))
         ));
     }
@@ -293,8 +393,24 @@ mod tests {
     #[test]
     fn enqueue_report_count_tiebreak_higher_first() {
         let mut q = ModerationQueue::new();
-        enqueue(&mut q, &ctx("k-low"), "post:a".into(), ModerationVerb::Hide, "ev", 1).unwrap();
-        enqueue(&mut q, &ctx("k-high"), "post:b".into(), ModerationVerb::Hide, "ev", 99).unwrap();
+        enqueue(
+            &mut q,
+            &ctx("k-low"),
+            "post:a".into(),
+            ModerationVerb::Hide,
+            "ev",
+            1,
+        )
+        .unwrap();
+        enqueue(
+            &mut q,
+            &ctx("k-high"),
+            "post:b".into(),
+            ModerationVerb::Hide,
+            "ev",
+            99,
+        )
+        .unwrap();
 
         let ordered = drain_ordered(&q);
         assert_eq!(ordered[0].report_count, 99);

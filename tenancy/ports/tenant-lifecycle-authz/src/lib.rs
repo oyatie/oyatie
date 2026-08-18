@@ -105,10 +105,8 @@ pub trait TenantMembershipResolver: Send + Sync {
     /// # Errors
     /// Returns [`MembershipFault`] on any backing-store failure; the PEP denies
     /// (fail-closed — the operator gets no tenant axis).
-    fn assigned_tenants(
-        &self,
-        operator_principal_id: &str,
-    ) -> Result<Vec<String>, MembershipFault>;
+    fn assigned_tenants(&self, operator_principal_id: &str)
+    -> Result<Vec<String>, MembershipFault>;
 }
 
 /// The tenancy control-plane actions guarded by this port. Each maps to a
@@ -251,10 +249,8 @@ pub trait TenantLifecycleAuthorizer: Send + Sync {
     /// # Errors
     /// [`AuthzError`] when the query is malformed or the backing engine
     /// refuses — the PEP treats either as a deny (fail-closed).
-    fn authorize(
-        &self,
-        query: &AuthorizationQuery<'_>,
-    ) -> Result<AuthorizationOutcome, AuthzError>;
+    fn authorize(&self, query: &AuthorizationQuery<'_>)
+    -> Result<AuthorizationOutcome, AuthzError>;
 }
 
 #[cfg(test)]
@@ -275,8 +271,7 @@ mod tests {
             let slug = action.slug();
             assert!(slug.starts_with("tenancy."));
             assert!(
-                slug
-                    .chars()
+                slug.chars()
                     .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '.'),
                 "slug {slug:?} must be lowercase dotted",
             );

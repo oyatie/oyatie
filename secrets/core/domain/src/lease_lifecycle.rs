@@ -99,15 +99,23 @@ impl fmt::Display for LeaseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::InvalidLeaseId => f.write_str("lease: id must be 'lease/<slug>'"),
-            Self::InvalidSecretReference => f.write_str("lease: secret reference must be non-empty"),
+            Self::InvalidSecretReference => {
+                f.write_str("lease: secret reference must be non-empty")
+            }
             Self::PrincipalContractViolation { detail } => {
                 write!(f, "lease: principal contract violation: {detail}")
             }
             Self::PrincipalNotWorkload { kind } => {
-                write!(f, "lease: principal kind {kind:?} rejected; leases bind to workloads")
+                write!(
+                    f,
+                    "lease: principal kind {kind:?} rejected; leases bind to workloads"
+                )
             }
             Self::PrincipalNotOperational { state } => {
-                write!(f, "lease: principal state {state:?} rejected; Active only (fail closed)")
+                write!(
+                    f,
+                    "lease: principal state {state:?} rejected; Active only (fail closed)"
+                )
             }
             Self::TtlOutOfBounds { requested_seconds } => write!(
                 f,
@@ -118,15 +126,23 @@ impl fmt::Display for LeaseError {
                 "lease: max lifetime {requested_seconds}s outside [ttl, {MAX_LEASE_LIFETIME_SECONDS}]"
             ),
             Self::Expired { at_epoch_seconds } => {
-                write!(f, "lease: expired at {at_epoch_seconds}; re-authenticate to re-issue")
+                write!(
+                    f,
+                    "lease: expired at {at_epoch_seconds}; re-authenticate to re-issue"
+                )
             }
             Self::Revoked { at_epoch_seconds } => {
                 write!(f, "lease: revoked at {at_epoch_seconds}")
             }
             Self::RenewalsExhausted { max_renewals } => {
-                write!(f, "lease: {max_renewals} renewals exhausted; re-authenticate to re-issue")
+                write!(
+                    f,
+                    "lease: {max_renewals} renewals exhausted; re-authenticate to re-issue"
+                )
             }
-            Self::MaxLifetimeReached { absolute_expiry_epoch_seconds } => write!(
+            Self::MaxLifetimeReached {
+                absolute_expiry_epoch_seconds,
+            } => write!(
                 f,
                 "lease: absolute lifetime ceiling {absolute_expiry_epoch_seconds} reached; re-authenticate to re-issue"
             ),
@@ -146,7 +162,9 @@ impl LeaseId {
     /// Construct a validated lease id.
     pub fn new(value: impl Into<String>) -> Result<Self, LeaseError> {
         let value = value.into();
-        let slug = value.strip_prefix(LEASE_ID_PREFIX).ok_or(LeaseError::InvalidLeaseId)?;
+        let slug = value
+            .strip_prefix(LEASE_ID_PREFIX)
+            .ok_or(LeaseError::InvalidLeaseId)?;
         if slug.is_empty() || slug.contains('/') {
             return Err(LeaseError::InvalidLeaseId);
         }
@@ -183,18 +201,27 @@ impl LeasePolicy {
         max_lifetime_seconds: u64,
     ) -> Result<Self, LeaseError> {
         if !(MIN_LEASE_TTL_SECONDS..=MAX_LEASE_TTL_SECONDS).contains(&ttl_seconds) {
-            return Err(LeaseError::TtlOutOfBounds { requested_seconds: ttl_seconds });
+            return Err(LeaseError::TtlOutOfBounds {
+                requested_seconds: ttl_seconds,
+            });
         }
         if !(ttl_seconds..=MAX_LEASE_LIFETIME_SECONDS).contains(&max_lifetime_seconds) {
             return Err(LeaseError::LifetimeOutOfBounds {
                 requested_seconds: max_lifetime_seconds,
             });
         }
-        let ttl_seconds = NonZeroU64::new(ttl_seconds)
-            .ok_or(LeaseError::TtlOutOfBounds { requested_seconds: 0 })?;
-        let max_lifetime_seconds = NonZeroU64::new(max_lifetime_seconds)
-            .ok_or(LeaseError::LifetimeOutOfBounds { requested_seconds: 0 })?;
-        Ok(Self { ttl_seconds, max_renewals, max_lifetime_seconds })
+        let ttl_seconds = NonZeroU64::new(ttl_seconds).ok_or(LeaseError::TtlOutOfBounds {
+            requested_seconds: 0,
+        })?;
+        let max_lifetime_seconds =
+            NonZeroU64::new(max_lifetime_seconds).ok_or(LeaseError::LifetimeOutOfBounds {
+                requested_seconds: 0,
+            })?;
+        Ok(Self {
+            ttl_seconds,
+            max_renewals,
+            max_lifetime_seconds,
+        })
     }
 
     /// The validated TTL.
@@ -297,10 +324,14 @@ impl DynamicLease {
             return Err(LeaseError::PrincipalContractViolation { detail });
         }
         if principal.kind != PrincipalKind::Workload {
-            return Err(LeaseError::PrincipalNotWorkload { kind: principal.kind });
+            return Err(LeaseError::PrincipalNotWorkload {
+                kind: principal.kind,
+            });
         }
         if !principal.state.is_operational() {
-            return Err(LeaseError::PrincipalNotOperational { state: principal.state });
+            return Err(LeaseError::PrincipalNotOperational {
+                state: principal.state,
+            });
         }
         let absolute_expiry_epoch_seconds =
             now_epoch_seconds.saturating_add(policy.max_lifetime_seconds());
@@ -373,9 +404,9 @@ impl DynamicLease {
     pub fn assert_live(&self, now_epoch_seconds: u64) -> Result<(), LeaseError> {
         match self.state(now_epoch_seconds) {
             LeaseState::Live => Ok(()),
-            LeaseState::Expired => {
-                Err(LeaseError::Expired { at_epoch_seconds: self.expires_at_epoch_seconds })
-            }
+            LeaseState::Expired => Err(LeaseError::Expired {
+                at_epoch_seconds: self.expires_at_epoch_seconds,
+            }),
             LeaseState::Revoked => Err(LeaseError::Revoked {
                 at_epoch_seconds: self.revoked_at_epoch_seconds.unwrap_or(0),
             }),

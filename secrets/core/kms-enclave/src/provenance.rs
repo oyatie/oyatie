@@ -55,17 +55,24 @@ impl RootProvenance {
     pub fn satisfies_quorum_doctrine(&self) -> bool {
         match self {
             Self::OpenBaoTransitionalSingleCustodian { .. } => false,
-            Self::ShamirQuorumCeremony { threshold, share_count, .. } => {
-                *threshold >= 2 && share_count >= threshold
-            }
+            Self::ShamirQuorumCeremony {
+                threshold,
+                share_count,
+                ..
+            } => *threshold >= 2 && share_count >= threshold,
         }
     }
 
     /// Audit reference for the ceremony that established the root.
     pub fn ceremony_evidence_ref(&self) -> &str {
         match self {
-            Self::OpenBaoTransitionalSingleCustodian { ceremony_evidence_ref }
-            | Self::ShamirQuorumCeremony { ceremony_evidence_ref, .. } => ceremony_evidence_ref,
+            Self::OpenBaoTransitionalSingleCustodian {
+                ceremony_evidence_ref,
+            }
+            | Self::ShamirQuorumCeremony {
+                ceremony_evidence_ref,
+                ..
+            } => ceremony_evidence_ref,
         }
     }
 }
@@ -73,11 +80,18 @@ impl RootProvenance {
 impl fmt::Display for RootProvenance {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::OpenBaoTransitionalSingleCustodian { .. } => {
-                f.write_str("openbao-transitional-single-custodian (ADR-0510; defers ADR-0537 step 0)")
-            }
-            Self::ShamirQuorumCeremony { threshold, share_count, .. } => {
-                write!(f, "shamir-quorum-ceremony {threshold}-of-{share_count} (ADR-0537 step 0)")
+            Self::OpenBaoTransitionalSingleCustodian { .. } => f.write_str(
+                "openbao-transitional-single-custodian (ADR-0510; defers ADR-0537 step 0)",
+            ),
+            Self::ShamirQuorumCeremony {
+                threshold,
+                share_count,
+                ..
+            } => {
+                write!(
+                    f,
+                    "shamir-quorum-ceremony {threshold}-of-{share_count} (ADR-0537 step 0)"
+                )
             }
         }
     }

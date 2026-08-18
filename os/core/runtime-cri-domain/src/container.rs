@@ -7,8 +7,8 @@
 
 use crate::image::ImageRef;
 use crate::oci_spec::OciSpec;
-use std::collections::BTreeMap;
 use os_kernel::error::{Error, Result};
+use std::collections::BTreeMap;
 
 /// High-level status of a container record, derived from whether a task has
 /// been created from it and that task's state.

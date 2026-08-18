@@ -50,15 +50,15 @@ pub struct KnowledgeGraphLinkInstance {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct KnowledgeGraphQueryRequest {
-    pub tenant_id: String,                       // data_class: INTERNAL_ONLY
-    pub query_id: String,                        // data_class: INTERNAL_ONLY
-    pub root_entity_id: String,                  // data_class: INTERNAL_ONLY
-    pub edge_type_ids: Vec<String>,              // data_class: INTERNAL_ONLY
-    pub max_depth: u32,                          // data_class: INTERNAL_ONLY
-    pub freshness_floor_epoch_seconds: u64,      // data_class: INTERNAL_ONLY
-    pub observed_at_epoch_seconds: u64,          // data_class: INTERNAL_ONLY
-    pub consented_edge_type_ids: Vec<String>,    // data_class: INTERNAL_ONLY
-    pub direction: TraversalDirection,           // data_class: INTERNAL_ONLY
+    pub tenant_id: String,                    // data_class: INTERNAL_ONLY
+    pub query_id: String,                     // data_class: INTERNAL_ONLY
+    pub root_entity_id: String,               // data_class: INTERNAL_ONLY
+    pub edge_type_ids: Vec<String>,           // data_class: INTERNAL_ONLY
+    pub max_depth: u32,                       // data_class: INTERNAL_ONLY
+    pub freshness_floor_epoch_seconds: u64,   // data_class: INTERNAL_ONLY
+    pub observed_at_epoch_seconds: u64,       // data_class: INTERNAL_ONLY
+    pub consented_edge_type_ids: Vec<String>, // data_class: INTERNAL_ONLY
+    pub direction: TraversalDirection,        // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -103,15 +103,19 @@ pub enum KnowledgeGraphQueryError {
     /// `max_depth` exceeds [`MAX_QUERY_DEPTH`]; reduce the requested depth.
     DepthCeilingExceeded,
     MissingRootEntity,
-    DanglingLinkEndpoint { entity_id: String },
+    DanglingLinkEndpoint {
+        entity_id: String,
+    },
     /// A consent grant id in `consented_edge_type_ids` is structurally invalid
     /// (e.g. missing the `lty_` prefix).
-    MalformedConsentGrantId { id: String },
+    MalformedConsentGrantId {
+        id: String,
+    },
 }
 
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct KnowledgeGraphQueryEngine {
-    links: BTreeMap<KnowledgeGraphLinkKey, KnowledgeGraphLinkInstance>,        // data_class: INTERNAL_ONLY
+    links: BTreeMap<KnowledgeGraphLinkKey, KnowledgeGraphLinkInstance>, // data_class: INTERNAL_ONLY
     inbound: BTreeMap<KnowledgeGraphLinkInboundKey, KnowledgeGraphLinkInstance>, // data_class: INTERNAL_ONLY
 }
 
@@ -185,7 +189,10 @@ impl KnowledgeGraphQueryRequest {
             max_depth,
             freshness_floor_epoch_seconds,
             observed_at_epoch_seconds,
-            consented_edge_type_ids: consented_edge_type_ids.into_iter().map(Into::into).collect(),
+            consented_edge_type_ids: consented_edge_type_ids
+                .into_iter()
+                .map(Into::into)
+                .collect(),
             direction,
         };
         request.validate()?;
@@ -211,7 +218,10 @@ impl KnowledgeGraphQueryRequest {
     }
 
     pub fn consent_filter(&self) -> BTreeSet<&str> {
-        self.consented_edge_type_ids.iter().map(String::as_str).collect()
+        self.consented_edge_type_ids
+            .iter()
+            .map(String::as_str)
+            .collect()
     }
 }
 
@@ -268,18 +278,23 @@ impl KnowledgeGraphQueryEngine {
             // Collect candidate links for this entity based on traversal direction.
             // Both outbound and inbound iterators borrow &self so we materialise
             // the inbound candidates into a Vec to avoid simultaneous borrows.
-            let outbound_links: Vec<&KnowledgeGraphLinkInstance> =
-                if matches!(request.direction, TraversalDirection::Outbound | TraversalDirection::Both) {
-                    self.outbound_links(&request.tenant_id, &entity_id).collect()
-                } else {
-                    vec![]
-                };
-            let inbound_links: Vec<&KnowledgeGraphLinkInstance> =
-                if matches!(request.direction, TraversalDirection::Inbound | TraversalDirection::Both) {
-                    self.inbound_links(&request.tenant_id, &entity_id).collect()
-                } else {
-                    vec![]
-                };
+            let outbound_links: Vec<&KnowledgeGraphLinkInstance> = if matches!(
+                request.direction,
+                TraversalDirection::Outbound | TraversalDirection::Both
+            ) {
+                self.outbound_links(&request.tenant_id, &entity_id)
+                    .collect()
+            } else {
+                vec![]
+            };
+            let inbound_links: Vec<&KnowledgeGraphLinkInstance> = if matches!(
+                request.direction,
+                TraversalDirection::Inbound | TraversalDirection::Both
+            ) {
+                self.inbound_links(&request.tenant_id, &entity_id).collect()
+            } else {
+                vec![]
+            };
 
             for link in outbound_links.into_iter().chain(inbound_links) {
                 if !edge_filter.is_empty() && !edge_filter.contains(link.edge_type_id.as_str()) {
@@ -383,8 +398,7 @@ impl KnowledgeGraphQueryEngine {
                 }..,
             )
             .map_while(move |(key, link)| {
-                ((key.tenant_id == tenant_id) && (key.to_entity_id == to_entity_id))
-                    .then_some(link)
+                ((key.tenant_id == tenant_id) && (key.to_entity_id == to_entity_id)).then_some(link)
             })
     }
 }
@@ -502,8 +516,8 @@ fn validate_consent_grant_id(grant_id: &str) -> Result<(), KnowledgeGraphQueryEr
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oya_data_boundary_kernel::{DataClass, PrivacyDataClass};
     use data_ontology_kernel::{ObjectEntity, ObjectProperty, PropertyTier};
+    use oya_data_boundary_kernel::{DataClass, PrivacyDataClass};
 
     fn property(name: &str) -> ObjectProperty {
         ObjectProperty::new(
@@ -911,13 +925,30 @@ mod tests {
         let r2 = engine.query_graph_slice(&g, req).unwrap();
 
         // result_truncated field must exist and be true
-        assert!(r1.result_truncated, "first run: node cap must set result_truncated");
-        assert!(r2.result_truncated, "second run: node cap must set result_truncated");
+        assert!(
+            r1.result_truncated,
+            "first run: node cap must set result_truncated"
+        );
+        assert!(
+            r2.result_truncated,
+            "second run: node cap must set result_truncated"
+        );
         // determinism: identical counts across repeated calls
-        assert_eq!(r1.nodes.len(), r2.nodes.len(), "node count must be deterministic");
-        assert_eq!(r1.edges.len(), r2.edges.len(), "edge count must be deterministic");
+        assert_eq!(
+            r1.nodes.len(),
+            r2.nodes.len(),
+            "node count must be deterministic"
+        );
+        assert_eq!(
+            r1.edges.len(),
+            r2.edges.len(),
+            "edge count must be deterministic"
+        );
         // returned node set must not exceed cap + root
-        assert!(r1.nodes.len() <= cap + 1, "nodes must not exceed cap + root");
+        assert!(
+            r1.nodes.len() <= cap + 1,
+            "nodes must not exceed cap + root"
+        );
         assert_every_edge_endpoint_is_returned(&r1);
     }
 
@@ -984,7 +1015,10 @@ mod tests {
         .unwrap();
 
         let response = engine.query_graph_slice(&g, req).unwrap();
-        assert!(response.result_truncated, "edge cap must set result_truncated");
+        assert!(
+            response.result_truncated,
+            "edge cap must set result_truncated"
+        );
         assert!(
             response.edges.len() <= edge_cap,
             "returned edges must not exceed MAX_QUERY_RESULT_EDGES"
@@ -1001,7 +1035,11 @@ mod tests {
             .upsert_link(
                 &g,
                 KnowledgeGraphLinkInstance::new(
-                    "ten_alpha", "ent_root", "ent_contact", "lty_owns", 10,
+                    "ten_alpha",
+                    "ent_root",
+                    "ent_contact",
+                    "lty_owns",
+                    10,
                 )
                 .unwrap(),
             )
@@ -1010,7 +1048,11 @@ mod tests {
             .upsert_link(
                 &g,
                 KnowledgeGraphLinkInstance::new(
-                    "ten_alpha", "ent_contact", "ent_case", "lty_related", 11,
+                    "ten_alpha",
+                    "ent_contact",
+                    "ent_case",
+                    "lty_related",
+                    11,
                 )
                 .unwrap(),
             )
@@ -1021,7 +1063,10 @@ mod tests {
             .unwrap();
 
         // result_truncated field must exist and be false for small graphs
-        assert!(!response.result_truncated, "under-cap result must not be truncated");
+        assert!(
+            !response.result_truncated,
+            "under-cap result must not be truncated"
+        );
         assert_eq!(response.nodes.len(), 3);
         assert_eq!(response.edges.len(), 2);
     }
@@ -1207,9 +1252,18 @@ mod tests {
         )
         .unwrap();
         let filter = req.consent_filter();
-        assert!(filter.contains("lty_partner"), "consent_filter must contain lty_partner");
-        assert!(filter.contains("lty_member"), "consent_filter must contain lty_member");
-        assert!(!filter.contains("lty_owns"), "consent_filter must not contain lty_owns");
+        assert!(
+            filter.contains("lty_partner"),
+            "consent_filter must contain lty_partner"
+        );
+        assert!(
+            filter.contains("lty_member"),
+            "consent_filter must contain lty_member"
+        );
+        assert!(
+            !filter.contains("lty_owns"),
+            "consent_filter must not contain lty_owns"
+        );
     }
 
     // ST2 acceptance: when a non-empty consent scope is supplied, the BFS must
@@ -1242,7 +1296,11 @@ mod tests {
 
         let response = engine.query_graph_slice(&g, req).unwrap();
 
-        let node_ids: Vec<&str> = response.nodes.iter().map(|n| n.entity_id.as_str()).collect();
+        let node_ids: Vec<&str> = response
+            .nodes
+            .iter()
+            .map(|n| n.entity_id.as_str())
+            .collect();
         assert!(
             node_ids.contains(&"ent_b"),
             "ent_b (reached via consented lty_partner) must be in response nodes"
@@ -1306,10 +1364,23 @@ mod tests {
 
         let response = engine.query_graph_slice(&g, req).unwrap();
 
-        let node_ids: Vec<&str> = response.nodes.iter().map(|n| n.entity_id.as_str()).collect();
-        assert!(node_ids.contains(&"ent_b"), "ent_b must be present with empty consent scope");
-        assert!(node_ids.contains(&"ent_c"), "ent_c must be present with empty consent scope");
-        assert!(node_ids.contains(&"ent_d"), "ent_d must be present with empty consent scope");
+        let node_ids: Vec<&str> = response
+            .nodes
+            .iter()
+            .map(|n| n.entity_id.as_str())
+            .collect();
+        assert!(
+            node_ids.contains(&"ent_b"),
+            "ent_b must be present with empty consent scope"
+        );
+        assert!(
+            node_ids.contains(&"ent_c"),
+            "ent_c must be present with empty consent scope"
+        );
+        assert!(
+            node_ids.contains(&"ent_d"),
+            "ent_d must be present with empty consent scope"
+        );
 
         assert_eq!(
             response.edges.len(),
@@ -1369,10 +1440,8 @@ mod tests {
         engine
             .upsert_link(
                 &g,
-                KnowledgeGraphLinkInstance::new(
-                    "ten_alpha", "ent_root", "ent_b", "lty_partner", 5,
-                )
-                .unwrap(),
+                KnowledgeGraphLinkInstance::new("ten_alpha", "ent_root", "ent_b", "lty_partner", 5)
+                    .unwrap(),
             )
             .unwrap();
 
@@ -1390,7 +1459,11 @@ mod tests {
         .unwrap();
 
         let response = engine.query_graph_slice(&g, req).unwrap();
-        let node_ids: Vec<&str> = response.nodes.iter().map(|n| n.entity_id.as_str()).collect();
+        let node_ids: Vec<&str> = response
+            .nodes
+            .iter()
+            .map(|n| n.entity_id.as_str())
+            .collect();
         assert!(
             !node_ids.contains(&"ent_b"),
             "a consented but stale edge must be pruned by freshness; ent_b must be absent"
@@ -1459,8 +1532,11 @@ mod tests {
         )
         .unwrap();
         let inbound_resp = engine.query_graph_slice(&g, inbound_req).unwrap();
-        let inbound_nodes: Vec<&str> =
-            inbound_resp.nodes.iter().map(|n| n.entity_id.as_str()).collect();
+        let inbound_nodes: Vec<&str> = inbound_resp
+            .nodes
+            .iter()
+            .map(|n| n.entity_id.as_str())
+            .collect();
 
         assert!(
             inbound_nodes.contains(&"ent_pred"),
@@ -1484,8 +1560,11 @@ mod tests {
         )
         .unwrap();
         let outbound_resp = engine.query_graph_slice(&g, outbound_req).unwrap();
-        let outbound_nodes: Vec<&str> =
-            outbound_resp.nodes.iter().map(|n| n.entity_id.as_str()).collect();
+        let outbound_nodes: Vec<&str> = outbound_resp
+            .nodes
+            .iter()
+            .map(|n| n.entity_id.as_str())
+            .collect();
 
         assert!(
             !outbound_nodes.contains(&"ent_pred"),
@@ -1609,17 +1688,19 @@ mod tests {
         engine
             .upsert_link(
                 &g,
-                KnowledgeGraphLinkInstance::new(
-                    "ten_alpha", "ent_pred", "ent_root", "lty_owns", 1,
-                )
-                .unwrap(),
+                KnowledgeGraphLinkInstance::new("ten_alpha", "ent_pred", "ent_root", "lty_owns", 1)
+                    .unwrap(),
             )
             .unwrap();
         engine
             .upsert_link(
                 &g,
                 KnowledgeGraphLinkInstance::new(
-                    "ten_alpha", "ent_other", "ent_root", "lty_partner", 1,
+                    "ten_alpha",
+                    "ent_other",
+                    "ent_root",
+                    "lty_partner",
+                    1,
                 )
                 .unwrap(),
             )
@@ -1654,8 +1735,7 @@ mod tests {
     #[test]
     fn inbound_freshness_floor_prunes_stale_edges() {
         let mut g = ObjectGraph::default();
-        for (entity_id, entity_type) in [("ent_pred", "ety_account"), ("ent_root", "ety_account")]
-        {
+        for (entity_id, entity_type) in [("ent_pred", "ety_account"), ("ent_root", "ety_account")] {
             g.upsert_entity(
                 ObjectEntity::new(
                     "ten_alpha".to_string(),
@@ -1672,10 +1752,8 @@ mod tests {
         engine
             .upsert_link(
                 &g,
-                KnowledgeGraphLinkInstance::new(
-                    "ten_alpha", "ent_pred", "ent_root", "lty_owns", 5,
-                )
-                .unwrap(),
+                KnowledgeGraphLinkInstance::new("ten_alpha", "ent_pred", "ent_root", "lty_owns", 5)
+                    .unwrap(),
             )
             .unwrap();
 
@@ -1761,7 +1839,10 @@ mod tests {
         .unwrap();
         let resp = engine.query_graph_slice(&g, req).unwrap();
 
-        assert!(resp.result_truncated, "Inbound node cap must set result_truncated");
+        assert!(
+            resp.result_truncated,
+            "Inbound node cap must set result_truncated"
+        );
         assert!(
             resp.nodes.len() <= cap + 1,
             "Inbound nodes must not exceed cap + root"
@@ -1798,10 +1879,8 @@ mod tests {
         engine
             .upsert_link(
                 &g,
-                KnowledgeGraphLinkInstance::new(
-                    "ten_alpha", "ent_pred", "ent_root", "lty_owns", 1,
-                )
-                .unwrap(),
+                KnowledgeGraphLinkInstance::new("ten_alpha", "ent_pred", "ent_root", "lty_owns", 1)
+                    .unwrap(),
             )
             .unwrap();
         // ten_beta: ent_beta_pred -> ent_beta_root (different tenant — must not leak)
@@ -1809,7 +1888,11 @@ mod tests {
             .upsert_link(
                 &g,
                 KnowledgeGraphLinkInstance::new(
-                    "ten_beta", "ent_beta_pred", "ent_beta_root", "lty_owns", 1,
+                    "ten_beta",
+                    "ent_beta_pred",
+                    "ent_beta_root",
+                    "lty_owns",
+                    1,
                 )
                 .unwrap(),
             )
@@ -1891,7 +1974,11 @@ mod tests {
         .unwrap();
         // Must terminate and return the 3 cycle nodes.
         let resp = engine.query_graph_slice(&g, req).unwrap();
-        assert_eq!(resp.nodes.len(), 3, "inbound cycle must terminate and return 3 nodes");
+        assert_eq!(
+            resp.nodes.len(),
+            3,
+            "inbound cycle must terminate and return 3 nodes"
+        );
         assert_eq!(resp.edges.len(), 3, "inbound cycle must return 3 edges");
     }
 }

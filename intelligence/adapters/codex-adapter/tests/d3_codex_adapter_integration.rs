@@ -13,9 +13,7 @@ use std::collections::BTreeMap;
 use std::sync::Arc;
 
 use httpmock::prelude::*;
-use intelligence_codex_adapter::{
-    CodexAdapter, CodexAdapterError, CodexProxyRequest, HOP_BY_HOP,
-};
+use intelligence_codex_adapter::{CodexAdapter, CodexAdapterError, CodexProxyRequest, HOP_BY_HOP};
 
 // ---------------------------------------------------------------------------
 // Helpers

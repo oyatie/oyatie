@@ -54,7 +54,10 @@ fn check_limits_empty_set_returns_no_windows() {
 fn check_limits_single_window_within_limit_returns_decision_with_provenance() {
     let w = window(UsageWindowKind::FiveHour, 100, 0, 80, 5);
     let dec = UsageEnforcement::check_limits(&[(w, 1_000)], 100).unwrap();
-    assert!(matches!(dec.verdict, EnforcementVerdict::WithinLimit { .. }));
+    assert!(matches!(
+        dec.verdict,
+        EnforcementVerdict::WithinLimit { .. }
+    ));
     assert_eq!(dec.provenance.window_index, 0);
     assert_eq!(dec.provenance.window_kind, UsageWindowKind::FiveHour);
 }
@@ -65,7 +68,10 @@ fn check_limits_picks_reserve_breached_over_within_limit() {
     let w0 = window(UsageWindowKind::FiveHour, 100, 0, 80, 5);
     let w1 = window(UsageWindowKind::OneWeek, 950, 0, 100, 10);
     let dec = UsageEnforcement::check_limits(&[(w0, 1_000), (w1, 1_000)], 100).unwrap();
-    assert!(matches!(dec.verdict, EnforcementVerdict::ReserveBreached { .. }));
+    assert!(matches!(
+        dec.verdict,
+        EnforcementVerdict::ReserveBreached { .. }
+    ));
     assert_eq!(dec.provenance.window_index, 1);
     assert_eq!(dec.provenance.window_kind, UsageWindowKind::OneWeek);
 }
@@ -75,7 +81,10 @@ fn check_limits_picks_over_usage_limit_over_within_limit() {
     let w0 = window(UsageWindowKind::FiveHour, 50, 0, 80, 5);
     let w1 = window(UsageWindowKind::OneWeek, 850, 0, 80, 5);
     let dec = UsageEnforcement::check_limits(&[(w0, 1_000), (w1, 1_000)], 100).unwrap();
-    assert!(matches!(dec.verdict, EnforcementVerdict::OverUsageLimit { .. }));
+    assert!(matches!(
+        dec.verdict,
+        EnforcementVerdict::OverUsageLimit { .. }
+    ));
     assert_eq!(dec.provenance.window_index, 1);
     assert_eq!(dec.provenance.window_kind, UsageWindowKind::OneWeek);
 }
@@ -98,7 +107,10 @@ fn check_limits_all_within_tie_breaks_to_earliest_index() {
     let w0 = window(UsageWindowKind::FiveHour, 10, 0, 80, 5);
     let w1 = window(UsageWindowKind::OneWeek, 20, 0, 80, 5);
     let dec = UsageEnforcement::check_limits(&[(w0, 1_000), (w1, 1_000)], 100).unwrap();
-    assert!(matches!(dec.verdict, EnforcementVerdict::WithinLimit { .. }));
+    assert!(matches!(
+        dec.verdict,
+        EnforcementVerdict::WithinLimit { .. }
+    ));
     assert_eq!(dec.provenance.window_index, 0);
     assert_eq!(dec.provenance.window_kind, UsageWindowKind::FiveHour);
 }
@@ -109,7 +121,10 @@ fn check_limits_equal_rank_tie_breaks_to_earliest_index() {
     let w0 = window(UsageWindowKind::FiveHour, 850, 0, 80, 5);
     let w1 = window(UsageWindowKind::OneWeek, 850, 0, 80, 5);
     let dec = UsageEnforcement::check_limits(&[(w0, 1_000), (w1, 1_000)], 100).unwrap();
-    assert!(matches!(dec.verdict, EnforcementVerdict::OverUsageLimit { .. }));
+    assert!(matches!(
+        dec.verdict,
+        EnforcementVerdict::OverUsageLimit { .. }
+    ));
     assert_eq!(dec.provenance.window_index, 0);
     assert_eq!(dec.provenance.window_kind, UsageWindowKind::FiveHour);
 }

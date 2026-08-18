@@ -174,7 +174,11 @@ fn fixture_policy(repo: &Path) -> Value {
         object.remove("legacy_root_freeze");
     }
     // The fixture registry lives at the fixture repo root.
-    write_file(repo, "governance/capability-registry.json", fixture_registry());
+    write_file(
+        repo,
+        "governance/capability-registry.json",
+        fixture_registry(),
+    );
     // Also stamp root-hub-pointers so any walk-up logic that targets the fixture is satisfied.
     write_file(repo, "specs/root-hub-pointers.json", "{}\n");
     policy
@@ -184,13 +188,28 @@ fn fixture_policy(repo: &Path) -> Value {
 fn green_repo_fixture_passes_from_disk() {
     let repo = new_temp_repo();
     let root = &repo.root;
-    write_file(root, "cloud/cloud-iam/crates/iam-kernel/Cargo.toml", &package_manifest("iam-kernel"));
-    write_file(root, "cloud/cloud-data/crates/data-kernel/Cargo.toml", &package_manifest("data-kernel"));
-    write_file(root, "oya/crm/crates/crm-kernel/Cargo.toml", &package_manifest("crm-kernel"));
+    write_file(
+        root,
+        "cloud/cloud-iam/crates/iam-kernel/Cargo.toml",
+        &package_manifest("iam-kernel"),
+    );
+    write_file(
+        root,
+        "cloud/cloud-data/crates/data-kernel/Cargo.toml",
+        &package_manifest("data-kernel"),
+    );
+    write_file(
+        root,
+        "oya/crm/crates/crm-kernel/Cargo.toml",
+        &package_manifest("crm-kernel"),
+    );
     let policy = fixture_policy(root);
     let observed = collect(root, &policy).expect("collect green fixture");
     let findings = evaluate_keyed(&policy, &observed);
-    assert!(findings.is_empty(), "green fixture must pass: {findings:#?}");
+    assert!(
+        findings.is_empty(),
+        "green fixture must pass: {findings:#?}"
+    );
     assert_eq!(evaluate(&policy, &observed).verdict, Verdict::Green);
     assert_eq!(evaluate(&policy, &observed).crates_checked, 3);
 }
@@ -200,14 +219,24 @@ fn red_crate_in_no_capability_fails_from_disk() {
     // RED FIXTURE #1: a crate that maps to NO capability (new, unmapped).
     let repo = new_temp_repo();
     let root = &repo.root;
-    write_file(root, "cloud/cloud-iam/crates/iam-kernel/Cargo.toml", &package_manifest("iam-kernel"));
-    write_file(root, "oya/widget/crates/widget-kernel/Cargo.toml", &package_manifest("widget-kernel"));
+    write_file(
+        root,
+        "cloud/cloud-iam/crates/iam-kernel/Cargo.toml",
+        &package_manifest("iam-kernel"),
+    );
+    write_file(
+        root,
+        "oya/widget/crates/widget-kernel/Cargo.toml",
+        &package_manifest("widget-kernel"),
+    );
     let policy = fixture_policy(root);
     let observed = collect(root, &policy).expect("collect red#1 fixture");
     let findings = evaluate_keyed(&policy, &observed);
     assert!(
-        findings.iter().any(|f| f.code == "MEM-NEW-UNMAPPED-CRATE"
-            && f.key == "oya/widget/crates/widget-kernel"),
+        findings
+            .iter()
+            .any(|f| f.code == "MEM-NEW-UNMAPPED-CRATE"
+                && f.key == "oya/widget/crates/widget-kernel"),
         "an unmapped (new) crate must fail from disk: {findings:#?}"
     );
     assert_eq!(evaluate(&policy, &observed).verdict, Verdict::Red);
@@ -218,8 +247,16 @@ fn red_new_top_level_dir_common_fails_from_disk() {
     // RED FIXTURE #2: a NEW top-level dir common/.
     let repo = new_temp_repo();
     let root = &repo.root;
-    write_file(root, "cloud/cloud-iam/crates/iam-kernel/Cargo.toml", &package_manifest("iam-kernel"));
-    write_file(root, "common/oya-util/Cargo.toml", &package_manifest("oya-util"));
+    write_file(
+        root,
+        "cloud/cloud-iam/crates/iam-kernel/Cargo.toml",
+        &package_manifest("iam-kernel"),
+    );
+    write_file(
+        root,
+        "common/oya-util/Cargo.toml",
+        &package_manifest("oya-util"),
+    );
     let policy = fixture_policy(root);
     let observed = collect(root, &policy).expect("collect red#2 fixture");
     let findings = evaluate_keyed(&policy, &observed);
@@ -237,7 +274,11 @@ fn red_crate_in_two_capabilities_fails_from_disk() {
     // RED FIXTURE #3: a crate claimed by TWO capabilities (overlapping absorbs).
     let repo = new_temp_repo();
     let root = &repo.root;
-    write_file(root, "cloud/cloud-iam/crates/iam-kernel/Cargo.toml", &package_manifest("iam-kernel"));
+    write_file(
+        root,
+        "cloud/cloud-iam/crates/iam-kernel/Cargo.toml",
+        &package_manifest("iam-kernel"),
+    );
     let mut policy = fixture_policy(root);
     // Repoint the fixture registry to one where two caps both absorb cloud/cloud-iam.
     write_file(
@@ -261,8 +302,10 @@ fn red_crate_in_two_capabilities_fails_from_disk() {
     let observed = collect(root, &policy).expect("collect red#3 fixture");
     let findings = evaluate_keyed(&policy, &observed);
     assert!(
-        findings.iter().any(|f| f.code == "MEM-DOUBLE-MAPPED-CRATE"
-            && f.key == "cloud/cloud-iam/crates/iam-kernel"),
+        findings
+            .iter()
+            .any(|f| f.code == "MEM-DOUBLE-MAPPED-CRATE"
+                && f.key == "cloud/cloud-iam/crates/iam-kernel"),
         "a crate in two capabilities must fail from disk: {findings:#?}"
     );
     assert_eq!(evaluate(&policy, &observed).verdict, Verdict::Red);
@@ -309,13 +352,18 @@ fn a_base_crate_without_admission_facts_is_red_now_that_base_is_scanned() {
     // CLOSED, which is the anti-junk-drawer backstop the ADR mandates.
     let repo = new_temp_repo();
     let root = &repo.root;
-    write_file(root, "base/dumping-ground/Cargo.toml", &package_manifest("dumping-ground"));
+    write_file(
+        root,
+        "base/dumping-ground/Cargo.toml",
+        &package_manifest("dumping-ground"),
+    );
     let policy = fixture_policy(root);
     let observed = collect(root, &policy).expect("collect base fixture");
     let findings = evaluate_keyed(&policy, &observed);
     assert!(
-        findings.iter().any(|f| f.code == "MEM-BASE-ADMISSION-CONSUMERS"
-            && f.key == "base/dumping-ground"),
+        findings
+            .iter()
+            .any(|f| f.code == "MEM-BASE-ADMISSION-CONSUMERS" && f.key == "base/dumping-ground"),
         "a base/ crate with no declared admission facts must fail closed: {findings:#?}"
     );
     assert_eq!(evaluate(&policy, &observed).verdict, Verdict::Red);
@@ -366,7 +414,9 @@ fn committed_policy_freezes_the_legacy_roots_with_a_producer_emitted_census() {
     for entry in census {
         let dir = entry.as_str().expect("census entry is a string");
         assert!(
-            roots.iter().any(|r| dir == *r || dir.starts_with(&format!("{r}/"))),
+            roots
+                .iter()
+                .any(|r| dir == *r || dir.starts_with(&format!("{r}/"))),
             "census entry {dir:?} is not under any frozen root — the census is keyed by crate DIR \
              under a frozen root, so an off-root entry can only ever be dead weight"
         );
@@ -447,8 +497,10 @@ fn red_new_crate_under_a_frozen_legacy_root_fails_from_disk() {
         "the fixture must exercise the freeze, not the membership map: {findings:#?}"
     );
     assert!(
-        findings.iter().any(|f| f.code == "MEM-NEW-LEGACY-ROOT-CRATE"
-            && f.key == "cloud/cloud-iam/crates/iam-brand-new"),
+        findings
+            .iter()
+            .any(|f| f.code == "MEM-NEW-LEGACY-ROOT-CRATE"
+                && f.key == "cloud/cloud-iam/crates/iam-brand-new"),
         "a crate born under a FROZEN legacy root must fail from disk: {findings:#?}"
     );
     assert_eq!(evaluate(&policy, &observed).verdict, Verdict::Red);
@@ -460,8 +512,16 @@ fn virtual_workspace_manifest_is_not_a_crate() {
     // A [workspace]-only Cargo.toml is NOT a crate; only [package] manifests count.
     let repo = new_temp_repo();
     let root = &repo.root;
-    write_file(root, "cloud/cloud-iam/Cargo.toml", "[workspace]\nmembers = [\"crates/iam-kernel\"]\n");
-    write_file(root, "cloud/cloud-iam/crates/iam-kernel/Cargo.toml", &package_manifest("iam-kernel"));
+    write_file(
+        root,
+        "cloud/cloud-iam/Cargo.toml",
+        "[workspace]\nmembers = [\"crates/iam-kernel\"]\n",
+    );
+    write_file(
+        root,
+        "cloud/cloud-iam/crates/iam-kernel/Cargo.toml",
+        &package_manifest("iam-kernel"),
+    );
     let policy = fixture_policy(root);
     let observed = collect(root, &policy).expect("collect ws fixture");
     // Only the [package] crate is collected; the [workspace] manifest dir is not.

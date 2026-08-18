@@ -70,7 +70,7 @@ doc_status: published
 
 ## Publish
 
-33. ☐ Open PR with `## Issue / Summary / Verification / Traceability / Evidence` (per CLAUDE.md).
+33. ☐ Open PR with `## Issue / Summary / Verification / Code Review` (per CLAUDE.md).
 34. ☐ Include eval-set output in `## Verification`.
 35. ☐ Cross-axis review label set if capability touches a DESIGN §10 contract row.
 36. ☐ `oya agent capability publish --dry-run` passes.

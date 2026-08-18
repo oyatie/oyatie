@@ -228,7 +228,11 @@ fn build_fixture(root: &Path) {
         "crates/oya-bystander/Cargo.toml",
         "[package]\nname = \"oya-bystander\"\nversion = \"0.1.0\"\nedition = \"2021\"\n",
     );
-    w(root, "crates/oya-bystander/src/lib.rs", "pub fn bystand() {}\n");
+    w(
+        root,
+        "crates/oya-bystander/src/lib.rs",
+        "pub fn bystand() {}\n",
+    );
 
     // libs/oya-shared-kernel (does not move)
     w(
@@ -236,7 +240,11 @@ fn build_fixture(root: &Path) {
         "libs/oya-shared-kernel/Cargo.toml",
         "[package]\nname = \"oya-shared-kernel\"\nversion = \"0.1.0\"\nedition = \"2021\"\n",
     );
-    w(root, "libs/oya-shared-kernel/src/lib.rs", "pub fn root() {}\n");
+    w(
+        root,
+        "libs/oya-shared-kernel/src/lib.rs",
+        "pub fn root() {}\n",
+    );
     w(
         root,
         "libs/oya-shared-kernel/BUCK",
@@ -328,7 +336,10 @@ fn forward_move_recomputes_paths_and_resolves() {
     // (4) sibling dep recomputed + key renamed: cap-app depends on cap-core; both moved into
     //     cap/{core,facade} so the relative path is ../../core/cap-core.
     let app_manifest = r(&root, "cap/facade/cap-app/Cargo.toml");
-    assert!(app_manifest.contains("cap-core = "), "renamed dep key: {app_manifest}");
+    assert!(
+        app_manifest.contains("cap-core = "),
+        "renamed dep key: {app_manifest}"
+    );
     assert!(!app_manifest.contains("oya-cap-core ="));
     assert!(
         app_manifest.contains("path = \"../../core/cap-core\""),
@@ -341,7 +352,10 @@ fn forward_move_recomputes_paths_and_resolves() {
 
     // (5) Rust import idents rewritten kebab->snake.
     let app_src = r(&root, "cap/facade/cap-app/src/lib.rs");
-    assert!(app_src.contains("use cap_core::engine;"), "rust import: {app_src}");
+    assert!(
+        app_src.contains("use cap_core::engine;"),
+        "rust import: {app_src}"
+    );
     assert!(!app_src.contains("oya_cap_core"));
 
     // (6) BUCK labels rewritten (absolute path + target) + own name/crate.
@@ -361,11 +375,18 @@ fn forward_move_recomputes_paths_and_resolves() {
     assert!(outcome.root_workspace_changed);
     assert!(root_manifest.contains("cap/core/cap-core"));
     assert!(root_manifest.contains("cap/facade/cap-app"));
-    assert!(root_manifest.contains("crates/*"), "bystander keeps crates/* alive");
+    assert!(
+        root_manifest.contains("crates/*"),
+        "bystander keeps crates/* alive"
+    );
 
     // (8) cargo metadata resolves the moved workspace.
     let snap = oracle::capture_snapshot(&root, false);
-    assert!(snap.cargo_ok, "post-move cargo metadata failed: {}", snap.cargo_metadata);
+    assert!(
+        snap.cargo_ok,
+        "post-move cargo metadata failed: {}",
+        snap.cargo_metadata
+    );
     assert!(snap.cargo_metadata.contains("cap-core"));
     assert!(snap.cargo_metadata.contains("cap-app"));
 
@@ -435,7 +456,11 @@ fn inverse_restores_file_and_symlink_content_but_not_empty_directory_provenance(
 
     // And cargo still resolves the restored tree.
     let snap = oracle::capture_snapshot(&root, false);
-    assert!(snap.cargo_ok, "restored cargo metadata failed: {}", snap.cargo_metadata);
+    assert!(
+        snap.cargo_ok,
+        "restored cargo metadata failed: {}",
+        snap.cargo_metadata
+    );
 
     let _ = std::fs::remove_dir_all(&root);
 }
@@ -448,7 +473,11 @@ fn dry_run_passes_a_clean_capability_move_without_landing() {
     let before = snapshot_tree(&root);
 
     let report = oracle::dry_run(&root, &plan, false, false).unwrap();
-    assert!(report.clean, "expected clean dry-run; cargo={}", report.cargo_detail);
+    assert!(
+        report.clean,
+        "expected clean dry-run; cargo={}",
+        report.cargo_detail
+    );
     assert!(report.cargo_ok);
 
     // The real tree was NOT modified (dry-run is shadow-only).
@@ -486,7 +515,10 @@ fn dry_run_fails_a_move_that_would_break_resolution() {
         !report.clean,
         "expected dry-run to FAIL: the phantom path-dep makes the workspace non-resolving"
     );
-    assert!(!report.cargo_ok, "cargo metadata must fail on the broken graph");
+    assert!(
+        !report.cargo_ok,
+        "cargo metadata must fail on the broken graph"
+    );
 
     // Critically, the failing dry-run did NOT land anything (fail-closed safety).
     assert!(root.join("crates/oya-cap-app").is_dir());
@@ -545,7 +577,11 @@ fn forward_move_prunes_emptied_members_glob_and_still_resolves() {
         "libs/oya-shared-kernel/Cargo.toml",
         "[package]\nname = \"oya-shared-kernel\"\nversion = \"0.1.0\"\nedition = \"2021\"\n",
     );
-    w(&root, "libs/oya-shared-kernel/src/lib.rs", "pub fn root() {}\n");
+    w(
+        &root,
+        "libs/oya-shared-kernel/src/lib.rs",
+        "pub fn root() {}\n",
+    );
     w(
         &root,
         "crates/oya-cap-core/Cargo.toml",
@@ -571,12 +607,22 @@ fn forward_move_prunes_emptied_members_glob_and_still_resolves() {
     assert!(outcome.root_workspace_changed);
 
     let manifest = r(&root, "Cargo.toml");
-    assert!(!manifest.contains("crates/*"), "emptied glob pruned: {manifest}");
-    assert!(manifest.contains("cap/core/cap-core"), "new dir added: {manifest}");
+    assert!(
+        !manifest.contains("crates/*"),
+        "emptied glob pruned: {manifest}"
+    );
+    assert!(
+        manifest.contains("cap/core/cap-core"),
+        "new dir added: {manifest}"
+    );
 
     // The pruned + extended workspace resolves.
     let snap = oracle::capture_snapshot(&root, false);
-    assert!(snap.cargo_ok, "post-prune cargo metadata failed: {}", snap.cargo_metadata);
+    assert!(
+        snap.cargo_ok,
+        "post-prune cargo metadata failed: {}",
+        snap.cargo_metadata
+    );
 
     let _ = std::fs::remove_dir_all(&root);
 }

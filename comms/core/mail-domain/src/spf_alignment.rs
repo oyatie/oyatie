@@ -76,10 +76,7 @@ pub fn evaluate_spf_alignment(
 
 /// Normalise a domain for comparison: ASCII-lowercase + strip trailing dot.
 fn normalize(domain: &str) -> String {
-    domain
-        .trim()
-        .trim_end_matches('.')
-        .to_ascii_lowercase()
+    domain.trim().trim_end_matches('.').to_ascii_lowercase()
 }
 
 #[cfg(test)]
@@ -105,11 +102,7 @@ mod tests {
     #[test]
     fn subdomain_relaxed_relaxed_aligned() {
         assert_eq!(
-            evaluate_spf_alignment(
-                "mail.example.com",
-                "example.com",
-                SpfAlignmentMode::Relaxed
-            ),
+            evaluate_spf_alignment("mail.example.com", "example.com", SpfAlignmentMode::Relaxed),
             SpfAlignmentVerdict::RelaxedAligned
         );
     }

@@ -179,11 +179,7 @@ impl FpBudget {
     /// Returns `Err(FpBudgetError::ZeroTotalEvals)` when `total_evals == 0`.
     /// Returns `Err(FpBudgetError::InvalidBudgetPct)` when `budget_pct` is not
     /// in `(0.0, 1.0]`.
-    pub fn new(
-        observed_fp: u32,
-        total_evals: u32,
-        budget_pct: f64,
-    ) -> Result<Self, FpBudgetError> {
+    pub fn new(observed_fp: u32, total_evals: u32, budget_pct: f64) -> Result<Self, FpBudgetError> {
         if total_evals == 0 {
             return Err(FpBudgetError::ZeroTotalEvals);
         }
@@ -571,8 +567,16 @@ mod tests {
     #[test]
     fn weighted_fp_all_three_levels_unit_counts() {
         let budget = FpBudget::new(1, 100, 0.05).unwrap();
-        let sw = SeverityWeight { low: 1.0, medium: 2.0, high: 3.0 };
-        let findings = [(RiskLevel::Low, 1u32), (RiskLevel::Medium, 1), (RiskLevel::High, 1)];
+        let sw = SeverityWeight {
+            low: 1.0,
+            medium: 2.0,
+            high: 3.0,
+        };
+        let findings = [
+            (RiskLevel::Low, 1u32),
+            (RiskLevel::Medium, 1),
+            (RiskLevel::High, 1),
+        ];
         let result = budget.weighted_fp(&sw, &findings);
         // 1*1 + 2*1 + 3*1 = 6.0
         assert!((result - 6.0).abs() < f64::EPSILON);
@@ -581,22 +585,38 @@ mod tests {
     #[test]
     fn weighted_fp_zero_counts_returns_zero() {
         let budget = FpBudget::new(1, 100, 0.05).unwrap();
-        let sw = SeverityWeight { low: 1.0, medium: 2.0, high: 3.0 };
-        let findings = [(RiskLevel::Low, 0u32), (RiskLevel::Medium, 0), (RiskLevel::High, 0)];
+        let sw = SeverityWeight {
+            low: 1.0,
+            medium: 2.0,
+            high: 3.0,
+        };
+        let findings = [
+            (RiskLevel::Low, 0u32),
+            (RiskLevel::Medium, 0),
+            (RiskLevel::High, 0),
+        ];
         assert!((budget.weighted_fp(&sw, &findings)).abs() < f64::EPSILON);
     }
 
     #[test]
     fn weighted_fp_empty_slice_returns_zero() {
         let budget = FpBudget::new(1, 100, 0.05).unwrap();
-        let sw = SeverityWeight { low: 1.0, medium: 2.0, high: 3.0 };
+        let sw = SeverityWeight {
+            low: 1.0,
+            medium: 2.0,
+            high: 3.0,
+        };
         assert!((budget.weighted_fp(&sw, &[])).abs() < f64::EPSILON);
     }
 
     #[test]
     fn weighted_fp_high_only() {
         let budget = FpBudget::new(1, 100, 0.05).unwrap();
-        let sw = SeverityWeight { low: 1.0, medium: 2.0, high: 5.0 };
+        let sw = SeverityWeight {
+            low: 1.0,
+            medium: 2.0,
+            high: 5.0,
+        };
         let findings = [(RiskLevel::High, 3u32)];
         // 5.0 * 3 = 15.0
         assert!((budget.weighted_fp(&sw, &findings) - 15.0).abs() < f64::EPSILON);
@@ -635,7 +655,10 @@ mod tests {
         // We use the merge path: two budgets with total_evals=0 cannot be constructed.
         // Instead test the ZeroTotalEvals variant is still reachable via new() directly
         // to confirm the path exists; merge of two real budgets always has nonzero total.
-        assert_eq!(FpBudget::new(0, 0, 0.05), Err(FpBudgetError::ZeroTotalEvals));
+        assert_eq!(
+            FpBudget::new(0, 0, 0.05),
+            Err(FpBudgetError::ZeroTotalEvals)
+        );
     }
 
     #[test]
@@ -651,7 +674,11 @@ mod tests {
 
     #[test]
     fn severity_weight_for_each_level() {
-        let sw = SeverityWeight { low: 1.0, medium: 2.0, high: 4.0 };
+        let sw = SeverityWeight {
+            low: 1.0,
+            medium: 2.0,
+            high: 4.0,
+        };
         assert!((sw.weight_for(RiskLevel::Low) - 1.0).abs() < f64::EPSILON);
         assert!((sw.weight_for(RiskLevel::Medium) - 2.0).abs() < f64::EPSILON);
         assert!((sw.weight_for(RiskLevel::High) - 4.0).abs() < f64::EPSILON);

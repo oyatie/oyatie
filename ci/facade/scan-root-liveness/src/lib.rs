@@ -159,7 +159,9 @@ pub fn evaluate(observed: &Observed, policy: &Policy) -> Report {
     // COMPLETENESS: a policy file declaring roots must be registered or exempt,
     // otherwise a newly-added gate silently escapes liveness checking.
     for file in &observed.policy_files_with_roots {
-        if policy.registered_policy_files.contains(file) || policy.exempt_policy_files.contains_key(file) {
+        if policy.registered_policy_files.contains(file)
+            || policy.exempt_policy_files.contains_key(file)
+        {
             continue;
         }
         findings.push(Finding {
@@ -322,7 +324,8 @@ mod tests {
     fn baselined_dead_root_is_tolerated_and_counted() {
         let o = observed(vec![root("p.json", "roots", "bin", false)]);
         let mut p = policy(&["p.json"]);
-        p.baselined_dead_roots.insert("p.json::roots::bin".to_owned());
+        p.baselined_dead_roots
+            .insert("p.json::roots::bin".to_owned());
         let r = evaluate(&o, &p);
         assert_eq!(r.verdict, Verdict::Green);
         assert_eq!(r.dead_tolerated, 1);
@@ -342,8 +345,10 @@ mod tests {
     fn exempt_policy_file_with_reason_is_accepted() {
         let o = observed(vec![root("fixture.json", "roots", "nowhere", false)]);
         let mut p = policy(&[]);
-        p.exempt_policy_files
-            .insert("fixture.json".to_owned(), "test fixture, not a live gate".to_owned());
+        p.exempt_policy_files.insert(
+            "fixture.json".to_owned(),
+            "test fixture, not a live gate".to_owned(),
+        );
         // Exempt from COMPLETENESS, but its roots are still evaluated — exemption is
         // about registration, not about licensing dead roots.
         let r = evaluate(&o, &p);
@@ -360,7 +365,8 @@ mod tests {
             root("b.json", "roots", "gone", false),
         ]);
         let mut p = policy(&["a.json", "b.json"]);
-        p.baselined_dead_roots.insert("a.json::roots::gone".to_owned());
+        p.baselined_dead_roots
+            .insert("a.json::roots::gone".to_owned());
         let r = evaluate(&o, &p);
         assert_eq!(r.verdict, Verdict::Red);
         assert_eq!(r.findings.len(), 1);
@@ -410,9 +416,17 @@ mod tests {
         );
         let r = evaluate(&o, &p);
         for f in &r.findings {
-            assert!(VIOLATION_CODES.contains(&f.code.as_str()), "unregistered {}", f.code);
+            assert!(
+                VIOLATION_CODES.contains(&f.code.as_str()),
+                "unregistered {}",
+                f.code
+            );
         }
         let codes: BTreeSet<&str> = r.findings.iter().map(|f| f.code.as_str()).collect();
-        assert_eq!(codes.len(), VIOLATION_CODES.len(), "all codes reachable: {codes:?}");
+        assert_eq!(
+            codes.len(),
+            VIOLATION_CODES.len(),
+            "all codes reachable: {codes:?}"
+        );
     }
 }

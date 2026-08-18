@@ -8,9 +8,9 @@
 //! the system quiesces (no controller requests a requeue / no output changes).
 
 use crate::reconcile::{Controller, ReconcileContext, ReconcileResult};
-use std::collections::{BTreeMap, BTreeSet};
 use os_cosi_domain::State;
 use os_cosi_domain::resource::ResourceKind;
+use std::collections::{BTreeMap, BTreeSet};
 
 /// A registered controller plus its declared shape, kept boxed in the runtime.
 struct Registered {
@@ -140,8 +140,8 @@ impl ControllerRuntime {
 mod tests {
     use super::*;
     use crate::reconcile::{Input, Output};
-    use os_kernel::ResourceId;
     use os_cosi_domain::{Metadata, Resource};
+    use os_kernel::ResourceId;
 
     #[derive(Debug, Clone)]
     struct Src {

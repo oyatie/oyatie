@@ -14,11 +14,9 @@ use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 use std::str::FromStr;
 
 use cell_region::{AzCode, CellId, RegionCode};
-use compute_resource::{
-    CloudResourceError, LbProtocol, PrincipalId, ResourceId, ResourceKind,
-};
-use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
+use compute_resource::{CloudResourceError, LbProtocol, PrincipalId, ResourceId, ResourceKind};
 use network_residency::{ResidencyClass, residency_class_allows_home_region_label};
+use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 
 const NETWORK_SCHEMA_VERSION: u32 = 1;
 const TENANT_ID_PREFIX: &str = "ten_";
@@ -5250,11 +5248,7 @@ mod tests {
         let covering_24 = ipv4_gateway_route("10.0.0.0/24", "igw_24");
         let host_32 = ipv4_local_route("10.0.0.42/32");
 
-        let rt = route_table_from_routes(vec![
-            default_route,
-            covering_24.clone(),
-            host_32.clone(),
-        ]);
+        let rt = route_table_from_routes(vec![default_route, covering_24.clone(), host_32.clone()]);
 
         let addr: IpAddr = "10.0.0.42".parse().unwrap();
         let result = rt.resolve_next_hop(addr).unwrap();
@@ -5302,10 +5296,8 @@ mod tests {
     #[test]
     fn lpm_v6_family_isolation() {
         // IPv4-only table: IPv6 query → None
-        let rt_v4_only = route_table_from_routes(vec![ipv4_gateway_route(
-            "0.0.0.0/0",
-            "igw_default",
-        )]);
+        let rt_v4_only =
+            route_table_from_routes(vec![ipv4_gateway_route("0.0.0.0/0", "igw_default")]);
         let v6_addr: IpAddr = "2001:db8::1".parse().unwrap();
         assert!(
             rt_v4_only.resolve_next_hop(v6_addr).unwrap().is_none(),
@@ -5313,8 +5305,7 @@ mod tests {
         );
 
         // IPv6-only table: IPv4 query → None
-        let rt_v6_only =
-            route_table_from_routes(vec![ipv6_local_route("2001:db8::/32")]);
+        let rt_v6_only = route_table_from_routes(vec![ipv6_local_route("2001:db8::/32")]);
         let v4_addr: IpAddr = "10.0.0.1".parse().unwrap();
         assert!(
             rt_v6_only.resolve_next_hop(v4_addr).unwrap().is_none(),
@@ -5378,8 +5369,7 @@ mod tests {
     /// default route 0.0.0.0/0 matches any IPv4 when no more-specific route exists
     #[test]
     fn lpm_default_route_matches_all_ipv4() {
-        let rt =
-            route_table_from_routes(vec![ipv4_gateway_route("0.0.0.0/0", "igw_default")]);
+        let rt = route_table_from_routes(vec![ipv4_gateway_route("0.0.0.0/0", "igw_default")]);
         let addr: IpAddr = "8.8.8.8".parse().unwrap();
         let r = rt.resolve_next_hop(addr).unwrap().unwrap();
         assert_eq!(r.next_hop, RouteNextHopKind::InternetGateway);

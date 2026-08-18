@@ -8,7 +8,7 @@ use intelligence_codex_sdk::{
     ApprovalMode, Codex, CodexError, CodexOptions, Input, ModelReasoningEffort, SandboxMode,
     ThreadEvent, ThreadOptions, TurnOptions, UserInput, WebSearchMode,
 };
-use serde_json::{json, Map, Value};
+use serde_json::{Map, Value, json};
 use std::sync::OnceLock;
 
 use tempfile::TempDir;
@@ -221,9 +221,10 @@ fn run_streamed_yields_events_and_forwards_resume_before_images() {
         resume_index < image_index,
         "resume args must precede image args: {args:?}"
     );
-    assert!(args
-        .windows(2)
-        .any(|pair| pair == ["resume", "existing-thread"]));
+    assert!(
+        args.windows(2)
+            .any(|pair| pair == ["resume", "existing-thread"])
+    );
     assert_eq!(
         args.iter()
             .enumerate()

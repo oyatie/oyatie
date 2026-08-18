@@ -26,11 +26,11 @@ use std::path::{Path, PathBuf};
 use std::process::{Command, ExitCode};
 
 use oya_reorg_codemod_app::model::{
-    move_manifest_value, ArtifactMove, CodemodError, CrateMove, MovePlan,
+    ArtifactMove, CodemodError, CrateMove, MovePlan, move_manifest_value,
 };
 use oya_reorg_codemod_app::oracle;
-use oya_reorg_codemod_app::plan::{apply_plan, ApplyOptions};
-use serde_json::{json, Value};
+use oya_reorg_codemod_app::plan::{ApplyOptions, apply_plan};
+use serde_json::{Value, json};
 
 /// The de-committed move-manifest's canonical repo-relative materialization path (task #64).
 /// Regenerated each run under `specs/reorg/` (DECIDED) and declared `not-tracked-in-git` in
@@ -120,11 +120,12 @@ fn cmd_manifest(args: &[String]) -> Result<ExitCode, String> {
     // repo-wide, pointing remediation at deleting move plans that were never the problem.
     let merge_base = git_merge_base(&repo_root, MERGE_BASE_REF);
     let old_dir_absent_at_merge_base = |dir: &str| -> Result<bool, CodemodError> {
-        let merge_base = merge_base
-            .as_deref()
-            .ok_or_else(|| CodemodError::MergeBaseUnresolved {
-                base_ref: MERGE_BASE_REF.to_owned(),
-            })?;
+        let merge_base =
+            merge_base
+                .as_deref()
+                .ok_or_else(|| CodemodError::MergeBaseUnresolved {
+                    base_ref: MERGE_BASE_REF.to_owned(),
+                })?;
         Ok(!git_dir_present_at(&repo_root, merge_base, dir))
     };
     let load_old_crate_dirs = |p: &Path| -> Result<Vec<String>, CodemodError> {
@@ -183,12 +184,15 @@ fn cmd_manifest(args: &[String]) -> Result<ExitCode, String> {
         None => (String::new(), Vec::new(), Vec::new(), Vec::new()),
     };
 
-    let manifest =
-        move_manifest_value(&capability, &file_pairs, &crate_dir_pairs, &crate_ident_pairs);
+    let manifest = move_manifest_value(
+        &capability,
+        &file_pairs,
+        &crate_dir_pairs,
+        &crate_ident_pairs,
+    );
     let text = to_canonical_json(&manifest);
     if let Some(parent) = out.parent() {
-        std::fs::create_dir_all(parent)
-            .map_err(|e| format!("create {}: {e}", parent.display()))?;
+        std::fs::create_dir_all(parent).map_err(|e| format!("create {}: {e}", parent.display()))?;
     }
     std::fs::write(&out, &text).map_err(|e| format!("write {}: {e}", out.display()))?;
     eprintln!(
@@ -349,10 +353,10 @@ fn next(args: &[String], i: &mut usize, flag: &str) -> Result<String, String> {
 }
 
 fn load_plan(path: &Path, revert: bool) -> Result<MovePlan, String> {
-    let text = std::fs::read_to_string(path)
-        .map_err(|e| format!("read plan {}: {e}", path.display()))?;
-    let value: Value = serde_json::from_str(&text)
-        .map_err(|e| format!("parse plan {}: {e}", path.display()))?;
+    let text =
+        std::fs::read_to_string(path).map_err(|e| format!("read plan {}: {e}", path.display()))?;
+    let value: Value =
+        serde_json::from_str(&text).map_err(|e| format!("parse plan {}: {e}", path.display()))?;
     let capability = value
         .get("capability")
         .and_then(Value::as_str)

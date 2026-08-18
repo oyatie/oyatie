@@ -22,7 +22,9 @@ impl KeyStatus {
     pub fn is_eligible(&self, now_epoch_secs: u64) -> bool {
         match self {
             Self::Active => true,
-            Self::Cooling { until_epoch_secs, .. } => now_epoch_secs >= *until_epoch_secs,
+            Self::Cooling {
+                until_epoch_secs, ..
+            } => now_epoch_secs >= *until_epoch_secs,
             Self::Blacklisted => false,
         }
     }

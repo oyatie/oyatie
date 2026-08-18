@@ -18,9 +18,9 @@
 //!
 //! data_class: PUBLIC
 
-use sha2::{Digest, Sha256};
 use serde::Deserialize;
 use serde_json::Value;
+use sha2::{Digest, Sha256};
 use std::collections::{BTreeMap, BTreeSet};
 use std::fmt;
 
@@ -32,11 +32,8 @@ pub const CVE_OBLIGATIONS_JSON: &str =
 pub const ORACLE_IDS: [&str; 3] = ["youki", "runc", "crun"];
 
 /// Closed set of mandatory CVE / adversarial obligation IDs (scaffold corpus).
-pub const REQUIRED_CVE_IDS: [&str; 3] = [
-    "CVE-2019-5736",
-    "CVE-2024-21626",
-    "CVE-MOUNT-SYMLINK-RACE",
-];
+pub const REQUIRED_CVE_IDS: [&str; 3] =
+    ["CVE-2019-5736", "CVE-2024-21626", "CVE-MOUNT-SYMLINK-RACE"];
 
 /// Exact ID → regression-class mapping (adversarial corpus contract).
 pub const REQUIRED_CVE_CLASSES: [(&str, &str); 3] = [
@@ -138,7 +135,9 @@ pub fn required_cve_operation(cve_id: &str) -> Option<OciOperation> {
 }
 
 /// Build canonical [`CveFixtureMaterial`] for a required CVE id.
-pub fn canonical_cve_fixture_material(cve_id: &str) -> Result<CveFixtureMaterial<'static>, HarnessError> {
+pub fn canonical_cve_fixture_material(
+    cve_id: &str,
+) -> Result<CveFixtureMaterial<'static>, HarnessError> {
     let Some(fixture_bytes) = canonical_cve_fixture_bytes(cve_id) else {
         return Err(HarnessError::UnknownCve(cve_id.to_owned()));
     };
@@ -248,7 +247,10 @@ impl fmt::Display for HarnessError {
             | Self::MatrixDivergence(m) => write!(f, "{m}"),
             Self::EmptyBundleDigest => write!(f, "bundle content_digest must be non-empty"),
             Self::ScaffoldBundleNotMeasured => {
-                write!(f, "measured observations cannot use scaffold bundle digests")
+                write!(
+                    f,
+                    "measured observations cannot use scaffold bundle digests"
+                )
             }
             Self::WeakBundleDigestNotMeasured => {
                 write!(
@@ -272,7 +274,10 @@ impl fmt::Display for HarnessError {
                 )
             }
             Self::CveReceiptBundleMismatch(m) => {
-                write!(f, "CVE fixture receipt does not bind to measured bundle: {m}")
+                write!(
+                    f,
+                    "CVE fixture receipt does not bind to measured bundle: {m}"
+                )
             }
             Self::MissingHostEnvironment => {
                 write!(f, "measured observations require MeasuredHostEnvironment")
@@ -341,8 +346,6 @@ fn postcondition_held_for_class(security: &SecurityPostconditions, class: &str) 
     }
 }
 
-/// FNV-1a 64-bit (local; no crate dep) for hermetic digests / fixture receipts.
-
 fn sha256_hex(data: &[u8]) -> String {
     let mut hasher = Sha256::new();
     hasher.update(data);
@@ -394,10 +397,7 @@ fn is_immutable_revision(revision: &str) -> bool {
 }
 
 fn is_mutable_revision_label(revision: &str) -> bool {
-    matches!(
-        revision,
-        "" | "main" | "master" | "latest" | "HEAD"
-    )
+    matches!(revision, "" | "main" | "master" | "latest" | "HEAD")
 }
 
 fn is_scaffold_revision(revision: &str) -> bool {
@@ -865,7 +865,6 @@ impl ExecutorKind {
     }
 }
 
-
 /// Immutable measured host-environment identity (CVE outcomes are host-sensitive).
 ///
 /// Digest covers platform + kernel build/config + cgroup mode + runner image +
@@ -983,11 +982,7 @@ impl OperationObservation {
         }
     }
 
-    pub fn stubbed_scaffold(
-        kind: ExecutorKind,
-        operation: OciOperation,
-        bundle_id: &str,
-    ) -> Self {
+    pub fn stubbed_scaffold(kind: ExecutorKind, operation: OciOperation, bundle_id: &str) -> Self {
         Self::stubbed(kind, operation, BundleIdentity::scaffold(bundle_id))
     }
 
@@ -1293,7 +1288,6 @@ pub fn validate_matrix_coverage(cells: &[MatrixCell]) -> Result<(), HarnessError
     Ok(())
 }
 
-
 fn validate_host_environments_consistent(records: &[ComparisonRecord]) -> Result<(), HarnessError> {
     let mut host: Option<&MeasuredHostEnvironment> = None;
     for record in records {
@@ -1413,7 +1407,10 @@ fn aggregate_comparison_records_inner(
     records: &[ComparisonRecord],
     expected_pins: Option<&BTreeMap<OracleId, OraclePin>>,
 ) -> Result<MatrixAggregate, HarnessError> {
-    let cells: Vec<MatrixCell> = records.iter().map(ComparisonRecord::to_matrix_cell).collect();
+    let cells: Vec<MatrixCell> = records
+        .iter()
+        .map(ComparisonRecord::to_matrix_cell)
+        .collect();
     validate_matrix_coverage(&cells)?;
     validate_owned_pins_consistent(records)?;
     validate_host_environments_consistent(records)?;
@@ -2012,7 +2009,10 @@ mod tests {
     fn compare_stubbed_pair_is_stubbed() {
         let owned = OwnedExecutorStub::scaffold().create_stub("b1");
         let oracle = OracleStub::runc().create_stub("b1");
-        assert_eq!(compare_observations(CVE_FD, &owned, &oracle), DiffVerdict::Stubbed);
+        assert_eq!(
+            compare_observations(CVE_FD, &owned, &oracle),
+            DiffVerdict::Stubbed
+        );
         assert!(owned.cve_execution().is_none());
         assert!(oracle.cve_execution().is_none());
     }
@@ -2026,7 +2026,7 @@ mod tests {
             bundle.clone(),
             None,
             safe_outcome(0, "fp-a"),
-            live_host()
+            live_host(),
         )
         .unwrap();
         let oracle_ok = OperationObservation::try_measured(
@@ -2037,7 +2037,7 @@ mod tests {
             bundle.clone(),
             None,
             safe_outcome(0, "fp-a"),
-            live_host()
+            live_host(),
         )
         .unwrap();
         let oracle_bad = OperationObservation::try_measured(
@@ -2048,7 +2048,7 @@ mod tests {
             bundle,
             None,
             safe_outcome(1, "fp-b"),
-            live_host()
+            live_host(),
         )
         .unwrap();
         assert_eq!(
@@ -2069,11 +2069,14 @@ mod tests {
             measured_bundle("b1", HEX_A),
             None,
             safe_outcome(0, "fp"),
-            live_host()
+            live_host(),
         )
         .unwrap();
         let oracle = OracleStub::runc().start_stub("b1");
-        assert_eq!(compare_observations(CVE_FD, &owned, &oracle), DiffVerdict::Diverge);
+        assert_eq!(
+            compare_observations(CVE_FD, &owned, &oracle),
+            DiffVerdict::Diverge
+        );
     }
 
     #[test]
@@ -2088,7 +2091,10 @@ mod tests {
             OciOperation::Kill(KillSignal::Kill),
             "b1",
         );
-        assert_eq!(compare_observations(CVE_FD, &owned, &oracle), DiffVerdict::Diverge);
+        assert_eq!(
+            compare_observations(CVE_FD, &owned, &oracle),
+            DiffVerdict::Diverge
+        );
     }
 
     #[test]
@@ -2103,11 +2109,13 @@ mod tests {
 
     #[test]
     fn bundle_content_digest_mismatch_diverges() {
-        let owned =
-            OwnedExecutorStub::scaffold().create_with_bundle(oya1_bundle("b1"));
+        let owned = OwnedExecutorStub::scaffold().create_with_bundle(oya1_bundle("b1"));
         let oracle = OracleStub::runc().create_with_bundle(alt_oya1_bundle("b1"));
         assert_ne!(owned.content_digest(), oracle.content_digest());
-        assert_eq!(compare_observations(CVE_FD, &owned, &oracle), DiffVerdict::Diverge);
+        assert_eq!(
+            compare_observations(CVE_FD, &owned, &oracle),
+            DiffVerdict::Diverge
+        );
     }
 
     #[test]
@@ -2129,7 +2137,7 @@ mod tests {
             BundleIdentity::scaffold("b1"),
             None,
             safe_outcome(0, "fp"),
-            live_host()
+            live_host(),
         )
         .unwrap_err();
         assert_eq!(err, HarnessError::ScaffoldBundleNotMeasured);
@@ -2143,7 +2151,7 @@ mod tests {
             oya1_bundle("b1"),
             None,
             safe_outcome(0, "fp"),
-            live_host()
+            live_host(),
         )
         .unwrap_err();
         assert_eq!(err, HarnessError::WeakBundleDigestNotMeasured);
@@ -2157,7 +2165,7 @@ mod tests {
             measured_bundle("b1", HEX_A),
             None,
             safe_outcome(0, "fp"),
-            live_host()
+            live_host(),
         )
         .unwrap_err();
         assert_eq!(err, HarnessError::ScaffoldPinNotMeasured);
@@ -2171,7 +2179,7 @@ mod tests {
             measured_bundle("b1", HEX_A),
             None,
             safe_outcome(0, "fp"),
-            live_host()
+            live_host(),
         )
         .unwrap_err();
         assert_eq!(err, HarnessError::ScaffoldPinNotMeasured);
@@ -2187,7 +2195,7 @@ mod tests {
             measured_bundle("b1", HEX_A),
             Some(bare),
             safe_outcome(0, "fp"),
-            live_host()
+            live_host(),
         )
         .unwrap_err();
         assert_eq!(err, HarnessError::MissingFixtureReceipt);
@@ -2202,7 +2210,7 @@ mod tests {
             bundle.clone(),
             None,
             safe_outcome(0, "fp"),
-            live_host()
+            live_host(),
         )
         .unwrap();
         let oracle = OperationObservation::try_measured(
@@ -2213,10 +2221,13 @@ mod tests {
             bundle,
             None,
             unsafe_outcome(0, "fp"),
-            live_host()
+            live_host(),
         )
         .unwrap();
-        assert_eq!(compare_observations(CVE_FD, &owned, &oracle), DiffVerdict::Match);
+        assert_eq!(
+            compare_observations(CVE_FD, &owned, &oracle),
+            DiffVerdict::Match
+        );
     }
 
     #[test]
@@ -2230,7 +2241,7 @@ mod tests {
             bundle.clone(),
             None,
             safe_outcome(1, "blocked-exploit"),
-            live_host()
+            live_host(),
         )
         .unwrap();
         let oracle = OperationObservation::try_measured(
@@ -2241,10 +2252,13 @@ mod tests {
             bundle,
             None,
             unsafe_outcome(0, "exploit-ran"),
-            live_host()
+            live_host(),
         )
         .unwrap();
-        assert_eq!(compare_observations(CVE_FD, &owned, &oracle), DiffVerdict::Match);
+        assert_eq!(
+            compare_observations(CVE_FD, &owned, &oracle),
+            DiffVerdict::Match
+        );
     }
 
     #[test]
@@ -2259,7 +2273,7 @@ mod tests {
             bundle.clone(),
             None,
             safe_outcome(1, "blocked-exploit"),
-            live_host()
+            live_host(),
         )
         .unwrap();
         let mut oracle_out = safe_outcome(0, "exploit-ran");
@@ -2272,7 +2286,7 @@ mod tests {
             bundle,
             None,
             oracle_out,
-            live_host()
+            live_host(),
         )
         .unwrap();
         assert_eq!(
@@ -2290,7 +2304,7 @@ mod tests {
             bundle.clone(),
             None,
             unsafe_outcome(1, "owned-unsafe"),
-            live_host()
+            live_host(),
         )
         .unwrap();
         let oracle = OperationObservation::try_measured(
@@ -2301,10 +2315,13 @@ mod tests {
             bundle,
             None,
             unsafe_outcome(0, "oracle-unsafe"),
-            live_host()
+            live_host(),
         )
         .unwrap();
-        assert_eq!(compare_observations(CVE_FD, &owned, &oracle), DiffVerdict::Diverge);
+        assert_eq!(
+            compare_observations(CVE_FD, &owned, &oracle),
+            DiffVerdict::Diverge
+        );
     }
 
     #[test]
@@ -2318,7 +2335,7 @@ mod tests {
             measured_bundle("b1", HEX_A),
             None,
             safe_outcome(0, "fp"),
-            live_host()
+            live_host(),
         )
         .unwrap();
         assert!(obs.executed());
@@ -2340,7 +2357,7 @@ mod tests {
             bundle.clone(),
             None,
             unsafe_out.clone(),
-            live_host()
+            live_host(),
         )
         .unwrap();
         let oracle = OperationObservation::try_measured(
@@ -2351,10 +2368,13 @@ mod tests {
             bundle,
             None,
             unsafe_out,
-            live_host()
+            live_host(),
         )
         .unwrap();
-        assert_eq!(compare_observations(CVE_FD, &owned, &oracle), DiffVerdict::Diverge);
+        assert_eq!(
+            compare_observations(CVE_FD, &owned, &oracle),
+            DiffVerdict::Diverge
+        );
     }
 
     #[test]
@@ -2366,7 +2386,7 @@ mod tests {
             bundle.clone(),
             None,
             unsafe_outcome(0, "fp"),
-            live_host()
+            live_host(),
         )
         .unwrap();
         let oracle = OperationObservation::try_measured(
@@ -2377,10 +2397,13 @@ mod tests {
             bundle,
             None,
             safe_outcome(0, "fp"),
-            live_host()
+            live_host(),
         )
         .unwrap();
-        assert_eq!(compare_observations(CVE_FD, &owned, &oracle), DiffVerdict::Diverge);
+        assert_eq!(
+            compare_observations(CVE_FD, &owned, &oracle),
+            DiffVerdict::Diverge
+        );
     }
 
     #[test]
@@ -2406,8 +2429,8 @@ mod tests {
                 Some(exec.clone()),
                 // Nonzero exit: owned blocked exploit; oracle still reproduces CVE.
                 safe_outcome(1, "owned-blocked"),
-            live_host()
-        )
+                live_host(),
+            )
             .unwrap();
             let oracle_obs = OperationObservation::try_measured(
                 oracle.kind(),
@@ -2415,11 +2438,12 @@ mod tests {
                 bundle,
                 Some(exec),
                 unsafe_outcome_for_cve(cve_id, 0, "oracle-reproduced"),
-            live_host()
-        )
+                live_host(),
+            )
             .unwrap();
-            records
-                .push(ComparisonRecord::try_from_observations(cve_id, owned_obs, oracle_obs).unwrap());
+            records.push(
+                ComparisonRecord::try_from_observations(cve_id, owned_obs, oracle_obs).unwrap(),
+            );
         }
         assert!(records.iter().all(|r| r.verdict() == DiffVerdict::Match));
         assert_eq!(
@@ -2446,8 +2470,8 @@ mod tests {
                 bundle.clone(),
                 Some(exec.clone()),
                 safe_outcome(0, "fp"),
-            live_host()
-        )
+                live_host(),
+            )
             .unwrap(),
             OperationObservation::try_measured(
                 OracleStub::try_new_pinned("runc", live_oracle_pin())
@@ -2457,8 +2481,8 @@ mod tests {
                 measured_bundle("b1", HEX_A),
                 Some(exec),
                 safe_outcome(0, "fp"),
-            live_host()
-        )
+                live_host(),
+            )
             .unwrap(),
         )
         .unwrap()];
@@ -2520,8 +2544,8 @@ mod tests {
                 bundle.clone(),
                 Some(exec.clone()),
                 safe_outcome(0, "fp"),
-            live_host()
-        )
+                live_host(),
+            )
             .unwrap();
             let oracle_obs = OperationObservation::try_measured(
                 oracle.kind(),
@@ -2529,16 +2553,23 @@ mod tests {
                 bundle,
                 Some(exec),
                 safe_outcome(0, "fp"),
-            live_host()
-        )
+                live_host(),
+            )
             .unwrap();
-            records
-                .push(ComparisonRecord::try_from_observations(cve_id, owned_obs, oracle_obs).unwrap());
+            records.push(
+                ComparisonRecord::try_from_observations(cve_id, owned_obs, oracle_obs).unwrap(),
+            );
         }
         // Distinct fixture receipts per CVE.
         let receipts: BTreeSet<_> = records
             .iter()
-            .map(|r| r.owned().cve_execution().unwrap().fixture_receipt().to_owned())
+            .map(|r| {
+                r.owned()
+                    .cve_execution()
+                    .unwrap()
+                    .fixture_receipt()
+                    .to_owned()
+            })
             .collect();
         assert_eq!(receipts.len(), REQUIRED_CVE_IDS.len());
         assert_eq!(
@@ -2546,9 +2577,11 @@ mod tests {
             MatrixAggregate::MeasuredCoverageComplete
         );
         assert!(records.iter().all(|r| r.verdict() == DiffVerdict::Match));
-        assert!(records
-            .iter()
-            .all(|r| !r.oracle().kind().oracle_pin().unwrap().is_scaffold()));
+        assert!(
+            records
+                .iter()
+                .all(|r| !r.oracle().kind().oracle_pin().unwrap().is_scaffold())
+        );
     }
 
     #[test]
@@ -2572,8 +2605,8 @@ mod tests {
                 bundle.clone(),
                 Some(exec.clone()),
                 safe_outcome(0, "fp"),
-            live_host()
-        )
+                live_host(),
+            )
             .unwrap();
             let oracle_obs = OperationObservation::try_measured(
                 oracle.kind(),
@@ -2581,11 +2614,12 @@ mod tests {
                 bundle,
                 Some(exec),
                 oracle_outcome,
-            live_host()
-        )
+                live_host(),
+            )
             .unwrap();
-            records
-                .push(ComparisonRecord::try_from_observations(cve_id, owned_obs, oracle_obs).unwrap());
+            records.push(
+                ComparisonRecord::try_from_observations(cve_id, owned_obs, oracle_obs).unwrap(),
+            );
         }
         assert!(matches!(
             aggregate_comparison_records(&records),
@@ -2606,7 +2640,7 @@ mod tests {
             measured_bundle("b1", HEX_A),
             None,
             safe_outcome(0, "fp"),
-            live_host()
+            live_host(),
         )
         .unwrap();
         let oracle = OperationObservation::try_measured(
@@ -2617,7 +2651,7 @@ mod tests {
             measured_bundle("b1", HEX_A),
             None,
             safe_outcome(0, "fp"),
-            live_host()
+            live_host(),
         )
         .unwrap();
         assert_eq!(
@@ -2666,7 +2700,7 @@ mod tests {
             bundle.clone(),
             Some(exec.clone()),
             safe_outcome(0, "fp"),
-            live_host()
+            live_host(),
         )
         .unwrap();
         let oracle = OperationObservation::try_measured(
@@ -2677,7 +2711,7 @@ mod tests {
             measured_bundle("b1", HEX_A),
             Some(exec),
             safe_outcome(0, "fp"),
-            live_host()
+            live_host(),
         )
         .unwrap();
         // Same CveExecutionId on both sides, but wrong vs matrix cell label.
@@ -2797,8 +2831,8 @@ mod tests {
                 bundle.clone(),
                 Some(exec.clone()),
                 safe_outcome(0, "fp"),
-            live_host()
-        )
+                live_host(),
+            )
             .unwrap();
             let oracle_obs = OperationObservation::try_measured(
                 oracle.kind(),
@@ -2806,11 +2840,12 @@ mod tests {
                 bundle,
                 Some(exec),
                 safe_outcome(0, "fp"),
-            live_host()
-        )
+                live_host(),
+            )
             .unwrap();
-            records
-                .push(ComparisonRecord::try_from_observations(cve_id, owned_obs, oracle_obs).unwrap());
+            records.push(
+                ComparisonRecord::try_from_observations(cve_id, owned_obs, oracle_obs).unwrap(),
+            );
         }
         assert!(matches!(
             aggregate_comparison_records(&records).unwrap_err(),
@@ -2820,7 +2855,15 @@ mod tests {
 
     #[test]
     fn oracle_pin_rejects_mutable_labels() {
-        for label in ["main", "master", "latest", "HEAD", "", "v1.0.0", "sha256:deadbeef"] {
+        for label in [
+            "main",
+            "master",
+            "latest",
+            "HEAD",
+            "",
+            "v1.0.0",
+            "sha256:deadbeef",
+        ] {
             assert!(
                 matches!(
                     OraclePin::try_new(label, "linux/amd64"),
@@ -2831,11 +2874,13 @@ mod tests {
         }
         assert!(OraclePin::try_new(SCAFFOLD_PIN_REVISION, "linux/amd64").is_ok());
         assert!(OraclePin::try_new(&format!("sha256:{HEX_A}"), "linux/amd64").is_ok());
-        assert!(OraclePin::try_new(
-            "git:0123456789abcdef0123456789abcdef01234567",
-            "linux/amd64"
-        )
-        .is_ok());
+        assert!(
+            OraclePin::try_new(
+                "git:0123456789abcdef0123456789abcdef01234567",
+                "linux/amd64"
+            )
+            .is_ok()
+        );
     }
 
     #[test]
@@ -2969,7 +3014,10 @@ mod tests {
             live_host(),
         )
         .unwrap();
-        assert_eq!(compare_observations(CVE_FD, &owned, &oracle), DiffVerdict::Diverge);
+        assert_eq!(
+            compare_observations(CVE_FD, &owned, &oracle),
+            DiffVerdict::Diverge
+        );
     }
 
     #[test]
@@ -2984,18 +3032,24 @@ mod tests {
             bundle.clone(),
             Some(exec.clone()),
             safe_outcome(0, "fp"),
-            live_host()
+            live_host(),
         );
-        assert!(matches!(owned, Err(HarnessError::CveOperationMismatch { .. })));
+        assert!(matches!(
+            owned,
+            Err(HarnessError::CveOperationMismatch { .. })
+        ));
         let delete = OperationObservation::try_measured(
             live_owned().kind(),
             OciOperation::Delete,
             measured_bundle("b1", HEX_A),
             Some(exec),
             safe_outcome(0, "fp"),
-            live_host()
+            live_host(),
         );
-        assert!(matches!(delete, Err(HarnessError::CveOperationMismatch { .. })));
+        assert!(matches!(
+            delete,
+            Err(HarnessError::CveOperationMismatch { .. })
+        ));
         assert_eq!(required_op(cve_id), OciOperation::Start);
         assert_eq!(required_op("CVE-2024-21626"), OciOperation::Start);
         assert_eq!(required_op("CVE-MOUNT-SYMLINK-RACE"), OciOperation::Create);
@@ -3026,8 +3080,8 @@ mod tests {
                 bundle.clone(),
                 Some(exec.clone()),
                 safe_outcome(0, "fp"),
-            live_host()
-        )
+                live_host(),
+            )
             .unwrap();
             let oracle_obs = OperationObservation::try_measured(
                 oracle.kind(),
@@ -3035,11 +3089,12 @@ mod tests {
                 bundle,
                 Some(exec),
                 safe_outcome(0, "fp"),
-            live_host()
-        )
+                live_host(),
+            )
             .unwrap();
-            records
-                .push(ComparisonRecord::try_from_observations(cve_id, owned_obs, oracle_obs).unwrap());
+            records.push(
+                ComparisonRecord::try_from_observations(cve_id, owned_obs, oracle_obs).unwrap(),
+            );
         }
         assert!(matches!(
             aggregate_comparison_records(&records).unwrap_err(),
@@ -3066,8 +3121,7 @@ mod tests {
         let mut records = Vec::new();
         for (oracle_id, cve_id) in required_matrix_pairs() {
             // Same live pin for every oracle — valid sha256 but not inventory.
-            let oracle =
-                OracleStub::try_new_pinned(oracle_id.as_str(), live_oracle_pin()).unwrap();
+            let oracle = OracleStub::try_new_pinned(oracle_id.as_str(), live_oracle_pin()).unwrap();
             let hex = match cve_id {
                 "CVE-2019-5736" => HEX_A,
                 "CVE-2024-21626" => HEX_B,
@@ -3083,8 +3137,8 @@ mod tests {
                 bundle.clone(),
                 Some(exec.clone()),
                 safe_outcome(0, "fp"),
-            live_host()
-        )
+                live_host(),
+            )
             .unwrap();
             let oracle_obs = OperationObservation::try_measured(
                 oracle.kind(),
@@ -3092,11 +3146,12 @@ mod tests {
                 bundle,
                 Some(exec),
                 safe_outcome(0, "fp"),
-            live_host()
-        )
+                live_host(),
+            )
             .unwrap();
-            records
-                .push(ComparisonRecord::try_from_observations(cve_id, owned_obs, oracle_obs).unwrap());
+            records.push(
+                ComparisonRecord::try_from_observations(cve_id, owned_obs, oracle_obs).unwrap(),
+            );
         }
         assert!(matches!(
             aggregate_comparison_records(&records).unwrap_err(),

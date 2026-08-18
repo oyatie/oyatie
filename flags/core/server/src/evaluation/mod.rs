@@ -12,9 +12,9 @@
 //! depends on the domain and will inject a concrete `FlagSource` once the storage adapter lands.
 
 pub use flags_evaluation_domain::{
-    evaluate, AttrValue, Condition, EvalErrorCode, Evaluation, EvaluationContext, Flag, FlagKey,
-    FlagSource, FlagSourceError, FlagValue, Operand, Operator, Reason, Rollout, Rule, RuleOutcome,
-    Variant, VariantKey, TOTAL_BASIS_POINTS,
+    AttrValue, Condition, EvalErrorCode, Evaluation, EvaluationContext, Flag, FlagKey, FlagSource,
+    FlagSourceError, FlagValue, Operand, Operator, Reason, Rollout, Rule, RuleOutcome,
+    TOTAL_BASIS_POINTS, Variant, VariantKey, evaluate,
 };
 
 #[cfg(test)]
@@ -28,8 +28,14 @@ mod tests {
             key: "smoke".into(),
             enabled: false,
             variants: vec![
-                Variant { key: "on".into(), value: FlagValue::Bool(true) },
-                Variant { key: "off".into(), value: FlagValue::Bool(false) },
+                Variant {
+                    key: "on".into(),
+                    value: FlagValue::Bool(true),
+                },
+                Variant {
+                    key: "off".into(),
+                    value: FlagValue::Bool(false),
+                },
             ],
             rules: vec![],
             default_rollout: None,

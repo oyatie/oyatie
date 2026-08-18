@@ -23,7 +23,10 @@ pub enum ResponseClass {
 impl ResponseClass {
     /// Returns `true` for classifications that permanently disqualify a key.
     pub fn is_terminal(self) -> bool {
-        matches!(self, Self::TerminalKeyInvalid | Self::TerminalQuotaExhausted)
+        matches!(
+            self,
+            Self::TerminalKeyInvalid | Self::TerminalQuotaExhausted
+        )
     }
 
     /// Returns `true` for classifications that are transient (trigger cooldown on repeat).

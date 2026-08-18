@@ -33,11 +33,7 @@ fn producer_binary(root: &Path, producer_bin: Option<&str>) -> Result<PathBuf, S
             "FAIL-CLOSED: missing OYA_CI_PRODUCER_BIN; Cargo fallback is forbidden".to_owned(),
         );
     };
-    Ok(if Path::new(bin).is_absolute() {
-        PathBuf::from(bin)
-    } else {
-        root.join(bin)
-    })
+    ci_path_resolver_adapters::resolve_cargo_test_binary(root, std::ffi::OsStr::new(bin))
 }
 
 #[test]
@@ -51,8 +47,7 @@ fn producer_binary_env_is_required_for_hermetic_gate() {
 /// provided by `OYA_CI_PRODUCER_BIN`; missing env fails closed so tests cannot silently fall back to
 /// Cargo. The producer reads the materialized scm-facts face (a declared input); it never calls git.
 fn run_producer_face(root: &Path, face: &str) -> Value {
-    let scm_facts = root
-        .join("ci/facade/artifact-inventory-registry/scm-facts.generated.json");
+    let scm_facts = root.join("ci/facade/artifact-inventory-registry/scm-facts.generated.json");
     let producer_bin = std::env::var("OYA_CI_PRODUCER_BIN").ok();
     let bin = producer_binary(root, producer_bin.as_deref()).unwrap_or_else(|e| panic!("{e}"));
     let output = Command::new(bin)
@@ -135,11 +130,9 @@ fn resolve_nested_workspace_member_dirs(root: &Path) -> Vec<String> {
         if !nested_text.contains("[workspace]") {
             continue; // excluded for a different reason (no Cargo.toml / not a workspace root).
         }
-        let members = oya_workspace_members_kernel::resolve_member_dirs_from_str(
-            &nested_text,
-            &nested_root,
-        )
-        .expect("resolve nested workspace members");
+        let members =
+            oya_workspace_members_kernel::resolve_member_dirs_from_str(&nested_text, &nested_root)
+                .expect("resolve nested workspace members");
         dirs.extend(members.into_iter().map(|m| format!("{excluded}/{m}")));
     }
     dirs
@@ -158,7 +151,7 @@ fn root_workspace_excludes(manifest_text: &str) -> Vec<String> {
         if !in_exclude {
             if line.trim_start().starts_with("exclude") && line.contains('[') {
                 in_exclude = true;
-                if let Some(after) = line.splitn(2, '[').nth(1) {
+                if let Some((_, after)) = line.split_once('[') {
                     body.push_str(after);
                     body.push('\n');
                     if after.contains(']') {
@@ -176,7 +169,8 @@ fn root_workspace_excludes(manifest_text: &str) -> Vec<String> {
     }
     body.split('"')
         .enumerate()
-        .filter_map(|(i, seg)| (i % 2 == 1).then(|| seg.to_owned()))
+        .filter(|(i, _)| i % 2 == 1)
+        .map(|(_, seg)| seg.to_owned())
         .collect()
 }
 

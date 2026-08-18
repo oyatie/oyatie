@@ -3,15 +3,15 @@
 use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::OnceLock;
+use std::sync::atomic::{AtomicUsize, Ordering};
 use std::time::Duration;
 
 use intelligence_codex_sdk::{
-    AppCodex, AppInput, AppServerClient, AppServerConfig, CodexError,
-    CURRENT_APP_SERVER_REQUEST_METHODS, CURRENT_UPSTREAM_MAIN_SHA,
+    AppCodex, AppInput, AppServerClient, AppServerConfig, CURRENT_APP_SERVER_REQUEST_METHODS,
+    CURRENT_UPSTREAM_MAIN_SHA, CodexError,
 };
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use tempfile::TempDir;
 
 use std::os::unix::fs::PermissionsExt;

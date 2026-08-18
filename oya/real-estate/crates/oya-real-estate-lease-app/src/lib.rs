@@ -53,7 +53,11 @@ pub fn scaffold() -> ServiceScaffold {
         package_name: PACKAGE_NAME,
         bounded_context: BOUNDED_CONTEXT,
         owner_team: OWNER_TEAM,
-        contracts: ContractSet { openapi: OPENAPI_CONTRACT, asyncapi: ASYNCAPI_CONTRACT, grpc: GRPC_CONTRACT },
+        contracts: ContractSet {
+            openapi: OPENAPI_CONTRACT,
+            asyncapi: ASYNCAPI_CONTRACT,
+            grpc: GRPC_CONTRACT,
+        },
         layers: domain::LAYERS,
         capabilities: domain::CAPABILITIES,
     }

@@ -1792,7 +1792,6 @@ GitHub and GitLab are adapter examples, not authority.\n"
         assert_eq!(report.reference_families_checked, 6);
     }
 
-
     #[test]
     fn reference_family_parity_rejects_missing_reference_family() {
         let violations = validate_reference_family_parity([reference_doc(
@@ -1855,8 +1854,10 @@ GitHub and GitLab are adapter examples, not authority.\n"
         );
         let violations = validate_reference_family_parity([reference_doc(&fixture)]).unwrap_err();
         assert!(
-            violations.iter().any(|violation| violation.family == "Kubernetes"
-                && violation.kind == ReferenceFamilyParityKind::AdapterAsAuthority)
+            violations
+                .iter()
+                .any(|violation| violation.family == "Kubernetes"
+                    && violation.kind == ReferenceFamilyParityKind::AdapterAsAuthority)
         );
     }
 

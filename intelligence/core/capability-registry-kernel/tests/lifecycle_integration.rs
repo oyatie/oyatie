@@ -14,8 +14,8 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
 use intelligence_capability_registry_kernel::{
-    partition_views, CapabilityId, CapabilityStatus, CapabilityStatusParseError,
-    CapabilityStatusTransitionError,
+    CapabilityId, CapabilityStatus, CapabilityStatusParseError, CapabilityStatusTransitionError,
+    partition_views,
 };
 
 // ---------------------------------------------------------------------------
@@ -84,17 +84,23 @@ fn deprecated_excluded_from_mcp_discovery_surface() {
 
     // discovery: only Active
     assert!(
-        views.discoverable.contains_key(&CapabilityId::new("svc.alpha")),
+        views
+            .discoverable
+            .contains_key(&CapabilityId::new("svc.alpha")),
         "Active must appear in discovery"
     );
     assert!(
-        !views.discoverable.contains_key(&CapabilityId::new("svc.beta")),
+        !views
+            .discoverable
+            .contains_key(&CapabilityId::new("svc.beta")),
         "Deprecated must NOT appear in MCP discovery"
     );
 
     // invocation: both
     assert!(
-        views.invocable.contains_key(&CapabilityId::new("svc.alpha")),
+        views
+            .invocable
+            .contains_key(&CapabilityId::new("svc.alpha")),
         "Active must be invocable"
     );
     assert!(
@@ -217,7 +223,11 @@ fn autonomy_tier_unchanged_after_active_to_deprecated_transition() {
         true,
     );
     let original_tier = cap.autonomy_tier;
-    assert_eq!(cap.status, CapabilityStatus::Active, "new capability must start Active");
+    assert_eq!(
+        cap.status,
+        CapabilityStatus::Active,
+        "new capability must start Active"
+    );
 
     cap.transition_status(CapabilityStatus::Deprecated)
         .expect("Active->Deprecated must be legal");
@@ -390,7 +400,9 @@ fn duplicate_id_last_entry_wins_in_both_views() {
     // With Disabled as the final value:
     // - must NOT appear in discoverable
     assert!(
-        !views.discoverable.contains_key(&CapabilityId::new("svc.dup")),
+        !views
+            .discoverable
+            .contains_key(&CapabilityId::new("svc.dup")),
         "duplicate resolved to Disabled: must not appear in discoverable"
     );
     // - must NOT appear in invocable
@@ -420,10 +432,7 @@ fn registry_views_structural_equality() {
 /// original and independently mutable.
 #[test]
 fn registry_views_clone_is_independent() {
-    let views = partition_views([(
-        CapabilityId::new("cap.original"),
-        CapabilityStatus::Active,
-    )]);
+    let views = partition_views([(CapabilityId::new("cap.original"), CapabilityStatus::Active)]);
     let cloned = views.clone();
     assert_eq!(views, cloned, "clone must equal original");
     // Cloned map is independent (BTreeMap::clone guarantee — verified by type).

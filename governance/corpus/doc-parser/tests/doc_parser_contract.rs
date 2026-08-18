@@ -564,24 +564,27 @@ fn controlling_adr_chronology_roster_population_and_status_contract_is_fail_clos
         );
     }
     assert_eq!(
-        evaluate_controlling_adr_chronology(&[accepted.clone()], &[]).unwrap_err(),
+        evaluate_controlling_adr_chronology(std::slice::from_ref(&accepted), &[]).unwrap_err(),
         ChronologyViolation::EmptyRoster
     );
     assert!(matches!(
-        evaluate_controlling_adr_chronology(&[accepted.clone()], &roster(&["ADR-1"])),
+        evaluate_controlling_adr_chronology(std::slice::from_ref(&accepted), &roster(&["ADR-1"]),),
         Err(ChronologyViolation::InvalidRosterId { .. })
     ));
     assert!(matches!(
         evaluate_controlling_adr_chronology(
-            &[accepted.clone()],
+            std::slice::from_ref(&accepted),
             &roster(&["ADR-0001", "ADR-0001"])
         ),
         Err(ChronologyViolation::DuplicateRosterId { .. })
     ));
     assert_eq!(
-        evaluate_controlling_adr_chronology(&[accepted.clone()], &roster(&["ADR-9999"]))
-            .expect("missing roster member is a deterministic finding")
-            .findings(),
+        evaluate_controlling_adr_chronology(
+            std::slice::from_ref(&accepted),
+            &roster(&["ADR-9999"]),
+        )
+        .expect("missing roster member is a deterministic finding")
+        .findings(),
         &[ChronologyFinding::MissingRosterId {
             id: "ADR-9999".into()
         }]

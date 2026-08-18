@@ -12,11 +12,11 @@ use std::{
     time::Duration,
 };
 
+use futures::{StreamExt, channel::mpsc as futures_mpsc, stream};
 use intelligence_claude_agent_sdk::{
     ClaudeAgentOptions, McpServerConfig, McpServerPermissionPolicy, McpServerToolPolicy, Message,
     ProcessSpawnOptions, SpawnedClaudeProcess, UserMessage, query, query_stream,
 };
-use futures::{StreamExt, channel::mpsc as futures_mpsc, stream};
 use serde_json::json;
 use tokio::{
     io::{AsyncBufReadExt, AsyncWriteExt, BufReader},

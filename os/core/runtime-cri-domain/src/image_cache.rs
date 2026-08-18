@@ -21,12 +21,12 @@ use os_block_domain::{
     VolumeMountStatusResource, VolumePhase, VolumeStatus, VolumeStatusResource,
     mount::{volume_mount_request_key, volume_mount_status_id, volume_mount_status_key},
 };
-use os_kernel::ResourceId;
 use os_cosi_domain::{
     Controller as CosiController, ControllerError, Event, EventKind, Input, Metadata, Output,
     ReconcileContext, ReconcileResult, Resource, ResourceKind, Spec, State, StoreError,
     StoreResult,
 };
+use os_kernel::ResourceId;
 
 use crate::cri::{MACHINE_CONFIG_ACTIVE_ID, MACHINE_CONFIG_NAMESPACE, MACHINE_CONFIG_TYPE};
 
@@ -617,27 +617,22 @@ pub fn registryd_http_last_modified_value(modified: SystemTime) -> Option<String
     Some(registryd_imf_fixdate_from_unix_seconds(seconds))
 }
 
+/// Derive the source `Last-Modified` value from the file's MODIFICATION time.
+///
+/// This previously read atime (access time) first, falling back to mtime. atime is not a stable
+/// input: Linux mounts with `relatime` by default, which rewrites atime whenever the stored value
+/// is older than mtime or more than a day stale — so SERVING a blob mutated that blob's own
+/// `Last-Modified`. Every conditional request then got a wrong answer: `If-Modified-Since`
+/// revalidations that should return 304 returned 200, and `If-Unmodified-Since` requests that
+/// should have succeeded returned 412. The value also varied by filesystem and mount options,
+/// which is why the behaviour was invisible on macOS/APFS and surfaced only on Linux.
+///
+/// mtime is additionally what the `http.ServeContent` parity these helpers target actually uses:
+/// Go derives the header from `ModTime`, never from access time. RFC 9110 §8.8.2 defines
+/// `Last-Modified` as when the origin believes the representation was last MODIFIED, so reading a
+/// representation must never move it.
 fn registryd_source_last_modified_value(metadata: &fs::Metadata) -> Option<String> {
-    let updated_at = registryd_source_updated_at(metadata).or_else(|| metadata.modified().ok())?;
-    registryd_http_last_modified_value(updated_at)
-}
-
-#[cfg(unix)]
-fn registryd_source_updated_at(metadata: &fs::Metadata) -> Option<SystemTime> {
-    use std::os::unix::fs::MetadataExt;
-
-    let seconds = metadata.atime();
-    let nanos = metadata.atime_nsec();
-    if seconds < 0 || nanos < 0 {
-        return None;
-    }
-
-    UNIX_EPOCH.checked_add(Duration::new(seconds as u64, nanos as u32))
-}
-
-#[cfg(not(unix))]
-fn registryd_source_updated_at(_metadata: &fs::Metadata) -> Option<SystemTime> {
-    None
+    registryd_http_last_modified_value(metadata.modified().ok()?)
 }
 
 fn registryd_imf_fixdate_from_unix_seconds(seconds: u64) -> String {
@@ -5462,16 +5457,16 @@ fn join_unix_path(parent: &str, child: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::{
-        env, fs,
-        path::{Path, PathBuf},
-        time::{Duration, SystemTime, UNIX_EPOCH},
-    };
     use os_block_domain::{
         VolumeConfig, VolumeMountStatusResource, VolumeMountStatusSpec, VolumePhase, VolumeStatus,
         mount::volume_mount_request_key,
     };
     use os_cosi_domain::Phase as CosiPhase;
+    use std::{
+        env, fs,
+        path::{Path, PathBuf},
+        time::{Duration, SystemTime, UNIX_EPOCH},
+    };
 
     fn volume(id: &str, phase: VolumePhase) -> VolumeStatus {
         let mut status = VolumeStatus::new(VolumeConfig::partition(id, id, 1));
@@ -6731,24 +6726,30 @@ machine:
         );
     }
 
+    /// `Last-Modified` tracks MODIFICATION time and ignores access time.
+    ///
+    /// This test previously asserted the opposite — that the header projects atime — which made
+    /// the served value unstable under Linux `relatime`, where reading a blob rewrites its atime
+    /// and therefore its own `Last-Modified`. The fixture deliberately sets the two stamps to
+    /// DIFFERENT instants so a regression back to atime fails loudly rather than coinciding.
     #[test]
     #[cfg(unix)]
-    fn registryd_multipath_fs_projects_source_access_time_as_last_modified() {
-        let temp = TestDir::new("registryd-multipath-atime");
+    fn registryd_multipath_fs_projects_source_modified_time_as_last_modified() {
+        let temp = TestDir::new("registryd-multipath-mtime");
         let root = temp.path("root");
         let content_path = root.join("blob/sha256-present");
         fs::create_dir_all(content_path.parent().unwrap()).unwrap();
         fs::write(&content_path, b"from-root").unwrap();
 
-        let source_accessed = UNIX_EPOCH + Duration::from_secs(784_111_777);
-        let non_source_modified = UNIX_EPOCH + Duration::from_secs(946_684_800);
-        registryd_test_set_file_times(&content_path, source_accessed, non_source_modified);
+        let accessed = UNIX_EPOCH + Duration::from_secs(784_111_777);
+        let modified_at = UNIX_EPOCH + Duration::from_secs(946_684_800);
+        registryd_test_set_file_times(&content_path, accessed, modified_at);
 
+        let accessed_last_modified =
+            registryd_http_last_modified_value(accessed).expect("access time");
         let source_last_modified =
-            registryd_http_last_modified_value(source_accessed).expect("source access time");
-        let non_source_last_modified =
-            registryd_http_last_modified_value(non_source_modified).expect("modified time");
-        assert_ne!(source_last_modified, non_source_last_modified);
+            registryd_http_last_modified_value(modified_at).expect("modified time");
+        assert_ne!(source_last_modified, accessed_last_modified);
 
         let RegistrydMultiPathFsRead::Found { modified, .. } = RegistrydMultiPathFs::new([root])
             .read_file("blob/sha256-present")

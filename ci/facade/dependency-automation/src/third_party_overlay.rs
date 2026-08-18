@@ -402,7 +402,7 @@ cxx_library(
     #[test]
     fn refuses_unterminated_generated_rule() {
         let unterminated = aws_rule().trim_end_matches(")\n");
-        assert_contract_error(&unterminated, "unterminated generated rule");
+        assert_contract_error(unterminated, "unterminated generated rule");
     }
 
     #[test]

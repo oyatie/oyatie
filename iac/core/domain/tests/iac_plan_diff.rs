@@ -23,9 +23,11 @@ fn make_ref(name: &str, version: &str) -> OpenTofuModuleRef {
     );
     let digest = "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
     let evidence = "evidence://iac/test/ref";
-    OpenTofuModuleRelease::new("oyatie", name, "opentofu", version, source, digest, evidence)
-        .expect("valid test module release")
-        .module_ref()
+    OpenTofuModuleRelease::new(
+        "oyatie", name, "opentofu", version, source, digest, evidence,
+    )
+    .expect("valid test module release")
+    .module_ref()
 }
 
 fn cell(cell_id: &str, module_refs: Vec<OpenTofuModuleRef>) -> CellDefinition {
@@ -41,9 +43,8 @@ fn cell(cell_id: &str, module_refs: Vec<OpenTofuModuleRef>) -> CellDefinition {
 }
 
 fn topology(topology_id: &str, cells: Vec<CellDefinition>) -> CellTopologyPlan {
-    let mut plan =
-        CellTopologyPlan::new(topology_id, "us-east-1", "evidence://iac/test/topology")
-            .expect("valid topology");
+    let mut plan = CellTopologyPlan::new(topology_id, "us-east-1", "evidence://iac/test/topology")
+        .expect("valid topology");
     for c in cells {
         plan = plan.add_cell(c).expect("add cell");
     }
@@ -63,7 +64,12 @@ fn all_converged() {
 
     let report = compute_iac_plan_diff(&desired, &observed);
     assert_eq!(report.verdict, IacPlanDiffVerdict::Converged);
-    assert!(report.entries.iter().all(|e| e.action == PlanAction::NoChange));
+    assert!(
+        report
+            .entries
+            .iter()
+            .all(|e| e.action == PlanAction::NoChange)
+    );
 }
 
 /// Desired-only module-ref => Create entry, HasChanges verdict.
@@ -96,7 +102,10 @@ fn observed_only_module() {
     let desired = topology("topo-1", vec![cell("cell-us-east", vec![r_des.clone()])]);
     let observed = topology(
         "topo-1",
-        vec![cell("cell-us-east", vec![r_des.clone(), r_obs_extra.clone()])],
+        vec![cell(
+            "cell-us-east",
+            vec![r_des.clone(), r_obs_extra.clone()],
+        )],
     );
 
     let report = compute_iac_plan_diff(&desired, &observed);
@@ -126,7 +135,10 @@ fn version_update() {
         .filter(|e| e.action == PlanAction::Update)
         .collect();
     assert_eq!(updates.len(), 1);
-    assert_eq!(updates[0].module_ref, r_v2, "Update entry carries desired ref");
+    assert_eq!(
+        updates[0].module_ref, r_v2,
+        "Update entry carries desired ref"
+    );
 }
 
 /// Identity mismatch (topology_id differs) => IdentityMismatch verdict, empty entries.
@@ -156,9 +168,8 @@ fn identity_mismatch_region() {
             false,
         )
         .expect("valid desired cell");
-        let mut plan =
-            CellTopologyPlan::new("topo-1", "us-east-1", "evidence://iac/test/topology")
-                .expect("valid topology");
+        let mut plan = CellTopologyPlan::new("topo-1", "us-east-1", "evidence://iac/test/topology")
+            .expect("valid topology");
         plan = plan.add_cell(desired_cell).expect("add cell");
         plan
     };
@@ -172,9 +183,8 @@ fn identity_mismatch_region() {
             false,
         )
         .expect("valid observed cell");
-        let mut plan =
-            CellTopologyPlan::new("topo-1", "eu-west-1", "evidence://iac/test/topology")
-                .expect("valid topology");
+        let mut plan = CellTopologyPlan::new("topo-1", "eu-west-1", "evidence://iac/test/topology")
+            .expect("valid topology");
         plan = plan.add_cell(observed_cell).expect("add cell");
         plan
     };
@@ -209,16 +219,14 @@ fn identity_mismatch_cell_tenant_id() {
     .expect("valid observed cell");
 
     let desired = {
-        let mut plan =
-            CellTopologyPlan::new("topo-1", "us-east-1", "evidence://iac/test/topology")
-                .expect("valid topology");
+        let mut plan = CellTopologyPlan::new("topo-1", "us-east-1", "evidence://iac/test/topology")
+            .expect("valid topology");
         plan = plan.add_cell(desired_cell).expect("add cell");
         plan
     };
     let observed = {
-        let mut plan =
-            CellTopologyPlan::new("topo-1", "us-east-1", "evidence://iac/test/topology")
-                .expect("valid topology");
+        let mut plan = CellTopologyPlan::new("topo-1", "us-east-1", "evidence://iac/test/topology")
+            .expect("valid topology");
         plan = plan.add_cell(observed_cell).expect("add cell");
         plan
     };
@@ -235,9 +243,7 @@ fn determinism() {
     let r2 = make_ref("storage-bucket", "2.0.0");
     let desired = topology(
         "topo-1",
-        vec![
-            cell("cell-us-east", vec![r1.clone(), r2.clone()]),
-        ],
+        vec![cell("cell-us-east", vec![r1.clone(), r2.clone()])],
     );
     let r2_v1 = make_ref("storage-bucket", "1.0.0");
     let observed = topology(
@@ -247,7 +253,10 @@ fn determinism() {
 
     let report_a = compute_iac_plan_diff(&desired, &observed);
     let report_b = compute_iac_plan_diff(&desired, &observed);
-    assert_eq!(report_a, report_b, "compute_iac_plan_diff must be deterministic");
+    assert_eq!(
+        report_a, report_b,
+        "compute_iac_plan_diff must be deterministic"
+    );
     // Verify entries are in stable sorted order by checking the vec directly.
     let mut sorted = report_a.entries.clone();
     sorted.sort();

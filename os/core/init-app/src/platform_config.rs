@@ -841,11 +841,11 @@ fn describe_source(source: &ConfigSource) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use os_platform_domain::MemoryStore;
     use std::net::TcpListener;
     use std::sync::mpsc;
     use std::thread;
     use std::time::Instant;
-    use os_platform_domain::MemoryStore;
 
     const CFG: &str = "version: v1alpha1\nmachine:\n  type: worker\n";
     const FALLBACK: &str = "version: v1alpha1\nmachine:\n  type: controlplane\n";
@@ -976,8 +976,10 @@ mod tests {
 
     #[test]
     fn file_store_reads_metal_iso_config_from_root() {
-        let dir =
-            std::env::temp_dir().join(format!("operating-system-platform-config-{}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!(
+            "operating-system-platform-config-{}",
+            std::process::id()
+        ));
         let _ = std::fs::remove_dir_all(&dir);
         std::fs::create_dir_all(&dir).unwrap();
         std::fs::write(dir.join("config.yaml"), CFG).unwrap();

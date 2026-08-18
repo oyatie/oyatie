@@ -15,9 +15,7 @@
 
 use std::path::{Path, PathBuf};
 
-use ci_crypto_backend_policy::{
-    Verdict, collect_activated_backends, evaluate, evaluate_keyed,
-};
+use ci_crypto_backend_policy::{Verdict, collect_activated_backends, evaluate, evaluate_keyed};
 use serde_json::{Value, json};
 
 /// Walk up from the test's working directory to the repo root (the dir holding the canonical

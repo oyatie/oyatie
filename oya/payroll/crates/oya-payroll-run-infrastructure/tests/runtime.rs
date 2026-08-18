@@ -261,9 +261,10 @@ fn wrong_bearer_money_mutation_is_rejected_401() {
         PAYROLL_ACCOUNTING_JOURNAL_DRAFT_PATH,
         &journal_request(),
     );
-    request
-        .headers
-        .insert("authorization".to_owned(), "Bearer not-the-secret".to_owned());
+    request.headers.insert(
+        "authorization".to_owned(),
+        "Bearer not-the-secret".to_owned(),
+    );
     let response = dispatch_payroll_request(request, allow_provider());
     assert_eq!(response.status, 401);
 }
@@ -294,8 +295,7 @@ fn pdp_deny_money_mutation_is_rejected_403() {
         PAYROLL_TRIAL_CLOSE_PATH,
         &trial_close_request(),
     );
-    let response =
-        dispatch_payroll_request(request, provider_with(Arc::new(DenyAllAuthorizer)));
+    let response = dispatch_payroll_request(request, provider_with(Arc::new(DenyAllAuthorizer)));
     assert_eq!(response.status, 403);
 }
 
@@ -307,8 +307,7 @@ fn pdp_fault_money_mutation_denies_403_not_500() {
         PAYROLL_TRIAL_CLOSE_PATH,
         &trial_close_request(),
     );
-    let response =
-        dispatch_payroll_request(request, provider_with(Arc::new(PanicAuthorizer)));
+    let response = dispatch_payroll_request(request, provider_with(Arc::new(PanicAuthorizer)));
     assert_eq!(response.status, 403);
 }
 

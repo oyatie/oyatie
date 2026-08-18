@@ -15,9 +15,7 @@ pub use k8s_sla_observability_adapter_inmemory::InMemorySlaObservabilityStore;
 pub use k8s_sla_observability_api::{
     ClusterRef, ControlPlaneSlaSnapshot, SlaObservabilityError, SlaObservabilityPort, StatusWindow,
 };
-pub use k8s_sla_observability_kernel::{
-    ObservedControlPlaneStatus, SlaPolicy, SlaSummary,
-};
+pub use k8s_sla_observability_kernel::{ObservedControlPlaneStatus, SlaPolicy, SlaSummary};
 
 /// Application service for reading control-plane status and producing SLA DTOs.
 pub struct SlaObservabilityService<S> {

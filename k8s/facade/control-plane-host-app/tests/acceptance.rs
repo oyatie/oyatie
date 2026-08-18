@@ -38,8 +38,9 @@ fn platform_authz() -> ControlPlaneAuthzProvider {
 /// A verifier that binds a NON-platform principal (no platform scope): the
 /// bearer authenticates but the PDP denies the admin action (403).
 fn non_admin_authz() -> ControlPlaneAuthzProvider {
-    let verifier =
-        Arc::new(ConfiguredBearerPrincipalVerifier::new(TEST_TOKEN, "op", "ten_acme", vec![]).unwrap());
+    let verifier = Arc::new(
+        ConfiguredBearerPrincipalVerifier::new(TEST_TOKEN, "op", "ten_acme", vec![]).unwrap(),
+    );
     ControlPlaneAuthzProvider::new(verifier, Arc::new(ConfiguredPlatformAdminAuthorizer::new()))
 }
 

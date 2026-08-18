@@ -115,19 +115,22 @@ const REQUIRED_SLO_LINKED_CLOUD_MANIFESTS: [&str; 6] = [
 ///   2026-08-11  762 -> pin 773     BASE MOVE from #1934: +4 ci-controller-* and +7 port-engine
 ///                                  W0-B catalog rows (face enumerated 773). Keep dual-home
 ///                                  oya/ci-controller until lock/baseline tip-free cleanup.
-const SLO_CATALOG_CENSUS: usize = 773;
+///   2026-08-17  773 -> pin 769     RETIREMENT: remove the four deleted-crate catalog rows
+///                                  oya-cloud-os-{cluster-mgmt,kubernetes,secrets,trustd}-domain;
+///                                  the same producer now enumerates exactly four fewer rows.
+const SLO_CATALOG_CENSUS: usize = 772;
 
 fn producer_command(root: &Path, producer_bin: Option<&str>) -> Result<Command, String> {
     if let Some(bin) = producer_bin {
-        let bin = if Path::new(bin).is_absolute() {
-            PathBuf::from(bin)
-        } else {
-            root.join(bin)
-        };
+        let bin = resolve_producer_binary(root, bin)?;
         Ok(Command::new(bin))
     } else {
         Err("OYA_CI_PRODUCER_BIN is required for hermetic Buck2 gate execution".to_owned())
     }
+}
+
+fn resolve_producer_binary(root: &Path, value: &str) -> Result<PathBuf, String> {
+    ci_path_resolver_adapters::resolve_cargo_test_binary(root, std::ffi::OsStr::new(value))
 }
 
 fn repo_root() -> PathBuf {
@@ -144,8 +147,7 @@ fn repo_root() -> PathBuf {
 }
 
 fn run_producer_face(root: &Path, face: &str) -> Value {
-    let scm_facts = root
-        .join("ci/facade/artifact-inventory-registry/scm-facts.generated.json");
+    let scm_facts = root.join("ci/facade/artifact-inventory-registry/scm-facts.generated.json");
     let producer_bin = std::env::var("OYA_CI_PRODUCER_BIN").ok();
     let mut command = producer_command(root, producer_bin.as_deref()).expect("producer command");
 
@@ -174,18 +176,17 @@ fn run_producer_face(root: &Path, face: &str) -> Value {
 /// the walk silently found 2 of 21 — a scan that shrinks to nothing is a false green, so the set is
 /// now named explicitly and `manifest_missing` below fails closed on any entry that stops resolving.
 ///
-/// Wave-2 absorb: forever homes for burned `cloud/` pins —
-/// `cloud/cloud-kernel/manifest.json` → `kernel/manifest.json` (#1659 / #1839 P1);
-/// `cloud/cloud-os/manifest.json` → `os/manifest.json` (#1926 / #1839). Cite forever paths
-/// here; `cloud_manifest_paths` may accept transitional sources only until destination bytes
+/// Wave-2 absorb: the deleted cloud-kernel service-manifest pin had no forever service-manifest
+/// successor, while the OS pin retains its capability-first home:
+/// `cloud/cloud-os/manifest.json` → `os/manifest.json` (#1926 / #1839). Cite the forever path
+/// here; `cloud_manifest_paths` may accept the transitional source only until destination bytes
 /// land (fail closed when neither resolves). Do not re-list hub enumerations — named pins,
 /// not a dual-truth root table.
-const CLOUD_SUBSTRATE_MANIFESTS: [&str; 21] = [
+const CLOUD_SUBSTRATE_MANIFESTS: [&str; 20] = [
     "billing/manifest.json",
     "billing/tax/manifest.json",
     "cell/cell-lifecycle/manifest.json",
     "cell/cell-rebalancer/manifest.json",
-    "kernel/manifest.json",
     "os/manifest.json",
     "data/cloud-data/manifest.json",
     "iac/manifest.json",
@@ -205,12 +206,10 @@ const CLOUD_SUBSTRATE_MANIFESTS: [&str; 21] = [
 ];
 
 /// Forever → transitional source still present on origin/dev until forever bytes land
-/// (#1659 kernel; #1926 os). Drop an entry when the transitional path is burned and the
-/// forever path is on trunk.
-const CLOUD_SUBSTRATE_MANIFEST_FALLBACKS: &[(&str, &str)] = &[
-    ("kernel/manifest.json", "cloud/cloud-kernel/manifest.json"),
-    ("os/manifest.json", "cloud/cloud-os/manifest.json"),
-];
+/// (#1926 os). Drop the entry when the transitional path is burned and the forever path is on
+/// trunk.
+const CLOUD_SUBSTRATE_MANIFEST_FALLBACKS: &[(&str, &str)] =
+    &[("os/manifest.json", "cloud/cloud-os/manifest.json")];
 
 fn cloud_manifest_paths(root: &Path) -> Vec<PathBuf> {
     let mut paths = Vec::new();
@@ -520,7 +519,7 @@ fn cloud_manifests_have_existing_slo_refs_or_explicit_non_claims() {
     let manifest_paths = cloud_manifest_paths(&root);
     let manifest_count = manifest_paths.len();
     assert!(
-        manifest_count >= 21,
+        manifest_count >= 20,
         "issue #993 coverage expects every current cloud/*/manifest.json; got {manifest_count}"
     );
 

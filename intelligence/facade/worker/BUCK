@@ -13,6 +13,11 @@ rust_library(
 
 rust_test(
     name = "intelligence-worker-tests",
+    # Declared manifest binding: the ownership test greps the committed k8s manifest, which was
+    # previously a cwd-relative read that only resolved under Buck's sandbox root.
+    env = {
+        "OYA_INTELLIGENCE_K8S_MANIFEST": "$(location //intelligence/k8s:cloud-intelligence.yaml)",
+    },
     srcs = glob(["src/**/*.rs", "tests/**/*.rs", "**/*.json", "**/*.yaml", "**/*.yml"]),
     crate = "intelligence_worker_tests",
     crate_root = "tests/xproxy_worker_ownership.rs",

@@ -73,9 +73,9 @@ pub use kubernetes_projection::{
 };
 pub use rotation::{CertState, RenewalPolicy};
 
-use std::collections::BTreeMap;
 use os_kernel::error::{Error, Result};
 use os_kernel::os::FileSystem;
+use std::collections::BTreeMap;
 
 // ---------------------------------------------------------------------------
 // Secret status resources

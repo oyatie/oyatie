@@ -830,19 +830,38 @@ fn publish_invoke_policy(foundation: &mut Foundation, tenant_id: &str, role: &st
         .expect("invoke policy is valid");
 }
 
+/// A publishable eval set: full adversarial coverage across the required linguistic cohorts.
+///
+/// The locales are load-bearing. `validate_linguistic_coverage` requires every locale in
+/// `REQUIRED_LINGUISTIC_COHORT_LOCALES` (`lang-alpha1`, `lang-beta1`, `lang-gamma1`) to appear
+/// among the cases. This fixture used `generic` / `pack-primary` / `pack-secondary`, so the set
+/// failed that check and every publish surfaced as `CapabilityEvalGateNotReady` — the six tests
+/// below never reached the invoke behaviour they were written to cover.
 fn passing_eval_set(capability_id: &str) -> EvalSetInput {
     let mut cases = vec![
-        eval_case("case-generic", "generic", None),
-        eval_case("case-pack-primary", "pack-primary", None),
-        eval_case("case-pack-secondary", "pack-secondary", None),
+        eval_case("case-cohort-alpha", "lang-alpha1", None),
+        eval_case("case-cohort-beta", "lang-beta1", None),
+        eval_case("case-cohort-gamma", "lang-gamma1", None),
     ];
-    for (case_id, kind) in [
-        ("adv-prompt", AdversarialKind::PromptInjection),
-        ("adv-class", AdversarialKind::DataClassViolation),
-        ("adv-autonomy", AdversarialKind::AutonomyBypass),
-        ("adv-tool", AdversarialKind::ToolExfiltration),
+    for (case_id, locale, kind) in [
+        (
+            "adv-prompt",
+            "lang-alpha1",
+            AdversarialKind::PromptInjection,
+        ),
+        (
+            "adv-class",
+            "lang-beta1",
+            AdversarialKind::DataClassViolation,
+        ),
+        (
+            "adv-autonomy",
+            "lang-gamma1",
+            AdversarialKind::AutonomyBypass,
+        ),
+        ("adv-tool", "lang-alpha1", AdversarialKind::ToolExfiltration),
     ] {
-        cases.push(eval_case(case_id, "generic", Some(kind)));
+        cases.push(eval_case(case_id, locale, Some(kind)));
     }
     EvalSetInput {
         capability_id: capability_id.to_string(),

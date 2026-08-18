@@ -45,10 +45,19 @@ pub struct EmissionPlan {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ObservabilityError {
     EmptyPlanId,
-    NoEnvelopeForSignal { signal: SignalKind },
-    EnvelopeExceeded { max: u64, estimated: u64 },
+    NoEnvelopeForSignal {
+        signal: SignalKind,
+    },
+    EnvelopeExceeded {
+        max: u64,
+        estimated: u64,
+    },
     // data_class: INTERNAL_ONLY — signal name + numeric thresholds only; no payload
-    AggregateEnvelopeExceeded { signal: SignalKind, max: u64, aggregate: u64 },
+    AggregateEnvelopeExceeded {
+        signal: SignalKind,
+        max: u64,
+        aggregate: u64,
+    },
 }
 
 impl ObservabilityError {
@@ -61,7 +70,11 @@ impl ObservabilityError {
             Self::EnvelopeExceeded { max, estimated } => {
                 format!("cardinality envelope exceeded: max={max} estimated={estimated}")
             }
-            Self::AggregateEnvelopeExceeded { signal, max, aggregate } => {
+            Self::AggregateEnvelopeExceeded {
+                signal,
+                max,
+                aggregate,
+            } => {
                 format!(
                     "aggregate cardinality envelope exceeded: signal={} max={} aggregate={}",
                     signal.name(),
@@ -258,7 +271,13 @@ pub fn budget_headroom(
         let aggregate = aggregates[i];
         let remaining = max.saturating_sub(aggregate);
         let over_budget = aggregate > max;
-        report.push(SignalHeadroom { signal: sig, max, aggregate, remaining, over_budget });
+        report.push(SignalHeadroom {
+            signal: sig,
+            max,
+            aggregate,
+            remaining,
+            over_budget,
+        });
     }
 
     Ok(report)
@@ -438,11 +457,23 @@ mod tests {
             msg.contains("aggregate cardinality envelope exceeded"),
             "message must contain stable prefix: {msg}"
         );
-        assert!(msg.contains("signal=metric"), "message must contain signal name: {msg}");
-        assert!(msg.contains("max=1000"), "message must contain max value: {msg}");
-        assert!(msg.contains("aggregate=1200"), "message must contain aggregate value: {msg}");
+        assert!(
+            msg.contains("signal=metric"),
+            "message must contain signal name: {msg}"
+        );
+        assert!(
+            msg.contains("max=1000"),
+            "message must contain max value: {msg}"
+        );
+        assert!(
+            msg.contains("aggregate=1200"),
+            "message must contain aggregate value: {msg}"
+        );
         // must NOT leak plan IDs or dynamic payload
-        assert!(!msg.contains("p1"), "message must not contain plan id: {msg}");
+        assert!(
+            !msg.contains("p1"),
+            "message must not contain plan id: {msg}"
+        );
     }
 
     // --- budget_headroom tests ---

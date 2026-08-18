@@ -50,6 +50,7 @@ use oya_http_middleware_kernel::{HttpRequest, HttpResponse, MiddlewareChain};
 use oya_http_router_kernel::{HttpMethod, Router};
 use oya_http_runtime_hyper_adapter::{ServerConfig, SyncHandler, serve};
 
+use intelligence_provider_pool_kernel::DurationMs;
 use oya_intelligence_provider_pool_app::{
     AccountHealthMap, AccountHealthStore, DispatchError, InMemoryAccountHealthStore,
     InMemoryPoolRepository, InMemoryProviderInvocationTransport, InMemorySeatRegistry,
@@ -59,7 +60,6 @@ use oya_intelligence_provider_pool_app::{
     TransportScript, UnixMillis, UsageSnapshotMap, UsageSnapshotSource, build_seat_snapshots,
     dispatch_to_pool,
 };
-use intelligence_provider_pool_kernel::DurationMs;
 
 // =====================================================================
 // AUTH-005 — fail-closed authn/authz

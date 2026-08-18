@@ -8,8 +8,8 @@
 //!   1. A `scope_ref: String` field to FeedRankInput.
 //!   2. Filtering logic in rank_feed that drops posts whose scope_ref != ctx.scope_ref.
 
-use oya_community_social_post_composition_usecase::feed_ranking::{FeedRankInput, rank_feed};
 use oya_community_social_post_composition_api::{AuthorizedSocialContext, SocialApiContext};
+use oya_community_social_post_composition_usecase::feed_ranking::{FeedRankInput, rank_feed};
 
 fn personal_ctx(scope: &str) -> AuthorizedSocialContext {
     AuthorizedSocialContext {
@@ -22,7 +22,12 @@ fn personal_ctx(scope: &str) -> AuthorizedSocialContext {
     }
 }
 
-fn make_scoped_post(post_id: &str, scope_ref: &str, created_at: u64, engagement_count: u64) -> FeedRankInput {
+fn make_scoped_post(
+    post_id: &str,
+    scope_ref: &str,
+    created_at: u64,
+    engagement_count: u64,
+) -> FeedRankInput {
     FeedRankInput {
         post_id: post_id.into(),
         scope_ref: scope_ref.into(),
@@ -40,11 +45,15 @@ fn rank_feed_excludes_posts_from_different_scope() {
     let ctx = personal_ctx("alice");
     let posts = vec![
         make_scoped_post("mine", "person:alice", now - 100, 50),
-        make_scoped_post("theirs", "person:bob", now - 100, 50),   // different scope — must be excluded
+        make_scoped_post("theirs", "person:bob", now - 100, 50), // different scope — must be excluded
         make_scoped_post("tenant-post", "tenant:acme", now - 100, 50), // wrong context type — must be excluded
     ];
     let result = rank_feed(&ctx, &posts, now).unwrap();
-    assert_eq!(result.len(), 1, "only posts matching ctx.scope_ref should appear");
+    assert_eq!(
+        result.len(),
+        1,
+        "only posts matching ctx.scope_ref should appear"
+    );
     assert_eq!(result[0].post_id, "mine");
 }
 
@@ -56,7 +65,7 @@ fn rank_feed_retains_all_in_scope_posts() {
     let posts = vec![
         make_scoped_post("p1", "person:alice", now - 500, 10),
         make_scoped_post("p2", "person:alice", now - 100, 200),
-        make_scoped_post("out", "person:bob", now - 50, 9999),  // high score but wrong scope
+        make_scoped_post("out", "person:bob", now - 50, 9999), // high score but wrong scope
     ];
     let result = rank_feed(&ctx, &posts, now).unwrap();
     assert_eq!(result.len(), 2, "both in-scope posts retained");
@@ -75,7 +84,10 @@ fn rank_feed_all_out_of_scope_returns_empty() {
         make_scoped_post("y", "tenant:acme", now - 200, 100),
     ];
     let result = rank_feed(&ctx, &posts, now).unwrap();
-    assert!(result.is_empty(), "all out-of-scope posts must be dropped, result must be empty");
+    assert!(
+        result.is_empty(),
+        "all out-of-scope posts must be dropped, result must be empty"
+    );
 }
 
 /// ST2 + ST3: scope filtering is stable — repeated calls with same input produce identical output.
@@ -91,7 +103,10 @@ fn rank_feed_scope_filter_is_deterministic_across_repeated_calls() {
     ];
     let first = rank_feed(&ctx, &posts, now).unwrap();
     let second = rank_feed(&ctx, &posts, now).unwrap();
-    assert_eq!(first, second, "scope-filtered ranking must be byte-identical on repeated calls");
+    assert_eq!(
+        first, second,
+        "scope-filtered ranking must be byte-identical on repeated calls"
+    );
     // out-of-scope post must not appear
     assert!(first.iter().all(|p| p.post_id != "out"));
 }

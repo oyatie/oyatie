@@ -838,7 +838,10 @@ mod tests {
 
     #[test]
     fn cluster_lifecycle_terminal_states_have_no_exit() {
-        for terminal in [ClusterLifecycleState::Deleted, ClusterLifecycleState::Failed] {
+        for terminal in [
+            ClusterLifecycleState::Deleted,
+            ClusterLifecycleState::Failed,
+        ] {
             assert!(terminal.is_terminal());
             for next in [
                 ClusterLifecycleState::Requested,
@@ -938,7 +941,9 @@ mod tests {
     fn validate_dedicated_readiness_always_allows_hosted() {
         // Hosted has no additional floor constraint; any non-zero count is fine
         assert!(validate_dedicated_readiness(1, DesiredTier::Hosted).is_ok());
-        assert!(validate_dedicated_readiness(DEDICATED_NODE_FLOOR - 1, DesiredTier::Hosted).is_ok());
+        assert!(
+            validate_dedicated_readiness(DEDICATED_NODE_FLOOR - 1, DesiredTier::Hosted).is_ok()
+        );
         assert!(validate_dedicated_readiness(500, DesiredTier::Hosted).is_ok());
     }
 
@@ -955,8 +960,7 @@ mod tests {
         );
         // Provisioning -> Draining (skip Ready)
         assert!(
-            !ClusterLifecycleState::Provisioning
-                .can_transition_to(ClusterLifecycleState::Draining),
+            !ClusterLifecycleState::Provisioning.can_transition_to(ClusterLifecycleState::Draining),
             "Provisioning -> Draining must be illegal (skips Ready)"
         );
         // Ready -> Deleted (skip Draining)

@@ -74,9 +74,8 @@ related:
 - [ ] **RR31** `EVT-WAVE-GATE-PASSED` emitted with milestone ID + gate name + sign-off list. *Lane:* `oya-governance-audit-emission`.
 - [ ] **RR32** `docs/CHANGELOG.md` "wave-gate-passed" row appended.
 - [ ] **RR33** Next milestone phases unblocked: their `gates_on:` rows mark this milestone `merged`.
-- [ ] **RR34** Every release-bound merged PR has a post-merge product-completion
-  packet: promoted SHA `oya-ci-required`, rollout verification, rollback note,
-  observability check, browser UX/user-story evidence, and release-governance /
-  release-note impact (Release Please only when repo config proves it).
+- [ ] **RR34** Release-scoped rollout, rollback, observability, user-story, and
+  release-note evidence is attached to the release record when applicable;
+  ADR-0716 requires no generic packet for every merged PR.
 
 If any row is unchecked, the wave-gate is not passed. Loop back; do not declare release readiness.

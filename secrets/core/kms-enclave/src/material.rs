@@ -15,13 +15,13 @@
 
 use std::fmt;
 
-use aws_lc_rs::aead::{Aad, Nonce, RandomizedNonceKey, AES_256_GCM};
+use aws_lc_rs::aead::{AES_256_GCM, Aad, Nonce, RandomizedNonceKey};
 use secrets_kms_domain::envelope_keys::{DekId, KekId};
 use zeroize::{Zeroize, Zeroizing};
 
-use crate::mlocked::{MlockedKey, KEY_LEN};
-use crate::token::{dek_header, kek_header, WrappedDek, WrappedKekToken, NONCE_LEN};
 use crate::EnclaveError;
+use crate::mlocked::{KEY_LEN, MlockedKey};
+use crate::token::{NONCE_LEN, WrappedDek, WrappedKekToken, dek_header, kek_header};
 
 /// 1-based KEK version. Version 1 is the initial key; rotation increments.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -41,7 +41,10 @@ impl KekVersion {
 
     /// The next version, guarding against overflow.
     pub fn next(self) -> Result<Self, EnclaveError> {
-        self.0.checked_add(1).map(Self).ok_or(EnclaveError::VersionOverflow)
+        self.0
+            .checked_add(1)
+            .map(Self)
+            .ok_or(EnclaveError::VersionOverflow)
     }
 
     /// Raw value.
@@ -64,9 +67,8 @@ impl SealingRootId {
     /// Construct; the id must be non-empty ASCII without control characters.
     pub fn new(value: impl Into<String>) -> Result<Self, EnclaveError> {
         let value = value.into();
-        let valid = !value.is_empty()
-            && value.len() <= 128
-            && value.bytes().all(|b| b.is_ascii_graphic());
+        let valid =
+            !value.is_empty() && value.len() <= 128 && value.bytes().all(|b| b.is_ascii_graphic());
         if !valid {
             return Err(EnclaveError::InvalidIdentifier(
                 secrets_kms_domain::envelope_keys::EnvelopeKeyError::EmptySlug,
@@ -98,7 +100,10 @@ pub struct EnclaveRoot {
 impl EnclaveRoot {
     /// Generate a fresh sealing root from the CSPRNG.
     pub fn generate(root_id: SealingRootId) -> Result<Self, EnclaveError> {
-        Ok(Self { root_id, key: MlockedKey::generate()? })
+        Ok(Self {
+            root_id,
+            key: MlockedKey::generate()?,
+        })
     }
 
     /// Ingress door for the unseal ceremony (OpenBao/PKCS#11 custody per
@@ -108,7 +113,10 @@ impl EnclaveRoot {
         root_id: SealingRootId,
         bytes: [u8; KEY_LEN],
     ) -> Result<Self, EnclaveError> {
-        Ok(Self { root_id, key: MlockedKey::from_bytes(bytes)? })
+        Ok(Self {
+            root_id,
+            key: MlockedKey::from_bytes(bytes)?,
+        })
     }
 
     /// Identifier of this root.
@@ -150,7 +158,11 @@ impl EnclaveRoot {
 
 impl fmt::Debug for EnclaveRoot {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "EnclaveRoot {{ root_id: {}, key: [REDACTED] }}", self.root_id)
+        write!(
+            f,
+            "EnclaveRoot {{ root_id: {}, key: [REDACTED] }}",
+            self.root_id
+        )
     }
 }
 
@@ -165,7 +177,11 @@ pub struct KekMaterial {
 impl KekMaterial {
     /// Generate fresh KEK material from the CSPRNG.
     pub fn generate(kek_id: KekId, version: KekVersion) -> Result<Self, EnclaveError> {
-        Ok(Self { kek_id, version, key: MlockedKey::generate()? })
+        Ok(Self {
+            kek_id,
+            version,
+            key: MlockedKey::generate()?,
+        })
     }
 
     /// Identifier of this KEK.
@@ -192,7 +208,13 @@ impl KekMaterial {
             nonce,
             ciphertext,
         };
-        Ok((DekMaterial { dek_id, key: dek_key }, wrapped))
+        Ok((
+            DekMaterial {
+                dek_id,
+                key: dek_key,
+            },
+            wrapped,
+        ))
     }
 
     /// Unwrap a DEK previously wrapped by this exact KEK id + version.
@@ -204,11 +226,21 @@ impl KekMaterial {
             });
         }
         if wrapped.kek_version != self.version.value() {
-            return Err(EnclaveError::UnknownKekVersion { version: wrapped.kek_version });
+            return Err(EnclaveError::UnknownKekVersion {
+                version: wrapped.kek_version,
+            });
         }
-        let plaintext = aead_open(&self.key, &wrapped.aad(), &wrapped.nonce, &wrapped.ciphertext)?;
+        let plaintext = aead_open(
+            &self.key,
+            &wrapped.aad(),
+            &wrapped.nonce,
+            &wrapped.ciphertext,
+        )?;
         let key = key_from_plaintext(plaintext)?;
-        Ok(DekMaterial { dek_id: wrapped.dek_id.clone(), key })
+        Ok(DekMaterial {
+            dek_id: wrapped.dek_id.clone(),
+            key,
+        })
     }
 }
 
@@ -259,7 +291,11 @@ impl DekMaterial {
 
 impl fmt::Debug for DekMaterial {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "DekMaterial {{ dek_id: {}, key: [REDACTED] }}", self.dek_id)
+        write!(
+            f,
+            "DekMaterial {{ dek_id: {}, key: [REDACTED] }}",
+            self.dek_id
+        )
     }
 }
 

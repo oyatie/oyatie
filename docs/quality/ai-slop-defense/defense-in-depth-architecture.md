@@ -130,8 +130,8 @@ Sources: [Sigstore Cosign](https://docs.sigstore.dev/cosign/verifying/attestatio
 **Purpose**: human-in-the-loop only where mechanical defense is
 insufficient. Reviewer-agent verdict required per change class.
 
-- **PR shape** (existing): 5 H2 sections (Context / Change / Evidence /
-  Risk / Rollback) + Code Review block.
+- **PR shape** (existing): four H2 sections (Issue / Summary / Verification /
+  Code Review).
 - **D1..D38 satisfied** (this doc): PR template enumerates each
   dimension, agent verifies via lane evidence.
 - **Done-Definition D1..D18** (existing IP contract): per

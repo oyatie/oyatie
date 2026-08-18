@@ -406,16 +406,15 @@ fn validate_status_phase(
         "phase_updated_at_missing",
         findings,
     );
-    if let (Some(status), Some(phase_state)) = (status_value, str_at(obj.get("state"))) {
-        if matches!(status, "passed" | "failed" | "cancelled" | "timed_out")
-            && phase_state != status
-        {
-            findings.insert(PacketFinding::new(
-                "terminal_phase_status_mismatch",
-                "phase.state",
-                "A terminal run status must carry the same terminal state on the current phase projection.",
-            ));
-        }
+    if let (Some(status), Some(phase_state)) = (status_value, str_at(obj.get("state")))
+        && matches!(status, "passed" | "failed" | "cancelled" | "timed_out")
+        && phase_state != status
+    {
+        findings.insert(PacketFinding::new(
+            "terminal_phase_status_mismatch",
+            "phase.state",
+            "A terminal run status must carry the same terminal state on the current phase projection.",
+        ));
     }
 }
 
@@ -450,14 +449,14 @@ fn validate_gate_summary(
         "gate_summary_total_missing",
         findings,
     );
-    if let Some(total) = obj.get("total").and_then(Value::as_u64) {
-        if total != total_parts {
-            findings.insert(PacketFinding::new(
-                "gate_summary_total_mismatch",
-                "gate_summary.total",
-                "Make gate_summary.total equal the sum of queued/running/passed/failed/cancelled/timed_out.",
-            ));
-        }
+    if let Some(total) = obj.get("total").and_then(Value::as_u64)
+        && total != total_parts
+    {
+        findings.insert(PacketFinding::new(
+            "gate_summary_total_mismatch",
+            "gate_summary.total",
+            "Make gate_summary.total equal the sum of queued/running/passed/failed/cancelled/timed_out.",
+        ));
     }
     if matches!(status_value, Some("failed" | "timed_out")) {
         require_non_empty_str(
@@ -588,14 +587,14 @@ fn validate_status_correlation(
         "correlation_packet_id_missing",
         findings,
     );
-    if let (Some(run_id), Some(packet_id)) = (run_id, str_at(obj.get("packet_id"))) {
-        if !packet_id.contains(run_id) {
-            findings.insert(PacketFinding::new(
-                "correlation_packet_run_mismatch",
-                "correlation.packet_id",
-                "Tie correlation.packet_id to the same stable run id as the status run projection.",
-            ));
-        }
+    if let (Some(run_id), Some(packet_id)) = (run_id, str_at(obj.get("packet_id")))
+        && !packet_id.contains(run_id)
+    {
+        findings.insert(PacketFinding::new(
+            "correlation_packet_run_mismatch",
+            "correlation.packet_id",
+            "Tie correlation.packet_id to the same stable run id as the status run projection.",
+        ));
     }
     require_non_empty_str(
         obj.get("status_artifact_uri"),
@@ -714,14 +713,13 @@ fn validate_context_binding(
     let status_context = str_at(run.and_then(|run| run.get("status_context")));
     if let (Some(required_context), Some(merge_authority_context), Some(status_context)) =
         (required_context, merge_authority_context, status_context)
+        && (required_context != merge_authority_context || required_context != status_context)
     {
-        if required_context != merge_authority_context || required_context != status_context {
-            findings.insert(PacketFinding::new(
-                "context_binding_mismatch",
-                "producer.required_context",
-                "Bind producer.required_context, producer.merge_authority_context, and run.status_context to one canonical required context; do not silently mix cloud-ci-required and oya-ci-required.",
-            ));
-        }
+        findings.insert(PacketFinding::new(
+            "context_binding_mismatch",
+            "producer.required_context",
+            "Bind producer.required_context, producer.merge_authority_context, and run.status_context to one canonical required context; do not silently mix cloud-ci-required and oya-ci-required.",
+        ));
     }
 }
 
@@ -1350,16 +1348,15 @@ fn validate_diagnosability(
         failure_required,
         findings,
     );
-    if !failure_required {
-        if let Some(items) = obj.get("diagnostic_refs").and_then(Value::as_array) {
-            if !items.is_empty() {
-                findings.insert(PacketFinding::new(
-                    "passed_packet_diagnostic_refs_forbidden",
-                    "diagnosability.diagnostic_refs",
-                    "Passed/cancelled packets must not carry failed-gate diagnostic references.",
-                ));
-            }
-        }
+    if !failure_required
+        && let Some(items) = obj.get("diagnostic_refs").and_then(Value::as_array)
+        && !items.is_empty()
+    {
+        findings.insert(PacketFinding::new(
+            "passed_packet_diagnostic_refs_forbidden",
+            "diagnosability.diagnostic_refs",
+            "Passed/cancelled packets must not carry failed-gate diagnostic references.",
+        ));
     }
 }
 
@@ -1465,16 +1462,16 @@ fn validate_artifact_id_shape(
         ));
         return;
     }
-    if kind == "status-packet" {
-        if let Some(run_id) = run_id {
-            let expected = format!("artifact:status-packet:{run_id}");
-            if artifact_id != expected {
-                findings.insert(PacketFinding::new(
-                    "artifact_id_run_mismatch",
-                    format!("artifacts[{index}].artifact_id"),
-                    "Tie the status-packet artifact id to the run id exactly: artifact:status-packet:<run_id>.",
-                ));
-            }
+    if kind == "status-packet"
+        && let Some(run_id) = run_id
+    {
+        let expected = format!("artifact:status-packet:{run_id}");
+        if artifact_id != expected {
+            findings.insert(PacketFinding::new(
+                "artifact_id_run_mismatch",
+                format!("artifacts[{index}].artifact_id"),
+                "Tie the status-packet artifact id to the run id exactly: artifact:status-packet:<run_id>.",
+            ));
         }
     }
 }

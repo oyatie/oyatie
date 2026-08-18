@@ -76,7 +76,10 @@ pub enum DekCacheError {
 impl fmt::Display for DekCacheError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::ControlPlaneUnavailable { key, expired_at_epoch_millis } => match expired_at_epoch_millis {
+            Self::ControlPlaneUnavailable {
+                key,
+                expired_at_epoch_millis,
+            } => match expired_at_epoch_millis {
                 Some(at) => write!(
                     f,
                     "dek-cache: '{key}' expired at {at}ms and the control plane is unavailable; failing closed"
@@ -119,7 +122,12 @@ impl<C: ClockSource> BoundedTtlDekCache<C> {
     /// Build a cache with a hard TTL (the static-stability window) and a hard
     /// entry cap.
     pub fn new(ttl_millis: NonZeroU64, max_entries: NonZeroUsize, clock: C) -> Self {
-        Self { ttl_millis, max_entries, clock, entries: HashMap::new() }
+        Self {
+            ttl_millis,
+            max_entries,
+            clock,
+            entries: HashMap::new(),
+        }
     }
 
     /// Number of currently held entries (fresh or not-yet-collected).
@@ -157,8 +165,14 @@ impl<C: ClockSource> BoundedTtlDekCache<C> {
                     self.evict_expired(now);
                     self.evict_to_capacity();
                     let expires_at = now.saturating_add(self.ttl_millis.get());
-                    self.entries
-                        .insert(key.clone(), CacheEntry { dek, inserted_at: now, expires_at });
+                    self.entries.insert(
+                        key.clone(),
+                        CacheEntry {
+                            dek,
+                            inserted_at: now,
+                            expires_at,
+                        },
+                    );
                     FetchSource::ControlPlane
                 }
                 Err(ControlPlaneUnavailable) => {

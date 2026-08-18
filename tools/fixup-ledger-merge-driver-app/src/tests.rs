@@ -41,7 +41,11 @@ fn ledger_with(header: &str, rows: &[String]) -> String {
 
 fn clean(base: &str, ours: &str, theirs: &str) -> String {
     let merged = merge_ledgers(base, ours, theirs).expect("must merge");
-    assert!(!merged.conflicted, "expected a clean merge:\n{}", merged.content);
+    assert!(
+        !merged.conflicted,
+        "expected a clean merge:\n{}",
+        merged.content
+    );
     merged.content
 }
 
@@ -68,7 +72,10 @@ fn header_is_carried_by_position_not_by_id() {
         &ledger(&[row("A", "a"), row("B", "b")]),
         &ledger(&[row("A", "a"), row("C", "c")]),
     );
-    assert!(merged.starts_with(HEADER), "header must survive, first:\n{merged}");
+    assert!(
+        merged.starts_with(HEADER),
+        "header must survive, first:\n{merged}"
+    );
     assert_eq!(merged.matches(HEADER).count(), 1, "header must appear once");
 }
 
@@ -84,13 +91,19 @@ fn a_conflict_still_carries_every_row_from_both_sides() {
     assert!(merged.conflicted, "must report a conflict");
 
     assert!(merged.content.contains("MINE"), "ours' row must survive");
-    assert!(merged.content.contains("THEIRS"), "theirs' row must survive");
+    assert!(
+        merged.content.contains("THEIRS"),
+        "theirs' row must survive"
+    );
     assert!(
         merged.content.contains("important new row"),
         "theirs' UNRELATED new row must survive a conflict elsewhere:\n{}",
         merged.content
     );
-    assert!(merged.content.contains("base"), "the base side must be shown");
+    assert!(
+        merged.content.contains("base"),
+        "the base side must be shown"
+    );
 
     for marker in [OURS_MARKER, BASE_MARKER, SPLIT_MARKER, THEIRS_MARKER] {
         assert!(
@@ -153,8 +166,15 @@ fn a_header_edited_on_one_side_only_is_not_a_conflict() {
         &ledger(&[row("A", "a")]),
         &ledger_with(new_header, &[row("A", "a"), row("B", "b")]),
     );
-    assert!(merged.starts_with(new_header), "the one-sided header edit must win");
-    assert_eq!(ids(&merged), vec!["A", "B"], "and the row must come with it");
+    assert!(
+        merged.starts_with(new_header),
+        "the one-sided header edit must win"
+    );
+    assert_eq!(
+        ids(&merged),
+        vec!["A", "B"],
+        "and the row must come with it"
+    );
 }
 
 #[test]
@@ -185,14 +205,22 @@ fn a_row_edited_differently_on_both_sides_conflicts() {
 
 #[test]
 fn the_same_row_added_on_both_sides_is_emitted_once() {
-    let merged = clean(&ledger(&[]), &ledger(&[row("A", "a")]), &ledger(&[row("A", "a")]));
+    let merged = clean(
+        &ledger(&[]),
+        &ledger(&[row("A", "a")]),
+        &ledger(&[row("A", "a")]),
+    );
     assert_eq!(ids(&merged), vec!["A"]);
 }
 
 #[test]
 fn the_same_id_added_with_different_content_conflicts() {
-    let merged = merge_ledgers(&ledger(&[]), &ledger(&[row("A", "mine")]), &ledger(&[row("A", "yours")]))
-        .unwrap();
+    let merged = merge_ledgers(
+        &ledger(&[]),
+        &ledger(&[row("A", "mine")]),
+        &ledger(&[row("A", "yours")]),
+    )
+    .unwrap();
     assert!(merged.conflicted);
     assert!(merged.content.contains("mine") && merged.content.contains("yours"));
 }
@@ -212,7 +240,11 @@ fn a_two_sided_deletion_also_does_not_win() {
     let base = ledger(&[row("A", "a"), row("B", "b")]);
     let one_sided = ledger(&[row("A", "a")]);
     let merged = clean(&base, &one_sided, &one_sided);
-    assert_eq!(ids(&merged), vec!["A", "B"], "a row deleted by BOTH sides is still carried");
+    assert_eq!(
+        ids(&merged),
+        vec!["A", "B"],
+        "a row deleted by BOTH sides is still carried"
+    );
 }
 
 #[test]
@@ -221,7 +253,10 @@ fn rows_are_copied_verbatim_never_reserialised() {
     // re-escaping em-dashes.
     let fancy = r#"{"id":"A","title":"em—dash and \"quotes\"","extra":  1}"#;
     let merged = clean(&ledger(&[]), &ledger(&[fancy.to_owned()]), &ledger(&[]));
-    assert!(merged.contains(fancy), "row must survive byte-for-byte:\n{merged}");
+    assert!(
+        merged.contains(fancy),
+        "row must survive byte-for-byte:\n{merged}"
+    );
 }
 
 #[test]
@@ -233,8 +268,12 @@ fn unparseable_input_is_refused_rather_than_guessed_at() {
 
 #[test]
 fn a_row_without_a_string_id_is_refused() {
-    let err = merge_ledgers(&ledger(&[]), &format!("{HEADER}\n{{\"title\":\"no id\"}}\n"), &ledger(&[]))
-        .expect_err("must refuse");
+    let err = merge_ledgers(
+        &ledger(&[]),
+        &format!("{HEADER}\n{{\"title\":\"no id\"}}\n"),
+        &ledger(&[]),
+    )
+    .expect_err("must refuse");
     assert_eq!(err.kind(), MergeErrorKind::Parse);
 }
 
@@ -249,8 +288,12 @@ fn a_first_line_that_carries_an_id_is_refused() {
 
 #[test]
 fn a_duplicate_id_on_one_side_is_refused() {
-    let err = merge_ledgers(&ledger(&[]), &ledger(&[row("A", "one"), row("A", "two")]), &ledger(&[]))
-        .expect_err("must refuse");
+    let err = merge_ledgers(
+        &ledger(&[]),
+        &ledger(&[row("A", "one"), row("A", "two")]),
+        &ledger(&[]),
+    )
+    .expect_err("must refuse");
     assert_eq!(err.kind(), MergeErrorKind::Parse);
 }
 
@@ -261,7 +304,11 @@ fn merging_is_order_stable_and_idempotent() {
         &ledger(&[row("A", "a"), row("B", "b")]),
         &ledger(&[row("A", "a"), row("C", "c")]),
     );
-    assert_eq!(once, clean(&once, &once, &once), "merging a merged ledger must be a no-op");
+    assert_eq!(
+        once,
+        clean(&once, &once, &once),
+        "merging a merged ledger must be a no-op"
+    );
 }
 
 #[test]
@@ -291,7 +338,10 @@ fn validate_fires_when_a_row_would_be_dropped() {
     let dropped = ledger(&[row("A", "a")]); // B missing
     let err = validate(&dropped, &base, &ours, &theirs).expect_err("must catch the dropped row");
     assert_eq!(err.kind(), MergeErrorKind::Validate);
-    assert!(err.to_string().contains('B'), "must name the lost row: {err}");
+    assert!(
+        err.to_string().contains('B'),
+        "must name the lost row: {err}"
+    );
 }
 
 #[test]
@@ -312,14 +362,22 @@ fn unmodelled_input_still_yields_a_file_carrying_every_side() {
     );
 
     assert_eq!(
-        merge_ledgers(&base, &ours, &theirs).expect_err("kernel cannot model it").kind(),
+        merge_ledgers(&base, &ours, &theirs)
+            .expect_err("kernel cannot model it")
+            .kind(),
         MergeErrorKind::Parse
     );
 
     let fallback = whole_file_conflict(&base, &ours, &theirs);
     assert!(fallback.contains("MINE"), "ours must survive");
-    assert!(fallback.contains("IMPORTANT"), "theirs' unrelated row must survive:\n{fallback}");
-    assert!(fallback.contains("no_id_field"), "the offending row must be visible to fix");
+    assert!(
+        fallback.contains("IMPORTANT"),
+        "theirs' unrelated row must survive:\n{fallback}"
+    );
+    assert!(
+        fallback.contains("no_id_field"),
+        "the offending row must be visible to fix"
+    );
     for marker in [OURS_MARKER, BASE_MARKER, SPLIT_MARKER, THEIRS_MARKER] {
         assert!(fallback.contains(marker), "missing {marker}");
     }
@@ -344,7 +402,10 @@ fn a_clean_merge_is_actually_validated_not_just_validatable() {
     // enforces, asserted through `merge_ledgers` rather than by calling `validate` directly.
     let present = ids(&merged.content);
     for id in ["A", "B", "C"] {
-        assert!(present.contains(&id.to_owned()), "merge_ledgers dropped {id}");
+        assert!(
+            present.contains(&id.to_owned()),
+            "merge_ledgers dropped {id}"
+        );
     }
     assert_eq!(present.len(), 3, "and emitted nothing extra: {present:?}");
 }

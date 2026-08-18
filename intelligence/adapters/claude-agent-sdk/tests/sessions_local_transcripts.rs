@@ -159,8 +159,8 @@ fn lists_sessions_and_applies_metadata_mutations() -> intelligence_claude_agent_
 }
 
 #[test]
-fn reads_visible_session_messages_in_parent_chain_with_pagination() -> intelligence_claude_agent_sdk::Result<()>
-{
+fn reads_visible_session_messages_in_parent_chain_with_pagination()
+-> intelligence_claude_agent_sdk::Result<()> {
     let _lock = ENV_LOCK.lock().unwrap();
     let config = tempdir().unwrap();
     let _env = ClaudeConfigEnvGuard::set(config.path());
@@ -249,7 +249,8 @@ fn missing_mutation_target_reports_error() {
 }
 
 #[test]
-fn local_subagent_helpers_and_delete_match_package_exports() -> intelligence_claude_agent_sdk::Result<()> {
+fn local_subagent_helpers_and_delete_match_package_exports()
+-> intelligence_claude_agent_sdk::Result<()> {
     let _lock = ENV_LOCK.lock().unwrap();
     let config = tempdir().unwrap();
     let _env = ClaudeConfigEnvGuard::set(config.path());
@@ -327,7 +328,8 @@ fn local_subagent_helpers_and_delete_match_package_exports() -> intelligence_cla
 }
 
 #[test]
-fn forks_local_session_with_new_ids_and_parent_chain() -> intelligence_claude_agent_sdk::Result<()> {
+fn forks_local_session_with_new_ids_and_parent_chain() -> intelligence_claude_agent_sdk::Result<()>
+{
     let _lock = ENV_LOCK.lock().unwrap();
     let config = tempdir().unwrap();
     let _env = ClaudeConfigEnvGuard::set(config.path());

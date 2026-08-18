@@ -420,7 +420,7 @@ fn execute_score_card_query(id: &str, query: &str, path: &Path) -> Result<bool, 
                 .args(["nextest", "--version"])
                 .env_remove("RUSTC_WRAPPER")
                 .output()
-                .map_or(false, |o| o.status.success());
+                .is_ok_and(|o| o.status.success());
             if nextest_available {
                 run_score_card_command(
                     id,

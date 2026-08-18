@@ -10,8 +10,8 @@ use crate::encryption::EncryptionConfig;
 use crate::filesystem::FilesystemType;
 use crate::mount::BLOCK_NAMESPACE;
 use crate::{BlockError, Result};
-use os_kernel::{ResourceId, validate_disk_locator_bool_expression};
 use os_cosi_domain::{AnyResource, Metadata, Resource, ResourceKind};
+use os_kernel::{ResourceId, validate_disk_locator_bool_expression};
 
 /// Talos v1.13.0 block `VolumeStatus` resource type.
 ///

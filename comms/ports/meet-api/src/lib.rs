@@ -267,10 +267,7 @@ mod tests {
         assert_eq!(envelope.aggregate_id, "session:s");
         assert_eq!(envelope.audit_correlation_id, "audit-1");
         assert_eq!(envelope.idempotency_key, Some("idem-1".into()));
-        assert_eq!(
-            envelope.policy_decision_ref,
-            "cedar:allow:meet-open-room"
-        );
+        assert_eq!(envelope.policy_decision_ref, "cedar:allow:meet-open-room");
     }
 
     #[test]

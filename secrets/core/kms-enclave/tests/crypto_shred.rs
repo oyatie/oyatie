@@ -9,9 +9,9 @@
 use std::num::NonZeroU32;
 
 use secrets_kms_enclave::{
-    DekId, KekId, KekMaterial, KekVersion, KekVersionChain, QuorumPolicy, ScheduledKeyDeletion,
-    ShredAction, ShredAuthorizationPort, ShredAuthorizationRequest, ShredDecision,
-    ShredDecisionEvidence, ShredError, MIN_WAITING_WINDOW_SECONDS,
+    DekId, KekId, KekMaterial, KekVersion, KekVersionChain, MIN_WAITING_WINDOW_SECONDS,
+    QuorumPolicy, ScheduledKeyDeletion, ShredAction, ShredAuthorizationPort,
+    ShredAuthorizationRequest, ShredDecision, ShredDecisionEvidence, ShredError,
 };
 
 /// Fixed-answer PDP fixture; records nothing, answers everything the same.
@@ -38,14 +38,18 @@ fn chain_with_history(kek_id: &str) -> (KekVersionChain, Vec<u8>, secrets_kms_en
         KekMaterial::generate(KekId::new(kek_id).expect("kek id"), KekVersion::INITIAL)
             .expect("kek"),
     );
-    let (dek, wrapped) = chain.generate_dek(DekId::new("dek/obj_1").expect("dek id")).expect("dek");
+    let (dek, wrapped) = chain
+        .generate_dek(DekId::new("dek/obj_1").expect("dek id"))
+        .expect("dek");
     let blob = dek.seal(b"ctx", b"tenant payload").expect("seal");
     chain.rotate().expect("rotate");
     (chain, blob, wrapped)
 }
 
 fn quorum(n: u32) -> QuorumPolicy {
-    QuorumPolicy { required_approvals: NonZeroU32::new(n).expect("quorum") }
+    QuorumPolicy {
+        required_approvals: NonZeroU32::new(n).expect("quorum"),
+    }
 }
 
 const T0: u64 = 1_750_000_000;
@@ -67,14 +71,32 @@ fn green_full_lifecycle_schedule_approve_wait_execute() {
     .expect("schedule under permit");
 
     // Decrypt-only availability during the window: reads still serve.
-    let dek = scheduled.pending_chain().unwrap_dek(&wrapped).expect("window read");
-    assert_eq!(dek.open(b"ctx", &blob).expect("open").as_slice(), b"tenant payload");
+    let dek = scheduled
+        .pending_chain()
+        .unwrap_dek(&wrapped)
+        .expect("window read");
+    assert_eq!(
+        dek.open(b"ctx", &blob).expect("open").as_slice(),
+        b"tenant payload"
+    );
 
-    assert_eq!(scheduled.approve("approver-a@ops".to_owned()).expect("first"), 1);
-    assert_eq!(scheduled.approve("approver-b@ops".to_owned()).expect("second"), 2);
+    assert_eq!(
+        scheduled
+            .approve("approver-a@ops".to_owned())
+            .expect("first"),
+        1
+    );
+    assert_eq!(
+        scheduled
+            .approve("approver-b@ops".to_owned())
+            .expect("second"),
+        2
+    );
 
     let executed_at = T0 + MIN_WAITING_WINDOW_SECONDS;
-    let proof = scheduled.execute(executed_at).expect("execute after window");
+    let proof = scheduled
+        .execute(executed_at)
+        .expect("execute after window");
 
     assert_eq!(proof.kek_id.value(), "kek/ten_alpha");
     assert_eq!(proof.tenant_id, "ten_alpha");
@@ -109,8 +131,15 @@ fn red_pdp_deny_fails_closed_and_returns_custody() {
     assert!(matches!(err, ShredError::NotPermitted { .. }));
     // Custody intact: chain still decrypts and still encrypts forward.
     let dek = returned.unwrap_dek(&wrapped).expect("custody preserved");
-    assert_eq!(dek.open(b"ctx", &blob).expect("open").as_slice(), b"tenant payload");
-    assert!(returned.generate_dek(DekId::new("dek/obj_2").unwrap()).is_ok());
+    assert_eq!(
+        dek.open(b"ctx", &blob).expect("open").as_slice(),
+        b"tenant payload"
+    );
+    assert!(
+        returned
+            .generate_dek(DekId::new("dek/obj_2").unwrap())
+            .is_ok()
+    );
 }
 
 #[test]
@@ -127,7 +156,9 @@ fn red_quorum_short_blocks_execution() {
         T0,
     )
     .expect("schedule");
-    scheduled.approve("approver-a@ops".to_owned()).expect("one approval");
+    scheduled
+        .approve("approver-a@ops".to_owned())
+        .expect("one approval");
 
     let (returned, err) = scheduled
         .execute(T0 + MIN_WAITING_WINDOW_SECONDS + 1)
@@ -151,7 +182,9 @@ fn red_window_not_elapsed_blocks_execution() {
         T0,
     )
     .expect("schedule");
-    scheduled.approve("approver-a@ops".to_owned()).expect("approval");
+    scheduled
+        .approve("approver-a@ops".to_owned())
+        .expect("approval");
 
     let (_, err) = scheduled
         .execute(T0 + MIN_WAITING_WINDOW_SECONDS - 1)
@@ -183,7 +216,9 @@ fn approval_rules_distinct_and_no_self_approval() {
         scheduled.approve("requester@ops".to_owned()),
         Err(ShredError::RequesterCannotApprove)
     );
-    scheduled.approve("approver-a@ops".to_owned()).expect("first");
+    scheduled
+        .approve("approver-a@ops".to_owned())
+        .expect("first");
     assert_eq!(
         scheduled.approve("approver-a@ops".to_owned()),
         Err(ShredError::DuplicateApprover)
@@ -204,7 +239,9 @@ fn cancel_restores_encrypt_capable_custody_with_attribution() {
         T0,
     )
     .expect("schedule");
-    scheduled.approve("approver-a@ops".to_owned()).expect("approval before cancel");
+    scheduled
+        .approve("approver-a@ops".to_owned())
+        .expect("approval before cancel");
 
     let (restored, evidence) = scheduled
         .cancel("operator@ops".to_owned(), &pdp, T0 + 60)
@@ -218,13 +255,23 @@ fn cancel_restores_encrypt_capable_custody_with_attribution() {
     assert_eq!(evidence.cancel_decision.policy_version, "policy-v7");
     assert!(evidence.cancel_decision.decision_id.contains("Cancel"));
     assert!(evidence.schedule_decision.decision_id.contains("Schedule"));
-    assert_eq!(evidence.approvals_at_cancel, vec!["approver-a@ops".to_owned()]);
+    assert_eq!(
+        evidence.approvals_at_cancel,
+        vec!["approver-a@ops".to_owned()]
+    );
     assert_eq!(evidence.scheduled_at_epoch_seconds, T0);
     assert_eq!(evidence.cancelled_at_epoch_seconds, T0 + 60);
 
     let dek = restored.unwrap_dek(&wrapped).expect("reads restored");
-    assert_eq!(dek.open(b"ctx", &blob).expect("open").as_slice(), b"tenant payload");
-    assert!(restored.generate_dek(DekId::new("dek/obj_3").unwrap()).is_ok());
+    assert_eq!(
+        dek.open(b"ctx", &blob).expect("open").as_slice(),
+        b"tenant payload"
+    );
+    assert!(
+        restored
+            .generate_dek(DekId::new("dek/obj_3").unwrap())
+            .is_ok()
+    );
 }
 
 #[test]
@@ -253,12 +300,19 @@ fn property_sweep_quorum_arithmetic() {
             let outcome = scheduled.execute(T0 + MIN_WAITING_WINDOW_SECONDS);
             if granted >= required {
                 let proof = outcome.expect("N >= M must shred");
-                assert_eq!(proof.approvers.len(), granted as usize, "M={required} N={granted}");
+                assert_eq!(
+                    proof.approvers.len(),
+                    granted as usize,
+                    "M={required} N={granted}"
+                );
             } else {
                 let (_, err) = outcome.expect_err("N < M must fail closed");
                 assert_eq!(
                     err,
-                    ShredError::QuorumNotReached { have: granted, need: required },
+                    ShredError::QuorumNotReached {
+                        have: granted,
+                        need: required
+                    },
                     "M={required} N={granted}"
                 );
             }
@@ -303,5 +357,10 @@ fn window_floor_enforced() {
         T0,
     )
     .expect_err("sub-floor window rejected");
-    assert_eq!(err, ShredError::WindowTooShort { floor_seconds: MIN_WAITING_WINDOW_SECONDS });
+    assert_eq!(
+        err,
+        ShredError::WindowTooShort {
+            floor_seconds: MIN_WAITING_WINDOW_SECONDS
+        }
+    );
 }

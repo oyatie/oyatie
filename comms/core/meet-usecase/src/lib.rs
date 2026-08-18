@@ -244,10 +244,7 @@ mod tests {
         type Session = MeetSession;
 
         fn put_session(&mut self, session: MeetSession) -> Result<(), MeetApiError> {
-            let key = (
-                session.tenant_id.value.clone(),
-                session.id.value.clone(),
-            );
+            let key = (session.tenant_id.value.clone(), session.id.value.clone());
             if self.sessions.contains_key(&key) {
                 return Err(MeetApiError::Invalid);
             }
@@ -267,10 +264,7 @@ mod tests {
         }
 
         fn update_session(&mut self, session: MeetSession) -> Result<(), MeetApiError> {
-            let key = (
-                session.tenant_id.value.clone(),
-                session.id.value.clone(),
-            );
+            let key = (session.tenant_id.value.clone(), session.id.value.clone());
             if !self.sessions.contains_key(&key) {
                 return Err(MeetApiError::SessionNotFound);
             }
@@ -355,8 +349,7 @@ mod tests {
             display_name: Some("Attendee".into()),
             joined_at_epoch_seconds: 1_700_000_010,
         };
-        let (session, receipt) =
-            join_session(&mut store, &attendee_ctx, join_req.clone()).unwrap();
+        let (session, receipt) = join_session(&mut store, &attendee_ctx, join_req.clone()).unwrap();
         assert_eq!(session.participants.value.len(), 2);
         assert_eq!(receipt.event_type, "meet.session.joined");
 
@@ -407,8 +400,7 @@ mod tests {
             session_id: "room-1".into(),
             ended_at_epoch_seconds: 1_700_000_900,
         };
-        let (session, receipt) =
-            close_session(&mut store, &host_ctx(), close_req.clone()).unwrap();
+        let (session, receipt) = close_session(&mut store, &host_ctx(), close_req.clone()).unwrap();
         assert_eq!(session.ended_at_epoch_seconds.value, Some(1_700_000_900));
         assert_eq!(receipt.event_type, "meet.session.closed");
 

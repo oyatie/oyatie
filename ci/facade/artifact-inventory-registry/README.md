@@ -19,20 +19,19 @@ answers the same question locally, BEFORE push, with **no materialized scm-facts
 firewall's own evaluator (so its verdict cannot drift from CI's):
 
 ```
-# 1. Scaffold an admission-passing PR body (dogfood the sibling preflight):
-buck2 run //governance/check/pr-traceability:pr-traceability-admission-bin -- --scaffold > /tmp/body.md
-#    ...edit /tmp/body.md, then validate it:
-buck2 run //governance/check/pr-traceability:pr-traceability-admission-bin -- --check /tmp/body.md
-
-# 2. Check the files your branch ADDS before you push:
+# 1. Check the files your branch ADDS before you push:
 buck2 run //ci/facade/artifact-inventory-registry:oya-cloud-ci-accounting-registry-app-bin -- \
     --check-diff origin/dev
 #    ...or name paths explicitly:
 buck2 run //ci/facade/artifact-inventory-registry:oya-cloud-ci-accounting-registry-app-bin -- \
     --check-paths ci/facade/my-new-gate/src/lib.rs docs/foo.md
 
-# 3. Push once the check is clean.
+# 2. Push once the check is clean.
 ```
+
+PR bodies come from the canonical repository template and are evaluated by
+independent review. ADR-0716 retired the local PR-body scaffold/check binary;
+this inventory check is optional local feedback, not merge authority.
 
 Per added path the check reports `reachable?` (which resolver) and `justified?` (which ADR), and
 if a path would RED the firewall it names the exact fix. For `unjustified` that is: *add the

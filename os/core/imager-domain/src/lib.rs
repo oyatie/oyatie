@@ -372,12 +372,7 @@ mod tests {
 
     #[test]
     fn profile_rejects_empty_version_and_dup_extension() {
-        let mut p = Profile::new(
-            Arch::Amd64,
-            os_kernel::Platform::Metal,
-            OutputKind::Iso,
-            "",
-        );
+        let mut p = Profile::new(Arch::Amd64, os_kernel::Platform::Metal, OutputKind::Iso, "");
         p = p
             .with_extension(SystemExtension::new("ghcr.io/x/gvisor:1"))
             .with_extension(SystemExtension::new("ghcr.io/x/gvisor:1"));

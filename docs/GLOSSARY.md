@@ -525,11 +525,12 @@ Per ADR-0105 + ADR-0106 + ADR-0565: `oya-<context>-<role>[-<capability>]`. Canon
 | `Closes #N` | Will auto-close on merge |
 | `Blocks #N` | This blocks the linked issue |
 | `Blocked-by #N` | Cannot proceed until linked issue resolves |
-| `# review-bypass: <reason>` | Skips the agent review gate (per `guard-pr-merge-review.mjs`); always logged |
 
 ### 12.4 PR sections (PR template)
 
-Mandatory H2s (per CLAUDE.md): `## Issue`, `## Summary`, `## Verification`, `## Traceability`, `## Evidence`. Lead-only optional `## Code Review`. Worker PRs MUST NOT add `## Code Review`.
+Mandatory H2s (per CLAUDE.md): `## Issue`, `## Summary`, `## Verification`,
+and `## Code Review`. The author leaves review pending; one author-distinct
+reviewer agent records the binding verdict on the exact PR head.
 
 ### 12.5 Date format
 

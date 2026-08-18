@@ -142,18 +142,23 @@ impl std::fmt::Display for WorkflowSpecEmitError {
                 write!(f, "duplicate outgoing edge condition from node: {id}")
             }
             AmbiguousDefaultEdge(id) => {
-                write!(f, "more than one unconditional outgoing edge from node: {id}")
+                write!(
+                    f,
+                    "more than one unconditional outgoing edge from node: {id}"
+                )
             }
             BranchNodeRequiresConditionalEdges(id) => write!(
                 f,
                 "branch node requires >=2 outgoing edges with at least one conditional: {id}"
             ),
-            JoinNodeRequiresMultipleInbound(id) => write!(
-                f,
-                "join node requires >=2 inbound edges: {id}"
-            ),
+            JoinNodeRequiresMultipleInbound(id) => {
+                write!(f, "join node requires >=2 inbound edges: {id}")
+            }
             MissingTerminalNode => {
-                write!(f, "workflow must have at least one terminal (sink) node with no outgoing edges")
+                write!(
+                    f,
+                    "workflow must have at least one terminal (sink) node with no outgoing edges"
+                )
             }
             Json(err) => write!(f, "JSON serialisation error: {err}"),
         }
@@ -385,11 +390,8 @@ impl WorkflowSpec {
         }
 
         // Build a node-kind lookup by id for typology checks.
-        let kind_by_id: BTreeMap<&str, WorkflowSpecNodeKind> = self
-            .nodes
-            .iter()
-            .map(|n| (n.id.as_str(), n.kind))
-            .collect();
+        let kind_by_id: BTreeMap<&str, WorkflowSpecNodeKind> =
+            self.nodes.iter().map(|n| (n.id.as_str(), n.kind)).collect();
 
         // BranchNodeRequiresConditionalEdges: iterate nodes in sorted order (BTreeMap).
         // A Branch node must have >=2 outgoing edges with at least one conditional edge.

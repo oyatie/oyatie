@@ -51,11 +51,7 @@ fn cond_edge(from: &str, to: &str, condition: &str) -> WorkflowSpecEdge {
     WorkflowSpecEdge::new(from, to, Some(condition.to_string()))
 }
 
-fn spec(
-    def_id: &str,
-    nodes: Vec<WorkflowSpecNode>,
-    edges: Vec<WorkflowSpecEdge>,
-) -> WorkflowSpec {
+fn spec(def_id: &str, nodes: Vec<WorkflowSpecNode>, edges: Vec<WorkflowSpecEdge>) -> WorkflowSpec {
     WorkflowSpec::new("ten_acme", def_id, "1.0.0", nodes, edges)
 }
 
@@ -83,10 +79,7 @@ fn multiple_unreachable_nodes_reports_first_sorted_id() {
             node("wfn_c", "C"),
             node("wfn_entry", "Entry"),
         ],
-        vec![
-            edge("wfn_b", "wfn_c"),
-            edge("wfn_c", "wfn_b"),
-        ],
+        vec![edge("wfn_b", "wfn_c"), edge("wfn_c", "wfn_b")],
     );
     assert_eq!(
         s.validate(),
@@ -116,11 +109,7 @@ fn diamond_dag_with_fan_out_and_fan_in_passes_validate() {
             edge("wfn_right", "wfn_join"),
         ],
     );
-    assert_eq!(
-        s.validate(),
-        Ok(()),
-        "diamond DAG must pass validate()",
-    );
+    assert_eq!(s.validate(), Ok(()), "diamond DAG must pass validate()",);
 }
 
 /// UnreachableNode is reported before GraphCycle when the same spec contains
@@ -147,9 +136,9 @@ fn unreachable_node_reported_before_graph_cycle_when_both_present() {
         vec![
             edge("wfn_entry", "wfn_a"),
             edge("wfn_a", "wfn_b"),
-            edge("wfn_b", "wfn_a"),   // reachable cycle
+            edge("wfn_b", "wfn_a"), // reachable cycle
             edge("wfn_x", "wfn_y"),
-            edge("wfn_y", "wfn_x"),   // isolated cycle
+            edge("wfn_y", "wfn_x"), // isolated cycle
         ],
     );
     assert_eq!(
@@ -184,14 +173,16 @@ fn duplicate_edge_condition_reports_first_sorted_source_node() {
             edge("wfn_entry", "wfn_m"),
             edge("wfn_entry", "wfn_n"),
             cond_edge("wfn_m", "wfn_p", "ok"),
-            cond_edge("wfn_m", "wfn_q", "ok"),  // duplicate on wfn_m
+            cond_edge("wfn_m", "wfn_q", "ok"), // duplicate on wfn_m
             cond_edge("wfn_n", "wfn_r", "ok"),
-            cond_edge("wfn_n", "wfn_s", "ok"),  // duplicate on wfn_n
+            cond_edge("wfn_n", "wfn_s", "ok"), // duplicate on wfn_n
         ],
     );
     assert_eq!(
         s.validate(),
-        Err(WorkflowSpecEmitError::DuplicateEdgeCondition("wfn_m".to_string())),
+        Err(WorkflowSpecEmitError::DuplicateEdgeCondition(
+            "wfn_m".to_string()
+        )),
         "first sorted source node with duplicate condition must be reported",
     );
 }
@@ -218,12 +209,14 @@ fn duplicate_condition_reported_before_ambiguous_default_on_same_node() {
             cond_edge("wfn_branch", "wfn_p", "ok"),
             cond_edge("wfn_branch", "wfn_q", "ok"), // duplicate condition
             edge("wfn_branch", "wfn_r"),
-            edge("wfn_branch", "wfn_s"),             // second unconditional
+            edge("wfn_branch", "wfn_s"), // second unconditional
         ],
     );
     assert_eq!(
         s.validate(),
-        Err(WorkflowSpecEmitError::DuplicateEdgeCondition("wfn_branch".to_string())),
+        Err(WorkflowSpecEmitError::DuplicateEdgeCondition(
+            "wfn_branch".to_string()
+        )),
         "DuplicateEdgeCondition must be reported before AmbiguousDefaultEdge",
     );
 }
@@ -251,7 +244,9 @@ fn three_conditional_edges_with_one_duplicate_pair_yields_duplicate_condition() 
     );
     assert_eq!(
         s.validate(),
-        Err(WorkflowSpecEmitError::DuplicateEdgeCondition("wfn_branch".to_string())),
+        Err(WorkflowSpecEmitError::DuplicateEdgeCondition(
+            "wfn_branch".to_string()
+        )),
         "one duplicate among three conditional edges must be caught",
     );
 }
@@ -295,10 +290,7 @@ fn emit_canonical_json_propagates_unreachable_node_error() {
             node("wfn_c", "C"),
             node("wfn_entry", "Entry"),
         ],
-        vec![
-            edge("wfn_b", "wfn_c"),
-            edge("wfn_c", "wfn_b"),
-        ],
+        vec![edge("wfn_b", "wfn_c"), edge("wfn_c", "wfn_b")],
     );
     let result = emit_canonical_json(&s);
     assert!(
@@ -317,13 +309,13 @@ fn canonicalized_rejects_spec_with_unreachable_node() {
             node("wfn_c", "C"),
             node("wfn_entry", "Entry"),
         ],
-        vec![
-            edge("wfn_b", "wfn_c"),
-            edge("wfn_c", "wfn_b"),
-        ],
+        vec![edge("wfn_b", "wfn_c"), edge("wfn_c", "wfn_b")],
     );
     assert!(
-        matches!(s.canonicalized(), Err(WorkflowSpecEmitError::UnreachableNode(_))),
+        matches!(
+            s.canonicalized(),
+            Err(WorkflowSpecEmitError::UnreachableNode(_))
+        ),
         "canonicalized() must propagate UnreachableNode",
     );
 }
@@ -344,7 +336,10 @@ fn canonicalized_rejects_spec_with_duplicate_edge_condition() {
         ],
     );
     assert!(
-        matches!(s.canonicalized(), Err(WorkflowSpecEmitError::DuplicateEdgeCondition(_))),
+        matches!(
+            s.canonicalized(),
+            Err(WorkflowSpecEmitError::DuplicateEdgeCondition(_))
+        ),
         "canonicalized() must propagate DuplicateEdgeCondition",
     );
 }

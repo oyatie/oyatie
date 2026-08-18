@@ -11,7 +11,11 @@ use ci_cross_artifact_agreement::{MASTERPLAN_MD_PATH, derive_masterplan_md_proje
 use ci_planning_projection::render_board_sync_projection;
 use oya_workspace_members_kernel::resolve_member_dirs;
 
+mod masterplan_source;
 mod rust_toolchain_drift;
+pub use masterplan_source::{
+    read_planning_impact_adrs, render_masterplan_projection_from_decisions,
+};
 pub use rust_toolchain_drift::{evaluate_rust_toolchain_drift, read_pinned_rust_toolchain};
 
 pub const LOCK_REMEDIATION_COMMAND: &str = "cargo metadata >/dev/null";
@@ -2019,6 +2023,70 @@ struct MaterializerTools {
     enforcement_liveness_corpus: EnforcementLivenessCorpusPaths,
 }
 
+/// Materialize only the de-committed inventory inputs needed by Cargo gate tests.
+///
+/// The required workflow calls the full generated-face materializer before `cargo test`. A direct
+/// `cargo test --workspace` has already built these exact Rust tools but has no workflow pre-step,
+/// so the baseline-ratchet integration target calls this narrow entry point when its frozen input
+/// is absent. It deliberately reuses the production ordering and trust boundaries:
+///
+/// 1. the codemod emits the move manifest;
+/// 2. the SCM emitter selects and publishes the merge base;
+/// 3. the producer regenerates that source twice;
+/// 4. the emitter checks determinism and writes the provenance-bound snapshot.
+/// 5. the producer materializes the candidate accounting faces consumed by later gate tests.
+///
+/// No evaluator verdict is returned and no admission decision is made here. Tool paths must be
+/// absolute, regular, non-symlink Cargo artifacts; missing or failed inputs remain errors.
+pub fn materialize_cargo_test_inventory_inputs(
+    repo_root: &Path,
+    emitter: &Path,
+    producer: &Path,
+    codemod: &Path,
+) -> Result<(), FreshnessError> {
+    for (label, path) in [
+        ("Cargo SCM facts emitter", emitter),
+        ("Cargo accounting producer", producer),
+        ("Cargo reorg codemod", codemod),
+    ] {
+        if !path.is_absolute() {
+            return Err(FreshnessError::new(format!(
+                "{label} path must be absolute: {}",
+                path.display()
+            )));
+        }
+        assert_regular_non_symlink_file(path, label)?;
+    }
+
+    let tools = MaterializerTools {
+        emitter: emitter.to_path_buf(),
+        producer: producer.to_path_buf(),
+        codemod: codemod.to_path_buf(),
+        // These tools belong only to the wider projection materializer and are intentionally
+        // unused by this narrow inventory-input path.
+        masterplan_generator: PathBuf::new(),
+        architecture_graph_generator: PathBuf::new(),
+        enforcement_liveness_corpus: EnforcementLivenessCorpusPaths {
+            claude_settings: repo_root.join(ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS),
+            codex_hooks: repo_root.join(ENFORCEMENT_LIVENESS_CODEX_HOOKS),
+            hooks_dir: repo_root.join(ENFORCEMENT_LIVENESS_HOOKS_DIR),
+        },
+    };
+    materialize_move_manifest(&tools, repo_root)?;
+    let scm_facts = repo_root.join(FACES_DIR).join(SCM_FACTS_FACE);
+    emit_materialized_scm_facts(&tools, repo_root, &scm_facts, None, None)?;
+
+    let mut producer = Command::new(&tools.producer);
+    producer
+        .args(["--repo-root"])
+        .arg(repo_root)
+        .args(["--scm-facts"])
+        .arg(&scm_facts);
+    append_enforcement_liveness_corpus_args(&mut producer, &tools.enforcement_liveness_corpus);
+    producer.current_dir(repo_root);
+    run_status(&mut producer, "materialize Cargo test accounting faces")
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 struct EnforcementLivenessCorpusPaths {
     claude_settings: PathBuf,
@@ -2809,6 +2877,27 @@ mod materialize_generated_faces_tests {
         let root = std::env::temp_dir().join(format!("{label}-{}-{nanos}", std::process::id()));
         let _ = std::fs::remove_dir_all(&root);
         root
+    }
+
+    #[test]
+    fn cargo_inventory_materializer_rejects_unresolved_relative_tools_before_mutation() {
+        let root = temp_root("oya-cargo-inventory-relative-tool");
+        let error = materialize_cargo_test_inventory_inputs(
+            &root,
+            Path::new("target/debug/emitter"),
+            Path::new("target/debug/producer"),
+            Path::new("target/debug/codemod"),
+        )
+        .expect_err("runtime callers must resolve Cargo resources before materialization");
+
+        assert!(
+            error.to_string().contains("path must be absolute"),
+            "{error}"
+        );
+        assert!(
+            !root.exists(),
+            "invalid unresolved bindings must fail before checkout mutation"
+        );
     }
 
     #[cfg(unix)]

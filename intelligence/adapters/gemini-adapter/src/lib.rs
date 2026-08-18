@@ -193,10 +193,12 @@ impl GeminiApiKeyAdapter {
         model: &str,
         response_shape: GeminiResponseShape,
     ) -> Result<GeminiProxyResponse, GeminiAdapterError> {
-        let payload: serde_json::Value = serde_json::from_slice(&native_response.body)
-            .map_err(|e| GeminiAdapterError::UpstreamError {
-                status: native_response.status,
-                body: format!("invalid upstream JSON: {e}"),
+        let payload: serde_json::Value =
+            serde_json::from_slice(&native_response.body).map_err(|e| {
+                GeminiAdapterError::UpstreamError {
+                    status: native_response.status,
+                    body: format!("invalid upstream JSON: {e}"),
+                }
             })?;
         let translated = match response_shape {
             GeminiResponseShape::OpenAi => {
@@ -323,7 +325,11 @@ fn filtered_response_headers(headers: &reqwest::header::HeaderMap) -> BTreeMap<S
     let response_connection_tokens: HashSet<String> = headers
         .get("connection")
         .and_then(|v| v.to_str().ok())
-        .map(|v| v.split(',').map(|t| t.trim().to_ascii_lowercase()).collect())
+        .map(|v| {
+            v.split(',')
+                .map(|t| t.trim().to_ascii_lowercase())
+                .collect()
+        })
         .unwrap_or_default();
 
     let mut filtered = BTreeMap::new();

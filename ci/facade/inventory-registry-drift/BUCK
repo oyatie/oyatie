@@ -41,6 +41,7 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         ":ci-inventory-registry-drift",
+        "//ci/adapters/path-resolver:ci-path-resolver-adapters",
         "//ci/facade/artifact-inventory-registry:ci-artifact-inventory-registry",
     ],
 )

@@ -36,6 +36,25 @@ config:
 cedar:
   enabled: true
   policyConfigMapName: oya-translate-cedar
+  # Per-service authorization policy. DATA, never a shared template.
+  policy: |
+    permit(
+      principal,
+      action,
+      resource
+    ) when {
+      resource.microservice == "{{ .Values.microservice.id }}" &&
+      principal.tenant_class == "{{ .Values.microservice.tenantClass }}"
+    };
+
+    forbid(
+      principal,
+      action,
+      resource
+    ) when {
+      resource.microservice == "{{ .Values.microservice.id }}" &&
+      principal.tenant_class != "{{ .Values.microservice.tenantClass }}"
+    };
 
 otel:
   enabled: true

@@ -71,4 +71,4 @@ The active ledger uses a table. New rows append to `docs/MISTAKES-LEDGER.md §3 
 3. **Mechanical prevention is mandatory** — if you cannot name a CI lane / hook / validator / runtime gate, file an escalation (`/templates/checklists/escalation-checklist.md`).
 4. **Cite at least one link** — PR, ADR, runbook, or postmortem.
 5. **Quarterly council review** — patterns across rows (≥ 3 rows in the same cluster) trigger meta-prevention per `docs/standards/prevention-doctrine.md §6`.
-6. **PR cite rule** — PRs that ship a mechanical prevention for a prior failure **MUST** cite the new MFL row in `## Traceability` per D17 of `docs/AGENTS.md §Done-Definition checklist`.
+6. **PR cite rule** — PRs that ship a mechanical prevention for a prior failure **MUST** cite the new MFL row in `## Summary` per D17 of `docs/AGENTS.md §Done-Definition checklist`.

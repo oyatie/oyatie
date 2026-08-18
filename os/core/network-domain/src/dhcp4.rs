@@ -636,9 +636,10 @@ pub fn parse_dhcp4_ack(packet: &[u8]) -> Result<Dhcp4Lease> {
         None => Vec::new(),
     };
     if let Some(domain) = &domain_name
-        && !search_domains.contains(domain) {
-            search_domains.push(domain.clone());
-        }
+        && !search_domains.contains(domain)
+    {
+        search_domains.push(domain.clone());
+    }
 
     let mtu = match option(&options, DHCP_OPTION_INTERFACE_MTU) {
         Some([hi, lo]) => Some(u16::from_be_bytes([*hi, *lo])),
@@ -700,12 +701,12 @@ impl OperatorSpec {
 
                 if let Some(gateway) = route.router
                     && !gateway.is_unspecified()
-                        && !lease.subnet_contains(gateway)
-                        && !helper_gateways.contains(&gateway)
-                    {
-                        helper_gateways.push(gateway);
-                        out.routes.push(self.dhcp4_route(Some(gateway), 32, None)?);
-                    }
+                    && !lease.subnet_contains(gateway)
+                    && !helper_gateways.contains(&gateway)
+                {
+                    helper_gateways.push(gateway);
+                    out.routes.push(self.dhcp4_route(Some(gateway), 32, None)?);
+                }
             }
         } else {
             for &gateway in &lease.routers {
@@ -716,23 +717,22 @@ impl OperatorSpec {
             }
         }
 
-        if use_hostname
-            && let Some(hostname) = &lease.hostname {
-                let spec = match hostname.split_once('.') {
-                    Some((host, domain)) => {
-                        HostnameSpec::with_domain(host, domain, ConfigLayer::Operator)?
-                    }
-                    None => match &lease.domain_name {
-                        Some(domain) => HostnameSpec::with_domain(
-                            hostname.clone(),
-                            domain.clone(),
-                            ConfigLayer::Operator,
-                        )?,
-                        None => HostnameSpec::new(hostname.clone(), ConfigLayer::Operator)?,
-                    },
-                };
-                out.hostname = Some(spec);
-            }
+        if use_hostname && let Some(hostname) = &lease.hostname {
+            let spec = match hostname.split_once('.') {
+                Some((host, domain)) => {
+                    HostnameSpec::with_domain(host, domain, ConfigLayer::Operator)?
+                }
+                None => match &lease.domain_name {
+                    Some(domain) => HostnameSpec::with_domain(
+                        hostname.clone(),
+                        domain.clone(),
+                        ConfigLayer::Operator,
+                    )?,
+                    None => HostnameSpec::new(hostname.clone(), ConfigLayer::Operator)?,
+                },
+            };
+            out.hostname = Some(spec);
+        }
 
         if !lease.dns_servers.is_empty() || !lease.search_domains.is_empty() {
             out.resolver = Some(ResolverSpec::new_with_search(

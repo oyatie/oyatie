@@ -1122,26 +1122,56 @@ mod tests {
 
     #[test]
     fn factset_canonical_order_independent_of_insertion() {
-        let f1 = Function::new("c", "a::one", ItemKind::Function, Visibility::Public, "fn one ()", "");
-        let f2 = Function::new("c", "b::two", ItemKind::Function, Visibility::Public, "fn two ()", "");
+        let f1 = Function::new(
+            "c",
+            "a::one",
+            ItemKind::Function,
+            Visibility::Public,
+            "fn one ()",
+            "",
+        );
+        let f2 = Function::new(
+            "c",
+            "b::two",
+            ItemKind::Function,
+            Visibility::Public,
+            "fn two ()",
+            "",
+        );
         let forward = FactSet::from_facts([f1.clone(), f2.clone()]);
         let reverse = FactSet::from_facts([f2, f1]);
-        assert_eq!(forward.canonical_json().unwrap(), reverse.canonical_json().unwrap());
+        assert_eq!(
+            forward.canonical_json().unwrap(),
+            reverse.canonical_json().unwrap()
+        );
     }
 
     #[test]
     fn factset_dedups() {
-        let f = Function::new("c", "a::one", ItemKind::Function, Visibility::Public, "fn one ()", "");
+        let f = Function::new(
+            "c",
+            "a::one",
+            ItemKind::Function,
+            Visibility::Public,
+            "fn one ()",
+            "",
+        );
         let set = FactSet::from_facts([f.clone(), f]);
         assert_eq!(set.len(), 1);
     }
 
     #[test]
     fn opaque_reason_category_is_stable() {
-        assert_eq!(OpaqueReason::MacroGenerated("x".into()).category(), "macro_generated");
+        assert_eq!(
+            OpaqueReason::MacroGenerated("x".into()).category(),
+            "macro_generated"
+        );
         assert_eq!(OpaqueReason::CfgGated("x".into()).category(), "cfg_gated");
         assert_eq!(OpaqueReason::Unhandled("x".into()).category(), "unhandled");
-        assert_eq!(OpaqueReason::AddressCollision("x".into()).category(), "address_collision");
+        assert_eq!(
+            OpaqueReason::AddressCollision("x".into()).category(),
+            "address_collision"
+        );
     }
 
     // HIGH-2 RED TEST: two structurally DISTINCT items that share the same (crate_id, fqpath,
@@ -1164,13 +1194,16 @@ mod tests {
             ItemKind::Function,
             Visibility::Public,
             "fn conflict ()",
-            "let x = 2 ;",  // different body → different body_hash → distinct item
+            "let x = 2 ;", // different body → different body_hash → distinct item
         );
         // The signature hashes are equal (same sig pre-image) but body hashes differ → NOT byte-
         // identical → from_facts_checked must return Err, not silently drop one.
         assert_ne!(a, b, "precondition: the two facts are NOT byte-identical");
         let result = FactSet::from_facts_checked([a, b]);
-        assert!(result.is_err(), "collision MUST be detected, not silently merged");
+        assert!(
+            result.is_err(),
+            "collision MUST be detected, not silently merged"
+        );
         let err = result.unwrap_err();
         assert_eq!(err.crate_id, "c");
         assert_eq!(err.fqpath, "m::conflict");
@@ -1179,9 +1212,19 @@ mod tests {
     // Byte-identical duplicates (same item extracted twice) are still silently deduped.
     #[test]
     fn factset_byte_identical_duplicate_silently_deduped() {
-        let f = Function::new("c", "a::one", ItemKind::Function, Visibility::Public, "fn one ()", "");
+        let f = Function::new(
+            "c",
+            "a::one",
+            ItemKind::Function,
+            Visibility::Public,
+            "fn one ()",
+            "",
+        );
         let result = FactSet::from_facts_checked([f.clone(), f]);
-        assert!(result.is_ok(), "byte-identical duplicate must be silently deduped");
+        assert!(
+            result.is_ok(),
+            "byte-identical duplicate must be silently deduped"
+        );
         assert_eq!(result.unwrap().len(), 1);
     }
 

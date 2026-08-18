@@ -53,8 +53,13 @@ fn blank_tenant_id_in_fast_window_fails_closed() {
     let fast = valid_obs("", "prod-a");
     let slow = good();
     assert_eq!(
-        summarize_burn_rate_alert(&fast, &slow, SlaPolicy::default(), BurnRatePolicy::default())
-            .unwrap_err(),
+        summarize_burn_rate_alert(
+            &fast,
+            &slow,
+            SlaPolicy::default(),
+            BurnRatePolicy::default()
+        )
+        .unwrap_err(),
         SlaKernelError::InvalidClusterIdentity,
     );
 }
@@ -66,8 +71,13 @@ fn blank_cluster_name_in_slow_window_fails_closed() {
     let fast = good();
     let slow = valid_obs("ten_acme", "");
     assert_eq!(
-        summarize_burn_rate_alert(&fast, &slow, SlaPolicy::default(), BurnRatePolicy::default())
-            .unwrap_err(),
+        summarize_burn_rate_alert(
+            &fast,
+            &slow,
+            SlaPolicy::default(),
+            BurnRatePolicy::default()
+        )
+        .unwrap_err(),
         SlaKernelError::InvalidClusterIdentity,
     );
 }
@@ -80,8 +90,13 @@ fn whitespace_only_tenant_id_in_fast_window_fails_closed() {
     let fast = valid_obs("   ", "prod-a");
     let slow = good();
     assert_eq!(
-        summarize_burn_rate_alert(&fast, &slow, SlaPolicy::default(), BurnRatePolicy::default())
-            .unwrap_err(),
+        summarize_burn_rate_alert(
+            &fast,
+            &slow,
+            SlaPolicy::default(),
+            BurnRatePolicy::default()
+        )
+        .unwrap_err(),
         SlaKernelError::InvalidClusterIdentity,
     );
 }
@@ -93,8 +108,13 @@ fn blank_identity_in_both_windows_returns_invalid_cluster_identity() {
     let fast = valid_obs("", "");
     let slow = valid_obs("", "");
     assert_eq!(
-        summarize_burn_rate_alert(&fast, &slow, SlaPolicy::default(), BurnRatePolicy::default())
-            .unwrap_err(),
+        summarize_burn_rate_alert(
+            &fast,
+            &slow,
+            SlaPolicy::default(),
+            BurnRatePolicy::default()
+        )
+        .unwrap_err(),
         SlaKernelError::InvalidClusterIdentity,
     );
 }
@@ -106,8 +126,13 @@ fn blank_tenant_id_in_slow_window_fails_closed() {
     let fast = good();
     let slow = valid_obs("", "prod-a");
     assert_eq!(
-        summarize_burn_rate_alert(&fast, &slow, SlaPolicy::default(), BurnRatePolicy::default())
-            .unwrap_err(),
+        summarize_burn_rate_alert(
+            &fast,
+            &slow,
+            SlaPolicy::default(),
+            BurnRatePolicy::default()
+        )
+        .unwrap_err(),
         SlaKernelError::InvalidClusterIdentity,
     );
 }
@@ -118,8 +143,13 @@ fn whitespace_only_cluster_name_in_slow_window_fails_closed() {
     let fast = good();
     let slow = valid_obs("ten_acme", "\t");
     assert_eq!(
-        summarize_burn_rate_alert(&fast, &slow, SlaPolicy::default(), BurnRatePolicy::default())
-            .unwrap_err(),
+        summarize_burn_rate_alert(
+            &fast,
+            &slow,
+            SlaPolicy::default(),
+            BurnRatePolicy::default()
+        )
+        .unwrap_err(),
         SlaKernelError::InvalidClusterIdentity,
     );
 }

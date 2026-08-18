@@ -76,7 +76,10 @@ fn live_corpus_is_born_advisory_green_against_frozen_baseline() {
             .collect::<Vec<_>>()
             .join("\n")
     );
-    assert_eq!(evaluate(&policy, &baseline, &observed).verdict, Verdict::Green);
+    assert_eq!(
+        evaluate(&policy, &baseline, &observed).verdict,
+        Verdict::Green
+    );
 
     eprintln!(
         "PORT-PLACEMENT live corpus: members={member_count} findings=0 (born-advisory green vs frozen baseline)"
@@ -231,7 +234,10 @@ fn red_repo_fixture_surfaces_port_in_adapter_from_disk() {
         !keys.iter().any(|k| k.contains("BarStore")),
         "a port trait in a CORE crate must NOT be flagged: {keys:?}"
     );
-    assert_eq!(evaluate(&policy, &serde_json::json!([]), &observed).verdict, Verdict::Red);
+    assert_eq!(
+        evaluate(&policy, &serde_json::json!([]), &observed).verdict,
+        Verdict::Red
+    );
 }
 
 #[test]
@@ -272,5 +278,8 @@ fn green_when_existing_violation_is_baselined_and_red_when_new_one_appears() {
             && f.key == "cap/adapters/foo-inmemory:FooRepository"),
         "a NEW port trait beyond the baseline must be RED: {findings:#?}"
     );
-    assert_eq!(evaluate(&policy, &baseline, &observed2).verdict, Verdict::Red);
+    assert_eq!(
+        evaluate(&policy, &baseline, &observed2).verdict,
+        Verdict::Red
+    );
 }

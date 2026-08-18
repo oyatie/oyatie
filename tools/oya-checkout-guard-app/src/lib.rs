@@ -357,18 +357,18 @@ fn decide_with_context(
                 command_position = false;
                 continue;
             };
-            if let Some(alias_script) = &invocation.alias_script {
-                if depth < MAX_NESTED_COMMAND_DEPTH {
-                    let nested_decision = decide_with_context(
-                        alias_script,
-                        invocation.repo_context.clone(),
-                        canonical_checkout,
-                        &pending_git_env,
-                        depth.saturating_add(1),
-                    );
-                    if matches!(nested_decision, Decision::Deny { .. }) {
-                        return nested_decision;
-                    }
+            if let Some(alias_script) = &invocation.alias_script
+                && depth < MAX_NESTED_COMMAND_DEPTH
+            {
+                let nested_decision = decide_with_context(
+                    alias_script,
+                    invocation.repo_context.clone(),
+                    canonical_checkout,
+                    &pending_git_env,
+                    depth.saturating_add(1),
+                );
+                if matches!(nested_decision, Decision::Deny { .. }) {
+                    return nested_decision;
                 }
             }
             // Fail closed when the subcommand token still carries an unresolved
@@ -395,7 +395,8 @@ fn decide_with_context(
             // target (review #685 r12). So the former forces fail-closed on the
             // target; the latter leaves the explicit/cwd target intact — keeping
             // `git -C <worktree> {reset,} --hard` an ALLOWED worktree mutation.
-            let subcommand_retargetable = subcommand_carries_value_expansion(&invocation.subcommand);
+            let subcommand_retargetable =
+                subcommand_carries_value_expansion(&invocation.subcommand);
             let blocked_operation = is_blocked_operation(&invocation.subcommand, &invocation.args)
                 || subcommand_unresolved;
             let work_tree_blocked = match &invocation.target {
@@ -434,9 +435,7 @@ fn decide_with_context(
         // covers nohup/nice/timeout/stdbuf/setsid/ionice/chrt/taskset/watch/
         // chronic/sudo/doas (pass-through wrappers) and xargs/parallel (which
         // feed argv to a subprocess and may supply args the parser cannot see).
-        if let Some(remainder) =
-            transparent_wrapper_remainder(&tokens, index, word)
-        {
+        if let Some(remainder) = transparent_wrapper_remainder(&tokens, index, word) {
             if depth < MAX_NESTED_COMMAND_DEPTH {
                 let nested_decision = decide_with_context(
                     &remainder,
@@ -462,18 +461,17 @@ fn decide_with_context(
         // carrying a canonical-targeted mutating git op fails closed.
         if !command_never_executes_arguments(word)
             && let Some(remainder) = unmodelled_wrapper_remainder(&tokens, index)
+            && depth < MAX_NESTED_COMMAND_DEPTH
         {
-            if depth < MAX_NESTED_COMMAND_DEPTH {
-                let nested_decision = decide_with_context(
-                    &remainder,
-                    current_cwd.clone(),
-                    canonical_checkout,
-                    &pending_git_env,
-                    depth.saturating_add(1),
-                );
-                if matches!(nested_decision, Decision::Deny { .. }) {
-                    return nested_decision;
-                }
+            let nested_decision = decide_with_context(
+                &remainder,
+                current_cwd.clone(),
+                canonical_checkout,
+                &pending_git_env,
+                depth.saturating_add(1),
+            );
+            if matches!(nested_decision, Decision::Deny { .. }) {
+                return nested_decision;
             }
         }
         command_position = false;
@@ -535,7 +533,10 @@ fn requote_word(word: &str) -> String {
     let safe = !word.is_empty()
         && word.chars().all(|ch| {
             ch.is_ascii_alphanumeric()
-                || matches!(ch, '-' | '_' | '/' | '=' | '.' | ':' | ',' | '@' | '+' | '%')
+                || matches!(
+                    ch,
+                    '-' | '_' | '/' | '=' | '.' | ':' | ',' | '@' | '+' | '%'
+                )
         });
     if safe {
         word.to_owned()
@@ -925,7 +926,7 @@ fn checkout_from_git_dir(option_cwd: &CwdState, raw_path: &str) -> CwdState {
 }
 
 fn checkout_from_resolved_git_dir(git_dir: &CwdState) -> CwdState {
-    let Some(path) = known_cwd(&git_dir) else {
+    let Some(path) = known_cwd(git_dir) else {
         return CwdState::Unknown;
     };
     if path.file_name() == Some(Path::new(".git").as_os_str()) {
@@ -1137,7 +1138,10 @@ fn transparent_wrapper_remainder(
             let mut skip = 0usize;
             while skip < args.len() && args[skip].starts_with('-') {
                 // Options that consume the next token (e.g. --signal, --kill-after)
-                if matches!(args[skip].as_str(), "-k" | "--kill-after" | "--signal" | "-s") {
+                if matches!(
+                    args[skip].as_str(),
+                    "-k" | "--kill-after" | "--signal" | "-s"
+                ) {
                     skip = skip.saturating_add(2);
                 } else {
                     skip = skip.saturating_add(1);
@@ -1291,7 +1295,6 @@ fn exec_short_option_cluster(word: &str) -> Option<&str> {
 /// `$(prog)` / backticks are preserved verbatim so legitimate commands never
 /// mis-expand (review #685 r5; founder directive 2026-06-10).
 fn normalize_static_expansions(command: &str) -> String {
-    let bindings = collect_same_line_bindings(command);
     // A same-line non-default `IFS=` reassignment makes unquoted expansions
     // word-SPLIT on attacker-chosen characters (`IFS=x; y=resetx; git … $y`
     // splits `resetx`→`reset`; `IFS=x; p=<canon>x; git -C $p`), defeating a
@@ -1322,8 +1325,14 @@ fn normalize_static_expansions(command: &str) -> String {
         let bindings = collect_same_line_bindings(&resolved);
         let positionals = collect_positional_params(&resolved);
         let arrays = collect_array_bindings(&resolved);
-        let next =
-            expand_with_bindings(&resolved, &bindings, &positionals, &arrays, ifs_unsafe, false);
+        let next = expand_with_bindings(
+            &resolved,
+            &bindings,
+            &positionals,
+            &arrays,
+            ifs_unsafe,
+            false,
+        );
         if next == current {
             break;
         }
@@ -1575,12 +1584,12 @@ fn collect_function_defs(command: &str) -> Vec<(String, String)> {
     let mut i = 0;
     while i < bytes.len() {
         // Find a `{` that opens a function body and walk back to the name.
-        if bytes[i] == b'{' {
-            if let Some((name, body, end)) = try_capture_function(command, i) {
-                defs.push((name, body));
-                i = end;
-                continue;
-            }
+        if bytes[i] == b'{'
+            && let Some((name, body, end)) = try_capture_function(command, i)
+        {
+            defs.push((name, body));
+            i = end;
+            continue;
         }
         i += 1;
     }
@@ -1655,7 +1664,7 @@ fn substitute_positionals(body: &str, args: &[String]) -> String {
             Some('{') => {
                 chars.next();
                 let mut inner = String::new();
-                while let Some((_, c)) = chars.next() {
+                for (_, c) in chars.by_ref() {
                     if c == '}' {
                         break;
                     }
@@ -1735,11 +1744,9 @@ fn has_unresolved_expansion(token: &str) -> bool {
 fn subcommand_carries_value_expansion(token: &str) -> bool {
     let bytes = token.as_bytes();
     bytes.iter().enumerate().any(|(i, &b)| {
-        b == b'`'
-            || (b == b'$' && bytes.get(i + 1).is_some_and(|c| !c.is_ascii_whitespace()))
+        b == b'`' || (b == b'$' && bytes.get(i + 1).is_some_and(|c| !c.is_ascii_whitespace()))
     })
 }
-
 
 /// Collect `name=value` and `name+=value` assignments (quote-aware via
 /// shell_tokens, so a quoted multi-word value stays ONE token). Values are kept
@@ -1788,9 +1795,7 @@ fn collect_same_line_bindings(command: &str) -> Vec<(String, String)> {
     // Keep only fully-resolved values; any residual expansion sigil leaves the
     // var unbound so `$name` fails closed at its use site.
     acc.into_iter()
-        .filter(|(_, value)| {
-            !value.is_empty() && !value.contains('$') && !value.contains('`')
-        })
+        .filter(|(_, value)| !value.is_empty() && !value.contains('$') && !value.contains('`'))
         .collect()
 }
 
@@ -1896,10 +1901,10 @@ fn collect_array_bindings(command: &str) -> Vec<(String, Vec<String>)> {
                         {
                             value = Some(v.clone());
                             j += 1;
-                        } else if let Some(v) = arg.strip_prefix("<<<") {
-                            if !v.is_empty() {
-                                value = Some(v.to_owned());
-                            }
+                        } else if let Some(v) = arg.strip_prefix("<<<")
+                            && !v.is_empty()
+                        {
+                            value = Some(v.to_owned());
                         }
                         j += 1;
                     }
@@ -1944,7 +1949,9 @@ fn emit_substitution_output(out: &mut String, produced: &str) {
 /// preceded by a valid identifier at a word boundary), i.e. the next emitted
 /// token is an assignment value.
 fn out_ends_with_assignment_lhs(out: &str) -> bool {
-    let prefix = out.strip_suffix('=').map(|p| p.strip_suffix('+').unwrap_or(p));
+    let prefix = out
+        .strip_suffix('=')
+        .map(|p| p.strip_suffix('+').unwrap_or(p));
     let Some(prefix) = prefix else {
         return false;
     };
@@ -2115,7 +2122,7 @@ fn expand_with_bindings(
             '$' if chars.peek().is_some_and(|(_, c)| *c == '{') => {
                 chars.next();
                 let mut inner = String::new();
-                while let Some((_, c)) = chars.next() {
+                for (_, c) in chars.by_ref() {
                     if c == '}' {
                         break;
                     }
@@ -2157,8 +2164,9 @@ fn expand_with_bindings(
                     // `${N:-default}` / `${N-default}` / `${N:=default}` against
                     // the set-- positionals (review #685 r18 F3).
                     out.push_str(&expanded);
-                } else if let Some(expanded) =
-                    (!ifs_unsafe).then(|| expand_array_subscript(&inner, arrays)).flatten()
+                } else if let Some(expanded) = (!ifs_unsafe)
+                    .then(|| expand_array_subscript(&inner, arrays))
+                    .flatten()
                 {
                     out.push_str(&expanded);
                 } else {
@@ -2331,15 +2339,16 @@ fn resolve_param(inner: &str, bindings: &[(String, String)]) -> Option<String> {
 /// whose output we attempt to model — so an unmodeled one fails closed rather
 /// than passing through (review #685 r16).
 fn is_value_producer(body: &str) -> bool {
-    let cmd = body.trim().split_once(char::is_whitespace).map_or(body.trim(), |(c, _)| c);
+    let cmd = body
+        .trim()
+        .split_once(char::is_whitespace)
+        .map_or(body.trim(), |(c, _)| c);
     matches!(command_basename(cmd), Some("echo" | "printf"))
 }
 
 fn static_command_output(body: &str, xpg_echo: bool) -> Option<String> {
     let body = body.trim();
-    let (cmd, rest) = body
-        .split_once(char::is_whitespace)
-        .unwrap_or((body, ""));
+    let (cmd, rest) = body.split_once(char::is_whitespace).unwrap_or((body, ""));
     // A nested unresolved substitution in a value-producer's args must be
     // resolved INNER-FIRST; our naive dequote would strip the inner quotes and
     // mis-model it. Return the args with the substitution PRESERVED so the
@@ -2350,9 +2359,7 @@ fn static_command_output(body: &str, xpg_echo: bool) -> Option<String> {
     // outer quotes would group its split output into one arg (review #685 r18
     // F1 regression); it falls through to the format/args model, which leaves
     // the inner `$(…)` for the fixpoint and word-splits the result.
-    if (rest.contains("$(") || rest.contains('`'))
-        && command_basename(cmd) == Some("echo")
-    {
+    if (rest.contains("$(") || rest.contains('`')) && command_basename(cmd) == Some("echo") {
         return Some(rest.trim().to_owned());
     }
     match command_basename(cmd)? {
@@ -2531,7 +2538,13 @@ fn push_codepoint(out: &mut String, digits: &str, radix: u32) {
 /// `$(printf "clean\n-fdx")` → `clean -fdx`, not two commands).
 fn normalize_split_ws(s: &str) -> String {
     s.chars()
-        .map(|c| if matches!(c, '\t' | '\n' | '\r') { ' ' } else { c })
+        .map(|c| {
+            if matches!(c, '\t' | '\n' | '\r') {
+                ' '
+            } else {
+                c
+            }
+        })
         .collect()
 }
 
@@ -2899,9 +2912,7 @@ fn strip_redirection_fd(word: &str) -> &str {
 }
 
 fn parse_env_assignment(word: &str) -> Option<(&str, &str)> {
-    let Some((name, _value)) = word.split_once('=') else {
-        return None;
-    };
+    let (name, _value) = word.split_once('=')?;
     if name.is_empty()
         || !name
             .chars()
@@ -3364,7 +3375,10 @@ mod tests {
         // (review #685 r19 — the inverse of the stale-overwrite bypass).
         for command in [
             ("A=log; B=$A; A=reset; git -C /repo/oyatie $B", CANONICAL),
-            ("A=sta; B=${A}tus; A=reset; git -C /repo/oyatie $B", CANONICAL),
+            (
+                "A=sta; B=${A}tus; A=reset; git -C /repo/oyatie $B",
+                CANONICAL,
+            ),
         ] {
             assert_allowed(command.0, command.1, Some(CANONICAL));
         }
@@ -3375,7 +3389,10 @@ mod tests {
         // A multi-word value that forms a READ must ALLOW (review #685 r14):
         // model the value faithfully, do not blanket-deny `$P`.
         for command in [
-            ("P=log; P+=\" --oneline\"; git -C /repo/oyatie $P", CANONICAL),
+            (
+                "P=log; P+=\" --oneline\"; git -C /repo/oyatie $P",
+                CANONICAL,
+            ),
             ("P=\"log --oneline\"; git -C /repo/oyatie $P", CANONICAL),
             ("F=status; git -C /repo/oyatie $F", CANONICAL),
         ] {
@@ -3420,7 +3437,10 @@ mod tests {
             ("systemd-run echo hello", CANONICAL),
             ("grep -r git /repo/oyatie", CANONICAL),
             ("firejail git -C /repo/oyatie status", CANONICAL),
-            ("flock /tmp/lock git -C /repo/oyatie fetch origin", CANONICAL),
+            (
+                "flock /tmp/lock git -C /repo/oyatie fetch origin",
+                CANONICAL,
+            ),
             // A canonical-targeted mutation from a NON-canonical worktree stays ALLOW.
             (
                 "firejail git -C /repo/oyatie-worktrees/g1 switch foo",
@@ -4009,11 +4029,7 @@ mod tests {
         // restore via a transparent wrapper must also be caught
         assert_denied("nohup git -C /repo/oyatie restore .");
         // restore in the worktree (non-canonical) must be ALLOWED
-        assert_allowed(
-            "git restore .",
-            WORKTREE,
-            Some(CANONICAL),
-        );
+        assert_allowed("git restore .", WORKTREE, Some(CANONICAL));
     }
 
     #[test]
@@ -4137,4 +4153,3 @@ mod tests {
         );
     }
 }
-

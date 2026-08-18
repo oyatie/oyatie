@@ -162,7 +162,10 @@ fn fixture_tagged(tag: &str) -> TmpRepo {
     };
     repo.write("governance/capability-registry.json", capability_registry());
     repo.write("Cargo.toml", root_cargo_toml());
-    repo.write("docs/adr-archive/ADR-0568-born-accounting-register-crate-registrar-kernel.md", stub_adr());
+    repo.write(
+        "docs/adr-archive/ADR-0568-born-accounting-register-crate-registrar-kernel.md",
+        stub_adr(),
+    );
     repo.write("specs/reachability-registry.json", reachability_registry());
 
     // The new crate's intrinsic source (Cargo.toml + lib.rs) so it is a real dir + git-tracked.
@@ -245,7 +248,8 @@ fn happy_path_applies_all_edits_and_requires_settle() {
     );
 
     // The ADR now enumerates the crate's conventional governed paths verbatim.
-    let adr = repo.read("docs/adr-archive/ADR-0568-born-accounting-register-crate-registrar-kernel.md");
+    let adr =
+        repo.read("docs/adr-archive/ADR-0568-born-accounting-register-crate-registrar-kernel.md");
     assert!(adr.contains(&format!("{NEW_DIR}/Cargo.toml")), "{adr}");
     assert!(adr.contains(&format!("{NEW_DIR}/BUCK")), "{adr}");
     assert!(adr.contains(&format!("{NEW_DIR}/OWNERS")), "{adr}");
@@ -408,7 +412,11 @@ fn uncovered_member_glob_fails_closed() {
 #[test]
 fn missing_adr_file_fails_closed() {
     let repo = fixture_tagged("no-adr");
-    fs::remove_file(repo.root.join("docs/adr-archive/ADR-0568-born-accounting-register-crate-registrar-kernel.md")).unwrap();
+    fs::remove_file(
+        repo.root
+            .join("docs/adr-archive/ADR-0568-born-accounting-register-crate-registrar-kernel.md"),
+    )
+    .unwrap();
     run_git(&repo.root, &["add", "-A"]);
 
     let req = base_request();
@@ -430,7 +438,11 @@ fn detailed_reports_partial_application_on_dispatch_failure() {
     // AdrGovernedPathAppend edit. The plan order (with the members glob already covering the dir)
     // is OwnersWrite → AdrGovernedPathAppend → FacesSettle, so OwnersWrite applies first, then the
     // ADR step fails closed in resolve_adr_path (the file is gone).
-    fs::remove_file(repo.root.join("docs/adr-archive/ADR-0568-born-accounting-register-crate-registrar-kernel.md")).unwrap();
+    fs::remove_file(
+        repo.root
+            .join("docs/adr-archive/ADR-0568-born-accounting-register-crate-registrar-kernel.md"),
+    )
+    .unwrap();
     run_git(&repo.root, &["add", "-A"]);
 
     let req = base_request();
@@ -1078,10 +1090,11 @@ fn self_validation_crate_keyed_finding_fails_closed() {
     match err {
         RegisterError::SelfValidationFailed { findings } => {
             assert!(
-                findings.iter().any(|finding| finding.gate
-                    == ci_artifact_accountability::GATE_ID
-                    && finding.code == "unaccounted"
-                    && finding.key == format!("{NEW_DIR}/orphan.rs")),
+                findings.iter().any(
+                    |finding| finding.gate == ci_artifact_accountability::GATE_ID
+                        && finding.code == "unaccounted"
+                        && finding.key == format!("{NEW_DIR}/orphan.rs")
+                ),
                 "the crate-keyed total-accounting finding must be reported: {findings:?}"
             );
         }
@@ -1164,10 +1177,11 @@ fn self_validation_runs_slo_catalog_only_on_catalog_edit_and_scopes_them() {
         RegisterError::SelfValidationFailed { findings } => {
             // The crate-keyed slo finding is reported.
             assert!(
-                findings.iter().any(|finding| finding.gate
-                    == ci_slo_coverage::GATE_ID
-                    && finding.code == "slo_missing_or_blank_slo"
-                    && finding.key == catalog_id),
+                findings
+                    .iter()
+                    .any(|finding| finding.gate == ci_slo_coverage::GATE_ID
+                        && finding.code == "slo_missing_or_blank_slo"
+                        && finding.key == catalog_id),
                 "the crate-keyed slo-coverage finding must be reported: {findings:?}"
             );
             // The foreign-keyed slo row was filtered out.

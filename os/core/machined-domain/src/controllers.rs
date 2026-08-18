@@ -8,8 +8,8 @@
 //! dependency cycle.
 
 use crate::error::{MachinedError, Result};
-use std::collections::{HashMap, HashSet};
 use os_cosi_domain::Controller;
+use std::collections::{HashMap, HashSet};
 
 /// A stable identifier for a controller.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]

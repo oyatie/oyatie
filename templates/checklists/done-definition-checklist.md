@@ -3,13 +3,14 @@ doc_class: Checklist
 checklist_id: CHK-DONE
 status: pending approval
 purpose: |
-  Extends `docs/AGENTS.md §Done-Definition checklist` D1-D19 with
-  per-change-class variants. D1-D18 are walked before every PR is declared
-  "ready to merge"; D19 is walked after squash merge before product-complete.
+  Extends `docs/AGENTS.md §Done-Definition checklist` D1-D18 with
+  per-change-class variants walked before every PR is declared ready to merge.
   Re-walk at the loop-cancellation boundary per `docs/AGENTS.md §Long-running
   loop rule`.
 lift_target: oyatie/templates/checklists/done-definition.md
-enforcing_fitness_lane: guard-pr-merge-review.mjs + per-lane CI status
+enforcing_fitness_lane: retired by ADR-0716
+merge_status_requirement: oya-ci-required
+review_requirement: author-distinct reviewer approval on the exact PR head; F-PR5-06 tracks cloud enforcement
 owner_team: axis-foundry + council-architecture
 related:
   - docs/AGENTS.md
@@ -20,8 +21,7 @@ related:
 
 # Done-Definition Checklist
 
-> Walk core rows D1-D18 before declaring a PR ready to merge. After squash
-> merge, walk D19 before declaring the work product-complete. Then walk the
+> Walk core rows D1-D18 before declaring a PR ready to merge, then walk the
 > **per-change-class** rows that apply. Each row carries a typed verification
 > path: lane name, command, or explicit `(advisory)` marker.
 
@@ -34,23 +34,17 @@ related:
 - [ ] **D5** New capabilities (if any) ship record + eval set + autonomy tier + audit topic + Cosign signing. *Lane:* `oya-governance-capability-publish`.
 - [ ] **D6** New schemas carry `data_class` per field. *Lane:* `oya-governance-data-class`.
 - [ ] **D7** Per-PR fitness lanes pass: `oya-governance-{license, data-class, cohesion, glossary, adr-citation, brand-residue, bypass, flat-crates, runbook-index-resolves, doc-catalog}`. *Verification:* CI status check.
-- [ ] **D8** Reviewer agent ran; verdict in `## Code Review`. *Lane:* `guard-pr-merge-review.mjs`.
-- [ ] **D9** `cargo nextest run --workspace --all-features --no-fail-fast` passes. *Verification:* output in `## Verification`.
-- [ ] **D10** `cargo clippy --workspace --all-features --all-targets -- -D warnings` passes. *Verification:* output.
-- [ ] **D11** `cargo deny check` passes. *Verification:* output.
-- [ ] **D12** `oya verify` passes. *Verification:* output.
+- [ ] **D8** Author-distinct reviewer approved the exact PR head; verdict is recorded in `## Code Review`. *Verification:* formal review evidence.
+- [ ] **D9** `cargo test --workspace` passes. *Verification:* output in `## Verification`.
+- [ ] **D10** `cargo clippy --workspace --all-targets -- -D warnings` passes. *Verification:* output.
+- [ ] **D11** `cargo fmt --all --check` passes. *Verification:* output.
+- [ ] **D12** The single required `oya-ci-required` context is green on the exact PR head. *Verification:* protected check URL.
 - [ ] **D13** Performance changes carry benchmark + ≥2 stress scenarios. *Lane:* `oya-governance-perf-evidence`.
 - [ ] **D14** Schema migrations ship up + down + dry-run + per-tenant + per-cell rollback. *Lane:* `oya-governance-schema-migration`.
-- [ ] **D15** PR has 5 canonical H2s; `## Code Review` at merge. *Lane:* `traceability-validator`.
-- [ ] **D16** Audit-chain emission `EVT-*` ID in `## Evidence`. *Lane:* `oya-governance-audit-emission`.
+- [ ] **D15** PR has the four canonical H2s, including author-distinct evidence under `## Code Review`. *Verification:* independent PR review.
+- [ ] **D16** Scope-specific security, release, and operability evidence is attached where applicable; no generic post-merge packet is required. *Verification:* reviewer inspection.
 - [ ] **D17** `docs/MISTAKES-LEDGER.md` row added if mechanical prevention shipped. *Lane:* `oya-governance-mistakes-ledger-cite`.
 - [ ] **D18** `docs/CHANGELOG.md` row added if canonical doc touched. *Lane:* `oya-governance-changelog-row`.
-- [ ] **D19** Post-merge product-completion packet recorded after squash merge:
-  promoted commit `oya-ci-required` status URL, rollout verification, rollback note,
-  observability/golden-signal check, browser UX/user-story evidence, and Release
-  Please/release-note impact. *Verification:* PR comment or release evidence bundle
-  linked from `## Evidence`; see `templates/checklists/pre-merge.md §After merge`.
-
 ## Per-change-class additions
 
 ### feature
@@ -73,7 +67,7 @@ related:
 
 ### docs
 - [ ] `docs/DOC-CATALOG.md` trigger event named in PR `## Issue`. *Lane:* `oya-governance-doc-catalog`.
-- [ ] `doc-style-reviewer` agent verdict captured. *Lane:* `guard-pr-merge-review.mjs`.
+- [ ] `doc-style-reviewer` agent verdict captured. *Verification:* formal review evidence on the exact PR head.
 
 ### chore
 - [ ] No production behavior change. *(advisory)*

@@ -28,8 +28,8 @@ use billing_finops::{
     CostAnomalyKind, FinopsPeriod, FinopsRecommendation, FinopsReport, FinopsReportRequest,
     RecommendationKind, ResourceCostBreakdown,
 };
-use oya_data_boundary_kernel::{DataClass, parse_data_class_label};
 use billing_metering::AxisId;
+use oya_data_boundary_kernel::{DataClass, parse_data_class_label};
 
 pub const CLOUD_FINOPS_REPORT_SURFACE: &str = "cloud.finops.report";
 
@@ -147,9 +147,9 @@ pub struct CloudFinopsApiPrincipal {
 /// grants anything — the PDP decision is authoritative.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CloudFinopsApiAuthorization {
-    pub tenant_id: String,             // data_class: INTERNAL_ONLY — cross-check only
-    pub principal_id: String,          // data_class: INTERNAL_ONLY — cross-check only
-    pub decision_id: String,           // data_class: INTERNAL_ONLY — correlation hint, NOT a grant
+    pub tenant_id: String,    // data_class: INTERNAL_ONLY — cross-check only
+    pub principal_id: String, // data_class: INTERNAL_ONLY — cross-check only
+    pub decision_id: String,  // data_class: INTERNAL_ONLY — correlation hint, NOT a grant
     pub allowed_surfaces: Vec<String>, // data_class: INTERNAL_ONLY — NON-AUTHORITATIVE (no longer grants)
 }
 

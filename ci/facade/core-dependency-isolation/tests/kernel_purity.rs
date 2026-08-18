@@ -56,7 +56,9 @@ fn live_kernel_corpus_is_born_blocking_pure() {
     // The floor comes from the policy (DATA), not a hardcoded literal, so ratcheting the floor is a
     // single reviewed policy edit. The 4 no_std cloud-kernel crates live in the workspace-excluded
     // nested workspace and are intentionally outside this count (documented in ADR-0547 D5).
-    let floor = policy["min_expected_kernel_crates"].as_u64().expect("policy floor");
+    let floor = policy["min_expected_kernel_crates"]
+        .as_u64()
+        .expect("policy floor");
     assert!(
         kernel_count >= floor,
         "the live tree should carry at least the policy kernel-census floor ({floor}); got {kernel_count}"
@@ -78,7 +80,9 @@ fn live_kernel_corpus_is_born_blocking_pure() {
     );
     assert_eq!(evaluate(&policy, &observed).verdict, Verdict::Green);
 
-    eprintln!("KERNEL-PURITY live corpus: kernel_crates={kernel_count} findings=0 (born-blocking green)");
+    eprintln!(
+        "KERNEL-PURITY live corpus: kernel_crates={kernel_count} findings=0 (born-blocking green)"
+    );
 }
 
 #[test]
@@ -288,9 +292,9 @@ fn target_cfg_build_dependencies_are_scanned_from_disk() {
     let observed = collect_kernel_deps(root, &policy).expect("collect");
     let findings = evaluate_keyed(&policy, &observed);
     assert!(
-        findings.iter().any(|f| {
-            f.code == "KP-TRANSIENT-DEP-CARGO" && f.key.ends_with(":k8s-openapi")
-        }),
+        findings
+            .iter()
+            .any(|f| { f.code == "KP-TRANSIENT-DEP-CARGO" && f.key.ends_with(":k8s-openapi") }),
         "k8s-openapi under [target.*.build-dependencies] must be caught: {findings:#?}"
     );
 }
@@ -340,7 +344,9 @@ fn fix_removes_dead_transient_dep_and_turns_red_to_green() {
 
     let applied = apply_fixes(root, &fixes).expect("apply fixes");
     assert!(
-        applied.iter().any(|line| line.contains("Cargo.toml") && line.contains("kube")),
+        applied
+            .iter()
+            .any(|line| line.contains("Cargo.toml") && line.contains("kube")),
         "fix should report the Cargo.toml edit: {applied:?}"
     );
     assert!(
@@ -362,7 +368,10 @@ fn fix_removes_dead_transient_dep_and_turns_red_to_green() {
     assert!(cargo.contains("serde ="), "serde line preserved: {cargo}");
     // The BUCK file is byte-identical (no kube edge to remove — the remover is a no-op here).
     let buck_after = std::fs::read(root.join("crates/fake-dead-kernel/BUCK")).unwrap();
-    assert_eq!(buck_before, buck_after, "BUCK file must be byte-identical after a no-op --fix");
+    assert_eq!(
+        buck_before, buck_after,
+        "BUCK file must be byte-identical after a no-op --fix"
+    );
 }
 
 #[test]
@@ -388,7 +397,8 @@ fn fix_is_table_aware_and_does_not_corrupt_manifest() {
     std::fs::write(
         root.join("Cargo.toml"),
         "[workspace]\nmembers = [\"crates/fake-plain-kernel\", \"crates/fake-feat-kernel\"]\n",
-    ).unwrap();
+    )
+    .unwrap();
 
     // fake-plain-kernel: dead kube in [dependencies], no features wiring.
     write_file(
@@ -425,7 +435,11 @@ fn fix_is_table_aware_and_does_not_corrupt_manifest() {
         "crates/fake-feat-kernel/src/lib.rs",
         "// this crate references nothing transient\npub fn x() {}\n",
     );
-    write_file(root, "crates/fake-feat-kernel/BUCK", "rust_library(\n    name = \"fake-feat-kernel\",\n    deps = [],\n)\n");
+    write_file(
+        root,
+        "crates/fake-feat-kernel/BUCK",
+        "rust_library(\n    name = \"fake-feat-kernel\",\n    deps = [],\n)\n",
+    );
 
     let policy = fixture_policy();
     let observed = collect_kernel_deps(root, &policy).expect("collect");
@@ -450,17 +464,28 @@ fn fix_is_table_aware_and_does_not_corrupt_manifest() {
 
     // Only fake-plain-kernel's Cargo kube is auto-fixable; fake-feat-kernel's kube is
     // feature-backed and the BUCK edges never plan a fix.
-    assert_eq!(fixes.len(), 1, "exactly one auto-fix (fake-plain-kernel only): {fixes:?}");
-    assert_eq!(fixes[0].member_path, "crates/fake-plain-kernel", "fix targets the plain kernel: {fixes:?}");
+    assert_eq!(
+        fixes.len(),
+        1,
+        "exactly one auto-fix (fake-plain-kernel only): {fixes:?}"
+    );
+    assert_eq!(
+        fixes[0].member_path, "crates/fake-plain-kernel",
+        "fix targets the plain kernel: {fixes:?}"
+    );
     apply_fixes(root, &fixes).expect("apply");
 
     // fake-plain-kernel: [dependencies] kube removed, [dev-dependencies] kube preserved.
-    let plain_cargo = std::fs::read_to_string(root.join("crates/fake-plain-kernel/Cargo.toml")).unwrap();
+    let plain_cargo =
+        std::fs::read_to_string(root.join("crates/fake-plain-kernel/Cargo.toml")).unwrap();
     assert!(
         !plain_cargo.contains("\nkube = \"0.99\"\n") || plain_cargo.contains("[dev-dependencies]"),
         "the [dependencies] kube line should be removed: {plain_cargo}"
     );
-    assert!(plain_cargo.contains("[dev-dependencies]\nkube = \"0.99\""), "dev-dep kube preserved: {plain_cargo}");
+    assert!(
+        plain_cargo.contains("[dev-dependencies]\nkube = \"0.99\""),
+        "dev-dep kube preserved: {plain_cargo}"
+    );
 
     // fake-plain-kernel BUCK: the rust_library kube edge is REMOVED (sound parser + harness);
     // the rust_test kube edge is out of detect scope and survives untouched.
@@ -476,12 +501,16 @@ fn fix_is_table_aware_and_does_not_corrupt_manifest() {
     );
 
     // fake-feat-kernel: manifest UNCHANGED — feature-backed optional dep must not be touched.
-    let feat_cargo = std::fs::read_to_string(root.join("crates/fake-feat-kernel/Cargo.toml")).unwrap();
+    let feat_cargo =
+        std::fs::read_to_string(root.join("crates/fake-feat-kernel/Cargo.toml")).unwrap();
     assert!(
         feat_cargo.contains("kube = { version = \"0.99\", optional = true }"),
         "feature-backed optional kube must NOT be removed (CRITICAL-1): {feat_cargo}"
     );
-    assert!(feat_cargo.contains("k8s = [\"dep:kube\"]"), "features entry must survive: {feat_cargo}");
+    assert!(
+        feat_cargo.contains("k8s = [\"dep:kube\"]"),
+        "features entry must survive: {feat_cargo}"
+    );
 }
 
 #[test]
@@ -537,10 +566,17 @@ fn fix_refuses_every_feature_reference_syntax_h1_h4_manifest_byte_identical() {
     let findings = evaluate_keyed(&policy, &observed);
 
     // All four kernels are RED (the transient dep IS a violation)…
-    for kernel in ["fake-h1-kernel", "fake-h2-kernel", "fake-h3-kernel", "fake-h4-kernel"] {
+    for kernel in [
+        "fake-h1-kernel",
+        "fake-h2-kernel",
+        "fake-h3-kernel",
+        "fake-h4-kernel",
+    ] {
         let finding = findings
             .iter()
-            .find(|f| f.code == "KP-TRANSIENT-DEP-CARGO" && f.key.starts_with(&format!("{kernel}:")))
+            .find(|f| {
+                f.code == "KP-TRANSIENT-DEP-CARGO" && f.key.starts_with(&format!("{kernel}:"))
+            })
             .unwrap_or_else(|| panic!("{kernel} must have a kube finding: {findings:#?}"));
         // …but NONE is auto-fixable: every feature-reference syntax demotes to design-action.
         assert!(
@@ -555,7 +591,10 @@ fn fix_refuses_every_feature_reference_syntax_h1_h4_manifest_byte_identical() {
 
     // Refusal end-state: nothing planned, apply is a no-op, manifests byte-identical.
     let fixes = plan_fixes(&policy, &observed);
-    assert!(fixes.is_empty(), "no fix may be planned for feature-referenced deps: {fixes:?}");
+    assert!(
+        fixes.is_empty(),
+        "no fix may be planned for feature-referenced deps: {fixes:?}"
+    );
     let before: Vec<Vec<u8>> = manifests
         .iter()
         .map(|(path, _)| std::fs::read(root.join(path)).unwrap())
@@ -590,7 +629,11 @@ fn fix_refuses_optional_dep_whose_implicit_feature_a_sibling_requests() {
         "[package]\nname = \"fake-implicit-kernel\"\nversion = \"0.0.0\"\n\n\
          [dependencies]\nserde = \"1\"\nkube = { version = \"0.99\", optional = true }\n",
     );
-    write_file(root, "crates/fake-implicit-kernel/src/lib.rs", "pub fn noop() {}\n");
+    write_file(
+        root,
+        "crates/fake-implicit-kernel/src/lib.rs",
+        "pub fn noop() {}\n",
+    );
 
     // The sibling: requests the kernel's IMPLICIT `kube` feature on its path dep.
     write_file(
@@ -599,7 +642,11 @@ fn fix_refuses_optional_dep_whose_implicit_feature_a_sibling_requests() {
         "[package]\nname = \"fake-sibling-adapter\"\nversion = \"0.0.0\"\n\n\
          [dependencies]\nfake-implicit-kernel = { path = \"../fake-implicit-kernel\", features = [\"kube\"] }\n",
     );
-    write_file(root, "crates/fake-sibling-adapter/src/lib.rs", "pub fn noop() {}\n");
+    write_file(
+        root,
+        "crates/fake-sibling-adapter/src/lib.rs",
+        "pub fn noop() {}\n",
+    );
 
     let policy = fixture_policy();
     let observed = collect_kernel_deps(root, &policy).expect("collect");
@@ -625,15 +672,26 @@ fn fix_refuses_optional_dep_whose_implicit_feature_a_sibling_requests() {
     // here — if classification were unsound the fix would be applied and the manifests would
     // diverge below.
     let fixes = plan_fixes(&policy, &observed);
-    assert!(fixes.is_empty(), "no fix may be planned for an optional dep: {fixes:?}");
+    assert!(
+        fixes.is_empty(),
+        "no fix may be planned for an optional dep: {fixes:?}"
+    );
     let kernel_path = root.join("crates/fake-implicit-kernel/Cargo.toml");
     let sibling_path = root.join("crates/fake-sibling-adapter/Cargo.toml");
     let pre_kernel = std::fs::read(&kernel_path).unwrap();
     let pre_sibling = std::fs::read(&sibling_path).unwrap();
     let applied = apply_fixes_with_validator(root, &fixes, |_| Ok(())).expect("apply (no-op)");
     assert!(applied.is_empty(), "apply must be a no-op: {applied:?}");
-    assert_eq!(pre_kernel, std::fs::read(&kernel_path).unwrap(), "kernel manifest byte-identical");
-    assert_eq!(pre_sibling, std::fs::read(&sibling_path).unwrap(), "sibling manifest byte-identical");
+    assert_eq!(
+        pre_kernel,
+        std::fs::read(&kernel_path).unwrap(),
+        "kernel manifest byte-identical"
+    );
+    assert_eq!(
+        pre_sibling,
+        std::fs::read(&sibling_path).unwrap(),
+        "sibling manifest byte-identical"
+    );
 
     // Never "passed": the tree stays RED with a design-action, not a false-green.
     let after = collect_kernel_deps(root, &policy).expect("re-collect");
@@ -643,7 +701,10 @@ fn fix_refuses_optional_dep_whose_implicit_feature_a_sibling_requests() {
         !rendered.contains("passed"),
         "the gate must never print 'passed' for this tree: {rendered}"
     );
-    assert!(rendered.contains("DESIGN ACTIONS"), "design action must be reported: {rendered}");
+    assert!(
+        rendered.contains("DESIGN ACTIONS"),
+        "design action must be reported: {rendered}"
+    );
 }
 
 #[test]
@@ -662,21 +723,34 @@ fn rollback_restores_original_when_same_manifest_is_edited_twice() {
         "[package]\nname = \"fake-twice-kernel\"\nversion = \"0.0.0\"\n\n\
          [dependencies]\nserde = \"1\"\nkube = \"0.99\"\nsqlx = \"0.8\"\n",
     );
-    write_file(root, "crates/fake-twice-kernel/src/lib.rs", "pub fn noop() {}\n");
+    write_file(
+        root,
+        "crates/fake-twice-kernel/src/lib.rs",
+        "pub fn noop() {}\n",
+    );
 
     let policy = fixture_policy();
     let observed = collect_kernel_deps(root, &policy).expect("collect");
     let fixes = plan_fixes(&policy, &observed);
-    assert_eq!(fixes.len(), 2, "both dead deps planned against the same manifest: {fixes:?}");
+    assert_eq!(
+        fixes.len(),
+        2,
+        "both dead deps planned against the same manifest: {fixes:?}"
+    );
     assert!(
-        fixes.iter().all(|f| f.member_path == "crates/fake-twice-kernel"),
+        fixes
+            .iter()
+            .all(|f| f.member_path == "crates/fake-twice-kernel"),
         "both fixes target the same member: {fixes:?}"
     );
 
     let manifest_path = root.join("crates/fake-twice-kernel/Cargo.toml");
     let pre = std::fs::read(&manifest_path).unwrap();
     let result = apply_fixes_with_validator(root, &fixes, |_| Err("injected failure".to_owned()));
-    assert!(result.is_err(), "semantic failure must surface as an error: {result:?}");
+    assert!(
+        result.is_err(),
+        "semantic failure must surface as an error: {result:?}"
+    );
     let post = std::fs::read(&manifest_path).unwrap();
     assert_eq!(
         String::from_utf8_lossy(&pre),
@@ -703,7 +777,11 @@ fn fix_rolls_back_all_preimages_when_semantic_revalidation_fails() {
         "[package]\nname = \"fake-rollback-kernel\"\nversion = \"0.0.0\"\n\n\
          [dependencies]\nserde = \"1\"\nkube = \"0.99\"\n",
     );
-    write_file(root, "crates/fake-rollback-kernel/src/lib.rs", "pub fn noop() {}\n");
+    write_file(
+        root,
+        "crates/fake-rollback-kernel/src/lib.rs",
+        "pub fn noop() {}\n",
+    );
     // ADR-0549: the BUCK lane is active too — its edit must also roll back to the pre-image.
     write_file(
         root,
@@ -714,24 +792,46 @@ fn fix_rolls_back_all_preimages_when_semantic_revalidation_fails() {
     let policy = fixture_policy();
     let observed = collect_kernel_deps(root, &policy).expect("collect");
     let fixes = plan_fixes(&policy, &observed);
-    assert_eq!(fixes.len(), 1, "the dead kube dep is planned for removal: {fixes:?}");
+    assert_eq!(
+        fixes.len(),
+        1,
+        "the dead kube dep is planned for removal: {fixes:?}"
+    );
 
     let manifest_path = root.join("crates/fake-rollback-kernel/Cargo.toml");
     let buck_path = root.join("crates/fake-rollback-kernel/BUCK");
     let pre = std::fs::read(&manifest_path).unwrap();
     let pre_buck = std::fs::read(&buck_path).unwrap();
     let result = apply_fixes_with_validator(root, &fixes, |_| {
-        Err("error: feature `k8s` includes `dep:kube`, but `kube` is not a dependency (injected)".to_owned())
+        Err(
+            "error: feature `k8s` includes `dep:kube`, but `kube` is not a dependency (injected)"
+                .to_owned(),
+        )
     });
     let err = result.expect_err("semantic failure must surface as an error");
     let message = err.to_string();
-    assert!(message.contains("rolled back"), "error must state the rollback: {message}");
-    assert!(message.contains("DESIGN ACTION"), "error must reclassify as design-action: {message}");
-    assert!(message.contains("injected"), "error must carry the cargo error text: {message}");
+    assert!(
+        message.contains("rolled back"),
+        "error must state the rollback: {message}"
+    );
+    assert!(
+        message.contains("DESIGN ACTION"),
+        "error must reclassify as design-action: {message}"
+    );
+    assert!(
+        message.contains("injected"),
+        "error must carry the cargo error text: {message}"
+    );
     let post = std::fs::read(&manifest_path).unwrap();
-    assert_eq!(pre, post, "manifest must be restored byte-identically after rollback");
+    assert_eq!(
+        pre, post,
+        "manifest must be restored byte-identically after rollback"
+    );
     let post_buck = std::fs::read(&buck_path).unwrap();
-    assert_eq!(pre_buck, post_buck, "BUCK must be restored byte-identically after rollback (ADR-0549)");
+    assert_eq!(
+        pre_buck, post_buck,
+        "BUCK must be restored byte-identically after rollback (ADR-0549)"
+    );
 }
 
 #[test]
@@ -760,11 +860,18 @@ fn fix_leaves_live_build_dependency_in_place() {
     // Still RED (a build-dep transient is a violation), but NOT auto-fixable.
     assert_eq!(evaluate(&policy, &observed).verdict, Verdict::Red);
     let fixes = plan_fixes(&policy, &observed);
-    assert!(fixes.is_empty(), "a build-dep is never auto-fixed: {fixes:?}");
+    assert!(
+        fixes.is_empty(),
+        "a build-dep is never auto-fixed: {fixes:?}"
+    );
     let applied = apply_fixes(root, &fixes).expect("apply (no-op)");
     assert!(applied.is_empty());
-    let cargo = std::fs::read_to_string(root.join("crates/fake-build-live-kernel/Cargo.toml")).unwrap();
-    assert!(cargo.contains("k8s-openapi ="), "build-dep left in place: {cargo}");
+    let cargo =
+        std::fs::read_to_string(root.join("crates/fake-build-live-kernel/Cargo.toml")).unwrap();
+    assert!(
+        cargo.contains("k8s-openapi ="),
+        "build-dep left in place: {cargo}"
+    );
 }
 
 #[test]
@@ -790,7 +897,10 @@ fn fix_leaves_used_transient_dep_in_place() {
     let policy = fixture_policy();
     let observed = collect_kernel_deps(root, &policy).expect("collect");
     let fixes = plan_fixes(&policy, &observed);
-    assert!(fixes.is_empty(), "a used transient dep must not be auto-fixed: {fixes:?}");
+    assert!(
+        fixes.is_empty(),
+        "a used transient dep must not be auto-fixed: {fixes:?}"
+    );
     let applied = apply_fixes(root, &fixes).expect("apply (no-op)");
     assert!(applied.is_empty());
     let cargo = std::fs::read_to_string(root.join("crates/fake-live-kernel/Cargo.toml")).unwrap();

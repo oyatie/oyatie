@@ -11,12 +11,12 @@ use std::{
     time::Duration,
 };
 
+use futures::{StreamExt, stream};
 use intelligence_claude_agent_sdk::{
     ClaudeAgentOptions, ClaudeSDKClient, ContentBlock, McpServerConfig, McpServerPermissionPolicy,
     McpServerStatusConfig, McpServerToolPolicy, Message, PermissionMode, ReadFileEncoding,
     SpawnedClaudeProcess, UserMessage,
 };
-use futures::{StreamExt, stream};
 use serde_json::json;
 use tokio::{
     io::{AsyncBufReadExt, AsyncWriteExt, BufReader},
@@ -594,9 +594,7 @@ async fn client_disconnect_closes_stdin_and_waits_for_clean_exit() {
     // task exits; the fake task only exits after it drains EOF; so if
     // disconnect() returned, the EOF signal must be receivable immediately.
     assert!(
-        timeout(Duration::from_secs(1), stdin_eof_rx)
-            .await
-            .is_ok(),
+        timeout(Duration::from_secs(1), stdin_eof_rx).await.is_ok(),
         "stdin was not closed before disconnect() returned"
     );
 }

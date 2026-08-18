@@ -21,11 +21,30 @@ rust_library(
     ],
 )
 
+# The boundary-conformance test greps this crate's own source, so the source is a declared
+# resource rather than a cwd-relative guess.
+export_file(
+    name = "intelligence-app-source",
+    src = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)
+
 rust_test(
     name = "intelligence-app-tests",
     srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
     crate = "intelligence_app",
     crate_root = "src/lib.rs",
+    # Declared fixture bindings. The conformance tests below read committed manifests and
+    # sources; they previously resolved bare repo-relative paths against the process cwd, which
+    # only worked because Buck runs the action from the sandbox root. Naming each resource keeps
+    # Buck and the Cargo merge path (ADR-0716) reading the same bytes.
+    env = {
+        "OYA_INTELLIGENCE_APP_SOURCE": "$(location :intelligence-app-source)",
+        "OYA_INTELLIGENCE_HELM_DEPLOYMENT": "$(location //intelligence/iac/k8s/helm/templates:deployment.yaml)",
+        "OYA_INTELLIGENCE_HELM_EXTERNALSECRET": "$(location //intelligence/iac/k8s/helm/templates:externalsecret.yaml)",
+        "OYA_INTELLIGENCE_OPENAPI_CONTRACT": "$(location //intelligence/contracts:cloud-intelligence.openapi.yaml)",
+        "OYA_INTELLIGENCE_REST_SOURCE": "$(location //intelligence/adapters/rest:intelligence-rest-source)",
+    },
     visibility = ["PUBLIC"],
     deps = [
         "//intelligence/adapters/authz-cedar-adapter:intelligence-authz-cedar-adapter",

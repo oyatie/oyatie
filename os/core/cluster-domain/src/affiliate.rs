@@ -182,10 +182,11 @@ impl AffiliateData {
             }
         }
         if self.kubespan_key.is_none()
-            && let Some(k) = &other.kubespan_key {
-                self.kubespan_key = Some(k.clone());
-                changed = true;
-            }
+            && let Some(k) = &other.kubespan_key
+        {
+            self.kubespan_key = Some(k.clone());
+            changed = true;
+        }
         for ep in &other.kubespan_endpoints {
             if self.add_kubespan_endpoint(*ep) {
                 changed = true;

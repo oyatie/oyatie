@@ -84,7 +84,10 @@ fn parse_advisory(text: &str) -> Option<Advisory> {
     }
 
     let id = advisory.get("id").and_then(toml::Value::as_str)?.to_owned();
-    let package = advisory.get("package").and_then(toml::Value::as_str)?.to_owned();
+    let package = advisory
+        .get("package")
+        .and_then(toml::Value::as_str)?
+        .to_owned();
     let informational = advisory
         .get("informational")
         .and_then(toml::Value::as_str)

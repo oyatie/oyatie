@@ -7,13 +7,13 @@
 
 use std::collections::BTreeMap;
 
-use secrets_kms_domain::KmsPurpose;
 use compute_resource::ResourceId;
+use oya_data_boundary_kernel::{DataClass, parse_data_class_label};
+use secrets_kms_domain::KmsPurpose;
 use storage_domain::{
     CloudStorageCatalog, CloudStorageError, ObjectCreate, ObjectEncryptionBindingCreate, ObjectKey,
     StorageRepo, StoredObject,
 };
-use oya_data_boundary_kernel::{DataClass, parse_data_class_label};
 
 pub const CLOUD_STORAGE_OBJECT_PUT_SURFACE: &str = "cloud.storage.object.put";
 pub const CLOUD_STORAGE_OBJECT_GET_SURFACE: &str = "cloud.storage.object.get";
@@ -214,7 +214,7 @@ pub enum CloudStorageObjectReplayOutcome {
 /// `CloudStorageObjectRequestFingerprint`.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CloudStorageObjectPutIdempotencyEntry {
-    pub idempotency_key: String,          // data_class: INTERNAL_ONLY
+    pub idempotency_key: String,                  // data_class: INTERNAL_ONLY
     pub outcome: CloudStorageObjectReplayOutcome, // data_class: INTERNAL_ONLY
 }
 
@@ -1246,11 +1246,11 @@ fn detail(field: &str, issue: &str) -> CloudStorageObjectApiErrorDetail {
 mod tests {
     #![allow(clippy::unwrap_used, clippy::expect_used)]
 
-    use storage_domain::{
-        BucketCreate, BucketState, BucketTier, CloudStorageCatalog, EncryptionMode,
-        ObjectLockMode, ObjectLockPolicy, ReplicationPolicyCreate, StorageRepo,
-    };
     use oya_data_boundary_kernel::DataClass;
+    use storage_domain::{
+        BucketCreate, BucketState, BucketTier, CloudStorageCatalog, EncryptionMode, ObjectLockMode,
+        ObjectLockPolicy, ReplicationPolicyCreate, StorageRepo,
+    };
 
     use super::{
         CLOUD_STORAGE_OBJECT_PUT_SURFACE, CloudStorageObjectApiAuthorization,
@@ -1348,9 +1348,12 @@ mod tests {
         let mut catalog = catalog_with_active_bucket();
         let mut ledger = CloudStorageObjectPutIdempotencyLedger::default();
 
-        let response =
-            put_cloud_storage_object_from_api(&mut catalog, &mut ledger, make_request("req-u1", "idem-u1"))
-                .expect("first PUT succeeds");
+        let response = put_cloud_storage_object_from_api(
+            &mut catalog,
+            &mut ledger,
+            make_request("req-u1", "idem-u1"),
+        )
+        .expect("first PUT succeeds");
 
         assert_eq!(ledger.len(), 1);
         assert_eq!(catalog.objects().count(), 1);
@@ -1364,15 +1367,17 @@ mod tests {
         let mut ledger = CloudStorageObjectPutIdempotencyLedger::default();
         let request = make_request("req-u2", "idem-u2");
 
-        let first =
-            put_cloud_storage_object_from_api(&mut catalog, &mut ledger, request.clone())
-                .expect("first PUT succeeds");
-        let second =
-            put_cloud_storage_object_from_api(&mut catalog, &mut ledger, request)
-                .expect("replay succeeds");
+        let first = put_cloud_storage_object_from_api(&mut catalog, &mut ledger, request.clone())
+            .expect("first PUT succeeds");
+        let second = put_cloud_storage_object_from_api(&mut catalog, &mut ledger, request)
+            .expect("replay succeeds");
 
         assert_eq!(first, second);
-        assert_eq!(catalog.objects().count(), 1, "catalog not mutated on replay");
+        assert_eq!(
+            catalog.objects().count(),
+            1,
+            "catalog not mutated on replay"
+        );
         assert_eq!(ledger.len(), 1, "ledger has exactly one entry");
     }
 
@@ -1387,9 +1392,8 @@ mod tests {
         let mut drifted = original;
         drifted.body.etag = "00000000000000000000000000000000".to_string();
         // etag also lives in path-body binding check as separate field; update body only
-        let err =
-            put_cloud_storage_object_from_api(&mut catalog, &mut ledger, drifted)
-                .expect_err("different fingerprint yields conflict");
+        let err = put_cloud_storage_object_from_api(&mut catalog, &mut ledger, drifted)
+            .expect_err("different fingerprint yields conflict");
 
         assert_eq!(
             err,
@@ -1397,7 +1401,11 @@ mod tests {
                 idempotency_key: "idem-u3".to_string(),
             }
         );
-        assert_eq!(catalog.objects().count(), 1, "catalog not mutated on conflict");
+        assert_eq!(
+            catalog.objects().count(),
+            1,
+            "catalog not mutated on conflict"
+        );
     }
 
     #[test]
@@ -1408,28 +1416,50 @@ mod tests {
         // Before any PUT, peek returns None.
         assert!(
             ledger
-                .peek("ten_unit", "sp_unit", CLOUD_STORAGE_OBJECT_PUT_SURFACE, "idem-u4")
+                .peek(
+                    "ten_unit",
+                    "sp_unit",
+                    CLOUD_STORAGE_OBJECT_PUT_SURFACE,
+                    "idem-u4"
+                )
                 .is_none(),
             "peek returns None before recording"
         );
 
         // After first PUT, peek returns Some(Replayed { .. }).
-        put_cloud_storage_object_from_api(&mut catalog, &mut ledger, make_request("req-u4", "idem-u4"))
-            .expect("first PUT succeeds");
+        put_cloud_storage_object_from_api(
+            &mut catalog,
+            &mut ledger,
+            make_request("req-u4", "idem-u4"),
+        )
+        .expect("first PUT succeeds");
 
         let entry = ledger
-            .peek("ten_unit", "sp_unit", CLOUD_STORAGE_OBJECT_PUT_SURFACE, "idem-u4")
+            .peek(
+                "ten_unit",
+                "sp_unit",
+                CLOUD_STORAGE_OBJECT_PUT_SURFACE,
+                "idem-u4",
+            )
             .expect("peek returns Some after record");
         assert_eq!(entry.idempotency_key, "idem-u4");
         assert!(
-            matches!(entry.outcome, CloudStorageObjectReplayOutcome::Replayed { .. }),
+            matches!(
+                entry.outcome,
+                CloudStorageObjectReplayOutcome::Replayed { .. }
+            ),
             "outcome is Replayed after successful PUT"
         );
 
         // A different (unknown) key still returns None.
         assert!(
             ledger
-                .peek("ten_unit", "sp_unit", CLOUD_STORAGE_OBJECT_PUT_SURFACE, "idem-unknown")
+                .peek(
+                    "ten_unit",
+                    "sp_unit",
+                    CLOUD_STORAGE_OBJECT_PUT_SURFACE,
+                    "idem-unknown"
+                )
                 .is_none(),
             "peek returns None for unknown key"
         );

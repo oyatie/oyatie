@@ -551,9 +551,9 @@ impl InternalCodingAgentWorkflowPlan {
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct GuardrailDetectionProfileSpec {
     pub kind: &'static str,
-    pub tenant_id: String, // data_class: INTERNAL_ONLY
-    pub name: String,      // data_class: INTERNAL_ONLY
-    pub policy_engine_port: String, // data_class: INTERNAL_ONLY
+    pub tenant_id: String,                // data_class: INTERNAL_ONLY
+    pub name: String,                     // data_class: INTERNAL_ONLY
+    pub policy_engine_port: String,       // data_class: INTERNAL_ONLY
     pub critical_categories: Vec<String>, // data_class: INTERNAL_ONLY
     pub automatic_block_and_quarantine: bool,
     pub mandatory_secondary_agentic_review: bool,
@@ -604,8 +604,8 @@ impl GuardrailDetectionProfileSpec {
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct EvidenceRetentionProfileSpec {
     pub kind: &'static str,
-    pub tenant_id: String, // data_class: INTERNAL_ONLY
-    pub name: String,      // data_class: INTERNAL_ONLY
+    pub tenant_id: String,            // data_class: INTERNAL_ONLY
+    pub name: String,                 // data_class: INTERNAL_ONLY
     pub secret_provider_port: String, // data_class: INTERNAL_ONLY
     pub stores_raw_payload_on_normal_path: bool,
     pub encrypted_handle_on_guardrail_trigger: bool,
@@ -1134,7 +1134,10 @@ pub struct ParityCanaryStatusSpec {
 }
 
 impl ParityCanaryStatusSpec {
-    pub fn from_plan(plan: &ScheduledParityDriftCanaryPlan, state: ParityCanaryStatusState) -> Self {
+    pub fn from_plan(
+        plan: &ScheduledParityDriftCanaryPlan,
+        state: ParityCanaryStatusState,
+    ) -> Self {
         Self {
             kind: "ParityCanaryStatus",
             tenant_id: plan.tenant_id.clone(),

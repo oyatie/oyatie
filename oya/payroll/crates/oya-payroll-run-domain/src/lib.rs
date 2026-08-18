@@ -526,35 +526,35 @@ pub enum PayrollDomainError {
 /// Flat per-payee net total used as input to the variance gate.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct PayeeVarianceTotal {
-    pub payee_id: String,       // data_class: INTERNAL_ONLY
+    pub payee_id: String,        // data_class: INTERNAL_ONLY
     pub net_amount: MoneyAmount, // data_class: FINANCIAL
 }
 
 /// Input to `evaluate_payroll_variance`.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct PayrollVarianceInput {
-    pub run_id: String,                              // data_class: INTERNAL_ONLY
+    pub run_id: String,                                 // data_class: INTERNAL_ONLY
     pub current_period_totals: Vec<PayeeVarianceTotal>, // data_class: FINANCIAL
     pub prior_period_totals: Vec<PayeeVarianceTotal>,   // data_class: FINANCIAL
     /// Must be > 0. Basis points threshold; swings exceeding this are anomalies.
-    pub variance_tolerance_bps: u32,                 // data_class: INTERNAL_ONLY
-    pub rulepack_ref: String,                        // data_class: INTERNAL_ONLY
-    pub rulepack_effective_date: String,             // data_class: INTERNAL_ONLY (ISO date)
+    pub variance_tolerance_bps: u32, // data_class: INTERNAL_ONLY
+    pub rulepack_ref: String,                           // data_class: INTERNAL_ONLY
+    pub rulepack_effective_date: String,                // data_class: INTERNAL_ONLY (ISO date)
     /// Each entry must be a valid `audit/` ref.
-    pub evidence_refs: Vec<String>,                  // data_class: INTERNAL_ONLY
+    pub evidence_refs: Vec<String>, // data_class: INTERNAL_ONLY
     /// Epoch seconds; must be > 0.
-    pub evaluated_at: u64,                           // data_class: INTERNAL_ONLY
+    pub evaluated_at: u64, // data_class: INTERNAL_ONLY
 }
 
 /// Classified per-payee variance line in the verdict.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct PayrollVarianceLine {
-    pub payee_id: Classified<PayeeId>,         // data_class: INTERNAL_ONLY
+    pub payee_id: Classified<PayeeId>, // data_class: INTERNAL_ONLY
     pub current_amount: Classified<MoneyAmount>, // data_class: FINANCIAL
     pub prior_amount: Classified<MoneyAmount>, // data_class: FINANCIAL
     /// Signed BPS. Positive = increase. `DROPPED_PAYEE_SENTINEL_BPS` for dropped payees.
-    pub variance_bps: Classified<i64>,         // data_class: INTERNAL_ONLY
-    pub anomaly: Classified<bool>,             // data_class: INTERNAL_ONLY
+    pub variance_bps: Classified<i64>, // data_class: INTERNAL_ONLY
+    pub anomaly: Classified<bool>,     // data_class: INTERNAL_ONLY
 }
 
 /// Anomaly flag variants; each carries the affected payee identity.
@@ -571,16 +571,16 @@ pub enum AnomalyFlag {
 /// Classified verdict returned by `evaluate_payroll_variance`.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct PayrollVarianceVerdict {
-    pub run_id: Classified<PayrollRunId>,                      // data_class: INTERNAL_ONLY
-    pub lines: Classified<Vec<PayrollVarianceLine>>,           // data_class: FINANCIAL
-    pub run_net_variance_bps: Classified<i64>,                 // data_class: INTERNAL_ONLY
-    pub anomaly_flags: Classified<Vec<AnomalyFlag>>,           // data_class: INTERNAL_ONLY
-    pub gate_passed: Classified<bool>,                         // data_class: INTERNAL_ONLY
-    pub rulepack_ref: Classified<RulepackRef>,                 // data_class: INTERNAL_ONLY
+    pub run_id: Classified<PayrollRunId>, // data_class: INTERNAL_ONLY
+    pub lines: Classified<Vec<PayrollVarianceLine>>, // data_class: FINANCIAL
+    pub run_net_variance_bps: Classified<i64>, // data_class: INTERNAL_ONLY
+    pub anomaly_flags: Classified<Vec<AnomalyFlag>>, // data_class: INTERNAL_ONLY
+    pub gate_passed: Classified<bool>,    // data_class: INTERNAL_ONLY
+    pub rulepack_ref: Classified<RulepackRef>, // data_class: INTERNAL_ONLY
     pub rulepack_effective_date: Classified<RulepackEffectiveDate>, // data_class: INTERNAL_ONLY
-    pub evidence_digest: Classified<EvidenceDigest>,           // data_class: INTERNAL_ONLY
-    pub evaluated_at: Classified<u64>,                         // data_class: INTERNAL_ONLY
-    pub schema_version: Classified<u32>,                       // data_class: PUBLIC
+    pub evidence_digest: Classified<EvidenceDigest>, // data_class: INTERNAL_ONLY
+    pub evaluated_at: Classified<u64>,    // data_class: INTERNAL_ONLY
+    pub schema_version: Classified<u32>,  // data_class: PUBLIC
 }
 
 // ── Retro adjustment types ─────────────────────────────────────────────────
@@ -601,44 +601,44 @@ pub enum RetroPayeeClass {
 /// Per-payee signed delta line produced by `evaluate_retro_adjustment`.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct RetroDeltaLine {
-    pub payee_id: Classified<PayeeId>,             // data_class: INTERNAL_ONLY
+    pub payee_id: Classified<PayeeId>, // data_class: INTERNAL_ONLY
     /// Original amount. For `Added` payees, `amount_minor` is 0.
-    pub original_amount: Classified<MoneyAmount>,  // data_class: FINANCIAL
+    pub original_amount: Classified<MoneyAmount>, // data_class: FINANCIAL
     /// Corrected amount. For `Removed` payees, `amount_minor` is 0.
     pub corrected_amount: Classified<MoneyAmount>, // data_class: FINANCIAL
     /// Signed delta: `corrected_amount.amount_minor - original_amount.amount_minor`.
-    pub delta_amount: Classified<MoneyAmount>,     // data_class: FINANCIAL
-    pub payee_class: Classified<RetroPayeeClass>,  // data_class: INTERNAL_ONLY
+    pub delta_amount: Classified<MoneyAmount>, // data_class: FINANCIAL
+    pub payee_class: Classified<RetroPayeeClass>, // data_class: INTERNAL_ONLY
 }
 
 /// Input to `evaluate_retro_adjustment`.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct RetroAdjustmentInput {
     /// Payroll run being adjusted. Must have the `prun_` prefix.
-    pub run_id: String,                                        // data_class: INTERNAL_ONLY
+    pub run_id: String, // data_class: INTERNAL_ONLY
     /// Audit reference for this retro run. Must have the `audit/` prefix.
-    pub run_ref: String,                                       // data_class: INTERNAL_ONLY
+    pub run_ref: String, // data_class: INTERNAL_ONLY
     /// Baseline (original-period) per-payee net totals.
-    pub original_period_totals: Vec<PayeeVarianceTotal>,      // data_class: FINANCIAL
+    pub original_period_totals: Vec<PayeeVarianceTotal>, // data_class: FINANCIAL
     /// Corrected per-payee net totals.
-    pub corrected_period_totals: Vec<PayeeVarianceTotal>,     // data_class: FINANCIAL
+    pub corrected_period_totals: Vec<PayeeVarianceTotal>, // data_class: FINANCIAL
     /// Non-empty vec of `audit/` evidence refs. Used for the evidence digest.
-    pub evidence_refs: Vec<String>,                            // data_class: INTERNAL_ONLY
+    pub evidence_refs: Vec<String>, // data_class: INTERNAL_ONLY
 }
 
 /// Classified verdict returned by `evaluate_retro_adjustment`.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct RetroAdjustmentVerdict {
-    pub run_id: Classified<PayrollRunId>,                     // data_class: INTERNAL_ONLY
+    pub run_id: Classified<PayrollRunId>, // data_class: INTERNAL_ONLY
     /// One line per payee from the union of original and corrected sets.
-    pub lines: Classified<Vec<RetroDeltaLine>>,               // data_class: FINANCIAL
+    pub lines: Classified<Vec<RetroDeltaLine>>, // data_class: FINANCIAL
     /// Sum of all `delta_amount.amount_minor` across all lines.
-    pub run_net_delta: Classified<MoneyAmount>,               // data_class: FINANCIAL
+    pub run_net_delta: Classified<MoneyAmount>, // data_class: FINANCIAL
     /// True iff `run_net_delta` equals sum(corrected) minus sum(original).
-    pub balanced: Classified<bool>,                           // data_class: PUBLIC
+    pub balanced: Classified<bool>, // data_class: PUBLIC
     /// XOR-fold evidence digest (same algorithm as variance verdict).
-    pub evidence_digest: Classified<EvidenceDigest>,          // data_class: INTERNAL_ONLY
-    pub schema_version: Classified<u32>,                      // data_class: PUBLIC
+    pub evidence_digest: Classified<EvidenceDigest>, // data_class: INTERNAL_ONLY
+    pub schema_version: Classified<u32>,  // data_class: PUBLIC
 }
 
 pub fn evaluate_retro_adjustment(
@@ -659,7 +659,11 @@ pub fn evaluate_retro_adjustment(
         return Err(PayrollDomainError::RetroEvidenceRequired);
     }
     for ev_ref in &input.evidence_refs {
-        validate_ref(ev_ref, AUDIT_REF_PREFIX, PayrollDomainError::InvalidEvidenceRef)?;
+        validate_ref(
+            ev_ref,
+            AUDIT_REF_PREFIX,
+            PayrollDomainError::InvalidEvidenceRef,
+        )?;
     }
 
     // ── Validate per-payee totals ─────────────────────────────────────────
@@ -675,9 +679,7 @@ pub fn evaluate_retro_adjustment(
         )?;
         // Allow zero amounts in retro context (e.g., zero-delta payees can
         // appear with zero original or corrected; the currency must still be 3 chars).
-        if total.net_amount.currency.len() != 3
-            || has_unsafe_text(&total.net_amount.currency)
-        {
+        if total.net_amount.currency.len() != 3 || has_unsafe_text(&total.net_amount.currency) {
             return Err(PayrollDomainError::InvalidMoney);
         }
     }
@@ -710,7 +712,9 @@ pub fn evaluate_retro_adjustment(
 
     // Process original-period payees first (in input order).
     for orig_total in &input.original_period_totals {
-        let payee_id_val = PayeeId { value: orig_total.payee_id.clone() };
+        let payee_id_val = PayeeId {
+            value: orig_total.payee_id.clone(),
+        };
         let orig_amount = &orig_total.net_amount;
 
         match corrected_map.get(orig_total.payee_id.as_str()) {
@@ -719,7 +723,9 @@ pub fn evaluate_retro_adjustment(
                 if orig_amount.currency != corr_amount.currency {
                     return Err(PayrollDomainError::CurrencyMismatch);
                 }
-                let delta_minor = corr_amount.amount_minor.saturating_sub(orig_amount.amount_minor);
+                let delta_minor = corr_amount
+                    .amount_minor
+                    .saturating_sub(orig_amount.amount_minor);
                 run_net_delta_minor = run_net_delta_minor.saturating_add(delta_minor);
                 let payee_class = if delta_minor == 0 {
                     RetroPayeeClass::Unchanged
@@ -773,7 +779,9 @@ pub fn evaluate_retro_adjustment(
             // Already handled above.
             continue;
         }
-        let payee_id_val = PayeeId { value: corr_total.payee_id.clone() };
+        let payee_id_val = PayeeId {
+            value: corr_total.payee_id.clone(),
+        };
         let corr_amount = &corr_total.net_amount;
         run_net_delta_minor = run_net_delta_minor.saturating_add(corr_amount.amount_minor);
         lines.push(RetroDeltaLine {
@@ -821,14 +829,18 @@ pub fn evaluate_retro_adjustment(
     let evidence_digest = format!("{HASH_PREFIX}{hex_chars}");
 
     Ok(RetroAdjustmentVerdict {
-        run_id: internal(PayrollRunId { value: input.run_id }),
+        run_id: internal(PayrollRunId {
+            value: input.run_id,
+        }),
         lines: financial(lines),
         run_net_delta: financial(MoneyAmount {
             amount_minor: run_net_delta_minor,
             currency: run_currency,
         }),
         balanced: Classified::new(balanced, DataClass::Public),
-        evidence_digest: internal(EvidenceDigest { value: evidence_digest }),
+        evidence_digest: internal(EvidenceDigest {
+            value: evidence_digest,
+        }),
         schema_version: public(RETRO_ADJUSTMENT_SCHEMA_VERSION),
     })
 }
@@ -1258,22 +1270,22 @@ pub fn build_payroll_journal(
 /// and balanced by the delegate `build_payroll_journal`.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct GroupGlPostingInput {
-    pub rollup_id: String,                    // data_class: INTERNAL_ONLY
-    pub tenant_id: String,                    // data_class: INTERNAL_ONLY
-    pub entries: Vec<PayrollJournalInput>,    // data_class: INTERNAL_ONLY
-    pub group_idempotency_key: String,        // data_class: INTERNAL_ONLY
+    pub rollup_id: String,                 // data_class: INTERNAL_ONLY
+    pub tenant_id: String,                 // data_class: INTERNAL_ONLY
+    pub entries: Vec<PayrollJournalInput>, // data_class: INTERNAL_ONLY
+    pub group_idempotency_key: String,     // data_class: INTERNAL_ONLY
 }
 
 /// Output of `build_group_gl_posting`.  Holds one balanced `PayrollJournalDraft`
 /// per entity, plus aggregated group-level totals and the idempotency key.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct GroupGlPostingBatch {
-    pub rollup_id: Classified<GroupPayrollRollupId>,  // data_class: INTERNAL_ONLY
-    pub tenant_id: Classified<TenantId>,              // data_class: INTERNAL_ONLY
+    pub rollup_id: Classified<GroupPayrollRollupId>, // data_class: INTERNAL_ONLY
+    pub tenant_id: Classified<TenantId>,             // data_class: INTERNAL_ONLY
     pub drafts: Classified<Vec<PayrollJournalDraft>>, // data_class: INTERNAL_ONLY
-    pub total_debit_minor: Classified<i64>,           // data_class: INTERNAL_ONLY
-    pub total_credit_minor: Classified<i64>,          // data_class: INTERNAL_ONLY
-    pub idempotency_key: Classified<String>,          // data_class: INTERNAL_ONLY
+    pub total_debit_minor: Classified<i64>,          // data_class: INTERNAL_ONLY
+    pub total_credit_minor: Classified<i64>,         // data_class: INTERNAL_ONLY
+    pub idempotency_key: Classified<String>,         // data_class: INTERNAL_ONLY
 }
 
 pub fn build_group_gl_posting(
@@ -1383,14 +1395,22 @@ pub fn evaluate_payroll_variance(
     )?;
     validate_iso_date(&input.rulepack_effective_date)?;
     for ev_ref in &input.evidence_refs {
-        validate_ref(ev_ref, AUDIT_REF_PREFIX, PayrollDomainError::InvalidEvidenceRef)?;
+        validate_ref(
+            ev_ref,
+            AUDIT_REF_PREFIX,
+            PayrollDomainError::InvalidEvidenceRef,
+        )?;
     }
     if input.evaluated_at == 0 {
         return Err(PayrollDomainError::InvalidReceivedAt);
     }
 
     // ── Validate per-payee totals ─────────────────────────────────────────
-    for total in input.current_period_totals.iter().chain(input.prior_period_totals.iter()) {
+    for total in input
+        .current_period_totals
+        .iter()
+        .chain(input.prior_period_totals.iter())
+    {
         validate_identifier(
             &total.payee_id,
             PAYEE_ID_PREFIX,
@@ -1420,10 +1440,13 @@ pub fn evaluate_payroll_variance(
 
     // ── Per current-period payee: compute variance ────────────────────────
     for total in &input.current_period_totals {
-        let payee_id_val = PayeeId { value: total.payee_id.clone() };
+        let payee_id_val = PayeeId {
+            value: total.payee_id.clone(),
+        };
         let current_minor = total.net_amount.amount_minor;
 
-        let (prior_amount, variance_bps, is_anomaly) = match prior_map.get(total.payee_id.as_str()) {
+        let (prior_amount, variance_bps, is_anomaly) = match prior_map.get(total.payee_id.as_str())
+        {
             Some(prior) => {
                 let prior_minor = prior.amount_minor;
                 let (bps, anomalous) = if prior_minor == 0 {
@@ -1434,8 +1457,7 @@ pub fn evaluate_payroll_variance(
                         .saturating_mul(10_000)
                         .saturating_div(prior_minor.abs());
                     let over = raw.unsigned_abs() > tolerance;
-                    let sign_flip =
-                        current_minor != 0
+                    let sign_flip = current_minor != 0
                         && prior_minor != 0
                         && current_minor.signum() != prior_minor.signum();
                     if over {
@@ -1476,12 +1498,13 @@ pub fn evaluate_payroll_variance(
     // ── Dropped-payee detection ───────────────────────────────────────────
     for prior_total in &input.prior_period_totals {
         if !current_ids.contains(prior_total.payee_id.as_str()) {
-            let payee_id_val = PayeeId { value: prior_total.payee_id.clone() };
+            let payee_id_val = PayeeId {
+                value: prior_total.payee_id.clone(),
+            };
             anomaly_flags.push(AnomalyFlag::DroppedPayee {
                 payee_id: payee_id_val.clone(),
             });
-            run_net_variance_bps =
-                run_net_variance_bps.saturating_add(DROPPED_PAYEE_SENTINEL_BPS);
+            run_net_variance_bps = run_net_variance_bps.saturating_add(DROPPED_PAYEE_SENTINEL_BPS);
             // Emit a synthetic line so callers can audit the dropped entry.
             lines.push(PayrollVarianceLine {
                 payee_id: internal(payee_id_val),
@@ -1511,23 +1534,26 @@ pub fn evaluate_payroll_variance(
             pos += 1;
         }
     }
-    let hex_chars: String = buf
-        .iter()
-        .map(|b| format!("{b:02x}"))
-        .collect();
+    let hex_chars: String = buf.iter().map(|b| format!("{b:02x}")).collect();
     let evidence_digest = format!("{HASH_PREFIX}{hex_chars}");
 
     Ok(PayrollVarianceVerdict {
-        run_id: internal(PayrollRunId { value: input.run_id }),
+        run_id: internal(PayrollRunId {
+            value: input.run_id,
+        }),
         lines: financial(lines),
         run_net_variance_bps: internal(run_net_variance_bps),
         anomaly_flags: internal(anomaly_flags),
         gate_passed: internal(gate_passed),
-        rulepack_ref: internal(RulepackRef { value: input.rulepack_ref }),
+        rulepack_ref: internal(RulepackRef {
+            value: input.rulepack_ref,
+        }),
         rulepack_effective_date: internal(RulepackEffectiveDate {
             value: input.rulepack_effective_date,
         }),
-        evidence_digest: internal(EvidenceDigest { value: evidence_digest }),
+        evidence_digest: internal(EvidenceDigest {
+            value: evidence_digest,
+        }),
         evaluated_at: internal(input.evaluated_at),
         schema_version: public(VARIANCE_VERDICT_SCHEMA_VERSION),
     })

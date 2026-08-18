@@ -8,8 +8,8 @@
 //! `provision.ClusterRequest`.
 
 use crate::ClusterError;
-use std::collections::BTreeMap;
 use os_kernel::machine_type::MachineType;
+use std::collections::BTreeMap;
 
 /// Which backend provisions the cluster.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

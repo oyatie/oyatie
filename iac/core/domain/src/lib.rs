@@ -909,9 +909,7 @@ pub fn compute_iac_plan_diff(
     observed: &CellTopologyPlan,
 ) -> IacPlanDiffReport {
     // --- identity check (fail-closed) ----------------------------------------
-    if desired.topology_id() != observed.topology_id()
-        || desired.region() != observed.region()
-    {
+    if desired.topology_id() != observed.topology_id() || desired.region() != observed.region() {
         return IacPlanDiffReport {
             verdict: IacPlanDiffVerdict::IdentityMismatch,
             entries: vec![],
@@ -1017,10 +1015,7 @@ pub fn compute_iac_plan_diff(
 
     entries.sort();
 
-    let verdict = if entries
-        .iter()
-        .all(|e| e.action == PlanAction::NoChange)
-    {
+    let verdict = if entries.iter().all(|e| e.action == PlanAction::NoChange) {
         IacPlanDiffVerdict::Converged
     } else {
         IacPlanDiffVerdict::HasChanges
@@ -1639,7 +1634,10 @@ mod tests {
     // creates+updates over threshold → RequiresReview(1)
     #[test]
     fn creates_updates_over_threshold_requires_review() {
-        let cs = changeset_with("plan-over-threshold", &repeated(ResourceChangeAction::Create, 60));
+        let cs = changeset_with(
+            "plan-over-threshold",
+            &repeated(ResourceChangeAction::Create, 60),
+        );
         assert_eq!(
             cs.approval_gate(),
             ApplyApprovalVerdict::RequiresReview {
@@ -1654,7 +1652,10 @@ mod tests {
         let cs = changeset_with("plan-del1", &[ResourceChangeAction::Delete]);
         match cs.approval_gate() {
             ApplyApprovalVerdict::RequiresReview { required_approvals } => {
-                assert!(required_approvals >= 1, "expected >= 1, got {required_approvals}");
+                assert!(
+                    required_approvals >= 1,
+                    "expected >= 1, got {required_approvals}"
+                );
             }
             other => panic!("expected RequiresReview, got {other:?}"),
         }
@@ -1739,15 +1740,21 @@ mod tests {
             v
         });
 
-        let ApplyApprovalVerdict::RequiresReview { required_approvals: a5 } = cs5.approval_gate()
+        let ApplyApprovalVerdict::RequiresReview {
+            required_approvals: a5,
+        } = cs5.approval_gate()
         else {
             panic!("expected RequiresReview");
         };
-        let ApplyApprovalVerdict::RequiresReview { required_approvals: a6 } = cs6.approval_gate()
+        let ApplyApprovalVerdict::RequiresReview {
+            required_approvals: a6,
+        } = cs6.approval_gate()
         else {
             panic!("expected RequiresReview");
         };
-        let ApplyApprovalVerdict::RequiresReview { required_approvals: a21 } = cs21.approval_gate()
+        let ApplyApprovalVerdict::RequiresReview {
+            required_approvals: a21,
+        } = cs21.approval_gate()
         else {
             panic!("expected RequiresReview");
         };

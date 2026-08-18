@@ -185,11 +185,13 @@
     "affected-target-set": "The admission cone is computed from changed targets and Buck2 reports; remediation depends on the source change and cannot be rewritten safely by the gate.",
     "artifact-accountability": "Total-accounting findings require ownership, reachability, or TTL source changes; the gate should never invent accounting rows.",
     "automation-coverage": "Automation-ratchet findings require choosing the durable automation owner and cannot be mechanically rewritten from observation rows.",
+    "automation-language-policy": "Rust-first hygiene findings name the offending non-Rust bridge or inline-shell step; remediation is removing the bridge or reviewing a replacement-window baseline edit, which no auto-fix may invent.",
     "baseline-ratchet": "Firewall ratchet failures require reducing the violating keys or reviewed signoff; automatic mutation would launder debt.",
     "build-cache-policy": "Cache topology violations require runner/cache policy decisions, so the gate reports exact wiring gaps instead of mutating CI configuration.",
     "build-target-parity": "Target parity findings require build/test target wiring decisions and cannot be inferred safely from one file.",
     "caller-supplied-authorization": "Caller-supplied authorization trust findings require server-side PDP integration, not a mechanical baseline expansion.",
     "canonical-json": "This gate already ships an explicit --fix path; the policy reason remains as documentation for adopters that disable rewriting.",
+    "cloud-name-ratchet": "A deprecated cloud- name is fixed by RENAMING the thing, which touches its directory, package name, every reference and often a workflow binding. The gate cannot choose the successor name, and an automated rename of oya-cloud-ci-* would break the required merge gate that binds OYA_CI_PRODUCER_BIN.",
     "contract-slice-conformance": "Contract-slice findings (missing required field, forbidden interpreter/CLI marker in a spec, enum/array/object-member violation, or a bad migration declaration) are repaired by the slice author editing the committed spec JSON or the contract-slice-policy DATA; there is no safe mechanical rewrite of a contract's meaning.",
     "core-dependency-isolation": "Kernel-purity ships a fixer for dependency declarations, but topology and semantic validation failures still require reviewed source changes.",
     "corpus-index-coverage": "Closing a coverage finding means choosing where an artifact belongs in the build graph \u2014 which package should own it, or whether a new package should exist at all. An autofix could only stamp an extraction genrule onto whatever package happens to sit nearest, which is exactly the junk-drawer placement the capability-membership rules forbid; and for the unpackaged term there is no package to stamp anything onto.",
@@ -198,6 +200,7 @@
     "crate-name-prefix": "Prefix violations are migration-sensitive naming decisions; remediation is a reviewed rename or neutral-profile policy change.",
     "cross-artifact-agreement": "Cross-artifact contradictions must be resolved at the authoritative artifact, never guessed by an automatic rewrite.",
     "crypto-backend-policy": "Crypto backend activation changes are security-sensitive dependency choices and cannot be rewritten safely by the gate.",
+    "dep-freshness": "The finding is that a dependency has gone quiet upstream. There is no in-repo edit that fixes it: the remedy is a human judgement between replacing the dependency, vendoring it, or accepting the risk. The gate is advisory for the same reason.",
     "dependency-automation": "Dependency automation policy violations require ownership of the dependency update surface, not automatic config synthesis.",
     "dependency-graph-acyclicity": "Dependency DAG cycles require architectural refactoring across crates, not a mechanical edit.",
     "embedded-asset-hermeticity": "Embedded asset findings require BUCK src mapping or source layout changes, which are repo-shape decisions.",
@@ -208,6 +211,7 @@
     "generated-artifact-freshness": "Freshness failures require regenerating generated faces from authoritative sources or fixing the source drift; automatic mutation is separated into explicit materializer binaries.",
     "generated-artifact-policy": "Generated artifact policy findings require classifying artifact authority and generated-path ownership, not blind path edits.",
     "graphql-usage-policy": "GraphQL reintroduction requires an explicit reversing ADR or removal; the gate cannot author that decision automatically.",
+    "helm-chart-shape": "A non-manifest file under templates/ can be fixed two incompatible ways \u2014 move it out of the chart, or list it in .helmignore \u2014 and only the author knows whether the file must stay for Buck wiring. Choosing for them would silently delete build wiring or silently hide a stray manifest.",
     "hook-wiring": "Enforcement liveness failures require wiring real hook/settings/controller surfaces; the gate cannot safely invent enforcement.",
     "k8s-program-docs": "R-DOC findings require choosing journal references, doctrine graduation to an ADR, wave-registry repairs, or baseline-header content; the gate must not invent program memory or rewrite wave completion state automatically.",
     "layer-dependency-acyclicity": "Tier dependency findings require topology changes across capability boundaries, not automatic rewrites.",
@@ -221,6 +225,7 @@
     "port-placement": "Port-placement findings require moving traits across clean-architecture boundaries, not a safe local text rewrite.",
     "product-protocol-policy": "Product protocol findings require an explicit API exposure, transport-security, serialization, telemetry, or owned-fabric decision; the gate cannot safely invent or rewrite those product contracts.",
     "repo-root-hygiene": "Root workspace hygiene findings require deciding whether to move, allowlist, or delete a tracked root artifact.",
+    "reset-eligibility-policy": "Reset eligibility findings require new provider inventory, recovery proof, retention/legal decisions, and independent approvals; the gate must never fabricate evidence or authorize deletion.",
     "resource-contract-conformance": "Cloud-resource contract findings require source specification changes or reviewed claim-boundary decisions; the gate cannot safely rewrite product readiness or actuation semantics.",
     "runner-disk-reclaim": "Runner disk reclaim findings require CI runner policy and reclaim-plan changes, not a gate-authored mutation.",
     "scan-root-liveness": "A dead scan root has three legitimate resolutions and the gate cannot choose between them: repoint it (the path moved -- only the author knows where), delete it (the path is gone for good -- and the anti-narrowing ratchet requires that removal be the SUBJECT of a reviewed change, not a silent side effect), or declare it forward (it does not exist YET -- which requires stating why and what will create it). Auto-deleting would be the worst of the three: it launders coverage loss as cleanup, which is precisely the failure this gate exists to detect.",
@@ -230,8 +235,6 @@
     "stale-artifact-detection": "Staleness findings require source artifact refresh, owner escalation, or lifecycle closure; automatic deletion would be unsafe.",
     "supply-chain-audit": "Supply-chain findings require dependency upgrades, vendor review, or explicit security decisions.",
     "topology-manifest-contract": "Cell topology manifest contract findings require source-of-truth spec, fixture, root-hub, or ADR-scope decisions; the gate must not synthesize topology or residency evidence.",
-    "workspace-member-coverage": "Workspace glob coverage findings require workspace membership or exclusion policy changes, not blind manifest edits.",
-    "reset-eligibility-policy": "Reset eligibility findings require new provider inventory, recovery proof, retention/legal decisions, and independent approvals; the gate must never fabricate evidence or authorize deletion.",
-    "automation-language-policy": "Rust-first hygiene findings name the offending non-Rust bridge or inline-shell step; remediation is removing the bridge or reviewing a replacement-window baseline edit, which no auto-fix may invent."
+    "workspace-member-coverage": "Workspace glob coverage findings require workspace membership or exclusion policy changes, not blind manifest edits."
   }
 }

@@ -19,9 +19,9 @@ use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
 use intelligence_kernel::overage_guard::{
-    classify_codex_error, classify_representative_claim, evaluate_codex_quota,
-    evaluate_representative_claim, ClaimClassification, CodexQuotaSignal, GuardDecision, GuardMode,
-    HaltReason, OverageGuardPolicy, RepresentativeClaim, DEFAULT_RESUME_COOLDOWN,
+    ClaimClassification, CodexQuotaSignal, DEFAULT_RESUME_COOLDOWN, GuardDecision, GuardMode,
+    HaltReason, OverageGuardPolicy, RepresentativeClaim, classify_codex_error,
+    classify_representative_claim, evaluate_codex_quota, evaluate_representative_claim,
 };
 use intelligence_kernel::{
     OAuthSubscription, Provider, SeatId, SelectionStrategy, SubscriptionId, SubscriptionPool,
@@ -29,7 +29,12 @@ use intelligence_kernel::{
 };
 use proptest::prelude::*;
 
-const ALLOWED: [&str; 4] = ["five_hour", "seven_day", "five_hour_fallback", "seven_day_fallback"];
+const ALLOWED: [&str; 4] = [
+    "five_hour",
+    "seven_day",
+    "five_hour_fallback",
+    "seven_day_fallback",
+];
 const TRANSIENT: [&str; 3] = ["", "   ", "unknown"];
 
 fn arc_pool_one_active() -> (Arc<Mutex<SubscriptionPool>>, SeatId) {

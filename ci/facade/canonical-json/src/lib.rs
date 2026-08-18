@@ -44,9 +44,9 @@
 //! ## Violation codes (the contract — literal strings the gate emits)
 //! - `json_not_canonical`  — committed bytes != `canonicalize(bytes)` (the FRIC drift class; fixable).
 //! - `json_parse_error`    — not valid JSON under the canonical grammar (incl. lone surrogates,
-//!                           NaN/Infinity, leading-zero numbers, trailing data).
+//!   NaN/Infinity, leading-zero numbers, trailing data).
 //! - `json_duplicate_key`  — an object has two members with the same key (canonical form is undefined;
-//!                           the fixer refuses rather than silently drop one).
+//!   the fixer refuses rather than silently drop one).
 //!
 //! ADR-0083 Tier-3: production code carries no unwrap/expect/panic; `#![forbid(unsafe_code)]`.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
@@ -444,7 +444,9 @@ impl<'a> Parser<'a> {
 
     fn parse_escape(&mut self, out: &mut String) -> Result<(), CanonError> {
         let Some(&byte) = self.bytes.get(self.pos) else {
-            return Err(CanonError::Parse("dangling escape at end of string".to_owned()));
+            return Err(CanonError::Parse(
+                "dangling escape at end of string".to_owned(),
+            ));
         };
         self.pos += 1;
         match byte {
@@ -472,9 +474,7 @@ impl<'a> Parser<'a> {
                         }
                         0x10000 + ((first - 0xd800) << 10) + (second - 0xdc00)
                     } else {
-                        return Err(CanonError::Parse(
-                            "lone high surrogate escape".to_owned(),
-                        ));
+                        return Err(CanonError::Parse("lone high surrogate escape".to_owned()));
                     }
                 } else if (0xdc00..=0xdfff).contains(&first) {
                     return Err(CanonError::Parse("lone low surrogate escape".to_owned()));
@@ -542,9 +542,7 @@ impl<'a> Parser<'a> {
                 }
             }
             _ => {
-                return Err(CanonError::Parse(format!(
-                    "invalid number at byte {start}"
-                )));
+                return Err(CanonError::Parse(format!("invalid number at byte {start}")));
             }
         }
         // fraction
@@ -853,16 +851,13 @@ fn string_array(policy: &Value, path: &[&str]) -> Vec<String> {
         .unwrap_or_default()
 }
 
-fn walk_json(
-    dir: &Path,
-    repo_root: &Path,
-    out: &mut BTreeSet<String>,
-) -> Result<(), CollectError> {
+fn walk_json(dir: &Path, repo_root: &Path, out: &mut BTreeSet<String>) -> Result<(), CollectError> {
     let entries = fs::read_dir(dir)
         .map_err(|error| CollectError::Io(format!("read dir {}: {error}", dir.display())))?;
     for entry in entries {
-        let entry =
-            entry.map_err(|error| CollectError::Io(format!("dir entry in {}: {error}", dir.display())))?;
+        let entry = entry.map_err(|error| {
+            CollectError::Io(format!("dir entry in {}: {error}", dir.display()))
+        })?;
         let path = entry.path();
         // `file_type()` does NOT follow symlinks — recurse only into real directories (so a symlinked
         // directory can never cause a walk loop). `metadata()` DOES follow symlinks, so a symlinked
@@ -884,12 +879,12 @@ fn walk_json(
             .extension()
             .and_then(|ext| ext.to_str())
             .is_some_and(|ext| ext.eq_ignore_ascii_case("json"));
-        if is_regular_file && is_json {
-            if let Ok(rel) = path.strip_prefix(repo_root) {
-                if let Some(rel_str) = rel.to_str() {
-                    out.insert(rel_str.replace('\\', "/"));
-                }
-            }
+        if is_regular_file
+            && is_json
+            && let Ok(rel) = path.strip_prefix(repo_root)
+            && let Some(rel_str) = rel.to_str()
+        {
+            out.insert(rel_str.replace('\\', "/"));
         }
     }
     Ok(())
@@ -947,7 +942,10 @@ pub fn render_findings(findings: &[Finding]) -> String {
     }
     let mut output = String::from("canonical-json gate failed:\n");
     for finding in findings {
-        output.push_str(&format!("- {} {}: {}\n", finding.code, finding.key, finding.detail));
+        output.push_str(&format!(
+            "- {} {}: {}\n",
+            finding.code, finding.key, finding.detail
+        ));
     }
     output.push('\n');
     output.push_str(AUTO_FIX_COMMAND);
@@ -960,8 +958,7 @@ pub fn render_findings(findings: &[Finding]) -> String {
 /// `json_not_canonical` drift is mechanically derivable, so the canonical answer is to RUN this, not
 /// to hand-edit bytes. `json_parse_error`/`json_duplicate_key` are the human-judgment residue the
 /// fixer refuses; for those the listed detail is the instruction.
-pub const AUTO_FIX_COMMAND: &str =
-    "Auto-remediation (run this — do NOT hand-edit bytes; canonicalization is mechanically derivable):\n  \
+pub const AUTO_FIX_COMMAND: &str = "Auto-remediation (run this — do NOT hand-edit bytes; canonicalization is mechanically derivable):\n  \
      buck2 run //ci/facade/canonical-json:oya-cloud-ci-canonical-json-bin -- --fix\n\
      The fixer rewrites every `json_not_canonical` file to canonical form and refuses (never silently \
      rewrites) `json_parse_error`/`json_duplicate_key` defects — fix those by hand per the listed detail.";
@@ -1022,15 +1019,14 @@ pub fn fix_observed(
 /// the policy is gate-internal config, not a governed corpus file.
 pub fn load_policy(root: &Path, policy_path: &str) -> Result<Value, CollectError> {
     let abs = root.join(policy_path);
-    let text =
-        fs::read_to_string(&abs).map_err(|error| CollectError::Io(format!("read policy: {error}")))?;
+    let text = fs::read_to_string(&abs)
+        .map_err(|error| CollectError::Io(format!("read policy: {error}")))?;
     serde_json::from_str(&text)
         .map_err(|error| CollectError::Io(format!("parse policy {policy_path}: {error}")))
 }
 
 /// The repo-relative path of the bundled policy DATA for this crate.
-pub const POLICY_PATH: &str =
-    "ci/facade/canonical-json/canonical-json-policy.json";
+pub const POLICY_PATH: &str = "ci/facade/canonical-json/canonical-json-policy.json";
 
 #[cfg(test)]
 mod tests;

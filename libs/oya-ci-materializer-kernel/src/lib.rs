@@ -45,16 +45,16 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 #![forbid(unsafe_code)]
 
+pub mod evaluate;
 pub mod model;
 pub mod plan;
-pub mod evaluate;
 
+pub use evaluate::{Finding, FindingCode, Findings, evaluate};
 pub use model::{
     ArtifactClass, ArtifactId, Bytes, ControlPlane, GeneratedArtifact, Generator,
     MaterializationMode, OutputMode, Runner, RunnerRegistryEntry,
 };
 pub use plan::{
-    MaterializePlan, MaterializeScope, MaterializeStep, OutputSink, PlanError, plan,
-    materialize_closure,
+    MaterializePlan, MaterializeScope, MaterializeStep, OutputSink, PlanError, materialize_closure,
+    plan,
 };
-pub use evaluate::{Finding, FindingCode, Findings, evaluate};

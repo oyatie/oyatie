@@ -4392,8 +4392,11 @@ fn write_adr_citation_fixture(root: &Path, active_body: &str, forensic_body: &st
         "# Cohesion\n",
     )
     .expect("ADR-0001 written");
-    fs::write(root.join("docs/decisions/ADR-0051-mobile-and-native-client-strategy.md"), "# Mobile\n")
-        .expect("ADR-0051 written");
+    fs::write(
+        root.join("docs/decisions/ADR-0051-mobile-and-native-client-strategy.md"),
+        "# Mobile\n",
+    )
+    .expect("ADR-0051 written");
 }
 
 fn adr_citation_args(root: &Path) -> Vec<String> {

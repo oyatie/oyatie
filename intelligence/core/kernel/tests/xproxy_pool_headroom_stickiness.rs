@@ -5,8 +5,8 @@ use std::time::{Duration, Instant};
 
 use intelligence_kernel::{
     AgentId, AuthzDecision, AuthzGate, AuthzRequest, OAuthSubscription, Provider, QuotaWindow,
-    QuotaWindowKind, SeatId, SeatOutcome, SelectionStrategy, SubscriptionId, SubscriptionPool,
-    SubscriptionState, TenantId, privacy_preserving_sticky_key,
+    QuotaWindowKind, SeatId, SeatOutcome, SelectionStrategy, StickyLeaseSpec, SubscriptionId,
+    SubscriptionPool, SubscriptionState, TenantId, privacy_preserving_sticky_key,
 };
 
 struct AllowAll;
@@ -100,9 +100,7 @@ fn sticky_key_does_not_store_raw_prompt_and_rebinds_after_429() {
         &agent(),
         &gate,
         now,
-        &key,
-        Duration::from_secs(60),
-        1,
+        StickyLeaseSpec::new(&key, Duration::from_secs(60), 1),
     )
     .expect("first sticky lease");
     let first_seat = first.seat_id().clone();
@@ -114,9 +112,7 @@ fn sticky_key_does_not_store_raw_prompt_and_rebinds_after_429() {
         &agent(),
         &gate,
         now + Duration::from_secs(1),
-        &key,
-        Duration::from_secs(60),
-        1,
+        StickyLeaseSpec::new(&key, Duration::from_secs(60), 1),
     )
     .expect("second sticky lease");
     assert_eq!(second.seat_id(), &first_seat);
@@ -130,9 +126,7 @@ fn sticky_key_does_not_store_raw_prompt_and_rebinds_after_429() {
         &agent(),
         &gate,
         now + Duration::from_secs(2),
-        &key,
-        Duration::from_secs(60),
-        1,
+        StickyLeaseSpec::new(&key, Duration::from_secs(60), 1),
     )
     .expect("sticky key should rebind after 429 cooldown");
     assert_ne!(rebound.seat_id(), &first_seat);

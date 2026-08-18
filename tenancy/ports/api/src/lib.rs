@@ -182,10 +182,10 @@ impl VerifiedTenantPrincipal {
 /// IDOR). `surface` is the action slug (`tenant.create`).
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct TenantCreateAuthzRequest<'a> {
-    pub caller_tenant_id: &'a str,    // data_class: INTERNAL_ONLY (verified)
+    pub caller_tenant_id: &'a str, // data_class: INTERNAL_ONLY (verified)
     pub caller_principal_id: &'a str, // data_class: INTERNAL_ONLY (verified)
-    pub target_tenant_id: &'a str,    // data_class: INTERNAL_ONLY (path-derived)
-    pub surface: &'a str,             // data_class: PUBLIC
+    pub target_tenant_id: &'a str, // data_class: INTERNAL_ONLY (path-derived)
+    pub surface: &'a str,          // data_class: PUBLIC
 }
 
 /// A fail-closed PDP fault. Any adapter error/timeout/unavailability maps to this
@@ -858,8 +858,8 @@ pub trait TenantPrincipalVerifier {
 /// there is no allow-all path.
 #[derive(Clone, Debug)]
 pub struct BearerTenantPrincipalVerifier {
-    token: String,            // data_class: SECRET
-    caller_tenant_id: String, // data_class: INTERNAL_ONLY
+    token: String,               // data_class: SECRET
+    caller_tenant_id: String,    // data_class: INTERNAL_ONLY
     caller_principal_id: String, // data_class: INTERNAL_ONLY
 }
 

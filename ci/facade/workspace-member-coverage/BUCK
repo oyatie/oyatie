@@ -34,6 +34,7 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         ":ci-workspace-member-coverage",
+        "//ci/adapters/path-resolver:ci-path-resolver-adapters",
         "//ci/facade/artifact-inventory-registry:ci-artifact-inventory-registry",
         "third-party//:serde_json",
     ],

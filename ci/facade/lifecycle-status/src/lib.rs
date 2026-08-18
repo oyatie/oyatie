@@ -90,7 +90,9 @@ impl Finding {
             Self::KnownBrokenLaneWithoutConfig { .. } => {
                 "lifecycle_status_known_broken_lane_without_config"
             }
-            Self::BaselineLaneWithoutConfig { .. } => "lifecycle_status_baseline_lane_without_config",
+            Self::BaselineLaneWithoutConfig { .. } => {
+                "lifecycle_status_baseline_lane_without_config"
+            }
             Self::UnbaselinedViolation { .. } => "lifecycle_status_unbaselined_violation",
             Self::BaselineRegression { .. } => "lifecycle_status_baseline_regression",
             Self::BaselineStale { .. } => "lifecycle_status_baseline_stale",

@@ -52,8 +52,8 @@ and Google / Microsoft consensus:
 - Lane `oya-governance-branch-age` warns ≥ 5 d, blocks ≥ 7 d.
 - Feature flags hide incomplete work behind a runtime gate (§3) so
   partial merges to `dev` do not ship to users.
-- Branch protection: required reviews per `RACI-OWNERSHIP.md`, merge-gate
-  hook (`scripts/hooks/guard-pr-merge-review.mjs`), green CI required.
+- Branch protection: one author-distinct reviewer-agent APPROVE on the exact
+  PR head, resolved review threads, and green `oya-ci-required` are required.
 - Force-push to protected integration/release branches is forbidden per
   [`forbidden-operations.json`](../../specs/forbidden-operations.json) FO-03.
 

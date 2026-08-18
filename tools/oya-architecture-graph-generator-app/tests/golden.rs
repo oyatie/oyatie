@@ -3,9 +3,9 @@
 //!
 //! Two proofs:
 //!   1. `masterplan_transform_reproduces_golden_byte_for_byte` — the masterplan
-//!      projection transform applied to the committed
-//!      `masterplan.generated.json` reproduces the `masterplan` section of the
-//!      verified `_graph-data.json` byte-for-byte.
+//!      projection transform applied to the controller face (or the same
+//!      projection rendered into test-only temporary storage) reproduces the
+//!      `masterplan` section of the verified `_graph-data.json` byte-for-byte.
 //!   2. `merged_graph_deep_equals_golden` — the full merged `GRAPH`
 //!      (`_meta, verticals, techstack, masterplan, lanes`) deep-equals the
 //!      verified `_graph-data.json`.
@@ -23,6 +23,10 @@ use std::path::{Path, PathBuf};
 
 use oya_architecture_graph_generator_app::{masterplan_from_generated, merge_graph};
 use serde_json::Value;
+
+mod support;
+
+use support::resolve_masterplan_input;
 
 const DEFAULT_GOLDEN: &str = "/Users/jasonlee/Developer/linux/docs/audit/initial-sweep-2026-06-06/architecture/_graph-data.json";
 
@@ -71,7 +75,10 @@ fn masterplan_transform_reproduces_golden_byte_for_byte() {
         .get("masterplan")
         .expect("golden has masterplan section");
 
-    let generated = read_json(&repo_root().join("docs/machine-readable/masterplan.generated.json"));
+    let root = repo_root();
+    let masterplan_input =
+        resolve_masterplan_input(&root).expect("masterplan projection input resolves");
+    let generated = read_json(masterplan_input.path());
     let produced = masterplan_from_generated(&generated).expect("transform succeeds");
 
     // Structural equality (serde_json::Value::eq is order-insensitive for maps,
@@ -96,8 +103,11 @@ fn merged_graph_deep_equals_golden() {
         return;
     };
 
-    let ssot = read_json(&repo_root().join("docs/machine-readable/architecture-graph.json"));
-    let generated = read_json(&repo_root().join("docs/machine-readable/masterplan.generated.json"));
+    let root = repo_root();
+    let ssot = read_json(&root.join("docs/machine-readable/architecture-graph.json"));
+    let masterplan_input =
+        resolve_masterplan_input(&root).expect("masterplan projection input resolves");
+    let generated = read_json(masterplan_input.path());
     let masterplan = masterplan_from_generated(&generated).expect("transform succeeds");
     let graph = merge_graph(&ssot, masterplan).expect("merge succeeds");
 

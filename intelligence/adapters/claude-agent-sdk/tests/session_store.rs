@@ -2,6 +2,7 @@
 mod support;
 use support::{expect_json_line, fake_cli, read_json_line, write_json_line};
 
+use futures::StreamExt;
 use intelligence_claude_agent_sdk::{
     ClaudeAgentOptions, FoldSessionSummaryOptions, ForkSessionOptions, GetSessionInfoOptions,
     GetSessionMessagesOptions, GetSubagentMessagesOptions, InMemorySessionStore,
@@ -14,7 +15,6 @@ use intelligence_claude_agent_sdk::{
     list_subagents_with_options, project_key_for_directory, query, rename_session_via_store,
     rename_session_with_options, tag_session_via_store, tag_session_with_options,
 };
-use futures::StreamExt;
 use serde_json::json;
 use tempfile::tempdir;
 
@@ -60,7 +60,8 @@ fn fold_session_summary_mtime_is_adapter_stamped_and_preserved() {
 }
 
 #[tokio::test]
-async fn in_memory_session_store_matches_core_contracts() -> intelligence_claude_agent_sdk::Result<()> {
+async fn in_memory_session_store_matches_core_contracts()
+-> intelligence_claude_agent_sdk::Result<()> {
     let store = InMemorySessionStore::default();
     let key = SessionKey::new("proj", SESSION_ID);
     let subkey = SessionKey::with_subpath("proj", SESSION_ID, "subagents/agent-a");
@@ -267,7 +268,8 @@ async fn store_backed_session_helpers_roundtrip() -> intelligence_claude_agent_s
 }
 
 #[tokio::test]
-async fn store_backed_fork_session_remaps_transcript_entries() -> intelligence_claude_agent_sdk::Result<()> {
+async fn store_backed_fork_session_remaps_transcript_entries()
+-> intelligence_claude_agent_sdk::Result<()> {
     let store = InMemorySessionStore::default();
     let project = tempdir().unwrap();
     let project_key = project_key_for_directory(project.path());
@@ -322,7 +324,8 @@ async fn store_backed_fork_session_remaps_transcript_entries() -> intelligence_c
 }
 
 #[tokio::test]
-async fn session_mutation_options_route_to_store_helpers() -> intelligence_claude_agent_sdk::Result<()> {
+async fn session_mutation_options_route_to_store_helpers()
+-> intelligence_claude_agent_sdk::Result<()> {
     let store = InMemorySessionStore::default();
     let project = tempdir().unwrap();
     let project_key = project_key_for_directory(project.path());
@@ -394,7 +397,8 @@ async fn session_mutation_options_route_to_store_helpers() -> intelligence_claud
 }
 
 #[tokio::test]
-async fn session_read_options_route_to_store_helpers() -> intelligence_claude_agent_sdk::Result<()> {
+async fn session_read_options_route_to_store_helpers() -> intelligence_claude_agent_sdk::Result<()>
+{
     let store = InMemorySessionStore::default();
     let project = tempdir().unwrap();
     let project_key = project_key_for_directory(project.path());
@@ -498,7 +502,8 @@ fn session_store_options_emit_mirror_and_reject_file_checkpointing() {
 }
 
 #[tokio::test]
-async fn query_mirrors_transcript_frames_without_yielding_them() -> intelligence_claude_agent_sdk::Result<()> {
+async fn query_mirrors_transcript_frames_without_yielding_them()
+-> intelligence_claude_agent_sdk::Result<()> {
     let config = tempdir().unwrap();
     let config_dir = config.path().to_string_lossy().into_owned();
     let store = InMemorySessionStore::default();
@@ -562,7 +567,8 @@ async fn query_mirrors_transcript_frames_without_yielding_them() -> intelligence
 }
 
 #[tokio::test]
-async fn resume_materializes_store_session_before_spawn() -> intelligence_claude_agent_sdk::Result<()> {
+async fn resume_materializes_store_session_before_spawn()
+-> intelligence_claude_agent_sdk::Result<()> {
     let project = tempdir().unwrap();
     let store = InMemorySessionStore::default();
     store

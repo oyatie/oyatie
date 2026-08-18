@@ -5,7 +5,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use intelligence_codex_sdk::{AppServerConfig, AsyncAppCodex};
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use std::sync::OnceLock;
 
 use tempfile::TempDir;

@@ -8,9 +8,9 @@
 //! through which it reads inputs and modifies outputs in the shared
 //! [`State`](os_cosi_domain::State) store.
 
-use std::collections::BTreeMap;
 use os_cosi_domain::resource::{AnyResource, ResourceKind};
 use os_cosi_domain::{Metadata, State};
+use std::collections::BTreeMap;
 
 /// How a controller depends on an input kind.
 ///

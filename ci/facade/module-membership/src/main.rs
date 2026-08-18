@@ -30,8 +30,7 @@ use ci_module_membership::{
 };
 use serde_json::{Value, json};
 
-const DEFAULT_POLICY: &str =
-    "ci/facade/module-membership/capability-membership-policy.json";
+const DEFAULT_POLICY: &str = "ci/facade/module-membership/capability-membership-policy.json";
 
 struct Args {
     repo_root: PathBuf,
@@ -94,7 +93,11 @@ fn run(args: &Args) -> Result<ExitCode, String> {
 /// [`collect`] so it cannot drift from the corpus the gate walks, and REFUSES to emit a census that
 /// grew relative to the committed one unless `allow_new` — a regen must never be able to launder a
 /// newly-born legacy-root crate into the tolerated set. Prints; never writes the policy.
-fn emit_legacy_freeze(policy: &Value, observed: &Value, allow_new: bool) -> Result<ExitCode, String> {
+fn emit_legacy_freeze(
+    policy: &Value,
+    observed: &Value,
+    allow_new: bool,
+) -> Result<ExitCode, String> {
     let crates: Vec<String> = observed
         .get("crates")
         .and_then(Value::as_array)
@@ -106,7 +109,10 @@ fn emit_legacy_freeze(policy: &Value, observed: &Value, allow_new: bool) -> Resu
         })
         .unwrap_or_default();
 
-    let Some(freeze) = policy.get(LEGACY_ROOT_FREEZE_KEY).and_then(Value::as_object) else {
+    let Some(freeze) = policy
+        .get(LEGACY_ROOT_FREEZE_KEY)
+        .and_then(Value::as_object)
+    else {
         return Err(format!(
             "--emit-legacy-freeze: the policy carries no `{LEGACY_ROOT_FREEZE_KEY}` block; the block \
              declares `frozen_roots` (the DATA this producer renders against) and must exist first"

@@ -72,7 +72,10 @@ impl CapabilityStatus {
             | (Deprecated, Active)
             | (Deprecated, Disabled)
             | (Disabled, Active) => Ok(next),
-            _ => Err(CapabilityStatusTransitionError { from: self, to: next }),
+            _ => Err(CapabilityStatusTransitionError {
+                from: self,
+                to: next,
+            }),
         }
     }
 }
@@ -241,23 +244,29 @@ mod tests {
 
     #[test]
     fn transition_same_state_active_is_illegal() {
-        assert!(CapabilityStatus::Active
-            .try_transition_to(CapabilityStatus::Active)
-            .is_err());
+        assert!(
+            CapabilityStatus::Active
+                .try_transition_to(CapabilityStatus::Active)
+                .is_err()
+        );
     }
 
     #[test]
     fn transition_same_state_deprecated_is_illegal() {
-        assert!(CapabilityStatus::Deprecated
-            .try_transition_to(CapabilityStatus::Deprecated)
-            .is_err());
+        assert!(
+            CapabilityStatus::Deprecated
+                .try_transition_to(CapabilityStatus::Deprecated)
+                .is_err()
+        );
     }
 
     #[test]
     fn transition_same_state_disabled_is_illegal() {
-        assert!(CapabilityStatus::Disabled
-            .try_transition_to(CapabilityStatus::Disabled)
-            .is_err());
+        assert!(
+            CapabilityStatus::Disabled
+                .try_transition_to(CapabilityStatus::Disabled)
+                .is_err()
+        );
     }
 
     #[test]

@@ -5,7 +5,9 @@
 //! Oya Office domain crates for typed identifiers/value objects.
 
 use oya_office_kernel::{PrincipalId, TenantId};
-use oya_office_sheet_domain::{CellAddress, CellValue, FormulaExpression, WorkbookCell, WorkbookId};
+use oya_office_sheet_domain::{
+    CellAddress, CellValue, FormulaExpression, WorkbookCell, WorkbookId,
+};
 
 /// Stable crate identifier used by workspace and Buck2 scaffold verification.
 pub const CRATE_NAME: &str = "oya-office-sheets-api";

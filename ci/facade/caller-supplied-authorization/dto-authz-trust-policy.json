@@ -99,6 +99,10 @@
       "justification": "ADR-0591 split-decision FP. Called directly inside read_cloud_observability_audit_from_api which runs the authoritative AuditReadAuthorizer .ensure_authorized PDP at observability/core/api/src/lib.rs:498 (fail-closed). No external callers. This fn only returns Ok/Err on optional-DTO consistency vs the verified identity (NEVER grants — empty fields are tolerated). Non-authoritative cross-check, not the verdict."
     },
     {
+      "key": "iam/ports/policy-cedar-api/src/rest/mod.rs#publish_handler:5bc02232",
+      "justification": "AUTH-005 split-decision FP. publish_handler is private and mounted only by build_router, whose non-optional CedarPolicyAuthzProvider first verifies the bearer. Before constructing the API request, taking either mutation lock, or calling publish_cedar_policy_from_api, the handler calls enforce_publish_authz; every successful path through that helper calls CedarPolicyAuthzProvider::ensure_authorized(verified, &resource), while deny, refusal, or panic returns 403 before mutation. The x-authorization-* values read later are non-authoritative correlation/defense-in-depth inputs: they cannot convert a PDP deny into allow. rest_router regressions publish_authorization_denied_returns_403, publish_authenticated_but_pdp_denies_returns_403, and self_attested_headers_without_verified_principal_returns_401_not_ok prove the dominating fail-closed decision. The exact handler body is hash-pinned and any edit requires re-audit."
+    },
+    {
       "key": "audit/core/usecase/src/lib.rs#audit_event_emit_fingerprint_for:aebab7bd",
       "justification": "NO-VERDICT-SERIALIZER FP. Returns an AuditEventEmitRequestFingerprint STRUCT (not a Result) — it makes NO authorization decision at all. It reads request.authorization.allowed_surfaces.join(\",\")/decision_id ONLY to fold them into the canonical idempotency-dedup fingerprint string. The authz verdict is the PDP in emit_audit_event_authorized (audit/core/usecase/src/lib.rs:433); a perturbed fingerprint only changes idempotency dedup, never an authorization outcome. The trigger-field read is the gate's known return-type-blind limit; this is a genuine FP."
     },
@@ -122,7 +126,6 @@
     "iam/ports/cloud-api/src/lib.rs#validate_authorization:9ab52454",
     "iam/ports/identity-api/src/lib.rs#validate_authorization:517acda8",
     "iam/ports/policy-cedar-api/src/lib.rs#validate_authorization:96197af4",
-    "iam/ports/policy-cedar-api/src/rest/mod.rs#publish_handler:376237cc",
     "libs/oya-governance-eval-usecase/src/lib.rs#validate_api_binding:6f193126",
     "oya/application/crates/oya-workspace-chat-api/src/lib.rs#send_fingerprint_for:21f2e017",
     "oya/application/crates/oya-workspace-chat-api/src/lib.rs#validate_authorization:bc32ce6e",

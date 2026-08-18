@@ -440,19 +440,13 @@ pub fn summarize_fleet_sla(summaries: &[SlaSummary]) -> Result<FleetSlaSummary, 
             .saturating_add(u128::from(s.availability.target_basis_points).saturating_mul(total));
     }
 
-    let aggregate_observed_basis_points = if weighted_total == 0 {
-        0u16
-    } else {
-        let bps = (weighted_healthy * 10_000) / weighted_total;
-        u16::try_from(bps).unwrap_or(10_000)
-    };
+    let aggregate_observed_basis_points = (weighted_healthy * 10_000)
+        .checked_div(weighted_total)
+        .map_or(0, |bps| u16::try_from(bps).unwrap_or(10_000));
 
-    let aggregate_target_basis_points = if weighted_total == 0 {
-        0u16
-    } else {
-        let bps = weighted_target_sum / weighted_total;
-        u16::try_from(bps).unwrap_or(10_000)
-    };
+    let aggregate_target_basis_points = weighted_target_sum
+        .checked_div(weighted_total)
+        .map_or(0, |bps| u16::try_from(bps).unwrap_or(10_000));
 
     Ok(FleetSlaSummary {
         cluster_count: summaries.len(),
@@ -642,10 +636,7 @@ fn burn_rate_parts(observed_basis_points: u16, allowed_bad_basis_points: u16) ->
 }
 
 /// Validate an observation window and return its burn rate in basis points.
-fn window_burn_rate(
-    obs: &SlaObservation,
-    sla_policy: SlaPolicy,
-) -> Result<u32, SlaKernelError> {
+fn window_burn_rate(obs: &SlaObservation, sla_policy: SlaPolicy) -> Result<u32, SlaKernelError> {
     if obs.tenant_id.trim().is_empty() || obs.cluster_name.trim().is_empty() {
         return Err(SlaKernelError::InvalidClusterIdentity);
     }
@@ -655,10 +646,8 @@ fn window_burn_rate(
     if obs.healthy_status_samples > obs.total_status_samples {
         return Err(SlaKernelError::HealthySamplesExceedTotal);
     }
-    let observed_basis_points =
-        basis_points(obs.healthy_status_samples, obs.total_status_samples);
-    let allowed_bad_basis_points =
-        10_000u16 - sla_policy.availability_target_basis_points;
+    let observed_basis_points = basis_points(obs.healthy_status_samples, obs.total_status_samples);
+    let allowed_bad_basis_points = 10_000u16 - sla_policy.availability_target_basis_points;
     Ok(burn_rate_parts(observed_basis_points, allowed_bad_basis_points).burn_rate_basis_points)
 }
 
@@ -878,9 +867,13 @@ mod tests {
         // 100% healthy = 0 bp bad = burn rate 0
         let fast = obs_with_samples(1_000, 1_000);
         let slow = obs_with_samples(1_000, 1_000);
-        let verdict =
-            summarize_burn_rate_alert(&fast, &slow, SlaPolicy::default(), BurnRatePolicy::default())
-                .unwrap();
+        let verdict = summarize_burn_rate_alert(
+            &fast,
+            &slow,
+            SlaPolicy::default(),
+            BurnRatePolicy::default(),
+        )
+        .unwrap();
         assert_eq!(verdict.severity, AlertSeverity::None);
         assert_eq!(verdict.fast_burn_rate_basis_points, 0);
         assert_eq!(verdict.slow_burn_rate_basis_points, 0);
@@ -894,9 +887,13 @@ mod tests {
         // fast: 9_856 healthy / 10_000 total -> 9856 bp available -> bad = 144 bp -> burn = 144*10_000/10 = 144_000 bp
         let fast = obs_with_samples(9_856, 10_000);
         let slow = obs_with_samples(10_000, 10_000);
-        let verdict =
-            summarize_burn_rate_alert(&fast, &slow, SlaPolicy::default(), BurnRatePolicy::default())
-                .unwrap();
+        let verdict = summarize_burn_rate_alert(
+            &fast,
+            &slow,
+            SlaPolicy::default(),
+            BurnRatePolicy::default(),
+        )
+        .unwrap();
         assert_eq!(verdict.severity, AlertSeverity::None);
         assert_eq!(verdict.fast_burn_rate_basis_points, 144_000);
         assert_eq!(verdict.slow_burn_rate_basis_points, 0);
@@ -907,9 +904,13 @@ mod tests {
     fn slow_hot_fast_clean_is_none() {
         let fast = obs_with_samples(10_000, 10_000);
         let slow = obs_with_samples(9_856, 10_000);
-        let verdict =
-            summarize_burn_rate_alert(&fast, &slow, SlaPolicy::default(), BurnRatePolicy::default())
-                .unwrap();
+        let verdict = summarize_burn_rate_alert(
+            &fast,
+            &slow,
+            SlaPolicy::default(),
+            BurnRatePolicy::default(),
+        )
+        .unwrap();
         assert_eq!(verdict.severity, AlertSeverity::None);
         assert_eq!(verdict.fast_burn_rate_basis_points, 0);
         assert_eq!(verdict.slow_burn_rate_basis_points, 144_000);
@@ -921,9 +922,13 @@ mod tests {
         // 9_856 / 10_000 -> burn_rate = 144_000 bp = exactly page threshold
         let fast = obs_with_samples(9_856, 10_000);
         let slow = obs_with_samples(9_856, 10_000);
-        let verdict =
-            summarize_burn_rate_alert(&fast, &slow, SlaPolicy::default(), BurnRatePolicy::default())
-                .unwrap();
+        let verdict = summarize_burn_rate_alert(
+            &fast,
+            &slow,
+            SlaPolicy::default(),
+            BurnRatePolicy::default(),
+        )
+        .unwrap();
         assert_eq!(verdict.severity, AlertSeverity::Page);
         assert!(verdict.fast_window_tripped);
         assert!(verdict.slow_window_tripped);
@@ -937,9 +942,13 @@ mod tests {
         // 10 bad out of 10_000: healthy = 9_990, total = 10_000
         let fast = obs_with_samples(9_990, 10_000);
         let slow = obs_with_samples(9_990, 10_000);
-        let verdict =
-            summarize_burn_rate_alert(&fast, &slow, SlaPolicy::default(), BurnRatePolicy::default())
-                .unwrap();
+        let verdict = summarize_burn_rate_alert(
+            &fast,
+            &slow,
+            SlaPolicy::default(),
+            BurnRatePolicy::default(),
+        )
+        .unwrap();
         assert_eq!(verdict.severity, AlertSeverity::Ticket);
         assert!(verdict.fast_window_tripped);
         assert!(verdict.slow_window_tripped);
@@ -972,9 +981,13 @@ mod tests {
     fn u64_max_no_overflow() {
         let fast = obs_with_samples(u64::MAX, u64::MAX);
         let slow = obs_with_samples(u64::MAX, u64::MAX);
-        let verdict =
-            summarize_burn_rate_alert(&fast, &slow, SlaPolicy::default(), BurnRatePolicy::default())
-                .unwrap();
+        let verdict = summarize_burn_rate_alert(
+            &fast,
+            &slow,
+            SlaPolicy::default(),
+            BurnRatePolicy::default(),
+        )
+        .unwrap();
         assert_eq!(verdict.severity, AlertSeverity::None);
         assert_eq!(verdict.fast_burn_rate_basis_points, 0);
     }
@@ -984,9 +997,13 @@ mod tests {
     fn serde_round_trip_alert_verdict() {
         let fast = obs_with_samples(9_856, 10_000);
         let slow = obs_with_samples(9_856, 10_000);
-        let verdict =
-            summarize_burn_rate_alert(&fast, &slow, SlaPolicy::default(), BurnRatePolicy::default())
-                .unwrap();
+        let verdict = summarize_burn_rate_alert(
+            &fast,
+            &slow,
+            SlaPolicy::default(),
+            BurnRatePolicy::default(),
+        )
+        .unwrap();
         let json = serde_json::to_string(&verdict).unwrap();
         assert!(json.contains("\"severity\":\"page\""));
         let back: AlertVerdict = serde_json::from_str(&json).unwrap();
@@ -1059,14 +1076,24 @@ mod tests {
         );
         // fast empty
         assert_eq!(
-            summarize_burn_rate_alert(&empty, &good, SlaPolicy::default(), BurnRatePolicy::default())
-                .unwrap_err(),
+            summarize_burn_rate_alert(
+                &empty,
+                &good,
+                SlaPolicy::default(),
+                BurnRatePolicy::default()
+            )
+            .unwrap_err(),
             SlaKernelError::EmptyObservationWindow
         );
         // slow empty
         assert_eq!(
-            summarize_burn_rate_alert(&good, &empty, SlaPolicy::default(), BurnRatePolicy::default())
-                .unwrap_err(),
+            summarize_burn_rate_alert(
+                &good,
+                &empty,
+                SlaPolicy::default(),
+                BurnRatePolicy::default()
+            )
+            .unwrap_err(),
             SlaKernelError::EmptyObservationWindow
         );
     }
@@ -1133,12 +1160,15 @@ mod tests {
             1_000,
             None,
         );
-        let rollup = summarize_fleet_sla(&[s.clone()]).unwrap();
+        let rollup = summarize_fleet_sla(std::slice::from_ref(&s)).unwrap();
         assert_eq!(rollup.cluster_count, 1);
         assert_eq!(rollup.available_count, 1);
         assert_eq!(rollup.degraded_count, 0);
         assert_eq!(rollup.unavailable_count, 0);
-        assert_eq!(rollup.worst_availability_state, AvailabilityState::Available);
+        assert_eq!(
+            rollup.worst_availability_state,
+            AvailabilityState::Available
+        );
         assert_eq!(
             rollup.aggregate_observed_basis_points,
             s.availability.observed_basis_points
@@ -1363,7 +1393,10 @@ mod tests {
             None,
         );
         let rollup = summarize_fleet_sla(&[a, b]).unwrap();
-        assert_eq!(rollup.worst_availability_state, AvailabilityState::Available);
+        assert_eq!(
+            rollup.worst_availability_state,
+            AvailabilityState::Available
+        );
         assert_eq!(rollup.cluster_count, 2);
         assert_eq!(rollup.available_count, 2);
         assert_eq!(rollup.degraded_count, 0);

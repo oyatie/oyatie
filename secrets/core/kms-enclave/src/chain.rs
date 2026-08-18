@@ -10,9 +10,9 @@ use std::collections::BTreeMap;
 
 use secrets_kms_domain::envelope_keys::{DekId, KekId};
 
+use crate::EnclaveError;
 use crate::material::{DekMaterial, KekMaterial, KekVersion};
 use crate::token::WrappedDek;
-use crate::EnclaveError;
 
 /// A retired KEK version. Exposes unwrapping only — the absence of any wrap
 /// method is the enforcement, not a runtime check.
@@ -34,7 +34,11 @@ impl DecryptOnlyKek {
 
 impl std::fmt::Debug for DecryptOnlyKek {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "DecryptOnlyKek {{ version: {}, key: [REDACTED] }}", self.version())
+        write!(
+            f,
+            "DecryptOnlyKek {{ version: {}, key: [REDACTED] }}",
+            self.version()
+        )
     }
 }
 
@@ -48,7 +52,10 @@ pub struct KekVersionChain {
 impl KekVersionChain {
     /// Start a chain at its initial (or recovered) version.
     pub fn new(initial: KekMaterial) -> Self {
-        Self { current: initial, retired: BTreeMap::new() }
+        Self {
+            current: initial,
+            retired: BTreeMap::new(),
+        }
     }
 
     /// Identifier of the KEK this chain manages.
@@ -78,7 +85,10 @@ impl KekVersionChain {
         let next_version = self.current.version().next()?;
         let next = KekMaterial::generate(self.current.kek_id().clone(), next_version)?;
         let previous = std::mem::replace(&mut self.current, next);
-        self.retired.insert(previous.version().value(), DecryptOnlyKek { inner: previous });
+        self.retired.insert(
+            previous.version().value(),
+            DecryptOnlyKek { inner: previous },
+        );
         Ok(next_version)
     }
 
@@ -101,7 +111,9 @@ impl KekVersionChain {
         }
         match self.retired.get(&wrapped.kek_version()) {
             Some(retired) => retired.unwrap_dek(wrapped),
-            None => Err(EnclaveError::UnknownKekVersion { version: wrapped.kek_version() }),
+            None => Err(EnclaveError::UnknownKekVersion {
+                version: wrapped.kek_version(),
+            }),
         }
     }
 }

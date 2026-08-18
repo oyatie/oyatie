@@ -687,7 +687,9 @@ fn emit_refuses_an_ir_that_declares_one_region_twice() {
 
     assert_eq!(
         emit(&renderer, &ir),
-        Err(PortError::DuplicateRegion { region: region("a") })
+        Err(PortError::DuplicateRegion {
+            region: region("a")
+        })
     );
 }
 

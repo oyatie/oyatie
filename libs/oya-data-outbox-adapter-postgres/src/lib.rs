@@ -197,9 +197,8 @@ fn try_get<'r, T>(row: &'r PgRow, column: &'static str) -> Result<T, DataSqlErro
 where
     T: sqlx::Decode<'r, Postgres> + sqlx::Type<Postgres>,
 {
-    row.try_get::<T, _>(column).map_err(|error| {
-        DataSqlError::Adapter(format!("outbox row column {column}: {error}"))
-    })
+    row.try_get::<T, _>(column)
+        .map_err(|error| DataSqlError::Adapter(format!("outbox row column {column}: {error}")))
 }
 
 fn sqlx_error(error: sqlx::Error) -> DataSqlError {
@@ -263,21 +262,18 @@ async fn current_role_bypassrls(pool: &PgPool) -> Result<(String, bool), DataSql
 /// Env-gated live harness. Returns `Ok(None)` when the enable flag is absent
 /// so default test runs stay database-free; CI integration lanes set the env
 /// vars against a containerized Postgres.
-pub async fn run_live_cdc_cross_tenant_probe()
--> Result<Option<LiveCdcProbeReport>, DataSqlError> {
+pub async fn run_live_cdc_cross_tenant_probe() -> Result<Option<LiveCdcProbeReport>, DataSqlError> {
     if env::var(LIVE_OUTBOX_POSTGRES_ENABLE_ENV).is_err() {
         return Ok(None);
     }
-    let admin_url = env::var(LIVE_OUTBOX_POSTGRES_ADMIN_URL_ENV).map_err(|_| {
-        DataSqlError::MissingField {
+    let admin_url =
+        env::var(LIVE_OUTBOX_POSTGRES_ADMIN_URL_ENV).map_err(|_| DataSqlError::MissingField {
             field: LIVE_OUTBOX_POSTGRES_ADMIN_URL_ENV,
-        }
-    })?;
-    let app_url = env::var(LIVE_OUTBOX_POSTGRES_APP_URL_ENV).map_err(|_| {
-        DataSqlError::MissingField {
+        })?;
+    let app_url =
+        env::var(LIVE_OUTBOX_POSTGRES_APP_URL_ENV).map_err(|_| DataSqlError::MissingField {
             field: LIVE_OUTBOX_POSTGRES_APP_URL_ENV,
-        }
-    })?;
+        })?;
 
     // Admin pool (schema owner) applies the COMMITTED production migrations
     // verbatim and seeds rows; it bypasses RLS for the fixture only. The
@@ -303,12 +299,10 @@ pub async fn run_live_cdc_cross_tenant_probe()
     let app_login = PgPool::connect(&app_url).await.map_err(sqlx_error)?;
     let (app_login_role, _) = current_role_bypassrls(&app_login).await?;
     app_login.close().await;
-    sqlx::query(&format!(
-        "GRANT {RUNTIME_ROLE} TO \"{app_login_role}\""
-    ))
-    .execute(&admin)
-    .await
-    .map_err(sqlx_error)?;
+    sqlx::query(&format!("GRANT {RUNTIME_ROLE} TO \"{app_login_role}\""))
+        .execute(&admin)
+        .await
+        .map_err(sqlx_error)?;
 
     // Seed two tenants' rows through the admin role (bypasses RLS), so the
     // RLS denial under test is purely the application-role poll path.
@@ -507,7 +501,9 @@ mod tests {
         // The adapter builds the same kernel ChangeBatch shape that the
         // reference stream does; a well-formed page passes validate().
         let records = vec![record_at("e1", 10), record_at("e2", 20)];
-        let resume_from = records.last().map_or(StreamPosition::zero(), |r| r.position);
+        let resume_from = records
+            .last()
+            .map_or(StreamPosition::zero(), |r| r.position);
         let batch = ChangeBatch {
             records,
             resume_from,
@@ -554,7 +550,9 @@ mod tests {
         let table_migration = include_str!("../migrations/0001_outbox_events.sql");
         assert!(table_migration.contains("TO oya_data_outbox_runtime"));
         assert!(!table_migration.contains("TO PUBLIC"));
-        assert!(table_migration.contains("GRANT SELECT, INSERT ON oya_data_outbox.outbox_events TO oya_data_outbox_runtime"));
+        assert!(table_migration.contains(
+            "GRANT SELECT, INSERT ON oya_data_outbox.outbox_events TO oya_data_outbox_runtime"
+        ));
     }
 
     #[tokio::test]

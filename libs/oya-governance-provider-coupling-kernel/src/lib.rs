@@ -276,7 +276,12 @@ mod tests {
     #[test]
     fn multiple_violations_collected() {
         let imports = vec![
-            imp("oya-intelligence-runtime", "src/a.rs", 1, "anthropic_sdk::A"),
+            imp(
+                "oya-intelligence-runtime",
+                "src/a.rs",
+                1,
+                "anthropic_sdk::A",
+            ),
             imp("oya-intelligence-runtime", "src/b.rs", 2, "openai_sdk::B"),
             imp("oya-intelligence-runtime", "src/c.rs", 3, "gemini_sdk::C"),
         ];

@@ -67,12 +67,8 @@ impl PathId {
 pub const fn canonical_current(id: PathId) -> &'static str {
     match id {
         PathId::RatchetPolicy => "ci/facade/baseline-ratchet/ratchet-policy.json",
-        PathId::ScmFactsFace => {
-            "ci/facade/artifact-inventory-registry/scm-facts.generated.json"
-        }
-        PathId::VolatileFacts => {
-            "ci/facade/scm-facts-snapshot/scm-volatile-facts.generated.json"
-        }
+        PathId::ScmFactsFace => "ci/facade/artifact-inventory-registry/scm-facts.generated.json",
+        PathId::VolatileFacts => "ci/facade/scm-facts-snapshot/scm-volatile-facts.generated.json",
     }
 }
 

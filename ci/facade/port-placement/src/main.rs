@@ -13,15 +13,11 @@
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
-use ci_port_placement::{
-    Verdict, collect_port_traits, evaluate, evaluate_keyed, render_findings,
-};
+use ci_port_placement::{Verdict, collect_port_traits, evaluate, evaluate_keyed, render_findings};
 use serde_json::Value;
 
-const DEFAULT_POLICY: &str =
-    "ci/facade/port-placement/port-placement-policy.json";
-const DEFAULT_BASELINE: &str =
-    "ci/facade/port-placement/port-placement-baseline.json";
+const DEFAULT_POLICY: &str = "ci/facade/port-placement/port-placement-policy.json";
+const DEFAULT_BASELINE: &str = "ci/facade/port-placement/port-placement-baseline.json";
 
 struct Args {
     repo_root: PathBuf,
@@ -57,7 +53,12 @@ fn main() -> ExitCode {
 }
 
 fn run(args: &Args) -> Result<ExitCode, String> {
-    let policy = load_json(&args.repo_root, args.policy.as_deref(), DEFAULT_POLICY, "policy")?;
+    let policy = load_json(
+        &args.repo_root,
+        args.policy.as_deref(),
+        DEFAULT_POLICY,
+        "policy",
+    )?;
     let baseline = load_json(
         &args.repo_root,
         args.baseline.as_deref(),
@@ -99,19 +100,25 @@ fn parse_args(args: Vec<String>) -> ParseOutcome {
         match arg.as_str() {
             "--repo-root" => {
                 let Some(value) = iter.next() else {
-                    return ParseOutcome::Error("port-placement: --repo-root requires a path".to_owned());
+                    return ParseOutcome::Error(
+                        "port-placement: --repo-root requires a path".to_owned(),
+                    );
                 };
                 repo_root = PathBuf::from(value);
             }
             "--policy" => {
                 let Some(value) = iter.next() else {
-                    return ParseOutcome::Error("port-placement: --policy requires a path".to_owned());
+                    return ParseOutcome::Error(
+                        "port-placement: --policy requires a path".to_owned(),
+                    );
                 };
                 policy = Some(PathBuf::from(value));
             }
             "--baseline" => {
                 let Some(value) = iter.next() else {
-                    return ParseOutcome::Error("port-placement: --baseline requires a path".to_owned());
+                    return ParseOutcome::Error(
+                        "port-placement: --baseline requires a path".to_owned(),
+                    );
                 };
                 baseline = Some(PathBuf::from(value));
             }

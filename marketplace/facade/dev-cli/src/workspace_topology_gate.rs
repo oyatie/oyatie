@@ -4,21 +4,21 @@
 //! crates, dependency-rule modules. Enforces seven structural invariants:
 //!
 //! - R1: no flat top-level `crates/` directory that contains any `Cargo.toml`
-//!       (vertical-slice canon: code lives under cloud/<svc>/crates/, oya/<svc>/crates/, or libs/).
+//!   (vertical-slice canon: code lives under cloud/<svc>/crates/, oya/<svc>/crates/, or libs/).
 //! - R2: no nested `[workspace]` table in any member `Cargo.toml`
-//!       (single root workspace; no per-service workspaces).
+//!   (single root workspace; no per-service workspaces).
 //! - R3: no duplicate `[package].name` across members.
 //! - R4: every `members` entry resolves to an existing dir with a `Cargo.toml`
-//!       (no phantom members).
+//!   (no phantom members).
 //! - R5: every crate dir on disk under `cloud/`, `oya/`, `microservices/`, and
-//!       `libs/` (any dir with a `[package]` `Cargo.toml`) IS a workspace member
-//!       (no orphan).
+//!   `libs/` (any dir with a `[package]` `Cargo.toml`) IS a workspace member
+//!   (no orphan).
 //! - R6: every member path is under one of the canonical prefixes:
-//!       `cloud/<svc>/crates/<crate>`, `oya/<svc>/crates/<crate>`,
-//!       `microservices/<ms>/crates/<crate>`, `microservices/<ms>` (single-level),
-//!       `libs/<lib>`, or `tools/<name>`.
+//!   `cloud/<svc>/crates/<crate>`, `oya/<svc>/crates/<crate>`,
+//!   `microservices/<ms>/crates/<crate>`, `microservices/<ms>` (single-level),
+//!   `libs/<lib>`, or `tools/<name>`.
 //! - R7: every workspace member's crate-dir basename MUST equal its `[package].name`
-//!       (dir==name invariant: the directory that houses a crate is named after it).
+//!   (dir==name invariant: the directory that houses a crate is named after it).
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
@@ -143,9 +143,43 @@ pub(crate) fn validate_workspace_topology_gate(
     // R1: flat top-level crates/ dir must not contain any Cargo.toml.
     check_r1_flat_crates_dir(&args.repo_root, &mut findings);
 
-    // Read workspace members from root Cargo.toml.
-    let workspace_manifest = args.repo_root.join("Cargo.toml");
-    let member_paths = read_workspace_member_paths(&workspace_manifest)?;
+    // R4: a DECLARED literal member must resolve to a directory holding a Cargo.toml.
+    //
+    // This has to read the declared entries rather than the resolved member set. Member-glob
+    // expansion skips a literal path whose directory is missing (`NotFound` is swallowed the way
+    // Cargo swallows it for symlink targets), so the phantom this rule exists to catch never
+    // survives expansion — it lands in neither `member_dirs` nor `missing_manifests`. Resolving
+    // first also aborts the whole gate with "members array is empty" on precisely the tree that
+    // should have produced an R4 finding, which made the rule unreachable.
+    //
+    // Glob patterns are exempt: Cargo tolerates a glob matching nothing but rejects an absent
+    // literal, so only literals can be phantoms.
+    let entries = oya_workspace_members_kernel::read_workspace_manifest_entries(&args.repo_root)
+        .map_err(|error| format!("workspace-topology: workspace manifest unresolved: {error}"))?;
+    for pattern in &entries.members {
+        if pattern.contains('*')
+            || oya_workspace_members_kernel::is_excluded(pattern, &entries.exclude)
+        {
+            continue;
+        }
+        let manifest_path = args.repo_root.join(pattern).join("Cargo.toml");
+        if !manifest_path.is_file() {
+            findings.push(WorkspaceTopologyFinding {
+                rule: WorkspaceTopologyRule::R4PhantomMember,
+                detail: format!(
+                    "member `{pattern}` has no Cargo.toml at {}",
+                    manifest_path.display()
+                ),
+            });
+        }
+    }
+
+    // Remaining rules walk the members that DID resolve. `scan_member_dirs` is the producer
+    // surface: unlike `resolve_member_dirs` it does not fail closed, so a tree carrying an R4
+    // finding still gets checked for the other rules instead of aborting here.
+    let member_paths = oya_workspace_members_kernel::scan_member_dirs(&args.repo_root)
+        .map_err(|error| format!("workspace-topology: workspace members unresolved: {error}"))?
+        .member_dirs;
 
     // Build member set (repo-relative paths) for orphan check (R5).
     let member_set: BTreeSet<String> = member_paths.iter().cloned().collect();

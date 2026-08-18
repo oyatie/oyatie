@@ -12,7 +12,9 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
-use data_ontology_scorecards_resolver::{FRAMEWORKS, MICROSERVICES, build_rollup, resolve_scorecard};
+use data_ontology_scorecards_resolver::{
+    FRAMEWORKS, MICROSERVICES, build_rollup, resolve_scorecard,
+};
 use serde_json::Value;
 
 fn main() -> ExitCode {

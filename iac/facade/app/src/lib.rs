@@ -73,9 +73,9 @@ const CLOUD_IAC_APP_ARCHIVE_MEDIA_TYPE: &str = "archive/zip";
 
 #[derive(Clone, Eq, PartialEq)]
 pub struct CloudIacAppConfig {
-    pub bind_addr: SocketAddr,                        // data_class: INTERNAL_ONLY
-    pub release_index_path: PathBuf,                  // data_class: INTERNAL_ONLY
-    pub module_registry_bearer: Option<String>,       // data_class: SECRET
+    pub bind_addr: SocketAddr,                  // data_class: INTERNAL_ONLY
+    pub release_index_path: PathBuf,            // data_class: INTERNAL_ONLY
+    pub module_registry_bearer: Option<String>, // data_class: SECRET
     pub module_registry_principal_id: Option<String>, // data_class: INTERNAL_ONLY
 }
 
@@ -88,7 +88,10 @@ impl std::fmt::Debug for CloudIacAppConfig {
                 "module_registry_bearer",
                 &self.module_registry_bearer.as_ref().map(|_| "<redacted>"),
             )
-            .field("module_registry_principal_id", &self.module_registry_principal_id)
+            .field(
+                "module_registry_principal_id",
+                &self.module_registry_principal_id,
+            )
             .finish()
     }
 }
@@ -220,11 +223,12 @@ fn build_module_registry_authz_provider(
             reason: "bearer must not contain whitespace or control characters".to_string(),
         });
     }
-    let verifier = ConfiguredBearerPrincipalVerifier::new(bearer, principal_id).map_err(|error| {
-        CloudIacAppConfigError::InvalidModuleRegistryBearer {
-            reason: error.to_string(),
-        }
-    })?;
+    let verifier =
+        ConfiguredBearerPrincipalVerifier::new(bearer, principal_id).map_err(|error| {
+            CloudIacAppConfigError::InvalidModuleRegistryBearer {
+                reason: error.to_string(),
+            }
+        })?;
     let authorizer = ConfiguredSurfaceAuthorizer::new(
         CLOUD_IAC_MODULE_REGISTRY_READER_SURFACES
             .iter()

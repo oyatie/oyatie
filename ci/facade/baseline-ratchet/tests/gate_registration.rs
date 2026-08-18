@@ -2176,6 +2176,78 @@ fn the_lane_resolvability_probe_is_falsifiable_on_known_controls() {
     );
 }
 
+/// ADR-0716 retired the local PR-body validator together with its dispatcher and callers. Keep
+/// every live execution/catalog surface aligned with that decision: a planned row, a catalog-only
+/// command, or a prose-only lane mirror would each recreate a ghost capability.
+#[test]
+fn adr_0716_retired_pr_traceability_lane_stays_absent_from_live_consumers() {
+    let root = repo_root();
+    let registry = read_to_string(&quality_lane_registry_path(&root));
+    assert!(
+        !registry
+            .lines()
+            .any(|line| line.trim() == "- id: traceability-validator"),
+        "ADR-0716 retired `traceability-validator`; do not restore it as active, planned, or an allowlisted ghost"
+    );
+
+    let mirror = read_to_string(&root.join("docs/standards/ci-lanes.md"));
+    assert!(
+        !mirror.contains("| `traceability-validator` |"),
+        "the human-readable quality-lane mirror must not advertise ADR-0716's retired validator"
+    );
+
+    let catalog = read_to_string(&root.join("libs/oya-governance-gate-catalog-domain/src/lib.rs"));
+    assert!(
+        !catalog.contains("\"pr-traceability\""),
+        "the run-all/catalog source must not invoke ADR-0716's retired dispatcher arm"
+    );
+
+    let arms = gate_dispatch_arms(&read_to_string(&gate_dispatcher_path(&root)));
+    assert!(
+        !arms.contains("pr-traceability"),
+        "ADR-0716 retired the local PR-traceability dispatcher arm"
+    );
+
+    let affected_set =
+        read_to_string(&root.join("ci/facade/affected-target-set/affected-set-policy.json"));
+    assert!(
+        !affected_set.contains("governance/check/pr-traceability"),
+        "the local affected-set policy must not seed ADR-0716's deleted target"
+    );
+
+    assert!(
+        !root
+            .join("registry/catalog/check-pr-traceability.yaml")
+            .exists(),
+        "the catalog must not publish ADR-0716's deleted worker capability"
+    );
+
+    let decision_rights = read_to_string(&root.join("specs/decision-rights.json"));
+    assert!(
+        !decision_rights.contains("\"lane\": \"check-pr-traceability\""),
+        "decision-rights must not claim mechanical enforcement by ADR-0716's deleted gate"
+    );
+
+    for template_path in [
+        root.join(".github/PULL_REQUEST_TEMPLATE.md"),
+        pr_template_path(&root),
+        pr_template_v2_path(&root),
+        root_pr_template_path(&root),
+    ] {
+        let template = read_to_string(&template_path);
+        let headings: Vec<&str> = template
+            .lines()
+            .filter_map(|line| line.strip_prefix("## "))
+            .collect();
+        assert_eq!(
+            headings,
+            ["Issue", "Summary", "Verification", "Code Review"],
+            "{} must keep ADR-0716's four-section PR shape",
+            template_path.display()
+        );
+    }
+}
+
 /// The durable half: an ACTIVE lane must name something that exists. Wiring individual dispatch
 /// arms by hand fixes six lanes once; this fixes the class, because the next lane that is declared
 /// active against a renamed package, a deleted script, or an unimplemented gate name fails here.

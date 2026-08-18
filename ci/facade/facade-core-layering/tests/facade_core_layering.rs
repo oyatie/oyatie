@@ -9,7 +9,7 @@ use std::collections::BTreeSet;
 use std::fs;
 use std::path::PathBuf;
 
-use ci_facade_core_layering::{collect, evaluate_keyed, CODE_DIRECT_DEP, CODE_NO_PORTS};
+use ci_facade_core_layering::{CODE_DIRECT_DEP, CODE_NO_PORTS, collect, evaluate_keyed};
 use serde_json::Value;
 
 /// Walk up to the repo root. `env!("CARGO_MANIFEST_DIR")` is deliberately NOT used — it does not
@@ -160,7 +160,11 @@ fn a_capability_without_ports_is_classified_under_the_adr_sanctioned_code() {
         "rust_library(name = \"x\", deps = [\"//compute/core/vm-kernel:vm-kernel\"])",
     )
     .unwrap();
-    fs::write(pkg.join("Cargo.toml"), "[package]\nname = \"compute-vm-api\"\n").unwrap();
+    fs::write(
+        pkg.join("Cargo.toml"),
+        "[package]\nname = \"compute-vm-api\"\n",
+    )
+    .unwrap();
 
     let observed = collect(&dir, &policy()).expect("scan");
     let rows = observed["violations"].as_array().unwrap();

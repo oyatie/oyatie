@@ -8,7 +8,6 @@
 
 use std::collections::BTreeMap;
 
-use oya_data_boundary_kernel::parse_data_class_label;
 use compliance_dsr::{
     DsrAckReason, DsrAckStatus, DsrAction, DsrAxis, DsrCascadeAck, DsrCascadeAckCreate,
     DsrCompletionRecord, DsrCompletionRecordCreate, DsrDispatch, DsrDispatchCreate, DsrProofMethod,
@@ -16,6 +15,7 @@ use compliance_dsr::{
     DsrStoreRefCreate, ErasureProof, ErasureProofCreate, PlatformDsrError,
     platform_dsr_data_class_from_legacy,
 };
+use oya_data_boundary_kernel::parse_data_class_label;
 
 /// Fail-closed authorization seam for the DSR erasure cascade (AUTH-005 /
 /// Wave-2b; ADR-0589). The cascade is UNREACHABLE without a verified principal
@@ -24,8 +24,8 @@ use compliance_dsr::{
 pub mod authz;
 
 pub use authz::{
-    DsrCascadeAuthorizationError, DsrCascadeAuthorizer, DsrCascadeAuthzProvider, DsrCascadeResource,
-    VerifiedDsrPrincipal,
+    DsrCascadeAuthorizationError, DsrCascadeAuthorizer, DsrCascadeAuthzProvider,
+    DsrCascadeResource, VerifiedDsrPrincipal,
 };
 
 pub const PLATFORM_DSR_CASCADE_EXECUTE_SURFACE: &str = "dsr.cascade.execute";

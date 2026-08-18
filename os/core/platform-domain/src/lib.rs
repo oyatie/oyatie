@@ -133,9 +133,11 @@ pub trait Platform {
     fn configuration(&self, store: &dyn ConfigStore) -> Result<alloc::vec::Vec<u8>> {
         for source in self.config_sources() {
             if let Some(bytes) = store.fetch(&source)
-                && !bytes.iter().all(u8::is_ascii_whitespace) && !bytes.is_empty() {
-                    return Ok(bytes);
-                }
+                && !bytes.iter().all(u8::is_ascii_whitespace)
+                && !bytes.is_empty()
+            {
+                return Ok(bytes);
+            }
         }
 
         Err(no_config_source())

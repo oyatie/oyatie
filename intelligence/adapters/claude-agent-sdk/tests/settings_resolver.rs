@@ -47,7 +47,8 @@ fn settings(value: Value) -> Map<String, Value> {
 }
 
 #[test]
-fn resolve_settings_merges_sources_and_records_provenance() -> intelligence_claude_agent_sdk::Result<()> {
+fn resolve_settings_merges_sources_and_records_provenance()
+-> intelligence_claude_agent_sdk::Result<()> {
     let _lock = ENV_LOCK.lock().unwrap();
     let config = tempdir().unwrap();
     let _env = ClaudeConfigEnvGuard::set(config.path());
@@ -149,7 +150,8 @@ fn resolve_settings_merges_sources_and_records_provenance() -> intelligence_clau
 }
 
 #[test]
-fn resolve_settings_can_skip_filesystem_sources_but_keep_managed() -> intelligence_claude_agent_sdk::Result<()> {
+fn resolve_settings_can_skip_filesystem_sources_but_keep_managed()
+-> intelligence_claude_agent_sdk::Result<()> {
     let _lock = ENV_LOCK.lock().unwrap();
     let config = tempdir().unwrap();
     let _env = ClaudeConfigEnvGuard::set(config.path());
@@ -186,8 +188,8 @@ fn resolve_settings_can_skip_filesystem_sources_but_keep_managed() -> intelligen
 }
 
 #[test]
-fn resolve_settings_skips_malformed_files_and_reports_parse_errors() -> intelligence_claude_agent_sdk::Result<()>
-{
+fn resolve_settings_skips_malformed_files_and_reports_parse_errors()
+-> intelligence_claude_agent_sdk::Result<()> {
     let _lock = ENV_LOCK.lock().unwrap();
     let config = tempdir().unwrap();
     let _env = ClaudeConfigEnvGuard::set(config.path());

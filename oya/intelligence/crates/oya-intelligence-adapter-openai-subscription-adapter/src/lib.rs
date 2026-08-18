@@ -135,8 +135,7 @@ impl<S: SecretStorePort + Send> OpenAiApiKeyPoolAdapter<S> {
             .get(&sref)
             .map_err(|_| AuthError::InvalidSecretReference)?;
         let key_bytes = material.expose_for_provider_call();
-        let key_str = std::str::from_utf8(key_bytes)
-            .map_err(|_| AuthError::InvalidToken)?;
+        let key_str = std::str::from_utf8(key_bytes).map_err(|_| AuthError::InvalidToken)?;
         Ok(openai_auth_headers(key_str))
     }
 }
@@ -199,12 +198,7 @@ mod tests {
         fn new(entries: Vec<(String, String)>) -> Self {
             let map: HashMap<_, _> = entries
                 .into_iter()
-                .map(|(k, v)| {
-                    (
-                        SecretReference::new(k).unwrap(),
-                        v.into_bytes(),
-                    )
-                })
+                .map(|(k, v)| (SecretReference::new(k).unwrap(), v.into_bytes()))
                 .collect();
             Self(Mutex::new(map))
         }
@@ -314,7 +308,10 @@ mod tests {
         let a = make_adapter(&["sk-key0"]);
         let t = a.authenticate(&sref("sref://unused")).unwrap();
         a.revoke(&t).unwrap();
-        assert_eq!(*a.pool.lock().unwrap().key_status(0), KeyStatus::Blacklisted);
+        assert_eq!(
+            *a.pool.lock().unwrap().key_status(0),
+            KeyStatus::Blacklisted
+        );
         // Next authenticate should fail (pool exhausted)
         assert_eq!(
             a.authenticate(&sref("sref://x")),
@@ -326,7 +323,10 @@ mod tests {
     fn record_call_result_terminal_blacklists() {
         let a = make_adapter(&["sk-key0"]);
         a.record_call_result(0, 401, None);
-        assert_eq!(*a.pool.lock().unwrap().key_status(0), KeyStatus::Blacklisted);
+        assert_eq!(
+            *a.pool.lock().unwrap().key_status(0),
+            KeyStatus::Blacklisted
+        );
     }
 
     #[test]
@@ -346,7 +346,10 @@ mod tests {
         let a = make_adapter(&["sk-key0"]);
         let body = br#"{"error":{"type":"insufficient_quota","message":"Quota exceeded."}}"#;
         a.record_call_result(0, 429, Some(body));
-        assert_eq!(*a.pool.lock().unwrap().key_status(0), KeyStatus::Blacklisted);
+        assert_eq!(
+            *a.pool.lock().unwrap().key_status(0),
+            KeyStatus::Blacklisted
+        );
     }
 
     #[test]

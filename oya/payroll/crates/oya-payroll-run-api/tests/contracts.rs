@@ -84,8 +84,30 @@ fn error_envelope_has_consistent_shape() {
 
 #[test]
 fn openapi_contract_declares_auth_failures_for_money_mutations() {
-    let contract_text = std::fs::read_to_string("oya/payroll/contracts/openapi-v1.yaml")
-        .expect("read payroll OpenAPI contract");
+    // Declared binding, not a cwd-relative guess: Buck runs the action from the sandbox root so
+    // the bare path resolved there, but `cargo test` runs from this package's directory and the
+    // read missed. Cargo names it in `.cargo/config.toml`; Buck binds it with $(location ...).
+    const BINDING: &str = "OYA_PAYROLL_OPENAPI_CONTRACT";
+    let contract_path = std::env::var_os(BINDING)
+        .map(std::path::PathBuf::from)
+        .unwrap_or_else(|| panic!("FAIL-CLOSED: declared contract binding {BINDING} is unset"));
+    let metadata = std::fs::symlink_metadata(&contract_path).unwrap_or_else(|e| {
+        panic!(
+            "FAIL-CLOSED: inspect {BINDING}={}: {e}",
+            contract_path.display()
+        )
+    });
+    assert!(
+        !metadata.file_type().is_symlink() && metadata.is_file(),
+        "FAIL-CLOSED: {BINDING}={} must be a regular non-symlink file",
+        contract_path.display()
+    );
+    let contract_text = std::fs::read_to_string(&contract_path).unwrap_or_else(|e| {
+        panic!(
+            "FAIL-CLOSED: read {BINDING}={}: {e}",
+            contract_path.display()
+        )
+    });
     let contract: serde_json::Value =
         serde_json::from_str(&contract_text).expect("parse payroll OpenAPI contract");
 

@@ -2,11 +2,11 @@
 mod support;
 use support::{expect_json_line, fake_cli, write_json_line};
 
+use futures::StreamExt;
 use intelligence_claude_agent_sdk::{
     CallToolResult, ClaudeAgentOptions, ClaudeSDKClient, JsonSchema, Message, SdkMcpTool,
     create_sdk_mcp_server, query,
 };
-use futures::StreamExt;
 use serde::Deserialize;
 use serde_json::json;
 

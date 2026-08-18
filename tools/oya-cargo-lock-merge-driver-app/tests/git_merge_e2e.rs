@@ -17,9 +17,13 @@ use std::time::{SystemTime, UNIX_EPOCH};
 /// the project-relative `buck-out/...` path `$(location)` hands over would simply not resolve
 /// there, and git would report a driver it could not execute rather than the behaviour under test.
 fn driver_bin() -> PathBuf {
-    let raw = match std::env::var("OYA_CARGO_LOCK_MERGE_DRIVER") {
-        Ok(path) => PathBuf::from(path),
-        Err(err) => panic!("missing OYA_CARGO_LOCK_MERGE_DRIVER: {err}"),
+    let raw = if let Ok(path) = std::env::var("OYA_CARGO_LOCK_MERGE_DRIVER") {
+        PathBuf::from(path)
+    } else {
+        match option_env!("CARGO_BIN_EXE_oya-cargo-lock-merge-driver") {
+            Some(path) => PathBuf::from(path),
+            None => panic!("missing OYA_CARGO_LOCK_MERGE_DRIVER"),
+        }
     };
     match std::fs::canonicalize(&raw) {
         Ok(absolute) => absolute,
@@ -83,7 +87,13 @@ fn read_lock(repo: &Path) -> String {
 
 /// A repo with `base` committed on `main` and on `theirs`, the driver registered with
 /// `placeholders`, and `Cargo.lock` bound to it. Returns the repo root.
-fn repo_with_driver(label: &str, placeholders: &str, base: &str, ours: &str, theirs: &str) -> PathBuf {
+fn repo_with_driver(
+    label: &str,
+    placeholders: &str,
+    base: &str,
+    ours: &str,
+    theirs: &str,
+) -> PathBuf {
     let nanos = match SystemTime::now().duration_since(UNIX_EPOCH) {
         Ok(duration) => duration.as_nanos(),
         Err(_) => 0,
@@ -161,7 +171,10 @@ fn four_placeholder_registration_does_not_lose_theirs() {
         "1.0.2",
         "theirs-only",
     ] {
-        assert!(merged.contains(needle), "merged tree lost {needle:?}:\n{merged}");
+        assert!(
+            merged.contains(needle),
+            "merged tree lost {needle:?}:\n{merged}"
+        );
     }
     // The second backstop: even a human who blindly `git add`s cannot build, because the
     // conflicted document does not parse as TOML.

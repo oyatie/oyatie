@@ -367,7 +367,9 @@ where
                 &subject_tenant,
                 &subject_workload_id,
                 &req.action,
-                resource.map(|r| r.resource_type.as_str()).unwrap_or_default(),
+                resource
+                    .map(|r| r.resource_type.as_str())
+                    .unwrap_or_default(),
                 resource.map(|r| r.resource_id.as_str()).unwrap_or_default(),
             )?;
         }
@@ -412,7 +414,9 @@ where
             &req.tenant_id,
             &req.workload_id,
             &req.action,
-            resource.map(|r| r.resource_type.as_str()).unwrap_or_default(),
+            resource
+                .map(|r| r.resource_type.as_str())
+                .unwrap_or_default(),
             resource.map(|r| r.resource_id.as_str()).unwrap_or_default(),
         )?;
 
@@ -507,7 +511,9 @@ where
                     &subject_tenant,
                     &subject_workload_id,
                     &item.action,
-                    resource.map(|r| r.resource_type.as_str()).unwrap_or_default(),
+                    resource
+                        .map(|r| r.resource_type.as_str())
+                        .unwrap_or_default(),
                     resource.map(|r| r.resource_id.as_str()).unwrap_or_default(),
                 )
                 .is_err()

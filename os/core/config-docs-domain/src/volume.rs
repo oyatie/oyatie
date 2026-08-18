@@ -97,11 +97,12 @@ impl Provisioning {
             )));
         }
         if let Some(sel) = &self.disk_selector
-            && sel.trim().is_empty() {
-                return Err(Error::invalid(
-                    "VolumeConfig: diskSelector, if set, must be non-empty",
-                ));
-            }
+            && sel.trim().is_empty()
+        {
+            return Err(Error::invalid(
+                "VolumeConfig: diskSelector, if set, must be non-empty",
+            ));
+        }
         Ok(())
     }
 }

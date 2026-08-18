@@ -8,9 +8,9 @@
 
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
-use httpmock::prelude::*;
 use ci_controller_github_adapter::GitHubCommitStatusPoster;
 use ci_controller_kernel::{CommitState, CommitStatusPoster, KernelError};
+use httpmock::prelude::*;
 
 const TEST_SHA: &str = "abcdef1234567890abcdef1234567890abcdef12";
 

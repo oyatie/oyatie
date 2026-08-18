@@ -9,9 +9,9 @@
 use crate::reconcile::{
     Controller, Input, Output, ReconcileContext, ReconcileError, ReconcileResult,
 };
-use os_kernel::ResourceId;
 use os_cosi_domain::resource::ResourceKind;
 use os_cosi_domain::{Metadata, Resource};
+use os_kernel::ResourceId;
 
 /// The coarse boot stage a Talos machine progresses through.
 ///

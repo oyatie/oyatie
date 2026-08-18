@@ -431,41 +431,41 @@ pub struct HrStatutoryRulepackManifest {
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct LeaveBalanceAccrualInput {
-    pub tenant_id: String,                    // data_class: INTERNAL_ONLY
-    pub legal_entity_id: String,              // data_class: INTERNAL_ONLY
-    pub employee_id: String,                  // data_class: INTERNAL_ONLY
-    pub payroll_period: String,               // data_class: FINANCIAL
-    pub prior_accrued_units: f64,             // data_class: FINANCIAL
-    pub accrual_units: f64,                   // data_class: FINANCIAL
-    pub deduction_units: f64,                 // data_class: FINANCIAL
-    pub carry_over_cap_units: f64,            // data_class: FINANCIAL
-    pub rulepack_ref: String,                 // data_class: INTERNAL_ONLY
-    pub rulepack_effective_date: String,      // data_class: INTERNAL_ONLY
-    pub accrual_evidence_ref: String,         // data_class: INTERNAL_ONLY
-    pub deduction_evidence_ref: String,       // data_class: INTERNAL_ONLY
-    pub decided_at_epoch_seconds: u64,        // data_class: INTERNAL_ONLY
+    pub tenant_id: String,               // data_class: INTERNAL_ONLY
+    pub legal_entity_id: String,         // data_class: INTERNAL_ONLY
+    pub employee_id: String,             // data_class: INTERNAL_ONLY
+    pub payroll_period: String,          // data_class: FINANCIAL
+    pub prior_accrued_units: f64,        // data_class: FINANCIAL
+    pub accrual_units: f64,              // data_class: FINANCIAL
+    pub deduction_units: f64,            // data_class: FINANCIAL
+    pub carry_over_cap_units: f64,       // data_class: FINANCIAL
+    pub rulepack_ref: String,            // data_class: INTERNAL_ONLY
+    pub rulepack_effective_date: String, // data_class: INTERNAL_ONLY
+    pub accrual_evidence_ref: String,    // data_class: INTERNAL_ONLY
+    pub deduction_evidence_ref: String,  // data_class: INTERNAL_ONLY
+    pub decided_at_epoch_seconds: u64,   // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct LeaveBalanceLedgerProjection {
-    pub tenant_id: Classified<TenantId>,                             // data_class: INTERNAL_ONLY
-    pub legal_entity_id: Classified<LegalEntityId>,                  // data_class: INTERNAL_ONLY
-    pub employee_id: Classified<EmployeeId>,                         // data_class: INTERNAL_ONLY
-    pub payroll_period: Classified<String>,                          // data_class: FINANCIAL
-    pub prior_accrued_units: Classified<f64>,                        // data_class: FINANCIAL
-    pub accrual_units: Classified<f64>,                              // data_class: FINANCIAL
-    pub deduction_units: Classified<f64>,                            // data_class: FINANCIAL
-    pub resulting_balance_units: Classified<f64>,                    // data_class: FINANCIAL
-    pub carried_over_units: Classified<f64>,                         // data_class: FINANCIAL
-    pub forfeited_units: Classified<f64>,                            // data_class: FINANCIAL
-    pub carry_over_cap_units: Classified<f64>,                       // data_class: FINANCIAL
-    pub rulepack_ref: Classified<RulepackRef>,                       // data_class: INTERNAL_ONLY
-    pub rulepack_effective_date: Classified<RulepackEffectiveDate>,  // data_class: INTERNAL_ONLY
-    pub accrual_evidence_ref: Classified<AuditEvidenceRef>,          // data_class: INTERNAL_ONLY
-    pub deduction_evidence_ref: Classified<AuditEvidenceRef>,        // data_class: INTERNAL_ONLY
-    pub idempotency_key: Classified<String>,                         // data_class: INTERNAL_ONLY
-    pub decided_at_epoch_seconds: Classified<u64>,                   // data_class: INTERNAL_ONLY
-    pub schema_version: Classified<u32>,                             // data_class: PUBLIC
+    pub tenant_id: Classified<TenantId>, // data_class: INTERNAL_ONLY
+    pub legal_entity_id: Classified<LegalEntityId>, // data_class: INTERNAL_ONLY
+    pub employee_id: Classified<EmployeeId>, // data_class: INTERNAL_ONLY
+    pub payroll_period: Classified<String>, // data_class: FINANCIAL
+    pub prior_accrued_units: Classified<f64>, // data_class: FINANCIAL
+    pub accrual_units: Classified<f64>,  // data_class: FINANCIAL
+    pub deduction_units: Classified<f64>, // data_class: FINANCIAL
+    pub resulting_balance_units: Classified<f64>, // data_class: FINANCIAL
+    pub carried_over_units: Classified<f64>, // data_class: FINANCIAL
+    pub forfeited_units: Classified<f64>, // data_class: FINANCIAL
+    pub carry_over_cap_units: Classified<f64>, // data_class: FINANCIAL
+    pub rulepack_ref: Classified<RulepackRef>, // data_class: INTERNAL_ONLY
+    pub rulepack_effective_date: Classified<RulepackEffectiveDate>, // data_class: INTERNAL_ONLY
+    pub accrual_evidence_ref: Classified<AuditEvidenceRef>, // data_class: INTERNAL_ONLY
+    pub deduction_evidence_ref: Classified<AuditEvidenceRef>, // data_class: INTERNAL_ONLY
+    pub idempotency_key: Classified<String>, // data_class: INTERNAL_ONLY
+    pub decided_at_epoch_seconds: Classified<u64>, // data_class: INTERNAL_ONLY
+    pub schema_version: Classified<u32>, // data_class: PUBLIC
 }
 
 /// Input to the leave carry-over / forfeiture period-boundary evaluator.
@@ -490,21 +490,21 @@ pub struct LeaveCarryoverForfeitureInput {
 /// Projection produced by `evaluate_leave_carryover_forfeiture`.
 #[derive(Clone, Debug, PartialEq)]
 pub struct LeaveCarryoverForfeitureProjection {
-    pub tenant_id: Classified<TenantId>,                           // data_class: INTERNAL_ONLY
-    pub legal_entity_id: Classified<LegalEntityId>,                // data_class: INTERNAL_ONLY
-    pub employee_id: Classified<EmployeeId>,                       // data_class: INTERNAL_ONLY
-    pub period_boundary_date: Classified<String>,                  // data_class: INTERNAL_ONLY
-    pub closing_balance_units: Classified<f64>,                    // data_class: FINANCIAL
-    pub statutory_min_floor_units: Classified<f64>,                // data_class: FINANCIAL
-    pub carry_over_cap_units: Classified<f64>,                     // data_class: FINANCIAL
-    pub carried_over_units: Classified<f64>,                       // data_class: FINANCIAL
-    pub forfeited_units: Classified<f64>,                          // data_class: FINANCIAL
-    pub rulepack_ref: Classified<RulepackRef>,                     // data_class: INTERNAL_ONLY
+    pub tenant_id: Classified<TenantId>, // data_class: INTERNAL_ONLY
+    pub legal_entity_id: Classified<LegalEntityId>, // data_class: INTERNAL_ONLY
+    pub employee_id: Classified<EmployeeId>, // data_class: INTERNAL_ONLY
+    pub period_boundary_date: Classified<String>, // data_class: INTERNAL_ONLY
+    pub closing_balance_units: Classified<f64>, // data_class: FINANCIAL
+    pub statutory_min_floor_units: Classified<f64>, // data_class: FINANCIAL
+    pub carry_over_cap_units: Classified<f64>, // data_class: FINANCIAL
+    pub carried_over_units: Classified<f64>, // data_class: FINANCIAL
+    pub forfeited_units: Classified<f64>, // data_class: FINANCIAL
+    pub rulepack_ref: Classified<RulepackRef>, // data_class: INTERNAL_ONLY
     pub rulepack_effective_date: Classified<RulepackEffectiveDate>, // data_class: INTERNAL_ONLY
-    pub evidence_ref: Classified<AuditEvidenceRef>,                // data_class: INTERNAL_ONLY
-    pub idempotency_key: Classified<String>,                       // data_class: INTERNAL_ONLY
-    pub evaluated_at_epoch_seconds: Classified<u64>,               // data_class: INTERNAL_ONLY
-    pub schema_version: Classified<u32>,                           // data_class: PUBLIC
+    pub evidence_ref: Classified<AuditEvidenceRef>, // data_class: INTERNAL_ONLY
+    pub idempotency_key: Classified<String>, // data_class: INTERNAL_ONLY
+    pub evaluated_at_epoch_seconds: Classified<u64>, // data_class: INTERNAL_ONLY
+    pub schema_version: Classified<u32>, // data_class: PUBLIC
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -608,8 +608,9 @@ pub fn evaluate_leave_carryover_forfeiture(
         return Err(HrDomainError::CarryOverCapBelowFloor);
     }
 
-    let carried_over_units =
-        input.closing_balance_units.clamp(input.statutory_min_floor_units, input.carry_over_cap_units);
+    let carried_over_units = input
+        .closing_balance_units
+        .clamp(input.statutory_min_floor_units, input.carry_over_cap_units);
     let forfeited_units = (input.closing_balance_units - input.carry_over_cap_units).max(0.0);
 
     let idempotency_key = format!(
@@ -629,7 +630,10 @@ pub fn evaluate_leave_carryover_forfeiture(
         }),
         period_boundary_date: internal(input.period_boundary_date),
         closing_balance_units: Classified::new(input.closing_balance_units, DataClass::Financial),
-        statutory_min_floor_units: Classified::new(input.statutory_min_floor_units, DataClass::Financial),
+        statutory_min_floor_units: Classified::new(
+            input.statutory_min_floor_units,
+            DataClass::Financial,
+        ),
         carry_over_cap_units: Classified::new(input.carry_over_cap_units, DataClass::Financial),
         carried_over_units: Classified::new(carried_over_units, DataClass::Financial),
         forfeited_units: Classified::new(forfeited_units, DataClass::Financial),
@@ -665,10 +669,10 @@ pub enum OnboardingChecklistItemKind {
 /// A single item on the onboarding checklist.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct OnboardingChecklistItem {
-    pub kind: OnboardingChecklistItemKind,       // data_class: INTERNAL_ONLY
-    pub is_mandatory: bool,                      // data_class: INTERNAL_ONLY
-    pub is_cleared: bool,                        // data_class: INTERNAL_ONLY
-    pub evidence_ref: Option<AuditEvidenceRef>,  // data_class: INTERNAL_ONLY
+    pub kind: OnboardingChecklistItemKind, // data_class: INTERNAL_ONLY
+    pub is_mandatory: bool,                // data_class: INTERNAL_ONLY
+    pub is_cleared: bool,                  // data_class: INTERNAL_ONLY
+    pub evidence_ref: Option<AuditEvidenceRef>, // data_class: INTERNAL_ONLY
 }
 
 /// Input to the onboarding readiness evaluator.
@@ -691,12 +695,12 @@ pub enum OnboardingDecision {
 /// Decision output from `evaluate_onboarding_readiness`.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct OnboardingReadinessDecision {
-    pub employee_id: Classified<EmployeeId>,                              // data_class: INTERNAL_ONLY
-    pub tenant_id: Classified<TenantId>,                                  // data_class: INTERNAL_ONLY
-    pub legal_entity_id: Classified<LegalEntityId>,                       // data_class: INTERNAL_ONLY
-    pub decision: Classified<OnboardingDecision>,                         // data_class: INTERNAL_ONLY
-    pub outstanding_items: Classified<Vec<OnboardingChecklistItemKind>>,  // data_class: INTERNAL_ONLY
-    pub schema_version: Classified<u32>,                                  // data_class: PUBLIC
+    pub employee_id: Classified<EmployeeId>, // data_class: INTERNAL_ONLY
+    pub tenant_id: Classified<TenantId>,     // data_class: INTERNAL_ONLY
+    pub legal_entity_id: Classified<LegalEntityId>, // data_class: INTERNAL_ONLY
+    pub decision: Classified<OnboardingDecision>, // data_class: INTERNAL_ONLY
+    pub outstanding_items: Classified<Vec<OnboardingChecklistItemKind>>, // data_class: INTERNAL_ONLY
+    pub schema_version: Classified<u32>,                                 // data_class: PUBLIC
 }
 
 /// Pure evaluator: validates identifiers, rejects empty/duplicate checklists,
@@ -785,8 +789,7 @@ pub fn evaluate_onboarding_readiness(
         }
     }
 
-    let mut outstanding: Vec<OnboardingChecklistItemKind> =
-        outstanding_set.into_iter().collect();
+    let mut outstanding: Vec<OnboardingChecklistItemKind> = outstanding_set.into_iter().collect();
     outstanding.sort();
 
     let decision = if outstanding.is_empty() {

@@ -1037,7 +1037,7 @@ fn key_tenant_from_path(path_key_id: &str) -> Result<&str, CloudKmsApiError> {
 
 /// Run the server-side PDP decision (fail-closed). The PDP resource is bound to
 /// the TARGET KEY's tenant (parsed from the trusted path binding `kms/{region}/{tenant}/{name}`)
-/// + the TARGET key id. It is NOT bound to the verified caller's tenant — doing so
+/// together with the TARGET key id. It is NOT bound to the verified caller's tenant — doing so
 /// would create a cross-tenant IDOR: a `ten_alpha` principal targeting `ten_beta/key`
 /// would produce `{resource.tenant: ten_alpha}` which a same-tenant policy ALLOWS.
 /// By binding the target key's tenant, the PDP correctly sees "may `ten_alpha`

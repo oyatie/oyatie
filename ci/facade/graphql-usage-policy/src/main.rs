@@ -24,8 +24,7 @@ use ci_graphql_usage_policy::{
 };
 use serde_json::Value;
 
-const DEFAULT_POLICY: &str =
-    "ci/facade/graphql-usage-policy/no-graphql-without-adr-policy.json";
+const DEFAULT_POLICY: &str = "ci/facade/graphql-usage-policy/no-graphql-without-adr-policy.json";
 
 struct Args {
     repo_root: PathBuf,

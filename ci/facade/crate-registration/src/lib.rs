@@ -97,9 +97,9 @@ const MOVE_MANIFEST_PATH: &str = "specs/reorg/move-manifest.generated.json";
 /// The buck2 targets the [`Buck2RegenAdapter`] builds (mirroring materialize.sh's single
 /// `buck2 build … --show-output`). Target-name match (`parse_show_output_path`) maps each to its
 /// built-binary path — the same shape the freshness gate's `build_face_tools` uses.
-const EMITTER_TARGET: &str =
-    "//ci/facade/scm-facts-snapshot:ci-scm-facts-snapshot";
-const PRODUCER_TARGET: &str = "//ci/facade/artifact-inventory-registry:oya-cloud-ci-accounting-registry-app-bin";
+const EMITTER_TARGET: &str = "//ci/facade/scm-facts-snapshot:ci-scm-facts-snapshot";
+const PRODUCER_TARGET: &str =
+    "//ci/facade/artifact-inventory-registry:oya-cloud-ci-accounting-registry-app-bin";
 const CODEMOD_TARGET: &str = "//tools/oya-reorg-codemod-app:oya-reorg-codemod";
 const ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS_TARGET: &str = "//.claude:settings-json";
 const ENFORCEMENT_LIVENESS_CODEX_HOOKS_TARGET: &str = "//.codex:hooks-json";

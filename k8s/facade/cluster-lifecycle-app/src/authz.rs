@@ -209,7 +209,7 @@ fn build_workload_principal(
 /// PORT. The router REFUSES to serve without one configured (no default-allow).
 #[derive(Clone)]
 pub struct ClusterAuthzProvider {
-    verifier: Arc<dyn PrincipalVerifier>,   // data_class: INTERNAL_ONLY
+    verifier: Arc<dyn PrincipalVerifier>, // data_class: INTERNAL_ONLY
     authorizer: Arc<dyn ClusterAuthorizer>, // data_class: INTERNAL_ONLY
 }
 
@@ -408,7 +408,11 @@ mod tests {
             "ten_acme",
             vec!["cluster:write".to_owned()],
         );
-        assert!(authz.ensure_authorized(&admin, ClusterAction::Create, "ten_acme").is_ok());
+        assert!(
+            authz
+                .ensure_authorized(&admin, ClusterAction::Create, "ten_acme")
+                .is_ok()
+        );
         assert_eq!(
             authz.ensure_authorized(&admin, ClusterAction::Create, "ten_globex"),
             Err(ClusterAuthorizationError::Denied)
@@ -429,8 +433,9 @@ mod tests {
 
     #[test]
     fn provider_maps_pdp_fault_to_refused() {
-        let verifier =
-            Arc::new(ConfiguredBearerPrincipalVerifier::new("s", "wl_op", "ten_p", vec![]).unwrap());
+        let verifier = Arc::new(
+            ConfiguredBearerPrincipalVerifier::new("s", "wl_op", "ten_p", vec![]).unwrap(),
+        );
         let provider = ClusterAuthzProvider::new(verifier, Arc::new(FaultAuthorizer));
         let p = VerifiedPrincipal::new_for_test("wl_op", "ten_p", vec![]);
         assert_eq!(

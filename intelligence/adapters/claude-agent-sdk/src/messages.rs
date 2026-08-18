@@ -176,7 +176,7 @@ pub enum Message {
     Assistant(AssistantMessage),
     System(SystemMessage),
     Status(StatusMessage),
-    Result(ResultMessage),
+    Result(Box<ResultMessage>),
     StreamEvent(StreamEvent),
     ToolProgress(ToolProgressMessage),
     AuthStatus(AuthStatusMessage),
@@ -1150,7 +1150,7 @@ pub fn parse_message(data: Value) -> Result<Option<Message>> {
         "user" => parse_user(data).map(|msg| Some(Message::User(msg))),
         "assistant" => parse_assistant(data).map(|msg| Some(Message::Assistant(msg))),
         "system" => parse_system(data).map(Some),
-        "result" => parse_result(data).map(|msg| Some(Message::Result(msg))),
+        "result" => parse_result(data).map(|msg| Some(Message::Result(Box::new(msg)))),
         "stream_event" => parse_stream_event(data).map(|msg| Some(Message::StreamEvent(msg))),
         "tool_progress" => parse_message_with_raw_data!(data, ToolProgressMessage)
             .map(|msg| Some(Message::ToolProgress(msg))),

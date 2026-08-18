@@ -168,10 +168,11 @@ fn explicit_codex_path_override_wins_over_packaged_runtime_env() {
     client.close();
 
     assert_eq!(init.server_info.unwrap().name.as_deref(), Some("explicit"));
-    assert!(fake
-        .messages()
-        .iter()
-        .any(|message| message["method"] == "initialize"));
+    assert!(
+        fake.messages()
+            .iter()
+            .any(|message| message["method"] == "initialize")
+    );
 }
 
 #[cfg(feature = "runtime")]

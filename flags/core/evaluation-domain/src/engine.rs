@@ -72,7 +72,11 @@ pub fn evaluate(flag: &Flag, context: &EvaluationContext) -> Evaluation {
 
     // 2. First matching rule wins.
     for rule in &flag.rules {
-        if rule.conditions.iter().all(|c| condition_matches(c, context)) {
+        if rule
+            .conditions
+            .iter()
+            .all(|c| condition_matches(c, context))
+        {
             return match &rule.outcome {
                 RuleOutcome::Fixed(variant) => {
                     resolve(flag, variant, Reason::TargetingMatch, first_variant)
@@ -93,11 +97,11 @@ pub fn evaluate(flag: &Flag, context: &EvaluationContext) -> Evaluation {
     }
 
     // 3. Default rollout (progressive delivery to the unruled population).
-    if let Some(rollout) = &flag.default_rollout {
-        if let RolloutAssignment::Variant(variant) = assign_rollout(flag, rollout, context) {
-            return resolve(flag, &variant, Reason::Split, first_variant);
-        }
-        // else: fall through to default variant.
+    // An unallocated assignment falls through to the default variant.
+    if let Some(rollout) = &flag.default_rollout
+        && let RolloutAssignment::Variant(variant) = assign_rollout(flag, rollout, context)
+    {
+        return resolve(flag, &variant, Reason::Split, first_variant);
     }
 
     // 4. Default variant.
@@ -140,7 +144,11 @@ enum RolloutAssignment {
 /// Buckets are laid out as contiguous half-open basis-point ranges in declared order. A subject's
 /// bucket `b` selects the first range `[lo, lo+weight)` that contains it. If `b` exceeds the sum of
 /// all weights, the subject is [`RolloutAssignment::Unallocated`].
-fn assign_rollout(flag: &Flag, rollout: &Rollout, context: &EvaluationContext) -> RolloutAssignment {
+fn assign_rollout(
+    flag: &Flag,
+    rollout: &Rollout,
+    context: &EvaluationContext,
+) -> RolloutAssignment {
     let bucket = bucket_basis_points(&flag.key, &rollout.salt, &context.targeting_key);
     let mut cursor: u32 = 0;
     for (variant, weight) in &rollout.buckets {
@@ -160,13 +168,15 @@ fn condition_matches(condition: &Condition, context: &EvaluationContext) -> bool
     match (&condition.operator, &condition.operand) {
         (Operator::Eq, Operand::Value(expected)) => actual == Some(expected),
         (Operator::NotEq, Operand::Value(expected)) => actual != Some(expected),
-        (Operator::In, Operand::Set(set)) => {
-            actual.map(|a| set.iter().any(|s| s == &attr_to_string(a))).unwrap_or(false)
-        }
+        (Operator::In, Operand::Set(set)) => actual
+            .map(|a| set.iter().any(|s| s == &attr_to_string(a)))
+            .unwrap_or(false),
         (Operator::NotIn, Operand::Set(set)) => {
             // Absent attribute is NOT in the set → NotIn holds (fail-open on absence is intentional
             // for exclusion rules; presence is required for inclusion rules above).
-            actual.map(|a| !set.iter().any(|s| s == &attr_to_string(a))).unwrap_or(true)
+            actual
+                .map(|a| !set.iter().any(|s| s == &attr_to_string(a)))
+                .unwrap_or(true)
         }
         // Operator/operand shape mismatch (e.g. `In` with a single `Value`) never matches.
         _ => false,

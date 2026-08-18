@@ -52,9 +52,9 @@ pub use dek_cache::{
 pub use material::{DekMaterial, EnclaveRoot, KekMaterial, KekVersion, SealingRootId};
 pub use provenance::RootProvenance;
 pub use shred::{
-    CancelEvidence, PendingDeletionChain, QuorumPolicy, ScheduledKeyDeletion, ShredAction,
-    ShredAuthorizationPort, ShredAuthorizationRequest, ShredDecision, ShredDecisionEvidence,
-    ShredError, ShredProof, MIN_WAITING_WINDOW_SECONDS,
+    CancelEvidence, MIN_WAITING_WINDOW_SECONDS, PendingDeletionChain, QuorumPolicy,
+    ScheduledKeyDeletion, ShredAction, ShredAuthorizationPort, ShredAuthorizationRequest,
+    ShredDecision, ShredDecisionEvidence, ShredError, ShredProof,
 };
 pub use token::{TokenError, WrappedDek, WrappedKekToken};
 
@@ -107,20 +107,28 @@ impl fmt::Display for EnclaveError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::MemoryLockFailed { errno } => {
-                write!(f, "enclave: mlock failed (errno {errno}); refusing unpinned key material")
+                write!(
+                    f,
+                    "enclave: mlock failed (errno {errno}); refusing unpinned key material"
+                )
             }
             Self::RandomSourceFailed => f.write_str("enclave: CSPRNG failure"),
             Self::CryptoRejected => f.write_str("enclave: AEAD rejected the operation"),
             Self::TokenMalformed(err) => write!(f, "enclave: malformed wrapped token: {err}"),
             Self::KeyBindingMismatch { expected, found } => {
-                write!(f, "enclave: token bound to '{found}', unwrapping key is '{expected}'")
+                write!(
+                    f,
+                    "enclave: token bound to '{found}', unwrapping key is '{expected}'"
+                )
             }
             Self::UnknownKekVersion { version } => {
                 write!(f, "enclave: no KEK material held for version {version}")
             }
             Self::VersionOverflow => f.write_str("enclave: KEK version overflow"),
             Self::ZeroVersion => f.write_str("enclave: KEK versions are 1-based; zero is invalid"),
-            Self::InvalidIdentifier(err) => write!(f, "enclave: invalid envelope identifier: {err}"),
+            Self::InvalidIdentifier(err) => {
+                write!(f, "enclave: invalid envelope identifier: {err}")
+            }
         }
     }
 }

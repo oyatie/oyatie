@@ -29,16 +29,13 @@ fn lockfile_with_version(version: u8, packages: &str) -> String {
 fn assert_merge_ok(base: &str, ours: &str, theirs: &str) -> String {
     match merge_lockfiles(base, ours, theirs) {
         Ok(output) => output,
-        Err(err) => {
-            assert!(false, "merge should have succeeded, got {err}");
-            String::new()
-        }
+        Err(err) => panic!("merge should have succeeded, got {err}"),
     }
 }
 
 fn assert_merge_conflict(base: &str, ours: &str, theirs: &str, wanted_detail: &str) {
     match merge_lockfiles(base, ours, theirs) {
-        Ok(output) => assert!(false, "merge should have conflicted, got output:\n{output}"),
+        Ok(output) => panic!("merge should have conflicted, got output:\n{output}"),
         Err(err) => {
             assert_eq!(err.kind(), MergeErrorKind::Conflict);
             assert!(

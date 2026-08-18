@@ -10,8 +10,8 @@ use std::collections::BTreeMap;
 
 use oya_data_boundary_kernel::parse_data_class_label;
 use workflow_forms_domain::{
-    workspace_form_data_class_from_legacy, Form, FormAnswer, FormAnswerCreate, FormCreate,
-    FormError, FormField, FormFieldCreate, FormFieldKind, FormSubmission, FormSubmissionCreate,
+    Form, FormAnswer, FormAnswerCreate, FormCreate, FormError, FormField, FormFieldCreate,
+    FormFieldKind, FormSubmission, FormSubmissionCreate, workspace_form_data_class_from_legacy,
 };
 
 pub const WORKSPACE_FORMS_SUBMISSION_INGEST_SURFACE: &str = "workspace.forms.submission.ingest";

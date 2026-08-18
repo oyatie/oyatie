@@ -9,7 +9,7 @@ pub mod zeroizing;
 
 pub use lease_lifecycle::{
     DynamicLease, LeaseError, LeaseId, LeasePolicy, LeaseRevocationEvent, LeaseState,
-    RevocationReason, MAX_LEASE_LIFETIME_SECONDS, MAX_LEASE_TTL_SECONDS, MIN_LEASE_TTL_SECONDS,
+    MAX_LEASE_LIFETIME_SECONDS, MAX_LEASE_TTL_SECONDS, MIN_LEASE_TTL_SECONDS, RevocationReason,
 };
 pub use zeroizing::{VaultPath, VaultPathError, ZeroizingSecret};
 
@@ -269,9 +269,7 @@ impl SecretReferenceUri {
         })
     }
 
-    pub fn parse_config_reference(
-        input: impl AsRef<str>,
-    ) -> Result<Self, SecretReferenceUriError> {
+    pub fn parse_config_reference(input: impl AsRef<str>) -> Result<Self, SecretReferenceUriError> {
         let input = input.as_ref();
         let Some(without_prefix) = input.strip_prefix(CONFIG_SECRET_REFERENCE_PREFIX) else {
             return Err(SecretReferenceUriError::MissingConfigWrapper);
@@ -301,10 +299,7 @@ impl SecretReferenceUri {
     pub fn normalized_uri(&self) -> String {
         match self.version {
             Some(version) => {
-                format!(
-                    "{OPENBAO_SECRET_REFERENCE_PREFIX}{}@v{version}",
-                    self.path
-                )
+                format!("{OPENBAO_SECRET_REFERENCE_PREFIX}{}@v{version}", self.path)
             }
             None => format!("{OPENBAO_SECRET_REFERENCE_PREFIX}{}", self.path),
         }

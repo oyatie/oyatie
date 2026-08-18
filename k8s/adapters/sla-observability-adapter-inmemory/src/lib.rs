@@ -14,9 +14,7 @@ use k8s_sla_observability_api::{
     BoxFuture, ClusterKey, ClusterRef, ControlPlaneSlaSnapshot, SlaObservabilityError,
     SlaObservabilityPort, validate_cluster_ref,
 };
-use k8s_sla_observability_kernel::{
-    SlaObservation, SlaPolicy, SlaSummary, summarize_sla,
-};
+use k8s_sla_observability_kernel::{SlaObservation, SlaPolicy, SlaSummary, summarize_sla};
 
 /// In-memory latest-snapshot store.
 #[derive(Debug)]

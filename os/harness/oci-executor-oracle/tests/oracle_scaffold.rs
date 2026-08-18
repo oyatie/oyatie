@@ -1,8 +1,8 @@
 //! Integration scaffold: differential pairs are stubbed; no binary spawn.
 
 use os_oci_executor_oracle::{
-    compare_observations, differential_pair, refuse_oracle_as_product, validate_obligations,
     DiffVerdict, KillSignal, OciExecutor, OciOperation, OracleStub, OwnedExecutorStub,
+    compare_observations, differential_pair, refuse_oracle_as_product, validate_obligations,
 };
 
 #[test]

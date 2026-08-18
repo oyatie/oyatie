@@ -46,11 +46,11 @@ doc_status: published
 
 ## Stage 4: Review
 
-18. Open PR with `## Issue / Summary / Verification / Traceability / Evidence` (5 H2 per CLAUDE.md).
-19. Reviewer-of-record from `owner_team` reviews and approves.
-20. For Tier 1 docs (PRD/DESIGN/SPEC/ROADMAP/ADR-INDEX/RISK-REGISTER/COMPLIANCE/SECURITY/PRIVACY/GTM/CONTRADICTION-LEDGER): a second council reviewer signs off.
-21. Per blast-radius class (see [DESIGN §3.0.5.3](DESIGN.md)), required reviewers per class are auto-pinged.
-22. Merge using `gh pr merge` per `guard-pr-merge-review.mjs` rules.
+18. Open PR with `## Issue / Summary / Verification / Code Review` (four H2s per CLAUDE.md).
+19. One author-distinct reviewer agent reviews and approves the exact PR head.
+20. For Tier 1 docs, the reviewer applies the council-architecture lens; no human approval or reviewer quorum is required.
+21. Per blast-radius class (see [DESIGN §3.0.5.3](DESIGN.md)), affected owners are notified for non-binding input.
+22. Merge through the protected PR only after review threads resolve, `oya-ci-required` is green, no conflict exists, and branch protection is satisfied.
 
 ## Stage 5: Publish
 

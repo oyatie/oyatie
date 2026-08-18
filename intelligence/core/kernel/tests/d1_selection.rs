@@ -118,7 +118,10 @@ fn fill_first_sticks_to_seat_a_until_unavailable() {
 
     // Five picks with no failures — all should be seat-a (FillFirst).
     for _ in 0..5 {
-        assert_eq!(pool.select(&tenant("t-1"), &agent_a, &gate, now).unwrap(), seat("seat-a"));
+        assert_eq!(
+            pool.select(&tenant("t-1"), &agent_a, &gate, now).unwrap(),
+            seat("seat-a")
+        );
     }
 
     // Knock seat-a into cooldown. FillFirst should now pick seat-b until it
@@ -127,7 +130,10 @@ fn fill_first_sticks_to_seat_a_until_unavailable() {
         .unwrap();
 
     for _ in 0..3 {
-        assert_eq!(pool.select(&tenant("t-1"), &agent_a, &gate, now).unwrap(), seat("seat-b"));
+        assert_eq!(
+            pool.select(&tenant("t-1"), &agent_a, &gate, now).unwrap(),
+            seat("seat-b")
+        );
     }
 }
 

@@ -81,9 +81,9 @@ impl fmt::Display for SpiffeIdError {
             }
             Self::EmptyPath => f.write_str("SVID URI has no path (bare trust domain, not an SVID)"),
             Self::MalformedPath => f.write_str("SVID URI path has an empty or malformed segment"),
-            Self::UnrecognizedWorkloadShape => f.write_str(
-                "SVID path is neither platform/<service> nor tenant/<ten_x>/<workload>",
-            ),
+            Self::UnrecognizedWorkloadShape => {
+                f.write_str("SVID path is neither platform/<service> nor tenant/<ten_x>/<workload>")
+            }
             Self::InvalidTenantSegment => {
                 f.write_str("SVID tenant path segment is not a valid ten_<slug>")
             }
@@ -130,10 +130,7 @@ impl WorkloadPath {
             if segment.is_empty() {
                 return Err(SpiffeIdError::MalformedPath);
             }
-            if segment
-                .chars()
-                .any(|c| c.is_whitespace() || c.is_control())
-            {
+            if segment.chars().any(|c| c.is_whitespace() || c.is_control()) {
                 return Err(SpiffeIdError::MalformedPath);
             }
         }
@@ -308,9 +305,7 @@ pub fn bind_caller_tenant(
     requested_tenant: &TenantId,
 ) -> Result<TenantId, TenantBindingError> {
     match svid.path() {
-        WorkloadPath::Platform { .. } => {
-            Err(TenantBindingError::PlatformSvidCannotBindTenant)
-        }
+        WorkloadPath::Platform { .. } => Err(TenantBindingError::PlatformSvidCannotBindTenant),
         WorkloadPath::Tenant { tenant, .. } => {
             if tenant == requested_tenant {
                 // Bind the SVID-derived tenant (identical to requested, but we
@@ -411,11 +406,12 @@ impl fmt::Display for VerifyError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::NoSpiffeUriSan => f.write_str("peer certificate carries no SPIFFE URI SAN"),
-            Self::AmbiguousUriSan => {
-                f.write_str("peer certificate carries more than one URI SAN")
-            }
+            Self::AmbiguousUriSan => f.write_str("peer certificate carries more than one URI SAN"),
             Self::UntrustedIssuer { detail } => {
-                write!(f, "peer certificate did not verify against the trust bundle: {detail}")
+                write!(
+                    f,
+                    "peer certificate did not verify against the trust bundle: {detail}"
+                )
             }
             Self::Expired => f.write_str("peer SVID is expired"),
             Self::MalformedSpiffeId(err) => write!(f, "peer SVID URI is malformed: {err}"),

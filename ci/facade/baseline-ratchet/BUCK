@@ -115,7 +115,9 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         ":ci-baseline-ratchet",
+        "//ci/adapters/path-resolver:ci-path-resolver-adapters",
         "//ci/facade/artifact-inventory-registry:ci-artifact-inventory-registry",
+        "//ci/facade/generated-artifact-freshness:ci-generated-artifact-freshness",
         "third-party//:serde_json",
     ],
 )

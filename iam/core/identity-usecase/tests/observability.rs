@@ -2,18 +2,18 @@
 // `.expect_err()` / `.unwrap_err()` to assert invariants — Tier 3 exemption.
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
+use iam_identity_domain::IdentityError;
 use iam_identity_usecase::{
     IDENTITY_TOKEN_ISSUE_SURFACE, IdentityApiAuthorization, IdentityApiBoundaryContext,
-    IdentityApiPrincipal, IdentityScopeRef, IdentityTokenIssueApiError, IdentityTokenIssueApiRequest,
-    IdentityTokenIssueIdempotencyLedger, IdentityTokenIssueRequest, IdentityTokenRotationRequest,
-    issue_identity_token_from_app,
+    IdentityApiPrincipal, IdentityScopeRef, IdentityTokenIssueApiError,
+    IdentityTokenIssueApiRequest, IdentityTokenIssueIdempotencyLedger, IdentityTokenIssueRequest,
+    IdentityTokenRotationRequest, issue_identity_token_from_app,
     observability::{
-        SURFACE, OutcomeLabel, IdentityTokenIssueEvent,
-        identity_token_issue_event_for_error, identity_token_issue_event_for_success,
-        identity_token_rotate_event_for_error, identity_token_rotate_event_for_success,
+        IdentityTokenIssueEvent, OutcomeLabel, SURFACE, identity_token_issue_event_for_error,
+        identity_token_issue_event_for_success, identity_token_rotate_event_for_error,
+        identity_token_rotate_event_for_success,
     },
 };
-use iam_identity_domain::IdentityError;
 
 // ── helpers ────────────────────────────────────────────────────────────────
 
@@ -118,9 +118,13 @@ fn every_api_error_variant_maps_to_stable_non_empty_error_code() {
         EmptyIdempotencyKey,
         EmptyPrincipalId,
         EmptyPrincipalKind,
-        InvalidPrincipalKind { principal_kind: "bad".to_string() },
+        InvalidPrincipalKind {
+            principal_kind: "bad".to_string(),
+        },
         EmptySubjectId,
-        InvalidSubjectKind { subject_kind: "bad".to_string() },
+        InvalidSubjectKind {
+            subject_kind: "bad".to_string(),
+        },
         TenantMismatch {
             header_tenant_id: "ten_a".to_string(),
             principal_tenant_id: "ten_b".to_string(),
@@ -139,10 +143,16 @@ fn every_api_error_variant_maps_to_stable_non_empty_error_code() {
             authorization_principal_id: "usr_x".to_string(),
             principal_id: "usr_y".to_string(),
         },
-        AuthorizationDenied { surface: "identity.token.issue".to_string() },
+        AuthorizationDenied {
+            surface: "identity.token.issue".to_string(),
+        },
         EmptyCredentialKind,
-        InvalidCredentialKind { credential_kind: "bad".to_string() },
-        InvalidPurpose { purpose: "bad".to_string() },
+        InvalidCredentialKind {
+            credential_kind: "bad".to_string(),
+        },
+        InvalidPurpose {
+            purpose: "bad".to_string(),
+        },
         EmptyPreviousTokenFingerprint,
         PreviousTokenNotYetActive {
             previous_issued_at_epoch_seconds: 200,
@@ -157,7 +167,9 @@ fn every_api_error_variant_maps_to_stable_non_empty_error_code() {
             replacement_subject_id: "usr_b".to_string(),
         },
         RotationPurposeScopeMismatch,
-        IdempotencyKeyReused { idempotency_key: "idem_x".to_string() },
+        IdempotencyKeyReused {
+            idempotency_key: "idem_x".to_string(),
+        },
         Identity(IdentityError::InvalidTenantId),
         Identity(IdentityError::InvalidUserId),
         Identity(IdentityError::InvalidRegionPack),
@@ -174,8 +186,13 @@ fn every_api_error_variant_maps_to_stable_non_empty_error_code() {
 
     for variant in variants {
         let event = identity_token_issue_event_for_error(&request, variant);
-        let code = event.error_code.expect("every error variant must have a non-None error_code");
-        assert!(!code.is_empty(), "error code must be non-empty for variant: {variant:?}");
+        let code = event
+            .error_code
+            .expect("every error variant must have a non-None error_code");
+        assert!(
+            !code.is_empty(),
+            "error code must be non-empty for variant: {variant:?}"
+        );
         assert_eq!(event.outcome, OutcomeLabel::Failure);
         assert_eq!(event.surface, SURFACE);
         assert_eq!(event.data_class, "AUDIT");
@@ -244,7 +261,10 @@ fn rotate_error_event_has_stable_error_code_and_failure_outcome() {
         .data
     };
 
-    let rotation = IdentityTokenRotationRequest { previous, replacement };
+    let rotation = IdentityTokenRotationRequest {
+        previous,
+        replacement,
+    };
     let error = IdentityTokenIssueApiError::RotationPurposeScopeMismatch;
     let event = identity_token_rotate_event_for_error(&rotation, &error);
 

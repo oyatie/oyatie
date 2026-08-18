@@ -14,8 +14,8 @@
 use std::collections::{BTreeMap, BTreeSet, VecDeque};
 use std::fmt;
 
-use oya_intelligence_capability_registry_domain::{PublishValidationError, validate_publish};
 use intelligence_capability_registry_kernel::{AutonomyTier, Capability, CapabilityId};
+use oya_intelligence_capability_registry_domain::{PublishValidationError, validate_publish};
 
 #[derive(Default)]
 pub struct CapabilityRegistry {
@@ -354,7 +354,8 @@ mod tests {
     fn affected_set_direct_dependent() {
         let mut r = CapabilityRegistry::new();
         r.register(cap("foundry.account.list")).unwrap();
-        r.register(cap_owned("foundry.account.summary", "foundry.account.list")).unwrap();
+        r.register(cap_owned("foundry.account.summary", "foundry.account.list"))
+            .unwrap();
         let result = r.affected_set(&id_set(&["foundry.account.list"]));
         assert_eq!(
             result,
@@ -366,8 +367,13 @@ mod tests {
     fn affected_set_transitive() {
         let mut r = CapabilityRegistry::new();
         r.register(cap("foundry.account.list")).unwrap();
-        r.register(cap_owned("foundry.account.summary", "foundry.account.list")).unwrap();
-        r.register(cap_owned("foundry.account.report", "foundry.account.summary")).unwrap();
+        r.register(cap_owned("foundry.account.summary", "foundry.account.list"))
+            .unwrap();
+        r.register(cap_owned(
+            "foundry.account.report",
+            "foundry.account.summary",
+        ))
+        .unwrap();
         let result = r.affected_set(&id_set(&["foundry.account.list"]));
         assert_eq!(
             result,
@@ -383,7 +389,8 @@ mod tests {
     fn affected_set_leaf_change_no_upstream() {
         let mut r = CapabilityRegistry::new();
         r.register(cap("foundry.account.list")).unwrap();
-        r.register(cap_owned("foundry.account.summary", "foundry.account.list")).unwrap();
+        r.register(cap_owned("foundry.account.summary", "foundry.account.list"))
+            .unwrap();
         // Changing the child (summary) does not pull in the parent (list).
         let result = r.affected_set(&id_set(&["foundry.account.summary"]));
         assert_eq!(result, id_set(&["foundry.account.summary"]));
@@ -394,12 +401,18 @@ mod tests {
         // B and C both depend on A; changing A affects A, B, C.
         let mut r = CapabilityRegistry::new();
         r.register(cap("foundry.core.base")).unwrap();
-        r.register(cap_owned("foundry.core.alpha", "foundry.core.base")).unwrap();
-        r.register(cap_owned("foundry.core.beta", "foundry.core.base")).unwrap();
+        r.register(cap_owned("foundry.core.alpha", "foundry.core.base"))
+            .unwrap();
+        r.register(cap_owned("foundry.core.beta", "foundry.core.base"))
+            .unwrap();
         let result = r.affected_set(&id_set(&["foundry.core.base"]));
         assert_eq!(
             result,
-            id_set(&["foundry.core.base", "foundry.core.alpha", "foundry.core.beta"])
+            id_set(&[
+                "foundry.core.base",
+                "foundry.core.alpha",
+                "foundry.core.beta"
+            ])
         );
     }
 
@@ -414,9 +427,11 @@ mod tests {
     fn affected_set_multiple_roots() {
         let mut r = CapabilityRegistry::new();
         r.register(cap("foundry.account.list")).unwrap();
-        r.register(cap_owned("foundry.account.summary", "foundry.account.list")).unwrap();
+        r.register(cap_owned("foundry.account.summary", "foundry.account.list"))
+            .unwrap();
         r.register(cap("foundry.session.read")).unwrap();
-        r.register(cap_owned("foundry.session.token", "foundry.session.read")).unwrap();
+        r.register(cap_owned("foundry.session.token", "foundry.session.read"))
+            .unwrap();
         let result = r.affected_set(&id_set(&["foundry.account.list", "foundry.session.read"]));
         assert_eq!(
             result,
