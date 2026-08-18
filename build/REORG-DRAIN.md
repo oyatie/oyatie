@@ -113,6 +113,25 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
   `specs/k8s-port/` and `.grok/` that describe PR #1621's tree were left alone: they are accurate
   about a past state, and rewriting them would falsify a record rather than update one.
 
+- P0b: module split to the 100–300 line bar, and the fence upgrade the split MADE NECESSARY.
+  Every architecture fence read `include_str!("lib.rs")` and nothing else, which was complete only
+  while a crate was one file — a `mod other;` compiles a file the scan never reads, so the
+  forbidden call had somewhere to hide one line below the thing checking for it. Each fence now
+  enumerates every production source AND proves the enumeration is the whole of `src/`; planting an
+  unscanned module reds it by name (verified by execution). Unit tests moved to `tests/`, so `src/`
+  is pure production and the scan is total by construction. 13 crates, 34 green test binaries.
+
+  THREE FILES ARE DELIBERATELY EXEMPT, with their reasons:
+  - `core/kernel/src/lib.rs` (512) — its single-file property is a COMPILE-TIME PROOF: the kernel
+    scans its own bytes and `UNSCANNED_CODE_KEYWORDS` refuses `mod` and `include!` outright, so
+    "the kernel is exactly this file" is a property of the build. Splitting it means deleting the
+    proof, which is a larger decision than a line count.
+  - `core/kernel/tests/seams.rs` (732) — same lineage. Its completeness argument is that its buck
+    target names exactly ONE source file, and the kernel `include_str!`s it for the corpus scan.
+    Splitting needs that argument rebuilt per file, not just the file cut in half.
+  - `core/rust-ir/src/lib.rs` (313) — P1 rewrites it wholesale for the typed IR. Splitting it now
+    and again in P1 is waste.
+
 ## Still owed by this lane
 
 - Struct methods still emit `todo!()`: bodies need selector expressions (`p.X` → `self.x`),

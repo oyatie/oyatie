@@ -1,5 +1,3 @@
-# Package-local src/rulepack-v0.json mirrors forever home specs/port-rules/** (integ/specs)
-# so include_str! stays hermetic under buck2 (same-package asset pattern as source-pin).
 rust_library(
     name = "port-engine-rulepack",
     srcs = glob(["src/**/*.rs", "src/**/*.json"]),
@@ -9,23 +7,48 @@ rust_library(
     deps = [
         "//build/port-engine/adapters/hash:port-engine-hash",
         "//build/port-engine/ports/api:port-engine-api",
-        "third-party//:serde",
-        "third-party//:serde_json",
     ],
 )
 
+# Loading a well-formed pack: the fixture gate, the digest, and the seams.
 rust_test(
-    name = "port-engine-rulepack-unittest",
-    srcs = glob(["src/**/*.rs", "src/**/*.json"]),
-    crate = "port_engine_rulepack",
-    crate_root = "src/lib.rs",
+    name = "port-engine-rulepack-load",
+    srcs = glob(["tests/load.rs", "tests/common/**/*.rs", "src/**/*.json"]),
+    crate = "port_engine_rulepack_load",
+    crate_root = "tests/load.rs",
     visibility = ["PUBLIC"],
     deps = [
+        ":port-engine-rulepack",
         "//build/port-engine/adapters/hash:port-engine-hash",
-        "//build/port-engine/core/kernel:port-engine-kernel",
         "//build/port-engine/ports/api:port-engine-api",
-        "third-party//:serde",
-        "third-party//:serde_json",
+        "//build/port-engine/core/kernel:port-engine-kernel",
+    ],
+)
+
+# Everything the loader refuses, including every once-dropped field.
+rust_test(
+    name = "port-engine-rulepack-refusals",
+    srcs = glob(["tests/refusals.rs", "tests/common/**/*.rs", "src/**/*.json"]),
+    crate = "port_engine_rulepack_refusals",
+    crate_root = "tests/refusals.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":port-engine-rulepack",
+        "//build/port-engine/adapters/hash:port-engine-hash",
+        "//build/port-engine/ports/api:port-engine-api",
+    ],
+)
+
+# Architecture fence. `srcs` carries the library sources because the fence READS them with
+# include_str! — they are inputs to compiling this test, never modules of it.
+rust_test(
+    name = "port-engine-rulepack-neutrality",
+    srcs = glob(["tests/neutrality.rs", "src/**/*.rs"]),
+    crate = "port_engine_rulepack_neutrality",
+    crate_root = "tests/neutrality.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":port-engine-rulepack",
     ],
 )
 

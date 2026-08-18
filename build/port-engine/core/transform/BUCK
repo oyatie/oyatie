@@ -10,13 +10,29 @@ rust_library(
     ],
 )
 
+# What each construction emits, and how identifiers are cased.
 rust_test(
-    name = "port-engine-transform-unittest",
-    srcs = glob(["src/**/*.rs"]),
-    crate = "port_engine_transform",
-    crate_root = "src/lib.rs",
+    name = "port-engine-transform-constructions",
+    srcs = glob(["tests/constructions.rs", "tests/common/**/*.rs"]),
+    crate = "port_engine_transform_constructions",
+    crate_root = "tests/constructions.rs",
     visibility = ["PUBLIC"],
     deps = [
+        ":port-engine-transform",
+        "//build/port-engine/core/rust-ir:port-engine-rust-ir",
+        "//build/port-engine/ports/api:port-engine-api",
+    ],
+)
+
+# Everything the transform refuses, and why each refusal exists.
+rust_test(
+    name = "port-engine-transform-refusals",
+    srcs = glob(["tests/refusals.rs", "tests/common/**/*.rs"]),
+    crate = "port_engine_transform_refusals",
+    crate_root = "tests/refusals.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":port-engine-transform",
         "//build/port-engine/core/rust-ir:port-engine-rust-ir",
         "//build/port-engine/ports/api:port-engine-api",
     ],

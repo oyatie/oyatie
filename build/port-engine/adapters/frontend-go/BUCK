@@ -11,17 +11,29 @@ rust_library(
     ],
 )
 
-# Compiles #[cfg(test)] modules in src/lib.rs (decode + Go firewall).
+# Snapshot decode: the envelope, the closed vocabularies, and every refusal.
 rust_test(
-    name = "port-engine-frontend-go-unittest",
-    srcs = glob(["src/**/*.rs"]),
-    crate = "port_engine_frontend_go",
-    crate_root = "src/lib.rs",
+    name = "port-engine-frontend-go-decode",
+    srcs = glob(["tests/decode.rs"]),
+    crate = "port_engine_frontend_go_decode",
+    crate_root = "tests/decode.rs",
     visibility = ["PUBLIC"],
     deps = [
+        ":port-engine-frontend-go",
         "//build/port-engine/ports/api:port-engine-api",
-        "third-party//:serde",
-        "third-party//:serde_json",
+    ],
+)
+
+# ADR-0638 D3 Go firewall. `srcs` carries the library sources as well as the test, because the
+# fence READS them with include_str! — they are inputs to compiling this test, never modules of it.
+rust_test(
+    name = "port-engine-frontend-go-firewall",
+    srcs = glob(["tests/firewall.rs", "src/**/*.rs"]),
+    crate = "port_engine_frontend_go_firewall",
+    crate_root = "tests/firewall.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":port-engine-frontend-go",
     ],
 )
 
