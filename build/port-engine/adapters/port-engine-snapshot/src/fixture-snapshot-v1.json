@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "language": "go",
-  "snapshot_digest": "sha256:30f22efac958523526f2bf92cf32e1a930936a92cb48681c70543546b01f3acc",
+  "snapshot_digest": "sha256:3d596902ffc33c101277f8a33e228d7489d62eda06ca47809075fefeb9e08692",
   "packages": [
     {
       "unit_id": "oyatie.example/portengine-fixture/basic",
@@ -28,6 +28,41 @@
               "kind": "result",
               "name": "",
               "type": "int"
+            },
+            {
+              "kind": "body",
+              "name": "",
+              "children": [
+                {
+                  "kind": "return",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "binary",
+                      "name": "",
+                      "attrs": {
+                        "op": "+"
+                      },
+                      "children": [
+                        {
+                          "kind": "ident",
+                          "name": "a",
+                          "attrs": {
+                            "ref": "local"
+                          }
+                        },
+                        {
+                          "kind": "ident",
+                          "name": "b",
+                          "attrs": {
+                            "ref": "local"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
             }
           ]
         },
@@ -87,6 +122,80 @@
               "kind": "result",
               "name": "",
               "type": "string"
+            },
+            {
+              "kind": "body",
+              "name": "",
+              "children": [
+                {
+                  "kind": "if",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "cond",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "binary",
+                          "name": "",
+                          "attrs": {
+                            "op": "=="
+                          },
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "id",
+                              "attrs": {
+                                "ref": "local"
+                              }
+                            },
+                            {
+                              "kind": "literal",
+                              "name": "",
+                              "attrs": {
+                                "lit_kind": "STRING",
+                                "value": "\"\""
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "then",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "return",
+                          "name": "",
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "fallback",
+                              "attrs": {
+                                "ref": "local"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "kind": "return",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "ident",
+                      "name": "id",
+                      "attrs": {
+                        "ref": "local"
+                      }
+                    }
+                  ]
+                }
+              ]
             }
           ]
         },
@@ -122,6 +231,41 @@
               "kind": "result",
               "name": "",
               "type": "float64"
+            },
+            {
+              "kind": "body",
+              "name": "",
+              "children": [
+                {
+                  "kind": "return",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "binary",
+                      "name": "",
+                      "attrs": {
+                        "op": "*"
+                      },
+                      "children": [
+                        {
+                          "kind": "ident",
+                          "name": "value",
+                          "attrs": {
+                            "ref": "local"
+                          }
+                        },
+                        {
+                          "kind": "ident",
+                          "name": "factor",
+                          "attrs": {
+                            "ref": "local"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
             }
           ]
         },
@@ -146,6 +290,25 @@
               "kind": "result",
               "name": "",
               "type": "int"
+            },
+            {
+              "kind": "body",
+              "name": "",
+              "children": [
+                {
+                  "kind": "return",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "ident",
+                      "name": "n",
+                      "attrs": {
+                        "ref": "local"
+                      }
+                    }
+                  ]
+                }
+              ]
             }
           ]
         }
@@ -239,6 +402,41 @@
                   "kind": "result",
                   "name": "",
                   "type": "int"
+                },
+                {
+                  "kind": "body",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "return",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "binary",
+                          "name": "",
+                          "attrs": {
+                            "op": "*"
+                          },
+                          "children": [
+                            {
+                              "kind": "unsupported",
+                              "name": "",
+                              "attrs": {
+                                "go_node": "SelectorExpr"
+                              }
+                            },
+                            {
+                              "kind": "unsupported",
+                              "name": "",
+                              "attrs": {
+                                "go_node": "SelectorExpr"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
                 }
               ]
             },
@@ -263,6 +461,25 @@
                   "kind": "result",
                   "name": "",
                   "type": "Point"
+                },
+                {
+                  "kind": "body",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "return",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "unsupported",
+                          "name": "",
+                          "attrs": {
+                            "go_node": "CompositeLit"
+                          }
+                        }
+                      ]
+                    }
+                  ]
                 }
               ]
             }

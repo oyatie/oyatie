@@ -23,6 +23,11 @@ const FIXTURE_SNAPSHOT_JSON: &str = include_str!("fixture-snapshot-v0.json");
 /// produced here — the ADR-0638 D3 firewall means no engine crate may run Go.
 const FIXTURE_SNAPSHOT_V1_JSON: &str = include_str!("fixture-snapshot-v1.json");
 
+/// Embedded v1 fixture for the corpus the engine is expected to REFUSE. Extracted from
+/// `../port-engine-frontend-go/gosrc/corpus-refused/`, which is kept out of the main corpus so the
+/// pipeline over that one stays green while the refusal path still gets exercised against real Go.
+const FIXTURE_SNAPSHOT_REFUSED_V1_JSON: &str = include_str!("fixture-snapshot-refused-v1.json");
+
 /// Fail-closed readiness gate. `true` once Slice 8 admission is present.
 pub const fn w0_ready() -> bool {
     true
@@ -349,6 +354,19 @@ pub fn admit_embedded_fixture() -> Result<AdmittedSnapshot, AdmitError> {
 /// which is how a drift between the Go and Rust encoders is meant to surface.
 pub fn admit_embedded_fixture_v1() -> Result<AdmittedSnapshot, AdmitError> {
     let bytes = FIXTURE_SNAPSHOT_V1_JSON.as_bytes();
+    admit_reproducible_pair(bytes, bytes)
+}
+
+/// Admit the refusal fixture.
+///
+/// This ADMITS — the snapshot is a faithful model of source the translator cannot yet handle, and
+/// a model of hard code is not itself invalid. The refusal belongs downstream, at the transform,
+/// where the construct is named.
+///
+/// # Errors
+/// [`AdmitError`] on fixture defect.
+pub fn admit_embedded_fixture_refused_v1() -> Result<AdmittedSnapshot, AdmitError> {
+    let bytes = FIXTURE_SNAPSHOT_REFUSED_V1_JSON.as_bytes();
     admit_reproducible_pair(bytes, bytes)
 }
 

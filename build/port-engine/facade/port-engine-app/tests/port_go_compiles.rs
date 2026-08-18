@@ -139,6 +139,31 @@ fn a_planted_defect_in_the_ported_corpus_is_unexplained() {
     }
 }
 
+/// The refusal path, exercised against REAL Go rather than synthetic nodes.
+///
+/// `corpus-refused/` holds a `for` loop and a `defer`, neither of which has a translation yet, and
+/// both of which the extractor records faithfully as `unsupported` rather than dropping. A dropped
+/// construct would make an untranslatable function indistinguishable from an empty one and the
+/// engine would emit a green, silently wrong body; recorded, it becomes a refusal that names the
+/// construct and points at the census entry where the analysis belongs.
+///
+/// A translator whose refusals are only ever tested on hand-built inputs has not been shown to
+/// refuse anything a front end would actually produce.
+#[test]
+fn the_refusal_corpus_is_refused_by_name() {
+    let err = driver::port_go_refused().expect_err("the refusal corpus must not translate");
+
+    let message = err.to_string();
+    assert!(
+        message.contains("ForStmt") || message.contains("DeferStmt"),
+        "the refusal must name the construct it refused, got: {message}"
+    );
+    assert!(
+        message.contains("census"),
+        "the refusal must point at where the analysis lives, got: {message}"
+    );
+}
+
 /// The six receipt axes carry real values for the first time. Before this lane every axis was
 /// typed and compared but never populated over a corpus, so the determinism claim held only over
 /// in-memory fakes.

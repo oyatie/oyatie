@@ -1,0 +1,127 @@
+{
+  "schema_version": 1,
+  "language": "go",
+  "snapshot_digest": "sha256:fed5b1d8ef5f4ad29461e347fe14e991866228aa00804b290fdfc2cfd57dd944",
+  "packages": [
+    {
+      "unit_id": "oyatie.example/portengine-fixture-refused/hard",
+      "producer": "bootstrap-go-packages-go-types",
+      "declarations": [
+        {
+          "kind": "func",
+          "name": "Countdown",
+          "flags": [
+            "exported"
+          ],
+          "children": [
+            {
+              "kind": "param",
+              "name": "n",
+              "type": "int"
+            },
+            {
+              "kind": "result",
+              "name": "",
+              "type": "int"
+            },
+            {
+              "kind": "body",
+              "name": "",
+              "children": [
+                {
+                  "kind": "let",
+                  "name": "total",
+                  "children": [
+                    {
+                      "kind": "literal",
+                      "name": "",
+                      "attrs": {
+                        "lit_kind": "INT",
+                        "value": "0"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "kind": "unsupported",
+                  "name": "",
+                  "attrs": {
+                    "go_node": "ForStmt"
+                  }
+                },
+                {
+                  "kind": "return",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "ident",
+                      "name": "total",
+                      "attrs": {
+                        "ref": "local"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "func",
+          "name": "Guarded",
+          "flags": [
+            "exported"
+          ],
+          "children": [
+            {
+              "kind": "param",
+              "name": "n",
+              "type": "int"
+            },
+            {
+              "kind": "result",
+              "name": "",
+              "type": "int"
+            },
+            {
+              "kind": "body",
+              "name": "",
+              "children": [
+                {
+                  "kind": "unsupported",
+                  "name": "",
+                  "attrs": {
+                    "go_node": "DeferStmt"
+                  }
+                },
+                {
+                  "kind": "return",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "ident",
+                      "name": "n",
+                      "attrs": {
+                        "ref": "local"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "func",
+          "name": "cleanup",
+          "children": [
+            {
+              "kind": "body",
+              "name": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

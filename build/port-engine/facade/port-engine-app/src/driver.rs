@@ -20,8 +20,8 @@ use port_engine_identity::{engine_digest, w0_ready as identity_ready};
 use port_engine_rulepack::{LoadedRulePack, RulepackError, w0_ready as rulepack_ready};
 use port_engine_rust_ir::{EmptyRenderer, RustIr, SynQuoteRenderer};
 use port_engine_snapshot::{
-    AdmitError, AdmittedSnapshot, admit_embedded_fixture, admit_embedded_fixture_v1,
-    w0_ready as snapshot_ready,
+    AdmitError, AdmittedSnapshot, admit_embedded_fixture, admit_embedded_fixture_refused_v1,
+    admit_embedded_fixture_v1, w0_ready as snapshot_ready,
 };
 use port_engine_source_pin::{load_embedded, receipt_pin};
 use port_engine_toolchain::{toolchain_digest, w0_ready as toolchain_ready};
@@ -305,6 +305,19 @@ pub fn port_go_pipeline() -> Result<PipelineReport, PipelineError> {
         emitted,
         receipt,
     })
+}
+
+/// Attempt to port the refusal corpus, returning the refusal.
+///
+/// # Errors
+/// [`PipelineError`] — and a `Transform` refusal is the SUCCESSFUL outcome for this input, which
+/// is why the caller inspects the error rather than treating it as a failure.
+pub fn port_go_refused() -> Result<usize, PipelineError> {
+    let admitted = admit_embedded_fixture_refused_v1().map_err(PipelineError::Admit)?;
+    let pack = LoadedRulePack::load_embedded_go_rust().map_err(PipelineError::Rulepack)?;
+    let plan = port_engine_kernel::plan(admitted.as_model(), &pack).map_err(PipelineError::Plan)?;
+    let ir = apply(&plan, &pack, admitted.as_model()).map_err(PipelineError::Transform)?;
+    Ok(ir.regions().len())
 }
 
 /// Assemble an emitted tree into one compilable Rust source: a module per source unit.
