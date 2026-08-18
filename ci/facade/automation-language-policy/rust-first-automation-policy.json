@@ -317,7 +317,7 @@
         ".github/workflows/buck2-weekly-smoke.yml": 3,
         ".github/workflows/oya-ci-required.yml": 21
       },
-      "keys_total": 24
+      "keys_total": 22
     },
     "replacement_window": {
       "schema_version": 1,
@@ -367,20 +367,12 @@
           "shell_lines": 10
         },
         {
-          "key": ".github/workflows/oya-ci-required.yml::live-postgres-adapters::Install postgresql-client",
-          "shell_lines": 1
-        },
-        {
           "key": ".github/workflows/oya-ci-required.yml::live-postgres-adapters::Live Postgres tests (adapters)",
           "shell_lines": 1
         },
         {
           "key": ".github/workflows/oya-ci-required.yml::live-postgres-facades::Bootstrap roles and schemas (facades)",
           "shell_lines": 10
-        },
-        {
-          "key": ".github/workflows/oya-ci-required.yml::live-postgres-facades::Install postgresql-client",
-          "shell_lines": 1
         },
         {
           "key": ".github/workflows/oya-ci-required.yml::live-postgres-facades::Live Postgres tests (facades)",

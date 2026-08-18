@@ -36,6 +36,14 @@ env:
   EVENT_REF: ${{ github.ref }}
   EVENT_PULL_REQUEST_BASE_REF: ${{ github.event.pull_request.base.ref || '' }}
   EVENT_MERGE_GROUP_BASE_REF: ${{ github.event.merge_group.base_ref || '' }}
+  # CI never opens a debugger, and this repo declares only [profile.release] — so dev/test
+  # builds took cargo's defaults and generated FULL debuginfo for 1,759 packages. Debuginfo
+  # also inflates target/, which slows cache save and restore at both ends. Set here rather
+  # than in Cargo.toml so local developer builds keep their debuginfo.
+  CARGO_PROFILE_DEV_DEBUG: "0"
+  CARGO_PROFILE_TEST_DEBUG: "0"
+  # Incremental state caches nothing useful on a fresh runner and costs time and disk to write.
+  CARGO_INCREMENTAL: "0"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
@@ -178,21 +186,23 @@ jobs:
       - uses: swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
         with:
           shared-key: cargo-ci-linux
-      - name: Install postgresql-client
-        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends postgresql-client && psql --version
       - name: Bootstrap roles and schemas (adapters)
         env:
           ADMIN_PASSWORD: oya_ci_pg_admin_local_only
           APP_PASSWORD: oya_ci_pg_app_local_only
         run: |
           set -euo pipefail; admin_password="${ADMIN_PASSWORD:-oya_ci_pg_admin_local_only}"; app_password="${APP_PASSWORD:-oya_ci_pg_app_local_only}"; if [ -f /run/oya-ci-postgres/admin-password ]; then admin_password="$(cat /run/oya-ci-postgres/admin-password)"; fi; if [ -f /run/oya-ci-postgres/app-password ]; then app_password="$(cat /run/oya-ci-postgres/app-password)"; fi; test -n "${admin_password}" && test -n "${app_password}"; echo "::add-mask::${admin_password}"; echo "::add-mask::${app_password}"; export PGPASSWORD="${admin_password}"; printf 'OYA_PG_ADMIN_URL=postgres://postgres:%s@127.0.0.1:5432/oyatie\nOYA_PG_APP_URL=postgres://oya_app:%s@127.0.0.1:5432/oyatie\n' "${admin_password}" "${app_password}" >> "${GITHUB_ENV}"
-          ADMIN_PSQL=(psql -v ON_ERROR_STOP=1 -h 127.0.0.1 -p 5432 -U postgres -d oyatie)
+          # psql runs INSIDE the postgres service container, which already ships it. The
+          # runner previously apt-installed postgresql-client; that unretried network call was
+          # cancelled mid-install and ejected a merge-queue entry (#2106). Under ALLGREEN
+          # batching one such flake fails the whole batch and re-batches everything behind it.
+          ADMIN_PSQL=(docker exec -i -e PGPASSWORD="${admin_password}" "${{ job.services.postgres.id }}" psql -v ON_ERROR_STOP=1 -U postgres -d oyatie)
           "${ADMIN_PSQL[@]}" -c "DO \$\$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='oya_app') THEN EXECUTE format('CREATE ROLE oya_app LOGIN PASSWORD %L NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE', '${app_password}'); END IF; END \$\$;"
-          "${ADMIN_PSQL[@]}" -f tenancy/adapters/tenant-lifecycle-store-postgres/migrations/0000_runtime_role.sql
-          "${ADMIN_PSQL[@]}" -f tenancy/adapters/tenant-lifecycle-store-postgres/migrations/0001_tenant_lifecycle_store.sql
+          "${ADMIN_PSQL[@]}" < tenancy/adapters/tenant-lifecycle-store-postgres/migrations/0000_runtime_role.sql
+          "${ADMIN_PSQL[@]}" < tenancy/adapters/tenant-lifecycle-store-postgres/migrations/0001_tenant_lifecycle_store.sql
           "${ADMIN_PSQL[@]}" -c "GRANT tenancy_lifecycle_runtime TO oya_app;"
-          "${ADMIN_PSQL[@]}" -f iam/adapters/identity-scim-store-postgres/migrations/0000_runtime_role.sql
-          "${ADMIN_PSQL[@]}" -f iam/adapters/identity-scim-store-postgres/migrations/0001_identity_scim_store.sql
+          "${ADMIN_PSQL[@]}" < iam/adapters/identity-scim-store-postgres/migrations/0000_runtime_role.sql
+          "${ADMIN_PSQL[@]}" < iam/adapters/identity-scim-store-postgres/migrations/0001_identity_scim_store.sql
           "${ADMIN_PSQL[@]}" -c "GRANT identity_scim_runtime TO oya_app;"
           "${ADMIN_PSQL[@]}" -c "SELECT rolname, rolsuper, rolbypassrls FROM pg_roles WHERE rolname IN ('postgres','oya_app','tenancy_lifecycle_runtime','identity_scim_runtime') ORDER BY rolname;"
       - name: Live Postgres tests (adapters)
@@ -236,21 +246,23 @@ jobs:
       - uses: swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
         with:
           shared-key: cargo-ci-linux
-      - name: Install postgresql-client
-        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends postgresql-client && psql --version
       - name: Bootstrap roles and schemas (facades)
         env:
           ADMIN_PASSWORD: oya_ci_pg_admin_local_only
           APP_PASSWORD: oya_ci_pg_app_local_only
         run: |
           set -euo pipefail; admin_password="${ADMIN_PASSWORD:-oya_ci_pg_admin_local_only}"; app_password="${APP_PASSWORD:-oya_ci_pg_app_local_only}"; if [ -f /run/oya-ci-postgres/admin-password ]; then admin_password="$(cat /run/oya-ci-postgres/admin-password)"; fi; if [ -f /run/oya-ci-postgres/app-password ]; then app_password="$(cat /run/oya-ci-postgres/app-password)"; fi; test -n "${admin_password}" && test -n "${app_password}"; echo "::add-mask::${admin_password}"; echo "::add-mask::${app_password}"; export PGPASSWORD="${admin_password}"; printf 'OYA_PG_ADMIN_URL=postgres://postgres:%s@127.0.0.1:5432/oyatie\nOYA_PG_APP_URL=postgres://oya_app:%s@127.0.0.1:5432/oyatie\n' "${admin_password}" "${app_password}" >> "${GITHUB_ENV}"
-          ADMIN_PSQL=(psql -v ON_ERROR_STOP=1 -h 127.0.0.1 -p 5432 -U postgres -d oyatie)
+          # psql runs INSIDE the postgres service container, which already ships it. The
+          # runner previously apt-installed postgresql-client; that unretried network call was
+          # cancelled mid-install and ejected a merge-queue entry (#2106). Under ALLGREEN
+          # batching one such flake fails the whole batch and re-batches everything behind it.
+          ADMIN_PSQL=(docker exec -i -e PGPASSWORD="${admin_password}" "${{ job.services.postgres.id }}" psql -v ON_ERROR_STOP=1 -U postgres -d oyatie)
           "${ADMIN_PSQL[@]}" -c "DO \$\$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='oya_app') THEN EXECUTE format('CREATE ROLE oya_app LOGIN PASSWORD %L NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE', '${app_password}'); END IF; END \$\$;"
-          "${ADMIN_PSQL[@]}" -f tenancy/adapters/tenant-lifecycle-store-postgres/migrations/0000_runtime_role.sql
-          "${ADMIN_PSQL[@]}" -f tenancy/adapters/tenant-lifecycle-store-postgres/migrations/0001_tenant_lifecycle_store.sql
+          "${ADMIN_PSQL[@]}" < tenancy/adapters/tenant-lifecycle-store-postgres/migrations/0000_runtime_role.sql
+          "${ADMIN_PSQL[@]}" < tenancy/adapters/tenant-lifecycle-store-postgres/migrations/0001_tenant_lifecycle_store.sql
           "${ADMIN_PSQL[@]}" -c "GRANT tenancy_lifecycle_runtime TO oya_app;"
-          "${ADMIN_PSQL[@]}" -f iam/adapters/identity-scim-store-postgres/migrations/0000_runtime_role.sql
-          "${ADMIN_PSQL[@]}" -f iam/adapters/identity-scim-store-postgres/migrations/0001_identity_scim_store.sql
+          "${ADMIN_PSQL[@]}" < iam/adapters/identity-scim-store-postgres/migrations/0000_runtime_role.sql
+          "${ADMIN_PSQL[@]}" < iam/adapters/identity-scim-store-postgres/migrations/0001_identity_scim_store.sql
           "${ADMIN_PSQL[@]}" -c "GRANT identity_scim_runtime TO oya_app;"
           "${ADMIN_PSQL[@]}" -c "SELECT rolname, rolsuper, rolbypassrls FROM pg_roles WHERE rolname IN ('postgres','oya_app','tenancy_lifecycle_runtime','identity_scim_runtime') ORDER BY rolname;"
       - name: Live Postgres tests (facades)
