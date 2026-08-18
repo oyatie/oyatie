@@ -122,10 +122,6 @@
       "prefix": "ci/facade/scm-facts-snapshot/src/retirement.rs"
     },
     {
-      "anchor": "ADR-0632 hermetic input declaration: exact root BUCK file for the governed cloud manifest and internal Proto corpora consumed by the product-protocol gate.",
-      "prefix": "cloud/BUCK"
-    },
-    {
       "anchor": "ADR-0541: Buck package marker for the comms capability residual corpus target. This package keeps the capability's rehomed service docs, manifests, contracts and OpenSLO YAML inside the Buck2 corpus graph after the capability-first rehome; without it those files leave buck2-packaged space entirely (measured across nine roots: 996 YAML files, unpackaged 1069 -> 75).",
       "prefix": "comms/BUCK"
     },

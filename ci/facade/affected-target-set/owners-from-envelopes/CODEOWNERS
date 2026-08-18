@@ -22,7 +22,6 @@ libs/ @teams/libs
 OWNERS @teams/build
 audit/ @teams/audit
 build/ @teams/build
-cloud/ @teams/cloud
 comms/ @teams/comms
 flags/ @teams/flags
 specs/ @teams/specs
