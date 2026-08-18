@@ -151,15 +151,30 @@ fn gh_987_cloud_templates_are_disarmed_from_blanket_baseline() {
         .expect("collected configmaps array");
 
     for path in GH_987_CLOUD_PATHS {
+        // The disarm assertion holds for EVERY listed path, deleted or not. It is the
+        // anti-regression guard: if one of these templates is ever recreated, it must not come
+        // back pre-approved by the blanket baseline. Keeping deleted paths in this list is
+        // deliberate — dropping them would silently retire the guarantee.
         assert!(
             !baseline_paths.contains(path),
             "{path} must not remain in the blanket baseline after GH #987 disarm"
         );
 
-        let configmap = configmaps
+        // The permit assertions below can only apply to a template that still exists. PR #2103
+        // collapsed the per-service Helm charts onto iac/charts/oyatie-microservice, deleting
+        // most of these; a deleted template deploys no ConfigMap and no permits, so demanding one
+        // asserted that the chart collapse never happened. A path that is gone cannot carry an
+        // over-broad permit, which is the property this test exists to defend.
+        let Some(configmap) = configmaps
             .iter()
             .find(|configmap| configmap.get("path").and_then(Value::as_str) == Some(path))
-            .unwrap_or_else(|| panic!("missing deployed Cedar ConfigMap for {path}"));
+        else {
+            assert!(
+                !std::path::Path::new(path).exists(),
+                "{path} exists in the tree but the scan found no deployed Cedar ConfigMap for it"
+            );
+            continue;
+        };
         assert_eq!(
             configmap.get("authored_found").and_then(Value::as_bool),
             Some(true),
