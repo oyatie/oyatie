@@ -2,7 +2,7 @@
 
 use port_engine_api::{Digest, UnitId};
 use port_engine_frontend_go::{
-    GoSourceModel, PRODUCER_BOOTSTRAP_GO, SCHEMA_VERSION_DECLARATIONS,
+    GoSourceModel, PRODUCER_BOOTSTRAP_GO, SCHEMA_VERSION_DECLARATIONS, SCHEMA_VERSION_FLAT_TYPES,
     SCHEMA_VERSION_IDENTITY_ONLY, SnapshotError, w0_ready,
 };
 
@@ -68,8 +68,8 @@ fn refuses_nul_in_unit_identity() {
     );
 }
 
-const V1: &str = r#"{
-  "schema_version": 1,
+const STRUCTURED: &str = r#"{
+  "schema_version": 2,
   "language": "go",
   "snapshot_digest": "sha256:fixture-v1",
   "packages": [
@@ -77,11 +77,11 @@ const V1: &str = r#"{
   "unit_id": "example.com/a",
   "producer": "bootstrap-go-packages-go-types",
   "declarations": [
-    {"kind": "const", "name": "Max", "type": "int", "flags": ["exported"]},
+    {"kind": "const", "name": "Max", "type": {"kind": "basic", "name": "int"}, "flags": ["exported"]},
     {"kind": "func", "name": "Add", "flags": ["exported"], "children": [
-      {"kind": "param", "name": "a", "type": "int"},
-      {"kind": "param", "name": "b", "type": "int"},
-      {"kind": "result", "name": "", "type": "int"}
+      {"kind": "param", "name": "a", "type": {"kind": "basic", "name": "int"}},
+      {"kind": "param", "name": "b", "type": {"kind": "basic", "name": "int"}},
+      {"kind": "result", "name": "", "type": {"kind": "basic", "name": "int"}}
     ]}
   ]
 }
@@ -90,13 +90,13 @@ const V1: &str = r#"{
 
 fn with_declarations(body: &str) -> String {
     format!(
-        r#"{{"schema_version":1,"language":"go","snapshot_digest":"d","packages":[{{"unit_id":"x","producer":"{PRODUCER_BOOTSTRAP_GO}","declarations":[{body}]}}]}}"#
+        r#"{{"schema_version":2,"language":"go","snapshot_digest":"d","packages":[{{"unit_id":"x","producer":"{PRODUCER_BOOTSTRAP_GO}","declarations":[{body}]}}]}}"#
     )
 }
 
 #[test]
-fn decodes_v1_declaration_tree() {
-    let model = GoSourceModel::decode_str(V1).expect("v1 fixture must decode");
+fn decodes_the_structured_declaration_tree() {
+    let model = GoSourceModel::decode_str(STRUCTURED).expect("the structured fixture must decode");
     assert_eq!(model.schema_version(), SCHEMA_VERSION_DECLARATIONS);
 
     let declarations = model
@@ -109,7 +109,8 @@ fn decodes_v1_declaration_tree() {
     assert!(add.has_flag("exported"));
     assert_eq!(add.children.len(), 3);
     assert_eq!(add.children_of_kind("param").len(), 2);
-    assert_eq!(add.children_of_kind("result")[0].type_ref, "int");
+    assert_eq!(add.children_of_kind("result")[0].type_ref.kind, "basic");
+    assert_eq!(add.children_of_kind("result")[0].type_ref.name, "int");
 }
 
 #[test]
@@ -124,9 +125,24 @@ fn v0_artifact_still_decodes_and_declares_nothing() {
 
 #[test]
 fn refuses_unknown_schema_version() {
-    let json = r#"{"schema_version":2,"language":"go","snapshot_digest":"d","packages":[]}"#;
+    let json = r#"{"schema_version":9,"language":"go","snapshot_digest":"d","packages":[]}"#;
     let err = GoSourceModel::decode_str(json).expect_err("a future version must refuse");
-    assert_eq!(err, SnapshotError::UnknownSchemaVersion { actual: 2 });
+    assert_eq!(err, SnapshotError::UnknownSchemaVersion { actual: 9 });
+}
+
+/// v1 is refused rather than half-decoded. It carried types as flat SPELLINGS, which cannot answer
+/// what v2 asks — there is no structure and no package qualification in it — and treating each
+/// spelling as an opaque name would reinstate exactly the flat-table resolution v2 replaced.
+#[test]
+fn refuses_the_superseded_flat_type_version() {
+    let json = r#"{"schema_version":1,"language":"go","snapshot_digest":"d","packages":[]}"#;
+    let err = GoSourceModel::decode_str(json).expect_err("a v1 artifact must be regenerated");
+    assert_eq!(
+        err,
+        SnapshotError::UnknownSchemaVersion {
+            actual: SCHEMA_VERSION_FLAT_TYPES
+        }
+    );
 }
 
 /// A v0 envelope carrying declarations is a version lie: the field says the payload has no
@@ -153,7 +169,8 @@ fn refuses_declaration_kind_outside_the_closed_vocabulary() {
 /// declares, and `struct` is not a thing a parameter list contains.
 #[test]
 fn refuses_member_kind_at_package_scope() {
-    let json = with_declarations(r#"{"kind":"param","name":"a","type":"int"}"#);
+    let json =
+        with_declarations(r#"{"kind":"param","name":"a","type":{"kind":"basic","name":"int"}}"#);
     let err = GoSourceModel::decode_str(&json).expect_err("member kind at top level refuses");
     assert!(matches!(err, SnapshotError::UnknownDeclarationKind { .. }));
 }
@@ -184,8 +201,9 @@ fn refuses_flag_outside_the_closed_vocabulary() {
 /// lost information rather than a naming choice.
 #[test]
 fn refuses_duplicate_declaration_name_in_one_namespace() {
-    let json =
-        with_declarations(r#"{"kind":"const","name":"K","type":"int"},{"kind":"func","name":"K"}"#);
+    let json = with_declarations(
+        r#"{"kind":"const","name":"K","type":{"kind":"basic","name":"int"}},{"kind":"func","name":"K"}"#,
+    );
     let err = GoSourceModel::decode_str(&json).expect_err("duplicate name must refuse");
     assert!(matches!(err, SnapshotError::DuplicateDeclaration { .. }));
 }
@@ -195,7 +213,7 @@ fn refuses_duplicate_declaration_name_in_one_namespace() {
 #[test]
 fn admits_repeated_blank_member_names() {
     let json = with_declarations(
-        r#"{"kind":"func","name":"f","children":[{"kind":"param","name":"","type":"int"},{"kind":"param","name":"","type":"int"},{"kind":"param","name":"_","type":"int"},{"kind":"param","name":"_","type":"int"}]}"#,
+        r#"{"kind":"func","name":"f","children":[{"kind":"param","name":"","type":{"kind":"basic","name":"int"}},{"kind":"param","name":"","type":{"kind":"basic","name":"int"}},{"kind":"param","name":"_","type":{"kind":"basic","name":"int"}},{"kind":"param","name":"_","type":{"kind":"basic","name":"int"}}]}"#,
     );
     let model = GoSourceModel::decode_str(&json).expect("unnamed parameters are legal Go");
     let decls = model

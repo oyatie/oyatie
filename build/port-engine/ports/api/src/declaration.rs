@@ -2,6 +2,8 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
+use crate::type_ref::TypeRef;
+
 /// One node of a unit's declaration tree: what the unit declares, as the front end saw it.
 ///
 /// UNIFORM BY DESIGN. A constant, a struct field, a function parameter and an interface method are
@@ -20,8 +22,11 @@ pub struct Declaration {
     pub kind: String,
     /// The declared identifier. Empty is legal — an unnamed result is a real declaration.
     pub name: String, // data_class: INTERNAL_ONLY
-    /// The declared type, as an opaque slug. Empty when the node declares no type.
-    pub type_ref: String, // data_class: INTERNAL_ONLY
+    /// The declared type, as a tree. Empty when the node declares no type.
+    ///
+    /// A TREE and not a spelling: a flat string cannot express a composite, cannot address a type
+    /// in another package, and cannot tell two packages' identically-named types apart.
+    pub type_ref: TypeRef,
     /// Boolean facts, as a set of opaque slugs rather than named booleans, so a front end can
     /// record a new one without widening this seam.
     pub flags: BTreeSet<String>, // data_class: INTERNAL_ONLY

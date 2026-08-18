@@ -30,8 +30,8 @@ mod vocabulary;
 pub use apply::{apply, apply_with_provenance};
 pub use error::TransformError;
 pub use naming::{
-    region_id_for, region_id_for_declaration, sanitize_ident, to_pascal_case, to_screaming_snake,
-    to_snake_case,
+    module_name, module_path, region_id_for, region_id_for_declaration, sanitize_ident,
+    to_pascal_case, to_screaming_snake, to_snake_case,
 };
 pub use vocabulary::{
     ATTR_DOC, ATTR_OP, ATTR_REF, ATTR_SOURCE_NODE, ATTR_VALUE, CONSTRUCTION_EMPTY_CANARY,

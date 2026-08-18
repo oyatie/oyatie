@@ -26,6 +26,10 @@ impl PackSemantics for LoadedRulePack {
         &self.type_map
     }
 
+    fn type_constructors(&self) -> &BTreeMap<String, String> {
+        &self.type_constructors
+    }
+
     fn type_map_overrides(&self, construction: &str) -> Option<&BTreeMap<String, String>> {
         self.type_map_overrides.get(construction)
     }

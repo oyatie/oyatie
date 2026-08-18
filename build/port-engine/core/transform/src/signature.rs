@@ -141,10 +141,7 @@ pub(crate) fn params(
             } else {
                 to_snake_case(&param.name)
             };
-            Ok(RustParam {
-                name,
-                ty: RustType::path(ty),
-            })
+            Ok(RustParam { name, ty })
         })
         .collect()
 }
@@ -156,9 +153,7 @@ pub(crate) fn results(
     let results = declaration.children_of_kind(CHILD_RESULT);
     let mut types = Vec::with_capacity(results.len());
     for result in results {
-        types.push(RustType::path(
-            resolver.resolve(&result.type_ref, &declaration.name)?,
-        ));
+        types.push(resolver.resolve(&result.type_ref, &declaration.name)?);
     }
     match types.len() {
         0 => Ok(None),

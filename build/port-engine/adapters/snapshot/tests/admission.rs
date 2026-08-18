@@ -2,7 +2,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use port_engine_api::{Declaration, Digest, SourceModel, UnitId};
+use port_engine_api::{Declaration, Digest, SourceModel, TypeRef, UnitId};
 use port_engine_frontend_go::{PRODUCER_BOOTSTRAP_GO, PRODUCER_OWNED_RUST};
 use port_engine_hash::digest_bytes;
 use port_engine_snapshot::*;
@@ -53,12 +53,7 @@ fn v1_fixture_admits_and_carries_declarations() {
     let admitted = admit_embedded_fixture_v1().expect("v1 fixture must admit");
 
     let units = admitted.as_model().units();
-    assert_eq!(units.len(), 2, "corpus has two packages");
-    assert!(
-        units
-            .iter()
-            .all(|u| u.0.ends_with("basic") || u.0.ends_with("shapes"))
-    );
+    assert_eq!(units.len(), 3, "corpus has three packages");
 
     let basic = units
         .iter()
@@ -123,14 +118,14 @@ fn v1_preimage_moves_when_a_declaration_moves() {
     let base = Declaration {
         kind: "const".into(),
         name: "MaxRetries".into(),
-        type_ref: "int".into(),
+        type_ref: TypeRef::basic("int"),
         flags: ["exported".to_owned()].into_iter().collect(),
         attrs: [("value".to_owned(), "3".to_owned())].into_iter().collect(),
         children: Vec::new(),
     };
 
     let mut retyped = base.clone();
-    retyped.type_ref = "int64".into();
+    retyped.type_ref = TypeRef::basic("int64");
     let mut unexported = base.clone();
     unexported.flags.clear();
 
@@ -158,7 +153,7 @@ fn v1_preimage_distinguishes_nesting_from_sibling_order() {
     let leaf = |name: &str| Declaration {
         kind: "param".into(),
         name: name.into(),
-        type_ref: "int".into(),
+        type_ref: TypeRef::basic("int"),
         flags: std::collections::BTreeSet::new(),
         attrs: std::collections::BTreeMap::new(),
         children: Vec::new(),
@@ -167,7 +162,7 @@ fn v1_preimage_distinguishes_nesting_from_sibling_order() {
     let nested = Declaration {
         kind: "func".into(),
         name: "f".into(),
-        type_ref: String::new(),
+        type_ref: TypeRef::default(),
         flags: std::collections::BTreeSet::new(),
         attrs: std::collections::BTreeMap::new(),
         children: vec![leaf("a")],

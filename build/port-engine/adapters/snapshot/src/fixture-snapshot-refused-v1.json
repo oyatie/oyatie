@@ -1,10 +1,10 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "language": "go",
-  "snapshot_digest": "sha256:6e0c3bc840e32bbb2175d12a81d01ee491fe9348fada2ea5c16f8d3d83c2650b",
+  "snapshot_digest": "sha256:5478491d38189071ef35b2ca02600518ce16583ad9581b98fc48d371d2ee10d2",
   "packages": [
     {
-      "unit_id": "oyatie.example/portengine-fixture-refused/hard",
+      "unit_id": "oyatie.example/portengine-fixture-refused/corpus-refused/hard",
       "producer": "bootstrap-go-packages-go-types",
       "declarations": [
         {
@@ -20,12 +20,18 @@
             {
               "kind": "param",
               "name": "n",
-              "type": "int"
+              "type": {
+                "kind": "basic",
+                "name": "int"
+              }
             },
             {
               "kind": "result",
               "name": "",
-              "type": "int"
+              "type": {
+                "kind": "basic",
+                "name": "int"
+              }
             },
             {
               "kind": "body",
@@ -82,12 +88,18 @@
             {
               "kind": "param",
               "name": "n",
-              "type": "int"
+              "type": {
+                "kind": "basic",
+                "name": "int"
+              }
             },
             {
               "kind": "result",
               "name": "",
-              "type": "int"
+              "type": {
+                "kind": "basic",
+                "name": "int"
+              }
             },
             {
               "kind": "body",

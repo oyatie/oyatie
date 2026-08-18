@@ -2,19 +2,52 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use port_engine_api::Declaration;
+use port_engine_api::{Declaration, TypeRef};
 
 use crate::error::SnapshotError;
 use crate::vocabulary::{
-    KNOWN_ATTR_KEYS, KNOWN_DECLARATION_KINDS, KNOWN_FLAGS, KNOWN_MEMBER_KINDS,
+    KNOWN_ATTR_KEYS, KNOWN_DECLARATION_KINDS, KNOWN_FLAGS, KNOWN_MEMBER_KINDS, KNOWN_TYPE_KINDS,
 };
 use crate::wire::DeclarationEntry;
+use crate::wire::TypeEntry;
 
 pub(crate) fn convert_declarations(
     unit_id: &str,
     entries: &[DeclarationEntry],
 ) -> Result<Vec<Declaration>, SnapshotError> {
     convert_level(unit_id, entries, KNOWN_DECLARATION_KINDS)
+}
+
+/// Convert one type node, checking every kind against the closed vocabulary.
+///
+/// An absent type is the DEFAULT node rather than a missing one: a declaration with no type is a
+/// real shape (a function, a struct), and making the caller distinguish `None` from "empty" would
+/// push a null check into every construction for no gain.
+fn convert_type(unit_id: &str, entry: Option<&TypeEntry>) -> Result<TypeRef, SnapshotError> {
+    let Some(entry) = entry else {
+        return Ok(TypeRef::default());
+    };
+    if !KNOWN_TYPE_KINDS.contains(&entry.kind.as_str()) {
+        return Err(SnapshotError::UnknownTypeKind {
+            unit_id: unit_id.to_owned(),
+            actual: entry.kind.clone(),
+        });
+    }
+    if entry.name.contains('\0') || entry.package.contains('\0') {
+        return Err(SnapshotError::Schema {
+            field: "packages.declarations.type",
+        });
+    }
+    let mut args = Vec::with_capacity(entry.args.len());
+    for arg in &entry.args {
+        args.push(convert_type(unit_id, Some(arg))?);
+    }
+    Ok(TypeRef {
+        kind: entry.kind.clone(),
+        name: entry.name.clone(),
+        package: entry.package.clone(),
+        args,
+    })
 }
 
 fn convert_level(
@@ -32,7 +65,7 @@ fn convert_level(
                 actual: entry.kind.clone(),
             });
         }
-        if entry.name.contains('\0') || entry.type_ref.contains('\0') {
+        if entry.name.contains('\0') {
             return Err(SnapshotError::Schema {
                 field: "packages.declarations",
             });
@@ -69,7 +102,7 @@ fn convert_level(
         out.push(Declaration {
             kind: entry.kind.clone(),
             name: entry.name.clone(),
-            type_ref: entry.type_ref.clone(),
+            type_ref: convert_type(unit_id, entry.type_ref.as_ref())?,
             flags,
             attrs,
             children: convert_level(unit_id, &entry.children, KNOWN_MEMBER_KINDS)?,

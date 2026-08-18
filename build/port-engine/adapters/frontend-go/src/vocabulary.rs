@@ -15,8 +15,37 @@ pub const PRODUCER_OWNED_RUST: &str = "owned-rust-go-front-end";
 /// Envelope version carrying unit identity only.
 pub const SCHEMA_VERSION_IDENTITY_ONLY: u32 = 0;
 
-/// Envelope version carrying the declaration tree.
-pub const SCHEMA_VERSION_DECLARATIONS: u32 = 1;
+/// Envelope version carrying the declaration tree with types as flat spellings.
+///
+/// NOT ACCEPTED. A v1 artifact cannot answer the questions v2 asks — it has no type structure and
+/// no package qualification — and decoding one by treating each spelling as an opaque name would
+/// reintroduce exactly the flat-table resolution v2 replaced. Refusing it names the fix
+/// (regenerate) instead of half-answering.
+pub const SCHEMA_VERSION_FLAT_TYPES: u32 = 1;
+
+/// Envelope version carrying the declaration tree with types as TREES.
+pub const SCHEMA_VERSION_DECLARATIONS: u32 = 2;
+
+/// The closed type-kind vocabulary. Closed for the same reason the declaration kinds are: a kind
+/// the engine has never heard of is a kind no rule will ever answer for, and accepting it would
+/// let a type resolve to nothing without anyone being told.
+pub const KNOWN_TYPE_KINDS: &[&str] = &[
+    "array",
+    "basic",
+    "chan",
+    "func",
+    "interface",
+    "map",
+    "named",
+    "pointer",
+    "slice",
+    "struct",
+    "tuple",
+    "type_param",
+    // A type shape with no node of its own is RECORDED rather than dropped, and refused by name
+    // downstream. Dropping it would make an untranslatable type look like an absent one.
+    "unsupported",
+];
 
 /// Declaration kinds this Go adapter admits, at package scope.
 ///

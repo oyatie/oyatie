@@ -19,7 +19,7 @@ use port_engine_snapshot::{
 };
 use port_engine_source_pin::{load_embedded, receipt_pin};
 use port_engine_toolchain::toolchain_digest;
-use port_engine_transform::{TransformError, apply, apply_with_provenance, sanitize_ident};
+use port_engine_transform::{TransformError, apply, apply_with_provenance, module_name};
 
 use crate::receipt_codec::{emit_tree_digest, format_receipt, matches_golden};
 
@@ -123,22 +123,6 @@ pub fn assemble_modules(report: &PipelineReport) -> String {
         out.push_str("}\n");
     }
     out
-}
-
-/// A unit id reduced to one Rust module identifier.
-fn module_name(unit: &str) -> String {
-    // The last path segment is the package's own name; the rest is where it lives. Using the whole
-    // path would produce module names nobody can read, and using the segment alone would collide
-    // across two packages of the same name — so the leading segments are kept as a prefix only
-    // when the tail alone would be ambiguous. Today's corpus has no such collision, and a future
-    // one becomes a rustc duplicate-definition error rather than a silent overwrite.
-    let tail = unit.rsplit('/').next().unwrap_or(unit);
-    let name = sanitize_ident(tail);
-    if name.as_bytes().first().is_some_and(u8::is_ascii_digit) {
-        format!("_{name}")
-    } else {
-        name
-    }
 }
 
 /// Assemble the ported corpus and fail closed against the committed golden.

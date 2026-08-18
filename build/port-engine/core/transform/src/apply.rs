@@ -119,6 +119,7 @@ pub fn apply_with_provenance(
                     scope: &scope,
                     type_map: semantics.type_map(),
                     overrides: semantics.type_map_overrides(construction),
+                    constructors: semantics.type_constructors(),
                     receiver: semantics.trait_receiver(),
                     unit: &step.unit,
                 },

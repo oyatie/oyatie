@@ -6,7 +6,7 @@
 //! the two surfacing as a digest mismatch at admission rather than as a silently accepted
 //! snapshot.
 
-use port_engine_api::Declaration;
+use port_engine_api::{Declaration, TypeRef};
 
 /// Stable admission preimage: length-prefixed language, then each length-prefixed unit and
 /// producer in model order.
@@ -74,10 +74,33 @@ pub fn snapshot_preimage_v1(
     out
 }
 
+/// The type TREE, mirrored by the extractor's `encodeType`.
+///
+/// Leaving it out would put every type OUTSIDE the snapshot identity: change a field's type and
+/// `snapshot_digest` would not move, so the receipt would find the emitted bytes changed with all
+/// six axes held and call a fully explainable change `Unexplained`.
+///
+/// A present/absent marker leads, so a declaration with no type and one whose type is an empty
+/// node cannot encode identically.
+fn push_type(out: &mut Vec<u8>, type_ref: &TypeRef) {
+    if type_ref.is_empty() {
+        push_field(out, "0");
+        return;
+    }
+    push_field(out, "1");
+    push_field(out, &type_ref.kind);
+    push_field(out, &type_ref.name);
+    push_field(out, &type_ref.package);
+    push_field(out, &type_ref.args.len().to_string());
+    for arg in &type_ref.args {
+        push_type(out, arg);
+    }
+}
+
 fn push_declaration(out: &mut Vec<u8>, declaration: &Declaration) {
     push_field(out, &declaration.kind);
     push_field(out, &declaration.name);
-    push_field(out, &declaration.type_ref);
+    push_type(out, &declaration.type_ref);
     // `flags` is a BTreeSet and `attrs` a BTreeMap, so both iterate sorted — the same order the
     // extractor sorts into. A set with two orderings would be a set with two digests.
     push_field(out, &declaration.flags.len().to_string());

@@ -117,6 +117,41 @@ pub fn to_pascal_case(raw: &str) -> String {
     out
 }
 
+/// A unit id reduced to one target module identifier.
+///
+/// Lives HERE, in the face that owns target naming, because two callers need it and they must
+/// agree: the assembler groups regions into modules by it, and the resolver addresses another
+/// unit's types through it. Deriving it twice is how a cross-unit reference ends up pointing at a
+/// module nobody emitted.
+///
+/// The last path segment is the package's own name; the leading segments say where it lives.
+/// Using the whole path produces module names nobody can read; using the tail alone collides
+/// across two packages of the same name — and that collision becomes a rustc duplicate-definition
+/// error rather than a silent overwrite, which is why the readable form is worth its risk today.
+#[must_use]
+pub fn module_name(unit: &str) -> String {
+    let tail = unit.rsplit('/').next().unwrap_or(unit);
+    let name = sanitize_ident(tail);
+    if name.as_bytes().first().is_some_and(u8::is_ascii_digit) {
+        format!("_{name}")
+    } else {
+        name
+    }
+}
+
+/// The absolute module path another unit's items are addressed by.
+///
+/// Absolute, because the emitted unit modules are SIBLINGS: a relative `shapes::Point` written
+/// inside `geometry` resolves to nothing, since there is no `shapes` in `geometry`'s scope.
+///
+/// The `crate::` prefix is a claim about the emitted LAYOUT — that unit modules sit at the crate
+/// root — and the assembler in the facade is what makes that claim true. If the layout ever nests
+/// them, this function and that assembler move together or cross-unit references break.
+#[must_use]
+pub fn module_path(unit: &str) -> String {
+    format!("crate::{}", module_name(unit))
+}
+
 /// Target visibility for a declaration.
 ///
 /// A VALUE, not a `"pub "` string prefix. The prefix form is what let `pub` be concatenated into a

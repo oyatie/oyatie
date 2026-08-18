@@ -41,9 +41,16 @@ import (
 // at admission rather than a silent relabel.
 const producerBootstrapGo = "bootstrap-go-packages-go-types"
 
-// schemaVersion is the snapshot envelope version this extractor emits. v0 carried unit
-// identity only; v1 adds the declaration tree.
-const schemaVersion = 1
+// schemaVersion is the snapshot envelope version this extractor emits.
+//
+//	v0 — unit identity only
+//	v1 — declaration tree, with types as flat spellings
+//	v2 — declaration tree, with types as TREES
+//
+// v1 is not merely superseded, it is UNACCEPTABLE to the current engine: a v1 artifact cannot
+// answer the questions v2 asks, and decoding one by treating each spelling as an opaque name
+// would reintroduce exactly the flat-table resolution v2 exists to replace.
+const schemaVersion = 2
 
 // ---------------------------------------------------------------------------------
 // Envelope
@@ -73,10 +80,10 @@ type pkgNode struct {
 // `type`, and `flags` are opaque slugs the engine compares and never interprets; the rule
 // pack's `captures` are what give them meaning.
 type node struct {
-	Kind  string   `json:"kind"`
-	Name  string   `json:"name"`
-	Type  string   `json:"type,omitempty"`
-	Flags []string `json:"flags,omitempty"`
+	Kind  string    `json:"kind"`
+	Name  string    `json:"name"`
+	Type  *typeNode `json:"type,omitempty"`
+	Flags []string  `json:"flags,omitempty"`
 	// Attrs carries key->value facts that do not fit a set: a constant's value, and whatever a
 	// later front end needs to record. Kept separate from Flags because the two answer different
 	// questions — Flags is membership, Attrs is a value — and collapsing them would mean encoding
@@ -84,6 +91,39 @@ type node struct {
 	Attrs    map[string]string `json:"attrs,omitempty"`
 	Children []node            `json:"children,omitempty"`
 }
+
+// typeNode is one node of a type TREE. Same uniform shape as `node`: `kind` is a value, so a
+// second source language needs a second rule pack rather than a second seam.
+//
+// `Package` is what makes a named type addressable. Without it a reference to another package's
+// type is indistinguishable from a local one, and two packages declaring the same name are
+// indistinguishable from each other — so a resolver silently picks one.
+type typeNode struct {
+	Kind    string      `json:"kind"`
+	Name    string      `json:"name,omitempty"`
+	Package string      `json:"package,omitempty"`
+	Args    []*typeNode `json:"args,omitempty"`
+}
+
+// Type kinds. Part of the snapshot contract: the rule pack answers for each one.
+const (
+	typeBasic     = "basic"
+	typeNamed     = "named"
+	typePointer   = "pointer"
+	typeSlice     = "slice"
+	typeArray     = "array"
+	typeMap       = "map"
+	typeChan      = "chan"
+	typeFunc      = "func"
+	typeInterface = "interface"
+	typeStruct    = "struct"
+	typeTuple     = "tuple"
+	typeParam     = "type_param"
+	// typeUnsupported keeps the model FAITHFUL where the translator is not: a type shape with no
+	// node of its own is recorded as present and refused by name downstream, rather than dropped
+	// into a spelling nobody can act on.
+	typeUnsupported = "unsupported"
+)
 
 // Declaration kinds. These strings are the vocabulary the rule pack's `captures` select
 // on, so they are part of the snapshot contract rather than an internal detail.
@@ -167,10 +207,11 @@ const (
 func main() {
 	corpus := flag.String("corpus", "./corpus", "directory whose subdirectories are Go packages")
 	module := flag.String("module", "oyatie.example/portengine-fixture", "module path prefix for unit ids")
+	root := flag.String("root", ".", "module root; unit ids are import paths relative to it")
 	out := flag.String("out", "", "output file; empty writes to stdout")
 	flag.Parse()
 
-	model, err := extract(*corpus, *module)
+	model, err := extract(*corpus, *module, *root)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "extractor: %v\n", err)
 		os.Exit(1)
@@ -207,7 +248,7 @@ func render(model *snapshot) ([]byte, error) {
 // Extraction
 // ---------------------------------------------------------------------------------
 
-func extract(corpusDir string, modulePath string) (*snapshot, error) {
+func extract(corpusDir string, modulePath string, moduleRoot string) (*snapshot, error) {
 	dirs, err := packageDirs(corpusDir)
 	if err != nil {
 		return nil, err
@@ -216,6 +257,18 @@ func extract(corpusDir string, modulePath string) (*snapshot, error) {
 		return nil, fmt.Errorf("corpus %s contains no Go package directory", corpusDir)
 	}
 
+	// The corpus is its own importer: an intra-corpus import resolves by type-checking the
+	// referenced package here, because no module path the stdlib importer knows contains it.
+	packages := map[string]string{}
+	for _, dir := range dirs {
+		rel, err := filepath.Rel(moduleRoot, dir)
+		if err != nil {
+			return nil, fmt.Errorf("relativize %s: %w", dir, err)
+		}
+		packages[modulePath+"/"+filepath.ToSlash(rel)] = dir
+	}
+	resolver := newCorpusImporter(packages)
+
 	model := &snapshot{
 		SchemaVersion: schemaVersion,
 		Language:      "go",
@@ -223,13 +276,13 @@ func extract(corpusDir string, modulePath string) (*snapshot, error) {
 	}
 
 	for _, dir := range dirs {
-		rel, err := filepath.Rel(corpusDir, dir)
+		rel, err := filepath.Rel(moduleRoot, dir)
 		if err != nil {
 			return nil, fmt.Errorf("relativize %s: %w", dir, err)
 		}
 		unitID := modulePath + "/" + filepath.ToSlash(rel)
 
-		decls, err := extractPackage(dir, unitID)
+		decls, err := extractPackage(dir, unitID, resolver)
 		if err != nil {
 			return nil, fmt.Errorf("package %s: %w", unitID, err)
 		}
@@ -247,6 +300,86 @@ func extract(corpusDir string, modulePath string) (*snapshot, error) {
 
 	model.SnapshotDigest = digest(preimage(model))
 	return model, nil
+}
+
+// corpusImporter resolves an import to a package inside the corpus, and defers to the stdlib
+// importer for anything else.
+//
+// Memoised, and memoised on the PACKAGE rather than on the check: a diamond import would otherwise
+// type-check the shared dependency twice and produce two distinct `types.Package` values for one
+// package, so a cross-package type would compare unequal to itself.
+type corpusImporter struct {
+	dirs     map[string]string
+	resolved map[string]*types.Package
+	fallback types.Importer
+	fset     *token.FileSet
+}
+
+func newCorpusImporter(dirs map[string]string) *corpusImporter {
+	fset := token.NewFileSet()
+	return &corpusImporter{
+		dirs:     dirs,
+		resolved: map[string]*types.Package{},
+		fallback: importer.ForCompiler(fset, "source", nil),
+		fset:     fset,
+	}
+}
+
+func (c *corpusImporter) Import(path string) (*types.Package, error) {
+	if pkg, ok := c.resolved[path]; ok {
+		return pkg, nil
+	}
+	dir, ok := c.dirs[path]
+	if !ok {
+		return c.fallback.Import(path)
+	}
+
+	files, err := parsePackage(c.fset, dir)
+	if err != nil {
+		return nil, err
+	}
+	conf := types.Config{Importer: c}
+	pkg, err := conf.Check(path, c.fset, files, nil)
+	if err != nil {
+		return nil, fmt.Errorf("import %s: %w", path, err)
+	}
+	c.resolved[path] = pkg
+	return pkg, nil
+}
+
+// parsePackage reads and parses every non-test Go file in dir, in sorted order.
+func parsePackage(fset *token.FileSet, dir string) ([]*ast.File, error) {
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return nil, fmt.Errorf("read dir: %w", err)
+	}
+	names := make([]string, 0, len(entries))
+	for _, entry := range entries {
+		name := entry.Name()
+		if entry.IsDir() || !strings.HasSuffix(name, ".go") || strings.HasSuffix(name, "_test.go") {
+			continue
+		}
+		names = append(names, name)
+	}
+	// Sorted parse order keeps go/types' object ordering reproducible across filesystems.
+	sort.Strings(names)
+
+	files := make([]*ast.File, 0, len(names))
+	for _, name := range names {
+		// ParseComments is REQUIRED for doc extraction: without it every `Doc` field is nil and
+		// the documentation is dropped in silence.
+		file, err := parser.ParseFile(
+			fset,
+			filepath.Join(dir, name),
+			nil,
+			parser.ParseComments|parser.SkipObjectResolution,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("parse %s: %w", name, err)
+		}
+		files = append(files, file)
+	}
+	return files, nil
 }
 
 // packageDirs returns every directory at or under root holding at least one .go file,
@@ -277,7 +410,7 @@ func packageDirs(root string) ([]string, error) {
 	return dirs, nil
 }
 
-func extractPackage(dir string, unitID string) ([]node, error) {
+func extractPackage(dir string, unitID string, resolver types.Importer) ([]node, error) {
 	fset := token.NewFileSet()
 
 	entries, err := os.ReadDir(dir)
@@ -312,7 +445,7 @@ func extractPackage(dir string, unitID string) ([]node, error) {
 		files = append(files, file)
 	}
 
-	conf := types.Config{Importer: importer.ForCompiler(fset, "source", nil)}
+	conf := types.Config{Importer: resolver}
 	info := &types.Info{Uses: map[*ast.Ident]types.Object{}}
 	tpkg, err := conf.Check(unitID, fset, files, info)
 	if err != nil {
@@ -443,7 +576,7 @@ func declFor(obj types.Object, ctx *extractCtx) (node, error) {
 	switch typed := obj.(type) {
 	case *types.Const:
 		base.Kind = kindConst
-		base.Type = types.TypeString(typed.Type(), qualify)
+		base.Type = typeTree(typed.Type())
 		if value := typed.Val(); value != nil {
 			base.Attrs = withAttr(base.Attrs, attrValue, value.String())
 		}
@@ -451,7 +584,7 @@ func declFor(obj types.Object, ctx *extractCtx) (node, error) {
 
 	case *types.Var:
 		base.Kind = kindVar
-		base.Type = types.TypeString(typed.Type(), qualify)
+		base.Type = typeTree(typed.Type())
 		return base, nil
 
 	case *types.Func:
@@ -485,7 +618,7 @@ func typeDecl(obj *types.TypeName, base node, ctx *extractCtx) (node, error) {
 		// resolves the chain to the aliased type, which is what a type map answers with.
 		// This is the alias TARGET; a parameter written as `ID` still extracts as `ID`,
 		// because there the alias name is what was written.
-		base.Type = types.TypeString(types.Unalias(obj.Type()), qualify)
+		base.Type = typeTree(types.Unalias(obj.Type()))
 		return base, nil
 	}
 
@@ -511,7 +644,7 @@ func typeDecl(obj *types.TypeName, base node, ctx *extractCtx) (node, error) {
 			base.Children = append(base.Children, node{
 				Kind:  kindField,
 				Name:  field.Name(),
-				Type:  types.TypeString(field.Type(), qualify),
+				Type:  typeTree(field.Type()),
 				Flags: flagsFor(field.Exported(), false, field.Embedded(), false),
 				Attrs: withDoc(nil, ctx.fieldDocs[obj.Name()+"."+field.Name()]),
 			})
@@ -544,7 +677,7 @@ func typeDecl(obj *types.TypeName, base node, ctx *extractCtx) (node, error) {
 
 	default:
 		base.Kind = kindNamed
-		base.Type = types.TypeString(underlying, qualify)
+		base.Type = typeTree(underlying)
 		base.Children = methods
 		return base, nil
 	}
@@ -836,6 +969,107 @@ func withAttr(attrs map[string]string, key string, value string) map[string]stri
 	return attrs
 }
 
+// typeTree renders a go/types type as a tree.
+//
+// Deliberately does NOT unalias: an alias is a name the source chose, and resolving it here would
+// discard the author's vocabulary before the pack ever sees it. The pack can unalias if it wants
+// to; it cannot re-alias.
+func typeTree(t types.Type) *typeNode {
+	switch typed := t.(type) {
+	case *types.Basic:
+		return &typeNode{Kind: typeBasic, Name: typed.Name()}
+
+	case *types.Alias:
+		return namedNode(typed.Obj())
+
+	case *types.Named:
+		out := namedNode(typed.Obj())
+		for i := 0; i < typed.TypeArgs().Len(); i++ {
+			out.Args = append(out.Args, typeTree(typed.TypeArgs().At(i)))
+		}
+		return out
+
+	case *types.Pointer:
+		return &typeNode{Kind: typePointer, Args: []*typeNode{typeTree(typed.Elem())}}
+
+	case *types.Slice:
+		return &typeNode{Kind: typeSlice, Args: []*typeNode{typeTree(typed.Elem())}}
+
+	case *types.Array:
+		// The length is part of the type. It is carried as a name rather than an argument because
+		// it is not a type, and putting a non-type in the argument list would make the arity of
+		// every other kind ambiguous.
+		return &typeNode{
+			Kind: typeArray,
+			Name: strconv.FormatInt(typed.Len(), 10),
+			Args: []*typeNode{typeTree(typed.Elem())},
+		}
+
+	case *types.Map:
+		return &typeNode{
+			Kind: typeMap,
+			Args: []*typeNode{typeTree(typed.Key()), typeTree(typed.Elem())},
+		}
+
+	case *types.Chan:
+		return &typeNode{
+			Kind: typeChan,
+			Name: chanDirection(typed.Dir()),
+			Args: []*typeNode{typeTree(typed.Elem())},
+		}
+
+	case *types.Signature:
+		out := &typeNode{Kind: typeFunc}
+		out.Args = append(out.Args, tupleTypeNode(typed.Params()), tupleTypeNode(typed.Results()))
+		return out
+
+	case *types.Interface:
+		return &typeNode{Kind: typeInterface}
+
+	case *types.Struct:
+		return &typeNode{Kind: typeStruct}
+
+	case *types.Tuple:
+		return tupleTypeNode(typed)
+
+	case *types.TypeParam:
+		return &typeNode{Kind: typeParam, Name: typed.Obj().Name()}
+
+	default:
+		return &typeNode{Kind: typeUnsupported, Name: strings.TrimPrefix(fmt.Sprintf("%T", t), "*types.")}
+	}
+}
+
+func namedNode(obj *types.TypeName) *typeNode {
+	out := &typeNode{Kind: typeNamed, Name: obj.Name()}
+	if pkg := obj.Pkg(); pkg != nil {
+		out.Package = pkg.Path()
+	}
+	return out
+}
+
+func tupleTypeNode(tuple *types.Tuple) *typeNode {
+	out := &typeNode{Kind: typeTuple}
+	if tuple == nil {
+		return out
+	}
+	for i := 0; i < tuple.Len(); i++ {
+		out.Args = append(out.Args, typeTree(tuple.At(i).Type()))
+	}
+	return out
+}
+
+func chanDirection(dir types.ChanDir) string {
+	switch dir {
+	case types.SendOnly:
+		return "send"
+	case types.RecvOnly:
+		return "recv"
+	default:
+		return "both"
+	}
+}
+
 // isPointerReceiver reports whether sig is bound through a pointer receiver.
 func isPointerReceiver(sig *types.Signature) bool {
 	recv := sig.Recv()
@@ -858,7 +1092,7 @@ func signatureChildren(sig *types.Signature, qualify types.Qualifier) []node {
 
 // tupleNodes preserves tuple order, which IS semantic: parameters and results are
 // positional in both Go and Rust.
-func tupleNodes(kind string, tuple *types.Tuple, qualify types.Qualifier) []node {
+func tupleNodes(kind string, tuple *types.Tuple, _ types.Qualifier) []node {
 	if tuple == nil || tuple.Len() == 0 {
 		return nil
 	}
@@ -868,7 +1102,7 @@ func tupleNodes(kind string, tuple *types.Tuple, qualify types.Qualifier) []node
 		nodes = append(nodes, node{
 			Kind: kind,
 			Name: v.Name(),
-			Type: types.TypeString(v.Type(), qualify),
+			Type: typeTree(v.Type()),
 		})
 	}
 	return nodes
@@ -907,7 +1141,12 @@ func flagsFor(exported bool, variadic bool, embedded bool, pointerReceiver bool)
 //
 // `F(s)` is the decimal byte length of s, a `:`, then s. Every node encodes as
 //
-//	F(kind) F(name) F(type) F(len(flags)) flags... F(len(children)) children...
+//	F(kind) F(name) T(type) F(len(flags)) flags...
+//	    F(len(attrs)) (F(key) F(value))... F(len(children)) children...
+///
+// where T(type) is F("0") for an absent type, and otherwise
+//
+//	F("1") F(kind) F(name) F(package) F(len(args)) args...
 //
 // Length prefixes plus explicit arity make the encoding injective: no value, however it
 // is spelled, can imitate a delimiter or absorb a sibling. That is why the digest does not
@@ -935,7 +1174,7 @@ func preimage(model *snapshot) []byte {
 func encodeNode(out *[]byte, n node) {
 	field(out, n.Kind)
 	field(out, n.Name)
-	field(out, n.Type)
+	encodeType(out, n.Type)
 	field(out, strconv.Itoa(len(n.Flags)))
 	for _, flag := range n.Flags {
 		field(out, flag)
@@ -955,6 +1194,24 @@ func encodeNode(out *[]byte, n node) {
 	field(out, strconv.Itoa(len(n.Children)))
 	for _, child := range n.Children {
 		encodeNode(out, child)
+	}
+}
+
+// encodeType covers the type TREE. Leaving it out would put every type outside the snapshot
+// identity: change a field's type and `snapshot_digest` would not move, so the receipt would find
+// emitted bytes changed with all six axes held and call a fully explainable change Unexplained.
+func encodeType(out *[]byte, t *typeNode) {
+	if t == nil {
+		field(out, "0")
+		return
+	}
+	field(out, "1")
+	field(out, t.Kind)
+	field(out, t.Name)
+	field(out, t.Package)
+	field(out, strconv.Itoa(len(t.Args)))
+	for _, arg := range t.Args {
+		encodeType(out, arg)
 	}
 }
 

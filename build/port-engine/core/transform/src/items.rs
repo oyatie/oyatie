@@ -53,7 +53,7 @@ fn build_const(
         docs: docs_of(declaration),
         vis: visibility(declaration),
         name: to_screaming_snake(&declaration.name),
-        ty: RustType::path(resolver.resolve(&declaration.type_ref, &declaration.name)?),
+        ty: resolver.resolve(&declaration.type_ref, &declaration.name)?,
         value: value.to_owned(),
     })
 }
@@ -66,7 +66,7 @@ fn build_type_alias(
         docs: docs_of(declaration),
         vis: visibility(declaration),
         name: to_pascal_case(&declaration.name),
-        ty: RustType::path(resolver.resolve(&declaration.type_ref, &declaration.name)?),
+        ty: resolver.resolve(&declaration.type_ref, &declaration.name)?,
     })
 }
 
@@ -89,7 +89,7 @@ fn build_newtype(
             docs: Vec::new(),
             vis,
             name: String::new(),
-            ty: RustType::path(resolver.resolve(&declaration.type_ref, &declaration.name)?),
+            ty: resolver.resolve(&declaration.type_ref, &declaration.name)?,
         }]),
         methods: inherent_methods(declaration, resolver)?,
     })
@@ -105,7 +105,7 @@ fn build_struct(
             docs: docs_of(field),
             vis: visibility(field),
             name: to_snake_case(&field.name),
-            ty: RustType::path(resolver.resolve(&field.type_ref, &field.name)?),
+            ty: resolver.resolve(&field.type_ref, &field.name)?,
         });
     }
 

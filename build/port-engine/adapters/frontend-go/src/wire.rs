@@ -7,6 +7,18 @@ use std::collections::BTreeMap;
 
 use serde::Deserialize;
 
+/// Wire shape of one type-tree node.
+#[derive(Deserialize)]
+pub(crate) struct TypeEntry {
+    pub(crate) kind: String,
+    #[serde(default)]
+    pub(crate) name: String,
+    #[serde(default)]
+    pub(crate) package: String,
+    #[serde(default)]
+    pub(crate) args: Vec<TypeEntry>,
+}
+
 #[derive(Deserialize)]
 pub(crate) struct SnapshotDocument {
     /// Absent in v0 artifacts, which predate the field.
@@ -32,7 +44,7 @@ pub(crate) struct DeclarationEntry {
     #[serde(default)]
     pub(crate) name: String,
     #[serde(default, rename = "type")]
-    pub(crate) type_ref: String,
+    pub(crate) type_ref: Option<TypeEntry>,
     #[serde(default)]
     pub(crate) flags: Vec<String>,
     #[serde(default)]

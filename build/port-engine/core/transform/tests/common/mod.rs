@@ -5,7 +5,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use port_engine_api::{
     Declaration, Digest, LanguagePair, PackSemantics, PlanStep, RuleId, SourceModel, TargetIr,
-    TransformPlan, UnitId,
+    TransformPlan, TypeRef, UnitId,
 };
 use port_engine_rust_ir::RustIr;
 use port_engine_transform::*;
@@ -19,6 +19,7 @@ pub struct Pack {
     /// rule → (construction, precondition, captures)
     pub rules: BTreeMap<&'static str, (&'static str, &'static str, Vec<String>)>,
     pub types: BTreeMap<String, String>,
+    pub constructors: BTreeMap<String, String>,
     pub overrides: BTreeMap<String, BTreeMap<String, String>>,
     pub deferred: BTreeSet<String>,
     /// The declared trait-receiver decision. `None` means the pack made none, which is a refusal.
@@ -47,6 +48,13 @@ impl Pack {
         for (from, to) in pairs {
             self.types.insert((*from).to_owned(), (*to).to_owned());
         }
+        self
+    }
+
+    /// Declare a composite constructor template, as a real pack does.
+    pub fn with_constructor(mut self, kind: &str, template: &str) -> Self {
+        self.constructors
+            .insert(kind.to_owned(), template.to_owned());
         self
     }
 
@@ -87,6 +95,9 @@ impl PackSemantics for Pack {
     fn type_map(&self) -> &BTreeMap<String, String> {
         &self.types
     }
+    fn type_constructors(&self) -> &BTreeMap<String, String> {
+        &self.constructors
+    }
     fn type_map_overrides(&self, construction: &str) -> Option<&BTreeMap<String, String>> {
         self.overrides.get(construction)
     }
@@ -120,11 +131,17 @@ impl SourceModel for Model {
     }
 }
 
+/// A declaration whose type, when it has one, is a PRIMITIVE of that name. Tests that need a
+/// named or composite type build the `TypeRef` themselves.
 pub fn decl(kind: &str, name: &str, type_ref: &str) -> Declaration {
     Declaration {
         kind: kind.into(),
         name: name.into(),
-        type_ref: type_ref.into(),
+        type_ref: if type_ref.is_empty() {
+            TypeRef::default()
+        } else {
+            TypeRef::basic(type_ref)
+        },
         flags: ["exported".to_owned()].into_iter().collect(),
         attrs: BTreeMap::new(),
         children: Vec::new(),
