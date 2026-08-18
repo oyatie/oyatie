@@ -16,8 +16,8 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use port_engine_api::{
-    Digest, LanguagePair, PlanStep, PortError, RECEIPT_AXES, Receipt, ReceiptAxis, RegionId,
-    Renderer, RuleId, RulePack, SourceModel, TargetIr, UnitId,
+    Declaration, Digest, LanguagePair, PlanStep, PortError, RECEIPT_AXES, Receipt, ReceiptAxis,
+    RegionId, Renderer, RuleId, RulePack, SourceModel, TargetIr, UnitId,
 };
 use port_engine_kernel::{Delta, Verdict, Verification, emit, plan, verify};
 
@@ -38,6 +38,11 @@ impl SourceModel for FakeModel {
     }
     fn units(&self) -> Vec<UnitId> {
         self.units.clone()
+    }
+    // The kernel reads identity and order only, so the seam fakes declare nothing. `Some(vec![])`
+    // over `None` keeps "in the model, declares nothing" distinct from "not in the model".
+    fn declarations(&self, unit: &UnitId) -> Option<Vec<Declaration>> {
+        self.units.contains(unit).then(Vec::new)
     }
 }
 

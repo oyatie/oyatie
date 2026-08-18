@@ -6,9 +6,10 @@
 //! binary from library sources used by verify.
 #![forbid(unsafe_code)]
 
+use std::collections::BTreeSet;
 use std::fmt;
 
-use port_engine_api::{Digest, UnitId};
+use port_engine_api::{Declaration, Digest, UnitId};
 use serde::Deserialize;
 
 /// Canonical bootstrap extractor identity (ADR-0638 D3).
@@ -16,6 +17,37 @@ pub const PRODUCER_BOOTSTRAP_GO: &str = "bootstrap-go-packages-go-types";
 
 /// Owned Rust front-end producer identity (authorized only after W2 equivalence).
 pub const PRODUCER_OWNED_RUST: &str = "owned-rust-go-front-end";
+
+/// Envelope version carrying unit identity only.
+pub const SCHEMA_VERSION_IDENTITY_ONLY: u32 = 0;
+
+/// Envelope version carrying the declaration tree.
+pub const SCHEMA_VERSION_DECLARATIONS: u32 = 1;
+
+/// Declaration kinds this Go adapter admits, at package scope.
+///
+/// CLOSED, and the closure lives here rather than in `port-engine-api` on purpose. The neutral
+/// seam treats `kind` as an opaque slug because a second language pair must not need a second
+/// seam. This adapter is the Go half, so this is exactly where Go's declaration taxonomy is
+/// allowed to be named — and where an extractor that emits a kind the engine has never heard of
+/// gets refused instead of translated into silence.
+pub const KNOWN_DECLARATION_KINDS: &[&str] = &[
+    "alias",
+    "const",
+    "func",
+    "interface",
+    "named",
+    "struct",
+    "var",
+];
+
+/// Declaration kinds admitted below package scope, as children of a declaration.
+pub const KNOWN_MEMBER_KINDS: &[&str] = &["field", "method", "param", "result"];
+
+/// The closed flag vocabulary. Same argument as [`KNOWN_DECLARATION_KINDS`]: a flag the engine
+/// does not know is a flag nothing will ever select on, and accepting it would let a misspelled
+/// `exported` silently unexport a declaration.
+pub const KNOWN_FLAGS: &[&str] = &["embedded", "exported", "variadic"];
 
 /// Fail-closed readiness gate. `true` once Slice 4 snapshot decode is present.
 pub const fn w0_ready() -> bool {
@@ -45,6 +77,37 @@ pub enum SnapshotError {
         /// The repeated unit id.
         unit_id: String,
     },
+    /// Envelope claims a schema version this decoder does not implement.
+    UnknownSchemaVersion {
+        /// Version claimed by the artifact.
+        actual: u32,
+    },
+    /// Declaration kind is outside the closed Go vocabulary.
+    UnknownDeclarationKind {
+        /// Unit the declaration belongs to.
+        unit_id: String,
+        /// Kind string found.
+        actual: String,
+    },
+    /// Flag is outside the closed flag vocabulary.
+    UnknownFlag {
+        /// Unit the declaration belongs to.
+        unit_id: String,
+        /// Flag string found.
+        actual: String,
+    },
+    /// Two declarations share one name in a scope that has a single namespace.
+    DuplicateDeclaration {
+        /// Unit the declarations belong to.
+        unit_id: String,
+        /// The repeated name.
+        name: String,
+    },
+    /// The envelope version and its payload disagree.
+    VersionPayloadMismatch {
+        /// What the version claims.
+        detail: &'static str,
+    },
 }
 
 impl fmt::Display for SnapshotError {
@@ -66,6 +129,30 @@ impl fmt::Display for SnapshotError {
             Self::DuplicateUnit { unit_id } => {
                 write!(f, "source-model snapshot has duplicate unit_id `{unit_id}`")
             }
+            Self::UnknownSchemaVersion { actual } => write!(
+                f,
+                "source-model snapshot schema_version must be {SCHEMA_VERSION_IDENTITY_ONLY} or \
+                 {SCHEMA_VERSION_DECLARATIONS}, got {actual}"
+            ),
+            Self::UnknownDeclarationKind { unit_id, actual } => write!(
+                f,
+                "source-model snapshot unit `{unit_id}` declares unknown kind `{actual}`"
+            ),
+            Self::UnknownFlag { unit_id, actual } => write!(
+                f,
+                "source-model snapshot unit `{unit_id}` carries unknown flag `{actual}`"
+            ),
+            Self::DuplicateDeclaration { unit_id, name } => write!(
+                f,
+                "source-model snapshot unit `{unit_id}` declares `{name}` more than once in one \
+                 namespace"
+            ),
+            Self::VersionPayloadMismatch { detail } => {
+                write!(
+                    f,
+                    "source-model snapshot version/payload mismatch: {detail}"
+                )
+            }
         }
     }
 }
@@ -74,6 +161,9 @@ impl std::error::Error for SnapshotError {}
 
 #[derive(Deserialize)]
 struct SnapshotDocument {
+    /// Absent in v0 artifacts, which predate the field.
+    #[serde(default)]
+    schema_version: u32,
     language: String,
     snapshot_digest: String,
     packages: Vec<PackageEntry>,
@@ -83,16 +173,35 @@ struct SnapshotDocument {
 struct PackageEntry {
     unit_id: String,
     producer: String,
+    #[serde(default)]
+    declarations: Vec<DeclarationEntry>,
 }
 
-/// Decoded Go SourceModel snapshot (identity + order only; no Go toolchain).
+/// Wire shape of one declaration node. Recursive and uniform, matching the extractor.
+#[derive(Deserialize)]
+struct DeclarationEntry {
+    kind: String,
+    #[serde(default)]
+    name: String,
+    #[serde(default, rename = "type")]
+    type_ref: String,
+    #[serde(default)]
+    flags: Vec<String>,
+    #[serde(default)]
+    children: Vec<DeclarationEntry>,
+}
+
+/// Decoded Go SourceModel snapshot (no Go toolchain; artifact bytes only).
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct GoSourceModel {
+    schema_version: u32,
     language: String,
     snapshot_digest: Digest,
     units: Vec<UnitId>,
     /// Parallel to [`Self::units`] — ADR-0638 D3 package→producer map (one producer per package).
     producers: Vec<String>,
+    /// Parallel to [`Self::units`] — declaration tree per package. Empty for a v0 artifact.
+    declarations: Vec<Vec<Declaration>>,
 }
 
 impl GoSourceModel {
@@ -124,9 +233,18 @@ impl GoSourceModel {
                 field: "snapshot_digest",
             });
         }
+        if doc.schema_version != SCHEMA_VERSION_IDENTITY_ONLY
+            && doc.schema_version != SCHEMA_VERSION_DECLARATIONS
+        {
+            return Err(SnapshotError::UnknownSchemaVersion {
+                actual: doc.schema_version,
+            });
+        }
+
         let mut units = Vec::with_capacity(doc.packages.len());
         let mut producers = Vec::with_capacity(doc.packages.len());
-        let mut seen = std::collections::BTreeSet::new();
+        let mut declarations = Vec::with_capacity(doc.packages.len());
+        let mut seen = BTreeSet::new();
         for pkg in doc.packages {
             if pkg.unit_id.is_empty() || pkg.unit_id.contains('\0') {
                 return Err(SnapshotError::Schema {
@@ -143,14 +261,25 @@ impl GoSourceModel {
                     unit_id: pkg.unit_id,
                 });
             }
+            // A v0 artifact carrying declarations is a version lie, not a bonus. Accepting it
+            // would mean the version field says one thing about the payload while the payload
+            // says another, and every later reader has to guess which one to believe.
+            if doc.schema_version == SCHEMA_VERSION_IDENTITY_ONLY && !pkg.declarations.is_empty() {
+                return Err(SnapshotError::VersionPayloadMismatch {
+                    detail: "schema_version 0 carries declarations",
+                });
+            }
+            declarations.push(convert_declarations(&pkg.unit_id, &pkg.declarations)?);
             units.push(UnitId(pkg.unit_id));
             producers.push(pkg.producer);
         }
         Ok(Self {
+            schema_version: doc.schema_version,
             language: doc.language,
             snapshot_digest: Digest(doc.snapshot_digest),
             units,
             producers,
+            declarations,
         })
     }
 
@@ -172,6 +301,12 @@ impl GoSourceModel {
         self.units.clone()
     }
 
+    /// Envelope version this model was decoded from.
+    #[must_use]
+    pub const fn schema_version(&self) -> u32 {
+        self.schema_version
+    }
+
     /// Producer identity for `unit`, if present in the snapshot map.
     #[must_use]
     pub fn producer_for(&self, unit: &UnitId) -> Option<&str> {
@@ -180,10 +315,83 @@ impl GoSourceModel {
             .position(|u| u == unit)
             .map(|idx| producers_at(self, idx))
     }
+
+    /// Declaration tree for `unit`, or `None` when the model does not carry that unit.
+    #[must_use]
+    pub fn declarations_for(&self, unit: &UnitId) -> Option<Vec<Declaration>> {
+        self.units
+            .iter()
+            .position(|u| u == unit)
+            .map(|idx| self.declarations[idx].clone())
+    }
 }
 
 fn producers_at(model: &GoSourceModel, idx: usize) -> &str {
     &model.producers[idx]
+}
+
+/// Validate and convert one package's declaration nodes.
+///
+/// Go gives every package-scope identifier a single shared namespace — a `const` and a `func` in
+/// one package cannot both be called `Add` — so a repeated name at this level is not a stylistic
+/// smell, it is proof the extractor lost information. Below package scope the same rule holds per
+/// parent, with one exception: an unnamed or blank identifier repeats legitimately, because
+/// `func(int, int) int` really does declare two nameless parameters.
+fn convert_declarations(
+    unit_id: &str,
+    entries: &[DeclarationEntry],
+) -> Result<Vec<Declaration>, SnapshotError> {
+    convert_level(unit_id, entries, KNOWN_DECLARATION_KINDS)
+}
+
+fn convert_level(
+    unit_id: &str,
+    entries: &[DeclarationEntry],
+    allowed_kinds: &[&str],
+) -> Result<Vec<Declaration>, SnapshotError> {
+    let mut named = BTreeSet::new();
+    let mut out = Vec::with_capacity(entries.len());
+
+    for entry in entries {
+        if !allowed_kinds.contains(&entry.kind.as_str()) {
+            return Err(SnapshotError::UnknownDeclarationKind {
+                unit_id: unit_id.to_owned(),
+                actual: entry.kind.clone(),
+            });
+        }
+        if entry.name.contains('\0') || entry.type_ref.contains('\0') {
+            return Err(SnapshotError::Schema {
+                field: "packages.declarations",
+            });
+        }
+        if !entry.name.is_empty() && entry.name != "_" && !named.insert(entry.name.clone()) {
+            return Err(SnapshotError::DuplicateDeclaration {
+                unit_id: unit_id.to_owned(),
+                name: entry.name.clone(),
+            });
+        }
+
+        let mut flags = BTreeSet::new();
+        for flag in &entry.flags {
+            if !KNOWN_FLAGS.contains(&flag.as_str()) {
+                return Err(SnapshotError::UnknownFlag {
+                    unit_id: unit_id.to_owned(),
+                    actual: flag.clone(),
+                });
+            }
+            flags.insert(flag.clone());
+        }
+
+        out.push(Declaration {
+            kind: entry.kind.clone(),
+            name: entry.name.clone(),
+            type_ref: entry.type_ref.clone(),
+            flags,
+            children: convert_level(unit_id, &entry.children, KNOWN_MEMBER_KINDS)?,
+        });
+    }
+
+    Ok(out)
 }
 
 #[cfg(test)]
@@ -250,6 +458,144 @@ mod tests {
                 field: "packages.unit_id",
             }
         );
+    }
+
+    const V1: &str = r#"{
+  "schema_version": 1,
+  "language": "go",
+  "snapshot_digest": "sha256:fixture-v1",
+  "packages": [
+    {
+      "unit_id": "example.com/a",
+      "producer": "bootstrap-go-packages-go-types",
+      "declarations": [
+        {"kind": "const", "name": "Max", "type": "int", "flags": ["exported"]},
+        {"kind": "func", "name": "Add", "flags": ["exported"], "children": [
+          {"kind": "param", "name": "a", "type": "int"},
+          {"kind": "param", "name": "b", "type": "int"},
+          {"kind": "result", "name": "", "type": "int"}
+        ]}
+      ]
+    }
+  ]
+}"#;
+
+    fn with_declarations(body: &str) -> String {
+        format!(
+            r#"{{"schema_version":1,"language":"go","snapshot_digest":"d","packages":[{{"unit_id":"x","producer":"{PRODUCER_BOOTSTRAP_GO}","declarations":[{body}]}}]}}"#
+        )
+    }
+
+    #[test]
+    fn decodes_v1_declaration_tree() {
+        let model = GoSourceModel::decode_str(V1).expect("v1 fixture must decode");
+        assert_eq!(model.schema_version(), SCHEMA_VERSION_DECLARATIONS);
+
+        let declarations = model
+            .declarations_for(&UnitId("example.com/a".into()))
+            .expect("unit is present");
+        assert_eq!(declarations.len(), 2);
+
+        let add = &declarations[1];
+        assert_eq!(add.kind, "func");
+        assert!(add.has_flag("exported"));
+        assert_eq!(add.children.len(), 3);
+        assert_eq!(add.children_of_kind("param").len(), 2);
+        assert_eq!(add.children_of_kind("result")[0].type_ref, "int");
+    }
+
+    #[test]
+    fn v0_artifact_still_decodes_and_declares_nothing() {
+        let model = GoSourceModel::decode_str(FIXTURE).expect("v0 fixture must still decode");
+        assert_eq!(model.schema_version(), SCHEMA_VERSION_IDENTITY_ONLY);
+        assert_eq!(
+            model.declarations_for(&UnitId("example.com/a".into())),
+            Some(Vec::new())
+        );
+    }
+
+    #[test]
+    fn refuses_unknown_schema_version() {
+        let json = r#"{"schema_version":2,"language":"go","snapshot_digest":"d","packages":[]}"#;
+        let err = GoSourceModel::decode_str(json).expect_err("a future version must refuse");
+        assert_eq!(err, SnapshotError::UnknownSchemaVersion { actual: 2 });
+    }
+
+    /// A v0 envelope carrying declarations is a version lie: the field says the payload has no
+    /// declarations while the payload has them. Accepting it would leave every later reader
+    /// guessing which of the two to believe, and the digest rule is selected by version.
+    #[test]
+    fn refuses_v0_envelope_carrying_declarations() {
+        let json = format!(
+            r#"{{"language":"go","snapshot_digest":"d","packages":[{{"unit_id":"x","producer":"{PRODUCER_BOOTSTRAP_GO}","declarations":[{{"kind":"const","name":"K"}}]}}]}}"#
+        );
+        let err = GoSourceModel::decode_str(&json).expect_err("version/payload lie must refuse");
+        assert!(matches!(err, SnapshotError::VersionPayloadMismatch { .. }));
+    }
+
+    #[test]
+    fn refuses_declaration_kind_outside_the_closed_vocabulary() {
+        let json = with_declarations(r#"{"kind":"goroutine","name":"g"}"#);
+        let err = GoSourceModel::decode_str(&json).expect_err("unknown kind must refuse");
+        assert!(matches!(err, SnapshotError::UnknownDeclarationKind { .. }));
+    }
+
+    /// A member kind at package scope, or a package-scope kind nested inside a declaration, is a
+    /// structural error and not merely an unusual shape — `param` is not a thing a package
+    /// declares, and `struct` is not a thing a parameter list contains.
+    #[test]
+    fn refuses_member_kind_at_package_scope() {
+        let json = with_declarations(r#"{"kind":"param","name":"a","type":"int"}"#);
+        let err = GoSourceModel::decode_str(&json).expect_err("member kind at top level refuses");
+        assert!(matches!(err, SnapshotError::UnknownDeclarationKind { .. }));
+    }
+
+    #[test]
+    fn refuses_package_scope_kind_nested_as_a_member() {
+        let json = with_declarations(
+            r#"{"kind":"func","name":"f","children":[{"kind":"const","name":"K"}]}"#,
+        );
+        let err = GoSourceModel::decode_str(&json).expect_err("nested package kind refuses");
+        assert!(matches!(err, SnapshotError::UnknownDeclarationKind { .. }));
+    }
+
+    #[test]
+    fn refuses_flag_outside_the_closed_vocabulary() {
+        let json = with_declarations(r#"{"kind":"const","name":"K","flags":["exportd"]}"#);
+        let err = GoSourceModel::decode_str(&json).expect_err("misspelled flag must refuse");
+        assert_eq!(
+            err,
+            SnapshotError::UnknownFlag {
+                unit_id: "x".into(),
+                actual: "exportd".into(),
+            },
+            "a silently dropped `exported` would unexport a declaration with no diagnostic"
+        );
+    }
+
+    /// Go gives every package-scope identifier one namespace, so a repeat is proof the extractor
+    /// lost information rather than a naming choice.
+    #[test]
+    fn refuses_duplicate_declaration_name_in_one_namespace() {
+        let json = with_declarations(
+            r#"{"kind":"const","name":"K","type":"int"},{"kind":"func","name":"K"}"#,
+        );
+        let err = GoSourceModel::decode_str(&json).expect_err("duplicate name must refuse");
+        assert!(matches!(err, SnapshotError::DuplicateDeclaration { .. }));
+    }
+
+    /// The exception that keeps the rule usable: `func(int, int) int` really does declare two
+    /// nameless parameters, so blank and empty names may repeat.
+    #[test]
+    fn admits_repeated_blank_member_names() {
+        let json = with_declarations(
+            r#"{"kind":"func","name":"f","children":[{"kind":"param","name":"","type":"int"},{"kind":"param","name":"","type":"int"},{"kind":"param","name":"_","type":"int"},{"kind":"param","name":"_","type":"int"}]}"#,
+        );
+        let model = GoSourceModel::decode_str(&json).expect("unnamed parameters are legal Go");
+        let decls = model
+            .declarations_for(&UnitId("x".into()))
+            .expect("unit present");
+        assert_eq!(decls[0].children.len(), 4);
     }
 
     /// ADR-0638 D3 architecture fence: library sources used by verify must not spawn `go`.

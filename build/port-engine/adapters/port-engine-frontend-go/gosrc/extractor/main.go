@@ -4,18 +4,18 @@
 // It reads a Go corpus with go/parser + go/types and writes a SourceModel snapshot
 // envelope as JSON. It runs OUT OF BAND ONLY: the engine's verify() path consumes the
 // snapshot artifact and must never invoke a Go toolchain. The Rust side enforces that
-// with an architecture test over its own library sources; nothing here is linked into
-// the engine.
+// with architecture tests over its own library sources; nothing here is linked into the
+// engine.
 //
-// Only the Go standard library is used. golang.org/x/tools/go/packages would give
-// richer package loading and would also give this fixture module a dependency graph,
-// a go.sum, and a vendoring question. The corpus is small and hermetic, so stdlib
-// parsing is sufficient and buys the module's dependency-freedom.
+// Only the Go standard library is used. golang.org/x/tools/go/packages would give richer
+// package loading and would also give this fixture module a dependency graph, a go.sum,
+// and a vendoring question. The corpus is small and hermetic, so stdlib parsing is
+// sufficient and buys the module's dependency-freedom.
 //
 // Usage:
 //
 //	go run ./extractor -corpus ./corpus -module oyatie.example/portengine-fixture \
-//	    -out ../src/fixture-snapshot-v1.json
+//	    -out ../../port-engine-snapshot/src/fixture-snapshot-v1.json
 package main
 
 import (
@@ -37,12 +37,12 @@ import (
 )
 
 // producerBootstrapGo mirrors port_engine_frontend_go::PRODUCER_BOOTSTRAP_GO. The Rust
-// decoder refuses any other identity during bootstrap admission, so a drift here is a
-// red at admission rather than a silent relabel.
+// decoder refuses any other identity during bootstrap admission, so drift here is a red
+// at admission rather than a silent relabel.
 const producerBootstrapGo = "bootstrap-go-packages-go-types"
 
 // schemaVersion is the snapshot envelope version this extractor emits. v0 carried unit
-// identity only; v1 adds declarations.
+// identity only; v1 adds the declaration tree.
 const schemaVersion = 1
 
 // ---------------------------------------------------------------------------------
@@ -57,48 +57,31 @@ type snapshot struct {
 }
 
 type pkgNode struct {
-	UnitID       string     `json:"unit_id"`
-	Producer     string     `json:"producer"`
-	Declarations []declNode `json:"declarations"`
+	UnitID       string `json:"unit_id"`
+	Producer     string `json:"producer"`
+	Declarations []node `json:"declarations"`
 }
 
-// declNode is one package-scope declaration. Go gives every package-scope identifier a
-// single shared namespace, so `name` is unique within a package across all kinds — the
-// Rust decoder refuses a duplicate on that basis.
-type declNode struct {
-	Kind     string       `json:"kind"`
-	Name     string       `json:"name"`
-	Exported bool         `json:"exported"`
-	Type     string       `json:"type,omitempty"`
-	Fields   []fieldNode  `json:"fields,omitempty"`
-	Methods  []methodNode `json:"methods,omitempty"`
-	Params   []paramNode  `json:"params,omitempty"`
-	Results  []paramNode  `json:"results,omitempty"`
-	Variadic bool         `json:"variadic,omitempty"`
+// node is one node of the declaration tree, and it is deliberately UNIFORM: a constant, a
+// struct field, a function parameter and an interface method are all the same shape, and
+// what distinguishes them is `kind` — a value, not a field name and not a variant.
+//
+// The engine's seam types are language-neutral (`LanguagePair` is data, so a second
+// language pair is a second directory of rule data over one engine). A snapshot shaped as
+// `fields`/`methods`/`params`/`results` would have pushed Go's declaration taxonomy into
+// that seam and made the neutral API answer questions only Go asks. Here `kind`,
+// `type`, and `flags` are opaque slugs the engine compares and never interprets; the rule
+// pack's `captures` are what give them meaning.
+type node struct {
+	Kind     string   `json:"kind"`
+	Name     string   `json:"name"`
+	Type     string   `json:"type,omitempty"`
+	Flags    []string `json:"flags,omitempty"`
+	Children []node   `json:"children,omitempty"`
 }
 
-type fieldNode struct {
-	Name     string `json:"name"`
-	Type     string `json:"type"`
-	Exported bool   `json:"exported"`
-	Embedded bool   `json:"embedded,omitempty"`
-}
-
-type methodNode struct {
-	Name     string      `json:"name"`
-	Exported bool        `json:"exported"`
-	Params   []paramNode `json:"params,omitempty"`
-	Results  []paramNode `json:"results,omitempty"`
-	Variadic bool        `json:"variadic,omitempty"`
-}
-
-type paramNode struct {
-	Name string `json:"name"`
-	Type string `json:"type"`
-}
-
-// Declaration kinds. These strings are the vocabulary the neutral rule pack's `captures`
-// select on, so they are part of the snapshot contract, not an internal detail.
+// Declaration kinds. These strings are the vocabulary the rule pack's `captures` select
+// on, so they are part of the snapshot contract rather than an internal detail.
 const (
 	kindConst     = "const"
 	kindVar       = "var"
@@ -107,6 +90,18 @@ const (
 	kindInterface = "interface"
 	kindAlias     = "alias"
 	kindNamed     = "named"
+
+	kindField  = "field"
+	kindMethod = "method"
+	kindParam  = "param"
+	kindResult = "result"
+)
+
+// Flags. Sorted on emit so the set has one spelling.
+const (
+	flagExported = "exported"
+	flagVariadic = "variadic"
+	flagEmbedded = "embedded"
 )
 
 // ---------------------------------------------------------------------------------
@@ -198,7 +193,7 @@ func extract(corpusDir string, modulePath string) (*snapshot, error) {
 	return model, nil
 }
 
-// packageDirs returns every directory at or under root that holds at least one .go file,
+// packageDirs returns every directory at or under root holding at least one .go file,
 // sorted. Test files are excluded: they are not part of the translatable surface.
 func packageDirs(root string) ([]string, error) {
 	seen := map[string]bool{}
@@ -226,7 +221,7 @@ func packageDirs(root string) ([]string, error) {
 	return dirs, nil
 }
 
-func extractPackage(dir string, unitID string) ([]declNode, error) {
+func extractPackage(dir string, unitID string) ([]node, error) {
 	fset := token.NewFileSet()
 
 	entries, err := os.ReadDir(dir)
@@ -260,8 +255,8 @@ func extractPackage(dir string, unitID string) ([]declNode, error) {
 	}
 
 	// Render types relative to the package under extraction: local names stay bare, and
-	// anything from elsewhere keeps its full path so the rule pack's type map can tell
-	// a local `Point` from an imported one.
+	// anything from elsewhere keeps its full path, so the rule pack's type map can tell a
+	// local `Point` from an imported one.
 	qualify := func(other *types.Package) string {
 		if other == tpkg {
 			return ""
@@ -270,8 +265,8 @@ func extractPackage(dir string, unitID string) ([]declNode, error) {
 	}
 
 	scope := tpkg.Scope()
-	objNames := scope.Names() // already sorted by go/types
-	decls := make([]declNode, 0, len(objNames))
+	objNames := scope.Names() // go/types returns these sorted
+	decls := make([]node, 0, len(objNames))
 	for _, name := range objNames {
 		decl, err := declFor(scope.Lookup(name), qualify)
 		if err != nil {
@@ -282,8 +277,8 @@ func extractPackage(dir string, unitID string) ([]declNode, error) {
 	return decls, nil
 }
 
-func declFor(obj types.Object, qualify types.Qualifier) (declNode, error) {
-	base := declNode{Name: obj.Name(), Exported: obj.Exported()}
+func declFor(obj types.Object, qualify types.Qualifier) (node, error) {
+	base := node{Name: obj.Name(), Flags: flagsFor(obj.Exported(), false, false)}
 
 	switch typed := obj.(type) {
 	case *types.Const:
@@ -302,9 +297,8 @@ func declFor(obj types.Object, qualify types.Qualifier) (declNode, error) {
 			return base, fmt.Errorf("func object without signature")
 		}
 		base.Kind = kindFunc
-		base.Params = tupleNodes(sig.Params(), qualify)
-		base.Results = tupleNodes(sig.Results(), qualify)
-		base.Variadic = sig.Variadic()
+		base.Flags = flagsFor(obj.Exported(), sig.Variadic(), false)
+		base.Children = signatureChildren(sig, qualify)
 		return base, nil
 
 	case *types.TypeName:
@@ -315,182 +309,199 @@ func declFor(obj types.Object, qualify types.Qualifier) (declNode, error) {
 	}
 }
 
-func typeDecl(obj *types.TypeName, base declNode, qualify types.Qualifier) (declNode, error) {
+func typeDecl(obj *types.TypeName, base node, qualify types.Qualifier) (node, error) {
 	if obj.IsAlias() {
 		base.Kind = kindAlias
 		// Unalias, or the alias renders as its own name: since Go 1.22 an alias is a
 		// materialized *types.Alias whose String() is the alias identifier, so
 		// `type ID = string` would extract as `ID -> ID` and say nothing. Unalias
-		// resolves a chain all the way to the aliased type, which is what a type map
-		// needs to answer with. Note this is the alias TARGET; a parameter written as
-		// `ID` still extracts as `ID`, because there the alias name is what was written.
+		// resolves the chain to the aliased type, which is what a type map answers with.
+		// This is the alias TARGET; a parameter written as `ID` still extracts as `ID`,
+		// because there the alias name is what was written.
 		base.Type = types.TypeString(types.Unalias(obj.Type()), qualify)
 		return base, nil
 	}
 
 	named, ok := obj.Type().(*types.Named)
 	if !ok {
-		// A non-alias TypeName that is not Named is a builtin (`error`, `any`); the
-		// corpus should not surface one at package scope, so refuse rather than guess.
+		// A non-alias TypeName that is not Named is a builtin (`error`, `any`); the corpus
+		// should not surface one at package scope, so refuse rather than guess.
 		return base, fmt.Errorf("non-alias type name with unexpected type %T", obj.Type())
 	}
 
-	methods := make([]methodNode, 0, named.NumMethods())
-	for i := 0; i < named.NumMethods(); i++ {
-		method := named.Method(i)
-		sig, ok := method.Type().(*types.Signature)
-		if !ok {
-			return base, fmt.Errorf("method %s without signature", method.Name())
-		}
-		methods = append(methods, methodNode{
-			Name:     method.Name(),
-			Exported: method.Exported(),
-			Params:   tupleNodes(sig.Params(), qualify),
-			Results:  tupleNodes(sig.Results(), qualify),
-			Variadic: sig.Variadic(),
-		})
+	methods, err := methodChildren(named, qualify)
+	if err != nil {
+		return base, err
 	}
-	sort.Slice(methods, func(i, j int) bool { return methods[i].Name < methods[j].Name })
 
 	switch underlying := named.Underlying().(type) {
 	case *types.Struct:
 		base.Kind = kindStruct
-		fields := make([]fieldNode, 0, underlying.NumFields())
+		// Field order is declaration order and is SEMANTIC in Go (memory layout,
+		// positional composite literals), so it is deliberately not sorted.
 		for i := 0; i < underlying.NumFields(); i++ {
 			field := underlying.Field(i)
-			fields = append(fields, fieldNode{
-				Name:     field.Name(),
-				Type:     types.TypeString(field.Type(), qualify),
-				Exported: field.Exported(),
-				Embedded: field.Embedded(),
+			base.Children = append(base.Children, node{
+				Kind:  kindField,
+				Name:  field.Name(),
+				Type:  types.TypeString(field.Type(), qualify),
+				Flags: flagsFor(field.Exported(), false, field.Embedded()),
 			})
 		}
-		// Field order is declaration order and is SEMANTIC in Go (layout, composite
-		// literals), so it is deliberately not sorted.
-		base.Fields = fields
-		base.Methods = methods
+		base.Children = append(base.Children, methods...)
 		return base, nil
 
 	case *types.Interface:
 		base.Kind = kindInterface
-		ifaceMethods := make([]methodNode, 0, underlying.NumExplicitMethods())
+		ifaceMethods := make([]node, 0, underlying.NumExplicitMethods())
 		for i := 0; i < underlying.NumExplicitMethods(); i++ {
 			method := underlying.ExplicitMethod(i)
 			sig, ok := method.Type().(*types.Signature)
 			if !ok {
 				return base, fmt.Errorf("interface method %s without signature", method.Name())
 			}
-			ifaceMethods = append(ifaceMethods, methodNode{
+			ifaceMethods = append(ifaceMethods, node{
+				Kind:     kindMethod,
 				Name:     method.Name(),
-				Exported: method.Exported(),
-				Params:   tupleNodes(sig.Params(), qualify),
-				Results:  tupleNodes(sig.Results(), qualify),
-				Variadic: sig.Variadic(),
+				Flags:    flagsFor(method.Exported(), sig.Variadic(), false),
+				Children: signatureChildren(sig, qualify),
 			})
 		}
-		sort.Slice(ifaceMethods, func(i, j int) bool { return ifaceMethods[i].Name < ifaceMethods[j].Name })
-		base.Methods = ifaceMethods
+		sortNodes(ifaceMethods)
+		base.Children = ifaceMethods
 		return base, nil
 
 	default:
 		base.Kind = kindNamed
 		base.Type = types.TypeString(underlying, qualify)
-		base.Methods = methods
+		base.Children = methods
 		return base, nil
 	}
 }
 
-func tupleNodes(tuple *types.Tuple, qualify types.Qualifier) []paramNode {
+// methodChildren returns the methods declared on named, sorted by name. Source order is
+// not used: unlike struct fields, method order carries no Go semantics, and sorting keeps
+// the snapshot stable against a reordering edit that changes nothing.
+func methodChildren(named *types.Named, qualify types.Qualifier) ([]node, error) {
+	methods := make([]node, 0, named.NumMethods())
+	for i := 0; i < named.NumMethods(); i++ {
+		method := named.Method(i)
+		sig, ok := method.Type().(*types.Signature)
+		if !ok {
+			return nil, fmt.Errorf("method %s without signature", method.Name())
+		}
+		methods = append(methods, node{
+			Kind:     kindMethod,
+			Name:     method.Name(),
+			Flags:    flagsFor(method.Exported(), sig.Variadic(), false),
+			Children: signatureChildren(sig, qualify),
+		})
+	}
+	sortNodes(methods)
+	return methods, nil
+}
+
+func signatureChildren(sig *types.Signature, qualify types.Qualifier) []node {
+	children := make([]node, 0, sig.Params().Len()+sig.Results().Len())
+	children = append(children, tupleNodes(kindParam, sig.Params(), qualify)...)
+	children = append(children, tupleNodes(kindResult, sig.Results(), qualify)...)
+	if len(children) == 0 {
+		return nil
+	}
+	return children
+}
+
+// tupleNodes preserves tuple order, which IS semantic: parameters and results are
+// positional in both Go and Rust.
+func tupleNodes(kind string, tuple *types.Tuple, qualify types.Qualifier) []node {
 	if tuple == nil || tuple.Len() == 0 {
 		return nil
 	}
-	nodes := make([]paramNode, 0, tuple.Len())
+	nodes := make([]node, 0, tuple.Len())
 	for i := 0; i < tuple.Len(); i++ {
 		v := tuple.At(i)
-		nodes = append(nodes, paramNode{Name: v.Name(), Type: types.TypeString(v.Type(), qualify)})
+		nodes = append(nodes, node{
+			Kind: kind,
+			Name: v.Name(),
+			Type: types.TypeString(v.Type(), qualify),
+		})
 	}
 	return nodes
+}
+
+func sortNodes(nodes []node) {
+	sort.Slice(nodes, func(i, j int) bool { return nodes[i].Name < nodes[j].Name })
+}
+
+// flagsFor returns the set spelling of the boolean facts about a node. Sorted, so the set
+// has exactly one encoding; nil when empty, so the JSON omits the key entirely.
+func flagsFor(exported bool, variadic bool, embedded bool) []string {
+	flags := make([]string, 0, 3)
+	if embedded {
+		flags = append(flags, flagEmbedded)
+	}
+	if exported {
+		flags = append(flags, flagExported)
+	}
+	if variadic {
+		flags = append(flags, flagVariadic)
+	}
+	if len(flags) == 0 {
+		return nil
+	}
+	sort.Strings(flags)
+	return flags
 }
 
 // ---------------------------------------------------------------------------------
 // Snapshot preimage (mirrored by port_engine_snapshot::snapshot_preimage_v1)
 // ---------------------------------------------------------------------------------
 //
-// Every node is `F(label) F(value) F(itoa(child_count))` followed by its children, where
-// `F(s)` is the decimal byte length of s, a `:`, then s. Length prefixes plus an explicit
-// arity make the encoding injective: no field value, however it is spelled, can imitate a
-// delimiter or absorb a sibling. That is why the digest does not depend on JSON
-// canonicalization — and why the same preimage can be computed in Go here and in Rust
-// there, with any drift between the two surfacing as a digest mismatch at admission
-// rather than as a silently accepted snapshot.
+// `F(s)` is the decimal byte length of s, a `:`, then s. Every node encodes as
+//
+//	F(kind) F(name) F(type) F(len(flags)) flags... F(len(children)) children...
+//
+// Length prefixes plus explicit arity make the encoding injective: no value, however it
+// is spelled, can imitate a delimiter or absorb a sibling. That is why the digest does not
+// depend on JSON canonicalization — and why the same preimage can be computed in Go here
+// and in Rust there, with any drift between the two surfacing as a digest mismatch at
+// admission rather than as a silently accepted snapshot.
 
 func preimage(model *snapshot) []byte {
-	out := make([]byte, 0, 1024)
-	node(&out, "snapshot", model.Language, len(model.Packages))
+	out := make([]byte, 0, 4096)
+	field(&out, "snapshot")
+	field(&out, model.Language)
+	field(&out, strconv.Itoa(len(model.Packages)))
 	for _, pkg := range model.Packages {
-		node(&out, "package", pkg.UnitID, 1+len(pkg.Declarations))
-		node(&out, "producer", pkg.Producer, 0)
+		field(&out, "package")
+		field(&out, pkg.UnitID)
+		field(&out, pkg.Producer)
+		field(&out, strconv.Itoa(len(pkg.Declarations)))
 		for _, decl := range pkg.Declarations {
-			encodeDecl(&out, decl)
+			encodeNode(&out, decl)
 		}
 	}
 	return out
 }
 
-func encodeDecl(out *[]byte, decl declNode) {
-	children := 3 + len(decl.Fields) + len(decl.Methods) + len(decl.Params) + len(decl.Results)
-	node(out, decl.Kind, decl.Name, children)
-	node(out, "exported", boolField(decl.Exported), 0)
-	node(out, "variadic", boolField(decl.Variadic), 0)
-	node(out, "type", decl.Type, 0)
-	for _, field := range decl.Fields {
-		node(out, "field", field.Name, 3)
-		node(out, "exported", boolField(field.Exported), 0)
-		node(out, "embedded", boolField(field.Embedded), 0)
-		node(out, "type", field.Type, 0)
+func encodeNode(out *[]byte, n node) {
+	field(out, n.Kind)
+	field(out, n.Name)
+	field(out, n.Type)
+	field(out, strconv.Itoa(len(n.Flags)))
+	for _, flag := range n.Flags {
+		field(out, flag)
 	}
-	for _, method := range decl.Methods {
-		encodeMethod(out, method)
+	field(out, strconv.Itoa(len(n.Children)))
+	for _, child := range n.Children {
+		encodeNode(out, child)
 	}
-	encodeParams(out, decl.Params, decl.Results)
-}
-
-func encodeMethod(out *[]byte, method methodNode) {
-	children := 2 + len(method.Params) + len(method.Results)
-	node(out, "method", method.Name, children)
-	node(out, "exported", boolField(method.Exported), 0)
-	node(out, "variadic", boolField(method.Variadic), 0)
-	encodeParams(out, method.Params, method.Results)
-}
-
-func encodeParams(out *[]byte, params []paramNode, results []paramNode) {
-	for _, param := range params {
-		node(out, "param", param.Name, 1)
-		node(out, "type", param.Type, 0)
-	}
-	for _, result := range results {
-		node(out, "result", result.Name, 1)
-		node(out, "type", result.Type, 0)
-	}
-}
-
-func node(out *[]byte, label string, value string, children int) {
-	field(out, label)
-	field(out, value)
-	field(out, strconv.Itoa(children))
 }
 
 func field(out *[]byte, value string) {
 	*out = append(*out, strconv.Itoa(len(value))...)
 	*out = append(*out, ':')
 	*out = append(*out, value...)
-}
-
-func boolField(value bool) string {
-	if value {
-		return "1"
-	}
-	return "0"
 }
 
 func digest(preimage []byte) string {
