@@ -1267,6 +1267,16 @@ uses: some/action@v1.97.1
             "[toolchain]\nchannel = \"1.97.1\"\ncomponents = [\"rustfmt\", \"clippy\"]\nprofile = \"minimal\"\n",
         );
         write(&root, "oya-deps.toml", &oya_deps_fixture("1.97.1"));
+        // The fixture DECLARES a drift guard, so the fixture must also contain it.
+        // Without this the dependency-automation gate reports
+        // DEP-AUTO-DECLARED-PATH-MISSING against the fixture tree and reconcile returns
+        // ResidualDrift — a self-inflicted RED that says nothing about the code under test.
+        // The gate checks existence only, so a stub is the honest minimum here.
+        write(
+            &root,
+            "ci/facade/generated-artifact-freshness/src/rust_toolchain_drift.rs",
+            "// fixture stand-in for the real drift guard\n",
+        );
         write(
             &root,
             "Cargo.toml",
@@ -1376,6 +1386,16 @@ uses: some/action@v1.97.1
             "[toolchain]\nchannel = \"1.97.1\"\n",
         );
         write(&root, "oya-deps.toml", &oya_deps_fixture("1.97.1"));
+        // The fixture DECLARES a drift guard, so the fixture must also contain it.
+        // Without this the dependency-automation gate reports
+        // DEP-AUTO-DECLARED-PATH-MISSING against the fixture tree and reconcile returns
+        // ResidualDrift — a self-inflicted RED that says nothing about the code under test.
+        // The gate checks existence only, so a stub is the honest minimum here.
+        write(
+            &root,
+            "ci/facade/generated-artifact-freshness/src/rust_toolchain_drift.rs",
+            "// fixture stand-in for the real drift guard\n",
+        );
         write(
             &root,
             "Cargo.toml",
