@@ -125,11 +125,22 @@ fn the_deprecated_cloud_name_set_never_grows() {
     );
 }
 
+/// The COMMITTED baseline file must describe today's corpus.
+///
+/// DESIGN CORRECTION. This originally compared against `baseline()`, which reads the MERGE-BASE
+/// copy once the file exists on the protected branch. That made a legitimate burn-down impossible
+/// to record: a PR cannot change the merge-base, so every removal stayed red forever and the gate
+/// blocked the exact work it exists to encourage. Growth is what needs the merge-base (a PR must
+/// not be able to launder new debt by rewriting its own baseline); ACCURACY of the committed file
+/// is checked against the committed file itself, which a PR can and must update.
 #[test]
 fn burn_down_must_be_recorded_in_the_same_change() {
-    // Shrink is the point, but the frozen file must not overstate the remaining debt: a rename
-    // without a baseline regen leaves a phantom entry that hides the next real one.
-    let verdict = compare(&census(&repo_root()), &baseline());
+    let root = repo_root();
+    let committed = parse_baseline(
+        &std::fs::read_to_string(root.join(BASELINE_REPO_PATH))
+            .expect("frozen baseline is readable"),
+    );
+    let verdict = compare(&census(&root), &committed);
     assert!(
         verdict.removed.is_empty(),
         "these baselined names are gone — regenerate the baseline in this change:\n{}\n\n\
