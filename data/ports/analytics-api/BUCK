@@ -33,6 +33,20 @@ rust_test(
     srcs = ["tests/analytics_api_contract.rs"],
     crate = "data_analytics_api_contract",
     crate_root = "tests/analytics_api_contract.rs",
+    # Buck2 runs this in a hermetic sandbox where the checkout tree is unreachable, so the
+    # contract files this test reads must be DECLARED inputs. Without them the target compiled
+    # and ran but could not find a single contract, and the presence-based target-parity gate
+    # still saw a rust_test and passed — a test that cannot reach its subject reported green.
+    env = {
+        "DATA_ANALYTICS_OPENAPI": "$(location //data/analytics/contracts:openapi-v1.yaml)",
+        "DATA_ANALYTICS_ASYNCAPI": "$(location //data/analytics/contracts:asyncapi-v1.yaml)",
+        "DATA_ANALYTICS_PROTO": "$(location //data/analytics/contracts:analytics.proto)",
+    },
+    resources = [
+        "//data/analytics/contracts:openapi-v1.yaml",
+        "//data/analytics/contracts:asyncapi-v1.yaml",
+        "//data/analytics/contracts:analytics.proto",
+    ],
     visibility = ["PUBLIC"],
     deps = [
         ":data-analytics-api",

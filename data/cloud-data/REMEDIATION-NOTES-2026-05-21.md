@@ -26,7 +26,7 @@ Files renamed (git mv):
 
 ## Wave 15-doctrine-propagation-PRD (2026-05-21)
 
-D3-BUCKET-1 did not modify `PRD.md` because `data/cloud-data/PRD.md` and `data/cloud-data/manifest.json` are absent. The D-3 instruction requires reading both artifacts and matching manifest-declared values before writing DR, capacity, sustainability, and API-version posture.
+D3-BUCKET-1 did not modify `PRD.md` because, at the time of this 2026-05-21 decision, the artifacts did not exist at their then-current location `microservices/cloud-data/` (`PRD.md` and `manifest.json`). They exist today at `data/cloud-data/`; this note records why the wave was blocked THEN and must not be read as a claim about the current tree. The D-3 instruction requires reading both artifacts and matching manifest-declared values before writing DR, capacity, sustainability, and API-version posture.
 
 Values: no authoritative RTO/RPO, capacity_model, pod_runtime_tier, tenant_version_pinning, or OSS stewardship declarations were available. ADRs implicated once artifacts exist: ADR-0338, ADR-0340, ADR-0342 if public contracts exist, ADR-0343, ADR-0344, and ADR-0345; ADR-0337 likely applies only if cloud-data writes OLAP via the canonical Iceberg/data-warehouse path; ADR-0339 applies only if `iac/<context>/` wrappers exist. Alternatives considered: infer from cloud-storage/cloud-iac patterns or create placeholder sections; rejected because data-plane durability and OLAP ownership are doctrine-sensitive. Cost: missing first-class PRD/manifest blocks this wave for cloud-data.
 

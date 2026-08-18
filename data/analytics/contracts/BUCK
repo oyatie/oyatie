@@ -1,0 +1,19 @@
+# Export the analytics public contracts so Buck2 test targets can declare them as inputs.
+#
+# `//data/ports/analytics-api:data-analytics-api-contract` reads these files. Buck2 runs it in a
+# hermetic sandbox where the checkout tree is unreachable, so without an export_file here the
+# contracts simply are not present and the test cannot reach its subject.
+export_file(
+    name = "openapi-v1.yaml",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "asyncapi-v1.yaml",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "analytics.proto",
+    visibility = ["PUBLIC"],
+)

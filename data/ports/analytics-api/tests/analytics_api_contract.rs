@@ -39,7 +39,9 @@ fn repo_root() -> PathBuf {
     for start in candidates {
         let mut dir = start;
         for _ in 0..12 {
-            if dir.join("data/analytics/contracts/openapi-v1.yaml").is_file()
+            if dir
+                .join("data/analytics/contracts/openapi-v1.yaml")
+                .is_file()
                 && dir.join("specs/root-hub-pointers.json").is_file()
             {
                 return dir;
@@ -52,23 +54,40 @@ fn repo_root() -> PathBuf {
     panic!("could not locate repo root containing data/analytics contracts");
 }
 
+/// Resolve one declared contract.
+///
+/// Under Buck2 the checkout tree is unreachable, so the file arrives as a DECLARED input and its
+/// sandbox path is handed over in an environment variable by the target's `env`. Under Cargo there
+/// is no such binding and the repository walk is correct. Preferring the binding keeps both engines
+/// on the same assertion instead of making the Buck target a weaker variant of it.
+fn declared_contract(env_key: &str, relative: &str) -> PathBuf {
+    match std::env::var(env_key) {
+        Ok(path) if !path.is_empty() => PathBuf::from(path),
+        _ => repo_root().join(relative),
+    }
+}
+
 /// Contract paths must resolve under the data/ capability root (Wave-2 hygiene).
 #[test]
 fn analytics_api_contract_files_exist_under_data_root() {
-    let root = repo_root();
-    for rel in [
-        ANALYTICS_OPENAPI_CONTRACT,
-        ANALYTICS_ASYNCAPI_CONTRACT,
-        ANALYTICS_PROTO_CONTRACT,
+    for (env_key, rel) in [
+        ("DATA_ANALYTICS_OPENAPI", ANALYTICS_OPENAPI_CONTRACT),
+        ("DATA_ANALYTICS_ASYNCAPI", ANALYTICS_ASYNCAPI_CONTRACT),
+        ("DATA_ANALYTICS_PROTO", ANALYTICS_PROTO_CONTRACT),
     ] {
-        let abs = root.join(rel);
+        let abs = declared_contract(env_key, rel);
         assert!(
             abs.is_file(),
             "missing analytics contract under data/ root: {rel} (resolved {abs:?})"
         );
+        // The declared path must still be the data/ capability root spelling, so a Buck binding
+        // cannot quietly satisfy this test with a contract from the retired location.
+        assert!(
+            rel.starts_with("data/analytics/contracts/"),
+            "contract constant must name the data/ capability root: {rel}"
+        );
     }
-    // Silence unused import if Path is only used via PathBuf above in some editions.
-    let _: &Path = root.as_path();
+    let _: &Path = repo_root().as_path();
 }
 
 #[test]
