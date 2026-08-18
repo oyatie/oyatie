@@ -7,7 +7,8 @@
 use std::path::{Path, PathBuf};
 
 use super::{
-    GENERATED_FACTS_PATH, canonical_generated_facts_output_path, canonical_ignored_generated_path,
+    GENERATED_FACTS_PATH, canonical_generated_facts_output_path,
+    canonical_ignored_generated_path,
 };
 
 #[path = "retirement_windows_fs.rs"]
