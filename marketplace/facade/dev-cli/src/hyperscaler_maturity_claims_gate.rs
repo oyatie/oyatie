@@ -379,14 +379,26 @@ fn validate_oya_ci_required_workflow(workflow: &str) -> Result<(), String> {
         "Install pinned buck2 (digest-verified)",
         // Generated faces are materialized before the gate crates consume them.
         "Materialize generated faces",
-        // The Cargo merge path itself (ADR-0716), locked so the lockfile is authoritative.
-        "cargo test --locked --workspace",
         "generated-output-diff-policy",
         // The forever public status string is dual-emitted beside the legacy protected context
         // until the branch-protection flip; losing it would silently strand the cutover.
         "merge-admission-required",
     ] {
         require_contains(workflow, expected, "oya-ci-required workflow contract")?;
+    }
+    // The Cargo merge path itself (ADR-0716), locked so the lockfile is authoritative — but
+    // the RUNNER is interchangeable (ADR-0718-D3). Asserting the property rather than one
+    // spelling: pinning `cargo test` would make a swap to cargo-nextest look like the merge path
+    // had disappeared, which is exactly the false signal this gate exists to prevent.
+    if !["cargo test --locked --workspace", "cargo nextest run --locked --workspace"]
+        .iter()
+        .any(|runner| workflow.contains(runner))
+    {
+        require_contains(
+            workflow,
+            "cargo test --locked --workspace",
+            "oya-ci-required workflow contract (locked workspace run; cargo test or cargo nextest run)",
+        )?;
     }
     require_contains(
         workflow,

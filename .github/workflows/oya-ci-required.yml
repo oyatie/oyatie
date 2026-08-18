@@ -181,7 +181,12 @@ jobs:
         # per-test isolation. It does not run doctests, verified safe rather than assumed:
         # zero doc examples across the .rs corpus and `doctest = false` already declared by
         # the large majority of manifests.
-        run: cargo nextest run --locked --workspace
+        # --no-fail-fast: nextest stops at the first failure by default, so each defect costs a
+        # WHOLE CI run to discover — four runs of this branch surfaced four separate failures one
+        # at a time. Running the suite out reports every failure in one run at the same verdict.
+        # This is not an advisory escape: the job still fails if any test fails, unlike
+        # `--keep-going` or `|| true`, which the registration gates reject for that reason.
+        run: cargo nextest run --locked --workspace --no-fail-fast
       # kernel/ is a nested workspace (ADR-0512 carve-out) the root workspace excludes.
       - name: Kernel workspace tests
         run: cargo nextest run --locked --manifest-path kernel/Cargo.toml
