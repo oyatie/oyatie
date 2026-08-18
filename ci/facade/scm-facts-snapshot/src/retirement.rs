@@ -9,7 +9,9 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::io::{Cursor, Read, Write};
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
-use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::atomic::AtomicU64;
+#[cfg(unix)]
+use std::sync::atomic::Ordering;
 
 use ci_artifact_inventory_registry::to_canonical_json;
 #[cfg(unix)]
@@ -20,8 +22,6 @@ use serde::de::{self, MapAccess, SeqAccess, Visitor};
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
-#[cfg(windows)]
-use std::os::windows::fs::MetadataExt;
 
 pub(crate) const CONTROL_PLANE_PATH: &str = "registry/history-only-retirement/control-plane.json";
 /// Canonical untracked generated-facts path, exposed for the integration contract.
@@ -562,36 +562,18 @@ impl CanonicalRetirementFactsWriter {
     }
 }
 
-/// Windows same-directory writer for the canonical retirement-facts face.
-///
-/// Exclusive temp + `write_all` + `sync_all`, then same-directory best-effort
-/// replace (`remove_file` if present, then `rename`). Not `renameat`-atomic and
-/// not dirfd / TOCTOU-closed.
 #[cfg(windows)]
-pub struct CanonicalRetirementFactsWriter {
-    directory: PathBuf,
-}
+#[path = "retirement_windows.rs"]
+mod windows;
 
+/// Windows same-directory writers. Not `renameat`-atomic and not dirfd / TOCTOU-closed.
 #[cfg(windows)]
-impl CanonicalRetirementFactsWriter {
-    /// Re-run the canonical boundary, then walk/create a real parent.
-    pub fn open(repo_root: &Path) -> Result<Self, String> {
-        canonical_generated_facts_output_path(repo_root, Path::new(GENERATED_FACTS_PATH))?;
-        Ok(Self {
-            directory: open_real_windows_parent(
-                repo_root,
-                &["ci", "facade", "scm-facts-snapshot"],
-                "retirement facts",
-            )?,
-        })
-    }
+#[doc(inline)]
+pub use windows::{CanonicalIgnoredGeneratedWriter, CanonicalRetirementFactsWriter};
 
-    /// Best-effort replace of the fixed canonical facts basename.
-    pub fn write(&self, bytes: &[u8]) -> Result<(), String> {
-        const FINAL_NAME: &str = "history-only-retirement-facts.generated.json";
-        replace_regular_file_best_effort(&self.directory, FINAL_NAME, ".retirement-facts", bytes)
-    }
-}
+#[cfg(all(test, windows))]
+#[path = "retirement_windows_tests.rs"]
+mod windows_tests;
 
 /// Non-Unix, non-Windows placeholder that preserves the public API while failing closed.
 #[cfg(not(any(unix, windows)))]
@@ -771,45 +753,6 @@ pub fn write_canonical_ignored_generated_file(
     bytes: &[u8],
 ) -> Result<(), String> {
     CanonicalIgnoredGeneratedWriter::open(repo_root, relative_path)?.write(bytes)
-}
-
-/// Windows same-directory writer for another canonical ignored generated face.
-///
-/// Exclusive temp + `write_all` + `sync_all`, then same-directory best-effort
-/// replace (`remove_file` if present, then `rename`). Not `renameat`-atomic and
-/// not dirfd / TOCTOU-closed.
-#[cfg(windows)]
-#[derive(Debug)]
-pub struct CanonicalIgnoredGeneratedWriter {
-    directory: PathBuf,
-    final_name: String,
-}
-
-#[cfg(windows)]
-impl CanonicalIgnoredGeneratedWriter {
-    /// Re-run the ignored/untracked boundary, then walk/create a real parent.
-    pub fn open(repo_root: &Path, relative_path: &Path) -> Result<Self, String> {
-        let (parent_components, final_name) =
-            canonical_ignored_generated_path(repo_root, relative_path)?;
-        Ok(Self {
-            directory: open_real_windows_parent(
-                repo_root,
-                &parent_components,
-                "ignored generated",
-            )?,
-            final_name: final_name.to_owned(),
-        })
-    }
-
-    /// Best-effort replace of the fixed canonical basename.
-    pub fn write(&self, bytes: &[u8]) -> Result<(), String> {
-        replace_regular_file_best_effort(
-            &self.directory,
-            &self.final_name,
-            ".ignored-generated",
-            bytes,
-        )
-    }
 }
 
 /// Non-Unix, non-Windows placeholder that preserves the public API while failing closed.
@@ -1005,208 +948,6 @@ fn ensure_existing_canonical_parent_is_real(repo_root: &Path) -> Result<(), Stri
         }
     }
     Ok(())
-}
-
-/// Walk/create a real, non-reparse parent. Rejects `\\?\`, non-disk prefixes,
-/// `..`, and NUL. Not dirfd-bound.
-#[cfg(windows)]
-fn open_real_windows_parent(
-    repo_root: &Path,
-    parent_components: &[&str],
-    label: &str,
-) -> Result<PathBuf, String> {
-    reject_windows_path(repo_root, label)?;
-    ensure_metadata_is_real_directory(
-        &std::fs::symlink_metadata(repo_root)
-            .map_err(|error| format!("inspect {label} directory \"<repo-root>\": {error}"))?,
-        "<repo-root>",
-        label,
-    )?;
-    let mut directory = repo_root.to_path_buf();
-    for component in parent_components {
-        reject_windows_component(component, label)?;
-        directory.push(component);
-        match std::fs::symlink_metadata(&directory) {
-            Ok(metadata) => ensure_metadata_is_real_directory(&metadata, component, label)?,
-            Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
-                match std::fs::create_dir(&directory) {
-                    Ok(()) => {}
-                    Err(error) if error.kind() == std::io::ErrorKind::AlreadyExists => {}
-                    Err(error) => {
-                        return Err(format!("create {label} directory {component:?}: {error}"));
-                    }
-                }
-                let metadata = std::fs::symlink_metadata(&directory)
-                    .map_err(|error| format!("inspect {label} directory {component:?}: {error}"))?;
-                ensure_metadata_is_real_directory(&metadata, component, label)?;
-            }
-            Err(error) => {
-                return Err(format!("inspect {label} directory {component:?}: {error}"));
-            }
-        }
-    }
-    Ok(directory)
-}
-
-#[cfg(windows)]
-fn reject_windows_path(path: &Path, label: &str) -> Result<(), String> {
-    let raw = path.as_os_str().to_string_lossy();
-    if raw.contains('\0') {
-        return Err(format!("{label} path contains NUL"));
-    }
-    if raw.contains("\\\\?\\") || raw.contains("//?/") {
-        return Err(format!("{label} path must not use a \\\\?\\ prefix"));
-    }
-    for component in path.components() {
-        match component {
-            std::path::Component::Prefix(prefix) => {
-                if !matches!(prefix.kind(), std::path::Prefix::Disk(_)) {
-                    return Err(format!(
-                        "{label} path must not use a verbatim, UNC, or device prefix"
-                    ));
-                }
-            }
-            std::path::Component::ParentDir => {
-                return Err(format!("{label} path must not contain .."));
-            }
-            std::path::Component::Normal(name) => {
-                if name.to_string_lossy().contains('\0') {
-                    return Err(format!("{label} path contains NUL"));
-                }
-            }
-            std::path::Component::RootDir | std::path::Component::CurDir => {}
-        }
-    }
-    Ok(())
-}
-
-#[cfg(windows)]
-fn reject_windows_component(component: &str, label: &str) -> Result<(), String> {
-    if component.contains('\0') {
-        return Err(format!("{label} directory contains NUL: {component:?}"));
-    }
-    if component == ".."
-        || component.contains('/')
-        || component.contains('\\')
-        || component.contains(':')
-    {
-        return Err(format!(
-            "{label} directory {component:?} must be a single path component"
-        ));
-    }
-    Ok(())
-}
-
-#[cfg(windows)]
-fn ensure_metadata_is_real_directory(
-    metadata: &std::fs::Metadata,
-    component: &str,
-    label: &str,
-) -> Result<(), String> {
-    const FILE_ATTRIBUTE_REPARSE_POINT: u32 = 0x400;
-    if metadata.file_type().is_symlink()
-        || !metadata.is_dir()
-        || (metadata.file_attributes() & FILE_ATTRIBUTE_REPARSE_POINT) != 0
-    {
-        return Err(format!(
-            "{label} directory {component:?} is not a real directory"
-        ));
-    }
-    Ok(())
-}
-
-/// Same-directory best-effort replace: exclusive temp, persist, remove+rename.
-/// Not `renameat`-atomic and not dirfd / TOCTOU-closed. Unlink temp on error.
-#[cfg(windows)]
-fn replace_regular_file_best_effort(
-    directory: &Path,
-    final_name: &str,
-    temporary_prefix: &str,
-    bytes: &[u8],
-) -> Result<(), String> {
-    if final_name.contains('\0') || final_name.contains('/') || final_name.contains('\\') {
-        return Err(format!(
-            "ignored generated basename must be a single path component: {final_name:?}"
-        ));
-    }
-    ensure_windows_regular_or_absent(directory, final_name)?;
-    let (temporary_path, mut temporary) =
-        create_exclusive_windows_temp(directory, temporary_prefix)?;
-    let result = (|| {
-        temporary
-            .write_all(bytes)
-            .map_err(|error| format!("write ignored generated temporary file: {error}"))?;
-        temporary
-            .sync_all()
-            .map_err(|error| format!("sync ignored generated temporary file: {error}"))?;
-        drop(temporary);
-        let dest = directory.join(final_name);
-        match std::fs::symlink_metadata(&dest) {
-            Ok(metadata)
-                if !metadata.file_type().is_file() || metadata.file_type().is_symlink() =>
-            {
-                Err("retirement facts output must be a regular file".to_owned())
-            }
-            Ok(_) => {
-                std::fs::remove_file(&dest)
-                    .map_err(|error| format!("replace ignored generated output: {error}"))?;
-                std::fs::rename(&temporary_path, &dest)
-                    .map_err(|error| format!("replace ignored generated output: {error}"))
-            }
-            Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
-                std::fs::rename(&temporary_path, &dest)
-                    .map_err(|error| format!("replace ignored generated output: {error}"))
-            }
-            Err(error) => Err(format!("inspect retirement facts output: {error}")),
-        }
-    })();
-    if result.is_err() {
-        let _ = std::fs::remove_file(&temporary_path);
-    }
-    result
-}
-
-#[cfg(windows)]
-fn ensure_windows_regular_or_absent(directory: &Path, name: &str) -> Result<(), String> {
-    match std::fs::symlink_metadata(directory.join(name)) {
-        Ok(metadata) if !metadata.file_type().is_file() || metadata.file_type().is_symlink() => {
-            Err("retirement facts output must be a regular file".to_owned())
-        }
-        Ok(_) => Ok(()),
-        Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(()),
-        Err(error) => Err(format!("inspect retirement facts output: {error}")),
-    }
-}
-
-#[cfg(windows)]
-fn create_exclusive_windows_temp(
-    directory: &Path,
-    prefix: &str,
-) -> Result<(PathBuf, std::fs::File), String> {
-    for _ in 0..32 {
-        let name = format!(
-            "{prefix}-{}-{}",
-            std::process::id(),
-            NEXT_ATOMIC_WRITE_ID.fetch_add(1, Ordering::Relaxed)
-        );
-        let path = directory.join(&name);
-        match std::fs::OpenOptions::new()
-            .write(true)
-            .create_new(true)
-            .open(&path)
-        {
-            Ok(file) => return Ok((path, file)),
-            Err(error) if error.kind() == std::io::ErrorKind::AlreadyExists => continue,
-            Err(error) => {
-                return Err(format!(
-                    "create temporary file with prefix {prefix:?}: {error}"
-                ));
-            }
-        }
-    }
-    Err(format!(
-        "exhausted temporary file names with prefix {prefix:?}"
-    ))
 }
 
 pub(crate) fn materialize_history_only_retirement_facts(
@@ -2730,195 +2471,6 @@ mod tests {
             err.contains("Unix dirfd"),
             "unexpected non-unix free-function error: {err}"
         );
-    }
-
-    #[cfg(windows)]
-    const WINDOWS_IGNORED_RECEIPT: &str =
-        "ci/facade/artifact-inventory-registry/adr-census-epoch-receipt.generated.json";
-
-    #[cfg(windows)]
-    fn windows_temp_git_repo(label: &str) -> PathBuf {
-        let root = std::env::temp_dir().join(format!(
-            "retirement-windows-{label}-{}-{}",
-            std::process::id(),
-            NEXT_ATOMIC_WRITE_ID.fetch_add(1, Ordering::Relaxed)
-        ));
-        std::fs::create_dir(&root).expect("create windows writer repository");
-        let status = Command::new("git")
-            .args(["init", "--quiet"])
-            .current_dir(&root)
-            .status()
-            .expect("run git init");
-        assert!(status.success(), "git init must succeed");
-        root
-    }
-
-    #[cfg(windows)]
-    fn write_windows_ignore(root: &Path) {
-        std::fs::write(
-            root.join(".gitignore"),
-            format!("/{GENERATED_FACTS_PATH}\n/{WINDOWS_IGNORED_RECEIPT}\n"),
-        )
-        .expect("write gitignore");
-    }
-
-    #[cfg(windows)]
-    fn create_windows_directory_reparse(link: &Path, target: &Path) {
-        if std::os::windows::fs::symlink_dir(target, link).is_ok() {
-            return;
-        }
-        let status = Command::new("cmd")
-            .args([
-                "/C",
-                "mklink",
-                "/J",
-                &link.to_string_lossy(),
-                &target.to_string_lossy(),
-            ])
-            .status()
-            .expect("run mklink /J");
-        assert!(
-            status.success(),
-            "must create a directory symlink or junction at {}",
-            link.display()
-        );
-    }
-
-    /// Both Windows writers succeed on an ignored, untracked temp git repo.
-    #[cfg(windows)]
-    #[test]
-    fn windows_writers_materialize_ignored_untracked_faces() {
-        let root = windows_temp_git_repo("writers");
-        write_windows_ignore(&root);
-
-        let writer = CanonicalRetirementFactsWriter::open(&root)
-            .expect("windows retirement facts writer must open");
-        writer
-            .write(b"{\"facts\":true}")
-            .expect("write retirement facts");
-        let facts_path = root.join(GENERATED_FACTS_PATH);
-        let facts = std::fs::read(&facts_path).expect("read materialized retirement facts");
-        assert_eq!(facts, b"{\"facts\":true}");
-        assert!(
-            std::fs::symlink_metadata(&facts_path)
-                .expect("metadata")
-                .file_type()
-                .is_file(),
-            "retirement facts dest must be a regular file"
-        );
-        writer
-            .write(b"{\"facts\":false}")
-            .expect("replace retirement facts");
-        assert_eq!(
-            std::fs::read(&facts_path).expect("read replaced retirement facts"),
-            b"{\"facts\":false}"
-        );
-
-        let ignored =
-            CanonicalIgnoredGeneratedWriter::open(&root, Path::new(WINDOWS_IGNORED_RECEIPT))
-                .expect("windows ignored generated writer must open");
-        ignored
-            .write(b"{}")
-            .expect("write ignored generated receipt");
-        let receipt_path = root.join(WINDOWS_IGNORED_RECEIPT);
-        assert_eq!(
-            std::fs::read(&receipt_path).expect("read materialized ignored receipt"),
-            b"{}"
-        );
-        assert!(
-            std::fs::symlink_metadata(&receipt_path)
-                .expect("metadata")
-                .file_type()
-                .is_file(),
-            "ignored generated dest must be a regular file"
-        );
-        ignored
-            .write(b"{\"ok\":1}")
-            .expect("replace ignored generated receipt");
-        assert_eq!(
-            std::fs::read(&receipt_path).expect("read replaced ignored receipt"),
-            b"{\"ok\":1}"
-        );
-
-        std::fs::remove_dir_all(&root).expect("remove windows writer repository");
-    }
-
-    /// A symlink or junction parent component is rejected before any write.
-    #[cfg(windows)]
-    #[test]
-    fn windows_writers_reject_symlink_or_junction_parent() {
-        let root = windows_temp_git_repo("reparse");
-        write_windows_ignore(&root);
-        std::fs::create_dir(root.join("ci")).expect("create ci");
-        let decoy = root.join("decoy-parent");
-        std::fs::create_dir(&decoy).expect("create decoy");
-        create_windows_directory_reparse(&root.join("ci").join("facade"), &decoy);
-
-        let error = CanonicalRetirementFactsWriter::open(&root)
-            .map(|_| ())
-            .expect_err("junction parent must be rejected");
-        assert!(
-            error.contains("is not a real directory"),
-            "unexpected junction error: {error}"
-        );
-
-        let error =
-            CanonicalIgnoredGeneratedWriter::open(&root, Path::new(WINDOWS_IGNORED_RECEIPT))
-                .map(|_| ())
-                .expect_err("junction parent must be rejected for ignored writer");
-        assert!(
-            error.contains("is not a real directory"),
-            "unexpected ignored-writer junction error: {error}"
-        );
-
-        std::fs::remove_dir_all(&root).expect("remove windows reparse repository");
-    }
-
-    /// Non-ignored and tracked outputs still fail closed at `open`.
-    #[cfg(windows)]
-    #[test]
-    fn windows_writers_reject_non_ignored_or_tracked_path() {
-        let root = windows_temp_git_repo("boundary");
-
-        let error = CanonicalRetirementFactsWriter::open(&root)
-            .map(|_| ())
-            .expect_err("missing ignore must fail closed");
-        assert!(
-            error.contains("must be ignored and untracked"),
-            "unexpected retirement boundary error: {error}"
-        );
-
-        let error =
-            CanonicalIgnoredGeneratedWriter::open(&root, Path::new(WINDOWS_IGNORED_RECEIPT))
-                .map(|_| ())
-                .expect_err("missing ignore must fail closed for ignored writer");
-        assert!(
-            error.contains("must be ignored and untracked"),
-            "unexpected ignored boundary error: {error}"
-        );
-
-        write_windows_ignore(&root);
-        std::fs::create_dir_all(root.join("ci/facade/artifact-inventory-registry"))
-            .expect("create receipt parent");
-        std::fs::write(root.join(WINDOWS_IGNORED_RECEIPT), b"tracked")
-            .expect("write tracked receipt");
-        let add = Command::new("git")
-            .args(["add", "-f", "--", WINDOWS_IGNORED_RECEIPT])
-            .current_dir(&root)
-            .status()
-            .expect("git add tracked receipt");
-        assert!(add.success(), "git add -f must succeed");
-
-        let error =
-            CanonicalIgnoredGeneratedWriter::open(&root, Path::new(WINDOWS_IGNORED_RECEIPT))
-                .map(|_| ())
-                .expect_err("tracked ignored path must fail closed");
-        assert!(
-            error.contains("must be untracked"),
-            "unexpected tracked-path error: {error}"
-        );
-
-        std::fs::remove_dir_all(&root).expect("remove windows boundary repository");
     }
 
     #[cfg(unix)]

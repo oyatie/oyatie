@@ -1,15 +1,15 @@
 //! Windows parent walk and same-directory best-effort replace.
 //!
-//! Not `renameat`-atomic and not dirfd / TOCTOU-closed. Rejects reparse points,
-//! `\\?\` prefixes, `..`, and NUL. Unlinks the exclusive temp on error.
+//! Rejects reparse points, `\\?\`, non-disk prefixes, `..`, and NUL. Exclusive
+//! temp + `write_all` + `sync_all`, then `remove_file` if present and `rename`.
+//! Not `renameat`-atomic and not dirfd / TOCTOU-closed.
 
 use std::io::Write;
-use std::path::{Path, PathBuf};
-use std::sync::atomic::{AtomicU64, Ordering};
-
 use std::os::windows::fs::MetadataExt;
+use std::path::{Path, PathBuf};
+use std::sync::atomic::Ordering;
 
-static NEXT_WINDOWS_WRITE_ID: AtomicU64 = AtomicU64::new(0);
+use super::super::NEXT_ATOMIC_WRITE_ID;
 
 /// Walk/create a real, non-reparse parent. Rejects `\\?\`, non-disk prefixes,
 /// `..`, and NUL. Not dirfd-bound.
@@ -184,7 +184,7 @@ fn create_exclusive_windows_temp(
         let name = format!(
             "{prefix}-{}-{}",
             std::process::id(),
-            NEXT_WINDOWS_WRITE_ID.fetch_add(1, Ordering::Relaxed)
+            NEXT_ATOMIC_WRITE_ID.fetch_add(1, Ordering::Relaxed)
         );
         let path = directory.join(&name);
         match std::fs::OpenOptions::new()
