@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "language": "go",
-  "snapshot_digest": "sha256:21d5e0f5fcc0415164f464ca53e139ed292fa419e247bf15573dcc2081169c28",
+  "snapshot_digest": "sha256:7e41c8ee9fb0b6c66072ebee1f5845a3ca912ff3960ad5064918dd985b24a862",
   "packages": [
     {
       "unit_id": "oyatie.example/portengine-fixture/basic",
@@ -10,19 +10,22 @@
         {
           "kind": "func",
           "name": "Add",
-          "exported": true,
-          "params": [
+          "flags": [
+            "exported"
+          ],
+          "children": [
             {
+              "kind": "param",
               "name": "a",
               "type": "int"
             },
             {
+              "kind": "param",
               "name": "b",
               "type": "int"
-            }
-          ],
-          "results": [
+            },
             {
+              "kind": "result",
               "name": "",
               "type": "int"
             }
@@ -31,43 +34,54 @@
         {
           "kind": "named",
           "name": "Celsius",
-          "exported": true,
-          "type": "float64"
+          "type": "float64",
+          "flags": [
+            "exported"
+          ]
         },
         {
           "kind": "const",
           "name": "DefaultName",
-          "exported": true,
-          "type": "string"
+          "type": "string",
+          "flags": [
+            "exported"
+          ]
         },
         {
           "kind": "var",
           "name": "Enabled",
-          "exported": true,
-          "type": "bool"
+          "type": "bool",
+          "flags": [
+            "exported"
+          ]
         },
         {
           "kind": "alias",
           "name": "ID",
-          "exported": true,
-          "type": "string"
+          "type": "string",
+          "flags": [
+            "exported"
+          ]
         },
         {
           "kind": "func",
           "name": "Label",
-          "exported": true,
-          "params": [
+          "flags": [
+            "exported"
+          ],
+          "children": [
             {
+              "kind": "param",
               "name": "id",
               "type": "ID"
             },
             {
+              "kind": "param",
               "name": "fallback",
               "type": "string"
-            }
-          ],
-          "results": [
+            },
             {
+              "kind": "result",
               "name": "",
               "type": "string"
             }
@@ -76,25 +90,30 @@
         {
           "kind": "const",
           "name": "MaxRetries",
-          "exported": true,
-          "type": "int"
+          "type": "int",
+          "flags": [
+            "exported"
+          ]
         },
         {
           "kind": "func",
           "name": "Scale",
-          "exported": true,
-          "params": [
+          "flags": [
+            "exported"
+          ],
+          "children": [
             {
+              "kind": "param",
               "name": "value",
               "type": "float64"
             },
             {
+              "kind": "param",
               "name": "factor",
               "type": "float64"
-            }
-          ],
-          "results": [
+            },
             {
+              "kind": "result",
               "name": "",
               "type": "float64"
             }
@@ -103,21 +122,22 @@
         {
           "kind": "var",
           "name": "Threshold",
-          "exported": true,
-          "type": "float64"
+          "type": "float64",
+          "flags": [
+            "exported"
+          ]
         },
         {
           "kind": "func",
           "name": "unexported",
-          "exported": false,
-          "params": [
+          "children": [
             {
+              "kind": "param",
               "name": "n",
               "type": "int"
-            }
-          ],
-          "results": [
+            },
             {
+              "kind": "result",
               "name": "",
               "type": "int"
             }
@@ -132,23 +152,33 @@
         {
           "kind": "interface",
           "name": "Named",
-          "exported": true,
-          "methods": [
+          "flags": [
+            "exported"
+          ],
+          "children": [
             {
+              "kind": "method",
               "name": "Name",
-              "exported": true,
-              "results": [
+              "flags": [
+                "exported"
+              ],
+              "children": [
                 {
+                  "kind": "result",
                   "name": "",
                   "type": "string"
                 }
               ]
             },
             {
+              "kind": "method",
               "name": "Rename",
-              "exported": true,
-              "params": [
+              "flags": [
+                "exported"
+              ],
+              "children": [
                 {
+                  "kind": "param",
                   "name": "next",
                   "type": "string"
                 }
@@ -159,56 +189,72 @@
         {
           "kind": "var",
           "name": "Origin",
-          "exported": true,
-          "type": "Point"
+          "type": "Point",
+          "flags": [
+            "exported"
+          ]
         },
         {
           "kind": "struct",
           "name": "Point",
-          "exported": true,
-          "fields": [
+          "flags": [
+            "exported"
+          ],
+          "children": [
             {
+              "kind": "field",
               "name": "X",
               "type": "int",
-              "exported": true
+              "flags": [
+                "exported"
+              ]
             },
             {
+              "kind": "field",
               "name": "Y",
               "type": "int",
-              "exported": true
+              "flags": [
+                "exported"
+              ]
             },
             {
+              "kind": "field",
               "name": "label",
-              "type": "string",
-              "exported": false
-            }
-          ],
-          "methods": [
+              "type": "string"
+            },
             {
+              "kind": "method",
               "name": "Area",
-              "exported": true,
-              "results": [
+              "flags": [
+                "exported"
+              ],
+              "children": [
                 {
+                  "kind": "result",
                   "name": "",
                   "type": "int"
                 }
               ]
             },
             {
+              "kind": "method",
               "name": "Shift",
-              "exported": true,
-              "params": [
+              "flags": [
+                "exported"
+              ],
+              "children": [
                 {
+                  "kind": "param",
                   "name": "dx",
                   "type": "int"
                 },
                 {
+                  "kind": "param",
                   "name": "dy",
                   "type": "int"
-                }
-              ],
-              "results": [
+                },
                 {
+                  "kind": "result",
                   "name": "",
                   "type": "Point"
                 }

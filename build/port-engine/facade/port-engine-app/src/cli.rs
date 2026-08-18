@@ -30,6 +30,7 @@ Commands:
   rulepack          Load fixture-gated rulepack v0; print digest + fixture count
   plan              Plan embedded rulepack against example units
   admit-snapshot    Admit hermetic OOB bootstrap snapshot fixture
+  declarations      Admit the v1 Go-corpus snapshot; list what each unit declares
   transform         Admit→plan→apply constructions → RustIr region count
   render            Transform+emit; print region count + emit tree digest
   engine            Print Slice 9 engine identity digest
@@ -63,6 +64,7 @@ pub fn run(args: &[String]) -> ExitCode {
         "rulepack" => cmd_rulepack(),
         "plan" => cmd_plan(),
         "admit-snapshot" => cmd_admit_snapshot(),
+        "declarations" => cmd_declarations(),
         "transform" => cmd_transform(),
         "render" => cmd_render(),
         "engine" => cmd_engine(),
@@ -228,6 +230,26 @@ fn cmd_plan() -> ExitCode {
     }
 }
 
+fn cmd_declarations() -> ExitCode {
+    match driver::smoke_declarations() {
+        Ok((admitted, summary)) => {
+            println!(
+                "declarations=ok digest={} units={}",
+                admitted.model_digest().0,
+                summary.len()
+            );
+            for (unit, count) in summary {
+                println!("  {unit} declares {count}");
+            }
+            ExitCode::SUCCESS
+        }
+        Err(err) => {
+            eprintln!("port-engine-app: declarations failed: {err}");
+            ExitCode::from(1)
+        }
+    }
+}
+
 fn cmd_admit_snapshot() -> ExitCode {
     match driver::smoke_admit_snapshot() {
         Ok(admitted) => {
@@ -372,6 +394,7 @@ mod tests {
         assert_eq!(run(&args(&["rulepack"])), ExitCode::SUCCESS);
         assert_eq!(run(&args(&["plan"])), ExitCode::SUCCESS);
         assert_eq!(run(&args(&["admit-snapshot"])), ExitCode::SUCCESS);
+        assert_eq!(run(&args(&["declarations"])), ExitCode::SUCCESS);
         assert_eq!(run(&args(&["transform"])), ExitCode::SUCCESS);
         assert_eq!(run(&args(&["render"])), ExitCode::SUCCESS);
         assert_eq!(run(&args(&["engine"])), ExitCode::SUCCESS);

@@ -50,6 +50,13 @@ recorded here rather than implied.
   snapshot envelope v1 with per-package declarations; digest over a length-prefixed
   arity-tagged preimage, not over JSON. Firewall extended: library sources may not NAME the
   corpus tree, not merely refrain from spawning `go`.
+- I2: snapshot envelope v1 decoded in Rust. `SourceModel` gains `declarations`, carried as ONE
+  uniform recursive node whose `kind` is a value — a const, a field, a param and a method are the
+  same shape — so Go's taxonomy stays out of the neutral seam. Kind and flag vocabularies are
+  CLOSED in the Go adapter (where naming Go is allowed) and refuse anything unknown.
+  `snapshot_preimage_v1` extends the digest over the declaration tree, mirroring the extractor's
+  encoder; the two agreeing over a real corpus is what `v1_fixture_admits_and_carries_declarations`
+  proves. CLI: `declarations`.
 
 ## Next gaps (ordered)
 

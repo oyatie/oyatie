@@ -7,7 +7,8 @@ use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
 use port_engine_api::{
-    Digest, Receipt, RegionId, RulePack, SourceModel, TargetIr, UnitId, w0_ready as api_ready,
+    Declaration, Digest, Receipt, RegionId, RulePack, SourceModel, TargetIr, UnitId,
+    w0_ready as api_ready,
 };
 use port_engine_emit::{
     CanaryArtifact, EmitError, emit_canary_checked, materialize_canary_roundtrip, select_canary,
@@ -19,7 +20,8 @@ use port_engine_identity::{engine_digest, w0_ready as identity_ready};
 use port_engine_rulepack::{LoadedRulePack, RulepackError, w0_ready as rulepack_ready};
 use port_engine_rust_ir::{EmptyRenderer, RustIr, SynQuoteRenderer};
 use port_engine_snapshot::{
-    AdmitError, AdmittedSnapshot, admit_embedded_fixture, w0_ready as snapshot_ready,
+    AdmitError, AdmittedSnapshot, admit_embedded_fixture, admit_embedded_fixture_v1,
+    w0_ready as snapshot_ready,
 };
 use port_engine_source_pin::{load_embedded, receipt_pin};
 use port_engine_toolchain::{toolchain_digest, w0_ready as toolchain_ready};
@@ -111,6 +113,27 @@ pub fn smoke_plan() -> Result<usize, PlanSmokeError> {
 /// Propagates [`AdmitError`] from snapshot admission.
 pub fn smoke_admit_snapshot() -> Result<AdmittedSnapshot, AdmitError> {
     admit_embedded_fixture()
+}
+
+/// Admit the v1 Go-corpus snapshot and summarise what each unit declares.
+///
+/// Returns `(unit_id, declaration_count)` in model order, plus the admitted snapshot, so the CLI
+/// can show that the engine is now reading a real declaration tree rather than bare unit ids.
+///
+/// # Errors
+/// Propagates [`AdmitError`] — including the digest mismatch that a drift between the Go
+/// extractor's preimage encoder and the Rust one would produce.
+pub fn smoke_declarations() -> Result<(AdmittedSnapshot, Vec<(String, usize)>), AdmitError> {
+    let admitted = admit_embedded_fixture_v1()?;
+    let mut summary = Vec::new();
+    for unit in admitted.as_model().units() {
+        let count = admitted
+            .as_model()
+            .declarations(&unit)
+            .map_or(0, |declarations| declarations.len());
+        summary.push((unit.0, count));
+    }
+    Ok((admitted, summary))
 }
 
 /// Slice 9 engine identity digest.
@@ -379,6 +402,13 @@ impl SourceModel for RulepackModel {
             UnitId("example.com/a".into()),
             UnitId("example.com/b".into()),
         ]
+    }
+
+    /// The Slice 7 rulepack smoke model exists to exercise plan selection against the pack's
+    /// declared example units; it carries no source and therefore declares nothing. `Some(vec![])`
+    /// says exactly that, and is a different answer from the `None` an unknown unit gets.
+    fn declarations(&self, unit: &UnitId) -> Option<Vec<Declaration>> {
+        self.units().contains(unit).then(Vec::new)
     }
 }
 

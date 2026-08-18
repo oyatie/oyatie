@@ -401,7 +401,7 @@ impl RulePack for LoadedRulePack {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use port_engine_api::{SourceModel, UnitId};
+    use port_engine_api::{Declaration, SourceModel, UnitId};
     use port_engine_hash::digest_bytes;
 
     struct TinyModel {
@@ -417,6 +417,9 @@ mod tests {
         }
         fn units(&self) -> Vec<UnitId> {
             self.units.clone()
+        }
+        fn declarations(&self, unit: &UnitId) -> Option<Vec<Declaration>> {
+            self.units.contains(unit).then(Vec::new)
         }
     }
 

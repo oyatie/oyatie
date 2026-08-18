@@ -204,7 +204,7 @@ fn construction_source(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use port_engine_api::{Digest, LanguagePair, PlanStep, TargetIr};
+    use port_engine_api::{Declaration, Digest, LanguagePair, PlanStep, TargetIr};
     use std::collections::BTreeMap;
 
     struct Table {
@@ -233,6 +233,9 @@ mod tests {
         }
         fn units(&self) -> Vec<UnitId> {
             self.units.clone()
+        }
+        fn declarations(&self, unit: &UnitId) -> Option<Vec<Declaration>> {
+            self.units.contains(unit).then(Vec::new)
         }
     }
 

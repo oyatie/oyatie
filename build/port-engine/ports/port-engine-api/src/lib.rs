@@ -103,12 +103,60 @@ pub struct RegionId(pub String); // data_class: INTERNAL_ONLY
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct Digest(pub String); // data_class: INTERNAL_ONLY
 
+/// One node of a unit's declaration tree: what the unit declares, as the front end saw it.
+///
+/// UNIFORM BY DESIGN. A constant, a struct field, a function parameter and an interface method are
+/// all this one shape, and what tells them apart is [`Declaration::kind`] — a value, not a field
+/// name and not an enum variant. The alternative shape, with `fields` / `methods` / `params` /
+/// `results` as distinct fields, would have pushed one source language's declaration taxonomy into
+/// a seam that [`LanguagePair`] deliberately keeps as data. A second language pair is a second
+/// directory of rule data over the same engine; it must not be a second seam.
+///
+/// Every string here is opaque. The engine compares `kind`, `type_ref` and `flags` and never
+/// interprets them — `int` is not a number to the engine and `func` is not a function. Meaning is
+/// assigned by the rule pack, which selects on these values and says what to construct from them.
+#[derive(Clone, Debug, Default, Eq, Ord, PartialEq, PartialOrd)]
+pub struct Declaration {
+    /// What this node is, as an opaque slug the rule pack selects on. // data_class: INTERNAL_ONLY
+    pub kind: String,
+    /// The declared identifier. Empty is legal — an unnamed result is a real declaration.
+    pub name: String, // data_class: INTERNAL_ONLY
+    /// The declared type, as an opaque slug. Empty when the node declares no type.
+    pub type_ref: String, // data_class: INTERNAL_ONLY
+    /// Boolean facts, as a set of opaque slugs rather than named booleans, so a front end can
+    /// record a new one without widening this seam.
+    pub flags: BTreeSet<String>, // data_class: INTERNAL_ONLY
+    /// Nested declarations in significant order. Order is the front end's to decide and the
+    /// engine's to preserve: it is semantic for a parameter list and for struct fields, and a
+    /// front end that sorts what must stay positional has produced a defective model.
+    pub children: Vec<Declaration>, // data_class: INTERNAL_ONLY
+}
+
+impl Declaration {
+    /// True when `flag` is set on this node.
+    #[must_use]
+    pub fn has_flag(&self, flag: &str) -> bool {
+        self.flags.contains(flag)
+    }
+
+    /// Children whose `kind` is exactly `kind`, in declared order.
+    #[must_use]
+    pub fn children_of_kind(&self, kind: &str) -> Vec<&Self> {
+        self.children.iter().filter(|c| c.kind == kind).collect()
+    }
+}
+
 /// The canonical semantic model of the source corpus, as produced by a front end.
 ///
-/// The kernel never inspects a unit's contents: the front end owns source-language semantics, this
-/// trait owns only identity and order. `units` is order-significant and MUST be deterministic for
-/// a given input — `port-engine-kernel::plan` rejects a duplicate id because that is the shape in
-/// which a non-deterministic model reaches the engine.
+/// The front end owns source-language semantics; this trait owns identity, order, and the
+/// declaration tree. `units` is order-significant and MUST be deterministic for a given input —
+/// `port-engine-kernel::plan` rejects a duplicate id because that is the shape in which a
+/// non-deterministic model reaches the engine.
+///
+/// The kernel itself still reads only identity and order. [`SourceModel::declarations`] exists for
+/// the transform face, which needs to know what a unit declares in order to construct anything at
+/// all; a model that answers only with unit ids can produce nothing but empty regions named after
+/// its units.
 pub trait SourceModel {
     /// Slug of the language this model was read from.
     fn language(&self) -> &str;
@@ -116,6 +164,18 @@ pub trait SourceModel {
     fn snapshot_digest(&self) -> Digest;
     /// The translatable units, in deterministic order.
     fn units(&self) -> Vec<UnitId>;
+    /// What `unit` declares, in deterministic order.
+    ///
+    /// `None` means the model does not carry that unit at all; `Some(vec![])` means it carries the
+    /// unit and the unit declares nothing. The two are different answers and a caller may act
+    /// differently on them, which is why this is not a bare `Vec` — an empty vector standing for
+    /// both would let an unknown unit read as an empty one, and an empty one transforms to nothing
+    /// without complaint.
+    ///
+    /// Deliberately NOT defaulted. A default returning "no declarations" would let a front end
+    /// that forgot to implement it produce a green, empty translation of a populated corpus, and
+    /// the receipt would attribute the emptiness to nothing at all.
+    fn declarations(&self, unit: &UnitId) -> Option<Vec<Declaration>>;
 }
 
 /// Neutral rule data, addressed by [`LanguagePair`].

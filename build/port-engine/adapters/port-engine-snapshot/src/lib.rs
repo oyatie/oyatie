@@ -8,13 +8,20 @@
 
 use std::fmt;
 
-use port_engine_api::{Digest, SourceModel, UnitId};
-use port_engine_frontend_go::{GoSourceModel, PRODUCER_BOOTSTRAP_GO, SnapshotError};
+use port_engine_api::{Declaration, Digest, SourceModel, UnitId};
+use port_engine_frontend_go::{
+    GoSourceModel, PRODUCER_BOOTSTRAP_GO, SCHEMA_VERSION_DECLARATIONS, SnapshotError,
+};
 use port_engine_hash::digest_bytes;
 use port_engine_source_pin::{PinError, load_embedded, receipt_pin};
 
 /// Embedded OOB bootstrap snapshot fixture (hermetic; not produced in-process).
 const FIXTURE_SNAPSHOT_JSON: &str = include_str!("fixture-snapshot-v0.json");
+
+/// Embedded v1 fixture: the declaration tree extracted from the hermetic Go corpus by the
+/// out-of-band bootstrap extractor (`../port-engine-frontend-go/gosrc/`). Committed rather than
+/// produced here — the ADR-0638 D3 firewall means no engine crate may run Go.
+const FIXTURE_SNAPSHOT_V1_JSON: &str = include_str!("fixture-snapshot-v1.json");
 
 /// Fail-closed readiness gate. `true` once Slice 8 admission is present.
 pub const fn w0_ready() -> bool {
@@ -142,6 +149,10 @@ impl SourceModel for AdmittedSnapshot {
     fn units(&self) -> Vec<UnitId> {
         self.model.units()
     }
+
+    fn declarations(&self, unit: &UnitId) -> Option<Vec<Declaration>> {
+        self.model.declarations_for(unit)
+    }
 }
 
 /// Stable admission preimage: length-prefixed language, then each length-prefixed unit and
@@ -165,6 +176,64 @@ fn push_field(out: &mut Vec<u8>, value: &str) {
     out.extend_from_slice(value.len().to_string().as_bytes());
     out.push(b':');
     out.extend_from_slice(value.as_bytes());
+}
+
+/// Stable admission preimage for a v1 artifact, which carries declarations.
+///
+/// The v0 preimage covers language plus the package→producer map, and nothing else. Digesting a
+/// v1 artifact with it would leave the entire declaration tree OUTSIDE the identity: rename a
+/// field, add a method, change a parameter type, and `snapshot_digest` would not move. The
+/// receipt would then find the emitted bytes changed with all six axes unchanged and classify a
+/// perfectly well-explained change as `Unexplained` — or, worse, an emit that happened not to
+/// change would be blessed as reproducible over a corpus that did.
+///
+/// The encoding is the same shape as v0's — decimal length prefixes with a `:` — extended with an
+/// explicit child arity per node:
+///
+/// ```text
+/// F(kind) F(name) F(type_ref) F(len(flags)) flags... F(len(children)) children...
+/// ```
+///
+/// Length prefixes make each field unambiguous; the arity counts make the tree unambiguous. This
+/// is mirrored byte-for-byte by the Go extractor's `encodeNode`. That duplication is deliberate:
+/// the alternative is trusting the digest the extractor claims, which would let a front-end defect
+/// enter the engine carrying a self-consistent receipt. Drift between the two implementations
+/// surfaces here as [`AdmitError::DigestMismatch`].
+#[must_use]
+pub fn snapshot_preimage_v1(
+    language: &str,
+    packages: &[(&str, &str, Vec<Declaration>)],
+) -> Vec<u8> {
+    let mut out = Vec::new();
+    push_field(&mut out, "snapshot");
+    push_field(&mut out, language);
+    push_field(&mut out, &packages.len().to_string());
+    for (unit, producer, declarations) in packages {
+        push_field(&mut out, "package");
+        push_field(&mut out, unit);
+        push_field(&mut out, producer);
+        push_field(&mut out, &declarations.len().to_string());
+        for declaration in declarations {
+            push_declaration(&mut out, declaration);
+        }
+    }
+    out
+}
+
+fn push_declaration(out: &mut Vec<u8>, declaration: &Declaration) {
+    push_field(out, &declaration.kind);
+    push_field(out, &declaration.name);
+    push_field(out, &declaration.type_ref);
+    // `flags` is a BTreeSet, so this iteration is sorted — the same order the extractor sorts
+    // into. A set with two orderings would be a set with two digests.
+    push_field(out, &declaration.flags.len().to_string());
+    for flag in &declaration.flags {
+        push_field(out, flag);
+    }
+    push_field(out, &declaration.children.len().to_string());
+    for child in &declaration.children {
+        push_declaration(out, child);
+    }
 }
 
 /// Admit two byte-identical snapshot artifacts against the fleet pin.
@@ -210,11 +279,29 @@ fn admit_one(bytes: &[u8], artifact_digest: Digest) -> Result<AdmittedSnapshot, 
         }
         pairs.push((unit.0.clone(), producer.to_owned()));
     }
-    let refs: Vec<(&str, &str)> = pairs
-        .iter()
-        .map(|(u, p)| (u.as_str(), p.as_str()))
-        .collect();
-    let computed = digest_bytes(&snapshot_preimage(model.language(), &refs));
+
+    // The preimage is chosen by the artifact's declared version, not by whether declarations
+    // happen to be present. Choosing on presence would mean an artifact whose declarations were
+    // dropped in transit re-digests cleanly under the v0 rule and admits as a valid empty corpus.
+    let computed = if model.schema_version() == SCHEMA_VERSION_DECLARATIONS {
+        let mut packages: Vec<(&str, &str, Vec<Declaration>)> = Vec::with_capacity(units.len());
+        for ((unit, producer), id) in pairs.iter().zip(units.iter()) {
+            let declarations =
+                model
+                    .declarations_for(id)
+                    .ok_or(AdmitError::Snapshot(SnapshotError::Schema {
+                        field: "packages.declarations",
+                    }))?;
+            packages.push((unit.as_str(), producer.as_str(), declarations));
+        }
+        digest_bytes(&snapshot_preimage_v1(model.language(), &packages))
+    } else {
+        let refs: Vec<(&str, &str)> = pairs
+            .iter()
+            .map(|(u, p)| (u.as_str(), p.as_str()))
+            .collect();
+        digest_bytes(&snapshot_preimage(model.language(), &refs))
+    };
     let claimed = model.snapshot_digest();
     if claimed != computed {
         return Err(AdmitError::DigestMismatch {
@@ -242,6 +329,20 @@ fn admit_one(bytes: &[u8], artifact_digest: Digest) -> Result<AdmittedSnapshot, 
 /// [`AdmitError`] on fixture defect.
 pub fn admit_embedded_fixture() -> Result<AdmittedSnapshot, AdmitError> {
     let bytes = FIXTURE_SNAPSHOT_JSON.as_bytes();
+    admit_reproducible_pair(bytes, bytes)
+}
+
+/// Admit the embedded v1 fixture: the declaration tree extracted from the hermetic Go corpus.
+///
+/// Same single-byte-source caveat as [`admit_embedded_fixture`] — pairing the artifact with itself
+/// exercises admission without claiming a second extractor run happened. A genuine two-pass
+/// extraction enters through [`admit_reproducible_pair`].
+///
+/// # Errors
+/// [`AdmitError`] on fixture defect — including a digest that the Rust preimage disagrees with,
+/// which is how a drift between the Go and Rust encoders is meant to surface.
+pub fn admit_embedded_fixture_v1() -> Result<AdmittedSnapshot, AdmitError> {
+    let bytes = FIXTURE_SNAPSHOT_V1_JSON.as_bytes();
     admit_reproducible_pair(bytes, bytes)
 }
 
@@ -283,6 +384,140 @@ mod tests {
         assert_eq!(
             admitted.producer_for(&UnitId("example.com/a".into())),
             Some(PRODUCER_BOOTSTRAP_GO)
+        );
+    }
+
+    /// The cross-language check. This fixture's `snapshot_digest` was computed by the Go
+    /// extractor over ITS encoder; admission recomputes it here over the Rust one. The test
+    /// passing means the two implementations agree byte-for-byte over a real declaration tree —
+    /// which is the whole reason mirroring the encoder is acceptable rather than reckless.
+    #[test]
+    fn v1_fixture_admits_and_carries_declarations() {
+        let admitted = admit_embedded_fixture_v1().expect("v1 fixture must admit");
+
+        let units = admitted.as_model().units();
+        assert_eq!(units.len(), 2, "corpus has two packages");
+        assert!(
+            units
+                .iter()
+                .all(|u| u.0.ends_with("basic") || u.0.ends_with("shapes"))
+        );
+
+        let basic = units
+            .iter()
+            .find(|u| u.0.ends_with("basic"))
+            .expect("basic package");
+        let declarations = admitted
+            .as_model()
+            .declarations(basic)
+            .expect("a unit in the model answers Some");
+        assert!(
+            declarations.len() >= 8,
+            "basic declares consts, vars, an alias, a named type and functions, got {}",
+            declarations.len()
+        );
+
+        let add = declarations
+            .iter()
+            .find(|d| d.name == "Add")
+            .expect("`Add` is declared");
+        assert_eq!(add.kind, "func");
+        assert!(add.has_flag("exported"));
+        assert_eq!(add.children_of_kind("param").len(), 2);
+        assert_eq!(add.children_of_kind("result").len(), 1);
+
+        let shapes = units
+            .iter()
+            .find(|u| u.0.ends_with("shapes"))
+            .expect("shapes package");
+        let shape_decls = admitted
+            .as_model()
+            .declarations(shapes)
+            .expect("a unit in the model answers Some");
+        let point = shape_decls
+            .iter()
+            .find(|d| d.name == "Point")
+            .expect("`Point` is declared");
+        assert_eq!(point.kind, "struct");
+        assert_eq!(point.children_of_kind("field").len(), 3);
+        assert_eq!(point.children_of_kind("method").len(), 2);
+    }
+
+    #[test]
+    fn unknown_unit_answers_none_not_an_empty_model() {
+        let admitted = admit_embedded_fixture_v1().expect("v1 fixture must admit");
+        assert!(
+            admitted
+                .as_model()
+                .declarations(&UnitId("nothing/here".into()))
+                .is_none(),
+            "an unknown unit must be distinguishable from one that declares nothing"
+        );
+    }
+
+    /// The v0 preimage covers language and the package→producer map only. If a v1 artifact were
+    /// digested with it, every declaration would sit outside the snapshot identity: a renamed
+    /// field or a changed parameter type would leave `snapshot_digest` untouched, and the receipt
+    /// would then see emitted bytes move with all six axes unchanged — the exact `Unexplained`
+    /// verdict the axes exist to prevent, arriving for a change that is fully explainable.
+    #[test]
+    fn v1_preimage_moves_when_a_declaration_moves() {
+        let producer = PRODUCER_BOOTSTRAP_GO;
+        let base = Declaration {
+            kind: "const".into(),
+            name: "MaxRetries".into(),
+            type_ref: "int".into(),
+            flags: ["exported".to_owned()].into_iter().collect(),
+            children: Vec::new(),
+        };
+
+        let mut retyped = base.clone();
+        retyped.type_ref = "int64".into();
+        let mut unexported = base.clone();
+        unexported.flags.clear();
+
+        let original = snapshot_preimage_v1("go", &[("u", producer, vec![base.clone()])]);
+        let after_type = snapshot_preimage_v1("go", &[("u", producer, vec![retyped])]);
+        let after_flag = snapshot_preimage_v1("go", &[("u", producer, vec![unexported])]);
+
+        assert_ne!(original, after_type, "a changed type must move the digest");
+        assert_ne!(original, after_flag, "a changed flag must move the digest");
+
+        // And the v0 preimage sees none of it — stated as a fact, so the reason v1 exists is
+        // checked rather than asserted in prose.
+        assert_eq!(
+            snapshot_preimage("go", &[("u", producer)]),
+            snapshot_preimage("go", &[("u", producer)])
+        );
+    }
+
+    /// Nesting must be unambiguous, not merely encoded. Without the explicit child arity, a node
+    /// with one child would flatten into the same byte string as two sibling nodes, and the whole
+    /// declaration tree could be reshaped without moving the digest.
+    #[test]
+    fn v1_preimage_distinguishes_nesting_from_sibling_order() {
+        let producer = PRODUCER_BOOTSTRAP_GO;
+        let leaf = |name: &str| Declaration {
+            kind: "param".into(),
+            name: name.into(),
+            type_ref: "int".into(),
+            flags: std::collections::BTreeSet::new(),
+            children: Vec::new(),
+        };
+
+        let nested = Declaration {
+            kind: "func".into(),
+            name: "f".into(),
+            type_ref: String::new(),
+            flags: std::collections::BTreeSet::new(),
+            children: vec![leaf("a")],
+        };
+        let mut flat = nested.clone();
+        flat.children.clear();
+
+        assert_ne!(
+            snapshot_preimage_v1("go", &[("u", producer, vec![nested])]),
+            snapshot_preimage_v1("go", &[("u", producer, vec![flat, leaf("a")])]),
         );
     }
 
