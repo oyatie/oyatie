@@ -132,3 +132,31 @@ its own decision record, not cited here by number because that record is not yet
 base and a citation to an unminted id is a phantom citation. It removes roughly 72% of a run's
 billable minutes and two of the six parallel jobs, reducing self-contention for runners, but it
 does not shorten the test job's own compile.
+
+## Amendment 2026-08-18: measured step profile, and the linker deferred
+
+The linker swap named in the first draft of this record is DEFERRED, not adopted. mold is
+not installable through the pinned `install-action` (it falls through to `cargo-binstall`,
+which cannot infer a binary for the `mold` crate), `rui314/setup-mold` publishes no tagged
+release to pin, and `lld` does not appear in the runner image manifest. Installing it by
+`apt` is refused on the same grounds as everywhere else in this workflow: an unretried
+package install already cancelled a live-postgres lane and ejected a merge-queue entry.
+
+The first per-step profile of the required lane, measured after the debuginfo change landed,
+reprioritises the remaining work:
+
+| step | seconds | share |
+| --- | --- | --- |
+| Workspace tests | 681 | 70.4% |
+| Materialize generated faces | 192 | 19.9% |
+| Kernel workspace tests | 35 | 3.6% |
+| checkout (`fetch-depth: 0`) | 20 | 2.1% |
+| everything else | 39 | 4.0% |
+| **total** | **967** | **16.1 min** |
+
+Two consequences. First, the `test` job IS the wall clock: every other job — both smoke legs,
+lint, and both live-postgres lanes — completes inside it, so the fan-in never waits on them.
+Optimising anything else changes billable minutes, not wall clock. Second, face
+materialization is 192 seconds of buck2 work performed before a single test runs; in a
+300-second budget that single step would consume 64% of it. Neither fact was visible before
+the profile, and D4's measurement obligation exists precisely to surface this class.
