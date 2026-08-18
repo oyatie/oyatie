@@ -4,6 +4,8 @@ use std::collections::BTreeSet;
 
 use serde::de::{self, MapAccess, SeqAccess, Visitor};
 use serde::Deserialize;
+use serde_json::Value;
+
 use super::TreeEntry;
 
 pub(crate) fn parse_ls_tree(bytes: &[u8]) -> Result<Vec<TreeEntry>, String> {
@@ -113,7 +115,7 @@ where
 pub(crate) struct DuplicateKeyFreeJson;
 
 impl<'de> Deserialize<'de> for DuplicateKeyFreeJson {
-    pub(crate) fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: serde::Deserializer<'de>,
     {
@@ -126,60 +128,60 @@ pub(crate) struct DuplicateKeyFreeJsonVisitor;
 impl<'de> Visitor<'de> for DuplicateKeyFreeJsonVisitor {
     type Value = DuplicateKeyFreeJson;
 
-    pub(crate) fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         formatter.write_str("JSON without duplicate object keys")
     }
 
-    pub(crate) fn visit_bool<E>(self, _value: bool) -> Result<Self::Value, E>
+    fn visit_bool<E>(self, _value: bool) -> Result<Self::Value, E>
     where
         E: de::Error,
     {
         Ok(DuplicateKeyFreeJson)
     }
-    pub(crate) fn visit_i64<E>(self, _value: i64) -> Result<Self::Value, E>
+    fn visit_i64<E>(self, _value: i64) -> Result<Self::Value, E>
     where
         E: de::Error,
     {
         Ok(DuplicateKeyFreeJson)
     }
-    pub(crate) fn visit_u64<E>(self, _value: u64) -> Result<Self::Value, E>
+    fn visit_u64<E>(self, _value: u64) -> Result<Self::Value, E>
     where
         E: de::Error,
     {
         Ok(DuplicateKeyFreeJson)
     }
-    pub(crate) fn visit_f64<E>(self, _value: f64) -> Result<Self::Value, E>
+    fn visit_f64<E>(self, _value: f64) -> Result<Self::Value, E>
     where
         E: de::Error,
     {
         Ok(DuplicateKeyFreeJson)
     }
-    pub(crate) fn visit_str<E>(self, _value: &str) -> Result<Self::Value, E>
+    fn visit_str<E>(self, _value: &str) -> Result<Self::Value, E>
     where
         E: de::Error,
     {
         Ok(DuplicateKeyFreeJson)
     }
-    pub(crate) fn visit_none<E>(self) -> Result<Self::Value, E>
+    fn visit_none<E>(self) -> Result<Self::Value, E>
     where
         E: de::Error,
     {
         Ok(DuplicateKeyFreeJson)
     }
-    pub(crate) fn visit_some<D>(self, deserializer: D) -> Result<Self::Value, D::Error>
+    fn visit_some<D>(self, deserializer: D) -> Result<Self::Value, D::Error>
     where
         D: serde::Deserializer<'de>,
     {
         DuplicateKeyFreeJson::deserialize(deserializer)
     }
-    pub(crate) fn visit_seq<A>(self, mut sequence: A) -> Result<Self::Value, A::Error>
+    fn visit_seq<A>(self, mut sequence: A) -> Result<Self::Value, A::Error>
     where
         A: SeqAccess<'de>,
     {
         while sequence.next_element::<DuplicateKeyFreeJson>()?.is_some() {}
         Ok(DuplicateKeyFreeJson)
     }
-    pub(crate) fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
+    fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
     where
         A: MapAccess<'de>,
     {
