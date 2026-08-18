@@ -9,12 +9,15 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 #![forbid(unsafe_code)]
 
-use std::collections::{BTreeSet, HashSet};
+use std::collections::BTreeSet;
 use std::fs;
 use std::path::Path;
 
 use toml::Value;
 
+mod paths;
+mod rust_pin;
+mod schema;
 mod third_party_overlay;
 
 pub use third_party_overlay::{
@@ -24,12 +27,6 @@ pub use third_party_overlay::{
 
 pub const GATE_ID: &str = "cloud-ci-dependency-automation";
 pub const CONFIG_PATH: &str = "oya-deps.toml";
-const EXPECTED_SCHEMA_VERSION: &str = "1.0.0";
-const EXPECTED_ENGINE: &str = "owned-rust-bump-bot";
-const EXPECTED_CHANGESET_TRANSPORT: &str = "scm-facts";
-const EXPECTED_EXTERNAL_BOTS: &str = "disabled";
-const EXPECTED_RUST_POLICY: &str = "latest-stable";
-
 const EXTERNAL_BOT_CONFIGS: [&str; 12] = [
     "renovate.json",
     "renovate.json5",
@@ -59,7 +56,11 @@ pub struct Finding {
 }
 
 impl Finding {
-    fn new(code: &'static str, path: impl Into<String>, detail: impl Into<String>) -> Self {
+    pub(crate) fn new(
+        code: &'static str,
+        path: impl Into<String>,
+        detail: impl Into<String>,
+    ) -> Self {
         Self {
             code,
             path: path.into(),
@@ -124,16 +125,16 @@ pub fn evaluate_repo(root: &Path) -> Result<GateReport, GateError> {
         }
     };
 
-    validate_closed_schema(&config, &mut findings);
-    validate_policy_values(&config, &mut findings);
-    validate_managed_files(root, &config, &mut findings);
-    validate_declared_paths(root, &config, &mut findings);
-    validate_rust_pin_alignment(root, &config, &mut findings)?;
+    schema::validate_closed_schema(&config, &mut findings);
+    schema::validate_policy_values(&config, &mut findings);
+    paths::validate_managed_files(root, &config, &mut findings);
+    paths::validate_declared_paths(root, &config, &mut findings);
+    rust_pin::validate_rust_pin_alignment(root, &config, &mut findings)?;
 
     Ok(report(findings))
 }
 
-fn report(findings: BTreeSet<Finding>) -> GateReport {
+pub(crate) fn report(findings: BTreeSet<Finding>) -> GateReport {
     GateReport {
         verdict: if findings.is_empty() {
             Verdict::Green
@@ -156,478 +157,16 @@ fn reject_external_bot_configs(root: &Path, findings: &mut BTreeSet<Finding>) {
     }
 }
 
-fn validate_closed_schema(config: &Value, findings: &mut BTreeSet<Finding>) {
-    let Some(root) = config.as_table() else {
-        findings.insert(Finding::new(
-            "DEP-AUTO-MALFORMED-CONFIG",
-            CONFIG_PATH,
-            "top-level TOML value must be a table",
-        ));
-        return;
-    };
-
-    check_keys(
-        "",
-        root.keys(),
-        [
-            "schema_version",
-            "metadata",
-            "automation",
-            "rust",
-            "supply_chain",
-            "managed_file",
-            "freshness",
-        ],
-        findings,
-    );
-    check_table(
-        config,
-        &["metadata"],
-        ["purpose", "owner", "decision", "status"],
-        findings,
-    );
-    check_table(
-        config,
-        &["automation"],
-        [
-            "engine",
-            "changeset_transport",
-            "github_actions",
-            "external_bots",
-            "merge_authority",
-        ],
-        findings,
-    );
-    check_table(
-        config,
-        &["rust"],
-        [
-            "channel",
-            "pin",
-            "update_policy",
-            "drift_guard",
-            "exclusions",
-        ],
-        findings,
-    );
-    check_table(
-        config,
-        &["supply_chain"],
-        [
-            "license_policy",
-            "advisory_policy",
-            "audit_policy",
-            "stewardship_registry",
-            "bot_gate",
-        ],
-        findings,
-    );
-
-    // Crate-dependency freshness (oyatie-gr1n): the sibling of the `[rust]` toolchain pin above.
-    // `oya-deps.toml` is a CLOSED schema by design, so a new section must be declared here before
-    // it may appear in the file — the gate refused this section until this entry existed, which is
-    // the contract working as intended.
-    check_table(
-        config,
-        &["freshness"],
-        [
-            "mirror",
-            "manifest",
-            "producer",
-            "kernel",
-            "stale_after_days",
-            "enforcement",
-            "blocking_exception",
-            "signals",
-        ],
-        findings,
-    );
-
-    if let Some(entries) = config.get("managed_file").and_then(Value::as_array) {
-        for (idx, entry) in entries.iter().enumerate() {
-            if let Some(table) = entry.as_table() {
-                check_keys(
-                    &format!("managed_file[{idx}]"),
-                    table.keys(),
-                    ["path", "role", "update", "reason"],
-                    findings,
-                );
-            } else {
-                findings.insert(Finding::new(
-                    "DEP-AUTO-MALFORMED-CONFIG",
-                    format!("{CONFIG_PATH}:managed_file[{idx}]"),
-                    "managed_file entries must be TOML tables",
-                ));
-            }
-        }
-    }
-}
-
-fn check_table<const N: usize>(
-    config: &Value,
-    path: &[&str],
-    allowed: [&'static str; N],
-    findings: &mut BTreeSet<Finding>,
-) {
-    match value_at(config, path).and_then(Value::as_table) {
-        Some(table) => check_keys(&path.join("."), table.keys(), allowed, findings),
-        None => {
-            findings.insert(Finding::new(
-                "DEP-AUTO-MISSING-KEY",
-                format!("{CONFIG_PATH}:{}", path.join(".")),
-                "required table is missing or not a table",
-            ));
-        }
-    };
-}
-
-fn check_keys<'a, I, const N: usize>(
-    scope: &str,
-    keys: I,
-    allowed: [&'static str; N],
-    findings: &mut BTreeSet<Finding>,
-) where
-    I: Iterator<Item = &'a String>,
-{
-    let allowed: HashSet<&str> = allowed.into_iter().collect();
-    for key in keys {
-        if !allowed.contains(key.as_str()) {
-            let key_path = if scope.is_empty() {
-                key.to_owned()
-            } else {
-                format!("{scope}.{key}")
-            };
-            findings.insert(Finding::new(
-                "DEP-AUTO-UNKNOWN-KEY",
-                format!("{CONFIG_PATH}:{key_path}"),
-                "oya-deps.toml is a closed-schema contract; add schema support before adding keys",
-            ));
-        }
-    }
-}
-
-fn validate_policy_values(config: &Value, findings: &mut BTreeSet<Finding>) {
-    expect_string(
-        config,
-        &["schema_version"],
-        EXPECTED_SCHEMA_VERSION,
-        "DEP-AUTO-SCHEMA-VERSION",
-        "schema_version must match the gate contract",
-        findings,
-    );
-    expect_string(
-        config,
-        &["metadata", "decision"],
-        "ADR-0535",
-        "DEP-AUTO-MISSING-ADR",
-        "owned dependency automation must cite ADR-0535",
-        findings,
-    );
-    expect_string(
-        config,
-        &["automation", "engine"],
-        EXPECTED_ENGINE,
-        "DEP-AUTO-NONOWNED-ENGINE",
-        "dependency automation must use the owned Rust bump-bot engine",
-        findings,
-    );
-    expect_string(
-        config,
-        &["automation", "changeset_transport"],
-        EXPECTED_CHANGESET_TRANSPORT,
-        "DEP-AUTO-NONOWNED-TRANSPORT",
-        "dependency automation must emit provider-neutral scm-facts ChangeSets",
-        findings,
-    );
-    expect_string(
-        config,
-        &["automation", "external_bots"],
-        EXPECTED_EXTERNAL_BOTS,
-        "DEP-AUTO-EXTERNAL-BOTS-ENABLED",
-        "external dependency bots stay disabled for the owned stack",
-        findings,
-    );
-    expect_string(
-        config,
-        &["automation", "merge_authority"],
-        "oya-ci-required",
-        "DEP-AUTO-MERGE-AUTHORITY",
-        "dependency updates must still merge through the single required context",
-        findings,
-    );
-    expect_string(
-        config,
-        &["rust", "channel"],
-        "stable",
-        "DEP-AUTO-RUST-CHANNEL",
-        "root workspace follows the stable Rust channel",
-        findings,
-    );
-    expect_string(
-        config,
-        &["rust", "update_policy"],
-        EXPECTED_RUST_POLICY,
-        "DEP-AUTO-RUST-UPDATE-POLICY",
-        "Rust updates should track the latest stable release",
-        findings,
-    );
-    expect_string(
-        config,
-        &["supply_chain", "bot_gate"],
-        GATE_ID,
-        "DEP-AUTO-BOT-GATE",
-        "supply-chain policy must name this enforcement gate",
-        findings,
-    );
-}
-
-fn expect_string(
-    config: &Value,
-    path: &[&str],
-    expected: &str,
-    code: &'static str,
-    detail: &str,
-    findings: &mut BTreeSet<Finding>,
-) {
-    match string_at(config, path) {
-        Some(actual) if actual == expected => {}
-        Some(actual) => {
-            findings.insert(Finding::new(
-                code,
-                format!("{CONFIG_PATH}:{}", path.join(".")),
-                format!("{detail}: expected {expected:?}, got {actual:?}"),
-            ));
-        }
-        None => {
-            findings.insert(Finding::new(
-                "DEP-AUTO-MISSING-KEY",
-                format!("{CONFIG_PATH}:{}", path.join(".")),
-                format!("missing required string; {detail}"),
-            ));
-        }
-    }
-}
-
-/// Declared PATHS must point at something that exists.
-///
-/// `managed_file` entries were already existence-checked; single-valued path keys were not, and
-/// that gap let `[rust].drift_guard` sit for months naming
-/// `cloud/cloud-ci/gates/oya-cloud-ci-freshness-app/src/rust_toolchain_drift.rs` — a file deleted
-/// with the whole `cloud/` tree. A config that names a nonexistent guard reads exactly like a
-/// config that names a working one, which is the failure mode worth closing: the declaration is
-/// the only evidence the guard exists, so an unchecked declaration is no evidence at all.
-fn validate_declared_paths(root: &Path, config: &Value, findings: &mut BTreeSet<Finding>) {
-    // `freshness.kernel` belongs here for the same reason as the rest: it is a path-valued
-    // declaration naming an executable freshness artifact, so omitting it left exactly the
-    // stale-path failure this validator exists to close open on another file.
-    const DECLARED_PATHS: &[(&str, &str)] = &[
-        ("rust", "drift_guard"),
-        ("supply_chain", "license_policy"),
-        ("supply_chain", "stewardship_registry"),
-        ("freshness", "mirror"),
-        ("freshness", "manifest"),
-        ("freshness", "kernel"),
-    ];
-    for (table, key) in DECLARED_PATHS {
-        let location = format!("{CONFIG_PATH}:{table}.{key}");
-        // Absence is a FINDING, not a skip. Continuing here meant deleting the key — or giving it
-        // a non-string value — silently disabled the check, and no closed-schema or policy rule
-        // requires any of these keys, so the gate could report green with nothing declared at all.
-        let Some(raw) = config.get(table).and_then(|t| t.get(key)) else {
-            findings.insert(Finding::new(
-                "DEP-AUTO-MISSING-KEY",
-                location,
-                format!("{table}.{key} is required; the declaration is the only evidence the referenced artifact exists"),
-            ));
-            continue;
-        };
-        let Some(value) = raw.as_str() else {
-            findings.insert(Finding::new(
-                "DEP-AUTO-MISSING-KEY",
-                location,
-                format!("{table}.{key} must be a string path"),
-            ));
-            continue;
-        };
-        // Same containment rule the sibling managed_file validator already applies. Without it,
-        // `root.join(value)` on an absolute path discards `root` entirely, so declaring
-        // `/etc/passwd` — or a `..` path that happens to exist on the runner — satisfied the
-        // existence check using state outside the candidate tree.
-        if value.starts_with('/') || value.contains("..") {
-            findings.insert(Finding::new(
-                "DEP-AUTO-BAD-DECLARED-PATH",
-                location,
-                format!("declares {value}; declared paths must be repo-relative and must not contain '..'"),
-            ));
-            continue;
-        }
-        // `is_file`, not `exists`: a directory is not the executable artifact being declared.
-        if !root.join(value).is_file() {
-            findings.insert(Finding::new(
-                "DEP-AUTO-DECLARED-PATH-MISSING",
-                location,
-                format!(
-                    "declares {value}, which is not a file in this tree; a declaration is the \
-                     only evidence the referenced artifact is real"
-                ),
-            ));
-        }
-    }
-}
-
-fn validate_managed_files(root: &Path, config: &Value, findings: &mut BTreeSet<Finding>) {
-    let Some(entries) = config.get("managed_file").and_then(Value::as_array) else {
-        findings.insert(Finding::new(
-            "DEP-AUTO-MISSING-KEY",
-            format!("{CONFIG_PATH}:managed_file"),
-            "at least one managed_file entry is required",
-        ));
-        return;
-    };
-    if entries.is_empty() {
-        findings.insert(Finding::new(
-            "DEP-AUTO-MISSING-KEY",
-            format!("{CONFIG_PATH}:managed_file"),
-            "managed_file must not be empty",
-        ));
-        return;
-    }
-
-    let mut seen = HashSet::new();
-    for (idx, entry) in entries.iter().enumerate() {
-        let Some(path) = entry.get("path").and_then(Value::as_str) else {
-            findings.insert(Finding::new(
-                "DEP-AUTO-MISSING-KEY",
-                format!("{CONFIG_PATH}:managed_file[{idx}].path"),
-                "managed_file entries require a path",
-            ));
-            continue;
-        };
-        if path.starts_with('/') || path.contains("..") {
-            findings.insert(Finding::new(
-                "DEP-AUTO-BAD-MANAGED-PATH",
-                format!("{CONFIG_PATH}:managed_file[{idx}].path"),
-                "managed paths must be repo-relative and must not contain '..'",
-            ));
-            continue;
-        }
-        if !seen.insert(path.to_owned()) {
-            findings.insert(Finding::new(
-                "DEP-AUTO-DUPLICATE-MANAGED-PATH",
-                path,
-                "managed_file paths must be unique",
-            ));
-        }
-        if !root.join(path).is_file() {
-            findings.insert(Finding::new(
-                "DEP-AUTO-MISSING-MANAGED-FILE",
-                path,
-                "managed_file path does not exist in the candidate tree",
-            ));
-        }
-    }
-
-    for required in ["rust-toolchain.toml", "Cargo.toml", "Dockerfile.distroless"] {
-        if !seen.contains(required) {
-            findings.insert(Finding::new(
-                "DEP-AUTO-MISSING-MANAGED-FILE",
-                required,
-                "required Rust pin surface is not listed in managed_file",
-            ));
-        }
-    }
-}
-
-fn validate_rust_pin_alignment(
-    root: &Path,
-    config: &Value,
-    findings: &mut BTreeSet<Finding>,
-) -> Result<(), GateError> {
-    let Some(pin) = string_at(config, &["rust", "pin"]) else {
-        findings.insert(Finding::new(
-            "DEP-AUTO-MISSING-KEY",
-            format!("{CONFIG_PATH}:rust.pin"),
-            "Rust pin is required",
-        ));
-        return Ok(());
-    };
-    if !looks_like_semver(pin) {
-        findings.insert(Finding::new(
-            "DEP-AUTO-RUST-PIN-FORMAT",
-            format!("{CONFIG_PATH}:rust.pin"),
-            "Rust pin must be a full stable semver like 1.96.0",
-        ));
-    }
-
-    let toolchain = read_required(root, "rust-toolchain.toml")?;
-    let channel = toolchain
-        .parse::<Value>()
-        .ok()
-        .and_then(|v| string_at(&v, &["toolchain", "channel"]).map(str::to_owned));
-    if channel.as_deref() != Some(pin) {
-        findings.insert(Finding::new(
-            "DEP-AUTO-RUST-PIN-DRIFT",
-            "rust-toolchain.toml",
-            format!("toolchain.channel must equal oya-deps rust.pin {pin}"),
-        ));
-    }
-
-    expect_file_contains(
-        root,
-        "Cargo.toml",
-        &format!("rust-version = \"{pin}\""),
-        findings,
-    )?;
-    expect_file_contains(
-        root,
-        "Dockerfile.distroless",
-        &format!("ARG RUST_VERSION={pin}"),
-        findings,
-    )?;
-    expect_file_contains(root, "toolchains/BUCK", pin, findings)?;
-    Ok(())
-}
-
-fn expect_file_contains(
-    root: &Path,
-    rel: &str,
-    needle: &str,
-    findings: &mut BTreeSet<Finding>,
-) -> Result<(), GateError> {
-    let text = read_required(root, rel)?;
-    if !text.contains(needle) {
-        findings.insert(Finding::new(
-            "DEP-AUTO-RUST-PIN-DRIFT",
-            rel,
-            format!("expected to contain {needle:?}"),
-        ));
-    }
-    Ok(())
-}
-
-fn read_required(root: &Path, rel: &str) -> Result<String, GateError> {
-    let path = root.join(rel);
-    fs::read_to_string(&path).map_err(|e| GateError::Io(format!("read {}: {e}", path.display())))
-}
-
-fn string_at<'a>(value: &'a Value, path: &[&str]) -> Option<&'a str> {
+pub(crate) fn string_at<'a>(value: &'a Value, path: &[&str]) -> Option<&'a str> {
     value_at(value, path).and_then(Value::as_str)
 }
 
-fn value_at<'a>(value: &'a Value, path: &[&str]) -> Option<&'a Value> {
+pub(crate) fn value_at<'a>(value: &'a Value, path: &[&str]) -> Option<&'a Value> {
     let mut current = value;
     for key in path {
         current = current.get(*key)?;
     }
     Some(current)
-}
-
-fn looks_like_semver(value: &str) -> bool {
-    let parts: Vec<&str> = value.split('.').collect();
-    parts.len() == 3
-        && parts
-            .iter()
-            .all(|part| !part.is_empty() && part.chars().all(|c| c.is_ascii_digit()))
 }
 
 pub fn render_findings(report: &GateReport) -> String {
@@ -653,10 +192,10 @@ mod tests {
 
     #[test]
     fn semver_format_requires_three_numeric_parts() {
-        assert!(looks_like_semver("1.96.0"));
-        assert!(!looks_like_semver("1.96"));
-        assert!(!looks_like_semver("nightly-2026-02-28"));
-        assert!(!looks_like_semver("1.96.x"));
+        assert!(rust_pin::looks_like_semver("1.96.0"));
+        assert!(!rust_pin::looks_like_semver("1.96"));
+        assert!(!rust_pin::looks_like_semver("nightly-2026-02-28"));
+        assert!(!rust_pin::looks_like_semver("1.96.x"));
     }
 
     #[test]
@@ -698,7 +237,7 @@ bot_gate = "cloud-ci-dependency-automation"
         .parse::<Value>()
         .unwrap();
         let mut findings = BTreeSet::new();
-        validate_closed_schema(&config, &mut findings);
+        schema::validate_closed_schema(&config, &mut findings);
         assert!(
             findings
                 .iter()
