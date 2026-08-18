@@ -16,5 +16,5 @@ spec:
       long: 6h
       pageAt: 2
   runbooks:
-    - microservices/data-warehouse/runbooks/local-freshness-burn.md
-    - microservices/data-warehouse/runbooks/local-completeness-drop.md
+    - data/data-warehouse/runbooks/local-freshness-burn.md
+    - data/data-warehouse/runbooks/local-completeness-drop.md

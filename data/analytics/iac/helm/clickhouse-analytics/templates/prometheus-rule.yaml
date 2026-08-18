@@ -19,7 +19,7 @@ spec:
             severity: {{ .Values.prometheusRules.rules.keeperNoLeader.severity }}
             pagerduty: {{ .Values.prometheusRules.pagerDutyTarget }}
             opsgenie: {{ .Values.prometheusRules.opsgenieTarget }}
-            runbook: microservices/analytics/runbooks/keeper-quorum-recovery.md
+            runbook: data/analytics/runbooks/keeper-quorum-recovery.md
           annotations:
             summary: "ClickHouse Keeper has no leader (analytics cluster)"
             description: "DDL operations halted; reads continue."
@@ -29,7 +29,7 @@ spec:
           labels:
             severity: {{ .Values.prometheusRules.rules.replicationLag.severity }}
             pagerduty: {{ .Values.prometheusRules.pagerDutyTarget }}
-            runbook: microservices/analytics/runbooks/clickhouse.md
+            runbook: data/analytics/runbooks/clickhouse.md
           annotations:
             summary: "ClickHouse replication lag > 60s (analytics cluster)"
         - alert: ClickHousePartMergeBacklog
@@ -37,7 +37,7 @@ spec:
           for: 15m
           labels:
             severity: {{ .Values.prometheusRules.rules.partMergeBacklog.severity }}
-            runbook: microservices/analytics/runbooks/ingest-lag-burn.md
+            runbook: data/analytics/runbooks/ingest-lag-burn.md
           annotations:
             summary: "ClickHouse merge backlog > 100 parts (analytics cluster)"
         - alert: ClickHouseInstanceDown
@@ -46,7 +46,7 @@ spec:
           labels:
             severity: {{ .Values.prometheusRules.rules.instanceDown.severity }}
             pagerduty: {{ .Values.prometheusRules.pagerDutyTarget }}
-            runbook: microservices/analytics/runbooks/clickhouse.md
+            runbook: data/analytics/runbooks/clickhouse.md
           annotations:
             summary: "ClickHouse server replica down"
 {{- end }}

@@ -279,7 +279,7 @@
     "microservices/data-pipeline/PRD.md",
     "microservices/data-pipeline/ARCHITECTURE.md",
     "microservices/data-pipeline/IP-016-backfill-replay-worker.md",
-    "microservices/data-pipeline/contracts/openapi-v1.yaml"
+    "data/data-pipeline/contracts/openapi-v1.yaml"
   ],
   "tenant_version_pinning": {
     "declared_versions": [
@@ -294,10 +294,10 @@
     "deprecation_calendar": [],
     "public_surface_files": {
       "openapi": {
-        "2026-05-21": "microservices/data-pipeline/contracts/openapi-v1.yaml"
+        "2026-05-21": "data/data-pipeline/contracts/openapi-v1.yaml"
       },
       "asyncapi": {
-        "2026-05-21": "microservices/data-pipeline/contracts/asyncapi-v1.yaml"
+        "2026-05-21": "data/data-pipeline/contracts/asyncapi-v1.yaml"
       }
     }
   },

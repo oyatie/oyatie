@@ -18,9 +18,9 @@
 //!
 //! ## Contracts
 //!
-//! - `microservices/analytics/contracts/openapi-v1.yaml`
-//! - `microservices/analytics/contracts/asyncapi-v1.yaml`
-//! - `microservices/analytics/contracts/analytics.proto`
+//! - [`ANALYTICS_OPENAPI_CONTRACT`]
+//! - [`ANALYTICS_ASYNCAPI_CONTRACT`]
+//! - [`ANALYTICS_PROTO_CONTRACT`]
 //!
 //! ## Honest-claims note
 //!
@@ -43,6 +43,13 @@ use data_analytics_usecase::{
     UseCaseError,
 };
 use oya_shared_olap_client_kernel::{KernelError, OlapClient, TenantId};
+
+/// OpenAPI contract path (SSOT: `data/analytics/catalog/contracts.json`).
+pub const ANALYTICS_OPENAPI_CONTRACT: &str = "data/analytics/contracts/openapi-v1.yaml";
+/// AsyncAPI contract path (SSOT: `data/analytics/catalog/contracts.json`).
+pub const ANALYTICS_ASYNCAPI_CONTRACT: &str = "data/analytics/contracts/asyncapi-v1.yaml";
+/// gRPC proto contract path (SSOT: `data/analytics/catalog/contracts.json`).
+pub const ANALYTICS_PROTO_CONTRACT: &str = "data/analytics/contracts/analytics.proto";
 
 // =====================================================================
 // API error

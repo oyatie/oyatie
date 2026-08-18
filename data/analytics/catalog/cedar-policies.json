@@ -11,12 +11,12 @@
   "owner": "council-analytics + axis-compliance",
   "adr_anchors": ["ADR-0007", "ADR-0156", "ADR-0049"],
   "fragments": [
-    {"name": "dashboard", "path": "microservices/analytics/policy/dashboard.cedar", "actions": ["ViewDashboard", "QueryAuditLog", "RegulatorExport"]},
-    {"name": "audit-log-pii", "path": "microservices/analytics/policy/audit-log-pii.cedar", "actions": ["QueryAuditLog"]},
-    {"name": "tenant-bootstrap", "path": "microservices/analytics/policy/tenant-bootstrap.cedar", "actions": ["PublishEvent"]},
-    {"name": "regulator-export", "path": "microservices/analytics/policy/regulator-export.cedar", "actions": ["RegulatorExport"]},
-    {"name": "dual-context", "path": "microservices/analytics/policy/dual-context.cedar", "actions": ["*"]},
-    {"name": "residency", "path": "microservices/analytics/policy/residency.cedar", "actions": ["*", "CrossCellQuery"]}
+    {"name": "dashboard", "path": "data/analytics/policy/dashboard.cedar", "actions": ["ViewDashboard", "QueryAuditLog", "RegulatorExport"]},
+    {"name": "audit-log-pii", "path": "data/analytics/policy/audit-log-pii.cedar", "actions": ["QueryAuditLog"]},
+    {"name": "tenant-bootstrap", "path": "data/analytics/policy/tenant-bootstrap.cedar", "actions": ["PublishEvent"]},
+    {"name": "regulator-export", "path": "data/analytics/policy/regulator-export.cedar", "actions": ["RegulatorExport"]},
+    {"name": "dual-context", "path": "data/analytics/policy/dual-context.cedar", "actions": ["*"]},
+    {"name": "residency", "path": "data/analytics/policy/residency.cedar", "actions": ["*", "CrossCellQuery"]}
   ],
   "status": "planned"
 }

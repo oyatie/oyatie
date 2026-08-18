@@ -202,7 +202,7 @@ mod tests {
         AuditLogFilter, DashboardMetric, ExportFormat, ExportScope, Pagination, TimeRange,
     };
     use oya_shared_olap_client_kernel::{
-        ColumnDef, ColumnType, QualifiedTable, TableEngine, TableName, TableSchema,
+        ColumnDef, ColumnType, KernelError, QualifiedTable, TableEngine, TableName, TableSchema,
         memory_adapter::InMemoryOlapClient,
     };
 
@@ -309,6 +309,63 @@ mod tests {
                 assert!(slug.contains("IP-013"));
             }
             other => panic!("expected Unimplemented, got {other}"),
+        }
+    }
+
+    /// Use-case caller tenant must match the query's QualifiedTable tenant;
+    /// kernel `assert_same_tenant` surfaces as UseCaseError::Kernel(CrossTenant…).
+    #[test]
+    fn get_dashboard_refuses_cross_tenant_query() {
+        let mut client = InMemoryOlapClient::new();
+        seed_table(&mut client, "t1", "tenant_metrics");
+        // Caller is t2; request is scoped to t1's QualifiedTable via domain builder.
+        let uc = GetDashboardUseCase::new(&client, tid("t2"));
+        let req = TenantDashboardQuery {
+            tenant_id: tid("t1"),
+            metrics: vec![DashboardMetric::ApiCallCount],
+            time_range: range(),
+            pagination: Pagination::new(10),
+        };
+        let err = uc.execute(&req).unwrap_err();
+        match err {
+            UseCaseError::Kernel(KernelError::CrossTenantAccessDenied) => {}
+            other => panic!("expected CrossTenantAccessDenied, got {other}"),
+        }
+    }
+
+    /// Same tenancy refusal pattern for audit-log search (caller ≠ query tenant).
+    #[test]
+    fn search_audit_log_refuses_cross_tenant_query() {
+        let mut client = InMemoryOlapClient::new();
+        seed_table(&mut client, "t1", "audit_log");
+        let uc = SearchAuditLogUseCase::new(&client, tid("t2"));
+        let req = AuditLogSearch {
+            tenant_id: tid("t1"),
+            filter: AuditLogFilter::default(),
+            pagination: Pagination::new(10),
+        };
+        let err = uc.execute(&req).unwrap_err();
+        match err {
+            UseCaseError::Kernel(KernelError::CrossTenantAccessDenied) => {}
+            other => panic!("expected CrossTenantAccessDenied, got {other}"),
+        }
+    }
+
+    /// Same tenancy refusal pattern for billing rollup (caller ≠ query tenant).
+    #[test]
+    fn billing_rollup_refuses_cross_tenant_query() {
+        let mut client = InMemoryOlapClient::new();
+        seed_table(&mut client, "t1", "billing_events");
+        let uc = RunBillingRollupUseCase::new(&client, tid("t2"));
+        let req = BillingRollup {
+            tenant_id: tid("t1"),
+            granularity: data_analytics_domain::RollupGranularity::Monthly,
+            time_range: range(),
+        };
+        let err = uc.execute(&req).unwrap_err();
+        match err {
+            UseCaseError::Kernel(KernelError::CrossTenantAccessDenied) => {}
+            other => panic!("expected CrossTenantAccessDenied, got {other}"),
         }
     }
 }

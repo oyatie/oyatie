@@ -7,7 +7,7 @@
     {
       "id": "data-warehouse-doc-set-001",
       "status": "closed-by-additive-artifacts",
-      "evidence": "microservices/data-warehouse/",
+      "evidence": "data/data-warehouse/",
       "target_artifacts": 100
     },
     {

@@ -8,11 +8,11 @@ layer_enum_authority: ADR-0105
 owners: [axis-data-warehouse]
 source_root: microservices/data-warehouse/src
 contracts:
-  openapi: microservices/data-warehouse/contracts/openapi-v1.yaml
-  asyncapi: microservices/data-warehouse/contracts/asyncapi-v1.yaml
-  proto: microservices/data-warehouse/contracts/data-warehouse-v1.proto
+  openapi: data/data-warehouse/contracts/openapi-v1.yaml
+  asyncapi: data/data-warehouse/contracts/asyncapi-v1.yaml
+  proto: data/data-warehouse/contracts/data-warehouse-v1.proto
 policy:
-  default_deny: microservices/data-warehouse/policy/tenant-olap-authorization.cedar
+  default_deny: data/data-warehouse/policy/tenant-olap-authorization.cedar
 compliance:
   marketplace_settlement: ADR-0314 DealSet
   transport: ADR-0253-amendment h3-h2-h1 strict tls13 ech pqc

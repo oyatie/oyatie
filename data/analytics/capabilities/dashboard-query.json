@@ -10,5 +10,5 @@
   "data_class": ["TENANT_PUBLIC", "TENANT_PRIVATE"],
   "data_class_exclusions": ["PHI", "PCI"],
   "cedar_action": "ViewDashboard",
-  "slo_anchor": "microservices/analytics/slos/dashboard-api-latency.openslo.yaml"
+  "slo_anchor": "data/observability/slos/analytics/dashboard-api-latency.openslo.yaml"
 }

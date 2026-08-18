@@ -14,9 +14,9 @@ layer = "api"
 owner_team = "council-analytics"
 adr_anchors = ["ADR-0083", "ADR-0157", "ADR-0193"]
 ip_anchor = "IP-007,IP-008,IP-013,IP-015"
-openapi = "oya/analytics/contracts/openapi-v1.yaml"
-asyncapi = "oya/analytics/contracts/asyncapi-v1.yaml"
-proto = "oya/analytics/contracts/analytics.proto"
+openapi = "data/analytics/contracts/openapi-v1.yaml"
+asyncapi = "data/analytics/contracts/asyncapi-v1.yaml"
+proto = "data/analytics/contracts/analytics.proto"
 data_classification = "TENANT_PUBLIC, AUDIT_INTERNAL"
 
 [lib]

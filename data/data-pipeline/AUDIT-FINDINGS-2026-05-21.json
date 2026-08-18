@@ -7,7 +7,7 @@
     {
       "id": "data-pipeline-doc-set-001",
       "status": "closed-by-additive-artifacts",
-      "evidence": "microservices/data-pipeline/",
+      "evidence": "data/data-pipeline/",
       "target_artifacts": 100
     },
     {

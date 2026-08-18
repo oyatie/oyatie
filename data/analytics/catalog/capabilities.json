@@ -11,9 +11,9 @@
   "owner": "council-analytics + axis-compliance",
   "adr_anchors": ["ADR-0007", "ADR-0008", "ADR-0145"],
   "capabilities": [
-    {"id": "analytics.dashboard.query", "tier": "T1", "risk_class": "minimal", "path": "microservices/analytics/capabilities/dashboard-query.json"},
-    {"id": "analytics.audit_log.query", "tier": "T1", "risk_class": "minimal", "path": "microservices/analytics/capabilities/audit-log-query.json"},
-    {"id": "analytics.regulator.export", "tier": "T2", "risk_class": "minimal", "path": "microservices/analytics/capabilities/regulator-export.json"}
+    {"id": "analytics.dashboard.query", "tier": "T1", "risk_class": "minimal", "path": "data/analytics/capabilities/dashboard-query.json"},
+    {"id": "analytics.audit_log.query", "tier": "T1", "risk_class": "minimal", "path": "data/analytics/capabilities/audit-log-query.json"},
+    {"id": "analytics.regulator.export", "tier": "T2", "risk_class": "minimal", "path": "data/analytics/capabilities/regulator-export.json"}
   ],
   "status": "planned"
 }

@@ -17,9 +17,9 @@ related_adrs:
   - ADR-0348
   - ADR-0349
 companion_docs:
-  - microservices/cloud-data/manifest.json
-  - microservices/cloud-data/PRD.md
-  - microservices/cloud-data/README.md
+  - data/cloud-data/manifest.json
+  - data/cloud-data/PRD.md
+  - data/cloud-data/README.md
 ---
 
 # Architecture: Cloud Data

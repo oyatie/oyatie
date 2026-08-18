@@ -38,9 +38,9 @@ pub const BOUNDED_CONTEXT: &str = "tenant-olap";
 pub const PRIMARY_CAPABILITY: &str = "tenant-olap-freshness";
 pub const PRIMARY_ADR: &str = "ADR-0105";
 pub const USECASE_RENAME_ADR: &str = "ADR-0106";
-pub const OPENAPI_CONTRACT: &str = "microservices/data-warehouse/contracts/openapi-v1.yaml";
-pub const GRPC_CONTRACT: &str = "microservices/data-warehouse/contracts/data-warehouse-v1.proto";
-pub const ASYNCAPI_CONTRACT: &str = "microservices/data-warehouse/contracts/asyncapi-v1.yaml";
+pub const OPENAPI_CONTRACT: &str = "data/data-warehouse/contracts/openapi-v1.yaml";
+pub const GRPC_CONTRACT: &str = "data/data-warehouse/contracts/data-warehouse-v1.proto";
+pub const ASYNCAPI_CONTRACT: &str = "data/data-warehouse/contracts/asyncapi-v1.yaml";
 
 #[derive(Clone, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
 pub struct ServiceDescriptor {

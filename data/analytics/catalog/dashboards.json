@@ -11,9 +11,9 @@
   "owner": "council-analytics + ops-sre-reliability",
   "adr_anchors": ["ADR-0186", "ADR-0193"],
   "dashboards": [
-    {"name": "clickhouse-overview", "path": "microservices/analytics/dashboards/clickhouse-overview.json", "scope": "cluster-health"},
-    {"name": "tenant-query-overview", "path": "microservices/analytics/dashboards/tenant-query-overview.json", "scope": "tenant-facing-query-latency"},
-    {"name": "ingest-pipeline", "path": "microservices/analytics/dashboards/ingest-pipeline.json", "scope": "ingest-and-mv-lag"}
+    {"name": "clickhouse-overview", "path": "data/analytics/dashboards/clickhouse-overview.json", "scope": "cluster-health"},
+    {"name": "tenant-query-overview", "path": "data/analytics/dashboards/tenant-query-overview.json", "scope": "tenant-facing-query-latency"},
+    {"name": "ingest-pipeline", "path": "data/analytics/dashboards/ingest-pipeline.json", "scope": "ingest-and-mv-lag"}
   ],
   "status": "planned"
 }

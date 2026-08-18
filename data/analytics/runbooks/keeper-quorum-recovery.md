@@ -141,5 +141,5 @@ This causes data loss for replication queue events between the snapshot and now 
 
 ## References
 
-- ADR-0193, IP-001 (cluster IaC), `microservices/analytics/runbooks/clickhouse.md`.
+- ADR-0193, IP-001 (cluster IaC), `data/analytics/runbooks/clickhouse.md`.
 - ClickHouse Keeper recovery docs: https://clickhouse.com/docs/guides/sre/keeper/clickhouse-keeper
