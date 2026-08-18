@@ -107,6 +107,13 @@ pub trait PackSemantics {
     /// spell the omitted fields out — and what a type's zero LOOKS LIKE in the target is a
     /// translation decision, so the pack owns it rather than the engine assuming `Default`.
     fn zero_values(&self) -> &BTreeMap<String, String>;
+    /// The target form a TRAIT takes in each position, with `{0}` for the trait's path.
+    ///
+    /// Keyed by position — `param`, `result`, `field` — because one form does not answer for all
+    /// of them: a borrowed trait object is right for a parameter and impossible for a value the
+    /// function returns. A position with no entry REFUSES, because the choice between borrowing,
+    /// boxing and sharing is an ownership decision and the engine has no basis to make it.
+    fn trait_object_forms(&self) -> &BTreeMap<String, String>;
     /// Ownership rules, in declared order — first match wins.
     ///
     /// Which ownership form a set of observed facts deserves is a translation DECISION with a cost

@@ -37,6 +37,11 @@ pub const KNOWN_TYPE_KINDS: &[&str] = &[
     "interface",
     "map",
     "named",
+    // A named type whose underlying type is an interface. Same identity as `named`, separate kind
+    // because the target holds the two differently: a struct is a value and a trait has no size,
+    // so a trait reaches a position as a reference, a box or a generic parameter — and which of
+    // those is an ownership decision the pack makes rather than a spelling the engine infers.
+    "named_interface",
     "pointer",
     "slice",
     "struct",
@@ -96,6 +101,11 @@ pub const KNOWN_MEMBER_KINDS: &[&str] = &[
     "case",
     "composite",
     "for",
+    // An observed interface satisfaction, hung on the concrete type that satisfies it. It is a
+    // MEMBER kind rather than a declaration kind because the impl belongs to the type: emitting it
+    // anywhere else would need the orphan rule answered by the front end, which is a target
+    // question the source cannot see.
+    "implements",
     "index",
     "init",
     "keyed",
@@ -153,9 +163,26 @@ pub const KNOWN_ATTR_KEYS: &[&str] = &[
     ATTR_GO_NODE,
     ATTR_LIT_KIND,
     ATTR_OP,
+    ATTR_RECEIVER,
     ATTR_REF,
+    ATTR_SITE,
     ATTR_VALUE,
 ];
+
+/// Attribute key holding the receiver a TRAIT method binds, derived from its observed
+/// implementors.
+///
+/// A source interface says nothing about receiver mode, so this is the one answer the declaration
+/// cannot give and the corpus can. Its absence means nothing was observed to implement the
+/// interface, and the pack's declared decision answers instead.
+pub const ATTR_RECEIVER: &str = "receiver";
+
+/// Attribute key recording HOW an interface satisfaction was observed.
+///
+/// A declared assertion is compile-checked by the source language; a flow-derived one is the front
+/// end's inference. An impl emitted from either looks identical, so the distinction is recorded
+/// rather than left to be reconstructed.
+pub const ATTR_SITE: &str = "site";
 
 /// Attribute key holding a constant's or literal's value, spelled as source.
 pub const ATTR_VALUE: &str = "value";

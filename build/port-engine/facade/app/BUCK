@@ -70,6 +70,17 @@ rust_test(
 )
 
 rust_test(
+    name = "port-engine-app-port-go-refusals",
+    srcs = glob(["tests/port_go_refusals.rs"]),
+    crate = "port_engine_app_port_go_refusals",
+    crate_root = "tests/port_go_refusals.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":port-engine-app",
+    ],
+)
+
+rust_test(
     name = "port-engine-app-readiness",
     srcs = glob(["tests/readiness.rs"]),
     crate = "port_engine_app_readiness",

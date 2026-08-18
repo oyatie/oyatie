@@ -238,8 +238,65 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
   `core/rust-ir/src/expr.rs` split: the operator PRECEDENCE table moved to `ops.rs`. The rust-ir
   directory-completeness fence caught the new module by name, which is the fence working.
 
+- P5: interfaces and impls, from OBSERVED satisfaction.
+  Go's interfaces are implicit: nothing in a type's declaration says which interfaces it satisfies,
+  and structural matching is combinatorial. `census/interfaces.md` measured the two emission
+  strategies at 80,042 name-level structural matches against 1,316 pairs the source declares
+  outright, and its conclusion is that the engine must emit from USAGE. It now does.
+  The front end walks four SITE KINDS — a declared `var _ Iface = ...` assertion, an assignment, a
+  call argument, a return — and records the pair with the site it was seen at, because a declared
+  assertion is compile-checked by Go and a flow-derived one is the extractor's inference, and the
+  two produce identical Rust. Collection is per package and attribution is CORPUS-WIDE: the unit
+  that observes a flow is not in general the unit that declares the concrete type, which is the
+  census's own `NewCodec` example. A pair whose concrete type this corpus does not declare is
+  recorded as unsupported rather than dropped.
+  THE TRAIT RECEIVER STOPPED BEING A GUESS. P1 made it a declared pack decision because an
+  interface says nothing about how an implementation binds its receiver — one mode for every
+  method, which put `&mut self` on getters. With the implementors observed it is derived per
+  method: exclusive exactly when some implementor mutates. `Named` now reads `fn name(&self)` and
+  `fn rename(&mut self)`. Shared is a claim that NO observed implementor mutates, and since the
+  observed set is a lower bound, a later implementor that does is a compile error in the emitted
+  crate rather than a silent aliasing change. The pack's decision survives as the fallback for
+  interfaces nothing was seen to implement, and a method with neither refuses.
+  Each impl method DELEGATES to the inherent method rather than carrying the body: a body lives in
+  one place, and a type satisfying two interfaces that share a method name would otherwise need it
+  in both. The call is a PATH call, because inside a trait impl `self.name()` resolves against the
+  trait and recurses into itself.
+  A TRAIT IN A VALUE POSITION is now a declared decision. The source holds an interface value
+  directly and the target cannot — a trait has no size — so it arrives as `&dyn T`, `Box<dyn T>`,
+  `Rc<dyn T>` or a generic parameter, and those differ in who owns the value. The pack declares a
+  form per POSITION; `param` is declared and `result` deliberately is not, so returning an
+  interface refuses by name. A trait nested inside a composite refuses outright rather than
+  resolving through the slice constructor into `Vec<crate::shapes::Named>`.
+  THE ORPHAN RULE DOES NOT BITE, and the reason is recorded rather than guarded by a check that
+  cannot fire: the engine emits every unit of one corpus as a MODULE of one crate, so both sides of
+  every pair are local. It becomes reachable when a trait or a type crosses a crate boundary —
+  `go-rt` at P6, a multi-crate corpus at P10 — and the census's 6 foreign-on-foreign assertions are
+  the population that will need the newtype treatment then.
+  Interface method documentation was being dropped, the same way `parser.ParseComments` dropped
+  everything: the member-doc indexer matched only `*ast.StructType`, so every comment on an
+  interface method went nowhere. Both shapes are an `*ast.FieldList`, so one function answers.
+  The 1,643-line extractor split into thirteen files, verified by regenerating the snapshot BYTE
+  FOR BYTE — a digest-bearing artifact is the strongest available proof that a refactor changed
+  nothing.
+  New corpora: `corpus/naming` (two implementors, so the receiver union is a union rather than the
+  first answer found) and `corpus-interface/positions` (the third refusal class). Emitted-code
+  lint: 21 pedantic warnings over ~170 lines; ten are `#[must_use]`, which stays a P9 decision
+  because Go does not require a caller to use a return value and the attribute would be a claim the
+  source never made.
+
 ## Still owed by this lane
 
+- A concrete value flowing into a trait-object POSITION needs a coercion the body translator does
+  not have. `Describe(tag)` where the parameter is `&dyn Named` is fine when the argument resolves
+  to `&Tag`, and is not when a conservative ownership rule makes it `Option<Box<Tag>>` — which is
+  why the argument and result SITES are proven on the snapshot in `corpus-interface/` rather than
+  end-to-end through the emit. The assertion site is proven end-to-end.
+- Interface EMBEDDING and method promotion are not implemented. Go's method set includes methods
+  promoted through an embedded field, and 2,747 CORE struct types embed at least one — 479 of them
+  declare no explicit method at all. The impl side is already correct, because the front end
+  carries the interface's FULL method set, embedded methods included; the missing half is the
+  concrete side, where a promoted method has to become a forwarding method the target can call.
 - `defer`, `panic`/`recover`, `select`, closures and the type switch still refuse BY NAME. Each
   needs its census read first — `census/defer-panic-recover.md` sizes the first two at six callee
   shapes covering 77.9% — and guessing at one is how a translator emits a body that compiles and

@@ -28,6 +28,10 @@ impl PackSemantics for LoadedRulePack {
         &self.type_map
     }
 
+    fn trait_object_forms(&self) -> &BTreeMap<String, String> {
+        &self.trait_object_forms
+    }
+
     fn zero_values(&self) -> &BTreeMap<String, String> {
         &self.zero_values
     }

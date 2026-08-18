@@ -14,8 +14,9 @@ use port_engine_identity::engine_digest;
 use port_engine_rulepack::{LoadedRulePack, RulepackError};
 use port_engine_rust_ir::{EmptyRenderer, RustFn, RustIr, RustItem, RustRenderer, Visibility};
 use port_engine_snapshot::{
-    AdmitError, AdmittedSnapshot, admit_embedded_fixture, admit_embedded_fixture_ownership_v1,
-    admit_embedded_fixture_refused_v1, admit_embedded_fixture_v1,
+    AdmitError, AdmittedSnapshot, admit_embedded_fixture, admit_embedded_fixture_interface_v1,
+    admit_embedded_fixture_ownership_v1, admit_embedded_fixture_refused_v1,
+    admit_embedded_fixture_v1,
 };
 use port_engine_source_pin::{load_embedded, receipt_pin};
 use port_engine_toolchain::toolchain_digest;
@@ -87,6 +88,14 @@ pub fn port_go_refused() -> Result<usize, PipelineError> {
 /// [`PipelineError`] — a `Transform` refusal is the SUCCESSFUL outcome for this input.
 pub fn port_go_refused_ownership() -> Result<usize, PipelineError> {
     refuse(admit_embedded_fixture_ownership_v1().map_err(PipelineError::Admit)?)
+}
+
+/// Attempt to port the interface-position refusal corpus, returning the refusal.
+///
+/// # Errors
+/// [`PipelineError`] — a `Transform` refusal is the SUCCESSFUL outcome for this input.
+pub fn port_go_refused_interface() -> Result<usize, PipelineError> {
+    refuse(admit_embedded_fixture_interface_v1().map_err(PipelineError::Admit)?)
 }
 
 fn refuse(admitted: AdmittedSnapshot) -> Result<usize, PipelineError> {

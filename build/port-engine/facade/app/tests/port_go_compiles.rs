@@ -97,6 +97,59 @@ fn emitted_rust_carries_the_corpus() {
     );
 }
 
+/// The third refusal class: a trait in a position the pack declares no form for.
+///
+/// The source holds an interface value directly and the target cannot — a trait has no size — so it
+/// reaches a position as a reference, a box or a shared pointer, and those are different answers to
+/// who owns the value. The pack declares the parameter form, where a borrow is unambiguously right,
+/// Impls come from OBSERVED satisfaction, and the emitted crate says which observation.
+///
+/// Nothing in the source declares that `Label` implements `Named` in a form the engine could read
+/// off a declaration — Go's interfaces are implicit. The impl exists because the front end saw a
+/// concrete value flow into an interface-typed position, and the emitted doc comment carries which
+/// kind of position it was, because a declared assertion is compile-checked by the source and an
+/// inferred one is not, and the two produce identical Rust.
+#[test]
+fn trait_impls_are_emitted_from_observed_satisfaction() {
+    let report = driver::port_go_pipeline().expect("the Go corpus must port");
+    let source = driver::assemble_modules(&report);
+
+    for expected in [
+        "impl crate::shapes::Named for Label",
+        "impl crate::shapes::Named for Tag",
+        "observed satisfying `crate::shapes::Named` at assertion",
+        // The delegating body is a PATH call, not a method call: inside a trait impl, `self.name()`
+        // resolves against the trait being implemented and recurses into itself.
+        "Label::name(self)",
+    ] {
+        assert!(
+            source.contains(expected),
+            "emitted source must carry `{expected}`:\n{source}"
+        );
+    }
+}
+
+/// The trait's receiver is DERIVED from its implementors, not declared once for all its methods.
+///
+/// The pack's declared mode is `exclusive`, which is right for `Rename` and wrong for `Name` — a
+/// getter that takes `&mut self` is a signature no shared borrow can call. With the implementors
+/// observed, each method takes the mode its implementors need: exclusive exactly when one of them
+/// mutates.
+#[test]
+fn a_trait_method_binds_the_receiver_its_implementors_need() {
+    let report = driver::port_go_pipeline().expect("the Go corpus must port");
+    let source = driver::assemble_modules(&report);
+
+    assert!(
+        source.contains("fn name(&self) -> String;"),
+        "a read-only trait method must bind shared:\n{source}"
+    );
+    assert!(
+        source.contains("fn rename(&mut self, next: String);"),
+        "a mutating trait method must bind exclusive:\n{source}"
+    );
+}
+
 /// Every method in the corpus carries a TRANSLATED body.
 ///
 /// A stub compiles, matches a golden, and hashes into a stable receipt — so every other check in
@@ -166,49 +219,12 @@ fn a_planted_defect_in_the_ported_corpus_is_unexplained() {
 /// construct and points at the census entry where the analysis belongs.
 ///
 /// A translator whose refusals are only ever tested on hand-built inputs has not been shown to
-/// refuse anything a front end would actually produce.
-#[test]
-fn the_refusal_corpus_is_refused_by_name() {
-    let err = driver::port_go_refused().expect_err("the refusal corpus must not translate");
-
-    let message = err.to_string();
-    assert!(
-        message.contains("ForStmt") || message.contains("DeferStmt"),
-        "the refusal must name the construct it refused, got: {message}"
-    );
-    assert!(
-        message.contains("census"),
-        "the refusal must point at where the analysis lives, got: {message}"
-    );
-}
-
 /// The second refusal class, in its own corpus so it is PROVEN rather than shadowed by whichever
 /// package the transform reached first.
 ///
 /// A method whose receiver outlives the call cannot be handed out as any borrow of `self` — a
 /// reference would need a lifetime the caller cannot supply — so the pack's escaping disposition
 /// declares no receiver form and the transform refuses rather than picking a borrow that will not
-/// hold.
-#[test]
-fn an_escaping_receiver_is_refused_with_its_reason() {
-    let err =
-        driver::port_go_refused_ownership().expect_err("an escaping receiver has no borrow form");
-
-    let message = err.to_string();
-    assert!(
-        message.contains("Itself"),
-        "the refusal must name the site: {message}"
-    );
-    assert!(
-        message.contains("escaping_owned"),
-        "the refusal must name the disposition that declined: {message}"
-    );
-    assert!(
-        message.contains("outlives the call"),
-        "the refusal must carry the pack's recorded reason: {message}"
-    );
-}
-
 /// The six receipt axes carry real values for the first time. Before this lane every axis was
 /// typed and compared but never populated over a corpus, so the determinism claim held only over
 /// in-memory fakes.

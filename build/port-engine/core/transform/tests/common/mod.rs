@@ -24,6 +24,7 @@ pub struct Pack {
     pub deferred: BTreeSet<String>,
     pub copies: BTreeSet<String>,
     pub zeroes: BTreeMap<String, String>,
+    pub trait_objects: BTreeMap<String, String>,
     /// The declared trait-receiver decision. `None` means the pack made none, which is a refusal.
     pub receiver: Option<(String, String)>,
     pub dispositions: Vec<PointerDisposition>,
@@ -104,6 +105,13 @@ impl Pack {
         self
     }
 
+    /// Declare the target form a trait takes in one position, as a real pack must.
+    pub fn with_trait_object(mut self, position: &str, form: &str) -> Self {
+        self.trait_objects
+            .insert(position.to_owned(), form.to_owned());
+        self
+    }
+
     /// Declare a source type's target zero value, as a real pack must.
     pub fn with_zero_value(mut self, source: &str, target: &str) -> Self {
         self.zeroes.insert(source.to_owned(), target.to_owned());
@@ -141,6 +149,9 @@ impl PackSemantics for Pack {
     }
     fn copy_types(&self) -> &BTreeSet<String> {
         &self.copies
+    }
+    fn trait_object_forms(&self) -> &BTreeMap<String, String> {
+        &self.trait_objects
     }
     fn zero_values(&self) -> &BTreeMap<String, String> {
         &self.zeroes

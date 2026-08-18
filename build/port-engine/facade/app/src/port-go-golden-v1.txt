@@ -66,6 +66,60 @@ pub mod geometry {
         pub max: crate::shapes::Point,
     }
 }
+pub mod naming {
+    // region: oyatie_example_portengine_fixture_corpus_naming__go_func__describe
+    /// Describe renders anything that can name itself.
+    ///
+    /// The parameter is the one interface position with an unambiguous target form: the caller keeps
+    /// the value and the callee only reads it, so a borrow is right and no ownership question arises.
+    pub fn describe(named: &dyn crate::shapes::Named) -> String {
+        named.name()
+    }
+    // region: oyatie_example_portengine_fixture_corpus_naming__go_struct_body__label
+    /// Label is a display name that can rename itself.
+    pub struct Label {
+        /// text is the current display name.
+        text: String,
+    }
+    impl Label {
+        pub fn name(&self) -> String {
+            self.text.clone()
+        }
+        pub fn rename(&mut self, next: String) {
+            self.text = next;
+        }
+    }
+    /// Ported from an implicit interface: the source was observed satisfying `crate::shapes::Named` at assertion.
+    impl crate::shapes::Named for Label {
+        fn name(&self) -> String {
+            Label::name(self)
+        }
+        fn rename(&mut self, next: String) {
+            Label::rename(self, next);
+        }
+    }
+    // region: oyatie_example_portengine_fixture_corpus_naming__go_struct_body__tag
+    /// Tag is a display name that never changes.
+    pub struct Tag {
+        /// text is the fixed display name.
+        text: String,
+    }
+    impl Tag {
+        pub fn name(&self) -> String {
+            self.text.clone()
+        }
+        pub fn rename(&self, next: String) {}
+    }
+    /// Ported from an implicit interface: the source was observed satisfying `crate::shapes::Named` at assertion.
+    impl crate::shapes::Named for Tag {
+        fn name(&self) -> String {
+            Tag::name(self)
+        }
+        fn rename(&mut self, next: String) {
+            Tag::rename(self, next);
+        }
+    }
+}
 pub mod pointers {
     // region: oyatie_example_portengine_fixture_corpus_pointers__go_struct_body__counter
     /// Counter accumulates a total.
@@ -94,7 +148,7 @@ pub mod shapes {
     // region: oyatie_example_portengine_fixture_corpus_shapes__go_interface__named
     /// Named is anything that can render its own name.
     pub trait Named {
-        fn name(&mut self) -> String;
+        fn name(&self) -> String;
         fn rename(&mut self, next: String);
     }
     // region: oyatie_example_portengine_fixture_corpus_shapes__go_struct_body__point

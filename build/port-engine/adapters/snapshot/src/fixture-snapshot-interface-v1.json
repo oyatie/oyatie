@@ -1,0 +1,463 @@
+{
+  "schema_version": 2,
+  "language": "go",
+  "snapshot_digest": "sha256:c153ea52326dd56592218cd9ce04e862282257a62556a627a3326b95b64bac1c",
+  "packages": [
+    {
+      "unit_id": "oyatie.example/portengine-fixture-interface/corpus-interface/positions",
+      "producer": "bootstrap-go-packages-go-types",
+      "declarations": [
+        {
+          "kind": "func",
+          "name": "Announce",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Announce renders a speaker. The parameter position HAS a declared form."
+          },
+          "children": [
+            {
+              "kind": "param",
+              "name": "speaker",
+              "type": {
+                "kind": "named_interface",
+                "name": "Speaker",
+                "package": "oyatie.example/portengine-fixture-interface/corpus-interface/positions"
+              }
+            },
+            {
+              "kind": "result",
+              "name": "",
+              "type": {
+                "kind": "basic",
+                "name": "string"
+              }
+            },
+            {
+              "kind": "body",
+              "name": "",
+              "children": [
+                {
+                  "kind": "return",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "call",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "selector",
+                          "name": "Say",
+                          "type": {
+                            "kind": "func",
+                            "args": [
+                              {
+                                "kind": "tuple"
+                              },
+                              {
+                                "kind": "tuple",
+                                "args": [
+                                  {
+                                    "kind": "basic",
+                                    "name": "string"
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "speaker",
+                              "attrs": {
+                                "ref": "local"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "struct",
+          "name": "Echo",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Echo repeats what it is given."
+          },
+          "children": [
+            {
+              "kind": "field",
+              "name": "phrase",
+              "type": {
+                "kind": "basic",
+                "name": "string"
+              },
+              "attrs": {
+                "doc": "phrase is what this echo repeats."
+              }
+            },
+            {
+              "kind": "method",
+              "name": "Say",
+              "flags": [
+                "exported",
+                "pointer_receiver"
+              ],
+              "attrs": {
+                "doc": "Say returns the phrase."
+              },
+              "children": [
+                {
+                  "kind": "result",
+                  "name": "",
+                  "type": {
+                    "kind": "basic",
+                    "name": "string"
+                  }
+                },
+                {
+                  "kind": "body",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "return",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "selector",
+                          "name": "phrase",
+                          "type": {
+                            "kind": "basic",
+                            "name": "string"
+                          },
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "e",
+                              "attrs": {
+                                "ref": "receiver"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "kind": "implements",
+              "name": "",
+              "type": {
+                "kind": "named_interface",
+                "name": "Speaker",
+                "package": "oyatie.example/portengine-fixture-interface/corpus-interface/positions"
+              },
+              "attrs": {
+                "site": "argument"
+              },
+              "children": [
+                {
+                  "kind": "method",
+                  "name": "Say",
+                  "flags": [
+                    "exported"
+                  ],
+                  "attrs": {
+                    "receiver": "shared"
+                  },
+                  "children": [
+                    {
+                      "kind": "result",
+                      "name": "",
+                      "type": {
+                        "kind": "basic",
+                        "name": "string"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "func",
+          "name": "Repeat",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Repeat is the ARGUMENT site: a concrete value passed into an interface-typed parameter."
+          },
+          "children": [
+            {
+              "kind": "param",
+              "name": "echo",
+              "type": {
+                "kind": "pointer",
+                "args": [
+                  {
+                    "kind": "named",
+                    "name": "Echo",
+                    "package": "oyatie.example/portengine-fixture-interface/corpus-interface/positions"
+                  }
+                ]
+              },
+              "flags": [
+                "effect_unknown"
+              ]
+            },
+            {
+              "kind": "result",
+              "name": "",
+              "type": {
+                "kind": "basic",
+                "name": "string"
+              }
+            },
+            {
+              "kind": "body",
+              "name": "",
+              "children": [
+                {
+                  "kind": "return",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "call",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "ident",
+                          "name": "Announce",
+                          "attrs": {
+                            "ref": "func"
+                          }
+                        },
+                        {
+                          "kind": "ident",
+                          "name": "echo",
+                          "attrs": {
+                            "ref": "local"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "interface",
+          "name": "Speaker",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Speaker is anything that can say something."
+          },
+          "children": [
+            {
+              "kind": "method",
+              "name": "Say",
+              "flags": [
+                "exported"
+              ],
+              "attrs": {
+                "doc": "Say returns what the speaker says.",
+                "receiver": "shared"
+              },
+              "children": [
+                {
+                  "kind": "result",
+                  "name": "",
+                  "type": {
+                    "kind": "basic",
+                    "name": "string"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "func",
+          "name": "Voice",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Voice is the RESULT site, and the position with no declared form: the target has to own what it\nreturns, and choosing the owner is an ownership decision the pack has not made."
+          },
+          "children": [
+            {
+              "kind": "param",
+              "name": "whisper",
+              "type": {
+                "kind": "pointer",
+                "args": [
+                  {
+                    "kind": "named",
+                    "name": "Whisper",
+                    "package": "oyatie.example/portengine-fixture-interface/corpus-interface/positions"
+                  }
+                ]
+              },
+              "flags": [
+                "escapes"
+              ]
+            },
+            {
+              "kind": "result",
+              "name": "",
+              "type": {
+                "kind": "named_interface",
+                "name": "Speaker",
+                "package": "oyatie.example/portengine-fixture-interface/corpus-interface/positions"
+              }
+            },
+            {
+              "kind": "body",
+              "name": "",
+              "children": [
+                {
+                  "kind": "return",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "ident",
+                      "name": "whisper",
+                      "attrs": {
+                        "ref": "local"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "struct",
+          "name": "Whisper",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Whisper is a second speaker, whose ONLY observed site is a result.\n\nEcho cannot prove the result collector: it is observed at an argument first, and a pair seen\ntwice keeps the site that proves the most. A type with nowhere else to be seen is the only way\nto show that the result walk finds anything at all."
+          },
+          "children": [
+            {
+              "kind": "field",
+              "name": "phrase",
+              "type": {
+                "kind": "basic",
+                "name": "string"
+              },
+              "attrs": {
+                "doc": "phrase is what this whisper says."
+              }
+            },
+            {
+              "kind": "method",
+              "name": "Say",
+              "flags": [
+                "exported",
+                "pointer_receiver"
+              ],
+              "attrs": {
+                "doc": "Say returns the phrase."
+              },
+              "children": [
+                {
+                  "kind": "result",
+                  "name": "",
+                  "type": {
+                    "kind": "basic",
+                    "name": "string"
+                  }
+                },
+                {
+                  "kind": "body",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "return",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "selector",
+                          "name": "phrase",
+                          "type": {
+                            "kind": "basic",
+                            "name": "string"
+                          },
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "w",
+                              "attrs": {
+                                "ref": "receiver"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "kind": "implements",
+              "name": "",
+              "type": {
+                "kind": "named_interface",
+                "name": "Speaker",
+                "package": "oyatie.example/portengine-fixture-interface/corpus-interface/positions"
+              },
+              "attrs": {
+                "site": "result"
+              },
+              "children": [
+                {
+                  "kind": "method",
+                  "name": "Say",
+                  "flags": [
+                    "exported"
+                  ],
+                  "attrs": {
+                    "receiver": "shared"
+                  },
+                  "children": [
+                    {
+                      "kind": "result",
+                      "name": "",
+                      "type": {
+                        "kind": "basic",
+                        "name": "string"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -37,7 +37,14 @@
     "type's zero and the target rejects an incomplete literal, so the engine spells them out. A",
     "type with no entry refuses by name rather than falling back to `Default::default()`, which",
     "would compile for these four and quietly mean something else for a type whose Default is not",
-    "its zero."
+    "its zero.",
+    "",
+    "trait_object_forms is how a TRAIT reaches a value position. The source holds an interface",
+    "value directly and the target cannot — a trait has no size — so it arrives as `&dyn T`,",
+    "`Box<dyn T>`, `Rc<dyn T>` or a generic parameter, and those are different answers to who owns",
+    "the value and how long it lives. Only `param` is declared: a borrow is unambiguously right",
+    "there and the caller keeps the value. `result` is deliberately absent, so returning an",
+    "interface refuses by name rather than being boxed on a guess."
   ],
   "pair": {
     "source": "go",
@@ -217,6 +224,11 @@
           "id": "go-struct-body-selects-shapes",
           "unit": "oyatie.example/portengine-fixture/corpus/shapes",
           "selects": true
+        },
+        {
+          "id": "go-struct-body-selects-naming",
+          "unit": "oyatie.example/portengine-fixture/corpus/naming",
+          "selects": true
         }
       ]
     }
@@ -245,6 +257,15 @@
     ],
     "oyatie.example/portengine-fixture-ownership/corpus-ownership/escaping": [
       "go_struct"
+    ],
+    "oyatie.example/portengine-fixture/corpus/naming": [
+      "go_func",
+      "go_struct_body"
+    ],
+    "oyatie.example/portengine-fixture-interface/corpus-interface/positions": [
+      "go_interface",
+      "go_func",
+      "go_struct_body"
     ]
   },
   "type_constructors": {
@@ -296,5 +317,9 @@
     "float64": "0.0",
     "int": "0",
     "string": "String::new()"
+  },
+  "trait_object_forms": {
+    "param": "&dyn {0}",
+    "trait": "{0}"
   }
 }
