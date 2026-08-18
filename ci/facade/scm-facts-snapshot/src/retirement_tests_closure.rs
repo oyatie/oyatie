@@ -192,4 +192,3 @@ fn closed_carried_rejects_linked_preparation_with_different_baseline() {
     let error = materialize_history_only_retirement_facts(&source, &context()).unwrap_err();
     assert!(error.contains("immutable control-plane predecessor"));
 }
-

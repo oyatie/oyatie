@@ -24,8 +24,15 @@ fn bootstrap_is_candidate_bound_three_row_empty_and_deterministic() {
         first["scm_facts"]["retirement_control_plane_context"]["bootstrap"],
         json!(true)
     );
-    assert!(first["scm_facts"]["retirement_control_plane_context"]["protected_control_plane_blob_oid"].is_null());
-    assert!(first["scm_facts"]["retirement_control_plane_context"]["candidate_control_plane_blob_oid"].as_str().is_some());
+    assert!(
+        first["scm_facts"]["retirement_control_plane_context"]["protected_control_plane_blob_oid"]
+            .is_null()
+    );
+    assert!(
+        first["scm_facts"]["retirement_control_plane_context"]["candidate_control_plane_blob_oid"]
+            .as_str()
+            .is_some()
+    );
     assert_eq!(
         first["scm_facts"]["retirement_control_plane_context"]["control_plane_entries"]
             .as_array()
@@ -210,4 +217,3 @@ fn partial_active_receipt_population_fails_closed() {
     let error = materialize_history_only_retirement_facts(&source, &context()).unwrap_err();
     assert!(error.contains("not atomic"), "unexpected error: {error}");
 }
-

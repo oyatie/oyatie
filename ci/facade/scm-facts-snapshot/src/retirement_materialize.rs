@@ -7,10 +7,10 @@ use super::{
     RetirementObjectSource,
 };
 
-#[path = "retirement_materialize_resolve.rs"]
-mod resolve;
 #[path = "retirement_materialize_receipts.rs"]
 mod receipts;
+#[path = "retirement_materialize_resolve.rs"]
+mod resolve;
 
 use receipts::collect_receipt_facts;
 use resolve::{ResolvedRetirement, resolve_retirement_materialization};

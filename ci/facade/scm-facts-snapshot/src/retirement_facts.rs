@@ -5,7 +5,10 @@ use std::io::Read;
 
 use serde_json::{Value, json};
 
-use super::{ControlPlaneEntry, ExpectedInput, RetirementObjectSource, TreeEntry, require_regular, sha256_digest};
+use super::{
+    ControlPlaneEntry, ExpectedInput, RetirementObjectSource, TreeEntry, require_regular,
+    sha256_digest,
+};
 
 pub(crate) fn input_fact(
     source: &impl RetirementObjectSource,

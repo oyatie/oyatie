@@ -231,13 +231,8 @@ fn preparation_for_stage(
                     "closure {receipt_path} links unexpected preparation path"
                 ));
             }
-            let (commit, tree) = find_linked_preparation(
-                source,
-                &resolved.protected,
-                path,
-                blob,
-                entry,
-            )?;
+            let (commit, tree) =
+                find_linked_preparation(source, &resolved.protected, path, blob, entry)?;
             require_predecessor_baseline(
                 &commit,
                 &tree,

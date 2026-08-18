@@ -2,8 +2,8 @@
 
 use std::collections::BTreeSet;
 
-use serde::de::{self, MapAccess, SeqAccess, Visitor};
 use serde::Deserialize;
+use serde::de::{self, MapAccess, SeqAccess, Visitor};
 use serde_json::Value;
 
 use super::TreeEntry;
@@ -92,7 +92,10 @@ pub(crate) fn validate_repo_path(path: &str) -> Result<(), String> {
     }
 }
 
-pub(crate) fn required_value_string<'a>(value: Option<&'a Value>, label: &str) -> Result<&'a str, String> {
+pub(crate) fn required_value_string<'a>(
+    value: Option<&'a Value>,
+    label: &str,
+) -> Result<&'a str, String> {
     value
         .and_then(Value::as_str)
         .filter(|value| !value.is_empty())

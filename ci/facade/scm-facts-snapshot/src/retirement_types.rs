@@ -15,23 +15,28 @@ pub(crate) const CONTROL_PLANE_NAME: &str = "history-only-retirement-control-pla
 pub(crate) const RECEIPT_ROOT: &str = "evidence/history-only-retirement";
 pub(crate) const PROTECTED_BASE_REF: &str = "origin/dev";
 pub(crate) const CAT_FILE_HEADER_LIMIT: usize = 128;
-pub(crate) const MASTERPLAN_EVIDENCE_SET_ID: &str = "masterplan-retired-surfaces-history-only-retirement-v1";
-pub(crate) const MASTERPLAN_PREPARATION_ID: &str = "masterplan-retired-surfaces-retirement-preparation";
+pub(crate) const MASTERPLAN_EVIDENCE_SET_ID: &str =
+    "masterplan-retired-surfaces-history-only-retirement-v1";
+pub(crate) const MASTERPLAN_PREPARATION_ID: &str =
+    "masterplan-retired-surfaces-retirement-preparation";
 pub(crate) const MASTERPLAN_PREPARATION_PATH: &str =
     "evidence/history-only-retirement/masterplan-retired-surfaces-preparation.json";
 pub(crate) const MASTERPLAN_CLOSURE_ID: &str = "masterplan-retired-surfaces-retirement-closure";
 pub(crate) const MASTERPLAN_CLOSURE_PATH: &str =
     "evidence/history-only-retirement/masterplan-retired-surfaces-closure.json";
 
-pub(crate) const ADR_0363_EVIDENCE_SET_ID: &str = "adr-0363-amended-agentic-vcs-history-only-retirement-v1";
-pub(crate) const ADR_0363_PREPARATION_ID: &str = "adr-0363-amended-agentic-vcs-retirement-preparation";
+pub(crate) const ADR_0363_EVIDENCE_SET_ID: &str =
+    "adr-0363-amended-agentic-vcs-history-only-retirement-v1";
+pub(crate) const ADR_0363_PREPARATION_ID: &str =
+    "adr-0363-amended-agentic-vcs-retirement-preparation";
 pub(crate) const ADR_0363_PREPARATION_PATH: &str =
     "evidence/history-only-retirement/adr-0363-amended-agentic-vcs-preparation.json";
 pub(crate) const ADR_0363_CLOSURE_ID: &str = "adr-0363-amended-agentic-vcs-retirement-closure";
 pub(crate) const ADR_0363_CLOSURE_PATH: &str =
     "evidence/history-only-retirement/adr-0363-amended-agentic-vcs-closure.json";
 
-pub(crate) const ADR_0388_EVIDENCE_SET_ID: &str = "adr-0388-transient-ideas-history-only-retirement-v1";
+pub(crate) const ADR_0388_EVIDENCE_SET_ID: &str =
+    "adr-0388-transient-ideas-history-only-retirement-v1";
 pub(crate) const ADR_0388_PREPARATION_ID: &str = "adr-0388-transient-ideas-retirement-preparation";
 pub(crate) const ADR_0388_PREPARATION_PATH: &str =
     "evidence/history-only-retirement/adr-0388-transient-ideas-preparation.json";

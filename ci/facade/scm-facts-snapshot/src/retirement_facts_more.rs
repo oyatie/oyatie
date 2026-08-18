@@ -123,7 +123,9 @@ pub(crate) fn sha256_digest(bytes: &[u8]) -> String {
     format!("sha256:{:x}", Sha256::digest(bytes))
 }
 
-pub(crate) fn entries_by_path(entries: Vec<TreeEntry>) -> Result<BTreeMap<String, TreeEntry>, String> {
+pub(crate) fn entries_by_path(
+    entries: Vec<TreeEntry>,
+) -> Result<BTreeMap<String, TreeEntry>, String> {
     let mut result = BTreeMap::new();
     for entry in entries {
         validate_repo_path(&entry.path)?;

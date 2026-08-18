@@ -114,9 +114,7 @@ fn prepared_new_never_projects_raw_receipt_bodies_or_authority_lookalikes() {
 fn emitter_rejects_arbitrary_and_absolute_generated_facts_paths_before_git() {
     for output_path in [
         Path::new("ci/facade/scm-facts-snapshot/not-canonical.generated.json"),
-        Path::new(
-            "./ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json",
-        ),
+        Path::new("./ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json"),
         Path::new("/tmp/history-only-retirement-facts.generated.json"),
     ] {
         let error = emit_history_only_retirement_facts(Path::new("."), &context(), output_path)
@@ -208,4 +206,3 @@ fn closure_new_binds_each_candidate_closure_to_protected_preparation() {
         }
     }
 }
-

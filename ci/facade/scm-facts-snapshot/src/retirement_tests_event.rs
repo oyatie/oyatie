@@ -36,7 +36,6 @@ fn historical_dev_push_context_allows_control_plane_absent_bootstrap() {
     );
 }
 
-
 #[test]
 fn event_identity_rejects_pr_parent_order_extra_parent_and_subject_aliases() {
     let mut source = fixture();
@@ -252,9 +251,7 @@ fn closure_and_closed_carried_identity_mutations_fail_closed() {
                 "artifact_id" => receipt["artifact_id"] = json!("wrong"),
                 "scope_ref" => receipt["scope_ref"] = json!("wrong"),
                 "planning_state" => receipt["authority"]["planning_state"] = json!("ACTIVE"),
-                "dispatch_authorized" => {
-                    receipt["authority"]["dispatch_authorized"] = json!(true)
-                }
+                "dispatch_authorized" => receipt["authority"]["dispatch_authorized"] = json!(true),
                 _ => unreachable!(),
             }
             assert!(

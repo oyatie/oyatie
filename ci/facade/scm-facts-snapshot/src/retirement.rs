@@ -8,48 +8,48 @@
 use std::path::Path;
 use std::sync::atomic::AtomicU64;
 
-#[path = "retirement_types.rs"]
-mod retirement_types;
-#[path = "retirement_parse.rs"]
-mod retirement_parse;
+#[path = "retirement_emit.rs"]
+mod retirement_emit;
+#[path = "retirement_facts.rs"]
+mod retirement_facts;
+#[path = "retirement_facts_more.rs"]
+mod retirement_facts_more;
 #[path = "retirement_git.rs"]
 mod retirement_git;
+#[path = "retirement_materialize.rs"]
+mod retirement_materialize;
+#[path = "retirement_parse.rs"]
+mod retirement_parse;
 #[path = "retirement_path.rs"]
 mod retirement_path;
+#[path = "retirement_types.rs"]
+mod retirement_types;
 #[path = "retirement_validate.rs"]
 mod retirement_validate;
 #[path = "retirement_validate_control.rs"]
 mod retirement_validate_control;
 #[path = "retirement_validate_event.rs"]
 mod retirement_validate_event;
-#[path = "retirement_facts_more.rs"]
-mod retirement_facts_more;
-#[path = "retirement_facts.rs"]
-mod retirement_facts;
-#[path = "retirement_materialize.rs"]
-mod retirement_materialize;
-#[path = "retirement_emit.rs"]
-mod retirement_emit;
 
-pub(crate) use retirement_types::*;
-pub(crate) use retirement_parse::*;
+pub(crate) use retirement_emit::*;
+pub(crate) use retirement_facts::*;
+pub(crate) use retirement_facts_more::*;
 pub(crate) use retirement_git::*;
+pub(crate) use retirement_materialize::*;
+pub(crate) use retirement_parse::*;
 pub(crate) use retirement_path::*;
+pub(crate) use retirement_types::*;
 pub(crate) use retirement_validate::*;
 pub(crate) use retirement_validate_control::*;
 pub(crate) use retirement_validate_event::*;
-pub(crate) use retirement_facts_more::*;
-pub(crate) use retirement_facts::*;
-pub(crate) use retirement_materialize::*;
-pub(crate) use retirement_emit::*;
 
-pub use retirement_types::{BlobVisitor, GENERATED_FACTS_PATH};
-pub use retirement_git::visit_git_blobs;
+pub(crate) use retirement_emit::census_revision_from_event;
 pub use retirement_emit::{
     RetirementMaterializationContext, emit_history_only_retirement_facts,
     historical_dev_push_context,
 };
-pub(crate) use retirement_emit::census_revision_from_event;
+pub use retirement_git::visit_git_blobs;
+pub use retirement_types::{BlobVisitor, GENERATED_FACTS_PATH};
 
 pub(crate) static NEXT_ATOMIC_WRITE_ID: AtomicU64 = AtomicU64::new(0);
 
@@ -117,23 +117,23 @@ mod test_fixtures;
 #[path = "retirement_test_receipts.rs"]
 mod test_receipts;
 #[cfg(test)]
-#[path = "retirement_tests_public.rs"]
-mod tests_public;
-#[cfg(test)]
-#[path = "retirement_tests_event.rs"]
-mod tests_event;
-#[cfg(test)]
 #[path = "retirement_tests_bootstrap.rs"]
 mod tests_bootstrap;
 #[cfg(test)]
-#[path = "retirement_tests_prepared.rs"]
-mod tests_prepared;
-#[cfg(test)]
 #[path = "retirement_tests_closure.rs"]
 mod tests_closure;
+#[cfg(test)]
+#[path = "retirement_tests_event.rs"]
+mod tests_event;
 #[cfg(test)]
 #[path = "retirement_tests_misc.rs"]
 mod tests_misc;
 #[cfg(test)]
 #[path = "retirement_tests_parser.rs"]
 mod tests_parser;
+#[cfg(test)]
+#[path = "retirement_tests_prepared.rs"]
+mod tests_prepared;
+#[cfg(test)]
+#[path = "retirement_tests_public.rs"]
+mod tests_public;

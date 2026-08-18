@@ -2,9 +2,7 @@
 
 use std::path::Path;
 
-use super::{
-    CanonicalIgnoredGeneratedWriter, write_canonical_ignored_generated_file,
-};
+use super::{CanonicalIgnoredGeneratedWriter, write_canonical_ignored_generated_file};
 
 /// Windows soft-smoke regression: integration targets import this type on all
 /// platforms. The non-unix stub must keep the name public (see GHA E0432 when
@@ -23,9 +21,7 @@ fn canonical_ignored_generated_writer_is_public_on_all_platforms() {
 fn non_unix_canonical_ignored_generated_writer_fails_closed() {
     let err = CanonicalIgnoredGeneratedWriter::open(
         Path::new("."),
-        Path::new(
-            "ci/facade/artifact-inventory-registry/adr-census-epoch-receipt.generated.json",
-        ),
+        Path::new("ci/facade/artifact-inventory-registry/adr-census-epoch-receipt.generated.json"),
     )
     .expect_err("non-unix stub must fail closed");
     assert!(
@@ -34,9 +30,7 @@ fn non_unix_canonical_ignored_generated_writer_fails_closed() {
     );
     let err = write_canonical_ignored_generated_file(
         Path::new("."),
-        Path::new(
-            "ci/facade/artifact-inventory-registry/adr-census-epoch-receipt.generated.json",
-        ),
+        Path::new("ci/facade/artifact-inventory-registry/adr-census-epoch-receipt.generated.json"),
         b"{}",
     )
     .expect_err("non-unix free function must fail closed");
