@@ -32,7 +32,7 @@ Service-scoped ADRs are numbered `ADR-WS-####` (four-digit, sequential within th
 
 ## Sibling µservice ADR directories
 
-- `microservices/workflow-engine/decisions/` — workflow-engine service-scoped ADRs (executor / spec-store / replay-debugger-backend).
+- `workflow/workflow-engine/decisions/` — workflow-engine service-scoped ADRs (executor / spec-store / replay-debugger-backend).
 - (Other µservices acquire their own `decisions/` directory at the time they author their first service-scoped ADR.)
 
 ## Open Questions still tracked in PRD

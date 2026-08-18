@@ -35,7 +35,7 @@ Service-scoped ADRs are numbered `ADR-FORMS-####` (four-digit, sequential within
 
 - `microservices/workflow-studio/decisions/` — workflow-studio service-scoped ADRs.
 - `microservices/sheets/decisions/` — sheets service-scoped ADRs.
-- `microservices/workflow-engine/decisions/` — workflow-engine service-scoped ADRs.
+- `workflow/workflow-engine/decisions/` — workflow-engine service-scoped ADRs.
 - (Other µservices acquire their own `decisions/` directory at the time they author their first service-scoped ADR.)
 
 ## Author + reviewer protocol

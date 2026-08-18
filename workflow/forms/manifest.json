@@ -37,10 +37,10 @@
   ],
   "contracts": {
     "openapi": [
-      "microservices/forms/contracts/openapi/forms.openapi.yaml"
+      "workflow/forms/contracts/openapi/forms.openapi.yaml"
     ],
     "asyncapi": [
-      "microservices/forms/contracts/asyncapi/forms.asyncapi.yaml"
+      "workflow/forms/contracts/asyncapi/forms.asyncapi.yaml"
     ],
     "internal_grpc": {
       "transport": "http2",
@@ -54,19 +54,19 @@
     {
       "tier": "T0",
       "name": "t0-suggest",
-      "file": "microservices/forms/capabilities/T0-suggest.yaml",
+      "file": "workflow/forms/capabilities/T0-suggest.yaml",
       "risk_class": "none"
     },
     {
       "tier": "T1",
       "name": "t1-assist",
-      "file": "microservices/forms/capabilities/T1-assist.yaml",
+      "file": "workflow/forms/capabilities/T1-assist.yaml",
       "risk_class": "minimal"
     },
     {
       "tier": "T2",
       "name": "t2-auto",
-      "file": "microservices/forms/capabilities/T2-auto.yaml",
+      "file": "workflow/forms/capabilities/T2-auto.yaml",
       "risk_class": "limited"
     }
   ],
@@ -290,10 +290,10 @@
     }
   ],
   "hyperscaler_inv_coverage": {
-    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
-    "tenant_rate_limit": "INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
-    "reference_signals": "INV-FOUR-REFERENCE-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
-    "error_budget_burn": "INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
+    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD → observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
+    "tenant_rate_limit": "INV-SHUFFLE-SHARDING → observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
+    "reference_signals": "INV-FOUR-REFERENCE-SIGNALS → observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
+    "error_budget_burn": "INV-SLO-ERROR-BUDGET → observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
   },
   "audit_chain": {
     "enabled": true,
@@ -457,10 +457,10 @@
     "deprecation_calendar": [],
     "public_surface_files": {
       "openapi": {
-        "2026-05-21": "microservices/forms/contracts/openapi/forms.openapi.yaml"
+        "2026-05-21": "workflow/forms/contracts/openapi/forms.openapi.yaml"
       },
       "asyncapi": {
-        "2026-05-21": "microservices/forms/contracts/asyncapi/forms.asyncapi.yaml"
+        "2026-05-21": "workflow/forms/contracts/asyncapi/forms.asyncapi.yaml"
       }
     }
   },

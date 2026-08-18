@@ -990,7 +990,7 @@ mod tests {
         assert_eq!(
             property_value(&plan, "Oya-AsyncAPI-Channel-Ref"),
             Some(
-                "microservices/workflow-engine/contracts/asyncapi/workflow-events.yaml#/channels/workflow_runs_events_v1"
+                "workflow/workflow-engine/contracts/asyncapi/workflow-events.yaml#/channels/workflow_runs_events_v1"
             )
         );
         assert!(

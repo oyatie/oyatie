@@ -17,7 +17,7 @@ pub const WORKFLOW_EVENT_BUS_KERNEL_SURFACE: &str = "workflow-engine.event-bus.k
 pub const WORKFLOW_EVENT_BUS_CLOUDEVENTS_SPECVERSION: &str = "1.0";
 pub const WORKFLOW_EVENT_BUS_DEFAULT_CONTENT_TYPE: &str = "application/json";
 pub const WORKFLOW_EVENT_BUS_ASYNCAPI_CONTRACT_REF: &str =
-    "microservices/workflow-engine/contracts/asyncapi/workflow-events.yaml";
+    "workflow/workflow-engine/contracts/asyncapi/workflow-events.yaml";
 pub const WORKFLOW_EVENT_BUS_MAX_SUBSCRIPTION_BATCH_SIZE: u32 = 1000;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]

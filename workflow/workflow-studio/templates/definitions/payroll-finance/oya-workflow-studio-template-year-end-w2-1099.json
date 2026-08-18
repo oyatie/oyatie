@@ -192,7 +192,7 @@
   "live_mode_supported": true,
   "documentation": {
     "explainer_path": "microservices/workflow-studio/templates/explainers/oya-workflow-studio-template-year-end-w2-1099.md",
-    "fixture_path": "microservices/workflow-studio/templates/fixtures/oya-workflow-studio-template-year-end-w2-1099.fixture.json"
+    "fixture_path": "workflow/workflow-studio/templates/fixtures/oya-workflow-studio-template-year-end-w2-1099.fixture.json"
   },
   "tags": [
     "payroll",

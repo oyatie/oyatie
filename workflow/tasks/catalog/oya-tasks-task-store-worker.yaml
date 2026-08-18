@@ -6,7 +6,7 @@ bc: task-store
 plane: data
 slo: preview-data-plane
 contracts_consumed: []
-contracts_exposed: [microservices/tasks/contracts/asyncapi/tasks-events.yaml]
+contracts_exposed: [workflow/tasks/contracts/asyncapi/tasks-events.yaml]
 regulatory_packs_consumed: [oya-pack-kr, oya-pack-eu, oya-pack-us, oya-pack-us-healthcare, oya-pack-jp, oya-pack-sg, oya-pack-au, oya-pack-in, oya-pack-br, oya-pack-ae, oya-pack-ksa]
 lifecycle: {state: incubating, preview_since: 2026-05-17, stable_since: null, deprecated_since: null}
 traceability:

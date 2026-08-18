@@ -94,7 +94,7 @@
             },
             {
               "line": 50,
-              "excerpt": "| `microservices/tasks/iac/helm/tasks/templates/networkpolicy.yaml` | created | mesh-only ingress; egress to OpenBao + Postgres + Valkey + Meilisearch + audit-chain + ontology + tenancy + workflow-engi"
+              "excerpt": "| `workflow/tasks/iac/helm/tasks/templates/networkpolicy.yaml` | created | mesh-only ingress; egress to OpenBao + Postgres + Valkey + Meilisearch + audit-chain + ontology + tenancy + workflow-engi"
             }
           ],
           "hits_total": 5
@@ -222,7 +222,7 @@
           "hits_total": 1
         },
         {
-          "file": "microservices/tasks/catalog/oya-tasks-view-engine-adapter-valkey.yaml",
+          "file": "workflow/tasks/catalog/oya-tasks-view-engine-adapter-valkey.yaml",
           "hits": [
             {
               "line": 25,
@@ -232,7 +232,7 @@
           "hits_total": 1
         },
         {
-          "file": "microservices/tasks/manifest.json",
+          "file": "workflow/tasks/manifest.json",
           "hits": [
             {
               "line": 169,
@@ -242,7 +242,7 @@
           "hits_total": 1
         },
         {
-          "file": "microservices/tasks/dashboards/view-and-board-perf.json",
+          "file": "workflow/tasks/dashboards/view-and-board-perf.json",
           "hits": [
             {
               "line": 53,

@@ -19,7 +19,7 @@ pub const WORKFLOW_EVENT_BUS_REST_DELIVERY_ROUTE: &str = WORKFLOW_EVENT_BUS_API_
 pub const WORKFLOW_EVENT_BUS_REST_METHOD: WorkflowEventBusRestMethod =
     WorkflowEventBusRestMethod::Post;
 pub const WORKFLOW_EVENT_BUS_REST_CONTRACT_REF: &str =
-    "microservices/workflow-engine/contracts/openapi/workflow-engine.yaml#/paths";
+    "workflow/workflow-engine/contracts/openapi/workflow-engine.yaml#/paths";
 pub const WORKFLOW_EVENT_BUS_REST_SUCCESS_CONTENT_TYPE: &str = "application/json";
 pub const WORKFLOW_EVENT_BUS_REST_PROBLEM_CONTENT_TYPE: &str = "application/problem+json";
 

@@ -17,7 +17,7 @@ pub use workflow_trigger_orchestrator_api::*;
 pub const TRIGGER_ORCHESTRATOR_REST_ROUTE: &str = TRIGGER_ORCHESTRATOR_API_ROUTE;
 pub const TRIGGER_ORCHESTRATOR_REST_METHOD: TriggerOrchestratorRestMethod =
     TriggerOrchestratorRestMethod::Post;
-pub const TRIGGER_ORCHESTRATOR_REST_CONTRACT_REF: &str = "microservices/workflow-engine/contracts/openapi/workflow-engine.yaml#/paths/~1v~12026-05-25~1triggers~1evaluate/post";
+pub const TRIGGER_ORCHESTRATOR_REST_CONTRACT_REF: &str = "workflow/workflow-engine/contracts/openapi/workflow-engine.yaml#/paths/~1v~12026-05-25~1triggers~1evaluate/post";
 pub const TRIGGER_ORCHESTRATOR_REST_SUCCESS_CONTENT_TYPE: &str = "application/json";
 pub const TRIGGER_ORCHESTRATOR_REST_PROBLEM_CONTENT_TYPE: &str = "application/problem+json";
 

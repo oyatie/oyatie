@@ -10,6 +10,6 @@ status: pending
 description: |
   Port traits + entities for transition + invariant + checkpoint.
 related_artifacts:
-  - microservices/workflow-engine/PRD.md
+  - workflow/workflow-engine/PRD.md
   - microservices/workflow-engine/PHASE-01-DURABLE-EXECUTION-SUBSTRATE.md
 date: 2026-05-17

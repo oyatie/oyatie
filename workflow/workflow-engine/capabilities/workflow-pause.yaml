@@ -14,8 +14,8 @@ created_at: 2026-05-17
 related_adrs: [ADR-0035, ADR-0103, ADR-0131]
 related_specs: [/specs/microservices/workflow.json]
 related_artifacts:
-  - microservices/workflow-engine/PRD.md
-  - microservices/workflow-engine/contracts/openapi/workflow-engine.yaml
+  - workflow/workflow-engine/PRD.md
+  - workflow/workflow-engine/contracts/openapi/workflow-engine.yaml
 
 autonomy_tier: T2
 # T2 = operator intervention; reversible.
@@ -64,7 +64,7 @@ cost_profile:
     - Audit-chain seal
 
 cedar_policy_fragments:
-  - microservices/workflow-engine/policy/tenant-scope.cedar
+  - workflow/workflow-engine/policy/tenant-scope.cedar
 
 eval_set:
   golden_inputs_path: microservices/workflow-engine/capabilities/eval/workflow-pause-golden.jsonl

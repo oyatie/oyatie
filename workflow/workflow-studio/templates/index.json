@@ -58,7 +58,7 @@
       "node_count": 10,
       "definition_path": "workflow-studio/templates/definitions/hiring/oya-workflow-studio-template-interview-kit-scheduling.json",
       "explainer_path": "microservices/workflow-studio/templates/explainers/oya-workflow-studio-template-interview-kit-scheduling.md",
-      "fixture_path": "microservices/workflow-studio/templates/fixtures/oya-workflow-studio-template-interview-kit-scheduling.fixture.json",
+      "fixture_path": "workflow/workflow-studio/templates/fixtures/oya-workflow-studio-template-interview-kit-scheduling.fixture.json",
       "test_mode_supported": true,
       "live_mode_supported": true
     },
@@ -99,7 +99,7 @@
       "node_count": 9,
       "definition_path": "workflow-studio/templates/definitions/hiring/oya-workflow-studio-template-offer-esign-onboarding-handoff.json",
       "explainer_path": "microservices/workflow-studio/templates/explainers/oya-workflow-studio-template-offer-esign-onboarding-handoff.md",
-      "fixture_path": "microservices/workflow-studio/templates/fixtures/oya-workflow-studio-template-offer-esign-onboarding-handoff.fixture.json",
+      "fixture_path": "workflow/workflow-studio/templates/fixtures/oya-workflow-studio-template-offer-esign-onboarding-handoff.fixture.json",
       "test_mode_supported": true,
       "live_mode_supported": true
     },
@@ -138,7 +138,7 @@
       "node_count": 8,
       "definition_path": "workflow-studio/templates/definitions/hiring/oya-workflow-studio-template-req-approval-posting-sourcing.json",
       "explainer_path": "microservices/workflow-studio/templates/explainers/oya-workflow-studio-template-req-approval-posting-sourcing.md",
-      "fixture_path": "microservices/workflow-studio/templates/fixtures/oya-workflow-studio-template-req-approval-posting-sourcing.fixture.json",
+      "fixture_path": "workflow/workflow-studio/templates/fixtures/oya-workflow-studio-template-req-approval-posting-sourcing.fixture.json",
       "test_mode_supported": true,
       "live_mode_supported": true
     },
@@ -177,7 +177,7 @@
       "node_count": 9,
       "definition_path": "workflow-studio/templates/definitions/hospital-operations/oya-workflow-studio-template-bed-availability-prediction.json",
       "explainer_path": "microservices/workflow-studio/templates/explainers/oya-workflow-studio-template-bed-availability-prediction.md",
-      "fixture_path": "microservices/workflow-studio/templates/fixtures/oya-workflow-studio-template-bed-availability-prediction.fixture.json",
+      "fixture_path": "workflow/workflow-studio/templates/fixtures/oya-workflow-studio-template-bed-availability-prediction.fixture.json",
       "test_mode_supported": true,
       "live_mode_supported": true
     },
@@ -217,7 +217,7 @@
       "node_count": 9,
       "definition_path": "workflow-studio/templates/definitions/hospital-operations/oya-workflow-studio-template-discharge-planning.json",
       "explainer_path": "microservices/workflow-studio/templates/explainers/oya-workflow-studio-template-discharge-planning.md",
-      "fixture_path": "microservices/workflow-studio/templates/fixtures/oya-workflow-studio-template-discharge-planning.fixture.json",
+      "fixture_path": "workflow/workflow-studio/templates/fixtures/oya-workflow-studio-template-discharge-planning.fixture.json",
       "test_mode_supported": true,
       "live_mode_supported": true
     },
@@ -257,7 +257,7 @@
       "node_count": 10,
       "definition_path": "workflow-studio/templates/definitions/hospital-operations/oya-workflow-studio-template-joint-commission-prep.json",
       "explainer_path": "microservices/workflow-studio/templates/explainers/oya-workflow-studio-template-joint-commission-prep.md",
-      "fixture_path": "microservices/workflow-studio/templates/fixtures/oya-workflow-studio-template-joint-commission-prep.fixture.json",
+      "fixture_path": "workflow/workflow-studio/templates/fixtures/oya-workflow-studio-template-joint-commission-prep.fixture.json",
       "test_mode_supported": true,
       "live_mode_supported": true
     },
@@ -297,7 +297,7 @@
       "node_count": 7,
       "definition_path": "workflow-studio/templates/definitions/hospital-operations/oya-workflow-studio-template-patient-admission.json",
       "explainer_path": "microservices/workflow-studio/templates/explainers/oya-workflow-studio-template-patient-admission.md",
-      "fixture_path": "microservices/workflow-studio/templates/fixtures/oya-workflow-studio-template-patient-admission.fixture.json",
+      "fixture_path": "workflow/workflow-studio/templates/fixtures/oya-workflow-studio-template-patient-admission.fixture.json",
       "test_mode_supported": true,
       "live_mode_supported": true
     },
@@ -336,7 +336,7 @@
       "node_count": 8,
       "definition_path": "workflow-studio/templates/definitions/hr-people/oya-workflow-studio-template-comp-band-refresh.json",
       "explainer_path": "microservices/workflow-studio/templates/explainers/oya-workflow-studio-template-comp-band-refresh.md",
-      "fixture_path": "microservices/workflow-studio/templates/fixtures/oya-workflow-studio-template-comp-band-refresh.fixture.json",
+      "fixture_path": "workflow/workflow-studio/templates/fixtures/oya-workflow-studio-template-comp-band-refresh.fixture.json",
       "test_mode_supported": true,
       "live_mode_supported": true
     },
@@ -379,7 +379,7 @@
       "node_count": 9,
       "definition_path": "workflow-studio/templates/definitions/hr-people/oya-workflow-studio-template-involuntary-termination.json",
       "explainer_path": "microservices/workflow-studio/templates/explainers/oya-workflow-studio-template-involuntary-termination.md",
-      "fixture_path": "microservices/workflow-studio/templates/fixtures/oya-workflow-studio-template-involuntary-termination.fixture.json",
+      "fixture_path": "workflow/workflow-studio/templates/fixtures/oya-workflow-studio-template-involuntary-termination.fixture.json",
       "test_mode_supported": true,
       "live_mode_supported": true
     },
@@ -418,7 +418,7 @@
       "node_count": 8,
       "definition_path": "workflow-studio/templates/definitions/hr-people/oya-workflow-studio-template-lateral-transfer.json",
       "explainer_path": "microservices/workflow-studio/templates/explainers/oya-workflow-studio-template-lateral-transfer.md",
-      "fixture_path": "microservices/workflow-studio/templates/fixtures/oya-workflow-studio-template-lateral-transfer.fixture.json",
+      "fixture_path": "workflow/workflow-studio/templates/fixtures/oya-workflow-studio-template-lateral-transfer.fixture.json",
       "test_mode_supported": true,
       "live_mode_supported": true
     },
@@ -462,7 +462,7 @@
       "node_count": 8,
       "definition_path": "workflow-studio/templates/definitions/hr-people/oya-workflow-studio-template-layoff-bench-severance.json",
       "explainer_path": "microservices/workflow-studio/templates/explainers/oya-workflow-studio-template-layoff-bench-severance.md",
-      "fixture_path": "microservices/workflow-studio/templates/fixtures/oya-workflow-studio-template-layoff-bench-severance.fixture.json",
+      "fixture_path": "workflow/workflow-studio/templates/fixtures/oya-workflow-studio-template-layoff-bench-severance.fixture.json",
       "test_mode_supported": true,
       "live_mode_supported": true
     },
@@ -505,7 +505,7 @@
       "node_count": 10,
       "definition_path": "workflow-studio/templates/definitions/hr-people/oya-workflow-studio-template-new-hire-onboarding.json",
       "explainer_path": "microservices/workflow-studio/templates/explainers/oya-workflow-studio-template-new-hire-onboarding.md",
-      "fixture_path": "microservices/workflow-studio/templates/fixtures/oya-workflow-studio-template-new-hire-onboarding.fixture.json",
+      "fixture_path": "workflow/workflow-studio/templates/fixtures/oya-workflow-studio-template-new-hire-onboarding.fixture.json",
       "test_mode_supported": true,
       "live_mode_supported": true
     },
@@ -546,7 +546,7 @@
       "node_count": 9,
       "definition_path": "workflow-studio/templates/definitions/hr-people/oya-workflow-studio-template-performance-improvement-plan.json",
       "explainer_path": "microservices/workflow-studio/templates/explainers/oya-workflow-studio-template-performance-improvement-plan.md",
-      "fixture_path": "microservices/workflow-studio/templates/fixtures/oya-workflow-studio-template-performance-improvement-plan.fixture.json",
+      "fixture_path": "workflow/workflow-studio/templates/fixtures/oya-workflow-studio-template-performance-improvement-plan.fixture.json",
       "test_mode_supported": true,
       "live_mode_supported": true
     },
@@ -586,7 +586,7 @@
       "node_count": 7,
       "definition_path": "workflow-studio/templates/definitions/hr-people/oya-workflow-studio-template-promotion-comp-change.json",
       "explainer_path": "microservices/workflow-studio/templates/explainers/oya-workflow-studio-template-promotion-comp-change.md",
-      "fixture_path": "microservices/workflow-studio/templates/fixtures/oya-workflow-studio-template-promotion-comp-change.fixture.json",
+      "fixture_path": "workflow/workflow-studio/templates/fixtures/oya-workflow-studio-template-promotion-comp-change.fixture.json",
       "test_mode_supported": true,
       "live_mode_supported": true
     },
@@ -628,7 +628,7 @@
       "node_count": 9,
       "definition_path": "workflow-studio/templates/definitions/hr-people/oya-workflow-studio-template-voluntary-exit-offboarding.json",
       "explainer_path": "microservices/workflow-studio/templates/explainers/oya-workflow-studio-template-voluntary-exit-offboarding.md",
-      "fixture_path": "microservices/workflow-studio/templates/fixtures/oya-workflow-studio-template-voluntary-exit-offboarding.fixture.json",
+      "fixture_path": "workflow/workflow-studio/templates/fixtures/oya-workflow-studio-template-voluntary-exit-offboarding.fixture.json",
       "test_mode_supported": true,
       "live_mode_supported": true
     },
@@ -667,7 +667,7 @@
       "node_count": 8,
       "definition_path": "workflow-studio/templates/definitions/operations/oya-workflow-studio-template-asset-issuance.json",
       "explainer_path": "microservices/workflow-studio/templates/explainers/oya-workflow-studio-template-asset-issuance.md",
-      "fixture_path": "microservices/workflow-studio/templates/fixtures/oya-workflow-studio-template-asset-issuance.fixture.json",
+      "fixture_path": "workflow/workflow-studio/templates/fixtures/oya-workflow-studio-template-asset-issuance.fixture.json",
       "test_mode_supported": true,
       "live_mode_supported": true
     },
@@ -707,7 +707,7 @@
       "node_count": 9,
       "definition_path": "workflow-studio/templates/definitions/operations/oya-workflow-studio-template-asset-return-offboarding.json",
       "explainer_path": "microservices/workflow-studio/templates/explainers/oya-workflow-studio-template-asset-return-offboarding.md",
-      "fixture_path": "microservices/workflow-studio/templates/fixtures/oya-workflow-studio-template-asset-return-offboarding.fixture.json",
+      "fixture_path": "workflow/workflow-studio/templates/fixtures/oya-workflow-studio-template-asset-return-offboarding.fixture.json",
       "test_mode_supported": true,
       "live_mode_supported": true
     },
@@ -746,7 +746,7 @@
       "node_count": 11,
       "definition_path": "workflow-studio/templates/definitions/operations/oya-workflow-studio-template-procure-to-pay.json",
       "explainer_path": "microservices/workflow-studio/templates/explainers/oya-workflow-studio-template-procure-to-pay.md",
-      "fixture_path": "microservices/workflow-studio/templates/fixtures/oya-workflow-studio-template-procure-to-pay.fixture.json",
+      "fixture_path": "workflow/workflow-studio/templates/fixtures/oya-workflow-studio-template-procure-to-pay.fixture.json",
       "test_mode_supported": true,
       "live_mode_supported": true
     },
@@ -786,7 +786,7 @@
       "node_count": 9,
       "definition_path": "workflow-studio/templates/definitions/operations/oya-workflow-studio-template-vendor-onboarding.json",
       "explainer_path": "microservices/workflow-studio/templates/explainers/oya-workflow-studio-template-vendor-onboarding.md",
-      "fixture_path": "microservices/workflow-studio/templates/fixtures/oya-workflow-studio-template-vendor-onboarding.fixture.json",
+      "fixture_path": "workflow/workflow-studio/templates/fixtures/oya-workflow-studio-template-vendor-onboarding.fixture.json",
       "test_mode_supported": true,
       "live_mode_supported": true
     },
@@ -825,7 +825,7 @@
       "node_count": 9,
       "definition_path": "workflow-studio/templates/definitions/operations/oya-workflow-studio-template-vendor-renewal.json",
       "explainer_path": "microservices/workflow-studio/templates/explainers/oya-workflow-studio-template-vendor-renewal.md",
-      "fixture_path": "microservices/workflow-studio/templates/fixtures/oya-workflow-studio-template-vendor-renewal.fixture.json",
+      "fixture_path": "workflow/workflow-studio/templates/fixtures/oya-workflow-studio-template-vendor-renewal.fixture.json",
       "test_mode_supported": true,
       "live_mode_supported": true
     },
@@ -864,7 +864,7 @@
       "node_count": 7,
       "definition_path": "workflow-studio/templates/definitions/payroll-finance/oya-workflow-studio-template-equity-vesting-tax-event.json",
       "explainer_path": "microservices/workflow-studio/templates/explainers/oya-workflow-studio-template-equity-vesting-tax-event.md",
-      "fixture_path": "microservices/workflow-studio/templates/fixtures/oya-workflow-studio-template-equity-vesting-tax-event.fixture.json",
+      "fixture_path": "workflow/workflow-studio/templates/fixtures/oya-workflow-studio-template-equity-vesting-tax-event.fixture.json",
       "test_mode_supported": true,
       "live_mode_supported": true
     },
@@ -902,7 +902,7 @@
       "node_count": 10,
       "definition_path": "workflow-studio/templates/definitions/payroll-finance/oya-workflow-studio-template-month-end-close.json",
       "explainer_path": "microservices/workflow-studio/templates/explainers/oya-workflow-studio-template-month-end-close.md",
-      "fixture_path": "microservices/workflow-studio/templates/fixtures/oya-workflow-studio-template-month-end-close.fixture.json",
+      "fixture_path": "workflow/workflow-studio/templates/fixtures/oya-workflow-studio-template-month-end-close.fixture.json",
       "test_mode_supported": true,
       "live_mode_supported": true
     },
@@ -942,7 +942,7 @@
       "node_count": 9,
       "definition_path": "workflow-studio/templates/definitions/payroll-finance/oya-workflow-studio-template-monthly-pay-run.json",
       "explainer_path": "microservices/workflow-studio/templates/explainers/oya-workflow-studio-template-monthly-pay-run.md",
-      "fixture_path": "microservices/workflow-studio/templates/fixtures/oya-workflow-studio-template-monthly-pay-run.fixture.json",
+      "fixture_path": "workflow/workflow-studio/templates/fixtures/oya-workflow-studio-template-monthly-pay-run.fixture.json",
       "test_mode_supported": true,
       "live_mode_supported": true
     },
@@ -981,7 +981,7 @@
       "node_count": 9,
       "definition_path": "workflow-studio/templates/definitions/payroll-finance/oya-workflow-studio-template-quarterly-variance-narrative.json",
       "explainer_path": "microservices/workflow-studio/templates/explainers/oya-workflow-studio-template-quarterly-variance-narrative.md",
-      "fixture_path": "microservices/workflow-studio/templates/fixtures/oya-workflow-studio-template-quarterly-variance-narrative.fixture.json",
+      "fixture_path": "workflow/workflow-studio/templates/fixtures/oya-workflow-studio-template-quarterly-variance-narrative.fixture.json",
       "test_mode_supported": true,
       "live_mode_supported": true
     },
@@ -1023,7 +1023,7 @@
       "node_count": 10,
       "definition_path": "workflow-studio/templates/definitions/payroll-finance/oya-workflow-studio-template-year-end-w2-1099.json",
       "explainer_path": "microservices/workflow-studio/templates/explainers/oya-workflow-studio-template-year-end-w2-1099.md",
-      "fixture_path": "microservices/workflow-studio/templates/fixtures/oya-workflow-studio-template-year-end-w2-1099.fixture.json",
+      "fixture_path": "workflow/workflow-studio/templates/fixtures/oya-workflow-studio-template-year-end-w2-1099.fixture.json",
       "test_mode_supported": true,
       "live_mode_supported": true
     }

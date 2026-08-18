@@ -20,7 +20,7 @@ pub use workflow_trigger_orchestrator_kernel::{
 
 pub const TRIGGER_ORCHESTRATOR_DOMAIN_SURFACE: &str = "workflow-engine.trigger-orchestrator.domain";
 pub const TRIGGER_ORCHESTRATOR_DOMAIN_CONTRACT_REF: &str =
-    "microservices/workflow-engine/PRD.md#f2-run-trigger-dispatch";
+    "workflow/workflow-engine/PRD.md#f2-run-trigger-dispatch";
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub enum TriggerOrchestratorDomainSource {

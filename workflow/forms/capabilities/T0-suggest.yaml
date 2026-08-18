@@ -25,8 +25,8 @@ related_adrs: [ADR-0022, ADR-0028, ADR-0131, ADR-0140 (retired per ADR-0145), AD
 related_specs: [/specs/microservices/forms.json]
 related_artifacts:
   - microservices/forms/PRD.md FR-01 + FR-12 + FR-17
-  - microservices/forms/policy/tenant-scope.cedar
-  - microservices/forms/contracts/openapi/forms.openapi.yaml
+  - workflow/forms/policy/tenant-scope.cedar
+  - workflow/forms/contracts/openapi/forms.openapi.yaml
   - microservices/forms/threat-model.md §"T-T-05" (AI suggestions never load-bearing)
 
 autonomy_tier: T0
@@ -108,8 +108,8 @@ cost_profile:
     - axe-core rules engine on builder DOM
 
 cedar_policy_fragments:
-  - microservices/forms/policy/tenant-scope.cedar
-  - microservices/forms/policy/public-read.cedar
+  - workflow/forms/policy/tenant-scope.cedar
+  - workflow/forms/policy/public-read.cedar
 
 eval_set:
   reference_inputs_path: microservices/forms/capabilities/eval/t0-suggest-reference.jsonl

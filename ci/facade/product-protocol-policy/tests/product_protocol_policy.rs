@@ -1489,8 +1489,14 @@ fn retired_cloud_corpus_has_exact_accounting_and_cannot_revive_silently() {
     }
 
     let projection = json(&root.join("specs/microservice-tier-classification.json"));
-    assert_eq!(projection["service_count"], 94);
-    assert_eq!(projection["tier_distribution"]["substrate"], 53);
+    // 94 -> 95 / substrate 53 -> 54: the `workflow` capability root lands its own
+    // `workflow/manifest.json` in this change (ADR-0562 capability-first roots, PRs #1651-#1655).
+    // It is one ADDITION to the governed corpus and is unrelated to the cloud/ retirement this
+    // test attributes above — the retirement pins are the two `cloud/*` entries asserted there,
+    // which are untouched. Kept as an exact pin rather than a range so a silent revival of the
+    // retired corpus still fails here.
+    assert_eq!(projection["service_count"], 95);
+    assert_eq!(projection["tier_distribution"]["substrate"], 54);
     assert!(
         projection["services"]
             .as_object()

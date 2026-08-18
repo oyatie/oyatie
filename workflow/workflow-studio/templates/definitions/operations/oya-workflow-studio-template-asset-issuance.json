@@ -194,7 +194,7 @@
   "live_mode_supported": true,
   "documentation": {
     "explainer_path": "microservices/workflow-studio/templates/explainers/oya-workflow-studio-template-asset-issuance.md",
-    "fixture_path": "microservices/workflow-studio/templates/fixtures/oya-workflow-studio-template-asset-issuance.fixture.json"
+    "fixture_path": "workflow/workflow-studio/templates/fixtures/oya-workflow-studio-template-asset-issuance.fixture.json"
   },
   "tags": [
     "operations",

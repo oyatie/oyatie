@@ -120,7 +120,7 @@
           "hits_total": 3
         },
         {
-          "file": "microservices/forms/runbooks/spam-flood-throttle.md",
+          "file": "workflow/forms/runbooks/spam-flood-throttle.md",
           "hits": [
             {
               "line": 54,
@@ -134,7 +134,7 @@
           "hits_total": 2
         },
         {
-          "file": "microservices/forms/runbooks/response-store-corruption.md",
+          "file": "workflow/forms/runbooks/response-store-corruption.md",
           "hits": [
             {
               "line": 96,
@@ -154,7 +154,7 @@
           "hits_total": 1
         },
         {
-          "file": "microservices/forms/capabilities/T2-auto.yaml",
+          "file": "workflow/forms/capabilities/T2-auto.yaml",
           "hits": [
             {
               "line": 115,
@@ -168,7 +168,7 @@
           "hits_total": 2
         },
         {
-          "file": "microservices/forms/catalog/oya-forms-valkey-adapter.yaml",
+          "file": "workflow/forms/catalog/oya-forms-valkey-adapter.yaml",
           "hits": [
             {
               "line": 8,
@@ -178,7 +178,7 @@
           "hits_total": 1
         },
         {
-          "file": "microservices/forms/iac/helm/response-cache-valkey/Chart.yaml",
+          "file": "workflow/forms/iac/helm/response-cache-valkey/Chart.yaml",
           "hits": [
             {
               "line": 5,
@@ -188,7 +188,7 @@
           "hits_total": 1
         },
         {
-          "file": "microservices/forms/manifest.json",
+          "file": "workflow/forms/manifest.json",
           "hits": [
             {
               "line": 125,
@@ -202,7 +202,7 @@
           "hits_total": 2
         },
         {
-          "file": "microservices/forms/dashboards/response-pipeline.json",
+          "file": "workflow/forms/dashboards/response-pipeline.json",
           "hits": [
             {
               "line": 144,

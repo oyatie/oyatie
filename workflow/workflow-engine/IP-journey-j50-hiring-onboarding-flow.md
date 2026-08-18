@@ -29,7 +29,7 @@ companion_docs:
   - docs/user-journeys/CATALOG-j126-j150-ecosystem.md
   - microservices/payments/PRD.md
   - microservices/identity/PRD.md
-  - microservices/workflow-engine/PRD.md
+  - workflow/workflow-engine/PRD.md
   - microservices/ontology/PRD.md
   - microservices/messenger/PRD.md
   - microservices/mail/PRD.md
@@ -422,9 +422,9 @@ IP check 151: workflow-engine/hiring-onboarding-flow satisfies maintainability f
 ## DR posture (per ADR-0343)
 
 - Authority: ADR-0343.
-- Trigger evidence: `microservices/workflow-engine/IP-journey-j50-hiring-onboarding-flow.md` matched `financial, payment`.
+- Trigger evidence: `workflow/workflow-engine/IP-journey-j50-hiring-onboarding-flow.md` matched `financial, payment`.
 - Numeric target: `rto_p99_seconds=3600`, `rpo_p99_seconds=300` from manifest-declared pack floor via specs/compliance-pack-floors.json.
-- Applicable compliance pack floor: HIPAA-2024(3600s/300s MR), SOC2-T2(14400s/900s), ISO27001-2022(14400s/3600s), KR-CSAP-v3.1(3600s/900s MR) from `specs/compliance-pack-floors.json`; manifest evidence `microservices/workflow-engine/manifest.json`.
+- Applicable compliance pack floor: HIPAA-2024(3600s/300s MR), SOC2-T2(14400s/900s), ISO27001-2022(14400s/3600s), KR-CSAP-v3.1(3600s/900s MR) from `specs/compliance-pack-floors.json`; manifest evidence `workflow/workflow-engine/manifest.json`.
 - Multi-region posture: `multi_region_active_active=true` for this HA-critical IP path.
 - Backup substrate: `postgres_wal_g`, `valkey_cluster`, `object_storage_versioned`, `audit_chain_merkle_seal`.
-- Runtime evidence: `microservices/workflow-engine/slos/payload-bytes-budget-correctness.openslo.yaml`, `microservices/workflow-engine/slos/replay-determinism-correctness.openslo.yaml`, `microservices/workflow-engine/slos/worker-poll-availability.openslo.yaml`, `microservices/workflow-engine/slos/workflow-completion-availability.openslo.yaml`, `microservices/workflow-engine/policy/auditor-scope.cedar`.
+- Runtime evidence: `workflow/observability/slos/workflow-engine/payload-bytes-budget-correctness.openslo.yaml`, `workflow/observability/slos/workflow-engine/replay-determinism-correctness.openslo.yaml`, `workflow/observability/slos/workflow-engine/worker-poll-availability.openslo.yaml`, `workflow/observability/slos/workflow-engine/workflow-completion-availability.openslo.yaml`, `workflow/workflow-engine/policy/auditor-scope.cedar`.

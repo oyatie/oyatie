@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://oyatie.example/microservices/workflow-studio/templates/schemas/workflow-template.schema.json",
+  "$id": "https://oyatie.example/workflow/workflow-studio/templates/schemas/workflow-template.schema.json",
   "title": "WorkflowStudioTemplate",
   "description": "Canonical schema for a pre-built Workflow Studio template. Each template is a deployable workflow definition with persona, vertical, parameters, node graph, runtime metrics, compliance flags, audit-chain emission points, Cedar policy, and SLO declarations. Conforms to ADR-0131 (per-µservice flat layout) and ADR-0064 (canonical-base + localization).",
   "type": "object",

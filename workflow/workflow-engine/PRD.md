@@ -1614,7 +1614,7 @@ impl Context {
 
 ### W.2 SLO authoring
 
-Per ADR-0139 every engine SLO authored under `microservices/workflow-engine/slos/`:
+Per ADR-0139 every engine SLO authored under `workflow/observability/slos/workflow-engine/`:
 
 - `slos/run-start-latency.openslo.yaml` — 99.9% P99 ≤ 200ms.
 - `slos/step-execution-latency.openslo.yaml` — 99.9% P99 ≤ 50ms (local).

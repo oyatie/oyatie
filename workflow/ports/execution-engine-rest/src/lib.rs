@@ -19,7 +19,7 @@ pub const EXECUTION_ENGINE_REST_SCHEDULE_RETRY_ROUTE: &str =
     "/runs/{run_id}/steps/{step_index}/retry";
 pub const EXECUTION_ENGINE_REST_ARM_TIMER_ROUTE: &str = "/runs/{run_id}/timers";
 pub const EXECUTION_ENGINE_REST_CONTRACT_REF: &str =
-    "microservices/workflow-engine/contracts/openapi/workflow-engine.yaml#/paths";
+    "workflow/workflow-engine/contracts/openapi/workflow-engine.yaml#/paths";
 pub const EXECUTION_ENGINE_REST_START_RUN_METHOD: ExecutionEngineRestMethod =
     ExecutionEngineRestMethod::Post;
 pub const EXECUTION_ENGINE_REST_PROBLEM_CONTENT_TYPE: &str = "application/problem+json";

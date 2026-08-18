@@ -32,7 +32,7 @@ pub use workflow_trigger_orchestrator_usecase::{
 pub const TRIGGER_ORCHESTRATOR_API_SURFACE: &str = "workflow-engine.trigger-orchestrator.command";
 pub const TRIGGER_ORCHESTRATOR_API_DECLARED_VERSION: &str = "2026-05-25";
 pub const TRIGGER_ORCHESTRATOR_API_CONTRACT_REF: &str =
-    "microservices/workflow-engine/contracts/openapi/workflow-engine.yaml";
+    "workflow/workflow-engine/contracts/openapi/workflow-engine.yaml";
 pub const TRIGGER_ORCHESTRATOR_API_ROUTE: &str = "/v/2026-05-25/triggers/evaluate";
 pub const TRIGGER_ORCHESTRATOR_API_METHOD: &str = "POST";
 

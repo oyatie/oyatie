@@ -37,7 +37,7 @@ pub use workflow_event_bus_usecase::{
 pub const WORKFLOW_EVENT_BUS_API_SURFACE: &str = "workflow-engine.event-bus.command";
 pub const WORKFLOW_EVENT_BUS_API_DECLARED_VERSION: &str = "2026-05-25";
 pub const WORKFLOW_EVENT_BUS_API_CONTRACT_REF: &str =
-    "microservices/workflow-engine/contracts/openapi/workflow-engine.yaml";
+    "workflow/workflow-engine/contracts/openapi/workflow-engine.yaml";
 pub const WORKFLOW_EVENT_BUS_API_PUBLISH_ROUTE: &str = "/v/2026-05-25/event-bus/publish";
 pub const WORKFLOW_EVENT_BUS_API_DELIVERY_ROUTE: &str = "/v/2026-05-25/event-bus/delivery/evaluate";
 pub const WORKFLOW_EVENT_BUS_API_METHOD: &str = "POST";

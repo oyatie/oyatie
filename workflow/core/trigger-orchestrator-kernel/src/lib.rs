@@ -10,7 +10,7 @@
 
 pub const TRIGGER_ORCHESTRATOR_KERNEL_SURFACE: &str = "workflow-engine.trigger-orchestrator.kernel";
 pub const TRIGGER_ORCHESTRATOR_KERNEL_CONTRACT_REF: &str =
-    "microservices/workflow-engine/PRD.md#d5-trigger-surface";
+    "workflow/workflow-engine/PRD.md#d5-trigger-surface";
 pub const TRIGGER_ORCHESTRATOR_CLOUDEVENTS_SPECVERSION: &str = "1.0";
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
