@@ -73,11 +73,38 @@ pub fn is_cloud_prefixed_name(segment: &str) -> bool {
     let Some(rest) = strip_either(stem, "cloud").filter(|rest| !rest.is_empty()) else {
         return false;
     };
-    !LEGITIMATE_CLOUD_COMPOUNDS.iter().any(|word| {
-        rest == *word
-            || rest.starts_with(&format!("{word}-"))
-            || rest.starts_with(&format!("{word}_"))
-    })
+    // EXACT match only. Matching a prefix exempted every name that merely STARTED with an
+    // allowlisted word, so `cloud-native-credentials` and a package named `cloud-provider-secrets`
+    // walked past a blocking gate — an open-ended escape hatch, since any new name could claim
+    // exemption by adopting an allowlisted first word. `specs/naming-taxonomy.json` forbids every
+    // leading `cloud-`/`cloud_` durable prefix and authorizes no suffix-wide exception, so the
+    // carve-out covers only the bare technical terms themselves.
+    !LEGITIMATE_CLOUD_COMPOUNDS.contains(&rest)
+}
+
+/// A PROSE artifact whose title is ordinary technical English — `cloud-native-<topic>.md`.
+///
+/// The compound allowlist used to match prefix-wide for every name, which exempted durable names
+/// too: `secrets/cloud-native-credentials/` and a package named `cloud-provider-secrets` walked
+/// past the gate, and any new name could claim exemption by adopting an allowlisted first word.
+/// `specs/naming-taxonomy.json` governs DURABLE names — directories, package and chart names — and
+/// authorizes no suffix-wide exception, so the compound rule is now exact there.
+///
+/// A markdown document title is not a durable name: nothing binds to it, renaming it costs one
+/// commit, and `cloud-native-infrastructure-automation.md` is a description of a subject rather
+/// than a claim on the brand namespace. Scoped to that context rather than left open-ended.
+fn is_prose_compound(segment: &str) -> bool {
+    let lower = segment.to_ascii_lowercase();
+    if !lower.ends_with(".md") {
+        return false;
+    }
+    let stem = strip_either(&lower, "oya").unwrap_or(&lower);
+    let Some(rest) = strip_either(stem, "cloud") else {
+        return false;
+    };
+    LEGITIMATE_CLOUD_COMPOUNDS
+        .iter()
+        .any(|word| rest.starts_with(&format!("{word}-")) || rest.starts_with(&format!("{word}_")))
 }
 
 /// Strip `<word>-` or `<word>_`, so one separator cannot dodge the other.
@@ -133,7 +160,7 @@ pub fn findings(path: &str, contents: &str) -> BTreeSet<String> {
             prefix.push('/');
         }
         prefix.push_str(segment);
-        if is_deprecated_prefixed_name(segment) {
+        if is_deprecated_prefixed_name(segment) && !is_prose_compound(segment) {
             found.insert(format!("dir:{prefix}"));
             break;
         }
@@ -263,14 +290,27 @@ mod tests {
 
     #[test]
     fn adjectival_compounds_are_english_not_a_namespace() {
-        assert!(!is_cloud_prefixed_name(
-            "cloud-native-infrastructure-automation.md"
-        ));
-        assert!(!is_cloud_prefixed_name(
-            "cloud-provider-full-ecosystem-north-star.md"
-        ));
+        // Bare technical terms stay exempt everywhere.
+        assert!(!is_cloud_prefixed_name("cloud-native"));
+        assert!(!is_cloud_prefixed_name("cloud-provider"));
+        // Prose titles keep the compound carve-out — nothing binds to a document filename.
+        assert!(findings("docs/cloud-native-infrastructure-automation.md", "").is_empty());
+        assert!(findings("docs/cloud-provider-full-ecosystem-north-star.md", "").is_empty());
         // `oyatie-cloud-provider` is a real capability context.
         assert!(findings("iac/iac/oyatie-cloud-provider/x.yaml", "").is_empty());
+    }
+
+    /// The carve-out is scoped to prose, not to any name that opens with an allowlisted word.
+    #[test]
+    fn compound_exemption_does_not_extend_to_durable_names() {
+        assert!(is_cloud_prefixed_name("cloud-native-credentials"));
+        assert!(is_cloud_prefixed_name("cloud-provider-secrets"));
+        assert!(is_cloud_prefixed_name("cloud_native_credentials"));
+        assert_eq!(
+            findings("secrets/cloud-native-credentials/x.yaml", ""),
+            BTreeSet::from(["dir:secrets/cloud-native-credentials".to_string()])
+        );
+        assert!(!findings("x/Cargo.toml", "name = \"cloud-provider-secrets\"\n").is_empty());
     }
 
     #[test]

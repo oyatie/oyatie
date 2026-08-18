@@ -46,12 +46,21 @@ fn census(root: &Path) -> BTreeSet<String> {
             let Ok(relative) = path.strip_prefix(root) else {
                 continue;
             };
-            let contents = if matches!(name.as_str(), "Cargo.toml" | "Chart.yaml") {
+            // Catalog YAML must be READ, not merely walked. Passing an empty string for it left
+            // the `declared_capability` branch dead in the live gate — the scanner existed but was
+            // never handed anything to scan, so a catalog row declaring `capability:
+            // cloud-new-service` was invisible. That is exactly how this gate's own capability came
+            // to be minted as `cloud-ci-*` while the gate stayed green.
+            let relative_str = relative.to_string_lossy();
+            let contents = if matches!(name.as_str(), "Cargo.toml" | "Chart.yaml")
+                || (relative_str.starts_with("registry/catalog/")
+                    && (name.ends_with(".yaml") || name.ends_with(".yml")))
+            {
                 std::fs::read_to_string(&path).unwrap_or_default()
             } else {
                 String::new()
             };
-            out.extend(findings(&relative.to_string_lossy(), &contents));
+            out.extend(findings(&relative_str, &contents));
         }
     }
     out
