@@ -18,7 +18,7 @@ path = "src/lib.rs"
 doctest = false
 
 [[bin]]
-name = "oya-cloud-ci-rust-toolchain-bump-proposer"
+name = "ci-rust-toolchain-bump-proposer"
 path = "src/main.rs"
 
 [dependencies]

@@ -327,7 +327,7 @@ fn parse_args(args: Vec<String>) -> ParseOutcome {
 
 fn usage() -> String {
     format!(
-        "usage:\n  oya-cloud-ci-rust-toolchain-bump-proposer [--repo-root <path>] [--latest-stable <v>] [--dry-run|--apply|--check] [--json]\n\n\
+        "usage:\n  ci-rust-toolchain-bump-proposer [--repo-root <path>] [--latest-stable <v>] [--dry-run|--apply|--check] [--json]\n\n\
          --latest-stable <v>   latest stable Rust release (or set {LATEST_STABLE_ENV}); the caller owns the network fetch\n\
          --dry-run             print the bump plan without touching disk (default)\n\
          --apply               reconcile the tree to <v> (plan + apply + verify); with --json, emit the machine-readable report\n\
