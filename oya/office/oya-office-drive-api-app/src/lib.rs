@@ -43,7 +43,9 @@ impl DriveApiScaleSignal {
     #[must_use]
     pub const fn metric_name(self) -> &'static str {
         match self {
-            Self::ObjectMetadataRequestsPerSecond => "oya_office_drive_metadata_requests_per_second",
+            Self::ObjectMetadataRequestsPerSecond => {
+                "oya_office_drive_metadata_requests_per_second"
+            }
             Self::AclAuthorizationP99Milliseconds => {
                 "oya_office_drive_acl_authorization_p99_milliseconds"
             }
@@ -205,9 +207,10 @@ mod tests {
     fn drive_api_scaling_signals_match_hyperscaler_contract() {
         let signals = super::drive_api_scale_signals();
         assert!(
-            signals.iter().any(
-                |signal| signal.metric_name() == "oya_office_drive_metadata_requests_per_second"
-            )
+            signals
+                .iter()
+                .any(|signal| signal.metric_name()
+                    == "oya_office_drive_metadata_requests_per_second")
         );
         assert!(signals.iter().any(|signal| {
             signal.metric_name() == "oya_office_drive_acl_authorization_p99_milliseconds"

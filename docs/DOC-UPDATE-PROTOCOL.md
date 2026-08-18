@@ -46,11 +46,11 @@ doc_status: published
 
 ## Stage 4: Review
 
-18. Open PR with `## Issue / Summary / Verification / Traceability / Evidence` (5 H2 per CLAUDE.md).
-19. Reviewer-of-record from `owner_team` reviews and approves.
-20. For Tier 1 docs (PRD/DESIGN/SPEC/ROADMAP/ADR-INDEX/RISK-REGISTER/COMPLIANCE/SECURITY/PRIVACY/GTM/CONTRADICTION-LEDGER): a second council reviewer signs off.
-21. Per blast-radius class (see [DESIGN §3.0.5.3](DESIGN.md)), required reviewers per class are auto-pinged.
-22. Merge using `gh pr merge` per `guard-pr-merge-review.mjs` rules.
+18. Open PR with `## Issue / Summary / Verification / Code Review` (four H2s per CLAUDE.md).
+19. One author-distinct reviewer agent reviews and approves the exact PR head.
+20. For Tier 1 docs, the reviewer applies the council-architecture lens; no human approval or reviewer quorum is required.
+21. Per blast-radius class (see [DESIGN §3.0.5.3](DESIGN.md)), affected owners are notified for non-binding input.
+22. Merge through the protected PR only after review threads resolve, `oya-ci-required` is green, no conflict exists, and branch protection is satisfied.
 
 ## Stage 5: Publish
 
@@ -65,8 +65,18 @@ doc_status: published
 2. Editing a Tier 1 doc without reading dependents — drifts every dependent doc.
 3. Letting an agent author a Tier 1 doc end-to-end — agents propose; humans approve.
 4. Renaming a glossary term without the cascade — silent drift.
-5. Multi-doc batch PR — one doc per PR; bundling > 2 docs is anti-pattern unless coordinated rename.
+5. Multi-doc batch PR — one doc per PR for **bulk editorial rewrites**; bundling > 2 non-load-bearing docs is anti-pattern unless coordinated rename. **Exception (binding):** load-bearing doc updates MUST co-change with the code/policy wave that makes them true (see § Amendment: same-wave load-bearing co-change).
 6. Bypassing the validator with `--no-verify` — never.
 
+## Amendment: same-wave load-bearing co-change (`doc-update-protocol-overrule`)
+
+Load-bearing doc updates MUST co-change with the code/policy wave that makes them true. Same-wave colocation **supersedes** one-doc-per-PR for load-bearing changes; one-doc-per-PR remains for bulk editorial rewrites.
+
+- **achieves:** prose stays true with landed law; no lag drift.
+- **origin:** one-doc-per-PR caused prose to lag landed law → drift.
+- **rule:** load-bearing doc updates land in the same wave as the code/policy that makes them true; anti-pattern #5's one-doc-per-PR applies only to bulk editorial rewrites / non-load-bearing cascades.
+- **ensure:** Done-Definition D2 + Claim `docs_touched`/`docs_action` packet; reviewer refuses load-bearing law without co-located docs.
+- **overturn_when:** a recorded challenge shows same-wave colocation increases contradiction rate AND a replacement freshness gate is live.
+
 ## Sources
-[DOC-CATALOG.md](DOC-CATALOG.md), CLAUDE.md, ADR-0050, ADR-0001, ADR-0040, ADR-0040, ADR-0017.
+[DOC-CATALOG.md](DOC-CATALOG.md), CLAUDE.md, ADR-0050, ADR-0001, ADR-0040, ADR-0017, ADR-0711 Amendment D, `docs/AGENTS.md` § Doctrine survival (binding).

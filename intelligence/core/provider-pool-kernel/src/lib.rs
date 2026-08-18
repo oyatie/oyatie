@@ -256,9 +256,7 @@ impl CooldownPolicy {
     pub fn in_cooldown(&self, account_id: &ProviderAccountId, quarantines: &QuarantineMap) -> bool {
         match quarantines.get(account_id) {
             None => false,
-            Some(quarantined_at) => {
-                self.now.0.saturating_sub(quarantined_at.0) < self.window_ms.0
-            }
+            Some(quarantined_at) => self.now.0.saturating_sub(quarantined_at.0) < self.window_ms.0,
         }
     }
 
@@ -516,9 +514,7 @@ pub fn pick_account_with_cooldown(
     // Override reason: if previous account was filtered out (quarantine/unhealthy),
     // emit FailoverFrom(prev) so callers can observe the anti-correlation handoff.
     let reason = if prev_was_excluded {
-        PoolRoutingReason::FailoverFrom(
-            request.previous_account.clone().expect("checked above"),
-        )
+        PoolRoutingReason::FailoverFrom(request.previous_account.clone().expect("checked above"))
     } else {
         reason
     };
@@ -1167,7 +1163,10 @@ mod tests {
     }
 
     fn quarantine_many(entries: &[(&str, u64)]) -> QuarantineMap {
-        entries.iter().map(|(a, t)| (pid(a), UnixMillis(*t))).collect()
+        entries
+            .iter()
+            .map(|(a, t)| (pid(a), UnixMillis(*t)))
+            .collect()
     }
 
     /// ST2: account quarantined 10 ms ago with a 60 s window is excluded.
@@ -1187,7 +1186,11 @@ mod tests {
             cooldown(window, now),
         )
         .unwrap();
-        assert_eq!(d.account_id, pid("b"), "in-cooldown account must be excluded");
+        assert_eq!(
+            d.account_id,
+            pid("b"),
+            "in-cooldown account must be excluded"
+        );
         assert!(d.fallback_chain.is_empty());
     }
 
@@ -1208,7 +1211,11 @@ mod tests {
             cooldown(window, now),
         )
         .unwrap();
-        assert_eq!(d.account_id, pid("a"), "elapsed-cooldown account must be re-admitted");
+        assert_eq!(
+            d.account_id,
+            pid("a"),
+            "elapsed-cooldown account must be re-admitted"
+        );
     }
 
     /// ST2: all members in cooldown → NoHealthyMembers.
@@ -1522,7 +1529,11 @@ mod tests {
             cooldown(window, now),
         )
         .unwrap();
-        assert_eq!(d.account_id, pid("b"), "must route away from cooldown account");
+        assert_eq!(
+            d.account_id,
+            pid("b"),
+            "must route away from cooldown account"
+        );
         assert_eq!(
             d.reason,
             PoolRoutingReason::FailoverFrom(pid("a")),
@@ -1717,7 +1728,11 @@ mod tests {
         let mut quarantines = QuarantineMap::new();
         quarantines.insert(pid("a"), UnixMillis(1_000));
         populate_quarantine_from_changes(&[], UnixMillis(99_000), &mut quarantines);
-        assert_eq!(quarantines.len(), 1, "map must be unchanged for empty input");
+        assert_eq!(
+            quarantines.len(),
+            1,
+            "map must be unchanged for empty input"
+        );
     }
 
     /// Integration: populate then pick_account_with_cooldown excludes

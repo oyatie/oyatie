@@ -8,8 +8,8 @@
 //! in-memory [`SpecValue`] tree so tests can exercise column rendering without
 //! pulling in a JSON crate (the workspace forbids external dependencies).
 
-use std::collections::BTreeMap;
 use os_kernel::error::{Error, Result};
+use std::collections::BTreeMap;
 
 /// A single output column for `talosctl get`.
 #[derive(Debug, Clone, PartialEq, Eq)]

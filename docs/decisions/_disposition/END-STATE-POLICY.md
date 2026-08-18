@@ -133,5 +133,25 @@ to every rule. Enforcing the two separately is what makes admitting this case sa
 Proposed apex is findable at step 1 and is not law, and the **gate**, not this prose, holds the
 second half.
 
-**Instances.** ADR-0710 (Kubernetes admission substrate), gated on clause D-8's workload-boundary
-evidence. It is the first and so far only one.
+**Instances.**
+
+- ADR-0710 (Kubernetes admission substrate), gated on clause D-8's workload-boundary evidence.
+- ADR-0712 (node kernel + pool matrix / F1(a) / MPV2-0053), gated on A1 4-surface ABI matrix
+  evidence (Linux-primary / Asterinas-soak interim until Accept). The number between ADR-0710 and
+  ADR-0712 is reserved for PR #1644 Swarm Delivery Law and is not an F1 instance here.
+- ADR-0713 (Node Substrate Architecture / MPV2-0054), severable gated apex: Accept (a) owned
+  runtime waits on state-machine/recovery DoD + kill-9/upgrade reconvergence tests (founder
+  choice alone is insufficient); Accept (b) `os/`-retirement encode waits on D-3 preconditions
+  including machine-config harvest before `config-v1alpha1` delete, fleet-basis pin replacement,
+  boot-marker contract, and `os/` charter amendment.
+- ADR-0714 (isolation-property tier names / F1(c) / MPV2-0055), gated on enforcement re-home
+  evidence before rename (outcome-determining: re-home lands or rename encode stays forbidden).
+- ADR-0715 (F1 Admission package / F1(d) / MPV2-0056), gated on the D-8 evidence packet **or**
+  explicit Reject of ADR-0710 under the dated timebox when hosted topology self-fails D-8 —
+  not a second ungated parking slot for the same topic, and not a fold into ADR-0710's body;
+  it is the F1 Admission package work item that closes either way.
+
+**Amendment 2026-08-10 (PR #1929 Round-4) — non-gated Proposed-apex list entries removed.**
+Former F1 list rows that waited only on unscoped founder choice, or that duplicated ADR-0710's
+D-8 gate without an outcome-determining close path, are removed or re-gated as above. Merging
+owned-runtime + `os/`-retirement into ADR-0713 eliminates the contradictory dual-Accept hazard.

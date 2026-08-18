@@ -92,7 +92,7 @@
 //! `unclassified_roots` grew 3 -> 27 entries, one per capability move — 24 of the 27 being registered
 //! CAPABILITIES, i.e. exactly the tier-bearing units ADR-0562 defines, not meta trees.
 //!
-//! The closed capability registry (`specs/capability-registry.json`, `closed: true`) already carries
+//! The closed capability registry (`governance/capability-registry.json`, `closed: true`) already carries
 //! both halves of the fix, so neither is a new hand-maintained list:
 //! - `capabilities[].name` — the units that MUST be tier-classified (`capability_roots`);
 //! - `meta_directories[].dir` — the CLOSED allowlist of trees that may legitimately carry no tier.
@@ -115,7 +115,7 @@
 //! "it was declared" becomes the next silent exemption.
 //!
 //! **A capability DECLARES its tier; nothing derives it.** ADR-0562 makes the capability the
-//! tier-bearing unit, and `specs/capability-registry.json` already defines the capabilities and is
+//! tier-bearing unit, and `governance/capability-registry.json` already defines the capabilities and is
 //! already the authority R6b trusts for `meta_directories`, so the `tier` +
 //! `substrate_dag_position.stratum` facets live there beside the definition. The tier was previously
 //! PROJECTED from the services in `absorbs_current_dirs` — a derivation standing in for a missing
@@ -1215,7 +1215,7 @@ pub fn evaluate(policy: &Value, baseline: &Value, observed: &Value) -> Report {
             }
             let detail = if registry_capabilities.contains(root.as_str()) {
                 format!(
-                    "`{root}` is a REGISTERED CAPABILITY (specs/capability-registry.json) declared in `unclassified_roots`, so every dependency edge touching its crates is SKIPPED — the tier rules do not run on it at all. A capability is a tier-bearing unit (ADR-0562), not a meta tree: move `{root}` to `capability_roots`. Declaring it exempt is what turns the TDA-UNDECLARED-ROOT remedy into a permanent silent exemption"
+                    "`{root}` is a REGISTERED CAPABILITY (governance/capability-registry.json) declared in `unclassified_roots`, so every dependency edge touching its crates is SKIPPED — the tier rules do not run on it at all. A capability is a tier-bearing unit (ADR-0562), not a meta tree: move `{root}` to `capability_roots`. Declaring it exempt is what turns the TDA-UNDECLARED-ROOT remedy into a permanent silent exemption"
                 )
             } else {
                 format!(

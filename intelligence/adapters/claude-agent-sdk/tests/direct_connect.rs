@@ -36,11 +36,11 @@ fn rejects_unix_socket_direct_connect_urls_like_typescript() {
 #[allow(clippy::result_large_err)]
 #[tokio::test]
 async fn direct_connect_query_uses_current_http_and_websocket_protocol() {
+    use futures::{SinkExt, StreamExt};
     use intelligence_claude_agent_sdk::{
         ClaudeAgentOptions, DirectConnectTransportOptions, Message, PermissionMode,
         query_direct_connect,
     };
-    use futures::{SinkExt, StreamExt};
     use serde_json::{Value, json};
     use tokio::{io::AsyncWriteExt, net::TcpListener};
     use tokio_tungstenite::{accept_hdr_async, tungstenite::Message as WsMessage};
@@ -177,10 +177,10 @@ async fn direct_connect_query_uses_current_http_and_websocket_protocol() {
 #[allow(clippy::result_large_err)]
 #[tokio::test]
 async fn websocket_query_sends_browser_auth_and_headers() {
+    use futures::{SinkExt, StreamExt};
     use intelligence_claude_agent_sdk::{
         AuthMessage, ClaudeAgentOptions, Message, WebSocketOptions, query_websocket,
     };
-    use futures::{SinkExt, StreamExt};
     use serde_json::{Value, json};
     use tokio::net::TcpListener;
     use tokio_tungstenite::{accept_hdr_async, tungstenite::Message as WsMessage};

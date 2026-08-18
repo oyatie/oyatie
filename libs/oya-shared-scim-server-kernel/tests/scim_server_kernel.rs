@@ -77,7 +77,10 @@ async fn create_user_requires_username() {
     let s = srv();
     let mut nu = new_user("");
     nu.user_name = String::new();
-    let err = s.create_user(&tenant(), nu, 1_700_000_000).await.unwrap_err();
+    let err = s
+        .create_user(&tenant(), nu, 1_700_000_000)
+        .await
+        .unwrap_err();
     assert_eq!(err.status, 400);
     assert_eq!(err.scim_type, Some(ScimType::InvalidValue));
 }
@@ -440,8 +443,14 @@ async fn tenant_isolation_users_dont_leak_across_tenants() {
     s.create_user(&t2, new_user("alice"), 1_700_000_000)
         .await
         .expect("c"); // same userName different tenant OK
-    let r1 = s.list_users(&t1, &ListQuery::default()).await.expect("list");
-    let r2 = s.list_users(&t2, &ListQuery::default()).await.expect("list");
+    let r1 = s
+        .list_users(&t1, &ListQuery::default())
+        .await
+        .expect("list");
+    let r2 = s
+        .list_users(&t2, &ListQuery::default())
+        .await
+        .expect("list");
     assert_eq!(r1.total_results, 1);
     assert_eq!(r2.total_results, 1);
     assert_ne!(r1.resources[0].id, r2.resources[0].id);

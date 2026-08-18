@@ -168,8 +168,7 @@ impl RoutePolicy {
 
             // Budget check.
             if cand.cost_micros > constraints.budget_micros_ceiling {
-                if last_err == RouteError::NoActiveAccount
-                    || last_err == RouteError::BudgetExceeded
+                if last_err == RouteError::NoActiveAccount || last_err == RouteError::BudgetExceeded
                 {
                     last_err = RouteError::BudgetExceeded;
                 }
@@ -180,7 +179,9 @@ impl RoutePolicy {
             if cand.residency_region != constraints.required_residency_region {
                 if matches!(
                     last_err,
-                    RouteError::NoActiveAccount | RouteError::BudgetExceeded | RouteError::ResidencyUnmet
+                    RouteError::NoActiveAccount
+                        | RouteError::BudgetExceeded
+                        | RouteError::ResidencyUnmet
                 ) {
                     last_err = RouteError::ResidencyUnmet;
                 }
@@ -201,7 +202,9 @@ impl RoutePolicy {
                 continue;
             }
 
-            let headroom = constraints.budget_micros_ceiling.saturating_sub(cand.cost_micros);
+            let headroom = constraints
+                .budget_micros_ceiling
+                .saturating_sub(cand.cost_micros);
             let rank = rank_of(&acc.provider_family).unwrap_or(usize::MAX);
             eligible.push(RouteScore {
                 account_id: acc.id.clone(),
@@ -311,7 +314,10 @@ impl RoutePolicy {
             }
 
             if cand.cost_micros > constraints.budget_micros_ceiling {
-                if matches!(last_err, RouteError::NoActiveAccount | RouteError::BudgetExceeded) {
+                if matches!(
+                    last_err,
+                    RouteError::NoActiveAccount | RouteError::BudgetExceeded
+                ) {
                     last_err = RouteError::BudgetExceeded;
                 }
                 continue;
@@ -320,7 +326,9 @@ impl RoutePolicy {
             if cand.residency_region != constraints.required_residency_region {
                 if matches!(
                     last_err,
-                    RouteError::NoActiveAccount | RouteError::BudgetExceeded | RouteError::ResidencyUnmet
+                    RouteError::NoActiveAccount
+                        | RouteError::BudgetExceeded
+                        | RouteError::ResidencyUnmet
                 ) {
                     last_err = RouteError::ResidencyUnmet;
                 }
@@ -340,7 +348,9 @@ impl RoutePolicy {
                 continue;
             }
 
-            let headroom = constraints.budget_micros_ceiling.saturating_sub(cand.cost_micros);
+            let headroom = constraints
+                .budget_micros_ceiling
+                .saturating_sub(cand.cost_micros);
             let rank = rank_of(&acc.provider_family).unwrap_or(usize::MAX);
             eligible.push(RouteScore {
                 account_id: acc.id.clone(),
@@ -732,10 +742,7 @@ mod tests_rank_candidates {
     fn rank_full_tie_lexicographic_id_first() {
         let acc_z = active("z-account", ProviderFamily::Claude);
         let acc_a = active("a-account", ProviderFamily::Claude);
-        let cands = vec![
-            candidate(&acc_z, 200, true),
-            candidate(&acc_a, 200, true),
-        ];
+        let cands = vec![candidate(&acc_z, 200, true), candidate(&acc_a, 200, true)];
         let c = constraints();
         let slate = RoutePolicy::rank_candidates(&cands, &c).unwrap();
         assert_eq!(slate[0].account_id, aid("a-account"));
@@ -748,16 +755,12 @@ mod tests_rank_candidates {
     fn rank_slate_zero_equals_select_weighted_winner() {
         let a1 = active("b1", ProviderFamily::Claude);
         let a2 = active("b2", ProviderFamily::OpenAiOrCodex);
-        let cands = vec![
-            candidate(&a1, 150, false),
-            candidate(&a2, 100, true),
-        ];
+        let cands = vec![candidate(&a1, 150, false), candidate(&a2, 100, true)];
         let c = constraints();
         let slate = RoutePolicy::rank_candidates(&cands, &c).unwrap();
         let explanation = RoutePolicy::select_weighted(&cands, &c).unwrap();
         assert_eq!(
-            slate[0].account_id,
-            explanation.chosen_account_id,
+            slate[0].account_id, explanation.chosen_account_id,
             "slate[0] must match select_weighted winner"
         );
     }

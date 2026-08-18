@@ -13,16 +13,16 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
+use cell_region::{AzCode, CellId, RegionCode};
+pub use compute_resource::{BucketTier, FilesystemTier, VolumeTier};
+use compute_resource::{CloudResourceError, PrincipalId, ResourceId, ResourceKind};
+pub use network_residency::ResidencyClass;
+use network_residency::residency_class_allows_home_region_label;
+use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 use secrets_kms_domain::{
     CiphertextRef, DestructionProofRef, KmsKeyId, KmsKeyOrigin, KmsPurpose, KmsUseEventId,
     MaterialRef,
 };
-use cell_region::{AzCode, CellId, RegionCode};
-pub use compute_resource::{BucketTier, FilesystemTier, VolumeTier};
-use compute_resource::{CloudResourceError, PrincipalId, ResourceId, ResourceKind};
-use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
-pub use network_residency::ResidencyClass;
-use network_residency::residency_class_allows_home_region_label;
 
 const STORAGE_SCHEMA_VERSION: u32 = 1;
 const TENANT_ID_PREFIX: &str = "ten_";

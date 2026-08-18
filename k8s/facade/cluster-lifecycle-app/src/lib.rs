@@ -5,8 +5,8 @@ use std::fmt;
 
 use axum::Router;
 use axum::extract::{FromRequestParts, State};
-use axum::http::request::Parts;
 use axum::http::StatusCode;
+use axum::http::request::Parts;
 use axum::response::IntoResponse;
 use axum::routing::{get, post};
 use k8s_cluster_lifecycle_api::{

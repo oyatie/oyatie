@@ -19,9 +19,7 @@ use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use ci_operator_secret_rbac::{
-    GATE_ID, Verdict, collect_operators, evaluate, evaluate_keyed,
-};
+use ci_operator_secret_rbac::{GATE_ID, Verdict, collect_operators, evaluate, evaluate_keyed};
 use serde_json::{Value, json};
 
 /// Walk up from the test's working directory to the repo root (the dir holding the canonical

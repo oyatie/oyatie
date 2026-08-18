@@ -252,10 +252,11 @@ impl<L: ServiceLauncher> ExtensionService<L> {
     pub fn reconcile_health(&mut self) -> bool {
         if self.state == RunState::Running
             && let Some(h) = self.handle
-                && !self.launcher.is_alive(h) {
-                    self.state = RunState::Failed;
-                    return self.spec.restart.should_restart(1);
-                }
+            && !self.launcher.is_alive(h)
+        {
+            self.state = RunState::Failed;
+            return self.spec.restart.should_restart(1);
+        }
         false
     }
 }

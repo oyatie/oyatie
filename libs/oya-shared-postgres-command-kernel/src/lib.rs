@@ -950,8 +950,16 @@ GRANT USAGE ON SCHEMA tenancy_lifecycle TO tenancy_lifecycle_runtime;
         assert!(do_block.contains("END IF"));
         assert!(do_block.contains("NOBYPASSRLS"));
         // The schema-create and grant are separate statements.
-        assert!(stmts.iter().any(|s| s.contains("CREATE SCHEMA IF NOT EXISTS tenancy_lifecycle")));
-        assert!(stmts.iter().any(|s| s.contains("GRANT USAGE ON SCHEMA tenancy_lifecycle")));
+        assert!(
+            stmts
+                .iter()
+                .any(|s| s.contains("CREATE SCHEMA IF NOT EXISTS tenancy_lifecycle"))
+        );
+        assert!(
+            stmts
+                .iter()
+                .any(|s| s.contains("GRANT USAGE ON SCHEMA tenancy_lifecycle"))
+        );
     }
 
     /// A plain single-table migration (no dollar quotes) still splits correctly —
@@ -961,7 +969,12 @@ GRANT USAGE ON SCHEMA tenancy_lifecycle TO tenancy_lifecycle_runtime;
         let migration = "CREATE TABLE t (id text PRIMARY KEY);\n\
              COMMENT ON TABLE t IS 'tenant; scoped table';";
         let stmts = split_migration_statements(migration);
-        assert_eq!(stmts.len(), 2, "expected 2 statements, got {}: {stmts:?}", stmts.len());
+        assert_eq!(
+            stmts.len(),
+            2,
+            "expected 2 statements, got {}: {stmts:?}",
+            stmts.len()
+        );
         assert!(stmts[0].contains("CREATE TABLE"));
         assert!(stmts[1].contains("COMMENT ON TABLE"));
         // The semicolon inside the single-quoted string must NOT shatter the COMMENT.

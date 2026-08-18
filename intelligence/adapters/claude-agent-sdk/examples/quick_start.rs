@@ -1,5 +1,5 @@
-use intelligence_claude_agent_sdk::{ClaudeAgentOptions, Message, query};
 use futures::StreamExt;
+use intelligence_claude_agent_sdk::{ClaudeAgentOptions, Message, query};
 
 #[tokio::main]
 async fn main() -> intelligence_claude_agent_sdk::Result<()> {

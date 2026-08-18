@@ -236,8 +236,7 @@ pub fn machine_config_volume_manager(contents: &str) -> os_kernel::Result<Volume
         user_volumes.push(project_raw_volume_config(&doc)?);
     }
 
-    VolumeManager::from_declarations(system_overrides, user_volumes)
-        .map_err(os_kernel::Error::from)
+    VolumeManager::from_declarations(system_overrides, user_volumes).map_err(os_kernel::Error::from)
 }
 
 /// Return `machine.features.imageCache.localEnabled`.
@@ -1458,7 +1457,10 @@ provisioning:
 
         assert_eq!(raw.class, os_block_domain::VolumeClass::User);
         assert_eq!(raw.priority, 100);
-        assert_eq!(raw.config.volume_type, os_block_domain::VolumeType::Partition);
+        assert_eq!(
+            raw.config.volume_type,
+            os_block_domain::VolumeType::Partition
+        );
         assert_eq!(raw.config.match_label.as_deref(), Some("r-local-data"));
         assert_eq!(
             raw.config.disk_selector.as_deref(),

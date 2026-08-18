@@ -339,8 +339,10 @@ async fn retired_id_is_never_reused_end_to_end() {
 
 #[tokio::test]
 async fn injected_store_failure_surfaces_and_retry_recovers() {
-    let mut store = MemoryStore::default();
-    store.fail_next_put = true;
+    let store = MemoryStore {
+        fail_next_put: true,
+        ..MemoryStore::default()
+    };
     let mut provider = TenantLifecycleProvider::new(store);
 
     // First pass: create hits the injected put failure and surfaces it

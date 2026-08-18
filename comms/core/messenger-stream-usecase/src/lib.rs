@@ -2,11 +2,11 @@
 
 pub mod delivery_receipt;
 pub mod mention_fanout;
-pub use mention_fanout::{MentionFanout, MentionFanoutInput, derive_mention_fanout};
 pub use delivery_receipt::{
     ChannelDeliveryAggregate, DeliveryStatus, RecipientDeliveryState, acknowledge_delivery,
     aggregate_channel_delivery,
 };
+pub use mention_fanout::{MentionFanout, MentionFanoutInput, derive_mention_fanout};
 
 use comms_messenger_domain::{
     MessageAuditAction, MessageAuditRecord, MessageEnvelope, MessageGovernance,

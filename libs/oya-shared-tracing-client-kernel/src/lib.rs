@@ -201,7 +201,9 @@ pub fn parse_traceparent(value: &str) -> Result<ParsedTraceparent, TracingClient
 /// Returns `true` when `s` consists entirely of lowercase hexadecimal
 /// digits (`0-9`, `a-f`).
 fn is_lowercase_hex(s: &str) -> bool {
-    !s.is_empty() && s.bytes().all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
+    !s.is_empty()
+        && s.bytes()
+            .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
 }
 
 /// The trait every µservice integrates to inject/extract W3C trace
@@ -490,9 +492,7 @@ mod tests {
     // Traceparent::validate delegates to parse_traceparent
     #[test]
     fn traceparent_validate_delegates_to_parse() {
-        let tp = Traceparent(
-            "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01".to_string(),
-        );
+        let tp = Traceparent("00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01".to_string());
         let parsed = tp.validate().expect("must validate");
         assert_eq!(parsed.trace_id, "4bf92f3577b34da6a3ce929d0e0e4736");
         assert!(parsed.sampled);

@@ -71,7 +71,10 @@ fn sub1a_recoverable_capability_mismatch_falls_through_to_next_candidate() {
     let allowed = full_profile(ModelProvider::Anthropic, "claude-chat", 2);
 
     let mut usecase = IntelligenceModelRoutingUsecase::default();
-    let receipt = usecase.route(base_input("idem:sub1a:cap-fallthrough", vec![denied, allowed]));
+    let receipt = usecase.route(base_input(
+        "idem:sub1a:cap-fallthrough",
+        vec![denied, allowed],
+    ));
 
     assert_eq!(receipt.status, ModelRoutingUsecaseStatus::Routed);
     assert_eq!(
@@ -98,8 +101,7 @@ fn sub1a_two_recoverable_denials_then_third_candidate_selected() {
     let p3 = full_profile(ModelProvider::Anthropic, "claude-eligible", 3);
 
     let mut usecase = IntelligenceModelRoutingUsecase::default();
-    let receipt =
-        usecase.route(base_input("idem:sub1a:two-skip-then-hit", vec![p1, p2, p3]));
+    let receipt = usecase.route(base_input("idem:sub1a:two-skip-then-hit", vec![p1, p2, p3]));
 
     assert_eq!(receipt.status, ModelRoutingUsecaseStatus::Routed);
     assert_eq!(
@@ -166,10 +168,17 @@ fn sub1b_terminal_denial_sets_route_denial_and_clears_route_selection() {
         receipt.route_selection.is_none(),
         "Routed selection must be None on a terminal denial"
     );
-    let denial = receipt.route_denial.as_ref().expect("route_denial must be Some on terminal path");
+    let denial = receipt
+        .route_denial
+        .as_ref()
+        .expect("route_denial must be Some on terminal path");
     assert!(
-        denial.reasons.contains(&RouteDenialReason::AudienceNotAllowed)
-            || denial.reasons.contains(&RouteDenialReason::DataClassNotAllowed),
+        denial
+            .reasons
+            .contains(&RouteDenialReason::AudienceNotAllowed)
+            || denial
+                .reasons
+                .contains(&RouteDenialReason::DataClassNotAllowed),
         "terminal route_denial must carry audience or data-class denial reason"
     );
 }
@@ -304,13 +313,16 @@ fn sub2_candidate_denials_are_metadata_only_no_secrets_or_provider_payloads() {
     assert!(!debug.contains("bearer"), "no bearer tokens");
     assert!(!debug.contains("raw prompt"), "no raw prompt material");
     assert!(!debug.contains("raw output"), "no raw output material");
-    assert!(!debug.contains("model answer"), "no raw model answer material");
+    assert!(
+        !debug.contains("model answer"),
+        "no raw model answer material"
+    );
 
     // CandidateDenial must carry only refs, reasons, provider, model_id, priority
     let denial = &receipt.candidate_denials[0];
     assert_eq!(denial.provider, ModelProvider::OpenAi);
     assert!(!denial.model_id.is_empty());
-    assert!(denial.priority > 0 || denial.priority == 0); // just confirms field exists
+    assert_eq!(denial.priority, 1);
 }
 
 /// An empty catalog (no profiles) produces Denied with empty candidate_denials
@@ -325,9 +337,14 @@ fn sub2_empty_catalog_produces_denied_with_empty_candidate_denials() {
         receipt.candidate_denials.is_empty(),
         "empty catalog walk must produce zero candidate denial entries"
     );
-    let denial = receipt.route_denial.as_ref().expect("route_denial must be present");
+    let denial = receipt
+        .route_denial
+        .as_ref()
+        .expect("route_denial must be present");
     assert!(
-        denial.reasons.contains(&RouteDenialReason::NoEnabledProvider),
+        denial
+            .reasons
+            .contains(&RouteDenialReason::NoEnabledProvider),
         "empty catalog must surface NoEnabledProvider"
     );
 }
@@ -345,10 +362,7 @@ fn sub3_fallback_routed_receipt_replays_byte_identical_including_denial_trail() 
     p_denied.capabilities = BTreeSet::from([ModelCapability::Embedding]);
     let p_allowed = full_profile(ModelProvider::Anthropic, "claude-chat", 2);
 
-    let inp = base_input(
-        "idem:sub3:fallback-replay-exact",
-        vec![p_denied, p_allowed],
-    );
+    let inp = base_input("idem:sub3:fallback-replay-exact", vec![p_denied, p_allowed]);
 
     let mut usecase = IntelligenceModelRoutingUsecase::default();
     let first = usecase.route(inp.clone());
@@ -383,7 +397,10 @@ fn sub3_all_denied_receipt_replays_byte_identical_including_full_denial_trail() 
     let replay = usecase.route(inp);
 
     assert_eq!(first.status, ModelRoutingUsecaseStatus::Denied);
-    assert_eq!(first, replay, "replay of denied receipt must be byte-identical");
+    assert_eq!(
+        first, replay,
+        "replay of denied receipt must be byte-identical"
+    );
     assert_eq!(
         first.candidate_denials.len(),
         replay.candidate_denials.len(),

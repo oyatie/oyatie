@@ -27,9 +27,7 @@ use cedar_policy::{
     Authorizer, Context, Decision, Entities, Entity, EntityUid, PolicySet, Request,
     RestrictedExpression,
 };
-use intelligence_kernel::{
-    AuthzAction, AuthzDecision, AuthzGate, AuthzRequest, Provider,
-};
+use intelligence_kernel::{AuthzAction, AuthzDecision, AuthzGate, AuthzRequest, Provider};
 
 /// Default policy text bundled with the µservice. Compiled into the crate so
 /// the adapter is self-contained at runtime — no file I/O on the request path.

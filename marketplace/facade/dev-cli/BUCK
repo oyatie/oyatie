@@ -51,9 +51,9 @@ rust_library(
         "//governance/check/otel-trace-propagation:check-otel-trace-propagation",
         "//governance/check/perf-budget:check-perf-budget",
         "//governance/check/placeholder-debt:check-placeholder-debt",
-        "//governance/check/pr-traceability:check-pr-traceability",
         "//governance/check/pre-push:check-pre-push",
         "//ci/facade/generated-artifact-freshness:ci-generated-artifact-freshness",
+        "//ci/facade/planning-projection:ci-planning-projection",
         "//governance/check/protection-context-match:check-protection-context-match",
         "//governance/check/quality-lane:check-quality-lane",
         "//governance/check/raci-coverage:check-raci-coverage",
@@ -154,7 +154,6 @@ rust_binary(
         "//governance/check/otel-trace-propagation:check-otel-trace-propagation",
         "//governance/check/perf-budget:check-perf-budget",
         "//governance/check/placeholder-debt:check-placeholder-debt",
-        "//governance/check/pr-traceability:check-pr-traceability",
         "//governance/check/pre-push:check-pre-push",
         "//governance/check/protection-context-match:check-protection-context-match",
         "//governance/check/quality-lane:check-quality-lane",
@@ -256,7 +255,6 @@ rust_binary(
         "//governance/check/otel-trace-propagation:check-otel-trace-propagation",
         "//governance/check/perf-budget:check-perf-budget",
         "//governance/check/placeholder-debt:check-placeholder-debt",
-        "//governance/check/pr-traceability:check-pr-traceability",
         "//governance/check/pre-push:check-pre-push",
         "//governance/check/protection-context-match:check-protection-context-match",
         "//governance/check/quality-lane:check-quality-lane",
@@ -358,7 +356,6 @@ rust_binary(
         "//governance/check/otel-trace-propagation:check-otel-trace-propagation",
         "//governance/check/perf-budget:check-perf-budget",
         "//governance/check/placeholder-debt:check-placeholder-debt",
-        "//governance/check/pr-traceability:check-pr-traceability",
         "//governance/check/pre-push:check-pre-push",
         "//governance/check/protection-context-match:check-protection-context-match",
         "//governance/check/quality-lane:check-quality-lane",
@@ -460,7 +457,6 @@ rust_binary(
         "//governance/check/otel-trace-propagation:check-otel-trace-propagation",
         "//governance/check/perf-budget:check-perf-budget",
         "//governance/check/placeholder-debt:check-placeholder-debt",
-        "//governance/check/pr-traceability:check-pr-traceability",
         "//governance/check/pre-push:check-pre-push",
         "//governance/check/protection-context-match:check-protection-context-match",
         "//governance/check/quality-lane:check-quality-lane",
@@ -773,20 +769,6 @@ rust_test(
     srcs = ["tests/plan_cli.rs"],
     crate = "marketplace_dev_cli_plan_cli",
     crate_root = "tests/plan_cli.rs",
-    env = {
-        "CARGO_BIN_EXE_oya": "$(location :oya)",
-    },
-    visibility = ["PUBLIC"],
-    deps = [
-        ":marketplace-dev-cli",
-    ],
-)
-
-rust_test(
-    name = "marketplace-dev-cli-pr-traceability-cli",
-    srcs = ["tests/pr_traceability_cli.rs"],
-    crate = "marketplace_dev_cli_pr_traceability_cli",
-    crate_root = "tests/pr_traceability_cli.rs",
     env = {
         "CARGO_BIN_EXE_oya": "$(location :oya)",
     },

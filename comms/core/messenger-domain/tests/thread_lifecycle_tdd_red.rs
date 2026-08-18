@@ -18,11 +18,11 @@
 //! The `OwnershipPillar` pillar-isolation invariant mirrors
 //! `PresenceState::CrossPillarPresenceDenied` in `governance.rs`.
 
-use oya_data_boundary_kernel::{DataClass, DataClassification};
 use comms_messenger_domain::{
     ChatError, OwnershipPillar, ThreadLifecycle, ThreadLifecycleCreate, ThreadState,
     ThreadSubscription, ThreadSubscriptionCreate, ThreadSubscriptionMode,
 };
+use oya_data_boundary_kernel::{DataClass, DataClassification};
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -75,12 +75,14 @@ fn personal_subscription() -> ThreadSubscription {
 /// Happy-path: a valid `Open` `ThreadLifecycle` is created without error.
 #[test]
 fn new_lifecycle_open_state_returns_ok() {
-    assert!(ThreadLifecycle::new(ThreadLifecycleCreate {
-        thread_id: "t-1".into(),
-        tenant_id: "ten-1".into(),
-        initial_state: ThreadState::Open,
-    })
-    .is_ok());
+    assert!(
+        ThreadLifecycle::new(ThreadLifecycleCreate {
+            thread_id: "t-1".into(),
+            tenant_id: "ten-1".into(),
+            initial_state: ThreadState::Open,
+        })
+        .is_ok()
+    );
 }
 
 /// All four `ThreadState` variants are constructable as initial state.
@@ -409,7 +411,10 @@ fn subscription_participant_ref_is_tagged_pii_identifying() {
 fn subscription_pillar_fields_are_tagged_internal_only() {
     let internal: DataClassification = DataClass::InternalOnly.into();
     let sub = work_subscription();
-    assert_eq!(sub.participant_pillar.data_class, internal, "participant_pillar");
+    assert_eq!(
+        sub.participant_pillar.data_class, internal,
+        "participant_pillar"
+    );
     assert_eq!(sub.thread_pillar.data_class, internal, "thread_pillar");
 }
 
@@ -480,7 +485,11 @@ fn follow_mute_follow_round_trip_is_consistent() {
     let muted = original.with_mode(original.mute());
     assert_eq!(muted.mode.value, ThreadSubscriptionMode::Mute, "after mute");
     let followed = muted.with_mode(muted.follow());
-    assert_eq!(followed.mode.value, ThreadSubscriptionMode::Follow, "after follow");
+    assert_eq!(
+        followed.mode.value,
+        ThreadSubscriptionMode::Follow,
+        "after follow"
+    );
 }
 
 /// Empty `thread_id` on subscription is rejected with `InvalidThreadId`.

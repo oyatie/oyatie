@@ -6,10 +6,10 @@ vertical, search, and analytics products that run on it. AI agents are the prima
 quality is enforced and auto-remediated so that sub-standard output cannot enter the canonical tree.
 
 Canonical, machine-readable specs live under [`docs/`](docs/), [`specs/`](specs/), and
-[`registry/`](registry/). Agents read [`AGENTS.md`](AGENTS.md) and [`CLAUDE.md`](CLAUDE.md) for the
-canonical entry-point pointers; the mandatory agent entry surface is
-[`specs/masterplan.json`](specs/masterplan.json) (single-writer authority for live plan content,
-work items, status evidence, and the dependency DAG — see
+[`registry/`](registry/). Agents MUST load root [`AGENTS.md`](AGENTS.md) / [`CLAUDE.md`](CLAUDE.md)
+(INV-DOC-9 doctrine survival) for entry-point pointers and binding short-form law; the mandatory
+agent entry surface is [`specs/masterplan.json`](specs/masterplan.json) (single-writer authority
+for live plan content, work items, status evidence, and the dependency DAG — see
 [`specs/root-hub-pointers.json`](specs/root-hub-pointers.json)). Architecture decisions live in
 [`docs/decisions/`](docs/decisions/) (ADRs); the apex vision is the **Agentic Delivery Fabric**
 (ADR-0516…0535).
@@ -22,19 +22,25 @@ and evidence-source rules are in
 
 ## Build & verify
 
-The canonical build is a fully hermetic, lifecycle-wide [buck2](https://buck2.build) graph — a
-clean checkout builds and tests with no setup script and no prebuilt blobs:
+The merge path is the **Cargo workspace graph** (toolchain pinned in `rust-toolchain.toml`), enforced
+by the single required status context `oya-ci-required` (ADR-0716):
 
 ```sh
-buck2 build //...
-buck2 test //...
+cargo fmt --all --check
+cargo clippy --workspace --all-targets -- -D warnings
+cargo test --workspace
 ```
 
-Quality is enforced on every change by the cloud-ci gate fleet behind the **single required status
-context `oya-ci-required`** (ADR-0515): conformance, accounting, cross-artifact agreement,
-freshness, hygiene, security, and planning gates, each shipped as a neutral engine plus
-policy-as-data so any repo can adopt it (pipeline-as-product). Live plan state, work items, and
-status evidence live in [`specs/masterplan.json`](specs/masterplan.json); decision history is in
+The hermetic [buck2](https://buck2.build) graph remains a **local** hermeticity tool
+(`buck2 build //...` / `buck2 test //...`) kept honest by a weekly non-blocking CI smoke;
+it is not part of the merge path. Generated `*.generated.json` faces are materialized by
+`cargo run -p ci-generated-artifact-freshness --bin oya-cloud-ci-materialize-generated-faces -- --repo-root .` — never hand-edit them.
+
+Quality is enforced on every change by the cloud-ci gate fleet behind that single required
+context: conformance, accounting, cross-artifact agreement, freshness, hygiene, security, and
+planning gates, each shipped as a neutral engine plus policy-as-data so any repo can adopt it
+(pipeline-as-product). Live plan state, work items, and status evidence live in
+[`specs/masterplan.json`](specs/masterplan.json); decision history is in
 [`docs/decisions/`](docs/decisions/).
 
 ## License

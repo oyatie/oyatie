@@ -12,8 +12,7 @@ const ALPHABET: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwx
 #[must_use]
 pub fn encode(bytes: &[u8]) -> String {
     let mut out = Vec::with_capacity((bytes.len() * 4).div_ceil(3));
-    let mut iter = bytes.chunks(3);
-    while let Some(chunk) = iter.next() {
+    for chunk in bytes.chunks(3) {
         let b0 = chunk[0] as u32;
         let b1 = if chunk.len() > 1 { chunk[1] as u32 } else { 0 };
         let b2 = if chunk.len() > 2 { chunk[2] as u32 } else { 0 };
@@ -128,8 +127,8 @@ impl CursorPayload {
     /// decoded or does not match the expected payload format.
     pub fn from_cursor(c: &crate::Cursor) -> Result<Self, PaginationError> {
         let bytes = decode(&c.0)?;
-        let s = String::from_utf8(bytes)
-            .map_err(|_| PaginationError::CursorMalformed(c.0.clone()))?;
+        let s =
+            String::from_utf8(bytes).map_err(|_| PaginationError::CursorMalformed(c.0.clone()))?;
         let mut parts = s.splitn(2, ':');
         let offset_str = parts
             .next()
@@ -170,7 +169,11 @@ mod tests {
         let input = b"42:12345678901234567";
         let encoded = encode(input);
         // Must use URL-safe alphabet only.
-        assert!(encoded.chars().all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_'));
+        assert!(
+            encoded
+                .chars()
+                .all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_')
+        );
         assert_eq!(decode(&encoded).unwrap(), input);
     }
 
@@ -184,7 +187,10 @@ mod tests {
 
     #[test]
     fn cursor_payload_roundtrip() {
-        let p = CursorPayload { offset: 42, scope: 99_999_999_999 };
+        let p = CursorPayload {
+            offset: 42,
+            scope: 99_999_999_999,
+        };
         let c = p.to_cursor();
         let p2 = CursorPayload::from_cursor(&c).unwrap();
         assert_eq!(p, p2);

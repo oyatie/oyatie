@@ -1320,10 +1320,6 @@ name = "check-placeholder-debt"
 version = "0.1.0"
 
 [[package]]
-name = "check-pr-traceability"
-version = "0.1.0"
-
-[[package]]
 name = "check-pre-push"
 version = "0.1.0"
 
@@ -1437,6 +1433,7 @@ dependencies = [
 name = "ci-artifact-accountability"
 version = "0.1.0"
 dependencies = [
+ "ci-path-resolver-adapters",
  "serde_json",
 ]
 
@@ -1453,6 +1450,7 @@ dependencies = [
  "ci-hook-wiring",
  "ci-license-policy",
  "ci-package-manifest-hygiene",
+ "ci-path-resolver-adapters",
  "ci-service-catalog-parity",
  "ci-slo-coverage",
  "ci-stale-artifact-detection",
@@ -1468,28 +1466,27 @@ dependencies = [
 name = "ci-automation-coverage"
 version = "0.1.0"
 dependencies = [
+ "ci-path-resolver-adapters",
  "serde_json",
+]
+
+[[package]]
+name = "ci-automation-language-policy"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+ "serde_yaml",
+ "toml 0.8.23",
 ]
 
 [[package]]
 name = "ci-baseline-ratchet"
 version = "0.1.0"
 dependencies = [
+ "ci-generated-artifact-freshness",
+ "ci-path-resolver-adapters",
  "reqwest 0.13.4",
  "serde_json",
- "sha2",
-]
-
-[[package]]
-name = "ci-build-cache-policy"
-version = "0.1.0"
-dependencies = [
- "prost",
- "rcgen",
- "reqwest 0.13.4",
- "rustls",
- "serde_json",
- "serde_yaml",
  "sha2",
 ]
 
@@ -1497,6 +1494,7 @@ dependencies = [
 name = "ci-build-target-parity"
 version = "0.1.0"
 dependencies = [
+ "ci-path-resolver-adapters",
  "serde_json",
 ]
 
@@ -1515,11 +1513,72 @@ dependencies = [
 ]
 
 [[package]]
+name = "ci-cloud-name-ratchet"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+]
+
+[[package]]
 name = "ci-contract-slice-conformance"
 version = "0.1.0"
 dependencies = [
  "regex",
  "serde_json",
+]
+
+[[package]]
+name = "ci-controller-app"
+version = "0.1.0"
+dependencies = [
+ "axum",
+ "ci-controller-github-adapter",
+ "ci-controller-k8s-adapter",
+ "ci-controller-kernel",
+ "futures",
+ "k8s-openapi",
+ "kube",
+ "kube-runtime",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tower 0.5.3",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
+name = "ci-controller-github-adapter"
+version = "0.1.0"
+dependencies = [
+ "ci-controller-kernel",
+ "httpmock",
+ "reqwest 0.13.4",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "ci-controller-k8s-adapter"
+version = "0.1.0"
+dependencies = [
+ "ci-controller-kernel",
+ "k8s-openapi",
+ "kube",
+ "kube-runtime",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
+name = "ci-controller-kernel"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "sha2",
 ]
 
 [[package]]
@@ -1552,8 +1611,10 @@ dependencies = [
 name = "ci-crate-layer-suffix"
 version = "0.1.0"
 dependencies = [
+ "ci-path-resolver-adapters",
  "oya-ci-config-kernel",
  "oya-governance-predictable-naming-kernel",
+ "oya-workspace-members-kernel",
  "serde_json",
 ]
 
@@ -1561,9 +1622,14 @@ dependencies = [
 name = "ci-crate-name-prefix"
 version = "0.1.0"
 dependencies = [
+ "ci-path-resolver-adapters",
+ "ci-scm-facts-snapshot",
  "intelligence-cargo-prefix-domain",
  "oya-ci-config-kernel",
+ "oya-workspace-members-kernel",
  "serde_json",
+ "tempfile",
+ "toml 0.8.23",
 ]
 
 [[package]]
@@ -1585,6 +1651,7 @@ dependencies = [
 name = "ci-cross-artifact-agreement"
 version = "0.1.0"
 dependencies = [
+ "ci-path-resolver-adapters",
  "oya-check-adr-index",
  "oya-governance-adr-shape-kernel",
  "serde",
@@ -1597,7 +1664,18 @@ dependencies = [
 name = "ci-crypto-backend-policy"
 version = "0.1.0"
 dependencies = [
+ "oya-buck-syntax-kernel",
  "serde_json",
+]
+
+[[package]]
+name = "ci-dep-freshness"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "sha2",
+ "toml 0.8.23",
 ]
 
 [[package]]
@@ -1679,15 +1757,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "ci-helm-chart-shape"
+version = "0.1.0"
+
+[[package]]
 name = "ci-hook-wiring"
 version = "0.1.0"
 dependencies = [
+ "ci-path-resolver-adapters",
  "serde_json",
 ]
 
 [[package]]
 name = "ci-inventory-registry-drift"
 version = "0.1.0"
+dependencies = [
+ "ci-path-resolver-adapters",
+]
 
 [[package]]
 name = "ci-k8s-program-docs"
@@ -1707,6 +1793,7 @@ dependencies = [
 name = "ci-license-policy"
 version = "0.1.0"
 dependencies = [
+ "ci-path-resolver-adapters",
  "oya-check-license-policy",
  "serde_json",
 ]
@@ -1738,6 +1825,9 @@ dependencies = [
 name = "ci-package-manifest-hygiene"
 version = "0.1.0"
 dependencies = [
+ "ci-path-resolver-adapters",
+ "oya-ci-config-kernel",
+ "oya-workspace-members-kernel",
  "serde_json",
 ]
 
@@ -1793,7 +1883,9 @@ dependencies = [
 name = "ci-repo-root-hygiene"
 version = "0.1.0"
 dependencies = [
+ "ci-scm-facts-snapshot",
  "serde_json",
+ "tempfile",
 ]
 
 [[package]]
@@ -1849,6 +1941,7 @@ dependencies = [
 name = "ci-service-catalog-parity"
 version = "0.1.0"
 dependencies = [
+ "ci-path-resolver-adapters",
  "serde_json",
 ]
 
@@ -1863,6 +1956,7 @@ dependencies = [
 name = "ci-slo-coverage"
 version = "0.1.0"
 dependencies = [
+ "ci-path-resolver-adapters",
  "oya-check-slo-coverage",
  "serde_json",
 ]
@@ -1871,6 +1965,7 @@ dependencies = [
 name = "ci-stale-artifact-detection"
 version = "0.1.0"
 dependencies = [
+ "ci-path-resolver-adapters",
  "serde_json",
 ]
 
@@ -1878,9 +1973,11 @@ dependencies = [
 name = "ci-supply-chain-audit"
 version = "0.1.0"
 dependencies = [
+ "ci-scm-facts-snapshot",
  "oya-advisory-mirror-kernel",
  "semver",
  "serde_json",
+ "tempfile",
  "toml 0.8.23",
 ]
 
@@ -1925,6 +2022,7 @@ dependencies = [
 name = "ci-workspace-member-coverage"
 version = "0.1.0"
 dependencies = [
+ "ci-path-resolver-adapters",
  "serde_json",
 ]
 
@@ -5115,6 +5213,7 @@ version = "0.1.0"
 dependencies = [
  "base64 0.22.1",
  "bytes",
+ "futures",
  "httpmock",
  "intelligence-kernel",
  "intelligence-rest",
@@ -6342,7 +6441,6 @@ dependencies = [
  "check-otel-trace-propagation",
  "check-perf-budget",
  "check-placeholder-debt",
- "check-pr-traceability",
  "check-pre-push",
  "check-protection-context-match",
  "check-quality-lane",
@@ -6364,6 +6462,7 @@ dependencies = [
  "check-vendor-recency",
  "check-wasm-runtime-discipline",
  "ci-generated-artifact-freshness",
+ "ci-planning-projection",
  "intelligence-api-semver-domain",
  "intelligence-cargo-prefix-domain",
  "intelligence-catalog-domain",
@@ -6900,6 +6999,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "os-attestation-relying-party"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "os-block-domain"
 version = "0.1.0"
 dependencies = [
@@ -7126,6 +7233,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "os-oci-executor-oracle"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "sha2",
+]
+
+[[package]]
 name = "os-perf-domain"
 version = "0.1.0"
 dependencies = [
@@ -7266,6 +7382,7 @@ dependencies = [
  "console_error_panic_hook",
  "leptos",
  "leptos_axum",
+ "oya-application-shell-frontend",
  "oya-shared-oidc-client-kernel",
  "oya-shared-platform-contracts-kernel",
  "serde",
@@ -7280,7 +7397,9 @@ dependencies = [
 name = "oya-architecture-graph-generator-app"
 version = "0.1.0"
 dependencies = [
+ "ci-generated-artifact-freshness",
  "serde_json",
+ "tempfile",
 ]
 
 [[package]]
@@ -7430,60 +7549,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-ci-controller-app"
-version = "0.1.0"
-dependencies = [
- "axum",
- "futures",
- "k8s-openapi",
- "kube",
- "kube-runtime",
- "oya-ci-controller-github-adapter",
- "oya-ci-controller-k8s-adapter",
- "oya-ci-controller-kernel",
- "serde",
- "serde_json",
- "tokio",
- "tower 0.5.3",
- "tracing",
- "tracing-subscriber",
-]
-
-[[package]]
-name = "oya-ci-controller-github-adapter"
-version = "0.1.0"
-dependencies = [
- "httpmock",
- "oya-ci-controller-kernel",
- "reqwest 0.13.4",
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "oya-ci-controller-k8s-adapter"
-version = "0.1.0"
-dependencies = [
- "k8s-openapi",
- "kube",
- "kube-runtime",
- "oya-ci-controller-kernel",
- "serde",
- "serde_json",
- "tokio",
- "tracing",
-]
-
-[[package]]
-name = "oya-ci-controller-kernel"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_json",
- "sha2",
-]
-
-[[package]]
 name = "oya-ci-gate-contract"
 version = "0.1.0"
 dependencies = [
@@ -7552,40 +7617,6 @@ version = "0.1.0"
 dependencies = [
  "serde",
  "serde_json",
-]
-
-[[package]]
-name = "oya-cloud-os-cluster-mgmt-domain"
-version = "0.1.0"
-dependencies = [
- "os-kernel",
-]
-
-[[package]]
-name = "oya-cloud-os-kubernetes-domain"
-version = "0.1.0"
-dependencies = [
- "os-kernel",
- "os-runtime-cri-domain",
- "oya-cloud-os-secrets-domain",
-]
-
-[[package]]
-name = "oya-cloud-os-secrets-domain"
-version = "0.1.0"
-dependencies = [
- "os-kernel",
-]
-
-[[package]]
-name = "oya-cloud-os-trustd-domain"
-version = "0.1.0"
-dependencies = [
- "aws-lc-rs",
- "os-kernel",
- "rcgen",
- "time",
- "x509-parser",
 ]
 
 [[package]]
@@ -9850,6 +9881,7 @@ dependencies = [
 name = "oya-workspace-members-kernel"
 version = "0.1.0"
 dependencies = [
+ "serde_json",
  "toml 0.8.23",
 ]
 
@@ -10097,22 +10129,115 @@ version = "0.1.0"
 [[package]]
 name = "port-engine-app"
 version = "0.1.0"
+dependencies = [
+ "port-engine-api",
+ "port-engine-emit",
+ "port-engine-frontend-go",
+ "port-engine-hash",
+ "port-engine-identity",
+ "port-engine-kernel",
+ "port-engine-rulepack",
+ "port-engine-rust-ir",
+ "port-engine-snapshot",
+ "port-engine-source-pin",
+ "port-engine-toolchain",
+ "port-engine-transform",
+]
+
+[[package]]
+name = "port-engine-emit"
+version = "0.1.0"
+dependencies = [
+ "port-engine-api",
+ "port-engine-hash",
+]
 
 [[package]]
 name = "port-engine-frontend-go"
 version = "0.1.0"
+dependencies = [
+ "port-engine-api",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "port-engine-hash"
+version = "0.1.0"
+dependencies = [
+ "port-engine-api",
+ "sha2",
+]
+
+[[package]]
+name = "port-engine-identity"
+version = "0.1.0"
+dependencies = [
+ "port-engine-api",
+ "port-engine-hash",
+]
 
 [[package]]
 name = "port-engine-kernel"
 version = "0.1.0"
+dependencies = [
+ "port-engine-api",
+]
+
+[[package]]
+name = "port-engine-rulepack"
+version = "0.1.0"
+dependencies = [
+ "port-engine-api",
+ "port-engine-hash",
+ "port-engine-kernel",
+ "port-engine-transform",
+ "serde",
+ "serde_json",
+]
 
 [[package]]
 name = "port-engine-rust-ir"
 version = "0.1.0"
+dependencies = [
+ "port-engine-api",
+ "quote",
+ "syn 2.0.119",
+]
+
+[[package]]
+name = "port-engine-snapshot"
+version = "0.1.0"
+dependencies = [
+ "port-engine-api",
+ "port-engine-frontend-go",
+ "port-engine-hash",
+ "port-engine-source-pin",
+]
 
 [[package]]
 name = "port-engine-source-pin"
 version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "port-engine-toolchain"
+version = "0.1.0"
+dependencies = [
+ "port-engine-api",
+ "port-engine-hash",
+]
+
+[[package]]
+name = "port-engine-transform"
+version = "0.1.0"
+dependencies = [
+ "port-engine-api",
+ "port-engine-rust-ir",
+]
 
 [[package]]
 name = "portable-atomic"

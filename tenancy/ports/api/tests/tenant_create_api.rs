@@ -171,9 +171,13 @@ fn verified_caller_allowed_by_pdp_creates_tenant() {
     let mut idempotency = TenantCreateIdempotencyLedger::default();
     let request = tenant_request(REQUEST_ID, IDEMPOTENCY_KEY, TARGET_TENANT_ID);
 
-    let created =
-        create_tenant_from_api(&mut directory, &mut idempotency, &SameTenantAuthorizer, request)
-            .expect("verified same-tenant caller is allowed");
+    let created = create_tenant_from_api(
+        &mut directory,
+        &mut idempotency,
+        &SameTenantAuthorizer,
+        request,
+    )
+    .expect("verified same-tenant caller is allowed");
 
     assert_eq!(created.data.tenant_id, TARGET_TENANT_ID);
     // Audit attribution reflects the VERIFIED caller, never a caller-supplied field.
@@ -195,17 +199,27 @@ fn verified_cross_tenant_create_is_denied_at_pdp() {
     let attacker = verified("ten_attacker");
     let request = request_for(attacker, "req_x", "idem_x", TARGET_TENANT_ID);
 
-    let error =
-        create_tenant_from_api(&mut directory, &mut idempotency, &SameTenantAuthorizer, request)
-            .expect_err("cross-tenant create must be denied at the PDP");
+    let error = create_tenant_from_api(
+        &mut directory,
+        &mut idempotency,
+        &SameTenantAuthorizer,
+        request,
+    )
+    .expect_err("cross-tenant create must be denied at the PDP");
 
     assert!(matches!(
         error,
         TenantCreateApiError::AuthorizationDenied { ref surface }
             if surface == TENANT_CREATE_SURFACE
     ));
-    assert_eq!(error.tenant_create_status(), TenantCreateApiStatus::Forbidden);
-    assert!(directory.is_empty(), "no mutation on a denied cross-tenant create");
+    assert_eq!(
+        error.tenant_create_status(),
+        TenantCreateApiStatus::Forbidden
+    );
+    assert!(
+        directory.is_empty(),
+        "no mutation on a denied cross-tenant create"
+    );
     assert!(idempotency.is_empty());
 }
 
@@ -217,12 +231,22 @@ fn verified_caller_denied_by_pdp_is_forbidden() {
     let mut idempotency = TenantCreateIdempotencyLedger::default();
     let request = tenant_request("req_deny", "idem_deny", TARGET_TENANT_ID);
 
-    let error =
-        create_tenant_from_api(&mut directory, &mut idempotency, &DenyAllAuthorizer, request)
-            .expect_err("PDP deny must forbid the create");
+    let error = create_tenant_from_api(
+        &mut directory,
+        &mut idempotency,
+        &DenyAllAuthorizer,
+        request,
+    )
+    .expect_err("PDP deny must forbid the create");
 
-    assert!(matches!(error, TenantCreateApiError::AuthorizationDenied { .. }));
-    assert_eq!(error.tenant_create_status(), TenantCreateApiStatus::Forbidden);
+    assert!(matches!(
+        error,
+        TenantCreateApiError::AuthorizationDenied { .. }
+    ));
+    assert_eq!(
+        error.tenant_create_status(),
+        TenantCreateApiStatus::Forbidden
+    );
     assert!(directory.is_empty());
 }
 
@@ -233,16 +257,26 @@ fn pdp_fault_is_fail_closed_forbidden() {
     let mut idempotency = TenantCreateIdempotencyLedger::default();
     let request = tenant_request("req_fault", "idem_fault", TARGET_TENANT_ID);
 
-    let error =
-        create_tenant_from_api(&mut directory, &mut idempotency, &FaultingAuthorizer, request)
-            .expect_err("a PDP fault must fail-close to a deny");
+    let error = create_tenant_from_api(
+        &mut directory,
+        &mut idempotency,
+        &FaultingAuthorizer,
+        request,
+    )
+    .expect_err("a PDP fault must fail-close to a deny");
 
     assert!(matches!(
         error,
         TenantCreateApiError::AuthorizationFault { ref detail } if detail == "pdp-unavailable"
     ));
-    assert_eq!(error.tenant_create_status(), TenantCreateApiStatus::Forbidden);
-    assert!(directory.is_empty(), "no mutation on a fail-closed PDP fault");
+    assert_eq!(
+        error.tenant_create_status(),
+        TenantCreateApiStatus::Forbidden
+    );
+    assert!(
+        directory.is_empty(),
+        "no mutation on a fail-closed PDP fault"
+    );
 }
 
 // ── Functional behaviour (under an allow-all PDP) ───────────────────────────
@@ -253,12 +287,20 @@ fn tenant_create_creates_once_and_replays_same_idempotent_result() {
     let mut idempotency = TenantCreateIdempotencyLedger::default();
     let request = tenant_request(REQUEST_ID, IDEMPOTENCY_KEY, TARGET_TENANT_ID);
 
-    let first =
-        create_tenant_from_api(&mut directory, &mut idempotency, &AllowAllAuthorizer, request.clone())
-            .expect("first tenant creation succeeds");
-    let second =
-        create_tenant_from_api(&mut directory, &mut idempotency, &AllowAllAuthorizer, request)
-            .expect("same tenant creation request replays");
+    let first = create_tenant_from_api(
+        &mut directory,
+        &mut idempotency,
+        &AllowAllAuthorizer,
+        request.clone(),
+    )
+    .expect("first tenant creation succeeds");
+    let second = create_tenant_from_api(
+        &mut directory,
+        &mut idempotency,
+        &AllowAllAuthorizer,
+        request,
+    )
+    .expect("same tenant creation request replays");
 
     assert_eq!(first, second);
     assert_eq!(directory.len(), 1);
@@ -280,9 +322,13 @@ fn tenant_create_rejects_path_body_drift_before_directory_mutation() {
     let mut request = tenant_request("req_tenant_drift", "idem_tenant_drift", TARGET_TENANT_ID);
     request.body.tenant_id = "ten_other".to_string();
 
-    let error =
-        create_tenant_from_api(&mut directory, &mut idempotency, &AllowAllAuthorizer, request)
-            .expect_err("path/body tenant drift is rejected");
+    let error = create_tenant_from_api(
+        &mut directory,
+        &mut idempotency,
+        &AllowAllAuthorizer,
+        request,
+    )
+    .expect_err("path/body tenant drift is rejected");
 
     assert!(matches!(
         error,
@@ -365,13 +411,22 @@ fn tenant_create_rejects_reused_idempotency_key_with_new_fingerprint() {
     let mut idempotency = TenantCreateIdempotencyLedger::default();
     let mut request = tenant_request("req_tenant_reused", "idem_tenant_reused", "ten_reused");
 
-    create_tenant_from_api(&mut directory, &mut idempotency, &AllowAllAuthorizer, request.clone())
-        .expect("first idempotent tenant creation succeeds");
+    create_tenant_from_api(
+        &mut directory,
+        &mut idempotency,
+        &AllowAllAuthorizer,
+        request.clone(),
+    )
+    .expect("first idempotent tenant creation succeeds");
 
     request.body.legal_name = "Changed Tenant Ltd".to_string();
-    let error =
-        create_tenant_from_api(&mut directory, &mut idempotency, &AllowAllAuthorizer, request)
-            .expect_err("same idempotency key with changed body is rejected");
+    let error = create_tenant_from_api(
+        &mut directory,
+        &mut idempotency,
+        &AllowAllAuthorizer,
+        request,
+    )
+    .expect_err("same idempotency key with changed body is rejected");
 
     assert_eq!(
         error,

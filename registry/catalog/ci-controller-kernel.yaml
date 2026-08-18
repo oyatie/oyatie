@@ -1,0 +1,15 @@
+context: ci
+role: kernel
+capability: ci-controller
+plane: control
+slo: cataloged-no-runtime-claim
+data_classes_owned: [INTERNAL_ONLY]
+operational_classes_owned: []
+api_stability: preview
+security_review: unreviewed
+supply_chain: source-only
+traceability:
+  source_crate: ci/controller/kernel/Cargo.toml
+non_claims:
+  - ci-controller domain kernel
+  - pair with integ/ci content forever tip

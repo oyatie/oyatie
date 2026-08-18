@@ -44,9 +44,9 @@ const JSON_CONTENT_TYPE: &str = "application/json";
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CloudIacModuleRegistryRuntimeRequest {
     pub boundary: CloudIacModuleRegistryApiBoundaryContext, // data_class: INTERNAL_ONLY
-    pub credential: CallerCredential,                      // data_class: SECRET
-    pub method: HttpMethod,                                // data_class: PUBLIC
-    pub path: String,                                      // data_class: PUBLIC
+    pub credential: CallerCredential,                       // data_class: SECRET
+    pub method: HttpMethod,                                 // data_class: PUBLIC
+    pub path: String,                                       // data_class: PUBLIC
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]

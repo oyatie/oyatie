@@ -78,7 +78,7 @@ use serde_json::Value;
 
 /// The repo-relative closed capability registry — the SSOT for both the closed
 /// [`CapabilitySet`] (group slugs) and the existing crate-glob membership.
-const CAPABILITY_REGISTRY_PATH: &str = "specs/capability-registry.json";
+const CAPABILITY_REGISTRY_PATH: &str = "governance/capability-registry.json";
 
 /// The repo-relative dir the generated faces (scm-facts snapshot + producer faces) live beside.
 /// Identical to the producer's default `--out-dir` and the freshness gate's `FACES_DIR`.
@@ -97,9 +97,9 @@ const MOVE_MANIFEST_PATH: &str = "specs/reorg/move-manifest.generated.json";
 /// The buck2 targets the [`Buck2RegenAdapter`] builds (mirroring materialize.sh's single
 /// `buck2 build … --show-output`). Target-name match (`parse_show_output_path`) maps each to its
 /// built-binary path — the same shape the freshness gate's `build_face_tools` uses.
-const EMITTER_TARGET: &str =
-    "//ci/facade/scm-facts-snapshot:ci-scm-facts-snapshot";
-const PRODUCER_TARGET: &str = "//ci/facade/artifact-inventory-registry:oya-cloud-ci-accounting-registry-app-bin";
+const EMITTER_TARGET: &str = "//ci/facade/scm-facts-snapshot:ci-scm-facts-snapshot";
+const PRODUCER_TARGET: &str =
+    "//ci/facade/artifact-inventory-registry:oya-cloud-ci-accounting-registry-app-bin";
 const CODEMOD_TARGET: &str = "//tools/oya-reorg-codemod-app:oya-reorg-codemod";
 const ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS_TARGET: &str = "//.claude:settings-json";
 const ENFORCEMENT_LIVENESS_CODEX_HOOKS_TARGET: &str = "//.codex:hooks-json";
@@ -1420,7 +1420,7 @@ fn load_config(repo_root: &Path) -> Result<OyaCiConfig, RegisterError> {
     }
 }
 
-/// Load the closed [`CapabilitySet`] from `specs/capability-registry.json`: the set of capability
+/// Load the closed [`CapabilitySet`] from `governance/capability-registry.json`: the set of capability
 /// slugs a human may pass as `req.capability`. Two slug classes, both bare (no `capability:`/`meta:`
 /// label prefix — the kernel compares `req.capability` by exact string):
 ///   1. The WRITER-APPLIABLE slugs — every `membership_lint_coverage.absorbs_current_crate_globs`

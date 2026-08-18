@@ -1,5 +1,5 @@
 {
-  "_comment": "Per-service tier classification projection (Phase-0 capability-first reorg). The generated PROJECTION of the per-service manifest dependency-class facets (tier/tier_subtype/dr_tier, + substrate_dag_position for substrates), derived deterministically from each service's manifest.json under cloud/ + oya/. AUTHORITY: the per-manifest facet is the source of truth (ADR-0245 tier-as-facet); this file is its read-only roll-up, referenced by specs/platform-architecture.json microservice_taxonomy.tier_classification_table_ref. Tier derivation: specs/capability-registry.json (service dir -> capability; ADR-0562 closed registry) x ADR-0536 (capability -> substrate-or-not) x the landed DAG (stratum). Enum authority: platform-architecture.json microservice_taxonomy tier_enum + tier_subtype_enum. Coverage + enum validity + no-type-overload are enforced born-blocking by oya-cloud-ci-tier-field-coverage-app. DATA, not code: canonical-json governed, reachability-registered (anchor: ADR-0536/0245/0562), council-architecture owned. Held as a hand-materialized projection (NOT a *.generated.json face) because the referenced path in platform-architecture.json carries no .generated suffix and the generated-output-diff-policy gate rejects hand-added generated faces on PRs; regenerate by re-projecting the manifests.",
+  "_comment": "Per-service tier classification projection (Phase-0 capability-first reorg). The generated PROJECTION of the per-service manifest dependency-class facets (tier/tier_subtype/dr_tier, + substrate_dag_position for substrates), derived deterministically from each service's manifest.json under the product-protocol governed roots. AUTHORITY: the per-manifest facet is the source of truth (ADR-0245 tier-as-facet); this file is its read-only roll-up, referenced by specs/platform-architecture.json microservice_taxonomy.tier_classification_table_ref. Tier derivation: governance/capability-registry.json (service dir -> capability; ADR-0562 closed registry) x ADR-0536 (capability -> substrate-or-not) x the landed DAG (stratum). Enum authority: platform-architecture.json microservice_taxonomy tier_enum + tier_subtype_enum. Coverage + enum validity + no-type-overload are enforced born-blocking by oya-cloud-ci-tier-field-coverage-app. DATA, not code: canonical-json governed, reachability-registered (anchor: ADR-0536/0245/0562), council-architecture owned. Held as a hand-materialized projection (NOT a *.generated.json face) because the referenced path in platform-architecture.json carries no .generated suffix and the generated-output-diff-policy gate rejects hand-added generated faces on PRs; regenerate by re-projecting the manifests.",
   "schema_version": "1.0.0",
   "doctrine_adrs": [
     "ADR-0562",
@@ -8,17 +8,17 @@
     "ADR-0280"
   ],
   "_provenance": {
-    "derivation": "per-service manifest.json (tier/tier_subtype/dr_tier/substrate_dag_position) under cloud/ + oya/",
-    "source": "specs/capability-registry.json x ADR-0536 x specs/substrate-dependency-dag.json x specs/platform-architecture.json microservice_taxonomy enums",
+    "derivation": "per-service manifest.json (tier/tier_subtype/dr_tier/substrate_dag_position) under the product-protocol governed roots",
+    "source": "governance/capability-registry.json x ADR-0536 x specs/substrate-dependency-dag.json x specs/platform-architecture.json microservice_taxonomy enums",
     "enforced_by": "oya-cloud-ci-tier-field-coverage-app (born-blocking coverage + enum validity + no type-overload)"
   },
   "tier_distribution": {
-    "substrate": 55,
+    "substrate": 53,
     "product": 41,
     "service-cell": 0,
     "reserved": 0
   },
-  "service_count": 96,
+  "service_count": 94,
   "services": {
     "audit/manifest.json": {
       "service": "audit",
@@ -170,20 +170,6 @@
         "_note": "forward-declared per ADR-0280 Appendix C; edges land in DAG v1.1.0"
       }
     },
-    "cloud/cloud-kernel/manifest.json": {
-      "service": "cloud/cloud-kernel",
-      "manifest": "cloud/cloud-kernel/manifest.json",
-      "capability": null,
-      "tier": "substrate",
-      "tier_subtype": "substrate-infra",
-      "dr_tier": "T1",
-      "substrate_dag_position": {
-        "stratum": "forward-declared",
-        "depends_on": [],
-        "consumed_by_substrates": [],
-        "_note": "capability has no ADR-0280 §D-1 DAG node yet; forward-declared (Appendix C class)"
-      }
-    },
     "secrets/kms/manifest.json": {
       "service": "secrets/kms",
       "manifest": "secrets/kms/manifest.json",
@@ -231,20 +217,6 @@
         "depends_on": [],
         "consumed_by_substrates": [],
         "_note": "forward-declared per ADR-0280 Appendix C; edges land in DAG v1.1.0"
-      }
-    },
-    "cloud/cloud-os/manifest.json": {
-      "service": "cloud/cloud-os",
-      "manifest": "cloud/cloud-os/manifest.json",
-      "capability": null,
-      "tier": "substrate",
-      "tier_subtype": "substrate-infra",
-      "dr_tier": "T1",
-      "substrate_dag_position": {
-        "stratum": "forward-declared",
-        "depends_on": [],
-        "consumed_by_substrates": [],
-        "_note": "capability has no ADR-0280 §D-1 DAG node yet; forward-declared (Appendix C class)"
       }
     },
     "secrets/manifest.json": {

@@ -52,10 +52,7 @@ pub enum Plan {
 /// (Provisioning -> Suspended) activates first and suspends on the next
 /// pass, mirroring how cloud control planes sequence provision-then-halt.
 #[must_use]
-pub fn plan_next_operation(
-    observed: TenantLifecycleState,
-    desired: DesiredTenantState,
-) -> Plan {
+pub fn plan_next_operation(observed: TenantLifecycleState, desired: DesiredTenantState) -> Plan {
     use TenantLifecycleOperation as Op;
     use TenantLifecycleState as S;
     match (observed, desired) {
@@ -93,7 +90,11 @@ pub fn derive_step_key(
     const FNV_PRIME: u64 = 0x0000_0100_0000_01b3;
     let mut lo = FNV_OFFSET;
     let mut hi = FNV_OFFSET ^ 0x5bd1_e995_7b93_c1a4;
-    for chunk in [cr_uid.as_bytes(), &generation.to_be_bytes(), step.as_bytes()] {
+    for chunk in [
+        cr_uid.as_bytes(),
+        &generation.to_be_bytes(),
+        step.as_bytes(),
+    ] {
         for &byte in chunk {
             lo = (lo ^ u64::from(byte)).wrapping_mul(FNV_PRIME);
             hi = (hi ^ u64::from(byte).rotate_left(17) ^ lo).wrapping_mul(FNV_PRIME);
@@ -163,7 +164,9 @@ mod tests {
             for desired in ALL_DESIRED {
                 if let Plan::Step(operation) = plan_next_operation(observed, desired) {
                     operation.apply(observed).unwrap_or_else(|violation| {
-                        panic!("planner proposed illegal {operation:?} from {observed:?}: {violation}")
+                        panic!(
+                            "planner proposed illegal {operation:?} from {observed:?}: {violation}"
+                        )
                     });
                 }
             }

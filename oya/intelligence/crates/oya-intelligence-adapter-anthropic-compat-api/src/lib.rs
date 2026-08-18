@@ -16,13 +16,13 @@
 // `panic!()` to assert invariants under the `cfg(test)` exemption.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
-use oya_http_router_kernel::{HttpMethod, Router, RouterError};
-use oya_http_sse_kernel::SseEvent;
 use intelligence_account_kernel::ProviderFamily;
 use intelligence_provider_pool_kernel::{
     AccountHealthMap, PoolError, PoolRoutingDecision, ProviderAccountId, ProviderAccountPool,
     RequestMetadata, UnixMillis, UsageSnapshotMap, pick_account,
 };
+use oya_http_router_kernel::{HttpMethod, Router, RouterError};
+use oya_http_sse_kernel::SseEvent;
 use std::fmt;
 
 pub const ANTHROPIC_API_VERSION: &str = "2023-06-01";

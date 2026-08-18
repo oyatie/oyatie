@@ -114,8 +114,9 @@ pub trait SettingsRenderer: Send + Sync {
 ```rust
 use oya_intelligence_settings_template_kernel::*;
 
-// Load template from TOML file
-let template = load_template_toml("templates/foundry-supervisor/claude.toml")?;
+// Load template from TOML file (templates/foundry-supervisor/ deleted —
+// hooks pointed at missing tools/foundry-supervisor-* binaries; pass a live path).
+let template = load_template_toml(template_path)?;
 
 // Create renderer (adapter-provided)
 let renderer = ClaudeRenderer::new();

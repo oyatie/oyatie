@@ -213,7 +213,9 @@ impl ProvisionRequest {
             return Err(QuotaModelError::ZeroCeiling("requested_vcpu_per_cluster"));
         }
         if requested_ram_gib_per_cluster == 0 {
-            return Err(QuotaModelError::ZeroCeiling("requested_ram_gib_per_cluster"));
+            return Err(QuotaModelError::ZeroCeiling(
+                "requested_ram_gib_per_cluster",
+            ));
         }
         Ok(Self {
             tenant_id,
@@ -596,7 +598,10 @@ impl std::error::Error for HeadroomError {}
 /// - All arithmetic is saturating; no overflow, no panic.
 /// - O(n) in `usages.len()`.
 #[must_use]
-pub fn aggregate_usage(tenant_id: TenantId, usages: &[ClusterResourceUsage]) -> TenantResourceSummary {
+pub fn aggregate_usage(
+    tenant_id: TenantId,
+    usages: &[ClusterResourceUsage],
+) -> TenantResourceSummary {
     let mut total_clusters: u32 = 0;
     let mut total_nodes: u32 = 0;
     let mut total_vcpu: u32 = 0;
@@ -654,21 +659,24 @@ pub fn project_headroom(
     }
 
     let remaining_clusters = quota.max_clusters.saturating_sub(summary.total_clusters);
-    let remaining_nodes_per_cluster =
-        quota.max_nodes_per_cluster.saturating_sub(summary.max_nodes_per_cluster);
-    let remaining_vcpu_per_cluster =
-        quota.max_vcpu_per_cluster.saturating_sub(summary.max_vcpu_per_cluster);
-    let remaining_ram_gib_per_cluster =
-        quota.max_ram_gib_per_cluster.saturating_sub(summary.max_ram_gib_per_cluster);
+    let remaining_nodes_per_cluster = quota
+        .max_nodes_per_cluster
+        .saturating_sub(summary.max_nodes_per_cluster);
+    let remaining_vcpu_per_cluster = quota
+        .max_vcpu_per_cluster
+        .saturating_sub(summary.max_vcpu_per_cluster);
+    let remaining_ram_gib_per_cluster = quota
+        .max_ram_gib_per_cluster
+        .saturating_sub(summary.max_ram_gib_per_cluster);
 
-    let clusters_utilized_pct =
-        utilized_pct(summary.total_clusters, quota.max_clusters);
+    let clusters_utilized_pct = utilized_pct(summary.total_clusters, quota.max_clusters);
     let nodes_utilized_pct =
         utilized_pct(summary.max_nodes_per_cluster, quota.max_nodes_per_cluster);
-    let vcpu_utilized_pct =
-        utilized_pct(summary.max_vcpu_per_cluster, quota.max_vcpu_per_cluster);
-    let ram_utilized_pct =
-        utilized_pct(summary.max_ram_gib_per_cluster, quota.max_ram_gib_per_cluster);
+    let vcpu_utilized_pct = utilized_pct(summary.max_vcpu_per_cluster, quota.max_vcpu_per_cluster);
+    let ram_utilized_pct = utilized_pct(
+        summary.max_ram_gib_per_cluster,
+        quota.max_ram_gib_per_cluster,
+    );
 
     Ok(QuotaHeadroom {
         tenant_id: quota.tenant_id.clone(),
@@ -991,7 +999,9 @@ mod tests {
         );
         assert_eq!(
             ProvisionRequest::new("ten_acme", 1, 1, 1, 0),
-            Err(QuotaModelError::ZeroCeiling("requested_ram_gib_per_cluster"))
+            Err(QuotaModelError::ZeroCeiling(
+                "requested_ram_gib_per_cluster"
+            ))
         );
     }
 
@@ -1033,10 +1043,7 @@ mod tests {
     /// AC-2: multiple clusters are aggregated correctly.
     #[test]
     fn aggregate_multiple_clusters() {
-        let usages = vec![
-            cluster("cl-1", 3, 12, 48),
-            cluster("cl-2", 5, 20, 80),
-        ];
+        let usages = vec![cluster("cl-1", 3, 12, 48), cluster("cl-2", 5, 20, 80)];
         let summary = aggregate_usage(tid("ten_acme"), &usages);
         assert_eq!(summary.total_clusters, 2);
         assert_eq!(summary.total_nodes, 8);
@@ -1053,21 +1060,18 @@ mod tests {
         // quota: 5 clusters, 10 nodes/cl, 32 vcpu/cl, 128 ram/cl
         let q = quota("ten_acme");
         // summary: 2 clusters, max 5 nodes/cl, max 16 vcpu/cl, max 64 ram/cl
-        let usages = vec![
-            cluster("cl-1", 5, 16, 64),
-            cluster("cl-2", 3, 8, 32),
-        ];
+        let usages = vec![cluster("cl-1", 5, 16, 64), cluster("cl-2", 3, 8, 32)];
         let summary = aggregate_usage(tid("ten_acme"), &usages);
         let h = project_headroom(&q, &summary).unwrap();
 
-        assert_eq!(h.remaining_clusters, 3);      // 5 - 2
+        assert_eq!(h.remaining_clusters, 3); // 5 - 2
         assert_eq!(h.remaining_nodes_per_cluster, 5); // 10 - 5
         assert_eq!(h.remaining_vcpu_per_cluster, 16); // 32 - 16
         assert_eq!(h.remaining_ram_gib_per_cluster, 64); // 128 - 64
-        assert_eq!(h.clusters_utilized_pct, 40);    // 2*100/5
-        assert_eq!(h.nodes_utilized_pct, 50);       // 5*100/10
-        assert_eq!(h.vcpu_utilized_pct, 50);        // 16*100/32
-        assert_eq!(h.ram_utilized_pct, 50);         // 64*100/128
+        assert_eq!(h.clusters_utilized_pct, 40); // 2*100/5
+        assert_eq!(h.nodes_utilized_pct, 50); // 5*100/10
+        assert_eq!(h.vcpu_utilized_pct, 50); // 16*100/32
+        assert_eq!(h.ram_utilized_pct, 50); // 64*100/128
     }
 
     /// AC-4: headroom at the exact quota limit returns remaining=0, utilized=100.
@@ -1105,7 +1109,7 @@ mod tests {
         let summary = aggregate_usage(tid("ten_acme"), &usages);
         let h = project_headroom(&q, &summary).unwrap();
 
-        assert_eq!(h.remaining_clusters, 0);            // saturating_sub
+        assert_eq!(h.remaining_clusters, 0); // saturating_sub
         assert_eq!(h.remaining_nodes_per_cluster, 0);
         assert_eq!(h.remaining_vcpu_per_cluster, 0);
         assert_eq!(h.remaining_ram_gib_per_cluster, 0);
@@ -1156,7 +1160,9 @@ mod tests {
     fn headroom_compose_with_evaluate() {
         let q = quota("ten_acme"); // max 5 clusters
         // Fill all 5 cluster slots.
-        let usages: Vec<_> = (0..5).map(|i| cluster(&format!("cl-{i}"), 1, 1, 1)).collect();
+        let usages: Vec<_> = (0..5)
+            .map(|i| cluster(&format!("cl-{i}"), 1, 1, 1))
+            .collect();
         let summary = aggregate_usage(tid("ten_acme"), &usages);
         let h = project_headroom(&q, &summary).unwrap();
         assert_eq!(h.remaining_clusters, 0, "headroom must show 0 remaining");
@@ -1251,7 +1257,10 @@ mod tests {
     fn pressure_driven_by_clusters_dimension() {
         let h = headroom_with_pcts(95, 10, 10, 10);
         assert_eq!(classify_pressure(&h), QuotaPressure::Critical);
-        assert_eq!(h.most_constrained_dimension(), ConstrainedDimension::Clusters);
+        assert_eq!(
+            h.most_constrained_dimension(),
+            ConstrainedDimension::Clusters
+        );
     }
 
     #[test]
@@ -1281,7 +1290,10 @@ mod tests {
     #[test]
     fn most_constrained_tie_all_equal_returns_clusters() {
         let h = headroom_with_pcts(75, 75, 75, 75);
-        assert_eq!(h.most_constrained_dimension(), ConstrainedDimension::Clusters);
+        assert_eq!(
+            h.most_constrained_dimension(),
+            ConstrainedDimension::Clusters
+        );
     }
 
     /// Nodes == Vcpu == Ram tied at max; Clusters lower -> Nodes wins.
@@ -1360,8 +1372,8 @@ mod tests {
             ConstrainedDimension::Ram,
         ] {
             let s = dim.as_str();
-            let d2 = ConstrainedDimension::parse(s)
-                .expect("parse must succeed for valid as_str output");
+            let d2 =
+                ConstrainedDimension::parse(s).expect("parse must succeed for valid as_str output");
             assert_eq!(dim, d2);
         }
     }
@@ -1392,7 +1404,9 @@ mod tests {
     #[test]
     fn classify_pressure_on_real_headroom_exhausted() {
         let q = quota("ten_acme"); // 5 cl, 10 nodes, 32 vcpu, 128 ram
-        let usages: Vec<_> = (0..5).map(|i| cluster(&format!("cl-{i}"), 10, 32, 128)).collect();
+        let usages: Vec<_> = (0..5)
+            .map(|i| cluster(&format!("cl-{i}"), 10, 32, 128))
+            .collect();
         let summary = aggregate_usage(tid("ten_acme"), &usages);
         let h = project_headroom(&q, &summary).unwrap();
         assert_eq!(classify_pressure(&h), QuotaPressure::Exhausted);

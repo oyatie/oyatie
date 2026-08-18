@@ -2,11 +2,11 @@
 // `.expect_err()` / `.unwrap_err()` to assert invariants — Tier 3 exemption.
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
-use oya_data_boundary_kernel::{DataClass, PrivacyDataClass};
 use intelligence_capability_domain::{
     AutonomyTier, Capability, CapabilityCostProfile, CapabilityError, CapabilityMcpContract,
     CapabilityRegistry,
 };
+use oya_data_boundary_kernel::{DataClass, PrivacyDataClass};
 
 #[test]
 fn tenant_discovery_filters_by_license_mcp_visibility_and_autonomy_ceiling() {

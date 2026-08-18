@@ -168,8 +168,9 @@ impl DeliveryGuard {
     /// so the handler can call it before each `record_and_check`, or on a
     /// background timer.
     pub fn prune(&mut self, now_unix_millis: u64) {
-        self.seen
-            .retain(|_, &mut recorded_at| now_unix_millis.saturating_sub(recorded_at) < self.ttl_ms);
+        self.seen.retain(|_, &mut recorded_at| {
+            now_unix_millis.saturating_sub(recorded_at) < self.ttl_ms
+        });
     }
 }
 

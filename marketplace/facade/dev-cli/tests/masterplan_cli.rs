@@ -149,8 +149,7 @@ deliverables:
 }
 
 fn repo_root() -> PathBuf {
-    const ADR_0372: &str =
-        "docs/decisions/ADR-0709-general-live-apex.md";
+    const ADR_0372: &str = "docs/decisions/ADR-0709-general-live-apex.md";
     std::env::current_dir()
         .expect("current dir readable")
         .ancestors()

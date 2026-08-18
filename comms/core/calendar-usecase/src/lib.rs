@@ -207,7 +207,9 @@ pub fn validate_attendees(inputs: &[AttendeeInput]) -> Result<Vec<Attendee>, Cal
     }
     inputs
         .iter()
-        .map(|a| Attendee::new(a.email.clone(), a.role.clone()).map_err(CalendarUsecaseError::Domain))
+        .map(|a| {
+            Attendee::new(a.email.clone(), a.role.clone()).map_err(CalendarUsecaseError::Domain)
+        })
         .collect()
 }
 
@@ -498,7 +500,9 @@ mod tests {
         let store = FakeStore::default();
         assert_eq!(
             create_event(&store, &ctx(), req),
-            Err(CalendarUsecaseError::Domain(CalendarError::InvalidTimeRange))
+            Err(CalendarUsecaseError::Domain(
+                CalendarError::InvalidTimeRange
+            ))
         );
     }
 

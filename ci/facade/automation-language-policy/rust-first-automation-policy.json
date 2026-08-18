@@ -103,12 +103,6 @@
       "status": "temporary_legacy_bridge"
     },
     {
-      "path": "tools/hooks/no-cargo-enforcer.sh",
-      "reason": "Local agent hook bridge retained only to block retired local authority while cloud-ci admission moves into Rust gates.",
-      "replacement": "Replace with Rust Buck2 cloud-ci admission gate and Kubernetes-native policy/controller enforcement.",
-      "status": "temporary_legacy_bridge"
-    },
-    {
       "path": "tools/hooks/pre-dispatch-guide.sh",
       "reason": "Local agent hook bridge retained only to block retired local authority while cloud-ci admission moves into Rust gates.",
       "replacement": "Replace with Rust Buck2 cloud-ci admission gate and Kubernetes-native policy/controller enforcement.",
@@ -149,7 +143,7 @@
   "non_rust_exception_baseline": {
     "_comment": "FROZEN review-visible baseline of TODAY's accepted temporary_legacy_bridge non-Rust automation exceptions (the exceptions[] allowlist). The file-extension scan permits a non-Rust file iff it has an exceptions[] entry (any-allowlisted-ok); this dimension additionally freezes that EXCEPTION SET shrink-only so a NEW .py/.sh bridge cannot be admitted by silently adding an allowlist row. A current exception NOT in this baseline is born-blocking (rust_first_automation_unbaselined_non_rust_exception) -- convert it to owned Rust (e.g. a contract-slice entry on //ci/facade/contract-slice-conformance) rather than shell/Python; a removed bridge must shrink this baseline in the SAME PR (rust_first_automation_non_rust_exception_baseline_stale). Folded INTO this policy (zero new tracked accounting rows); NOT producer-regenerated -- reviewed, hand-shrunk; anti-laundering is REVIEW-VISIBLE: growing the bridge set now requires an explicit reviewed baseline edit, not a routine-looking allowlist append.",
     "_provenance": {
-      "keys_total": 24,
+      "keys_total": 23,
       "policy": "shrink-only; growth requires a review-visible baseline edit, retirement must shrink in the same PR"
     },
     "codes": {
@@ -171,7 +165,6 @@
         "tools/hooks/injection-content-scanner.sh",
         "tools/hooks/local-authority-enforcer.sh",
         "tools/hooks/main-checkout-guard.sh",
-        "tools/hooks/no-cargo-enforcer.sh",
         "tools/hooks/pre-dispatch-guide.sh",
         "tools/hooks/spec-version-pin-suggester.sh",
         "tools/hooks/stale-tool-suggester.sh",
@@ -184,17 +177,15 @@
   "product_contract": {
     "ci_hygiene": "The scanner is read-only, creates no temporary files, and detects stale exceptions so policy debt cleans up after retired files.",
     "cloud_native": "Exceptions must point toward Rust cloud-ci, Kubernetes, GitOps, controller, or admission-policy replacements; new infrastructure packages must be app/gate/controller/API-shaped, not CLI-shaped.",
-    "execution": "Buck2-native Rust gate; no Cargo command is required for enforcement.",
+    "execution": "Enforced by the cargo merge path (cargo test --workspace, ADR-0716) and locally via buck2; no standalone runner contract.",
     "portability": "Policy is data-driven so another repository can adopt the same gate by changing scan roots and exceptions."
   },
-  "purpose": "Rust-first automation hygiene ratchet. Non-Rust scripts are blocked unless explicitly exceptioned as shrinkable debt with a Rust/Buck2/cloud-native replacement path; cloud/infra/tooling CLI-first package births are blocked outright.",
+  "purpose": "Rust-first automation hygiene ratchet. Non-Rust scripts are blocked unless explicitly exceptioned as shrinkable debt with a Rust/cloud-native replacement path; cloud/infra/tooling CLI-first package births are blocked outright; workflow inline shell is ratcheted against a frozen keyed baseline with a reviewed replacement window for deliberate CI redesigns.",
   "scan": {
     "cli_package_authority": {
-      "_comment": "Cloud-native infrastructure automation must not be born as a new CLI-first package. This dimension scans infrastructure/cloud/tooling Cargo manifests for package names with retired CLI suffixes. Existing product/local legacy CLIs outside these roots remain governed by their own retirement lanes; new cloud/infra/tooling work should be an app, gate, controller, service, API, or declarative config consumer instead.",
+      "_comment": "Cloud-native infrastructure automation must not be born as a new CLI-first package. This dimension scans infrastructure/cloud/tooling Cargo manifests for package names with retired CLI suffixes.",
       "enabled": true,
-      "exclude_prefixes": [
-        "cloud/cloud-os/"
-      ],
+      "exclude_prefixes": [],
       "extensions": [
         ".toml"
       ],
@@ -216,11 +207,9 @@
       "third-party/"
     ],
     "interpreter_command_authority": {
-      "_comment": "G006 inventory-first guard: Rust automation/gate source must not re-authorize retired Python/Node/MJS authority by spawning interpreter commands directly. ROOTS NOTE (ADR-0562 reorg): the gate fleet moved cloud/cloud-ci -> ci/, so `cloud/cloud-ci` is now a DEAD path this dimension silently skipped (visit_scan_root treats a missing root as Ok) while its primary target went unscanned; `ci` is the live root and was added to close that blind spot. The dead entry is RETAINED because removing a root fires rust_first_automation_scan_scope_narrowing -- retire it in a change whose subject is the shrink. The scan is intentionally scoped to automation/gate code; cloud/cloud-os is owned by the later kernel/OS story and is excluded from this task-4 lane.",
+      "_comment": "G006 inventory-first guard: Rust automation/gate source must not re-authorize retired Python/Node/MJS authority by spawning interpreter commands directly. The dead cloud/cloud-ci root is retained to avoid scan-scope-narrowing findings; retire it in a change whose subject is the shrink.",
       "enabled": true,
-      "exclude_prefixes": [
-        "cloud/cloud-os/"
-      ],
+      "exclude_prefixes": [],
       "extensions": [
         ".rs"
       ],
@@ -290,7 +279,7 @@
       "workflow"
     ],
     "workflow_forbidden_uses": {
-      "_comment": "Forbid third-party / marketplace Buck2 setup actions. The allowed bridge is repo-owned infra/ci/install-buck2.sh, which downloads the official facebook/buck2 release asset and verifies the pinned SHA-256 before execution.",
+      "_comment": "Forbid third-party / marketplace buck2 setup actions. The allowed bridge is repo-owned infra/ci/install-buck2.sh, which downloads the official facebook/buck2 release asset and verifies the pinned SHA-256 before execution.",
       "enabled": true,
       "extensions": [
         ".yaml",
@@ -305,7 +294,7 @@
       ]
     },
     "workflow_inline_shell": {
-      "_comment": "pipeline-glue(a): the file-extension scan above is blind to shell that lives INSIDE workflow YAML `run:` steps (the file is `.yml`, not `.sh`). This dimension parses the declared workflow roots with a real YAML parser, emits one schema-v2 keyed observation per (file, job, required unique run-step name) with exact effective-command shell_lines (blanks, `#` comments, and odd-parity `\\` continuations excluded), and ratchets it against the embedded workflow_inline_shell_baseline. New keys or line-count growth are born-blocking; retired keys or line-count shrink must shrink the baseline in the same PR. Missing or duplicate names fail closed. Removing the shell itself (productizing it as a Rust/Buck2 step) is pipeline-glue(b).",
+      "_comment": "pipeline-glue(a): parses the declared workflow roots with a real YAML parser, emits one schema-v2 keyed observation per (file, job, required unique run-step name) with exact effective-command shell_lines, and ratchets it against the embedded workflow_inline_shell_baseline. New keys or line-count growth are born-blocking EXCEPT via a reviewed replacement_window (+1 schema_version + substantive reason + a new Accepted ADR absent from the protected merge-base); retired keys or line-count shrink must shrink the baseline in the same PR. Missing or duplicate names fail closed.",
       "enabled": true,
       "extensions": [
         ".yaml",
@@ -317,228 +306,120 @@
       ]
     }
   },
-  "schema_version": "1.4.0",
+  "schema_version": "2.0.0",
   "workflow_inline_shell_baseline": {
-    "_comment": "FROZEN exact named-step baseline of accepted workflow inline shell. Each entry is {key, shell_lines}, keyed as <workflow-relpath>::<job-id>::<required unique run-step name>. Both the named key set and shell_lines are exact shrink-accounted: a new key or line-count growth is born-blocking; a removed key or line-count shrink makes this baseline stale until it shrinks in the same reviewed PR. Missing or duplicate run-step names and malformed or duplicate baseline rows fail closed. This schema-v2 baseline was mechanically migrated from exact origin/dev commit 30dd46c4dd7d12c085b77332d9ac5035d583edcf, preserving its accepted 58 workflow run steps. shell_lines counts EFFECTIVE shell commands: blank lines, `#` comments, and `\\` line-continuations are excluded, because none is shell debt and counting them made the ratchet block documenting or wrapping a step that added no logic. The 12 entries whose counts fell when the counter was corrected were re-measured in the same PR.",
+    "_comment": "FROZEN exact named-step baseline of accepted workflow inline shell. Each entry is {key, shell_lines}, keyed as <workflow-relpath>::<job-id>::<required unique run-step name>. ADR-0716 replaced the whole baseline in one reviewed window: the CI merge path moved from buck2 to cargo, all job/step names became self-explanatory and debranded, and the cache-integrity canary plus the docs-graph-drift adapter were retired.",
     "_provenance": {
-      "authority": "pipeline-glue(a): rust-first ratchet workflow-inline-shell go-live; door:one-way",
+      "authority": "pipeline-glue(a): rust-first ratchet workflow-inline-shell; door:one-way except a reviewed replacement_window (+1 schema_version + reason + a new Accepted ADR absent from origin/dev) admits a deliberate CI redesign",
       "baseline_schema_version": 2,
-      "buck2_required_ci_note": "2026-06-25 #839: the required CI bridge is Buck2-only. The gate matrix adds one reviewed inline-shell key for the repo-owned official-Buck2 installer plus the Buck2 test step (gate::step-2..4). The live-Postgres lanes replace Swatinem rust-cache and cargo test with repo-owned install-buck2, actions/cache toolchain warmup, and buck2 test --local-only against isolated Postgres services; #901 splits the accepted live-Postgres keys into adapter/facade jobs (step-1 and step-3..6 for each lane). This remains transitional runner glue until the owned cloud-ci runner models the disposable database as a managed local_resource.",
-      "fric_017_note": "FRIC-017 disk-reclaim run-blocks were productized in pipeline-glue(b), then the two owned-runner invocations were retired with the unsafe whole-tree buck-out cache by ADR-0554 D10. The Rust preflight and hosted-runner policy remain reusable; required CI carries no reclaim shell step. Schema-v2 records the required named run-step key and exact shell_lines, so this reviewed baseline shrinks with those deleted invocations.",
-      "frozen_at": "2026-06-18",
-      "frozen_from_commit": "30dd46c4dd7d12c085b77332d9ac5035d583edcf",
+      "frozen_from_commit": "ADR-0716 cargo-merge-path PR",
       "keys_by_file": {
-        ".github/workflows/cache-integrity-canary.yml": 12,
-        ".github/workflows/docs-graph-drift.yml": 1,
-        ".github/workflows/oya-ci-required.yml": 38
+        ".github/workflows/buck2-weekly-smoke.yml": 3,
+        ".github/workflows/oya-ci-required.yml": 21
       },
-      "keys_total": 51,
-      "migration": "v1 positional step-N keys migrated mechanically from exact origin/dev base to required unique named-step keys with measured shell_lines; v2 is exact shrink-accounted."
+      "keys_total": 24
+    },
+    "replacement_window": {
+      "schema_version": 1,
+      "reason": "ADR-0716 moves the CI merge path from a 12-job buck2 workflow (no live remote cache, serial producer barrier, affected-set baselines) to a 6-job cargo workflow with shared build caching; the previous 51-key baseline described jobs that no longer exist, and the new job/step names are deliberately self-explanatory and debranded.",
+      "adr": "docs/decisions/ADR-0716-cargo-merge-path-buck2-local-hermeticity.md"
     },
     "codes": {
       "rust_first_automation_unbaselined_workflow_inline_shell": [
         {
-          "key": ".github/workflows/cache-integrity-canary.yml::canary::Cache-hit telemetry for the canary lane (must be 0%)",
-          "shell_lines": 2
-        },
-        {
-          "key": ".github/workflows/cache-integrity-canary.yml::canary::Canary verdict (byte-equality; RED fails the job)",
+          "key": ".github/workflows/buck2-weekly-smoke.yml::buck2-weekly-smoke::Hermetic workspace build",
           "shell_lines": 1
         },
         {
-          "key": ".github/workflows/cache-integrity-canary.yml::canary::Cold from-empty build of the pinned target set",
-          "shell_lines": 2
-        },
-        {
-          "key": ".github/workflows/cache-integrity-canary.yml::canary::Hash cold output digests into the manifest",
-          "shell_lines": 2
-        },
-        {
-          "key": ".github/workflows/cache-integrity-canary.yml::canary::Install buck2 (digest-pinned prebuilt release)",
+          "key": ".github/workflows/buck2-weekly-smoke.yml::buck2-weekly-smoke::Install pinned buck2 (digest-verified)",
           "shell_lines": 1
         },
         {
-          "key": ".github/workflows/cache-integrity-canary.yml::canary::Materialize cloud-ci generated faces (out-of-graph boundary)",
+          "key": ".github/workflows/buck2-weekly-smoke.yml::buck2-weekly-smoke::Provision pinned Rust toolchain",
           "shell_lines": 1
         },
         {
-          "key": ".github/workflows/cache-integrity-canary.yml::canary::Pre-provision pinned rust toolchain (serialize rustup before parallel buck2)",
-          "shell_lines": 2
-        },
-        {
-          "key": ".github/workflows/cache-integrity-canary.yml::canary::Prove zero cache participation (assert-cold over the record)",
-          "shell_lines": 2
-        },
-        {
-          "key": ".github/workflows/cache-integrity-canary.yml::canary::Read warm-license state (the declarative kill-switch)",
-          "shell_lines": 2
-        },
-        {
-          "key": ".github/workflows/cache-integrity-canary.yml::canary::Resolve cache posture for build class integrity-canary (must be bypass)",
-          "shell_lines": 2
-        },
-        {
-          "key": ".github/workflows/cache-integrity-canary.yml::canary::Resolve pinned canary target set (policy-as-data)",
-          "shell_lines": 3
-        },
-        {
-          "key": ".github/workflows/cache-integrity-canary.yml::canary::Warm-probe fetch (read-only; skipped while unlicensed)",
-          "shell_lines": 3
-        },
-        {
-          "key": ".github/workflows/docs-graph-drift.yml::docs-graph-drift::Materialize de-committed inputs, build + test the generator",
-          "shell_lines": 7
-        },
-        {
-          "key": ".github/workflows/oya-ci-required.yml::buck2::Cache-hit telemetry + warm-mode guard (ADR-0560)",
-          "shell_lines": 5
-        },
-        {
-          "key": ".github/workflows/oya-ci-required.yml::buck2::Install buck2 (digest-pinned prebuilt release)",
+          "key": ".github/workflows/oya-ci-required.yml::cross-platform-smoke::Cross-platform smoke tests",
           "shell_lines": 1
         },
         {
-          "key": ".github/workflows/oya-ci-required.yml::buck2::Materialize cloud-ci generated faces (out-of-graph boundary)",
+          "key": ".github/workflows/oya-ci-required.yml::cross-platform-smoke::Install pinned buck2 (digest-verified)",
           "shell_lines": 1
         },
         {
-          "key": ".github/workflows/oya-ci-required.yml::buck2::Pre-provision pinned rust toolchain (serialize rustup before parallel buck2)",
-          "shell_lines": 3
-        },
-        {
-          "key": ".github/workflows/oya-ci-required.yml::buck2::buck2 build + test (//ci/..., hermetic — binding)",
-          "shell_lines": 2
-        },
-        {
-          "key": ".github/workflows/oya-ci-required.yml::gate-affected-target-set::Binding affected-set build + test (cone-binding; FULL tier = build-health ratchet)",
-          "shell_lines": 17
-        },
-        {
-          "key": ".github/workflows/oya-ci-required.yml::gate-affected-target-set::Fetch base ref for the merge-base anchor",
+          "key": ".github/workflows/oya-ci-required.yml::cross-platform-smoke::Materialize generated faces",
           "shell_lines": 1
         },
         {
-          "key": ".github/workflows/oya-ci-required.yml::gate-affected-target-set::Install buck2 (digest-pinned prebuilt release)",
+          "key": ".github/workflows/oya-ci-required.yml::cross-platform-smoke::Pre-provision pinned toolchain components",
           "shell_lines": 1
         },
         {
-          "key": ".github/workflows/oya-ci-required.yml::gate-affected-target-set::Materialize cloud-ci generated faces (out-of-graph boundary)",
+          "key": ".github/workflows/oya-ci-required.yml::lint::Check formatting",
           "shell_lines": 1
         },
         {
-          "key": ".github/workflows/oya-ci-required.yml::gate-affected-target-set::Materialize merge-base build + test baselines when affected-set needs FULL",
-          "shell_lines": 53
-        },
-        {
-          "key": ".github/workflows/oya-ci-required.yml::gate-affected-target-set::Pre-provision pinned rust toolchain and PR metadata preflight",
-          "shell_lines": 3
-        },
-        {
-          "key": ".github/workflows/oya-ci-required.yml::gate-baseline-ratchet::Install buck2 (digest-pinned prebuilt release)",
+          "key": ".github/workflows/oya-ci-required.yml::lint::Clippy, warnings denied",
           "shell_lines": 1
         },
         {
-          "key": ".github/workflows/oya-ci-required.yml::gate-baseline-ratchet::Materialize cloud-ci generated faces",
-          "shell_lines": 1
-        },
-        {
-          "key": ".github/workflows/oya-ci-required.yml::gate-baseline-ratchet::buck2 test cloud-ci-firewall",
-          "shell_lines": 2
-        },
-        {
-          "key": ".github/workflows/oya-ci-required.yml::gate-generated-artifact-freshness::Install buck2 (digest-pinned prebuilt release)",
-          "shell_lines": 1
-        },
-        {
-          "key": ".github/workflows/oya-ci-required.yml::gate-generated-artifact-freshness::Pre-provision pinned Rust toolchain for Buck2 freshness binaries",
-          "shell_lines": 3
-        },
-        {
-          "key": ".github/workflows/oya-ci-required.yml::gate-generated-artifact-freshness::Run freshness gate",
-          "shell_lines": 3
-        },
-        {
-          "key": ".github/workflows/oya-ci-required.yml::gate-inventory-registry-drift::Install buck2 (digest-pinned prebuilt release)",
-          "shell_lines": 1
-        },
-        {
-          "key": ".github/workflows/oya-ci-required.yml::gate-inventory-registry-drift::Materialize faces then assert byte-parity",
-          "shell_lines": 4
-        },
-        {
-          "key": ".github/workflows/oya-ci-required.yml::gate-live-postgres-adapters::Bootstrap app role + durable schemas/roles (admin, adapters)",
+          "key": ".github/workflows/oya-ci-required.yml::live-postgres-adapters::Bootstrap roles and schemas (adapters)",
           "shell_lines": 10
         },
         {
-          "key": ".github/workflows/oya-ci-required.yml::gate-live-postgres-adapters::Install buck2 (digest-pinned prebuilt release)",
+          "key": ".github/workflows/oya-ci-required.yml::live-postgres-adapters::Install postgresql-client",
           "shell_lines": 1
         },
         {
-          "key": ".github/workflows/oya-ci-required.yml::gate-live-postgres-adapters::Install postgresql-client for the bootstrap",
-          "shell_lines": 4
+          "key": ".github/workflows/oya-ci-required.yml::live-postgres-adapters::Live Postgres tests (adapters)",
+          "shell_lines": 1
         },
         {
-          "key": ".github/workflows/oya-ci-required.yml::gate-live-postgres-adapters::Pre-provision pinned Rust toolchain for Buck2 live tests",
-          "shell_lines": 3
-        },
-        {
-          "key": ".github/workflows/oya-ci-required.yml::gate-live-postgres-adapters::buck2 test — durable adapters (admin=superuser, app=app-role)",
-          "shell_lines": 19
-        },
-        {
-          "key": ".github/workflows/oya-ci-required.yml::gate-live-postgres-facades::Bootstrap app role + durable schemas/roles (admin, facades)",
+          "key": ".github/workflows/oya-ci-required.yml::live-postgres-facades::Bootstrap roles and schemas (facades)",
           "shell_lines": 10
         },
         {
-          "key": ".github/workflows/oya-ci-required.yml::gate-live-postgres-facades::Install buck2 (digest-pinned prebuilt release)",
+          "key": ".github/workflows/oya-ci-required.yml::live-postgres-facades::Install postgresql-client",
           "shell_lines": 1
         },
         {
-          "key": ".github/workflows/oya-ci-required.yml::gate-live-postgres-facades::Install postgresql-client for the bootstrap",
-          "shell_lines": 4
-        },
-        {
-          "key": ".github/workflows/oya-ci-required.yml::gate-live-postgres-facades::Pre-provision pinned Rust toolchain for Buck2 live tests",
-          "shell_lines": 3
-        },
-        {
-          "key": ".github/workflows/oya-ci-required.yml::gate-live-postgres-facades::buck2 test — durable facades (live test = app-role, non-live = in-memory)",
-          "shell_lines": 10
-        },
-        {
-          "key": ".github/workflows/oya-ci-required.yml::gate::Install buck2 (digest-pinned prebuilt release)",
+          "key": ".github/workflows/oya-ci-required.yml::live-postgres-facades::Live Postgres tests (facades)",
           "shell_lines": 1
         },
         {
-          "key": ".github/workflows/oya-ci-required.yml::gate::Pre-provision pinned Rust toolchain for Buck2 gate tests",
-          "shell_lines": 3
-        },
-        {
-          "key": ".github/workflows/oya-ci-required.yml::gate::buck2 test ${{ matrix.crate }}",
+          "key": ".github/workflows/oya-ci-required.yml::oya-ci-required::Fan-in verdict",
           "shell_lines": 1
         },
         {
-          "key": ".github/workflows/oya-ci-required.yml::generated-output-diff-policy::Install buck2 (digest-pinned prebuilt release)",
+          "key": ".github/workflows/oya-ci-required.yml::test::Build enforcement-liveness producer",
           "shell_lines": 1
         },
         {
-          "key": ".github/workflows/oya-ci-required.yml::generated-output-diff-policy::Pre-provision pinned Rust toolchain for Buck2 policy binary",
-          "shell_lines": 3
-        },
-        {
-          "key": ".github/workflows/oya-ci-required.yml::generated-output-diff-policy::Reject non-deletion generated output edits",
-          "shell_lines": 10
-        },
-        {
-          "key": ".github/workflows/oya-ci-required.yml::oya-ci-required::Fan-in verdict (green IFF every gate lane is green)",
-          "shell_lines": 16
-        },
-        {
-          "key": ".github/workflows/oya-ci-required.yml::producer-regen::Install buck2 (digest-pinned prebuilt release)",
+          "key": ".github/workflows/oya-ci-required.yml::test::Install pinned buck2 (digest-verified)",
           "shell_lines": 1
         },
         {
-          "key": ".github/workflows/oya-ci-required.yml::producer-regen::Materialize cloud-ci generated faces",
+          "key": ".github/workflows/oya-ci-required.yml::test::Kernel workspace tests",
+          "shell_lines": 1
+        },
+        {
+          "key": ".github/workflows/oya-ci-required.yml::test::Live hub-exclusivity admission",
+          "shell_lines": 1
+        },
+        {
+          "key": ".github/workflows/oya-ci-required.yml::test::Materialize generated faces",
+          "shell_lines": 1
+        },
+        {
+          "key": ".github/workflows/oya-ci-required.yml::test::Pre-provision pinned toolchain components",
+          "shell_lines": 1
+        },
+        {
+          "key": ".github/workflows/oya-ci-required.yml::test::Reject non-deletion generated output edits",
+          "shell_lines": 1
+        },
+        {
+          "key": ".github/workflows/oya-ci-required.yml::test::Workspace tests",
           "shell_lines": 1
         }
       ]

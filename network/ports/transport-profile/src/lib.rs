@@ -70,6 +70,7 @@ pub struct EchPolicy {
 }
 
 impl EchPolicy {
+    #[cfg(test)]
     fn adr_0354_external() -> Self {
         Self {
             enabled: true,
@@ -115,6 +116,7 @@ impl PqcPolicy {
         PQC_TRANSITION_SUPPORTED_GROUPS.to_vec()
     }
 
+    #[cfg(test)]
     fn adr_0354_hybrid_required() -> Self {
         Self {
             enabled: true,
@@ -545,16 +547,16 @@ mod tests {
         assert_eq!(spec.protocol, TransportProtocol::Http3);
         assert_eq!(spec.capability_class, TransportCapabilityClass::External);
         assert!(spec.alt_svc.as_deref().unwrap_or_default().contains("h3"));
-        assert_eq!(spec.ech.enabled, true);
-        assert_eq!(spec.ech.support_required, true);
-        assert_eq!(spec.ech.plaintext_sni_fallback_allowed, true);
-        assert_eq!(spec.pqc.enabled, true);
-        assert_eq!(spec.pqc.hybrid_negotiation_required, true);
+        assert!(spec.ech.enabled);
+        assert!(spec.ech.support_required);
+        assert!(spec.ech.plaintext_sni_fallback_allowed);
+        assert!(spec.pqc.enabled);
+        assert!(spec.pqc.hybrid_negotiation_required);
         assert_eq!(
             spec.pqc.supported_groups,
             PqcPolicy::transition_supported_groups()
         );
-        assert_eq!(spec.pqc.classical_transition_fallback_allowed, true);
+        assert!(spec.pqc.classical_transition_fallback_allowed);
         assert_eq!(spec.validate(), proposed_profile_activation_error());
     }
 
@@ -631,7 +633,7 @@ mod tests {
         assert_eq!(spec.protocol, TransportProtocol::GrpcHttp2);
         assert_eq!(spec.tls_profile, TlsProfile::SpiffeMtlsTls13);
         assert_eq!(spec.alt_svc, None);
-        assert_eq!(spec.ech.enabled, false);
+        assert!(!spec.ech.enabled);
         assert_eq!(spec.pqc, PqcPolicy::disabled());
         assert_eq!(spec.validate(), Ok(()));
     }
@@ -1130,5 +1132,4 @@ mod tests {
         // Package-local fixture (not docs/adr-archive) so Buck hermetic srcs include it.
         include_str!("../fixtures/adr-0354-d7-external-example.txt").to_string()
     }
-
 }

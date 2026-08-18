@@ -32,7 +32,7 @@ use serde_json::Value;
 pub const GATE_ID: &str = "cloud-ci-root-workspace-hygiene";
 
 /// The blocking violation codes (stable slugs).
-pub const VIOLATION_CODES: [&str; 6] = [
+pub const VIOLATION_CODES: [&str; 11] = [
     // The policy `gate_id` does not match GATE_ID (config integrity).
     "root_workspace_gate_id_mismatch",
     // A tracked file at the repo ROOT matches no allowlist rule — born-blocking root scratch.
@@ -45,6 +45,14 @@ pub const VIOLATION_CODES: [&str; 6] = [
     "root_workspace_policy_malformed_rule",
     // A tracked UTF-8 document has a sensitive key subset from a generated Talos machine config.
     "credential_bearing_talos_machine_config",
+    // Corpus-budget dimension (anti-friction wave 3): shrink-only counts over the tracked-path
+    // inventory for the doc/evidence/planning classes. Growth is born-blocking; a deliberate
+    // budget raise is a reviewed DATA edit of `corpus_budget.counts`.
+    "corpus_budget_evidence_files_grew",
+    "corpus_budget_planning_files_grew",
+    "corpus_budget_docs_markdown_grew",
+    "corpus_budget_live_adrs_grew",
+    "corpus_budget_malformed",
 ];
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -347,12 +355,178 @@ pub fn evaluate_keyed(policy: &Value, observed: &Value) -> BTreeSet<Finding> {
         ));
     }
 
+    findings.extend(evaluate_corpus_budget(policy, observed));
+
     findings
 }
 
 /// Bare-report projection of [`evaluate_keyed`].
 pub fn evaluate(policy: &Value, observed: &Value) -> Report {
     Report::from_findings(&evaluate_keyed(policy, observed))
+}
+
+/// Corpus-budget dimension (ADR-0717): shrink-only counts over the tracked-path inventory for
+/// repo-specific sprawl classes. The class match rules live in DATA (`corpus_budget.classes`),
+/// each declaring `prefixes` and optional `suffixes`; the engine counts every row matching any
+/// prefix (and any suffix when declared). Growth past a frozen ceiling is born-blocking with a
+/// one-in-one-out remediation; a deliberate budget change is a reviewed DATA edit. An absent or
+/// malformed `corpus_budget` block fails closed — the ratchets are never silently disabled.
+pub fn corpus_class_counts(policy: &Value, observed: &Value) -> BTreeMap<String, usize> {
+    let mut counts = BTreeMap::new();
+    let Some(classes) = policy
+        .get("corpus_budget")
+        .and_then(|budget| budget.get("classes"))
+        .and_then(Value::as_object)
+    else {
+        return counts;
+    };
+    for row in observed
+        .get("rows")
+        .and_then(Value::as_array)
+        .into_iter()
+        .flatten()
+    {
+        let Some(path) = string_field(row, "path").filter(|path| !path.is_empty()) else {
+            continue;
+        };
+        let path = path.strip_prefix("./").unwrap_or(path);
+        for (class, matchers) in classes {
+            let Some(prefixes) = matchers.get("prefixes").and_then(Value::as_array) else {
+                continue;
+            };
+            let prefix_ok = prefixes.iter().any(|prefix| {
+                prefix
+                    .as_str()
+                    .is_some_and(|prefix| path.starts_with(prefix))
+            });
+            if !prefix_ok {
+                continue;
+            }
+            let suffix_ok = match matchers.get("suffixes").and_then(Value::as_array) {
+                None => true,
+                Some(suffixes) => suffixes
+                    .iter()
+                    .any(|suffix| suffix.as_str().is_some_and(|suffix| path.ends_with(suffix))),
+            };
+            if suffix_ok {
+                *counts.entry(class.clone()).or_default() += 1;
+            }
+        }
+    }
+    counts
+}
+
+fn corpus_growth_code(class: &str) -> Option<&'static str> {
+    match class {
+        "evidence_files" => Some("corpus_budget_evidence_files_grew"),
+        "planning_files" => Some("corpus_budget_planning_files_grew"),
+        "docs_markdown_files" => Some("corpus_budget_docs_markdown_grew"),
+        "live_adr_files" => Some("corpus_budget_live_adrs_grew"),
+        _ => None,
+    }
+}
+
+pub fn evaluate_corpus_budget(policy: &Value, observed: &Value) -> BTreeSet<Finding> {
+    let mut findings = BTreeSet::new();
+    let Some(budget) = policy.get("corpus_budget") else {
+        findings.insert(Finding::new(
+            "corpus_budget_malformed",
+            "<corpus_budget>",
+            "corpus_budget must be present with classes + counts; its absence silently disables the sprawl ratchets",
+        ));
+        return findings;
+    };
+    let Some(counts) = budget.get("counts").and_then(Value::as_object) else {
+        findings.insert(Finding::new(
+            "corpus_budget_malformed",
+            "<corpus_budget>",
+            "corpus_budget.counts must be an object of class ceilings",
+        ));
+        return findings;
+    };
+    if budget.get("classes").and_then(Value::as_object).is_none() {
+        findings.insert(Finding::new(
+            "corpus_budget_malformed",
+            "<corpus_budget>",
+            "corpus_budget.classes must be an object of class match rules (prefixes + optional suffixes)",
+        ));
+        return findings;
+    }
+
+    let observed_counts = corpus_class_counts(policy, observed);
+    for (class, frozen) in counts {
+        let Some(frozen_count) = frozen.as_u64() else {
+            findings.insert(Finding::new(
+                "corpus_budget_malformed",
+                "<corpus_budget>",
+                format!("corpus_budget.counts.{class} must be a non-negative integer"),
+            ));
+            continue;
+        };
+        let observed_count = observed_counts.get(class).copied().unwrap_or(0);
+        if observed_count > frozen_count as usize {
+            let Some(code) = corpus_growth_code(class) else {
+                findings.insert(Finding::new(
+                    "corpus_budget_malformed",
+                    "<corpus_budget>",
+                    format!("unknown corpus class {class} has no growth code; declare one in corpus_growth_code"),
+                ));
+                continue;
+            };
+            findings.insert(Finding::new(
+                code,
+                &format!("<{class}> {observed_count} > {frozen_count}"),
+                "retire a file of this class in the same PR (one-in-one-out) or lower the reviewed corpus_budget ceiling",
+            ));
+        }
+    }
+    findings
+}
+
+/// ADR-0717 reduction-preserving predicate (pure, zero I/O).
+///
+/// A class that shrank below the merge-base (`protected`) ceiling must lower the
+/// candidate ceiling all the way to the live count. Leftover slack is grow-back
+/// headroom: `observed <= original frozen` stays green, so post-cleanup files can
+/// grow back without one-in-one-out. Partial ceiling drops leave the same hole.
+pub fn corpus_class_reduction_leaves_headroom(
+    protected_ceiling: u64,
+    candidate_ceiling: u64,
+    observed_count: u64,
+) -> bool {
+    observed_count < protected_ceiling && candidate_ceiling > observed_count
+}
+
+/// Return whether a ceiling increase has an exact, attributed policy record.
+///
+/// This is the machine-checkable DATA half of ADR-0717's reviewed-raise contract. It does not
+/// claim that an external reviewer approved the change: review authority remains separate. A
+/// record matches only one transition when its `from` and `to` values equal the protected and
+/// candidate ceilings and its `reason` is non-empty.
+pub fn corpus_class_raise_matches_reviewed_record(
+    candidate_policy: &Value,
+    class: &str,
+    protected_ceiling: u64,
+    candidate_ceiling: u64,
+) -> bool {
+    if candidate_ceiling <= protected_ceiling {
+        return false;
+    }
+    let Some(record) = candidate_policy
+        .get("corpus_budget")
+        .and_then(|budget| budget.get("reviewed_raises"))
+        .and_then(|raises| raises.get(class))
+    else {
+        return false;
+    };
+    let reason_is_attributed = record
+        .get("reason")
+        .and_then(Value::as_str)
+        .is_some_and(|reason| !reason.trim().is_empty());
+
+    record.get("from").and_then(Value::as_u64) == Some(protected_ceiling)
+        && record.get("to").and_then(Value::as_u64) == Some(candidate_ceiling)
+        && reason_is_attributed
 }
 
 /// Extract YAML mapping key paths without retaining or inspecting scalar values.
@@ -441,16 +615,15 @@ pub fn evaluate_talos_machine_config_documents<'a>(
 ) -> BTreeSet<Finding> {
     documents
         .into_iter()
-        .filter_map(|(path, document)| {
-            has_generated_talos_machine_config_topology(document).then(|| {
-                Finding::new(
-                    "credential_bearing_talos_machine_config",
-                    path,
-                    format!(
-                        "tracked document `{path}` contains sensitive generated Talos machine-config credential topology. AUTO-FIX: remove it from git and regenerate outside the repository; retain only reviewed value-free patches/templates. Diagnostic output is value-redacted."
-                    ),
-                )
-            })
+        .filter(|(_, document)| has_generated_talos_machine_config_topology(document))
+        .map(|(path, _)| {
+            Finding::new(
+                "credential_bearing_talos_machine_config",
+                path,
+                format!(
+                    "tracked document `{path}` contains sensitive generated Talos machine-config credential topology. AUTO-FIX: remove it from git and regenerate outside the repository; retain only reviewed value-free patches/templates. Diagnostic output is value-redacted."
+                ),
+            )
         })
         .collect()
 }
@@ -463,6 +636,10 @@ mod tests {
     fn policy() -> Value {
         json!({
             "gate_id": GATE_ID,
+            "corpus_budget": {
+                "classes": {},
+                "counts": {}
+            },
             "allowed_root_files": [
                 { "id": "cargo-manifest", "kind": "exact",      "value": "Cargo.toml" },
                 { "id": "readme",         "kind": "prefix_dot", "value": "README" },
@@ -825,6 +1002,181 @@ spec:
         );
     }
 
+    // --- corpus-budget dimension (anti-friction wave 3) ---
+
+    fn corpus_policy() -> Value {
+        json!({
+            "corpus_budget": {
+                "classes": {
+                    "evidence_files": { "prefixes": ["evidence/"] },
+                    "planning_files": { "prefixes": ["tasks/", "plan/", "ci/evidence/"] },
+                    "docs_markdown_files": { "prefixes": ["docs/"], "suffixes": [".md"] },
+                    "live_adr_files": { "prefixes": ["docs/decisions/ADR-"], "suffixes": [".md"] }
+                },
+                "counts": {
+                    "evidence_files": 2,
+                    "planning_files": 1,
+                    "docs_markdown_files": 2,
+                    "live_adr_files": 1
+                }
+            }
+        })
+    }
+
+    fn corpus_observed(paths: &[&str]) -> Value {
+        json!({ "rows": paths.iter().map(|path| json!({ "path": path })).collect::<Vec<_>>() })
+    }
+
+    #[test]
+    fn corpus_budget_at_frozen_counts_is_green() {
+        let findings = evaluate_corpus_budget(
+            &corpus_policy(),
+            &corpus_observed(&[
+                "evidence/a.json",
+                "evidence/b.json",
+                "tasks/x-plan.md",
+                "docs/a.md",
+                "docs/decisions/ADR-0700-x.md",
+            ]),
+        );
+        assert!(
+            findings.is_empty(),
+            "frozen corpus must be green; got {findings:#?}"
+        );
+    }
+
+    #[test]
+    fn corpus_budget_growth_is_born_blocking_per_class() {
+        let findings = evaluate_corpus_budget(
+            &corpus_policy(),
+            &corpus_observed(&[
+                "evidence/a.json",
+                "evidence/b.json",
+                "evidence/c.json",
+                "tasks/x-plan.md",
+                "plan/extra.md",
+                "docs/a.md",
+                "docs/b.md",
+                "docs/c.md",
+                "docs/decisions/ADR-0700-x.md",
+                "docs/decisions/ADR-0701-y.md",
+            ]),
+        );
+        for code in [
+            "corpus_budget_evidence_files_grew",
+            "corpus_budget_planning_files_grew",
+            "corpus_budget_docs_markdown_grew",
+            "corpus_budget_live_adrs_grew",
+        ] {
+            assert!(
+                findings.iter().any(|f| f.code == code),
+                "growth must be born-blocking for {code}; got {findings:#?}"
+            );
+        }
+    }
+
+    #[test]
+    fn corpus_budget_absent_block_fails_closed() {
+        let findings = evaluate_corpus_budget(&json!({}), &corpus_observed(&["evidence/a.json"]));
+        assert!(
+            findings.iter().any(|f| f.code == "corpus_budget_malformed"),
+            "a policy without corpus_budget must fail closed, never disable the ratchets; got {findings:#?}"
+        );
+    }
+
+    #[test]
+    fn corpus_budget_missing_count_is_malformed() {
+        let policy = json!({ "corpus_budget": { "counts": { "evidence_files": 1 } } });
+        let findings = evaluate_corpus_budget(&policy, &corpus_observed(&["evidence/a.json"]));
+        assert!(
+            findings.iter().any(|f| f.code == "corpus_budget_malformed"),
+            "a missing class count must fail closed as malformed; got {findings:#?}"
+        );
+    }
+
+    #[test]
+    fn corpus_budget_unlowered_reduction_leaves_headroom() {
+        // Review example: evidence 249 → 240 with the frozen ceiling still 249.
+        assert!(corpus_class_reduction_leaves_headroom(249, 249, 240));
+        assert!(!corpus_class_reduction_leaves_headroom(249, 240, 240));
+        assert!(!corpus_class_reduction_leaves_headroom(249, 249, 249));
+    }
+
+    #[test]
+    fn corpus_budget_partial_ceiling_drop_still_leaves_headroom() {
+        // Lowering 249 → 245 while the live count is 240 still lets five files grow back.
+        assert!(corpus_class_reduction_leaves_headroom(249, 245, 240));
+        assert!(!corpus_class_reduction_leaves_headroom(249, 240, 240));
+    }
+
+    #[test]
+    fn corpus_budget_exact_attributed_raise_record_matches() {
+        let policy = json!({
+            "corpus_budget": {
+                "reviewed_raises": {
+                    "docs_markdown_files": {
+                        "from": 1433,
+                        "to": 1434,
+                        "reason": "docs/decisions/ADR-0717-corpus-budget-shrink-only-ratchet.md is the accepted ratchet authority"
+                    }
+                }
+            }
+        });
+
+        assert!(corpus_class_raise_matches_reviewed_record(
+            &policy,
+            "docs_markdown_files",
+            1433,
+            1434,
+        ));
+    }
+
+    #[test]
+    fn corpus_budget_raise_record_mismatch_or_missing_attribution_is_red() {
+        for record in [
+            json!({ "from": 1432, "to": 1434, "reason": "wrong source ceiling" }),
+            json!({ "from": 1433, "to": 1435, "reason": "wrong candidate ceiling" }),
+            json!({ "from": 1433, "to": 1434, "reason": "   " }),
+            json!({ "from": 1433, "to": 1434 }),
+        ] {
+            let policy = json!({
+                "corpus_budget": {
+                    "reviewed_raises": { "docs_markdown_files": record }
+                }
+            });
+            assert!(
+                !corpus_class_raise_matches_reviewed_record(
+                    &policy,
+                    "docs_markdown_files",
+                    1433,
+                    1434,
+                ),
+                "only an exact from/to record with non-empty attribution may match"
+            );
+        }
+
+        let stale_policy = json!({
+            "corpus_budget": {
+                "reviewed_raises": {
+                    "docs_markdown_files": {
+                        "from": 1433,
+                        "to": 1434,
+                        "reason": "already-consumed transition"
+                    }
+                }
+            }
+        });
+        assert!(
+            !corpus_class_raise_matches_reviewed_record(
+                &stale_policy,
+                "docs_markdown_files",
+                1434,
+                1435,
+            ),
+            "a prior exact record must not authorize a later ceiling increase"
+        );
+    }
+
     #[test]
     fn scratch_buckconfig_is_red() {
         let findings = evaluate_keyed(&policy(), &observed(&["scratch.buckconfig"]));
@@ -869,11 +1221,33 @@ spec:
             "allowed_root_files": [ { "id": "", "kind": "x", "value": "" } ],
             "allowed_root_dirs": [],
             "restricted_tracked_roots": [".claude"],
-            "allowed_tracked_paths": []
+            "allowed_tracked_paths": [],
+            "corpus_budget": {
+                "classes": {
+                    "evidence_files": { "prefixes": ["evidence/"] },
+                    "planning_files": { "prefixes": ["tasks/", "plan/", "ci/evidence/"] },
+                    "docs_markdown_files": { "prefixes": ["docs/"], "suffixes": [".md"] },
+                    "live_adr_files": { "prefixes": ["docs/decisions/ADR-"], "suffixes": [".md"] }
+                },
+                "counts": {
+                    "evidence_files": 0,
+                    "planning_files": 0,
+                    "docs_markdown_files": 0,
+                    "live_adr_files": 0
+                }
+            }
         });
         let mut findings = evaluate_keyed(
             &bad,
-            &observed(&["foo.log", "sandbox/x.rs", ".claude/worktrees/x"]),
+            &observed(&[
+                "foo.log",
+                "sandbox/x.rs",
+                ".claude/worktrees/x",
+                "evidence/x.json",
+                "tasks/p.md",
+                "docs/d.md",
+                "docs/decisions/ADR-0001-a.md",
+            ]),
         );
         findings.extend(evaluate_talos_machine_config_documents([(
             "renamed.yaml",
@@ -900,7 +1274,20 @@ cluster:
                 f.code
             );
         }
-        // All six codes are exercised by the path-policy and Talos-structure fixtures.
+        // The malformed-counts code is exercised by a policy whose counts object is present
+        // but carries no class entries.
+        findings.extend(evaluate_keyed(
+            &json!({
+                "gate_id": GATE_ID,
+                "allowed_root_files": [],
+                "allowed_root_dirs": [],
+                "restricted_tracked_roots": [],
+                "allowed_tracked_paths": [],
+                "corpus_budget": { "counts": {} }
+            }),
+            &observed(&["evidence/x.json"]),
+        ));
+        // All eleven codes are exercised by the path-policy, corpus-budget, and Talos fixtures.
         let emitted: BTreeSet<String> = findings.iter().map(|f| f.code.clone()).collect();
         assert_eq!(emitted, declared.iter().map(|s| s.to_string()).collect());
     }

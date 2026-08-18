@@ -37,9 +37,9 @@ use crate::volume_config::{
     decode_swap_volume_config_body, decode_user_volume_config_body, decode_volume_config_body,
 };
 use crate::yaml::{self, Yaml};
-use std::collections::BTreeSet;
 use os_kernel::error::{Error, Result};
 use os_kernel::machine_type::MachineType;
+use std::collections::BTreeSet;
 
 /// Read an indented `key: value` scalar from a YAML-ish body, honoring a parent
 /// path of `section.subkey` style (e.g. `machine.install.disk`). Returns the

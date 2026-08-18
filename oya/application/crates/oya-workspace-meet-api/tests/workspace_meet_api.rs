@@ -15,6 +15,11 @@ use oya_workspace_meet_api::{
 const SESSION_ID: &str = "meet_session_001";
 const TENANT_ID: &str = "ten_workspace_alpha";
 const HOST: &str = "user:host@example.com";
+/// Placement the request carries; the API echoes it back rather than choosing one, so the
+/// fixture and the replay assertion must name the same cell. They were two separate literals
+/// and had drifted apart — the fixture moved to the `kr` placement alongside `sfu-pool-kr-001`
+/// while the assertion still expected an older `alpha` cell.
+const CELL_ID: &str = "cell-workspace-kr-001";
 
 fn boundary(request_id: &str, idempotency_key: &str) -> WorkspaceMeetStartBoundaryContext {
     WorkspaceMeetStartBoundaryContext {
@@ -69,7 +74,7 @@ fn start_body(session_id: &str) -> WorkspaceMeetSessionStartRequest {
         session_id: session_id.to_string(),
         tenant_id: TENANT_ID.to_string(),
         region: "region-home".to_string(),
-        cell_id: "cell-workspace-kr-001".to_string(),
+        cell_id: CELL_ID.to_string(),
         sfu_pool_id: "sfu-pool-kr-001".to_string(),
         data_class: "PII_IDENTIFYING".to_string(),
         started_at_epoch_seconds: 1_700_000_000,
@@ -127,7 +132,7 @@ fn start_meet_session_creates_once_and_replays_same_idempotent_result() {
     assert_eq!(first.metadata.request_id, "req-workspace-meet-start");
     assert_eq!(first.metadata.surface, WORKSPACE_MEET_SESSION_START_SURFACE);
     assert_eq!(first.data.session_id, SESSION_ID);
-    assert_eq!(first.data.cell_id, "cell-workspace-alpha-001");
+    assert_eq!(first.data.cell_id, CELL_ID);
     assert_eq!(first.data.participants[0].role, "host");
     assert_eq!(first.data.recording_consent, "not_requested");
     assert_eq!(first.data.schema_version, 1);

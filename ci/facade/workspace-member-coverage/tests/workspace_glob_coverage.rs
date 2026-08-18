@@ -28,11 +28,7 @@ fn producer_binary(root: &Path, producer_bin: Option<&str>) -> Result<PathBuf, S
             "FAIL-CLOSED: missing OYA_CI_PRODUCER_BIN; Cargo fallback is forbidden".to_owned(),
         );
     };
-    Ok(if Path::new(bin).is_absolute() {
-        PathBuf::from(bin)
-    } else {
-        root.join(bin)
-    })
+    ci_path_resolver_adapters::resolve_cargo_test_binary(root, std::ffi::OsStr::new(bin))
 }
 
 #[test]
@@ -43,8 +39,7 @@ fn producer_binary_env_is_required_for_hermetic_gate() {
 }
 
 fn run_producer_face(root: &Path, face: &str) -> Value {
-    let scm_facts = root
-        .join("ci/facade/artifact-inventory-registry/scm-facts.generated.json");
+    let scm_facts = root.join("ci/facade/artifact-inventory-registry/scm-facts.generated.json");
     let producer_bin = std::env::var("OYA_CI_PRODUCER_BIN").ok();
     let bin = producer_binary(root, producer_bin.as_deref()).unwrap_or_else(|e| panic!("{e}"));
     let output = Command::new(bin)

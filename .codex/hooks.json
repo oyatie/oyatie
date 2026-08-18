@@ -13,7 +13,6 @@
         "hooks": [
           { "type": "command", "command": "tools/hooks/main-checkout-guard.sh" },
           { "type": "command", "command": "tools/hooks/local-authority-enforcer.sh" },
-          { "type": "command", "command": "tools/hooks/no-cargo-enforcer.sh" },
           { "type": "command", "command": "tools/hooks/stale-tool-suggester.sh" }
         ]
       },

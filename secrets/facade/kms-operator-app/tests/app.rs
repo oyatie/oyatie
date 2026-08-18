@@ -2,9 +2,7 @@ use secrets_kms_operator_app::{
     OperatorApp, OperatorConfig, OperatorStartupConfigError, OperatorStateStoreConfig,
     default_operator_backoff,
 };
-use secrets_kms_operator_k8s::{
-    AdapterError, InMemoryObservedStateProvider, KmsOperatorActuator,
-};
+use secrets_kms_operator_k8s::{AdapterError, InMemoryObservedStateProvider, KmsOperatorActuator};
 use secrets_kms_operator_kernel::{
     Action, Clock, DataClassLabel, DesiredState, HsmValidation, KeyOrigin, KeyRing, KeyUsage,
     KeyVersionRotationPolicy, ObservedState, ResidencyMode, SealingRoot,

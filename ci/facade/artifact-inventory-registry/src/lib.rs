@@ -1441,6 +1441,94 @@ pub fn registration_matches(path: &str, prefix: &str) -> bool {
     }
 }
 
+/// Envelope policy SSOT (cite; do not re-list roots in this crate).
+/// Authority: `specs/integ-branch-envelopes.json#path_ownership` + `#roots.*.envelope_globs`.
+pub const ENVELOPES_RELPATH: &str = "specs/integ-branch-envelopes.json";
+
+/// Reachability source tag when a path is covered by an envelope `envelope_globs` prefix.
+/// Forever admission.policy consumes these so in-domain adds need no per-file tip-free row.
+pub const ENVELOPE_PREFIX_OWNERSHIP_SOURCE: &str = "envelope-prefix-ownership";
+
+/// Convert one envelope glob (`compute/**`) into a reachability prefix (`compute/`).
+///
+/// Only the live envelope shape `dir/**` is accepted (measured: all 74 roots use it).
+/// Other glob shapes return `None` (fail-closed — never invent a silent broad allow).
+pub fn envelope_glob_to_prefix(glob: &str) -> Option<String> {
+    let glob = glob.trim();
+    if let Some(stem) = glob.strip_suffix("/**") {
+        if stem.is_empty() || stem.contains('*') || stem.starts_with('/') || stem.contains("..") {
+            return None;
+        }
+        return Some(format!("{stem}/"));
+    }
+    None
+}
+
+/// Load prefix allows from `roots.*.envelope_globs` (path ownership law).
+///
+/// Missing file ⇒ empty (zero-config fixtures). Present but missing/non-object `roots`
+/// ⇒ hard error (fail-loud). Duplicate prefixes collapse.
+pub fn load_envelope_prefix_allows(
+    path: &std::path::Path,
+) -> Result<Vec<ReachabilityRegistration>, ProducerError> {
+    let text = match std::fs::read_to_string(path) {
+        Ok(text) => text,
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(Vec::new()),
+        Err(e) => return Err(ProducerError::Io(format!("{}: {e}", path.display()))),
+    };
+    let value: Value = serde_json::from_str(&text)
+        .map_err(|e| ProducerError::Validation(format!("{}: parse: {e}", path.display())))?;
+    let roots = value
+        .get("roots")
+        .and_then(Value::as_object)
+        .ok_or_else(|| {
+            ProducerError::Validation(format!(
+                "{}: missing object 'roots' (fail-loud: envelope prefix allow requires \
+             roots.*.envelope_globs)",
+                path.display()
+            ))
+        })?;
+
+    let mut by_prefix: BTreeMap<String, String> = BTreeMap::new();
+    for (root_id, root) in roots {
+        let Some(globs) = root.get("envelope_globs").and_then(Value::as_array) else {
+            continue;
+        };
+        let branch = root
+            .get("branch")
+            .and_then(Value::as_str)
+            .unwrap_or(root_id);
+        for (index, glob_value) in globs.iter().enumerate() {
+            let Some(glob) = glob_value.as_str() else {
+                return Err(ProducerError::Validation(format!(
+                    "{}: roots.{root_id}.envelope_globs[{index}] must be a string",
+                    path.display()
+                )));
+            };
+            let Some(prefix) = envelope_glob_to_prefix(glob) else {
+                return Err(ProducerError::Validation(format!(
+                    "{}: roots.{root_id}.envelope_globs[{index}]={glob:?} is not a supported \
+                     envelope prefix glob (expected 'dir/**')",
+                    path.display()
+                )));
+            };
+            by_prefix.entry(prefix).or_insert_with(|| {
+                format!(
+                    "Envelope prefix ownership ({branch} → {glob}): in-domain path allow from \
+                     {ENVELOPES_RELPATH}#roots.{root_id}.envelope_globs (path_ownership law). \
+                     Per-file tip-free / reachability-registry rows are NOT required for paths \
+                     under this prefix."
+                )
+            });
+        }
+    }
+
+    Ok(by_prefix
+        .into_iter()
+        .map(|(prefix, anchor)| ReachabilityRegistration { prefix, anchor })
+        .collect())
+}
+
 /// `fix-owners <dir>=<owner>` — the TRANSITIONAL ownership-registration bridge
 /// (ADR-0555; cli_surface_policy: local bridge only, never merge authority; successor =
 /// the ADR-0548 D3 reconcilers). The OWNER is the human design decision supplied as input;
@@ -1683,7 +1771,11 @@ mod tests {
         assert_eq!(policy.classify("third-party/foo/lib.rs"), "vendor");
         assert_eq!(policy.classify("docs/foo.generated.json"), "generated");
         assert_eq!(policy.classify("specs/masterplan.json"), "spec");
-        assert_eq!(policy.classify("docs/adr-archive/ADR-0001-cohesion-thesis-one-product-flat-catalog.md"), "doc");
+        assert_eq!(
+            policy
+                .classify("docs/adr-archive/ADR-0001-cohesion-thesis-one-product-flat-catalog.md"),
+            "doc"
+        );
         assert_eq!(policy.classify("oya/x/src/lib.rs"), "code");
         assert_eq!(policy.classify("some/unknown/blob"), "husk");
     }
@@ -2114,7 +2206,8 @@ mod tests {
         let root = unique_temp_repo();
         std::fs::create_dir_all(root.join("docs/adr-archive")).expect("create dir");
         let cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
-        let scm = tracked(&["docs/adr-archive/ADR-0001-cohesion-thesis-one-product-flat-catalog.md"]);
+        let scm =
+            tracked(&["docs/adr-archive/ADR-0001-cohesion-thesis-one-product-flat-catalog.md"]);
         let message = fix_owners(&root, &cfg, &scm, "docs/adr-archive=council-architecture")
             .expect("fix applies");
         assert!(message.contains("1 tracked path(s)"), "{message}");
@@ -2186,7 +2279,8 @@ mod tests {
         let root = unique_temp_repo();
         std::fs::create_dir_all(root.join("docs/adr-archive")).expect("create dir");
         let cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
-        let scm = tracked(&["docs/adr-archive/ADR-0001-cohesion-thesis-one-product-flat-catalog.md"]);
+        let scm =
+            tracked(&["docs/adr-archive/ADR-0001-cohesion-thesis-one-product-flat-catalog.md"]);
 
         // A principal the resolver would reject must be refused BEFORE writing.
         for hostile in ["Team Evil", "EVIL", "evil!", "a@b.example", "-x"] {
@@ -2266,12 +2360,7 @@ mod tests {
         std::fs::write(root.join("bad/thing.rs"), "fn main() {}\n").expect("write covered");
 
         let cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
-        let paths = tracked(&[
-            "bad/OWNERS",
-            "bad/thing.rs",
-            "good/OWNERS",
-            "good/thing.rs",
-        ]);
+        let paths = tracked(&["bad/OWNERS", "bad/thing.rs", "good/OWNERS", "good/thing.rs"]);
         let resolution = resolve_owners(&root, &paths, &cfg);
         assert_eq!(
             resolution.valid_files,
@@ -2311,12 +2400,11 @@ mod tests {
             good["reachable_from"],
             serde_json::json!([OWNERS_SCHEMA_ANCHOR])
         );
-        let good_findings: BTreeSet<String> =
-            ci_artifact_accountability::evaluate_keyed(&registry)
-                .into_iter()
-                .filter(|f| f.key == "good/OWNERS")
-                .map(|f| f.code)
-                .collect();
+        let good_findings: BTreeSet<String> = ci_artifact_accountability::evaluate_keyed(&registry)
+            .into_iter()
+            .filter(|f| f.key == "good/OWNERS")
+            .map(|f| f.code)
+            .collect();
         assert!(
             good_findings.is_empty(),
             "a schema-valid OWNERS file must raise NO accounting violation, got {good_findings:?}"
@@ -2357,14 +2445,8 @@ mod tests {
         let policy = Policy::from_bundled().expect("policy");
         let inputs = RepoInputs {
             tracked_paths: tracked(&["cloud/x/OWNERS"]),
-            owners: BTreeMap::from([(
-                "cloud/x/OWNERS".to_owned(),
-                "OWNERS:cloud/x".to_owned(),
-            )]),
-            justifications: BTreeMap::from([(
-                "cloud/x/OWNERS".to_owned(),
-                "ADR-0543".to_owned(),
-            )]),
+            owners: BTreeMap::from([("cloud/x/OWNERS".to_owned(), "OWNERS:cloud/x".to_owned())]),
+            justifications: BTreeMap::from([("cloud/x/OWNERS".to_owned(), "ADR-0543".to_owned())]),
             reachability: BTreeMap::from([(
                 "cloud/x/OWNERS".to_owned(),
                 vec!["cargo-members".to_owned()],
@@ -2560,5 +2642,83 @@ mod tests {
                 "{invalid:?} must be rejected"
             );
         }
+    }
+
+    #[test]
+    fn envelope_glob_to_prefix_accepts_dir_star_star_only() {
+        assert_eq!(
+            envelope_glob_to_prefix("compute/**").as_deref(),
+            Some("compute/")
+        );
+        assert_eq!(
+            envelope_glob_to_prefix("app/payments/**").as_deref(),
+            Some("app/payments/")
+        );
+        assert_eq!(envelope_glob_to_prefix("compute/"), None);
+        assert_eq!(envelope_glob_to_prefix("compute/*"), None);
+        assert_eq!(envelope_glob_to_prefix("**/evil"), None);
+        assert_eq!(envelope_glob_to_prefix("/**"), None);
+        assert_eq!(envelope_glob_to_prefix("../escape/**"), None);
+    }
+
+    #[test]
+    fn load_envelope_prefix_allows_covers_owned_prefix_without_tip_free() {
+        let root = std::env::temp_dir().join(format!(
+            "oya-envelope-prefix-{}-{}",
+            std::process::id(),
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .expect("clock")
+                .as_nanos()
+        ));
+        std::fs::create_dir_all(root.join("specs")).expect("specs dir");
+        let envelopes = root.join(ENVELOPES_RELPATH);
+        std::fs::write(
+            &envelopes,
+            r#"{
+              "roots": {
+                "compute": {
+                  "branch": "integ/compute",
+                  "envelope_globs": ["compute/**"]
+                },
+                "iac": {
+                  "branch": "integ/iac",
+                  "envelope_globs": ["iac/**"]
+                }
+              }
+            }"#,
+        )
+        .expect("write envelopes");
+
+        let allows = load_envelope_prefix_allows(&envelopes).expect("load");
+        assert_eq!(allows.len(), 2);
+        assert!(allows.iter().any(|e| e.prefix == "compute/"));
+        assert!(allows.iter().any(|e| e.prefix == "iac/"));
+        assert!(registration_matches(
+            "compute/manifest.json",
+            &allows
+                .iter()
+                .find(|e| e.prefix == "compute/")
+                .unwrap()
+                .prefix
+        ));
+        assert!(registration_matches(
+            "iac/governance/note.md",
+            &allows.iter().find(|e| e.prefix == "iac/").unwrap().prefix
+        ));
+        assert!(!registration_matches("compute-evil/x.rs", "compute/"));
+
+        // missing file ⇒ empty (fixture zero-config)
+        std::fs::remove_file(&envelopes).expect("remove");
+        assert!(
+            load_envelope_prefix_allows(&envelopes)
+                .expect("missing ok")
+                .is_empty()
+        );
+        // present without roots ⇒ fail-loud
+        std::fs::write(&envelopes, "{}").expect("write empty");
+        assert!(load_envelope_prefix_allows(&envelopes).is_err());
+
+        let _ = std::fs::remove_dir_all(root);
     }
 }

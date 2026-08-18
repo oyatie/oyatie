@@ -45,9 +45,10 @@ impl SideroLinkConfig {
         let query = self.api_url.split_once('?').map(|(_, q)| q)?;
         for pair in query.split('&') {
             if let Some(("jointoken", value)) = pair.split_once('=')
-                && !value.is_empty() {
-                    return Some(value);
-                }
+                && !value.is_empty()
+            {
+                return Some(value);
+            }
         }
         None
     }
@@ -85,11 +86,12 @@ impl ConfigDocument for SideroLinkConfig {
             return Err(Error::invalid("SideroLinkConfig: apiUrl is missing a host"));
         }
         if let Some(tok) = &self.unique_token
-            && tok.trim().is_empty() {
-                return Err(Error::invalid(
-                    "SideroLinkConfig: uniqueToken, if set, must be non-empty",
-                ));
-            }
+            && tok.trim().is_empty()
+        {
+            return Err(Error::invalid(
+                "SideroLinkConfig: uniqueToken, if set, must be non-empty",
+            ));
+        }
         Ok(())
     }
 }

@@ -14,9 +14,8 @@
 use std::sync::{Arc, Mutex};
 
 use observability_tracing_adapter::{
-    AlertBurnRate, AlertDecision, NoopSloBreachTraceObserver, SloBreachTraceContext,
-    SloBreachTraceObserver, SloObjective, TracingSloBreachTraceObserver,
-    SLO_BREACH_SPAN_NAME,
+    AlertBurnRate, AlertDecision, NoopSloBreachTraceObserver, SLO_BREACH_SPAN_NAME,
+    SloBreachTraceContext, SloBreachTraceObserver, SloObjective, TracingSloBreachTraceObserver,
     slo_fields,
 };
 use tracing_subscriber::fmt::MakeWriter;
@@ -60,9 +59,7 @@ impl std::io::Write for BufWriterGuard {
 // Helper: build a scoped JSON subscriber that writes to a BufWriter
 // ---------------------------------------------------------------------------
 
-fn make_scoped_subscriber(
-    writer: BufWriter,
-) -> impl tracing::Subscriber + Send + Sync + 'static {
+fn make_scoped_subscriber(writer: BufWriter) -> impl tracing::Subscriber + Send + Sync + 'static {
     use tracing_subscriber::{EnvFilter, fmt as tracing_fmt};
     tracing_fmt()
         .json()
@@ -129,8 +126,7 @@ fn none_context() -> SloBreachTraceContext {
 #[test]
 fn slo_breach_span_name_is_stable() {
     assert_eq!(
-        SLO_BREACH_SPAN_NAME,
-        "slo.breach.evaluate",
+        SLO_BREACH_SPAN_NAME, "slo.breach.evaluate",
         "span name must be stable; downstream OTLP consumers depend on it"
     );
 }

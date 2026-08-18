@@ -27,7 +27,6 @@ use std::fmt;
 /// flagged as belonging to ClickHouse per ADR-0193.
 pub const WIDE_AGGREGATE_ROW_THRESHOLD: u64 = 100_000;
 
-
 /// Storage tier the SQL fragment runs against, per ADR-0184 layering.
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum StorageTier {
@@ -324,7 +323,6 @@ mod tests {
         )]);
         assert!(r.violations.is_empty());
     }
-
 
     #[test]
     fn storage_tier_label_round_trips() {

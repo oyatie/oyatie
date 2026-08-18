@@ -309,35 +309,24 @@ pub fn event_row_for_decision(
     }
 }
 
-pub fn dispatch_row(
-    lane_id: &str,
-    brief: &str,
-    worktree: &str,
-    branch: &str,
-    base: &str,
-    expected_hard_surfaces: &[String],
-    expected_soft_surfaces: &[String],
-    log: &str,
-    wait_file: &str,
-    start_file: &str,
-    run_id: &str,
-    pid: u32,
-    at: String,
-) -> LedgerRow {
-    let mut fields = dispatch_common_fields(
-        lane_id,
-        brief,
-        worktree,
-        branch,
-        base,
-        expected_hard_surfaces,
-        expected_soft_surfaces,
-        log,
-        wait_file,
-        start_file,
-        run_id,
-        at,
-    );
+/// Named inputs shared by dispatch-registration and dispatched ledger rows.
+pub struct DispatchRowInput<'a> {
+    pub lane_id: &'a str,
+    pub brief: &'a str,
+    pub worktree: &'a str,
+    pub branch: &'a str,
+    pub base: &'a str,
+    pub expected_hard_surfaces: &'a [String],
+    pub expected_soft_surfaces: &'a [String],
+    pub log: &'a str,
+    pub wait_file: &'a str,
+    pub start_file: &'a str,
+    pub run_id: &'a str,
+    pub at: String,
+}
+
+pub fn dispatch_row(input: DispatchRowInput<'_>, pid: u32) -> LedgerRow {
+    let mut fields = dispatch_common_fields(input);
     fields.insert("status".to_owned(), Value::String("dispatched".to_owned()));
     fields.insert("pid".to_owned(), Value::Number(i64::from(pid).into()));
     fields.insert(
@@ -348,21 +337,14 @@ pub fn dispatch_row(
     LedgerRow::from_fields(fields)
 }
 
-pub fn dispatch_registration_row(
-    lane_id: &str,
-    brief: &str,
-    worktree: &str,
-    branch: &str,
-    base: &str,
-    expected_hard_surfaces: &[String],
-    expected_soft_surfaces: &[String],
-    log: &str,
-    wait_file: &str,
-    start_file: &str,
-    run_id: &str,
-    at: String,
-) -> LedgerRow {
-    let mut fields = dispatch_common_fields(
+pub fn dispatch_registration_row(input: DispatchRowInput<'_>) -> LedgerRow {
+    let mut fields = dispatch_common_fields(input);
+    fields.insert("status".to_owned(), Value::String("dispatching".to_owned()));
+    LedgerRow::from_fields(fields)
+}
+
+fn dispatch_common_fields(input: DispatchRowInput<'_>) -> Map<String, Value> {
+    let DispatchRowInput {
         lane_id,
         brief,
         worktree,
@@ -375,25 +357,7 @@ pub fn dispatch_registration_row(
         start_file,
         run_id,
         at,
-    );
-    fields.insert("status".to_owned(), Value::String("dispatching".to_owned()));
-    LedgerRow::from_fields(fields)
-}
-
-fn dispatch_common_fields(
-    lane_id: &str,
-    brief: &str,
-    worktree: &str,
-    branch: &str,
-    base: &str,
-    expected_hard_surfaces: &[String],
-    expected_soft_surfaces: &[String],
-    log: &str,
-    wait_file: &str,
-    start_file: &str,
-    run_id: &str,
-    at: String,
-) -> Map<String, Value> {
+    } = input;
     let mut fields = Map::new();
     fields.insert("lane_id".to_owned(), Value::String(lane_id.to_owned()));
     fields.insert("brief".to_owned(), Value::String(brief.to_owned()));
@@ -420,10 +384,10 @@ fn dispatch_common_fields(
 }
 
 pub fn derive_lane_id(branch: &str, brief: &str) -> String {
-    if let Some(branch_stem) = branch.strip_prefix("agent/") {
-        if !branch_stem.is_empty() {
-            return branch_stem.replace('/', "-");
-        }
+    if let Some(branch_stem) = branch.strip_prefix("agent/")
+        && !branch_stem.is_empty()
+    {
+        return branch_stem.replace('/', "-");
     }
     if !branch.is_empty() {
         return branch.replace('/', "-");
@@ -878,19 +842,21 @@ mod tests {
     #[test]
     fn dispatch_rows_include_registration_surface_contract() {
         let row = dispatch_row(
-            "L-1",
-            "brief.md",
-            "/w",
-            "agent/a",
-            "16f2e3b54",
-            &["tools/oya-lane-supervisor-app/".to_owned()],
-            &["Cargo.lock".to_owned(), "generated-faces".to_owned()],
-            "/tmp/lane.log",
-            "/tmp/lane.run-1.wait.json",
-            "/tmp/lane.run-1.start.json",
-            "run-1",
+            DispatchRowInput {
+                lane_id: "L-1",
+                brief: "brief.md",
+                worktree: "/w",
+                branch: "agent/a",
+                base: "16f2e3b54",
+                expected_hard_surfaces: &["tools/oya-lane-supervisor-app/".to_owned()],
+                expected_soft_surfaces: &["Cargo.lock".to_owned(), "generated-faces".to_owned()],
+                log: "/tmp/lane.log",
+                wait_file: "/tmp/lane.run-1.wait.json",
+                start_file: "/tmp/lane.run-1.start.json",
+                run_id: "run-1",
+                at: "2026-06-10T17:30:00Z".to_owned(),
+            },
             42,
-            "2026-06-10T17:30:00Z".to_owned(),
         );
 
         assert_eq!(row.lane_id(), Some("L-1"));
@@ -913,20 +879,20 @@ mod tests {
 
     #[test]
     fn dispatch_registration_row_precedes_spawn_without_pid() {
-        let row = dispatch_registration_row(
-            "L-1",
-            "brief.md",
-            "/w",
-            "agent/a",
-            "16f2e3b54",
-            &["tools/oya-lane-supervisor-app/".to_owned()],
-            &["Cargo.lock".to_owned(), "generated-faces".to_owned()],
-            "/tmp/lane.log",
-            "/tmp/lane.run-1.wait.json",
-            "/tmp/lane.run-1.start.json",
-            "run-1",
-            "2026-06-10T17:30:00Z".to_owned(),
-        );
+        let row = dispatch_registration_row(DispatchRowInput {
+            lane_id: "L-1",
+            brief: "brief.md",
+            worktree: "/w",
+            branch: "agent/a",
+            base: "16f2e3b54",
+            expected_hard_surfaces: &["tools/oya-lane-supervisor-app/".to_owned()],
+            expected_soft_surfaces: &["Cargo.lock".to_owned(), "generated-faces".to_owned()],
+            log: "/tmp/lane.log",
+            wait_file: "/tmp/lane.run-1.wait.json",
+            start_file: "/tmp/lane.run-1.start.json",
+            run_id: "run-1",
+            at: "2026-06-10T17:30:00Z".to_owned(),
+        });
 
         assert_eq!(row.status(), Some("dispatching"));
         assert_eq!(row.get_str("run_id"), Some("run-1"));
