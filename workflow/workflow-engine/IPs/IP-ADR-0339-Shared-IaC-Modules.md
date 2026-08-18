@@ -15,7 +15,7 @@ lifecycle_rule: PROPOSED until the microservice wrappers invoke signed shared Op
 
 ## 1. Lifecycle, Boundary, And Stop Condition
 SCOPE-001: This IP binds `workflow-engine` to ADR-0339 shared IaC module doctrine without authoring Rust, changing crates, or applying infrastructure.
-SCOPE-002: Lifecycle state is PROPOSED for `workflow-engine` until the service-owned wrapper files under `microservices/workflow-engine/iac/<context>/main.tf` invoke signed cloud-iac modules and implementation evidence is reviewed.
+SCOPE-002: Lifecycle state is PROPOSED for `workflow-engine` until the service-owned wrapper files under `workflow/workflow-engine/iac/<context>/main.tf` invoke signed cloud-iac modules and implementation evidence is reviewed.
 SCOPE-003: ACCEPTED status requires a later service implementation change, not this document-stage propagation.
 SCOPE-004: The only implementation authority created here is documentation intent plus manifest `iac_module_invocations` alignment for `workflow-engine`.
 SCOPE-005: The stop condition for this IP is a reviewable doctrine packet: IP present, manifest field populated, PRD adoption section appended, ARCH integration section appended, and ADR citations validated.
@@ -61,12 +61,12 @@ DOSSIER-CRATE-017: Existing crate `oya-workflow-engine-execution-engine-domain` 
 DOSSIER-CRATE-018: Existing crate `oya-workflow-engine-execution-engine-kernel` remains untouched by this document-stage IP.
 DOSSIER-CRATE-019: Existing crate `oya-workflow-engine-execution-engine-rest` remains untouched by this document-stage IP.
 DOSSIER-CRATE-020: Existing crate `oya-workflow-engine-execution-engine-sdk` remains untouched by this document-stage IP.
-DOSSIER-CONTRACT-001: OpenAPI 3.2.0: microservices/workflow-engine/contracts/openapi/workflow-engine.yaml.
-DOSSIER-CONTRACT-002: AsyncAPI 3.1.0: microservices/workflow-engine/contracts/asyncapi/workflow-events.yaml.
-DOSSIER-CONTRACT-003: proto3: microservices/workflow-engine/contracts/proto/workflow-engine.proto.
-DOSSIER-CAPABILITY-001: T? workflow-execute risk=high file=microservices/workflow-engine/capabilities/workflow-execute.yaml.
-DOSSIER-CAPABILITY-002: T? workflow-pause risk=limited file=microservices/workflow-engine/capabilities/workflow-pause.yaml.
-DOSSIER-CAPABILITY-003: T? workflow-replay risk=limited file=microservices/workflow-engine/capabilities/workflow-replay.yaml.
+DOSSIER-CONTRACT-001: OpenAPI 3.2.0: workflow/workflow-engine/contracts/openapi/workflow-engine.yaml.
+DOSSIER-CONTRACT-002: AsyncAPI 3.1.0: workflow/workflow-engine/contracts/asyncapi/workflow-events.yaml.
+DOSSIER-CONTRACT-003: proto3: workflow/workflow-engine/contracts/proto/workflow-engine.proto.
+DOSSIER-CAPABILITY-001: T? workflow-execute risk=high file=workflow/workflow-engine/capabilities/workflow-execute.yaml.
+DOSSIER-CAPABILITY-002: T? workflow-pause risk=limited file=workflow/workflow-engine/capabilities/workflow-pause.yaml.
+DOSSIER-CAPABILITY-003: T? workflow-replay risk=limited file=workflow/workflow-engine/capabilities/workflow-replay.yaml.
 
 ## 3. ADR-0339 Doctrine Binding
 ADR0339-001: Purpose binding: collapse 385 per-service from-scratch module directories into roughly 50 shared OpenTofu primitives plus thin wrappers.
@@ -288,9 +288,9 @@ LEADER-018: `workflow-engine` leader-scale posture keeps primitive selection exp
 
 ## 12. API And Contract Documentation Impact
 API-001: `workflow-engine` does not change REST, event, or proto payloads in this document-stage wave.
-API-002: OpenAPI 3.2.0 references for `workflow-engine` remain: OpenAPI 3.2.0: microservices/workflow-engine/contracts/openapi/workflow-engine.yaml
-API-003: AsyncAPI 3.1.0 references for `workflow-engine` remain: AsyncAPI 3.1.0: microservices/workflow-engine/contracts/asyncapi/workflow-events.yaml
-API-004: proto3 references for `workflow-engine` remain: proto3: microservices/workflow-engine/contracts/proto/workflow-engine.proto
+API-002: OpenAPI 3.2.0 references for `workflow-engine` remain: OpenAPI 3.2.0: workflow/workflow-engine/contracts/openapi/workflow-engine.yaml
+API-003: AsyncAPI 3.1.0 references for `workflow-engine` remain: AsyncAPI 3.1.0: workflow/workflow-engine/contracts/asyncapi/workflow-events.yaml
+API-004: proto3 references for `workflow-engine` remain: proto3: workflow/workflow-engine/contracts/proto/workflow-engine.proto
 API-005: If a future wrapper migration exposes deployment preview APIs, the public boundary must carry ADR-0342 date-version carriers separately from module semantic versions.
 API-006: If a future wrapper migration changes async deployment events, the AsyncAPI channel must identify module context, primitive, version_pin, tenant_class_scope, and cell_id.
 API-007: If a future wrapper migration changes proto deployment receipts, proto3 reserved tags must prevent silent field reuse.
@@ -314,7 +314,7 @@ ALT-004: Delay `workflow-engine` manifest declaration until implementation; reje
 ALT-005: Allow unpinned local module paths during migration; rejected because the exact path would work locally while hiding supply-chain and reproducibility risk.
 
 ## 15. Acceptance And Verification
-VERIFY-001: Static read confirms this file exists at `microservices/workflow-engine/IPs/IP-ADR-0339-Shared-IaC-Modules.md`.
+VERIFY-001: Static read confirms this file exists at `workflow/workflow-engine/IPs/IP-ADR-0339-Shared-IaC-Modules.md`.
 VERIFY-002: Static read confirms ADR-0339 is cited by exact ID.
 VERIFY-003: Static read confirms ADR-0322 is cited by exact ID.
 VERIFY-004: Static read confirms ADR-0181 is cited by exact ID.

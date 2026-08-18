@@ -64,7 +64,9 @@ jobs:
         # files this PR changed. Deleted paths are not rustfmt inputs. skip_children
         # keeps a crate-root path from re-checking untouched sibling modules that
         # still carry pre-existing rustfmt debt. Repo-wide drift is a follow-up PR.
-        run: files="$(git diff --diff-filter=ACMR --name-only "origin/${GITHUB_BASE_REF:-dev}...HEAD" -- '*.rs')" && { [ -z "$files" ] || rustfmt --check --config skip_children=true -- $files; }
+        env:
+          BASE_REF: ${{ github.base_ref || github.event.merge_group.base_ref || 'dev' }}
+        run: files="$(git diff --diff-filter=ACMR --name-only "origin/${BASE_REF#refs/heads/}...HEAD" -- '*.rs')" && { [ -z "$files" ] || rustfmt --check --config skip_children=true -- $files; }
       - name: Clippy, warnings denied
         # Advisory until the repo-wide lint-debt cleanup PR lands, then blocking.
         # The differential format gate above is the blocking new-debt guard today.
@@ -136,11 +138,17 @@ jobs:
         run: cargo run --locked -p ci-affected-target-set --bin oya-cloud-ci-hub-exclusivity -- --repo-root . --live-open-prs --repo "$GITHUB_REPOSITORY" --candidate-pr "${{ github.event.pull_request.number }}"
       # Generated outputs are never contributor merge surfaces: reject non-deletion
       # edits to tracked generated artifacts (diff streamed to the policy binary).
+      # BASE_REF resolves the merge_group base explicitly. `github.base_ref` is a
+      # pull_request-only context and is EMPTY in a merge group, so this diffed against a
+      # hardcoded `dev` there — correct only while dev is the sole queue target, and silently
+      # the wrong base the moment a queue is enabled on another branch. merge_group.base_ref
+      # arrives fully qualified (`refs/heads/dev`), so the prefix is stripped in place rather
+      # than by adding a step, which would grow the frozen workflow_inline_shell debt.
       - name: Reject non-deletion generated output edits
         if: ${{ github.event_name != 'push' }}
         env:
-          BASE_REF: ${{ github.base_ref || 'dev' }}
-        run: git diff --find-renames --name-status "origin/${BASE_REF}...HEAD" | cargo run --locked -p ci-generated-artifact-policy --bin oya-cloud-ci-generated-output-diff-policy -- --manifest registry/generated-artifact-control-plane.json --repo-root .
+          BASE_REF: ${{ github.base_ref || github.event.merge_group.base_ref || 'dev' }}
+        run: git diff --find-renames --name-status "origin/${BASE_REF#refs/heads/}...HEAD" | cargo run --locked -p ci-generated-artifact-policy --bin oya-cloud-ci-generated-output-diff-policy -- --manifest registry/generated-artifact-control-plane.json --repo-root .
 
   live-postgres-adapters:
     name: live-postgres-adapters (RLS / CDC / SCIM)

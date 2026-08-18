@@ -33,7 +33,7 @@ spec:
             service: oya-workflow-studio-visual-canvas-rest
           annotations:
             summary: "Studio editor REST availability burn-rate fast-burn"
-            runbook: "microservices/workflow-studio/runbooks/canvas-perf-regression.md"
+            runbook: "workflow/workflow-studio/runbooks/canvas-perf-regression.md"
 
         - alert: StudioSaveRoundTripBudgetBreached
           expr: oya:workflow_studio_save_round_trip:p99_5m > 0.2
@@ -43,7 +43,7 @@ spec:
             service: oya-workflow-studio-visual-canvas-rest
           annotations:
             summary: "Studio save round-trip p99 > 200ms (stable budget breached)"
-            runbook: "microservices/workflow-studio/runbooks/canvas-perf-regression.md"
+            runbook: "workflow/workflow-studio/runbooks/canvas-perf-regression.md"
 
         - alert: StudioCollabSilentLossDetected
           expr: oya_workflow_studio_collab_silent_loss_attempt_total > 0
@@ -54,5 +54,5 @@ spec:
             service: oya-workflow-studio-collab-crdt-worker
           annotations:
             summary: "AC-06 silent-loss invariant violated — Sev-1"
-            runbook: "microservices/workflow-studio/runbooks/collab-conflict-resolution.md"
+            runbook: "workflow/workflow-studio/runbooks/collab-conflict-resolution.md"
 {{- end }}

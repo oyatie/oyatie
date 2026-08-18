@@ -26,10 +26,10 @@ related_specs: [/specs/microservices/forms.json]
 related_artifacts:
   - microservices/forms/PRD.md FR-05 + FR-06 + FR-18 + FR-19 + FR-22 + AC-06 + AC-25
   - microservices/forms/threat-model.md §"T-D-01" + §"T-T-05" + §"T-E-03"
-  - microservices/forms/policy/tenant-scope.cedar
-  - microservices/forms/contracts/asyncapi/forms.asyncapi.yaml
-  - microservices/forms/runbooks/spam-flood-throttle.md
-  - microservices/forms/runbooks/ai-form-build-rollback.md
+  - workflow/forms/policy/tenant-scope.cedar
+  - workflow/forms/contracts/asyncapi/forms.asyncapi.yaml
+  - workflow/forms/runbooks/spam-flood-throttle.md
+  - workflow/forms/runbooks/ai-form-build-rollback.md
 
 autonomy_tier: T2
 # T2 = autonomous mutation given a human-originated trigger; default-deny policy gate.
@@ -120,10 +120,10 @@ cost_profile:
     - Workflow-trigger via Workflow + Ontology adapter (per submit: 5-15ms)
 
 cedar_policy_fragments:
-  - microservices/forms/policy/tenant-scope.cedar
-  - microservices/forms/policy/ci-scope.cedar
-  - microservices/forms/policy/auditor-scope.cedar
-  - microservices/forms/policy/public-read.cedar
+  - workflow/forms/policy/tenant-scope.cedar
+  - workflow/forms/policy/ci-scope.cedar
+  - workflow/forms/policy/auditor-scope.cedar
+  - workflow/forms/policy/public-read.cedar
 
 eval_set:
   reference_inputs_path: microservices/forms/capabilities/eval/t2-auto-reference.jsonl

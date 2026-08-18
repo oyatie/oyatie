@@ -29,7 +29,7 @@ companion_docs:
   - docs/user-journeys/CATALOG-j126-j150-ecosystem.md
   - microservices/payments/PRD.md
   - microservices/identity/PRD.md
-  - microservices/workflow-engine/PRD.md
+  - workflow/workflow-engine/PRD.md
   - microservices/ontology/PRD.md
   - microservices/messenger/PRD.md
   - microservices/mail/PRD.md

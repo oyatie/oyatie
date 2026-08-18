@@ -26,7 +26,7 @@ pub use workflow_state_machine_usecase::{
 pub const STATE_MACHINE_API_SURFACE: &str = "workflow-engine.state-machine.transition";
 pub const STATE_MACHINE_API_DECLARED_VERSION: &str = "2026-05-21";
 pub const STATE_MACHINE_API_CONTRACT_REF: &str =
-    "microservices/workflow-engine/contracts/openapi/workflow-engine.yaml";
+    "workflow/workflow-engine/contracts/openapi/workflow-engine.yaml";
 pub const STATE_MACHINE_TRANSITION_ROUTE: &str =
     "/v/2026-05-21/runs/{run_id}/state-machine/transitions";
 
