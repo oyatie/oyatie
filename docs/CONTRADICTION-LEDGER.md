@@ -1,6 +1,6 @@
 ---
 purpose: Closed historical tracker. Not a live contradiction surface.
-doc_status: historical
+doc_status: archived
 status: historical
 ---
 

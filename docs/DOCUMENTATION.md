@@ -1,6 +1,6 @@
 ---
 purpose: Tombstone. Retired May 2026 documentation-system draft.
-doc_status: historical
+doc_status: archived
 status: historical
 ---
 

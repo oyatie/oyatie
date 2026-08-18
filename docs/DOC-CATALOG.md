@@ -1,6 +1,6 @@
 ---
 purpose: Tombstone. Retired May 2026 per-doc catalog projection.
-doc_status: historical
+doc_status: archived
 status: historical
 ---
 
