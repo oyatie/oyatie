@@ -8,11 +8,11 @@ layer_enum_authority: ADR-0105
 owners: [axis-data-pipeline]
 source_root: microservices/data-pipeline/src
 contracts:
-  openapi: microservices/data-pipeline/contracts/openapi-v1.yaml
-  asyncapi: microservices/data-pipeline/contracts/asyncapi-v1.yaml
-  proto: microservices/data-pipeline/contracts/data-pipeline-v1.proto
+  openapi: data/data-pipeline/contracts/openapi-v1.yaml
+  asyncapi: data/data-pipeline/contracts/asyncapi-v1.yaml
+  proto: data/data-pipeline/contracts/data-pipeline-v1.proto
 policy:
-  default_deny: microservices/data-pipeline/policy/lineage-replay-authorization.cedar
+  default_deny: data/data-pipeline/policy/lineage-replay-authorization.cedar
 compliance:
   marketplace_settlement: ADR-0314 DealSet
   transport: ADR-0253-amendment h3-h2-h1 strict tls13 ech pqc

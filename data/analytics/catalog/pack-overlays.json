@@ -12,11 +12,11 @@
   "adr_anchors": ["ADR-0010", "ADR-0049", "ADR-0193"],
   "ip_anchor": "IP-001, IP-006",
   "overlays": [
-    {"region": "kr", "path": "microservices/analytics/iac/kustomize/overlays/pack-kr/"},
-    {"region": "eu", "path": "microservices/analytics/iac/kustomize/overlays/pack-eu/"},
-    {"region": "ksa", "path": "microservices/analytics/iac/kustomize/overlays/pack-ksa/"},
-    {"region": "uae", "path": "microservices/analytics/iac/kustomize/overlays/pack-uae/"},
-    {"region": "us-healthcare", "path": "microservices/analytics/iac/kustomize/overlays/pack-us-healthcare/"}
+    {"region": "kr", "path": "data/analytics/iac/kustomize/overlays/pack-kr/"},
+    {"region": "eu", "path": "data/analytics/iac/kustomize/overlays/pack-eu/"},
+    {"region": "ksa", "path": "data/analytics/iac/kustomize/overlays/pack-ksa/"},
+    {"region": "uae", "path": "data/analytics/iac/kustomize/overlays/pack-uae/"},
+    {"region": "us-healthcare", "path": "data/analytics/iac/kustomize/overlays/pack-us-healthcare/"}
   ],
   "status": "planned"
 }

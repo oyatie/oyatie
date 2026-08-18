@@ -3,8 +3,8 @@
 ## Header citation anchors
 1. Canonical sequence and audit dimensions: `docs/decisions/ADR-0700-ci-admission-live-apex.md:1730-4148`.
 2. Machine-readable deployment/IaC/OS/language/OCI constraints: `specs/master-plan-sequencing.json:704-866`.
-3. cloud-data product-purpose anchor: ADR-0329, ADR-0330, and ADR-0331 tenant_class model; `microservices/cloud-data/faqs/data-engineer-faq.md:7-226`.
-4. cloud-data architecture substitute anchor: `microservices/cloud-data/reference-implementations/multi-engine-and-pitr-rust-sdk.md:6-243`; `microservices/cloud-data/tutorials/multi-engine-pitr-and-truetime-workflow.md:1-230`.
+3. cloud-data product-purpose anchor: ADR-0329, ADR-0330, and ADR-0331 tenant_class model; `data/cloud-data/faqs/data-engineer-faq.md:7-226`.
+4. cloud-data architecture substitute anchor: `data/cloud-data/reference-implementations/multi-engine-and-pitr-rust-sdk.md:6-243`; `data/cloud-data/tutorials/multi-engine-pitr-and-truetime-workflow.md:1-230`.
 5. Documentation-rigor anchor: `docs/standards/documentation-rigor.md:137-190`.
 6. AWS source anchors: `https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/CHAP_AuroraOverview.html`, `https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/Aurora.Overview.StorageReliability.html`, `https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/Aurora.Managing.Backups.html`, `https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-global-database.html`, `https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/rds-proxy.html`, and `https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/UsingWithRDS.IAMDBAuth.html`.
 7. Google Spanner source anchors: `https://docs.cloud.google.com/spanner/docs/editions-overview`, `https://docs.cloud.google.com/spanner/docs/performance`, `https://docs.cloud.google.com/spanner/docs/pitr`, `https://docs.cloud.google.com/spanner/docs/change-streams`, and `https://docs.cloud.google.com/spanner/quotas`.

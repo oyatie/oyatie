@@ -9,7 +9,7 @@ type: application
 version: 0.1.0
 appVersion: "26.3.10.60"
 keywords: [clickhouse, analytics, olap, oyatie, adr-0193, adr-0131]
-home: https://github.com/oyatie/oyatie/tree/dev/microservices/analytics
+home: https://github.com/oyatie/oyatie/tree/dev/data/analytics
 sources:
   - https://github.com/Altinity/clickhouse-operator
 maintainers:

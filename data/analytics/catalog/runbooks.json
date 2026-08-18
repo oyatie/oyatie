@@ -11,14 +11,14 @@
   "owner": "council-analytics + ops-sre-reliability",
   "adr_anchors": ["ADR-0006", "ADR-0193"],
   "runbooks": [
-    {"name": "clickhouse", "path": "microservices/analytics/runbooks/clickhouse.md", "trigger": "general cluster health"},
-    {"name": "restore-drill", "path": "microservices/analytics/runbooks/restore-drill.md", "trigger": "quarterly DR drill"},
-    {"name": "capacity-rebalance", "path": "microservices/analytics/runbooks/capacity-rebalance.md", "trigger": "70% ceiling breach"},
-    {"name": "keeper-quorum-recovery", "path": "microservices/analytics/runbooks/keeper-quorum-recovery.md", "trigger": "ClickHouseKeeperNoLeader"},
-    {"name": "ingest-lag-burn", "path": "microservices/analytics/runbooks/ingest-lag-burn.md", "trigger": "MV ingest lag SLO burn"},
-    {"name": "mv-lag-triage", "path": "microservices/analytics/runbooks/mv-lag-triage.md", "trigger": "per-MV freshness SLO burn"},
-    {"name": "tenant-onboard-failure", "path": "microservices/analytics/runbooks/tenant-onboard-failure.md", "trigger": "tenant.onboarded → DB not created in 30s"},
-    {"name": "cold-tier-latency", "path": "microservices/analytics/runbooks/cold-tier-latency.md", "trigger": "Cold tier query p99 > 2s OR S3 5xx > 5%"}
+    {"name": "clickhouse", "path": "data/analytics/runbooks/clickhouse.md", "trigger": "general cluster health"},
+    {"name": "restore-drill", "path": "data/analytics/runbooks/restore-drill.md", "trigger": "quarterly DR drill"},
+    {"name": "capacity-rebalance", "path": "data/analytics/runbooks/capacity-rebalance.md", "trigger": "70% ceiling breach"},
+    {"name": "keeper-quorum-recovery", "path": "data/analytics/runbooks/keeper-quorum-recovery.md", "trigger": "ClickHouseKeeperNoLeader"},
+    {"name": "ingest-lag-burn", "path": "data/analytics/runbooks/ingest-lag-burn.md", "trigger": "MV ingest lag SLO burn"},
+    {"name": "mv-lag-triage", "path": "data/analytics/runbooks/mv-lag-triage.md", "trigger": "per-MV freshness SLO burn"},
+    {"name": "tenant-onboard-failure", "path": "data/analytics/runbooks/tenant-onboard-failure.md", "trigger": "tenant.onboarded → DB not created in 30s"},
+    {"name": "cold-tier-latency", "path": "data/analytics/runbooks/cold-tier-latency.md", "trigger": "Cold tier query p99 > 2s OR S3 5xx > 5%"}
   ],
   "status": "planned"
 }
