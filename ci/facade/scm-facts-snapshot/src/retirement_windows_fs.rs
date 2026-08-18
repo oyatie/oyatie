@@ -1,7 +1,7 @@
 //! Windows parent walk and same-directory best-effort replace.
 //!
 //! Not `renameat`-atomic and not dirfd / TOCTOU-closed. Rejects reparse points,
-//! `\\?\\` prefixes, `..`, and NUL. Unlinks the exclusive temp on error.
+//! `\\?\` prefixes, `..`, and NUL. Unlinks the exclusive temp on error.
 
 use std::io::Write;
 use std::path::{Path, PathBuf};
@@ -11,7 +11,7 @@ use std::os::windows::fs::MetadataExt;
 
 static NEXT_WINDOWS_WRITE_ID: AtomicU64 = AtomicU64::new(0);
 
-/// Walk/create a real, non-reparse parent. Rejects `\\?\\`, non-disk prefixes,
+/// Walk/create a real, non-reparse parent. Rejects `\\?\`, non-disk prefixes,
 /// `..`, and NUL. Not dirfd-bound.
 pub(super) fn open_real_windows_parent(
     repo_root: &Path,
