@@ -2,11 +2,13 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use port_engine_api::{Digest, LanguagePair, PackSemantics, RuleId, RulePack, UnitId};
+use port_engine_api::{
+    Digest, LanguagePair, PackSemantics, PointerDisposition, RuleId, RulePack, UnitId,
+};
 use port_engine_hash::digest_bytes;
 
 use crate::error::RulepackError;
-use crate::policy::validate_policy;
+use crate::policy::{validate_dispositions, validate_policy};
 use crate::rule::{DeferredKind, LoadedRule, TraitReceiver};
 use crate::wire::RulepackDocument;
 use crate::{CONFLICT_REFUSE, RULEPACK_GO_RUST_V1_JSON, RULEPACK_V0_JSON};
@@ -25,6 +27,7 @@ pub struct LoadedRulePack {
     pub(crate) deferred_kinds: Vec<DeferredKind>,
     pub(crate) deferred_kind_set: BTreeSet<String>,
     pub(crate) trait_receiver: Option<TraitReceiver>,
+    pub(crate) dispositions: Vec<PointerDisposition>,
 }
 
 impl LoadedRulePack {
@@ -228,6 +231,7 @@ impl LoadedRulePack {
             type_map_overrides: doc.type_map_overrides,
             deferred_kinds: doc.deferred_kinds,
             deferred_kind_set,
+            dispositions: validate_dispositions(&doc.pointer_dispositions)?,
             trait_receiver: doc.trait_receiver,
         })
     }

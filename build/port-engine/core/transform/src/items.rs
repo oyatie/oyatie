@@ -180,7 +180,7 @@ fn build_fn(
         vis: visibility(declaration),
         name: to_snake_case(&declaration.name),
         receiver: None,
-        params: params(declaration, resolver)?,
+        params: params(declaration, resolver, &declaration.name)?,
         ret: results(declaration, resolver)?,
         body: Some(body),
     }))

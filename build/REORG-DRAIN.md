@@ -178,6 +178,29 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
   as opaque names would reinstate the flat table. New corpus package `geometry` proves the whole
   path — `crate::shapes::Point`, `Vec<i64>`, `BTreeMap<String, i64>`.
 
+- P3: ownership and mutability. New core crate `port-engine-analysis`.
+  Go is garbage-collected, so a `*T` says nothing about ownership — it may be a borrow, an owned
+  value passed by pointer, or a shared structure with live aliases. The front end now OBSERVES
+  facts (`mutated`, `escapes`, `effect_unknown`), the pack declares RULES in order, and the
+  analysis pairs them. Pointer receivers stopped being refused.
+  WHAT THIS DOES NOT PROVE, recorded in the crate docs rather than discovered later: escape
+  analysis shows LIFETIME compatibility, not the EXCLUSIVITY a borrow needs, because a Go caller
+  may pass one pointer as two arguments. That is caller-side and no callee analysis closes it. So
+  a disposition is a HYPOTHESIS, and what makes emitting one defensible is that the target checks
+  it — an unsatisfiable `&mut` is a borrow-check error the compile proof catches, which is a red
+  build rather than silent corruption. `effect_unknown` keeps the gap visible: a decision made on
+  unproven facts is MARKED in the record, never blended into the proven ones.
+  Every decision is recorded per site with its rule, its form and its justification, and surfaced
+  as `port-engine-app dispositions` — a separate artifact, because `&mut self` looks identical
+  whether it was proven or assumed, and inline comments are where a rule change is hardest to
+  review. There is deliberately NO catch-all rule: facts nothing accepts refuse.
+  Two things the corpus surfaced: a Go VALUE receiver is not Rust `self` — Go copies and the
+  caller's value survives, Rust consumes — so it emits `&self` and a mutated value receiver
+  refuses; and `Move` is a Rust keyword, so identifiers now escape to raw form (`r#move`) rather
+  than being refused, with the four un-rawable keywords renamed instead.
+  Refusal corpora split per CLASS: one corpus stopping at whichever package sorted first meant the
+  second refusal was never exercised.
+
 ## Still owed by this lane
 
 - Struct methods still emit `todo!()`: bodies need selector expressions (`p.X` → `self.x`),

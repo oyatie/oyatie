@@ -5,7 +5,9 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use port_engine_api::{Digest, LanguagePair, PackSemantics, RuleId, RulePack, UnitId};
+use port_engine_api::{
+    Digest, LanguagePair, PackSemantics, PointerDisposition, RuleId, RulePack, UnitId,
+};
 
 use crate::pack::LoadedRulePack;
 
@@ -32,6 +34,10 @@ impl PackSemantics for LoadedRulePack {
 
     fn type_map_overrides(&self, construction: &str) -> Option<&BTreeMap<String, String>> {
         self.type_map_overrides.get(construction)
+    }
+
+    fn pointer_dispositions(&self) -> &[PointerDisposition] {
+        &self.dispositions
     }
 
     fn deferred_kinds(&self) -> &BTreeSet<String> {

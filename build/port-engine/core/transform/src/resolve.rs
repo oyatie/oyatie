@@ -24,6 +24,7 @@ use port_engine_rust_ir::RustType;
 
 use crate::error::TransformError;
 use crate::naming::{module_path, to_pascal_case};
+use crate::ownership::OwnershipContext;
 
 /// The type names one unit declares, and the target spelling each resolves to.
 pub(crate) struct LocalScope {
@@ -69,6 +70,8 @@ pub(crate) struct Resolver<'a> {
     pub(crate) constructors: &'a BTreeMap<String, String>,
     /// The declared trait-receiver mode and its reason.
     pub(crate) receiver: Option<(&'a str, &'a str)>,
+    /// The pack's ownership rules, and the log every decision is recorded into.
+    pub(crate) ownership: &'a OwnershipContext<'a>,
     /// The unit under transform, which decides whether a named type is local.
     pub(crate) unit: &'a UnitId,
 }

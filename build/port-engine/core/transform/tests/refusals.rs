@@ -40,17 +40,74 @@ fn refuses_a_type_the_pack_does_not_map() {
         "{err}"
     );
 }
-
+/// A pointer receiver used to be refused outright, because nothing reported whether the body
+/// mutated through it. The front end reports that now, so the guess became a decision — and a
+/// pack that has declared no rule for the observed facts still gets a refusal, because an invented
+/// default is a decision nobody wrote down.
 #[test]
-fn refuses_a_pointer_receiver_rather_than_guessing_aliasing() {
+fn a_pointer_receiver_without_a_matching_rule_refuses() {
     let mut point = decl("struct", "Point", "");
     let mut method = child("method", "Move", "");
     method.flags.insert(FLAG_POINTER_RECEIVER.to_owned());
+    method.flags.insert("mutated".to_owned());
     point.children = vec![method];
+
     let pack = Pack::default().with_rule("structs", CONSTRUCTION_RUST_STRUCT, &["struct"]);
     let err = apply(&plan_with(&["structs"]), &pack, &model_with(vec![point]))
-        .expect_err("pointer receiver refuses");
-    assert!(matches!(err, TransformError::Unsupported { .. }));
+        .expect_err("no declared rule accepts these facts");
+    assert!(matches!(err, TransformError::Ownership { .. }), "{err}");
+}
+
+/// And with a rule, the facts decide. A mutating receiver becomes an exclusive borrow — which is
+/// a HYPOTHESIS about aliasing rather than a proof, and is safe to emit only because an
+/// unsatisfiable `&mut` is a borrow-check error the compile proof catches.
+#[test]
+fn observed_mutation_reaches_an_exclusive_receiver() {
+    let mut point = decl("struct", "Point", "");
+    let mut mutating = child("method", "Move", "");
+    mutating.flags.insert(FLAG_POINTER_RECEIVER.to_owned());
+    mutating.flags.insert("mutated".to_owned());
+    let mut reading = child("method", "Peek", "");
+    reading.flags.insert(FLAG_POINTER_RECEIVER.to_owned());
+    point.children = vec![mutating, reading];
+
+    let pack = Pack::default()
+        .with_rule("structs", CONSTRUCTION_RUST_STRUCT, &["struct"])
+        .with_disposition(
+            "exclusive",
+            Some(true),
+            Some(false),
+            "&mut {0}",
+            Some("&mut self"),
+        )
+        .with_disposition("shared", Some(false), Some(false), "&{0}", Some("&self"));
+
+    let ir = apply(&plan_with(&["structs"]), &pack, &model_with(vec![point])).expect("apply");
+    let text = rendered(&ir);
+    assert!(
+        text.contains("fn r#move(&mut self)") || text.contains("fn move(&mut self)"),
+        "{text}"
+    );
+    assert!(text.contains("fn peek(&self)"), "{text}");
+}
+
+/// A disposition with no receiver form is a REFUSAL for the receiver position, not a fallback: a
+/// pointer that outlives the call cannot be handed out as any borrow of `self`.
+#[test]
+fn a_disposition_without_a_receiver_form_refuses_the_receiver() {
+    let mut point = decl("struct", "Point", "");
+    let mut method = child("method", "Itself", "");
+    method.flags.insert(FLAG_POINTER_RECEIVER.to_owned());
+    method.flags.insert("escapes".to_owned());
+    point.children = vec![method];
+
+    let pack = Pack::default()
+        .with_rule("structs", CONSTRUCTION_RUST_STRUCT, &["struct"])
+        .with_disposition("owned", None, Some(true), "Option<Box<{0}>>", None);
+
+    let err = apply(&plan_with(&["structs"]), &pack, &model_with(vec![point]))
+        .expect_err("an escaping receiver cannot be borrowed");
+    assert!(matches!(err, TransformError::Ownership { .. }), "{err}");
 }
 
 #[test]

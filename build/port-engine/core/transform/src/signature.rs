@@ -5,10 +5,9 @@ use port_engine_rust_ir::{Receiver, RustFn, RustParam, RustType, Visibility};
 
 use crate::error::TransformError;
 use crate::naming::{to_snake_case, visibility};
+use crate::ownership::{binds_by_pointer, facts_of, parameter_target, receiver_for};
 use crate::resolve::Resolver;
-use crate::vocabulary::{
-    CHILD_METHOD, CHILD_PARAM, CHILD_RESULT, FLAG_POINTER_RECEIVER, FLAG_VARIADIC,
-};
+use crate::vocabulary::{CHILD_METHOD, CHILD_PARAM, CHILD_RESULT, FLAG_VARIADIC};
 
 /// Whether a method's body is translated or stubbed.
 #[derive(Clone, Copy, Eq, PartialEq)]
@@ -27,8 +26,28 @@ pub(crate) fn inherent_methods(
     declaration
         .children_of_kind(CHILD_METHOD)
         .into_iter()
-        .map(|method| method_signature(method, resolver, Visibility::Public, Body::Stub))
+        .map(|method| {
+            method_signature(
+                method,
+                resolver,
+                Visibility::Public,
+                Body::Stub,
+                &declaration.name,
+            )
+        })
         .collect()
+}
+
+/// Parse a pack-declared receiver form into the IR's receiver.
+fn parse_receiver(form: &str, site: &str) -> Result<Receiver, TransformError> {
+    match form {
+        "&self" => Ok(Receiver::Shared),
+        "&mut self" => Ok(Receiver::Exclusive),
+        "self" => Ok(Receiver::Owned),
+        other => Err(TransformError::Ownership {
+            detail: format!("`{other}` is not a receiver form the target has, at `{site}`"),
+        }),
+    }
 }
 
 /// The methods a trait requires, as bodiless signatures.
@@ -51,8 +70,16 @@ pub(crate) fn trait_methods(
         .children_of_kind(CHILD_METHOD)
         .into_iter()
         .map(|method| {
-            let mut rendered =
-                method_signature(method, resolver, Visibility::Inherited, Body::None)?;
+            let mut rendered = method_signature(
+                method,
+                resolver,
+                Visibility::Inherited,
+                Body::None,
+                &declaration.name,
+            )?;
+            // A trait method's receiver is the pack's DECLARED mode, not an inference: an
+            // interface says nothing about how an implementation binds its receiver, and the
+            // implementations are not all in view.
             rendered.receiver = Some(receiver);
             Ok(rendered)
         })
@@ -77,30 +104,44 @@ fn method_signature(
     resolver: &Resolver<'_>,
     vis: Visibility,
     body: Body,
+    owner: &str,
 ) -> Result<RustFn, TransformError> {
     refuse_variadic(method)?;
-    // A pointer receiver is refused rather than rendered. The IR can now SPELL `&mut self`, which
-    // it could not before, and that does not make emitting one correct: whether the source mutates
-    // through the receiver is a fact about aliasing that the front end does not yet report, so
-    // choosing either mode here would still be a guess. What changed is that the guess is now
-    // visible as a missing input rather than hidden in a format string.
-    // See docs/programs/k8s-port/census/ownership-escape.md.
-    if method.flags.contains(FLAG_POINTER_RECEIVER) {
+
+    // A pointer receiver used to be refused outright, because `&self` drops the mutation it
+    // permits and `&mut self` claims one the source may not perform, and nothing reported which.
+    // The front end now reports it, so the guess became a decision — made by the pack over
+    // observed facts, and recorded per site.
+    //
+    // A VALUE receiver is not an aliasing question — the source already copied, so there are no
+    // aliases to reason about — but it is not `self` either. Go's value receiver COPIES and the
+    // caller's value survives the call; Rust's `self` CONSUMES, so calling the method twice would
+    // stop compiling. `&self` is the form with the source's permissions.
+    //
+    // A value receiver the body mutates is a different shape again: the mutation is on the copy
+    // and needs a local binding, which is body-translation work rather than a receiver form. It
+    // refuses instead of silently picking one of the two wrong answers.
+    let receiver = if binds_by_pointer(method) {
+        let site = format!("{owner}::{}", method.name);
+        parse_receiver(&receiver_for(method, &site, resolver.ownership)?, &site)?
+    } else if facts_of(method).mutated {
         return Err(TransformError::Unsupported {
             name: method.name.clone(),
-            detail: "pointer receiver: `&self` drops the mutation it permits and `&mut self` \
-                     claims one the source may not perform — the front end does not yet report \
-                     which, see docs/programs/k8s-port/census/ownership-escape.md"
+            detail: "value receiver mutated in the body: the source mutates its own COPY, which \
+                     needs a local binding rather than a receiver form — `self` would consume the \
+                     caller's value and `&mut self` would claim a mutation the caller can see"
                 .to_owned(),
         });
-    }
+    } else {
+        Receiver::Shared
+    };
 
     Ok(RustFn {
         docs: Vec::new(),
         vis,
         name: to_snake_case(&method.name),
-        receiver: Some(Receiver::Shared),
-        params: params(method, resolver)?,
+        receiver: Some(receiver),
+        params: params(method, resolver, owner)?,
         ret: results(method, resolver)?,
         body: match body {
             Body::Stub => Some(vec![port_engine_rust_ir::RustStmt::Tail(
@@ -126,13 +167,39 @@ pub(crate) fn refuse_variadic(declaration: &Declaration) -> Result<(), Transform
 pub(crate) fn params(
     declaration: &Declaration,
     resolver: &Resolver<'_>,
+    owner: &str,
 ) -> Result<Vec<RustParam>, TransformError> {
     declaration
         .children_of_kind(CHILD_PARAM)
         .into_iter()
         .enumerate()
         .map(|(index, param)| {
-            let ty = resolver.resolve(&param.type_ref, &declaration.name)?;
+            // A POINTER parameter is an ownership question and gets a decision; anything else is
+            // just a type. The split is deliberate: a pointer inside a field or a result has no
+            // call site to borrow across, so it stays a plain type-map answer.
+            let ty = if param.type_ref.kind == "pointer" {
+                let pointee =
+                    param
+                        .type_ref
+                        .args
+                        .first()
+                        .ok_or_else(|| TransformError::Ownership {
+                            detail: format!(
+                                "pointer parameter `{}` of `{owner}::{}` has no pointee",
+                                param.name, declaration.name
+                            ),
+                        })?;
+                let resolved = resolver.resolve(pointee, &declaration.name)?;
+                let site = format!("{owner}::{}({})", declaration.name, param.name);
+                RustType::path(parameter_target(
+                    param,
+                    &resolved.spelling(),
+                    &site,
+                    resolver.ownership,
+                )?)
+            } else {
+                resolver.resolve(&param.type_ref, &declaration.name)?
+            };
             // An unnamed parameter is legal in the source and illegal in the target, so it is
             // given a positional name. The position is already its identity, so nothing is
             // invented that was not already true.

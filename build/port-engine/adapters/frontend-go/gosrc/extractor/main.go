@@ -175,6 +175,12 @@ const (
 	// extracted for that refusal to be possible at all — dropping it would silently turn a
 	// mutating method into a read-only one.
 	flagPointerReceiver = "pointer_receiver"
+
+	// Ownership facts, observed intra-procedurally. See ownershipFacts for what each means and
+	// why the third one exists.
+	flagMutated       = "mutated"
+	flagEscapes       = "escapes"
+	flagEffectUnknown = "effect_unknown"
 )
 
 // Attribute keys.
@@ -595,7 +601,9 @@ func declFor(obj types.Object, ctx *extractCtx) (node, error) {
 		base.Kind = kindFunc
 		base.Flags = flagsFor(obj.Exported(), sig.Variadic(), false, false)
 		base.Children = signatureChildren(sig, qualify)
-		if body := ctx.bodies[obj]; body != nil {
+		body := ctx.bodies[obj]
+		annotateParameterFacts(base.Children, body)
+		if body != nil {
 			base.Children = append(base.Children, bodyNode(body, ctx))
 		}
 		return base, nil
@@ -698,10 +706,18 @@ func methodChildren(named *types.Named, ctx *extractCtx) ([]node, error) {
 		if body := ctx.bodies[method]; body != nil {
 			children = append(children, bodyNode(body, ctx))
 		}
+		receiverName := ""
+		if recv := sig.Recv(); recv != nil {
+			receiverName = recv.Name()
+		}
+		flags := flagsFor(method.Exported(), sig.Variadic(), false, isPointerReceiver(sig))
+		flags = append(flags, ownershipFacts(ctx.bodies[method], receiverName)...)
+		sort.Strings(flags)
+
 		methods = append(methods, node{
 			Kind:     kindMethod,
 			Name:     method.Name(),
-			Flags:    flagsFor(method.Exported(), sig.Variadic(), false, isPointerReceiver(sig)),
+			Flags:    flags,
 			Attrs:    withDoc(nil, ctx.docs[method]),
 			Children: children,
 		})
@@ -1068,6 +1084,147 @@ func chanDirection(dir types.ChanDir) string {
 	default:
 		return "both"
 	}
+}
+
+// annotateParameterFacts records the ownership facts for each parameter that names something.
+//
+// Applied to every parameter and not only pointer-typed ones: whether a disposition is meaningful
+// for a given type is the ENGINE's question, and deciding it here would put the target language's
+// borrow model in the front end.
+func annotateParameterFacts(children []node, body *ast.BlockStmt) {
+	for i := range children {
+		if children[i].Kind != kindParam || children[i].Name == "" {
+			continue
+		}
+		facts := ownershipFacts(body, children[i].Name)
+		if len(facts) == 0 {
+			continue
+		}
+		children[i].Flags = append(children[i].Flags, facts...)
+		sort.Strings(children[i].Flags)
+	}
+}
+
+// ownershipFacts reports what `name` undergoes inside `body`.
+//
+// A nil body — an interface method, an external declaration — yields effect_unknown ALONE, which
+// is the correct answer rather than an absent one: nothing was proven, and "no facts" must not
+// read as "no mutation".
+func ownershipFacts(body *ast.BlockStmt, name string) []string {
+	if name == "" || name == "_" {
+		return nil
+	}
+	if body == nil {
+		return []string{flagEffectUnknown}
+	}
+
+	var mutated, escapes, unknown bool
+
+	ast.Inspect(body, func(n ast.Node) bool {
+		switch typed := n.(type) {
+		case *ast.AssignStmt:
+			for _, lhs := range typed.Lhs {
+				if rootIdent(lhs) == name && lhs != nil {
+					// `x = ..` rebinds the local; `x.f = ..` or `*x = ..` writes THROUGH it.
+					if _, plain := lhs.(*ast.Ident); !plain {
+						mutated = true
+					}
+				}
+			}
+			for _, rhs := range typed.Rhs {
+				if _, plain := rhs.(*ast.Ident); plain && rootIdent(rhs) == name {
+					// Stored somewhere this pass does not track.
+					escapes = true
+				}
+			}
+
+		case *ast.IncDecStmt:
+			if rootIdent(typed.X) == name {
+				if _, plain := typed.X.(*ast.Ident); !plain {
+					mutated = true
+				}
+			}
+
+		case *ast.ReturnStmt:
+			for _, result := range typed.Results {
+				// Only the POINTER escaping counts. `return c` hands the pointer out; `return
+				// c.total` returns a copy of a field and the pointer dies with the call, so
+				// rooting the check at the identifier would report every reader as an escape.
+				if ident, plain := result.(*ast.Ident); plain && ident.Name == name {
+					escapes = true
+				}
+			}
+
+		case *ast.CallExpr:
+			// Passing it onward makes every fact about it UNPROVEN: the callee may mutate through
+			// it, may retain it, and this pass does not follow calls.
+			for _, arg := range typed.Args {
+				if rootIdent(arg) == name {
+					unknown = true
+				}
+			}
+
+		case *ast.FuncLit:
+			// A closure that mentions it can outlive the call and can mutate through it, and when
+			// it runs is not decidable here.
+			if mentions(typed.Body, name) {
+				escapes = true
+				unknown = true
+			}
+
+		case *ast.UnaryExpr:
+			// Taking its address hands out an alias this pass cannot follow.
+			if typed.Op == token.AND && rootIdent(typed.X) == name {
+				escapes = true
+			}
+		}
+		return true
+	})
+
+	facts := make([]string, 0, 3)
+	if escapes {
+		facts = append(facts, flagEscapes)
+	}
+	if unknown {
+		facts = append(facts, flagEffectUnknown)
+	}
+	if mutated {
+		facts = append(facts, flagMutated)
+	}
+	sort.Strings(facts)
+	return facts
+}
+
+// rootIdent returns the identifier an expression is rooted at: `x`, `x.f`, `*x`, `x[i]` all root
+// at `x`. Empty when the expression is not rooted at a plain identifier.
+func rootIdent(expr ast.Expr) string {
+	for {
+		switch typed := expr.(type) {
+		case *ast.Ident:
+			return typed.Name
+		case *ast.SelectorExpr:
+			expr = typed.X
+		case *ast.StarExpr:
+			expr = typed.X
+		case *ast.IndexExpr:
+			expr = typed.X
+		case *ast.ParenExpr:
+			expr = typed.X
+		default:
+			return ""
+		}
+	}
+}
+
+func mentions(n ast.Node, name string) bool {
+	found := false
+	ast.Inspect(n, func(node ast.Node) bool {
+		if ident, ok := node.(*ast.Ident); ok && ident.Name == name {
+			found = true
+		}
+		return !found
+	})
+	return found
 }
 
 // isPointerReceiver reports whether sig is bound through a pointer receiver.

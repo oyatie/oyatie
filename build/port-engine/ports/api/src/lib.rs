@@ -11,6 +11,7 @@
 mod declaration;
 mod error;
 mod identity;
+mod ownership;
 mod plan;
 mod receipt;
 mod seams;
@@ -19,6 +20,7 @@ mod type_ref;
 pub use declaration::Declaration;
 pub use error::PortError;
 pub use identity::{Digest, LanguagePair, PAIR_SEPARATOR, RegionId, RuleId, UnitId};
+pub use ownership::{OwnershipFacts, PointerDisposition};
 pub use plan::{PlanStep, TransformPlan};
 pub use receipt::{RECEIPT_AXES, Receipt, ReceiptAxis};
 pub use seams::{PackSemantics, Renderer, RulePack, SourceModel, TargetIr};

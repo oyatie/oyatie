@@ -178,6 +178,19 @@ pub(crate) fn cmd_port_go() -> ExitCode {
     }
 }
 
+pub(crate) fn cmd_dispositions() -> ExitCode {
+    match driver::port_go_dispositions() {
+        Ok(report) => {
+            print!("{report}");
+            ExitCode::SUCCESS
+        }
+        Err(err) => {
+            eprintln!("port-engine-app: dispositions failed: {err}");
+            ExitCode::from(1)
+        }
+    }
+}
+
 pub(crate) fn cmd_port_go_source() -> ExitCode {
     match driver::port_go_source() {
         Ok((source, matches_golden)) => {

@@ -53,7 +53,7 @@ fn v1_fixture_admits_and_carries_declarations() {
     let admitted = admit_embedded_fixture_v1().expect("v1 fixture must admit");
 
     let units = admitted.as_model().units();
-    assert_eq!(units.len(), 3, "corpus has three packages");
+    assert_eq!(units.len(), 4, "corpus has four packages");
 
     let basic = units
         .iter()

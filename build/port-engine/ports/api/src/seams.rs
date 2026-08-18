@@ -10,6 +10,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use crate::declaration::Declaration;
 use crate::error::PortError;
 use crate::identity::{Digest, LanguagePair, RegionId, RuleId, UnitId};
+use crate::ownership::PointerDisposition;
 
 /// The canonical semantic model of the source corpus, as produced by a front end.
 ///
@@ -92,6 +93,11 @@ pub trait PackSemantics {
     /// base map is: which target a source type takes in which position is a translation decision,
     /// and a decision belongs in the pack rather than in a branch here.
     fn type_map_overrides(&self, construction: &str) -> Option<&BTreeMap<String, String>>;
+    /// Ownership rules, in declared order — first match wins.
+    ///
+    /// Which ownership form a set of observed facts deserves is a translation DECISION with a cost
+    /// either way, so it is data with a recorded reason rather than a branch.
+    fn pointer_dispositions(&self) -> &[PointerDisposition];
     /// Declaration kinds the pack knowingly does not translate yet.
     fn deferred_kinds(&self) -> &BTreeSet<String>;
     /// How a trait method binds its receiver, and why the pack chose that.

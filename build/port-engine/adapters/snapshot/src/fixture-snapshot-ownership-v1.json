@@ -1,0 +1,83 @@
+{
+  "schema_version": 2,
+  "language": "go",
+  "snapshot_digest": "sha256:20f962014fbec26f2ee5decfb9f05bb17aa9c4eb77c9cabc0e013f7d66b0844c",
+  "packages": [
+    {
+      "unit_id": "oyatie.example/portengine-fixture-ownership/corpus-ownership/escaping",
+      "producer": "bootstrap-go-packages-go-types",
+      "declarations": [
+        {
+          "kind": "struct",
+          "name": "Node",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Node is a self-referential structure."
+          },
+          "children": [
+            {
+              "kind": "field",
+              "name": "label",
+              "type": {
+                "kind": "basic",
+                "name": "string"
+              },
+              "attrs": {
+                "doc": "label names the node."
+              }
+            },
+            {
+              "kind": "method",
+              "name": "Itself",
+              "flags": [
+                "escapes",
+                "exported",
+                "pointer_receiver"
+              ],
+              "attrs": {
+                "doc": "Itself returns the receiver.\n\nESCAPES: the pointer outlives the call."
+              },
+              "children": [
+                {
+                  "kind": "result",
+                  "name": "",
+                  "type": {
+                    "kind": "pointer",
+                    "args": [
+                      {
+                        "kind": "named",
+                        "name": "Node",
+                        "package": "oyatie.example/portengine-fixture-ownership/corpus-ownership/escaping"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "kind": "body",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "return",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "ident",
+                          "name": "n",
+                          "attrs": {
+                            "ref": "local"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

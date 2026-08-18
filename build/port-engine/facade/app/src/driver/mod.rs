@@ -15,7 +15,8 @@ pub use pipeline::{
     smoke_pipeline, smoke_receipt_golden, smoke_render, smoke_transform,
 };
 pub use port_go::{
-    assemble_modules, port_go_delta, port_go_pipeline, port_go_refused, port_go_source,
+    assemble_modules, port_go_delta, port_go_dispositions, port_go_pipeline, port_go_refused,
+    port_go_refused_ownership, port_go_source,
 };
 pub use report::{PipelineError, PipelineReport, PlanSmokeError};
 pub use smoke::{

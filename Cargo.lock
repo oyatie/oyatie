@@ -10123,6 +10123,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "port-engine-analysis"
+version = "0.1.0"
+dependencies = [
+ "port-engine-api",
+]
+
+[[package]]
 name = "port-engine-api"
 version = "0.1.0"
 
@@ -10236,6 +10243,7 @@ dependencies = [
 name = "port-engine-transform"
 version = "0.1.0"
 dependencies = [
+ "port-engine-analysis",
  "port-engine-api",
  "port-engine-rust-ir",
 ]

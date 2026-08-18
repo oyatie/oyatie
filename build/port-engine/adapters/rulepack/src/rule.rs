@@ -37,6 +37,31 @@ pub struct LoadedRule {
     pub selecting_fixtures: Vec<SelectingFixture>,
 }
 
+/// Wire shape of one ownership rule.
+#[derive(Clone, Debug, Eq, PartialEq, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct DispositionRule {
+    /// Stable identity, so a decision can be cited.
+    pub id: String,
+    /// Required `mutated` value; omitted means "do not care".
+    #[serde(default)]
+    pub mutated: Option<bool>,
+    /// Required `escapes` value; omitted means "do not care".
+    #[serde(default)]
+    pub escapes: Option<bool>,
+    /// Required `effect_unknown` value; omitted means "do not care".
+    #[serde(default)]
+    pub effect_unknown: Option<bool>,
+    /// Target type template for a parameter, with `{0}` for the pointee.
+    pub target: String,
+    /// Target form for a receiver. Absent means this disposition declines the receiver position,
+    /// which is a refusal rather than a fallback.
+    #[serde(default)]
+    pub receiver: Option<String>,
+    /// Why these facts deserve this form, and what it costs.
+    pub reason: String,
+}
+
 /// How a trait method binds its receiver, and why.
 ///
 /// The reason is REQUIRED and travels in the pack digest, because this is a decision rather than

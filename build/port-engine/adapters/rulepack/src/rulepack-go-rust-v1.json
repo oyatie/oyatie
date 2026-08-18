@@ -18,7 +18,14 @@
     "type_map_overrides: one source type does not always take one target type. `string` becomes",
     "an owned String where a value is stored — a field, a parameter, a return — and CANNOT be one",
     "in a constant, because a Rust const must be known at compile time and String is",
-    "heap-allocated. Recording that here rather than branching on it keeps the decision reviewable."
+    "heap-allocated. Recording that here rather than branching on it keeps the decision reviewable.",
+    "",
+    "pointer_dispositions decide what a pointer BECOMES, from facts the front end observed, in",
+    "declared order with the first match winning. Go is garbage-collected, so a `*T` says nothing",
+    "about ownership; the decision has to be made and it has to be recorded. Order matters: the",
+    "two conservative rules come first, so an escaping or unanalysed pointer never reaches a",
+    "borrow rule. There is deliberately NO catch-all — facts nothing accepts refuse, because an",
+    "invented default is a decision nobody wrote down."
   ],
   "pair": {
     "source": "go",
@@ -195,6 +202,12 @@
       "go_alias",
       "go_struct",
       "go_func"
+    ],
+    "oyatie.example/portengine-fixture/corpus/pointers": [
+      "go_struct"
+    ],
+    "oyatie.example/portengine-fixture-ownership/corpus-ownership/escaping": [
+      "go_struct"
     ]
   },
   "type_constructors": {
@@ -202,5 +215,38 @@
     "map": "std::collections::BTreeMap<{0}, {1}>",
     "array": "Vec<{0}>",
     "pointer": "Option<Box<{0}>>"
-  }
+  },
+  "pointer_dispositions": [
+    {
+      "id": "escaping_owned",
+      "escapes": true,
+      "target": "Option<Box<{0}>>",
+      "reason": "The pointer outlives the call — it is returned or captured — so no borrow can be handed out: a reference would need a lifetime the caller cannot supply. Owned is the form that is always available, and `Option` carries the nil the source could hold. NO RECEIVER FORM: a method whose receiver escapes cannot be a borrow of self, and refusing is better than picking a borrow that will not hold."
+    },
+    {
+      "id": "unproven_owned",
+      "escapes": false,
+      "effect_unknown": true,
+      "target": "Option<Box<{0}>>",
+      "reason": "The pointer reached a call the front end did not analyse, so 'not mutated' and 'does not escape' are UNPROVEN rather than false. A borrow chosen on unproven facts is a guess; the owned form costs a move and cannot be wrong. Revisit when the analysis follows calls."
+    },
+    {
+      "id": "exclusive_borrow",
+      "escapes": false,
+      "effect_unknown": false,
+      "mutated": true,
+      "target": "&mut {0}",
+      "receiver": "&mut self",
+      "reason": "The body provably assigns through this pointer and nothing outlives the call, so an exclusive borrow is what the code does. This is a HYPOTHESIS about aliasing, not a proof: escape analysis shows lifetime compatibility and not the exclusivity a borrow needs, because a Go caller may pass one pointer as two arguments. What makes it safe to emit is that the target checks it — an unsatisfiable `&mut` is a borrow-check error the compile proof catches, which is a red build rather than silent corruption. See docs/programs/k8s-port/census/ownership-escape.md."
+    },
+    {
+      "id": "shared_borrow",
+      "escapes": false,
+      "effect_unknown": false,
+      "mutated": false,
+      "target": "&{0}",
+      "receiver": "&self",
+      "reason": "Nothing mutates through it and nothing outlives the call, so a shared borrow is both sufficient and the cheapest form. Same aliasing caveat as the exclusive case, and much weaker: a shared borrow coexists with other shared borrows, so caller-side aliasing does not invalidate it."
+    }
+  ]
 }

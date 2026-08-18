@@ -81,6 +81,11 @@ pub enum TransformError {
         /// The absent unit.
         unit: String,
     },
+    /// No ownership disposition could be decided for a pointer.
+    Ownership {
+        /// What the analysis said.
+        detail: String,
+    },
     /// IR / syn assembly refused.
     Ir(PortError),
 }
@@ -143,6 +148,7 @@ impl fmt::Display for TransformError {
                     "transform planned unit `{unit}` is absent from the model"
                 )
             }
+            Self::Ownership { detail } => write!(f, "transform ownership: {detail}"),
             Self::Ir(err) => write!(f, "transform IR assembly failed: {err}"),
         }
     }

@@ -47,11 +47,13 @@ pub fn smoke_pipeline() -> Result<PipelineReport, PipelineError> {
     let pin = admitted.pin().to_owned();
     let pack = LoadedRulePack::load_embedded().map_err(PipelineError::Rulepack)?;
     let plan = port_engine_kernel::plan(admitted.as_model(), &pack).map_err(PipelineError::Plan)?;
-    let (ir, region_units) = apply_with_provenance(&plan, &pack, admitted.as_model())
+    let transformed = apply_with_provenance(&plan, &pack, admitted.as_model())
         .map_err(PipelineError::Transform)?;
 
     let renderer = RustRenderer::new();
-    let emitted = renderer.render_rust_ir(&ir).map_err(PipelineError::Emit)?;
+    let emitted = renderer
+        .render_rust_ir(&transformed.ir)
+        .map_err(PipelineError::Emit)?;
 
     let receipt = Receipt {
         pin,
@@ -76,7 +78,8 @@ pub fn smoke_pipeline() -> Result<PipelineReport, PipelineError> {
         plan_steps: plan.steps.len(),
         emit_regions: emitted.len(),
         emit_digest: emit_tree_digest(&emitted),
-        region_units,
+        region_units: transformed.region_units,
+        dispositions: transformed.dispositions,
         emitted,
         receipt,
     })

@@ -10,8 +10,9 @@ mod seams;
 use std::process::ExitCode;
 
 use pipeline::{
-    cmd_canary_defect, cmd_delta, cmd_emit_canary, cmd_materialize_canary, cmd_pipeline,
-    cmd_port_go, cmd_port_go_source, cmd_receipt, cmd_render, cmd_transform, cmd_verify_e2e,
+    cmd_canary_defect, cmd_delta, cmd_dispositions, cmd_emit_canary, cmd_materialize_canary,
+    cmd_pipeline, cmd_port_go, cmd_port_go_source, cmd_receipt, cmd_render, cmd_transform,
+    cmd_verify_e2e,
 };
 use seams::{
     cmd_admit_snapshot, cmd_declarations, cmd_digest, cmd_emit_stub, cmd_emit_syn, cmd_engine,
@@ -41,6 +42,7 @@ Commands:
   declarations      Admit the v1 Go-corpus snapshot; list what each unit declares
   port-go           Port the hermetic Go corpus; print the emitted Rust per region
   port-go-source    Print the assembled per-unit modules (fail closed vs golden)
+  dispositions      Print every ownership decision and its justification
   transform         Admit→plan→apply constructions → RustIr region count
   render            Transform+emit; print region count + emit tree digest
   engine            Print Slice 9 engine identity digest
@@ -77,6 +79,7 @@ pub fn run(args: &[String]) -> ExitCode {
         "declarations" => cmd_declarations(),
         "port-go" => cmd_port_go(),
         "port-go-source" => cmd_port_go_source(),
+        "dispositions" => cmd_dispositions(),
         "transform" => cmd_transform(),
         "render" => cmd_render(),
         "engine" => cmd_engine(),

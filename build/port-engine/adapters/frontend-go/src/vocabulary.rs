@@ -101,7 +101,15 @@ pub const KNOWN_MEMBER_KINDS: &[&str] = &[
 /// The closed flag vocabulary. Same argument as [`KNOWN_DECLARATION_KINDS`]: a flag the engine
 /// does not know is a flag nothing will ever select on, and accepting it would let a misspelled
 /// `exported` silently unexport a declaration.
-pub const KNOWN_FLAGS: &[&str] = &["embedded", "exported", "pointer_receiver", "variadic"];
+pub const KNOWN_FLAGS: &[&str] = &[
+    "effect_unknown",
+    "embedded",
+    "escapes",
+    "exported",
+    "mutated",
+    "pointer_receiver",
+    "variadic",
+];
 
 /// The closed attribute-key vocabulary, closed for the same reason as the flags.
 pub const KNOWN_ATTR_KEYS: &[&str] = &[

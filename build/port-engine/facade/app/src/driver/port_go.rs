@@ -14,8 +14,8 @@ use port_engine_identity::engine_digest;
 use port_engine_rulepack::{LoadedRulePack, RulepackError};
 use port_engine_rust_ir::{EmptyRenderer, RustFn, RustIr, RustItem, RustRenderer, Visibility};
 use port_engine_snapshot::{
-    AdmitError, AdmittedSnapshot, admit_embedded_fixture, admit_embedded_fixture_refused_v1,
-    admit_embedded_fixture_v1,
+    AdmitError, AdmittedSnapshot, admit_embedded_fixture, admit_embedded_fixture_ownership_v1,
+    admit_embedded_fixture_refused_v1, admit_embedded_fixture_v1,
 };
 use port_engine_source_pin::{load_embedded, receipt_pin};
 use port_engine_toolchain::toolchain_digest;
@@ -34,11 +34,13 @@ pub fn port_go_pipeline() -> Result<PipelineReport, PipelineError> {
     let pin = admitted.pin().to_owned();
     let pack = LoadedRulePack::load_embedded_go_rust().map_err(PipelineError::Rulepack)?;
     let plan = port_engine_kernel::plan(admitted.as_model(), &pack).map_err(PipelineError::Plan)?;
-    let (ir, region_units) = apply_with_provenance(&plan, &pack, admitted.as_model())
+    let transformed = apply_with_provenance(&plan, &pack, admitted.as_model())
         .map_err(PipelineError::Transform)?;
 
     let renderer = RustRenderer::new();
-    let emitted = renderer.render_rust_ir(&ir).map_err(PipelineError::Emit)?;
+    let emitted = renderer
+        .render_rust_ir(&transformed.ir)
+        .map_err(PipelineError::Emit)?;
 
     let receipt = Receipt {
         pin,
@@ -63,7 +65,8 @@ pub fn port_go_pipeline() -> Result<PipelineReport, PipelineError> {
         plan_steps: plan.steps.len(),
         emit_regions: emitted.len(),
         emit_digest: emit_tree_digest(&emitted),
-        region_units,
+        region_units: transformed.region_units,
+        dispositions: transformed.dispositions,
         emitted,
         receipt,
     })
@@ -75,7 +78,18 @@ pub fn port_go_pipeline() -> Result<PipelineReport, PipelineError> {
 /// [`PipelineError`] — and a `Transform` refusal is the SUCCESSFUL outcome for this input, which
 /// is why the caller inspects the error rather than treating it as a failure.
 pub fn port_go_refused() -> Result<usize, PipelineError> {
-    let admitted = admit_embedded_fixture_refused_v1().map_err(PipelineError::Admit)?;
+    refuse(admit_embedded_fixture_refused_v1().map_err(PipelineError::Admit)?)
+}
+
+/// Attempt to port the ownership-refusal corpus, returning the refusal.
+///
+/// # Errors
+/// [`PipelineError`] — a `Transform` refusal is the SUCCESSFUL outcome for this input.
+pub fn port_go_refused_ownership() -> Result<usize, PipelineError> {
+    refuse(admit_embedded_fixture_ownership_v1().map_err(PipelineError::Admit)?)
+}
+
+fn refuse(admitted: AdmittedSnapshot) -> Result<usize, PipelineError> {
     let pack = LoadedRulePack::load_embedded_go_rust().map_err(PipelineError::Rulepack)?;
     let plan = port_engine_kernel::plan(admitted.as_model(), &pack).map_err(PipelineError::Plan)?;
     let ir = apply(&plan, &pack, admitted.as_model()).map_err(PipelineError::Transform)?;
@@ -144,6 +158,40 @@ pub fn port_go_source() -> Result<(String, bool), PipelineError> {
     let source = assemble_modules(&report);
     let matches = source == PORT_GO_GOLDEN;
     Ok((source, matches))
+}
+
+/// The ownership record, as a reviewable artifact.
+///
+/// An ownership disposition is an inference over facts the reader cannot see from the emitted
+/// code: `&mut self` looks identical whether it was proven or assumed. So the reasoning is a
+/// SEPARATE artifact rather than a comment in the output — diffable on its own, and out of the
+/// place where a rule change is hardest to review.
+///
+/// `unproven` marks a decision made on facts the front end could not establish. It is not an error
+/// and it is not hidden: it is the difference between "safe as far as anyone looked" and "safe as
+/// far as anyone looked, and nobody looked past the first call".
+///
+/// # Errors
+/// [`PipelineError`] on pipeline failure.
+pub fn port_go_dispositions() -> Result<String, PipelineError> {
+    let report = port_go_pipeline()?;
+    let mut out = String::new();
+    out.push_str("# Ownership dispositions. Generated — regenerate rather than edit.\n");
+    out.push_str("# site | rule | form | proven\n");
+    for record in &report.dispositions {
+        out.push_str(&format!(
+            "{} | {} | {} | {}\n",
+            record.site,
+            record.rule_id,
+            record.form,
+            if record.unproven {
+                "UNPROVEN"
+            } else {
+                "proven"
+            },
+        ));
+    }
+    Ok(out)
 }
 
 /// Re-run the Go port twice and classify with kernel `verify`.

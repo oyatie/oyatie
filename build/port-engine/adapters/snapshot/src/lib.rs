@@ -12,8 +12,8 @@ mod error;
 mod preimage;
 
 pub use admit::{
-    admit_embedded_fixture, admit_embedded_fixture_refused_v1, admit_embedded_fixture_v1,
-    admit_reproducible_pair,
+    admit_embedded_fixture, admit_embedded_fixture_ownership_v1, admit_embedded_fixture_refused_v1,
+    admit_embedded_fixture_v1, admit_reproducible_pair,
 };
 pub use admitted::AdmittedSnapshot;
 pub use error::AdmitError;
@@ -29,6 +29,12 @@ pub(crate) const FIXTURE_SNAPSHOT_V1_JSON: &str = include_str!("fixture-snapshot
 /// Embedded v1 fixture for the corpus the engine is expected to REFUSE.
 pub(crate) const FIXTURE_SNAPSHOT_REFUSED_V1_JSON: &str =
     include_str!("fixture-snapshot-refused-v1.json");
+
+/// Embedded fixture for the corpus whose OWNERSHIP the engine must refuse. Separate from the
+/// statement-refusal corpus so each class is proven rather than shadowed by whichever package
+/// the transform reached first.
+pub(crate) const FIXTURE_SNAPSHOT_OWNERSHIP_V1_JSON: &str =
+    include_str!("fixture-snapshot-ownership-v1.json");
 
 /// Fail-closed readiness gate. `true` once admission is present.
 #[must_use]
