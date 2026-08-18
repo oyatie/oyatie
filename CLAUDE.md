@@ -71,13 +71,13 @@ current_substrate_adrs:
   - docs/decisions/ADR-0707-trust-safety-live-apex.md
   - docs/decisions/ADR-0708-platform-foundations-live-apex.md
   - docs/decisions/ADR-0709-general-live-apex.md               # remaining general doctrine only
-  - docs/decisions/ADR-0710-kubernetes-admission-substrate-is-the-api-server.md  # Proposed
   - docs/decisions/ADR-0711-swarm-delivery-law-integ-branch-topology.md
-  - docs/decisions/ADR-0712-node-kernel-pool-matrix.md         # Proposed
-  - docs/decisions/ADR-0713-node-substrate-architecture.md     # Proposed
-  - docs/decisions/ADR-0714-isolation-property-runtime-tier-names.md  # Proposed
-  - docs/decisions/ADR-0715-f1-admission-adr-0710-d8-gate.md   # Proposed
   - docs/decisions/ADR-0716-cargo-merge-path-buck2-local-hermeticity.md  # cargo merge path
+# Five further decisions in the 0710-0715 range are Proposed, not Accepted, and are therefore
+# not implement authority — they are deliberately absent from this list and join it when their
+# status becomes Accepted. They are NOT named here by id on purpose: adr_citation_rejected_authority
+# scans this authority surface for decision ids and does not care that a mention sits in a comment,
+# so naming them to explain their absence would re-create the very finding this omission clears.
   - docs/decisions/ADR-0717-corpus-budget-shrink-only-ratchet.md
 historical_substrate_adrs:
   - docs/adr-archive/ADR-0513-oya-ci-bespoke-rust-prow-cicd-platform.md  # Superseded by ADR-0515; live reading is ADR-0700
