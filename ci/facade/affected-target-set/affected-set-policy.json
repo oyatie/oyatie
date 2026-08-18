@@ -19,9 +19,7 @@
     "rust-toolchain.toml"
   ],
   "require_owner_patterns": [
-    "**/*.rs",
-    "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-aarch64-adapter/linker.ld",
-    "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-x86-64-adapter/linker.ld"
+    "**/*.rs"
   ],
   "_package_sibling_note": "Cargo.toml + build.rs are NOT buck2 graph inputs (buck2 never reads them; reindeer/BUCK mirror them) and have no owner() BY DESIGN, so requiring an owner would refuse every manifest edit (proven by this lane's own first dogfood run). They are semantically bound to their crate, so they seed the ENCLOSING package target pattern; if that package does not exist the seed query fails and the lane escalates to FULL.",
   "package_sibling_basenames": [

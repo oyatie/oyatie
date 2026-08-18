@@ -26,7 +26,7 @@ pub use workflow_trigger_orchestrator_domain::{
 pub const TRIGGER_ORCHESTRATOR_USECASE_SURFACE: &str =
     "workflow-engine.trigger-orchestrator.usecase";
 pub const TRIGGER_ORCHESTRATOR_USECASE_CONTRACT_REF: &str =
-    "microservices/workflow-engine/PRD.md#f2-run-trigger-dispatch";
+    "workflow/workflow-engine/PRD.md#f2-run-trigger-dispatch";
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct TriggerOrchestratorUsecaseInput {

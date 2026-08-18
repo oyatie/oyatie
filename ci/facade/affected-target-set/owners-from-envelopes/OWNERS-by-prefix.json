@@ -48,7 +48,6 @@
   "build/": "build",
   "cell/": "cell",
   "ci/": "ci",
-  "cloud/": "cloud",
   "comms/": "comms",
   "compliance/": "compliance",
   "compute/": "compute",

@@ -800,8 +800,8 @@
     },
     "560": {
       "disposition": "consolidated",
-      "live_id": "ADR-0700",
-      "note": "consolidated into ADR-0700; archive docs/adr-archive/ADR-0560-nativelink-cas-slice1-deployable-cache-cold-canary.md",
+      "live_id": "ADR-0716",
+      "note": "consolidated into ADR-0716; archive docs/adr-archive/ADR-0560-nativelink-cas-slice1-deployable-cache-cold-canary.md",
       "archive_path": "docs/adr-archive/ADR-0560-nativelink-cas-slice1-deployable-cache-cold-canary.md"
     },
     "709": {
