@@ -139,6 +139,8 @@ pub fn apply_with_provenance(
                     type_map: semantics.type_map(),
                     overrides: semantics.type_map_overrides(construction),
                     constructors: semantics.type_constructors(),
+                    copy_types: semantics.copy_types(),
+                    zero_values: semantics.zero_values(),
                     receiver: semantics.trait_receiver(),
                     ownership: &ownership,
                     unit: &step.unit,

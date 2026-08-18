@@ -152,11 +152,27 @@ const (
 	kindLet      = "let"
 	kindExprStmt = "expr_stmt"
 
-	kindLiteral = "literal"
-	kindIdent   = "ident"
-	kindBinary  = "binary"
-	kindUnary   = "unary"
-	kindParen   = "paren"
+	kindLiteral   = "literal"
+	kindIdent     = "ident"
+	kindBinary    = "binary"
+	kindUnary     = "unary"
+	kindParen     = "paren"
+	kindSelector  = "selector"
+	kindCall      = "call"
+	kindIndex     = "index"
+	kindComposite = "composite"
+	kindKeyed     = "keyed"
+	kindZero      = "zero"
+
+	kindAssign = "assign"
+	kindFor    = "for"
+	kindCond   = "cond"
+	kindPost   = "post"
+	kindInit   = "init"
+	kindRange  = "range"
+	kindSwitch = "switch"
+	kindCase   = "case"
+	kindBreak  = "break"
 
 	// kindUnsupported is how the extractor stays FAITHFUL while the engine stays fail-closed.
 	// The snapshot is a model of the source, so a construct the translator cannot yet handle is
@@ -452,7 +468,13 @@ func extractPackage(dir string, unitID string, resolver types.Importer) ([]node,
 	}
 
 	conf := types.Config{Importer: resolver}
-	info := &types.Info{Uses: map[*ast.Ident]types.Object{}}
+	info := &types.Info{
+		Uses: map[*ast.Ident]types.Object{},
+		// Types is what lets a composite literal report WHAT it constructs. Without it the
+		// literal's own type would have to be re-derived from its syntax, which is exactly the
+		// re-derivation go/types exists to avoid.
+		Types: map[ast.Expr]types.TypeAndValue{},
+	}
 	tpkg, err := conf.Check(unitID, fset, files, info)
 	if err != nil {
 		return nil, fmt.Errorf("type-check: %w", err)
@@ -528,6 +550,10 @@ type extractCtx struct {
 	info    *types.Info
 	bodies  map[types.Object]*ast.BlockStmt
 	docs    map[types.Object]string
+	// receiver is the name the enclosing method binds its receiver to, so an identifier that
+	// refers to it can be marked as such. Without it `c.total` and `other.total` are the same
+	// shape and only one of them is `self`.
+	receiver string
 	// fieldDocs is keyed by "TypeName.FieldName": a struct field is not a package-scope object, so
 	// it has no types.Object to index by, and matching by position would break the moment a field
 	// moves.
@@ -702,14 +728,20 @@ func methodChildren(named *types.Named, ctx *extractCtx) ([]node, error) {
 		if !ok {
 			return nil, fmt.Errorf("method %s without signature", method.Name())
 		}
-		children := signatureChildren(sig, ctx.qualify)
-		if body := ctx.bodies[method]; body != nil {
-			children = append(children, bodyNode(body, ctx))
-		}
 		receiverName := ""
 		if recv := sig.Recv(); recv != nil {
 			receiverName = recv.Name()
 		}
+
+		children := signatureChildren(sig, ctx.qualify)
+		if body := ctx.bodies[method]; body != nil {
+			// The body walk needs the receiver's NAME: `c.total` becomes `self.total` only if
+			// something knows that `c` is the receiver and `other` is not.
+			inner := *ctx
+			inner.receiver = receiverName
+			children = append(children, bodyNode(body, &inner))
+		}
+
 		flags := flagsFor(method.Exported(), sig.Variadic(), false, isPointerReceiver(sig))
 		flags = append(flags, ownershipFacts(ctx.bodies[method], receiverName)...)
 		sort.Strings(flags)
@@ -780,28 +812,222 @@ func statementNode(stmt ast.Stmt, ctx *extractCtx) node {
 		return node{Kind: kindIf, Children: children}
 
 	case *ast.AssignStmt:
-		// Only a single-name `:=` becomes a `let`. Multi-assignment, reassignment, and the
-		// op-assign forms each carry a mutability or tuple-destructuring question that needs a
-		// rule rather than a default.
-		if typed.Tok != token.DEFINE || len(typed.Lhs) != 1 || len(typed.Rhs) != 1 {
+		// Multi-assignment and the op-assign forms each carry a tuple-destructuring or
+		// read-modify-write question that needs a rule rather than a default.
+		if len(typed.Lhs) != 1 || len(typed.Rhs) != 1 {
 			return unsupportedNode(stmt)
 		}
-		name, ok := typed.Lhs[0].(*ast.Ident)
-		if !ok {
+		switch typed.Tok {
+		case token.DEFINE:
+			name, ok := typed.Lhs[0].(*ast.Ident)
+			if !ok {
+				return unsupportedNode(stmt)
+			}
+			return node{
+				Kind:     kindLet,
+				Name:     name.Name,
+				Children: []node{expressionNode(typed.Rhs[0], ctx)},
+			}
+		case token.ASSIGN:
+			return node{
+				Kind: kindAssign,
+				Children: []node{
+					expressionNode(typed.Lhs[0], ctx),
+					expressionNode(typed.Rhs[0], ctx),
+				},
+			}
+		default:
 			return unsupportedNode(stmt)
-		}
-		return node{
-			Kind:     kindLet,
-			Name:     name.Name,
-			Children: []node{expressionNode(typed.Rhs[0], ctx)},
 		}
 
 	case *ast.ExprStmt:
 		return node{Kind: kindExprStmt, Children: []node{expressionNode(typed.X, ctx)}}
 
+	case *ast.BranchStmt:
+		// `break` maps directly. `continue` does NOT, because a three-clause loop lowers to a
+		// `while` whose post-statement a `continue` would skip — a different program. `goto` and
+		// labelled breaks have no target form at all.
+		if typed.Tok == token.BREAK && typed.Label == nil {
+			return node{Kind: kindBreak}
+		}
+		return unsupportedNode(stmt)
+
+	case *ast.ForStmt:
+		return forNode(typed, ctx)
+
+	case *ast.RangeStmt:
+		return rangeNode(typed, ctx)
+
+	case *ast.SwitchStmt:
+		return switchNode(typed, ctx)
+
 	default:
 		return unsupportedNode(stmt)
 	}
+}
+
+// forNode records a three-clause or condition-only `for`.
+//
+// The clauses are recorded SEPARATELY rather than pre-lowered, because which target loop they
+// deserve is a translation decision: an ascending integer counter is a range, and anything else is
+// a `while` whose post-statement has to run on every path.
+func forNode(stmt *ast.ForStmt, ctx *extractCtx) node {
+	out := node{Kind: kindFor}
+	if stmt.Init != nil {
+		out.Children = append(out.Children, node{
+			Kind:     kindInit,
+			Children: []node{statementNode(stmt.Init, ctx)},
+		})
+	}
+	if stmt.Cond != nil {
+		out.Children = append(out.Children, node{
+			Kind:     kindCond,
+			Children: []node{expressionNode(stmt.Cond, ctx)},
+		})
+	}
+	if stmt.Post != nil {
+		out.Children = append(out.Children, node{
+			Kind:     kindPost,
+			Children: []node{statementNode(stmt.Post, ctx)},
+		})
+	}
+	out.Children = append(out.Children, node{
+		Kind:     kindThen,
+		Children: statementNodes(stmt.Body.List, ctx),
+	})
+	return out
+}
+
+// rangeNode records a `range` loop, with the key and value names it binds.
+func rangeNode(stmt *ast.RangeStmt, ctx *extractCtx) node {
+	out := node{Kind: kindRange}
+	out.Attrs = withAttr(out.Attrs, "key", identName(stmt.Key))
+	out.Attrs = withAttr(out.Attrs, "value", identName(stmt.Value))
+	out.Children = append(out.Children,
+		node{Kind: "over", Children: []node{expressionNode(stmt.X, ctx)}},
+		node{Kind: kindThen, Children: statementNodes(stmt.Body.List, ctx)},
+	)
+	return out
+}
+
+// switchNode records an expression switch.
+//
+// A switch with an init statement, or a TYPE switch, is not recorded as a switch at all: the first
+// scopes a binding to the switch and the second dispatches on dynamic type, and neither has a
+// target form that a value match reproduces.
+func switchNode(stmt *ast.SwitchStmt, ctx *extractCtx) node {
+	if stmt.Init != nil {
+		return unsupportedNode(stmt)
+	}
+	out := node{Kind: kindSwitch}
+	if stmt.Tag != nil {
+		out.Children = append(out.Children, node{
+			Kind:     "tag",
+			Children: []node{expressionNode(stmt.Tag, ctx)},
+		})
+	}
+	for _, clause := range stmt.Body.List {
+		caseClause, ok := clause.(*ast.CaseClause)
+		if !ok {
+			return unsupportedNode(clause)
+		}
+		out.Children = append(out.Children, node{
+			Kind: kindCase,
+			Children: append(
+				[]node{{Kind: "patterns", Children: expressionNodes(caseClause.List, ctx)}},
+				node{Kind: kindThen, Children: statementNodes(caseClause.Body, ctx)},
+			),
+		})
+	}
+	return out
+}
+
+func identName(expr ast.Expr) string {
+	if ident, ok := expr.(*ast.Ident); ok {
+		return ident.Name
+	}
+	return ""
+}
+
+// expressionType reports an expression's type, when go/types recorded one.
+func expressionType(expr ast.Expr, ctx *extractCtx) *typeNode {
+	if tv, ok := ctx.info.Types[expr]; ok && tv.Type != nil {
+		return typeTree(tv.Type)
+	}
+	return nil
+}
+
+// compositeNode records a struct literal with every DECLARED field present.
+//
+// Go fills the fields a literal omits with their type's zero value; the target rejects an
+// incomplete literal. Which fields a struct has is a fact go/types holds and the engine does not,
+// so the omitted ones are recorded HERE, as `zero` nodes carrying the field's type — leaving the
+// target's spelling of that zero to the rule pack.
+func compositeNode(lit *ast.CompositeLit, ctx *extractCtx) node {
+	fields := compositeStruct(lit, ctx)
+	if fields == nil {
+		// A slice, map or array literal. It reached here as a composite with no struct behind it,
+		// and the previous shape emitted an empty struct literal for it — silently constructing
+		// nothing. Recording it as unsupported refuses it by name instead.
+		return unsupportedNode(lit)
+	}
+
+	written := make(map[string]node, len(lit.Elts))
+	for _, element := range lit.Elts {
+		keyed, ok := element.(*ast.KeyValueExpr)
+		if !ok {
+			// A POSITIONAL composite depends on field order, which the target does not reproduce
+			// for a named struct — and getting it silently wrong swaps two fields of the same type
+			// with no diagnostic anywhere.
+			return unsupportedNode(element)
+		}
+		key, ok := keyed.Key.(*ast.Ident)
+		if !ok {
+			return unsupportedNode(keyed)
+		}
+		written[key.Name] = expressionNode(keyed.Value, ctx)
+	}
+
+	out := node{Kind: kindComposite, Type: compositeType(lit, ctx)}
+	for index := 0; index < fields.NumFields(); index++ {
+		field := fields.Field(index)
+		value, present := written[field.Name()]
+		if !present {
+			value = node{Kind: kindZero, Name: field.Name(), Type: typeTree(field.Type())}
+		}
+		out.Children = append(out.Children, node{
+			Kind:     kindKeyed,
+			Name:     field.Name(),
+			Children: []node{value},
+		})
+	}
+	return out
+}
+
+// compositeStruct reports the struct a composite literal constructs, or nil when it constructs
+// something else.
+func compositeStruct(lit *ast.CompositeLit, ctx *extractCtx) *types.Struct {
+	tv, ok := ctx.info.Types[lit]
+	if !ok || tv.Type == nil {
+		return nil
+	}
+	underlying := tv.Type.Underlying()
+	if pointer, ok := underlying.(*types.Pointer); ok {
+		underlying = pointer.Elem().Underlying()
+	}
+	structured, ok := underlying.(*types.Struct)
+	if !ok {
+		return nil
+	}
+	return structured
+}
+
+// compositeType records what a composite literal constructs.
+func compositeType(lit *ast.CompositeLit, ctx *extractCtx) *typeNode {
+	if tv, ok := ctx.info.Types[lit]; ok && tv.Type != nil {
+		return typeTree(tv.Type)
+	}
+	return nil
 }
 
 func expressionNodes(exprs []ast.Expr, ctx *extractCtx) []node {
@@ -825,15 +1051,48 @@ func expressionNode(expr ast.Expr, ctx *extractCtx) node {
 
 	case *ast.Ident:
 		// What the identifier REFERS to is recorded, because the target cases each kind
-		// differently and the name alone cannot say which it is.
+		// differently and the name alone cannot say which it is — and because the RECEIVER is the
+		// one identifier whose target spelling is not its name at all.
+		kind := referenceKind(typed, ctx)
+		if typed.Name == ctx.receiver && ctx.receiver != "" {
+			kind = "receiver"
+		}
 		return node{
 			Kind:  kindIdent,
 			Name:  typed.Name,
-			Attrs: map[string]string{attrRef: referenceKind(typed, ctx)},
+			Attrs: map[string]string{attrRef: kind},
 		}
 
 	case *ast.ParenExpr:
 		return node{Kind: kindParen, Children: []node{expressionNode(typed.X, ctx)}}
+
+	case *ast.SelectorExpr:
+		// The selector's TYPE is recorded because reading a field by value is a copy in the source
+		// and a move in the target: whether that needs a clone depends on the type, and this is
+		// where the type is known.
+		return node{
+			Kind:     kindSelector,
+			Name:     typed.Sel.Name,
+			Type:     expressionType(typed, ctx),
+			Children: []node{expressionNode(typed.X, ctx)},
+		}
+
+	case *ast.CallExpr:
+		children := []node{expressionNode(typed.Fun, ctx)}
+		children = append(children, expressionNodes(typed.Args, ctx)...)
+		return node{Kind: kindCall, Children: children}
+
+	case *ast.IndexExpr:
+		return node{
+			Kind: kindIndex,
+			Children: []node{
+				expressionNode(typed.X, ctx),
+				expressionNode(typed.Index, ctx),
+			},
+		}
+
+	case *ast.CompositeLit:
+		return compositeNode(typed, ctx)
 
 	case *ast.BinaryExpr:
 		return node{

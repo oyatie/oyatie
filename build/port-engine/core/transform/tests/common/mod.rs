@@ -22,6 +22,8 @@ pub struct Pack {
     pub constructors: BTreeMap<String, String>,
     pub overrides: BTreeMap<String, BTreeMap<String, String>>,
     pub deferred: BTreeSet<String>,
+    pub copies: BTreeSet<String>,
+    pub zeroes: BTreeMap<String, String>,
     /// The declared trait-receiver decision. `None` means the pack made none, which is a refusal.
     pub receiver: Option<(String, String)>,
     pub dispositions: Vec<PointerDisposition>,
@@ -94,6 +96,20 @@ impl Pack {
         self
     }
 
+    /// Declare which source types copy in the target, as a real pack must.
+    pub fn with_copy_types(mut self, names: &[&str]) -> Self {
+        for name in names {
+            self.copies.insert((*name).to_owned());
+        }
+        self
+    }
+
+    /// Declare a source type's target zero value, as a real pack must.
+    pub fn with_zero_value(mut self, source: &str, target: &str) -> Self {
+        self.zeroes.insert(source.to_owned(), target.to_owned());
+        self
+    }
+
     pub fn with_deferred(mut self, kinds: &[&str]) -> Self {
         for kind in kinds {
             self.deferred.insert((*kind).to_owned());
@@ -122,6 +138,12 @@ impl PackSemantics for Pack {
     }
     fn type_map_overrides(&self, construction: &str) -> Option<&BTreeMap<String, String>> {
         self.overrides.get(construction)
+    }
+    fn copy_types(&self) -> &BTreeSet<String> {
+        &self.copies
+    }
+    fn zero_values(&self) -> &BTreeMap<String, String> {
+        &self.zeroes
     }
     fn deferred_kinds(&self) -> &BTreeSet<String> {
         &self.deferred

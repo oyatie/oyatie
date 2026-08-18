@@ -7,13 +7,15 @@ use crate::error::TransformError;
 use crate::naming::{to_snake_case, visibility};
 use crate::ownership::{binds_by_pointer, facts_of, parameter_target, receiver_for};
 use crate::resolve::Resolver;
-use crate::vocabulary::{CHILD_METHOD, CHILD_PARAM, CHILD_RESULT, FLAG_VARIADIC};
+use crate::vocabulary::{CHILD_BODY, CHILD_METHOD, CHILD_PARAM, CHILD_RESULT, FLAG_VARIADIC};
 
-/// Whether a method's body is translated or stubbed.
+/// Whether a method's body is translated, stubbed, or absent.
 #[derive(Clone, Copy, Eq, PartialEq)]
 pub(crate) enum Body {
     /// Emit `todo!()`.
     Stub,
+    /// Translate the source body, refusing anything outside the supported subset.
+    Translate,
     /// Emit no body at all — a trait item is a signature.
     None,
 }
@@ -22,6 +24,7 @@ pub(crate) enum Body {
 pub(crate) fn inherent_methods(
     declaration: &Declaration,
     resolver: &Resolver<'_>,
+    body: Body,
 ) -> Result<Vec<RustFn>, TransformError> {
     declaration
         .children_of_kind(CHILD_METHOD)
@@ -31,7 +34,7 @@ pub(crate) fn inherent_methods(
                 method,
                 resolver,
                 Visibility::Public,
-                Body::Stub,
+                body,
                 &declaration.name,
             )
         })
@@ -147,6 +150,22 @@ fn method_signature(
             Body::Stub => Some(vec![port_engine_rust_ir::RustStmt::Tail(
                 port_engine_rust_ir::RustExpr::Todo,
             )]),
+            Body::Translate => {
+                let source = method
+                    .children_of_kind(CHILD_BODY)
+                    .first()
+                    .copied()
+                    .ok_or_else(|| TransformError::MissingDatum {
+                        construction: "rust_struct_body".to_owned(),
+                        name: method.name.clone(),
+                        datum: "body",
+                    })?;
+                Some(crate::body::statements(
+                    &source.children,
+                    &method.name,
+                    resolver,
+                )?)
+            }
             Body::None => None,
         },
     })

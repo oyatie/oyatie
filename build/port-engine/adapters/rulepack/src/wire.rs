@@ -3,7 +3,7 @@
 //! `deny_unknown_fields` throughout: `type_map_override` for `type_map_overrides` used to parse
 //! clean, override nothing, and leave the author reading a green load and the wrong emitted types.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 
 use serde::Deserialize;
 
@@ -28,6 +28,10 @@ pub(crate) struct RulepackDocument {
     pub(crate) type_map: BTreeMap<String, String>,
     #[serde(default)]
     pub(crate) type_constructors: BTreeMap<String, String>,
+    #[serde(default)]
+    pub(crate) copy_types: BTreeSet<String>,
+    #[serde(default)]
+    pub(crate) zero_values: BTreeMap<String, String>,
     #[serde(default)]
     pub(crate) type_map_overrides: BTreeMap<String, BTreeMap<String, String>>,
     #[serde(default)]

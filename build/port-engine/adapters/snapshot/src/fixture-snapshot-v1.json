@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "language": "go",
-  "snapshot_digest": "sha256:394bdc5706dc92689442d4a25ad66c2a75755e75c43c772fff2b74dbbf2d01f9",
+  "snapshot_digest": "sha256:4226ade75aa6814500fb21b0a08a7b2c8a13bc9fa6be7c034ea84b8489dc5b2e",
   "packages": [
     {
       "unit_id": "oyatie.example/portengine-fixture/corpus/basic",
@@ -652,11 +652,60 @@
                   "name": "",
                   "children": [
                     {
-                      "kind": "unsupported",
+                      "kind": "assign",
                       "name": "",
-                      "attrs": {
-                        "go_node": "AssignStmt"
-                      }
+                      "children": [
+                        {
+                          "kind": "selector",
+                          "name": "total",
+                          "type": {
+                            "kind": "basic",
+                            "name": "int"
+                          },
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "c",
+                              "attrs": {
+                                "ref": "receiver"
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "kind": "binary",
+                          "name": "",
+                          "attrs": {
+                            "op": "+"
+                          },
+                          "children": [
+                            {
+                              "kind": "selector",
+                              "name": "total",
+                              "type": {
+                                "kind": "basic",
+                                "name": "int"
+                              },
+                              "children": [
+                                {
+                                  "kind": "ident",
+                                  "name": "c",
+                                  "attrs": {
+                                    "ref": "receiver"
+                                  }
+                                }
+                              ]
+                            },
+                            {
+                              "kind": "ident",
+                              "name": "n",
+                              "attrs": {
+                                "ref": "local"
+                              }
+                            }
+                          ]
+                        }
+                      ]
                     }
                   ]
                 }
@@ -689,11 +738,21 @@
                       "name": "",
                       "children": [
                         {
-                          "kind": "unsupported",
-                          "name": "",
-                          "attrs": {
-                            "go_node": "SelectorExpr"
-                          }
+                          "kind": "selector",
+                          "name": "label",
+                          "type": {
+                            "kind": "basic",
+                            "name": "string"
+                          },
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "c",
+                              "attrs": {
+                                "ref": "receiver"
+                              }
+                            }
+                          ]
                         }
                       ]
                     }
@@ -732,11 +791,70 @@
                   "name": "",
                   "children": [
                     {
-                      "kind": "unsupported",
+                      "kind": "assign",
                       "name": "",
-                      "attrs": {
-                        "go_node": "AssignStmt"
-                      }
+                      "children": [
+                        {
+                          "kind": "selector",
+                          "name": "total",
+                          "type": {
+                            "kind": "basic",
+                            "name": "int"
+                          },
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "c",
+                              "attrs": {
+                                "ref": "receiver"
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "kind": "binary",
+                          "name": "",
+                          "attrs": {
+                            "op": "+"
+                          },
+                          "children": [
+                            {
+                              "kind": "selector",
+                              "name": "total",
+                              "type": {
+                                "kind": "basic",
+                                "name": "int"
+                              },
+                              "children": [
+                                {
+                                  "kind": "ident",
+                                  "name": "c",
+                                  "attrs": {
+                                    "ref": "receiver"
+                                  }
+                                }
+                              ]
+                            },
+                            {
+                              "kind": "selector",
+                              "name": "total",
+                              "type": {
+                                "kind": "basic",
+                                "name": "int"
+                              },
+                              "children": [
+                                {
+                                  "kind": "ident",
+                                  "name": "other",
+                                  "attrs": {
+                                    "ref": "local"
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
                     }
                   ]
                 }
@@ -770,11 +888,21 @@
                       "name": "",
                       "children": [
                         {
-                          "kind": "unsupported",
-                          "name": "",
-                          "attrs": {
-                            "go_node": "SelectorExpr"
-                          }
+                          "kind": "selector",
+                          "name": "total",
+                          "type": {
+                            "kind": "basic",
+                            "name": "int"
+                          },
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "c",
+                              "attrs": {
+                                "ref": "receiver"
+                              }
+                            }
+                          ]
                         }
                       ]
                     }
@@ -934,18 +1062,38 @@
                           },
                           "children": [
                             {
-                              "kind": "unsupported",
-                              "name": "",
-                              "attrs": {
-                                "go_node": "SelectorExpr"
-                              }
+                              "kind": "selector",
+                              "name": "X",
+                              "type": {
+                                "kind": "basic",
+                                "name": "int"
+                              },
+                              "children": [
+                                {
+                                  "kind": "ident",
+                                  "name": "p",
+                                  "attrs": {
+                                    "ref": "receiver"
+                                  }
+                                }
+                              ]
                             },
                             {
-                              "kind": "unsupported",
-                              "name": "",
-                              "attrs": {
-                                "go_node": "SelectorExpr"
-                              }
+                              "kind": "selector",
+                              "name": "Y",
+                              "type": {
+                                "kind": "basic",
+                                "name": "int"
+                              },
+                              "children": [
+                                {
+                                  "kind": "ident",
+                                  "name": "p",
+                                  "attrs": {
+                                    "ref": "receiver"
+                                  }
+                                }
+                              ]
                             }
                           ]
                         }
@@ -999,11 +1147,107 @@
                       "name": "",
                       "children": [
                         {
-                          "kind": "unsupported",
+                          "kind": "composite",
                           "name": "",
-                          "attrs": {
-                            "go_node": "CompositeLit"
-                          }
+                          "type": {
+                            "kind": "named",
+                            "name": "Point",
+                            "package": "oyatie.example/portengine-fixture/corpus/shapes"
+                          },
+                          "children": [
+                            {
+                              "kind": "keyed",
+                              "name": "X",
+                              "children": [
+                                {
+                                  "kind": "binary",
+                                  "name": "",
+                                  "attrs": {
+                                    "op": "+"
+                                  },
+                                  "children": [
+                                    {
+                                      "kind": "selector",
+                                      "name": "X",
+                                      "type": {
+                                        "kind": "basic",
+                                        "name": "int"
+                                      },
+                                      "children": [
+                                        {
+                                          "kind": "ident",
+                                          "name": "p",
+                                          "attrs": {
+                                            "ref": "receiver"
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "kind": "ident",
+                                      "name": "dx",
+                                      "attrs": {
+                                        "ref": "local"
+                                      }
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "kind": "keyed",
+                              "name": "Y",
+                              "children": [
+                                {
+                                  "kind": "binary",
+                                  "name": "",
+                                  "attrs": {
+                                    "op": "+"
+                                  },
+                                  "children": [
+                                    {
+                                      "kind": "selector",
+                                      "name": "Y",
+                                      "type": {
+                                        "kind": "basic",
+                                        "name": "int"
+                                      },
+                                      "children": [
+                                        {
+                                          "kind": "ident",
+                                          "name": "p",
+                                          "attrs": {
+                                            "ref": "receiver"
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "kind": "ident",
+                                      "name": "dy",
+                                      "attrs": {
+                                        "ref": "local"
+                                      }
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "kind": "keyed",
+                              "name": "label",
+                              "children": [
+                                {
+                                  "kind": "zero",
+                                  "name": "label",
+                                  "type": {
+                                    "kind": "basic",
+                                    "name": "string"
+                                  }
+                                }
+                              ]
+                            }
+                          ]
                         }
                       ]
                     }

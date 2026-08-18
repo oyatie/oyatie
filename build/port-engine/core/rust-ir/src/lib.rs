@@ -30,12 +30,14 @@ mod item;
 mod lower;
 mod lower_body;
 mod lower_parts;
+mod ops;
 mod render;
 mod ty;
 
-pub use expr::{BinaryOp, Precedence, RustExpr, RustStmt, UnaryOp};
+pub use expr::{MatchArm, RustExpr, RustStmt};
 pub use item::{Receiver, RustField, RustFn, RustItem, RustParam, StructShape, Visibility};
 pub use lower::lower_file;
+pub use ops::{BinaryOp, Precedence, UnaryOp};
 pub use render::{EmptyRenderer, FORMATTER_ID, RustIr, RustRenderer};
 pub use ty::RustType;
 

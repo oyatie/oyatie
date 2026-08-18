@@ -67,7 +67,7 @@ pub mod geometry {
     }
 }
 pub mod pointers {
-    // region: oyatie_example_portengine_fixture_corpus_pointers__go_struct__counter
+    // region: oyatie_example_portengine_fixture_corpus_pointers__go_struct_body__counter
     /// Counter accumulates a total.
     pub struct Counter {
         /// total is the running sum.
@@ -77,16 +77,16 @@ pub mod pointers {
     }
     impl Counter {
         pub fn add(&mut self, n: i64) {
-            todo!()
+            self.total = self.total + n;
         }
         pub fn label(&self) -> String {
-            todo!()
+            self.label.clone()
         }
         pub fn merge(&mut self, other: &Counter) {
-            todo!()
+            self.total = self.total + other.total;
         }
         pub fn total(&self) -> i64 {
-            todo!()
+            self.total
         }
     }
 }
@@ -97,7 +97,7 @@ pub mod shapes {
         fn name(&mut self) -> String;
         fn rename(&mut self, next: String);
     }
-    // region: oyatie_example_portengine_fixture_corpus_shapes__go_struct__point
+    // region: oyatie_example_portengine_fixture_corpus_shapes__go_struct_body__point
     /// Point is a location in two dimensions.
     pub struct Point {
         /// X is the horizontal coordinate.
@@ -109,10 +109,14 @@ pub mod shapes {
     }
     impl Point {
         pub fn area(&self) -> i64 {
-            todo!()
+            self.x * self.y
         }
         pub fn shift(&self, dx: i64, dy: i64) -> Point {
-            todo!()
+            Point {
+                x: self.x + dx,
+                y: self.y + dy,
+                label: String::new(),
+            }
         }
     }
 }

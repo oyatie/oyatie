@@ -5,8 +5,9 @@ use quote::{ToTokens, quote};
 
 use port_engine_api::PortError;
 
-use crate::expr::{BinaryOp, RustExpr, RustStmt};
+use crate::expr::{MatchArm, RustExpr, RustStmt};
 use crate::lower_parts::{parse_expr, parse_ident};
+use crate::ops::BinaryOp;
 
 pub(crate) fn lower_block(statements: &[RustStmt]) -> Result<TokenStream, PortError> {
     let mut tokens = TokenStream::new();
@@ -33,6 +34,28 @@ fn lower_stmt(statement: &RustStmt) -> Result<TokenStream, PortError> {
             let expr = lower_expr(expr)?;
             Ok(quote! { return #expr; })
         }
+        RustStmt::Assign { target, value } => {
+            let (target, value) = (lower_expr(target)?, lower_expr(value)?);
+            Ok(quote! { #target = #value; })
+        }
+        RustStmt::While { cond, body } => {
+            let (cond, body) = (lower_expr(cond)?, lower_block(body)?);
+            Ok(quote! { while #cond { #body } })
+        }
+        RustStmt::Loop(body) => {
+            let body = lower_block(body)?;
+            Ok(quote! { loop { #body } })
+        }
+        RustStmt::ForIn {
+            binding,
+            iter,
+            body,
+        } => {
+            let binding = parse_ident(binding)?;
+            let (iter, body) = (lower_expr(iter)?, lower_block(body)?);
+            Ok(quote! { for #binding in #iter { #body } })
+        }
+        RustStmt::Break => Ok(quote! { break; }),
     }
 }
 
@@ -94,7 +117,95 @@ fn lower_expr(expr: &RustExpr) -> Result<TokenStream, PortError> {
                 .collect::<Result<Vec<_>, _>>()?;
             Ok(quote! { ( #(#rendered),* ) })
         }
+        RustExpr::Field { base, name } => {
+            let base = lower_postfix_base(base)?;
+            let name = parse_ident(name)?;
+            Ok(quote! { #base.#name })
+        }
+        RustExpr::Call { callee, args } => {
+            let callee = lower_postfix_base(callee)?;
+            let args = lower_each(args)?;
+            Ok(quote! { #callee(#(#args),*) })
+        }
+        RustExpr::MethodCall {
+            receiver,
+            method,
+            args,
+        } => {
+            let receiver = lower_postfix_base(receiver)?;
+            let method = parse_ident(method)?;
+            let args = lower_each(args)?;
+            Ok(quote! { #receiver.#method(#(#args),*) })
+        }
+        RustExpr::Index { base, index } => {
+            let base = lower_postfix_base(base)?;
+            let index = lower_expr(index)?;
+            Ok(quote! { #base[#index] })
+        }
+        RustExpr::StructLiteral { path, fields } => {
+            let path = parse_expr(path, "struct path")?;
+            let rendered = fields
+                .iter()
+                .map(|(name, value)| {
+                    let name = parse_ident(name)?;
+                    let value = lower_expr(value)?;
+                    Ok(quote! { #name: #value })
+                })
+                .collect::<Result<Vec<_>, PortError>>()?;
+            Ok(quote! { #path { #(#rendered),* } })
+        }
+        RustExpr::Range { start, end } => {
+            let (start, end) = (lower_expr(start)?, lower_expr(end)?);
+            Ok(quote! { #start..#end })
+        }
+        RustExpr::Reference { mutable, inner } => {
+            let inner = lower_postfix_base(inner)?;
+            if *mutable {
+                Ok(quote! { &mut #inner })
+            } else {
+                Ok(quote! { &#inner })
+            }
+        }
+        RustExpr::SelfValue => Ok(quote! { self }),
+        RustExpr::Match { scrutinee, arms } => {
+            let scrutinee = lower_expr(scrutinee)?;
+            let arms = arms
+                .iter()
+                .map(lower_arm)
+                .collect::<Result<Vec<_>, PortError>>()?;
+            Ok(quote! { match #scrutinee { #(#arms)* } })
+        }
         RustExpr::Todo => Ok(quote! { todo!() }),
+    }
+}
+
+fn lower_each(exprs: &[RustExpr]) -> Result<Vec<TokenStream>, PortError> {
+    exprs.iter().map(lower_expr).collect()
+}
+
+/// An arm's patterns are ORs of literal values; an arm with none is the wildcard.
+fn lower_arm(arm: &MatchArm) -> Result<TokenStream, PortError> {
+    let body = lower_block(&arm.body)?;
+    if arm.patterns.is_empty() {
+        return Ok(quote! { _ => { #body } });
+    }
+    let patterns = lower_each(&arm.patterns)?;
+    Ok(quote! { #(#patterns)|* => { #body } })
+}
+
+/// The base of a postfix form needs bracketing when it is not itself atomic.
+///
+/// `(a + b).x` and `a + b.x` are different expressions, and the tree already knows which one it
+/// holds — so the brackets come from the structure rather than from emitting them everywhere.
+fn lower_postfix_base(expr: &RustExpr) -> Result<TokenStream, PortError> {
+    let tokens = lower_expr(expr)?;
+    match expr {
+        RustExpr::Binary { .. }
+        | RustExpr::Unary { .. }
+        | RustExpr::Range { .. }
+        | RustExpr::Reference { .. }
+        | RustExpr::If { .. } => Ok(quote! { (#tokens) }),
+        _ => Ok(tokens),
     }
 }
 

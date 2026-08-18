@@ -64,6 +64,22 @@ pub const KNOWN_DECLARATION_KINDS: &[&str] = &[
     "var",
 ];
 
+/// The kinds whose children form a NAMESPACE — a scope in which one name means one thing.
+///
+/// Package scope, a struct's fields, a signature's parameters. Below these the tree is SYNTAX, and
+/// syntax repeats names freely: `c.total + other.total` has two sibling nodes called `total` and
+/// both are correct.
+pub const NAMESPACE_KINDS: &[&str] = &[
+    "alias",
+    "const",
+    "func",
+    "interface",
+    "method",
+    "named",
+    "struct",
+    "var",
+];
+
 /// Declaration kinds admitted below package scope, as children of a declaration.
 ///
 /// One flat list rather than a per-level one. The body vocabulary nests arbitrarily — a `binary`
@@ -73,7 +89,23 @@ pub const KNOWN_DECLARATION_KINDS: &[&str] = &[
 /// a `field`; the precision it keeps is the one that matters, which is that no PACKAGE-scope kind
 /// can appear as a member.
 pub const KNOWN_MEMBER_KINDS: &[&str] = &[
+    "assign",
     "binary",
+    "break",
+    "call",
+    "case",
+    "composite",
+    "for",
+    "index",
+    "init",
+    "keyed",
+    "over",
+    "patterns",
+    "post",
+    "range",
+    "selector",
+    "switch",
+    "tag",
     "block",
     "body",
     "cond",
@@ -91,6 +123,10 @@ pub const KNOWN_MEMBER_KINDS: &[&str] = &[
     "return",
     "then",
     "unary",
+    // A field a struct literal LEFT OUT, carrying the type whose zero fills it. Recorded
+    // rather than omitted because the target needs every field named, and an absent entry
+    // would be indistinguishable from a field the front end failed to see.
+    "zero",
     // `unsupported` is how the snapshot stays a faithful model of the source while the engine
     // stays fail-closed: a construct the translator cannot handle is RECORDED as present, and
     // refused by name at transform. Omitting it would make an untranslatable function

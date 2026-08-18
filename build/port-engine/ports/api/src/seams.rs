@@ -93,6 +93,20 @@ pub trait PackSemantics {
     /// base map is: which target a source type takes in which position is a translation decision,
     /// and a decision belongs in the pack rather than in a branch here.
     fn type_map_overrides(&self, construction: &str) -> Option<&BTreeMap<String, String>>;
+    /// SOURCE types whose target counterpart copies, so reading one by value needs nothing.
+    ///
+    /// Keyed by source identity, the same way [`PackSemantics::type_map`] is, so the two tables
+    /// answer for the same thing. Everything else MOVES on a plain read, which does not compile
+    /// out of a borrow — so the read is cloned, because the source copied and the target would
+    /// not.
+    fn copy_types(&self) -> &BTreeSet<String>;
+    /// SOURCE type identity → the target expression for that type's zero value.
+    ///
+    /// Keyed like [`PackSemantics::type_map`]. Go fills a struct literal's omitted fields with the
+    /// zero value of their type; the target rejects an incomplete literal, so the engine has to
+    /// spell the omitted fields out — and what a type's zero LOOKS LIKE in the target is a
+    /// translation decision, so the pack owns it rather than the engine assuming `Default`.
+    fn zero_values(&self) -> &BTreeMap<String, String>;
     /// Ownership rules, in declared order — first match wins.
     ///
     /// Which ownership form a set of observed facts deserves is a translation DECISION with a cost
