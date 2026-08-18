@@ -39,13 +39,6 @@ pub const CARVE_OUTS: &[&str] = &[
     "evidence/audit-chain.jsonl",
 ];
 
-/// Does this single name segment begin with the deprecated `cloud-` namespace prefix?
-///
-/// BOTH separators are forbidden. The accepted naming grammar rejects a leading `cloud-` and a
-/// leading `cloud_` alike (ADR-0711), and the same holds for the `oya-`/`oya_` wrapper. Matching
-/// only the hyphen let `secrets/cloud_new_service` — or a Cargo package named `oya_cloud_thing` —
-/// walk straight past a blocking gate by changing one character.
-#[must_use]
 /// Does this name segment begin with a deprecated brand-namespace prefix?
 ///
 /// BOTH `cloud-` and `oya-` are shrink-to-zero targets. They are the same kind of debt — a brand
@@ -53,6 +46,11 @@ pub const CARVE_OUTS: &[&str] = &[
 /// carry neither prefix. The `crate-name-prefix` gate was built for this, scoring de-branded rows
 /// as advisory rather than as violations, so dropping a prefix is the supported direction rather
 /// than something CI resists.
+///
+/// BOTH separators are forbidden for each. The accepted naming grammar rejects a leading `cloud-`
+/// and a leading `cloud_` alike (ADR-0711), and the same holds for the `oya-`/`oya_` wrapper.
+/// Matching only the hyphen let `secrets/cloud_new_service` — or a Cargo package named
+/// `oya_cloud_thing` — walk straight past a blocking gate by changing one character.
 #[must_use]
 pub fn is_deprecated_prefixed_name(segment: &str) -> bool {
     is_cloud_prefixed_name(segment) || is_oya_prefixed_name(segment)

@@ -17,10 +17,6 @@ name = "ci_cloud_name_ratchet"
 path = "src/lib.rs"
 doctest = false
 
-[[bin]]
-name = "oya-ci-cloud-name-baseline"
-path = "src/bin/oya-ci-cloud-name-baseline.rs"
-
 [dependencies]
 serde_json = { workspace = true }
 
