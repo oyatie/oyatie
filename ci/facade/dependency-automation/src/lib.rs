@@ -127,6 +127,7 @@ pub fn evaluate_repo(root: &Path) -> Result<GateReport, GateError> {
     validate_closed_schema(&config, &mut findings);
     validate_policy_values(&config, &mut findings);
     validate_managed_files(root, &config, &mut findings);
+    validate_declared_paths(root, &config, &mut findings);
     validate_rust_pin_alignment(root, &config, &mut findings)?;
 
     Ok(report(findings))
@@ -402,6 +403,43 @@ fn expect_string(
                 "DEP-AUTO-MISSING-KEY",
                 format!("{CONFIG_PATH}:{}", path.join(".")),
                 format!("missing required string; {detail}"),
+            ));
+        }
+    }
+}
+
+/// Declared PATHS must point at something that exists.
+///
+/// `managed_file` entries were already existence-checked; single-valued path keys were not, and
+/// that gap let `[rust].drift_guard` sit for months naming
+/// `cloud/cloud-ci/gates/oya-cloud-ci-freshness-app/src/rust_toolchain_drift.rs` — a file deleted
+/// with the whole `cloud/` tree. A config that names a nonexistent guard reads exactly like a
+/// config that names a working one, which is the failure mode worth closing: the declaration is
+/// the only evidence the guard exists, so an unchecked declaration is no evidence at all.
+fn validate_declared_paths(root: &Path, config: &Value, findings: &mut BTreeSet<Finding>) {
+    const DECLARED_PATHS: &[(&str, &str)] = &[
+        ("rust", "drift_guard"),
+        ("supply_chain", "license_policy"),
+        ("supply_chain", "stewardship_registry"),
+        ("freshness", "mirror"),
+        ("freshness", "manifest"),
+    ];
+    for (table, key) in DECLARED_PATHS {
+        let Some(value) = config
+            .get(table)
+            .and_then(|t| t.get(key))
+            .and_then(Value::as_str)
+        else {
+            continue;
+        };
+        if !root.join(value).exists() {
+            findings.insert(Finding::new(
+                "DEP-AUTO-DECLARED-PATH-MISSING",
+                format!("{CONFIG_PATH}:{table}.{key}"),
+                format!(
+                    "declares {value}, which does not exist; a declaration is the only evidence \
+                     the referenced artifact is real"
+                ),
             ));
         }
     }
