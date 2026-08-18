@@ -1,21 +1,26 @@
 ---
-purpose: Generated ADR index and machine-readable mirror pointer for ADR freshness, numbering, owner, status, and supersession review.
+purpose: Live ADR index for the 18 apex files in decisions/.
 doc_status: published
+status: current
 ---
 
 # Oyatie — ADR Index
 
-> **Generated:** from [`decisions/`](decisions/) by `oya doc adr-index`. Do not hand-edit generated rows.
-> **Authoritative:** `crew-adr-promotion` owns freshness per [DOC-CATALOG.md `doc.adr_index`](DOC-CATALOG.md).
-> **Machine-readable mirror:** [`machine-readable/decisions.json`](machine-readable/decisions.json).
+**Current.** Hand-maintained index of the live apex set. Historical note: an older projection claimed generation by retired `oya doc adr-index`; that CLI is not merge authority.
+
+**Authoritative protocol:** [`AGENTS.md`](AGENTS.md) + [`specs/markdown-retirement-policy.json`](../specs/markdown-retirement-policy.json). [`DOC-CATALOG.md`](DOC-CATALOG.md) is a tombstone.
+
+**Machine-readable mirror:** [`machine-readable/decisions.json`](machine-readable/decisions.json) (producer-owned; do not hand-edit if generated).
 
 ## At-a-glance
 
-- **Total ADRs:** 18
+- **Total live ADRs:** 18
 - **Numbering:** contiguous ADR-0700..ADR-0717 (gap-free)
 - **Next ADR number:** 0718
 - **Status counts:** Accepted 13, Proposed 5
-- **Legacy retirement:** see [`ADR-LEGACY-REGRESSION-MAPPING.md`](ADR-LEGACY-REGRESSION-MAPPING.md).
+- **Legacy retirement:** [`ADR-LEGACY-REGRESSION-MAPPING.md`](ADR-LEGACY-REGRESSION-MAPPING.md) and [`adr-archive/`](adr-archive/).
+
+Do not collapse citations onto ADR-0709. Read the topic apex (especially 0700, 0701, 0705, 0716).
 
 ## Full table (one row per ADR, sorted by ADR number)
 
@@ -42,13 +47,7 @@ doc_status: published
 
 ## Update protocol
 
-- Per-event + monthly per `doc.adr_index` row in [`DOC-CATALOG.md`](DOC-CATALOG.md).
-- New ADRs land via [`templates/adr-template.md`](templates/adr-template.md) and use the next available number (0718), unless an explicit reserved-number ADR is being filled.
-- Per-ADR amendments preserve the original ADR number; the amended ADR cites its original date and links to the amending PR.
-- Supersession is recorded in the per-ADR header and mirrored here on regeneration.
-
-## Sources scanned
-
-- `decisions/` directory listing — 18 ADR files (sorted ascending)
-- [`machine-readable/decisions.json`](machine-readable/decisions.json) — generated machine mirror
-- [`DOC-CATALOG.md`](DOC-CATALOG.md) — owner / cadence / dependent docs / validation checks
+- Live: [`AGENTS.md`](AGENTS.md) Done-Definition (same-wave load-bearing co-change).
+- New ADRs land via [`templates/adr-template.md`](../templates/adr-template.md) as 0718+ unless filling a reserved number.
+- Per-ADR amendments keep the original number and cite the amending PR.
+- Supersession is recorded in the per-ADR header and mirrored here.
