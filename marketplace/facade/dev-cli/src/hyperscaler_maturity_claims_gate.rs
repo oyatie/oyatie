@@ -390,9 +390,12 @@ fn validate_oya_ci_required_workflow(workflow: &str) -> Result<(), String> {
     // the RUNNER is interchangeable (ADR-0718-D3). Asserting the property rather than one
     // spelling: pinning `cargo test` would make a swap to cargo-nextest look like the merge path
     // had disappeared, which is exactly the false signal this gate exists to prevent.
-    if !["cargo test --locked --workspace", "cargo nextest run --locked --workspace"]
-        .iter()
-        .any(|runner| workflow.contains(runner))
+    if ![
+        "cargo test --locked --workspace",
+        "cargo nextest run --locked --workspace",
+    ]
+    .iter()
+    .any(|runner| workflow.contains(runner))
     {
         require_contains(
             workflow,
