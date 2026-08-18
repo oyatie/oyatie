@@ -143,4 +143,3 @@ pub(crate) fn ensure_existing_canonical_parent_is_real(repo_root: &Path) -> Resu
     }
     Ok(())
 }
-

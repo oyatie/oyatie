@@ -181,4 +181,3 @@ pub(crate) fn add_closed_carried_receipt(
         &closure,
     );
 }
-

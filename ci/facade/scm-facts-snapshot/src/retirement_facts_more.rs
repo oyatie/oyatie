@@ -166,4 +166,3 @@ pub(crate) fn require_regular(entry: &TreeEntry, label: &str) -> Result<(), Stri
         ))
     }
 }
-
