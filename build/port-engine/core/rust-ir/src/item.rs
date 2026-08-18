@@ -147,6 +147,12 @@ pub enum RustItem {
         vis: Visibility,
         /// Its name.
         name: String, // data_class: INTERNAL_ONLY
+        /// Traits this one REQUIRES, from a source interface's embedded interfaces.
+        ///
+        /// A requirement rather than a copy of the method set: an implementor must implement these
+        /// too, which is what the source means by embedding and what a flattened method list would
+        /// silently weaken.
+        supertraits: Vec<RustType>,
         /// Its required methods, as signatures.
         methods: Vec<RustFn>,
     },

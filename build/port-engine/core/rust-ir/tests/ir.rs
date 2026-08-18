@@ -126,6 +126,7 @@ fn a_trait_method_carries_no_visibility() {
         docs: vec![" Anything that can render its own name.".into()],
         vis: Visibility::Public,
         name: "Named".into(),
+        supertraits: Vec::new(),
         methods: vec![RustFn {
             docs: Vec::new(),
             vis: Visibility::Inherited,
@@ -157,6 +158,7 @@ fn a_receiver_mode_is_a_choice_the_ir_can_express() {
             docs: Vec::new(),
             vis: Visibility::Public,
             name: "T".into(),
+            supertraits: Vec::new(),
             methods: vec![RustFn {
                 docs: Vec::new(),
                 vis: Visibility::Inherited,
@@ -272,4 +274,21 @@ fn the_formatter_identity_names_the_formatter() {
         "the identity must carry a version, or it cannot move when the formatter does: {}",
         digest.0
     );
+}
+
+/// An embedded interface becomes a SUPERTRAIT, not a copy of its methods.
+///
+/// The difference is what the trait REQUIRES. Flattening the embedded interface's methods into the
+/// outer trait compiles and means something weaker — a type could satisfy the outer trait without
+/// satisfying the embedded one, which the source does not allow.
+#[test]
+fn an_embedded_interface_becomes_a_supertrait() {
+    let text = render(vec![RustItem::Trait {
+        docs: Vec::new(),
+        vis: Visibility::Public,
+        name: "Job".into(),
+        supertraits: vec![RustType::path("Runner"), RustType::path("Describer")],
+        methods: Vec::new(),
+    }]);
+    assert!(text.contains("trait Job: Runner + Describer"), "{text}");
 }

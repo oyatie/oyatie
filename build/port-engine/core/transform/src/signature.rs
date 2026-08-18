@@ -23,13 +23,17 @@ pub(crate) enum Body {
     None,
 }
 
-/// The methods declared on a type, as inherent `impl` items.
+/// The methods a type carries in its inherent `impl` block.
+///
+/// Declared methods and PROMOTED ones, in one block, because the target draws no distinction
+/// between them: a caller of the source cannot tell whether a method was declared on the type or
+/// lifted from an embedded field, and the emit should not make them tell either.
 pub(crate) fn inherent_methods(
     declaration: &Declaration,
     resolver: &Resolver<'_>,
     body: Body,
 ) -> Result<Vec<RustFn>, TransformError> {
-    declaration
+    let mut methods = declaration
         .children_of_kind(CHILD_METHOD)
         .into_iter()
         .map(|method| {
@@ -41,7 +45,9 @@ pub(crate) fn inherent_methods(
                 &declaration.name,
             )
         })
-        .collect()
+        .collect::<Result<Vec<_>, _>>()?;
+    methods.extend(crate::promote::promoted_methods(declaration, resolver)?);
+    Ok(methods)
 }
 
 /// Parse a pack-declared receiver form into the IR's receiver.
@@ -111,7 +117,8 @@ pub(crate) fn method_receiver(
         .trait_receiver()
         .ok_or_else(|| TransformError::Unsupported {
             name: owner.to_owned(),
-            detail: "no implementor of this interface was observed and the pack declares no                      trait-receiver mode, so the receiver would be a guess"
+            detail: "no implementor of this interface was observed and the pack declares no \
+                     trait-receiver mode, so the receiver would be a guess"
                 .to_owned(),
         })?;
     declared_receiver(mode, owner)
@@ -168,7 +175,10 @@ pub(crate) fn method_signature(
     };
 
     Ok(RustFn {
-        docs: Vec::new(),
+        // A method's documentation is emitted, like every other declaration's. It was being
+        // dropped here while the front end captured it — the same silent loss as the interface
+        // methods, and invisible for the same reason: nothing looks for prose that is absent.
+        docs: crate::docs::docs_of(method),
         vis,
         name: to_snake_case(&method.name),
         receiver: Some(receiver),

@@ -285,6 +285,41 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
   because Go does not require a caller to use a return value and the attribute would be a claim the
   source never made.
 
+- P5b: embedding, on both sides of it.
+  Go composes by embedding and nothing forwards: an anonymous field lifts the embedded type's
+  methods into the outer type's method set, and an embedded interface lifts its requirements into
+  the outer interface's. The target has neither rule, so both became explicit.
+  An embedded INTERFACE is a SUPERTRAIT — `census/interfaces.md` §6's own reading, and 87.3% of
+  embedding interfaces embed exactly one. A requirement rather than a copy of the method set: a
+  flattened method list compiles and means something weaker, because a type could then satisfy the
+  outer trait without satisfying the embedded one.
+  An embedded STRUCT becomes FORWARDING METHODS, which closes §11 item 7 exactly. That census
+  recorded a method only where a declaration carried a receiver, so 2,747 CORE struct types have
+  method sets larger than it measured and 479 appear to have none at all; it names go/types as what
+  would close it, and the front end has go/types. The forwarding method's RECEIVER is not a new
+  decision — it has no body of its own to observe, and what it may do is decided entirely by the
+  method it forwards to — so the promoted node carries the embedded method's own ownership facts
+  and the same rules decide it. `Driver::Run` appears in the disposition record as
+  `exclusive_borrow`, proven, exactly like a declared method.
+  The two are proven TOGETHER because their interaction is what fails alone: `Driver` satisfies
+  `Job` only through a promoted method, so emitting the supertraits and skipping the promotion
+  produces an impl naming a method nothing implements, which nothing short of compiling it notices.
+  Satisfying an interface now records satisfaction of everything it embeds, transitively — the Go
+  compiler checks that, and the target needs it written down, since a supertrait is a REQUIREMENT
+  and `impl Job for Driver` does not compile without `Runner` and `Describer`.
+  Two defects the corpus surfaced, both silent: an `implements` node carried the interface's FULL
+  method set, which was right while no trait had supertraits and became wrong the moment one did
+  (`impl Job` named `describe`, which is not a member of `Job`); and an EMBEDDED field has no name
+  in the syntax — its name is its type — so the member-doc indexer, keyed on `Names`, dropped every
+  comment on one.
+  Method documentation was also being dropped at the signature layer while the front end captured
+  it — the same silent loss as the interface methods, and invisible for the same reason.
+  `admission.rs` stopped asserting a package COUNT and now asserts the package SET. A count has to
+  be edited every time a corpus package lands, which makes the edit routine and the check
+  ceremonial; a set says which package went missing (ADR-0717).
+  New corpus `corpus/composite`. Emitted-code lint: 21 pedantic warnings over 281 lines, unchanged
+  in absolute terms across a 65% larger emit.
+
 ## Still owed by this lane
 
 - A concrete value flowing into a trait-object POSITION needs a coercion the body translator does
@@ -292,11 +327,13 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
   to `&Tag`, and is not when a conservative ownership rule makes it `Option<Box<Tag>>` — which is
   why the argument and result SITES are proven on the snapshot in `corpus-interface/` rather than
   end-to-end through the emit. The assertion site is proven end-to-end.
-- Interface EMBEDDING and method promotion are not implemented. Go's method set includes methods
-  promoted through an embedded field, and 2,747 CORE struct types embed at least one — 479 of them
-  declare no explicit method at all. The impl side is already correct, because the front end
-  carries the interface's FULL method set, embedded methods included; the missing half is the
-  concrete side, where a promoted method has to become a forwarding method the target can call.
+- A struct embedding an INTERFACE still refuses, because the field position has no declared
+  trait-object form. `Box<dyn T>` would compile and would claim unique ownership of a value the
+  source may share, and nothing here proves it is not shared — which is the same reason P3 refuses
+  rather than guessing a pointer disposition. `runtime.codec` is this shape.
+- Stdlib interface mapping (`io.Reader` → `std::io::Read`, `fmt.Stringer` → `Display`) is a
+  precondition of the rule pack rather than an output of the engine, per `census/interfaces.md` §11
+  item 5. 25 embeds and ~100 assertions in CORE target types outside any corpus.
 - `defer`, `panic`/`recover`, `select`, closures and the type switch still refuse BY NAME. Each
   needs its census read first — `census/defer-panic-recover.md` sizes the first two at six callee
   shapes covering 77.9% — and guessing at one is how a translator emits a body that compiles and

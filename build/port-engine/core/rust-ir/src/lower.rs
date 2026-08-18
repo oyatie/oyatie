@@ -92,6 +92,7 @@ fn lower_item(item: &RustItem) -> Result<TokenStream, PortError> {
             docs,
             vis,
             name,
+            supertraits,
             methods,
         } => {
             let (doc_tokens, vis_tokens) = (lower_docs(docs), lower_vis(*vis));
@@ -100,7 +101,16 @@ fn lower_item(item: &RustItem) -> Result<TokenStream, PortError> {
                 .iter()
                 .map(lower_fn)
                 .collect::<Result<Vec<_>, _>>()?;
-            Ok(quote! { #doc_tokens #vis_tokens trait #ident { #(#rendered)* } })
+            let bounds = supertraits
+                .iter()
+                .map(parse_type)
+                .collect::<Result<Vec<_>, _>>()?;
+            let requires = if bounds.is_empty() {
+                TokenStream::new()
+            } else {
+                quote! { : #(#bounds)+* }
+            };
+            Ok(quote! { #doc_tokens #vis_tokens trait #ident #requires { #(#rendered)* } })
         }
 
         RustItem::TraitImpl {

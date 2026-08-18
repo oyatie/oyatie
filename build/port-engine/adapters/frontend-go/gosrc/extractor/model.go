@@ -112,6 +112,11 @@ const (
 	// kindImplements is an observed interface satisfaction, hung on the concrete type that
 	// satisfies. See satisfy.go for why it is observed rather than derived.
 	kindImplements = "implements"
+	// kindEmbeds is an interface an interface embeds, which the target spells as a supertrait.
+	kindEmbeds = "embeds"
+	// kindPromoted is a method a type gains through EMBEDDING rather than declaration. The
+	// target has no promotion, so what is implicit in the source becomes a forwarding method.
+	kindPromoted = "promoted"
 
 	kindParam  = "param"
 	kindResult = "result"
@@ -199,6 +204,9 @@ const (
 	// A Go interface says nothing about it, so this is the one answer the source cannot give
 	// directly and the corpus can.
 	attrReceiver = "receiver"
+	// attrVia is the dotted FIELD PATH a promoted method is reached through. The target has no
+	// method promotion, so the forwarding method has to name the field it forwards to.
+	attrVia = "via"
 	// attrSite records HOW an interface satisfaction was observed. A declared assertion is
 	// compile-checked by Go; a flow-derived one is this extractor's inference. An impl emitted
 	// from either looks identical, so a reviewer needs the distinction recorded rather than

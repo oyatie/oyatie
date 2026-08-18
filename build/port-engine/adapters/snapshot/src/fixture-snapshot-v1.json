@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "language": "go",
-  "snapshot_digest": "sha256:d796168f8bdf841492a7b802eaa9b1b88d76f820a319ad2ec4bcb446f89c1a34",
+  "snapshot_digest": "sha256:99de35280bae96efd20b17c1c770df3c39cf369bece394a8863aa594145fcfbe",
   "packages": [
     {
       "unit_id": "oyatie.example/portengine-fixture/corpus/basic",
@@ -394,6 +394,427 @@
                       }
                     }
                   ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "unit_id": "oyatie.example/portengine-fixture/corpus/composite",
+      "producer": "bootstrap-go-packages-go-types",
+      "declarations": [
+        {
+          "kind": "interface",
+          "name": "Describer",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Describer is anything that can describe itself."
+          },
+          "children": [
+            {
+              "kind": "method",
+              "name": "Describe",
+              "flags": [
+                "exported"
+              ],
+              "attrs": {
+                "doc": "Describe renders a description.",
+                "receiver": "shared"
+              },
+              "children": [
+                {
+                  "kind": "result",
+                  "name": "",
+                  "type": {
+                    "kind": "basic",
+                    "name": "string"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "struct",
+          "name": "Driver",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Driver embeds an Engine and gains its methods."
+          },
+          "children": [
+            {
+              "kind": "field",
+              "name": "Engine",
+              "type": {
+                "kind": "named",
+                "name": "Engine",
+                "package": "oyatie.example/portengine-fixture/corpus/composite"
+              },
+              "flags": [
+                "embedded",
+                "exported"
+              ],
+              "attrs": {
+                "doc": "Engine is embedded, so Driver's method set includes Run without declaring it."
+              }
+            },
+            {
+              "kind": "field",
+              "name": "label",
+              "type": {
+                "kind": "basic",
+                "name": "string"
+              },
+              "attrs": {
+                "doc": "label describes this driver."
+              }
+            },
+            {
+              "kind": "method",
+              "name": "Describe",
+              "flags": [
+                "exported",
+                "pointer_receiver"
+              ],
+              "attrs": {
+                "doc": "Describe renders a description."
+              },
+              "children": [
+                {
+                  "kind": "result",
+                  "name": "",
+                  "type": {
+                    "kind": "basic",
+                    "name": "string"
+                  }
+                },
+                {
+                  "kind": "body",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "return",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "selector",
+                          "name": "label",
+                          "type": {
+                            "kind": "basic",
+                            "name": "string"
+                          },
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "d",
+                              "attrs": {
+                                "ref": "receiver"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "kind": "promoted",
+              "name": "Run",
+              "flags": [
+                "exported",
+                "mutated",
+                "pointer_receiver"
+              ],
+              "attrs": {
+                "doc": "Run performs one unit of work and reports the running count.\n\nMUTATING, which is what makes the promoted method interesting: the forwarding method's receiver\nis decided by what the method it forwards to does, and there is no body on the outer type to\nobserve.",
+                "via": "Engine"
+              },
+              "children": [
+                {
+                  "kind": "result",
+                  "name": "",
+                  "type": {
+                    "kind": "basic",
+                    "name": "int"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "implements",
+              "name": "",
+              "type": {
+                "kind": "named_interface",
+                "name": "Describer",
+                "package": "oyatie.example/portengine-fixture/corpus/composite"
+              },
+              "attrs": {
+                "site": "assertion"
+              },
+              "children": [
+                {
+                  "kind": "method",
+                  "name": "Describe",
+                  "flags": [
+                    "exported"
+                  ],
+                  "attrs": {
+                    "receiver": "shared"
+                  },
+                  "children": [
+                    {
+                      "kind": "result",
+                      "name": "",
+                      "type": {
+                        "kind": "basic",
+                        "name": "string"
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "kind": "implements",
+              "name": "",
+              "type": {
+                "kind": "named_interface",
+                "name": "Job",
+                "package": "oyatie.example/portengine-fixture/corpus/composite"
+              },
+              "attrs": {
+                "site": "assertion"
+              }
+            },
+            {
+              "kind": "implements",
+              "name": "",
+              "type": {
+                "kind": "named_interface",
+                "name": "Runner",
+                "package": "oyatie.example/portengine-fixture/corpus/composite"
+              },
+              "attrs": {
+                "site": "assertion"
+              },
+              "children": [
+                {
+                  "kind": "method",
+                  "name": "Run",
+                  "flags": [
+                    "exported"
+                  ],
+                  "children": [
+                    {
+                      "kind": "result",
+                      "name": "",
+                      "type": {
+                        "kind": "basic",
+                        "name": "int"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "struct",
+          "name": "Engine",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Engine counts the work it has done."
+          },
+          "children": [
+            {
+              "kind": "field",
+              "name": "calls",
+              "type": {
+                "kind": "basic",
+                "name": "int"
+              },
+              "attrs": {
+                "doc": "calls is how many times Run has been called."
+              }
+            },
+            {
+              "kind": "method",
+              "name": "Run",
+              "flags": [
+                "exported",
+                "mutated",
+                "pointer_receiver"
+              ],
+              "attrs": {
+                "doc": "Run performs one unit of work and reports the running count.\n\nMUTATING, which is what makes the promoted method interesting: the forwarding method's receiver\nis decided by what the method it forwards to does, and there is no body on the outer type to\nobserve."
+              },
+              "children": [
+                {
+                  "kind": "result",
+                  "name": "",
+                  "type": {
+                    "kind": "basic",
+                    "name": "int"
+                  }
+                },
+                {
+                  "kind": "body",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "assign",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "selector",
+                          "name": "calls",
+                          "type": {
+                            "kind": "basic",
+                            "name": "int"
+                          },
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "e",
+                              "attrs": {
+                                "ref": "receiver"
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "kind": "binary",
+                          "name": "",
+                          "attrs": {
+                            "op": "+"
+                          },
+                          "children": [
+                            {
+                              "kind": "selector",
+                              "name": "calls",
+                              "type": {
+                                "kind": "basic",
+                                "name": "int"
+                              },
+                              "children": [
+                                {
+                                  "kind": "ident",
+                                  "name": "e",
+                                  "attrs": {
+                                    "ref": "receiver"
+                                  }
+                                }
+                              ]
+                            },
+                            {
+                              "kind": "literal",
+                              "name": "",
+                              "attrs": {
+                                "lit_kind": "INT",
+                                "value": "1"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "return",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "selector",
+                          "name": "calls",
+                          "type": {
+                            "kind": "basic",
+                            "name": "int"
+                          },
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "e",
+                              "attrs": {
+                                "ref": "receiver"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "interface",
+          "name": "Job",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Job is anything that runs and describes itself.\n\nEmbeds two interfaces and declares no method of its own, which is the shape 87.3% of embedding\ninterfaces have — and the shape whose emitted trait says nothing at all unless the supertraits\nare carried."
+          },
+          "children": [
+            {
+              "kind": "embeds",
+              "name": "",
+              "type": {
+                "kind": "named_interface",
+                "name": "Runner",
+                "package": "oyatie.example/portengine-fixture/corpus/composite"
+              }
+            },
+            {
+              "kind": "embeds",
+              "name": "",
+              "type": {
+                "kind": "named_interface",
+                "name": "Describer",
+                "package": "oyatie.example/portengine-fixture/corpus/composite"
+              }
+            }
+          ]
+        },
+        {
+          "kind": "interface",
+          "name": "Runner",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Runner is anything that can run."
+          },
+          "children": [
+            {
+              "kind": "method",
+              "name": "Run",
+              "flags": [
+                "exported"
+              ],
+              "attrs": {
+                "doc": "Run performs one unit of work and reports the running count."
+              },
+              "children": [
+                {
+                  "kind": "result",
+                  "name": "",
+                  "type": {
+                    "kind": "basic",
+                    "name": "int"
+                  }
                 }
               ]
             }

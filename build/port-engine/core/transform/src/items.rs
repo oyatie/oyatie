@@ -11,10 +11,10 @@ use crate::naming::{to_pascal_case, to_screaming_snake, to_snake_case, visibilit
 use crate::resolve::Resolver;
 use crate::signature::{Body, inherent_methods, params, refuse_variadic, results, trait_methods};
 use crate::vocabulary::{
-    ATTR_VALUE, CHILD_BODY, CHILD_FIELD, CONSTRUCTION_RUST_CONST, CONSTRUCTION_RUST_FN,
-    CONSTRUCTION_RUST_FN_BODY, CONSTRUCTION_RUST_NEWTYPE, CONSTRUCTION_RUST_STRUCT,
-    CONSTRUCTION_RUST_STRUCT_BODY, CONSTRUCTION_RUST_TRAIT, CONSTRUCTION_RUST_TYPE_ALIAS,
-    POSITION_FIELD,
+    ATTR_VALUE, CHILD_BODY, CHILD_EMBEDS, CHILD_FIELD, CONSTRUCTION_RUST_CONST,
+    CONSTRUCTION_RUST_FN, CONSTRUCTION_RUST_FN_BODY, CONSTRUCTION_RUST_NEWTYPE,
+    CONSTRUCTION_RUST_STRUCT, CONSTRUCTION_RUST_STRUCT_BODY, CONSTRUCTION_RUST_TRAIT,
+    CONSTRUCTION_RUST_TYPE_ALIAS, POSITION_FIELD, POSITION_SUPERTRAIT,
 };
 use crate::{body, docs::docs_of};
 
@@ -142,8 +142,25 @@ fn build_trait(
         docs: docs_of(declaration),
         vis: visibility(declaration),
         name: to_pascal_case(&declaration.name),
+        supertraits: supertraits(declaration, resolver)?,
         methods: trait_methods(declaration, resolver)?,
     })
+}
+
+/// The traits an interface's embedded interfaces require.
+///
+/// A supertrait is a REQUIREMENT: an implementor must implement these too. Flattening them into the
+/// outer trait's method list would compile and would mean something weaker — a type could satisfy
+/// the outer trait without satisfying the embedded ones, which the source does not allow.
+fn supertraits(
+    declaration: &Declaration,
+    resolver: &Resolver<'_>,
+) -> Result<Vec<RustType>, TransformError> {
+    declaration
+        .children_of_kind(CHILD_EMBEDS)
+        .into_iter()
+        .map(|embed| resolver.resolve_in(&embed.type_ref, &declaration.name, POSITION_SUPERTRAIT))
+        .collect()
 }
 
 fn build_fn(
