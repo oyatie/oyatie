@@ -1,62 +1,88 @@
-//! Function bodies: statements, expressions, and the operator tables.
+//! Function bodies: source statements and expressions into IR nodes.
 //!
 //! The supported subset is small ON PURPOSE and everything outside it refuses BY NAME. A
 //! translator that guesses at a construct it does not understand emits code that compiles and is
 //! wrong, which the receipt then certifies as reproducible.
+//!
+//! Nothing here builds text. Operator precedence is the IR's problem now, which is why the
+//! operator tables below map to typed operators rather than to spellings: a spelling has to be
+//! parenthesised defensively, a typed operator carries its own binding power.
 
 use port_engine_api::Declaration;
+use port_engine_rust_ir::{BinaryOp, RustExpr, RustStmt, UnaryOp};
 
 use crate::error::TransformError;
 use crate::naming::{to_pascal_case, to_screaming_snake, to_snake_case};
 use crate::vocabulary::{ATTR_OP, ATTR_REF, ATTR_SOURCE_NODE, ATTR_VALUE};
 
-// understand produces code that compiles and is wrong, which the receipt then certifies as
-// reproducible. A refusal is a finding — it says which function, and which construct, and it
-// points at the analysis. The census under docs/programs/k8s-port/census/ is where the hard cases
-// are worked out before a rule for them is written.
-
-pub(crate) fn render_statements(
-    statements: &[Declaration],
+/// Translate a function body's statements.
+///
+/// A trailing `return` becomes a TAIL EXPRESSION. That is a target-language idiom rather than a
+/// change of meaning — `return x;` as the last statement of a function and `x` are the same
+/// program — and it is owned here for the same reason identifier casing is: this face renders
+/// Rust, so Rust's conventions are its business.
+pub(crate) fn statements(
+    nodes: &[Declaration],
     owner: &str,
-) -> Result<String, TransformError> {
-    let mut out = String::new();
-    for statement in statements {
-        out.push_str(&render_statement(statement, owner)?);
-        out.push(' ');
-    }
-    Ok(out.trim_end().to_owned())
+) -> Result<Vec<RustStmt>, TransformError> {
+    translate(nodes, owner, TailPosition::Yes)
 }
 
-fn render_statement(statement: &Declaration, owner: &str) -> Result<String, TransformError> {
-    match statement.kind.as_str() {
+/// Whether the last statement of this sequence is in TAIL position — the position whose value is
+/// the enclosing block's value.
+#[derive(Clone, Copy, Eq, PartialEq)]
+enum TailPosition {
+    Yes,
+    No,
+}
+
+fn translate(
+    nodes: &[Declaration],
+    owner: &str,
+    tail: TailPosition,
+) -> Result<Vec<RustStmt>, TransformError> {
+    let mut out = Vec::with_capacity(nodes.len());
+    for (index, node) in nodes.iter().enumerate() {
+        let is_tail = tail == TailPosition::Yes && index + 1 == nodes.len();
+        out.push(statement(node, owner, is_tail)?);
+    }
+    Ok(out)
+}
+
+fn statement(node: &Declaration, owner: &str, is_last: bool) -> Result<RustStmt, TransformError> {
+    match node.kind.as_str() {
         "return" => {
-            let values = render_expression_list(&statement.children, owner)?;
-            match statement.children.len() {
-                0 => Ok("return;".to_owned()),
-                1 => Ok(format!("return {values};")),
-                // Several results are a tuple on the way out, matching how the signature renders
-                // them. Arity and order stay visible rather than becoming an invented struct.
-                _ => Ok(format!("return ({values});")),
+            let values = node
+                .children
+                .iter()
+                .map(|child| expression(child, owner))
+                .collect::<Result<Vec<_>, _>>()?;
+            let value = match values.len() {
+                0 => None,
+                1 => values.into_iter().next(),
+                // Several results leave as a tuple, matching how the signature renders them.
+                _ => Some(RustExpr::Tuple(values)),
+            };
+            match (is_last, value) {
+                (true, Some(expr)) => Ok(RustStmt::Tail(expr)),
+                (_, value) => Ok(RustStmt::Return(value)),
             }
         }
-        "block" => Ok(format!(
-            "{{ {} }}",
-            render_statements(&statement.children, owner)?
-        )),
-        "if" => render_if(statement, owner),
-        "let" => {
-            let value = one_child(statement, owner, "let")?;
-            Ok(format!(
-                "let {} = {};",
-                to_snake_case(&statement.name),
-                render_expression(value, owner)?
-            ))
-        }
-        "expr_stmt" => {
-            let value = one_child(statement, owner, "expr_stmt")?;
-            Ok(format!("{};", render_expression(value, owner)?))
-        }
-        "unsupported" => Err(unsupported_source(statement, owner)),
+        "block" => Ok(RustStmt::Semi(RustExpr::Block(translate(
+            &node.children,
+            owner,
+            TailPosition::No,
+        )?))),
+        "if" => Ok(RustStmt::Semi(conditional(node, owner)?)),
+        "let" => Ok(RustStmt::Let {
+            name: to_snake_case(&node.name),
+            value: expression(one_child(node, owner, "let")?, owner)?,
+        }),
+        "expr_stmt" => Ok(RustStmt::Semi(expression(
+            one_child(node, owner, "expr_stmt")?,
+            owner,
+        )?)),
+        "unsupported" => Err(unsupported_source(node, owner)),
         other => Err(TransformError::Unsupported {
             name: owner.to_owned(),
             detail: format!("statement kind `{other}` has no translation"),
@@ -64,8 +90,8 @@ fn render_statement(statement: &Declaration, owner: &str) -> Result<String, Tran
     }
 }
 
-fn render_if(statement: &Declaration, owner: &str) -> Result<String, TransformError> {
-    let condition = statement
+fn conditional(node: &Declaration, owner: &str) -> Result<RustExpr, TransformError> {
+    let condition = node
         .children_of_kind("cond")
         .first()
         .copied()
@@ -74,9 +100,7 @@ fn render_if(statement: &Declaration, owner: &str) -> Result<String, TransformEr
             name: owner.to_owned(),
             datum: "cond",
         })?;
-    let condition = one_child(condition, owner, "cond")?;
-
-    let then = statement
+    let then = node
         .children_of_kind("then")
         .first()
         .copied()
@@ -86,69 +110,70 @@ fn render_if(statement: &Declaration, owner: &str) -> Result<String, TransformEr
             datum: "then",
         })?;
 
-    let mut out = format!(
-        "if {} {{ {} }}",
-        render_expression(condition, owner)?,
-        render_statements(&then.children, owner)?
-    );
-    if let Some(otherwise) = statement.children_of_kind("else").first() {
-        let branch = one_child(otherwise, owner, "else")?;
-        out.push_str(&format!(" else {}", render_statement(branch, owner)?));
-    }
-    Ok(out)
+    let otherwise = match node.children_of_kind("else").first() {
+        None => None,
+        Some(branch) => {
+            let inner = one_child(branch, owner, "else")?;
+            Some(Box::new(match statement(inner, owner, false)? {
+                RustStmt::Semi(expr) => expr,
+                other => RustExpr::Block(vec![other]),
+            }))
+        }
+    };
+
+    Ok(RustExpr::If {
+        cond: Box::new(expression(one_child(condition, owner, "cond")?, owner)?),
+        // An `if` in statement position yields unit, so its branches keep their `return`s. Making
+        // a branch yield a value here is what produced `if id == "" { fallback }` — which parses,
+        // does not type-check, and is exactly the class of defect the compile proof exists for.
+        then: translate(&then.children, owner, TailPosition::No)?,
+        otherwise,
+    })
 }
 
-fn render_expression_list(
-    expressions: &[Declaration],
-    owner: &str,
-) -> Result<String, TransformError> {
-    let mut rendered = Vec::with_capacity(expressions.len());
-    for expression in expressions {
-        rendered.push(render_expression(expression, owner)?);
-    }
-    Ok(rendered.join(", "))
-}
-
-fn render_expression(expression: &Declaration, owner: &str) -> Result<String, TransformError> {
-    match expression.kind.as_str() {
-        "literal" => render_literal(expression, owner),
-        "ident" => Ok(render_reference(expression)),
-        "paren" => Ok(format!(
-            "({})",
-            render_expression(one_child(expression, owner, "paren")?, owner)?
-        )),
+fn expression(node: &Declaration, owner: &str) -> Result<RustExpr, TransformError> {
+    match node.kind.as_str() {
+        // A literal passes through as SOURCE TEXT, which is safe only because the emitted tree is
+        // parsed and compiled. Where the two languages' lexical forms diverge — a rune literal, an
+        // imaginary literal — the pass-through fails the parse, which is the correct outcome and
+        // is why no attempt is made to normalise numbers here.
+        "literal" => node
+            .attr(ATTR_VALUE)
+            .map(|value| RustExpr::Literal(value.to_owned()))
+            .ok_or_else(|| TransformError::MissingDatum {
+                construction: "literal".to_owned(),
+                name: owner.to_owned(),
+                datum: ATTR_VALUE,
+            }),
+        "ident" => Ok(RustExpr::Path(reference(node))),
+        // A source-level parenthesis carries no information the tree does not already have, and
+        // re-emitting it would fight the precedence the IR computes.
+        "paren" => expression(one_child(node, owner, "paren")?, owner),
         "binary" => {
-            let operator = operator_of(expression, owner)?;
-            let rust_operator =
-                translate_binary_operator(operator).ok_or_else(|| TransformError::Unsupported {
-                    name: owner.to_owned(),
-                    detail: format!("binary operator `{operator}` has no direct translation"),
-                })?;
-            let (left, right) = two_children(expression, owner, "binary")?;
-            // Parenthesised unconditionally. The alternative is a precedence table for two
-            // languages that do not share one, and a table that is subtly wrong produces
-            // arithmetic that compiles and computes something else.
-            Ok(format!(
-                "({} {} {})",
-                render_expression(left, owner)?,
-                rust_operator,
-                render_expression(right, owner)?
-            ))
+            let spelling = operator_of(node, owner)?;
+            let op = binary_operator(spelling).ok_or_else(|| TransformError::Unsupported {
+                name: owner.to_owned(),
+                detail: format!("binary operator `{spelling}` has no direct translation"),
+            })?;
+            let (lhs, rhs) = two_children(node, owner, "binary")?;
+            Ok(RustExpr::Binary {
+                op,
+                lhs: Box::new(expression(lhs, owner)?),
+                rhs: Box::new(expression(rhs, owner)?),
+            })
         }
         "unary" => {
-            let operator = operator_of(expression, owner)?;
-            let rust_operator =
-                translate_unary_operator(operator).ok_or_else(|| TransformError::Unsupported {
-                    name: owner.to_owned(),
-                    detail: format!("unary operator `{operator}` has no direct translation"),
-                })?;
-            Ok(format!(
-                "({}{})",
-                rust_operator,
-                render_expression(one_child(expression, owner, "unary")?, owner)?
-            ))
+            let spelling = operator_of(node, owner)?;
+            let op = unary_operator(spelling).ok_or_else(|| TransformError::Unsupported {
+                name: owner.to_owned(),
+                detail: format!("unary operator `{spelling}` has no direct translation"),
+            })?;
+            Ok(RustExpr::Unary {
+                op,
+                operand: Box::new(expression(one_child(node, owner, "unary")?, owner)?),
+            })
         }
-        "unsupported" => Err(unsupported_source(expression, owner)),
+        "unsupported" => Err(unsupported_source(node, owner)),
         other => Err(TransformError::Unsupported {
             name: owner.to_owned(),
             detail: format!("expression kind `{other}` has no translation"),
@@ -156,76 +181,61 @@ fn render_expression(expression: &Declaration, owner: &str) -> Result<String, Tr
     }
 }
 
-/// A literal is passed through as SOURCE TEXT, and that is safe only because the emitted tree is
-/// parsed by `syn` and compiled. Where the two languages' lexical forms diverge — a rune literal,
-/// an imaginary literal — the pass-through produces something the parse rejects, which is the
-/// correct outcome and is why no attempt is made to normalise numbers here.
-fn render_literal(expression: &Declaration, owner: &str) -> Result<String, TransformError> {
-    expression
-        .attr(ATTR_VALUE)
-        .map(ToOwned::to_owned)
-        .ok_or_else(|| TransformError::MissingDatum {
-            construction: "literal".to_owned(),
-            name: owner.to_owned(),
-            datum: ATTR_VALUE,
-        })
-}
-
-/// Case an identifier by what it refers to. A reference to a constant must render in the target's
-/// constant casing or it names nothing at all, so the front end's classification is used rather
-/// than a single default applied to every identifier.
-fn render_reference(expression: &Declaration) -> String {
-    match expression.attr(ATTR_REF) {
-        Some("const") => to_screaming_snake(&expression.name),
-        Some("type") => to_pascal_case(&expression.name),
-        _ => to_snake_case(&expression.name),
+/// Case an identifier by what it REFERS to.
+///
+/// A reference to a constant must render in the target's constant casing or it names nothing at
+/// all, so the front end's classification is used rather than one default applied to everything.
+fn reference(node: &Declaration) -> String {
+    match node.attr(ATTR_REF) {
+        Some("const") => to_screaming_snake(&node.name),
+        Some("type") => to_pascal_case(&node.name),
+        _ => to_snake_case(&node.name),
     }
 }
 
-fn translate_binary_operator(operator: &str) -> Option<&'static str> {
-    match operator {
-        "+" => Some("+"),
-        "-" => Some("-"),
-        "*" => Some("*"),
-        "/" => Some("/"),
-        "%" => Some("%"),
-        "==" => Some("=="),
-        "!=" => Some("!="),
-        "<" => Some("<"),
-        "<=" => Some("<="),
-        ">" => Some(">"),
-        ">=" => Some(">="),
-        "&&" => Some("&&"),
-        "||" => Some("||"),
-        "&" => Some("&"),
-        "|" => Some("|"),
-        "^" => Some("^"),
-        "<<" => Some("<<"),
-        ">>" => Some(">>"),
+fn binary_operator(spelling: &str) -> Option<BinaryOp> {
+    Some(match spelling {
+        "+" => BinaryOp::Add,
+        "-" => BinaryOp::Sub,
+        "*" => BinaryOp::Mul,
+        "/" => BinaryOp::Div,
+        "%" => BinaryOp::Rem,
+        "==" => BinaryOp::Eq,
+        "!=" => BinaryOp::Ne,
+        "<" => BinaryOp::Lt,
+        "<=" => BinaryOp::Le,
+        ">" => BinaryOp::Gt,
+        ">=" => BinaryOp::Ge,
+        "&&" => BinaryOp::And,
+        "||" => BinaryOp::Or,
+        "&" => BinaryOp::BitAnd,
+        "|" => BinaryOp::BitOr,
+        "^" => BinaryOp::BitXor,
+        "<<" => BinaryOp::Shl,
+        ">>" => BinaryOp::Shr,
         // `&^` (AND NOT) has no single-operator target form. It is spellable as `& !`, but the
         // operand widths differ between the languages and a silent rewrite of a bit operation is
         // exactly the class of change nobody reviews.
-        _ => None,
-    }
+        _ => return None,
+    })
 }
 
-fn translate_unary_operator(operator: &str) -> Option<&'static str> {
-    match operator {
-        "-" => Some("-"),
-        // Logical NOT and bitwise NOT are both `!` in the target, and they are distinguished by
-        // operand type rather than by spelling.
-        "!" | "^" => Some("!"),
+fn unary_operator(spelling: &str) -> Option<UnaryOp> {
+    Some(match spelling {
+        "-" => UnaryOp::Neg,
+        // Logical NOT and bitwise NOT are both `!` in the target, distinguished by operand type
+        // rather than by spelling.
+        "!" | "^" => UnaryOp::Not,
         // `&` and `*` are references and dereferences. Both are aliasing decisions, which
         // docs/programs/k8s-port/census/ownership-escape.md exists to work out.
-        _ => None,
-    }
+        _ => return None,
+    })
 }
 
-fn operator_of<'a>(expression: &'a Declaration, owner: &str) -> Result<&'a str, TransformError> {
-    expression
-        .attr(ATTR_OP)
+fn operator_of<'a>(node: &'a Declaration, owner: &str) -> Result<&'a str, TransformError> {
+    node.attr(ATTR_OP)
         .ok_or_else(|| TransformError::MissingDatum {
-            construction: expression.kind.clone(),
+            construction: node.kind.clone(),
             name: owner.to_owned(),
             datum: ATTR_OP,
         })
@@ -263,7 +273,7 @@ fn two_children<'a>(
     what: &str,
 ) -> Result<(&'a Declaration, &'a Declaration), TransformError> {
     match node.children.as_slice() {
-        [left, right] => Ok((left, right)),
+        [lhs, rhs] => Ok((lhs, rhs)),
         other => Err(TransformError::Unsupported {
             name: owner.to_owned(),
             detail: format!("`{what}` node needs two operands, got {}", other.len()),

@@ -75,7 +75,14 @@ pub const KNOWN_MEMBER_KINDS: &[&str] = &[
 pub const KNOWN_FLAGS: &[&str] = &["embedded", "exported", "pointer_receiver", "variadic"];
 
 /// The closed attribute-key vocabulary, closed for the same reason as the flags.
-pub const KNOWN_ATTR_KEYS: &[&str] = &[ATTR_GO_NODE, ATTR_LIT_KIND, ATTR_OP, ATTR_REF, ATTR_VALUE];
+pub const KNOWN_ATTR_KEYS: &[&str] = &[
+    ATTR_DOC,
+    ATTR_GO_NODE,
+    ATTR_LIT_KIND,
+    ATTR_OP,
+    ATTR_REF,
+    ATTR_VALUE,
+];
 
 /// Attribute key holding a constant's or literal's value, spelled as source.
 pub const ATTR_VALUE: &str = "value";
@@ -93,3 +100,10 @@ pub const ATTR_REF: &str = "ref";
 
 /// Attribute key recording a literal's lexical class.
 pub const ATTR_LIT_KIND: &str = "lit_kind";
+
+/// Attribute key carrying a declaration's documentation block, newline-separated.
+///
+/// Recorded because the target emits it. Dropping documentation is a SILENT loss — coverage
+/// proves every declaration was translated, not that everything about a declaration survived —
+/// and no downstream check looks for prose that is simply absent.
+pub const ATTR_DOC: &str = "doc";

@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "language": "go",
-  "snapshot_digest": "sha256:3d596902ffc33c101277f8a33e228d7489d62eda06ca47809075fefeb9e08692",
+  "snapshot_digest": "sha256:5a92d8514cf1a9b62cb97e5a678bd0dc4993ea9d441bfa9d32970e8960cd3e4c",
   "packages": [
     {
       "unit_id": "oyatie.example/portengine-fixture/basic",
@@ -13,6 +13,9 @@
           "flags": [
             "exported"
           ],
+          "attrs": {
+            "doc": "Add returns the sum of a and b."
+          },
           "children": [
             {
               "kind": "param",
@@ -72,7 +75,10 @@
           "type": "float64",
           "flags": [
             "exported"
-          ]
+          ],
+          "attrs": {
+            "doc": "Celsius is a temperature in degrees Celsius."
+          }
         },
         {
           "kind": "const",
@@ -82,6 +88,7 @@
             "exported"
           ],
           "attrs": {
+            "doc": "DefaultName is the fallback identity for an unnamed record.",
             "value": "\"anonymous\""
           }
         },
@@ -91,7 +98,10 @@
           "type": "bool",
           "flags": [
             "exported"
-          ]
+          ],
+          "attrs": {
+            "doc": "Enabled reports whether the fixture feature is on by default."
+          }
         },
         {
           "kind": "alias",
@@ -99,7 +109,10 @@
           "type": "string",
           "flags": [
             "exported"
-          ]
+          ],
+          "attrs": {
+            "doc": "ID is an alias for the underlying identity spelling."
+          }
         },
         {
           "kind": "func",
@@ -107,6 +120,9 @@
           "flags": [
             "exported"
           ],
+          "attrs": {
+            "doc": "Label renders a display name for the given identity."
+          },
           "children": [
             {
               "kind": "param",
@@ -207,6 +223,7 @@
             "exported"
           ],
           "attrs": {
+            "doc": "MaxRetries bounds the retry loop.",
             "value": "3"
           }
         },
@@ -216,6 +233,9 @@
           "flags": [
             "exported"
           ],
+          "attrs": {
+            "doc": "Scale multiplies value by factor."
+          },
           "children": [
             {
               "kind": "param",
@@ -275,11 +295,17 @@
           "type": "float64",
           "flags": [
             "exported"
-          ]
+          ],
+          "attrs": {
+            "doc": "Threshold is the default cutoff."
+          }
         },
         {
           "kind": "func",
           "name": "unexported",
+          "attrs": {
+            "doc": "unexported is not part of the fixture's public surface."
+          },
           "children": [
             {
               "kind": "param",
@@ -324,6 +350,9 @@
           "flags": [
             "exported"
           ],
+          "attrs": {
+            "doc": "Named is anything that can render its own name."
+          },
           "children": [
             {
               "kind": "method",
@@ -361,7 +390,10 @@
           "type": "Point",
           "flags": [
             "exported"
-          ]
+          ],
+          "attrs": {
+            "doc": "Origin is the zero point."
+          }
         },
         {
           "kind": "struct",
@@ -369,6 +401,9 @@
           "flags": [
             "exported"
           ],
+          "attrs": {
+            "doc": "Point is a location in two dimensions."
+          },
           "children": [
             {
               "kind": "field",
@@ -376,7 +411,10 @@
               "type": "int",
               "flags": [
                 "exported"
-              ]
+              ],
+              "attrs": {
+                "doc": "X is the horizontal coordinate."
+              }
             },
             {
               "kind": "field",
@@ -384,12 +422,18 @@
               "type": "int",
               "flags": [
                 "exported"
-              ]
+              ],
+              "attrs": {
+                "doc": "Y is the vertical coordinate."
+              }
             },
             {
               "kind": "field",
               "name": "label",
-              "type": "string"
+              "type": "string",
+              "attrs": {
+                "doc": "label is unexported and must survive extraction as such."
+              }
             },
             {
               "kind": "method",
@@ -397,6 +441,9 @@
               "flags": [
                 "exported"
               ],
+              "attrs": {
+                "doc": "Area reports the rectangle area between the origin and p."
+              },
               "children": [
                 {
                   "kind": "result",
@@ -446,6 +493,9 @@
               "flags": [
                 "exported"
               ],
+              "attrs": {
+                "doc": "Shift returns a Point moved by the given deltas."
+              },
               "children": [
                 {
                   "kind": "param",

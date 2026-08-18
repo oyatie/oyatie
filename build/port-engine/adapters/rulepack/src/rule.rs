@@ -37,6 +37,20 @@ pub struct LoadedRule {
     pub selecting_fixtures: Vec<SelectingFixture>,
 }
 
+/// How a trait method binds its receiver, and why.
+///
+/// The reason is REQUIRED and travels in the pack digest, because this is a decision rather than
+/// a fact: the source interface does not carry the answer, so somebody chose it and the record of
+/// who and why is the only thing that makes the choice reviewable.
+#[derive(Clone, Debug, Eq, PartialEq, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct TraitReceiver {
+    /// `shared`, `exclusive`, or `owned`.
+    pub mode: String,
+    /// Why this mode, and what it costs.
+    pub reason: String,
+}
+
 /// A declaration kind the pack knowingly does not translate, and why.
 ///
 /// The reason is REQUIRED and travels in the pack bytes, therefore in the pack digest, therefore in

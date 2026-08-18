@@ -4,7 +4,7 @@ use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
 use port_engine_api::{
-    Declaration, Digest, Receipt, RegionId, RulePack, SourceModel, TargetIr, UnitId,
+    Declaration, Digest, Receipt, RegionId, Renderer, RulePack, SourceModel, TargetIr, UnitId,
 };
 use port_engine_emit::{
     CanaryArtifact, EmitError, emit_canary_checked, materialize_canary_roundtrip, select_canary,
@@ -12,7 +12,7 @@ use port_engine_emit::{
 use port_engine_hash::digest_str;
 use port_engine_identity::engine_digest;
 use port_engine_rulepack::{LoadedRulePack, RulepackError};
-use port_engine_rust_ir::{EmptyRenderer, RustIr, SynQuoteRenderer};
+use port_engine_rust_ir::{EmptyRenderer, RustFn, RustIr, RustItem, RustRenderer, Visibility};
 use port_engine_snapshot::{
     AdmitError, AdmittedSnapshot, admit_embedded_fixture, admit_embedded_fixture_refused_v1,
     admit_embedded_fixture_v1,
@@ -37,8 +37,7 @@ pub fn port_go_pipeline() -> Result<PipelineReport, PipelineError> {
     let (ir, region_units) = apply_with_provenance(&plan, &pack, admitted.as_model())
         .map_err(PipelineError::Transform)?;
 
-    let formatter_label = "fmt-port-go-v1";
-    let renderer = SynQuoteRenderer::new(formatter_label);
+    let renderer = RustRenderer::new();
     let emitted = renderer.render_rust_ir(&ir).map_err(PipelineError::Emit)?;
 
     let receipt = Receipt {
@@ -47,7 +46,9 @@ pub fn port_go_pipeline() -> Result<PipelineReport, PipelineError> {
         engine_digest: engine_digest(),
         rulepack_digest: pack.digest(),
         toolchain_digest: toolchain_digest(),
-        formatter_digest: digest_str(formatter_label),
+        // The renderer reports its own identity and version; the digest is taken of THAT
+        // rather than of a label, so the axis moves when the formatter does.
+        formatter_digest: digest_str(&renderer.formatter_digest().0),
     };
     if !receipt.incomplete_axes().is_empty() {
         return Err(PipelineError::Emit(port_engine_api::PortError::Render {
@@ -108,9 +109,16 @@ pub fn assemble_modules(report: &PipelineReport) -> String {
         for region in regions {
             let bytes = report.emitted.get(region).map_or(&[][..], Vec::as_slice);
             out.push_str(&format!("    // region: {}\n", region.0));
-            out.push_str("    ");
-            out.push_str(&String::from_utf8_lossy(bytes));
-            out.push('\n');
+            // Indent EVERY line, not only the first. The formatter emits a multi-line item, and a
+            // single leading pad left its body sitting at module indentation — legal Rust, and a
+            // golden that reads like a formatting bug on every future change.
+            for line in String::from_utf8_lossy(bytes).lines() {
+                if line.is_empty() {
+                    out.push('\n');
+                } else {
+                    out.push_str(&format!("    {line}\n"));
+                }
+            }
         }
         out.push_str("}\n");
     }

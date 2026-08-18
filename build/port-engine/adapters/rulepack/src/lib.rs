@@ -11,13 +11,14 @@
 
 mod error;
 mod pack;
+mod policy;
 mod rule;
 mod seams;
 mod wire;
 
 pub use error::RulepackError;
 pub use pack::LoadedRulePack;
-pub use rule::{DeferredKind, LoadedRule, SelectingFixture};
+pub use rule::{DeferredKind, LoadedRule, SelectingFixture, TraitReceiver};
 
 /// Embedded v0 mirror of forever `specs/port-rules/**` (integ/specs owns the live tree).
 pub(crate) const RULEPACK_V0_JSON: &str = include_str!("rulepack-v0.json");

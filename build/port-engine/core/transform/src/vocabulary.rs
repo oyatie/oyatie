@@ -40,6 +40,8 @@ pub const ATTR_OP: &str = "op";
 pub const ATTR_SOURCE_NODE: &str = "go_node";
 /// Attribute key classifying what an identifier resolves to.
 pub const ATTR_REF: &str = "ref";
+/// Attribute key carrying the source declaration's documentation block.
+pub const ATTR_DOC: &str = "doc";
 
 /// Flag marking a declaration as part of the source's public surface.
 pub const FLAG_EXPORTED: &str = "exported";

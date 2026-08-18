@@ -12,7 +12,7 @@ use port_engine_emit::{
 use port_engine_hash::digest_str;
 use port_engine_identity::engine_digest;
 use port_engine_rulepack::{LoadedRulePack, RulepackError};
-use port_engine_rust_ir::{EmptyRenderer, RustIr, SynQuoteRenderer};
+use port_engine_rust_ir::{EmptyRenderer, RustFn, RustIr, RustItem, RustRenderer, Visibility};
 use port_engine_snapshot::{
     AdmitError, AdmittedSnapshot, admit_embedded_fixture, admit_embedded_fixture_refused_v1,
     admit_embedded_fixture_v1,
@@ -49,11 +49,22 @@ pub fn smoke_render_stub() -> Result<(), port_engine_api::PortError> {
 /// Smoke the Slice 5 syn/quote typed emit path (not the fail-closed dyn Renderer).
 ///
 /// # Errors
-/// Propagates [`port_engine_api::PortError`] from [`SynQuoteRenderer::render_rust_ir`].
+/// Propagates [`port_engine_api::PortError`] from [`RustRenderer::render_rust_ir`].
 pub fn smoke_syn_quote_render() -> Result<(), port_engine_api::PortError> {
     let mut ir = RustIr::new(&["stub"]);
-    ir.set_file_from_str("stub", "pub fn stub() {}")?;
-    let renderer = SynQuoteRenderer::new("slice5-fmt-syn-quote");
+    ir.set_items(
+        "stub",
+        vec![RustItem::Function(RustFn {
+            docs: Vec::new(),
+            vis: Visibility::Public,
+            name: "stub".into(),
+            receiver: None,
+            params: Vec::new(),
+            ret: None,
+            body: Some(Vec::new()),
+        })],
+    )?;
+    let renderer = RustRenderer::new();
     let out = renderer.render_rust_ir(&ir)?;
     if out.len() != 1 {
         return Err(port_engine_api::PortError::Render {

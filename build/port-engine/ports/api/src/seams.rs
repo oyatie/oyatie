@@ -88,6 +88,14 @@ pub trait PackSemantics {
     fn type_map_overrides(&self, construction: &str) -> Option<&BTreeMap<String, String>>;
     /// Declaration kinds the pack knowingly does not translate yet.
     fn deferred_kinds(&self) -> &BTreeSet<String>;
+    /// How a trait method binds its receiver, and why the pack chose that.
+    ///
+    /// `None` is a REFUSAL, not a default. A source interface says nothing about how an
+    /// implementation binds its receiver, and the implementations are not all in view, so this
+    /// cannot be recovered — it can only be decided. A shared receiver silently forbids the
+    /// mutation a mutating method exists to perform, and an exclusive one demands mutability from
+    /// implementations that do not need it; both are guesses, and one of them was being made.
+    fn trait_receiver(&self) -> Option<(&str, &str)>;
 }
 
 /// The neutral intermediate representation handed to a [`Renderer`].

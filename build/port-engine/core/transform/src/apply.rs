@@ -5,10 +5,10 @@ use std::collections::{BTreeMap, BTreeSet};
 use port_engine_api::{
     Declaration, PackSemantics, RegionId, RuleId, SourceModel, TransformPlan, UnitId,
 };
-use port_engine_rust_ir::RustIr;
+use port_engine_rust_ir::{RustIr, RustItem};
 
 use crate::error::TransformError;
-use crate::items::declaration_source;
+use crate::items::{build_item, build_unit_item};
 use crate::naming::{region_id_for, region_id_for_declaration};
 use crate::resolve::{LocalScope, Resolver};
 use crate::vocabulary::{
@@ -55,7 +55,7 @@ pub fn apply_with_provenance(
     let mut provenance: BTreeMap<RegionId, UnitId> = BTreeMap::new();
 
     let mut region_names: Vec<String> = Vec::new();
-    let mut sources: Vec<(String, String)> = Vec::new();
+    let mut items: Vec<(String, RustItem)> = Vec::new();
     // unit → the declaration kinds some applied rule captured, for the coverage check below.
     let mut captured_kinds: BTreeMap<UnitId, BTreeSet<String>> = BTreeMap::new();
 
@@ -86,10 +86,15 @@ pub fn apply_with_provenance(
 
         if captures.is_empty() {
             let region = region_id_for(&step.unit, &step.rule);
-            let source = unit_level_source(construction, &step.rule, &region)?;
+            let item = build_unit_item(construction, &region).ok_or_else(|| {
+                TransformError::UnknownConstruction {
+                    rule: step.rule.0.clone(),
+                    construction: construction.to_owned(),
+                }
+            })?;
             provenance.insert(RegionId(region.clone()), step.unit.clone());
             region_names.push(region.clone());
-            sources.push((region, source));
+            items.push((region, item));
             continue;
         }
 
@@ -107,19 +112,20 @@ pub fn apply_with_provenance(
 
         for declaration in declarations.iter().filter(|d| captures.contains(&d.kind)) {
             let region = region_id_for_declaration(&step.unit, &step.rule, &declaration.name);
-            let source = declaration_source(
+            let item = build_item(
                 construction,
                 declaration,
                 &Resolver {
                     scope: &scope,
                     type_map: semantics.type_map(),
                     overrides: semantics.type_map_overrides(construction),
+                    receiver: semantics.trait_receiver(),
                     unit: &step.unit,
                 },
             )?;
             provenance.insert(RegionId(region.clone()), step.unit.clone());
             region_names.push(region.clone());
-            sources.push((region, source));
+            items.push((region, item));
         }
     }
 
@@ -127,8 +133,15 @@ pub fn apply_with_provenance(
 
     let refs: Vec<&str> = region_names.iter().map(String::as_str).collect();
     let mut ir = RustIr::new(&refs);
-    for (region, source) in sources {
-        ir.set_file_from_str(&region, &source)
+    // One region may hold several items only if a rule produced several; today each
+    // construction produces exactly one, and grouping by region keeps that an implementation
+    // detail rather than a constraint the IR enforces.
+    let mut grouped: BTreeMap<String, Vec<RustItem>> = BTreeMap::new();
+    for (region, item) in items {
+        grouped.entry(region).or_default().push(item);
+    }
+    for (region, region_items) in grouped {
+        ir.set_items(&region, region_items)
             .map_err(TransformError::Ir)?;
     }
     Ok((ir, provenance))
@@ -191,21 +204,6 @@ fn check_precondition(
             rule: rule.0.clone(),
             unit: unit.0.clone(),
             precondition: other.to_owned(),
-        }),
-    }
-}
-
-fn unit_level_source(
-    construction: &str,
-    rule: &RuleId,
-    region: &str,
-) -> Result<String, TransformError> {
-    match construction {
-        CONSTRUCTION_PASS_THROUGH => Ok(format!("pub fn {region}() {{}}")),
-        CONSTRUCTION_EMPTY_CANARY => Ok(format!("pub fn {region}_canary() {{}}")),
-        other => Err(TransformError::UnknownConstruction {
-            rule: rule.0.clone(),
-            construction: other.to_owned(),
         }),
     }
 }

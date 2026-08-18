@@ -5,6 +5,7 @@
 //! of.
 
 use port_engine_api::{Declaration, RuleId, UnitId};
+use port_engine_rust_ir::Visibility;
 
 use crate::vocabulary::FLAG_EXPORTED;
 
@@ -116,11 +117,14 @@ pub fn to_pascal_case(raw: &str) -> String {
     out
 }
 
-/// Rust visibility prefix for a declaration: `pub ` when the source exported it, else nothing.
-pub(crate) fn visibility(declaration: &Declaration) -> &'static str {
+/// Target visibility for a declaration.
+///
+/// A VALUE, not a `"pub "` string prefix. The prefix form is what let `pub` be concatenated into a
+/// trait body, where it is not legal Rust; the IR decides where a visibility may appear at all.
+pub(crate) fn visibility(declaration: &Declaration) -> Visibility {
     if declaration.flags.contains(FLAG_EXPORTED) {
-        "pub "
+        Visibility::Public
     } else {
-        ""
+        Visibility::Inherited
     }
 }

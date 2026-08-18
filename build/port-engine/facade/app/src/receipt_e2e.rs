@@ -11,7 +11,7 @@ use port_engine_api::{Digest, PortError, RECEIPT_AXES, Receipt, ReceiptAxis, Reg
 use port_engine_hash::digest_str;
 use port_engine_kernel::{Delta, Verdict, Verification, verify};
 use port_engine_rulepack::{LoadedRulePack, RulepackError};
-use port_engine_rust_ir::{EmptyRenderer, RustIr, SynQuoteRenderer};
+use port_engine_rust_ir::{EmptyRenderer, RustFn, RustIr, RustItem, RustRenderer, Visibility};
 use port_engine_snapshot::AdmitError;
 
 use crate::driver;
@@ -104,15 +104,32 @@ pub fn emit_empty_tree(formatter: &str) -> Result<BTreeMap<RegionId, Vec<u8>>, P
     port_engine_kernel::emit(&renderer, &ir)
 }
 
-/// Emit syn/quote region bytes via the typed Slice 5 path.
+/// Emit region bytes through the typed IR and the real formatter.
+///
+/// Takes an ITEM rather than a source string. The scenario this drives compares two emits whose
+/// only difference is the formatter axis, so what it needs is the same tree rendered twice — and
+/// a string argument would have made "the same tree" a claim about two parses rather than a fact.
 ///
 /// # Errors
-/// [`PortError`] from syn parse or [`SynQuoteRenderer::render_rust_ir`].
-pub fn emit_syn_tree(formatter: &str, src: &str) -> Result<BTreeMap<RegionId, Vec<u8>>, PortError> {
+/// [`PortError`] from item assembly or [`RustRenderer::render_rust_ir`].
+pub fn emit_typed_tree(item: RustItem) -> Result<BTreeMap<RegionId, Vec<u8>>, PortError> {
     let mut ir = RustIr::new(&["stub"]);
-    ir.set_file_from_str("stub", src)?;
-    let renderer = SynQuoteRenderer::new(formatter);
-    renderer.render_rust_ir(&ir)
+    ir.set_items("stub", vec![item])?;
+    RustRenderer::new().render_rust_ir(&ir)
+}
+
+/// The stub item the e2e scenarios render.
+#[must_use]
+pub fn stub_item() -> RustItem {
+    RustItem::Function(RustFn {
+        docs: Vec::new(),
+        vis: Visibility::Public,
+        name: "stub".into(),
+        receiver: None,
+        params: Vec::new(),
+        ret: None,
+        body: Some(Vec::new()),
+    })
 }
 
 /// Typed refusal from the Slice 9 e2e harness.
@@ -169,7 +186,7 @@ pub fn run_six_axis_e2e() -> Result<SixAxisReport, E2eError> {
 
     let empty_a = emit_empty_tree("fmt-empty-a").map_err(E2eError::Port)?;
     let empty_b = emit_empty_tree("fmt-empty-a").map_err(E2eError::Port)?;
-    let syn = emit_syn_tree("fmt-syn-b", "pub fn stub() {}").map_err(E2eError::Port)?;
+    let rendered = emit_typed_tree(stub_item()).map_err(E2eError::Port)?;
 
     let receipt_empty = scenario_receipt(
         &pin,
@@ -203,15 +220,15 @@ pub fn run_six_axis_e2e() -> Result<SixAxisReport, E2eError> {
         },
         ScenarioResult {
             name: "explained",
-            verification: verify(&receipt_empty, &empty_a, &receipt_syn, &syn),
+            verification: verify(&receipt_empty, &empty_a, &receipt_syn, &rendered),
         },
         ScenarioResult {
             name: "unexplained",
-            verification: verify(&receipt_empty, &empty_a, &receipt_empty, &syn),
+            verification: verify(&receipt_empty, &empty_a, &receipt_empty, &rendered),
         },
         ScenarioResult {
             name: "incomplete",
-            verification: verify(&receipt_empty, &empty_a, &receipt_incomplete, &syn),
+            verification: verify(&receipt_empty, &empty_a, &receipt_incomplete, &rendered),
         },
     ];
 
