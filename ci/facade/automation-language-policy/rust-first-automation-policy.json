@@ -320,9 +320,9 @@
       "keys_total": 24
     },
     "replacement_window": {
-      "schema_version": 1,
-      "reason": "ADR-0716 moves the CI merge path from a 12-job buck2 workflow (no live remote cache, serial producer barrier, affected-set baselines) to a 6-job cargo workflow with shared build caching; the previous 51-key baseline described jobs that no longer exist, and the new job/step names are deliberately self-explanatory and debranded.",
-      "adr": "docs/decisions/ADR-0716-cargo-merge-path-buck2-local-hermeticity.md"
+      "schema_version": 2,
+      "adr": "docs/decisions/ADR-0718-ci-lane-split-five-minute-wall-clock.md",
+      "reason": "ADR-0718-D1 moves the advisory `Clippy, warnings denied` step out of the blocking `lint` job into its own parallel `clippy` job. The baseline is keyed <file>::<job>::<step>, so a job move is a REMOVE plus an ADD rather than a shrink, and the shrink-only ceiling correctly refuses it without this window. No new inline shell is introduced and no step is waived: the same single-line `run:` step keeps the same command and the same shell_lines, and the key count is unchanged at 24."
     },
     "codes": {
       "rust_first_automation_unbaselined_workflow_inline_shell": [
@@ -336,6 +336,10 @@
         },
         {
           "key": ".github/workflows/buck2-weekly-smoke.yml::buck2-weekly-smoke::Provision pinned Rust toolchain",
+          "shell_lines": 1
+        },
+        {
+          "key": ".github/workflows/oya-ci-required.yml::clippy::Clippy, warnings denied",
           "shell_lines": 1
         },
         {
@@ -356,10 +360,6 @@
         },
         {
           "key": ".github/workflows/oya-ci-required.yml::lint::Check formatting",
-          "shell_lines": 1
-        },
-        {
-          "key": ".github/workflows/oya-ci-required.yml::lint::Clippy, warnings denied",
           "shell_lines": 1
         },
         {

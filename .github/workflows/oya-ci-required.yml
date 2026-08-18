@@ -42,10 +42,15 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  # ADR-0718-D1. FAST BLOCKING LANE. `rustfmt --check` compiles nothing — it is differential
+  # over the changed *.rs files only. It previously shared a job with an ADVISORY
+  # `cargo clippy --workspace --all-targets`, so the blocking format verdict could not report
+  # until a full-workspace compile finished, and the job restored/saved a cargo cache the
+  # format check has no use for.
   lint:
     name: lint (format + clippy)
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
@@ -55,10 +60,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
         with:
           toolchain: "1.97.1"
-          components: rustfmt, clippy
-      - uses: swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
-        with:
-          shared-key: cargo-ci-linux
+          components: rustfmt
       - name: Check formatting
         # Blocking and differential: only ACMR (added/copied/modified/renamed) *.rs
         # files this PR changed. Deleted paths are not rustfmt inputs. skip_children
@@ -67,9 +69,36 @@ jobs:
         env:
           BASE_REF: ${{ github.base_ref || github.event.merge_group.base_ref || 'dev' }}
         run: files="$(git diff --diff-filter=ACMR --name-only "origin/${BASE_REF#refs/heads/}...HEAD" -- '*.rs')" && { [ -z "$files" ] || rustfmt --check --config skip_children=true -- $files; }
+
+  # ADR-0718-D1. DEEP LINT LANE, parallel with `test` and deliberately ABSENT from the
+  # oya-ci-required fan-in. It was already `continue-on-error: true` inside the old lint job,
+  # so it has never been able to fail a merge; keeping it out of `needs` therefore removes no
+  # enforcement and takes an advisory full-workspace compile off the merge path. If the
+  # repo-wide lint-debt cleanup lands and clippy becomes blocking, it must be added back to the
+  # fan-in in that same change — ADR-0718 does not pre-authorize that.
+  clippy:
+    name: clippy (advisory)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      RUSTFLAGS: "-C link-arg=-fuse-ld=mold"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
+        with:
+          toolchain: "1.97.1"
+          components: clippy
+      - uses: taiki-e/install-action@5b4d68e2e660441203ab128a23676f1e4faf1532
+        with:
+          tool: mold
+      - uses: swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
+        with:
+          shared-key: cargo-ci-clippy
       - name: Clippy, warnings denied
         # Advisory until the repo-wide lint-debt cleanup PR lands, then blocking.
-        # The differential format gate above is the blocking new-debt guard today.
+        # The differential format gate in `lint` is the blocking new-debt guard today.
         continue-on-error: true
         run: cargo clippy --locked --workspace --all-targets -- -D warnings
 
@@ -90,6 +119,11 @@ jobs:
       OYA_CI_ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS: ${{ github.workspace }}/.claude
       OYA_CI_ENFORCEMENT_LIVENESS_CODEX_HOOKS: ${{ github.workspace }}/.codex
       OYA_CI_ENFORCEMENT_LIVENESS_HOOKS_DIR: ${{ github.workspace }}/tools/hooks
+      # mold replaces the default bfd linker; every test binary in an 885-member workspace
+      # links separately, so linking is a large un-cached share of this job. Installed via the
+      # pinned install-action below rather than apt: an unretried package install is exactly
+      # what cancelled live-postgres-adapters and ejected a merge-queue entry (#2106).
+      RUSTFLAGS: "-C link-arg=-fuse-ld=mold"
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
@@ -99,6 +133,9 @@ jobs:
       - uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
         with:
           toolchain: "1.97.1"
+      - uses: taiki-e/install-action@5b4d68e2e660441203ab128a23676f1e4faf1532
+        with:
+          tool: nextest,mold
       - uses: swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
         with:
           shared-key: cargo-ci-linux
@@ -125,10 +162,15 @@ jobs:
         run: cargo build --locked -p ci-artifact-inventory-registry --bin oya-cloud-ci-accounting-registry-app
       # Every workspace member, including the whole ci/facade gate fleet, runs here.
       - name: Workspace tests
-        run: cargo test --locked --workspace
+        # ADR-0718-D3. nextest runs each test in its own process with a work-stealing
+        # scheduler — materially faster than libtest's in-process threads at this scale, with
+        # per-test isolation. It does not run doctests, verified safe rather than assumed:
+        # zero doc examples across the .rs corpus and `doctest = false` already declared by
+        # the large majority of manifests.
+        run: cargo nextest run --locked --workspace
       # kernel/ is a nested workspace (ADR-0512 carve-out) the root workspace excludes.
       - name: Kernel workspace tests
-        run: cargo test --locked --manifest-path kernel/Cargo.toml
+        run: cargo nextest run --locked --manifest-path kernel/Cargo.toml
       # Live hub-exclusivity admission: rejects a second open PR touching a hub path
       # declared under specs/integ-branch-envelopes.json#hubs.paths.
       - name: Live hub-exclusivity admission
