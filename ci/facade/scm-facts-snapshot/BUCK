@@ -20,7 +20,13 @@
 # face is a hard failure here rather than a skipped test.
 rust_library(
     name = "ci-scm-facts-snapshot-lib",
-    srcs = ["src/lib.rs", "src/retirement.rs"],
+    srcs = [
+        "src/lib.rs",
+        "src/retirement.rs",
+        "src/retirement_windows.rs",
+        "src/retirement_windows_fs.rs",
+        "src/retirement_windows_tests.rs",
+    ],
     crate = "ci_scm_facts_snapshot",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
@@ -79,7 +85,13 @@ rust_test(
     # Keep this small suite constrained to the library sources. The binary entrypoint and
     # fixed-receipt gate are separately compiled targets, while real Git/filesystem boundary
     # coverage lives only in :ci-scm-facts-snapshot-integration.
-    srcs = ["src/lib.rs", "src/retirement.rs"],
+    srcs = [
+        "src/lib.rs",
+        "src/retirement.rs",
+        "src/retirement_windows.rs",
+        "src/retirement_windows_fs.rs",
+        "src/retirement_windows_tests.rs",
+    ],
     crate = "ci_scm_facts_snapshot",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
