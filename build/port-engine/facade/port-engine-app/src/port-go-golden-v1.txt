@@ -9,13 +9,13 @@ pub mod basic {
     // region: oyatie_example_portengine_fixture_basic__go_defined_type__celsius
     pub struct Celsius (pub f64) ;
     // region: oyatie_example_portengine_fixture_basic__go_func__add
-    pub fn add (a : i64 , b : i64) -> i64 { todo ! () }
+    pub fn add (a : i64 , b : i64) -> i64 { return (a + b) ; }
     // region: oyatie_example_portengine_fixture_basic__go_func__label
-    pub fn label (id : ID , fallback : String) -> String { todo ! () }
+    pub fn label (id : ID , fallback : String) -> String { if (id == "") { return fallback ; } return id ; }
     // region: oyatie_example_portengine_fixture_basic__go_func__scale
-    pub fn scale (value : f64 , factor : f64) -> f64 { todo ! () }
+    pub fn scale (value : f64 , factor : f64) -> f64 { return (value * factor) ; }
     // region: oyatie_example_portengine_fixture_basic__go_func__unexported
-    fn unexported (n : i64) -> i64 { todo ! () }
+    fn unexported (n : i64) -> i64 { return n ; }
 }
 pub mod shapes {
     // region: oyatie_example_portengine_fixture_shapes__go_interface__named

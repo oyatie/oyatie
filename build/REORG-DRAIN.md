@@ -83,6 +83,26 @@ recorded here rather than implied.
   committed golden refreshable via `port-go-source > src/port-go-golden-v1.txt`, determinism over
   the real corpus, and a planted defect landing on `Unexplained`. The six receipt axes carry real
   values for the first time — the W0-B journal recorded that no axis had ever held one.
+- I7: function bodies, opening the long tail. The extractor walks statements and expressions into
+  the same uniform node shape, and resolves each identifier through `go/types` so a reference to a
+  constant cases as a constant instead of naming nothing. The supported subset is small — return,
+  if/else, single-name `:=`, literals, idents, parens, and the binary/unary operators with a direct
+  target form. Everything else is RECORDED as an `unsupported` node naming the AST type, never
+  dropped: a dropped construct makes an untranslatable function indistinguishable from an empty
+  one. `rust_fn_body` is a separate construction from `rust_fn` so a pack asks for a body and gets
+  a refusal if it cannot have one, rather than degrading to a stub that still compiles.
+  `corpus-refused/` (a `for` and a `defer`) exercises the refusal against real Go — a translator
+  whose refusals are only tested on hand-built inputs has not been shown to refuse anything a
+  front end would produce.
+
+## Still owed by this lane
+
+- Struct methods still emit `todo!()`: bodies need selector expressions (`p.X` → `self.x`),
+  composite literals, and call expressions. Those are the next subset, not a gap in I7.
+- `specs/port-rules/lang/go-rust/**` remains unlanded; the pack is still the package-local mirror.
+  Out of the `build/**` envelope, so it needs an integ/specs lane.
+- Nothing emits into `k8s/`, and no Kubernetes corpus is admitted. That is W1 and is not this
+  lane's to open.
 
 ## Next gaps (ordered)
 

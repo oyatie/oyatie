@@ -957,7 +957,7 @@ mod tests {
             .map(|rule| (rule.id.0.as_str(), rule))
             .collect();
         assert_eq!(by_id["go_struct"].captures, vec!["struct".to_owned()]);
-        assert_eq!(by_id["go_func"].construction, "rust_fn");
+        assert_eq!(by_id["go_func"].construction, "rust_fn_body");
 
         assert_eq!(pack.type_map().get("int").map(String::as_str), Some("i64"));
         assert_eq!(

@@ -18,6 +18,7 @@ sources may not spawn `go` or import `std::process::Command`, and may not name t
 | `extractor/main.go` | The bootstrap extractor. Reads a corpus, writes a snapshot envelope. |
 | `corpus/basic/` | Constants, variables, a type alias, a named type, functions. |
 | `corpus/shapes/` | A struct with fields and methods, an interface with a method set. |
+| `corpus-refused/hard/` | A `for` loop and a `defer` — the fixture the engine must REFUSE. |
 
 The corpus is deliberately small, hermetic, and **not Kubernetes**. Kubernetes is the
 program's W1 corpus and admitting it is a separate decision; this fixture exists to prove
@@ -32,6 +33,21 @@ go run ./extractor \
     -module oyatie.example/portengine-fixture \
     -out ../../port-engine-snapshot/src/fixture-snapshot-v1.json
 ```
+
+And the refusal corpus, which is kept separate so the pipeline over `corpus/` stays green while
+the refusal path is still exercised against real Go rather than against synthetic nodes:
+
+```sh
+go run ./extractor \
+    -corpus ./corpus-refused \
+    -module oyatie.example/portengine-fixture-refused \
+    -out ../../port-engine-snapshot/src/fixture-snapshot-refused-v1.json
+```
+
+Both snapshots ADMIT. A model of source the translator cannot handle is not itself invalid — the
+extractor records an untranslatable construct as an `unsupported` node naming the AST type it
+stands for, and the refusal happens at the transform, where the construct can be named. Dropping
+it here instead would make an untranslatable function indistinguishable from an empty one.
 
 Run it twice and diff the two outputs — the artifact is byte-stable by construction
 (packages sorted by unit id, declarations in `go/types` scope order, struct fields left in

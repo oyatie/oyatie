@@ -100,6 +100,29 @@ const (
 	kindMethod = "method"
 	kindParam  = "param"
 	kindResult = "result"
+
+	// Body vocabulary. A function body is a `body` node whose children are statements, and a
+	// statement's children are expressions — the same uniform node all the way down.
+	kindBody     = "body"
+	kindBlock    = "block"
+	kindReturn   = "return"
+	kindIf       = "if"
+	kindThen     = "then"
+	kindElse     = "else"
+	kindLet      = "let"
+	kindExprStmt = "expr_stmt"
+
+	kindLiteral = "literal"
+	kindIdent   = "ident"
+	kindBinary  = "binary"
+	kindUnary   = "unary"
+	kindParen   = "paren"
+
+	// kindUnsupported is how the extractor stays FAITHFUL while the engine stays fail-closed.
+	// The snapshot is a model of the source, so a construct the translator cannot yet handle is
+	// recorded as present rather than omitted; the transform then refuses it BY NAME. Dropping it
+	// here instead would make an untranslatable function look like an empty one.
+	kindUnsupported = "unsupported"
 )
 
 // Flags. Sorted on emit so the set has one spelling.
@@ -116,6 +139,16 @@ const (
 
 // Attribute keys.
 const (
+	// attrOp is a binary or unary operator, spelled as Go source.
+	attrOp = "op"
+	// attrGoNode names the Go AST node an `unsupported` placeholder stands for, so a refusal can
+	// say what it refused rather than only that it refused.
+	attrGoNode = "go_node"
+	// attrRef records what an identifier resolves to — a parameter, a constant, a function, a
+	// local. Rust cases each of those differently, and an identifier alone cannot say which it is:
+	// rendering a reference to `MaxRetries` as `max_retries` would be a dangling name, not a
+	// style choice. go/types knows the answer, so it is recorded here rather than guessed there.
+	attrRef = "ref"
 	// attrValue is a constant's value, spelled as Go source. It is deliberately the SOURCE
 	// spelling rather than a normalized number: the engine emits Rust that must parse, and a
 	// Go literal that is not also a valid Rust literal has to fail loudly at the syn parse
@@ -268,9 +301,31 @@ func extractPackage(dir string, unitID string) ([]node, error) {
 	}
 
 	conf := types.Config{Importer: importer.ForCompiler(fset, "source", nil)}
-	tpkg, err := conf.Check(unitID, fset, files, nil)
+	info := &types.Info{Uses: map[*ast.Ident]types.Object{}}
+	tpkg, err := conf.Check(unitID, fset, files, info)
 	if err != nil {
 		return nil, fmt.Errorf("type-check: %w", err)
+	}
+
+	// Index every function and method body by the object it belongs to, so a declaration built
+	// from go/types can find the AST its body lives in.
+	bodies := map[types.Object]*ast.BlockStmt{}
+	for _, file := range files {
+		for _, decl := range file.Decls {
+			fn, ok := decl.(*ast.FuncDecl)
+			if !ok || fn.Body == nil || fn.Name == nil {
+				continue
+			}
+			if obj := info.Uses[fn.Name]; obj != nil {
+				bodies[obj] = fn.Body
+				continue
+			}
+			// A declaration's own name is a definition, not a use, so it is not in Uses. Resolve
+			// it through the package scope (free functions) or the receiver's method set.
+			if obj := lookupFuncObject(tpkg, fn); obj != nil {
+				bodies[obj] = fn.Body
+			}
+		}
 	}
 
 	// Render types relative to the package under extraction: local names stay bare, and
@@ -283,11 +338,13 @@ func extractPackage(dir string, unitID string) ([]node, error) {
 		return other.Path()
 	}
 
+	ctx := &extractCtx{qualify: qualify, info: info, bodies: bodies}
+
 	scope := tpkg.Scope()
 	objNames := scope.Names() // go/types returns these sorted
 	decls := make([]node, 0, len(objNames))
 	for _, name := range objNames {
-		decl, err := declFor(scope.Lookup(name), qualify)
+		decl, err := declFor(scope.Lookup(name), ctx)
 		if err != nil {
 			return nil, fmt.Errorf("declaration %s: %w", name, err)
 		}
@@ -296,7 +353,55 @@ func extractPackage(dir string, unitID string) ([]node, error) {
 	return decls, nil
 }
 
-func declFor(obj types.Object, qualify types.Qualifier) (node, error) {
+// extractCtx carries what body extraction needs alongside the type qualifier.
+type extractCtx struct {
+	qualify types.Qualifier
+	info    *types.Info
+	bodies  map[types.Object]*ast.BlockStmt
+}
+
+// lookupFuncObject finds the types.Object for a declared function or method.
+func lookupFuncObject(tpkg *types.Package, fn *ast.FuncDecl) types.Object {
+	if fn.Recv == nil || len(fn.Recv.List) == 0 {
+		return tpkg.Scope().Lookup(fn.Name.Name)
+	}
+	recvName := receiverTypeName(fn.Recv.List[0].Type)
+	if recvName == "" {
+		return nil
+	}
+	obj := tpkg.Scope().Lookup(recvName)
+	if obj == nil {
+		return nil
+	}
+	named, ok := obj.Type().(*types.Named)
+	if !ok {
+		return nil
+	}
+	for i := 0; i < named.NumMethods(); i++ {
+		if named.Method(i).Name() == fn.Name.Name {
+			return named.Method(i)
+		}
+	}
+	return nil
+}
+
+func receiverTypeName(expr ast.Expr) string {
+	switch typed := expr.(type) {
+	case *ast.Ident:
+		return typed.Name
+	case *ast.StarExpr:
+		return receiverTypeName(typed.X)
+	case *ast.IndexExpr:
+		return receiverTypeName(typed.X)
+	case *ast.IndexListExpr:
+		return receiverTypeName(typed.X)
+	default:
+		return ""
+	}
+}
+
+func declFor(obj types.Object, ctx *extractCtx) (node, error) {
+	qualify := ctx.qualify
 	base := node{Name: obj.Name(), Flags: flagsFor(obj.Exported(), false, false, false)}
 
 	switch typed := obj.(type) {
@@ -321,17 +426,21 @@ func declFor(obj types.Object, qualify types.Qualifier) (node, error) {
 		base.Kind = kindFunc
 		base.Flags = flagsFor(obj.Exported(), sig.Variadic(), false, false)
 		base.Children = signatureChildren(sig, qualify)
+		if body := ctx.bodies[obj]; body != nil {
+			base.Children = append(base.Children, bodyNode(body, ctx))
+		}
 		return base, nil
 
 	case *types.TypeName:
-		return typeDecl(typed, base, qualify)
+		return typeDecl(typed, base, ctx)
 
 	default:
 		return base, fmt.Errorf("unsupported object kind %T", obj)
 	}
 }
 
-func typeDecl(obj *types.TypeName, base node, qualify types.Qualifier) (node, error) {
+func typeDecl(obj *types.TypeName, base node, ctx *extractCtx) (node, error) {
+	qualify := ctx.qualify
 	if obj.IsAlias() {
 		base.Kind = kindAlias
 		// Unalias, or the alias renders as its own name: since Go 1.22 an alias is a
@@ -351,7 +460,7 @@ func typeDecl(obj *types.TypeName, base node, qualify types.Qualifier) (node, er
 		return base, fmt.Errorf("non-alias type name with unexpected type %T", obj.Type())
 	}
 
-	methods, err := methodChildren(named, qualify)
+	methods, err := methodChildren(named, ctx)
 	if err != nil {
 		return base, err
 	}
@@ -406,7 +515,7 @@ func typeDecl(obj *types.TypeName, base node, qualify types.Qualifier) (node, er
 // methodChildren returns the methods declared on named, sorted by name. Source order is
 // not used: unlike struct fields, method order carries no Go semantics, and sorting keeps
 // the snapshot stable against a reordering edit that changes nothing.
-func methodChildren(named *types.Named, qualify types.Qualifier) ([]node, error) {
+func methodChildren(named *types.Named, ctx *extractCtx) ([]node, error) {
 	methods := make([]node, 0, named.NumMethods())
 	for i := 0; i < named.NumMethods(); i++ {
 		method := named.Method(i)
@@ -414,15 +523,187 @@ func methodChildren(named *types.Named, qualify types.Qualifier) ([]node, error)
 		if !ok {
 			return nil, fmt.Errorf("method %s without signature", method.Name())
 		}
+		children := signatureChildren(sig, ctx.qualify)
+		if body := ctx.bodies[method]; body != nil {
+			children = append(children, bodyNode(body, ctx))
+		}
 		methods = append(methods, node{
 			Kind:     kindMethod,
 			Name:     method.Name(),
 			Flags:    flagsFor(method.Exported(), sig.Variadic(), false, isPointerReceiver(sig)),
-			Children: signatureChildren(sig, qualify),
+			Children: children,
 		})
 	}
 	sortNodes(methods)
 	return methods, nil
+}
+
+// ---------------------------------------------------------------------------------
+// Bodies
+// ---------------------------------------------------------------------------------
+//
+// The body walk is deliberately SMALL and deliberately COMPLETE. Small, because only a few
+// statement and expression forms have a translation the engine can defend today. Complete,
+// because everything else is still recorded — as an `unsupported` node naming the Go AST
+// type it stands for — rather than dropped. A dropped construct would make an
+// untranslatable function indistinguishable from an empty one, and the engine would emit a
+// green, silently wrong body. Recorded, it becomes a refusal the transform can name.
+
+func bodyNode(block *ast.BlockStmt, ctx *extractCtx) node {
+	return node{Kind: kindBody, Children: statementNodes(block.List, ctx)}
+}
+
+func statementNodes(stmts []ast.Stmt, ctx *extractCtx) []node {
+	if len(stmts) == 0 {
+		return nil
+	}
+	out := make([]node, 0, len(stmts))
+	for _, stmt := range stmts {
+		out = append(out, statementNode(stmt, ctx))
+	}
+	return out
+}
+
+func statementNode(stmt ast.Stmt, ctx *extractCtx) node {
+	switch typed := stmt.(type) {
+	case *ast.ReturnStmt:
+		return node{Kind: kindReturn, Children: expressionNodes(typed.Results, ctx)}
+
+	case *ast.BlockStmt:
+		return node{Kind: kindBlock, Children: statementNodes(typed.List, ctx)}
+
+	case *ast.IfStmt:
+		// An `if` with an init statement (`if x := f(); x != nil`) scopes a binding to the
+		// condition, which Rust has no direct form for. Recorded as unsupported rather than
+		// silently hoisted, because hoisting changes the binding's lifetime.
+		if typed.Init != nil {
+			return unsupportedNode(stmt)
+		}
+		children := []node{
+			{Kind: "cond", Children: []node{expressionNode(typed.Cond, ctx)}},
+			{Kind: kindThen, Children: statementNodes(typed.Body.List, ctx)},
+		}
+		if typed.Else != nil {
+			children = append(children, node{
+				Kind:     kindElse,
+				Children: []node{statementNode(typed.Else, ctx)},
+			})
+		}
+		return node{Kind: kindIf, Children: children}
+
+	case *ast.AssignStmt:
+		// Only a single-name `:=` becomes a `let`. Multi-assignment, reassignment, and the
+		// op-assign forms each carry a mutability or tuple-destructuring question that needs a
+		// rule rather than a default.
+		if typed.Tok != token.DEFINE || len(typed.Lhs) != 1 || len(typed.Rhs) != 1 {
+			return unsupportedNode(stmt)
+		}
+		name, ok := typed.Lhs[0].(*ast.Ident)
+		if !ok {
+			return unsupportedNode(stmt)
+		}
+		return node{
+			Kind:     kindLet,
+			Name:     name.Name,
+			Children: []node{expressionNode(typed.Rhs[0], ctx)},
+		}
+
+	case *ast.ExprStmt:
+		return node{Kind: kindExprStmt, Children: []node{expressionNode(typed.X, ctx)}}
+
+	default:
+		return unsupportedNode(stmt)
+	}
+}
+
+func expressionNodes(exprs []ast.Expr, ctx *extractCtx) []node {
+	if len(exprs) == 0 {
+		return nil
+	}
+	out := make([]node, 0, len(exprs))
+	for _, expr := range exprs {
+		out = append(out, expressionNode(expr, ctx))
+	}
+	return out
+}
+
+func expressionNode(expr ast.Expr, ctx *extractCtx) node {
+	switch typed := expr.(type) {
+	case *ast.BasicLit:
+		return node{
+			Kind:  kindLiteral,
+			Attrs: map[string]string{attrValue: typed.Value, "lit_kind": typed.Kind.String()},
+		}
+
+	case *ast.Ident:
+		// What the identifier REFERS to is recorded, because the target cases each kind
+		// differently and the name alone cannot say which it is.
+		return node{
+			Kind:  kindIdent,
+			Name:  typed.Name,
+			Attrs: map[string]string{attrRef: referenceKind(typed, ctx)},
+		}
+
+	case *ast.ParenExpr:
+		return node{Kind: kindParen, Children: []node{expressionNode(typed.X, ctx)}}
+
+	case *ast.BinaryExpr:
+		return node{
+			Kind:  kindBinary,
+			Attrs: map[string]string{attrOp: typed.Op.String()},
+			Children: []node{
+				expressionNode(typed.X, ctx),
+				expressionNode(typed.Y, ctx),
+			},
+		}
+
+	case *ast.UnaryExpr:
+		return node{
+			Kind:     kindUnary,
+			Attrs:    map[string]string{attrOp: typed.Op.String()},
+			Children: []node{expressionNode(typed.X, ctx)},
+		}
+
+	default:
+		return unsupportedNode(expr)
+	}
+}
+
+// referenceKind classifies what an identifier resolves to, via go/types.
+func referenceKind(ident *ast.Ident, ctx *extractCtx) string {
+	obj := ctx.info.Uses[ident]
+	if obj == nil {
+		// Not a use of anything the type-checker recorded: a `:=` binding's own name, or the
+		// blank identifier. Both are locals as far as casing is concerned.
+		return "local"
+	}
+	switch typed := obj.(type) {
+	case *types.Const:
+		return "const"
+	case *types.Func:
+		return "func"
+	case *types.TypeName:
+		return "type"
+	case *types.Builtin:
+		return "builtin"
+	case *types.Var:
+		if typed.IsField() {
+			return "field"
+		}
+		if typed.Parent() != nil && typed.Parent() == typed.Pkg().Scope() {
+			return "package_var"
+		}
+		return "local"
+	default:
+		return "local"
+	}
+}
+
+func unsupportedNode(n ast.Node) node {
+	return node{
+		Kind:  kindUnsupported,
+		Attrs: map[string]string{attrGoNode: strings.TrimPrefix(fmt.Sprintf("%T", n), "*ast.")},
+	}
 }
 
 // isPointerReceiver reports whether sig is bound through a pointer receiver.

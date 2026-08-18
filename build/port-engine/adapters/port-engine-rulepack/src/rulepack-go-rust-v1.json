@@ -141,7 +141,7 @@
       "version": "1",
       "precondition": "unit_present",
       "captures": ["func"],
-      "construction": "rust_fn",
+      "construction": "rust_fn_body",
       "precedence": 5,
       "conflict": "refuse",
       "required_diagnostics": [],
@@ -162,6 +162,7 @@
       "go_defined_type",
       "go_func"
     ],
-    "oyatie.example/portengine-fixture/shapes": ["go_struct", "go_interface"]
+    "oyatie.example/portengine-fixture/shapes": ["go_struct", "go_interface"],
+    "oyatie.example/portengine-fixture-refused/hard": ["go_func"]
   }
 }
