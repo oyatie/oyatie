@@ -194,3 +194,31 @@ Two levers remain OUTSIDE this record. **Larger runners** are the single biggest
 runners — but the label must exist before `runs-on` names it, or every job queues forever; that is
 an organisation settings change, not a workflow edit, and it is not made here. **Affected-set
 selection** remains D5: conditional, evidence-gated, and still not authorized.
+
+### Amendment: larger runners are unavailable, so D5 becomes the binding path
+
+The founder has ruled out larger hosted runners. The four-core default is therefore fixed, and
+that closes the constant-factor route: after the overlap the test job is still on the order of
+thirteen minutes, against a five-minute target. Two levers remain, and only one of them is
+authorized.
+
+**Workspace-crate caching, adopted here.** `swatinem/rust-cache` exposes `cache-workspace-crates`
+and it defaults to FALSE — which is precisely the measured defect, a logged cache hit with an
+untouched lockfile that still compiled 1,565 crates. Enabling it is a one-line change and it is
+viable specifically because the debuginfo change already landed: without that, `target/` for 885
+members would be too large to store against the 10 GB per-repository cache budget. The test lane
+also takes its OWN cache key, because the live-postgres lanes compile a small subset and sharing a
+key would let their thin save overwrite this lane's cache on every run.
+
+**Sharding, NOT adopted here, and now genuinely available.** Earlier in this work sharding was
+rejected on the grounds that each shard would pay its own full compile, multiplying rather than
+dividing. That objection was correct while nothing cached workspace members. With sccache and
+workspace-crate caching in place the repeated compile becomes mostly cache hits, and `cargo
+nextest` supports native partitioning, so N standard four-core runners give 4N cores without a
+larger-runner SKU. It is deliberately left for a separate change so that D4's two-run measurement
+can attribute the caching effect before another variable is introduced.
+
+D5 — affected-set selection on the cargo graph — remains the structural answer and remains
+unauthorized. With larger runners off the table it is now the only lever that can plausibly reach
+five minutes for the common case, because it is the only one that stops compiling 885 members for
+a change that touches none of them.

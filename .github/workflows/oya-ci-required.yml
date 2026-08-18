@@ -136,7 +136,18 @@ jobs:
           tool: nextest
       - uses: swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
         with:
-          shared-key: cargo-ci-linux
+          # Its OWN key, not the shared cargo-ci-linux one. The live-postgres lanes compile a
+          # small subset of the workspace; sharing a key would let their thin save overwrite this
+          # lane's workspace-crate cache on every run — cache thrash that silently undoes the
+          # setting below.
+          shared-key: cargo-ci-test-workspace
+          # THE fix for the measured defect: a run logged `Cache hit for: v0-rust-cargo-ci`
+          # with Cargo.lock untouched and still compiled 1,565 crates, because this action
+          # caches dependency crates but NOT workspace members by default — and this workspace
+          # has 885 of them. Viable now specifically because #2113 turned debuginfo off, which
+          # is what kept target/ small enough to be worth storing against the 10 GB per-repo
+          # cache budget.
+          cache-workspace-crates: "true"
       # The face materializer shells out to buck2 internally to build its sibling
       # face tools; the digest-pinned installer is the bridge it has always used.
       - uses: mozilla-actions/sccache-action@fc920bf0ec8de6ee65d409111f7ec508035751ba
