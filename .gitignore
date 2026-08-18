@@ -40,6 +40,9 @@ docs/**/.omc/
 /worker.yaml
 /talosconfig
 /secrets.yaml
+# Operational Genesis receipts live in the verified private evidence boundary.
+/cell/receipts/genesis-seed-*.json
+/cell/receipts/sha256-*-genesis-seed-*.json
 .grit
 /bominal/
 # Python bytecode (per shell-python audit 2026-05-15)
