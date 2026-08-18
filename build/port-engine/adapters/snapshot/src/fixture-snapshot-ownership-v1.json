@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "language": "go",
-  "snapshot_digest": "sha256:20f962014fbec26f2ee5decfb9f05bb17aa9c4eb77c9cabc0e013f7d66b0844c",
+  "snapshot_digest": "sha256:343e62c3b77fc487b8466552881b32944f97978c55d5c1e1876943ea2f407ccd",
   "packages": [
     {
       "unit_id": "oyatie.example/portengine-fixture-ownership/corpus-ownership/escaping",
@@ -66,7 +66,7 @@
                           "kind": "ident",
                           "name": "n",
                           "attrs": {
-                            "ref": "local"
+                            "ref": "receiver"
                           }
                         }
                       ]

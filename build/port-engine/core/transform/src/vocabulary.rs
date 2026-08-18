@@ -14,8 +14,11 @@ pub const CONSTRUCTION_RUST_CONST: &str = "rust_const";
 pub const CONSTRUCTION_RUST_TYPE_ALIAS: &str = "rust_type_alias";
 /// Declaration-level construction: a single-field tuple struct over the underlying type.
 pub const CONSTRUCTION_RUST_NEWTYPE: &str = "rust_newtype";
-/// Declaration-level construction: a struct with fields, plus an `impl` block for its methods.
+/// Declaration-level construction: a struct with fields, plus an `impl` block whose methods
+/// are stubbed.
 pub const CONSTRUCTION_RUST_STRUCT: &str = "rust_struct";
+/// Declaration-level construction: a struct whose methods carry their translated bodies.
+pub const CONSTRUCTION_RUST_STRUCT_BODY: &str = "rust_struct_body";
 /// Declaration-level construction: a trait with one signature per method.
 pub const CONSTRUCTION_RUST_TRAIT: &str = "rust_trait";
 /// Declaration-level construction: a free function, signature only.

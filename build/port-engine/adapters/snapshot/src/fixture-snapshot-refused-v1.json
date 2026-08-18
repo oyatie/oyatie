@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "language": "go",
-  "snapshot_digest": "sha256:da2bd831bdf6468806b3c48b85bbc3caf0abf77b113c5147d6b1e5b821ee50e7",
+  "snapshot_digest": "sha256:94ea2caa2b1aea639c888e52dc91455cb18805ee29513d0f9abb1ebcd2d6baaf",
   "packages": [
     {
       "unit_id": "oyatie.example/portengine-fixture-refused/corpus-refused/hard",
@@ -52,11 +52,114 @@
                   ]
                 },
                 {
-                  "kind": "unsupported",
+                  "kind": "for",
                   "name": "",
-                  "attrs": {
-                    "go_node": "ForStmt"
-                  }
+                  "children": [
+                    {
+                      "kind": "init",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "let",
+                          "name": "i",
+                          "children": [
+                            {
+                              "kind": "literal",
+                              "name": "",
+                              "attrs": {
+                                "lit_kind": "INT",
+                                "value": "0"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "cond",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "binary",
+                          "name": "",
+                          "attrs": {
+                            "op": "\u003c"
+                          },
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "i",
+                              "attrs": {
+                                "ref": "local"
+                              }
+                            },
+                            {
+                              "kind": "ident",
+                              "name": "n",
+                              "attrs": {
+                                "ref": "local"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "post",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "unsupported",
+                          "name": "",
+                          "attrs": {
+                            "go_node": "IncDecStmt"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "then",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "assign",
+                          "name": "",
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "total",
+                              "attrs": {
+                                "ref": "local"
+                              }
+                            },
+                            {
+                              "kind": "binary",
+                              "name": "",
+                              "attrs": {
+                                "op": "+"
+                              },
+                              "children": [
+                                {
+                                  "kind": "ident",
+                                  "name": "total",
+                                  "attrs": {
+                                    "ref": "local"
+                                  }
+                                },
+                                {
+                                  "kind": "ident",
+                                  "name": "i",
+                                  "attrs": {
+                                    "ref": "local"
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
                 },
                 {
                   "kind": "return",

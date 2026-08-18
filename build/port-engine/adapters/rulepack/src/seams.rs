@@ -28,6 +28,14 @@ impl PackSemantics for LoadedRulePack {
         &self.type_map
     }
 
+    fn zero_values(&self) -> &BTreeMap<String, String> {
+        &self.zero_values
+    }
+
+    fn copy_types(&self) -> &BTreeSet<String> {
+        &self.copy_types
+    }
+
     fn type_constructors(&self) -> &BTreeMap<String, String> {
         &self.type_constructors
     }

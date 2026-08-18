@@ -9,12 +9,12 @@ use crate::error::TransformError;
 use crate::naming::{to_pascal_case, to_screaming_snake, to_snake_case, visibility};
 use crate::resolve::Resolver;
 use crate::signature::{
-    declared_receiver, inherent_methods, params, refuse_variadic, results, trait_methods,
+    Body, declared_receiver, inherent_methods, params, refuse_variadic, results, trait_methods,
 };
 use crate::vocabulary::{
     ATTR_VALUE, CHILD_BODY, CHILD_FIELD, CONSTRUCTION_RUST_CONST, CONSTRUCTION_RUST_FN,
     CONSTRUCTION_RUST_FN_BODY, CONSTRUCTION_RUST_NEWTYPE, CONSTRUCTION_RUST_STRUCT,
-    CONSTRUCTION_RUST_TRAIT, CONSTRUCTION_RUST_TYPE_ALIAS,
+    CONSTRUCTION_RUST_STRUCT_BODY, CONSTRUCTION_RUST_TRAIT, CONSTRUCTION_RUST_TYPE_ALIAS,
 };
 use crate::{body, docs::docs_of};
 
@@ -27,7 +27,8 @@ pub(crate) fn build_item(
         CONSTRUCTION_RUST_CONST => build_const(declaration, resolver),
         CONSTRUCTION_RUST_TYPE_ALIAS => build_type_alias(declaration, resolver),
         CONSTRUCTION_RUST_NEWTYPE => build_newtype(declaration, resolver),
-        CONSTRUCTION_RUST_STRUCT => build_struct(declaration, resolver),
+        CONSTRUCTION_RUST_STRUCT => build_struct(declaration, resolver, Body::Stub),
+        CONSTRUCTION_RUST_STRUCT_BODY => build_struct(declaration, resolver, Body::Translate),
         CONSTRUCTION_RUST_TRAIT => build_trait(declaration, resolver),
         CONSTRUCTION_RUST_FN => build_fn(declaration, resolver, false),
         CONSTRUCTION_RUST_FN_BODY => build_fn(declaration, resolver, true),
@@ -91,13 +92,14 @@ fn build_newtype(
             name: String::new(),
             ty: resolver.resolve(&declaration.type_ref, &declaration.name)?,
         }]),
-        methods: inherent_methods(declaration, resolver)?,
+        methods: inherent_methods(declaration, resolver, Body::Stub)?,
     })
 }
 
 fn build_struct(
     declaration: &Declaration,
     resolver: &Resolver<'_>,
+    body: Body,
 ) -> Result<RustItem, TransformError> {
     let mut fields = Vec::new();
     for field in declaration.children_of_kind(CHILD_FIELD) {
@@ -118,7 +120,7 @@ fn build_struct(
         } else {
             StructShape::Named(fields)
         },
-        methods: inherent_methods(declaration, resolver)?,
+        methods: inherent_methods(declaration, resolver, body)?,
     })
 }
 
@@ -170,7 +172,7 @@ fn build_fn(
                 name: declaration.name.clone(),
                 datum: "body",
             })?;
-        body::statements(&source.children, &declaration.name)?
+        body::statements(&source.children, &declaration.name, resolver)?
     } else {
         vec![RustStmt::Tail(RustExpr::Todo)]
     };

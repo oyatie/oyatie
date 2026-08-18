@@ -17,7 +17,7 @@
 //! either fails to compile far from its cause or, worse, compiles as an unrelated target type that
 //! happens to share a name.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 
 use port_engine_api::{Declaration, TypeRef, UnitId};
 use port_engine_rust_ir::RustType;
@@ -68,6 +68,13 @@ pub(crate) struct Resolver<'a> {
     /// This is what makes a composite resolvable by CONSTRUCTOR rather than by shape: one entry
     /// for `slice` answers every slice, where a flat table needed a row per element type.
     pub(crate) constructors: &'a BTreeMap<String, String>,
+    /// Source types whose target counterpart copies; everything else clones on a value read.
+    pub(crate) copy_types: &'a BTreeSet<String>,
+    /// Source type identity → the target expression for that type's zero value.
+    ///
+    /// Go fills a struct literal's omitted fields with the zero value; the target has no such rule
+    /// and rejects an incomplete literal, so the omitted fields have to be spelled out.
+    pub(crate) zero_values: &'a BTreeMap<String, String>,
     /// The declared trait-receiver mode and its reason.
     pub(crate) receiver: Option<(&'a str, &'a str)>,
     /// The pack's ownership rules, and the log every decision is recorded into.
@@ -80,6 +87,32 @@ impl<'a> Resolver<'a> {
     /// The pack's declared trait-receiver mode and its reason.
     pub(crate) fn trait_receiver(&self) -> Option<(&'a str, &'a str)> {
         self.receiver
+    }
+}
+
+impl Resolver<'_> {
+    /// Whether a plain read of this source type COPIES in the target.
+    pub(crate) fn copies(&self, type_ref: &TypeRef) -> bool {
+        self.copy_types.contains(&table_key(type_ref))
+    }
+
+    /// The target expression for this source type's zero value, when the pack declares one.
+    pub(crate) fn zero_value(&self, type_ref: &TypeRef) -> Option<String> {
+        self.zero_values.get(&table_key(type_ref)).cloned()
+    }
+}
+
+/// The identity a pack table is keyed by.
+///
+/// `package.Name` for a named type, the bare name for a primitive, and the KIND for a composite
+/// that has no name at all — the same three cases [`Resolver::resolve_node`] keys on, extracted so
+/// that every table agrees on what a type is called.
+fn table_key(type_ref: &TypeRef) -> String {
+    let qualified = type_ref.qualified();
+    if qualified.is_empty() {
+        type_ref.kind.clone()
+    } else {
+        qualified
     }
 }
 
@@ -133,12 +166,7 @@ impl Resolver<'_> {
         }
 
         // A primitive, or a named type the pack maps by identity.
-        let key = if type_ref.qualified().is_empty() {
-            type_ref.kind.clone()
-        } else {
-            type_ref.qualified()
-        };
-        if let Some(mapped) = self.lookup(&key) {
+        if let Some(mapped) = self.lookup(&table_key(type_ref)) {
             return Ok(RustType::path(mapped));
         }
         if let Some(mapped) = self.lookup(&type_ref.name) {

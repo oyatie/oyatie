@@ -201,10 +201,56 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
   Refusal corpora split per CLASS: one corpus stopping at whichever package sorted first meant the
   second refusal was never exercised.
 
+- P4: statements and expressions. Every method in the corpus carries a TRANSLATED body.
+  Two source constructs mean something the same syntax does not mean in the target, and both were
+  emitting code that parsed and did not compile.
+  A FIELD READ is a copy in Go and a move in Rust: `return c.label` leaves the receiver intact in
+  the source and moves out of `&self` in the target. Reads of a non-copying type now clone, and
+  which source types copy is a pack table — keyed by SOURCE identity, like `type_map`, after a
+  first attempt keyed it by target spelling and cloned every `int` in the corpus because `int` is
+  not `i64`. Position is what makes the rule safe: a field in VALUE position is read, a field in
+  PLACE position is assigned to, and cloning the latter would emit `self.total.clone() = x` —
+  which parses and silently assigns to a temporary.
+  A STRUCT LITERAL zero-fills in Go and must name every field in Rust. `Point{X: 1, Y: 2}` on a
+  struct with an unexported `label` was an incomplete literal. Which fields a struct has is a fact
+  go/types holds and the engine does not, so the front end now emits one entry per DECLARED field
+  and the omitted ones arrive as `zero` nodes carrying their type. The target's spelling of a zero
+  is a pack table; a type with no entry REFUSES rather than falling back to `Default::default()`,
+  which would compile for these four types and quietly mean something else for a type whose
+  `Default` is not its zero. The same change closed a silent hole: a slice or map literal used to
+  produce a composite with no keyed children and emit `Vec {}`, constructing nothing.
+  `no_method_body_is_a_stub` is the proof. Every other check in the facade passes over a crate
+  whose methods all abort at the first call — a stub compiles, matches a golden, and hashes into a
+  stable receipt. Asserted over the whole emit, so a stub reintroduced anywhere reds it.
+  The body translator stopped being ambient. The copy set had been a thread-local to avoid
+  threading a parameter through twenty functions, and the moment a second table arrived the
+  shortcut stopped paying: these are properties of the RULE PACK, not of the process, and a body
+  translated under a different pack must see different answers. One `Body` context carries the
+  owner and the resolver, and the resolver owns every table lookup — which is what fixed the
+  key-rule divergence above, since `resolve` and `copies` now key a type the same way by
+  construction.
+  Emitted-code lint quality: 16 pedantic warnings over 110 emitted lines, from 13 over ~60. Ten of
+  the sixteen are `#[must_use]`, and adding it is NOT obviously right: Go does not require a
+  caller to use a return value, so the attribute is a claim the source never made. Two are
+  `assign_op_pattern` (`x = x + n` where the source wrote exactly that) and one is
+  `comparison_to_empty_slice`. All three are idiom rules and belong in P9 as pack data, not as
+  engine defaults.
+  `core/rust-ir/src/expr.rs` split: the operator PRECEDENCE table moved to `ops.rs`. The rust-ir
+  directory-completeness fence caught the new module by name, which is the fence working.
+
 ## Still owed by this lane
 
-- Struct methods still emit `todo!()`: bodies need selector expressions (`p.X` → `self.x`),
-  composite literals, and call expressions. Those are the next subset, not a gap in I7.
+- `defer`, `panic`/`recover`, `select`, closures and the type switch still refuse BY NAME. Each
+  needs its census read first — `census/defer-panic-recover.md` sizes the first two at six callee
+  shapes covering 77.9% — and guessing at one is how a translator emits a body that compiles and
+  runs a different program.
+- A composite literal with POSITIONAL fields refuses. The front end has the field order and could
+  name them, which would remove the refusal with a proof rather than a hope; it was left out of
+  P4 to keep the change to the constructs the corpus exercises.
+- `core/transform` has no directory-completeness fence, because it carries neither the Go-toolchain
+  firewall nor a corpus-needle property. Its four new body modules are therefore unenumerated
+  anywhere — which is correct today and would stop being correct the moment transform acquires a
+  fenced property.
 - `specs/port-rules/lang/go-rust/**` remains unlanded; the pack is still the package-local mirror.
   Out of the `build/**` envelope, so it needs an integ/specs lane.
 - Nothing emits into `k8s/`, and no Kubernetes corpus is admitted. That is W1 and is not this

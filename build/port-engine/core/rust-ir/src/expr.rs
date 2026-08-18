@@ -5,6 +5,10 @@
 //! table produces arithmetic that compiles and computes something else. A tree can see it: a
 //! child is parenthesised exactly when its own precedence binds looser than the position it sits
 //! in, so `a + b * c` emits without parentheses and `(a + b) * c` keeps the one it needs.
+//!
+//! The precedence table itself lives in [`crate::ops`].
+
+use crate::ops::{BinaryOp, Precedence, UnaryOp};
 
 /// A statement in an emitted body.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -22,6 +26,33 @@ pub enum RustStmt {
     Tail(RustExpr),
     /// An early `return <expr>;`
     Return(Option<RustExpr>),
+    /// `<target> = <value>;`
+    Assign {
+        /// What is assigned to: a path, a field, an index.
+        target: RustExpr,
+        /// The new value.
+        value: RustExpr,
+    },
+    /// `while <cond> { .. }`
+    While {
+        /// The loop condition.
+        cond: RustExpr,
+        /// The loop body.
+        body: Vec<RustStmt>,
+    },
+    /// `loop { .. }`
+    Loop(Vec<RustStmt>),
+    /// `for <binding> in <iter> { .. }`
+    ForIn {
+        /// The bound name, already cased for the target.
+        binding: String, // data_class: INTERNAL_ONLY
+        /// What is iterated.
+        iter: RustExpr,
+        /// The loop body.
+        body: Vec<RustStmt>,
+    },
+    /// `break;`
+    Break,
 }
 
 /// An expression in an emitted body.
@@ -65,137 +96,81 @@ pub enum RustExpr {
     Block(Vec<RustStmt>),
     /// A tuple, which is how a multi-value result leaves a function.
     Tuple(Vec<RustExpr>),
+    /// `<base>.<name>` — a field access.
+    Field {
+        /// What the field is read from.
+        base: Box<RustExpr>,
+        /// The field's name, already cased for the target.
+        name: String, // data_class: INTERNAL_ONLY
+    },
+    /// `<callee>(<args>)`
+    Call {
+        /// The function being called.
+        callee: Box<RustExpr>,
+        /// Its arguments, in order.
+        args: Vec<RustExpr>,
+    },
+    /// `<receiver>.<method>(<args>)`
+    MethodCall {
+        /// What the method is called on.
+        receiver: Box<RustExpr>,
+        /// The method's name, already cased for the target.
+        method: String, // data_class: INTERNAL_ONLY
+        /// Its arguments, in order.
+        args: Vec<RustExpr>,
+    },
+    /// `<base>[<index>]`
+    Index {
+        /// What is indexed.
+        base: Box<RustExpr>,
+        /// The index.
+        index: Box<RustExpr>,
+    },
+    /// `<path> { <field>: <value>, .. }`
+    StructLiteral {
+        /// The struct's path.
+        path: String, // data_class: INTERNAL_ONLY
+        /// Its fields, in declared order.
+        fields: Vec<(String, RustExpr)>,
+    },
+    /// `<start>..<end>`
+    Range {
+        /// Inclusive lower bound.
+        start: Box<RustExpr>,
+        /// Exclusive upper bound.
+        end: Box<RustExpr>,
+    },
+    /// `&<inner>` or `&mut <inner>`
+    Reference {
+        /// `true` for `&mut`.
+        mutable: bool,
+        /// What is referenced.
+        inner: Box<RustExpr>,
+    },
+    /// `self`
+    SelfValue,
+    /// `match <scrutinee> { <patterns> => { .. }, .. }`
+    Match {
+        /// What is matched on.
+        scrutinee: Box<RustExpr>,
+        /// The arms, in order. An arm with no patterns is the wildcard.
+        arms: Vec<MatchArm>,
+    },
     /// `todo!()` — an unimplemented body, emitted only where a construction asked for a stub.
     Todo,
 }
 
-/// Binary operators, grouped by the precedence the target language gives them.
-#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
-pub enum BinaryOp {
-    /// `*`
-    Mul,
-    /// `/`
-    Div,
-    /// `%`
-    Rem,
-    /// `+`
-    Add,
-    /// `-`
-    Sub,
-    /// `<<`
-    Shl,
-    /// `>>`
-    Shr,
-    /// `&`
-    BitAnd,
-    /// `^`
-    BitXor,
-    /// `|`
-    BitOr,
-    /// `==`
-    Eq,
-    /// `!=`
-    Ne,
-    /// `<`
-    Lt,
-    /// `<=`
-    Le,
-    /// `>`
-    Gt,
-    /// `>=`
-    Ge,
-    /// `&&`
-    And,
-    /// `||`
-    Or,
-}
-
-/// Where each operator sits in the target's precedence order. Higher binds tighter.
-///
-/// Taken from the Rust reference's expression-precedence table rather than from the source
-/// language's, because this is what the EMITTED text will be parsed as. Getting it from the wrong
-/// language is precisely the defect the unconditional parentheses were avoiding.
-#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
-pub struct Precedence(u8);
-
-/// Comparison operators are non-associative in Rust: `a == b == c` does not parse, so a comparison
-/// nested inside a comparison always needs parentheses regardless of level.
-const COMPARISON: Precedence = Precedence(3);
-
-impl BinaryOp {
-    /// The operator's precedence level.
-    #[must_use]
-    pub const fn precedence(self) -> Precedence {
-        match self {
-            Self::Mul | Self::Div | Self::Rem => Precedence(9),
-            Self::Add | Self::Sub => Precedence(8),
-            Self::Shl | Self::Shr => Precedence(7),
-            Self::BitAnd => Precedence(6),
-            Self::BitXor => Precedence(5),
-            Self::BitOr => Precedence(4),
-            Self::Eq | Self::Ne | Self::Lt | Self::Le | Self::Gt | Self::Ge => COMPARISON,
-            Self::And => Precedence(2),
-            Self::Or => Precedence(1),
-        }
-    }
-
-    /// The operator's spelling.
-    #[must_use]
-    pub const fn spelling(self) -> &'static str {
-        match self {
-            Self::Mul => "*",
-            Self::Div => "/",
-            Self::Rem => "%",
-            Self::Add => "+",
-            Self::Sub => "-",
-            Self::Shl => "<<",
-            Self::Shr => ">>",
-            Self::BitAnd => "&",
-            Self::BitXor => "^",
-            Self::BitOr => "|",
-            Self::Eq => "==",
-            Self::Ne => "!=",
-            Self::Lt => "<",
-            Self::Le => "<=",
-            Self::Gt => ">",
-            Self::Ge => ">=",
-            Self::And => "&&",
-            Self::Or => "||",
-        }
-    }
-
-    /// `true` when this operator may not be nested inside another of the same precedence without
-    /// parentheses.
-    #[must_use]
-    pub const fn is_non_associative(self) -> bool {
-        matches!(self.precedence().0, 3)
-    }
-}
-
-/// Prefix operators.
-#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
-pub enum UnaryOp {
-    /// Arithmetic negation.
-    Neg,
-    /// Logical or bitwise NOT — one operator in the target, distinguished by operand type.
-    Not,
-}
-
-impl UnaryOp {
-    /// The operator's spelling.
-    #[must_use]
-    pub const fn spelling(self) -> &'static str {
-        match self {
-            Self::Neg => "-",
-            Self::Not => "!",
-        }
-    }
-
-    /// Prefix operators bind tighter than every binary operator.
-    #[must_use]
-    pub const fn precedence() -> Precedence {
-        Precedence(11)
-    }
+/// One arm of a match.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct MatchArm {
+    /// The patterns this arm accepts, as literal expressions. EMPTY is the wildcard arm.
+    ///
+    /// Patterns are expressions because the source's switch cases are expressions: a Go case is a
+    /// value to compare against, not a destructuring pattern. Modelling them as full patterns
+    /// would be inventing a capability the source does not have.
+    pub patterns: Vec<RustExpr>,
+    /// The arm's body.
+    pub body: Vec<RustStmt>,
 }
 
 impl RustExpr {
@@ -211,10 +186,24 @@ impl RustExpr {
             // An `if` is not an operand in any position this IR builds, but giving it the loosest
             // precedence means that if it ever becomes one it is parenthesised rather than
             // silently reassociated.
-            Self::If { .. } => Precedence(0),
-            Self::Literal(_) | Self::Path(_) | Self::Block(_) | Self::Tuple(_) | Self::Todo => {
-                Precedence(u8::MAX)
-            }
+            Self::If { .. } => Precedence::LOOSEST,
+            // A reference binds like a prefix operator; a range binds looser than any of them.
+            Self::Reference { .. } => UnaryOp::precedence(),
+            Self::Range { .. } => Precedence::LOOSEST,
+            // Postfix forms bind tightest of all: `a.b`, `f(x)`, `v[i]` never need wrapping, and
+            // their own base is bracketed by the lowering when it is not itself atomic.
+            Self::Literal(_)
+            | Self::Path(_)
+            | Self::Block(_)
+            | Self::Tuple(_)
+            | Self::Field { .. }
+            | Self::Call { .. }
+            | Self::MethodCall { .. }
+            | Self::Index { .. }
+            | Self::StructLiteral { .. }
+            | Self::SelfValue
+            | Self::Match { .. }
+            | Self::Todo => Precedence::ATOMIC,
         }
     }
 

@@ -25,7 +25,19 @@
     "about ownership; the decision has to be made and it has to be recorded. Order matters: the",
     "two conservative rules come first, so an escaping or unanalysed pointer never reaches a",
     "borrow rule. There is deliberately NO catch-all — facts nothing accepts refuse, because an",
-    "invented default is a decision nobody wrote down."
+    "invented default is a decision nobody wrote down.",
+    "",
+    "copy_types names the SOURCE types whose target counterpart copies, keyed by source identity",
+    "the same way type_map is, so the two tables answer for the same thing. Reading anything else",
+    "by value MOVES in the target, which does not compile out of a borrow — so the read is cloned:",
+    "`return c.label` returns a copy in the source and the receiver survives, while the same text",
+    "in Rust moves out of `&self`.",
+    "",
+    "zero_values is what a struct literal's OMITTED fields become. Go fills them with the field",
+    "type's zero and the target rejects an incomplete literal, so the engine spells them out. A",
+    "type with no entry refuses by name rather than falling back to `Default::default()`, which",
+    "would compile for these four and quietly mean something else for a type whose Default is not",
+    "its zero."
   ],
   "pair": {
     "source": "go",
@@ -132,8 +144,8 @@
       "proof_obligations": [],
       "selecting_fixtures": [
         {
-          "id": "go-struct-selects-shapes",
-          "unit": "oyatie.example/portengine-fixture/corpus/shapes",
+          "id": "go-struct-selects-geometry",
+          "unit": "oyatie.example/portengine-fixture/corpus/geometry",
           "selects": true
         },
         {
@@ -182,6 +194,31 @@
           "selects": true
         }
       ]
+    },
+    {
+      "id": "go_struct_body",
+      "version": "1",
+      "precondition": "unit_present",
+      "captures": [
+        "struct"
+      ],
+      "construction": "rust_struct_body",
+      "precedence": 6,
+      "conflict": "refuse",
+      "required_diagnostics": [],
+      "proof_obligations": [],
+      "selecting_fixtures": [
+        {
+          "id": "go-struct-body-selects-pointers",
+          "unit": "oyatie.example/portengine-fixture/corpus/pointers",
+          "selects": true
+        },
+        {
+          "id": "go-struct-body-selects-shapes",
+          "unit": "oyatie.example/portengine-fixture/corpus/shapes",
+          "selects": true
+        }
+      ]
     }
   ],
   "applies": {
@@ -192,8 +229,8 @@
       "go_func"
     ],
     "oyatie.example/portengine-fixture/corpus/shapes": [
-      "go_struct",
-      "go_interface"
+      "go_interface",
+      "go_struct_body"
     ],
     "oyatie.example/portengine-fixture-refused/corpus-refused/hard": [
       "go_func"
@@ -204,7 +241,7 @@
       "go_func"
     ],
     "oyatie.example/portengine-fixture/corpus/pointers": [
-      "go_struct"
+      "go_struct_body"
     ],
     "oyatie.example/portengine-fixture-ownership/corpus-ownership/escaping": [
       "go_struct"
@@ -248,5 +285,16 @@
       "receiver": "&self",
       "reason": "Nothing mutates through it and nothing outlives the call, so a shared borrow is both sufficient and the cheapest form. Same aliasing caveat as the exclusive case, and much weaker: a shared borrow coexists with other shared borrows, so caller-side aliasing does not invalidate it."
     }
-  ]
+  ],
+  "copy_types": [
+    "bool",
+    "float64",
+    "int"
+  ],
+  "zero_values": {
+    "bool": "false",
+    "float64": "0.0",
+    "int": "0",
+    "string": "String::new()"
+  }
 }

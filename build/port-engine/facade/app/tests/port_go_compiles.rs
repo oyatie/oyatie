@@ -42,9 +42,10 @@ fn emitted_rust_compiles() {
         .arg("--emit=metadata")
         .arg("-o")
         .arg(out_dir.join("emitted.rmeta"))
-        // `todo!()` bodies make every parameter and field unused by construction. Those warnings
-        // are noise about the STUB, not about the translation, and denying them would fail the
-        // proof for the one property it is not testing.
+        // Both allowances are about the SOURCE, not the translation. Go warns on neither an
+        // unexported declaration nobody calls nor a parameter a function ignores — `geometry.Lookup`
+        // genuinely ignores its table — so denying them here would fail the proof for output that
+        // is faithful.
         .arg("--allow=dead_code")
         .arg("--allow=unused_variables")
         .arg(&source_path)
@@ -93,6 +94,23 @@ fn emitted_rust_carries_the_corpus() {
     assert!(
         !source.contains("ENABLED") && !source.contains("THRESHOLD"),
         "a deferred kind must not be emitted:\n{source}"
+    );
+}
+
+/// Every method in the corpus carries a TRANSLATED body.
+///
+/// A stub compiles, matches a golden, and hashes into a stable receipt — so every other check in
+/// this file passes over a crate whose methods all abort at the first call. This is the one that
+/// notices. It is asserted over the whole emit rather than per declaration on purpose: a stub
+/// reintroduced anywhere reds it, including in a declaration nobody thought to name here.
+#[test]
+fn no_method_body_is_a_stub() {
+    let report = driver::port_go_pipeline().expect("the Go corpus must port");
+    let source = driver::assemble_modules(&report);
+
+    assert!(
+        !source.contains("todo!"),
+        "every body in the corpus must translate:\n{source}"
     );
 }
 
