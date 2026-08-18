@@ -41,8 +41,33 @@ pub const ATTR_VALUE: &str = "value";
 pub const ATTR_OP: &str = "op";
 /// Attribute key naming the source construct an `unsupported` node stands for.
 pub const ATTR_SOURCE_NODE: &str = "go_node";
+/// The named POSITIONS a type can appear in, which is what decides the form a trait takes there.
+///
+/// A borrowed trait object is right for a parameter and impossible for a value a function returns,
+/// so the pack answers per position rather than once.
+pub const POSITION_PARAM: &str = "param";
+/// See [`POSITION_PARAM`].
+pub const POSITION_RESULT: &str = "result";
+/// See [`POSITION_PARAM`].
+pub const POSITION_FIELD: &str = "field";
+/// The position an `impl Trait for Type` names its trait in — the one place a trait appears as
+/// itself rather than as something holding it, and still declared rather than special-cased.
+pub const POSITION_TRAIT: &str = "trait";
+
+/// Type kind: a named type whose underlying type is an interface.
+///
+/// Distinguished from a plain named type because the target holds the two differently — a struct
+/// is a value and a trait has no size.
+pub const TYPE_NAMED_INTERFACE: &str = "named_interface";
+
 /// Attribute key classifying what an identifier resolves to.
 pub const ATTR_REF: &str = "ref";
+/// Attribute key holding the receiver a TRAIT method binds, derived from its observed
+/// implementors. Absent means nothing was observed to implement the interface, and the pack's
+/// declared decision answers instead.
+pub const ATTR_RECEIVER: &str = "receiver";
+/// Attribute key recording HOW an interface satisfaction was observed.
+pub const ATTR_SITE: &str = "site";
 /// Attribute key carrying the source declaration's documentation block.
 pub const ATTR_DOC: &str = "doc";
 
@@ -67,3 +92,9 @@ pub(crate) const CHILD_METHOD: &str = "method";
 pub(crate) const CHILD_PARAM: &str = "param";
 pub(crate) const CHILD_RESULT: &str = "result";
 pub(crate) const CHILD_BODY: &str = "body";
+/// An OBSERVED interface satisfaction, carrying the trait's full method set.
+///
+/// The method set rides on the node rather than being looked up from the interface's own
+/// declaration, because the interface routinely lives in another unit and the impl is emitted
+/// where the type is — a cross-unit lookup is a reference the model does not carry.
+pub(crate) const CHILD_IMPLEMENTS: &str = "implements";

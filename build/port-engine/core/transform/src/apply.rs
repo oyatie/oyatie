@@ -73,6 +73,8 @@ pub fn apply_with_provenance(
 
     let mut region_names: Vec<String> = Vec::new();
     let mut items: Vec<(String, RustItem)> = Vec::new();
+    // One region may hold several items, because one declaration may emit several — a type
+    // and the trait impls its observed satisfactions call for.
     let log = DispositionLog::new();
     let ownership = OwnershipContext::new(semantics.pointer_dispositions(), &log);
     // unit → the declaration kinds some applied rule captured, for the coverage check below.
@@ -131,7 +133,7 @@ pub fn apply_with_provenance(
 
         for declaration in declarations.iter().filter(|d| captures.contains(&d.kind)) {
             let region = region_id_for_declaration(&step.unit, &step.rule, &declaration.name);
-            let item = build_item(
+            let built = build_item(
                 construction,
                 declaration,
                 &Resolver {
@@ -141,6 +143,7 @@ pub fn apply_with_provenance(
                     constructors: semantics.type_constructors(),
                     copy_types: semantics.copy_types(),
                     zero_values: semantics.zero_values(),
+                    trait_object_forms: semantics.trait_object_forms(),
                     receiver: semantics.trait_receiver(),
                     ownership: &ownership,
                     unit: &step.unit,
@@ -148,7 +151,9 @@ pub fn apply_with_provenance(
             )?;
             provenance.insert(RegionId(region.clone()), step.unit.clone());
             region_names.push(region.clone());
-            items.push((region, item));
+            for one in built {
+                items.push((region.clone(), one));
+            }
         }
     }
 
@@ -156,9 +161,9 @@ pub fn apply_with_provenance(
 
     let refs: Vec<&str> = region_names.iter().map(String::as_str).collect();
     let mut ir = RustIr::new(&refs);
-    // One region may hold several items only if a rule produced several; today each
-    // construction produces exactly one, and grouping by region keeps that an implementation
-    // detail rather than a constraint the IR enforces.
+    // Grouping by region, because a declaration emits a LIST: a type that satisfies an interface
+    // emits the type and an impl per satisfaction, and they belong to the one region the
+    // declaration owns.
     let mut grouped: BTreeMap<String, Vec<RustItem>> = BTreeMap::new();
     for (region, item) in items {
         grouped.entry(region).or_default().push(item);

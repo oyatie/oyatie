@@ -139,14 +139,15 @@ fn refuses_missing_unit_precondition() {
     assert!(matches!(err, TransformError::Precondition { .. }));
 }
 
-/// A trait cannot be built without a DECLARED receiver mode.
+/// A trait method with NEITHER an observed receiver nor a declared one refuses.
 ///
-/// The mode is not recoverable from the source — an interface says nothing about how an
-/// implementation binds its receiver, and the implementations are not all in view. Emitting
-/// `&self` by default is what made the fixture's mutating `Rename` unimplementable, so a pack
-/// that has not decided gets a refusal rather than the old silent answer.
+/// The mode is not recoverable from an interface's own declaration — it says nothing about how an
+/// implementation binds its receiver. It IS recoverable from the implementors, and the front end
+/// now derives it where it can see them. This is the case where it cannot: nothing was observed to
+/// implement `Named`, and the pack has not decided either, so emitting `&self` by default would be
+/// the guess that made the fixture's mutating `Rename` unimplementable.
 #[test]
-fn a_trait_without_a_declared_receiver_refuses() {
+fn a_trait_receiver_that_is_neither_observed_nor_declared_refuses() {
     let mut iface = decl("interface", "Named", "");
     iface.children = vec![child("method", "Rename", "")];
     let pack = Pack::default().with_rule("traits", CONSTRUCTION_RUST_TRAIT, &["interface"]);
@@ -154,8 +155,40 @@ fn a_trait_without_a_declared_receiver_refuses() {
     let err = apply(&plan_with(&["traits"]), &pack, &model_with(vec![iface]))
         .expect_err("an undeclared receiver mode must refuse");
     assert!(
-        matches!(err, TransformError::MissingDatum { datum, .. } if datum == "trait_receiver"),
+        matches!(&err, TransformError::Unsupported { detail, .. }
+            if detail.contains("no implementor") && detail.contains("guess")),
         "{err}"
+    );
+}
+
+/// An OBSERVED receiver wins over the pack's declared one, per method.
+///
+/// The pack declares one mode for every trait method, which is what put `&mut self` on getters.
+/// The front end derives it per method from the implementors it saw — exclusive exactly when one of
+/// them mutates — so a read-only method binds shared even where the pack says otherwise.
+#[test]
+fn an_observed_receiver_overrides_the_declared_one() {
+    let mut iface = decl("interface", "Named", "");
+    let mut getter = child("method", "Name", "");
+    getter
+        .attrs
+        .insert("receiver".to_owned(), "shared".to_owned());
+    iface.children = vec![getter, child("method", "Rename", "")];
+
+    let pack = Pack::default()
+        .with_rule("traits", CONSTRUCTION_RUST_TRAIT, &["interface"])
+        .with_trait_receiver("exclusive");
+
+    let ir = apply(&plan_with(&["traits"]), &pack, &model_with(vec![iface]))
+        .expect("a trait with one observed receiver must build");
+    let rendered = format!("{ir:?}");
+    assert!(
+        rendered.contains("Shared"),
+        "the observed shared receiver must reach the signature: {rendered}"
+    );
+    assert!(
+        rendered.contains("Exclusive"),
+        "the unobserved method must still take the pack's declared mode: {rendered}"
     );
 }
 

@@ -25,6 +25,7 @@ use port_engine_rust_ir::RustType;
 use crate::error::TransformError;
 use crate::naming::{module_path, to_pascal_case};
 use crate::ownership::OwnershipContext;
+use crate::vocabulary::TYPE_NAMED_INTERFACE;
 
 /// The type names one unit declares, and the target spelling each resolves to.
 pub(crate) struct LocalScope {
@@ -70,6 +71,8 @@ pub(crate) struct Resolver<'a> {
     pub(crate) constructors: &'a BTreeMap<String, String>,
     /// Source types whose target counterpart copies; everything else clones on a value read.
     pub(crate) copy_types: &'a BTreeSet<String>,
+    /// The target form a trait takes in each position, keyed by position.
+    pub(crate) trait_object_forms: &'a BTreeMap<String, String>,
     /// Source type identity → the target expression for that type's zero value.
     ///
     /// Go fills a struct literal's omitted fields with the zero value; the target has no such rule
@@ -137,11 +140,88 @@ impl Resolver<'_> {
         self.resolve_node(type_ref, declaration_name)
     }
 
+    /// Resolve a source type appearing in a named POSITION — a parameter, a result, a field.
+    ///
+    /// The position matters for exactly one kind. A trait has no size in the target, so it reaches
+    /// a position as a reference, a box or a shared pointer, and those differ in who owns the value
+    /// and how long it lives. The pack declares a form per position; a position it has no form for
+    /// refuses, because choosing between them is an ownership decision and not a spelling.
+    ///
+    /// # Errors
+    /// [`TransformError::UnmappedType`] when nothing answers for the type or for its position.
+    pub(crate) fn resolve_in(
+        &self,
+        type_ref: &TypeRef,
+        declaration_name: &str,
+        position: &str,
+    ) -> Result<RustType, TransformError> {
+        if type_ref.kind != TYPE_NAMED_INTERFACE {
+            return self.resolve(type_ref, declaration_name);
+        }
+        let Some(template) = self.trait_object_forms.get(position) else {
+            return Err(TransformError::UnmappedType {
+                unit: self.unit.0.clone(),
+                name: declaration_name.to_owned(),
+                type_ref: format!(
+                    "{} in `{position}` position — a trait has no size in the target, and the pack \
+                     declares no form for it there. Borrowing, boxing and sharing are different \
+                     decisions about who owns the value",
+                    type_ref.describe()
+                ),
+            });
+        };
+        let path = self.named_path(type_ref, declaration_name)?;
+        Ok(RustType::path(template.replace("{0}", &path.spelling())))
+    }
+
+    /// The path a named type resolves to, ignoring the question of how a position holds it.
+    fn named_path(
+        &self,
+        type_ref: &TypeRef,
+        declaration_name: &str,
+    ) -> Result<RustType, TransformError> {
+        if self.is_local(type_ref)
+            && let Some(local) = self.scope.types.get(&type_ref.name)
+        {
+            return Ok(RustType::path(local.clone()));
+        }
+        if let Some(mapped) = self.lookup(&table_key(type_ref)) {
+            return Ok(RustType::path(mapped));
+        }
+        if type_ref.package.is_empty() {
+            return Err(TransformError::UnmappedType {
+                unit: self.unit.0.clone(),
+                name: declaration_name.to_owned(),
+                type_ref: type_ref.describe(),
+            });
+        }
+        Ok(RustType::path(format!(
+            "{}::{}",
+            module_path(&type_ref.package),
+            to_pascal_case(&type_ref.name)
+        )))
+    }
+
     fn resolve_node(
         &self,
         type_ref: &TypeRef,
         declaration_name: &str,
     ) -> Result<RustType, TransformError> {
+        // A trait reaching here is a trait in a position the caller did not name — nested inside a
+        // slice, a map, a pointer. `Vec<crate::shapes::Named>` names a trait as an element type and
+        // does not compile, so this refuses rather than emitting it.
+        if type_ref.kind == TYPE_NAMED_INTERFACE {
+            return Err(TransformError::UnmappedType {
+                unit: self.unit.0.clone(),
+                name: declaration_name.to_owned(),
+                type_ref: format!(
+                    "{} nested inside another type — a trait has no size in the target, and a \
+                     composite holding one needs its own rule",
+                    type_ref.describe()
+                ),
+            });
+        }
+
         // A name the unit itself declares wins over everything. It has to: a unit declaring a type
         // whose name collides with a mapped one would otherwise emit the mapped type in place of
         // its own, and the result compiles while meaning something else.

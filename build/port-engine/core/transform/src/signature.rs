@@ -7,7 +7,10 @@ use crate::error::TransformError;
 use crate::naming::{to_snake_case, visibility};
 use crate::ownership::{binds_by_pointer, facts_of, parameter_target, receiver_for};
 use crate::resolve::Resolver;
-use crate::vocabulary::{CHILD_BODY, CHILD_METHOD, CHILD_PARAM, CHILD_RESULT, FLAG_VARIADIC};
+use crate::vocabulary::{
+    ATTR_RECEIVER, CHILD_BODY, CHILD_METHOD, CHILD_PARAM, CHILD_RESULT, FLAG_VARIADIC,
+    POSITION_PARAM, POSITION_RESULT,
+};
 
 /// Whether a method's body is translated, stubbed, or absent.
 #[derive(Clone, Copy, Eq, PartialEq)]
@@ -67,7 +70,6 @@ fn parse_receiver(form: &str, site: &str) -> Result<Receiver, TransformError> {
 pub(crate) fn trait_methods(
     declaration: &Declaration,
     resolver: &Resolver<'_>,
-    receiver: Receiver,
 ) -> Result<Vec<RustFn>, TransformError> {
     declaration
         .children_of_kind(CHILD_METHOD)
@@ -80,13 +82,39 @@ pub(crate) fn trait_methods(
                 Body::None,
                 &declaration.name,
             )?;
-            // A trait method's receiver is the pack's DECLARED mode, not an inference: an
-            // interface says nothing about how an implementation binds its receiver, and the
-            // implementations are not all in view.
-            rendered.receiver = Some(receiver);
+            rendered.receiver = Some(method_receiver(method, resolver, &declaration.name)?);
             Ok(rendered)
         })
         .collect()
+}
+
+/// The receiver one trait method binds.
+///
+/// The OBSERVED mode wins. A source interface says nothing about how an implementation binds its
+/// receiver, so P1 made this a declared pack decision — one mode for every trait method, which put
+/// `&mut self` on getters. With the implementors observed, the mode is derived per method:
+/// exclusive exactly when some implementor mutates through it. The pack's decision is the fallback
+/// and now covers only the interfaces nothing was seen to implement.
+///
+/// # Errors
+/// [`TransformError::Unsupported`] when neither answers, because emitting a guessed receiver is
+/// what this whole path exists to stop.
+pub(crate) fn method_receiver(
+    method: &Declaration,
+    resolver: &Resolver<'_>,
+    owner: &str,
+) -> Result<Receiver, TransformError> {
+    if let Some(observed) = method.attr(ATTR_RECEIVER) {
+        return declared_receiver(observed, owner);
+    }
+    let (mode, _reason) = resolver
+        .trait_receiver()
+        .ok_or_else(|| TransformError::Unsupported {
+            name: owner.to_owned(),
+            detail: "no implementor of this interface was observed and the pack declares no                      trait-receiver mode, so the receiver would be a guess"
+                .to_owned(),
+        })?;
+    declared_receiver(mode, owner)
 }
 
 /// Map the pack's declared mode onto the IR's receiver.
@@ -102,7 +130,7 @@ pub(crate) fn declared_receiver(mode: &str, owner: &str) -> Result<Receiver, Tra
     }
 }
 
-fn method_signature(
+pub(crate) fn method_signature(
     method: &Declaration,
     resolver: &Resolver<'_>,
     vis: Visibility,
@@ -217,7 +245,7 @@ pub(crate) fn params(
                     resolver.ownership,
                 )?)
             } else {
-                resolver.resolve(&param.type_ref, &declaration.name)?
+                resolver.resolve_in(&param.type_ref, &declaration.name, POSITION_PARAM)?
             };
             // An unnamed parameter is legal in the source and illegal in the target, so it is
             // given a positional name. The position is already its identity, so nothing is
@@ -239,7 +267,7 @@ pub(crate) fn results(
     let results = declaration.children_of_kind(CHILD_RESULT);
     let mut types = Vec::with_capacity(results.len());
     for result in results {
-        types.push(resolver.resolve(&result.type_ref, &declaration.name)?);
+        types.push(resolver.resolve_in(&result.type_ref, &declaration.name, POSITION_RESULT)?);
     }
     match types.len() {
         0 => Ok(None),

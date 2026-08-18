@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "language": "go",
-  "snapshot_digest": "sha256:4226ade75aa6814500fb21b0a08a7b2c8a13bc9fa6be7c034ea84b8489dc5b2e",
+  "snapshot_digest": "sha256:d796168f8bdf841492a7b802eaa9b1b88d76f820a319ad2ec4bcb446f89c1a34",
   "packages": [
     {
       "unit_id": "oyatie.example/portengine-fixture/corpus/basic",
@@ -592,6 +592,426 @@
       ]
     },
     {
+      "unit_id": "oyatie.example/portengine-fixture/corpus/naming",
+      "producer": "bootstrap-go-packages-go-types",
+      "declarations": [
+        {
+          "kind": "func",
+          "name": "Describe",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Describe renders anything that can name itself.\n\nThe parameter is the one interface position with an unambiguous target form: the caller keeps\nthe value and the callee only reads it, so a borrow is right and no ownership question arises."
+          },
+          "children": [
+            {
+              "kind": "param",
+              "name": "named",
+              "type": {
+                "kind": "named_interface",
+                "name": "Named",
+                "package": "oyatie.example/portengine-fixture/corpus/shapes"
+              }
+            },
+            {
+              "kind": "result",
+              "name": "",
+              "type": {
+                "kind": "basic",
+                "name": "string"
+              }
+            },
+            {
+              "kind": "body",
+              "name": "",
+              "children": [
+                {
+                  "kind": "return",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "call",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "selector",
+                          "name": "Name",
+                          "type": {
+                            "kind": "func",
+                            "args": [
+                              {
+                                "kind": "tuple"
+                              },
+                              {
+                                "kind": "tuple",
+                                "args": [
+                                  {
+                                    "kind": "basic",
+                                    "name": "string"
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "named",
+                              "attrs": {
+                                "ref": "local"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "struct",
+          "name": "Label",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Label is a display name that can rename itself."
+          },
+          "children": [
+            {
+              "kind": "field",
+              "name": "text",
+              "type": {
+                "kind": "basic",
+                "name": "string"
+              },
+              "attrs": {
+                "doc": "text is the current display name."
+              }
+            },
+            {
+              "kind": "method",
+              "name": "Name",
+              "flags": [
+                "exported",
+                "pointer_receiver"
+              ],
+              "attrs": {
+                "doc": "Name returns the display name.\n\nRead-only, which is what makes the derived trait receiver interesting: a rule that assumed every\ntrait method is exclusive would put `\u0026mut self` on a getter."
+              },
+              "children": [
+                {
+                  "kind": "result",
+                  "name": "",
+                  "type": {
+                    "kind": "basic",
+                    "name": "string"
+                  }
+                },
+                {
+                  "kind": "body",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "return",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "selector",
+                          "name": "text",
+                          "type": {
+                            "kind": "basic",
+                            "name": "string"
+                          },
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "l",
+                              "attrs": {
+                                "ref": "receiver"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "Rename",
+              "flags": [
+                "exported",
+                "mutated",
+                "pointer_receiver"
+              ],
+              "attrs": {
+                "doc": "Rename replaces the display name.\n\nMutating, and one mutating implementor is enough to make the whole trait method exclusive: a\ntrait fixes one signature for everyone."
+              },
+              "children": [
+                {
+                  "kind": "param",
+                  "name": "next",
+                  "type": {
+                    "kind": "basic",
+                    "name": "string"
+                  }
+                },
+                {
+                  "kind": "body",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "assign",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "selector",
+                          "name": "text",
+                          "type": {
+                            "kind": "basic",
+                            "name": "string"
+                          },
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "l",
+                              "attrs": {
+                                "ref": "receiver"
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "kind": "ident",
+                          "name": "next",
+                          "attrs": {
+                            "ref": "local"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "kind": "implements",
+              "name": "",
+              "type": {
+                "kind": "named_interface",
+                "name": "Named",
+                "package": "oyatie.example/portengine-fixture/corpus/shapes"
+              },
+              "attrs": {
+                "site": "assertion"
+              },
+              "children": [
+                {
+                  "kind": "method",
+                  "name": "Name",
+                  "flags": [
+                    "exported"
+                  ],
+                  "attrs": {
+                    "receiver": "shared"
+                  },
+                  "children": [
+                    {
+                      "kind": "result",
+                      "name": "",
+                      "type": {
+                        "kind": "basic",
+                        "name": "string"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "kind": "method",
+                  "name": "Rename",
+                  "flags": [
+                    "exported"
+                  ],
+                  "attrs": {
+                    "receiver": "exclusive"
+                  },
+                  "children": [
+                    {
+                      "kind": "param",
+                      "name": "next",
+                      "type": {
+                        "kind": "basic",
+                        "name": "string"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "struct",
+          "name": "Tag",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Tag is a display name that never changes."
+          },
+          "children": [
+            {
+              "kind": "field",
+              "name": "text",
+              "type": {
+                "kind": "basic",
+                "name": "string"
+              },
+              "attrs": {
+                "doc": "text is the fixed display name."
+              }
+            },
+            {
+              "kind": "method",
+              "name": "Name",
+              "flags": [
+                "exported",
+                "pointer_receiver"
+              ],
+              "attrs": {
+                "doc": "Name returns the display name."
+              },
+              "children": [
+                {
+                  "kind": "result",
+                  "name": "",
+                  "type": {
+                    "kind": "basic",
+                    "name": "string"
+                  }
+                },
+                {
+                  "kind": "body",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "return",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "selector",
+                          "name": "text",
+                          "type": {
+                            "kind": "basic",
+                            "name": "string"
+                          },
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "t",
+                              "attrs": {
+                                "ref": "receiver"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "Rename",
+              "flags": [
+                "exported",
+                "pointer_receiver"
+              ],
+              "attrs": {
+                "doc": "Rename does nothing: a tag's name is fixed.\n\nA no-op rather than a mutation, so the derived receiver has to come from the UNION over\nimplementors — a second implementor that does not mutate proves the union does not simply take\nthe last answer."
+              },
+              "children": [
+                {
+                  "kind": "param",
+                  "name": "next",
+                  "type": {
+                    "kind": "basic",
+                    "name": "string"
+                  }
+                },
+                {
+                  "kind": "body",
+                  "name": ""
+                }
+              ]
+            },
+            {
+              "kind": "implements",
+              "name": "",
+              "type": {
+                "kind": "named_interface",
+                "name": "Named",
+                "package": "oyatie.example/portengine-fixture/corpus/shapes"
+              },
+              "attrs": {
+                "site": "assertion"
+              },
+              "children": [
+                {
+                  "kind": "method",
+                  "name": "Name",
+                  "flags": [
+                    "exported"
+                  ],
+                  "attrs": {
+                    "receiver": "shared"
+                  },
+                  "children": [
+                    {
+                      "kind": "result",
+                      "name": "",
+                      "type": {
+                        "kind": "basic",
+                        "name": "string"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "kind": "method",
+                  "name": "Rename",
+                  "flags": [
+                    "exported"
+                  ],
+                  "attrs": {
+                    "receiver": "exclusive"
+                  },
+                  "children": [
+                    {
+                      "kind": "param",
+                      "name": "next",
+                      "type": {
+                        "kind": "basic",
+                        "name": "string"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
       "unit_id": "oyatie.example/portengine-fixture/corpus/pointers",
       "producer": "bootstrap-go-packages-go-types",
       "declarations": [
@@ -934,6 +1354,10 @@
               "flags": [
                 "exported"
               ],
+              "attrs": {
+                "doc": "Name returns the display name.",
+                "receiver": "shared"
+              },
               "children": [
                 {
                   "kind": "result",
@@ -951,6 +1375,10 @@
               "flags": [
                 "exported"
               ],
+              "attrs": {
+                "doc": "Rename replaces the display name.",
+                "receiver": "exclusive"
+              },
               "children": [
                 {
                   "kind": "param",

@@ -12,7 +12,8 @@ mod error;
 mod preimage;
 
 pub use admit::{
-    admit_embedded_fixture, admit_embedded_fixture_ownership_v1, admit_embedded_fixture_refused_v1,
+    admit_embedded_fixture, admit_embedded_fixture_interface_v1,
+    admit_embedded_fixture_ownership_v1, admit_embedded_fixture_refused_v1,
     admit_embedded_fixture_v1, admit_reproducible_pair,
 };
 pub use admitted::AdmittedSnapshot;
@@ -35,6 +36,11 @@ pub(crate) const FIXTURE_SNAPSHOT_REFUSED_V1_JSON: &str =
 /// the transform reached first.
 pub(crate) const FIXTURE_SNAPSHOT_OWNERSHIP_V1_JSON: &str =
     include_str!("fixture-snapshot-ownership-v1.json");
+
+/// Embedded fixture for the corpus whose interface POSITIONS the engine must refuse: a trait has
+/// no size in the target, and returning one by value needs an owner the pack has not declared.
+pub(crate) const FIXTURE_SNAPSHOT_INTERFACE_V1_JSON: &str =
+    include_str!("fixture-snapshot-interface-v1.json");
 
 /// Fail-closed readiness gate. `true` once admission is present.
 #[must_use]

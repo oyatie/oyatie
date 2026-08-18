@@ -16,7 +16,7 @@ pub use pipeline::{
 };
 pub use port_go::{
     assemble_modules, port_go_delta, port_go_dispositions, port_go_pipeline, port_go_refused,
-    port_go_refused_ownership, port_go_source,
+    port_go_refused_interface, port_go_refused_ownership, port_go_source,
 };
 pub use report::{PipelineError, PipelineReport, PlanSmokeError};
 pub use smoke::{

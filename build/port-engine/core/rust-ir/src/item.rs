@@ -150,6 +150,20 @@ pub enum RustItem {
         /// Its required methods, as signatures.
         methods: Vec<RustFn>,
     },
+    /// `impl Trait for Type { .. }`, from an OBSERVED interface satisfaction.
+    ///
+    /// The trait is a path rather than a name because the interface a type satisfies is routinely
+    /// declared in another unit, and the impl is emitted where the type is.
+    TraitImpl {
+        /// Documentation carried over from the source, plus how the satisfaction was observed.
+        docs: Vec<String>, // data_class: INTERNAL_ONLY
+        /// The trait being implemented, as a path.
+        trait_path: RustType,
+        /// The type implementing it.
+        self_ty: RustType,
+        /// The trait's required methods, each with a body.
+        methods: Vec<RustFn>,
+    },
     /// A free function.
     Function(RustFn),
 }

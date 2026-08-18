@@ -6,24 +6,30 @@ use port_engine_rust_ir::{
 };
 
 use crate::error::TransformError;
+use crate::impls::trait_impls;
 use crate::naming::{to_pascal_case, to_screaming_snake, to_snake_case, visibility};
 use crate::resolve::Resolver;
-use crate::signature::{
-    Body, declared_receiver, inherent_methods, params, refuse_variadic, results, trait_methods,
-};
+use crate::signature::{Body, inherent_methods, params, refuse_variadic, results, trait_methods};
 use crate::vocabulary::{
     ATTR_VALUE, CHILD_BODY, CHILD_FIELD, CONSTRUCTION_RUST_CONST, CONSTRUCTION_RUST_FN,
     CONSTRUCTION_RUST_FN_BODY, CONSTRUCTION_RUST_NEWTYPE, CONSTRUCTION_RUST_STRUCT,
     CONSTRUCTION_RUST_STRUCT_BODY, CONSTRUCTION_RUST_TRAIT, CONSTRUCTION_RUST_TYPE_ALIAS,
+    POSITION_FIELD,
 };
 use crate::{body, docs::docs_of};
 
+/// What one construction emits.
+///
+/// A LIST, because a declaration is not always one item: a type that satisfies an interface emits
+/// the type and an `impl` per satisfaction. Folding those into the type's own construction would
+/// make "which interfaces does this type satisfy" a question the struct builder answers, and a
+/// type could not gain an impl without its construction changing.
 pub(crate) fn build_item(
     construction: &str,
     declaration: &Declaration,
     resolver: &Resolver<'_>,
-) -> Result<RustItem, TransformError> {
-    match construction {
+) -> Result<Vec<RustItem>, TransformError> {
+    let item = match construction {
         CONSTRUCTION_RUST_CONST => build_const(declaration, resolver),
         CONSTRUCTION_RUST_TYPE_ALIAS => build_type_alias(declaration, resolver),
         CONSTRUCTION_RUST_NEWTYPE => build_newtype(declaration, resolver),
@@ -36,7 +42,11 @@ pub(crate) fn build_item(
             rule: String::new(),
             construction: other.to_owned(),
         }),
-    }
+    }?;
+
+    let mut items = vec![item];
+    items.extend(trait_impls(declaration, resolver)?);
+    Ok(items)
 }
 
 fn build_const(
@@ -107,7 +117,7 @@ fn build_struct(
             docs: docs_of(field),
             vis: visibility(field),
             name: to_snake_case(&field.name),
-            ty: resolver.resolve(&field.type_ref, &field.name)?,
+            ty: resolver.resolve_in(&field.type_ref, &field.name, POSITION_FIELD)?,
         });
     }
 
@@ -128,23 +138,11 @@ fn build_trait(
     declaration: &Declaration,
     resolver: &Resolver<'_>,
 ) -> Result<RustItem, TransformError> {
-    let (mode, _reason) =
-        resolver
-            .trait_receiver()
-            .ok_or_else(|| TransformError::MissingDatum {
-                construction: CONSTRUCTION_RUST_TRAIT.to_owned(),
-                name: declaration.name.clone(),
-                datum: "trait_receiver",
-            })?;
     Ok(RustItem::Trait {
         docs: docs_of(declaration),
         vis: visibility(declaration),
         name: to_pascal_case(&declaration.name),
-        methods: trait_methods(
-            declaration,
-            resolver,
-            declared_receiver(mode, &declaration.name)?,
-        )?,
+        methods: trait_methods(declaration, resolver)?,
     })
 }
 
