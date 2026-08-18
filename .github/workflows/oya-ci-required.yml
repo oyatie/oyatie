@@ -36,8 +36,6 @@ env:
   EVENT_REF: ${{ github.ref }}
   EVENT_PULL_REQUEST_BASE_REF: ${{ github.event.pull_request.base.ref || '' }}
   EVENT_MERGE_GROUP_BASE_REF: ${{ github.event.merge_group.base_ref || '' }}
-
-env:
   # CI never opens a debugger, and this repo declares only [profile.release] — so dev/test
   # builds took cargo's defaults and generated FULL debuginfo for 1,759 packages. Debuginfo
   # also inflates target/, which slows cache save and restore at both ends. Set here rather
