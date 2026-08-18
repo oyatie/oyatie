@@ -24,7 +24,7 @@ related_adrs: [ADR-0022, ADR-0028, ADR-0131, ADR-0140 (retired per ADR-0145), AD
 related_specs: [/specs/microservices/workflow-studio.json]
 related_artifacts:
   - microservices/workflow-studio/PRD.md FR-09 + FR-16
-  - microservices/workflow-studio/policy/tenant-scope.cedar
+  - workflow/workflow-studio/policy/tenant-scope.cedar
   - microservices/workflow-studio/contracts/openapi.yaml
   - microservices/workflow-studio/threat-model.md §"T-I-03" DSL injection (suggestions never load-bearing)
 
@@ -86,8 +86,8 @@ cost_profile:
     - Cedar policy preview evaluation (constant-time)
 
 cedar_policy_fragments:
-  - microservices/workflow-studio/policy/tenant-scope.cedar
-  - microservices/workflow-studio/policy/public-read.cedar
+  - workflow/workflow-studio/policy/tenant-scope.cedar
+  - workflow/workflow-studio/policy/public-read.cedar
 
 eval_set:
   reference_inputs_path: microservices/workflow-studio/capabilities/eval/t0-suggest-reference.jsonl

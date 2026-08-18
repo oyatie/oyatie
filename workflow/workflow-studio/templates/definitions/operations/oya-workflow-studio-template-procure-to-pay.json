@@ -205,7 +205,7 @@
   "live_mode_supported": true,
   "documentation": {
     "explainer_path": "microservices/workflow-studio/templates/explainers/oya-workflow-studio-template-procure-to-pay.md",
-    "fixture_path": "microservices/workflow-studio/templates/fixtures/oya-workflow-studio-template-procure-to-pay.fixture.json"
+    "fixture_path": "workflow/workflow-studio/templates/fixtures/oya-workflow-studio-template-procure-to-pay.fixture.json"
   },
   "tags": [
     "operations",

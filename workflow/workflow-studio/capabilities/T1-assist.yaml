@@ -22,7 +22,7 @@ related_specs: [/specs/microservices/workflow-studio.json]
 related_artifacts:
   - microservices/workflow-studio/PRD.md FR-12
   - microservices/workflow-studio/threat-model.md §"T-I-05" + §"T-S-05" + §"T-D-04"
-  - microservices/workflow-studio/runbooks/copilot-degraded-fallback.md
+  - workflow/workflow-studio/runbooks/copilot-degraded-fallback.md
   - microservices/workflow-studio/contracts/openapi.yaml /llm-assist:draft
 
 autonomy_tier: T1
@@ -101,8 +101,8 @@ cost_profile:
     - foundry-providers SDK overhead
 
 cedar_policy_fragments:
-  - microservices/workflow-studio/policy/tenant-scope.cedar  # PERMIT 5
-  - microservices/workflow-studio/policy/ci-scope.cedar
+  - workflow/workflow-studio/policy/tenant-scope.cedar  # PERMIT 5
+  - workflow/workflow-studio/policy/ci-scope.cedar
 
 eval_set:
   reference_inputs_path: microservices/workflow-studio/capabilities/eval/t1-assist-reference.jsonl
