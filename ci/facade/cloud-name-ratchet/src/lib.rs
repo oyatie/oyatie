@@ -151,7 +151,17 @@ pub fn declared_capability(line: &str) -> Option<&str> {
 #[must_use]
 pub fn findings(path: &str, contents: &str) -> BTreeSet<String> {
     let mut found = BTreeSet::new();
-    if CARVE_OUTS.iter().any(|carve| path.starts_with(carve)) {
+    // A trailing `/` means DIRECTORY PREFIX; anything else is an EXACT file. Testing every
+    // carve-out with `starts_with` turned the exact-file entry into a prefix, so
+    // `evidence/audit-chain.jsonl-backup/oya-new-service/Cargo.toml` — or any path merely
+    // beginning with those characters — returned before scanning and bypassed the ratchet.
+    if CARVE_OUTS.iter().any(|carve| {
+        if carve.ends_with('/') {
+            path.starts_with(carve)
+        } else {
+            path == *carve
+        }
+    }) {
         return found;
     }
     let mut prefix = String::new();
@@ -298,6 +308,24 @@ mod tests {
         assert!(findings("docs/cloud-provider-full-ecosystem-north-star.md", "").is_empty());
         // `oyatie-cloud-provider` is a real capability context.
         assert!(findings("iac/iac/oyatie-cloud-provider/x.yaml", "").is_empty());
+    }
+
+    /// An exact-file carve-out must not behave as a directory prefix.
+    #[test]
+    fn file_carve_outs_match_exactly() {
+        // The exact file stays exempt.
+        assert!(findings("evidence/audit-chain.jsonl", "").is_empty());
+        // A path that merely BEGINS with those characters must not inherit the exemption.
+        assert!(
+            !findings(
+                "evidence/audit-chain.jsonl-backup/oya-new-service/Cargo.toml",
+                ""
+            )
+            .is_empty(),
+            "a prefix-shaped lookalike must not bypass the ratchet"
+        );
+        // Directory carve-outs, which end in `/`, still cover their subtree.
+        assert!(findings("ci/facade/cloud-name-ratchet/src/lib.rs", "").is_empty());
     }
 
     /// The carve-out is scoped to prose, not to any name that opens with an allowlisted word.

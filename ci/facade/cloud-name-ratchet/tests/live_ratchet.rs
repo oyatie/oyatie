@@ -24,44 +24,38 @@ fn repo_root() -> PathBuf {
     }
 }
 
+/// Census of TRACKED paths.
+///
+/// Enumerated from `git ls-files`, not from a `read_dir` walk. Walking the filesystem made the
+/// repository's primary `cargo test --workspace` result depend on local state: an untracked or
+/// ignored `cloud-build/output/` counted as a finding even though the name cannot enter the
+/// repository, so the gate could go red on a developer's machine and green in CI, or record
+/// phantom baseline entries that then fail in a clean checkout. Only tracked paths can carry a
+/// durable name, so only tracked paths are scanned.
 fn census(root: &Path) -> BTreeSet<String> {
+    let listing =
+        git(root, &["ls-files", "-z"]).expect("git ls-files enumerates the tracked corpus");
     let mut out = BTreeSet::new();
-    let mut stack = vec![root.to_path_buf()];
-    while let Some(dir) = stack.pop() {
-        let Ok(entries) = std::fs::read_dir(&dir) else {
-            continue;
+    for relative in listing.split('\0').filter(|p| !p.is_empty()) {
+        // `findings` splits on `/` and matches forward-slash prefixes and manifest suffixes.
+        // git reports forward slashes on every platform, but normalize defensively so a
+        // separator can never silently empty the census.
+        let relative = relative.replace('\\', "/");
+        let name = relative.rsplit('/').next().unwrap_or(&relative).to_owned();
+        // Catalog YAML must be READ, not merely walked. Passing an empty string for it left the
+        // `declared_capability` branch dead in the live gate — the scanner existed but was never
+        // handed anything to scan, so a catalog row declaring `capability: cloud-new-service` was
+        // invisible. That is exactly how this gate's own capability came to be minted as
+        // `cloud-ci-*` while the gate stayed green.
+        let contents = if matches!(name.as_str(), "Cargo.toml" | "Chart.yaml")
+            || (relative.starts_with("registry/catalog/")
+                && (name.ends_with(".yaml") || name.ends_with(".yml")))
+        {
+            std::fs::read_to_string(root.join(&relative)).unwrap_or_default()
+        } else {
+            String::new()
         };
-        for entry in entries.flatten() {
-            let path = entry.path();
-            let name = entry.file_name().to_string_lossy().to_string();
-            if entry.file_type().is_ok_and(|t| t.is_dir()) {
-                if !matches!(
-                    name.as_str(),
-                    "target" | "buck-out" | ".git" | "node_modules" | ".jj"
-                ) {
-                    stack.push(path);
-                }
-                continue;
-            }
-            let Ok(relative) = path.strip_prefix(root) else {
-                continue;
-            };
-            // Catalog YAML must be READ, not merely walked. Passing an empty string for it left
-            // the `declared_capability` branch dead in the live gate — the scanner existed but was
-            // never handed anything to scan, so a catalog row declaring `capability:
-            // cloud-new-service` was invisible. That is exactly how this gate's own capability came
-            // to be minted as `cloud-ci-*` while the gate stayed green.
-            let relative_str = relative.to_string_lossy();
-            let contents = if matches!(name.as_str(), "Cargo.toml" | "Chart.yaml")
-                || (relative_str.starts_with("registry/catalog/")
-                    && (name.ends_with(".yaml") || name.ends_with(".yml")))
-            {
-                std::fs::read_to_string(&path).unwrap_or_default()
-            } else {
-                String::new()
-            };
-            out.extend(findings(&relative_str, &contents));
-        }
+        out.extend(findings(&relative, &contents));
     }
     out
 }
