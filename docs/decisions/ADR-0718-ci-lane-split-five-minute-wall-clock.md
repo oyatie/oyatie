@@ -170,9 +170,16 @@ same replacement window:
   registry dependencies but NOT workspace members, of which there are 885; a run logged a cache
   HIT with `Cargo.lock` untouched and still compiled 1,565 crates. `CARGO_INCREMENTAL=0` is a
   prerequisite and is already set workflow-wide.
-- **`buck-out` caching.** The materializer's buck2 output was cached NOWHERE — `rust-cache`
-  covers `~/.cargo` and `target/` only — so 192 seconds of buck2 work was paid from cold on every
-  run. Keyed on the buck2 graph inputs so a BUCK or .bzl change invalidates it.
+- **`buck-out` caching — proposed, measured, and REJECTED.** The observation was right that
+  buck2's output is cached nowhere, but caching it is wrong on three counts. Measured `buck-out`
+  directories in live worktrees run 940 MB to 15 GB, against a 10 GB per-repository Actions cache
+  budget with LRU eviction — a multi-gigabyte entry would evict the `rust-cache` entries that do
+  work, making compile worse to speed up a smaller step. Restoring roughly a gigabyte costs a
+  large fraction of the 192 seconds it was meant to save. And `buck-out` carries buck2 daemon and
+  materializer state with absolute paths, so a restored directory is not reliably reused across
+  runners. Decisively, the overlap above already hides the whole 192 seconds behind the 681-second
+  compile, so the cache would buy no marginal wall clock at all while spending the entire cache
+  budget. Not adopted.
 - **Compile/materialize overlap.** The two largest steps run strictly in series today and are
   independent: no build script reads materializer output, and the gate crates read the faces at
   RUNTIME through a path join rather than a compile-time include. Backgrounding the workspace

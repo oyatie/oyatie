@@ -140,16 +140,6 @@ jobs:
       # The face materializer shells out to buck2 internally to build its sibling
       # face tools; the digest-pinned installer is the bridge it has always used.
       - uses: mozilla-actions/sccache-action@fc920bf0ec8de6ee65d409111f7ec508035751ba
-      - name: Cache buck2 output
-        # The face materializer is 192s of buck2 work — 20% of this job — and buck-out was
-        # cached NOWHERE: rust-cache covers ~/.cargo and target/ only, so every run rebuilt it
-        # from cold. Keyed on the buck2 graph inputs so a BUCK/bzl change invalidates it.
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
-        with:
-          path: buck-out
-          key: buck-out-${{ runner.os }}-${{ hashFiles('**/BUCK', '**/*.bzl', '.buckconfig') }}
-          restore-keys: |
-            buck-out-${{ runner.os }}-
       - name: Install pinned buck2 (digest-verified)
         shell: bash
         run: infra/ci/install-buck2.sh
