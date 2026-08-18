@@ -57,13 +57,33 @@ ADRs. Enforcement must be an engine + policy-as-data, not another doc.
 - Positive: sprawl re-accumulation is mechanically blocked; wave-2 reductions are permanent.
 - Negative: legit growth now costs a reviewed policy edit (intended); the ratchet requires the
   materialized scm-facts face, which the merge path already produces.
+- Negative: a numeric ceiling/pin is a poor identity for the set being ratcheted. Concurrent
+  isolated-green PRs can each write the same count against their own base and still collide.
+
+## Amendment (2026-08-17): count is a poor ratchet key
+
+Recorded from the #2100–#2103 merge train and the #2104 restore of `dev` (pin **770** vs
+corpus **772**). This is a doctrine note, not a new ADR and not a silent ceiling raise.
+
+Three PRs each added one catalog row and each set the exact pin to `770` against their own
+base. Merged in sequence the corpus reached **772** while the pin stayed **770**. A *count*
+only says the total moved, so concurrent PRs silently collide. A frozen *set* rebases cleanly
+and names the row that appeared.
+
+Shrink-only ceilings remain law. Replacement of the numeric pin with a frozen set / named
+members is a same-wave engine change under this ADR, not a newly numbered decision or any new path.
+
+Cite: #2100, #2101, #2102, #2103 → #2104.
 
 ## Rules carry why
 
 - **achieves:** permanent shrink-only corpus; enforcement by engine, not prose.
 - **origin:** wave-2 cleanup had no backstop; one-ledger and plan-lifecycle rules were advisory.
+  The #2100–#2103 → #2104 train showed a count pin (770 vs corpus 772) cannot identify which
+  row appeared under concurrent isolated-green PRs.
 - **rule:** corpus classes and ceilings are policy DATA; growth is born-blocking; absent block
-  fails closed; reductions must lower the ceiling same-PR.
+  fails closed; reductions must lower the ceiling same-PR. A count is a poor ratchet key;
+  prefer a frozen set that names members.
 - **ensure:** repo-root-hygiene unit + live merge-base tests under `cargo test --workspace`.
 - **overturn_when:** a recorded challenge shows the ratchet blocks legitimate delivery AND a
   replacement with five fields lands same-wave.
