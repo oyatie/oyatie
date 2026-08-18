@@ -9,7 +9,7 @@ api_stability: preview
 security_review: unreviewed
 supply_chain: source-only
 traceability:
-  source_crate: build/port-engine/adapters/port-engine-rulepack/Cargo.toml
+  source_crate: build/port-engine/adapters/rulepack/Cargo.toml
 non_claims:
   - W0-B rulepack adapter
   - defines NO capability; build/ owns_crates=false (ADR-0637 D1)

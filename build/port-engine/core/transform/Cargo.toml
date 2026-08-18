@@ -1,0 +1,23 @@
+[package]
+name = "port-engine-transform"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+# Apply TransformPlan constructions → RustIr (W0-B Slice 11).
+# Neutral: construction/precondition are data strings; no corpus vocabulary.
+# No Cargo.lock absorb this tip.
+
+[dependencies]
+port-engine-api = { path = "../../ports/api" }
+port-engine-rust-ir = { path = "../rust-ir" }
+
+[lib]
+name = "port_engine_transform"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

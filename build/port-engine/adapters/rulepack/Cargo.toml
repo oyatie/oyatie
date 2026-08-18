@@ -1,0 +1,31 @@
+[package]
+name = "port-engine-rulepack"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+# Neutral RulePack loader for the owned deterministic port engine (ADR-0637 D1).
+# Fixture-gated; implements the `PackSemantics` seam from the ports face. Hermetic pack mirrors.
+#
+# First-party production deps are the ports face and the digest adapter — an adapter depends on
+# the contract it implements, never on the engine behind it. The kernel edge below is
+# dev-only: one test plans with the kernel to prove the pack drives a real plan.
+
+[dependencies]
+port-engine-api = { path = "../../ports/api" }
+port-engine-hash = { path = "../hash" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+[dev-dependencies]
+port-engine-kernel = { path = "../../core/kernel" }
+
+[lib]
+name = "port_engine_rulepack"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

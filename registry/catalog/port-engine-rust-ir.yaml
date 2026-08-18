@@ -9,7 +9,7 @@ api_stability: preview
 security_review: unreviewed
 supply_chain: source-only
 traceability:
-  source_crate: build/port-engine/core/port-engine-rust-ir/Cargo.toml
+  source_crate: build/port-engine/core/rust-ir/Cargo.toml
 non_claims:
   - W0-B Slice 1 skeleton only; no TargetIr renderer or syn/quote wiring exists yet
   - defines NO capability; build/ is a meta directory that owns zero capability crates (ADR-0637 D1)

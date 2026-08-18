@@ -1,0 +1,35 @@
+# Package-local engine-identity-v0.json is the hermetic engine axis input.
+rust_library(
+    name = "port-engine-identity",
+    srcs = glob(["src/**/*.rs", "src/**/*.json"]),
+    crate = "port_engine_identity",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//build/port-engine/adapters/hash:port-engine-hash",
+        "//build/port-engine/ports/api:port-engine-api",
+    ],
+)
+
+rust_test(
+    name = "port-engine-identity-unittest",
+    srcs = glob(["src/**/*.rs", "src/**/*.json"]),
+    crate = "port_engine_identity",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//build/port-engine/adapters/hash:port-engine-hash",
+        "//build/port-engine/ports/api:port-engine-api",
+    ],
+)
+
+rust_test(
+    name = "port-engine-identity-readiness",
+    srcs = glob(["tests/readiness.rs"]),
+    crate = "port_engine_identity_readiness",
+    crate_root = "tests/readiness.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":port-engine-identity",
+    ],
+)
