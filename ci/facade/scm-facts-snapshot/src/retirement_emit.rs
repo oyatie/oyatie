@@ -28,7 +28,7 @@ pub struct RetirementMaterializationContext<'a> {
 /// Select the immutable revision a policy must inspect from a controller-supplied SCM event
 /// tuple.  The evaluated object must be the checkout HEAD; pull requests select only their
 /// exact second-parent subject, while push and merge-group select their evaluated object.
-pub(super) fn census_revision_from_event(
+pub(crate) fn census_revision_from_event(
     repo_root: &Path,
     context: &RetirementMaterializationContext<'_>,
 ) -> Result<String, String> {

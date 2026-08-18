@@ -1,6 +1,7 @@
 //! Event-identity and historical-dev-push tests.
 
 use super::test_fixtures::*;
+use super::test_receipts::*;
 use super::*;
 
 #[test]

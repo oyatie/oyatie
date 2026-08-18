@@ -2,7 +2,7 @@
 
 use serde_json::Value;
 
-use super::{ControlPlaneEntry, ReceiptStage, RetirementObjectSource};
+use super::{ControlPlaneEntry, ControlSelector, ReceiptStage, RetirementObjectSource};
 
 /// Validate the controller-provided immutable SCM tuple before any policy may select a revision.
 /// This deliberately accepts no ambient environment and no caller-selected candidate.

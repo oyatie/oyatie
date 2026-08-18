@@ -2,6 +2,10 @@
 
 use std::cell::RefCell;
 use std::collections::{BTreeMap, BTreeSet};
+use ci_artifact_inventory_registry::to_canonical_json;
+
+use ci_artifact_inventory_registry::to_canonical_json;
+
 
 use super::{
     ADR_0363_CLOSURE_ID, ADR_0363_CLOSURE_PATH, ADR_0363_EVIDENCE_SET_ID, ADR_0363_PREPARATION_ID,
@@ -10,7 +14,7 @@ use super::{
     CONTROL_PLANE_SCHEMA, CommitTree, ControlPlaneEntry, ControlSelector, ExpectedInput,
     MASTERPLAN_CLOSURE_ID, MASTERPLAN_CLOSURE_PATH, MASTERPLAN_EVIDENCE_SET_ID,
     MASTERPLAN_PREPARATION_ID, MASTERPLAN_PREPARATION_PATH, RECEIPT_ROOT, RetirementControlPlane,
-    RetirementObjectSource, TreeEntry, sha256_digest,
+    RetirementObjectSource, TreeEntry, fixed_entry, sha256_digest,
 };
 
 pub(crate) const PREDECESSOR: &str = "1111111111111111111111111111111111111111";
