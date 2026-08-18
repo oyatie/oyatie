@@ -87,7 +87,7 @@ pub fn historical_dev_push_context(
     historical_dev_push_context_from_source(&source, expected_head)
 }
 
-fn historical_dev_push_context_from_source(
+pub(crate) fn historical_dev_push_context_from_source(
     source: &impl RetirementObjectSource,
     expected_head: &str,
 ) -> Result<Option<(String, String)>, String> {
