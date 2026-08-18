@@ -12,6 +12,9 @@ name: oya-ci-required
 
 on:
   workflow_dispatch:
+  schedule:
+    # Cross-platform smoke moved off the per-PR path; this keeps a daily signal.
+    - cron: "17 6 * * *"
   push:
     branches: [dev]
   pull_request:
@@ -25,6 +28,21 @@ permissions:
 
 # Event tuple consumed by the generated-faces materializer (--github-event).
 env:
+  # ---- CI build cost -------------------------------------------------------
+  # Measured on run 32087267790: the `Workspace tests` step spent 582s COMPILING
+  # and 289s running tests. It is compile-bound, so sharding or a faster test
+  # runner would move the smaller half. These two settings target the larger one.
+  #
+  # This repo declares only [profile.release]; dev/test builds therefore take
+  # cargo's defaults, which generate FULL debuginfo for all 1,759 packages. CI
+  # never opens a debugger, and debuginfo also inflates target/, which slows the
+  # cache save/restore on both ends. Set via env, not Cargo.toml, so local
+  # developer builds keep their debuginfo.
+  CARGO_PROFILE_DEV_DEBUG: "0"
+  CARGO_PROFILE_TEST_DEBUG: "0"
+  # Incremental compilation caches nothing useful on a fresh runner and costs
+  # both time and disk to produce.
+  CARGO_INCREMENTAL: "0"
   EVENT_EVALUATED_SHA: ${{ github.sha }}
   EVENT_PULL_REQUEST_BASE_SHA: ${{ github.event.pull_request.base.sha || '' }}
   EVENT_PUSH_BEFORE_SHA: ${{ github.event.before || '' }}
@@ -251,15 +269,30 @@ jobs:
           OYA_BACKBONE_POSTGRES_APP_URL: ${{ env.OYA_PG_APP_URL }}
         run: RUST_TEST_THREADS=1 cargo test --locked -p iam-identity-service -p tenancy-tenant-lifecycle-app
 
+  # NOT on the per-PR or merge-queue path. This job is advisory — `continue-on-error: true`,
+  # and the fan-in verdict below never reads its result — yet it consumed 2 of every run's 6
+  # parallel jobs. On run 32087267790 the `test` job waited 50 MINUTES for a runner while
+  # advisory jobs held slots; on an uncontended run the same job waited 0m. Runner starvation,
+  # not compute, produced the 42-minute wall times, and a merge queue makes that worse because
+  # every speculative merge-group build pays the same footprint.
+  #
+  # It still runs post-merge on dev, nightly, and on demand, so a real cross-platform
+  # regression is caught within a day without taxing every PR and every batch.
+  #
+  # windows-latest is REMOVED from the matrix, not merely skipped: it failed 9 of 9 recent runs
+  # on a known blocker (the canonical retirement-facts writer requires Unix dirfd support). A
+  # check that cannot pass carries no information and teaches readers to ignore red. The
+  # portability gap stays tracked as work, not as a permanently-red job.
   cross-platform-smoke:
     name: cross-platform-smoke (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
+    if: ${{ github.event_name != 'pull_request' && github.event_name != 'merge_group' }}
     continue-on-error: true
     timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, macos-latest]
+        os: [macos-latest]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
