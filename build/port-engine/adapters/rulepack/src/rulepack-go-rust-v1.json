@@ -44,7 +44,11 @@
     "`Box<dyn T>`, `Rc<dyn T>` or a generic parameter, and those are different answers to who owns",
     "the value and how long it lives. Only `param` is declared: a borrow is unambiguously right",
     "there and the caller keeps the value. `result` is deliberately absent, so returning an",
-    "interface refuses by name rather than being boxed on a guess."
+    "interface refuses by name rather than being boxed on a guess.",
+    "",
+    "The supertrait position takes the bare path: an embedded interface becomes a trait BOUND, which",
+    "is the one place a trait appears as itself rather than as something holding it. Declared rather",
+    "than special-cased in the engine, so every position answers the same way."
   ],
   "pair": {
     "source": "go",
@@ -229,6 +233,11 @@
           "id": "go-struct-body-selects-naming",
           "unit": "oyatie.example/portengine-fixture/corpus/naming",
           "selects": true
+        },
+        {
+          "id": "go-struct-body-selects-composite",
+          "unit": "oyatie.example/portengine-fixture/corpus/composite",
+          "selects": true
         }
       ]
     }
@@ -265,6 +274,10 @@
     "oyatie.example/portengine-fixture-interface/corpus-interface/positions": [
       "go_interface",
       "go_func",
+      "go_struct_body"
+    ],
+    "oyatie.example/portengine-fixture/corpus/composite": [
+      "go_interface",
       "go_struct_body"
     ]
   },
@@ -320,6 +333,7 @@
   },
   "trait_object_forms": {
     "param": "&dyn {0}",
-    "trait": "{0}"
+    "trait": "{0}",
+    "supertrait": "{0}"
   }
 }

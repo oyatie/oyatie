@@ -82,9 +82,43 @@ func indexMemberDocs(spec *ast.TypeSpec, fieldDocs map[string]string) {
 		if text == "" {
 			continue
 		}
-		for _, name := range member.Names {
-			fieldDocs[spec.Name.Name+"."+name.Name] = text
+		// An EMBEDDED field has no name in the syntax — its name is its type — so keying by
+		// `Names` alone dropped every comment on one, which is the population this whole pass
+		// exists to stop losing.
+		for _, name := range memberNames(member) {
+			fieldDocs[spec.Name.Name+"."+name] = text
 		}
+	}
+}
+
+// memberNames reports the names a field list entry declares, including the implicit name an
+// embedded field takes from its type.
+func memberNames(member *ast.Field) []string {
+	if len(member.Names) > 0 {
+		names := make([]string, 0, len(member.Names))
+		for _, name := range member.Names {
+			names = append(names, name.Name)
+		}
+		return names
+	}
+	if name := embeddedName(member.Type); name != "" {
+		return []string{name}
+	}
+	return nil
+}
+
+// embeddedName is the field name Go gives an anonymous field: the type's own name, through any
+// pointer or qualifier.
+func embeddedName(expr ast.Expr) string {
+	switch typed := expr.(type) {
+	case *ast.Ident:
+		return typed.Name
+	case *ast.StarExpr:
+		return embeddedName(typed.X)
+	case *ast.SelectorExpr:
+		return typed.Sel.Name
+	default:
+		return ""
 	}
 }
 

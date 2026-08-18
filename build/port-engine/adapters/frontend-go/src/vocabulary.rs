@@ -101,6 +101,15 @@ pub const KNOWN_MEMBER_KINDS: &[&str] = &[
     "case",
     "composite",
     "for",
+    // An interface an interface EMBEDS. The target has no embedding, so this becomes a
+    // supertrait — which is a requirement rather than a copy of the method set, and is why it is
+    // recorded as a relation rather than flattened into the outer interface's methods.
+    "embeds",
+    // A method a type gains through EMBEDDING rather than declaration. The target has no
+    // promotion, so what is implicit in the source becomes a forwarding method — and recording it
+    // is what closes `census/interfaces.md` §11 item 7, where 2,747 types have method sets larger
+    // than the census could measure.
+    "promoted",
     // An observed interface satisfaction, hung on the concrete type that satisfies it. It is a
     // MEMBER kind rather than a declaration kind because the impl belongs to the type: emitting it
     // anywhere else would need the orphan rule answered by the front end, which is a target
@@ -167,7 +176,13 @@ pub const KNOWN_ATTR_KEYS: &[&str] = &[
     ATTR_REF,
     ATTR_SITE,
     ATTR_VALUE,
+    ATTR_VIA,
 ];
+
+/// Attribute key holding the dotted FIELD PATH a promoted method is reached through.
+///
+/// The target has no method promotion, so a forwarding method has to name the field it forwards to.
+pub const ATTR_VIA: &str = "via";
 
 /// Attribute key holding the receiver a TRAIT method binds, derived from its observed
 /// implementors.

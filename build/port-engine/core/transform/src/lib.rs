@@ -28,6 +28,7 @@ mod impls;
 mod items;
 mod naming;
 mod ownership;
+mod promote;
 mod resolve;
 mod signature;
 mod vocabulary;

@@ -50,6 +50,8 @@ pub const POSITION_PARAM: &str = "param";
 pub const POSITION_RESULT: &str = "result";
 /// See [`POSITION_PARAM`].
 pub const POSITION_FIELD: &str = "field";
+/// The position a trait appears in as another trait's REQUIREMENT.
+pub const POSITION_SUPERTRAIT: &str = "supertrait";
 /// The position an `impl Trait for Type` names its trait in — the one place a trait appears as
 /// itself rather than as something holding it, and still declared rather than special-cased.
 pub const POSITION_TRAIT: &str = "trait";
@@ -66,6 +68,8 @@ pub const ATTR_REF: &str = "ref";
 /// implementors. Absent means nothing was observed to implement the interface, and the pack's
 /// declared decision answers instead.
 pub const ATTR_RECEIVER: &str = "receiver";
+/// Attribute key holding the dotted FIELD PATH a promoted method is reached through.
+pub const ATTR_VIA: &str = "via";
 /// Attribute key recording HOW an interface satisfaction was observed.
 pub const ATTR_SITE: &str = "site";
 /// Attribute key carrying the source declaration's documentation block.
@@ -98,3 +102,7 @@ pub(crate) const CHILD_BODY: &str = "body";
 /// declaration, because the interface routinely lives in another unit and the impl is emitted
 /// where the type is — a cross-unit lookup is a reference the model does not carry.
 pub(crate) const CHILD_IMPLEMENTS: &str = "implements";
+/// An interface an interface EMBEDS, which the target spells as a supertrait.
+pub(crate) const CHILD_EMBEDS: &str = "embeds";
+/// A method a type gains through EMBEDDING rather than declaration.
+pub(crate) const CHILD_PROMOTED: &str = "promoted";

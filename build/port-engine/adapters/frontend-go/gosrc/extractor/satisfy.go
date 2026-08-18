@@ -3,7 +3,6 @@ package main
 import (
 	"go/ast"
 	"go/types"
-	"sort"
 )
 
 // Interface satisfaction, observed at USE SITES.
@@ -70,6 +69,17 @@ func collectSatisfactions(files []*ast.File, info *types.Info, unitID string) []
 			site:       site,
 			observedIn: unitID,
 		})
+		// Satisfying an interface satisfies everything it embeds — the Go compiler checks that,
+		// and the target needs it written down: a supertrait is a REQUIREMENT, so an impl of the
+		// outer trait does not compile without impls of the embedded ones.
+		for _, super := range embeddedInterfaces(iface, map[string]bool{}) {
+			found = append(found, satisfaction{
+				concrete:   concrete,
+				iface:      super,
+				site:       site,
+				observedIn: unitID,
+			})
+		}
 	}
 
 	for _, file := range files {
@@ -214,81 +224,4 @@ func concreteNamed(t types.Type) (*types.Named, bool) {
 		return nil, false
 	}
 	return named, true
-}
-
-// implementsNodes builds the `implements` children for one concrete declaration.
-//
-// The interface's FULL method set is carried on the node, embedded methods included, so the fact
-// is self-contained: the impl is emitted in the unit that declares the concrete type, which is not
-// in general the unit that declares the interface, and a transform that had to reach across units
-// for the method set would be resolving a reference the snapshot does not model.
-func implementsNodes(facts []satisfaction, qualify types.Qualifier) []node {
-	nodes := make([]node, 0, len(facts))
-	for _, fact := range facts {
-		iface, ok := fact.iface.Underlying().(*types.Interface)
-		if !ok {
-			continue
-		}
-		methods := make([]node, 0, iface.NumMethods())
-		for i := 0; i < iface.NumMethods(); i++ {
-			method := iface.Method(i)
-			sig, ok := method.Type().(*types.Signature)
-			if !ok {
-				continue
-			}
-			methods = append(methods, node{
-				Kind:     kindMethod,
-				Name:     method.Name(),
-				Flags:    flagsFor(method.Exported(), sig.Variadic(), false, false),
-				Children: signatureChildren(sig, qualify),
-			})
-		}
-		sortNodes(methods)
-		nodes = append(nodes, node{
-			Kind: kindImplements,
-			// Deliberately unnamed: the front end refuses two same-named declarations in one
-			// NAMESPACE, and a type satisfying two interfaces would trip that check on a node
-			// whose identity is its type rather than its name.
-			Type:     typeTree(fact.iface),
-			Attrs:    map[string]string{attrSite: fact.site},
-			Children: methods,
-		})
-	}
-	return nodes
-}
-
-// dedupeSatisfactions collapses repeated observations of one pair, keeping the site that proves
-// the most, and orders the result so the snapshot is stable.
-func dedupeSatisfactions(facts []satisfaction) []satisfaction {
-	rank := map[string]int{siteAssertion: 0, siteAssign: 1, siteArgument: 2, siteResult: 3}
-	best := map[[2]string]satisfaction{}
-	for _, fact := range facts {
-		key := [2]string{typeKey(fact.concrete), typeKey(fact.iface)}
-		if seen, ok := best[key]; ok && rank[seen.site] <= rank[fact.site] {
-			continue
-		}
-		best[key] = fact
-	}
-
-	out := make([]satisfaction, 0, len(best))
-	for _, fact := range best {
-		out = append(out, fact)
-	}
-	sort.Slice(out, func(i, j int) bool {
-		left, right := typeKey(out[i].concrete), typeKey(out[j].concrete)
-		if left != right {
-			return left < right
-		}
-		return typeKey(out[i].iface) < typeKey(out[j].iface)
-	})
-	return out
-}
-
-// typeKey is a named type's package-qualified identity.
-func typeKey(named *types.Named) string {
-	obj := named.Obj()
-	if obj.Pkg() == nil {
-		return obj.Name()
-	}
-	return obj.Pkg().Path() + "." + obj.Name()
 }

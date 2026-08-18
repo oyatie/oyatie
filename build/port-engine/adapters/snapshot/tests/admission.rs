@@ -53,7 +53,24 @@ fn v1_fixture_admits_and_carries_declarations() {
     let admitted = admit_embedded_fixture_v1().expect("v1 fixture must admit");
 
     let units = admitted.as_model().units();
-    assert_eq!(units.len(), 5, "corpus has five packages");
+    // The package SET, not its size. A count has to be edited every time a corpus package lands,
+    // which makes the edit routine and the check ceremonial; a set says which package went missing.
+    let names: BTreeSet<&str> = units
+        .iter()
+        .filter_map(|unit| unit.0.rsplit('/').next())
+        .collect();
+    assert_eq!(
+        names,
+        BTreeSet::from([
+            "basic",
+            "composite",
+            "geometry",
+            "naming",
+            "pointers",
+            "shapes"
+        ]),
+        "every corpus package must be admitted"
+    );
 
     let basic = units
         .iter()

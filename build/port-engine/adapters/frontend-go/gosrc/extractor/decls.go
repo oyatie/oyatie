@@ -92,6 +92,11 @@ func typeDecl(obj *types.TypeName, base node, ctx *extractCtx) (node, error) {
 			})
 		}
 		base.Children = append(base.Children, methods...)
+		promoted, err := promotedMethods(named, ctx)
+		if err != nil {
+			return base, err
+		}
+		base.Children = append(base.Children, promoted...)
 		return base, nil
 
 	case *types.Interface:
@@ -119,7 +124,10 @@ func typeDecl(obj *types.TypeName, base node, ctx *extractCtx) (node, error) {
 			})
 		}
 		sortNodes(ifaceMethods)
-		base.Children = ifaceMethods
+		// Embeds come FIRST so the supertrait list is in front of the methods it constrains, and
+		// they are not sorted with the methods: they are a different kind of child answering a
+		// different question.
+		base.Children = append(interfaceEmbeds(underlying, ctx), ifaceMethods...)
 		return base, nil
 
 	default:

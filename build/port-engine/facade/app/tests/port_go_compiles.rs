@@ -150,6 +150,53 @@ fn a_trait_method_binds_the_receiver_its_implementors_need() {
     );
 }
 
+/// Embedding becomes explicit, on both sides of it.
+///
+/// The source composes by embedding and nothing forwards — an anonymous field lifts the embedded
+/// type's methods into the outer type's method set, and an embedded interface lifts its
+/// requirements into the outer interface's. The target has neither rule, so both have to be
+/// written out: forwarding methods for the first, supertraits for the second.
+///
+/// `Driver` satisfies `Job` ONLY through a promoted method, which is why the two are proven
+/// together. An engine that emitted the supertraits and skipped the promotion would produce an impl
+/// naming a method nothing implements — and nothing short of compiling it would notice.
+#[test]
+fn embedding_becomes_supertraits_and_forwarding_methods() {
+    let report = driver::port_go_pipeline().expect("the Go corpus must port");
+    let source = driver::assemble_modules(&report);
+
+    for expected in [
+        // An embedded interface is a REQUIREMENT, not a copy of its method set.
+        "pub trait Job: Runner + Describer {}",
+        // A promoted method is forwarded through the field it was promoted from.
+        "self.engine.run()",
+        // And the impl of the outer trait carries nothing of its own, because the trait does not.
+        "impl Job for Driver {}",
+        "impl Runner for Driver",
+    ] {
+        assert!(
+            source.contains(expected),
+            "emitted source must carry `{expected}`:\n{source}"
+        );
+    }
+}
+
+/// A forwarding method binds the receiver the method it forwards to needs.
+///
+/// It has no body of its own to observe. `Engine::Run` mutates, so `Driver::run` cannot be a shared
+/// borrow — the call through the field would not compile — and the front end carries the embedded
+/// method's own ownership facts precisely so this is a decision rather than a default.
+#[test]
+fn a_forwarding_method_inherits_its_receiver_from_what_it_forwards_to() {
+    let report = driver::port_go_pipeline().expect("the Go corpus must port");
+    let source = driver::assemble_modules(&report);
+
+    assert!(
+        source.contains("pub fn run(&mut self) -> i64 {\n            self.engine.run()"),
+        "a forwarding method for a mutating method must bind exclusively:\n{source}"
+    );
+}
+
 /// Every method in the corpus carries a TRANSLATED body.
 ///
 /// A stub compiles, matches a golden, and hashes into a stable receipt — so every other check in
