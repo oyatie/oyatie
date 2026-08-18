@@ -14,7 +14,7 @@ rust_library(
 )
 
 rust_binary(
-    name = "oya-ci-dep-freshness-report",
+    name = "ci-dep-freshness-report",
     srcs = glob(["src/**/*.rs", "**/*.json", "**/*.toml"]),
     crate_root = "src/main.rs",
     visibility = ["PUBLIC"],
