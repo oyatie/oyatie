@@ -68,6 +68,21 @@ recorded here rather than implied.
   `conflict` accepts only the implemented policy, and `required_diagnostics`/`proof_obligations`
   refuse while unimplemented. The wire shape is `deny_unknown_fields`. CLI: `port-go`.
   Merged the plan's I4 into this increment: constructions cannot render without the type map.
+- I5: two fences re-scoped. The emitted-bytes needle scan in `port-engine-rust-ir` is GONE — it
+  refused output containing corpus identifiers, which is the program working, not leaking; the
+  production-source neutrality test (the actual ADR-0637 D1 rule) stays and is what caught the
+  first draft of the comment explaining the removal. "We emitted the target language" is now
+  carried by `syn::parse_file` plus the compile proof rather than by six fixed strings.
+  `port-engine-emit` gains `materialize_tree` under a SECOND allowlisted basename
+  (`port-engine-emit-out`); the `k8s/`, `..` and basename refusals are unchanged, and a region id
+  must be a bare identifier before it can name a file.
+- I6: the compile proof. `tests/port_go_compiles.rs` feeds the assembled emit to `rustc` — the only
+  check that distinguishes correct output from stable output, and the one that would have caught
+  I3's `pub fn` in a trait and `const: String`, both of which syn accepted. Adds per-unit module
+  assembly (grouped by transform-reported provenance, never by parsing sanitized region ids), a
+  committed golden refreshable via `port-go-source > src/port-go-golden-v1.txt`, determinism over
+  the real corpus, and a planted defect landing on `Unexplained`. The six receipt axes carry real
+  values for the first time — the W0-B journal recorded that no axis had ever held one.
 
 ## Next gaps (ordered)
 

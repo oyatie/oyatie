@@ -32,6 +32,7 @@ Commands:
   admit-snapshot    Admit hermetic OOB bootstrap snapshot fixture
   declarations      Admit the v1 Go-corpus snapshot; list what each unit declares
   port-go           Port the hermetic Go corpus; print the emitted Rust per region
+  port-go-source    Print the assembled per-unit modules (fail closed vs golden)
   transform         Admit→plan→apply constructions → RustIr region count
   render            Transform+emit; print region count + emit tree digest
   engine            Print Slice 9 engine identity digest
@@ -67,6 +68,7 @@ pub fn run(args: &[String]) -> ExitCode {
         "admit-snapshot" => cmd_admit_snapshot(),
         "declarations" => cmd_declarations(),
         "port-go" => cmd_port_go(),
+        "port-go-source" => cmd_port_go_source(),
         "transform" => cmd_transform(),
         "render" => cmd_render(),
         "engine" => cmd_engine(),
@@ -227,6 +229,28 @@ fn cmd_plan() -> ExitCode {
         }
         Err(err) => {
             eprintln!("port-engine-app: plan failed: {err}");
+            ExitCode::from(1)
+        }
+    }
+}
+
+fn cmd_port_go_source() -> ExitCode {
+    match driver::port_go_source() {
+        Ok((source, matches_golden)) => {
+            print!("{source}");
+            if matches_golden {
+                ExitCode::SUCCESS
+            } else {
+                eprintln!(
+                    "port-engine-app: port-go source differs from src/port-go-golden-v1.txt; \
+                     if the change is intended, refresh it with \
+                     `port-engine-app port-go-source > .../src/port-go-golden-v1.txt`"
+                );
+                ExitCode::from(1)
+            }
+        }
+        Err(err) => {
+            eprintln!("port-engine-app: port-go-source failed: {err}");
             ExitCode::from(1)
         }
     }
@@ -419,6 +443,11 @@ mod tests {
         assert_eq!(run(&args(&["admit-snapshot"])), ExitCode::SUCCESS);
         assert_eq!(run(&args(&["declarations"])), ExitCode::SUCCESS);
         assert_eq!(run(&args(&["port-go"])), ExitCode::SUCCESS);
+        assert_eq!(
+            run(&args(&["port-go-source"])),
+            ExitCode::SUCCESS,
+            "the committed golden must match the current emit"
+        );
         assert_eq!(run(&args(&["transform"])), ExitCode::SUCCESS);
         assert_eq!(run(&args(&["render"])), ExitCode::SUCCESS);
         assert_eq!(run(&args(&["engine"])), ExitCode::SUCCESS);
