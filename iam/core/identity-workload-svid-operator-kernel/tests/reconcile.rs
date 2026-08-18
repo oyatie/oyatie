@@ -1,5 +1,5 @@
 use iam_identity_workload_svid_operator_kernel::{
-    reconcile, Action, Clock, DesiredState, ObservedState,
+    Action, Clock, DesiredState, ObservedState, reconcile,
 };
 
 #[derive(Clone, Copy)]
@@ -40,7 +40,11 @@ fn issues_when_no_secret_is_present() {
 fn noops_when_leaf_is_comfortably_fresh() {
     let want = desired();
     // Leaf expires at 5_000; now=1_000 → 4_000s remaining, far above the 600s window.
-    let action = reconcile(&ObservedState::present(5_000), &want, &FixedClock { now: 1_000 });
+    let action = reconcile(
+        &ObservedState::present(5_000),
+        &want,
+        &FixedClock { now: 1_000 },
+    );
     assert_eq!(action, Action::Noop);
 }
 
@@ -48,7 +52,11 @@ fn noops_when_leaf_is_comfortably_fresh() {
 fn rotates_when_leaf_is_within_the_rotation_window() {
     let want = desired();
     // Leaf expires at 1_500; now=1_000 → 500s remaining, at/below the 600s window.
-    let action = reconcile(&ObservedState::present(1_500), &want, &FixedClock { now: 1_000 });
+    let action = reconcile(
+        &ObservedState::present(1_500),
+        &want,
+        &FixedClock { now: 1_000 },
+    );
     assert_eq!(
         action,
         Action::Rotate {
@@ -63,7 +71,11 @@ fn rotates_when_leaf_is_within_the_rotation_window() {
 fn rotates_exactly_at_the_window_boundary() {
     let want = desired();
     // Leaf expires at 1_600; now=1_000 → exactly 600s remaining == window ⇒ rotate.
-    let action = reconcile(&ObservedState::present(1_600), &want, &FixedClock { now: 1_000 });
+    let action = reconcile(
+        &ObservedState::present(1_600),
+        &want,
+        &FixedClock { now: 1_000 },
+    );
     assert!(matches!(action, Action::Rotate { .. }));
 }
 
@@ -71,7 +83,11 @@ fn rotates_exactly_at_the_window_boundary() {
 fn noops_one_second_above_the_window_boundary() {
     let want = desired();
     // Leaf expires at 1_601; now=1_000 → 601s remaining, one above the window ⇒ noop.
-    let action = reconcile(&ObservedState::present(1_601), &want, &FixedClock { now: 1_000 });
+    let action = reconcile(
+        &ObservedState::present(1_601),
+        &want,
+        &FixedClock { now: 1_000 },
+    );
     assert_eq!(action, Action::Noop);
 }
 
@@ -79,7 +95,11 @@ fn noops_one_second_above_the_window_boundary() {
 fn rotates_an_already_expired_leaf_without_underflow() {
     let want = desired();
     // Leaf expired at 500; now=1_000 → saturating remaining = 0 ⇒ rotate, no panic.
-    let action = reconcile(&ObservedState::present(500), &want, &FixedClock { now: 1_000 });
+    let action = reconcile(
+        &ObservedState::present(500),
+        &want,
+        &FixedClock { now: 1_000 },
+    );
     assert_eq!(
         action,
         Action::Rotate {

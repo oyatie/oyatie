@@ -1,0 +1,31 @@
+# Rust-first process-kit forever home: ci/process-kit (ADR-0711; roots.ci).
+# Root Cargo.toml membership is owned by integ/build (#planes.root_manifests) —
+# no [package] here until that absorb. BAN agent-dotdirs as forever homes.
+
+rust_library(
+    name = "oya-process-kit",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_process_kit",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+rust_binary(
+    name = "oya-process-kit-check-daemon",
+    srcs = glob(["src/**/*.rs"]),
+    crate_root = "src/bin/check_daemon.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-process-kit",
+    ],
+)
+
+rust_test(
+    name = "oya-process-kit-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_process_kit",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [],
+)

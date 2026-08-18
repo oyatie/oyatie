@@ -1,0 +1,22 @@
+# Canonical-base: specs/catalog/canonical-crate-record-schema.json (SWEEP-I Slice 6 per ADR-0064)
+name: oya-calendar-availability-resolver-kernel
+role: kernel
+context: calendar
+bc: availability-resolver
+plane: data
+slo: preview-data-plane
+contracts_consumed: []
+contracts_exposed: []
+regulatory_packs_consumed: [oya-pack-kr, oya-pack-eu, oya-pack-us, oya-pack-us-healthcare, oya-pack-jp, oya-pack-sg, oya-pack-au, oya-pack-in, oya-pack-br, oya-pack-ae, oya-pack-ksa]
+lifecycle: {state: incubating, preview_since: 2026-05-17, stable_since: null, deprecated_since: null}
+traceability:
+  github_issue: "oya-governance-pipeline://scaffold-pr-microservice-flat-layout-buildout-2026-05-17"
+  source_adrs: [ADR-0105, ADR-0131]
+allowed_dependency_edges: []
+data_classes_owned: [BEHAVIORAL_TENANT_PRODUCT, SENSITIVE_PIPA_ART23, INTERNAL_ONLY]
+operational_classes_owned: []
+autonomy_tier_required: T1
+implementation_notes: |
+  FreeBusyProjector + CrossTenantInviteResolver port traits. Enforces
+  minimum-necessary projection invariant — raw event content NEVER
+  crosses tenant boundary per PRD AC-02.

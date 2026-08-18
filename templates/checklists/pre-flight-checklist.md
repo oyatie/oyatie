@@ -4,7 +4,7 @@ checklist_id: CHK-PRE
 status: pending approval
 purpose: |
   Every change class precondition. Walked before any agent claims a symbol or any human stages a commit. Extends `docs/AGENTS.md §Pre-flight checklist`.
-lift_target: oyatie/docs/checklists/pre-flight.md
+lift_target: oyatie/templates/checklists/pre-flight.md
 enforcing_fitness_lane: oya-governance-pr-shape
 owner_team: council-architecture
 related:
@@ -20,13 +20,13 @@ related:
 
 ## Universal (every change class)
 
-- [ ] **P1** Identify the change class on a single line in the eventual PR `## Issue`. *Class:* `feature | bugfix | refactor | migration | docs | chore | capability | plugin | runbook | ADR | pack-update`. *Lane:* `traceability-validator`.
-- [ ] **P2** Read the canonical authority for the class (`docs/AGENTS.md §Canonical doc map`). *Verification:* PR `## Traceability` cites the doc(s) read.
+- [ ] **P1** Identify the change class on a single line in the eventual PR `## Issue`. *Class:* `feature | bugfix | refactor | migration | docs | chore | capability | plugin | runbook | ADR | pack-update`. *Verification:* independent PR review.
+- [ ] **P2** Read the canonical authority for the class (`docs/AGENTS.md §Canonical doc map`). *Verification:* PR `## Summary` cites the doc(s) read.
 - [ ] **P3** Confirm Data Use Boundary. Every new kernel-struct field carries `data_class`. *Lane:* `oya-governance-data-class`.
 - [ ] **P4** Confirm autonomy ceiling. Capability bindings declare T1/T2/T3/T4. *Lane:* `oya-governance-autonomy-ceiling`.
 - [ ] **P5** Confirm license posture. *Command:* `cargo deny check`.
-- [ ] **P6** Search `docs/MISTAKES-LEDGER.md` for the failure-mode class. *Verification:* PR `## Traceability` cites the `MFL-NNNN` row OR a "no prior row" note.
-- [ ] **P7** Identify the per-change-class reviewer agent (per `docs/AGENTS.md §Per-change-class reviewer agents`). *Lane:* `guard-pr-merge-review.mjs`.
+- [ ] **P6** Search `docs/MISTAKES-LEDGER.md` for the failure-mode class. *Verification:* PR `## Summary` cites the `MFL-NNNN` row OR a "no prior row" note.
+- [ ] **P7** Identify the per-change-class reviewer agent (per `docs/AGENTS.md §Per-change-class reviewer agents`). *Verification:* author-distinct review on the exact PR head.
 - [ ] **P8** For cross-axis contract changes: apply cross-axis review label + notify consumer-axis teams. *Lane:* `oya-governance-cross-axis-notify`. Use `/templates/checklists/cross-axis-contract-change-checklist.md`.
 - [ ] **P9** For hook / harness / CLI changes: run the harness self-test first. *Command:* `npm --prefix /Users/home/.codex test` (per harness).
 

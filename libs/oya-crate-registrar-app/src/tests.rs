@@ -119,7 +119,10 @@ fn capability_matches_capability_keyed_group() {
     let strings: Vec<&str> = globs.iter().filter_map(Value::as_str).collect();
     assert_eq!(
         strings,
-        vec!["libs/oya-data-boundary-kernel", "libs/oya-data-pagination-kernel"]
+        vec![
+            "libs/oya-data-boundary-kernel",
+            "libs/oya-data-pagination-kernel"
+        ]
     );
 }
 
@@ -130,7 +133,10 @@ fn capability_reapply_is_byte_identical_noop() {
         capability_mapping::compute(&current, "libs/oya-crate-registrar-app", "build/").unwrap();
     let twice =
         capability_mapping::compute(&once, "libs/oya-crate-registrar-app", "build/").unwrap();
-    assert_eq!(once, twice, "re-applying the capability mapping is a no-op (byte-identical)");
+    assert_eq!(
+        once, twice,
+        "re-applying the capability mapping is a no-op (byte-identical)"
+    );
 }
 
 #[test]
@@ -140,15 +146,17 @@ fn capability_already_present_is_byte_identical_noop() {
     // bytes identical to the canonical re-serialization of the input.
     let next =
         capability_mapping::compute(&current, "libs/oya-crate-registrar-kernel", "build/").unwrap();
-    assert_eq!(next, current, "mapping an already-present dir is a byte-identical no-op");
+    assert_eq!(
+        next, current,
+        "mapping an already-present dir is a byte-identical no-op"
+    );
 }
 
 #[test]
 fn capability_unknown_slug_rejected() {
     let current = registry_fixture();
-    let err =
-        capability_mapping::compute(&current, "libs/oya-whatever-kernel", "totally-made-up")
-            .unwrap_err();
+    let err = capability_mapping::compute(&current, "libs/oya-whatever-kernel", "totally-made-up")
+        .unwrap_err();
     assert_eq!(
         err,
         WriterError::UnknownCapability("totally-made-up".to_owned()),
@@ -164,7 +172,10 @@ fn capability_output_is_canonical_json() {
     // Canonical: re-canonicalizing the output yields the same bytes.
     let value: Value = serde_json::from_str(&next).unwrap();
     let recanon = to_canonical_json(&value).unwrap();
-    assert_eq!(next, recanon, "writer output is already canonical JSON (byte-stable)");
+    assert_eq!(
+        next, recanon,
+        "writer output is already canonical JSON (byte-stable)"
+    );
 }
 
 // ───────────────────────────── 1. capability_mapping (tmpfile round-trip) ─────────────────────────────
@@ -187,7 +198,7 @@ fn capability_apply_roundtrip_and_idempotent() {
     assert_eq!(after_first, tmp.read(capability_mapping::REGISTRY_PATH));
 }
 
-/// The real `specs/capability-registry.json` is HAND-AUTHORED with a deliberate key order
+/// The real `governance/capability-registry.json` is HAND-AUTHORED with a deliberate key order
 /// (`_comment`, `schema_version`, `doctrine_adr`, …) — nothing close to sorted. The
 /// canonical-json policy pins `sort_keys: false` precisely because "sorting would churn 1452 repo
 /// files and destroy intentional order on the agent entry surface". A writer that re-sorts on
@@ -245,15 +256,18 @@ fn capability_write_preserves_hand_authored_key_order() {
          NOT reorder the governed registry's hand-authored keys"
     );
     // The edit itself still landed (the assertion above must not pass by doing nothing).
-    assert!(next.contains("libs/oya-crate-registrar-app"), "the upsert still happened");
+    assert!(
+        next.contains("libs/oya-crate-registrar-app"),
+        "the upsert still happened"
+    );
 }
 
 #[test]
 fn to_canonical_json_does_not_sort_keys() {
     // Direct cover of the writer primitive: sort_keys:false is a property of the serializer,
     // not an accident of one caller's input.
-    let authored: Value = serde_json::from_str(r#"{"zeta":1,"alpha":2,"mid":{"z":1,"a":2}}"#)
-        .expect("parse");
+    let authored: Value =
+        serde_json::from_str(r#"{"zeta":1,"alpha":2,"mid":{"z":1,"a":2}}"#).expect("parse");
     let out = to_canonical_json(&authored).expect("serialize");
     assert_eq!(
         authored_key_order(&out),
@@ -264,7 +278,8 @@ fn to_canonical_json_does_not_sort_keys() {
 
 // ───────────────────────────── 2. adr_governed_paths (pure) ─────────────────────────────
 
-const ADR_NO_BLOCK: &str = "---\nid: ADR-0568\n---\n\n# ADR-0568: scaffold\n\n## Context\n\nSome body.\n";
+const ADR_NO_BLOCK: &str =
+    "---\nid: ADR-0568\n---\n\n# ADR-0568: scaffold\n\n## Context\n\nSome body.\n";
 
 #[test]
 fn adr_creates_block_when_absent() {
@@ -314,7 +329,11 @@ fn adr_upserts_into_existing_block_sorted_and_deduped() {
         assert!(at >= last, "{path} is in sorted order");
         last = at;
         // Exactly once (no duplicate Cargo.toml from the upsert).
-        assert_eq!(block.matches(path).count(), 1, "{path} appears exactly once");
+        assert_eq!(
+            block.matches(path).count(),
+            1,
+            "{path} appears exactly once"
+        );
     }
     // The trailing section survives.
     assert!(next.contains("## Consequences"));
@@ -329,7 +348,10 @@ fn adr_reapply_is_byte_identical_noop() {
     ];
     let once = adr_governed_paths::compute(ADR_NO_BLOCK, &paths).unwrap();
     let twice = adr_governed_paths::compute(&once, &paths).unwrap();
-    assert_eq!(once, twice, "re-applying the governed-path append is a no-op (byte-identical)");
+    assert_eq!(
+        once, twice,
+        "re-applying the governed-path append is a no-op (byte-identical)"
+    );
 }
 
 #[test]
@@ -344,7 +366,10 @@ fn adr_verbatim_paths_are_literal_no_globs() {
     assert!(next.contains("libs/oya-crate-registrar-app/src/tests.rs"));
     // No brace-glob collapse anywhere in the block.
     let block = &next[next.find("## Governed surfaces").unwrap()..];
-    assert!(!block.contains('{') && !block.contains('}'), "no brace-glob in the block: {block}");
+    assert!(
+        !block.contains('{') && !block.contains('}'),
+        "no brace-glob in the block: {block}"
+    );
 }
 
 #[test]
@@ -380,7 +405,10 @@ fn adr_block_body_preserved_through_roundtrip_parse() {
     let lines: Vec<&str> = body.lines().filter(|l| !l.trim().is_empty()).collect();
     assert_eq!(
         lines,
-        vec!["libs/oya-crate-registrar-app/BUCK", "libs/oya-crate-registrar-app/Cargo.toml"]
+        vec![
+            "libs/oya-crate-registrar-app/BUCK",
+            "libs/oya-crate-registrar-app/Cargo.toml"
+        ]
     );
 }
 
@@ -412,8 +440,7 @@ fn adr_heading_with_no_fence_followed_by_foreign_code_block_is_not_hijacked() {
     assert!(next.contains("libs/oya-crate-registrar-app/src/lib.rs"));
     // The foreign code lines are NOT credited as governed paths.
     assert!(
-        !next.contains("\nlet hijacked = true;\nlibs")
-            && !next.contains("fn foreign() {}\nlibs"),
+        !next.contains("\nlet hijacked = true;\nlibs") && !next.contains("fn foreign() {}\nlibs"),
         "foreign code lines must not be slurped as governed paths:\n{next}"
     );
     // Idempotent re-apply.
@@ -433,7 +460,8 @@ fn adr_heading_with_no_fence_followed_by_foreign_code_block_is_not_hijacked() {
 fn adr_info_string_fence_existing_path_is_preserved() {
     // DEFECT 2: the Governed-surfaces block opens with an info-string fence ```text. The existing
     // path inside must be preserved (not dropped) on the next apply.
-    let current = "# ADR-0568\n\n## Governed surfaces\n\n```text\nlibs/oya-crate-registrar-app/BUCK\n```\n";
+    let current =
+        "# ADR-0568\n\n## Governed surfaces\n\n```text\nlibs/oya-crate-registrar-app/BUCK\n```\n";
     let paths = vec!["libs/oya-crate-registrar-app/Cargo.toml".to_owned()];
     let next = adr_governed_paths::compute(current, &paths).unwrap();
     assert!(
@@ -451,21 +479,30 @@ fn adr_malformed_governed_path_whitespace_rejected() {
     // DEFECT 4/6: leading/trailing whitespace is non-idempotent → fail-closed.
     let paths = vec!["  libs/spaced  ".to_owned()];
     let err = adr_governed_paths::compute(ADR_NO_BLOCK, &paths).unwrap_err();
-    assert_eq!(err, WriterError::MalformedGovernedPath("  libs/spaced  ".to_owned()));
+    assert_eq!(
+        err,
+        WriterError::MalformedGovernedPath("  libs/spaced  ".to_owned())
+    );
 }
 
 #[test]
 fn adr_malformed_governed_path_newline_rejected() {
     let paths = vec!["libs/a\nlibs/b".to_owned()];
     let err = adr_governed_paths::compute(ADR_NO_BLOCK, &paths).unwrap_err();
-    assert_eq!(err, WriterError::MalformedGovernedPath("libs/a\nlibs/b".to_owned()));
+    assert_eq!(
+        err,
+        WriterError::MalformedGovernedPath("libs/a\nlibs/b".to_owned())
+    );
 }
 
 #[test]
 fn adr_malformed_governed_path_fence_sequence_rejected() {
     let paths = vec!["libs/a```evil".to_owned()];
     let err = adr_governed_paths::compute(ADR_NO_BLOCK, &paths).unwrap_err();
-    assert_eq!(err, WriterError::MalformedGovernedPath("libs/a```evil".to_owned()));
+    assert_eq!(
+        err,
+        WriterError::MalformedGovernedPath("libs/a```evil".to_owned())
+    );
 }
 
 #[test]
@@ -516,8 +553,8 @@ fn adr_apply_roundtrip_and_idempotent() {
 
 #[test]
 fn catalog_fresh_render_has_required_fields() {
-    let yaml = catalog_yaml::compute("iam/core/identity-domain", "control", "ga-control-plane")
-        .unwrap();
+    let yaml =
+        catalog_yaml::compute("iam/core/identity-domain", "control", "ga-control-plane").unwrap();
     assert!(yaml.contains("plane: control"));
     assert!(yaml.contains("slo: ga-control-plane"));
     assert!(yaml.contains("capability: identity-domain"));
@@ -525,12 +562,29 @@ fn catalog_fresh_render_has_required_fields() {
 }
 
 #[test]
+fn catalog_fresh_render_declares_the_api_stability_tier() {
+    // A row rendered WITHOUT `api_stability:` is born-blocking: the ci/facade/lifecycle-status
+    // api-stability-tier lane is rooted on registry/catalog/*.yaml with stage_field
+    // `api_stability` and has NO frozen violation row, so one undeclared row is an unbaselined
+    // `stage_not_declared`. This test is the thing that fails if the key is ever dropped again.
+    let yaml =
+        catalog_yaml::compute("iam/core/identity-domain", "control", "ga-control-plane").unwrap();
+    assert!(
+        yaml.lines().any(|l| l == "api_stability: preview"),
+        "fresh catalog row must declare the canonical first tier as a TOP-LEVEL scalar, got:\n{yaml}"
+    );
+}
+
+#[test]
 fn catalog_reapply_is_byte_identical_noop() {
-    let once = catalog_yaml::compute("iam/core/identity-domain", "control", "ga-control-plane")
-        .unwrap();
-    let twice = catalog_yaml::compute("iam/core/identity-domain", "control", "ga-control-plane")
-        .unwrap();
-    assert_eq!(once, twice, "re-rendering the catalog is deterministic (byte-identical)");
+    let once =
+        catalog_yaml::compute("iam/core/identity-domain", "control", "ga-control-plane").unwrap();
+    let twice =
+        catalog_yaml::compute("iam/core/identity-domain", "control", "ga-control-plane").unwrap();
+    assert_eq!(
+        once, twice,
+        "re-rendering the catalog is deterministic (byte-identical)"
+    );
 }
 
 #[test]
@@ -545,7 +599,8 @@ fn catalog_missing_slo_rejected() {
 
 #[test]
 fn catalog_missing_plane_rejected() {
-    let err = catalog_yaml::compute("iam/core/identity-domain", "", "ga-control-plane").unwrap_err();
+    let err =
+        catalog_yaml::compute("iam/core/identity-domain", "", "ga-control-plane").unwrap_err();
     assert_eq!(err, WriterError::MissingCatalogField("plane".to_owned()));
 }
 
@@ -562,12 +617,8 @@ fn catalog_path_derives_from_leaf() {
 #[test]
 fn catalog_slo_with_newline_forging_keys_rejected() {
     // DEFECT 3: a newline in `slo` forges a top-level YAML key → fail-closed InvalidCatalogField.
-    let err = catalog_yaml::compute(
-        "iam/core/identity-domain",
-        "control",
-        "ga\nmalicious: true",
-    )
-    .unwrap_err();
+    let err = catalog_yaml::compute("iam/core/identity-domain", "control", "ga\nmalicious: true")
+        .unwrap_err();
     assert_eq!(err, WriterError::InvalidCatalogField("slo".to_owned()));
 }
 
@@ -582,8 +633,8 @@ fn catalog_plane_with_yaml_map_metachars_rejected() {
 #[test]
 fn catalog_normal_identifier_values_still_render() {
     // DEFECT 3 positive: legit identifier-shaped values render fine.
-    let yaml = catalog_yaml::compute("iam/core/identity-domain", "control", "ga-control-plane")
-        .unwrap();
+    let yaml =
+        catalog_yaml::compute("iam/core/identity-domain", "control", "ga-control-plane").unwrap();
     assert!(yaml.contains("plane: control"));
     assert!(yaml.contains("slo: ga-control-plane"));
     assert!(yaml.contains("capability: identity-domain"));
@@ -642,23 +693,27 @@ fn member_glob_covered_by_bare_leaf_glob_noop() {
     let next =
         workspace_member_glob::compute(MANIFEST_FIXTURE, "cloud/cloud-ci/gates/registry-drift")
             .unwrap();
-    assert_eq!(next, MANIFEST_FIXTURE, "the bare-leaf glob covers the dir → no-op");
+    assert_eq!(
+        next, MANIFEST_FIXTURE,
+        "the bare-leaf glob covers the dir → no-op"
+    );
 }
 
 #[test]
 fn member_glob_covered_by_capability_glob_noop() {
     // A 3-segment capability glob (`messaging/*/*`) covers a face/leaf dir.
-    let next =
-        workspace_member_glob::compute(MANIFEST_FIXTURE, "messaging/core/domain").unwrap();
+    let next = workspace_member_glob::compute(MANIFEST_FIXTURE, "messaging/core/domain").unwrap();
     assert_eq!(next, MANIFEST_FIXTURE);
 }
 
 #[test]
 fn member_glob_reapply_is_byte_identical_noop() {
-    let once =
-        workspace_member_glob::compute(MANIFEST_FIXTURE, "libs/oya-foo-kernel").unwrap();
+    let once = workspace_member_glob::compute(MANIFEST_FIXTURE, "libs/oya-foo-kernel").unwrap();
     let twice = workspace_member_glob::compute(&once, "libs/oya-foo-kernel").unwrap();
-    assert_eq!(once, twice, "re-applying the covered-dir check is a no-op (byte-identical)");
+    assert_eq!(
+        once, twice,
+        "re-applying the covered-dir check is a no-op (byte-identical)"
+    );
     assert_eq!(once, MANIFEST_FIXTURE);
 }
 
@@ -677,9 +732,8 @@ fn member_glob_uncovered_dir_is_fail_closed() {
 fn member_glob_excluded_subtree_is_uncovered() {
     // `messaging/observability/...` matches `messaging/*/*` but is removed by the exclude subtree →
     // not covered → fail-closed (the writer honors excludes via the workspace-members kernel).
-    let err =
-        workspace_member_glob::compute(MANIFEST_FIXTURE, "messaging/observability/tracing")
-            .unwrap_err();
+    let err = workspace_member_glob::compute(MANIFEST_FIXTURE, "messaging/observability/tracing")
+        .unwrap_err();
     assert_eq!(
         err,
         WriterError::WorkspaceMemberUncovered("messaging/observability/tracing".to_owned())
@@ -712,14 +766,16 @@ fn member_glob_malformed_manifest_is_fail_closed() {
 fn member_glob_unparseable_toml_is_fail_closed() {
     let err =
         workspace_member_glob::compute("this is = = not toml", "libs/oya-foo-kernel").unwrap_err();
-    assert!(matches!(err, WriterError::WorkspaceManifest(_)), "got {err:?}");
+    assert!(
+        matches!(err, WriterError::WorkspaceManifest(_)),
+        "got {err:?}"
+    );
 }
 
 #[test]
 fn member_glob_trailing_slash_dir_is_normalized() {
     // A trailing-slash dir is normalized before the coverage check (idempotent).
-    let next =
-        workspace_member_glob::compute(MANIFEST_FIXTURE, "libs/oya-foo-kernel/").unwrap();
+    let next = workspace_member_glob::compute(MANIFEST_FIXTURE, "libs/oya-foo-kernel/").unwrap();
     assert_eq!(next, MANIFEST_FIXTURE);
 }
 
@@ -743,7 +799,10 @@ fn member_glob_apply_covered_is_noop_no_write() {
     let wrote_again =
         workspace_member_glob::apply(&tmp.path, "libs/oya-crate-registrar-app").unwrap();
     assert!(!wrote_again, "re-apply is a no-op (no write)");
-    assert_eq!(tmp.read(workspace_member_glob::MANIFEST_PATH), MANIFEST_FIXTURE);
+    assert_eq!(
+        tmp.read(workspace_member_glob::MANIFEST_PATH),
+        MANIFEST_FIXTURE
+    );
 }
 
 #[test]
@@ -757,5 +816,8 @@ fn member_glob_apply_uncovered_is_fail_closed_no_write() {
         WriterError::WorkspaceMemberUncovered("apps/oya-thing-app".to_owned())
     );
     // The manifest is untouched (fail-closed, never a partial write).
-    assert_eq!(tmp.read(workspace_member_glob::MANIFEST_PATH), MANIFEST_FIXTURE);
+    assert_eq!(
+        tmp.read(workspace_member_glob::MANIFEST_PATH),
+        MANIFEST_FIXTURE
+    );
 }

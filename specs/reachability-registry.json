@@ -2,6 +2,10 @@
   "_comment": "Reviewed reachability registrations (ADR-0555). Each entry registers a tree (dir prefix ending '/') or an exact path as reached, and MUST carry an anchor naming WHY. Registration is a review-visible design act — the ADR-0551 trust class (same as ratchet-policy.json) — never a silent exemption. Hand-edited (or via the transitional --fix-reachability bridge); the producer fails LOUD on a malformed entry.",
   "registered": [
     {
+      "anchor": "ADR-0545 embedded-asset hermeticity: Buck package marker exporting .cargo/config.toml, the Cargo half of the Buck/Cargo resource bijection that the cross-artifact-agreement, product-protocol-policy, reset-eligibility-policy and hook-wiring gate targets read through include_str!. Those targets reference it as //.cargo:config.toml, so the marker must exist for their declared inputs to resolve.",
+      "prefix": ".cargo/BUCK"
+    },
+    {
       "anchor": "ADR-0600: Buck package marker for the reviewed .claude/settings.json enforcement-liveness corpus target.",
       "prefix": ".claude/BUCK"
     },
@@ -12,6 +16,10 @@
     {
       "anchor": "ADR-0600: Buck package marker for the reviewed .codex/hooks.json enforcement-liveness corpus target.",
       "prefix": ".codex/BUCK"
+    },
+    {
+      "anchor": "ADR-0515 governance pipeline: reviewed Cursor model-routing and agent-ritual policy for cloud-ci delivery lanes.",
+      "prefix": ".cursor/rules/"
     },
     {
       "anchor": "ADR-0600 addendum 2026-07-02: GitHub community-health code of conduct (tool-mandated GitHub special file under the .github meta home).",
@@ -30,16 +38,24 @@
       "prefix": ".github/PULL_REQUEST_TEMPLATE.md"
     },
     {
-      "anchor": "ADR-0560 D4 (executing ADR-0556 D2 'no canary, no warm'): privilege-separated schedule/dispatch orchestrator for the reusable integrity-canary executor; the cold call has no OIDC permission and identity calls remain explicit activation-gated",
-      "prefix": ".github/workflows/cache-integrity-canary-schedule.yml"
+      "anchor": "Phase0 dual-emit / naming_sweep: domain-stabilize workflow callable/entry surface under integ/ci; local bridge feedback only — merge authority remains oya-ci-required until PAUSE-AND-PAIR forever-name flip to merge-admission-required (ADR-0515).",
+      "prefix": ".github/workflows/domain-stabilize.yml"
     },
     {
-      "anchor": "ADR-0560 D4 (executing ADR-0556 D2 'no canary, no warm'): the scheduled cold integrity-canary workflow — from-empty pinned build + assert-cold + digest manifests + verdict artifact; shape pinned by the oya-cloud-ci-cache-wiring-app conformance gate",
-      "prefix": ".github/workflows/cache-integrity-canary.yml"
+      "anchor": "Forever merge-admission workflow filename + dual-emit public status string merge-admission-required (workflow_call-only body until quiet cutover); protection context flip remains PAUSE-AND-PAIR (ADR-0515).",
+      "prefix": ".github/workflows/merge-admission-required.yml"
     },
     {
       "anchor": "mm-kit land (PR #1575): tracked multi-model delivery harness under .grok/ (bins, harness schemas, roles, workflows, program doctrine). Process tooling only — not merge authority; admission remains reviewer APPROVE + oya-ci-required (ADR-0515). Runtime journals (.grok/mm-runs/, .grok/memory/) stay gitignored. Ownership seed .grok/OWNERS (cloud-ci-platform).",
       "prefix": ".grok/"
+    },
+    {
+      "anchor": "ADR-0562 § app/<product>/ tenant compositions + OVERRULE 3d: integ/app owns composition-glue routing only (app/README.md). Product forever homes land on integ/<product>, not this rail.",
+      "prefix": "app/README.md"
+    },
+    {
+      "anchor": "Envelope prefix ownership (integ/calendar → app/calendar/**): product scaffold reclaim (#1671 tip 0c787bda). Dir prefix — not per-file tip-free. Covers non-crate faces (manifest/contracts/slos/runbooks/iac/catalog/policy). Calendar policy identifiers/principals stay free of decision-number tokens; decision cites belong in comments/docs only.",
+      "prefix": "app/calendar/"
     },
     {
       "anchor": "ADR-0555 + ADR-0632 hermetic input declaration (PR #1584 dual-home burn-down): exact Buck package marker that exposes rehomed audit residual YAML (ex-oya/audit-chain) and pre-existing audit/** YAML to the repository corpus graph via corpus_yaml_facts_shards; indexing only — no runtime authority. Mirrors oya/BUCK / cloud/BUCK registration for the capability package root.",
@@ -62,8 +78,28 @@
       "prefix": "billing/tax/manifest.json"
     },
     {
-      "anchor": "ADR-0541: Buck package marker for the cell capability residual corpus target. This package keeps the capability's rehomed service docs, manifests, contracts and OpenSLO YAML inside the Buck2 corpus graph after the capability-first rehome; without it those files leave buck2-packaged space entirely (measured across nine roots: 996 YAML files, unpackaged 1069 -> 75).",
-      "prefix": "cell/BUCK"
+      "anchor": "build/ drain inventory for toolchains + port-engine W0 continue; OWNERS via build/OWNERS council-architecture",
+      "prefix": "build/REORG-DRAIN.md"
+    },
+    {
+      "anchor": "planes.root_manifests forever-owner absorb evidence for Cargo.lock sole-owner land (#1934); OWNERS via build/OWNERS council-architecture",
+      "prefix": "build/evidence/"
+    },
+    {
+      "anchor": "ADR-0560 D3 / build sole-owner: toolchains cache platform rehomed under build/toolchains (was toolchains/cache/); OWNERS cloud-ci-platform",
+      "prefix": "build/toolchains/"
+    },
+    {
+      "anchor": "Envelope prefix ownership (integ/cell → cell/**): capability root tree (#1652 tip 65dd343bd). Covers cell/manifest.json + cell/*/manifest.json + evidence/IPs. Subsumes transitional cell/BUCK seed.",
+      "prefix": "cell/"
+    },
+    {
+      "anchor": "ADR-0562 migration inventory: reviewed CI controller legacy-root drain record.",
+      "prefix": "ci/REORG-DRAIN.md"
+    },
+    {
+      "anchor": "ADR-0515 F-PR5-06: owned CI controller app, adapters, kernel, and Helm workload declaration; planned controller is not merge authority.",
+      "prefix": "ci/controller/"
     },
     {
       "anchor": "ADR-0635 D5: named RED/GREEN mutation corpus consumed directly by the dependency-graph-acyclicity Buck gate test.",
@@ -94,8 +130,20 @@
       "prefix": "comms/BUCK"
     },
     {
+      "anchor": "ADR-0555 + ADR-0711 envelope hygiene (oyatie-0s8 / #1653 hub-elevate): JudgmentNote recording that capability-root hub deltas were stripped from integ/comms and elevated to forever owners (reachability→integ/specs tip-free; product-protocol→integ/ci). Exact-path registration; grants no merge authority.",
+      "prefix": "comms/evidence/hub-elevate-oyatie-0s8.md"
+    },
+    {
+      "anchor": "ADR-0562 capability-root + oyatie-0s8 tip-free packet (PRs #1653/#1644 plane): the comms capability service manifest — microservice/tier/bounded-context descriptor for the registered comms capability. Not crate-resident, so cargo-members cannot reach it. EXACT path, not a tree: comms/ holds messenger/mail/meet/etc. subtrees with their own reasons. Tip-free registration unblocks integ/comms (#1653) firewall REACHED without mixed-bundle edits on the product tip.",
+      "prefix": "comms/manifest.json"
+    },
+    {
       "anchor": "ADR-0165 (chaos-engineering substrate): the messenger chaos-scenario catalog fixtures (pod-kill, network-delay-100ms, dependency-failure, disk-slow-1000ms) referenced by the runtime-control-loop contract scenario refs (non-executable, not applied or run at runtime), homed under comms per ADR-0562 §10.16; justified in docs/decisions/ADR-0701-monorepo-capability-live-apex.md",
       "prefix": "comms/messenger/chaos/"
+    },
+    {
+      "anchor": "ADR-0711 Amendment B + oyatie-0s8 tip-free packet (#1653): messenger reorg-unit judgments v1 JSON (Seat A prep keep_forever dispositions for comms/messenger/). Exact path under the absorbed messenger service; not a tree claim over comms/messenger/contracts or chaos/resilience prefixes already registered.",
+      "prefix": "comms/messenger/reorg-unit-judgments.v1.json"
     },
     {
       "anchor": "ADR-0176 (brown-out + graceful-degradation signal API), with ADR-0165/0168/0180/0186/0210/0241: the messenger runtime-control-loop contract-slice tree (brownout classes, tail-sampling recipe, chaos-scenario + SLO-gate refs), homed under the comms capability per ADR-0562 §10.16 messenger move and enforced by the contract-slice-conformance gate; the contract is justified in docs/decisions/ADR-0705-product-protocol-live-apex.md",
@@ -106,8 +154,16 @@
       "prefix": "comms/observability/slos/messenger/"
     },
     {
+      "anchor": "ADR-0555 + capability-interior stale-path hygiene (oyatie-0s8 / #1653): Accepted JudgmentNote documenting verified in-tree retargets under comms/**. Exact path; process evidence only — not merge authority.",
+      "prefix": "comms/stale-path-hygiene-note.md"
+    },
+    {
       "anchor": "ADR-0541: Buck package marker for the compliance capability residual corpus target. This package keeps the capability's rehomed service docs, manifests, contracts and OpenSLO YAML inside the Buck2 corpus graph after the capability-first rehome; without it those files leave buck2-packaged space entirely (measured across nine roots: 996 YAML files, unpackaged 1069 -> 75).",
       "prefix": "compliance/BUCK"
+    },
+    {
+      "anchor": "Envelope prefix ownership (integ/compute → compute/**): capability root tree (#1660). Covers compute/manifest.json + compute/stale-path-hygiene-note.md without per-file tip-free.",
+      "prefix": "compute/"
     },
     {
       "anchor": "ADR-0541: Buck package marker for the console capability residual corpus target. This package keeps the capability's rehomed service docs, manifests, contracts and OpenSLO YAML inside the Buck2 corpus graph after the capability-first rehome; without it those files leave buck2-packaged space entirely (measured across nine roots: 996 YAML files, unpackaged 1069 -> 75).",
@@ -142,6 +198,10 @@
       "prefix": "data/analytics/catalog/oya-analytics-api.json"
     },
     {
+      "anchor": "ADR-0562 capability-root + oyatie-0s8 tip-free packet (PR #1654 plane): the data capability service manifest — microservice/tier/bounded-context descriptor for the registered data capability. Tip-free pre-register so integ/data can re-add the file after firewall REACHED clears; EXACT path, not a tree over data/analytics or data/ops prefixes already registered.",
+      "prefix": "data/manifest.json"
+    },
+    {
       "anchor": "ADR-0139 + DATA-005/G003: contract-only data-substrate OpenSLO skeleton home; static evidence-required SLO manifest for future operator reconciliation measurement, no measured-window claim.",
       "prefix": "data/observability/slos/data-substrate/"
     },
@@ -154,12 +214,32 @@
       "prefix": "docs/adr-archive/"
     },
     {
+      "anchor": "Cloud-provider + full-ecosystem north-star architecture essay (integ/docs INV-DOC-9 survival).",
+      "prefix": "docs/architecture/cloud-provider-full-ecosystem-north-star.md"
+    },
+    {
+      "anchor": "Transitional dual-home for supply-chain-audit live gate path docs/checklists/release-readiness-checklist.md after templates/checklists forever-home move; elevate gate cite rewrite to integ/ci. Content mirrors templates/checklists/release-readiness-checklist.md RR14.",
+      "prefix": "docs/checklists/release-readiness-checklist.md"
+    },
+    {
       "anchor": "ADR-0555 D3: the governance decision corpus — every decision is crosswalk-accounted (decision-crosswalk.generated.json); orphan/unpropagated/status pathologies are the cross-artifact gate's BLOCKING codes, so per-decision reachability is derived from the corpus itself, not hand-mentioned per file",
       "prefix": "docs/decisions/"
     },
     {
       "anchor": "ADR-0388 amendment (E4 preparation): docs/ideas/BUCK and its narrow OWNERS marker expose only the byte-frozen, non-authoritative idea-archive candidate corpus to the cross-artifact evaluator; no archive closure or planning dispatch is implied.",
       "prefix": "docs/ideas/"
+    },
+    {
+      "anchor": "docs lane absorb: lifecycle-lane-disposition unit mapping for re-root-or-delete of dark lifecycle lanes; review-visible conversion table only (not live enforcement).",
+      "prefix": "docs/plans/lifecycle-lane-disposition/mapping.md"
+    },
+    {
+      "anchor": "founder ruling oyatie-0s8: mechanical mapping for capability-root service manifests (<root>/manifest.json); conversion table for reviewer-checkable units.",
+      "prefix": "docs/programs/capability-root-manifests/MAPPING.md"
+    },
+    {
+      "anchor": "G004 burn-down-enforcement-debt programme: binding unit mapping for impl/g004-enforcement-debt lane; conventions/invariants every unit converges on.",
+      "prefix": "docs/programs/g004-enforcement-debt/g004-enforcement-debt-mapping.md"
     },
     {
       "anchor": "ADR-0639 D6 (Wave4 scarce-runner queue hygiene, PR #1570 / #1569): design note for live oya-ci-required cancel-in-progress + Tide/merge_group isolation under docs/programs/hyperscaler-delivery-lanes/; documents Bun superseding-run lesson and #1509 sha non-PR group key. Non-crate program doc tree (parallel to docs/programs/k8s-port/); dual-critic packets live under evidence/ci/ which is covered by the existing evidence/ reachability prefix.",
@@ -170,8 +250,32 @@
       "prefix": "docs/programs/k8s-port/"
     },
     {
+      "anchor": "Laptop CAS lab compose/buckconfig/canary assets for NativeLink warm-cache operator drills (integ/docs).",
+      "prefix": "docs/runbooks/assets/laptop-cas/"
+    },
+    {
       "anchor": "ADR-0537 step-0 root ceremony port: draft operator-facing runbook for redacted offline root-of-trust evidence packets and custody posture checks.",
       "prefix": "docs/runbooks/cloud/root-of-trust-ceremony.md"
+    },
+    {
+      "anchor": "Laptop CAS lab operator runbook (integ/docs; NativeLink warm-cache drills).",
+      "prefix": "docs/runbooks/laptop-cas-buck2-cache-only.md"
+    },
+    {
+      "anchor": "Laptop CAS lab operator runbook (integ/docs; NativeLink warm-cache drills).",
+      "prefix": "docs/runbooks/laptop-cas-cloudflare-tunnel.md"
+    },
+    {
+      "anchor": "Laptop CAS lab operator runbook (integ/docs; NativeLink warm-cache drills).",
+      "prefix": "docs/runbooks/laptop-cas-dual-arch-digests.md"
+    },
+    {
+      "anchor": "Laptop CAS lab operator runbook (integ/docs; NativeLink warm-cache drills).",
+      "prefix": "docs/runbooks/laptop-cas-integrity-canary.md"
+    },
+    {
+      "anchor": "Laptop CAS lab operator runbook (integ/docs; NativeLink warm-cache drills).",
+      "prefix": "docs/runbooks/laptop-cas-lab.md"
     },
     {
       "anchor": "ADR-0052 KEEP-inventory: security governance program (de-staled from SECURITY-PROGRAM.md); homed in its own docs/security-program/ subtree so ADR-0555 nearest-ancestor OWNERS can own it without over-claiming docs/.",
@@ -206,8 +310,36 @@
       "prefix": "gateway/iac/spire-trust-bundle.yaml"
     },
     {
+      "anchor": "ADR-0615 §2 Q13 + ADR-0555: META governance authority absorb from oya/governance (cedar/contracts/policy/packs) into governance/; non-crate policy-as-data + contracts reached by governance lane; not cargo-members.",
+      "prefix": "governance/REORG-DRAIN.md"
+    },
+    {
+      "anchor": "ADR-0562 §2: the CLOSED capability registry policy-as-data — the single source of truth for the capability-first repo organization, reached by the ADR-0562 deterministic placement rule + the §6 membership lint (its named consumer) + ADR-0562 related_specs; landed at governance/ (its ADR-0562 §2 destined home) on 2026-08-14",
+      "prefix": "governance/capability-registry.json"
+    },
+    {
+      "anchor": "ADR-0615 §2 Q13 + ADR-0555: cedar policy fragments absorbed under META governance/cedar/ (authority slice from oya/governance); non-crate DATA.",
+      "prefix": "governance/cedar/"
+    },
+    {
+      "anchor": "ADR-0555: apex-gist-integrity gate crate under governance/check; temporarily excluded from Cargo workspace members until integ/build absorbs lock — register tree so firewall reachability is not blocked on workspace membership.",
+      "prefix": "governance/check/apex-gist-integrity/"
+    },
+    {
       "anchor": "ADR-0711 + ADR-0555: integ-envelope judgments/waivers DATA home (non-crate under governance/check); owned by integ/specs adjunct; excluded from Cargo workspace members.",
       "prefix": "governance/check/integ-envelope/"
+    },
+    {
+      "anchor": "ADR-0615 §2 Q13 + ADR-0555: governance contracts (openapi/asyncapi/proto) absorbed under META governance/contracts/.",
+      "prefix": "governance/contracts/"
+    },
+    {
+      "anchor": "ADR-0615 §2 Q13 + ADR-0555: compliance pack pointers absorbed under META governance/packs/.",
+      "prefix": "governance/packs/"
+    },
+    {
+      "anchor": "ADR-0615 §2 Q13 + ADR-0555: cedar policy surfaces absorbed under META governance/policy/.",
+      "prefix": "governance/policy/"
     },
     {
       "anchor": "ADR-0339 IAC-001 shared OpenTofu module library: the iac capability architecture document, named verbatim by ADR-0339 in its governed-surfaces list and again in its landing-deliverables list (gains the module-library scope expansion description at landing), both at the pre-move path cloud/cloud-iac/ARCHITECTURE.md. The ADR-0562 capability move to iac/ relocated the file and both citations stayed at the old path. A capability doc is not crate-resident, so cargo-members cannot reach it. EXACT path, not a tree: iac/ already registers iac/modules/ separately.",
@@ -216,6 +348,10 @@
     {
       "anchor": "ADR-0541: Buck package marker for the iac capability residual corpus target. This package keeps the capability's rehomed service docs, manifests, contracts and OpenSLO YAML inside the Buck2 corpus graph after the capability-first rehome; without it those files leave buck2-packaged space entirely (measured across nine roots: 996 YAML files, unpackaged 1069 -> 75).",
       "prefix": "iac/BUCK"
+    },
+    {
+      "anchor": "Envelope prefix ownership (integ/iac → iac/governance/**): cedar helm reclaim (#1680 tip 183260087). Dir prefix — tip-free tax rejected as forever shape. iac/manifest.json remains separately registered.",
+      "prefix": "iac/governance/"
     },
     {
       "anchor": "ADR-0339 IAC-001 shared OpenTofu module library: the iac capability service manifest, named verbatim by ADR-0339 in three places - its governed-surfaces list, its landing-deliverables list (gains the module_library_scope field per E.8), and its manifest_expansion evidence line - all at the pre-move path cloud/cloud-iac/manifest.json. The ADR-0562 capability move to iac/ relocated the file and the citations stayed at the old path. Not crate-resident, so cargo-members cannot reach it. EXACT path, not a tree: iac/ already registers iac/modules/ separately for the module-library fixture tree.",
@@ -438,6 +574,14 @@
       "prefix": "marketplace/developer-sdk/decisions/ADR-SDK-0007-developer-portal-as-first-party-module.md"
     },
     {
+      "anchor": "ADR-0562 capability-root + ADR-0536 D-13 messaging substrate + oyatie-0s8 tip-free packet (PR #1658): the messaging capability service manifest — S0 event-bus/messaging substrate descriptor. Not crate-resident. EXACT path, not a tree: messaging/ holds core/adapters crate subtrees reachable via cargo-members.",
+      "prefix": "messaging/manifest.json"
+    },
+    {
+      "anchor": "ADR-0555 + capability-interior stale-path hygiene (oyatie-0s8 / #1658): Accepted JudgmentNote documenting Seat A events+messaging stale-path retargets under messaging/**. Exact path; process evidence only — not merge authority.",
+      "prefix": "messaging/stale-path-hygiene-note.md"
+    },
+    {
       "anchor": "ADR-0541: Buck package marker for the network capability residual corpus target. This package keeps the capability's rehomed service docs, manifests, contracts and OpenSLO YAML inside the Buck2 corpus graph after the capability-first rehome; without it those files leave buck2-packaged space entirely (measured across nine roots: 996 YAML files, unpackaged 1069 -> 75).",
       "prefix": "network/BUCK"
     },
@@ -446,16 +590,60 @@
       "prefix": "observability/BUCK"
     },
     {
+      "anchor": "integ/os absorb (#1926): OS harness oracle/attestation scaffolds + cargo-lock bridge strip receipt; workspace-excluded until integ/build lock membership absorb; reachability registration clears unjustified/unreachable.",
+      "prefix": "os/evidence/cargo-lock-bridge-strip-20260811.md"
+    },
+    {
+      "anchor": "ADR-0701 + Wave-2 absorb receipt on integ/os: evidence packet recording cloud/cloud-os residual → os/ forever-home harvest (manifest + dual-home OWNERS); indexing/receipt only.",
+      "prefix": "os/evidence/wave2-cloud-os-absorb.md"
+    },
+    {
+      "anchor": "integ/os absorb (#1926): OS harness oracle/attestation scaffolds + cargo-lock bridge strip receipt; workspace-excluded until integ/build lock membership absorb; reachability registration clears unjustified/unreachable.",
+      "prefix": "os/harness/attestation-relying-party/BUCK"
+    },
+    {
+      "anchor": "integ/os absorb (#1926): OS harness oracle/attestation scaffolds + cargo-lock bridge strip receipt; workspace-excluded until integ/build lock membership absorb; reachability registration clears unjustified/unreachable.",
+      "prefix": "os/harness/attestation-relying-party/Cargo.toml"
+    },
+    {
+      "anchor": "integ/os absorb (#1926): OS harness oracle/attestation scaffolds + cargo-lock bridge strip receipt; workspace-excluded until integ/build lock membership absorb; reachability registration clears unjustified/unreachable.",
+      "prefix": "os/harness/attestation-relying-party/src/lib.rs"
+    },
+    {
+      "anchor": "integ/os absorb (#1926): OS harness oracle/attestation scaffolds + cargo-lock bridge strip receipt; workspace-excluded until integ/build lock membership absorb; reachability registration clears unjustified/unreachable.",
+      "prefix": "os/harness/attestation-relying-party/tests/relying_party_scaffold.rs"
+    },
+    {
+      "anchor": "integ/os absorb (#1926): OS harness oracle/attestation scaffolds + cargo-lock bridge strip receipt; workspace-excluded until integ/build lock membership absorb; reachability registration clears unjustified/unreachable.",
+      "prefix": "os/harness/oci-executor-oracle/BUCK"
+    },
+    {
+      "anchor": "integ/os absorb (#1926): OS harness oracle/attestation scaffolds + cargo-lock bridge strip receipt; workspace-excluded until integ/build lock membership absorb; reachability registration clears unjustified/unreachable.",
+      "prefix": "os/harness/oci-executor-oracle/Cargo.toml"
+    },
+    {
+      "anchor": "integ/os absorb (#1926): OS harness oracle/attestation scaffolds + cargo-lock bridge strip receipt; workspace-excluded until integ/build lock membership absorb; reachability registration clears unjustified/unreachable.",
+      "prefix": "os/harness/oci-executor-oracle/fixtures/cve-regression-obligations-v0.1.0.json"
+    },
+    {
+      "anchor": "integ/os absorb (#1926): OS harness oracle/attestation scaffolds + cargo-lock bridge strip receipt; workspace-excluded until integ/build lock membership absorb; reachability registration clears unjustified/unreachable.",
+      "prefix": "os/harness/oci-executor-oracle/src/lib.rs"
+    },
+    {
+      "anchor": "integ/os absorb (#1926): OS harness oracle/attestation scaffolds + cargo-lock bridge strip receipt; workspace-excluded until integ/build lock membership absorb; reachability registration clears unjustified/unreachable.",
+      "prefix": "os/harness/oci-executor-oracle/tests/oracle_scaffold.rs"
+    },
+    {
+      "anchor": "ADR-0701 monorepo capability live-apex + Wave-2 cloud-os absorb (#1926): forever-home microservice manifest for the os/ capability root after cloud/cloud-os residual drain; declarative inventory only — not a live node runtime claim.",
+      "prefix": "os/manifest.json"
+    },
+    {
       "anchor": "ADR-0535 §5: root oya-deps.toml is the closed-schema DATA contract for the owned Rust dependency bump-bot and dependency-automation gate.",
       "prefix": "oya-deps.toml"
     },
     {
       "anchor": "ADR-0632 hermetic input declaration: exact root BUCK file for the governed Oyatie manifest and internal Proto corpora consumed by the product-protocol gate.",
       "prefix": "oya/BUCK"
-    },
-    {
-      "anchor": "ADR-0248 REGCLOUD-001 planning-artifact registration: compliance-selective cell placement planning/spec artifact only; no product/cloud implementation authority.",
-      "prefix": "plan/compliance-selective-cell-placement-architecture.md"
     },
     {
       "anchor": "ADR-0516 Agentic Delivery Fabric drive-loop durable plane (specs/fabric-drive-loop-state.json#storage_planes): plan/fabric-loop/cards/ holds the per-card durable shard files written only through the oya-fabric-loop-state-app coordinator ports; new shard files are created per drive-loop pass, so the subtree is registered by prefix. Byte re-derivation of every file here is enforced by the masterplan projection-rederivation gate (cross-artifact-agreement, masterplan_projection_stale), whose sweep glob covers exactly this subtree; scope deliberately narrowed from plan/fabric-loop/ to the swept subtree per independent-review finding (ADR-0609 review, minor 2).",
@@ -516,10 +704,6 @@
     {
       "anchor": "ADR-0556 D1: the cache-warmth classification policy-as-data — reached by its named consumers (interim CI quick-wins, the W3 NativeLink CAS vertical, the future cache-policy-conformance gate) and by ADR-0556 related_specs",
       "prefix": "specs/cache-warmth-policy.json"
-    },
-    {
-      "anchor": "ADR-0562 §2: the CLOSED capability registry policy-as-data — the single source of truth for the capability-first repo organization, reached by the ADR-0562 deterministic placement rule + the §6 membership lint (its named consumer) + ADR-0562 related_specs; held at specs/ until the governance/ top-level dir exists",
-      "prefix": "specs/capability-registry.json"
     },
     {
       "anchor": "ADR-0515 run-observability packet amendment: the canonical cloud-ci/oya-ci required-context status packet schema is the reviewed machine-readable contract consumed by the firewall run-observability validator and its fixture corpus.",
@@ -614,6 +798,10 @@
       "prefix": "storage/drive/manifest.json"
     },
     {
+      "anchor": "INV-DOC-9 / docs AGENTS operating contract: forever home for the per-dispatch Tier-2 swarm agent ritual checklist (CHK-SWARM-RITUAL); session rules under .cursor/rules MUST cite this path. Brand-free process meta — not merge authority.",
+      "prefix": "templates/checklists/swarm-agent-ritual.md"
+    },
+    {
       "anchor": "ADR-0541: Buck package marker for the tenancy capability residual corpus target. This package keeps the capability's rehomed service docs, manifests, contracts and OpenSLO YAML inside the Buck2 corpus graph after the capability-first rehome; without it those files leave buck2-packaged space entirely (measured across nine roots: 996 YAML files, unpackaged 1069 -> 75).",
       "prefix": "tenancy/BUCK"
     },
@@ -642,13 +830,28 @@
       "prefix": "tools/opensk-vendored/UPSTREAM-CONFIG.json"
     },
     {
-      "anchor": "ADR-0711 D-9: tools/swarm process-kit birth aborted on #1644 (automation-language-policy); deferred to .grok/ Rust-first. Prefix retained as tombstone / do-not-birth marker until .grok/ lands.",
-      "prefix": "tools/swarm/",
-      "status": "deferred"
+      "anchor": "ADR-0711 D-9: tools/swarm process-kit birth aborted on #1644 (automation-language-policy). Forever home encoded: ci/process-kit/** (Buck //ci/process-kit:…) + ci/facade/harness/{daemon-hotset,perimeter}.v1.json. Prefix retained as tombstone / do-not-birth marker.",
+      "prefix": "tools/swarm/"
     },
     {
       "anchor": "ADR-0541: Buck package marker for the workflow capability residual corpus target. This package keeps the capability's rehomed service docs, manifests, contracts and OpenSLO YAML inside the Buck2 corpus graph after the capability-first rehome; without it those files leave buck2-packaged space entirely (measured across nine roots: 996 YAML files, unpackaged 1069 -> 75).",
       "prefix": "workflow/BUCK"
+    },
+    {
+      "anchor": "ADR-0555 + ADR-0711 envelope hygiene (oyatie-0s8 / #1651 hub-elevate): JudgmentNote recording that capability-root hub deltas were stripped from integ/workflow and elevated to forever owners (reachability→integ/specs tip-free). Exact-path registration; grants no merge authority.",
+      "prefix": "workflow/evidence/hub-elevate-oyatie-0s8.md"
+    },
+    {
+      "anchor": "ADR-0562 capability-root + oyatie-0s8 tip-free packet (PR #1651 plane): the workflow capability service manifest — microservice/tier/bounded-context descriptor for the registered workflow capability. Not crate-resident. EXACT path beside workflow/BUCK; does not claim workflow-engine/forms/tasks/studio subtree manifests.",
+      "prefix": "workflow/manifest.json"
+    },
+    {
+      "anchor": "ADR-0555 + capability-interior stale-path hygiene (oyatie-0s8 / #1651): Accepted JudgmentNote documenting verified in-tree retargets under workflow/**. Exact path; process evidence only — not merge authority.",
+      "prefix": "workflow/stale-path-hygiene-note.md"
+    },
+    {
+      "anchor": "ADR-0716: weekly non-blocking buck2 build //... honesty smoke keeping the local hermetic graph from rotting; never merge authority.",
+      "prefix": ".github/workflows/buck2-weekly-smoke.yml"
     }
   ]
 }

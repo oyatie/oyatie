@@ -10,7 +10,7 @@ related:
   - .omc/plans/MASTERPLAN.md
   - docs/templates/phase-index-template.md
   - docs/templates/milestone-index-template.md
-  - docs/checklists/per-implementation-plan-checklist.md
+  - templates/checklists/per-implementation-plan-checklist.md
 adrs_cited:
   - ADR-0054  # scaffold-claim pattern
   - ADR-0052  # inventory ledger (migration-class IPs)
@@ -92,10 +92,10 @@ $ <sanctioned command>                                        # expect: <capture
 
 ## Done criteria
 
-- [ ] `docs/AGENTS.md §Done-Definition checklist` D1-D18 walked for merge readiness; D19 post-merge closeout owner/packet slot identified (see `docs/checklists/done-definition-checklist.md`).
+- [ ] `docs/AGENTS.md §Done-Definition checklist` D1-D18 walked for merge readiness.
 - [ ] All acceptance commands PASS; outputs captured in PR `## Verification`.
-- [ ] Dependency additions cleared the Buck2/cloud-ci supply-chain lane and are named in PR `## Traceability`.
-- [ ] Audit-chain `EVT-<topic>` emitted; ID pasted in PR `## Evidence`.
+- [ ] Dependency additions cleared the Cargo/cloud-ci supply-chain lane and are named in PR `## Summary`.
+- [ ] Audit-chain `EVT-<topic>` emitted; ID pasted in PR `## Verification` when required.
 - [ ] Phase INDEX `§Implementation Plans` row updated to `merged`.
 - [ ] Inventory ledger row added if migration-class (per ADR-0052).
 

@@ -11,10 +11,8 @@
 pub mod registry_view;
 pub mod status;
 
-pub use registry_view::{partition_views, RegistryViews};
-pub use status::{
-    CapabilityStatus, CapabilityStatusParseError, CapabilityStatusTransitionError,
-};
+pub use registry_view::{RegistryViews, partition_views};
+pub use status::{CapabilityStatus, CapabilityStatusParseError, CapabilityStatusTransitionError};
 
 use std::fmt;
 
@@ -127,7 +125,7 @@ pub struct Capability {
     pub owner_capability_id: Option<CapabilityId>, // data_class: INTERNAL_ONLY
     /// Publication lifecycle state; starts `Active` and transitions via
     /// [`Capability::transition_status`].  Autonomy tier is **never** affected.
-    pub status: CapabilityStatus,                  // data_class: INTERNAL_ONLY
+    pub status: CapabilityStatus, // data_class: INTERNAL_ONLY
 }
 
 impl Capability {

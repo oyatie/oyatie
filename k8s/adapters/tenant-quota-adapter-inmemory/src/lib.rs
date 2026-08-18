@@ -14,9 +14,7 @@
 use std::collections::BTreeMap;
 use std::sync::{Arc, Mutex};
 
-use k8s_tenant_quota_api::{
-    QuotaAdminPort, QuotaDecisionPort, QuotaPortError, evaluate,
-};
+use k8s_tenant_quota_api::{QuotaAdminPort, QuotaDecisionPort, QuotaPortError, evaluate};
 use k8s_tenant_quota_kernel::{
     ProvisionRequest, QuotaDecision, TenantId, TenantQuota, TenantUsage,
 };
@@ -137,9 +135,7 @@ impl QuotaAdminPort for InMemoryQuotaStore {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use k8s_tenant_quota_kernel::{
-        ProvisionRequest, QuotaDecision, TenantQuota, TenantUsage,
-    };
+    use k8s_tenant_quota_kernel::{ProvisionRequest, QuotaDecision, TenantQuota, TenantUsage};
 
     fn quota(tenant: &str) -> TenantQuota {
         TenantQuota::new(tenant, 5, 10, 32, 128).unwrap()

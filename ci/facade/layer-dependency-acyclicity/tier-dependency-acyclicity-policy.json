@@ -45,7 +45,7 @@
     "cloud",
     "oya"
   ],
-  "capability_registry_path": "specs/capability-registry.json",
+  "capability_registry_path": "governance/capability-registry.json",
   "capability_roots": [
     "audit",
     "cell",

@@ -3,11 +3,11 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
 use oya_intelligence_rag_api::{
-    retrieve_foundry_rag_from_api, FoundryRagApiAuthorization, FoundryRagApiBoundaryContext,
-    FoundryRagApiPrincipal, FoundryRagConsentReceiptRequest, FoundryRagIndexedDocument,
-    FoundryRagRetrieveApiError, FoundryRagRetrieveApiErrorCode, FoundryRagRetrieveApiRequest,
-    FoundryRagRetrieveApiStatus, FoundryRagRetrieveDirectory, FoundryRagRetrieveIdempotencyLedger,
-    FoundryRagRetrieveRequest, FOUNDRY_RAG_OPENAPI_CONTRACT, FOUNDRY_RAG_RETRIEVE_SURFACE,
+    FOUNDRY_RAG_OPENAPI_CONTRACT, FOUNDRY_RAG_RETRIEVE_SURFACE, FoundryRagApiAuthorization,
+    FoundryRagApiBoundaryContext, FoundryRagApiPrincipal, FoundryRagConsentReceiptRequest,
+    FoundryRagIndexedDocument, FoundryRagRetrieveApiError, FoundryRagRetrieveApiErrorCode,
+    FoundryRagRetrieveApiRequest, FoundryRagRetrieveApiStatus, FoundryRagRetrieveDirectory,
+    FoundryRagRetrieveIdempotencyLedger, FoundryRagRetrieveRequest, retrieve_foundry_rag_from_api,
 };
 
 fn valid_request() -> FoundryRagRetrieveApiRequest {
@@ -171,16 +171,20 @@ fn retrieves_tenant_scoped_citations_and_replays_idempotently() {
     assert_eq!(first.data.tenant_id, "tenant-acme");
     assert_eq!(first.data.namespace, "foundry.workflow");
     assert_eq!(first.data.citations.len(), 2);
-    assert!(first
-        .data
-        .citations
-        .iter()
-        .all(|citation| citation.tenant_id == "tenant-acme"));
-    assert!(first
-        .data
-        .citations
-        .iter()
-        .all(|citation| citation.data_class != "PUBLIC"));
+    assert!(
+        first
+            .data
+            .citations
+            .iter()
+            .all(|citation| citation.tenant_id == "tenant-acme")
+    );
+    assert!(
+        first
+            .data
+            .citations
+            .iter()
+            .all(|citation| citation.data_class != "PUBLIC")
+    );
     assert!(first.data.query_hash.starts_with("fnv1a64:"));
     assert_eq!(ledger.len(), 1);
 

@@ -81,10 +81,7 @@ pub struct SafetySignal {
 }
 
 impl SafetySignal {
-    pub const fn critical(
-        category: CriticalSafetyCategory,
-        data_class: EvidenceDataClass,
-    ) -> Self {
+    pub const fn critical(category: CriticalSafetyCategory, data_class: EvidenceDataClass) -> Self {
         Self {
             category,
             data_class,
@@ -101,14 +98,14 @@ pub enum ManualReviewState {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct SafetyEnforcementDecision {
-    pub blocked: bool,                          // data_class: INTERNAL_ONLY
-    pub quarantined: bool,                      // data_class: INTERNAL_ONLY
+    pub blocked: bool,                           // data_class: INTERNAL_ONLY
+    pub quarantined: bool,                       // data_class: INTERNAL_ONLY
     pub secondary_agentic_review_required: bool, // data_class: INTERNAL_ONLY
-    pub secondary_review_completed: bool,       // data_class: INTERNAL_ONLY
-    pub secondary_review_flagged_unsafe: bool,  // data_class: INTERNAL_ONLY
-    pub manual_review: ManualReviewState,       // data_class: INTERNAL_ONLY
-    pub tenant_may_override: bool,              // data_class: INTERNAL_ONLY
-    pub signals_to_tenant_policy: bool,         // data_class: INTERNAL_ONLY
+    pub secondary_review_completed: bool,        // data_class: INTERNAL_ONLY
+    pub secondary_review_flagged_unsafe: bool,   // data_class: INTERNAL_ONLY
+    pub manual_review: ManualReviewState,        // data_class: INTERNAL_ONLY
+    pub tenant_may_override: bool,               // data_class: INTERNAL_ONLY
+    pub signals_to_tenant_policy: bool,          // data_class: INTERNAL_ONLY
 }
 
 pub fn enforce_safety_signals(signals: &[SafetySignal]) -> SafetyEnforcementDecision {
@@ -224,10 +221,7 @@ pub fn triggered_evidence_capture_policy(data_class: EvidenceDataClass) -> Evide
     let retention = default_retention_policy_for(data_class);
     EvidenceCapturePolicy {
         raw_payload_stored: true,
-        encrypted_evidence_handle: Some(format!(
-            "evidence-ref://sealed/{:?}",
-            data_class
-        )),
+        encrypted_evidence_handle: Some(format!("evidence-ref://sealed/{:?}", data_class)),
         ttl: retention.ttl,
         visibility: EvidenceVisibility::RedactedStructuredEvidenceOnly,
         raw_access_requires_audited_break_glass: true,
@@ -252,10 +246,10 @@ impl RetentionOverlay {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct TenantDataClassOverlay {
-    pub tenant_id: String,                     // data_class: INTERNAL_ONLY
-    pub source_class: EvidenceDataClass,       // data_class: INTERNAL_ONLY
-    pub mapped_class: EvidenceDataClass,       // data_class: INTERNAL_ONLY
-    pub retention_overlay: RetentionOverlay,   // data_class: INTERNAL_ONLY
+    pub tenant_id: String,                   // data_class: INTERNAL_ONLY
+    pub source_class: EvidenceDataClass,     // data_class: INTERNAL_ONLY
+    pub mapped_class: EvidenceDataClass,     // data_class: INTERNAL_ONLY
+    pub retention_overlay: RetentionOverlay, // data_class: INTERNAL_ONLY
 }
 
 impl TenantDataClassOverlay {
@@ -298,7 +292,9 @@ impl CentralDataClassTaxonomy {
             return Err(SafetyPolicyError::DataClassDowngrade);
         }
         match overlay.retention_overlay {
-            RetentionOverlay::RawAccessWithoutBreakGlass => Err(SafetyPolicyError::RawAccessExpansion),
+            RetentionOverlay::RawAccessWithoutBreakGlass => {
+                Err(SafetyPolicyError::RawAccessExpansion)
+            }
             RetentionOverlay::ShorterTtl(ttl) => {
                 let default_ttl = default_retention_policy_for(overlay.mapped_class).ttl;
                 if ttl <= default_ttl {
@@ -382,9 +378,7 @@ impl TokenizationPolicy {
         }
     }
 
-    pub fn long_lived_without_named_workflow(
-        tenant_id: &str,
-    ) -> Result<Self, SafetyPolicyError> {
+    pub fn long_lived_without_named_workflow(tenant_id: &str) -> Result<Self, SafetyPolicyError> {
         let _ = tenant_id;
         Err(SafetyPolicyError::MissingWorkflow)
     }

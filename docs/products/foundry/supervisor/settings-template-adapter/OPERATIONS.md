@@ -12,9 +12,13 @@ doc_status: published
 
 To manually render settings for all accounts:
 
+> **Retired path:** `templates/foundry-supervisor/` was deleted (hooks pointed at
+> missing `tools/foundry-supervisor-*` binaries). Pass a live `--templates-root`
+> when one exists; do not recreate the deleted tree.
+
 ```bash
 cargo run -p oya-dev-cli -- settings-template render \
-  --templates-root templates/foundry-supervisor \
+  --templates-root <live-templates-root> \
   --accounts-root registry/accounts \
   --home-dir ~
 
@@ -27,7 +31,7 @@ To check for drift across all accounts:
 
 ```bash
 cargo run -p oya-dev-cli -- gate validate settings-drift \
-  --templates-root templates/foundry-supervisor \
+  --templates-root <live-templates-root> \
   --accounts-root registry/accounts \
   --report-out .omc/state/settings-drift-report.json
 

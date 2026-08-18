@@ -42,7 +42,10 @@ impl Env {
 
     /// Build an env from caller-supplied slices (for consumers that already carry their own
     /// var lists; keeps migrated signatures behavior-identical).
-    pub fn from_slices(string_vars: &[(String, String)], glob_vars: &[(String, Vec<String>)]) -> Self {
+    pub fn from_slices(
+        string_vars: &[(String, String)],
+        glob_vars: &[(String, Vec<String>)],
+    ) -> Self {
         Env {
             string_vars: string_vars.iter().cloned().collect(),
             glob_vars: glob_vars.iter().cloned().collect(),
@@ -106,10 +109,10 @@ pub fn eval_string_with(node: &ExprNode, env: &Env, bound: Option<(&str, &str)>)
     match &node.expr {
         Expr::Str(s) => Some(s.clone()),
         Expr::Ident(name) => {
-            if let Some((var, value)) = bound {
-                if name == var {
-                    return Some(value.to_owned());
-                }
+            if let Some((var, value)) = bound
+                && name == var
+            {
+                return Some(value.to_owned());
             }
             env.string_vars.get(name).cloned()
         }
@@ -139,10 +142,10 @@ pub fn dict_values(dict: &DictExpr, env: &Env, files: &[String]) -> Vec<String> 
             return out;
         };
         for file in files {
-            if patterns.iter().any(|pattern| glob_match(pattern, file)) {
-                if let Some(value) = eval_string_with(&comp.value, env, Some((&comp.var, file))) {
-                    out.push(value);
-                }
+            if patterns.iter().any(|pattern| glob_match(pattern, file))
+                && let Some(value) = eval_string_with(&comp.value, env, Some((&comp.var, file)))
+            {
+                out.push(value);
             }
         }
         return out;
@@ -194,10 +197,10 @@ pub fn find_target<'doc>(
 ) -> Option<&'doc CallExpr> {
     doc.stmts.iter().find_map(|stmt| {
         let Stmt::Call(call) = stmt else { return None };
-        if let Some(kinds) = kinds {
-            if !kinds.contains(&call.func.as_str()) {
-                return None;
-            }
+        if let Some(kinds) = kinds
+            && !kinds.contains(&call.func.as_str())
+        {
+            return None;
         }
         let name_arg = call.kwarg("name")?;
         if eval_string(&name_arg.value, env).as_deref() == Some(target_name) {

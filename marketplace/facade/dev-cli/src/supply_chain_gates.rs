@@ -701,9 +701,7 @@ fn supply_chain_attestation_id(
 ) -> String {
     match attestation {
         intelligence_catalog_domain::SupplyChainAttestation::SourceOnly => "source-only",
-        intelligence_catalog_domain::SupplyChainAttestation::LicenseChecked => {
-            "license-checked"
-        }
+        intelligence_catalog_domain::SupplyChainAttestation::LicenseChecked => "license-checked",
         intelligence_catalog_domain::SupplyChainAttestation::Sbom => "sbom",
         intelligence_catalog_domain::SupplyChainAttestation::SignedProvenance => {
             "signed-provenance"

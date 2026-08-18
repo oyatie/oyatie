@@ -230,7 +230,6 @@ mod tests {
     use crate::config::{ClusterEndpoint, NodeName};
     use crate::rendered::InMemoryFileSink;
     use crate::secrets::REQUIRED_SECRETS;
-    use std::collections::{BTreeMap, BTreeSet};
     use os_kernel::NodeAddress;
     use os_secrets_domain::certsans::CertSans;
     use os_secrets_domain::etcd::EtcdController;
@@ -239,6 +238,7 @@ mod tests {
         ModelPemSecretMaterialEncoder, SecretsBundle, kubernetes_secret_entries,
         kubernetes_secret_entries_with_encoder,
     };
+    use std::collections::{BTreeMap, BTreeSet};
 
     fn cfg(control_plane: bool) -> K8sConfig {
         K8sConfig {

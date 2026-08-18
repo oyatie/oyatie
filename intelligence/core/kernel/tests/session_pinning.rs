@@ -8,8 +8,8 @@ use std::time::{Duration, Instant};
 
 use intelligence_kernel::{
     AgentId, AuthzDecision, AuthzGate, AuthzRequest, OAuthSubscription, Provider, SeatId,
-    SeatOutcome, SelectionStrategy, SubscriptionId, SubscriptionPool, SubscriptionState, TenantId,
-    derive_sticky_key, prompt_cache_key,
+    SeatOutcome, SelectionStrategy, StickyLeaseSpec, SubscriptionId, SubscriptionPool,
+    SubscriptionState, TenantId, derive_sticky_key, prompt_cache_key,
 };
 
 const SESSION_TTL: Duration = Duration::from_secs(6 * 60 * 60);
@@ -74,9 +74,7 @@ fn wire_session_id_pins_to_one_seat_for_the_default_ttl() {
         &agent(),
         &gate,
         now,
-        &key,
-        SESSION_TTL,
-        1,
+        StickyLeaseSpec::new(&key, SESSION_TTL, 1),
     )
     .expect("first lease");
     let pinned = first.seat_id().clone();
@@ -90,9 +88,7 @@ fn wire_session_id_pins_to_one_seat_for_the_default_ttl() {
         &agent(),
         &gate,
         later,
-        &key,
-        SESSION_TTL,
-        1,
+        StickyLeaseSpec::new(&key, SESSION_TTL, 1),
     )
     .expect("lease within ttl");
     assert_eq!(again.seat_id(), &pinned, "pin must hold within the 6h TTL");
@@ -112,9 +108,7 @@ fn rebind_on_429_failover_moves_off_the_cooling_seat() {
         &agent(),
         &gate,
         now,
-        &key,
-        SESSION_TTL,
-        1,
+        StickyLeaseSpec::new(&key, SESSION_TTL, 1),
     )
     .unwrap();
     let pinned = first.seat_id().clone();
@@ -127,9 +121,7 @@ fn rebind_on_429_failover_moves_off_the_cooling_seat() {
         &agent(),
         &gate,
         now + Duration::from_secs(1),
-        &key,
-        SESSION_TTL,
-        1,
+        StickyLeaseSpec::new(&key, SESSION_TTL, 1),
     )
     .expect("rebind after 429");
     assert_ne!(
@@ -153,9 +145,7 @@ fn message_fingerprint_path_pins_when_no_wire_id() {
         &agent(),
         &gate,
         now,
-        &key,
-        SESSION_TTL,
-        1,
+        StickyLeaseSpec::new(&key, SESSION_TTL, 1),
     )
     .unwrap();
     let pinned = first.seat_id().clone();
@@ -167,9 +157,7 @@ fn message_fingerprint_path_pins_when_no_wire_id() {
         &agent(),
         &gate,
         now + Duration::from_secs(5),
-        &key,
-        SESSION_TTL,
-        1,
+        StickyLeaseSpec::new(&key, SESSION_TTL, 1),
     )
     .unwrap();
     assert_eq!(again.seat_id(), &pinned);

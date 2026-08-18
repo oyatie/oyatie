@@ -243,6 +243,42 @@ pub fn frontmatter(text: &str) -> Option<&str> {
     Some(&rest[..end])
 }
 
+/// Does this document DECLARE ITSELF an authority surface while `declared` omits it?
+///
+/// The rejected-authority rule is scoped to `authority_surfaces`, a hand-curated list, and a
+/// hand-curated list can only ever check what someone remembered to put in it. The list held
+/// `docs/AGENTS.md` — which mandates Rejected ADR-0347 as active doctrine — while
+/// `docs/AGENTS-OPERATING-CONTRACT.md` asserted the SAME rejected doctrine under its own
+/// `## ADR-0347` heading, one directory over, and was structurally invisible: the rule cannot fire
+/// on a surface nobody declared. That is the omission half of the staleness problem, and the
+/// declared-half guard (`every_declared_authority_surface_exists_and_was_scanned`) cannot see it,
+/// because it iterates the very list that is incomplete.
+///
+/// The remedy is to stop trusting the list as the definition and derive candidates from what each
+/// document says about ITSELF. `marker` is a whole frontmatter line, supplied as policy DATA
+/// (`authority_surface_marker`), so another repo adopts this by repointing it. Read from the `---`
+/// head only: the same string in body prose is a document TALKING about operating contracts, not
+/// claiming to be one, and matching it there would manufacture surfaces.
+///
+/// Per-file rather than corpus-wide on purpose — the caller already streams every tracked file's
+/// text through the walk, so a per-file answer keeps the 16.5k-file corpus out of memory.
+#[must_use]
+pub fn undeclared_authority_surface(
+    path: &str,
+    text: &str,
+    marker: &str,
+    declared: &[String],
+) -> Option<String> {
+    let head = frontmatter(text)?;
+    if !head.lines().any(|line| line.trim() == marker) {
+        return None;
+    }
+    if declared.iter().any(|surface| surface == path) {
+        return None;
+    }
+    Some(path.to_owned())
+}
+
 /// A fail-closed frontmatter parse error.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct FrontmatterError(pub String);
@@ -303,7 +339,11 @@ pub fn parse_supersession(
             // two-space); they sit under unrelated keys, so `active` is None for them and
             // the match below still ignores them exactly as before. What changes is only
             // that a supersession edge written that way is now SEEN.
-            if raw.len() > trimmed.len() { trimmed.strip_prefix("- ") } else { None }
+            if raw.len() > trimmed.len() {
+                trimmed.strip_prefix("- ")
+            } else {
+                None
+            }
         };
         if let Some(item) = indented_item {
             // A block-list item belongs to whichever list key opened it, and to nothing otherwise.
@@ -334,7 +374,9 @@ pub fn parse_supersession(
             }
             "supersedes" => {
                 if supersedes.is_some() {
-                    return Err(FrontmatterError(format!("{path}: duplicate supersedes key")));
+                    return Err(FrontmatterError(format!(
+                        "{path}: duplicate supersedes key"
+                    )));
                 }
                 supersedes = Some(ids_in(value));
                 active = Some("supersedes");
@@ -702,7 +744,10 @@ pub fn evaluate(records: &[AdrRecord], citations: &[CitationLine], policy: &Poli
             Resolution::Ambiguous(apexes) => findings.push(Finding {
                 code: CODE_AMBIGUOUS_CLOSURE.to_owned(),
                 subject: record.id.clone(),
-                detail: format!("closure reaches {} distinct apexes: {apexes:?}", apexes.len()),
+                detail: format!(
+                    "closure reaches {} distinct apexes: {apexes:?}",
+                    apexes.len()
+                ),
                 blocking: false,
             }),
             other => findings.push(Finding {
@@ -841,7 +886,8 @@ mod tests {
     // superseded_by and the record read as having no successor at all.
     #[test]
     fn a_four_space_supersession_list_is_parsed() {
-        let doc = "---\nstatus: Superseded\nsuperseded_by:\n    - ADR-0700\n    - ADR-0701\n---\nbody\n";
+        let doc =
+            "---\nstatus: Superseded\nsuperseded_by:\n    - ADR-0700\n    - ADR-0701\n---\nbody\n";
         let parsed = parse_supersession("ADR-0001", "docs/adr-archive/ADR-0001-x.md", false, doc)
             .expect("parses");
         assert_eq!(
@@ -874,7 +920,11 @@ mod tests {
         let line = "historical: [ADR-0111](docs/adr-archive/ADR-0111-x.md); current rule is \
                     [ADR-0709](docs/decisions/ADR-0709-general-live-apex.md)";
         let (cited, context) = scan_line(line);
-        assert_eq!(cited, vec!["ADR-0709".to_owned()], "only the decisions/ path is a citation");
+        assert_eq!(
+            cited,
+            vec!["ADR-0709".to_owned()],
+            "only the decisions/ path is a citation"
+        );
         assert!(
             !context.contains(&"ADR-0111".to_owned()),
             "an archive link states the ADR is historical; it is not evidence about the apex"
@@ -976,7 +1026,10 @@ mod tests {
 
     #[test]
     fn a_supersession_cycle_does_not_hang() {
-        let records = vec![archived("ADR-0001", &["ADR-0002"]), archived("ADR-0002", &["ADR-0001"])];
+        let records = vec![
+            archived("ADR-0001", &["ADR-0002"]),
+            archived("ADR-0002", &["ADR-0001"]),
+        ];
         assert_eq!(Oracle::new(&records).resolve("ADR-0001"), Resolution::Cycle);
     }
 
@@ -985,14 +1038,17 @@ mod tests {
     #[test]
     fn a_new_bad_citation_fails_the_gate() {
         let good = cite("docs/x.md", &["ADR-0700"], &["ADR-0349"], false);
-        let clean = evaluate(&chain(), &[good.clone()], &permissive());
+        let clean = evaluate(&chain(), std::slice::from_ref(&good), &permissive());
         assert!(!clean.failed(), "control corpus must be green: {clean:?}");
 
         // Inject exactly the measured defect: the path was rewritten to the wrong apex while the
         // sentence still names the ADR it is about.
         let bad = cite("docs/x.md", &["ADR-0709"], &["ADR-0349"], false);
         let verdict = evaluate(&chain(), &[good, bad], &permissive());
-        assert!(verdict.failed(), "the injected bad citation must fail closed");
+        assert!(
+            verdict.failed(),
+            "the injected bad citation must fail closed"
+        );
         assert_eq!(verdict.count(CODE_CITATION_MISMATCH), 1);
     }
 
@@ -1049,7 +1105,11 @@ mod tests {
         records.push(proposed);
 
         let cited_as_path = cite("CLAUDE.md", &["ADR-0710"], &[], true);
-        let verdict = evaluate(&records, &[cited_as_path.clone()], &permissive());
+        let verdict = evaluate(
+            &records,
+            std::slice::from_ref(&cited_as_path),
+            &permissive(),
+        );
         assert_eq!(verdict.count(CODE_REJECTED_AUTHORITY), 1);
         assert!(verdict.failed());
         assert_eq!(
@@ -1090,7 +1150,7 @@ mod tests {
         rejected.status = "Rejected".to_owned();
         records.push(rejected);
         let line = cite("CLAUDE.md", &[], &["ADR-0111"], true);
-        let verdict = evaluate(&records, &[line.clone()], &permissive());
+        let verdict = evaluate(&records, std::slice::from_ref(&line), &permissive());
         assert_eq!(verdict.count(CODE_REJECTED_AUTHORITY), 1);
         assert!(verdict.failed());
 
@@ -1179,7 +1239,7 @@ mod tests {
         let line = cite("docs/x.md", &["ADR-0709"], &["ADR-0349"], false);
 
         // Control: with the oracle intact this shape is red for the RIGHT reason.
-        let intact = evaluate(&chain(), &[line.clone()], &policy);
+        let intact = evaluate(&chain(), std::slice::from_ref(&line), &policy);
         assert_eq!(intact.count(CODE_VACUOUS_SCAN), 0);
         assert_eq!(intact.count(CODE_CITATION_MISMATCH), 1);
 
@@ -1203,6 +1263,72 @@ mod tests {
         assert_eq!(frontmatter("---\na: 1\n---\nbody\n"), Some("a: 1"));
         assert_eq!(frontmatter("body\n---\na: 1\n---\n"), None);
         assert_eq!(frontmatter("no frontmatter"), None);
+    }
+
+    // THE OMISSION GUARD, proven to FIRE without a filesystem. The live-tree binding asserts this
+    // returns nothing; that assertion is only evidence if the function is capable of returning
+    // something, and only the synthetic case can show that while the corpus is clean.
+    //
+    // Executed RED before the fix, on the real tree, by the live-tree binding
+    // `a_document_declaring_itself_an_operating_contract_is_a_declared_surface` at
+    // tests/adr_citation_closure.rs:640 — see the full panic text recorded there.
+    #[test]
+    fn a_document_declaring_the_marker_and_missing_from_the_list_is_reported() {
+        const MARKER: &str = "doc_class: Operating-Contract";
+        let doc = "---\ndoc_class: Operating-Contract\nauthority_tier: 2\n---\n# body\n";
+        let declared = vec!["docs/AGENTS.md".to_owned()];
+
+        assert_eq!(
+            undeclared_authority_surface("docs/OTHER-CONTRACT.md", doc, MARKER, &declared),
+            Some("docs/OTHER-CONTRACT.md".to_owned()),
+            "a document that declares itself an operating contract and is not in the list is \
+             exactly the invisible-surface case this guard exists for"
+        );
+        assert_eq!(
+            undeclared_authority_surface("docs/AGENTS.md", doc, MARKER, &declared),
+            None,
+            "already declared"
+        );
+        assert_eq!(
+            undeclared_authority_surface(
+                "docs/notes.md",
+                "---\ndoc_class: Reference\n---\nbody\n",
+                MARKER,
+                &declared
+            ),
+            None,
+            "a different doc_class claims nothing"
+        );
+        assert_eq!(
+            undeclared_authority_surface(
+                "docs/README.md",
+                "no frontmatter at all\n",
+                MARKER,
+                &declared
+            ),
+            None,
+            "no frontmatter, no self-declaration"
+        );
+    }
+
+    // The marker is read from the HEAD ONLY. A document that DISCUSSES operating contracts — this
+    // repo has several, and the mapping document for this very goal is one — must not be promoted
+    // into an authority surface by quoting the key in its prose. Body matching would silently widen
+    // the rejected-authority rule onto commentary.
+    #[test]
+    fn the_marker_is_read_from_frontmatter_and_never_from_body_prose() {
+        const MARKER: &str = "doc_class: Operating-Contract";
+        assert_eq!(
+            undeclared_authority_surface(
+                "docs/commentary.md",
+                "---\ndoc_class: Reference\n---\nSurfaces are keyed by `doc_class: \
+                 Operating-Contract` in frontmatter.\ndoc_class: Operating-Contract\n",
+                MARKER,
+                &[]
+            ),
+            None,
+            "the same line in the BODY is a document talking about surfaces, not claiming to be one"
+        );
     }
 
     const HEAD: &str = "---\nstatus: Superseded\nsupersedes: []\nsuperseded_by: [ADR-0700]\n---\n";
@@ -1229,9 +1355,13 @@ mod tests {
 
     #[test]
     fn short_form_and_prose_wrapped_ids_parse() {
-        let record =
-            parse_supersession("ADR-0500", "p", false, "---\nsuperseded_by: [ADR-335, ADR-562]\n---\n")
-                .unwrap();
+        let record = parse_supersession(
+            "ADR-0500",
+            "p",
+            false,
+            "---\nsuperseded_by: [ADR-335, ADR-562]\n---\n",
+        )
+        .unwrap();
         assert_eq!(record.superseded_by, ["ADR-0335", "ADR-0562"]);
 
         let partial = parse_supersession(
@@ -1256,17 +1386,26 @@ mod tests {
     #[test]
     fn empty_tilde_and_prose_values_parse_as_no_edge() {
         for value in ["[]", "~", "none"] {
-            let record =
-                parse_supersession("ADR-0500", "p", false, &format!("---\nsuperseded_by: {value}\n---\n"))
-                    .unwrap();
+            let record = parse_supersession(
+                "ADR-0500",
+                "p",
+                false,
+                &format!("---\nsuperseded_by: {value}\n---\n"),
+            )
+            .unwrap();
             assert!(record.superseded_by.is_empty(), "{value}");
         }
     }
 
     #[test]
     fn a_self_edge_is_dropped_rather_than_looped_on() {
-        let record =
-            parse_supersession("ADR-0255", "p", false, "---\nsuperseded_by: [ADR-0255]\n---\n").unwrap();
+        let record = parse_supersession(
+            "ADR-0255",
+            "p",
+            false,
+            "---\nsuperseded_by: [ADR-0255]\n---\n",
+        )
+        .unwrap();
         assert!(record.superseded_by.is_empty());
     }
 
@@ -1295,7 +1434,8 @@ mod tests {
 
     #[test]
     fn scan_line_reads_relative_links_as_paths_and_link_text_as_context() {
-        let (cited, context) = scan_line("[ADR-0346](decisions/ADR-0700-ci-admission-live-apex.md)");
+        let (cited, context) =
+            scan_line("[ADR-0346](decisions/ADR-0700-ci-admission-live-apex.md)");
         assert_eq!(cited, ["ADR-0700"]);
         assert_eq!(context, ["ADR-0346"]);
     }
@@ -1419,7 +1559,10 @@ mod tests {
 
         let verdict = evaluate(&[apex_record, shadow], &[], &permissive());
         assert_eq!(verdict.count(CODE_DUPLICATE_ID), 1);
-        assert!(verdict.failed(), "a duplicate id must fail closed, not be silently resolved");
+        assert!(
+            verdict.failed(),
+            "a duplicate id must fail closed, not be silently resolved"
+        );
     }
 
     // FINDING 8. One cumulative `seen` set across sibling branches made a DAG look like a cycle:
@@ -1441,7 +1584,10 @@ mod tests {
         );
 
         // A genuine loop must still be a loop.
-        let looped = vec![archived("ADR-0010", &["ADR-0011"]), archived("ADR-0011", &["ADR-0010"])];
+        let looped = vec![
+            archived("ADR-0010", &["ADR-0011"]),
+            archived("ADR-0011", &["ADR-0010"]),
+        ];
         assert_eq!(Oracle::new(&looped).resolve("ADR-0010"), Resolution::Cycle);
     }
 

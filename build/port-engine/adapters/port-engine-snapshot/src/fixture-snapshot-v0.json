@@ -1,0 +1,14 @@
+{
+  "language": "go",
+  "snapshot_digest": "sha256:5a3bca44537be2cc8d1cb909616b741e8e4e1d1b879dc231e40dfc56d75e3f7a",
+  "packages": [
+    {
+      "unit_id": "example.com/a",
+      "producer": "bootstrap-go-packages-go-types"
+    },
+    {
+      "unit_id": "example.com/b",
+      "producer": "bootstrap-go-packages-go-types"
+    }
+  ]
+}

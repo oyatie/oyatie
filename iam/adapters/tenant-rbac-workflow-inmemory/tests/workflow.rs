@@ -1,11 +1,11 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
-use iam_tenant_rbac_usecase::prepare_cross_service_workflow_envelope;
 use iam_tenant_rbac_domain::{
     CrossServiceWorkflowInput, DeterministicGate, GateClosureAuthority,
     ObjectGraphRelationshipOwner, TenantRbacService, WorkflowRoutingOwner,
     plan_cross_service_workflow,
 };
+use iam_tenant_rbac_usecase::prepare_cross_service_workflow_envelope;
 use iam_tenant_rbac_workflow_inmemory::{
     InMemoryTenantRbacWorkflowQueue, TenantRbacWorkflowDispatchPort,
     TenantRbacWorkflowDispatchStatus, TenantRbacWorkflowQueueError,

@@ -600,6 +600,38 @@ mod tests {
         assert_eq!(artifacts.report.records, 2);
     }
 
+    /// The rendered index is WRITTEN to `docs/ADR-INDEX.md`, which sits inside the `doc-status`
+    /// lifecycle lane's corpus (`specs/lifecycle-configs/doc-status-lifecycle.json`, glob
+    /// `docs/**/*.md`, `stage_field: doc_status`). That lane's `stage_not_declared` count is frozen
+    /// SHRINK-ONLY at 1921, so an index rendered without the declaration is a `+1` the gate reports
+    /// as `lifecycle_status_baseline_regression: 1921 -> 1922` — measured on this tree by deleting
+    /// the emission and re-running the gate. Nothing else in this crate mentions `doc_status`: the
+    /// string lives at exactly ONE site (the `render_markdown` header), so before this test a single
+    /// deleted line reddened the required context with the diff pointing at whoever touched the ADR
+    /// index rather than at the lane that governs it.
+    ///
+    /// This is the `docs/`-side counterpart of the registrar's
+    /// `catalog_fresh_render_declares_the_api_stability_tier`: a PRODUCER that writes into a
+    /// lifecycle-governed glob must emit that lane's stage field, and the requirement must be
+    /// pinned rather than merely satisfied today.
+    ///
+    /// Line EQUALITY, not `contains` — a nested key, an indented copy, or a commented occurrence
+    /// must not satisfy it, because the lane reads a top-level scalar.
+    #[test]
+    fn rendered_index_declares_the_doc_status_the_doc_status_lane_requires() {
+        let artifacts = generate_adr_index([record(1, "Proposed"), record(2, "Accepted")])
+            .expect("index generated");
+
+        assert!(
+            artifacts
+                .markdown
+                .lines()
+                .any(|line| line == "doc_status: published"),
+            "rendered ADR index must declare `doc_status: published` as a top-level scalar, \
+             or the doc-status lifecycle lane reds at stage_not_declared 1921 -> 1922"
+        );
+    }
+
     #[test]
     fn validates_matching_artifacts() {
         let records = [record(1, "Proposed"), record(2, "Accepted")];

@@ -15,6 +15,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
+use std::sync::OnceLock;
 
 use ci_baseline_ratchet::{
     Baseline, FROZEN_SNAPSHOT_PATH, FrozenBaseline, RATCHET_POLICY_PATH, SIGNOFF_FIXER_COMMAND,
@@ -30,6 +31,10 @@ const ENFORCEMENT_LIVENESS_HOOKS_DIR_ENV: &str = "OYA_CI_ENFORCEMENT_LIVENESS_HO
 const ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS: &str = ".claude/settings.json";
 const ENFORCEMENT_LIVENESS_CODEX_HOOKS: &str = ".codex/hooks.json";
 const ENFORCEMENT_LIVENESS_HOOKS_DIR: &str = "tools/hooks";
+const CARGO_TEST_PRODUCER_ENV: &str = "OYA_CI_CARGO_TEST_PRODUCER_BIN";
+const CARGO_TEST_SCM_FACTS_EMITTER_ENV: &str = "OYA_CI_CARGO_TEST_SCM_FACTS_EMITTER_BIN";
+const CARGO_TEST_REORG_CODEMOD_ENV: &str = "OYA_CI_CARGO_TEST_REORG_CODEMOD_BIN";
+static CARGO_INPUT_MATERIALIZATION: OnceLock<Result<(), String>> = OnceLock::new();
 
 fn repo_root() -> PathBuf {
     let mut dir = std::env::current_dir().expect("current_dir");
@@ -135,6 +140,20 @@ fn detect_renames(root: &Path, merge_base: &str) -> BTreeMap<String, String> {
 /// (the FRIC-1781112000 laundering hole this gate exists to close).
 fn load_frozen_baseline(root: &Path) -> FrozenBaseline {
     let path = frozen_snapshot_path(root);
+    if !path.is_file() {
+        let result = CARGO_INPUT_MATERIALIZATION.get_or_init(|| {
+            let emitter = required_cargo_test_tool(root, CARGO_TEST_SCM_FACTS_EMITTER_ENV)?;
+            let producer = required_cargo_test_tool(root, CARGO_TEST_PRODUCER_ENV)?;
+            let codemod = required_cargo_test_tool(root, CARGO_TEST_REORG_CODEMOD_ENV)?;
+            ci_generated_artifact_freshness::materialize_cargo_test_inventory_inputs(
+                root, &emitter, &producer, &codemod,
+            )
+            .map_err(|error| error.to_string())
+        });
+        if let Err(error) = result {
+            panic!("FAIL-CLOSED: Cargo inventory-input materialization failed: {error}");
+        }
+    }
     let text = fs::read_to_string(&path).unwrap_or_else(|e| {
         panic!(
             "FAIL-CLOSED: merge-base frozen baseline snapshot missing at {} ({e}). The \
@@ -149,6 +168,22 @@ fn load_frozen_baseline(root: &Path) -> FrozenBaseline {
         serde_json::from_str(&text).unwrap_or_else(|e| panic!("parse {}: {e}", path.display()));
     FrozenBaseline::from_value(&value)
         .unwrap_or_else(|e| panic!("invalid frozen baseline snapshot {}: {e}", path.display()))
+}
+
+fn required_cargo_test_tool(root: &Path, variable: &str) -> Result<PathBuf, String> {
+    let value = std::env::var_os(variable)
+        .filter(|value| !value.is_empty())
+        .ok_or_else(|| format!("missing required {variable}"))?;
+    let path = ci_path_resolver_adapters::resolve_cargo_test_binary(root, &value)?;
+    let metadata = fs::symlink_metadata(&path)
+        .map_err(|error| format!("inspect {variable} {}: {error}", path.display()))?;
+    if metadata.file_type().is_symlink() || !metadata.is_file() {
+        return Err(format!(
+            "{variable} must bind a regular non-symlink file, got {}",
+            path.display()
+        ));
+    }
+    Ok(path)
 }
 
 fn load_json(path: &Path) -> Value {
@@ -192,7 +227,7 @@ fn producer_binary(root: &Path, producer_bin: Option<&str>) -> Result<PathBuf, S
             "FAIL-CLOSED: missing OYA_CI_PRODUCER_BIN; Cargo fallback is forbidden".to_owned(),
         );
     };
-    Ok(resolve_bin(root, bin))
+    ci_path_resolver_adapters::resolve_cargo_test_binary(root, std::ffi::OsStr::new(bin))
 }
 
 #[test]
@@ -348,7 +383,13 @@ fn buck_backed_firewall_requires_declared_corpus_env() {
 }
 
 fn fixture_dir(root: &Path) -> PathBuf {
-    root.join("specs/fixtures/cloud-ci-firewall")
+    // naming_sweep forever path; legacy fallback one wave.
+    let forever = root.join("specs/fixtures/ci-baseline-ratchet");
+    if forever.is_dir() {
+        forever
+    } else {
+        root.join("specs/fixtures/cloud-ci-firewall")
+    }
 }
 
 fn current_from_value(value: &Value) -> BTreeMap<String, BTreeMap<String, BTreeSet<String>>> {

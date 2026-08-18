@@ -216,9 +216,11 @@ impl FileTree {
                 continue;
             }
             if let Some(rest) = key.strip_prefix(&prefix)
-                && !rest.is_empty() && !rest.contains('/') {
-                    out.push(key.clone());
-                }
+                && !rest.is_empty()
+                && !rest.contains('/')
+            {
+                out.push(key.clone());
+            }
         }
         out.sort();
         out
@@ -407,9 +409,10 @@ impl Walker {
         };
         if descend {
             if let Some(max) = self.opts.max_depth
-                && depth >= max {
-                    return Ok(());
-                }
+                && depth >= max
+            {
+                return Ok(());
+            }
             let dir = if node.kind == FileKind::Symlink {
                 FileTree::normalize(&node.link_target)
             } else {

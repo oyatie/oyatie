@@ -32,10 +32,7 @@ fn base_input() -> PayrollVarianceInput {
             total("payee_001", 1_010_000), // +1% vs prior
             total("payee_002", 2_020_000), // +1% vs prior
         ],
-        prior_period_totals: vec![
-            total("payee_001", 1_000_000),
-            total("payee_002", 2_000_000),
-        ],
+        prior_period_totals: vec![total("payee_001", 1_000_000), total("payee_002", 2_000_000)],
         variance_tolerance_bps: 500,
         rulepack_ref: "rulepack/kr-payroll-2026".to_owned(),
         rulepack_effective_date: "2026-01-01".to_owned(),
@@ -121,7 +118,9 @@ fn sign_flip() {
 fn dropped_payee() {
     let mut input = base_input();
     // Remove payee_002 from current period entirely
-    input.current_period_totals.retain(|t| t.payee_id != "payee_002");
+    input
+        .current_period_totals
+        .retain(|t| t.payee_id != "payee_002");
 
     let verdict = evaluate_payroll_variance(input).expect("verdict");
 
@@ -169,7 +168,9 @@ fn invalid_evidence_ref() {
 fn new_payee_without_prior_baseline_returns_missing_baseline_error() {
     let mut input = base_input();
     // Add a brand-new payee that has no prior-period entry.
-    input.current_period_totals.push(total("payee_003", 500_000));
+    input
+        .current_period_totals
+        .push(total("payee_003", 500_000));
     // Prior totals still only have payee_001 and payee_002.
 
     assert_eq!(
@@ -201,7 +202,9 @@ fn run_net_variance_bps_equals_sum_of_per_payee_bps() {
 fn dropped_payee_synthetic_line_carries_sentinel_bps_and_anomaly_true() {
     let mut input = base_input();
     // Drop payee_002 from current period.
-    input.current_period_totals.retain(|t| t.payee_id != "payee_002");
+    input
+        .current_period_totals
+        .retain(|t| t.payee_id != "payee_002");
 
     let verdict = evaluate_payroll_variance(input).expect("verdict");
 

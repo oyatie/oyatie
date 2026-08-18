@@ -1,26 +1,12 @@
-# oya-ci-required — the SINGLE canonical blocking required status check (ONE CANONICAL CI).
+# Single canonical required status check: branch protection keys on the `oya-ci-required`
+# context, which is green IFF every constituent lane is green.
 #
-# Authority: ADR-0515 (Phase-0 firewall + one-canonical-CI + cloud-native posture; Accepted
-# 2026-06-07). Rulings: D-CICD-AUTHORITY, ONE CANONICAL CI, D-SEQUENCE (firewall-first),
-# D-DOCTRINE (no false-green / surface-all).
+# Execution engine: the Cargo workspace graph (rust-toolchain.toml pins the toolchain).
+# buck2 is local hermeticity tooling plus a weekly non-blocking smoke;
+# (buck2-weekly-smoke.yml). Inside the merge path, buck2 appears only as the
+# face materializer's internal helper (install-buck2.sh), never as a build/test verdict engine.
 #
-# Design (per FIREWALL-GO-LIVE-RUNBOOK.md Part 2 + CICD-DESIGN-PLAN Stage 1A/1B): the gate
-# lanes fan OUT (fail-fast:false, surface-all) and fan IN to ONE zero-build job named
-# `oya-ci-required` that has NO command set of its own — it is green IFF every constituent
-# gate lane is green. Branch protection keys on that one context name. The GH #983 PR
-# metadata preflight is folded into the affected-set lane so it adds no new workflow shell surface.
-# F-PR5-06 target: the repo-owned controller adapter can produce fail-closed `oya-pr-review`
-# packets from GitHub PR/review APIs, bound to PR + exact head + author + designated eligible
-# reviewer policy + APPROVED verdict + durable review URL. It is deliberately NOT wired here until the trusted
-# controller is deployed and API/readback evidence exists. At cutover it becomes a constituent
-# input to this fan-in; branch protection continues to require only `oya-ci-required`.
-#
-# ░░ LIVE ░░
-# Go-live executed 2026-06-08 (founder-authorized "fully autonomous through both"): the blocking
-# triggers below are paired with making `oya-ci-required` the required status context on `dev`
-# branch protection (FIREWALL-GO-LIVE-RUNBOOK Part 2). This is the SINGLE canonical required CI
-# check — green IFF every constituent gate lane is green. workflow_dispatch remains available only
-# to prove the no-authoritative-base branch fails closed; it cannot synthesize retirement facts.
+# Authority: docs/decisions/ADR-0716-cargo-merge-path-buck2-local-hermeticity.md
 
 name: oya-ci-required
 
@@ -28,21 +14,6 @@ on:
   workflow_dispatch:
   push:
     branches: [dev]
-  # CI-CLASS-FIX (same-SHA double-trigger, 2026-07-10 merge train): `push` is already
-  # dev-only above, so a PR-branch push never double-fires push+pull_request. The actual
-  # repeat-run source was `edited` — CodeRabbit (coderabbitai[bot]) auto-edits the PR body
-  # (walkthrough/summary) ~1-2 min after nearly every push, firing a SECOND pull_request
-  # event for the SAME head SHA. Because `cancel-in-progress` (below) is true for
-  # pull_request, that edit-triggered run cancels the still-running push-triggered
-  # `synchronize` run for that identical SHA, leaving a CANCELLED `oya-ci-required`
-  # check-run instance on a SHA whose later run may still go green — the exact
-  # false-block pattern that forced hand-reruns/empty-commit pushes on ~5 PRs (verified via
-  # gh api: coderabbitai userContentEdits timestamps land within 3-5s of the second run's
-  # created_at on PR #1297, #1322, #1309, #1327). `edited` fires on ANY title/body/base
-  # edit and carries no code-relevant signal. Since the PR-body admission check was retired
-  # (see the affected-set job below), NO job reads the PR description at all, so a title/body
-  # edit cannot change any verdict and needs no run whatsoever. Dropping `edited` removes the
-  # redundant trigger at its source instead of papering over the cancelled-run symptom.
   pull_request:
     branches: [dev]
     types: [opened, reopened, synchronize]
@@ -52,9 +23,7 @@ on:
 permissions:
   contents: read
 
-# The Rust-owned event parser validates this complete provider tuple before any candidate-tree
-# materializer or census receipt can select a commit. workflow_dispatch intentionally supplies an
-# unsupported event name and empty authority fields, which fails closed in that parser.
+# Event tuple consumed by the generated-faces materializer (--github-event).
 env:
   EVENT_EVALUATED_SHA: ${{ github.sha }}
   EVENT_PULL_REQUEST_BASE_SHA: ${{ github.event.pull_request.base.sha || '' }}
@@ -68,968 +37,114 @@ env:
   EVENT_PULL_REQUEST_BASE_REF: ${{ github.event.pull_request.base.ref || '' }}
   EVENT_MERGE_GROUP_BASE_REF: ${{ github.event.merge_group.base_ref || '' }}
 
-# Surface-all: every gate lane runs to completion even if a sibling fails. The fan-in job
-# collects the join. Matrix legs run one Buck2 target each, so a leg failure cannot hide a sibling.
-#
-# Concurrency (ADR-0639 D6; Wave4 scarce-runner queue hygiene): per-PR group with
-# cancel-in-progress so superseded heads free scarce runners. Bun superseding-run lesson:
-# cancel stale work to drain the queue; cancel is never a merge-green substitute — only a
-# successful oya-ci-required on the current head admits.
-#
-# PR supersession: an older head SHA can never satisfy branch protection after a newer head
-# exists, so keep only the newest run per PR. Push / merge_group (Tide) / workflow_dispatch
-# retain non-cancelling surface-all behavior (`cancel-in-progress` is false unless
-# event_name == pull_request). Tide merge_group checks_requested runs share no PR-number
-# key with open-PR synchronize runs (pull_request.number is empty on merge_group; fallback
-# is github.sha), so a PR push cannot cancel an in-flight merge queue validation and a
-# merge_group run cannot cancel an open PR's work.
-#
-# Group by workflow name instead of a repository-specific literal so the pattern remains
-# reusable by the owned cloud-ci adapter.
-#
-# CI-CLASS-FIX (trunk self-cancellation, measured 2026-08-02): the non-PR fallback used to be
-# `github.ref`, which on a `push` to dev is the CONSTANT `refs/heads/dev` — so every trunk commit
-# shared ONE concurrency group. `cancel-in-progress: false` does NOT mean "never cancelled": GitHub
-# admits at most one RUNNING plus one PENDING run per group and evicts the older PENDING run when a
-# newer one arrives. A merge burst therefore discarded its own predecessors before they scheduled a
-# single job. Measured over the last 60 `push` runs on dev: 2 success / 27 failure / 31 cancelled,
-# and 27 of those 31 cancelled runs had a job count of ZERO. Nine of them were cancelled EXACTLY 1s
-# after their successor was created (e.g. run 30724418203 created 00:00:36 → cancelled 00:00:54,
-# successor created 00:00:53), while run 30723769427 held the single running slot for 2h10m. That is
-# pending eviction, not runner-fleet starvation and not `cancel-in-progress`.
-#
-# Keying the non-PR arm on `github.sha` (NOT github.ref) gives every trunk / merge_group commit
-# its own group, so each one gets its own verdict. Do not "simplify" back to github.ref — that
-# reopens the measured trunk pending-eviction class. PR grouping is UNCHANGED and still keyed
-# on the PR number: superseding an older head SHA is correct there. `cancel-in-progress` is
-# already false for push/merge_group; per-SHA groups make pending eviction moot there (a re-run
-# of the same SHA queues behind rather than killing the in-flight one).
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  # ── Producer regen: materialize the cloud-ci generated faces from the checked-out candidate
-  #    tree. Generated JSON is not a contributor merge surface; the CI/controller workspace
-  #    regenerates it before gates consume it, then uploads it as a BEST-EFFORT intra-run cache
-  #    for the mere-reader gate matrix legs (ADR-0556 D5 QW-1).
-  #
-  #    Only the `gate` matrix consumes that cache, and it materializes on a miss. The `buck2` and
-  #    `gate-affected-target-set` lanes never consumed it in any meaningful sense — they download
-  #    it and then immediately overwrite every face with their own out-of-graph materialize step
-  #    — so they no longer download it and no longer depend on this job.
-  producer-regen:
-    name: producer-regen (accounting-registry)
-    runs-on: ubuntu-latest  # binding linux-amd64 hosted; multi-arch soft via gate matrix; ARC oya-arm64 lab overflow only
-    # Live-postgres path relevance (FinOps / maxRunners=1 queue): emit booleans the two
-    # oya-live-postgres-arm64 jobs consume. Packed into an EXISTING baselined shell step so we
-    # do not birth a new workflow_inline_shell key against the merge-base ceiling. Non-PR
-    # events always request both legs (Chesterton: trunk / merge_group keep full durable proof).
-    outputs:
-      live_postgres_adapters: ${{ steps.live_pg_paths.outputs.adapters }}
-      live_postgres_facades: ${{ steps.live_pg_paths.outputs.facades }}
+  lint:
+    name: lint (format + clippy)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
     steps:
-      # actions/checkout@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
-          # Full history: the accounting producer derives last_touch_commit via
-          # `git log --name-only`, and the staleness gate ages rows via `git log %H %ct`.
-          # A shallow (depth-1) checkout truncates history to HEAD -> ages collapse to 0
-          # and git-derived faces degrade (false-green). fetch-depth:0 keeps CI reproducible
-          # and identical to a full local clone. Also required for the live-postgres path
-          # filter's merge-base triple-dot diff against origin/${BASE_REF}.
+          # The format gate diffs against the base ref.
           fetch-depth: 0
-      # Step name is a frozen workflow_inline_shell baseline key — do not rename in this PR.
-      # Path-filter outputs ride this single effective shell command (`;`-joined) so shell_lines
-      # stays 1. Fail-open to adapters=true/facades=true when the PR diff cannot be resolved.
-      - name: Install buck2 (digest-pinned prebuilt release)
-        id: live_pg_paths
-        env:
-          BASE_REF: ${{ github.base_ref || 'dev' }}
-        run: infra/ci/install-buck2.sh; adapters=false; facades=false; if [ "${EVENT_NAME}" != "pull_request" ]; then adapters=true; facades=true; else base_ref="${BASE_REF:-dev}"; if files="$(git diff --name-only "origin/${base_ref}...HEAD" 2>/dev/null)"; then :; else adapters=true; facades=true; files=""; fi; printf '%s\n' "$files" | grep -E '^(libs/oya-data-sql-adapter-sqlx/|libs/oya-data-outbox-adapter-postgres/|tenancy/adapters/tenant-lifecycle-store-postgres/|iam/adapters/identity-scim-store-postgres/|libs/oya-shared-postgres-command|libs/oya-data-sql-kernel/|libs/oya-data-outbox-kernel/|infra/arc/live-postgres|infra/arc/runner-scale-set-live-postgres|\.github/workflows/oya-ci-required\.yml)' >/dev/null && adapters=true || true; printf '%s\n' "$files" | grep -E '^(iam/facade/identity-service/|tenancy/facade/tenant-lifecycle-app/|tenancy/adapters/tenant-lifecycle-store-postgres/|iam/adapters/identity-scim-store-postgres/|libs/oya-shared-postgres-command|libs/oya-shared-scim-server-kernel/|infra/arc/live-postgres|infra/arc/runner-scale-set-live-postgres|\.github/workflows/oya-ci-required\.yml)' >/dev/null && facades=true || true; fi; echo "adapters=${adapters}" >> "${GITHUB_OUTPUT}"; echo "facades=${facades}" >> "${GITHUB_OUTPUT}"
-      - name: Materialize cloud-ci generated faces
-        run: rustup toolchain install && rustc --version && buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root . --github-event
-      - name: Upload regenerated faces
-        # FATAL, deliberately — the ONE upload in this workflow that is not best-effort.
-        #
-        # BEST-EFFORT FOR EVIDENCE, FATAL FOR INPUTS. The other five uploads here are evidence
-        # (telemetry, operator reports, baselines a later run cold-rebuilds on a miss); none is
-        # read by anything in the same run, so a failed upload must never redden a computed
-        # verdict. THIS artifact is different: it is a declared INPUT to ~40 gate legs.
-        #
-        # #1467 made this best-effort too. That was wrong, and production said so before review
-        # did (run 30641618660 attempt 2, quota not yet recalculated): the failed upload reported
-        # step `conclusion: success` — which is exactly what the flag does, it rewrites the
-        # conclusion while `outcome` stays `failure` — the run ended with ZERO artifacts,
-        # producer-regen went GREEN, and 30 gate legs then failed with
-        # `Artifact not found for name: generated-faces`. One honest red became 30 confusing ones.
-        # Masking an INPUT failure does not remove the dependency; it only hides which job broke.
-        #
-        # This leaves a residual coupling: a quota outage still blocks the gate matrix. Closing it
-        # needs either a materialize-on-miss fallback (a new inline-shell step, correctly refused
-        # by the `automation-language-policy` merge-base ceiling) or moving the transport off
-        # rented blob storage to the in-cluster CAS. The `buck2` and `gate-affected-target-set`
-        # lanes are already immune — #1467 removed their download and their `needs:` edge, because
-        # both re-materialize their own faces with identical argv.
-        # actions/upload-artifact@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+      - uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
         with:
-          name: generated-faces
-          # A single repository-rooted artifact preserves every controller-owned output's
-          # declared path for all consuming jobs.
-          #
-          # adr-census-parent-receipt.generated.json is the exact historical P2 parent receipt,
-          # materialized by the epoch-receipt emission in the step above (the single out-of-graph
-          # boundary) and CONSUMED in-graph by
-          # //ci/facade/scm-facts-snapshot:ci-scm-facts-snapshot-integration, which fails loud
-          # rather than skipping when it is absent. It is listed explicitly because it lives with
-          # its producer crate, not under the artifact-inventory-registry glob: that directory is
-          # the freshness gate's own face roster and a face that gate cannot regenerate is
-          # generated_face_stale there by construction.
-          path: |
-            ci/facade/artifact-inventory-registry/*.generated.json
-            ci/facade/scm-facts-snapshot/scm-volatile-facts.generated.json
-            ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json
-            ci/facade/scm-facts-snapshot/adr-census-parent-receipt.generated.json
-            registry/graph/active-artifact-contract-edges.json
-          # Bounded: this is an INTRA-RUN handoff (the gate matrix legs download it in the
-          # same run), not retained evidence. Left unbounded it defaulted to 90 days and
-          # became the largest live artifact family produced by a live workflow — 203 MB
-          # across 199 copies of a ~1 MB face set. Combined with the retired producers'
-          # backlog it exhausted the account's artifact storage quota, and the upload then
-          # failed with `Failed to CreateArtifact: Artifact storage quota has been hit`,
-          # which SKIPPED every `needs: producer-regen` lane (all 44 gate legs, affected-set
-          # and buck2) and failed `oya-ci-required` with zero gate verdicts.
-          #
-          # Retention bounded the BYTES; it did not fix the COUPLING, and the same quota error
-          # recurred. The coupling is fixed at the step level instead (`continue-on-error` here,
-          # cache-miss materialize in the consumer) — retention-days stays because an intra-run
-          # handoff has no reason to outlive its run.
-          retention-days: 1
-          if-no-files-found: error
+          toolchain: "1.97.1"
+          components: rustfmt, clippy
+      - uses: swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
+        with:
+          shared-key: cargo-ci-linux
+      - name: Check formatting
+        # Blocking and differential: only ACMR (added/copied/modified/renamed) *.rs
+        # files this PR changed. Deleted paths are not rustfmt inputs. skip_children
+        # keeps a crate-root path from re-checking untouched sibling modules that
+        # still carry pre-existing rustfmt debt. Repo-wide drift is a follow-up PR.
+        run: files="$(git diff --diff-filter=ACMR --name-only "origin/${GITHUB_BASE_REF:-dev}...HEAD" -- '*.rs')" && { [ -z "$files" ] || rustfmt --check --config skip_children=true -- $files; }
+      - name: Clippy, warnings denied
+        # Advisory until the repo-wide lint-debt cleanup PR lands, then blocking.
+        # The differential format gate above is the blocking new-debt guard today.
+        continue-on-error: true
+        run: cargo clippy --locked --workspace --all-targets -- -D warnings
 
-  # ── RESIDUAL GATE LANES. This job USED to fan out one leg per homogeneous gate crate. It no
-  #    longer does — see the COLLAPSED note on `strategy.matrix` below. The gate fleet is executed
-  #    ONCE, by `buck2 test //ci/...` in the `buck2` lane, which is a strict SUPERSET of what the
-  #    matrix ran. Only the scm-facts receipt leg survives here; the portable workspace resolver
-  #    differential now runs in the self-hosted `buck2` lane beside `//ci/...`.
-  #
-  #    ADDING A GATE IS NOW ZERO WORKFLOW LINES: drop the crate under `ci/facade/<crate>/` with a
-  #    BUCK `rust_test` target and the recursive pattern picks it up. The `gate_registration`
-  #    meta-test (in the cloud-ci-firewall lane) enforces exactly that — every in-tree gate crate
-  #    must be covered by a target pattern that some FAN-IN-REACHABLE job actually executes, AND
-  #    the crate must declare a test rule for that pattern to match. It no longer greps for a
-  #    matrix line. It also still enforces bundled disposition DATA and fan-in membership.
-  #    `fail-fast: false` remains the matrix's surface-all policy.
-  #    (Deliberately a matrix, NOT a `workflow_call` reusable workflow: a called workflow would
-  #    rename the published check-runs [`<caller> / <job>`], breaking the `oya-ci-required`
-  #    branch-protection context. A future owned oya-ci runner can reuse this matrix verbatim —
-  #    "one logic, two runners", D-CICD-AUTHORITY.)
-  #
-  #    FACES VIA ARTIFACT (ADR-0556 D5 QW-1, gate-fleet-shared-graph warm-safe same-run reuse):
-  #    every leg here is a MERE READER of the generated faces — none re-verifies regeneration
-  #    itself, so each leg downloads the producer-regen artifact instead of paying its own
-  #    materialize step. Same-run, same candidate tree, same trusted writer — no cross-run cache
-  #    participation. The regeneration-checking gates KEEP materializing independently:
-  #    registry-drift (the byte-parity detector — detectors never consume the thing they attest),
-  #    producer-regen itself, and cloud-ci-firewall (its merge-base frozen baseline is per-job by
-  #    design, ADR-0551).
-  #
-  #    MEASURED, not estimated (run 30349698618, the last fully-green run): materialization costs
-  #    ~250s, NOT the ~45-55s this comment used to claim, and producer-regen takes ~294s wall —
-  #    not ~75s. Every leg started 3s after the producer finished and then ran ~40s. So the
-  #    barrier is ~294s of serial wait to save ~250s of per-leg work that would have run in
-  #    PARALLEL. It is roughly wall-clock NEUTRAL; what it actually buys is ~2.7 CPU-hours per run
-  #    on a single-node owned ARC fleet, which is a real saving and why the reuse is KEPT here.
-  #
-  #    THE BUG IT USED TO CARRY, now fixed: this comment previously ended "If producer-regen
-  #    fails, legs are skipped and the fan-in goes RED (fail-closed, same join as today)" — and
-  #    treated that as acceptable. It is not. The producer's only failure mode in practice was its
-  #    artifact UPLOAD hitting the account storage quota, long after the materialization it
-  #    attests had already succeeded. That made the required merge context's availability a
-  #    function of a rented blob quota, and it blanked all 44 gates with ZERO verdicts for days.
-  #    Skipped-because-the-cache-was-unavailable is not fail-closed; it is no-verdict. The upload
-  #    is now BEST-EFFORT, so the cache can no longer decide whether the gates run at all.
-  #
-  #    `fetch-depth: 0` retained conservatively: no matrix gate calls git (verified — faces
-  #    carry all history-derived data per ADR-0552), but shallowing the checkout is a separate
-  #    reviewed change, not a side effect of artifact reuse.
-  gate:
-    needs: producer-regen
-    # Descriptive per-leg check-run name (matrix.label) — each leg publishes as
-    # "gate · <discipline>", not a bare "gate (crate)". Adding a gate = one `include` line
-    # (crate + label); the gate_registration meta-test enforces every gate crate is listed.
-    name: ${{ matrix.label }}
-    # Multi-arch hosted matrix (hyperscaler: ephemeral multi-platform workers).
-    # Binding = linux-amd64 (ubuntu-latest). Soft legs prove arm64/Windows/macOS without
-    # multiplying the full suite cost and without re-centering merge on lab ARC oya-arm64.
-    # Soft continues-on-error so private-plan arm/mac queue gaps never black out merge.
-    runs-on: ${{ matrix.runner }}
-    continue-on-error: ${{ matrix.soft }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-        # ── COLLAPSED (2026-08-04): 48 crate legs -> 1 crate; W1 multi-arch expands RUNNERS
-        #    not crates. Full //ci/... still binds on the linux-amd64 buck2 lane only.
-        #    THE SURVIVOR IS NOT REDUNDANT: scm-facts-snapshot runs an extra `buck2 run`
-        #    after tests (rust_binary), so buck2 test //ci/... alone is not enough.
-        #    Step names stay byte-stable (automation-language-policy merge-base ceiling).
-          - { crate: scm-facts-snapshot, runner: ubuntu-latest, soft: false, label: "gate · ADR census epoch receipt (linux-amd64 binding)" }
-          - { crate: scm-facts-snapshot, runner: ubuntu-24.04-arm, soft: true, label: "gate · platform smoke (linux-arm64 soft)" }
-          - { crate: scm-facts-snapshot, runner: windows-latest, soft: true, label: "gate · platform smoke (windows-amd64 soft)" }
-          - { crate: scm-facts-snapshot, runner: macos-latest, soft: true, label: "gate · platform smoke (macos-arm64 soft)" }
-    steps:
-      # actions/checkout@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-        with:
-          persist-credentials: false
-          fetch-depth: 0
-      # Consume the producer-regen artifact (faces + volatile scm snapshot) instead of
-      # re-materializing per leg — see the FACES VIA ARTIFACT note on this job. The download
-      # restores the same regenerated bytes the producer derived from this run's candidate
-      # tree; registry-drift separately proves that derivation is byte-deterministic.
-      # This is the ONLY consumer where the artifact reuse pays: a leg does not otherwise
-      # materialize, and materialization measures ~250s (run 30349698618) against a ~40s leg.
-      # The quota coupling is fixed at the SOURCE — the producer's upload is now best-effort, so
-      # it can no longer fail the producer job and skip all ~40 legs with zero verdicts.
-      #
-      # NO `continue-on-error` HERE, deliberately. Making the download non-fatal without a
-      # materialize fallback would be strictly worse: the leg would proceed with no faces and fail
-      # inside `buck2 test` on missing declared inputs, which reads as a gate defect instead of a
-      # missing input. A hard failure here names the actual cause. The fallback that would make a
-      # miss a REBUILD cannot ship today: it needs a new inline-shell workflow step, and
-      # `automation-language-policy` is a merge-base CEILING (shrink-only, "door:one-way"), so a
-      # new baselined key is born-blocking by design. That is the correct verdict for a shell
-      # step, and the right home for a materialize-if-absent primitive is the owned CI runner,
-      # where it is a first-class action rather than a `run:` line.
-      - name: Download regenerated faces (producer-regen artifact, ADR-0556 D5 QW-1)
-        # actions/download-artifact@v8.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
-        with:
-          name: generated-faces
-          path: .
-      - name: Install buck2 (digest-pinned prebuilt release)
-        shell: bash
-        run: infra/ci/install-buck2.sh
-      # Buck2/rustc still use the pinned workspace toolchain + components; provision it before
-      # the test action starts to avoid concurrent rustup writes inside parallel Buck2 actions.
-      - name: Pre-provision pinned Rust toolchain for Buck2 gate tests
-        shell: bash
-        run: |
-          set -euo pipefail
-          rustup toolchain install
-          rustc --version
-      - name: buck2 test ${{ matrix.crate }}
-        shell: pwsh
-        # Default matrix legs expand to //ci/facade/${{ matrix.crate }}:ci-${{ matrix.crate }}-gate.
-        run: '$targets = "${{ format(''//ci/facade/{0}:ci-{0}-unittest //ci/facade/{0}:ci-{0}-gate {1}'', matrix.crate, matrix.crate == ''scm-facts-snapshot'' && ''//ci/facade/scm-facts-snapshot:ci-scm-facts-snapshot-integration'' || '''') }}"; $targetArgs = $targets -split ''\s+'' | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }; & buck2 test @targetArgs; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }; if ("${{ matrix.crate }}" -eq "scm-facts-snapshot") { & buck2 run //ci/facade/scm-facts-snapshot:adr-census-epoch-receipt-gate-bin -- --repo-root . --github-event; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE } }'
-
-  # ── freshness: first-diagnosis gate for the two stale-output failures from PR #662.
-  #    Runs as its own fast job with no needs edge so stale Cargo.lock and stale generated faces
-  #    surface together before the broader Buck2 lanes spend a full matrix round-trip.
-  gate-generated-artifact-freshness:
-    name: freshness (lock + generated faces, ADR-0539)
-    runs-on: ubuntu-latest  # binding linux-amd64 hosted; multi-arch soft via gate matrix; ARC oya-arm64 lab overflow only
-    steps:
-      # actions/checkout@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-        with:
-          persist-credentials: false
-          fetch-depth: 0
-      - name: Install buck2 (digest-pinned prebuilt release)
-        run: infra/ci/install-buck2.sh
-      # Warm the pinned toolchain across runs (ADR-0556 D5 QW-4: the toolchain is a
-      # version-pinned input, not a build output). rustup still resolves/validates the
-      # toolchain on every run; the cache only pre-seeds ~/.rustup so the install is a no-op.
-      # NO rustup cache here. The baked runner image sets RUSTUP_HOME=/opt/rust/rustup
-      # (infra/ci/runner-image/Dockerfile), so rustup never reads ~/.rustup — this step used to
-      # save and restore a path that does not exist on this fleet. It was a no-op that presented
-      # as a green cache step. It is also redundant: the image BAKES the pinned toolchain, so the
-      # `rustup toolchain install` below is already a no-op.
-      # The two gate-live-postgres-* jobs still carry legacy cache blocks, but they also run on
-      # the baked ARC image; removing those no-op blocks is a separate shrink-only policy change.
-      - name: Pre-provision pinned Rust toolchain for Buck2 freshness binaries
-        run: |
-          set -euo pipefail
-          rustup toolchain install
-          rustc --version
-      - name: Run freshness gate
-        run: |
-          set -euo pipefail
-          freshness_bin="$(buck2 build //ci/facade/generated-artifact-freshness:oya-cloud-ci-freshness-app-bin --show-output | awk '{print $2}')"
-          "${freshness_bin}" --repo-root . --github-event
-
-  # ── registry-drift: materialized workspace == regenerated byte-equal. Starts at t=0 alongside
-  #    producer-regen; it rematerializes in-job so it is hermetic and self-contained. The
-  #    producer-regen needs-edge was cosmetic (evidence only, nothing consumed) and serialized
-  #    this job unnecessarily — removed so it starts at t=0.
-  gate-inventory-registry-drift:
-    name: registry-drift (materialized == regenerated)
-    runs-on: ubuntu-latest  # binding linux-amd64 hosted; multi-arch soft via gate matrix; ARC oya-arm64 lab overflow only
-    steps:
-      # actions/checkout@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-        with:
-          persist-credentials: false
-          # Full history: the accounting producer derives last_touch_commit via
-          # `git log --name-only`, and the staleness gate ages rows via `git log %H %ct`.
-          # A shallow (depth-1) checkout truncates history to HEAD -> ages collapse to 0
-          # and git-derived faces degrade (false-green). fetch-depth:0 keeps CI reproducible
-          # and identical to a full local clone.
-          fetch-depth: 0
-      - name: Install buck2 (digest-pinned prebuilt release)
-        run: infra/ci/install-buck2.sh
-      # HERMETICITY CONTRACT (ADR-0556 D5 QW-1 deliberate exception): this gate IS the
-      # byte-parity detector (committed == regenerated), so it MUST regenerate in-job —
-      # feeding it the producer-regen artifact it is supposed to verify would make the
-      # check self-referential. Detectors never consume the thing they attest.
-      - name: Materialize faces then assert byte-parity
-        run: |
-          rustup toolchain install
-          rustc --version
-          buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root . --github-event
-          buck2 test //ci/facade/inventory-registry-drift:ci-inventory-registry-drift-gate
-
-  # ── cloud-ci-firewall: the baseline ratchet (blocks only NEW debt) + the gate-registration
-  #    meta-test (no in-tree gate may go unregistered in this workflow). This is the surface-all
-  #    runner; per the runbook the existing firewall runner suffices — no separate aggregator bin
-  #    is required for PRE-work.
-  gate-baseline-ratchet:
-    name: cloud-ci-firewall (baseline ratchet + gate-registration meta-test)
-    runs-on: ubuntu-latest  # binding linux-amd64 hosted; multi-arch soft via gate matrix; ARC oya-arm64 lab overflow only
-    steps:
-      # actions/checkout@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-        with:
-          persist-credentials: false
-          # Full history: the accounting producer derives last_touch_commit via
-          # `git log --name-only`, and the staleness gate ages rows via `git log %H %ct`.
-          # A shallow (depth-1) checkout truncates history to HEAD -> ages collapse to 0
-          # and git-derived faces degrade (false-green). fetch-depth:0 keeps CI reproducible
-          # and identical to a full local clone.
-          fetch-depth: 0
-      - name: Install buck2 (digest-pinned prebuilt release)
-        run: infra/ci/install-buck2.sh
-      # HERMETICITY CONTRACT (ADR-0551 frozen-policy-wins): the firewall's frozen reference —
-      # the merge-base baseline snapshot — is materialized per-job BY DESIGN via the emitter's
-      # out-of-band bootstrap ref, and is deliberately absent from the producer-regen artifact.
-      # This lane therefore KEEPS its own materialization (ADR-0556 D5 cold-must-stay list);
-      # it is never converted to artifact reuse.
-      - name: Materialize cloud-ci generated faces
-        run: rustup toolchain install && rustc --version && buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root . --github-event
-      - name: buck2 test cloud-ci-firewall
-        run: |
-          set -euo pipefail
-          buck2 test \
-            //ci/facade/baseline-ratchet:ci-baseline-ratchet-unittest \
-            //ci/facade/baseline-ratchet:oya-cloud-ci-firewall-signoff-fixer-unittest \
-            //ci/facade/baseline-ratchet:ci-baseline-ratchet-gate \
-            //ci/facade/baseline-ratchet:ci-baseline-ratchet-gate-registration \
-            //ci/facade/baseline-ratchet:ci-baseline-ratchet-run-observability-packet \
-            //ci/facade/baseline-ratchet:ci-baseline-ratchet-run-terminal-state \
-            //ci/facade/baseline-ratchet:oya-cloud-ci-run-terminal-state-unittest
-
-  # ── GENERATED OUTPUT DIFF POLICY. Generated files may be deleted to retire a tracked output,
-  #    but PRs must not add/modify generated outputs as merge surfaces. Classification comes from
-  #    registry/generated-artifact-control-plane.json `generated_path_rules` so adopters can encode
-  #    their generated-output conventions once; .gitignore is preventive hygiene, not policy
-  #    authority. The candidate workspace is regenerated by cloud-ci before gates consume it.
-  generated-output-diff-policy:
-    name: generated-output-diff-policy (no generated merge surfaces)
-    runs-on: ubuntu-latest  # binding linux-amd64 hosted; multi-arch soft via gate matrix; ARC oya-arm64 lab overflow only
-    steps:
-      # actions/checkout@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-        with:
-          persist-credentials: false
-          fetch-depth: 0
-      - name: Install buck2 (digest-pinned prebuilt release)
-        run: infra/ci/install-buck2.sh
-      # Warm the pinned toolchain across runs (ADR-0556 D5 QW-4); rustup still resolves and
-      # validates the toolchain on every run.
-      # NO rustup cache here — see the rationale on the freshness job above (baked image sets
-      # RUSTUP_HOME=/opt/rust/rustup; ~/.rustup is never read on this fleet).
-      - name: Pre-provision pinned Rust toolchain for Buck2 policy binary
-        run: |
-          set -euo pipefail
-          rustup toolchain install
-          rustc --version
-      - name: Reject non-deletion generated output edits
-        env:
-          BASE_REF: ${{ github.base_ref || 'dev' }}
-        run: |
-          set -euo pipefail
-          if [ "${EVENT_NAME}" = "push" ]; then
-            echo "generated-output-diff-policy: push event; presubmit diff policy not applicable."
-            exit 0
-          fi
-          # See the base-ref note in gate-affected-target-set: a bare `git fetch origin` cannot
-          # work here (PRIVATE repo + persist-credentials: false) and is redundant under
-          # fetch-depth: 0. Assert instead of fetching.
-          git rev-parse --verify "refs/remotes/origin/${BASE_REF}" >/dev/null 2>&1 || { echo "refs/remotes/origin/${BASE_REF} missing — this job's checkout must keep fetch-depth: 0"; exit 1; }
-          policy_bin="$(buck2 build //ci/facade/generated-artifact-policy:oya-cloud-ci-generated-output-diff-policy --show-output | awk '{print $2}')"
-          materializer_bin="$(buck2 build //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin --show-output | awk '{print $2}')"
-          # Materialize (de-committed, never a contributor merge surface):
-          #   - specs/reorg/move-manifest.generated.json (ADR-0563): the policy's ratchet-diff check
-          #     authenticates a hand-curated-ratchet baseline's key substitution against the ACTUAL
-          #     candidate-tree move (anti-laundering; byte-bound), not a bare claim in a hand-authored
-          #     plan file.
-          #   - ci/facade/generated-artifact-policy/ratchet-merge-base.generated.json: merge-base
-          #     CONTENT of every normal-source-merge artifact, read from the materializer's OWN
-          #     merge-base worktree checkout (the one sanctioned git boundary) so the policy gate
-          #     itself never calls git (ci-gate-self-conformance hermeticity).
-          "${materializer_bin}" --repo-root . --github-event
-          # --find-renames is REQUIRED, not cosmetic: the policy's sanctioned-relocation exemption
-          # only accepts byte-identical (R100) renames of declared generated artifacts (a capability
-          # move relocating the firewall's frozen gate-baseline). Without explicit rename detection a
-          # runner with diff.renames=off would surface the move as A+D and RED the legit move (fails
-          # safe, but false-blocks). Detection ON + the R100-only exemption is the correct behavior.
-          git diff --find-renames --name-status "origin/${BASE_REF}"...HEAD \
-            | "${policy_bin}" --manifest registry/generated-artifact-control-plane.json --repo-root .
-
-  # ── HERMETIC BUCK2 LANE (OYA-CI-HERMETIC-EXECUTION-DESIGN §3 + Stage P1/P2). Runs the SAME
-  #    gate logic through buck2: `buck2 build` compiles every
-  #    target (the env!CARGO eradication) and `buck2 test` runs the gate rust_tests fully
-  #    hermetically (no ambient git in any action — the producer reads the materialized scm-facts
-  #    face; the scm-facts emitter is the single out-of-graph boundary, run in the
-  #    materialization step BELOW, never inside a cacheable action). Scoped by the
-  #    affected-set driver (`infra/ci/buck2-affected-gate.sh`: uquery owner -> rdeps closure,
-  #    FAILS CLOSED) for speed. RBE/NativeLink is staged LAST (D4) and NOT required for
-  #    hermeticity — local-on-runner execution via the wired `noop_test_toolchain` is sufficient
-  #    here. This lane feeds the same fan-in as the targeted Buck2 gate matrix above.
-  buck2:
-    name: buck2 (hermetic build + affected gate tests)
+  test:
+    name: test (workspace + gates)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    timeout-minutes: 60
     env:
-      CACHE_BUILD_CLASS: untrusted-author-presubmit
-    # NO `needs: producer-regen`: this lane materializes its own faces (see the out-of-graph
-    # boundary step below), so the barrier bought it nothing but a ~294s serial wait and a
-    # skip-on-producer-failure edge.
-    runs-on: ubuntu-latest  # binding linux-amd64 hosted; multi-arch soft via gate matrix; ARC oya-arm64 lab overflow only
+      # Same accounting-registry producer the Buck gate targets inject as
+      # OYA_CI_PRODUCER_BIN (artifact-accountability and sibling live-corpus
+      # tests fail closed without it) and OYA_CI_ENFORCEMENT_LIVENESS_PRODUCER
+      # (hook-wiring). Built once below; both names point at that binary.
+      OYA_CI_PRODUCER_BIN: ${{ github.workspace }}/target/debug/oya-cloud-ci-accounting-registry-app
+      OYA_CI_ENFORCEMENT_LIVENESS_PRODUCER: ${{ github.workspace }}/target/debug/oya-cloud-ci-accounting-registry-app
+      OYA_CI_ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS: ${{ github.workspace }}/.claude
+      OYA_CI_ENFORCEMENT_LIVENESS_CODEX_HOOKS: ${{ github.workspace }}/.codex
+      OYA_CI_ENFORCEMENT_LIVENESS_HOOKS_DIR: ${{ github.workspace }}/tools/hooks
     steps:
-      # actions/checkout@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
-          # Full history: the materialization step below runs the emitter, which derives
-          # last_touch via `git log --name-only`; a shallow checkout collapses it (PM1).
+          # Full history: gate crates derive facts from git (merge-base, scm faces).
           fetch-depth: 0
-      # NO producer-regen artifact download here (removed with `needs: producer-regen`). This job
-      # KEEPS materializing — the "Materialize cloud-ci generated faces (out-of-graph boundary)"
-      # step below runs the materializer with the IDENTICAL argv the producer runs
-      # (`--repo-root . --github-event`) and overwrites every face the download restored, so the
-      # download was dead weight that bought only a serial wait.
-      #
-      # The removed comment claimed the download supplied an event-bound retirement face this
-      # job's "bare materializer" could not derive. That was false on two counts: the materializer
-      # below is NOT bare (it passes `--github-event`), and `--github-event` reads the retirement
-      # tuple from EVENT_* environment variables declared at WORKFLOW level (line 59), so they are
-      # in scope for every job in this workflow. Verified in
-      # `retirement_materialization_from_github_event_facts`.
-      # buck2 is the BUILD TOOL, installed as a prebuilt release.
-      # The adapter edge is immutable at CI time: release tag selects the asset, SHA-256 pins
-      # the bytes, and CI verifies the digest before decompression/execution. Bump together.
-      - name: Install buck2 (digest-pinned prebuilt release)
-        run: infra/ci/install-buck2.sh
-      # Warm the pinned toolchain across runs (ADR-0556 D5 QW-4); rustup still resolves and
-      # validates the toolchain on every run.
-      # NO rustup cache here — see the rationale on the freshness job above (baked image sets
-      # RUSTUP_HOME=/opt/rust/rustup; ~/.rustup is never read on this fleet).
-      # Pre-provision the pinned rust toolchain ONCE, serially, before the buck2 build.
-      # The buck2 rust toolchain (toolchains/BUCK: system_rust_toolchain via the rustup shim)
-      # resolves rustc and toolchain components per compile action, and buck2 runs those actions in
-      # PARALLEL. On a cold runner each action's first shim call triggers rustup to install the
-      # rust-toolchain.toml channel (+ rustfmt,clippy) concurrently — the racing rustup
-      # processes collide on the shared `~/.rustup/downloads/*.partial` files and fail with
-      # `rustup::utils::rename ... No such file or directory (os error 2)` (a different component
-      # each run: clippy, then a second toolchain component — proving a concurrency race, not a config defect). rustup
-      # is not concurrency-safe. Installing the toolchain once here makes it ambient so the
-      # parallel actions find it already present (no download).
-      - name: Pre-provision pinned rust toolchain (serialize rustup before parallel buck2)
-        run: |
-          set -euo pipefail
-          rustup toolchain install && rustup default "$(rustup show active-toolchain | awk '{print $1}')"
-          rustc --version
-      # Buck2 runner state is deliberately cold and ephemeral (ADR-0554 D10). The 2026-08-01
-      # incident proved a 6.37 GB whole-tree actions/cache archive can cross the owned node's
-      # ephemeral-storage eviction threshold while extracting, before any binding test executes.
-      # Never archive or restore `buck-out`, including `buck-out/v2/cache`: Buck2's materializer
-      # state and local incremental state are coupled to its on-disk outputs. A future warm path
-      # must use the separately licensed Buck2-aware remote action cache + CAS; until then this
-      # lane builds from an empty runner-local `buck-out`.
-      # Generated-face materialization — the SINGLE out-of-graph git boundary. Re-run the emitter
-      # and producer against the checked-out candidate tree, then let buck2 consume those files as
-      # declared inputs. We deliberately do NOT byte-compare against committed JSON here: that was
-      # the self-referential merge-conflict surface. Byte-parity is checked after materialization.
-      # KEEPS materializing (not converted to ADR-0556 D5 QW-1 artifact reuse): the hermetic
-      # graph's gate tests consume the firewall's merge-base frozen baseline, which is per-job
-      # by design (ADR-0551) and deliberately absent from the producer-regen artifact; this
-      # step is the sanctioned boundary that feeds ALL declared generated inputs to the graph.
-      - name: Materialize cloud-ci generated faces (out-of-graph boundary)
-        run: buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root . --github-event
-      # The hermetic gate: buck2 BUILDS every cloud-ci target (proves the env!CARGO eradication —
-      # these targets could not compile under buck2 before) and TESTS them (the gate rust_tests
-      # run green, fully hermetic, with verdicts identical to the targeted gate matrix). This is the
-      # refactor's scope and is the binding hermetic check for this stage.
-      #
-      # The repo-wide affected-set verdict is owned by the binding gate-affected-target-set job below.
-      # Do not run a duplicate best-effort affected-set probe here: a non-blocking BUILD FAILED
-      # line inside a green job is indistinguishable from a false-green to humans and agents.
-      - name: buck2 build + test (//ci/..., hermetic — binding)
-        run: |
-          set -euo pipefail
-          # buck2 test builds its targets before running them, so a standalone
-          # `buck2 build` immediately before is redundant — removed (item 4 quick win).
-          # --unstable-write-invocation-record is additive observability only: it
-          # writes buck2's structured run record (cache_hit_rate, run_* counters)
-          # for the telemetry step below and changes nothing about the build.
-          buck2 run //ci/facade/build-cache-policy:oya-cloud-ci-cache-wiring-bin -- run \
-            --build-class "${CACHE_BUILD_CLASS}" --mode-out /tmp/cache-mode -- \
-            buck2 test //ci/... \
-              //libs/oya-workspace-members-kernel:oya-workspace-members-kernel-cargo-differential \
-              --unstable-write-invocation-record /tmp/buck2-lane-invocation-record.json \
-              -- --env "RUSTUP_HOME=${RUSTUP_HOME:-${HOME}/.rustup}"
-      # Per-lane cache-hit telemetry + warm-mode guard (ADR-0560; the audit's missing-SLO item):
-      # structured counters from buck2's invocation record — never log-grep — labeled with this
-      # lane's ADR-0556 build class. The report is now binding for record-shape / warm-mode
-      # sanity: once owned cloud-ci flips this lane from `bypass` to warm-ro/rw, a 0%-hit run or
-      # missing cache counters is an INFRA-RED misconfiguration, not advisory noise. Today GitHub
-      # Actions remains the transitional adapter and this lane stays bypass while NativeLink is dark.
-      - name: Cache-hit telemetry + warm-mode guard (ADR-0560)
-        if: always()
-        run: |
-          set -euo pipefail
-          CACHE_MODE="$(cat /tmp/cache-mode)"
-          buck2 run //ci/facade/build-cache-policy:oya-cloud-ci-cache-wiring-bin -- report --record /tmp/buck2-lane-invocation-record.json --build-class "${CACHE_BUILD_CLASS}" --mode "${CACHE_MODE}" --out /tmp/cache-hit-report.json
-          cat /tmp/cache-hit-report.json
-          buck2 run //ci/facade/build-cache-policy:oya-cloud-ci-cache-wiring-bin -- assert-warm --record /tmp/buck2-lane-invocation-record.json --build-class "${CACHE_BUILD_CLASS}" --mode "${CACHE_MODE}"
-      - name: Upload cache-hit telemetry artifact
-        continue-on-error: true
-# BEST-EFFORT (evidence, not verdict): an artifact-storage-quota failure on THIS step must
-# not turn a computed gate verdict red. Same class as the producer-regen faces upload —
-# the gate result is decided before any upload runs.
-        # FAILURE-ONLY. Cache-hit rate is a METRIC, not an artifact: a number we want over time
-        # belongs in the metrics substrate (cloud-observability runs VictoriaMetrics), where it
-        # can be aggregated and alerted on. 1469 per-run JSON blobs that nothing aggregates are
-        # not a telemetry pipeline. On a FAILING lane the same file is triage evidence, so it is
-        # kept there. `assert-warm` above is the enforcing check; this upload never was.
-        if: failure()
-        # actions/upload-artifact@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+      - uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
         with:
-          name: cache-hit-report-buck2-lane
-          path: /tmp/cache-hit-report.json
-          # Bounded like every sibling operator artifact in this workflow (30d). Telemetry
-          # is read while triaging a recent run, never 90 days later.
-          retention-days: 30
-          if-no-files-found: error
-  cache-writer-identity:
-    name: cache-writer identity (trusted dev push only)
-    if: ${{ vars.OYA_CAS_IDENTITY_PROOF_ENABLED == 'true' && github.event_name == 'push' && github.ref == 'refs/heads/dev' }}
-    uses: ./.github/workflows/cache-integrity-canary.yml
-    permissions:
-      contents: read
-      id-token: write
-    with:
-      writer_seed: true
-  # ── BINDING WORKSPACE COVERAGE (ADR-0554, FRIC-1781310000). Closes the largest false-green
-  #    channel: the buck2 lane above is scoped to //ci/..., so code anywhere else
-  #    (oya/*, libs/*, cloud/* services) could merge broken — proven live by PR #651 head
-  #    cf16525 (E0433 x3 in oya/identity, buck2 lane green, run 27288019517) and by
-  #    //oya/ci-webhook-gateway carrying an E0428 on dev itself. This lane is the BINDING
-  #    Rust successor of the advisory infra/ci/buck2-affected-gate.sh step (G011): on
-  #    pull_request it derives the merge-base diff's owner()/rdeps() cone and builds+tests it;
-  #    any derivation uncertainty or escape-trigger path class (BUCK macros, toolchains,
-  #    third-party, .buckconfig) escalates FAIL-CLOSED to the full workspace — never skips.
-  #    On merge_group/push/dispatch it runs the full workspace (ADR-0515 Tide admission tier).
-  #    On a PR, the FULL tier is a BUILD-HEALTH RATCHET (ADR-0554 round-3; ADR-0551 merge-base
-  #    frozen pattern): it grandfathers targets already failing at the merge-base and blocks only
-  #    REGRESSIONS, so a BUCK-touching PR is not held hostage to pre-existing dev build debt (no
-  #    flag-day requirement). Pack-shaped per ADR-0548 R0: all repo facts live in affected-set-policy.json.
-  gate-affected-target-set:
-    name: "gate · affected-set (ADR-0554, binding workspace coverage)"
-    permissions:
-      contents: read
-      actions: read
-    # NO `needs: producer-regen`: this lane materializes its own faces (see the out-of-graph
-    # boundary step below), so a producer failure cannot suppress this independent binding verdict.
-    runs-on: ubuntu-latest  # binding linux-amd64 hosted; multi-arch soft via gate matrix; ARC oya-arm64 lab overflow only
-    # SAFETY RAIL (ADR-0554 D7; re-derived round-6): bound the full-workspace rebuild so a
-    # runaway/exhaustion (a wedged buck2 action, a non-terminating compile) cannot burn the runner
-    # indefinitely — a backstop, NOT a per-run budget. Raised 45 -> 120 because the round-6 FULL
-    # tier now does up to TWO full workspace passes: (1) the merge-base baseline, which defect 4
-    # moved into a CLEAN detached worktree — its own cold buck-out, ~31 min build measured on run
-    # 29110398688 (vs the old same-tree ~5m45s warm) plus a merge-base test pass for the defect-3
-    # test-health ratchet — and (2) the binding head build+test. 45 min was sized for a single warm
-    # full run and killed the head build mid-flight. 120 clears a pessimistic 2x-cold-full+tests
-    # (~100 min) with margin while still firing on a genuine runaway. The trusted-artifact
-    # fast-path (owned-Rust `--trusted-baseline` selector, GH #1323/#899) now makes the common
-    # merge-base case download-not-rebuild, so the typical FULL job is one head pass — but this
-    # backstop stays sized for the cold FALLBACK, which any unpublished/expired baseline still
-    # takes.
-    timeout-minutes: 120
-    steps:
-      # actions/checkout@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+          toolchain: "1.97.1"
+      - uses: swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
         with:
-          persist-credentials: false
-          # Full history: the merge-base diff anchor + the materialization boundary both
-          # derive from git history; a shallow checkout collapses them (PM1).
-          fetch-depth: 0
-      # NO producer-regen artifact download here (removed with `needs: producer-regen`), same
-      # rationale as the buck2 lane: the "Materialize cloud-ci generated faces (out-of-graph
-      # boundary)" step below runs the materializer with the IDENTICAL argv the producer runs
-      # (`--repo-root . --github-event`) and overwrites every downloaded face. The EVENT_* tuple
-      # `--github-event` consumes is WORKFLOW-level env (line 59), in scope for every job.
-      #
-      # Removing the barrier keeps this binding workspace verdict independent: a producer failure
-      # cannot skip the full admission build/test that diagnoses the candidate on its own merits.
-      - name: Install buck2 (digest-pinned prebuilt release)
+          shared-key: cargo-ci-linux
+      # The face materializer shells out to buck2 internally to build its sibling
+      # face tools; the digest-pinned installer is the bridge it has always used.
+      - name: Install pinned buck2 (digest-verified)
+        shell: bash
         run: infra/ci/install-buck2.sh
-      # Warm the pinned toolchain across runs (ADR-0556 D5 QW-4); rustup still resolves and
-      # validates the toolchain on every run.
-      # NO rustup cache here — see the rationale on the freshness job above (baked image sets
-      # RUSTUP_HOME=/opt/rust/rustup; ~/.rustup is never read on this fleet).
-      # Same rustup serialization rationale as the buck2 lane above: parallel buck2 actions
-      # racing a cold rustup install collide on shared download state.
-      # PR-body admission was removed here (founder directive 2026-07-26: "stop the entire pr
-      # body checks — that is just unnecessary"). It validated that a PR description contained
-      # nine string literals — three section markers, a summary bullet, three traceability
-      # fields, three evidence fields, and a verdict value. It inspected no code and could not
-      # fail on a defect: an author who wrote the right headings passed regardless of what the
-      # diff did. What it did produce was ~20-minute round trips to learn a heading, charged to
-      # the `gate-affected-target-set` job, so the red check read "affected-set (ADR-0554,
-      # binding workspace coverage)" and pointed authors at an unrelated gate.
-      #
-      # Review itself is unaffected — it just stops being a CI-blocking string match on prose.
-      # The validator (`governance/check/pr-traceability`) is retained and still runs locally and
-      # via `--scaffold`; only the merge-blocking invocation is gone.
-      # NOTE: the step name is deliberately unchanged. The rust-first inline-shell baseline is
-      # keyed by step name, and validate_workflow_inline_shell_baseline_ceiling forbids adding a
-      # key absent from the merge-base baseline. So renaming a baselined step is not expressible
-      # in one PR: the new name is born-blocking as `unbaselined`, and the old name is `stale`.
-      # Retiring the admission check is the point of this PR; the rename can follow separately.
-      - name: Pre-provision pinned rust toolchain and PR metadata preflight
-        run: |
-          set -euo pipefail
-          rustup toolchain install && rustup default "$(rustup show active-toolchain | awk '{print $1}')"
-          # Buck2 rust tests execute from isolated sandboxes and some differential tests then
-          # change into throwaway Cargo workspaces. Those directories intentionally do not carry
-          # rust-toolchain.toml, so the rustup shim needs the same default that the canonical
-          # runner image establishes. Derive it from the repo pin rather than duplicating a version.
-          # The affected-set runner and its direct merge-base baseline command below both forward
-          # this pinned RUSTUP_HOME through Buck2's deliberately narrow test-executor environment.
-          rustc --version && (cd "$(mktemp -d)" && cargo --version)
-      # This lane also starts from an empty runner-local `buck-out` (ADR-0554 D10). A FULL-tier
-      # pull-request fallback builds the merge-base in a separate clean worktree with its own cold
-      # runner-local state; the candidate root remains isolated and cold. No cross-run filesystem
-      # snapshot is restored. A future warm path must be Buck2-aware remote action-cache + CAS,
-      # gated by the existing separate license and cold canary.
-      # KEEPS materializing (not converted to ADR-0556 D5 QW-1 artifact reuse): same rationale
-      # as the buck2 lane — the cone's gate tests consume the per-job merge-base frozen
-      # baseline (ADR-0551), and this lane's own build-health baseline below is per-job by
-      # design (ADR-0554 round-3).
-      - name: Materialize cloud-ci generated faces (out-of-graph boundary)
-        # PER-STEP BUDGET (job 91306848257): the job-level `timeout-minutes: 120` is the ONLY bound
-        # on this job, so a runner starved for CPU/Memory produces a BLANK failure — that job died
-        # after 42 min with its long step still `in_progress`, every later step `pending`, NO step
-        # carrying a failure conclusion, and the log itself 404 (BlobNotFound: the dying runner
-        # never uploaded it). A per-step budget converts that into a named step with a verdict.
-        # Budgets are sized from measured healthy runs (30344393217, 30339547842, 30338990451,
-        # 30326460290, 30234767998, 30249944210, 2026-07-27..28), not guessed, and their sum (117)
-        # stays under the 120-minute job backstop so a wedge is always attributed to a step.
-        # This step: worst healthy observation 4m29s; a materializer run is minutes, not tens of
-        # minutes, so 12 catches a wedge without ever tripping on a slow-but-live runner.
-        timeout-minutes: 12
-        run: buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root . --github-event
-      - name: Fetch base ref for the merge-base anchor
+      # buck2's builds need the full pinned toolchain (clippy/rustfmt components);
+      # rustup must finish before buck2 runs or its downloads race (known class).
+      - name: Pre-provision pinned toolchain components
+        shell: bash
+        # Full default profile (rustc+cargo+std+clippy+rustfmt): the materializer's buck2
+        # build resolves the triple-named toolchain through rustup; pre-installing everything
+        # makes those rustup calls no-ops and avoids the concurrent-download race.
+        run: host=$(rustc -vV | awk '/^host/{print $2}') && for v in 1.97.1 1.96.0; do rustup component add --toolchain $v-$host cargo clippy rustfmt rust-std rustc; rustup component add --toolchain $v cargo clippy rustfmt rust-std rustc; done && rustup default 1.97.1 && rustc --version
+      # Materialize generated faces before tests: several gate crates consume them.
+      - name: Materialize generated faces
+        run: cargo run --locked -p ci-generated-artifact-freshness --bin oya-cloud-ci-materialize-generated-faces -- --repo-root . --github-event
+      # Shared accounting-registry producer for OYA_CI_PRODUCER_BIN and
+      # OYA_CI_ENFORCEMENT_LIVENESS_PRODUCER. Step name is a frozen
+      # workflow_inline_shell baseline key — do not rename.
+      - name: Build enforcement-liveness producer
+        run: cargo build --locked -p ci-artifact-inventory-registry --bin oya-cloud-ci-accounting-registry-app
+      # Every workspace member, including the whole ci/facade gate fleet, runs here.
+      - name: Workspace tests
+        run: cargo test --locked --workspace
+      # kernel/ is a nested workspace (ADR-0512 carve-out) the root workspace excludes.
+      - name: Kernel workspace tests
+        run: cargo test --locked --manifest-path kernel/Cargo.toml
+      # Live hub-exclusivity admission: rejects a second open PR touching a hub path
+      # declared under specs/integ-branch-envelopes.json#hubs.paths.
+      - name: Live hub-exclusivity admission
         if: ${{ github.event_name == 'pull_request' }}
         env:
-          BASE_REF: ${{ github.base_ref || 'dev' }}
-        run: |
-          # DO NOT re-add a bare `git fetch origin` here. This repo is PRIVATE and the
-          # checkout above runs `persist-credentials: false`, so an unauthenticated fetch
-          # dies with: fatal: could not read Username for 'https://github.com'. That step
-          # had never actually executed in CI (hosted runners were not picking jobs up at
-          # all), so the defect stayed latent until the fleet moved to owned runners.
-          # It is also redundant: `actions/checkout` with `fetch-depth: 0` already ran
-          #   fetch --no-tags --prune origin +refs/heads/*:refs/remotes/origin/*
-          # which maps every remote head including the base ref. So ASSERT the invariant
-          # rather than re-fetching it — a future fetch-depth change then fails loudly
-          # right here instead of yielding a silently wrong merge-base downstream.
-          git rev-parse --verify "refs/remotes/origin/${BASE_REF}" >/dev/null 2>&1 || { echo "refs/remotes/origin/${BASE_REF} missing — this job's checkout must keep fetch-depth: 0"; exit 1; }
-      # ── BUILD-HEALTH BASELINE (ADR-0554 D9 ratchet / D10 cold isolation; ADR-0551 merge-base frozen
-      #    pattern). On a pull_request, derive the affected-set plan FIRST. Most PRs stay in the
-      #    affected cone and do not need a merge-base full-workspace build at all; only a derived
-      #    FULL decision needs the MERGE-BASE build-health baseline used by the ratchet. When FULL
-      #    is required, materialize that baseline in a SEPARATE clean worktree at the merge-base
-      #    COMMITTED tree-ish. D10 removes cross-run filesystem snapshots, so both that fallback
-      #    worktree and the untouched candidate root start independently cold. Run the full
-      #    keep-going build, capture per-target pass/fail, then remove the temporary worktree. The
-      #    affected-set FULL tier grandfathers targets already failing at the merge-base and blocks
-      #    only REGRESSIONS. Skipped for push/merge_group/dispatch (the admission tier is a hard
-      #    full build — no grandfathering).
-      #
-      #    ANTI-LAUNDERING (ADR-0554 D6, preserved): the baseline failure-set comes ENTIRELY from
-      #    the merge-base COMMITTED tree (git object history — candidate-uncontrollable); the
-      #    separate baseline worktree cannot read candidate working-tree bytes, so they cannot feed
-      #    the baseline; the report reaches the verdict ONLY via --baseline-report. Each worktree's
-      #    runner-local Buck2 state can change only wall-clock, never the baseline SOURCE; no
-      #    cross-run `buck-out` bytes enter this job (ADR-0554 D10). GH #899 activates the trusted D8 consumer first:
-      #    use an exact push-to-dev baseline artifact when provenance and schema validate, else
-      #    fail closed to the same in-job merge-base rebuild below.
-      - name: Materialize merge-base build + test baselines when affected-set needs FULL
-        # PER-STEP BUDGET. THE step that hung in job 91306848257 (started 01:16:44, still
-        # `in_progress` when the pod died at 01:55:36 = 38m52s and counting). Worst healthy
-        # observation is 32m18s (a cold FULL-tier merge-base pass; the trusted-baseline fast path
-        # takes 5s), so 55 is ~1.7x the worst measurement — wide enough that a genuinely cold
-        # full-workspace pass never trips it, tight enough to fire on a wedged buck2 action.
-        # HONEST LIMIT: at 38m52s this run was only ~20% over healthy, so 55 would NOT have beaten
-        # the pod to the kill here — a tighter budget would flake on cold caches, which is worse.
-        # What this buys is the OTHER shape: a step that hangs rather than dies now ends with a
-        # named failing step and an uploaded log instead of a 120-minute blank.
-        timeout-minutes: 55
-        if: ${{ github.event_name == 'pull_request' }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: cargo run --locked -p ci-affected-target-set --bin oya-cloud-ci-hub-exclusivity -- --repo-root . --live-open-prs --repo "$GITHUB_REPOSITORY" --candidate-pr "${{ github.event.pull_request.number }}"
+      # Generated outputs are never contributor merge surfaces: reject non-deletion
+      # edits to tracked generated artifacts (diff streamed to the policy binary).
+      - name: Reject non-deletion generated output edits
+        if: ${{ github.event_name != 'push' }}
         env:
           BASE_REF: ${{ github.base_ref || 'dev' }}
-          # Read-only, job-scoped token for the sole cross-run artifact consumer.
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          set -euo pipefail
-          # ── MERGE-BASE BUILD + TEST BASELINES in a CLEAN detached worktree (ADR-0554 round-6,
-          #    defects 3 + 4). Most PRs stay in the affected cone and skip this entirely; only a
-          #    derived FULL decision needs the merge-base baselines the ratchets grandfather against.
-          #
-          #    SOUNDNESS (defect 4): the baselines are built in a SEPARATE `git worktree` checked out
-          #    to the merge-base COMMITTED tree — NEVER in the candidate working tree. The previous
-          #    approach ran `git checkout --detach ${merge_base}` in the MAIN tree, which LEFT the
-          #    candidate's untracked/ignored materialized faces on disk; broad `**/*.json` BUCK globs
-          #    could then consume a candidate-controlled input into the baseline, laundering the
-          #    failure set. A clean worktree cannot see the candidate tree, so the baselines come
-          #    ENTIRELY from merge-base git objects (candidate-uncontrollable), and the candidate
-          #    working tree is untouched (no checkout, no restore trap).
-          #
-          merge_base="$(git merge-base "origin/${BASE_REF}" HEAD)"
-          full_required_marker="${RUNNER_TEMP}/affected-set-full-required"
-          echo "false" > "${full_required_marker}"
-          gate_bin="$(buck2 build //ci/facade/affected-target-set:oya-cloud-ci-affected-set-bin --show-output | awk '{print $2}')"
-          telemetry_bin="$(buck2 build //ci/facade/affected-target-set:oya-cloud-ci-step-telemetry-bin --show-output | awk '{print $2}')"
-          buildhealth_bin="$(buck2 build //ci/facade/affected-target-set:oya-cloud-ci-build-health-bin --show-output | awk '{print $2}')"
-          ci_step_telemetry="${RUNNER_TEMP}/oya-cloud-ci-step-telemetry"
-          cp "${telemetry_bin}" "${ci_step_telemetry}"; chmod +x "${ci_step_telemetry}"
-          cp "${gate_bin}" "${RUNNER_TEMP}/oya-cloud-ci-affected-set"; chmod +x "${RUNNER_TEMP}/oya-cloud-ci-affected-set"
-          cp "${buildhealth_bin}" "${RUNNER_TEMP}/oya-cloud-ci-build-health"; chmod +x "${RUNNER_TEMP}/oya-cloud-ci-build-health"
-          echo "affected-set preflight: derive plan before merge-base baselines"
-          "${ci_step_telemetry}" --phase derive-affected-set-tier -- "${RUNNER_TEMP}/oya-cloud-ci-affected-set" \
-            --policy ci/facade/affected-target-set/affected-set-policy.json \
-            --base "origin/${BASE_REF}" --mode auto --derive-only \
-            --decision-artifact-out "${RUNNER_TEMP}/affected-set-derive-decision.json" \
-            | tee "${RUNNER_TEMP}/affected-set-derive.log"
-          if grep -Eq '^affected-set: (decision=FULL|ESCALATE to FULL)' "${RUNNER_TEMP}/affected-set-derive.log"; then
-            echo "true" > "${full_required_marker}"
-            echo "affected-set preflight: FULL decision requires merge-base build + test baselines"
-          else
-            echo "affected-set preflight: derived non-FULL decision; skipping merge-base baselines"
-            exit 0
-          fi
-          # Owned-Rust D8 trusted-baseline consumer (GH #1323/#899); rationale + anti-laundering
-          # contract live on `trusted_baseline_exit`. Any doubt => cold rebuild below.
-          if "${RUNNER_TEMP}/oya-cloud-ci-build-health" --trusted-baseline \
-              --merge-base "${merge_base}" --repo "${GITHUB_REPOSITORY}" --out-dir "${RUNNER_TEMP}"; then
-            exit 0
-          fi
-          mb_tree="${RUNNER_TEMP}/merge-base-worktree"
-          rm -rf "${mb_tree}"
-          git worktree add --quiet --detach "${mb_tree}" "${merge_base}"
-          cleanup_worktree() {
-            local status="$?"
-            git -C "${GITHUB_WORKSPACE}" worktree remove --force "${mb_tree}" 2>/dev/null || rm -rf "${mb_tree}"
-            exit "${status}"
-          }
-          trap cleanup_worktree EXIT
-          (
-            cd "${mb_tree}"
-            rustup toolchain install
-            # Materialize merge-base faces in the clean historical tree. The historical binary owns
-            # epoch dispatch: new capability verifies authority; legacy bare mode must emit no receipt.
-            historical_help_status=0
-            historical_help="$(buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --help 2>&1)" || historical_help_status=$?
-            (( historical_help_status == 0 || historical_help_status == 2 )) || { echo "historical materializer capability probe failed: status=${historical_help_status}"; exit 1; }
-            grep -Fq "usage: oya-cloud-ci-materialize-generated-faces" <<<"${historical_help}" || { echo "historical materializer capability probe returned no usage contract"; exit 1; }
-            historical_retirement_args=()
-            if grep -Fq -- "--historical-merge-base <oid>" <<<"${historical_help}"; then
-              historical_retirement_args=(--historical-merge-base "${merge_base}")
-            fi
-            buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root . "${historical_retirement_args[@]}"
-            (( ${#historical_retirement_args[@]} == 0 )) || [[ -f ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json && ! -L ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json ]] || { echo "historical materializer capability emitted no regular retirement facts"; exit 1; }
-            (( ${#historical_retirement_args[@]} == 0 )) || jq -e 'type == "object" and (.receipts | type == "array") and (.scm_facts | type == "object")' ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json >/dev/null || { echo "historical materializer capability emitted malformed retirement facts"; exit 1; }
-            (( ${#historical_retirement_args[@]} != 0 )) || [[ ! -e ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json && ! -L ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json ]] || { echo "legacy historical materializer unexpectedly emitted retirement facts"; exit 1; }
-            # BUILD baseline: whole merge-base workspace keep-going. The build is EXPECTED to be
-            # non-zero (dev carries pre-existing breakage) — that IS the baseline, not a failure, so
-            # its exit code is never propagated.
-            "${ci_step_telemetry}" --phase materialize-merge-base-build-health-baseline -- \
-              buck2 build //... --keep-going \
-                --build-report "${RUNNER_TEMP}/build-health-baseline.json" || true
-            test -s "${RUNNER_TEMP}/build-health-baseline.json" \
-              || { echo "build-health: FATAL empty merge-base build baseline report"; exit 1; }
-            # TEST baseline (defect 3): run the merge-base tests keep-going, capture the per-target
-            # verdict console, and normalize it with the owned-Rust build-health binary into the
-            # build-report shape so the test-health ratchet consumes it exactly like the build
-            # baseline. Forward the same pinned rustup path as the head invocation so infrastructure
-            # failures cannot enter only one side of the per-target ratchet. Exit code not propagated
-            # (pre-existing test debt is the baseline).
-            "${ci_step_telemetry}" --phase materialize-merge-base-test-health-baseline -- \
-              buck2 test //... --keep-going -- --env "RUSTUP_HOME=${RUSTUP_HOME:-${HOME}/.rustup}" \
-                > "${RUNNER_TEMP}/merge-base-test-console.log" 2>&1 || true
-            "${RUNNER_TEMP}/oya-cloud-ci-build-health" \
-              --normalize-test-console "${RUNNER_TEMP}/merge-base-test-console.log" \
-              --normalize-out "${RUNNER_TEMP}/test-health-baseline.json"
-            test -s "${RUNNER_TEMP}/test-health-baseline.json" \
-              || { echo "test-health: FATAL empty merge-base test baseline report"; exit 1; }
-          )
-      - name: Binding affected-set build + test (cone-binding; FULL tier = build-health ratchet)
-        # PER-STEP BUDGET. Worst healthy observation 28m19s across the six sampled runs (26m23s /
-        # 27m13s / 27m34s / 27m38s / 27m42s / 28m19s — a remarkably tight FULL-tier cluster), so 50
-        # is ~1.8x the worst measurement. This step never ran at all in job 91306848257: it was
-        # still `pending` when the pod died, which is exactly why the blank failure named nothing.
-        timeout-minutes: 50
-        env:
-          BASE_REF: ${{ github.base_ref || 'dev' }}
-        run: |
-          set -euo pipefail
-          gate_bin="$(buck2 build //ci/facade/affected-target-set:oya-cloud-ci-affected-set-bin --show-output | awk '{print $2}')"
-          telemetry_bin="$(buck2 build //ci/facade/affected-target-set:oya-cloud-ci-step-telemetry-bin --show-output | awk '{print $2}')"
-          if [ "${EVENT_NAME}" = "pull_request" ]; then
-            # PR tier: auto (cone-binding, hard-fail on a NEW break in the changed cone); a FULL
-            # escalation runs the build-health ratchet AND the test-health ratchet (defect 3) against
-            # the merge-base build + test baselines. Both are only materialized when the derive
-            # preflight proves FULL is needed.
-            baseline_args=()
-            if [ -f "${RUNNER_TEMP}/affected-set-full-required" ] \
-                && grep -qx 'true' "${RUNNER_TEMP}/affected-set-full-required"; then
-              test -s "${RUNNER_TEMP}/build-health-baseline.json" \
-                || { echo "affected-set: FATAL missing build baseline after FULL derive preflight"; exit 1; }
-              test -s "${RUNNER_TEMP}/test-health-baseline.json" \
-                || { echo "affected-set: FATAL missing test baseline after FULL derive preflight"; exit 1; }
-              baseline_args=(
-                --baseline-report "${RUNNER_TEMP}/build-health-baseline.json"
-                --test-baseline-report "${RUNNER_TEMP}/test-health-baseline.json"
-              )
-            fi
-            "${telemetry_bin}" --phase binding-affected-set-build-test -- "${gate_bin}" \
-              --policy ci/facade/affected-target-set/affected-set-policy.json \
-              --base "origin/${BASE_REF}" --mode auto \
-              --decision-artifact-out "${RUNNER_TEMP}/affected-set-binding-decision.json" \
-              "${baseline_args[@]}"
-          else
-            # Admission/integration tier (merge_group/push/dispatch): hard full build+test — the
-            # integration tip MUST be green, no grandfathering. ADR-0554 D7: this run ALSO captures
-            # a build-report at ${RUNNER_TEMP}/build-health-admission-report.json (the binary's
-            # stable RUNNER_TEMP-anchored path) as a pure byproduct; the verdict is unchanged
-            # (non-empty failure set = hard fail) and the report is uploaded below only on
-            # trusted push-to-dev.
-            "${telemetry_bin}" --phase binding-affected-set-build-test -- "${gate_bin}" \
-              --policy ci/facade/affected-target-set/affected-set-policy.json \
-              --base "origin/${BASE_REF}" --mode full \
-              --decision-artifact-out "${RUNNER_TEMP}/affected-set-binding-decision.json"
-          fi
-      # ── BUILD-HEALTH BASELINE PRODUCER (ADR-0554 D7; ADR-0556 D5 QW-1 trusted-producer +
-      #    postmerge-dev-trunk warmth class). ONLY a trusted push-to-dev publishes the admission
-      #    build-report as the merge-base-to-be baseline artifact — NOT merge_group, NOT
-      #    pull_request — so the artifact namespace stays clean of attacker-controllable producers
-      #    (part of the DEFERRED D8 consumer's anti-laundering defense; D8 trusts workflow_run
-      #    PROVENANCE, never the artifact name). Producer-only: nothing consumes this yet, so it is
-      #    sound + harmless (no merge-authority change, no new permissions). The artifact is on the
-      #    critical path of BOTH the deferred D8 cross-run consumer AND the ADR-0560 warm-CAS.
-      - name: Upload build-health baseline artifact (trusted push-to-dev producer)
-        continue-on-error: true
-# BEST-EFFORT: a quota failure here must not redden a binding gate. Safe because the
-# consumer treats a missing baseline as a CACHE MISS, not a skip — `--trusted-baseline`
-# falls through to a cold rebuild in a clean worktree ("Any doubt => cold rebuild") and
-# fail-closes on an empty report, so a dropped upload costs time, never a verdict.
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/dev' }}
-        # actions/upload-artifact@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
-        with:
-          name: build-health-baseline-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}-gate-affected-target-set
-          path: ${{ runner.temp }}/build-health-admission-report.json
-          retention-days: 90
-          if-no-files-found: error
-      # ── TEST-HEALTH BASELINE PRODUCER (GH #1323/#899; the TEST half of the D8 baseline pair).
-      #    The build baseline alone buys the FULL tier almost nothing: `buck2 test //...` at the
-      #    merge-base would rebuild the workspace anyway, so BOTH halves must be reusable for the
-      #    cold rebuild to be skippable. The admission `--mode full` run captures buck2's
-      #    per-target test verdicts and normalizes them into the build-report shape at this stable
-      #    path, so the test-health ratchet consumes it exactly like the build baseline. Same
-      #    trust posture as the build producer: push-to-dev ONLY — never merge_group, never
-      #    pull_request — so the artifact namespace stays free of candidate-controllable producers.
-      #    A red tip never reaches this step, so a published baseline is always a green dev commit.
-      - name: Upload test-health baseline artifact (trusted push-to-dev producer)
-        continue-on-error: true
-# BEST-EFFORT: a quota failure here must not redden a binding gate. Safe because the
-# consumer treats a missing baseline as a CACHE MISS, not a skip — `--trusted-baseline`
-# falls through to a cold rebuild in a clean worktree ("Any doubt => cold rebuild") and
-# fail-closes on an empty report, so a dropped upload costs time, never a verdict.
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/dev' }}
-        # actions/upload-artifact@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
-        with:
-          name: test-health-baseline-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}-gate-affected-target-set
-          path: ${{ runner.temp }}/test-health-admission-report.json
-          retention-days: 90
-          if-no-files-found: error
-      - name: Upload affected-set operator artifacts
-        continue-on-error: true
-# BEST-EFFORT (evidence, not verdict): an artifact-storage-quota failure on THIS step must
-# not turn a computed gate verdict red. Same class as the producer-regen faces upload —
-# the gate result is decided before any upload runs.
-        # DELIBERATE EXCEPTION — stays `always()` while its four siblings move to `failure()`.
-        # For every other upload here, green means "nothing to look at". For the affected set the
-        # opposite holds: an EMPTY affected set is a FALSE GREEN — the lane reports success having
-        # selected no targets, so the run is green precisely BECAUSE it tested nothing. That is
-        # the failure mode this artifact exists to expose, and it is invisible in a `failure()`
-        # upload because the run did not fail. Green is the suspicious state here.
-        # THAT GATE NOW EXISTS: `Decision::RefuseEmptySelection` (predicate (1) of the
-        # selection-totality assertion, ci/facade/affected-target-set/src/lib.rs) fails the lane
-        # when a non-empty diff selects no targets and the paths hold no `inert_selection_classes`
-        # licence. This upload becomes removable — drop it to `failure()` like its siblings — once
-        # that assertion has proven itself in production; it is kept here meanwhile so the
-        # assertion and the witness overlap rather than hand off blind.
-        if: always()
-        # actions/upload-artifact@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
-        with:
-          name: affected-set-operator-artifacts
-          path: |
-            ${{ runner.temp }}/affected-set-derive-decision.json
-            ${{ runner.temp }}/affected-set-binding-decision.json
-          retention-days: 30
-          if-no-files-found: warn
+        run: git diff --find-renames --name-status "origin/${BASE_REF}...HEAD" | cargo run --locked -p ci-generated-artifact-policy --bin oya-cloud-ci-generated-output-diff-policy -- --manifest registry/generated-artifact-control-plane.json --repo-root .
 
-  # ── LIVE-POSTGRES DURABLE-SUBSTRATE LANES (#101/#901). Runs the env-gated
-  #    cross-tenant-deny / RLS / CDC / SCIM durability integration tests against
-  #    CONTAINERIZED Postgres and GATES merge when the change cone touches durable
-  #    postgres adapters/facades (or related shared crates / this workflow / the
-  #    live-postgres ARC cell). Path-optional on pull_request ONLY — push / merge_group /
-  #    workflow_dispatch still always request both legs. Skipped legs must NOT redden
-  #    fan-in (success OR skipped is green for these two jobs only).
-  #
-  #    SPLIT SAFETY (#901): adapter and facade groups remain separate jobs, and
-  #    each job owns an independent same-Pod PostgreSQL native sidecar plus deterministic
-  #    bootstrap. The dedicated scale set is capped at maxRunners=1, so the two jobs queue
-  #    and execute serially rather than competing for the disk-constrained runner cell.
-  #    Inside each group, `--num-threads 1` and sequential target invocations remain because
-  #    the harnesses in that group still share a local database.
-  #
-  #    PATH FILTER (FinOps / queue): needs producer-regen only for its path-relevance
-  #    outputs (not faces). Gates still run when paths match — not a face/firewall weaken.
-  gate-live-postgres-adapters:
-    name: "gate-live-postgres-adapters (durable adapters: RLS / CDC / SCIM, #901)"
-    needs: producer-regen
-    if: ${{ needs.producer-regen.result == 'success' && needs.producer-regen.outputs.live_postgres_adapters == 'true' }}
-    # W1: GitHub-hosted + service container (replaces oya-live-postgres-arm64 ARC sidecar).
-    runs-on: ubuntu-latest  # W1: GH service Postgres; was oya-live-postgres-arm64 ARC cell
+  live-postgres-adapters:
+    name: live-postgres-adapters (RLS / CDC / SCIM)
+    runs-on: ubuntu-latest
     timeout-minutes: 25
     services:
       postgres:
@@ -1046,32 +161,18 @@ jobs:
           --health-timeout 5s
           --health-retries 20
     steps:
-      # actions/checkout@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
-      - name: Install buck2 (digest-pinned prebuilt release)
-        run: infra/ci/install-buck2.sh
-      - name: Cache pinned Rust toolchain (ADR-0556 D5 QW-4)
-        # actions/cache@v6.1.0 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+      - uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
         with:
-          path: |
-            ~/.rustup/toolchains
-            ~/.rustup/update-hashes
-          key: rustup-toolchain-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('rust-toolchain.toml') }}
-      - name: Pre-provision pinned Rust toolchain for Buck2 live tests
-        run: |
-          set -euo pipefail
-          rustup toolchain install
-          rustc --version
-      - name: Install postgresql-client for the bootstrap
-        run: |
-          set -euo pipefail
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends postgresql-client
-          psql --version
-      - name: Bootstrap app role + durable schemas/roles (admin, adapters)
+          toolchain: "1.97.1"
+      - uses: swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
+        with:
+          shared-key: cargo-ci-linux
+      - name: Install postgresql-client
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends postgresql-client && psql --version
+      - name: Bootstrap roles and schemas (adapters)
         env:
           ADMIN_PASSWORD: oya_ci_pg_admin_local_only
           APP_PASSWORD: oya_ci_pg_app_local_only
@@ -1085,13 +186,8 @@ jobs:
           "${ADMIN_PSQL[@]}" -f iam/adapters/identity-scim-store-postgres/migrations/0000_runtime_role.sql
           "${ADMIN_PSQL[@]}" -f iam/adapters/identity-scim-store-postgres/migrations/0001_identity_scim_store.sql
           "${ADMIN_PSQL[@]}" -c "GRANT identity_scim_runtime TO oya_app;"
-          # Log-only role echo. The BINDING proof that these roles cannot bypass RLS is
-          # asserted in-test, fail-closed, not archived as an artifact: the shared
-          # assert_rls_enforceable() boot guard plus the per-adapter live asserts
-          # (see the crates run below). A JSON provenance blob used to be written and
-          # uploaded here; it had zero consumers and no ADR, so the assertion replaced it.
           "${ADMIN_PSQL[@]}" -c "SELECT rolname, rolsuper, rolbypassrls FROM pg_roles WHERE rolname IN ('postgres','oya_app','tenancy_lifecycle_runtime','identity_scim_runtime') ORDER BY rolname;"
-      - name: buck2 test — durable adapters (admin=superuser, app=app-role)
+      - name: Live Postgres tests (adapters)
         env:
           OYA_DATA_LIVE_POSTGRES: "1"
           OYA_DATA_POSTGRES_ADMIN_URL: ${{ env.OYA_PG_ADMIN_URL }}
@@ -1102,32 +198,11 @@ jobs:
           OYA_BACKBONE_LIVE_POSTGRES: "1"
           OYA_BACKBONE_POSTGRES_URL: ${{ env.OYA_PG_ADMIN_URL }}
           OYA_BACKBONE_POSTGRES_APP_URL: ${{ env.OYA_PG_APP_URL }}
-        run: |
-          set -euo pipefail
-          LIVE_ENV=(
-            --env RUST_TEST_THREADS=1
-            --env OYA_DATA_LIVE_POSTGRES="${OYA_DATA_LIVE_POSTGRES}"
-            --env OYA_DATA_POSTGRES_ADMIN_URL="${OYA_DATA_POSTGRES_ADMIN_URL}"
-            --env OYA_DATA_POSTGRES_APP_URL="${OYA_DATA_POSTGRES_APP_URL}"
-            --env OYA_OUTBOX_LIVE_POSTGRES="${OYA_OUTBOX_LIVE_POSTGRES}"
-            --env OYA_OUTBOX_POSTGRES_ADMIN_URL="${OYA_OUTBOX_POSTGRES_ADMIN_URL}"
-            --env OYA_OUTBOX_POSTGRES_APP_URL="${OYA_OUTBOX_POSTGRES_APP_URL}"
-            --env OYA_BACKBONE_LIVE_POSTGRES="${OYA_BACKBONE_LIVE_POSTGRES}"
-            --env OYA_BACKBONE_POSTGRES_URL="${OYA_BACKBONE_POSTGRES_URL}"
-            --env OYA_BACKBONE_POSTGRES_APP_URL="${OYA_BACKBONE_POSTGRES_APP_URL}"
-          )
-          buck2 test --local-only --num-threads 1 //libs/oya-data-sql-adapter-sqlx:oya-data-sql-adapter-sqlx-unittest -- "${LIVE_ENV[@]}"
-          buck2 test --local-only --num-threads 1 //libs/oya-data-outbox-adapter-postgres:oya-data-outbox-adapter-postgres-unittest -- "${LIVE_ENV[@]}"
-          buck2 test --local-only --num-threads 1 //tenancy/adapters/tenant-lifecycle-store-postgres:tenancy-tenant-lifecycle-store-postgres-unittest -- "${LIVE_ENV[@]}"
-          buck2 test --local-only --num-threads 1 //tenancy/adapters/tenant-lifecycle-store-postgres:tenancy-tenant-lifecycle-store-postgres-live -- "${LIVE_ENV[@]}"
-          buck2 test --local-only --num-threads 1 //iam/adapters/identity-scim-store-postgres:identity-scim-store-postgres-unittest -- "${LIVE_ENV[@]}"
-          buck2 test --local-only --num-threads 1 //iam/adapters/identity-scim-store-postgres:identity-scim-store-postgres-live -- "${LIVE_ENV[@]}"
-  gate-live-postgres-facades:
-    name: "gate-live-postgres-facades (durable facades: tenant lifecycle / SCIM, #901)"
-    needs: producer-regen
-    if: ${{ needs.producer-regen.result == 'success' && needs.producer-regen.outputs.live_postgres_facades == 'true' }}
-    # W1: GitHub-hosted + service container (replaces oya-live-postgres-arm64 ARC sidecar).
-    runs-on: ubuntu-latest  # W1: GH service Postgres; was oya-live-postgres-arm64 ARC cell
+        run: RUST_TEST_THREADS=1 cargo test --locked -p oya-data-sql-adapter-sqlx -p oya-data-outbox-adapter-postgres -p tenancy-tenant-lifecycle-store-postgres -p identity-scim-store-postgres
+
+  live-postgres-facades:
+    name: live-postgres-facades (tenant lifecycle / SCIM)
+    runs-on: ubuntu-latest
     timeout-minutes: 25
     services:
       postgres:
@@ -1144,32 +219,18 @@ jobs:
           --health-timeout 5s
           --health-retries 20
     steps:
-      # actions/checkout@v7.0.1 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
-      - name: Install buck2 (digest-pinned prebuilt release)
-        run: infra/ci/install-buck2.sh
-      - name: Cache pinned Rust toolchain (ADR-0556 D5 QW-4)
-        # actions/cache@v6.1.0 — Node 24 runtime; pinned to immutable release commit for hermetic CI.
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+      - uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
         with:
-          path: |
-            ~/.rustup/toolchains
-            ~/.rustup/update-hashes
-          key: rustup-toolchain-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('rust-toolchain.toml') }}
-      - name: Pre-provision pinned Rust toolchain for Buck2 live tests
-        run: |
-          set -euo pipefail
-          rustup toolchain install
-          rustc --version
-      - name: Install postgresql-client for the bootstrap
-        run: |
-          set -euo pipefail
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends postgresql-client
-          psql --version
-      - name: Bootstrap app role + durable schemas/roles (admin, facades)
+          toolchain: "1.97.1"
+      - uses: swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
+        with:
+          shared-key: cargo-ci-linux
+      - name: Install postgresql-client
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends postgresql-client && psql --version
+      - name: Bootstrap roles and schemas (facades)
         env:
           ADMIN_PASSWORD: oya_ci_pg_admin_local_only
           APP_PASSWORD: oya_ci_pg_app_local_only
@@ -1183,80 +244,73 @@ jobs:
           "${ADMIN_PSQL[@]}" -f iam/adapters/identity-scim-store-postgres/migrations/0000_runtime_role.sql
           "${ADMIN_PSQL[@]}" -f iam/adapters/identity-scim-store-postgres/migrations/0001_identity_scim_store.sql
           "${ADMIN_PSQL[@]}" -c "GRANT identity_scim_runtime TO oya_app;"
-          # Log-only role echo; see the adapters job above. The binding no-bypass proof is
-          # the fail-closed assert_rls_enforceable() boot guard the facades run below hit,
-          # not a retained artifact.
           "${ADMIN_PSQL[@]}" -c "SELECT rolname, rolsuper, rolbypassrls FROM pg_roles WHERE rolname IN ('postgres','oya_app','tenancy_lifecycle_runtime','identity_scim_runtime') ORDER BY rolname;"
-      - name: buck2 test — durable facades (live test = app-role, non-live = in-memory)
+      - name: Live Postgres tests (facades)
         env:
           OYA_BACKBONE_LIVE_POSTGRES: "1"
           OYA_BACKBONE_POSTGRES_APP_URL: ${{ env.OYA_PG_APP_URL }}
-        run: |
-          set -euo pipefail
-          FACADE_ENV=(
-            --env RUST_TEST_THREADS=1
-            --env OYA_BACKBONE_LIVE_POSTGRES="${OYA_BACKBONE_LIVE_POSTGRES}"
-            --env OYA_BACKBONE_POSTGRES_APP_URL="${OYA_BACKBONE_POSTGRES_APP_URL}"
-          )
-          buck2 test --local-only --num-threads 1 //iam/facade/identity-service:iam-identity-service-tests -- "${FACADE_ENV[@]}"
-          buck2 test --local-only --num-threads 1 //iam/facade/identity-service:iam-identity-service-e2e -- "${FACADE_ENV[@]}"
-          buck2 test --local-only --num-threads 1 //tenancy/facade/tenant-lifecycle-app:tenancy-tenant-lifecycle-app-unittest -- "${FACADE_ENV[@]}"
-          buck2 test --local-only --num-threads 1 //tenancy/facade/tenant-lifecycle-app:tenancy-tenant-lifecycle-app-acceptance -- "${FACADE_ENV[@]}"
-  # ── THE FAN-IN. This is the single required context branch protection keys on. It has NO
-  #    command of its own (Principle 1 — it NEVER re-runs a narrower subset): it is green IFF
-  #    every gate lane above is green. `needs:` lists EVERY gate job; the gate-registration
-  #    meta-test (in the firewall lane) asserts every in-tree gate crate is represented here.
+        run: RUST_TEST_THREADS=1 cargo test --locked -p iam-identity-service -p tenancy-tenant-lifecycle-app
+
+  cross-platform-smoke:
+    name: cross-platform-smoke (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    continue-on-error: true
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
+        with:
+          toolchain: "1.97.1"
+      - uses: swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
+        with:
+          shared-key: cargo-ci-${{ matrix.os }}
+      - name: Install pinned buck2 (digest-verified)
+        shell: bash
+        run: infra/ci/install-buck2.sh
+      - name: Pre-provision pinned toolchain components
+        shell: bash
+        # Full default profile (rustc+cargo+std+clippy+rustfmt): the materializer's buck2
+        # build resolves the triple-named toolchain through rustup; pre-installing everything
+        # makes those rustup calls no-ops and avoids the concurrent-download race.
+        run: host=$(rustc -vV | awk '/^host/{print $2}') && for v in 1.97.1 1.96.0; do rustup component add --toolchain $v-$host cargo clippy rustfmt rust-std rustc; rustup component add --toolchain $v cargo clippy rustfmt rust-std rustc; done && rustup default 1.97.1 && rustc --version
+      - name: Materialize generated faces
+        run: cargo run --locked -p ci-generated-artifact-freshness --bin oya-cloud-ci-materialize-generated-faces -- --repo-root . --github-event
+      - name: Cross-platform smoke tests
+        run: cargo test --locked -p ci-scm-facts-snapshot
+
+  # Fan-in: the single required context. Green IFF lint, test, and both live-postgres
+  # lanes are green. The cross-platform lane is soft: its failure never blocks merge.
   oya-ci-required:
     name: oya-ci-required
-    runs-on: ubuntu-latest  # binding linux-amd64 hosted; multi-arch soft via gate matrix; ARC oya-arm64 lab overflow only
+    runs-on: ubuntu-latest
     if: ${{ always() }}
-    needs:
-      - gate                    # the matrix of homogeneous gate lanes (success IFF every leg passed)
-      - gate-generated-artifact-freshness          # bespoke: stale Cargo.lock + generated faces first diagnosis
-      - gate-inventory-registry-drift     # bespoke: materialized == regenerated byte-parity
-      - gate-baseline-ratchet  # bespoke: baseline ratchet + gate_registration meta-test
-      - generated-output-diff-policy # generated outputs are never PR merge surfaces
-      - buck2                   # hermetic buck2 build + affected gate tests
-      - gate-affected-target-set       # binding workspace coverage: affected cone or fail-closed full run (ADR-0554)
-      - gate-live-postgres-adapters # #901: durable adapter RLS / CDC / SCIM tests against isolated live Postgres
-      - gate-live-postgres-facades  # #901: durable facade tenant lifecycle / SCIM tests against isolated live Postgres
+    needs: [lint, test, live-postgres-adapters, live-postgres-facades, cross-platform-smoke]
     steps:
-      # TYPED TERMINAL STATE — the classifier that separates `fail` from `no-verdict` from
-      # `blocked` (//ci/facade/baseline-ratchet:oya-cloud-ci-run-terminal-state-bin) is NOT invoked
-      # here, deliberately. Calling it needs a new inline-shell `run:` step, and
-      # `automation-language-policy` is a merge-base CEILING (shrink-only, "door:one-way") — a new
-      # baselined key is born-blocking by design, and that is the correct verdict for a shell step
-      # (same reasoning as the materialize-if-absent primitive above). Its home is the owned CI
-      # runner, where it is a first-class action rather than a `run:` line. Until then the kernel is
-      # held live by its acceptance tests in the cloud-ci-firewall lane, which classify two captured
-      # REAL runs (30677213867, 30692655896), so it cannot rot while it waits for a caller.
-      - name: Fan-in verdict (green IFF every gate lane is green)
+      - name: Fan-in verdict
         run: |
-          echo "Gate results:"
-          echo "  gate (matrix)     = ${{ needs.gate.result }}"
-          echo "  freshness         = ${{ needs.gate-generated-artifact-freshness.result }}"
-          echo "  registry-drift    = ${{ needs.gate-inventory-registry-drift.result }}"
-          echo "  cloud-ci-firewall = ${{ needs.gate-baseline-ratchet.result }}"
-          echo "  generated-diff    = ${{ needs.generated-output-diff-policy.result }}"
-          echo "  buck2             = ${{ needs.buck2.result }}"
-          echo "  affected-set      = ${{ needs.gate-affected-target-set.result }}"
-          echo "  live-postgres/adapters = ${{ needs.gate-live-postgres-adapters.result }}"
-          echo "  live-postgres/facades  = ${{ needs.gate-live-postgres-facades.result }}"
-          # A matrix job's aggregate `.result` is success IFF ALL legs succeeded, failure if any
-          # leg failed, skipped if it never ran — so one check covers every gate in the matrix.
-          # Live-postgres legs are path-optional on pull_request: success OR skipped is green for
-          # those two only (other legs remain success-only). shell_lines stays 16 via `\`.
-          if [ "${{ needs.gate.result }}" = "success" ] \
-            && [ "${{ needs.gate-generated-artifact-freshness.result }}" = "success" ] \
-            && [ "${{ needs.gate-inventory-registry-drift.result }}" = "success" ] \
-            && [ "${{ needs.gate-baseline-ratchet.result }}" = "success" ] \
-            && [ "${{ needs.generated-output-diff-policy.result }}" = "success" ] \
-            && [ "${{ needs.buck2.result }}" = "success" ] \
-            && [ "${{ needs.gate-affected-target-set.result }}" = "success" ] \
-            && { [ "${{ needs.gate-live-postgres-adapters.result }}" = "success" ] || [ "${{ needs.gate-live-postgres-adapters.result }}" = "skipped" ]; } \
-            && { [ "${{ needs.gate-live-postgres-facades.result }}" = "success" ] || [ "${{ needs.gate-live-postgres-facades.result }}" = "skipped" ]; }; then
-            echo "oya-ci-required: GREEN — every constituent gate lane passed."
-            exit 0
-          fi
-          echo "oya-ci-required: RED — at least one constituent gate lane failed or was skipped."
-          exit 1
+          [ "${{ needs.lint.result }}" = "success" ] && [ "${{ needs.test.result }}" = "success" ] && [ "${{ needs.live-postgres-adapters.result }}" = "success" ] && [ "${{ needs.live-postgres-facades.result }}" = "success" ] && exit 0 || exit 1
+
+  # Dual-emit of the forever public status string alongside the legacy protected context.
+  # The branch-protection flip to `merge-admission-required` is a founder-only setting change.
+  merge-admission-required:
+    name: merge-admission-required
+    runs-on: ubuntu-latest
+    if: ${{ always() && needs.oya-ci-required.result == 'success' }}
+    needs:
+      - oya-ci-required
+    steps:
+      - name: Dual-emit forever title
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+          sparse-checkout: |
+            README.md
+          sparse-checkout-cone-mode: true

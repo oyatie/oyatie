@@ -15,9 +15,7 @@
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 
-use ci_embedded_asset_hermeticity::{
-    Finding, Verdict, collect_observed, evaluate, evaluate_keyed,
-};
+use ci_embedded_asset_hermeticity::{Finding, Verdict, collect_observed, evaluate, evaluate_keyed};
 use serde_json::{Value, json};
 
 fn repo_root() -> PathBuf {
@@ -185,7 +183,11 @@ fn red_unmapped_include_fails_closed_green_when_mapped() {
     ]});
     let report = evaluate(&fixture_policy(), &red);
     assert_eq!(report.verdict, Verdict::Red);
-    assert!(report.violations.contains("embedded_asset_unmapped_include"));
+    assert!(
+        report
+            .violations
+            .contains("embedded_asset_unmapped_include")
+    );
 
     // Post-fix: the corrected mapping makes the resolved path a destination member -> resolved -> GREEN.
     let green = json!({ "sites": [
@@ -203,7 +205,8 @@ fn red_include_bytes_unmapped_fails_closed() {
     assert!(
         findings
             .iter()
-            .any(|f| f.code == "embedded_asset_unmapped_include" && f.key == "bin::src/main.rs::data/blob.bin")
+            .any(|f| f.code == "embedded_asset_unmapped_include"
+                && f.key == "bin::src/main.rs::data/blob.bin")
     );
 }
 
@@ -215,7 +218,14 @@ fn skips_are_surfaced_but_never_red() {
         { "key": "c.rs:3", "status": "skip_no_owning_target" }
     ]});
     let report = evaluate(&fixture_policy(), &observed);
-    assert_eq!(report.verdict, Verdict::Green, "skips never flip the verdict");
-    assert_eq!(evaluate_keyed(&fixture_policy(), &observed).len(), 3, "but every skip is surfaced");
+    assert_eq!(
+        report.verdict,
+        Verdict::Green,
+        "skips never flip the verdict"
+    );
+    assert_eq!(
+        evaluate_keyed(&fixture_policy(), &observed).len(),
+        3,
+        "but every skip is surfaced"
+    );
 }
-

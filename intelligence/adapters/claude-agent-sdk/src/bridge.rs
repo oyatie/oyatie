@@ -1343,11 +1343,8 @@ fn anthropic_headers(access_token: &str) -> Result<http::HeaderMap> {
     );
     headers.insert(
         http::header::USER_AGENT,
-        http::HeaderValue::from_str(&format!(
-            "claude-agent-sdk-rust/{}",
-            crate::SDK_VERSION
-        ))
-        .map_err(|error| ClaudeAgentError::InvalidOption(error.to_string()))?,
+        http::HeaderValue::from_str(&format!("claude-agent-sdk-rust/{}", crate::SDK_VERSION))
+            .map_err(|error| ClaudeAgentError::InvalidOption(error.to_string()))?,
     );
     Ok(headers)
 }

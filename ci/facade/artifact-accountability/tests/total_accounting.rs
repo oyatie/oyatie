@@ -31,11 +31,7 @@ fn producer_binary(root: &Path, producer_bin: Option<&str>) -> Result<PathBuf, S
             "FAIL-CLOSED: missing OYA_CI_PRODUCER_BIN; Cargo fallback is forbidden".to_owned(),
         );
     };
-    Ok(if Path::new(bin).is_absolute() {
-        PathBuf::from(bin)
-    } else {
-        root.join(bin)
-    })
+    ci_path_resolver_adapters::resolve_cargo_test_binary(root, std::ffi::OsStr::new(bin))
 }
 
 #[test]
@@ -270,14 +266,27 @@ fn owners_files_are_accounted_by_construction_on_the_live_corpus() {
     );
 
     // The exhibit (PR #1473). Named explicitly: nobody hand-wrote a row for it.
+    // justification_ref stays owners-schema (OWNERS floor). reachable_from may also
+    // carry envelope-prefix-ownership once Phase1 prefix allows cover os/** — the floor
+    // only fills an empty reachable_from, so envelope coverage replaces the sole
+    // owners-schema stamp without changing by-construction justification.
     let os_owners = rows
         .iter()
         .find(|row| row["path"] == "os/OWNERS")
         .expect("os/OWNERS must be in the live registry");
     assert_eq!(os_owners["justification_ref"], "owners-schema");
-    assert_eq!(
-        os_owners["reachable_from"],
-        serde_json::json!(["owners-schema"])
+    let os_reachable = os_owners["reachable_from"]
+        .as_array()
+        .expect("os/OWNERS reachable_from must be an array");
+    assert!(
+        !os_reachable.is_empty(),
+        "os/OWNERS must be reachable (owners-schema floor and/or envelope-prefix)"
+    );
+    assert!(
+        os_reachable.iter().any(|v| {
+            v.as_str() == Some("owners-schema") || v.as_str() == Some("envelope-prefix-ownership")
+        }),
+        "os/OWNERS reachable_from must include owners-schema or envelope-prefix-ownership, got {os_reachable:?}"
     );
 
     // ...and the gate agrees: no per-path finding is keyed to ANY OWNERS file.
@@ -309,9 +318,7 @@ fn owners_files_are_accounted_by_construction_on_the_live_corpus() {
 #[test]
 fn owners_files_are_never_registered_in_the_reachability_registry() {
     let registry: Value = load_json(&repo_root().join("specs/reachability-registry.json"));
-    let registered = registry["registered"]
-        .as_array()
-        .expect("registered array");
+    let registered = registry["registered"].as_array().expect("registered array");
     // Non-vacuity: the file still carries its legitimate non-OWNERS registrations.
     assert!(
         registered.len() > 20,
@@ -334,8 +341,7 @@ fn owners_files_are_never_registered_in_the_reachability_registry() {
 /// provided by `OYA_CI_PRODUCER_BIN`; missing env fails closed so tests cannot silently fall back to
 /// Cargo. The producer reads the materialized scm-facts face (a declared input); it never calls git.
 fn run_producer_stdout(root: &Path) -> Value {
-    let scm_facts = root
-        .join("ci/facade/artifact-inventory-registry/scm-facts.generated.json");
+    let scm_facts = root.join("ci/facade/artifact-inventory-registry/scm-facts.generated.json");
     let producer_bin = std::env::var("OYA_CI_PRODUCER_BIN").ok();
     let bin = producer_binary(root, producer_bin.as_deref()).unwrap_or_else(|e| panic!("{e}"));
     let output = Command::new(bin)

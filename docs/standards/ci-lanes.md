@@ -63,7 +63,6 @@ Protected-branch authority is the single `oya-ci-required` fan-in plus constitue
 | `pnpm-test` | TS unit + integration |
 | `oya-governance-supply-chain` | Trivy 4-layer + Cosign per ADR-0039 |
 | `oya-governance-supply-chain-bootstrap` | source-only supply-chain guard plus RustSec and deny wiring |
-| `traceability-validator` | PR title/body are review-ready and template carries the 5 mandatory traceability H2 sections plus merge-time Code Review evidence |
 | `oya-governance-api-semver` | public-API stability tier per ADR-0037 |
 | `oya-governance-cargo-prefix` | every workspace member starts with `oya-` |
 | `oya-governance-pre-push` | oya verify command contract maps to the checked local verification bundle (canonical local pre-push entry; retired entry points are recorded in registry/vocabulary/retired.yaml) |

@@ -31,10 +31,10 @@
 
 use std::collections::BTreeSet;
 
-use oya_ci_config_kernel::NamingConfig;
 use intelligence_cargo_prefix_domain::{
     CargoPrefixError, CargoPrefixMember, validate_cargo_prefix,
 };
+use oya_ci_config_kernel::NamingConfig;
 use serde_json::Value;
 
 /// The gate id, matching the buck2 target + the firewall baseline gate-id.

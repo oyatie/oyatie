@@ -38,8 +38,23 @@
 //!     in a declared `inert_selection_classes` class (docs) — or the diff is empty.
 //!
 //! ADR-0083 Tier-3: production code carries no unwrap/expect/panic; `#![forbid(unsafe_code)]`.
+//!
+//! Also hosts [`hub_exclusivity`] — mechanical REFUSE when open integ PRs multi-own hubs at
+//! `specs/integ-branch-envelopes.json#hubs.paths` (ADR-0711; colocated to avoid Cargo.lock hub
+//! churn from a new package).
+//!
+//! Also hosts [`anti_drift_drift_grep`] — mechanical REFUSE when ADR-0711 / PORTABLE prose
+//! re-lists roots/hubs/freeze enumerations outside
+//! `specs/integ-branch-envelopes.json#anti_drift.prose_must_cite_not_enumerate` (INV-DOC-2).
+//!
+//! Also hosts [`owners_from_envelopes`] — generate CODEOWNERS / directory OWNERS faces from
+//! `#roots`/`#planes` (+ `#path_ownership`) without Cargo.lock hub churn from a new package.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 #![forbid(unsafe_code)]
+
+pub mod anti_drift_drift_grep;
+pub mod hub_exclusivity;
+pub mod owners_from_envelopes;
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
@@ -855,6 +870,30 @@ impl GatePhaseOutcome {
         }
     }
 }
+
+/// Merge-base build-health evidence attached to the operator artifact.
+#[derive(Debug, Clone, Copy)]
+pub struct BaselineArtifactContext<'a> {
+    report_present: bool,
+    provenance: Option<&'a Value>,
+    reuse_outcome: Option<&'a Value>,
+}
+
+impl<'a> BaselineArtifactContext<'a> {
+    /// Bind the observed report state and optional provenance records.
+    pub const fn new(
+        report_present: bool,
+        provenance: Option<&'a Value>,
+        reuse_outcome: Option<&'a Value>,
+    ) -> Self {
+        Self {
+            report_present,
+            provenance,
+            reuse_outcome,
+        }
+    }
+}
+
 /// Render a live long-step telemetry line for CI logs.
 ///
 /// The line is intentionally plain text instead of JSON so GitHub Actions displays it while the
@@ -878,9 +917,7 @@ pub fn affected_set_operator_artifact(
     mode: &str,
     resolved_base_ref: &str,
     resolved_head_ref: &str,
-    baseline_report_present: bool,
-    baseline_provenance: Option<&Value>,
-    baseline_reuse_outcome: Option<&Value>,
+    baseline: BaselineArtifactContext<'_>,
     decision: &Decision,
     phases: &[GatePhaseOutcome],
 ) -> Value {
@@ -927,18 +964,18 @@ pub fn affected_set_operator_artifact(
         "decision": decision_value,
         "merge_base_build_health_baseline": {
             "required": matches!(decision, Decision::Full { .. }) && mode == "auto",
-            "report_present": baseline_report_present,
+            "report_present": baseline.report_present,
             // WHICH baseline produced this verdict, and therefore what was grandfathered. A
             // reused artifact grandfathers nothing (its source tip passed admission green); a
             // cold rebuild may grandfather env-dependent merge-base failures. Recorded so the
             // difference is auditable per run instead of inferred from wall-clock or logs.
-            "source": if baseline_provenance.is_some() { "trusted-artifact" } else { "cold-rebuild" },
-            "provenance": baseline_provenance.cloned().unwrap_or(Value::Null),
+            "source": if baseline.provenance.is_some() { "trusted-artifact" } else { "cold-rebuild" },
+            "provenance": baseline.provenance.cloned().unwrap_or(Value::Null),
             // WHY the fast path did or did not run. `source` alone cannot distinguish "no baseline
             // was published for this merge-base" from "the runner could not ask" — and for the
             // whole life of the owned arm64 fleet it was always the latter, invisibly. Null here
             // means the consumer never ran at all (a non-FULL tier), which is not a degrade.
-            "reuse_outcome": baseline_reuse_outcome.cloned().unwrap_or(Value::Null),
+            "reuse_outcome": baseline.reuse_outcome.cloned().unwrap_or(Value::Null),
             "anti_laundering": "baseline report must be produced from the merge-base committed tree, never the candidate tree"
         },
         "long_running_gate_phases": phases
@@ -1616,7 +1653,7 @@ pub enum PositiveBaselineState {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum NegativeBaselineState {
     Absent,
-    Valid(PartialNegativeReceipt),
+    Valid(Box<PartialNegativeReceipt>),
     Invalid,
 }
 
@@ -1649,9 +1686,10 @@ pub fn select_partial_negative_baseline(
             && validated_merge_base_sha(validator_base_sha).is_ok()
             && receipt.merge_base == validator_base_sha =>
         {
-            PartialNegativeSelection::Negative(PartialNegativeFailures {
-                observed_failures: receipt.observed_failures,
-            })
+            let PartialNegativeReceipt {
+                observed_failures, ..
+            } = *receipt;
+            PartialNegativeSelection::Negative(PartialNegativeFailures { observed_failures })
         }
         _ => PartialNegativeSelection::Cold,
     }
@@ -2598,7 +2636,7 @@ mod tests {
         assert_eq!(
             select_partial_negative_baseline(
                 PositiveBaselineState::Valid,
-                NegativeBaselineState::Valid(receipt.clone()),
+                NegativeBaselineState::Valid(Box::new(receipt.clone())),
                 Some(&base),
             ),
             PartialNegativeSelection::Positive
@@ -2606,7 +2644,7 @@ mod tests {
         assert_eq!(
             select_partial_negative_baseline(
                 PositiveBaselineState::Absent,
-                NegativeBaselineState::Valid(receipt.clone()),
+                NegativeBaselineState::Valid(Box::new(receipt.clone())),
                 Some(&base),
             ),
             PartialNegativeSelection::Negative(failures.clone())
@@ -2617,7 +2655,7 @@ mod tests {
         assert_eq!(
             select_partial_negative_baseline(
                 PositiveBaselineState::Absent,
-                NegativeBaselineState::Valid(malformed),
+                NegativeBaselineState::Valid(Box::new(malformed)),
                 Some(&base),
             ),
             PartialNegativeSelection::Cold
@@ -2626,7 +2664,7 @@ mod tests {
         for (positive, negative, validator_base) in [
             (
                 PositiveBaselineState::Invalid,
-                NegativeBaselineState::Valid(receipt.clone()),
+                NegativeBaselineState::Valid(Box::new(receipt.clone())),
                 Some(base.as_str()),
             ),
             (
@@ -2636,12 +2674,12 @@ mod tests {
             ),
             (
                 PositiveBaselineState::Absent,
-                NegativeBaselineState::Valid(receipt.clone()),
+                NegativeBaselineState::Valid(Box::new(receipt.clone())),
                 None,
             ),
             (
                 PositiveBaselineState::Absent,
-                NegativeBaselineState::Valid(receipt.clone()),
+                NegativeBaselineState::Valid(Box::new(receipt.clone())),
                 Some(different_base),
             ),
         ] {
@@ -2675,7 +2713,7 @@ mod tests {
         let baseline = set(&[
             "root//third-party:blake3",
             "root//libs/oya-data-sql-adapter-sqlx:oya-data-sql-adapter-sqlx-unittest",
-            "root//oya/ci-controller/crates/oya-ci-controller-app:oya-ci-controller",
+            "root//ci/controller/app:oya-ci-controller",
             "root//libs/oya-shared-backbone-grpc-generated-adapter:oya-shared-backbone-grpc-generated-adapter-build-script-run",
         ]);
         let head = baseline.clone();
@@ -2789,9 +2827,7 @@ mod tests {
             "auto",
             "0123456789abcdef0123456789abcdef01234567",
             "89abcdef0123456789abcdef0123456789abcdef",
-            false,
-            None,
-            None,
+            BaselineArtifactContext::new(false, None, None),
             &decision,
             &phases,
         );
@@ -2858,9 +2894,7 @@ mod tests {
             "auto",
             "0123456789abcdef0123456789abcdef01234567",
             "89abcdef0123456789abcdef0123456789abcdef",
-            false,
-            None,
-            None,
+            BaselineArtifactContext::new(false, None, None),
             &decision,
             &phases,
         );
@@ -2891,9 +2925,11 @@ mod tests {
             "auto",
             "0123456789abcdef0123456789abcdef01234567",
             "89abcdef0123456789abcdef0123456789abcdef",
-            true,
-            Some(&provenance),
-            Some(&json!({"state": "reused"})),
+            BaselineArtifactContext::new(
+                true,
+                Some(&provenance),
+                Some(&json!({"state": "reused"})),
+            ),
             &decision,
             &[],
         );
@@ -2923,9 +2959,7 @@ mod tests {
             "auto",
             "0123456789abcdef0123456789abcdef01234567",
             "89abcdef0123456789abcdef0123456789abcdef",
-            true,
-            None,
-            Some(&outcome),
+            BaselineArtifactContext::new(true, None, Some(&outcome)),
             &Decision::Full {
                 reasons: vec!["escape trigger".to_owned()],
             },
@@ -2942,9 +2976,7 @@ mod tests {
             "auto",
             "0123456789abcdef0123456789abcdef01234567",
             "89abcdef0123456789abcdef0123456789abcdef",
-            false,
-            None,
-            None,
+            BaselineArtifactContext::new(false, None, None),
             &Decision::NoGraphTargets,
             &[],
         );

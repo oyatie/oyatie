@@ -25,17 +25,29 @@ fn repo_root() -> PathBuf {
     panic!("failed to locate repo root from test current_dir");
 }
 
+#[test]
+fn retired_cloud_os_domain_catalog_rows_do_not_return() {
+    let root = repo_root();
+    for relative in [
+        "registry/catalog/oya-cloud-os-cluster-mgmt-domain.yaml",
+        "registry/catalog/oya-cloud-os-kubernetes-domain.yaml",
+        "registry/catalog/oya-cloud-os-secrets-domain.yaml",
+        "registry/catalog/oya-cloud-os-trustd-domain.yaml",
+    ] {
+        assert!(
+            !root.join(relative).exists(),
+            "deleted cloud-os domain catalog identity must not be revived or laundered with a non-live marker: {relative}"
+        );
+    }
+}
+
 fn producer_binary(root: &Path, producer_bin: Option<&str>) -> Result<PathBuf, String> {
     let Some(bin) = producer_bin else {
         return Err(
             "FAIL-CLOSED: missing OYA_CI_PRODUCER_BIN; Cargo fallback is forbidden".to_owned(),
         );
     };
-    Ok(if Path::new(bin).is_absolute() {
-        PathBuf::from(bin)
-    } else {
-        root.join(bin)
-    })
+    ci_path_resolver_adapters::resolve_cargo_test_binary(root, std::ffi::OsStr::new(bin))
 }
 
 #[test]
@@ -46,8 +58,7 @@ fn producer_binary_env_is_required_for_hermetic_gate() {
 }
 
 fn run_producer_face(root: &Path, face: &str) -> Value {
-    let scm_facts = root
-        .join("ci/facade/artifact-inventory-registry/scm-facts.generated.json");
+    let scm_facts = root.join("ci/facade/artifact-inventory-registry/scm-facts.generated.json");
     let producer_bin = std::env::var("OYA_CI_PRODUCER_BIN").ok();
     let bin = producer_binary(root, producer_bin.as_deref()).unwrap_or_else(|e| panic!("{e}"));
     let output = Command::new(bin)

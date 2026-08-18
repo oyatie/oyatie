@@ -141,7 +141,10 @@ fn load_kernel_catalog_ids(catalog_dir: &Path) -> Result<Vec<String>, String> {
             continue;
         };
         let contents = fs::read_to_string(&path).map_err(|error| {
-            format!("kernel catalog record unreadable {}: {error}", path.display())
+            format!(
+                "kernel catalog record unreadable {}: {error}",
+                path.display()
+            )
         })?;
         if parse_catalog_role(&contents).as_deref() == Some("kernel") {
             catalog_ids.push(catalog_id.to_string());
@@ -180,7 +183,10 @@ fn resolve_catalog_workspace_member(
     Ok(None)
 }
 
-fn read_catalog_source_crate(catalog_dir: &Path, catalog_id: &str) -> Result<Option<String>, String> {
+fn read_catalog_source_crate(
+    catalog_dir: &Path,
+    catalog_id: &str,
+) -> Result<Option<String>, String> {
     let path = catalog_dir.join(format!("{catalog_id}.yaml"));
     if !path.is_file() {
         return Ok(None);
@@ -449,10 +455,8 @@ mod tests {
 
     #[test]
     fn kernel_catalog_coverage_fails_when_workspace_member_not_scanned() {
-        let temp = std::env::temp_dir().join(format!(
-            "oya-data-class-coverage-{}",
-            std::process::id()
-        ));
+        let temp =
+            std::env::temp_dir().join(format!("oya-data-class-coverage-{}", std::process::id()));
         let workspace_dir = &temp;
         fs::create_dir_all(workspace_dir.join("registry/catalog")).expect("catalog dir");
         fs::create_dir_all(workspace_dir.join("os/ports/kernel-abi/src")).expect("crate src");

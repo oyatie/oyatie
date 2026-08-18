@@ -99,7 +99,6 @@ pub const PRINCIPAL_RETIRE_ROUTE: &str = "/principals/{id}:retire";
 /// The two public `*_ROUTE` constants above remain the documented/OpenAPI shape.
 const PRINCIPAL_LIFECYCLE_PATTERN: &str = "/principals/{id_and_verb}";
 
-
 // =====================================================================
 // Caller authorization seam (AUTH-005 fail-closed control plane)
 // =====================================================================
@@ -409,7 +408,7 @@ pub struct AuditRecord {
     /// Verified caller identity that authorized (or attempted) the operation.
     /// Populated on lifecycle-control-plane decisions where a verified caller
     /// is present; `None` on token-validation records.
-    caller_id: Option<String>,     // data_class: INTERNAL_ONLY
+    caller_id: Option<String>, // data_class: INTERNAL_ONLY
     caller_tenant: Option<String>, // data_class: INTERNAL_ONLY
 }
 
@@ -1029,7 +1028,9 @@ where
             )
             .is_some()
         {
-            decisions.push(AuthorizeResponse::from(&AuthorizationDecision::default_deny()));
+            decisions.push(AuthorizeResponse::from(
+                &AuthorizationDecision::default_deny(),
+            ));
             continue;
         }
         let outcome = run_authorize_with_token(&state, item);

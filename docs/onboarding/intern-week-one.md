@@ -2324,8 +2324,8 @@ Escalation: If the source path contradicts the glossary, pause that step and fil
 Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Tenant` and [ADR-0242](../decisions/ADR-0242-oyatie-is-a-tenant-doctrine.md) in the artifact.
 
 ### Day 5 step 02
-Goal: Learn the run a slice end-to-end and ship a contribution path by tying `Principal` to ADR-0243 and `docs/checklists/done-definition-checklist.md`.
-Read: Open `docs/checklists/done-definition-checklist.md` and record one sentence that explains how it constrains `Principal`.
+Goal: Learn the run a slice end-to-end and ship a contribution path by tying `Principal` to ADR-0243 and `templates/checklists/done-definition-checklist.md`.
+Read: Open `templates/checklists/done-definition-checklist.md` and record one sentence that explains how it constrains `Principal`.
 Do: Run `rg -n "Principal" docs specs crates | sed -n '1,20p'` and choose one concrete source location.
 Artifact: Commit-note draft `week-one-day-5-02` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
@@ -2351,8 +2351,8 @@ Escalation: If the source path contradicts the glossary, pause that step and fil
 Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Workflow` and [ADR-0245](../decisions/ADR-0245-substrate-vs-product-layering.md) in the artifact.
 
 ### Day 5 step 05
-Goal: Learn the run a slice end-to-end and ship a contribution path by tying `Ontology` to ADR-0246 and `docs/checklists/done-definition-checklist.md`.
-Read: Open `docs/checklists/done-definition-checklist.md` and record one sentence that explains how it constrains `Ontology`.
+Goal: Learn the run a slice end-to-end and ship a contribution path by tying `Ontology` to ADR-0246 and `templates/checklists/done-definition-checklist.md`.
+Read: Open `templates/checklists/done-definition-checklist.md` and record one sentence that explains how it constrains `Ontology`.
 Do: Run `rg -n "Ontology" docs specs crates | sed -n '1,20p'` and choose one concrete source location.
 Artifact: Commit-note draft `week-one-day-5-05` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
@@ -2378,8 +2378,8 @@ Escalation: If the source path contradicts the glossary, pause that step and fil
 Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Role projection` and [ADR-0248](../decisions/ADR-0248-amazon-shape-cellular-architecture.md) in the artifact.
 
 ### Day 5 step 08
-Goal: Learn the run a slice end-to-end and ship a contribution path by tying `Capability tier` to ADR-0249 and `docs/checklists/done-definition-checklist.md`.
-Read: Open `docs/checklists/done-definition-checklist.md` and record one sentence that explains how it constrains `Capability tier`.
+Goal: Learn the run a slice end-to-end and ship a contribution path by tying `Capability tier` to ADR-0249 and `templates/checklists/done-definition-checklist.md`.
+Read: Open `templates/checklists/done-definition-checklist.md` and record one sentence that explains how it constrains `Capability tier`.
 Do: Run `rg -n "Capability" docs specs crates | sed -n '1,20p'` and choose one concrete source location.
 Artifact: Commit-note draft `week-one-day-5-08` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
@@ -2405,8 +2405,8 @@ Escalation: If the source path contradicts the glossary, pause that step and fil
 Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Transient identity` and [ADR-0251](../decisions/ADR-0251-compliance-pack-cell-certification-levels.md) in the artifact.
 
 ### Day 5 step 11
-Goal: Learn the run a slice end-to-end and ship a contribution path by tying `Tenant` to ADR-0252 and `docs/checklists/done-definition-checklist.md`.
-Read: Open `docs/checklists/done-definition-checklist.md` and record one sentence that explains how it constrains `Tenant`.
+Goal: Learn the run a slice end-to-end and ship a contribution path by tying `Tenant` to ADR-0252 and `templates/checklists/done-definition-checklist.md`.
+Read: Open `templates/checklists/done-definition-checklist.md` and record one sentence that explains how it constrains `Tenant`.
 Do: Run `rg -n "Tenant" docs specs crates | sed -n '1,20p'` and choose one concrete source location.
 Artifact: Commit-note draft `week-one-day-5-11` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
@@ -2432,8 +2432,8 @@ Escalation: If the source path contradicts the glossary, pause that step and fil
 Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Cedar permit` and [ADR-0254](../decisions/ADR-0254-deployment-model-spectrum.md) in the artifact.
 
 ### Day 5 step 14
-Goal: Learn the run a slice end-to-end and ship a contribution path by tying `Workflow` to ADR-0255 and `docs/checklists/done-definition-checklist.md`.
-Read: Open `docs/checklists/done-definition-checklist.md` and record one sentence that explains how it constrains `Workflow`.
+Goal: Learn the run a slice end-to-end and ship a contribution path by tying `Workflow` to ADR-0255 and `templates/checklists/done-definition-checklist.md`.
+Read: Open `templates/checklists/done-definition-checklist.md` and record one sentence that explains how it constrains `Workflow`.
 Do: Run `rg -n "Workflow" docs specs crates | sed -n '1,20p'` and choose one concrete source location.
 Artifact: Commit-note draft `week-one-day-5-14` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
@@ -2459,8 +2459,8 @@ Escalation: If the source path contradicts the glossary, pause that step and fil
 Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Audit-chain` and [ADR-0258](../decisions/ADR-0258-api-versioning-model.md) in the artifact.
 
 ### Day 5 step 17
-Goal: Learn the run a slice end-to-end and ship a contribution path by tying `Role projection` to ADR-0263 and `docs/checklists/done-definition-checklist.md`.
-Read: Open `docs/checklists/done-definition-checklist.md` and record one sentence that explains how it constrains `Role projection`.
+Goal: Learn the run a slice end-to-end and ship a contribution path by tying `Role projection` to ADR-0263 and `templates/checklists/done-definition-checklist.md`.
+Read: Open `templates/checklists/done-definition-checklist.md` and record one sentence that explains how it constrains `Role projection`.
 Do: Run `rg -n "Role" docs specs crates | sed -n '1,20p'` and choose one concrete source location.
 Artifact: Commit-note draft `week-one-day-5-17` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
@@ -2486,8 +2486,8 @@ Escalation: If the source path contradicts the glossary, pause that step and fil
 Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Dual-tenant boundary` and [ADR-0276](../decisions/ADR-0276-backup-portability-format-gdpr-article-20.md) in the artifact.
 
 ### Day 5 step 20
-Goal: Learn the run a slice end-to-end and ship a contribution path by tying `Transient identity` to ADR-0280 and `docs/checklists/done-definition-checklist.md`.
-Read: Open `docs/checklists/done-definition-checklist.md` and record one sentence that explains how it constrains `Transient identity`.
+Goal: Learn the run a slice end-to-end and ship a contribution path by tying `Transient identity` to ADR-0280 and `templates/checklists/done-definition-checklist.md`.
+Read: Open `templates/checklists/done-definition-checklist.md` and record one sentence that explains how it constrains `Transient identity`.
 Do: Run `rg -n "Transient" docs specs crates | sed -n '1,20p'` and choose one concrete source location.
 Artifact: Commit-note draft `week-one-day-5-20` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
@@ -2513,8 +2513,8 @@ Escalation: If the source path contradicts the glossary, pause that step and fil
 Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Principal` and [ADR-0292](../decisions/ADR-0292-minor-user-doctrine-coppa-kosa-eu-age-verification.md) in the artifact.
 
 ### Day 5 step 23
-Goal: Learn the run a slice end-to-end and ship a contribution path by tying `Cedar permit` to ADR-0293 and `docs/checklists/done-definition-checklist.md`.
-Read: Open `docs/checklists/done-definition-checklist.md` and record one sentence that explains how it constrains `Cedar permit`.
+Goal: Learn the run a slice end-to-end and ship a contribution path by tying `Cedar permit` to ADR-0293 and `templates/checklists/done-definition-checklist.md`.
+Read: Open `templates/checklists/done-definition-checklist.md` and record one sentence that explains how it constrains `Cedar permit`.
 Do: Run `rg -n "Cedar" docs specs crates | sed -n '1,20p'` and choose one concrete source location.
 Artifact: Commit-note draft `week-one-day-5-23` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
@@ -2540,8 +2540,8 @@ Escalation: If the source path contradicts the glossary, pause that step and fil
 Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Ontology` and [ADR-0295](../decisions/ADR-0295-bootstrap-ci-spiffe-kill-switch.md) in the artifact.
 
 ### Day 5 step 26
-Goal: Learn the run a slice end-to-end and ship a contribution path by tying `Audit-chain` to ADR-0296 and `docs/checklists/done-definition-checklist.md`.
-Read: Open `docs/checklists/done-definition-checklist.md` and record one sentence that explains how it constrains `Audit-chain`.
+Goal: Learn the run a slice end-to-end and ship a contribution path by tying `Audit-chain` to ADR-0296 and `templates/checklists/done-definition-checklist.md`.
+Read: Open `templates/checklists/done-definition-checklist.md` and record one sentence that explains how it constrains `Audit-chain`.
 Do: Run `rg -n "Audit-chain" docs specs crates | sed -n '1,20p'` and choose one concrete source location.
 Artifact: Commit-note draft `week-one-day-5-26` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
@@ -2567,8 +2567,8 @@ Escalation: If the source path contradicts the glossary, pause that step and fil
 Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Capability tier` and [ADR-0313](../decisions/ADR-0313-conglomerate-tenant-hierarchy-sovereign-children.md) in the artifact.
 
 ### Day 5 step 29
-Goal: Learn the run a slice end-to-end and ship a contribution path by tying `Dual-tenant boundary` to ADR-0316 and `docs/checklists/done-definition-checklist.md`.
-Read: Open `docs/checklists/done-definition-checklist.md` and record one sentence that explains how it constrains `Dual-tenant boundary`.
+Goal: Learn the run a slice end-to-end and ship a contribution path by tying `Dual-tenant boundary` to ADR-0316 and `templates/checklists/done-definition-checklist.md`.
+Read: Open `templates/checklists/done-definition-checklist.md` and record one sentence that explains how it constrains `Dual-tenant boundary`.
 Do: Run `rg -n "Dual-tenant" docs specs crates | sed -n '1,20p'` and choose one concrete source location.
 Artifact: Commit-note draft `week-one-day-5-29` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
@@ -2594,8 +2594,8 @@ Escalation: If the source path contradicts the glossary, pause that step and fil
 Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Tenant` and [ADR-0242](../decisions/ADR-0242-oyatie-is-a-tenant-doctrine.md) in the artifact.
 
 ### Day 5 step 32
-Goal: Learn the run a slice end-to-end and ship a contribution path by tying `Principal` to ADR-0243 and `docs/checklists/done-definition-checklist.md`.
-Read: Open `docs/checklists/done-definition-checklist.md` and record one sentence that explains how it constrains `Principal`.
+Goal: Learn the run a slice end-to-end and ship a contribution path by tying `Principal` to ADR-0243 and `templates/checklists/done-definition-checklist.md`.
+Read: Open `templates/checklists/done-definition-checklist.md` and record one sentence that explains how it constrains `Principal`.
 Do: Run `rg -n "Principal" docs specs crates | sed -n '1,20p'` and choose one concrete source location.
 Artifact: Commit-note draft `week-one-day-5-32` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
@@ -2621,8 +2621,8 @@ Escalation: If the source path contradicts the glossary, pause that step and fil
 Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Workflow` and [ADR-0245](../decisions/ADR-0245-substrate-vs-product-layering.md) in the artifact.
 
 ### Day 5 step 35
-Goal: Learn the run a slice end-to-end and ship a contribution path by tying `Ontology` to ADR-0246 and `docs/checklists/done-definition-checklist.md`.
-Read: Open `docs/checklists/done-definition-checklist.md` and record one sentence that explains how it constrains `Ontology`.
+Goal: Learn the run a slice end-to-end and ship a contribution path by tying `Ontology` to ADR-0246 and `templates/checklists/done-definition-checklist.md`.
+Read: Open `templates/checklists/done-definition-checklist.md` and record one sentence that explains how it constrains `Ontology`.
 Do: Run `rg -n "Ontology" docs specs crates | sed -n '1,20p'` and choose one concrete source location.
 Artifact: Commit-note draft `week-one-day-5-35` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
@@ -2648,8 +2648,8 @@ Escalation: If the source path contradicts the glossary, pause that step and fil
 Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Role projection` and [ADR-0248](../decisions/ADR-0248-amazon-shape-cellular-architecture.md) in the artifact.
 
 ### Day 5 step 38
-Goal: Learn the run a slice end-to-end and ship a contribution path by tying `Capability tier` to ADR-0249 and `docs/checklists/done-definition-checklist.md`.
-Read: Open `docs/checklists/done-definition-checklist.md` and record one sentence that explains how it constrains `Capability tier`.
+Goal: Learn the run a slice end-to-end and ship a contribution path by tying `Capability tier` to ADR-0249 and `templates/checklists/done-definition-checklist.md`.
+Read: Open `templates/checklists/done-definition-checklist.md` and record one sentence that explains how it constrains `Capability tier`.
 Do: Run `rg -n "Capability" docs specs crates | sed -n '1,20p'` and choose one concrete source location.
 Artifact: Commit-note draft `week-one-day-5-38` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
@@ -2675,8 +2675,8 @@ Escalation: If the source path contradicts the glossary, pause that step and fil
 Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Transient identity` and [ADR-0251](../decisions/ADR-0251-compliance-pack-cell-certification-levels.md) in the artifact.
 
 ### Day 5 step 41
-Goal: Learn the run a slice end-to-end and ship a contribution path by tying `Tenant` to ADR-0252 and `docs/checklists/done-definition-checklist.md`.
-Read: Open `docs/checklists/done-definition-checklist.md` and record one sentence that explains how it constrains `Tenant`.
+Goal: Learn the run a slice end-to-end and ship a contribution path by tying `Tenant` to ADR-0252 and `templates/checklists/done-definition-checklist.md`.
+Read: Open `templates/checklists/done-definition-checklist.md` and record one sentence that explains how it constrains `Tenant`.
 Do: Run `rg -n "Tenant" docs specs crates | sed -n '1,20p'` and choose one concrete source location.
 Artifact: Commit-note draft `week-one-day-5-41` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
@@ -2702,8 +2702,8 @@ Escalation: If the source path contradicts the glossary, pause that step and fil
 Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Cedar permit` and [ADR-0254](../decisions/ADR-0254-deployment-model-spectrum.md) in the artifact.
 
 ### Day 5 step 44
-Goal: Learn the run a slice end-to-end and ship a contribution path by tying `Workflow` to ADR-0255 and `docs/checklists/done-definition-checklist.md`.
-Read: Open `docs/checklists/done-definition-checklist.md` and record one sentence that explains how it constrains `Workflow`.
+Goal: Learn the run a slice end-to-end and ship a contribution path by tying `Workflow` to ADR-0255 and `templates/checklists/done-definition-checklist.md`.
+Read: Open `templates/checklists/done-definition-checklist.md` and record one sentence that explains how it constrains `Workflow`.
 Do: Run `rg -n "Workflow" docs specs crates | sed -n '1,20p'` and choose one concrete source location.
 Artifact: Commit-note draft `week-one-day-5-44` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
@@ -2729,8 +2729,8 @@ Escalation: If the source path contradicts the glossary, pause that step and fil
 Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Audit-chain` and [ADR-0258](../decisions/ADR-0258-api-versioning-model.md) in the artifact.
 
 ### Day 5 step 47
-Goal: Learn the run a slice end-to-end and ship a contribution path by tying `Role projection` to ADR-0263 and `docs/checklists/done-definition-checklist.md`.
-Read: Open `docs/checklists/done-definition-checklist.md` and record one sentence that explains how it constrains `Role projection`.
+Goal: Learn the run a slice end-to-end and ship a contribution path by tying `Role projection` to ADR-0263 and `templates/checklists/done-definition-checklist.md`.
+Read: Open `templates/checklists/done-definition-checklist.md` and record one sentence that explains how it constrains `Role projection`.
 Do: Run `rg -n "Role" docs specs crates | sed -n '1,20p'` and choose one concrete source location.
 Artifact: Commit-note draft `week-one-day-5-47` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.
@@ -2756,8 +2756,8 @@ Escalation: If the source path contradicts the glossary, pause that step and fil
 Glossary cross-reference: cite [GLOSSARY.md](../GLOSSARY.md) row `Dual-tenant boundary` and [ADR-0276](../decisions/ADR-0276-backup-portability-format-gdpr-article-20.md) in the artifact.
 
 ### Day 5 step 50
-Goal: Learn the run a slice end-to-end and ship a contribution path by tying `Transient identity` to ADR-0280 and `docs/checklists/done-definition-checklist.md`.
-Read: Open `docs/checklists/done-definition-checklist.md` and record one sentence that explains how it constrains `Transient identity`.
+Goal: Learn the run a slice end-to-end and ship a contribution path by tying `Transient identity` to ADR-0280 and `templates/checklists/done-definition-checklist.md`.
+Read: Open `templates/checklists/done-definition-checklist.md` and record one sentence that explains how it constrains `Transient identity`.
 Do: Run `rg -n "Transient" docs specs crates | sed -n '1,20p'` and choose one concrete source location.
 Artifact: Commit-note draft `week-one-day-5-50` with source path, glossary term, binding ADR, and expected reviewer.
 Verification: Reviewer can open the cited path, confirm the term is used consistently, and reproduce the command without hidden setup.

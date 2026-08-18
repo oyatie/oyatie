@@ -4,7 +4,7 @@ checklist_id: CHK-COMPLETE
 status: pending approval
 purpose: |
   The agent's last 5 actions before `grit done`. Closes the agentic-navigation contract. Walked at the end of every agent session that modified the repo.
-lift_target: oyatie/docs/checklists/agent-completion.md
+lift_target: oyatie/templates/checklists/agent-completion.md
 enforcing_fitness_lane: oya-governance-banned-primitives + oya-governance-audit-emission
 owner_team: axis-foundry
 related:
@@ -61,7 +61,7 @@ Confirm:
 - (If capability publish) `oya.foundry.capability.invoked` topic registered.
 - (If runbook author) `oya.ops.runbook.invoked` topic resolvable.
 
-Paste the `EVT-*` IDs into PR `## Evidence`. *Lane:* `oya-governance-audit-emission`.
+Paste the `EVT-*` IDs into PR `## Verification` when required. *Lane:* `oya-governance-audit-emission`.
 
 ## C5. Grit done
 

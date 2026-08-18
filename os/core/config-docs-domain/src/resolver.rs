@@ -6,12 +6,11 @@
 //! `hostDNS.{enabled,forwardKubeDNSToHost,resolveMemberNames}`.
 
 use crate::document::{ConfigDocument, DocId, DocKind};
-use std::net::IpAddr;
 use os_kernel::error::{Error, Result};
+use std::net::IpAddr;
 
 /// DNS protocol used for a resolver nameserver.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-#[derive(Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum DnsProtocol {
     /// Plain DNS over UDP/TCP port 53 (Talos `Do53` / default).
     #[default]
@@ -21,7 +20,6 @@ pub enum DnsProtocol {
     /// DNS over HTTPS (Talos `DoH`).
     DoH,
 }
-
 
 impl DnsProtocol {
     /// Canonical Talos config string.

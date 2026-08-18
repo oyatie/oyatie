@@ -85,7 +85,11 @@ fn live_os_tree_holds_the_frozen_upstream_emit_site_ceiling() {
     let control = std::fs::read_to_string(root.join("os/core/block-domain/src/controller.rs"))
         .expect("read the T-1 control file");
     assert!(
-        control.lines().filter(|line| line.contains("apiVersion:")).count() >= 16,
+        control
+            .lines()
+            .filter(|line| line.contains("apiVersion:"))
+            .count()
+            >= 16,
         "the T-1 control file no longer carries apiVersion lines, so it controls for nothing"
     );
     // ...and none of them is Kubernetes surface, because the API group is the discriminator.

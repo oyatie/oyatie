@@ -3,6 +3,8 @@
 
 use super::*;
 
+type SeenFixture<'a> = (&'a str, Option<usize>, &'a [(&'a str, usize)]);
+
 fn policy(baseline_json: &str) -> Policy {
     policy_with(baseline_json, "{}")
 }
@@ -20,9 +22,7 @@ fn lanes(names: &[&str]) -> Vec<String> {
 
 /// Build observations. Each entry is `(lane, artifacts, violations)`; an artifact count of `None`
 /// means the lane failed discovery.
-fn seen(
-    pairs: &[(&str, Option<usize>, &[(&str, usize)])],
-) -> BTreeMap<String, LaneObservation> {
+fn seen(pairs: &[SeenFixture<'_>]) -> BTreeMap<String, LaneObservation> {
     pairs
         .iter()
         .map(|(lane, artifacts, kinds)| {
@@ -49,9 +49,54 @@ fn parses_the_committed_policy_shape() {
     );
     assert_eq!(parsed.configs_dir, "specs/lifecycle-configs");
     assert_eq!(parsed.baseline["adr-status"]["missing_supersession"], 3);
-    assert_eq!(parsed.baseline.len(), 1, "`_`-prefixed keys are prose, not lanes");
+    assert_eq!(
+        parsed.baseline.len(),
+        1,
+        "`_`-prefixed keys are prose, not lanes"
+    );
     assert_eq!(parsed.known_broken_lanes.len(), 1);
     assert!(parsed.known_broken_lanes["plan-status"].contains("delete the config"));
+}
+
+#[test]
+fn a_prose_only_ledger_lists_no_lane_and_leaves_every_floor_armed() {
+    // The shape this policy SHIPS after the seven dark lanes took their re-root-or-delete
+    // rulings: `known_broken_lanes` retains its key (parse_policy requires the object) and
+    // carries nothing but review prose. The whole claim "the floors are armed" rests on that
+    // prose NOT being read as a lane, because a listed lane is the only thing that suppresses
+    // LaneDiscoveryFailed and LaneDiscoveredNothing. Asserted at the parse+compare seam rather
+    // than trusting the two halves separately.
+    let shipped = policy_with(
+        "{}",
+        r#"{"_comment":"EMPTY, and the emptiness is the enforcement."}"#,
+    );
+    assert!(
+        shipped.known_broken_lanes.is_empty(),
+        "prose must not be admitted as a standing excuse: {:?}",
+        shipped.known_broken_lanes
+    );
+
+    let findings = compare(
+        &lanes(&["api-stability-tier-lifecycle", "doc-status-lifecycle"]),
+        &seen(&[
+            ("api-stability-tier-lifecycle", None, &[]),
+            ("doc-status-lifecycle", Some(0), &[]),
+        ]),
+        &shipped,
+    );
+    assert_eq!(
+        findings,
+        vec![
+            Finding::LaneDiscoveryFailed {
+                lane: "api-stability-tier-lifecycle".to_owned(),
+                error: "missing source root: gone/".to_owned(),
+            },
+            Finding::LaneDiscoveredNothing {
+                lane: "doc-status-lifecycle".to_owned()
+            },
+        ],
+        "with an empty ledger a moved scan root must RED, never observe zero and report clean"
+    );
 }
 
 #[test]
@@ -65,7 +110,10 @@ fn a_zero_baseline_row_is_rejected_rather_than_silently_accepted() {
 
 #[test]
 fn a_broken_lane_entry_without_a_stated_resolution_is_rejected() {
-    for entry in [r#"{"defect":"root gone"}"#, r#"{"defect":"root gone","resolution":"  "}"#] {
+    for entry in [
+        r#"{"defect":"root gone"}"#,
+        r#"{"defect":"root gone","resolution":"  "}"#,
+    ] {
         let error = parse_policy(&format!(
             r#"{{"configs_dir":"d","frozen_violation_baseline":{{}},"known_broken_lanes":{{"l":{entry}}}}}"#
         ))
@@ -229,7 +277,7 @@ fn a_new_violation_pair_is_born_blocking_without_a_baseline_row() {
 }
 
 #[test]
-fn a_growing_count_regresses_and_a_shrinking_one_goes_stale() {
+fn a_growing_count_regresses_and_a_shrinking_one_is_not_clerkwork() {
     let found = lanes(&["adr-status"]);
     let base = policy(r#"{"adr-status":{"missing_supersession":3}}"#);
 
@@ -248,32 +296,21 @@ fn a_growing_count_regresses_and_a_shrinking_one_goes_stale() {
         }]
     );
 
+    // PROCESS_TAX DELETE: shrink below frozen baseline is NOT BaselineStale merge-blocking.
     let shrank = compare(
         &found,
         &seen(&[("adr-status", Some(440), &[("missing_supersession", 1)])]),
         &base,
     );
-    assert_eq!(
-        shrank,
-        vec![Finding::BaselineStale {
-            lane: "adr-status".to_owned(),
-            kind: "missing_supersession".to_owned(),
-            observed: 1,
-            baseline: 3,
-        }]
+    assert!(
+        shrank.is_empty(),
+        "honest shrink must not force hand re-freeze: {shrank:?}"
     );
 
-    // Fully fixed is also stale — the pair disappears from the observation entirely, and a ratchet
-    // that treated absence as "nothing to check" would silently keep the headroom.
     let fixed = compare(&found, &seen(&[("adr-status", Some(440), &[])]), &base);
-    assert_eq!(
-        fixed,
-        vec![Finding::BaselineStale {
-            lane: "adr-status".to_owned(),
-            kind: "missing_supersession".to_owned(),
-            observed: 0,
-            baseline: 3,
-        }]
+    assert!(
+        fixed.is_empty(),
+        "fully fixed pair must not force hand re-freeze: {fixed:?}"
     );
 }
 
@@ -292,7 +329,9 @@ fn every_finding_code_and_message_is_distinct_and_names_its_subject() {
         ),
     );
     let codes: std::collections::BTreeSet<&str> = findings.iter().map(Finding::code).collect();
-    assert_eq!(codes.len(), 7, "{findings:?}");
+    // BaselineStale is retained on the enum for message/code stability but is not emitted
+    // (PROCESS_TAX); this fixture covers the six live finding codes.
+    assert_eq!(codes.len(), 6, "{findings:?}");
     for finding in &findings {
         assert!(finding.message().starts_with(finding.code()));
     }

@@ -16,7 +16,7 @@ use std::collections::BTreeMap;
 use aws_lc_rs::digest::{SHA256, digest};
 use aws_lc_rs::signature::{ED25519, Ed25519KeyPair, KeyPair, UnparsedPublicKey};
 use oya_shared_audit_event_kernel::{
-    ChainSigner, ChainVerifier, Digester, DigestChainError, decode_hex, encode_hex,
+    ChainSigner, ChainVerifier, DigestChainError, Digester, decode_hex, encode_hex,
 };
 
 /// Self-describing digest prefix (house convention `sha256:<hex>`).

@@ -113,10 +113,9 @@ fn collect(root: &Path) -> Observed {
         if let Some(stem) = path
             .strip_prefix(&format!("{CATALOG_DIR}/"))
             .and_then(|p| p.strip_suffix(".yaml"))
+            && !stem.contains('/')
         {
-            if !stem.contains('/') {
-                catalog_rows.insert(stem.to_owned());
-            }
+            catalog_rows.insert(stem.to_owned());
         }
     }
     Observed {
@@ -156,9 +155,12 @@ fn red_fixture_uncatalogued_crate_fails_closed() {
     // A synthetic crate with no row and no baseline entry MUST fail. This is the
     // proof the gate can fail at all — the difference between a gate and a decoration.
     let observed = Observed {
-        crates: [("synthetic-uncatalogued-crate".to_owned(), "x/Cargo.toml".to_owned())]
-            .into_iter()
-            .collect(),
+        crates: [(
+            "synthetic-uncatalogued-crate".to_owned(),
+            "x/Cargo.toml".to_owned(),
+        )]
+        .into_iter()
+        .collect(),
         catalog_rows: BTreeSet::new(),
     };
     let baseline = Baseline {

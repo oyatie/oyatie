@@ -535,9 +535,10 @@ impl Middleware<HttpRequest, HttpResponse> for AccountingAuthzMiddleware {
 #[cfg(test)]
 mod tests {
     use super::{
-        AccountingMutationAction, AccountingMutationAuthorizationError, AccountingMutationAuthorizer,
-        AccountingMutationResource, ConfiguredBearerPrincipalVerifier, PrincipalVerificationError,
-        PrincipalVerifier, VerifiedPrincipal, action_for_template, constant_time_eq,
+        AccountingMutationAction, AccountingMutationAuthorizationError,
+        AccountingMutationAuthorizer, AccountingMutationResource,
+        ConfiguredBearerPrincipalVerifier, PrincipalVerificationError, PrincipalVerifier,
+        VerifiedPrincipal, action_for_template, constant_time_eq,
     };
     use crate::AccountingAuthzProvider;
     use std::sync::Arc;

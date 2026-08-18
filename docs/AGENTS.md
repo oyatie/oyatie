@@ -1,7 +1,7 @@
 ---
 doc_class: Operating-Contract
 shape: null
-length_cap: 420
+length_cap: 500
 authority_tier: 2
 excludes:
 - path: /specs/root-hub-pointers.json
@@ -54,7 +54,7 @@ Workflow Studio product surface inverts P0 (human-ergonomic-first, no-code-first
 
 ## Wave 15-ZF doctrine refs — ADR-0346..ADR-0349
 
-Every agent MUST treat [ADR-0346](decisions/ADR-0346-oya-verify-must-run-full-ci-mirror.md), [ADR-0347](decisions/ADR-0347-governance-fitness-bulk-rename.md), [ADR-0348](decisions/ADR-0348-autosharding-auto-rebalance-dynamic-sharding.md), and [ADR-0349](decisions/ADR-0349-jenkins-argocd-self-hostable-ci-cd-substrate.md) as active operating-contract doctrine for their non-CI obligations until superseded or amended by a newer ADR. For CI/CD enforcement, [ADR-0515](decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md) is the current single-truth amendment: GitHub Actions + branch protection are the live runner/authority until explicit owned-runner cutover, the cloud-ci Rust gate apps produce the one protected `oya-ci-required` context, and ADR-0513/Prow/Jenkins/legacy `oya` CLI governance wording is superseded provenance or local-feedback evidence only. No GitHub Actions status/check outside `oya-ci-required` may be promoted as protected-branch authority.
+Every agent MUST treat [ADR-0346](decisions/ADR-0346-oya-verify-must-run-full-ci-mirror.md), [ADR-0347](decisions/ADR-0347-governance-fitness-bulk-rename.md), [ADR-0348](decisions/ADR-0348-autosharding-auto-rebalance-dynamic-sharding.md), and [ADR-0349](decisions/ADR-0349-jenkins-argocd-self-hostable-ci-cd-substrate.md) as active operating-contract doctrine for their non-CI obligations until superseded or amended by a newer ADR. For CI/CD enforcement, [ADR-0515](decisions/ADR-0515-phase0-firewall-one-canonical-ci-cloud-native-posture.md) is the current single-truth amendment: GitHub Actions + branch protection are the live runner/authority until explicit owned-runner cutover, the cloud-ci Rust gate apps produce the one protected `oya-ci-required` context, and ADR-0513/Prow/Jenkins/legacy `oya` CLI governance wording is superseded provenance or local-feedback evidence only. [ADR-0716](decisions/ADR-0716-cargo-merge-path-buck2-local-hermeticity.md) makes the Cargo workspace graph the CI merge path; buck2 is local hermeticity plus a weekly non-blocking smoke. No GitHub Actions status/check outside `oya-ci-required` may be promoted as protected-branch authority.
 
 | ADR | Operating-contract binding | Enforced-by lanes agents MUST preserve |
 |---|---|---|
@@ -90,6 +90,95 @@ The chain is aligned with `/specs/root-hub-pointers.json` discoverability and th
 
 The installed agent-runtime skill and role catalog provides universal intent→skill mapping, anti-rationalization, persona/skill/command orchestration, and role prompts. Oyatie governance (this file) OVERLAYS and WINS on conflict per Bominal-inheritance precedence (`feedback_bominal_inheritance_precedence`). The retired `tools/agent-skills/` vendor tree is intentionally absent; agents should use their installed runtime surfaces instead of repo-local duplicated copies.
 
+## Doctrine survival (binding)
+
+INV-DOC-9: doctrine that exists only in a plan file or chat is **not** survived. It MUST live here plus the owning ADR / envelopes / PORTABLE surfaces agents actually load. Cite the Amendment C operating-patterns catalog and the reflection corpus for provenance — never external brand or corpus names.
+
+### Rules carry why
+
+- **achieves:** stop blind obedience and silent drift of load-bearing MUST rules.
+- **origin:** why-less rules became cargo-cult; failures could not be challenged.
+- **rule:** every load-bearing MUST records five fields — achieves, origin, rule, ensure, overturn_when. Rules are hypotheses amended via challenge → OVERRULE → version bump; never silent drift.
+- **ensure:** reviewer audit of five-field presence on new MUST; `#anti_drift` version bump on OVERRULE.
+- **overturn_when:** a recorded challenge shows the five fields false or incomplete AND a replacement rule with five fields lands same-wave.
+
+### Anti-drift core pointers
+
+- **achieves:** single enumeration SSOT; prose never re-lists envelope contents.
+- **origin:** duplicated root/hub/freeze lists drifted from policy-as-data.
+- **rule:** every material change declares `docs_touched[]` + `docs_action`; enumerations live ONLY in [`specs/integ-branch-envelopes.json`](../specs/integ-branch-envelopes.json) — cite JSON pointers under `#anti_drift`, `#roots`, `#planes`, `#hubs.paths`, and the other keys listed at `#anti_drift.prose_must_cite_not_enumerate` (do **not** re-list contents); load-bearing doc updates land same-wave with code; unverified tips marked stale.
+- **ensure:** Claim packet fields at `#anti_drift.doc_packet_required_fields`; drift-grep via `#anti_drift.drift_grep`; Done-Definition D2 same-PR doc update.
+- **overturn_when:** `#anti_drift.anti_drift_doctrine_version` bumps with a recorded OVERRULE replacing the packet/pointer rules.
+
+### Hindsight + beads awareness (binding)
+
+- **achieves:** no freelanced work; no silent repeat of known-failed patterns.
+- **origin:** agents acted without work-item ownership or memory of prior failure.
+- **rule:** at Design, cite the owning bead work-item id (`.beads/`, `oyatie-*`) — no bead → create/elevate, don't freelance; consult hindsight (memory recall where available, else the SSOT pre-mortem/discoveries) before acting and never repeat a known-failed pattern without a recorded challenge; at Operate, retain the lesson and update bead state after any friction/fix/OVERRULE. Recalled facts are tips, not truth — re-verify stale SHAs (new HEAD → new evidence).
+- **ensure:** commit/PR cites bead id; Operate retain + bead state update on friction.
+- **overturn_when:** a first-principles challenge shows the ritual blocks delivery AND a replacement ownership+memory ritual lands with five fields.
+
+### Observation ≠ APPROVE; role separation
+
+- **achieves:** preserve merge integrity and blast-radius discipline.
+- **origin:** logs/CI green / chat observation treated as APPROVE; roles collapsed.
+- **rule:** observation (logs/CI/reviews) ≠ merge APPROVE authority; orchestrate ≠ implement ≠ babysit.
+- **ensure:** reviewer APPROVE + green `merge-admission-required` (retired brand `oya-ci-required` until PAUSE-AND-PAIR) remain distinct; coordinator/worker split in this contract.
+- **overturn_when:** a recorded OVERRULE replaces the admission model with an equally fail-closed alternative.
+
+### Merge admission + domain green (Phase0)
+
+- **achieves:** honest LOCAL_GREEN for domain tips; one unbranded merge authority.
+- **origin:** tip-free tax (#1660 compute/**, #1680 iac/governance/**) + branded `oya-ci-required`/`firewall`.
+- **rule:** Team ≡ integ envelope root; prefix allow from `envelope_globs`; sole protected check `merge-admission-required`; observation≠APPROVE. Machine: `specs/integ-branch-envelopes.json#path_ownership`.
+- **ensure:** SSOT § Merge admission + domain green; CI dual-emit until protection flip; no premature expected_total bumps for LOCAL_GREEN.
+- **overturn_when:** founder replaces admission model with equally fail-closed unbranded names and prefix-ownership enforcement.
+
+### ADR path shape — challenge overturn (`adr-rename-overturn`)
+
+**Challenge applied now — do NOT mass-rename ADR files.** Forever-correct is
+`docs/decisions/ADR-NNNN-<topic>.md` plus indexes/frontmatter for nav. Binding law:
+ADR-0711 Amendment E-1 + `specs/naming-taxonomy.json` decision-record keep + portable
+core [`templates/portable-swarm-doctrine.md`](../templates/portable-swarm-doctrine.md).
+
+- **achieves:** stable citation paths without high-fan-in rename churn; topic findability via indexes.
+- **origin:** challenged Pattern-First / taxonomy draft that treated `ADR-NNNN` path segments as indefensible optics debt.
+- **rule:** MUST keep `ADR-NNNN-<topic>` filenames; MUST NOT mass-rename for taxonomy theater; indexes carry nav.
+- **ensure:** this five-field overturn present; taxonomy kind `decision-record` verdict keep; Amendment E-1 cited — no rename batch on this tip.
+- **overturn_when:** measured findability failure proves NNNN-topic harmful AND a batched judged rename clears multi-lens review with dual-emit cutover and zero dual-truth.
+
+### Portable doctrine pointer (global contracts)
+
+- **achieves:** repo-agnostic Swarm core survives in Claude/Codex/Cursor global files without +N plans.
+- **origin:** doctrine that lived only in programme plans did not load for every-repo agents.
+- **rule:** single source [`templates/portable-swarm-doctrine.md`](../templates/portable-swarm-doctrine.md) (`portable_doctrine_version`); globals carry short form + pointer; new repos use [`templates/README-doctrine-pointer.md`](../templates/README-doctrine-pointer.md); repo slots stay in root contracts.
+- **ensure:** version pin in the portable template; CHANGELOG row on bump; globals MUST NOT diverge from the short form.
+- **overturn_when:** challenge → OVERRULE bumps `portable_doctrine_version` with same-wave global sync.
+
+### Survival rule itself (INV-DOC-9)
+
+- **achieves:** doctrine survives across agent sessions.
+- **origin:** plan-only / chat-only law vanished when sessions reset.
+- **rule:** doctrine MUST live in this contract + owning ADR/envelopes/PORTABLE; plan/chat alone is not survived.
+- **ensure:** this section present; pointers to ADR-0711 Amendment D, `specs/integ-branch-envelopes.json#anti_drift`, and PORTABLE Amendment D.
+- **overturn_when:** PHASE-5 promotion moves the operating contract AND this survival section migrates atomically with evidence.
+
+### Cloud provider + full ecosystem (binding)
+
+- **achieves:** agents load the product spine without plan-only amnesia — full CSP capacity + curated ecosystem broader than hyperscalers.
+- **origin:** compute-wedge plans and chat locks were not INV-DOC-9-survived; EU naming was misread as checklist-primary.
+- **rule:** Oyatie **MUST** target **entire cloud-provider capacity** (hyperscaler-parity+ IaaS→PaaS→progressive catalog) **and** a **curated ecosystem** (infra → enterprise → consumer) as **one service** — **not** compute-only, **not** a broker of glued vendors. EU/SECA are named because they **align with what cloud ought to look like**; **MUST NOT** copy personal-data sovereignty decisions that tax end-user UX. SECA-capable Rust contracts + smooth entry/exit remain. Phase encode starts at control-plane spine (Track A Phase 0); product rails (Track B) stay per-product `integ/<product>`→`app/<product>/**` (rule 3d). Detail: [`architecture/cloud-provider-full-ecosystem-north-star.md`](architecture/cloud-provider-full-ecosystem-north-star.md).
+- **ensure:** this five-field rule present; architecture pointer published; CHANGELOG row same-wave; agents cite this section — not a second `.plan.md`.
+- **overturn_when:** founder Accepts broker/marketplace-primary or compute-only forever via ADR **and** this section + architecture pointer are amended same-wave.
+
+### Per-dispatch ritual (Tier 2)
+
+- **achieves:** every agent runs the same start/end checklist without pasting the whole north-star plan.
+- **origin:** strategy and procedure were conflated; babysit-only regressions followed.
+- **rule:** every implement/audit/review/plan/scout/recon dispatch MUST run the Tier-2 ritual: **A** Orient (one role + MUST-NOT; position diagram; premise check vs HEAD + bead + hindsight) → **B** Reasoning map (≥2 lenses; claim digraph tagged E/I/U; ≥1 real challenge) → **C** Doctrine (envelope-bounded; one writer; observation≠APPROVE; no `*-fast`; Claim `docs_touched`/`docs_action`; Cursor Automations advisory-only) → **D** Close (role-scaled receipt; flow delta; exit — no CI babysit). Use a **position diagram** for orientation and a **claim digraph** when ≥2 load-bearing claims depend on each other. Dispatch cards cite this section + role + lane mission — not the whole programme SSOT. Forever home is `/templates/checklists/swarm-agent-ritual.md` (landed; includes **Cursor Automations** subsection; `docs/checklists/` deleted — do **not** recreate); session-loaded copy rides process_meta `.cursor/rules/` on `integ/ci`.
+- **ensure:** this five-field rule present; orchestrator refuses babysit-only fleet (hard rule); receipts include role-scaled evidence; Automations subsection present in the forever checklist; reorg-move-out bead tracks the templates land.
+- **overturn_when:** a recorded challenge shows the ritual blocks delivery AND a replacement ritual with five fields lands same-wave.
+
 ## RFC-2119 normative-language statement
 
 The key words **MUST**, **MUST NOT**, **REQUIRED**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **RECOMMENDED**, **NOT RECOMMENDED**, **MAY**, and **OPTIONAL** in this document are to be interpreted as described in BCP 14 [[RFC2119](https://www.rfc-editor.org/rfc/rfc2119)] [[RFC8174](https://www.rfc-editor.org/rfc/rfc8174)] when, and only when, they appear in all capitals, as shown here.
@@ -124,6 +213,10 @@ For any question, route to its authority. Click the link; do not duplicate inlin
 | Release / incident / on-call | [`RELEASE-MANAGEMENT.md`](RELEASE-MANAGEMENT.md) <!-- forward-reference: wave-1 -->, [`INCIDENT-MANAGEMENT.md`](INCIDENT-MANAGEMENT.md) <!-- forward-reference: wave-1 -->, [`standards/on-call.md`](standards/on-call.md) <!-- forward-reference: wave-1 --> |
 | Glossary (canonical vocabulary) | [`GLOSSARY.md`](GLOSSARY.md) <!-- forward-reference: wave-1 --> |
 | Machine-readable mirrors of the catalog | [`machine-readable/`](machine-readable/) <!-- forward-reference: wave-1 --> |
+| Per-dispatch agent ritual (Tier 2 — diagram + digraph + doctrine) | This contract § Doctrine survival → Per-dispatch ritual; forever home `/templates/checklists/swarm-agent-ritual.md` (landed; Automations subsection); session rule under process_meta `.cursor/rules/` (`integ/ci`) |
+| Portable Swarm doctrine (repo-agnostic global core) | [`../templates/portable-swarm-doctrine.md`](../templates/portable-swarm-doctrine.md); new-repo pointer [`../templates/README-doctrine-pointer.md`](../templates/README-doctrine-pointer.md) |
+| ADR path shape overturn (no mass rename) | This contract § Doctrine survival → ADR path shape; ADR-0711 Amendment E-1 (cite; do not dual-home enumerations) |
+| Cloud provider + full ecosystem north-star | This contract § Doctrine survival → Cloud provider + full ecosystem; [`architecture/cloud-provider-full-ecosystem-north-star.md`](architecture/cloud-provider-full-ecosystem-north-star.md) |
 
 ## Bounded delivery and preservation
 
@@ -155,24 +248,23 @@ Evidence-grounded policy, regulatory, and compliance claims identify the exact s
 it is primary, its immutable version or retrieval date, effective date, jurisdiction and
 applicability, missing or conflicting authority, and the resulting claim ceiling. Revalidate when
 the source, date, applicability, or product behavior changes. This method paraphrases operational
-lessons reviewed from [Bun's Rust rewrite account](https://bun.com/blog/bun-in-rust) (retrieved
-2026-08-04), [gaebal-gajae's archive](https://blog.gaebal-gajae.dev/archive.html) (retrieved
-2026-08-04), and
-[`it-legal` at `5624ff1`](https://github.com/jclab-joseph/it-legal/tree/5624ff14e673863ec3b5645155742691a74ef152);
-none is Oyatie, legal, or product authority.
+lessons from ADR-0711 Amendment C (operating-patterns catalog) and the reflection corpus —
+cite [`specs/agentic-operating-patterns.json`](../specs/agentic-operating-patterns.json) and the
+PORTABLE/ADR Amendment C surfaces; never external brand or archive URLs. None of those
+distillations is Oyatie, legal, or product authority.
 
 ## Pre-flight checklist
 
 Before any change, every agent and every human MUST complete these items.
 
 1. **Identify the change class.** Feature / bugfix / refactor / migration / docs / chore / capability / plugin / runbook / ADR / pack-update. *Why:* a class-blind change misses class-specific validators. *Test:* PR body's `## Issue` section names the class.
-2. **Read the canonical authority for the change class.** Use the §"Canonical doc map" table. *Why:* one-paragraph orientation prevents the most common failure (acting on stale repo memory). *Test:* PR `## Traceability` cites the doc(s) read.
+2. **Read the canonical authority for the change class.** Use the §"Canonical doc map" table. *Why:* one-paragraph orientation prevents the most common failure (acting on stale repo memory). *Test:* PR `## Summary` cites the doc(s) read.
 3. **Confirm Data Use Boundary.** Every new field on a kernel struct MUST carry a `data_class` annotation. *Why:* cross-pillar flows that bypass `data_class` violate the cohesion principle. *Test:* `oya-governance-data-class` lane.
 4. **Confirm autonomy ceiling.** Capability bindings MUST declare T1 / T2 / T3 / T4 in the capability record. Tier uplift MUST land an accompanying Cedar policy + runtime gate. *Why:* config-flag tier uplift bypasses the audit chain. *Test:* `oya-governance-autonomy-ceiling` lane.
 5. **Confirm license posture.** New dependencies MUST clear the Buck2/cloud-ci supply-chain lane. AGPL / GPL / SSPL / BUSL / RSAL are not permitted in product code. *Why:* license drift is hard to undo. *Test:* supply-chain gate target exits 0.
-6. **Search MISTAKES-LEDGER for the failure-mode class.** *Why:* re-introducing a fixed defect is a regression. *Test:* PR `## Traceability` cites the relevant `MFL-NNNN` row OR a "no prior row" search note.
+6. **Search MISTAKES-LEDGER for the failure-mode class.** *Why:* re-introducing a fixed defect is a regression. *Test:* PR `## Summary` cites the relevant `MFL-NNNN` row OR a "no prior row" search note.
 7. **Identify the per-change-class reviewer agent.** *Why:* the target reviewer contract signs `## Code Review` at merge time; no signature, no merge once the trusted reviewer producer is live. *Test:* §"Per-change-class reviewer agents" table below; `F-PR5-06` tracks the current live-enforcement gap.
-8. **For cross-axis contract changes:** apply the cross-axis review label per [`checklists/cross-axis-contract-change.md`](checklists/cross-axis-contract-change.md) <!-- forward-reference: wave-1 -->; notify consumer-axis teams. *Why:* silent cross-axis changes break consumers. *Test:* PR label + `oya-governance-cross-axis-notify` lane.
+8. **For cross-axis contract changes:** apply the cross-axis review label per [`../templates/checklists/cross-axis-contract-change.md`](../templates/checklists/cross-axis-contract-change.md) <!-- forward-reference: wave-1 -->; notify consumer-axis teams. *Why:* silent cross-axis changes break consumers. *Test:* PR label + `oya-governance-cross-axis-notify` lane.
 9. **For hook / harness / CLI changes:** run the harness self-test first. *Why:* a broken hook silently disables every downstream gate. *Test:* harness self-test command (per harness; see §"Per-agent appendices").
 
 ## Per-change-class reviewer agents
@@ -194,9 +286,9 @@ Each change class has a designated reviewer agent that runs proactively on the P
 | Capability publish | `capability-reviewer` |
 | Performance change | `perf-reviewer` |
 
-The reviewer-agent verdict is `APPROVE` or `REQUEST CHANGES`. The PR body's `## Code Review` section MUST contain the agent name, the verdict, and the resolved + deferred items. GH #983 adds a PR metadata preflight that refuses blocked/pending-review PR title or body markers and refuses merge-ready body validation without this section.
+The reviewer-agent verdict is `APPROVE` or `REQUEST CHANGES`. The PR body's `## Code Review` section MUST contain the agent name, the verdict, and the resolved + deferred items. CI no longer string-checks PR prose (ADR-0716); the review thread is the evidence.
 
-**REVIEW-ADMISSION-GAP-LIVE-BOUNDARY (F-PR5-06):** F-PR5-06 remains open. PR #964 merged with green `oya-ci-required`, empty `reviewDecision`, and only an owner `COMMENTED` review, so the GH #983 title/body packet is not a cloud-enforced review admission gate. It narrows PR metadata hygiene only; formal GitHub `reviewDecision`, reviewer-author separation, and branch-protection drift reconciliation remain tracked by `registry/fixuptasks.jsonl#F-PR5-06`.
+**REVIEW-ADMISSION-GAP-LIVE-BOUNDARY (F-PR5-06):** F-PR5-06 remains open: PR #964 merged with green checks but no approving review, so the repository-local reviewer contract is not a cloud-enforced review admission gate. Formal GitHub `reviewDecision`, reviewer-author separation, and branch-protection drift reconciliation remain tracked by `registry/fixuptasks.jsonl#F-PR5-06`. The retired PR metadata preflight does not close it (ADR-0716).
 
 ## During-change discipline
 
@@ -207,7 +299,7 @@ While the change is in flight, every agent and every human MUST observe these ru
 - **No new struct fields in kernel crates without `data_class`.** Pre-commit blocks; respect it.
 - **No quarantining flaky tests without a 14-day fix SLA.** Quarantine assigns the test to the `flaky/` lane; the SLA is tracked.
 - **No editing legacy retired paths.** If a path was retired in a consolidation event, do not recreate it.
-- **Buck2 for evidence.** Local editor loops are advisory; final evidence comes from targeted `buck2 test` / `buck2 build` plus cloud-ci gate packets per [`standards/testing.md`](standards/testing.md) <!-- forward-reference: wave-1 -->.
+- **Cargo for evidence.** Local editor loops are advisory; final evidence comes from `cargo fmt` / `cargo clippy` / `cargo test --workspace` plus the gate fleet, per [`standards/testing.md`](standards/testing.md) <!-- forward-reference: wave-1 -->. buck2 is local hermeticity only (ADR-0716).
 - **Portfolio/architecture coordinator / worker split.** The capability-neutral portfolio/architecture coordinator evaluates architecture, system design, completed and upcoming work, maturity gaps, documentation/procedure/process health, regressions, and work-item decomposition/prioritization. Dispatcher-assigned workers execute scoped implementation, review, verification, and PR evidence lanes in isolated worktrees. The coordinator MUST NOT become the default implementation worker unless explicitly assigned as that lane worker.
 - **Blockers become work.** A coordinator that finds a blocker MUST create/link a dispatcher-ready resolution card with source context, blocker class, acceptance criteria, verification path, suggested owner/profile, and dependency/conflict notes. Do not convert blockers into ad hoc coordinator implementation unless the coordinator is explicitly assigned as worker for that lane.
 - **Autonomous merge boundary.** Autonomous merge authority exists only when the PR is fully reviewed, review threads are resolved, the required `oya-ci-required` context is green, the branch has no merge conflict, and branch protection is satisfied. Green CI alone is insufficient.
@@ -220,10 +312,9 @@ governance and makes GitHub Actions + branch protection the live CI runner until
 explicit owned-runner cutover. An agent works on an isolated worktree branch and
 opens a pull request against `dev`, which enters the governance pipeline:
 the single protected `oya-ci-required` context + reviewer APPROVE gate merge
-readiness. GH #983 folds PR title/body hygiene into `oya-ci-required`, while
-F-PR5-06 still owns live review-admission closure. `oya gate` / `oya verify`
-output is optional local feedback or provenance only; it is never
-protected-branch CI authority.
+readiness. CI no longer string-checks PR prose (ADR-0716); F-PR5-06 still owns
+live review-admission closure. `oya gate` / `oya verify` output is optional
+local feedback or provenance only; it is never protected-branch CI authority.
 
 The fenced block below is the machine-readable agent surface. Human-facing terminal examples may live outside fences.
 
@@ -238,13 +329,11 @@ required_sequence:
   - commit and push on that lane
   - open a PR against dev               # enters the governance pipeline
   - fully reviewed, review threads resolved, no merge conflict, branch protection satisfied,
-    and single protected `oya-ci-required` context green; PR title/body hygiene flows
-    through `oya-ci-required`, while F-PR5-06 still owns live review-admission closure
-    and legacy CLI evidence remains optional/local only
+    and single protected `oya-ci-required` context green; F-PR5-06 still owns live
+    review-admission closure and legacy CLI evidence remains optional/local only
   - squash merge after review threads resolve
-  - post-merge product-completion packet: promoted SHA `oya-ci-required` green,
-    rollout verification, rollback note, observability check, browser UX/user-story evidence,
-    and release-governance/release-note impact (Release Please applies only when a live repo config/workflow exists)
+  - the merged PR and its green `oya-ci-required` checks are the record; no separate
+    post-merge product-completion packet (ADR-0716)
 coordinator_worker_split:
   coordinator: portfolio/architecture coordinator owns architecture, system design, maturity,
     regression audit, and work-item decomposition/prioritization
@@ -261,15 +350,14 @@ scaffold_protocol:
 
 ## PR shape
 
-Every PR uses [`templates/pull-request-template.md`](templates/pull-request-template.md) <!-- forward-reference: wave-1 -->. The template prescribes 5 traceability H2 sections plus the automated reviewer-agent `## Code Review` section. Target enforcement is `traceability-validator` plus the `oya-ci-required` PR metadata preflight:
+Every PR uses [`templates/pull-request-template.md`](templates/pull-request-template.md) <!-- forward-reference: wave-1 -->. Slim by design (ADR-0716): CI logs and the review thread are the evidence, so the template prescribes only:
 
-1. `## Issue` — `Closes #<n>` or `Refs #<n>`.
+1. `## Issue` — `Closes #<n>` or `Refs #<n>` + change class.
 2. `## Summary` — 1–3 bullets on what + why.
-3. `## Verification` — pass/fail line per check; reviewer-agent verdict pasted.
-4. `## Traceability` — catalog records touched, cross-axis contracts touched, ADRs cited.
-5. `## Evidence` — audit-chain emission ID; foundation-bypass (if any); per-pack regulator-watch impact (if any).
+3. `## Verification` — what you ran (cargo fmt / clippy / test or targeted equivalents) + the `oya-ci-required` check URL.
+4. `## Code Review` — reviewer-agent name, verdict, resolved + deferred items.
 
-The automated reviewer pipeline supplies `## Code Review` with the reviewer-agent name, verdict, and resolved + deferred items, and the metadata packet binds the PR title plus the reviewed PR body/traceability sections. The preflight rejects blocked/pending-review title/body markers and missing or negative review evidence before `oya-ci-required` can pass, without closing F-PR5-06's live review-producer gap.
+No other sections are required or checked by CI.
 
 ## Done-Definition checklist
 
@@ -282,25 +370,20 @@ Before declaring any change complete, every agent and every human MUST re-walk t
 - [ ] **D5** New capabilities (if any) ship: capability record, eval set (golden + adversarial + linguistic), autonomy tier, audit-chain topic, Cosign signing. *Test:* `oya-governance-capability-publish` lane.
 - [ ] **D6** New schemas (if any) carry `oyatie.data_class = "..."` per field. *Test:* `oya-governance-data-class` lane.
 - [ ] **D7** Applicable per-PR fitness lanes actually wired into `oya-ci-required` pass. Historical lane names in prose are not evidence that a producer is live. *Test:* the PR-head `oya-ci-required` job/packet inventory plus the change-class gate mapping.
-- [ ] **D8** Per-change-class reviewer agent ran; verdict captured in `## Code Review`. *Test:* `oya-ci-required` PR metadata preflight plus reviewer audit on PR; live review-admission closure remains F-PR5-06.
-- [ ] **D9** Targeted `buck2 test <target(s)>` passes. *Test:* command output pasted in `## Verification`.
-- [ ] **D10** Targeted `buck2 build <target(s)>` and relevant cloud-ci lint/static-analysis gate packets pass. *Test:* command output.
-- [ ] **D11** Buck2/cloud-ci supply-chain lane passes. *Test:* command output or required context evidence.
+- [ ] **D8** Per-change-class reviewer agent ran; verdict captured in `## Code Review`. *Test:* reviewer audit on PR; live review-admission closure remains F-PR5-06.
+- [ ] **D9** `cargo fmt --all --check` passes. *Test:* command output pasted in `## Verification`.
+- [ ] **D10** `cargo clippy --workspace --all-targets -- -D warnings` passes. *Test:* command output.
+- [ ] **D11** `cargo test --workspace` passes (gate fleet included; materialize faces first if a gate consumes them). buck2 build/test is local hermeticity only (ADR-0716). *Test:* command output or required context evidence.
 - [ ] **D12** Required cloud-ci/oya-ci context and Rust gate packets pass for the change class. *Test:* required
   status/evidence bundle. Legacy `oya` CLI output is historical/local advisory only and never a
   completion/merge authority.
 - [ ] **D13** Performance changes carry benchmark + ≥2 stress-scenario evidence. *Test:* `oya-governance-perf-evidence` lane.
 - [ ] **D14** Schema migrations ship up + down + dry-run + per-tenant + per-cell rollback. *Test:* `oya-governance-schema-migration` lane.
-- [ ] **D15** PR body has all 5 canonical traceability H2 sections plus automated `## Code Review`. *Test:* `traceability-validator` and the `oya-ci-required` PR metadata preflight.
-- [ ] **D16** Audit-chain emission `EVT-*` ID referenced in `## Evidence`. *Test:* `oya-governance-audit-emission` lane.
+- [ ] **D15** PR body has the 4 slim sections (`## Issue`, `## Summary`, `## Verification`, `## Code Review`). *Test:* reviewer audit on PR (ADR-0716; CI no longer string-checks prose).
+- [ ] **D16** Merge authority: the PR-head `oya-ci-required` context is green. *Test:* the check URL pasted in `## Verification`.
 - [ ] **D17** [`MISTAKES-LEDGER.md`](MISTAKES-LEDGER.md) <!-- forward-reference: wave-1 --> row added if this change is a mechanical prevention shipped for a prior failure. *Test:* `oya-governance-mistakes-ledger-cite` lane.
 - [ ] **D18** [`CHANGELOG.md`](CHANGELOG.md) <!-- forward-reference: wave-1 --> row added if this change touches a canonical doc. *Test:* `oya-governance-changelog-row` lane.
-- [ ] **D19** Post-merge product-completion packet recorded after squash merge:
-  promoted commit `oya-ci-required` status URL, rollout verification, rollback note,
-  observability/golden-signal check, browser UX/user-story evidence, and Release
-  Please/release-note impact. *Test:* PR comment or release evidence bundle linked
-  from `## Evidence`; see [`checklists/pre-merge.md`](checklists/pre-merge.md)
-  §"After merge".
+- [ ] **D19** The merged PR and its green `oya-ci-required` checks are the record (ADR-0716); no separate post-merge packet.
 
 If any box is unchecked, the change is not complete. Loop back; do not declare success.
 
@@ -338,11 +421,11 @@ Each appendix is ≤40 lines. Per-agent harness deltas only — no rule duplicat
 
 ### Claude Code <a id="claude-claude-code"></a>
 
-The Claude Code harness loads `CLAUDE.md` at session start (memory-bootstrap convention per [Anthropic docs](https://docs.anthropic.com/en/docs/claude-code/memory)). Repo-root `CLAUDE.md` is a Redirect-class file pointing to this contract.
+The Claude Code harness loads `CLAUDE.md` at session start (memory-bootstrap convention). Repo-root `CLAUDE.md` is a Redirect-class file pointing to this contract.
 
 Always-loaded skills (project-level): `coding-standards`, `tdd-workflow`, `superpowers:test-driven-development`, `superpowers:verification-before-completion`, `superpowers:systematic-debugging`, `search-first`. Language and domain skills load from file context (`rust-*`, `frontend-*`, `postgres-patterns`, `healthcare-phi-compliance`).
 
-Active hooks — SSOT is [`.claude/settings.json`](../.claude/settings.json), which the `enforcement-liveness` face resolves against `tools/hooks/`; this list is a mirror, not an authority. PreToolUse/Bash: `main-checkout-guard.sh`, `local-authority-enforcer.sh`, `no-cargo-enforcer.sh`, `stale-tool-suggester.sh`. PreToolUse/Task: `pre-dispatch-guide.sh`. PostToolUse/Edit|MultiEdit|Write: `spec-version-pin-suggester.sh`, `adr-orphan-detect.sh`, `vacuous-green-gate-detect.sh`. PostToolUse/Bash|WebFetch|WebSearch: `injection-content-scanner.sh`. Stop: `stop-did-you-forget-suggester.sh`. There is no SessionStart hook, and no merge-review, pre-push, telemetry, loop-cancellation, or memory-bootstrap hook — the prior text named five behaviours and one file (`scripts/hooks/guard-pr-merge-review.mjs`), none of which existed in-tree.
+Active hooks — SSOT is [`.claude/settings.json`](../.claude/settings.json), which the `enforcement-liveness` face resolves against `tools/hooks/`; this list is a mirror, not an authority. PreToolUse/Bash: `main-checkout-guard.sh`, `local-authority-enforcer.sh`, `stale-tool-suggester.sh`. (The former Cargo-blocking hook is retired with ADR-0716: cargo is the merge path.) PreToolUse/Task: `pre-dispatch-guide.sh`. PostToolUse/Edit|MultiEdit|Write: `spec-version-pin-suggester.sh`, `adr-orphan-detect.sh`, `vacuous-green-gate-detect.sh`. PostToolUse/Bash|WebFetch|WebSearch: `injection-content-scanner.sh`. Stop: `stop-did-you-forget-suggester.sh`. There is no SessionStart hook, and no merge-review, pre-push, telemetry, loop-cancellation, or memory-bootstrap hook — the prior text named five behaviours and one file (`scripts/hooks/guard-pr-merge-review.mjs`), none of which existed in-tree.
 
 Legacy OMC magic-keyword routing remains compatibility-only while the plain-git/GitHub/cloud-ci closeout path finishes landing. It does not own forward repo-state closure; branch protection, cloud-ci required checks, and governance admission do. Jenkins/`oya` bridge contexts are transitional evidence only. The former harness standard [`standards/claude-code-harness.md`](standards/claude-code-harness.md) is a **retirement tombstone** (ADR-0619 / RR-HARNESS-0619) — not live procedure; use this contract + ADR-0515, and optionally the local `.grok/` mm-delivery kit (not merge authority).
 
@@ -354,9 +437,9 @@ Self-test: `npm --prefix /Users/home/.codex test` before relying on hook / harne
 
 ### Codex (OpenAI Codex CLI)
 
-The Codex CLI loads `AGENTS.md` at workspace creation, per the cross-tool [AGENTS.md convention](https://agents.md). Repo-root `AGENTS.md` is a Redirect-class file pointing to this contract.
+The Codex CLI loads `AGENTS.md` at workspace creation, per the cross-tool AGENTS.md convention. Repo-root `AGENTS.md` is a Redirect-class file pointing to this contract.
 
-Build / test commands: targeted `buck2 build <target(s)>` and `buck2 test <target(s)>`; UI-only surfaces may also use `pnpm build`, `pnpm test`, and `pnpm lint` (Node 20) as local evidence when relevant.
+Build / test commands: `cargo fmt --all --check`, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo test --workspace` (the CI merge path per ADR-0716); buck2 build/test is local hermeticity only. UI-only surfaces may also use `pnpm build`, `pnpm test`, and `pnpm lint` (Node 20) as local evidence when relevant.
 
 Active integration: `.codex/skills/` holds project skills. Coordination follows §Sanctioned primitives; workspace setup is owned by the runtime and claim lifecycle, not by repo-local bootstrap scripts.
 
@@ -401,4 +484,8 @@ The full machine-readable list is in this file's front-matter `excludes:` block.
 
 ## Sources scanned
 
-- 2026-05-10 — initial draft authored from agentic-workflow best practice (Anthropic CLAUDE.md memory + cross-tool AGENTS.md convention) + RFC-2119 + RFC-8174 + Diátaxis + openai/symphony benchmark.
+- 2026-08-11 — cloud provider + full ecosystem north-star survival (INV-DOC-9): binding five-field rule + architecture pointer; EU/SECA as aligned reference; BAN personal-data UX theater; bead `oyatie-dxz` docs-governance.
+- 2026-08-11 — portable Swarm doctrine pointer + adr-rename-overturn challenge + Automations ritual cite; bead `oyatie-dxz` docs-governance; no mass ADR rename.
+- 2026-08-10 — anti-branding: remove external brand/archive URL citations from § Bounded delivery and per-agent appendices; cite Amendment C operating-patterns catalog / reflection corpus (`specs/agentic-operating-patterns.json`); bead `oyatie-dxz.5`.
+- 2026-08-10 — INV-DOC-9 doctrine survival (binding) + DOC-UPDATE same-wave co-change amendment; bead `oyatie-dxz.5` under docs-governance epic `oyatie-dxz`; Amendment C operating-patterns catalog / reflection corpus (brand-free).
+- 2026-05-10 — initial draft authored from agentic-workflow best practice + RFC-2119 + RFC-8174 + Diátaxis (historical; do not treat external product names as authority).

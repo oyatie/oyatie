@@ -90,9 +90,10 @@ impl Config {
         let host: String = host.into();
         validate_host(&host)?;
         if let Some(tok) = &join_token
-            && tok.is_empty() {
-                return Err(Error::invalid("siderolink join token is empty"));
-            }
+            && tok.is_empty()
+        {
+            return Err(Error::invalid("siderolink join token is empty"));
+        }
         Ok(Config {
             scheme,
             host,
