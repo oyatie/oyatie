@@ -128,17 +128,25 @@ fn the_deprecated_cloud_name_set_never_grows() {
 #[test]
 fn burn_down_must_be_recorded_in_the_same_change() {
     // Shrink is the point, but the frozen file must not overstate the remaining debt: a rename
-    // without a baseline regen leaves a phantom entry that hides the next real one.
+    // without a baseline edit leaves a phantom entry that hides the next real one.
+    //
+    // The remediation is a DECLARATIVE EDIT to the committed baseline, not a command. There is
+    // deliberately no `--fix` binary and no regeneration CLI: the repository retires CLI surfaces,
+    // and — more specifically — a one-command "regenerate my own baseline" tool is exactly the
+    // laundering affordance `baseline()` above exists to close, handed back in convenient form.
+    // Emitting the removals is safe in a way that regeneration is not: this test has already
+    // PROVEN each key below is absent from today's census, so applying them can only shrink the
+    // file. Growth is what requires a distinct protected-base change.
     let verdict = compare(&census(&repo_root()), &baseline());
     assert!(
         verdict.removed.is_empty(),
-        "these baselined names are gone — regenerate the baseline in this change:\n{}\n\n\
-           cargo run -p ci-cloud-name-ratchet --bin oya-ci-cloud-name-baseline -- --repo-root . \\\n\
-             > ci/facade/cloud-name-ratchet/cloud-name-baseline.json",
+        "{} baselined name(s) are gone — record the burn-down in THIS change by deleting these \
+         exact lines from `cloud_prefixed_names` in {BASELINE_REPO_PATH}:\n{}",
+        verdict.removed.len(),
         verdict
             .removed
             .iter()
-            .map(|k| format!("  {k}"))
+            .map(|k| format!("    {k:?},"))
             .collect::<Vec<_>>()
             .join("\n")
     );
