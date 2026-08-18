@@ -37,6 +37,20 @@
   srcs globs include them; logical dual-home paths stay in the digest preimage) — keep mirrors
   in sync when dual-home bytes change.
 
+## Go translation lane (`port/engine-go-translation`)
+
+Slices 1–14 built a translator that has never translated: `SourceModel` carries unit ids and
+nothing else, so the whole emitted corpus is two empty functions. This lane makes the engine
+port real Go. It is W1-shaped work — ADR-0637 D4 authorizes W0 only, and the W0-B ready gate
+lists corpus work under `forbidden_until_open` — undertaken as an explicit operator override,
+recorded here rather than implied.
+
+- I1: hermetic Go corpus + stdlib-only bootstrap extractor under
+  `port-engine-frontend-go/gosrc/` (out-of-band; nothing in the Rust build reads it). Emits
+  snapshot envelope v1 with per-package declarations; digest over a length-prefixed
+  arity-tagged preimage, not over JSON. Firewall extended: library sources may not NAME the
+  corpus tree, not merely refrain from spawning `go`.
+
 ## Next gaps (ordered)
 
 1. **Lock absorb** — `Cargo.lock` / root `Cargo.toml` workspace membership refresh waits

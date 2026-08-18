@@ -1,0 +1,222 @@
+{
+  "schema_version": 1,
+  "language": "go",
+  "snapshot_digest": "sha256:21d5e0f5fcc0415164f464ca53e139ed292fa419e247bf15573dcc2081169c28",
+  "packages": [
+    {
+      "unit_id": "oyatie.example/portengine-fixture/basic",
+      "producer": "bootstrap-go-packages-go-types",
+      "declarations": [
+        {
+          "kind": "func",
+          "name": "Add",
+          "exported": true,
+          "params": [
+            {
+              "name": "a",
+              "type": "int"
+            },
+            {
+              "name": "b",
+              "type": "int"
+            }
+          ],
+          "results": [
+            {
+              "name": "",
+              "type": "int"
+            }
+          ]
+        },
+        {
+          "kind": "named",
+          "name": "Celsius",
+          "exported": true,
+          "type": "float64"
+        },
+        {
+          "kind": "const",
+          "name": "DefaultName",
+          "exported": true,
+          "type": "string"
+        },
+        {
+          "kind": "var",
+          "name": "Enabled",
+          "exported": true,
+          "type": "bool"
+        },
+        {
+          "kind": "alias",
+          "name": "ID",
+          "exported": true,
+          "type": "string"
+        },
+        {
+          "kind": "func",
+          "name": "Label",
+          "exported": true,
+          "params": [
+            {
+              "name": "id",
+              "type": "ID"
+            },
+            {
+              "name": "fallback",
+              "type": "string"
+            }
+          ],
+          "results": [
+            {
+              "name": "",
+              "type": "string"
+            }
+          ]
+        },
+        {
+          "kind": "const",
+          "name": "MaxRetries",
+          "exported": true,
+          "type": "int"
+        },
+        {
+          "kind": "func",
+          "name": "Scale",
+          "exported": true,
+          "params": [
+            {
+              "name": "value",
+              "type": "float64"
+            },
+            {
+              "name": "factor",
+              "type": "float64"
+            }
+          ],
+          "results": [
+            {
+              "name": "",
+              "type": "float64"
+            }
+          ]
+        },
+        {
+          "kind": "var",
+          "name": "Threshold",
+          "exported": true,
+          "type": "float64"
+        },
+        {
+          "kind": "func",
+          "name": "unexported",
+          "exported": false,
+          "params": [
+            {
+              "name": "n",
+              "type": "int"
+            }
+          ],
+          "results": [
+            {
+              "name": "",
+              "type": "int"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "unit_id": "oyatie.example/portengine-fixture/shapes",
+      "producer": "bootstrap-go-packages-go-types",
+      "declarations": [
+        {
+          "kind": "interface",
+          "name": "Named",
+          "exported": true,
+          "methods": [
+            {
+              "name": "Name",
+              "exported": true,
+              "results": [
+                {
+                  "name": "",
+                  "type": "string"
+                }
+              ]
+            },
+            {
+              "name": "Rename",
+              "exported": true,
+              "params": [
+                {
+                  "name": "next",
+                  "type": "string"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "var",
+          "name": "Origin",
+          "exported": true,
+          "type": "Point"
+        },
+        {
+          "kind": "struct",
+          "name": "Point",
+          "exported": true,
+          "fields": [
+            {
+              "name": "X",
+              "type": "int",
+              "exported": true
+            },
+            {
+              "name": "Y",
+              "type": "int",
+              "exported": true
+            },
+            {
+              "name": "label",
+              "type": "string",
+              "exported": false
+            }
+          ],
+          "methods": [
+            {
+              "name": "Area",
+              "exported": true,
+              "results": [
+                {
+                  "name": "",
+                  "type": "int"
+                }
+              ]
+            },
+            {
+              "name": "Shift",
+              "exported": true,
+              "params": [
+                {
+                  "name": "dx",
+                  "type": "int"
+                },
+                {
+                  "name": "dy",
+                  "type": "int"
+                }
+              ],
+              "results": [
+                {
+                  "name": "",
+                  "type": "Point"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

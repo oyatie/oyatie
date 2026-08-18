@@ -276,4 +276,32 @@ mod tests {
             "port-engine-frontend-go production sources must not import {process_cmd} (Go firewall)"
         );
     }
+
+    /// ADR-0638 D3, second half: the firewall is not only "do not spawn `go`", it is "do not
+    /// READ Go". The bootstrap corpus and extractor live under `gosrc/` beside this crate, and
+    /// a library source that named that tree — to `include_str!` a `.go` file, to walk the
+    /// corpus, to re-derive anything the snapshot already carries — would make the engine's
+    /// answer depend on Go source at verify time even though no toolchain ever ran. That is the
+    /// same defect the process fence exists to prevent, arriving through the filesystem instead
+    /// of through a subprocess.
+    #[test]
+    fn library_source_never_reads_the_go_corpus() {
+        let src = include_str!("lib.rs");
+        let production = src
+            .split("#[cfg(test)]")
+            .next()
+            .expect("lib.rs must have a production section");
+
+        let corpus_tree = ["go", "src/"].concat();
+        let go_extension = [".", "go", "\""].concat();
+        assert!(
+            !production.contains(&corpus_tree),
+            "port-engine-frontend-go production sources must not name the `{corpus_tree}` \
+             out-of-band tree — the engine consumes snapshot artifacts, never Go source"
+        );
+        assert!(
+            !production.contains(&go_extension),
+            "port-engine-frontend-go production sources must not reference a `{go_extension}` path"
+        );
+    }
 }
