@@ -112,4 +112,3 @@ pub(crate) fn receipt_for_stage<'a>(
         .map(|entry| (path, entry))
         .ok_or_else(|| format!("candidate receipt {path} is absent"))
 }
-
