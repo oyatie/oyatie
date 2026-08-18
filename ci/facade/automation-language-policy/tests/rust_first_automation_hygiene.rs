@@ -431,9 +431,22 @@ fn retirement_event_transport_delegates_provider_tuple_to_rust_materializer_with
         .get("run")
         .and_then(YamlValue::as_str)
         .expect("the workspace test step must be a Rust-owned run step");
+    // ADR-0718-D3: assert the PROPERTY (the whole workspace runs under one locked cargo
+    // invocation), not the spelling. nextest is an interchangeable runner; pinning the literal
+    // would make a runner swap look like the gate fleet had stopped running.
+    let runs_locked_workspace = ["cargo test", "cargo nextest run"].iter().any(|runner| {
+        workspace_tests_run
+            .split_once(runner)
+            .is_some_and(|(_, args)| {
+                let tokens: Vec<&str> = args.split_whitespace().collect();
+                tokens.contains(&"--locked") && tokens.contains(&"--workspace")
+            })
+    });
     assert!(
-        workspace_tests_run.contains("cargo test --locked --workspace"),
-        "the gate fleet, scm-facts census receipt included, must run under the cargo workspace tests"
+        runs_locked_workspace,
+        "the gate fleet, scm-facts census receipt included, must run under a locked cargo \
+         workspace test invocation (cargo test or cargo nextest run); found: \
+         {workspace_tests_run:?}"
     );
     assert!(
         !workflow.contains("matrix.crate"),

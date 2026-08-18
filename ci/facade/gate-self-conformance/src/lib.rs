@@ -529,9 +529,18 @@ fn workflow_executes_recursive_gates_pattern(workflow: &str, gates_root_rel: &st
 /// result to be compared in the fan-in success chain. This function feeds the descriptive
 /// `workflow_registered` property; do not promote it to an admission check without adding that
 /// reachability restriction.
-/// True iff an executable workflow line runs `cargo test --workspace` (with or without
-/// `--locked`), which executes every workspace-member gate crate under the gates root. The
-/// Cargo merge path (ADR-0716) replaces the buck2 matrix as the registration surface.
+/// True iff an executable workflow line runs the whole workspace test suite — `cargo test
+/// --workspace` or `cargo nextest run --workspace`, with or without `--locked` — which executes
+/// every workspace-member gate crate under the gates root. The Cargo merge path (ADR-0716)
+/// replaces the buck2 matrix as the registration surface, and ADR-0718-D3 makes the runner
+/// interchangeable.
+///
+/// The property that matters is "every gate crate actually runs and its failure counts", NOT the
+/// spelling of the command. Matching the literal `cargo test` would silently DEREGISTER every gate
+/// crate the moment the runner changed — the fan-in would still be green while the collector
+/// believed nothing was wired. Hence both runners are accepted here, and the advisory escapes
+/// (`--keep-going`, `|| true`) remain rejected: a run whose failures cannot fail the job does not
+/// register anything.
 fn workflow_executes_workspace_tests(workflow: &str) -> bool {
     workflow.lines().any(|line| {
         let trimmed = line.trim();
@@ -541,7 +550,10 @@ fn workflow_executes_workspace_tests(workflow: &str) -> bool {
         {
             return false;
         }
-        let Some((_, args)) = trimmed.split_once("cargo test ") else {
+        let Some((_, args)) = trimmed
+            .split_once("cargo nextest run ")
+            .or_else(|| trimmed.split_once("cargo test "))
+        else {
             return false;
         };
         args.split_whitespace().any(|token| token == "--workspace")
