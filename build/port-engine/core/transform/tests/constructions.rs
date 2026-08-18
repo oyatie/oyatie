@@ -166,3 +166,18 @@ fn casing_keeps_capital_runs_together() {
     assert_eq!(to_pascal_case("point"), "Point");
     assert_eq!(to_pascal_case("Point"), "Point");
 }
+
+/// A source identifier that is a target KEYWORD is escaped, not refused. Every one of these is a
+/// legal Go name, so a translator that cannot emit them cannot translate Go.
+#[test]
+fn a_keyword_identifier_is_escaped_rather_than_refused() {
+    assert_eq!(to_snake_case("Move"), "r#move");
+    assert_eq!(to_snake_case("Type"), "r#type");
+    assert_eq!(to_snake_case("Loop"), "r#loop");
+    // The four the grammar needs everywhere cannot be raw, so they are RENAMED — a real change to
+    // the identifier, which is why they are handled separately.
+    assert_eq!(escape_keyword("self"), "self_");
+    assert_eq!(escape_keyword("crate"), "crate_");
+    // And an ordinary name is untouched.
+    assert_eq!(to_snake_case("Total"), "total");
+}

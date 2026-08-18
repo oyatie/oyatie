@@ -7,7 +7,7 @@ use port_engine_emit::EmitError;
 use port_engine_hash::digest_str;
 use port_engine_rulepack::RulepackError;
 use port_engine_snapshot::AdmitError;
-use port_engine_transform::TransformError;
+use port_engine_transform::{DispositionRecord, TransformError};
 
 /// Outcome of the pin→admit→plan→transform→emit→receipt pipeline.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -25,6 +25,8 @@ pub struct PipelineReport {
     pub emitted: BTreeMap<RegionId, Vec<u8>>,
     /// Content digest of [`Self::emitted`].
     pub emit_digest: Digest,
+    /// Every ownership decision the run made, with its justification.
+    pub dispositions: Vec<DispositionRecord>,
 }
 
 /// Typed refusal from the Slice 11 pipeline.

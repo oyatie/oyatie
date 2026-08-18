@@ -4,8 +4,8 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use port_engine_api::{
-    Declaration, Digest, LanguagePair, PackSemantics, PlanStep, RuleId, SourceModel, TargetIr,
-    TransformPlan, TypeRef, UnitId,
+    Declaration, Digest, LanguagePair, PackSemantics, PlanStep, PointerDisposition, RuleId,
+    SourceModel, TargetIr, TransformPlan, TypeRef, UnitId,
 };
 use port_engine_rust_ir::RustIr;
 use port_engine_transform::*;
@@ -24,6 +24,7 @@ pub struct Pack {
     pub deferred: BTreeSet<String>,
     /// The declared trait-receiver decision. `None` means the pack made none, which is a refusal.
     pub receiver: Option<(String, String)>,
+    pub dispositions: Vec<PointerDisposition>,
 }
 
 impl Pack {
@@ -66,6 +67,27 @@ impl Pack {
         self
     }
 
+    /// Declare an ownership rule, as a real pack must.
+    pub fn with_disposition(
+        mut self,
+        id: &str,
+        mutated: Option<bool>,
+        escapes: Option<bool>,
+        target: &str,
+        receiver: Option<&str>,
+    ) -> Self {
+        self.dispositions.push(PointerDisposition {
+            id: id.to_owned(),
+            when_mutated: mutated,
+            when_escapes: escapes,
+            when_effect_unknown: Some(false),
+            target: target.to_owned(),
+            receiver: receiver.map(ToOwned::to_owned),
+            reason: "fixture decision".to_owned(),
+        });
+        self
+    }
+
     /// Declare the trait-receiver decision, as a real pack must.
     pub fn with_trait_receiver(mut self, mode: &str) -> Self {
         self.receiver = Some((mode.to_owned(), "fixture decision".to_owned()));
@@ -103,6 +125,9 @@ impl PackSemantics for Pack {
     }
     fn deferred_kinds(&self) -> &BTreeSet<String> {
         &self.deferred
+    }
+    fn pointer_dispositions(&self) -> &[PointerDisposition] {
+        &self.dispositions
     }
     fn trait_receiver(&self) -> Option<(&str, &str)> {
         self.receiver

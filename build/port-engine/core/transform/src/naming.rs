@@ -88,7 +88,7 @@ pub fn to_snake_case(raw: &str) -> String {
     if out.as_bytes().first().is_some_and(u8::is_ascii_digit) {
         out.insert(0, '_');
     }
-    out
+    escape_keyword(&out)
 }
 
 /// `point` → `Point`. Rust's type convention; already-capitalized names pass through.
@@ -137,6 +137,36 @@ pub fn module_name(unit: &str) -> String {
     } else {
         name
     }
+}
+
+/// Target keywords a source identifier may collide with.
+///
+/// Every one of these is a legal Go identifier, so a translator that cannot emit them cannot
+/// translate Go. Strict and reserved keywords both: a reserved one is not a keyword yet, and
+/// emitting it would make the output depend on which edition compiles it.
+const TARGET_KEYWORDS: &[&str] = &[
+    "abstract", "as", "async", "await", "become", "box", "break", "const", "continue", "do", "dyn",
+    "else", "enum", "extern", "false", "final", "fn", "for", "if", "impl", "in", "let", "loop",
+    "macro", "match", "mod", "move", "mut", "override", "priv", "pub", "ref", "return", "static",
+    "struct", "trait", "true", "try", "type", "typeof", "union", "unsafe", "unsized", "use",
+    "virtual", "where", "while", "yield",
+];
+
+/// The four that cannot be raw identifiers, because the grammar needs them to mean one thing
+/// everywhere. A collision with these is resolved by RENAMING, which is a real change to the
+/// identifier and is why they are listed separately rather than lumped in above.
+const UNRAWABLE_KEYWORDS: &[&str] = &["crate", "self", "Self", "super"];
+
+/// Make an identifier emittable, escaping a target keyword rather than refusing it.
+#[must_use]
+pub fn escape_keyword(name: &str) -> String {
+    if UNRAWABLE_KEYWORDS.contains(&name) {
+        return format!("{name}_");
+    }
+    if TARGET_KEYWORDS.contains(&name) {
+        return format!("r#{name}");
+    }
+    name.to_owned()
 }
 
 /// The absolute module path another unit's items are addressed by.

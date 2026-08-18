@@ -66,6 +66,30 @@ pub mod geometry {
         pub max: crate::shapes::Point,
     }
 }
+pub mod pointers {
+    // region: oyatie_example_portengine_fixture_corpus_pointers__go_struct__counter
+    /// Counter accumulates a total.
+    pub struct Counter {
+        /// total is the running sum.
+        total: i64,
+        /// label names the counter.
+        label: String,
+    }
+    impl Counter {
+        pub fn add(&mut self, n: i64) {
+            todo!()
+        }
+        pub fn label(&self) -> String {
+            todo!()
+        }
+        pub fn merge(&mut self, other: &Counter) {
+            todo!()
+        }
+        pub fn total(&self) -> i64 {
+            todo!()
+        }
+    }
+}
 pub mod shapes {
     // region: oyatie_example_portengine_fixture_corpus_shapes__go_interface__named
     /// Named is anything that can render its own name.

@@ -164,6 +164,33 @@ fn the_refusal_corpus_is_refused_by_name() {
     );
 }
 
+/// The second refusal class, in its own corpus so it is PROVEN rather than shadowed by whichever
+/// package the transform reached first.
+///
+/// A method whose receiver outlives the call cannot be handed out as any borrow of `self` — a
+/// reference would need a lifetime the caller cannot supply — so the pack's escaping disposition
+/// declares no receiver form and the transform refuses rather than picking a borrow that will not
+/// hold.
+#[test]
+fn an_escaping_receiver_is_refused_with_its_reason() {
+    let err =
+        driver::port_go_refused_ownership().expect_err("an escaping receiver has no borrow form");
+
+    let message = err.to_string();
+    assert!(
+        message.contains("Itself"),
+        "the refusal must name the site: {message}"
+    );
+    assert!(
+        message.contains("escaping_owned"),
+        "the refusal must name the disposition that declined: {message}"
+    );
+    assert!(
+        message.contains("outlives the call"),
+        "the refusal must carry the pack's recorded reason: {message}"
+    );
+}
+
 /// The six receipt axes carry real values for the first time. Before this lane every axis was
 /// typed and compared but never populated over a corpus, so the determinism claim held only over
 /// in-memory fakes.

@@ -8,7 +8,7 @@ use std::collections::BTreeMap;
 use serde::Deserialize;
 
 use crate::CONFLICT_REFUSE;
-use crate::rule::{DeferredKind, SelectingFixture, TraitReceiver};
+use crate::rule::{DeferredKind, DispositionRule, SelectingFixture, TraitReceiver};
 
 fn default_conflict() -> String {
     CONFLICT_REFUSE.to_owned()
@@ -34,6 +34,8 @@ pub(crate) struct RulepackDocument {
     pub(crate) deferred_kinds: Vec<DeferredKind>,
     #[serde(default)]
     pub(crate) trait_receiver: Option<TraitReceiver>,
+    #[serde(default)]
+    pub(crate) pointer_dispositions: Vec<DispositionRule>,
     pub(crate) rules: Vec<RuleDocument>,
     pub(crate) applies: BTreeMap<String, Vec<String>>,
 }

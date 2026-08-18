@@ -11,6 +11,7 @@ license = "Apache-2.0"
 # No Cargo.lock absorb this tip.
 
 [dependencies]
+port-engine-analysis = { path = "../analysis" }
 port-engine-api = { path = "../../ports/api" }
 port-engine-rust-ir = { path = "../rust-ir" }
 

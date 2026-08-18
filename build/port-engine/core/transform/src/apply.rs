@@ -10,6 +10,7 @@ use port_engine_rust_ir::{RustIr, RustItem};
 use crate::error::TransformError;
 use crate::items::{build_item, build_unit_item};
 use crate::naming::{region_id_for, region_id_for_declaration};
+use crate::ownership::{DispositionLog, DispositionRecord, OwnershipContext};
 use crate::resolve::{LocalScope, Resolver};
 use crate::vocabulary::{
     CONSTRUCTION_EMPTY_CANARY, CONSTRUCTION_PASS_THROUGH, PRECONDITION_UNIT_PRESENT,
@@ -33,7 +34,23 @@ pub fn apply(
     semantics: &dyn PackSemantics,
     model: &dyn SourceModel,
 ) -> Result<RustIr, TransformError> {
-    apply_with_provenance(plan, semantics, model).map(|(ir, _)| ir)
+    apply_with_provenance(plan, semantics, model).map(|output| output.ir)
+}
+
+/// Everything one transform run produced.
+///
+/// The dispositions travel WITH the IR rather than being recoverable from it. An ownership
+/// decision is an inference over facts a reader cannot see from the emitted code — `&mut self`
+/// looks the same whether it was proven or assumed — so dropping the reasoning would leave a
+/// reviewer with the conclusion and no way to ask why.
+#[derive(Debug)]
+pub struct TransformOutput {
+    /// The emitted IR.
+    pub ir: RustIr,
+    /// Which unit each region came from.
+    pub region_units: BTreeMap<RegionId, UnitId>,
+    /// Every ownership decision, in the order it was made.
+    pub dispositions: Vec<DispositionRecord>,
 }
 
 /// [`apply`], plus which unit each emitted region came from.
@@ -50,12 +67,14 @@ pub fn apply_with_provenance(
     plan: &TransformPlan,
     semantics: &dyn PackSemantics,
     model: &dyn SourceModel,
-) -> Result<(RustIr, BTreeMap<RegionId, UnitId>), TransformError> {
+) -> Result<TransformOutput, TransformError> {
     let model_units: BTreeSet<String> = model.units().into_iter().map(|u| u.0).collect();
     let mut provenance: BTreeMap<RegionId, UnitId> = BTreeMap::new();
 
     let mut region_names: Vec<String> = Vec::new();
     let mut items: Vec<(String, RustItem)> = Vec::new();
+    let log = DispositionLog::new();
+    let ownership = OwnershipContext::new(semantics.pointer_dispositions(), &log);
     // unit → the declaration kinds some applied rule captured, for the coverage check below.
     let mut captured_kinds: BTreeMap<UnitId, BTreeSet<String>> = BTreeMap::new();
 
@@ -121,6 +140,7 @@ pub fn apply_with_provenance(
                     overrides: semantics.type_map_overrides(construction),
                     constructors: semantics.type_constructors(),
                     receiver: semantics.trait_receiver(),
+                    ownership: &ownership,
                     unit: &step.unit,
                 },
             )?;
@@ -145,7 +165,11 @@ pub fn apply_with_provenance(
         ir.set_items(&region, region_items)
             .map_err(TransformError::Ir)?;
     }
-    Ok((ir, provenance))
+    Ok(TransformOutput {
+        ir,
+        region_units: provenance,
+        dispositions: log.records(),
+    })
 }
 
 /// Every declaration of every planned unit must be captured by a rule or deferred by policy.

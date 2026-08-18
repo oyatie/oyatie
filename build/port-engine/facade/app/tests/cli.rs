@@ -24,6 +24,7 @@ fn slice14_commands_succeed() {
     assert_eq!(run(&args(&["admit-snapshot"])), ExitCode::SUCCESS);
     assert_eq!(run(&args(&["declarations"])), ExitCode::SUCCESS);
     assert_eq!(run(&args(&["port-go"])), ExitCode::SUCCESS);
+    assert_eq!(run(&args(&["dispositions"])), ExitCode::SUCCESS);
     assert_eq!(
         run(&args(&["port-go-source"])),
         ExitCode::SUCCESS,

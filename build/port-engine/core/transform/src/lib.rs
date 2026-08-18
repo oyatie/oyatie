@@ -23,16 +23,18 @@ mod docs;
 mod error;
 mod items;
 mod naming;
+mod ownership;
 mod resolve;
 mod signature;
 mod vocabulary;
 
-pub use apply::{apply, apply_with_provenance};
+pub use apply::{TransformOutput, apply, apply_with_provenance};
 pub use error::TransformError;
 pub use naming::{
-    module_name, module_path, region_id_for, region_id_for_declaration, sanitize_ident,
-    to_pascal_case, to_screaming_snake, to_snake_case,
+    escape_keyword, module_name, module_path, region_id_for, region_id_for_declaration,
+    sanitize_ident, to_pascal_case, to_screaming_snake, to_snake_case,
 };
+pub use ownership::{DispositionLog, DispositionRecord, OwnershipContext};
 pub use vocabulary::{
     ATTR_DOC, ATTR_OP, ATTR_REF, ATTR_SOURCE_NODE, ATTR_VALUE, CONSTRUCTION_EMPTY_CANARY,
     CONSTRUCTION_PASS_THROUGH, CONSTRUCTION_RUST_CONST, CONSTRUCTION_RUST_FN,

@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "language": "go",
-  "snapshot_digest": "sha256:ed9f53054cf436f3b85bd7429512b64dc8a0edfcb54a9454bdd95c70e738c62a",
+  "snapshot_digest": "sha256:394bdc5706dc92689442d4a25ad66c2a75755e75c43c772fff2b74dbbf2d01f9",
   "packages": [
     {
       "unit_id": "oyatie.example/portengine-fixture/corpus/basic",
@@ -152,7 +152,10 @@
                 "kind": "named",
                 "name": "ID",
                 "package": "oyatie.example/portengine-fixture/corpus/basic"
-              }
+              },
+              "flags": [
+                "escapes"
+              ]
             },
             {
               "kind": "param",
@@ -160,7 +163,10 @@
               "type": {
                 "kind": "basic",
                 "name": "string"
-              }
+              },
+              "flags": [
+                "escapes"
+              ]
             },
             {
               "kind": "result",
@@ -359,7 +365,10 @@
               "type": {
                 "kind": "basic",
                 "name": "int"
-              }
+              },
+              "flags": [
+                "escapes"
+              ]
             },
             {
               "kind": "result",
@@ -471,7 +480,10 @@
               "type": {
                 "kind": "basic",
                 "name": "int"
-              }
+              },
+              "flags": [
+                "escapes"
+              ]
             },
             {
               "kind": "result",
@@ -538,7 +550,10 @@
                     "name": "int"
                   }
                 ]
-              }
+              },
+              "flags": [
+                "escapes"
+              ]
             },
             {
               "kind": "result",
@@ -567,6 +582,201 @@
                       "attrs": {
                         "ref": "local"
                       }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "unit_id": "oyatie.example/portengine-fixture/corpus/pointers",
+      "producer": "bootstrap-go-packages-go-types",
+      "declarations": [
+        {
+          "kind": "struct",
+          "name": "Counter",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Counter accumulates a total."
+          },
+          "children": [
+            {
+              "kind": "field",
+              "name": "total",
+              "type": {
+                "kind": "basic",
+                "name": "int"
+              },
+              "attrs": {
+                "doc": "total is the running sum."
+              }
+            },
+            {
+              "kind": "field",
+              "name": "label",
+              "type": {
+                "kind": "basic",
+                "name": "string"
+              },
+              "attrs": {
+                "doc": "label names the counter."
+              }
+            },
+            {
+              "kind": "method",
+              "name": "Add",
+              "flags": [
+                "exported",
+                "mutated",
+                "pointer_receiver"
+              ],
+              "attrs": {
+                "doc": "Add adds n to the counter.\n\nMUTATED, does not escape: the body assigns through the receiver and nothing outlives the call."
+              },
+              "children": [
+                {
+                  "kind": "param",
+                  "name": "n",
+                  "type": {
+                    "kind": "basic",
+                    "name": "int"
+                  }
+                },
+                {
+                  "kind": "body",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "unsupported",
+                      "name": "",
+                      "attrs": {
+                        "go_node": "AssignStmt"
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "Label",
+              "flags": [
+                "exported"
+              ],
+              "attrs": {
+                "doc": "Label reports the counter's name, by value receiver.\n\nNo pointer at all — the receiver is a copy, so no disposition question arises."
+              },
+              "children": [
+                {
+                  "kind": "result",
+                  "name": "",
+                  "type": {
+                    "kind": "basic",
+                    "name": "string"
+                  }
+                },
+                {
+                  "kind": "body",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "return",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "unsupported",
+                          "name": "",
+                          "attrs": {
+                            "go_node": "SelectorExpr"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "Merge",
+              "flags": [
+                "exported",
+                "mutated",
+                "pointer_receiver"
+              ],
+              "attrs": {
+                "doc": "Merge folds other into the receiver.\n\nThe receiver is mutated; `other` is read-only. Two pointers in one signature, with different\nanswers — a rule that keys on the type rather than on the facts gives them the same one."
+              },
+              "children": [
+                {
+                  "kind": "param",
+                  "name": "other",
+                  "type": {
+                    "kind": "pointer",
+                    "args": [
+                      {
+                        "kind": "named",
+                        "name": "Counter",
+                        "package": "oyatie.example/portengine-fixture/corpus/pointers"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "kind": "body",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "unsupported",
+                      "name": "",
+                      "attrs": {
+                        "go_node": "AssignStmt"
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "Total",
+              "flags": [
+                "exported",
+                "pointer_receiver"
+              ],
+              "attrs": {
+                "doc": "Total reports the accumulated value.\n\nNeither mutated nor escaping: a read-only borrow is enough."
+              },
+              "children": [
+                {
+                  "kind": "result",
+                  "name": "",
+                  "type": {
+                    "kind": "basic",
+                    "name": "int"
+                  }
+                },
+                {
+                  "kind": "body",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "return",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "unsupported",
+                          "name": "",
+                          "attrs": {
+                            "go_node": "SelectorExpr"
+                          }
+                        }
+                      ]
                     }
                   ]
                 }

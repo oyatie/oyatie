@@ -7,7 +7,57 @@
 use std::collections::BTreeSet;
 
 use crate::error::RulepackError;
-use crate::rule::{DeferredKind, LoadedRule, TraitReceiver};
+use port_engine_api::PointerDisposition;
+
+use crate::rule::{DeferredKind, DispositionRule, LoadedRule, TraitReceiver};
+
+/// Convert and check the ownership rules.
+///
+/// A reason is required for the same reason it is on a deferral: this is a decision with a cost
+/// either way, and the reason is what makes the cost reviewable. An id must be unique, because a
+/// decision cites it and two rules answering to one name make a citation ambiguous.
+///
+/// # Errors
+/// [`RulepackError::Schema`] on a missing id, target or reason, and
+/// [`RulepackError::Schema`] on a duplicate id.
+pub(crate) fn validate_dispositions(
+    rules: &[DispositionRule],
+) -> Result<Vec<PointerDisposition>, RulepackError> {
+    let mut seen = BTreeSet::new();
+    let mut out = Vec::with_capacity(rules.len());
+    for rule in rules {
+        if rule.id.is_empty() {
+            return Err(RulepackError::Schema {
+                field: "pointer_dispositions[].id",
+            });
+        }
+        if rule.target.trim().is_empty() {
+            return Err(RulepackError::Schema {
+                field: "pointer_dispositions[].target",
+            });
+        }
+        if rule.reason.trim().is_empty() {
+            return Err(RulepackError::Schema {
+                field: "pointer_dispositions[].reason",
+            });
+        }
+        if !seen.insert(rule.id.clone()) {
+            return Err(RulepackError::Schema {
+                field: "pointer_dispositions[].id(duplicate)",
+            });
+        }
+        out.push(PointerDisposition {
+            id: rule.id.clone(),
+            when_mutated: rule.mutated,
+            when_escapes: rule.escapes,
+            when_effect_unknown: rule.effect_unknown,
+            target: rule.target.clone(),
+            receiver: rule.receiver.clone(),
+            reason: rule.reason.clone(),
+        });
+    }
+    Ok(out)
+}
 
 /// Check the declared policy and return the deferred-kind set.
 ///

@@ -49,6 +49,13 @@ pub const FLAG_EXPORTED: &str = "exported";
 pub const FLAG_VARIADIC: &str = "variadic";
 /// Flag marking a method bound through a pointer receiver.
 pub const FLAG_POINTER_RECEIVER: &str = "pointer_receiver";
+/// Ownership fact: the body provably assigns through this pointer.
+pub const FLAG_MUTATED: &str = "mutated";
+/// Ownership fact: this pointer provably outlives the call.
+pub const FLAG_ESCAPES: &str = "escapes";
+/// Ownership fact: this pointer reached a call the front end did not analyse, so the other two
+/// facts being absent means UNPROVEN rather than false.
+pub const FLAG_EFFECT_UNKNOWN: &str = "effect_unknown";
 
 /// Child kinds a construction reads. Opaque here: these are the strings the pack and the front end
 /// agreed on, and this face compares them without interpreting them.
