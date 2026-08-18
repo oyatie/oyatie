@@ -23,7 +23,13 @@
       "performance": "Validation is bounded by the size limits in this schema and is outside serving paths.",
       "optimization": "Only normalized facts and digests are retained; raw provider and secret-bearing payloads are excluded.",
       "code_quality": "Syntax, schema-instance, secret-scan, and independent-review gates are required before publication."
-    }
+    },
+    "semantic_validator_requirements": [
+      "derive freshness rather than trusting freshness_state: require captured_at <= fresh_until, and reject `current` when fresh_until is in the past at admission time. JSON Schema cannot compare two instance fields or read a wall clock, so a receipt could self-report `current` with a fresh_until years past",
+      "require supersedes_receipt_id to name the same logical seed as this receipt and an earlier capture time, and reject cycles in the supersession chain",
+      "fail the binding-integrity gate when protected_from_termination reads back false; the receipt must be able to REPORT the drift, and the gate — not the schema — is what rejects it",
+      "verify template_sha256 matches the materialized BootstrapIntent instance before honouring a qualified implementation_state"
+    ]
   },
   "type": "object",
   "additionalProperties": false,
@@ -46,7 +52,8 @@
     "failure_modes",
     "redaction",
     "integrity",
-    "references"
+    "references",
+    "supersedes_receipt_id"
   ],
   "properties": {
     "$schema": {
@@ -109,12 +116,18 @@
       "oyatie.data_class": "INTERNAL_ONLY"
     },
     "supersedes_receipt_id": {
-      "type": [
-        "string",
-        "null"
-      ],
-      "description": "Prior immutable receipt replaced by this one, or null for the first receipt.",
-      "oyatie.data_class": "INTERNAL_ONLY"
+      "description": "Prior immutable receipt replaced by this one, or an explicit null for the first receipt in a chain. REQUIRED: when merely optional, every receipt after the first could validate without naming its predecessor, leaving resume and audit consumers unable to reconstruct an ordered chain despite the immutable-supersession policy. The string form must be a well-formed receipt_id; a validator additionally checks it names the same logical seed and an earlier capture time.",
+      "oyatie.data_class": "INTERNAL_ONLY",
+      "oneOf": [
+        {
+          "type": "null",
+          "$comment": "First receipt in the chain — the absence must be stated, not omitted."
+        },
+        {
+          "type": "string",
+          "pattern": "^genesis-seed-[a-z0-9-]+-[0-9]{8}t[0-9]{6}z$"
+        }
+      ]
     },
     "claim_ceiling": {
       "$ref": "#/$defs/claimCeiling",
@@ -321,8 +334,7 @@
         },
         "protected_from_termination": {
           "type": "boolean",
-          "const": true,
-          "description": "The operator contract forbids terminating the protected seed instance.",
+          "description": "OBSERVED termination-protection state read back from the adapter — not the policy it is checked against. The operator contract forbids terminating the protected seed instance, but pinning this to `const: true` encoded that desired policy as an unvarying observation: a collector that read back DISABLED protection could not serialize the `false` it actually saw, and had to choose between emitting an invalid receipt and misreporting the observation. The runbook treats protection drift as a FAILED binding-integrity check, which requires the drift to be representable here for the gate to fail on it.",
           "oyatie.data_class": "INTERNAL_ONLY"
         }
       },
@@ -543,6 +555,48 @@
               },
               "receipt_chain": {
                 "const": "absent",
+                "oyatie.data_class": "INTERNAL_ONLY"
+              }
+            }
+          }
+        },
+        {
+          "$comment": "Only `not_implemented` was constrained, so a receipt could advertise `qualified` while reporting result:fail, idempotency_test:fail, resume_test:not_run and receipt_chain:absent. Any consumer selecting qualified automation could therefore adopt a failed or unreceipted implementation.",
+          "if": {
+            "properties": {
+              "implementation_state": {
+                "const": "qualified",
+                "oyatie.data_class": "INTERNAL_ONLY"
+              }
+            },
+            "required": [
+              "implementation_state"
+            ]
+          },
+          "then": {
+            "properties": {
+              "template_revision": {
+                "type": "string",
+                "oyatie.data_class": "INTERNAL_ONLY"
+              },
+              "template_sha256": {
+                "type": "string",
+                "oyatie.data_class": "INTERNAL_ONLY"
+              },
+              "result": {
+                "const": "pass",
+                "oyatie.data_class": "INTERNAL_ONLY"
+              },
+              "idempotency_test": {
+                "const": "pass",
+                "oyatie.data_class": "INTERNAL_ONLY"
+              },
+              "resume_test": {
+                "const": "pass",
+                "oyatie.data_class": "INTERNAL_ONLY"
+              },
+              "receipt_chain": {
+                "const": "complete",
                 "oyatie.data_class": "INTERNAL_ONLY"
               }
             }

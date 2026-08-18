@@ -17,7 +17,10 @@
       "reject riscv64 production placement until its release profile is independently qualified",
       "enforce both directions between adopted_protected ownership and compute lifecycle protection: safe existing-resource strategies only, termination protection enabled, and replacement and retirement disabled",
       "treat compute lifecycle protection and payload data disposition as orthogonal; approved_discard may discard old payload data without authorizing resource termination, replacement, or retirement",
-      "bind every apply to a fresh observation digest, authorization-decision receipt, intent digest, adapter-plan digest, and idempotency key"
+      "bind every apply to a fresh observation digest, authorization-decision receipt, intent digest, adapter-plan digest, and idempotency key",
+      "reject duplicate target_id within one intent; targets are an array for ordering, so identity uniqueness is not expressible in JSON Schema and must be checked before planning, or the same logical target can be planned twice concurrently under max_parallel_targets",
+      "reject credential_expires_at more than 600 seconds after credential_issued_at, and reject any credential already expired at admission time",
+      "verify observation_digest freshness against the adapter observation at apply time; a syntactically valid digest is not evidence that the observation is current"
     ],
     "engineering_rigor": {
       "maintainability": "Logical profiles and capability contracts remain stable while adapters and implementations change.",
@@ -129,7 +132,8 @@
         "credential_expires_at",
         "one_time",
         "revocable",
-        "fail_closed"
+        "fail_closed",
+        "credential_issued_at"
       ],
       "properties": {
         "principal_ref": {
@@ -179,6 +183,12 @@
         "fail_closed": {
           "type": "boolean",
           "const": true,
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "credential_issued_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Credential issuance instant. Without it `credential_expires_at` alone could sit months out and stay schema-valid; the pair makes the runbook's fixed 600-second lifetime deterministically checkable.",
           "oyatie.data_class": "INTERNAL_ONLY"
         }
       }
@@ -560,6 +570,28 @@
               }
             }
           }
+        },
+        {
+          "if": {
+            "properties": {
+              "support_tier": {
+                "const": "production",
+                "oyatie.data_class": "INTERNAL_ONLY"
+              }
+            },
+            "required": [
+              "support_tier"
+            ]
+          },
+          "then": {
+            "properties": {
+              "replicas": {
+                "minimum": 1,
+                "description": "Production pools must carry capacity. Zero remains valid for lab/unavailable tiers only; an intent of production pools all at zero was schema-valid yet created no control plane or workload capacity and could never complete bootstrap.",
+                "oyatie.data_class": "INTERNAL_ONLY"
+              }
+            }
+          }
         }
       ]
     },
@@ -795,6 +827,30 @@
           "type": "boolean",
           "const": true,
           "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "observation_digest": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$",
+          "description": "Digest of the adapter observation this intent was planned against. Previously the semantic requirement bound every apply to a fresh observation digest while the contract carried no property to hold one, so the rule was unenforceable by construction.",
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "intent_digest": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$",
+          "description": "Digest of the canonical intent body as reviewed, so an apply cannot be bound to a different intent than the one authorized.",
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "adapter_plan_digest": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$",
+          "description": "Digest of the adapter plan produced by the mandatory dry run, binding apply to the exact reviewed plan.",
+          "oyatie.data_class": "INTERNAL_ONLY"
+        },
+        "idempotency_key": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]{7,127}$",
+          "description": "Caller-supplied idempotency key; replay of the same key must not produce a second mutation.",
+          "oyatie.data_class": "INTERNAL_ONLY"
         }
       }
     },
@@ -856,5 +912,126 @@
         }
       ]
     }
-  }
+  },
+  "allOf": [
+    {
+      "$comment": "Fail-closed authorization binding: authorization.purpose and operation.action were validated independently, so a decision receipt issued to quiesce could accompany a mutating reconcile.",
+      "if": {
+        "properties": {
+          "authorization": {
+            "properties": {
+              "purpose": {
+                "const": "quiesce",
+                "oyatie.data_class": "INTERNAL_ONLY"
+              }
+            },
+            "required": [
+              "purpose"
+            ]
+          }
+        },
+        "required": [
+          "authorization"
+        ]
+      },
+      "then": {
+        "properties": {
+          "operation": {
+            "properties": {
+              "action": {
+                "enum": [
+                  "quiesce",
+                  "plan",
+                  "verify"
+                ],
+                "oyatie.data_class": "INTERNAL_ONLY"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "$comment": "A bootstrap/reconcile/recover purpose never authorizes quiescing the target.",
+      "if": {
+        "properties": {
+          "authorization": {
+            "properties": {
+              "purpose": {
+                "enum": [
+                  "genesis_bootstrap",
+                  "cell_bootstrap",
+                  "reconcile",
+                  "recover"
+                ],
+                "oyatie.data_class": "INTERNAL_ONLY"
+              }
+            },
+            "required": [
+              "purpose"
+            ]
+          }
+        },
+        "required": [
+          "authorization"
+        ]
+      },
+      "then": {
+        "properties": {
+          "operation": {
+            "properties": {
+              "action": {
+                "enum": [
+                  "plan",
+                  "reconcile",
+                  "resume",
+                  "verify",
+                  "rollback"
+                ],
+                "oyatie.data_class": "INTERNAL_ONLY"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "$comment": "Mutating actions must be content-bound to the observation, intent and plan that were reviewed.",
+      "if": {
+        "properties": {
+          "operation": {
+            "properties": {
+              "action": {
+                "enum": [
+                  "reconcile",
+                  "resume",
+                  "rollback",
+                  "quiesce"
+                ],
+                "oyatie.data_class": "INTERNAL_ONLY"
+              }
+            },
+            "required": [
+              "action"
+            ]
+          }
+        },
+        "required": [
+          "operation"
+        ]
+      },
+      "then": {
+        "properties": {
+          "evidence": {
+            "required": [
+              "observation_digest",
+              "intent_digest",
+              "adapter_plan_digest",
+              "idempotency_key"
+            ]
+          }
+        }
+      }
+    }
+  ]
 }

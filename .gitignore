@@ -41,8 +41,14 @@ docs/**/.omc/
 /talosconfig
 /secrets.yaml
 # Operational Genesis receipts live in the verified private evidence boundary.
-/cell/receipts/genesis-seed-*.json
-/cell/receipts/sha256-*-genesis-seed-*.json
+# Ignored as a DIRECTORY BOUNDARY, not by filename: receipts carry provider-binding and
+# recovery metadata, so the boundary must not depend on every producer and recovery tool
+# choosing one of two exact name shapes. A receipt written as `receipt.json`, into a
+# subdirectory, or under a temporary/export name was previously eligible for commit.
+# `/*` rather than `/cell/receipts/`: git does not descend into an excluded directory, so a
+# trailing-slash ignore would make the README negation below silently inert.
+/cell/receipts/*
+!/cell/receipts/README.md
 .grit
 /bominal/
 # Python bytecode (per shell-python audit 2026-05-15)
