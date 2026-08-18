@@ -1,3 +1,15 @@
+//! Emit and event-context entry points for history-only retirement facts.
+
+use std::path::Path;
+
+use ci_artifact_inventory_registry::to_canonical_json;
+
+use super::{
+    CONTROL_PLANE_PATH, GitCliRetirementObjectSource, RetirementObjectSource,
+    canonical_generated_facts_output_path, materialize_history_only_retirement_facts,
+    validate_event_identity, validate_oid, write_canonical_retirement_facts,
+};
+
 /// Runtime context accepted by the facts materializer.
 ///
 /// Public solely so the package-local integration target can exercise the
@@ -17,8 +29,8 @@ pub struct RetirementMaterializationContext<'a> {
 /// tuple.  The evaluated object must be the checkout HEAD; pull requests select only their
 /// exact second-parent subject, while push and merge-group select their evaluated object.
 pub(super) fn census_revision_from_event(
-    repo_root: &Path,
-    context: &RetirementMaterializationContext<'_>,
+    pub(crate) repo_root: &Path,
+    pub(crate) context: &RetirementMaterializationContext<'_>,
 ) -> Result<String, String> {
     let source = GitCliRetirementObjectSource::new(repo_root.to_path_buf());
     for (label, requested) in [
@@ -75,7 +87,7 @@ pub fn historical_dev_push_context(
     historical_dev_push_context_from_source(&source, expected_head)
 }
 
-fn historical_dev_push_context_from_source(
+pub fn historical_dev_push_context_from_source(
     source: &impl RetirementObjectSource,
     expected_head: &str,
 ) -> Result<Option<(String, String)>, String> {

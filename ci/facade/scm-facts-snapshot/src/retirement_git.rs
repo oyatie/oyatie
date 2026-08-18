@@ -1,30 +1,13 @@
-/// Streaming visitor for one bounded Git blob body.
-pub type BlobVisitor<'a> = dyn FnMut(&str, u64, &mut dyn Read) -> Result<(), String> + 'a;
+//! Git CLI object source for history-only retirement facts.
 
-pub(crate) trait RetirementObjectSource {
-    fn resolve_commit(&self, revision: &str) -> Result<String, String>;
-    fn tree_for_commit(&self, commit_oid: &str) -> Result<String, String>;
-    fn first_parent(&self, commit_oid: &str) -> Result<String, String>;
-    fn parents(&self, commit_oid: &str) -> Result<Vec<String>, String>;
-    fn is_ancestor(&self, ancestor: &str, descendant: &str) -> Result<bool, String>;
-    fn tree_entries(&self, commit_oid: &str) -> Result<Vec<TreeEntry>, String>;
-    fn read_blob(&self, blob_oid: &str) -> Result<Vec<u8>, String>;
-    /// Visit the requested blobs without requiring callers to retain their bodies.
-    ///
-    /// Sources with an efficient streaming object protocol should override this. The
-    /// default keeps test doubles and non-Git sources correct while preserving the
-    /// bounded-memory contract for callers.
-    fn visit_blobs(&self, blob_oids: &[String], visit: &mut BlobVisitor<'_>) -> Result<(), String> {
-        for blob_oid in blob_oids {
-            let bytes = self.read_blob(blob_oid)?;
-            let size = bytes.len() as u64;
-            let mut reader = Cursor::new(bytes);
-            visit(blob_oid, size, &mut reader)?;
-        }
-        Ok(())
-    }
-    fn commits_touching_path(&self, commit_oid: &str, path: &str) -> Result<Vec<String>, String>;
-}
+use std::io::{Read, Write};
+use std::path::{Path, PathBuf};
+use std::process::{Command, Stdio};
+
+use super::{
+    BlobVisitor, CAT_FILE_HEADER_LIMIT, RetirementObjectSource, TreeEntry, parse_ls_tree,
+    parse_oid_text, validate_oid,
+};
 
 pub(crate) struct GitCliRetirementObjectSource {
     repo_root: PathBuf,
@@ -35,7 +18,7 @@ impl GitCliRetirementObjectSource {
         Self { repo_root }
     }
 
-    fn git(&self, args: &[&str], label: &str) -> Result<Vec<u8>, String> {
+    pub(crate) fn git(&self, args: &[&str], label: &str) -> Result<Vec<u8>, String> {
         let output = Command::new("git")
             .arg("-C")
             .arg(&self.repo_root)
