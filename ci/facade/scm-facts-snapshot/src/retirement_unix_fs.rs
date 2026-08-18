@@ -1,14 +1,16 @@
-//! Unix dirfd helpers: openat / NOFOLLOW / renameat / fsync.
+//! Unix dirfd helpers: `openat` / `NOFOLLOW` / `renameat` / dir fsync.
+//!
+//! Function bodies are the frozen Unix path extracted from retirement.rs.
 
 use std::path::Path;
+use std::sync::atomic::Ordering;
 
 use rustix::fd::OwnedFd;
 use rustix::fs::{AtFlags, FileType, Mode, OFlags};
-use std::sync::atomic::Ordering;
 
-use super::NEXT_ATOMIC_WRITE_ID;
+use super::super::NEXT_ATOMIC_WRITE_ID;
 
-pub(crate) fn open_canonical_retirement_facts_parent(repo_root: &Path) -> Result<OwnedFd, String> {
+pub(super) fn open_canonical_retirement_facts_parent(repo_root: &Path) -> Result<OwnedFd, String> {
     let mut directory = rustix::fs::openat(
         rustix::fs::CWD,
         repo_root,
@@ -22,7 +24,7 @@ pub(crate) fn open_canonical_retirement_facts_parent(repo_root: &Path) -> Result
     Ok(directory)
 }
 
-pub(crate) fn open_or_create_directory_at(parent: &OwnedFd, name: &str) -> Result<OwnedFd, String> {
+pub(super) fn open_or_create_directory_at(parent: &OwnedFd, name: &str) -> Result<OwnedFd, String> {
     if name.contains('\0') {
         return Err(format!("retirement facts directory contains NUL: {name:?}"));
     }
@@ -59,7 +61,7 @@ pub(crate) fn open_or_create_directory_at(parent: &OwnedFd, name: &str) -> Resul
     }
 }
 
-pub(crate) fn ensure_regular_or_absent(directory: &OwnedFd, name: &str) -> Result<(), String> {
+fn ensure_regular_or_absent(directory: &OwnedFd, name: &str) -> Result<(), String> {
     match rustix::fs::statat(directory, name, AtFlags::SYMLINK_NOFOLLOW) {
         Ok(stat) if !FileType::from_raw_mode(stat.st_mode).is_file() => {
             Err("retirement facts output must be a regular file".to_owned())
@@ -69,7 +71,7 @@ pub(crate) fn ensure_regular_or_absent(directory: &OwnedFd, name: &str) -> Resul
     }
 }
 
-pub(crate) fn create_temporary_file_with_prefix(
+fn create_temporary_file_with_prefix(
     directory: &OwnedFd,
     prefix: &str,
 ) -> Result<(String, OwnedFd), String> {
@@ -99,7 +101,7 @@ pub(crate) fn create_temporary_file_with_prefix(
     ))
 }
 
-pub(crate) fn atomic_replace_ignored_generated_file(
+pub(super) fn atomic_replace_ignored_generated_file(
     directory: &OwnedFd,
     final_name: &str,
     temporary_prefix: &str,
@@ -123,7 +125,7 @@ pub(crate) fn atomic_replace_ignored_generated_file(
     result
 }
 
-pub(crate) fn write_all(file: &OwnedFd, mut bytes: &[u8]) -> Result<(), String> {
+fn write_all(file: &OwnedFd, mut bytes: &[u8]) -> Result<(), String> {
     while !bytes.is_empty() {
         let written = rustix::io::write(file, bytes)
             .map_err(|error| format!("write retirement facts temporary file: {error}"))?;
@@ -133,4 +135,37 @@ pub(crate) fn write_all(file: &OwnedFd, mut bytes: &[u8]) -> Result<(), String> 
         bytes = &bytes[written..];
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn temporary_file_errors_name_the_requested_prefix() {
+        let path = std::env::temp_dir().join(format!(
+            "retirement-temporary-file-prefix-{}",
+            NEXT_ATOMIC_WRITE_ID.fetch_add(1, Ordering::Relaxed)
+        ));
+        std::fs::write(&path, b"not a directory").expect("write non-directory fixture");
+        let file = rustix::fs::openat(
+            rustix::fs::CWD,
+            &path,
+            OFlags::RDONLY | OFlags::CLOEXEC,
+            Mode::empty(),
+        )
+        .expect("open non-directory fixture");
+
+        let error = create_temporary_file_with_prefix(&file, ".epoch-receipt")
+            .expect_err("a non-directory fd cannot create a temporary file");
+        assert!(
+            error.contains("temporary file with prefix \".epoch-receipt\""),
+            "unexpected error: {error}"
+        );
+        assert!(
+            !error.contains("retirement facts"),
+            "generic helper must not name a different caller: {error}"
+        );
+        std::fs::remove_file(path).expect("remove non-directory fixture");
+    }
 }

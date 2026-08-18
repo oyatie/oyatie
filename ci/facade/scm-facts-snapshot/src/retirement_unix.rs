@@ -1,4 +1,7 @@
 //! Unix dirfd writers for canonical ignored generated faces.
+//!
+//! `openat` / `NOFOLLOW` / `renameat` / dir fsync. Implementation bodies are
+//! the frozen Unix path extracted from retirement.rs.
 
 use std::path::Path;
 
@@ -6,10 +9,12 @@ use rustix::fd::OwnedFd;
 use rustix::fs::{Mode, OFlags};
 
 use super::{
-    GENERATED_FACTS_PATH, atomic_replace_ignored_generated_file,
-    canonical_generated_facts_output_path, canonical_ignored_generated_path,
-    open_canonical_retirement_facts_parent, open_or_create_directory_at,
+    GENERATED_FACTS_PATH, canonical_generated_facts_output_path,
+    canonical_ignored_generated_path,
 };
+
+#[path = "retirement_unix_fs.rs"]
+mod fs;
 
 /// A Unix capability bound to the canonical retirement-facts parent directory.
 ///
@@ -24,20 +29,29 @@ impl CanonicalRetirementFactsWriter {
     pub fn open(repo_root: &Path) -> Result<Self, String> {
         canonical_generated_facts_output_path(repo_root, Path::new(GENERATED_FACTS_PATH))?;
         Ok(Self {
-            directory: open_canonical_retirement_facts_parent(repo_root)?,
+            directory: fs::open_canonical_retirement_facts_parent(repo_root)?,
         })
     }
 
     /// Atomically replace only the fixed canonical facts basename through this directory fd.
     pub fn write(&self, bytes: &[u8]) -> Result<(), String> {
         const FINAL_NAME: &str = "history-only-retirement-facts.generated.json";
-        atomic_replace_ignored_generated_file(
+        fs::atomic_replace_ignored_generated_file(
             &self.directory,
             FINAL_NAME,
             ".retirement-facts",
             bytes,
         )
     }
+}
+
+/// Atomically write the canonical ignored retirement-facts file.
+///
+/// Public only for the package-local integration target's filesystem defenses.
+/// The path is intentionally not caller-controlled: this seam can write only
+/// [`GENERATED_FACTS_PATH`], after rerunning the ignore/untracked boundary.
+pub fn write_canonical_retirement_facts(repo_root: &Path, bytes: &[u8]) -> Result<(), String> {
+    CanonicalRetirementFactsWriter::open(repo_root)?.write(bytes)
 }
 
 /// Descriptor-relative, no-follow atomic write for another canonical ignored generated face.
@@ -63,7 +77,7 @@ impl CanonicalIgnoredGeneratedWriter {
         )
         .map_err(|error| format!("open ignored generated repository directory: {error}"))?;
         for component in parent_components {
-            directory = open_or_create_directory_at(&directory, component)?;
+            directory = fs::open_or_create_directory_at(&directory, component)?;
         }
         Ok(Self {
             directory,
@@ -73,12 +87,20 @@ impl CanonicalIgnoredGeneratedWriter {
 
     /// Atomically replaces the fixed canonical basename through the already-open directory fd.
     pub fn write(&self, bytes: &[u8]) -> Result<(), String> {
-        atomic_replace_ignored_generated_file(
+        fs::atomic_replace_ignored_generated_file(
             &self.directory,
             &self.final_name,
             ".ignored-generated",
             bytes,
         )
     }
+}
+
+pub fn write_canonical_ignored_generated_file(
+    repo_root: &Path,
+    relative_path: &Path,
+    bytes: &[u8],
+) -> Result<(), String> {
+    CanonicalIgnoredGeneratedWriter::open(repo_root, relative_path)?.write(bytes)
 }
 
