@@ -1,0 +1,166 @@
+//! Shared fakes for the transform tests: a pack whose semantics are declared inline, and a
+//! model whose declarations are handed in directly.
+
+use std::collections::{BTreeMap, BTreeSet};
+
+use port_engine_api::{
+    Declaration, Digest, LanguagePair, PackSemantics, PlanStep, RuleId, SourceModel, TargetIr,
+    TransformPlan, UnitId,
+};
+use port_engine_rust_ir::RustIr;
+use port_engine_transform::*;
+
+// ---------------------------------------------------------------------------------------
+// Fakes
+// ---------------------------------------------------------------------------------------
+
+#[derive(Default)]
+pub struct Pack {
+    /// rule → (construction, precondition, captures)
+    pub rules: BTreeMap<&'static str, (&'static str, &'static str, Vec<String>)>,
+    pub types: BTreeMap<String, String>,
+    pub overrides: BTreeMap<String, BTreeMap<String, String>>,
+    pub deferred: BTreeSet<String>,
+}
+
+impl Pack {
+    pub fn with_rule(
+        mut self,
+        id: &'static str,
+        construction: &'static str,
+        captures: &[&str],
+    ) -> Self {
+        self.rules.insert(
+            id,
+            (
+                construction,
+                PRECONDITION_UNIT_PRESENT,
+                captures.iter().map(|c| (*c).to_owned()).collect(),
+            ),
+        );
+        self
+    }
+
+    pub fn with_types(mut self, pairs: &[(&str, &str)]) -> Self {
+        for (from, to) in pairs {
+            self.types.insert((*from).to_owned(), (*to).to_owned());
+        }
+        self
+    }
+
+    pub fn with_override(mut self, construction: &str, from: &str, to: &str) -> Self {
+        self.overrides
+            .entry(construction.to_owned())
+            .or_default()
+            .insert(from.to_owned(), to.to_owned());
+        self
+    }
+
+    pub fn with_deferred(mut self, kinds: &[&str]) -> Self {
+        for kind in kinds {
+            self.deferred.insert((*kind).to_owned());
+        }
+        self
+    }
+}
+
+impl PackSemantics for Pack {
+    fn construction(&self, rule: &RuleId) -> Option<&str> {
+        self.rules.get(rule.0.as_str()).map(|(c, _, _)| *c)
+    }
+    fn precondition(&self, rule: &RuleId) -> Option<&str> {
+        self.rules.get(rule.0.as_str()).map(|(_, p, _)| *p)
+    }
+    fn captures(&self, rule: &RuleId) -> Option<&[String]> {
+        self.rules
+            .get(rule.0.as_str())
+            .map(|(_, _, c)| c.as_slice())
+    }
+    fn type_map(&self) -> &BTreeMap<String, String> {
+        &self.types
+    }
+    fn type_map_overrides(&self, construction: &str) -> Option<&BTreeMap<String, String>> {
+        self.overrides.get(construction)
+    }
+    fn deferred_kinds(&self) -> &BTreeSet<String> {
+        &self.deferred
+    }
+}
+
+pub struct Model {
+    pub units: Vec<UnitId>,
+    pub declarations: BTreeMap<String, Vec<Declaration>>,
+}
+
+impl SourceModel for Model {
+    fn language(&self) -> &str {
+        "go"
+    }
+    fn snapshot_digest(&self) -> Digest {
+        Digest("snap".into())
+    }
+    fn units(&self) -> Vec<UnitId> {
+        self.units.clone()
+    }
+    fn declarations(&self, unit: &UnitId) -> Option<Vec<Declaration>> {
+        self.declarations.get(&unit.0).cloned()
+    }
+}
+
+pub fn decl(kind: &str, name: &str, type_ref: &str) -> Declaration {
+    Declaration {
+        kind: kind.into(),
+        name: name.into(),
+        type_ref: type_ref.into(),
+        flags: ["exported".to_owned()].into_iter().collect(),
+        attrs: BTreeMap::new(),
+        children: Vec::new(),
+    }
+}
+
+pub fn child(kind: &str, name: &str, type_ref: &str) -> Declaration {
+    let mut node = decl(kind, name, type_ref);
+    node.flags.clear();
+    node
+}
+
+pub fn model_with(declarations: Vec<Declaration>) -> Model {
+    Model {
+        units: vec![UnitId("u".into())],
+        declarations: BTreeMap::from([("u".to_owned(), declarations)]),
+    }
+}
+
+pub fn plan_with(rules: &[&str]) -> TransformPlan {
+    TransformPlan {
+        pair: LanguagePair {
+            source: "go".into(),
+            target: "rust".into(),
+        },
+        steps: rules
+            .iter()
+            .map(|rule| PlanStep {
+                unit: UnitId("u".into()),
+                rule: RuleId((*rule).to_owned()),
+            })
+            .collect(),
+    }
+}
+
+pub fn rendered(ir: &RustIr) -> String {
+    // Round-trip through the renderer the pipeline actually uses, so a construction emitting
+    // text that syn cannot parse fails here rather than three stages later.
+    let renderer = port_engine_rust_ir::SynQuoteRenderer::new("transform-test-fmt");
+    let emitted = renderer
+        .render_rust_ir(ir)
+        .expect("emitted Rust must render");
+    emitted
+        .values()
+        .map(|bytes| String::from_utf8(bytes.clone()).expect("utf-8"))
+        .collect::<Vec<_>>()
+        .join("\n")
+}
+
+// ---------------------------------------------------------------------------------------
+// Tests
+// ---------------------------------------------------------------------------------------

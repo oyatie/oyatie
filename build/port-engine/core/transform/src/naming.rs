@@ -1,0 +1,126 @@
+//! Target-language identifiers: sanitising, region ids, and casing.
+//!
+//! This is the one place the target language's conventions are owned. That is legitimate — this
+//! face RENDERS Rust, so Rust's casing is its business; the source language it must stay ignorant
+//! of.
+
+use port_engine_api::{Declaration, RuleId, UnitId};
+
+use crate::vocabulary::FLAG_EXPORTED;
+
+/// Sanitize a unit or rule id into a Rust-safe region / fn name segment.
+#[must_use]
+pub fn sanitize_ident(raw: &str) -> String {
+    let mut out = String::with_capacity(raw.len());
+    for ch in raw.chars() {
+        if ch.is_ascii_alphanumeric() {
+            out.push(ch.to_ascii_lowercase());
+        } else {
+            out.push('_');
+        }
+    }
+    if out.is_empty() {
+        out.push_str("unit");
+    }
+    if out.as_bytes().first().is_some_and(|b| b.is_ascii_digit()) {
+        out.insert(0, '_');
+    }
+    out
+}
+
+/// Region id for one unit-level plan step: `{sanitized_unit}__{sanitized_rule}`.
+#[must_use]
+pub fn region_id_for(unit: &UnitId, rule: &RuleId) -> String {
+    format!("{}__{}", sanitize_ident(&unit.0), sanitize_ident(&rule.0))
+}
+
+/// Region id for one declaration-level plan step, extended with the declaration.
+///
+/// The declaration segment is what keeps two rules capturing different kinds from colliding on one
+/// region — and one region silently overwriting another is exactly the loss the kernel's
+/// duplicate-region refusal exists to catch, arriving one layer earlier.
+#[must_use]
+pub fn region_id_for_declaration(unit: &UnitId, rule: &RuleId, declaration: &str) -> String {
+    format!(
+        "{}__{}__{}",
+        sanitize_ident(&unit.0),
+        sanitize_ident(&rule.0),
+        sanitize_ident(declaration)
+    )
+}
+
+/// `MaxRetries` → `MAX_RETRIES`. Rust's constant convention.
+#[must_use]
+pub fn to_screaming_snake(raw: &str) -> String {
+    to_snake_case(raw).to_ascii_uppercase()
+}
+
+/// `MaxRetries` → `max_retries`. Rust's function and binding convention.
+///
+/// Runs of capitals are kept together, so `ParseURL` becomes `parse_url` and not `parse_u_r_l`.
+#[must_use]
+pub fn to_snake_case(raw: &str) -> String {
+    let chars: Vec<char> = raw.chars().collect();
+    let mut out = String::with_capacity(raw.len() + 4);
+    for (index, ch) in chars.iter().enumerate() {
+        if !ch.is_ascii_alphanumeric() {
+            if !out.ends_with('_') && !out.is_empty() {
+                out.push('_');
+            }
+            continue;
+        }
+        if ch.is_ascii_uppercase() && index > 0 {
+            let previous_is_lower =
+                chars[index - 1].is_ascii_lowercase() || chars[index - 1].is_ascii_digit();
+            let next_is_lower = chars
+                .get(index + 1)
+                .is_some_and(|next| next.is_ascii_lowercase());
+            if (previous_is_lower || next_is_lower) && !out.ends_with('_') {
+                out.push('_');
+            }
+        }
+        out.push(ch.to_ascii_lowercase());
+    }
+    if out.is_empty() {
+        out.push_str("item");
+    }
+    if out.as_bytes().first().is_some_and(u8::is_ascii_digit) {
+        out.insert(0, '_');
+    }
+    out
+}
+
+/// `point` → `Point`. Rust's type convention; already-capitalized names pass through.
+#[must_use]
+pub fn to_pascal_case(raw: &str) -> String {
+    let mut out = String::with_capacity(raw.len());
+    let mut capitalize_next = true;
+    for ch in raw.chars() {
+        if !ch.is_ascii_alphanumeric() {
+            capitalize_next = true;
+            continue;
+        }
+        if capitalize_next {
+            out.push(ch.to_ascii_uppercase());
+            capitalize_next = false;
+        } else {
+            out.push(ch);
+        }
+    }
+    if out.is_empty() {
+        out.push_str("Item");
+    }
+    if out.as_bytes().first().is_some_and(u8::is_ascii_digit) {
+        out.insert(0, '_');
+    }
+    out
+}
+
+/// Rust visibility prefix for a declaration: `pub ` when the source exported it, else nothing.
+pub(crate) fn visibility(declaration: &Declaration) -> &'static str {
+    if declaration.flags.contains(FLAG_EXPORTED) {
+        "pub "
+    } else {
+        ""
+    }
+}

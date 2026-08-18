@@ -1,4 +1,3 @@
-# Package-local golden canary bytes (neutral mini fixture). No k8s/ corpus paths.
 rust_library(
     name = "port-engine-emit",
     srcs = glob(["src/**/*.rs", "src/**/*.txt"]),
@@ -11,15 +10,29 @@ rust_library(
     ],
 )
 
+# Canary selection, golden compare, and every materialize destination refusal.
 rust_test(
-    name = "port-engine-emit-unittest",
-    srcs = glob(["src/**/*.rs", "src/**/*.txt"]),
-    crate = "port_engine_emit",
-    crate_root = "src/lib.rs",
+    name = "port-engine-emit-canary",
+    srcs = glob(["tests/emit.rs", "src/**/*.txt"]),
+    crate = "port_engine_emit_canary",
+    crate_root = "tests/emit.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//build/port-engine/adapters/hash:port-engine-hash",
+        ":port-engine-emit",
         "//build/port-engine/ports/api:port-engine-api",
+    ],
+)
+
+# Architecture fence. `srcs` carries the library sources because the fence READS them with
+# include_str! — they are inputs to compiling this test, never modules of it.
+rust_test(
+    name = "port-engine-emit-fences",
+    srcs = glob(["tests/fences.rs", "src/**/*.rs"]),
+    crate = "port_engine_emit_fences",
+    crate_root = "tests/fences.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":port-engine-emit",
     ],
 )
 

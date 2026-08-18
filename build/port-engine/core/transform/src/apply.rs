@@ -1,0 +1,211 @@
+//! Plan → `RustIr`, and the proof that nothing in the corpus was silently dropped.
+
+use std::collections::{BTreeMap, BTreeSet};
+
+use port_engine_api::{
+    Declaration, PackSemantics, RegionId, RuleId, SourceModel, TransformPlan, UnitId,
+};
+use port_engine_rust_ir::RustIr;
+
+use crate::error::TransformError;
+use crate::items::declaration_source;
+use crate::naming::{region_id_for, region_id_for_declaration};
+use crate::resolve::{LocalScope, Resolver};
+use crate::vocabulary::{
+    CONSTRUCTION_EMPTY_CANARY, CONSTRUCTION_PASS_THROUGH, PRECONDITION_UNIT_PRESENT,
+};
+
+/// Apply `plan` constructions against `model` using pack semantics → deterministic [`RustIr`].
+///
+/// Step order is plan order; within a declaration-level step, declaration order. Each emitted item
+/// becomes one IR region with a syn AST.
+///
+/// Before returning, every declaration of every planned unit is checked to be either captured by a
+/// rule or deferred by pack policy. That check is the difference between a translator and a filter:
+/// without it a declaration no rule happens to select is dropped in silence, the emit is green, the
+/// receipt is reproducible, and the only evidence that something was lost is that it is not there.
+///
+/// # Errors
+/// [`TransformError`] on missing semantics, failed precondition, unknown construction, unresolvable
+/// type, an uncaptured declaration, an unsupported construct, or an IR refusal.
+pub fn apply(
+    plan: &TransformPlan,
+    semantics: &dyn PackSemantics,
+    model: &dyn SourceModel,
+) -> Result<RustIr, TransformError> {
+    apply_with_provenance(plan, semantics, model).map(|(ir, _)| ir)
+}
+
+/// [`apply`], plus which unit each emitted region came from.
+///
+/// The provenance is not derivable from a region id by parsing it. Region ids are built from
+/// SANITIZED segments, and sanitization is lossy — two different unit ids can sanitize to the same
+/// text, and a unit id containing adjacent non-alphanumerics produces a segment separator of its
+/// own. Anything downstream that needs to group regions by unit (a module layout, a per-unit
+/// output tree) must be told, not left to re-derive it from a string that no longer distinguishes.
+///
+/// # Errors
+/// The same [`TransformError`] set as [`apply`].
+pub fn apply_with_provenance(
+    plan: &TransformPlan,
+    semantics: &dyn PackSemantics,
+    model: &dyn SourceModel,
+) -> Result<(RustIr, BTreeMap<RegionId, UnitId>), TransformError> {
+    let model_units: BTreeSet<String> = model.units().into_iter().map(|u| u.0).collect();
+    let mut provenance: BTreeMap<RegionId, UnitId> = BTreeMap::new();
+
+    let mut region_names: Vec<String> = Vec::new();
+    let mut sources: Vec<(String, String)> = Vec::new();
+    // unit → the declaration kinds some applied rule captured, for the coverage check below.
+    let mut captured_kinds: BTreeMap<UnitId, BTreeSet<String>> = BTreeMap::new();
+
+    for step in &plan.steps {
+        let construction =
+            semantics
+                .construction(&step.rule)
+                .ok_or_else(|| TransformError::MissingSemantics {
+                    rule: step.rule.0.clone(),
+                    field: "construction",
+                })?;
+        let precondition =
+            semantics
+                .precondition(&step.rule)
+                .ok_or_else(|| TransformError::MissingSemantics {
+                    rule: step.rule.0.clone(),
+                    field: "precondition",
+                })?;
+        let captures =
+            semantics
+                .captures(&step.rule)
+                .ok_or_else(|| TransformError::MissingSemantics {
+                    rule: step.rule.0.clone(),
+                    field: "captures",
+                })?;
+
+        check_precondition(precondition, &step.unit, &step.rule, &model_units)?;
+
+        if captures.is_empty() {
+            let region = region_id_for(&step.unit, &step.rule);
+            let source = unit_level_source(construction, &step.rule, &region)?;
+            provenance.insert(RegionId(region.clone()), step.unit.clone());
+            region_names.push(region.clone());
+            sources.push((region, source));
+            continue;
+        }
+
+        let declarations =
+            model
+                .declarations(&step.unit)
+                .ok_or_else(|| TransformError::UnitNotInModel {
+                    unit: step.unit.0.clone(),
+                })?;
+        let scope = LocalScope::of(&declarations);
+        let entry = captured_kinds.entry(step.unit.clone()).or_default();
+        for capture in captures {
+            entry.insert(capture.clone());
+        }
+
+        for declaration in declarations.iter().filter(|d| captures.contains(&d.kind)) {
+            let region = region_id_for_declaration(&step.unit, &step.rule, &declaration.name);
+            let source = declaration_source(
+                construction,
+                declaration,
+                &Resolver {
+                    scope: &scope,
+                    type_map: semantics.type_map(),
+                    overrides: semantics.type_map_overrides(construction),
+                    unit: &step.unit,
+                },
+            )?;
+            provenance.insert(RegionId(region.clone()), step.unit.clone());
+            region_names.push(region.clone());
+            sources.push((region, source));
+        }
+    }
+
+    prove_every_declaration_is_accounted_for(plan, semantics, model, &captured_kinds)?;
+
+    let refs: Vec<&str> = region_names.iter().map(String::as_str).collect();
+    let mut ir = RustIr::new(&refs);
+    for (region, source) in sources {
+        ir.set_file_from_str(&region, &source)
+            .map_err(TransformError::Ir)?;
+    }
+    Ok((ir, provenance))
+}
+
+/// Every declaration of every planned unit must be captured by a rule or deferred by policy.
+///
+/// Deferral is DECLARED, not inferred. A kind the pack lists in `deferred_kinds` is one someone
+/// wrote down as knowingly untranslated, with the reason travelling in the pack and therefore in
+/// the pack digest and therefore in the receipt. A kind that is merely unselected is indisputably
+/// lost work, and it must not look like a decision.
+fn prove_every_declaration_is_accounted_for(
+    plan: &TransformPlan,
+    semantics: &dyn PackSemantics,
+    model: &dyn SourceModel,
+    captured_kinds: &BTreeMap<UnitId, BTreeSet<String>>,
+) -> Result<(), TransformError> {
+    let deferred = semantics.deferred_kinds();
+    let planned_units: BTreeSet<&UnitId> = plan.steps.iter().map(|step| &step.unit).collect();
+
+    for unit in planned_units {
+        let Some(declarations) = model.declarations(unit) else {
+            continue;
+        };
+        let empty = BTreeSet::new();
+        let captured = captured_kinds.get(unit).unwrap_or(&empty);
+        for declaration in &declarations {
+            if captured.contains(&declaration.kind) || deferred.contains(&declaration.kind) {
+                continue;
+            }
+            return Err(TransformError::UncapturedDeclaration {
+                unit: unit.0.clone(),
+                name: declaration.name.clone(),
+                kind: declaration.kind.clone(),
+            });
+        }
+    }
+    Ok(())
+}
+
+fn check_precondition(
+    precondition: &str,
+    unit: &UnitId,
+    rule: &RuleId,
+    model_units: &BTreeSet<String>,
+) -> Result<(), TransformError> {
+    match precondition {
+        PRECONDITION_UNIT_PRESENT => {
+            if model_units.contains(&unit.0) {
+                Ok(())
+            } else {
+                Err(TransformError::Precondition {
+                    rule: rule.0.clone(),
+                    unit: unit.0.clone(),
+                    precondition: precondition.to_owned(),
+                })
+            }
+        }
+        other => Err(TransformError::Precondition {
+            rule: rule.0.clone(),
+            unit: unit.0.clone(),
+            precondition: other.to_owned(),
+        }),
+    }
+}
+
+fn unit_level_source(
+    construction: &str,
+    rule: &RuleId,
+    region: &str,
+) -> Result<String, TransformError> {
+    match construction {
+        CONSTRUCTION_PASS_THROUGH => Ok(format!("pub fn {region}() {{}}")),
+        CONSTRUCTION_EMPTY_CANARY => Ok(format!("pub fn {region}_canary() {{}}")),
+        other => Err(TransformError::UnknownConstruction {
+            rule: rule.0.clone(),
+            construction: other.to_owned(),
+        }),
+    }
+}

@@ -1,0 +1,54 @@
+//! The ports-face seams this adapter implements.
+//!
+//! [`RulePack`] answers WHICH rules apply; [`PackSemantics`] answers what a rule MEANS. Keeping
+//! them apart from the loader keeps "what the pack is" separate from "how the pack is validated".
+
+use std::collections::{BTreeMap, BTreeSet};
+
+use port_engine_api::{Digest, LanguagePair, PackSemantics, RuleId, RulePack, UnitId};
+
+use crate::pack::LoadedRulePack;
+
+impl PackSemantics for LoadedRulePack {
+    fn construction(&self, rule: &RuleId) -> Option<&str> {
+        self.rule(rule).map(|r| r.construction.as_str())
+    }
+
+    fn precondition(&self, rule: &RuleId) -> Option<&str> {
+        self.rule(rule).map(|r| r.precondition.as_str())
+    }
+
+    fn captures(&self, rule: &RuleId) -> Option<&[String]> {
+        self.rule(rule).map(|r| r.captures.as_slice())
+    }
+
+    fn type_map(&self) -> &BTreeMap<String, String> {
+        &self.type_map
+    }
+
+    fn type_map_overrides(&self, construction: &str) -> Option<&BTreeMap<String, String>> {
+        self.type_map_overrides.get(construction)
+    }
+
+    fn deferred_kinds(&self) -> &BTreeSet<String> {
+        &self.deferred_kind_set
+    }
+}
+
+impl RulePack for LoadedRulePack {
+    fn pair(&self) -> &LanguagePair {
+        &self.pair
+    }
+
+    fn digest(&self) -> Digest {
+        self.digest.clone()
+    }
+
+    fn rules(&self) -> Vec<RuleId> {
+        self.rules.clone()
+    }
+
+    fn rules_for(&self, unit: &UnitId) -> Vec<RuleId> {
+        self.applies.get(unit).cloned().unwrap_or_default()
+    }
+}

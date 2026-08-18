@@ -20,33 +20,35 @@ rust_library(
     ],
 )
 
-rust_test(
-    name = "port-engine-app-unittest",
-    srcs = glob(["src/**/*.rs", "src/**/*.txt"]),
-    crate = "port_engine_app",
-    crate_root = "src/lib.rs",
-    visibility = ["PUBLIC"],
-    deps = [
-        "//build/port-engine/adapters/emit:port-engine-emit",
-        "//build/port-engine/adapters/frontend-go:port-engine-frontend-go",
-        "//build/port-engine/adapters/hash:port-engine-hash",
-        "//build/port-engine/adapters/identity:port-engine-identity",
-        "//build/port-engine/adapters/rulepack:port-engine-rulepack",
-        "//build/port-engine/adapters/snapshot:port-engine-snapshot",
-        "//build/port-engine/adapters/source-pin:port-engine-source-pin",
-        "//build/port-engine/adapters/toolchain:port-engine-toolchain",
-        "//build/port-engine/core/kernel:port-engine-kernel",
-        "//build/port-engine/core/rust-ir:port-engine-rust-ir",
-        "//build/port-engine/core/transform:port-engine-transform",
-        "//build/port-engine/ports/api:port-engine-api",
-    ],
-)
-
 rust_binary(
     name = "port-engine-app-bin",
     srcs = ["src/main.rs"],
     crate = "port_engine_app_bin",
     crate_root = "src/main.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":port-engine-app",
+    ],
+)
+
+# CLI dispatch: every command reachable, and usage on anything else.
+rust_test(
+    name = "port-engine-app-cli",
+    srcs = glob(["tests/cli.rs"]),
+    crate = "port_engine_app_cli",
+    crate_root = "tests/cli.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":port-engine-app",
+    ],
+)
+
+# Driver composition smoke: every seam reachable from the facade.
+rust_test(
+    name = "port-engine-app-driver",
+    srcs = glob(["tests/driver.rs"]),
+    crate = "port_engine_app_driver",
+    crate_root = "tests/driver.rs",
     visibility = ["PUBLIC"],
     deps = [
         ":port-engine-app",
