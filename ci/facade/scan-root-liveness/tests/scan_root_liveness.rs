@@ -5,8 +5,8 @@
 //    (glob-aware), evaluate against the frozen policy, assert GREEN.
 // 2. RED FIXTURE: a synthetic dead root MUST fail — the gate is proven capable of
 //    failing, not merely observed passing.
-// 3. BASELINE FIDELITY: every baselined dead root is STILL dead, and every forward
-//    declaration is STILL absent. Both burn down, neither drifts.
+// 3. BASELINE FIDELITY: the baseline equals all and only live dead non-forward roots,
+//    and every forward declaration is STILL absent. Both burn down, neither drifts.
 // 4. FLOOR: the collector must see the real corpus.
 //
 // ADR-0083 Tier-3: integration tests use unwrap/expect/panic to assert invariants.
@@ -22,6 +22,7 @@ use ci_scan_root_liveness::{
 use serde_json::Value;
 
 const POLICY_PATH: &str = "ci/facade/scan-root-liveness/scan-root-liveness-policy.json";
+const EXPECTED_BASELINED_DEAD_ROOTS: usize = 11;
 
 fn repo_root() -> PathBuf {
     let mut dir = std::env::current_dir().expect("current_dir");
@@ -168,16 +169,16 @@ fn collect_from(
         Value::Object(map) => {
             for (k, v) in map {
                 let ptr = format!("{pointer}/{k}");
-                if coverage_keys.iter().any(|c| c == k) {
-                    if let Some(arr) = v.as_array() {
-                        for entry in arr.iter().filter_map(Value::as_str) {
-                            out.push(DeclaredRoot {
-                                policy_file: file.to_owned(),
-                                key: ptr.clone(),
-                                value: entry.to_owned(),
-                                resolves: resolves(root, entry),
-                            });
-                        }
+                if coverage_keys.iter().any(|c| c == k)
+                    && let Some(arr) = v.as_array()
+                {
+                    for entry in arr.iter().filter_map(Value::as_str) {
+                        out.push(DeclaredRoot {
+                            policy_file: file.to_owned(),
+                            key: ptr.clone(),
+                            value: entry.to_owned(),
+                            resolves: resolves(root, entry),
+                        });
                     }
                 }
                 collect_from(v, &ptr, file, coverage_keys, root, out);
@@ -318,6 +319,38 @@ fn baselined_dead_roots_are_all_still_dead() {
 }
 
 #[test]
+fn frozen_baseline_is_exactly_the_live_non_forward_debt_set() {
+    // Exact-set fidelity closes both directions: a missing row stays RED in the
+    // evaluator, while an extra row cannot be laundered into the frozen baseline.
+    let root = repo_root();
+    let (policy, keys) = load_policy(&root);
+    let observed = collect(&root, &keys);
+    let live_dead_non_forward: BTreeSet<String> = observed
+        .roots
+        .iter()
+        .filter(|declared| !declared.resolves)
+        .map(|declared| {
+            format!(
+                "{}::{}::{}",
+                declared.policy_file, declared.key, declared.value
+            )
+        })
+        .filter(|key| !policy.forward_declarations.contains_key(key))
+        .collect();
+
+    assert_eq!(
+        policy.baselined_dead_roots, live_dead_non_forward,
+        "the frozen baseline must equal all and only live dead non-forward roots"
+    );
+    assert_eq!(
+        policy.baselined_dead_roots.len(),
+        EXPECTED_BASELINED_DEAD_ROOTS,
+        "the reviewed frozen ceiling is four pre-existing roots plus exactly seven retired \
+         top-level cloud roots"
+    );
+}
+
+#[test]
 fn forward_declarations_are_all_still_absent() {
     let root = repo_root();
     let (policy, keys) = load_policy(&root);
@@ -333,9 +366,9 @@ fn forward_declarations_are_all_still_absent() {
                 key, fwd.value
             ),
             Some(_) => {}
-            None => panic!(
-                "forward declaration `{key}` is no longer declared in any policy; retire it"
-            ),
+            None => {
+                panic!("forward declaration `{key}` is no longer declared in any policy; retire it")
+            }
         }
     }
 }

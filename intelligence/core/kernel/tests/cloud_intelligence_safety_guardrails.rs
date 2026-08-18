@@ -3,11 +3,11 @@
 use std::time::Duration;
 
 use intelligence_kernel::safety::{
-    apply_secondary_review, classify_in_transit_payload, default_retention_policy_for,
-    enforce_safety_signals, normal_evidence_capture_policy, triggered_evidence_capture_policy,
     CentralDataClassTaxonomy, CriticalSafetyCategory, EvidenceDataClass, EvidenceVisibility,
-    ManualReviewState, RedactionDecision, RetentionOverlay, SafetySignal,
-    SecondaryReviewVerdict, TenantDataClassOverlay, TokenLifetime, TokenizationPolicy,
+    ManualReviewState, RedactionDecision, RetentionOverlay, SafetySignal, SecondaryReviewVerdict,
+    TenantDataClassOverlay, TokenLifetime, TokenizationPolicy, apply_secondary_review,
+    classify_in_transit_payload, default_retention_policy_for, enforce_safety_signals,
+    normal_evidence_capture_policy, triggered_evidence_capture_policy,
 };
 
 #[test]
@@ -21,7 +21,7 @@ fn critical_signals_block_quarantine_and_require_secondary_and_manual_review() {
     assert!(decision.quarantined);
     assert!(decision.secondary_agentic_review_required);
     assert_eq!(decision.manual_review, ManualReviewState::Required);
-    assert!(decision.tenant_may_override == false);
+    assert!(!decision.tenant_may_override);
     assert!(decision.signals_to_tenant_policy);
 }
 
@@ -39,7 +39,10 @@ fn secondary_agentic_review_cannot_override_platform_critical_block() {
 
     let unsafe_second_pass = apply_secondary_review(&decision, SecondaryReviewVerdict::Unsafe);
     assert!(unsafe_second_pass.secondary_review_flagged_unsafe);
-    assert_eq!(unsafe_second_pass.manual_review, ManualReviewState::Required);
+    assert_eq!(
+        unsafe_second_pass.manual_review,
+        ManualReviewState::Required
+    );
 }
 
 #[test]
@@ -47,19 +50,28 @@ fn normal_path_never_stores_raw_payload_and_guardrail_uses_encrypted_handle() {
     let normal = normal_evidence_capture_policy();
     assert!(!normal.raw_payload_stored);
     assert!(normal.encrypted_evidence_handle.is_none());
-    assert_eq!(normal.visibility, EvidenceVisibility::RedactedStructuredEvidenceOnly);
+    assert_eq!(
+        normal.visibility,
+        EvidenceVisibility::RedactedStructuredEvidenceOnly
+    );
 
     let triggered = triggered_evidence_capture_policy(EvidenceDataClass::CredentialOrSecret);
     assert!(triggered.raw_payload_stored);
     assert!(triggered.encrypted_evidence_handle.is_some());
-    assert_eq!(triggered.visibility, EvidenceVisibility::RedactedStructuredEvidenceOnly);
+    assert_eq!(
+        triggered.visibility,
+        EvidenceVisibility::RedactedStructuredEvidenceOnly
+    );
     assert!(triggered.raw_access_requires_audited_break_glass);
-    assert_eq!(triggered.ttl, default_retention_policy_for(EvidenceDataClass::CredentialOrSecret).ttl);
+    assert_eq!(
+        triggered.ttl,
+        default_retention_policy_for(EvidenceDataClass::CredentialOrSecret).ttl
+    );
 }
 
 #[test]
 fn tenant_overlay_may_tighten_but_not_downgrade_data_classes_or_expand_access() {
-    let taxonomy = CentralDataClassTaxonomy::default();
+    let taxonomy = CentralDataClassTaxonomy;
 
     let tightened = TenantDataClassOverlay::new(
         "tenant-a",
@@ -91,10 +103,14 @@ fn tenant_overlay_may_tighten_but_not_downgrade_data_classes_or_expand_access() 
 
 #[test]
 fn in_transit_redaction_blocks_sensitive_and_tokenizes_trivial_personal_data() {
-    let secret = classify_in_transit_payload("api key sk-live-secret", EvidenceDataClass::CredentialOrSecret);
+    let secret = classify_in_transit_payload(
+        "api key sk-live-secret",
+        EvidenceDataClass::CredentialOrSecret,
+    );
     assert_eq!(secret.decision, RedactionDecision::BlockAndQuarantine);
 
-    let email = classify_in_transit_payload("email jane@example.com", EvidenceDataClass::PersonalData);
+    let email =
+        classify_in_transit_payload("email jane@example.com", EvidenceDataClass::PersonalData);
     assert_eq!(email.decision, RedactionDecision::ReversibleTokenize);
     assert!(!email.model_receives_raw_value);
     assert!(!email.routing_advisor_receives_raw_value);

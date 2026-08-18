@@ -179,9 +179,7 @@ pub fn committed_coverage_bps(reserved_units: u64, demand_units: u64) -> u32 {
     if demand_units == 0 {
         return 0;
     }
-    let coverage = (reserved_units as u128)
-        .saturating_mul(10_000)
-        / demand_units as u128;
+    let coverage = (reserved_units as u128).saturating_mul(10_000) / demand_units as u128;
     coverage.min(10_000) as u32
 }
 
@@ -511,7 +509,10 @@ mod tests {
     #[test]
     fn discount_partial_bps_applies_correctly() {
         // 20% discount on 10_000_000 micros -> 8_000_000
-        assert_eq!(effective_discounted_rate(10_000_000, 2_000).unwrap(), 8_000_000);
+        assert_eq!(
+            effective_discounted_rate(10_000_000, 2_000).unwrap(),
+            8_000_000
+        );
     }
 
     #[test]
@@ -576,7 +577,10 @@ mod tests {
 
     #[test]
     fn amortization_zero_total_returns_zero() {
-        assert_eq!(amortized_monthly_commit_micros(0, ReservationTerm::OneYear), 0);
+        assert_eq!(
+            amortized_monthly_commit_micros(0, ReservationTerm::OneYear),
+            0
+        );
     }
 
     // ── committed_coverage_bps tests ──────────────────────────────────────────

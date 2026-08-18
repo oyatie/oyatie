@@ -118,6 +118,20 @@ fn entities(schema: &Schema) -> Entities {
             ],
             &[r#"OyaPlatform::Tenant::"acme""#],
         ),
+        // Same tenant and cell as `acme-doc-1`, but NOT restricted. The PBAC template link is
+        // exercised against this resource so the assertion isolates template semantics: on a
+        // restricted resource the step-up forbid fires first, so the outcome there says nothing
+        // about whether the template granted anything.
+        string_entity(
+            r#"OyaPlatform::TenantResource::"acme-doc-2""#,
+            &[
+                ("tenant_id", "acme"),
+                ("resource_kind", "document"),
+                ("data_class", "internal"),
+                ("cell_id", "cell-001"),
+            ],
+            &[r#"OyaPlatform::Tenant::"acme""#],
+        ),
     ];
     Entities::from_entities(all, Some(schema)).expect("entities must validate against the schema")
 }
@@ -236,6 +250,15 @@ fn link(set: &mut PolicySet, link_id: &str, principal: &str, resource: &str) {
         .expect("template link must succeed");
 }
 
+/// A template link grants exactly the scoped read it names — and nothing the forbids withhold.
+///
+/// This previously linked `acme-doc-1`, whose `data_class` is `restricted`, and asserted Allow.
+/// That can never hold: `forbid-restricted-read-without-step-up` denies every restricted read by
+/// a principal lacking `step_up_class == "a"`, and the `payments` workload has no such attribute.
+/// Cedar is forbid-overrides-permit, so the link was irrelevant to the outcome and the assertion
+/// contradicted a gate the seed documents as unconditional. The fix belongs in the test, not the
+/// policy: exercise the template on a non-restricted resource, then re-assert that the very same
+/// link still cannot reach the restricted one.
 #[test]
 fn pbac_template_link_grants_scoped_read() {
     let mut set = policy_set();
@@ -245,10 +268,40 @@ fn pbac_template_link_grants_scoped_read() {
             &set,
             r#"OyaPlatform::WorkloadIdentity::"payments""#,
             r#"OyaPlatform::Action::"ReadResource""#,
+            r#"OyaPlatform::TenantResource::"acme-doc-2""#,
+        ),
+        Decision::Deny
+    );
+    link(
+        &mut set,
+        "pbac-link-payments-doc2",
+        r#"OyaPlatform::WorkloadIdentity::"payments""#,
+        r#"OyaPlatform::TenantResource::"acme-doc-2""#,
+    );
+    assert_eq!(
+        decide(
+            &set,
+            r#"OyaPlatform::WorkloadIdentity::"payments""#,
+            r#"OyaPlatform::Action::"ReadResource""#,
+            r#"OyaPlatform::TenantResource::"acme-doc-2""#,
+        ),
+        Decision::Allow
+    );
+
+    // The grant is scoped to the linked resource: a sibling in the same tenant and cell stays
+    // denied because no link names it.
+    assert_eq!(
+        decide(
+            &set,
+            r#"OyaPlatform::WorkloadIdentity::"payments""#,
+            r#"OyaPlatform::Action::"ReadResource""#,
             r#"OyaPlatform::TenantResource::"acme-doc-1""#,
         ),
         Decision::Deny
     );
+
+    // Forbid-overrides-permit holds across template links: even an explicit link to the
+    // restricted resource cannot defeat the step-up gate.
     link(
         &mut set,
         "pbac-link-payments-doc1",
@@ -262,7 +315,7 @@ fn pbac_template_link_grants_scoped_read() {
             r#"OyaPlatform::Action::"ReadResource""#,
             r#"OyaPlatform::TenantResource::"acme-doc-1""#,
         ),
-        Decision::Allow
+        Decision::Deny
     );
 }
 

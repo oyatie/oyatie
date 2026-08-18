@@ -383,9 +383,9 @@ pub enum AccountingStorageError {
     /// This is NOT a safe replay: returning the prior outcome would silently
     /// substitute a different command, so the store refuses it. ADR-0592.
     IdempotencyKeyBodyMismatch {
-        key: String,        // data_class: INTERNAL_ONLY
-        stored: String,     // data_class: INTERNAL_ONLY
-        candidate: String,  // data_class: INTERNAL_ONLY
+        key: String,       // data_class: INTERNAL_ONLY
+        stored: String,    // data_class: INTERNAL_ONLY
+        candidate: String, // data_class: INTERNAL_ONLY
     },
     MissingRecord(String),
 }

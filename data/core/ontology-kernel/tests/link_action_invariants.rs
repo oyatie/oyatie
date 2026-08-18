@@ -22,12 +22,12 @@
 //! `OntologyEngine::action_type` query accessors that do not yet exist on the
 //! public API, ensuring they fail (RED) until the accessor methods are added.
 
-use oya_data_boundary_kernel::{DataClass, PrivacyDataClass};
 use data_ontology_kernel::{
     ActionTypeDefinition, ActionTypeId, AutonomyTier, EntityTypeDefinition, EntityTypeId,
     EntityTypePropertyDefinition, LinkCardinality, LinkTypeDefinition, LinkTypeId, OntologyEngine,
     OntologyEngineError, OntologyPillar, PropertyTier,
 };
+use oya_data_boundary_kernel::{DataClass, PrivacyDataClass};
 
 // ---------------------------------------------------------------------------
 // Shared helpers
@@ -54,7 +54,12 @@ fn entity(tenant: &str, id: &str, display: &str) -> EntityTypeDefinition {
     .unwrap()
 }
 
-fn entity_with_pillar(tenant: &str, id: &str, display: &str, pillar: OntologyPillar) -> EntityTypeDefinition {
+fn entity_with_pillar(
+    tenant: &str,
+    id: &str,
+    display: &str,
+    pillar: OntologyPillar,
+) -> EntityTypeDefinition {
     entity(tenant, id, display).with_pillar(pillar)
 }
 
@@ -257,7 +262,10 @@ fn registered_action_type_is_queryable_via_accessor() {
         .expect("registered action type must be queryable");
 
     assert_eq!(stored.id.value, "aty_approve_invoice");
-    assert_eq!(stored.max_autonomy_tier, AutonomyTier::T2ExecuteWithApproval);
+    assert_eq!(
+        stored.max_autonomy_tier,
+        AutonomyTier::T2ExecuteWithApproval
+    );
     assert_eq!(stored.audit_event_type, "EVT-INVOICE-APPROVED");
 }
 
@@ -300,9 +308,12 @@ fn action_type_on_person_pillar_entity_accepted_and_queryable() {
     let mut engine = OntologyEngine::default();
 
     engine
-        .register_entity_type(
-            entity_with_pillar("ten_hr", "ety_employee", "Employee", OntologyPillar::Person),
-        )
+        .register_entity_type(entity_with_pillar(
+            "ten_hr",
+            "ety_employee",
+            "Employee",
+            OntologyPillar::Person,
+        ))
         .unwrap();
 
     let action_id = engine

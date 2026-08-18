@@ -57,8 +57,8 @@ pub mod authz;
 pub use authz::{
     AuthzProviderConfigError, CallerCredential, ConfiguredBearerPrincipalVerifier,
     ConfiguredPlatformAdminAuthorizer, ControlPlaneAction, ControlPlaneAuthorizationError,
-    ControlPlaneAuthzProvider, PlatformAdminAuthorizer, PrincipalVerificationError,
-    PrincipalVerifier, VerifiedPrincipal, PLATFORM_OPERATOR_SCOPE,
+    ControlPlaneAuthzProvider, PLATFORM_OPERATOR_SCOPE, PlatformAdminAuthorizer,
+    PrincipalVerificationError, PrincipalVerifier, VerifiedPrincipal,
 };
 
 // =====================================================================

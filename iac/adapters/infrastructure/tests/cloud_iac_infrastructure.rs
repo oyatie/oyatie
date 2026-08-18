@@ -8,21 +8,15 @@ use std::sync::Arc;
 use std::thread;
 
 use iac_api::{
-    CLOUD_IAC_MODULE_REGISTRY_DOWNLOAD_SURFACE, CLOUD_IAC_MODULE_REGISTRY_DISCOVERY_SURFACE,
+    CLOUD_IAC_MODULE_REGISTRY_DISCOVERY_SURFACE, CLOUD_IAC_MODULE_REGISTRY_DOWNLOAD_SURFACE,
     CLOUD_IAC_MODULE_REGISTRY_VERSIONS_SURFACE, CallerCredential,
     CloudIacModuleRegistryApiBoundaryContext, CloudIacModuleRegistryApiError,
     CloudIacModuleRegistryAuthzProvider, CloudIacModuleRegistryRouteResponse,
-    ConfiguredBearerPrincipalVerifier, ConfiguredSurfaceAuthorizer, ModuleRegistryAuthorizationError,
-    ModuleRegistryAuthorizer, OPENTOFU_MODULES_V1_BASE_PATH, OPENTOFU_SERVICE_DISCOVERY_PATH,
-    VerifiedPrincipal,
+    ConfiguredBearerPrincipalVerifier, ConfiguredSurfaceAuthorizer,
+    ModuleRegistryAuthorizationError, ModuleRegistryAuthorizer, OPENTOFU_MODULES_V1_BASE_PATH,
+    OPENTOFU_SERVICE_DISCOVERY_PATH, VerifiedPrincipal,
 };
 use iac_domain::{ModuleRegistry, OpenTofuModuleRelease};
-use iac_rest::{
-    CLOUD_IAC_MODULE_REGISTRY_DOWNLOAD_SURFACE as REST_DOWNLOAD_SURFACE,
-    CloudIacModuleRegistryRestError, CloudIacModuleRegistryRestRoute,
-    MODULE_REGISTRY_DISCOVERY_REST_ROUTE, MODULE_REGISTRY_DOWNLOAD_REST_ROUTE,
-    MODULE_REGISTRY_VERSIONS_REST_ROUTE,
-};
 use iac_infrastructure::{
     CLOUD_IAC_MODULE_REGISTRY_HTTP_HANDLER_NON_CLAIM,
     CLOUD_IAC_MODULE_REGISTRY_LOOPBACK_LISTENER_NON_CLAIM,
@@ -31,6 +25,12 @@ use iac_infrastructure::{
     CloudIacModuleRegistryRuntimeError, CloudIacModuleRegistryRuntimeRequest,
     assemble_module_registry_http_service, dispatch_module_registry_http_service_request,
     dispatch_module_registry_runtime_request, handle_module_registry_http_request,
+};
+use iac_rest::{
+    CLOUD_IAC_MODULE_REGISTRY_DOWNLOAD_SURFACE as REST_DOWNLOAD_SURFACE,
+    CloudIacModuleRegistryRestError, CloudIacModuleRegistryRestRoute,
+    MODULE_REGISTRY_DISCOVERY_REST_ROUTE, MODULE_REGISTRY_DOWNLOAD_REST_ROUTE,
+    MODULE_REGISTRY_VERSIONS_REST_ROUTE,
 };
 use oya_http_middleware_kernel::HttpRequest;
 use oya_http_router_kernel::HttpMethod;
@@ -72,7 +72,9 @@ impl ModuleRegistryAuthorizer for RefuseAuthorizer {
     }
 }
 
-fn provider_with(authorizer: Arc<dyn ModuleRegistryAuthorizer>) -> CloudIacModuleRegistryAuthzProvider {
+fn provider_with(
+    authorizer: Arc<dyn ModuleRegistryAuthorizer>,
+) -> CloudIacModuleRegistryAuthzProvider {
     let verifier = Arc::new(
         ConfiguredBearerPrincipalVerifier::new(BEARER_SECRET, PRINCIPAL_ID)
             .expect("valid break-glass verifier config"),
@@ -212,12 +214,10 @@ fn runtime_dispatches_discovery_versions_and_download_through_rest_router_and_ap
     );
     assert_eq!(
         discovery.api_response,
-        CloudIacModuleRegistryRouteResponse::Discovery(
-            iac_api::ModuleRegistryDiscoveryResponse {
-                path: OPENTOFU_SERVICE_DISCOVERY_PATH.to_string(),
-                modules_v1: OPENTOFU_MODULES_V1_BASE_PATH.to_string(),
-            }
-        )
+        CloudIacModuleRegistryRouteResponse::Discovery(iac_api::ModuleRegistryDiscoveryResponse {
+            path: OPENTOFU_SERVICE_DISCOVERY_PATH.to_string(),
+            modules_v1: OPENTOFU_MODULES_V1_BASE_PATH.to_string(),
+        })
     );
 
     let versions = dispatch_module_registry_runtime_request(
@@ -316,7 +316,9 @@ fn runtime_verifies_credential_and_pdp_authorizes_surface_at_api_boundary() {
         runtime_request(
             HttpMethod::Get,
             "/v1/modules/oyatie/vpc/opentofu/1.2.0/download",
-            CallerCredential { authorization: None },
+            CallerCredential {
+                authorization: None,
+            },
         ),
     )
     .expect_err("absent credential is rejected at the API boundary");
@@ -412,7 +414,11 @@ fn http_handler_renders_opentofu_discovery_versions_and_download_responses() {
 
     let discovery = handle_module_registry_http_request(
         &handler,
-        http_request_with_bearer(HttpMethod::Get, OPENTOFU_SERVICE_DISCOVERY_PATH, BEARER_SECRET),
+        http_request_with_bearer(
+            HttpMethod::Get,
+            OPENTOFU_SERVICE_DISCOVERY_PATH,
+            BEARER_SECRET,
+        ),
     );
     assert_eq!(discovery.status, 200);
     assert_eq!(
@@ -490,7 +496,11 @@ fn http_handler_maps_route_auth_domain_and_body_errors_to_http_statuses() {
 
     let wrong_method = handle_module_registry_http_request(
         &handler,
-        http_request_with_bearer(HttpMethod::Post, OPENTOFU_SERVICE_DISCOVERY_PATH, BEARER_SECRET),
+        http_request_with_bearer(
+            HttpMethod::Post,
+            OPENTOFU_SERVICE_DISCOVERY_PATH,
+            BEARER_SECRET,
+        ),
     );
     assert_eq!(wrong_method.status, 405);
 
@@ -514,7 +524,9 @@ fn http_handler_maps_route_auth_domain_and_body_errors_to_http_statuses() {
     let forbidden_handler = CloudIacModuleRegistryHttpHandler::new(
         registry(),
         boundary(),
-        Arc::new(reader_provider(&[CLOUD_IAC_MODULE_REGISTRY_VERSIONS_SURFACE])),
+        Arc::new(reader_provider(&[
+            CLOUD_IAC_MODULE_REGISTRY_VERSIONS_SURFACE,
+        ])),
     );
     let forbidden = handle_module_registry_http_request(
         &forbidden_handler,
@@ -526,8 +538,11 @@ fn http_handler_maps_route_auth_domain_and_body_errors_to_http_statuses() {
     );
     assert_eq!(forbidden.status, 403);
 
-    let mut get_with_body =
-        http_request_with_bearer(HttpMethod::Get, OPENTOFU_SERVICE_DISCOVERY_PATH, BEARER_SECRET);
+    let mut get_with_body = http_request_with_bearer(
+        HttpMethod::Get,
+        OPENTOFU_SERVICE_DISCOVERY_PATH,
+        BEARER_SECRET,
+    );
     get_with_body.body = b"unexpected".to_vec();
     let unexpected_body = handle_module_registry_http_request(&handler, get_with_body);
     assert_eq!(unexpected_body.status, 400);
@@ -549,8 +564,8 @@ fn service_assembly_registers_opentofu_routes_with_safe_config_without_listener_
 
 #[test]
 fn service_assembly_dispatches_through_canonical_hyper_adapter_path() {
-    let service =
-        assemble_module_registry_http_service(allow_all_handler()).expect("service assembly registers routes");
+    let service = assemble_module_registry_http_service(allow_all_handler())
+        .expect("service assembly registers routes");
 
     let versions = dispatch_module_registry_http_service_request(
         &service,
@@ -582,12 +597,16 @@ fn service_assembly_dispatches_through_canonical_hyper_adapter_path() {
 
 #[test]
 fn service_assembly_preserves_method_not_allowed_through_canonical_adapter_path() {
-    let service =
-        assemble_module_registry_http_service(allow_all_handler()).expect("service assembly registers routes");
+    let service = assemble_module_registry_http_service(allow_all_handler())
+        .expect("service assembly registers routes");
 
     let wrong_method = dispatch_module_registry_http_service_request(
         &service,
-        http_request_with_bearer(HttpMethod::Post, OPENTOFU_SERVICE_DISCOVERY_PATH, BEARER_SECRET),
+        http_request_with_bearer(
+            HttpMethod::Post,
+            OPENTOFU_SERVICE_DISCOVERY_PATH,
+            BEARER_SECRET,
+        ),
     );
 
     assert_eq!(wrong_method.status, 405);
@@ -596,8 +615,8 @@ fn service_assembly_preserves_method_not_allowed_through_canonical_adapter_path(
 
 #[test]
 fn loopback_listener_serves_discovery_through_hyper_boundary_without_deploy_claim() {
-    let service =
-        assemble_module_registry_http_service(allow_all_handler()).expect("service assembly registers routes");
+    let service = assemble_module_registry_http_service(allow_all_handler())
+        .expect("service assembly registers routes");
     let (router, middleware, server_config) = service.into_serve_parts();
     let listener = std::net::TcpListener::bind("127.0.0.1:0")
         .expect("bind local loopback listener for deterministic test harness");

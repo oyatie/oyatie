@@ -5,7 +5,9 @@ status: pending approval
 purpose: |
   Reviewer agent's verification list per change class. Walked by the reviewer agent named in `docs/AGENTS.md §Per-change-class reviewer agents` before signing `## Code Review` at merge.
 lift_target: oyatie/templates/checklists/pr-review.md
-enforcing_fitness_lane: guard-pr-merge-review.mjs
+enforcing_fitness_lane: retired by ADR-0716
+merge_status_requirement: oya-ci-required
+review_requirement: author-distinct reviewer approval on the exact PR head; F-PR5-06 tracks cloud enforcement
 owner_team: axis-foundry + per change-class team
 related:
   - docs/AGENTS.md
@@ -15,18 +17,17 @@ related:
 
 # PR Review Checklist
 
-> The reviewer agent walks this checklist **before** writing `## Code Review`. Verdict is `APPROVE` or `REQUEST CHANGES`. Without a `## Code Review` H2, `guard-pr-merge-review.mjs` refuses the merge.
+> The reviewer agent walks this checklist before recording a verdict on the exact PR head. Verdict is `APPROVE` or `REQUEST CHANGES`; F-PR5-06 bounds the remaining cloud-enforcement gap.
 
 ## Universal review (every PR)
 
-- [ ] **R1** PR body has all 5 canonical H2s: `## Issue / Summary / Verification / Traceability / Evidence`. *Lane:* `traceability-validator`.
+- [ ] **R1** PR body has the four canonical H2s: `## Issue / Summary / Verification / Code Review`. *Verification:* independent PR review.
 - [ ] **R2** `## Issue` names the change class on a single line.
 - [ ] **R3** `## Summary` states *why*, not only *what*.
 - [ ] **R4** `## Verification` pastes actual command output (not hand-waves). Every required check has a `PASS` token.
-- [ ] **R5** `## Traceability` cites canonical docs read, ADRs cited, cross-axis contracts touched, IP ID (if applicable). Legacy ADR-NNNN forbidden in active text.
-- [ ] **R6** `## Evidence` lists audit-chain emission ID + (if binary) Cosign
-  signature + SBOM + SLSA level + post-merge product-completion packet slot.
-- [ ] **R7** Done-definition rows D1-D18 walked for merge readiness; D19 has a post-merge closeout owner/packet slot and MUST be walked after squash merge before product-complete (see `/templates/checklists/done-definition-checklist.md`).
+- [ ] **R5** `## Summary` cites the canonical authority and names relevant ADRs, cross-axis contracts, or IP IDs when applicable.
+- [ ] **R6** Scope-specific security, release, and operability evidence appears in `## Verification` or the review thread; ADR-0716 requires no generic evidence packet.
+- [ ] **R7** Done-definition rows D1-D18 are walked for merge readiness (see `/templates/checklists/done-definition-checklist.md`).
 - [ ] **R8** No `--no-verify`, no hook bypass, no signing skip in the commits. *Lane:* `oya-governance-bypass`.
 - [ ] **R9** No untyped values at API boundaries (per `docs/standards/error-handling.md`). *(advisory; per-language reviewer enforces)*
 - [ ] **R10** Linus good-taste audit row present in `## Code Review`. Empty = `REQUEST CHANGES`.
@@ -109,4 +110,4 @@ Linus good-taste audit row: <special cases eliminated | "none — no candidates"
 - Citing legacy ADR-NNNN in active text.
 - Worker agent attempting to add `## Code Review` itself (lead-only).
 - Force-pushing over reviewer-agent-resolved threads.
-- Calling a squash-merged PR product-complete without the post-merge product-completion packet.
+- Treating a merged PR as released without the rollout checks applicable to its release scope.

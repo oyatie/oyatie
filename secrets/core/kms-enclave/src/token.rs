@@ -129,7 +129,13 @@ impl WrappedKekToken {
         let nonce = cur.read_nonce()?;
         let ciphertext = cur.read_ciphertext()?;
         cur.expect_end()?;
-        Ok(Self { root_id, kek_id, kek_version, nonce, ciphertext })
+        Ok(Self {
+            root_id,
+            kek_id,
+            kek_version,
+            nonce,
+            ciphertext,
+        })
     }
 
     /// Header bytes (everything before the nonce) — the AEAD associated data.
@@ -186,7 +192,13 @@ impl WrappedDek {
         let nonce = cur.read_nonce()?;
         let ciphertext = cur.read_ciphertext()?;
         cur.expect_end()?;
-        Ok(Self { kek_id, kek_version, dek_id, nonce, ciphertext })
+        Ok(Self {
+            kek_id,
+            kek_version,
+            dek_id,
+            nonce,
+            ciphertext,
+        })
     }
 
     /// Header bytes (everything before the nonce) — the AEAD associated data.

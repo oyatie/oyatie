@@ -9,10 +9,10 @@ use billing_accounting_api::{
 };
 use billing_accounting_http_adapter::{
     ACCOUNTING_HEALTH_PATH, ACCOUNTING_JOURNALS_PATH, ACCOUNTING_PAYROLL_POSTINGS_PATH,
-    ACCOUNTING_VAT_WORKFLOW_PLANS_PATH, AccountingAuthzProvider, AccountingMutationAuthorizationError,
-    AccountingMutationAuthorizer, AccountingMutationResource, ConfiguredBearerPrincipalVerifier,
-    VerifiedPrincipal, accounting_runtime_routes, accounting_server_config,
-    dispatch_accounting_request,
+    ACCOUNTING_VAT_WORKFLOW_PLANS_PATH, AccountingAuthzProvider,
+    AccountingMutationAuthorizationError, AccountingMutationAuthorizer, AccountingMutationResource,
+    ConfiguredBearerPrincipalVerifier, VerifiedPrincipal, accounting_runtime_routes,
+    accounting_server_config, dispatch_accounting_request,
 };
 use oya_http_middleware_kernel::HttpRequest;
 use oya_http_router_kernel::HttpMethod;
@@ -72,7 +72,11 @@ fn allow_provider() -> AccountingAuthzProvider {
 #[test]
 fn accounting_runtime_dispatches_journal_payroll_and_vat() {
     let journal = dispatch_accounting_request(
-        authed_json_request(HttpMethod::Post, ACCOUNTING_JOURNALS_PATH, &journal_request()),
+        authed_json_request(
+            HttpMethod::Post,
+            ACCOUNTING_JOURNALS_PATH,
+            &journal_request(),
+        ),
         allow_provider(),
     );
     let journal_body: serde_json::Value =
@@ -246,7 +250,11 @@ fn authed_json_request<T: serde::Serialize>(
 #[test]
 fn unauthenticated_money_mutation_is_rejected_401() {
     // No Authorization header at all -> 401 BEFORE the body is deserialized.
-    let request = mock_json_request(HttpMethod::Post, ACCOUNTING_JOURNALS_PATH, &journal_request());
+    let request = mock_json_request(
+        HttpMethod::Post,
+        ACCOUNTING_JOURNALS_PATH,
+        &journal_request(),
+    );
     let response = dispatch_accounting_request(request, allow_provider());
     assert_eq!(response.status, 401);
     let body: serde_json::Value = serde_json::from_slice(&response.body).expect("401 json");
@@ -260,9 +268,10 @@ fn wrong_bearer_money_mutation_is_rejected_401() {
         ACCOUNTING_PAYROLL_POSTINGS_PATH,
         &payroll_request(),
     );
-    request
-        .headers
-        .insert("authorization".to_owned(), "Bearer not-the-secret".to_owned());
+    request.headers.insert(
+        "authorization".to_owned(),
+        "Bearer not-the-secret".to_owned(),
+    );
     let response = dispatch_accounting_request(request, allow_provider());
     assert_eq!(response.status, 401);
 }
@@ -277,36 +286,46 @@ fn cross_tenant_money_mutation_is_rejected_403() {
         tenant_id: "ten_victim".to_owned(),
         ..journal_request()
     };
-    let request =
-        authed_json_request(HttpMethod::Post, ACCOUNTING_JOURNALS_PATH, &cross_tenant_body);
+    let request = authed_json_request(
+        HttpMethod::Post,
+        ACCOUNTING_JOURNALS_PATH,
+        &cross_tenant_body,
+    );
     let response = dispatch_accounting_request(request, allow_provider());
     assert_eq!(response.status, 403);
 }
 
 #[test]
 fn pdp_deny_money_mutation_is_rejected_403() {
-    let request =
-        authed_json_request(HttpMethod::Post, ACCOUNTING_JOURNALS_PATH, &journal_request());
-    let response =
-        dispatch_accounting_request(request, provider_with(Arc::new(DenyAllAuthorizer)));
+    let request = authed_json_request(
+        HttpMethod::Post,
+        ACCOUNTING_JOURNALS_PATH,
+        &journal_request(),
+    );
+    let response = dispatch_accounting_request(request, provider_with(Arc::new(DenyAllAuthorizer)));
     assert_eq!(response.status, 403);
 }
 
 #[test]
 fn pdp_fault_money_mutation_denies_403_not_500() {
     // A panicking (faulting) PDP must DENY (403), never allow and never 500.
-    let request =
-        authed_json_request(HttpMethod::Post, ACCOUNTING_JOURNALS_PATH, &journal_request());
-    let response =
-        dispatch_accounting_request(request, provider_with(Arc::new(PanicAuthorizer)));
+    let request = authed_json_request(
+        HttpMethod::Post,
+        ACCOUNTING_JOURNALS_PATH,
+        &journal_request(),
+    );
+    let response = dispatch_accounting_request(request, provider_with(Arc::new(PanicAuthorizer)));
     assert_eq!(response.status, 403);
 }
 
 #[test]
 fn authenticated_authorized_same_tenant_money_mutation_succeeds() {
     // Sanity GREEN: verified ten_acme + matching body tenant + PDP allow -> 202.
-    let request =
-        authed_json_request(HttpMethod::Post, ACCOUNTING_JOURNALS_PATH, &journal_request());
+    let request = authed_json_request(
+        HttpMethod::Post,
+        ACCOUNTING_JOURNALS_PATH,
+        &journal_request(),
+    );
     let response = dispatch_accounting_request(request, allow_provider());
     assert_eq!(response.status, 202);
 }

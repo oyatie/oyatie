@@ -365,34 +365,33 @@ fn validate_oya_ci_required_branch_protection(
 }
 
 fn validate_oya_ci_required_workflow(workflow: &str) -> Result<(), String> {
+    // This contract asserts the workflow as ADR-0716 leaves it: Cargo is the merge path and
+    // Buck2 is local hermeticity plus a weekly smoke. The previous expectations still described
+    // the pre-ADR-0716 shape — a `buck2 test //ci/...` merge lane, a gate matrix fan-in, a
+    // Buck2 fan-in leg, and `oya-ci-required: GREEN`/`RED` terminal markers — none of which the
+    // workflow has emitted since that ADR landed. It asserted a workflow that no longer exists.
     for expected in [
         "name: oya-ci-required",
         "fail-fast: false",
         "persist-credentials: false",
         "fetch-depth: 0",
-        "Install buck2",
-        "buck2 test //ci/...",
-        "gate-registration meta-test",
+        // Digest-pinned tool acquisition is the integrity anchor (ADR-0556).
+        "Install pinned buck2 (digest-verified)",
+        // Generated faces are materialized before the gate crates consume them.
+        "Materialize generated faces",
+        // The Cargo merge path itself (ADR-0716), locked so the lockfile is authoritative.
+        "cargo test --locked --workspace",
         "generated-output-diff-policy",
-        "oya-ci-required: GREEN",
-        "oya-ci-required: RED",
+        // The forever public status string is dual-emitted beside the legacy protected context
+        // until the branch-protection flip; losing it would silently strand the cutover.
+        "merge-admission-required",
     ] {
         require_contains(workflow, expected, "oya-ci-required workflow contract")?;
     }
     require_contains(
         workflow,
-        "needs:\n      - gate",
-        "oya-ci-required fan-in must depend on the gate matrix",
-    )?;
-    require_contains(
-        workflow,
-        "- buck2",
-        "oya-ci-required fan-in must include the Buck2 hermetic lane",
-    )?;
-    require_contains(
-        workflow,
-        "Materialize cloud-ci generated faces",
-        "oya-ci-required workflow must materialize cloud-ci faces before gate consumption",
+        "needs: [lint, test",
+        "oya-ci-required fan-in must depend on the lint and test lanes",
     )?;
     for forbidden in [
         "cargo run -q -p oya-dev-cli",

@@ -10,8 +10,7 @@ use std::fmt::Write as _;
 use std::marker::PhantomData;
 
 use secrets_kms_enclave::{
-    DekId, DekMaterial, EnclaveRoot, KekId, KekMaterial, KekVersion, KekVersionChain,
-    SealingRootId,
+    DekId, DekMaterial, EnclaveRoot, KekId, KekMaterial, KekVersion, KekVersionChain, SealingRootId,
 };
 
 /// Autoref-specialization probe: `detect()` resolves to the inherent method
@@ -55,11 +54,8 @@ fn key_material_types_are_not_clone() {
 #[test]
 fn debug_output_never_carries_key_bytes() {
     let root = EnclaveRoot::generate(SealingRootId::new("cell-1-root").unwrap()).unwrap();
-    let kek = KekMaterial::generate(
-        KekId::new("kek/ten_alpha").unwrap(),
-        KekVersion::INITIAL,
-    )
-    .unwrap();
+    let kek =
+        KekMaterial::generate(KekId::new("kek/ten_alpha").unwrap(), KekVersion::INITIAL).unwrap();
     let (dek, _) = kek.generate_dek(DekId::new("dek/obj_1").unwrap()).unwrap();
     let chain = KekVersionChain::new(
         KekMaterial::generate(KekId::new("kek/ten_beta").unwrap(), KekVersion::INITIAL).unwrap(),
@@ -68,7 +64,10 @@ fn debug_output_never_carries_key_bytes() {
     let mut rendered = String::new();
     write!(rendered, "{root:?} {kek:?} {dek:?} {chain:?}").unwrap();
 
-    assert!(rendered.matches("[REDACTED]").count() >= 4, "every holder redacts: {rendered}");
+    assert!(
+        rendered.matches("[REDACTED]").count() >= 4,
+        "every holder redacts: {rendered}"
+    );
     // No hex/byte-array dump patterns: once the redaction markers are
     // removed, no bracket (Debug's byte-slice rendering) may remain.
     let without_markers = rendered.replace("[REDACTED]", "");
@@ -80,8 +79,8 @@ fn wrapped_forms_are_the_only_egress() {
     // The public API offers exactly one way to externalize a KEK — wrap_kek
     // — and the result round-trips only through unwrap_kek on the same root.
     let root = EnclaveRoot::generate(SealingRootId::new("cell-1-root").unwrap()).unwrap();
-    let kek = KekMaterial::generate(KekId::new("kek/ten_alpha").unwrap(), KekVersion::INITIAL)
-        .unwrap();
+    let kek =
+        KekMaterial::generate(KekId::new("kek/ten_alpha").unwrap(), KekVersion::INITIAL).unwrap();
     let token = root.wrap_kek(&kek).unwrap();
 
     // The token exposes header metadata but its ciphertext is opaque: it

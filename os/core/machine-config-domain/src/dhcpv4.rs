@@ -7,8 +7,8 @@
 
 use crate::container::Config;
 use crate::yaml::{self, Yaml};
-use std::collections::BTreeSet;
 use os_kernel::error::{Error, Result};
+use std::collections::BTreeSet;
 
 /// Canonical Talos document kind.
 pub const DHCPV4_CONFIG_KIND: &str = "DHCPv4Config";

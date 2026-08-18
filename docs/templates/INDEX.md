@@ -29,7 +29,7 @@ doc_status: published
 
 | ID | File | Purpose (1-line) | Owner (per `docs/RACI-OWNERSHIP.md`) | Enforcing fitness lane |
 |---|---|---|---|---|
-| TPL-PR | `pull-request-template.md` | 5-section PR body + `oya-ci-required` verification + reviewer evidence (`F-PR5-06` bounded until trusted producer is live). | `platform-governance` + `council-architecture` | `oya-governance-pr-shape` (`traceability-validator`) |
+| TPL-PR | `pull-request-template.md` | Four-section PR body + `oya-ci-required` verification + independent reviewer evidence (`F-PR5-06` bounded until trusted producer is live). | `platform-governance` + `council-architecture` | Local validator retired; merge contract requires `oya-ci-required` plus reviewer approval |
 | TPL-ADR | `adr-template-v2.md` | Architecture Decision Record with autogen-friendly frontmatter. | `crew-adr-promotion` | `oya-governance-adr-shape` |
 | TPL-IP | `implementation-plan-template.md` | Per-IP plan under `milestones/M*/phases/P*/`. | `council-architecture` (cross-axis) | `oya-governance-plan-hierarchy` |
 | TPL-PHASE | `phase-index-template.md` | Phase INDEX (≤50 lines). | `council-architecture` | `oya-governance-plan-hierarchy` |
@@ -46,7 +46,7 @@ doc_status: published
 
 | ID | File | Purpose | Owner | Verification path |
 |---|---|---|---|---|
-| CHK-DONE | `done-definition-checklist.md` | Extends `docs/AGENTS.md` D1-D19 with per-change-class variants. | `platform-governance` + `council-architecture` | `oya-ci-required` + per-lane CI status |
+| CHK-DONE | `done-definition-checklist.md` | Extends `docs/AGENTS.md` D1-D18 with per-change-class variants. | `platform-governance` + `council-architecture` | `oya-ci-required` + per-lane CI status |
 | CHK-PRE | `pre-flight-checklist.md` | Per-change-class preconditions. | `council-architecture` | `oya-governance-pr-shape` |
 | CHK-PHASE | `per-phase-completion-checklist.md` | Phase-internal verification. | `council-architecture` | `oya-governance-plan-hierarchy` |
 | CHK-IP | `per-implementation-plan-checklist.md` | IP-internal verification. | `council-architecture` | `oya-governance-plan-hierarchy` |

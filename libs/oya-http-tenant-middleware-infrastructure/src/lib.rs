@@ -123,8 +123,8 @@ mod tests {
     use super::*;
     use oya_http_middleware_kernel::MiddlewareChain;
     use oya_http_router_kernel::HttpMethod;
-    use tenancy_kernel::TENANT_SLUG_MAX_LEN;
     use std::collections::BTreeMap;
+    use tenancy_kernel::TENANT_SLUG_MAX_LEN;
 
     fn req(headers: &[(&str, &str)]) -> HttpRequest {
         let mut h = BTreeMap::new();

@@ -111,7 +111,7 @@ Meta-policy: ADR-0133 (chained-enforcement planning contract, pending).
 | `git <cmd>` outside any fence (plain prose, human-facing) | **PASS** |
 | `gh <cmd>` — same rules as `git` | as above |
 | `git --no-verify <cmd>` | **FAIL** unconditionally (per forbidden-operations.json FO-02) |
-| `gh pr merge` without `## Code Review` section | **FAIL** (per `guard-pr-merge-review.mjs` hook) |
+| protected-PR merge without author-distinct reviewer APPROVE on the exact head | **FAIL** |
 
 ## 5. Migration-candidate flow
 

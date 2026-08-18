@@ -3,10 +3,10 @@ use std::path::PathBuf;
 use crate::error::{CodexError, Result};
 use crate::events::{ThreadEvent, Usage};
 use crate::exec::{CodexExec, CodexExecArgs, LineStream};
-use crate::input::{normalize_input, Input};
+use crate::input::{Input, normalize_input};
 use crate::items::ThreadItem;
 use crate::options::{CodexOptions, ThreadOptions, TurnOptions};
-use crate::schema::{create_output_schema_file, OutputSchemaFile};
+use crate::schema::{OutputSchemaFile, create_output_schema_file};
 
 /// Completed turn.
 #[derive(Clone, Debug, PartialEq)]

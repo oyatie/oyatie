@@ -11,8 +11,8 @@
 //! kinds during load.
 
 use crate::validation::ValidationMode;
-use std::collections::BTreeMap;
 use os_kernel::error::{Error, Result};
+use std::collections::BTreeMap;
 
 /// Cardinality of a document kind within a single config container.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

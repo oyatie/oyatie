@@ -1,7 +1,7 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 pub mod ranking;
-pub use ranking::rank_posts;
 use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
+pub use ranking::rank_posts;
 use std::collections::BTreeSet;
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum CommunityError {
@@ -132,7 +132,11 @@ impl VoteLedger {
         };
         Ok(())
     }
-    pub fn retract(&mut self, voter_ref: &str, _post: &CommunityPost) -> Result<(), CommunityError> {
+    pub fn retract(
+        &mut self,
+        voter_ref: &str,
+        _post: &CommunityPost,
+    ) -> Result<(), CommunityError> {
         ne(voter_ref)?;
         let before = self.receipts.value.len();
         self.receipts.value.retain(|r| r.voter_ref != voter_ref);
@@ -313,7 +317,12 @@ mod tests {
             ("v5", "u5", VoteKind::Down),
         ] {
             l.cast(
-                VoteReceipt { vote_id: id.into(), voter_ref: voter.into(), post_id: "p".into(), kind },
+                VoteReceipt {
+                    vote_id: id.into(),
+                    voter_ref: voter.into(),
+                    post_id: "p".into(),
+                    kind,
+                },
                 &p,
             )
             .unwrap();
@@ -326,7 +335,12 @@ mod tests {
         let mut l = VoteLedger::new(&p);
         for (id, voter) in [("v1", "u1"), ("v2", "u2")] {
             l.cast(
-                VoteReceipt { vote_id: id.into(), voter_ref: voter.into(), post_id: "p".into(), kind: VoteKind::Up },
+                VoteReceipt {
+                    vote_id: id.into(),
+                    voter_ref: voter.into(),
+                    post_id: "p".into(),
+                    kind: VoteKind::Up,
+                },
                 &p,
             )
             .unwrap();
@@ -339,7 +353,12 @@ mod tests {
         let mut l = VoteLedger::new(&p);
         for (id, voter) in [("v1", "u1"), ("v2", "u2")] {
             l.cast(
-                VoteReceipt { vote_id: id.into(), voter_ref: voter.into(), post_id: "p".into(), kind: VoteKind::Down },
+                VoteReceipt {
+                    vote_id: id.into(),
+                    voter_ref: voter.into(),
+                    post_id: "p".into(),
+                    kind: VoteKind::Down,
+                },
                 &p,
             )
             .unwrap();
@@ -350,7 +369,12 @@ mod tests {
     #[test]
     fn moderation_remove_without_evidence_errors() {
         assert_eq!(
-            moderation_case(&post(), ModerationAction::Remove, "policy".into(), "".into()),
+            moderation_case(
+                &post(),
+                ModerationAction::Remove,
+                "policy".into(),
+                "".into()
+            ),
             Err(CommunityError::ModerationNeedsEvidence)
         );
     }
@@ -376,13 +400,9 @@ mod tests {
     }
     #[test]
     fn moderation_allow_passes_without_evidence() {
-        assert!(moderation_case(
-            &post(),
-            ModerationAction::Allow,
-            "policy".into(),
-            "".into()
-        )
-        .is_ok());
+        assert!(
+            moderation_case(&post(), ModerationAction::Allow, "policy".into(), "".into()).is_ok()
+        );
     }
     #[test]
     fn moderation_allow_tagged_internal_only() {

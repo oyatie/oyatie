@@ -295,9 +295,9 @@ Markdown-retirement policy, masterplan v2, the protected-PR admission contract, 
 ### 3.4 Review
 
 18. ☐ Open PR with `## Verification` section listing every check from §3.3 and its outcome.
-19. ☐ Reviewer-of-record from `owner_team` reviews and approves.
-20. ☐ For Tier 1 docs (PRD/DESIGN/SPEC/ROADMAP/ADR-INDEX/RISK-REGISTER/COMPLIANCE/SECURITY/PRIVACY/GTM): a second council reviewer signs off.
-21. ☐ Merge using `gh pr merge` per `guard-pr-merge-review.mjs` rules.
+19. ☐ One author-distinct reviewer agent reviews and approves the exact PR head.
+20. ☐ For Tier 1 docs, that reviewer applies the council-architecture lens; no human approval or reviewer quorum is required.
+21. ☐ Merge through the protected PR only after review threads resolve, `oya-ci-required` is green, no conflict exists, and branch protection is satisfied.
 22. ☐ Post-merge: emit `EVT-DOC-UPDATED` audit-chain record.
 
 ### 3.5 Publish
@@ -358,7 +358,6 @@ mapping include them.
 | `api-semver` | Public contract artifacts under `contracts/` must carry ADR-0037 tier, owner, semver, sunset, and ADR metadata before becoming tenant-facing commitments. |
 | `supply-chain` | Catalog supply-chain claims stay source-only unless ADR-0039 scan, signing, and SBOM evidence is wired; RustSec and deny checks remain in the per-PR script. |
 | `release-supply-chain` | Every digest-pinned release artifact has Trivy 4-layer, dual-SBOM, Cosign/Rekor, provenance, audit-event, and zero HIGH/CRITICAL evidence before release. |
-| `pr-traceability` | Pull-request bodies carry the five mandatory Issue / Summary / Verification / Traceability / Evidence H2 sections, and `## Code Review` stays merge-time lead-owned. |
 | `runbook-freshness` | Every runbook carries a parsable `Last verified` date and stays within the RUNBOOKS-INDEX freshness SLA by severity; unscoped deferred stubs use the Sev-4 / 365-day freshness ceiling. |
 | `audit-chain-replay` | Checked-in audit shard fixtures replay through the ADR-0003 hash-chain verifier; malformed, empty, or tampered shards fail the chain-replay drill. |
 | `foundry-eval` | Published capability records under `registry/capability-templates/` must point at signed eval-set and latest-run artifacts that pass ADR-0024 adversarial, linguistic, threshold, and publish-readiness checks. |

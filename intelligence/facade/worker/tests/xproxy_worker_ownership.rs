@@ -3,13 +3,13 @@
 use intelligence_worker::{
     AgentDelegationPolicySpec, AgentMemoryBindingSpec, AgentRuntimeProfileSpec, AgentScheduleSpec,
     AgentSkillBundleSpec, AgentWorkspaceBindingSpec, BackendRegistry, CloudAuthRequirements,
-    ConfigLayer, ConfigSource, CredentialRefreshPlan, DriftParityPlan, EvidenceRetentionProfileSpec,
-    GuardrailDetectionProfileSpec, InTransitRedactionProfileSpec,
-    InternalCodingAgentWorkflowPlan, ManualReviewEscalationSpec, ModelRouteSpec, OAuthLifecyclePlan,
-    ParityCanaryStatusSpec, ParityCanaryStatusState, PoolActivation, ProviderBackendSpec,
-    ProviderClass, ReferenceCiPatternCatalog, RoutingAdvisorPurpose, SafetySignalPolicySpec,
-    ScheduledParityDriftCanaryPlan, WorkerKind, default_routing_advisor_profiles,
-    default_worker_ownership, resolve_config_precedence,
+    ConfigLayer, ConfigSource, CredentialRefreshPlan, DriftParityPlan,
+    EvidenceRetentionProfileSpec, GuardrailDetectionProfileSpec, InTransitRedactionProfileSpec,
+    InternalCodingAgentWorkflowPlan, ManualReviewEscalationSpec, ModelRouteSpec,
+    OAuthLifecyclePlan, ParityCanaryStatusSpec, ParityCanaryStatusState, PoolActivation,
+    ProviderBackendSpec, ProviderClass, ReferenceCiPatternCatalog, RoutingAdvisorPurpose,
+    SafetySignalPolicySpec, ScheduledParityDriftCanaryPlan, WorkerKind,
+    default_routing_advisor_profiles, default_worker_ownership, resolve_config_precedence,
 };
 
 #[test]
@@ -40,9 +40,28 @@ fn worker_ownership_map_keeps_hot_path_and_control_plane_separate() {
     );
 }
 
+/// Read the committed worker manifest through its DECLARED binding.
+///
+/// This was a bare repo-relative path resolved against the process working directory. Buck runs
+/// the action from the sandbox root so it resolved there, but `cargo test` runs from the package
+/// directory and the read missed entirely. The Cargo merge path (ADR-0716) is the authority, so
+/// the manifest is named rather than guessed: Buck binds it with `$(location ...)` and Cargo
+/// with a non-forcing `relative = true` entry in `.cargo/config.toml`. An unbound or non-regular
+/// resource fails closed instead of silently reading the wrong bytes.
 fn manifest() -> String {
-    std::fs::read_to_string("intelligence/k8s/cloud-intelligence.yaml")
-        .expect("read cloud-intelligence manifest")
+    const BINDING: &str = "OYA_INTELLIGENCE_K8S_MANIFEST";
+    let path = std::env::var_os(BINDING)
+        .map(std::path::PathBuf::from)
+        .unwrap_or_else(|| panic!("FAIL-CLOSED: declared manifest binding {BINDING} is unset"));
+    let metadata = std::fs::symlink_metadata(&path)
+        .unwrap_or_else(|err| panic!("FAIL-CLOSED: inspect {BINDING}={}: {err}", path.display()));
+    assert!(
+        !metadata.file_type().is_symlink() && metadata.is_file(),
+        "FAIL-CLOSED: {BINDING}={} must be a regular non-symlink file",
+        path.display()
+    );
+    std::fs::read_to_string(&path)
+        .unwrap_or_else(|err| panic!("FAIL-CLOSED: read {BINDING}={}: {err}", path.display()))
 }
 
 fn assert_manifest_contains(manifest: &str, needle: &str) {
@@ -225,7 +244,6 @@ fn agent_runtime_workers_are_control_plane_only_and_redacted() {
     }
 }
 
-
 #[test]
 fn safety_guardrail_resources_encode_platform_floor_and_secondary_review() {
     let guardrail = GuardrailDetectionProfileSpec::platform_default(
@@ -239,9 +257,21 @@ fn safety_guardrail_resources_encode_platform_floor_and_secondary_review() {
     assert!(guardrail.mandatory_secondary_agentic_review);
     assert!(guardrail.manual_review_required_after_secondary_review);
     assert!(!guardrail.tenant_may_weaken_platform_floor);
-    assert!(guardrail.critical_categories.contains(&"prompt-injection-or-jailbreak".to_string()));
-    assert!(guardrail.critical_categories.contains(&"data-exfiltration-or-breach".to_string()));
-    assert!(guardrail.critical_categories.contains(&"self-harm-or-harm-to-others".to_string()));
+    assert!(
+        guardrail
+            .critical_categories
+            .contains(&"prompt-injection-or-jailbreak".to_string())
+    );
+    assert!(
+        guardrail
+            .critical_categories
+            .contains(&"data-exfiltration-or-breach".to_string())
+    );
+    assert!(
+        guardrail
+            .critical_categories
+            .contains(&"self-harm-or-harm-to-others".to_string())
+    );
 
     assert!(
         GuardrailDetectionProfileSpec::platform_default(
@@ -267,28 +297,29 @@ fn evidence_retention_and_manual_review_default_to_redacted_break_glass() {
     assert!(evidence.encrypted_handle_on_guardrail_trigger);
     assert!(evidence.fixed_ttl_by_data_class);
     assert!(evidence.regulatory_classification_required);
-    assert_eq!(evidence.default_reviewer_visibility, "redacted-structured-evidence");
+    assert_eq!(
+        evidence.default_reviewer_visibility,
+        "redacted-structured-evidence"
+    );
     assert!(evidence.raw_access_requires_audited_break_glass);
 
-    let review = ManualReviewEscalationSpec::platform_default(
-        "tenant-a",
-        "critical-manual-review",
-    )
-    .expect("manual review profile");
+    let review = ManualReviewEscalationSpec::platform_default("tenant-a", "critical-manual-review")
+        .expect("manual review profile");
     assert_eq!(review.kind, "ManualReviewEscalation");
     assert!(review.required_for_critical_blocks);
-    assert_eq!(review.default_evidence_visibility, "redacted-structured-evidence");
+    assert_eq!(
+        review.default_evidence_visibility,
+        "redacted-structured-evidence"
+    );
     assert!(review.raw_payload_break_glass_only);
     assert!(review.secondary_agentic_review_must_run_first);
 }
 
 #[test]
 fn in_transit_redaction_blocks_sensitive_and_allows_policy_approved_tokens() {
-    let redaction = InTransitRedactionProfileSpec::platform_default(
-        "tenant-a",
-        "in-transit-data-protection",
-    )
-    .expect("redaction profile");
+    let redaction =
+        InTransitRedactionProfileSpec::platform_default("tenant-a", "in-transit-data-protection")
+            .expect("redaction profile");
     assert_eq!(redaction.kind, "InTransitRedactionProfile");
     assert!(redaction.blocks_sensitive_classes);
     assert!(redaction.redacts_trivial_personal_data);
@@ -298,11 +329,9 @@ fn in_transit_redaction_blocks_sensitive_and_allows_policy_approved_tokens() {
     assert!(!redaction.provider_receives_raw_token_values);
     assert!(!redaction.routing_advisor_receives_raw_token_values);
 
-    let signal_policy = SafetySignalPolicySpec::platform_default(
-        "tenant-a",
-        "tenant-safety-signals",
-    )
-    .expect("signal policy");
+    let signal_policy =
+        SafetySignalPolicySpec::platform_default("tenant-a", "tenant-safety-signals")
+            .expect("signal policy");
     assert_eq!(signal_policy.kind, "SafetySignalPolicy");
     assert!(signal_policy.platform_automatic_enforcement);
     assert!(signal_policy.tenant_policy_receives_signals);

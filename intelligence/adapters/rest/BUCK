@@ -1,3 +1,11 @@
+# Exported for the intelligence-app boundary-conformance test, which greps this adapter's
+# source as a declared resource rather than a cwd-relative guess.
+export_file(
+    name = "intelligence-rest-source",
+    src = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)
+
 rust_library(
     name = "intelligence-rest",
     srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),

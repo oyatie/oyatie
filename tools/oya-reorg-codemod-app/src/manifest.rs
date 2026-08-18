@@ -37,7 +37,7 @@ pub fn discover_committed_move_plans(repo_root: &Path) -> Result<Vec<PathBuf>, C
             return Err(CodemodError::Io {
                 context: format!("read_dir {}", dir.display()),
                 message: e.to_string(),
-            })
+            });
         }
     };
     let mut plans: Vec<PathBuf> = Vec::new();
@@ -206,7 +206,11 @@ where
     A: Fn(&str) -> Result<bool, CodemodError>,
 {
     let discovered = discover_committed_move_plans(repo_root)?;
-    let active = select_active_move_plan(&discovered, load_old_crate_dirs, old_dir_absent_at_merge_base)?;
+    let active = select_active_move_plan(
+        &discovered,
+        load_old_crate_dirs,
+        old_dir_absent_at_merge_base,
+    )?;
     Ok(explicit.or(active))
 }
 
@@ -427,9 +431,11 @@ mod tests {
                 base_ref: "origin/dev".to_owned(),
             })
         };
-        assert!(select_active_move_plan(&[], load, unresolvable)
-            .expect("a no-move PR must not need a merge-base")
-            .is_none());
+        assert!(
+            select_active_move_plan(&[], load, unresolvable)
+                .expect("a no-move PR must not need a merge-base")
+                .is_none()
+        );
     }
 
     fn crate_move(old: &str) -> crate::model::CrateMove {
@@ -507,13 +513,10 @@ mod tests {
             Ok(plan_probe_paths(&plan))
         };
         let old_dir_absent = |p: &str| Ok(p == "cloud/cloud-iam/slos/iam.openslo.yaml");
-        let selected = select_active_move_plan(
-            &[landed_plan, pending_plan.clone()],
-            load,
-            old_dir_absent,
-        )
-        .expect("a landed artifact-only plan must not wedge the single-plan guard")
-        .expect("the pending artifact-only plan is selected");
+        let selected =
+            select_active_move_plan(&[landed_plan, pending_plan.clone()], load, old_dir_absent)
+                .expect("a landed artifact-only plan must not wedge the single-plan guard")
+                .expect("the pending artifact-only plan is selected");
         assert_eq!(selected, pending_plan);
     }
 
@@ -528,7 +531,9 @@ mod tests {
         // would select the wrong plan, while the authoritative active selector must choose z.
         let load = |p: &Path| -> Result<Vec<String>, CodemodError> {
             if p.ends_with("z-pending-move-plan.json") {
-                Ok(vec!["cloud/cloud-ci/gates/oya-cloud-ci-firewall-app".to_owned()])
+                Ok(vec![
+                    "cloud/cloud-ci/gates/oya-cloud-ci-firewall-app".to_owned(),
+                ])
             } else {
                 Ok(vec!["libs/oya-shared-pdp-adapter-cedar".to_owned()])
             }
@@ -565,7 +570,11 @@ mod tests {
         let b = PathBuf::from("specs/reorg/b-move-plan.json");
         let load = |_p: &Path| Ok(vec!["landed/dir".to_owned()]);
         let old_dir_absent = |_d: &str| Ok(true); // all landed
-        assert!(select_active_move_plan(&[a, b], load, old_dir_absent).unwrap().is_none());
+        assert!(
+            select_active_move_plan(&[a, b], load, old_dir_absent)
+                .unwrap()
+                .is_none()
+        );
     }
 
     #[test]

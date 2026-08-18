@@ -15,6 +15,7 @@ use std::sync::Arc;
 
 use bytes::Bytes;
 
+use intelligence_provider_pool_kernel::DurationMs;
 use oya_intelligence_provider_pool_app::{
     // Seat observability
     AccountHealth,
@@ -49,7 +50,6 @@ use oya_intelligence_provider_pool_app::{
     build_seat_snapshots,
     dispatch_to_pool,
 };
-use intelligence_provider_pool_kernel::DurationMs;
 
 fn pid(s: &str) -> ProviderAccountId {
     ProviderAccountId(s.to_owned())

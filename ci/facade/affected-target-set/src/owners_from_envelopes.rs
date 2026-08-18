@@ -57,9 +57,17 @@ pub struct GeneratedOwners {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum OwnersFromEnvelopesError {
-    MissingObject { field: String },
-    InvalidGlob { envelope_id: String, glob: String },
-    InvalidPrincipal { envelope_id: String, principal: String },
+    MissingObject {
+        field: String,
+    },
+    InvalidGlob {
+        envelope_id: String,
+        glob: String,
+    },
+    InvalidPrincipal {
+        envelope_id: String,
+        principal: String,
+    },
     EmptyEntries,
 }
 
@@ -67,10 +75,7 @@ impl std::fmt::Display for OwnersFromEnvelopesError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::MissingObject { field } => write!(f, "envelopes missing object {field}"),
-            Self::InvalidGlob {
-                envelope_id,
-                glob,
-            } => write!(
+            Self::InvalidGlob { envelope_id, glob } => write!(
                 f,
                 "envelope {envelope_id}: unsupported ownership glob {glob:?}"
             ),
@@ -93,17 +98,15 @@ pub fn is_valid_owner_principal(s: &str) -> bool {
         return false;
     }
     let alnum = |b: u8| b.is_ascii_lowercase() || b.is_ascii_digit();
-    alnum(bytes[0])
-        && alnum(bytes[bytes.len() - 1])
-        && bytes.iter().all(|&b| alnum(b) || b == b'-')
+    alnum(bytes[0]) && alnum(bytes[bytes.len() - 1]) && bytes.iter().all(|&b| alnum(b) || b == b'-')
 }
 
 /// Principal for an envelope entry: `integ/<name>` tail (self-explanatory).
 pub fn principal_for_branch(envelope_id: &str, branch: &str) -> String {
-    if let Some(tail) = branch.strip_prefix("integ/") {
-        if is_valid_owner_principal(tail) {
-            return tail.to_owned();
-        }
+    if let Some(tail) = branch.strip_prefix("integ/")
+        && is_valid_owner_principal(tail)
+    {
+        return tail.to_owned();
     }
     envelope_id.replace('_', "-")
 }
@@ -145,9 +148,11 @@ fn collect_section(
     section_name: &str,
     out: &mut Vec<OwnershipEntry>,
 ) -> Result<(), OwnersFromEnvelopesError> {
-    let object = section.as_object().ok_or_else(|| OwnersFromEnvelopesError::MissingObject {
-        field: section_name.to_owned(),
-    })?;
+    let object = section
+        .as_object()
+        .ok_or_else(|| OwnersFromEnvelopesError::MissingObject {
+            field: section_name.to_owned(),
+        })?;
     for (envelope_id, entry) in object {
         let branch = entry
             .get("branch")
@@ -340,10 +345,7 @@ mod tests {
 
     #[test]
     fn principal_uses_integ_branch_tail() {
-        assert_eq!(
-            principal_for_branch("process_meta", "integ/ci"),
-            "ci"
-        );
+        assert_eq!(principal_for_branch("process_meta", "integ/ci"), "ci");
         assert_eq!(
             principal_for_branch("root_manifests", "integ/build"),
             "build"
@@ -357,7 +359,11 @@ mod tests {
     #[test]
     fn generate_codeowners_and_owners_map() {
         let generated = generate_owners(&mini_envelopes()).expect("generate");
-        assert!(generated.codeowners.contains("* @teams/council-architecture"));
+        assert!(
+            generated
+                .codeowners
+                .contains("* @teams/council-architecture")
+        );
         assert!(generated.codeowners.contains("messaging/ @teams/messaging"));
         assert!(generated.codeowners.contains("compute/ @teams/compute"));
         assert!(generated.codeowners.contains("app/docs/ @teams/app-docs"));
@@ -368,11 +374,17 @@ mod tests {
         assert!(generated.codeowners.contains("Cargo.lock @teams/build"));
         // Specificity: app/docs/ must appear (last-match can override app/ if present).
         assert_eq!(
-            generated.owners_by_prefix.get("messaging/").map(String::as_str),
+            generated
+                .owners_by_prefix
+                .get("messaging/")
+                .map(String::as_str),
             Some("messaging\n")
         );
         assert_eq!(
-            generated.owners_by_prefix.get("app/docs/").map(String::as_str),
+            generated
+                .owners_by_prefix
+                .get("app/docs/")
+                .map(String::as_str),
             Some("app-docs\n")
         );
         // Exact files do not get directory OWNERS entries.

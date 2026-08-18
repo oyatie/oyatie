@@ -7,8 +7,8 @@ use std::fs::{self, OpenOptions};
 use std::io::Write;
 use std::path::PathBuf;
 
-use oya_data_boundary_kernel::{Classified, DataClass};
 use messaging_domain::{EventingError, Outbox, OutboxRecord};
+use oya_data_boundary_kernel::{Classified, DataClass};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct FileOutboxStore {

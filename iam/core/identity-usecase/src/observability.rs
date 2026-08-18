@@ -70,18 +70,18 @@ impl OutcomeLabel {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct IdentityTokenIssueEvent {
     /// Telemetry surface name; always `"identity.token.issue"`.
-    pub surface: &'static str,                 // data_class: INTERNAL_ONLY
+    pub surface: &'static str, // data_class: INTERNAL_ONLY
     /// Outcome of the issuance call.
-    pub outcome: OutcomeLabel,                  // data_class: INTERNAL_ONLY
+    pub outcome: OutcomeLabel, // data_class: INTERNAL_ONLY
     /// Stable error code; `None` on success.
-    pub error_code: Option<&'static str>,       // data_class: INTERNAL_ONLY
+    pub error_code: Option<&'static str>, // data_class: INTERNAL_ONLY
     /// PascalCase purpose label from the request body; `None` when the request
     /// fails validation before a valid purpose can be extracted.
-    pub purpose: Option<&'static str>,          // data_class: INTERNAL_ONLY
+    pub purpose: Option<&'static str>, // data_class: INTERNAL_ONLY
     /// FNV-1a 64-bit hash of the tenant identifier; never the raw value.
-    pub tenant_id_hash: u64,                    // data_class: INTERNAL_ONLY
+    pub tenant_id_hash: u64, // data_class: INTERNAL_ONLY
     /// Operational data class label; always `"AUDIT"`.
-    pub data_class: &'static str,              // data_class: AUDIT
+    pub data_class: &'static str, // data_class: AUDIT
 }
 
 // ── Public constructors ─────────────────────────────────────────────────────
@@ -163,7 +163,7 @@ fn fnv1a_hash(value: &str) -> u64 {
 
 #[cfg(test)]
 mod tests {
-    use super::{AUDIT_LABEL, SURFACE, OutcomeLabel, fnv1a_hash, purpose_label_from_body};
+    use super::{AUDIT_LABEL, OutcomeLabel, SURFACE, fnv1a_hash, purpose_label_from_body};
 
     #[test]
     fn surface_constant_value_is_stable() {
@@ -200,9 +200,6 @@ mod tests {
             purpose_label_from_body("CapabilityInvocation"),
             Some("CapabilityInvocation")
         );
-        assert_eq!(
-            purpose_label_from_body("CoreService"),
-            Some("CoreService")
-        );
+        assert_eq!(purpose_label_from_body("CoreService"), Some("CoreService"));
     }
 }

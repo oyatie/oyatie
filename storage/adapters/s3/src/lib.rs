@@ -265,8 +265,8 @@ fn canonical_body(fields: &[(&str, &str)]) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use storage_domain::{CloudStorageError, StorageProviderObjectPort};
     use oya_data_boundary_kernel::DataClass;
+    use storage_domain::{CloudStorageError, StorageProviderObjectPort};
 
     const REGION: &str = "ap-northeast-2";
     const BUCKET: &str = "oyatie-s3-cold-backup";

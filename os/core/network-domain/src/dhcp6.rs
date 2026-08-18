@@ -377,9 +377,10 @@ impl Dhcp6WireTransaction {
         }
 
         if let Some(actual_iaid) = first_ia_na_iaid(options)?
-            && actual_iaid != self.config.iaid {
-                return Ok(false);
-            }
+            && actual_iaid != self.config.iaid
+        {
+            return Ok(false);
+        }
 
         if let Some(expected_server_identifier) = expected_server_identifier {
             match option_data(options, DHCP6_OPTION_SERVER_ID) {
@@ -614,10 +615,9 @@ impl OperatorSpec {
             )?);
         }
 
-        if use_hostname
-            && let Some(fqdn) = &lease.fqdn {
-                out.hostname = Some(hostname_from_fqdn(fqdn)?);
-            }
+        if use_hostname && let Some(fqdn) = &lease.fqdn {
+            out.hostname = Some(hostname_from_fqdn(fqdn)?);
+        }
 
         out.time_servers = lease.ntp_servers.iter().map(ToString::to_string).collect();
 

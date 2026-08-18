@@ -9,7 +9,7 @@
     "ceilings": {
       "skip_non_literal_argument": 1,
       "skip_absolute_literal": 0,
-      "skip_build_output_path": 21,
+      "skip_build_output_path": 0,
       "skip_no_owning_target": 4,
       "skip_buck_unparseable": 0
     }
@@ -19,29 +19,7 @@
       "intelligence/core/openapi-domain/src/lib.rs:6088"
     ],
     "skip_absolute_literal": [],
-    "skip_build_output_path": [
-      "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-aarch64-adapter/src/user.rs:116",
-      "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-aarch64-adapter/src/user.rs:128",
-      "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-aarch64-adapter/src/user.rs:137",
-      "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-aarch64-adapter/src/user.rs:147",
-      "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-aarch64-adapter/src/user.rs:156",
-      "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-aarch64-adapter/src/user.rs:67",
-      "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-aarch64-adapter/src/user.rs:80",
-      "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-aarch64-adapter/src/user.rs:89",
-      "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-aarch64-adapter/src/user.rs:99",
-      "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-x86-64-adapter/src/user.rs:101",
-      "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-x86-64-adapter/src/user.rs:115",
-      "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-x86-64-adapter/src/user.rs:133",
-      "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-x86-64-adapter/src/user.rs:146",
-      "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-x86-64-adapter/src/user.rs:160",
-      "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-x86-64-adapter/src/user.rs:168",
-      "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-x86-64-adapter/src/user.rs:178",
-      "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-x86-64-adapter/src/user.rs:189",
-      "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-x86-64-adapter/src/user.rs:198",
-      "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-x86-64-adapter/src/user.rs:70",
-      "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-x86-64-adapter/src/user.rs:83",
-      "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-x86-64-adapter/src/user.rs:92"
-    ],
+    "skip_build_output_path": [],
     "skip_no_owning_target": [
       "os/core/init-app/tests/boot_config_address.rs:8",
       "libs/oya-shared-platform-contracts-kernel/tests/cedar_policy_validation.rs:18",

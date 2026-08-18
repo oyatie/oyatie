@@ -14,10 +14,10 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
+use iam_tenant_rbac_domain::{GroupCloseRollup, TenantRbacPolicyDecision};
 use iam_tenant_rbac_usecase::{
     CrossServiceWorkflowEnvelope, IncidentRollbackEnvelope, TenantRbacOpsEnvelope,
 };
-use iam_tenant_rbac_domain::{GroupCloseRollup, TenantRbacPolicyDecision};
 
 const POLICY_ADMISSION_TOPIC: &str = "policy.tenant-rbac.service-write.admission";
 const GROUP_CLOSE_ROLLUP_TOPIC: &str = "projection.tenant-rbac.group-close.rollup";

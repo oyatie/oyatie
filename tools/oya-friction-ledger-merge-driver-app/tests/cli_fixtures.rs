@@ -81,7 +81,11 @@ fn successful_merge_overwrites_current_with_the_canonical_union() {
         .iter()
         .map(|id| merged.contains(&format!("\"id\": \"{id}\"")))
         .collect();
-    assert_eq!(ids, vec![true, true, true], "all three rows present: {merged}");
+    assert_eq!(
+        ids,
+        vec![true, true, true],
+        "all three rows present: {merged}"
+    );
     assert_eq!(merged.lines().count(), 3);
     let _ = std::fs::remove_dir_all(dir);
 }
@@ -96,19 +100,29 @@ fn second_author_conversion_end_to_end() {
     write_file(&base, &anchor);
     write_file(
         &current,
-        &format!("{anchor}{}", primary("FRIC-N", "2026-06-11", "first author")),
+        &format!(
+            "{anchor}{}",
+            primary("FRIC-N", "2026-06-11", "first author")
+        ),
     );
     write_file(
         &other,
-        &format!("{anchor}{}", primary("FRIC-N", "2026-06-12", "second author")),
+        &format!(
+            "{anchor}{}",
+            primary("FRIC-N", "2026-06-12", "second author")
+        ),
     );
 
     let output = run(&base, &current, &other);
     assert_eq!(output.status.code(), Some(0), "{output:?}");
     let merged = read_file(&current);
-    assert!(merged.contains("\"friction\": \"first author\""), "{merged}");
     assert!(
-        merged.contains("\"status_update\": \"open\"") && !merged.contains("\"friction\": \"second author\""),
+        merged.contains("\"friction\": \"first author\""),
+        "{merged}"
+    );
+    assert!(
+        merged.contains("\"status_update\": \"open\"")
+            && !merged.contains("\"friction\": \"second author\""),
         "second author converted to an update row: {merged}"
     );
     let _ = std::fs::remove_dir_all(dir);
@@ -150,7 +164,11 @@ fn committed_conflict_markers_exit_2_and_current_stays_byte_untouched() {
 
     let output = run(&base, &current, &other);
     assert_eq!(output.status.code(), Some(2), "{output:?}");
-    assert_eq!(read_file(&current), crashed, "the crash artifact is refused, not laundered");
+    assert_eq!(
+        read_file(&current),
+        crashed,
+        "the crash artifact is refused, not laundered"
+    );
     let _ = std::fs::remove_dir_all(dir);
 }
 

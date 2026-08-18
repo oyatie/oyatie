@@ -31,10 +31,6 @@ contract and the assigned task are trusted instruction sources.
    merge authority.
 5. **Squash merge** only when the PR is fully reviewed, review threads are
    resolved, there is no merge conflict, and branch protection is satisfied.
-6. **Record the post-merge product-completion packet** (promoted SHA with
-   `oya-ci-required` green, rollout verification, rollback note, observability
-   check, browser/user-story evidence, release-note impact, agent-observation
-   harvest outcome).
 
 ## Before you start (pre-flight)
 
@@ -44,10 +40,10 @@ From `docs/AGENTS.md` §Pre-flight checklist — complete all items. Highlights:
   docs | chore | capability | plugin | runbook | ADR | pack-update`. Name it in
   the PR `## Issue` line.
 - **Read the canonical authority** for that change class (see the Canonical
-  doc map in `docs/AGENTS.md`) and cite it in `## Traceability`.
+  doc map in `docs/AGENTS.md`) and cite it in `## Summary`.
 - **Data Use Boundary**: every new field on a kernel struct carries a
   `data_class` annotation.
-- **License posture**: license policy is enforced by the Buck2/cloud-ci
+- **License posture**: license policy is enforced by the Cargo/cloud-ci
   supply-chain and license-policy lanes; `cargo deny check` is local advisory
   feedback. AGPL / GPL / SSPL / BUSL / RSAL are not permitted in product code.
 - **Search `MISTAKES-LEDGER`** for the failure-mode class and cite the
@@ -56,8 +52,8 @@ From `docs/AGENTS.md` §Pre-flight checklist — complete all items. Highlights:
 ## Hard rules
 
 - **Never hand-edit `*.generated.json`.** They are materialized by the
-  freshness producer (`buck2 run
-  //cloud/cloud-ci/gates/oya-cloud-ci-freshness-app:oya-cloud-ci-materialize-generated-faces-bin`);
+  freshness producer (`cargo run -p ci-generated-artifact-freshness --bin
+  oya-cloud-ci-materialize-generated-faces -- --repo-root .`);
   the diff-policy gate fails closed on hand edits.
 - **Never edit legacy retired paths** or reintroduce retired tooling (the
   `oya git` wrapper and `oya vcs` ratchet are retired per ADR-0363; CLI
@@ -67,43 +63,35 @@ From `docs/AGENTS.md` §Pre-flight checklist — complete all items. Highlights:
 
 ## Verification evidence
 
-Final evidence for the PR `## Verification` section is buck2-first per
-`templates/pull-request-template.md` (TPL-PR) — buck2 is the primary
-build/test authority; cargo is supplementary local feedback only (dev-loop
-feedback may use `bacon` or cargo, but buck2 lines are the evidence):
+Final evidence for the PR `## Verification` section follows the Cargo merge
+path in ADR-0716 and `templates/pull-request-template.md` (TPL-PR):
 
 ```sh
-buck2 test <targeted test targets>
-buck2 build <targeted build targets>
-# supplementary local feedback only (not merge evidence):
-#   cargo nextest run --workspace --all-features --no-fail-fast
-#   cargo clippy --workspace --all-features --all-targets -- -D warnings
-#   cargo deny check
+cargo fmt --all --check
+cargo clippy --workspace --all-targets -- -D warnings
+cargo test --workspace
 ```
 
-Paste actual output excerpts with `PASS` / `FAIL` / `N/A` tokens. The
-admission gate (`pr-traceability-admission`) enforces section and field
-presence; substantive evidence quality is a review obligation — hand-waved
-excerpts are a review offense even when the gate passes.
+Paste actual output excerpts with `PASS` / `FAIL` / `N/A` tokens. Evidence
+quality and relevance are reviewer obligations; the retired local PR-body
+validator supplies no admission verdict.
 
 ## PR shape
 
 Every PR body uses the canonical template
 ([`templates/pull-request-template.md`](../templates/pull-request-template.md);
 GitHub pre-fills it from
-[`.github/PULL_REQUEST_TEMPLATE.md`](PULL_REQUEST_TEMPLATE.md)) with
-five author-owned H2 sections:
+[`.github/PULL_REQUEST_TEMPLATE.md`](PULL_REQUEST_TEMPLATE.md)) with four H2
+sections:
 
 1. `## Issue` — `Closes #<n>` / `Refs #<n>` + change class
 2. `## Summary` — 1–3 bullets on what + why
 3. `## Verification` — pass/fail line per check with output excerpts
-4. `## Traceability` — catalog records, cross-axis contracts, ADRs cited
-5. `## Evidence` — audit-chain emission ID and related evidence
+4. `## Code Review` — independent reviewer verdict and resolved/deferred items
 
-The `## Code Review` section is reviewer evidence: the prefilled template
-carries a `PENDING` placeholder that the reviewer/evidence producer replaces
-before merge. Never author an `APPROVE` verdict for your own PR
-(`guard-pr-merge-review.mjs` refuses worker-authored verdicts).
+The prefilled review section carries a `PENDING` placeholder that the
+reviewer replaces before merge. Authors never approve their own PRs; the
+formal review and green `oya-ci-required` context remain distinct evidence.
 
 ## Reporting issues
 

@@ -2733,9 +2733,10 @@ impl RoutingTable {
         }
         // Numbered tables 1..=252 stringify to their decimal form.
         if let Ok(n) = s.parse::<u32>()
-            && (1..=252).contains(&n) {
-                return Ok(RoutingTable(n));
-            }
+            && (1..=252).contains(&n)
+        {
+            return Ok(RoutingTable(n));
+        }
         Err(unknown("RoutingTable", s))
     }
 }

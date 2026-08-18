@@ -98,9 +98,9 @@ mod tests {
     use crate::runtime::RuntimeMode;
     use crate::sequence::Sequence;
     use crate::task::NamedTask;
+    use os_kernel::MachineType;
     use std::cell::Cell;
     use std::rc::Rc;
-    use os_kernel::MachineType;
 
     fn ctx() -> TaskContext {
         TaskContext::new(

@@ -206,9 +206,7 @@ impl ArchitectureMap {
         // makes the result deterministic across runs even for equal graphs.
         let mut adj: BTreeMap<&NodeId, BTreeSet<&NodeId>> = BTreeMap::new();
         for edge in &self.edges {
-            adj.entry(&edge.source)
-                .or_default()
-                .insert(&edge.target);
+            adj.entry(&edge.source).or_default().insert(&edge.target);
         }
 
         let mut visited: BTreeSet<NodeId> = BTreeSet::new();
@@ -252,9 +250,7 @@ impl ArchitectureMap {
         let mut adj: BTreeMap<&NodeId, BTreeSet<&NodeId>> = BTreeMap::new();
         for edge in &self.edges {
             if edge.kind == EdgeKind::DependsOn {
-                adj.entry(&edge.source)
-                    .or_default()
-                    .insert(&edge.target);
+                adj.entry(&edge.source).or_default().insert(&edge.target);
             }
         }
 
@@ -268,7 +264,7 @@ impl ArchitectureMap {
         // which are small graphs (hundreds of nodes at most).
         for root in self.nodes.keys() {
             // Only enter the DFS if root has outgoing DependsOn edges.
-            if adj.get(root).map_or(true, |s| s.is_empty()) {
+            if adj.get(root).is_none_or(|s| s.is_empty()) {
                 continue;
             }
 
@@ -285,17 +281,13 @@ impl ArchitectureMap {
             };
 
             // (neighbours_remaining, current_node)
-            let mut frame_stack: Vec<(Vec<&NodeId>, &NodeId)> = vec![(
-                neighbours_of(root),
-                root,
-            )];
+            let mut frame_stack: Vec<(Vec<&NodeId>, &NodeId)> = vec![(neighbours_of(root), root)];
 
             while let Some((remaining, _current)) = frame_stack.last_mut() {
                 if let Some(next) = remaining.pop() {
                     if next == root {
                         // Found a cycle: path + back-edge to root.
-                        let cycle_raw: Vec<NodeId> =
-                            path.iter().map(|n| (*n).clone()).collect();
+                        let cycle_raw: Vec<NodeId> = path.iter().map(|n| (*n).clone()).collect();
                         let normalised = Self::normalise_cycle(cycle_raw);
                         all_cycles.push(normalised);
                     } else if !path_set.contains(next) {
@@ -629,10 +621,7 @@ mod tests {
         let cycles = map.depends_on_cycles();
         assert_eq!(cycles.len(), 1);
         // Canonical form: smallest id first → ["a", "b"].
-        assert_eq!(
-            cycles[0],
-            vec![NodeId("a".into()), NodeId("b".into())]
-        );
+        assert_eq!(cycles[0], vec![NodeId("a".into()), NodeId("b".into())]);
     }
 
     #[test]

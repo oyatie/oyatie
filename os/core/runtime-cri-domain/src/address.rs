@@ -9,8 +9,8 @@
 //! ordering invariant — "you must be able to reach the daemon at an address
 //! before you can talk to it" — is testable offline.
 
-use std::collections::HashMap;
 use os_kernel::error::{Error, Result};
+use std::collections::HashMap;
 
 /// The well-known containerd socket Talos uses for the CRI (`k8s.io`) namespace.
 pub const CRI_CONTAINERD_ADDRESS: &str = "/run/containerd/containerd.sock";

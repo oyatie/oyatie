@@ -15,29 +15,63 @@
 //! transport (NOT the payload), refuse to boot without a
 //! [`crate::authz::CrmAuthzProvider`], and run the gate before dispatch.
 
-use crate::authz::{authorize_crm_command, AuthorizedCrmContext, CallerCredential, CrmAction, CrmAuthzProvider};
+use crate::authz::{
+    AuthorizedCrmContext, CallerCredential, CrmAction, CrmAuthzProvider, authorize_crm_command,
+};
 use crate::domain::Capability;
 use crate::error::{Result, ServiceError};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
-pub struct GrpcMethod { pub service: &'static str, pub method: &'static str, pub request: &'static str, pub response: &'static str }
+pub struct GrpcMethod {
+    pub service: &'static str,
+    pub method: &'static str,
+    pub request: &'static str,
+    pub response: &'static str,
+}
 /// gRPC request DTO. NOTE: `tenant_id` is non-authoritative caller-supplied data
 /// (see module docs / ADR-0603); it is structurally never read by the gate and
 /// never selects the resource tenant.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-pub struct GrpcRequest { pub tenant_id: String, pub method: String, pub payload_json: serde_json::Value }
+pub struct GrpcRequest {
+    pub tenant_id: String,
+    pub method: String,
+    pub payload_json: serde_json::Value,
+}
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
-pub struct GrpcResponse { pub accepted: bool, pub payload_json: serde_json::Value }
+pub struct GrpcResponse {
+    pub accepted: bool,
+    pub payload_json: serde_json::Value,
+}
 
 pub struct GrpcHandler;
 impl GrpcHandler {
     pub fn methods() -> Vec<GrpcMethod> {
         vec![
-            GrpcMethod { service: "oyatie.crm.v1.CrmService", method: "SubmitCommand", request: "SubmitCommandRequest", response: "CommandReceipt" },
-            GrpcMethod { service: "oyatie.crm.v1.CrmService", method: "Reconcile", request: "ReconcileRequest", response: "CommandReceipt" },
-            GrpcMethod { service: "oyatie.crm.v1.CrmService", method: "ApplyGovernanceHold", request: "ApplyGovernanceHoldRequest", response: "CommandReceipt" },
-            GrpcMethod { service: "oyatie.crm.v1.CrmService", method: "ExportEvidence", request: "ExportEvidenceRequest", response: "CommandReceipt" },
+            GrpcMethod {
+                service: "oyatie.crm.v1.CrmService",
+                method: "SubmitCommand",
+                request: "SubmitCommandRequest",
+                response: "CommandReceipt",
+            },
+            GrpcMethod {
+                service: "oyatie.crm.v1.CrmService",
+                method: "Reconcile",
+                request: "ReconcileRequest",
+                response: "CommandReceipt",
+            },
+            GrpcMethod {
+                service: "oyatie.crm.v1.CrmService",
+                method: "ApplyGovernanceHold",
+                request: "ApplyGovernanceHoldRequest",
+                response: "CommandReceipt",
+            },
+            GrpcMethod {
+                service: "oyatie.crm.v1.CrmService",
+                method: "ExportEvidence",
+                request: "ExportEvidenceRequest",
+                response: "CommandReceipt",
+            },
         ]
     }
 
@@ -55,7 +89,12 @@ impl GrpcHandler {
     /// # Errors
     /// `Unauthenticated`/`Forbidden` on a failed gate; `ContractStub` once
     /// authorized.
-    pub fn handle(provider: &CrmAuthzProvider, credential: &CallerCredential, capability: Capability, request: GrpcRequest) -> Result<GrpcResponse> {
+    pub fn handle(
+        provider: &CrmAuthzProvider,
+        credential: &CallerCredential,
+        capability: Capability,
+        request: GrpcRequest,
+    ) -> Result<GrpcResponse> {
         let scope = Self::resolve_scope(provider, credential, capability, &request)?;
         let _ = scope.tenant_id();
         Err(ServiceError::contract_stub("grpc"))
@@ -67,12 +106,23 @@ impl GrpcHandler {
     ///
     /// # Errors
     /// `Unauthenticated`/`Forbidden` on a failed gate.
-    pub fn resolve_scope(provider: &CrmAuthzProvider, credential: &CallerCredential, capability: Capability, _request: &GrpcRequest) -> Result<AuthorizedCrmContext> {
-        authorize_crm_command(provider, credential, CrmAction(capability)).map_err(ServiceError::from)
+    pub fn resolve_scope(
+        provider: &CrmAuthzProvider,
+        credential: &CallerCredential,
+        capability: Capability,
+        _request: &GrpcRequest,
+    ) -> Result<AuthorizedCrmContext> {
+        authorize_crm_command(provider, credential, CrmAction(capability))
+            .map_err(ServiceError::from)
     }
 }
 
 pub fn validate_methods(methods: &[GrpcMethod]) -> Result<()> {
-    if methods.len() < 4 { return Err(ServiceError::validation("grpc_methods", "scaffold requires command and read gRPC methods")); }
+    if methods.len() < 4 {
+        return Err(ServiceError::validation(
+            "grpc_methods",
+            "scaffold requires command and read gRPC methods",
+        ));
+    }
     Ok(())
 }

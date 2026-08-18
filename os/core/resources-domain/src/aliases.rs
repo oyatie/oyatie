@@ -7,8 +7,8 @@
 //! [`ResourceDefinition`]s and resolves user input, reporting ambiguities.
 
 use crate::definition::ResourceDefinition;
-use std::collections::BTreeMap;
 use os_kernel::error::{Error, Result};
+use std::collections::BTreeMap;
 
 /// A case-insensitive index from friendly names to canonical type names.
 #[derive(Debug, Clone, Default)]

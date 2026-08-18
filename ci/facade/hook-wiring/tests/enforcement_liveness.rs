@@ -4,8 +4,10 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
 use std::collections::BTreeSet;
+use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
 use std::process::Command;
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use ci_hook_wiring::{Verdict, evaluate, evaluate_keyed};
@@ -15,6 +17,10 @@ const PRODUCER_ENV: &str = "OYA_CI_ENFORCEMENT_LIVENESS_PRODUCER";
 const CLAUDE_SETTINGS_ENV: &str = "OYA_CI_ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS";
 const CODEX_HOOKS_ENV: &str = "OYA_CI_ENFORCEMENT_LIVENESS_CODEX_HOOKS";
 const HOOKS_DIR_ENV: &str = "OYA_CI_ENFORCEMENT_LIVENESS_HOOKS_DIR";
+const BUCK: &str = include_str!("../BUCK");
+const CARGO_CONFIG: &str = include_str!("../../../../.cargo/config.toml");
+const CARGO_PRODUCER_BINDING: &str = "cargo-test-binary:oya-cloud-ci-accounting-registry-app";
+static TEMP_SEQUENCE: AtomicU64 = AtomicU64::new(0);
 
 struct DeclaredCorpus {
     claude_settings: PathBuf,
@@ -43,10 +49,8 @@ fn load_produced_face_with_tracked_paths(
     corpus: &DeclaredCorpus,
     tracked_paths: Vec<String>,
 ) -> Value {
-    let producer = std::env::var(PRODUCER_ENV).unwrap_or_else(|e| {
-        panic!("{PRODUCER_ENV} must point at Buck-built accounting-registry producer: {e}")
-    });
     let root = repo_root();
+    let producer = required_declared_producer(&root).unwrap_or_else(|error| panic!("{error}"));
     let (scm_facts_dir, scm_facts) = write_enforcement_scm_facts(tracked_paths);
     let output = Command::new(&producer)
         .args([
@@ -68,17 +72,62 @@ fn load_produced_face_with_tracked_paths(
             "enforcement-liveness",
         ])
         .output()
-        .unwrap_or_else(|e| panic!("run Buck-built enforcement-liveness producer {producer}: {e}"));
+        .unwrap_or_else(|e| {
+            panic!(
+                "run declared enforcement-liveness producer {}: {e}",
+                producer.display()
+            )
+        });
     let _ = std::fs::remove_dir_all(&scm_facts_dir);
     if !output.status.success() {
         panic!(
-            "Buck-built enforcement-liveness producer failed with status {:?}\nstderr:\n{}",
+            "declared enforcement-liveness producer failed with status {:?}\nstderr:\n{}",
             output.status.code(),
             String::from_utf8_lossy(&output.stderr)
         );
     }
     serde_json::from_slice(&output.stdout)
-        .unwrap_or_else(|e| panic!("parse Buck-produced enforcement-liveness face: {e}"))
+        .unwrap_or_else(|e| panic!("parse declared enforcement-liveness face: {e}"))
+}
+
+fn required_declared_producer(root: &Path) -> Result<PathBuf, String> {
+    let declared = std::env::var_os(PRODUCER_ENV)
+        .filter(|value| !value.is_empty())
+        .ok_or_else(|| format!("{PRODUCER_ENV} must name a declared producer resource"))?;
+    resolve_declared_producer(root, &declared)
+}
+
+fn resolve_declared_producer(root: &Path, declared: &OsStr) -> Result<PathBuf, String> {
+    let producer = ci_path_resolver_adapters::resolve_cargo_test_binary(root, declared)?;
+    let metadata = std::fs::symlink_metadata(&producer).map_err(|error| {
+        format!(
+            "inspect declared {PRODUCER_ENV} producer {}: {error}",
+            producer.display()
+        )
+    })?;
+    if metadata.file_type().is_symlink() || !metadata.is_file() {
+        return Err(format!(
+            "{PRODUCER_ENV} must bind a regular non-symlink file, got {}",
+            producer.display()
+        ));
+    }
+    Ok(producer)
+}
+
+fn assert_cargo_buck_producer_binding_parity() {
+    let buck_binding = format!(
+        "\"{PRODUCER_ENV}\": \"$(location //ci/facade/artifact-inventory-registry:oya-cloud-ci-accounting-registry-app-bin)\""
+    );
+    assert!(
+        BUCK.contains(&buck_binding),
+        "Buck must keep the accounting-registry producer as its authoritative declared resource"
+    );
+    let cargo_binding =
+        format!("{PRODUCER_ENV} = {{ value = \"{CARGO_PRODUCER_BINDING}\", force = false }}");
+    assert!(
+        CARGO_CONFIG.lines().any(|line| line == cargo_binding),
+        "Cargo must mirror the Buck producer with a portable logical resource and force=false"
+    );
 }
 
 fn declared_corpus() -> DeclaredCorpus {
@@ -120,14 +169,7 @@ fn declared_dir(env: &str) -> PathBuf {
 }
 
 fn synthetic_declared_corpus() -> (PathBuf, DeclaredCorpus) {
-    let nonce = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .expect("system time before unix epoch")
-        .as_nanos();
-    let root = std::env::temp_dir().join(format!(
-        "oya-enforcement-liveness-declared-corpus-{}-{nonce}",
-        std::process::id()
-    ));
+    let root = unique_temp_path("oya-enforcement-liveness-declared-corpus");
     let hooks_dir = root.join("hooks");
     std::fs::create_dir_all(&hooks_dir).expect("create synthetic hooks dir");
 
@@ -160,14 +202,7 @@ fn synthetic_declared_corpus() -> (PathBuf, DeclaredCorpus) {
 }
 
 fn write_enforcement_scm_facts(tracked_paths: Vec<String>) -> (PathBuf, PathBuf) {
-    let nonce = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .expect("system time before unix epoch")
-        .as_nanos();
-    let dir = std::env::temp_dir().join(format!(
-        "oya-enforcement-liveness-scm-facts-{}-{nonce}",
-        std::process::id()
-    ));
+    let dir = unique_temp_path("oya-enforcement-liveness-scm-facts");
     std::fs::create_dir_all(&dir).expect("create temp scm facts dir");
     let path = dir.join("scm-facts.json");
     std::fs::write(
@@ -181,6 +216,15 @@ fn write_enforcement_scm_facts(tracked_paths: Vec<String>) -> (PathBuf, PathBuf)
     )
     .expect("write current enforcement scm facts");
     (dir, path)
+}
+
+fn unique_temp_path(label: &str) -> PathBuf {
+    let nonce = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .expect("system time before unix epoch")
+        .as_nanos();
+    let sequence = TEMP_SEQUENCE.fetch_add(1, Ordering::Relaxed);
+    std::env::temp_dir().join(format!("{label}-{}-{nonce}-{sequence}", std::process::id()))
 }
 
 fn current_enforcement_tracked_paths(corpus: &DeclaredCorpus) -> Vec<String> {
@@ -513,6 +557,31 @@ fn evaluate_is_bare_projection_of_evaluate_keyed() {
 #[test]
 fn producer_consumes_declared_corpus_for_synthetic_hook_paths() {
     let (declared_root, corpus) = synthetic_declared_corpus();
+    let non_file = declared_root.join("not-a-producer");
+    std::fs::create_dir(&non_file).expect("create non-file producer fixture");
+    let non_file_error = resolve_declared_producer(&declared_root, non_file.as_os_str())
+        .expect_err("producer directory must fail closed");
+    assert!(non_file_error.contains("regular non-symlink file"));
+    let traversal_error = resolve_declared_producer(
+        &declared_root,
+        OsStr::new("cargo-test-binary:../poisoned-producer"),
+    )
+    .expect_err("logical producer traversal must fail closed");
+    assert!(traversal_error.contains("invalid Cargo test binary resource name"));
+
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::symlink;
+
+        let regular = declared_root.join("regular-producer");
+        let linked = declared_root.join("linked-producer");
+        std::fs::write(&regular, b"fixture").expect("write producer fixture");
+        symlink(&regular, &linked).expect("create producer symlink fixture");
+        let symlink_error = resolve_declared_producer(&declared_root, linked.as_os_str())
+            .expect_err("producer symlink must fail closed");
+        assert!(symlink_error.contains("regular non-symlink file"));
+    }
+
     let tracked_paths = vec![
         ".claude/settings.json".to_owned(),
         ".codex/hooks.json".to_owned(),
@@ -542,6 +611,7 @@ fn producer_consumes_declared_corpus_for_synthetic_hook_paths() {
 
 #[test]
 fn enforcement_liveness_face_reports_current_tree_green() {
+    assert_cargo_buck_producer_binding_parity();
     let corpus = declared_corpus();
     let expected_hooks = current_hook_paths(&corpus.hooks_dir);
     let expected_stubs = current_stub_paths(&corpus.hooks_dir, &expected_hooks);

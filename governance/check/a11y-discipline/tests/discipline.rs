@@ -1,8 +1,6 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
-use check_a11y_discipline::{
-    A11yGapReason, ClientStack, ClientStackManifest, WcagTarget, check,
-};
+use check_a11y_discipline::{A11yGapReason, ClientStack, ClientStackManifest, WcagTarget, check};
 use std::collections::BTreeSet;
 
 fn mf(ms: &str, stack: ClientStack, runners: &[&str]) -> ClientStackManifest {

@@ -1,0 +1,11 @@
+apiVersion: v2
+name: oyatie-microservice
+description: >-
+  The single Oyatie microservice chart. Every backbone microservice renders from
+  THIS chart plus its own values.yaml; services do not carry their own copy of
+  these templates. Replaces 81 near-identical per-service charts in which 78 of
+  81 configmap templates, 77 of 81 service templates and 73 of 81 deployment
+  templates were byte-identical duplicates.
+type: application
+version: 0.1.0
+appVersion: "0.1.0"

@@ -347,8 +347,7 @@ impl RetryPolicyEvaluator for WorkflowExecutionMemoryAdapter {
     fn next_delay_seconds(
         &self,
         attempt: &RetryAttempt,
-    ) -> Result<Option<u64>, workflow_execution_engine_usecase::ExecutionEngineKernelError>
-    {
+    ) -> Result<Option<u64>, workflow_execution_engine_usecase::ExecutionEngineKernelError> {
         if !is_safe_retry(attempt) || attempt.attempt == 0 {
             return Err(
                 workflow_execution_engine_usecase::ExecutionEngineKernelError::UnsafeMetadata,

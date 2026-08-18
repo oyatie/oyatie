@@ -16,12 +16,7 @@ pub const fn w0_ready() -> bool {
 }
 
 /// Dual-home logical paths in stable sort order (relative to `build/toolchains/`).
-pub const CORPUS_PATHS: [&str; 4] = [
-    "BUCK",
-    "cache/BUCK",
-    "cache/OWNERS",
-    "cache/defs.bzl",
-];
+pub const CORPUS_PATHS: [&str; 4] = ["BUCK", "cache/BUCK", "cache/OWNERS", "cache/defs.bzl"];
 
 // Package-local mirrors (`.txt` so buck2 srcs include them; logical paths stay dual-home).
 const CORPUS_BUCK: &str = include_str!("corpus/toolchains.buck.txt");

@@ -132,13 +132,20 @@ where
     }
 }
 
-fn ensure_command(envelope: &CommandEnvelope, matches_expected: bool, expected: &str) -> Result<()> {
+fn ensure_command(
+    envelope: &CommandEnvelope,
+    matches_expected: bool,
+    expected: &str,
+) -> Result<()> {
     if matches_expected {
         Ok(())
     } else {
         Err(ServiceError::validation(
             "command",
-            format!("expected {expected}, got {:?}", envelope.command.capability()),
+            format!(
+                "expected {expected}, got {:?}",
+                envelope.command.capability()
+            ),
         ))
     }
 }
@@ -160,12 +167,10 @@ fn event_for(envelope: &CommandEnvelope) -> WhiteboardEvent {
             board_id: board_id.clone(),
             tenant_id,
         },
-        WhiteboardCommand::SnapshotHistory { board_id } => {
-            WhiteboardEvent::HistorySnapshotQueued {
-                board_id: board_id.clone(),
-                tenant_id,
-            }
-        }
+        WhiteboardCommand::SnapshotHistory { board_id } => WhiteboardEvent::HistorySnapshotQueued {
+            board_id: board_id.clone(),
+            tenant_id,
+        },
         WhiteboardCommand::SyncPresence { board_id } => WhiteboardEvent::PresenceSyncRequested {
             board_id: board_id.clone(),
             tenant_id,

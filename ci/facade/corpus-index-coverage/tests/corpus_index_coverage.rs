@@ -11,9 +11,8 @@ use std::path::{Path, PathBuf};
 
 use ci_corpus_index_coverage::{
     CODE_COVERAGE_REGRESSION, CODE_UNPACKAGED_DROP_UNATTRIBUTED, CODE_VACUOUS_SCAN, CorpusInput,
-    ExtractionDeclaration,
-    FaceObservation, OyaCorpusPolicy, PackageObservation, Policy, derive_faces, evaluate,
-    evaluate_face_coverage, extraction_declaration,
+    ExtractionDeclaration, FaceObservation, OyaCorpusPolicy, PackageObservation, Policy,
+    derive_faces, evaluate, evaluate_face_coverage, extraction_declaration,
 };
 
 const POLICY_PATH: &str = "ci/facade/corpus-index-coverage/corpus-index-coverage-policy.json";

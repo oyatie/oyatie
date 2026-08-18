@@ -1706,11 +1706,9 @@ mod tests {
             "claim_policy": {"metadata_only_required": true}
         });
         let findings = evaluate_keyed(&policy, &json!({}));
-        assert!(
-            findings.iter().any(|finding| {
-                finding.code == "cloud_resource_contract_policy_source_migration_row_invalid"
-            })
-        );
+        assert!(findings.iter().any(|finding| {
+            finding.code == "cloud_resource_contract_policy_source_migration_row_invalid"
+        }));
     }
 
     #[test]

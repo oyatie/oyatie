@@ -564,5 +564,8 @@ fn both_top_level_service_manifest_shapes_are_governed_and_deeper_paths_are_not(
 
     // Not a manifest, and not under a governed root.
     assert!(!is_top_level_service_manifest("billing/README.md", &roots));
-    assert!(!is_top_level_service_manifest("ungoverned/manifest.json", &roots));
+    assert!(!is_top_level_service_manifest(
+        "ungoverned/manifest.json",
+        &roots
+    ));
 }

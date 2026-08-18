@@ -26,9 +26,8 @@ impl AutonomyCeilingPort for CedarAutonomyCeilingAdapter {
         let tenant_id = TenantId::new(&account_id.0);
 
         // Construct a dummy capability for the check
-        let cap_id = intelligence_capability_registry_kernel::CapabilityId::new(
-            "foundry.supervisor.spawn",
-        );
+        let cap_id =
+            intelligence_capability_registry_kernel::CapabilityId::new("foundry.supervisor.spawn");
         let cap = intelligence_capability_registry_kernel::Capability::new(
             cap_id,
             "spawn",
