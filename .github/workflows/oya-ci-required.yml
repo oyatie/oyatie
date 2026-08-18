@@ -285,10 +285,13 @@ jobs:
   # It still runs post-merge on dev, nightly, and on demand, so a real cross-platform
   # regression is caught within a day without taxing every PR and every batch.
   #
-  # windows-latest is REMOVED from the matrix, not merely skipped: it failed 9 of 9 recent runs
-  # on a known blocker (the canonical retirement-facts writer requires Unix dirfd support). A
-  # check that cannot pass carries no information and teaches readers to ignore red. The
-  # portability gap stays tracked as work, not as a permanently-red job.
+  # windows-latest STAYS in the matrix. It failed 9 of 9 recent runs on a known blocker — the
+  # canonical retirement-facts writer required Unix dirfd support — and an earlier draft of this
+  # change removed it on the grounds that a check which cannot pass carries no information. That
+  # reasoning is now obsolete: #2111 implements the non-unix writer, so Windows becomes a real
+  # signal again. Moving smoke off the per-PR path already recovers the runner slots; deleting the
+  # platform as well would have thrown away coverage that a concurrent PR was in the middle of
+  # earning back.
   cross-platform-smoke:
     name: cross-platform-smoke (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
@@ -298,7 +301,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-latest]
+        os: [windows-latest, macos-latest]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
