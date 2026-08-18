@@ -177,13 +177,9 @@ registry/graph/active-artifact-contract-edges.json
 /slice*-*.log
 /slice*-*.txt
 # cloud-kernel QEMU/serial CONFORMANCE run output (build output, not evidence). The
-# crate-local cloud/cloud-kernel/.gitignore ignores top-level /out/*.log but NOT the
-# out/conformance/ subdir or the .txt report variants, which is how 50 conformance logs +
 # stress-summary.txt slipped in via the bulk kernel import (#640). The tracked /out/*.elf
 # carriers (include_bytes! build inputs) + musl-src/hello.c stay un-ignored in the crate
 # .gitignore; this only adds the run-output subtree.
-cloud/cloud-kernel/out/conformance/
-cloud/cloud-kernel/out/stress-summary.txt
 # Merge-base frozen-baseline snapshot (ADR-0551, FRIC-1781112000): a per-checkout derived
 # reference materialized by the scm-facts emitter from `git merge-base <base_ref> HEAD`.
 # It varies with the base branch position, so it can never be a committed face; CI

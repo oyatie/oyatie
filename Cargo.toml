@@ -81,7 +81,7 @@ members = [
 exclude = [
   # Workspace carve-outs and non-crate directories the layer globs over-match.
   #
-  # `kernel` and `cloud/cloud-kernel` are their own workspaces (ADR-0512 carve-out) — excluded
+  # `kernel` is its own workspace (ADR-0512 carve-out) — excluded
   # because they are separate roots, not because a glob over-matched them.
   #
   # `ci/facade/harness` and `storage/adapters/nativelink` are directories the layer globs
