@@ -8,11 +8,6 @@
 use std::path::Path;
 use std::sync::atomic::AtomicU64;
 
-#[cfg(unix)]
-use rustix::fd::OwnedFd;
-#[cfg(unix)]
-use rustix::fs::{Mode, OFlags};
-
 mod retirement_types;
 mod retirement_parse;
 mod retirement_git;
@@ -55,51 +50,25 @@ pub(crate) use retirement_unix_fs::{
     open_canonical_retirement_facts_parent, open_or_create_directory_at,
 };
 
-/// A Unix capability bound to the canonical retirement-facts parent directory.
-///
-/// It owns the opened directory descriptor, so its finalization remains bound
-/// to that directory even if a pathname ancestor is replaced after [`Self::open`].
 #[cfg(unix)]
-pub struct CanonicalRetirementFactsWriter {
-    directory: OwnedFd,
-}
-
+mod retirement_unix;
 #[cfg(unix)]
-impl CanonicalRetirementFactsWriter {
-    /// Open the fixed canonical retirement-facts parent without following symlinks.
-    pub fn open(repo_root: &Path) -> Result<Self, String> {
-        canonical_generated_facts_output_path(repo_root, Path::new(GENERATED_FACTS_PATH))?;
-        Ok(Self {
-            directory: open_canonical_retirement_facts_parent(repo_root)?,
-        })
-    }
+pub use retirement_unix::{CanonicalIgnoredGeneratedWriter, CanonicalRetirementFactsWriter};
 
-    /// Atomically replace only the fixed canonical facts basename through this directory fd.
-    pub fn write(&self, bytes: &[u8]) -> Result<(), String> {
-        const FINAL_NAME: &str = "history-only-retirement-facts.generated.json";
-        atomic_replace_ignored_generated_file(
-            &self.directory,
-            FINAL_NAME,
-            ".retirement-facts",
-            bytes,
-        )
-    }
-}
-
-/// Windows same-directory writers. Not `renameat`-atomic and not dirfd / TOCTOU-closed.
 #[cfg(windows)]
 mod retirement_windows;
 #[cfg(windows)]
-#[doc(inline)]
 pub use retirement_windows::{CanonicalIgnoredGeneratedWriter, CanonicalRetirementFactsWriter};
-
-#[cfg(all(test, windows))]
-mod retirement_windows_tests;
 
 #[cfg(not(any(unix, windows)))]
 mod retirement_stub;
 #[cfg(not(any(unix, windows)))]
 pub use retirement_stub::{CanonicalIgnoredGeneratedWriter, CanonicalRetirementFactsWriter};
+
+#[cfg(all(test, unix))]
+mod retirement_unix_tests;
+#[cfg(all(test, windows))]
+mod retirement_windows_tests;
 
 /// Atomically write the canonical ignored retirement-facts file.
 ///
@@ -110,50 +79,6 @@ pub fn write_canonical_retirement_facts(repo_root: &Path, bytes: &[u8]) -> Resul
     CanonicalRetirementFactsWriter::open(repo_root)?.write(bytes)
 }
 
-/// Descriptor-relative, no-follow atomic write for another canonical ignored generated face.
-///
-/// The supplied path must be a normal, repo-relative path below `repo_root`, must be ignored and
-/// untracked, and is opened component-by-component without following links. This is deliberately
-/// available only to sibling controller-owned writers, not arbitrary callers.
-#[cfg(unix)]
-pub struct CanonicalIgnoredGeneratedWriter {
-    directory: OwnedFd,
-    final_name: String,
-}
-
-#[cfg(unix)]
-impl CanonicalIgnoredGeneratedWriter {
-    /// Opens the fixed canonical output directory without following any path component links.
-    pub fn open(repo_root: &Path, relative_path: &Path) -> Result<Self, String> {
-        let (parent_components, final_name) =
-            canonical_ignored_generated_path(repo_root, relative_path)?;
-        let mut directory = rustix::fs::openat(
-            rustix::fs::CWD,
-            repo_root,
-            OFlags::RDONLY | OFlags::DIRECTORY | OFlags::NOFOLLOW | OFlags::CLOEXEC,
-            Mode::empty(),
-        )
-        .map_err(|error| format!("open ignored generated repository directory: {error}"))?;
-        for component in parent_components {
-            directory = open_or_create_directory_at(&directory, component)?;
-        }
-        Ok(Self {
-            directory,
-            final_name: final_name.to_owned(),
-        })
-    }
-
-    /// Atomically replaces the fixed canonical basename through the already-open directory fd.
-    pub fn write(&self, bytes: &[u8]) -> Result<(), String> {
-        atomic_replace_ignored_generated_file(
-            &self.directory,
-            &self.final_name,
-            ".ignored-generated",
-            bytes,
-        )
-    }
-}
-
 /// Write another canonical ignored generated face through the platform writer.
 pub fn write_canonical_ignored_generated_file(
     repo_root: &Path,
@@ -162,9 +87,6 @@ pub fn write_canonical_ignored_generated_file(
 ) -> Result<(), String> {
     CanonicalIgnoredGeneratedWriter::open(repo_root, relative_path)?.write(bytes)
 }
-
-#[cfg(all(test, unix))]
-mod retirement_unix_tests;
 
 #[cfg(test)]
 #[path = "retirement_test_fixtures.rs"]
