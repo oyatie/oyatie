@@ -1,4 +1,4 @@
-//! `oya-ci-dep-freshness-report` — the advisory reporter for the dependency-freshness gate.
+//! `ci-dep-freshness-report` — the advisory reporter for the dependency-freshness gate.
 //!
 //! Prints the stale tail of the committed mirror and ALWAYS exits 0. That is the contract, not an
 //! oversight: `oya-deps.toml` declares `enforcement = "advisory"`, and a reporter that sometimes
@@ -7,7 +7,7 @@
 //! a stale dependency), which needs diff context this binary does not take.
 //!
 //! Usage:
-//!   oya-ci-dep-freshness-report [--repo-root <dir>] [--json]
+//!   ci-dep-freshness-report [--repo-root <dir>] [--json]
 #![forbid(unsafe_code)]
 
 use std::path::{Path, PathBuf};
@@ -36,7 +36,7 @@ fn main() -> ExitCode {
             },
             "--json" => json = true,
             "-h" | "--help" => {
-                println!("usage: oya-ci-dep-freshness-report [--repo-root <dir>] [--json]");
+                println!("usage: ci-dep-freshness-report [--repo-root <dir>] [--json]");
                 return ExitCode::SUCCESS;
             }
             other => {

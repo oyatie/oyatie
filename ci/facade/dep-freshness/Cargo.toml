@@ -22,7 +22,7 @@ name = "dep-freshness-producer"
 path = "src/bin/dep-freshness-producer.rs"
 
 [[bin]]
-name = "oya-ci-dep-freshness-report"
+name = "ci-dep-freshness-report"
 path = "src/main.rs"
 
 [dependencies]
