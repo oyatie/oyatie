@@ -1,11 +1,10 @@
-//! Existence and containment checks for declared and managed paths.
-
 use std::collections::{BTreeSet, HashSet};
 use std::path::Path;
 
 use toml::Value;
 
-use crate::{CONFIG_PATH, Finding};
+use crate::CONFIG_PATH;
+use crate::report::Finding;
 
 /// Declared PATHS must point at something that exists.
 ///
