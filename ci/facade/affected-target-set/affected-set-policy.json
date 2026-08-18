@@ -56,6 +56,7 @@
       "root//ci/facade/generated-artifact-policy:",
       "root//ci/facade/inventory-registry-drift:",
       "root//ci/facade/repo-root-hygiene:",
+      "root//ci/facade/rust-toolchain-bump-proposer:",
       "root//ci/facade/scm-facts-snapshot:",
       "root//ci/facade/supply-chain-audit:",
       "root//governance/check/doc-catalog:",
