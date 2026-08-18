@@ -12,9 +12,6 @@ name: oya-ci-required
 
 on:
   workflow_dispatch:
-  schedule:
-    # Cross-platform smoke moved off the per-PR path; this keeps a daily signal.
-    - cron: "17 6 * * *"
   push:
     branches: [dev]
   pull_request:
@@ -28,21 +25,6 @@ permissions:
 
 # Event tuple consumed by the generated-faces materializer (--github-event).
 env:
-  # ---- CI build cost -------------------------------------------------------
-  # Measured on run 32087267790: the `Workspace tests` step spent 582s COMPILING
-  # and 289s running tests. It is compile-bound, so sharding or a faster test
-  # runner would move the smaller half. These two settings target the larger one.
-  #
-  # This repo declares only [profile.release]; dev/test builds therefore take
-  # cargo's defaults, which generate FULL debuginfo for all 1,759 packages. CI
-  # never opens a debugger, and debuginfo also inflates target/, which slows the
-  # cache save/restore on both ends. Set via env, not Cargo.toml, so local
-  # developer builds keep their debuginfo.
-  CARGO_PROFILE_DEV_DEBUG: "0"
-  CARGO_PROFILE_TEST_DEBUG: "0"
-  # Incremental compilation caches nothing useful on a fresh runner and costs
-  # both time and disk to produce.
-  CARGO_INCREMENTAL: "0"
   EVENT_EVALUATED_SHA: ${{ github.sha }}
   EVENT_PULL_REQUEST_BASE_SHA: ${{ github.event.pull_request.base.sha || '' }}
   EVENT_PUSH_BEFORE_SHA: ${{ github.event.before || '' }}
@@ -54,6 +36,16 @@ env:
   EVENT_REF: ${{ github.ref }}
   EVENT_PULL_REQUEST_BASE_REF: ${{ github.event.pull_request.base.ref || '' }}
   EVENT_MERGE_GROUP_BASE_REF: ${{ github.event.merge_group.base_ref || '' }}
+
+env:
+  # CI never opens a debugger, and this repo declares only [profile.release] — so dev/test
+  # builds took cargo's defaults and generated FULL debuginfo for 1,759 packages. Debuginfo
+  # also inflates target/, which slows cache save and restore at both ends. Set here rather
+  # than in Cargo.toml so local developer builds keep their debuginfo.
+  CARGO_PROFILE_DEV_DEBUG: "0"
+  CARGO_PROFILE_TEST_DEBUG: "0"
+  # Incremental state caches nothing useful on a fresh runner and costs time and disk to write.
+  CARGO_INCREMENTAL: "0"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
@@ -195,10 +187,9 @@ jobs:
         run: |
           set -euo pipefail; admin_password="${ADMIN_PASSWORD:-oya_ci_pg_admin_local_only}"; app_password="${APP_PASSWORD:-oya_ci_pg_app_local_only}"; if [ -f /run/oya-ci-postgres/admin-password ]; then admin_password="$(cat /run/oya-ci-postgres/admin-password)"; fi; if [ -f /run/oya-ci-postgres/app-password ]; then app_password="$(cat /run/oya-ci-postgres/app-password)"; fi; test -n "${admin_password}" && test -n "${app_password}"; echo "::add-mask::${admin_password}"; echo "::add-mask::${app_password}"; export PGPASSWORD="${admin_password}"; printf 'OYA_PG_ADMIN_URL=postgres://postgres:%s@127.0.0.1:5432/oyatie\nOYA_PG_APP_URL=postgres://oya_app:%s@127.0.0.1:5432/oyatie\n' "${admin_password}" "${app_password}" >> "${GITHUB_ENV}"
           # psql runs INSIDE the postgres service container, which already ships it. The
-          # runner previously apt-installed postgresql-client; that unretried network call
-          # was cancelled mid-install and ejected a merge-queue entry (#2106). Under
-          # ALLGREEN batching one such flake fails the whole batch and re-batches everything
-          # behind it, so the cost scales with queue depth.
+          # runner previously apt-installed postgresql-client; that unretried network call was
+          # cancelled mid-install and ejected a merge-queue entry (#2106). Under ALLGREEN
+          # batching one such flake fails the whole batch and re-batches everything behind it.
           ADMIN_PSQL=(docker exec -i -e PGPASSWORD="${admin_password}" "${{ job.services.postgres.id }}" psql -v ON_ERROR_STOP=1 -U postgres -d oyatie)
           "${ADMIN_PSQL[@]}" -c "DO \$\$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='oya_app') THEN EXECUTE format('CREATE ROLE oya_app LOGIN PASSWORD %L NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE', '${app_password}'); END IF; END \$\$;"
           "${ADMIN_PSQL[@]}" < tenancy/adapters/tenant-lifecycle-store-postgres/migrations/0000_runtime_role.sql
@@ -256,10 +247,9 @@ jobs:
         run: |
           set -euo pipefail; admin_password="${ADMIN_PASSWORD:-oya_ci_pg_admin_local_only}"; app_password="${APP_PASSWORD:-oya_ci_pg_app_local_only}"; if [ -f /run/oya-ci-postgres/admin-password ]; then admin_password="$(cat /run/oya-ci-postgres/admin-password)"; fi; if [ -f /run/oya-ci-postgres/app-password ]; then app_password="$(cat /run/oya-ci-postgres/app-password)"; fi; test -n "${admin_password}" && test -n "${app_password}"; echo "::add-mask::${admin_password}"; echo "::add-mask::${app_password}"; export PGPASSWORD="${admin_password}"; printf 'OYA_PG_ADMIN_URL=postgres://postgres:%s@127.0.0.1:5432/oyatie\nOYA_PG_APP_URL=postgres://oya_app:%s@127.0.0.1:5432/oyatie\n' "${admin_password}" "${app_password}" >> "${GITHUB_ENV}"
           # psql runs INSIDE the postgres service container, which already ships it. The
-          # runner previously apt-installed postgresql-client; that unretried network call
-          # was cancelled mid-install and ejected a merge-queue entry (#2106). Under
-          # ALLGREEN batching one such flake fails the whole batch and re-batches everything
-          # behind it, so the cost scales with queue depth.
+          # runner previously apt-installed postgresql-client; that unretried network call was
+          # cancelled mid-install and ejected a merge-queue entry (#2106). Under ALLGREEN
+          # batching one such flake fails the whole batch and re-batches everything behind it.
           ADMIN_PSQL=(docker exec -i -e PGPASSWORD="${admin_password}" "${{ job.services.postgres.id }}" psql -v ON_ERROR_STOP=1 -U postgres -d oyatie)
           "${ADMIN_PSQL[@]}" -c "DO \$\$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='oya_app') THEN EXECUTE format('CREATE ROLE oya_app LOGIN PASSWORD %L NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE', '${app_password}'); END IF; END \$\$;"
           "${ADMIN_PSQL[@]}" < tenancy/adapters/tenant-lifecycle-store-postgres/migrations/0000_runtime_role.sql
@@ -275,27 +265,9 @@ jobs:
           OYA_BACKBONE_POSTGRES_APP_URL: ${{ env.OYA_PG_APP_URL }}
         run: RUST_TEST_THREADS=1 cargo test --locked -p iam-identity-service -p tenancy-tenant-lifecycle-app
 
-  # NOT on the per-PR or merge-queue path. This job is advisory — `continue-on-error: true`,
-  # and the fan-in verdict below never reads its result — yet it consumed 2 of every run's 6
-  # parallel jobs. On run 32087267790 the `test` job waited 50 MINUTES for a runner while
-  # advisory jobs held slots; on an uncontended run the same job waited 0m. Runner starvation,
-  # not compute, produced the 42-minute wall times, and a merge queue makes that worse because
-  # every speculative merge-group build pays the same footprint.
-  #
-  # It still runs post-merge on dev, nightly, and on demand, so a real cross-platform
-  # regression is caught within a day without taxing every PR and every batch.
-  #
-  # windows-latest STAYS in the matrix. It failed 9 of 9 recent runs on a known blocker — the
-  # canonical retirement-facts writer required Unix dirfd support — and an earlier draft of this
-  # change removed it on the grounds that a check which cannot pass carries no information. That
-  # reasoning is now obsolete: #2111 implements the non-unix writer, so Windows becomes a real
-  # signal again. Moving smoke off the per-PR path already recovers the runner slots; deleting the
-  # platform as well would have thrown away coverage that a concurrent PR was in the middle of
-  # earning back.
   cross-platform-smoke:
     name: cross-platform-smoke (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
-    if: ${{ github.event_name != 'pull_request' && github.event_name != 'merge_group' }}
     continue-on-error: true
     timeout-minutes: 30
     strategy:
