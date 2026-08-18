@@ -13,9 +13,10 @@
 //!    `registry-drift` test can byte-diff a fresh run against the committed face.
 //! 2. Total coverage — `set(rows.path) == set(git ls-files) − ephemeral` (ephemeral
 //!    carve-out rows are excluded by CLASS, resolved from the DATA table, never by row).
-//! 3. Carve-outs (vendor/generated/ephemeral/...) live as DATA in `unit-class-policy.json`
-//!    and `ttl-policy.json`, never as scanner branches (Linus: the exception lives in the
-//!    table). The classifier walks the table; it has zero hard-coded special cases.
+//! 3. Carve-outs (vendor/generated/ephemeral/...) live as DATA in the bundled
+//!    oya-ci-config unit-class + ttl tables (`Policy::from_config`), never as scanner
+//!    branches (Linus: the exception lives in the table). The classifier walks the
+//!    table; it has zero hard-coded special cases.
 //!
 //! ADR-0083 Tier-3: production code carries no unwrap/expect/panic.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
@@ -25,11 +26,6 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
-
-/// The carve-out classification policy (DATA, not code).
-pub const UNIT_CLASS_POLICY_JSON: &str = include_str!("unit-class-policy.json");
-/// The TTL policy (DATA, not code).
-pub const TTL_POLICY_JSON: &str = include_str!("ttl-policy.json");
 
 /// The buck2 target that produces the registry — recorded in `_provenance`.
 pub const PRODUCER_TARGET: &str =
@@ -142,15 +138,16 @@ pub struct Policy {
 }
 
 impl Policy {
-    /// Parse the bundled DATA tables. Returns an error rather than panicking on malformed data.
+    /// Parse the bundled DATA tables from oya-ci-config (SSOT). Returns an error rather
+    /// than panicking on malformed data.
     pub fn from_bundled() -> Result<Self, ProducerError> {
-        Self::from_strs(UNIT_CLASS_POLICY_JSON, TTL_POLICY_JSON)
+        Self::from_config(&oya_ci_config_kernel::OyaCiConfig::bundled_default())
     }
 
     /// Parse the carve-out + TTL tables from the oya-ci config (OYA-CI-CONFORMANCE-FLOOR-PLAN
     /// §3.3). The config carries these two tables as DATA (the `[unit_class]` + `[ttl]`
-    /// sections); the bundled default reproduces today's JSON byte-for-byte, so this is
-    /// equivalent to [`Policy::from_bundled`] under the default config.
+    /// sections); the bundled default is the SSOT, so this is equivalent to
+    /// [`Policy::from_bundled`] under the default config.
     pub fn from_config(cfg: &oya_ci_config_kernel::OyaCiConfig) -> Result<Self, ProducerError> {
         Self::from_strs(cfg.unit_class_policy_json(), cfg.ttl_policy_json())
     }

@@ -9,8 +9,9 @@ license = "Apache-2.0"
 # The buck2 rust_binary producer of accounting-registry.generated.json + the 3
 # companion generated faces (PHASE-0-FIREWALL-PLAN §5.1; D-DOCTRINE total-accounting).
 # Register #20: this is a Rust gate binary, NOT an `oya` CLI subcommand. Carve-outs
-# (vendor/generated/ephemeral/...) live as DATA in unit-class-policy.json + ttl-policy.json,
-# never as scanner code. Owned by GATE-2 cloud-ci-total-accounting.
+# (vendor/generated/ephemeral/...) live as DATA in the bundled oya-ci-config unit-class
+# + ttl tables (`Policy::from_config`), never as scanner code. Owned by GATE-2
+# cloud-ci-total-accounting.
 
 [lib]
 name = "ci_artifact_inventory_registry"
