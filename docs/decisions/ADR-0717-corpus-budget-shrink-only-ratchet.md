@@ -71,7 +71,7 @@ only says the total moved, so concurrent PRs silently collide. A frozen *set* re
 and names the row that appeared.
 
 Shrink-only ceilings remain law. Replacement of the numeric pin with a frozen set / named
-members is a same-wave engine change under this ADR, not ADR-0718 or any new path.
+members is a same-wave engine change under this ADR, not a newly numbered decision or any new path.
 
 Cite: #2100, #2101, #2102, #2103 → #2104.
 
