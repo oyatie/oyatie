@@ -105,6 +105,12 @@ jobs:
         continue-on-error: true
         run: cargo clippy --locked --workspace --all-targets -- -D warnings
 
+  # ADR-0718-D3 follow-on: shard the run phase across standard four-core runners.
+  # Larger hosted runners are not available, so parallelism has to come from job count instead
+  # of core count: four standard runners give sixteen cores. This is only affordable because the
+  # workspace-crate cache and sccache landed first — each shard restores the same warm target
+  # dir rather than paying its own cold compile, which is exactly the objection that made
+  # sharding the wrong move before those landed.
   test:
     name: test (workspace + gates)
     runs-on: ubuntu-latest
@@ -112,6 +118,10 @@ jobs:
       contents: read
       pull-requests: read
     timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
     env:
       # Same accounting-registry producer the Buck gate targets inject as
       # OYA_CI_PRODUCER_BIN (artifact-accountability and sibling live-corpus
@@ -156,6 +166,9 @@ jobs:
           # is what kept target/ small enough to be worth storing against the 10 GB per-repo
           # cache budget.
           cache-workspace-crates: "true"
+          # Only one shard saves. Four shards racing to write near-identical caches would
+          # thrash the 10 GB per-repository budget and evict each other's entries.
+          save-if: ${{ matrix.shard == 1 }}
       # The face materializer shells out to buck2 internally to build its sibling
       # face tools; the digest-pinned installer is the bridge it has always used.
       - uses: mozilla-actions/sccache-action@fc920bf0ec8de6ee65d409111f7ec508035751ba
@@ -190,18 +203,27 @@ jobs:
         # zero doc examples across the .rs corpus and `doctest = false` already declared by
         # the large majority of manifests.
         # --no-fail-fast: nextest stops at the first failure by default, so each defect costs a
-        # WHOLE CI run to discover — four runs of this branch surfaced four separate failures one
-        # at a time. Running the suite out reports every failure in one run at the same verdict.
-        # This is not an advisory escape: the job still fails if any test fails, unlike
+        # WHOLE CI run to discover. Running the suite out reports every failure at the same
+        # verdict. NOT an advisory escape — the job still fails if any test fails, unlike
         # `--keep-going` or `|| true`, which the registration gates reject for that reason.
-        run: cargo nextest run --locked --workspace --no-fail-fast
+        #
+        # --partition: nextest partitions by test, not by crate, so every shard still COMPILES
+        # the whole workspace — the cost the shared warm cache absorbs — while each RUNS a
+        # quarter of the tests. `count:` is a deterministic round-robin, so a given test always
+        # lands on the same shard and a failure reproduces from the shard number alone.
+        run: cargo nextest run --locked --workspace --no-fail-fast --partition count:${{ matrix.shard }}/4
       # kernel/ is a nested workspace (ADR-0512 carve-out) the root workspace excludes.
       - name: Kernel workspace tests
+        # Whole-tree assertion, not a per-test one: running it on every shard would repeat
+        # identical work four times and buy nothing.
+        if: ${{ matrix.shard == 1 }}
         run: cargo nextest run --locked --manifest-path kernel/Cargo.toml
       # Live hub-exclusivity admission: rejects a second open PR touching a hub path
       # declared under specs/integ-branch-envelopes.json#hubs.paths.
       - name: Live hub-exclusivity admission
-        if: ${{ github.event_name == 'pull_request' }}
+        # Combined, not stacked: a second `if:` key would be a duplicate that YAML
+        # resolves last-wins, silently dropping the shard guard.
+        if: ${{ matrix.shard == 1 && github.event_name == 'pull_request' }}
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: cargo run --locked -p ci-affected-target-set --bin oya-cloud-ci-hub-exclusivity -- --repo-root . --live-open-prs --repo "$GITHUB_REPOSITORY" --candidate-pr "${{ github.event.pull_request.number }}"
@@ -214,7 +236,8 @@ jobs:
       # arrives fully qualified (`refs/heads/dev`), so the prefix is stripped in place rather
       # than by adding a step, which would grow the frozen workflow_inline_shell debt.
       - name: Reject non-deletion generated output edits
-        if: ${{ github.event_name != 'push' }}
+        # Combined, not stacked — see above.
+        if: ${{ matrix.shard == 1 && github.event_name != 'push' }}
         env:
           BASE_REF: ${{ github.base_ref || github.event.merge_group.base_ref || 'dev' }}
         run: git diff --find-renames --name-status "origin/${BASE_REF#refs/heads/}...HEAD" | cargo run --locked -p ci-generated-artifact-policy --bin oya-cloud-ci-generated-output-diff-policy -- --manifest registry/generated-artifact-control-plane.json --repo-root .
