@@ -20,7 +20,9 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::fmt;
 
-use port_engine_api::{Declaration, PortError, RuleId, SourceModel, TransformPlan, UnitId};
+use port_engine_api::{
+    Declaration, PortError, RegionId, RuleId, SourceModel, TransformPlan, UnitId,
+};
 use port_engine_rust_ir::RustIr;
 
 /// Fail-closed readiness gate. `true` once transform apply is present.
@@ -377,7 +379,26 @@ pub fn apply(
     semantics: &dyn PackSemantics,
     model: &dyn SourceModel,
 ) -> Result<RustIr, TransformError> {
+    apply_with_provenance(plan, semantics, model).map(|(ir, _)| ir)
+}
+
+/// [`apply`], plus which unit each emitted region came from.
+///
+/// The provenance is not derivable from a region id by parsing it. Region ids are built from
+/// SANITIZED segments, and sanitization is lossy — two different unit ids can sanitize to the same
+/// text, and a unit id containing adjacent non-alphanumerics produces a segment separator of its
+/// own. Anything downstream that needs to group regions by unit (a module layout, a per-unit
+/// output tree) must be told, not left to re-derive it from a string that no longer distinguishes.
+///
+/// # Errors
+/// The same [`TransformError`] set as [`apply`].
+pub fn apply_with_provenance(
+    plan: &TransformPlan,
+    semantics: &dyn PackSemantics,
+    model: &dyn SourceModel,
+) -> Result<(RustIr, BTreeMap<RegionId, UnitId>), TransformError> {
     let model_units: BTreeSet<String> = model.units().into_iter().map(|u| u.0).collect();
+    let mut provenance: BTreeMap<RegionId, UnitId> = BTreeMap::new();
 
     let mut region_names: Vec<String> = Vec::new();
     let mut sources: Vec<(String, String)> = Vec::new();
@@ -412,6 +433,7 @@ pub fn apply(
         if captures.is_empty() {
             let region = region_id_for(&step.unit, &step.rule);
             let source = unit_level_source(construction, &step.rule, &region)?;
+            provenance.insert(RegionId(region.clone()), step.unit.clone());
             region_names.push(region.clone());
             sources.push((region, source));
             continue;
@@ -441,6 +463,7 @@ pub fn apply(
                     unit: &step.unit,
                 },
             )?;
+            provenance.insert(RegionId(region.clone()), step.unit.clone());
             region_names.push(region.clone());
             sources.push((region, source));
         }
@@ -454,7 +477,7 @@ pub fn apply(
         ir.set_file_from_str(&region, &source)
             .map_err(TransformError::Ir)?;
     }
-    Ok(ir)
+    Ok((ir, provenance))
 }
 
 /// Every declaration of every planned unit must be captured by a rule or deferred by policy.

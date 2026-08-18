@@ -53,6 +53,20 @@ rust_binary(
     ],
 )
 
+# The compile proof runs `rustc` on the emitted tree. Cargo is the ADR-0716 merge path and is
+# authoritative for it; this target keeps the buck2 local-hermeticity path aware of the test.
+rust_test(
+    name = "port-engine-app-port-go-compiles",
+    srcs = glob(["tests/port_go_compiles.rs"]),
+    crate = "port_engine_app_port_go_compiles",
+    crate_root = "tests/port_go_compiles.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":port-engine-app",
+        "//build/port-engine/core/port-engine-kernel:port-engine-kernel",
+    ],
+)
+
 rust_test(
     name = "port-engine-app-readiness",
     srcs = glob(["tests/readiness.rs"]),
