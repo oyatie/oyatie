@@ -160,3 +160,30 @@ Optimising anything else changes billable minutes, not wall clock. Second, face
 materialization is 192 seconds of buck2 work performed before a single test runs; in a
 300-second budget that single step would consume 64% of it. Neither fact was visible before
 the profile, and D4's measurement obligation exists precisely to surface this class.
+
+### What the profile changed, and what is still not authorized
+
+The profile above reprioritised the work and added three changes to this record, all inside the
+same replacement window:
+
+- **sccache** as `RUSTC_WRAPPER` with the GitHub Actions backend. `swatinem/rust-cache` caches
+  registry dependencies but NOT workspace members, of which there are 885; a run logged a cache
+  HIT with `Cargo.lock` untouched and still compiled 1,565 crates. `CARGO_INCREMENTAL=0` is a
+  prerequisite and is already set workflow-wide.
+- **`buck-out` caching.** The materializer's buck2 output was cached NOWHERE — `rust-cache`
+  covers `~/.cargo` and `target/` only — so 192 seconds of buck2 work was paid from cold on every
+  run. Keyed on the buck2 graph inputs so a BUCK or .bzl change invalidates it.
+- **Compile/materialize overlap.** The two largest steps run strictly in series today and are
+  independent: no build script reads materializer output, and the gate crates read the faces at
+  RUNTIME through a path join rather than a compile-time include. Backgrounding the workspace
+  build during materialization reclaims the smaller of the two, roughly 190 seconds. This GROWS
+  the step from one shell line to four, against a policy whose direction is to shrink workflow
+  shell. That is a real cost, taken deliberately: Actions has no native intra-job parallelism to
+  express the overlap declaratively, and the step still owns no branching or git topology. It is
+  recorded in the baseline rather than hidden.
+
+Two levers remain OUTSIDE this record. **Larger runners** are the single biggest remaining factor
+— compile is CPU-bound on the four-core default, and the account's plan supports larger hosted
+runners — but the label must exist before `runs-on` names it, or every job queues forever; that is
+an organisation settings change, not a workflow edit, and it is not made here. **Affected-set
+selection** remains D5: conditional, evidence-gated, and still not authorized.
