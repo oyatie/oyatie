@@ -63,6 +63,15 @@ pub const GATE_ID: &str = "cloud-ci-cedar-deploy-parity";
 /// The default repo-relative suffix of a deployed Cedar ConfigMap (overridable via policy DATA).
 pub const DEFAULT_DEPLOYED_SUFFIX: &str = "iac/k8s/helm/templates/cedar.yaml";
 
+/// The SECOND place a deployed Cedar policy now lives.
+///
+/// The shared-microservice-chart cutover collapsed 71 per-service charts onto one chart and moved
+/// each service's Cedar policy into its own `values.yaml` under `cedar.policy`. That silently took
+/// those services out of this gate's scope: the scan saw 77 deployed policies before the cutover
+/// and 7 after, and the ZERO-ConfigMaps fail-closed guard did not trip because 7 is not zero.
+/// Coverage, not the baseline list, was the real regression. Scanning both shapes restores it.
+pub const DEFAULT_DEPLOYED_VALUES_SUFFIX: &str = "iac/k8s/helm/values.yaml";
+
 /// The blocking + structural violation codes, in canonical order.
 pub const VIOLATION_CODES: [&str; 8] = [
     "CDP-UNCONSTRAINED-PERMIT",
@@ -128,8 +137,35 @@ pub fn collect(root: &Path, policy: &Value) -> Result<Value, CollectError> {
     let baseline_adr_exists =
         baseline_adr(policy).is_some_and(|adr| baseline_adr_file_exists(root, adr));
 
+    let values_suffix = policy
+        .get("deployed_values_suffix")
+        .and_then(Value::as_str)
+        .unwrap_or(DEFAULT_DEPLOYED_VALUES_SUFFIX);
+
     let mut rel_paths: Vec<String> = Vec::new();
     walk_for_suffix(root, root, suffix, &mut rel_paths)?;
+    let template_capabilities: BTreeSet<String> = rel_paths
+        .iter()
+        .map(|rel| capability_of(rel, suffix))
+        .collect();
+    // A service that still ships templates/cedar.yaml is covered by it; its values.yaml would be
+    // the same policy counted twice. The template is the deployed artifact and wins.
+    let mut values_paths: Vec<String> = Vec::new();
+    walk_for_suffix(root, root, values_suffix, &mut values_paths)?;
+    for rel in values_paths {
+        if template_capabilities.contains(&capability_of(&rel, values_suffix)) {
+            continue;
+        }
+        // A values.yaml is only a policy carrier if it actually carries one. Most do not — a
+        // service with no Cedar policy has no `cedar.policy` block — and treating those as failed
+        // extractions would turn "this service has no policy" into a gate finding, which is noise
+        // rather than signal.
+        let text = fs::read_to_string(root.join(&rel))
+            .map_err(|e| CollectError::Io(format!("read {rel}: {e}")))?;
+        if !extract_cedar_blocks(&text).is_empty() {
+            rel_paths.push(rel);
+        }
+    }
     rel_paths.sort();
 
     let mut configmaps = Vec::new();
@@ -184,7 +220,11 @@ pub fn collect(root: &Path, policy: &Value) -> Result<Value, CollectError> {
             Value::Null
         };
 
-        let capability = capability_of(rel, suffix);
+        let capability = if rel.ends_with(suffix) {
+            capability_of(rel, suffix)
+        } else {
+            capability_of(rel, values_suffix)
+        };
         let authored = read_authored_policy(root, &capability, &authored_subdirs)?;
 
         configmaps.push(json!({
@@ -349,7 +389,10 @@ fn block_scalar_key_indent(line: &str) -> Option<usize> {
     let indent = indent_of(line);
     let trimmed = line.trim();
     let (key, rest) = trimmed.split_once(':')?;
-    if !key.trim_end().ends_with(".cedar") {
+    let key = key.trim_end();
+    // `policies.cedar: |` in a rendered ConfigMap, or `policy: |` under the `cedar:` mapping of a
+    // service values.yaml. Both carry the same authored policy text; only the container differs.
+    if !key.ends_with(".cedar") && key != "policy" {
         return None;
     }
     rest.trim().starts_with('|').then_some(indent)
