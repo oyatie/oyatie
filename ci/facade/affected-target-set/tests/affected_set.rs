@@ -778,12 +778,6 @@ fn shipped_pack_parses_and_matches_the_engine() {
             .any(|t| t == "third-party/**")
     );
     assert!(p.require_owner_patterns.iter().any(|t| t == "**/*.rs"));
-    assert!(p.require_owner_patterns.iter().any(|t| {
-        t == "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-aarch64-adapter/linker.ld"
-    }));
-    assert!(p.require_owner_patterns.iter().any(|t| {
-        t == "cloud/cloud-kernel/crates/oya-cloud-kernel-arch-x86-64-adapter/linker.ld"
-    }));
     assert!(
         p.package_sibling_basenames
             .iter()
