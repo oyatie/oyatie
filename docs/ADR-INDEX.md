@@ -1,26 +1,21 @@
 ---
-purpose: Live ADR index for the 18 apex files in decisions/.
+purpose: Generated ADR index and machine-readable mirror pointer for ADR freshness, numbering, owner, status, and supersession review.
 doc_status: published
-status: current
 ---
 
 # Oyatie — ADR Index
 
-**Current.** Hand-maintained index of the live apex set. Historical note: an older projection claimed generation by retired `oya doc adr-index`; that CLI is not merge authority.
-
-**Authoritative protocol:** [`AGENTS.md`](AGENTS.md) + [`specs/markdown-retirement-policy.json`](../specs/markdown-retirement-policy.json). [`DOC-CATALOG.md`](DOC-CATALOG.md) is a tombstone.
-
-**Machine-readable mirror:** [`machine-readable/decisions.json`](machine-readable/decisions.json) (producer-owned; do not hand-edit if generated).
+> **Generated:** from [`decisions/`](decisions/) by `oya doc adr-index`. Do not hand-edit generated rows.
+> **Authoritative:** `crew-adr-promotion` owns freshness per [DOC-CATALOG.md `doc.adr_index`](DOC-CATALOG.md).
+> **Machine-readable mirror:** [`machine-readable/decisions.json`](machine-readable/decisions.json).
 
 ## At-a-glance
 
-- **Total live ADRs:** 18
-- **Numbering:** contiguous ADR-0700..ADR-0717 (gap-free)
-- **Next ADR number:** 0718
-- **Status counts:** Accepted 13, Proposed 5
-- **Legacy retirement:** [`ADR-LEGACY-REGRESSION-MAPPING.md`](ADR-LEGACY-REGRESSION-MAPPING.md) and [`adr-archive/`](adr-archive/).
-
-Do not collapse citations onto ADR-0709. Read the topic apex (especially 0700, 0701, 0705, 0716).
+- **Total ADRs:** 19
+- **Numbering:** contiguous ADR-0700..ADR-0718 (gap-free)
+- **Next ADR number:** 0719
+- **Status counts:** Accepted 14, Proposed 5
+- **Legacy retirement:** see [`ADR-LEGACY-REGRESSION-MAPPING.md`](ADR-LEGACY-REGRESSION-MAPPING.md).
 
 ## Full table (one row per ADR, sorted by ADR number)
 
@@ -44,10 +39,17 @@ Do not collapse citations onto ADR-0709. Read the topic apex (especially 0700, 0
 | ADR-0715 | Proposed | F1 Admission package — ADR-0710 Accept/Reject blocked on D-8 | council-architecture | [`ADR-0715-f1-admission-adr-0710-d8-gate.md`](decisions/ADR-0715-f1-admission-adr-0710-d8-gate.md) |
 | ADR-0716 | Accepted | Cargo is the CI merge path; buck2 is local hermeticity plus a weekly smoke | council-architecture | [`ADR-0716-cargo-merge-path-buck2-local-hermeticity.md`](decisions/ADR-0716-cargo-merge-path-buck2-local-hermeticity.md) |
 | ADR-0717 | Accepted | Corpus-budget sprawl ratchet | council-architecture | [`ADR-0717-corpus-budget-shrink-only-ratchet.md`](decisions/ADR-0717-corpus-budget-shrink-only-ratchet.md) |
+| ADR-0718 | Accepted | CI lane split and five-minute wall clock: fast format lane, parallel clippy, and nextest | council-architecture | [`ADR-0718-ci-lane-split-five-minute-wall-clock.md`](decisions/ADR-0718-ci-lane-split-five-minute-wall-clock.md) |
 
 ## Update protocol
 
-- Live: [`AGENTS.md`](AGENTS.md) Done-Definition (same-wave load-bearing co-change).
-- New ADRs land via [`templates/adr-template.md`](../templates/adr-template.md) as 0718+ unless filling a reserved number.
-- Per-ADR amendments keep the original number and cite the amending PR.
-- Supersession is recorded in the per-ADR header and mirrored here.
+- Per-event + monthly per `doc.adr_index` row in [`DOC-CATALOG.md`](DOC-CATALOG.md).
+- New ADRs land via [`templates/adr-template.md`](templates/adr-template.md) and use the next available number (0719), unless an explicit reserved-number ADR is being filled.
+- Per-ADR amendments preserve the original ADR number; the amended ADR cites its original date and links to the amending PR.
+- Supersession is recorded in the per-ADR header and mirrored here on regeneration.
+
+## Sources scanned
+
+- `decisions/` directory listing — 19 ADR files (sorted ascending)
+- [`machine-readable/decisions.json`](machine-readable/decisions.json) — generated machine mirror
+- [`DOC-CATALOG.md`](DOC-CATALOG.md) — owner / cadence / dependent docs / validation checks

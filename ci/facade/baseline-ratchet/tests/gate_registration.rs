@@ -675,7 +675,14 @@ fn workspace_tests_executed(workflow: &str) -> bool {
         {
             return false;
         }
-        let Some((_, args)) = trimmed.split_once("cargo test ") else {
+        // ADR-0718-D3: accept either runner. The property this asserts is "the whole workspace
+        // runs under one blocking invocation", not the spelling of the command; pinning the
+        // literal would make a runner swap look like the census-epoch validator had stopped
+        // running. The advisory escapes above stay rejected either way.
+        let Some((_, args)) = trimmed
+            .split_once("cargo nextest run ")
+            .or_else(|| trimmed.split_once("cargo test "))
+        else {
             return false;
         };
         args.split_whitespace().any(|token| token == "--workspace")
