@@ -1,0 +1,34 @@
+rust_library(
+    name = "port-engine-transform",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "port_engine_transform",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//build/port-engine/core/rust-ir:port-engine-rust-ir",
+        "//build/port-engine/ports/api:port-engine-api",
+    ],
+)
+
+rust_test(
+    name = "port-engine-transform-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "port_engine_transform",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//build/port-engine/core/rust-ir:port-engine-rust-ir",
+        "//build/port-engine/ports/api:port-engine-api",
+    ],
+)
+
+rust_test(
+    name = "port-engine-transform-readiness",
+    srcs = glob(["tests/readiness.rs"]),
+    crate = "port_engine_transform_readiness",
+    crate_root = "tests/readiness.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":port-engine-transform",
+    ],
+)

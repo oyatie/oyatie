@@ -1,0 +1,23 @@
+[package]
+name = "port-engine-frontend-go"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+# Go SourceModel snapshot consumer for the owned deterministic port engine (ADR-0637 D1).
+# W0-B Slice 4 — snapshot decode + Go firewall architecture test; no in-process Go.
+
+[dependencies]
+port-engine-api = { path = "../../ports/api" }
+serde.workspace = true
+serde_json.workspace = true
+
+[lib]
+name = "port_engine_frontend_go"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

@@ -1,0 +1,79 @@
+rust_library(
+    name = "port-engine-app",
+    srcs = glob(["src/**/*.rs", "src/**/*.txt"]),
+    crate = "port_engine_app",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//build/port-engine/adapters/emit:port-engine-emit",
+        "//build/port-engine/adapters/frontend-go:port-engine-frontend-go",
+        "//build/port-engine/adapters/hash:port-engine-hash",
+        "//build/port-engine/adapters/identity:port-engine-identity",
+        "//build/port-engine/adapters/rulepack:port-engine-rulepack",
+        "//build/port-engine/adapters/snapshot:port-engine-snapshot",
+        "//build/port-engine/adapters/source-pin:port-engine-source-pin",
+        "//build/port-engine/adapters/toolchain:port-engine-toolchain",
+        "//build/port-engine/core/kernel:port-engine-kernel",
+        "//build/port-engine/core/rust-ir:port-engine-rust-ir",
+        "//build/port-engine/core/transform:port-engine-transform",
+        "//build/port-engine/ports/api:port-engine-api",
+    ],
+)
+
+rust_test(
+    name = "port-engine-app-unittest",
+    srcs = glob(["src/**/*.rs", "src/**/*.txt"]),
+    crate = "port_engine_app",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//build/port-engine/adapters/emit:port-engine-emit",
+        "//build/port-engine/adapters/frontend-go:port-engine-frontend-go",
+        "//build/port-engine/adapters/hash:port-engine-hash",
+        "//build/port-engine/adapters/identity:port-engine-identity",
+        "//build/port-engine/adapters/rulepack:port-engine-rulepack",
+        "//build/port-engine/adapters/snapshot:port-engine-snapshot",
+        "//build/port-engine/adapters/source-pin:port-engine-source-pin",
+        "//build/port-engine/adapters/toolchain:port-engine-toolchain",
+        "//build/port-engine/core/kernel:port-engine-kernel",
+        "//build/port-engine/core/rust-ir:port-engine-rust-ir",
+        "//build/port-engine/core/transform:port-engine-transform",
+        "//build/port-engine/ports/api:port-engine-api",
+    ],
+)
+
+rust_binary(
+    name = "port-engine-app-bin",
+    srcs = ["src/main.rs"],
+    crate = "port_engine_app_bin",
+    crate_root = "src/main.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":port-engine-app",
+    ],
+)
+
+# The compile proof runs `rustc` on the emitted tree. Cargo is the ADR-0716 merge path and is
+# authoritative for it; this target keeps the buck2 local-hermeticity path aware of the test.
+rust_test(
+    name = "port-engine-app-port-go-compiles",
+    srcs = glob(["tests/port_go_compiles.rs"]),
+    crate = "port_engine_app_port_go_compiles",
+    crate_root = "tests/port_go_compiles.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":port-engine-app",
+        "//build/port-engine/core/kernel:port-engine-kernel",
+    ],
+)
+
+rust_test(
+    name = "port-engine-app-readiness",
+    srcs = glob(["tests/readiness.rs"]),
+    crate = "port_engine_app_readiness",
+    crate_root = "tests/readiness.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":port-engine-app",
+    ],
+)

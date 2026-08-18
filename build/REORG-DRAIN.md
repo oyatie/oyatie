@@ -95,6 +95,24 @@ recorded here rather than implied.
   whose refusals are only tested on hand-built inputs has not been shown to refuse anything a
   front end would produce.
 
+## Universal-engine program (same lane)
+
+Driving the engine from a thin vertical slice to one that ports the whole Go language, verified
+behaviourally against the Go original. Phased; the plan lives outside the repo, the record is here.
+
+- P0: repo structure, naming, and the clean-architecture seam. Directory leaves stopped repeating
+  the capability — every other capability is `<root>/<face>/<leaf>` with the leaf carrying a role
+  or behaviour token and never the root (`audit/ports/emission-api`, `intelligence/facade/worker`),
+  while port-engine repeated it in all thirteen crates. Package names already followed
+  `<root>-<leaf>` and are byte-identical after the move, so no import changed. `PackSemantics`
+  moved from `core/transform` to `ports/api`: it is a seam the transform consumes and the rulepack
+  implements, so defining it in core made an adapter depend on the engine rather than on the
+  contract. Production dependency graph is now clean in both directions — adapters reach only the
+  ports face and sibling adapters; the single remaining `adapters/rulepack -> core/kernel` edge is
+  `[dev-dependencies]` for one composition test. Historical audit notes in `governance/check/`,
+  `specs/k8s-port/` and `.grok/` that describe PR #1621's tree were left alone: they are accurate
+  about a past state, and rewriting them would falsify a record rather than update one.
+
 ## Still owed by this lane
 
 - Struct methods still emit `todo!()`: bodies need selector expressions (`p.X` → `self.x`),
