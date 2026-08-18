@@ -42,6 +42,13 @@ pub enum SnapshotError {
         /// Kind string found.
         actual: String,
     },
+    /// Type kind is outside the closed vocabulary.
+    UnknownTypeKind {
+        /// Unit the type appears in.
+        unit_id: String,
+        /// Kind string found.
+        actual: String,
+    },
     /// Attribute key is outside the closed vocabulary.
     UnknownAttr {
         /// Unit the declaration belongs to.
@@ -101,6 +108,10 @@ impl fmt::Display for SnapshotError {
             Self::UnknownFlag { unit_id, actual } => write!(
                 f,
                 "source-model snapshot unit `{unit_id}` carries unknown flag `{actual}`"
+            ),
+            Self::UnknownTypeKind { unit_id, actual } => write!(
+                f,
+                "source-model snapshot unit `{unit_id}` carries unknown type kind `{actual}`"
             ),
             Self::UnknownAttr { unit_id, actual } => write!(
                 f,

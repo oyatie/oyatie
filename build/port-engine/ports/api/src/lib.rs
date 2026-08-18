@@ -14,6 +14,7 @@ mod identity;
 mod plan;
 mod receipt;
 mod seams;
+mod type_ref;
 
 pub use declaration::Declaration;
 pub use error::PortError;
@@ -21,6 +22,7 @@ pub use identity::{Digest, LanguagePair, PAIR_SEPARATOR, RegionId, RuleId, UnitI
 pub use plan::{PlanStep, TransformPlan};
 pub use receipt::{RECEIPT_AXES, Receipt, ReceiptAxis};
 pub use seams::{PackSemantics, Renderer, RulePack, SourceModel, TargetIr};
+pub use type_ref::TypeRef;
 
 /// Fail-closed readiness gate. `true` once the seam types are present.
 #[must_use]

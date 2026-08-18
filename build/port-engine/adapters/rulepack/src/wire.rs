@@ -27,6 +27,8 @@ pub(crate) struct RulepackDocument {
     #[serde(default)]
     pub(crate) type_map: BTreeMap<String, String>,
     #[serde(default)]
+    pub(crate) type_constructors: BTreeMap<String, String>,
+    #[serde(default)]
     pub(crate) type_map_overrides: BTreeMap<String, BTreeMap<String, String>>,
     #[serde(default)]
     pub(crate) deferred_kinds: Vec<DeferredKind>,

@@ -32,10 +32,13 @@ fn refuses_a_type_the_pack_does_not_map() {
     value.attrs.insert("value".into(), "0".into());
     let err =
         apply(&plan_with(&["consts"]), &pack, &model_with(vec![value])).expect_err("unmapped");
-    assert!(matches!(
-        err,
-        TransformError::UnmappedType { ref type_ref, .. } if type_ref == "uintptr"
-    ));
+    // The refusal names the type as the model DESCRIBES it, not as the source spelled it — the
+    // description carries the kind and the package, which is what a reader needs to add the
+    // missing pack entry.
+    assert!(
+        matches!(err, TransformError::UnmappedType { ref type_ref, .. } if type_ref.contains("uintptr")),
+        "{err}"
+    );
 }
 
 #[test]

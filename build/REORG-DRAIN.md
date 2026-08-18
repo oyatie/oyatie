@@ -155,6 +155,29 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
   nested `if` branches, producing `if id == "" { fallback }` — parses, does not type-check; and
   the module assembler indented only a region's first line.
 
+- P2: structured types and cross-package resolution (snapshot v2).
+  A type is a TREE now, the same uniform node the declaration tree uses, carrying the PACKAGE that
+  declares it. A flat spelling worked exactly as long as every type was primitive or had its own
+  table row, and failed three ways at once otherwise: a composite needed a row per shape rather
+  than per constructor, a type from another package resolved to nothing because the table was keyed
+  by unqualified text, and two packages declaring `Point` collided.
+  Resolution walks the tree: a local named type → its emitted name; a named type from another unit
+  → that unit's emitted module path; a primitive or a composite → the pack; anything else refuses
+  by name. The pack answers composites by CONSTRUCTOR (`slice`, `map`, `pointer` templates), so one
+  entry covers every slice.
+  `module_path` lives in the transform beside `module_name` and the facade's assembler now uses the
+  same function — deriving it in two places is how a cross-unit reference points at a module nobody
+  emitted. The path is ABSOLUTE (`crate::shapes::Point`) because the emitted unit modules are
+  siblings; the relative form compiled nowhere, and the COMPILE PROOF is what caught it. A golden
+  would have frozen the broken path.
+  The extractor became multi-package: it is its own importer, memoised on the package so a diamond
+  import cannot produce two `types.Package` values for one package. Unit ids are now real import
+  paths, module-root-relative — they were corpus-root-relative, announcing a name no Go file could
+  import and that would not have matched the package identity on a cross-package reference.
+  v1 is REFUSED rather than half-decoded: it cannot answer what v2 asks, and treating its spellings
+  as opaque names would reinstate the flat table. New corpus package `geometry` proves the whole
+  path — `crate::shapes::Point`, `Vec<i64>`, `BTreeMap<String, i64>`.
+
 ## Still owed by this lane
 
 - Struct methods still emit `todo!()`: bodies need selector expressions (`p.X` → `self.x`),

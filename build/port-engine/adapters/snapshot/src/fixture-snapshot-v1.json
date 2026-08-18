@@ -1,10 +1,10 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "language": "go",
-  "snapshot_digest": "sha256:5a92d8514cf1a9b62cb97e5a678bd0dc4993ea9d441bfa9d32970e8960cd3e4c",
+  "snapshot_digest": "sha256:ed9f53054cf436f3b85bd7429512b64dc8a0edfcb54a9454bdd95c70e738c62a",
   "packages": [
     {
-      "unit_id": "oyatie.example/portengine-fixture/basic",
+      "unit_id": "oyatie.example/portengine-fixture/corpus/basic",
       "producer": "bootstrap-go-packages-go-types",
       "declarations": [
         {
@@ -20,17 +20,26 @@
             {
               "kind": "param",
               "name": "a",
-              "type": "int"
+              "type": {
+                "kind": "basic",
+                "name": "int"
+              }
             },
             {
               "kind": "param",
               "name": "b",
-              "type": "int"
+              "type": {
+                "kind": "basic",
+                "name": "int"
+              }
             },
             {
               "kind": "result",
               "name": "",
-              "type": "int"
+              "type": {
+                "kind": "basic",
+                "name": "int"
+              }
             },
             {
               "kind": "body",
@@ -72,7 +81,10 @@
         {
           "kind": "named",
           "name": "Celsius",
-          "type": "float64",
+          "type": {
+            "kind": "basic",
+            "name": "float64"
+          },
           "flags": [
             "exported"
           ],
@@ -83,7 +95,10 @@
         {
           "kind": "const",
           "name": "DefaultName",
-          "type": "string",
+          "type": {
+            "kind": "basic",
+            "name": "string"
+          },
           "flags": [
             "exported"
           ],
@@ -95,7 +110,10 @@
         {
           "kind": "var",
           "name": "Enabled",
-          "type": "bool",
+          "type": {
+            "kind": "basic",
+            "name": "bool"
+          },
           "flags": [
             "exported"
           ],
@@ -106,7 +124,10 @@
         {
           "kind": "alias",
           "name": "ID",
-          "type": "string",
+          "type": {
+            "kind": "basic",
+            "name": "string"
+          },
           "flags": [
             "exported"
           ],
@@ -127,17 +148,27 @@
             {
               "kind": "param",
               "name": "id",
-              "type": "ID"
+              "type": {
+                "kind": "named",
+                "name": "ID",
+                "package": "oyatie.example/portengine-fixture/corpus/basic"
+              }
             },
             {
               "kind": "param",
               "name": "fallback",
-              "type": "string"
+              "type": {
+                "kind": "basic",
+                "name": "string"
+              }
             },
             {
               "kind": "result",
               "name": "",
-              "type": "string"
+              "type": {
+                "kind": "basic",
+                "name": "string"
+              }
             },
             {
               "kind": "body",
@@ -218,7 +249,10 @@
         {
           "kind": "const",
           "name": "MaxRetries",
-          "type": "int",
+          "type": {
+            "kind": "basic",
+            "name": "int"
+          },
           "flags": [
             "exported"
           ],
@@ -240,17 +274,26 @@
             {
               "kind": "param",
               "name": "value",
-              "type": "float64"
+              "type": {
+                "kind": "basic",
+                "name": "float64"
+              }
             },
             {
               "kind": "param",
               "name": "factor",
-              "type": "float64"
+              "type": {
+                "kind": "basic",
+                "name": "float64"
+              }
             },
             {
               "kind": "result",
               "name": "",
-              "type": "float64"
+              "type": {
+                "kind": "basic",
+                "name": "float64"
+              }
             },
             {
               "kind": "body",
@@ -292,7 +335,10 @@
         {
           "kind": "var",
           "name": "Threshold",
-          "type": "float64",
+          "type": {
+            "kind": "basic",
+            "name": "float64"
+          },
           "flags": [
             "exported"
           ],
@@ -310,12 +356,18 @@
             {
               "kind": "param",
               "name": "n",
-              "type": "int"
+              "type": {
+                "kind": "basic",
+                "name": "int"
+              }
             },
             {
               "kind": "result",
               "name": "",
-              "type": "int"
+              "type": {
+                "kind": "basic",
+                "name": "int"
+              }
             },
             {
               "kind": "body",
@@ -341,7 +393,191 @@
       ]
     },
     {
-      "unit_id": "oyatie.example/portengine-fixture/shapes",
+      "unit_id": "oyatie.example/portengine-fixture/corpus/geometry",
+      "producer": "bootstrap-go-packages-go-types",
+      "declarations": [
+        {
+          "kind": "struct",
+          "name": "Bounds",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Bounds is a rectangle described by two points from another package."
+          },
+          "children": [
+            {
+              "kind": "field",
+              "name": "Min",
+              "type": {
+                "kind": "named",
+                "name": "Point",
+                "package": "oyatie.example/portengine-fixture/corpus/shapes"
+              },
+              "flags": [
+                "exported"
+              ],
+              "attrs": {
+                "doc": "Min is the lower corner."
+              }
+            },
+            {
+              "kind": "field",
+              "name": "Max",
+              "type": {
+                "kind": "named",
+                "name": "Point",
+                "package": "oyatie.example/portengine-fixture/corpus/shapes"
+              },
+              "flags": [
+                "exported"
+              ],
+              "attrs": {
+                "doc": "Max is the upper corner."
+              }
+            }
+          ]
+        },
+        {
+          "kind": "func",
+          "name": "Lookup",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Lookup returns a count for a label, falling back when the table has none.\n\nThe map is in the SIGNATURE rather than the body on purpose: indexing is not in the translated\nstatement subset yet and refuses by name, and this package's job is to prove type resolution\nrather than to smuggle an untranslated construct into the green corpus."
+          },
+          "children": [
+            {
+              "kind": "param",
+              "name": "table",
+              "type": {
+                "kind": "map",
+                "args": [
+                  {
+                    "kind": "basic",
+                    "name": "string"
+                  },
+                  {
+                    "kind": "basic",
+                    "name": "int"
+                  }
+                ]
+              }
+            },
+            {
+              "kind": "param",
+              "name": "fallback",
+              "type": {
+                "kind": "basic",
+                "name": "int"
+              }
+            },
+            {
+              "kind": "result",
+              "name": "",
+              "type": {
+                "kind": "basic",
+                "name": "int"
+              }
+            },
+            {
+              "kind": "body",
+              "name": "",
+              "children": [
+                {
+                  "kind": "return",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "ident",
+                      "name": "fallback",
+                      "attrs": {
+                        "ref": "local"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "alias",
+          "name": "Origin",
+          "type": {
+            "kind": "named",
+            "name": "Point",
+            "package": "oyatie.example/portengine-fixture/corpus/shapes"
+          },
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Origin is the zero point, referred to across a package boundary."
+          }
+        },
+        {
+          "kind": "func",
+          "name": "Widths",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Widths returns the horizontal extents of several rectangles.\n\nThe slice is the point: a composite type resolves by CONSTRUCTOR now, so one `slice` entry in\nthe pack answers this and every other slice, where a spelling table needed a row per element."
+          },
+          "children": [
+            {
+              "kind": "param",
+              "name": "counts",
+              "type": {
+                "kind": "slice",
+                "args": [
+                  {
+                    "kind": "basic",
+                    "name": "int"
+                  }
+                ]
+              }
+            },
+            {
+              "kind": "result",
+              "name": "",
+              "type": {
+                "kind": "slice",
+                "args": [
+                  {
+                    "kind": "basic",
+                    "name": "int"
+                  }
+                ]
+              }
+            },
+            {
+              "kind": "body",
+              "name": "",
+              "children": [
+                {
+                  "kind": "return",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "ident",
+                      "name": "counts",
+                      "attrs": {
+                        "ref": "local"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "unit_id": "oyatie.example/portengine-fixture/corpus/shapes",
       "producer": "bootstrap-go-packages-go-types",
       "declarations": [
         {
@@ -364,7 +600,10 @@
                 {
                   "kind": "result",
                   "name": "",
-                  "type": "string"
+                  "type": {
+                    "kind": "basic",
+                    "name": "string"
+                  }
                 }
               ]
             },
@@ -378,7 +617,10 @@
                 {
                   "kind": "param",
                   "name": "next",
-                  "type": "string"
+                  "type": {
+                    "kind": "basic",
+                    "name": "string"
+                  }
                 }
               ]
             }
@@ -387,7 +629,11 @@
         {
           "kind": "var",
           "name": "Origin",
-          "type": "Point",
+          "type": {
+            "kind": "named",
+            "name": "Point",
+            "package": "oyatie.example/portengine-fixture/corpus/shapes"
+          },
           "flags": [
             "exported"
           ],
@@ -408,7 +654,10 @@
             {
               "kind": "field",
               "name": "X",
-              "type": "int",
+              "type": {
+                "kind": "basic",
+                "name": "int"
+              },
               "flags": [
                 "exported"
               ],
@@ -419,7 +668,10 @@
             {
               "kind": "field",
               "name": "Y",
-              "type": "int",
+              "type": {
+                "kind": "basic",
+                "name": "int"
+              },
               "flags": [
                 "exported"
               ],
@@ -430,7 +682,10 @@
             {
               "kind": "field",
               "name": "label",
-              "type": "string",
+              "type": {
+                "kind": "basic",
+                "name": "string"
+              },
               "attrs": {
                 "doc": "label is unexported and must survive extraction as such."
               }
@@ -448,7 +703,10 @@
                 {
                   "kind": "result",
                   "name": "",
-                  "type": "int"
+                  "type": {
+                    "kind": "basic",
+                    "name": "int"
+                  }
                 },
                 {
                   "kind": "body",
@@ -500,17 +758,27 @@
                 {
                   "kind": "param",
                   "name": "dx",
-                  "type": "int"
+                  "type": {
+                    "kind": "basic",
+                    "name": "int"
+                  }
                 },
                 {
                   "kind": "param",
                   "name": "dy",
-                  "type": "int"
+                  "type": {
+                    "kind": "basic",
+                    "name": "int"
+                  }
                 },
                 {
                   "kind": "result",
                   "name": "",
-                  "type": "Point"
+                  "type": {
+                    "kind": "named",
+                    "name": "Point",
+                    "package": "oyatie.example/portengine-fixture/corpus/shapes"
+                  }
                 },
                 {
                   "kind": "body",

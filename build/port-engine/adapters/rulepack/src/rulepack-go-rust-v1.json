@@ -1,18 +1,24 @@
 {
   "_comment": [
-    "Neutral go->rust rule pack v1. Package-local mirror of the forever home",
+    "Neutral go->rust rule pack. Package-local mirror of the forever home",
     "specs/port-rules/lang/go-rust/**; the engine reads only what is here.",
     "",
     "Rule order in `rules` IS the transform order, and `precedence` must agree with it — the",
     "loader refuses a pack where the two disagree rather than silently obeying one of them.",
     "",
-    "`applies` lists each unit's rules in that same ascending order, which the kernel enforces.",
+    "type_map is keyed by TYPE IDENTITY, not by spelling: a primitive by its bare name, a named",
+    "type by `package.Name`. The two cannot collide because a qualified key always carries a dot",
+    "a bare name may not. A named type this map does not carry, from a unit the corpus also",
+    "translates, resolves through that unit's emitted module instead — which is the case a",
+    "spelling table could not express at all.",
     "",
-    "type_map_overrides: one source type does not always take one target type. `string` becomes an",
-    "owned String where a value is stored — a struct field, a parameter, a return — and CANNOT be",
-    "one in a constant, because a Rust const must be known at compile time and String is",
-    "heap-allocated. `&'static str` is what a Go string constant actually is. Recording that here",
-    "rather than branching on it in the transform keeps the decision reviewable and versioned."
+    "type_constructors answers for a COMPOSITE by its constructor rather than its shape. One",
+    "`slice` entry answers every slice; a spelling table needed a row per element type.",
+    "",
+    "type_map_overrides: one source type does not always take one target type. `string` becomes",
+    "an owned String where a value is stored — a field, a parameter, a return — and CANNOT be one",
+    "in a constant, because a Rust const must be known at compile time and String is",
+    "heap-allocated. Recording that here rather than branching on it keeps the decision reviewable."
   ],
   "pair": {
     "source": "go",
@@ -44,7 +50,9 @@
       "id": "go_const",
       "version": "1",
       "precondition": "unit_present",
-      "captures": ["const"],
+      "captures": [
+        "const"
+      ],
       "construction": "rust_const",
       "precedence": 0,
       "conflict": "refuse",
@@ -53,12 +61,12 @@
       "selecting_fixtures": [
         {
           "id": "go-const-selects-basic",
-          "unit": "oyatie.example/portengine-fixture/basic",
+          "unit": "oyatie.example/portengine-fixture/corpus/basic",
           "selects": true
         },
         {
           "id": "go-const-does-not-select-shapes",
-          "unit": "oyatie.example/portengine-fixture/shapes",
+          "unit": "oyatie.example/portengine-fixture/corpus/shapes",
           "selects": false
         }
       ]
@@ -67,7 +75,9 @@
       "id": "go_alias",
       "version": "1",
       "precondition": "unit_present",
-      "captures": ["alias"],
+      "captures": [
+        "alias"
+      ],
       "construction": "rust_type_alias",
       "precedence": 1,
       "conflict": "refuse",
@@ -76,7 +86,7 @@
       "selecting_fixtures": [
         {
           "id": "go-alias-selects-basic",
-          "unit": "oyatie.example/portengine-fixture/basic",
+          "unit": "oyatie.example/portengine-fixture/corpus/basic",
           "selects": true
         }
       ]
@@ -85,7 +95,9 @@
       "id": "go_defined_type",
       "version": "1",
       "precondition": "unit_present",
-      "captures": ["named"],
+      "captures": [
+        "named"
+      ],
       "construction": "rust_newtype",
       "precedence": 2,
       "conflict": "refuse",
@@ -94,7 +106,7 @@
       "selecting_fixtures": [
         {
           "id": "go-defined-type-selects-basic",
-          "unit": "oyatie.example/portengine-fixture/basic",
+          "unit": "oyatie.example/portengine-fixture/corpus/basic",
           "selects": true
         }
       ]
@@ -103,7 +115,9 @@
       "id": "go_struct",
       "version": "1",
       "precondition": "unit_present",
-      "captures": ["struct"],
+      "captures": [
+        "struct"
+      ],
       "construction": "rust_struct",
       "precedence": 3,
       "conflict": "refuse",
@@ -112,12 +126,12 @@
       "selecting_fixtures": [
         {
           "id": "go-struct-selects-shapes",
-          "unit": "oyatie.example/portengine-fixture/shapes",
+          "unit": "oyatie.example/portengine-fixture/corpus/shapes",
           "selects": true
         },
         {
           "id": "go-struct-does-not-select-basic",
-          "unit": "oyatie.example/portengine-fixture/basic",
+          "unit": "oyatie.example/portengine-fixture/corpus/basic",
           "selects": false
         }
       ]
@@ -126,7 +140,9 @@
       "id": "go_interface",
       "version": "1",
       "precondition": "unit_present",
-      "captures": ["interface"],
+      "captures": [
+        "interface"
+      ],
       "construction": "rust_trait",
       "precedence": 4,
       "conflict": "refuse",
@@ -135,7 +151,7 @@
       "selecting_fixtures": [
         {
           "id": "go-interface-selects-shapes",
-          "unit": "oyatie.example/portengine-fixture/shapes",
+          "unit": "oyatie.example/portengine-fixture/corpus/shapes",
           "selects": true
         }
       ]
@@ -144,7 +160,9 @@
       "id": "go_func",
       "version": "1",
       "precondition": "unit_present",
-      "captures": ["func"],
+      "captures": [
+        "func"
+      ],
       "construction": "rust_fn_body",
       "precedence": 5,
       "conflict": "refuse",
@@ -153,20 +171,36 @@
       "selecting_fixtures": [
         {
           "id": "go-func-selects-basic",
-          "unit": "oyatie.example/portengine-fixture/basic",
+          "unit": "oyatie.example/portengine-fixture/corpus/basic",
           "selects": true
         }
       ]
     }
   ],
   "applies": {
-    "oyatie.example/portengine-fixture/basic": [
+    "oyatie.example/portengine-fixture/corpus/basic": [
       "go_const",
       "go_alias",
       "go_defined_type",
       "go_func"
     ],
-    "oyatie.example/portengine-fixture/shapes": ["go_struct", "go_interface"],
-    "oyatie.example/portengine-fixture-refused/hard": ["go_func"]
+    "oyatie.example/portengine-fixture/corpus/shapes": [
+      "go_struct",
+      "go_interface"
+    ],
+    "oyatie.example/portengine-fixture-refused/corpus-refused/hard": [
+      "go_func"
+    ],
+    "oyatie.example/portengine-fixture/corpus/geometry": [
+      "go_alias",
+      "go_struct",
+      "go_func"
+    ]
+  },
+  "type_constructors": {
+    "slice": "Vec<{0}>",
+    "map": "std::collections::BTreeMap<{0}, {1}>",
+    "array": "Vec<{0}>",
+    "pointer": "Option<Box<{0}>>"
   }
 }

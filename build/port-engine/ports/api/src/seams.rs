@@ -78,6 +78,12 @@ pub trait PackSemantics {
     fn captures(&self, rule: &RuleId) -> Option<&[String]>;
     /// Source type spelling → target type spelling.
     fn type_map(&self) -> &BTreeMap<String, String>;
+    /// Target-type templates keyed by source type KIND, with `{0}`, `{1}` for the arguments.
+    ///
+    /// This is what makes a composite resolvable by CONSTRUCTOR rather than by shape: one entry
+    /// for a slice answers every slice, where a table keyed by spelling needed a row per element
+    /// type — and could still not express a type from another package.
+    fn type_constructors(&self) -> &BTreeMap<String, String>;
     /// Per-construction overrides of [`PackSemantics::type_map`], keyed by construction id.
     ///
     /// One source type does not always map to one target type: the same spelling can need a
