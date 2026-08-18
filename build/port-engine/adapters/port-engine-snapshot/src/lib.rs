@@ -191,7 +191,8 @@ fn push_field(out: &mut Vec<u8>, value: &str) {
 /// explicit child arity per node:
 ///
 /// ```text
-/// F(kind) F(name) F(type_ref) F(len(flags)) flags... F(len(children)) children...
+/// F(kind) F(name) F(type_ref) F(len(flags)) flags...
+///     F(len(attrs)) (F(key) F(value))... F(len(children)) children...
 /// ```
 ///
 /// Length prefixes make each field unambiguous; the arity counts make the tree unambiguous. This
@@ -224,11 +225,16 @@ fn push_declaration(out: &mut Vec<u8>, declaration: &Declaration) {
     push_field(out, &declaration.kind);
     push_field(out, &declaration.name);
     push_field(out, &declaration.type_ref);
-    // `flags` is a BTreeSet, so this iteration is sorted — the same order the extractor sorts
-    // into. A set with two orderings would be a set with two digests.
+    // `flags` is a BTreeSet and `attrs` a BTreeMap, so both iterate sorted — the same order the
+    // extractor sorts into. A set with two orderings would be a set with two digests.
     push_field(out, &declaration.flags.len().to_string());
     for flag in &declaration.flags {
         push_field(out, flag);
+    }
+    push_field(out, &declaration.attrs.len().to_string());
+    for (key, value) in &declaration.attrs {
+        push_field(out, key);
+        push_field(out, value);
     }
     push_field(out, &declaration.children.len().to_string());
     for child in &declaration.children {
@@ -468,6 +474,7 @@ mod tests {
             name: "MaxRetries".into(),
             type_ref: "int".into(),
             flags: ["exported".to_owned()].into_iter().collect(),
+            attrs: [("value".to_owned(), "3".to_owned())].into_iter().collect(),
             children: Vec::new(),
         };
 
@@ -502,6 +509,7 @@ mod tests {
             name: name.into(),
             type_ref: "int".into(),
             flags: std::collections::BTreeSet::new(),
+            attrs: std::collections::BTreeMap::new(),
             children: Vec::new(),
         };
 
@@ -510,6 +518,7 @@ mod tests {
             name: "f".into(),
             type_ref: String::new(),
             flags: std::collections::BTreeSet::new(),
+            attrs: std::collections::BTreeMap::new(),
             children: vec![leaf("a")],
         };
         let mut flat = nested.clone();

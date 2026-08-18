@@ -57,6 +57,17 @@ recorded here rather than implied.
   `snapshot_preimage_v1` extends the digest over the declaration tree, mirroring the extractor's
   encoder; the two agreeing over a real corpus is what `v1_fixture_admits_and_carries_declarations`
   proves. CLI: `declarations`.
+- I3: the engine ports Go. `captures` is load-bearing and splits rules into unit-level (captures
+  nothing — the unchanged canary path) and declaration-level (one region per captured
+  declaration). Constructions `rust_const|rust_type_alias|rust_newtype|rust_struct|rust_trait|
+  rust_fn` emit real Rust items; the type map and its per-construction overrides are pack DATA and
+  an unmapped type refuses rather than guessing. Coverage is proven: a declaration no rule captures
+  and no `deferred_kinds` entry accounts for REFUSES, so nothing is dropped in silence — and a
+  deferral must carry a reason, which travels in the pack digest. The five decode-and-drop fields
+  are closed out: `captures` drives selection, `precedence` must agree with declaration order,
+  `conflict` accepts only the implemented policy, and `required_diagnostics`/`proof_obligations`
+  refuse while unimplemented. The wire shape is `deny_unknown_fields`. CLI: `port-go`.
+  Merged the plan's I4 into this increment: constructions cannot render without the type map.
 
 ## Next gaps (ordered)
 

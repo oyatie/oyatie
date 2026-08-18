@@ -126,6 +126,11 @@ pub struct Declaration {
     /// Boolean facts, as a set of opaque slugs rather than named booleans, so a front end can
     /// record a new one without widening this seam.
     pub flags: BTreeSet<String>, // data_class: INTERNAL_ONLY
+    /// Key→value facts that do not fit a set: a constant's value, and whatever a later front end
+    /// needs to record. Separate from [`Declaration::flags`] because the two answer different
+    /// questions — membership versus value — and folding a flag in as `"exported" => "1"` would
+    /// lose the difference between an absent key and an empty one.
+    pub attrs: BTreeMap<String, String>, // data_class: INTERNAL_ONLY
     /// Nested declarations in significant order. Order is the front end's to decide and the
     /// engine's to preserve: it is semantic for a parameter list and for struct fields, and a
     /// front end that sorts what must stay positional has produced a defective model.
@@ -143,6 +148,12 @@ impl Declaration {
     #[must_use]
     pub fn children_of_kind(&self, kind: &str) -> Vec<&Self> {
         self.children.iter().filter(|c| c.kind == kind).collect()
+    }
+
+    /// Value recorded under `key`, if the front end recorded one.
+    #[must_use]
+    pub fn attr(&self, key: &str) -> Option<&str> {
+        self.attrs.get(key).map(String::as_str)
     }
 }
 

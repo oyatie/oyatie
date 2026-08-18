@@ -73,11 +73,16 @@ type pkgNode struct {
 // `type`, and `flags` are opaque slugs the engine compares and never interprets; the rule
 // pack's `captures` are what give them meaning.
 type node struct {
-	Kind     string   `json:"kind"`
-	Name     string   `json:"name"`
-	Type     string   `json:"type,omitempty"`
-	Flags    []string `json:"flags,omitempty"`
-	Children []node   `json:"children,omitempty"`
+	Kind  string   `json:"kind"`
+	Name  string   `json:"name"`
+	Type  string   `json:"type,omitempty"`
+	Flags []string `json:"flags,omitempty"`
+	// Attrs carries key->value facts that do not fit a set: a constant's value, and whatever a
+	// later front end needs to record. Kept separate from Flags because the two answer different
+	// questions — Flags is membership, Attrs is a value — and collapsing them would mean encoding
+	// "exported" as "exported=1" and losing the distinction between an absent key and an empty one.
+	Attrs    map[string]string `json:"attrs,omitempty"`
+	Children []node            `json:"children,omitempty"`
 }
 
 // Declaration kinds. These strings are the vocabulary the rule pack's `captures` select
@@ -102,6 +107,20 @@ const (
 	flagExported = "exported"
 	flagVariadic = "variadic"
 	flagEmbedded = "embedded"
+	// flagPointerReceiver records that a method is bound through a pointer receiver. The engine
+	// refuses to translate one rather than guess an aliasing mode, so this flag has to be
+	// extracted for that refusal to be possible at all — dropping it would silently turn a
+	// mutating method into a read-only one.
+	flagPointerReceiver = "pointer_receiver"
+)
+
+// Attribute keys.
+const (
+	// attrValue is a constant's value, spelled as Go source. It is deliberately the SOURCE
+	// spelling rather than a normalized number: the engine emits Rust that must parse, and a
+	// Go literal that is not also a valid Rust literal has to fail loudly at the syn parse
+	// rather than be silently rounded into something that compiles and means something else.
+	attrValue = "value"
 )
 
 // ---------------------------------------------------------------------------------
@@ -278,12 +297,15 @@ func extractPackage(dir string, unitID string) ([]node, error) {
 }
 
 func declFor(obj types.Object, qualify types.Qualifier) (node, error) {
-	base := node{Name: obj.Name(), Flags: flagsFor(obj.Exported(), false, false)}
+	base := node{Name: obj.Name(), Flags: flagsFor(obj.Exported(), false, false, false)}
 
 	switch typed := obj.(type) {
 	case *types.Const:
 		base.Kind = kindConst
 		base.Type = types.TypeString(typed.Type(), qualify)
+		if value := typed.Val(); value != nil {
+			base.Attrs = map[string]string{attrValue: value.String()}
+		}
 		return base, nil
 
 	case *types.Var:
@@ -297,7 +319,7 @@ func declFor(obj types.Object, qualify types.Qualifier) (node, error) {
 			return base, fmt.Errorf("func object without signature")
 		}
 		base.Kind = kindFunc
-		base.Flags = flagsFor(obj.Exported(), sig.Variadic(), false)
+		base.Flags = flagsFor(obj.Exported(), sig.Variadic(), false, false)
 		base.Children = signatureChildren(sig, qualify)
 		return base, nil
 
@@ -345,7 +367,7 @@ func typeDecl(obj *types.TypeName, base node, qualify types.Qualifier) (node, er
 				Kind:  kindField,
 				Name:  field.Name(),
 				Type:  types.TypeString(field.Type(), qualify),
-				Flags: flagsFor(field.Exported(), false, field.Embedded()),
+				Flags: flagsFor(field.Exported(), false, field.Embedded(), false),
 			})
 		}
 		base.Children = append(base.Children, methods...)
@@ -361,9 +383,11 @@ func typeDecl(obj *types.TypeName, base node, qualify types.Qualifier) (node, er
 				return base, fmt.Errorf("interface method %s without signature", method.Name())
 			}
 			ifaceMethods = append(ifaceMethods, node{
-				Kind:     kindMethod,
-				Name:     method.Name(),
-				Flags:    flagsFor(method.Exported(), sig.Variadic(), false),
+				Kind: kindMethod,
+				Name: method.Name(),
+				// An interface method has no receiver to be a pointer to; the implementing type
+				// decides that, and this node is the requirement rather than the binding.
+				Flags:    flagsFor(method.Exported(), sig.Variadic(), false, false),
 				Children: signatureChildren(sig, qualify),
 			})
 		}
@@ -393,12 +417,22 @@ func methodChildren(named *types.Named, qualify types.Qualifier) ([]node, error)
 		methods = append(methods, node{
 			Kind:     kindMethod,
 			Name:     method.Name(),
-			Flags:    flagsFor(method.Exported(), sig.Variadic(), false),
+			Flags:    flagsFor(method.Exported(), sig.Variadic(), false, isPointerReceiver(sig)),
 			Children: signatureChildren(sig, qualify),
 		})
 	}
 	sortNodes(methods)
 	return methods, nil
+}
+
+// isPointerReceiver reports whether sig is bound through a pointer receiver.
+func isPointerReceiver(sig *types.Signature) bool {
+	recv := sig.Recv()
+	if recv == nil {
+		return false
+	}
+	_, pointer := types.Unalias(recv.Type()).(*types.Pointer)
+	return pointer
 }
 
 func signatureChildren(sig *types.Signature, qualify types.Qualifier) []node {
@@ -435,13 +469,16 @@ func sortNodes(nodes []node) {
 
 // flagsFor returns the set spelling of the boolean facts about a node. Sorted, so the set
 // has exactly one encoding; nil when empty, so the JSON omits the key entirely.
-func flagsFor(exported bool, variadic bool, embedded bool) []string {
-	flags := make([]string, 0, 3)
+func flagsFor(exported bool, variadic bool, embedded bool, pointerReceiver bool) []string {
+	flags := make([]string, 0, 4)
 	if embedded {
 		flags = append(flags, flagEmbedded)
 	}
 	if exported {
 		flags = append(flags, flagExported)
+	}
+	if pointerReceiver {
+		flags = append(flags, flagPointerReceiver)
 	}
 	if variadic {
 		flags = append(flags, flagVariadic)
@@ -491,6 +528,18 @@ func encodeNode(out *[]byte, n node) {
 	field(out, strconv.Itoa(len(n.Flags)))
 	for _, flag := range n.Flags {
 		field(out, flag)
+	}
+	// Sorted, so the map has exactly one encoding. A map with two orderings is a map with two
+	// digests, and the receipt would then attribute a byte-identical corpus to a moved axis.
+	attrKeys := make([]string, 0, len(n.Attrs))
+	for key := range n.Attrs {
+		attrKeys = append(attrKeys, key)
+	}
+	sort.Strings(attrKeys)
+	field(out, strconv.Itoa(len(attrKeys)))
+	for _, key := range attrKeys {
+		field(out, key)
+		field(out, n.Attrs[key])
 	}
 	field(out, strconv.Itoa(len(n.Children)))
 	for _, child := range n.Children {

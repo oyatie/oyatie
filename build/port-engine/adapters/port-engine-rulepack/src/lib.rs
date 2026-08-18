@@ -8,16 +8,25 @@
 //! embedded JSON bytes via `port-engine-hash`. Neutral only — no corpus vocabulary.
 #![forbid(unsafe_code)]
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::fmt;
 
 use port_engine_api::{Digest, LanguagePair, RuleId, RulePack, UnitId};
 use port_engine_hash::digest_bytes;
-use port_engine_transform::RuleConstruction;
+use port_engine_transform::PackSemantics;
 use serde::Deserialize;
 
 /// Embedded v0 mirror of forever `specs/port-rules/**` (integ/specs owns the live tree).
 const RULEPACK_V0_JSON: &str = include_str!("rulepack-v0.json");
+
+/// Embedded go→rust pack v1: the declaration-level rules, type map, and deferral policy that
+/// translate the hermetic Go corpus. Same forever home as v0.
+const RULEPACK_GO_RUST_V1_JSON: &str = include_str!("rulepack-go-rust-v1.json");
+
+/// The only conflict policy the engine implements. A pack may not declare another: the kernel
+/// refuses a duplicate rule or region outright, and there is no code path that would do anything
+/// else with a different value here.
+pub const CONFLICT_REFUSE: &str = "refuse";
 
 /// Fail-closed readiness gate. `true` once Slice 10 fixture-gated load is present.
 pub const fn w0_ready() -> bool {
@@ -26,6 +35,7 @@ pub const fn w0_ready() -> bool {
 
 /// One selecting fixture bound to a rule (W0-B plan §5.3 minimum shape).
 #[derive(Clone, Debug, Eq, PartialEq, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct SelectingFixture {
     /// Stable fixture identity.
     pub id: String,
@@ -42,12 +52,33 @@ pub struct LoadedRule {
     pub id: RuleId,
     /// Rule version string.
     pub version: String,
-    /// Precondition id (Slice 11 transform evaluates this).
+    /// Precondition id the transform evaluates.
     pub precondition: String,
-    /// Construction id (Slice 11 transform applies this into RustIr).
+    /// Construction id the transform applies into `RustIr`.
     pub construction: String,
+    /// Declaration kinds this rule captures. Empty means the rule is unit-level.
+    pub captures: Vec<String>,
+    /// Declared precedence. Load-bearing: the loader refuses a pack whose precedence disagrees
+    /// with declaration order, so this can never be a second, silently-ignored ordering.
+    pub precedence: i64,
+    /// Declared conflict policy. Only [`CONFLICT_REFUSE`] is implemented.
+    pub conflict: String,
     /// Selection fixtures, including at least one validated positive fixture.
     pub selecting_fixtures: Vec<SelectingFixture>,
+}
+
+/// A declaration kind the pack knowingly does not translate, and why.
+///
+/// The reason is REQUIRED and travels in the pack bytes, therefore in the pack digest, therefore in
+/// the receipt. That is the whole difference between a deferral and an omission: both emit nothing,
+/// but one of them is a decision somebody made and can be found again.
+#[derive(Clone, Debug, Eq, PartialEq, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct DeferredKind {
+    /// The declaration kind left untranslated.
+    pub kind: String,
+    /// Why it is deferred, and where the analysis lives.
+    pub reason: String,
 }
 
 /// Typed refusal from rulepack decode / validation.
@@ -95,6 +126,36 @@ pub enum RulepackError {
         /// Undeclared rule id.
         rule: String,
     },
+    /// The pack declares semantics the engine does not implement.
+    UnimplementedSemantics {
+        /// Rule that declares it.
+        rule: String,
+        /// Which declared field has no implementation behind it.
+        field: &'static str,
+    },
+    /// Declared precedence disagrees with declaration order.
+    PrecedenceDisagreesWithOrder {
+        /// Rule whose precedence is out of order.
+        rule: String,
+        /// Precedence it declares.
+        precedence: i64,
+        /// Precedence of the rule declared before it.
+        previous: i64,
+    },
+    /// A conflict policy the engine has no implementation for.
+    UnknownConflictPolicy {
+        /// Rule that declares it.
+        rule: String,
+        /// The policy string found.
+        policy: String,
+    },
+    /// A deferred kind is also captured by a rule — the pack says both things at once.
+    DeferredKindAlsoCaptured {
+        /// The contradictory kind.
+        kind: String,
+        /// A rule that captures it.
+        rule: String,
+    },
     /// Language pair cannot address a rule namespace.
     Pair(port_engine_api::PortError),
 }
@@ -130,6 +191,26 @@ impl fmt::Display for RulepackError {
                 f,
                 "rulepack applies rule `{rule}` to unit `{unit}` but rules[] does not declare it"
             ),
+            Self::UnimplementedSemantics { rule, field } => write!(
+                f,
+                "rulepack rule `{rule}` declares `{field}`, which the engine does not implement —                  a pack may not declare semantics that are silently dropped"
+            ),
+            Self::PrecedenceDisagreesWithOrder {
+                rule,
+                precedence,
+                previous,
+            } => write!(
+                f,
+                "rulepack rule `{rule}` declares precedence {precedence} after {previous}:                  declaration order is the transform order, so a precedence that disagrees with it                  is a second ordering nothing obeys"
+            ),
+            Self::UnknownConflictPolicy { rule, policy } => write!(
+                f,
+                "rulepack rule `{rule}` declares conflict policy `{policy}`; only                  `{CONFLICT_REFUSE}` is implemented"
+            ),
+            Self::DeferredKindAlsoCaptured { kind, rule } => write!(
+                f,
+                "rulepack defers kind `{kind}` and also captures it in rule `{rule}`: the pack                  cannot both translate it and record it as untranslated"
+            ),
             Self::Pair(err) => write!(f, "rulepack language pair refused: {err}"),
         }
     }
@@ -137,43 +218,67 @@ impl fmt::Display for RulepackError {
 
 impl std::error::Error for RulepackError {}
 
+fn default_conflict() -> String {
+    CONFLICT_REFUSE.to_owned()
+}
+
+/// CLOSED wire shape. An unknown key is a refusal, not a shrug: `type_map_override` for
+/// `type_map_overrides` would otherwise parse clean, override nothing, and leave the pack author
+/// looking at a green load and the wrong emitted types. `_comment` is declared so prose can live
+/// beside the data it explains without punching a hole in the closure.
 #[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
 struct RulepackDocument {
+    #[serde(default, rename = "_comment")]
+    _comment: serde_json::Value,
     pair: PairFields,
+    #[serde(default)]
+    type_map: BTreeMap<String, String>,
+    #[serde(default)]
+    type_map_overrides: BTreeMap<String, BTreeMap<String, String>>,
+    #[serde(default)]
+    deferred_kinds: Vec<DeferredKind>,
     rules: Vec<RuleDocument>,
     applies: BTreeMap<String, Vec<String>>,
 }
 
 #[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
 struct PairFields {
     source: String,
     target: String,
 }
 
 /// Wire shape for one rule. Selection gating requires `id` / `version` / `selecting_fixtures`;
-/// Slice 11 also requires non-empty `precondition` + `construction` for transform apply.
+/// transform apply also requires non-empty `precondition` + `construction`. Closed, for the same
+/// reason as [`RulepackDocument`].
 #[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
 struct RuleDocument {
+    #[serde(default, rename = "_comment")]
+    _comment: serde_json::Value,
     id: String,
     version: String,
     #[serde(default)]
     precondition: String,
     #[serde(default)]
-    #[allow(dead_code)]
     captures: Vec<String>,
     #[serde(default)]
     construction: String,
     #[serde(default)]
-    #[allow(dead_code)]
     precedence: i64,
-    #[serde(default)]
-    #[allow(dead_code)]
+    // Defaults to the only implemented policy rather than to the empty string. The engine refuses
+    // a conflict unconditionally — the kernel has no other code path — so an omitted policy and a
+    // stated `refuse` describe the same behaviour, while a stated ANYTHING ELSE describes
+    // behaviour that does not exist and is refused below.
+    #[serde(default = "default_conflict")]
     conflict: String,
+    // Declared, and refused while unimplemented. These two used to be decoded and dropped, which
+    // meant a pack author could write a diagnostic requirement or a proof obligation, load green,
+    // and get nothing — the field said the engine would do something it had no code for.
     #[serde(default)]
-    #[allow(dead_code)]
     required_diagnostics: Vec<String>,
     #[serde(default)]
-    #[allow(dead_code)]
     proof_obligations: Vec<String>,
     #[serde(default)]
     selecting_fixtures: Vec<SelectingFixture>,
@@ -187,6 +292,10 @@ pub struct LoadedRulePack {
     rules: Vec<RuleId>,
     loaded_rules: Vec<LoadedRule>,
     applies: BTreeMap<UnitId, Vec<RuleId>>,
+    type_map: BTreeMap<String, String>,
+    type_map_overrides: BTreeMap<String, BTreeMap<String, String>>,
+    deferred_kinds: Vec<DeferredKind>,
+    deferred_kind_set: BTreeSet<String>,
 }
 
 impl LoadedRulePack {
@@ -220,9 +329,10 @@ impl LoadedRulePack {
         if doc.rules.is_empty() {
             return Err(RulepackError::Schema { field: "rules" });
         }
-        let mut seen = std::collections::BTreeSet::new();
+        let mut seen = BTreeSet::new();
         let mut rules = Vec::with_capacity(doc.rules.len());
         let mut loaded_rules = Vec::with_capacity(doc.rules.len());
+        let mut previous_precedence: Option<i64> = None;
         for rule in doc.rules {
             if rule.id.is_empty() {
                 return Err(RulepackError::Schema {
@@ -264,18 +374,62 @@ impl LoadedRulePack {
                     field: "rules(duplicate)",
                 });
             }
+            // Every field the wire shape carries must either drive behaviour or be refused.
+            // These two carry no implementation, so a pack declaring them is told so rather than
+            // loading green and receiving nothing.
+            if !rule.required_diagnostics.is_empty() {
+                return Err(RulepackError::UnimplementedSemantics {
+                    rule: rule.id,
+                    field: "required_diagnostics",
+                });
+            }
+            if !rule.proof_obligations.is_empty() {
+                return Err(RulepackError::UnimplementedSemantics {
+                    rule: rule.id,
+                    field: "proof_obligations",
+                });
+            }
+            if rule.conflict != CONFLICT_REFUSE {
+                return Err(RulepackError::UnknownConflictPolicy {
+                    rule: rule.id,
+                    policy: rule.conflict,
+                });
+            }
+            // Declaration order IS the transform order — `port_engine_kernel::plan` refuses a
+            // unit whose rules arrive out of declared position. `precedence` therefore has to
+            // agree with it or the pack states an order that nothing obeys, and a reviewer
+            // reading the precedences would be reading a fiction.
+            if let Some(previous) = previous_precedence.filter(|p| rule.precedence <= *p) {
+                return Err(RulepackError::PrecedenceDisagreesWithOrder {
+                    rule: rule.id,
+                    precedence: rule.precedence,
+                    previous,
+                });
+            }
+            previous_precedence = Some(rule.precedence);
+
+            for capture in &rule.captures {
+                if capture.is_empty() {
+                    return Err(RulepackError::Schema {
+                        field: "rules[].captures[]",
+                    });
+                }
+            }
+
             let id = RuleId(rule.id);
             loaded_rules.push(LoadedRule {
                 id: id.clone(),
                 version: rule.version,
                 precondition: rule.precondition,
                 construction: rule.construction,
+                captures: rule.captures,
+                precedence: rule.precedence,
+                conflict: rule.conflict,
                 selecting_fixtures: rule.selecting_fixtures,
             });
             rules.push(id);
         }
-        let declared: std::collections::BTreeSet<&str> =
-            rules.iter().map(|r| r.0.as_str()).collect();
+        let declared: BTreeSet<&str> = rules.iter().map(|r| r.0.as_str()).collect();
 
         let mut applies = BTreeMap::new();
         for (unit, rule_ids) in doc.applies {
@@ -325,6 +479,32 @@ impl LoadedRulePack {
             }
         }
 
+        let mut deferred_kind_set = BTreeSet::new();
+        for deferred in &doc.deferred_kinds {
+            if deferred.kind.is_empty() {
+                return Err(RulepackError::Schema {
+                    field: "deferred_kinds[].kind",
+                });
+            }
+            // A deferral without a reason is an omission wearing a label. The reason is what
+            // makes it reviewable, and it is what travels in the digest.
+            if deferred.reason.trim().is_empty() {
+                return Err(RulepackError::Schema {
+                    field: "deferred_kinds[].reason",
+                });
+            }
+            if let Some(rule) = loaded_rules
+                .iter()
+                .find(|rule| rule.captures.contains(&deferred.kind))
+            {
+                return Err(RulepackError::DeferredKindAlsoCaptured {
+                    kind: deferred.kind.clone(),
+                    rule: rule.id.0.clone(),
+                });
+            }
+            deferred_kind_set.insert(deferred.kind.clone());
+        }
+
         // Digest the embedded bytes exactly — whitespace is part of the identity until a
         // canonicalizer lands with the forever specs/port-rules materializer.
         let digest = digest_bytes(json.as_bytes());
@@ -334,7 +514,25 @@ impl LoadedRulePack {
             rules,
             loaded_rules,
             applies,
+            type_map: doc.type_map,
+            type_map_overrides: doc.type_map_overrides,
+            deferred_kinds: doc.deferred_kinds,
+            deferred_kind_set,
         })
+    }
+
+    /// Load and validate the embedded go→rust v1 pack.
+    ///
+    /// # Errors
+    /// [`RulepackError`] on any of the same refusals as [`Self::load_embedded`].
+    pub fn load_embedded_go_rust() -> Result<Self, RulepackError> {
+        Self::load_from_str(RULEPACK_GO_RUST_V1_JSON)
+    }
+
+    /// The kinds this pack knowingly leaves untranslated, with their recorded reasons.
+    #[must_use]
+    pub fn deferred(&self) -> &[DeferredKind] {
+        &self.deferred_kinds
     }
 
     /// Borrow the language pair.
@@ -370,13 +568,29 @@ impl LoadedRulePack {
     }
 }
 
-impl RuleConstruction for LoadedRulePack {
+impl PackSemantics for LoadedRulePack {
     fn construction(&self, rule: &RuleId) -> Option<&str> {
         self.rule(rule).map(|r| r.construction.as_str())
     }
 
     fn precondition(&self, rule: &RuleId) -> Option<&str> {
         self.rule(rule).map(|r| r.precondition.as_str())
+    }
+
+    fn captures(&self, rule: &RuleId) -> Option<&[String]> {
+        self.rule(rule).map(|r| r.captures.as_slice())
+    }
+
+    fn type_map(&self) -> &BTreeMap<String, String> {
+        &self.type_map
+    }
+
+    fn type_map_overrides(&self, construction: &str) -> Option<&BTreeMap<String, String>> {
+        self.type_map_overrides.get(construction)
+    }
+
+    fn deferred_kinds(&self) -> &BTreeSet<String> {
+        &self.deferred_kind_set
     }
 }
 
@@ -634,6 +848,133 @@ mod tests {
                 fixture_count: 1,
             } if rule == "never"
         ));
+    }
+
+    // -----------------------------------------------------------------------------------------
+    // Declared-but-ignored semantics. Each of these fields used to decode and drop.
+    // -----------------------------------------------------------------------------------------
+
+    /// A pack that declares a diagnostic requirement and gets nothing is worse than one that
+    /// cannot declare it: the field reads as a promise the engine has no code to keep.
+    #[test]
+    fn refuses_declared_semantics_the_engine_does_not_implement() {
+        for field in ["required_diagnostics", "proof_obligations"] {
+            let json = format!(
+                r#"{{"pair":{{"source":"go","target":"rust"}},"rules":[{{"id":"r","version":"0",
+                   "precondition":"unit_present","construction":"pass_through","{field}":["x"],
+                   "selecting_fixtures":[{{"id":"f","unit":"u","selects":true}}]}}],
+                   "applies":{{"u":["r"]}}}}"#
+            );
+            let err = LoadedRulePack::load_from_str(&json)
+                .expect_err("declared-but-unimplemented semantics must refuse");
+            assert!(
+                matches!(err, RulepackError::UnimplementedSemantics { field: f, .. } if f == field),
+                "{field}: {err}"
+            );
+        }
+    }
+
+    /// Declaration order is the transform order — `plan` refuses a unit whose rules arrive out of
+    /// declared position. A precedence that disagrees is a second ordering nothing obeys, and a
+    /// reviewer reading it would be reading a fiction.
+    #[test]
+    fn refuses_precedence_that_disagrees_with_declaration_order() {
+        let json = r#"{"pair":{"source":"go","target":"rust"},"rules":[
+            {"id":"first","version":"0","precondition":"unit_present","construction":"pass_through",
+             "precedence":10,"selecting_fixtures":[{"id":"a","unit":"u","selects":true}]},
+            {"id":"second","version":"0","precondition":"unit_present","construction":"pass_through",
+             "precedence":5,"selecting_fixtures":[{"id":"b","unit":"u","selects":true}]}],
+            "applies":{"u":["first","second"]}}"#;
+        let err = LoadedRulePack::load_from_str(json).expect_err("out-of-order precedence refuses");
+        assert!(matches!(
+            err,
+            RulepackError::PrecedenceDisagreesWithOrder { ref rule, .. } if rule == "second"
+        ));
+    }
+
+    #[test]
+    fn refuses_a_conflict_policy_with_no_implementation() {
+        let json = r#"{"pair":{"source":"go","target":"rust"},"rules":[
+            {"id":"r","version":"0","precondition":"unit_present","construction":"pass_through",
+             "conflict":"last_wins","selecting_fixtures":[{"id":"f","unit":"u","selects":true}]}],
+            "applies":{"u":["r"]}}"#;
+        let err = LoadedRulePack::load_from_str(json).expect_err("unimplemented policy refuses");
+        assert!(matches!(err, RulepackError::UnknownConflictPolicy { .. }));
+    }
+
+    /// A deferral without a reason is an omission wearing a label.
+    #[test]
+    fn refuses_a_deferral_without_a_recorded_reason() {
+        let json = r#"{"pair":{"source":"go","target":"rust"},
+            "deferred_kinds":[{"kind":"var","reason":"   "}],
+            "rules":[{"id":"r","version":"0","precondition":"unit_present",
+             "construction":"pass_through","selecting_fixtures":[{"id":"f","unit":"u","selects":true}]}],
+            "applies":{"u":["r"]}}"#;
+        let err = LoadedRulePack::load_from_str(json).expect_err("reasonless deferral refuses");
+        assert!(matches!(
+            err,
+            RulepackError::Schema {
+                field: "deferred_kinds[].reason"
+            }
+        ));
+    }
+
+    #[test]
+    fn refuses_a_kind_that_is_both_captured_and_deferred() {
+        let json = r#"{"pair":{"source":"go","target":"rust"},
+            "deferred_kinds":[{"kind":"const","reason":"not yet"}],
+            "rules":[{"id":"r","version":"0","precondition":"unit_present","captures":["const"],
+             "construction":"rust_const","selecting_fixtures":[{"id":"f","unit":"u","selects":true}]}],
+            "applies":{"u":["r"]}}"#;
+        let err = LoadedRulePack::load_from_str(json).expect_err("contradiction refuses");
+        assert!(matches!(
+            err,
+            RulepackError::DeferredKindAlsoCaptured { .. }
+        ));
+    }
+
+    /// A misspelled key used to parse clean and do nothing. `type_map_override` would have
+    /// overridden no types at all while the load stayed green.
+    #[test]
+    fn refuses_an_unknown_key_rather_than_ignoring_it() {
+        let json = r#"{"pair":{"source":"go","target":"rust"},"type_map_override":{},
+            "rules":[{"id":"r","version":"0","precondition":"unit_present",
+             "construction":"pass_through","selecting_fixtures":[{"id":"f","unit":"u","selects":true}]}],
+            "applies":{"u":["r"]}}"#;
+        let err = LoadedRulePack::load_from_str(json).expect_err("unknown key refuses");
+        assert!(matches!(err, RulepackError::Parse { .. }), "{err}");
+    }
+
+    #[test]
+    fn embedded_go_rust_pack_loads_with_captures_types_and_deferrals() {
+        let pack = LoadedRulePack::load_embedded_go_rust().expect("go→rust pack must load");
+        assert_eq!(pack.language_pair().source, "go");
+        assert_eq!(pack.language_pair().target, "rust");
+
+        let by_id: BTreeMap<&str, &LoadedRule> = pack
+            .loaded_rules()
+            .iter()
+            .map(|rule| (rule.id.0.as_str(), rule))
+            .collect();
+        assert_eq!(by_id["go_struct"].captures, vec!["struct".to_owned()]);
+        assert_eq!(by_id["go_func"].construction, "rust_fn");
+
+        assert_eq!(pack.type_map().get("int").map(String::as_str), Some("i64"));
+        assert_eq!(
+            pack.type_map_overrides("rust_const")
+                .and_then(|map| map.get("string"))
+                .map(String::as_str),
+            Some("&\'static str"),
+            "a Go string constant is a &\'static str, not an owned String"
+        );
+
+        let deferred = pack.deferred();
+        assert_eq!(deferred.len(), 1);
+        assert_eq!(deferred[0].kind, "var");
+        assert!(
+            deferred[0].reason.len() > 40,
+            "a deferral's reason is the record; it must say something"
+        );
     }
 
     /// Neutrality fence: production sources must not carry corpus needles.
