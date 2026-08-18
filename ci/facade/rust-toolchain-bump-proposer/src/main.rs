@@ -227,11 +227,29 @@ fn render_report_json(report: &ci_rust_toolchain_bump_proposer::ReconcileReport)
     )
 }
 
+/// Escape a string for a JSON string literal.
+///
+/// The complete U+0000–U+001F range must be escaped, not just `\n`. Git and Unix filenames permit
+/// tabs, carriage returns and other control characters, so a changed candidate under such a path
+/// emitted a raw control byte into `--apply --json` output — invalid JSON, which the automation
+/// consumer fails to parse AFTER the tree has already been modified. That is the worst possible
+/// ordering: the side effect lands and the report describing it cannot be read.
 fn escape_json(value: &str) -> String {
-    value
-        .replace('\\', "\\\\")
-        .replace('"', "\\\"")
-        .replace('\n', "\\n")
+    let mut out = String::with_capacity(value.len());
+    for ch in value.chars() {
+        match ch {
+            '\\' => out.push_str("\\\\"),
+            '"' => out.push_str("\\\""),
+            '\n' => out.push_str("\\n"),
+            '\r' => out.push_str("\\r"),
+            '\t' => out.push_str("\\t"),
+            '\u{8}' => out.push_str("\\b"),
+            '\u{c}' => out.push_str("\\f"),
+            c if c < '\u{20}' => out.push_str(&format!("\\u{:04x}", c as u32)),
+            c => out.push(c),
+        }
+    }
+    out
 }
 
 fn print_plan(plan: &BumpPlan) {
@@ -276,15 +294,15 @@ fn parse_args(args: Vec<String>) -> ParseOutcome {
                     "--check" => Mode::Check,
                     _ => Mode::DryRun,
                 };
-                if let Some(existing) = explicit_mode {
-                    if existing != requested {
-                        return ParseOutcome::Error(format!(
-                            "rust-toolchain-bump-proposer: --apply, --check and --dry-run are \
-                             mutually exclusive; got both {} and {arg}; {}",
-                            existing.flag(),
-                            usage()
-                        ));
-                    }
+                if let Some(existing) = explicit_mode
+                    && existing != requested
+                {
+                    return ParseOutcome::Error(format!(
+                        "rust-toolchain-bump-proposer: --apply, --check and --dry-run are \
+                         mutually exclusive; got both {} and {arg}; {}",
+                        existing.flag(),
+                        usage()
+                    ));
                 }
                 explicit_mode = Some(requested);
             }

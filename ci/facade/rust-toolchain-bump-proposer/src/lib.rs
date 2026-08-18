@@ -385,10 +385,78 @@ fn rewrite_json_pin_value(text: &str, key: &str, old: &str, new: &str) -> String
     out
 }
 
+/// The span of the object that is `"parent"`'s value, as byte offsets into `text`.
+///
+/// Brace matching skips over string literals and their escapes, so a `{` or `}` inside a value
+/// cannot end the object early.
+fn json_object_value_span(text: &str, parent: &str) -> Option<(usize, usize)> {
+    let bytes = text.as_bytes();
+    let needle = format!("\"{parent}\"");
+    let mut search_from = 0usize;
+    while let Some(offset) = text[search_from..].find(&needle) {
+        let mut pos = search_from + offset + needle.len();
+        while pos < bytes.len() && bytes[pos].is_ascii_whitespace() {
+            pos += 1;
+        }
+        if pos < bytes.len() && bytes[pos] == b':' {
+            pos += 1;
+            while pos < bytes.len() && bytes[pos].is_ascii_whitespace() {
+                pos += 1;
+            }
+            if pos < bytes.len() && bytes[pos] == b'{' {
+                let start = pos;
+                let mut depth = 0usize;
+                let mut in_string = false;
+                let mut escaped = false;
+                while pos < bytes.len() {
+                    let byte = bytes[pos];
+                    if in_string {
+                        if escaped {
+                            escaped = false;
+                        } else if byte == b'\\' {
+                            escaped = true;
+                        } else if byte == b'"' {
+                            in_string = false;
+                        }
+                    } else if byte == b'"' {
+                        in_string = true;
+                    } else if byte == b'{' {
+                        depth += 1;
+                    } else if byte == b'}' {
+                        depth -= 1;
+                        if depth == 0 {
+                            return Some((start, pos + 1));
+                        }
+                    }
+                    pos += 1;
+                }
+                return None;
+            }
+        }
+        search_from += offset + needle.len();
+    }
+    None
+}
+
+/// Rewrite `key` ONLY inside `parent`'s object value.
+fn rewrite_json_pin_in_object(text: &str, parent: &str, key: &str, old: &str, new: &str) -> String {
+    let Some((start, end)) = json_object_value_span(text, parent) else {
+        return text.to_owned();
+    };
+    let rewritten = rewrite_json_pin_value(&text[start..end], key, old, new);
+    format!("{}{}{}", &text[..start], rewritten, &text[end..])
+}
+
 /// Rewrite the toolchain-pin keys the freshness evaluator checks in `manifest.json` /
-/// `supported-oses.json`: `toolchain.rust`, `lts_pins.rust` (key `"rust"`) and the root
-/// `rust_toolchain` key (value `old-stable`). Formatting-agnostic: any JSON whitespace around the
-/// colon is handled, so compact and pretty-printed manifests both update.
+/// `supported-oses.json`: `toolchain.rust`, `lts_pins.rust` and the root `rust_toolchain` key.
+/// Formatting-agnostic: any JSON whitespace around the colon is handled, so compact and
+/// pretty-printed manifests both update.
+///
+/// SCOPED to the enforced object paths. Rewriting bare `"rust"` globally corrupted unrelated
+/// configuration — an unrelated `dependencies.rust` or `features.rust` member holding the same
+/// version string was rewritten too, and because the freshness evaluator only reads
+/// `toolchain.rust` and `lts_pins.rust`, verification stayed green over the damage. A rewriter
+/// that edits more than the evaluator checks can never be validated by that evaluator.
 fn rewrite_json_rust_pins(text: &str, old: &str, new: &str) -> String {
     let mut out = rewrite_json_pin_value(
         text,
@@ -397,7 +465,8 @@ fn rewrite_json_rust_pins(text: &str, old: &str, new: &str) -> String {
         &format!("{new}-stable"),
     );
     out = rewrite_json_pin_value(&out, "rust_toolchain", old, new);
-    rewrite_json_pin_value(&out, "rust", old, new)
+    out = rewrite_json_pin_in_object(&out, "toolchain", "rust", old, new);
+    rewrite_json_pin_in_object(&out, "lts_pins", "rust", old, new)
 }
 
 /// Rewrite `prefix+old` image refs to `prefix+new` where the character after `old` is not a digit
@@ -577,9 +646,41 @@ fn relevant_to_bump(path: &str) -> bool {
         || active_text_path(path)
 }
 
+/// Paths git tracks under `repo_root`, or `None` when this is not a git checkout.
+///
+/// `None` is not a silent fallback: without a repository there is no tracked/untracked
+/// distinction to enforce, so the whole tree legitimately is the input. That is the case the
+/// in-crate fixtures exercise, since they build a plain temp directory.
+fn tracked_paths(repo_root: &Path) -> Option<std::collections::HashSet<String>> {
+    if !repo_root.join(".git").exists() {
+        return None;
+    }
+    let output = std::process::Command::new("git")
+        .args(["ls-files", "-z"])
+        .current_dir(repo_root)
+        .output()
+        .ok()
+        .filter(|out| out.status.success())?;
+    let listing = String::from_utf8(output.stdout).ok()?;
+    Some(
+        listing
+            .split('\0')
+            .filter(|path| !path.is_empty())
+            .map(|path| path.replace('\\', "/"))
+            .collect(),
+    )
+}
+
 /// Enumerate the rewrite surface: the same walk the freshness drift evaluator performs, plus the
 /// ADR-0535 gate surfaces (`oya-deps.toml`, `toolchains/BUCK`).
+///
+/// RESTRICTED TO TRACKED FILES in a real checkout. The unrestricted walk rewrote anything matching
+/// `relevant_to_bump`, so running this in a non-clean tree silently edited untracked user state —
+/// a `scratch/Cargo.toml` holding the same pin was bumped despite belonging to no changeset, and
+/// any ignored directory outside the twelve hard-coded exclusions had the same exposure. The
+/// resulting edits could never appear in a proposal, so nothing downstream would surface them.
 fn candidate_paths(repo_root: &Path) -> Result<Vec<String>, ProposerError> {
+    let tracked = tracked_paths(repo_root);
     let mut paths = Vec::new();
     let mut queue = vec![repo_root.to_path_buf()];
     while let Some(dir) = queue.pop() {
@@ -611,7 +712,11 @@ fn candidate_paths(repo_root: &Path) -> Result<Vec<String>, ProposerError> {
                 queue.push(path);
                 continue;
             }
-            if metadata.is_file() && !rel.ends_with(".generated.json") && relevant_to_bump(&rel) {
+            if metadata.is_file()
+                && !rel.ends_with(".generated.json")
+                && relevant_to_bump(&rel)
+                && tracked.as_ref().is_none_or(|set| set.contains(&rel))
+            {
                 paths.push(rel);
             }
         }
@@ -641,16 +746,57 @@ pub fn plan_bump(repo_root: &Path, old: &str, new: &str) -> Result<BumpPlan, Pro
 
 /// Apply a plan's changed files. Files are rewritten from their on-disk content, so a plan
 /// remains correct even if the tree moved between planning and applying.
-pub fn apply_plan(repo_root: &Path, plan: &BumpPlan) -> Result<(), ProposerError> {
+/// Every file an apply overwrote, with its prior contents, so the tree can be restored.
+#[derive(Debug, Clone, Default)]
+pub struct AppliedPlan {
+    originals: Vec<(std::path::PathBuf, String)>,
+}
+
+impl AppliedPlan {
+    /// Restore every overwritten file to its pre-apply contents.
+    ///
+    /// Best-effort by design: a rollback that stopped at the first failure would leave the tree
+    /// in a third state, worse than either endpoint. The first error is reported after every
+    /// restore has been attempted.
+    pub fn rollback(&self) -> Result<(), ProposerError> {
+        let mut first_error = None;
+        for (path, original) in &self.originals {
+            if let Err(error) = fs::write(path, original)
+                && first_error.is_none()
+            {
+                first_error = Some(io_error(&format!("restore {}", path.display()), error));
+            }
+        }
+        first_error.map_or(Ok(()), Err)
+    }
+}
+
+/// Apply the plan, staging every rewrite BEFORE the first write.
+///
+/// Writing as it walked meant a failure partway through left the checkout partially bumped: the
+/// earlier files carried the new pin, the later ones the old, and the error told the caller
+/// nothing about which. The next invocation then could not recover from the original pin, because
+/// there no longer was one. Reads and rewrites now all happen first, so a read failure aborts
+/// before any file is touched, and a write failure restores what was already written.
+pub fn apply_plan(repo_root: &Path, plan: &BumpPlan) -> Result<AppliedPlan, ProposerError> {
+    let mut staged = Vec::new();
     for file in plan.files.iter().filter(|file| file.changed) {
         let path = repo_root.join(&file.path);
         let text = fs::read_to_string(&path)
             .map_err(|error| io_error(&format!("read {}", file.path), error))?;
         let rewritten = rewrite_for_path(&file.path, &text, &plan.old, &plan.new);
-        fs::write(&path, rewritten)
-            .map_err(|error| io_error(&format!("write {}", file.path), error))?;
+        staged.push((path, text, rewritten));
     }
-    Ok(())
+
+    let mut applied = AppliedPlan::default();
+    for (path, original, rewritten) in staged {
+        if let Err(error) = fs::write(&path, &rewritten) {
+            let _ = applied.rollback();
+            return Err(io_error(&format!("write {}", path.display()), error));
+        }
+        applied.originals.push((path, original));
+    }
+    Ok(applied)
 }
 
 /// Residual-drift report after an applied bump: freshness drift findings + ADR-0535 gate
@@ -762,9 +908,19 @@ pub fn reconcile(repo_root: &Path, latest: &str) -> Result<ReconcileReport, Prop
     }
 
     let plan = plan_bump(repo_root, &current, &latest)?;
-    apply_plan(repo_root, &plan)?;
-    let residual = verify_clean(repo_root)?;
+    let applied = apply_plan(repo_root, &plan)?;
+    // Verification failure must leave the tree as it was found. Returning the error over a
+    // half-bumped checkout meant residual drift the rewriter could not fix became permanent
+    // local damage, and the operator had no original pin left to retry from.
+    let residual = match verify_clean(repo_root) {
+        Ok(residual) => residual,
+        Err(error) => {
+            applied.rollback()?;
+            return Err(error);
+        }
+    };
     if !residual.is_clean() {
+        applied.rollback()?;
         return Err(ProposerError::ResidualDrift(residual));
     }
 
@@ -967,6 +1123,55 @@ uses: some/action@v1.97.1
         assert!(rewritten2.contains("\"rust_toolchain\": \"1.98.0-stable\""));
     }
 
+    /// The rewrite surface must not exceed the surface the freshness evaluator checks.
+    ///
+    /// Rewriting a bare `"rust"` member globally corrupted unrelated configuration, and because
+    /// the evaluator only reads `toolchain.rust` and `lts_pins.rust`, verification stayed green
+    /// over the damage — the rewriter edited more than anything could validate.
+    #[test]
+    fn json_rewrite_is_scoped_to_the_enforced_object_paths() {
+        let manifest = concat!(
+            "{\n",
+            "  \"toolchain\": { \"rust\": \"1.97.1\" },\n",
+            "  \"lts_pins\": { \"rust\": \"1.97.1\" },\n",
+            "  \"dependencies\": { \"rust\": \"1.97.1\" },\n",
+            "  \"features\": { \"rust\": \"1.97.1\" }\n",
+            "}\n"
+        );
+        let rewritten = rewrite_json_rust_pins(manifest, "1.97.1", "1.98.0");
+        assert!(
+            rewritten.contains("\"toolchain\": { \"rust\": \"1.98.0\" }"),
+            "the enforced toolchain pin must rewrite: {rewritten}"
+        );
+        assert!(
+            rewritten.contains("\"lts_pins\": { \"rust\": \"1.98.0\" }"),
+            "the enforced lts pin must rewrite: {rewritten}"
+        );
+        assert!(
+            rewritten.contains("\"dependencies\": { \"rust\": \"1.97.1\" }"),
+            "an unrelated dependencies.rust must NOT be rewritten: {rewritten}"
+        );
+        assert!(
+            rewritten.contains("\"features\": { \"rust\": \"1.97.1\" }"),
+            "an unrelated features.rust must NOT be rewritten: {rewritten}"
+        );
+    }
+
+    /// Brace matching must not be fooled by braces inside string values.
+    #[test]
+    fn json_object_span_ignores_braces_inside_strings() {
+        let text = "{\"toolchain\": {\"note\": \"a } brace\", \"rust\": \"1.97.1\"}, \"other\": {\"rust\": \"1.97.1\"}}";
+        let rewritten = rewrite_json_rust_pins(text, "1.97.1", "1.98.0");
+        assert!(
+            rewritten.contains("\"rust\": \"1.98.0\"}, \"other\""),
+            "the toolchain pin past an embedded brace must rewrite: {rewritten}"
+        );
+        assert!(
+            rewritten.contains("\"other\": {\"rust\": \"1.97.1\"}"),
+            "the object after it must stay untouched: {rewritten}"
+        );
+    }
+
     #[test]
     fn active_text_rewrite_is_rust_image_refs_only_not_blanket_docs() {
         // The reviewer-reported corruption case: a dated LTS snapshot row and a URL ending in
@@ -1101,6 +1306,7 @@ uses: some/action@v1.97.1
         );
         write(&root, "deny.toml", "[licenses]\n");
         write(&root, "specs/oss-stewardship-registry.json", "{}\n");
+        write_freshness_artifacts(&root);
 
         let report = reconcile(&root, "1.98.0").expect("reconcile");
         assert_eq!(report.outcome, ReconcileOutcome::Bumped);
@@ -1184,6 +1390,7 @@ uses: some/action@v1.97.1
         );
         write(&root, "deny.toml", "[licenses]\n");
         write(&root, "specs/oss-stewardship-registry.json", "{}\n");
+        write_freshness_artifacts(&root);
 
         let error = reconcile(&root, "1.96.0").expect_err("older latest must fail closed");
         match error {
@@ -1224,6 +1431,7 @@ uses: some/action@v1.97.1
         );
         write(&root, "deny.toml", "[licenses]\n");
         write(&root, "specs/oss-stewardship-registry.json", "{}\n");
+        write_freshness_artifacts(&root);
 
         let error = reconcile(&root, "1.98.0").expect_err("equal pin with drift must fail closed");
         match error {
@@ -1237,6 +1445,26 @@ uses: some/action@v1.97.1
         }
 
         let _ = fs::remove_dir_all(&root);
+    }
+
+    /// The `[freshness]` artifacts `oya_deps_fixture` declares. Declared paths are existence-checked,
+    /// so a fixture that names them must also create them.
+    fn write_freshness_artifacts(root: &Path) {
+        write(
+            root,
+            "ci/facade/dep-freshness/mirror/freshness.json",
+            "{}\n",
+        );
+        write(
+            root,
+            "ci/facade/dep-freshness/mirror/freshness-manifest.json",
+            "{}\n",
+        );
+        write(
+            root,
+            "ci/facade/dep-freshness/src/kernel.rs",
+            "// fixture\n",
+        );
     }
 
     fn oya_deps_fixture(pin: &str) -> String {
@@ -1269,6 +1497,13 @@ advisory_policy = "cargo-deny"
 audit_policy = "cargo-vet"
 stewardship_registry = "specs/oss-stewardship-registry.json"
 bot_gate = "cloud-ci-dependency-automation"
+
+[freshness]
+mirror = "ci/facade/dep-freshness/mirror/freshness.json"
+manifest = "ci/facade/dep-freshness/mirror/freshness-manifest.json"
+producer = "oya-dep-freshness-producer"
+kernel = "ci/facade/dep-freshness/src/kernel.rs"
+stale_after_days = 90
 
 [[managed_file]]
 path = "rust-toolchain.toml"
