@@ -1,6 +1,6 @@
 //! Windows parent walk and same-directory best-effort replace.
 //!
-//! Rejects reparse points, `\\?\\`, non-disk prefixes, `..`, and NUL. Exclusive
+//! Rejects reparse points, `\\?\`, non-disk prefixes, `..`, and NUL. Exclusive
 //! temp + `write_all` + `sync_all`, then `remove_file` if present and `rename`.
 //! Not `renameat`-atomic and not dirfd / TOCTOU-closed.
 
@@ -11,7 +11,7 @@ use std::sync::atomic::Ordering;
 
 use super::super::NEXT_ATOMIC_WRITE_ID;
 
-/// Walk/create a real, non-reparse parent. Rejects `\\?\\`, non-disk prefixes,
+/// Walk/create a real, non-reparse parent. Rejects `\\?\`, non-disk prefixes,
 /// `..`, and NUL. Not dirfd-bound.
 pub(super) fn open_real_windows_parent(
     repo_root: &Path,
