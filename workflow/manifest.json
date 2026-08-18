@@ -8,9 +8,19 @@
   "dr_tier_derivation": "Strictest dr_tier declared by any absorbed service of this capability (forms=T1, tasks=T0, workflow-engine=T2, workflow-studio=T0). The shared crates sit in the failure path of the strictest consumer, so the capability root may not claim a weaker DR class than the service that depends on it.",
   "substrate_dag_position": {
     "stratum": "S4",
-    "depends_on": [],
+    "depends_on": [
+      "audit-chain",
+      "cell",
+      "cloud-secrets",
+      "identity",
+      "intelligence",
+      "observability",
+      "ontology",
+      "policy-engine",
+      "tenancy"
+    ],
     "consumed_by_substrates": [],
-    "_note": "ADR-0562 capability-registry declares workflow tier=substrate stratum=S4; all four absorbed services declare the same value."
+    "_note": "ADR-0562 capability-registry declares workflow tier=substrate stratum=S4. depends_on is the UNION of the absorbed service manifests, all four of which declare the identical set. It was empty, which erased every workflow substrate edge for any DAG projection or operational ordering that reads the capability root instead of the per-service manifests — the root is strictly more depended-upon than its parts, never less."
   },
   "version": "0.1.0",
   "owner": "axis-cloud-platform",
@@ -22,11 +32,7 @@
       "crates": [
         "workflow-event-bus-adapter",
         "workflow-event-bus-kafka",
-        "workflow-event-bus-nats",
-        "workflow-event-bus-postgres",
         "workflow-event-bus-pulsar",
-        "workflow-event-bus-redpanda",
-        "workflow-event-bus-valkey",
         "workflow-execution-engine-adapter",
         "workflow-execution-engine-postgres",
         "workflow-state-machine-adapter",
@@ -96,14 +102,14 @@
     "ports"
   ],
   "capability_root_accounting": {
-    "crates_under_capability_root": 48,
+    "crates_under_capability_root": 44,
     "crates_by_layer": {
-      "adapters": 11,
+      "adapters": 7,
       "core": 12,
       "facade": 9,
       "ports": 16
     },
-    "crates_covered_by_no_other_manifest": 48,
+    "crates_covered_by_no_other_manifest": 44,
     "crates_also_declared_by_an_absorbed_service": [],
     "_overlap_note": "COMPUTED, not asserted. No crate under this capability root is declared by any absorbed service manifest, so the whole crate set below was unowned before this file.",
     "absorbed_services": [
@@ -124,7 +130,7 @@
         "manifest": "workflow/workflow-studio/manifest.json"
       }
     ],
-    "absorbed_service_facet_divergence": false,
+    "absorbed_service_facet_divergence": true,
     "absorbed_service_facets": [
       {
         "service": "forms",
@@ -150,7 +156,8 @@
         "dr_tier": "T0",
         "stratum": "S4"
       }
-    ]
+    ],
+    "_divergence_note": "dr_tier diverges across the absorbed services (forms=T1, tasks=T0, workflow-engine=T2, workflow-studio=T0), so this flag is true. It was false while those same records carried three distinct values, which let a consumer skip the reconciliation dr_tier_derivation says is required and read the classifications as unanimous. tier_subtype and stratum ARE unanimous; the flag covers any facet."
   },
   "contracts": {
     "openapi": [],
@@ -227,6 +234,6 @@
     "owner": "axis-cloud-platform",
     "rationale": "The workflow/core, workflow/ports, workflow/adapters and workflow/facade crates are capability-level libraries and transport adapters with no deployed process of their own, so no measured runtime SLI exists for them; the four deployed workflow services carry their own OpenSLO files under workflow/observability/slos/. This root manifest is an accounting surface for the shared crates, not a restatement of service SLO coverage.",
     "cutover_on": "2026-12-31",
-    "evidence": "workflow/observability/slos/ \u2014 the capability's OpenSLO files all sit under a per-service subdirectory there, none at capability level, which is the measured statement that no SLI belongs to the root crates"
+    "evidence": "workflow/observability/slos/ — the capability's OpenSLO files all sit under a per-service subdirectory there, none at capability level, which is the measured statement that no SLI belongs to the root crates"
   }
 }
