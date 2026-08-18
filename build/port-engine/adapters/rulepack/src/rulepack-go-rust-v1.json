@@ -26,8 +26,12 @@
   },
   "type_map_overrides": {
     "rust_const": {
-      "string": "&'static str"
+      "string": "&str"
     }
+  },
+  "trait_receiver": {
+    "mode": "exclusive",
+    "reason": "A Go interface says nothing about how an implementation binds its receiver, and the implementations are not all in view, so this cannot be recovered from the source — it can only be decided. EXCLUSIVE is the choice that does not silently forbid something: a shared receiver makes a mutating method like Named.Rename unimplementable, whereas an exclusive one only demands mutability from implementations that do not need it, which is a compile-time inconvenience rather than a lost capability. Revisit when the front end reports per-method mutation; see docs/programs/k8s-port/census/ownership-escape.md."
   },
   "deferred_kinds": [
     {

@@ -149,6 +149,10 @@ const (
 	// rendering a reference to `MaxRetries` as `max_retries` would be a dangling name, not a
 	// style choice. go/types knows the answer, so it is recorded here rather than guessed there.
 	attrRef = "ref"
+	// attrDoc is the declaration's documentation block, newline-separated. Recorded because the
+	// target emits it: dropping it here is a silent loss of everything the source explained about
+	// itself, and no downstream check looks for prose that is simply absent.
+	attrDoc = "doc"
 	// attrValue is a constant's value, spelled as Go source. It is deliberately the SOURCE
 	// spelling rather than a normalized number: the engine emits Rust that must parse, and a
 	// Go literal that is not also a valid Rust literal has to fail loudly at the syn parse
@@ -293,7 +297,15 @@ func extractPackage(dir string, unitID string) ([]node, error) {
 
 	files := make([]*ast.File, 0, len(names))
 	for _, name := range names {
-		file, err := parser.ParseFile(fset, filepath.Join(dir, name), nil, parser.SkipObjectResolution)
+		// ParseComments is REQUIRED for the doc extraction below: without it every `Doc` field is
+		// nil and the documentation is dropped in silence, which is the exact loss this pass
+		// exists to stop.
+		file, err := parser.ParseFile(
+			fset,
+			filepath.Join(dir, name),
+			nil,
+			parser.ParseComments|parser.SkipObjectResolution,
+		)
 		if err != nil {
 			return nil, fmt.Errorf("parse %s: %w", name, err)
 		}
@@ -307,23 +319,35 @@ func extractPackage(dir string, unitID string) ([]node, error) {
 		return nil, fmt.Errorf("type-check: %w", err)
 	}
 
-	// Index every function and method body by the object it belongs to, so a declaration built
-	// from go/types can find the AST its body lives in.
+	// Index every function and method body — and every declaration's documentation — by the
+	// object it belongs to, so a declaration built from go/types can find both.
 	bodies := map[types.Object]*ast.BlockStmt{}
+	docs := map[types.Object]string{}
+	fieldDocs := map[string]string{}
 	for _, file := range files {
 		for _, decl := range file.Decls {
-			fn, ok := decl.(*ast.FuncDecl)
-			if !ok || fn.Body == nil || fn.Name == nil {
-				continue
-			}
-			if obj := info.Uses[fn.Name]; obj != nil {
-				bodies[obj] = fn.Body
-				continue
-			}
-			// A declaration's own name is a definition, not a use, so it is not in Uses. Resolve
-			// it through the package scope (free functions) or the receiver's method set.
-			if obj := lookupFuncObject(tpkg, fn); obj != nil {
-				bodies[obj] = fn.Body
+			switch typed := decl.(type) {
+			case *ast.FuncDecl:
+				if typed.Name == nil {
+					continue
+				}
+				obj := info.Uses[typed.Name]
+				if obj == nil {
+					// A declaration's own name is a definition, not a use, so it is not in Uses.
+					// Resolve it through the package scope or the receiver's method set.
+					obj = lookupFuncObject(tpkg, typed)
+				}
+				if obj == nil {
+					continue
+				}
+				if typed.Body != nil {
+					bodies[obj] = typed.Body
+				}
+				if text := commentText(typed.Doc); text != "" {
+					docs[obj] = text
+				}
+			case *ast.GenDecl:
+				indexGenDeclDocs(typed, tpkg, docs, fieldDocs)
 			}
 		}
 	}
@@ -338,7 +362,13 @@ func extractPackage(dir string, unitID string) ([]node, error) {
 		return other.Path()
 	}
 
-	ctx := &extractCtx{qualify: qualify, info: info, bodies: bodies}
+	ctx := &extractCtx{
+		qualify:   qualify,
+		info:      info,
+		bodies:    bodies,
+		docs:      docs,
+		fieldDocs: fieldDocs,
+	}
 
 	scope := tpkg.Scope()
 	objNames := scope.Names() // go/types returns these sorted
@@ -353,11 +383,16 @@ func extractPackage(dir string, unitID string) ([]node, error) {
 	return decls, nil
 }
 
-// extractCtx carries what body extraction needs alongside the type qualifier.
+// extractCtx carries what body and doc extraction need alongside the type qualifier.
 type extractCtx struct {
 	qualify types.Qualifier
 	info    *types.Info
 	bodies  map[types.Object]*ast.BlockStmt
+	docs    map[types.Object]string
+	// fieldDocs is keyed by "TypeName.FieldName": a struct field is not a package-scope object, so
+	// it has no types.Object to index by, and matching by position would break the moment a field
+	// moves.
+	fieldDocs map[string]string
 }
 
 // lookupFuncObject finds the types.Object for a declared function or method.
@@ -403,13 +438,14 @@ func receiverTypeName(expr ast.Expr) string {
 func declFor(obj types.Object, ctx *extractCtx) (node, error) {
 	qualify := ctx.qualify
 	base := node{Name: obj.Name(), Flags: flagsFor(obj.Exported(), false, false, false)}
+	base.Attrs = withDoc(base.Attrs, ctx.docs[obj])
 
 	switch typed := obj.(type) {
 	case *types.Const:
 		base.Kind = kindConst
 		base.Type = types.TypeString(typed.Type(), qualify)
 		if value := typed.Val(); value != nil {
-			base.Attrs = map[string]string{attrValue: value.String()}
+			base.Attrs = withAttr(base.Attrs, attrValue, value.String())
 		}
 		return base, nil
 
@@ -477,6 +513,7 @@ func typeDecl(obj *types.TypeName, base node, ctx *extractCtx) (node, error) {
 				Name:  field.Name(),
 				Type:  types.TypeString(field.Type(), qualify),
 				Flags: flagsFor(field.Exported(), false, field.Embedded(), false),
+				Attrs: withDoc(nil, ctx.fieldDocs[obj.Name()+"."+field.Name()]),
 			})
 		}
 		base.Children = append(base.Children, methods...)
@@ -492,8 +529,9 @@ func typeDecl(obj *types.TypeName, base node, ctx *extractCtx) (node, error) {
 				return base, fmt.Errorf("interface method %s without signature", method.Name())
 			}
 			ifaceMethods = append(ifaceMethods, node{
-				Kind: kindMethod,
-				Name: method.Name(),
+				Kind:  kindMethod,
+				Name:  method.Name(),
+				Attrs: withDoc(nil, ctx.docs[method]),
 				// An interface method has no receiver to be a pointer to; the implementing type
 				// decides that, and this node is the requirement rather than the binding.
 				Flags:    flagsFor(method.Exported(), sig.Variadic(), false, false),
@@ -531,6 +569,7 @@ func methodChildren(named *types.Named, ctx *extractCtx) ([]node, error) {
 			Kind:     kindMethod,
 			Name:     method.Name(),
 			Flags:    flagsFor(method.Exported(), sig.Variadic(), false, isPointerReceiver(sig)),
+			Attrs:    withDoc(nil, ctx.docs[method]),
 			Children: children,
 		})
 	}
@@ -704,6 +743,97 @@ func unsupportedNode(n ast.Node) node {
 		Kind:  kindUnsupported,
 		Attrs: map[string]string{attrGoNode: strings.TrimPrefix(fmt.Sprintf("%T", n), "*ast.")},
 	}
+}
+
+// commentText renders a comment group as plain text, one line per source line, with the
+// comment markers removed. Returns "" when there is no comment, so an undocumented declaration
+// carries no attribute rather than an empty one.
+func commentText(group *ast.CommentGroup) string {
+	if group == nil {
+		return ""
+	}
+	return strings.TrimRight(group.Text(), "\n")
+}
+
+// indexGenDeclDocs records documentation for const, var and type declarations.
+//
+// A GenDecl may carry the comment itself (`// Doc\ntype T struct{}`) or leave it on the single
+// spec inside a parenthesised group, so both are checked and the spec's own comment wins — it is
+// the more specific of the two.
+func indexGenDeclDocs(
+	decl *ast.GenDecl,
+	tpkg *types.Package,
+	docs map[types.Object]string,
+	fieldDocs map[string]string,
+) {
+	groupDoc := commentText(decl.Doc)
+	for _, spec := range decl.Specs {
+		switch typed := spec.(type) {
+		case *ast.TypeSpec:
+			if typed.Name == nil {
+				continue
+			}
+			if obj := tpkg.Scope().Lookup(typed.Name.Name); obj != nil {
+				if text := firstNonEmpty(commentText(typed.Doc), groupDoc); text != "" {
+					docs[obj] = text
+				}
+			}
+			indexStructFieldDocs(typed, fieldDocs)
+		case *ast.ValueSpec:
+			for _, name := range typed.Names {
+				obj := tpkg.Scope().Lookup(name.Name)
+				if obj == nil {
+					continue
+				}
+				if text := firstNonEmpty(commentText(typed.Doc), groupDoc); text != "" {
+					docs[obj] = text
+				}
+			}
+		}
+	}
+}
+
+// indexStructFieldDocs keys a struct field's documentation by "TypeName.FieldName". A field is not
+// a package-scope object, so there is no types.Object to index it by, and keying by position would
+// break the moment a field moves.
+func indexStructFieldDocs(spec *ast.TypeSpec, fieldDocs map[string]string) {
+	structType, ok := spec.Type.(*ast.StructType)
+	if !ok || structType.Fields == nil || spec.Name == nil {
+		return
+	}
+	for _, field := range structType.Fields.List {
+		text := firstNonEmpty(commentText(field.Doc), commentText(field.Comment))
+		if text == "" {
+			continue
+		}
+		for _, name := range field.Names {
+			fieldDocs[spec.Name.Name+"."+name.Name] = text
+		}
+	}
+}
+
+func firstNonEmpty(values ...string) string {
+	for _, value := range values {
+		if value != "" {
+			return value
+		}
+	}
+	return ""
+}
+
+func withDoc(attrs map[string]string, text string) map[string]string {
+	if text == "" {
+		return attrs
+	}
+	return withAttr(attrs, attrDoc, text)
+}
+
+func withAttr(attrs map[string]string, key string, value string) map[string]string {
+	if attrs == nil {
+		attrs = map[string]string{}
+	}
+	attrs[key] = value
+	return attrs
 }
 
 // isPointerReceiver reports whether sig is bound through a pointer receiver.

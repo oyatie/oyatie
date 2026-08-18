@@ -6,7 +6,8 @@ use port_engine_api::{Digest, LanguagePair, PackSemantics, RuleId, RulePack, Uni
 use port_engine_hash::digest_bytes;
 
 use crate::error::RulepackError;
-use crate::rule::{DeferredKind, LoadedRule};
+use crate::policy::validate_policy;
+use crate::rule::{DeferredKind, LoadedRule, TraitReceiver};
 use crate::wire::RulepackDocument;
 use crate::{CONFLICT_REFUSE, RULEPACK_GO_RUST_V1_JSON, RULEPACK_V0_JSON};
 
@@ -22,6 +23,7 @@ pub struct LoadedRulePack {
     pub(crate) type_map_overrides: BTreeMap<String, BTreeMap<String, String>>,
     pub(crate) deferred_kinds: Vec<DeferredKind>,
     pub(crate) deferred_kind_set: BTreeSet<String>,
+    pub(crate) trait_receiver: Option<TraitReceiver>,
 }
 
 impl LoadedRulePack {
@@ -205,31 +207,11 @@ impl LoadedRulePack {
             }
         }
 
-        let mut deferred_kind_set = BTreeSet::new();
-        for deferred in &doc.deferred_kinds {
-            if deferred.kind.is_empty() {
-                return Err(RulepackError::Schema {
-                    field: "deferred_kinds[].kind",
-                });
-            }
-            // A deferral without a reason is an omission wearing a label. The reason is what
-            // makes it reviewable, and it is what travels in the digest.
-            if deferred.reason.trim().is_empty() {
-                return Err(RulepackError::Schema {
-                    field: "deferred_kinds[].reason",
-                });
-            }
-            if let Some(rule) = loaded_rules
-                .iter()
-                .find(|rule| rule.captures.contains(&deferred.kind))
-            {
-                return Err(RulepackError::DeferredKindAlsoCaptured {
-                    kind: deferred.kind.clone(),
-                    rule: rule.id.0.clone(),
-                });
-            }
-            deferred_kind_set.insert(deferred.kind.clone());
-        }
+        let deferred_kind_set = validate_policy(
+            &doc.deferred_kinds,
+            doc.trait_receiver.as_ref(),
+            &loaded_rules,
+        )?;
 
         // Digest the embedded bytes exactly — whitespace is part of the identity until a
         // canonicalizer lands with the forever specs/port-rules materializer.
@@ -244,6 +226,7 @@ impl LoadedRulePack {
             type_map_overrides: doc.type_map_overrides,
             deferred_kinds: doc.deferred_kinds,
             deferred_kind_set,
+            trait_receiver: doc.trait_receiver,
         })
     }
 

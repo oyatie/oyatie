@@ -21,6 +21,8 @@ pub struct Pack {
     pub types: BTreeMap<String, String>,
     pub overrides: BTreeMap<String, BTreeMap<String, String>>,
     pub deferred: BTreeSet<String>,
+    /// The declared trait-receiver decision. `None` means the pack made none, which is a refusal.
+    pub receiver: Option<(String, String)>,
 }
 
 impl Pack {
@@ -56,6 +58,12 @@ impl Pack {
         self
     }
 
+    /// Declare the trait-receiver decision, as a real pack must.
+    pub fn with_trait_receiver(mut self, mode: &str) -> Self {
+        self.receiver = Some((mode.to_owned(), "fixture decision".to_owned()));
+        self
+    }
+
     pub fn with_deferred(mut self, kinds: &[&str]) -> Self {
         for kind in kinds {
             self.deferred.insert((*kind).to_owned());
@@ -84,6 +92,11 @@ impl PackSemantics for Pack {
     }
     fn deferred_kinds(&self) -> &BTreeSet<String> {
         &self.deferred
+    }
+    fn trait_receiver(&self) -> Option<(&str, &str)> {
+        self.receiver
+            .as_ref()
+            .map(|(mode, reason)| (mode.as_str(), reason.as_str()))
     }
 }
 
@@ -150,7 +163,7 @@ pub fn plan_with(rules: &[&str]) -> TransformPlan {
 pub fn rendered(ir: &RustIr) -> String {
     // Round-trip through the renderer the pipeline actually uses, so a construction emitting
     // text that syn cannot parse fails here rather than three stages later.
-    let renderer = port_engine_rust_ir::SynQuoteRenderer::new("transform-test-fmt");
+    let renderer = port_engine_rust_ir::RustRenderer::new();
     let emitted = renderer
         .render_rust_ir(ir)
         .expect("emitted Rust must render");

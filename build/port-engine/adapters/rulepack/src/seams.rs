@@ -33,6 +33,12 @@ impl PackSemantics for LoadedRulePack {
     fn deferred_kinds(&self) -> &BTreeSet<String> {
         &self.deferred_kind_set
     }
+
+    fn trait_receiver(&self) -> Option<(&str, &str)> {
+        self.trait_receiver
+            .as_ref()
+            .map(|r| (r.mode.as_str(), r.reason.as_str()))
+    }
 }
 
 impl RulePack for LoadedRulePack {

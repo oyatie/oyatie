@@ -132,6 +132,29 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
   - `core/rust-ir/src/lib.rs` (313) — P1 rewrites it wholesale for the typed IR. Splitting it now
     and again in P1 is waste.
 
+- P1: the typed IR, a real formatter, documentation, and the receiver decision.
+  `port-engine-rust-ir` no longer builds Rust with `format!`. Items, statements and expressions
+  are a TREE; `quote!` lowers it to tokens, `syn` checks the assembly, `prettyplease` formats.
+  Three things became structural rather than textual: precedence (an operand is bracketed exactly
+  when the grammar would otherwise reassociate it, so `a + b * c` emits bare), visibility (a value
+  the IR places, which is why `pub` can no longer reach a trait item), and documentation (carried
+  as data, rendered as `///`).
+  `formatter_digest` now names the formatter and its version instead of hashing the caller's
+  label — the axis attested to nothing, so a whole-corpus reformat would have arrived as
+  `Unexplained`. Refreshing the goldens confirmed EXACTLY ONE axis moved, and it was that one.
+  Doc comments: 18 blocks captured where 0 survived before. `parser.ParseComments` was missing,
+  so every `Doc` field was nil and the loss was total and silent.
+  The trait receiver is now DECLARED in the pack with a recorded reason, and absent means refuse.
+  It cannot be recovered from a Go interface — the interface says nothing about how an
+  implementation binds its receiver — so `&self` was a guess, and it made the fixture's mutating
+  `Rename` unimplementable. The pack chose `exclusive` and says why.
+  Emitted-code lint quality: 19 pedantic warnings over 24 lines before, 13 now, and every class
+  P1 targeted is gone (needless return, unnecessary parens, redundant static lifetime). What is
+  left is `#[must_use]`/doc-backtick idiom rules and `todo!()`-stub artifacts.
+  Two defects the rewrite surfaced and fixed in place: the tail-expression idiom leaked into
+  nested `if` branches, producing `if id == "" { fallback }` — parses, does not type-check; and
+  the module assembler indented only a region's first line.
+
 ## Still owed by this lane
 
 - Struct methods still emit `todo!()`: bodies need selector expressions (`p.X` → `self.x`),

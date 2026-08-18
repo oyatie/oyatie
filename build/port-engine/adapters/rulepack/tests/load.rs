@@ -84,8 +84,9 @@ fn embedded_go_rust_pack_loads_with_captures_types_and_deferrals() {
         pack.type_map_overrides("rust_const")
             .and_then(|map| map.get("string"))
             .map(String::as_str),
-        Some("&\'static str"),
-        "a Go string constant is a &\'static str, not an owned String"
+        Some("&str"),
+        "a Go string constant is a borrowed str, not an owned String; the lifetime is elided \
+         because a const's reference is 'static by definition and spelling it draws a lint"
     );
 
     let deferred = pack.deferred();

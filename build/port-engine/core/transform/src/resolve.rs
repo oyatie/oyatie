@@ -36,10 +36,18 @@ impl LocalScope {
 }
 
 pub(crate) struct Resolver<'a> {
+    pub(crate) receiver: Option<(&'a str, &'a str)>,
     pub(crate) scope: &'a LocalScope,
     pub(crate) type_map: &'a BTreeMap<String, String>,
     pub(crate) overrides: Option<&'a BTreeMap<String, String>>,
     pub(crate) unit: &'a UnitId,
+}
+
+impl<'a> Resolver<'a> {
+    /// The pack's declared trait-receiver mode and its reason.
+    pub(crate) fn trait_receiver(&self) -> Option<(&'a str, &'a str)> {
+        self.receiver
+    }
 }
 
 impl Resolver<'_> {

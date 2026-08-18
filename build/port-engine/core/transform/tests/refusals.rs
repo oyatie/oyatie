@@ -78,3 +78,37 @@ fn refuses_missing_unit_precondition() {
     let err = apply(&plan_with(&["r"]), &pack, &model).expect_err("unit missing");
     assert!(matches!(err, TransformError::Precondition { .. }));
 }
+
+/// A trait cannot be built without a DECLARED receiver mode.
+///
+/// The mode is not recoverable from the source — an interface says nothing about how an
+/// implementation binds its receiver, and the implementations are not all in view. Emitting
+/// `&self` by default is what made the fixture's mutating `Rename` unimplementable, so a pack
+/// that has not decided gets a refusal rather than the old silent answer.
+#[test]
+fn a_trait_without_a_declared_receiver_refuses() {
+    let mut iface = decl("interface", "Named", "");
+    iface.children = vec![child("method", "Rename", "")];
+    let pack = Pack::default().with_rule("traits", CONSTRUCTION_RUST_TRAIT, &["interface"]);
+
+    let err = apply(&plan_with(&["traits"]), &pack, &model_with(vec![iface]))
+        .expect_err("an undeclared receiver mode must refuse");
+    assert!(
+        matches!(err, TransformError::MissingDatum { datum, .. } if datum == "trait_receiver"),
+        "{err}"
+    );
+}
+
+/// And a declared one is honoured, so a mutating method is implementable.
+#[test]
+fn a_declared_exclusive_receiver_reaches_the_signature() {
+    let mut iface = decl("interface", "Named", "");
+    iface.children = vec![child("method", "Rename", "")];
+    let pack = Pack::default()
+        .with_rule("traits", CONSTRUCTION_RUST_TRAIT, &["interface"])
+        .with_trait_receiver("exclusive");
+
+    let ir = apply(&plan_with(&["traits"]), &pack, &model_with(vec![iface])).expect("apply");
+    let text = rendered(&ir);
+    assert!(text.contains("fn rename(&mut self)"), "{text}");
+}

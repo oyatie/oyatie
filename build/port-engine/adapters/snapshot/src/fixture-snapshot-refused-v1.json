@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "language": "go",
-  "snapshot_digest": "sha256:fed5b1d8ef5f4ad29461e347fe14e991866228aa00804b290fdfc2cfd57dd944",
+  "snapshot_digest": "sha256:6e0c3bc840e32bbb2175d12a81d01ee491fe9348fada2ea5c16f8d3d83c2650b",
   "packages": [
     {
       "unit_id": "oyatie.example/portengine-fixture-refused/hard",
@@ -13,6 +13,9 @@
           "flags": [
             "exported"
           ],
+          "attrs": {
+            "doc": "Countdown sums 0..n with a loop.\n\nA `for` statement has no translation yet. Go's three-clause form, its condition-only form, and\nits range form are three different target constructs, and choosing among them is a rule."
+          },
           "children": [
             {
               "kind": "param",
@@ -72,6 +75,9 @@
           "flags": [
             "exported"
           ],
+          "attrs": {
+            "doc": "Guarded returns n after a deferred cleanup.\n\n`defer` is the subject of docs/programs/k8s-port/census/defer-panic-recover.md. Rust's drop\nglue runs at scope exit like a defer does, but ordering, panics, and named-result mutation all\ndiffer, so this is a rule to be written rather than a shape to be assumed."
+          },
           "children": [
             {
               "kind": "param",
