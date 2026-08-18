@@ -610,6 +610,12 @@ fn default_vocab_carve_outs() -> Vec<VocabCarveOut> {
             "the deny-list patterns themselves are not residue",
         ),
         (
+            VocabCarveOutKind::PathExact,
+            "ci/facade/cloud-name-ratchet/cloud-name-baseline.json",
+            &[],
+            "the frozen cloud-/oya- rename baseline ENUMERATES the identifiers still to be renamed; some of those identifiers contain a forbidden stem, so listing them is the census, not residue (same rationale as oya-check-brand-residue's own source). A file that names the debt is not the debt.",
+        ),
+        (
             VocabCarveOutKind::PathPrefix,
             "libs/oya-ci-config/",
             &[],
@@ -1484,9 +1490,15 @@ mod tests {
                 "forbidden_oya-vcs",
             ]
         );
-        // 9 carve-out rules, including the line-level palantir exemption + the oya-ci-config
-        // deny-list SSOT path carve-out + the repo-root oya-ci.toml deny-list carve-out.
-        assert_eq!(cfg.vocab.carve_outs.len(), 9);
+        // 10 carve-out rules, including the line-level palantir exemption + the oya-ci-config
+        // deny-list SSOT path carve-out + the repo-root oya-ci.toml deny-list carve-out + the
+        // cloud-/oya- rename baseline, whose rows ENUMERATE the identifiers still to be renamed.
+        //
+        // That last row previously existed only in `oya-check-brand-residue::CARVE_OUT_RULES` and
+        // in `oya-ci.toml`, so the two supported configuration paths disagreed: with `oya-ci.toml`
+        // absent, the bundled default scanned the baseline and reported its stem-bearing entries as
+        // brand residue, while direct users of `bundled_default()` exempted them.
+        assert_eq!(cfg.vocab.carve_outs.len(), 10);
         assert!(
             cfg.vocab
                 .carve_outs
