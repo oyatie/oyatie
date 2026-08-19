@@ -52,7 +52,7 @@ fn a_pointer_receiver_without_a_matching_rule_refuses() {
     method.flags.insert("mutated".to_owned());
     point.children = vec![method];
 
-    let pack = Pack::default().with_rule("structs", CONSTRUCTION_RUST_STRUCT, &["struct"]);
+    let pack = Pack::default().with_rule("structs", CONSTRUCTION_RUST_STRUCT_BODY, &["struct"]);
     let err = apply(&plan_with(&["structs"]), &pack, &model_with(vec![point]))
         .expect_err("no declared rule accepts these facts");
     assert!(matches!(err, TransformError::Ownership { .. }), "{err}");
@@ -69,10 +69,14 @@ fn observed_mutation_reaches_an_exclusive_receiver() {
     mutating.flags.insert("mutated".to_owned());
     let mut reading = child("method", "Peek", "");
     reading.flags.insert(FLAG_POINTER_RECEIVER.to_owned());
+    // A BODY each, because a rung that translates them needs one: a method without a body is a
+    // refusal rather than a stub, and this test is about the RECEIVER.
+    mutating.children.push(child("body", "", ""));
+    reading.children.push(child("body", "", ""));
     point.children = vec![mutating, reading];
 
     let pack = Pack::default()
-        .with_rule("structs", CONSTRUCTION_RUST_STRUCT, &["struct"])
+        .with_rule("structs", CONSTRUCTION_RUST_STRUCT_BODY, &["struct"])
         .with_disposition(
             "exclusive",
             Some(true),
@@ -102,7 +106,7 @@ fn a_disposition_without_a_receiver_form_refuses_the_receiver() {
     point.children = vec![method];
 
     let pack = Pack::default()
-        .with_rule("structs", CONSTRUCTION_RUST_STRUCT, &["struct"])
+        .with_rule("structs", CONSTRUCTION_RUST_STRUCT_BODY, &["struct"])
         .with_disposition("owned", None, Some(true), "Option<Box<{0}>>", None);
 
     let err = apply(&plan_with(&["structs"]), &pack, &model_with(vec![point]))
@@ -120,7 +124,10 @@ fn a_disposition_without_a_receiver_form_refuses_the_receiver() {
 fn a_variadic_signature_is_an_ordinary_slice() {
     let mut printf = decl("func", "Printf", "");
     printf.flags.insert(FLAG_VARIADIC.to_owned());
-    let pack = Pack::default().with_rule("funcs", CONSTRUCTION_RUST_FN, &["func"]);
+    // A BODY, because the rung that emits one needs it: a function without a body is a refusal
+    // rather than a stub, and this test is about the SIGNATURE.
+    printf.children.push(child("body", "", ""));
+    let pack = Pack::default().with_rule("funcs", CONSTRUCTION_RUST_FN_BODY, &["func"]);
     apply(&plan_with(&["funcs"]), &pack, &model_with(vec![printf]))
         .expect("a variadic signature carries no question of its own");
 }

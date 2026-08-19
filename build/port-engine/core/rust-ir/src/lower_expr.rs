@@ -206,7 +206,6 @@ pub(crate) fn lower_expr(expr: &RustExpr) -> Result<TokenStream, PortError> {
                 .collect::<Result<Vec<_>, PortError>>()?;
             Ok(quote! { match #scrutinee { #(#arms)* } })
         }
-        RustExpr::Todo => Ok(quote! { todo!() }),
     }
 }
 

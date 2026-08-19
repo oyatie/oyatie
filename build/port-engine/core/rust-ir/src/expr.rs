@@ -163,8 +163,6 @@ pub enum RustExpr {
         /// The arms, in order. An arm with no patterns is the wildcard.
         arms: Vec<MatchArm>,
     },
-    /// `todo!()` — an unimplemented body, emitted only where a construction asked for a stub.
-    Todo,
 }
 
 /// One arm of a match.
@@ -213,8 +211,7 @@ impl RustExpr {
             | Self::Slice { .. }
             | Self::Cast { .. }
             | Self::SelfValue
-            | Self::Match { .. }
-            | Self::Todo => Precedence::ATOMIC,
+            | Self::Match { .. } => Precedence::ATOMIC,
         }
     }
 

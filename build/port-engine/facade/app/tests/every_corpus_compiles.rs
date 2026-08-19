@@ -60,6 +60,14 @@ fn every_rendered_corpus_is_a_program() {
         if crate_source.trim().is_empty() {
             continue;
         }
+        // A STUB is a method that compiles and panics, which is the one failure this engine exists
+        // to prevent — and it is worse than a refusal, because a refusal says so and a stub does
+        // not. It went unseen for a long time: the corpus that proves method bodies declares
+        // structs, and the rung that stubbed was the one for DEFINED TYPES.
+        assert!(
+            !crate_source.contains("todo!"),
+            "`{name}` emitted a stub body — a method that compiles and panics:\n{crate_source}"
+        );
         compile(&out_dir, name, &crate_source);
     }
 

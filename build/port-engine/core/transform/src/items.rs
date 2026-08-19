@@ -36,7 +36,7 @@ pub(crate) fn build_item(
         CONSTRUCTION_RUST_CONST => build_const(declaration, resolver),
         CONSTRUCTION_RUST_STATIC => crate::items_static::build_static(declaration, resolver),
         CONSTRUCTION_RUST_TYPE_ALIAS => build_type_alias(declaration, resolver),
-        CONSTRUCTION_RUST_NEWTYPE => build_newtype(declaration, resolver),
+        CONSTRUCTION_RUST_NEWTYPE => build_newtype(declaration, resolver, Body::Translate),
         CONSTRUCTION_RUST_STRUCT => build_struct(declaration, resolver, Body::Stub),
         CONSTRUCTION_RUST_STRUCT_BODY => build_struct(declaration, resolver, Body::Translate),
         CONSTRUCTION_RUST_TRAIT => build_trait(declaration, resolver),
@@ -133,7 +133,17 @@ fn build_fn(
             })?;
         body::statements(&source.children, declaration, resolver, body::ResultShape::Own)?
     } else {
-        vec![RustStmt::Tail(RustExpr::Todo)]
+        // A rung that does not translate bodies REFUSES the function it cannot write, for the same
+        // reason a method does: a body that panics compiles, reads as success to every gate, and
+        // aborts at the caller where the source computed something.
+        return Err(TransformError::Unsupported {
+            name: declaration.name.clone(),
+            detail: format!(
+                "`{}` is captured by a rule that does not translate function bodies, and emitting \
+                 it without one would compile and panic where the source computed something",
+                declaration.name
+            ),
+        });
     };
 
     let rendered = RustFn {

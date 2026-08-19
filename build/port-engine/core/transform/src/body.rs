@@ -183,6 +183,7 @@ pub(crate) fn statements(
     resolver: &Resolver<'_>,
     result: ResultShape,
 ) -> Result<Vec<RustStmt>, TransformError> {
+    crate::body_wider::refuse_named_results(declaration)?;
     let fallible = crate::failure::is_fallible(declaration, resolver.failure);
     translate(
         nodes,

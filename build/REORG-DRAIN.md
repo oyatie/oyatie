@@ -3485,3 +3485,52 @@ Recorded as considered and declined: dropping `Copy` from the failure enum for f
 The reviewer's argument is that `#[non_exhaustive]` promises additive change and `Copy` blocks adding
 context later. True in general, and not here — the enum's variants come from the source's sentinels,
 which carry no data by construction, so the field that would break `Copy` has nowhere to come from.
+
+## R1o — the engine was emitting methods that compile and panic
+
+Reviews were converging on `semver`, so I read a different package. `uuid` opened with this:
+
+```rust
+impl Domain {
+    pub fn string(&self) -> String { todo!() }
+}
+```
+
+A method that compiles, passes every gate that reads the output as Rust, and aborts at the caller
+where the source computed something. That is the one failure this engine exists to prevent, dressed
+as success — and worse than a refusal, because a refusal says so.
+
+**Why nothing caught it.** The pack has two rungs for a struct — one that stubs bodies and one that
+translates them — and the corpus that proves method bodies declares STRUCTS. The rung for DEFINED
+TYPES had no such pair: `build_newtype` hardcoded the stub, so every method of every defined type in
+every package was a `todo!()`. The one gate that watches for stubs reads the golden, and the golden's
+stub-rung units declare structs with no methods at all.
+
+**The fix is not another rung, it is that no rung may emit one.** A body the engine cannot write is a
+refusal, at both sites — the method and the free function — and `RustExpr::Todo` is gone from the IR
+so nothing can produce one again. Four fixture tests were asserting the stub behaviour; they now give
+their fixtures bodies, which is what they were about.
+
+**Then the translation exposed two more, both real.**
+
+*Named results.* `func (t Time) UnixTime() (sec, nsec int64)` names its results, and those names are
+BINDINGS the body assigns to before returning. The target has no such thing. The engine translated
+the assignments and never bound the names — a body reading variables that do not exist, which is the
+dangling-name defect self-containment refuses everywhere else, arrived at from the signature instead
+of from a call. Eleven of them in one package, invisible until the rung stopped stubbing.
+
+*An opaque newtype.* The source's `type Version byte` is transparent — it compares against an untyped
+constant, formats as a number, does arithmetic. The target's newtype has none of its underlying
+type's operators, and that opacity is exactly why the newtype is the faithful shape. So `if v > 15`
+became `if self > 15` on a `&Version`, and `%d` of one became `format!("{}", self)` on a type with no
+`Display`. Both refuse by name; the rule they want is `self.0`, and unwrapping without proving the
+underlying type is numeric would reach inside a newtype declared to stop exactly that.
+
+**And a termination bug I wrote and the corpus found in minutes.** The newtype check first asked
+whether the type was EMITTED. The emittability fixpoint only ever shrinks, and that is what makes it
+terminate; a refusal that consults it stops firing as the set loses members, un-refusing a
+declaration and growing the set again. Whether a type is a newtype is a fact about the SOURCE, so it
+asks the source.
+
+Coverage: uuid 26.8% → 13.4%. Every point removed was a declaration counted as translated while
+emitting a method that panics or a body naming variables that do not exist.
