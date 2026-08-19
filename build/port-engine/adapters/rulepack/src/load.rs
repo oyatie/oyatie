@@ -177,6 +177,10 @@ impl LoadedRulePack {
                 .target_imports
                 .map(|rule| rule.paths)
                 .unwrap_or_default(),
+            unmappable_calls: doc
+                .unmappable_calls
+                .map(|rule| rule.calls)
+                .unwrap_or_default(),
             format_calls: doc.format_calls.map(|rule| FormatCalls {
                 macro_name: rule.r#macro,
                 macro_reason: rule.macro_reason,

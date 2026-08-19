@@ -35,6 +35,7 @@ pub struct LoadedRulePack {
     pub(crate) function_map: BTreeMap<String, FunctionMapping>,
     pub(crate) format_calls: FormatCalls,
     pub(crate) target_imports: BTreeMap<String, String>,
+    pub(crate) unmappable_calls: BTreeMap<String, String>,
     pub(crate) integer_arithmetic: IntegerArithmetic,
     pub(crate) doc_convention: DocConvention,
     pub(crate) derives: Vec<DeriveRule>,

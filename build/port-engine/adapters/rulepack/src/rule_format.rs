@@ -55,3 +55,13 @@ pub(crate) struct TargetImportsRule {
     #[serde(default)]
     pub(crate) reason: String,
 }
+
+/// Wire shape for calls the pack refuses to map, with the reason each cannot be mapped.
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct UnmappableCallsRule {
+    #[serde(default)]
+    pub(crate) calls: std::collections::BTreeMap<String, String>,
+    #[serde(default)]
+    pub(crate) reason: String,
+}

@@ -60,6 +60,8 @@ pub(crate) struct Resolver<'a> {
     pub(crate) function_map: &'a BTreeMap<String, FunctionMapping>,
     /// How the pack answers for a call that FORMATS a template.
     pub(crate) format_calls: &'a port_engine_api::FormatCalls,
+    /// Calls the pack refuses to map, and why each one cannot be mapped faithfully.
+    pub(crate) unmappable_calls: &'a BTreeMap<String, String>,
     /// How integer arithmetic must be spelled so overflow keeps the source's meaning.
     pub(crate) integer_arithmetic: &'a IntegerArithmetic,
     /// How the source's documentation convention differs from the target's.
