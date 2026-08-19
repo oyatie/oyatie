@@ -373,6 +373,46 @@ impl CapabilityPlacement {
                 }
             }
         }
+        // `pending_relocations` RETRACTS an absorbs claim the layout authority has already
+        // overruled. ADR-0615 §2 Q13 says verbatim "Do NOT fold `oya/governance` into
+        // `compliance`", and the registry records that as
+        // `compliance.absorbs_current_dirs[oya/governance]` -> pending. The absorb entry stays
+        // in place so the membership lint does not orphan the path, so reading
+        // `absorbs_current_dirs` alone makes the deriver assert a destination the authority
+        // forbids -- on 147 paths, every tracked file under oya/governance.
+        //
+        // A retracted claim yields NO destination, which lands the path in `unclassified`
+        // rather than inventing a home. That is the honest state: the registry says where it
+        // must NOT go and defers where it DOES go to a Batch-5 move plan that does not exist
+        // yet. Claiming the forbidden destination and claiming a correct one are both worse
+        // than admitting the answer is not yet decided.
+        for entry in value
+            .get("pending_relocations")
+            .and_then(Value::as_array)
+            .into_iter()
+            .flatten()
+        {
+            if entry.get("pending_relocation").and_then(Value::as_bool) != Some(true) {
+                continue;
+            }
+            let Some(from) = entry.get("from").and_then(Value::as_str) else {
+                continue;
+            };
+            // Shape: `<capability>.absorbs_current_dirs[<dir>]`
+            let Some((capability, rest)) = from.split_once(".absorbs_current_dirs[") else {
+                continue;
+            };
+            let Some(dir) = rest.strip_suffix(']') else {
+                continue;
+            };
+            let key = dir.trim_end_matches('/').to_owned();
+            // Retract only if this capability is the one currently claiming the dir, so a stale
+            // or mistyped row cannot silently delete another capability's live claim.
+            if absorbs.get(&key).map(String::as_str) == Some(capability) {
+                absorbs.remove(&key);
+            }
+        }
+
         let meta_dirs = value
             .get("meta_directories")
             .and_then(Value::as_array)
@@ -1935,6 +1975,99 @@ mod tests {
             ],
             "meta_directories": [{"dir": "governance/"}, {"dir": "app/"}]
         }))
+    }
+
+    /// A `pending_relocations` row retracts the absorb claim it names. ADR-0615 §2 Q13 rules
+    /// that `oya/governance` must NOT fold into `compliance`, while the absorb entry stays in
+    /// place so the membership lint does not orphan the path -- so reading `absorbs_current_dirs`
+    /// alone makes the deriver assert a destination the authority forbids.
+    #[test]
+    fn a_pending_relocation_retracts_the_absorb_it_names() {
+        let registry = serde_json::json!({
+            "capabilities": [
+                {"name": "compliance", "absorbs_current_dirs": ["oya/governance"]},
+                {"name": "iam", "absorbs_current_dirs": ["oya/identity"]}
+            ],
+            "meta_directories": [{"dir": "governance/"}],
+            "pending_relocations": [{
+                "from": "compliance.absorbs_current_dirs[oya/governance]",
+                "to": "governance/ (authority) + ci/gateway/cell (SLOs)",
+                "ruled_by": "ADR-0615 §2 Q13",
+                "pending_relocation": true
+            }]
+        });
+        let placement = CapabilityPlacement::from_registry_value(&registry);
+
+        // Retracted: no destination at all, so the path lands in `unclassified` rather than
+        // being given a home the layout authority forbids.
+        assert_eq!(
+            derive_destination("oya/governance/slos/a.yaml", &placement, &None),
+            None,
+            "a retracted absorb must yield no destination, not the forbidden one"
+        );
+        // Unaffected sibling claims still resolve.
+        assert_eq!(
+            derive_destination("oya/identity/src/lib.rs", &placement, &None).as_deref(),
+            Some("iam/")
+        );
+    }
+
+    /// Only rows that actually say `pending_relocation: true` retract. A row describing a
+    /// completed or proposed relocation must not silently delete a live claim.
+    #[test]
+    fn a_relocation_row_not_marked_pending_does_not_retract() {
+        let placement = CapabilityPlacement::from_registry_value(&serde_json::json!({
+            "capabilities": [{"name": "compliance", "absorbs_current_dirs": ["oya/governance"]}],
+            "pending_relocations": [{
+                "from": "compliance.absorbs_current_dirs[oya/governance]",
+                "pending_relocation": false
+            }]
+        }));
+        assert_eq!(
+            derive_destination("oya/governance/x.yaml", &placement, &None).as_deref(),
+            Some("compliance/")
+        );
+    }
+
+    /// The retraction is guarded on the CLAIMING capability, so a stale or mistyped row cannot
+    /// delete a different capability's live claim over the same directory.
+    #[test]
+    fn a_relocation_naming_a_different_capability_does_not_retract() {
+        let placement = CapabilityPlacement::from_registry_value(&serde_json::json!({
+            "capabilities": [{"name": "iam", "absorbs_current_dirs": ["oya/governance"]}],
+            "pending_relocations": [{
+                "from": "compliance.absorbs_current_dirs[oya/governance]",
+                "pending_relocation": true
+            }]
+        }));
+        assert_eq!(
+            derive_destination("oya/governance/x.yaml", &placement, &None).as_deref(),
+            Some("iam/"),
+            "a row naming compliance must not retract iam's claim"
+        );
+    }
+
+    /// A malformed `from` is ignored rather than panicking or retracting something adjacent.
+    #[test]
+    fn malformed_pending_relocation_rows_are_ignored() {
+        for from in [
+            "compliance",
+            "compliance.absorbs_current_dirs[oya/governance",
+            "absorbs_current_dirs[oya/governance]",
+            "",
+        ] {
+            let placement = CapabilityPlacement::from_registry_value(&serde_json::json!({
+                "capabilities": [
+                    {"name": "compliance", "absorbs_current_dirs": ["oya/governance"]}
+                ],
+                "pending_relocations": [{"from": from, "pending_relocation": true}]
+            }));
+            assert_eq!(
+                derive_destination("oya/governance/x.yaml", &placement, &None).as_deref(),
+                Some("compliance/"),
+                "malformed from={from:?} must not retract"
+            );
+        }
     }
 
     #[test]
