@@ -1330,10 +1330,17 @@ pub fn evaluate_history_only_retirement_receipt_coverage(
             .get("protected_base_is_ancestor_of_evaluated")
             .and_then(Value::as_bool)
             != Some(true)
+        // Deliberately NOT required to be true. For a pull_request the evaluated merge ref is
+        // regenerated against the live base tip, so its first parent is routinely a DESCENDANT of
+        // the recorded base rather than the base itself -- real base history, not drift. The
+        // producer now reports which case held instead of asserting the strict one, so this
+        // consumer must accept either. What still must hold is that the base is an ancestor of
+        // the evaluated commit, which is checked immediately above and is the property that
+        // actually prevents a doctored tree.
         || protected_context
             .get("protected_base_is_evaluated_first_parent")
             .and_then(Value::as_bool)
-            != Some(true)
+            .is_none()
         || protected_context
             .get("predecessor_commit_exists")
             .and_then(Value::as_bool)
