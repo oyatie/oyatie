@@ -525,6 +525,38 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
   Verified by execution: ten engine crates build under buck2 and 20 of their tests pass there.
   `rust-ir`, `transform` and `app` remain blocked on the third-party export.
 
+- The ratchet stopped being one package's opinion. Eight reputable stdlib-only Go packages were
+  surveyed in parallel, out of tree, and the work list is now ranked by how many PACKAGES a cause
+  blocks rather than how many declarations one package has.
+  Coverage: xxhash 69.0%, ksuid 42.9%, uuid 43.3%, xid 41.7%, ulid 29.4%, pkg/errors 26.3%,
+  semver 26.3%, go-multierror 0%. uuid sits at the median, which is worth knowing — it had been
+  the only evidence.
+  TWO PACKAGES COULD NOT BE ADMITTED AT ALL, and the cause was mine. P5 recorded a satisfaction
+  whose concrete type the corpus does not declare as a package-scope declaration of kind
+  `unsupported`, so it would refuse by name rather than vanish. But `unsupported` is a MEMBER kind,
+  not a declaration kind, so the decoder refused the ENTIRE SNAPSHOT on an unknown kind and the
+  package produced no measurement at all. The trigger is `var buf bytes.Buffer` passed where an
+  `io.Writer` is expected — ordinary Go, not an edge, and two of eight packages hit it.
+  The recording was right and the KIND was wrong. `foreign_satisfaction` is now its own admitted
+  declaration kind, deferred by the pack with the reason written out: there is nowhere to emit the
+  impl, because the type belongs to neither this corpus nor this crate and the target's coherence
+  rule forbids it outright. Deferred rather than refused, because refusing would reject every
+  package that touches the standard library through an interface — which is most of them. A generic
+  `unsupported` at package scope was rejected as the fix: a kind broad enough to cover this is broad
+  enough to swallow any package-scope construct the front end cannot model.
+  `semver` went from whole-package rejection to a 26.3% measurement over 57 declarations.
+  Ranked across packages, what blocks the most: `var` at package scope (4 packages), `IfStmt`
+  variants (4), `AssignStmt` forms (3), unary `&` (3), `panic` (3), the carried-value failing
+  return (3), VARIADIC signatures (3), and `unmapped type interface` (3). Variadic had not appeared
+  in uuid at all and blocks three packages — the single strongest argument for surveying more than
+  one.
+  Also recorded from the same pass, as a critique of the instrument rather than of the engine:
+  `survey.rs` collapses every `var` refusal into one row, which asserts that one rule would unblock
+  28 declarations. That is false — the deferral label covers a DATA gap (a package var records no
+  initializer, where a const does), a PROVABILITY gap (nothing computes whether a package var is
+  ever written, and `init` bodies are never indexed at all because go/types does not enter `init`
+  into package scope), and a POLICY gap. Three fixes, not one rule.
+
 ## Still owed by this lane
   One class the ratchet surfaced and this lane is deliberately leaving refused: `return named, err`
   where `named` is a NAMED RESULT. Go's convention says a caller may not read it after a non-nil

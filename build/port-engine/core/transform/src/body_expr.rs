@@ -70,7 +70,7 @@ pub(crate) fn in_position(
             let (base, index) = two_children(node, cx, "index")?;
             Ok(RustExpr::Index {
                 base: Box::new(expression(base, cx)?),
-                index: Box::new(expression(index, cx)?),
+                index: Box::new(crate::body_index::index_operand(index, cx)?),
             })
         }
         "composite" => composite(node, cx),
@@ -303,7 +303,9 @@ fn mapped_call(
         let operand = render_operand(arg).ok_or_else(|| TransformError::Unsupported {
             name: cx.owner.to_owned(),
             detail: format!(
-                "an argument to `{identity}` is a compound expression, and the pack answers for                  that call with a TEXT template — substituting one would need parentheses the                  template cannot ask for"
+                "an argument to `{identity}` is a compound expression, and the pack answers for \
+                 that call with a TEXT template — substituting one would need parentheses the \
+                 template cannot ask for"
             ),
         })?;
         rendered = rendered.replace(&format!("{{{index}}}"), &operand);

@@ -89,13 +89,22 @@ fn embedded_go_rust_pack_loads_with_captures_types_and_deferrals() {
          because a const's reference is 'static by definition and spelling it draws a lint"
     );
 
+    // Every deferral, by KIND rather than by count. A count has to be edited whenever one lands,
+    // which makes the edit routine and the check ceremonial; the set says which one went missing.
     let deferred = pack.deferred();
-    assert_eq!(deferred.len(), 1);
-    assert_eq!(deferred[0].kind, "var");
-    assert!(
-        deferred[0].reason.len() > 40,
-        "a deferral's reason is the record; it must say something"
+    let kinds: std::collections::BTreeSet<&str> =
+        deferred.iter().map(|entry| entry.kind.as_str()).collect();
+    assert_eq!(
+        kinds,
+        std::collections::BTreeSet::from(["var", "foreign_satisfaction"]),
     );
+    for entry in deferred {
+        assert!(
+            entry.reason.len() > 40,
+            "a deferral's reason is the record; `{}` must say something",
+            entry.kind
+        );
+    }
 }
 
 #[test]

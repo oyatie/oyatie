@@ -112,6 +112,11 @@ const (
 	// kindImplements is an observed interface satisfaction, hung on the concrete type that
 	// satisfies. See satisfy.go for why it is observed rather than derived.
 	kindImplements = "implements"
+	// kindForeignSatisfaction is an observed satisfaction whose concrete type this corpus does
+	// not declare, so there is nowhere to emit the impl. Recorded rather than dropped, and given
+	// its own kind rather than the generic unsupported one: a kind broad enough to cover this
+	// would be broad enough to swallow any package-scope construct the front end cannot model.
+	kindForeignSatisfaction = "foreign_satisfaction"
 	// kindEmbeds is an interface an interface embeds, which the target spells as a supertrait.
 	kindEmbeds = "embeds"
 	// kindPromoted is a method a type gains through EMBEDDING rather than declaration. The
