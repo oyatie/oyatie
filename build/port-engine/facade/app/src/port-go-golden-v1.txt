@@ -50,6 +50,12 @@ pub mod basic {
     fn unexported(n: i64) -> i64 {
         n
     }
+    // region: oyatie_example_portengine_fixture_corpus_basic__go_var__enabled
+    /// Reports whether the fixture feature is on by default.
+    pub static ENABLED: bool = true;
+    // region: oyatie_example_portengine_fixture_corpus_basic__go_var__threshold
+    /// The default cutoff.
+    pub static THRESHOLD: f64 = 0.75;
 }
 pub mod composite {
     // region: oyatie_example_portengine_fixture_corpus_composite__go_func__newdriver
@@ -170,6 +176,14 @@ pub mod globals {
     pub fn describe() -> String {
         "globals".to_owned()
     }
+    // region: oyatie_example_portengine_fixture_corpus_globals__go_var__limit
+    /// Declared with no initialiser and never written, so it is only ever read as its zero
+    /// value — and a zero is a value rather than work, so nothing about it happens at a time.
+    pub static LIMIT: i64 = 0;
+    // region: oyatie_example_portengine_fixture_corpus_globals__go_var__prefix
+    /// Initialised from a literal and never written. A string literal is a BORROW in the
+    /// target, and the owned form cannot be built by a constant expression at all.
+    pub static PREFIX: &str = "id-";
 }
 pub mod handoff {
     // region: oyatie_example_portengine_fixture_corpus_handoff__go_func__bump
@@ -415,4 +429,11 @@ pub mod shapes {
             }
         }
     }
+    // region: oyatie_example_portengine_fixture_corpus_shapes__go_var__origin
+    /// The point at the coordinate origin.
+    pub static ORIGIN: Point = Point {
+        x: 0,
+        y: 0,
+        label: String::new(),
+    };
 }

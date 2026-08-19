@@ -81,6 +81,14 @@ impl PackSemantics for LoadedRulePack {
         &self.deferred_kind_set
     }
 
+    fn constant_map(&self) -> &BTreeMap<String, String> {
+        &self.constant_map
+    }
+
+    fn undecided_forms(&self) -> &BTreeMap<String, String> {
+        &self.undecided_form_reasons
+    }
+
     fn trait_receiver(&self) -> Option<(&str, &str)> {
         self.trait_receiver
             .as_ref()

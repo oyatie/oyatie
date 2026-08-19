@@ -89,12 +89,16 @@ fn emitted_rust_carries_the_corpus() {
         );
     }
 
-    // The deferred kind emits nothing, and that is the pack's recorded decision rather than a
-    // silent drop — `Enabled` and `Threshold` are Go vars.
-    assert!(
-        !source.contains("ENABLED") && !source.contains("THRESHOLD"),
-        "a deferred kind must not be emitted:\n{source}"
-    );
+    // A package variable NOTHING WRITES is a `static`, and it must be one rather than a `const`:
+    // the source variable has one storage location for the life of the program and a `const` is
+    // materialised afresh at every use, so `&X` would differ per use. The variable something
+    // writes is the one that stays undecided, and it is proven in the refusal corpus.
+    for expected in ["pub static ENABLED: bool = true", "pub static THRESHOLD: f64 = 0.75"] {
+        assert!(
+            source.contains(expected),
+            "an unwritten package variable must be a static:\n{source}"
+        );
+    }
 }
 
 /// The third refusal class: a trait in a position the pack declares no form for.

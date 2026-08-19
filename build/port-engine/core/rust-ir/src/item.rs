@@ -6,7 +6,7 @@
 //! receiver rendered as the literal `&self` made an interface's mutating method unimplementable
 //! while the concrete path refused the same guess.
 
-use crate::expr::RustStmt;
+use crate::expr::{RustExpr, RustStmt};
 use crate::ty::RustType;
 
 /// Whether an item is part of the emitted crate's public surface.
@@ -126,6 +126,23 @@ pub enum RustItem {
         ty: RustType,
         /// Its value, carried as a source spelling.
         value: String, // data_class: INTERNAL_ONLY
+    },
+    /// `static NAME: T = value;` — one storage location, for the life of the program.
+    ///
+    /// Distinct from [`RustItem::Const`] because the source's package variable has an ADDRESS. A
+    /// const is inlined at every use and has no stable one; a static has exactly the variable's
+    /// storage identity, and being immutable it carries no synchronization question.
+    Static {
+        /// Documentation carried over from the source.
+        docs: Vec<String>, // data_class: INTERNAL_ONLY
+        /// Whether the static is public.
+        vis: Visibility,
+        /// Its name, already cased for the target.
+        name: String, // data_class: INTERNAL_ONLY
+        /// Its type.
+        ty: RustType,
+        /// Its value, which must be a constant expression.
+        value: RustExpr,
     },
     /// `type Name = T;` — transparent, for a source alias.
     TypeAlias {

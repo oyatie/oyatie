@@ -155,6 +155,19 @@ pub trait PackSemantics {
     fn pointer_dispositions(&self) -> &[PointerDisposition];
     /// Declaration kinds the pack knowingly does not translate yet.
     fn deferred_kinds(&self) -> &BTreeSet<String>;
+    /// Source PREDECLARED constant name → target expression.
+    ///
+    /// `true` reaches the model as an identifier referring to a universe-scope constant rather than
+    /// as a literal, so nothing in the literal path answers for it. A source vocabulary the engine
+    /// reads, like the type map — not a decision the engine makes.
+    fn constant_map(&self) -> &BTreeMap<String, String>;
+    /// Form id → why the pack has not decided that form, in the pack's own words.
+    ///
+    /// A FORM is a shape within a kind: a package variable something writes and one nothing writes
+    /// reach the same rule, and only the first is undecided. A refusal has to say what is MISSING,
+    /// and here what is missing is a decision — which the pack records. Reading it back means the
+    /// refusal a reader sees and the reason the digest carries are one text, not two that drift.
+    fn undecided_forms(&self) -> &BTreeMap<String, String>;
     /// How a trait method binds its receiver, and why the pack chose that.
     ///
     /// `None` is a REFUSAL, not a default. A source interface says nothing about how an

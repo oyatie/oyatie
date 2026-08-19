@@ -10,6 +10,10 @@ pub const CONSTRUCTION_EMPTY_CANARY: &str = "empty_canary";
 
 /// Declaration-level construction: a constant with a declared type and value.
 pub const CONSTRUCTION_RUST_CONST: &str = "rust_const";
+/// The construction emitting a `static` for a package variable nothing writes.
+pub const CONSTRUCTION_RUST_STATIC: &str = "rust_static";
+/// The pack form id for a package variable something writes.
+pub const FORM_WRITTEN_PACKAGE_VAR: &str = "written_package_var";
 /// Declaration-level construction: a transparent type alias.
 pub const CONSTRUCTION_RUST_TYPE_ALIAS: &str = "rust_type_alias";
 /// Declaration-level construction: a single-field tuple struct over the underlying type.
@@ -48,9 +52,14 @@ pub const TYPE_ARRAY: &str = "array";
 /// The type kind of a pointer.
 pub const TYPE_POINTER: &str = "pointer";
 /// The node kind of a literal.
+pub const KIND_IDENT: &str = "ident";
 pub const KIND_LITERAL: &str = "literal";
 /// The node kind of a composite literal.
 pub const KIND_COMPOSITE: &str = "composite";
+/// The node kind of one keyed element of a composite literal.
+pub const KIND_KEYED: &str = "keyed";
+/// The node kind of a type's zero value, which the source supplies where a value is omitted.
+pub const KIND_ZERO: &str = "zero";
 /// The disposition describing an OWNED pointer, and how one is constructed.
 ///
 /// Named here so the address of a fresh composite is built from the same rule that says what an
@@ -101,6 +110,8 @@ pub const TYPE_NAMED_INTERFACE: &str = "named_interface";
 
 /// Attribute key classifying what an identifier resolves to.
 pub const ATTR_REF: &str = "ref";
+/// The [`ATTR_REF`] value for an identifier naming a constant.
+pub const REF_CONST: &str = "const";
 /// Attribute key holding the package-qualified IDENTITY of what a call resolves to.
 pub const ATTR_CALLEE: &str = "callee";
 /// Attribute key distinguishing a call through a RECEIVER from a call to a free function.

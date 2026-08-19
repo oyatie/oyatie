@@ -8,7 +8,8 @@ use std::collections::{BTreeMap, BTreeSet};
 use serde::Deserialize;
 
 use crate::CONFLICT_REFUSE;
-use crate::rule::{DeferredKind, DeriveWireRule, DispositionRule, DocConventionRule, FunctionMappingRule, IdiomWireRule, IntegerArithmeticRule, SelectingFixture, TraitReceiver};
+use crate::rule::{DeferredKind, DeriveWireRule, DispositionRule, DocConventionRule, FunctionMappingRule, IdiomWireRule, IntegerArithmeticRule, SelectingFixture, TraitReceiver, UndecidedForm};
+use crate::rule::ConstantMap;
 
 fn default_conflict() -> String {
     CONFLICT_REFUSE.to_owned()
@@ -26,6 +27,8 @@ pub(crate) struct RulepackDocument {
     pub(crate) pair: PairFields,
     #[serde(default)]
     pub(crate) type_map: BTreeMap<String, String>,
+    #[serde(default)]
+    pub(crate) constant_map: Option<ConstantMap>,
     #[serde(default)]
     pub(crate) type_constructors: BTreeMap<String, String>,
     #[serde(default)]
@@ -54,6 +57,8 @@ pub(crate) struct RulepackDocument {
     pub(crate) type_map_overrides: BTreeMap<String, BTreeMap<String, String>>,
     #[serde(default)]
     pub(crate) deferred_kinds: Vec<DeferredKind>,
+    #[serde(default)]
+    pub(crate) undecided_forms: Vec<UndecidedForm>,
     #[serde(default)]
     pub(crate) trait_receiver: Option<TraitReceiver>,
     #[serde(default)]

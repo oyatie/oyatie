@@ -26,6 +26,26 @@ pub enum TransformError {
         /// Precondition id that failed.
         precondition: String,
     },
+    /// A form the pack has declined to decide, in the pack's own words.
+    ///
+    /// Distinct from a refusal for missing capability: nothing is unknowable here, someone has not
+    /// yet chosen. Carrying the pack's text means the reason a reader sees and the reason the
+    /// digest holds cannot drift apart.
+    UndecidedForm {
+        /// The form id the pack records a reason under.
+        form: String,
+        /// The declaration that hit it.
+        name: String,
+        /// The pack's recorded reason.
+        reason: String,
+    },
+    /// An initialiser the target cannot evaluate at compile time.
+    NotConstantExpression {
+        /// The declaration being initialised.
+        name: String,
+        /// What about the initialiser is not constant.
+        detail: String,
+    },
     /// Construction id is not one of the known set.
     UnknownConstruction {
         /// Rule being applied.
@@ -103,6 +123,14 @@ impl fmt::Display for TransformError {
             } => write!(
                 f,
                 "transform precondition `{precondition}` failed for rule `{rule}` unit `{unit}`"
+            ),
+            Self::UndecidedForm { form, name, reason } => write!(
+                f,
+                "`{name}` is a `{form}`, whose target form the pack has not decided: {reason}"
+            ),
+            Self::NotConstantExpression { name, detail } => write!(
+                f,
+                "`{name}` cannot be a static: {detail}"
             ),
             Self::UnknownConstruction { rule, construction } => write!(
                 f,

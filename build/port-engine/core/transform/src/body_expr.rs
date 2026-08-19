@@ -59,7 +59,7 @@ pub(crate) fn in_position(
         "ident" if is_receiver(node) => Ok(RustExpr::SelfValue),
         "ident" => {
             refuse_deferred_reference(node, cx)?;
-            Ok(RustExpr::Path(reference(node)))
+            Ok(RustExpr::Path(reference(node, cx.resolver)))
         }
         // A source-level parenthesis carries no information the tree does not already have, and
         // re-emitting it would fight the precedence the IR computes.

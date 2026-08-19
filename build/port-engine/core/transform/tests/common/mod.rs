@@ -21,6 +21,12 @@ pub struct Pack {
     pub constructors: BTreeMap<String, String>,
     pub overrides: BTreeMap<String, BTreeMap<String, String>>,
     pub deferred: BTreeSet<String>,
+    /// Source predeclared constant → target expression. Empty by default: these tests assert on
+    /// structure, and no fixture reads a predeclared constant.
+    pub constant_map: BTreeMap<String, String>,
+    /// Form id → the pack's reason for not having decided it. Empty by default, for the same
+    /// reason: a refusal these tests assert on names the form, and the prose is the pack's.
+    pub undecided_forms: BTreeMap<String, String>,
     pub copies: BTreeSet<String>,
     pub casts: BTreeSet<String>,
     pub zeroes: BTreeMap<String, String>,
@@ -242,6 +248,12 @@ impl PackSemantics for Pack {
     }
     fn deferred_kinds(&self) -> &BTreeSet<String> {
         &self.deferred
+    }
+    fn constant_map(&self) -> &BTreeMap<String, String> {
+        &self.constant_map
+    }
+    fn undecided_forms(&self) -> &BTreeMap<String, String> {
+        &self.undecided_forms
     }
     fn pointer_dispositions(&self) -> &[PointerDisposition] {
         &self.dispositions

@@ -99,6 +99,11 @@ pub(crate) struct Resolver<'a> {
     /// declined to emit produces a crate with a dangling name. Read from the pack rather than
     /// listed here, so a kind that stops being deferred stops causing refusals with no code change.
     pub(crate) deferred: &'a BTreeSet<String>,
+    /// Source predeclared constant name → target expression.
+    pub(crate) constant_map: &'a BTreeMap<String, String>,
+    /// Form id → the pack's recorded reason for not having decided it, so a refusal quotes the
+    /// pack rather than restating it in code where the two could drift.
+    pub(crate) undecided_forms: &'a BTreeMap<String, String>,
     /// What a call's DESTINATION wants, keyed by callee identity.
     ///
     /// The body translator knows what an expression is and not where it is going. `&x` and a bare

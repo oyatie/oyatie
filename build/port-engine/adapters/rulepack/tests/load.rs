@@ -96,8 +96,26 @@ fn embedded_go_rust_pack_loads_with_captures_types_and_deferrals() {
         deferred.iter().map(|entry| entry.kind.as_str()).collect();
     assert_eq!(
         kinds,
-        std::collections::BTreeSet::from(["var", "foreign_satisfaction", "package_init"]),
+        std::collections::BTreeSet::from(["foreign_satisfaction", "package_init"]),
+        "`var` is no longer among them: the pack now captures it, and only the SHAPE that stays \
+         undecided — a package variable something writes — is recorded, as an undecided form"
     );
+    // An undecided FORM is a shape within a kind, and it carries a reason for the same reason a
+    // deferral does: the engine quotes it when it declines, so the words a reader sees and the
+    // words the digest holds are one text.
+    let forms: std::collections::BTreeSet<&str> =
+        pack.undecided_forms().keys().map(String::as_str).collect();
+    assert_eq!(
+        forms,
+        std::collections::BTreeSet::from(["written_package_var"]),
+    );
+    for reason in pack.undecided_forms().values() {
+        assert!(
+            reason.len() > 40,
+            "an undecided form's reason is the record; it must say something"
+        );
+    }
+
     for entry in deferred {
         assert!(
             entry.reason.len() > 40,

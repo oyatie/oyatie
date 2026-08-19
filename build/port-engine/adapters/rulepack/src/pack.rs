@@ -20,6 +20,8 @@ pub struct LoadedRulePack {
     pub(crate) loaded_rules: Vec<LoadedRule>,
     pub(crate) applies: BTreeMap<UnitId, Vec<RuleId>>,
     pub(crate) type_map: BTreeMap<String, String>,
+    /// Source predeclared constant name → target expression.
+    pub(crate) constant_map: BTreeMap<String, String>,
     pub(crate) type_constructors: BTreeMap<String, String>,
     pub(crate) copy_types: BTreeSet<String>,
     pub(crate) cast_types: BTreeSet<String>,
@@ -35,6 +37,8 @@ pub struct LoadedRulePack {
     pub(crate) type_map_overrides: BTreeMap<String, BTreeMap<String, String>>,
     pub(crate) deferred_kinds: Vec<DeferredKind>,
     pub(crate) deferred_kind_set: BTreeSet<String>,
+    /// Form id → the pack's recorded reason for not having decided it.
+    pub(crate) undecided_form_reasons: BTreeMap<String, String>,
     pub(crate) trait_receiver: Option<TraitReceiver>,
     pub(crate) dispositions: Vec<PointerDisposition>,
 }
@@ -235,6 +239,10 @@ impl LoadedRulePack {
             rules,
             loaded_rules,
             applies,
+            constant_map: doc
+                .constant_map
+                .map(|table| table.names)
+                .unwrap_or_default(),
             type_map: doc.type_map,
             type_constructors: doc.type_constructors,
             copy_types: doc.copy_types,
@@ -308,6 +316,11 @@ impl LoadedRulePack {
                 absent: failure.absent,
             }),
             type_map_overrides: doc.type_map_overrides,
+            undecided_form_reasons: doc
+                .undecided_forms
+                .iter()
+                .map(|entry| (entry.id.clone(), entry.reason.clone()))
+                .collect(),
             deferred_kinds: doc.deferred_kinds,
             deferred_kind_set,
             dispositions: validate_dispositions(&doc.pointer_dispositions)?,

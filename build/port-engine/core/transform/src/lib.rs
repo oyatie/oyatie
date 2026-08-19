@@ -38,6 +38,7 @@ mod failure;
 mod impls;
 mod items;
 mod items_self;
+mod items_static;
 mod naming;
 mod ownership;
 mod params;

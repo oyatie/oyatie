@@ -1,5 +1,7 @@
 //! The loaded shapes: a rule, its selecting fixtures, and a declared deferral.
 
+use std::collections::BTreeMap;
+
 use port_engine_api::RuleId;
 use serde::Deserialize;
 
@@ -125,6 +127,39 @@ pub struct DeferredKind {
     /// The declaration kind left untranslated.
     pub kind: String,
     /// Why it is deferred, and where the analysis lives.
+    pub reason: String,
+}
+
+/// The source's PREDECLARED constants and their target spellings.
+///
+/// A source vocabulary the engine READS, like [`type_map`](crate::LoadedRulePack::type_map) — not a
+/// decision the engine makes. `true` reaches the model as an identifier referring to a
+/// universe-scope constant rather than as a literal, so nothing in the literal path answers for it.
+#[derive(Clone, Debug, Eq, PartialEq, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ConstantMap {
+    /// Source constant name → target expression.
+    pub names: BTreeMap<String, String>,
+    /// Why the table exists and what it deliberately omits.
+    pub reason: String,
+}
+
+/// A FORM the pack has not decided, keyed by an id the engine names when it declines.
+///
+/// Distinct from [`DeferredKind`], which is per declaration KIND and mutually exclusive with a
+/// rule that captures that kind. A form is a SHAPE within a kind: a package variable something
+/// writes is translated by the same rule as one nothing writes, and only the first is undecided.
+/// The front end cannot tell them apart without deciding, which is not its job — it records the
+/// fact and the engine names the form.
+///
+/// The reason is REQUIRED and travels in the pack digest, for the same reason a deferral's does:
+/// what the engine declines has to say what is missing, and here what is missing is a decision.
+#[derive(Clone, Debug, Eq, PartialEq, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct UndecidedForm {
+    /// The id the engine quotes this reason by.
+    pub id: String,
+    /// Why the form is undecided, and where the analysis lives.
     pub reason: String,
 }
 

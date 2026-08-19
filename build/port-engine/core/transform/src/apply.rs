@@ -152,6 +152,8 @@ pub fn apply_with_provenance(
                     trait_object_forms: semantics.trait_object_forms(),
                     failure: semantics.failure_convention(),
                     deferred: semantics.deferred_kinds(),
+                    constant_map: semantics.constant_map(),
+                    undecided_forms: semantics.undecided_forms(),
                     signatures: &signatures,
                     function_map: semantics.function_map(),
                     integer_arithmetic: semantics.integer_arithmetic(),

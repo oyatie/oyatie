@@ -225,6 +225,8 @@ fn survey_declaration<P>(
         trait_object_forms: pack.trait_object_forms(),
         failure: pack.failure_convention(),
         deferred: pack.deferred_kinds(),
+        constant_map: pack.constant_map(),
+        undecided_forms: pack.undecided_forms(),
         signatures,
         function_map: pack.function_map(),
         integer_arithmetic: pack.integer_arithmetic(),
