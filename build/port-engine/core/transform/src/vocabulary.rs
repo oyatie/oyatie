@@ -49,6 +49,13 @@ pub const TYPE_ARRAY: &str = "array";
 pub const TYPE_POINTER: &str = "pointer";
 /// The node kind of a literal.
 pub const KIND_LITERAL: &str = "literal";
+/// The node kind of a composite literal.
+pub const KIND_COMPOSITE: &str = "composite";
+/// The disposition describing an OWNED pointer, and how one is constructed.
+///
+/// Named here so the address of a fresh composite is built from the same rule that says what an
+/// owned pointer is, rather than from a second rule free to disagree with it.
+pub const DISPOSITION_OWNED_POINTER: &str = "escaping_owned";
 /// The idiom that spells an emptiness test as a method rather than a comparison.
 pub const IDIOM_EMPTY_STRING: &str = "empty_string_comparison";
 /// The idiom that borrows a sequence as a slice rather than as its owned container.

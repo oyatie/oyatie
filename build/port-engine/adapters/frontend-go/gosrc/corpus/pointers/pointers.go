@@ -48,3 +48,20 @@ func (c Counter) Label() string {
 func (c *Counter) Merge(other *Counter) {
 	c.total = c.total + other.total
 }
+
+// Tally is a counter allocated away from the caller's frame.
+type Tally struct {
+	// label names the tally.
+	label string
+}
+
+// TWO things at once, because they only occur together. The address of a value the expression
+// itself creates: no caller owns it and nothing else can alias it, so the owned form is the only
+// one available — the one case where `&` needs no signature to decide it, and `&c` of an existing
+// binding stays refused. And `func New(..) *T`, which is the commoner constructor shape of the
+// two: what it constructs is the pointer's target, so the impl block stands on that.
+
+// NewTally returns a tally named for display.
+func NewTally(label string) *Tally {
+	return &Tally{label: label}
+}

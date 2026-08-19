@@ -67,7 +67,7 @@ fn argument(
 ///
 /// `Wrap` applies its paths INNERMOST FIRST, which is the order the value passes through them and
 /// the order they are declared.
-fn constructed(construction: &PointerConstruction, operand: RustExpr) -> RustExpr {
+pub(crate) fn constructed(construction: &PointerConstruction, operand: RustExpr) -> RustExpr {
     match construction {
         PointerConstruction::Borrow { mutable, .. } => RustExpr::Reference {
             mutable: *mutable,

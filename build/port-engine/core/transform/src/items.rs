@@ -13,7 +13,7 @@ use crate::resolve::Resolver;
 use crate::items_self::rename_own_type;
 use crate::signature::{Body, inherent_methods, trait_methods};
 use crate::vocabulary::{
-    ATTR_VALUE, CHILD_BODY, CHILD_EMBEDS, CHILD_FIELD, CHILD_RESULT, CONSTRUCTION_RUST_CONST, CONSTRUCTION_RUST_FN, CONSTRUCTION_RUST_FN_BODY, CONSTRUCTION_RUST_NEWTYPE, CONSTRUCTION_RUST_STRUCT, CONSTRUCTION_RUST_STRUCT_BODY, CONSTRUCTION_RUST_TRAIT, CONSTRUCTION_RUST_TYPE_ALIAS, CONSTRUCTOR_PREFIX, IDIOM_SELF_IN_IMPL, POSITION_FIELD, POSITION_SUPERTRAIT,
+    ATTR_VALUE, CHILD_BODY, CHILD_EMBEDS, CHILD_FIELD, CHILD_RESULT, CONSTRUCTION_RUST_CONST, CONSTRUCTION_RUST_FN, CONSTRUCTION_RUST_FN_BODY, CONSTRUCTION_RUST_NEWTYPE, CONSTRUCTION_RUST_STRUCT, CONSTRUCTION_RUST_STRUCT_BODY, CONSTRUCTION_RUST_TRAIT, CONSTRUCTION_RUST_TYPE_ALIAS, CONSTRUCTOR_PREFIX, IDIOM_SELF_IN_IMPL, POSITION_FIELD, POSITION_SUPERTRAIT, TYPE_POINTER,
 };
 use crate::{body, docs::docs_of};
 
@@ -247,12 +247,20 @@ fn constructed_type(declaration: &Declaration, resolver: &Resolver<'_>) -> Optio
     let [result] = results.as_slice() else {
         return None;
     };
+    // `func New(..) *T` is the SAME convention as `func New(..) T`, and it is the commoner of the
+    // two: the source allocates away from the caller's frame and hands the pointer back. What the
+    // constructor constructs is the pointer's target either way, and it is that type the impl block
+    // stands on — so the pointer is looked through rather than treated as a different result.
+    let constructed = match result.type_ref.kind.as_str() {
+        TYPE_POINTER => result.type_ref.args.first()?,
+        _ => &result.type_ref,
+    };
     // The result must be a type this unit DECLARES. A constructor for someone else's type is not
     // this package's to put a method on — the target's coherence rule forbids it outright.
-    if !resolver.declares(&result.type_ref) {
+    if !resolver.declares(constructed) {
         return None;
     }
-    let target = to_pascal_case(&result.type_ref.name);
+    let target = to_pascal_case(&constructed.name);
     match suffix.is_empty() || to_pascal_case(suffix) == target {
         true => Some(target),
         false => None,

@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "language": "go",
-  "snapshot_digest": "sha256:3021f9e96516694d150f3e61ee568313a612dc21c2e6ffac9d88d00858e91c86",
+  "snapshot_digest": "sha256:33e7bff670f25b3be4611a6caa88b1c456c554d5f378aaa519d06041b62b0241",
   "packages": [
     {
       "unit_id": "oyatie.example/portengine-fixture/corpus/accumulate",
@@ -4192,6 +4192,108 @@
                   ]
                 }
               ]
+            }
+          ]
+        },
+        {
+          "kind": "func",
+          "name": "NewTally",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "NewTally returns a tally named for display."
+          },
+          "children": [
+            {
+              "kind": "param",
+              "name": "label",
+              "type": {
+                "kind": "basic",
+                "name": "string"
+              }
+            },
+            {
+              "kind": "result",
+              "name": "",
+              "type": {
+                "kind": "pointer",
+                "args": [
+                  {
+                    "kind": "named",
+                    "name": "Tally",
+                    "package": "oyatie.example/portengine-fixture/corpus/pointers"
+                  }
+                ]
+              }
+            },
+            {
+              "kind": "body",
+              "name": "",
+              "children": [
+                {
+                  "kind": "return",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "unary",
+                      "name": "",
+                      "attrs": {
+                        "op": "\u0026"
+                      },
+                      "children": [
+                        {
+                          "kind": "composite",
+                          "name": "",
+                          "type": {
+                            "kind": "named",
+                            "name": "Tally",
+                            "package": "oyatie.example/portengine-fixture/corpus/pointers"
+                          },
+                          "children": [
+                            {
+                              "kind": "keyed",
+                              "name": "label",
+                              "children": [
+                                {
+                                  "kind": "ident",
+                                  "name": "label",
+                                  "attrs": {
+                                    "ref": "local"
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "struct",
+          "name": "Tally",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Tally is a counter allocated away from the caller's frame."
+          },
+          "children": [
+            {
+              "kind": "field",
+              "name": "label",
+              "type": {
+                "kind": "basic",
+                "name": "string"
+              },
+              "attrs": {
+                "doc": "label names the tally."
+              }
             }
           ]
         }
