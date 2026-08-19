@@ -108,6 +108,11 @@ pub struct FailureConvention {
     pub source_type: String, // data_class: INTERNAL_ONLY
     /// Target type the failure value becomes.
     pub target_type: String, // data_class: INTERNAL_ONLY
+    /// Why that target type, and what its bounds buy.
+    ///
+    /// Required, because this is the single most load-bearing type decision the pack makes: it
+    /// appears in the signature of every fallible declaration in every ported package.
+    pub reason: String, // data_class: INTERNAL_ONLY
     /// How the source spells the ABSENT failure value, which is what a success returns and what a
     /// check compares against.
     pub absent: String, // data_class: INTERNAL_ONLY

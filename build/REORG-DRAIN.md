@@ -1047,6 +1047,25 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
   unused private function — are both cases where the source tolerates what the target warns about,
   and both are fixture artifacts rather than shapes real packages have.
 
+- THE PORTED ERROR TYPE COULD NOT CROSS A THREAD. Every fallible declaration in every ported
+  package returned `Box<dyn std::error::Error>`, which is neither `Send` nor `Sync` — so no caller
+  could propagate a ported failure out of a thread or into any async runtime. The reviewer named it
+  as breaking the crate for concurrent use and was right: the bound was MISSING, not declined.
+  `Send + Sync` now. The source's own error values are ordinary data and satisfy both; a source
+  error that did not would not have been shareable across the source's own goroutines either, so
+  this narrows nothing the source had.
+  The convention also carried NO REASON, which is the same discipline gap `function_map` had — and
+  worse here, because this is the single most load-bearing type decision the pack makes: it appears
+  in the signature of every fallible declaration in every package. The reason is a required field
+  now and says why boxed (a failure outlives the call that produced it, so a reference would need a
+  lifetime the caller cannot supply) as well as why the bounds.
+  The turbofish stays explicit rather than `.into()`, and that is a considered trade the reviewer
+  would still flag: `.into()` infers only where the destination type is known, which is true inside
+  `Err(..)` and not inside a `let`. The mapping fires in any position, so it spells the type.
+  Both failure fences caught the change and were updated to the new spelling — the properties they
+  assert, that a fallible signature becomes a `Result` and that a standard-library call is answered
+  by the pack, are unchanged.
+
 ## Still owed by this lane
   One class the ratchet surfaced and this lane is deliberately leaving refused: `return named, err`
   where `named` is a NAMED RESULT. Go's convention says a caller may not read it after a non-nil

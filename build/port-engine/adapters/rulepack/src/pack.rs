@@ -299,6 +299,7 @@ impl LoadedRulePack {
                 .collect(),
             failure_convention: doc.failure_convention.map(|failure| FailureConvention {
                 source_type: failure.source_type,
+                reason: failure.reason,
                 target_type: failure.target_type,
                 absent: failure.absent,
             }),
