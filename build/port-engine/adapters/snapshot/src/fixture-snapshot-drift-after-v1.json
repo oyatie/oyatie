@@ -1,0 +1,141 @@
+{
+  "schema_version": 2,
+  "language": "go",
+  "snapshot_digest": "sha256:4036cd9ae3a8a75865a930ec3e8373f58376e4b7e947a302273cc223b65d3212",
+  "packages": [
+    {
+      "unit_id": "oyatie.example/portengine-fixture/corpus/drift",
+      "producer": "bootstrap-go-packages-go-types",
+      "declarations": [
+        {
+          "kind": "func",
+          "name": "Offset",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Offset shifts value by the tuning offset."
+          },
+          "children": [
+            {
+              "kind": "param",
+              "name": "value",
+              "type": {
+                "kind": "basic",
+                "name": "int"
+              }
+            },
+            {
+              "kind": "result",
+              "name": "",
+              "type": {
+                "kind": "basic",
+                "name": "int"
+              }
+            },
+            {
+              "kind": "body",
+              "name": "",
+              "children": [
+                {
+                  "kind": "return",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "binary",
+                      "name": "",
+                      "attrs": {
+                        "op": "+"
+                      },
+                      "children": [
+                        {
+                          "kind": "ident",
+                          "name": "value",
+                          "attrs": {
+                            "ref": "local"
+                          }
+                        },
+                        {
+                          "kind": "literal",
+                          "name": "",
+                          "attrs": {
+                            "lit_kind": "INT",
+                            "value": "1"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "func",
+          "name": "Scale",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Scale multiplies value by the tuning factor."
+          },
+          "children": [
+            {
+              "kind": "param",
+              "name": "value",
+              "type": {
+                "kind": "basic",
+                "name": "int"
+              }
+            },
+            {
+              "kind": "result",
+              "name": "",
+              "type": {
+                "kind": "basic",
+                "name": "int"
+              }
+            },
+            {
+              "kind": "body",
+              "name": "",
+              "children": [
+                {
+                  "kind": "return",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "binary",
+                      "name": "",
+                      "attrs": {
+                        "op": "*"
+                      },
+                      "children": [
+                        {
+                          "kind": "ident",
+                          "name": "value",
+                          "attrs": {
+                            "ref": "local"
+                          }
+                        },
+                        {
+                          "kind": "literal",
+                          "name": "",
+                          "attrs": {
+                            "lit_kind": "INT",
+                            "value": "3"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,53 @@
+# Package-local fixtures mirror OOB bootstrap snapshot artifacts (never produced in-process).
+rust_library(
+    name = "port-engine-snapshot",
+    srcs = glob(["src/**/*.rs", "src/**/*.json"]),
+    crate = "port_engine_snapshot",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//build/port-engine/adapters/frontend-go:port-engine-frontend-go",
+        "//build/port-engine/adapters/hash:port-engine-hash",
+        "//build/port-engine/adapters/source-pin:port-engine-source-pin",
+        "//build/port-engine/ports/api:port-engine-api",
+    ],
+)
+
+# Admission: the pin binding, the cross-language digest, and every refusal.
+rust_test(
+    name = "port-engine-snapshot-admission",
+    srcs = glob(["tests/admission.rs", "src/**/*.json"]),
+    crate = "port_engine_snapshot_admission",
+    crate_root = "tests/admission.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":port-engine-snapshot",
+        "//build/port-engine/adapters/frontend-go:port-engine-frontend-go",
+        "//build/port-engine/adapters/hash:port-engine-hash",
+        "//build/port-engine/ports/api:port-engine-api",
+    ],
+)
+
+# Architecture fence. `srcs` carries the library sources because the fence READS them with
+# include_str! — they are inputs to compiling this test, never modules of it.
+rust_test(
+    name = "port-engine-snapshot-fences",
+    srcs = glob(["tests/fences.rs", "src/**/*.rs"]),
+    crate = "port_engine_snapshot_fences",
+    crate_root = "tests/fences.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":port-engine-snapshot",
+    ],
+)
+
+rust_test(
+    name = "port-engine-snapshot-readiness",
+    srcs = glob(["tests/readiness.rs"]),
+    crate = "port_engine_snapshot_readiness",
+    crate_root = "tests/readiness.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":port-engine-snapshot",
+    ],
+)

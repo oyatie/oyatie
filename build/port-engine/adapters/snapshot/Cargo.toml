@@ -1,0 +1,25 @@
+[package]
+name = "port-engine-snapshot"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+# Bootstrap SourceModel snapshot admission (ADR-0638 D3). Out-of-band extractor only —
+# this adapter admits snapshot bytes; it never invokes a Go toolchain.
+# W0-B Slice 8. No Cargo.lock absorb this tip.
+
+[dependencies]
+port-engine-api = { path = "../../ports/api" }
+port-engine-frontend-go = { path = "../frontend-go" }
+port-engine-hash = { path = "../hash" }
+port-engine-source-pin = { path = "../source-pin" }
+
+[lib]
+name = "port_engine_snapshot"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

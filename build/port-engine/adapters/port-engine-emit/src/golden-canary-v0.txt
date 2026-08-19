@@ -1,1 +1,0 @@
-pub fn example_com_b__canary_empty_unit_canary () { }

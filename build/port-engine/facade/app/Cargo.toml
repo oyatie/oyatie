@@ -1,0 +1,37 @@
+[package]
+name = "port-engine-app"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+# Driver facade for the owned deterministic port engine: plan, render, verify, delta, receipt.
+# W0-B Slice 14 — canary materialize + planted-defect. No Cargo.lock absorb.
+
+[[bin]]
+name = "port-engine-app"
+path = "src/main.rs"
+
+[dependencies]
+port-engine-analysis = { path = "../../core/analysis" }
+port-engine-api = { path = "../../ports/api" }
+port-engine-kernel = { path = "../../core/kernel" }
+port-engine-rust-ir = { path = "../../core/rust-ir" }
+port-engine-source-pin = { path = "../../adapters/source-pin" }
+port-engine-frontend-go = { path = "../../adapters/frontend-go" }
+port-engine-hash = { path = "../../adapters/hash" }
+port-engine-rulepack = { path = "../../adapters/rulepack" }
+port-engine-snapshot = { path = "../../adapters/snapshot" }
+port-engine-identity = { path = "../../adapters/identity" }
+port-engine-toolchain = { path = "../../adapters/toolchain" }
+port-engine-transform = { path = "../../core/transform" }
+port-engine-emit = { path = "../../adapters/emit" }
+
+[lib]
+name = "port_engine_app"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

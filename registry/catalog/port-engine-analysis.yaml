@@ -1,0 +1,16 @@
+context: build
+role: kernel
+capability: port-engine
+plane: control
+slo: cataloged-no-runtime-claim
+data_classes_owned: [INTERNAL_ONLY]
+operational_classes_owned: []
+api_stability: preview
+security_review: unreviewed
+supply_chain: source-only
+traceability:
+  source_crate: build/port-engine/core/analysis/Cargo.toml
+non_claims:
+  - ownership decision from front-end facts and pack rules
+  - produces a HYPOTHESIS the target's borrow checker verifies, never a proof of exclusivity
+  - defines NO capability; build/ owns_crates=false (ADR-0637 D1)

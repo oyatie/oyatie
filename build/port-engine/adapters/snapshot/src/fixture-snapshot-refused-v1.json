@@ -1,0 +1,251 @@
+{
+  "schema_version": 2,
+  "language": "go",
+  "snapshot_digest": "sha256:94ea2caa2b1aea639c888e52dc91455cb18805ee29513d0f9abb1ebcd2d6baaf",
+  "packages": [
+    {
+      "unit_id": "oyatie.example/portengine-fixture-refused/corpus-refused/hard",
+      "producer": "bootstrap-go-packages-go-types",
+      "declarations": [
+        {
+          "kind": "func",
+          "name": "Countdown",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Countdown sums 0..n with a loop.\n\nA `for` statement has no translation yet. Go's three-clause form, its condition-only form, and\nits range form are three different target constructs, and choosing among them is a rule."
+          },
+          "children": [
+            {
+              "kind": "param",
+              "name": "n",
+              "type": {
+                "kind": "basic",
+                "name": "int"
+              }
+            },
+            {
+              "kind": "result",
+              "name": "",
+              "type": {
+                "kind": "basic",
+                "name": "int"
+              }
+            },
+            {
+              "kind": "body",
+              "name": "",
+              "children": [
+                {
+                  "kind": "let",
+                  "name": "total",
+                  "children": [
+                    {
+                      "kind": "literal",
+                      "name": "",
+                      "attrs": {
+                        "lit_kind": "INT",
+                        "value": "0"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "kind": "for",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "init",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "let",
+                          "name": "i",
+                          "children": [
+                            {
+                              "kind": "literal",
+                              "name": "",
+                              "attrs": {
+                                "lit_kind": "INT",
+                                "value": "0"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "cond",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "binary",
+                          "name": "",
+                          "attrs": {
+                            "op": "\u003c"
+                          },
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "i",
+                              "attrs": {
+                                "ref": "local"
+                              }
+                            },
+                            {
+                              "kind": "ident",
+                              "name": "n",
+                              "attrs": {
+                                "ref": "local"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "post",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "unsupported",
+                          "name": "",
+                          "attrs": {
+                            "go_node": "IncDecStmt"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "then",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "assign",
+                          "name": "",
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "total",
+                              "attrs": {
+                                "ref": "local"
+                              }
+                            },
+                            {
+                              "kind": "binary",
+                              "name": "",
+                              "attrs": {
+                                "op": "+"
+                              },
+                              "children": [
+                                {
+                                  "kind": "ident",
+                                  "name": "total",
+                                  "attrs": {
+                                    "ref": "local"
+                                  }
+                                },
+                                {
+                                  "kind": "ident",
+                                  "name": "i",
+                                  "attrs": {
+                                    "ref": "local"
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "kind": "return",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "ident",
+                      "name": "total",
+                      "attrs": {
+                        "ref": "local"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "func",
+          "name": "Guarded",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Guarded returns n after a deferred cleanup.\n\n`defer` is the subject of docs/programs/k8s-port/census/defer-panic-recover.md. Rust's drop\nglue runs at scope exit like a defer does, but ordering, panics, and named-result mutation all\ndiffer, so this is a rule to be written rather than a shape to be assumed."
+          },
+          "children": [
+            {
+              "kind": "param",
+              "name": "n",
+              "type": {
+                "kind": "basic",
+                "name": "int"
+              },
+              "flags": [
+                "escapes"
+              ]
+            },
+            {
+              "kind": "result",
+              "name": "",
+              "type": {
+                "kind": "basic",
+                "name": "int"
+              }
+            },
+            {
+              "kind": "body",
+              "name": "",
+              "children": [
+                {
+                  "kind": "unsupported",
+                  "name": "",
+                  "attrs": {
+                    "go_node": "DeferStmt"
+                  }
+                },
+                {
+                  "kind": "return",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "ident",
+                      "name": "n",
+                      "attrs": {
+                        "ref": "local"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "func",
+          "name": "cleanup",
+          "children": [
+            {
+              "kind": "body",
+              "name": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

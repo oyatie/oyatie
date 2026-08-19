@@ -10133,6 +10133,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "port-engine-analysis"
+version = "0.1.0"
+dependencies = [
+ "port-engine-api",
+]
+
+[[package]]
 name = "port-engine-api"
 version = "0.1.0"
 
@@ -10140,6 +10147,7 @@ version = "0.1.0"
 name = "port-engine-app"
 version = "0.1.0"
 dependencies = [
+ "port-engine-analysis",
  "port-engine-api",
  "port-engine-emit",
  "port-engine-frontend-go",
@@ -10201,7 +10209,6 @@ dependencies = [
  "port-engine-api",
  "port-engine-hash",
  "port-engine-kernel",
- "port-engine-transform",
  "serde",
  "serde_json",
 ]
@@ -10211,6 +10218,8 @@ name = "port-engine-rust-ir"
 version = "0.1.0"
 dependencies = [
  "port-engine-api",
+ "prettyplease",
+ "proc-macro2",
  "quote",
  "syn 2.0.119",
 ]
@@ -10245,6 +10254,7 @@ dependencies = [
 name = "port-engine-transform"
 version = "0.1.0"
 dependencies = [
+ "port-engine-analysis",
  "port-engine-api",
  "port-engine-rust-ir",
 ]
