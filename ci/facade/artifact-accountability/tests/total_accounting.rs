@@ -131,6 +131,51 @@ fn total_accounting_fixtures_execute_red_green_cases() {
 ///
 /// Counts are MEASURED, not hardcoded (the plan's 780/57 were not re-derived this session).
 #[test]
+fn move_plan_conformance_fires_on_the_live_corpus() {
+    // ANTI-VACUITY. The two conformance codes compare the registry's derived `disposition`
+    // against the committed `specs/reorg/*-move-plan.json` set. If either side ever stops being
+    // produced — the `disposition` field dropped, `planned_move_paths` empty, the plan glob
+    // moved — the comparison silently returns nothing and the gate certifies agreement it never
+    // checked. That is the exact false-green this test exists to prevent.
+    //
+    // Measured when written: 650 `move_derived_not_planned` and 78 `move_planned_not_derived`.
+    // Both are expected to SHRINK as capabilities cut over (#1956 is executing the intelligence
+    // plan now), so this asserts presence and a sane floor rather than exact counts — an exact
+    // pin would go red on progress, which is the wrong direction for a burn-down.
+    let root = repo_root();
+    let registry = run_producer_stdout(&root);
+
+    let planned = registry["planned_move_paths"]
+        .as_array()
+        .expect("the face must carry planned_move_paths");
+    assert!(
+        !planned.is_empty(),
+        "at least one committed move plan must be discovered, else conformance is vacuous"
+    );
+
+    let findings = ci_artifact_accountability::evaluate_keyed(&registry);
+    let derived_not_planned = findings
+        .iter()
+        .filter(|f| f.code == "move_derived_not_planned")
+        .count();
+    let planned_not_derived = findings
+        .iter()
+        .filter(|f| f.code == "move_planned_not_derived")
+        .count();
+
+    assert!(
+        derived_not_planned > 0,
+        "the derived-move set and the committed plans disagree today; reporting ZERO means the \
+         comparison stopped running, not that the corpus converged"
+    );
+    assert!(
+        planned_not_derived > 0,
+        "the committed plans move paths the registry calls settled; reporting ZERO means the \
+         reverse direction stopped running"
+    );
+}
+
+#[test]
 fn gate2_is_born_blocking_on_the_live_corpus() {
     let root = repo_root();
 
