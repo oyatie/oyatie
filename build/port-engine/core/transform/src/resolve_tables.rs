@@ -96,6 +96,19 @@ impl Resolver<'_> {
         };
 
         if package == self.unit.0 {
+            // A declaration of this unit that REFUSED is not in the emitted crate, so naming it
+            // produces a call to a function that is not there. The same self-containment rule as
+            // the package one, arrived at from the inside.
+            if !self.emitted.contains(name) {
+                return Err(TransformError::Unsupported {
+                    name: declaration_name.to_owned(),
+                    detail: format!(
+                        "`{name}` is declared in this unit and is not being emitted — it refused, \
+                         so a call to it would name a function the crate does not contain. What is \
+                         emitted has to be self-contained"
+                    ),
+                });
+            }
             return Ok(to_snake_case(name));
         }
         // ANOTHER UNIT of this model is a module the emitted crate will have. Anything else is not:

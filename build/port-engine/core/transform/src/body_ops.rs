@@ -177,7 +177,9 @@ pub(crate) fn refuse_deferred_reference(
         Some("package_var") => "var",
         _ => return Ok(()),
     };
-    if !cx.resolver.deferred.contains(kind) {
+    // NOT EMITTED, whichever way: the pack defers the kind, or the declaration itself refused.
+    // Both leave the crate without the name, and a body that uses one is not self-contained.
+    if !cx.resolver.deferred.contains(kind) && cx.resolver.emitted.contains(&node.name) {
         return Ok(());
     }
     Err(TransformError::Unsupported {

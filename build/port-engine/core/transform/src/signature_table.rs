@@ -99,6 +99,12 @@ impl SignatureTable {
                 continue;
             };
             let scope = LocalScope::with_failure(&declarations, semantics.failure_convention());
+            // Every name: a SIGNATURE names no body, so nothing here can depend on whether another
+            // declaration's body translated.
+            let declared: BTreeSet<String> = declarations
+                .iter()
+                .map(|declaration| declaration.name.clone())
+                .collect();
             let resolver = Resolver {
                 scope: &scope,
                 type_map: semantics.type_map(),
@@ -121,6 +127,7 @@ impl SignatureTable {
                 length_functions: semantics.length_functions(),
                 undecided_forms: semantics.undecided_forms(),
                 ownership,
+                emitted: &declared,
                 units: &units,
                 unit: &unit,
                 signatures: &Self::default(),

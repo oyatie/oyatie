@@ -30,117 +30,7 @@ use crate::signature_table::SignatureTable;
 use crate::items::build_item;
 use crate::ownership::{DispositionLog, OwnershipContext};
 use crate::resolve::{LocalScope, Resolver};
-
-/// What a survey found, per declaration.
-#[derive(Clone, Debug)]
-pub struct PortedRegion {
-    /// The unit the declaration belongs to, which decides the module it is emitted into.
-    pub unit: UnitId,
-    /// The region this declaration owns.
-    pub region: String,
-    /// Where the declaration sits in its unit, so the emit can follow the source's order.
-    pub position: usize,
-    /// What it translated to.
-    pub items: Vec<port_engine_rust_ir::RustItem>,
-}
-
-pub struct SurveyReport {
-    /// Declarations the engine translated.
-    pub translated: Vec<SurveyEntry>,
-    /// Declarations it refused, with the reason it gave.
-    pub refused: Vec<SurveyEntry>,
-    /// Declarations no rule captures and no policy defers.
-    ///
-    /// Distinct from a refusal on purpose: a refusal is the engine saying it understood the
-    /// construct and will not guess, and this is the pack saying nothing about it. The two need
-    /// different work — a rule, versus a decision about what the rule should say.
-    pub uncaptured: Vec<SurveyEntry>,
-    /// Declarations the pack DEFERS, with the reason it recorded.
-    ///
-    /// Kept apart from the uncaptured because they are opposite states. A deferral is a decision
-    /// somebody made and wrote down; an uncaptured kind is a hole nobody has looked at. Counting
-    /// them together understates how finished the engine is and hides the decision.
-    pub deferred: Vec<SurveyEntry>,
-    /// What the translated declarations BECAME, in the order a reader should meet them.
-    ///
-    /// A survey that only counts can say a package is 70% translated and show nobody what the 70%
-    /// looks like — and what it looks like is the bar this engine is held to. Carried here so the
-    /// same pass that measures a real package can also emit it.
-    pub ported: Vec<PortedRegion>,
-}
-
-/// One declaration's outcome.
-#[derive(Clone, Debug)]
-pub struct SurveyEntry {
-    /// The unit that declares it.
-    pub unit: String, // data_class: INTERNAL_ONLY
-    /// Its name in the source.
-    pub name: String, // data_class: INTERNAL_ONLY
-    /// Its source kind.
-    pub kind: String, // data_class: INTERNAL_ONLY
-    /// The refusal, when there was one.
-    pub reason: Option<String>, // data_class: INTERNAL_ONLY
-}
-
-impl SurveyReport {
-    /// How many declarations were examined.
-    #[must_use]
-    pub fn total(&self) -> usize {
-        self.translated.len() + self.refused.len() + self.uncaptured.len() + self.deferred.len()
-    }
-
-    /// The share of declarations translated, as a percentage.
-    #[must_use]
-    pub fn coverage(&self) -> f64 {
-        let total = self.total();
-        if total == 0 {
-            return 0.0;
-        }
-        #[expect(
-            clippy::cast_precision_loss,
-            reason = "a declaration count large enough to lose precision in an f64 is far beyond \
-                      any corpus, and this is a reported percentage rather than a decision input"
-        )]
-        {
-            self.translated.len() as f64 * 100.0 / total as f64
-        }
-    }
-
-    /// A declaration this reason blocked, for a reader who wants to go and look at one.
-    #[must_use]
-    pub fn example_of(&self, reason: &str) -> Option<&SurveyEntry> {
-        self.refused
-            .iter()
-            .chain(&self.uncaptured)
-            .chain(&self.deferred)
-            .find(|entry| self.reason_of(entry) == reason)
-    }
-
-    fn reason_of(&self, entry: &SurveyEntry) -> String {
-        entry
-            .reason
-            .clone()
-            .unwrap_or_else(|| format!("no rule captures `{}`", entry.kind))
-    }
-
-    /// Refusal reasons, most frequent first — the work list, ranked by what it would unblock.
-    #[must_use]
-    pub fn ranked_reasons(&self) -> Vec<(String, usize)> {
-        let mut counts: BTreeMap<String, usize> = BTreeMap::new();
-        for entry in self
-            .refused
-            .iter()
-            .chain(&self.uncaptured)
-            .chain(&self.deferred)
-        {
-            *counts.entry(self.reason_of(entry)).or_default() += 1;
-        }
-        let mut ranked: Vec<(String, usize)> = counts.into_iter().collect();
-        // By count descending, then by reason, so the report is stable across runs.
-        ranked.sort_by(|left, right| right.1.cmp(&left.1).then_with(|| left.0.cmp(&right.0)));
-        ranked
-    }
-}
+use crate::survey_report::{PortedRegion, SurveyEntry, SurveyReport};
 
 /// Attempt every declaration in `model` independently and report what happened to each.
 #[must_use]
@@ -169,6 +59,25 @@ where
     // Every module the emitted crate will have. A name from outside them has nothing to be reached
     // through, and emitting a path for it produces a crate that does not build.
     let units: BTreeSet<String> = model.units().into_iter().map(|unit| unit.0).collect();
+
+    // THE FIXPOINT. A declaration is emitted only if everything it names is emitted, and refusing
+    // one may make another refuse — a chain of calls falls together. Starting from "everything is
+    // emittable" and SHRINKING is what makes it converge: the set only ever loses members, so it
+    // terminates in at most one round per declaration and in practice in two or three.
+    //
+    // Starting from empty and growing would also converge and would be wrong: it would refuse a
+    // pair of mutually recursive functions that both translate perfectly well.
+    let every = BTreeSet::new();
+    let mut emittable = crate::reachable::emittable_names(model);
+    loop {
+        let shrunk =
+            crate::reachable::shrink(model, pack, &rules, &signatures, &units, &emittable);
+        if shrunk == emittable {
+            break;
+        }
+        emittable = shrunk;
+    }
+
     for unit in model.units() {
         let Some(declarations) = model.declarations(&unit) else {
             continue;
@@ -179,6 +88,7 @@ where
                 &Site {
                     units: &units,
                     unit: &unit,
+                    emitted: emittable.get(&unit.0).unwrap_or(&every),
                     position,
                     scope: &scope,
                 },
@@ -197,14 +107,16 @@ where
 ///
 /// One value rather than three parameters, because they travel together and always will: a
 /// declaration is only ever surveyed in the context of the unit it belongs to.
-struct Site<'a> {
-    unit: &'a UnitId,
-    units: &'a BTreeSet<String>,
-    position: usize,
-    scope: &'a LocalScope,
+pub(crate) struct Site<'a> {
+    pub(crate) unit: &'a UnitId,
+    pub(crate) units: &'a BTreeSet<String>,
+    /// The names of this unit still believed to be emittable, this round.
+    pub(crate) emitted: &'a BTreeSet<String>,
+    pub(crate) position: usize,
+    pub(crate) scope: &'a LocalScope,
 }
 
-fn survey_declaration<P>(
+pub(crate) fn survey_declaration<P>(
     site: &Site<'_>,
     declaration: &Declaration,
     rules: &[port_engine_api::RuleId],
@@ -274,6 +186,7 @@ fn survey_declaration<P>(
         literal_constructors: pack.literal_constructors(),
         receiver: pack.trait_receiver(),
         ownership: &ownership,
+        emitted: site.emitted,
         units: site.units,
         unit: site.unit,
     };
@@ -291,34 +204,6 @@ fn survey_declaration<P>(
             });
             report.translated.push(entry(None));
         }
-        Err(error) => report.refused.push(entry(Some(refusal_of(&error)))),
-    }
-}
-
-/// A refusal, reduced to what identifies its CAUSE.
-///
-/// Two competing pressures, and getting either wrong makes the ranking useless. A reason that keeps
-/// the DECLARATION's name counts once per site and ranks nothing — two hundred functions blocked by
-/// one missing rule must read as one row of two hundred. A reason that drops the SUBJECT ranks
-/// everything into one row and names nothing to add: "the type map does not carry it", twenty
-/// times, for twenty different types.
-///
-/// So the subject is kept and the site is dropped, per variant, rather than by cutting the rendered
-/// string at a delimiter it was never designed to have.
-fn refusal_of(error: &TransformError) -> String {
-    match error {
-        TransformError::UnmappedType { type_ref, .. } => {
-            format!("unmapped type `{type_ref}`")
-        }
-        TransformError::MissingDatum {
-            construction,
-            datum,
-            ..
-        } => format!("`{construction}` needs `{datum}`, which the front end did not record"),
-        TransformError::ConstructionKindMismatch {
-            construction, kind, ..
-        } => format!("construction `{construction}` does not fit a `{kind}`"),
-        TransformError::Unsupported { detail, .. } => detail.clone(),
-        other => other.to_string(),
+        Err(error) => report.refused.push(entry(Some(crate::survey_cause::refusal_of(&error)))),
     }
 }

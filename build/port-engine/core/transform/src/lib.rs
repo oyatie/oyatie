@@ -23,6 +23,7 @@ pub use sources::CRATE_SOURCES;
 
 mod apply;
 mod body;
+mod body_argument;
 mod body_call;
 mod body_choice;
 mod body_parts;
@@ -31,6 +32,7 @@ mod body_stmt;
 mod body_swap;
 mod body_cond;
 mod body_expr;
+mod body_forward;
 mod body_idiom;
 mod body_literal;
 mod body_failure;
@@ -52,6 +54,7 @@ mod ownership;
 mod params;
 mod prelude;
 mod promote;
+mod reachable;
 mod resolve;
 mod returns;
 mod signature_table;
@@ -61,6 +64,8 @@ mod resolve_types;
 mod sentinel;
 mod signature;
 mod survey;
+mod survey_cause;
+mod survey_report;
 mod vocabulary;
 
 pub use apply::{TransformOutput, apply, apply_with_provenance};
@@ -70,7 +75,8 @@ pub use naming::{
     sanitize_ident, to_pascal_case, to_screaming_snake, to_snake_case,
 };
 pub use ownership::{DispositionLog, DispositionRecord, OwnershipContext};
-pub use survey::{PortedRegion, SurveyEntry, SurveyReport, survey};
+pub use survey::survey;
+pub use survey_report::{PortedRegion, SurveyEntry, SurveyReport};
 pub use vocabulary::{
     ATTR_DOC, ATTR_OP, ATTR_REF, ATTR_SOURCE_NODE, ATTR_VALUE, CONSTRUCTION_EMPTY_CANARY,
     CONSTRUCTION_PASS_THROUGH, CONSTRUCTION_RUST_CONST, CONSTRUCTION_RUST_FN,

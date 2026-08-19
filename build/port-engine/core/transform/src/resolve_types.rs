@@ -19,6 +19,33 @@ use crate::resolve_tables::table_key;
 use crate::vocabulary::{TYPE_INTERFACE, TYPE_NAMED_INTERFACE};
 
 impl Resolver<'_> {
+
+    /// Refuse a type this unit declares and is not emitting.
+    ///
+    /// A declaration that REFUSED is not in the crate, so naming it produces a dangling reference —
+    /// the same defect a call to a refused function produces, at the type layer. What is emitted
+    /// has to be self-contained, and this is the third and last place a name can enter it.
+    ///
+    /// # Errors
+    /// [`TransformError::UnmappedType`] naming the type and saying it refused.
+    fn refuse_unemitted(
+        &self,
+        type_ref: &TypeRef,
+        declaration_name: &str,
+    ) -> Result<(), TransformError> {
+        if self.emitted.contains(&type_ref.name) {
+            return Ok(());
+        }
+        Err(TransformError::UnmappedType {
+            unit: self.unit.0.clone(),
+            name: declaration_name.to_owned(),
+            type_ref: format!(
+                "{} — declared in this unit and not emitted, because it refused. Naming it would \
+                 name a type the crate does not contain",
+                type_ref.describe()
+            ),
+        })
+    }
     /// The path a named type resolves to, ignoring the question of how a position holds it.
     pub(crate) fn named_path(
         &self,
@@ -28,6 +55,7 @@ impl Resolver<'_> {
         if self.is_local(type_ref)
             && let Some(local) = self.scope.types.get(&type_ref.name)
         {
+            self.refuse_unemitted(type_ref, declaration_name)?;
             return Ok(RustType::path(local.clone()));
         }
         if let Some(mapped) = self.lookup(&table_key(type_ref)) {
@@ -107,6 +135,7 @@ impl Resolver<'_> {
         if self.is_local(type_ref)
             && let Some(local) = self.scope.types.get(&type_ref.name)
         {
+            self.refuse_unemitted(type_ref, declaration_name)?;
             return Ok(RustType::path(local.clone()));
         }
 

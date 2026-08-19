@@ -137,6 +137,12 @@ pub fn apply_with_provenance(
                     unit: step.unit.0.clone(),
                 })?;
         let scope = LocalScope::with_failure(&declarations, semantics.failure_convention());
+        // EVERY name, because this pipeline requires every declaration to translate: one that does
+        // not fails the whole run, so there is no fixpoint to compute and nothing to exclude.
+        let declared_names: BTreeSet<String> = declarations
+            .iter()
+            .map(|declaration| declaration.name.clone())
+            .collect();
         let entry = captured_kinds.entry(step.unit.clone()).or_default();
         for capture in captures {
             entry.insert(capture.clone());
@@ -174,6 +180,7 @@ pub fn apply_with_provenance(
                     literal_constructors: semantics.literal_constructors(),
                     receiver: semantics.trait_receiver(),
                     ownership: &ownership,
+                    emitted: &declared_names,
                     units: &model_units,
                     unit: &step.unit,
                 },
