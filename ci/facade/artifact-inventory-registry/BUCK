@@ -58,6 +58,7 @@ rust_binary(
     crate_root = "src/main.rs",
     visibility = ["PUBLIC"],
     deps = [
+        "//tools/oya-reorg-codemod-app:oya-reorg-codemod-app",
         "//ci/facade/artifact-inventory-registry:ci-artifact-inventory-registry",
         "//ci/facade/artifact-accountability:ci-artifact-accountability",
         "//ci/facade/cross-artifact-agreement:ci-cross-artifact-agreement",
@@ -89,6 +90,7 @@ rust_test(
     crate_root = "src/main.rs",
     visibility = ["PUBLIC"],
     deps = [
+        "//tools/oya-reorg-codemod-app:oya-reorg-codemod-app",
         "//ci/adapters/path-resolver:ci-path-resolver-adapters",
         "//ci/facade/artifact-inventory-registry:ci-artifact-inventory-registry",
         "//ci/facade/artifact-accountability:ci-artifact-accountability",

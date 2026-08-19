@@ -2531,6 +2531,7 @@ value = "legacy-marker"
             dup_of: BTreeMap::new(),
             valid_owners_files: resolve_owners(&root, &paths, &cfg).valid_files,
             placement: CapabilityPlacement::default(),
+            planned_move_paths: BTreeSet::new(),
         };
         let registry = build_registry(&inputs, &policy).expect("build registry");
         let mut producer: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
@@ -4577,6 +4578,43 @@ fn front_matter_lines(body: &str) -> Vec<&str> {
 /// Fallible because the reachability registry is fail-loud (ADR-0555): a malformed
 /// registration file must never silently degrade to "everything unreachable" nor "nothing
 /// registered".
+/// Every `old_path` named by a committed `specs/reorg/<capability>-move-plan.json`.
+///
+/// Reuses the codemod's OWN discovery + selection rather than re-globbing: `select_move_plan`
+/// is what makes more than one committed plan a HARD ERROR instead of an arbitrary pick, and
+/// duplicating the glob here would quietly reintroduce exactly that non-determinism.
+///
+/// Discovery failure yields an EMPTY set, which reads every derived `move` as unplanned. That is
+/// the honest direction to fail: it over-reports disagreement rather than certifying agreement
+/// the tree cannot support.
+fn load_planned_move_paths(repo_root: &Path) -> BTreeSet<String> {
+    let mut planned = BTreeSet::new();
+    let Ok(plans) = oya_reorg_codemod_app::discover_committed_move_plans(repo_root) else {
+        return planned;
+    };
+    for plan_path in plans {
+        let Ok(text) = std::fs::read_to_string(&plan_path) else {
+            continue;
+        };
+        let Ok(value) = serde_json::from_str::<Value>(&text) else {
+            continue;
+        };
+        for group in ["moves", "artifacts"] {
+            for entry in value
+                .get(group)
+                .and_then(Value::as_array)
+                .into_iter()
+                .flatten()
+            {
+                if let Some(old) = entry.get("old_path").and_then(Value::as_str) {
+                    planned.insert(old.to_owned());
+                }
+            }
+        }
+    }
+    planned
+}
+
 /// Repo-relative path of the closed placement authority (ADR-0562 as amended by ADR-0615).
 const CAPABILITY_REGISTRY_PATH: &str = "governance/capability-registry.json";
 
@@ -4622,6 +4660,7 @@ fn collect_repo_inputs(
             dup_of: BTreeMap::new(),
             valid_owners_files: owners_resolution.valid_files,
             placement: load_capability_placement(repo_root),
+            planned_move_paths: load_planned_move_paths(repo_root),
         },
         owners_resolution.integrity,
     ))
@@ -4935,6 +4974,7 @@ fn check_added_paths(
         dup_of: BTreeMap::new(),
         valid_owners_files,
         placement: load_capability_placement(repo_root),
+        planned_move_paths: load_planned_move_paths(repo_root),
     };
     let registry = build_registry(&inputs, policy)?;
     let mut codes_by_key: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
