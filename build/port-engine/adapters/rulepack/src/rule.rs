@@ -150,6 +150,12 @@ pub struct ConstantMap {
 pub struct LengthFunctions {
     /// Callee identities.
     pub names: BTreeSet<String>,
+    /// Callees that TAKE a length, rather than yielding one.
+    #[serde(default)]
+    pub argument_callees: BTreeSet<String>,
+    /// Why a read in such a position is not evidence against a constant being a length.
+    #[serde(default)]
+    pub argument_callees_reason: String,
     /// Why a length is not the source's own integer in the target.
     pub reason: String,
 }

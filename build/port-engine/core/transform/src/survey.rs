@@ -87,6 +87,7 @@ where
             pack.failure_convention(),
             pack.length_functions(),
             &pack.format_calls().functions.keys().cloned().collect(),
+            pack.length_argument_callees(),
         );
         for (position, declaration) in declarations.iter().enumerate() {
             survey_declaration(

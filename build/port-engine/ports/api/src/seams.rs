@@ -149,6 +149,12 @@ pub trait PackSemantics {
     /// this one refuses saying a mapping would be wrong — the target has something that looks like
     /// the source's call and differs on input a test would not think to write.
     fn unmappable_calls(&self) -> &BTreeMap<String, String>;
+    /// Callees that TAKE a length, so a read there is not evidence against a constant being one.
+    ///
+    /// The mirror of [`Self::length_functions`]: that one names callees whose VALUE is a length,
+    /// and this names the ones an ARGUMENT is one to. The proof needs both sides — a constant
+    /// passed as an allocation's size is being treated as a length, not as something else.
+    fn length_argument_callees(&self) -> &BTreeSet<String>;
     /// Source TYPE names a doc comment may name, and the target's spelling for each.
     ///
     /// Separate from the type map, which answers what a DECLARATION's type becomes. Prose is not a

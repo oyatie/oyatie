@@ -27,6 +27,7 @@ pub(crate) fn length_constants(
     declarations: &[Declaration],
     lengths: &BTreeSet<String>,
     renders: &BTreeSet<String>,
+    takes_length: &BTreeSet<String>,
 ) -> BTreeSet<String> {
     let candidates: BTreeSet<String> = declarations
         .iter()
@@ -41,7 +42,7 @@ pub(crate) fn length_constants(
 
     let mut reads: BTreeMap<String, (usize, usize)> = BTreeMap::new();
     for declaration in declarations {
-        count_reads(declaration, &candidates, lengths, renders, &mut reads);
+        count_reads(declaration, &candidates, lengths, renders, takes_length, &mut reads);
     }
     reads
         .into_iter()
@@ -56,8 +57,23 @@ fn count_reads(
     candidates: &BTreeSet<String>,
     lengths: &BTreeSet<String>,
     renders: &BTreeSet<String>,
+    takes_length: &BTreeSet<String>,
     into: &mut BTreeMap<String, (usize, usize)>,
 ) {
+    // A read PASSED AS a length is neutral, for the same reason a rendered one is: it observes the
+    // value and says nothing about its type. Passing a constant as an allocation's size is treating
+    // it as a length -- the opposite of evidence against -- and counting it against was enough on
+    // its own to keep `xxhash`'s marshaled size signed, though the unit also compares it to one.
+    if node.kind == KIND_CALL
+        && node
+            .attr(ATTR_CALLEE)
+            .is_some_and(|callee| takes_length.contains(callee))
+    {
+        for child in &node.children {
+            count_reads(child, &BTreeSet::new(), lengths, renders, takes_length, into);
+        }
+        return;
+    }
     // A read that only RENDERS the value is NEUTRAL: it neither proves the constant is a length
     // nor disproves it. Formatting a bound into a message reads its value and not its type, and
     // the same non-negative literal renders identically whichever integer it is — so counting it
@@ -72,7 +88,7 @@ fn count_reads(
         // except a nested call, whose own arguments are its own business. Descending with the
         // candidate set emptied says exactly that: nothing here counts as a read.
         for child in &node.children {
-            count_reads(child, &BTreeSet::new(), lengths, renders, into);
+            count_reads(child, &BTreeSet::new(), lengths, renders, takes_length, into);
         }
         return;
     }
@@ -97,7 +113,7 @@ fn count_reads(
         }
     }
     for child in &node.children {
-        count_reads(child, candidates, lengths, renders, into);
+        count_reads(child, candidates, lengths, renders, takes_length, into);
     }
 }
 

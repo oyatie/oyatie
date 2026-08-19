@@ -680,7 +680,11 @@
       "len",
       "cap"
     ],
-    "reason": "Callees whose value IS a length. The source types them as its own `int`, which the type map sends to `i64` — right for a value the source typed `int`, and wrong for a length, which the target types `usize`. Named here rather than recognised in code so a pack for another source language names its own and the engine names none. A function returning nothing but one of these returns a LENGTH, and the conversion the call's mapping adds exists only to make the value type as the source's `int`: where the value never is one, the conversion is what is wrong. Equivalent because a length is the same set of values in both — the source's cannot be negative and cannot exceed what the target's `usize` holds."
+    "reason": "Callees whose value IS a length. The source types them as its own `int`, which the type map sends to `i64` — right for a value the source typed `int`, and wrong for a length, which the target types `usize`. Named here rather than recognised in code so a pack for another source language names its own and the engine names none. A function returning nothing but one of these returns a LENGTH, and the conversion the call's mapping adds exists only to make the value type as the source's `int`: where the value never is one, the conversion is what is wrong. Equivalent because a length is the same set of values in both — the source's cannot be negative and cannot exceed what the target's `usize` holds.",
+    "argument_callees": [
+      "make"
+    ],
+    "argument_callees_reason": "Callees that TAKE a length. The other list holds callees whose value is one; this holds the ones an argument is one to, and it exists for the same proof from the other side. A constant is a length when everything reading it treats it as one, and passing it as an allocation's size is treating it as one -- so a read there is not evidence AGAINST, which is what it counted as. `xxhash`'s marshaled size is compared against a length once and passed as a capacity once, and the second read was enough to keep it signed. Counted NEUTRAL rather than positive, deliberately: the proof still needs a real comparison somewhere, so a constant that is only ever an allocation size proves nothing here and stays the integer the source typed it."
   },
   "cast_types": [
     "byte",
