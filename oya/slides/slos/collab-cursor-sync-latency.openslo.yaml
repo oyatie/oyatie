@@ -41,7 +41,7 @@ spec:
     - kind: AlertPolicy
       metadata: { name: cursor-sync-burn-rate-high }
       spec:
-        notificationTargets: [{ target: grafana-oncall:slides-sev2 }]
+        notificationTargets: [{ target: "grafana-oncall:slides-sev2" }]
         conditions:
           - kind: AlertCondition
             spec: { op: lt, threshold: 0.95, lookbackWindow: 1h, alertAfter: 0m }
