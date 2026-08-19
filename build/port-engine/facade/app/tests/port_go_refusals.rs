@@ -69,7 +69,7 @@ fn the_refusal_corpus_is_refused_by_name() {
     // reaches, so the fence asserts the PROPERTY every refusal must have rather than pinning one
     // message. Which one comes first is a function of declaration order, and a fence that depends
     // on that breaks every time a corpus package lands.
-    let named = ["ForStmt", "DeferStmt", "&^=", "the pack defers"];
+    let named = ["ForStmt", "DeferStmt", "&^=", "the pack defers", "is variadic"];
     assert!(
         named.iter().any(|subject| message.contains(subject)),
         "the refusal must name the construct it refused, got: {message}"

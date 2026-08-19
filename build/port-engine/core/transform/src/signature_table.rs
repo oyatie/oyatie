@@ -29,12 +29,13 @@
 //! type map is the right answer here and a construction-specific table would be answering a
 //! question no parameter asks.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 
 use port_engine_api::{PackSemantics, SourceModel};
 use port_engine_rust_ir::RustType;
 
 use crate::ownership::OwnershipContext;
+use crate::params::variadic_is_a_slice;
 use crate::resolve::{LocalScope, Resolver};
 use crate::vocabulary::{CHILD_PARAM, KIND_FUNC, TYPE_POINTER};
 
@@ -54,6 +55,12 @@ pub(crate) struct ParamTarget {
 #[derive(Debug, Default)]
 pub(crate) struct SignatureTable {
     by_callee: BTreeMap<String, Vec<ParamTarget>>,
+    /// Callees whose last parameter is VARIADIC in the source.
+    ///
+    /// The signature itself needs nothing special — the parameter is already a slice — but a CALL
+    /// does: the trailing arguments have to be collected into one, and which of the target's
+    /// sequence forms that is has not been decided.
+    variadic: BTreeSet<String>,
 }
 
 impl SignatureTable {
@@ -64,6 +71,11 @@ impl SignatureTable {
     /// leaves the argument alone; it must never read `None` as "no conversion needed".
     pub(crate) fn param(&self, callee: &str, index: usize) -> Option<&ParamTarget> {
         self.by_callee.get(callee)?.get(index)
+    }
+
+    /// Whether this callee's last parameter is variadic in the source.
+    pub(crate) fn is_variadic(&self, callee: &str) -> bool {
+        self.variadic.contains(callee)
     }
 
     /// Translate every free function in the model once.
@@ -78,6 +90,7 @@ impl SignatureTable {
         ownership: &OwnershipContext<'_>,
     ) -> Self {
         let mut by_callee = BTreeMap::new();
+        let mut variadic = BTreeSet::new();
         for unit in model.units() {
             let Some(declarations) = model.declarations(&unit) else {
                 continue;
@@ -124,9 +137,16 @@ impl SignatureTable {
                         },
                     })
                     .collect();
-                by_callee.insert(format!("{}.{}", unit.0, declaration.name), targets);
+                let identity = format!("{}.{}", unit.0, declaration.name);
+                if variadic_is_a_slice(declaration) {
+                    variadic.insert(identity.clone());
+                }
+                by_callee.insert(identity, targets);
             }
         }
-        Self { by_callee }
+        Self {
+            by_callee,
+            variadic,
+        }
     }
 }

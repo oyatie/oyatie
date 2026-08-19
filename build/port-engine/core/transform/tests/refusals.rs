@@ -110,14 +110,19 @@ fn a_disposition_without_a_receiver_form_refuses_the_receiver() {
     assert!(matches!(err, TransformError::Ownership { .. }), "{err}");
 }
 
+/// A variadic SIGNATURE needs no decision, because the parameter is already a slice.
+///
+/// The source records `func f(args ...T)` with its last parameter typed `[]T` — that is what it IS
+/// inside the function — so the signature translates through the ordinary slice rule. What needs a
+/// decision is the CALL, where the trailing arguments have to be collected; that is refused where
+/// it happens and fenced end to end by the refusal corpus.
 #[test]
-fn refuses_a_variadic_signature() {
+fn a_variadic_signature_is_an_ordinary_slice() {
     let mut printf = decl("func", "Printf", "");
     printf.flags.insert(FLAG_VARIADIC.to_owned());
     let pack = Pack::default().with_rule("funcs", CONSTRUCTION_RUST_FN, &["func"]);
-    let err = apply(&plan_with(&["funcs"]), &pack, &model_with(vec![printf]))
-        .expect_err("variadic refuses");
-    assert!(matches!(err, TransformError::Unsupported { .. }));
+    apply(&plan_with(&["funcs"]), &pack, &model_with(vec![printf]))
+        .expect("a variadic signature carries no question of its own");
 }
 
 #[test]

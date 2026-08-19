@@ -6,7 +6,7 @@ use port_engine_rust_ir::{Receiver, RustFn, RustParam, RustType, Visibility};
 use crate::error::TransformError;
 use crate::naming::{to_snake_case, visibility};
 use crate::ownership::{binds_by_pointer, facts_of, parameter_target, receiver_for};
-use crate::params::{params, refuse_variadic, results};
+use crate::params::{params, results};
 use crate::resolve::Resolver;
 use crate::vocabulary::{
     ATTR_RECEIVER, CHILD_BODY, CHILD_METHOD, CHILD_PARAM, CHILD_RESULT, FLAG_VARIADIC,
@@ -145,7 +145,6 @@ pub(crate) fn method_signature(
     body: Body,
     owner: &str,
 ) -> Result<RustFn, TransformError> {
-    refuse_variadic(method)?;
 
     // A pointer receiver used to be refused outright, because `&self` drops the mutation it
     // permits and `&mut self` claims one the source may not perform, and nothing reported which.

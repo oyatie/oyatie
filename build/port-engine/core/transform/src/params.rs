@@ -17,16 +17,18 @@ use crate::vocabulary::{
     POSITION_RESULT,
 };
 
-pub(crate) fn refuse_variadic(declaration: &Declaration) -> Result<(), TransformError> {
-    if declaration.flags.contains(FLAG_VARIADIC) {
-        return Err(TransformError::Unsupported {
-            name: declaration.name.clone(),
-            detail: "variadic signature: the target has no variadic parameter, so this needs a \
-                     rule that chooses a slice or a builder rather than a default"
-                .to_owned(),
-        });
-    }
-    Ok(())
+/// A variadic parameter is a SLICE, which is what it already is.
+///
+/// The source records `func f(args ...T)` with its last parameter typed `[]T`, because that is
+/// what `args` IS inside the function — go/types says so and the snapshot has carried it all
+/// along. So the signature translates through the ordinary slice rule with nothing new to decide,
+/// and the refusal that used to sit here refused a question nobody was asking.
+///
+/// What DOES need a decision is the call, and it is refused where it happens: see
+/// [`crate::body_call`]. A package that declares a variadic function ports it; only one that calls
+/// a variadic function is held back.
+pub(crate) fn variadic_is_a_slice(declaration: &Declaration) -> bool {
+    declaration.flags.contains(FLAG_VARIADIC)
 }
 
 pub(crate) fn params(
