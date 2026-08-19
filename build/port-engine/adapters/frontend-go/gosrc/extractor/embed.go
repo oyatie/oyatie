@@ -87,7 +87,7 @@ func promotedMethods(named *types.Named, ctx *extractCtx) ([]node, error) {
 			receiver = recv.Name()
 		}
 		flags := flagsFor(method.Exported(), signature.Variadic(), false, isPointerReceiver(signature))
-		flags = append(flags, ownershipFacts(ctx.bodies[method], receiver)...)
+		flags = append(flags, ownershipFacts(ctx.bodies[method], receiver, ctx)...)
 		sort.Strings(flags)
 
 		out = append(out, node{

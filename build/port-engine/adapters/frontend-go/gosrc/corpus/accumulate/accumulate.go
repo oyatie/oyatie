@@ -32,10 +32,3 @@ func Mix(values []int64) int64 {
 	}
 	return acc
 }
-
-// Shift scales n by a power of two, in place.
-func Shift(n int64, by int64) int64 {
-	n <<= by
-	n -= 1
-	return n
-}

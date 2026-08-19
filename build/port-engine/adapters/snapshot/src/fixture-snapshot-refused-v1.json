@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "language": "go",
-  "snapshot_digest": "sha256:e50dfe5afd5b8c16e598672e7e6b54f5f46db358adbf109c7ab0f8e46f487882",
+  "snapshot_digest": "sha256:0ab7f55126955f9a6abe9362d16c0283c99df288a7f2eb1fbe51082d0e60d4a4",
   "packages": [
     {
       "unit_id": "oyatie.example/portengine-fixture-refused/corpus-refused/hard",
@@ -529,6 +529,95 @@
                           ]
                         }
                       ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "func",
+          "name": "Scale",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Scale shifts n left by the given amount.\n\nREFUSED. The source defines a shift at or beyond the operand width as ZERO and panics on a\nnegative count; the target panics on the first in a debug build and masks the count in a release\none. Three behaviours where the source has two, none of them matching — so the operator has no\ntarget form until the pack declares one, and emitting the plain shift produced a function that\naborts where the source returns zero."
+          },
+          "children": [
+            {
+              "kind": "param",
+              "name": "n",
+              "type": {
+                "kind": "basic",
+                "name": "int64"
+              },
+              "flags": [
+                "escapes",
+                "rebound"
+              ]
+            },
+            {
+              "kind": "param",
+              "name": "by",
+              "type": {
+                "kind": "basic",
+                "name": "int64"
+              },
+              "flags": [
+                "escapes"
+              ]
+            },
+            {
+              "kind": "result",
+              "name": "",
+              "type": {
+                "kind": "basic",
+                "name": "int64"
+              }
+            },
+            {
+              "kind": "body",
+              "name": "",
+              "children": [
+                {
+                  "kind": "assign",
+                  "name": "",
+                  "type": {
+                    "kind": "basic",
+                    "name": "int64"
+                  },
+                  "attrs": {
+                    "op": "\u003c\u003c"
+                  },
+                  "children": [
+                    {
+                      "kind": "ident",
+                      "name": "n",
+                      "attrs": {
+                        "ref": "local"
+                      }
+                    },
+                    {
+                      "kind": "ident",
+                      "name": "by",
+                      "attrs": {
+                        "ref": "local"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "kind": "return",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "ident",
+                      "name": "n",
+                      "attrs": {
+                        "ref": "local"
+                      }
                     }
                   ]
                 }

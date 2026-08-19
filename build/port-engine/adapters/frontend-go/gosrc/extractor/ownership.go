@@ -12,12 +12,17 @@ import (
 // Go is garbage-collected, so a `*T` says nothing about ownership. These are the facts a front end
 // can OBSERVE; what to do about them is the rule pack's decision and the analysis crate's job.
 
-func annotateParameterFacts(children []node, body *ast.BlockStmt, rebound map[string]bool) {
+func annotateParameterFacts(
+	children []node,
+	body *ast.BlockStmt,
+	rebound map[string]bool,
+	ctx *extractCtx,
+) {
 	for i := range children {
 		if children[i].Kind != kindParam || children[i].Name == "" {
 			continue
 		}
-		facts := ownershipFacts(body, children[i].Name)
+		facts := ownershipFacts(body, children[i].Name, ctx)
 		// The source makes every parameter a mutable local copy and the target makes none of them,
 		// so a parameter the body assigns to has to say so. Kept apart from the ownership facts
 		// above because it is a claim about the CALLEE's copy, not about the caller's value.
@@ -57,7 +62,22 @@ func reboundParameters(assigned map[types.Object]bool) map[string]bool {
 // A nil body — an interface method, an external declaration — yields effect_unknown ALONE, which
 // is the correct answer rather than an absent one: nothing was proven, and "no facts" must not
 // read as "no mutation".
-func ownershipFacts(body *ast.BlockStmt, name string) []string {
+func ownershipFacts(body *ast.BlockStmt, name string, ctx *extractCtx) []string {
+	return ownershipFactsSeen(body, name, ctx, map[types.Object]bool{})
+}
+
+// ownershipFactsSeen is [ownershipFacts] with the call stack it has already entered.
+//
+// `seen` is what makes following calls terminate. A callee already on the stack yields
+// `effect_unknown` rather than a fixpoint: the honest answer for a pointer whose fate depends on
+// itself is that nothing was proven, and iterating to a least fixpoint would claim more than this
+// pass can defend.
+func ownershipFactsSeen(
+	body *ast.BlockStmt,
+	name string,
+	ctx *extractCtx,
+	seen map[types.Object]bool,
+) []string {
 	if name == "" || name == "_" {
 		return nil
 	}
@@ -103,11 +123,43 @@ func ownershipFacts(body *ast.BlockStmt, name string) []string {
 			}
 
 		case *ast.CallExpr:
-			// Passing it onward makes every fact about it UNPROVEN: the callee may mutate through
-			// it, may retain it, and this pass does not follow calls.
-			for _, arg := range typed.Args {
-				if rootIdent(arg) == name {
+			// Passing it onward is answered by asking what the CALLEE does to the parameter it
+			// lands in. Only where the callee is in this corpus with a body to read: anything else
+			// leaves the facts unproven, because nothing was read and "not read" must not become
+			// "not mutated".
+			// The RECEIVER is where a method call's effect lands, and it is not in `Args` at
+			// all — so a `s.helper()` reached the loop below with nothing rooted at `s` and was
+			// silently treated as though the pointer had not been passed anywhere.
+			if receiverFacts, ok := calleeReceiverFacts(typed, name, ctx, seen); ok {
+				for _, fact := range receiverFacts {
+					switch fact {
+					case flagMutated:
+						mutated = true
+					case flagEscapes:
+						escapes = true
+					case flagEffectUnknown:
+						unknown = true
+					}
+				}
+			}
+			for index, arg := range typed.Args {
+				if rootIdent(arg) != name {
+					continue
+				}
+				inner, ok := calleeParameterFacts(typed, index, ctx, seen)
+				if !ok {
 					unknown = true
+					continue
+				}
+				for _, fact := range inner {
+					switch fact {
+					case flagMutated:
+						mutated = true
+					case flagEscapes:
+						escapes = true
+					case flagEffectUnknown:
+						unknown = true
+					}
 				}
 			}
 

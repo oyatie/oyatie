@@ -133,6 +133,9 @@ impl Resolver<'_> {
         if !self.integer_arithmetic.types.contains(&node.type_ref.name) {
             return None;
         }
+        if divides_without_overflow(node, spelling) {
+            return None;
+        }
         self.integer_arithmetic
             .operators
             .get(spelling)
@@ -160,4 +163,24 @@ fn mentions_kind(type_ref: &TypeRef, kinds: &std::collections::BTreeSet<String>)
 /// count, which is a shape the pack has no template for and which yields no zero.
 fn element_count(type_ref: &TypeRef) -> String {
     type_ref.name.clone()
+}
+
+/// Whether this division or remainder provably cannot overflow, so the plain operator is exact.
+///
+/// Integer division overflows in exactly ONE case — the minimum value divided by negative one — so
+/// a divisor that is a literal other than `-1` cannot reach it. `n.wrapping_div(2)` is then the
+/// wrapping form applied where nothing wraps, which a reviewer reading the emitted crate called
+/// out as mechanical rather than reasoned: the point of spelling arithmetic that way is to carry a
+/// rule the target does not have, and where the target already agrees the spelling says nothing.
+///
+/// A NEGATIVE literal reaches here as a unary minus rather than as a literal, so it is not one of
+/// the shapes matched and keeps the wrapping form — which is the conservative direction.
+fn divides_without_overflow(node: &Declaration, spelling: &str) -> bool {
+    if spelling != "/" && spelling != "%" {
+        return false;
+    }
+    let Some(divisor) = node.children.get(1) else {
+        return false;
+    };
+    divisor.kind == "literal" && divisor.attr("value").is_some_and(|value| value != "-1")
 }
