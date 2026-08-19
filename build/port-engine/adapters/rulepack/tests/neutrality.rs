@@ -17,6 +17,7 @@ const PRODUCTION_SOURCES: &[(&str, &str)] = &[
     ("pack.rs", include_str!("../src/pack.rs")),
     ("policy.rs", include_str!("../src/policy.rs")),
     ("rule.rs", include_str!("../src/rule.rs")),
+    ("rule_format.rs", include_str!("../src/rule_format.rs")),
     ("rules.rs", include_str!("../src/rules.rs")),
     ("seams.rs", include_str!("../src/seams.rs")),
     ("sources.rs", include_str!("../src/sources.rs")),

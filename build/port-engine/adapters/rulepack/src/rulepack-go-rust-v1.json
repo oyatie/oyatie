@@ -387,36 +387,7 @@
     }
   ],
   "applies": {
-    "oyatie.example/portengine-fixture/corpus/basic": [
-      "go_const",
-      "go_var",
-      "go_alias",
-      "go_defined_type",
-      "go_func"
-    ],
-    "oyatie.example/portengine-fixture/corpus/shapes": [
-      "go_var",
-      "go_interface",
-      "go_struct_body",
-      "go_func"
-    ],
-    "oyatie.example/portengine-fixture-refused/corpus-refused/hard": [
-      "go_func"
-    ],
-    "oyatie.example/portengine-fixture/corpus/geometry": [
-      "go_alias",
-      "go_struct",
-      "go_func"
-    ],
-    "oyatie.example/portengine-fixture/corpus/pointers": [
-      "go_struct_body",
-      "go_func"
-    ],
-    "oyatie.example/portengine-fixture-ownership/corpus-ownership/escaping": [
-      "go_struct"
-    ],
-    "oyatie.example/portengine-fixture/corpus/naming": [
-      "go_struct_body",
+    "oyatie.example/portengine-fixture-failure/corpus-failure/carried": [
       "go_func"
     ],
     "oyatie.example/portengine-fixture-interface/corpus-interface/positions": [
@@ -424,9 +395,36 @@
       "go_struct_body",
       "go_func"
     ],
+    "oyatie.example/portengine-fixture-ownership/corpus-ownership/escaping": [
+      "go_struct"
+    ],
+    "oyatie.example/portengine-fixture-refused/corpus-refused/hard": [
+      "go_func"
+    ],
+    "oyatie.example/portengine-fixture-sentinel/corpus-sentinel/identity": [
+      "go_var",
+      "go_func"
+    ],
+    "oyatie.example/portengine-fixture-unproven/corpus-unproven/stored": [
+      "go_struct_body",
+      "go_func"
+    ],
+    "oyatie.example/portengine-fixture/corpus/accumulate": [
+      "go_func"
+    ],
+    "oyatie.example/portengine-fixture/corpus/basic": [
+      "go_const",
+      "go_var",
+      "go_alias",
+      "go_defined_type",
+      "go_func"
+    ],
     "oyatie.example/portengine-fixture/corpus/composite": [
       "go_interface",
       "go_struct_body",
+      "go_func"
+    ],
+    "oyatie.example/portengine-fixture/corpus/drift": [
       "go_func"
     ],
     "oyatie.example/portengine-fixture/corpus/fallible": [
@@ -434,17 +432,12 @@
       "go_struct_body",
       "go_func"
     ],
-    "oyatie.example/portengine-fixture-failure/corpus-failure/carried": [
+    "oyatie.example/portengine-fixture/corpus/formatted": [
       "go_func"
     ],
-    "oyatie.example/portengine-fixture/corpus/drift": [
-      "go_func"
-    ],
-    "oyatie.example/portengine-fixture/corpus/scoped": [
-      "go_const",
-      "go_func"
-    ],
-    "oyatie.example/portengine-fixture/corpus/accumulate": [
+    "oyatie.example/portengine-fixture/corpus/geometry": [
+      "go_alias",
+      "go_struct",
       "go_func"
     ],
     "oyatie.example/portengine-fixture/corpus/globals": [
@@ -458,15 +451,25 @@
     "oyatie.example/portengine-fixture/corpus/invariant": [
       "go_func"
     ],
-    "oyatie.example/portengine-fixture/corpus/sequence": [
-      "go_func"
-    ],
-    "oyatie.example/portengine-fixture-unproven/corpus-unproven/stored": [
+    "oyatie.example/portengine-fixture/corpus/naming": [
       "go_struct_body",
       "go_func"
     ],
-    "oyatie.example/portengine-fixture-sentinel/corpus-sentinel/identity": [
+    "oyatie.example/portengine-fixture/corpus/pointers": [
+      "go_struct_body",
+      "go_func"
+    ],
+    "oyatie.example/portengine-fixture/corpus/scoped": [
+      "go_const",
+      "go_func"
+    ],
+    "oyatie.example/portengine-fixture/corpus/sequence": [
+      "go_func"
+    ],
+    "oyatie.example/portengine-fixture/corpus/shapes": [
       "go_var",
+      "go_interface",
+      "go_struct_body",
       "go_func"
     ]
   },
@@ -869,5 +872,31 @@
   "literal_constructors": {
     "slice": "vec![{0}]",
     "array": "[{0}]"
+  },
+  "format_calls": {
+    "functions": {
+      "fmt.Sprintf": {
+        "wrapper": "",
+        "reason": "The source builds a string from a template and arguments; the target's macro does exactly that and yields the same owned string. Nothing wraps it -- the value IS the result."
+      },
+      "fmt.Errorf": {
+        "wrapper": "Box::<dyn std::error::Error + Send + Sync>::from",
+        "reason": "The same template, then the failure type this pack already carries for a constructed error. Spelled with the turbofish rather than `.into()` for the reason `errors.New` is: this fires in any position, and inference only has a destination type inside `Err(..)`. Note what this DOES NOT preserve: the source's `%w` records a cause that callers walk, and the wrap verb refuses for exactly that reason -- so every call that reaches this one builds a message and nothing else, which is what the source's other verbs do too."
+      }
+    },
+    "verbs": {
+      "%v": "{}",
+      "%s": "{}",
+      "%d": "{}",
+      "%q": "{:?}"
+    },
+    "verbs_reason": "The CLOSED set of source format verbs whose target placeholder means the same thing. `%v`, `%s` and `%d` all render a value in its default form, which is what `{}` does. `%q` renders a quoted, escaped string, which is what `{:?}` does for one. Everything else refuses BY NAME rather than defaulting to `{}`, because the ones left out differ in what they PRINT: `%x` is a base, `%T` is a type name the target has no runtime access to, `%+v` and `%#v` are Go-specific value dumps with no counterpart, and any width, precision or flag is a layout the target spells differently. A verb rendered as the wrong thing produces a program that compiles and prints something else, which is the failure this engine exists to prevent.",
+    "wrap_verb": "%w",
+    "wrap_verb_reason": "`%w` is not a rendering at all -- it records the argument as the new error's CAUSE, which is what `errors.Is` and `errors.Unwrap` then walk. The target's `format!` produces a string and keeps no cause, so rendering `%w` as `{}` would compile, print the same text, and silently drop a chain callers navigate. Refused by name until the pack decides what a wrapped cause becomes.",
+    "literal_only_reason": "The template must be a STRING LITERAL. The target's `format!` is a macro that parses its template at compile time; a template computed at run time cannot be passed to it at all. The source allows either, so this is a real restriction and it is stated rather than worked around -- the alternative would be a runtime formatter that is a different mechanism with different behaviour.",
+    "brace_reason": "A literal brace in the source template is data; in the target's it opens a placeholder. Doubling it is how the target spells one, and skipping that would turn a message containing `{` into a parse error or, worse, into a placeholder that consumes an argument meant for something else.",
+    "macro": "format",
+    "macro_reason": "The target's macro that builds an owned string from a template. Named here rather than in code because it is the target's spelling for the source's operation, and every other such spelling in this pack is data.",
+    "wrapper_reason": "The target CALLEE that receives the formatted string, or empty when the string is the result. A callee path rather than a text template with a hole in it: the formatted value is a structured expression, and substituting one into text is what made every real formatting call in the corpus refuse -- its arguments are field reads and calls, which have no unambiguous text spelling."
   }
 }

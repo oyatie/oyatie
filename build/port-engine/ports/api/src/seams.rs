@@ -9,7 +9,10 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use crate::declaration::Declaration;
 use crate::error::PortError;
-use crate::failure::{DeriveRule, DocConvention, FailureConvention, FunctionMapping, IdiomRule, IntegerArithmetic};
+use crate::failure::{
+    DeriveRule, DocConvention, FailureConvention, FormatCalls, FunctionMapping, IdiomRule,
+    IntegerArithmetic,
+};
 use crate::identity::{Digest, LanguagePair, RegionId, RuleId, UnitId};
 use crate::ownership::PointerDisposition;
 
@@ -127,6 +130,14 @@ pub trait PackSemantics {
     /// have. No real package can be ported without this table: every one of them calls its standard
     /// library, and a standard library is exactly the part that does not come along.
     fn function_map(&self) -> &BTreeMap<String, FunctionMapping>;
+    /// How the pack answers for a call that FORMATS a template.
+    ///
+    /// Its own seam rather than a corner of the function map, because the mechanism differs: this
+    /// one reads the SOURCE's template and translates it, where the function map substitutes into
+    /// one the pack wrote. Building a string from a template is the most common call in real source
+    /// after the plain one — it appears in six of the seven surveyed packages — and no table of
+    /// fixed forms can answer it.
+    fn format_calls(&self) -> &FormatCalls;
     /// Source TYPE names a doc comment may name, and the target's spelling for each.
     ///
     /// Separate from the type map, which answers what a DECLARATION's type becomes. Prose is not a

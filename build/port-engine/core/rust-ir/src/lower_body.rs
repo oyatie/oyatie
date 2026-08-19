@@ -8,7 +8,8 @@ use port_engine_api::PortError;
 use crate::expr::{MatchArm, RustExpr};
 use crate::stmt::{RustStmt};
 use crate::lower_parts::{parse_expr, parse_ident, parse_type};
-use crate::lower_expr::{is_block_like, lower_expr};
+use crate::lower_expr::lower_expr;
+use crate::lower_precedence::is_block_like;
 
 pub(crate) fn lower_block(statements: &[RustStmt]) -> Result<TokenStream, PortError> {
     let mut tokens = TokenStream::new();

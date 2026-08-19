@@ -198,6 +198,8 @@ pub(crate) struct Resolver<'a> {
     pub(crate) cast_types: &'a BTreeSet<String>,
     /// Source function identity → a target expression template.
     pub(crate) function_map: &'a BTreeMap<String, FunctionMapping>,
+    /// How the pack answers for a call that FORMATS a template.
+    pub(crate) format_calls: &'a port_engine_api::FormatCalls,
     /// How integer arithmetic must be spelled so overflow keeps the source's meaning.
     pub(crate) integer_arithmetic: &'a IntegerArithmetic,
     /// How the source's documentation convention differs from the target's.

@@ -176,6 +176,52 @@ pub mod fallible {
         Ok(s.len() as i64)
     }
 }
+pub mod formatted {
+    // region: oyatie_example_portengine_fixture_corpus_formatted__prelude
+    pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error + Send + Sync>>;
+    // region: oyatie_example_portengine_fixture_corpus_formatted__go_func__describe
+    /// Renders n with a label.
+    pub fn describe(n: i64) -> String {
+        format!("count {}", n)
+    }
+    // region: oyatie_example_portengine_fixture_corpus_formatted__go_func__pair
+    /// Renders two values as one string.
+    pub fn pair(name: &str, n: i64) -> String {
+        format!("{} has {}", name, n)
+    }
+    // region: oyatie_example_portengine_fixture_corpus_formatted__go_func__quoted
+    /// Renders s in quotes.
+    pub fn quoted(s: &str) -> String {
+        format!("got {:?}", s)
+    }
+    // region: oyatie_example_portengine_fixture_corpus_formatted__go_func__fixed
+    /// Renders the fixed message.
+    pub fn fixed() -> String {
+        "nothing to report".to_owned()
+    }
+    // region: oyatie_example_portengine_fixture_corpus_formatted__go_func__percentage
+    /// Renders n as a percentage.
+    pub fn percentage(n: i64) -> String {
+        format!("{}% done", n)
+    }
+    // region: oyatie_example_portengine_fixture_corpus_formatted__go_func__braced
+    /// Renders n inside braces.
+    pub fn braced(n: i64) -> String {
+        format!("{{{}}}", n)
+    }
+    // region: oyatie_example_portengine_fixture_corpus_formatted__go_func__checked
+    /// Reports n, failing when it is negative.
+    pub fn checked(n: i64) -> Result<i64> {
+        if n < 0 {
+            return Err(
+                Box::<
+                    dyn std::error::Error + Send + Sync,
+                >::from(format!("negative count {}", n)),
+            );
+        }
+        Ok(n)
+    }
+}
 pub mod geometry {
     // region: oyatie_example_portengine_fixture_corpus_geometry__go_alias__origin
     /// Names the point type rectangles are built from.

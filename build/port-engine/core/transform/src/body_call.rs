@@ -67,6 +67,12 @@ pub(crate) fn call(node: &Declaration, cx: &Body<'_>) -> Result<RustExpr, Transf
     // The pack answers for the callee FIRST, by identity. A call it answers for is one the target
     // has no name of its own for — a builtin, or something from a standard library that does not
     // come along — and emitting the source's spelling would name nothing.
+    // A FORMATTING call first: it also has a pack answer keyed by identity, but the answer needs
+    // the source's own template read rather than substituted into, so it cannot go through the
+    // table below.
+    if let Some(rendered) = crate::body_format::formatted_call(node, &args, cx)? {
+        return Ok(rendered);
+    }
     if let Some(rendered) = mapped_call(node, &args, cx)? {
         return Ok(rendered);
     }
