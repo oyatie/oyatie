@@ -99,6 +99,7 @@ pub(crate) fn build_static(
                 fallible: false,
                 borrowed: std::collections::BTreeSet::new(),
                 result_is_owned_string: false,
+                bare_pointer_results: std::collections::BTreeSet::new(),
             };
             expression(initialiser, &body)?
         }

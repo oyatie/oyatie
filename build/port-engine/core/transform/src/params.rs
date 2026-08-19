@@ -124,6 +124,22 @@ pub(crate) fn results(
                     .to_owned(),
             });
         }
+        // A `*T` result that is NEVER ABSENT is a `T`. The pointer type carries `Option` because
+        // the source's pointer admits nil, and the `Box` because a pointer owns — and a function
+        // whose every return is the address of a value it just created can produce neither an
+        // absent result nor an alias anyone else holds. So the caller gets ownership of a value,
+        // which is exactly what the source hands them, without an `Option` that has one inhabited
+        // case and an allocation nobody asked for. See `returns.rs` for what counts as proof.
+        if crate::returns::never_absent_pointer(declaration, result) {
+            let Some(pointee) = result.type_ref.args.first() else {
+                return Err(TransformError::Unsupported {
+                    name: declaration.name.clone(),
+                    detail: "a pointer result carries no pointee type".to_owned(),
+                });
+            };
+            types.push(resolver.resolve_in(pointee, &declaration.name, POSITION_RESULT)?);
+            continue;
+        }
         types.push(resolver.resolve_in(&result.type_ref, &declaration.name, POSITION_RESULT)?);
     }
 

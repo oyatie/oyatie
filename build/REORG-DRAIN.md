@@ -1900,3 +1900,57 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
 
 - NOTED: `values.swap(i, j)` is what a Rust author writes. That is an IDIOM — it changes nothing
   about the program — and belongs in the idiom table with its rust-skills provenance, not here.
+
+## The blind review's headline, and turning a whole class of it into a build failure
+
+- Sixth blind review, on the emitted crate with the generation marker stripped. Verdict DO NOT
+  MERGE, and the composition has shifted again: the reviewer's own closing paragraph names the
+  split — "most of section B evaporates under [a port-fidelity] framing and section D becomes the
+  point rather than the problem". That is the honest reading, and it is why the findings are sorted
+  here into what the ENGINE gets wrong and what is a property of the corpus it was fed.
+
+- THE HEADLINE, and the reviewer said to read one line if only one: `pub fn new(label: &str) ->
+  Option<Box<Tally>>` for a constructor that cannot fail. "Two independent defects in one signature:
+  an `Option` with one inhabited case, and a heap allocation the caller did not ask for and cannot
+  avoid."
+
+  Both come from one place. The pack maps `*T` to the nil-representable owned form, which earns its
+  `Option` from nil and its `Box` from ownership — right wherever a pointer may be absent, wrong
+  wherever it may not. A function whose EVERY return is the address of a value it just created can
+  produce neither: nothing can be absent, and nothing else can hold an alias. So that result is the
+  value, and the caller gets exactly the ownership the source hands them.
+
+  The proof is the one a failing return already uses — the address of a fresh composite is never the
+  absent value — read rather than restated, so a change to what counts as fresh changes both. And
+  the SIGNATURE and the BODY read the same proof rather than each deciding: they must agree or the
+  emitted function does not compile, which is the kind of disagreement a `Body` field exists to
+  prevent. Result: `pub fn new(label: &str) -> Self { Self { label: label.to_owned() } }`.
+
+  Requires a BODY. A signature-only declaration proves nothing, and a caller of one has no way to
+  know what its returns look like, so the nil-representable form stays the honest answer there.
+  Requires at least one return: a body that falls off the end returns the zero value, which for a
+  pointer IS the absent one.
+
+- THE COMPILE PROOF NOW DENIES WARNINGS, which turns the reviewer's whole "does not build
+  warning-clean" section into a build failure instead of something a reviewer has to find. A warning
+  the TRANSLATION invents — a mutable temporary the source did not have, an assignment nothing reads
+  — is a defect in this engine.
+
+  Three allowances remain, each a property of the SOURCE rather than of the translation, and the
+  third is new and worth naming: Go writes `x := 0` and then assigns in every branch, and warns on
+  neither the declaration nor the dead initial value; Rust's flow analysis sees the initialiser
+  overwritten before it is read. A faithful port produces that warning however well it is done.
+  What would remove it is emitting `let x = if c { a } else { b };` — the target's `if` is an
+  expression and the source's is not — which needs the front end to report that the initial value
+  is never read on any path. Recorded as the work, not waved away.
+
+- STILL ON THE BOARD from this review, ranked by how much of the "reads translated" impression each
+  carries: the `as i64` on every `len()` and the index loop that should be `for &v in values`; the
+  engine-generated provenance sentence "Ported from an implicit interface" shipping in public
+  rustdoc; `crate::shapes::Point` spelled in full where a `use` belongs; a marker trait with
+  hand-written empty impls where `impl<T: Runner + Describer> Job for T {}` is mechanical; derives
+  that stop short of `Eq`/`Hash` on types whose fields support both.
+
+- REAFFIRMED STANDING DISAGREEMENTS, now with another review behind each: blanket `wrapping_*`
+  (four reviews), `Box<dyn Error>` as a library's error type (three), and impls emitted only for
+  OBSERVED satisfactions rather than structural ones (three).

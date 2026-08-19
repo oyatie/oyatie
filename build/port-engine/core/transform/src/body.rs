@@ -56,6 +56,13 @@ pub(crate) struct Body<'a> {
     /// string literal being returned is a `&'static str` in the target and a `string` in the
     /// source, and nothing inside the `return` says which the destination wants.
     pub(crate) result_is_owned_string: bool,
+    /// Result positions whose `*T` the signature proved is NEVER ABSENT, so it renders as `T`.
+    ///
+    /// A property of the signature that only the body can spend, exactly like `fallible`: the
+    /// return operand is `&T{..}` either way, and nothing inside it says whether the destination
+    /// wants the pointer's owned form or the value itself. Signature and body must agree or the
+    /// emitted function does not compile — which is why this is carried rather than re-derived.
+    pub(crate) bare_pointer_results: BTreeSet<usize>,
 }
 
 impl<'a> Body<'a> {
@@ -65,6 +72,7 @@ impl<'a> Body<'a> {
         fallible: bool,
         result_is_owned_string: bool,
         borrowed: BTreeSet<String>,
+        bare_pointer_results: BTreeSet<usize>,
     ) -> Self {
         Self {
             owner,
@@ -72,6 +80,7 @@ impl<'a> Body<'a> {
             fallible,
             result_is_owned_string,
             borrowed,
+            bare_pointer_results,
         }
     }
 }
@@ -99,6 +108,7 @@ pub(crate) fn statements(
             fallible,
             returns_owned_string(declaration, resolver),
             crate::params::borrowed_parameters(declaration, resolver),
+            crate::returns::bare_pointer_results(declaration),
         ),
         TailPosition::Yes,
     )

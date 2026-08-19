@@ -42,12 +42,27 @@ fn emitted_rust_compiles() {
         .arg("--emit=metadata")
         .arg("-o")
         .arg(out_dir.join("emitted.rmeta"))
-        // Both allowances are about the SOURCE, not the translation. Go warns on neither an
-        // unexported declaration nobody calls nor a parameter a function ignores — `geometry.Lookup`
-        // genuinely ignores its table — so denying them here would fail the proof for output that
-        // is faithful.
+        // EVERY OTHER WARNING IS DENIED, and that is the point of the pair of allowances rather
+        // than a weakening of them. A warning the translation invents — a mutable temporary the
+        // source did not have, an assignment nothing reads — is a defect in this engine, and one
+        // that a reviewer had to find rather than a build. Denying the rest turns that whole class
+        // into a build failure.
+        //
+        // These two are about the SOURCE, not the translation. Go warns on neither an unexported
+        // declaration nobody calls nor a parameter a function ignores — `geometry.Lookup` genuinely
+        // ignores its table — so denying them would fail the proof for output that is faithful.
+        .arg("--deny=warnings")
         .arg("--allow=dead_code")
         .arg("--allow=unused_variables")
+        // The third source property, and the one worth naming because a better translation would
+        // absorb it. Go writes `x := 0` and then assigns in every branch, and warns on neither the
+        // declaration nor the dead initial value; Rust's flow analysis sees the initialiser
+        // overwritten before it is read. A faithful port of that Go produces this warning however
+        // well it is done. What would remove it is emitting `let x = if c { a } else { b };` — the
+        // target's `if` is an expression and the source's is not — which needs the front end to
+        // report that the initial value is never read on any path. Until it does, denying this
+        // would fail the proof for output that is faithful.
+        .arg("--allow=unused_assignments")
         .arg(&source_path)
         .output()
         .expect("rustc must be runnable — this test runs under cargo, which found one");
