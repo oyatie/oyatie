@@ -16,6 +16,8 @@
 //! embedded method's own ownership facts on the promoted node, and the same rules that decide a
 //! declared method's receiver decide this one.
 
+use std::collections::BTreeSet;
+
 use port_engine_api::Declaration;
 use port_engine_rust_ir::{RustExpr, RustFn, RustStmt, Visibility};
 
@@ -33,12 +35,34 @@ use crate::vocabulary::{ATTR_VIA, CHILD_PROMOTED};
 pub(crate) fn promoted_methods(
     declaration: &Declaration,
     resolver: &Resolver<'_>,
+    claimed: &BTreeSet<String>,
 ) -> Result<Vec<RustFn>, TransformError> {
     declaration
         .children_of_kind(CHILD_PROMOTED)
         .into_iter()
+        // A promoted method a trait claims is emitted in the TRAIT IMPL, which builds the same
+        // forward. Emitting both would be the inherent-beside-trait pair this engine no longer
+        // produces, and a promoted method is the one shape where the two bodies are identical —
+        // which makes the shadowing easier to miss, not harder.
+        .filter(|promoted| !claimed.contains(&promoted.name))
         .map(|promoted| forwarding_method(promoted, declaration, resolver))
         .collect()
+}
+
+/// The body a promoted method has: a call forwarded through the embedded field.
+///
+/// Exposed because a TRAIT IMPL needs it too. A promoted method has no body of its own — what it
+/// does is forward — so a trait impl carrying that method builds the same forward rather than
+/// delegating to an inherent twin, which is the shadowing pair this engine no longer emits.
+///
+/// # Errors
+/// [`TransformError::MissingDatum`] when the promotion records no field path to forward through.
+pub(crate) fn forwarding_body(
+    promoted: &Declaration,
+    declaration: &Declaration,
+    resolver: &Resolver<'_>,
+) -> Result<Option<Vec<RustStmt>>, TransformError> {
+    Ok(forwarding_method(promoted, declaration, resolver)?.body)
 }
 
 fn forwarding_method(

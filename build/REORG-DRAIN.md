@@ -1257,6 +1257,35 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
   calls that `ptr_arg`. An idiom rather than a correctness question, and it needs the reference
   form to be per-KIND rather than one template for both.
 
+- THE INHERENT METHOD BESIDE THE TRAIT IMPL IS GONE, after being named a blocker in all three
+  blind reviews and deferred three times. The pair —
+
+      impl Driver { pub fn describe(&self) -> String { self.label.clone() } }
+      impl Describer for Driver { fn describe(&self) -> String { Driver::describe(self) } }
+
+  compiles only because an inherent method wins path resolution. Delete the inherent one and the
+  forward silently rebinds to the trait method and recurses forever: a stack overflow introduced by
+  REMOVING code. And no Rust developer writes the pair — the body belongs in the trait impl, once.
+  MEASURED BEFORE DOING IT, which is what unstuck it. The reason for deferring three times was that
+  dropping the inherent method needs the trait in scope at every call site and the engine emits no
+  `use` declarations. So the emitted crate was checked: the ONLY call on a concrete receiver to a
+  trait-declared method is `self.engine.run()`, whose trait is declared in the same module and is
+  therefore already in scope. The blocker was real and its cost was not; three deferrals cost more
+  than the check would have.
+  SIGNATURE from the trait's method, BODY from the type's own, because they answer different
+  questions: the trait fixes one receiver for every implementor, and the body is what this
+  implementor does. A body written under `&self` typechecks under `&mut self`, which is the
+  direction the receiver union can move it.
+  A PROMOTED method has no body of its own — what it does is forward through the embedded field —
+  so the trait impl builds that forward directly rather than delegating to an inherent twin. That
+  is the shape where the two bodies would have been IDENTICAL, which makes the shadowing easier to
+  miss rather than harder.
+  A method satisfying no interface keeps its inherent impl, because there is no trait to put it in.
+  That is most methods.
+  WHAT TO WATCH: a cross-module call on a concrete receiver to a trait method now needs the trait
+  imported, and the engine emits no `use`. The compile proof is what will catch it, and `use`
+  emission is R3's.
+
 ## Still owed by this lane
   One class the ratchet surfaced and this lane is deliberately leaving refused: `return named, err`
   where `named` is a NAMED RESULT. Go's convention says a caller may not read it after a non-nil

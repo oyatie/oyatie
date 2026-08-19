@@ -30,7 +30,9 @@ use crate::error::TransformError;
 use crate::naming::to_pascal_case;
 use crate::resolve::Resolver;
 use crate::signature::{Body, method_receiver, method_signature};
-use crate::vocabulary::{ATTR_SITE, CHILD_IMPLEMENTS, CHILD_METHOD, POSITION_TRAIT};
+use crate::vocabulary::{
+    ATTR_SITE, CHILD_IMPLEMENTS, CHILD_METHOD, CHILD_PROMOTED, POSITION_TRAIT,
+};
 
 /// Every trait impl a declaration's observed satisfactions call for.
 ///
@@ -59,7 +61,7 @@ fn build_impl(
     let methods = observed
         .children_of_kind(CHILD_METHOD)
         .into_iter()
-        .map(|method| delegating_method(method, declaration, resolver))
+        .map(|method| implementing_method(method, declaration, resolver))
         .collect::<Result<Vec<_>, _>>()?;
 
     Ok(RustItem::TraitImpl {
@@ -89,48 +91,63 @@ fn satisfaction_docs(
     docs
 }
 
-/// One trait method, delegating to the inherent method of the same name.
-fn delegating_method(
-    method: &Declaration,
+/// One trait method, carrying the BODY the type would otherwise have put in an inherent block.
+///
+/// The pair this replaces — an inherent `describe` beside a trait `describe` that forwards to it —
+/// compiles only because an inherent method wins path resolution, and deleting the inherent one
+/// turns the forward into infinite recursion. A stack overflow introduced by REMOVING code.
+///
+/// SIGNATURE from the trait's method and BODY from the type's own, because they answer different
+/// questions: the trait fixes one receiver for every implementor, and the body is what this
+/// implementor does. A body written under `&self` typechecks under `&mut self`, which is the
+/// direction the union can move it.
+///
+/// A PROMOTED method has no body of its own — what it does is forward to the embedded field — so
+/// its forwarding body is built here directly rather than delegated to an inherent twin.
+///
+/// # Errors
+/// [`TransformError`] from the signature layer, or when the type has neither an own method of that
+/// name nor a promoted one, which would mean the satisfaction names a method nothing provides.
+fn implementing_method(
+    observed: &Declaration,
     declaration: &Declaration,
     resolver: &Resolver<'_>,
 ) -> Result<RustFn, TransformError> {
     let mut rendered = method_signature(
-        method,
+        observed,
         resolver,
         Visibility::Inherited,
         Body::None,
         &declaration.name,
     )?;
-    rendered.receiver = Some(method_receiver(method, resolver, &declaration.name)?);
+    rendered.receiver = Some(method_receiver(observed, resolver, &declaration.name)?);
 
-    // The receiver argument is `self` in every form. What differs is what `self` IS, and the
-    // signature above already fixed that — an exclusive receiver reborrows down to a shared one
-    // where the inherent method wants less, which is the target's rule and not a decision here.
-    let mut args = Vec::with_capacity(rendered.params.len() + 1);
-    args.push(RustExpr::SelfValue);
-    args.extend(
-        rendered
-            .params
-            .iter()
-            .map(|param| RustExpr::Path(param.name.clone())),
-    );
+    if let Some(own) = declaration
+        .children_of_kind(CHILD_METHOD)
+        .into_iter()
+        .find(|method| method.name == observed.name)
+    {
+        let translated = method_signature(
+            own,
+            resolver,
+            Visibility::Inherited,
+            Body::Translate,
+            &declaration.name,
+        )?;
+        rendered.body = translated.body;
+        return Ok(rendered);
+    }
 
-    let call = RustExpr::Call {
-        callee: Box::new(RustExpr::Path(format!(
-            "{}::{}",
-            to_pascal_case(&declaration.name),
-            rendered.name
-        ))),
-        args,
-    };
-    // A method that returns nothing delegates as a STATEMENT. The tail form yields the same unit
-    // value and reads as though the call were the answer, which is a claim about a method that has
-    // none.
-    rendered.body = Some(vec![if rendered.ret.is_some() {
-        RustStmt::Tail(call)
-    } else {
-        RustStmt::Semi(call)
-    }]);
+    let promoted = declaration
+        .children_of_kind(CHILD_PROMOTED)
+        .into_iter()
+        .find(|method| method.name == observed.name)
+        .ok_or_else(|| TransformError::MissingDatum {
+            construction: "trait impl".to_owned(),
+            name: observed.name.clone(),
+            datum: "method body",
+        })?;
+    rendered.body = crate::promote::forwarding_body(promoted, declaration, resolver)?;
     Ok(rendered)
 }
+

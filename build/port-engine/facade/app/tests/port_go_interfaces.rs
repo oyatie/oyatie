@@ -16,9 +16,10 @@ fn trait_impls_are_emitted_from_observed_satisfaction() {
         "impl crate::shapes::Named for Label",
         "impl crate::shapes::Named for Tag",
         "observed satisfying `crate::shapes::Named` at assertion",
-        // The delegating body is a PATH call, not a method call: inside a trait impl, `self.name()`
-        // resolves against the trait being implemented and recurses into itself.
-        "Label::name(self)",
+        // The BODY is here, not in an inherent twin. A type carrying both an inherent `name` and
+        // a trait `name` compiles only because inherent wins path resolution, and deleting the
+        // inherent one turns a forwarding trait impl into infinite recursion.
+        "fn name(&self) -> String {\n            self.text.clone()",
     ] {
         assert!(
             source.contains(expected),
@@ -72,7 +73,7 @@ fn a_forwarding_method_inherits_its_receiver_from_what_it_forwards_to() {
     let source = driver::assemble_modules(&report);
 
     assert!(
-        source.contains("pub fn run(&mut self) -> i64 {\n            self.engine.run()"),
+        source.contains("fn run(&mut self) -> i64 {\n            self.engine.run()"),
         "a forwarding method for a mutating method must bind exclusively:\n{source}"
     );
 }
