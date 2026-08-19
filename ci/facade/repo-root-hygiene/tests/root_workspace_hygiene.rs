@@ -480,6 +480,22 @@ fn corpus_budget_reductions_must_lower_the_frozen_ceiling() {
         return; // this PR introduces the block; nothing to compare against yet
     };
 
+    // A ratchet must never be DELETED. The loop below walks candidate classes, so a class that
+    // vanishes from the policy would otherwise be silently unenforced -- and pairing a deletion
+    // with an addition is exactly how a ratchet gets laundered: re-freeze the same corpus under a
+    // new key at a higher number. Removals are fatal on their own, which is what makes it safe to
+    // admit newly-introduced classes below.
+    let removed: Vec<&String> = protected_counts
+        .keys()
+        .filter(|class| !candidate_counts.contains_key(*class))
+        .collect();
+    assert!(
+        removed.is_empty(),
+        "corpus_budget.counts dropped {removed:?}; a frozen corpus class may shrink to zero but \
+         must not be deleted -- deleting it retires the ratchet silently, and deleting one while \
+         adding another launders it under a new key"
+    );
+
     let observed = observed_from_scm_facts(&root);
     let observed_counts = ci_repo_root_hygiene::corpus_class_counts(&policy, &observed);
     for (class, frozen) in candidate_counts {
@@ -487,7 +503,13 @@ fn corpus_budget_reductions_must_lower_the_frozen_ceiling() {
             .get(class)
             .and_then(serde_json::Value::as_u64)
         else {
-            panic!("protected policy must carry the same corpus class {class}");
+            // NEWLY INTRODUCED class. There is no prior ceiling to ratchet against, exactly as
+            // when the whole block is introduced (see the early return above), so the raise and
+            // reduction comparisons below have nothing to compare. The class is NOT unguarded:
+            // evaluate_corpus_budget still enforces its ceiling against the live tree on this
+            // very run, and from the next PR onward it has a protected value like any other.
+            // Safe only because a deletion is fatal above, so this cannot be half of a rename.
+            continue;
         };
         let candidate = frozen
             .as_u64()
