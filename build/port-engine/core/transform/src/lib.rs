@@ -24,6 +24,7 @@ pub use sources::CRATE_SOURCES;
 mod apply;
 mod body;
 mod body_call;
+mod body_choice;
 mod body_parts;
 mod body_cond;
 mod body_expr;
