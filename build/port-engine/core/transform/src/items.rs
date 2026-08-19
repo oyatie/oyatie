@@ -69,11 +69,18 @@ fn build_const(
             name: declaration.name.clone(),
             datum: ATTR_VALUE,
         })?;
+    // A LENGTH constant is the target's index type. The source types it as its own integer, and
+    // every guard then casts one side or the other — a cast per call site, each one a chance to get
+    // the direction wrong, and public so the casts leak to every caller.
+    let ty = match resolver.scope.length_constants.contains(&declaration.name) {
+        true => RustType::path("usize"),
+        false => resolver.resolve(&declaration.type_ref, &declaration.name)?,
+    };
     Ok(RustItem::Const {
         docs: docs_of(declaration, resolver),
         vis: visibility(declaration),
         name: to_screaming_snake(&declaration.name),
-        ty: resolver.resolve(&declaration.type_ref, &declaration.name)?,
+        ty,
         value: value.to_owned(),
     })
 }

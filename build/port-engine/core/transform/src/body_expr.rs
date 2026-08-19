@@ -19,10 +19,7 @@ use crate::body_argument::constructed;
 use crate::body_call::call;
 use crate::body_literal::{composite, zero_value};
 use crate::body_idiom::emptiness_test;
-use crate::body_ops::{
-    binary_operator, is_receiver, operator_of, own_string_for, reference,
-    refuse_deferred_reference, unary_operator, unary_refusal,
-};
+use crate::body_ops::{binary_operator, compares_lengths, is_receiver, operator_of, own_string_for, reference, refuse_deferred_reference, unary_operator, unary_refusal};
 use crate::error::TransformError;
 use crate::naming::{to_snake_case, to_screaming_snake};
 use crate::vocabulary::{
@@ -140,7 +137,16 @@ fn binary(node: &Declaration, cx: &Body<'_>) -> Result<RustExpr, TransformError>
         return Ok(rendered);
     }
 
-    let (left, right) = (expression(lhs, cx)?, expression(rhs, cx)?);
+    // A guard comparing a LENGTH CONSTANT against a length: both sides are the target's index type,
+    // so the conversion the length call's mapping adds is what is wrong. The constant's declaration
+    // read the same proof, so the two sides cannot end up different types.
+    let (left, right) = match compares_lengths(node, cx) {
+        true => (
+            crate::counters::unsigned_bound(lhs, cx)?,
+            crate::counters::unsigned_bound(rhs, cx)?,
+        ),
+        false => (expression(lhs, cx)?, expression(rhs, cx)?),
+    };
 
     if let Some(method) = cx.resolver.wrapping_method(node, spelling) {
         return Ok(RustExpr::MethodCall {

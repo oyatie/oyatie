@@ -48,3 +48,15 @@ func Scaled(n int64) int64 {
 	const factor = 8
 	return n * factor
 }
+
+// A bound on a LENGTH, which is what everything that reads it compares it against. The source types
+// it as its own integer and the target types a length as its index type, so the constant is that —
+// and the comparison then needs no conversion on either side, where before it needed one on both.
+
+// MaxWidth bounds the byte length this package accepts.
+const MaxWidth = 8
+
+// Fits reports whether s is within the maximum width.
+func Fits(s string) bool {
+	return len(s) < MaxWidth
+}

@@ -49,6 +49,7 @@ mod failure_proof;
 mod impls;
 mod index_params;
 mod items;
+mod length_consts;
 mod items_self;
 mod items_types;
 mod items_static;

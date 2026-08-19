@@ -370,6 +370,14 @@ pub mod scoped {
         let factor = 8;
         n.wrapping_mul(factor)
     }
+    // region: oyatie_example_portengine_fixture_corpus_scoped__go_const__maxwidth
+    /// Bounds the byte length this package accepts.
+    pub const MAX_WIDTH: usize = 8;
+    // region: oyatie_example_portengine_fixture_corpus_scoped__go_func__fits
+    /// Reports whether s is within the maximum width.
+    pub fn fits(s: &str) -> bool {
+        s.len() < MAX_WIDTH
+    }
 }
 pub mod sequence {
     // region: oyatie_example_portengine_fixture_corpus_sequence__go_func__buffer
