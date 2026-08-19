@@ -11,7 +11,6 @@ use std::process::ExitCode;
 
 use serde_json::{Map, Value};
 
-const DEFAULT_SERVICE_ROOTS: &[&str] = &["cloud", "oya", "microservices"];
 const SCALING_DIMENSIONS: &[&str] = &[
     "per_user",
     "per_request",
@@ -71,7 +70,21 @@ pub(crate) fn run_capacity_model_manifest(args: Vec<String>, usage: &str) -> Exi
     };
 
     let manifest_paths = if args.manifests.is_empty() {
-        list_manifest_paths_from_roots(&args.roots)
+        // Only now, with no explicit manifests, do we need service roots.
+        // Resolving lazily keeps an explicit --manifest invocation working
+        // outside a repository checkout.
+        let roots = if args.roots.is_empty() {
+            match crate::service_roots::default_service_roots() {
+                Ok(roots) => roots,
+                Err(error) => {
+                    eprintln!("capacity-model-manifest FAILED: {error}");
+                    return ExitCode::FAILURE;
+                }
+            }
+        } else {
+            args.roots.clone()
+        };
+        list_manifest_paths_from_roots(&roots)
     } else {
         args.manifests.clone()
     };
@@ -135,11 +148,11 @@ fn parse_capacity_model_args(args: Vec<String>) -> Result<CapacityModelArgs, Str
         }
     }
 
-    let roots = if explicit_roots.is_empty() {
-        DEFAULT_SERVICE_ROOTS.iter().map(PathBuf::from).collect()
-    } else {
-        explicit_roots
-    };
+    // Explicit --microservices-root roots are carried through as given; an
+    // empty list means "fall back to the shared, registry-derived default
+    // set", resolved at point of use in `run` so that an explicit
+    // --manifest invocation never needs a repository checkout.
+    let roots = explicit_roots;
 
     Ok(CapacityModelArgs {
         roots,
@@ -148,22 +161,18 @@ fn parse_capacity_model_args(args: Vec<String>) -> Result<CapacityModelArgs, Str
     })
 }
 
+/// Every `manifest.json` under the given roots, in BOTH layout shapes
+/// (`<root>/manifest.json` and `<root>/<service>/manifest.json`). The
+/// predecessor walked depth 2 only, so depth-1 manifests never reached the
+/// gate.
 fn list_manifest_paths_from_roots(roots: &[PathBuf]) -> Vec<PathBuf> {
-    let mut out = Vec::new();
+    let mut out: Vec<PathBuf> = Vec::new();
     for root in roots {
-        let Ok(entries) = fs::read_dir(root) else {
-            continue;
-        };
-        for entry in entries.flatten() {
-            let dir = entry.path();
-            if !dir.is_dir() {
-                continue;
-            }
-            let manifest = dir.join("manifest.json");
-            if manifest.exists() {
-                out.push(manifest);
-            }
-        }
+        out.extend(
+            crate::service_roots::list_service_files(root, "manifest.json")
+                .into_iter()
+                .map(|found| found.path),
+        );
     }
     out.sort();
     out.dedup();
@@ -188,22 +197,16 @@ fn read_manifest_documents(paths: &[PathBuf]) -> Result<Vec<ManifestDocument>, S
     Ok(documents)
 }
 
+/// The owning microservice for a manifest path.
+///
+/// The predecessor first searched the path for a literal `cloud` / `oya` /
+/// `microservices` component and took the segment AFTER it. Two of those
+/// three markers no longer name a root, and the surviving scan could still
+/// match a same-named component nested anywhere in the path — naming the
+/// wrong service. The enclosing directory, which was only the fallback
+/// before, is the answer in every live layout shape.
 fn microservice_name_for(path: &Path) -> String {
-    for marker in ["cloud", "oya", "microservices"] {
-        let mut iter = path.components();
-        while let Some(component) = iter.next() {
-            if component.as_os_str() == std::ffi::OsStr::new(marker)
-                && let Some(next) = iter.next()
-            {
-                return next.as_os_str().to_string_lossy().to_string();
-            }
-        }
-    }
-
-    path.parent()
-        .and_then(Path::file_name)
-        .map(|name| name.to_string_lossy().to_string())
-        .unwrap_or_else(|| "unknown".to_string())
+    crate::service_roots::microservice_name_for(path).unwrap_or_else(|| "unknown".to_string())
 }
 
 fn audit_capacity_models(
