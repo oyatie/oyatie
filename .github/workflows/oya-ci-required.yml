@@ -358,7 +358,7 @@ jobs:
           persist-credentials: false
           fetch-depth: 0
       - name: Configure MSVC toolchain
-        uses: ilammy/msvc-dev-cmd@v1
+        uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756
         if: matrix.os == 'windows-latest'
       - uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
         with:
