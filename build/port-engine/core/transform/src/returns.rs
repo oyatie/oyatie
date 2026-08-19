@@ -22,6 +22,62 @@ use crate::vocabulary::{
     ATTR_OP, CHILD_BODY, KIND_COMPOSITE, KIND_RETURN, KIND_UNARY, OPERATOR_ADDRESS_OF, TYPE_POINTER,
 };
 
+/// Whether this declaration is a GETTER whose result borrows from the receiver.
+///
+/// The source's string is immutable and shares its backing, so `func (c Counter) Label() string`
+/// hands the caller a view of the field and copies nothing. An owned `String` result CLONES on
+/// every call, which is work the source never does — and a reviewer reading the emitted crate named
+/// five separate accessors doing it.
+///
+/// The borrowed form is the same one a string PARAMETER takes, one position further on, and for the
+/// same reason: the value is shared read-only data and the target's `&str` is exactly that.
+///
+/// Requires ALL of:
+///
+/// - exactly one result, of the source's string type;
+/// - a body whose every return is a field read of the RECEIVER. One return that is anything else —
+///   a literal, a computed value, a call — and the result is not a view of the receiver at all.
+///
+/// The receiver is not checked separately, because the return shape is what proves it: the front
+/// end marks the one identifier that IS the receiver, so a free function reading a local's field
+/// fails this test on the identifier rather than on a signature attribute.
+///
+/// Safe against a lifetime it cannot supply because the emitted receiver is always a borrow: a
+/// pointer receiver that ESCAPES declares no receiver form and refuses, and a value receiver
+/// becomes `&self`. An owned `self` would make this reference dangle, and the engine emits none.
+///
+/// The signature and the body must agree, so both read this rather than each deciding.
+pub(crate) fn borrows_from_receiver(declaration: &Declaration) -> bool {
+    let results = declaration.children_of_kind(crate::vocabulary::CHILD_RESULT);
+    let [result] = results.as_slice() else {
+        return false;
+    };
+    if result.type_ref.name != crate::vocabulary::SOURCE_STRING {
+        return false;
+    }
+    let Some(body) = declaration.children_of_kind(CHILD_BODY).first().copied() else {
+        return false;
+    };
+    let mut returns = Vec::new();
+    collect_returns(body, &mut returns);
+    !returns.is_empty()
+        && returns.iter().all(|node| {
+            matches!(node.children.as_slice(), [only] if is_receiver_field(only))
+        })
+}
+
+/// Whether this operand reads a field of the enclosing method's receiver.
+///
+/// The receiver is the one identifier whose target spelling is not its name, and the front end marks
+/// it — so this asks the model rather than comparing text.
+fn is_receiver_field(operand: &Declaration) -> bool {
+    operand.kind == crate::vocabulary::KIND_SELECTOR
+        && operand
+            .children
+            .first()
+            .is_some_and(crate::body_ops::is_receiver)
+}
+
 /// Every result position whose pointer this declaration's body proves is never absent.
 ///
 /// The signature and the body must AGREE — one renders `T` and the other must produce a `T` rather

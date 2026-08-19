@@ -2176,3 +2176,37 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
   two allowances that are genuinely properties of the source — an unexported declaration nobody
   calls, and a parameter a function ignores. Writing down what would fix an allowance is what made
   it findable.
+
+## A getter returns a view, and the trait that fixes what a body must satisfy
+
+- `pub fn label(&self) -> String { self.label.clone() }` — five separate accessors doing it, and a
+  reviewer counted them. The source's string is immutable and shares its backing, so
+  `func (c Counter) Label() string` hands the caller a VIEW and copies nothing. The owned `String`
+  clones on every call, which is work the source never does.
+
+  It is the string-parameter rule one position further on, and for the same reason: the value is
+  shared read-only data and the target's `&str` is exactly that. `pub fn label(&self) -> &str
+  { &self.label }`.
+
+- PROVEN, not assumed: exactly one result of the source's string type, and a body whose EVERY return
+  is a field read of the receiver. One return that is anything else — a literal, a computed value, a
+  call — and the result is not a view of the receiver at all. The receiver is not checked separately
+  because the return shape proves it: the front end marks the one identifier that IS the receiver,
+  so a free function reading a local's field fails on the identifier rather than on an attribute.
+
+  Safe against a lifetime it cannot supply because the emitted receiver is always a borrow: a
+  pointer receiver that escapes declares no receiver form and refuses, and a value receiver becomes
+  `&self`. An owned `self` would make the reference dangle, and the engine emits none.
+
+- IT FIRED WHERE IT MUST NOT, and the compile proof caught it within the minute. A TRAIT IMPL splices
+  a signature from the trait's method onto a body from the type's own — so a body built for its own
+  signature is wrong for the one it is spliced into, and `fn describe(&self) -> String { &self.label }`
+  is what that looks like.
+
+  Fixed by naming the thing that was implicit: a body now says WHOSE signature it has to satisfy.
+  `ResultShape::Own` for every case where the two are built together, `Inherited` where a trait fixed
+  it and this call exists only for the body it produces. The result idiom applies only under `Own`,
+  because a caller written against the trait's spelling is not this method's to change.
+
+  Worth recording as a shape rather than as an incident: every result idiom this engine adds will
+  hit the same splice, and the parameter is now there for the next one.

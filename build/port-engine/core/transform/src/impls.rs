@@ -121,6 +121,7 @@ fn implementing_method(
         Visibility::Inherited,
         Body::None,
         &declaration.name,
+        crate::body::ResultShape::Inherited,
     )?;
     rendered.receiver = Some(method_receiver(observed, resolver, &declaration.name)?);
 
@@ -135,6 +136,7 @@ fn implementing_method(
             Visibility::Inherited,
             Body::Translate,
             &declaration.name,
+            crate::body::ResultShape::Inherited,
         )?;
         rendered.body = translated.body;
         return Ok(rendered);

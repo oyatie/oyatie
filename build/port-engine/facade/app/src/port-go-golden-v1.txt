@@ -321,8 +321,8 @@ pub mod pointers {
             self.total = self.total.wrapping_add(n);
         }
         /// Reports the counter's name.
-        pub fn label(&self) -> String {
-            self.label.clone()
+        pub fn label(&self) -> &str {
+            &self.label
         }
         /// Folds other into this counter.
         pub fn merge(&mut self, other: &Counter) {
@@ -433,8 +433,8 @@ pub mod shapes {
             self.x.wrapping_mul(self.y)
         }
         /// Returns the point's display name.
-        pub fn label(&self) -> String {
-            self.label.clone()
+        pub fn label(&self) -> &str {
+            &self.label
         }
         /// Returns the point moved by the given deltas, keeping its label.
         pub fn shift(&self, dx: i64, dy: i64) -> Point {

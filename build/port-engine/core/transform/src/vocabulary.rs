@@ -84,6 +84,8 @@ pub const KIND_CALL: &str = "call";
 pub const KIND_RETURN: &str = "return";
 /// The node kind of an index expression.
 pub const KIND_INDEX: &str = "index";
+/// The node kind of a field selector.
+pub const KIND_SELECTOR: &str = "selector";
 /// The declaration kind of a package-level variable.
 pub const KIND_VAR: &str = "var";
 /// The source spelling of the address-of operator.

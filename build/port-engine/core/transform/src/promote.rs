@@ -84,6 +84,7 @@ fn forwarding_method(
         Visibility::Public,
         Body::None,
         &declaration.name,
+        crate::body::ResultShape::Inherited,
     )?;
 
     // The field path is walked OUTWARD from `self`, one field per segment, because embedding
