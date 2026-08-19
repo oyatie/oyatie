@@ -7,6 +7,7 @@ rust_library(
     deps = [
         "third-party//:anyhow",
         "third-party//:serde",
+        "third-party//:serde_json",
         "third-party//:serde_yaml",
         "third-party//:walkdir",
     ],
@@ -22,6 +23,7 @@ rust_test(
         ":oya-governance-audit-event-emission",
         "third-party//:anyhow",
         "third-party//:serde",
+        "third-party//:serde_json",
         "third-party//:serde_yaml",
         "third-party//:walkdir",
     ],

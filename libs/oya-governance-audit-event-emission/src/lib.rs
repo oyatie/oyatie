@@ -451,38 +451,90 @@ fn registered_audit_emitters(evidence_files: &[PathBuf]) -> anyhow::Result<BTree
     for path in evidence_files {
         let raw = fs::read_to_string(path)?;
         if path.file_name().and_then(|name| name.to_str()) == Some("audit-chain.jsonl") {
+            // `audit-chain.jsonl` is JSON Lines: one JSON document per line. It is read
+            // with a JSON parser, not a YAML one, because JSON is the format it is in.
             for line in raw.lines().map(str::trim).filter(|line| !line.is_empty()) {
-                if let Ok(value) = serde_yaml::from_str::<serde_yaml::Value>(line) {
+                if let Ok(value) = serde_json::from_str::<serde_json::Value>(line) {
                     collect_audit_emitters(&value, &mut emitters);
                 }
             }
         } else if let Ok(value) = serde_yaml::from_str::<serde_yaml::Value>(&raw) {
+            // `registry/audit-events/**` and `evidence/audit/**` hold hand-authored YAML.
             collect_audit_emitters(&value, &mut emitters);
         }
     }
     Ok(emitters)
 }
 
-fn collect_audit_emitters(value: &serde_yaml::Value, emitters: &mut BTreeSet<String>) {
-    match value {
-        serde_yaml::Value::Mapping(map) => {
-            for (key, value) in map {
-                if let Some(key) = key.as_str()
-                    && is_audit_emitter_key(key)
-                    && let Some(emitter) = value.as_str().map(str::trim)
-                    && !emitter.is_empty()
-                {
-                    emitters.insert(emitter.to_string());
-                }
-                collect_audit_emitters(value, emitters);
+/// Read-only tree view shared by the YAML and JSON audit-evidence walkers so both
+/// formats resolve registered emitters through exactly one set of rules.
+trait AuditEvidenceNode: Sized {
+    /// String keys and their values when this node is a mapping.
+    fn entries(&self) -> Option<impl Iterator<Item = (&str, &Self)>>;
+    /// Elements when this node is a sequence.
+    fn items(&self) -> Option<impl Iterator<Item = &Self>>;
+    /// Scalar text when this node is a string.
+    fn text(&self) -> Option<&str>;
+}
+
+impl AuditEvidenceNode for serde_yaml::Value {
+    fn entries(&self) -> Option<impl Iterator<Item = (&str, &Self)>> {
+        let Self::Mapping(map) = self else {
+            return None;
+        };
+        Some(
+            map.iter()
+                .filter_map(|(key, value)| Some((key.as_str()?, value))),
+        )
+    }
+
+    fn items(&self) -> Option<impl Iterator<Item = &Self>> {
+        let Self::Sequence(items) = self else {
+            return None;
+        };
+        Some(items.iter())
+    }
+
+    fn text(&self) -> Option<&str> {
+        self.as_str()
+    }
+}
+
+impl AuditEvidenceNode for serde_json::Value {
+    fn entries(&self) -> Option<impl Iterator<Item = (&str, &Self)>> {
+        let Self::Object(map) = self else {
+            return None;
+        };
+        Some(map.iter().map(|(key, value)| (key.as_str(), value)))
+    }
+
+    fn items(&self) -> Option<impl Iterator<Item = &Self>> {
+        let Self::Array(items) = self else {
+            return None;
+        };
+        Some(items.iter())
+    }
+
+    fn text(&self) -> Option<&str> {
+        self.as_str()
+    }
+}
+
+fn collect_audit_emitters<T: AuditEvidenceNode>(value: &T, emitters: &mut BTreeSet<String>) {
+    if let Some(entries) = value.entries() {
+        for (key, value) in entries {
+            if is_audit_emitter_key(key)
+                && let Some(emitter) = value.text().map(str::trim)
+                && !emitter.is_empty()
+            {
+                emitters.insert(emitter.to_string());
             }
+            collect_audit_emitters(value, emitters);
         }
-        serde_yaml::Value::Sequence(items) => {
-            for item in items {
-                collect_audit_emitters(item, emitters);
-            }
+    } else if let Some(items) = value.items() {
+        for item in items {
+            collect_audit_emitters(item, emitters);
         }
-        _ => {}
     }
 }
 
