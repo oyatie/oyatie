@@ -1502,6 +1502,25 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
   attribute them to the engine, and the engine's answer has to be a written reason rather than a
   fix — because the fix is a different program.
 
+- A REFERENCE UNDER UNPROVEN FACTS BORROWS SHARED, and the reasoning is NOT the pointer's — which
+  is why this was worth re-deriving rather than inheriting. The largest coverage move of the lane:
+  xxhash 58.8 → 70.6, uuid 33.0 → 37.1, errors 26.3 → 31.6, semver 31.0 → 34.5, ksuid 37.6 → 38.7,
+  and `transform ownership` from 7 packages / 16 declarations to 6 / 8.
+  The owned form was chosen for a POINTER because it costs a move and cannot be wrong. That escape
+  hatch does not exist for a reference: owning a map, a slice or a string CONSUMES the caller's
+  value, which the source never does — so for a reference, owned is not the safe answer but a wrong
+  one. Inheriting the pointer's reasoning would have inherited a premise that is false here.
+  Of what remains, a shared borrow is the only choice that neither consumes nor narrows. `&mut`
+  would demand exclusive access the source never demanded, and would fail at the CALLER rather than
+  where the decision was made.
+  AND A SHARED BORROW THAT TURNS OUT INSUFFICIENT DOES NOT COMPILE. That is what decides it: an
+  unproven borrow on a reference fails LOUDLY at the port, where an owned parameter would have
+  silently changed what the program does to its caller's value. The engine's rule is that it
+  refuses what it cannot prove — and between two unprovable answers, the one whose failure is a
+  build error is categorically different from the one whose failure is a wrong program.
+  Still to revisit when the analysis can read the standard library's effects, which is what leaves
+  these facts unproven in the first place. `census/` sizes no such family.
+
 ## Still owed by this lane
   One class the ratchet surfaced and this lane is deliberately leaving refused: `return named, err`
   where `named` is a NAMED RESULT. Go's convention says a caller may not read it after a non-nil

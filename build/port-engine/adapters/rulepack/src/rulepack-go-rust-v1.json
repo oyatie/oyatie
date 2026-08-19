@@ -457,7 +457,9 @@
           "Some"
         ],
         "reason": "The same construction as `escaping_owned`, for a different reason: the facts are UNPROVEN rather than known, and the owned form was chosen because it cannot be wrong. The argument must match the parameter it feeds, so it moves too. Revisit when the analysis follows calls."
-      }
+      },
+      "reference_target": "&{0}",
+      "reference_reason": "A REFERENCE under unproven facts borrows SHARED, and the reasoning is not the pointer's. The owned form was chosen for a pointer because it costs a move and cannot be wrong -- and that escape hatch does not exist here: owning a map, a slice or a string CONSUMES the caller's value, which the source never does, so owned is not the safe answer but a wrong one. Of what remains, a shared borrow is the only choice that neither consumes nor narrows. `&mut` would demand exclusive access the source never demanded and would fail at the CALLER. And a shared borrow that turns out to be insufficient -- because the body hands the reference to a callee that mutates through it -- does not compile. That is the difference that decides it: an unproven borrow on a reference fails LOUDLY at the port, where an owned parameter would have silently changed what the program does to its caller's value. Revisit when the analysis can read the effects of the standard library, which is what leaves these facts unproven; `census/` sizes no such family yet."
     },
     {
       "id": "exclusive_borrow",
