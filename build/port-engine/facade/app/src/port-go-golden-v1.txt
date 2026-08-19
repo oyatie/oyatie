@@ -349,6 +349,12 @@ pub mod pointers {
     }
 }
 pub mod scoped {
+    // region: oyatie_example_portengine_fixture_corpus_scoped__go_func__scaled
+    /// Reports n scaled by the fixed factor this function works in.
+    pub fn scaled(n: i64) -> i64 {
+        let factor = 8;
+        n.wrapping_mul(factor)
+    }
     // region: oyatie_example_portengine_fixture_corpus_scoped__go_func__span
     /// Reports the width of s, counting a short string as one wider than it is.
     pub fn span(s: &str) -> i64 {

@@ -1847,3 +1847,32 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
   missing, what it would cost, and the two proofs, with the pack field NAMED so the full reasoning
   is one lookup away. Quoting the pack so text cannot drift was the right instinct and the wrong
   amount: the pointer keeps the property and loses the flood.
+
+## A body-scoped const is a binding, and a harness that had been measuring stale input
+
+- `const x = 4294967296` inside a function reached the model as `unsupported`. Recorded as a
+  BINDING, and that is a decision about what it means rather than about what it is called: the
+  source's untyped constant has no type until it is used and takes one from each use; a target
+  `const` must fix a type at the declaration, and a target `let` takes one from use exactly as the
+  source's does. So the binding is the faithful form and the target `const` is the approximation.
+
+  The cost is stated: a source constant used at TWO different types in one function has no single
+  target binding. That does not compile, which is the safe failure — it never means something else.
+
+  The reference casing follows, and had to: a body-scoped constant now classifies as a local, so
+  `factor` cases as `factor` rather than as `FACTOR`, which would name nothing. A package-scoped or
+  predeclared constant is untouched.
+
+- THE HARNESS HAD BEEN MEASURING A STALE SNAPSHOT for three of seven corpora, and said nothing. The
+  extraction renamed each corpus's module to `corpus.example/<name>`, which breaks any subpackage
+  importing the module by its CANONICAL path — `cmd/ksuid` importing `github.com/segmentio/ksuid` is
+  the shape — and the whole extraction then failed, leaving the previous snapshot on disk for the
+  survey to read. `xxhash`, `ksuid` and `xid` had been measured against snapshots hours old.
+
+  Fixed by reading each corpus's own module path from its `go.mod`, with a synthetic fallback for
+  `pkg/errors`, which predates modules and has no self-import to preserve. The numbers barely moved,
+  which is luck rather than vindication: a harness whose failure mode is measuring yesterday's input
+  is one whose every result has to be re-earned before it can be believed. Recorded because the next
+  person to see a flat ratchet should check this before concluding a rule did nothing.
+
+- ksuid 45.2 → 46.2 against a fresh snapshot.

@@ -27,14 +27,21 @@ func bodyNode(block *ast.BlockStmt, ctx *extractCtx) node {
 	return node{Kind: kindBody, Children: statementNodes(block.List, ctx)}
 }
 
-// localDeclaration records `var x T`, `var x = e` and `var x T = e` inside a body.
+// localDeclaration records `var x T`, `var x = e`, `var x T = e` and `const x = e` inside a body.
 //
 // A single-name spec only. A grouped `var ( a = 1; b = 2 )` is several bindings in one statement,
 // and a statement list that silently gained entries would make the tail-expression position — which
 // is decided by INDEX — mean something different from what the source wrote.
+//
+// A body-scoped CONST is recorded as the same binding, and that is a decision about what it means
+// rather than about what it is called. Go's untyped constant has no type until it is used and takes
+// one from each use; a target `const` must fix a type at the declaration, and a target `let` takes
+// one from use exactly as the source's does. So the binding is the faithful form, and the cost is
+// stated where the reference is cased: a source constant used at TWO different types in one
+// function has no single target binding, and fails to compile rather than meaning something else.
 func localDeclaration(stmt *ast.DeclStmt, ctx *extractCtx) node {
 	decl, ok := stmt.Decl.(*ast.GenDecl)
-	if !ok || decl.Tok != token.VAR || len(decl.Specs) != 1 {
+	if !ok || (decl.Tok != token.VAR && decl.Tok != token.CONST) || len(decl.Specs) != 1 {
 		return unsupportedNode(stmt)
 	}
 	spec, ok := decl.Specs[0].(*ast.ValueSpec)
