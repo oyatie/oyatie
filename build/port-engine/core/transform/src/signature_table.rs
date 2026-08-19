@@ -94,6 +94,7 @@ impl SignatureTable {
                 trait_object_forms: semantics.trait_object_forms(),
                 failure: semantics.failure_convention(),
                 function_map: semantics.function_map(),
+                integer_arithmetic: semantics.integer_arithmetic(),
                 receiver: semantics.trait_receiver(),
                 deferred: semantics.deferred_kinds(),
                 ownership,

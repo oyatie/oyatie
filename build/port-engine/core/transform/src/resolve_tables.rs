@@ -7,7 +7,7 @@
 //! that keyed a type differently from the others is how `copy_types` came to be checked against
 //! target spellings while `type_map` was checked against source ones.
 
-use port_engine_api::TypeRef;
+use port_engine_api::{Declaration, TypeRef};
 use port_engine_rust_ir::RustType;
 
 use crate::error::TransformError;
@@ -171,6 +171,21 @@ impl Resolver<'_> {
             true => None,
             false => Some(target),
         }
+    }
+
+    /// The target method carrying the source's overflow rule for this operation, if it has one.
+    ///
+    /// `None` for a comparison, for float or string arithmetic, and for any operator the pack does
+    /// not govern — all of which keep the plain operator, because the rule they carry is the same
+    /// in both languages. Only integer arithmetic differs, and only there is the spelling changed.
+    pub(crate) fn wrapping_method(&self, node: &Declaration, spelling: &str) -> Option<&str> {
+        if !self.integer_arithmetic.types.contains(&node.type_ref.name) {
+            return None;
+        }
+        self.integer_arithmetic
+            .operators
+            .get(spelling)
+            .map(String::as_str)
     }
 
     pub(crate) fn resolve_in(

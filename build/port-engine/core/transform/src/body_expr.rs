@@ -95,17 +95,37 @@ pub(crate) fn in_position(
     }
 }
 
+/// A binary operation, spelled so that OVERFLOW keeps its meaning.
+///
+/// The source defines integer overflow as wrapping; the target panics on it in a debug build and
+/// wraps in a release one. Emitting the plain operator therefore turns one source program into two
+/// target programs, neither of which is it — and it compiles, which is why nothing caught it until
+/// a reviewer who did not know the code was generated read a mixing loop and asked what happens at
+/// forty elements.
+///
+/// The result TYPE decides, and it is not recoverable from the operator: `+` on floats, on strings
+/// and on integers are three different rules. The front end records it for exactly this.
 fn binary(node: &Declaration, cx: &Body<'_>) -> Result<RustExpr, TransformError> {
     let spelling = operator_of(node, cx)?;
+    let (lhs, rhs) = two_children(node, cx, "binary")?;
+    let (left, right) = (expression(lhs, cx)?, expression(rhs, cx)?);
+
+    if let Some(method) = cx.resolver.wrapping_method(node, spelling) {
+        return Ok(RustExpr::MethodCall {
+            receiver: Box::new(left),
+            method: method.to_owned(),
+            args: vec![right],
+        });
+    }
+
     let op = binary_operator(spelling).ok_or_else(|| TransformError::Unsupported {
         name: cx.owner.to_owned(),
         detail: format!("binary operator `{spelling}` has no direct translation"),
     })?;
-    let (lhs, rhs) = two_children(node, cx, "binary")?;
     Ok(RustExpr::Binary {
         op,
-        lhs: Box::new(expression(lhs, cx)?),
-        rhs: Box::new(expression(rhs, cx)?),
+        lhs: Box::new(left),
+        rhs: Box::new(right),
     })
 }
 

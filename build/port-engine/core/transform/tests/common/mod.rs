@@ -4,7 +4,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use port_engine_api::{
-    Declaration, Digest, FailureConvention, FunctionMapping, LanguagePair, PackSemantics, PlanStep, PointerConstruction, PointerDisposition, RuleId, SourceModel, TargetIr, TransformPlan, TypeRef, UnitId,
+    Declaration, Digest, FailureConvention, FunctionMapping, IntegerArithmetic, LanguagePair, PackSemantics, PlanStep, PointerConstruction, PointerDisposition, RuleId, SourceModel, TargetIr, TransformPlan, TypeRef, UnitId,
 };
 use port_engine_rust_ir::RustIr;
 use port_engine_transform::*;
@@ -27,6 +27,9 @@ pub struct Pack {
     pub trait_objects: BTreeMap<String, String>,
     pub failure: Option<FailureConvention>,
     pub functions: BTreeMap<String, FunctionMapping>,
+    /// Empty by default: these tests are not about overflow, and an empty table leaves the plain
+    /// operator, which is what they assert on.
+    pub arithmetic: IntegerArithmetic,
     /// The declared trait-receiver decision. `None` means the pack made none, which is a refusal.
     pub receiver: Option<(String, String)>,
     pub dispositions: Vec<PointerDisposition>,
@@ -187,6 +190,9 @@ impl PackSemantics for Pack {
     }
     fn copy_types(&self) -> &BTreeSet<String> {
         &self.copies
+    }
+    fn integer_arithmetic(&self) -> &IntegerArithmetic {
+        &self.arithmetic
     }
     fn function_map(&self) -> &BTreeMap<String, FunctionMapping> {
         &self.functions

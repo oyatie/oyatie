@@ -9,7 +9,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use crate::declaration::Declaration;
 use crate::error::PortError;
-use crate::failure::{FailureConvention, FunctionMapping};
+use crate::failure::{FailureConvention, FunctionMapping, IntegerArithmetic};
 use crate::identity::{Digest, LanguagePair, RegionId, RuleId, UnitId};
 use crate::ownership::PointerDisposition;
 
@@ -127,6 +127,9 @@ pub trait PackSemantics {
     /// have. No real package can be ported without this table: every one of them calls its standard
     /// library, and a standard library is exactly the part that does not come along.
     fn function_map(&self) -> &BTreeMap<String, FunctionMapping>;
+
+    /// How the source's integer arithmetic must be spelled, so overflow keeps its meaning.
+    fn integer_arithmetic(&self) -> &IntegerArithmetic;
     /// SOURCE types a conversion reaches by a plain cast.
     ///
     /// Keyed by source identity like [`PackSemantics::type_map`]. A conversion the pack does not

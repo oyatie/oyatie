@@ -69,7 +69,11 @@ func assignmentNode(stmt *ast.AssignStmt, ctx *extractCtx) node {
 			return unsupportedNode(stmt)
 		}
 		return node{
-			Kind:  kindAssign,
+			Kind: kindAssign,
+			// The ASSIGNED type, for the same reason a binary expression carries its result type:
+			// the source's integer overflow wraps and the target's does not, and `*=` on integers
+			// is a different operation from `*=` on floats.
+			Type:  typeTree(ctx.info.Types[stmt.Lhs[0]].Type),
 			Attrs: map[string]string{attrOp: op},
 			Children: []node{
 				expressionNode(stmt.Lhs[0], ctx),

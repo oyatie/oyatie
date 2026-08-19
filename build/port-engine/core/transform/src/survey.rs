@@ -227,6 +227,7 @@ fn survey_declaration<P>(
         deferred: pack.deferred_kinds(),
         signatures,
         function_map: pack.function_map(),
+        integer_arithmetic: pack.integer_arithmetic(),
         receiver: pack.trait_receiver(),
         ownership: &ownership,
         unit,

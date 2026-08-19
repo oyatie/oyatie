@@ -9,6 +9,21 @@
 //! renders the target owns them. Putting them in the pack would make a second language pair
 //! re-declare the target's own vocabulary, which is the thing the neutral seam exists to prevent.
 
+/// How the source's integer arithmetic must be spelled in the target.
+///
+/// The source defines overflow as WRAPPING and the target panics on it in debug and wraps in
+/// release, so the plain operator turns one source program into two target programs. This is the
+/// pack saying which spelling carries the source's rule, and why.
+#[derive(Clone, Debug, Eq, PartialEq, Default)]
+pub struct IntegerArithmetic {
+    /// Source type names whose arithmetic this governs.
+    pub types: std::collections::BTreeSet<String>, // data_class: INTERNAL_ONLY
+    /// Source operator to the target method carrying the same rule.
+    pub operators: std::collections::BTreeMap<String, String>, // data_class: INTERNAL_ONLY
+    /// Why this spelling, and what it costs.
+    pub reason: String, // data_class: INTERNAL_ONLY
+}
+
 /// How the pack answers for a call the target has no name of its own for.
 ///
 /// A DECISION, so it carries a reason like every other one — an earlier form of this table was a

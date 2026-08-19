@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "language": "go",
-  "snapshot_digest": "sha256:f8ec8a44d6706d81ea15fd5d80eff0e7bf649f399828e4e27ce76d55d53df09a",
+  "snapshot_digest": "sha256:c80299fc9b4c95df19b8897eefad25a24fec4d2dcc6bcd6fba1be9ea5068fb8a",
   "packages": [
     {
       "unit_id": "oyatie.example/portengine-fixture/corpus/accumulate",
@@ -106,6 +106,10 @@
                         {
                           "kind": "binary",
                           "name": "",
+                          "type": {
+                            "kind": "basic",
+                            "name": "untyped bool"
+                          },
                           "attrs": {
                             "op": "\u003c"
                           },
@@ -164,6 +168,10 @@
                         {
                           "kind": "assign",
                           "name": "",
+                          "type": {
+                            "kind": "basic",
+                            "name": "int64"
+                          },
                           "attrs": {
                             "op": "^"
                           },
@@ -200,6 +208,10 @@
                         {
                           "kind": "assign",
                           "name": "",
+                          "type": {
+                            "kind": "basic",
+                            "name": "int64"
+                          },
                           "attrs": {
                             "op": "*"
                           },
@@ -224,6 +236,10 @@
                         {
                           "kind": "assign",
                           "name": "",
+                          "type": {
+                            "kind": "basic",
+                            "name": "int64"
+                          },
                           "attrs": {
                             "op": "|"
                           },
@@ -314,6 +330,10 @@
                 {
                   "kind": "assign",
                   "name": "",
+                  "type": {
+                    "kind": "basic",
+                    "name": "int64"
+                  },
                   "attrs": {
                     "op": "\u003c\u003c"
                   },
@@ -337,6 +357,10 @@
                 {
                   "kind": "assign",
                   "name": "",
+                  "type": {
+                    "kind": "basic",
+                    "name": "int64"
+                  },
                   "attrs": {
                     "op": "-"
                   },
@@ -474,6 +498,10 @@
                         {
                           "kind": "binary",
                           "name": "",
+                          "type": {
+                            "kind": "basic",
+                            "name": "untyped bool"
+                          },
                           "attrs": {
                             "op": "\u003c"
                           },
@@ -532,6 +560,10 @@
                         {
                           "kind": "assign",
                           "name": "",
+                          "type": {
+                            "kind": "basic",
+                            "name": "int64"
+                          },
                           "attrs": {
                             "op": "+"
                           },
@@ -637,6 +669,10 @@
                     {
                       "kind": "binary",
                       "name": "",
+                      "type": {
+                        "kind": "basic",
+                        "name": "int"
+                      },
                       "attrs": {
                         "op": "+"
                       },
@@ -785,6 +821,10 @@
                         {
                           "kind": "binary",
                           "name": "",
+                          "type": {
+                            "kind": "basic",
+                            "name": "untyped bool"
+                          },
                           "attrs": {
                             "op": "=="
                           },
@@ -906,6 +946,10 @@
                     {
                       "kind": "binary",
                       "name": "",
+                      "type": {
+                        "kind": "basic",
+                        "name": "float64"
+                      },
                       "attrs": {
                         "op": "*"
                       },
@@ -1300,6 +1344,10 @@
                         {
                           "kind": "binary",
                           "name": "",
+                          "type": {
+                            "kind": "basic",
+                            "name": "int"
+                          },
                           "attrs": {
                             "op": "+"
                           },
@@ -1471,6 +1519,10 @@
                         {
                           "kind": "binary",
                           "name": "",
+                          "type": {
+                            "kind": "basic",
+                            "name": "untyped bool"
+                          },
                           "attrs": {
                             "op": "=="
                           },
@@ -1630,6 +1682,10 @@
                         {
                           "kind": "binary",
                           "name": "",
+                          "type": {
+                            "kind": "basic",
+                            "name": "untyped bool"
+                          },
                           "attrs": {
                             "op": "=="
                           },
@@ -1863,6 +1919,10 @@
                         {
                           "kind": "binary",
                           "name": "",
+                          "type": {
+                            "kind": "basic",
+                            "name": "untyped bool"
+                          },
                           "attrs": {
                             "op": "!="
                           },
@@ -1921,6 +1981,10 @@
                     {
                       "kind": "binary",
                       "name": "",
+                      "type": {
+                        "kind": "basic",
+                        "name": "int"
+                      },
                       "attrs": {
                         "op": "+"
                       },
@@ -2027,6 +2091,10 @@
                         {
                           "kind": "binary",
                           "name": "",
+                          "type": {
+                            "kind": "basic",
+                            "name": "untyped bool"
+                          },
                           "attrs": {
                             "op": "!="
                           },
@@ -2425,6 +2493,10 @@
                     {
                       "kind": "binary",
                       "name": "",
+                      "type": {
+                        "kind": "basic",
+                        "name": "int64"
+                      },
                       "attrs": {
                         "op": "+"
                       },
@@ -2766,6 +2838,10 @@
                         {
                           "kind": "binary",
                           "name": "",
+                          "type": {
+                            "kind": "basic",
+                            "name": "untyped bool"
+                          },
                           "attrs": {
                             "op": "!="
                           },
@@ -2773,6 +2849,10 @@
                             {
                               "kind": "binary",
                               "name": "",
+                              "type": {
+                                "kind": "basic",
+                                "name": "int64"
+                              },
                               "attrs": {
                                 "op": "%"
                               },
@@ -2851,6 +2931,10 @@
                     {
                       "kind": "binary",
                       "name": "",
+                      "type": {
+                        "kind": "basic",
+                        "name": "int64"
+                      },
                       "attrs": {
                         "op": "/"
                       },
@@ -3394,6 +3478,10 @@
                         {
                           "kind": "binary",
                           "name": "",
+                          "type": {
+                            "kind": "basic",
+                            "name": "int"
+                          },
                           "attrs": {
                             "op": "+"
                           },
@@ -3533,6 +3621,10 @@
                         {
                           "kind": "binary",
                           "name": "",
+                          "type": {
+                            "kind": "basic",
+                            "name": "int"
+                          },
                           "attrs": {
                             "op": "+"
                           },
@@ -3733,6 +3825,10 @@
                         {
                           "kind": "binary",
                           "name": "",
+                          "type": {
+                            "kind": "basic",
+                            "name": "untyped bool"
+                          },
                           "attrs": {
                             "op": "\u003e"
                           },
@@ -3804,6 +3900,10 @@
                                 {
                                   "kind": "binary",
                                   "name": "",
+                                  "type": {
+                                    "kind": "basic",
+                                    "name": "int"
+                                  },
                                   "attrs": {
                                     "op": "+"
                                   },
@@ -3929,6 +4029,10 @@
                         {
                           "kind": "binary",
                           "name": "",
+                          "type": {
+                            "kind": "basic",
+                            "name": "untyped bool"
+                          },
                           "attrs": {
                             "op": "\u003e"
                           },
@@ -4199,6 +4303,10 @@
                         {
                           "kind": "binary",
                           "name": "",
+                          "type": {
+                            "kind": "basic",
+                            "name": "int"
+                          },
                           "attrs": {
                             "op": "*"
                           },
@@ -4304,6 +4412,10 @@
                                 {
                                   "kind": "binary",
                                   "name": "",
+                                  "type": {
+                                    "kind": "basic",
+                                    "name": "int"
+                                  },
                                   "attrs": {
                                     "op": "+"
                                   },
@@ -4343,6 +4455,10 @@
                                 {
                                   "kind": "binary",
                                   "name": "",
+                                  "type": {
+                                    "kind": "basic",
+                                    "name": "int"
+                                  },
                                   "attrs": {
                                     "op": "+"
                                   },
