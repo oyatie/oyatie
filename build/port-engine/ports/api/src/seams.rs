@@ -9,7 +9,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use crate::declaration::Declaration;
 use crate::error::PortError;
-use crate::failure::{DocConvention, FailureConvention, FunctionMapping, IntegerArithmetic};
+use crate::failure::{DeriveRule, DocConvention, FailureConvention, FunctionMapping, IntegerArithmetic};
 use crate::identity::{Digest, LanguagePair, RegionId, RuleId, UnitId};
 use crate::ownership::PointerDisposition;
 
@@ -133,6 +133,9 @@ pub trait PackSemantics {
 
     /// How the source's documentation convention differs from the target's.
     fn doc_convention(&self) -> &DocConvention;
+
+    /// The derives a ported type earns, and what blocks each.
+    fn derives(&self) -> &[DeriveRule];
     /// SOURCE types a conversion reaches by a plain cast.
     ///
     /// Keyed by source identity like [`PackSemantics::type_map`]. A conversion the pack does not

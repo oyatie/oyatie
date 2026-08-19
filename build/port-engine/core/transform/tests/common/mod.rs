@@ -4,7 +4,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use port_engine_api::{
-    Declaration, Digest, DocConvention, FailureConvention, FunctionMapping, IntegerArithmetic, LanguagePair, PackSemantics, PlanStep, PointerConstruction, PointerDisposition, RuleId, SourceModel, TargetIr, TransformPlan, TypeRef, UnitId,
+    Declaration, DeriveRule, Digest, DocConvention, FailureConvention, FunctionMapping, IntegerArithmetic, LanguagePair, PackSemantics, PlanStep, PointerConstruction, PointerDisposition, RuleId, SourceModel, TargetIr, TransformPlan, TypeRef, UnitId,
 };
 use port_engine_rust_ir::RustIr;
 use port_engine_transform::*;
@@ -33,6 +33,9 @@ pub struct Pack {
     /// Empty by default: these tests assert on structure, not on prose, and an empty convention
     /// leaves documentation exactly as the fixture wrote it.
     pub docs: DocConvention,
+    /// Empty by default: these tests assert on the emitted shape, and a derive list would change
+    /// every expected string without changing what they are about.
+    pub derive_rules: Vec<DeriveRule>,
     /// The declared trait-receiver decision. `None` means the pack made none, which is a refusal.
     pub receiver: Option<(String, String)>,
     pub dispositions: Vec<PointerDisposition>,
@@ -193,6 +196,9 @@ impl PackSemantics for Pack {
     }
     fn copy_types(&self) -> &BTreeSet<String> {
         &self.copies
+    }
+    fn derives(&self) -> &[DeriveRule] {
+        &self.derive_rules
     }
     fn doc_convention(&self) -> &DocConvention {
         &self.docs

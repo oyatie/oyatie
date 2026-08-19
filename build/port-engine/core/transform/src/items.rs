@@ -103,6 +103,8 @@ fn build_newtype(
             name: String::new(),
             ty: resolver.resolve(&declaration.type_ref, &declaration.name)?,
         }]),
+        // A newtype's one field is the source type itself, so the same rule answers for it.
+        derives: resolver.derives_for(std::slice::from_ref(&declaration.type_ref)),
         methods: inherent_methods(declaration, resolver, Body::Stub)?,
     })
 }
@@ -113,7 +115,11 @@ fn build_struct(
     body: Body,
 ) -> Result<RustItem, TransformError> {
     let mut fields = Vec::new();
+    // The SOURCE types, kept alongside the resolved ones: a derive is decided by what the source
+    // guarantees about a field, and the target spelling has already lost that.
+    let mut field_types = Vec::new();
     for field in declaration.children_of_kind(CHILD_FIELD) {
+        field_types.push(field.type_ref.clone());
         fields.push(RustField {
             docs: docs_of(field, resolver.doc_convention),
             vis: visibility(field),
@@ -131,6 +137,7 @@ fn build_struct(
         } else {
             StructShape::Named(fields)
         },
+        derives: resolver.derives_for(&field_types),
         methods: inherent_methods(declaration, resolver, body)?,
     })
 }

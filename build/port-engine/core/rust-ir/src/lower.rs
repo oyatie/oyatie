@@ -62,9 +62,20 @@ fn lower_item(item: &RustItem) -> Result<TokenStream, PortError> {
             vis,
             name,
             shape,
+            derives,
             methods,
         } => {
             let (doc_tokens, vis_tokens) = (lower_docs(docs), lower_vis(*vis));
+            let derive_tokens = match derives.is_empty() {
+                true => TokenStream::new(),
+                false => {
+                    let names = derives
+                        .iter()
+                        .map(|name| parse_ident(name))
+                        .collect::<Result<Vec<_>, _>>()?;
+                    quote! { #[derive(#(#names),*)] }
+                }
+            };
             let ident = parse_ident(name)?;
             let body = match shape {
                 StructShape::Unit => quote! { ; },
@@ -77,7 +88,7 @@ fn lower_item(item: &RustItem) -> Result<TokenStream, PortError> {
                     quote! { { #(#fields),* } }
                 }
             };
-            let mut tokens = quote! { #doc_tokens #vis_tokens struct #ident #body };
+            let mut tokens = quote! { #doc_tokens #derive_tokens #vis_tokens struct #ident #body };
             if !methods.is_empty() {
                 let rendered = methods
                     .iter()

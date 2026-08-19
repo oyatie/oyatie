@@ -165,3 +165,19 @@ pub struct DocConventionRule {
     /// Why the source's form is rewritten, and what is deliberately left alone.
     pub reason: String,
 }
+
+/// A derive a ported type earns, and the source type kinds that block it.
+///
+/// The reason is REQUIRED and travels in the pack digest: which derives a type earns is a claim
+/// about what the source guarantees, and a derive nobody justified is a capability invented rather
+/// than carried across.
+#[derive(Clone, Debug, Eq, PartialEq, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct DeriveWireRule {
+    /// The target trait derived.
+    pub name: String,
+    /// Source type kinds that make this derive unavailable.
+    pub blocked_by: Vec<String>,
+    /// What the source guarantees that makes it faithful, and what blocks it.
+    pub reason: String,
+}

@@ -200,6 +200,8 @@ fn a_struct_renders_fields_and_an_inherent_impl() {
         docs: Vec::new(),
         vis: Visibility::Public,
         name: "Point".into(),
+        // Empty: this test asserts the rendered SHAPE, and a derive list would be noise in it.
+        derives: Vec::new(),
         shape: StructShape::Named(vec![port_engine_rust_ir::RustField {
             docs: vec![" The horizontal coordinate.".into()],
             vis: Visibility::Public,
