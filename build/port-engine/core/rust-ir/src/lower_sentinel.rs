@@ -53,7 +53,13 @@ pub(crate) fn lower(item: &RustItem) -> Result<TokenStream, PortError> {
 
                 impl fmt::Display for #name {
                     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-                        f.write_str(match self { #(#arms),* })
+                        // BOUND FIRST, rather than nested in the call. The two say the same thing,
+                        // and this one survives formatting: the hermetic formatter wraps a `match`
+                        // used as an argument across ten lines with a trailing comma after the
+                        // block, where the formatter most authors run collapses it — a difference
+                        // a reviewer read, correctly, as output nobody had formatted.
+                        let message = match self { #(#arms),* };
+                        f.write_str(message)
                     }
                 }
 

@@ -21,6 +21,17 @@ pub(crate) fn parse_ident(name: &str) -> Result<syn::Ident, PortError> {
     })
 }
 
+/// A generic PARAMETER, which is richer than an identifier: it may carry a default.
+///
+/// Parsed as a parameter rather than a name because an alias whose error slot has a default is a
+/// usable alias and one without is a fixed shape wearing a type parameter — a reviewer named
+/// exactly that.
+pub(crate) fn parse_generic_param(source: &str) -> Result<syn::GenericParam, PortError> {
+    syn::parse_str(source).map_err(|err| PortError::Render {
+        detail: format!("`{source}` is not a valid target generic parameter: {err}"),
+    })
+}
+
 /// A `use` path, parsed so an unparseable one refuses here rather than in the emitted file.
 pub(crate) fn parse_path(source: &str) -> Result<syn::Path, PortError> {
     syn::parse_str(source).map_err(|err| PortError::Render {

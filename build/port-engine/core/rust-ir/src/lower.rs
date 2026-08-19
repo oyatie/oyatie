@@ -87,7 +87,7 @@ fn lower_item(item: &RustItem) -> Result<TokenStream, PortError> {
             let (name, ty) = (parse_ident(name)?, parse_type(ty)?);
             let parameters = generics
                 .iter()
-                .map(|generic| parse_ident(generic))
+                .map(|generic| crate::lower_parts::parse_generic_param(generic))
                 .collect::<Result<Vec<_>, _>>()?;
             match parameters.is_empty() {
                 true => Ok(quote! { #docs #vis type #name = #ty; }),

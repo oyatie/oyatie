@@ -127,7 +127,9 @@ pub mod fallible {
     // region: oyatie_example_portengine_fixture_corpus_fallible__imports
     use std::fmt;
     // region: oyatie_example_portengine_fixture_corpus_fallible__prelude
-    pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error + Send + Sync>>;
+    pub type BoxError = Box<dyn std::error::Error + Send + Sync>;
+
+    pub type Result<T, E = BoxError> = std::result::Result<T, E>;
     // region: oyatie_example_portengine_fixture_corpus_fallible__go_var__errempty
     #[derive(Debug, Clone, Copy, PartialEq, Eq)]
     #[non_exhaustive]
@@ -138,11 +140,10 @@ pub mod fallible {
 
     impl fmt::Display for Error {
         fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            f.write_str(
-                match self {
-                    Self::Empty => "empty",
-                },
-            )
+            let message = match self {
+                Self::Empty => "empty",
+            };
+            f.write_str(message)
         }
     }
 
@@ -191,7 +192,9 @@ pub mod fallible {
 }
 pub mod formatted {
     // region: oyatie_example_portengine_fixture_corpus_formatted__prelude
-    pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error + Send + Sync>>;
+    pub type BoxError = Box<dyn std::error::Error + Send + Sync>;
+
+    pub type Result<T, E = BoxError> = std::result::Result<T, E>;
     // region: oyatie_example_portengine_fixture_corpus_formatted__go_func__describe
     /// Renders n with a label.
     pub fn describe(n: i64) -> String {

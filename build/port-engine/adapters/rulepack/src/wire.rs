@@ -92,6 +92,10 @@ pub(crate) struct FailureDoc {
     #[serde(default)]
     pub(crate) target_type_alternative_reason: String,
     #[serde(default)]
+    pub(crate) boxed_alias: String,
+    #[serde(default)]
+    pub(crate) boxed_alias_reason: String,
+    #[serde(default)]
     pub(crate) sentinel_enum: String,
     #[serde(default)]
     pub(crate) sentinel_enum_reason: String,

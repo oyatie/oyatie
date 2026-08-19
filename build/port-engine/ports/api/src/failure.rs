@@ -183,6 +183,10 @@ pub struct FailureConvention {
     /// measurement rather than a preference — an engine that cannot say why it did not do the
     /// obvious thing will be asked again every time somebody reads the output.
     pub target_type_alternative_reason: String, // data_class: INTERNAL_ONLY
+    /// A NAME for the failure type, emitted beside the result alias. Empty to spell it out.
+    pub boxed_alias: String, // data_class: INTERNAL_ONLY
+    /// Why two aliases read better than one.
+    pub boxed_alias_reason: String, // data_class: INTERNAL_ONLY
     /// The ONE type a unit's proved sentinels become, as variants. Empty to give each its own.
     pub sentinel_enum: String, // data_class: INTERNAL_ONLY
     /// Why grouping them is a separate decision from what a fallible function returns.

@@ -172,6 +172,8 @@ impl Pack {
             // Empty, so a test fixture keeps the source's sentinel names. The prefix drop is a real
             // pack's decision and every fixture that wanted it would have to restate it.
             target_type_alternative_reason: String::new(),
+            boxed_alias: String::new(),
+            boxed_alias_reason: String::new(),
             sentinel_enum: String::new(),
             sentinel_enum_reason: String::new(),
             sentinel_enum_exhaustive: false,
