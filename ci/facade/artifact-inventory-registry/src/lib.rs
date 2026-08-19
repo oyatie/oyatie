@@ -373,6 +373,46 @@ impl CapabilityPlacement {
                 }
             }
         }
+        // `pending_relocations` RETRACTS an absorbs claim the layout authority has already
+        // overruled. ADR-0615 §2 Q13 says verbatim "Do NOT fold `oya/governance` into
+        // `compliance`", and the registry records that as
+        // `compliance.absorbs_current_dirs[oya/governance]` -> pending. The absorb entry stays
+        // in place so the membership lint does not orphan the path, so reading
+        // `absorbs_current_dirs` alone makes the deriver assert a destination the authority
+        // forbids -- on 147 paths, every tracked file under oya/governance.
+        //
+        // A retracted claim yields NO destination, which lands the path in `unclassified`
+        // rather than inventing a home. That is the honest state: the registry says where it
+        // must NOT go and defers where it DOES go to a Batch-5 move plan that does not exist
+        // yet. Claiming the forbidden destination and claiming a correct one are both worse
+        // than admitting the answer is not yet decided.
+        for entry in value
+            .get("pending_relocations")
+            .and_then(Value::as_array)
+            .into_iter()
+            .flatten()
+        {
+            if entry.get("pending_relocation").and_then(Value::as_bool) != Some(true) {
+                continue;
+            }
+            let Some(from) = entry.get("from").and_then(Value::as_str) else {
+                continue;
+            };
+            // Shape: `<capability>.absorbs_current_dirs[<dir>]`
+            let Some((capability, rest)) = from.split_once(".absorbs_current_dirs[") else {
+                continue;
+            };
+            let Some(dir) = rest.strip_suffix(']') else {
+                continue;
+            };
+            let key = dir.trim_end_matches('/').to_owned();
+            // Retract only if this capability is the one currently claiming the dir, so a stale
+            // or mistyped row cannot silently delete another capability's live claim.
+            if absorbs.get(&key).map(String::as_str) == Some(capability) {
+                absorbs.remove(&key);
+            }
+        }
+
         let meta_dirs = value
             .get("meta_directories")
             .and_then(Value::as_array)
@@ -1920,6 +1960,9 @@ pub fn fix_reachability(
          faces (the settle protocol)."
     ))
 }
+
+#[cfg(test)]
+mod pending_relocation_tests;
 
 #[cfg(test)]
 mod tests {
