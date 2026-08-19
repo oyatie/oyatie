@@ -32,7 +32,7 @@ use serde_json::Value;
 pub const GATE_ID: &str = "cloud-ci-root-workspace-hygiene";
 
 /// The blocking violation codes (stable slugs).
-pub const VIOLATION_CODES: [&str; 14] = [
+pub const VIOLATION_CODES: [&str; 16] = [
     // The policy `gate_id` does not match GATE_ID (config integrity).
     "root_workspace_gate_id_mismatch",
     // A tracked file at the repo ROOT matches no allowlist rule — born-blocking root scratch.
@@ -55,6 +55,8 @@ pub const VIOLATION_CODES: [&str; 14] = [
     "corpus_budget_dotdir_files_grew",
     "corpus_budget_reorg_paths_grew",
     "corpus_budget_oya_legacy_root_files_grew",
+    "corpus_budget_yaml_files_grew",
+    "corpus_budget_json_files_grew",
     "corpus_budget_malformed",
 ];
 
@@ -428,6 +430,8 @@ fn corpus_growth_code(class: &str) -> Option<&'static str> {
         "dotdir_files" => Some("corpus_budget_dotdir_files_grew"),
         "reorg_paths" => Some("corpus_budget_reorg_paths_grew"),
         "oya_legacy_root_files" => Some("corpus_budget_oya_legacy_root_files_grew"),
+        "yaml_files" => Some("corpus_budget_yaml_files_grew"),
+        "json_files" => Some("corpus_budget_json_files_grew"),
         _ => None,
     }
 }
@@ -1020,7 +1024,9 @@ spec:
                     "live_adr_files": { "prefixes": ["docs/decisions/ADR-"], "suffixes": [".md"] },
                     "dotdir_files": { "prefixes": [".grok/", ".github/"] },
                     "reorg_paths": { "prefixes": ["specs/reorg/"] },
-                    "oya_legacy_root_files": { "prefixes": ["oya/", "libs/"] }
+                    "oya_legacy_root_files": { "prefixes": ["oya/", "libs/"] },
+                    "yaml_files": { "prefixes": [""], "suffixes": [".yaml"] },
+                    "json_files": { "prefixes": [""], "suffixes": [".json"] }
                 },
                 "counts": {
                     "evidence_files": 2,
@@ -1029,7 +1035,9 @@ spec:
                     "live_adr_files": 1,
                     "dotdir_files": 1,
                     "reorg_paths": 1,
-                    "oya_legacy_root_files": 1
+                    "oya_legacy_root_files": 1,
+                    "yaml_files": 1,
+                    "json_files": 4
                 }
             }
         })
@@ -1052,6 +1060,8 @@ spec:
                 ".grok/one.md",
                 "specs/reorg/one.json",
                 "oya/one.rs",
+                "a/one.yaml",
+                "a/one.json",
             ]),
         );
         assert!(
@@ -1081,6 +1091,10 @@ spec:
                 "specs/reorg/two.json",
                 "oya/one.rs",
                 "libs/two.rs",
+                "a/one.yaml",
+                "a/two.yaml",
+                "a/one.json",
+                "a/two.json",
             ]),
         );
         for code in [
@@ -1091,6 +1105,8 @@ spec:
             "corpus_budget_dotdir_files_grew",
             "corpus_budget_reorg_paths_grew",
             "corpus_budget_oya_legacy_root_files_grew",
+            "corpus_budget_yaml_files_grew",
+            "corpus_budget_json_files_grew",
         ] {
             assert!(
                 findings.iter().any(|f| f.code == code),
@@ -1254,7 +1270,9 @@ spec:
                     "live_adr_files": { "prefixes": ["docs/decisions/ADR-"], "suffixes": [".md"] },
                     "dotdir_files": { "prefixes": [".grok/", ".github/"] },
                     "reorg_paths": { "prefixes": ["specs/reorg/"] },
-                    "oya_legacy_root_files": { "prefixes": ["oya/", "libs/"] }
+                    "oya_legacy_root_files": { "prefixes": ["oya/", "libs/"] },
+                    "yaml_files": { "prefixes": [""], "suffixes": [".yaml"] },
+                    "json_files": { "prefixes": [""], "suffixes": [".json"] }
                 },
                 "counts": {
                     "evidence_files": 0,
@@ -1263,7 +1281,9 @@ spec:
                     "live_adr_files": 0,
                     "dotdir_files": 0,
                     "reorg_paths": 0,
-                    "oya_legacy_root_files": 0
+                    "oya_legacy_root_files": 0,
+                    "yaml_files": 0,
+                    "json_files": 0
                 }
             }
         });
@@ -1280,6 +1300,8 @@ spec:
                 ".grok/x.md",
                 "specs/reorg/x.json",
                 "oya/x.rs",
+                "a/x.yaml",
+                "a/x.json",
             ]),
         );
         findings.extend(evaluate_talos_machine_config_documents([(
