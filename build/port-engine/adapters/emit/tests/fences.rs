@@ -24,6 +24,10 @@ fn scanned_sources_are_the_whole_crate() {
     let candidates = [
         option_env!("CARGO_MANIFEST_DIR").map(|dir| Path::new(dir).join("src")),
         Some(Path::new("src").to_path_buf()),
+        // The crate's REPO-RELATIVE path. buck2 runs a test from the project root with no cargo
+        // environment, so neither candidate above resolves there — and this fence guards a property
+        // of that build too.
+        Some(Path::new("build/port-engine/adapters/emit/src").to_path_buf()),
     ];
     let src = candidates
         .into_iter()

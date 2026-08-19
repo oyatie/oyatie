@@ -503,6 +503,28 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
   Every architecture fence gained the R0 `sources.rs`, each caught by its own completeness assertion
   — a file a fence does not read is a file a forbidden call can hide in.
 
+- buck2 IS installed, and this lane had been recording that it was not. The claim came from the plan
+  and was never checked, so the local-hermeticity path went unverified for five phases — and three
+  real defects were sitting behind it, each invisible to cargo.
+  `adapters/rulepack` had never been buildable under buck2. Its target omits `serde` and
+  `serde_json`, which the crate has used since the pack became JSON. Cargo has no target list, so
+  nothing noticed.
+  `core/rust-ir` STILL is not, and that one is not drift. It uses `prettyplease` and `proc-macro2`
+  directly, and the third-party cell exports neither: `syn` carries `visibility = ["PUBLIC"]` while
+  `prettyplease-0.2` and `proc-macro2-1` carry `visibility = []`. The BUCK now names the real
+  versioned targets and still fails, which is the right failure — it names exactly what is missing.
+  Exporting them is a `third-party/` change and outside this lane.
+  The COMPLETENESS FENCES were cargo-only. Each locates its crate's `src/` through
+  `CARGO_MANIFEST_DIR` or a bare relative path, and neither resolves under buck2, which runs a test
+  from the project root with no cargo environment. So every fence hit its own "a fence that cannot
+  look has not looked" refusal — correct behaviour, wrong outcome: the fence was right that it could
+  not look, and the reason was that nobody had told it where to look from. Each now also knows its
+  repo-relative path, which is true under either build system.
+  And `facade/app/tests/port_go_upstream_drift.rs` had no buck target at all, so the re-port proof
+  ran under cargo only. A test with no target is a test one of the two build systems never runs.
+  Verified by execution: ten engine crates build under buck2 and 20 of their tests pass there.
+  `rust-ir`, `transform` and `app` remain blocked on the third-party export.
+
 ## Still owed by this lane
   One class the ratchet surfaced and this lane is deliberately leaving refused: `return named, err`
   where `named` is a NAMED RESULT. Go's convention says a caller may not read it after a non-nil
