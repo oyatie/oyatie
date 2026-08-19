@@ -7,7 +7,7 @@
 //! that keyed a type differently from the others is how `copy_types` came to be checked against
 //! target spellings while `type_map` was checked against source ones.
 
-use port_engine_api::{Declaration, TypeRef};
+use port_engine_api::{Declaration, DeriveRule, TypeRef};
 use port_engine_rust_ir::RustType;
 
 use crate::error::TransformError;
@@ -145,49 +145,6 @@ impl Resolver<'_> {
     ///
     /// # Errors
     /// [`TransformError::UnmappedType`] when nothing answers for the type or for its position.
-    /// Whether this construction holds a source `string` as an OWNED target value.
-    ///
-    /// Asked of the same table the type resolution uses, so a literal and the position it lands in
-    /// cannot disagree about who owns the text. `rust_const` overrides `string` to `&str`, and a
-    /// constant's literal therefore stays borrowed.
-    pub(crate) fn owns_strings(&self) -> bool {
-        let borrowed = self
-            .overrides
-            .and_then(|overrides| overrides.get(SOURCE_STRING))
-            .or_else(|| self.type_map.get(SOURCE_STRING));
-        borrowed.is_some_and(|target| !target.starts_with('&'))
-    }
-
-    /// What the pack maps a source `string` to in this construction, when it is OWNED.
-    ///
-    /// `None` when the construction holds a borrowed spelling — `rust_const` overrides `string` to
-    /// `&str`, and a constant's literal must stay borrowed.
-    pub(crate) fn owned_string_target(&self) -> Option<&str> {
-        let target = self
-            .overrides
-            .and_then(|overrides| overrides.get(SOURCE_STRING))
-            .or_else(|| self.type_map.get(SOURCE_STRING))?;
-        match target.starts_with('&') {
-            true => None,
-            false => Some(target),
-        }
-    }
-
-    /// The target method carrying the source's overflow rule for this operation, if it has one.
-    ///
-    /// `None` for a comparison, for float or string arithmetic, and for any operator the pack does
-    /// not govern — all of which keep the plain operator, because the rule they carry is the same
-    /// in both languages. Only integer arithmetic differs, and only there is the spelling changed.
-    pub(crate) fn wrapping_method(&self, node: &Declaration, spelling: &str) -> Option<&str> {
-        if !self.integer_arithmetic.types.contains(&node.type_ref.name) {
-            return None;
-        }
-        self.integer_arithmetic
-            .operators
-            .get(spelling)
-            .map(String::as_str)
-    }
-
     pub(crate) fn resolve_in(
         &self,
         type_ref: &TypeRef,

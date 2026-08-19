@@ -562,5 +562,53 @@
       "were"
     ],
     "reason": "The source's convention requires a doc comment to open with the identifier it documents; the target's requires that it does not, and writes in the third person. Copying the source form verbatim is what makes emitted documentation read as translated rather than written -- flagged on every doc comment by a reviewer who did not know the code was generated, as the loudest single signal a Rust developer had not written it. The rewrite is mechanical and bounded: the leading word must equal the declaration's own source name EXACTLY, and a copula immediately following it is dropped with it so `ID is an alias` becomes `An alias` rather than the ungrammatical `Is an alias`. A doc that opens any other way is left exactly as written, because its author already chose an opening and this has no business rewording prose it was not asked about."
-  }
+  },
+  "derives": [
+    {
+      "blocked_by": [
+        "interface",
+        "named_interface",
+        "chan",
+        "func",
+        "unsupported"
+      ],
+      "name": "Debug",
+      "reason": "Every source value can be printed by the source's own formatting verbs, so a ported type that cannot be printed at all has lost something the source had. Without it nothing emitted can appear in an assertion, a log line, or any bound asking for `Debug` -- which is most of them."
+    },
+    {
+      "blocked_by": [
+        "interface",
+        "named_interface",
+        "chan",
+        "func",
+        "unsupported"
+      ],
+      "name": "Clone",
+      "reason": "The source copies a struct on assignment, so every source struct is duplicable. `Clone` is the target's name for that, made explicit at each use rather than implicit at every assignment."
+    },
+    {
+      "blocked_by": [
+        "interface",
+        "named_interface",
+        "chan",
+        "func",
+        "unsupported"
+      ],
+      "name": "Default",
+      "reason": "EVERY source type has a zero value and `var x T` produces it, so a default is a fact about the source rather than an invention. A trait object has no zero, which is why one blocks this."
+    },
+    {
+      "blocked_by": [
+        "interface",
+        "named_interface",
+        "chan",
+        "func",
+        "unsupported",
+        "slice",
+        "map"
+      ],
+      "name": "PartialEq",
+      "reason": "The source compares structs with `==` exactly when no field is a slice, a map or a function -- and those are precisely the fields whose target counterpart is not comparable either. The two languages agree here, so this is derived rather than guessed: a type the source could compare, the port can compare."
+    }
+  ]
 }

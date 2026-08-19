@@ -9,6 +9,22 @@
 //! renders the target owns them. Putting them in the pack would make a second language pair
 //! re-declare the target's own vocabulary, which is the thing the neutral seam exists to prevent.
 
+/// A derive a ported type EARNS, and the source type kinds that block it.
+///
+/// Which derives a type earns is a decision about what the source guarantees, so it carries a
+/// reason. The BLOCKING set is what makes deriving safe rather than hopeful: the engine emits
+/// every corpus struct with the same derives, so a field naming another emitted struct is
+/// satisfied by construction, and only kinds the engine emits no type for can block.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct DeriveRule {
+    /// The target trait derived.
+    pub name: String, // data_class: INTERNAL_ONLY
+    /// Source type kinds that make this derive unavailable for the type carrying them.
+    pub blocked_by: std::collections::BTreeSet<String>, // data_class: INTERNAL_ONLY
+    /// What the source guarantees that makes this derive faithful, and what blocks it.
+    pub reason: String, // data_class: INTERNAL_ONLY
+}
+
 /// How the source's documentation convention differs from the target's.
 ///
 /// A DECISION about prose, so it carries a reason: rewriting what an author wrote is not something

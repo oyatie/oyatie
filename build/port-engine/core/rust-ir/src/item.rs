@@ -148,6 +148,11 @@ pub enum RustItem {
         name: String, // data_class: INTERNAL_ONLY
         /// Its data shape.
         shape: StructShape,
+        /// The traits derived on it, in the order the pack declares them.
+        ///
+        /// Order is the pack's, not sorted: a derive list is read by people, and `Debug, Clone`
+        /// reads the way the pack lists it rather than the way the alphabet does.
+        derives: Vec<String>, // data_class: INTERNAL_ONLY
         /// Methods emitted into an `impl` block beside it.
         methods: Vec<RustFn>,
     },

@@ -229,6 +229,7 @@ fn survey_declaration<P>(
         function_map: pack.function_map(),
         integer_arithmetic: pack.integer_arithmetic(),
         doc_convention: pack.doc_convention(),
+        derives: pack.derives(),
         receiver: pack.trait_receiver(),
         ownership: &ownership,
         unit,

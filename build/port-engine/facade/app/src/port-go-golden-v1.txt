@@ -43,6 +43,7 @@ pub mod basic {
     pub const MAX_RETRIES: i64 = 3;
     // region: oyatie_example_portengine_fixture_corpus_basic__go_defined_type__celsius
     /// A temperature in degrees Celsius.
+    #[derive(Debug, Clone, Default, PartialEq)]
     pub struct Celsius(pub f64);
     // region: oyatie_example_portengine_fixture_corpus_basic__go_func__add
     /// Returns the sum of a and b.
@@ -90,6 +91,7 @@ pub mod composite {
     }
     // region: oyatie_example_portengine_fixture_corpus_composite__go_struct_body__driver
     /// Embeds an Engine and gains its methods.
+    #[derive(Debug, Clone, Default, PartialEq)]
     pub struct Driver {
         /// Embedded, so Driver's method set includes Run without declaring it.
         pub engine: Engine,
@@ -126,6 +128,7 @@ pub mod composite {
     }
     // region: oyatie_example_portengine_fixture_corpus_composite__go_struct_body__engine
     /// Counts the work it has done.
+    #[derive(Debug, Clone, Default, PartialEq)]
     pub struct Engine {
         /// How many times Run has been called.
         calls: i64,
@@ -209,6 +212,7 @@ pub mod geometry {
     }
     // region: oyatie_example_portengine_fixture_corpus_geometry__go_struct__bounds
     /// A rectangle described by two points from another package.
+    #[derive(Debug, Clone, Default, PartialEq)]
     pub struct Bounds {
         /// The lower corner.
         pub min: crate::shapes::Point,
@@ -246,6 +250,7 @@ pub mod handoff {
     }
     // region: oyatie_example_portengine_fixture_corpus_handoff__go_struct_body__counter
     /// Counts.
+    #[derive(Debug, Clone, Default, PartialEq)]
     pub struct Counter {
         total: i64,
     }
@@ -274,6 +279,7 @@ pub mod naming {
     }
     // region: oyatie_example_portengine_fixture_corpus_naming__go_struct_body__label
     /// A display name that can rename itself.
+    #[derive(Debug, Clone, Default, PartialEq)]
     pub struct Label {
         /// The current display name.
         text: String,
@@ -305,6 +311,7 @@ pub mod naming {
     }
     // region: oyatie_example_portengine_fixture_corpus_naming__go_struct_body__tag
     /// A display name that never changes.
+    #[derive(Debug, Clone, Default, PartialEq)]
     pub struct Tag {
         /// The fixed display name.
         text: String,
@@ -334,6 +341,7 @@ pub mod naming {
 pub mod pointers {
     // region: oyatie_example_portengine_fixture_corpus_pointers__go_struct_body__counter
     /// Accumulates a total.
+    #[derive(Debug, Clone, Default, PartialEq)]
     pub struct Counter {
         /// The running sum.
         total: i64,
@@ -411,6 +419,7 @@ pub mod shapes {
     }
     // region: oyatie_example_portengine_fixture_corpus_shapes__go_struct_body__point
     /// A location in two dimensions.
+    #[derive(Debug, Clone, Default, PartialEq)]
     pub struct Point {
         /// The horizontal coordinate.
         pub x: i64,

@@ -985,6 +985,37 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
   statements, `(1) as i64`, and fully-qualified paths where a `use` belongs. All idiom rules, all
   R7, and all now measured rather than guessed at.
 
+- NOTHING THE ENGINE EMITTED DERIVED ANYTHING, so no ported type could be printed, compared or
+  defaulted. The blind reviewer called it the single loudest signal a Rust developer had not
+  written the code, and it is a capability gap as much as a style one: without `Debug` nothing
+  emitted can appear in an assertion or satisfy the bound half the ecosystem asks for.
+  WHICH derives a type earns is a claim about what the SOURCE guarantees, so each is pack data with
+  its own reason and its own blocking set:
+  `Debug` — every source value can be printed by the source's own formatting verbs, so a ported
+  type that cannot be printed has lost something the source had.
+  `Clone` — the source copies a struct on assignment, so every source struct is duplicable. Clone
+  is the target's name for that, made explicit at each use rather than implicit at every one.
+  `Default` — EVERY source type has a zero value and `var x T` produces it, so a default is a fact
+  about the source rather than an invention.
+  `PartialEq` — and this one is the interesting case. The source compares structs with `==` exactly
+  when no field is a slice, a map or a function, and those are precisely the fields whose target
+  counterpart is not comparable either. The two languages agree, so it is derived rather than
+  guessed: a type the source could compare, the port can compare.
+  THE BLOCKING SET is what makes this safe rather than hopeful. Only kinds the engine emits no type
+  for can block — a trait object, a bare interface, a channel, a function, an unsupported shape.
+  A field naming another emitted struct cannot block anything, because every emitted struct gets
+  the same list, so intra-corpus references are satisfied by construction rather than by ordering
+  the emission. Checked through the whole type TREE and not just its root: a `Vec<Box<dyn Error>>`
+  is a slice whose element blocks, and looking only at `slice` would miss it.
+  `Copy` IS DELIBERATELY ABSENT, and the reason matters. The source copies on assignment and the
+  target does not, so `Copy` looks like the faithful mapping and is not: it is available only where
+  every field is Copy, and a struct that gains it changes how every later assignment behaves. That
+  is a decision about the emitted API rather than a fact about the source.
+  Compiler warnings on the emitted crate went 5 → 3 across this and the `unread` fix. The three
+  that remain — a dead initializer the source requires, an unused private function, an unread field
+  — are all cases where the source tolerates what the target warns about, and all three are fixture
+  artifacts rather than shapes real packages have.
+
 ## Still owed by this lane
   One class the ratchet surfaced and this lane is deliberately leaving refused: `return named, err`
   where `named` is a NAMED RESULT. Go's convention says a caller may not read it after a non-nil

@@ -2,7 +2,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use port_engine_api::{Digest, DocConvention, FailureConvention, FunctionMapping, IntegerArithmetic, LanguagePair, PackSemantics, PointerDisposition, RuleId, RulePack, UnitId};
+use port_engine_api::{DeriveRule, Digest, DocConvention, FailureConvention, FunctionMapping, IntegerArithmetic, LanguagePair, PackSemantics, PointerDisposition, RuleId, RulePack, UnitId};
 use port_engine_hash::digest_bytes;
 
 use crate::error::RulepackError;
@@ -29,6 +29,7 @@ pub struct LoadedRulePack {
     pub(crate) function_map: BTreeMap<String, FunctionMapping>,
     pub(crate) integer_arithmetic: IntegerArithmetic,
     pub(crate) doc_convention: DocConvention,
+    pub(crate) derives: Vec<DeriveRule>,
     pub(crate) type_map_overrides: BTreeMap<String, BTreeMap<String, String>>,
     pub(crate) deferred_kinds: Vec<DeferredKind>,
     pub(crate) deferred_kind_set: BTreeSet<String>,
@@ -244,6 +245,15 @@ impl LoadedRulePack {
             // arithmetic by name rather than emitting an operator whose overflow rule differs.
             // Absent means the pack declines to rewrite documentation at all, which leaves the
             // source's prose exactly as its author wrote it.
+            derives: doc
+                .derives
+                .into_iter()
+                .map(|rule| DeriveRule {
+                    name: rule.name,
+                    blocked_by: rule.blocked_by.into_iter().collect(),
+                    reason: rule.reason,
+                })
+                .collect(),
             doc_convention: doc.doc_convention.map_or_else(DocConvention::default, |rule| {
                 DocConvention {
                     strip_leading_name: rule.strip_leading_name,
