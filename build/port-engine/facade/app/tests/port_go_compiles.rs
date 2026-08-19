@@ -116,7 +116,9 @@ fn emitted_rust_carries_the_corpus() {
         "fn add",
         "fn scale",
         "struct Celsius",
-        "type ID",
+        // `Id`, not `ID`. The source capitalises a whole acronym and the target spells one as a
+        // word, so carrying the source's form is a naming a reviewer reads as the other language's.
+        "type Id",
         "struct Point",
         "impl Point",
         "fn shift",

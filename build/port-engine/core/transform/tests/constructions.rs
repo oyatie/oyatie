@@ -103,9 +103,13 @@ fn defined_type_becomes_a_newtype_and_alias_stays_transparent() {
     .expect("apply");
     let text = rendered(&ir);
     assert!(text.contains("struct Celsius"), "{text}");
-    // `ID` stays `ID`: an all-capitals name is an acronym, and lowercasing it to `Id` would
-    // rename the type rather than recase it.
-    assert!(text.contains("type ID = String"), "{text}");
+    // `ID` becomes `Id`, reversing an earlier decision here that it should stay. The old reason
+    // was that lowercasing "would rename the type rather than recase it" — which is wrong, because
+    // `Id` and `ID` are the same word differently cased and casing is what this does. RFC 430 is
+    // explicit: an acronym counts as ONE WORD in upper camel case, `Uuid` rather than `UUID`. Two
+    // reviewers read the all-capitals form as the source language's convention carried over, which
+    // is exactly what it was.
+    assert!(text.contains("type Id = String"), "{text}");
 }
 
 /// A locally declared name must win over the pack's map, or a unit declaring a type whose name
