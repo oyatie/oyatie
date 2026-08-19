@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "language": "go",
-  "snapshot_digest": "sha256:1442d698763ca8e8d4494f83311124ee89cacaf119e3ecf956f65dd95c4e5737",
+  "snapshot_digest": "sha256:6350e1ea094d035377823e4a2066f5d7c6545a55587a68b5feaa285ab02649bd",
   "packages": [
     {
       "unit_id": "oyatie.example/portengine-fixture-sentinel/corpus-sentinel/identity",
@@ -83,7 +83,7 @@
             "exported"
           ],
           "attrs": {
-            "doc": "Missing reports whether the given failure is the sentinel one.\n\nREFUSED, and this is the cost the sentinel decision names. The source's `errors.New` returns a\nPOINTER, so `err == ErrGone` compares identity and is a comparison real code writes. The target's\nsentinel is its message and its failure is a boxed trait object, which has no equality at all —\nso there is no target expression that means what this line means. It refuses here rather than\nemitting a comparison against a freshly built value, which would be false at every call."
+            "doc": "Missing reports whether the given failure is the sentinel one.\n\nThe comparison the whole decision turns on. In the source it is pointer equality against a\npackage-level value; in the target it is a question asked of the trait object, and a failure that\nis not that sentinel answers no in both."
           },
           "children": [
             {

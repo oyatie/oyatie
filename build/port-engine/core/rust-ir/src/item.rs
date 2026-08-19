@@ -128,6 +128,20 @@ pub enum RustItem {
         /// Its value, carried as a source spelling.
         value: String, // data_class: INTERNAL_ONLY
     },
+    /// A SENTINEL failure: a unit struct that is an error, and can be compared against.
+    ///
+    /// Three items that are one concept — the type, its message, and its `Error` impl — so they are
+    /// one IR item. Emitting them separately would let a message drift from the type it belongs to.
+    SentinelError {
+        /// Documentation carried over from the source.
+        docs: Vec<String>, // data_class: INTERNAL_ONLY
+        /// Whether the sentinel is public.
+        vis: Visibility,
+        /// Its type name.
+        name: String, // data_class: INTERNAL_ONLY
+        /// The message it displays, as a source literal.
+        message: String, // data_class: INTERNAL_ONLY
+    },
     /// `const NAME: T = value;` — a package-level immutable value.
     ///
     /// Distinct from [`RustItem::Const`] only in that its value is an EXPRESSION rather than a

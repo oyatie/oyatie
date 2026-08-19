@@ -46,6 +46,32 @@ fn lower_item(item: &RustItem) -> Result<TokenStream, PortError> {
             Ok(quote! { #docs #vis const #name: #ty = #value; })
         }
 
+        RustItem::SentinelError {
+            docs,
+            vis,
+            name,
+            message,
+        } => {
+            let (docs, vis) = (lower_docs(docs), lower_vis(*vis));
+            let name = parse_ident(name)?;
+            let message = parse_expr(message, "sentinel message")?;
+            // COPY and EQ, because a sentinel is a value with no data: comparing two is comparing
+            // which sentinel they are, which is the whole point of it having a type at all.
+            Ok(quote! {
+                #docs
+                #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+                #vis struct #name;
+
+                impl std::fmt::Display for #name {
+                    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                        f.write_str(#message)
+                    }
+                }
+
+                impl std::error::Error for #name {}
+            })
+        }
+
         RustItem::PackageValue {
             docs,
             vis,

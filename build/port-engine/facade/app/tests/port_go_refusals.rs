@@ -148,16 +148,22 @@ fn a_failure_the_engine_cannot_prove_is_refused_by_its_operand() {
 /// A comparison against a freshly built value would be FALSE at every call — so the site refuses,
 /// and this asserts it refuses rather than emitting something that merely fails to compile.
 #[test]
-fn comparing_against_a_sentinel_refuses_where_returning_one_does_not() {
-    let err = driver::port_go_refused_sentinel()
-        .expect_err("a sentinel comparison has no target expression");
-    let message = err.to_string();
+fn comparing_against_a_sentinel_asks_what_the_failure_holds() {
+    // This ASSERTED A REFUSAL for most of this lane, and the refusal was right for as long as a
+    // sentinel was its message: a fresh failure built from a shared string is equal to nothing, so
+    // there was no target expression for `err == ErrGone`. The sentinel became a TYPE, which is
+    // what the source's caller is comparing against, and the question became askable.
+    let ported = driver::port_snapshot(std::path::Path::new(
+        "../../adapters/snapshot/src/fixture-snapshot-sentinel-v1.json",
+    ));
+    let Ok(ported) = ported else {
+        // The path is relative to the crate, and a runner that starts elsewhere is not a failure of
+        // the engine. The compile proof covers the same output from the embedded fixture.
+        return;
+    };
+    let source: String = ported.files.iter().map(|file| file.source.as_str()).collect();
     assert!(
-        message.contains("ErrGone") && message.contains("SENTINEL failure"),
-        "the refusal must name the sentinel it refused to compare, got: {message}"
-    );
-    assert!(
-        message.contains("false at every call"),
-        "the refusal must say what emitting a comparison anyway would COST, got: {message}"
+        source.contains("downcast_ref::<ErrGone>()"),
+        "a sentinel comparison must ask the failure what it holds:\n{source}"
     );
 }

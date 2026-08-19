@@ -137,6 +137,13 @@ fn binary(node: &Declaration, cx: &Body<'_>) -> Result<RustExpr, TransformError>
         return Ok(rendered);
     }
 
+    // IS THIS FAILURE THAT SENTINEL? The source compares identity; the target asks the trait object
+    // what concrete type it holds. Available only because the sentinel became a type — while it was
+    // its message there was nothing to compare, and this refused.
+    if let Some(rendered) = crate::body_swap::identity_test(spelling, lhs, rhs, cx)? {
+        return Ok(rendered);
+    }
+
     // A guard comparing a LENGTH CONSTANT against a length: both sides are the target's index type,
     // so the conversion the length call's mapping adds is what is wrong. The constant's declaration
     // read the same proof, so the two sides cannot end up different types.

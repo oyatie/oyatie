@@ -16,7 +16,7 @@ use crate::body::Body;
 use crate::body_call::render_operand;
 use crate::body_expr::expression;
 use crate::error::TransformError;
-use crate::naming::to_snake_case;
+use crate::naming::{to_pascal_case, to_snake_case};
 use crate::vocabulary::{CHILD_PLACE, CHILD_VALUE, IDIOM_SWAP, KIND_IDENT, KIND_INDEX};
 
 /// The exchange this parallel assignment is, if it is one.
@@ -138,4 +138,60 @@ pub(crate) fn membership(arms: &[MatchArm], scrutinee: &RustExpr) -> Option<Rust
 fn yields(body: &[RustStmt], literal: &str) -> bool {
     matches!(body, [RustStmt::Tail(RustExpr::Path(value) | RustExpr::Literal(value))]
         if value == literal)
+}
+
+/// `err == ErrSize` — is this failure that SENTINEL?
+///
+/// The source compares identity, because its sentinel is a pointer and every `return ErrSize` hands
+/// back the same one. The target asks the trait object what concrete type it holds, which is true
+/// in exactly the same cases.
+///
+/// Available only because the sentinel became a TYPE. While it was its message there was nothing to
+/// compare — a fresh failure built from a shared string is equal to nothing — and this refused by
+/// name, with the loss recorded as the cost of that decision.
+///
+/// `None` unless one side names a sentinel of this unit and the operator is an equality. A `!=` is
+/// the same test negated, which is what the source means by it.
+///
+/// # Errors
+/// [`TransformError`] from translating the other operand.
+pub(crate) fn identity_test(
+    spelling: &str,
+    lhs: &Declaration,
+    rhs: &Declaration,
+    cx: &Body<'_>,
+) -> Result<Option<RustExpr>, TransformError> {
+    let negated = match spelling {
+        "==" => false,
+        "!=" => true,
+        _ => return Ok(None),
+    };
+    let Some(convention) = cx.resolver.failure else {
+        return Ok(None);
+    };
+    if convention.identity_test.is_empty() {
+        return Ok(None);
+    }
+    let sentinel_of = |node: &Declaration| {
+        (node.kind == KIND_IDENT && cx.resolver.scope.sentinels.contains_key(&node.name))
+            .then(|| to_pascal_case(&node.name))
+    };
+    let (sentinel, subject) = match (sentinel_of(lhs), sentinel_of(rhs)) {
+        // BOTH sides a sentinel is a comparison of two known types, which the source can write and
+        // which this form does not answer: it asks what a failure holds, and neither side is one.
+        (Some(_), Some(_)) | (None, None) => return Ok(None),
+        (Some(name), None) => (name, rhs),
+        (None, Some(name)) => (name, lhs),
+    };
+    let Some(rendered) = render_operand(&expression(subject, cx)?) else {
+        return Ok(None);
+    };
+    let test = convention
+        .identity_test
+        .replace("{0}", &rendered)
+        .replace("{1}", &sentinel);
+    Ok(Some(RustExpr::Literal(match negated {
+        true => format!("!{test}"),
+        false => test,
+    })))
 }

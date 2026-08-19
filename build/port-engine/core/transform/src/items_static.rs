@@ -26,7 +26,7 @@ use crate::body::Body;
 use crate::body_expr::expression;
 use crate::docs::docs_of;
 use crate::error::TransformError;
-use crate::naming::{to_screaming_snake, visibility};
+use crate::naming::{to_pascal_case, to_screaming_snake, visibility};
 use crate::resolve::Resolver;
 use crate::vocabulary::{
     ATTR_REF, CONSTRUCTION_RUST_STATIC, FLAG_EXPORTED, FLAG_REBOUND, FORM_WRITTEN_PACKAGE_VAR, KIND_COMPOSITE, KIND_IDENT, KIND_KEYED, KIND_LITERAL, KIND_ZERO, REF_CONST, SOURCE_STRING, TARGET_STR,
@@ -61,15 +61,14 @@ pub(crate) fn build_static(
     // is not that the call can be evaluated early but that the call is unnecessary until a return
     // needs one. See `sentinel.rs` for what this costs.
     if let Some(message) = resolver.scope.sentinels.get(&declaration.name) {
-        return Ok(RustItem::PackageValue {
+        return Ok(RustItem::SentinelError {
             docs: docs_of(declaration, resolver),
             vis: visibility(declaration),
-            name: to_screaming_snake(&declaration.name),
-            ty: RustType::Reference {
-                mutable: false,
-                inner: Box::new(RustType::Path(TARGET_STR.to_owned())),
-            },
-            value: RustExpr::Literal(message.clone()),
+            // A TYPE, so its name is a type's. The source already names it as one — `ErrSize` is
+            // capitalised because it is exported, and the target capitalises it because it is a
+            // type — so the two conventions agree here for once.
+            name: to_pascal_case(&declaration.name),
+            message: message.clone(),
         });
     }
     // A SENTINEL is exempt, and the exemption is the sentinel decision rather than a second one:

@@ -132,6 +132,14 @@ pub struct FailureConvention {
     /// nil — and silently wrong when it can, in the direction of reporting failure where the source
     /// reported success.
     pub constructors: std::collections::BTreeSet<String>, // data_class: INTERNAL_ONLY
+    /// What the failure type is as a PARAMETER. Empty to refuse one.
+    pub param_type: String, // data_class: INTERNAL_ONLY
+    /// Why that form and not the general interface one.
+    pub param_type_reason: String, // data_class: INTERNAL_ONLY
+    /// How a caller asks whether a failure IS a particular sentinel. Empty to refuse the question.
+    pub identity_test: String, // data_class: INTERNAL_ONLY
+    /// Why that form, and what it does not cover.
+    pub identity_test_reason: String, // data_class: INTERNAL_ONLY
     /// How a failure is built where the DESTINATION already fixes its type. Empty to use the
     /// general mapping everywhere.
     pub inferred_construction: String, // data_class: INTERNAL_ONLY
