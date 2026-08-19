@@ -435,6 +435,34 @@ fn nested_service_dirs(root: &Path) -> Vec<ServiceSubpath> {
 /// microservice. The gate's core pairing degraded from "does this
 /// microservice's claim have a matching forbid rule in this
 /// microservice's policy?" to "does any forbid rule exist anywhere?".
+/// The identity a manifest DECLARES, falling back to the name derived from its
+/// directory.
+///
+/// These disagree for 19 of the tree's manifests, and the disagreement is
+/// load-bearing rather than cosmetic. `gateway/manifest.json` declares
+/// `"microservice": "api-gateway"`; ADR-0182's NorthSouthOnlyMisplaced rule is
+/// literally `manifest.microservice != "api-gateway"`, so keying that manifest on
+/// its directory leaf manufactures a violation against the one service the rule
+/// exempts. The Wave-3-I deferral ledger is keyed the same way — it already carries
+/// `api-gateway GatewayAndMeshConflict` and `feature-flags MeshTierUnderclaimed` —
+/// so a leaf-keyed gate silently un-suppresses consciously deferred rows under names
+/// the ledger cannot match.
+///
+/// The fallback is not decorative: `observability/diagnostics/manifest.json` declares
+/// an EMPTY `microservice`, so a declared-only rule would reintroduce the
+/// empty-string key this whole change exists to remove.
+pub(crate) fn declared_microservice(contents: &str, from_path: String) -> String {
+    serde_json::from_str::<serde_json::Value>(contents)
+        .ok()
+        .as_ref()
+        .and_then(|value| value.get("microservice"))
+        .and_then(|value| value.as_str())
+        .map(str::trim)
+        .filter(|declared| !declared.is_empty())
+        .map(str::to_owned)
+        .unwrap_or(from_path)
+}
+
 pub(crate) fn microservice_name_for(path: &Path) -> Option<String> {
     let parent = path.parent()?;
     let name = parent.file_name()?.to_string_lossy().to_string();
@@ -452,6 +480,43 @@ fn leaf_name(path: &Path) -> String {
 
 #[cfg(test)]
 mod tests {
+    /// The identity a manifest declares wins over the one its directory implies.
+    ///
+    /// Keying on the directory leaf manufactured a violation against the single
+    /// service ADR-0182 exempts: gateway/manifest.json declares
+    /// `"microservice": "api-gateway"`, and NorthSouthOnlyMisplaced fires on
+    /// `microservice != "api-gateway"`. Leaf-keying also un-suppressed two rows the
+    /// Wave-3-I deferral ledger had consciously deferred, because that ledger is keyed
+    /// on declared names too. 19 manifests in this tree disagree with their leaf.
+    #[test]
+    fn declared_identity_wins_over_the_directory_leaf() {
+        let manifest = r#"{"microservice": "api-gateway", "layer": "gateway"}"#;
+        assert_eq!(
+            super::declared_microservice(manifest, "gateway".to_owned()),
+            "api-gateway",
+        );
+    }
+
+    /// The path-derived fallback is load-bearing, not decorative.
+    ///
+    /// observability/diagnostics/manifest.json declares an EMPTY microservice. A
+    /// declared-only rule would key it on "" and reintroduce the empty-string
+    /// collapse this module exists to remove.
+    #[test]
+    fn empty_or_absent_declaration_falls_back_to_the_path() {
+        for manifest in [
+            r#"{"microservice": ""}"#,
+            r#"{"microservice": "   "}"#,
+            r#"{"layer": "control"}"#,
+            "not json at all",
+        ] {
+            assert_eq!(
+                super::declared_microservice(manifest, "diagnostics".to_owned()),
+                "diagnostics",
+                "manifest {manifest:?} must fall back rather than yield an empty key",
+            );
+        }
+    }
     use super::*;
     use std::collections::BTreeSet;
 

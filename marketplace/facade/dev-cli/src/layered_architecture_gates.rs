@@ -117,7 +117,10 @@ pub(crate) fn run_layered_architecture_discipline(args: Vec<String>) -> ExitCode
             continue;
         };
         manifests.push(layered_check::ManifestDocument {
-            microservice: manifest.microservice,
+            microservice: crate::service_roots::declared_microservice(
+                &contents,
+                manifest.microservice,
+            ),
             path: manifest.path.to_string_lossy().to_string(),
             contents,
         });

@@ -395,7 +395,10 @@ fn collect_manifests_from_roots(roots: &[PathBuf]) -> Vec<ManifestEntry> {
             if let Some(contents) = read_optional_string(&manifest.path) {
                 out.push(ManifestEntry {
                     path: manifest.path.to_string_lossy().to_string(),
-                    microservice: manifest.microservice,
+                    microservice: service_roots::declared_microservice(
+                        &contents,
+                        manifest.microservice,
+                    ),
                     contents,
                 });
             }
