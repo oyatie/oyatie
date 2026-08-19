@@ -94,6 +94,18 @@ fn lower_stmt(statement: &RustStmt) -> Result<TokenStream, PortError> {
             };
             Ok(quote! { #target #operator #value; })
         }
+        RustStmt::AssignTuple { places, values } => {
+            let places = places.iter().map(lower_expr).collect::<Result<Vec<_>, _>>()?;
+            let values = values.iter().map(lower_expr).collect::<Result<Vec<_>, _>>()?;
+            // A SINGLE value is one expression that already yields the whole tuple — the source's
+            // `x, err = f()`. Several are the source's `a, b = b, a`, and they become a tuple here
+            // so both spell one destructuring assignment rather than two shapes.
+            let right = match values.as_slice() {
+                [only] => quote! { #only },
+                several => quote! { ( #(#several),* ) },
+            };
+            Ok(quote! { ( #(#places),* ) = #right; })
+        }
         RustStmt::While { cond, body } => {
             let (cond, body) = (lower_expr(cond)?, lower_block(body)?);
             Ok(quote! { while #cond { #body } })

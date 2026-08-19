@@ -25,8 +25,14 @@ func assignmentNode(stmt *ast.AssignStmt, ctx *extractCtx) node {
 	if stmt.Tok == token.DEFINE && len(stmt.Rhs) == 1 && len(stmt.Lhs) > 1 {
 		return destructuringBind(stmt, ctx)
 	}
-	// The remaining multi-assignment and op-assign forms each carry a question — parallel
-	// assignment order, read-modify-write — that needs a rule rather than a default.
+	// A PARALLEL assignment writes several places at once. Recorded rather than refused for the
+	// same reason the destructuring bind is: the shape has to reach the transform for a rule to
+	// answer it, and "some assignment" is not a refusal anybody can act on.
+	if stmt.Tok == token.ASSIGN && (len(stmt.Lhs) > 1 || len(stmt.Rhs) > 1) {
+		return parallelAssignment(stmt, ctx)
+	}
+	// The remaining op-assign forms carry a question — read-modify-write against several
+	// places — that needs a rule rather than a default.
 	if len(stmt.Lhs) != 1 || len(stmt.Rhs) != 1 {
 		return unsupportedNode(stmt)
 	}
@@ -80,6 +86,61 @@ func assignmentNode(stmt *ast.AssignStmt, ctx *extractCtx) node {
 				expressionNode(stmt.Rhs[0], ctx),
 			},
 		}
+	}
+}
+
+// parallelAssignment records `a, b = x, y` and `a, b = f()` as the places it writes and the values
+// it writes from, in that order.
+//
+// The source evaluates every operand on both sides BEFORE assigning any of them, which is what
+// makes `a[i], a[j] = a[j], a[i]` a swap rather than two writes. The target's destructuring
+// assignment has the same rule, so the shape carries across — but only where the LHS places are
+// themselves side-effect free, because the two languages order the evaluation of a place's own
+// subexpressions differently and a place reached through a CALL would be run at a different time.
+func parallelAssignment(stmt *ast.AssignStmt, ctx *extractCtx) node {
+	out := node{Kind: kindAssignTuple}
+	for _, lhs := range stmt.Lhs {
+		if !isSimplePlace(lhs) {
+			return unsupportedNode(stmt)
+		}
+		out.Children = append(out.Children, node{
+			Kind:     kindPlace,
+			Children: []node{expressionNode(lhs, ctx)},
+		})
+	}
+	for _, rhs := range stmt.Rhs {
+		out.Children = append(out.Children, node{
+			Kind:     kindValue,
+			Children: []node{expressionNode(rhs, ctx)},
+		})
+	}
+	return out
+}
+
+// isSimplePlace reports whether writing to this place runs no code of the program's own.
+//
+// A name, a field of one, and an index by a name or a literal. Deliberately narrow: the source
+// evaluates every place's own subexpressions before any assignment happens and the target evaluates
+// them at the assignment, so a place whose subexpressions have EFFECTS would run them at a
+// different time. Nothing here has any.
+func isSimplePlace(expr ast.Expr) bool {
+	switch typed := expr.(type) {
+	case *ast.Ident:
+		return true
+	case *ast.SelectorExpr:
+		return isSimplePlace(typed.X)
+	case *ast.IndexExpr:
+		if !isSimplePlace(typed.X) {
+			return false
+		}
+		switch typed.Index.(type) {
+		case *ast.Ident, *ast.BasicLit:
+			return true
+		default:
+			return false
+		}
+	default:
+		return false
 	}
 }
 

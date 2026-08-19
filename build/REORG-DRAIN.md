@@ -1876,3 +1876,27 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
   person to see a flat ratchet should check this before concluding a rule did nothing.
 
 - ksuid 45.2 → 46.2 against a fresh snapshot.
+
+## Parallel assignment, whose whole content is the order
+
+- `AssignStmt` was the second-largest cause on the board — 40 refusals across 6 packages — and the
+  extractor was refusing two shapes: `a[i], a[j] = a[j], a[i]` and `x, err = f()`.
+
+- Both translate, and the reason is one fact: the source evaluates every operand on BOTH sides
+  before assigning any of them, which is what makes the first a swap rather than two writes. The
+  target's destructuring assignment has the same rule, so the construct carries across whole. Two
+  separate assignments would not — the first place would be written and then read back by the
+  second, which is a different program.
+
+- REFUSED where a place's own subexpressions could have EFFECTS. The two languages evaluate a
+  place's subexpressions at different points, so a call inside one would run at a different time.
+  Admitted: a name, a field of one, an index by a name or a literal. None of those runs any code.
+
+- Carried as its own IR statement rather than a sequence of assignments, for the same reason: the
+  order IS the construct, and a sequence cannot express it.
+
+- ksuid 46.2 → 49.5. Verify: 49 test binaries green including the compile proof; clippy clean;
+  `delta` Green/Unchanged; golden refreshed with `(values[i], values[j]) = (values[j], values[i])`.
+
+- NOTED: `values.swap(i, j)` is what a Rust author writes. That is an IDIOM — it changes nothing
+  about the program — and belongs in the idiom table with its rust-skills provenance, not here.

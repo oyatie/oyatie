@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "language": "go",
-  "snapshot_digest": "sha256:e6c286408261825c08679d08e6fdf96bb84b9cfb27cf673a18df9fe1985b908c",
+  "snapshot_digest": "sha256:a78fabd6210c38e96c406899e291ce37d92c68fa5fe151aef24dc3e17fc34048",
   "packages": [
     {
       "unit_id": "oyatie.example/portengine-fixture/corpus/accumulate",
@@ -5165,6 +5165,250 @@
                             "lit_kind": "INT",
                             "value": "17"
                           }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "func",
+          "name": "Swap",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Swap exchanges the values at i and j."
+          },
+          "children": [
+            {
+              "kind": "param",
+              "name": "values",
+              "type": {
+                "kind": "slice",
+                "args": [
+                  {
+                    "kind": "basic",
+                    "name": "int64"
+                  }
+                ]
+              },
+              "flags": [
+                "mutated"
+              ]
+            },
+            {
+              "kind": "param",
+              "name": "i",
+              "type": {
+                "kind": "basic",
+                "name": "int"
+              }
+            },
+            {
+              "kind": "param",
+              "name": "j",
+              "type": {
+                "kind": "basic",
+                "name": "int"
+              }
+            },
+            {
+              "kind": "body",
+              "name": "",
+              "children": [
+                {
+                  "kind": "assign_tuple",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "place",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "index",
+                          "name": "",
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "values",
+                              "type": {
+                                "kind": "slice",
+                                "args": [
+                                  {
+                                    "kind": "basic",
+                                    "name": "int64"
+                                  }
+                                ]
+                              },
+                              "flags": [
+                                "reread"
+                              ],
+                              "attrs": {
+                                "read_count": "4",
+                                "ref": "local"
+                              }
+                            },
+                            {
+                              "kind": "ident",
+                              "name": "i",
+                              "type": {
+                                "kind": "basic",
+                                "name": "int"
+                              },
+                              "flags": [
+                                "reread"
+                              ],
+                              "attrs": {
+                                "read_count": "2",
+                                "ref": "local"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "place",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "index",
+                          "name": "",
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "values",
+                              "type": {
+                                "kind": "slice",
+                                "args": [
+                                  {
+                                    "kind": "basic",
+                                    "name": "int64"
+                                  }
+                                ]
+                              },
+                              "flags": [
+                                "reread"
+                              ],
+                              "attrs": {
+                                "read_count": "4",
+                                "ref": "local"
+                              }
+                            },
+                            {
+                              "kind": "ident",
+                              "name": "j",
+                              "type": {
+                                "kind": "basic",
+                                "name": "int"
+                              },
+                              "flags": [
+                                "reread"
+                              ],
+                              "attrs": {
+                                "read_count": "2",
+                                "ref": "local"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "value",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "index",
+                          "name": "",
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "values",
+                              "type": {
+                                "kind": "slice",
+                                "args": [
+                                  {
+                                    "kind": "basic",
+                                    "name": "int64"
+                                  }
+                                ]
+                              },
+                              "flags": [
+                                "reread"
+                              ],
+                              "attrs": {
+                                "read_count": "4",
+                                "ref": "local"
+                              }
+                            },
+                            {
+                              "kind": "ident",
+                              "name": "j",
+                              "type": {
+                                "kind": "basic",
+                                "name": "int"
+                              },
+                              "flags": [
+                                "reread"
+                              ],
+                              "attrs": {
+                                "read_count": "2",
+                                "ref": "local"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "value",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "index",
+                          "name": "",
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "values",
+                              "type": {
+                                "kind": "slice",
+                                "args": [
+                                  {
+                                    "kind": "basic",
+                                    "name": "int64"
+                                  }
+                                ]
+                              },
+                              "flags": [
+                                "reread"
+                              ],
+                              "attrs": {
+                                "read_count": "4",
+                                "ref": "local"
+                              }
+                            },
+                            {
+                              "kind": "ident",
+                              "name": "i",
+                              "type": {
+                                "kind": "basic",
+                                "name": "int"
+                              },
+                              "flags": [
+                                "reread"
+                              ],
+                              "attrs": {
+                                "read_count": "2",
+                                "ref": "local"
+                              }
+                            }
+                          ]
                         }
                       ]
                     }

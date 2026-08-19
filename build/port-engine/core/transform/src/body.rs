@@ -22,7 +22,9 @@ use crate::body_parts::{branch, named_child, one_child, two_children, unsupporte
 use crate::error::TransformError;
 use crate::naming::to_snake_case;
 use crate::resolve::Resolver;
-use crate::vocabulary::{ATTR_OP, ATTR_SOURCE_NODE, CHILD_BIND, CHILD_VALUE, FLAG_MUTATED};
+use crate::vocabulary::{
+    ATTR_OP, ATTR_SOURCE_NODE, CHILD_BIND, CHILD_PLACE, CHILD_VALUE, FLAG_MUTATED,
+};
 
 /// What one body translation needs in order to answer a question about the TARGET.
 ///
@@ -256,6 +258,36 @@ pub(crate) fn statement(
                     .collect(),
                 value: expression(one_child(value, cx, "let_tuple")?, cx)?,
             })
+        }
+        "assign_tuple" => {
+            // A PARALLEL assignment. The source evaluates every operand on both sides before
+            // assigning any of them, which is what makes `a[i], a[j] = a[j], a[i]` a swap rather
+            // than two writes — and the target's destructuring assignment has the same rule, so
+            // the construct carries across whole. Two separate assignments would not: the first
+            // would be written and then read back by the second.
+            let mut places = Vec::new();
+            for place in node.children_of_kind(CHILD_PLACE) {
+                places.push(expression(one_child(place, cx, "assign_tuple")?, cx)?);
+            }
+            let mut values = Vec::new();
+            for value in node.children_of_kind(CHILD_VALUE) {
+                values.push(expression(one_child(value, cx, "assign_tuple")?, cx)?);
+            }
+            match values.len() == 1 || values.len() == places.len() {
+                true => Ok(RustStmt::AssignTuple { places, values }),
+                // Neither shape the target has: one expression yielding the whole tuple, or one
+                // per place. Anything else would need a rule for how the values pair up, and
+                // pairing them by position when the counts disagree is a guess.
+                false => Err(TransformError::Unsupported {
+                    name: cx.owner.to_owned(),
+                    detail: format!(
+                        "a parallel assignment writes {} places from {} values, and the target \
+                         spells only one value per place or one expression yielding them all",
+                        places.len(),
+                        values.len()
+                    ),
+                }),
+            }
         }
         "break" => Ok(RustStmt::Break),
         "for" => counted_loop(node, cx),

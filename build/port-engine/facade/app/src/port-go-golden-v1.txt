@@ -397,6 +397,11 @@ pub mod sequence {
     pub fn seeds() -> [i64; 3] {
         [11, 13, 17]
     }
+    // region: oyatie_example_portengine_fixture_corpus_sequence__go_func__swap
+    /// Exchanges the values at i and j.
+    pub fn swap(values: &mut [i64], i: i64, j: i64) {
+        (values[i as usize], values[j as usize]) = (values[j as usize], values[i as usize]);
+    }
     // region: oyatie_example_portengine_fixture_corpus_sequence__go_func__widths
     /// Returns the configured widths.
     pub fn widths() -> Vec<i64> {

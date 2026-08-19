@@ -31,3 +31,16 @@ func Widths() []int64 {
 func Empty() []int64 {
 	return []int64{}
 }
+
+// PARALLEL assignment, whose whole content is the ORDER. The source evaluates every operand on both
+// sides before assigning any of them, which is what makes this a swap rather than two writes — and
+// the target's destructuring assignment has the same rule, so the construct carries across whole.
+// Two separate assignments would not: the first place would be written and then read back.
+//
+// A place whose own subexpressions have EFFECTS is refused, because the two languages evaluate a
+// place's subexpressions at different times and a call inside one would run at a different point.
+
+// Swap exchanges the values at i and j.
+func Swap(values []int64, i int, j int) {
+	values[i], values[j] = values[j], values[i]
+}
