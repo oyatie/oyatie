@@ -41,6 +41,8 @@ pub struct Pack {
     pub target_imports: BTreeMap<String, String>,
     /// Calls that cannot be mapped, and why. Empty by default, for the same reason.
     pub unmappable_calls: BTreeMap<String, String>,
+    /// Callees that take a length. Empty by default, for the same reason.
+    pub length_argument_callees: BTreeSet<String>,
     pub copies: BTreeSet<String>,
     pub casts: BTreeSet<String>,
     pub zeroes: BTreeMap<String, String>,
@@ -234,6 +236,13 @@ impl Pack {
 }
 
 impl PackSemantics for Pack {
+    fn length_argument_callees(&self) -> &BTreeSet<String> {
+        // EMPTY, like the tables beside it: these tests assert on structure, and which callees take
+        // a length is the real pack's judgement about a real standard library.
+        &self.length_argument_callees
+    }
+
+
     fn unmappable_calls(&self) -> &BTreeMap<String, String> {
         // EMPTY, so a fixture's foreign call refuses saying a mapping is owed. Which calls cannot
         // be mapped is the real pack's judgement, exercised against real source.

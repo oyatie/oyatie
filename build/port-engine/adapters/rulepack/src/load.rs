@@ -113,6 +113,11 @@ impl LoadedRulePack {
                 .prose_type_names
                 .map(|table| table.names)
                 .unwrap_or_default(),
+            length_argument_callees: doc
+                .length_functions
+                .as_ref()
+                .map(|table| table.argument_callees.clone())
+                .unwrap_or_default(),
             length_functions: doc
                 .length_functions
                 .map(|table| table.names)

@@ -41,6 +41,10 @@ impl PackSemantics for LoadedRulePack {
     fn integer_arithmetic(&self) -> &IntegerArithmetic {
         &self.integer_arithmetic
     }
+    fn length_argument_callees(&self) -> &BTreeSet<String> {
+        &self.length_argument_callees
+    }
+
     fn unmappable_calls(&self) -> &BTreeMap<String, String> {
         &self.unmappable_calls
     }
