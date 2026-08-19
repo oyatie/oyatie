@@ -71,6 +71,8 @@ pub(crate) struct Resolver<'a> {
     pub(crate) constructors: &'a BTreeMap<String, String>,
     /// Source types whose target counterpart copies; everything else clones on a value read.
     pub(crate) copy_types: &'a BTreeSet<String>,
+    /// Source types a conversion reaches by a plain cast.
+    pub(crate) cast_types: &'a BTreeSet<String>,
     /// Source function identity → a target expression template.
     pub(crate) function_map: &'a BTreeMap<String, String>,
     /// How the source spells failure, when it has a convention for it.

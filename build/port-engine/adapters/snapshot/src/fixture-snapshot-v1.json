@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "language": "go",
-  "snapshot_digest": "sha256:f2e124c74a8b2686d5e4a9216227d1ec4762c5cc1e6177fe105930c5c78bb05d",
+  "snapshot_digest": "sha256:d78e47ea01fb87a27463baa92ef3cec112e6e8a7454cf040c58a04f111b4dc03",
   "packages": [
     {
       "unit_id": "oyatie.example/portengine-fixture/corpus/basic",
@@ -1718,7 +1718,8 @@
                       "kind": "call",
                       "name": "",
                       "attrs": {
-                        "callee": "oyatie.example/portengine-fixture/corpus/shapes.Name"
+                        "callee": "",
+                        "callee_kind": "method"
                       },
                       "children": [
                         {

@@ -146,7 +146,10 @@ const (
 	kindParen    = "paren"
 	kindSelector = "selector"
 	kindCall     = "call"
-	kindIndex    = "index"
+	// kindConvert is a type CONVERSION, which the source spells exactly like a call. Its own
+	// kind because the target has three forms for it and none is a function call.
+	kindConvert = "convert"
+	kindIndex   = "index"
 	// kindSlice is `s[lo:hi]`. The bounds are children in a fixed order and an ABSENT bound is
 	// recorded as an empty node rather than omitted, because `s[:hi]` and `s[lo:]` would
 	// otherwise be the same two-child shape meaning different things.
@@ -222,7 +225,14 @@ const (
 	attrVia = "via"
 	// attrCallee is the package-qualified IDENTITY of what a call resolves to. Recorded because
 	// a rule keyed on the callee's spelling would answer for anything that shares its name.
+	// EMPTY for a method, which has no package-path name — see attrCalleeKind.
 	attrCallee = "callee"
+	// attrCalleeKind distinguishes a call through a RECEIVER from a call to a free function. The
+	// source spells `value.Method()` and `package.Function()` identically and the target does not,
+	// so deciding by syntax emits a method call on a package name.
+	attrCalleeKind = "callee_kind"
+	// calleeKindMethod is the one value attrCalleeKind takes; its absence means a free function.
+	calleeKindMethod = "method"
 	// attrSite records HOW an interface satisfaction was observed. A declared assertion is
 	// compile-checked by Go; a flow-derived one is this extractor's inference. An impl emitted
 	// from either looks identical, so a reviewer needs the distinction recorded rather than

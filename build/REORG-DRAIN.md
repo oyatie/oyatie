@@ -479,6 +479,30 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
   New: `port-engine-app region-digests` prints per-region digests, so a whole-program change's blast
   radius is countable rather than one line of one golden diff.
 
+- R1a: the two call defects that were shipping WRONG OUTPUT, not missing output.
+  A call decided method-versus-function by SYNTAX: a selector callee became a method call on the
+  selector's base. That is right for `value.Method()` and wrong for `package.Function()`, and the
+  source spells both the same way — so a cross-package call emitted a method call on a binding that
+  does not exist. It looked fine only because the fixture's one such call was in the function map and
+  never reached the fallback. Only the type-checker can tell the two apart, so it now records which,
+  and a free function resolves to a PATH through the same `module_path` a cross-unit type uses — so
+  a call and a type reference to one unit cannot disagree.
+  A CONVERSION is spelled exactly like a call and is not one. `uint32(x)`, `Celsius(f)` and
+  `[]byte(s)` are all call expressions in the source, so they reached the transform as calls whose
+  callee resolved to nothing. Three target forms, because they are three operations: to a named type
+  the corpus declares it CONSTRUCTS the newtype; between numeric types the source is defined to
+  truncate and the target spells that as a cast; between string and byte slice it is infallible and
+  lossy in the source and FALLIBLE in the target, so it refuses — what happens to input the target
+  rejects is a decision rather than a spelling.
+  `RustExpr::Cast` is a NODE, not text, so integer right-sizing can see the cast and remove it. Its
+  operand is bracketed: `as` binds tighter than every binary operator, so `a + b as u8` casts `b`
+  alone — a different program, and one that compiles.
+  Coverage on google/uuid went 47.4% → 38.1% → 43.3%. The drop is the point: ten declarations were
+  emitting a method call on a package name and now refuse by name. A ratchet that only ever rises is
+  measuring the wrong thing.
+  Every architecture fence gained the R0 `sources.rs`, each caught by its own completeness assertion
+  — a file a fence does not read is a file a forbidden call can hide in.
+
 ## Still owed by this lane
   One class the ratchet surfaced and this lane is deliberately leaving refused: `return named, err`
   where `named` is a NAMED RESULT. Go's convention says a caller may not read it after a non-nil

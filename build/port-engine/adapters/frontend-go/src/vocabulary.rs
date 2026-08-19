@@ -100,6 +100,7 @@ pub const KNOWN_MEMBER_KINDS: &[&str] = &[
     "call",
     "case",
     "composite",
+    "convert",
     "for",
     // An interface an interface EMBEDS. The target has no embedding, so this becomes a
     // supertrait — which is a requirement rather than a copy of the method set, and is why it is
@@ -177,6 +178,7 @@ pub const KNOWN_FLAGS: &[&str] = &[
 /// The closed attribute-key vocabulary, closed for the same reason as the flags.
 pub const KNOWN_ATTR_KEYS: &[&str] = &[
     ATTR_CALLEE,
+    ATTR_CALLEE_KIND,
     ATTR_DOC,
     ATTR_GO_NODE,
     ATTR_LIT_KIND,
@@ -210,6 +212,13 @@ pub const ATTR_RANGE_VALUE: &str = "value";
 /// The identity rather than the spelling, because a rule keyed on text would answer for a local
 /// variable that shares a package's name.
 pub const ATTR_CALLEE: &str = "callee";
+
+/// Attribute key distinguishing a call through a RECEIVER from a call to a free function.
+///
+/// The source spells `value.Method()` and `package.Function()` identically; the target does not.
+/// Only the type-checker can tell which name is a package, so the front end records it rather than
+/// leaving the transform to guess from syntax.
+pub const ATTR_CALLEE_KIND: &str = "callee_kind";
 
 /// Attribute key holding the receiver a TRAIT method binds, derived from its observed
 /// implementors.

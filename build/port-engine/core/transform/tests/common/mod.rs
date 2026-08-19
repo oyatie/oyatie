@@ -23,6 +23,7 @@ pub struct Pack {
     pub overrides: BTreeMap<String, BTreeMap<String, String>>,
     pub deferred: BTreeSet<String>,
     pub copies: BTreeSet<String>,
+    pub casts: BTreeSet<String>,
     pub zeroes: BTreeMap<String, String>,
     pub trait_objects: BTreeMap<String, String>,
     pub failure: Option<FailureConvention>,
@@ -165,6 +166,9 @@ impl PackSemantics for Pack {
     }
     fn type_map_overrides(&self, construction: &str) -> Option<&BTreeMap<String, String>> {
         self.overrides.get(construction)
+    }
+    fn cast_types(&self) -> &BTreeSet<String> {
+        &self.casts
     }
     fn copy_types(&self) -> &BTreeSet<String> {
         &self.copies

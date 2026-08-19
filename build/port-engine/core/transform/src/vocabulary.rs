@@ -66,6 +66,10 @@ pub const TYPE_NAMED_INTERFACE: &str = "named_interface";
 pub const ATTR_REF: &str = "ref";
 /// Attribute key holding the package-qualified IDENTITY of what a call resolves to.
 pub const ATTR_CALLEE: &str = "callee";
+/// Attribute key distinguishing a call through a RECEIVER from a call to a free function.
+pub const ATTR_CALLEE_KIND: &str = "callee_kind";
+/// The one value [`ATTR_CALLEE_KIND`] takes; its absence means a free function.
+pub const CALLEE_KIND_METHOD: &str = "method";
 /// Attribute key holding the receiver a TRAIT method binds, derived from its observed
 /// implementors. Absent means nothing was observed to implement the interface, and the pack's
 /// declared decision answers instead.

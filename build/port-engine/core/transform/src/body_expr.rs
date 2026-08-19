@@ -13,7 +13,7 @@ use crate::body_index::slice;
 use crate::body_ops::{binary_operator, is_receiver, operator_of, reference, unary_operator};
 use crate::error::TransformError;
 use crate::naming::to_snake_case;
-use crate::vocabulary::{ATTR_CALLEE, ATTR_VALUE};
+use crate::vocabulary::{ATTR_CALLEE, ATTR_CALLEE_KIND, ATTR_VALUE, CALLEE_KIND_METHOD};
 
 /// Where an expression appears: a value is READ, a place is WRITTEN TO.
 ///
@@ -74,6 +74,7 @@ pub(crate) fn in_position(
             })
         }
         "composite" => composite(node, cx),
+        "convert" => convert(node, cx),
         "slice" => slice(node, cx),
         "unsupported" => Err(unsupported_source(node, cx)),
         other => Err(TransformError::Unsupported {
@@ -131,6 +132,46 @@ fn moves_on_read(type_ref: &TypeRef, cx: &Body<'_>) -> bool {
         return false;
     }
     !cx.resolver.copies(type_ref)
+}
+
+/// A type CONVERSION, which the source spells exactly like a call.
+///
+/// Three forms, because they are three operations. To a type the corpus declares, the target's
+/// newtype CONSTRUCTS from the value. Between numeric types the source is defined to truncate, and
+/// the target spells that as a cast — faithful, and the place `num-cast-try-from` will want
+/// revisiting once the pack can say which conversions are meant to be checked. Anything else
+/// refuses: converting between a string and a byte slice is infallible and lossy in the source and
+/// FALLIBLE in the target, which is a decision about invalid input rather than a spelling.
+fn convert(node: &Declaration, cx: &Body<'_>) -> Result<RustExpr, TransformError> {
+    let operand = expression(one_child(node, cx, "convert")?, cx)?;
+    let target = &node.type_ref;
+
+    // A named type the corpus declares emits as a newtype, so converting to it is construction.
+    if target.kind == "named" {
+        let path = cx.resolver.resolve(target, cx.owner)?;
+        return Ok(RustExpr::Call {
+            callee: Box::new(RustExpr::Path(path.spelling())),
+            args: vec![operand],
+        });
+    }
+
+    if target.kind == "basic" && cx.resolver.converts_by_cast(target) {
+        let rendered = cx.resolver.resolve(target, cx.owner)?;
+        return Ok(RustExpr::Cast {
+            expr: Box::new(operand),
+            ty: rendered,
+        });
+    }
+
+    Err(TransformError::Unsupported {
+        name: cx.owner.to_owned(),
+        detail: format!(
+            "converting to `{}` has no declared target form — the source's conversion is \
+             infallible and the target's is not, so what happens to input the target rejects is a \
+             decision the pack has to make rather than a spelling",
+            target.describe()
+        ),
+    })
 }
 
 /// A struct literal, with every field named.
@@ -211,7 +252,10 @@ fn call(node: &Declaration, cx: &Body<'_>) -> Result<RustExpr, TransformError> {
         return Ok(rendered);
     }
 
-    if callee.kind == "selector" {
+    // A call through a RECEIVER, as the type-checker saw it — not as the syntax looked. The
+    // source spells `value.Method()` and `package.Function()` the same way, and deciding by shape
+    // emitted a method call on a package name.
+    if node.attr(ATTR_CALLEE_KIND) == Some(CALLEE_KIND_METHOD) {
         return Ok(RustExpr::MethodCall {
             // The receiver of a method call is a PLACE, not a value: `x.m()` borrows `x` rather
             // than reading it, so cloning here would call the method on a temporary.
@@ -224,8 +268,15 @@ fn call(node: &Declaration, cx: &Body<'_>) -> Result<RustExpr, TransformError> {
             args,
         });
     }
+
+    // A free function, named by the path its identity resolves to. A local one keeps its bare
+    // name; one from another unit is reached through that unit's emitted module, the same way a
+    // type from another unit is.
+    let path = cx
+        .resolver
+        .function_path(node.attr(ATTR_CALLEE), cx.owner)?;
     Ok(RustExpr::Call {
-        callee: Box::new(expression(callee, cx)?),
+        callee: Box::new(RustExpr::Path(path)),
         args,
     })
 }

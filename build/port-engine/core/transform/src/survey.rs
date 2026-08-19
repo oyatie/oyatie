@@ -199,6 +199,7 @@ fn survey_declaration<P>(
         overrides: pack.type_map_overrides(construction),
         constructors: pack.type_constructors(),
         copy_types: pack.copy_types(),
+        cast_types: pack.cast_types(),
         zero_values: pack.zero_values(),
         trait_object_forms: pack.trait_object_forms(),
         failure: pack.failure_convention(),

@@ -45,6 +45,10 @@ impl PackSemantics for LoadedRulePack {
         &self.zero_values
     }
 
+    fn cast_types(&self) -> &BTreeSet<String> {
+        &self.cast_types
+    }
+
     fn copy_types(&self) -> &BTreeSet<String> {
         &self.copy_types
     }

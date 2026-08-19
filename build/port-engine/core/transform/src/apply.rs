@@ -142,6 +142,7 @@ pub fn apply_with_provenance(
                     overrides: semantics.type_map_overrides(construction),
                     constructors: semantics.type_constructors(),
                     copy_types: semantics.copy_types(),
+                    cast_types: semantics.cast_types(),
                     zero_values: semantics.zero_values(),
                     trait_object_forms: semantics.trait_object_forms(),
                     failure: semantics.failure_convention(),

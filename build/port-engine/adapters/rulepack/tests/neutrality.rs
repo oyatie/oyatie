@@ -18,6 +18,7 @@ const PRODUCTION_SOURCES: &[(&str, &str)] = &[
     ("rule.rs", include_str!("../src/rule.rs")),
     ("seams.rs", include_str!("../src/seams.rs")),
     ("wire.rs", include_str!("../src/wire.rs")),
+    ("sources.rs", include_str!("../src/sources.rs")),
 ];
 
 /// The enumeration must BE the directory, not a subset somebody once curated.

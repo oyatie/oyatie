@@ -11,7 +11,7 @@ use port_engine_api::TypeRef;
 use port_engine_rust_ir::RustType;
 
 use crate::error::TransformError;
-use crate::naming::{module_path, to_pascal_case};
+use crate::naming::{module_path, to_pascal_case, to_snake_case};
 use crate::resolve::Resolver;
 use crate::vocabulary::TYPE_NAMED_INTERFACE;
 
@@ -31,6 +31,63 @@ impl Resolver<'_> {
                          target error type"
                     .to_owned(),
             })
+    }
+
+    /// The target path a free function's IDENTITY resolves to.
+    ///
+    /// A local function keeps its bare name; one from another unit is reached through that unit's
+    /// emitted module, exactly as a type from another unit is — the same `module_path` both sides
+    /// use, so a call and a type reference to the same unit cannot disagree.
+    ///
+    /// # Errors
+    /// [`TransformError::Unsupported`] when the front end recorded no identity. That happens for a
+    /// call to a value of function type, a conversion, or a method value — each a real shape with
+    /// no path form, and each better refused by name than emitted as the source's own spelling,
+    /// which would name nothing in the target.
+    pub(crate) fn function_path(
+        &self,
+        identity: Option<&str>,
+        declaration_name: &str,
+    ) -> Result<String, TransformError> {
+        let Some(identity) = identity.filter(|value| !value.is_empty()) else {
+            return Err(TransformError::Unsupported {
+                name: declaration_name.to_owned(),
+                detail: "a call whose callee the front end could not identify — a value of \
+                         function type, a conversion, or a method value — has no path form, and \
+                         emitting the source's spelling would name nothing"
+                    .to_owned(),
+            });
+        };
+
+        // The pack answers first, for anything the target has no name of its own for.
+        if let Some(mapped) = self.function_map.get(identity) {
+            return Ok(mapped.clone());
+        }
+
+        let Some((package, name)) = identity.rsplit_once('.') else {
+            // A builtin: no package, and the pack did not answer for it.
+            return Err(TransformError::Unsupported {
+                name: declaration_name.to_owned(),
+                detail: format!(
+                    "`{identity}` is a source builtin the pack does not map, and the target has no \
+                     function of that name"
+                ),
+            });
+        };
+
+        if package == self.unit.0 {
+            return Ok(to_snake_case(name));
+        }
+        Ok(format!("{}::{}", module_path(package), to_snake_case(name)))
+    }
+
+    /// Whether converting TO this source type is a plain cast in the target.
+    ///
+    /// The pack says which, keyed by source identity like every other table. Numeric conversion is
+    /// defined to truncate in the source and the target's cast does the same thing; a conversion
+    /// the pack does not list is one where the two languages disagree, and those refuse.
+    pub(crate) fn converts_by_cast(&self, type_ref: &TypeRef) -> bool {
+        self.cast_types.contains(&table_key(type_ref))
     }
 
     /// Whether a plain read of this source type COPIES in the target.
