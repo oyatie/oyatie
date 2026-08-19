@@ -3255,3 +3255,32 @@ check and becomes a second opinion holding the old view.
 
 Three defects, one gate. All seven real packages still compile with zero rustc errors and zero clippy
 warnings; all five corpora now do too.
+
+## R1i — the error model, answered with a measurement instead of a preference
+
+Three independent blind reviewers led with the same proposal: the unit's sentinels should be one
+`#[non_exhaustive] enum` rather than several types behind a boxed trait object. It was declined
+before; it is now declined with numbers, written into the pack beside the decision, because an
+engine that cannot say why it did not do the obvious thing gets asked again by every reader.
+
+**An enum cannot type a parameter that accepts an ARBITRARY failure.** The source's error is an open
+interface, and **16 parameters across the seven surveyed packages take one** — 10 in `errors`, 4 in
+`multierror`, two packages that exist for no other purpose. A per-unit enum accepts only what that
+unit declares, so those signatures become untypeable. Not a worse API: an impossible one.
+
+**An enum built from a unit's sentinels does not cover its failures.** `semver` declares 7 sentinels
+and has 78 failure sites. The enum reaches **16**. Forty-three are formatted messages with no variant
+to be.
+
+**And the variant that would cover them buys nothing.** A `Message(String)` arm is the box under
+another name for four fifths of the cases, and the enum must be `#[non_exhaustive]` regardless — so
+the exhaustive `match` that was the whole argument for it never arrives.
+
+**What the reviewers were actually seeing is real, and is a different thing.** In a PARTIAL port the
+sentinel types are constructed and never compared — zero `downcast_ref` sites — because every
+function that compares them refused for its own reason. The comparison IS emitted; `corpus-sentinel`
+proves it. It appears as those functions land.
+
+The general shape here is worth keeping: an enum is a better Rust API for a program somebody is
+writing fresh, and a DIFFERENT API from the one being ported. Choosing it would be redesigning the
+package rather than porting it, and this engine ports.

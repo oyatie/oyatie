@@ -177,6 +177,12 @@ pub struct FailureConvention {
     /// reported success.
     pub constructors: std::collections::BTreeSet<String>, // data_class: INTERNAL_ONLY
     /// What the failure type is as a PARAMETER. Empty to refuse one.
+    /// Why the obvious alternative to [`Self::target_type`] was measured and not taken.
+    ///
+    /// Carried because three independent reviewers proposed the same one and the answer is a
+    /// measurement rather than a preference — an engine that cannot say why it did not do the
+    /// obvious thing will be asked again every time somebody reads the output.
+    pub target_type_alternative_reason: String, // data_class: INTERNAL_ONLY
     /// The prefix the source puts on a sentinel's NAME, which the target drops. Empty to keep it.
     pub sentinel_prefix: String, // data_class: INTERNAL_ONLY
     /// Why the prefix goes, and the three conditions under which it stays.
