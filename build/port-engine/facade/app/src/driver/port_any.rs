@@ -28,6 +28,11 @@ pub struct PortedPackage {
     pub report: SurveyReport,
     /// The emitted Rust, one module per unit.
     pub source: String,
+    /// Regions the transform built and the renderer would not take, with what it said.
+    ///
+    /// A refusal discovered LATE. The transform counted these as translated, and they are not —
+    /// which is exactly the kind of overcount this command exists to expose.
+    pub unrenderable: Vec<String>,
 }
 
 /// Port a snapshot the engine has never seen, emitting what translates.
@@ -52,15 +57,23 @@ pub fn port_snapshot(path: &Path) -> Result<PortedPackage, PipelineError> {
     let mut regions: Vec<&port_engine_transform::PortedRegion> = report.ported.iter().collect();
     regions.sort_by(|a, b| (&a.unit.0, a.position).cmp(&(&b.unit.0, b.position)));
 
-    let names: Vec<&str> = regions.iter().map(|region| region.region.as_str()).collect();
-    let mut ir = RustIr::new(&names);
-    for region in &regions {
-        ir.set_items(&region.region, region.items.clone())
-            .map_err(PipelineError::Emit)?;
-    }
-
+    // ONE REGION AT A TIME, because a region that will not render is a refusal discovered late and
+    // this is a partial port. Rendering the package as one tree makes a single bad region take the
+    // whole package with it — which is what happened, and what hid every other region in it.
     let renderer = port_engine_rust_ir::RustRenderer;
-    let emitted = renderer.render_rust_ir(&ir).map_err(PipelineError::Emit)?;
+    let mut emitted = std::collections::BTreeMap::new();
+    let mut unrenderable = Vec::new();
+    for region in &regions {
+        let mut ir = RustIr::new(&[region.region.as_str()]);
+        let built = ir
+            .set_items(&region.region, region.items.clone())
+            .map_err(PipelineError::Emit)
+            .and_then(|()| renderer.render_rust_ir(&ir).map_err(PipelineError::Emit));
+        match built {
+            Ok(rendered) => emitted.extend(rendered),
+            Err(error) => unrenderable.push(format!("{}: {error}", region.region)),
+        }
+    }
     let mut source = String::from(
         "// PARTIAL. Emitted by port-engine from a package it had never seen; the declarations it\n\
          // could not translate are absent, and the survey says which and why.\n",
@@ -75,8 +88,10 @@ pub fn port_snapshot(path: &Path) -> Result<PortedPackage, PipelineError> {
             source.push_str(&format!("pub mod {module} {{\n"));
             current = module;
         }
-        let bytes = emitted.get(&port_engine_api::RegionId(region.region.clone()));
-        for line in String::from_utf8_lossy(bytes.map_or(&[][..], Vec::as_slice)).lines() {
+        let Some(bytes) = emitted.get(&port_engine_api::RegionId(region.region.clone())) else {
+            continue;
+        };
+        for line in String::from_utf8_lossy(bytes).lines() {
             match line.is_empty() {
                 true => source.push('\n'),
                 false => source.push_str(&format!("    {line}\n")),
@@ -86,5 +101,9 @@ pub fn port_snapshot(path: &Path) -> Result<PortedPackage, PipelineError> {
     if !current.is_empty() {
         source.push_str("}\n");
     }
-    Ok(PortedPackage { report, source })
+    Ok(PortedPackage {
+        report,
+        source,
+        unrenderable,
+    })
 }
