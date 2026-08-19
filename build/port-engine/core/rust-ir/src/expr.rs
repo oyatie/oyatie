@@ -9,6 +9,7 @@
 //! The precedence table itself lives in [`crate::ops`].
 
 use crate::ops::{BinaryOp, Precedence, UnaryOp};
+use crate::ty::RustType;
 
 /// A statement in an emitted body.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -20,12 +21,21 @@ pub enum RustStmt {
         /// What they are bound from.
         value: RustExpr,
     },
-    /// `let <name> = <value>;`
+    /// `let [mut] <name>[: <ty>] [= <value>];`
     Let {
         /// The bound name, already cased for the target.
         name: String, // data_class: INTERNAL_ONLY
-        /// What it is bound to.
-        value: RustExpr,
+        /// Whether the binding is written again.
+        ///
+        /// A VALUE rather than a default, because the source makes every binding mutable and the
+        /// target makes none of them: assuming either way is wrong for half the bindings in any
+        /// real body.
+        mutable: bool,
+        /// The declared type, when the source declared one.
+        ty: Option<RustType>,
+        /// What it is bound to. `None` is a binding the body fills in later, which the source
+        /// spells as a `var` with no initializer.
+        value: Option<RustExpr>,
     },
     /// An expression evaluated for effect: `<expr>;`
     Semi(RustExpr),

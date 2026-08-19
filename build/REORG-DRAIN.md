@@ -416,12 +416,34 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
   binding means), and the slice expression — BORROWED, because the source's slice is a view and an
   owned target would be a different program with different aliasing. A three-index slice refuses:
   it sets the result's capacity, which the target does not express at all.
+  Rung 3: **47.4%**. `var` inside a body — a `let` with an optional type and an optional
+  initializer, which is a shape the target has exactly, and which ten of uuid's functions were
+  waiting on.
+  The MUTABILITY that arrived with it is the part worth recording, because it was a latent defect
+  rather than a gap. Every binding in the source is mutable and the target makes none of them: a
+  `let mut` default warns on every binding a body never writes again, and a `let` default fails to
+  compile the first time one is assigned. Neither is a judgement call — the body says which — so the
+  front end now indexes what a body ASSIGNS TO and the transform spends the fact. `:=` bindings had
+  the same problem and compiled only because no fixture ever reassigned one, which is the same
+  shape of hole the type map had: a corpus written beside the engine does not exercise the engine.
+  Taking a pointer to a binding counts as a write, deliberately: the write itself may be anywhere,
+  and being conservative costs a warning where being wrong costs a compile error.
+  A DECLARED type is carried onto the binding rather than left to inference, because the two
+  languages default differently — an untyped integer literal is the case that bites — and dropping
+  it would change what the binding IS.
+
   What the ratchet says is left, in its own order: `var` at package scope (27, deferred with a
   recorded reason — a mutable global whose target form is a synchronization policy the source never
   stated), `DeclStmt` (10), `defer` (9), and a tail of type assertions, array types and one
   carried-value failing return.
 
 ## Still owed by this lane
+  One class the ratchet surfaced and this lane is deliberately leaving refused: `return named, err`
+  where `named` is a NAMED RESULT. Go's convention says a caller may not read it after a non-nil
+  failure, which is the same argument that makes discarding a literal sound — but a named result
+  can have been written through before the failure, and nothing here proves it was not. Four
+  declarations in uuid. It is a decision about how far to trust the source's convention, and it
+  belongs to whoever owns the pack rather than to the engine.
 
 - A concrete value flowing into a trait-object POSITION needs a coercion the body translator does
   not have. `Describe(tag)` where the parameter is `&dyn Named` is fine when the argument resolves

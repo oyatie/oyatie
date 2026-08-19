@@ -6,7 +6,7 @@ use quote::{ToTokens, quote};
 use port_engine_api::PortError;
 
 use crate::expr::{MatchArm, RustExpr, RustStmt};
-use crate::lower_parts::{parse_expr, parse_ident};
+use crate::lower_parts::{parse_expr, parse_ident, parse_type};
 use crate::ops::BinaryOp;
 
 pub(crate) fn lower_block(statements: &[RustStmt]) -> Result<TokenStream, PortError> {
@@ -19,10 +19,32 @@ pub(crate) fn lower_block(statements: &[RustStmt]) -> Result<TokenStream, PortEr
 
 fn lower_stmt(statement: &RustStmt) -> Result<TokenStream, PortError> {
     match statement {
-        RustStmt::Let { name, value } => {
+        RustStmt::Let {
+            name,
+            mutable,
+            ty,
+            value,
+        } => {
             let name = parse_ident(name)?;
-            let value = lower_expr(value)?;
-            Ok(quote! { let #name = #value; })
+            let mutability = if *mutable {
+                quote! { mut }
+            } else {
+                TokenStream::new()
+            };
+            let annotation = match ty {
+                Some(ty) => {
+                    let ty = parse_type(ty)?;
+                    quote! { : #ty }
+                }
+                None => TokenStream::new(),
+            };
+            match value {
+                Some(value) => {
+                    let value = lower_expr(value)?;
+                    Ok(quote! { let #mutability #name #annotation = #value; })
+                }
+                None => Ok(quote! { let #mutability #name #annotation; }),
+            }
         }
         RustStmt::LetTuple { names, value } => {
             let names = names
