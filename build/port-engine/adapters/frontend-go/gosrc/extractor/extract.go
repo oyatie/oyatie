@@ -23,13 +23,22 @@ import (
 // Extraction
 // ---------------------------------------------------------------------------------
 
-func extract(corpusDir string, modulePath string, moduleRoot string) (*snapshot, error) {
-	dirs, err := packageDirs(corpusDir)
+func extract(
+	corpusDir string,
+	modulePath string,
+	moduleRoot string,
+	cfg *buildConfig,
+) (*snapshot, error) {
+	dirs, err := packageDirs(corpusDir, cfg)
 	if err != nil {
 		return nil, err
 	}
 	if len(dirs) == 0 {
-		return nil, fmt.Errorf("corpus %s contains no Go package directory", corpusDir)
+		return nil, fmt.Errorf(
+			"corpus %s contains no Go package directory for %s",
+			corpusDir,
+			cfg.describe(),
+		)
 	}
 
 	// The corpus is its own importer: an intra-corpus import resolves by type-checking the
@@ -40,9 +49,9 @@ func extract(corpusDir string, modulePath string, moduleRoot string) (*snapshot,
 		if err != nil {
 			return nil, fmt.Errorf("relativize %s: %w", dir, err)
 		}
-		packages[modulePath+"/"+filepath.ToSlash(rel)] = dir
+		packages[unitIDFor(modulePath, rel)] = dir
 	}
-	resolver := newCorpusImporter(packages)
+	resolver := newCorpusImporter(packages, cfg)
 
 	model := &snapshot{
 		SchemaVersion: schemaVersion,
@@ -57,9 +66,9 @@ func extract(corpusDir string, modulePath string, moduleRoot string) (*snapshot,
 		if err != nil {
 			return nil, fmt.Errorf("relativize %s: %w", dir, err)
 		}
-		unitID := modulePath + "/" + filepath.ToSlash(rel)
+		unitID := unitIDFor(modulePath, rel)
 
-		decls, observed, tpkg, err := extractPackage(dir, unitID, resolver)
+		decls, observed, tpkg, err := extractPackage(dir, unitID, resolver, cfg)
 		if err != nil {
 			return nil, fmt.Errorf("package %s: %w", unitID, err)
 		}
@@ -94,15 +103,20 @@ type corpusImporter struct {
 	resolved map[string]*types.Package
 	fallback types.Importer
 	fset     *token.FileSet
+	// cfg is the SAME configuration the extraction walk uses. It has to be: a package reached
+	// through an import and the same package reached directly must be one package, and selecting
+	// its files by two different rules makes it two.
+	cfg *buildConfig
 }
 
-func newCorpusImporter(dirs map[string]string) *corpusImporter {
+func newCorpusImporter(dirs map[string]string, cfg *buildConfig) *corpusImporter {
 	fset := token.NewFileSet()
 	return &corpusImporter{
 		dirs:     dirs,
 		resolved: map[string]*types.Package{},
 		fallback: importer.ForCompiler(fset, "source", nil),
 		fset:     fset,
+		cfg:      cfg,
 	}
 }
 
@@ -115,11 +129,11 @@ func (c *corpusImporter) Import(path string) (*types.Package, error) {
 		return c.fallback.Import(path)
 	}
 
-	files, err := parsePackage(c.fset, dir)
+	files, err := parsePackage(c.fset, dir, c.cfg)
 	if err != nil {
 		return nil, err
 	}
-	conf := types.Config{Importer: c}
+	conf := types.Config{Importer: c, GoVersion: c.cfg.goVersion()}
 	pkg, err := conf.Check(path, c.fset, files, nil)
 	if err != nil {
 		return nil, fmt.Errorf("import %s: %w", path, err)
@@ -128,22 +142,12 @@ func (c *corpusImporter) Import(path string) (*types.Package, error) {
 	return pkg, nil
 }
 
-// parsePackage reads and parses every non-test Go file in dir, in sorted order.
-func parsePackage(fset *token.FileSet, dir string) ([]*ast.File, error) {
-	entries, err := os.ReadDir(dir)
+// parsePackage parses the files this CONFIGURATION selects in dir, in sorted order.
+func parsePackage(fset *token.FileSet, dir string, cfg *buildConfig) ([]*ast.File, error) {
+	names, err := selectDirFiles(dir, cfg)
 	if err != nil {
-		return nil, fmt.Errorf("read dir: %w", err)
+		return nil, err
 	}
-	names := make([]string, 0, len(entries))
-	for _, entry := range entries {
-		name := entry.Name()
-		if entry.IsDir() || !strings.HasSuffix(name, ".go") || strings.HasSuffix(name, "_test.go") {
-			continue
-		}
-		names = append(names, name)
-	}
-	// Sorted parse order keeps go/types' object ordering reproducible across filesystems.
-	sort.Strings(names)
 
 	files := make([]*ast.File, 0, len(names))
 	for _, name := range names {
@@ -165,8 +169,13 @@ func parsePackage(fset *token.FileSet, dir string) ([]*ast.File, error) {
 
 // packageDirs returns every directory at or under root holding at least one .go file,
 // sorted. Test files are excluded: they are not part of the translatable surface.
-func packageDirs(root string) ([]string, error) {
-	seen := map[string]bool{}
+// packageDirs lists the directories that are a package UNDER THIS CONFIGURATION.
+//
+// A directory holding only `//go:build windows` files is not an empty package on linux, it is not
+// a package at all — and reporting it as one would fail the extraction of a corpus that builds
+// perfectly well for the declared target.
+func packageDirs(root string, cfg *buildConfig) ([]string, error) {
+	candidates := map[string]bool{}
 	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -177,16 +186,54 @@ func packageDirs(root string) ([]string, error) {
 		if !strings.HasSuffix(path, ".go") || strings.HasSuffix(path, "_test.go") {
 			return nil
 		}
-		seen[filepath.Dir(path)] = true
+		candidates[filepath.Dir(path)] = true
 		return nil
 	})
 	if err != nil {
 		return nil, fmt.Errorf("walk %s: %w", root, err)
 	}
-	dirs := make([]string, 0, len(seen))
-	for dir := range seen {
-		dirs = append(dirs, dir)
+	dirs := make([]string, 0, len(candidates))
+	for dir := range candidates {
+		selected, err := selectDirFiles(dir, cfg)
+		if err != nil {
+			return nil, err
+		}
+		if len(selected) > 0 {
+			dirs = append(dirs, dir)
+		}
 	}
 	sort.Strings(dirs)
 	return dirs, nil
+}
+
+// unitIDFor spells a package's import path from the module path and its directory relative to
+// the module root.
+//
+// The root directory relativises to ".", and joining that naively spells `example.com/mod/.` —
+// which is the import path of nothing. A package importing its own module root then fails to
+// resolve, and the error it produces ("no required module provides package") names a missing
+// dependency rather than the naming bug it actually is. Every fixture package is a subdirectory,
+// so the committed corpus could not have shown this; almost every real module puts code at its
+// root.
+func unitIDFor(modulePath string, rel string) string {
+	slashed := filepath.ToSlash(rel)
+	if slashed == "." {
+		return modulePath
+	}
+	return modulePath + "/" + slashed
+}
+
+// selectDirFiles reads a directory and asks the configuration which of its files are in.
+func selectDirFiles(dir string, cfg *buildConfig) ([]string, error) {
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return nil, fmt.Errorf("read dir %s: %w", dir, err)
+	}
+	names := make([]string, 0, len(entries))
+	for _, entry := range entries {
+		if !entry.IsDir() {
+			names = append(names, entry.Name())
+		}
+	}
+	return cfg.selectFiles(dir, names)
 }

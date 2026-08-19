@@ -583,6 +583,60 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
   deferral landed — the coverage proof reporting a kind nothing answers for, which is what it is
   for.
 
+- The front end had no notion of a BUILD CONFIGURATION, and a Go package is not every `.go` file
+  in a directory — it is the file set a configuration selects. The source says so three ways:
+  `//go:build`, the legacy `// +build`, and the filename itself (`hostid_linux.go`, `sum_amd64.go`).
+  Globbing does not produce a bigger package, it produces a file set no `go build` ever emits.
+  One cause, two symptoms, and only one of them was loud. THE LOUD ONE: two files declaring one
+  symbol under mutually exclusive constraints are a redeclaration, so the type check fails and the
+  package yields no measurement at all — `xxhash`, `uuid` and `xid`, three of the eight surveyed
+  corpora, all dead on this. THE QUIET ONE is why this matters: `pkg/errors/go113.go` sits behind
+  `//go:build go1.13` and declares `Is`, `As` and `Unwrap`. Nothing collided, so extraction
+  SUCCEEDED and those three entered the snapshot as unconditional declarations of the package.
+  Right for a recent toolchain, wrong for a configuration that excludes them, and recorded nowhere
+  as conditional. That is output that means something different, reached with no error raised.
+  The configuration is now DECLARED — `-goos`, `-goarch`, `-go-release`, `-tags` — and answered by
+  `go/build.Context`, which is Go's own rule rather than a second implementation of it. Declared
+  rather than read from the environment, because a configuration taken from the host makes the
+  snapshot digest a property of the machine: one upstream commit would extract to two identities
+  and the receipt would call an ordinary re-extraction drift. Release tags are pinned for the same
+  reason, and `types.Config.GoVersion` is pinned with them — left unset, go/types checks at
+  whatever version compiled the extractor and accepts syntax the declared target cannot build.
+  A SECOND selector was the reason the first fix looked like it had failed. `corpusImporter`
+  resolves an intra-corpus import by parsing the package itself, and it still globbed — so a
+  package reached through an import and the same package reached directly were selected by two
+  different rules, and the union is what failed. The symptom reads as "could not import", which
+  names a missing dependency and is actually a disagreement between two file lists. Two selectors
+  that must agree is the hazard `model.go` names about vocabularies and refuses; there is one now.
+  Also fixed, and only visible on real repos: a module whose ROOT directory is a package had the
+  unit id `example.com/mod/.`, which is the import path of nothing, so a sibling importing its own
+  module root did not resolve. Every fixture package is a subdirectory, so the committed corpus
+  could not have shown it; almost every real Go module puts code at its root.
+  Proven, not asserted. All seven existing fixtures regenerate BYTE-IDENTICAL — selection is a
+  no-op where constraints are absent and decisive where they are present. `corpus-buildtags/` is
+  new and is built to fail loudly: `Platform` is declared in both `platform_linux.go` and
+  `platform_darwin.go`, so a globbing front end cannot regenerate the artifact the fence reads at
+  all. Under the four configurations tried by hand the model tracks Go exactly — linux and darwin
+  both carry `Platform` with DIFFERENT digests, go1.12 drops `Recent`, and windows drops
+  `Platform` entirely while the package still admits. The fence has teeth: moving the declared
+  release from 21 to 12 fails `a_satisfied_release_constraint_admits_its_declarations` by name.
+  Green under both build systems, and `engine_digest` moved with the source while the other five
+  axes held.
+  What this does NOT yet do: the configuration is an input to the extraction and is not RECORDED
+  in the snapshot. Two configurations already produce two digests, so identity is sound — but the
+  receipt can only say the snapshot axis moved, not whether the operator changed platform or
+  upstream changed code. Recording it is a schema change and is the next increment, not this one.
+
+- `ulid` still yields no measurement, and the cause is worth naming rather than working around.
+  Its `cmd/ulid` imports `github.com/pborman/getopt/v2`, which is neither in the corpus nor in the
+  standard library, so the import cannot resolve — and the extraction fails the WHOLE corpus for
+  one command-line tool. That is the same defect shape as the `unsupported`-at-package-scope bug:
+  a local problem escalated to whole-corpus rejection, and one package in eight produces nothing.
+  The refusal is right and its GRANULARITY is wrong. A package whose imports the corpus cannot
+  resolve should be recorded as not admitted, by name, with the missing import named, while the
+  rest of the corpus still measures. Left open deliberately: it is a second schema-touching
+  decision and belongs beside the build-configuration record rather than bolted on before it.
+
 ## Still owed by this lane
   One class the ratchet surfaced and this lane is deliberately leaving refused: `return named, err`
   where `named` is a NAMED RESULT. Go's convention says a caller may not read it after a non-nil

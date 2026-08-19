@@ -51,3 +51,16 @@ rust_test(
         ":port-engine-snapshot",
     ],
 )
+
+# Build-constraint selection: a Go package is the file set a configuration selects.
+rust_test(
+    name = "port-engine-snapshot-build-constraints",
+    srcs = glob(["tests/build_constraints.rs", "src/**/*.json"]),
+    crate = "port_engine_snapshot_build_constraints",
+    crate_root = "tests/build_constraints.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":port-engine-snapshot",
+        "//build/port-engine/ports/api:port-engine-api",
+    ],
+)

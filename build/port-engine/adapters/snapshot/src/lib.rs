@@ -17,7 +17,8 @@ mod preimage;
 
 pub use admit::{
     admit_embedded_fixture, admit_embedded_fixture_drift_after_v1,
-    admit_embedded_fixture_drift_before_v1, admit_embedded_fixture_failure_v1,
+    admit_embedded_fixture_buildtags_v1, admit_embedded_fixture_drift_before_v1,
+    admit_embedded_fixture_failure_v1,
     admit_embedded_fixture_interface_v1, admit_embedded_fixture_ownership_v1,
     admit_embedded_fixture_refused_v1, admit_embedded_fixture_v1, admit_reproducible_pair,
 };
@@ -52,6 +53,16 @@ pub(crate) const FIXTURE_SNAPSHOT_INTERFACE_V1_JSON: &str =
 /// has no shape to become.
 pub(crate) const FIXTURE_SNAPSHOT_FAILURE_V1_JSON: &str =
     include_str!("fixture-snapshot-failure-v1.json");
+
+/// Embedded fixture for the corpus whose files are selected by BUILD CONSTRAINTS.
+///
+/// `tagged` declares `Platform` twice under mutually exclusive filename constraints, `Recent`
+/// behind `//go:build go1.13`, and `Unreleased` behind `//go:build go1.99`. A front end that
+/// globs the directory cannot produce this fixture at all — the two `Platform` declarations are a
+/// redeclaration and the type check fails — and one that reads the constraints but takes its
+/// release tags from the host toolchain would admit `Unreleased` on a future Go.
+pub(crate) const FIXTURE_SNAPSHOT_BUILDTAGS_V1_JSON: &str =
+    include_str!("fixture-snapshot-buildtags-v1.json");
 
 /// The UPSTREAM DRIFT pair: one package at two versions, at the SAME unit id.
 ///

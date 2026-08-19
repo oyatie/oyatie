@@ -19,19 +19,37 @@ sources may not spawn `go` or import `std::process::Command`, and may not name t
 | `corpus/basic/` | Constants, variables, a type alias, a named type, functions. |
 | `corpus/shapes/` | A struct with fields and methods, an interface with a method set. |
 | `corpus-refused/hard/` | A `for` loop and a `defer` — the fixture the engine must REFUSE. |
+| `corpus-buildtags/tagged/` | Files selected by `//go:build`, `// +build`, and filename. |
 
 The corpus is deliberately small, hermetic, and **not Kubernetes**. Kubernetes is the
 program's W1 corpus and admitting it is a separate decision; this fixture exists to prove
 the pipeline translates Go at all.
 
+## The build configuration is an input
+
+A Go package is not every `.go` file in a directory — it is the file set a build CONFIGURATION
+selects, and the source says so three ways: `//go:build`, the legacy `// +build`, and the filename
+(`hostid_linux.go`, `sum_amd64.go`). `-goos`, `-goarch`, `-go-release` and `-tags` declare that
+configuration, and `go/build.Context` answers with exactly Go's own rule.
+
+They are DECLARED rather than read from the environment. A configuration taken from the host makes
+the snapshot digest a property of the machine that produced it, so one upstream commit would
+extract to two identities and the receipt would report an ordinary re-extraction as drift. Release
+tags are pinned for the same reason: `//go:build go1.13` otherwise resolves against whichever Go
+compiled the extractor.
+
+Two configurations of one corpus are two snapshots, and the receipt's snapshot axis is where that
+difference belongs. `corpus-buildtags/` fences it — see
+`adapters/snapshot/tests/build_constraints.rs`.
+
 ## Regenerating the snapshot
 
 ```sh
-cd build/port-engine/adapters/port-engine-frontend-go/gosrc
+cd build/port-engine/adapters/frontend-go/gosrc
 go run ./extractor \
     -corpus ./corpus \
     -module oyatie.example/portengine-fixture \
-    -out ../../port-engine-snapshot/src/fixture-snapshot-v1.json
+    -out ../../snapshot/src/fixture-snapshot-v1.json
 ```
 
 And the refusal corpus, which is kept separate so the pipeline over `corpus/` stays green while
@@ -41,8 +59,11 @@ the refusal path is still exercised against real Go rather than against syntheti
 go run ./extractor \
     -corpus ./corpus-refused \
     -module oyatie.example/portengine-fixture-refused \
-    -out ../../port-engine-snapshot/src/fixture-snapshot-refused-v1.json
+    -out ../../snapshot/src/fixture-snapshot-refused-v1.json
 ```
+
+The remaining fixtures follow the same shape, one per corpus directory; the drift pair passes
+`-root ./corpus-upstream-before` (and `-after`) so both extractions land on the same unit id.
 
 Both snapshots ADMIT. A model of source the translator cannot handle is not itself invalid — the
 extractor records an untranslatable construct as an `unsupported` node naming the AST type it
@@ -58,8 +79,8 @@ defect, and the Rust side refuses a mismatched pair through
 ## The digest is not the JSON
 
 `snapshot_digest` is SHA-256 over a length-prefixed, explicitly-arity-tagged encoding of
-the model — never over the JSON bytes. The encoder is documented at the bottom of
-`extractor/main.go` and mirrored by `port_engine_snapshot::snapshot_preimage_v1`.
+the model — never over the JSON bytes. The encoder is documented in
+`extractor/preimage.go` and mirrored by `port_engine_snapshot::snapshot_preimage_v1`.
 
 Mirroring the encoder in two languages is a deliberate trade. The alternative — trusting
 whatever digest the extractor claims — would let a front-end defect enter the engine with a
