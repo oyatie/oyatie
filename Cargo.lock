@@ -1457,6 +1457,7 @@ dependencies = [
  "ci-workspace-member-coverage",
  "oya-check-brand-residue",
  "oya-ci-config-kernel",
+ "oya-reorg-codemod-app",
  "oya-workspace-members-kernel",
  "serde",
  "serde_json",

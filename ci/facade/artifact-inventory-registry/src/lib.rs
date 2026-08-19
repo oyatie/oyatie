@@ -122,6 +122,11 @@ pub struct RepoInputs {
     pub reachability: BTreeMap<String, Vec<String>>,
     /// path -> canonical path it duplicates (drives the MERGE verdict). Absent ⇒ not a dup.
     pub dup_of: BTreeMap<String, String>,
+    /// Every `old_path` named by a COMMITTED `specs/reorg/<capability>-move-plan.json`, as
+    /// discovered by the codemod's own `discover_committed_move_plans`. Empty ⇒ no capability
+    /// has a committed plan, so every derived `move` is unplanned — which is the honest reading,
+    /// not a reason to stay silent.
+    pub planned_move_paths: BTreeSet<String>,
     /// The DECLARED placement authority, parsed from `governance/capability-registry.json`.
     /// Empty ⇒ every destination is `None` ⇒ every disposition is `unclassified` (fail-closed).
     pub placement: CapabilityPlacement,
@@ -604,6 +609,18 @@ pub fn build_registry(inputs: &RepoInputs, policy: &Policy) -> Result<Value, Pro
             "source_inputs_digest": source_inputs_digest,
             "row_count": records.len(),
         }),
+    );
+    // The committed move plans, carried as DATA so the conformance gate stays a pure evaluator
+    // (it must never glob the tree itself). Sorted, so the face is byte-stable.
+    root.insert(
+        "planned_move_paths".into(),
+        Value::Array(
+            inputs
+                .planned_move_paths
+                .iter()
+                .map(|p| Value::String(p.clone()))
+                .collect(),
+        ),
     );
     root.insert("rows".into(), rows);
     Ok(Value::Object(root))
@@ -2067,6 +2084,7 @@ mod tests {
             dup_of: BTreeMap::new(),
             valid_owners_files: BTreeSet::new(),
             placement: CapabilityPlacement::default(),
+            planned_move_paths: BTreeSet::new(),
         }
     }
 
@@ -2689,6 +2707,7 @@ mod tests {
             dup_of: BTreeMap::new(),
             valid_owners_files: resolution.valid_files,
             placement: CapabilityPlacement::default(),
+            planned_move_paths: BTreeSet::new(),
         };
         let registry = build_registry(&inputs, &policy).expect("registry");
         let row = |path: &str| -> Value {
@@ -2762,6 +2781,7 @@ mod tests {
             dup_of: BTreeMap::new(),
             valid_owners_files: BTreeSet::from(["cloud/x/OWNERS".to_owned()]),
             placement: CapabilityPlacement::default(),
+            planned_move_paths: BTreeSet::new(),
         };
         let registry = build_registry(&inputs, &policy).expect("registry");
         let row = &registry["rows"].as_array().expect("rows")[0];
@@ -2792,6 +2812,7 @@ mod tests {
             dup_of: BTreeMap::new(),
             valid_owners_files: BTreeSet::from(["cloud/x/OWNERS".to_owned()]),
             placement: CapabilityPlacement::default(),
+            planned_move_paths: BTreeSet::new(),
         };
         let registry = build_registry(&inputs, &policy).expect("registry");
         let row = &registry["rows"].as_array().expect("rows")[0];

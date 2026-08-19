@@ -30,7 +30,7 @@ use serde_json::Value;
 pub const GATE_ID: &str = "cloud-ci-total-accounting";
 
 /// The blocking codes, in canonical order. The fixtures pin exact subsets.
-pub const VIOLATION_CODES: [&str; 7] = [
+pub const VIOLATION_CODES: [&str; 9] = [
     "unaccounted",
     "unowned",
     "unjustified",
@@ -38,6 +38,8 @@ pub const VIOLATION_CODES: [&str; 7] = [
     "no_ttl_class",
     "ci_inventory_registry_drift",
     "scratch_artifact",
+    "move_derived_not_planned",
+    "move_planned_not_derived",
 ];
 
 /// The gate report.
@@ -158,6 +160,48 @@ pub fn evaluate_keyed(fixture: &Value) -> BTreeSet<Finding> {
         }
     }
 
+    // MOVE-PLAN CONFORMANCE (both directions).
+    //
+    // Two sources of truth exist for "this path relocates": the registry's derived
+    // `disposition`/`destination`, and the committed `specs/reorg/<capability>-move-plan.json`
+    // set. A capability cannot be called cut over while they disagree, and until now nothing
+    // compared them — on the live tree 447 paths derive `move` with no plan covering them, and
+    // the repo could not say whether the derivation over-reaches or the plan is incomplete.
+    //
+    // `planned_move_paths` arrives as DATA (the producer discovers it through the codemod's own
+    // `select_move_plan`, which is what makes multi-plan fail closed). This evaluator never
+    // touches the filesystem.
+    //
+    // Coverage is PREFIX-based because a plan names the moving crate/artifact root while the
+    // registry rows are individual files beneath it. Exact-match would report every file under a
+    // planned root as unplanned — thousands of false findings that would bury the real gap.
+    let planned_move_paths = optional_str_array(fixture, "planned_move_paths");
+    let path_is_planned = |path: &str| {
+        planned_move_paths
+            .iter()
+            .any(|planned| path == planned || path.starts_with(&format!("{planned}/")))
+    };
+    if let Some(rows) = rows {
+        for row in rows {
+            let Some(path) = row_path(row) else { continue };
+            let disposition = row
+                .get("disposition")
+                .and_then(Value::as_str)
+                .unwrap_or_default();
+            match disposition {
+                // Derived to move, but no committed plan carries it.
+                "move" if !path_is_planned(path) => {
+                    findings.insert(Finding::new("move_derived_not_planned", path));
+                }
+                // A plan moves a path the registry says is already home. One of the two is wrong.
+                "retain" if path_is_planned(path) => {
+                    findings.insert(Finding::new("move_planned_not_derived", path));
+                }
+                _ => {}
+            }
+        }
+    }
+
     // A tracked path declared (via `tracked_paths`) without a corresponding row is unaccounted.
     for tracked in tracked_paths {
         if !accounted_paths.contains(&tracked) {
@@ -267,6 +311,21 @@ fn row_path(row: &Value) -> Option<&str> {
 mod tests {
     use super::*;
     use serde_json::json;
+
+    /// A fully-accounted row (green on every pre-existing code) carrying a disposition, so the
+    /// conformance tests below assert ONLY the move-plan codes and cannot pass by accident on
+    /// some unrelated finding.
+    fn row_ok(path: &str, disposition: &str) -> Value {
+        json!({
+            "path": path,
+            "owner": "council-architecture",
+            "justification_ref": "ADR-0364",
+            "justification_resolves": true,
+            "reachable_from": ["root-hub"],
+            "ttl": {"ttl_class": "spec"},
+            "disposition": disposition
+        })
+    }
 
     #[test]
     fn fully_accounted_row_is_green() {
@@ -416,5 +475,89 @@ mod tests {
             "a fully-registered scratch row must fire ONLY scratch_artifact (registration cannot suppress the shape-based code, and cannot leave any other debt code)"
         );
         assert_eq!(evaluate(&fully_registered_scratch).verdict, Verdict::Red);
+    }
+    /// Derived `move` with no committed plan covering it — the 447-path class on the live tree.
+    #[test]
+    fn a_derived_move_with_no_committed_plan_is_reported() {
+        let fixture = serde_json::json!({
+            "planned_move_paths": ["oya/intelligence/crates/oya-codeview-cli"],
+            "rows": [row_ok("oya/intelligence/crates/oya-orphan/src/lib.rs", "move")],
+        });
+        let findings = evaluate_keyed(&fixture);
+        assert!(
+            findings.contains(&Finding::new(
+                "move_derived_not_planned",
+                "oya/intelligence/crates/oya-orphan/src/lib.rs"
+            )),
+            "got {findings:?}"
+        );
+    }
+
+    /// The other direction: a plan moves a path the registry says is already home.
+    #[test]
+    fn a_planned_move_the_registry_says_should_stay_is_reported() {
+        let fixture = serde_json::json!({
+            "planned_move_paths": ["iam/settled"],
+            "rows": [row_ok("iam/settled/src/lib.rs", "retain")],
+        });
+        let findings = evaluate_keyed(&fixture);
+        assert!(
+            findings.contains(&Finding::new(
+                "move_planned_not_derived",
+                "iam/settled/src/lib.rs"
+            )),
+            "got {findings:?}"
+        );
+    }
+
+    /// Coverage is PREFIX-based: a plan names the moving root, the registry rows are the files
+    /// beneath it. Exact-match here would report every file under a planned root as unplanned.
+    #[test]
+    fn a_file_under_a_planned_root_counts_as_planned() {
+        let fixture = serde_json::json!({
+            "planned_move_paths": ["oya/intelligence/crates/oya-codeview-cli"],
+            "rows": [row_ok("oya/intelligence/crates/oya-codeview-cli/src/main.rs", "move")],
+        });
+        let findings = evaluate_keyed(&fixture);
+        assert!(
+            !findings
+                .iter()
+                .any(|f| f.code == "move_derived_not_planned"),
+            "a file beneath a planned root must not be reported unplanned; got {findings:?}"
+        );
+    }
+
+    /// A sibling whose name merely PREFIXES a planned path is not covered by it.
+    #[test]
+    fn prefix_matching_respects_path_boundaries() {
+        let fixture = serde_json::json!({
+            "planned_move_paths": ["iam/svc"],
+            "rows": [row_ok("iam/svc-other/src/lib.rs", "move")],
+        });
+        let findings = evaluate_keyed(&fixture);
+        assert!(
+            findings.contains(&Finding::new(
+                "move_derived_not_planned",
+                "iam/svc-other/src/lib.rs"
+            )),
+            "iam/svc-other must NOT be covered by a plan for iam/svc; got {findings:?}"
+        );
+    }
+
+    /// No committed plan at all ⇒ every derived move is unplanned. Fails toward reporting
+    /// disagreement rather than certifying agreement the tree cannot support.
+    #[test]
+    fn an_empty_plan_set_reports_every_derived_move() {
+        let fixture = serde_json::json!({
+            "rows": [row_ok("iam/x/src/lib.rs", "move")],
+        });
+        let findings = evaluate_keyed(&fixture);
+        assert!(
+            findings.contains(&Finding::new(
+                "move_derived_not_planned",
+                "iam/x/src/lib.rs"
+            )),
+            "got {findings:?}"
+        );
     }
 }
