@@ -2094,3 +2094,52 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
   (`errors.As`), a database scan target, and the variadic tail of a formatting call — which want
   different answers. A single mapping would be wrong for at least two of the three, which is why
   this stays refused rather than becoming one more table row.
+
+## Two reviewers read the same fingerprint, and they were right
+
+- SEVENTH blind review, on the output after the sixth's findings landed. Still DO NOT MERGE, and the
+  reviewer's own summary names why: "Go's vocabulary in its doc comments, Go's type model in its
+  signatures, and Go's memory semantics in its arithmetic." Two of those three are standing
+  decisions with recorded reasons. The first was a real defect and is fixed.
+
+- `static` BECOMES `const`, reversing a decision this lane made four commits earlier. The argument
+  for `static` was that the source's package variable has an ADDRESS and a `const` is materialised
+  afresh at every use. It is sound and it protects NOTHING: taking the address of a package variable
+  is `&x` of an existing binding, which the engine refuses everywhere, so no emitted code can
+  observe the difference.
+
+  What the `const`/`static` split DID carry is what both reviewers independently saw — the source's
+  own `const`/`var` split, which exists because the source cannot make a `const` of a struct and can
+  of an integer. That is a limitation of the source, not a distinction worth porting, and emitting
+  it made the two spellings a fingerprint rather than a decision. The day `&<package variable>`
+  translates, this is a `static` again; the decisions are linked and recorded as such.
+
+- THE DOC COMMENTS WERE THE LOUDEST TELL and they were the CORPUS's, carried faithfully. The
+  reviewer quoted `globals::PREFIX` — "A string literal is a BORROW in the target, and the owned
+  form cannot be built by a constant expression at all" — and said, correctly, that "in the target"
+  is porting vocabulary and the comment is a note-to-self rather than documentation. `Driver`'s was
+  worse: "Embedded, so Driver's method set includes Run without declaring it" is FALSE in Rust, and
+  contradicts the forwarding impl twenty lines below it.
+
+  Fixed in the corpus, and the convention is now explicit: a Go doc comment is attached with no
+  blank line and is what a CALLER reads, so it documents the code; the porting reasoning goes in a
+  separated `//` block above it, which the source's own parser does not treat as doc and which the
+  engine therefore never carries. Same words, same file, one blank line apart, and only one of them
+  ships. Also swept the emitted docs for source-language vocabulary — "package", "receiver" — which
+  is now zero.
+
+  Worth saying plainly: this was not the engine's defect, and it was poisoning every review of the
+  engine. A corpus whose prose says "the target" guarantees a reviewer says "mechanically
+  translated" no matter how good the translation is.
+
+- CONSIDERED AND REJECTED, recorded so it is not re-litigated: the reviewer holds that deriving
+  `Hash`/`Eq` on a type with `&mut self` methods lets a caller corrupt a map — "insert one as a
+  HashMap key, call run(), and the map is corrupted." The target does not permit that: a key is
+  owned by the map and no `&mut` to it is obtainable. And the source's own rule for a map key is
+  comparability, which mutating methods do not affect. The derive is faithful and safe.
+
+- STILL OPEN from this review, and all real: `use` emission (`Box<dyn Error + Send + Sync>` is
+  spelled out eight times and every cross-module path in full); a getter returning an owned `String`
+  where the body is a field read; `usize` for a parameter used only as an index, which is the
+  counter idiom one level out; and region ORDER, which is alphabetical and which the reviewer read
+  as "what an emitter produces from a symbol table" rather than what an author writes.

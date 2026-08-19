@@ -127,12 +127,22 @@ pub enum RustItem {
         /// Its value, carried as a source spelling.
         value: String, // data_class: INTERNAL_ONLY
     },
-    /// `static NAME: T = value;` — one storage location, for the life of the program.
+    /// `const NAME: T = value;` — a package-level immutable value.
     ///
-    /// Distinct from [`RustItem::Const`] because the source's package variable has an ADDRESS. A
-    /// const is inlined at every use and has no stable one; a static has exactly the variable's
-    /// storage identity, and being immutable it carries no synchronization question.
-    Static {
+    /// Distinct from [`RustItem::Const`] only in that its value is an EXPRESSION rather than a
+    /// source spelling, which is what a composite or a zero needs. Both emit `const`.
+    ///
+    /// It emitted `static` at first, and the argument was that the source's package variable has an
+    /// ADDRESS while a const is materialised afresh at every use. That argument is sound and
+    /// protects nothing: taking the address of a package variable is `&x` of an existing binding,
+    /// which the engine REFUSES everywhere, so no emitted code can observe the difference. Two
+    /// reviewers independently read the `const`/`static` split as a fingerprint of the source's own
+    /// `const`/`var` split — which is what it was, since the source cannot make a `const` of a
+    /// struct and can of an integer, a limitation that carries no meaning worth porting.
+    ///
+    /// The day `&<package variable>` translates, this is a `static` again, and the two decisions are
+    /// linked rather than independent.
+    PackageValue {
         /// Documentation carried over from the source.
         docs: Vec<String>, // data_class: INTERNAL_ONLY
         /// Whether the static is public.

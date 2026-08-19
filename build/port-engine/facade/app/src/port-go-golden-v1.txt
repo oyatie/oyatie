@@ -46,16 +46,16 @@ pub mod basic {
         value * factor
     }
     // region: oyatie_example_portengine_fixture_corpus_basic__go_func__unexported
-    /// Returns n unchanged, and is not part of this package's public surface.
+    /// Returns n unchanged.
     fn unexported(n: i64) -> i64 {
         n
     }
     // region: oyatie_example_portengine_fixture_corpus_basic__go_var__enabled
     /// Reports whether the fixture feature is on by default.
-    pub static ENABLED: bool = true;
+    pub const ENABLED: bool = true;
     // region: oyatie_example_portengine_fixture_corpus_basic__go_var__threshold
     /// The default cutoff.
-    pub static THRESHOLD: f64 = 0.75;
+    pub const THRESHOLD: f64 = 0.75;
 }
 pub mod composite {
     // region: oyatie_example_portengine_fixture_corpus_composite__go_func__newdriver
@@ -85,10 +85,10 @@ pub mod composite {
         fn run(&mut self) -> i64;
     }
     // region: oyatie_example_portengine_fixture_corpus_composite__go_struct_body__driver
-    /// Embeds an Engine and gains its methods.
+    /// Runs work through an engine and describes what it is doing.
     #[derive(Debug, Clone, Default, PartialEq, Eq, Hash)]
     pub struct Driver {
-        /// Embedded, so Driver's method set includes Run without declaring it.
+        /// Performs the work this driver drives.
         pub engine: Engine,
         /// Describes this driver.
         label: String,
@@ -163,11 +163,11 @@ pub mod fallible {
     }
     // region: oyatie_example_portengine_fixture_corpus_fallible__go_var__errempty
     /// Returned when the input string has no content.
-    pub static ERR_EMPTY: &str = "empty";
+    pub const ERR_EMPTY: &str = "empty";
 }
 pub mod geometry {
     // region: oyatie_example_portengine_fixture_corpus_geometry__go_alias__origin
-    /// Names the point type this package builds rectangles from.
+    /// Names the point type rectangles are built from.
     pub type Origin = crate::shapes::Point;
     // region: oyatie_example_portengine_fixture_corpus_geometry__go_func__size
     /// Reports how many labelled counts the table holds.
@@ -186,18 +186,16 @@ pub mod geometry {
 }
 pub mod globals {
     // region: oyatie_example_portengine_fixture_corpus_globals__go_func__describe
-    /// Returns the name of this package.
+    /// Returns the name of this component.
     pub fn describe() -> String {
         "globals".to_owned()
     }
     // region: oyatie_example_portengine_fixture_corpus_globals__go_var__limit
-    /// Declared with no initialiser and never written, so it is only ever read as its zero
-    /// value — and a zero is a value rather than work, so nothing about it happens at a time.
-    pub static LIMIT: i64 = 0;
+    /// The ceiling this component will not exceed. Zero means unbounded.
+    pub const LIMIT: i64 = 0;
     // region: oyatie_example_portengine_fixture_corpus_globals__go_var__prefix
-    /// Initialised from a literal and never written. A string literal is a BORROW in the
-    /// target, and the owned form cannot be built by a constant expression at all.
-    pub static PREFIX: &str = "id-";
+    /// The identity prefix every generated name starts with.
+    pub const PREFIX: &str = "id-";
 }
 pub mod handoff {
     // region: oyatie_example_portengine_fixture_corpus_handoff__go_func__bump
@@ -322,11 +320,11 @@ pub mod pointers {
         pub fn add(&mut self, n: i64) {
             self.total = self.total.wrapping_add(n);
         }
-        /// Reports the counter's name, by value receiver.
+        /// Reports the counter's name.
         pub fn label(&self) -> String {
             self.label.clone()
         }
-        /// Folds other into the receiver.
+        /// Folds other into this counter.
         pub fn merge(&mut self, other: &Counter) {
             self.total = self.total.wrapping_add(other.total);
         }
@@ -454,7 +452,7 @@ pub mod shapes {
     }
     // region: oyatie_example_portengine_fixture_corpus_shapes__go_var__origin
     /// The point at the coordinate origin.
-    pub static ORIGIN: Point = Point {
+    pub const ORIGIN: Point = Point {
         x: 0,
         y: 0,
         label: String::new(),

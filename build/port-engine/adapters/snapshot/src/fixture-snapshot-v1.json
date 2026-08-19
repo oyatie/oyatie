@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "language": "go",
-  "snapshot_digest": "sha256:bf077fdb4446ff6591e4e74647c6f30166ac9e286200c6541c972008fbee6f42",
+  "snapshot_digest": "sha256:530f2a9d70538db5d11307af1f503a690fa5da61b05fac5cc2f9ac172173fb78",
   "packages": [
     {
       "unit_id": "oyatie.example/portengine-fixture/corpus/accumulate",
@@ -892,7 +892,7 @@
           "kind": "func",
           "name": "unexported",
           "attrs": {
-            "doc": "unexported returns n unchanged, and is not part of this package's public surface."
+            "doc": "unexported returns n unchanged."
           },
           "children": [
             {
@@ -981,7 +981,7 @@
             "exported"
           ],
           "attrs": {
-            "doc": "Driver embeds an Engine and gains its methods."
+            "doc": "Driver runs work through an engine and describes what it is doing."
           },
           "children": [
             {
@@ -997,7 +997,7 @@
                 "exported"
               ],
               "attrs": {
-                "doc": "Engine is embedded, so Driver's method set includes Run without declaring it."
+                "doc": "Engine performs the work this driver drives."
               }
             },
             {
@@ -2500,7 +2500,7 @@
             "exported"
           ],
           "attrs": {
-            "doc": "Origin names the point type this package builds rectangles from."
+            "doc": "Origin names the point type rectangles are built from."
           }
         },
         {
@@ -2588,7 +2588,7 @@
             "exported"
           ],
           "attrs": {
-            "doc": "Describe returns the name of this package."
+            "doc": "Describe returns the name of this component."
           },
           "children": [
             {
@@ -2632,7 +2632,7 @@
             "exported"
           ],
           "attrs": {
-            "doc": "Limit is declared with no initialiser and never written, so it is only ever read as its zero\nvalue — and a zero is a value rather than work, so nothing about it happens at a time."
+            "doc": "Limit is the ceiling this component will not exceed. Zero means unbounded."
           }
         },
         {
@@ -2646,7 +2646,7 @@
             "exported"
           ],
           "attrs": {
-            "doc": "Prefix is initialised from a literal and never written. A string literal is a BORROW in the\ntarget, and the owned form cannot be built by a constant expression at all."
+            "doc": "Prefix is the identity prefix every generated name starts with."
           },
           "children": [
             {
@@ -4071,7 +4071,7 @@
                 "exported"
               ],
               "attrs": {
-                "doc": "Label reports the counter's name, by value receiver."
+                "doc": "Label reports the counter's name."
               },
               "children": [
                 {
@@ -4122,7 +4122,7 @@
                 "pointer_receiver"
               ],
               "attrs": {
-                "doc": "Merge folds other into the receiver."
+                "doc": "Merge folds other into this counter."
               },
               "children": [
                 {

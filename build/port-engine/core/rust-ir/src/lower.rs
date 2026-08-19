@@ -46,7 +46,7 @@ fn lower_item(item: &RustItem) -> Result<TokenStream, PortError> {
             Ok(quote! { #docs #vis const #name: #ty = #value; })
         }
 
-        RustItem::Static {
+        RustItem::PackageValue {
             docs,
             vis,
             name,
@@ -56,7 +56,7 @@ fn lower_item(item: &RustItem) -> Result<TokenStream, PortError> {
             let (docs, vis) = (lower_docs(docs), lower_vis(*vis));
             let (name, ty) = (parse_ident(name)?, parse_type(ty)?);
             let value = crate::lower_expr::lower_expr(value)?;
-            Ok(quote! { #docs #vis static #name: #ty = #value; })
+            Ok(quote! { #docs #vis const #name: #ty = #value; })
         }
 
         RustItem::BlanketImpl { name, bounds } => {
