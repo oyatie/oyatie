@@ -90,6 +90,8 @@ pub(crate) struct FailureDoc {
     #[serde(default)]
     pub(crate) constructors: std::collections::BTreeSet<String>,
     #[serde(default)]
+    pub(crate) target_type_alternative_reason: String,
+    #[serde(default)]
     pub(crate) sentinel_prefix: String,
     #[serde(default)]
     pub(crate) sentinel_prefix_reason: String,

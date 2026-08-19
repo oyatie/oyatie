@@ -171,6 +171,7 @@ impl Pack {
         self.failure = Some(FailureConvention {
             // Empty, so a test fixture keeps the source's sentinel names. The prefix drop is a real
             // pack's decision and every fixture that wanted it would have to restate it.
+            target_type_alternative_reason: String::new(),
             sentinel_prefix: String::new(),
             sentinel_prefix_reason: String::new(),
             source_type: source.to_owned(),

@@ -217,6 +217,7 @@ impl LoadedRulePack {
                 target_type: failure.target_type,
                 absent: failure.absent,
                 constructors: failure.constructors,
+                target_type_alternative_reason: failure.target_type_alternative_reason,
                 sentinel_prefix: failure.sentinel_prefix,
                 sentinel_prefix_reason: failure.sentinel_prefix_reason,
                 param_type: failure.param_type,
