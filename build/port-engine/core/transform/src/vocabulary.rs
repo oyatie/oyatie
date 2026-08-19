@@ -77,6 +77,8 @@ pub const IDIOM_INDEX_COUNTER: &str = "index_counter_is_usize";
 pub const IDIOM_INDEX_LOOP: &str = "index_loop_is_an_iterator";
 /// The idiom that a parallel assignment exchanging two elements is the sequence's own swap.
 pub const IDIOM_SWAP: &str = "parallel_exchange_is_a_swap";
+/// The idiom that a three-way comparison is the target's ordering type.
+pub const IDIOM_ORDERING: &str = "three_way_comparison_is_an_ordering";
 /// The idiom that a counter used only as an index is a , so neither conversion is needed.
 /// The argument shape a conditional mapping may require: a source string literal.
 pub const ARGUMENT_STRING_LITERAL: &str = "string_literal";

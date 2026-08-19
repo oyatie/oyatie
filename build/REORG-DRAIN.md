@@ -2744,3 +2744,28 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
   wrong on the first real package it met, and the third time the correction came from LOOKING at
   emitted output rather than from a count. The corpus proves a rule fires; only a real package
   proves it should.
+
+## Two more the real package proved
+
+- `pub mod v3`. The source spells a module's major version as a trailing PATH SEGMENT —
+  `github.com/x/semver/v3` — and the package that path names is still `semver`. Emitting `pub mod
+  v3` names the module after a versioning convention the target does not have, where versions live
+  in the manifest; it would be wrong again the moment the source went to v4. Recognised strictly: a
+  `v` followed by digits and nothing else, and only where a segment precedes it, so a package
+  genuinely named `v3` keeps its name. Now `pub mod semver`.
+
+- A THREE-WAY COMPARISON is the target's ordering type. `fn compare_segment(v, o) -> i64` returning
+  -1, 0 or 1 is how the source spells one, because its sort and its comparison interfaces are
+  defined in terms of a signed integer. The target has a type for exactly this, and it is the type
+  ITS sorting and ITS `Ord` are defined in terms of.
+
+  The integer form is not merely unidiomatic there — it is the bug class the type exists to remove:
+  every consumer re-derives which way round the sign goes, and one inversion in that chain compiles
+  and sorts backwards. A reviewer said so of `compare_segment` before knowing where it came from.
+
+  Every return must be one of the three literals, because those three are the whole range: a
+  function that can return anything else is not this shape. A returned VARIABLE could hold anything,
+  and proving otherwise is a range analysis the engine does not have — so it does not qualify.
+
+  `fn compare_segment(v: u64, o: u64) -> std::cmp::Ordering` with `Ordering::Less`, `Greater`,
+  `Equal`. The ported `semver` still compiles with zero errors and now passes clippy clean.

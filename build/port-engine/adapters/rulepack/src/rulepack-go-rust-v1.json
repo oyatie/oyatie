@@ -823,6 +823,15 @@
       "seed_source": "github.com/jason931225/rust-skills/rules/lint-warn-style.md",
       "seed_license": "MIT",
       "seed_commit": "a28144ccd0f111d31c3c0873362182b238e80dbd"
+    },
+    {
+      "id": "three_way_comparison_is_an_ordering",
+      "shape": "function_returning_minus_one_zero_one",
+      "method": "std::cmp::Ordering",
+      "reason": "A function whose every return is -1, 0 or 1 is a THREE-WAY COMPARISON, and the source has no other way to spell one: its sort and its comparison interfaces are defined in terms of a signed integer. The target has a type for exactly this, and it is the type its own sorting and its own `Ord` are defined in terms of. The integer form is not merely unidiomatic in the target, it is the bug class the type was introduced to remove: every consumer has to re-derive which way round the sign goes, and a sign convention inverted somewhere in that chain compiles and sorts backwards. A reviewer reading a real ported package said so of `compare_segment` before knowing anything about where it came from. EQUIVALENT because the three values are the whole range: a function that can return anything else is not this shape and keeps its integer. Applies only where every return is one of the three literals -- a returned VARIABLE could hold anything, and proving otherwise is a range analysis this does not have.",
+      "seed_source": "github.com/jason931225/rust-skills/rules/api-guidelines.md",
+      "seed_license": "MIT",
+      "seed_commit": "a28144ccd0f111d31c3c0873362182b238e80dbd"
     }
   ],
   "literal_constructors": {
