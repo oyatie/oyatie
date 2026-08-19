@@ -25,8 +25,10 @@ pub(crate) const OTHER_COMMIT: &str = "7777777777777777777777777777777777777777"
 #[derive(Clone)]
 pub(crate) struct FakeSource {
     pub(crate) commits: BTreeMap<String, String>,
-    pub(crate) first_parent: String,
     pub(crate) parents: Vec<String>,
+    /// Force `first_parent()` to disagree with `parents[0]`. Leave `None` unless the test
+    /// is specifically exercising the two-git-queries-disagree check.
+    pub(crate) first_parent_override: Option<String>,
     pub(crate) ancestry: BTreeSet<(String, String)>,
     pub(crate) trees: BTreeMap<String, Vec<TreeEntry>>,
     pub(crate) blobs: BTreeMap<String, Vec<u8>>,
@@ -48,7 +50,25 @@ impl RetirementObjectSource for FakeSource {
             .ok_or_else(|| "missing tree".to_owned())
     }
     fn first_parent(&self, _commit_oid: &str) -> Result<String, String> {
-        Ok(self.first_parent.clone())
+        // DERIVED from `parents` by default, so a fixture cannot silently disagree with itself.
+        // The previous version returned an unconditional `first_parent` field independent of
+        // `parents`: a test could set `parents = [advanced, subject]` and still be told the
+        // first parent was the ORIGINAL protected base. Production reads parents[0], the fake
+        // did not, and every first-parent test was structurally incapable of reproducing the
+        // failure it existed to cover -- which is how #2119 shipped green having fixed one of
+        // three sites.
+        //
+        // `first_parent_override` re-enables that disagreement DELIBERATELY, for the one real
+        // production check it models: retirement_emit.rs:110 compares `first_parent` against
+        // `parents[0]` because they come from two different git queries and can genuinely
+        // disagree. Opt-in, never the default.
+        if let Some(injected) = &self.first_parent_override {
+            return Ok(injected.clone());
+        }
+        self.parents
+            .first()
+            .cloned()
+            .ok_or_else(|| "missing first parent".to_owned())
     }
     fn parents(&self, _commit_oid: &str) -> Result<Vec<String>, String> {
         Ok(self.parents.clone())
@@ -240,8 +260,8 @@ pub(crate) fn fixture() -> FakeSource {
             (format!("tree:{PROTECTED}"), PROTECTED_TREE.to_owned()),
             (format!("tree:{PREDECESSOR}"), PREDECESSOR_TREE.to_owned()),
         ]),
-        first_parent: PROTECTED.to_owned(),
         parents: vec![PROTECTED.to_owned()],
+        first_parent_override: None,
         ancestry: BTreeSet::from([
             (PROTECTED.to_owned(), CANDIDATE.to_owned()),
             (PREDECESSOR.to_owned(), PROTECTED.to_owned()),

@@ -100,7 +100,10 @@ fn assemble_retirement_facts(
                 "scm_event_name": context.scm_event_name,
                 "subject_relationship": if context.scm_event_name == "pull_request" { "pull-request-head" } else { "evaluated-self" },
                 "protected_base_is_ancestor_of_evaluated": true,
-                "protected_base_is_evaluated_first_parent": true,
+                // Computed, never asserted. Relaxing the check to accept a first parent that
+                // advanced past the recorded base means this can legitimately be false, and a
+                // hardcoded `true` would make the receipt state something untrue.
+                "protected_base_is_evaluated_first_parent": resolved.protected_base_is_evaluated_first_parent,
                 "subject_is_evaluated_second_parent": context.scm_event_name == "pull_request",
                 "predecessor_commit_oid": resolved.predecessor,
                 "predecessor_tree_oid": resolved.predecessor_tree,

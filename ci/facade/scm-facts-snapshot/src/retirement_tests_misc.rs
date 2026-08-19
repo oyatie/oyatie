@@ -198,7 +198,7 @@ fn independently_read_protected_control_plane_divergence_fails_closed() {
 #[test]
 fn rejects_non_first_parent_protected_base() {
     let mut source = fixture();
-    source.first_parent = PREDECESSOR.to_owned();
+    source.first_parent_override = Some(PREDECESSOR.to_owned());
     let error = materialize_history_only_retirement_facts(&source, &context()).unwrap_err();
     assert!(error.contains("not candidate first parent"));
 }
