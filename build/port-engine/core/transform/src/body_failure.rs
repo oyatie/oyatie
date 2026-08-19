@@ -10,6 +10,7 @@ use port_engine_rust_ir::{RustExpr, RustStmt, TupleBind};
 
 use crate::body::Body;
 use crate::body_expr::expression;
+use crate::body_ops::own_returned_string;
 use crate::error::TransformError;
 use crate::naming::to_snake_case;
 
@@ -67,7 +68,7 @@ pub(crate) fn translated_return(
             .collect::<Result<Vec<_>, _>>()?;
         match values.len() {
             0 => None,
-            1 => values.into_iter().next(),
+            1 => values.into_iter().next().map(|expr| own_returned_string(expr, cx)),
             // Several results leave as a tuple, matching how the signature renders them.
             _ => Some(RustExpr::Tuple(values)),
         }

@@ -4,12 +4,12 @@
 //! no faithful target form reaches a refusal instead of a plausible substitute.
 
 use port_engine_api::Declaration;
-use port_engine_rust_ir::{BinaryOp, UnaryOp};
+use port_engine_rust_ir::{BinaryOp, RustExpr, UnaryOp};
 
 use crate::body::Body;
 use crate::error::TransformError;
 use crate::naming::{to_pascal_case, to_screaming_snake, to_snake_case};
-use crate::vocabulary::{ATTR_OP, ATTR_REF};
+use crate::vocabulary::{ATTR_LIT_KIND, LIT_KIND_STRING, ATTR_OP, ATTR_REF};
 
 /// Case an identifier by what it REFERS to.
 ///
@@ -65,6 +65,67 @@ pub(crate) fn unary_operator(spelling: &str) -> Option<UnaryOp> {
         // `&` and `*` are references and dereferences. Both are aliasing decisions, which
         // docs/programs/k8s-port/census/ownership-escape.md exists to work out.
         _ => return None,
+    })
+}
+
+/// Own a bare string literal being RETURNED, where the signature says the result is owned.
+///
+/// A source string literal has type `string`, which the pack maps to an owned `String`; the
+/// target's literal is a borrowed `&'static str` and does not fit. This is the case the compile
+/// proof caught — `fn describe() -> String { "globals" }`.
+///
+/// Applied only in return position, and only when the single result resolves to the owned target,
+/// because that is the one place the destination is in hand. An earlier attempt owned EVERY string
+/// literal: it compiled, and it produced `s == "".to_owned()` and `from("empty".to_owned())` —
+/// correct output that no reader would accept. A borrowed literal in a borrowed position is
+/// already right, and only the owned positions were ever wrong.
+///
+/// Everywhere else the destination is a parameter or a comparison operand, which is the same
+/// question unary `&` is blocked on and needs the signature table rather than a guess.
+///
+/// `.to_owned()` rather than `.to_string()`: both allocate, and `to_owned` names a borrow-to-owned
+/// conversion rather than a formatting call. That spelling is an IDIOM decision living in code for
+/// now and belongs in pack data with the rest of the idiom rules.
+pub(crate) fn own_returned_string(expr: RustExpr, cx: &Body<'_>) -> RustExpr {
+    let RustExpr::Literal(text) = &expr else {
+        return expr;
+    };
+    if !cx.result_is_owned_string || !text.starts_with('"') {
+        return expr;
+    }
+    RustExpr::Literal(format!("{text}.to_owned()"))
+}
+
+/// Refuse a body that reads a declaration the pack DEFERS.
+///
+/// What the engine emits has to be self-contained. A deferred declaration is not emitted, so a
+/// body naming it produces a crate with a dangling name — which the compile proof catches and
+/// which no amount of parsing would.
+///
+/// The mapping from a reference KIND to the declaration kind it names is spelled here because it
+/// is the one place both vocabularies meet: the front end classifies an identifier by what the
+/// type-checker says it resolves to, and the pack defers by declaration kind.
+///
+/// # Errors
+/// [`TransformError::Unsupported`] naming the declaration and the dependency it cannot have.
+pub(crate) fn refuse_deferred_reference(
+    node: &Declaration,
+    cx: &Body<'_>,
+) -> Result<(), TransformError> {
+    let kind = match node.attr(ATTR_REF) {
+        Some("package_var") => "var",
+        _ => return Ok(()),
+    };
+    if !cx.resolver.deferred.contains(kind) {
+        return Ok(());
+    }
+    Err(TransformError::Unsupported {
+        name: cx.owner.to_owned(),
+        detail: format!(
+            "reads `{}`, a package-scope `{kind}` the pack defers; what is emitted has to be \
+             self-contained, so this refuses rather than naming a declaration that is not there",
+            node.name
+        ),
     })
 }
 

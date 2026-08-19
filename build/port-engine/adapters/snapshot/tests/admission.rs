@@ -67,6 +67,7 @@ fn v1_fixture_admits_and_carries_declarations() {
             "composite",
             "fallible",
             "geometry",
+            "globals",
             "naming",
             "pointers",
             "scoped",

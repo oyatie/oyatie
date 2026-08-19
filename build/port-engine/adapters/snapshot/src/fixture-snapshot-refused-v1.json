@@ -1,12 +1,109 @@
 {
   "schema_version": 2,
   "language": "go",
-  "snapshot_digest": "sha256:95a1da653c9b8015b99ff2a2eca20a0a7a0b0f7af41014d2fee8353224212bec",
+  "snapshot_digest": "sha256:329f035585cbca08794c90387ec4414969683fe0742b4c9ec18e86134de3a3de",
   "packages": [
     {
       "unit_id": "oyatie.example/portengine-fixture-refused/corpus-refused/hard",
       "producer": "bootstrap-go-packages-go-types",
       "declarations": [
+        {
+          "kind": "func",
+          "name": "Bump",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Bump advances the counter and rescales the pool.\n\nREFUSED, and the reason is a property of the engine rather than of this code: `counter` and\n`pooled` are deferred, so they are not emitted, and a body naming them would produce a crate\nwith a dangling name. What the engine emits has to be self-contained."
+          },
+          "children": [
+            {
+              "kind": "param",
+              "name": "by",
+              "type": {
+                "kind": "basic",
+                "name": "int64"
+              },
+              "flags": [
+                "escapes"
+              ]
+            },
+            {
+              "kind": "result",
+              "name": "",
+              "type": {
+                "kind": "basic",
+                "name": "int64"
+              }
+            },
+            {
+              "kind": "body",
+              "name": "",
+              "children": [
+                {
+                  "kind": "assign",
+                  "name": "",
+                  "attrs": {
+                    "op": "+"
+                  },
+                  "children": [
+                    {
+                      "kind": "ident",
+                      "name": "counter",
+                      "attrs": {
+                        "ref": "package_var"
+                      }
+                    },
+                    {
+                      "kind": "ident",
+                      "name": "by",
+                      "attrs": {
+                        "ref": "local"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "kind": "assign",
+                  "name": "",
+                  "attrs": {
+                    "op": "*"
+                  },
+                  "children": [
+                    {
+                      "kind": "ident",
+                      "name": "pooled",
+                      "attrs": {
+                        "ref": "package_var"
+                      }
+                    },
+                    {
+                      "kind": "literal",
+                      "name": "",
+                      "attrs": {
+                        "lit_kind": "INT",
+                        "value": "2"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "kind": "return",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "ident",
+                      "name": "counter",
+                      "attrs": {
+                        "ref": "package_var"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
         {
           "kind": "func",
           "name": "Clear",
@@ -333,6 +430,54 @@
             {
               "kind": "body",
               "name": ""
+            }
+          ]
+        },
+        {
+          "kind": "var",
+          "name": "counter",
+          "type": {
+            "kind": "basic",
+            "name": "int64"
+          },
+          "flags": [
+            "rebound"
+          ],
+          "attrs": {
+            "doc": "counter is written by Bump, which is the case the `var` deferral's synchronization argument is\nactually about."
+          }
+        },
+        {
+          "kind": "var",
+          "name": "pooled",
+          "type": {
+            "kind": "basic",
+            "name": "int64"
+          },
+          "flags": [
+            "rebound"
+          ],
+          "attrs": {
+            "doc": "pooled is both initialised and written."
+          },
+          "children": [
+            {
+              "kind": "convert",
+              "name": "",
+              "type": {
+                "kind": "basic",
+                "name": "int64"
+              },
+              "children": [
+                {
+                  "kind": "literal",
+                  "name": "",
+                  "attrs": {
+                    "lit_kind": "INT",
+                    "value": "1"
+                  }
+                }
+              ]
             }
           ]
         }

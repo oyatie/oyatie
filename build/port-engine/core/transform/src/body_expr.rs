@@ -11,7 +11,8 @@ use port_engine_rust_ir::RustExpr;
 use crate::body::{Body, one_child, two_children, unsupported_source};
 use crate::body_index::slice;
 use crate::body_ops::{
-    binary_operator, is_receiver, operator_of, reference, unary_operator, unary_refusal,
+    binary_operator, is_receiver, operator_of, reference, refuse_deferred_reference,
+    unary_operator, unary_refusal,
 };
 use crate::error::TransformError;
 use crate::naming::to_snake_case;
@@ -50,7 +51,10 @@ pub(crate) fn in_position(
             }),
         "zero" => zero_value(node, cx),
         "ident" if is_receiver(node) => Ok(RustExpr::SelfValue),
-        "ident" => Ok(RustExpr::Path(reference(node))),
+        "ident" => {
+            refuse_deferred_reference(node, cx)?;
+            Ok(RustExpr::Path(reference(node)))
+        }
         // A source-level parenthesis carries no information the tree does not already have, and
         // re-emitting it would fight the precedence the IR computes.
         "paren" => expression(one_child(node, cx, "paren")?, cx),

@@ -203,6 +203,7 @@ fn survey_declaration<P>(
         zero_values: pack.zero_values(),
         trait_object_forms: pack.trait_object_forms(),
         failure: pack.failure_convention(),
+        deferred: pack.deferred_kinds(),
         function_map: pack.function_map(),
         receiver: pack.trait_receiver(),
         ownership: &ownership,

@@ -39,6 +39,12 @@ pub const PRECONDITION_UNIT_PRESENT: &str = "unit_present";
 pub const ATTR_VALUE: &str = "value";
 /// Attribute key holding a binary or unary operator.
 pub const ATTR_OP: &str = "op";
+/// Attribute key holding a literal's lexical class, as the source spells it.
+pub const ATTR_LIT_KIND: &str = "lit_kind";
+/// The lexical class of a string literal.
+pub const LIT_KIND_STRING: &str = "STRING";
+/// The source type name whose ownership decides a string literal's target form.
+pub const SOURCE_STRING: &str = "string";
 /// Attribute key naming the source construct an `unsupported` node stands for.
 pub const ATTR_SOURCE_NODE: &str = "go_node";
 /// The named POSITIONS a type can appear in, which is what decides the form a trait takes there.
