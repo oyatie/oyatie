@@ -46,7 +46,7 @@ capabilities:
     audit_event: CalendarTimeSuggestionShown (per-suggestion; minimal payload — attendee count hash + slot list hash)
     fallback_on_model_failure: silent skip — falls back to heuristic
     risk_classification: minimal-risk (Annex III §3 NOT triggered — scheduling is not employment/HR decision-making per se; HR-scheduling overlay handled at T1)
-    user_label: "AI suggestion — click to accept" (Art. 50 transparency)
+    user_label: "AI suggestion — click to accept"  # Art. 50 transparency
 
   - id: T0-cal-suggest-title
     name: "Event title suggestion (from attendees + context)"
@@ -65,7 +65,7 @@ capabilities:
     data_class_emitted: INTERNAL_ONLY (suggested title text)
     model:
       primary: tenant-default-llm
-      fallback: "Meeting with <attendee_count> attendees" template
+      fallback: '"Meeting with <attendee_count> attendees" template'
       private_inference: tenant-DEK-wrapped prompt; no cross-tenant training
     latency_budget_p99_ms: 250
     audit_event: CalendarTitleSuggestionShown

@@ -44,7 +44,7 @@ capabilities:
     audit_event: TaskNextSuggestionShown (per-suggestion; minimal payload — task id hash list + score)
     fallback_on_model_failure: silent skip — falls back to heuristic
     risk_classification: minimal-risk (Annex III §4 NOT triggered — suggesting, not assigning)
-    user_label: "AI suggestion — click to accept" (Art. 50 transparency)
+    user_label: "AI suggestion — click to accept"  # Art. 50 transparency
 
   - id: T0-task-suggest-priority
     name: "Task priority suggestion (P0..P3)"
