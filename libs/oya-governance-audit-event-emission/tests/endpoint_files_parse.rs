@@ -15,7 +15,10 @@ use std::path::{Path, PathBuf};
 fn repo_root() -> PathBuf {
     let mut dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     while !dir.join(".git").exists() {
-        assert!(dir.pop(), "walked past the filesystem root without finding .git");
+        assert!(
+            dir.pop(),
+            "walked past the filesystem root without finding .git"
+        );
     }
     dir
 }
@@ -32,7 +35,9 @@ fn is_endpoint_file(path: &Path) -> bool {
 }
 
 fn collect(dir: &Path, out: &mut Vec<PathBuf>) {
-    let Ok(entries) = std::fs::read_dir(dir) else { return };
+    let Ok(entries) = std::fs::read_dir(dir) else {
+        return;
+    };
     for entry in entries.flatten() {
         let path = entry.path();
         let name = entry.file_name();
