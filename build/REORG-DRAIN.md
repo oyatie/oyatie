@@ -1311,6 +1311,39 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
   from the third review is the `wrapping_*` default, which is held with its reason, and the error
   type, which is the error-model decision rather than a defect.
 
+- THE APPEND PATTERN IS OWNED, and the source says so. `fastAppendEncodeBase62(dst []byte, ..)
+  []byte` rebinds `dst` and returns it; the caller writes `dst = grow(dst, ..)`. Rebinding a
+  sequence parameter does NOT touch the caller's variable — a slice header is a value — so handing
+  ownership over and taking the result back is exactly what the source does, not a cost imposed on
+  the caller. That is the same shape on both sides.
+  Distinguished from the pass-through `return xs`, which does not rebind: there the source's caller
+  KEEPS its slice and gets it back, so consuming it would take something the source never took.
+  That one still refuses. `rebound` was already an observed fact, so the distinction cost a
+  condition on the disposition rather than a new analysis.
+  A DEFECT I INTRODUCED AND THE RATCHET CAUGHT: a disposition matches on FACTS, so the new rule saw
+  POINTER parameters too, and I had given it a construction of its own — an empty wrap, which
+  passes the argument through unwrapped into an `Option<Box<T>>`. Coverage fell and said so. Its
+  pointer behaviour is now identical to the rule it precedes, because only the reference form is
+  what it exists to change. A rule inserted ahead of another answers every question that one
+  answered, not just the one it was written for.
+
+- THE FOURTH BLIND REVIEW. Still DO NOT MERGE. What it adds, ranked by what is ours:
+  FREE `new_*` FUNCTIONS ARE THE HEADLINE STRUCTURAL TELL. `pub fn new_label(prefix: String) ->
+  Label` is a package-level constructor in the source and an associated function in the target:
+  `Label::new`. The reviewer calls it "the single most visible structural tell", and it is
+  universal — most real packages construct that way. Provable, too: a package-level function whose
+  sole result is a type that package declares.
+  `Engine` HAS `run` AND DOES NOT IMPLEMENT `Runner`, while `Driver` does. The asymmetry is real
+  and the decision behind it is held: satisfaction is OBSERVED rather than structural, because
+  `census/interfaces.md` measured 80,042 structural matches against 1,316 the source declares.
+  Emitting every structural match is the guess that census exists to prevent.
+  DEAD ACCESSORS ON `Counter` AND `Driver` — the same fixture gap the constructors fixed for
+  `Point`, `Label` and `Tag`, and not yet for these two.
+  `wrapping_*` UNDER DOCS PROMISING PLAIN ARITHMETIC — raised in three consecutive reviews now.
+  Held, and the reason has not changed: the doc is the SOURCE's doc, the source's `add` wraps too,
+  and the mismatch is inherited rather than introduced. Three mentions is worth recording as a
+  standing disagreement rather than as a finding not yet acted on.
+
 ## Still owed by this lane
   One class the ratchet surfaced and this lane is deliberately leaving refused: `return named, err`
   where `named` is a NAMED RESULT. Go's convention says a caller may not read it after a non-nil

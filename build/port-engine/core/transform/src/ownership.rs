@@ -12,7 +12,9 @@ use port_engine_api::{Declaration, OwnershipFacts};
 use port_engine_api::PointerConstruction;
 
 use crate::error::TransformError;
-use crate::vocabulary::{FLAG_EFFECT_UNKNOWN, FLAG_ESCAPES, FLAG_MUTATED, FLAG_POINTER_RECEIVER};
+use crate::vocabulary::{
+    FLAG_EFFECT_UNKNOWN, FLAG_ESCAPES, FLAG_MUTATED, FLAG_POINTER_RECEIVER, FLAG_REBOUND,
+};
 
 /// One recorded decision, with the site it was made for.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -64,6 +66,7 @@ pub(crate) fn facts_of(declaration: &Declaration) -> OwnershipFacts {
         mutated: declaration.has_flag(FLAG_MUTATED),
         escapes: declaration.has_flag(FLAG_ESCAPES),
         effect_unknown: declaration.has_flag(FLAG_EFFECT_UNKNOWN),
+        rebound: declaration.has_flag(FLAG_REBOUND),
     }
 }
 

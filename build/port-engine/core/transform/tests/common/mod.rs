@@ -101,6 +101,7 @@ impl Pack {
             when_mutated: mutated,
             when_escapes: escapes,
             when_effect_unknown: Some(false),
+            when_rebound: None,
             target: target.to_owned(),
             receiver: receiver.map(ToOwned::to_owned),
             // A shared borrow is the neutral fixture reference form: these tests are about

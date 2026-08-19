@@ -58,6 +58,7 @@ pub(crate) fn validate_dispositions(
             when_mutated: rule.mutated,
             when_escapes: rule.escapes,
             when_effect_unknown: rule.effect_unknown,
+            when_rebound: rule.rebound,
             target: rule.target.clone(),
             receiver: rule.receiver.clone(),
             reference_target: rule.reference_target.clone(),

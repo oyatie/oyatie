@@ -412,6 +412,23 @@
   },
   "pointer_dispositions": [
     {
+      "id": "rebound_sequence_owned",
+      "rebound": true,
+      "escapes": true,
+      "target": "Option<Box<{0}>>",
+      "reference_target": "{0}",
+      "reference_reason": "THE APPEND PATTERN, and it is owned because the source says so. A sequence parameter the body REBINDS is a header the callee owns: rebinding it does not touch the caller's variable, and returning it is how the caller gets the new one back -- `dst = grow(dst, ..)` on both sides. So handing ownership over and returning it is exactly what the source does, not a cost imposed on the caller. Distinguished from the pass-through `return xs`, which does NOT rebind: there the source's caller keeps its slice and gets it back, so consuming it would take something the source never took. That one still refuses.",
+      "construction": {
+        "kind": "wrap",
+        "paths": [
+          "Box::new",
+          "Some"
+        ],
+        "reason": "The parameter owns the value, so the argument hands ownership over. `Box::new` because taking the address in the source is what allocated it, and `Some` because the parameter carries the nil the source could hold. This MOVES the argument, which the source does not do -- and it is the cost the owned form already pays at the parameter. The argument site cannot pay a different one without the two disagreeing."
+      },
+      "reason": "A sequence the body rebinds and returns is the source's append pattern, where the caller hands its slice over and takes the result back. Placed BEFORE the escaping rule because it is the more specific shape and rules are evaluated in declared order. ITS POINTER BEHAVIOUR IS DELIBERATELY IDENTICAL to that rule's: a disposition is matched on FACTS, so this one sees pointer parameters too, and only the REFERENCE form is what it exists to change. Giving it a pointer form of its own re-answered a question it was not asked -- which it did, until a coverage drop said so."
+    },
+    {
       "id": "escaping_owned",
       "escapes": true,
       "target": "Option<Box<{0}>>",
