@@ -99,6 +99,12 @@ impl<'a> Body<'a> {
         }
     }
 
+    /// The same body, with the parameters the signature already made the target's index type.
+    pub(crate) fn with_usize_parameters(mut self, names: BTreeSet<String>) -> Self {
+        self.usize_counters.extend(names);
+        self
+    }
+
     /// The same body, inside a loop that WALKS a sequence rather than counting into it.
     pub(crate) fn with_element(&self, counter: &str, sequence: &str, element: &str) -> Self {
         Self {
@@ -187,7 +193,11 @@ pub(crate) fn statements(
             returns_owned_string(declaration, resolver),
             crate::params::borrowed_parameters(declaration, resolver),
             crate::returns::ResultFacts::of(declaration, resolver, result),
-        ),
+        )
+        // A parameter the signature made a `usize` is one for the body too, and it reaches the
+        // index through the same set a proven loop counter does — so one place decides, and the
+        // signature and the body cannot disagree about whether a conversion is needed.
+        .with_usize_parameters(crate::returns::index_parameters(declaration, resolver)),
         TailPosition::Yes,
     )
 }

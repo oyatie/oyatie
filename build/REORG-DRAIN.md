@@ -2581,3 +2581,38 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
   Both forms are the pack's, and the shorter one is applied by matching the general form's own
   template rather than by editing rendered text — so a pack that changes one changes both, and a
   pack that declares no second form gets the first everywhere, exactly as before.
+
+## An index parameter is the target's index type
+
+- The reviewers' first provenance tell, four reviews running: `i64` for every integer, including
+  lengths and indices, with `as usize` inserted wherever the target's real types collide with that
+  choice. `pub fn swap(values: &mut [i64], i: i64, j: i64) { values.swap(i as usize, j as usize) }`
+  was the whole argument in one line.
+
+- A parameter used for NOTHING BUT indexing is a `usize`. Same proof the loop counter uses, one
+  scope out: a name whose every read is an index operand never has its signed value observed. Gated
+  by the SAME pack idiom, so a pack that drops it gets the conversions back in both places or in
+  neither.
+
+  Stricter, never different: no value the source accepts there is one the target does not. A
+  NEGATIVE argument the source would take and then reject with a bounds check is one the target now
+  rejects at the call, which is the same program failing earlier.
+
+- THE RIPPLE IS THE POINT, and it is why this waited. A parameter's value comes from a CALLER, so
+  changing its type changes the call. The signature table already carried each parameter's target
+  type for the ownership decision, so an argument crossing into an index type converts there — the
+  same conversion an index operand makes, at the one other place a value enters that type.
+
+  Without it the callee would have a signature its own callers could not satisfy, which is a worse
+  defect than the conversion this removes. That is the shape of every parameter-side idiom: the
+  signature, the body and the call site all have to move together, and the signature table is what
+  lets them.
+
+- Result: `pub fn swap(values: &mut [i64], i: usize, j: usize) { values.swap(i, j); }`.
+
+- REAL PACKAGES, re-measured after this and the failure alias: xxhash 20, ksuid 66, uuid 60, xid 9,
+  errors 22, semver 66 rustc errors. Up slightly from 226 to 243 in total, and the reason is worth
+  recording rather than hiding: the alias and the index parameter both changed signatures, and a
+  signature that changes while the names it references still do not resolve produces the same
+  unresolved-name error at a new place. The 96% cause is unchanged and untouched, and nothing here
+  was going to move it.

@@ -50,7 +50,14 @@ pub(crate) fn params(
             // exactly as a pointer is, so it gets the same decision on the same observed facts.
             // Emitting it owned would consume the caller's value and lose the sharing, which is
             // what a reviewer probing the emitted crate found: `size(my_table)` lost `my_table`.
-            let ty = if is_reference_kind(&param.type_ref) {
+            // A parameter used for NOTHING BUT indexing is a `usize`, exactly as a loop counter
+            // is. Its every value reaches the target's index, which is unsigned — so the signed
+            // type exists only to be converted, and a NEGATIVE argument the source would reject
+            // with a bounds check becomes one the target rejects at the call. Stricter, never
+            // different: no value the source accepts here is one the target does not.
+            let ty = if crate::returns::indexes_only_parameter(declaration, param, resolver) {
+                RustType::path("usize")
+            } else if is_reference_kind(&param.type_ref) {
                 RustType::path(reference_target(
                     param,
                     &borrowed_spelling(param, resolver, &declaration.name)?,

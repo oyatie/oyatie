@@ -43,6 +43,15 @@ fn argument(
 ) -> Result<RustExpr, TransformError> {
     let target = cx.resolver.signatures.param(callee, index);
 
+    // A parameter the callee's signature made the target's INDEX TYPE takes an index. The caller's
+    // value is the source's own integer, so it converts here — the same conversion an index
+    // operand makes, at the one other place a value crosses into that type. Without it the callee
+    // would have a signature its own callers could not satisfy, which is a worse defect than the
+    // conversion this removes from inside the callee.
+    if target.is_some_and(|target| target.ty.spelling() == "usize") {
+        return crate::body_index::index_operand(node, cx);
+    }
+
     if node.kind == KIND_UNARY && operator_of(node, cx)? == OPERATOR_ADDRESS_OF {
         let operand = expression(one_child(node, cx, KIND_UNARY)?, cx)?;
         let construction = target

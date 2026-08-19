@@ -46,6 +46,14 @@ impl Resolver<'_> {
     /// call to a value of function type, a conversion, or a method value — each a real shape with
     /// no path form, and each better refused by name than emitted as the source's own spelling,
     /// which would name nothing in the target.
+    /// Whether the pack declares the idiom that an index-only name is the target's index type.
+    ///
+    /// Asked here so the parameter rule and the loop-counter rule are gated by the SAME declaration:
+    /// a pack that drops it gets the conversions back in both places or in neither.
+    pub(crate) fn idiom_index_counter(&self) -> Option<&str> {
+        self.idiom_method(crate::vocabulary::IDIOM_INDEX_COUNTER)
+    }
+
     /// The name this unit gives the failure type, when the pack declares one.
     ///
     /// `None` where it does not, and every signature then spells the type out — which is what the
