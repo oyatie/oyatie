@@ -24,7 +24,7 @@ use crate::body_parts::{branch, named_child, one_child, two_children};
 use crate::error::TransformError;
 use crate::naming::to_snake_case;
 use crate::vocabulary::{
-    ATTR_OP, CHILD_BIND, CHILD_PLACE, CHILD_VALUE, FLAG_INFERRED, FLAG_MUTATED, IDIOM_SWAP,
+    ATTR_LIT_KIND, ATTR_OP, CHILD_BIND, CHILD_PLACE, CHILD_VALUE, FLAG_INFERRED, FLAG_MUTATED, IDIOM_SWAP, KIND_LITERAL, LIT_KIND_FLOAT, LIT_KIND_INT,
 };
 
 pub(crate) fn statement(
@@ -57,7 +57,21 @@ pub(crate) fn statement(
             // needs it, and annotating one the source never wrote puts a type on every short
             // declaration in every body — noise the author did not write and the target does not
             // need, since it infers exactly what the source inferred.
-            ty: match node.type_ref.is_empty() || node.has_flag(FLAG_INFERRED) {
+            //
+            // Unless the value is a bare NUMERIC LITERAL, where the two languages disagree about
+            // what "inferred" means. The source's untyped constant takes a DEFAULT type — its own
+            // `int`, which this pack maps to a 64-bit one — and the target infers from the uses
+            // instead. Where the uses do not pin it the target cannot compile the binding at all,
+            // and where they pin it differently the binding is a different width than the source
+            // gave it. So the type is kept, and the IR spells it as a suffix rather than an
+            // annotation, which is what a person writing `0i64` writes.
+            //
+            // A binding with NO recorded type is separate from both and always bare: a body-scoped
+            // constant has no type in the source until something uses it, so there is nothing to
+            // annotate with and nothing is claimed.
+            ty: match node.type_ref.is_empty()
+                || (node.has_flag(FLAG_INFERRED) && !starts_as_untyped_number(node))
+            {
                 true => None,
                 false => Some(cx.resolver.resolve_in(
                     &node.type_ref,
@@ -219,4 +233,18 @@ fn reads_once(place: &RustExpr) -> bool {
         RustExpr::Index { base, index } => reads_once(base) && reads_once(index),
         _ => false,
     }
+}
+
+/// Whether this binding's value is a bare numeric literal, whose type the source DEFAULTS.
+///
+/// The one case where dropping an inferred annotation changes the program. Every other inferred
+/// binding takes its type from an expression that already has one, and the target infers exactly
+/// what the source did; a bare number has no type in the source until something uses it, and the
+/// two languages pick differently — or, where nothing pins it, the target picks nothing at all and
+/// refuses to compile.
+fn starts_as_untyped_number(node: &Declaration) -> bool {
+    node.children.first().is_some_and(|value| {
+        value.kind == KIND_LITERAL
+            && matches!(value.attr(ATTR_LIT_KIND), Some(LIT_KIND_INT | LIT_KIND_FLOAT))
+    })
 }

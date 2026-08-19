@@ -172,9 +172,13 @@ pub(crate) fn identity_test(
     if convention.identity_test.is_empty() {
         return Ok(None);
     }
+    // Through the RESOLVER, which is where the sentinel's type name is decided once. Casing it
+    // here instead is how the declaration came out `Gone` and the test asking about it came out
+    // `ErrGone` — the exact disagreement that decision exists to prevent, reintroduced by the one
+    // site that did not ask.
     let sentinel_of = |node: &Declaration| {
         (node.kind == KIND_IDENT && cx.resolver.scope.sentinels.contains_key(&node.name))
-            .then(|| to_pascal_case(&node.name))
+            .then(|| cx.resolver.sentinel_type_name(&node.name))
     };
     let (sentinel, subject) = match (sentinel_of(lhs), sentinel_of(rhs)) {
         // BOTH sides a sentinel is a comparison of two known types, which the source can write and

@@ -163,7 +163,10 @@ fn comparing_against_a_sentinel_asks_what_the_failure_holds() {
     };
     let source: String = ported.files.iter().map(|file| file.source.as_str()).collect();
     assert!(
-        source.contains("downcast_ref::<ErrGone>()"),
-        "a sentinel comparison must ask the failure what it holds:\n{source}"
+        source.contains("downcast_ref::<Gone>()"),
+        "a sentinel comparison must ask the failure what it holds, BY THE NAME THE DECLARATION \
+         TOOK — the source's `Err` prefix is dropped, and this assertion held the old spelling \
+         while the declaration held the new one, which is the disagreement it exists to catch:\n\
+         {source}"
     );
 }
