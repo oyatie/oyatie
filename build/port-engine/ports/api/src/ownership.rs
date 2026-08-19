@@ -21,6 +21,12 @@ pub struct OwnershipFacts {
     /// pointer to an unanalysed callee is indistinguishable from one that does nothing with it,
     /// and the second answer is safe while the first is a guess.
     pub effect_unknown: bool,
+    /// The body assigns to the binding's OWN name.
+    ///
+    /// A fact about the CALLEE's copy rather than about the caller's value: rebinding a sequence
+    /// parameter does not touch the caller's variable, which is what makes the source's append
+    /// pattern — rebind, return, and let the caller reassign — an owned form rather than a cost.
+    pub rebound: bool,
 }
 
 impl OwnershipFacts {
@@ -73,6 +79,12 @@ pub struct PointerDisposition {
     pub when_escapes: Option<bool>,
     /// Required `effect_unknown` value, or `None` for "do not care".
     pub when_effect_unknown: Option<bool>,
+    /// Required `rebound` value, or `None` for "do not care".
+    ///
+    /// Rebinding is a fact about the CALLEE's own copy rather than about the caller's value, which
+    /// is why it earns a condition of its own: a sequence the body rebinds and returns is the
+    /// source's append pattern, where the caller hands its slice over and takes the result back.
+    pub when_rebound: Option<bool>,
     /// Target type template for a PARAMETER position, with `{0}` for the pointee.
     pub target: String, // data_class: INTERNAL_ONLY
     /// Target form for a RECEIVER position: `&self`, `&mut self`, `self`.
@@ -105,7 +117,8 @@ impl PointerDisposition {
     /// Whether this rule accepts `facts`.
     #[must_use]
     pub fn accepts(&self, facts: OwnershipFacts) -> bool {
-        matches(self.when_mutated, facts.mutated)
+        matches(self.when_rebound, facts.rebound)
+            && matches(self.when_mutated, facts.mutated)
             && matches(self.when_escapes, facts.escapes)
             && matches(self.when_effect_unknown, facts.effect_unknown)
     }

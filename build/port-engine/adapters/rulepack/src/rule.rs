@@ -52,6 +52,9 @@ pub struct DispositionRule {
     /// Required `effect_unknown` value; omitted means "do not care".
     #[serde(default)]
     pub effect_unknown: Option<bool>,
+    /// Required `rebound` value; omitted means "do not care".
+    #[serde(default)]
+    pub rebound: Option<bool>,
     /// Target type template for a parameter, with `{0}` for the pointee.
     pub target: String,
     /// Target form for a receiver. Absent means this disposition declines the receiver position,

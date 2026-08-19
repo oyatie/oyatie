@@ -15,6 +15,9 @@ fn rule(
         when_mutated: mutated,
         when_escapes: escapes,
         when_effect_unknown: effect_unknown,
+        // These tests are about which rule matches on the ownership facts; rebinding is a
+        // separate axis and is left uncared-about so every existing case keeps its meaning.
+        when_rebound: None,
         target: format!("{id}<{{0}}>"),
         receiver: receiver.map(ToOwned::to_owned),
         // A shared borrow is the neutral fixture reference form: these tests are about
@@ -36,6 +39,7 @@ fn facts(mutated: bool, escapes: bool, effect_unknown: bool) -> OwnershipFacts {
         mutated,
         escapes,
         effect_unknown,
+        rebound: false,
     }
 }
 
