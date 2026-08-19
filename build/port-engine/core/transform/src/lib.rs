@@ -57,6 +57,7 @@ mod items;
 mod length_consts;
 mod items_self;
 mod items_types;
+mod items_value;
 mod items_sentinels;
 mod items_static;
 mod naming;

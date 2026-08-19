@@ -222,6 +222,7 @@ pub(crate) fn survey_declaration<P>(
         format_calls: pack.format_calls(),
         unmappable_calls: pack.unmappable_calls(),
         unmappable_types: pack.unmappable_types(),
+        binary_string: pack.binary_string(),
         integer_arithmetic: pack.integer_arithmetic(),
         doc_convention: pack.doc_convention(),
         derives: pack.derives(),

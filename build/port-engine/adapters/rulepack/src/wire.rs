@@ -9,7 +9,7 @@ use serde::Deserialize;
 
 use crate::CONFLICT_REFUSE;
 use crate::rule::{DeferredKind, DeriveWireRule, DispositionRule, DocConventionRule, FunctionMappingRule, IdiomWireRule, IntegerArithmeticRule, SelectingFixture, TraitReceiver, UndecidedForm};
-use crate::rule_format::{FormatCallsRule, FormatFunctionRule, TargetImportsRule, UnmappableCallsRule, UnmappableTypesRule};
+use crate::rule_format::{FormatCallsRule, FormatFunctionRule, TargetImportsRule, UnmappableCallsRule, UnmappableTypesRule, BinaryStringRule};
 use crate::rule::{ConstantMap, LengthFunctions, ProseTypeNames};
 
 fn default_conflict() -> String {
@@ -56,6 +56,8 @@ pub(crate) struct RulepackDocument {
     pub(crate) unmappable_calls: Option<UnmappableCallsRule>,
     #[serde(default)]
     pub(crate) unmappable_types: Option<UnmappableTypesRule>,
+    #[serde(default)]
+    pub(crate) binary_string: Option<BinaryStringRule>,
     #[serde(default)]
     pub(crate) integer_arithmetic: Option<IntegerArithmeticRule>,
     #[serde(default)]

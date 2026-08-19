@@ -10,7 +10,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use crate::declaration::Declaration;
 use crate::error::PortError;
 use crate::failure::{
-    DeriveRule, DocConvention, FailureConvention, FormatCalls, FunctionMapping, IdiomRule,
+    BinaryString, DeriveRule, DocConvention, FailureConvention, FormatCalls, FunctionMapping, IdiomRule,
     IntegerArithmetic,
 };
 use crate::identity::{Digest, LanguagePair, RegionId, RuleId, UnitId};
@@ -155,6 +155,8 @@ pub trait PackSemantics {
     /// mapping is owed; one it has looked at refuses saying a mapping would be wrong — the target
     /// has a type of the same name or purpose and a different shape.
     fn unmappable_types(&self) -> &BTreeMap<String, String>;
+    /// What a source string constant becomes when its content is not text.
+    fn binary_string(&self) -> &BinaryString;
     /// Callees that TAKE a length, so a read there is not evidence against a constant being one.
     ///
     /// The mirror of [`Self::length_functions`]: that one names callees whose VALUE is a length,
