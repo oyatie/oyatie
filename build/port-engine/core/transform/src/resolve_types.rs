@@ -16,7 +16,7 @@ use crate::error::TransformError;
 use crate::naming::{module_path, to_pascal_case};
 use crate::resolve::Resolver;
 use crate::resolve_tables::table_key;
-use crate::vocabulary::TYPE_NAMED_INTERFACE;
+use crate::vocabulary::{TYPE_INTERFACE, TYPE_NAMED_INTERFACE};
 
 impl Resolver<'_> {
     /// The path a named type resolves to, ignoring the question of how a position holds it.
@@ -52,6 +52,35 @@ impl Resolver<'_> {
         type_ref: &TypeRef,
         declaration_name: &str,
     ) -> Result<RustType, TransformError> {
+        // The source's BARE interface — `interface{}`, spelled `any` since go1.18 — which is not a
+        // trait and not a type variable but a value carrying its own type at runtime. The target
+        // has no counterpart, and the three things it might become each lose something different:
+        // a type parameter fixes ONE type per call where the source admits a different one at every
+        // call; `Box<dyn Any>` keeps the dynamism and loses every operation, since the source's
+        // callers recover the value by type assertion and the target's must name the type to
+        // downcast; and a purpose-built enum invents a closed set where the source has an open one.
+        //
+        // So this refuses by name rather than picking one. What is missing is a DECISION about what
+        // the source's dynamic value becomes, and the decision is not the same for every use: the
+        // 11 direct and 4 nested sites in the surveyed corpora are a type assertion helper, a
+        // database scan target, and the variadic tail of a formatting call, which want different
+        // answers. A single mapping would be wrong for at least two of the three.
+        if type_ref.kind == TYPE_INTERFACE {
+            return Err(TransformError::UnmappedType {
+                unit: self.unit.0.clone(),
+                name: declaration_name.to_owned(),
+                type_ref: format!(
+                    "{} — the source's bare interface is a value carrying its own type at runtime, \
+                     and the target has no counterpart. A type parameter fixes one type per call \
+                     where the source admits a different one at every call; `Box<dyn Any>` keeps \
+                     the dynamism and loses every operation; an enum invents a closed set where the \
+                     source has an open one. What is missing is a decision about which, and it is \
+                     not the same decision for a type-assertion target as for a formatting argument",
+                    type_ref.describe()
+                ),
+            });
+        }
+
         // Nested inside a composite, which STORES the value: same answer, same reason.
         if self.is_failure_type(type_ref) {
             return self.failure_target(declaration_name).map(RustType::path);

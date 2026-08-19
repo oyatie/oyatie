@@ -2076,3 +2076,21 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
 - UNPUSHED. The branch is 67 commits ahead of `origin/dev` with no open PR — #2117 merged and its
   head ref is gone. The work is committed locally and needs a push and a fresh PR to enter the
   governance pipeline.
+
+## The bare interface, refused with the reason it is owed
+
+- `unmapped type \`interface\`` was the second-largest cause on the board and its refusal said
+  nothing: a reader learned that no rule fired, not what was missing. A refusal that cannot be acted
+  on is a refusal that will be re-derived by whoever meets it next.
+
+- What is missing is a DECISION, and the point is that it is not one decision. The source's bare
+  interface is a value carrying its own type at runtime, and the three things it might become each
+  lose something different: a type parameter fixes ONE type per call where the source admits a
+  different one at every call; `Box<dyn Any>` keeps the dynamism and loses every operation, because
+  the source's callers recover the value by type assertion and the target's must name the type to
+  downcast; a purpose-built enum invents a closed set where the source has an open one.
+
+- The 11 direct and 4 nested sites in the surveyed corpora are a type-assertion helper
+  (`errors.As`), a database scan target, and the variadic tail of a formatting call — which want
+  different answers. A single mapping would be wrong for at least two of the three, which is why
+  this stays refused rather than becoming one more table row.
