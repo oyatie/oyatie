@@ -1,0 +1,9 @@
+[package]
+name = "intelligence-context-aware-retrieval-domain"
+version = "0.1.0"
+edition = "2024"
+license = "Apache-2.0"
+publish = false
+
+[dependencies]
+intelligence-context-aware-retrieval-kernel = { path = "../context-aware-retrieval-kernel" }

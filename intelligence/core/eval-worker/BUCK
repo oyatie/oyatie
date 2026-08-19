@@ -1,0 +1,23 @@
+rust_library(
+    name = "intelligence-eval-worker",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "intelligence_eval_worker",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//intelligence/adapters/eval-adapter:intelligence-eval-adapter",
+        "//intelligence/core/eval-usecase:intelligence-eval-usecase",
+    ],
+)
+
+rust_test(
+    name = "intelligence-eval-worker-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "intelligence_eval_worker",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//intelligence/adapters/eval-adapter:intelligence-eval-adapter",
+        "//intelligence/core/eval-usecase:intelligence-eval-usecase",
+    ],
+)

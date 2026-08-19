@@ -16,7 +16,7 @@
   },
   "codes": {
     "skip_non_literal_argument": [
-      "intelligence/core/openapi-domain/src/lib.rs:6088"
+      "intelligence/core/openapi-domain/src/lib.rs:6158"
     ],
     "skip_absolute_literal": [],
     "skip_build_output_path": [],

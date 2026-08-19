@@ -1,0 +1,23 @@
+rust_library(
+    name = "intelligence-providers-adapter-openai",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "intelligence_providers_adapter_openai",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//intelligence/core/dispatch-usecase:intelligence-dispatch-usecase",
+        "//intelligence/core/model-routing-domain:intelligence-model-routing-domain",
+    ],
+)
+
+rust_test(
+    name = "intelligence-providers-adapter-openai-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "intelligence_providers_adapter_openai",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//intelligence/core/dispatch-usecase:intelligence-dispatch-usecase",
+        "//intelligence/core/model-routing-domain:intelligence-model-routing-domain",
+    ],
+)

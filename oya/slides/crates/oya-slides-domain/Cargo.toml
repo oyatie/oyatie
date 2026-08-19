@@ -8,8 +8,8 @@ license = "Apache-2.0"
 
 [dependencies]
 oya-data-boundary-kernel = { path = "../../../../libs/oya-data-boundary-kernel" }
-oya-collab-runtime-domain = { path = "../../../intelligence/crates/oya-collab-runtime-domain" }
-oya-document-format-domain = { path = "../../../intelligence/crates/oya-document-format-domain" }
+intelligence-collab-runtime-domain = { path = "../../../../intelligence/core/collab-runtime-domain" }
+intelligence-document-format-domain = { path = "../../../../intelligence/core/document-format-domain" }
 
 [lib]
 name = "oya_slides_domain"

@@ -1,0 +1,12 @@
+[package]
+name = "intelligence-api"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+license = "Apache-2.0"
+
+[dependencies]
+oya-application-app = { path = "../../../oya/application/crates/oya-application-app" }
+
+[lints]
+workspace = true

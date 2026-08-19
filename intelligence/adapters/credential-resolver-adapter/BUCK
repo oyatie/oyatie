@@ -1,0 +1,43 @@
+rust_library(
+    name = "intelligence-credential-resolver-adapter",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "intelligence_credential_resolver_adapter",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//intelligence/core/credential-resolver-domain:intelligence-credential-resolver-domain",
+        "//intelligence/core/credential-resolver-usecase:intelligence-credential-resolver-usecase",
+        "third-party//:bytes",
+        "third-party//:http-body-util",
+        "third-party//:hyper",
+        "third-party//:hyper-util",
+        "third-party//:serde",
+        "third-party//:serde_json",
+        "third-party//:serde_json",
+        "third-party//:tokio",
+        "third-party//:tokio",
+        "third-party//:tracing",
+    ],
+)
+
+rust_test(
+    name = "intelligence-credential-resolver-adapter-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "intelligence_credential_resolver_adapter",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//intelligence/core/credential-resolver-domain:intelligence-credential-resolver-domain",
+        "//intelligence/core/credential-resolver-usecase:intelligence-credential-resolver-usecase",
+        "third-party//:bytes",
+        "third-party//:http-body-util",
+        "third-party//:hyper",
+        "third-party//:hyper-util",
+        "third-party//:serde",
+        "third-party//:serde_json",
+        "third-party//:serde_json",
+        "third-party//:tokio",
+        "third-party//:tokio",
+        "third-party//:tracing",
+    ],
+)
