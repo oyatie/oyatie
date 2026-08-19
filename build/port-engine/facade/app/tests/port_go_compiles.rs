@@ -104,14 +104,19 @@ fn emitted_rust_carries_the_corpus() {
         );
     }
 
-    // A package variable NOTHING WRITES is a `static`, and it must be one rather than a `const`:
-    // the source variable has one storage location for the life of the program and a `const` is
-    // materialised afresh at every use, so `&X` would differ per use. The variable something
-    // writes is the one that stays undecided, and it is proven in the refusal corpus.
-    for expected in ["pub static ENABLED: bool = true", "pub static THRESHOLD: f64 = 0.75"] {
+    // A package variable NOTHING WRITES is a `const`. It emitted `static` at first, on the argument
+    // that the source variable has one storage location while a `const` is materialised afresh at
+    // every use — sound, and protecting nothing: taking the address of a package variable is `&x`
+    // of an existing binding, which the engine refuses everywhere, so no emitted code can observe
+    // the difference. What the `const`/`static` split DID carry was the source's own const/var
+    // split, which is a limitation of the source rather than a distinction worth porting.
+    //
+    // The variable something WRITES is the one that stays undecided, and it is proven in the
+    // refusal corpus.
+    for expected in ["pub const ENABLED: bool = true", "pub const THRESHOLD: f64 = 0.75"] {
         assert!(
             source.contains(expected),
-            "an unwritten package variable must be a static:\n{source}"
+            "an unwritten package variable must be a const:\n{source}"
         );
     }
 }

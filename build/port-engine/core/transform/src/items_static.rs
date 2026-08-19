@@ -62,7 +62,7 @@ pub(crate) fn build_static(
     // is not that the call can be evaluated early but that the call is unnecessary until a return
     // needs one. See `sentinel.rs` for what this costs.
     if let Some(message) = resolver.scope.sentinels.get(&declaration.name) {
-        return Ok(RustItem::Static {
+        return Ok(RustItem::PackageValue {
             docs: docs_of(declaration, resolver.doc_convention),
             vis: visibility(declaration),
             name: to_screaming_snake(&declaration.name),
@@ -105,7 +105,7 @@ pub(crate) fn build_static(
             expression(initialiser, &body)?
         }
     };
-    Ok(RustItem::Static {
+    Ok(RustItem::PackageValue {
         docs: docs_of(declaration, resolver.doc_convention),
         vis: visibility(declaration),
         name: to_screaming_snake(&declaration.name),

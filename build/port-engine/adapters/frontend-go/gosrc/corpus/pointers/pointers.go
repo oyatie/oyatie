@@ -36,7 +36,10 @@ func (c *Counter) Total() int {
 
 // No pointer at all — the receiver is a copy, so no disposition question arises.
 
-// Label reports the counter's name, by value receiver.
+// The receiver is taken BY VALUE, which is a copy in the source and raises no ownership question
+// at all — the case that has to be beside the two that do.
+
+// Label reports the counter's name.
 func (c Counter) Label() string {
 	return c.label
 }
@@ -44,7 +47,7 @@ func (c Counter) Label() string {
 // The receiver is mutated; `other` is read-only. Two pointers in one signature, with different
 // answers — a rule that keys on the type rather than on the facts gives them the same one.
 
-// Merge folds other into the receiver.
+// Merge folds other into this counter.
 func (c *Counter) Merge(other *Counter) {
 	c.total = c.total + other.total
 }

@@ -35,7 +35,10 @@ func Scale(value float64, factor float64) float64 {
 	return value * factor
 }
 
-// unexported returns n unchanged, and is not part of this package's public surface.
+// Lower-case, so the source does not export it. Here because the emitted crate must keep the
+// distinction: a private helper that becomes public is a wider API than the source declared.
+
+// unexported returns n unchanged.
 func unexported(n int) int {
 	return n
 }

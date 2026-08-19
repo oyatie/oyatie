@@ -49,9 +49,12 @@ func (e *Engine) Run() int {
 	return e.calls
 }
 
-// Driver embeds an Engine and gains its methods.
+// Embedding is the shape under test: the outer type gains the inner's methods with nothing
+// declared, and Rust has no such rule, so the promotion has to become an explicit forward.
+
+// Driver runs work through an engine and describes what it is doing.
 type Driver struct {
-	// Engine is embedded, so Driver's method set includes Run without declaring it.
+	// Engine performs the work this driver drives.
 	Engine
 	// label describes this driver.
 	label string

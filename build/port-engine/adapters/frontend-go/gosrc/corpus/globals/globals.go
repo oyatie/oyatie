@@ -16,17 +16,21 @@
 // self-contained — so the writer and the variables it writes belong where refusals are proven.
 package globals
 
-// Prefix is initialised from a literal and never written. A string literal is a BORROW in the
-// target, and the owned form cannot be built by a constant expression at all.
+// A string literal is a borrow in Rust and the owned form is not a constant expression, so this is
+// the case that decides what a never-written string variable becomes.
+
+// Prefix is the identity prefix every generated name starts with.
 var Prefix = "id-"
 
-// Limit is declared with no initialiser and never written, so it is only ever read as its zero
-// value — and a zero is a value rather than work, so nothing about it happens at a time.
+// No initialiser and never written, so its value is the zero — which is a value rather than work,
+// and therefore has no when-does-it-happen question of the kind that defers package init.
+
+// Limit is the ceiling this component will not exceed. Zero means unbounded.
 var Limit int64
 
 // Describe touches no package variable, which is what lets it be emitted beside two that are.
 
-// Describe returns the name of this package.
+// Describe returns the name of this component.
 func Describe() string {
 	return "globals"
 }
