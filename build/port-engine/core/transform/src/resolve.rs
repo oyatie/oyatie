@@ -184,6 +184,17 @@ pub(crate) struct Resolver<'a> {
     pub(crate) receiver: Option<(&'a str, &'a str)>,
     /// The pack's ownership rules, and the log every decision is recorded into.
     pub(crate) ownership: &'a OwnershipContext<'a>,
+    /// The names of THIS unit that will actually be emitted.
+    ///
+    /// Self-containment one step further in than [`Self::units`]: a body may name a declaration of
+    /// its own unit that itself REFUSED, and the emitted crate then has a call to a function it
+    /// does not contain. That is the same defect as naming another package, arrived at from the
+    /// inside, and it is what remains of the unresolved-name errors after the package rule.
+    ///
+    /// Deciding it needs a FIXPOINT — a declaration is emitted only if everything it names is
+    /// emitted, which may make more refuse, which may make more refuse. The strict pipeline needs
+    /// no iteration because it requires every declaration to translate, so it passes every name.
+    pub(crate) emitted: &'a BTreeSet<String>,
     /// Every unit the MODEL has, which is every module the emitted crate will contain.
     ///
     /// What is emitted has to be SELF-CONTAINED. A name from a package outside the model has no

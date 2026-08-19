@@ -2645,3 +2645,38 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
 
 - The number that matters did not change: nothing here made the engine translate more. It made it
   stop claiming to.
+
+## The fixpoint, and the eighth honest correction
+
+- After the package rule, 78 of the remaining 110 compile errors were the SAME rule one step further
+  in: a body naming a declaration of its OWN unit that itself refused. The emitted crate then has a
+  call to a function it does not contain — the same defect as naming another package, arrived at
+  from the inside.
+
+- Deciding it needs a FIXPOINT, because refusing one declaration may make another refuse, which may
+  make another. Starting from "everything is emittable" and SHRINKING is the whole of the design:
+  the set only ever loses members, so it converges; and it gets MUTUALLY RECURSIVE functions right,
+  because both translate and neither is removed. Starting from empty and growing would also converge
+  and would refuse them both, since on the first round neither can see the other.
+
+  Only a REFUSAL removes a name. A declaration nothing captures is deferred or uncaptured, and
+  neither means the name is absent for a caller's purposes.
+
+  The strict pipeline needs no iteration and does none: it requires every declaration to translate,
+  so it passes every name and behaves exactly as before.
+
+- Then the same gate at the two remaining places a name can enter the crate — a TYPE this unit
+  declares and is not emitting, and an IDENT naming a package-scope declaration that refused. Three
+  sites, one rule, and the third was the last.
+
+- THE CORRECTION, cumulative over both rounds: xxhash 73.5 → 38.2, ksuid 49.5 → 21.5, uuid 46.4 →
+  26.8, errors 47.4 → 15.8, xid 30.8 → 15.4, semver 51.7 → 32.8.
+
+- AND WHAT IT BOUGHT, which is the number that was worth having: rustc errors on the six ported
+  packages fell from 243 to 29, across 327 emitted lines. `semver` compiles with ZERO errors and
+  `xid` with one. Before this session the engine could not emit a real package at all; it now emits
+  six, and one of them builds.
+
+- The coverage numbers halved and they are now worth something. Every point removed was a
+  declaration counted as translated while emitting a name that resolves to nothing — which is not a
+  translation, it is a claim.

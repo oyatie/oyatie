@@ -222,7 +222,7 @@ pub(crate) fn translate(
         // call, hands its failure out, and reports success — which is what the call already does.
         // The extra shape exists because the SOURCE could not say it in one statement, and the
         // target can; a reviewer reading `check(s)?; Ok(())` in a two-line function said so.
-        if let Some(forwarded) = crate::body_failure::forwarded_call(nodes, index, cx, tail)? {
+        if let Some(forwarded) = crate::body_forward::forwarded_call(nodes, index, cx, tail)? {
             out.push(forwarded);
             index += 3;
             continue;

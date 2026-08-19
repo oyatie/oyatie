@@ -15,7 +15,8 @@ use crate::body_place::{
 };
 use crate::body_parts::{one_child, two_children, unsupported_source};
 use crate::body_index::slice;
-use crate::body_call::{call, constructed};
+use crate::body_argument::constructed;
+use crate::body_call::call;
 use crate::body_literal::{composite, zero_value};
 use crate::body_idiom::emptiness_test;
 use crate::body_ops::{
